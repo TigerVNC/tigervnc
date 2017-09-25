@@ -92,8 +92,8 @@ DecodeManager::~DecodeManager()
   delete producerCond;
   delete queueMutex;
 
-  for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
-    delete decoders[i];
+  for (auto & decoder : decoders)
+    delete decoder;
 }
 
 void DecodeManager::decodeRect(const Rect& r, int encoding,

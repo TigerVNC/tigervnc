@@ -556,10 +556,8 @@ int main(int argc, char** argv)
       while (sock == NULL) {
         fd_set rfds;
         FD_ZERO(&rfds);
-        for (std::list<TcpListener*>::iterator i = listeners.begin();
-             i != listeners.end();
-             i++)
-          FD_SET((*i)->getFd(), &rfds);
+        for (auto & listener : listeners)
+          FD_SET(listener->getFd(), &rfds);
 
         int n = select(FD_SETSIZE, &rfds, 0, 0, 0);
         if (n < 0) {
@@ -571,11 +569,9 @@ int main(int argc, char** argv)
           }
         }
 
-        for (std::list<TcpListener*>::iterator i = listeners.begin ();
-             i != listeners.end();
-             i++)
-          if (FD_ISSET((*i)->getFd(), &rfds)) {
-            sock = (*i)->accept();
+        for (auto & listener : listeners)
+          if (FD_ISSET(listener->getFd(), &rfds)) {
+            sock = listener->accept();
             if (sock)
               /* Got a connection */
               break;

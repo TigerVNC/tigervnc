@@ -194,9 +194,9 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   buflen -= 1;
 
   // Reset zlib streams if we are told by the server to do so.
-  for (int i = 0; i < 4; i++) {
+  for (auto & zi : zis) {
     if (comp_ctl & 1) {
-      zis[i].reset();
+      zi.reset();
     }
     comp_ctl >>= 1;
   }

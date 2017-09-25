@@ -206,15 +206,15 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
     } else {
 
-      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
+      for (auto & j : replaceMap) {
 
-        if (val[i] == replaceMap[j].first) {
+        if (val[i] == j.first) {
           dest[pos] = '\\';
           pos++;
           if (pos >= destSize)
             return false;
 
-          dest[pos] = replaceMap[j].second;
+          dest[pos] = j.second;
           normalCharacter = false;
           break;
         }
@@ -246,9 +246,9 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
     // Check for escape sequences
     if (val[i] == '\\') {
       
-      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
-        if (val[i+1] == replaceMap[j].second) {
-          dest[pos] = replaceMap[j].first;
+      for (auto & j : replaceMap) {
+        if (val[i+1] == j.second) {
+          dest[pos] = j.first;
           escapedCharacter = true;
           pos--;
           break;
@@ -527,17 +527,17 @@ void saveViewerParameters(const char *filename, const char *servername) {
   if (encodeValue(servername, encodingBuffer, buffersize))  
     fprintf(f, "ServerName=%s\n", encodingBuffer);
   
-  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
-    if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
-      if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
-        fprintf(f, "%s=%s\n", ((StringParameter*)parameterArray[i])->getName(), encodingBuffer);
-    } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
-      fprintf(f, "%s=%d\n", ((IntParameter*)parameterArray[i])->getName(), (int)*(IntParameter*)parameterArray[i]);
-    } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
-      fprintf(f, "%s=%d\n", ((BoolParameter*)parameterArray[i])->getName(), (int)*(BoolParameter*)parameterArray[i]);
+  for (auto & i : parameterArray) {
+    if (dynamic_cast<StringParameter*>(i) != NULL) {
+      if (encodeValue(*(StringParameter*)i, encodingBuffer, buffersize))
+        fprintf(f, "%s=%s\n", ((StringParameter*)i)->getName(), encodingBuffer);
+    } else if (dynamic_cast<IntParameter*>(i) != NULL) {
+      fprintf(f, "%s=%d\n", ((IntParameter*)i)->getName(), (int)*(IntParameter*)i);
+    } else if (dynamic_cast<BoolParameter*>(i) != NULL) {
+      fprintf(f, "%s=%d\n", ((BoolParameter*)i)->getName(), (int)*(BoolParameter*)i);
     } else {      
       vlog.error(_("Unknown parameter type for parameter %s"),
-                 parameterArray[i]->getName());
+                 i->getName());
     }
   }
   fclose(f);
@@ -640,35 +640,35 @@ char* loadViewerParameters(const char *filename) {
     } else {
     
       // Find and set the correct parameter
-      for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+      for (auto & i : parameterArray) {
 
-        if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((StringParameter*)parameterArray[i])->getName()) == 0) {
+        if (dynamic_cast<StringParameter*>(i) != NULL) {
+          if (strcasecmp(line, ((StringParameter*)i)->getName()) == 0) {
 
             if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
               vlog.error(_("Failed to read line %d in file %s: %s"),
                          lineNr, filepath, _("Invalid format or too large value"));
               continue;
             }
-            ((StringParameter*)parameterArray[i])->setParam(decodingBuffer);
+            ((StringParameter*)i)->setParam(decodingBuffer);
             invalidParameterName = false;
           }
 
-        } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((IntParameter*)parameterArray[i])->getName()) == 0) {
-            ((IntParameter*)parameterArray[i])->setParam(atoi(value));
+        } else if (dynamic_cast<IntParameter*>(i) != NULL) {
+          if (strcasecmp(line, ((IntParameter*)i)->getName()) == 0) {
+            ((IntParameter*)i)->setParam(atoi(value));
             invalidParameterName = false;
           }
 
-        } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((BoolParameter*)parameterArray[i])->getName()) == 0) {
-            ((BoolParameter*)parameterArray[i])->setParam(atoi(value));
+        } else if (dynamic_cast<BoolParameter*>(i) != NULL) {
+          if (strcasecmp(line, ((BoolParameter*)i)->getName()) == 0) {
+            ((BoolParameter*)i)->setParam(atoi(value));
             invalidParameterName = false;
           }
 
         } else {
           vlog.error(_("Unknown parameter type for parameter %s"),
-                     parameterArray[i]->getName());
+                     i->getName());
         }
       }
     }
