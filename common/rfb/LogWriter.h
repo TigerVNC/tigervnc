@@ -104,7 +104,7 @@ namespace rfb {
   class LogParameter : public StringParameter {
   public:
     LogParameter();
-    virtual bool setParam(const char* v);
+    bool setParam(const char* v) override;
 
     // Call this to set a suitable default value.
     // Can't use the normal default mechanism for

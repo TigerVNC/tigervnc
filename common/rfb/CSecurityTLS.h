@@ -43,12 +43,12 @@ namespace rfb {
   class CSecurityTLS : public CSecurity {
   public:
     CSecurityTLS(bool _anon);
-    virtual ~CSecurityTLS();
-    virtual bool processMsg(CConnection* cc);
-    virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
-    virtual const char* description() const
+    ~CSecurityTLS() override;
+    bool processMsg(CConnection* cc) override;
+    int getType() const override { return anon ? secTypeTLSNone : secTypeX509None; }
+    const char* description() const override
       { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
-    virtual bool isSecure() const { return !anon; }
+    bool isSecure() const override { return !anon; }
     static void setDefaults();
 
     static StringParameter X509CA;

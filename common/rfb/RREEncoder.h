@@ -28,12 +28,12 @@ namespace rfb {
   class RREEncoder : public Encoder {
   public:
     RREEncoder(SConnection* conn);
-    virtual ~RREEncoder();
-    virtual bool isSupported();
-    virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
-    virtual void writeSolidRect(int width, int height,
+    ~RREEncoder() override;
+    bool isSupported() override;
+    void writeRect(const PixelBuffer* pb, const Palette& palette) override;
+    void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const rdr::U8* colour) override;
   private:
     rdr::MemOutStream mos;
     ManagedPixelBuffer bufferCopy;

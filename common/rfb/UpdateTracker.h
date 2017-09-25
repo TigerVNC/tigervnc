@@ -59,8 +59,8 @@ namespace rfb {
     void setUpdateTracker(UpdateTracker* ut_) {ut = ut_;}
     void setClipRect(const Rect& cr) {clipRect = cr;}
 
-    virtual void add_changed(const Region &region);
-    virtual void add_copied(const Region &dest, const Point &delta);
+    void add_changed(const Region &region) override;
+    void add_copied(const Region &dest, const Point &delta) override;
   protected:
     UpdateTracker* ut;
     Rect clipRect;
@@ -69,12 +69,12 @@ namespace rfb {
   class SimpleUpdateTracker : public UpdateTracker {
   public:
     SimpleUpdateTracker(bool use_copyrect=true);
-    virtual ~SimpleUpdateTracker();
+    ~SimpleUpdateTracker() override;
 
     virtual void enable_copyrect(bool enable);
 
-    virtual void add_changed(const Region &region);
-    virtual void add_copied(const Region &dest, const Point &delta);
+    void add_changed(const Region &region) override;
+    void add_copied(const Region &dest, const Point &delta) override;
     virtual void subtract(const Region& region);
 
     // Fill the supplied UpdateInfo structure with update information

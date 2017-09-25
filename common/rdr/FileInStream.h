@@ -31,14 +31,14 @@ namespace rdr {
   public:
 
     FileInStream(const char *fileName);
-    ~FileInStream();
+    ~FileInStream() override;
 
     void reset();
 
-    int pos();
+    int pos() override;
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait = true);
+    int overrun(int itemSize, int nItems, bool wait = true) override;
 
   private:
     U8 b[131072];

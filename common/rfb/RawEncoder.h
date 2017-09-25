@@ -26,12 +26,12 @@ namespace rfb {
   class RawEncoder : public Encoder {
   public:
     RawEncoder(SConnection* conn);
-    virtual ~RawEncoder();
-    virtual bool isSupported();
-    virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
-    virtual void writeSolidRect(int width, int height,
+    ~RawEncoder() override;
+    bool isSupported() override;
+    void writeRect(const PixelBuffer* pb, const Palette& palette) override;
+    void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const rdr::U8* colour) override;
   };
 }
 #endif

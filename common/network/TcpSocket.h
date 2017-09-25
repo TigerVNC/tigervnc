@@ -52,16 +52,16 @@ namespace network {
   public:
     TcpSocket(int sock, bool close=true);
     TcpSocket(const char *name, int port);
-    virtual ~TcpSocket();
+    ~TcpSocket() override;
 
-    virtual int getMyPort();
+    int getMyPort() override;
 
-    virtual char* getPeerAddress();
-    virtual int getPeerPort();
-    virtual char* getPeerEndpoint();
-    virtual bool sameMachine();
+    char* getPeerAddress() override;
+    int getPeerPort() override;
+    char* getPeerEndpoint() override;
+    bool sameMachine() override;
 
-    virtual void shutdown();
+    void shutdown() override;
 
     static bool enableNagles(int sock, bool enable);
     static bool cork(int sock, bool enable);
@@ -75,10 +75,10 @@ namespace network {
   public:
     TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
     TcpListener(int sock);
-    virtual ~TcpListener();
+    ~TcpListener() override;
 
-    virtual void shutdown();
-    virtual Socket* accept();
+    void shutdown() override;
+    Socket* accept() override;
 
     static void getMyAddresses(std::list<char*>* result);
     int getMyPort();
@@ -103,9 +103,9 @@ namespace network {
   class TcpFilter : public ConnectionFilter {
   public:
     TcpFilter(const char* filter);
-    virtual ~TcpFilter();
+    ~TcpFilter() override;
 
-    virtual bool verifyConnection(Socket* s);
+    bool verifyConnection(Socket* s) override;
 
     typedef enum {Accept, Reject, Query} Action;
     struct Pattern {

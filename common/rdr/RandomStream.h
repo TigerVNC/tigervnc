@@ -37,12 +37,12 @@ namespace rdr {
   public:
 
     RandomStream();
-    virtual ~RandomStream();
+    ~RandomStream() override;
 
-    int pos();
+    int pos() override;
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait);
+    int overrun(int itemSize, int nItems, bool wait) override;
 
   private:
     U8* start;

@@ -26,7 +26,7 @@ namespace rfb {
   class ComparingUpdateTracker : public SimpleUpdateTracker {
   public:
     ComparingUpdateTracker(PixelBuffer* buffer);
-    ~ComparingUpdateTracker();
+    ~ComparingUpdateTracker() override;
 
     // compare() does the comparison and reduces its changed and copied regions
     // as appropriate. Returns true if the regions were altered.

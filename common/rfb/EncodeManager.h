@@ -120,7 +120,7 @@ namespace rfb {
     class OffsetPixelBuffer : public FullFramePixelBuffer {
     public:
       OffsetPixelBuffer() {}
-      virtual ~OffsetPixelBuffer() {}
+      ~OffsetPixelBuffer() override {}
 
       void update(const PixelFormat& pf, int width, int height,
                   const rdr::U8* data_, int stride);

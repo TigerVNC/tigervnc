@@ -27,15 +27,15 @@ namespace rdr {
   public:
 
     HexInStream(InStream& is, int bufSize=0);
-    virtual ~HexInStream();
+    ~HexInStream() override;
 
-    int pos();
+    int pos() override;
 
     static bool readHexAndShift(char c, int* v);
     static bool hexStrToBin(const char* s, char** data, int* length);
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait);
+    int overrun(int itemSize, int nItems, bool wait) override;
 
   private:
     int bufSize;

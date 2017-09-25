@@ -71,11 +71,11 @@ class DummyOutStream : public rdr::OutStream {
 public:
   DummyOutStream();
 
-  virtual int length();
-  virtual void flush();
+  int length() override;
+  void flush() override;
 
 private:
-  virtual int overrun(int itemSize, int nItems);
+  int overrun(int itemSize, int nItems) override;
 
   int offset;
   rdr::U8 buf[131072];
@@ -84,19 +84,19 @@ private:
 class CConn : public rfb::CConnection {
 public:
   CConn(const char *filename);
-  ~CConn();
+  ~CConn() override;
 
   void getStats(double& ratio, unsigned long long& bytes,
                 unsigned long long& rawEquivalent);
 
-  virtual void setDesktopSize(int w, int h);
-  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
-  virtual void framebufferUpdateStart();
-  virtual void framebufferUpdateEnd();
-  virtual void dataRect(const rfb::Rect&, int);
-  virtual void setColourMapEntries(int, int, rdr::U16*);
-  virtual void bell();
-  virtual void serverCutText(const char*, rdr::U32);
+  void setDesktopSize(int w, int h) override;
+  void setCursor(int, int, const rfb::Point&, const rdr::U8*) override;
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  void dataRect(const rfb::Rect&, int) override;
+  void setColourMapEntries(int, int, rdr::U16*) override;
+  void bell() override;
+  void serverCutText(const char*, rdr::U32) override;
 
 public:
   double decodeTime;
@@ -118,16 +118,16 @@ public:
 class SConn : public rfb::SConnection {
 public:
   SConn();
-  ~SConn();
+  ~SConn() override;
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
-  virtual void setAccessRights(AccessRights ar);
+  void setAccessRights(AccessRights ar) override;
 
-  virtual void setDesktopSize(int fb_width, int fb_height,
-                              const rfb::ScreenSet& layout);
+  void setDesktopSize(int fb_width, int fb_height,
+                              const rfb::ScreenSet& layout) override;
 
 protected:
   DummyOutStream *out;

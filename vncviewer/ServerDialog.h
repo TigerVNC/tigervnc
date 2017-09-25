@@ -27,7 +27,7 @@ class Fl_Input;
 class ServerDialog : public Fl_Window {
 protected:
   ServerDialog();
-  ~ServerDialog();
+  ~ServerDialog() override;
 
 public:
   static void run(const char* servername, char *newservername);

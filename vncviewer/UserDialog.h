@@ -27,15 +27,15 @@ class UserDialog : public rfb::UserPasswdGetter,
 {
 public:
   UserDialog();
-  ~UserDialog();
+  ~UserDialog() override;
 
   // UserPasswdGetter callbacks
 
-  void getUserPasswd(bool secure, char** user, char** password);
+  void getUserPasswd(bool secure, char** user, char** password) override;
 
   // UserMsgBox callbacks
 
-  bool showMsgBox(int flags, const char* title, const char* text);
+  bool showMsgBox(int flags, const char* title, const char* text) override;
 };
 
 #endif

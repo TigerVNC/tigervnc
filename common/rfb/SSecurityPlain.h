@@ -48,11 +48,11 @@ namespace rfb {
   class SSecurityPlain : public SSecurity {
   public:
     SSecurityPlain();
-    virtual bool processMsg(SConnection* sc);
-    virtual int getType() const { return secTypePlain; };
-    virtual const char* getUserName() const { return username.buf; }
+    bool processMsg(SConnection* sc) override;
+    int getType() const override { return secTypePlain; };
+    const char* getUserName() const override { return username.buf; }
 
-    virtual ~SSecurityPlain() { }
+    ~SSecurityPlain() override { }
 
   private:
     PasswordValidator* valid;

@@ -36,7 +36,7 @@ namespace rfb {
   class SMsgHandler : public InputHandler {
   public:
     SMsgHandler();
-    virtual ~SMsgHandler();
+    ~SMsgHandler() override;
 
     // The following methods are called as corresponding messages are read.  A
     // derived class should override these methods as desired.  Note that for

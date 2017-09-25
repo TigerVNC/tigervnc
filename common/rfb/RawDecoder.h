@@ -24,12 +24,12 @@ namespace rfb {
   class RawDecoder : public Decoder {
   public:
     RawDecoder();
-    virtual ~RawDecoder();
-    virtual void readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, rdr::OutStream* os);
-    virtual void decodeRect(const Rect& r, const void* buffer,
+    ~RawDecoder() override;
+    void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, rdr::OutStream* os) override;
+    void decodeRect(const Rect& r, const void* buffer,
                             size_t buflen, const ConnParams& cp,
-                            ModifiablePixelBuffer* pb);
+                            ModifiablePixelBuffer* pb) override;
   };
 }
 #endif

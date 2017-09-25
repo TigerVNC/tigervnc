@@ -36,7 +36,7 @@ typedef void (OptionsCallback)(void*);
 class OptionsDialog : public Fl_Window {
 protected:
   OptionsDialog();
-  ~OptionsDialog();
+  ~OptionsDialog() override;
 
 public:
   static void showDialog();
@@ -44,7 +44,7 @@ public:
   static void addCallback(OptionsCallback *cb, void *data = nullptr);
   static void removeCallback(OptionsCallback *cb);
 
-  void show();
+  void show() override;
 
 protected:
   void loadOptions();

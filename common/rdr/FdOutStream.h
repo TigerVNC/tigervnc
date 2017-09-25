@@ -35,21 +35,21 @@ namespace rdr {
   public:
 
     FdOutStream(int fd, bool blocking=true, int timeoutms=-1, int bufSize=0);
-    virtual ~FdOutStream();
+    ~FdOutStream() override;
 
     void setTimeout(int timeoutms);
     void setBlocking(bool blocking);
     int getFd() { return fd; }
 
-    void flush();
-    int length();
+    void flush() override;
+    int length() override;
 
     int bufferUsage();
 
     unsigned getIdleTime();
 
   private:
-    int overrun(int itemSize, int nItems);
+    int overrun(int itemSize, int nItems) override;
     int writeWithTimeout(const void* data, int length, int timeoutms);
     int fd;
     bool blocking;

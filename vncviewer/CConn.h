@@ -34,7 +34,7 @@ class CConn : public rfb::CConnection,
 {
 public:
   CConn(const char* vncServerName, network::Socket* sock);
-  ~CConn();
+  ~CConn() override;
 
   void refreshFramebuffer();
 
@@ -45,36 +45,36 @@ public:
   unsigned getPosition();
 
   // FdInStreamBlockCallback methods
-  void blockCallback();
+  void blockCallback() override;
 
   // Callback when socket is ready (or broken)
   static void socketEvent(FL_SOCKET fd, void *data);
 
   // CConnection callback methods
-  void serverInit();
+  void serverInit() override;
 
-  void setDesktopSize(int w, int h);
+  void setDesktopSize(int w, int h) override;
   void setExtendedDesktopSize(unsigned reason, unsigned result,
-                              int w, int h, const rfb::ScreenSet& layout);
+                              int w, int h, const rfb::ScreenSet& layout) override;
 
-  void setName(const char* name);
+  void setName(const char* name) override;
 
-  void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
+  void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs) override;
 
-  void bell();
+  void bell() override;
 
-  void serverCutText(const char* str, rdr::U32 len);
+  void serverCutText(const char* str, rdr::U32 len) override;
 
-  void framebufferUpdateStart();
-  void framebufferUpdateEnd();
-  void dataRect(const rfb::Rect& r, int encoding);
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  void dataRect(const rfb::Rect& r, int encoding) override;
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 const rdr::U8* data);
+                 const rdr::U8* data) override;
 
-  void fence(rdr::U32 flags, unsigned len, const char data[]);
+  void fence(rdr::U32 flags, unsigned len, const char data[]) override;
 
-  void setLEDState(unsigned int state);
+  void setLEDState(unsigned int state) override;
 
 private:
 

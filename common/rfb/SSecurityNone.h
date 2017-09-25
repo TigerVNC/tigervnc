@@ -28,9 +28,9 @@ namespace rfb {
 
   class SSecurityNone : public SSecurity {
   public:
-    virtual bool processMsg(SConnection* sc) { return true; }
-    virtual int getType() const {return secTypeNone;}
-    virtual const char* getUserName() const {return nullptr;}
+    bool processMsg(SConnection* sc) override { return true; }
+    int getType() const override {return secTypeNone;}
+    const char* getUserName() const override {return nullptr;}
   };
 }
 #endif

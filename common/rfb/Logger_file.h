@@ -31,9 +31,9 @@ namespace rfb {
   class Logger_File : public Logger {
   public:
     Logger_File(const char* loggerName);
-    ~Logger_File();
+    ~Logger_File() override;
 
-    virtual void write(int level, const char *logname, const char *message);
+    void write(int level, const char *logname, const char *message) override;
     void setFilename(const char* filename);
     void setFile(FILE* file);
 

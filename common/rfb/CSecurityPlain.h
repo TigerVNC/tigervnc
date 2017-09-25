@@ -27,9 +27,9 @@ namespace rfb {
   class CSecurityPlain : public CSecurity {
   public:
     CSecurityPlain() {}
-    virtual bool processMsg(CConnection* cc);
-    virtual int getType() const { return secTypePlain; }
-    virtual const char* description() const { return "ask for username and password"; }
+    bool processMsg(CConnection* cc) override;
+    int getType() const override { return secTypePlain; }
+    const char* description() const override { return "ask for username and password"; }
   };
 }
 #endif

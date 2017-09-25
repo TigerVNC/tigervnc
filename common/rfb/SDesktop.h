@@ -83,7 +83,7 @@ namespace rfb {
     // the relevant RFB protocol messages from clients.
     // See InputHandler for method signatures.
   protected:
-    virtual ~SDesktop() {}
+    ~SDesktop() override {}
   };
 
   // -=- SStaticDesktop
@@ -105,15 +105,15 @@ namespace rfb {
       if (buffer)
         buffer->fillRect(buffer->getRect(), black);
     }
-    virtual ~SStaticDesktop() {
+    ~SStaticDesktop() override {
       if (buffer) delete buffer;
     }
 
-    virtual void start(VNCServer* vs) {
+    void start(VNCServer* vs) override {
       server = vs;
       server->setPixelBuffer(buffer);
     }
-    virtual void stop() {
+    void stop() override {
       server->setPixelBuffer(nullptr);
       server = nullptr;
     }

@@ -26,12 +26,12 @@ namespace rfb {
   class HextileEncoder : public Encoder {
   public:
     HextileEncoder(SConnection* conn);
-    virtual ~HextileEncoder();
-    virtual bool isSupported();
-    virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
-    virtual void writeSolidRect(int width, int height,
+    ~HextileEncoder() override;
+    bool isSupported() override;
+    void writeRect(const PixelBuffer* pb, const Palette& palette) override;
+    void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const rdr::U8* colour) override;
   };
 }
 #endif

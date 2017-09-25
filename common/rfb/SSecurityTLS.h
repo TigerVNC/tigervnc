@@ -41,10 +41,10 @@ namespace rfb {
   class SSecurityTLS : public SSecurity {
   public:
     SSecurityTLS(bool _anon);
-    virtual ~SSecurityTLS();
-    virtual bool processMsg(SConnection* sc);
-    virtual const char* getUserName() const {return nullptr;}
-    virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None;}
+    ~SSecurityTLS() override;
+    bool processMsg(SConnection* sc) override;
+    const char* getUserName() const override {return nullptr;}
+    int getType() const override { return anon ? secTypeTLSNone : secTypeX509None;}
 
     static StringParameter X509_CertFile;
     static StringParameter X509_KeyFile;

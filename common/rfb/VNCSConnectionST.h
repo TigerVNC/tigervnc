@@ -42,7 +42,7 @@ namespace rfb {
                            public Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
-    virtual ~VNCSConnectionST();
+    ~VNCSConnectionST() override;
 
     // Methods called from VNCServerST.  None of these methods ever knowingly
     // throw an exception.
@@ -131,32 +131,32 @@ namespace rfb {
     // none of these methods should call any of the above methods which may
     // delete the SConnectionST object.
 
-    virtual void authSuccess();
-    virtual void queryConnection(const char* userName);
-    virtual void clientInit(bool shared);
-    virtual void setPixelFormat(const PixelFormat& pf);
-    virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
-    virtual void clientCutText(const char* str, int len);
-    virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
-    virtual void setDesktopSize(int fb_width, int fb_height,
-                                const ScreenSet& layout);
-    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
-    virtual void enableContinuousUpdates(bool enable,
-                                         int x, int y, int w, int h);
-    virtual void supportsLocalCursor();
-    virtual void supportsFence();
-    virtual void supportsContinuousUpdates();
-    virtual void supportsLEDState();
+    void authSuccess() override;
+    void queryConnection(const char* userName) override;
+    void clientInit(bool shared) override;
+    void setPixelFormat(const PixelFormat& pf) override;
+    void pointerEvent(const Point& pos, int buttonMask) override;
+    void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) override;
+    void clientCutText(const char* str, int len) override;
+    void framebufferUpdateRequest(const Rect& r, bool incremental) override;
+    void setDesktopSize(int fb_width, int fb_height,
+                                const ScreenSet& layout) override;
+    void fence(rdr::U32 flags, unsigned len, const char data[]) override;
+    void enableContinuousUpdates(bool enable,
+                                         int x, int y, int w, int h) override;
+    void supportsLocalCursor() override;
+    void supportsFence() override;
+    void supportsContinuousUpdates() override;
+    void supportsLEDState() override;
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
     // such that the actual rights granted are the minimum of the server's
     // default access settings and the connection's access settings.
-    virtual void setAccessRights(AccessRights ar) {accessRights=ar;}
+    void setAccessRights(AccessRights ar) override {accessRights=ar;}
 
     // Timer callbacks
-    virtual bool handleTimeout(Timer* t);
+    bool handleTimeout(Timer* t) override;
 
     // Internal methods
 

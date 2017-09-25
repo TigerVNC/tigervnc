@@ -45,16 +45,16 @@ static const rfb::PixelFormat filePF(32, 24, false, true, 255, 255, 255, 0, 8, 1
 class CConn : public rfb::CConnection {
 public:
   CConn(const char *filename);
-  ~CConn();
+  ~CConn() override;
 
-  virtual void setDesktopSize(int w, int h);
-  virtual void setPixelFormat(const rfb::PixelFormat& pf);
-  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
-  virtual void framebufferUpdateStart();
-  virtual void framebufferUpdateEnd();
-  virtual void setColourMapEntries(int, int, rdr::U16*);
-  virtual void bell();
-  virtual void serverCutText(const char*, rdr::U32);
+  void setDesktopSize(int w, int h) override;
+  void setPixelFormat(const rfb::PixelFormat& pf) override;
+  void setCursor(int, int, const rfb::Point&, const rdr::U8*) override;
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  void setColourMapEntries(int, int, rdr::U16*) override;
+  void bell() override;
+  void serverCutText(const char*, rdr::U32) override;
 
 public:
   double cpuTime;

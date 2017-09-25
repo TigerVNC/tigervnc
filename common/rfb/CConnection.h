@@ -40,7 +40,7 @@ namespace rfb {
   public:
 
     CConnection();
-    virtual ~CConnection();
+    ~CConnection() override;
 
     // Methods to initialise the connection
 
@@ -95,17 +95,17 @@ namespace rfb {
 
     // Note: These must be called by any deriving classes
 
-    virtual void setDesktopSize(int w, int h);
-    virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
+    void setDesktopSize(int w, int h) override;
+    void setExtendedDesktopSize(unsigned reason, unsigned result,
                                         int w, int h,
-                                        const ScreenSet& layout);
+                                        const ScreenSet& layout) override;
 
-    virtual void readAndDecodeRect(const Rect& r, int encoding,
-                                   ModifiablePixelBuffer* pb);
+    void readAndDecodeRect(const Rect& r, int encoding,
+                                   ModifiablePixelBuffer* pb) override;
 
-    virtual void framebufferUpdateStart();
-    virtual void framebufferUpdateEnd();
-    virtual void dataRect(const Rect& r, int encoding);
+    void framebufferUpdateStart() override;
+    void framebufferUpdateEnd() override;
+    void dataRect(const Rect& r, int encoding) override;
 
 
     // Methods to be overridden in a derived class
@@ -119,7 +119,7 @@ namespace rfb {
 
     // serverInit() is called when the ServerInit message is received.  The
     // derived class must call on to CConnection::serverInit().
-    virtual void serverInit();
+    void serverInit() override;
 
 
     // Other methods
@@ -164,7 +164,7 @@ namespace rfb {
     // responds to requests, stating no support for synchronisation.
     // When overriding, call CMsgHandler::fence() directly in order to
     // state correct support for fence flags.
-    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
+    void fence(rdr::U32 flags, unsigned len, const char data[]) override;
 
   private:
     void processVersionMsg();
