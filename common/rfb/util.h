@@ -61,8 +61,8 @@ namespace rfb {
     void replaceBuf(char* b) {delete [] buf; buf = b;}
     char* buf;
   private:
-    CharArray(const CharArray&);
-    CharArray& operator=(const CharArray&);
+    CharArray(const CharArray&) = delete;
+    CharArray& operator=(const CharArray&) = delete;
   };
 
   char* strDup(const char* s);
