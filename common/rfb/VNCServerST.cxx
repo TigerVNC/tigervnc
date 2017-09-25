@@ -140,7 +140,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
     lastConnectionTime = time(0);
   }
 
-  VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing);
+  auto* client = new VNCSConnectionST(this, sock, outgoing);
   client->init();
 }
 
@@ -671,7 +671,7 @@ void VNCServerST::setConnStatus(ListConnInfo* listConn)
   setDisable(listConn->getDisable());
   if (listConn->Empty() || clients.empty()) return;
   for (listConn->iBegin(); !listConn->iEnd(); listConn->iNext()) {
-    VNCSConnectionST* conn = (VNCSConnectionST*)listConn->iGetConn();
+    auto* conn = (VNCSConnectionST*)listConn->iGetConn();
     std::list<VNCSConnectionST*>::iterator i;
     for (i = clients.begin(); i != clients.end(); i++) {
       if ((*i) == conn) {

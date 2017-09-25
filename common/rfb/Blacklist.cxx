@@ -42,7 +42,7 @@ Blacklist::~Blacklist() {
 }
 
 bool Blacklist::isBlackmarked(const char* name) {
-  BlacklistMap::iterator i = blm.find(name);
+  auto i = blm.find(name);
   if (i == blm.end()) {
     // Entry is not already black-marked.
     // Create the entry unmarked, unblocked,
@@ -78,7 +78,7 @@ bool Blacklist::isBlackmarked(const char* name) {
 }
 
 void Blacklist::clearBlackmark(const char* name) {
-  BlacklistMap::iterator i = blm.find(name);
+  auto i = blm.find(name);
   if (i != blm.end()) {
     strFree((char*)(*i).first);
     blm.erase(i);

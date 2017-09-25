@@ -602,7 +602,7 @@ int main(int argc, char** argv)
 #endif
   }
 
-  CConn *cc = new CConn(vncServerName, sock);
+  auto *cc = new CConn(vncServerName, sock);
 
   while (!exitMainloop)
     run_mainloop();

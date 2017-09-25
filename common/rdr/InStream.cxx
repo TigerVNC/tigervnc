@@ -28,7 +28,7 @@ char* InStream::readString()
   U32 len = readU32();
   if (len > maxStringLength)
     throw Exception("InStream max string length exceeded");
-  char* str = new char[len+1];
+  auto* str = new char[len+1];
   readBytes(str, len);
   str[len] = 0;
   return str;

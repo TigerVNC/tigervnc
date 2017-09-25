@@ -68,7 +68,7 @@ namespace rfb {
   char* strDup(const char* s) {
     if (!s) return 0;
     int l = strlen(s);
-    char* r = new char[l+1];
+    auto* r = new char[l+1];
     memcpy(r, s, l+1);
     return r;
   };

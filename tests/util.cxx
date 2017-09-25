@@ -88,19 +88,19 @@ static void measureCpu(syscounter_t *counter)
 
 void startCpuCounter(cpucounter_t c)
 {
-  syscounter_t *s = (syscounter_t*)c;
+  auto *s = (syscounter_t*)c;
   measureCpu(&s[0]);
 }
 
 void endCpuCounter(cpucounter_t c)
 {
-  syscounter_t *s = (syscounter_t*)c;
+  auto *s = (syscounter_t*)c;
   measureCpu(&s[1]);
 }
 
 double getCpuCounter(cpucounter_t c)
 {
-  syscounter_t *s = (syscounter_t*)c;
+  auto *s = (syscounter_t*)c;
   double sysSeconds, userSeconds;
 
 #ifdef WIN32

@@ -93,7 +93,7 @@ namespace rdr {
     // readBytes() reads an exact number of bytes.
 
     void readBytes(void* data, int length) {
-      U8* dataPtr = (U8*)data;
+      auto* dataPtr = (U8*)data;
       U8* dataEnd = dataPtr + length;
       while (dataPtr < dataEnd) {
         int n = check(1, dataEnd - dataPtr);

@@ -339,13 +339,13 @@ IntParameter::setParam(int v) {
 
 char*
 IntParameter::getDefaultStr() const {
-  char* result = new char[16];
+  auto* result = new char[16];
   sprintf(result, "%d", def_value);
   return result;
 }
 
 char* IntParameter::getValueStr() const {
-  char* result = new char[16];
+  auto* result = new char[16];
   sprintf(result, "%d", value);
   return result;
 }

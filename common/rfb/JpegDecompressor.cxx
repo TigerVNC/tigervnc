@@ -55,7 +55,7 @@ struct JPEG_ERROR_MGR {
 static void
 JpegErrorExit(j_common_ptr dinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)dinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)dinfo->err;
 
   (*dinfo->err->output_message)(dinfo);
   longjmp(err->jmpBuffer, 1);
@@ -64,7 +64,7 @@ JpegErrorExit(j_common_ptr dinfo)
 static void
 JpegOutputMessage(j_common_ptr dinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)dinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)dinfo->err;
 
   (*dinfo->err->format_message)(dinfo, err->lastError);
 }
@@ -94,7 +94,7 @@ JpegFillInputBuffer(j_decompress_ptr dinfo)
 static void
 JpegSkipInputData(j_decompress_ptr dinfo, long num_bytes)
 {
-  JPEG_SRC_MGR *src = (JPEG_SRC_MGR *)dinfo->src;
+  auto *src = (JPEG_SRC_MGR *)dinfo->src;
 
   if (num_bytes < 0 || (size_t)num_bytes > src->pub.bytes_in_buffer) {
     ERREXIT(dinfo, JERR_BUFFER_SIZE);

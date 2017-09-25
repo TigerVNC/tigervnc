@@ -260,12 +260,12 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     cursorHotspot.x = cursorHotspot.y = 2;
   } else {
     if ((width == 0) || (height == 0)) {
-      U8 *buffer = new U8[4];
+      auto *buffer = new U8[4];
       memset(buffer, 0, 4);
       cursor = new Fl_RGB_Image(buffer, 1, 1, 4);
       cursorHotspot.x = cursorHotspot.y = 0;
     } else {
-      U8 *buffer = new U8[width * height * 4];
+      auto *buffer = new U8[width * height * 4];
       memcpy(buffer, data, width * height * 4);
       cursor = new Fl_RGB_Image(buffer, width, height, 4);
       cursorHotspot = hotspot;
@@ -645,7 +645,7 @@ out:
 
 void Viewport::handleClipboardChange(int source, void *data)
 {
-  Viewport *self = (Viewport *)data;
+  auto *self = (Viewport *)data;
 
   assert(self);
 
@@ -684,7 +684,7 @@ void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
 
 void Viewport::handlePointerTimeout(void *data)
 {
-  Viewport *self = (Viewport *)data;
+  auto *self = (Viewport *)data;
 
   assert(self);
 
@@ -838,7 +838,7 @@ void Viewport::handleKeyRelease(int keyCode)
 
 int Viewport::handleSystemEvent(void *event, void *data)
 {
-  Viewport *self = (Viewport *)data;
+  auto *self = (Viewport *)data;
   Fl_Widget *focus;
 
   assert(self);
@@ -1175,7 +1175,7 @@ void Viewport::setMenuKey()
 
 void Viewport::handleOptions(void *data)
 {
-  Viewport *self = (Viewport*)data;
+  auto *self = (Viewport*)data;
 
   self->setMenuKey();
 }

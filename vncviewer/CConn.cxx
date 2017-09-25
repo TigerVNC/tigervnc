@@ -666,7 +666,7 @@ void CConn::requestNewUpdate()
 
 void CConn::handleOptions(void *data)
 {
-  CConn *self = (CConn*)data;
+  auto *self = (CConn*)data;
 
   // Checking all the details of the current set of encodings is just
   // a pain. Assume something has changed, as resending the encoding
@@ -721,7 +721,7 @@ void CConn::handleOptions(void *data)
 
 void CConn::handleUpdateTimeout(void *data)
 {
-  CConn *self = (CConn *)data;
+  auto *self = (CConn *)data;
 
   assert(self);
 

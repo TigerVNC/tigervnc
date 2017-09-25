@@ -91,7 +91,7 @@ namespace rdr {
     // writeBytes() writes an exact number of bytes.
 
     void writeBytes(const void* data, int length) {
-      const U8* dataPtr = (const U8*)data;
+      const auto* dataPtr = (const U8*)data;
       const U8* dataEnd = dataPtr + length;
       while (dataPtr < dataEnd) {
         int n = check(1, dataEnd - dataPtr);

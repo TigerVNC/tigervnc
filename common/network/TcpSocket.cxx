@@ -302,7 +302,7 @@ char* TcpSocket::getPeerEndpoint() {
   int port = getPeerPort();
 
   int buflen = strlen(address.buf) + 32;
-  char* buffer = new char[buflen];
+  auto* buffer = new char[buflen];
   sprintf(buffer, "%s::%d", address.buf, port);
   return buffer;
 }
@@ -477,7 +477,7 @@ TcpListener::accept() {
   TcpSocket::enableNagles(new_sock, false);
 
   // Create the socket object & check connection is allowed
-  TcpSocket* s = new TcpSocket(new_sock);
+  auto* s = new TcpSocket(new_sock);
   if (filter && !filter->verifyConnection(s)) {
     delete s;
     return 0;
@@ -516,7 +516,7 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
       continue;
     }
 
-    char *addr = new char[INET6_ADDRSTRLEN];
+    auto *addr = new char[INET6_ADDRSTRLEN];
 
     getnameinfo(current->ai_addr, current->ai_addrlen, addr, INET6_ADDRSTRLEN,
                 NULL, 0, NI_NUMERICHOST);
@@ -882,7 +882,7 @@ char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
                       + 1                 // slash
                       + 3                 // prefix length, max 128
                       + 1);               // terminating nul
-  char* result = new char[resultlen];
+  auto* result = new char[resultlen];
   if (addr.buf[0] == '\0')
     snprintf(result, resultlen, "%c", action);
   else

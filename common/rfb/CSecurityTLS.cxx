@@ -166,8 +166,8 @@ bool CSecurityTLS::processMsg(CConnection* cc)
     setParam();
   }
 
-  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
-  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
+  auto *tlsis = new rdr::TLSInStream(is, session);
+  auto *tlsos = new rdr::TLSOutStream(os, session);
 
   int err;
   err = gnutls_handshake(session);

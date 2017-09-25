@@ -98,7 +98,7 @@ int HexInStream::overrun(int itemSize, int nItems, bool wait) {
     const U8* eptr = in_stream.getend();
     int length = min((eptr - iptr)/2, start + bufSize - end);
 
-    U8* optr = (U8*) end;
+    auto* optr = (U8*) end;
     for (int i=0; i<length; i++) {
       int v = 0;
       readHexAndShift(iptr[i*2], &v);

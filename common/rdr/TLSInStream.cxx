@@ -34,7 +34,7 @@ enum { DEFAULT_BUF_SIZE = 16384 };
 
 ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 {
-  TLSInStream* self= (TLSInStream*) str;
+  auto* self= (TLSInStream*) str;
   InStream *in = self->in;
 
   try {

@@ -106,8 +106,8 @@ void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, SFilterWe
     sxc = (double(x)+offset) / ratio;
 
     // Calculate the scale filter interval, [i0, i1)
-    int i0 = int(__rfbmax(sxc-sourceRadius+0.5, 0));
-    int i1 = int(__rfbmin(sxc+sourceRadius+0.5, src_x));
+    auto i0 = int(__rfbmax(sxc-sourceRadius+0.5, 0));
+    auto i1 = int(__rfbmin(sxc+sourceRadius+0.5, src_x));
 
     weightTabs[x].i0 = i0; weightTabs[x].i1 = i1;
     weightTabs[x].weight = new short[i1-i0];

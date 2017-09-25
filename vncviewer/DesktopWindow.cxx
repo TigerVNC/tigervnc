@@ -674,7 +674,7 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
   // to differ, and as a result we do not see all the FL_FOCUS events we
   // need. Fortunately we can grab them here...
 
-  DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
+  auto *dw = dynamic_cast<DesktopWindow*>(win);
 
   if (dw) {
     switch (event) {
@@ -872,7 +872,7 @@ void DesktopWindow::ungrabPointer()
 
 void DesktopWindow::handleGrab(void *data)
 {
-  DesktopWindow *self = (DesktopWindow*)data;
+  auto *self = (DesktopWindow*)data;
 
   assert(self);
 
@@ -952,7 +952,7 @@ void DesktopWindow::handleDesktopSize()
 
 void DesktopWindow::handleResizeTimeout(void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   assert(self);
 
@@ -1178,7 +1178,7 @@ void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
 
 void DesktopWindow::handleOptions(void *data)
 {
-  DesktopWindow *self = (DesktopWindow*)data;
+  auto *self = (DesktopWindow*)data;
 
   if (self->fullscreen_active() && fullscreenSystemKeys)
     self->grabKeyboard();
@@ -1193,7 +1193,7 @@ void DesktopWindow::handleOptions(void *data)
 
 void DesktopWindow::handleFullscreenTimeout(void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   assert(self);
 
@@ -1227,14 +1227,14 @@ void DesktopWindow::scrollTo(int x, int y)
 
 void DesktopWindow::handleScroll(Fl_Widget *widget, void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   self->scrollTo(self->hscroll->value(), self->vscroll->value());
 }
 
 void DesktopWindow::handleEdgeScroll(void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   int mx, my;
   int dx, dy;
@@ -1284,7 +1284,7 @@ void DesktopWindow::handleEdgeScroll(void *data)
 
 void DesktopWindow::handleStatsTimeout(void *data)
 {
-  DesktopWindow *self = (DesktopWindow*)data;
+  auto *self = (DesktopWindow*)data;
 
   const size_t statsCount = sizeof(self->stats)/sizeof(self->stats[0]);
 

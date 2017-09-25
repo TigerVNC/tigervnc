@@ -104,7 +104,7 @@ void FdInStream::readBytes(void* data, int length)
     return;
   }
 
-  U8* dataPtr = (U8*)data;
+  auto* dataPtr = (U8*)data;
 
   int n = end - ptr;
   if (n > length) n = length;

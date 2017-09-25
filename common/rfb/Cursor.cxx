@@ -228,7 +228,7 @@ void Cursor::crop()
 
   // Copy the pixel data
   int newDataLen = busy.area() * 4;
-  rdr::U8* newData = new rdr::U8[newDataLen];
+  auto* newData = new rdr::U8[newDataLen];
   data_ptr = newData;
   for (y = busy.tl.y; y < busy.br.y; y++) {
     memcpy(data_ptr, data + y*width()*4 + busy.tl.x*4, busy.width()*4);

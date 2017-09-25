@@ -65,7 +65,7 @@ namespace rdr {
       if (len < (end - start) * 2)
         len = (end - start) * 2;
 
-      U8* newStart = new U8[len];
+      auto* newStart = new U8[len];
       memcpy(newStart, start, ptr - start);
       ptr = newStart + (ptr - start);
       delete [] start;

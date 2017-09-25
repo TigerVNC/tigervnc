@@ -54,7 +54,7 @@ struct JPEG_ERROR_MGR {
 static void
 JpegErrorExit(j_common_ptr cinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)cinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)cinfo->err;
 
   (*cinfo->err->output_message)(cinfo);
   longjmp(err->jmpBuffer, 1);
@@ -63,7 +63,7 @@ JpegErrorExit(j_common_ptr cinfo)
 static void
 JpegOutputMessage(j_common_ptr cinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)cinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)cinfo->err;
 
   (*cinfo->err->format_message)(cinfo, err->lastError);
 }
@@ -80,7 +80,7 @@ struct JPEG_DEST_MGR {
 static void
 JpegInitDestination(j_compress_ptr cinfo)
 {
-  JPEG_DEST_MGR *dest = (JPEG_DEST_MGR *)cinfo->dest;
+  auto *dest = (JPEG_DEST_MGR *)cinfo->dest;
   JpegCompressor *jc = dest->instance;
 
   jc->clear();
@@ -91,7 +91,7 @@ JpegInitDestination(j_compress_ptr cinfo)
 static boolean
 JpegEmptyOutputBuffer(j_compress_ptr cinfo)
 {
-  JPEG_DEST_MGR *dest = (JPEG_DEST_MGR *)cinfo->dest;
+  auto *dest = (JPEG_DEST_MGR *)cinfo->dest;
   JpegCompressor *jc = dest->instance;
 
   jc->setptr(jc->getend());
@@ -105,7 +105,7 @@ JpegEmptyOutputBuffer(j_compress_ptr cinfo)
 static void
 JpegTermDestination(j_compress_ptr cinfo)
 {
-  JPEG_DEST_MGR *dest = (JPEG_DEST_MGR *)cinfo->dest;
+  auto *dest = (JPEG_DEST_MGR *)cinfo->dest;
   JpegCompressor *jc = dest->instance;
 
   jc->setptr(dest->pub.next_output_byte);

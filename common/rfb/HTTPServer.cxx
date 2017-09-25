@@ -314,7 +314,7 @@ HTTPServer::~HTTPServer() {
 
 void
 HTTPServer::addSocket(network::Socket* sock, bool) {
-  Session* s = new Session(*sock, *this);
+  auto* s = new Session(*sock, *this);
   if (!s) {
     sock->shutdown();
   } else {
