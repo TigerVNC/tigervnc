@@ -166,7 +166,8 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
 }
 
 XDesktop::~XDesktop() {
-    stop();
+    if (running)
+      stop();
 }
 
 
@@ -226,6 +227,9 @@ void XDesktop::stop() {
     if (haveDamage)
       XDamageDestroy(dpy, damage);
 #endif
+
+    server->setPixelBuffer(0);
+    server = 0;
 
     delete pb;
     pb = 0;
