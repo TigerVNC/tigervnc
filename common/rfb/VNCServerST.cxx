@@ -158,6 +158,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         slog.debug("no authenticated clients - stopping desktop");
         desktopStarted = false;
         desktop->stop();
+        stopFrameClock();
       }
 
       if (comparer)
@@ -314,8 +315,11 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
   screenLayout = layout;
 
   if (!pb) {
+    screenLayout = ScreenSet();
+
     if (desktopStarted)
       throw Exception("setPixelBuffer: null PixelBuffer when desktopStarted?");
+
     return;
   }
 
@@ -338,18 +342,10 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 {
-  ScreenSet layout;
-
-  if (!pb_) {
-    if (desktopStarted)
-      throw Exception("setPixelBuffer: null PixelBuffer when desktopStarted?");
-    return;
-  }
-
-  layout = screenLayout;
+  ScreenSet layout = screenLayout;
 
   // Check that the screen layout is still valid
-  if (!layout.validate(pb_->width(), pb_->height())) {
+  if (pb_ && !layout.validate(pb_->width(), pb_->height())) {
     Rect fbRect;
     ScreenSet::iterator iter, iter_next;
 
