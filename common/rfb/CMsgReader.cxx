@@ -340,7 +340,6 @@ void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hots
     buf[0] = (unsigned)buf[0] * 255/alpha;
     buf[1] = (unsigned)buf[1] * 255/alpha;
     buf[2] = (unsigned)buf[2] * 255/alpha;
-    buf[3] = alpha;
 
     buf += 4;
   }
