@@ -829,7 +829,7 @@ void DesktopWindow::ungrabKeyboard()
   if (Fl::grab())
     return;
 
-  XUngrabKeyboard(fl_display, fl_event_time);
+  XUngrabKeyboard(fl_display, CurrentTime);
 #endif
 }
 
