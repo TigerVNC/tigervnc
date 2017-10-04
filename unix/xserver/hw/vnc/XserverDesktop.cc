@@ -306,18 +306,18 @@ XserverDesktop::queryConnection(network::Socket* sock,
     return rfb::VNCServerST::REJECT;
   }
 
+  count = vncNotifyQueryConnect();
+  if (count == 0) {
+    *reason = strDup("Unable to query the local user to accept the connection.");
+    return rfb::VNCServerST::REJECT;
+  }
+
   queryConnectAddress.replaceBuf(sock->getPeerAddress());
   if (!userName)
     userName = "(anonymous)";
   queryConnectUsername.replaceBuf(strDup(userName));
   queryConnectId = (uint32_t)(intptr_t)sock;
   queryConnectSocket = sock;
-
-  count = vncNotifyQueryConnect();
-  if (count == 0) {
-    *reason = strDup("Unable to query the local user to accept the connection.");
-    return rfb::VNCServerST::REJECT;
-  }
 
   return rfb::VNCServerST::PENDING;
 }
