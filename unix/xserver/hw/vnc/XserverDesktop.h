@@ -47,7 +47,8 @@ namespace network { class TcpListener; class Socket; class SocketServer; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public rdr::Substitutor,
-                       public rfb::VNCServerST::QueryConnectionHandler {
+                       public rfb::VNCServerST::QueryConnectionHandler,
+                       public rfb::Timer::Callback {
 public:
 
   XserverDesktop(int screenIndex,
@@ -113,6 +114,8 @@ protected:
                          network::SocketServer* sockserv,
                          bool read, bool write);
 
+  virtual bool handleTimeout(rfb::Timer* t);
+
 private:
   rfb::ScreenSet computeScreenLayout();
 
@@ -127,6 +130,7 @@ private:
   network::Socket* queryConnectSocket;
   rfb::CharArray queryConnectAddress;
   rfb::CharArray queryConnectUsername;
+  rfb::Timer queryConnectTimer;
 
 #ifdef RANDR
   typedef std::map<intptr_t, rdr::U32> OutputIdMap;

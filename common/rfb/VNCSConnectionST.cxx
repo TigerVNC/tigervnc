@@ -71,7 +71,7 @@ static Cursor emptyCursor(0, 0, Point(0, 0), NULL);
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
   : sock(s), reverseConnection(reverse),
-    queryConnectTimer(this), inProcessMessages(false),
+    inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(NULL),
     baseRTT(-1), congWindow(0), ackedOffset(0), sentOffset(0),
@@ -485,10 +485,8 @@ void VNCSConnectionST::queryConnection(const char* userName)
   CharArray reason;
   VNCServerST::queryResult qr = server->queryConnection(sock, userName,
                                                         &reason.buf);
-  if (qr == VNCServerST::PENDING) {
-    queryConnectTimer.start(rfb::Server::queryConnectTimeout * 1000);
+  if (qr == VNCServerST::PENDING)
     return;
-  }
 
   // - If server returns ACCEPT/REJECT then pass result to SConnection
   approveConnection(qr == VNCServerST::ACCEPT, reason.buf);
@@ -870,10 +868,6 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
   try {
     if (t == &congestionTimer)
       updateCongestion();
-    else if (t == &queryConnectTimer) {
-      if (state() == RFBSTATE_QUERYING)
-        approveConnection(false, "The attempt to prompt the user to accept the connection failed");
-    }
   } catch (rdr::Exception& e) {
     close(e.str());
   }

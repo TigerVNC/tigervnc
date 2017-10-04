@@ -185,8 +185,6 @@ namespace rfb {
     CharArray peerEndpoint;
     bool reverseConnection;
 
-    Timer queryConnectTimer;
-
     bool inProcessMessages;
 
     bool pendingSyncFence, syncFence;
