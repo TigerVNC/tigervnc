@@ -43,8 +43,7 @@ macro(libtool_create_control_file _target)
       else()
         # No shared library extension matched.  Check whether target is a CMake
         # target.
-        get_target_property(_ltp ${library} TYPE)
-        if(_ltp OR ${library} STREQUAL "general")
+        if(TARGET ${library})
           # Target is a CMake target, so ignore (CMake targets are static
           # libs in TigerVNC.)
         elseif(${library} STREQUAL "-Wl,-Bstatic")
