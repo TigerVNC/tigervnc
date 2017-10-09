@@ -32,8 +32,6 @@
 #include <x0vncserver/TimeMillis.h>
 #endif
 
-using namespace rfb;
-
 class PollingManager {
 
 public:
@@ -42,12 +40,12 @@ public:
                  int offsetLeft = 0, int offsetTop = 0);
   virtual ~PollingManager();
 
-  void poll(VNCServer *server);
+  void poll(rfb::VNCServer *server);
 
 protected:
 
   // Screen polling. Returns true if some changes were detected.
-  bool pollScreen(VNCServer *server);
+  bool pollScreen(rfb::VNCServer *server);
 
   Display *m_dpy;
 
@@ -85,7 +83,7 @@ private:
 
   int checkRow(int x, int y, int w);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
-  int sendChanges(VNCServer *server) const;
+  int sendChanges(rfb::VNCServer *server) const;
 
   // Check neighboring tiles and update m_changeFlags[].
   void checkNeighbors();
