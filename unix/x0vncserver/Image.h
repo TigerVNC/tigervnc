@@ -92,8 +92,6 @@ protected:
 // ShmImage uses MIT-SHM extension of an X server to get image data.
 //
 
-#ifdef HAVE_MITSHM
-
 #include <X11/extensions/XShm.h>
 
 class ShmImage : public Image {
@@ -167,7 +165,6 @@ protected:
 };
 
 #endif // HAVE_READDISPLAY
-#endif // HAVE_MITSHM
 
 //
 // SolarisOverlayImage uses SUN_OVL extension of an X server to get

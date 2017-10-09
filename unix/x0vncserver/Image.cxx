@@ -24,10 +24,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#ifdef HAVE_MITSHM
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#endif
 
 #include <rfb/LogWriter.h>
 #include <x0vncserver/Image.h>
@@ -195,8 +193,6 @@ void Image::updateRect(Image *src, int dst_x, int dst_y,
 {
   updateRect(src->xim, dst_x, dst_y, src_x, src_y, w, h);
 }
-
-#ifdef HAVE_MITSHM
 
 //
 // ShmImage class implementation.
@@ -429,7 +425,6 @@ void IrixOverlayShmImage::get(Window wnd, int x, int y, int w, int h,
 }
 
 #endif // HAVE_READDISPLAY
-#endif // HAVE_MITSHM
 
 #ifdef HAVE_SUN_OVL
 
@@ -490,7 +485,7 @@ void SolarisOverlayImage::get(Window wnd, int x, int y, int w, int h,
 //
 
 // Prepare useful shortcuts for compile-time options.
-#if defined(HAVE_READDISPLAY) && defined(HAVE_MITSHM)
+#if defined(HAVE_READDISPLAY)
 #define HAVE_SHM_READDISPLAY
 #endif
 #if defined(HAVE_SHM_READDISPLAY) || defined(HAVE_SUN_OVL)
@@ -536,7 +531,6 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
 
   // Now, try to use shared memory image.
 
-#ifdef HAVE_MITSHM
   if (mayUseShm) {
     image = new ShmImage(d, width, height);
     if (image->xim != NULL) {
@@ -546,7 +540,6 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
     delete image;
     vlog.error("Failed to create SHM image, falling back to Xlib image");
   }
-#endif // HAVE_MITSHM
 
   // Fall back to Xlib image.
 
