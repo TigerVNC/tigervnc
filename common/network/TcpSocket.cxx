@@ -349,12 +349,12 @@ bool TcpSocket::enableNagles(int sock, bool enable) {
   return true;
 }
 
-bool TcpSocket::cork(int sock, bool enable) {
+bool TcpSocket::cork(bool enable) {
 #ifndef TCP_CORK
   return false;
 #else
   int one = enable ? 1 : 0;
-  if (setsockopt(sock, IPPROTO_TCP, TCP_CORK, (char *)&one, sizeof(one)) < 0)
+  if (setsockopt(getFd(), IPPROTO_TCP, TCP_CORK, (char *)&one, sizeof(one)) < 0)
     return false;
   return true;
 #endif

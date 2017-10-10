@@ -62,9 +62,9 @@ namespace network {
     virtual bool sameMachine();
 
     virtual void shutdown();
+    virtual bool cork(bool enable);
 
     static bool enableNagles(int sock, bool enable);
-    static bool cork(int sock, bool enable);
     static bool isListening(int sock);
     static int getSockPort(int sock);
   private:
