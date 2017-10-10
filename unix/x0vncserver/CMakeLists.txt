@@ -14,6 +14,7 @@ add_executable(x0vncserver
   qnum_to_xorgkbd.c
   x0vncserver.cxx
   XPixelBuffer.cxx
+  XDesktop.cxx
   ../vncconfig/QueryConnectDialog.cxx
 )
 
