@@ -34,6 +34,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <sys/socket.h>
 #endif
 
 /* Old systems have select() in sys/time.h */
@@ -193,7 +194,14 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
     return 0;
 
   do {
-    n = ::write(fd, data, length);
+    // select only guarantees that you can write SO_SNDLOWAT without
+    // blocking, which is normally 1. Use MSG_DONTWAIT to avoid
+    // blocking, when possible.
+#ifndef MSG_DONTWAIT
+    n = ::send(fd, (const char*)data, length, 0);
+#else
+    n = ::send(fd, (const char*)data, length, MSG_DONTWAIT);
+#endif
   } while (n < 0 && (errno == EINTR));
 
   if (n < 0)
