@@ -207,6 +207,10 @@ void XDesktop::start(VNCServer* vs) {
     }
 #endif
 
+#ifdef HAVE_XFIXES
+    setCursor();
+#endif
+
     server->setLEDState(ledState);
 
     running = true;
@@ -357,7 +361,6 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 #ifdef HAVE_XFIXES
     } else if (ev->type == xfixesEventBase + XFixesCursorNotify) {
       XFixesCursorNotifyEvent* cev;
-      XFixesCursorImage *cim;
 
       if (!running)
         return true;
@@ -366,6 +369,17 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 
       if (cev->subtype != XFixesDisplayCursorNotify)
         return false;
+
+      return setCursor();
+#endif
+    }
+
+    return false;
+}
+
+bool XDesktop::setCursor()
+{
+      XFixesCursorImage *cim;
 
       cim = XFixesGetCursorImage(dpy);
       if (cim == NULL)
@@ -410,9 +424,4 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
       delete [] cursorData;
       XFree(cim);
       return true;
-#endif
-    }
-
-    return false;
 }
-

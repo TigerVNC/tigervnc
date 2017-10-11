@@ -74,6 +74,7 @@ protected:
   unsigned ledState;
   const unsigned short *codeMap;
   unsigned codeMapLen;
+  bool setCursor();
 };
 
 #endif // __XDESKTOP_H__
