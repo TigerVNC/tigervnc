@@ -509,6 +509,9 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
   if (info->client == serverClient)
     return;
 
+  LOG_DEBUG("Selection owner change for %s",
+            NameForAtom(info->selection->selection));
+
   if ((info->selection->selection != xaPRIMARY) &&
       (info->selection->selection != xaCLIPBOARD))
     return;
