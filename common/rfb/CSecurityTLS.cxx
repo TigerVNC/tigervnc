@@ -153,7 +153,7 @@ bool CSecurityTLS::processMsg(CConnection* cc)
       if (result == secResultFailed || result == secResultTooMany)
         reason.buf = is->readString();
       else
-        reason.buf = strDup("Authentication failure (protocol error)");
+        reason.buf = strDup("protocol error");
       throw AuthFailureException(reason.buf);
     }
 

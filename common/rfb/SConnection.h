@@ -144,7 +144,7 @@ namespace rfb {
     // throwConnFailedException() prints a message to the log, sends a conn
     // failed message to the client (if possible) and throws a
     // ConnFailedException.
-    void throwConnFailedException(const char* msg);
+    void throwConnFailedException(const char* format, ...) __printf_attr(2, 3);
 
     // writeConnFailedFromScratch() sends a conn failed message to an OutStream
     // without the need to negotiate the protocol version first.  It actually
