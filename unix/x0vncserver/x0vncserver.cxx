@@ -57,8 +57,6 @@ IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
 IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
                                "CPU time to be consumed", 35);
 BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
-BoolParameter useOverlay("OverlayMode", "Use overlay mode under "
-                         "IRIX or Solaris", true);
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
 IntParameter queryConnectTimeout("QueryConnectTimeout",

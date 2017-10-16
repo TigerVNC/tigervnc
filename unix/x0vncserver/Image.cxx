@@ -319,181 +319,14 @@ void ShmImage::get(Window wnd, int x, int y, int w, int h,
   XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, dst_x, dst_y);
 }
 
-#ifdef HAVE_READDISPLAY
-
-//
-// IrixOverlayShmImage class implementation.
-//
-
-IrixOverlayShmImage::IrixOverlayShmImage(Display *d)
-  : ShmImage(d), readDisplayBuf(NULL)
-{
-}
-
-IrixOverlayShmImage::IrixOverlayShmImage(Display *d, int width, int height)
-  : ShmImage(d), readDisplayBuf(NULL)
-{
-  Init(width, height);
-}
-
-void IrixOverlayShmImage::Init(int width, int height)
-{
-  // First determine the pixel format used by XReadDisplay.
-  XVisualInfo vinfo;
-  if (!getOverlayVisualInfo(&vinfo))
-    return;
-
-  // Create an SHM image of the same format.
-  ShmImage::Init(width, height, &vinfo);
-  if (xim == NULL)
-    return;
-
-  // FIXME: Check if the extension is available at run time.
-  readDisplayBuf = XShmCreateReadDisplayBuf(dpy, NULL, shminfo, width, height);
-}
-
-bool IrixOverlayShmImage::getOverlayVisualInfo(XVisualInfo *vinfo_ret)
-{
-  // First, get an image in the format returned by XReadDisplay.
-  unsigned long hints = 0, hints_ret;
-  XImage *testImage = XReadDisplay(dpy, DefaultRootWindow(dpy),
-				   0, 0, 8, 8, hints, &hints_ret);
-  if (testImage == NULL)
-    return false;
-
-  // Fill in a template for matching visuals.
-  XVisualInfo tmpl;
-  tmpl.c_class = TrueColor;
-  tmpl.depth = 24;
-  tmpl.red_mask = testImage->red_mask;
-  tmpl.green_mask = testImage->green_mask;
-  tmpl.blue_mask = testImage->blue_mask;
-
-  // List fields in template that make sense.
-  long mask = (VisualClassMask |
-	       VisualRedMaskMask |
-	       VisualGreenMaskMask |
-	       VisualBlueMaskMask);
-
-  // We don't need that image any more.
-  XDestroyImage(testImage);
-
-  // Now, get a list of matching visuals available.
-  int nVisuals;
-  XVisualInfo *vinfo = XGetVisualInfo(dpy, mask, &tmpl, &nVisuals);
-  if (vinfo == NULL || nVisuals <= 0) {
-    if (vinfo != NULL) {
-      XFree(vinfo);
-    }
-    return false;
-  }
-
-  // Use first visual from the list.
-  *vinfo_ret = vinfo[0];
-
-  XFree(vinfo);
-
-  return true;
-}
-
-IrixOverlayShmImage::~IrixOverlayShmImage()
-{
-  if (readDisplayBuf != NULL)
-    XShmDestroyReadDisplayBuf(readDisplayBuf);
-}
-
-void IrixOverlayShmImage::get(Window wnd, int x, int y)
-{
-  get(wnd, x, y, xim->width, xim->height);
-}
-
-void IrixOverlayShmImage::get(Window wnd, int x, int y, int w, int h,
-                              int dst_x, int dst_y)
-{
-  XRectangle rect;
-  unsigned long hints = XRD_TRANSPARENT | XRD_READ_POINTER;
-
-  rect.x = x;
-  rect.y = y;
-  rect.width = w;
-  rect.height = h;
-
-  XShmReadDisplayRects(dpy, wnd,
-                       &rect, 1, readDisplayBuf,
-                       dst_x - x, dst_y - y,
-                       hints, &hints);
-}
-
-#endif // HAVE_READDISPLAY
-
-#ifdef HAVE_SUN_OVL
-
-//
-// SolarisOverlayImage class implementation
-//
-
-SolarisOverlayImage::SolarisOverlayImage(Display *d)
-  : Image(d)
-{
-}
-
-SolarisOverlayImage::SolarisOverlayImage(Display *d, int width, int height)
-  : Image(d)
-{
-  Init(width, height);
-}
-
-void SolarisOverlayImage::Init(int width, int height)
-{
-  // FIXME: Check if the extension is available at run time.
-  // FIXME: Maybe just read a small (e.g. 8x8) screen area then
-  //        reallocate xim->data[] and correct width and height?
-  xim = XReadScreen(dpy, DefaultRootWindow(dpy), 0, 0, width, height, True);
-  if (xim == NULL) {
-    vlog.error("XReadScreen() failed");
-    return;
-  }
-}
-
-SolarisOverlayImage::~SolarisOverlayImage()
-{
-}
-
-void SolarisOverlayImage::get(Window wnd, int x, int y)
-{
-  get(wnd, x, y, xim->width, xim->height);
-}
-
-void SolarisOverlayImage::get(Window wnd, int x, int y, int w, int h,
-                              int dst_x, int dst_y)
-{
-  XImage *tmp_xim = XReadScreen(dpy, wnd, x, y, w, h, True);
-  if (tmp_xim == NULL)
-    return;
-
-  updateRect(tmp_xim, dst_x, dst_y);
-
-  XDestroyImage(tmp_xim);
-}
-
-#endif // HAVE_SUN_OVL
-
 //
 // ImageFactory class implementation
 //
 // FIXME: Make ImageFactory always create images of the same class?
 //
 
-// Prepare useful shortcuts for compile-time options.
-#if defined(HAVE_READDISPLAY)
-#define HAVE_SHM_READDISPLAY
-#endif
-#if defined(HAVE_SHM_READDISPLAY) || defined(HAVE_SUN_OVL)
-#define HAVE_OVERLAY_EXT
-#endif
-
-ImageFactory::ImageFactory(bool allowShm, bool allowOverlay)
-  : mayUseShm(allowShm), mayUseOverlay(allowOverlay)
+ImageFactory::ImageFactory(bool allowShm)
+  : mayUseShm(allowShm)
 {
 }
 
@@ -504,30 +337,6 @@ ImageFactory::~ImageFactory()
 Image *ImageFactory::newImage(Display *d, int width, int height)
 {
   Image *image = NULL;
-
-  // First, try to create an image with overlay support.
-
-#ifdef HAVE_OVERLAY_EXT
-  if (mayUseOverlay) {
-#if defined(HAVE_SHM_READDISPLAY)
-    if (mayUseShm) {
-      image = new IrixOverlayShmImage(d, width, height);
-      if (image->xim != NULL) {
-        return image;
-      }
-    }
-#elif defined(HAVE_SUN_OVL)
-    image = new SolarisOverlayImage(d, width, height);
-    if (image->xim != NULL) {
-      return image;
-    }
-#endif
-    if (image != NULL) {
-      delete image;
-      vlog.error("Failed to create overlay image, trying other options");
-    }
-  }
-#endif // HAVE_OVERLAY_EXT
 
   // Now, try to use shared memory image.
 

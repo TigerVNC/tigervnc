@@ -43,7 +43,6 @@ extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
 extern rfb::BoolParameter useShm;
-extern rfb::BoolParameter useOverlay;
 extern rfb::BoolParameter rawKeyboard;
 
 static rfb::LogWriter vlog("XDesktop");
@@ -192,7 +191,7 @@ void XDesktop::start(VNCServer* vs) {
               maxButtons, (maxButtons != 1) ? "s" : "");
 
     // Create an ImageFactory instance for producing Image objects.
-    ImageFactory factory((bool)useShm, (bool)useOverlay);
+    ImageFactory factory((bool)useShm);
 
     // Create pixel buffer and provide it to the server object.
     pb = new XPixelBuffer(dpy, factory, geometry->getRect());
