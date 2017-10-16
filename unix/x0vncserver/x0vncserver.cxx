@@ -44,11 +44,6 @@
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingScheduler.h>
 
-// XXX Lynx/OS 2.3: protos for select(), bzero()
-#ifdef Lynx
-#include <sys/proto.h>
-#endif
-
 extern char buildtime[];
 
 using namespace rfb;
