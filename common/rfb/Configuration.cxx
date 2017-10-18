@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
+ * Copyright 2017 Peter Astrand <astrand@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,6 +164,23 @@ void Configuration::list(int width, int nameWidth) {
 
   if (_next)
     _next->list(width, nameWidth);
+}
+
+
+bool Configuration::remove(const char* param) {
+  VoidParameter *current = head;
+  VoidParameter **prevnext = &head;
+
+  while (current) {
+    if (strcasecmp(current->getName(), param) == 0) {
+      *prevnext = current->_next;
+      return true;
+    }
+    prevnext = &current->_next;
+    current = current->_next;
+  }
+
+  return false;
 }
 
 

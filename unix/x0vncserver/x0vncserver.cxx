@@ -258,6 +258,9 @@ int main(int argc, char** argv)
 
   Configuration::enableServerParams();
 
+  // Disable configuration parameters which we do not support
+  Configuration::removeParam("AcceptSetDesktopSize");
+
   for (int i = 1; i < argc; i++) {
     if (Configuration::setParam(argv[i]))
       continue;
