@@ -162,7 +162,7 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
         chmod -x "$all"
 done
-patch -p1 -b --suffix .vnc < ../xserver117.patch
+patch -p1 -b --suffix .vnc < ../xserver119.patch
 popd
 
 # Don't use shebang in vncserver script.
