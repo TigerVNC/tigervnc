@@ -31,7 +31,7 @@ BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
-BuildRequires:  freetype-devel, libXdmcp-devel
+BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
 BuildRequires:  java-devel, jpackage-utils
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake
