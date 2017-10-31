@@ -230,7 +230,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     Fl::add_timeout(0, handleStatsTimeout, this);
   }
 
-  // Show hint about menu key
+  // Show hint about menu hot key
   Fl::add_timeout(0.5, menuOverlay, this);
 
   // By default we get a slight delay when we warp the pointer, something
@@ -685,13 +685,14 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 void DesktopWindow::menuOverlay(void* data)
 {
   DesktopWindow *self;
+  const char *combo;
+
+  combo = HotKeyHandler::comboPrefix(hotKeyCombo);
+  if (combo[0] == '\0')
+    return;
 
   self = (DesktopWindow*)data;
-
-  if (strcmp((const char*)menuKey, "") != 0) {
-    self->setOverlay(_("Press %s to open the context menu"),
-                     (const char*)menuKey);
-  }
+  self->setOverlay(_("Press %sM to open the context menu"), combo);
 }
 
 void DesktopWindow::setOverlay(const char* text, ...)

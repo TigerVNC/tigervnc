@@ -27,13 +27,19 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
+#include <rfb/KeysymStr.h>
 #include <rfb/ledStates.h>
 #include <rfb/util.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
+#define XK_LATIN1
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
+#endif
+
+#ifndef NoSymbol
+#define NoSymbol 0
 #endif
 
 #include "fltk/layout.h"
@@ -44,7 +50,6 @@
 #include "DesktopWindow.h"
 #include "i18n.h"
 #include "parameters.h"
-#include "menukey.h"
 #include "vncviewer.h"
 
 #include "PlatformPixelBuffer.h"
@@ -75,7 +80,7 @@ static rfb::LogWriter vlog("Viewport");
 // Menu constants
 
 enum { ID_DISCONNECT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
-       ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
+       ID_CTRL, ID_ALT, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT };
 
 // Used for fake key presses from the menu
@@ -121,7 +126,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
   // reparenting to the current window works for most cases.
   window()->add(contextMenu);
 
-  setMenuKey();
+  hotKeyHandler.setHotKeyCombo(hotKeyCombo);
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -602,22 +607,81 @@ void Viewport::resetKeyboard()
   }
 
   keyboard->reset();
+  hotKeyHandler.reset();
 }
 
 
 void Viewport::handleKeyPress(int systemKeyCode,
                               uint32_t keyCode, uint32_t keySym)
 {
-  static bool menuRecursion = false;
+  HotKeyHandler::KeyAction action;
 
-  // Prevent recursion if the menu wants to send its own
-  // activation key.
-  if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
-    menuRecursion = true;
-    popupContextMenu();
-    menuRecursion = false;
+  // Possible hot key combo?
+
+  action = hotKeyHandler.handleKeyPress(systemKeyCode, keySym);
+
+  if (action == HotKeyHandler::KeyIgnore) {
+    vlog.debug("Ignoring key press %d / 0x%04x / %s (0x%04x)",
+               systemKeyCode, keyCode, KeySymName(keySym), keySym);
     return;
   }
+
+  if (action == HotKeyHandler::KeyHotKey) {
+    std::list<uint32_t> keySyms;
+    std::list<uint32_t>::const_iterator iter;
+
+    // Modifiers can change the KeySym that's been resolved, so we need
+    // to check all possible KeySyms for this physical key, not just the
+    // current one
+    keySyms = keyboard->translateToKeySyms(systemKeyCode);
+
+    // Then we pick the one that matches first
+    keySym = NoSymbol;
+    for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
+      bool found;
+
+      switch (*iter) {
+      case XK_M:
+      case XK_m:
+        keySym = *iter;
+        found = true;
+        break;
+      default:
+        found = false;
+        break;
+      }
+
+      if (found)
+        break;
+    }
+
+    vlog.debug("Detected hot key %d / 0x%04x / %s (0x%04x)",
+               systemKeyCode, keyCode, KeySymName(keySym), keySym);
+
+    // The remote session won't see any more keys, so release the ones
+    // currently down
+    try {
+      cc->releaseAllKeys();
+    } catch (std::exception& e) {
+      vlog.error("%s", e.what());
+      abort_connection(_("An unexpected error occurred when communicating "
+                       "with the server:\n\n%s"), e.what());
+    }
+
+    switch (keySym) {
+    case XK_M:
+    case XK_m:
+      popupContextMenu();
+      break;
+    default:
+      // Unknown/Unused hot key combo
+      break;
+    }
+
+    return;
+  }
+
+  // Normal key, so send to server...
 
   if (viewOnly)
     return;
@@ -633,6 +697,24 @@ void Viewport::handleKeyPress(int systemKeyCode,
 
 void Viewport::handleKeyRelease(int systemKeyCode)
 {
+  HotKeyHandler::KeyAction action;
+
+  // Possible hot key combo?
+
+  action = hotKeyHandler.handleKeyRelease(systemKeyCode);
+
+  if (action == HotKeyHandler::KeyIgnore) {
+    vlog.debug("Ignoring key release %d", systemKeyCode);
+    return;
+  }
+
+  if (action == HotKeyHandler::KeyHotKey) {
+    vlog.debug("Hot key release %d", systemKeyCode);
+    return;
+  }
+
+  // Normal key, so send to server...
+
   if (viewOnly)
     return;
 
@@ -696,15 +778,6 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Alt"),
                 0, nullptr, (void*)ID_ALT,
                 FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
-
-  if (menuKeySym) {
-    char sendMenuKey[64];
-    snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"), (const char *)menuKey);
-    fltk_menu_add(contextMenu, sendMenuKey, 0, nullptr, (void*)ID_MENUKEY, 0);
-    fltk_menu_add(contextMenu, "Secret shortcut menu key",
-                  menuKeyFLTK, nullptr,
-                  (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
-  }
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Send Ctrl-Alt-&Del"),
                 0, nullptr, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
@@ -790,10 +863,6 @@ void Viewport::popupContextMenu()
       handleKeyRelease(FAKE_ALT_KEY_CODE);
     menuAltKey = !menuAltKey;
     break;
-  case ID_MENUKEY:
-    handleKeyPress(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
-    handleKeyRelease(FAKE_KEY_CODE);
-    break;
   case ID_CTRLALTDEL:
     handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
@@ -822,17 +891,11 @@ void Viewport::popupContextMenu()
   }
 }
 
-
-void Viewport::setMenuKey()
-{
-  getMenuKey(&menuKeyFLTK, &menuKeyCode, &menuKeySym);
-}
-
-
 void Viewport::handleOptions(void *data)
 {
   Viewport *self = (Viewport*)data;
 
-  self->setMenuKey();
+  self->hotKeyHandler.setHotKeyCombo(hotKeyCombo);
+
   // FIXME: Need to recheck cursor for dotWhenNoCursor
 }

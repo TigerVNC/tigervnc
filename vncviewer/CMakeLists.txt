@@ -6,11 +6,11 @@ add_executable(vncviewer
   fltk/Fl_Monitor_Arrangement.cxx
   fltk/Fl_Navigation.cxx
   fltk/theme.cxx
-  menukey.cxx
   BaseTouchHandler.cxx
   CConn.cxx
   DesktopWindow.cxx
   EmulateMB.cxx
+  HotKeyHandler.cxx
   UserDialog.cxx
   ServerDialog.cxx
   Surface.cxx
