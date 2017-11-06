@@ -379,9 +379,10 @@ void VNCSConnectionST::renderedCursorChange()
 {
   if (state() != RFBSTATE_NORMAL) return;
   // Are we switching between client-side and server-side cursor?
-  if (damagedCursorRegion.is_empty() != needRenderedCursor())
+  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
+  if (hasRenderedCursor != needRenderedCursor())
     setCursorOrClose();
-  if (!damagedCursorRegion.is_empty())
+  if (hasRenderedCursor)
     removeRenderedCursor = true;
   if (needRenderedCursor()) {
     updateRenderedCursor = true;
