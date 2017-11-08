@@ -168,7 +168,7 @@ void VNCSConnectionST::processMessages()
 
     // Get the underlying TCP layer to build large packets if we send
     // multiple small responses.
-    network::TcpSocket::cork(sock->getFd(), true);
+    sock->cork(true);
 
     while (getInStream()->checkNoWait(1)) {
       if (pendingSyncFence) {
@@ -185,7 +185,7 @@ void VNCSConnectionST::processMessages()
     }
 
     // Flush out everything in case we go idle after this.
-    network::TcpSocket::cork(sock->getFd(), false);
+    sock->cork(false);
 
     inProcessMessages = false;
 
@@ -1094,7 +1094,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // mode, we will also have small fence messages around the update. We
   // need to aggregate these in order to not clog up TCP's congestion
   // window.
-  network::TcpSocket::cork(sock->getFd(), true);
+  sock->cork(true);
 
   // First take care of any updates that cannot contain framebuffer data
   // changes.
@@ -1103,7 +1103,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // Then real data (if possible)
   writeDataUpdate();
 
-  network::TcpSocket::cork(sock->getFd(), false);
+  sock->cork(false);
 }
 
 void VNCSConnectionST::writeNoDataUpdate()

@@ -23,6 +23,8 @@
 #include <rfb/LogWriter.h>
 #include <x0vncserver/Geometry.h>
 
+using namespace rfb;
+
 static LogWriter vlog("Geometry");
 
 StringParameter Geometry::m_geometryParam("Geometry",

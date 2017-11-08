@@ -31,6 +31,8 @@
 
 #include <x0vncserver/PollingManager.h>
 
+using namespace rfb;
+
 static LogWriter vlog("PollingMgr");
 
 const int PollingManager::m_pollingOrder[32] = {

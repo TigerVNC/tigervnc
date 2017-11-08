@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman for Cendio AB
+ * Copyright 2017 Peter Astrand <astrand@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <sys/socket.h>
 #endif
 
 /* Old systems have select() in sys/time.h */
@@ -193,7 +195,14 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
     return 0;
 
   do {
-    n = ::write(fd, data, length);
+    // select only guarantees that you can write SO_SNDLOWAT without
+    // blocking, which is normally 1. Use MSG_DONTWAIT to avoid
+    // blocking, when possible.
+#ifndef MSG_DONTWAIT
+    n = ::send(fd, (const char*)data, length, 0);
+#else
+    n = ::send(fd, (const char*)data, length, MSG_DONTWAIT);
+#endif
   } while (n < 0 && (errno == EINTR));
 
   if (n < 0)
