@@ -270,7 +270,8 @@ public:
     TXWindow::setGlobalEventHandler(this);
   }
   virtual ~XDesktop() {
-    stop();
+    if (running)
+      stop();
   }
 
   inline void poll() {
@@ -326,6 +327,9 @@ public:
     if (haveDamage)
       XDamageDestroy(dpy, damage);
 #endif
+
+    server->setPixelBuffer(0);
+    server = 0;
 
     delete pb;
     pb = 0;
