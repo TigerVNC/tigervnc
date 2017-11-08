@@ -56,7 +56,6 @@ IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
                           "adjusted to satisfy MaxProcessorUsage setting", 30);
 IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
                                "CPU time to be consumed", 35);
-BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
 IntParameter queryConnectTimeout("QueryConnectTimeout",
@@ -64,10 +63,6 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "rejecting the connection",
                                  10);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
-BoolParameter rawKeyboard("RawKeyboard",
-                          "Send keyboard events straight through and "
-                          "avoid mapping them to the current keyboard "
-                          "layout", false);
 
 //
 // Allow the main loop terminate itself gracefully on receiving a signal.

@@ -42,8 +42,11 @@ extern const unsigned int code_map_qnum_to_xorgevdev_len;
 extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
-extern rfb::BoolParameter useShm;
-extern rfb::BoolParameter rawKeyboard;
+BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
+BoolParameter rawKeyboard("RawKeyboard",
+                          "Send keyboard events straight through and "
+                          "avoid mapping them to the current keyboard "
+                          "layout", false);
 
 static rfb::LogWriter vlog("XDesktop");
 
