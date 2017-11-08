@@ -26,13 +26,13 @@
 #include <sys/time.h>
 #ifdef _WIN32
 #include <winsock2.h>
-#define read(s,b,l) recv(s,(char*)b,l,0)
 #define close closesocket
 #undef errno
 #define errno WSAGetLastError()
 #include <os/winerrno.h>
 #else
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #endif
 
@@ -165,9 +165,9 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
 // blockCallback is set, it will be called (repeatedly) instead of blocking.
 // If alternatively there is a timeout set and that timeout expires, it throws
 // a TimedOut exception.  Otherwise it returns the number of bytes read.  It
-// never attempts to read() unless select() indicates that the fd is readable -
+// never attempts to recv() unless select() indicates that the fd is readable -
 // this means it can be used on an fd which has been set non-blocking.  It also
-// has to cope with the annoying possibility of both select() and read()
+// has to cope with the annoying possibility of both select() and recv()
 // returning EINTR.
 //
 
@@ -207,7 +207,7 @@ int FdInStream::readWithTimeoutOrCallback(void* buf, int len, bool wait)
   }
 
   do {
-    n = ::read(fd, buf, len);
+    n = ::recv(fd, (char*)buf, len, 0);
   } while (n < 0 && errno == EINTR);
 
   if (n < 0) throw SystemException("read",errno);

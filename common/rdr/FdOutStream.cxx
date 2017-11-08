@@ -27,7 +27,6 @@
 #include <errno.h>
 #ifdef _WIN32
 #include <winsock2.h>
-#define write(s,b,l) send(s,(const char*)b,l,0)
 #undef errno
 #define errno WSAGetLastError()
 #include <os/winerrno.h>
@@ -161,10 +160,10 @@ int FdOutStream::overrun(int itemSize, int nItems)
 // writeWithTimeout() writes up to the given length in bytes from the given
 // buffer to the file descriptor.  If there is a timeout set and that timeout
 // expires, it throws a TimedOut exception.  Otherwise it returns the number of
-// bytes written.  It never attempts to write() unless select() indicates that
+// bytes written.  It never attempts to send() unless select() indicates that
 // the fd is writable - this means it can be used on an fd which has been set
 // non-blocking.  It also has to cope with the annoying possibility of both
-// select() and write() returning EINTR.
+// select() and send() returning EINTR.
 //
 
 int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
