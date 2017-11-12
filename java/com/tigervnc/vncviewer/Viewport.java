@@ -87,7 +87,7 @@ class Viewport extends JPanel implements MouseListener,
     // a server-side cursor. Ideally we'd like to send the actual pointer
     // position, but we can't really tell when the window manager is done
     // placing us so we don't have a good time for that.
-    cc.writer().writePointerEvent(new Point(w/2, h/2), 0);
+    cc.writer().pointerEvent(new Point(w/2, h/2), 0);
   }
 
   // Most efficient format (from Viewport's point of view)

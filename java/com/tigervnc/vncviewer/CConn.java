@@ -757,7 +757,7 @@ public class CConn extends CConnection implements
   public void writeKeyEvent(int keysym, boolean down) {
     if (state() != RFBSTATE_NORMAL || shuttingDown)
       return;
-    writer().writeKeyEvent(keysym, down);
+    writer().keyEvent(keysym, down);
   }
 
   public void writeKeyEvent(KeyEvent ev) {
@@ -866,7 +866,7 @@ public class CConn extends CConnection implements
       break;
     }
 
-    writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
+    writer().pointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
   }
 
   public void writeWheelEvent(MouseWheelEvent ev) {
@@ -882,9 +882,9 @@ public class CConn extends CConnection implements
     for (int i = 0; i < Math.abs(clicks); i++) {
       x = ev.getX();
       y = ev.getY();
-      writer().writePointerEvent(new Point(x, y), buttonMask);
+      writer().pointerEvent(new Point(x, y), buttonMask);
       buttonMask = 0;
-      writer().writePointerEvent(new Point(x, y), buttonMask);
+      writer().pointerEvent(new Point(x, y), buttonMask);
     }
 
   }
