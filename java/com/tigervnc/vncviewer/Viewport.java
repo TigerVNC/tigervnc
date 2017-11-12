@@ -102,6 +102,16 @@ class Viewport extends JPanel implements ActionListener {
         releaseDownKeys();
       }
     });
+    Action action = new AbstractAction() {
+      public void actionPerformed(ActionEvent e) { }
+    };
+    KeyStroke f10 = KeyStroke.getKeyStroke(KeyEvent.VK_F10, 0);
+    getInputMap(JComponent.WHEN_FOCUSED).put(f10, "requestFocus");
+    getActionMap().put("requestFocus", new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        requestFocusInWindow();
+      }
+    });
 
     setFocusTraversalKeysEnabled(false);
     setFocusable(true);
