@@ -35,10 +35,18 @@ public class LogWriter {
     }
   }
 
-  public void error(String str) { write(0, str); }
-  public void status(String str) { write(10, str); }
-  public void info(String str) { write(30, str); }
-  public void debug(String str) { write(100, str); }
+  public void error(String fmt, Object... args) {
+    write(0, String.format(fmt, args));
+  }
+  public void status(String fmt, Object... args) {
+    write(10, String.format(fmt, args));
+  }
+  public void info(String fmt, Object... args) {
+    write(30, String.format(fmt, args));
+  }
+  public void debug(String fmt, Object... args) {
+    write(100, String.format(fmt, args));
+  }
 
   public static boolean setLogParams(String params) {
     globalLogLevel = Integer.parseInt(params);
