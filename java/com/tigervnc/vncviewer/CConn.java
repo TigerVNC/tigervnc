@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2013 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2015 Brian P. Hinz
+ * Copyright (C) 2011-2017 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,10 +77,6 @@ public class CConn extends CConnection implements
   static final PixelFormat mediumColorPF =
     new PixelFormat(8, 8, false, true, 7, 7, 3, 5, 2, 0);
 
-  static final int KEY_LOC_SHIFT_R = 0;
-  static final int KEY_LOC_SHIFT_L = 16;
-  static final int SUPER_MASK = 1<<15;
-
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the RFB thread
 
@@ -95,7 +91,6 @@ public class CConn extends CConnection implements
 
     setShared(shared.getValue());
     sock = socket;
-    downKeySym = new HashMap<Integer, Integer>();
 
     upg = this;
 
@@ -706,193 +701,11 @@ public class CConn extends CConnection implements
     }
   }
 
-  void showInfo() {
-    Window fullScreenWindow = DesktopWindow.getFullScreenWindow();
-    if (fullScreenWindow != null)
-      DesktopWindow.setFullScreenWindow(null);
-    String info = new String("Desktop name: %s%n"+
-                             "Host: %s:%d%n"+
-                             "Size: %dx%d%n"+
-                             "Pixel format: %s%n"+
-                             "  (server default: %s)%n"+
-                             "Requested encoding: %s%n"+
-                             "Last used encoding: %s%n"+
-                             "Line speed estimate: %d kbit/s%n"+
-                             "Protocol version: %d.%d%n"+
-                             "Security method: %s [%s]%n");
-    String msg =
-      String.format(info, cp.name(),
-                    sock.getPeerName(), sock.getPeerPort(),
-                    cp.width, cp.height,
-                    cp.pf().print(),
-                    serverPF.print(),
-                    Encodings.encodingName(currentEncoding),
-                    Encodings.encodingName(lastServerEncoding),
-                    sock.inStream().kbitsPerSecond(),
-                    cp.majorVersion, cp.minorVersion,
-                    Security.secTypeName(csecurity.getType()),
-                    csecurity.description());
-    JOptionPane op = new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE,
-                                     JOptionPane.DEFAULT_OPTION);
-    JDialog dlg = op.createDialog(desktop, "VNC connection info");
-    dlg.setIconImage(VncViewer.frameIcon);
-    dlg.setAlwaysOnTop(true);
-    dlg.setVisible(true);
-    if (fullScreenWindow != null)
-      DesktopWindow.setFullScreenWindow(fullScreenWindow);
-  }
-
-  public void refresh() {
-    writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
-    pendingUpdate = true;
-  }
-
   // writeClientCutText() is called from the clipboard dialog
   public void writeClientCutText(String str, int len) {
     if (state() != RFBSTATE_NORMAL || shuttingDown)
       return;
     writer().writeClientCutText(str, len);
-  }
-
-  public void writeKeyEvent(int keysym, boolean down) {
-    if (state() != RFBSTATE_NORMAL || shuttingDown)
-      return;
-    writer().keyEvent(keysym, down);
-  }
-
-  public void writeKeyEvent(KeyEvent ev) {
-    if (viewOnly.getValue() || shuttingDown)
-      return;
-
-    boolean down = (ev.getID() == KeyEvent.KEY_PRESSED);
-
-    int keySym, keyCode = ev.getKeyCode();
-
-    // If neither the keyCode or keyChar are defined, then there's
-    // really nothing that we can do with this.  The fn key on OS-X
-    // fires events like this when pressed but does not fire a
-    // corresponding release event.
-    if (keyCode == 0 && ev.getKeyChar() == KeyEvent.CHAR_UNDEFINED)
-      return;
-
-    if (!down) {
-      Integer iter = downKeySym.get(keyCode);
-      if (iter == null) {
-        // Note that dead keys will raise this sort of error falsely
-        // See https://bugs.openjdk.java.net/browse/JDK-6534883 
-        vlog.debug("Unexpected key release of keyCode "+keyCode);
-        String fmt = ev.paramString().replaceAll("%","%%");
-        vlog.debug(String.format(fmt.replaceAll(",","%n       ")));
-
-        return;
-      }
-
-      vlog.debug(String.format("Key released: 0x%04x => 0x%04x",
-                 keyCode, iter));
-
-      writeKeyEvent(iter, false);
-      downKeySym.remove(keyCode);
-
-      return;
-    }
-
-    keySym = Keysyms.translateKeyEvent(ev);
-    if (keySym == Keysyms.VoidSymbol)
-      return;
-
-    boolean need_cheat = true;
-    if (VncViewer.os.startsWith("windows")) {
-      // Windows doesn't have a proper AltGr, but handles it using fake
-      // Ctrl+Alt. Unfortunately X11 doesn't generally like the combination
-      // Ctrl+Alt+AltGr, which we usually end up with when Xvnc tries to
-      // get everything in the correct state. Cheat and temporarily release
-      // Ctrl and Alt whenever we get a key with a symbol.
-      if (KeyEvent.getKeyText(keyCode).isEmpty())
-        need_cheat = false;
-      else if (!downKeySym.containsValue(Keysyms.Control_L) &&
-               !downKeySym.containsValue(Keysyms.Control_R))
-        need_cheat = false;
-      else if (!downKeySym.containsValue(Keysyms.Alt_L) &&
-               !downKeySym.containsValue(Keysyms.Alt_R))
-        need_cheat = false;
-
-      if (need_cheat) {
-        vlog.info("Faking release of AltGr (Ctrl+Alt)");
-        if (downKeySym.containsValue(Keysyms.Control_L))
-          writeKeyEvent(Keysyms.Control_L, false);
-        if (downKeySym.containsValue(Keysyms.Control_R))
-          writeKeyEvent(Keysyms.Control_R, false);
-        if (downKeySym.containsValue(Keysyms.Alt_L))
-          writeKeyEvent(Keysyms.Alt_L, false);
-        if (downKeySym.containsValue(Keysyms.Alt_R))
-          writeKeyEvent(Keysyms.Alt_R, false);
-      }
-    }
-
-    vlog.debug(String.format("Key pressed: 0x%04x '%s' => 0x%04x",
-               keyCode, Character.toString(ev.getKeyChar()), keySym));
-
-    downKeySym.put(keyCode, keySym);
-
-    writeKeyEvent(keySym, down);
-
-    if (VncViewer.os.startsWith("windows")) {
-      if (need_cheat) {
-        vlog.debug("Restoring AltGr state");
-        if (downKeySym.containsValue(Keysyms.Control_L))
-          writeKeyEvent(Keysyms.Control_L, true);
-        if (downKeySym.containsValue(Keysyms.Control_R))
-          writeKeyEvent(Keysyms.Control_R, true);
-        if (downKeySym.containsValue(Keysyms.Alt_L))
-          writeKeyEvent(Keysyms.Alt_L, true);
-        if (downKeySym.containsValue(Keysyms.Alt_R))
-          writeKeyEvent(Keysyms.Alt_R, true);
-      }
-    }
-  }
-
-  public void writePointerEvent(MouseEvent ev) {
-    if (state() != RFBSTATE_NORMAL || shuttingDown)
-      return;
-
-    switch (ev.getID()) {
-    case MouseEvent.MOUSE_PRESSED:
-      buttonMask = 1;
-      if ((ev.getModifiers() & KeyEvent.ALT_MASK) != 0) buttonMask = 2;
-      if ((ev.getModifiers() & KeyEvent.META_MASK) != 0) buttonMask = 4;
-      break;
-    case MouseEvent.MOUSE_RELEASED:
-      buttonMask = 0;
-      break;
-    }
-
-    writer().pointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
-  }
-
-  public void writeWheelEvent(MouseWheelEvent ev) {
-    if (state() != RFBSTATE_NORMAL || shuttingDown)
-      return;
-    int x, y;
-    int clicks = ev.getWheelRotation();
-    if (clicks < 0) {
-      buttonMask = 8;
-    } else {
-      buttonMask = 16;
-    }
-    for (int i = 0; i < Math.abs(clicks); i++) {
-      x = ev.getX();
-      y = ev.getY();
-      writer().pointerEvent(new Point(x, y), buttonMask);
-      buttonMask = 0;
-      writer().pointerEvent(new Point(x, y), buttonMask);
-    }
-
-  }
-
-  synchronized void releaseDownKeys() {
-    for (Map.Entry<Integer, Integer> entry : downKeySym.entrySet())
-      writeKeyEvent(entry.getValue(), false);
-    downKeySym.clear();
   }
 
   // this is a special ActionListener passed in by the
@@ -930,8 +743,6 @@ public class CConn extends CConnection implements
   // from when constructed).
 
   // the following are only ever accessed by the GUI thread:
-  int buttonMask;
-
   private String serverHost;
   private int serverPort;
   private Socket sock;
@@ -957,7 +768,6 @@ public class CConn extends CConnection implements
 
   private boolean supportsSyncFence;
 
-  private HashMap<Integer, Integer> downKeySym;
   public ActionListener closeListener = null;
 
   static LogWriter vlog = new LogWriter("CConn");

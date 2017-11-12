@@ -31,16 +31,11 @@
 package com.tigervnc.vncviewer;
 
 import java.awt.*;
-import java.awt.Color;
-import java.awt.color.ColorSpace;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.Clipboard;
-import java.io.BufferedReader;
 import java.nio.*;
+import java.util.*;
 import javax.swing.*;
 
 import javax.imageio.*;
@@ -48,46 +43,76 @@ import java.io.*;
 
 import com.tigervnc.rfb.*;
 import com.tigervnc.rfb.Cursor;
+import com.tigervnc.rfb.Exception;
 import com.tigervnc.rfb.Point;
 
+import static java.awt.event.KeyEvent.*;
 import static com.tigervnc.vncviewer.Parameters.*;
+import static com.tigervnc.rfb.Keysymdef.*;
 
-class Viewport extends JPanel implements MouseListener,
-  MouseMotionListener, MouseWheelListener, KeyListener {
+class Viewport extends JPanel implements ActionListener {
 
   static LogWriter vlog = new LogWriter("Viewport");
+
+  enum ID { EXIT, FULLSCREEN, MINIMIZE, RESIZE, NEWVIEWER,
+            CTRL, ALT, MENUKEY, CTRLALTDEL, CLIPBOARD,
+            REFRESH, OPTIONS, INFO, ABOUT, DISMISS }
+
+  enum MENU { INACTIVE, TOGGLE, VALUE, RADIO,
+              INVISIBLE, SUBMENU_POINTER, SUBMENU, DIVIDER }
 
   public Viewport(int w, int h, PixelFormat serverPF, CConn cc_)
   {
     cc = cc_;
-    setScaledSize(cc.cp.width, cc.cp.height);
+    setScaledSize(w, h);
     frameBuffer = createFramebuffer(serverPF, w, h);
     assert(frameBuffer != null);
     setBackground(Color.BLACK);
 
     cc.setFramebuffer(frameBuffer);
+
+    contextMenu = new JPopupMenu();
+
     OptionsDialog.addCallback("handleOptions", this);
 
-    addMouseListener(this);
-    addMouseWheelListener(this);
-    addMouseMotionListener(this);
-    addKeyListener(this);
+    addMouseListener(new MouseAdapter() {
+      public void mouseClicked(MouseEvent e) { }
+      public void mouseEntered(MouseEvent e) { handle(e); }
+      public void mouseExited(MouseEvent e) { handle(e); }
+      public void mouseReleased(MouseEvent e) { handle(e); }
+      public void mousePressed(MouseEvent e) { handle(e); }
+    });
+    addMouseWheelListener(new MouseAdapter() {
+      public void mouseWheelMoved(MouseWheelEvent e) { handle(e); }
+    });
+    addMouseMotionListener(new MouseMotionAdapter() {
+      public void mouseDragged(MouseEvent e) { handle(e); }
+      public void mouseMoved(MouseEvent e) { handle(e); }
+    });
+    addKeyListener(new KeyAdapter() {
+      public void keyTyped(KeyEvent e) { }
+      public void keyPressed(KeyEvent e) { handleSystemEvent(e); }
+      public void keyReleased(KeyEvent e) { handleSystemEvent(e); }
+    });
     addFocusListener(new FocusAdapter() {
       public void focusGained(FocusEvent e) {
         ClipboardDialog.clientCutText();
       }
       public void focusLost(FocusEvent e) {
-        cc.releaseDownKeys();
+        releaseDownKeys();
       }
     });
+
     setFocusTraversalKeysEnabled(false);
     setFocusable(true);
+
+    setMenuKey();
 
     // Send a fake pointer event so that the server will stop rendering
     // a server-side cursor. Ideally we'd like to send the actual pointer
     // position, but we can't really tell when the window manager is done
     // placing us so we don't have a good time for that.
-    cc.writer().pointerEvent(new Point(w/2, h/2), 0);
+    handlePointerEvent(new Point(w/2, h/2), 0);
   }
 
   // Most efficient format (from Viewport's point of view)
@@ -127,6 +152,9 @@ class Viewport extends JPanel implements MouseListener,
   {
     int i;
 
+    if (cursor != null)
+      cursor.flush();
+
     for (i = 0; i < width*height; i++)
       if (data[i*4 + 3] != 0) break;
 
@@ -148,7 +176,6 @@ class Viewport extends JPanel implements MouseListener,
           new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
         cursor.setRGB(0, 0, width, height, buffer.array(), 0, width);
         cursorHotspot = hotspot;
-
       }
     }
 
@@ -158,35 +185,32 @@ class Viewport extends JPanel implements MouseListener,
     int x = (int)Math.floor((float)cursorHotspot.x * scaleRatioX);
     int y = (int)Math.floor((float)cursorHotspot.y * scaleRatioY);
 
-    java.awt.Cursor softCursor;
-
     Dimension cs = tk.getBestCursorSize(cw, ch);
     if (cs.width != cw && cs.height != ch) {
       cw = Math.min(cw, cs.width);
       ch = Math.min(ch, cs.height);
       x = (int)Math.min(x, Math.max(cs.width - 1, 0));
       y = (int)Math.min(y, Math.max(cs.height - 1, 0));
-      BufferedImage scaledImage = 
-        new BufferedImage(cs.width, cs.height, BufferedImage.TYPE_INT_ARGB);
-      Graphics2D g2 = scaledImage.createGraphics();
-      g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-                          RenderingHints.VALUE_RENDER_QUALITY);
-      g2.drawImage(cursor,
-                   0, 0, cw, ch,
-                   0, 0, cursor.getWidth(), cursor.getHeight(), null);
+      BufferedImage tmp =
+        new BufferedImage(cs.width, cs.height, BufferedImage.TYPE_INT_ARGB_PRE);
+      Graphics2D g2 = tmp.createGraphics();
+      g2.drawImage(cursor, 0, 0, cw, ch, 0, 0, width, height, null);
       g2.dispose();
-      java.awt.Point hs = new java.awt.Point(x, y);
-      softCursor = tk.createCustomCursor(scaledImage, hs, "softCursor");
-      scaledImage.flush();
-    } else {
-      java.awt.Point hs = new java.awt.Point(x, y);
-      softCursor = tk.createCustomCursor(cursor, hs, "softCursor");
+      cursor = tmp;
     }
 
-    cursor.flush();
+    setCursor(cursor, x, y);
+  }
 
+  private void setCursor(Image img, int x, int y)
+  {
+    java.awt.Point hotspot;
+    java.awt.Cursor softCursor;
+    String name = "rfb cursor";
+
+    hotspot = new java.awt.Point(x, y);
+    softCursor = tk.createCustomCursor(img, hotspot, name);
     setCursor(softCursor);
-
   }
 
   public void resize(int x, int y, int w, int h) {
@@ -198,6 +222,54 @@ class Viewport extends JPanel implements MouseListener,
       cc.setFramebuffer(frameBuffer);
     }
     setScaledSize(w, h);
+  }
+
+  public int handle(MouseEvent e)
+  {
+    int buttonMask, wheelMask;
+    switch (e.getID()) {
+    case MouseEvent.MOUSE_ENTERED:
+      if (cursor != null)
+        setCursor(cursor, cursorHotspot.x, cursorHotspot.y);
+      if (embed.getValue())
+        requestFocus();
+      return 1;
+    case MouseEvent.MOUSE_EXITED:
+      setCursor(java.awt.Cursor.getDefaultCursor());
+      return 1;
+    case MouseEvent.MOUSE_PRESSED:
+    case MouseEvent.MOUSE_RELEASED:
+    case MouseEvent.MOUSE_DRAGGED:
+    case MouseEvent.MOUSE_MOVED:
+    case MouseEvent.MOUSE_WHEEL:
+      buttonMask = 0;
+      if ((e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0)
+        buttonMask |= 1;
+      if ((e.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK) != 0)
+        buttonMask |= 2;
+      if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0)
+        buttonMask |= 4;
+
+      if (e.getID() == MouseEvent.MOUSE_WHEEL) {
+        wheelMask = 0;
+        int clicks = ((MouseWheelEvent)e).getWheelRotation();
+        if (clicks < 0)
+          wheelMask |= e.isShiftDown() ? 32 : 8;
+        else
+          wheelMask |= e.isShiftDown() ? 64 : 16;
+        Point pt = new Point(e.getX(), e.getY());
+        for (int i = 0; i < Math.abs(clicks); i++) {
+          handlePointerEvent(pt, buttonMask|wheelMask);
+          handlePointerEvent(pt, buttonMask);
+        }
+        return 1;
+      }
+
+      handlePointerEvent(new Point(e.getX(), e.getY()), buttonMask);
+      return 1;
+    }
+
+    return -1;
   }
 
   private PlatformPixelBuffer createFramebuffer(PixelFormat pf, int w, int h)
@@ -241,116 +313,6 @@ class Viewport extends JPanel implements MouseListener,
     g2.dispose();
   }
 
-  // Mouse-Motion callback function
-  private void mouseMotionCB(MouseEvent e) {
-    if (!viewOnly.getValue() &&
-        e.getX() >= 0 && e.getX() <= scaledWidth &&
-        e.getY() >= 0 && e.getY() <= scaledHeight)
-      cc.writePointerEvent(translateMouseEvent(e));
-  }
-  public void mouseDragged(MouseEvent e) { mouseMotionCB(e); }
-  public void mouseMoved(MouseEvent e) { mouseMotionCB(e); }
-
-  // Mouse callback function
-  private void mouseCB(MouseEvent e) {
-    if (!viewOnly.getValue())
-      if ((e.getID() == MouseEvent.MOUSE_RELEASED) ||
-          (e.getX() >= 0 && e.getX() <= scaledWidth &&
-           e.getY() >= 0 && e.getY() <= scaledHeight))
-        cc.writePointerEvent(translateMouseEvent(e));
-  }
-  public void mouseReleased(MouseEvent e) { mouseCB(e); }
-  public void mousePressed(MouseEvent e) { mouseCB(e); }
-  public void mouseClicked(MouseEvent e) {}
-  public void mouseEntered(MouseEvent e) {
-    if (embed.getValue())
-      requestFocus();
-  }
-  public void mouseExited(MouseEvent e) {}
-
-  // MouseWheel callback function
-  private void mouseWheelCB(MouseWheelEvent e) {
-    if (!viewOnly.getValue())
-      cc.writeWheelEvent(e);
-  }
-
-  public void mouseWheelMoved(MouseWheelEvent e) {
-    mouseWheelCB(e);
-  }
-
-  private static final Integer keyEventLock = 0; 
-
-  // Handle the key-typed event.
-  public void keyTyped(KeyEvent e) { }
-
-  // Handle the key-released event.
-  public void keyReleased(KeyEvent e) {
-    synchronized(keyEventLock) {
-      cc.writeKeyEvent(e);
-    }
-  }
-
-  // Handle the key-pressed event.
-  public void keyPressed(KeyEvent e)
-  {
-    if (e.getKeyCode() == MenuKey.getMenuKeyCode()) {
-      java.awt.Point pt = e.getComponent().getMousePosition();
-      if (pt != null) {
-        F8Menu menu = new F8Menu(cc);
-        menu.show(e.getComponent(), (int)pt.getX(), (int)pt.getY());
-      }
-      return;
-    }
-    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
-    if ((e.getModifiers() & ctrlAltShiftMask) == ctrlAltShiftMask) {
-      switch (e.getKeyCode()) {
-        case KeyEvent.VK_A:
-          VncViewer.showAbout(this);
-          return;
-        case KeyEvent.VK_F:
-          if (cc.desktop.fullscreen_active())
-            cc.desktop.fullscreen_on();
-          else
-            cc.desktop.fullscreen_off();
-          return;
-        case KeyEvent.VK_H:
-          cc.refresh();
-          return;
-        case KeyEvent.VK_I:
-          cc.showInfo();
-          return;
-        case KeyEvent.VK_O:
-            OptionsDialog.showDialog(this);
-          return;
-        case KeyEvent.VK_W:
-          VncViewer.newViewer();
-          return;
-        case KeyEvent.VK_LEFT:
-        case KeyEvent.VK_RIGHT:
-        case KeyEvent.VK_UP:
-        case KeyEvent.VK_DOWN:
-          return;
-      }
-    }
-    if ((e.getModifiers() & Event.META_MASK) == Event.META_MASK) {
-      switch (e.getKeyCode()) {
-        case KeyEvent.VK_COMMA:
-        case KeyEvent.VK_N:
-        case KeyEvent.VK_W:
-        case KeyEvent.VK_I:
-        case KeyEvent.VK_R:
-        case KeyEvent.VK_L:
-        case KeyEvent.VK_F:
-        case KeyEvent.VK_Z:
-        case KeyEvent.VK_T:
-          return;
-      }
-    }
-    synchronized(keyEventLock) {
-      cc.writeKeyEvent(e);
-    }
-  }
-
   public void setScaledSize(int width, int height)
   {
     assert(width != 0 && height != 0);
@@ -384,21 +346,417 @@ class Viewport extends JPanel implements MouseListener,
       setSize(new Dimension(scaledWidth, scaledHeight));
   }
 
-  private MouseEvent translateMouseEvent(MouseEvent e)
+  private void handlePointerEvent(Point pos, int buttonMask)
   {
-    if (cc.cp.width != scaledWidth ||
-        cc.cp.height != scaledHeight) {
-      int sx = (scaleRatioX == 1.00) ?
-        e.getX() : (int)Math.floor(e.getX() / scaleRatioX);
-      int sy = (scaleRatioY == 1.00) ?
-        e.getY() : (int)Math.floor(e.getY() / scaleRatioY);
-      e.translatePoint(sx - e.getX(), sy - e.getY());
+    if (!viewOnly.getValue()) {
+      if (buttonMask != lastButtonMask || !pos.equals(lastPointerPos)) {
+        try {
+          if (cc.cp.width != scaledWidth ||
+              cc.cp.height != scaledHeight) {
+            int sx = (scaleRatioX == 1.00) ?
+              pos.x : (int)Math.floor(pos.x / scaleRatioX);
+            int sy = (scaleRatioY == 1.00) ?
+              pos.y : (int)Math.floor(pos.y / scaleRatioY);
+            pos = pos.translate(new Point(sx - pos.x, sy - pos.y));
+          }
+          cc.writer().pointerEvent(pos, buttonMask);
+        } catch (Exception e) {
+          vlog.error("%s", e.getMessage());
+          cc.close();
+        }
+      }
+      lastPointerPos = pos;
+      lastButtonMask = buttonMask;
     }
-    return e;
+  }
+
+  public void handleKeyPress(int keyCode, int keySym)
+  {
+    // Prevent recursion if the menu wants to send it's own
+    // activation key.
+    if ((menuKeySym != 0) && keySym == menuKeySym && !menuRecursion) {
+      popupContextMenu();
+      return;
+    }
+
+    if (viewOnly.getValue())
+      return;
+
+    if (keyCode == 0) {
+      vlog.error("No key code specified on key press");
+      return;
+    }
+
+    if (VncViewer.os.startsWith("mac os x")) {
+      // Alt on OS X behaves more like AltGr on other systems, and to get
+      // sane behaviour we should translate things in that manner for the
+      // remote VNC server. However that means we lose the ability to use
+      // Alt as a shortcut modifier. Do what RealVNC does and hijack the
+      // left command key as an Alt replacement.
+      switch (keySym) {
+      case XK_Meta_L:
+        keySym = XK_Alt_L;
+        break;
+      case XK_Meta_R:
+        keySym = XK_Super_L;
+        break;
+      case XK_Alt_L:
+        keySym = XK_Mode_switch;
+        break;
+      case XK_Alt_R:
+        keySym = XK_ISO_Level3_Shift;
+        break;
+      }
+    }
+
+    if (VncViewer.os.startsWith("windows")) {
+      // Ugly hack alert!
+      //
+      // Windows doesn't have a proper AltGr, but handles it using fake
+      // Ctrl+Alt. Unfortunately X11 doesn't generally like the combination
+      // Ctrl+Alt+AltGr, which we usually end up with when Xvnc tries to
+      // get everything in the correct state. Cheat and temporarily release
+      // Ctrl and Alt when we send some other symbol.
+      if (downKeySym.containsValue(XK_Control_L) &&
+          downKeySym.containsValue(XK_Alt_R)) {
+        vlog.debug("Faking release of AltGr (Ctrl_L+Alt_R)");
+        try {
+          cc.writer().keyEvent(XK_Control_L, false);
+          cc.writer().keyEvent(XK_Alt_R, false);
+        } catch (Exception e) {
+          vlog.error("%s", e.getMessage());
+          cc.close();
+        }
+      }
+    }
+
+    // Because of the way keyboards work, we cannot expect to have the same
+    // symbol on release as when pressed. This breaks the VNC protocol however,
+    // so we need to keep track of what keysym a key _code_ generated on press
+    // and send the same on release.
+    downKeySym.put(keyCode, keySym);
+
+    vlog.debug("Key pressed: 0x%04x => 0x%04x", keyCode, keySym);
+
+    try {
+      // Fake keycode?
+      if (keyCode > 0xffff)
+        cc.writer().keyEvent(keySym, true);
+      else
+        cc.writer().keyEvent(keySym, true);
+    } catch (Exception e) {
+      vlog.error("%s", e.getMessage());
+      cc.close();
+    }
+
+    if (VncViewer.os.startsWith("windows")) {
+      // Ugly hack continued...
+      if (downKeySym.containsValue(XK_Control_L) &&
+          downKeySym.containsValue(XK_Alt_R)) {
+        vlog.debug("Restoring AltGr state");
+        try {
+          cc.writer().keyEvent(XK_Control_L, true);
+          cc.writer().keyEvent(XK_Alt_R, true);
+        } catch (Exception e) {
+          vlog.error("%s", e.getMessage());
+          cc.close();
+        }
+      }
+    }
+  }
+
+  public void handleKeyRelease(int keyCode)
+  {
+    Integer iter;
+
+    if (viewOnly.getValue())
+      return;
+
+    iter = downKeySym.get(keyCode);
+    if (iter == null) {
+      // These occur somewhat frequently so let's not spam them unless
+      // logging is turned up.
+      vlog.debug("Unexpected release of key code %d", keyCode);
+      return;
+    }
+
+    vlog.debug("Key released: 0x%04x => 0x%04x", keyCode, iter);
+
+    try {
+      if (keyCode > 0xffff)
+        cc.writer().keyEvent(iter, false);
+      else
+        cc.writer().keyEvent(iter, false);
+    } catch (Exception e) {
+      vlog.error("%s", e.getMessage());
+      cc.close();
+    }
+
+    downKeySym.remove(keyCode);
+  }
+
+  private int handleSystemEvent(AWTEvent event)
+  {
+
+    if (event instanceof KeyEvent) {
+      KeyEvent ev = (KeyEvent)event;
+      if (ev.getKeyCode() == 0) {
+        // Not much we can do with this...
+        vlog.debug("Ignoring KeyEvent with unknown Java keycode");
+        return 0;
+      }
+
+      if (ev.getID() == KeyEvent.KEY_PRESSED) {
+        // Generate a fake keycode just for tracking if we can't figure
+        // out the proper one.  Java virtual key codes aren't unique 
+        // between left/right versions of keys, so we can't use them as
+        // indexes to the downKeySym map. There should not be any key 
+        // codes > 0xFFFF so we can use the high nibble to make a unique
+        // pseudo-key code.
+        int keyCode = ev.getKeyCode() | ev.getKeyLocation()<<16;
+
+        // Pressing Ctrl wreaks havoc with the symbol lookup, so turn
+        // that off. But AltGr shows up as Ctrl_L+Alt_R in Windows, so
+        // construct a new KeyEvent that uses a proper AltGraph for the
+        // symbol lookup.
+        if (VncViewer.os.startsWith("windows")) {
+          if (downKeySym.containsValue(XK_Control_L) &&
+              downKeySym.containsValue(XK_Alt_R)) {
+            int mask = ev.getModifiers();
+            mask &= ~CTRL_MASK;
+            mask &= ~ALT_MASK;
+            mask |= ALT_GRAPH_MASK;
+            AWTKeyStroke ks =
+              AWTKeyStroke.getAWTKeyStroke(ev.getKeyCode(), mask);
+            ev = new KeyEvent((JComponent)ev.getSource(), ev.getID(),
+                              ev.getWhen(), mask, ev.getKeyCode(),
+                              ks.getKeyChar(), ev.getKeyLocation());
+          }
+        }
+
+        int keySym = KeyMap.vkey_to_keysym(ev);
+
+        if (keySym == KeyMap.NoSymbol)
+          vlog.error("No symbol for virtual key 0x%02x", keyCode);
+
+        if (VncViewer.os.startsWith("linux")) {
+          switch (keySym) {
+          // For the first few years, there wasn't a good consensus on what the
+          // Windows keys should be mapped to for X11. So we need to help out a
+          // bit and map all variants to the same key...
+          case XK_Hyper_L:
+            keySym = XK_Super_L;
+            break;
+          case XK_Hyper_R:
+            keySym = XK_Super_R;
+            break;
+          // There has been several variants for Shift-Tab over the years.
+          // RFB states that we should always send a normal tab.
+          case XK_ISO_Left_Tab:
+            keySym = XK_Tab;
+            break;
+          }
+        }
+
+        handleKeyPress(keyCode, keySym);
+
+        if (VncViewer.os.startsWith("mac os x")) {
+          // We don't get any release events for CapsLock, so we have to
+          // send the release right away.
+          if (keySym == XK_Caps_Lock)
+            handleKeyRelease(keyCode);
+        }
+
+        return 1;
+      } else if (ev.getID() == KeyEvent.KEY_RELEASED) {
+        int keyCode = keyCode = ev.getKeyCode() | ev.getKeyLocation()<<16;
+        handleKeyRelease(keyCode);
+        return 1;
+      }
+    }
+
+    return 0;
+  }
+
+  private void initContextMenu()
+  {
+    contextMenu.setLightWeightPopupEnabled(false);
+
+    contextMenu.removeAll();
+
+    menu_add(contextMenu, "Exit viewer", KeyEvent.VK_X,
+             this, ID.EXIT, EnumSet.of(MENU.DIVIDER));
+
+    menu_add(contextMenu, "Full screen", KeyEvent.VK_F, this, ID.FULLSCREEN,
+             window().fullscreen_active() ?
+             EnumSet.of(MENU.TOGGLE, MENU.VALUE) : EnumSet.of(MENU.TOGGLE));
+    menu_add(contextMenu, "Minimize", KeyEvent.VK_Z,
+             this, ID.MINIMIZE, EnumSet.noneOf(MENU.class));
+    menu_add(contextMenu, "Resize window to session", KeyEvent.VK_W,
+             this, ID.RESIZE,
+             window().fullscreen_active() ?
+             EnumSet.of(MENU.INACTIVE, MENU.DIVIDER) : EnumSet.of(MENU.DIVIDER));
+
+    menu_add(contextMenu, "Clipboard viewer...", KeyEvent.VK_UNDEFINED,
+             this, ID.CLIPBOARD, EnumSet.of(MENU.DIVIDER));
+
+    menu_add(contextMenu, "Ctrl", KeyEvent.VK_C,
+             this, ID.CTRL,
+             menuCtrlKey ? EnumSet.of(MENU.TOGGLE, MENU.VALUE) : EnumSet.of(MENU.TOGGLE));
+    menu_add(contextMenu, "Alt", KeyEvent.VK_A,
+             this, ID.ALT,
+             menuAltKey ? EnumSet.of(MENU.TOGGLE, MENU.VALUE) : EnumSet.of(MENU.TOGGLE));
+
+    menu_add(contextMenu, "Send Ctrl-Alt-Del", KeyEvent.VK_D,
+             this, ID.CTRLALTDEL, EnumSet.of(MENU.DIVIDER));
+
+    menu_add(contextMenu, "Refresh screen", KeyEvent.VK_R,
+             this, ID.REFRESH, EnumSet.of(MENU.DIVIDER));
+
+    menu_add(contextMenu, "New connection...", KeyEvent.VK_N,
+             this, ID.NEWVIEWER,
+             embed.getValue() ? EnumSet.of(MENU.INACTIVE, MENU.DIVIDER) : EnumSet.of(MENU.DIVIDER));
+
+    menu_add(contextMenu, "Options...", KeyEvent.VK_O,
+             this, ID.OPTIONS, EnumSet.noneOf(MENU.class));
+    menu_add(contextMenu, "Connection info...", KeyEvent.VK_I,
+             this, ID.INFO, EnumSet.noneOf(MENU.class));
+    menu_add(contextMenu, "About TigerVNC viewer...", KeyEvent.VK_T,
+             this, ID.ABOUT, EnumSet.of(MENU.DIVIDER));
+
+    menu_add(contextMenu, "Dismiss menu", KeyEvent.VK_M,
+             this, ID.DISMISS, EnumSet.noneOf(MENU.class));
+  }
+
+  static void menu_add(JPopupMenu menu, String text,
+                       int shortcut, ActionListener cb,
+                       ID data, EnumSet<MENU> flags)
+  {
+    JMenuItem item;
+    if (flags.contains(MENU.TOGGLE)) {
+      item = new JCheckBoxMenuItem(text, flags.contains(MENU.VALUE));
+    } else {
+      if (shortcut != 0)
+        item = new JMenuItem(text, shortcut);
+      else
+        item = new JMenuItem(text);
+    }
+    item.setActionCommand(data.toString());
+    item.addActionListener(cb);
+    item.setEnabled(!flags.contains(MENU.INACTIVE));
+    menu.add(item);
+    if (flags.contains(MENU.DIVIDER))
+      menu.addSeparator();
+  }
+
+  void popupContextMenu()
+  {
+    // initialize context menu before display
+    initContextMenu();
+
+    contextMenu.setCursor(java.awt.Cursor.getDefaultCursor());
+
+    contextMenu.show(this, lastPointerPos.x, lastPointerPos.y);
+  }
+
+  public void actionPerformed(ActionEvent ev)
+  {
+    switch(ID.valueOf(ev.getActionCommand())) {
+    case EXIT:
+      cc.close();
+      break;
+    case FULLSCREEN:
+      if (window().fullscreen_active())
+        window().fullscreen_off();
+      else
+        window().fullscreen_on();
+      break;
+    case MINIMIZE:
+      if (window().fullscreen_active())
+        window().fullscreen_off();
+      window().setExtendedState(JFrame.ICONIFIED);
+      break;
+    case RESIZE:
+      if (window().fullscreen_active())
+        break;
+      int dx = window().getInsets().left + window().getInsets().right;
+      int dy = window().getInsets().top + window().getInsets().bottom;
+      window().setSize(getWidth()+dx, getHeight()+dy);
+      break;
+    case CLIPBOARD:
+      ClipboardDialog.showDialog(window());
+      break;
+    case CTRL:
+      if (((JMenuItem)ev.getSource()).isSelected())
+        handleKeyPress(0x1d, XK_Control_L);
+      else
+        handleKeyRelease(0x1d);
+      menuCtrlKey = !menuCtrlKey;
+      break;
+    case ALT:
+      if (((JMenuItem)ev.getSource()).isSelected())
+        handleKeyPress(0x38, XK_Alt_L);
+      else
+        handleKeyRelease(0x38);
+      menuAltKey = !menuAltKey;
+      break;
+    case MENUKEY:
+      menuRecursion = true;
+      handleKeyPress(menuKeyCode, menuKeySym);
+      menuRecursion = false;
+      handleKeyRelease(menuKeyCode);
+      break;
+    case CTRLALTDEL:
+      handleKeyPress(0x1d, XK_Control_L);
+      handleKeyPress(0x38, XK_Alt_L);
+      handleKeyPress(0xd3, XK_Delete);
+
+      handleKeyRelease(0xd3);
+      handleKeyRelease(0x38);
+      handleKeyRelease(0x1d);
+      break;
+    case REFRESH:
+      cc.refreshFramebuffer();
+      break;
+    case NEWVIEWER:
+      VncViewer.newViewer();
+      break;
+    case OPTIONS:
+      OptionsDialog.showDialog(cc.desktop);
+      break;
+    case INFO:
+      Window fullScreenWindow =
+        DesktopWindow.getFullScreenWindow();
+      if (fullScreenWindow != null)
+        DesktopWindow.setFullScreenWindow(null);
+      JOptionPane op = new JOptionPane(cc.connectionInfo(),
+                                       JOptionPane.PLAIN_MESSAGE,
+                                       JOptionPane.DEFAULT_OPTION);
+      JDialog dlg = op.createDialog(window(), "VNC connection info");
+      dlg.setIconImage(VncViewer.frameIcon);
+      dlg.setAlwaysOnTop(true);
+      dlg.setVisible(true);
+      if (fullScreenWindow != null)
+        DesktopWindow.setFullScreenWindow(fullScreenWindow);
+      break;
+    case ABOUT:
+      VncViewer.about_vncviewer(cc.desktop);
+      break;
+    case DISMISS:
+      break;
+    }
+  }
+
+  private void setMenuKey()
+  {
+    menuKeyJava = MenuKey.getMenuKeyJavaCode();
+    menuKeyCode = MenuKey.getMenuKeyCode();
+    menuKeySym = MenuKey.getMenuKeySym();
   }
 
   public void handleOptions()
   {
+    setMenuKey();
     /*
     setScaledSize(cc.cp.width, cc.cp.height);
     if (!oldSize.equals(new Dimension(scaledWidth, scaledHeight))) {
@@ -414,18 +772,48 @@ class Viewport extends JPanel implements MouseListener,
     */
   }
 
+  public void releaseDownKeys() {
+    while (!downKeySym.isEmpty())
+      handleKeyRelease(downKeySym.keySet().iterator().next());
+  }
+
+  private DesktopWindow window() {
+    return (DesktopWindow)getTopLevelAncestor();
+  }
+  private int x() { return getX(); }
+  private int y() { return getY(); }
+  private int w() { return getWidth(); }
+  private int h() { return getHeight(); }
   // access to cc by different threads is specified in CConn
   private CConn cc;
 
   // access to the following must be synchronized:
-  public PlatformPixelBuffer frameBuffer;
+  private PlatformPixelBuffer frameBuffer;
+
+  Point lastPointerPos = new Point(0, 0);
+  int lastButtonMask = 0;
+
+  private class DownMap extends HashMap<Integer, Integer> {
+    public DownMap(int capacity) {
+      super(capacity);
+    }
+  }
+  DownMap downKeySym = new DownMap(256);
+
+  int menuKeySym;
+  int menuKeyCode, menuKeyJava;
+  JPopupMenu contextMenu;
+  boolean menuRecursion = false;
+
+  boolean menuCtrlKey = false;
+  boolean menuAltKey = false;
 
   static Toolkit tk = Toolkit.getDefaultToolkit();
 
   public int scaledWidth = 0, scaledHeight = 0;
   float scaleRatioX, scaleRatioY;
 
-  BufferedImage cursor;
+  static BufferedImage cursor;
   Point cursorHotspot = new Point();
 
 }

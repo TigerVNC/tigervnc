@@ -81,7 +81,7 @@ public class DesktopWindow extends JFrame
             scroll.getViewport().getView().requestFocusInWindow();
       }
       public void windowLostFocus(WindowEvent e) {
-        cc.releaseDownKeys();
+        viewport.releaseDownKeys();
       }
     });
 

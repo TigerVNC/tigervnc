@@ -269,7 +269,7 @@ class ServerDialog extends Dialog implements Runnable {
   }
 
   private void handleAbout() {
-    VncViewer.showAbout(this);
+    VncViewer.about_vncviewer(this);
   }
 
   private void handleCancel() {

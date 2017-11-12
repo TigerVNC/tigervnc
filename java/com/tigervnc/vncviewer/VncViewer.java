@@ -394,7 +394,7 @@ public class VncViewer extends javax.swing.JApplet
       }
       public void windowDeactivated(WindowEvent e) {
         if (cc != null)
-          cc.releaseDownKeys();
+          cc.desktop.viewport.releaseDownKeys();
       }
     });
   }
@@ -412,7 +412,7 @@ public class VncViewer extends javax.swing.JApplet
     }
   }
 
-  public static void showAbout(Container parent) {
+  public static void about_vncviewer(Container parent) {
     String pkgDate = "";
     String pkgTime = "";
     try {
