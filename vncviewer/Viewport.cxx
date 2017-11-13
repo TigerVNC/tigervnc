@@ -922,6 +922,11 @@ int Viewport::handleSystemEvent(void *event, void *data)
         vlog.error(_("No symbol for virtual key 0x%02x"), (int)vKey);
     }
 
+    // Windows sends the same vKey for both shifts, so we need to look
+    // at the scan code to tell them apart
+    if ((keySym == XK_Shift_L) && (keyCode == 0x36))
+      keySym = XK_Shift_R;
+
     self->handleKeyPress(keyCode, keySym);
 
     return 1;
@@ -952,6 +957,15 @@ int Viewport::handleSystemEvent(void *event, void *data)
       keyCode = 0x54;
 
     self->handleKeyRelease(keyCode);
+
+    // Windows has a rather nasty bug where it won't send key release
+    // events for a Shift button if the other Shift is still pressed
+    if ((keyCode == 0x2a) || (keyCode == 0x36)) {
+      if (self->downKeySym.count(0x2a))
+        self->handleKeyRelease(0x2a);
+      if (self->downKeySym.count(0x36))
+        self->handleKeyRelease(0x36);
+    }
 
     return 1;
   }
