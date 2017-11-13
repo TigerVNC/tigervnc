@@ -377,6 +377,14 @@ void win32::SKeyboard::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
     if ((keycode == 0x54) && !(GetAsyncKeyState(VK_MENU) & 0x8000))
       keycode = 0xb7;
 
+    if (down && (keycode == 0xd3) &&
+        ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) &&
+        ((GetAsyncKeyState(VK_MENU) & 0x8000) != 0))
+    {
+      rfb::win32::emulateCtrlAltDel();
+      return;
+    }
+
     doScanCodeEvent(keycode, down);
     return;
   }
