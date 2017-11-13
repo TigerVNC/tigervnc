@@ -52,7 +52,7 @@ BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
 BoolParameter rawKeyboard("RawKeyboard",
                           "Send keyboard events straight through and "
                           "avoid mapping them to the current keyboard "
-                          "layout", false);
+                          "layout", true);
 
 static rfb::LogWriter vlog("XDesktop");
 
