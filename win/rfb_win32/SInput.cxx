@@ -253,6 +253,16 @@ inline void doScanCodeEvent(BYTE scancode, bool down) {
   vlog.debug("SendInput ScanCode: 0x%x Flags: 0x%lx %s", scancode,
              evt.ki.dwFlags, down ? "Down" : "Up");
 
+  // Windows has some bug where it doesn't look up scan code 0x45
+  // properly, so we need to help it out
+  if (evt.ki.wScan == 0x45) {
+    evt.ki.dwFlags &= ~KEYEVENTF_SCANCODE;
+    if (evt.ki.dwFlags & KEYEVENTF_EXTENDEDKEY)
+      evt.ki.wVk = VK_NUMLOCK;
+    else
+      evt.ki.wVk = VK_PAUSE;
+  }
+
   if (SendInput(1, &evt, sizeof(evt)) != 1)
     vlog.error("SendInput %lu", GetLastError());
 }
@@ -354,6 +364,19 @@ void win32::SKeyboard::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
   // If scan code is available use that directly as windows uses
   // compatible scancodes
   if (keycode && rawKeyboard) {
+    // However NumLock incorrectly has the extended bit set
+    if (keycode == 0x45)
+      keycode = 0xc5;
+
+    // And Pause uses NumLock's proper code, except when Control is
+    // also pressed (i.e. when it is generating Break)
+    if ((keycode == 0xc6) && !(GetAsyncKeyState(VK_CONTROL) & 0x8000))
+      keycode = 0x45;
+
+    // And PrintScreen uses a different code than Alt+PrintScreen (SysRq)
+    if ((keycode == 0x54) && !(GetAsyncKeyState(VK_MENU) & 0x8000))
+      keycode = 0xb7;
+
     doScanCodeEvent(keycode, down);
     return;
   }
