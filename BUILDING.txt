@@ -57,7 +57,7 @@ Build Requirements (Windows)
 Build Requirements (Java)
 =========================
 
--- Sun/Oracle JDK v5 or later or OpenJDK
+-- Sun/Oracle JDK 1.7 or later or OpenJDK 7 or later
 
 -- See "Building Java Support" below.
 
