@@ -481,11 +481,6 @@ int main(int argc, char** argv)
 
   init_fltk();
 
-#if !defined(WIN32) && !defined(__APPLE__)
-  fl_open_display();
-  XkbSetDetectableAutoRepeat(fl_display, True, NULL);
-#endif
-
   Configuration::enableViewerParams();
 
   /* Load the default parameter settings */
@@ -520,6 +515,11 @@ int main(int argc, char** argv)
     }
 
   mkvnchomedir();
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  fl_open_display();
+  XkbSetDetectableAutoRepeat(fl_display, True, NULL);
+#endif
 
   CSecurity::upg = &dlg;
 #ifdef HAVE_GNUTLS
