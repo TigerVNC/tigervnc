@@ -262,7 +262,7 @@ pushd java
 	-DJAVA_TSA_URL=http://timestamp.geotrust.com/tsa .
 %endif
 
-JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
+make
 popd
 
 %install
