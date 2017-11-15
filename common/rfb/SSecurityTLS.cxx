@@ -35,6 +35,7 @@
 #include <rfb/Exception.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
+#include <gnutls/x509.h>
 
 #define DH_BITS 1024 /* XXX This should be configurable! */
 
