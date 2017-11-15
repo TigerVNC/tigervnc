@@ -35,6 +35,7 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
 
 namespace rfb {
 
