@@ -19,6 +19,8 @@
 #include <assert.h>
 #include <string.h>
 
+#include <functional>
+
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/Decoder.h>
@@ -42,7 +44,7 @@ DecodeManager::DecodeManager(CConnection *conn) :
 
   memset(decoders, 0, sizeof(decoders));
 
-  cpuCount = os::Thread::getSystemCPUCount();
+  cpuCount = std::thread::hardware_concurrency();
   if (cpuCount == 0) {
     vlog.error("Unable to determine the number of CPU cores on this system");
     cpuCount = 1;
@@ -209,29 +211,21 @@ void DecodeManager::throwThreadException()
 DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager)
 {
   this->manager = manager;
-
   stopRequested = false;
-
-  start();
+  thread = std::thread(std::bind(&DecodeThread::worker, this));
 }
 
 DecodeManager::DecodeThread::~DecodeThread()
 {
-  stop();
-  wait();
-}
+  {
+    std::lock_guard<std::mutex> lg(manager->queueMutex);
+    stopRequested = true;
 
-void DecodeManager::DecodeThread::stop()
-{
-  std::lock_guard<std::mutex> lg(manager->queueMutex);
+    // We can't wake just this thread, so wake everyone
+    manager->consumerCond.notify_all();
+  }
 
-  if (!isRunning())
-    return;
-
-  stopRequested = true;
-
-  // We can't wake just this thread, so wake everyone
-  manager->consumerCond.notify_all();
+  thread.join();
 }
 
 void DecodeManager::DecodeThread::worker()
