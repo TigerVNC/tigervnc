@@ -528,7 +528,7 @@ void SMsgWriter::writeSetXCursorRect(int width, int height,
   os->writeU16(width);
   os->writeU16(height);
   os->writeU32(pseudoEncodingXCursor);
-  if (width * height) {
+  if (width * height > 0) {
     os->writeU8(255);
     os->writeU8(255);
     os->writeU8(255);

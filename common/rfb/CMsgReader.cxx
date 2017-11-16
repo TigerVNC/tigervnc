@@ -221,7 +221,7 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
   rdr::U8 buf[width*height*4];
   rdr::U8* out;
 
-  if (width * height) {
+  if (width * height > 0) {
     pr = is->readU8();
     pg = is->readU8();
     pb = is->readU8();
