@@ -86,19 +86,19 @@ PlatformPixelBuffer::~PlatformPixelBuffer()
 void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
 {
   FullFramePixelBuffer::commitBufferRW(r);
-  mutex.lock();
+  std::lock_guard<std::mutex> lg(mutex);
   damage.assign_union(rfb::Region(r));
-  mutex.unlock();
 }
 
 rfb::Rect PlatformPixelBuffer::getDamage(void)
 {
   rfb::Rect r;
 
-  mutex.lock();
-  r = damage.get_bounding_rect();
-  damage.clear();
-  mutex.unlock();
+  {
+    std::lock_guard<std::mutex> lg(mutex);
+    r = damage.get_bounding_rect();
+    damage.clear();
+  }
 
 #if !defined(WIN32) && !defined(__APPLE__)
   GC gc;

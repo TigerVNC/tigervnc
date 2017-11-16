@@ -21,10 +21,9 @@
 #ifndef __RFB_LOGGER_FILE_H__
 #define __RFB_LOGGER_FILE_H__
 
+#include <mutex>
 #include <time.h>
 #include <rfb/Logger.h>
-
-namespace os { class Mutex; }
 
 namespace rfb {
 
@@ -45,7 +44,7 @@ namespace rfb {
     char* m_filename;
     FILE* m_file;
     time_t m_lastLogTime;
-    os::Mutex* mutex;
+    std::mutex mutex;
   };
 
   bool initFileLogger(const char* filename);

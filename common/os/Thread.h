@@ -19,10 +19,10 @@
 #ifndef __OS_THREAD_H__
 #define __OS_THREAD_H__
 
+#include <mutex>
 #include <stddef.h>
 
 namespace os {
-  class Mutex;
 
   class Thread {
   public:
@@ -48,7 +48,7 @@ namespace os {
 #endif
 
   private:
-    Mutex *mutex;
+    std::mutex mutex;
     bool running;
 
     void *threadId;

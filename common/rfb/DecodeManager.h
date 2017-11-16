@@ -19,17 +19,15 @@
 #ifndef __RFB_DECODEMANAGER_H__
 #define __RFB_DECODEMANAGER_H__
 
+#include <condition_variable>
 #include <list>
+#include <mutex>
+
 
 #include <os/Thread.h>
 
 #include <rfb/Region.h>
 #include <rfb/encodings.h>
-
-namespace os {
-  class Condition;
-  class Mutex;
-}
 
 namespace rdr {
   struct Exception;
@@ -74,9 +72,9 @@ namespace rfb {
     std::list<rdr::MemOutStream*> freeBuffers;
     std::list<QueueEntry*> workQueue;
 
-    os::Mutex* queueMutex;
-    os::Condition* producerCond;
-    os::Condition* consumerCond;
+    std::mutex queueMutex;
+    std::condition_variable producerCond;
+    std::condition_variable consumerCond;
 
   private:
     class DecodeThread : public os::Thread {

@@ -20,9 +20,9 @@
 #define __RFB_KEYREMAPPER_H__
 
 #include <map>
-#include <rdr/types.h>
+#include <mutex>
 
-namespace os { class Mutex; }
+#include <rdr/types.h>
 
 namespace rfb {
 
@@ -35,7 +35,7 @@ namespace rfb {
     static KeyRemapper defInstance;
   private:
     std::map<rdr::U32,rdr::U32> mapping;
-    os::Mutex* mutex;
+    mutable std::mutex mutex;
   };
 
 };

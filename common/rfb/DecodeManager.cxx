@@ -29,9 +29,9 @@
 #include <rdr/Exception.h>
 #include <rdr/MemOutStream.h>
 
-#include <os/Mutex.h>
 
 using namespace rfb;
+
 
 static LogWriter vlog("DecodeManager");
 
@@ -41,10 +41,6 @@ DecodeManager::DecodeManager(CConnection *conn) :
   size_t cpuCount;
 
   memset(decoders, 0, sizeof(decoders));
-
-  queueMutex = new os::Mutex();
-  producerCond = new os::Condition(queueMutex);
-  consumerCond = new os::Condition(queueMutex);
 
   cpuCount = os::Thread::getSystemCPUCount();
   if (cpuCount == 0) {
@@ -88,10 +84,6 @@ DecodeManager::~DecodeManager()
     freeBuffers.pop_back();
   }
 
-  delete consumerCond;
-  delete producerCond;
-  delete queueMutex;
-
   for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
     delete decoders[i];
 }
@@ -132,17 +124,15 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
     return;
   }
 
-  // Wait for an available memory buffer
-  queueMutex->lock();
+  {
+    // Wait for an available memory buffer
+    std::unique_lock<std::mutex> ul(queueMutex);
+    producerCond.wait(ul, [this](){ return !this->freeBuffers.empty(); } );
 
-  while (freeBuffers.empty())
-    producerCond->wait();
-
-  // Don't pop the buffer in case we throw an exception
-  // whilst reading
-  bufferStream = freeBuffers.front();
-
-  queueMutex->unlock();
+    // Don't pop the buffer in case we throw an exception
+    // whilst reading
+    bufferStream = freeBuffers.front();
+  }
 
   // First check if any thread has encountered a problem
   throwThreadException();
@@ -166,36 +156,34 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
                              bufferStream->length(), conn->cp,
                              &entry->affectedRegion);
 
-  queueMutex->lock();
+  {
+    std::lock_guard<std::mutex> lg(queueMutex);
 
-  // The workers add buffers to the end so it's safe to assume
-  // the front is still the same buffer
-  freeBuffers.pop_front();
+    // The workers add buffers to the end so it's safe to assume
+    // the front is still the same buffer
+    freeBuffers.pop_front();
 
-  workQueue.push_back(entry);
+    workQueue.push_back(entry);
 
-  // We only put a single entry on the queue so waking a single
-  // thread is sufficient
-  consumerCond->signal();
-
-  queueMutex->unlock();
+    // We only put a single entry on the queue so waking a single
+    // thread is sufficient
+    consumerCond.notify_one();
+  }
 }
 
 void DecodeManager::flush()
 {
-  queueMutex->lock();
-
-  while (!workQueue.empty())
-    producerCond->wait();
-
-  queueMutex->unlock();
+  {
+    std::unique_lock<std::mutex> ul(queueMutex);
+    producerCond.wait(ul, [this](){ return this->workQueue.empty(); } );
+  }
 
   throwThreadException();
 }
 
 void DecodeManager::setThreadException(const rdr::Exception& e)
 {
-  os::AutoMutex a(queueMutex);
+  std::lock_guard<std::mutex> lg(queueMutex);
 
   if (threadException != NULL)
     return;
@@ -205,7 +193,7 @@ void DecodeManager::setThreadException(const rdr::Exception& e)
 
 void DecodeManager::throwThreadException()
 {
-  os::AutoMutex a(queueMutex);
+  std::lock_guard<std::mutex> lg(queueMutex);
 
   if (threadException == NULL)
     return;
@@ -235,7 +223,7 @@ DecodeManager::DecodeThread::~DecodeThread()
 
 void DecodeManager::DecodeThread::stop()
 {
-  os::AutoMutex a(manager->queueMutex);
+  std::lock_guard<std::mutex> lg(manager->queueMutex);
 
   if (!isRunning())
     return;
@@ -243,12 +231,12 @@ void DecodeManager::DecodeThread::stop()
   stopRequested = true;
 
   // We can't wake just this thread, so wake everyone
-  manager->consumerCond->broadcast();
+  manager->consumerCond.notify_all();
 }
 
 void DecodeManager::DecodeThread::worker()
 {
-  manager->queueMutex->lock();
+  std::unique_lock<std::mutex> ul(manager->queueMutex);
 
   while (!stopRequested) {
     DecodeManager::QueueEntry *entry;
@@ -257,14 +245,14 @@ void DecodeManager::DecodeThread::worker()
     entry = findEntry();
     if (entry == NULL) {
       // Wait and try again
-      manager->consumerCond->wait();
+      manager->consumerCond.wait(ul);
       continue;
     }
 
     // This is ours now
     entry->active = true;
 
-    manager->queueMutex->unlock();
+    ul.unlock();
 
     // Do the actual decoding
     try {
@@ -277,7 +265,7 @@ void DecodeManager::DecodeThread::worker()
       assert(false);
     }
 
-    manager->queueMutex->lock();
+    ul.lock();
 
     // Remove the entry from the queue and give back the memory buffer
     manager->freeBuffers.push_back(entry->bufferStream);
@@ -285,14 +273,13 @@ void DecodeManager::DecodeThread::worker()
     delete entry;
 
     // Wake the main thread in case it is waiting for a memory buffer
-    manager->producerCond->signal();
+    manager->producerCond.notify_one();
     // This rect might have been blocking multiple other rects, so
     // wake up every worker thread
     if (manager->workQueue.size() > 1)
-      manager->consumerCond->broadcast();
+      manager->consumerCond.notify_all();
   }
 
-  manager->queueMutex->unlock();
 }
 
 DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
