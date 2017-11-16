@@ -834,12 +834,10 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
 void VNCSConnectionST::supportsLocalCursor()
 {
-  if (cp.supportsLocalCursorWithAlpha ||
-      cp.supportsLocalCursor || cp.supportsLocalXCursor) {
-    if (!damagedCursorRegion.is_empty())
-      removeRenderedCursor = true;
-    setCursor();
-  }
+  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
+  if (hasRenderedCursor && !needRenderedCursor())
+    removeRenderedCursor = true;
+  setCursor();
 }
 
 void VNCSConnectionST::supportsFence()
