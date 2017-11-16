@@ -80,6 +80,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
+    clientHasCursor(false),
     accessRights(AccessDefault), startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
@@ -379,9 +380,9 @@ void VNCSConnectionST::renderedCursorChange()
 {
   if (state() != RFBSTATE_NORMAL) return;
   // Are we switching between client-side and server-side cursor?
-  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
-  if (hasRenderedCursor != needRenderedCursor())
+  if (clientHasCursor == needRenderedCursor())
     setCursorOrClose();
+  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
   if (hasRenderedCursor)
     removeRenderedCursor = true;
   if (needRenderedCursor()) {
@@ -1256,10 +1257,13 @@ void VNCSConnectionST::setCursor()
     return;
 
   // We need to blank out the client's cursor or there will be two
-  if (needRenderedCursor())
+  if (needRenderedCursor()) {
     cp.setCursor(emptyCursor);
-  else
+    clientHasCursor = false;
+  } else {
     cp.setCursor(*server->cursor);
+    clientHasCursor = true;
+  }
 
   if (!writer()->writeSetCursorWithAlpha()) {
     if (!writer()->writeSetCursor()) {
