@@ -276,6 +276,7 @@ void VNCSConnectionST::screenLayoutChangeOrClose(rdr::U16 reason)
 {
   try {
     screenLayoutChange(reason);
+    writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
   }
@@ -307,6 +308,7 @@ void VNCSConnectionST::setDesktopNameOrClose(const char *name)
 {
   try {
     setDesktopName(name);
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -317,6 +319,7 @@ void VNCSConnectionST::setCursorOrClose()
 {
   try {
     setCursor();
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -327,6 +330,7 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
 {
   try {
     setLEDState(state);
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -744,7 +748,6 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   if (!layout.validate(fb_width, fb_height)) {
     writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
                                        fb_width, fb_height, layout);
-    writeFramebufferUpdate();
     return;
   }
 
@@ -762,10 +765,6 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
         throw Exception("Desktop configured a different screen layout than requested");
     server->notifyScreenLayoutChange(this);
   }
-
-  // but always send back a reply to the requesting client
-  // (do this last as it might throw an exception on socket errors)
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
@@ -823,7 +822,6 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
   if (enable) {
     requested.clear();
-    writeFramebufferUpdate();
   } else {
     writer()->writeEndOfContinuousUpdates();
   }
@@ -1243,7 +1241,6 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
 
   writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
                                      cp.screenLayout);
-  writeFramebufferUpdate();
 }
 
 
@@ -1273,8 +1270,6 @@ void VNCSConnectionST::setCursor()
       }
     }
   }
-
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::setDesktopName(const char *name)
@@ -1288,8 +1283,6 @@ void VNCSConnectionST::setDesktopName(const char *name)
     fprintf(stderr, "Client does not support desktop rename\n");
     return;
   }
-
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::setLEDState(unsigned int ledstate)
@@ -1299,12 +1292,7 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
 
   cp.setLEDState(ledstate);
 
-  if (!writer()->writeLEDState()) {
-    // No client support
-    return;
-  }
-
-  writeFramebufferUpdate();
+  writer()->writeLEDState();
 }
 
 void VNCSConnectionST::setSocketTimeouts()
