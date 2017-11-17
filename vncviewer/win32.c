@@ -129,6 +129,7 @@ void win32_disable_lowlevel_keyboard(HWND hwnd)
 }
 
 static const int vkey_map[][3] = {
+  { VK_CANCEL,              NoSymbol,       XK_Break },
   { VK_BACK,                XK_BackSpace,   NoSymbol },
   { VK_TAB,                 XK_Tab,         NoSymbol },
   { VK_CLEAR,               XK_Clear,       NoSymbol },

@@ -888,10 +888,24 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (isExtended)
       keyCode |= 0x80;
 
-    // VK_SNAPSHOT sends different scan codes depending on the state of
-    // Alt. This means that we can get different scan codes on press and
-    // release. Force it to be something standard.
-    if (vKey == VK_SNAPSHOT)
+
+    // Fortunately RFB and Windows use the same scan code set (mostly),
+    // so there is no conversion needed
+    // (as long as we encode the extended keys with the high bit)
+
+    // However Pause sends a code that conflicts with NumLock, so use
+    // the code most RFB implementations use (part of the sequence for
+    // Ctrl+Pause, i.e. Break)
+    if (keyCode == 0x45)
+      keyCode = 0xc6;
+
+    // And NumLock incorrectly has the extended bit set
+    if (keyCode == 0xc5)
+      keyCode = 0x45;
+
+    // And Alt+PrintScreen (i.e. SysRq) sends a different code than
+    // PrintScreen
+    if (keyCode == 0xb7)
       keyCode = 0x54;
 
     keySym = win32_vkey_to_keysym(vKey, isExtended);
@@ -902,9 +916,10 @@ int Viewport::handleSystemEvent(void *event, void *data)
         vlog.error(_("No symbol for virtual key 0x%02x"), (int)vKey);
     }
 
-    // Fortunately RFB and Windows use the same scan code set,
-    // so there is no conversion needed
-    // (as long as we encode the extended keys with the high bit)
+    // Windows sends the same vKey for both shifts, so we need to look
+    // at the scan code to tell them apart
+    if ((keySym == XK_Shift_L) && (keyCode == 0x36))
+      keySym = XK_Shift_R;
 
     self->handleKeyPress(keyCode, keySym);
 
@@ -928,10 +943,23 @@ int Viewport::handleSystemEvent(void *event, void *data)
       keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
     if (isExtended)
       keyCode |= 0x80;
-    if (vKey == VK_SNAPSHOT)
+    if (keyCode == 0x45)
+      keyCode = 0xc6;
+    if (keyCode == 0xc5)
+      keyCode = 0x45;
+    if (keyCode == 0xb7)
       keyCode = 0x54;
 
     self->handleKeyRelease(keyCode);
+
+    // Windows has a rather nasty bug where it won't send key release
+    // events for a Shift button if the other Shift is still pressed
+    if ((keyCode == 0x2a) || (keyCode == 0x36)) {
+      if (self->downKeySym.count(0x2a))
+        self->handleKeyRelease(0x2a);
+      if (self->downKeySym.count(0x36))
+        self->handleKeyRelease(0x36);
+    }
 
     return 1;
   }
