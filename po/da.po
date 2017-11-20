@@ -565,7 +565,7 @@ msgid ""
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "TigerVNC-fremviser %d-bit v%s\n"
-"Bygget på: %s\n"
+"Bygget: %s\n"
 "Ophavsret 1999-%d TigerVNC-holdet og mange andre (se README.txt)\n"
 "Se http://www.tigervnc.org for information om TigerVNC."
 
