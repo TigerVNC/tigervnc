@@ -1000,7 +1000,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc README.txt
+%doc README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
 %{_mandir}/man1/vncviewer.1*
