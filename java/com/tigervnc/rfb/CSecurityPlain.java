@@ -34,7 +34,7 @@ public class CSecurityPlain extends CSecurity {
     StringBuffer username = new StringBuffer();
     StringBuffer password = new StringBuffer();
 
-    upg.getUserPasswd(username, password);
+    upg.getUserPasswd(cc.isSecure(), username, password);
 
     // Return the response to the server
     os.writeU32(username.length());

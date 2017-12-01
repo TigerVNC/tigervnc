@@ -68,7 +68,7 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
     }
   }
 
-  public final void getUserPasswd(StringBuffer user, StringBuffer password)
+  public final void getUserPasswd(boolean secure, StringBuffer user, StringBuffer password)
   {
     String passwordFileStr = passwordFile.getValue();
 
@@ -98,6 +98,7 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
     }
 
     JDialog win;
+    JLabel banner;
     JTextField username = null;
     JPasswordField passwd = null;
     JLayer icon;
@@ -107,7 +108,27 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
     JPanel msg = new JPanel(null);
     msg.setSize(410, 145);
 
-    y = 10;
+    banner = new JLabel();
+    banner.setBounds(0, 0, msg.getPreferredSize().width, 20);
+    banner.setHorizontalAlignment(JLabel.CENTER);
+    banner.setOpaque(true);
+
+    if (secure) {
+      banner.setText("This connection is secure");
+      banner.setBackground(Color.GREEN);
+      ImageIcon secure_icon =
+        new ImageIcon(VncViewer.class.getResource("secure.png"));
+      banner.setIcon(secure_icon);
+    } else {
+      banner.setText("This connection is not secure");
+      banner.setBackground(Color.RED);
+      ImageIcon insecure_icon =
+        new ImageIcon(VncViewer.class.getResource("insecure.png"));
+      banner.setIcon(insecure_icon);
+    }
+    msg.add(banner);
+
+    y = 20 + 10;
 
     JButton iconb = new JButton("?");
     iconb.setVerticalAlignment(JLabel.CENTER);

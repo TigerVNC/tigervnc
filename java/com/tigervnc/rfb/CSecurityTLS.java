@@ -462,6 +462,7 @@ public class CSecurityTLS extends CSecurity {
   public final int getType() { return anon ? Security.secTypeTLSNone : Security.secTypeX509None; }
   public final String description()
     { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
+  public boolean isSecure() { return !anon; }
 
   protected CConnection client;
 

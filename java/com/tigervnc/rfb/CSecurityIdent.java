@@ -30,7 +30,7 @@ public class CSecurityIdent extends CSecurity {
 
     StringBuffer username = new StringBuffer();
 
-    upg.getUserPasswd(username, null);
+    upg.getUserPasswd(cc.isSecure(), username, null);
 
     // Return the response to the server
     os.writeU32(username.length());

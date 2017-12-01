@@ -389,6 +389,8 @@ abstract public class CConnection extends CMsgHandler {
   // Identities, to determine the unique(ish) name of the server.
   public String getServerName() { return serverName; }
 
+  public boolean isSecure() { return csecurity != null ? csecurity.isSecure() : false; }
+
   public static final int RFBSTATE_UNINITIALISED = 0;
   public static final int RFBSTATE_PROTOCOL_VERSION = 1;
   public static final int RFBSTATE_SECURITY_TYPES = 2;
