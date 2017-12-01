@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 Brian P. Hinz
+/* Copyright (C) 2011-2017 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public class CSecurityIdent extends CSecurity {
 
     StringBuffer username = new StringBuffer();
 
-    CConn.upg.getUserPasswd(username, null);
+    upg.getUserPasswd(username, null);
 
     // Return the response to the server
     os.writeU32(username.length());
@@ -45,9 +45,6 @@ public class CSecurityIdent extends CSecurity {
   }
 
   public int getType() { return Security.secTypeIdent; }
-
-  java.net.Socket sock;
-  UserPasswdGetter upg;
 
   static LogWriter vlog = new LogWriter("Ident");
   public String description() { return "No Encryption"; }

@@ -23,5 +23,5 @@
 package com.tigervnc.rfb;
 
 public interface UserPasswdGetter {
-  public boolean getUserPasswd(StringBuffer user, StringBuffer password);
+  public void getUserPasswd(StringBuffer user, StringBuffer password);
 }

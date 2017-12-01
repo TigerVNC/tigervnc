@@ -486,6 +486,9 @@ public class VncViewer extends javax.swing.JApplet
 
   public void run() {
     cc = null;
+    UserDialog dlg = new UserDialog();
+    CSecurity.upg = dlg;
+    CSecurityTLS.msg = dlg;
     Socket sock = null;
 
     /* Specifying -via and -listen together is nonsense */

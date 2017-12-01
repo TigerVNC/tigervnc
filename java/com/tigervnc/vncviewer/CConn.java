@@ -63,7 +63,7 @@ import com.tigervnc.network.TcpSocket;
 import static com.tigervnc.vncviewer.Parameters.*;
 
 public class CConn extends CConnection implements 
-  UserPasswdGetter, FdInStreamBlockCallback, ActionListener {
+  FdInStreamBlockCallback, ActionListener {
 
   // 8 colours (1 bit per component)
   static final PixelFormat verylowColorPF =
@@ -91,8 +91,6 @@ public class CConn extends CConnection implements
 
     setShared(shared.getValue());
     sock = socket;
-
-    upg = this;
 
     int encNum = Encodings.encodingNum(preferredEncoding.getValue());
     if (encNum != -1)
@@ -206,58 +204,6 @@ public class CConn extends CConnection implements
     } catch (java.lang.InterruptedException e) {
       throw new Exception(e.getMessage());
     }
-  }
-
-  // getUserPasswd() is called by the CSecurity object when it needs us to read
-  // a password from the user.
-
-  public final boolean getUserPasswd(StringBuffer user, StringBuffer passwd) {
-    String title = ("VNC Authentication ["
-                    +csecurity.description() + "]");
-    String passwordFileStr = passwordFile.getValue();
-    PasswdDialog dlg;
-
-    if (user == null && !passwordFileStr.equals("")) {
-      InputStream fp = null;
-      try {
-        fp = new FileInputStream(passwordFileStr);
-      } catch(FileNotFoundException e) {
-        throw new Exception("Opening password file failed");
-      }
-      byte[] obfPwd = new byte[256];
-      try {
-        fp.read(obfPwd);
-        fp.close();
-      } catch(IOException e) {
-        throw new Exception("Failed to read VncPasswd file");
-      }
-      String PlainPasswd = VncAuth.unobfuscatePasswd(obfPwd);
-      passwd.append(PlainPasswd);
-      passwd.setLength(PlainPasswd.length());
-      return true;
-    }
-
-    if (user == null) {
-      dlg = new PasswdDialog(title, (user == null), (passwd == null));
-    } else {
-      if ((passwd == null) && sendLocalUsername.getValue()) {
-         user.append((String)System.getProperties().get("user.name"));
-         return true;
-      }
-      dlg = new PasswdDialog(title, sendLocalUsername.getValue(),
-         (passwd == null));
-    }
-    dlg.showDialog();
-    if (user != null) {
-      if (sendLocalUsername.getValue()) {
-         user.append((String)System.getProperties().get("user.name"));
-      } else {
-         user.append(dlg.userEntry.getText());
-      }
-    }
-    if (passwd != null)
-      passwd.append(new String(dlg.passwdEntry.getPassword()));
-    return true;
   }
 
   ////////////////////// CConnection callback methods //////////////////////
@@ -728,8 +674,6 @@ public class CConn extends CConnection implements
   // access to desktop by different threads is specified in DesktopWindow
 
   // the following need no synchronization:
-
-  public static UserPasswdGetter upg;
 
   // shuttingDown is set by the GUI thread and only ever tested by the RFB
   // thread after the window has been destroyed.

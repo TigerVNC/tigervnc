@@ -42,5 +42,5 @@ abstract public class CSecurity {
    * Use variable directly instead of dumb get/set methods.
    * It MUST be set by viewer.
    */
-  static UserPasswdGetter upg;
+  public static UserPasswdGetter upg;
 }

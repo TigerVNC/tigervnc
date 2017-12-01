@@ -56,6 +56,8 @@ import com.tigervnc.rdr.*;
 import com.tigervnc.network.*;
 import com.tigervnc.vncviewer.*;
 
+import static javax.swing.JOptionPane.*;
+
 public class CSecurityTLS extends CSecurity {
 
   public static StringParameter X509CA
@@ -64,6 +66,7 @@ public class CSecurityTLS extends CSecurity {
   public static StringParameter X509CRL
   = new StringParameter("X509CRL",
                         "X509 CRL file", "", Configuration.ConfigurationObject.ConfViewer);
+  public static UserMsgBox msg;
 
   private void initGlobal()
   {
@@ -254,6 +257,16 @@ public class CSecurityTLS extends CSecurity {
     {
       Collection<? extends Certificate> certs = null;
       X509Certificate cert = chain[0];
+      try {
+        cert.checkValidity();
+      } catch(CertificateNotYetValidException e) {
+        throw new AuthFailureException("server certificate has not been activated");
+      } catch(CertificateExpiredException e) {
+        if (!msg.showMsgBox(YES_NO_OPTION, "certificate has expired",
+			      "The certificate of the server has expired, "+
+			      "do you want to continue?"))
+          throw new AuthFailureException("server certificate has expired");
+      }
       String thumbprint = getThumbprint(cert);
       File vncDir = new File(FileUtils.getVncHomeDir());
       File certFile = new File(vncDir, "x509_savedcerts.pem");
@@ -270,8 +283,7 @@ public class CSecurityTLS extends CSecurity {
         tm.checkServerTrusted(chain, authType);
       } catch (java.lang.Exception e) {
         if (e.getCause() instanceof CertPathBuilderException) {
-          Object[] answer = {"YES", "NO"};
-          int ret = JOptionPane.showOptionDialog(null,
+          String certinfo =
             "This certificate has been signed by an unknown authority\n"+
             "\n"+
             "  Subject: "+cert.getSubjectX500Principal().getName()+"\n"+
@@ -283,46 +295,38 @@ public class CSecurityTLS extends CSecurity {
             "  Not Valid After: "+cert.getNotAfter()+"\n"+
             "  SHA1 Fingerprint: "+getThumbprint(cert)+"\n"+
             "\n"+
-            "Do you want to save it and continue?",
-            "Certificate Issuer Unknown",
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-            null, answer, answer[0]);
-          if (ret == JOptionPane.YES_OPTION) {
+            "Do you want to save it and continue?";
+          if (!msg.showMsgBox(YES_NO_OPTION, "certificate issuer unknown",
+                certinfo)) {
+            throw new AuthFailureException("certificate issuer unknown");
+          }
+          if (certs == null || !certs.contains(cert)) {
+            byte[] der = cert.getEncoded();
+            String pem = DatatypeConverter.printBase64Binary(der);
+            pem = pem.replaceAll("(.{64})", "$1\n");
+            FileWriter fw = null;
             try {
               if (!vncDir.exists())
                 vncDir.mkdir();
               if (!certFile.exists() && !certFile.createNewFile()) {
                 vlog.error("Certificate save failed.");
-                return;
-              }
-            } catch (java.lang.Exception ioe) {
-              // skip save if security settings prohibit access to filesystem
-              vlog.error("Certificate save failed: "+ioe.getMessage());
-              return;
-            }
-            if (certs == null || !certs.contains(cert)) {
-              byte[] der = cert.getEncoded();
-              String pem = DatatypeConverter.printBase64Binary(der);
-              pem = pem.replaceAll("(.{64})", "$1\n");
-              FileWriter fw = null;
-              try {
+              } else {
                 fw = new FileWriter(certFile.getAbsolutePath(), true);
                 fw.write("-----BEGIN CERTIFICATE-----\n");
                 fw.write(pem+"\n");
                 fw.write("-----END CERTIFICATE-----\n");
-              } catch (IOException ioe) {
-                throw new Exception(ioe.getMessage());
-              } finally {
-                try {
-                  if (fw != null)
-                    fw.close();
-                } catch(IOException ioe2) {
-                  throw new Exception(ioe2.getMessage());
-                }
+              }
+            } catch (IOException ioe) {
+              msg.showMsgBox(OK_OPTION, "certificate save failed",
+                             "Could not save the certificate");
+            } finally {
+              try {
+                if (fw != null)
+                  fw.close();
+              } catch(IOException ioe2) {
+                throw new Exception(ioe2.getMessage());
               }
             }
-          } else {
-            throw new WarningException("Peer certificate verification failed.");
           }
         } else {
           throw new SystemException(e.getMessage());
