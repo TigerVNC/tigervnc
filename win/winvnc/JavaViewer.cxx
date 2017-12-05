@@ -17,6 +17,7 @@
  */
 
 #include <winvnc/JavaViewer.h>
+#include <winvnc/VNCServerWin32.h>
 #include <winvnc/resource.h>
 #include <rdr/MemInStream.h>
 #include <rfb/LogWriter.h>
@@ -31,7 +32,7 @@ using namespace rfb;
 
 static rfb::LogWriter vlog("JavaViewerServer");
 
-JavaViewerServer::JavaViewerServer(rfb::VNCServerST* svr) : server(svr) {
+JavaViewerServer::JavaViewerServer(VNCServerWin32* svr) : server(svr) {
 }
 
 JavaViewerServer::~JavaViewerServer() {

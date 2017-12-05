@@ -195,7 +195,7 @@ static int vncOwnSelection(Atom selection)
 
 static int vncConvertSelection(ClientPtr client, Atom selection,
                                Atom target, Atom property,
-                               Window requestor, TimeStamp time)
+                               Window requestor, CARD32 time)
 {
   Selection *pSel;
   WindowPtr pWin;
@@ -212,8 +212,8 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
   if (rc != Success)
     return rc;
 
-  if (CompareTimeStamps(time, pSel->lastTimeChanged) != LATER)
-    return BadMatch;
+  /* We do not validate the time argument because neither does
+   * dix/selection.c and some clients (e.g. Qt) relies on this */
 
   rc = dixLookupWindow(&pWin, requestor, client, DixSetAttrAccess);
   if (rc != Success)
@@ -291,7 +291,7 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
   }
 
   event.u.u.type = SelectionNotify;
-  event.u.selectionNotify.time = time.milliseconds;
+  event.u.selectionNotify.time = time;
   event.u.selectionNotify.requestor = requestor;
   event.u.selectionNotify.selection = selection;
   event.u.selectionNotify.target = target;
@@ -324,11 +324,9 @@ static int vncProcConvertSelection(ClientPtr client)
   rc = dixLookupSelection(&pSel, stuff->selection, client, DixReadAccess);
   if (rc == Success && pSel->client == serverClient &&
       pSel->window == wid) {
-    TimeStamp time;
-    time = ClientTimeToServerTime(stuff->time);
     rc = vncConvertSelection(client, stuff->selection,
                              stuff->target, stuff->property,
-                             stuff->requestor, time);
+                             stuff->requestor, stuff->time);
     if (rc != Success) {
       xEvent event;
 
@@ -510,6 +508,9 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
     return;
   if (info->client == serverClient)
     return;
+
+  LOG_DEBUG("Selection owner change for %s",
+            NameForAtom(info->selection->selection));
 
   if ((info->selection->selection != xaPRIMARY) &&
       (info->selection->selection != xaCLIPBOARD))

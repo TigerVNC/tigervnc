@@ -31,7 +31,7 @@ BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
-BuildRequires:  freetype-devel, libXdmcp-devel
+BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
 BuildRequires:  java-devel, jpackage-utils
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake
@@ -162,7 +162,7 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
         chmod -x "$all"
 done
-patch -p1 -b --suffix .vnc < ../xserver117.patch
+patch -p1 -b --suffix .vnc < ../xserver119.patch
 popd
 
 # Don't use shebang in vncserver script.
@@ -262,7 +262,7 @@ pushd java
 	-DJAVA_TSA_URL=http://timestamp.geotrust.com/tsa .
 %endif
 
-JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
+make
 popd
 
 %install

@@ -36,7 +36,7 @@ public class CSecurityVncAuth extends CSecurity {
     byte[] challenge = new byte[vncAuthChallengeSize];
     is.readBytes(challenge, 0, vncAuthChallengeSize);
     StringBuffer passwd = new StringBuffer();
-    CConn.upg.getUserPasswd(null, passwd);
+    upg.getUserPasswd(cc.isSecure(), null, passwd);
 
     // Calculate the correct response
     byte[] key = new byte[8];

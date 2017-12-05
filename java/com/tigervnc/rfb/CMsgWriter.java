@@ -211,16 +211,16 @@ public class CMsgWriter {
     endMsg();
   }
 
-  synchronized public void writeKeyEvent(int key, boolean down)
+  synchronized public void keyEvent(int keysym, boolean down)
   {
     startMsg(MsgTypes.msgTypeKeyEvent);
     os.writeU8(down?1:0);
     os.pad(2);
-    os.writeU32(key);
+    os.writeU32(keysym);
     endMsg();
   }
 
-  synchronized public void writePointerEvent(Point pos, int buttonMask)
+  synchronized public void pointerEvent(Point pos, int buttonMask)
   {
     Point p = new Point(pos.x,pos.y);
     if (p.x < 0) p.x = 0;

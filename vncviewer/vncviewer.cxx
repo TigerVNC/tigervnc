@@ -481,11 +481,6 @@ int main(int argc, char** argv)
 
   init_fltk();
 
-#if !defined(WIN32) && !defined(__APPLE__)
-  fl_open_display();
-  XkbSetDetectableAutoRepeat(fl_display, True, NULL);
-#endif
-
   Configuration::enableViewerParams();
 
   /* Load the default parameter settings */
@@ -498,28 +493,38 @@ int main(int argc, char** argv)
     if (alertOnFatalError)
       fl_alert("%s", e.str());
   }
-  
-  int i = 1;
-  if (!Fl::args(argc, argv, i) || i < argc)
-    for (; i < argc; i++) {
-      if (Configuration::setParam(argv[i]))
-        continue;
 
-      if (argv[i][0] == '-') {
-        if (i+1 < argc) {
-          if (Configuration::setParam(&argv[i][1], argv[i+1])) {
-            i++;
-            continue;
-          }
-        }
-        usage(argv[0]);
-      }
+  for (int i = 1; i < argc;) {
+    if (Fl::arg(argc, argv, i))
+      continue;
 
-      strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
-      vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+    if (Configuration::setParam(argv[i])) {
+      i++;
+      continue;
     }
 
+    if (argv[i][0] == '-') {
+      if (i+1 < argc) {
+        if (Configuration::setParam(&argv[i][1], argv[i+1])) {
+          i += 2;
+          continue;
+        }
+      }
+
+      usage(argv[0]);
+    }
+
+    strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
+    vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+    i++;
+  }
+
   mkvnchomedir();
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  fl_open_display();
+  XkbSetDetectableAutoRepeat(fl_display, True, NULL);
+#endif
 
   CSecurity::upg = &dlg;
 #ifdef HAVE_GNUTLS

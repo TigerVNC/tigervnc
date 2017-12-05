@@ -320,6 +320,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 
   comparer = new ComparingUpdateTracker(pb);
   renderedCursorInvalid = true;
+  startFrameClock();
 
   // Make sure that we have at least one screen
   if (screenLayout.num_screens() == 0)
@@ -528,6 +529,13 @@ bool VNCServerST::handleTimeout(Timer* t)
       return false;
 
     writeUpdate();
+
+    // If this is the first iteration then we need to adjust the timeout
+    if (frameTimer.getTimeoutMs() != 1000/rfb::Server::frameRate) {
+      frameTimer.start(1000/rfb::Server::frameRate);
+      return false;
+    }
+
     return true;
   }
 
@@ -572,7 +580,10 @@ void VNCServerST::startFrameClock()
   if (blockCounter > 0)
     return;
 
-  frameTimer.start(1000/rfb::Server::frameRate);
+  // The first iteration will be just half a frame as we get a very
+  // unstable update rate if we happen to be perfectly in sync with
+  // the application's update rate
+  frameTimer.start(1000/rfb::Server::frameRate/2);
 }
 
 void VNCServerST::stopFrameClock()

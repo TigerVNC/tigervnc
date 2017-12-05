@@ -35,6 +35,7 @@
 #include <rfb/Exception.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
+#include <gnutls/x509.h>
 
 #define DH_BITS 1024 /* XXX This should be configurable! */
 
@@ -207,9 +208,16 @@ void SSecurityTLS::setParams(gnutls_session_t session)
 
     gnutls_certificate_set_dh_params(cert_cred, dh_params);
 
-    if (gnutls_certificate_set_x509_key_file(cert_cred, certfile, keyfile,
-        GNUTLS_X509_FMT_PEM) != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("load of key failed");
+    switch (gnutls_certificate_set_x509_key_file(cert_cred, certfile, keyfile, GNUTLS_X509_FMT_PEM)) {
+    case GNUTLS_E_SUCCESS:
+      break;
+    case GNUTLS_E_CERTIFICATE_KEY_MISMATCH:
+      throw AuthFailureException("Private key does not match certificate");
+    case GNUTLS_E_UNSUPPORTED_CERTIFICATE_TYPE:
+      throw AuthFailureException("Unsupported certificate type");
+    default:
+      throw AuthFailureException("Error loading X509 certificate or key");
+    }
 
     if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred)
         != GNUTLS_E_SUCCESS)

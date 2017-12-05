@@ -829,7 +829,7 @@ void DesktopWindow::ungrabKeyboard()
   if (Fl::grab())
     return;
 
-  XUngrabKeyboard(fl_display, fl_event_time);
+  XUngrabKeyboard(fl_display, CurrentTime);
 #endif
 }
 
@@ -862,7 +862,6 @@ void DesktopWindow::grabPointer()
 
 void DesktopWindow::ungrabPointer()
 {
-  vlog.info("ungrabPointer");
   mouseGrabbed = false;
 #if !defined(WIN32) && !defined(__APPLE__)
   XUngrabPointer(fl_display, fl_event_time);

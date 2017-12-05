@@ -65,11 +65,6 @@ namespace rfb {
 
     virtual void stop() {}
 
-    // getFbSize() returns the current dimensions of the framebuffer.
-    // This can be called even while the SDesktop is not start()ed.
-
-    virtual Point getFbSize() = 0;
-
     // setScreenLayout() requests to reconfigure the framebuffer and/or
     // the layout of screens.
     virtual unsigned int setScreenLayout(int __unused_attr fb_width,

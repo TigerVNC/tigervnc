@@ -78,7 +78,7 @@ static void programUsage() {
   printf("\nLog destinations:\n");
   Logger::listLoggers();
   printf("\nAvailable configuration parameters:\n");
-  Configuration::listParams(ConfServer);
+  Configuration::listParams(79, 14);
 }
 
 static void MsgBoxOrLog(const char* msg, bool isError=false) {

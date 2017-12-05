@@ -1,0 +1,17 @@
+language:
+ - c++
+ - java
+
+# Travis is still stuck on Ubuntu 14.04, which has a too old FLTK
+before_install:
+ - wget http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-2-source.tar.gz
+ - tar -xvf fltk-1.3.4-2-source.tar.gz
+ - pushd fltk-1.3.4-2
+ - ./configure --prefix=/usr --enable-shared
+ - make -j2
+ - sudo make install
+ - popd
+
+script:
+ - cmake . && make
+ - cd java && cmake . && make

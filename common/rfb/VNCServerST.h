@@ -120,10 +120,6 @@ namespace rfb {
 
     SConnection* getSConnection(network::Socket* sock);
 
-    // getDesktopSize() returns the size of the SDesktop exported by this
-    // server.
-    Point getDesktopSize() const {return desktop->getFbSize();}
-
     // getName() returns the name of this VNC Server.  NB: The value returned
     // is the server's internal buffer which may change after any other methods
     // are called - take a copy if necessary.

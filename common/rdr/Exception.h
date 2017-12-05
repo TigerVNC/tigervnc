@@ -43,15 +43,11 @@ namespace rdr {
   }; 
 
   struct TimedOut : public Exception {
-    TimedOut(const char* s="Timed out") : Exception("%s", s) {}
+    TimedOut() : Exception("Timed out") {}
   };
  
   struct EndOfStream : public Exception {
-    EndOfStream(const char* s="End of stream") : Exception("%s", s) {}
-  };
-
-  struct FrameException : public Exception {
-    FrameException(const char* s="Frame exception") : Exception("%s", s) {}
+    EndOfStream() : Exception("End of stream") {}
   };
 
 }

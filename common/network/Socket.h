@@ -50,6 +50,7 @@ namespace network {
     // if shutdown() is overridden then the override MUST call on to here
     virtual void shutdown() {isShutdown_ = true;}
     bool isShutdown() const {return isShutdown_;}
+    virtual bool cork(bool enable) = 0;
 
     // information about this end of the socket
     virtual int getMyPort() = 0;

@@ -1,6 +1,4 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2013 Brian P. Hinz
- * Copyright (C) 2001 Markus G. Kuhn, University of Cambridge
+/* Copyright (C) 2017 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +14,38 @@
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
  * USA.
+ *
+ * This module converts keysym values into the corresponding ISO 10646
+ * (UCS, Unicode) values.
+ *
+ * The array keysymtab[] contains pairs of X11 keysym values for graphical
+ * characters and the corresponding Unicode value. The function
+ * keysym2ucs() maps a keysym onto a Unicode value using a binary search,
+ * therefore keysymtab[] must remain SORTED by keysym value.
+ *
+ * The keysym -> UTF-8 conversion will hopefully one day be provided
+ * by Xlib via XmbLookupString() and should ideally not have to be
+ * done in X applications. But we are not there yet.
+ *
+ * We allow to represent any UCS character in the range U-00000000 to
+ * U-00FFFFFF by a keysym value in the range 0x01000000 to 0x01ffffff.
+ * This admittedly does not cover the entire 31-bit space of UCS, but
+ * it does cover all of the characters up to U-10FFFF, which can be
+ * represented by UTF-16, and more, and it is very unlikely that higher
+ * UCS codes will ever be assigned by ISO. So to get Unicode character
+ * U+ABCD you can directly use keysym 0x0100abcd.
+ *
+ * NOTE: The comments in the table below contain the actual character
+ * encoded in UTF-8, so for viewing and editing best use an editor in
+ * UTF-8 mode.
+ *
+ * Derived from keysym2ucs.c, originally authored by Markus G, Kuhn
+ *
  */
-//
-// Derived from keysym2ucs.c, originally authored by Markus G, Kuhn
-//
 
 package com.tigervnc.rfb;
 
-public class UnicodeToKeysym {
+public class Keysym2ucs {
 
   private static class codepair {
     public codepair(int keysym_, int ucs_) {
@@ -32,6 +54,15 @@ public class UnicodeToKeysym {
     }
     int keysym;
     int ucs;
+  }
+
+  private static class combiningpair {
+    public combiningpair(int spacing_, int combining_) {
+      spacing = spacing_;
+      combining = combining_;
+    }
+    int spacing;
+    int combining;
   }
 
   public static codepair[] keysymtab = {
@@ -826,6 +857,63 @@ public class UnicodeToKeysym {
     new codepair(0xfe60, 0x0323), /*                               COMBINING DOT BELOW */
   };
 
+  public static combiningpair[] combinetab = {
+    new combiningpair(0x0060, 0x0300), /*                GRAVE ACCENT ` COMBINING GRAVE ACCENT */
+    new combiningpair(0x00b4, 0x0301), /*                ACUTE ACCENT ´ COMBINING ACUTE ACCENT */
+    new combiningpair(0x0027, 0x0301), /*                  APOSTROPHE ' COMBINING ACUTE ACCENT */
+    new combiningpair(0x0384, 0x0301), /*                 GREEK TONOS ΄ COMBINING ACUTE ACCENT */
+    new combiningpair(0x005e, 0x0302), /*           CIRCUMFLEX ACCENT ^ COMBINING CIRCUMFLEX ACCENT */
+    new combiningpair(0x007e, 0x0303), /*                       TILDE ~ COMBINING TILDE */
+    new combiningpair(0x00af, 0x0304), /*                      MACRON ¯ COMBINING MACRON */
+    new combiningpair(0x02d8, 0x0306), /*                       BREVE ˘ COMBINING BREVE */
+    new combiningpair(0x02d9, 0x0307), /*                   DOT ABOVE ˙ COMBINING DOT ABOVE */
+    new combiningpair(0x00a8, 0x0308), /*                   DIAERESIS ¨ COMBINING DIAERESIS */
+    new combiningpair(0x0022, 0x0308), /*              QUOTATION MARK " COMBINING DIAERESIS */
+    new combiningpair(0x02da, 0x030a), /*                  RING ABOVE ˚ COMBINING RING ABOVE */
+    new combiningpair(0x00b0, 0x030a), /*                 DEGREE SIGN ° COMBINING RING ABOVE */
+    new combiningpair(0x02dd, 0x030b), /*         DOUBLE ACUTE ACCENT ˝ COMBINING DOUBLE ACUTE ACCENT */
+    new combiningpair(0x02c7, 0x030c), /*                       CARON ˇ COMBINING CARON */
+    new combiningpair(0x00b8, 0x0327), /*                     CEDILLA ¸ COMBINING CEDILLA */
+    new combiningpair(0x02db, 0x0328), /*                      OGONEK ¸ COMBINING OGONEK */
+    new combiningpair(0x037a, 0x0345), /*         GREEK YPOGEGRAMMENI ͺ COMBINING GREEK YPOGEGRAMMENI */
+    new combiningpair(0x309b, 0x3099), /* KATAKANA-HIRAGANA VOICED SOUND MARK ゛COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK */
+    new combiningpair(0x309c, 0x309a), /* KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK ゜COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
+    new combiningpair(0x002e, 0x0323), /*                   FULL STOP . COMBINING DOT BELOW */
+    new combiningpair(0x0385, 0x0344), /*       GREEK DIALYTIKA TONOS ΅ COMBINING GREEK DIALYTIKA TONOS */
+  };
+
+  public static int keysym2ucs(int keysym)
+  {
+    int min = 0;
+    int max = keysymtab.length - 1;
+    int mid;
+
+    /* first check for Latin-1 characters (1:1 mapping) */
+    if ((keysym >= 0x0020 && keysym <= 0x007e) ||
+        (keysym >= 0x00a0 && keysym <= 0x00ff))
+      return keysym;
+
+    /* also check for directly encoded 24-bit UCS characters */
+    if ((keysym & 0xff000000) == 0x01000000)
+      return keysym & 0x00ffffff;
+
+    /* binary search in table */
+    while (max >= min) {
+      mid = (min + max) / 2;
+      if (keysymtab[mid].keysym < keysym)
+        min = mid + 1;
+      else if (keysymtab[mid].keysym > keysym)
+        max = mid - 1;
+      else {
+        /* found it */
+        return keysymtab[mid].ucs;
+      }
+    }
+
+    /* no matching Unicode value found */
+    return -1;
+  }
+
   public static int ucs2keysym(int ucs) {
     int cur = 0;
     int max = keysymtab.length - 1;
@@ -847,6 +935,24 @@ public class UnicodeToKeysym {
       return ucs | 0x01000000;
 
     /* no matching Unicode value found */
-    return 0xffffff;
+    return NoSymbol;
   }
+
+  public static int ucs2combining(int spacing)
+  {
+    int cur = 0;
+    int max = combinetab.length - 1;
+
+    /* linear search in table */
+    while (cur <= max) {
+      if (combinetab[cur].spacing == spacing)
+        return combinetab[cur].combining;
+      cur++;
+    }
+
+    /* no matching Unicode value found */
+    return -1;
+  }
+
+  private static final int NoSymbol = 0;
 }

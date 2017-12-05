@@ -57,6 +57,11 @@ BoolParameter rawKeyboard("RawKeyboard",
                           "Send keyboard events straight through and "
                           "avoid mapping them to the current keyboard "
                           "layout", false);
+IntParameter queryConnectTimeout("QueryConnectTimeout",
+                                 "Number of seconds to show the "
+                                 "Accept Connection dialog before "
+                                 "rejecting the connection",
+                                 10);
 
 class FileHTTPServer : public rfb::HTTPServer {
 public:
@@ -107,7 +112,7 @@ XserverDesktop::XserverDesktop(int screenIndex_,
     server(0), httpServer(0),
     listeners(listeners_), httpListeners(httpListeners_),
     directFbptr(true),
-    queryConnectId(0)
+    queryConnectId(0), queryConnectTimer(this)
 {
   format = pf;
 
@@ -301,8 +306,14 @@ XserverDesktop::queryConnection(network::Socket* sock,
 {
   int count;
 
-  if (queryConnectId) {
+  if (queryConnectTimer.isStarted()) {
     *reason = strDup("Another connection is currently being queried.");
+    return rfb::VNCServerST::REJECT;
+  }
+
+  count = vncNotifyQueryConnect();
+  if (count == 0) {
+    *reason = strDup("Unable to query the local user to accept the connection.");
     return rfb::VNCServerST::REJECT;
   }
 
@@ -313,11 +324,7 @@ XserverDesktop::queryConnection(network::Socket* sock,
   queryConnectId = (uint32_t)(intptr_t)sock;
   queryConnectSocket = sock;
 
-  count = vncNotifyQueryConnect();
-  if (count == 0) {
-    *reason = strDup("Unable to query the local user to accept the connection.");
-    return rfb::VNCServerST::REJECT;
-  }
+  queryConnectTimer.start(queryConnectTimeout * 1000);
 
   return rfb::VNCServerST::PENDING;
 }
@@ -557,14 +564,14 @@ void XserverDesktop::getQueryConnect(uint32_t* opaqueId,
 {
   *opaqueId = queryConnectId;
 
-  if (queryConnectId == 0) {
+  if (!queryConnectTimer.isStarted()) {
     *address = "";
     *username = "";
     *timeout = 0;
   } else {
     *address = queryConnectAddress.buf;
     *username = queryConnectUsername.buf;
-    *timeout = rfb::Server::queryConnectTimeout;
+    *timeout = queryConnectTimeout;
   }
 }
 
@@ -574,6 +581,7 @@ void XserverDesktop::approveConnection(uint32_t opaqueId, bool accept,
   if (queryConnectId == opaqueId) {
     server->approveConnection(queryConnectSocket, accept, rejectMsg);
     queryConnectId = 0;
+    queryConnectTimer.stop();
   }
 }
 
@@ -782,4 +790,15 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
     keycode = 0;
 
   vncKeyboardEvent(keysym, keycode, down);
+}
+
+bool XserverDesktop::handleTimeout(Timer* t)
+{
+  if (t == &queryConnectTimer) {
+    server->approveConnection(queryConnectSocket, false,
+                              "The attempt to prompt the user to "
+                              "accept the connection failed");
+  }
+
+  return false;
 }

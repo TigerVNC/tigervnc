@@ -138,7 +138,7 @@ build-indep-stamp:
 	#  anything for this package.
 	#/usr/bin/docbook-to-man debian/vnc.sgml > vnc.1
 	(cd media;make)
-	(cd java;cmake -G"Unix Makefiles";JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make)
+	(cd java;cmake -G"Unix Makefiles";make)
 
 	touch build-indep-stamp
 

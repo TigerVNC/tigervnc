@@ -185,8 +185,6 @@ namespace rfb {
     CharArray peerEndpoint;
     bool reverseConnection;
 
-    Timer queryConnectTimer;
-
     bool inProcessMessages;
 
     bool pendingSyncFence, syncFence;
@@ -217,6 +215,7 @@ namespace rfb {
     time_t lastEventTime;
     time_t pointerEventTime;
     Point pointerEventPos;
+    bool clientHasCursor;
 
     AccessRights accessRights;
 

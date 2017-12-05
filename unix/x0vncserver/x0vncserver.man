@@ -227,13 +227,6 @@ Use MIT-SHM extension if available.  Using that extension accelerates reading
 the screen.  Default is on.
 .
 .TP
-.B OverlayMode
-Use overlay mode in IRIX or Solaris (does not have effect in other systems).
-This enables system-specific access to complete full-color version of the
-screen (the default X visual often provides 256 colors).  Also, in overlay
-mode, \fBx0vncserver\fP can show correct mouse cursor.  Default is on.
-.
-.TP
 .B ZlibLevel
 Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
 Acceptable values are between 0 and 9.  Default is to use the standard

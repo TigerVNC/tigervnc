@@ -178,7 +178,19 @@ public class CSecurityVeNCrypt extends CSecurity {
   }
 
   public final int getType() { return chosenType; }
-  public final String description() { return Security.secTypeName(chosenType); }
+  public final String description()
+  {
+    if (csecurity != null)
+      return csecurity.description();
+    return "VeNCrypt";
+  }
+
+  public final boolean isSecure()
+  {
+    if (csecurity != null && csecurity.isSecure())
+      return true;
+    return false;
+  }
 
   public static StringParameter secTypesStr;
 

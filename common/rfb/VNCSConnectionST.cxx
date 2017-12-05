@@ -71,7 +71,7 @@ static Cursor emptyCursor(0, 0, Point(0, 0), nullptr);
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
   : sock(s), reverseConnection(reverse),
-    queryConnectTimer(this), inProcessMessages(false),
+    inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(nullptr),
     baseRTT(-1), congWindow(0), ackedOffset(0), sentOffset(0),
@@ -80,7 +80,9 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
+
     accessRights(AccessDefault), startTime(time(nullptr))
+    clientHasCursor(false),
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -168,7 +170,7 @@ void VNCSConnectionST::processMessages()
 
     // Get the underlying TCP layer to build large packets if we send
     // multiple small responses.
-    network::TcpSocket::cork(sock->getFd(), true);
+    sock->cork(true);
 
     while (getInStream()->checkNoWait(1)) {
       if (pendingSyncFence) {
@@ -185,7 +187,7 @@ void VNCSConnectionST::processMessages()
     }
 
     // Flush out everything in case we go idle after this.
-    network::TcpSocket::cork(sock->getFd(), false);
+    sock->cork(false);
 
     inProcessMessages = false;
 
@@ -275,6 +277,7 @@ void VNCSConnectionST::screenLayoutChangeOrClose(rdr::U16 reason)
 {
   try {
     screenLayoutChange(reason);
+    writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
   }
@@ -306,6 +309,7 @@ void VNCSConnectionST::setDesktopNameOrClose(const char *name)
 {
   try {
     setDesktopName(name);
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -316,6 +320,7 @@ void VNCSConnectionST::setCursorOrClose()
 {
   try {
     setCursor();
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -326,6 +331,7 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
 {
   try {
     setLEDState(state);
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -379,9 +385,10 @@ void VNCSConnectionST::renderedCursorChange()
 {
   if (state() != RFBSTATE_NORMAL) return;
   // Are we switching between client-side and server-side cursor?
-  if (damagedCursorRegion.is_empty() != needRenderedCursor())
+  if (clientHasCursor == needRenderedCursor())
     setCursorOrClose();
-  if (!damagedCursorRegion.is_empty())
+  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
+  if (hasRenderedCursor)
     removeRenderedCursor = true;
   if (needRenderedCursor()) {
     updateRenderedCursor = true;
@@ -485,10 +492,8 @@ void VNCSConnectionST::queryConnection(const char* userName)
   CharArray reason;
   VNCServerST::queryResult qr = server->queryConnection(sock, userName,
                                                         &reason.buf);
-  if (qr == VNCServerST::PENDING) {
-    queryConnectTimer.start(rfb::Server::queryConnectTimeout * 1000);
+  if (qr == VNCServerST::PENDING)
     return;
-  }
 
   // - If server returns ACCEPT/REJECT then pass result to SConnection
   approveConnection(qr == VNCServerST::ACCEPT, reason.buf);
@@ -744,7 +749,6 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   if (!layout.validate(fb_width, fb_height)) {
     writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
                                        fb_width, fb_height, layout);
-    writeFramebufferUpdate();
     return;
   }
 
@@ -762,10 +766,6 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
         throw Exception("Desktop configured a different screen layout than requested");
     server->notifyScreenLayoutChange(this);
   }
-
-  // but always send back a reply to the requesting client
-  // (do this last as it might throw an exception on socket errors)
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
@@ -823,7 +823,6 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
   if (enable) {
     requested.clear();
-    writeFramebufferUpdate();
   } else {
     writer()->writeEndOfContinuousUpdates();
   }
@@ -836,12 +835,10 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
 void VNCSConnectionST::supportsLocalCursor()
 {
-  if (cp.supportsLocalCursorWithAlpha ||
-      cp.supportsLocalCursor || cp.supportsLocalXCursor) {
-    if (!damagedCursorRegion.is_empty())
-      removeRenderedCursor = true;
-    setCursor();
-  }
+  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
+  if (hasRenderedCursor && !needRenderedCursor())
+    removeRenderedCursor = true;
+  setCursor();
 }
 
 void VNCSConnectionST::supportsFence()
@@ -870,10 +867,6 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
   try {
     if (t == &congestionTimer)
       updateCongestion();
-    else if (t == &queryConnectTimer) {
-      if (state() == RFBSTATE_QUERYING)
-        approveConnection(false, "The attempt to prompt the user to accept the connection failed");
-    }
   } catch (rdr::Exception& e) {
     close(e.str());
   }
@@ -1099,7 +1092,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // mode, we will also have small fence messages around the update. We
   // need to aggregate these in order to not clog up TCP's congestion
   // window.
-  network::TcpSocket::cork(sock->getFd(), true);
+  sock->cork(true);
 
   // First take care of any updates that cannot contain framebuffer data
   // changes.
@@ -1108,7 +1101,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // Then real data (if possible)
   writeDataUpdate();
 
-  network::TcpSocket::cork(sock->getFd(), false);
+  sock->cork(false);
 }
 
 void VNCSConnectionST::writeNoDataUpdate()
@@ -1247,7 +1240,6 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
 
   writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
                                      cp.screenLayout);
-  writeFramebufferUpdate();
 }
 
 
@@ -1261,10 +1253,13 @@ void VNCSConnectionST::setCursor()
     return;
 
   // We need to blank out the client's cursor or there will be two
-  if (needRenderedCursor())
+  if (needRenderedCursor()) {
     cp.setCursor(emptyCursor);
-  else
+    clientHasCursor = false;
+  } else {
     cp.setCursor(*server->cursor);
+    clientHasCursor = true;
+  }
 
   if (!writer()->writeSetCursorWithAlpha()) {
     if (!writer()->writeSetCursor()) {
@@ -1274,8 +1269,6 @@ void VNCSConnectionST::setCursor()
       }
     }
   }
-
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::setDesktopName(const char *name)
@@ -1289,8 +1282,6 @@ void VNCSConnectionST::setDesktopName(const char *name)
     fprintf(stderr, "Client does not support desktop rename\n");
     return;
   }
-
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::setLEDState(unsigned int ledstate)
@@ -1300,12 +1291,7 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
 
   cp.setLEDState(ledstate);
 
-  if (!writer()->writeLEDState()) {
-    // No client support
-    return;
-  }
-
-  writeFramebufferUpdate();
+  writer()->writeLEDState();
 }
 
 void VNCSConnectionST::setSocketTimeouts()

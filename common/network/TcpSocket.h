@@ -61,10 +61,11 @@ namespace network {
     char* getPeerEndpoint() override;
     bool sameMachine() override;
 
-    void shutdown() override;
+    virtual void shutdown() override;
+    virtual bool cork(bool enable);
+
 
     static bool enableNagles(int sock, bool enable);
-    static bool cork(int sock, bool enable);
     static bool isListening(int sock);
     static int getSockPort(int sock);
   private:
