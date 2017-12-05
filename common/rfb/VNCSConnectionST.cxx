@@ -80,9 +80,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
-
-    accessRights(AccessDefault), startTime(time(nullptr))
-    clientHasCursor(false),
+    accessRights(AccessDefault), startTime(time(nullptr)),
+    clientHasCursor(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
