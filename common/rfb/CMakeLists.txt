@@ -73,6 +73,9 @@ if(WIN32)
 endif(WIN32)
 
 set(RFB_LIBRARIES ${JPEG_LIBRARIES} os rdr Xregion)
+if(UNIX)
+  set(RFB_LIBRARIES ${RFB_LIBRARIES} pthread)
+endif()
 
 if(HAVE_PAM)
   set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
