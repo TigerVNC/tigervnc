@@ -137,27 +137,19 @@ static void parseOverrideList(const char *text, ParamSet &out)
 
 void vncExtensionInit(void)
 {
-  int ret;
-
   if (vncExtGeneration == vncGetServerGeneration()) {
     vlog.error("vncExtensionInit: called twice in same generation?");
     return;
   }
   vncExtGeneration = vncGetServerGeneration();
 
-  if (vncGetScreenCount() > MAXSCREENS) {
-    vlog.error("vncExtensionInit: too many screens");
-    return;
-  }
+  if (vncGetScreenCount() > MAXSCREENS)
+    vncFatalError("vncExtensionInit: too many screens");
 
-  if (sizeof(ShortRect) != sizeof(struct UpdateRect)) {
-    vlog.error("vncExtensionInit: Incompatible ShortRect size");
-    return;
-  }
+  if (sizeof(ShortRect) != sizeof(struct UpdateRect))
+    vncFatalError("vncExtensionInit: Incompatible ShortRect size");
 
-  ret = vncAddExtension();
-  if (ret == -1)
-    return;
+  vncAddExtension();
 
   vncSelectionInit();
 
@@ -240,15 +232,10 @@ void vncExtensionInit(void)
       vncHooksInit(scr);
     }
   } catch (rdr::Exception& e) {
-    vlog.error("vncExtInit: %s",e.str());
+    vncFatalError("vncExtInit: %s",e.str());
   }
 
   vncRegisterBlockHandlers();
-}
-
-int vncExtensionIsActive(int scrIdx)
-{
-  return (desktop[scrIdx] != NULL);
 }
 
 void vncHandleSocketEvent(int fd, int scrIdx, int read, int write)
@@ -259,8 +246,7 @@ void vncHandleSocketEvent(int fd, int scrIdx, int read, int write)
 void vncCallBlockHandlers(int* timeout)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->blockHandler(timeout);
+    desktop[scr]->blockHandler(timeout);
 }
 
 int vncGetAvoidShiftNumLock(void)
@@ -280,27 +266,18 @@ int vncGetSendPrimary(void)
 
 void vncUpdateDesktopName(void)
 {
-  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
-    if (desktop[scr] == NULL)
-      continue;
+  for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->setDesktopName(desktopName);
-  }
 }
 
 void vncServerCutText(const char *text, size_t len)
 {
-  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
-    if (desktop[scr] == NULL)
-      continue;
+  for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->serverCutText(text, len);
-  }
 }
 
 int vncConnectClient(const char *addr)
 {
-  if (desktop[0] == NULL)
-    return -1;
-
   if (strlen(addr) == 0) {
     try {
       desktop[0]->disconnectClients();
@@ -332,8 +309,6 @@ void vncGetQueryConnect(uint32_t *opaqueId, const char**username,
                         const char **address, int *timeout)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++) {
-    if (desktop[scr] == NULL)
-      continue;
     desktop[scr]->getQueryConnect(opaqueId, username, address, timeout);
     if (opaqueId != 0)
       break;
@@ -343,8 +318,6 @@ void vncGetQueryConnect(uint32_t *opaqueId, const char**username,
 void vncApproveConnection(uint32_t opaqueId, int approve)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++) {
-    if (desktop[scr] == NULL)
-      continue;
     desktop[scr]->approveConnection(opaqueId, approve,
                                     "Connection rejected by local user");
   }
@@ -352,11 +325,8 @@ void vncApproveConnection(uint32_t opaqueId, int approve)
 
 void vncBell()
 {
-  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
-    if (desktop[scr] == NULL)
-      continue;
+  for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->bell();
-  }
 }
 
 void vncSetLEDState(unsigned long leds)
@@ -371,11 +341,8 @@ void vncSetLEDState(unsigned long leds)
   if (leds & (1 << 2))
     state |= ledScrollLock;
 
-  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
-    if (desktop[scr] == NULL)
-      continue;
+  for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->setLEDState(state);
-  }
 }
 
 void vncAddChanged(int scrIdx, const struct UpdateRect *extents,
@@ -402,11 +369,8 @@ void vncAddCopied(int scrIdx, const struct UpdateRect *extents,
 void vncSetCursor(int width, int height, int hotX, int hotY,
                   const unsigned char *rgbaData)
 {
-  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
-    if (desktop[scr] == NULL)
-      continue;
+  for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->setCursor(width, height, hotX, hotY, rgbaData);
-  }
 }
 
 void vncPreScreenResize(int scrIdx)

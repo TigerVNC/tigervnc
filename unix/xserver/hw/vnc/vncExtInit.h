@@ -37,7 +37,7 @@ extern "C" {
 // vncExt.c
 extern int vncNoClipboard;
 
-int vncAddExtension(void);
+void vncAddExtension(void);
 
 int vncNotifyQueryConnect(void);
 
@@ -48,7 +48,6 @@ extern int vncFbstride[];
 extern int vncInetdSock;
 
 void vncExtensionInit(void);
-int vncExtensionIsActive(int scrIdx);
 
 void vncHandleSocketEvent(int fd, int scrIdx, int read, int write);
 void vncCallBlockHandlers(int* timeout);
