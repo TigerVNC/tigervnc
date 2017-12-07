@@ -436,7 +436,11 @@ void vncPostScreenResize(int scrIdx, int success, int width, int height)
 
 void vncRefreshScreenLayout(int scrIdx)
 {
-  desktop[scrIdx]->refreshScreenLayout();
+  try {
+    desktop[scrIdx]->refreshScreenLayout();
+  } catch (rdr::Exception& e) {
+    vncFatalError("%s", e.str());
+  }
 }
 
 int vncOverrideParam(const char *nameAndValue)

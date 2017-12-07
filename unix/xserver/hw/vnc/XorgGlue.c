@@ -40,6 +40,18 @@ unsigned long vncGetServerGeneration(void)
   return serverGeneration;
 }
 
+void vncFatalError(const char *format, ...)
+{
+  va_list args;
+  char buffer[4096];
+
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  FatalError("%s", buffer);
+}
+
 int vncGetScreenCount(void)
 {
   return screenInfo.numScreens;
