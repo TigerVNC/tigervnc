@@ -305,11 +305,21 @@ void vncRandRGetOutputDimensions(int scrIdx, int outputIdx,
 {
 #ifdef RANDR
   rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
+  int swap;
 
   *x = rp->outputs[outputIdx]->crtc->x;
   *y = rp->outputs[outputIdx]->crtc->y;
   *width = rp->outputs[outputIdx]->crtc->mode->mode.width;
   *height = rp->outputs[outputIdx]->crtc->mode->mode.height;
+
+  switch (rp->outputs[outputIdx]->crtc->rotation & 0xf) {
+  case RR_Rotate_90:
+  case RR_Rotate_270:
+    swap = *width;
+    *width = *height;
+    *height = swap;
+    break;
+  }
 #endif
 }
 
