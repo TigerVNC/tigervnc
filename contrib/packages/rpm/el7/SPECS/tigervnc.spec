@@ -9,8 +9,6 @@ Packager: 	Brian P. Hinz <bphinz@users.sourceforge.net>
 URL:            http://www.tigervnc.com
 
 Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
-Source1:        vncserver.service
-Source2:        vncserver.sysconfig
 Source3:        10-libvnc.conf
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -188,14 +186,6 @@ pushd unix/xserver/hw/vnc
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
 
-# Install systemd unit file
-mkdir -p %{buildroot}%{_unitdir}
-install -m644 %{SOURCE1} %{buildroot}%{_unitdir}/vncserver@.service
-rm -rf %{buildroot}%{_initrddir}
-
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/vncservers
-
 %find_lang %{name} %{name}.lang
 
 # remove unwanted files
@@ -223,19 +213,6 @@ if [ -x %{_bindir}/gtk-update-icon-cache ]; then
         %{_bindir}/gtk-update-icon-cache -q %{_datadir}/icons/hicolor || :
 fi
 
-%post server
-%systemd_post vncserver.service
-
-%triggerun -- tigervnc-server < 1.0.90-6
-%{_bindir}/systemd-sysv-convert --save vncserver >/dev/null 2>&1 ||:
-/sbin/chkconfig --del vncserver >/dev/null 2>&1 || :
-
-%preun server
-%systemd_preun vncserver.service
-
-%postun server
-%systemd_postun
-
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc %{_docdir}/%{name}-%{version}/README.rst
@@ -245,7 +222,6 @@ fi
 
 %files server
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/sysconfig/vncservers
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
 %{_unitdir}/vncserver@.service

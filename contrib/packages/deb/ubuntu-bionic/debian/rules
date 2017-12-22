@@ -57,7 +57,8 @@ config-stamp: xorg-source-stamp
 	cmake -G"Unix Makefiles" \
 		-DBUILD_STATIC=off \
 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
-		-DSYSCONF_DIR:PATH=/etc
+		-DSYSCONF_DIR:PATH=/etc \
+		-DUNIT_DIR:PATH=/lib/systemd/system
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
@@ -187,11 +188,6 @@ install: build
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/Xtigervnc.1
 	# delete development files
 	rm -f $(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions/libvnc.la
-	# install server service
-	install -o root -g root -m 755 -D $(CURDIR)/debian/local/vncserver.service \
-		$(CURDIR)/debian/tigervncserver/etc/init.d/vncserver
-	install -o root -g root -m 644 -D $(CURDIR)/debian/local/vncserver.sysconfig \
-		$(CURDIR)/debian/tigervncserver/etc/default/vncservers
 	# move viewer files to viewer package, rename on the fly
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/bin
 	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncviewer \
