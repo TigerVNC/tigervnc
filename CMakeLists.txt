@@ -32,11 +32,14 @@ set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share")
 set(MAN_DIR "${DATA_DIR}/man")
 set(LOCALE_DIR "${DATA_DIR}/locale")
 set(DOC_DIR "${CMAKE_INSTALL_PREFIX}/share/doc/${CMAKE_PROJECT_NAME}-${VERSION}")
+set(UNIT_DIR "${CMAKE_INSTALL_PREFIX}/lib/systemd/system")
 
 if(WIN32)
 set(BIN_DIR "${CMAKE_INSTALL_PREFIX}")
 set(DOC_DIR "${CMAKE_INSTALL_PREFIX}")
 endif()
+
+option(INSTALL_SYSTEMD_UNITS "Install TigerVNC systemd units" ON)
 
 if(MSVC)
   message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
