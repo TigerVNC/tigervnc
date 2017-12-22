@@ -1,8 +1,12 @@
 #!/bin/bash
 #
+# Init file for TigerVNC Server
+#
 # chkconfig: - 91 35
 # description: Starts and stops vncserver. \
 #	       used to provide remote X administration services.
+#
+# processname: Xvnc
 
 ### BEGIN INIT INFO
 # Provides: vncserver
@@ -15,27 +19,36 @@
 ### END INIT INFO
 
 # Source function library.
-. /etc/init.d/functions
+. /etc/init.d/functions || true
+. /lib/lsb/init-functions
+type log_begin_msg > /dev/null 2>&1 || log_begin_msg () { echo -n $@ }
 
 [ -r /etc/sysconfig/vncservers ] && . /etc/sysconfig/vncservers
+[ -r /etc/default/vncservers ] && . /etc/default/vncservers
 
 prog=$"VNC server"
 
 RETVAL=0
 
+if type runuser > /dev/null 2>&1 ; then
+    RUNUSER="runuser"
+else
+    RUNUSER="su"
+fi
+
 start() {
     [ "$EUID" != "0" ] && exit 4
     
-    # Source networking configuration.
-    . /etc/sysconfig/network
-
     # Check that networking is up.
-    [ ${NETWORKING} = "no" ] && exit 1
+    if [ -e /etc/sysconfig/network ]; then
+        . /etc/sysconfig/network
+        [ ${NETWORKING} = "no" ] && exit 1
+    fi
 
     [ -x /usr/bin/vncserver ] || exit 5
     [ -x /usr/bin/Xvnc ] || exit 5
 
-    echo -n $"Starting $prog: "
+    log_begin_msg "Starting $prog: "
     RETVAL=0
     if [ ! -d /tmp/.X11-unix ]
     then
@@ -51,26 +64,24 @@ start() {
       USER="${display##*:}"
       VNCUSERARGS="${VNCSERVERARGS[${DISP}]}"
       if [ -r $(eval echo ~${USER})/.vnc/passwd ]; then
-         runuser -l ${USER} -c \
+         ${RUNUSER} -l ${USER} -c \
             "cd ~${USER} && vncserver :${DISP} ${VNCUSERARGS}"
          RETVAL=$?
       else
-        echo
-        echo VNC password for user ${USER} is not configured
+        log_failure_msg VNC password for user ${USER} is not configured
         RETVAL=1
       fi
       [ "$RETVAL" -eq 0 ] || break
     done
     if [ -z "$SERVS" ]; then
-        echo -n "no displays configured "
-        failure
+        log_failure_msg "no displays configured "
         RETVAL=6
     else
         if [ "$RETVAL" -eq 0 ]; then
-	    success $"vncserver startup"
-	    touch /var/lock/subsys/Xvnc
+            log_success_msg
+    	    [ -d /var/lock/subsys ] && touch /var/lock/subsys/Xvnc
         else 
-            failure $"vncserver start"
+            log_failure_msg
         fi
     fi
     echo
@@ -85,25 +96,16 @@ start() {
 stop() {
     [ "$EUID" != "0" ] && exit 4
 
-    echo -n $"Shutting down $prog: "
+    log_begin_msg "Shutting down $prog: "
 
-    status Xvnc > /dev/null 2>&1
-    RETVAL=$?
-
-    # 3 means service is already stopped
-    if ! [ "$RETVAL" -eq 3 ]; then
 	for display in ${VNCSERVERS}; do
 	    echo -n "${display} "
 	    export USER="${display##*:}"
-	    runuser ${USER} -c "vncserver -kill :${display%%:*}" >/dev/null 2>&1
+	    ${RUNUSER} ${USER} -c "vncserver -kill :${display%%:*}" >/dev/null 2>&1
 	done
 	RETVAL=$?
-    else
-	let RETVAL=0
-    fi
 
-    [ "$RETVAL" -eq 0 ] && success $"vncserver shutdown" || \
-	failure $"vncserver shutdown"
+    [ "$RETVAL" -eq 0 ] && log_success_msg || log_failure_msg
     echo
     [ "$RETVAL" -eq 0 ] && rm -f /var/lock/subsys/Xvnc
     return "$RETVAL"
@@ -122,22 +124,13 @@ case "$1" in
 	sleep 3
 	start
 	;;
-  condrestart)
-#	https://bugzilla.redhat.com/show_bug.cgi?id=508367
-#	echo "condrestart is obsolete, use try-restart instead"
-	if [ -e /var/lock/subsys/Xvnc ]; then
-	    stop
-	    sleep 3
-	    start
-	fi
-	;;
-  try-restart)
-        if [ -e /var/lock/subsys/Xvnc ]; then
-            stop
-            sleep 3
-            start
-        fi
-        ;;
+  condrestart|try-restart)
+    if [ -e /var/lock/subsys/Xvnc ]; then
+        stop
+        sleep 3
+        start
+    fi
+    ;;
   status)
 	status Xvnc
 	RETVAL=$?
