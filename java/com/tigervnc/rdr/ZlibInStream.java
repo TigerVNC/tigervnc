@@ -33,33 +33,22 @@ public class ZlibInStream extends InStream {
     bufSize = bufSize_;
     b = new byte[bufSize];
     bytesIn = offset = 0;
-    zs = new ZStream();
-    zs.next_in = null;
-    zs.next_in_index = 0;
-    zs.avail_in = 0;
-    if (zs.inflateInit() != JZlib.Z_OK) {
-      zs = null;
-      throw new Exception("ZlinInStream: inflateInit failed");
-    }
     ptr = end = start = 0;
+    init();
   }
 
   public ZlibInStream() { this(defaultBufSize); }
-
-  protected void finalize() throws Throwable {
-    try {
-      b = null;
-      zs.inflateEnd();
-    } finally {
-      super.finalize();
-    }
-  }
 
   public void setUnderlying(InStream is, int bytesIn_)
   {
     underlying = is;
     bytesIn = bytesIn_;
     ptr = end = start;
+  }
+
+  public int pos()
+  {
+    return offset + ptr - start;
   }
 
   public void removeUnderlying()
@@ -74,21 +63,32 @@ public class ZlibInStream extends InStream {
     underlying = null;
   }
 
-  public int pos()
-  {
-    return offset + ptr - start;
-  }
-
   public void reset()
   {
-    ptr = end = start;
-    if (underlying == null) return;
+    deinit();
+    init();
+  }
 
-    while (bytesIn > 0) {
-      decompress(true);
-      end = start; // throw away any data
+  public void init()
+  {
+    assert(zs == null);
+
+    zs = new ZStream();
+    zs.next_in = null;
+    zs.next_in_index = 0;
+    zs.avail_in = 0;
+    if (zs.inflateInit() != JZlib.Z_OK) {
+      zs = null;
+      throw new Exception("ZlinInStream: inflateInit failed");
     }
-    underlying = null;
+  }
+
+  public void deinit()
+  {
+    assert(zs != null);
+    removeUnderlying();
+    zs.inflateEnd();
+    zs = null;
   }
 
   protected int overrun(int itemSize, int nItems, boolean wait)

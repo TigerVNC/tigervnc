@@ -77,7 +77,7 @@ public class TLSOutStream extends OutStream {
     int n = 0;
 
     try {
-      n = manager.write(data, dataPtr, length);
+      n = manager.write(ByteBuffer.wrap(data, dataPtr, length), length);
     } catch (java.io.IOException e) {
       throw new Exception(e.getMessage());
     }

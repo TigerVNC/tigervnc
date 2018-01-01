@@ -153,10 +153,10 @@ public class CMsgReader {
       vlog.error("cut text too long ("+len+" bytes) - ignoring");
       return;
     }
-    byte[] buf = new byte[len];
-    is.readBytes(buf, 0, len);
+    ByteBuffer buf = ByteBuffer.allocate(len);
+    is.readBytes(buf, len);
     Charset latin1 = Charset.forName("ISO-8859-1");
-    CharBuffer chars = latin1.decode(ByteBuffer.wrap(buf));
+    CharBuffer chars = latin1.decode(buf.compact());
     handler.serverCutText(chars.toString(), len);
   }
 
@@ -164,22 +164,22 @@ public class CMsgReader {
   {
     int flags;
     int len;
-    byte[] data = new byte[64];
+    ByteBuffer data = ByteBuffer.allocate(64);
 
     is.skip(3);
 
     flags = is.readU32();
 
     len = is.readU8();
-    if (len > data.length) {
+    if (len > data.capacity()) {
       System.out.println("Ignoring fence with too large payload\n");
       is.skip(len);
       return;
     }
 
-    is.readBytes(data, 0, len);
+    is.readBytes(data, len);
 
-    handler.fence(flags, len, data);
+    handler.fence(flags, len, data.array());
   }
 
   protected void readEndOfContinuousUpdates()
@@ -243,6 +243,12 @@ public class CMsgReader {
         int byte_ = y * maskBytesPerRow + x / 8;
         int bit = 7 - x % 8;
 
+        // NOTE: BufferedImage needs ARGB, rather than RGBA
+        if ((mask.get(byte_) & (1 << bit)) > 0)
+          out.put(out.position(), (byte)255);
+        else
+          out.put(out.position(), (byte)0);
+
         if ((data.get(byte_) & (1 << bit)) > 0) {
           out.put(out.position() + 1, pr);
           out.put(out.position() + 2, pg);
@@ -252,11 +258,6 @@ public class CMsgReader {
           out.put(out.position() + 2, sg);
           out.put(out.position() + 3, sb);
         }
-
-        if ((mask.get(byte_) & (1 << bit)) > 0)
-          out.put(out.position() + 0, (byte)255);
-        else
-          out.put(out.position() + 0, (byte)0);
 
         out.position(out.position() + 4);
       }
@@ -281,8 +282,8 @@ public class CMsgReader {
     is.readBytes(mask, mask_len);
 
     int maskBytesPerRow = (width+7)/8;
-    in = (ByteBuffer)data.duplicate().mark();
-    out = (ByteBuffer)ByteBuffer.wrap(buf).mark();
+    in = ByteBuffer.wrap(data.array());
+    out = ByteBuffer.wrap(buf);
     for (y = 0;y < height;y++) {
       for (x = 0;x < width;x++) {
         int byte_ = y * maskBytesPerRow + x / 8;
@@ -294,10 +295,10 @@ public class CMsgReader {
         else
           out.put((byte)0);
 
-        handler.cp.pf().rgbFromBuffer(out, in.duplicate(), 1);
+        handler.cp.pf().rgbFromBuffer(out.duplicate(), in.duplicate(), 1);
 
         in.position(in.position() + handler.cp.pf().bpp/8);
-        out.position(out.reset().position() + 4).mark();
+        out.position(out.position() + 3);
       }
     }
 

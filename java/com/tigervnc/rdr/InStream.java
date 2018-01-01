@@ -74,11 +74,11 @@ abstract public class InStream {
     if (len > maxStringLength)
       throw new Exception("InStream max string length exceeded");
 
-    byte[] str = new byte[len];
-    readBytes(str, 0, len);
+    ByteBuffer str = ByteBuffer.allocate(len);
+    readBytes(str, len);
     String utf8string = new String();
     try {
-      utf8string = new String(str,"UTF8");
+      utf8string = new String(str.array(),"UTF8");
     } catch(java.io.UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -98,25 +98,15 @@ abstract public class InStream {
     }
   }
 
-  // readBytes() reads an exact number of bytes into an array at an offset.
+  // readBytes() reads an exact number of bytes
 
   public void readBytes(ByteBuffer data, int length) {
-    int dataEnd = data.mark().position() + length;
-    while (data.position() < dataEnd) {
-      int n = check(1, dataEnd - data.position());
-      data.put(b, ptr, n);
+    ByteBuffer dataPtr = data;
+    int dataEnd = dataPtr.position() + length;
+    while (dataPtr.position() < dataEnd) {
+      int n = check(1, dataEnd - dataPtr.position());
+      dataPtr.put(b, ptr, n);
       ptr += n;
-    }
-    data.reset();
-  }
-
-  public void readBytes(byte[] data, int dataPtr, int length) {
-    int dataEnd = dataPtr + length;
-    while (dataPtr < dataEnd) {
-      int n = check(1, dataEnd - dataPtr);
-      System.arraycopy(b, ptr, data, dataPtr, n);
-      ptr += n;
-      dataPtr += n;
     }
   }
 
@@ -126,38 +116,6 @@ abstract public class InStream {
   public final int readOpaque8()  { return readU8(); }
   public final int readOpaque16() { return readU16(); }
   public final int readOpaque32() { return readU32(); }
-  public final int readOpaque24A() { check(3); int b0 = b[ptr++];
-                                     int b1 = b[ptr++]; int b2 = b[ptr++];
-                                     return b0 << 24 | b1 << 16 | b2 << 8; }
-  public final int readOpaque24B() { check(3); int b0 = b[ptr++];
-                                     int b1 = b[ptr++]; int b2 = b[ptr++];
-                                     return b0 << 16 | b1 << 8 | b2; }
-
-  public final int readPixel(int bytesPerPixel, boolean bigEndian) {
-    byte[] pix = new byte[4];
-    readBytes(pix, 0, bytesPerPixel);
-
-    if (bigEndian) {
-      return 0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
-    } else {
-      return 0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
-    }
-  }
-
-  public final void readPixels(int[] buf, int length, int bytesPerPixel, boolean bigEndian) {
-    int npixels = length*bytesPerPixel;
-    byte[] pixels = new byte[npixels];
-    readBytes(pixels, 0, npixels);
-    for (int i = 0; i < length; i++) {
-      byte[] pix = new byte[4];
-      System.arraycopy(pixels, i*bytesPerPixel, pix, 0, bytesPerPixel);
-      if (bigEndian) {
-        buf[i] = 0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
-      } else {
-        buf[i] = 0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
-      }
-    }
-  }
 
   // pos() returns the position in the stream.
 
@@ -184,6 +142,9 @@ abstract public class InStream {
   // is supposed to be "small" (a few bytes).
 
   abstract protected int overrun(int itemSize, int nItems, boolean wait);
+  protected int overrun(int itemSize, int nItems) {
+    return overrun(itemSize, nItems, true);
+  }
 
   protected InStream() {}
   protected byte[] b;

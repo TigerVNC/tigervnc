@@ -89,12 +89,8 @@ public class TLSInStream extends InStream {
   {
     int n = -1;
 
-    //n = in.check(1, 1, wait);
-    //if (n == 0)
-    //  return 0;
-
     try {
-      n = manager.read(buf, bufPtr, len);
+      n = manager.read(ByteBuffer.wrap(buf, bufPtr, len), len);
     } catch (java.io.IOException e) {
       e.printStackTrace();
     }

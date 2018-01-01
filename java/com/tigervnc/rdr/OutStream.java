@@ -23,6 +23,8 @@
 
 package com.tigervnc.rdr;
 
+import java.nio.*;
+
 import com.tigervnc.network.*;
 
 abstract public class OutStream {
@@ -116,12 +118,22 @@ abstract public class OutStream {
     }
   }
 
+  public void writeBytes(ByteBuffer data, int length) {
+    ByteBuffer dataPtr = data;
+    int dataEnd = dataPtr.position() + length;
+    while (dataPtr.position() < dataEnd) {
+      int n = check(1, dataEnd - dataPtr.position());
+      dataPtr.get(b, ptr, n);
+      ptr += n;
+    }
+  }
+
   // copyBytes() efficiently transfers data between streams
 
   public void copyBytes(InStream is, int length) {
     while (length > 0) {
       int n = check(1, length);
-      is.readBytes(b, ptr, n);
+      is.readBytes(ByteBuffer.wrap(b, ptr, n), n);
       ptr += n;
       length -= n;
     }

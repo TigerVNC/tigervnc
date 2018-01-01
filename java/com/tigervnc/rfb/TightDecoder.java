@@ -211,7 +211,7 @@ public class TightDecoder extends Decoder {
 
         assert(buflen >= 3);
 
-        pf.bufferFromRGB(pix, bufptr, 1);
+        pf.bufferFromRGB(pix.duplicate(), bufptr, 1);
         pb.fillRect(pf, r, pix.array());
       } else {
         assert(buflen >= pf.bpp/8);
@@ -296,7 +296,7 @@ public class TightDecoder extends Decoder {
 
     // Determine if the data should be decompressed or just copied.
     int rowSize, dataSize;
-    byte[] netbuf;
+    ByteBuffer netbuf;
 
     if (palSize != 0) {
       if (palSize <= 2)
@@ -330,14 +330,14 @@ public class TightDecoder extends Decoder {
       zis[streamId].setUnderlying(ms, len);
 
       // Allocate netbuf and read in data
-      netbuf = new byte[dataSize];
+      netbuf = ByteBuffer.allocate(dataSize);
 
-      zis[streamId].readBytes(netbuf, 0, dataSize);
+      zis[streamId].readBytes(netbuf, dataSize);
 
       zis[streamId].removeUnderlying();
       ms = null;
 
-      bufptr = ByteBuffer.wrap(netbuf);
+      bufptr = (ByteBuffer)netbuf.flip();
       buflen = dataSize;
     }
 
@@ -426,7 +426,7 @@ public class TightDecoder extends Decoder {
         pix.put(c, (byte)(inbuf.get(y*rectWidth*3+c) + prevRow[c]));
         thisRow[c] = pix.get(c);
       }
-      pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride), pix, 1);
+      pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride), pix, 1);
 
       /* Remaining pixels of a row */
       for (x = 1; x < rectWidth; x++) {
@@ -440,7 +440,7 @@ public class TightDecoder extends Decoder {
           pix.put(c, (byte)(inbuf.get((y*rectWidth+x)*3+c) + est[c]));
           thisRow[x*3+c] = pix.get(c);
         }
-        pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride+x), pix, 1);
+        pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride+x), pix, 1);
       }
 
       System.arraycopy(thisRow, 0, prevRow, 0, prevRow.length);
@@ -463,13 +463,13 @@ public class TightDecoder extends Decoder {
 
     for (y = 0; y < rectHeight; y++) {
       /* First pixel in a row */
-      pf.rgbFromBuffer(pix, (ByteBuffer)inbuf.position(y*rectWidth), 1);
+      pf.rgbFromBuffer(pix.duplicate(), (ByteBuffer)inbuf.position(y*rectWidth), 1);
       for (c = 0; c < 3; c++)
         pix.put(c, (byte)(pix.get(c) + prevRow[c]));
 
       System.arraycopy(pix.array(), 0, thisRow, 0, pix.capacity());
 
-      pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride), pix, 1);
+      pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride), pix, 1);
 
       /* Remaining pixels of a row */
       for (x = 1; x < rectWidth; x++) {
@@ -482,13 +482,13 @@ public class TightDecoder extends Decoder {
           }
         }
 
-        pf.rgbFromBuffer(pix, (ByteBuffer)inbuf.position(y*rectWidth+x), 1);
+        pf.rgbFromBuffer(pix.duplicate(), (ByteBuffer)inbuf.position(y*rectWidth+x), 1);
         for (c = 0; c < 3; c++)
           pix.put(c, (byte)(pix.get(c) + est[c]));
 
         System.arraycopy(pix.array(), 0, thisRow, x*3, pix.capacity());
 
-        pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride+x), pix, 1);
+        pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride+x), pix, 1);
       }
 
       System.arraycopy(thisRow, 0, prevRow, 0, prevRow.length);

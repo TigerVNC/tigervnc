@@ -18,6 +18,8 @@
 
 package com.tigervnc.rfb;
 
+import java.nio.*;
+
 import com.tigervnc.rdr.*;
 import com.tigervnc.vncviewer.*;
 
@@ -33,8 +35,8 @@ public class CSecurityVncAuth extends CSecurity {
     OutStream os = cc.getOutStream();
 
     // Read the challenge & obtain the user's password
-    byte[] challenge = new byte[vncAuthChallengeSize];
-    is.readBytes(challenge, 0, vncAuthChallengeSize);
+    ByteBuffer challenge = ByteBuffer.allocate(vncAuthChallengeSize);
+    is.readBytes(challenge, vncAuthChallengeSize);
     StringBuffer passwd = new StringBuffer();
     upg.getUserPasswd(cc.isSecure(), null, passwd);
 
@@ -51,10 +53,10 @@ public class CSecurityVncAuth extends CSecurity {
       key[i] = i<pwdLen ? utf8str[i] : 0;
     DesCipher des = new DesCipher(key);
     for (int j = 0; j < vncAuthChallengeSize; j += 8)
-      des.encrypt(challenge,j,challenge,j);
+      des.encrypt(challenge.array(),j,challenge.array(),j);
 
     // Return the response to the server
-    os.writeBytes(challenge, 0, vncAuthChallengeSize);
+    os.writeBytes(challenge.array(), 0, vncAuthChallengeSize);
     os.flush();
     return true;
   }

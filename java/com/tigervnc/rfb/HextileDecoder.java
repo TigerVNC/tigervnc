@@ -51,8 +51,8 @@ public class HextileDecoder extends Decoder {
 
         t.br.x = Math.min(r.br.x, t.tl.x + 16);
 
-        tileType = is.readU8() & 0xff;
-        os.writeU32(tileType);
+        tileType = is.readU8();
+        os.writeU8(tileType);
 
         if ((tileType & hextileRaw) != 0) {
           os.copyBytes(is, t.area() * bytesPerPixel);
@@ -68,8 +68,8 @@ public class HextileDecoder extends Decoder {
         if ((tileType & hextileAnySubrects) != 0) {
           int nSubrects;
 
-          nSubrects = is.readU8() & 0xff;
-          os.writeU32(nSubrects);
+          nSubrects = is.readU8();
+          os.writeU8(nSubrects);
 
           if ((tileType & hextileSubrectsColoured) != 0)
             os.copyBytes(is, nSubrects * (bytesPerPixel + 2));
@@ -115,29 +115,24 @@ public class HextileDecoder extends Decoder {
   }
 
   private static ByteBuffer READ_PIXEL(InStream is, PixelFormat pf) {
-    ByteBuffer b = ByteBuffer.allocate(4);
     switch (pf.bpp) {
     case 8:
-      b.putInt(is.readOpaque8());
-      return ByteBuffer.allocate(1).put(b.get(3));
+      return ByteBuffer.allocate(1).put(0, (byte)is.readOpaque8());
     case 16:
-      b.putInt(is.readOpaque16());
-      return ByteBuffer.allocate(2).put(b.array(), 2, 2);
-    case 32:
+      return ByteBuffer.allocate(2).putShort(0, (short)is.readOpaque16());
     default:
-      b.putInt(is.readOpaque32());
-      return b;
+      return ByteBuffer.allocate(4).putInt(0, is.readOpaque32());
     }
   }
 
   private void HEXTILE_DECODE(Rect r, InStream is,
-                                     PixelFormat pf,
-                                     ModifiablePixelBuffer pb)
+                              PixelFormat pf,
+                              ModifiablePixelBuffer pb)
   {
     Rect t = new Rect();
     ByteBuffer bg = ByteBuffer.allocate(pf.bpp/8);
     ByteBuffer fg = ByteBuffer.allocate(pf.bpp/8);
-    ByteBuffer buf = ByteBuffer.allocate(16 * 16 * 4);
+    ByteBuffer buf = ByteBuffer.allocate(16 * 16 * pf.bpp/8);
 
     for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
@@ -147,10 +142,10 @@ public class HextileDecoder extends Decoder {
 
         t.br.x = Math.min(r.br.x, t.tl.x + 16);
 
-        int tileType = is.readU32();
+        int tileType = is.readU8();
 
         if ((tileType & hextileRaw) != 0) {
-          is.readBytes(buf, t.area() * (pf.bpp/8));
+          is.readBytes(buf.duplicate(), t.area() * (pf.bpp/8));
           pb.imageRect(pf, t, buf.array());
           continue;
         }
@@ -166,7 +161,7 @@ public class HextileDecoder extends Decoder {
           fg = READ_PIXEL(is, pf);
 
         if ((tileType & hextileAnySubrects) != 0) {
-          int nSubrects = is.readU32();
+          int nSubrects = is.readU8();
 
           for (int i = 0; i < nSubrects; i++) {
 
@@ -180,13 +175,16 @@ public class HextileDecoder extends Decoder {
             int y = (xy & 15);
             int w = ((wh >> 4) & 15) + 1;
             int h = (wh & 15) + 1;
+            if (x + w > 16 || y + h > 16) {
+              throw new Exception("HEXTILE_DECODE: Hextile out of bounds");
+            }
             ptr = buf.duplicate();
             ptr.position((y * t.width() + x)*pf.bpp/8);
             int rowAdd = (t.width() - w)*pf.bpp/8;
             while (h-- > 0) {
               len = w;
               while (len-- > 0) ptr.put(fg.array());
-              ptr.position(ptr.position()+Math.min(rowAdd,ptr.remaining()));
+              if (h > 0) ptr.position(ptr.position()+rowAdd);
             }
           }
         }

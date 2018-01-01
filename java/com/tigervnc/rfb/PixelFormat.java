@@ -204,11 +204,13 @@ public class PixelFormat {
     return 0;
   }
 
+  // This method should be invoked with duplicates of dst/src Buffers
   public void bufferFromRGB(ByteBuffer dst, ByteBuffer src, int pixels)
   {
     bufferFromRGB(dst, src, pixels, pixels, 1);
   }
 
+  // This method should be invoked with duplicates of dst/src Buffers
   public void bufferFromRGB(ByteBuffer dst, ByteBuffer src,
                             int w, int stride, int h)
   {
@@ -269,11 +271,13 @@ public class PixelFormat {
     }
   }
 
+  // This method should be invoked with duplicates of dst/src Buffers
   public void rgbFromBuffer(ByteBuffer dst, ByteBuffer src, int pixels)
   {
     rgbFromBuffer(dst, src, pixels, pixels, 1);
   }
 
+  // This method should be invoked with duplicates of dst/src Buffers
   public void rgbFromBuffer(ByteBuffer dst, ByteBuffer src,
                             int w, int stride, int h)
   {
@@ -326,7 +330,7 @@ public class PixelFormat {
           dst.put(b);
           src.position(src.position() + bpp/8);
         }
-        src.reset().position(src.position() + srcPad).mark();
+        src.position(src.position() + srcPad);
       }
     }
   }
@@ -345,6 +349,7 @@ public class PixelFormat {
     }
   }
 
+  // This method should be invoked with a duplicates of buffer
   public int pixelFromBuffer(ByteBuffer buffer)
   {
     int p;

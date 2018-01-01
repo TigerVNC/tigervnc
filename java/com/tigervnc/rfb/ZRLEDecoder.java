@@ -26,24 +26,24 @@ import com.tigervnc.rdr.*;
 
 public class ZRLEDecoder extends Decoder {
 
-  private static int readOpaque24A(InStream is)
+  private static ByteBuffer readOpaque24A(InStream is)
   {
     is.check(3);
     ByteBuffer r = ByteBuffer.allocate(4);
     r.put(0, (byte)is.readU8());
     r.put(1, (byte)is.readU8());
     r.put(2, (byte)is.readU8());
-    return ((ByteBuffer)r.rewind()).getInt();
+    return r;
   }
 
-  private static int readOpaque24B(InStream is)
+  private static ByteBuffer readOpaque24B(InStream is)
   {
     is.check(3);
     ByteBuffer r = ByteBuffer.allocate(4);
-    r.put(2, (byte)is.readU8());
     r.put(1, (byte)is.readU8());
-    r.put(0, (byte)is.readU8());
-    return ((ByteBuffer)r.rewind()).getInt();
+    r.put(2, (byte)is.readU8());
+    r.put(3, (byte)is.readU8());
+    return r;
   }
 
   public ZRLEDecoder() {
@@ -67,97 +67,98 @@ public class ZRLEDecoder extends Decoder {
   {
     MemInStream is = new MemInStream((byte[])buffer, 0, buflen);
     PixelFormat pf = cp.pf();
-    ByteBuffer buf = ByteBuffer.allocate(64 * 64 * 4);
     switch (pf.bpp) {
-    case 8:  zrleDecode8(r, is, zis, buf, pf, pb); break;
-    case 16: zrleDecode16(r, is, zis, buf, pf, pb); break;
+    case 8:  zrleDecode8(r, is, zis, pf, pb); break;
+    case 16: zrleDecode16(r, is, zis, pf, pb); break;
     case 32:
-        int maxPixel = pf.pixelFromRGB(-1, -1, -1, pf.getColorModel());
-        boolean fitsInLS3Bytes = maxPixel < (1<<24);
-        boolean fitsInMS3Bytes = (maxPixel & 0xff) == 0;
+      {
+        if (pf.depth <= 24) {
+          int maxPixel = pf.pixelFromRGB(-1, -1, -1, pf.getColorModel());
+          boolean fitsInLS3Bytes = maxPixel < (1<<24);
+          boolean fitsInMS3Bytes = (maxPixel & 0xff) == 0;
 
-        if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
-            (fitsInMS3Bytes && pf.isBigEndian()))
-        {
-          zrleDecode24A(r, is, zis, buf, pf, pb);
+          if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
+              (fitsInMS3Bytes && pf.isBigEndian()))
+          {
+            zrleDecode24A(r, is, zis, pf, pb);
+            break;
+          }
+
+          if ((fitsInLS3Bytes && pf.isBigEndian()) ||
+              (fitsInMS3Bytes && pf.isLittleEndian()))
+          {
+            zrleDecode24B(r, is, zis, pf, pb);
+            break;
+          }
         }
-        else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
-                (fitsInMS3Bytes && pf.isLittleEndian()))
-        {
-          zrleDecode24B(r, is, zis, buf, pf, pb);
-        }
-        else
-        {
-          zrleDecode32(r, is, zis, buf, pf, pb);
-        }
+
+        zrleDecode32(r, is, zis, pf, pb);
         break;
+      }
     }
   }
 
   private static enum PIXEL_T { U8, U16, U24A, U24B, U32 };
 
   private static ByteBuffer READ_PIXEL(InStream is, PIXEL_T type) {
-    ByteBuffer b = ByteBuffer.allocate(4);
     switch (type) {
     case U8:
-      b.putInt(is.readOpaque8());
-      return (ByteBuffer)ByteBuffer.allocate(1).put(b.get(3)).rewind();
+      return ByteBuffer.allocate(1).put(0, (byte)is.readOpaque8());
     case U16:
-      b.putInt(is.readOpaque16());
-      return (ByteBuffer)ByteBuffer.allocate(2).put(b.array(), 2, 2).rewind();
+      return ByteBuffer.allocate(2).putShort(0, (short)is.readOpaque16());
     case U24A:
-      return (ByteBuffer)b.putInt(readOpaque24A(is)).rewind();
+      return readOpaque24A(is);
     case U24B:
-      return (ByteBuffer)b.putInt(readOpaque24B(is)).rewind();
-    case U32:
+      return readOpaque24B(is);
     default:
-      return (ByteBuffer)b.putInt(is.readOpaque32()).rewind();
+      return ByteBuffer.allocate(4).putInt(0, is.readOpaque32());
     }
   }
 
   private void zrleDecode8(Rect r, InStream is,
-                           ZlibInStream zis, ByteBuffer buf,
+                           ZlibInStream zis,
                            PixelFormat pf, ModifiablePixelBuffer pb)
   {
-    ZRLE_DECODE(r, is, zis, buf, pf, pb, PIXEL_T.U8);
+    ZRLE_DECODE(r, is, zis, pf, pb, PIXEL_T.U8);
   }
 
   private void zrleDecode16(Rect r, InStream is,
-                            ZlibInStream zis, ByteBuffer buf,
+                            ZlibInStream zis,
                             PixelFormat pf, ModifiablePixelBuffer pb)
   {
-    ZRLE_DECODE(r, is, zis, buf, pf, pb, PIXEL_T.U16);
+    ZRLE_DECODE(r, is, zis, pf, pb, PIXEL_T.U16);
   }
 
   private void zrleDecode24A(Rect r, InStream is,
-                             ZlibInStream zis, ByteBuffer buf,
+                             ZlibInStream zis,
                              PixelFormat pf, ModifiablePixelBuffer pb)
   {
-    ZRLE_DECODE(r, is, zis, buf, pf, pb, PIXEL_T.U24A);
+    ZRLE_DECODE(r, is, zis, pf, pb, PIXEL_T.U24A);
   }
 
   private void zrleDecode24B(Rect r, InStream is,
-                             ZlibInStream zis, ByteBuffer buf,
+                             ZlibInStream zis,
                              PixelFormat pf, ModifiablePixelBuffer pb)
   {
-    ZRLE_DECODE(r, is, zis, buf, pf, pb, PIXEL_T.U24B);
+    ZRLE_DECODE(r, is, zis, pf, pb, PIXEL_T.U24B);
   }
 
   private void zrleDecode32(Rect r, InStream is,
-                            ZlibInStream zis, ByteBuffer buf,
+                            ZlibInStream zis,
                             PixelFormat pf, ModifiablePixelBuffer pb)
   {
-    ZRLE_DECODE(r, is, zis, buf, pf, pb, PIXEL_T.U32);
+    ZRLE_DECODE(r, is, zis, pf, pb, PIXEL_T.U32);
   }
 
   private void ZRLE_DECODE(Rect r, InStream is,
-                           ZlibInStream zis, ByteBuffer buf,
+                           ZlibInStream zis,
                            PixelFormat pf, ModifiablePixelBuffer pb,
                            PIXEL_T pix_t)
   {
     int length = is.readU32();
     zis.setUnderlying(is, length);
     Rect t = new Rect();
+    ByteBuffer buf = ByteBuffer.allocate(64 * 64 * pf.bpp/8);
 
     for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 64) {
 
@@ -175,11 +176,12 @@ public class ZRLEDecoder extends Decoder {
         for (int i = 0; i < palSize; i++) {
           palette.put(READ_PIXEL(zis, pix_t));
         }
+        palette.flip();
 
         if (palSize == 1) {
-          ByteBuffer pix = 
-            ByteBuffer.allocate(pf.bpp/8).put(palette.array(), 0, pf.bpp/8);
-          pb.fillRect(pf, t, pix.array());
+          byte[] pix = new byte[pf.bpp/8];
+          palette.get(pix);
+          pb.fillRect(pf, t, pix);
           continue;
         }
 
@@ -191,12 +193,12 @@ public class ZRLEDecoder extends Decoder {
             case U24A:
             case U24B:
               ByteBuffer ptr = buf.duplicate();
-              for (int iptr=0; iptr < t.area(); iptr++) {
+              for (int i=0; i < t.area(); i++) {
                 ptr.put(READ_PIXEL(zis, pix_t));
               }
               break;
             default:
-              zis.readBytes(buf, t.area() * (pf.bpp/8));
+              zis.readBytes(buf.duplicate(), t.area() * (pf.bpp/8));
             }
 
           } else {
@@ -241,12 +243,12 @@ public class ZRLEDecoder extends Decoder {
                 len += b;
               } while (b == 255);
 
-              if (end - ptr.position() < len*(pf.bpp/8)) {
+              if (end - ptr.position() < len*pf.bpp/8) {
                 System.err.println("ZRLE decode error\n");
                 throw new Exception("ZRLE decode error");
               }
 
-              while (len-- > 0) ptr.put(pix);
+              while (len-- > 0) ptr.put(pix.array());
 
             }
           } else {
@@ -265,7 +267,7 @@ public class ZRLEDecoder extends Decoder {
                   len += b;
                 } while (b == 255);
 
-                if (end - ptr.position() < len*(pf.bpp/8)) {
+                if (end - ptr.position() < len*pf.bpp/8) {
                   System.err.println("ZRLE decode error\n");
                   throw new Exception("ZRLE decode error");
                 }
@@ -273,8 +275,10 @@ public class ZRLEDecoder extends Decoder {
 
               index &= 127;
 
-              while (len-- > 0) ptr.put(palette.array(), index*pf.bpp/8, pf.bpp/8);
+              ByteBuffer pix = ByteBuffer.allocate(pf.bpp/8);
+              pix.put(palette.array(), index*pf.bpp/8, pf.bpp/8);
 
+              while (len-- > 0) ptr.put(pix.array());
             }
           }
         }
