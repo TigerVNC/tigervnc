@@ -28,13 +28,12 @@ Incomplete and generally out of date copyright list:
         Copyright (C) 2005-2006 Sun Microsystems, Inc.
         Copyright (C) 2006 OCCAM Financial Technology
         Copyright (C) 2000-2008 Constantin Kaplinsky
-        Copyright (C) 2004-2009 Peter Astrand for Cendio AB
+        Copyright (C) 2004-2017 Peter Astrand for Cendio AB
         Copyright (C) 2010 Antoine Martin
         Copyright (C) 2010 m-privacy GmbH
         Copyright (C) 2009-2011 D. R. Commander
         Copyright (C) 2009-2011 Pierre Ossman for Cendio AB
         Copyright (C) 2004, 2009-2011 Red Hat, Inc.
-        Copyright (C) 2017 Peter Astrand for Cendio AB
         Copyright (C) 2009-2017 TigerVNC Team
         All Rights Reserved.
 
