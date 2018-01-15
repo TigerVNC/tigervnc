@@ -315,8 +315,13 @@ void ShmImage::get(Window wnd, int x, int y)
 void ShmImage::get(Window wnd, int x, int y, int w, int h,
                    int dst_x, int dst_y)
 {
-  // FIXME: Use SHM for this as well?
-  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, dst_x, dst_y);
+  // XShmGetImage is faster, but can only retrieve the entire
+  // window. Use it for large reads.
+  if (x == dst_x && y == dst_y && (long)w * h > (long)xim->width * xim->height / 4) {
+    XShmGetImage(dpy, wnd, xim, 0, 0, AllPlanes);
+  } else {
+    XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, dst_x, dst_y);
+  }
 }
 
 //
