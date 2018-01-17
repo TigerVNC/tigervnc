@@ -979,11 +979,9 @@ class OptionsDialog extends Dialog {
     sendClipboardCheckbox = new JCheckBox("Send clipboard to server");
     JLabel menuKeyLabel = new JLabel("Menu key");
     String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()];
-    //String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()+1];
     //menuKeys[0] = "None";
     for (int i = 0; i < MenuKey.getMenuKeySymbolCount(); i++)
       menuKeys[i] = MenuKey.getKeyText(MenuKey.getMenuKeySymbols()[i]);
-      //menuKeys[i+1] = MenuKey.getKeyText(MenuKey.getMenuKeySymbols()[i]);
     menuKeyChoice = new JComboBox(menuKeys);
 
     inputPanel.add(viewOnlyCheckbox,

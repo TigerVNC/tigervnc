@@ -79,7 +79,7 @@ public class MenuKey
     if (VncViewer.os.startsWith("mac os x"))
       return sym.name.replace("_", " ");
     else
-      return KeyEvent.getKeyText(sym.keycode);
+      return KeyEvent.getKeyText(sym.javacode);
   }
 
   public static String getMenuKeyValueStr() {
@@ -106,7 +106,7 @@ public class MenuKey
   }
 
   static int getMenuKeyCode() {
-    int menuKeyCode = VK_F8;
+    int menuKeyCode = 0x42;
 
     @SuppressWarnings({"static"})
     String menuKeyStr =

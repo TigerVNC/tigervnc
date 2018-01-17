@@ -616,6 +616,12 @@ class Viewport extends JPanel implements ActionListener {
              this, ID.ALT,
              menuAltKey ? EnumSet.of(MENU.TOGGLE, MENU.VALUE) : EnumSet.of(MENU.TOGGLE));
 
+    if (menuKeySym != 0) {
+      String sendMenuKey = String.format("Send %s", menuKey.getValueStr());
+      menu_add(contextMenu, sendMenuKey, menuKeyJava,
+               this, ID.MENUKEY, EnumSet.noneOf(MENU.class));
+    }
+
     menu_add(contextMenu, "Send Ctrl-Alt-Del", KeyEvent.VK_D,
              this, ID.CTRLALTDEL, EnumSet.of(MENU.DIVIDER));
 
