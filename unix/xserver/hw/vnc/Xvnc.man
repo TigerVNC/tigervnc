@@ -83,6 +83,14 @@ protocol used in VNC is called RFB - "remote framebuffer").  The default is
 5900 plus the display number.
 .
 .TP
+.B \-UseIPv4
+Use IPv4 for incoming and outgoing connections. Default is on.
+.
+.TP
+.B \-UseIPv6
+Use IPv6 for incoming and outgoing connections. Default is on.
+.
+.TP
 .B \-rfbwait \fItime\fP, \-ClientWaitTimeMillis \fItime\fP
 Time in milliseconds to wait for a viewer which is blocking the server. This is
 necessary because the server is single-threaded and sometimes blocks until the
@@ -136,6 +144,10 @@ Accept pointer press and release events from clients. Default is on.
 Accept key press and release events from clients. Default is on.
 .
 .TP
+.B \-AcceptSetDesktopSize
+Accept requests to resize the size of the desktop. Default is on.
+.
+.TP
 .B \-DisconnectClients
 Disconnect existing clients if an incoming connection is non-shared. Default is
 on. If \fBDisconnectClients\fP is false, then a new non-shared connection will
@@ -156,6 +168,13 @@ setting. Default is off.
 .B \-Protocol3.3
 Always use protocol version 3.3 for backwards compatibility with badly-behaved
 clients. Default is off.
+.
+.TP
+.B \-FrameRate \fIfps\fP
+The maximum number of updates per second sent to each client. If the screen
+updates any faster then those changes will be aggregated and sent in a single
+update to the client. Note that this only controls the maximum rate and a
+client may get a lower rate when resources are limited. Default is \fB60\fP.
 .
 .TP
 .B \-CompareFB \fImode\fP
@@ -209,6 +228,11 @@ security types (X509None, X509Vnc, etc.).
 .B \-X509Key \fIpath\fP
 Private key counter part to the certificate given in \fBX509Cert\fP. Must
 also be in PEM format.
+.
+.TP
+.B \-GnuTLSPriority \fIpriority\fP
+GnuTLS priority string that controls the TLS session’s handshake algorithms.
+See the GnuTLS manual for possible values. Default is \fBNORMAL\fP.
 .
 .TP
 .B \-BlacklistThreshold \fIcount\fP

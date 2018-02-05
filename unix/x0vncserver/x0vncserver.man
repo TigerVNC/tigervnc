@@ -58,6 +58,14 @@ viewers (the protocol used in VNC is called RFB - "remote framebuffer").
 The default port is 5900.
 .
 .TP
+.B \-UseIPv4
+Use IPv4 for incoming and outgoing connections. Default is on.
+.
+.TP
+.B \-UseIPv6
+Use IPv6 for incoming and outgoing connections. Default is on.
+.
+.TP
 .B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
 Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP,
 \fBstdout\fP or \fBsyslog\fP, and \fIlevel\fP is between 0 and 100, 100 meaning
@@ -118,6 +126,11 @@ security types (X509None, X509Vnc, etc.).
 .B \-X509Key \fIpath\fP
 Private key counter part to the certificate given in \fBX509Cert\fP. Must
 also be in PEM format.
+.
+.TP
+.B \-GnuTLSPriority \fIpriority\fP
+GnuTLS priority string that controls the TLS session’s handshake algorithms.
+See the GnuTLS manual for possible values. Default is \fBNORMAL\fP.
 .
 .TP
 .B \-BlacklistThreshold \fIcount\fP
@@ -211,6 +224,13 @@ screen.  Default is 35.
 .B \-PollingCycle \fImilliseconds\fP
 Milliseconds per one polling cycle.  Actual interval may be dynamically
 adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
+.
+.TP
+.B \-FrameRate \fIfps\fP
+The maximum number of updates per second sent to each client. If the screen
+updates any faster then those changes will be aggregated and sent in a single
+update to the client. Note that this only controls the maximum rate and a
+client may get a lower rate when resources are limited. Default is \fB60\fP.
 .
 .TP
 .B \-CompareFB \fImode\fP
