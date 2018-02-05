@@ -84,11 +84,10 @@ protocol used in VNC is called RFB - "remote framebuffer").  The default is
 .
 .TP
 .B \-rfbwait \fItime\fP, \-ClientWaitTimeMillis \fItime\fP
-
-Time in milliseconds to wait for a viewer which is blocking Xvnc.  This is
-necessary because Xvnc is single-threaded and sometimes blocks until the viewer
-has finished sending or receiving a message - note that this does not mean an
-update will be aborted after this time.  Default is 20000 (20 seconds).
+Time in milliseconds to wait for a viewer which is blocking the server. This is
+necessary because the server is single-threaded and sometimes blocks until the
+viewer has finished sending or receiving a message - note that this does not
+mean an update will be aborted after this time.  Default is 20000 (20 seconds).
 .
 .TP
 .B \-httpd \fIdirectory\fP
@@ -105,13 +104,14 @@ the display number.
 .
 .TP
 .B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
-Specifies the file containing the password used to authenticate viewers.  The
-file is accessed each time a connection comes in, so it can be changed on the
-fly via \fBvncpasswd\fP(1).
+Password file for VNC authentication.  There is no default, you should
+specify the password file explicitly.  Password file should be created with
+the \fBvncpasswd\fP(1) utility.  The file is accessed each time a connection
+comes in, so it can be changed on the fly.
 .
 .TP
 .B \-AcceptCutText
-Accept clipboard updates from clients (default is on).
+Accept clipboard updates from clients. Default is on.
 .
 .TP
 .B \-MaxCutText \fIbytes\fP
@@ -120,7 +120,7 @@ Default is \fB262144\fP.
 .
 .TP
 .B \-SendCutText
-Send clipboard changes to clients (default is on).
+Send clipboard changes to clients. Default is on.
 .
 .TP
 .B \-SendPrimary
@@ -129,41 +129,42 @@ clipboard selection. Default is on.
 .
 .TP
 .B \-AcceptPointerEvents
-Accept pointer press and release events from clients (default is on).
+Accept pointer press and release events from clients. Default is on.
 .
 .TP
 .B \-AcceptKeyEvents
-Accept key press and release events from clients (default is on).
+Accept key press and release events from clients. Default is on.
 .
 .TP
 .B \-DisconnectClients
-Disconnect existing clients if an incoming connection is non-shared (default is
-on). If \fBDisconnectClients\fP is false, then a new non-shared connection will
+Disconnect existing clients if an incoming connection is non-shared. Default is
+on. If \fBDisconnectClients\fP is false, then a new non-shared connection will
 be refused while there is a client active.  When combined with
 \fBNeverShared\fP this means only one client is allowed at a time.
 .
 .TP
 .B \-NeverShared
 Never treat incoming connections as shared, regardless of the client-specified
-setting (default is off).
+setting. Default is off.
 .
 .TP
 .B \-AlwaysShared
 Always treat incoming connections as shared, regardless of the client-specified
-setting (default is off).
+setting. Default is off.
 .
 .TP
 .B \-Protocol3.3
 Always use protocol version 3.3 for backwards compatibility with badly-behaved
-clients (default is off).
+clients. Default is off.
 .
 .TP
-.B \-CompareFB
-Perform pixel comparison on framebuffer to reduce unnecessary updates (default
-is on).
+.B \-CompareFB \fImode\fP
+Perform pixel comparison on framebuffer to reduce unnecessary updates. Can
+be either \fB0\fP (off), \fB1\fP (always) or \fB2\fP (auto). Default is
+\fB2\fP.
 .
 .TP
-.B \-ZlibLevel
+.B \-ZlibLevel \fIlevel\fP
 Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
 Acceptable values are between 0 and 9.  Default is to use the standard
 compression level provided by the \fBzlib\fP(3) compression library.
@@ -221,8 +222,8 @@ cannot re-attempt a connection until the timeout expires.  Default is 10.
 .
 .TP
 .B \-IdleTimeout \fIseconds\fP
-The number of seconds after which an idle VNC connection will be dropped
-(default is 0, which means that idle connections will never be dropped).
+The number of seconds after which an idle VNC connection will be dropped.
+Default is 0, which means that idle connections will never be dropped.
 .
 .TP
 .B \-MaxDisconnectionTime \fIseconds\fP
@@ -241,13 +242,10 @@ Terminate after \fIN\fP seconds of user inactivity.  Default is 0.
 .TP
 .B \-QueryConnect
 Prompts the user of the desktop to explicitly accept or reject incoming
-connections.  This is most useful when using the vnc.so module or
-\fBx0vncserver\fP(1) program to access an existing X desktop via VNC.
+connections. Default is off.
 
 The \fBvncconfig\fP(1) program must be running on the desktop in order for
-QueryConnect to be supported by the \fBvnc.so\fP(1) module or
-\fBXvnc\fP(1) program.  The \fBx0vncserver\fP(1) program does not require
-\fBvncconfig\fP(1) to be running.
+QueryConnect to be supported.
 .
 .TP
 .B \-QueryConnectTimeout \fIseconds\fP
