@@ -74,8 +74,10 @@ typedef struct _vncHooksScreenRec {
   CompositeRectsProcPtr        CompositeRects;
   TrapezoidsProcPtr            Trapezoids;
   TrianglesProcPtr             Triangles;
+#if PICTURE_SCREEN_VERSION >= 2
   TriStripProcPtr              TriStrip;
   TriFanProcPtr                TriFan;
+#endif
 #endif
 #ifdef RANDR
   RRSetConfigProcPtr           rrSetConfig;
@@ -163,12 +165,14 @@ static void vncHooksTrapezoids(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 static void vncHooksTriangles(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
             PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
             int ntri, xTriangle * tris);
+#if PICTURE_SCREEN_VERSION >= 2
 static void vncHooksTriStrip(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
             PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
             int npoint, xPointFixed * points);
 static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
             PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
             int npoint, xPointFixed * points);
+#endif
 #endif
 #ifdef RANDR
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
@@ -329,8 +333,10 @@ int vncHooksInit(int scrIdx)
     wrap(vncHooksScreen, ps, CompositeRects, vncHooksCompositeRects);
     wrap(vncHooksScreen, ps, Trapezoids, vncHooksTrapezoids);
     wrap(vncHooksScreen, ps, Triangles, vncHooksTriangles);
+#if PICTURE_SCREEN_VERSION >= 2
     wrap(vncHooksScreen, ps, TriStrip, vncHooksTriStrip);
     wrap(vncHooksScreen, ps, TriFan, vncHooksTriFan);
+#endif
   }
 #endif
 #ifdef RANDR
@@ -489,8 +495,10 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
     unwrap(vncHooksScreen, ps, CompositeRects);
     unwrap(vncHooksScreen, ps, Trapezoids);
     unwrap(vncHooksScreen, ps, Triangles);
+#if PICTURE_SCREEN_VERSION >= 2
     unwrap(vncHooksScreen, ps, TriStrip);
     unwrap(vncHooksScreen, ps, TriFan);
+#endif
   }
 #endif
 #ifdef RANDR
@@ -1067,6 +1075,8 @@ static void vncHooksTriangles(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
   RENDER_EPILOGUE(Triangles);
 }
 
+#if PICTURE_SCREEN_VERSION >= 2
+
 static void vncHooksTriStrip(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
             PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
             int npoint, xPointFixed * points)
@@ -1184,6 +1194,8 @@ static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   RENDER_EPILOGUE(TriFan);
 }
+
+#endif /* PICTURE_SCREEN_VERSION */
 
 #endif /* RENDER */
 
