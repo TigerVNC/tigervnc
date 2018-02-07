@@ -21,9 +21,9 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>
@@ -56,8 +56,7 @@ StringParameter Security::GnuTLSPriority("GnuTLSPriority",
 #endif
 
 Security::Security()
-{
-}
+= default;
 
 Security::Security(StringParameter &secTypes)
 {
@@ -69,7 +68,7 @@ Security::Security(StringParameter &secTypes)
   delete [] secTypesStr;
 }
 
-const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
+const std::list<rdr::U8> Security::GetEnabledSecTypes()
 {
   list<rdr::U8> result;
   list<U32>::iterator i;
@@ -93,7 +92,7 @@ const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
   return result;
 }
 
-const std::list<rdr::U32> Security::GetEnabledExtSecTypes(void)
+const std::list<rdr::U32> Security::GetEnabledExtSecTypes()
 {
   list<rdr::U32> result;
   list<U32>::iterator i;
@@ -129,7 +128,7 @@ bool Security::IsSupported(U32 secType)
   return false;
 }
 
-char *Security::ToString(void)
+char *Security::ToString()
 {
   list<U32>::iterator i;
   static char out[128]; /* Should be enough */

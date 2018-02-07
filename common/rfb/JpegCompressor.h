@@ -41,7 +41,7 @@ namespace rfb {
   public:
 
     JpegCompressor(int bufferLen = 128*1024);
-    virtual ~JpegCompressor();
+    ~JpegCompressor() override;
 
     void compress(const rdr::U8 *, int, const Rect&, const PixelFormat&, int, int);
 
@@ -49,7 +49,7 @@ namespace rfb {
 
     inline rdr::U8* getstart() { return start; }
 
-    inline int overrun(int itemSize, int nItems) {
+    inline int overrun(int itemSize, int nItems) override {
       return MemOutStream::overrun(itemSize, nItems);
     }
 

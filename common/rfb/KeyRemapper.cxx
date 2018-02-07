@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <os/Mutex.h>
 
@@ -71,7 +71,7 @@ void KeyRemapper::setMapping(const char* m) {
 rdr::U32 KeyRemapper::remapKey(rdr::U32 key) const {
   os::AutoMutex a(mutex);
 
-  std::map<rdr::U32,rdr::U32>::const_iterator i = mapping.find(key);
+  auto i = mapping.find(key);
   if (i != mapping.end())
     return i->second;
   return key;
@@ -84,7 +84,7 @@ public:
     : StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
     setParam(value);
   }
-  bool setParam(const char* v) {
+  bool setParam(const char* v) override {
     KeyRemapper::defInstance.setMapping(v);
     return StringParameter::setParam(v);
   }

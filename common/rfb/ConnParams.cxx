@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <stdio.h>
+#include <cstdio>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/Exception.h>
@@ -39,11 +39,11 @@ ConnParams::ConnParams()
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(subsampleUndefined), name_(0), verStrPos(0),
+    subsampling(subsampleUndefined), name_(nullptr), verStrPos(0),
     ledState_(ledUnknown)
 {
   setName("");
-  cursor_ = new Cursor(0, 0, Point(), NULL);
+  cursor_ = new Cursor(0, 0, Point(), nullptr);
 }
 
 ConnParams::~ConnParams()

@@ -30,7 +30,7 @@
 #include <rfb/UpdateTracker.h>
 #include <rfb/Configuration.h>
 #include <network/Socket.h>
-#include <time.h>
+#include <ctime>
 
 namespace rfb {
 
@@ -43,36 +43,36 @@ namespace rfb {
     //   to satisfy HTTP GET requests.
     HTTPServer();
 
-    virtual ~HTTPServer();
+    ~HTTPServer() override;
 
     // SocketServer interface
 
     // addSocket()
     //   This causes the server to perform HTTP protocol on the
     //   supplied socket.
-    virtual void addSocket(network::Socket* sock, bool outgoing=false);
+    void addSocket(network::Socket* sock, bool outgoing=false) override;
 
     // removeSocket()
     //   Could clean up socket-specific resources here.
-    virtual void removeSocket(network::Socket* sock);
+    void removeSocket(network::Socket* sock) override;
 
     // getSockets() gets a list of sockets.  This can be used to generate an
     // fd_set for calling select().
-    virtual void getSockets(std::list<network::Socket*>* sockets);
+    void getSockets(std::list<network::Socket*>* sockets) override;
 
     // processSocketReadEvent()
     //   The platform-specific side of the server implementation calls
     //   this method whenever data arrives on one of the active
     //   network sockets.
-    virtual void processSocketReadEvent(network::Socket* sock);
+    void processSocketReadEvent(network::Socket* sock) override;
 
     // processSocketWriteEvent()
     //   Similar to processSocketReadEvent(), but called when it is
     //   possible to write more data to a socket.
-    virtual void processSocketWriteEvent(network::Socket* sock);
+    void processSocketWriteEvent(network::Socket* sock) override;
 
     // Check for socket timeouts
-    virtual int checkTimeouts();
+    int checkTimeouts() override;
 
 
     // -=- File interface

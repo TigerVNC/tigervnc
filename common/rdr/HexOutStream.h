@@ -27,17 +27,17 @@ namespace rdr {
   public:
 
     HexOutStream(OutStream& os, int buflen=0);
-    virtual ~HexOutStream();
+    ~HexOutStream() override;
 
-    void flush();
-    int length();
+    void flush() override;
+    int length() override;
 
     static char intToHex(int i);
     static char* binToHexStr(const char* data, int length);
 
   private:
     void writeBuffer();
-    int overrun(int itemSize, int nItems);
+    int overrun(int itemSize, int nItems) override;
 
     OutStream& out_stream;
 

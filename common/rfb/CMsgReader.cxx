@@ -17,8 +17,8 @@
  * USA.
  */
 
-#include <assert.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
 
 #include <rfb/msgTypes.h>
 #include <rdr/InStream.h>
@@ -36,8 +36,7 @@ CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
 }
 
 CMsgReader::~CMsgReader()
-{
-}
+= default;
 
 void CMsgReader::readServerInit()
 {

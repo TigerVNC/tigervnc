@@ -59,7 +59,7 @@ namespace rfb {
   class Configuration {
   public:
     // - Create a new Configuration object
-    Configuration(const char* name_) : name(strDup(name_)), head(0), _next(0) {}
+    Configuration(const char* name_) : name(strDup(name_)), head(nullptr), _next(nullptr) {}
 
     // - Return the buffer containing the Configuration's name
     const char* getName() const { return name.buf; }
@@ -190,12 +190,12 @@ namespace rfb {
   public:
     AliasParameter(const char* name_, const char* desc_,VoidParameter* param_,
 		   ConfigurationObject co=ConfGlobal);
-    virtual bool setParam(const char* value);
-    virtual bool setParam();
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
-    virtual bool isBool() const;
-    virtual void setImmutable();
+    bool setParam(const char* value) override;
+    bool setParam() override;
+    char* getDefaultStr() const override;
+    char* getValueStr() const override;
+    bool isBool() const override;
+    void setImmutable() override;
   private:
     VoidParameter* param;
   };
@@ -204,12 +204,12 @@ namespace rfb {
   public:
     BoolParameter(const char* name_, const char* desc_, bool v,
 		  ConfigurationObject co=ConfGlobal);
-    virtual bool setParam(const char* value);
-    virtual bool setParam();
+    bool setParam(const char* value) override;
+    bool setParam() override;
     virtual void setParam(bool b);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
-    virtual bool isBool() const;
+    char* getDefaultStr() const override;
+    char* getValueStr() const override;
+    bool isBool() const override;
     operator bool() const;
   protected:
     bool value;
@@ -222,10 +222,10 @@ namespace rfb {
                  int minValue=INT_MIN, int maxValue=INT_MAX,
 		 ConfigurationObject co=ConfGlobal);
     using VoidParameter::setParam;
-    virtual bool setParam(const char* value);
+    bool setParam(const char* value) override;
     virtual bool setParam(int v);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    char* getDefaultStr() const override;
+    char* getValueStr() const override;
     operator int() const;
   protected:
     int value;
@@ -239,10 +239,10 @@ namespace rfb {
     // be Null, and so neither can the default value!
     StringParameter(const char* name_, const char* desc_, const char* v,
 		    ConfigurationObject co=ConfGlobal);
-    virtual ~StringParameter();
-    virtual bool setParam(const char* value);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    ~StringParameter() override;
+    bool setParam(const char* value) override;
+    char* getDefaultStr() const override;
+    char* getValueStr() const override;
     void setDefaultStr(const char* v);
     operator const char*() const;
 
@@ -259,11 +259,11 @@ namespace rfb {
     BinaryParameter(const char* name_, const char* desc_, const void* v, int l,
 		    ConfigurationObject co=ConfGlobal);
     using VoidParameter::setParam;
-    virtual ~BinaryParameter();
-    virtual bool setParam(const char* value);
+    ~BinaryParameter() override;
+    bool setParam(const char* value) override;
     virtual void setParam(const void* v, int l);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    char* getDefaultStr() const override;
+    char* getValueStr() const override;
 
     // getData() will return length zero if there is no data
     // NB: data may be set to zero, OR set to a zero-length buffer

@@ -31,7 +31,7 @@ namespace rfb {
 
   class InputHandler {
   public:
-    virtual ~InputHandler() {}
+    virtual ~InputHandler() = default;
     virtual void keyEvent(rdr::U32 __unused_attr keysym,
                           rdr::U32 __unused_attr keycode,
                           bool __unused_attr down) { }

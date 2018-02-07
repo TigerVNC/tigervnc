@@ -18,7 +18,7 @@
  * USA.
  */
 
-#include <errno.h>
+#include <cerrno>
 
 #include <rdr/Exception.h>
 #include <rdr/FileInStream.h>
@@ -33,14 +33,14 @@ FileInStream::FileInStream(const char *fileName)
   ptr = end = b;
 }
 
-FileInStream::~FileInStream(void) {
+FileInStream::~FileInStream() {
   if (file) {
     fclose(file);
-    file = NULL;
+    file = nullptr;
   }
 }
 
-void FileInStream::reset(void) {
+void FileInStream::reset() {
   if (!file)
     throw Exception("File is not open");
   if (fseek(file, 0, SEEK_SET) != 0)

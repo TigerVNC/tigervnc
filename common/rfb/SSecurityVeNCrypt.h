@@ -37,11 +37,11 @@ namespace rfb {
   class SSecurityVeNCrypt : public SSecurity {
   public:
     SSecurityVeNCrypt(SecurityServer *sec);
-    ~SSecurityVeNCrypt();
-    virtual bool processMsg(SConnection* sc);// { return true; }
-    virtual int getType() const { return chosenType; }
-    virtual const char* getUserName() const;
-    virtual SConnection::AccessRights getAccessRights() const;
+    ~SSecurityVeNCrypt() override;
+    bool processMsg(SConnection* sc) override;// { return true; }
+    int getType() const override { return chosenType; }
+    const char* getUserName() const override;
+    SConnection::AccessRights getAccessRights() const override;
 
   protected:
     SSecurity *ssecurity;

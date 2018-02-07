@@ -47,10 +47,10 @@ namespace rfb {
   struct Point {
     Point() : x(0), y(0) {}
     Point(int x_, int y_) : x(x_), y(y_) {}
-    inline Point negate() const {return Point(-x, -y);}
+    inline Point negate() const {return {-x, -y};}
     inline bool equals(const Point &p) const {return x==p.x && y==p.y;}
-    inline Point translate(const Point &p) const {return Point(x+p.x, y+p.y);}
-    inline Point subtract(const Point &p) const {return Point(x-p.x, y-p.y);}
+    inline Point translate(const Point &p) const {return {x+p.x, y+p.y};}
+    inline Point subtract(const Point &p) const {return {x-p.x, y-p.y};}
     int x, y;
   };
 
@@ -66,7 +66,7 @@ namespace rfb {
   // an offset specified in a Point structure.
 
   struct Rect {
-    Rect() {}
+    Rect() = default;
     Rect(Point tl_, Point br_) : tl(tl_), br(br_) {}
     Rect(int x1, int y1, int x2, int y2) : tl(x1, y1), br(x2, y2) {}
     inline void setXYWH(int x, int y, int w, int h) {
@@ -91,7 +91,7 @@ namespace rfb {
       return result;
     }
     inline Rect translate(const Point &p) const {
-      return Rect(tl.translate(p), br.translate(p));
+      return {tl.translate(p), br.translate(p)};
     }
     inline bool equals(const Rect &r) const {return r.tl.equals(tl) && r.br.equals(br);}
     inline bool is_empty() const {return (tl.x >= br.x) || (tl.y >= br.y);}
@@ -103,7 +103,7 @@ namespace rfb {
       return tl.x < r.br.x && tl.y < r.br.y && br.x > r.tl.x && br.y > r.tl.y;
     }
     inline int area() const {return is_empty() ? 0 : (br.x-tl.x)*(br.y-tl.y);}
-    inline Point dimensions() const {return Point(width(), height());}
+    inline Point dimensions() const {return {width(), height()};}
     inline int width() const {return br.x-tl.x;}
     inline int height() const {return br.y-tl.y;}
     inline bool contains(const Point &p) const {

@@ -24,11 +24,11 @@
 #include <rfb/PixelFormat.h>
 #include <rfb/ConnParams.h>
 
-#include <stdio.h>
+#include <cstdio>
 extern "C" {
 #include <jpeglib.h>
 }
-#include <setjmp.h>
+#include <csetjmp>
 
 using namespace rfb;
 
@@ -54,7 +54,7 @@ struct JPEG_ERROR_MGR {
 static void
 JpegErrorExit(j_common_ptr cinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)cinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)cinfo->err;
 
   (*cinfo->err->output_message)(cinfo);
   longjmp(err->jmpBuffer, 1);
@@ -63,7 +63,7 @@ JpegErrorExit(j_common_ptr cinfo)
 static void
 JpegOutputMessage(j_common_ptr cinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)cinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)cinfo->err;
 
   (*cinfo->err->format_message)(cinfo, err->lastError);
 }
@@ -80,7 +80,7 @@ struct JPEG_DEST_MGR {
 static void
 JpegInitDestination(j_compress_ptr cinfo)
 {
-  JPEG_DEST_MGR *dest = (JPEG_DEST_MGR *)cinfo->dest;
+  auto *dest = (JPEG_DEST_MGR *)cinfo->dest;
   JpegCompressor *jc = dest->instance;
 
   jc->clear();
@@ -91,7 +91,7 @@ JpegInitDestination(j_compress_ptr cinfo)
 static boolean
 JpegEmptyOutputBuffer(j_compress_ptr cinfo)
 {
-  JPEG_DEST_MGR *dest = (JPEG_DEST_MGR *)cinfo->dest;
+  auto *dest = (JPEG_DEST_MGR *)cinfo->dest;
   JpegCompressor *jc = dest->instance;
 
   jc->setptr(jc->getend());
@@ -105,7 +105,7 @@ JpegEmptyOutputBuffer(j_compress_ptr cinfo)
 static void
 JpegTermDestination(j_compress_ptr cinfo)
 {
-  JPEG_DEST_MGR *dest = (JPEG_DEST_MGR *)cinfo->dest;
+  auto *dest = (JPEG_DEST_MGR *)cinfo->dest;
   JpegCompressor *jc = dest->instance;
 
   jc->setptr(dest->pub.next_output_byte);
@@ -136,7 +136,7 @@ JpegCompressor::JpegCompressor(int bufferLen) : MemOutStream(bufferLen)
   cinfo->dest = (struct jpeg_destination_mgr *)dest;
 }
 
-JpegCompressor::~JpegCompressor(void)
+JpegCompressor::~JpegCompressor()
 {
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
@@ -157,9 +157,9 @@ void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
   int w = r.width();
   int h = r.height();
   int pixelsize;
-  rdr::U8 *srcBuf = NULL;
+  rdr::U8 *srcBuf = nullptr;
   bool srcBufIsTemp = false;
-  JSAMPROW *rowPointer = NULL;
+  JSAMPROW *rowPointer = nullptr;
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error

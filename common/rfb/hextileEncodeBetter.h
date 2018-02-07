@@ -26,7 +26,7 @@
 #include <rfb/hextileConstants.h>
 #include <rfb/Palette.h>
 
-#include <assert.h>
+#include <cassert>
 
 namespace rfb {
 
@@ -116,7 +116,7 @@ class HEXTILE_TILE {
 };
 
 HEXTILE_TILE::HEXTILE_TILE()
-  : m_tile(NULL), m_width(0), m_height(0),
+  : m_tile(nullptr), m_width(0), m_height(0),
     m_size(0), m_flags(0), m_background(0), m_foreground(0),
     m_numSubrects(0)
 {

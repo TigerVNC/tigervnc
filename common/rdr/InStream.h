@@ -25,7 +25,7 @@
 #define __RDR_INSTREAM_H__
 
 #include <rdr/types.h>
-#include <string.h> // for memcpy
+#include <cstring> // for memcpy
 
 namespace rdr {
 
@@ -33,7 +33,7 @@ namespace rdr {
 
   public:
 
-    virtual ~InStream() {}
+    virtual ~InStream() = default;
 
     // check() ensures there is buffer data for at least one item of size
     // itemSize bytes.  Returns the number of items in the buffer (up to a
@@ -93,7 +93,7 @@ namespace rdr {
     // readBytes() reads an exact number of bytes.
 
     void readBytes(void* data, int length) {
-      U8* dataPtr = (U8*)data;
+      auto* dataPtr = (U8*)data;
       U8* dataEnd = dataPtr + length;
       while (dataPtr < dataEnd) {
         int n = check(1, dataEnd - dataPtr);
@@ -137,7 +137,7 @@ namespace rdr {
 
   protected:
 
-    InStream() {}
+    InStream() = default;
     const U8* ptr;
     const U8* end;
   };

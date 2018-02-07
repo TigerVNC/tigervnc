@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <rdr/OutStream.h>
 #include <rfb/ConnParams.h>
@@ -30,8 +30,7 @@ RawDecoder::RawDecoder() : Decoder(DecoderPlain)
 }
 
 RawDecoder::~RawDecoder()
-{
-}
+= default;
 
 void RawDecoder::readRect(const Rect& r, rdr::InStream* is,
                           const ConnParams& cp, rdr::OutStream* os)

@@ -21,9 +21,9 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstring>
 #include <sys/time.h>
 
 #include <rfb/LogWriter.h>
@@ -62,18 +62,18 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), offscreen(NULL), overlay(NULL),
+  : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
     firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false),
     keyboardGrabbed(false), mouseGrabbed(false),
     statsLastFrame(0), statsLastPixels(0), statsLastPosition(0),
-    statsGraph(NULL)
+    statsGraph(nullptr)
 {
   Fl_Group* group;
 
   // Dummy group to prevent FLTK from moving our widgets around
   group = new Fl_Group(0, 0, w, h);
-  group->resizable(NULL);
+  group->resizable(nullptr);
   resizable(group);
 
   viewport = new Viewport(w, h, serverPF, cc);
@@ -580,7 +580,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   overlay = new Surface(image);
   overlayAlpha = 0;
-  gettimeofday(&overlayStart, NULL);
+  gettimeofday(&overlayStart, nullptr);
 
   delete image;
 
@@ -607,7 +607,7 @@ void DesktopWindow::updateOverlay(void *data)
     Fl::add_timeout(1.0/60, updateOverlay, self);
   } else {
     delete self->overlay;
-    self->overlay = NULL;
+    self->overlay = nullptr;
   }
 
   self->damage(FL_DAMAGE_USER1);
@@ -674,7 +674,7 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
   // to differ, and as a result we do not see all the FL_FOCUS events we
   // need. Fortunately we can grab them here...
 
-  DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
+  auto *dw = dynamic_cast<DesktopWindow*>(win);
 
   if (dw) {
     switch (event) {
@@ -871,7 +871,7 @@ void DesktopWindow::ungrabPointer()
 
 void DesktopWindow::handleGrab(void *data)
 {
-  DesktopWindow *self = (DesktopWindow*)data;
+  auto *self = (DesktopWindow*)data;
 
   assert(self);
 
@@ -951,7 +951,7 @@ void DesktopWindow::handleDesktopSize()
 
 void DesktopWindow::handleResizeTimeout(void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   assert(self);
 
@@ -1177,7 +1177,7 @@ void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
 
 void DesktopWindow::handleOptions(void *data)
 {
-  DesktopWindow *self = (DesktopWindow*)data;
+  auto *self = (DesktopWindow*)data;
 
   if (self->fullscreen_active() && fullscreenSystemKeys)
     self->grabKeyboard();
@@ -1192,7 +1192,7 @@ void DesktopWindow::handleOptions(void *data)
 
 void DesktopWindow::handleFullscreenTimeout(void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   assert(self);
 
@@ -1226,14 +1226,14 @@ void DesktopWindow::scrollTo(int x, int y)
 
 void DesktopWindow::handleScroll(Fl_Widget *widget, void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   self->scrollTo(self->hscroll->value(), self->vscroll->value());
 }
 
 void DesktopWindow::handleEdgeScroll(void *data)
 {
-  DesktopWindow *self = (DesktopWindow *)data;
+  auto *self = (DesktopWindow *)data;
 
   int mx, my;
   int dx, dy;
@@ -1283,7 +1283,7 @@ void DesktopWindow::handleEdgeScroll(void *data)
 
 void DesktopWindow::handleStatsTimeout(void *data)
 {
-  DesktopWindow *self = (DesktopWindow*)data;
+  auto *self = (DesktopWindow*)data;
 
   const size_t statsCount = sizeof(self->stats)/sizeof(self->stats[0]);
 
@@ -1316,7 +1316,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
   self->stats[statsCount-1].pps = (pixels - self->statsLastPixels) * 1000 / elapsed;
   self->stats[statsCount-1].bps = (pos - self->statsLastPosition) * 1000 / elapsed;
 
-  gettimeofday(&self->statsLastTime, NULL);
+  gettimeofday(&self->statsLastTime, nullptr);
   self->statsLastFrame = frame;
   self->statsLastPixels = pixels;
   self->statsLastPosition = pos;

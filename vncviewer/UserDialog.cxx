@@ -20,9 +20,9 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstring>
 
 #include <FL/Fl.H>
 #include <FL/fl_ask.H>
@@ -63,12 +63,10 @@ static void button_cb(Fl_Widget *widget, void *val) {
 }
 
 UserDialog::UserDialog()
-{
-}
+= default;
 
 UserDialog::~UserDialog()
-{
-}
+= default;
 
 void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 {
@@ -103,7 +101,7 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
   int y;
 
   win = new Fl_Window(410, 145, _("VNC authentication"));
-  win->callback(button_cb,(void *)0);
+  win->callback(button_cb,(void *)nullptr);
 
   banner = new Fl_Box(0, 0, win->w(), 20);
   banner->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE|FL_ALIGN_IMAGE_NEXT_TO_TEXT);
@@ -147,7 +145,7 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 
   button = new Fl_Return_Button(310, y, 90, 25, fl_ok);
   button->align(FL_ALIGN_INSIDE|FL_ALIGN_WRAP);
-  button->callback(button_cb, (void*)0);
+  button->callback(button_cb, (void*)nullptr);
 
   button = new Fl_Button(210, y, 90, 25, fl_cancel);
   button->align(FL_ALIGN_INSIDE|FL_ALIGN_WRAP);
@@ -184,7 +182,7 @@ bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
   char buffer[1024];
 
   if (fltk_escape(text, buffer, sizeof(buffer)) >= sizeof(buffer))
-    return 0;
+    return false;
 
   // FLTK doesn't give us a flexible choice of the icon, so we ignore those
   // bits for now.
@@ -193,9 +191,9 @@ bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
 
   switch (flags & 0xf) {
   case M_OKCANCEL:
-    return fl_choice("%s", NULL, fl_ok, fl_cancel, buffer) == 1;
+    return fl_choice("%s", nullptr, fl_ok, fl_cancel, buffer) == 1;
   case M_YESNO:
-    return fl_choice("%s", NULL, fl_yes, fl_no, buffer) == 1;
+    return fl_choice("%s", nullptr, fl_yes, fl_no, buffer) == 1;
   case M_OK:
   default:
     if (((flags & 0xf0) == M_ICONERROR) ||

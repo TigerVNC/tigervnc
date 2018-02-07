@@ -124,7 +124,7 @@ EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
 {
   StatsVector::iterator iter;
 
-  encoders.resize(encoderClassMax, NULL);
+  encoders.resize(encoderClassMax, nullptr);
   activeEncoders.resize(encoderTypeMax, encoderRaw);
 
   encoders[encoderRaw] = new RawEncoder(conn);
@@ -261,7 +261,7 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
       nRects = ui.copied.numRects();
       nRects += computeNumRects(ui.changed);
 
-      if (renderedCursor != NULL)
+      if (renderedCursor != nullptr)
         nRects += 1;
     }
 
@@ -280,7 +280,7 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
 
     writeRects(changed, pb);
 
-    if (renderedCursor != NULL) {
+    if (renderedCursor != nullptr) {
       Rect renderedCursorRect;
 
       renderedCursorRect = renderedCursor->getEffectiveRect();
@@ -514,7 +514,7 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
     for (dx = rect.tl.x; dx < rect.br.x; dx += SolidSearchBlock) {
       // We define it like this to guarantee alignment
       rdr::U32 _buffer;
-      rdr::U8* colourValue = (rdr::U8*)&_buffer;
+      auto* colourValue = (rdr::U8*)&_buffer;
 
       dw = SolidSearchBlock;
       if (dx + dw > rect.br.x)
@@ -554,7 +554,7 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
                                   pb->getPF(), colourValue);
         } else {
           rdr::U32 _buffer2;
-          rdr::U8* converted = (rdr::U8*)&_buffer2;
+          auto* converted = (rdr::U8*)&_buffer2;
 
           conn->cp.pf().bufferFromBuffer(converted, pb->getPF(),
                                          colourValue, 1);

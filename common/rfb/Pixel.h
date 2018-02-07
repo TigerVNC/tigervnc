@@ -21,6 +21,6 @@
 #include <rdr/types.h>
 
 namespace rfb {
-  typedef rdr::U32 Pixel; // must be big enough to hold any pixel value
+  using Pixel = rdr::U32; // must be big enough to hold any pixel value
 }
 #endif

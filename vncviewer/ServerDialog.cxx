@@ -103,8 +103,7 @@ ServerDialog::ServerDialog()
 
 
 ServerDialog::~ServerDialog()
-{
-}
+= default;
 
 
 void ServerDialog::run(const char* servername, char *newservername)
@@ -116,7 +115,7 @@ void ServerDialog::run(const char* servername, char *newservername)
   dialog.show();
   while (dialog.shown()) Fl::wait();
 
-  if (dialog.serverName->value() == NULL) {
+  if (dialog.serverName->value() == nullptr) {
     newservername[0] = '\0';
     return;
   }
@@ -133,8 +132,8 @@ void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
 
 void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 {
-  ServerDialog *dialog = (ServerDialog*)data;
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
+  auto *dialog = (ServerDialog*)data;
+  auto* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
 						      0, _("Select a TigerVNC configuration file"));
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
@@ -145,7 +144,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
     Fl::wait();
   
   // Did the user hit cancel?
-  if (file_chooser->value() == NULL) {
+  if (file_chooser->value() == nullptr) {
     delete(file_chooser);
     return;
   }
@@ -164,25 +163,25 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 
 void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 { 
-  ServerDialog *dialog = (ServerDialog*)data;
+  auto *dialog = (ServerDialog*)data;
   const char* servername = strdup(dialog->serverName->value());
   char* filename;
 
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
+  auto* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
 						      2, _("Save the TigerVNC configuration to file"));
   
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
   file_chooser->show();
   
-  while(1) {
+  while(true) {
     
     // Block until user picks something.
     while(file_chooser->shown())
       Fl::wait();
     
     // Did the user hit cancel?
-    if (file_chooser->value() == NULL) {
+    if (file_chooser->value() == nullptr) {
       delete(file_chooser);
       return;
     }
@@ -195,7 +194,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
       // The file already exists.
       fclose(f);
       int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"), 
-				       _("Overwrite"), _("No"), NULL, filename);
+				       _("Overwrite"), _("No"), nullptr, filename);
       if (overwrite_choice == 1) {
 
 	// If the user doesn't want to overwrite:
@@ -225,22 +224,22 @@ void ServerDialog::handleAbout(Fl_Widget *widget, void *data)
 
 void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
 {
-  ServerDialog *dialog = (ServerDialog*)data;
+  auto *dialog = (ServerDialog*)data;
 
-  dialog->serverName->value(NULL);
+  dialog->serverName->value(nullptr);
   dialog->hide();
 }
 
 
 void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
 {
-  ServerDialog *dialog = (ServerDialog*)data;
+  auto *dialog = (ServerDialog*)data;
   const char* servername = strdup(dialog->serverName->value());
 
   dialog->hide();
   
   try {
-    saveViewerParameters(NULL, servername);
+    saveViewerParameters(nullptr, servername);
   } catch (rfb::Exception& e) {
     fl_alert("%s", e.str());
   }

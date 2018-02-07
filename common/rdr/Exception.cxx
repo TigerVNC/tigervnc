@@ -22,8 +22,8 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdarg>
 
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
@@ -33,7 +33,7 @@
 #include <windows.h>
 #endif
 
-#include <string.h>
+#include <cstring>
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>

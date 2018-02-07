@@ -43,17 +43,17 @@ namespace rdr {
       end = start + len;
     }
 
-    virtual ~MemInStream() {
+    ~MemInStream() override {
       if (deleteWhenDone)
         delete [] start;
     }
 
-    int pos() { return ptr - start; }
+    int pos() override { return ptr - start; }
     void reposition(int pos) { ptr = start + pos; }
 
   private:
 
-    int overrun(int itemSize, int nItems, bool wait) { throw EndOfStream(); }
+    int overrun(int itemSize, int nItems, bool wait) override { throw EndOfStream(); }
     const U8* start;
     bool deleteWhenDone;
   };

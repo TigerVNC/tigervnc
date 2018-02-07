@@ -20,9 +20,9 @@
 
 // -=- Configuration.cxx
 
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
+#include <cstdlib>
+#include <cctype>
+#include <cstring>
 
 #include <os/Mutex.h>
 
@@ -42,9 +42,9 @@ static LogWriter vlog("Config");
 
 
 // -=- The Global/server/viewer Configuration objects
-Configuration* Configuration::global_ = 0;
-Configuration* Configuration::server_ = 0;
-Configuration* Configuration::viewer_ = 0;
+Configuration* Configuration::global_ = nullptr;
+Configuration* Configuration::server_ = nullptr;
+Configuration* Configuration::viewer_ = nullptr;
 
 Configuration* Configuration::global() {
   if (!global_)
@@ -121,7 +121,7 @@ VoidParameter* Configuration::get(const char* param)
       return current;
     current = current->_next;
   }
-  return _next ? _next->get(param) : 0;
+  return _next ? _next->get(param) : nullptr;
 }
 
 void Configuration::list(int width, int nameWidth) {
@@ -190,7 +190,7 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_,
 			     ConfigurationObject co)
   : immutable(false), name(name_), description(desc_)
 {
-  Configuration *conf = NULL;
+  Configuration *conf = nullptr;
 
   switch (co) {
   case ConfGlobal: conf = Configuration::global();
@@ -253,7 +253,7 @@ bool AliasParameter::setParam() {
 
 char*
 AliasParameter::getDefaultStr() const {
-  return 0;
+  return nullptr;
 }
 
 char* AliasParameter::getValueStr() const {
@@ -284,10 +284,10 @@ BoolParameter::setParam(const char* v) {
 
   if (*v == 0 || strcasecmp(v, "1") == 0 || strcasecmp(v, "on") == 0
       || strcasecmp(v, "true") == 0 || strcasecmp(v, "yes") == 0)
-    value = 1;
+    value = true;
   else if (strcasecmp(v, "0") == 0 || strcasecmp(v, "off") == 0
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
-    value = 0;
+    value = false;
   else {
     vlog.error("Bool parameter %s: invalid value '%s'", getName(), v);
     return false;
@@ -357,13 +357,13 @@ IntParameter::setParam(int v) {
 
 char*
 IntParameter::getDefaultStr() const {
-  char* result = new char[16];
+  auto* result = new char[16];
   sprintf(result, "%d", def_value);
   return result;
 }
 
 char* IntParameter::getValueStr() const {
-  char* result = new char[16];
+  auto* result = new char[16];
   sprintf(result, "%d", value);
   return result;
 }
@@ -402,7 +402,7 @@ bool StringParameter::setParam(const char* v) {
   vlog.debug("set %s(String) to %s", getName(), v);
   CharArray oldValue(value);
   value = strDup(v);
-  return value != 0;
+  return value != nullptr;
 }
 
 char* StringParameter::getDefaultStr() const {
@@ -422,7 +422,7 @@ StringParameter::operator const char *() const {
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
 				 const void* v, int l, ConfigurationObject co)
-: VoidParameter(name_, desc_, co), value(0), length(0), def_value((char*)v), def_length(l) {
+: VoidParameter(name_, desc_, co), value(nullptr), length(0), def_value((char*)v), def_length(l) {
   if (l) {
     value = new char[l];
     length = l;
@@ -445,7 +445,7 @@ void BinaryParameter::setParam(const void* v, int len) {
   LOCK_CONFIG;
   if (immutable) return; 
   vlog.debug("set %s(Binary)", getName());
-  delete [] value; value = 0;
+  delete [] value; value = nullptr;
   if (len) {
     value = new char[len];
     length = len;

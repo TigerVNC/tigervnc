@@ -54,9 +54,9 @@ namespace rfb {
 
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.
-    Rect getRect() const { return Rect(0, 0, width_, height_); }
+    Rect getRect() const { return {0, 0, width_, height_}; }
     Rect getRect(const Point& pos) const {
-      return Rect(pos, pos.translate(Point(width_, height_)));
+      return {pos, pos.translate(Point(width_, height_))};
     }
 
     ///////////////////////////////////////////////
@@ -98,7 +98,7 @@ namespace rfb {
   class ModifiablePixelBuffer : public PixelBuffer {
   public:
     ModifiablePixelBuffer(const PixelFormat& pf, int width, int height);
-    virtual ~ModifiablePixelBuffer();
+    ~ModifiablePixelBuffer() override;
 
     ///////////////////////////////////////////////
     // Access to pixel data
@@ -145,12 +145,12 @@ namespace rfb {
   public:
     FullFramePixelBuffer(const PixelFormat& pf, int width, int height,
                          rdr::U8* data_, int stride);
-    virtual ~FullFramePixelBuffer();
+    ~FullFramePixelBuffer() override;
 
   public:
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const;
-    virtual rdr::U8* getBufferRW(const Rect& r, int* stride);
-    virtual void commitBufferRW(const Rect& r);
+    const rdr::U8* getBuffer(const Rect& r, int* stride) const override;
+    rdr::U8* getBufferRW(const Rect& r, int* stride) override;
+    void commitBufferRW(const Rect& r) override;
 
   protected:
     FullFramePixelBuffer();
@@ -166,7 +166,7 @@ namespace rfb {
   public:
     ManagedPixelBuffer();
     ManagedPixelBuffer(const PixelFormat& pf, int width, int height);
-    virtual ~ManagedPixelBuffer();
+    ~ManagedPixelBuffer() override;
 
     // Manage the pixel buffer layout
     virtual void setPF(const PixelFormat &pf);

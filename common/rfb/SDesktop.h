@@ -78,7 +78,7 @@ namespace rfb {
     // the relevant RFB protocol messages from clients.
     // See InputHandler for method signatures.
   protected:
-    virtual ~SDesktop() {}
+    ~SDesktop() override = default;
   };
 
   // -=- SStaticDesktop
@@ -87,30 +87,30 @@ namespace rfb {
   //     a plain black desktop of the specified format.
   class SStaticDesktop : public SDesktop {
   public:
-    SStaticDesktop(const Point& size) : server(0), buffer(0) {
+    SStaticDesktop(const Point& size) : server(nullptr), buffer(nullptr) {
       PixelFormat pf;
       const rdr::U8 black[4] = { 0, 0, 0, 0 };
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
       if (buffer)
         buffer->fillRect(buffer->getRect(), black);
     }
-    SStaticDesktop(const Point& size, const PixelFormat& pf) : buffer(0) {
+    SStaticDesktop(const Point& size, const PixelFormat& pf) : buffer(nullptr) {
       const rdr::U8 black[4] = { 0, 0, 0, 0 };
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
       if (buffer)
         buffer->fillRect(buffer->getRect(), black);
     }
-    virtual ~SStaticDesktop() {
+    ~SStaticDesktop() override {
       if (buffer) delete buffer;
     }
 
-    virtual void start(VNCServer* vs) {
+    void start(VNCServer* vs) override {
       server = vs;
       server->setPixelBuffer(buffer);
     }
-    virtual void stop() {
-      server->setPixelBuffer(0);
-      server = 0;
+    void stop() override {
+      server->setPixelBuffer(nullptr);
+      server = nullptr;
     }
 
   protected:

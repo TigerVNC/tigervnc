@@ -109,7 +109,7 @@ namespace rfb {
       unsigned long long pixels;
       unsigned long long equivalent;
     };
-    typedef std::vector< std::vector<struct EncoderStats> > StatsVector;
+    using StatsVector = std::vector<std::vector<struct EncoderStats> >;
 
     unsigned updates;
     EncoderStats copyStats;
@@ -119,8 +119,8 @@ namespace rfb {
 
     class OffsetPixelBuffer : public FullFramePixelBuffer {
     public:
-      OffsetPixelBuffer() {}
-      virtual ~OffsetPixelBuffer() {}
+      OffsetPixelBuffer() = default;
+      ~OffsetPixelBuffer() override = default;
 
       void update(const PixelFormat& pf, int width, int height,
                   const rdr::U8* data_, int stride);

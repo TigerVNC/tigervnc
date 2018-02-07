@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <rdr/ZlibInStream.h>
 #include <rdr/Exception.h>
@@ -27,8 +27,8 @@ using namespace rdr;
 enum { DEFAULT_BUF_SIZE = 16384 };
 
 ZlibInStream::ZlibInStream(int bufSize_)
-  : underlying(0), bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0),
-    zs(NULL), bytesIn(0)
+  : underlying(nullptr), bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0),
+    zs(nullptr), bytesIn(0)
 {
   ptr = end = start = new U8[bufSize];
   init();
@@ -61,7 +61,7 @@ void ZlibInStream::removeUnderlying()
     decompress(true);
     end = start; // throw away any data
   }
-  underlying = 0;
+  underlying = nullptr;
 }
 
 void ZlibInStream::reset()
@@ -72,7 +72,7 @@ void ZlibInStream::reset()
 
 void ZlibInStream::init()
 {
-  assert(zs == NULL);
+  assert(zs == nullptr);
 
   zs = new z_stream;
   zs->zalloc    = Z_NULL;
@@ -82,18 +82,18 @@ void ZlibInStream::init()
   zs->avail_in  = 0;
   if (inflateInit(zs) != Z_OK) {
     delete zs;
-    zs = NULL;
+    zs = nullptr;
     throw Exception("ZlibInStream: inflateInit failed");
   }
 }
 
 void ZlibInStream::deinit()
 {
-  assert(zs != NULL);
+  assert(zs != nullptr);
   removeUnderlying();
   inflateEnd(zs);
   delete zs;
-  zs = NULL;
+  zs = nullptr;
 }
 
 int ZlibInStream::overrun(int itemSize, int nItems, bool wait)

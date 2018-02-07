@@ -30,8 +30,7 @@ IntParameter Blacklist::initialTimeout("BlacklistTimeout",
                               10);
 
 
-Blacklist::Blacklist() {
-}
+Blacklist::Blacklist() = default;
 
 Blacklist::~Blacklist() {
   // Free the map keys
@@ -42,7 +41,7 @@ Blacklist::~Blacklist() {
 }
 
 bool Blacklist::isBlackmarked(const char* name) {
-  BlacklistMap::iterator i = blm.find(name);
+  auto i = blm.find(name);
   if (i == blm.end()) {
     // Entry is not already black-marked.
     // Create the entry unmarked, unblocked,
@@ -58,7 +57,7 @@ bool Blacklist::isBlackmarked(const char* name) {
   // Entry exists - has it reached the threshold yet?
   if ((*i).second.marks >= threshold) {
     // Yes - entry is blocked - has the timeout expired?        
-    time_t now = time(0);
+    time_t now = time(nullptr);
     if (now >= (*i).second.blockUntil) {
       // Timeout has expired.  Reset timeout and allow
       // a re-try.
@@ -78,7 +77,7 @@ bool Blacklist::isBlackmarked(const char* name) {
 }
 
 void Blacklist::clearBlackmark(const char* name) {
-  BlacklistMap::iterator i = blm.find(name);
+  auto i = blm.find(name);
   if (i != blm.end()) {
     strFree((char*)(*i).first);
     blm.erase(i);

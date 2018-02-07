@@ -60,7 +60,7 @@ namespace rfb {
 
     Rect getEffectiveRect() const { return buffer.getRect(offset); }
 
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const;
+    const rdr::U8* getBuffer(const Rect& r, int* stride) const override;
 
     void update(PixelBuffer* framebuffer, Cursor* cursor, const Point& pos);
 

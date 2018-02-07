@@ -23,12 +23,10 @@
 using namespace rfb;
 
 SMsgHandler::SMsgHandler()
-{
-}
+= default;
 
 SMsgHandler::~SMsgHandler()
-{
-}
+= default;
 
 void SMsgHandler::clientInit(bool shared)
 {

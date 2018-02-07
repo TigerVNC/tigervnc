@@ -29,8 +29,8 @@
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rfb/Exception.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 extern "C" {
 #include <rfb/d3des.h>
 }
@@ -48,7 +48,7 @@ VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 ("Password", "Obfuscated binary encoding of the password which clients must supply to "
  "access the server", &SSecurityVncAuth::vncAuthPasswdFile);
 
-SSecurityVncAuth::SSecurityVncAuth(void)
+SSecurityVncAuth::SSecurityVncAuth()
   : sentChallenge(false), responsePos(0), pg(&vncAuthPasswd), accessRights(0)
 {
 }
@@ -111,7 +111,7 @@ bool SSecurityVncAuth::processMsg(SConnection* sc)
 VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name,
                                                const char* desc,
                                                StringParameter* passwdFile_)
-: BinaryParameter(name, desc, 0, 0, ConfServer), passwdFile(passwdFile_) {
+: BinaryParameter(name, desc, nullptr, 0, ConfServer), passwdFile(passwdFile_) {
 }
 
 void VncAuthPasswdParameter::getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword) {

@@ -16,10 +16,10 @@
  * USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #include <rfb/PixelFormat.h>
 
@@ -30,7 +30,7 @@ static const int fbsize = 4096;
 
 static rdr::U8 *fb1, *fb2;
 
-typedef void (*testfn) (rfb::PixelFormat&, rfb::PixelFormat&, rdr::U8*, rdr::U8*);
+using testfn = void (*)(rfb::PixelFormat &, rfb::PixelFormat &, rdr::U8 *, rdr::U8 *);
 
 struct TestEntry {
   const char *label;

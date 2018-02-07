@@ -34,8 +34,8 @@
 #include <config.h>
 #endif
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 #include <sys/time.h>
 
 #include <rfb/util.h>
@@ -47,7 +47,7 @@ namespace rfb {
     int len;
 
     va_start(ap, fmt);
-    len = vsnprintf(NULL, 0, fmt, ap);
+    len = vsnprintf(nullptr, 0, fmt, ap);
     va_end(ap);
 
     delete [] buf;
@@ -66,9 +66,9 @@ namespace rfb {
   }
 
   char* strDup(const char* s) {
-    if (!s) return 0;
+    if (!s) return nullptr;
     int l = strlen(s);
-    char* r = new char[l+1];
+    auto* r = new char[l+1];
     memcpy(r, s, l+1);
     return r;
   };
@@ -104,7 +104,7 @@ namespace rfb {
       i+=increment;
     }
     if (out1) *out1 = strDup(src);
-    if (out2) *out2 = 0;
+    if (out2) *out2 = nullptr;
     return false;
   }
 
@@ -126,7 +126,7 @@ namespace rfb {
     struct timeval now;
     unsigned diff;
 
-    gettimeofday(&now, NULL);
+    gettimeofday(&now, nullptr);
 
     diff = (now.tv_sec - then->tv_sec) * 1000;
 

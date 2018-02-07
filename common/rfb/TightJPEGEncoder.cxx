@@ -70,8 +70,7 @@ TightJPEGEncoder::TightJPEGEncoder(SConnection* conn) :
 }
 
 TightJPEGEncoder::~TightJPEGEncoder()
-{
-}
+= default;
 
 bool TightJPEGEncoder::isSupported()
 {

@@ -20,7 +20,7 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <list>
 
@@ -59,7 +59,7 @@ OptionsDialog::OptionsDialog()
   int x, y;
   Fl_Button *button;
 
-  Fl_Tabs *tabs = new Fl_Tabs(OUTER_MARGIN, OUTER_MARGIN,
+  auto *tabs = new Fl_Tabs(OUTER_MARGIN, OUTER_MARGIN,
                              w() - OUTER_MARGIN*2,
                              h() - OUTER_MARGIN*2 - INNER_MARGIN - BUTTON_HEIGHT);
 
@@ -95,13 +95,12 @@ OptionsDialog::OptionsDialog()
 
 
 OptionsDialog::~OptionsDialog()
-{
-}
+= default;
 
 
-void OptionsDialog::showDialog(void)
+void OptionsDialog::showDialog()
 {
-  static OptionsDialog *dialog = NULL;
+  static OptionsDialog *dialog = nullptr;
 
   if (!dialog)
     dialog = new OptionsDialog();
@@ -125,7 +124,7 @@ void OptionsDialog::removeCallback(OptionsCallback *cb)
 }
 
 
-void OptionsDialog::show(void)
+void OptionsDialog::show()
 {
   /* show() gets called for raise events as well */
   if (!shown())
@@ -135,7 +134,7 @@ void OptionsDialog::show(void)
 }
 
 
-void OptionsDialog::loadOptions(void)
+void OptionsDialog::loadOptions()
 {
   /* Compression */
   autoselectCheckbox->value(autoSelect);
@@ -306,7 +305,7 @@ void OptionsDialog::loadOptions(void)
 }
 
 
-void OptionsDialog::storeOptions(void)
+void OptionsDialog::storeOptions()
 {
   /* Compression */
   autoSelect.setParam(autoselectCheckbox->value());
@@ -420,7 +419,7 @@ void OptionsDialog::storeOptions(void)
 
 void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 {
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Compression"));
+  auto *group = new Fl_Group(tx, ty, tw, th, _("Compression"));
 
   int orig_tx, orig_ty;
   int half_width, full_width;
@@ -575,7 +574,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 {
 #ifdef HAVE_GNUTLS
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Security"));
+  auto *group = new Fl_Group(tx, ty, tw, th, _("Security"));
 
   int orig_tx;
   int width, height;
@@ -685,7 +684,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
 void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 {
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Input"));
+  auto *group = new Fl_Group(tx, ty, tw, th, _("Input"));
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
@@ -734,9 +733,9 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 
   menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
 
-  fltk_menu_add(menuKeyChoice, _("None"), 0, NULL, (void*)0, FL_MENU_DIVIDER);
+  fltk_menu_add(menuKeyChoice, _("None"), 0, nullptr, (void*)nullptr, FL_MENU_DIVIDER);
   for (int i = 0; i < getMenuKeySymbolCount(); i++)
-    fltk_menu_add(menuKeyChoice, getMenuKeySymbols()[i].name, 0, NULL, 0, 0);
+    fltk_menu_add(menuKeyChoice, getMenuKeySymbols()[i].name, 0, nullptr, nullptr, 0);
 
   ty += CHOICE_HEIGHT + TIGHT_MARGIN;
 
@@ -748,7 +747,7 @@ void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
 {
   int x;
 
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Screen"));
+  auto *group = new Fl_Group(tx, ty, tw, th, _("Screen"));
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
@@ -790,7 +789,7 @@ void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
 
 void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
 {
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Misc."));
+  auto *group = new Fl_Group(tx, ty, tw, th, _("Misc."));
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
@@ -813,7 +812,7 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
 
 void OptionsDialog::handleAutoselect(Fl_Widget *widget, void *data)
 {
-  OptionsDialog *dialog = (OptionsDialog*)data;
+  auto *dialog = (OptionsDialog*)data;
 
   if (dialog->autoselectCheckbox->value()) {
     dialog->encodingGroup->deactivate();
@@ -830,7 +829,7 @@ void OptionsDialog::handleAutoselect(Fl_Widget *widget, void *data)
 
 void OptionsDialog::handleCompression(Fl_Widget *widget, void *data)
 {
-  OptionsDialog *dialog = (OptionsDialog*)data;
+  auto *dialog = (OptionsDialog*)data;
 
   if (dialog->compressionCheckbox->value())
     dialog->compressionInput->activate();
@@ -841,7 +840,7 @@ void OptionsDialog::handleCompression(Fl_Widget *widget, void *data)
 
 void OptionsDialog::handleJpeg(Fl_Widget *widget, void *data)
 {
-  OptionsDialog *dialog = (OptionsDialog*)data;
+  auto *dialog = (OptionsDialog*)data;
 
   if (dialog->jpegCheckbox->value() &&
       !dialog->autoselectCheckbox->value())
@@ -853,7 +852,7 @@ void OptionsDialog::handleJpeg(Fl_Widget *widget, void *data)
 
 void OptionsDialog::handleX509(Fl_Widget *widget, void *data)
 {
-  OptionsDialog *dialog = (OptionsDialog*)data;
+  auto *dialog = (OptionsDialog*)data;
 
   if (dialog->encX509Checkbox->value()) {
     dialog->caInput->activate();
@@ -867,7 +866,7 @@ void OptionsDialog::handleX509(Fl_Widget *widget, void *data)
 
 void OptionsDialog::handleDesktopSize(Fl_Widget *widget, void *data)
 {
-  OptionsDialog *dialog = (OptionsDialog*)data;
+  auto *dialog = (OptionsDialog*)data;
 
   if (dialog->desktopSizeCheckbox->value()) {
     dialog->desktopWidthInput->activate();
@@ -896,7 +895,7 @@ void OptionsDialog::handleClipboard(Fl_Widget *widget, void *data)
 
 void OptionsDialog::handleCancel(Fl_Widget *widget, void *data)
 {
-  OptionsDialog *dialog = (OptionsDialog*)data;
+  auto *dialog = (OptionsDialog*)data;
 
   dialog->hide();
 }
@@ -904,7 +903,7 @@ void OptionsDialog::handleCancel(Fl_Widget *widget, void *data)
 
 void OptionsDialog::handleOK(Fl_Widget *widget, void *data)
 {
-  OptionsDialog *dialog = (OptionsDialog*)data;
+  auto *dialog = (OptionsDialog*)data;
 
   dialog->hide();
 

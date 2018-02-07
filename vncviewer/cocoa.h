@@ -22,7 +22,7 @@
 int cocoa_capture_display(Fl_Window *win, bool all_displays);
 void cocoa_release_display(Fl_Window *win);
 
-typedef struct CGColorSpace *CGColorSpaceRef;
+using CGColorSpaceRef = struct CGColorSpace *;
 
 CGColorSpaceRef cocoa_win_color_space(Fl_Window *win);
 

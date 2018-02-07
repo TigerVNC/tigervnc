@@ -25,11 +25,11 @@ namespace rfb {
 
   class CSecurityVncAuth : public CSecurity {
   public:
-    CSecurityVncAuth(void) {}
-    virtual ~CSecurityVncAuth() {}
-    virtual bool processMsg(CConnection* cc);
-    virtual int getType() const {return secTypeVncAuth;};
-    virtual const char* description() const {return "No Encryption";}
+    CSecurityVncAuth() = default;
+    ~CSecurityVncAuth() override = default;
+    bool processMsg(CConnection* cc) override;
+    int getType() const override {return secTypeVncAuth;};
+    const char* description() const override {return "No Encryption";}
   };
 }
 #endif

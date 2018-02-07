@@ -33,13 +33,13 @@ namespace rdr {
   class TLSOutStream : public OutStream {
   public:
     TLSOutStream(OutStream* out, gnutls_session_t session);
-    virtual ~TLSOutStream();
+    ~TLSOutStream() override;
 
-    void flush();
-    int length();
+    void flush() override;
+    int length() override;
 
   protected:
-    int overrun(int itemSize, int nItems);
+    int overrun(int itemSize, int nItems) override;
 
   private:
     int writeTLS(const U8* data, int length);

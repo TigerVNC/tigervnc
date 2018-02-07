@@ -25,7 +25,7 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
-#include <errno.h>
+#include <cerrno>
 
 #ifdef HAVE_GNUTLS 
 using namespace rdr;
@@ -34,7 +34,7 @@ enum { DEFAULT_BUF_SIZE = 16384 };
 
 ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 {
-  TLSInStream* self= (TLSInStream*) str;
+  auto* self= (TLSInStream*) str;
   InStream *in = self->in;
 
   try {
@@ -70,7 +70,7 @@ TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
 
 TLSInStream::~TLSInStream()
 {
-  gnutls_transport_set_pull_function(session, NULL);
+  gnutls_transport_set_pull_function(session, nullptr);
 
   delete[] start;
 }

@@ -24,12 +24,12 @@
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 
-#include <stdio.h>
+#include <cstdio>
 extern "C" {
 #include <jpeglib.h>
 }
 #include <jerror.h>
-#include <setjmp.h>
+#include <csetjmp>
 
 using namespace rfb;
 
@@ -55,7 +55,7 @@ struct JPEG_ERROR_MGR {
 static void
 JpegErrorExit(j_common_ptr dinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)dinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)dinfo->err;
 
   (*dinfo->err->output_message)(dinfo);
   longjmp(err->jmpBuffer, 1);
@@ -64,7 +64,7 @@ JpegErrorExit(j_common_ptr dinfo)
 static void
 JpegOutputMessage(j_common_ptr dinfo)
 {
-  JPEG_ERROR_MGR *err = (JPEG_ERROR_MGR *)dinfo->err;
+  auto *err = (JPEG_ERROR_MGR *)dinfo->err;
 
   (*dinfo->err->format_message)(dinfo, err->lastError);
 }
@@ -94,7 +94,7 @@ JpegFillInputBuffer(j_decompress_ptr dinfo)
 static void
 JpegSkipInputData(j_decompress_ptr dinfo, long num_bytes)
 {
-  JPEG_SRC_MGR *src = (JPEG_SRC_MGR *)dinfo->src;
+  auto *src = (JPEG_SRC_MGR *)dinfo->src;
 
   if (num_bytes < 0 || (size_t)num_bytes > src->pub.bytes_in_buffer) {
     ERREXIT(dinfo, JERR_BUFFER_SIZE);
@@ -104,7 +104,7 @@ JpegSkipInputData(j_decompress_ptr dinfo, long num_bytes)
   }
 }
 
-JpegDecompressor::JpegDecompressor(void)
+JpegDecompressor::JpegDecompressor()
 {
   dinfo = new jpeg_decompress_struct;
 
@@ -131,7 +131,7 @@ JpegDecompressor::JpegDecompressor(void)
   dinfo->src = (struct jpeg_source_mgr *)src;
 }
 
-JpegDecompressor::~JpegDecompressor(void)
+JpegDecompressor::~JpegDecompressor()
 {
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
@@ -153,9 +153,9 @@ void JpegDecompressor::decompress(const rdr::U8 *jpegBuf, int jpegBufLen,
   int h = r.height();
   int pixelsize;
   int dstBufStride;
-  rdr::U8 *dstBuf = NULL;
+  rdr::U8 *dstBuf = nullptr;
   bool dstBufIsTemp = false;
-  JSAMPROW *rowPointer = NULL;
+  JSAMPROW *rowPointer = nullptr;
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error

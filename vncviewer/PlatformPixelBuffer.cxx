@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <sys/ipc.h>
@@ -36,7 +36,7 @@ static rfb::LogWriter vlog("PlatformPixelBuffer");
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                        255, 255, 255, 16, 8, 0),
-                       width, height, 0, stride),
+                       width, height, nullptr, stride),
   Surface(width, height)
 #if !defined(WIN32) && !defined(__APPLE__)
   , shminfo(NULL), xim(NULL)
@@ -91,7 +91,7 @@ void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
   mutex.unlock();
 }
 
-rfb::Rect PlatformPixelBuffer::getDamage(void)
+rfb::Rect PlatformPixelBuffer::getDamage()
 {
   rfb::Rect r;
 

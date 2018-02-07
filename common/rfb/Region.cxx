@@ -24,8 +24,8 @@
 //
 
 #include <rfb/Region.h>
-#include <assert.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
 
 extern "C" {
 #include <Xregion/Xlibint.h>
@@ -231,8 +231,8 @@ bool rfb::Region::get_rects(std::vector<Rect>* rects,
 }
 
 rfb::Rect rfb::Region::get_bounding_rect() const {
-  return Rect(xrgn->extents.x1, xrgn->extents.y1,
-              xrgn->extents.x2, xrgn->extents.y2);
+  return {xrgn->extents.x1, xrgn->extents.y1,
+              xrgn->extents.x2, xrgn->extents.y2};
 }
 
 

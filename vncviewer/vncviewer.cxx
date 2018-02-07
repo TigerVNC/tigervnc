@@ -22,13 +22,13 @@
 #include <config.h>
 #endif
 
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <locale.h>
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#include <cstdlib>
+#include <cerrno>
+#include <csignal>
+#include <clocale>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -84,10 +84,10 @@ using namespace std;
 
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
-static const char *argv0 = NULL;
+static const char *argv0 = nullptr;
 
 static bool exitMainloop = false;
-static const char *exitError = NULL;
+static const char *exitError = nullptr;
 
 static const char *about_text()
 {
@@ -111,7 +111,7 @@ void exit_vncviewer(const char *error)
 {
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if ((error != NULL) && (exitError == NULL))
+  if ((error != nullptr) && (exitError == nullptr))
     exitError = strdup(error);
 
   exitMainloop = true;
@@ -163,7 +163,7 @@ static void new_connection_cb(Fl_Widget *widget, void *data)
     return;
 
   argv[0] = argv0;
-  argv[1] = NULL;
+  argv[1] = nullptr;
 
   execvp(argv[0], (char * const *)argv);
 
@@ -299,7 +299,7 @@ static void init_fltk()
   Fl_Mac_App_Menu::hide_others = _("Hide Others");
   Fl_Mac_App_Menu::show = _("Show All");
 
-  fl_mac_set_about(about_callback, NULL);
+  fl_mac_set_about(about_callback, nullptr);
 
   Fl_Sys_Menu_Bar *menubar;
   char buffer[1024];
@@ -308,7 +308,7 @@ static void init_fltk()
   // which means we cannot use our generic Fl_Menu_ helpers.
   if (fltk_menu_escape(p_("SysMenu|", "&File"),
                        buffer, sizeof(buffer)) < sizeof(buffer))
-      menubar->add(buffer, 0, 0, 0, FL_SUBMENU);
+      menubar->add(buffer, 0, nullptr, nullptr, FL_SUBMENU);
   if (fltk_menu_escape(p_("SysMenu|File|", "&New Connection"),
                        buffer, sizeof(buffer)) < sizeof(buffer))
       menubar->insert(1, buffer, FL_COMMAND | 'n', new_connection_cb);
@@ -318,7 +318,7 @@ static void init_fltk()
 static void mkvnchomedir()
 {
   // Create .vnc in the user's home directory if it doesn't already exist
-  char* homeDir = NULL;
+  char* homeDir = nullptr;
 
   if (getvnchomedir(&homeDir) == -1) {
     vlog.error(_("Could not create VNC home directory: can't obtain home "
@@ -374,7 +374,7 @@ interpretViaParam(char *remoteHost, int *remotePort, int localPort)
 {
   const int SERVER_PORT_OFFSET = 5900;
   char *pos = strchr(vncServerName, ':');
-  if (pos == NULL)
+  if (pos == nullptr)
     *remotePort = SERVER_PORT_OFFSET;
   else {
     int portOffset = SERVER_PORT_OFFSET;
@@ -419,10 +419,10 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
   setenv("R", rport, 1);
   setenv("L", lport, 1);
   if (!cmd)
-    cmd = "/usr/bin/ssh -f -L \"$L\":\"$H\":\"$R\" \"$G\" sleep 20";
+    cmd = R"(/usr/bin/ssh -f -L "$L":"$H":"$R" "$G" sleep 20)";
   /* Compatibility with TigerVNC's method. */
   cmd2 = strdup(cmd);
-  while ((percent = strchr(cmd2, '%')) != NULL)
+  while ((percent = strchr(cmd2, '%')) != nullptr)
     *percent = '$';
   system(cmd2);
   free(cmd2);
@@ -486,7 +486,7 @@ int main(int argc, char** argv)
   /* Load the default parameter settings */
   const char* defaultServerName;
   try {
-    defaultServerName = loadViewerParameters(NULL);
+    defaultServerName = loadViewerParameters(nullptr);
   } catch (rfb::Exception& e) {
     defaultServerName = "";
     vlog.error("%s", e.str());
@@ -531,7 +531,7 @@ int main(int argc, char** argv)
   CSecurityTLS::msg = &dlg;
 #endif
 
-  Socket *sock = NULL;
+  Socket *sock = nullptr;
 
 #ifndef WIN32
   /* Specifying -via and -listen together is nonsense */
@@ -553,20 +553,18 @@ int main(int argc, char** argv)
       if (isdigit(vncServerName[0]))
         port = atoi(vncServerName);
 
-      createTcpListeners(&listeners, 0, port);
+      createTcpListeners(&listeners, nullptr, port);
 
       vlog.info(_("Listening on port %d"), port);
 
       /* Wait for a connection */
-      while (sock == NULL) {
+      while (sock == nullptr) {
         fd_set rfds;
         FD_ZERO(&rfds);
-        for (std::list<TcpListener*>::iterator i = listeners.begin();
-             i != listeners.end();
-             i++)
-          FD_SET((*i)->getFd(), &rfds);
+        for (auto & listener : listeners)
+          FD_SET(listener->getFd(), &rfds);
 
-        int n = select(FD_SETSIZE, &rfds, 0, 0, 0);
+        int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, nullptr);
         if (n < 0) {
           if (errno == EINTR) {
             vlog.debug("Interrupted select() system call");
@@ -576,11 +574,9 @@ int main(int argc, char** argv)
           }
         }
 
-        for (std::list<TcpListener*>::iterator i = listeners.begin ();
-             i != listeners.end();
-             i++)
-          if (FD_ISSET((*i)->getFd(), &rfds)) {
-            sock = (*i)->accept();
+        for (auto & listener : listeners)
+          if (FD_ISSET(listener->getFd(), &rfds)) {
+            sock = listener->accept();
             if (sock)
               /* Got a connection */
               break;
@@ -611,14 +607,14 @@ int main(int argc, char** argv)
 #endif
   }
 
-  CConn *cc = new CConn(vncServerName, sock);
+  auto *cc = new CConn(vncServerName, sock);
 
   while (!exitMainloop)
     run_mainloop();
 
   delete cc;
 
-  if (exitError != NULL && alertOnFatalError)
+  if (exitError != nullptr && alertOnFatalError)
     fl_alert("%s", exitError);
 
   return 0;

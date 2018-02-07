@@ -17,7 +17,7 @@
  * USA.
  */
 
-#include <string.h>
+#include <cstring>
 #include <FL/Fl.H>
 
 // FLTK can pull in the X11 headers on some systems

@@ -39,7 +39,7 @@ namespace rfb {
   public:
 
     SConnection();
-    virtual ~SConnection();
+    ~SConnection() override;
 
     // Methods to initialise the connection
 
@@ -66,14 +66,14 @@ namespace rfb {
     // later, after queryConnection() has returned.  It can only be called when
     // in state RFBSTATE_QUERYING.  On rejection, an AuthFailureException is
     // thrown, so this must be handled appropriately by the caller.
-    void approveConnection(bool accept, const char* reason=0);
+    void approveConnection(bool accept, const char* reason=nullptr);
 
 
     // Overridden from SMsgHandler
 
-    virtual void setEncodings(int nEncodings, const rdr::S32* encodings);
+    void setEncodings(int nEncodings, const rdr::S32* encodings) override;
 
-    virtual void supportsQEMUKeyEvent();
+    void supportsQEMUKeyEvent() override;
 
     // Methods to be overridden in a derived class
 
@@ -96,33 +96,33 @@ namespace rfb {
 
     // clientInit() is called when the ClientInit message is received.  The
     // derived class must call on to SConnection::clientInit().
-    virtual void clientInit(bool shared);
+    void clientInit(bool shared) override;
 
     // setPixelFormat() is called when a SetPixelFormat message is received.
     // The derived class must call on to SConnection::setPixelFormat().
-    virtual void setPixelFormat(const PixelFormat& pf);
+    void setPixelFormat(const PixelFormat& pf) override;
 
     // framebufferUpdateRequest() is called when a FramebufferUpdateRequest
     // message is received.  The derived class must call on to
     // SConnection::framebufferUpdateRequest().
-    virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
+    void framebufferUpdateRequest(const Rect& r, bool incremental) override;
 
     // fence() is called when we get a fence request or response. By default
     // it responds directly to requests (stating it doesn't support any
     // synchronisation) and drops responses. Override to implement more proper
     // support.
-    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
+    void fence(rdr::U32 flags, unsigned len, const char data[]) override;
 
     // enableContinuousUpdates() is called when the client wants to enable
     // or disable continuous updates, or change the active area.
-    virtual void enableContinuousUpdates(bool enable,
-                                         int x, int y, int w, int h);
+    void enableContinuousUpdates(bool enable,
+                                         int x, int y, int w, int h) override;
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectionST to the server.  How the access rights are treated
     // is up to the derived class.
 
-    typedef rdr::U16 AccessRights;
+    using AccessRights = rdr::U16;
     static const AccessRights AccessView;           // View display contents
     static const AccessRights AccessKeyEvents;      // Send key events
     static const AccessRights AccessPtrEvents;      // Send pointer events
@@ -182,7 +182,7 @@ namespace rfb {
     void setWriter(SMsgWriter *w) { writer_ = w; }
 
   private:
-    void writeFakeColourMap(void);
+    void writeFakeColourMap();
 
     bool readyForSetColourMapEntries;
 

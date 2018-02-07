@@ -180,7 +180,7 @@ npgettext_aux (const char *domain,
    can be arbitrary expressions.  But for string literals these macros are
    less efficient than those above.  */
 
-#include <string.h>
+#include <cstring>
 
 #if (((__GNUC__ >= 3 || __GNUG__ >= 2) && !defined __STRICT_ANSI__) \
      /* || __STDC_VERSION__ >= 199901L */ )
@@ -190,7 +190,7 @@ npgettext_aux (const char *domain,
 #endif
 
 #if !_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS
-#include <stdlib.h>
+#include <cstdlib>
 #endif
 
 #define pgettext_expr(Msgctxt, Msgid) \
@@ -221,7 +221,7 @@ dcpgettext_expr (const char *domain,
     (msgctxt_len + msgid_len <= sizeof (buf)
      ? buf
      : (char *) malloc (msgctxt_len + msgid_len));
-  if (msg_ctxt_id != NULL)
+  if (msg_ctxt_id != nullptr)
 #endif
     {
       memcpy (msg_ctxt_id, msgctxt, msgctxt_len - 1);
@@ -267,7 +267,7 @@ dcnpgettext_expr (const char *domain,
     (msgctxt_len + msgid_len <= sizeof (buf)
      ? buf
      : (char *) malloc (msgctxt_len + msgid_len));
-  if (msg_ctxt_id != NULL)
+  if (msg_ctxt_id != nullptr)
 #endif
     {
       memcpy (msg_ctxt_id, msgctxt, msgctxt_len - 1);

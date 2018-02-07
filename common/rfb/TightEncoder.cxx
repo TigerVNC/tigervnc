@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <assert.h>
+#include <cassert>
 
 #include <rdr/OutStream.h>
 #include <rfb/PixelBuffer.h>
@@ -63,8 +63,7 @@ TightEncoder::TightEncoder(SConnection* conn) :
 }
 
 TightEncoder::~TightEncoder()
-{
-}
+= default;
 
 bool TightEncoder::isSupported()
 {
@@ -255,11 +254,11 @@ void TightEncoder::flushZlibOutStream(rdr::OutStream* os_)
   rdr::ZlibOutStream* zos;
 
   zos = dynamic_cast<rdr::ZlibOutStream*>(os_);
-  if (zos == NULL)
+  if (zos == nullptr)
     return;
 
   zos->flush();
-  zos->setUnderlying(NULL);
+  zos->setUnderlying(nullptr);
 
   os = conn->getOutStream();
 

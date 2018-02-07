@@ -32,8 +32,8 @@ namespace rdr {
   struct Exception {
     enum { len = 256 };
     char str_[len];
-    Exception(const char *format = 0, ...) __printf_attr(2, 3);
-    virtual ~Exception() {}
+    Exception(const char *format = nullptr, ...) __printf_attr(2, 3);
+    virtual ~Exception() = default;
     virtual const char* str() const { return str_; }
   };
 

@@ -26,9 +26,9 @@
  * are not encoded in the file and must be specified by the user.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include <sys/time.h>
 
 #include <rdr/Exception.h>
@@ -71,11 +71,11 @@ class DummyOutStream : public rdr::OutStream {
 public:
   DummyOutStream();
 
-  virtual int length();
-  virtual void flush();
+  int length() override;
+  void flush() override;
 
 private:
-  virtual int overrun(int itemSize, int nItems);
+  int overrun(int itemSize, int nItems) override;
 
   int offset;
   rdr::U8 buf[131072];
@@ -84,19 +84,19 @@ private:
 class CConn : public rfb::CConnection {
 public:
   CConn(const char *filename);
-  ~CConn();
+  ~CConn() override;
 
   void getStats(double& ratio, unsigned long long& bytes,
                 unsigned long long& rawEquivalent);
 
-  virtual void setDesktopSize(int w, int h);
-  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
-  virtual void framebufferUpdateStart();
-  virtual void framebufferUpdateEnd();
-  virtual void dataRect(const rfb::Rect&, int);
-  virtual void setColourMapEntries(int, int, rdr::U16*);
-  virtual void bell();
-  virtual void serverCutText(const char*, rdr::U32);
+  void setDesktopSize(int w, int h) override;
+  void setCursor(int, int, const rfb::Point&, const rdr::U8*) override;
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  void dataRect(const rfb::Rect&, int) override;
+  void setColourMapEntries(int, int, rdr::U16*) override;
+  void bell() override;
+  void serverCutText(const char*, rdr::U32) override;
 
 public:
   double decodeTime;
@@ -118,16 +118,16 @@ public:
 class SConn : public rfb::SConnection {
 public:
   SConn();
-  ~SConn();
+  ~SConn() override;
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
-  virtual void setAccessRights(AccessRights ar);
+  void setAccessRights(AccessRights ar) override;
 
-  virtual void setDesktopSize(int fb_width, int fb_height,
-                              const rfb::ScreenSet& layout);
+  void setDesktopSize(int fb_width, int fb_height,
+                              const rfb::ScreenSet& layout) override;
 
 protected:
   DummyOutStream *out;
@@ -167,7 +167,7 @@ CConn::CConn(const char *filename)
   encodeTime = 0.0;
 
   in = new rdr::FileInStream(filename);
-  setStreams(in, NULL);
+  setStreams(in, nullptr);
 
   // Need to skip the initial handshake and ServerInit
   setState(RFBSTATE_NORMAL);
@@ -288,7 +288,7 @@ void Manager::getStats(double& ratio, unsigned long long& encodedBytes,
 SConn::SConn()
 {
   out = new DummyOutStream;
-  setStreams(NULL, out);
+  setStreams(nullptr, out);
 
   setWriter(new rfb::SMsgWriter(&cp, out));
 
@@ -303,7 +303,7 @@ SConn::~SConn()
 
 void SConn::writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb)
 {
-  manager->writeUpdate(ui, pb, NULL);
+  manager->writeUpdate(ui, pb, nullptr);
 }
 
 void SConn::getStats(double& ratio, unsigned long long& bytes,
@@ -338,7 +338,7 @@ static struct stats runTest(const char *fn)
   struct stats s;
   struct timeval start, stop;
 
-  gettimeofday(&start, NULL);
+  gettimeofday(&start, nullptr);
 
   try {
     cc = new CConn(fn);
@@ -356,7 +356,7 @@ static struct stats runTest(const char *fn)
     exit(1);
   }
 
-  gettimeofday(&stop, NULL);
+  gettimeofday(&stop, nullptr);
 
   s.decodeTime = cc->decodeTime;
   s.encodeTime = cc->encodeTime;
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
 
   const char *fn;
 
-  fn = NULL;
+  fn = nullptr;
   for (i = 1; i < argc; i++) {
     if (rfb::Configuration::setParam(argv[i]))
       continue;
@@ -416,7 +416,7 @@ int main(int argc, char **argv)
       usage(argv[0]);
     }
 
-    if (fn != NULL)
+    if (fn != nullptr)
       usage(argv[0]);
 
     fn = argv[i];
@@ -427,7 +427,7 @@ int main(int argc, char **argv)
   double values[runCount], dev[runCount];
   double median, meddev;
 
-  if (fn == NULL) {
+  if (fn == nullptr) {
     fprintf(stderr, "No file specified!\n\n");
     usage(argv[0]);
   }

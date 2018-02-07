@@ -31,24 +31,24 @@ class Fl_Input;
 class Fl_Int_Input;
 class Fl_Choice;
 
-typedef void (OptionsCallback)(void*);
+using OptionsCallback = void (void *);
 
 class OptionsDialog : public Fl_Window {
 protected:
   OptionsDialog();
-  ~OptionsDialog();
+  ~OptionsDialog() override;
 
 public:
-  static void showDialog(void);
+  static void showDialog();
 
-  static void addCallback(OptionsCallback *cb, void *data = NULL);
+  static void addCallback(OptionsCallback *cb, void *data = nullptr);
   static void removeCallback(OptionsCallback *cb);
 
-  void show(void);
+  void show() override;
 
 protected:
-  void loadOptions(void);
-  void storeOptions(void);
+  void loadOptions();
+  void storeOptions();
 
   void createCompressionPage(int tx, int ty, int tw, int th);
   void createSecurityPage(int tx, int ty, int tw, int th);

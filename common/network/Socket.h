@@ -23,7 +23,7 @@
 
 #include <list>
 
-#include <limits.h>
+#include <climits>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>
@@ -68,7 +68,7 @@ namespace network {
     bool requiresQuery() const {return queryConnection;}
 
   protected:
-    Socket() : instream(0), outstream(0), ownStreams(false),
+    Socket() : instream(nullptr), outstream(nullptr), ownStreams(false),
       isShutdown_(false), queryConnection(false) {}
     Socket(rdr::FdInStream* i, rdr::FdOutStream* o, bool own)
       : instream(i), outstream(o), ownStreams(own),
@@ -83,13 +83,13 @@ namespace network {
   class ConnectionFilter {
   public:
     virtual bool verifyConnection(Socket* s) = 0;
-    virtual ~ConnectionFilter() {}
+    virtual ~ConnectionFilter() = default;
   };
 
   class SocketListener {
   public:
-    SocketListener() : fd(0), filter(0) {}
-    virtual ~SocketListener() {}
+    SocketListener() : fd(0), filter(nullptr) {}
+    virtual ~SocketListener() = default;
 
     // shutdown() stops the socket from accepting further connections
     virtual void shutdown() = 0;
@@ -113,7 +113,7 @@ namespace network {
 
   class SocketServer {
   public:
-    virtual ~SocketServer() {}
+    virtual ~SocketServer() = default;
 
     // addSocket() tells the server to serve the Socket.  The caller
     //   retains ownership of the Socket - the only way for the server

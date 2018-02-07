@@ -20,7 +20,7 @@
 #ifndef __RDR_FILEINSTREAM_H__
 #define __RDR_FILEINSTREAM_H__
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <rdr/InStream.h>
 
@@ -31,14 +31,14 @@ namespace rdr {
   public:
 
     FileInStream(const char *fileName);
-    ~FileInStream(void);
+    ~FileInStream() override;
 
-    void reset(void);
+    void reset();
 
-    int pos();
+    int pos() override;
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait = true);
+    int overrun(int itemSize, int nItems, bool wait = true) override;
 
   private:
     U8 b[131072];

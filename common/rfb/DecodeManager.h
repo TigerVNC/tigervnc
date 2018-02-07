@@ -82,12 +82,12 @@ namespace rfb {
     class DecodeThread : public os::Thread {
     public:
       DecodeThread(DecodeManager* manager);
-      ~DecodeThread();
+      ~DecodeThread() override;
 
       void stop();
 
     protected:
-      void worker();
+      void worker() override;
       DecodeManager::QueueEntry* findEntry();
 
     private:

@@ -38,24 +38,24 @@ namespace rfb {
     // If there was no read only password in the file, readOnlyPassword buffer is null.
     virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword)=0;
 
-    virtual ~VncAuthPasswdGetter() { }
+    virtual ~VncAuthPasswdGetter() = default;
   };
 
   class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {
   public:
     VncAuthPasswdParameter(const char* name, const char* desc, StringParameter* passwdFile_);
-    virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword);
+    void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword) override;
   protected:
     StringParameter* passwdFile;
   };
 
   class SSecurityVncAuth : public SSecurity {
   public:
-    SSecurityVncAuth(void);
-    virtual bool processMsg(SConnection* sc);
-    virtual int getType() const {return secTypeVncAuth;}
-    virtual const char* getUserName() const {return 0;}
-    virtual SConnection::AccessRights getAccessRights() const { return accessRights; }
+    SSecurityVncAuth();
+    bool processMsg(SConnection* sc) override;
+    int getType() const override {return secTypeVncAuth;}
+    const char* getUserName() const override {return nullptr;}
+    SConnection::AccessRights getAccessRights() const override { return accessRights; }
     static StringParameter vncAuthPasswdFile;
     static VncAuthPasswdParameter vncAuthPasswd;
   private:

@@ -52,7 +52,7 @@ namespace rfb {
 
     //   Create a server exporting the supplied desktop.
     VNCServerST(const char* name_, SDesktop* desktop_);
-    virtual ~VNCServerST();
+    ~VNCServerST() override;
 
 
     // Methods overridden from SocketServer
@@ -60,54 +60,54 @@ namespace rfb {
     // addSocket
     //   Causes the server to allocate an RFB-protocol management
     //   structure for the socket & initialise it.
-    virtual void addSocket(network::Socket* sock, bool outgoing=false);
+    void addSocket(network::Socket* sock, bool outgoing=false) override;
 
     // removeSocket
     //   Clean up any resources associated with the Socket
-    virtual void removeSocket(network::Socket* sock);
+    void removeSocket(network::Socket* sock) override;
 
     // getSockets() gets a list of sockets.  This can be used to generate an
     // fd_set for calling select().
-    virtual void getSockets(std::list<network::Socket*>* sockets);
+    void getSockets(std::list<network::Socket*>* sockets) override;
 
     // processSocketReadEvent
     //   Read more RFB data from the Socket.  If an error occurs during
     //   processing then shutdown() is called on the Socket, causing
     //   removeSocket() to be called by the caller at a later time.
-    virtual void processSocketReadEvent(network::Socket* sock);
+    void processSocketReadEvent(network::Socket* sock) override;
 
     // processSocketWriteEvent
     //   Flush pending data from the Socket on to the network.
-    virtual void processSocketWriteEvent(network::Socket* sock);
+    void processSocketWriteEvent(network::Socket* sock) override;
 
     // checkTimeouts
     //   Returns the number of milliseconds left until the next idle timeout
     //   expires.  If any have already expired, the corresponding connections
     //   are closed.  Zero is returned if there is no idle timeout.
-    virtual int checkTimeouts();
+    int checkTimeouts() override;
 
 
     // Methods overridden from VNCServer
 
-    virtual void blockUpdates();
-    virtual void unblockUpdates();
-    virtual void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout);
-    virtual void setPixelBuffer(PixelBuffer* pb);
-    virtual void setScreenLayout(const ScreenSet& layout);
-    virtual PixelBuffer* getPixelBuffer() const { return pb; }
-    virtual void serverCutText(const char* str, int len);
-    virtual void add_changed(const Region &region);
-    virtual void add_copied(const Region &dest, const Point &delta);
-    virtual void setCursor(int width, int height, const Point& hotspot,
-                           const rdr::U8* data);
-    virtual void setCursorPos(const Point& p);
-    virtual void setLEDState(unsigned state);
+    void blockUpdates() override;
+    void unblockUpdates() override;
+    void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout) override;
+    void setPixelBuffer(PixelBuffer* pb) override;
+    void setScreenLayout(const ScreenSet& layout) override;
+    PixelBuffer* getPixelBuffer() const override { return pb; }
+    void serverCutText(const char* str, int len) override;
+    void add_changed(const Region &region) override;
+    void add_copied(const Region &dest, const Point &delta) override;
+    void setCursor(int width, int height, const Point& hotspot,
+                           const rdr::U8* data) override;
+    void setCursorPos(const Point& p) override;
+    void setLEDState(unsigned state) override;
 
-    virtual void bell();
+    void bell() override;
 
     // - Close all currently-connected clients, by calling
     //   their close() method with the supplied reason.
-    virtual void closeClients(const char* reason) {closeClients(reason, 0);}
+    void closeClients(const char* reason) override {closeClients(reason, nullptr);}
 
     // VNCServerST-only methods
 
@@ -127,7 +127,7 @@ namespace rfb {
 
     // setName() specifies the desktop name that the server should provide to
     // clients
-    virtual void setName(const char* name_);
+    void setName(const char* name_) override;
 
     // A QueryConnectionHandler, if supplied, is passed details of incoming
     // connections to approve, reject, or query the user about.
@@ -143,7 +143,7 @@ namespace rfb {
     // the connection.
     enum queryResult { ACCEPT, REJECT, PENDING };
     struct QueryConnectionHandler {
-      virtual ~QueryConnectionHandler() {}
+      virtual ~QueryConnectionHandler() = default;
       virtual queryResult queryConnection(network::Socket* sock,
                                           const char* userName,
                                           char** reason) = 0;
@@ -183,7 +183,7 @@ namespace rfb {
     void getConnInfo(ListConnInfo * listConn);
     void setConnStatus(ListConnInfo* listConn);
 
-    bool getDisable() { return disableclients;};
+    bool getDisable() override { return disableclients;};
     void setDisable(bool disable) { disableclients = disable;};
 
   protected:
@@ -191,7 +191,7 @@ namespace rfb {
     friend class VNCSConnectionST;
 
     // Timer callbacks
-    virtual bool handleTimeout(Timer* t);
+    bool handleTimeout(Timer* t) override;
 
     // - Internal methods
 

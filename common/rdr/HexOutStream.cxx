@@ -49,13 +49,13 @@ char HexOutStream::intToHex(int i) {
 }
 
 char* HexOutStream::binToHexStr(const char* data, int length) {
-  char* buffer = new char[length*2+1];
+  auto* buffer = new char[length*2+1];
   for (int i=0; i<length; i++) {
     buffer[i*2] = intToHex((data[i] >> 4) & 15);
     buffer[i*2+1] = intToHex((data[i] & 15));
     if (!buffer[i*2] || !buffer[i*2+1]) {
       delete [] buffer;
-      return 0;
+      return nullptr;
     }
   }
   buffer[length*2] = 0;

@@ -36,7 +36,7 @@ namespace rdr {
       end = start + len;
     }
 
-    virtual ~MemOutStream() {
+    ~MemOutStream() override {
       delete [] start;
     }
 
@@ -46,7 +46,7 @@ namespace rdr {
       ptr += length;
     }
 
-    int length() { return ptr - start; }
+    int length() override { return ptr - start; }
     void clear() { ptr = start; };
     void clearAndZero() { memset(start, 0, ptr-start); clear(); }
     void reposition(int pos) { ptr = start + pos; }
@@ -60,12 +60,12 @@ namespace rdr {
     // overrun() either doubles the buffer or adds enough space for nItems of
     // size itemSize bytes.
 
-    int overrun(int itemSize, int nItems) {
+    int overrun(int itemSize, int nItems) override {
       int len = ptr - start + itemSize * nItems;
       if (len < (end - start) * 2)
         len = (end - start) * 2;
 
-      U8* newStart = new U8[len];
+      auto* newStart = new U8[len];
       memcpy(newStart, start, ptr - start);
       ptr = newStart + (ptr - start);
       delete [] start;

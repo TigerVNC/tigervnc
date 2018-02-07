@@ -16,9 +16,9 @@
  * USA.
  */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef WIN32
 #include <windows.h>
@@ -35,34 +35,34 @@ typedef struct {
   FILETIME userTime;
 } syscounter_t;
 #else
-typedef struct rusage syscounter_t;
+using syscounter_t = struct rusage;
 #endif
 
 static syscounter_t _globalCounter[2];
 static cpucounter_t globalCounter = _globalCounter;
 
-void startCpuCounter(void)
+void startCpuCounter()
 {
   startCpuCounter(globalCounter);
 }
 
-void endCpuCounter(void)
+void endCpuCounter()
 {
   endCpuCounter(globalCounter);
 }
 
-double getCpuCounter(void)
+double getCpuCounter()
 {
   return getCpuCounter(globalCounter);
 }
 
-cpucounter_t newCpuCounter(void)
+cpucounter_t newCpuCounter()
 {
   syscounter_t *c;
 
   c = (syscounter_t*)malloc(sizeof(syscounter_t) * 2);
-  if (c == NULL)
-    return NULL;
+  if (c == nullptr)
+    return nullptr;
 
   memset(c, 0, sizeof(syscounter_t) * 2);
 
@@ -88,19 +88,19 @@ static void measureCpu(syscounter_t *counter)
 
 void startCpuCounter(cpucounter_t c)
 {
-  syscounter_t *s = (syscounter_t*)c;
+  auto *s = (syscounter_t*)c;
   measureCpu(&s[0]);
 }
 
 void endCpuCounter(cpucounter_t c)
 {
-  syscounter_t *s = (syscounter_t*)c;
+  auto *s = (syscounter_t*)c;
   measureCpu(&s[1]);
 }
 
 double getCpuCounter(cpucounter_t c)
 {
-  syscounter_t *s = (syscounter_t*)c;
+  auto *s = (syscounter_t*)c;
   double sysSeconds, userSeconds;
 
 #ifdef WIN32
@@ -140,25 +140,25 @@ static LARGE_INTEGER timeStart, timeEnd;
 static struct timeval timeStart, timeEnd;
 #endif
 
-void startTimeCounter(void)
+void startTimeCounter()
 {
 #ifdef WIN32
   QueryPerformanceCounter(&timeStart);
 #else
-  gettimeofday(&timeStart, NULL);
+  gettimeofday(&timeStart, nullptr);
 #endif
 }
 
-void endTimeCounter(void)
+void endTimeCounter()
 {
 #ifdef WIN32
   QueryPerformanceCounter(&timeEnd);
 #else
-  gettimeofday(&timeEnd, NULL);
+  gettimeofday(&timeEnd, nullptr);
 #endif
 }
 
-double getTimeCounter(void)
+double getTimeCounter()
 {
   double time;
 

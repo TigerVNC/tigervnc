@@ -25,12 +25,12 @@ namespace rfb {
   class HextileDecoder : public Decoder {
   public:
     HextileDecoder();
-    virtual ~HextileDecoder();
-    virtual void readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, rdr::OutStream* os);
-    virtual void decodeRect(const Rect& r, const void* buffer,
+    ~HextileDecoder() override;
+    void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, rdr::OutStream* os) override;
+    void decodeRect(const Rect& r, const void* buffer,
                             size_t buflen, const ConnParams& cp,
-                            ModifiablePixelBuffer* pb);
+                            ModifiablePixelBuffer* pb) override;
   };
 }
 #endif

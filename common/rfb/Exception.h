@@ -21,7 +21,7 @@
 #include <rdr/Exception.h>
 
 namespace rfb {
-  typedef rdr::Exception Exception;
+  using Exception = rdr::Exception;
   struct AuthFailureException : public Exception {
     AuthFailureException()
       : Exception("Authentication failure") {}

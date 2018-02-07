@@ -22,12 +22,12 @@
 
 #include <os/os.h>
 
-#include <assert.h>
+#include <cassert>
 
 #ifndef WIN32
 #include <pwd.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <sys/types.h>
 #include <unistd.h>
 #else
@@ -52,10 +52,10 @@ int getvnchomedir(char **dirp)
 
 #ifndef WIN32
 	homedir = getenv("HOME");
-	if (homedir == NULL) {
+	if (homedir == nullptr) {
 		uid = getuid();
 		passwd = getpwuid(uid);
-		if (passwd == NULL) {
+		if (passwd == nullptr) {
 			/* Do we want emit error msg here? */
 			return -1;
 		}
@@ -64,7 +64,7 @@ int getvnchomedir(char **dirp)
 
 	len = strlen(homedir);
 	dir = new char[len+7];
-	if (dir == NULL)
+	if (dir == nullptr)
 		return -1;
 
 	memcpy(dir, homedir, len);

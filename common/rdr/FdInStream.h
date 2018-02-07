@@ -30,7 +30,7 @@ namespace rdr {
   class FdInStreamBlockCallback {
   public:
     virtual void blockCallback() = 0;
-    virtual ~FdInStreamBlockCallback() {}
+    virtual ~FdInStreamBlockCallback() = default;
   };
 
   class FdInStream : public InStream {
@@ -40,12 +40,12 @@ namespace rdr {
     FdInStream(int fd, int timeoutms=-1, int bufSize=0,
                bool closeWhenDone_=false);
     FdInStream(int fd, FdInStreamBlockCallback* blockCallback, int bufSize=0);
-    virtual ~FdInStream();
+    ~FdInStream() override;
 
     void setTimeout(int timeoutms);
     void setBlockCallback(FdInStreamBlockCallback* blockCallback);
     int getFd() { return fd; }
-    int pos();
+    int pos() override;
     void readBytes(void* data, int length);
 
     void startTiming();
@@ -54,7 +54,7 @@ namespace rdr {
     unsigned int timeWaited() { return timeWaitedIn100us; }
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait);
+    int overrun(int itemSize, int nItems, bool wait) override;
 
   private:
     int readWithTimeoutOrCallback(void* buf, int len, bool wait=true);

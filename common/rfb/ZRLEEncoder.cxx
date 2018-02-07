@@ -31,14 +31,14 @@ IntParameter zlibLevel("ZlibLevel","Zlib compression level",-1);
 
 ZRLEEncoder::ZRLEEncoder(SConnection* conn)
   : Encoder(conn, encodingZRLE, EncoderPlain, 127),
-  zos(0,0,zlibLevel), mos(129*1024)
+  zos(nullptr,0,zlibLevel), mos(129*1024)
 {
   zos.setUnderlying(&mos);
 }
 
 ZRLEEncoder::~ZRLEEncoder()
 {
-  zos.setUnderlying(NULL);
+  zos.setUnderlying(nullptr);
 }
 
 bool ZRLEEncoder::isSupported()

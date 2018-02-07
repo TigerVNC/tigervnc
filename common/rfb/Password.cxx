@@ -20,7 +20,7 @@
 // XXX not thread-safe, because d3des isn't - do we need to worry about this?
 //
 
-#include <string.h>
+#include <cstring>
 extern "C" {
 #include <rfb/d3des.h>
 }
@@ -33,7 +33,7 @@ using namespace rfb;
 static unsigned char d3desObfuscationKey[] = {23,82,107,6,35,78,88,7};
 
 
-PlainPasswd::PlainPasswd() {}
+PlainPasswd::PlainPasswd() = default;
 
 PlainPasswd::PlainPasswd(char* pwd) : CharArray(pwd) {
 }
@@ -50,7 +50,7 @@ PlainPasswd::PlainPasswd(const ObfuscatedPasswd& obfPwd) : CharArray(9) {
 }
 
 PlainPasswd::~PlainPasswd() {
-  replaceBuf(0);
+  replaceBuf(nullptr);
 }
 
 void PlainPasswd::replaceBuf(char* b) {

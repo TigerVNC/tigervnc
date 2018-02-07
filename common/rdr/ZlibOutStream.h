@@ -35,17 +35,17 @@ namespace rdr {
 
   public:
 
-    ZlibOutStream(OutStream* os=0, int bufSize=0, int compressionLevel=-1);
-    virtual ~ZlibOutStream();
+    ZlibOutStream(OutStream* os=nullptr, int bufSize=0, int compressionLevel=-1);
+    ~ZlibOutStream() override;
 
     void setUnderlying(OutStream* os);
     void setCompressionLevel(int level=-1);
-    void flush();
-    int length();
+    void flush() override;
+    int length() override;
 
   private:
 
-    int overrun(int itemSize, int nItems);
+    int overrun(int itemSize, int nItems) override;
     void deflate(int flush);
     void checkCompressionLevel();
 

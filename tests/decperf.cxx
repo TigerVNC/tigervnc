@@ -24,9 +24,9 @@
  * format.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include <sys/time.h>
 
 #include <rdr/Exception.h>
@@ -45,16 +45,16 @@ static const rfb::PixelFormat filePF(32, 24, false, true, 255, 255, 255, 0, 8, 1
 class CConn : public rfb::CConnection {
 public:
   CConn(const char *filename);
-  ~CConn();
+  ~CConn() override;
 
-  virtual void setDesktopSize(int w, int h);
-  virtual void setPixelFormat(const rfb::PixelFormat& pf);
-  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
-  virtual void framebufferUpdateStart();
-  virtual void framebufferUpdateEnd();
-  virtual void setColourMapEntries(int, int, rdr::U16*);
-  virtual void bell();
-  virtual void serverCutText(const char*, rdr::U32);
+  void setDesktopSize(int w, int h) override;
+  void setPixelFormat(const rfb::PixelFormat& pf) override;
+  void setCursor(int, int, const rfb::Point&, const rdr::U8*) override;
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  void setColourMapEntries(int, int, rdr::U16*) override;
+  void bell() override;
+  void serverCutText(const char*, rdr::U32) override;
 
 public:
   double cpuTime;
@@ -68,7 +68,7 @@ CConn::CConn(const char *filename)
   cpuTime = 0.0;
 
   in = new rdr::FileInStream(filename);
-  setStreams(in, NULL);
+  setStreams(in, nullptr);
 
   // Need to skip the initial handshake
   setState(RFBSTATE_INITIALISATION);
@@ -138,7 +138,7 @@ static struct stats runTest(const char *fn)
   struct timeval start, stop;
   struct stats s;
 
-  gettimeofday(&start, NULL);
+  gettimeofday(&start, nullptr);
 
   try {
     cc = new CConn(fn);
@@ -156,7 +156,7 @@ static struct stats runTest(const char *fn)
     exit(1);
   }
 
-  gettimeofday(&stop, NULL);
+  gettimeofday(&stop, nullptr);
 
   s.decodeTime = cc->cpuTime;
   s.realTime = (double)stop.tv_sec - start.tv_sec;

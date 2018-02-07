@@ -88,12 +88,11 @@ protected:
 class rfb::HTTPServer::Session {
 public:
   Session(network::Socket& s, rfb::HTTPServer& srv)
-    : contentType(0), contentLength(-1), lastModified(-1),
+    : contentType(nullptr), contentLength(-1), lastModified(-1),
       line(s.inStream(), 256), sock(s),
-      server(srv), state(ReadRequestLine), lastActive(time(0)) {
+      server(srv), state(ReadRequestLine), lastActive(time(nullptr)) {
   }
-  ~Session() {
-  }
+  ~Session() = default;
 
   void writeResponse(int result, const char* text);
   bool writeResponse(int code);
@@ -122,7 +121,7 @@ protected:
 void
 copyStream(InStream& is, OutStream& os) {
   try {
-    while (1) {
+    while (true) {
       os.writeU8(is.readU8());
     }
   } catch (rdr::EndOfStream) {
@@ -147,7 +146,7 @@ HTTPServer::Session::writeResponse(int result, const char* text) {
   OutStream& os=sock.outStream();
   writeLine(os, buffer);
   writeLine(os, "Server: TigerVNC/4.0");
-  time_t now = time(0);
+  time_t now = time(nullptr);
   struct tm* tm = gmtime(&now);
   strftime(buffer, 1024, "Date: %a, %d %b %Y %H:%M:%S GMT", tm);
   writeLine(os, buffer);
@@ -202,7 +201,7 @@ HTTPServer::Session::writeResponse(int code) {
 
 bool
 HTTPServer::Session::processHTTP() {
-  lastActive = time(0);
+  lastActive = time(nullptr);
 
   while (sock.inStream().checkNoWait(1)) {
 
@@ -290,7 +289,7 @@ HTTPServer::Session::processHTTP() {
 }
 
 int HTTPServer::Session::checkIdleTimeout() {
-  time_t now = time(0);
+  time_t now = time(nullptr);
   int timeout = (lastActive + idleTimeoutSecs) - now;
   if (timeout > 0)
     return secsToMillis(timeout);
@@ -300,8 +299,7 @@ int HTTPServer::Session::checkIdleTimeout() {
 
 // -=- Constructor / destructor
 
-HTTPServer::HTTPServer() {
-}
+HTTPServer::HTTPServer() = default;
 
 HTTPServer::~HTTPServer() {
   std::list<Session*>::iterator i;
@@ -314,7 +312,7 @@ HTTPServer::~HTTPServer() {
 
 void
 HTTPServer::addSocket(network::Socket* sock, bool) {
-  Session* s = new Session(*sock, *this);
+  auto* s = new Session(*sock, *this);
   if (!s) {
     sock->shutdown();
   } else {
@@ -398,7 +396,7 @@ InStream*
 HTTPServer::getFile(const char* name, const char** contentType,
                     int* contentLength, time_t* lastModified)
 {
-  return 0;
+  return nullptr;
 }
 
 const char*

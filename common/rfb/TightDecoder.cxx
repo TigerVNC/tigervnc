@@ -19,7 +19,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
@@ -51,8 +51,7 @@ TightDecoder::TightDecoder() : Decoder(DecoderPartiallyOrdered)
 }
 
 TightDecoder::~TightDecoder()
-{
-}
+= default;
 
 void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
                             const ConnParams& cp, rdr::OutStream* os)
@@ -194,9 +193,9 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   buflen -= 1;
 
   // Reset zlib streams if we are told by the server to do so.
-  for (int i = 0; i < 4; i++) {
+  for (auto & zi : zis) {
     if (comp_ctl & 1) {
-      zis[i].reset();
+      zi.reset();
     }
     comp_ctl >>= 1;
   }
@@ -301,7 +300,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   size_t rowSize, dataSize;
   rdr::U8* netbuf;
 
-  netbuf = NULL;
+  netbuf = nullptr;
 
   if (palSize != 0) {
     if (palSize <= 2)

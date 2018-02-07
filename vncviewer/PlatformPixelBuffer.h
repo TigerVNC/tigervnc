@@ -38,11 +38,11 @@
 class PlatformPixelBuffer: public rfb::FullFramePixelBuffer, public Surface {
 public:
   PlatformPixelBuffer(int width, int height);
-  ~PlatformPixelBuffer();
+  ~PlatformPixelBuffer() override;
 
-  virtual void commitBufferRW(const rfb::Rect& r);
+  void commitBufferRW(const rfb::Rect& r) override;
 
-  rfb::Rect getDamage(void);
+  rfb::Rect getDamage();
 
   using rfb::FullFramePixelBuffer::width;
   using rfb::FullFramePixelBuffer::height;

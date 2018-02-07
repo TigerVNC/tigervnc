@@ -48,7 +48,7 @@ public:
 
   DesktopWindow(int w, int h, const char *name,
                 const rfb::PixelFormat& serverPF, CConn* cc_);
-  ~DesktopWindow();
+  ~DesktopWindow() override;
 
   // Most efficient format (from DesktopWindow's point of view)
   const rfb::PixelFormat &getPreferredPF();
@@ -70,10 +70,10 @@ public:
   void setLEDState(unsigned int state);
 
   // Fl_Window callback methods
-  void draw();
-  void resize(int x, int y, int w, int h);
+  void draw() override;
+  void resize(int x, int y, int w, int h) override;
 
-  int handle(int event);
+  int handle(int event) override;
 
   void fullscreen_on();
 

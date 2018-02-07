@@ -66,22 +66,22 @@ struct RTTInfo {
   unsigned inFlight;
 };
 
-static Cursor emptyCursor(0, 0, Point(0, 0), NULL);
+static Cursor emptyCursor(0, 0, Point(0, 0), nullptr);
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
   : sock(s), reverseConnection(reverse),
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
-    fenceDataLen(0), fenceData(NULL),
+    fenceDataLen(0), fenceData(nullptr),
     baseRTT(-1), congWindow(0), ackedOffset(0), sentOffset(0),
     minRTT(-1), seenCongestion(false),
     pingCounter(0), congestionTimer(this),
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
-    clientHasCursor(false),
-    accessRights(AccessDefault), startTime(time(0))
+    accessRights(AccessDefault), startTime(time(nullptr)),
+    clientHasCursor(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -89,7 +89,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
 
   // Configure the socket
   setSocketTimeouts();
-  lastEventTime = time(0);
+  lastEventTime = time(nullptr);
 
   server->clients.push_front(this);
 }
@@ -116,7 +116,7 @@ VNCSConnectionST::~VNCSConnectionST()
   }
 
   if (server->pointerClient == this)
-    server->pointerClient = 0;
+    server->pointerClient = nullptr;
 
   // Remove this client from the server
   server->clients.remove(this);
@@ -147,7 +147,7 @@ void VNCSConnectionST::close(const char* reason)
     vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
 
   if (authenticated()) {
-      server->lastDisconnectTime = time(0);
+      server->lastDisconnectTime = time(nullptr);
   }
 
   // Just shutdown the socket and mark our state as closing.  Eventually the
@@ -343,7 +343,7 @@ int VNCSConnectionST::checkIdleTimeout()
   if (idleTimeout == 0) return 0;
   if (state() != RFBSTATE_NORMAL && idleTimeout < 15)
     idleTimeout = 15; // minimum of 15 seconds while authenticating
-  time_t now = time(0);
+  time_t now = time(nullptr);
   if (now < lastEventTime) {
     // Someone must have set the time backwards.  Set lastEventTime so that the
     // idleTimeout will count from now.
@@ -414,7 +414,7 @@ bool VNCSConnectionST::needRenderedCursor()
       !cp.supportsLocalCursor && !cp.supportsLocalXCursor)
     return true;
   if (!server->cursorPos.equals(pointerEventPos) &&
-      (time(0) - pointerEventTime) > 0)
+      (time(nullptr) - pointerEventTime) > 0)
     return true;
 
   return false;
@@ -437,7 +437,7 @@ void VNCSConnectionST::approveConnectionOrClose(bool accept,
 
 void VNCSConnectionST::authSuccess()
 {
-  lastEventTime = time(0);
+  lastEventTime = time(nullptr);
 
   server->startDesktop();
 
@@ -456,7 +456,7 @@ void VNCSConnectionST::authSuccess()
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->pb->getRect());
-  startTime = time(0);
+  startTime = time(nullptr);
 
   // - Bootstrap the congestion control
   ackedOffset = sock->outStream().length();
@@ -500,7 +500,7 @@ void VNCSConnectionST::queryConnection(const char* userName)
 
 void VNCSConnectionST::clientInit(bool shared)
 {
-  lastEventTime = time(0);
+  lastEventTime = time(nullptr);
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
   if (!(accessRights & AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
@@ -532,7 +532,7 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
 
 void VNCSConnectionST::pointerEvent(const Point& pos, int buttonMask)
 {
-  pointerEventTime = lastEventTime = time(0);
+  pointerEventTime = lastEventTime = time(nullptr);
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
@@ -541,7 +541,7 @@ void VNCSConnectionST::pointerEvent(const Point& pos, int buttonMask)
     if (buttonMask)
       server->pointerClient = this;
     else
-      server->pointerClient = 0;
+      server->pointerClient = nullptr;
     server->desktop->pointerEvent(pointerEventPos, buttonMask);
   }
 }
@@ -571,7 +571,7 @@ public:
 void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   rdr::U32 lookup;
 
-  lastEventTime = time(0);
+  lastEventTime = time(nullptr);
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
@@ -776,7 +776,7 @@ void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
       fenceFlags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter | fenceFlagSyncNext);
       fenceDataLen = len;
       delete [] fenceData;
-      fenceData = NULL;
+      fenceData = nullptr;
       if (len > 0) {
         fenceData = new char[len];
         memcpy(fenceData, data, len);
@@ -842,7 +842,7 @@ void VNCSConnectionST::supportsLocalCursor()
 
 void VNCSConnectionST::supportsFence()
 {
-  writer()->writeFence(fenceFlagRequest, 0, NULL);
+  writer()->writeFence(fenceFlagRequest, 0, nullptr);
 }
 
 void VNCSConnectionST::supportsContinuousUpdates()
@@ -896,7 +896,7 @@ void VNCSConnectionST::writeRTTPing()
 
   memset(&rttInfo, 0, sizeof(struct RTTInfo));
 
-  gettimeofday(&rttInfo.tv, NULL);
+  gettimeofday(&rttInfo.tv, nullptr);
   rttInfo.offset = sock->outStream().length();
   rttInfo.inFlight = rttInfo.offset - ackedOffset;
 
@@ -1184,7 +1184,7 @@ void VNCSConnectionST::writeDataUpdate()
   // with the update region, we need to draw the rendered cursor regardless of
   // whether it has changed.
 
-  cursor = NULL;
+  cursor = nullptr;
   if (needRenderedCursor()) {
     Rect renderedCursorRect;
 
@@ -1194,11 +1194,11 @@ void VNCSConnectionST::writeDataUpdate()
       = cursor->getEffectiveRect().intersect(req.get_bounding_rect());
 
     if (renderedCursorRect.is_empty()) {
-      cursor = NULL;
+      cursor = nullptr;
     } else if (!updateRenderedCursor &&
                ui.changed.union_(ui.copied)
                .intersect(renderedCursorRect).is_empty()) {
-      cursor = NULL;
+      cursor = nullptr;
     }
 
     if (cursor) {

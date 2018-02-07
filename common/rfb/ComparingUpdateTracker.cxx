@@ -15,8 +15,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <vector>
 #include <rdr/types.h>
 #include <rfb/Exception.h>
@@ -35,8 +35,7 @@ ComparingUpdateTracker::ComparingUpdateTracker(PixelBuffer* buffer)
 }
 
 ComparingUpdateTracker::~ComparingUpdateTracker()
-{
-}
+= default;
 
 
 #define BLOCK_SIZE 64
@@ -146,8 +145,8 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
         if (memcmp(oldPtr, newPtr, blockWidthInBytes) != 0)
         {
           // A block has changed - copy the remainder to the oldFb
-          changedBlocks.push_back(Rect(blockLeft, blockTop,
-                                       blockRight, blockBottom));
+          changedBlocks.emplace_back(blockLeft, blockTop,
+                                       blockRight, blockBottom);
           for (int y2 = y; y2 < blockBottom; y2++)
           {
             memcpy(oldPtr, newPtr, blockWidthInBytes);

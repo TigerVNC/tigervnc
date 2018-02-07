@@ -44,7 +44,7 @@ namespace rfb {
   class CConnection;
   class CSecurity {
   public:
-    virtual ~CSecurity() {}
+    virtual ~CSecurity() = default;
     virtual bool processMsg(CConnection* cc)=0;
     virtual void destroy() { delete this; }
     virtual int getType() const = 0;

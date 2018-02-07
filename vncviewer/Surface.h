@@ -23,7 +23,7 @@
 #include <windows.h>
 #elif defined(__APPLE__)
 // Apple headers conflict with FLTK, so redefine types here
-typedef struct CGImage* CGImageRef;
+using CGImageRef = struct CGImage *;
 #else
 #include <X11/extensions/Xrender.h>
 #endif

@@ -35,11 +35,11 @@ namespace rfb {
   public:
 
     CSecurityVeNCrypt(SecurityClient* sec);
-    ~CSecurityVeNCrypt();
-    virtual bool processMsg(CConnection* cc);// { return true; }
-    int getType() const {return chosenType;}
-    virtual const char* description() const;
-    virtual bool isSecure() const;
+    ~CSecurityVeNCrypt() override;
+    bool processMsg(CConnection* cc) override;// { return true; }
+    int getType() const override {return chosenType;}
+    const char* description() const override;
+    bool isSecure() const override;
 
   protected:
     CSecurity *csecurity;

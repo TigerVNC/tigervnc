@@ -38,7 +38,7 @@ PixelBuffer::PixelBuffer(const PixelFormat& pf, int w, int h)
   : format(pf), width_(w), height_(h) {}
 PixelBuffer::PixelBuffer() : width_(0), height_(0) {}
 
-PixelBuffer::~PixelBuffer() {}
+PixelBuffer::~PixelBuffer() = default;
 
 
 void
@@ -109,12 +109,10 @@ ModifiablePixelBuffer::ModifiablePixelBuffer(const PixelFormat& pf,
 }
 
 ModifiablePixelBuffer::ModifiablePixelBuffer()
-{
-}
+= default;
 
 ModifiablePixelBuffer::~ModifiablePixelBuffer()
-{
-}
+= default;
 
 void ModifiablePixelBuffer::fillRect(const Rect& r, const void* pix)
 {
@@ -292,9 +290,9 @@ FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
 {
 }
 
-FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
+FullFramePixelBuffer::FullFramePixelBuffer() : data(nullptr) {}
 
-FullFramePixelBuffer::~FullFramePixelBuffer() {}
+FullFramePixelBuffer::~FullFramePixelBuffer() = default;
 
 rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
 {
@@ -332,7 +330,7 @@ ManagedPixelBuffer::ManagedPixelBuffer()
 };
 
 ManagedPixelBuffer::ManagedPixelBuffer(const PixelFormat& pf, int w, int h)
-  : FullFramePixelBuffer(pf, w, h, NULL, w), datasize(0)
+  : FullFramePixelBuffer(pf, w, h, nullptr, w), datasize(0)
 {
   checkDataSize();
 };
@@ -358,7 +356,7 @@ ManagedPixelBuffer::checkDataSize() {
   if (datasize < new_datasize) {
     if (data) {
       delete [] data;
-      datasize = 0; data = 0;
+      datasize = 0; data = nullptr;
     }
     if (new_datasize) {
       data = new U8[new_datasize];

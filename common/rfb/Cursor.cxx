@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <rfb/Cursor.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
@@ -228,7 +228,7 @@ void Cursor::crop()
 
   // Copy the pixel data
   int newDataLen = busy.area() * 4;
-  rdr::U8* newData = new rdr::U8[newDataLen];
+  auto* newData = new rdr::U8[newDataLen];
   data_ptr = newData;
   for (y = busy.tl.y; y < busy.br.y; y++) {
     memcpy(data_ptr, data + y*width()*4 + busy.tl.x*4, busy.width()*4);
@@ -244,8 +244,7 @@ void Cursor::crop()
 }
 
 RenderedCursor::RenderedCursor()
-{
-}
+= default;
 
 const rdr::U8* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
 {

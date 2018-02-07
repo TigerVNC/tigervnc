@@ -30,8 +30,7 @@ RawEncoder::RawEncoder(SConnection* conn) :
 }
 
 RawEncoder::~RawEncoder()
-{
-}
+= default;
 
 bool RawEncoder::isSupported()
 {

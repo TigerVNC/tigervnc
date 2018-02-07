@@ -40,10 +40,10 @@
 
 #include <FL/fl_utf8.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstring>
+#include <climits>
+#include <cerrno>
 
 #include "i18n.h"
 
@@ -209,15 +209,15 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
     } else {
 
-      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
+      for (auto & j : replaceMap) {
 
-        if (val[i] == replaceMap[j].first) {
+        if (val[i] == j.first) {
           dest[pos] = '\\';
           pos++;
           if (pos >= destSize)
             return false;
 
-          dest[pos] = replaceMap[j].second;
+          dest[pos] = j.second;
           normalCharacter = false;
           break;
         }
@@ -249,9 +249,9 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
     // Check for escape sequences
     if (val[i] == '\\') {
       
-      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
-        if (val[i+1] == replaceMap[j].second) {
-          dest[pos] = replaceMap[j].first;
+      for (auto & j : replaceMap) {
+        if (val[i+1] == j.second) {
+          dest[pos] = j.first;
           escapedCharacter = true;
           pos--;
           break;
@@ -499,14 +499,14 @@ void saveViewerParameters(const char *filename, const char *servername) {
   char encodingBuffer[buffersize];
 
   // Write to the registry or a predefined file if no filename was specified.
-  if(filename == NULL) {
+  if(filename == nullptr) {
 
 #ifdef _WIN32
     saveToReg(servername);
     return;
 #endif
     
-    char* homeDir = NULL;
+    char* homeDir = nullptr;
     if (getvnchomedir(&homeDir) == -1) {
       vlog.error(_("Failed to write configuration file, can't obtain home "
                    "directory path."));
@@ -530,17 +530,17 @@ void saveViewerParameters(const char *filename, const char *servername) {
   if (encodeValue(servername, encodingBuffer, buffersize))  
     fprintf(f, "ServerName=%s\n", encodingBuffer);
   
-  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
-    if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
-      if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
-        fprintf(f, "%s=%s\n", ((StringParameter*)parameterArray[i])->getName(), encodingBuffer);
-    } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
-      fprintf(f, "%s=%d\n", ((IntParameter*)parameterArray[i])->getName(), (int)*(IntParameter*)parameterArray[i]);
-    } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
-      fprintf(f, "%s=%d\n", ((BoolParameter*)parameterArray[i])->getName(), (int)*(BoolParameter*)parameterArray[i]);
+  for (auto & i : parameterArray) {
+    if (dynamic_cast<StringParameter*>(i) != nullptr) {
+      if (encodeValue(*(StringParameter*)i, encodingBuffer, buffersize))
+        fprintf(f, "%s=%s\n", ((StringParameter*)i)->getName(), encodingBuffer);
+    } else if (dynamic_cast<IntParameter*>(i) != nullptr) {
+      fprintf(f, "%s=%d\n", ((IntParameter*)i)->getName(), (int)*(IntParameter*)i);
+    } else if (dynamic_cast<BoolParameter*>(i) != nullptr) {
+      fprintf(f, "%s=%d\n", ((BoolParameter*)i)->getName(), (int)*(BoolParameter*)i);
     } else {      
       vlog.error(_("Unknown parameter type for parameter %s"),
-                 parameterArray[i]->getName());
+                 i->getName());
     }
   }
   fclose(f);
@@ -556,13 +556,13 @@ char* loadViewerParameters(const char *filename) {
   static char servername[sizeof(line)];
 
   // Load from the registry or a predefined file if no filename was specified.
-  if(filename == NULL) {
+  if(filename == nullptr) {
 
 #ifdef _WIN32
     return loadFromReg();
 #endif
 
-    char* homeDir = NULL;
+    char* homeDir = nullptr;
     if (getvnchomedir(&homeDir) == -1)
       throw Exception(_("Failed to read configuration file, "
                         "can't obtain home directory path."));
@@ -576,7 +576,7 @@ char* loadViewerParameters(const char *filename) {
   FILE* f = fopen(filepath, "r");
   if (!f) {
     if (!filename)
-      return NULL; // Use defaults.
+      return nullptr; // Use defaults.
     throw Exception(_("Failed to read configuration file, can't open %s: %s"),
                     filepath, strerror(errno));
   }
@@ -619,7 +619,7 @@ char* loadViewerParameters(const char *filename) {
 
     // Find the parameter value
     char *value = strchr(line, '=');
-    if (value == NULL) {
+    if (value == nullptr) {
       vlog.error(_("Failed to read line %d in file %s: %s"),
                  lineNr, filepath, _("Invalid format"));
       continue;
@@ -643,35 +643,35 @@ char* loadViewerParameters(const char *filename) {
     } else {
     
       // Find and set the correct parameter
-      for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+      for (auto & i : parameterArray) {
 
-        if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((StringParameter*)parameterArray[i])->getName()) == 0) {
+        if (dynamic_cast<StringParameter*>(i) != nullptr) {
+          if (strcasecmp(line, ((StringParameter*)i)->getName()) == 0) {
 
             if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
               vlog.error(_("Failed to read line %d in file %s: %s"),
                          lineNr, filepath, _("Invalid format or too large value"));
               continue;
             }
-            ((StringParameter*)parameterArray[i])->setParam(decodingBuffer);
+            ((StringParameter*)i)->setParam(decodingBuffer);
             invalidParameterName = false;
           }
 
-        } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((IntParameter*)parameterArray[i])->getName()) == 0) {
-            ((IntParameter*)parameterArray[i])->setParam(atoi(value));
+        } else if (dynamic_cast<IntParameter*>(i) != nullptr) {
+          if (strcasecmp(line, ((IntParameter*)i)->getName()) == 0) {
+            ((IntParameter*)i)->setParam(atoi(value));
             invalidParameterName = false;
           }
 
-        } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((BoolParameter*)parameterArray[i])->getName()) == 0) {
-            ((BoolParameter*)parameterArray[i])->setParam(atoi(value));
+        } else if (dynamic_cast<BoolParameter*>(i) != nullptr) {
+          if (strcasecmp(line, ((BoolParameter*)i)->getName()) == 0) {
+            ((BoolParameter*)i)->setParam(atoi(value));
             invalidParameterName = false;
           }
 
         } else {
           vlog.error(_("Unknown parameter type for parameter %s"),
-                     parameterArray[i]->getName());
+                     i->getName());
         }
       }
     }
@@ -680,7 +680,7 @@ char* loadViewerParameters(const char *filename) {
       vlog.info(_("Unknown parameter %s on line %d in file %s"),
                 line, lineNr, filepath);
   }
-  fclose(f); f=0;
+  fclose(f); f=nullptr;
   
   return servername;
 }

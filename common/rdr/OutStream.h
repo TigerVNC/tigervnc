@@ -26,7 +26,7 @@
 
 #include <rdr/types.h>
 #include <rdr/InStream.h>
-#include <string.h> // for memcpy
+#include <cstring> // for memcpy
 
 namespace rdr {
 
@@ -34,11 +34,11 @@ namespace rdr {
 
   protected:
 
-    OutStream() {}
+    OutStream() = default;
 
   public:
 
-    virtual ~OutStream() {}
+    virtual ~OutStream() = default;
 
     // check() ensures there is buffer space for at least one item of size
     // itemSize bytes.  Returns the number of items which fit (up to a maximum
@@ -91,7 +91,7 @@ namespace rdr {
     // writeBytes() writes an exact number of bytes.
 
     void writeBytes(const void* data, int length) {
-      const U8* dataPtr = (const U8*)data;
+      const auto* dataPtr = (const U8*)data;
       const U8* dataEnd = dataPtr + length;
       while (dataPtr < dataEnd) {
         int n = check(1, dataEnd - dataPtr);

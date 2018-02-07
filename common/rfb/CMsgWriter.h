@@ -39,7 +39,7 @@ namespace rfb {
   class CMsgWriter : public InputHandler {
   public:
     CMsgWriter(ConnParams* cp, rdr::OutStream* os);
-    virtual ~CMsgWriter();
+    ~CMsgWriter() override;
 
     void writeClientInit(bool shared);
 
@@ -55,9 +55,9 @@ namespace rfb {
 
     // InputHandler implementation
 
-    virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
-    virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void clientCutText(const char* str, int len);
+    void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) override;
+    void pointerEvent(const Point& pos, int buttonMask) override;
+    void clientCutText(const char* str, int len) override;
 
   protected:
     void startMsg(int type);

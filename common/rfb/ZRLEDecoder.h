@@ -26,12 +26,12 @@ namespace rfb {
   class ZRLEDecoder : public Decoder {
   public:
     ZRLEDecoder();
-    virtual ~ZRLEDecoder();
-    virtual void readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, rdr::OutStream* os);
-    virtual void decodeRect(const Rect& r, const void* buffer,
+    ~ZRLEDecoder() override;
+    void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, rdr::OutStream* os) override;
+    void decodeRect(const Rect& r, const void* buffer,
                             size_t buflen, const ConnParams& cp,
-                            ModifiablePixelBuffer* pb);
+                            ModifiablePixelBuffer* pb) override;
   private:
     rdr::ZlibInStream zis;
   };

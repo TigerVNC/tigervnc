@@ -27,7 +27,7 @@
 #error "This source should not be compiled without HAVE_GNUTLS defined"
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>
@@ -49,9 +49,9 @@ StringParameter SSecurityTLS::X509_KeyFile
 
 static LogWriter vlog("TLS");
 
-SSecurityTLS::SSecurityTLS(bool _anon) : session(0), dh_params(0),
-						 anon_cred(0), cert_cred(0),
-						 anon(_anon), fis(0), fos(0)
+SSecurityTLS::SSecurityTLS(bool _anon) : session(nullptr), dh_params(nullptr),
+						 anon_cred(nullptr), cert_cred(nullptr),
+						 anon(_anon), fis(nullptr), fos(nullptr)
 {
   certfile = X509_CertFile.getData();
   keyfile = X509_KeyFile.getData();
@@ -71,22 +71,22 @@ void SSecurityTLS::shutdown()
 
   if (dh_params) {
     gnutls_dh_params_deinit(dh_params);
-    dh_params = 0;
+    dh_params = nullptr;
   }
 
   if (anon_cred) {
     gnutls_anon_free_server_credentials(anon_cred);
-    anon_cred = 0;
+    anon_cred = nullptr;
   }
 
   if (cert_cred) {
     gnutls_certificate_free_credentials(cert_cred);
-    cert_cred = 0;
+    cert_cred = nullptr;
   }
 
   if (session) {
     gnutls_deinit(session);
-    session = 0;
+    session = nullptr;
   }
 }
 
@@ -132,8 +132,8 @@ bool SSecurityTLS::processMsg(SConnection *sc)
     os->flush();
   }
 
-  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
-  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
+  auto *tlsis = new rdr::TLSInStream(is, session);
+  auto *tlsos = new rdr::TLSOutStream(os, session);
 
   int err;
   err = gnutls_handshake(session);
@@ -167,7 +167,7 @@ void SSecurityTLS::setParams(gnutls_session_t session)
 
   prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
                        strlen(kx_anon_priority) + 1);
-  if (prio == NULL)
+  if (prio == nullptr)
     throw AuthFailureException("Not enough memory for GnuTLS priority string");
 
   strcpy(prio, Security::GnuTLSPriority);

@@ -21,7 +21,7 @@
 #ifndef __RFB_LOG_WRITER_H__
 #define __RFB_LOG_WRITER_H__
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <rfb/Logger.h>
 #include <rfb/Configuration.h>
 
@@ -61,7 +61,7 @@ namespace rfb {
 
     void setLog(Logger *logger);
     void setLevel(int level);
-    int getLevel(void) { return m_level; }
+    int getLevel() { return m_level; }
 
     inline void write(int level, const char* format, ...) __printf_attr(3, 4) {
       if (m_log && (level <= m_level)) {
@@ -104,7 +104,7 @@ namespace rfb {
   class LogParameter : public StringParameter {
   public:
     LogParameter();
-    virtual bool setParam(const char* v);
+    bool setParam(const char* v) override;
 
     // Call this to set a suitable default value.
     // Can't use the normal default mechanism for

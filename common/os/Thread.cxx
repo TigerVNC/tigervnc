@@ -20,7 +20,7 @@
 #include <windows.h>
 #else
 #include <pthread.h>
-#include <signal.h>
+#include <csignal>
 #include <unistd.h>
 #endif
 
@@ -31,7 +31,7 @@
 
 using namespace os;
 
-Thread::Thread() : running(false), threadId(NULL)
+Thread::Thread() : running(false), threadId(nullptr)
 {
   mutex = new Mutex;
 
@@ -74,9 +74,9 @@ void Thread::start()
   if (ret != 0)
     throw rdr::SystemException("Failed to mask signals", ret);
 
-  ret = pthread_create((pthread_t*)threadId, NULL, startRoutine, this);
+  ret = pthread_create((pthread_t*)threadId, nullptr, startRoutine, this);
 
-  pthread_sigmask(SIG_SETMASK, &old, NULL);
+  pthread_sigmask(SIG_SETMASK, &old, nullptr);
 
   if (ret != 0)
     throw rdr::SystemException("Failed to create thread", ret);
@@ -99,7 +99,7 @@ void Thread::wait()
 #else
   int ret;
 
-  ret = pthread_join(*(pthread_t*)threadId, NULL);
+  ret = pthread_join(*(pthread_t*)threadId, nullptr);
   if (ret != 0)
     throw rdr::SystemException("Failed to join thread", ret);
 #endif
@@ -161,5 +161,5 @@ void* Thread::startRoutine(void* data)
   self->running = false;
   self->mutex->unlock();
 
-  return 0;
+  return nullptr;
 }

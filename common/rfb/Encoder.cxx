@@ -31,8 +31,7 @@ Encoder::Encoder(SConnection *conn_, int encoding_,
 }
 
 Encoder::~Encoder()
-{
-}
+= default;
 
 void Encoder::writeSolidRect(int width, int height,
                              const PixelFormat& pf, const rdr::U8* colour)

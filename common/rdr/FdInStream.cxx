@@ -20,9 +20,9 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
 #include <sys/time.h>
 #ifdef _WIN32
 #include <winsock2.h>
@@ -59,7 +59,7 @@ enum { DEFAULT_BUF_SIZE = 8192,
 FdInStream::FdInStream(int fd_, int timeoutms_, int bufSize_,
                        bool closeWhenDone_)
   : fd(fd_), closeWhenDone(closeWhenDone_),
-    timeoutms(timeoutms_), blockCallback(0),
+    timeoutms(timeoutms_), blockCallback(nullptr),
     timing(false), timeWaitedIn100us(5), timedKbits(0),
     bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
 {
@@ -104,7 +104,7 @@ void FdInStream::readBytes(void* data, int length)
     return;
   }
 
-  U8* dataPtr = (U8*)data;
+  auto* dataPtr = (U8*)data;
 
   int n = end - ptr;
   if (n > length) n = length;
@@ -175,7 +175,7 @@ int FdInStream::readWithTimeoutOrCallback(void* buf, int len, bool wait)
 {
   struct timeval before, after;
   if (timing)
-    gettimeofday(&before, 0);
+    gettimeofday(&before, nullptr);
 
   int n;
   while (true) {
@@ -190,12 +190,12 @@ int FdInStream::readWithTimeoutOrCallback(void* buf, int len, bool wait)
         tv.tv_sec = timeoutms / 1000;
         tv.tv_usec = (timeoutms % 1000) * 1000;
       } else {
-        tvp = 0;
+        tvp = nullptr;
       }
 
       FD_ZERO(&fds);
       FD_SET(fd, &fds);
-      n = select(fd+1, &fds, 0, 0, tvp);
+      n = select(fd+1, &fds, nullptr, nullptr, tvp);
     } while (n < 0 && errno == EINTR);
 
     if (n > 0) break;
@@ -214,7 +214,7 @@ int FdInStream::readWithTimeoutOrCallback(void* buf, int len, bool wait)
   if (n == 0) throw EndOfStream();
 
   if (timing) {
-    gettimeofday(&after, 0);
+    gettimeofday(&after, nullptr);
 //      fprintf(stderr,"%d.%06d\n",(after.tv_sec - before.tv_sec),
 //              (after.tv_usec - before.tv_usec));
     int newTimeWaited = ((after.tv_sec - before.tv_sec) * 10000 +

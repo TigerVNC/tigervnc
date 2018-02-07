@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <stdio.h>
+#include <cstdio>
 #include <rfb/encodings.h>
 #include <rfb/Region.h>
 #include <rfb/Decoder.h>
@@ -34,8 +34,7 @@ Decoder::Decoder(enum DecoderFlags flags) : flags(flags)
 }
 
 Decoder::~Decoder()
-{
-}
+= default;
 
 void Decoder::getAffectedRegion(const Rect& rect, const void* buffer,
                                 size_t buflen, const ConnParams& cp,
@@ -83,6 +82,6 @@ Decoder* Decoder::createDecoder(int encoding)
   case encodingTight:
     return new TightDecoder();
   default:
-    return NULL;
+    return nullptr;
   }
 }

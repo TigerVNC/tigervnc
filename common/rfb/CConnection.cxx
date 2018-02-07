@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include <rfb/Exception.h>
 #include <rfb/fenceTypes.h>
@@ -39,21 +39,21 @@ using namespace rfb;
 static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
-  : csecurity(0), is(0), os(0), reader_(0), writer_(0),
+  : csecurity(nullptr), is(nullptr), os(nullptr), reader_(nullptr), writer_(nullptr),
     shared(false),
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
-    framebuffer(NULL), decoder(this)
+    framebuffer(nullptr), decoder(this)
 {
 }
 
 CConnection::~CConnection()
 {
-  setFramebuffer(NULL);
+  setFramebuffer(nullptr);
   if (csecurity) csecurity->destroy();
   delete reader_;
-  reader_ = 0;
+  reader_ = nullptr;
   delete writer_;
-  writer_ = 0;
+  writer_ = nullptr;
 }
 
 void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -66,7 +66,7 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
 {
   decoder.flush();
 
-  if ((framebuffer != NULL) && (fb != NULL)) {
+  if ((framebuffer != nullptr) && (fb != nullptr)) {
     Rect rect;
 
     const rdr::U8* data;
