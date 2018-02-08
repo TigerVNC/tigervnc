@@ -102,7 +102,7 @@ static const char *about_text()
              "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
              "See http://www.tigervnc.org for information on TigerVNC."),
            (int)sizeof(size_t)*8, PACKAGE_VERSION,
-           BUILD_TIMESTAMP, 2017);
+           BUILD_TIMESTAMP, 2018);
 
   return buffer;
 }
