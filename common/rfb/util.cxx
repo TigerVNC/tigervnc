@@ -121,19 +121,38 @@ namespace rfb {
     dest[src ? destlen-1 : 0] = 0;
   }
 
+  unsigned msBetween(const struct timeval *first,
+                     const struct timeval *second)
+  {
+    unsigned diff;
+
+    diff = (second->tv_sec - first->tv_sec) * 1000;
+
+    diff += second->tv_usec / 1000;
+    diff -= first->tv_usec / 1000;
+
+    return diff;
+  }
+
   unsigned msSince(const struct timeval *then)
   {
     struct timeval now;
-    unsigned diff;
 
     gettimeofday(&now, NULL);
 
-    diff = (now.tv_sec - then->tv_sec) * 1000;
+    return msBetween(then, &now);
+  }
 
-    diff += now.tv_usec / 1000;
-    diff -= then->tv_usec / 1000;
-
-    return diff;
+  bool isBefore(const struct timeval *first,
+                const struct timeval *second)
+  {
+    if (first->tv_sec < second->tv_sec)
+      return true;
+    if (first->tv_sec > second->tv_sec)
+      return false;
+    if (first->tv_usec < second->tv_usec)
+      return true;
+    return false;
   }
 
   static size_t doPrefix(long long value, const char *unit,

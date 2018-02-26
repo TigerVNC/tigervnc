@@ -28,15 +28,14 @@
 #define __RFB_VNCSCONNECTIONST_H__
 
 #include <map>
-#include <rfb/SConnection.h>
-#include <rfb/SMsgWriter.h>
-#include <rfb/VNCServerST.h>
-#include <rfb/Timer.h>
-#include <rfb/EncodeManager.h>
 
-struct RTTInfo;
+#include <rfb/Congestion.h>
+#include <rfb/EncodeManager.h>
+#include <rfb/SConnection.h>
+#include <rfb/Timer.h>
 
 namespace rfb {
+  class VNCServerST;
 
   class VNCSConnectionST : public SConnection,
                            public Timer::Callback {
@@ -164,9 +163,7 @@ namespace rfb {
 
     // Congestion control
     void writeRTTPing();
-    void handleRTTPong(const struct RTTInfo &rttInfo);
     bool isCongested();
-    void updateCongestion();
 
     // writeFramebufferUpdate() attempts to write a framebuffer update to the
     // client.
@@ -192,13 +189,7 @@ namespace rfb {
     unsigned fenceDataLen;
     char *fenceData;
 
-    unsigned baseRTT;
-    unsigned congWindow;
-    unsigned ackedOffset, sentOffset;
-
-    unsigned minRTT;
-    bool seenCongestion;
-    unsigned pingCounter;
+    Congestion congestion;
     Timer congestionTimer;
 
     VNCServerST* server;
