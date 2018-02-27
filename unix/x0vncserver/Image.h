@@ -38,8 +38,6 @@ public:
   Image(Display *d, int width, int height);
   virtual ~Image();
 
-  bool isTrueColor() const { return trueColor; }
-
   virtual const char *className() const {
     return "Image";
   }
@@ -84,8 +82,6 @@ protected:
                   int w, int h);
 
   Display *dpy;
-  bool trueColor;
-
 };
 
 //

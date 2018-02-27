@@ -58,13 +58,13 @@ ImageCleanup imageCleanup;
 static rfb::LogWriter vlog("Image");
 
 Image::Image(Display *d)
-  : xim(NULL), dpy(d), trueColor(true)
+  : xim(NULL), dpy(d)
 {
   imageCleanup.images.push_back(this);
 }
 
 Image::Image(Display *d, int width, int height)
-  : xim(NULL), dpy(d), trueColor(true)
+  : xim(NULL), dpy(d)
 {
   imageCleanup.images.push_back(this);
   Init(width, height);
@@ -73,7 +73,11 @@ Image::Image(Display *d, int width, int height)
 void Image::Init(int width, int height)
 {
   Visual* vis = DefaultVisual(dpy, DefaultScreen(dpy));
-  trueColor = (vis->c_class == TrueColor);
+
+  if (vis->c_class != TrueColor) {
+    vlog.error("pseudocolour not supported");
+    exit(1);
+  }
 
   xim = XCreateImage(dpy, vis, DefaultDepth(dpy, DefaultScreen(dpy)),
                      ZPixmap, 0, 0, width, height, BitmapPad(dpy), 0);
@@ -239,7 +243,10 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
     depth = vinfo->depth;
   }
 
-  trueColor = (visual->c_class == TrueColor);
+  if (visual->c_class != TrueColor) {
+    vlog.error("pseudocolour not supported");
+    exit(1);
+  }
 
   shminfo = new XShmSegmentInfo;
 
