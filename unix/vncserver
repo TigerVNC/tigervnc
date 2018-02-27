@@ -207,7 +207,7 @@ my %config;
 # override these where present.
 $default_opts{desktop} = &quotedString($desktopName);
 $default_opts{httpd} = $vncJavaFiles if ($vncJavaFiles);
-$default_opts{auth} = $xauthorityFile;
+$default_opts{auth} = &quotedString($xauthorityFile);
 $default_opts{geometry} = $geometry if ($geometry);
 $default_opts{depth} = $depth if ($depth);
 $default_opts{pixelformat} = $pixelformat if ($pixelformat);
