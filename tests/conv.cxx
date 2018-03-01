@@ -72,9 +72,9 @@ bool verifyPixel(const rfb::PixelFormat &dstpf,
   g = (p >> dstpf.greenShift) & dstpf.greenMax;
   b = (p >> dstpf.blueShift) & dstpf.blueMax;
 
-  r <<= 8 - dstpf.redBits;
-  g <<= 8 - dstpf.greenBits;
-  b <<= 8 - dstpf.blueBits;
+  r = (r * 255 + dstpf.redMax/2) / dstpf.redMax;
+  g = (g * 255 + dstpf.greenMax/2) / dstpf.greenMax;
+  b = (b * 255 + dstpf.blueMax/2) / dstpf.blueMax;
 
   // The allowed error depends on:
   //
