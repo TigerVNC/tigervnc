@@ -41,11 +41,11 @@ void PixelFormat::directBufferFromBufferFrom888(rdr::UOUT* dst,
   const rdr::U8 *r, *g, *b;
   int dstPad, srcPad;
 
-  int redTruncShift, greenTruncShift, blueTruncShift;
+  const rdr::U8 *redDownTable, *greenDownTable, *blueDownTable;
 
-  redTruncShift = 8 - redBits;
-  greenTruncShift = 8 - greenBits;
-  blueTruncShift = 8 - blueBits;
+  redDownTable = &downconvTable[(redBits-1)*256];
+  greenDownTable = &downconvTable[(greenBits-1)*256];
+  blueDownTable = &downconvTable[(blueBits-1)*256];
 
   if (srcPF.bigEndian) {
     r = src + (24 - srcPF.redShift)/8;
@@ -64,9 +64,9 @@ void PixelFormat::directBufferFromBufferFrom888(rdr::UOUT* dst,
     while (w_--) {
       rdr::UOUT d;
 
-      d = (*r >> redTruncShift) << redShift;
-      d |= (*g >> greenTruncShift) << greenShift;
-      d |= (*b >> blueTruncShift) << blueShift;
+      d = redDownTable[*r] << redShift;
+      d |= greenDownTable[*g] << greenShift;
+      d |= blueDownTable[*b] << blueShift;
 
 #if OUTBPP != 8
       if (endianMismatch)

@@ -34,6 +34,7 @@
 using namespace rfb;
 
 rdr::U8 PixelFormat::upconvTable[256*8];
+rdr::U8 PixelFormat::downconvTable[256*8];
 
 class PixelFormat::Init {
 public:
@@ -47,24 +48,29 @@ PixelFormat::Init::Init()
 {
   int bits;
 
-  // Bit replication is almost perfect, but not quite. And
+  // Shifting bits is almost perfect, but not quite. And
   // a lookup table is still quicker when there is a large
   // difference between the source and destination depth.
 
   for (bits = 1;bits <= 8;bits++) {
     int i, maxVal;
-    rdr::U8 *subTable;
+    rdr::U8 *subUpTable;
+    rdr::U8 *subDownTable;
 
     maxVal = (1 << bits) - 1;
-    subTable = &upconvTable[(bits-1)*256];
+    subUpTable = &upconvTable[(bits-1)*256];
+    subDownTable = &downconvTable[(bits-1)*256];
 
     for (i = 0;i <= maxVal;i++)
-      subTable[i] = i * 255 / maxVal;
+      subUpTable[i] = i * 255 / maxVal;
 
-    // Duplicate the table so that we don't have to care about
+    // Duplicate the up table so that we don't have to care about
     // the upper bits when doing a lookup
     for (;i < 256;i += maxVal+1)
-      memcpy(&subTable[i], &subTable[0], maxVal+1);
+      memcpy(&subUpTable[i], &subUpTable[0], maxVal+1);
+
+    for (i = 0;i <= 255;i++)
+      subDownTable[i] = (i * maxVal + 128) / 255;
   }
 }
 
