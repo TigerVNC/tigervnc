@@ -132,9 +132,7 @@ private:
   rfb::CharArray queryConnectUsername;
   rfb::Timer queryConnectTimer;
 
-#ifdef RANDR
   OutputIdMap outputIdMap;
-#endif
 
   rfb::Point oldCursorPos;
 };

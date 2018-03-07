@@ -73,9 +73,7 @@ from the X Consortium.
 #include "os.h"
 #include "miline.h"
 #include "inputstr.h"
-#ifdef RANDR
 #include "randrstr.h"
-#endif /* RANDR */
 #ifdef DPMSExtension
 #include "dpmsproc.h"
 #endif
@@ -953,7 +951,6 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs = {
     miPointerWarpCursor
 };
 
-#ifdef RANDR
 
 static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
@@ -1450,7 +1447,6 @@ static Bool vncRandRInit(ScreenPtr pScreen)
     return TRUE;
 }
 
-#endif
 
 static Bool
 #if XORG < 113
@@ -1507,9 +1503,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     int ret;
     void *pbits;
 
-#ifdef RANDR
     rrScrPrivPtr rp;
-#endif
 
 #if XORG >= 113
     if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
@@ -1645,7 +1639,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
 
-#ifdef RANDR
     ret = RRScreenInit(pScreen);
     if (!ret) return FALSE;
 
@@ -1660,7 +1653,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     ret = vncRandRInit(pScreen);
     if (!ret) return FALSE;
-#endif
 
 
   return TRUE;

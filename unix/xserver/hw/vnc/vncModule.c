@@ -24,9 +24,7 @@
 #endif
 
 #include "opaque.h"
-#ifdef RANDR
 #include "randrstr.h"
-#endif
 
 #include "xorg-version.h"
 #if XORG <= 111
@@ -112,7 +110,6 @@ void vncClientGone(int fd)
 {
 }
 
-#ifdef RANDR
 int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
 {
   return 0;
@@ -137,4 +134,4 @@ void *vncRandRCreatePreferredMode(void *out, int width, int height)
 
   return NULL;
 }
-#endif
+

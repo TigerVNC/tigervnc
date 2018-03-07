@@ -38,9 +38,7 @@
 #ifdef RENDER
 #include "picturestr.h"
 #endif
-#ifdef RANDR
 #include "randrstr.h"
-#endif
 
 #define DBGPRINT(x) //(fprintf x)
 
@@ -79,11 +77,9 @@ typedef struct _vncHooksScreenRec {
   TriFanProcPtr                TriFan;
 #endif
 #endif
-#ifdef RANDR
   RRSetConfigProcPtr           rrSetConfig;
   RRScreenSetSizeProcPtr       rrScreenSetSize;
   RRCrtcSetProcPtr             rrCrtcSet;
-#endif
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
 typedef struct _vncHooksGCRec {
@@ -174,7 +170,6 @@ static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
             int npoint, xPointFixed * points);
 #endif
 #endif
-#ifdef RANDR
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
                                    int rate, RRScreenSizePtr pSize);
 static Bool vncHooksRandRScreenSetSize(ScreenPtr pScreen,
@@ -184,7 +179,6 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
                                  RRModePtr mode, int x, int y,
                                  Rotation rotation, int numOutputs,
                                  RROutputPtr *outputs);
-#endif
 
 // GC "funcs"
 
@@ -277,9 +271,7 @@ int vncHooksInit(int scrIdx)
 #ifdef RENDER
   PictureScreenPtr ps;
 #endif
-#ifdef RANDR
   rrScrPrivPtr rp;
-#endif
 
   pScreen = screenInfo.screens[scrIdx];
 
@@ -339,7 +331,6 @@ int vncHooksInit(int scrIdx)
 #endif
   }
 #endif
-#ifdef RANDR
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     /* Some RandR callbacks are optional */
@@ -350,7 +341,6 @@ int vncHooksInit(int scrIdx)
     if (rp->rrCrtcSet)
       wrap(vncHooksScreen, rp, rrCrtcSet, vncHooksRandRCrtcSet);
   }
-#endif
 
   return TRUE;
 }
@@ -473,9 +463,7 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 #ifdef RENDER
   PictureScreenPtr ps;
 #endif
-#ifdef RANDR
   rrScrPrivPtr rp;
-#endif
 
   SCREEN_PROLOGUE(pScreen_, CloseScreen);
 
@@ -501,14 +489,12 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 #endif
   }
 #endif
-#ifdef RANDR
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     unwrap(vncHooksScreen, rp, rrSetConfig);
     unwrap(vncHooksScreen, rp, rrScreenSetSize);
     unwrap(vncHooksScreen, rp, rrCrtcSet);
   }
-#endif
 
   DBGPRINT((stderr,"vncHooksCloseScreen: unwrapped screen functions\n"));
 
@@ -1199,8 +1185,6 @@ static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
 #endif /* RENDER */
 
-#ifdef RANDR
-
 // Unwrap and rewrap helpers
 
 #define RANDR_PROLOGUE(field)                                             \
@@ -1274,8 +1258,6 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
 
   return TRUE;
 }
-
-#endif /* RANDR */
 
 /////////////////////////////////////////////////////////////////////////////
 //
