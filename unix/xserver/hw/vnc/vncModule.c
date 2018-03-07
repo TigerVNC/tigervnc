@@ -39,6 +39,7 @@ typedef pointer XF86OptionPtr;
 #include "vncExtInit.h"
 #include "RFBGlue.h"
 #include "XorgGlue.h"
+#include "RandrGlue.h"
 
 static void vncModuleInit(INITARGS);
 

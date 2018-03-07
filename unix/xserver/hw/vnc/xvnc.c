@@ -35,6 +35,7 @@ from the X Consortium.
 #include "vncExtInit.h"
 #include "RFBGlue.h"
 #include "XorgGlue.h"
+#include "RandrGlue.h"
 #include "xorg-version.h"
 
 #ifdef WIN32

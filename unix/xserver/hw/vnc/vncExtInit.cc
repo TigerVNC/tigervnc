@@ -41,6 +41,7 @@
 #include "vncBlockHandler.h"
 #include "vncSelection.h"
 #include "XorgGlue.h"
+#include "RandrGlue.h"
 #include "xorg-version.h"
 
 using namespace rfb;
