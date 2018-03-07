@@ -65,7 +65,7 @@ int vncRandRDisableOutput(int scrIdx, int outputIdx);
 int vncRandRReconfigureOutput(int scrIdx, int outputIdx, int x, int y,
                               int width, int height);
 
-intptr_t vncRandRGetOutputId(int scrIdx, int outputIdx);
+unsigned int vncRandRGetOutputId(int scrIdx, int outputIdx);
 void vncRandRGetOutputDimensions(int scrIdx, int outputIdx,
                                  int *x, int *y, int *width, int *height);
 

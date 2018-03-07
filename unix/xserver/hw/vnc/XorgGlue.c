@@ -290,11 +290,11 @@ int vncRandRDisableOutput(int scrIdx, int outputIdx)
 #endif
 }
 
-intptr_t vncRandRGetOutputId(int scrIdx, int outputIdx)
+unsigned int vncRandRGetOutputId(int scrIdx, int outputIdx)
 {
 #ifdef RANDR
   rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
-  return (intptr_t)rp->outputs[outputIdx];
+  return rp->outputs[outputIdx]->id;
 #else
   return 0;
 #endif

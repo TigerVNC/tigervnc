@@ -201,7 +201,7 @@ ScreenSet XserverDesktop::computeScreenLayout()
   OutputIdMap newIdMap;
 
   for (int i = 0;i < vncRandRGetOutputCount(screenIndex);i++) {
-    intptr_t outputId;
+    unsigned int outputId;
     int x, y, width, height;
 
     /* Disabled? */
@@ -654,7 +654,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
 
   /* Next, reconfigure all known outputs, and turn off the other ones */
   for (int i = 0;i < vncRandRGetOutputCount(screenIndex);i++) {
-    intptr_t output;
+    unsigned int output;
 
     ScreenSet::const_iterator iter;
 
@@ -702,7 +702,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   ScreenSet::const_iterator iter;
   for (iter = layout.begin();iter != layout.end();++iter) {
     OutputIdMap::const_iterator oi;
-    intptr_t output;
+    unsigned int output;
     int i;
 
     /* Does this screen have an output already? */

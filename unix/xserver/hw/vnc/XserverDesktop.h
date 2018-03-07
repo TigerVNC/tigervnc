@@ -133,7 +133,7 @@ private:
   rfb::Timer queryConnectTimer;
 
 #ifdef RANDR
-  typedef std::map<intptr_t, rdr::U32> OutputIdMap;
+  typedef std::map<unsigned int, rdr::U32> OutputIdMap;
   OutputIdMap outputIdMap;
 #endif
 
