@@ -30,6 +30,7 @@ class Geometry
 {
 public:
   Geometry(int fullWidth, int fullHeight);
+  void recalc(int fullWidth, int fullHeight);
 
   // Return coordinates and dimensions that specify a rectangular part
   // of the desktop that would be shown to RFB clients. This
