@@ -201,38 +201,38 @@ ScreenSet XserverDesktop::computeScreenLayout()
   OutputIdMap newIdMap;
 
   for (int i = 0;i < vncRandRGetOutputCount(screenIndex);i++) {
-      intptr_t outputId;
-      int x, y, width, height;
+    intptr_t outputId;
+    int x, y, width, height;
 
-      /* Disabled? */
-      if (!vncRandRIsOutputEnabled(screenIndex, i))
-          continue;
+    /* Disabled? */
+    if (!vncRandRIsOutputEnabled(screenIndex, i))
+      continue;
 
-      outputId = vncRandRGetOutputId(screenIndex, i);
+    outputId = vncRandRGetOutputId(screenIndex, i);
 
-      /* Known output? */
-      if (outputIdMap.count(outputId) == 1)
-        newIdMap[outputId] = outputIdMap[outputId];
-      else {
-        rdr::U32 id;
-        OutputIdMap::const_iterator iter;
+    /* Known output? */
+    if (outputIdMap.count(outputId) == 1)
+      newIdMap[outputId] = outputIdMap[outputId];
+    else {
+      rdr::U32 id;
+      OutputIdMap::const_iterator iter;
 
-        while (true) {
-          id = rand();
-          for (iter = outputIdMap.begin();iter != outputIdMap.end();++iter) {
-            if (iter->second == id)
-              break;
-          }
-          if (iter == outputIdMap.end())
+      while (true) {
+        id = rand();
+        for (iter = outputIdMap.begin();iter != outputIdMap.end();++iter) {
+          if (iter->second == id)
             break;
         }
-
-        newIdMap[outputId] = id;
+        if (iter == outputIdMap.end())
+          break;
       }
 
-      vncRandRGetOutputDimensions(screenIndex, i, &x, &y, &width, &height);
+      newIdMap[outputId] = id;
+    }
 
-      layout.add_screen(Screen(newIdMap[outputId], x, y, width, height, 0));
+    vncRandRGetOutputDimensions(screenIndex, i, &x, &y, &width, &height);
+
+    layout.add_screen(Screen(newIdMap[outputId], x, y, width, height, 0));
   }
 
   /* Only keep the entries that are currently active */
@@ -731,7 +731,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
 
     /* Shouldn't happen */
     if (i == vncRandRGetOutputCount(screenIndex))
-        return rfb::resultInvalid;
+      return rfb::resultInvalid;
 
     /*
      * Make sure we already have an entry for this, or
