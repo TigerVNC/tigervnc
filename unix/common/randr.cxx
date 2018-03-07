@@ -113,7 +113,7 @@ unsigned int setScreenLayout(int screenIndex,
                layout.num_screens() - availableOutputs);
     ret = vncRandRCreateOutputs(screenIndex,
                                 layout.num_screens() - availableOutputs);
-    if (ret < 0) {
+    if (!ret) {
       vlog.error("Unable to create more screens, as needed by the new client layout.");
       return rfb::resultInvalid;
     }

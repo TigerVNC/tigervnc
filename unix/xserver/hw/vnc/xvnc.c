@@ -1387,11 +1387,11 @@ int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
     while (extraOutputs > 0) {
         crtc = vncRandRCrtcCreate(screenInfo.screens[scrIdx]);
         if (crtc == NULL)
-            return -1;
+            return 0;
         extraOutputs--;
     }
 
-    return 0;
+    return 1;
 }
 
 /* Used to create a preferred mode from various places */

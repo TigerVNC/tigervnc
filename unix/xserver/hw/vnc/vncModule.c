@@ -115,7 +115,7 @@ void vncClientGone(int fd)
 #ifdef RANDR
 int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
 {
-  return -1;
+  return 0;
 }
 
 void *vncRandRCreatePreferredMode(void *out, int width, int height)

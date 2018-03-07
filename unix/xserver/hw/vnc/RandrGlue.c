@@ -50,7 +50,7 @@ int vncRandRResizeScreen(int scrIdx, int width, int height)
                          pScreen->mmWidth * width / pScreen->width,
                          pScreen->mmHeight * height / pScreen->height);
 #else
-  return -1;
+  return 0;
 #endif
 }
 
@@ -199,11 +199,11 @@ int vncRandRDisableOutput(int scrIdx, int outputIdx)
 
   crtc = rp->outputs[outputIdx]->crtc;
   if (crtc == NULL)
-    return 0;
+    return 1;
 
   return RRCrtcSet(crtc, NULL, crtc->x, crtc->y, crtc->rotation, 0, NULL);
 #else
-  return -1;
+  return 0;
 #endif
 }
 
@@ -267,17 +267,17 @@ int vncRandRReconfigureOutput(int scrIdx, int outputIdx, int x, int y,
 
     /* Couldn't find one... */
     if (crtc == NULL)
-      return -1;
+      return 0;
   }
 
   /* Make sure we have the mode we want */
   mode = vncRandRCreatePreferredMode(output, width, height);
   if (mode == NULL)
-    return -1;
+    return 0;
 
   /* Reconfigure new mode and position */
   return RRCrtcSet(crtc, mode, x, y, crtc->rotation, 1, &output);
 #else
-  return -1;
+  return 0;
 #endif
 }
