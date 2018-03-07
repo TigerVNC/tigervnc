@@ -675,8 +675,10 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
       /* Disable and move on... */
       ret = vncRandRDisableOutput(screenIndex, i);
       if (!ret) {
+        char *name = vncRandRGetOutputName(screenIndex, i);
         vlog.error("Failed to disable unused output '%s'",
-                   vncRandRGetOutputName(screenIndex, i));
+                   name);
+        free(name);
         return rfb::resultInvalid;
       }
       outputIdMap.erase(output);
@@ -690,10 +692,12 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
                                     iter->dimensions.width(),
                                     iter->dimensions.height());
     if (!ret) {
+      char *name = vncRandRGetOutputName(screenIndex, i);
       vlog.error("Failed to reconfigure output '%s' to %dx%d+%d+%d",
-                 vncRandRGetOutputName(screenIndex, i),
+                 name,
                  iter->dimensions.width(), iter->dimensions.height(),
                  iter->dimensions.tl.x, iter->dimensions.tl.y);
+      free(name);
       return rfb::resultInvalid;
     }
   }
@@ -747,10 +751,12 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
                                     iter->dimensions.width(),
                                     iter->dimensions.height());
     if (!ret) {
+      char *name = vncRandRGetOutputName(screenIndex, i);
       vlog.error("Failed to reconfigure output '%s' to %dx%d+%d+%d",
-                 vncRandRGetOutputName(screenIndex, i),
+                 name,
                  iter->dimensions.width(), iter->dimensions.height(),
                  iter->dimensions.tl.x, iter->dimensions.tl.y);
+      free(name);
       return rfb::resultInvalid;
     }
   }

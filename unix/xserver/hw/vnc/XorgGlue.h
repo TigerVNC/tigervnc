@@ -56,7 +56,7 @@ int vncRandRHasOutputClones(int scrIdx);
 int vncRandRGetOutputCount(int scrIdx);
 int vncRandRGetAvailableOutputs(int scrIdx);
 
-const char *vncRandRGetOutputName(int scrIdx, int outputIdx);
+char *vncRandRGetOutputName(int scrIdx, int outputIdx);
 
 int vncRandRIsOutputEnabled(int scrIdx, int outputIdx);
 int vncRandRIsOutputUsable(int scrIdx, int outputIdx);

@@ -22,6 +22,7 @@
 #endif
 
 #include <assert.h>
+#include <string.h>
 
 #include "scrnintstr.h"
 #ifdef RANDR
@@ -226,13 +227,13 @@ int vncRandRGetAvailableOutputs(int scrIdx)
 #endif
 }
 
-const char *vncRandRGetOutputName(int scrIdx, int outputIdx)
+char *vncRandRGetOutputName(int scrIdx, int outputIdx)
 {
 #ifdef RANDR
   rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
-  return rp->outputs[outputIdx]->name;
+  return strdup(rp->outputs[outputIdx]->name);
 #else
-  return "";
+  return strdup("");
 #endif
 }
 
