@@ -69,7 +69,7 @@ Client (classic, non-raw, mode)
   - Alt, AltGr, Super [Win, X11]
   - Ctrl+AltGr [Win]
   - Meta [X11]
-  - Left/right identification (FIXME: broken for Shift on Win)
+  - Left/right identification (FIXME: broken release for Shift on Win)
   - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [OS X]
   - Hyper sends Super [X11]
 
