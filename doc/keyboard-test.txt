@@ -66,7 +66,7 @@ Client (classic, non-raw, mode)
 
   - CapsLock, NumLock
   - Shift, Ctrl
-  - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
+  - Alt, AltGr, Super [Win, X11] (FIXME: Ctrl+AltGr broken on Win)
   - Meta [X11]
   - Left/right identification (FIXME: broken for Shift on Win)
   - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [OS X]
@@ -74,8 +74,7 @@ Client (classic, non-raw, mode)
 
   - CapsLock, Shift and AltGr affect symbol lookup
   - Ctrl does not affect symbol lookup
-  - CtrlL+AltR is fake released to compensate for Windows' AltGr magic [Win]
-  - Ctrl+Alt+<ANY> sends the same symbol as <ANY> (note behaviour above though)
+  - Ctrl+Alt+<ANY> sends the same symbol as <ANY>
   - Ctrl+AltGr+<ANY> sends the same symbol as AltGr+<ANY> (FIXME: broken on Win)
   - "Shift press, A press, Shift release, A release" should not send "a release"
 
@@ -127,8 +126,6 @@ Client (raw mode)
   - Numpad
   - Multimedia keys
   - Non-character keys
-
-- CtrlL+AltR is fake released to compensate for Windows' AltGr magic [Win]
 
 Client (both modes)
 -------------------
