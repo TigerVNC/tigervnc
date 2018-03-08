@@ -838,24 +838,18 @@ int Viewport::handleSystemEvent(void *event, void *data)
     // Ctrl+Alt. However the remote end might not be Windows, so we need
     // to merge those in to a single AltGr event. We detect this case
     // by seeing the two key events directly after each other with a very
-    // short time between them (<50ms).
+    // short time between them (<50ms) and supress the Ctrl event.
     if (self->altGrArmed) {
       self->altGrArmed = false;
       Fl::remove_timeout(handleAltGrTimeout);
 
       if (isExtended && (keyCode == 0x38) && (vKey == VK_MENU) &&
           ((msg->time - self->altGrCtrlTime) < 50)) {
-        // FIXME: We fail to detect this if either Ctrl key is
-        //        first manually pressed as Windows then no longer
-        //        sends the fake Ctrl down event. It does however
-        //        happily send real Ctrl events even when AltGr
-        //        is already down.
-        vlog.debug("Detected AltGr combination");
-        self->handleKeyPress(0xb8, XK_ISO_Level3_Shift);
-        return 1;
+        // Alt seen, so this is an AltGr sequence
+      } else {
+        // Not Alt, so fire the queued up Ctrl event
+        self->handleKeyPress(0x1d, XK_Control_L);
       }
-
-      self->handleKeyPress(0x1d, XK_Control_L);
     }
 
     if (keyCode == SCAN_FAKE) {
@@ -917,12 +911,18 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if ((keySym == XK_Shift_L) && (keyCode == 0x36))
       keySym = XK_Shift_R;
 
-    // Possible start of AltGr sequence? (see above)
-    if ((keyCode == 0x1d) && (keySym == XK_Control_L)) {
-      self->altGrArmed = true;
-      self->altGrCtrlTime = msg->time;
-      Fl::add_timeout(0.1, handleAltGrTimeout, self);
-      return 1;
+    // AltGr handling (see above)
+    if (win32_has_altgr()) {
+      if ((keyCode == 0xb8) && (keySym == XK_Alt_R))
+        keySym = XK_ISO_Level3_Shift;
+
+      // Possible start of AltGr sequence?
+      if ((keyCode == 0x1d) && (keySym == XK_Control_L)) {
+        self->altGrArmed = true;
+        self->altGrCtrlTime = msg->time;
+        Fl::add_timeout(0.1, handleAltGrTimeout, self);
+        return 1;
+      }
     }
 
     self->handleKeyPress(keyCode, keySym);
