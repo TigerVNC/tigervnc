@@ -76,6 +76,10 @@ private:
 
   static int handleSystemEvent(void *event, void *data);
 
+#ifdef WIN32
+  static void handleAltGrTimeout(void *data);
+#endif
+
   void initContextMenu();
   void popupContextMenu();
 
@@ -93,6 +97,11 @@ private:
 
   typedef std::map<int, rdr::U32> DownMap;
   DownMap downKeySym;
+
+#ifdef WIN32
+  bool altGrArmed;
+  unsigned int altGrCtrlTime;
+#endif
 
   rdr::U32 menuKeySym;
   int menuKeyCode, menuKeyFLTK;

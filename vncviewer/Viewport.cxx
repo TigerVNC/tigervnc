@@ -115,6 +115,9 @@ static const WORD SCAN_FAKE = 0xaa;
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
     lastPointerPos(0, 0), lastButtonMask(0),
+#ifdef WIN32
+    altGrArmed(false),
+#endif
     menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -187,6 +190,9 @@ Viewport::~Viewport()
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
   Fl::remove_timeout(handlePointerTimeout, this);
+#ifdef WIN32
+  Fl::remove_timeout(handleAltGrTimeout, this);
+#endif
 
   Fl::remove_system_handler(handleSystemEvent);
 
@@ -734,26 +740,6 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
   }
 #endif
 
-#ifdef WIN32
-  // Ugly hack alert!
-  //
-  // Windows doesn't have a proper AltGr, but handles it using fake
-  // Ctrl+Alt. Unfortunately X11 doesn't generally like the combination
-  // Ctrl+Alt+AltGr, which we usually end up with when Xvnc tries to
-  // get everything in the correct state. Cheat and temporarily release
-  // Ctrl and Alt when we send some other symbol.
-  if (downKeySym.count(0x1d) && downKeySym.count(0xb8)) {
-    vlog.debug("Faking release of AltGr (Ctrl_L+Alt_R)");
-    try {
-      cc->writer()->keyEvent(downKeySym[0x1d], 0x1d, false);
-      cc->writer()->keyEvent(downKeySym[0xb8], 0xb8, false);
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
-    }
-  }
-#endif
-
   // Because of the way keyboards work, we cannot expect to have the same
   // symbol on release as when pressed. This breaks the VNC protocol however,
   // so we need to keep track of what keysym a key _code_ generated on press
@@ -777,20 +763,6 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
     vlog.error("%s", e.str());
     exit_vncviewer(e.str());
   }
-
-#ifdef WIN32
-  // Ugly hack continued...
-  if (downKeySym.count(0x1d) && downKeySym.count(0xb8)) {
-    vlog.debug("Restoring AltGr state");
-    try {
-      cc->writer()->keyEvent(downKeySym[0x1d], 0x1d, true);
-      cc->writer()->keyEvent(downKeySym[0xb8], 0xb8, true);
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
-    }
-  }
-#endif
 }
 
 
@@ -862,6 +834,24 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
     keyCode = ((msg->lParam >> 16) & 0xff);
 
+    // Windows doesn't have a proper AltGr, but handles it using fake
+    // Ctrl+Alt. However the remote end might not be Windows, so we need
+    // to merge those in to a single AltGr event. We detect this case
+    // by seeing the two key events directly after each other with a very
+    // short time between them (<50ms) and supress the Ctrl event.
+    if (self->altGrArmed) {
+      self->altGrArmed = false;
+      Fl::remove_timeout(handleAltGrTimeout);
+
+      if (isExtended && (keyCode == 0x38) && (vKey == VK_MENU) &&
+          ((msg->time - self->altGrCtrlTime) < 50)) {
+        // Alt seen, so this is an AltGr sequence
+      } else {
+        // Not Alt, so fire the queued up Ctrl event
+        self->handleKeyPress(0x1d, XK_Control_L);
+      }
+    }
+
     if (keyCode == SCAN_FAKE) {
       vlog.debug("Ignoring fake key press (virtual key 0x%02x)", vKey);
       return 1;
@@ -921,6 +911,20 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if ((keySym == XK_Shift_L) && (keyCode == 0x36))
       keySym = XK_Shift_R;
 
+    // AltGr handling (see above)
+    if (win32_has_altgr()) {
+      if ((keyCode == 0xb8) && (keySym == XK_Alt_R))
+        keySym = XK_ISO_Level3_Shift;
+
+      // Possible start of AltGr sequence?
+      if ((keyCode == 0x1d) && (keySym == XK_Control_L)) {
+        self->altGrArmed = true;
+        self->altGrCtrlTime = msg->time;
+        Fl::add_timeout(0.1, handleAltGrTimeout, self);
+        return 1;
+      }
+    }
+
     self->handleKeyPress(keyCode, keySym);
 
     return 1;
@@ -933,6 +937,14 @@ int Viewport::handleSystemEvent(void *event, void *data)
     isExtended = (msg->lParam & (1 << 24)) != 0;
 
     keyCode = ((msg->lParam >> 16) & 0xff);
+
+    // We can't get a release in the middle of an AltGr sequence, so
+    // abort that detection
+    if (self->altGrArmed) {
+      self->altGrArmed = false;
+      Fl::remove_timeout(handleAltGrTimeout);
+      self->handleKeyPress(0x1d, XK_Control_L);
+    }
 
     if (keyCode == SCAN_FAKE) {
       vlog.debug("Ignoring fake key release (virtual key 0x%02x)", vKey);
@@ -1045,6 +1057,18 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
   return 0;
 }
+
+#ifdef WIN32
+void Viewport::handleAltGrTimeout(void *data)
+{
+  Viewport *self = (Viewport *)data;
+
+  assert(self);
+
+  self->altGrArmed = false;
+  self->handleKeyPress(0x1d, XK_Control_L);
+}
+#endif
 
 void Viewport::initContextMenu()
 {
