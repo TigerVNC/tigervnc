@@ -191,18 +191,24 @@ unsigned int vncRandRGetOutputId(int outputIdx)
   return rp->outputs[outputIdx]->id;
 }
 
-void vncRandRGetOutputDimensions(int outputIdx,
+int vncRandRGetOutputDimensions(int outputIdx,
                             int *x, int *y, int *width, int *height)
 {
   rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
+  RRCrtcPtr crtc;
   int swap;
+  *x = *y = *width = *height = 0;
 
-  *x = rp->outputs[outputIdx]->crtc->x;
-  *y = rp->outputs[outputIdx]->crtc->y;
-  *width = rp->outputs[outputIdx]->crtc->mode->mode.width;
-  *height = rp->outputs[outputIdx]->crtc->mode->mode.height;
+  crtc = rp->outputs[outputIdx]->crtc;
+  if (crtc == NULL || !crtc->mode)
+    return 1;
 
-  switch (rp->outputs[outputIdx]->crtc->rotation & 0xf) {
+  *x = crtc->x;
+  *y = crtc->y;
+  *width = crtc->mode->mode.width;
+  *height = crtc->mode->mode.height;
+
+  switch (crtc->rotation & 0xf) {
   case RR_Rotate_90:
   case RR_Rotate_270:
     swap = *width;
@@ -210,6 +216,7 @@ void vncRandRGetOutputDimensions(int outputIdx,
     *height = swap;
     break;
   }
+  return 0;
 }
 
 int vncRandRReconfigureOutput(int outputIdx, int x, int y,

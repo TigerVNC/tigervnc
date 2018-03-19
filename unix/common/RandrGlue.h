@@ -51,7 +51,7 @@ int vncRandRReconfigureOutput(int outputIdx, int x, int y,
                               int width, int height);
 
 unsigned int vncRandRGetOutputId(int outputIdx);
-void vncRandRGetOutputDimensions(int outputIdx,
+int vncRandRGetOutputDimensions(int outputIdx,
                                  int *x, int *y, int *width, int *height);
 
 int vncRandRCreateOutputs(int extraOutputs);

@@ -65,9 +65,9 @@ rfb::ScreenSet computeScreenLayout(OutputIdMap *outputIdMap)
       newIdMap[outputId] = id;
     }
 
-    vncRandRGetOutputDimensions(i, &x, &y, &width, &height);
-
-    layout.add_screen(rfb::Screen(newIdMap[outputId], x, y, width, height, 0));
+    if (vncRandRGetOutputDimensions(i, &x, &y, &width, &height) == 0) {
+      layout.add_screen(rfb::Screen(newIdMap[outputId], x, y, width, height, 0));
+    }
   }
 
   /* Only keep the entries that are currently active */
