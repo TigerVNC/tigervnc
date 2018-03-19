@@ -34,6 +34,8 @@ static rfb::LogWriter vlog("RandR");
 static int ResizeScreen(int fb_width, int fb_height,
                         std::set<unsigned int>* disabledOutputs)
 {
+  vlog.debug("Resizing screen framebuffer to %dx%d", fb_width, fb_height);
+
   /*
    * Disable outputs which are larger than the target size
    */
@@ -43,6 +45,9 @@ static int ResizeScreen(int fb_width, int fb_height,
       if (x + width > fb_width || y + height > fb_height) {
         /* Currently ignoring errors */
         /* FIXME: Save output rotation and restore when configuring output */
+        char *name = vncRandRGetOutputName(i);
+        vlog.debug("Temporarily disabling output '%s'", name);
+        free(name);
         vncRandRDisableOutput(i);
         disabledOutputs->insert(vncRandRGetOutputId(i));
       }
@@ -233,15 +238,19 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
                                     iter->dimensions.tl.y,
                                     iter->dimensions.width(),
                                     iter->dimensions.height());
-    if (!ret) {
-      char *name = vncRandRGetOutputName(i);
-      vlog.error("Failed to reconfigure output '%s' to %dx%d+%d+%d",
-                 name,
+    char *name = vncRandRGetOutputName(i);
+    if (ret) {
+      vlog.debug("Reconfigured output '%s' to %dx%d+%d+%d", name,
+                 iter->dimensions.width(), iter->dimensions.height(),
+                 iter->dimensions.tl.x, iter->dimensions.tl.y);
+    } else {
+      vlog.error("Failed to reconfigure output '%s' to %dx%d+%d+%d", name,
                  iter->dimensions.width(), iter->dimensions.height(),
                  iter->dimensions.tl.x, iter->dimensions.tl.y);
       free(name);
       return rfb::resultInvalid;
     }
+    free(name);
   }
 
   /* Allocate new outputs for new screens */
@@ -281,15 +290,19 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
                                     iter->dimensions.tl.y,
                                     iter->dimensions.width(),
                                     iter->dimensions.height());
-    if (!ret) {
-      char *name = vncRandRGetOutputName(i);
-      vlog.error("Failed to reconfigure output '%s' to %dx%d+%d+%d",
-                 name,
+    char *name = vncRandRGetOutputName(i);
+    if (ret) {
+      vlog.debug("Reconfigured new output '%s' to %dx%d+%d+%d", name,
+                 iter->dimensions.width(), iter->dimensions.height(),
+                 iter->dimensions.tl.x, iter->dimensions.tl.y);
+    } else {
+      vlog.error("Failed to reconfigure new output '%s' to %dx%d+%d+%d", name,
                  iter->dimensions.width(), iter->dimensions.height(),
                  iter->dimensions.tl.x, iter->dimensions.tl.y);
       free(name);
       return rfb::resultInvalid;
     }
+    free(name);
   }
 
   /* Turn off unused outputs */
@@ -306,13 +319,15 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
 
     /* Disable and move on... */
     ret = vncRandRDisableOutput(i);
-    if (!ret) {
-      char *name = vncRandRGetOutputName(i);
-      vlog.error("Failed to disable unused output '%s'",
-                 name);
+    char *name = vncRandRGetOutputName(i);
+    if (ret) {
+      vlog.debug("Disabled unused output '%s'", name);
+    } else {
+      vlog.error("Failed to disable unused output '%s'", name);
       free(name);
       return rfb::resultInvalid;
     }
+    free(name);
   }
 
   /*
