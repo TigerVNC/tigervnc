@@ -30,6 +30,26 @@
 #include <RandrGlue.h>
 static rfb::LogWriter vlog("RandR");
 
+static int ResizeScreen(int fb_width, int fb_height)
+{
+  /*
+   * Disable outputs which are larger than the target size
+   */
+  for (int i = 0;i < vncRandRGetOutputCount();i++) {
+    int x, y, width, height;
+    if (vncRandRGetOutputDimensions(i, &x, &y, &width, &height) == 0) {
+      if (x + width > fb_width || y + height > fb_height) {
+        /* Currently ignoring errors */
+        /* FIXME: Save output rotation and restore when configuring output */
+        vncRandRDisableOutput(i);
+      }
+    }
+  }
+
+  return vncRandRResizeScreen(fb_width, fb_height);
+}
+
+
 rfb::ScreenSet computeScreenLayout(OutputIdMap *outputIdMap)
 {
   rfb::ScreenSet layout;
@@ -120,7 +140,7 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
   /* First we might need to resize the screen */
   if ((fb_width != vncGetScreenWidth()) ||
       (fb_height != vncGetScreenHeight())) {
-    ret = vncRandRResizeScreen(fb_width, fb_height);
+    ret = ResizeScreen(fb_width, fb_height);
     if (!ret) {
       vlog.error("Failed to resize screen to %dx%d", fb_width, fb_height);
       return rfb::resultInvalid;
