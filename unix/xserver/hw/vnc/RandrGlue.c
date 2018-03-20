@@ -173,6 +173,16 @@ int vncRandRIsOutputUsable(int outputIdx)
   return 0;
 }
 
+int vncRandRIsOutputConnected(int outputIdx)
+{
+  rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
+
+  RROutputPtr output;
+
+  output = rp->outputs[outputIdx];
+  return (output->connection == RR_Connected);
+}
+
 int vncRandRDisableOutput(int outputIdx)
 {
   rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);

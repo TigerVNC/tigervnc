@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2017 Pierre Ossman for Cendio AB
+ * Copyright 2018 Peter Astrand <astrand@cendio.se> for Cendio AB
  * Copyright 2014 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
@@ -30,7 +31,8 @@
 #include <RandrGlue.h>
 static rfb::LogWriter vlog("RandR");
 
-static int ResizeScreen(int fb_width, int fb_height)
+static int ResizeScreen(int fb_width, int fb_height,
+                        std::set<unsigned int>* disabledOutputs)
 {
   /*
    * Disable outputs which are larger than the target size
@@ -42,11 +44,64 @@ static int ResizeScreen(int fb_width, int fb_height)
         /* Currently ignoring errors */
         /* FIXME: Save output rotation and restore when configuring output */
         vncRandRDisableOutput(i);
+        disabledOutputs->insert(vncRandRGetOutputId(i));
       }
     }
   }
 
   return vncRandRResizeScreen(fb_width, fb_height);
+}
+
+
+/* Return output index of preferred output, -1 on failure */
+int getPreferredScreenOutput(OutputIdMap *outputIdMap,
+                             const std::set<unsigned int>& disabledOutputs)
+{
+  int firstDisabled = -1;
+  int firstEnabled = -1;
+  int firstConnected = -1;
+  int firstUsable = -1;
+
+  for (int i = 0;i < vncRandRGetOutputCount();i++) {
+    unsigned int output = vncRandRGetOutputId(i);
+
+    /* In use? */
+    if (outputIdMap->count(output) == 1) {
+      continue;
+    }
+
+    /* Can it be used? */
+    if (!vncRandRIsOutputUsable(i)) {
+      continue;
+    }
+
+    /* Temporarily disabled? */
+    if (disabledOutputs.count(output)) {
+      if (firstDisabled == -1) firstDisabled = i;
+    }
+
+    /* Enabled? */
+    if (vncRandRIsOutputEnabled(i)) {
+      if (firstEnabled == -1) firstEnabled = i;
+    }
+
+    /* Connected? */
+    if (vncRandRIsOutputConnected(i)) {
+      if (firstConnected == -1) firstConnected = i;
+    }
+
+    if (firstUsable == -1) firstUsable = i;
+  }
+
+  if (firstEnabled != -1) {
+    return firstEnabled;
+  } else if (firstDisabled != -1) {
+    return firstDisabled;
+  } else if (firstConnected != -1) {
+    return firstConnected;
+  } else {
+    return firstUsable; /* Possibly -1 */
+  }
 }
 
 
@@ -109,6 +164,7 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
 {
   int ret;
   int availableOutputs;
+  std::set<unsigned int> disabledOutputs;
 
   // RandR support?
   if (vncRandRGetOutputCount() == 0)
@@ -140,14 +196,14 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
   /* First we might need to resize the screen */
   if ((fb_width != vncGetScreenWidth()) ||
       (fb_height != vncGetScreenHeight())) {
-    ret = ResizeScreen(fb_width, fb_height);
+    ret = ResizeScreen(fb_width, fb_height, &disabledOutputs);
     if (!ret) {
       vlog.error("Failed to resize screen to %dx%d", fb_width, fb_height);
       return rfb::resultInvalid;
     }
   }
 
-  /* Next, reconfigure all known outputs, and turn off the other ones */
+  /* Next, reconfigure all known outputs */
   for (int i = 0;i < vncRandRGetOutputCount();i++) {
     unsigned int output;
 
@@ -167,15 +223,6 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
 
     /* Missing? */
     if (iter == layout.end()) {
-      /* Disable and move on... */
-      ret = vncRandRDisableOutput(i);
-      if (!ret) {
-        char *name = vncRandRGetOutputName(i);
-        vlog.error("Failed to disable unused output '%s'",
-                   name);
-        free(name);
-        return rfb::resultInvalid;
-      }
       outputIdMap->erase(output);
       continue;
     }
@@ -197,7 +244,7 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
     }
   }
 
-  /* Finally, allocate new outputs for new screens */
+  /* Allocate new outputs for new screens */
   rfb::ScreenSet::const_iterator iter;
   for (iter = layout.begin();iter != layout.end();++iter) {
     OutputIdMap::const_iterator oi;
@@ -214,23 +261,12 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
       continue;
 
     /* Find an unused output */
-    for (i = 0;i < vncRandRGetOutputCount();i++) {
-      output = vncRandRGetOutputId(i);
-
-      /* In use? */
-      if (outputIdMap->count(output) == 1)
-        continue;
-
-      /* Can it be used? */
-      if (!vncRandRIsOutputUsable(i))
-        continue;
-
-      break;
-    }
+    i = getPreferredScreenOutput(outputIdMap, disabledOutputs);
 
     /* Shouldn't happen */
-    if (i == vncRandRGetOutputCount())
+    if (i == -1)
       return rfb::resultInvalid;
+    output = vncRandRGetOutputId(i);
 
     /*
      * Make sure we already have an entry for this, or
@@ -251,6 +287,25 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
                  name,
                  iter->dimensions.width(), iter->dimensions.height(),
                  iter->dimensions.tl.x, iter->dimensions.tl.y);
+      free(name);
+      return rfb::resultInvalid;
+    }
+  }
+
+  /* Turn off unused outputs */
+  for (int i = 0;i < vncRandRGetOutputCount();i++) {
+    unsigned int output = vncRandRGetOutputId(i);
+
+    /* Known? */
+    if (outputIdMap->count(output) == 1)
+      continue;
+
+    /* Disable and move on... */
+    ret = vncRandRDisableOutput(i);
+    if (!ret) {
+      char *name = vncRandRGetOutputName(i);
+      vlog.error("Failed to disable unused output '%s'",
+                 name);
       free(name);
       return rfb::resultInvalid;
     }

@@ -45,6 +45,7 @@ char *vncRandRGetOutputName(int outputIdx);
 
 int vncRandRIsOutputEnabled(int outputIdx);
 int vncRandRIsOutputUsable(int outputIdx);
+int vncRandRIsOutputConnected(int outputIdx);
 
 int vncRandRDisableOutput(int outputIdx);
 int vncRandRReconfigureOutput(int outputIdx, int x, int y,
