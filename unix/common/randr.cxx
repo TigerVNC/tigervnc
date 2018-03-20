@@ -300,6 +300,10 @@ unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& 
     if (outputIdMap->count(output) == 1)
       continue;
 
+    /* Enabled? */
+    if (!vncRandRIsOutputEnabled(i))
+      continue;
+
     /* Disable and move on... */
     ret = vncRandRDisableOutput(i);
     if (!ret) {
