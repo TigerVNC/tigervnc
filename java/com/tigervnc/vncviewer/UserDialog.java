@@ -100,7 +100,6 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
     JDialog win;
     JLabel banner;
     JTextField username = null;
-    JPasswordField passwd = null;
     JLayer icon;
 
     int y;
@@ -156,7 +155,7 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
     passwdLabel.setBounds(70, y, msg.getSize().width-70-10, 20);
     msg.add(passwdLabel);
     y += 20 + 5;
-    passwd = new JPasswordField(30);
+    final JPasswordField passwd = new JPasswordField(30);
     passwd.setBounds(70, y, msg.getSize().width-70-10, 25);
     msg.add(passwd);
     y += 25 + 5;
@@ -169,7 +168,12 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
                                       OK_CANCEL_OPTION,
                                       null,       //do not use a custom Icon
                                       options,    //the titles of buttons
-                                      options[0]);//default button title
+                                      options[0]){//default button title
+      @Override
+      public void selectInitialValue() {
+        passwd.requestFocusInWindow();
+      }
+    };
     pane.setBorder(new EmptyBorder(0,0,0,0));
     Component c = pane.getComponent(pane.getComponentCount()-1);
     ((JComponent)c).setBorder(new EmptyBorder(0,0,10,10));
