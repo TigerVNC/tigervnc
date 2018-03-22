@@ -255,7 +255,7 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
 
     prepareEncoders();
 
-    changed.copyFrom(ui.changed);
+    changed = ui.changed;
 
     /*
      * We need to render the cursor seperately as it has its own

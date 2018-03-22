@@ -52,7 +52,6 @@ namespace rfb {
     void setOrderedRects(const std::vector<Rect>& rects);
     void setExtentsAndOrderedRects(const ShortRect* extents, int nRects,
                                    const ShortRect* rects);
-    void copyFrom(const Region& r);
 
     void assign_intersect(const Region& r);
     void assign_union(const Region& r);

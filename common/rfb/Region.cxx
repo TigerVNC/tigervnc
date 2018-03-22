@@ -143,10 +143,6 @@ void rfb::Region::setExtentsAndOrderedRects(const ShortRect* extents,
   }
 }
 
-void rfb::Region::copyFrom(const rfb::Region& r) {
-  XUnionRegion(r.xrgn, r.xrgn, xrgn);
-}
-
 void rfb::Region::assign_intersect(const rfb::Region& r) {
   XIntersectRegion(xrgn, r.xrgn, xrgn);
 }

@@ -996,7 +996,7 @@ void VNCSConnectionST::writeDataUpdate()
   if (!ui.copied.is_empty() && !damagedCursorRegion.is_empty()) {
     Region bogusCopiedCursor;
 
-    bogusCopiedCursor.copyFrom(damagedCursorRegion);
+    bogusCopiedCursor = damagedCursorRegion;
     bogusCopiedCursor.translate(ui.copy_delta);
     bogusCopiedCursor.assign_intersect(server->pb->getRect());
     if (!ui.copied.intersect(bogusCopiedCursor).is_empty()) {
