@@ -586,7 +586,7 @@ public class Parameters {
   }
 
   public static String loadAppletParameters(VncViewer applet) {
-    String servername = applet.getParameter("Server");
+    String servername = applet.getParameter("Host");
     String serverport = applet.getParameter("Port");
     String embedParam = applet.getParameter("Embed");
 
