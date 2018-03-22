@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2016 Pierre Ossman for Cendio AB
+ * Copyright 2009-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1015,9 +1015,18 @@ void VNCSConnectionST::writeDataUpdate()
     removeRenderedCursor = false;
   }
 
+  // If we need a full cursor update then make sure its entire region
+  // is marked as changed.
+
+  if (updateRenderedCursor) {
+    updates.add_changed(server->getRenderedCursor()->getEffectiveRect());
+    needNewUpdateInfo = true;
+    updateRenderedCursor = false;
+  }
+
   // Return if there is nothing to send the client.
 
-  if (updates.is_empty() && !writer()->needFakeUpdate() && !updateRenderedCursor)
+  if (updates.is_empty() && !writer()->needFakeUpdate())
     return;
 
   // The `updates' object could change, make sure we have valid update info.
@@ -1025,38 +1034,28 @@ void VNCSConnectionST::writeDataUpdate()
   if (needNewUpdateInfo)
     updates.getUpdateInfo(&ui, req);
 
-  // If the client needs a server-side rendered cursor, work out the cursor
-  // rectangle.  If it's empty then don't bother drawing it, but if it overlaps
-  // with the update region, we need to draw the rendered cursor regardless of
-  // whether it has changed.
+  // Does the client need a server-side rendered cursor?
 
   cursor = NULL;
   if (needRenderedCursor()) {
     Rect renderedCursorRect;
 
     cursor = server->getRenderedCursor();
+    renderedCursorRect = cursor->getEffectiveRect();
 
-    renderedCursorRect
-      = cursor->getEffectiveRect().intersect(req.get_bounding_rect());
-
-    if (renderedCursorRect.is_empty()) {
-      cursor = NULL;
-    } else if (!updateRenderedCursor &&
-               ui.changed.union_(ui.copied)
-               .intersect(renderedCursorRect).is_empty()) {
-      cursor = NULL;
+    // Check that we don't try to copy over the cursor area, and
+    // if that happens we need to treat it as changed so that we can
+    // re-render it
+    if (!ui.copied.intersect(renderedCursorRect).is_empty()) {
+      ui.changed.assign_union(ui.copied.intersect(renderedCursorRect));
+      ui.copied.assign_subtract(renderedCursorRect);
     }
 
-    if (cursor) {
-      updates.subtract(renderedCursorRect);
-      updates.getUpdateInfo(&ui, req);
-    }
-
-    damagedCursorRegion.assign_union(renderedCursorRect);
-    updateRenderedCursor = false;
+    // Track where we've rendered the cursor
+    damagedCursorRegion.assign_union(ui.changed.intersect(renderedCursorRect));
   }
 
-  if (ui.is_empty() && !writer()->needFakeUpdate() && !cursor)
+  if (ui.is_empty() && !writer()->needFakeUpdate())
     return;
 
   writeRTTPing();

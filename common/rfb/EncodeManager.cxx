@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -249,20 +249,29 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
                                 const RenderedCursor* renderedCursor)
 {
     int nRects;
-    Region changed;
+    Region changed, cursorRegion;
 
     updates++;
 
     prepareEncoders();
 
+    changed.copyFrom(ui.changed);
+
+    /*
+     * We need to render the cursor seperately as it has its own
+     * magical pixel buffer, so split it out from the changed region.
+     */
+    if (renderedCursor != NULL) {
+      cursorRegion = changed.intersect(renderedCursor->getEffectiveRect());
+      changed.assign_subtract(renderedCursor->getEffectiveRect());
+    }
+
     if (conn->cp.supportsLastRect)
       nRects = 0xFFFF;
     else {
       nRects = ui.copied.numRects();
-      nRects += computeNumRects(ui.changed);
-
-      if (renderedCursor != NULL)
-        nRects += 1;
+      nRects += computeNumRects(changed);
+      nRects += computeNumRects(cursorRegion);
     }
 
     conn->writer()->writeFramebufferUpdateStart(nRects);
@@ -273,19 +282,11 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
      * We start by searching for solid rects, which are then removed
      * from the changed region.
      */
-    changed.copyFrom(ui.changed);
-
     if (conn->cp.supportsLastRect)
       writeSolidRects(&changed, pb);
 
     writeRects(changed, pb);
-
-    if (renderedCursor != NULL) {
-      Rect renderedCursorRect;
-
-      renderedCursorRect = renderedCursor->getEffectiveRect();
-      writeSubRect(renderedCursorRect, renderedCursor);
-    }
+    writeRects(cursorRegion, renderedCursor);
 
     conn->writer()->writeFramebufferUpdateEnd();
 }
