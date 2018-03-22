@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2017 Pierre Ossman for Cendio AB
+ * Copyright 2009-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,10 +105,7 @@ VNCServerST::~VNCServerST()
   }
 
   // Stop the desktop object if active, *only* after deleting all clients!
-  if (desktopStarted) {
-    desktopStarted = false;
-    desktop->stop();
-  }
+  stopDesktop();
 
   if (comparer)
     comparer->logStats();
@@ -154,12 +151,8 @@ void VNCServerST::removeSocket(network::Socket* sock) {
       delete *ci;
 
       // - Check that the desktop object is still required
-      if (authClientCount() == 0 && desktopStarted) {
-        slog.debug("no authenticated clients - stopping desktop");
-        desktopStarted = false;
-        desktop->stop();
-        stopFrameClock();
-      }
+      if (authClientCount() == 0)
+        stopDesktop();
 
       if (comparer)
         comparer->logStats();
@@ -552,6 +545,16 @@ void VNCServerST::startDesktop()
   }
 }
 
+void VNCServerST::stopDesktop()
+{
+  if (desktopStarted) {
+    slog.debug("stopping desktop");
+    desktopStarted = false;
+    desktop->stop();
+    stopFrameClock();
+  }
+}
+
 int VNCServerST::authClientCount() {
   int count = 0;
   std::list<VNCSConnectionST*>::iterator ci;
@@ -575,6 +578,8 @@ void VNCServerST::startFrameClock()
   if (frameTimer.isStarted())
     return;
   if (blockCounter > 0)
+    return;
+  if (!desktopStarted)
     return;
 
   // The first iteration will be just half a frame as we get a very
@@ -603,6 +608,7 @@ void VNCServerST::writeUpdate()
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
 
   assert(blockCounter == 0);
+  assert(desktopStarted);
 
   comparer->getUpdateInfo(&ui, pb->getRect());
   toCheck = ui.changed.union_(ui.copied);

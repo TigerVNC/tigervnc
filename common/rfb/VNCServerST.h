@@ -195,6 +195,7 @@ namespace rfb {
     // - Internal methods
 
     void startDesktop();
+    void stopDesktop();
 
     static LogWriter connectionsLog;
     Blacklist blacklist;
