@@ -53,7 +53,8 @@ namespace rfb {
                      const RenderedCursor* renderedCursor);
 
     void writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
-                              const RenderedCursor* renderedCursor);
+                              const RenderedCursor* renderedCursor,
+                              size_t maxUpdateSize);
 
   protected:
     void doUpdate(bool allowLossy, const Region& changed,
@@ -62,7 +63,7 @@ namespace rfb {
                   const RenderedCursor* renderedCursor);
     void prepareEncoders(bool allowLossy);
 
-    Region getLosslessRefresh(const Region& req);
+    Region getLosslessRefresh(const Region& req, size_t maxUpdateSize);
 
     int computeNumRects(const Region& changed);
 

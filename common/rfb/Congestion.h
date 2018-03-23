@@ -1,4 +1,4 @@
-/* Copyright 2009-2015 Pierre Ossman for Cendio AB
+/* Copyright 2009-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,10 @@ namespace rfb {
     // longer be congested.
     int getUncongestedETA();
 
+    // getBandwidth() returns the current bandwidth estimation in bytes
+    // per second.
+    size_t getBandwidth();
+
     // debugTrace() writes the current congestion window, as well as the
     // congestion window of the underlying TCP layer, to the specified
     // file
@@ -67,6 +71,8 @@ namespace rfb {
     unsigned baseRTT;
     unsigned congWindow;
     bool inSlowStart;
+
+    unsigned safeBaseRTT;
 
     struct RTTInfo {
       struct timeval tv;

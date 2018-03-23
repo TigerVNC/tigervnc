@@ -50,8 +50,6 @@ static const int SolidSearchBlock = 16;
 // Don't bother with blocks smaller than this
 static const int SolidBlockMinArea = 2048;
 
-static const int LosslessRefreshMaxArea = 4096;
-
 namespace rfb {
 
 enum EncoderClass {
@@ -267,9 +265,10 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
 }
 
 void EncodeManager::writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
-                                         const RenderedCursor* renderedCursor)
+                                         const RenderedCursor* renderedCursor,
+                                         size_t maxUpdateSize)
 {
-    doUpdate(false, getLosslessRefresh(req),
+    doUpdate(false, getLosslessRefresh(req, maxUpdateSize),
              Region(), Point(), pb, renderedCursor);
 }
 
@@ -428,11 +427,15 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   }
 }
 
-Region EncodeManager::getLosslessRefresh(const Region& req)
+Region EncodeManager::getLosslessRefresh(const Region& req,
+                                         size_t maxUpdateSize)
 {
   std::vector<Rect> rects;
   Region refresh;
   size_t area;
+
+  // We make a conservative guess at the compression ratio at 2:1
+  maxUpdateSize *= 2;
 
   area = 0;
   lossyRegion.intersect(req).get_rects(&rects);
@@ -448,13 +451,13 @@ Region EncodeManager::getLosslessRefresh(const Region& req)
 
     // Add rects until we exceed the threshold, then include as much as
     // possible of the final rect
-    if ((area + rect.area()) > LosslessRefreshMaxArea) {
+    if ((area + rect.area()) > maxUpdateSize) {
       // Use the narrowest axis to avoid getting to thin rects
       if (rect.width() > rect.height()) {
-        int width = (LosslessRefreshMaxArea - area) / rect.height();
+        int width = (maxUpdateSize - area) / rect.height();
         rect.br.x = rect.tl.x + __rfbmax(1, width);
       } else {
-        int height = (LosslessRefreshMaxArea - area) / rect.width();
+        int height = (maxUpdateSize - area) / rect.width();
         rect.br.y = rect.tl.y + __rfbmax(1, height);
       }
       refresh.assign_union(Region(rect));

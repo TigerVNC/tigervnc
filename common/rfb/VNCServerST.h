@@ -227,6 +227,7 @@ namespace rfb {
     bool needRenderedCursor();
     void startFrameClock();
     void stopFrameClock();
+    int msToNextUpdate();
     void writeUpdate();
     bool checkUpdate();
     const RenderedCursor* getRenderedCursor();

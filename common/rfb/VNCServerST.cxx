@@ -593,6 +593,17 @@ void VNCServerST::stopFrameClock()
   frameTimer.stop();
 }
 
+int VNCServerST::msToNextUpdate()
+{
+  // FIXME: If the application is updating slower than frameRate then
+  //        we could allow the clients more time here
+
+  if (!frameTimer.isStarted())
+    return 1000/rfb::Server::frameRate/2;
+  else
+    return frameTimer.getRemainingMs();
+}
+
 // writeUpdate() is called on a regular interval in order to see what
 // updates are pending and propagates them to the update tracker for
 // each client. It uses the ComparingUpdateTracker's compare() method

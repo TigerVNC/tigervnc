@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2016 Pierre Ossman for Cendio AB
+ * Copyright 2016-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ int Timer::checkTimeouts() {
 int Timer::getNextTimeout() {
   timeval now;
   gettimeofday(&now, 0);
-  int toWait = __rfbmax(1, diffTimeMillis(pending.front()->dueTime, now));
+  int toWait = __rfbmax(1, pending.front()->getRemainingMs());
   if (toWait > pending.front()->timeoutMs) {
     if (toWait - pending.front()->timeoutMs < 1000) {
       vlog.info("gettimeofday is broken...");
@@ -146,6 +146,12 @@ bool Timer::isStarted() {
 
 int Timer::getTimeoutMs() {
   return timeoutMs;
+}
+
+int Timer::getRemainingMs() {
+  timeval now;
+  gettimeofday(&now, 0);
+  return __rfbmax(0, diffTimeMillis(pending.front()->dueTime, now));
 }
 
 bool Timer::isBefore(timeval other) {
