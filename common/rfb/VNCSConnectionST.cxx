@@ -965,17 +965,12 @@ void VNCSConnectionST::writeNoDataUpdate()
 
 void VNCSConnectionST::writeDataUpdate()
 {
-  Region req;
+  Region req, pending;
   UpdateInfo ui;
   bool needNewUpdateInfo;
   const RenderedCursor *cursor;
 
   updates.enable_copyrect(cp.useCopyRect);
-
-  // See if we are allowed to send anything right now (the framebuffer
-  // might have changed in ways we haven't yet been informed of).
-  if (!server->checkUpdate())
-    return;
 
   // See what the client has requested (if anything)
   if (continuousUpdates)
@@ -985,6 +980,9 @@ void VNCSConnectionST::writeDataUpdate()
 
   if (req.is_empty())
     return;
+
+  // Get any framebuffer changes we haven't yet been informed of
+  pending = server->getPendingRegion();
 
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
@@ -1027,16 +1025,23 @@ void VNCSConnectionST::writeDataUpdate()
     updateRenderedCursor = false;
   }
 
-  // Return if there is nothing to send the client.
-
-  if (updates.is_empty() && !writer()->needFakeUpdate() &&
-      !encodeManager.needsLosslessRefresh(req))
-    return;
-
   // The `updates' object could change, make sure we have valid update info.
 
   if (needNewUpdateInfo)
     updates.getUpdateInfo(&ui, req);
+
+  // If there are queued updates then we cannot safely send an update
+  // without risking a partially updated screen
+
+  if (!pending.is_empty()) {
+    // However we might still be able to send a lossless refresh
+    req.assign_subtract(pending);
+    req.assign_subtract(ui.changed);
+    req.assign_subtract(ui.copied);
+
+    ui.changed.clear();
+    ui.copied.clear();
+  }
 
   // Does the client need a server-side rendered cursor?
 
@@ -1058,6 +1063,8 @@ void VNCSConnectionST::writeDataUpdate()
     // Track where we've rendered the cursor
     damagedCursorRegion.assign_union(ui.changed.intersect(renderedCursorRect));
   }
+
+  // Return if there is nothing to send the client.
 
   if (ui.is_empty() && !writer()->needFakeUpdate() &&
       !encodeManager.needsLosslessRefresh(req))

@@ -656,17 +656,21 @@ void VNCServerST::writeUpdate()
 // checkUpdate() is called by clients to see if it is safe to read from
 // the framebuffer at this time.
 
-bool VNCServerST::checkUpdate()
+Region VNCServerST::getPendingRegion()
 {
+  UpdateInfo ui;
+
   // Block clients as the frame buffer cannot be safely accessed
   if (blockCounter > 0)
-    return false;
+    return pb->getRect();
 
   // Block client from updating if there are pending updates
-  if (!comparer->is_empty())
-    return false;
+  if (comparer->is_empty())
+    return Region();
 
-  return true;
+  comparer->getUpdateInfo(&ui, pb->getRect());
+
+  return ui.changed.union_(ui.copied);
 }
 
 const RenderedCursor* VNCServerST::getRenderedCursor()

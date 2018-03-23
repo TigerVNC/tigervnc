@@ -229,7 +229,7 @@ namespace rfb {
     void stopFrameClock();
     int msToNextUpdate();
     void writeUpdate();
-    bool checkUpdate();
+    Region getPendingRegion();
     const RenderedCursor* getRenderedCursor();
 
     void notifyScreenLayoutChange(VNCSConnectionST *requester);
