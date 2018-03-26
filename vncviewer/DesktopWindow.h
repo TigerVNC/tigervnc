@@ -129,14 +129,14 @@ private:
   bool mouseGrabbed;
 
   struct statsEntry {
-    unsigned fps;
+    unsigned ups;
     unsigned pps;
     unsigned bps;
   };
   struct statsEntry stats[100];
 
   struct timeval statsLastTime;
-  unsigned statsLastFrame;
+  unsigned statsLastUpdates;
   unsigned statsLastPixels;
   unsigned statsLastPosition;
 

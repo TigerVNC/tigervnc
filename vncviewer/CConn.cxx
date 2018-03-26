@@ -73,7 +73,7 @@ static const PixelFormat mediumColourPF(8, 8, false, true,
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
-    frameCount(0), pixelCount(0), pendingPFChange(false),
+    updateCount(0), pixelCount(0), pendingPFChange(false),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
@@ -226,9 +226,9 @@ const char *CConn::connectionInfo()
   return infoText;
 }
 
-unsigned CConn::getFrameCount()
+unsigned CConn::getUpdateCount()
 {
-  return frameCount;
+  return updateCount;
 }
 
 unsigned CConn::getPixelCount()
@@ -383,7 +383,7 @@ void CConn::framebufferUpdateEnd()
 {
   CConnection::framebufferUpdateEnd();
 
-  frameCount++;
+  updateCount++;
 
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();

@@ -66,7 +66,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false),
     keyboardGrabbed(false), mouseGrabbed(false),
-    statsLastFrame(0), statsLastPixels(0), statsLastPosition(0),
+    statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(NULL)
 {
   Fl_Group* group;
@@ -1287,7 +1287,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
 
   const size_t statsCount = sizeof(self->stats)/sizeof(self->stats[0]);
 
-  unsigned frame, pixels, pos;
+  unsigned updates, pixels, pos;
   unsigned elapsed;
 
   const unsigned statsWidth = 200;
@@ -1298,12 +1298,12 @@ void DesktopWindow::handleStatsTimeout(void *data)
   Fl_Image_Surface *surface;
   Fl_RGB_Image *image;
 
-  unsigned maxFPS, maxPPS, maxBPS;
+  unsigned maxUPS, maxPPS, maxBPS;
   size_t i;
 
   char buffer[256];
 
-  frame = self->cc->getFrameCount();
+  updates = self->cc->getUpdateCount();
   pixels = self->cc->getPixelCount();
   pos = self->cc->getPosition();
   elapsed = msSince(&self->statsLastTime);
@@ -1312,12 +1312,12 @@ void DesktopWindow::handleStatsTimeout(void *data)
 
   memmove(&self->stats[0], &self->stats[1], sizeof(self->stats[0])*(statsCount-1));
 
-  self->stats[statsCount-1].fps = (frame - self->statsLastFrame) * 1000 / elapsed;
+  self->stats[statsCount-1].ups = (updates - self->statsLastUpdates) * 1000 / elapsed;
   self->stats[statsCount-1].pps = (pixels - self->statsLastPixels) * 1000 / elapsed;
   self->stats[statsCount-1].bps = (pos - self->statsLastPosition) * 1000 / elapsed;
 
   gettimeofday(&self->statsLastTime, NULL);
-  self->statsLastFrame = frame;
+  self->statsLastUpdates = updates;
   self->statsLastPixels = pixels;
   self->statsLastPosition = pos;
 
@@ -1334,23 +1334,23 @@ void DesktopWindow::handleStatsTimeout(void *data)
 
   fl_rect(5, 5, graphWidth, graphHeight, FL_WHITE);
 
-  maxFPS = maxPPS = maxBPS = 0;
+  maxUPS = maxPPS = maxBPS = 0;
   for (i = 0;i < statsCount;i++) {
-    if (self->stats[i].fps > maxFPS)
-      maxFPS = self->stats[i].fps;
+    if (self->stats[i].ups > maxUPS)
+      maxUPS = self->stats[i].ups;
     if (self->stats[i].pps > maxPPS)
       maxPPS = self->stats[i].pps;
     if (self->stats[i].bps > maxBPS)
       maxBPS = self->stats[i].bps;
   }
 
-  if (maxFPS != 0) {
+  if (maxUPS != 0) {
     fl_color(FL_GREEN);
     for (i = 0;i < statsCount-1;i++) {
       fl_line(5 + i * graphWidth / statsCount,
-              5 + graphHeight - graphHeight * self->stats[i].fps / maxFPS,
+              5 + graphHeight - graphHeight * self->stats[i].ups / maxUPS,
               5 + (i+1) * graphWidth / statsCount,
-              5 + graphHeight - graphHeight * self->stats[i+1].fps / maxFPS);
+              5 + graphHeight - graphHeight * self->stats[i+1].ups / maxUPS);
     }
   }
 
@@ -1377,7 +1377,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
   fl_font(FL_HELVETICA, 10);
 
   fl_color(FL_GREEN);
-  snprintf(buffer, sizeof(buffer), "%u fps", self->stats[statsCount-1].fps);
+  snprintf(buffer, sizeof(buffer), "%u upd/s", self->stats[statsCount-1].ups);
   fl_draw(buffer, 5, statsHeight - 5);
 
   fl_color(FL_YELLOW);
