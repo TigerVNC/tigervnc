@@ -64,6 +64,7 @@ public:
   int handle(int event);
 
 private:
+  bool hasFocus();
 
   unsigned int getModifierMask(unsigned int keysym);
 

@@ -309,17 +309,9 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 
 void Viewport::setLEDState(unsigned int state)
 {
-  Fl_Widget *focus;
-
   vlog.debug("Got server LED state: 0x%08x", state);
 
-  focus = Fl::grab();
-  if (!focus)
-    focus = Fl::focus();
-  if (!focus)
-    return;
-
-  if (focus != this)
+  if (!hasFocus())
     return;
 
 #if defined(WIN32)
@@ -635,6 +627,17 @@ int Viewport::handle(int event)
 }
 
 
+bool Viewport::hasFocus()
+{
+  Fl_Widget* focus;
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+
+  return focus == this;
+}
+
 #if ! (defined(WIN32) || defined(__APPLE__))
 unsigned int Viewport::getModifierMask(unsigned int keysym)
 {
@@ -845,17 +848,10 @@ void Viewport::handleKeyRelease(int keyCode)
 int Viewport::handleSystemEvent(void *event, void *data)
 {
   Viewport *self = (Viewport *)data;
-  Fl_Widget *focus;
 
   assert(self);
 
-  focus = Fl::grab();
-  if (!focus)
-    focus = Fl::focus();
-  if (!focus)
-    return 0;
-
-  if (focus != self)
+  if (!self->hasFocus())
     return 0;
 
   assert(event);
