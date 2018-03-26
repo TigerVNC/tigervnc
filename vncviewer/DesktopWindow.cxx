@@ -694,10 +694,6 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
         if (dw->fullscreen_active())
           dw->grabKeyboard();
       }
-
-      // We may have gotten our lock keys out of sync with the server
-      // whilst we didn't have focus. Try to sort this out.
-      dw->viewport->pushLEDState();
       break;
 
     case FL_UNFOCUS:

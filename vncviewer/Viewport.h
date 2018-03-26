@@ -52,8 +52,6 @@ public:
 
   // Change client LED state
   void setLEDState(unsigned int state);
-  // Change server LED state
-  void pushLEDState();
 
   void draw(Surface* dst);
 
@@ -82,6 +80,8 @@ private:
 #ifdef WIN32
   static void handleAltGrTimeout(void *data);
 #endif
+
+  void pushLEDState();
 
   void initContextMenu();
   void popupContextMenu();

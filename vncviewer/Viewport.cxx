@@ -604,6 +604,16 @@ int Viewport::handle(int event)
 
   case FL_FOCUS:
     Fl::disable_im();
+
+    try {
+      // We may have gotten our lock keys out of sync with the server
+      // whilst we didn't have focus. Try to sort this out.
+      pushLEDState();
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+
     // Yes, we would like some focus please!
     return 1;
 
@@ -1167,7 +1177,12 @@ void Viewport::popupContextMenu()
   if (Fl::belowmouse() == this)
     window()->cursor(FL_CURSOR_DEFAULT);
 
+  // FLTK also doesn't switch focus properly for menus
+  handle(FL_UNFOCUS);
+
   m = contextMenu->popup();
+
+  handle(FL_FOCUS);
 
   // Back to our proper mouse pointer.
   if ((Fl::belowmouse() == this) && cursor)
