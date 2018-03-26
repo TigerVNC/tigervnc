@@ -70,6 +70,9 @@ private:
 
   static void handleClipboardChange(int source, void *data);
 
+  void clearPendingClipboard();
+  void flushPendingClipboard();
+
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 
@@ -106,6 +109,9 @@ private:
   bool altGrArmed;
   unsigned int altGrCtrlTime;
 #endif
+
+  const char* pendingServerCutText;
+  const char* pendingClientCutText;
 
   rdr::U32 menuKeySym;
   int menuKeyCode, menuKeyFLTK;
