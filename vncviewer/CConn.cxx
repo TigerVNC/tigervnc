@@ -423,32 +423,7 @@ void CConn::bell()
 
 void CConn::serverCutText(const char* str, rdr::U32 len)
 {
-  char *buffer;
-  int size, ret;
-
-  if (!acceptClipboard)
-    return;
-
-  size = fl_utf8froma(NULL, 0, str, len);
-  if (size <= 0)
-    return;
-
-  size++;
-
-  buffer = new char[size];
-
-  ret = fl_utf8froma(buffer, size, str, len);
-  assert(ret < size);
-
-  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
-
-  // RFB doesn't have separate selection and clipboard concepts, so we
-  // dump the data into both variants.
-  if (setPrimary)
-    Fl::copy(buffer, ret, 0);
-  Fl::copy(buffer, ret, 1);
-
-  delete [] buffer;
+  desktop->serverCutText(str, len);
 }
 
 void CConn::dataRect(const Rect& r, int encoding)

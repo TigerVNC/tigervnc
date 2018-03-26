@@ -276,6 +276,12 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
+void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
+{
+  viewport->serverCutText(str, len);
+}
+
+
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
                               const rdr::U8* data)

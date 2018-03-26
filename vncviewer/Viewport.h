@@ -43,6 +43,9 @@ public:
   // Flush updates to screen
   void updateWindow();
 
+  // Incoming clipboard from server
+  void serverCutText(const char* str, rdr::U32 len);
+
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
