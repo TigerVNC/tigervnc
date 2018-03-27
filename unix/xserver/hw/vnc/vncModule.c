@@ -110,28 +110,31 @@ void vncClientGone(int fd)
 {
 }
 
+int vncRandRCanCreateScreenOutputs(int scrIdx, int extraOutputs)
+{
+  return 0;
+}
+
 int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs)
 {
   return 0;
 }
 
-void *vncRandRCreatePreferredMode(void *out, int width, int height)
+int vncRandRCanCreateModes(void)
 {
-  RROutputPtr output;
-
-  /*
-   * We're not going to change which modes are preferred, but let's
-   * see if we can at least find a mode with matching dimensions.
-   */
-
-  output = out;
-
-  for (int i = 0;i < output->numModes;i++) {
-    if ((output->modes[i]->mode.width == width) &&
-        (output->modes[i]->mode.height == height))
-      return output->modes[i];
-  }
-
-  return NULL;
+  return 0;
 }
 
+void* vncRandRCreateMode(void* output, int width, int height)
+{
+  return 0;
+}
+
+void* vncRandRSetPreferredMode(void* output, void* mode)
+{
+  /*
+   * We're not going to change which modes are preferred,
+   * so just return the incoming mode.
+   */
+  return mode;
+}

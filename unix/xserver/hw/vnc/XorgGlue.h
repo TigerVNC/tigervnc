@@ -48,7 +48,11 @@ int vncGetScreenY(int scrIdx);
 
 // These hide in xvnc.c or vncModule.c
 void vncClientGone(int fd);
+int vncRandRCanCreateScreenOutputs(int scrIdx, int extraOutputs);
 int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs);
+int vncRandRCanCreateModes(void);
+void* vncRandRCreateMode(void* output, int width, int height);
+void* vncRandRSetPreferredMode(void* output, void* mode);
 
 #ifdef __cplusplus
 }

@@ -35,6 +35,9 @@ rfb::ScreenSet computeScreenLayout(OutputIdMap *outputIdMap);
 unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& layout,
                              OutputIdMap *outputIdMap);
 
+unsigned int tryScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& layout,
+                             OutputIdMap *outputIdMap);
+
 /*
  * FIXME: This is only exposed because we still have logic in XDesktop
  *        that we haven't integrated in setScreenLayout()

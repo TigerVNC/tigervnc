@@ -49,9 +49,22 @@ int vncGetScreenHeight(void)
   return screenInfo.screens[scrIdx]->height;
 }
 
+int vncRandRIsValidScreenSize(int width, int height)
+{
+  rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
+
+  if (width < rp->minWidth || rp->maxWidth < width)
+    return 0;
+  if (height < rp->minHeight || rp->maxHeight < height)
+    return 0;
+
+  return 1;
+}
+
 int vncRandRResizeScreen(int width, int height)
 {
   ScreenPtr pScreen = screenInfo.screens[scrIdx];
+
   /* Try to retain DPI when we resize */
   return RRScreenSizeSet(pScreen, width, height,
                          pScreen->mmWidth * width / pScreen->width,
@@ -183,6 +196,44 @@ int vncRandRIsOutputConnected(int outputIdx)
   return (output->connection == RR_Connected);
 }
 
+static RRModePtr vncRandRGetMatchingMode(int outputIdx, int width, int height)
+{
+  rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
+
+  RROutputPtr output;
+
+  output = rp->outputs[outputIdx];
+
+  if (output->crtc != NULL) {
+    unsigned int swap;
+    switch (output->crtc->rotation) {
+    case RR_Rotate_90:
+    case RR_Rotate_270:
+      swap = width;
+      width = height;
+      height = swap;
+      break;
+    }
+  }
+
+  for (int i = 0; i < output->numModes; i++) {
+    if ((output->modes[i]->mode.width == width) &&
+        (output->modes[i]->mode.height == height))
+      return output->modes[i];
+  }
+
+  return NULL;
+}
+
+int vncRandRCheckOutputMode(int outputIdx, int width, int height)
+{
+  if (vncRandRGetMatchingMode(outputIdx, width, height) != NULL)
+    return 1;
+  if (vncRandRCanCreateModes())
+    return 1;
+  return 0;
+}
+
 int vncRandRDisableOutput(int outputIdx)
 {
   rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
@@ -284,12 +335,23 @@ int vncRandRReconfigureOutput(int outputIdx, int x, int y,
   }
 
   /* Make sure we have the mode we want */
-  mode = vncRandRCreatePreferredMode(output, width, height);
+  mode = vncRandRGetMatchingMode(outputIdx, width, height);
+  if (mode == NULL) {
+    mode = vncRandRCreateMode(output, width, height);
+    if (mode == NULL)
+      return 0;
+  }
+  mode = vncRandRSetPreferredMode(output, mode);
   if (mode == NULL)
     return 0;
 
   /* Reconfigure new mode and position */
   return RRCrtcSet(crtc, mode, x, y, crtc->rotation, 1, &output);
+}
+
+int vncRandRCanCreateOutputs(int extraOutputs)
+{
+  return vncRandRCanCreateScreenOutputs(scrIdx, extraOutputs);
 }
 
 int vncRandRCreateOutputs(int extraOutputs)

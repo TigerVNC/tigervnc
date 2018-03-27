@@ -1377,6 +1377,12 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
 }
 
 /* Used from XserverDesktop when it needs more outputs... */
+
+int vncRandRCanCreateScreenOutputs(int scrIdx, int extraOutputs)
+{
+    return 1;
+}
+
 int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs)
 {
     RRCrtcPtr crtc;
@@ -1391,27 +1397,67 @@ int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs)
     return 1;
 }
 
-/* Used to create a preferred mode from various places */
-void *vncRandRCreatePreferredMode(void *out, int width, int height)
+/* Creating and modifying modes, used by XserverDesktop and init here */
+
+int vncRandRCanCreateModes()
+{
+    return 1;
+}
+
+void* vncRandRCreateMode(void* out, int width, int height)
 {
     RROutputPtr output;
 
     output = out;
 
+    /* Do we already have the mode? */
+    for (int i = 0; i < output->numModes; i++) {
+        if ((output->modes[i]->mode.width == width) &&
+            (output->modes[i]->mode.height == height))
+            return output->modes[i];
+    }
+
+    /* Just recreate the entire list */
+    vncRandRSetModes(output, width, height);
+
+    /* Find the new mode */
+    for (int i = 0; i < output->numModes; i++) {
+        if ((output->modes[i]->mode.width == width) &&
+            (output->modes[i]->mode.height == height))
+            return output->modes[i];
+    }
+
+    /* Something went horribly wrong */
+    return NULL;
+}
+
+void* vncRandRSetPreferredMode(void* out, void* m)
+{
+    RRModePtr mode;
+    RROutputPtr output;
+    int width, height;
+
+    mode = m;
+    output = out;
+
+    width = mode->mode.width;
+    height = mode->mode.height;
+
     /* Already the preferred mode? */
     if ((output->numModes >= 1) && (output->numPreferred == 1) &&
-        (output->modes[0]->mode.width == width) &&
-        (output->modes[0]->mode.height == height))
-        return output->modes[0];
+        (output->modes[0] == mode))
+        return mode;
 
     /* Recreate the list, with the mode we want as preferred */
     vncRandRSetModes(output, width, height);
 
+    /* Sanity check */
     if ((output->numModes >= 1) && (output->numPreferred == 1) &&
         (output->modes[0]->mode.width == width) &&
         (output->modes[0]->mode.height == height))
         return output->modes[0];
 
+    /* Something went horribly wrong */
     return NULL;
 }
 
@@ -1434,8 +1480,11 @@ static Bool vncRandRInit(ScreenPtr pScreen)
     crtc = vncRandRCrtcCreate(pScreen);
 
     /* Make sure the current screen size is the active mode */
-    mode = vncRandRCreatePreferredMode(crtc->outputs[0],
-                                       pScreen->width, pScreen->height);
+    mode = vncRandRCreateMode(crtc->outputs[0],
+                              pScreen->width, pScreen->height);
+    if (mode == NULL)
+        return FALSE;
+    mode = vncRandRSetPreferredMode(crtc->outputs[0], mode);
     if (mode == NULL)
         return FALSE;
 

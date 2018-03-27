@@ -33,6 +33,7 @@ extern "C" {
 int vncGetScreenWidth(void);
 int vncGetScreenHeight(void);
 
+int vncRandRIsValidScreenSize(int width, int height);
 int vncRandRResizeScreen(int width, int height);
 void vncRandRUpdateSetTime(void);
 
@@ -47,6 +48,8 @@ int vncRandRIsOutputEnabled(int outputIdx);
 int vncRandRIsOutputUsable(int outputIdx);
 int vncRandRIsOutputConnected(int outputIdx);
 
+int vncRandRCheckOutputMode(int outputIdx, int width, int height);
+
 int vncRandRDisableOutput(int outputIdx);
 int vncRandRReconfigureOutput(int outputIdx, int x, int y,
                               int width, int height);
@@ -55,8 +58,8 @@ unsigned int vncRandRGetOutputId(int outputIdx);
 int vncRandRGetOutputDimensions(int outputIdx,
                                  int *x, int *y, int *width, int *height);
 
+int vncRandRCanCreateOutputs(int extraOutputs);
 int vncRandRCreateOutputs(int extraOutputs);
-void *vncRandRCreatePreferredMode(void *output, int width, int height);
 
 #ifdef __cplusplus
 }
