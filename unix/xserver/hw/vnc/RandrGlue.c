@@ -177,12 +177,37 @@ int vncRandRDisableOutput(int outputIdx)
 {
   rrScrPrivPtr rp = rrGetScrPriv(screenInfo.screens[scrIdx]);
   RRCrtcPtr crtc;
+  int i;
+  RROutputPtr *outputs;
+  int numOutputs = 0;
+  RRModePtr mode;
+  int ret;
 
   crtc = rp->outputs[outputIdx]->crtc;
   if (crtc == NULL)
     return 1;
 
-  return RRCrtcSet(crtc, NULL, crtc->x, crtc->y, crtc->rotation, 0, NULL);
+  /* Remove this output from the CRTC configuration */
+  outputs = malloc(crtc->numOutputs * sizeof(RROutputPtr));
+  if (!outputs) {
+    return 0;
+  }
+
+  for (i = 0; i < crtc->numOutputs; i++) {
+    if (rp->outputs[outputIdx] != crtc->outputs[i]) {
+      outputs[numOutputs++] = crtc->outputs[i];
+    }
+  }
+
+  if (numOutputs == 0) {
+    mode = NULL;
+  } else {
+    mode = crtc->mode;
+  }
+
+  ret = RRCrtcSet(crtc, mode, crtc->x, crtc->y, crtc->rotation, numOutputs, outputs);
+  free(outputs);
+  return ret;
 }
 
 unsigned int vncRandRGetOutputId(int outputIdx)
