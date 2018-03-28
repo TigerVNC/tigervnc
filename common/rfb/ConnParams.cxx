@@ -147,6 +147,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       break;
     case pseudoEncodingLEDState:
       supportsLEDState = true;
+      break;
     case pseudoEncodingQEMUKeyEvent:
       supportsQEMUKeyEvent = true;
       break;
