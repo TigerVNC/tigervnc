@@ -30,31 +30,31 @@
 extern "C" {
 #endif
 
-int vncGetScreenWidth(int scrIdx);
-int vncGetScreenHeight(int scrIdx);
+int vncGetScreenWidth(void);
+int vncGetScreenHeight(void);
 
-int vncRandRResizeScreen(int scrIdx, int width, int height);
-void vncRandRUpdateSetTime(int scrIdx);
+int vncRandRResizeScreen(int width, int height);
+void vncRandRUpdateSetTime(void);
 
-int vncRandRHasOutputClones(int scrIdx);
+int vncRandRHasOutputClones(void);
 
-int vncRandRGetOutputCount(int scrIdx);
-int vncRandRGetAvailableOutputs(int scrIdx);
+int vncRandRGetOutputCount(void);
+int vncRandRGetAvailableOutputs(void);
 
-char *vncRandRGetOutputName(int scrIdx, int outputIdx);
+char *vncRandRGetOutputName(int outputIdx);
 
-int vncRandRIsOutputEnabled(int scrIdx, int outputIdx);
-int vncRandRIsOutputUsable(int scrIdx, int outputIdx);
+int vncRandRIsOutputEnabled(int outputIdx);
+int vncRandRIsOutputUsable(int outputIdx);
 
-int vncRandRDisableOutput(int scrIdx, int outputIdx);
-int vncRandRReconfigureOutput(int scrIdx, int outputIdx, int x, int y,
+int vncRandRDisableOutput(int outputIdx);
+int vncRandRReconfigureOutput(int outputIdx, int x, int y,
                               int width, int height);
 
-unsigned int vncRandRGetOutputId(int scrIdx, int outputIdx);
-void vncRandRGetOutputDimensions(int scrIdx, int outputIdx,
+unsigned int vncRandRGetOutputId(int outputIdx);
+void vncRandRGetOutputDimensions(int outputIdx,
                                  int *x, int *y, int *width, int *height);
 
-int vncRandRCreateOutputs(int scrIdx, int extraOutputs);
+int vncRandRCreateOutputs(int extraOutputs);
 void *vncRandRCreatePreferredMode(void *output, int width, int height);
 
 #ifdef __cplusplus

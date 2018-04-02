@@ -1377,7 +1377,7 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
 }
 
 /* Used from XserverDesktop when it needs more outputs... */
-int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
+int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs)
 {
     RRCrtcPtr crtc;
 

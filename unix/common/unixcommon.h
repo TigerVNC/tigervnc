@@ -30,10 +30,9 @@
 
 typedef std::map<unsigned int, rdr::U32> OutputIdMap;
 
-rfb::ScreenSet computeScreenLayout(int screenIndex, OutputIdMap *outputIdMap);
+rfb::ScreenSet computeScreenLayout(OutputIdMap *outputIdMap);
 
-unsigned int setScreenLayout(int screenIndex,
-                             int fb_width, int fb_height, const rfb::ScreenSet& layout,
+unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& layout,
                              OutputIdMap *outputIdMap);
 
 

@@ -48,6 +48,10 @@
 #include "XorgGlue.h"
 #include "Input.h"
 
+extern "C" {
+void vncSetGlueContext(int screenIndex);
+}
+
 using namespace rfb;
 using namespace network;
 
@@ -185,14 +189,16 @@ void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride_)
   data = (rdr::U8*)fbptr;
   stride = stride_;
 
-  layout = ::computeScreenLayout(screenIndex, &outputIdMap);
+  vncSetGlueContext(screenIndex);
+  layout = ::computeScreenLayout(&outputIdMap);
 
   server->setPixelBuffer(this, layout);
 }
 
 void XserverDesktop::refreshScreenLayout()
 {
-  server->setScreenLayout(::computeScreenLayout(screenIndex, &outputIdMap));
+  vncSetGlueContext(screenIndex);
+  server->setScreenLayout(::computeScreenLayout(&outputIdMap));
 }
 
 char* XserverDesktop::substitute(const char* varName)
@@ -557,7 +563,8 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   layout.print(buffer, sizeof(buffer));
   vlog.debug("%s", buffer);
 
-  return ::setScreenLayout(screenIndex, fb_width, fb_height, layout, &outputIdMap);
+  vncSetGlueContext(screenIndex);
+  return ::setScreenLayout(fb_width, fb_height, layout, &outputIdMap);
 }
 
 void XserverDesktop::grabRegion(const rfb::Region& region)

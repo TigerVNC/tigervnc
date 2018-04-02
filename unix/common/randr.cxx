@@ -30,20 +30,20 @@
 #include <RandrGlue.h>
 static rfb::LogWriter vlog("RandR");
 
-rfb::ScreenSet computeScreenLayout(int screenIndex, OutputIdMap *outputIdMap)
+rfb::ScreenSet computeScreenLayout(OutputIdMap *outputIdMap)
 {
   rfb::ScreenSet layout;
   OutputIdMap newIdMap;
 
-  for (int i = 0;i < vncRandRGetOutputCount(screenIndex);i++) {
+  for (int i = 0;i < vncRandRGetOutputCount();i++) {
     unsigned int outputId;
     int x, y, width, height;
 
     /* Disabled? */
-    if (!vncRandRIsOutputEnabled(screenIndex, i))
+    if (!vncRandRIsOutputEnabled(i))
       continue;
 
-    outputId = vncRandRGetOutputId(screenIndex, i);
+    outputId = vncRandRGetOutputId(i);
 
     /* Known output? */
     if (outputIdMap->count(outputId) == 1)
@@ -65,7 +65,7 @@ rfb::ScreenSet computeScreenLayout(int screenIndex, OutputIdMap *outputIdMap)
       newIdMap[outputId] = id;
     }
 
-    vncRandRGetOutputDimensions(screenIndex, i, &x, &y, &width, &height);
+    vncRandRGetOutputDimensions(i, &x, &y, &width, &height);
 
     layout.add_screen(rfb::Screen(newIdMap[outputId], x, y, width, height, 0));
   }
@@ -78,41 +78,39 @@ rfb::ScreenSet computeScreenLayout(int screenIndex, OutputIdMap *outputIdMap)
    * that we have no active outputs...
    */
   if (layout.num_screens() == 0)
-    layout.add_screen(rfb::Screen(0, 0, 0, vncGetScreenWidth(screenIndex),
-                                  vncGetScreenHeight(screenIndex), 0));
+    layout.add_screen(rfb::Screen(0, 0, 0, vncGetScreenWidth(),
+                                  vncGetScreenHeight(), 0));
 
   return layout;
 }
 
-unsigned int setScreenLayout(int screenIndex,
-                             int fb_width, int fb_height, const rfb::ScreenSet& layout,
+unsigned int setScreenLayout(int fb_width, int fb_height, const rfb::ScreenSet& layout,
                              OutputIdMap *outputIdMap)
 {
   int ret;
   int availableOutputs;
 
   // RandR support?
-  if (vncRandRGetOutputCount(screenIndex) == 0)
+  if (vncRandRGetOutputCount() == 0)
     return rfb::resultProhibited;
 
   /*
    * First check that we don't have any active clone modes. That's just
    * too messy to deal with.
    */
-  if (vncRandRHasOutputClones(screenIndex)) {
+  if (vncRandRHasOutputClones()) {
     vlog.error("Clone mode active. Refusing to touch screen layout.");
     return rfb::resultInvalid;
   }
 
   /* Next count how many useful outputs we have... */
-  availableOutputs = vncRandRGetAvailableOutputs(screenIndex);
+  availableOutputs = vncRandRGetAvailableOutputs();
 
   /* Try to create more outputs if needed... (only works on Xvnc) */
   if (layout.num_screens() > availableOutputs) {
     vlog.debug("Insufficient screens. Need to create %d more.",
                layout.num_screens() - availableOutputs);
-    ret = vncRandRCreateOutputs(screenIndex,
-                                layout.num_screens() - availableOutputs);
+    ret = vncRandRCreateOutputs(layout.num_screens() - availableOutputs);
     if (!ret) {
       vlog.error("Unable to create more screens, as needed by the new client layout.");
       return rfb::resultInvalid;
@@ -120,9 +118,9 @@ unsigned int setScreenLayout(int screenIndex,
   }
 
   /* First we might need to resize the screen */
-  if ((fb_width != vncGetScreenWidth(screenIndex)) ||
-      (fb_height != vncGetScreenHeight(screenIndex))) {
-    ret = vncRandRResizeScreen(screenIndex, fb_width, fb_height);
+  if ((fb_width != vncGetScreenWidth()) ||
+      (fb_height != vncGetScreenHeight())) {
+    ret = vncRandRResizeScreen(fb_width, fb_height);
     if (!ret) {
       vlog.error("Failed to resize screen to %dx%d", fb_width, fb_height);
       return rfb::resultInvalid;
@@ -130,12 +128,12 @@ unsigned int setScreenLayout(int screenIndex,
   }
 
   /* Next, reconfigure all known outputs, and turn off the other ones */
-  for (int i = 0;i < vncRandRGetOutputCount(screenIndex);i++) {
+  for (int i = 0;i < vncRandRGetOutputCount();i++) {
     unsigned int output;
 
     rfb::ScreenSet::const_iterator iter;
 
-    output = vncRandRGetOutputId(screenIndex, i);
+    output = vncRandRGetOutputId(i);
 
     /* Known? */
     if (outputIdMap->count(output) == 0)
@@ -150,9 +148,9 @@ unsigned int setScreenLayout(int screenIndex,
     /* Missing? */
     if (iter == layout.end()) {
       /* Disable and move on... */
-      ret = vncRandRDisableOutput(screenIndex, i);
+      ret = vncRandRDisableOutput(i);
       if (!ret) {
-        char *name = vncRandRGetOutputName(screenIndex, i);
+        char *name = vncRandRGetOutputName(i);
         vlog.error("Failed to disable unused output '%s'",
                    name);
         free(name);
@@ -163,13 +161,13 @@ unsigned int setScreenLayout(int screenIndex,
     }
 
     /* Reconfigure new mode and position */
-    ret = vncRandRReconfigureOutput(screenIndex, i,
+    ret = vncRandRReconfigureOutput(i,
                                     iter->dimensions.tl.x,
                                     iter->dimensions.tl.y,
                                     iter->dimensions.width(),
                                     iter->dimensions.height());
     if (!ret) {
-      char *name = vncRandRGetOutputName(screenIndex, i);
+      char *name = vncRandRGetOutputName(i);
       vlog.error("Failed to reconfigure output '%s' to %dx%d+%d+%d",
                  name,
                  iter->dimensions.width(), iter->dimensions.height(),
@@ -196,22 +194,22 @@ unsigned int setScreenLayout(int screenIndex,
       continue;
 
     /* Find an unused output */
-    for (i = 0;i < vncRandRGetOutputCount(screenIndex);i++) {
-      output = vncRandRGetOutputId(screenIndex, i);
+    for (i = 0;i < vncRandRGetOutputCount();i++) {
+      output = vncRandRGetOutputId(i);
 
       /* In use? */
       if (outputIdMap->count(output) == 1)
         continue;
 
       /* Can it be used? */
-      if (!vncRandRIsOutputUsable(screenIndex, i))
+      if (!vncRandRIsOutputUsable(i))
         continue;
 
       break;
     }
 
     /* Shouldn't happen */
-    if (i == vncRandRGetOutputCount(screenIndex))
+    if (i == vncRandRGetOutputCount())
       return rfb::resultInvalid;
 
     /*
@@ -222,13 +220,13 @@ unsigned int setScreenLayout(int screenIndex,
     (*outputIdMap)[output] = iter->id;
 
     /* Reconfigure new mode and position */
-    ret = vncRandRReconfigureOutput(screenIndex, i,
+    ret = vncRandRReconfigureOutput(i,
                                     iter->dimensions.tl.x,
                                     iter->dimensions.tl.y,
                                     iter->dimensions.width(),
                                     iter->dimensions.height());
     if (!ret) {
-      char *name = vncRandRGetOutputName(screenIndex, i);
+      char *name = vncRandRGetOutputName(i);
       vlog.error("Failed to reconfigure output '%s' to %dx%d+%d+%d",
                  name,
                  iter->dimensions.width(), iter->dimensions.height(),
@@ -243,7 +241,7 @@ unsigned int setScreenLayout(int screenIndex,
    * This is normally done in the X11 request handlers, which is
    * why we have to deal with it manually here.
    */
-  vncRandRUpdateSetTime(screenIndex);
+  vncRandRUpdateSetTime();
 
   return rfb::resultSuccess;
 }

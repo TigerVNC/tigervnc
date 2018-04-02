@@ -110,7 +110,7 @@ void vncClientGone(int fd)
 {
 }
 
-int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
+int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs)
 {
   return 0;
 }
