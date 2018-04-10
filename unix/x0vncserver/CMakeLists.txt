@@ -1,4 +1,5 @@
 include_directories(${X11_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/unix/common)
 include_directories(${CMAKE_SOURCE_DIR}/unix/tx)
 include_directories(${CMAKE_SOURCE_DIR}/unix)
 include_directories(${CMAKE_SOURCE_DIR}/common)
@@ -15,10 +16,11 @@ add_executable(x0vncserver
   x0vncserver.cxx
   XPixelBuffer.cxx
   XDesktop.cxx
+  RandrGlue.c
   ../vncconfig/QueryConnectDialog.cxx
 )
 
-target_link_libraries(x0vncserver tx rfb network rdr)
+target_link_libraries(x0vncserver tx rfb network rdr unixcommon)
 
 if(X11_FOUND AND X11_XTest_LIB)
   add_definitions(-DHAVE_XTEST)
@@ -39,6 +41,13 @@ if(X11_FOUND AND X11_Xfixes_LIB)
   target_link_libraries(x0vncserver ${X11_Xfixes_LIB})
 else()
   message(WARNING "No XFIXES extension.  x0vncserver will not be able to show cursors.")
+endif()
+
+if(X11_FOUND AND X11_Xrandr_LIB)
+  add_definitions(-DHAVE_XRANDR)
+  target_link_libraries(x0vncserver ${X11_Xrandr_LIB})
+else()
+  message(WARNING "No Xrandr extension.  x0vncserver will not be able to resize session.")
 endif()
 
 target_link_libraries(x0vncserver ${X11_LIBRARIES})

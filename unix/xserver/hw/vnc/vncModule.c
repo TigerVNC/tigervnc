@@ -24,9 +24,7 @@
 #endif
 
 #include "opaque.h"
-#ifdef RANDR
 #include "randrstr.h"
-#endif
 
 #include "xorg-version.h"
 #if XORG <= 111
@@ -39,6 +37,7 @@ typedef pointer XF86OptionPtr;
 #include "vncExtInit.h"
 #include "RFBGlue.h"
 #include "XorgGlue.h"
+#include "RandrGlue.h"
 
 static void vncModuleInit(INITARGS);
 
@@ -111,29 +110,31 @@ void vncClientGone(int fd)
 {
 }
 
-#ifdef RANDR
-int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
+int vncRandRCanCreateScreenOutputs(int scrIdx, int extraOutputs)
 {
-  return -1;
+  return 0;
 }
 
-void *vncRandRCreatePreferredMode(void *out, int width, int height)
+int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs)
 {
-  RROutputPtr output;
+  return 0;
+}
 
+int vncRandRCanCreateModes(void)
+{
+  return 0;
+}
+
+void* vncRandRCreateMode(void* output, int width, int height)
+{
+  return 0;
+}
+
+void* vncRandRSetPreferredMode(void* output, void* mode)
+{
   /*
-   * We're not going to change which modes are preferred, but let's
-   * see if we can at least find a mode with matching dimensions.
+   * We're not going to change which modes are preferred,
+   * so just return the incoming mode.
    */
-
-  output = out;
-
-  for (int i = 0;i < output->numModes;i++) {
-    if ((output->modes[i]->mode.width == width) &&
-        (output->modes[i]->mode.height == height))
-      return output->modes[i];
-  }
-
-  return NULL;
+  return mode;
 }
-#endif

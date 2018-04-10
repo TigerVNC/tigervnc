@@ -23,6 +23,7 @@
 
 #include <rfb/VNCServerST.h>
 #include <tx/TXWindow.h>
+#include <unixcommon.h>
 
 #include <X11/XKBlib.h>
 #ifdef HAVE_XDAMAGE
@@ -49,6 +50,9 @@ public:
   KeyCode XkbKeysymToKeycode(Display* dpy, KeySym keysym);
   virtual void keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down);
   virtual void clientCutText(const char* str, int len);
+  virtual unsigned int setScreenLayout(int fb_width, int fb_height,
+                                       const rfb::ScreenSet& layout);
+
   // -=- TXGlobalEventHandler interface
   virtual bool handleGlobalEvent(XEvent* ev);
 
@@ -71,11 +75,17 @@ protected:
 #ifdef HAVE_XFIXES
   int xfixesEventBase;
 #endif
+#ifdef HAVE_XRANDR
+  int xrandrEventBase;
+  OutputIdMap outputIdMap;
+  unsigned long randrSyncSerial;
+#endif
   int ledMasks[XDESKTOP_N_LEDS];
   unsigned ledState;
   const unsigned short *codeMap;
   unsigned codeMapLen;
   bool setCursor();
+  rfb::ScreenSet computeScreenLayout();
 };
 
 #endif // __XDESKTOP_H__

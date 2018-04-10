@@ -41,7 +41,12 @@
 #include "vncBlockHandler.h"
 #include "vncSelection.h"
 #include "XorgGlue.h"
+#include "RandrGlue.h"
 #include "xorg-version.h"
+
+extern "C" {
+void vncSetGlueContext(int screenIndex);
+}
 
 using namespace rfb;
 
@@ -211,13 +216,14 @@ void vncExtensionInit(void)
         CharArray desktopNameStr(desktopName.getData());
         PixelFormat pf = vncGetPixelFormat(scr);
 
+        vncSetGlueContext(scr);
         desktop[scr] = new XserverDesktop(scr,
                                           listeners,
                                           httpListeners,
                                           desktopNameStr.buf,
                                           pf,
-                                          vncGetScreenWidth(scr),
-                                          vncGetScreenHeight(scr),
+                                          vncGetScreenWidth(),
+                                          vncGetScreenHeight(),
                                           vncFbptr[scr],
                                           vncFbstride[scr]);
         vlog.info("created VNC server for screen %d", scr);

@@ -45,34 +45,14 @@ void vncGetScreenFormat(int scrIdx, int *depth, int *bpp,
 
 int vncGetScreenX(int scrIdx);
 int vncGetScreenY(int scrIdx);
-int vncGetScreenWidth(int scrIdx);
-int vncGetScreenHeight(int scrIdx);
-
-int vncRandRResizeScreen(int scrIdx, int width, int height);
-void vncRandRUpdateSetTime(int scrIdx);
-
-int vncRandRHasOutputClones(int scrIdx);
-
-int vncRandRGetOutputCount(int scrIdx);
-int vncRandRGetAvailableOutputs(int scrIdx);
-
-const char *vncRandRGetOutputName(int scrIdx, int outputIdx);
-
-int vncRandRIsOutputEnabled(int scrIdx, int outputIdx);
-int vncRandRIsOutputUsable(int scrIdx, int outputIdx);
-
-int vncRandRDisableOutput(int scrIdx, int outputIdx);
-int vncRandRReconfigureOutput(int scrIdx, int outputIdx, int x, int y,
-                              int width, int height);
-
-intptr_t vncRandRGetOutputId(int scrIdx, int outputIdx);
-void vncRandRGetOutputDimensions(int scrIdx, int outputIdx,
-                                 int *x, int *y, int *width, int *height);
 
 // These hide in xvnc.c or vncModule.c
 void vncClientGone(int fd);
-int vncRandRCreateOutputs(int scrIdx, int extraOutputs);
-void *vncRandRCreatePreferredMode(void *output, int width, int height);
+int vncRandRCanCreateScreenOutputs(int scrIdx, int extraOutputs);
+int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs);
+int vncRandRCanCreateModes(void);
+void* vncRandRCreateMode(void* output, int width, int height);
+void* vncRandRSetPreferredMode(void* output, void* mode);
 
 #ifdef __cplusplus
 }

@@ -37,6 +37,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/VNCServerST.h>
 #include <rdr/SubstitutingInStream.h>
+#include <unixcommon.h>
 #include "Input.h"
 
 namespace rfb {
@@ -117,7 +118,6 @@ protected:
   virtual bool handleTimeout(rfb::Timer* t);
 
 private:
-  rfb::ScreenSet computeScreenLayout();
 
   int screenIndex;
   rfb::VNCServerST* server;
@@ -132,10 +132,7 @@ private:
   rfb::CharArray queryConnectUsername;
   rfb::Timer queryConnectTimer;
 
-#ifdef RANDR
-  typedef std::map<intptr_t, rdr::U32> OutputIdMap;
   OutputIdMap outputIdMap;
-#endif
 
   rfb::Point oldCursorPos;
 };
