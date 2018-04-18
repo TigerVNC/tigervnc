@@ -24,14 +24,12 @@
 #include <ctype.h>
 #include <string.h>
 
-#include <os/Mutex.h>
+#include <mutex>
 
 #include <rfb/util.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-
-#define LOCK_CONFIG os::AutoMutex a(mutex)
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
@@ -203,12 +201,9 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_,
 
   _next = conf->head;
   conf->head = this;
-
-  mutex = new os::Mutex();
 }
 
 VoidParameter::~VoidParameter() {
-  delete mutex;
 }
 
 const char*
@@ -395,7 +390,7 @@ void StringParameter::setDefaultStr(const char* v) {
 }
 
 bool StringParameter::setParam(const char* v) {
-  LOCK_CONFIG;
+  std::lock_guard<std::mutex> lg(mutex);
   if (immutable) return true;
   if (!v)
     throw rfb::Exception("setParam(<null>) not allowed");
@@ -410,7 +405,7 @@ char* StringParameter::getDefaultStr() const {
 }
 
 char* StringParameter::getValueStr() const {
-  LOCK_CONFIG;
+  std::lock_guard<std::mutex> lg(mutex);
   return strDup(value);
 }
 
@@ -435,14 +430,14 @@ BinaryParameter::~BinaryParameter() {
 }
 
 bool BinaryParameter::setParam(const char* v) {
-  LOCK_CONFIG;
+  std::lock_guard<std::mutex> lg(mutex);
   if (immutable) return true;
   vlog.debug("set %s(Binary) to %s", getName(), v);
   return rdr::HexInStream::hexStrToBin(v, &value, &length);
 }
 
 void BinaryParameter::setParam(const void* v, int len) {
-  LOCK_CONFIG;
+  std::lock_guard<std::mutex> lg(mutex);
   if (immutable) return; 
   vlog.debug("set %s(Binary)", getName());
   delete [] value; value = 0;
@@ -458,12 +453,12 @@ char* BinaryParameter::getDefaultStr() const {
 }
 
 char* BinaryParameter::getValueStr() const {
-  LOCK_CONFIG;
+  std::lock_guard<std::mutex> lg(mutex);
   return rdr::HexOutStream::binToHexStr(value, length);
 }
 
 void BinaryParameter::getData(void** data_, int* length_) const {
-  LOCK_CONFIG;
+  std::lock_guard<std::mutex> lg(mutex);
   if (length_) *length_ = length;
   if (data_) {
     *data_ = new char[length];

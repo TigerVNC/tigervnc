@@ -15,7 +15,7 @@ add_library(rdr STATIC
   ZlibInStream.cxx
   ZlibOutStream.cxx)
 
-set(RDR_LIBRARIES ${ZLIB_LIBRARIES} os)
+set(RDR_LIBRARIES ${ZLIB_LIBRARIES})
 if(GNUTLS_FOUND)
   set(RDR_LIBRARIES ${RDR_LIBRARIES} ${GNUTLS_LIBRARIES})
 endif()

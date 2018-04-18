@@ -43,9 +43,9 @@
 #ifndef __RFB_CONFIGURATION_H__
 #define __RFB_CONFIGURATION_H__
 
-#include <rfb/util.h>
+#include <mutex>
 
-namespace os { class Mutex; }
+#include <rfb/util.h>
 
 namespace rfb {
   class VoidParameter;
@@ -183,7 +183,7 @@ namespace rfb {
     const char* name;
     const char* description;
 
-    os::Mutex* mutex;
+    mutable std::mutex mutex;
   };
 
   class AliasParameter : public VoidParameter {
