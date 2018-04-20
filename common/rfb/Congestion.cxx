@@ -1,4 +1,4 @@
-/* Copyright 2009-2015 Pierre Ossman for Cendio AB
+/* Copyright 2009-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ static LogWriter vlog("Congestion");
 Congestion::Congestion() :
     lastPosition(0), extraBuffer(0),
     baseRTT(-1), congWindow(INITIAL_WINDOW), inSlowStart(true),
-    measurements(0), minRTT(-1), minCongestedRTT(-1)
+    safeBaseRTT(-1), measurements(0), minRTT(-1), minCongestedRTT(-1)
 {
   gettimeofday(&lastUpdate, NULL);
   gettimeofday(&lastSent, NULL);
@@ -170,7 +170,7 @@ void Congestion::gotPong()
 
   // Try to estimate wire latency by tracking lowest seen latency
   if (rtt < baseRTT)
-    baseRTT = rtt;
+    safeBaseRTT = baseRTT = rtt;
 
   // Pings sent before the last adjustment aren't interesting as they
   // aren't a measurement of the current congestion window
@@ -282,6 +282,15 @@ int Congestion::getUncongestedETA()
     eta += etaNext;
     prevPing = &*iter;
   }
+}
+
+size_t Congestion::getBandwidth()
+{
+  // No measurements yet? Guess RTT of 60 ms
+  if (safeBaseRTT == (unsigned)-1)
+    return congWindow * 1000 / 60;
+
+  return congWindow * 1000 / safeBaseRTT;
 }
 
 void Congestion::debugTrace(const char* filename, int fd)

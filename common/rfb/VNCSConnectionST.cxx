@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2016 Pierre Ossman for Cendio AB
+ * Copyright 2009-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -223,6 +223,9 @@ void VNCSConnectionST::pixelBufferChange()
           }
         }
       }
+
+      // Drop any lossy tracking that is now outside the framebuffer
+      encodeManager.pruneLosslessRefresh(Region(server->pb->getRect()));
     }
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
@@ -962,17 +965,12 @@ void VNCSConnectionST::writeNoDataUpdate()
 
 void VNCSConnectionST::writeDataUpdate()
 {
-  Region req;
+  Region req, pending;
   UpdateInfo ui;
   bool needNewUpdateInfo;
   const RenderedCursor *cursor;
 
   updates.enable_copyrect(cp.useCopyRect);
-
-  // See if we are allowed to send anything right now (the framebuffer
-  // might have changed in ways we haven't yet been informed of).
-  if (!server->checkUpdate())
-    return;
 
   // See what the client has requested (if anything)
   if (continuousUpdates)
@@ -982,6 +980,9 @@ void VNCSConnectionST::writeDataUpdate()
 
   if (req.is_empty())
     return;
+
+  // Get any framebuffer changes we haven't yet been informed of
+  pending = server->getPendingRegion();
 
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
@@ -996,7 +997,7 @@ void VNCSConnectionST::writeDataUpdate()
   if (!ui.copied.is_empty() && !damagedCursorRegion.is_empty()) {
     Region bogusCopiedCursor;
 
-    bogusCopiedCursor.copyFrom(damagedCursorRegion);
+    bogusCopiedCursor = damagedCursorRegion;
     bogusCopiedCursor.translate(ui.copy_delta);
     bogusCopiedCursor.assign_intersect(server->pb->getRect());
     if (!ui.copied.intersect(bogusCopiedCursor).is_empty()) {
@@ -1015,53 +1016,78 @@ void VNCSConnectionST::writeDataUpdate()
     removeRenderedCursor = false;
   }
 
-  // Return if there is nothing to send the client.
+  // If we need a full cursor update then make sure its entire region
+  // is marked as changed.
 
-  if (updates.is_empty() && !writer()->needFakeUpdate() && !updateRenderedCursor)
-    return;
+  if (updateRenderedCursor) {
+    updates.add_changed(server->getRenderedCursor()->getEffectiveRect());
+    needNewUpdateInfo = true;
+    updateRenderedCursor = false;
+  }
 
   // The `updates' object could change, make sure we have valid update info.
 
   if (needNewUpdateInfo)
     updates.getUpdateInfo(&ui, req);
 
-  // If the client needs a server-side rendered cursor, work out the cursor
-  // rectangle.  If it's empty then don't bother drawing it, but if it overlaps
-  // with the update region, we need to draw the rendered cursor regardless of
-  // whether it has changed.
+  // If there are queued updates then we cannot safely send an update
+  // without risking a partially updated screen
+
+  if (!pending.is_empty()) {
+    // However we might still be able to send a lossless refresh
+    req.assign_subtract(pending);
+    req.assign_subtract(ui.changed);
+    req.assign_subtract(ui.copied);
+
+    ui.changed.clear();
+    ui.copied.clear();
+  }
+
+  // Does the client need a server-side rendered cursor?
 
   cursor = NULL;
   if (needRenderedCursor()) {
     Rect renderedCursorRect;
 
     cursor = server->getRenderedCursor();
+    renderedCursorRect = cursor->getEffectiveRect();
 
-    renderedCursorRect
-      = cursor->getEffectiveRect().intersect(req.get_bounding_rect());
-
-    if (renderedCursorRect.is_empty()) {
-      cursor = NULL;
-    } else if (!updateRenderedCursor &&
-               ui.changed.union_(ui.copied)
-               .intersect(renderedCursorRect).is_empty()) {
-      cursor = NULL;
+    // Check that we don't try to copy over the cursor area, and
+    // if that happens we need to treat it as changed so that we can
+    // re-render it
+    if (!ui.copied.intersect(renderedCursorRect).is_empty()) {
+      ui.changed.assign_union(ui.copied.intersect(renderedCursorRect));
+      ui.copied.assign_subtract(renderedCursorRect);
     }
 
-    if (cursor) {
-      updates.subtract(renderedCursorRect);
-      updates.getUpdateInfo(&ui, req);
-    }
-
-    damagedCursorRegion.assign_union(renderedCursorRect);
-    updateRenderedCursor = false;
+    // Track where we've rendered the cursor
+    damagedCursorRegion.assign_union(ui.changed.intersect(renderedCursorRect));
   }
 
-  if (ui.is_empty() && !writer()->needFakeUpdate() && !cursor)
+  // Return if there is nothing to send the client.
+
+  if (ui.is_empty() && !writer()->needFakeUpdate() &&
+      !encodeManager.needsLosslessRefresh(req))
     return;
 
   writeRTTPing();
 
-  encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  if (!ui.is_empty())
+    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  else {
+    size_t maxUpdateSize;
+
+    // FIXME: If continuous updates aren't used then the client might
+    //        be slower than frameRate in its requests and we could
+    //        afford a larger update size
+
+    // FIXME: Bandwidth estimation without congestion control
+    maxUpdateSize = congestion.getBandwidth() *
+                    server->msToNextUpdate() / 1000;
+
+    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
+                                       cursor, maxUpdateSize);
+  }
 
   writeRTTPing();
 

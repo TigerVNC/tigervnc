@@ -195,6 +195,7 @@ namespace rfb {
     // - Internal methods
 
     void startDesktop();
+    void stopDesktop();
 
     static LogWriter connectionsLog;
     Blacklist blacklist;
@@ -226,8 +227,9 @@ namespace rfb {
     bool needRenderedCursor();
     void startFrameClock();
     void stopFrameClock();
+    int msToNextUpdate();
     void writeUpdate();
-    bool checkUpdate();
+    Region getPendingRegion();
     const RenderedCursor* getRenderedCursor();
 
     void notifyScreenLayoutChange(VNCSConnectionST *requester);
