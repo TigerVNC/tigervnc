@@ -118,6 +118,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 #ifdef WIN32
     altGrArmed(false),
 #endif
+    pendingServerCutText(NULL), pendingClientCutText(NULL),
     menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -206,6 +207,8 @@ Viewport::~Viewport()
     delete cursor;
   }
 
+  clearPendingClipboard();
+
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
 }
@@ -226,6 +229,43 @@ void Viewport::updateWindow()
 
   r = frameBuffer->getDamage();
   damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+}
+
+void Viewport::serverCutText(const char* str, rdr::U32 len)
+{
+  char *buffer;
+  int size, ret;
+
+  clearPendingClipboard();
+
+  if (!acceptClipboard)
+    return;
+
+  size = fl_utf8froma(NULL, 0, str, len);
+  if (size <= 0)
+    return;
+
+  size++;
+
+  buffer = new char[size];
+
+  ret = fl_utf8froma(buffer, size, str, len);
+  assert(ret < size);
+
+  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
+
+  if (!hasFocus()) {
+    pendingServerCutText = buffer;
+    return;
+  }
+
+  // RFB doesn't have separate selection and clipboard concepts, so we
+  // dump the data into both variants.
+  if (setPrimary)
+    Fl::copy(buffer, ret, 0);
+  Fl::copy(buffer, ret, 1);
+
+  delete [] buffer;
 }
 
 static const char * dotcursor_xpm[] = {
@@ -279,17 +319,9 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 
 void Viewport::setLEDState(unsigned int state)
 {
-  Fl_Widget *focus;
-
   vlog.debug("Got server LED state: 0x%08x", state);
 
-  focus = Fl::grab();
-  if (!focus)
-    focus = Fl::focus();
-  if (!focus)
-    return;
-
-  if (focus != this)
+  if (!hasFocus())
     return;
 
 #if defined(WIN32)
@@ -512,10 +544,17 @@ int Viewport::handle(int event)
   case FL_PASTE:
     buffer = new char[Fl::event_length() + 1];
 
+    clearPendingClipboard();
+
     // This is documented as to ASCII, but actually does to 8859-1
     ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer,
                      Fl::event_length() + 1);
     assert(ret < (Fl::event_length() + 1));
+
+    if (!hasFocus()) {
+      pendingClientCutText = buffer;
+      return 1;
+    }
 
     vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(buffer));
 
@@ -574,6 +613,18 @@ int Viewport::handle(int event)
 
   case FL_FOCUS:
     Fl::disable_im();
+
+    try {
+      flushPendingClipboard();
+
+      // We may have gotten our lock keys out of sync with the server
+      // whilst we didn't have focus. Try to sort this out.
+      pushLEDState();
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+
     // Yes, we would like some focus please!
     return 1;
 
@@ -594,6 +645,17 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
+
+bool Viewport::hasFocus()
+{
+  Fl_Widget* focus;
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+
+  return focus == this;
+}
 
 #if ! (defined(WIN32) || defined(__APPLE__))
 unsigned int Viewport::getModifierMask(unsigned int keysym)
@@ -658,6 +720,33 @@ void Viewport::handleClipboardChange(int source, void *data)
 #endif
 
   Fl::paste(*self, source);
+}
+
+
+void Viewport::clearPendingClipboard()
+{
+  delete [] pendingServerCutText;
+  pendingServerCutText = NULL;
+  delete [] pendingClientCutText;
+  pendingClientCutText = NULL;
+}
+
+
+void Viewport::flushPendingClipboard()
+{
+  if (pendingServerCutText) {
+    size_t len = strlen(pendingServerCutText);
+    if (setPrimary)
+      Fl::copy(pendingServerCutText, len, 0);
+    Fl::copy(pendingServerCutText, len, 1);
+  }
+  if (pendingClientCutText) {
+    size_t len = strlen(pendingClientCutText);
+    vlog.debug("Sending pending clipboard data (%d bytes)", (int)len);
+    cc->writer()->writeClientCutText(pendingClientCutText, len);
+  }
+
+  clearPendingClipboard();
 }
 
 
@@ -806,17 +895,10 @@ void Viewport::handleKeyRelease(int keyCode)
 int Viewport::handleSystemEvent(void *event, void *data)
 {
   Viewport *self = (Viewport *)data;
-  Fl_Widget *focus;
 
   assert(self);
 
-  focus = Fl::grab();
-  if (!focus)
-    focus = Fl::focus();
-  if (!focus)
-    return 0;
-
-  if (focus != self)
+  if (!self->hasFocus())
     return 0;
 
   assert(event);
@@ -1138,7 +1220,12 @@ void Viewport::popupContextMenu()
   if (Fl::belowmouse() == this)
     window()->cursor(FL_CURSOR_DEFAULT);
 
+  // FLTK also doesn't switch focus properly for menus
+  handle(FL_UNFOCUS);
+
   m = contextMenu->popup();
+
+  handle(FL_FOCUS);
 
   // Back to our proper mouse pointer.
   if ((Fl::belowmouse() == this) && cursor)
