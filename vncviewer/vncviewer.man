@@ -14,6 +14,10 @@ vncviewer \- VNC viewer for X
 .RI [ options ] 
 .B \-listen
 .RI [ port ]
+.br
+.B vncviewer
+.RI [ options ]
+.RI [ .tigervnc file ]
 .SH DESCRIPTION
 .B vncviewer
 is a viewer (client) for Virtual Network Computing.  This manual page documents
@@ -30,6 +34,18 @@ where 'snoopy' is the name of the machine, and '2' is the display number of the
 VNC server on that machine.  Either the machine name or display number can be
 omitted.  So for example ":1" means display number 1 on the same machine, and
 "snoopy" means "snoopy:0" i.e. display 0 on machine "snoopy".
+
+As another quick way to start a connection to a VNC server, specify a .tigervnc
+configuration file as an argument to the viewer, e.g.:
+
+.RS
+vncviewer ./some.tigervnc
+.RE
+
+where './some.tigervnc' is an existing and valid TigerVNC configuration file.
+The file name needs to include a path separator.  Additional options may be
+given too, but the given configuration file will overwrite any conflicting
+parameters.
 
 If the VNC server is successfully contacted, you will be prompted for a
 password to authenticate you.  If the password is correct, a window will appear

@@ -349,8 +349,9 @@ static void usage(const char *programName)
 
   fprintf(stderr,
           "\nusage: %s [parameters] [host:displayNum] [parameters]\n"
-          "       %s [parameters] -listen [port] [parameters]\n",
-          programName, programName);
+          "       %s [parameters] -listen [port] [parameters]\n"
+          "       %s [parameters] [.tigervnc file]\n",
+          programName, programName, programName);
   fprintf(stderr,"\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
           "Parameters which take a value can be specified as "
@@ -366,6 +367,31 @@ static void usage(const char *programName)
 #endif
 
   exit(1);
+}
+
+static void
+potentiallyLoadConfigurationFile(char *vncServerName)
+{
+  const bool hasPathSeparator = (strchr(vncServerName, '/') != NULL ||
+                                 (strchr(vncServerName, '\\')) != NULL);
+
+  if (hasPathSeparator) {
+    try {
+      strncpy(vncServerName, loadViewerParameters(vncServerName),
+              VNCSERVERNAMELEN);
+      if (vncServerName[0] == '\0') {
+        vlog.error("Unable to load the server name from given file");
+        if (alertOnFatalError)
+          fl_alert("Unable to load the server name from given file");
+        exit(EXIT_FAILURE);
+      }
+    } catch (rfb::Exception& e) {
+      vlog.error("%s", e.str());
+      if (alertOnFatalError)
+        fl_alert("%s", e.str());
+      exit(EXIT_FAILURE);
+    }
+  }
 }
 
 #ifndef WIN32
@@ -515,6 +541,9 @@ int main(int argc, char** argv)
     vncServerName[VNCSERVERNAMELEN - 1] = '\0';
     i++;
   }
+
+  // Check if the server name in reality is a configuration file
+  potentiallyLoadConfigurationFile(vncServerName);
 
   mkvnchomedir();
 

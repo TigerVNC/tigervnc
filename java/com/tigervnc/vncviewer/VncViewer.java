@@ -208,6 +208,8 @@ public class VncViewer extends javax.swing.JApplet
       vncServerName.put(argv[i].toCharArray()).flip();
     }
 
+    // Check if the server name in reality is a configuration file
+    potentiallyLoadConfigurationFile(vncServerName);
   }
 
   public static void usage() {
@@ -215,6 +217,7 @@ public class VncViewer extends javax.swing.JApplet
                     "[host:displayNum]\n"+
                     "       vncviewer [options/parameters] -listen [port] "+
                     "[options/parameters]\n"+
+                    "       vncviewer [options/parameters] [.tigervnc file]\n"+
                     "\n"+
                     "Options:\n"+
                     "  -log <level>    configure logging level\n"+
@@ -275,6 +278,27 @@ public class VncViewer extends javax.swing.JApplet
     // Technically, we shouldn't use System.exit here but if there is a parameter
     // error then the problem is in the index/html file anyway.
     System.exit(1);
+  }
+
+  public static void potentiallyLoadConfigurationFile(CharBuffer vncServerName) {
+    String serverName = vncServerName.toString();
+    boolean hasPathSeparator = (serverName.indexOf('/') != -1 ||
+                                (serverName.indexOf('\\')) != -1);
+
+    if (hasPathSeparator) {
+      try {
+        serverName = loadViewerParameters(vncServerName.toString());
+        if (serverName == "") {
+          vlog.info("Unable to load the server name from given file");
+          System.exit(1);
+        }
+        vncServerName.clear();
+        vncServerName.put(serverName).flip();
+      } catch (com.tigervnc.rfb.Exception e) {
+        vlog.info(e.getMessage());
+        System.exit(1);
+      }
+    }
   }
 
   public static void newViewer() {
