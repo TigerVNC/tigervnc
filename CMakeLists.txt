@@ -125,8 +125,8 @@ endif()
 # need to check for both the header and library and use our own implementation
 # in common/os if either doesn't exist.
 if(WIN32)
-  check_c_source_compiles("#include <windows.h>\n#include <wininet.h>\n#include <shlobj.h>\nint main(int c, char** v) {IActiveDesktop iad; return 0;}" HAVE_ACTIVE_DESKTOP_H)
-  check_c_source_compiles("#include <windows.h>\n#include <wininet.h>\n#include <shlobj.h>\nint main(int c, char** v) {GUID i = CLSID_ActiveDesktop; return 0;}" HAVE_ACTIVE_DESKTOP_L)
+  check_c_source_compiles("#include <windows.h>\n#include <wininet.h>\n#include <shlobj.h>\nint main(int c, char** v) {IActiveDesktop iad; (void)iad; return 0;}" HAVE_ACTIVE_DESKTOP_H)
+  check_c_source_compiles("#include <windows.h>\n#include <wininet.h>\n#include <shlobj.h>\nint main(int c, char** v) {GUID i = CLSID_ActiveDesktop; (void)i; return 0;}" HAVE_ACTIVE_DESKTOP_L)
 endif()
 
 # X11 stuff. It's in a if() so that we can say REQUIRED
