@@ -29,7 +29,9 @@
 #include <rfb/Security.h>
 #include <rfb/SecurityServer.h>
 #include <rfb/SSecurityVncAuth.h>
+#ifdef HAVE_GNUTLS
 #include <rfb/SSecurityTLS.h>
+#endif
 #include <rfb/Password.h>
 
 static rfb::BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
