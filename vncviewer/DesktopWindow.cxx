@@ -762,7 +762,8 @@ void DesktopWindow::fullscreen_on()
     fullscreen_screens(top, bottom, left, right);
   }
 
-  fullscreen();
+  if (!fullscreen_active())
+    fullscreen();
 }
 
 void DesktopWindow::grabKeyboard()
@@ -1186,7 +1187,9 @@ void DesktopWindow::handleOptions(void *data)
   else
     self->ungrabKeyboard();
 
-  if (fullScreen && !self->fullscreen_active())
+  // Call fullscreen_on even if active since it handles
+  // fullScreenAllMonitors
+  if (fullScreen)
     self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
