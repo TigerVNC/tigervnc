@@ -173,8 +173,8 @@ void vncExtensionInit(void)
     for (int scr = 0; scr < vncGetScreenCount(); scr++) {
 
       if (!desktop[scr]) {
-        std::list<network::TcpListener*> listeners;
-        std::list<network::TcpListener*> httpListeners;
+        std::list<network::SocketListener*> listeners;
+        std::list<network::SocketListener*> httpListeners;
         if (scr == 0 && vncInetdSock != -1) {
           if (network::TcpSocket::isListening(vncInetdSock))
           {

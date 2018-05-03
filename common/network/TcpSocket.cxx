@@ -532,7 +532,7 @@ int TcpListener::getMyPort() {
 }
 
 
-void network::createLocalTcpListeners(std::list<TcpListener*> *listeners,
+void network::createLocalTcpListeners(std::list<SocketListener*> *listeners,
                                       int port)
 {
   struct addrinfo ai[2];
@@ -562,7 +562,7 @@ void network::createLocalTcpListeners(std::list<TcpListener*> *listeners,
   createTcpListeners(listeners, ai);
 }
 
-void network::createTcpListeners(std::list<TcpListener*> *listeners,
+void network::createTcpListeners(std::list<SocketListener*> *listeners,
                                  const char *addr,
                                  int port)
 {
@@ -594,11 +594,11 @@ void network::createTcpListeners(std::list<TcpListener*> *listeners,
   }
 }
 
-void network::createTcpListeners(std::list<TcpListener*> *listeners,
+void network::createTcpListeners(std::list<SocketListener*> *listeners,
                                  const struct addrinfo *ai)
 {
   const struct addrinfo *current;
-  std::list<TcpListener*> new_listeners;
+  std::list<SocketListener*> new_listeners;
 
   initSockets();
 

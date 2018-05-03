@@ -99,6 +99,8 @@ namespace network {
     // if one is installed.  Otherwise, returns 0.
     virtual Socket* accept() = 0;
 
+    virtual int getMyPort() = 0;
+
     // setFilter() applies the specified filter to all new connections
     void setFilter(ConnectionFilter* f) {filter = f;}
     int getFd() {return fd;}
