@@ -34,6 +34,7 @@
 #include <rfb/Region.h>
 #include <rfb/ledStates.h>
 #include <network/TcpSocket.h>
+#include <network/UnixSocket.h>
 
 #include "XserverDesktop.h"
 #include "vncExtInit.h"
@@ -79,6 +80,8 @@ rfb::IntParameter httpPort("httpPort", "TCP port to listen for HTTP",0);
 rfb::AliasParameter rfbwait("rfbwait", "Alias for ClientWaitTimeMillis",
                             &rfb::Server::clientWaitTimeMillis);
 rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
+rfb::StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
+rfb::IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
 rfb::StringParameter desktopName("desktop", "Name of VNC desktop","x11");
 rfb::BoolParameter localhostOnly("localhost",
                                  "Only allow connections from localhost",
@@ -181,6 +184,21 @@ void vncExtensionInit(void)
             listeners.push_back(new network::TcpListener(vncInetdSock));
             vlog.info("inetd wait");
           }
+        } else if (rfbunixpath.getValueStr()[0] != '\0') {
+          char path[PATH_MAX];
+          int mode = (int)rfbunixmode;
+
+          if (scr == 0)
+            strncpy(path, rfbunixpath, sizeof(path));
+          else
+            snprintf(path, sizeof(path), "%s.%d",
+                     rfbunixpath.getValueStr(), scr);
+          path[sizeof(path)-1] = '\0';
+
+          listeners.push_back(new network::UnixListener(path, mode));
+
+          vlog.info("Listening for VNC connections on %s (mode %04o)",
+                    path, mode);
         } else {
           const char *addr = interface;
           int port = rfbport;

@@ -91,6 +91,15 @@ Use IPv4 for incoming and outgoing connections. Default is on.
 Use IPv6 for incoming and outgoing connections. Default is on.
 .
 .TP
+.B \-rfbunixpath \fIpath\fP
+Specifies the path of a Unix domain socket on which Xvnc listens for
+connections from viewers, instead of listening on a TCP port.
+.
+.TP
+.B \-rfbunixmode \fImode\fP
+Specifies the mode of the Unix domain socket.  The default is 0600.
+.
+.TP
 .B \-rfbwait \fItime\fP, \-ClientWaitTimeMillis \fItime\fP
 Time in milliseconds to wait for a viewer which is blocking the server. This is
 necessary because the server is single-threaded and sometimes blocks until the
