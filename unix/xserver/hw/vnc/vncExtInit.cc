@@ -179,7 +179,7 @@ void vncExtensionInit(void)
         std::list<network::SocketListener*> listeners;
         std::list<network::SocketListener*> httpListeners;
         if (scr == 0 && vncInetdSock != -1) {
-          if (network::TcpSocket::isListening(vncInetdSock))
+          if (network::isSocketListening(vncInetdSock))
           {
             listeners.push_back(new network::TcpListener(vncInetdSock));
             vlog.info("inetd wait");

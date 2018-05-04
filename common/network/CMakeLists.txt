@@ -1,6 +1,7 @@
 include_directories(${CMAKE_SOURCE_DIR}/common)
 
 set(NETWORK_SOURCES
+  Socket.cxx
   TcpSocket.cxx)
 
 if(NOT WIN32)

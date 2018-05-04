@@ -33,8 +33,6 @@
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <errno.h>
-#include <signal.h>
-#include <fcntl.h>
 #endif
 
 #include <stdlib.h>
@@ -97,30 +95,27 @@ int network::findFreeTcpPort (void)
   return ntohs(addr.sin_port);
 }
 
+int network::getSockPort(int sock)
+{
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
+  if (getsockname(sock, &sa.u.sa, &sa_size) < 0)
+    return 0;
 
-// -=- Socket initialisation
-static bool socketsInitialised = false;
-static void initSockets() {
-  if (socketsInitialised)
-    return;
-#ifdef WIN32
-  WORD requiredVersion = MAKEWORD(2,0);
-  WSADATA initResult;
-  
-  if (WSAStartup(requiredVersion, &initResult) != 0)
-    throw SocketException("unable to initialise Winsock2", errorNumber);
-#else
-  signal(SIGPIPE, SIG_IGN);
-#endif
-  socketsInitialised = true;
+  switch (sa.u.sa.sa_family) {
+  case AF_INET6:
+    return ntohs(sa.u.sin6.sin6_port);
+  default:
+    return ntohs(sa.u.sin.sin_port);
+  }
 }
-
 
 // -=- TcpSocket
 
-TcpSocket::TcpSocket(int sock)
-  : Socket(new FdInStream(sock), new FdOutStream(sock))
+TcpSocket::TcpSocket(int sock) : Socket(sock)
 {
+  // Disable Nagle's algorithm, to reduce latency
+  enableNagles(false);
 }
 
 TcpSocket::TcpSocket(const char *host, int port)
@@ -129,7 +124,6 @@ TcpSocket::TcpSocket(const char *host, int port)
   struct addrinfo *ai, *current, hints;
 
   // - Create a socket
-  initSockets();
 
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
@@ -211,21 +205,11 @@ TcpSocket::TcpSocket(const char *host, int port)
       throw SocketException("unable connect to socket", err);
   }
 
-#ifndef WIN32
-  // - By default, close the socket on exec()
-  fcntl(sock, F_SETFD, FD_CLOEXEC);
-#endif
+  // Take proper ownership of the socket
+  setFd(sock);
 
   // Disable Nagle's algorithm, to reduce latency
-  enableNagles(sock, false);
-
-  // Create the input and output streams
-  instream = new FdInStream(sock);
-  outstream = new FdOutStream(sock);
-}
-
-TcpSocket::~TcpSocket() {
-  closesocket(getFd());
+  enableNagles(false);
 }
 
 char* TcpSocket::getPeerAddress() {
@@ -293,15 +277,9 @@ char* TcpSocket::getPeerEndpoint() {
   return buffer;
 }
 
-void TcpSocket::shutdown()
-{
-  Socket::shutdown();
-  ::shutdown(getFd(), 2);
-}
-
-bool TcpSocket::enableNagles(int sock, bool enable) {
+bool TcpSocket::enableNagles(bool enable) {
   int one = enable ? 0 : 1;
-  if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+  if (setsockopt(getFd(), IPPROTO_TCP, TCP_NODELAY,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     vlog.error("unable to setsockopt TCP_NODELAY: %d", e);
@@ -321,34 +299,8 @@ bool TcpSocket::cork(bool enable) {
 #endif
 }
 
-bool TcpSocket::isListening(int sock)
+TcpListener::TcpListener(int sock) : SocketListener(sock)
 {
-  int listening = 0;
-  socklen_t listening_size = sizeof(listening);
-  if (getsockopt(sock, SOL_SOCKET, SO_ACCEPTCONN,
-                 (char *)&listening, &listening_size) < 0)
-    return false;
-  return listening != 0;
-}
-
-int TcpSocket::getSockPort(int sock)
-{
-  vnc_sockaddr_t sa;
-  socklen_t sa_size = sizeof(sa);
-  if (getsockname(sock, &sa.u.sa, &sa_size) < 0)
-    return 0;
-
-  switch (sa.u.sa.sa_family) {
-  case AF_INET6:
-    return ntohs(sa.u.sin6.sin6_port);
-  default:
-    return ntohs(sa.u.sin.sin_port);
-  }
-}
-
-TcpListener::TcpListener(int sock)
-{
-  fd = sock;
 }
 
 TcpListener::TcpListener(const struct sockaddr *listenaddr,
@@ -357,8 +309,6 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   int one = 1;
   vnc_sockaddr_t sa;
   int sock;
-
-  initSockets();
 
   if ((sock = socket (listenaddr->sa_family, SOCK_STREAM, 0)) < 0)
     throw SocketException("unable to create listening socket", errorNumber);
@@ -397,53 +347,11 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
     throw SocketException("failed to bind socket", e);
   }
 
-  // - Set it to be a listening socket
-  if (listen(sock, 5) < 0) {
-    int e = errorNumber;
-    closesocket(sock);
-    throw SocketException("unable to set socket to listening mode", e);
-  }
-
-  fd = sock;
+  listen(sock);
 }
 
-TcpListener::~TcpListener() {
-  closesocket(fd);
-}
-
-void TcpListener::shutdown()
-{
-#ifdef WIN32
-  closesocket(getFd());
-#else
-  ::shutdown(getFd(), 2);
-#endif
-}
-
-
-Socket*
-TcpListener::accept() {
-  int new_sock = -1;
-
-  // Accept an incoming connection
-  if ((new_sock = ::accept(fd, 0, 0)) < 0)
-    throw SocketException("unable to accept new connection", errorNumber);
-
-#ifndef WIN32
-  // - By default, close the socket on exec()
-  fcntl(new_sock, F_SETFD, FD_CLOEXEC);
-#endif
-
-  // Disable Nagle's algorithm, to reduce latency
-  TcpSocket::enableNagles(new_sock, false);
-
-  // Create the socket object & check connection is allowed
-  TcpSocket* s = new TcpSocket(new_sock);
-  if (filter && !filter->verifyConnection(s)) {
-    delete s;
-    return 0;
-  }
-  return s;
+Socket* TcpListener::createSocket(int fd) {
+  return new TcpSocket(fd);
 }
 
 void TcpListener::getMyAddresses(std::list<char*>* result) {
@@ -489,7 +397,7 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
 }
 
 int TcpListener::getMyPort() {
-  return TcpSocket::getSockPort(getFd());
+  return getSockPort(getFd());
 }
 
 

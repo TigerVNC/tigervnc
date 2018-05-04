@@ -48,35 +48,33 @@ namespace network {
   /* Tunnelling support. */
   int findFreeTcpPort (void);
 
+  int getSockPort(int sock);
+
   class TcpSocket : public Socket {
   public:
     TcpSocket(int sock);
     TcpSocket(const char *name, int port);
-    virtual ~TcpSocket();
 
     virtual char* getPeerAddress();
     virtual char* getPeerEndpoint();
 
-    virtual void shutdown();
     virtual bool cork(bool enable);
 
-    static bool enableNagles(int sock, bool enable);
-    static bool isListening(int sock);
-    static int getSockPort(int sock);
+  protected:
+    bool enableNagles(bool enable);
   };
 
   class TcpListener : public SocketListener {
   public:
     TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
     TcpListener(int sock);
-    virtual ~TcpListener();
-
-    virtual void shutdown();
-    virtual Socket* accept();
 
     virtual int getMyPort();
 
     static void getMyAddresses(std::list<char*>* result);
+
+  protected:
+    virtual Socket* createSocket(int fd);
   };
 
   void createLocalTcpListeners(std::list<SocketListener*> *listeners,

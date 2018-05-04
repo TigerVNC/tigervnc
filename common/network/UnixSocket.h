@@ -37,12 +37,10 @@ namespace network {
   public:
     UnixSocket(int sock);
     UnixSocket(const char *name);
-    virtual ~UnixSocket();
 
     virtual char* getPeerAddress();
     virtual char* getPeerEndpoint();
 
-    virtual void shutdown();
     virtual bool cork(bool enable);
   };
 
@@ -51,10 +49,10 @@ namespace network {
     UnixListener(const char *listenaddr, int mode);
     virtual ~UnixListener();
 
-    virtual void shutdown();
-    virtual Socket* accept();
-
     int getMyPort();
+
+  protected:
+    virtual Socket* createSocket(int fd);
   };
 
 }

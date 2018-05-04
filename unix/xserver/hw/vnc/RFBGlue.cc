@@ -192,7 +192,7 @@ void vncListParams(int width, int nameWidth)
 
 int vncGetSocketPort(int fd)
 {
-  return network::TcpSocket::getSockPort(fd);
+  return network::getSockPort(fd);
 }
 
 int vncIsTCPPortUsed(int port)

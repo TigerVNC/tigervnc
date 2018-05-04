@@ -26,8 +26,6 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <errno.h>
-#include <signal.h>
-#include <fcntl.h>
 #include <stdlib.h>
 #include <stddef.h>
 
@@ -39,20 +37,9 @@ using namespace rdr;
 
 static rfb::LogWriter vlog("UnixSocket");
 
-// -=- Socket initialisation
-static bool socketsInitialised = false;
-static void initSockets() {
-  if (socketsInitialised)
-    return;
-  signal(SIGPIPE, SIG_IGN);
-  socketsInitialised = true;
-}
-
-
 // -=- UnixSocket
 
-UnixSocket::UnixSocket(int sock)
-  : Socket(new FdInStream(sock), new FdOutStream(sock))
+UnixSocket::UnixSocket(int sock) : Socket(sock)
 {
 }
 
@@ -66,7 +53,6 @@ UnixSocket::UnixSocket(const char *path)
     throw SocketException("socket path is too long", ENAMETOOLONG);
 
   // - Create a socket
-  initSockets();
   sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock == -1)
     throw SocketException("unable to create socket", errno);
@@ -85,16 +71,7 @@ UnixSocket::UnixSocket(const char *path)
   if (result == -1)
     throw SocketException("unable connect to socket", err);
 
-  // - By default, close the socket on exec()
-  fcntl(sock, F_SETFD, FD_CLOEXEC);
-
-  // Create the input and output streams
-  instream = new FdInStream(sock);
-  outstream = new FdOutStream(sock);
-}
-
-UnixSocket::~UnixSocket() {
-  close(getFd());
+  setFd(sock);
 }
 
 char* UnixSocket::getPeerAddress() {
@@ -132,12 +109,6 @@ char* UnixSocket::getPeerEndpoint() {
   return getPeerAddress();
 }
 
-void UnixSocket::shutdown()
-{
-  Socket::shutdown();
-  ::shutdown(getFd(), 2);
-}
-
 bool UnixSocket::cork(bool enable)
 {
   return true;
@@ -153,12 +124,8 @@ UnixListener::UnixListener(const char *path, int mode)
     throw SocketException("socket path is too long", ENAMETOOLONG);
 
   // - Create a socket
-  initSockets();
   if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
     throw SocketException("unable to create listening socket", errno);
-
-  // - By default, close the socket on exec()
-  fcntl(fd, F_SETFD, FD_CLOEXEC);
 
   // - Delete existing socket (ignore result)
   unlink(path);
@@ -183,12 +150,7 @@ UnixListener::UnixListener(const char *path, int mode)
     throw SocketException("unable to set socket mode", err);
   }
 
-  // - Set it to be a listening socket
-  if (listen(fd, 5) < 0) {
-    err = errno;
-    close(fd);
-    throw SocketException("unable to set socket to listening mode", err);
-  }
+  listen(fd);
 }
 
 UnixListener::~UnixListener()
@@ -196,31 +158,12 @@ UnixListener::~UnixListener()
   struct sockaddr_un addr;
   socklen_t salen = sizeof(addr);
 
-  close(fd);
-
   if (getsockname(getFd(), (struct sockaddr *)&addr, &salen) == 0)
     unlink(addr.sun_path);
 }
 
-void UnixListener::shutdown()
-{
-  ::shutdown(getFd(), 2);
-}
-
-
-Socket*
-UnixListener::accept() {
-  int new_sock = -1;
-
-  // Accept an incoming connection
-  if ((new_sock = ::accept(fd, 0, 0)) < 0)
-    throw SocketException("unable to accept new connection", errno);
-
-  // - By default, close the socket on exec()
-  fcntl(new_sock, F_SETFD, FD_CLOEXEC);
-
-  // - Create the socket object
-  return new UnixSocket(new_sock);
+Socket* UnixListener::createSocket(int fd) {
+  return new UnixSocket(fd);
 }
 
 int UnixListener::getMyPort() {
