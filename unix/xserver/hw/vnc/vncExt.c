@@ -585,6 +585,7 @@ static int SProcVncExtDispatch(ClientPtr client)
 
 static void vncResetProc(ExtensionEntry* extEntry)
 {
+  vncExtensionClose();
 }
 
 static void vncClientStateChange(CallbackListPtr * l, void * d, void * p)

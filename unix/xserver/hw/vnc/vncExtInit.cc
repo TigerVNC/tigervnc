@@ -262,6 +262,18 @@ void vncExtensionInit(void)
   vncRegisterBlockHandlers();
 }
 
+void vncExtensionClose(void)
+{
+  try {
+    for (int scr = 0; scr < vncGetScreenCount(); scr++) {
+      delete desktop[scr];
+      desktop[scr] = NULL;
+    }
+  } catch (rdr::Exception& e) {
+    vncFatalError("vncExtInit: %s",e.str());
+  }
+}
+
 void vncHandleSocketEvent(int fd, int scrIdx, int read, int write)
 {
   desktop[scrIdx]->handleSocketEvent(fd, read, write);
