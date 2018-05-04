@@ -31,6 +31,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
+#include <network/UnixSocket.h>
 
 #include <vncconfig/QueryConnectDialog.h>
 
@@ -58,6 +59,8 @@ IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
                                "CPU time to be consumed", 35);
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
+StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
+IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
 IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "Number of seconds to show the Accept Connection dialog before "
                                  "rejecting the connection",
@@ -307,8 +310,13 @@ int main(int argc, char** argv)
     QueryConnHandler qcHandler(dpy, &server);
     server.setQueryConnectionHandler(&qcHandler);
 
-    createTcpListeners(&listeners, 0, (int)rfbport);
-    vlog.info("Listening on port %d", (int)rfbport);
+    if (rfbunixpath.getValueStr()[0] != '\0') {
+      listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
+      vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
+    } else {
+      createTcpListeners(&listeners, 0, (int)rfbport);
+      vlog.info("Listening on port %d", (int)rfbport);
+    }
 
     const char *hostsData = hostsFile.getData();
     FileTcpFilter fileTcpFilter(hostsData);
