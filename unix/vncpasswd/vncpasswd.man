@@ -32,6 +32,9 @@ Filter mode.  Read a plain-text password from stdin and write an encrypted
 version to stdout.  Note that in filter mode, short or even empty passwords
 will be silently accepted.
 
+A view-only password must be separated from the normal password by a newline
+character.
+
 
 .SH FILES
 .TP
