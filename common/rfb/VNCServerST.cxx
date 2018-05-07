@@ -316,9 +316,11 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
     return;
   }
 
+  // Assume the framebuffer contents wasn't saved and reset everything
+  // that tracks its contents
   comparer = new ComparingUpdateTracker(pb);
   renderedCursorInvalid = true;
-  startFrameClock();
+  add_changed(pb->getRect());
 
   // Make sure that we have at least one screen
   if (screenLayout.num_screens() == 0)
@@ -539,9 +541,13 @@ void VNCServerST::startDesktop()
   if (!desktopStarted) {
     slog.debug("starting desktop");
     desktop->start(this);
-    desktopStarted = true;
     if (!pb)
       throw Exception("SDesktop::start() did not set a valid PixelBuffer");
+    desktopStarted = true;
+    // The tracker might have accumulated changes whilst we were
+    // stopped, so flush those out
+    if (!comparer->is_empty())
+      writeUpdate();
   }
 }
 
