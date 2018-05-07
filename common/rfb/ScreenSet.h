@@ -126,11 +126,23 @@ namespace rfb {
       }
     };
 
-    // FIXME: List order shouldn't matter
-    inline bool operator==(const ScreenSet& r) const { return screens == r.screens; }
-    inline bool operator!=(const ScreenSet& r) const { return screens != r.screens; }
+    inline bool operator==(const ScreenSet& r) const {
+      std::list<Screen> a = screens;
+      a.sort(compare_screen);
+      std::list<Screen> b = r.screens;
+      b.sort(compare_screen);
+      return a == b;
+    };
+    inline bool operator!=(const ScreenSet& r) const { return !operator==(r); }
 
     std::list<Screen> screens;
+
+  private:
+    static inline bool compare_screen(const Screen& first, const Screen& second)
+    {
+      return first.id < second.id;
+    }
+
   };
 
 };
