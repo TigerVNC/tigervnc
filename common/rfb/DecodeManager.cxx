@@ -64,6 +64,12 @@ DecodeManager::DecodeManager(CConnection *conn) :
       vlog.info("Creating %d decoder thread(s)", (int)cpuCount);
   }
 
+  if (cpuCount == 1) {
+    // Threads are not used on single CPU machines
+    freeBuffers.push_back(new rdr::MemOutStream());
+    return;
+  }
+
   while (cpuCount--) {
     // Twice as many possible entries in the queue as there
     // are worker threads to make sure they don't stall
@@ -123,7 +129,7 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
 
   // Fast path for single CPU machines to avoid the context
   // switching overhead
-  if (threads.size() == 1) {
+  if (threads.empty()) {
     bufferStream = freeBuffers.front();
     bufferStream->clear();
     decoder->readRect(r, conn->getInStream(), conn->cp, bufferStream);
