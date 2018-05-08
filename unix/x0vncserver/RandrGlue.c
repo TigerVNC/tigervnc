@@ -468,6 +468,7 @@ int vncRandRReconfigureOutput(int outputIdx, int x, int y,
       }
 
       crtcid = output->crtcs[i];
+      crtc->rotation = RR_Rotate_0;
       break;
     }
   } else {
