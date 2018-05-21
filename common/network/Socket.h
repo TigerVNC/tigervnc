@@ -35,13 +35,11 @@ namespace network {
     Socket(int fd)
       : instream(new rdr::FdInStream(fd)),
       outstream(new rdr::FdOutStream(fd)),
-      ownStreams(true), isShutdown_(false),
+      isShutdown_(false),
       queryConnection(false) {}
     virtual ~Socket() {
-      if (ownStreams) {
-        delete instream;
-        delete outstream;
-      }
+      delete instream;
+      delete outstream;
     }
     rdr::FdInStream &inStream() {return *instream;}
     rdr::FdOutStream &outStream() {return *outstream;}
@@ -52,30 +50,22 @@ namespace network {
     bool isShutdown() const {return isShutdown_;}
     virtual bool cork(bool enable) = 0;
 
-    // information about this end of the socket
-    virtual int getMyPort() = 0;
-
     // information about the remote end of the socket
     virtual char* getPeerAddress() = 0; // a string e.g. "192.168.0.1"
-    virtual int getPeerPort() = 0;
     virtual char* getPeerEndpoint() = 0; // <address>::<port>
-
-    // Is the remote end on the same machine?
-    virtual bool sameMachine() = 0;
 
     // Was there a "?" in the ConnectionFilter used to accept this Socket?
     void setRequiresQuery() {queryConnection = true;}
     bool requiresQuery() const {return queryConnection;}
 
   protected:
-    Socket() : instream(0), outstream(0), ownStreams(false),
+    Socket() : instream(0), outstream(0),
       isShutdown_(false), queryConnection(false) {}
-    Socket(rdr::FdInStream* i, rdr::FdOutStream* o, bool own)
-      : instream(i), outstream(o), ownStreams(own),
+    Socket(rdr::FdInStream* i, rdr::FdOutStream* o)
+      : instream(i), outstream(o),
       isShutdown_(false), queryConnection(false) {}
     rdr::FdInStream* instream;
     rdr::FdOutStream* outstream;
-    bool ownStreams;
     bool isShutdown_;
     bool queryConnection;
   };

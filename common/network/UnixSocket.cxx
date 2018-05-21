@@ -21,13 +21,11 @@
 #include <config.h>
 #endif
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <errno.h>
-#include <string.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -53,13 +51,12 @@ static void initSockets() {
 
 // -=- UnixSocket
 
-UnixSocket::UnixSocket(int sock, bool close)
-  : Socket(new FdInStream(sock), new FdOutStream(sock), true), closeFd(close)
+UnixSocket::UnixSocket(int sock)
+  : Socket(new FdInStream(sock), new FdOutStream(sock))
 {
 }
 
 UnixSocket::UnixSocket(const char *path)
-  : closeFd(true)
 {
   int sock, err, result;
   sockaddr_un addr;
@@ -94,16 +91,10 @@ UnixSocket::UnixSocket(const char *path)
   // Create the input and output streams
   instream = new FdInStream(sock);
   outstream = new FdOutStream(sock);
-  ownStreams = true;
 }
 
 UnixSocket::~UnixSocket() {
-  if (closeFd)
-    close(getFd());
-}
-
-int UnixSocket::getMyPort() {
-  return 0;
+  close(getFd());
 }
 
 char* UnixSocket::getPeerAddress() {
@@ -137,16 +128,8 @@ char* UnixSocket::getPeerAddress() {
   return rfb::strDup("(unnamed UNIX socket)");
 }
 
-int UnixSocket::getPeerPort() {
-  return 0;
-}
-
 char* UnixSocket::getPeerEndpoint() {
   return getPeerAddress();
-}
-
-bool UnixSocket::sameMachine() {
-  return true;
 }
 
 void UnixSocket::shutdown()
@@ -206,11 +189,6 @@ UnixListener::UnixListener(const char *path, int mode)
     close(fd);
     throw SocketException("unable to set socket to listening mode", err);
   }
-}
-
-UnixListener::UnixListener(int sock)
-{
-  fd = sock;
 }
 
 UnixListener::~UnixListener()

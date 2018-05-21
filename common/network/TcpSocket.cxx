@@ -28,21 +28,19 @@
 #else
 #define errorNumber errno
 #define closesocket close
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <errno.h>
-#include <string.h>
 #include <signal.h>
 #include <fcntl.h>
 #endif
 
 #include <stdlib.h>
 #include <unistd.h>
+
 #include <network/TcpSocket.h>
-#include <rfb/util.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 
@@ -120,13 +118,12 @@ static void initSockets() {
 
 // -=- TcpSocket
 
-TcpSocket::TcpSocket(int sock, bool close)
-  : Socket(new FdInStream(sock), new FdOutStream(sock), true), closeFd(close)
+TcpSocket::TcpSocket(int sock)
+  : Socket(new FdInStream(sock), new FdOutStream(sock))
 {
 }
 
 TcpSocket::TcpSocket(const char *host, int port)
-  : closeFd(true)
 {
   int sock, err, result;
   struct addrinfo *ai, *current, hints;
@@ -225,16 +222,10 @@ TcpSocket::TcpSocket(const char *host, int port)
   // Create the input and output streams
   instream = new FdInStream(sock);
   outstream = new FdOutStream(sock);
-  ownStreams = true;
 }
 
 TcpSocket::~TcpSocket() {
-  if (closeFd)
-    closesocket(getFd());
-}
-
-int TcpSocket::getMyPort() {
-  return getSockPort(getFd());
+  closesocket(getFd());
 }
 
 char* TcpSocket::getPeerAddress() {
@@ -281,55 +272,25 @@ char* TcpSocket::getPeerAddress() {
   return rfb::strDup("");
 }
 
-int TcpSocket::getPeerPort() {
+char* TcpSocket::getPeerEndpoint() {
+  rfb::CharArray address; address.buf = getPeerAddress();
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
+  int port;
 
   getpeername(getFd(), &sa.u.sa, &sa_size);
 
-  switch (sa.u.sa.sa_family) {
-  case AF_INET6:
-    return ntohs(sa.u.sin6.sin6_port);
-  case AF_INET:
-    return ntohs(sa.u.sin.sin_port);
-  default:
-    return 0;
-  }
-}
-
-char* TcpSocket::getPeerEndpoint() {
-  rfb::CharArray address; address.buf = getPeerAddress();
-  int port = getPeerPort();
+  if (sa.u.sa.sa_family == AF_INET6)
+    port = ntohs(sa.u.sin6.sin6_port);
+  else if (sa.u.sa.sa_family == AF_INET)
+    port = ntohs(sa.u.sin.sin_port);
+  else
+    port = 0;
 
   int buflen = strlen(address.buf) + 32;
   char* buffer = new char[buflen];
   sprintf(buffer, "%s::%d", address.buf, port);
   return buffer;
-}
-
-bool TcpSocket::sameMachine() {
-  vnc_sockaddr_t peeraddr, myaddr;
-  socklen_t addrlen;
-
-  addrlen = sizeof(peeraddr);
-  if (getpeername(getFd(), &peeraddr.u.sa, &addrlen) < 0)
-      throw SocketException ("unable to get peer address", errorNumber);
-
-  addrlen = sizeof(myaddr); /* need to reset, since getpeername overwrote */
-  if (getsockname(getFd(), &myaddr.u.sa, &addrlen) < 0)
-      throw SocketException ("unable to get my address", errorNumber);
-
-  if (peeraddr.u.sa.sa_family != myaddr.u.sa.sa_family)
-      return false;
-
-  if (peeraddr.u.sa.sa_family == AF_INET6)
-      return IN6_ARE_ADDR_EQUAL(&peeraddr.u.sin6.sin6_addr,
-                                &myaddr.u.sin6.sin6_addr);
-  if (peeraddr.u.sa.sa_family == AF_INET)
-    return (peeraddr.u.sin.sin_addr.s_addr == myaddr.u.sin.sin_addr.s_addr);
-
-  // No idea what this is. Assume we're on different machines.
-  return false;
 }
 
 void TcpSocket::shutdown()

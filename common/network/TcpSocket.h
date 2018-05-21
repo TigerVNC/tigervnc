@@ -50,16 +50,12 @@ namespace network {
 
   class TcpSocket : public Socket {
   public:
-    TcpSocket(int sock, bool close=true);
+    TcpSocket(int sock);
     TcpSocket(const char *name, int port);
     virtual ~TcpSocket();
 
-    virtual int getMyPort();
-
     virtual char* getPeerAddress();
-    virtual int getPeerPort();
     virtual char* getPeerEndpoint();
-    virtual bool sameMachine();
 
     virtual void shutdown();
     virtual bool cork(bool enable);
@@ -67,8 +63,6 @@ namespace network {
     static bool enableNagles(int sock, bool enable);
     static bool isListening(int sock);
     static int getSockPort(int sock);
-  private:
-    bool closeFd;
   };
 
   class TcpListener : public SocketListener {

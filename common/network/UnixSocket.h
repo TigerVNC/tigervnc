@@ -35,28 +35,20 @@ namespace network {
 
   class UnixSocket : public Socket {
   public:
-    UnixSocket(int sock, bool close=true);
+    UnixSocket(int sock);
     UnixSocket(const char *name);
     virtual ~UnixSocket();
 
-    virtual int getMyPort();
-
     virtual char* getPeerAddress();
-    virtual int getPeerPort();
     virtual char* getPeerEndpoint();
-    virtual bool sameMachine();
 
     virtual void shutdown();
     virtual bool cork(bool enable);
-
-  private:
-    bool closeFd;
   };
 
   class UnixListener : public SocketListener {
   public:
     UnixListener(const char *listenaddr, int mode);
-    UnixListener(int sock);
     virtual ~UnixListener();
 
     virtual void shutdown();
