@@ -253,7 +253,7 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
         if (val[i+1] == replaceMap[j].second) {
           dest[pos] = replaceMap[j].first;
           escapedCharacter = true;
-          pos--;
+          i++;
           break;
         }
       }
