@@ -540,6 +540,8 @@ char* loadViewerParameters(const char *filename) {
   char decodingBuffer[buffersize];
   static char servername[sizeof(line)];
 
+  memset(servername, '\0', sizeof(servername));
+
   // Load from the registry or a predefined file if no filename was specified.
   if(filename == NULL) {
 
