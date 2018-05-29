@@ -127,7 +127,7 @@ void LegacyPage::LoadPrefs()
 
               // Finally, save the Hosts value
               regKey.setString(_T("Hosts"), TStr(newHosts.buf));
-            } catch (rdr::Exception) {
+            } catch (rdr::Exception&) {
               MsgBox(0, _T("Unable to convert AuthHosts setting to Hosts format."),
                      MB_ICONWARNING | MB_OK);
             }
@@ -148,7 +148,7 @@ void LegacyPage::LoadPrefs()
           regKey.setBool(_T("AlwaysShared"), connectPriority == 1);
           regKey.setBool(_T("NeverShared"), connectPriority == 2);
 
-        } catch(rdr::Exception) {
+        } catch(rdr::Exception&) {
         }
 
         // Open the local, default-user settings

@@ -342,7 +342,7 @@ static struct stats runTest(const char *fn)
 
   try {
     cc = new CConn(fn);
-  } catch (rdr::Exception e) {
+  } catch (rdr::Exception& e) {
     fprintf(stderr, "Failed to open rfb file: %s\n", e.str());
     exit(1);
   }
@@ -350,8 +350,8 @@ static struct stats runTest(const char *fn)
   try {
     while (true)
       cc->processMsg();
-  } catch (rdr::EndOfStream e) {
-  } catch (rdr::Exception e) {
+  } catch (rdr::EndOfStream& e) {
+  } catch (rdr::Exception& e) {
     fprintf(stderr, "Failed to run rfb file: %s\n", e.str());
     exit(1);
   }

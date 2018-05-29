@@ -344,7 +344,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     delete [] hpages; hpages = 0;
 
     return true;
-  } catch (rdr::Exception) {
+  } catch (rdr::Exception&) {
     alreadyShowing = false;
 
     std::list<PropSheetPage*>::iterator pspi;

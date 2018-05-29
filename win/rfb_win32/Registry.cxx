@@ -164,7 +164,7 @@ TCHAR* RegKey::getString(const TCHAR* valname) const {return getRepresentation(v
 TCHAR* RegKey::getString(const TCHAR* valname, const TCHAR* def) const {
   try {
     return getString(valname);
-  } catch(rdr::Exception) {
+  } catch(rdr::Exception&) {
     return tstrDup(def);
   }
 }
@@ -177,7 +177,7 @@ void RegKey::getBinary(const TCHAR* valname, void** data, int* length) const {
 void RegKey::getBinary(const TCHAR* valname, void** data, int* length, void* def, int deflen) const {
   try {
     getBinary(valname, data, length);
-  } catch(rdr::Exception) {
+  } catch(rdr::Exception&) {
     if (deflen) {
       *data = new char[deflen];
       memcpy(*data, def, deflen);
@@ -194,7 +194,7 @@ int RegKey::getInt(const TCHAR* valname) const {
 int RegKey::getInt(const TCHAR* valname, int def) const {
   try {
     return getInt(valname);
-  } catch(rdr::Exception) {
+  } catch(rdr::Exception&) {
     return def;
   }
 }
@@ -269,7 +269,7 @@ bool RegKey::isValue(const TCHAR* valname) const {
   try {
     TCharArray tmp(getRepresentation(valname));
     return true;
-  } catch(rdr::Exception) {
+  } catch(rdr::Exception&) {
     return false;
   }
 }
