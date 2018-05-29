@@ -338,7 +338,7 @@ bool
 IntParameter::setParam(const char* v) {
   if (immutable) return true;
   vlog.debug("set %s(Int) to %s", getName(), v);
-  int i = atoi(v);
+  int i = strtol(v, NULL, 0);
   if (i < minValue || i > maxValue)
     return false;
   value = i;

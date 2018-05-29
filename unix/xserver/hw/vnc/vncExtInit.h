@@ -48,6 +48,7 @@ extern int vncFbstride[];
 extern int vncInetdSock;
 
 void vncExtensionInit(void);
+void vncExtensionClose(void);
 
 void vncHandleSocketEvent(int fd, int scrIdx, int read, int write);
 void vncCallBlockHandlers(int* timeout);

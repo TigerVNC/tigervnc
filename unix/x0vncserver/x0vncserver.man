@@ -66,6 +66,15 @@ Use IPv4 for incoming and outgoing connections. Default is on.
 Use IPv6 for incoming and outgoing connections. Default is on.
 .
 .TP
+.B \-rfbunixpath \fIpath\fP
+Specifies the path of a Unix domain socket on which x0vncserver listens for
+connections from viewers, instead of listening on a TCP port.
+.
+.TP
+.B \-rfbunixmode \fImode\fP
+Specifies the mode of the Unix domain socket.  The default is 0600.
+.
+.TP
 .B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
 Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP,
 \fBstdout\fP or \fBsyslog\fP, and \fIlevel\fP is between 0 and 100, 100 meaning

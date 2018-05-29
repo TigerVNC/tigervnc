@@ -39,6 +39,9 @@
 #include <rdr/MemInStream.h>
 #include <rdr/MemOutStream.h>
 #include <network/TcpSocket.h>
+#ifndef WIN32
+#include <network/UnixSocket.h>
+#endif
 
 #include <FL/Fl.H>
 #include <FL/fl_ask.H>
@@ -106,10 +109,19 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
   if(sock == NULL) {
     try {
-      getHostAndPort(vncServerName, &serverHost, &serverPort);
+#ifndef WIN32
+      if (strchr(vncServerName, '/') != NULL) {
+        sock = new network::UnixSocket(vncServerName);
+        serverHost = sock->getPeerAddress();
+        vlog.info(_("connected to socket %s"), serverHost);
+      } else
+#endif
+      {
+        getHostAndPort(vncServerName, &serverHost, &serverPort);
 
-      sock = new network::TcpSocket(serverHost, serverPort);
-      vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
+        sock = new network::TcpSocket(serverHost, serverPort);
+        vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
+      }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       if (alertOnFatalError)

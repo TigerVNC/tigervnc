@@ -31,6 +31,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
+#include <network/UnixSocket.h>
 
 #include <vncconfig/QueryConnectDialog.h>
 
@@ -58,6 +59,8 @@ IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
                                "CPU time to be consumed", 35);
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
+StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
+IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
 IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "Number of seconds to show the Accept Connection dialog before "
                                  "rejecting the connection",
@@ -291,7 +294,7 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  std::list<TcpListener*> listeners;
+  std::list<SocketListener*> listeners;
 
   try {
     TXWindow::init(dpy,"x0vncserver");
@@ -307,13 +310,18 @@ int main(int argc, char** argv)
     QueryConnHandler qcHandler(dpy, &server);
     server.setQueryConnectionHandler(&qcHandler);
 
-    createTcpListeners(&listeners, 0, (int)rfbport);
-    vlog.info("Listening on port %d", (int)rfbport);
+    if (rfbunixpath.getValueStr()[0] != '\0') {
+      listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
+      vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
+    } else {
+      createTcpListeners(&listeners, 0, (int)rfbport);
+      vlog.info("Listening on port %d", (int)rfbport);
+    }
 
     const char *hostsData = hostsFile.getData();
     FileTcpFilter fileTcpFilter(hostsData);
     if (strlen(hostsData) != 0)
-      for (std::list<TcpListener*>::iterator i = listeners.begin();
+      for (std::list<SocketListener*>::iterator i = listeners.begin();
            i != listeners.end();
            i++)
         (*i)->setFilter(&fileTcpFilter);
@@ -335,7 +343,7 @@ int main(int argc, char** argv)
       FD_ZERO(&wfds);
 
       FD_SET(ConnectionNumber(dpy), &rfds);
-      for (std::list<TcpListener*>::iterator i = listeners.begin();
+      for (std::list<SocketListener*>::iterator i = listeners.begin();
            i != listeners.end();
            i++)
         FD_SET((*i)->getFd(), &rfds);
@@ -387,7 +395,7 @@ int main(int argc, char** argv)
       }
 
       // Accept new VNC connections
-      for (std::list<TcpListener*>::iterator i = listeners.begin();
+      for (std::list<SocketListener*>::iterator i = listeners.begin();
            i != listeners.end();
            i++) {
         if (FD_ISSET((*i)->getFd(), &rfds)) {

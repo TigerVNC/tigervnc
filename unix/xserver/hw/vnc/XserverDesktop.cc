@@ -32,7 +32,7 @@
 #include <fcntl.h>
 #include <sys/utsname.h>
 
-#include <network/TcpSocket.h>
+#include <network/Socket.h>
 #include <rfb/Exception.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/HTTPServer.h>
@@ -107,8 +107,8 @@ public:
 
 
 XserverDesktop::XserverDesktop(int screenIndex_,
-                               std::list<network::TcpListener*> listeners_,
-                               std::list<network::TcpListener*> httpListeners_,
+                               std::list<network::SocketListener*> listeners_,
+                               std::list<network::SocketListener*> httpListeners_,
                                const char* name, const rfb::PixelFormat &pf,
                                int width, int height,
                                void* fbptr, int stride)
@@ -127,13 +127,13 @@ XserverDesktop::XserverDesktop(int screenIndex_,
   if (!httpListeners.empty ())
     httpServer = new FileHTTPServer(this);
 
-  for (std::list<TcpListener*>::iterator i = listeners.begin();
+  for (std::list<SocketListener*>::iterator i = listeners.begin();
        i != listeners.end();
        i++) {
     vncSetNotifyFd((*i)->getFd(), screenIndex, true, false);
   }
 
-  for (std::list<TcpListener*>::iterator i = httpListeners.begin();
+  for (std::list<SocketListener*>::iterator i = httpListeners.begin();
        i != httpListeners.end();
        i++) {
     vncSetNotifyFd((*i)->getFd(), screenIndex, true, false);
@@ -386,10 +386,10 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
 }
 
 bool XserverDesktop::handleListenerEvent(int fd,
-                                         std::list<TcpListener*>* sockets,
+                                         std::list<SocketListener*>* sockets,
                                          SocketServer* sockserv)
 {
-  std::list<TcpListener*>::iterator i;
+  std::list<SocketListener*>::iterator i;
 
   for (i = sockets->begin(); i != sockets->end(); i++) {
     if ((*i)->getFd() == fd)

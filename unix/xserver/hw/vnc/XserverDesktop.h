@@ -44,7 +44,7 @@ namespace rfb {
   class VNCServerST;
 }
 
-namespace network { class TcpListener; class Socket; class SocketServer; }
+namespace network { class SocketListener; class Socket; class SocketServer; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public rdr::Substitutor,
@@ -53,8 +53,8 @@ class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
 public:
 
   XserverDesktop(int screenIndex,
-                 std::list<network::TcpListener*> listeners_,
-                 std::list<network::TcpListener*> httpListeners_,
+                 std::list<network::SocketListener*> listeners_,
+                 std::list<network::SocketListener*> httpListeners_,
                  const char* name, const rfb::PixelFormat &pf,
                  int width, int height, void* fbptr, int stride);
   virtual ~XserverDesktop();
@@ -109,7 +109,7 @@ public:
 
 protected:
   bool handleListenerEvent(int fd,
-                           std::list<network::TcpListener*>* sockets,
+                           std::list<network::SocketListener*>* sockets,
                            network::SocketServer* sockserv);
   bool handleSocketEvent(int fd,
                          network::SocketServer* sockserv,
@@ -122,8 +122,8 @@ private:
   int screenIndex;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
-  std::list<network::TcpListener*> listeners;
-  std::list<network::TcpListener*> httpListeners;
+  std::list<network::SocketListener*> listeners;
+  std::list<network::SocketListener*> httpListeners;
   bool directFbptr;
 
   uint32_t queryConnectId;
