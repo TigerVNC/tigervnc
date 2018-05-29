@@ -190,44 +190,35 @@ static struct {
   const char first;
   const char second;
 } replaceMap[] = { { '\n', 'n' },
-                   { '\r', 'r' } };
+                   { '\r', 'r' },
+                   { '\\', '\\' } };
 
 static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
-  bool normalCharacter = true;
   size_t pos = 0;
 
   for (size_t i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
+    bool normalCharacter;
     
     // Check for sequences which will need encoding
-    if (val[i] == '\\') {
+    normalCharacter = true;
+    for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
 
-      strncpy(dest+pos, "\\\\", 2);
-      pos++;
-      if (pos >= destSize)
-        return false;
+      if (val[i] == replaceMap[j].first) {
+        dest[pos] = '\\';
+        pos++;
+        if (pos >= destSize)
+          return false;
 
-    } else {
+        dest[pos] = replaceMap[j].second;
+        normalCharacter = false;
+        break;
+      }
 
-      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
-
-        if (val[i] == replaceMap[j].first) {
-          dest[pos] = '\\';
-          pos++;
-          if (pos >= destSize)
-            return false;
-
-          dest[pos] = replaceMap[j].second;
-          normalCharacter = false;
-          break;
-        }
-
-        if (normalCharacter) {
-          dest[pos] = val[i];
-        }
+      if (normalCharacter) {
+        dest[pos] = val[i];
       }
     }
-    normalCharacter = true; // Reset for next loop
 
     pos++;
     if (pos >= destSize)
@@ -242,13 +233,14 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
 static bool decodeValue(const char* val, char* dest, size_t destSize) {
 
   size_t pos = 0;
-  bool escapedCharacter = false;
   
   for (size_t i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
     
     // Check for escape sequences
     if (val[i] == '\\') {
+      bool escapedCharacter;
       
+      escapedCharacter = false;
       for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
         if (val[i+1] == replaceMap[j].second) {
           dest[pos] = replaceMap[j].first;
@@ -258,20 +250,13 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
         }
       }
 
-      if (!escapedCharacter) {
-        if (val[i+1] == '\\') {
-          dest[pos] = val[i];
-          i++;
-        } else {
-          return false;
-        }
-      }
+      if (!escapedCharacter)
+        return false;
 
     } else {
       dest[pos] = val[i];
     }
 
-    escapedCharacter = false; // Reset for next loop
     pos++;
     if (pos >= destSize) {
       return false;
