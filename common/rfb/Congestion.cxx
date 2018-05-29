@@ -68,6 +68,11 @@ static const unsigned MINIMUM_WINDOW = 4096;
 // limit for now...
 static const unsigned MAXIMUM_WINDOW = 4194304;
 
+// Compare position even when wrapped around
+static inline bool isAfter(unsigned a, unsigned b) {
+  return (int)a - (int)b > 0;
+}
+
 static LogWriter vlog("Congestion");
 
 Congestion::Congestion() :
@@ -230,7 +235,7 @@ int Congestion::getUncongestedETA()
   targetAcked = lastPosition - congWindow;
 
   // Simple case?
-  if (lastPong.pos > targetAcked)
+  if (isAfter(lastPong.pos, targetAcked))
     return 0;
 
   // No measurements yet?
@@ -269,7 +274,7 @@ int Congestion::getUncongestedETA()
       etaNext -= delay;
 
     // Found it?
-    if (curPing.pos > targetAcked) {
+    if (isAfter(curPing.pos, targetAcked)) {
       eta += etaNext * (curPing.pos - targetAcked) / (curPing.pos - prevPing->pos);
       if (elapsed > eta)
         return 0;
