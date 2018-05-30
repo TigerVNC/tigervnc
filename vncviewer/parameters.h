@@ -1,17 +1,17 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright 2012 Samuel Mannehed <samuel@cendio.se> for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -67,7 +67,14 @@ extern rfb::BoolParameter alertOnFatalError;
 extern rfb::StringParameter via;
 #endif
 
-void saveViewerParameters(const char *filename, const char *servername=NULL);
-char* loadViewerParameters(const char *filename);
+#include <map>
+#include <utility>
+#include <string>
+#include <vector>
+typedef std::tuple<int, std::string, bool> RankedHostName;
+typedef std::vector<RankedHostName> HostnameList;
+
+void saveViewerParameters(const char *filename, const char *servername=NULL, HostnameList* hostList=NULL);
+char* loadViewerParameters(const char *filename, HostnameList* hostList=NULL);
 
 #endif

@@ -1,16 +1,16 @@
 /* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright 2012 Samuel Mannehed <samuel@cendio.se> for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -37,9 +37,13 @@
 #include "vncviewer.h"
 #include "parameters.h"
 #include "rfb/Exception.h"
+#include "ConnectionsTable.h"
 
-ServerDialog::ServerDialog()
-  : Fl_Window(450, 160, _("VNC Viewer: Connection Details"))
+#include <algorithm>
+
+ServerDialog::ServerDialog(HostnameList &hostHistory)
+  : Fl_Window(450, 160+BUTTON_HEIGHT*5, _("VNC Viewer: Connection Details"))
+  , hostHistory(hostHistory)
 {
   int x, y;
   Fl_Button *button;
@@ -50,7 +54,7 @@ ServerDialog::ServerDialog()
 
   x = margin + server_label_width;
   y = margin;
-  
+
   serverName = new Fl_Input(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
 
   int adjust = (w() - 20) / 4;
@@ -63,9 +67,9 @@ ServerDialog::ServerDialog()
 
   button = new Fl_Button(x, y, button_width, BUTTON_HEIGHT, _("Options..."));
   button->callback(this->handleOptions, this);
-  
+
   x += adjust;
-  
+
   button = new Fl_Button(x, y, button_width, BUTTON_HEIGHT, _("Load..."));
   button->callback(this->handleLoad, this);
 
@@ -73,13 +77,13 @@ ServerDialog::ServerDialog()
 
   button = new Fl_Button(x, y, button_width, BUTTON_HEIGHT, _("Save As..."));
   button->callback(this->handleSaveAs, this);
-  
+
   x = 0;
   y += margin/2 + BUTTON_HEIGHT;
 
   divider = new Fl_Box(x, y, w(), 2);
   divider->box(FL_THIN_DOWN_FRAME);
-  
+
   x += margin;
   y += margin/2;
 
@@ -98,21 +102,26 @@ ServerDialog::ServerDialog()
 
   callback(this->handleCancel, this);
 
+  x  = margin/2;
+  y += margin/2 + BUTTON_HEIGHT;
+
+  histTable = new ConnectionsTable(x,y,w()-margin,BUTTON_HEIGHT*5,hostHistory);
+  histTable->callback(this->handleTable,this);
+
   set_modal();
 }
-
 
 ServerDialog::~ServerDialog()
 {
 }
 
 
-void ServerDialog::run(const char* servername, char *newservername)
+void ServerDialog::run(const char* servername, char *newservername, HostnameList &hostHistory)
 {
-  ServerDialog dialog;
+  ServerDialog dialog(hostHistory);
 
   dialog.serverName->value(servername);
-  
+
   dialog.show();
   while (dialog.shown()) Fl::wait();
 
@@ -134,22 +143,22 @@ void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
 void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"),
 						      0, _("Select a TigerVNC configuration file"));
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
   file_chooser->show();
-  
+
   // Block until user picks something.
   while(file_chooser->shown())
     Fl::wait();
-  
+
   // Did the user hit cancel?
   if (file_chooser->value() == NULL) {
     delete(file_chooser);
     return;
   }
-  
+
   const char* filename = strdup(file_chooser->value());
 
   try {
@@ -163,38 +172,38 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 
 
 void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
-{ 
+{
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = strdup(dialog->serverName->value());
   char* filename;
 
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"),
 						      2, _("Save the TigerVNC configuration to file"));
-  
+
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
   file_chooser->show();
-  
+
   while(1) {
-    
+
     // Block until user picks something.
     while(file_chooser->shown())
       Fl::wait();
-    
+
     // Did the user hit cancel?
     if (file_chooser->value() == NULL) {
       delete(file_chooser);
       return;
     }
-    
+
     filename = strdup(file_chooser->value());
-    
+
     FILE* f = fopen(filename, "r");
     if (f) {
 
       // The file already exists.
       fclose(f);
-      int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"), 
+      int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"),
 				       _("Overwrite"), _("No"), NULL, filename);
       if (overwrite_choice == 1) {
 
@@ -206,13 +215,13 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 
     break;
   }
-  
+
   try {
     saveViewerParameters(filename, servername);
   } catch (rfb::Exception& e) {
     fl_alert("%s", e.str());
   }
-  
+
   delete(file_chooser);
 }
 
@@ -236,11 +245,44 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = strdup(dialog->serverName->value());
+  HostnameList &hostHistory = dialog->hostHistory;
 
   dialog->hide();
-  
+
+  std::string servernameStr(servername);
+  auto result = std::find_if(hostHistory.begin(), hostHistory.end(), [servernameStr](const auto &item) {
+    return std::get<std::string>(item) == servernameStr;
+  });
+
+  if (result == hostHistory.end()) {
+    dialog->histTable->updatePinnedStatus(servername);
+  }
+
   try {
-    saveViewerParameters(NULL, servername);
+    saveViewerParameters(NULL, servername, &hostHistory);
+  } catch (rfb::Exception& e) {
+    fl_alert("%s", e.str());
+  }
+}
+
+
+void ServerDialog::handleTable(Fl_Widget *widget, void* data)
+{
+  ServerDialog *dialog = reinterpret_cast<ServerDialog*>(data);
+  ConnectionsTable *table = dialog->histTable;
+  HostnameList &hostHistory = dialog->hostHistory;
+
+  if (table->callback_context() != ConnectionsTable::CONTEXT_CELL) {
+    return;
+  }
+
+  dialog->serverName->value(table->callback_servername().c_str());
+
+  dialog->hide();
+
+  //TODO: Is this required?
+  try {
+    saveViewerParameters(NULL, dialog->serverName->value(), &hostHistory);
   } catch (rfb::Exception& e) {
     fl_alert("%s", e.str());
   }
