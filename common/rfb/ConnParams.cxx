@@ -40,7 +40,7 @@ ConnParams::ConnParams()
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
     subsampling(subsampleUndefined), name_(0), verStrPos(0),
-    ledState_(ledUnknown)
+    ledState_(0)
 {
   setName("");
   cursor_ = new Cursor(0, 0, Point(), NULL);
