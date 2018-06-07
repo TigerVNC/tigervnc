@@ -112,6 +112,8 @@ private:
   unsigned int altGrCtrlTime;
 #endif
 
+  bool firstLEDState;
+
   const char* pendingServerCutText;
   const char* pendingClientCutText;
 
