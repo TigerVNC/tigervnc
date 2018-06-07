@@ -280,7 +280,6 @@ void ServerDialog::handleTable(Fl_Widget *widget, void* data)
 
   dialog->hide();
 
-  //TODO: Is this required?
   try {
     saveViewerParameters(NULL, dialog->serverName->value(), &hostHistory);
   } catch (rfb::Exception& e) {

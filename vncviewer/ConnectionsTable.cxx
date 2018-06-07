@@ -69,7 +69,6 @@ void ConnectionsTable::draw_cell(TableContext context,
 }
 
 void ConnectionsTable::setRecentConnections() {
-    //TODO: Sort history?
     // Sort, if both are pinned base it on rank. Otherwise if it's pinned it must be first
     std::sort(history.begin(),history.end(), [](auto const &t1, auto const &t2){
         if (std::get<bool>(t1) == std::get<bool>(t2))
@@ -89,17 +88,16 @@ void ConnectionsTable::setRecentConnections() {
         col_width(RUN_COL,RUN_COL_SIZE);
         for ( size_t r = 0; r < history.size(); ++r) {
             int X,Y,W,H;
-            find_cell(CONTEXT_TABLE,r,0,X,Y,W,H);
 
+            find_cell(CONTEXT_TABLE,r,SERVER_COL,X,Y,W,H);
             Fl_Output *out = new Fl_Output(X,Y,W,H);
             out->value(strdup(std::get<std::string>(history[r]).c_str()));
 
-            find_cell(CONTEXT_TABLE,r,1,X,Y,W,H);
-
+            find_cell(CONTEXT_TABLE,r,PIN_COL,X,Y,W,H);
             Fl_Check_Button *pin = new Fl_Check_Button(X,Y,W,H);
             pin->value(std::get<bool>(history[r]));
 
-            find_cell(CONTEXT_TABLE,r,2,X,Y,W,H);
+            find_cell(CONTEXT_TABLE,r,RUN_COL,X,Y,W,H);
             Fl_Button *run = new Fl_Button(X,Y,W,H,"@>");
             run->callback(handleRun, static_cast<void*>(this));
         }
@@ -115,8 +113,8 @@ void ConnectionsTable::handleRun(Fl_Widget *widget, void* data) {
 void ConnectionsTable::handleRun(Fl_Widget *widget) {
     int row = find(widget) / NUM_COLS;
 
-    Fl_Output *out = static_cast<Fl_Output*>(child(NUM_COLS*row + SERVER_COL));
-    Fl_Check_Button *check = static_cast<Fl_Check_Button*>(child(NUM_COLS*row + PIN_COL));
+    Fl_Output *out = reinterpret_cast<Fl_Output*>(child(NUM_COLS*row + SERVER_COL));
+    Fl_Check_Button *check = reinterpret_cast<Fl_Check_Button*>(child(NUM_COLS*row + PIN_COL));
 
     callbackServername =  out->value();
     callbackPinned = check->value();
@@ -140,8 +138,8 @@ void ConnectionsTable::updatePinnedStatus(std::string newServername) {
     auto unpinned_it = history.begin();
     int row;
     for (row = 0; row < total_children / NUM_COLS; ++row) {
-        Fl_Output *out = static_cast<Fl_Output*>(this->child(NUM_COLS * row + SERVER_COL));
-        Fl_Check_Button *check = static_cast<Fl_Check_Button*>(this->child(NUM_COLS * row + PIN_COL));
+        Fl_Output *out = reinterpret_cast<Fl_Output*>(this->child(NUM_COLS * row + SERVER_COL));
+        Fl_Check_Button *check = reinterpret_cast<Fl_Check_Button*>(this->child(NUM_COLS * row + PIN_COL));
         RankedHostName host = std::make_tuple(row,out->value(),check->value());
 
         if (check->value()) {
@@ -155,7 +153,6 @@ void ConnectionsTable::updatePinnedStatus(std::string newServername) {
         history.pop_back();
     }
 
-    //TODO: Erase duplicates?
     auto last = std::unique(history.begin(), history.end(), [](auto const &t1, auto const &t2){
         return std::get<std::string>(t1) == std::get<std::string>(t2);
     });

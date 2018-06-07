@@ -415,7 +415,7 @@ static void saveToReg(const char* servername, HostnameList* hostList) {
       std::stringstream serverRank;
       std::stringstream ss;
       serverRank << "HostHistory" << std::get<int>(*it);
-      ss << (std::get<bool>(*it)?"p_":"") << std::get<std::string>(*it);
+      ss << (std::get<bool>(*it)?"@@@p@@@":"") << std::get<std::string>(*it);
       setKeyString(serverRank.str().c_str(), ss.str().c_str(),&hKey);
     }
 
@@ -476,18 +476,17 @@ static char* loadFromReg(HostnameList *hostHistory) {
     std::stringstream hostRank;
     hostRank << "HostHistory" << i;
     if (getKeyString(hostRank.str().c_str(),stringValue,buffersize,&hKey)) {
-      bool isPinned = (stringValue[0] == 'p');
+      bool isPinned = (strncasecmp(stringValue,"@@@p@@@",7) == 0);
 
       char* hostname = stringValue;
       if (isPinned) {
-        hostname = strchr(stringValue,'_');
-        hostname++;
+        hostname = stringValue+7;
       }
 
-      if (strlen(hostname) == 0) continue;
-
-      if (hostname == NULL) {
-        vlog.error(_("Pinned without hostname."));
+      if (strlen(hostname) == 0) {
+        if (isPinned) {
+          vlog.error(_("Pinned without hostname."));
+        }
         continue;
       }
 
@@ -564,7 +563,7 @@ void saveViewerParameters(const char *filename, const char *servername, Hostname
     for (auto it = hostList->begin(); it != hostList->end(); ++it) {
       fprintf(f, "HostHistory%d=%s%s\n",
         std::get<int>(*it),
-        (std::get<bool>(*it)?"p_":""),
+        (std::get<bool>(*it)?"@@@p@@@":""),
         std::get<std::string>(*it).c_str());
     }
   }
@@ -684,17 +683,17 @@ char* loadViewerParameters(const char *filename, HostnameList *hostHistory) {
 
       int hostRank = atoi(line+11);
 
-      //TODO: Fix split on '_' as single character. Possible failure for hostnames that starts with 'p_'
       char* hostname = value;
-      bool isPinned = (value[0] == 'p');
+      bool isPinned = (strncasecmp(value,"@@@p@@@",7) == 0);
 
       if (isPinned) {
-        hostname = strchr(value, '_');
-        hostname++;
+        hostname = value + 7;
       }
 
-      if (hostname == NULL) {
-        vlog.error(_("Pinned without hostname."));
+      if (strlen(hostname) == 0) {
+        if (isPinned) {
+          vlog.error(_("Pinned without hostname."));
+        }
         continue;
       }
 
