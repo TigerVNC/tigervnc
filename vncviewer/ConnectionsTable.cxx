@@ -31,7 +31,7 @@ void ConnectionsTable::draw_cell(TableContext context,
     int R, int C, int X, int Y, int W, int H) {
     switch (context) {
         case CONTEXT_STARTPAGE:
-            fl_font(FL_HELVETICA, FL_NORMAL_SIZE * 2);
+            fl_font(FL_HELVETICA, FL_NORMAL_SIZE);
         break;
 
         case CONTEXT_RC_RESIZE: {
@@ -70,10 +70,10 @@ void ConnectionsTable::draw_cell(TableContext context,
 
 void ConnectionsTable::setRecentConnections() {
     // Sort, if both are pinned base it on rank. Otherwise if it's pinned it must be first
-    std::sort(history.begin(),history.end(), [](auto const &t1, auto const &t2){
-        if (std::get<bool>(t1) == std::get<bool>(t2))
-            return std::get<int>(t1) < std::get<int>(t2);
-        else if (std::get<bool>(t1))
+    std::sort(history.begin(),history.end(), [](RankedHostName const &t1, RankedHostName const &t2){
+        if (std::get<HostTupleIndex::PINNED>(t1) == std::get<HostTupleIndex::PINNED>(t2))
+            return std::get<HostTupleIndex::RANK>(t1) < std::get<HostTupleIndex::RANK>(t2);
+        else if (std::get<HostTupleIndex::PINNED>(t1))
             return true;
         return false;
     });
@@ -91,11 +91,11 @@ void ConnectionsTable::setRecentConnections() {
 
             find_cell(CONTEXT_TABLE,r,SERVER_COL,X,Y,W,H);
             Fl_Output *out = new Fl_Output(X,Y,W,H);
-            out->value(strdup(std::get<std::string>(history[r]).c_str()));
+            out->value(strdup(std::get<HostTupleIndex::NAME>(history[r]).c_str()));
 
             find_cell(CONTEXT_TABLE,r,PIN_COL,X,Y,W,H);
             Fl_Check_Button *pin = new Fl_Check_Button(X,Y,W,H);
-            pin->value(std::get<bool>(history[r]));
+            pin->value(std::get<HostTupleIndex::PINNED>(history[r]));
 
             find_cell(CONTEXT_TABLE,r,RUN_COL,X,Y,W,H);
             Fl_Button *run = new Fl_Button(X,Y,W,H,"@>");
@@ -153,15 +153,15 @@ void ConnectionsTable::updatePinnedStatus(std::string newServername) {
         history.pop_back();
     }
 
-    auto last = std::unique(history.begin(), history.end(), [](auto const &t1, auto const &t2){
-        return std::get<std::string>(t1) == std::get<std::string>(t2);
+    auto last = std::unique(history.begin(), history.end(), [](RankedHostName const &t1, RankedHostName const &t2){
+        return std::get<HostTupleIndex::NAME>(t1) == std::get<HostTupleIndex::NAME>(t2);
     });
     history.erase(last,history.end());
 
     // Setting up the right rank number
     row = 0;
     for (auto it = history.begin(); it != history.end(); ++it, ++row) {
-        std::get<int>(*it) = row;
+        std::get<HostTupleIndex::RANK>(*it) = row;
     }
 }
 

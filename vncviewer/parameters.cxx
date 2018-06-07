@@ -414,8 +414,8 @@ static void saveToReg(const char* servername, HostnameList* hostList) {
     for (auto it = hostList->begin(); it != hostList->end(); ++it) {
       std::stringstream serverRank;
       std::stringstream ss;
-      serverRank << "HostHistory" << std::get<int>(*it);
-      ss << (std::get<bool>(*it)?"@@@p@@@":"") << std::get<std::string>(*it);
+      serverRank << "HostHistory" << std::get<HostTupleIndex::RANK>(*it);
+      ss << (std::get<HostTupleIndex::PINNED>(*it)?"@@@p@@@":"") << std::get<HostTupleIndex::NAME>(*it);
       setKeyString(serverRank.str().c_str(), ss.str().c_str(),&hKey);
     }
 
@@ -562,9 +562,9 @@ void saveViewerParameters(const char *filename, const char *servername, Hostname
   if (hostList != NULL) {
     for (auto it = hostList->begin(); it != hostList->end(); ++it) {
       fprintf(f, "HostHistory%d=%s%s\n",
-        std::get<int>(*it),
-        (std::get<bool>(*it)?"@@@p@@@":""),
-        std::get<std::string>(*it).c_str());
+        std::get<HostTupleIndex::RANK>(*it),
+        (std::get<HostTupleIndex::PINNED>(*it)?"@@@p@@@":""),
+        std::get<HostTupleIndex::NAME>(*it).c_str());
     }
   }
 
@@ -615,7 +615,7 @@ char* loadViewerParameters(const char *filename, HostnameList *hostHistory) {
   FILE* f = fopen(filepath, "r");
   if (!f) {
     if (!filename)
-      return NULL; // Use defaults.
+      return servername; // Use defaults.
     throw Exception(_("Failed to read configuration file, can't open %s: %s"),
                     filepath, strerror(errno));
   }

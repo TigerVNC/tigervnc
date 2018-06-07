@@ -71,6 +71,10 @@ extern rfb::StringParameter via;
 #include <utility>
 #include <string>
 #include <vector>
+
+namespace HostTupleIndex {
+	enum TupleIndex { RANK = 0, NAME = 1, PINNED = 2 };
+}
 typedef std::tuple<int, std::string, bool> RankedHostName;
 typedef std::vector<RankedHostName> HostnameList;
 

@@ -250,8 +250,8 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
   dialog->hide();
 
   std::string servernameStr(servername);
-  auto result = std::find_if(hostHistory.begin(), hostHistory.end(), [servernameStr](const auto &item) {
-    return std::get<std::string>(item) == servernameStr;
+  auto result = std::find_if(hostHistory.begin(), hostHistory.end(), [servernameStr](const RankedHostName &item) {
+    return std::get<HostTupleIndex::NAME>(item) == servernameStr;
   });
 
   if (result == hostHistory.end()) {
