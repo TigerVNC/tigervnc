@@ -26,7 +26,7 @@ void RankedHostName::setRank(int &rank) {
     this->rank = rank;
 }
 
-bool RankedHostName::operator< (const RankedHostName& h2) {
+bool RankedHostName::operator< (const RankedHostName& h2) const {
     if (pinned == h2.pinned)
         return rank < h2.rank;
     else if (pinned)
