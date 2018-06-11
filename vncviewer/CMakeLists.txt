@@ -5,6 +5,7 @@ include_directories(${CMAKE_SOURCE_DIR}/common)
 set(VNCVIEWER_SOURCES
   menukey.cxx
   CConn.cxx
+  RankedHostName.cxx
   ConnectionsTable.cxx
   DesktopWindow.cxx
   UserDialog.cxx

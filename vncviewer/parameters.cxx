@@ -411,11 +411,11 @@ static void saveToReg(const char* servername, HostnameList* hostList) {
   setKeyString("ServerName", servername, &hKey);
 
   if (hostList != NULL) {
-    for (auto it = hostList->begin(); it != hostList->end(); ++it) {
+    for (HostnameList::iterator it = hostList->begin(); it != hostList->end(); ++it) {
       std::stringstream serverRank;
       std::stringstream ss;
-      serverRank << "HostHistory" << std::get<HostTupleIndex::RANK>(*it);
-      ss << (std::get<HostTupleIndex::PINNED>(*it)?"@@@p@@@":"") << std::get<HostTupleIndex::NAME>(*it);
+      serverRank << "HostHistory" << it->getRank();
+      ss << (it->getPinned()?"@@@p@@@":"") << it->getName();
       setKeyString(serverRank.str().c_str(), ss.str().c_str(),&hKey);
     }
 
@@ -490,7 +490,7 @@ static char* loadFromReg(HostnameList *hostHistory) {
         continue;
       }
 
-      RankedHostName host = std::make_tuple(i,hostname,isPinned);
+      RankedHostName host(i,hostname,isPinned);
 
       hostHistory->push_back(host);
     }
@@ -560,11 +560,11 @@ void saveViewerParameters(const char *filename, const char *servername, Hostname
     fprintf(f, "ServerName=%s\n", encodingBuffer);
 
   if (hostList != NULL) {
-    for (auto it = hostList->begin(); it != hostList->end(); ++it) {
+    for (HostnameList::iterator it = hostList->begin(); it != hostList->end(); ++it) {
       fprintf(f, "HostHistory%d=%s%s\n",
-        std::get<HostTupleIndex::RANK>(*it),
-        (std::get<HostTupleIndex::PINNED>(*it)?"@@@p@@@":""),
-        std::get<HostTupleIndex::NAME>(*it).c_str());
+        it->getRank(),
+        (it->getPinned()?"@@@p@@@":""),
+        it->getName().c_str());
     }
   }
 
@@ -697,7 +697,7 @@ char* loadViewerParameters(const char *filename, HostnameList *hostHistory) {
         continue;
       }
 
-      RankedHostName host = std::make_tuple(hostRank,hostname,isPinned);
+      RankedHostName host(hostRank,hostname,isPinned);
 
       hostHistory->push_back(host);
 

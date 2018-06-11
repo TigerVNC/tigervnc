@@ -250,11 +250,15 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
   dialog->hide();
 
   std::string servernameStr(servername);
-  auto result = std::find_if(hostHistory.begin(), hostHistory.end(), [servernameStr](const RankedHostName &item) {
-    return std::get<HostTupleIndex::NAME>(item) == servernameStr;
-  });
 
-  if (result == hostHistory.end()) {
+  HostnameList::iterator find_it = hostHistory.begin();
+  for(;find_it != hostHistory.end(); ++find_it) {
+    if (find_it->getName() == servernameStr) {
+      break;
+    }
+  }
+
+  if (find_it == hostHistory.end()) {
     dialog->histTable->updatePinnedStatus(servername);
   }
 

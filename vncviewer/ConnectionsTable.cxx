@@ -69,14 +69,7 @@ void ConnectionsTable::draw_cell(TableContext context,
 }
 
 void ConnectionsTable::setRecentConnections() {
-    // Sort, if both are pinned base it on rank. Otherwise if it's pinned it must be first
-    std::sort(history.begin(),history.end(), [](RankedHostName const &t1, RankedHostName const &t2){
-        if (std::get<HostTupleIndex::PINNED>(t1) == std::get<HostTupleIndex::PINNED>(t2))
-            return std::get<HostTupleIndex::RANK>(t1) < std::get<HostTupleIndex::RANK>(t2);
-        else if (std::get<HostTupleIndex::PINNED>(t1))
-            return true;
-        return false;
-    });
+    std::sort(history.begin(),history.end());
 
     clear();
     cols(NUM_COLS);
@@ -91,11 +84,11 @@ void ConnectionsTable::setRecentConnections() {
 
             find_cell(CONTEXT_TABLE,r,SERVER_COL,X,Y,W,H);
             Fl_Output *out = new Fl_Output(X,Y,W,H);
-            out->value(strdup(std::get<HostTupleIndex::NAME>(history[r]).c_str()));
+            out->value(strdup(history[r].getName().c_str()));
 
             find_cell(CONTEXT_TABLE,r,PIN_COL,X,Y,W,H);
             Fl_Check_Button *pin = new Fl_Check_Button(X,Y,W,H);
-            pin->value(std::get<HostTupleIndex::PINNED>(history[r]));
+            pin->value(history[r].getPinned());
 
             find_cell(CONTEXT_TABLE,r,RUN_COL,X,Y,W,H);
             Fl_Button *run = new Fl_Button(X,Y,W,H,"@>");
@@ -130,22 +123,22 @@ void ConnectionsTable::updatePinnedStatus(std::string newServername) {
 
     // First append the new server
     if (!newServername.empty()) {
-        RankedHostName host = std::make_tuple(0,newServername,false);
-        history.push_back(std::move(host));
+        RankedHostName host(0,newServername,false);
+        history.push_back(host);
     }
 
     // Then rearrange with correct order in vector
-    auto unpinned_it = history.begin();
+    HostnameList::iterator unpinned_it = history.begin();
     int row;
     for (row = 0; row < total_children / NUM_COLS; ++row) {
         Fl_Output *out = reinterpret_cast<Fl_Output*>(this->child(NUM_COLS * row + SERVER_COL));
         Fl_Check_Button *check = reinterpret_cast<Fl_Check_Button*>(this->child(NUM_COLS * row + PIN_COL));
-        RankedHostName host = std::make_tuple(row,out->value(),check->value());
+        RankedHostName host(row,out->value(),check->value());
 
         if (check->value()) {
-            unpinned_it = history.insert(unpinned_it,std::move(host))+1;
+            unpinned_it = history.insert(unpinned_it,host)+1;
         } else {
-            history.push_back(std::move(host));
+            history.push_back(host);
         }
     }
 
@@ -153,15 +146,12 @@ void ConnectionsTable::updatePinnedStatus(std::string newServername) {
         history.pop_back();
     }
 
-    auto last = std::unique(history.begin(), history.end(), [](RankedHostName const &t1, RankedHostName const &t2){
-        return std::get<HostTupleIndex::NAME>(t1) == std::get<HostTupleIndex::NAME>(t2);
-    });
-    history.erase(last,history.end());
+    history.erase(std::unique(history.begin(),history.end()),history.end());
 
     // Setting up the right rank number
     row = 0;
-    for (auto it = history.begin(); it != history.end(); ++it, ++row) {
-        std::get<HostTupleIndex::RANK>(*it) = row;
+    for (HostnameList::iterator it = history.begin(); it != history.end(); ++it, ++row) {
+        it->setRank(row);
     }
 }
 
