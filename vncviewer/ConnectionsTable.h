@@ -3,8 +3,8 @@
 
 #include "parameters.h"
 
-#include <FL/Fl_Table.h>
-#include <FL/Fl.h>
+#include <FL/Fl_Table.H>
+#include <FL/Fl.H>
 #include <vector>
 #include <string>
 
