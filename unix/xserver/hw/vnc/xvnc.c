@@ -84,7 +84,7 @@ from the X Consortium.
 #include "version-config.h"
 #include "site.h"
 
-#define XVNCVERSION "TigerVNC 1.8.80"
+#define XVNCVERSION "TigerVNC 1.8.90"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2018 TigerVNC Team and many others (see README.rst)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
