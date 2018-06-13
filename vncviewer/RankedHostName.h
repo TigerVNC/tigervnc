@@ -21,7 +21,7 @@ public:
     void setRank(int&);
 
     bool operator< (const RankedHostName& h2) const;
-    bool operator== (const RankedHostName& h2);
+    bool operator== (const RankedHostName& h2) const;
 };
 
 #endif // __RANKEDHOSTNAME_H__

@@ -34,6 +34,6 @@ bool RankedHostName::operator< (const RankedHostName& h2) const {
     return false;
 }
 
-bool RankedHostName::operator== (const RankedHostName& h2) {
+bool RankedHostName::operator== (const RankedHostName& h2) const {
     return name == h2.name;
 }
