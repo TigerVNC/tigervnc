@@ -31,7 +31,6 @@
 #endif
 
 #include <rfb/CSecurity.h>
-#include <rfb/SSecurityVeNCrypt.h>
 #include <rfb/Security.h>
 #include <rfb/UserMsgBox.h>
 #include <rdr/InStream.h>
