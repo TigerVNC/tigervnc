@@ -43,6 +43,7 @@ set(RFB_SOURCES
   SMsgReader.cxx
   SMsgWriter.cxx
   ServerCore.cxx
+  ServerParams.cxx
   Security.cxx
   SecurityServer.cxx
   SecurityClient.cxx

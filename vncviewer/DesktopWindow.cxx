@@ -235,7 +235,7 @@ void DesktopWindow::setName(const char *name)
 void DesktopWindow::updateWindow()
 {
   if (firstUpdate) {
-    if (cc->cp.supportsSetDesktopSize) {
+    if (cc->server.supportsSetDesktopSize) {
       // Hack: Wait until we're in the proper mode and position until
       // resizing things, otherwise we might send the wrong thing.
       if (delayedFullscreen)
@@ -487,7 +487,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
     // d) We're not still waiting for startup fullscreen to kick in
     //
     if (not firstUpdate and not delayedFullscreen and
-        ::remoteResize and cc->cp.supportsSetDesktopSize) {
+        ::remoteResize and cc->server.supportsSetDesktopSize) {
       // We delay updating the remote desktop as we tend to get a flood
       // of resize events as the user is dragging the window.
       Fl::remove_timeout(handleResizeTimeout, this);
@@ -1021,7 +1021,7 @@ void DesktopWindow::remoteResize(int width, int height)
     // to scroll) we just report a single virtual screen that covers
     // the entire framebuffer.
 
-    layout = cc->cp.screenLayout();
+    layout = cc->server.screenLayout();
 
     // Not sure why we have no screens, but adding a new one should be
     // safe as there is nothing to conflict with...
@@ -1077,8 +1077,8 @@ void DesktopWindow::remoteResize(int width, int height)
       sy -= viewport_rect.tl.y;
 
       // Look for perfectly matching existing screen...
-      for (iter = cc->cp.screenLayout().begin();
-           iter != cc->cp.screenLayout().end(); ++iter) {
+      for (iter = cc->server.screenLayout().begin();
+           iter != cc->server.screenLayout().end(); ++iter) {
         if ((iter->dimensions.tl.x == sx) &&
             (iter->dimensions.tl.y == sy) &&
             (iter->dimensions.width() == sw) &&
@@ -1087,7 +1087,7 @@ void DesktopWindow::remoteResize(int width, int height)
       }
 
       // Found it?
-      if (iter != cc->cp.screenLayout().end()) {
+      if (iter != cc->server.screenLayout().end()) {
         layout.add_screen(*iter);
         continue;
       }
@@ -1095,13 +1095,13 @@ void DesktopWindow::remoteResize(int width, int height)
       // Need to add a new one, which means we need to find an unused id
       while (true) {
         id = rand();
-        for (iter = cc->cp.screenLayout().begin();
-             iter != cc->cp.screenLayout().end(); ++iter) {
+        for (iter = cc->server.screenLayout().begin();
+             iter != cc->server.screenLayout().end(); ++iter) {
           if (iter->id == id)
             break;
         }
 
-        if (iter == cc->cp.screenLayout().end())
+        if (iter == cc->server.screenLayout().end())
           break;
       }
 
@@ -1115,14 +1115,14 @@ void DesktopWindow::remoteResize(int width, int height)
   }
 
   // Do we actually change anything?
-  if ((width == cc->cp.width()) &&
-      (height == cc->cp.height()) &&
-      (layout == cc->cp.screenLayout()))
+  if ((width == cc->server.width()) &&
+      (height == cc->server.height()) &&
+      (layout == cc->server.screenLayout()))
     return;
 
   char buffer[2048];
   vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
-             cc->cp.width(), cc->cp.height(), width, height);
+             cc->server.width(), cc->server.height(), width, height);
   layout.print(buffer, sizeof(buffer));
   vlog.debug("%s", buffer);
 

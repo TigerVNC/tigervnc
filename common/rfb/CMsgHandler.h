@@ -26,7 +26,7 @@
 
 #include <rdr/types.h>
 #include <rfb/Pixel.h>
-#include <rfb/ConnParams.h>
+#include <rfb/ServerParams.h>
 #include <rfb/Rect.h>
 #include <rfb/ScreenSet.h>
 
@@ -43,7 +43,7 @@ namespace rfb {
     // derived class should override these methods as desired.  Note that for
     // the setDesktopSize(), setExtendedDesktopSize(), setPixelFormat() and
     // setName() methods, a derived class should call on to CMsgHandler's
-    // methods to set the members of cp appropriately.
+    // methods to set the members of "server" appropriately.
 
     virtual void setDesktopSize(int w, int h);
     virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
@@ -72,7 +72,7 @@ namespace rfb {
 
     virtual void setLEDState(unsigned int state);
 
-    ConnParams cp;
+    ServerParams server;
   };
 }
 #endif

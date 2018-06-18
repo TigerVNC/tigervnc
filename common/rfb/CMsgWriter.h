@@ -30,14 +30,14 @@ namespace rdr { class OutStream; }
 namespace rfb {
 
   class PixelFormat;
-  class ConnParams;
+  class ServerParams;
   struct ScreenSet;
   struct Point;
   struct Rect;
 
   class CMsgWriter {
   public:
-    CMsgWriter(ConnParams* cp, rdr::OutStream* os);
+    CMsgWriter(ServerParams* server, rdr::OutStream* os);
     virtual ~CMsgWriter();
 
     void writeClientInit(bool shared);
@@ -60,7 +60,7 @@ namespace rfb {
     void startMsg(int type);
     void endMsg();
 
-    ConnParams* cp;
+    ServerParams* server;
     rdr::OutStream* os;
   };
 }

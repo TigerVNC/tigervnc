@@ -425,7 +425,7 @@ void Viewport::pushLEDState()
   unsigned int state;
 
   // Server support?
-  if (cc->cp.ledState() == ledUnknown)
+  if (cc->server.ledState() == ledUnknown)
     return;
 
   state = 0;
@@ -458,7 +458,7 @@ void Viewport::pushLEDState()
     state |= ledNumLock;
 
   // No support for Scroll Lock //
-  state |= (cc->cp.ledState() & ledScrollLock);
+  state |= (cc->server.ledState() & ledScrollLock);
 
 #else
   unsigned int mask;
@@ -484,17 +484,17 @@ void Viewport::pushLEDState()
     state |= ledScrollLock;
 #endif
 
-  if ((state & ledCapsLock) != (cc->cp.ledState() & ledCapsLock)) {
+  if ((state & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(0x3a, XK_Caps_Lock);
     handleKeyRelease(0x3a);
   }
-  if ((state & ledNumLock) != (cc->cp.ledState() & ledNumLock)) {
+  if ((state & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(0x45, XK_Num_Lock);
     handleKeyRelease(0x45);
   }
-  if ((state & ledScrollLock) != (cc->cp.ledState() & ledScrollLock)) {
+  if ((state & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(0x46, XK_Scroll_Lock);
     handleKeyRelease(0x46);

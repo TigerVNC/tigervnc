@@ -146,32 +146,33 @@ void CConnection::processVersionMsg()
     throw Exception("reading version failed: not an RFB server?");
   }
 
-  cp.setVersion(majorVersion, minorVersion);
+  server.setVersion(majorVersion, minorVersion);
 
   vlog.info("Server supports RFB protocol version %d.%d",
-            cp.majorVersion, cp.minorVersion);
+            server.majorVersion, server.minorVersion);
 
   // The only official RFB protocol versions are currently 3.3, 3.7 and 3.8
-  if (cp.beforeVersion(3,3)) {
+  if (server.beforeVersion(3,3)) {
     vlog.error("Server gave unsupported RFB protocol version %d.%d",
-               cp.majorVersion, cp.minorVersion);
+               server.majorVersion, server.minorVersion);
     state_ = RFBSTATE_INVALID;
     throw Exception("Server gave unsupported RFB protocol version %d.%d",
-                    cp.majorVersion, cp.minorVersion);
-  } else if (useProtocol3_3 || cp.beforeVersion(3,7)) {
-    cp.setVersion(3,3);
-  } else if (cp.afterVersion(3,8)) {
-    cp.setVersion(3,8);
+                    server.majorVersion, server.minorVersion);
+  } else if (useProtocol3_3 || server.beforeVersion(3,7)) {
+    server.setVersion(3,3);
+  } else if (server.afterVersion(3,8)) {
+    server.setVersion(3,8);
   }
 
-  sprintf(verStr, "RFB %03d.%03d\n", cp.majorVersion, cp.minorVersion);
+  sprintf(verStr, "RFB %03d.%03d\n",
+          server.majorVersion, server.minorVersion);
   os->writeBytes(verStr, 12);
   os->flush();
 
   state_ = RFBSTATE_SECURITY_TYPES;
 
   vlog.info("Using RFB protocol version %d.%d",
-            cp.majorVersion, cp.minorVersion);
+            server.majorVersion, server.minorVersion);
 }
 
 
@@ -184,7 +185,7 @@ void CConnection::processSecurityTypesMsg()
   std::list<rdr::U8> secTypes;
   secTypes = security.GetEnabledSecTypes();
 
-  if (cp.isVersion(3,3)) {
+  if (server.isVersion(3,3)) {
 
     // legacy 3.3 server may only offer "vnc authentication" or "none"
 
@@ -267,7 +268,7 @@ void CConnection::processSecurityResultMsg()
 {
   vlog.debug("processing security result message");
   int result;
-  if (cp.beforeVersion(3,8) && csecurity->getType() == secTypeNone) {
+  if (server.beforeVersion(3,8) && csecurity->getType() == secTypeNone) {
     result = secResultOK;
   } else {
     if (!is->checkNoWait(1)) return;
@@ -287,7 +288,7 @@ void CConnection::processSecurityResultMsg()
     throw Exception("Unknown security result from server");
   }
   state_ = RFBSTATE_INVALID;
-  if (cp.beforeVersion(3,8))
+  if (server.beforeVersion(3,8))
     throw AuthFailureException();
   CharArray reason(is->readString());
   throw AuthFailureException(reason.buf);
@@ -311,7 +312,7 @@ void CConnection::securityCompleted()
 {
   state_ = RFBSTATE_INITIALISATION;
   reader_ = new CMsgReader(this, is);
-  writer_ = new CMsgWriter(&cp, os);
+  writer_ = new CMsgWriter(&server, os);
   vlog.debug("Authentication success!");
   authSuccess();
   writer_->writeClientInit(shared);

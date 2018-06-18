@@ -65,7 +65,7 @@ namespace rfb {
       Rect rect;
       int encoding;
       Decoder* decoder;
-      const ConnParams* cp;
+      const ServerParams* server;
       ModifiablePixelBuffer* pb;
       rdr::MemOutStream* bufferStream;
       Region affectedRegion;

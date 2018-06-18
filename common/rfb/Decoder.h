@@ -25,7 +25,7 @@ namespace rdr {
 }
 
 namespace rfb {
-  class ConnParams;
+  class ServerParams;
   class ModifiablePixelBuffer;
   class Region;
 
@@ -53,7 +53,7 @@ namespace rfb {
     // make it easier to decode. This function will always be called in
     // a serial manner on the main thread.
     virtual void readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, rdr::OutStream* os)=0;
+                          const ServerParams& server, rdr::OutStream* os)=0;
 
     // These functions will be called from any of the worker threads.
     // A lock will be held whilst these are called so it is safe to
@@ -63,7 +63,7 @@ namespace rfb {
     // be either read from or written do when decoding this rect. The
     // default implementation simply returns the given rectangle.
     virtual void getAffectedRegion(const Rect& rect, const void* buffer,
-                                   size_t buflen, const ConnParams& cp,
+                                   size_t buflen, const ServerParams& server,
                                    Region* region);
 
     // doesRectsConflict() determines if two rectangles must be decoded
@@ -75,14 +75,14 @@ namespace rfb {
                                  const Rect& rectB,
                                  const void* bufferB,
                                  size_t buflenB,
-                                 const ConnParams& cp);
+                                 const ServerParams& server);
 
     // decodeRect() decodes the given rectangle with data from the
     // given buffer, onto the ModifiablePixelBuffer. The PixelFormat of
     // the PixelBuffer might not match the ConnParams and it is up to
     // the decoder to do any necessary conversion.
     virtual void decodeRect(const Rect& r, const void* buffer,
-                            size_t buflen, const ConnParams& cp,
+                            size_t buflen, const ServerParams& server,
                             ModifiablePixelBuffer* pb)=0;
 
   public:

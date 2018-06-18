@@ -25,14 +25,14 @@
 #include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
-#include <rfb/ConnParams.h>
+#include <rfb/ServerParams.h>
 #include <rfb/Decoder.h>
 #include <rfb/CMsgWriter.h>
 
 using namespace rfb;
 
-CMsgWriter::CMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
-  : cp(cp_), os(os_)
+CMsgWriter::CMsgWriter(ServerParams* server_, rdr::OutStream* os_)
+  : server(server_), os(os_)
 {
 }
 
@@ -72,18 +72,18 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
   int nEncodings = 0;
   rdr::U32 encodings[encodingMax+3];
 
-  if (cp->supportsLocalCursor) {
+  if (server->supportsLocalCursor) {
     encodings[nEncodings++] = pseudoEncodingCursorWithAlpha;
     encodings[nEncodings++] = pseudoEncodingCursor;
     encodings[nEncodings++] = pseudoEncodingXCursor;
   }
-  if (cp->supportsDesktopResize)
+  if (server->supportsDesktopResize)
     encodings[nEncodings++] = pseudoEncodingDesktopSize;
-  if (cp->supportsExtendedDesktopSize)
+  if (server->supportsExtendedDesktopSize)
     encodings[nEncodings++] = pseudoEncodingExtendedDesktopSize;
-  if (cp->supportsDesktopRename)
+  if (server->supportsDesktopRename)
     encodings[nEncodings++] = pseudoEncodingDesktopName;
-  if (cp->supportsLEDState)
+  if (server->supportsLEDState)
     encodings[nEncodings++] = pseudoEncodingLEDState;
 
   encodings[nEncodings++] = pseudoEncodingLastRect;
@@ -132,10 +132,10 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     }
   }
 
-  if (cp->compressLevel >= 0 && cp->compressLevel <= 9)
-      encodings[nEncodings++] = pseudoEncodingCompressLevel0 + cp->compressLevel;
-  if (cp->qualityLevel >= 0 && cp->qualityLevel <= 9)
-      encodings[nEncodings++] = pseudoEncodingQualityLevel0 + cp->qualityLevel;
+  if (server->compressLevel >= 0 && server->compressLevel <= 9)
+      encodings[nEncodings++] = pseudoEncodingCompressLevel0 + server->compressLevel;
+  if (server->qualityLevel >= 0 && server->qualityLevel <= 9)
+      encodings[nEncodings++] = pseudoEncodingQualityLevel0 + server->qualityLevel;
 
   writeSetEncodings(nEncodings, encodings);
 }
@@ -143,7 +143,7 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
 void CMsgWriter::writeSetDesktopSize(int width, int height,
                                      const ScreenSet& layout)
 {
-  if (!cp->supportsSetDesktopSize)
+  if (!server->supportsSetDesktopSize)
     throw Exception("Server does not support SetDesktopSize");
 
   startMsg(msgTypeSetDesktopSize);
@@ -182,7 +182,7 @@ void CMsgWriter::writeFramebufferUpdateRequest(const Rect& r, bool incremental)
 void CMsgWriter::writeEnableContinuousUpdates(bool enable,
                                               int x, int y, int w, int h)
 {
-  if (!cp->supportsContinuousUpdates)
+  if (!server->supportsContinuousUpdates)
     throw Exception("Server does not support continuous updates");
 
   startMsg(msgTypeEnableContinuousUpdates);
@@ -199,7 +199,7 @@ void CMsgWriter::writeEnableContinuousUpdates(bool enable,
 
 void CMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
 {
-  if (!cp->supportsFence)
+  if (!server->supportsFence)
     throw Exception("Server does not support fences");
   if (len > 64)
     throw Exception("Too large fence payload");
@@ -219,7 +219,7 @@ void CMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
 
 void CMsgWriter::writeKeyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
-  if (!cp->supportsQEMUKeyEvent || !keycode) {
+  if (!server->supportsQEMUKeyEvent || !keycode) {
     /* This event isn't meaningful without a valid keysym */
     if (!keysym)
       return;
@@ -245,8 +245,8 @@ void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
   Point p(pos);
   if (p.x < 0) p.x = 0;
   if (p.y < 0) p.y = 0;
-  if (p.x >= cp->width()) p.x = cp->width() - 1;
-  if (p.y >= cp->height()) p.y = cp->height() - 1;
+  if (p.x >= server->width()) p.x = server->width() - 1;
+  if (p.y >= server->height()) p.y = server->height() - 1;
 
   startMsg(msgTypePointerEvent);
   os->writeU8(buttonMask);

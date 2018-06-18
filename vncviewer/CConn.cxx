@@ -89,23 +89,23 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   if (encNum != -1)
     currentEncoding = encNum;
 
-  cp.supportsLocalCursor = true;
+  server.supportsLocalCursor = true;
 
-  cp.supportsDesktopResize = true;
-  cp.supportsExtendedDesktopSize = true;
-  cp.supportsDesktopRename = true;
+  server.supportsDesktopResize = true;
+  server.supportsExtendedDesktopSize = true;
+  server.supportsDesktopRename = true;
 
-  cp.supportsLEDState = true;
+  server.supportsLEDState = true;
 
   if (customCompressLevel)
-    cp.compressLevel = compressLevel;
+    server.compressLevel = compressLevel;
   else
-    cp.compressLevel = -1;
+    server.compressLevel = -1;
 
   if (!noJpeg)
-    cp.qualityLevel = qualityLevel;
+    server.qualityLevel = qualityLevel;
   else
-    cp.qualityLevel = -1;
+    server.qualityLevel = -1;
 
   if(sock == NULL) {
     try {
@@ -181,7 +181,7 @@ const char *CConn::connectionInfo()
   infoText[0] = '\0';
 
   snprintf(scratch, sizeof(scratch),
-           _("Desktop name: %.80s"), cp.name());
+           _("Desktop name: %.80s"), server.name());
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
@@ -191,13 +191,13 @@ const char *CConn::connectionInfo()
   strcat(infoText, "\n");
 
   snprintf(scratch, sizeof(scratch),
-           _("Size: %d x %d"), cp.width(), cp.height());
+           _("Size: %d x %d"), server.width(), server.height());
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
   // TRANSLATORS: Will be filled in with a string describing the
   // protocol pixel format in a fairly language neutral way
-  cp.pf().print(pfStr, 100);
+  server.pf().print(pfStr, 100);
   snprintf(scratch, sizeof(scratch),
            _("Pixel format: %s"), pfStr);
   strcat(infoText, scratch);
@@ -226,7 +226,7 @@ const char *CConn::connectionInfo()
   strcat(infoText, "\n");
 
   snprintf(scratch, sizeof(scratch),
-           _("Protocol version: %d.%d"), cp.majorVersion, cp.minorVersion);
+           _("Protocol version: %d.%d"), server.majorVersion, server.minorVersion);
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
@@ -319,13 +319,13 @@ void CConn::serverInit()
 
   // If using AutoSelect with old servers, start in FullColor
   // mode. See comment in autoSelectFormatAndEncoding. 
-  if (cp.beforeVersion(3, 8) && autoSelect)
+  if (server.beforeVersion(3, 8) && autoSelect)
     fullColour.setParam(true);
 
-  serverPF = cp.pf();
+  serverPF = server.pf();
 
-  desktop = new DesktopWindow(cp.width(), cp.height(),
-                              cp.name(), serverPF, this);
+  desktop = new DesktopWindow(server.width(), server.height(),
+                              server.name(), serverPF, this);
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
@@ -337,7 +337,7 @@ void CConn::serverInit()
   // This initial update request is a bit of a corner case, so we need
   // to help out setting the correct format here.
   assert(pendingPFChange);
-  cp.setPF(pendingPF);
+  server.setPF(pendingPF);
   pendingPFChange = false;
 }
 
@@ -404,7 +404,7 @@ void CConn::framebufferUpdateEnd()
   if (firstUpdate) {
     // We need fences to make extra update requests and continuous
     // updates "safe". See fence() for the next step.
-    if (cp.supportsFence)
+    if (server.supportsFence)
       writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext, 0, NULL);
 
     firstUpdate = false;
@@ -413,7 +413,7 @@ void CConn::framebufferUpdateEnd()
   // A format change has been scheduled and we are now past the update
   // with the old format. Time to active the new one.
   if (pendingPFChange) {
-    cp.setPF(pendingPF);
+    server.setPF(pendingPF);
     pendingPFChange = false;
   }
 
@@ -476,11 +476,12 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
     if (flags & fenceFlagSyncNext) {
       supportsSyncFence = true;
 
-      if (cp.supportsContinuousUpdates) {
+      if (server.supportsContinuousUpdates) {
         vlog.info(_("Enabling continuous updates"));
         continuousUpdates = true;
         writer()->writeEnableContinuousUpdates(true, 0, 0,
-                                               cp.width(), cp.height());
+                                               server.width(),
+                                               server.height());
       }
     }
   } else {
@@ -490,7 +491,7 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
 
     pf.read(&memStream);
 
-    cp.setPF(pf);
+    server.setPF(pf);
   }
 }
 
@@ -511,9 +512,10 @@ void CConn::resizeFramebuffer()
 
   if (continuousUpdates)
     writer()->writeEnableContinuousUpdates(true, 0, 0,
-                                           cp.width(), cp.height());
+                                           server.width(),
+                                           server.height());
 
-  desktop->resizeFramebuffer(cp.width(), cp.height());
+  desktop->resizeFramebuffer(server.width(), server.height());
 }
 
 // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
@@ -558,13 +560,13 @@ void CConn::autoSelectFormatAndEncoding()
     if (newQualityLevel != qualityLevel) {
       vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
                 kbitsPerSecond, newQualityLevel);
-      cp.qualityLevel = newQualityLevel;
+      server.qualityLevel = newQualityLevel;
       qualityLevel.setParam(newQualityLevel);
       encodingChange = true;
     }
   }
 
-  if (cp.beforeVersion(3, 8)) {
+  if (server.beforeVersion(3, 8)) {
     // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
     // cursors "asynchronously". If this happens in the middle of a
     // pixel format change, the server will encode the cursor with
@@ -650,7 +652,9 @@ void CConn::requestNewUpdate()
 
   if (forceNonincremental || !continuousUpdates) {
     pendingUpdate = true;
-    writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width(), cp.height()),
+    writer()->writeFramebufferUpdateRequest(Rect(0, 0,
+                                                 server.width(),
+                                                 server.height()),
                                             !forceNonincremental);
   }
  
@@ -672,17 +676,17 @@ void CConn::handleOptions(void *data)
       self->currentEncoding = encNum;
   }
 
-  self->cp.supportsLocalCursor = true;
+  self->server.supportsLocalCursor = true;
 
   if (customCompressLevel)
-    self->cp.compressLevel = compressLevel;
+    self->server.compressLevel = compressLevel;
   else
-    self->cp.compressLevel = -1;
+    self->server.compressLevel = -1;
 
   if (!noJpeg && !autoSelect)
-    self->cp.qualityLevel = qualityLevel;
+    self->server.qualityLevel = qualityLevel;
   else
-    self->cp.qualityLevel = -1;
+    self->server.qualityLevel = -1;
 
   self->encodingChange = true;
 
@@ -702,7 +706,7 @@ void CConn::handleOptions(void *data)
       pf = mediumColourPF;
   }
 
-  if (!pf.equal(self->cp.pf())) {
+  if (!pf.equal(self->server.pf())) {
     self->formatChange = true;
 
     // Without fences, we cannot safely trigger an update request directly
