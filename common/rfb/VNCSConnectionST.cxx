@@ -385,8 +385,7 @@ bool VNCSConnectionST::needRenderedCursor()
   if (state() != RFBSTATE_NORMAL)
     return false;
 
-  if (!client.supportsLocalCursorWithAlpha &&
-      !client.supportsLocalCursor && !client.supportsLocalXCursor)
+  if (!client.supportsLocalCursor())
     return true;
   if (!server->cursorPos.equals(pointerEventPos) &&
       (time(0) - pointerEventTime) > 0)
@@ -572,7 +571,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
 
   // Lock key heuristics
   // (only for clients that do not support the LED state extension)
-  if (!client.supportsLEDState) {
+  if (!client.supportsLEDState()) {
     // Always ignore ScrollLock as we don't have a heuristic
     // for that
     if (keysym == XK_Scroll_Lock) {
@@ -787,7 +786,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 {
   Rect rect;
 
-  if (!client.supportsFence || !client.supportsContinuousUpdates)
+  if (!client.supportsFence() || !client.supportsContinuousUpdates())
     throw Exception("Client tried to enable continuous updates when not allowed");
 
   continuousUpdates = enable;
@@ -803,7 +802,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 }
 
 // supportsLocalCursor() is called whenever the status of
-// client.supportsLocalCursor has changed.  If the client does now support local
+// client.supportsLocalCursor() has changed.  If the client does now support local
 // cursor, we make sure that the old server-side rendered cursor is cleaned up
 // and the cursor is sent to the client.
 
@@ -825,7 +824,7 @@ void VNCSConnectionST::supportsContinuousUpdates()
 {
   // We refuse to use continuous updates if we cannot monitor the buffer
   // usage using fences.
-  if (!client.supportsFence)
+  if (!client.supportsFence())
     return;
 
   writer()->writeEndOfContinuousUpdates();
@@ -868,7 +867,7 @@ void VNCSConnectionST::writeRTTPing()
 {
   char type;
 
-  if (!client.supportsFence)
+  if (!client.supportsFence())
     return;
 
   congestion.updatePosition(sock->outStream().length());
@@ -895,7 +894,7 @@ bool VNCSConnectionST::isCongested()
   if (sock->outStream().bufferUsage() > 0)
     return true;
 
-  if (!client.supportsFence)
+  if (!client.supportsFence())
     return false;
 
   congestion.updatePosition(sock->outStream().length());

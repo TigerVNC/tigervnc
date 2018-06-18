@@ -325,7 +325,7 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
 
     changed = changed_;
 
-    if (!conn->client.useCopyRect)
+    if (!conn->client.supportsEncoding(encodingCopyRect))
       changed.assign_union(copied);
 
     /*
@@ -337,7 +337,7 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
       changed.assign_subtract(renderedCursor->getEffectiveRect());
     }
 
-    if (conn->client.supportsLastRect)
+    if (conn->client.supportsEncoding(pseudoEncodingLastRect))
       nRects = 0xFFFF;
     else {
       nRects = copied.numRects();
@@ -347,14 +347,14 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
 
     conn->writer()->writeFramebufferUpdateStart(nRects);
 
-    if (conn->client.useCopyRect)
+    if (conn->client.supportsEncoding(encodingCopyRect))
       writeCopyRects(copied, copyDelta);
 
     /*
      * We start by searching for solid rects, which are then removed
      * from the changed region.
      */
-    if (conn->client.supportsLastRect)
+    if (conn->client.supportsEncoding(pseudoEncodingLastRect))
       writeSolidRects(&changed, pb);
 
     writeRects(changed, pb);

@@ -19,6 +19,7 @@
 #include <rfb/Exception.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/ScreenSet.h>
+#include <rfb/encodings.h>
 
 using namespace rfb;
 
@@ -44,22 +45,22 @@ void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
   bool firstFence, firstContinuousUpdates, firstLEDState,
        firstQEMUKeyEvent;
 
-  firstFence = !client.supportsFence;
-  firstContinuousUpdates = !client.supportsContinuousUpdates;
-  firstLEDState = !client.supportsLEDState;
-  firstQEMUKeyEvent = !client.supportsQEMUKeyEvent;
+  firstFence = !client.supportsFence();
+  firstContinuousUpdates = !client.supportsContinuousUpdates();
+  firstLEDState = !client.supportsLEDState();
+  firstQEMUKeyEvent = !client.supportsEncoding(pseudoEncodingQEMUKeyEvent);
 
   client.setEncodings(nEncodings, encodings);
 
   supportsLocalCursor();
 
-  if (client.supportsFence && firstFence)
+  if (client.supportsFence() && firstFence)
     supportsFence();
-  if (client.supportsContinuousUpdates && firstContinuousUpdates)
+  if (client.supportsContinuousUpdates() && firstContinuousUpdates)
     supportsContinuousUpdates();
-  if (client.supportsLEDState && firstLEDState)
+  if (client.supportsLEDState() && firstLEDState)
     supportsLEDState();
-  if (client.supportsQEMUKeyEvent && firstQEMUKeyEvent)
+  if (client.supportsEncoding(pseudoEncodingQEMUKeyEvent) && firstQEMUKeyEvent)
     supportsQEMUKeyEvent();
 }
 

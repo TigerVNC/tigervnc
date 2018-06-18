@@ -90,7 +90,7 @@ void SMsgWriter::writeServerCutText(const char* str, int len)
 
 void SMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
 {
-  if (!client->supportsFence)
+  if (!client->supportsEncoding(pseudoEncodingFence))
     throw Exception("Client does not support fences");
   if (len > 64)
     throw Exception("Too large fence payload");
@@ -112,7 +112,7 @@ void SMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
 
 void SMsgWriter::writeEndOfContinuousUpdates()
 {
-  if (!client->supportsContinuousUpdates)
+  if (!client->supportsEncoding(pseudoEncodingContinuousUpdates))
     throw Exception("Client does not support continuous updates");
 
   startMsg(msgTypeEndOfContinuousUpdates);
@@ -120,7 +120,7 @@ void SMsgWriter::writeEndOfContinuousUpdates()
 }
 
 bool SMsgWriter::writeSetDesktopSize() {
-  if (!client->supportsDesktopResize)
+  if (!client->supportsEncoding(pseudoEncodingDesktopSize))
     return false;
 
   needSetDesktopSize = true;
@@ -129,7 +129,7 @@ bool SMsgWriter::writeSetDesktopSize() {
 }
 
 bool SMsgWriter::writeExtendedDesktopSize() {
-  if (!client->supportsExtendedDesktopSize)
+  if (!client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
     return false;
 
   needExtendedDesktopSize = true;
@@ -142,7 +142,7 @@ bool SMsgWriter::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
                                           const ScreenSet& layout) {
   ExtendedDesktopSizeMsg msg;
 
-  if (!client->supportsExtendedDesktopSize)
+  if (!client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
     return false;
 
   msg.reason = reason;
@@ -157,7 +157,7 @@ bool SMsgWriter::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
 }
 
 bool SMsgWriter::writeSetDesktopName() {
-  if (!client->supportsDesktopRename)
+  if (!client->supportsEncoding(pseudoEncodingDesktopName))
     return false;
 
   needSetDesktopName = true;
@@ -167,7 +167,7 @@ bool SMsgWriter::writeSetDesktopName() {
 
 bool SMsgWriter::writeSetCursor()
 {
-  if (!client->supportsLocalCursor)
+  if (!client->supportsEncoding(pseudoEncodingCursor))
     return false;
 
   needSetCursor = true;
@@ -177,7 +177,7 @@ bool SMsgWriter::writeSetCursor()
 
 bool SMsgWriter::writeSetXCursor()
 {
-  if (!client->supportsLocalXCursor)
+  if (!client->supportsEncoding(pseudoEncodingXCursor))
     return false;
 
   needSetXCursor = true;
@@ -187,7 +187,7 @@ bool SMsgWriter::writeSetXCursor()
 
 bool SMsgWriter::writeSetCursorWithAlpha()
 {
-  if (!client->supportsLocalCursorWithAlpha)
+  if (!client->supportsEncoding(pseudoEncodingCursorWithAlpha))
     return false;
 
   needSetCursorWithAlpha = true;
@@ -197,7 +197,7 @@ bool SMsgWriter::writeSetCursorWithAlpha()
 
 bool SMsgWriter::writeLEDState()
 {
-  if (!client->supportsLEDState)
+  if (!client->supportsEncoding(pseudoEncodingLEDState))
     return false;
   if (client->ledState() == ledUnknown)
     return false;
@@ -209,7 +209,7 @@ bool SMsgWriter::writeLEDState()
 
 bool SMsgWriter::writeQEMUKeyEvent()
 {
-  if (!client->supportsQEMUKeyEvent)
+  if (!client->supportsEncoding(pseudoEncodingQEMUKeyEvent))
     return false;
 
   needQEMUKeyEvent = true;
@@ -437,7 +437,7 @@ void SMsgWriter::writeNoDataRects()
 
 void SMsgWriter::writeSetDesktopSizeRect(int width, int height)
 {
-  if (!client->supportsDesktopResize)
+  if (!client->supportsEncoding(pseudoEncodingDesktopSize))
     throw Exception("Client does not support desktop resize");
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::writeSetDesktopSizeRect: nRects out of sync");
@@ -457,7 +457,7 @@ void SMsgWriter::writeExtendedDesktopSizeRect(rdr::U16 reason,
 {
   ScreenSet::const_iterator si;
 
-  if (!client->supportsExtendedDesktopSize)
+  if (!client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
     throw Exception("Client does not support extended desktop resize");
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::writeExtendedDesktopSizeRect: nRects out of sync");
@@ -483,7 +483,7 @@ void SMsgWriter::writeExtendedDesktopSizeRect(rdr::U16 reason,
 
 void SMsgWriter::writeSetDesktopNameRect(const char *name)
 {
-  if (!client->supportsDesktopRename)
+  if (!client->supportsEncoding(pseudoEncodingDesktopName))
     throw Exception("Client does not support desktop rename");
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::writeSetDesktopNameRect: nRects out of sync");
@@ -500,7 +500,7 @@ void SMsgWriter::writeSetCursorRect(int width, int height,
                                     int hotspotX, int hotspotY,
                                     const void* data, const void* mask)
 {
-  if (!client->supportsLocalCursor)
+  if (!client->supportsEncoding(pseudoEncodingCursor))
     throw Exception("Client does not support local cursors");
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::writeSetCursorRect: nRects out of sync");
@@ -518,7 +518,7 @@ void SMsgWriter::writeSetXCursorRect(int width, int height,
                                      int hotspotX, int hotspotY,
                                      const void* data, const void* mask)
 {
-  if (!client->supportsLocalXCursor)
+  if (!client->supportsEncoding(pseudoEncodingXCursor))
     throw Exception("Client does not support local cursors");
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::writeSetXCursorRect: nRects out of sync");
@@ -544,7 +544,7 @@ void SMsgWriter::writeSetCursorWithAlphaRect(int width, int height,
                                              int hotspotX, int hotspotY,
                                              const rdr::U8* data)
 {
-  if (!client->supportsLocalCursorWithAlpha)
+  if (!client->supportsEncoding(pseudoEncodingCursorWithAlpha))
     throw Exception("Client does not support local cursors");
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::writeSetCursorWithAlphaRect: nRects out of sync");
@@ -570,7 +570,7 @@ void SMsgWriter::writeSetCursorWithAlphaRect(int width, int height,
 
 void SMsgWriter::writeLEDStateRect(rdr::U8 state)
 {
-  if (!client->supportsLEDState)
+  if (!client->supportsEncoding(pseudoEncodingLEDState))
     throw Exception("Client does not support LED state updates");
   if (client->ledState() == ledUnknown)
     throw Exception("Server does not support LED state updates");
@@ -587,7 +587,7 @@ void SMsgWriter::writeLEDStateRect(rdr::U8 state)
 
 void SMsgWriter::writeQEMUKeyEventRect()
 {
-  if (!client->supportsQEMUKeyEvent)
+  if (!client->supportsEncoding(pseudoEncodingQEMUKeyEvent))
     throw Exception("Client does not support QEMU extended key events");
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::writeQEMUKeyEventRect: nRects out of sync");

@@ -26,14 +26,6 @@ using namespace rfb;
 
 ClientParams::ClientParams()
   : majorVersion(0), minorVersion(0),
-    useCopyRect(false),
-    supportsLocalCursor(false), supportsLocalXCursor(false),
-    supportsLocalCursorWithAlpha(false),
-    supportsDesktopResize(false), supportsExtendedDesktopSize(false),
-    supportsDesktopRename(false), supportsLastRect(false),
-    supportsLEDState(false), supportsQEMUKeyEvent(false),
-    supportsSetDesktopSize(false), supportsFence(false),
-    supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
     subsampling(subsampleUndefined),
     width_(0), height_(0), name_(0),
@@ -93,14 +85,6 @@ bool ClientParams::supportsEncoding(rdr::S32 encoding) const
 
 void ClientParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
-  useCopyRect = false;
-  supportsLocalCursor = false;
-  supportsLocalCursorWithAlpha = false;
-  supportsDesktopResize = false;
-  supportsExtendedDesktopSize = false;
-  supportsLocalXCursor = false;
-  supportsLastRect = false;
-  supportsQEMUKeyEvent = false;
   compressLevel = -1;
   qualityLevel = -1;
   fineQualityLevel = -1;
@@ -111,42 +95,6 @@ void ClientParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 
   for (int i = nEncodings-1; i >= 0; i--) {
     switch (encodings[i]) {
-    case encodingCopyRect:
-      useCopyRect = true;
-      break;
-    case pseudoEncodingCursor:
-      supportsLocalCursor = true;
-      break;
-    case pseudoEncodingXCursor:
-      supportsLocalXCursor = true;
-      break;
-    case pseudoEncodingCursorWithAlpha:
-      supportsLocalCursorWithAlpha = true;
-      break;
-    case pseudoEncodingDesktopSize:
-      supportsDesktopResize = true;
-      break;
-    case pseudoEncodingExtendedDesktopSize:
-      supportsExtendedDesktopSize = true;
-      break;
-    case pseudoEncodingDesktopName:
-      supportsDesktopRename = true;
-      break;
-    case pseudoEncodingLastRect:
-      supportsLastRect = true;
-      break;
-    case pseudoEncodingLEDState:
-      supportsLEDState = true;
-      break;
-    case pseudoEncodingQEMUKeyEvent:
-      supportsQEMUKeyEvent = true;
-      break;
-    case pseudoEncodingFence:
-      supportsFence = true;
-      break;
-    case pseudoEncodingContinuousUpdates:
-      supportsContinuousUpdates = true;
-      break;
     case pseudoEncodingSubsamp1X:
       subsampling = subsampleNone;
       break;
@@ -179,12 +127,43 @@ void ClientParams::setEncodings(int nEncodings, const rdr::S32* encodings)
         encodings[i] <= pseudoEncodingFineQualityLevel100)
       fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
 
-    if (encodings[i] > 0)
-      encodings_.insert(encodings[i]);
+    encodings_.insert(encodings[i]);
   }
 }
 
 void ClientParams::setLEDState(unsigned int state)
 {
   ledState_ = state;
+}
+
+bool ClientParams::supportsLocalCursor() const
+{
+  if (supportsEncoding(pseudoEncodingCursorWithAlpha))
+    return true;
+  if (supportsEncoding(pseudoEncodingCursor))
+    return true;
+  if (supportsEncoding(pseudoEncodingXCursor))
+    return true;
+  return false;
+}
+
+bool ClientParams::supportsLEDState() const
+{
+  if (supportsEncoding(pseudoEncodingLEDState))
+    return true;
+  return false;
+}
+
+bool ClientParams::supportsFence() const
+{
+  if (supportsEncoding(pseudoEncodingFence))
+    return true;
+  return false;
+}
+
+bool ClientParams::supportsContinuousUpdates() const
+{
+  if (supportsEncoding(pseudoEncodingContinuousUpdates))
+    return true;
+  return false;
 }
