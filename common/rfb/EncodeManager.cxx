@@ -325,6 +325,9 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
 
     changed = changed_;
 
+    if (!conn->client.useCopyRect)
+      changed.assign_union(copied);
+
     /*
      * We need to render the cursor seperately as it has its own
      * magical pixel buffer, so split it out from the changed region.
@@ -344,7 +347,8 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
 
     conn->writer()->writeFramebufferUpdateStart(nRects);
 
-    writeCopyRects(copied, copyDelta);
+    if (conn->client.useCopyRect)
+      writeCopyRects(copied, copyDelta);
 
     /*
      * We start by searching for solid rects, which are then removed

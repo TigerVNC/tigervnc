@@ -49,7 +49,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(NULL), congestionTimer(this),
-    losslessTimer(this), server(server_), updates(false),
+    losslessTimer(this), server(server_),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
     clientHasCursor(false),
@@ -971,8 +971,6 @@ void VNCSConnectionST::writeDataUpdate()
   UpdateInfo ui;
   bool needNewUpdateInfo;
   const RenderedCursor *cursor;
-
-  updates.enable_copyrect(client.useCopyRect);
 
   // See what the client has requested (if anything)
   if (continuousUpdates)
