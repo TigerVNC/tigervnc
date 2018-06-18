@@ -76,15 +76,15 @@ TightJPEGEncoder::~TightJPEGEncoder()
 
 bool TightJPEGEncoder::isSupported()
 {
-  if (!conn->cp.supportsEncoding(encodingTight))
+  if (!conn->client.supportsEncoding(encodingTight))
     return false;
 
   // Any one of these indicates support for JPEG
-  if (conn->cp.qualityLevel != -1)
+  if (conn->client.qualityLevel != -1)
     return true;
-  if (conn->cp.fineQualityLevel != -1)
+  if (conn->client.fineQualityLevel != -1)
     return true;
-  if (conn->cp.subsampling != -1)
+  if (conn->client.subsampling != -1)
     return true;
 
   // Tight support, but not JPEG

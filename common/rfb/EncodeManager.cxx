@@ -334,7 +334,7 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
       changed.assign_subtract(renderedCursor->getEffectiveRect());
     }
 
-    if (conn->cp.supportsLastRect)
+    if (conn->client.supportsLastRect)
       nRects = 0xFFFF;
     else {
       nRects = copied.numRects();
@@ -350,7 +350,7 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
      * We start by searching for solid rects, which are then removed
      * from the changed region.
      */
-    if (conn->cp.supportsLastRect)
+    if (conn->client.supportsLastRect)
       writeSolidRects(&changed, pb);
 
     writeRects(changed, pb);
@@ -373,7 +373,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   solid = bitmap = bitmapRLE = encoderRaw;
   indexed = indexedRLE = fullColour = encoderRaw;
 
-  allowJPEG = conn->cp.pf().bpp >= 16;
+  allowJPEG = conn->client.pf().bpp >= 16;
   if (!allowLossy) {
     if (encoders[encoderTightJPEG]->losslessQuality == -1)
       allowJPEG = false;
@@ -447,7 +447,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   }
 
   // JPEG is the only encoder that can reduce things to grayscale
-  if ((conn->cp.subsampling == subsampleGray) &&
+  if ((conn->client.subsampling == subsampleGray) &&
       encoders[encoderTightJPEG]->isSupported() && allowLossy) {
     solid = bitmap = bitmapRLE = encoderTightJPEG;
     indexed = indexedRLE = fullColour = encoderTightJPEG;
@@ -465,14 +465,14 @@ void EncodeManager::prepareEncoders(bool allowLossy)
 
     encoder = encoders[*iter];
 
-    encoder->setCompressLevel(conn->cp.compressLevel);
+    encoder->setCompressLevel(conn->client.compressLevel);
 
     if (allowLossy) {
-      encoder->setQualityLevel(conn->cp.qualityLevel);
-      encoder->setFineQualityLevel(conn->cp.fineQualityLevel,
-                                   conn->cp.subsampling);
+      encoder->setQualityLevel(conn->client.qualityLevel);
+      encoder->setFineQualityLevel(conn->client.fineQualityLevel,
+                                   conn->client.subsampling);
     } else {
-      int level = __rfbmax(conn->cp.qualityLevel,
+      int level = __rfbmax(conn->client.qualityLevel,
                            encoder->losslessQuality);
       encoder->setQualityLevel(level);
       encoder->setFineQualityLevel(-1, subsampleUndefined);
@@ -575,7 +575,7 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
 
   stats[klass][activeType].rects++;
   stats[klass][activeType].pixels += rect.area();
-  equiv = 12 + rect.area() * (conn->cp.pf().bpp/8);
+  equiv = 12 + rect.area() * (conn->client.pf().bpp/8);
   stats[klass][activeType].equivalent += equiv;
 
   encoder = encoders[klass];
@@ -623,7 +623,7 @@ void EncodeManager::writeCopyRects(const Region& copied, const Point& delta)
 
     copyStats.rects++;
     copyStats.pixels += rect->area();
-    equiv = 12 + rect->area() * (conn->cp.pf().bpp/8);
+    equiv = 12 + rect->area() * (conn->client.pf().bpp/8);
     copyStats.equivalent += equiv;
 
     conn->writer()->writeCopyRect(*rect, rect->tl.x - delta.x,
@@ -710,11 +710,11 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
           rdr::U32 _buffer2;
           rdr::U8* converted = (rdr::U8*)&_buffer2;
 
-          conn->cp.pf().bufferFromBuffer(converted, pb->getPF(),
+          conn->client.pf().bufferFromBuffer(converted, pb->getPF(),
                                          colourValue, 1);
 
           encoder->writeSolidRect(erp.width(), erp.height(),
-                                  conn->cp.pf(), converted);
+                                  conn->client.pf(), converted);
         }
         endRect();
 
@@ -808,10 +808,10 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
   //        compression setting means spending less effort in building
   //        a palette. It might be that they figured the increase in
   //        zlib setting compensated for the loss.
-  if (conn->cp.compressLevel == -1)
+  if (conn->client.compressLevel == -1)
     divisor = 2 * 8;
   else
-    divisor = conn->cp.compressLevel * 8;
+    divisor = conn->client.compressLevel * 8;
   if (divisor < 4)
     divisor = 4;
 
@@ -819,7 +819,7 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
 
   // Special exception inherited from the Tight encoder
   if (activeEncoders[encoderFullColour] == encoderTightJPEG) {
-    if ((conn->cp.compressLevel != -1) && (conn->cp.compressLevel < 2))
+    if ((conn->client.compressLevel != -1) && (conn->client.compressLevel < 2))
       maxColours = 24;
     else
       maxColours = 96;
@@ -992,8 +992,8 @@ PixelBuffer* EncodeManager::preparePixelBuffer(const Rect& rect,
   int stride;
 
   // Do wo need to convert the data?
-  if (convert && !conn->cp.pf().equal(pb->getPF())) {
-    convertedPixelBuffer.setPF(conn->cp.pf());
+  if (convert && !conn->client.pf().equal(pb->getPF())) {
+    convertedPixelBuffer.setPF(conn->client.pf());
     convertedPixelBuffer.setSize(rect.width(), rect.height());
 
     buffer = pb->getBuffer(rect, &stride);

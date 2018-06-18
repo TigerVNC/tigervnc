@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,11 +17,11 @@
  * USA.
  */
 //
-// ConnParams - structure containing the connection parameters.
+// ClientParams - structure describing the current state of the remote client
 //
 
-#ifndef __RFB_CONNPARAMS_H__
-#define __RFB_CONNPARAMS_H__
+#ifndef __RFB_CLIENTPARAMS_H__
+#define __RFB_CLIENTPARAMS_H__
 
 #include <set>
 
@@ -40,10 +40,10 @@ namespace rfb {
   const int subsample8X = 4;
   const int subsample16X = 5;
 
-  class ConnParams {
+  class ClientParams {
   public:
-    ConnParams();
-    ~ConnParams();
+    ClientParams();
+    ~ClientParams();
 
     int majorVersion;
     int minorVersion;

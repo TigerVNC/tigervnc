@@ -25,7 +25,7 @@
 
 #include <rdr/types.h>
 #include <rfb/PixelFormat.h>
-#include <rfb/ConnParams.h>
+#include <rfb/ClientParams.h>
 #include <rfb/InputHandler.h>
 #include <rfb/ScreenSet.h>
 
@@ -85,7 +85,7 @@ namespace rfb {
     // handler will send a pseudo-rect back, signalling server support.
     virtual void supportsQEMUKeyEvent();
 
-    ConnParams cp;
+    ClientParams client;
   };
 }
 #endif

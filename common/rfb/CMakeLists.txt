@@ -11,9 +11,9 @@ set(RFB_SOURCES
   CSecurityStack.cxx
   CSecurityVeNCrypt.cxx
   CSecurityVncAuth.cxx
+  ClientParams.cxx
   ComparingUpdateTracker.cxx
   Configuration.cxx
-  ConnParams.cxx
   CopyRectDecoder.cxx
   Cursor.cxx
   DecodeManager.cxx

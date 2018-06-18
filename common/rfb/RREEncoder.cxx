@@ -47,7 +47,7 @@ RREEncoder::~RREEncoder()
 
 bool RREEncoder::isSupported()
 {
-  return conn->cp.supportsEncoding(encodingRRE);
+  return conn->client.supportsEncoding(encodingRRE);
 }
 
 void RREEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)

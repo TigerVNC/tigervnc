@@ -180,7 +180,7 @@ CConn::CConn(const char *filename)
   setDesktopSize(width, height);
 
   sc = new SConn();
-  sc->cp.setPF((bool)translate ? fbPF : pf);
+  sc->client.setPF((bool)translate ? fbPF : pf);
   sc->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
 }
 
@@ -290,7 +290,7 @@ SConn::SConn()
   out = new DummyOutStream;
   setStreams(NULL, out);
 
-  setWriter(new rfb::SMsgWriter(&cp, out));
+  setWriter(new rfb::SMsgWriter(&client, out));
 
   manager = new Manager(this);
 }

@@ -31,12 +31,12 @@ namespace rdr { class OutStream; }
 
 namespace rfb {
 
-  class ConnParams;
+  class ClientParams;
   struct ScreenSet;
 
   class SMsgWriter {
   public:
-    SMsgWriter(ConnParams* cp, rdr::OutStream* os);
+    SMsgWriter(ClientParams* client, rdr::OutStream* os);
     virtual ~SMsgWriter();
 
     // writeServerInit() must only be called at the appropriate time in the
@@ -140,7 +140,7 @@ namespace rfb {
     void writeLEDStateRect(rdr::U8 state);
     void writeQEMUKeyEventRect();
 
-    ConnParams* cp;
+    ClientParams* client;
     rdr::OutStream* os;
 
     int nRectsInUpdate;

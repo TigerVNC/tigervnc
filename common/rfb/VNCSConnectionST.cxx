@@ -192,9 +192,9 @@ void VNCSConnectionST::pixelBufferChange()
 {
   try {
     if (!authenticated()) return;
-    if (cp.width() && cp.height() &&
-        (server->pb->width() != cp.width() ||
-         server->pb->height() != cp.height()))
+    if (client.width() && client.height() &&
+        (server->pb->width() != client.width() ||
+         server->pb->height() != client.height()))
     {
       // We need to clip the next update to the new size, but also add any
       // extra bits if it's bigger.  If we wanted to do this exactly, something
@@ -204,17 +204,17 @@ void VNCSConnectionST::pixelBufferChange()
 
       //updates.intersect(server->pb->getRect());
       //
-      //if (server->pb->width() > cp.width())
-      //  updates.add_changed(Rect(cp.width(), 0, server->pb->width(),
+      //if (server->pb->width() > client.width())
+      //  updates.add_changed(Rect(client.width(), 0, server->pb->width(),
       //                           server->pb->height()));
-      //if (server->pb->height() > cp.height())
-      //  updates.add_changed(Rect(0, cp.height(), client.width(),
+      //if (server->pb->height() > client.height())
+      //  updates.add_changed(Rect(0, client.height(), client.width(),
       //                           server->pb->height()));
 
       damagedCursorRegion.assign_intersect(server->pb->getRect());
 
-      cp.setDimensions(server->pb->width(), server->pb->height(),
-                       server->screenLayout);
+      client.setDimensions(server->pb->width(), server->pb->height(),
+                           server->screenLayout);
       if (state() == RFBSTATE_NORMAL) {
         // We should only send EDS to client asking for both
         if (!writer()->writeExtendedDesktopSize()) {
@@ -347,7 +347,7 @@ bool VNCSConnectionST::getComparerState()
   // We interpret a low compression level as an indication that the client
   // wants to prioritise CPU usage over bandwidth, and hence disable the
   // comparing update tracker.
-  return (cp.compressLevel == -1) || (cp.compressLevel > 1);
+  return (client.compressLevel == -1) || (client.compressLevel > 1);
 }
 
 
@@ -385,8 +385,8 @@ bool VNCSConnectionST::needRenderedCursor()
   if (state() != RFBSTATE_NORMAL)
     return false;
 
-  if (!cp.supportsLocalCursorWithAlpha &&
-      !cp.supportsLocalCursor && !cp.supportsLocalXCursor)
+  if (!client.supportsLocalCursorWithAlpha &&
+      !client.supportsLocalCursor && !client.supportsLocalXCursor)
     return true;
   if (!server->cursorPos.equals(pointerEventPos) &&
       (time(0) - pointerEventTime) > 0)
@@ -417,15 +417,15 @@ void VNCSConnectionST::authSuccess()
   server->startDesktop();
 
   // - Set the connection parameters appropriately
-  cp.setDimensions(server->pb->width(), server->pb->height(),
-                   server->screenLayout);
-  cp.setName(server->getName());
-  cp.setLEDState(server->ledState);
+  client.setDimensions(server->pb->width(), server->pb->height(),
+                       server->screenLayout);
+  client.setName(server->getName());
+  client.setLEDState(server->ledState);
   
   // - Set the default pixel format
-  cp.setPF(server->pb->getPF());
+  client.setPF(server->pb->getPF());
   char buffer[256];
-  cp.pf().print(buffer, 256);
+  client.pf().print(buffer, 256);
   vlog.info("Server default pixel format %s", buffer);
 
   // - Mark the entire display as "dirty"
@@ -572,7 +572,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
 
   // Lock key heuristics
   // (only for clients that do not support the LED state extension)
-  if (!cp.supportsLEDState) {
+  if (!client.supportsLEDState) {
     // Always ignore ScrollLock as we don't have a heuristic
     // for that
     if (keysym == XK_Scroll_Lock) {
@@ -677,11 +677,11 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   SConnection::framebufferUpdateRequest(r, incremental);
 
   // Check that the client isn't sending crappy requests
-  if (!r.enclosed_by(Rect(0, 0, cp.width(), cp.height()))) {
+  if (!r.enclosed_by(Rect(0, 0, client.width(), client.height()))) {
     vlog.error("FramebufferUpdateRequest %dx%d at %d,%d exceeds framebuffer %dx%d",
                r.width(), r.height(), r.tl.x, r.tl.y,
-               cp.width(), cp.height());
-    safeRect = r.intersect(Rect(0, 0, cp.width(), cp.height()));
+               client.width(), client.height());
+    safeRect = r.intersect(Rect(0, 0, client.width(), client.height()));
   } else {
     safeRect = r;
   }
@@ -787,7 +787,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 {
   Rect rect;
 
-  if (!cp.supportsFence || !cp.supportsContinuousUpdates)
+  if (!client.supportsFence || !client.supportsContinuousUpdates)
     throw Exception("Client tried to enable continuous updates when not allowed");
 
   continuousUpdates = enable;
@@ -803,7 +803,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 }
 
 // supportsLocalCursor() is called whenever the status of
-// cp.supportsLocalCursor has changed.  If the client does now support local
+// client.supportsLocalCursor has changed.  If the client does now support local
 // cursor, we make sure that the old server-side rendered cursor is cleaned up
 // and the cursor is sent to the client.
 
@@ -825,7 +825,7 @@ void VNCSConnectionST::supportsContinuousUpdates()
 {
   // We refuse to use continuous updates if we cannot monitor the buffer
   // usage using fences.
-  if (!cp.supportsFence)
+  if (!client.supportsFence)
     return;
 
   writer()->writeEndOfContinuousUpdates();
@@ -868,7 +868,7 @@ void VNCSConnectionST::writeRTTPing()
 {
   char type;
 
-  if (!cp.supportsFence)
+  if (!client.supportsFence)
     return;
 
   congestion.updatePosition(sock->outStream().length());
@@ -895,7 +895,7 @@ bool VNCSConnectionST::isCongested()
   if (sock->outStream().bufferUsage() > 0)
     return true;
 
-  if (!cp.supportsFence)
+  if (!client.supportsFence)
     return false;
 
   congestion.updatePosition(sock->outStream().length());
@@ -972,7 +972,7 @@ void VNCSConnectionST::writeDataUpdate()
   bool needNewUpdateInfo;
   const RenderedCursor *cursor;
 
-  updates.enable_copyrect(cp.useCopyRect);
+  updates.enable_copyrect(client.useCopyRect);
 
   // See what the client has requested (if anything)
   if (continuousUpdates)
@@ -1124,15 +1124,15 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   if (!authenticated())
     return;
 
-  cp.setDimensions(cp.width(), cp.height(),
-                   server->screenLayout);
+  client.setDimensions(client.width(), client.height(),
+                       server->screenLayout);
 
   if (state() != RFBSTATE_NORMAL)
     return;
 
   writer()->writeExtendedDesktopSize(reason, 0,
-                                     cp.width(), cp.height(),
-                                     cp.screenLayout());
+                                     client.width(), client.height(),
+                                     client.screenLayout());
 }
 
 
@@ -1147,10 +1147,10 @@ void VNCSConnectionST::setCursor()
 
   // We need to blank out the client's cursor or there will be two
   if (needRenderedCursor()) {
-    cp.setCursor(emptyCursor);
+    client.setCursor(emptyCursor);
     clientHasCursor = false;
   } else {
-    cp.setCursor(*server->cursor);
+    client.setCursor(*server->cursor);
     clientHasCursor = true;
   }
 
@@ -1166,7 +1166,7 @@ void VNCSConnectionST::setCursor()
 
 void VNCSConnectionST::setDesktopName(const char *name)
 {
-  cp.setName(name);
+  client.setName(name);
 
   if (state() != RFBSTATE_NORMAL)
     return;
@@ -1182,7 +1182,7 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  cp.setLEDState(ledstate);
+  client.setLEDState(ledstate);
 
   writer()->writeLEDState();
 }

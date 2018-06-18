@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,16 +17,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <stdio.h>
 #include <rfb/Exception.h>
 #include <rfb/encodings.h>
 #include <rfb/ledStates.h>
-#include <rfb/ConnParams.h>
-#include <rfb/util.h>
+#include <rfb/ClientParams.h>
 
 using namespace rfb;
 
-ConnParams::ConnParams()
+ClientParams::ClientParams()
   : majorVersion(0), minorVersion(0),
     useCopyRect(false),
     supportsLocalCursor(false), supportsLocalXCursor(false),
@@ -45,20 +43,20 @@ ConnParams::ConnParams()
   cursor_ = new Cursor(0, 0, Point(), NULL);
 }
 
-ConnParams::~ConnParams()
+ClientParams::~ClientParams()
 {
   delete [] name_;
   delete cursor_;
 }
 
-void ConnParams::setDimensions(int width, int height)
+void ClientParams::setDimensions(int width, int height)
 {
   ScreenSet layout;
   layout.add_screen(rfb::Screen(0, 0, 0, width, height, 0));
   setDimensions(width, height, layout);
 }
 
-void ConnParams::setDimensions(int width, int height, const ScreenSet& layout)
+void ClientParams::setDimensions(int width, int height, const ScreenSet& layout)
 {
   if (!layout.validate(width, height))
     throw Exception("Attempted to configure an invalid screen layout");
@@ -68,7 +66,7 @@ void ConnParams::setDimensions(int width, int height, const ScreenSet& layout)
   screenLayout_ = layout;
 }
 
-void ConnParams::setPF(const PixelFormat& pf)
+void ClientParams::setPF(const PixelFormat& pf)
 {
   pf_ = pf;
 
@@ -76,24 +74,24 @@ void ConnParams::setPF(const PixelFormat& pf)
     throw Exception("setPF: not 8, 16 or 32 bpp?");
 }
 
-void ConnParams::setName(const char* name)
+void ClientParams::setName(const char* name)
 {
   delete [] name_;
   name_ = strDup(name);
 }
 
-void ConnParams::setCursor(const Cursor& other)
+void ClientParams::setCursor(const Cursor& other)
 {
   delete cursor_;
   cursor_ = new Cursor(other);
 }
 
-bool ConnParams::supportsEncoding(rdr::S32 encoding) const
+bool ClientParams::supportsEncoding(rdr::S32 encoding) const
 {
   return encodings_.count(encoding) != 0;
 }
 
-void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
+void ClientParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
   useCopyRect = false;
   supportsLocalCursor = false;
@@ -186,7 +184,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   }
 }
 
-void ConnParams::setLEDState(unsigned int state)
+void ClientParams::setLEDState(unsigned int state)
 {
   ledState_ = state;
 }
