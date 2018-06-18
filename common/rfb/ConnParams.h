@@ -30,8 +30,6 @@
 #include <rfb/PixelFormat.h>
 #include <rfb/ScreenSet.h>
 
-namespace rdr { class InStream; }
-
 namespace rfb {
 
   const int subsampleUndefined = -1;
@@ -46,9 +44,6 @@ namespace rfb {
   public:
     ConnParams();
     ~ConnParams();
-
-    bool readVersion(rdr::InStream* is, bool* done);
-    void writeVersion(rdr::OutStream* os);
 
     int majorVersion;
     int minorVersion;
@@ -114,8 +109,6 @@ namespace rfb {
     char* name_;
     Cursor* cursor_;
     std::set<rdr::S32> encodings_;
-    char verStr[13];
-    int verStrPos;
     unsigned int ledState_;
   };
 }

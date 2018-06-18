@@ -18,8 +18,6 @@
  * USA.
  */
 #include <stdio.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
 #include <rfb/Exception.h>
 #include <rfb/encodings.h>
 #include <rfb/ledStates.h>
@@ -39,7 +37,7 @@ ConnParams::ConnParams()
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(subsampleUndefined), name_(0), verStrPos(0),
+    subsampling(subsampleUndefined), name_(0),
     ledState_(ledUnknown)
 {
   setName("");
@@ -50,30 +48,6 @@ ConnParams::~ConnParams()
 {
   delete [] name_;
   delete cursor_;
-}
-
-bool ConnParams::readVersion(rdr::InStream* is, bool* done)
-{
-  if (verStrPos >= 12) return false;
-  while (is->checkNoWait(1) && verStrPos < 12) {
-    verStr[verStrPos++] = is->readU8();
-  }
-
-  if (verStrPos < 12) {
-    *done = false;
-    return true;
-  }
-  *done = true;
-  verStr[12] = 0;
-  return (sscanf(verStr, "RFB %03d.%03d\n", &majorVersion,&minorVersion) == 2);
-}
-
-void ConnParams::writeVersion(rdr::OutStream* os)
-{
-  char str[13];
-  sprintf(str, "RFB %03d.%03d\n", majorVersion, minorVersion);
-  os->writeBytes(str, 12);
-  os->flush();
 }
 
 void ConnParams::setPF(const PixelFormat& pf)

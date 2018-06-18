@@ -128,13 +128,25 @@ void CConnection::processMsg()
 
 void CConnection::processVersionMsg()
 {
+  char verStr[13];
+  int majorVersion;
+  int minorVersion;
+
   vlog.debug("reading protocol version");
-  bool done;
-  if (!cp.readVersion(is, &done)) {
+
+  if (!is->checkNoWait(12))
+    return;
+
+  is->readBytes(verStr, 12);
+  verStr[12] = '\0';
+
+  if (sscanf(verStr, "RFB %03d.%03d\n",
+             &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
     throw Exception("reading version failed: not an RFB server?");
   }
-  if (!done) return;
+
+  cp.setVersion(majorVersion, minorVersion);
 
   vlog.info("Server supports RFB protocol version %d.%d",
             cp.majorVersion, cp.minorVersion);
@@ -152,7 +164,10 @@ void CConnection::processVersionMsg()
     cp.setVersion(3,8);
   }
 
-  cp.writeVersion(os);
+  sprintf(verStr, "RFB %03d.%03d\n", cp.majorVersion, cp.minorVersion);
+  os->writeBytes(verStr, 12);
+  os->flush();
+
   state_ = RFBSTATE_SECURITY_TYPES;
 
   vlog.info("Using RFB protocol version %d.%d",
