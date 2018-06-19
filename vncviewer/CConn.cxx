@@ -36,8 +36,6 @@
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/Timer.h>
-#include <rdr/MemInStream.h>
-#include <rdr/MemOutStream.h>
 #include <network/TcpSocket.h>
 #ifndef WIN32
 #include <network/UnixSocket.h>
@@ -80,7 +78,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
-    forceNonincremental(true), supportsSyncFence(false)
+    forceNonincremental(true)
 {
   setShared(::shared);
   sock = socket;
@@ -162,9 +160,9 @@ void CConn::refreshFramebuffer()
 {
   forceNonincremental = true;
 
-  // Without fences, we cannot safely trigger an update request directly
-  // but must wait for the next update to arrive.
-  if (supportsSyncFence)
+  // Without continuous updates we have to make sure we only have a
+  // single update in flight, so we'll have to wait to do the refresh
+  if (continuousUpdates)
     requestNewUpdate();
 }
 
@@ -401,20 +399,23 @@ void CConn::framebufferUpdateEnd()
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
 
-  if (firstUpdate) {
-    // We need fences to make extra update requests and continuous
-    // updates "safe". See fence() for the next step.
-    if (server.supportsFence)
-      writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext, 0, NULL);
-
-    firstUpdate = false;
-  }
-
   // A format change has been scheduled and we are now past the update
   // with the old format. Time to active the new one.
-  if (pendingPFChange) {
+  if (pendingPFChange && !continuousUpdates) {
     server.setPF(pendingPF);
     pendingPFChange = false;
+  }
+
+  if (firstUpdate) {
+    if (server.supportsContinuousUpdates) {
+      vlog.info(_("Enabling continuous updates"));
+      continuousUpdates = true;
+      writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                             server.width(),
+                                             server.height());
+    }
+
+    firstUpdate = false;
   }
 
   // Compute new settings based on updated bandwidth values
@@ -470,28 +471,17 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
     writer()->writeFence(flags, len, data);
     return;
   }
+}
 
-  if (len == 0) {
-    // Initial probe
-    if (flags & fenceFlagSyncNext) {
-      supportsSyncFence = true;
+void CConn::endOfContinuousUpdates()
+{
+  CConnection::endOfContinuousUpdates();
 
-      if (server.supportsContinuousUpdates) {
-        vlog.info(_("Enabling continuous updates"));
-        continuousUpdates = true;
-        writer()->writeEnableContinuousUpdates(true, 0, 0,
-                                               server.width(),
-                                               server.height());
-      }
-    }
-  } else {
-    // Pixel format change
-    rdr::MemInStream memStream(data, len);
-    PixelFormat pf;
-
-    pf.read(&memStream);
-
-    server.setPF(pf);
+  // We've gotten the marker for a format change, so make the pending
+  // one active
+  if (pendingPFChange) {
+    server.setPF(pendingPF);
+    pendingPFChange = false;
   }
 }
 
@@ -605,11 +595,11 @@ void CConn::checkEncodings()
 // format and encoding appropriately.
 void CConn::requestNewUpdate()
 {
-  if (formatChange) {
+  if (formatChange && !pendingPFChange) {
     PixelFormat pf;
 
     /* Catch incorrect requestNewUpdate calls */
-    assert(!pendingUpdate || supportsSyncFence);
+    assert(!pendingUpdate || continuousUpdates);
 
     if (fullColour) {
       pf = fullColourPF;
@@ -622,28 +612,28 @@ void CConn::requestNewUpdate()
         pf = mediumColourPF;
     }
 
-    if (supportsSyncFence) {
-      // We let the fence carry the pixel format and switch once we
-      // get the response back. That way we will be synchronised with
-      // when the server switches.
-      rdr::MemOutStream memStream;
+    // We have to make sure we switch the internal format at a safe
+    // time. For continuous updates we temporarily disable updates and
+    // look for a EndOfContinuousUpdates message to see when to switch.
+    // For classical updates we just got a new update right before this
+    // function was called, so we need to make sure we finish that
+    // update before we can switch.
 
-      pf.write(&memStream);
+    pendingPFChange = true;
+    pendingPF = pf;
 
-      writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext,
-                           memStream.length(), (const char*)memStream.data());
-    } else {
-      // New requests are sent out at the start of processing the last
-      // one, so we cannot switch our internal format right now (doing so
-      // would mean misdecoding the current update).
-      pendingPFChange = true;
-      pendingPF = pf;
-    }
+    if (continuousUpdates)
+      writer()->writeEnableContinuousUpdates(false, 0, 0, 0, 0);
 
     char str[256];
     pf.print(str, 256);
     vlog.info(_("Using pixel format %s"),str);
     writer()->writeSetPixelFormat(pf);
+
+    if (continuousUpdates)
+      writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                             server.width(),
+                                             server.height());
 
     formatChange = false;
   }
@@ -711,7 +701,7 @@ void CConn::handleOptions(void *data)
 
     // Without fences, we cannot safely trigger an update request directly
     // but must wait for the next update to arrive.
-    if (self->supportsSyncFence)
+    if (self->continuousUpdates)
       self->requestNewUpdate();
   }
 }
