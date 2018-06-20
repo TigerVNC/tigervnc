@@ -308,13 +308,11 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
 
 ////////////////////// CConnection callback methods //////////////////////
 
-// serverInit() is called when the serverInit message has been received.  At
+// initDone() is called when the serverInit message has been received.  At
 // this point we create the desktop window and display it.  We also tell the
 // server the pixel format and encodings to use and request the first update.
-void CConn::serverInit()
+void CConn::initDone()
 {
-  CConnection::serverInit();
-
   // If using AutoSelect with old servers, start in FullColor
   // mode. See comment in autoSelectFormatAndEncoding. 
   if (server.beforeVersion(3, 8) && autoSelect)

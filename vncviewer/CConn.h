@@ -51,7 +51,7 @@ public:
   static void socketEvent(FL_SOCKET fd, void *data);
 
   // CConnection callback methods
-  void serverInit();
+  void initDone();
 
   void setDesktopSize(int w, int h);
   void setExtendedDesktopSize(unsigned reason, unsigned result,

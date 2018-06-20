@@ -335,6 +335,14 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
   CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
 }
 
+void CConnection::serverInit()
+{
+  state_ = RFBSTATE_NORMAL;
+  vlog.debug("initialisation done");
+
+  initDone();
+}
+
 void CConnection::readAndDecodeRect(const Rect& r, int encoding,
                                     ModifiablePixelBuffer* pb)
 {
@@ -363,10 +371,8 @@ void CConnection::authSuccess()
 {
 }
 
-void CConnection::serverInit()
+void CConnection::initDone()
 {
-  state_ = RFBSTATE_NORMAL;
-  vlog.debug("initialisation done");
 }
 
 void CConnection::fence(rdr::U32 flags, unsigned len, const char data[])

@@ -100,6 +100,8 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
 
+    virtual void serverInit();
+
     virtual void readAndDecodeRect(const Rect& r, int encoding,
                                    ModifiablePixelBuffer* pb);
 
@@ -113,9 +115,11 @@ namespace rfb {
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
 
-    // serverInit() is called when the ServerInit message is received.  The
-    // derived class must call on to CConnection::serverInit().
-    virtual void serverInit();
+    // initDone() is called when the connection is fully established
+    // and standard messages can be sent. This is called before the
+    // initial FramebufferUpdateRequest giving a derived class the
+    // chance to modify pixel format and settings.
+    virtual void initDone();
 
 
     // Other methods
