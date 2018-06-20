@@ -25,11 +25,8 @@ using namespace rfb;
 
 ServerParams::ServerParams()
   : majorVersion(0), minorVersion(0),
-    useCopyRect(false),
-    supportsLocalCursor(false), supportsLocalXCursor(false),
-    supportsLocalCursorWithAlpha(false),
+    supportsLocalCursor(false),
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
-    supportsDesktopRename(false), supportsLastRect(false),
     supportsLEDState(false), supportsQEMUKeyEvent(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),

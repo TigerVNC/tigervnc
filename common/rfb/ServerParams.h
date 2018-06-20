@@ -69,15 +69,9 @@ namespace rfb {
     unsigned int ledState() { return ledState_; }
     void setLEDState(unsigned int state);
 
-    bool useCopyRect;
-
     bool supportsLocalCursor;
-    bool supportsLocalXCursor;
-    bool supportsLocalCursorWithAlpha;
     bool supportsDesktopResize;
     bool supportsExtendedDesktopSize;
-    bool supportsDesktopRename;
-    bool supportsLastRect;
     bool supportsLEDState;
     bool supportsQEMUKeyEvent;
 

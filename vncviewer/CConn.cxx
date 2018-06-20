@@ -84,7 +84,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
   server.supportsDesktopResize = true;
   server.supportsExtendedDesktopSize = true;
-  server.supportsDesktopRename = true;
 
   server.supportsLEDState = true;
 

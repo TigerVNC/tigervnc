@@ -579,11 +579,10 @@ void CConnection::updateEncodings()
     encodings.push_back(pseudoEncodingDesktopSize);
   if (server.supportsExtendedDesktopSize)
     encodings.push_back(pseudoEncodingExtendedDesktopSize);
-  if (server.supportsDesktopRename)
-    encodings.push_back(pseudoEncodingDesktopName);
   if (server.supportsLEDState)
     encodings.push_back(pseudoEncodingLEDState);
 
+  encodings.push_back(pseudoEncodingDesktopName);
   encodings.push_back(pseudoEncodingLastRect);
   encodings.push_back(pseudoEncodingContinuousUpdates);
   encodings.push_back(pseudoEncodingFence);
