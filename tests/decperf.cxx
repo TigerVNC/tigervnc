@@ -85,7 +85,7 @@ void CConn::setDesktopSize(int w, int h)
 {
   CConnection::setDesktopSize(w, h);
 
-  setFramebuffer(new rfb::ManagedPixelBuffer(filePF, cp.width, cp.height));
+  setFramebuffer(new rfb::ManagedPixelBuffer(filePF, cp.width(), cp.height()));
 }
 
 void CConn::setPixelFormat(const rfb::PixelFormat& pf)

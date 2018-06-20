@@ -86,8 +86,6 @@ void SMsgHandler::supportsQEMUKeyEvent()
 void SMsgHandler::setDesktopSize(int fb_width, int fb_height,
                                  const ScreenSet& layout)
 {
-  cp.width = fb_width;
-  cp.height = fb_height;
-  cp.screenLayout = layout;
+  cp.setDimensions(fb_width, fb_height, layout);
 }
 

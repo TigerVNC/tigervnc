@@ -192,10 +192,10 @@ void CMsgReader::readFramebufferUpdate()
 
 void CMsgReader::readRect(const Rect& r, int encoding)
 {
-  if ((r.br.x > handler->cp.width) || (r.br.y > handler->cp.height)) {
+  if ((r.br.x > handler->cp.width()) || (r.br.y > handler->cp.height())) {
     fprintf(stderr, "Rect too big: %dx%d at %d,%d exceeds %dx%d\n",
 	    r.width(), r.height(), r.tl.x, r.tl.y,
-            handler->cp.width, handler->cp.height);
+            handler->cp.width(), handler->cp.height());
     throw Exception("Rect too big");
   }
 

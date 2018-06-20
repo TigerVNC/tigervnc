@@ -245,8 +245,8 @@ void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
   Point p(pos);
   if (p.x < 0) p.x = 0;
   if (p.y < 0) p.y = 0;
-  if (p.x >= cp->width) p.x = cp->width - 1;
-  if (p.y >= cp->height) p.y = cp->height - 1;
+  if (p.x >= cp->width()) p.x = cp->width() - 1;
+  if (p.y >= cp->height()) p.y = cp->height() - 1;
 
   startMsg(msgTypePointerEvent);
   os->writeU8(buttonMask);

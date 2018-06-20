@@ -191,7 +191,7 @@ const char *CConn::connectionInfo()
   strcat(infoText, "\n");
 
   snprintf(scratch, sizeof(scratch),
-           _("Size: %d x %d"), cp.width, cp.height);
+           _("Size: %d x %d"), cp.width(), cp.height());
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
@@ -324,7 +324,8 @@ void CConn::serverInit()
 
   serverPF = cp.pf();
 
-  desktop = new DesktopWindow(cp.width, cp.height, cp.name(), serverPF, this);
+  desktop = new DesktopWindow(cp.width(), cp.height(),
+                              cp.name(), serverPF, this);
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
@@ -478,7 +479,8 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
       if (cp.supportsContinuousUpdates) {
         vlog.info(_("Enabling continuous updates"));
         continuousUpdates = true;
-        writer()->writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
+        writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                               cp.width(), cp.height());
       }
     }
   } else {
@@ -508,9 +510,10 @@ void CConn::resizeFramebuffer()
     return;
 
   if (continuousUpdates)
-    writer()->writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
+    writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                           cp.width(), cp.height());
 
-  desktop->resizeFramebuffer(cp.width, cp.height);
+  desktop->resizeFramebuffer(cp.width(), cp.height());
 }
 
 // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
@@ -647,7 +650,7 @@ void CConn::requestNewUpdate()
 
   if (forceNonincremental || !continuousUpdates) {
     pendingUpdate = true;
-    writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
+    writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width(), cp.height()),
                                             !forceNonincremental);
   }
  

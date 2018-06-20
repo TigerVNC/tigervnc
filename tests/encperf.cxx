@@ -203,7 +203,7 @@ void CConn::setDesktopSize(int w, int h)
   CConnection::setDesktopSize(w, h);
 
   pb = new rfb::ManagedPixelBuffer((bool)translate ? fbPF : cp.pf(),
-                                   cp.width, cp.height);
+                                   cp.width(), cp.height());
   setFramebuffer(pb);
 }
 

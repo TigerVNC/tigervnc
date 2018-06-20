@@ -28,7 +28,7 @@ using namespace rfb;
 
 ConnParams::ConnParams()
   : majorVersion(0), minorVersion(0),
-    width(0), height(0), useCopyRect(false),
+    useCopyRect(false),
     supportsLocalCursor(false), supportsLocalXCursor(false),
     supportsLocalCursorWithAlpha(false),
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
@@ -37,7 +37,8 @@ ConnParams::ConnParams()
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(subsampleUndefined), name_(0),
+    subsampling(subsampleUndefined),
+    width_(0), height_(0), name_(0),
     ledState_(ledUnknown)
 {
   setName("");
@@ -48,6 +49,23 @@ ConnParams::~ConnParams()
 {
   delete [] name_;
   delete cursor_;
+}
+
+void ConnParams::setDimensions(int width, int height)
+{
+  ScreenSet layout;
+  layout.add_screen(rfb::Screen(0, 0, 0, width, height, 0));
+  setDimensions(width, height, layout);
+}
+
+void ConnParams::setDimensions(int width, int height, const ScreenSet& layout)
+{
+  if (!layout.validate(width, height))
+    throw Exception("Attempted to configure an invalid screen layout");
+
+  width_ = width;
+  height_ = height;
+  screenLayout_ = layout;
 }
 
 void ConnParams::setPF(const PixelFormat& pf)

@@ -34,8 +34,7 @@ CMsgHandler::~CMsgHandler()
 
 void CMsgHandler::setDesktopSize(int width, int height)
 {
-  cp.width = width;
-  cp.height = height;
+  cp.setDimensions(width, height);
 }
 
 void CMsgHandler::setExtendedDesktopSize(unsigned reason, unsigned result,
@@ -47,12 +46,7 @@ void CMsgHandler::setExtendedDesktopSize(unsigned reason, unsigned result,
   if ((reason == reasonClient) && (result != resultSuccess))
     return;
 
-  if (!layout.validate(width, height))
-    fprintf(stderr, "Server sent us an invalid screen layout\n");
-
-  cp.width = width;
-  cp.height = height;
-  cp.screenLayout = layout;
+  cp.setDimensions(width, height, layout);
 }
 
 void CMsgHandler::setPixelFormat(const PixelFormat& pf)

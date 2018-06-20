@@ -49,8 +49,8 @@ SMsgWriter::~SMsgWriter()
 
 void SMsgWriter::writeServerInit()
 {
-  os->writeU16(cp->width);
-  os->writeU16(cp->height);
+  os->writeU16(cp->width());
+  os->writeU16(cp->height());
   cp->pf().write(os);
   os->writeString(cp->name());
   endMsg();
@@ -422,15 +422,15 @@ void SMsgWriter::writeNoDataRects()
 
   // Send this before SetDesktopSize to make life easier on the clients
   if (needExtendedDesktopSize) {
-    writeExtendedDesktopSizeRect(0, 0, cp->width, cp->height,
-                                 cp->screenLayout);
+    writeExtendedDesktopSizeRect(0, 0, cp->width(), cp->height(),
+                                 cp->screenLayout());
     needExtendedDesktopSize = false;
   }
 
   // Some clients assume this is the last rectangle so don't send anything
   // more after this
   if (needSetDesktopSize) {
-    writeSetDesktopSizeRect(cp->width, cp->height);
+    writeSetDesktopSizeRect(cp->width(), cp->height());
     needSetDesktopSize = false;
   }
 }

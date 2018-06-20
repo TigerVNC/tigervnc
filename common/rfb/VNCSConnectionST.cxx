@@ -192,8 +192,9 @@ void VNCSConnectionST::pixelBufferChange()
 {
   try {
     if (!authenticated()) return;
-    if (cp.width && cp.height && (server->pb->width() != cp.width ||
-                                  server->pb->height() != cp.height))
+    if (cp.width() && cp.height() &&
+        (server->pb->width() != cp.width() ||
+         server->pb->height() != cp.height()))
     {
       // We need to clip the next update to the new size, but also add any
       // extra bits if it's bigger.  If we wanted to do this exactly, something
@@ -203,18 +204,17 @@ void VNCSConnectionST::pixelBufferChange()
 
       //updates.intersect(server->pb->getRect());
       //
-      //if (server->pb->width() > cp.width)
-      //  updates.add_changed(Rect(cp.width, 0, server->pb->width(),
+      //if (server->pb->width() > cp.width())
+      //  updates.add_changed(Rect(cp.width(), 0, server->pb->width(),
       //                           server->pb->height()));
-      //if (server->pb->height() > cp.height)
-      //  updates.add_changed(Rect(0, cp.height, cp.width,
+      //if (server->pb->height() > cp.height())
+      //  updates.add_changed(Rect(0, cp.height(), client.width(),
       //                           server->pb->height()));
 
       damagedCursorRegion.assign_intersect(server->pb->getRect());
 
-      cp.width = server->pb->width();
-      cp.height = server->pb->height();
-      cp.screenLayout = server->screenLayout;
+      cp.setDimensions(server->pb->width(), server->pb->height(),
+                       server->screenLayout);
       if (state() == RFBSTATE_NORMAL) {
         // We should only send EDS to client asking for both
         if (!writer()->writeExtendedDesktopSize()) {
@@ -417,9 +417,8 @@ void VNCSConnectionST::authSuccess()
   server->startDesktop();
 
   // - Set the connection parameters appropriately
-  cp.width = server->pb->width();
-  cp.height = server->pb->height();
-  cp.screenLayout = server->screenLayout;
+  cp.setDimensions(server->pb->width(), server->pb->height(),
+                   server->screenLayout);
   cp.setName(server->getName());
   cp.setLEDState(server->ledState);
   
@@ -678,10 +677,11 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   SConnection::framebufferUpdateRequest(r, incremental);
 
   // Check that the client isn't sending crappy requests
-  if (!r.enclosed_by(Rect(0, 0, cp.width, cp.height))) {
+  if (!r.enclosed_by(Rect(0, 0, cp.width(), cp.height()))) {
     vlog.error("FramebufferUpdateRequest %dx%d at %d,%d exceeds framebuffer %dx%d",
-               r.width(), r.height(), r.tl.x, r.tl.y, cp.width, cp.height);
-    safeRect = r.intersect(Rect(0, 0, cp.width, cp.height));
+               r.width(), r.height(), r.tl.x, r.tl.y,
+               cp.width(), cp.height());
+    safeRect = r.intersect(Rect(0, 0, cp.width(), cp.height()));
   } else {
     safeRect = r;
   }
@@ -1124,13 +1124,15 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   if (!authenticated())
     return;
 
-  cp.screenLayout = server->screenLayout;
+  cp.setDimensions(cp.width(), cp.height(),
+                   server->screenLayout);
 
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
-                                     cp.screenLayout);
+  writer()->writeExtendedDesktopSize(reason, 0,
+                                     cp.width(), cp.height(),
+                                     cp.screenLayout());
 }
 
 

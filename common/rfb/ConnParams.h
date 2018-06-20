@@ -62,9 +62,11 @@ namespace rfb {
       return !beforeVersion(major,minor+1);
     }
 
-    int width;
-    int height;
-    ScreenSet screenLayout;
+    const int width() const { return width_; }
+    const int height() const { return height_; }
+    const ScreenSet& screenLayout() const { return screenLayout_; }
+    void setDimensions(int width, int height);
+    void setDimensions(int width, int height, const ScreenSet& layout);
 
     const PixelFormat& pf() const { return pf_; }
     void setPF(const PixelFormat& pf);
@@ -104,6 +106,10 @@ namespace rfb {
     int subsampling;
 
   private:
+
+    int width_;
+    int height_;
+    ScreenSet screenLayout_;
 
     PixelFormat pf_;
     char* name_;

@@ -1014,14 +1014,14 @@ void DesktopWindow::handleResizeTimeout(void *data)
 void DesktopWindow::remoteResize(int width, int height)
 {
   ScreenSet layout;
-  ScreenSet::iterator iter;
+  ScreenSet::const_iterator iter;
 
   if (!fullscreen_active() || (width > w()) || (height > h())) {
     // In windowed mode (or the framebuffer is so large that we need
     // to scroll) we just report a single virtual screen that covers
     // the entire framebuffer.
 
-    layout = cc->cp.screenLayout;
+    layout = cc->cp.screenLayout();
 
     // Not sure why we have no screens, but adding a new one should be
     // safe as there is nothing to conflict with...
@@ -1077,8 +1077,8 @@ void DesktopWindow::remoteResize(int width, int height)
       sy -= viewport_rect.tl.y;
 
       // Look for perfectly matching existing screen...
-      for (iter = cc->cp.screenLayout.begin();
-           iter != cc->cp.screenLayout.end(); ++iter) {
+      for (iter = cc->cp.screenLayout().begin();
+           iter != cc->cp.screenLayout().end(); ++iter) {
         if ((iter->dimensions.tl.x == sx) &&
             (iter->dimensions.tl.y == sy) &&
             (iter->dimensions.width() == sw) &&
@@ -1087,7 +1087,7 @@ void DesktopWindow::remoteResize(int width, int height)
       }
 
       // Found it?
-      if (iter != cc->cp.screenLayout.end()) {
+      if (iter != cc->cp.screenLayout().end()) {
         layout.add_screen(*iter);
         continue;
       }
@@ -1095,13 +1095,13 @@ void DesktopWindow::remoteResize(int width, int height)
       // Need to add a new one, which means we need to find an unused id
       while (true) {
         id = rand();
-        for (iter = cc->cp.screenLayout.begin();
-             iter != cc->cp.screenLayout.end(); ++iter) {
+        for (iter = cc->cp.screenLayout().begin();
+             iter != cc->cp.screenLayout().end(); ++iter) {
           if (iter->id == id)
             break;
         }
 
-        if (iter == cc->cp.screenLayout.end())
+        if (iter == cc->cp.screenLayout().end())
           break;
       }
 
@@ -1115,14 +1115,14 @@ void DesktopWindow::remoteResize(int width, int height)
   }
 
   // Do we actually change anything?
-  if ((width == cc->cp.width) &&
-      (height == cc->cp.height) &&
-      (layout == cc->cp.screenLayout))
+  if ((width == cc->cp.width()) &&
+      (height == cc->cp.height()) &&
+      (layout == cc->cp.screenLayout()))
     return;
 
   char buffer[2048];
   vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
-             cc->cp.width, cc->cp.height, width, height);
+             cc->cp.width(), cc->cp.height(), width, height);
   layout.print(buffer, sizeof(buffer));
   vlog.debug("%s", buffer);
 
