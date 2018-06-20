@@ -71,7 +71,6 @@ namespace rfb {
 
     bool supportsLocalCursor;
     bool supportsDesktopResize;
-    bool supportsExtendedDesktopSize;
     bool supportsLEDState;
     bool supportsQEMUKeyEvent;
 

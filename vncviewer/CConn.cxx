@@ -83,7 +83,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   server.supportsLocalCursor = true;
 
   server.supportsDesktopResize = true;
-  server.supportsExtendedDesktopSize = true;
 
   server.supportsLEDState = true;
 

@@ -127,6 +127,11 @@ namespace rfb {
     // returning.
     virtual void initDone() = 0;
 
+    // resizeFramebuffer() is called whenever the framebuffer
+    // dimensions or the screen layout changes. A subclass must make
+    // sure the pixel buffer has been updated once this call returns.
+    virtual void resizeFramebuffer();
+
 
     // Other methods
 

@@ -73,6 +73,11 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
 {
   decoder.flush();
 
+  if (fb) {
+    assert(fb->width() == server.width());
+    assert(fb->height() == server.height());
+  }
+
   if ((framebuffer != NULL) && (fb != NULL)) {
     Rect rect;
 
@@ -334,6 +339,11 @@ void CConnection::setDesktopSize(int w, int h)
     writer()->writeEnableContinuousUpdates(true, 0, 0,
                                            server.width(),
                                            server.height());
+
+  resizeFramebuffer();
+  assert(framebuffer != NULL);
+  assert(framebuffer->width() == server.width());
+  assert(framebuffer->height() == server.height());
 }
 
 void CConnection::setExtendedDesktopSize(unsigned reason,
@@ -349,6 +359,11 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
     writer()->writeEnableContinuousUpdates(true, 0, 0,
                                            server.width(),
                                            server.height());
+
+  resizeFramebuffer();
+  assert(framebuffer != NULL);
+  assert(framebuffer->width() == server.width());
+  assert(framebuffer->height() == server.height());
 }
 
 void CConnection::endOfContinuousUpdates()
@@ -450,6 +465,11 @@ void CConnection::authSuccess()
 
 void CConnection::initDone()
 {
+}
+
+void CConnection::resizeFramebuffer()
+{
+  assert(false);
 }
 
 void CConnection::refreshFramebuffer()
@@ -575,10 +595,10 @@ void CConnection::updateEncodings()
     encodings.push_back(pseudoEncodingCursor);
     encodings.push_back(pseudoEncodingXCursor);
   }
-  if (server.supportsDesktopResize)
+  if (server.supportsDesktopResize) {
     encodings.push_back(pseudoEncodingDesktopSize);
-  if (server.supportsExtendedDesktopSize)
     encodings.push_back(pseudoEncodingExtendedDesktopSize);
+  }
   if (server.supportsLEDState)
     encodings.push_back(pseudoEncodingLEDState);
 
