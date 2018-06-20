@@ -110,10 +110,6 @@ namespace rfb {
 
     // Methods to be overridden in a derived class
 
-    // getIdVerifier() returns the identity verifier associated with the connection.
-    // Ownership of the IdentityVerifier is retained by the CConnection instance.
-    virtual IdentityVerifier* getIdentityVerifier() {return 0;}
-
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
 
