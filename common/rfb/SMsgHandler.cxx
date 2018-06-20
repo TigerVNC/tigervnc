@@ -83,10 +83,3 @@ void SMsgHandler::supportsLEDState()
 void SMsgHandler::supportsQEMUKeyEvent()
 {
 }
-
-void SMsgHandler::setDesktopSize(int fb_width, int fb_height,
-                                 const ScreenSet& layout)
-{
-  client.setDimensions(fb_width, fb_height, layout);
-}
-
