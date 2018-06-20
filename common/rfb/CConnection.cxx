@@ -595,37 +595,9 @@ void CConnection::updateEncodings()
 
   encodings.push_back(encodingCopyRect);
 
-  /*
-   * Prefer encodings in this order:
-   *
-   *   Tight, ZRLE, Hextile, *
-   */
-
-  if ((preferredEncoding != encodingTight) &&
-      Decoder::supported(encodingTight))
-    encodings.push_back(encodingTight);
-
-  if ((preferredEncoding != encodingZRLE) &&
-      Decoder::supported(encodingZRLE))
-    encodings.push_back(encodingZRLE);
-
-  if ((preferredEncoding != encodingHextile) &&
-      Decoder::supported(encodingHextile))
-    encodings.push_back(encodingHextile);
-
-  // Remaining encodings
   for (int i = encodingMax; i >= 0; i--) {
-    switch (i) {
-    case encodingCopyRect:
-    case encodingTight:
-    case encodingZRLE:
-    case encodingHextile:
-      /* These have already been sent earlier */
-      break;
-    default:
-      if ((i != preferredEncoding) && Decoder::supported(i))
-        encodings.push_back(i);
-    }
+    if ((i != preferredEncoding) && Decoder::supported(i))
+      encodings.push_back(i);
   }
 
   if (server.compressLevel >= 0 && server.compressLevel <= 9)
