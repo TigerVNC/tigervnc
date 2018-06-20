@@ -74,18 +74,11 @@ static const PixelFormat mediumColourPF(8, 8, false, true,
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
-    updateCount(0), pixelCount(0), pendingPFChange(false),
-    currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
-    formatChange(false), encodingChange(false),
-    firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
-    forceNonincremental(true)
+    updateCount(0), pixelCount(0),
+    lastServerEncoding((unsigned int)-1)
 {
   setShared(::shared);
   sock = socket;
-
-  int encNum = encodingNum(preferredEncoding);
-  if (encNum != -1)
-    currentEncoding = encNum;
 
   server.supportsLocalCursor = true;
 
@@ -96,14 +89,10 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   server.supportsLEDState = true;
 
   if (customCompressLevel)
-    server.compressLevel = compressLevel;
-  else
-    server.compressLevel = -1;
+    setCompressLevel(compressLevel);
 
   if (!noJpeg)
-    server.qualityLevel = qualityLevel;
-  else
-    server.qualityLevel = -1;
+    setQualityLevel(qualityLevel);
 
   if(sock == NULL) {
     try {
@@ -156,16 +145,6 @@ CConn::~CConn()
   delete sock;
 }
 
-void CConn::refreshFramebuffer()
-{
-  forceNonincremental = true;
-
-  // Without continuous updates we have to make sure we only have a
-  // single update in flight, so we'll have to wait to do the refresh
-  if (continuousUpdates)
-    requestNewUpdate();
-}
-
 const char *CConn::connectionInfo()
 {
   static char infoText[1024] = "";
@@ -209,7 +188,7 @@ const char *CConn::connectionInfo()
   strcat(infoText, "\n");
 
   snprintf(scratch, sizeof(scratch),
-           _("Requested encoding: %s"), encodingName(currentEncoding));
+           _("Requested encoding: %s"), encodingName(getPreferredEncoding()));
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
@@ -325,16 +304,10 @@ void CConn::initDone()
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
-  formatChange = encodingChange = true;
-
-  // And kick off the update cycle
-  requestNewUpdate();
-
-  // This initial update request is a bit of a corner case, so we need
-  // to help out setting the correct format here.
-  assert(pendingPFChange);
-  server.setPF(pendingPF);
-  pendingPFChange = false;
+  updatePixelFormat();
+  int encNum = encodingNum(::preferredEncoding);
+  if (encNum != -1)
+    setPreferredEncoding(encNum);
 }
 
 // setDesktopSize() is called when the desktop size changes (including when
@@ -374,11 +347,6 @@ void CConn::framebufferUpdateStart()
 {
   CConnection::framebufferUpdateStart();
 
-  // Note: This might not be true if sync fences are supported
-  pendingUpdate = false;
-
-  requestNewUpdate();
-
   // Update the screen prematurely for very slow updates
   Fl::add_timeout(1.0, handleUpdateTimeout, this);
 }
@@ -395,25 +363,6 @@ void CConn::framebufferUpdateEnd()
 
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
-
-  // A format change has been scheduled and we are now past the update
-  // with the old format. Time to active the new one.
-  if (pendingPFChange && !continuousUpdates) {
-    server.setPF(pendingPF);
-    pendingPFChange = false;
-  }
-
-  if (firstUpdate) {
-    if (server.supportsContinuousUpdates) {
-      vlog.info(_("Enabling continuous updates"));
-      continuousUpdates = true;
-      writer()->writeEnableContinuousUpdates(true, 0, 0,
-                                             server.width(),
-                                             server.height());
-    }
-
-    firstUpdate = false;
-  }
 
   // Compute new settings based on updated bandwidth values
   if (autoSelect)
@@ -470,18 +419,6 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
   }
 }
 
-void CConn::endOfContinuousUpdates()
-{
-  CConnection::endOfContinuousUpdates();
-
-  // We've gotten the marker for a format change, so make the pending
-  // one active
-  if (pendingPFChange) {
-    server.setPF(pendingPF);
-    pendingPFChange = false;
-  }
-}
-
 void CConn::setLEDState(unsigned int state)
 {
   CConnection::setLEDState(state);
@@ -494,11 +431,6 @@ void CConn::setLEDState(unsigned int state)
 
 void CConn::resizeFramebuffer()
 {
-  if (continuousUpdates)
-    writer()->writeEnableContinuousUpdates(true, 0, 0,
-                                           server.width(),
-                                           server.height());
-
   desktop->resizeFramebuffer(server.width(), server.height());
 }
 
@@ -525,10 +457,7 @@ void CConn::autoSelectFormatAndEncoding()
   int newQualityLevel = qualityLevel;
 
   // Always use Tight
-  if (currentEncoding != encodingTight) {
-    currentEncoding = encodingTight;
-    encodingChange = true;
-  }
+  setPreferredEncoding(encodingTight);
 
   // Check that we have a decent bandwidth measurement
   if ((kbitsPerSecond == 0) || (timeWaited < 10000))
@@ -544,9 +473,8 @@ void CConn::autoSelectFormatAndEncoding()
     if (newQualityLevel != qualityLevel) {
       vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
                 kbitsPerSecond, newQualityLevel);
-      server.qualityLevel = newQualityLevel;
       qualityLevel.setParam(newQualityLevel);
-      encodingChange = true;
+      setQualityLevel(newQualityLevel);
     }
   }
 
@@ -571,78 +499,31 @@ void CConn::autoSelectFormatAndEncoding()
       vlog.info(_("Throughput %d kbit/s - full color is now disabled"),
                 kbitsPerSecond);
     fullColour.setParam(newFullColour);
-    formatChange = true;
+    updatePixelFormat();
   } 
-}
-
-// checkEncodings() sends a setEncodings message if one is needed.
-void CConn::checkEncodings()
-{
-  if (encodingChange && writer()) {
-    vlog.info(_("Using %s encoding"),encodingName(currentEncoding));
-    writer()->writeSetEncodings(currentEncoding, true);
-    encodingChange = false;
-  }
 }
 
 // requestNewUpdate() requests an update from the server, having set the
 // format and encoding appropriately.
-void CConn::requestNewUpdate()
+void CConn::updatePixelFormat()
 {
-  if (formatChange && !pendingPFChange) {
-    PixelFormat pf;
+  PixelFormat pf;
 
-    /* Catch incorrect requestNewUpdate calls */
-    assert(!pendingUpdate || continuousUpdates);
-
-    if (fullColour) {
-      pf = fullColourPF;
-    } else {
-      if (lowColourLevel == 0)
-        pf = verylowColourPF;
-      else if (lowColourLevel == 1)
-        pf = lowColourPF;
-      else
-        pf = mediumColourPF;
-    }
-
-    // We have to make sure we switch the internal format at a safe
-    // time. For continuous updates we temporarily disable updates and
-    // look for a EndOfContinuousUpdates message to see when to switch.
-    // For classical updates we just got a new update right before this
-    // function was called, so we need to make sure we finish that
-    // update before we can switch.
-
-    pendingPFChange = true;
-    pendingPF = pf;
-
-    if (continuousUpdates)
-      writer()->writeEnableContinuousUpdates(false, 0, 0, 0, 0);
-
-    char str[256];
-    pf.print(str, 256);
-    vlog.info(_("Using pixel format %s"),str);
-    writer()->writeSetPixelFormat(pf);
-
-    if (continuousUpdates)
-      writer()->writeEnableContinuousUpdates(true, 0, 0,
-                                             server.width(),
-                                             server.height());
-
-    formatChange = false;
+  if (fullColour) {
+    pf = fullColourPF;
+  } else {
+    if (lowColourLevel == 0)
+      pf = verylowColourPF;
+    else if (lowColourLevel == 1)
+      pf = lowColourPF;
+    else
+      pf = mediumColourPF;
   }
 
-  checkEncodings();
-
-  if (forceNonincremental || !continuousUpdates) {
-    pendingUpdate = true;
-    writer()->writeFramebufferUpdateRequest(Rect(0, 0,
-                                                 server.width(),
-                                                 server.height()),
-                                            !forceNonincremental);
-  }
- 
-  forceNonincremental = false;
+  char str[256];
+  pf.print(str, 256);
+  vlog.info(_("Using pixel format %s"),str);
+  setPF(pf);
 }
 
 void CConn::handleOptions(void *data)
@@ -654,50 +535,23 @@ void CConn::handleOptions(void *data)
   // list is cheap. Avoid overriding what the auto logic has selected
   // though.
   if (!autoSelect) {
-    int encNum = encodingNum(preferredEncoding);
+    int encNum = encodingNum(::preferredEncoding);
 
     if (encNum != -1)
-      self->currentEncoding = encNum;
+      self->setPreferredEncoding(encNum);
   }
-
-  self->server.supportsLocalCursor = true;
 
   if (customCompressLevel)
-    self->server.compressLevel = compressLevel;
+    self->setCompressLevel(compressLevel);
   else
-    self->server.compressLevel = -1;
+    self->setCompressLevel(-1);
 
   if (!noJpeg && !autoSelect)
-    self->server.qualityLevel = qualityLevel;
+    self->setQualityLevel(qualityLevel);
   else
-    self->server.qualityLevel = -1;
+    self->setQualityLevel(-1);
 
-  self->encodingChange = true;
-
-  // Format changes refreshes the entire screen though and are therefore
-  // very costly. It's probably worth the effort to see if it is necessary
-  // here.
-  PixelFormat pf;
-
-  if (fullColour) {
-    pf = self->fullColourPF;
-  } else {
-    if (lowColourLevel == 0)
-      pf = verylowColourPF;
-    else if (lowColourLevel == 1)
-      pf = lowColourPF;
-    else
-      pf = mediumColourPF;
-  }
-
-  if (!pf.equal(self->server.pf())) {
-    self->formatChange = true;
-
-    // Without fences, we cannot safely trigger an update request directly
-    // but must wait for the next update to arrive.
-    if (self->continuousUpdates)
-      self->requestNewUpdate();
-  }
+  self->updatePixelFormat();
 }
 
 void CConn::handleUpdateTimeout(void *data)

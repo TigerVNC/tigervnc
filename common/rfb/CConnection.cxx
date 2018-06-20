@@ -43,6 +43,10 @@ CConnection::CConnection()
   : csecurity(0), is(0), os(0), reader_(0), writer_(0),
     shared(false),
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
+    pendingPFChange(false), preferredEncoding(encodingTight),
+    formatChange(false), encodingChange(false),
+    firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
+    forceNonincremental(true),
     framebuffer(NULL), decoder(this)
 {
 }
@@ -324,6 +328,11 @@ void CConnection::setDesktopSize(int w, int h)
   decoder.flush();
 
   CMsgHandler::setDesktopSize(w,h);
+
+  if (continuousUpdates)
+    writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                           server.width(),
+                                           server.height());
 }
 
 void CConnection::setExtendedDesktopSize(unsigned reason,
@@ -334,6 +343,27 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
   decoder.flush();
 
   CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
+
+  if (continuousUpdates)
+    writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                           server.width(),
+                                           server.height());
+}
+
+void CConnection::endOfContinuousUpdates()
+{
+  CMsgHandler::endOfContinuousUpdates();
+
+  // We've gotten the marker for a format change, so make the pending
+  // one active
+  if (pendingPFChange) {
+    server.setPF(pendingPF);
+    pendingPFChange = false;
+
+    // We might have another change pending
+    if (formatChange)
+      requestNewUpdate();
+  }
 }
 
 void CConnection::serverInit(int width, int height,
@@ -349,6 +379,18 @@ void CConnection::serverInit(int width, int height,
   assert(framebuffer != NULL);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
+
+  // We want to make sure we call SetEncodings at least once
+  encodingChange = true;
+
+  requestNewUpdate();
+
+  // This initial update request is a bit of a corner case, so we need
+  // to help out setting the correct format here.
+  if (pendingPFChange) {
+    server.setPF(pendingPF);
+    pendingPFChange = false;
+  }
 }
 
 void CConnection::readAndDecodeRect(const Rect& r, int encoding,
@@ -361,6 +403,13 @@ void CConnection::readAndDecodeRect(const Rect& r, int encoding,
 void CConnection::framebufferUpdateStart()
 {
   CMsgHandler::framebufferUpdateStart();
+
+  assert(framebuffer != NULL);
+
+  // Note: This might not be true if continuous updates are supported
+  pendingUpdate = false;
+
+  requestNewUpdate();
 }
 
 void CConnection::framebufferUpdateEnd()
@@ -368,6 +417,25 @@ void CConnection::framebufferUpdateEnd()
   decoder.flush();
 
   CMsgHandler::framebufferUpdateEnd();
+
+  // A format change has been scheduled and we are now past the update
+  // with the old format. Time to active the new one.
+  if (pendingPFChange && !continuousUpdates) {
+    server.setPF(pendingPF);
+    pendingPFChange = false;
+  }
+
+  if (firstUpdate) {
+    if (server.supportsContinuousUpdates) {
+      vlog.info("Enabling continuous updates");
+      continuousUpdates = true;
+      writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                             server.width(),
+                                             server.height());
+    }
+
+    firstUpdate = false;
+  }
 }
 
 void CConnection::dataRect(const Rect& r, int encoding)
@@ -383,6 +451,57 @@ void CConnection::initDone()
 {
 }
 
+void CConnection::refreshFramebuffer()
+{
+  forceNonincremental = true;
+
+  // Without continuous updates we have to make sure we only have a
+  // single update in flight, so we'll have to wait to do the refresh
+  if (continuousUpdates)
+    requestNewUpdate();
+}
+
+void CConnection::setPreferredEncoding(int encoding)
+{
+  if (preferredEncoding == encoding)
+    return;
+
+  preferredEncoding = encoding;
+  encodingChange = true;
+}
+
+int CConnection::getPreferredEncoding()
+{
+  return preferredEncoding;
+}
+
+void CConnection::setCompressLevel(int level)
+{
+  if (server.compressLevel == level)
+    return;
+
+  server.compressLevel = level;
+  encodingChange = true;
+}
+
+void CConnection::setQualityLevel(int level)
+{
+  if (server.qualityLevel == level)
+    return;
+
+  server.qualityLevel = level;
+  encodingChange = true;
+}
+
+void CConnection::setPF(const PixelFormat& pf)
+{
+  if (server.pf().equal(pf) && !formatChange)
+    return;
+
+  nextPF = pf;
+  formatChange = true;
+}
+
 void CConnection::fence(rdr::U32 flags, unsigned len, const char data[])
 {
   CMsgHandler::fence(flags, len, data);
@@ -394,4 +513,51 @@ void CConnection::fence(rdr::U32 flags, unsigned len, const char data[])
   flags = 0;
 
   writer()->writeFence(flags, len, data);
+}
+
+// requestNewUpdate() requests an update from the server, having set the
+// format and encoding appropriately.
+void CConnection::requestNewUpdate()
+{
+  if (formatChange && !pendingPFChange) {
+    /* Catch incorrect requestNewUpdate calls */
+    assert(!pendingUpdate || continuousUpdates);
+
+    // We have to make sure we switch the internal format at a safe
+    // time. For continuous updates we temporarily disable updates and
+    // look for a EndOfContinuousUpdates message to see when to switch.
+    // For classical updates we just got a new update right before this
+    // function was called, so we need to make sure we finish that
+    // update before we can switch.
+
+    pendingPFChange = true;
+    pendingPF = nextPF;
+
+    if (continuousUpdates)
+      writer()->writeEnableContinuousUpdates(false, 0, 0, 0, 0);
+
+    writer()->writeSetPixelFormat(pendingPF);
+
+    if (continuousUpdates)
+      writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                             server.width(),
+                                             server.height());
+
+    formatChange = false;
+  }
+
+  if (encodingChange) {
+    writer()->writeSetEncodings(preferredEncoding, true);
+    encodingChange = false;
+  }
+
+  if (forceNonincremental || !continuousUpdates) {
+    pendingUpdate = true;
+    writer()->writeFramebufferUpdateRequest(Rect(0, 0,
+                                                 server.width(),
+                                                 server.height()),
+                                            !forceNonincremental);
+  }
+
+  forceNonincremental = false;
 }

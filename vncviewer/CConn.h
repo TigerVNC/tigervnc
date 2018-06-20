@@ -36,8 +36,6 @@ public:
   CConn(const char* vncServerName, network::Socket* sock);
   ~CConn();
 
-  void refreshFramebuffer();
-
   const char *connectionInfo();
 
   unsigned getUpdateCount();
@@ -74,8 +72,6 @@ public:
 
   void fence(rdr::U32 flags, unsigned len, const char data[]);
 
-  void endOfContinuousUpdates();
-
   void setLEDState(unsigned int state);
 
 private:
@@ -83,8 +79,7 @@ private:
   void resizeFramebuffer();
 
   void autoSelectFormatAndEncoding();
-  void checkEncodings();
-  void requestNewUpdate();
+  void updatePixelFormat();
 
   static void handleOptions(void *data);
 
@@ -103,19 +98,7 @@ private:
   rfb::PixelFormat serverPF;
   rfb::PixelFormat fullColourPF;
 
-  bool pendingPFChange;
-  rfb::PixelFormat pendingPF;
-
-  int currentEncoding, lastServerEncoding;
-
-  bool formatChange;
-  bool encodingChange;
-
-  bool firstUpdate;
-  bool pendingUpdate;
-  bool continuousUpdates;
-
-  bool forceNonincremental;
+  int lastServerEncoding;
 };
 
 #endif
