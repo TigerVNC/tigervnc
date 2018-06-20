@@ -568,33 +568,32 @@ void CConnection::requestNewUpdate()
 
 void CConnection::updateEncodings()
 {
-  int nEncodings = 0;
-  rdr::U32 encodings[encodingMax+3];
+  std::list<rdr::U32> encodings;
 
   if (server.supportsLocalCursor) {
-    encodings[nEncodings++] = pseudoEncodingCursorWithAlpha;
-    encodings[nEncodings++] = pseudoEncodingCursor;
-    encodings[nEncodings++] = pseudoEncodingXCursor;
+    encodings.push_back(pseudoEncodingCursorWithAlpha);
+    encodings.push_back(pseudoEncodingCursor);
+    encodings.push_back(pseudoEncodingXCursor);
   }
   if (server.supportsDesktopResize)
-    encodings[nEncodings++] = pseudoEncodingDesktopSize;
+    encodings.push_back(pseudoEncodingDesktopSize);
   if (server.supportsExtendedDesktopSize)
-    encodings[nEncodings++] = pseudoEncodingExtendedDesktopSize;
+    encodings.push_back(pseudoEncodingExtendedDesktopSize);
   if (server.supportsDesktopRename)
-    encodings[nEncodings++] = pseudoEncodingDesktopName;
+    encodings.push_back(pseudoEncodingDesktopName);
   if (server.supportsLEDState)
-    encodings[nEncodings++] = pseudoEncodingLEDState;
+    encodings.push_back(pseudoEncodingLEDState);
 
-  encodings[nEncodings++] = pseudoEncodingLastRect;
-  encodings[nEncodings++] = pseudoEncodingContinuousUpdates;
-  encodings[nEncodings++] = pseudoEncodingFence;
-  encodings[nEncodings++] = pseudoEncodingQEMUKeyEvent;
+  encodings.push_back(pseudoEncodingLastRect);
+  encodings.push_back(pseudoEncodingContinuousUpdates);
+  encodings.push_back(pseudoEncodingFence);
+  encodings.push_back(pseudoEncodingQEMUKeyEvent);
 
   if (Decoder::supported(preferredEncoding)) {
-    encodings[nEncodings++] = preferredEncoding;
+    encodings.push_back(preferredEncoding);
   }
 
-  encodings[nEncodings++] = encodingCopyRect;
+  encodings.push_back(encodingCopyRect);
 
   /*
    * Prefer encodings in this order:
@@ -604,15 +603,15 @@ void CConnection::updateEncodings()
 
   if ((preferredEncoding != encodingTight) &&
       Decoder::supported(encodingTight))
-    encodings[nEncodings++] = encodingTight;
+    encodings.push_back(encodingTight);
 
   if ((preferredEncoding != encodingZRLE) &&
       Decoder::supported(encodingZRLE))
-    encodings[nEncodings++] = encodingZRLE;
+    encodings.push_back(encodingZRLE);
 
   if ((preferredEncoding != encodingHextile) &&
       Decoder::supported(encodingHextile))
-    encodings[nEncodings++] = encodingHextile;
+    encodings.push_back(encodingHextile);
 
   // Remaining encodings
   for (int i = encodingMax; i >= 0; i--) {
@@ -625,14 +624,14 @@ void CConnection::updateEncodings()
       break;
     default:
       if ((i != preferredEncoding) && Decoder::supported(i))
-        encodings[nEncodings++] = i;
+        encodings.push_back(i);
     }
   }
 
   if (server.compressLevel >= 0 && server.compressLevel <= 9)
-      encodings[nEncodings++] = pseudoEncodingCompressLevel0 + server.compressLevel;
+      encodings.push_back(pseudoEncodingCompressLevel0 + server.compressLevel);
   if (server.qualityLevel >= 0 && server.qualityLevel <= 9)
-      encodings[nEncodings++] = pseudoEncodingQualityLevel0 + server.qualityLevel;
+      encodings.push_back(pseudoEncodingQualityLevel0 + server.qualityLevel);
 
-  writer()->writeSetEncodings(nEncodings, encodings);
+  writer()->writeSetEncodings(encodings);
 }

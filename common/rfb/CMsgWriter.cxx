@@ -52,13 +52,14 @@ void CMsgWriter::writeSetPixelFormat(const PixelFormat& pf)
   endMsg();
 }
 
-void CMsgWriter::writeSetEncodings(int nEncodings, rdr::U32* encodings)
+void CMsgWriter::writeSetEncodings(const std::list<rdr::U32> encodings)
 {
+  std::list<rdr::U32>::const_iterator iter;
   startMsg(msgTypeSetEncodings);
   os->skip(1);
-  os->writeU16(nEncodings);
-  for (int i = 0; i < nEncodings; i++)
-    os->writeU32(encodings[i]);
+  os->writeU16(encodings.size());
+  for (iter = encodings.begin(); iter != encodings.end(); ++iter)
+    os->writeU32(*iter);
   endMsg();
 }
 
