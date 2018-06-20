@@ -188,6 +188,13 @@ namespace rfb {
 
     ModifiablePixelBuffer* getFramebuffer() { return framebuffer; }
 
+  protected:
+    // Optional capabilities that a subclass is expected to set to true
+    // if supported
+    bool supportsLocalCursor;
+    bool supportsDesktopResize;
+    bool supportsLEDState;
+
   private:
     // This is a default implementation of fences that automatically
     // responds to requests, stating no support for synchronisation.
@@ -224,6 +231,8 @@ namespace rfb {
     rfb::PixelFormat pendingPF;
 
     int preferredEncoding;
+    int compressLevel;
+    int qualityLevel;
 
     bool formatChange;
     rfb::PixelFormat nextPF;

@@ -25,12 +25,9 @@ using namespace rfb;
 
 ServerParams::ServerParams()
   : majorVersion(0), minorVersion(0),
-    supportsLocalCursor(false),
-    supportsDesktopResize(false),
-    supportsLEDState(false), supportsQEMUKeyEvent(false),
+    supportsQEMUKeyEvent(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
-    compressLevel(2), qualityLevel(-1),
     width_(0), height_(0), name_(0),
     ledState_(ledUnknown)
 {

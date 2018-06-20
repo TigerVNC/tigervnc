@@ -41,10 +41,14 @@ using namespace rfb;
 static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
-  : csecurity(0), is(0), os(0), reader_(0), writer_(0),
+  : csecurity(0),
+    supportsLocalCursor(false), supportsDesktopResize(false),
+    supportsLEDState(false),
+    is(0), os(0), reader_(0), writer_(0),
     shared(false),
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
     pendingPFChange(false), preferredEncoding(encodingTight),
+    compressLevel(2), qualityLevel(-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
@@ -498,19 +502,19 @@ int CConnection::getPreferredEncoding()
 
 void CConnection::setCompressLevel(int level)
 {
-  if (server.compressLevel == level)
+  if (compressLevel == level)
     return;
 
-  server.compressLevel = level;
+  compressLevel = level;
   encodingChange = true;
 }
 
 void CConnection::setQualityLevel(int level)
 {
-  if (server.qualityLevel == level)
+  if (qualityLevel == level)
     return;
 
-  server.qualityLevel = level;
+  qualityLevel = level;
   encodingChange = true;
 }
 
@@ -590,16 +594,16 @@ void CConnection::updateEncodings()
 {
   std::list<rdr::U32> encodings;
 
-  if (server.supportsLocalCursor) {
+  if (supportsLocalCursor) {
     encodings.push_back(pseudoEncodingCursorWithAlpha);
     encodings.push_back(pseudoEncodingCursor);
     encodings.push_back(pseudoEncodingXCursor);
   }
-  if (server.supportsDesktopResize) {
+  if (supportsDesktopResize) {
     encodings.push_back(pseudoEncodingDesktopSize);
     encodings.push_back(pseudoEncodingExtendedDesktopSize);
   }
-  if (server.supportsLEDState)
+  if (supportsLEDState)
     encodings.push_back(pseudoEncodingLEDState);
 
   encodings.push_back(pseudoEncodingDesktopName);
@@ -619,10 +623,10 @@ void CConnection::updateEncodings()
       encodings.push_back(i);
   }
 
-  if (server.compressLevel >= 0 && server.compressLevel <= 9)
-      encodings.push_back(pseudoEncodingCompressLevel0 + server.compressLevel);
-  if (server.qualityLevel >= 0 && server.qualityLevel <= 9)
-      encodings.push_back(pseudoEncodingQualityLevel0 + server.qualityLevel);
+  if (compressLevel >= 0 && compressLevel <= 9)
+      encodings.push_back(pseudoEncodingCompressLevel0 + compressLevel);
+  if (qualityLevel >= 0 && qualityLevel <= 9)
+      encodings.push_back(pseudoEncodingQualityLevel0 + qualityLevel);
 
   writer()->writeSetEncodings(encodings);
 }

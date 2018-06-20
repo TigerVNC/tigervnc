@@ -80,17 +80,15 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   setShared(::shared);
   sock = socket;
 
-  server.supportsLocalCursor = true;
-
-  server.supportsDesktopResize = true;
-
-  server.supportsLEDState = true;
+  supportsLocalCursor = true;
+  supportsDesktopResize = true;
+  supportsLEDState = true;
 
   if (customCompressLevel)
-    setCompressLevel(compressLevel);
+    setCompressLevel(::compressLevel);
 
   if (!noJpeg)
-    setQualityLevel(qualityLevel);
+    setQualityLevel(::qualityLevel);
 
   if(sock == NULL) {
     try {
@@ -452,7 +450,7 @@ void CConn::autoSelectFormatAndEncoding()
   int kbitsPerSecond = sock->inStream().kbitsPerSecond();
   unsigned int timeWaited = sock->inStream().timeWaited();
   bool newFullColour = fullColour;
-  int newQualityLevel = qualityLevel;
+  int newQualityLevel = ::qualityLevel;
 
   // Always use Tight
   setPreferredEncoding(encodingTight);
@@ -468,10 +466,10 @@ void CConn::autoSelectFormatAndEncoding()
     else
       newQualityLevel = 6;
 
-    if (newQualityLevel != qualityLevel) {
+    if (newQualityLevel != ::qualityLevel) {
       vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
                 kbitsPerSecond, newQualityLevel);
-      qualityLevel.setParam(newQualityLevel);
+      ::qualityLevel.setParam(newQualityLevel);
       setQualityLevel(newQualityLevel);
     }
   }
@@ -540,12 +538,12 @@ void CConn::handleOptions(void *data)
   }
 
   if (customCompressLevel)
-    self->setCompressLevel(compressLevel);
+    self->setCompressLevel(::compressLevel);
   else
     self->setCompressLevel(-1);
 
   if (!noJpeg && !autoSelect)
-    self->setQualityLevel(qualityLevel);
+    self->setQualityLevel(::qualityLevel);
   else
     self->setQualityLevel(-1);
 
