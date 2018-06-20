@@ -44,7 +44,6 @@ namespace rfb {
 
     void writeSetPixelFormat(const PixelFormat& pf);
     void writeSetEncodings(int nEncodings, rdr::U32* encodings);
-    void writeSetEncodings(int preferredEncoding, bool useCopyRect);
     void writeSetDesktopSize(int width, int height, const ScreenSet& layout);
 
     void writeFramebufferUpdateRequest(const Rect& r,bool incremental);

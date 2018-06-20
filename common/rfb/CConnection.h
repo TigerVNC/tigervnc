@@ -201,6 +201,7 @@ namespace rfb {
     void securityCompleted();
 
     void requestNewUpdate();
+    void updateEncodings();
 
     rdr::InStream* is;
     rdr::OutStream* os;

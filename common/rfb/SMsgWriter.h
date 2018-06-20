@@ -32,6 +32,7 @@ namespace rdr { class OutStream; }
 namespace rfb {
 
   class ClientParams;
+  class PixelFormat;
   struct ScreenSet;
 
   class SMsgWriter {
@@ -41,7 +42,8 @@ namespace rfb {
 
     // writeServerInit() must only be called at the appropriate time in the
     // protocol initialisation.
-    void writeServerInit();
+    void writeServerInit(rdr::U16 width, rdr::U16 height,
+                         const PixelFormat& pf, const char* name);
 
     // Methods to write normal protocol messages
 

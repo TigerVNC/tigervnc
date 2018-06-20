@@ -47,12 +47,13 @@ SMsgWriter::~SMsgWriter()
 {
 }
 
-void SMsgWriter::writeServerInit()
+void SMsgWriter::writeServerInit(rdr::U16 width, rdr::U16 height,
+                                 const PixelFormat& pf, const char* name)
 {
-  os->writeU16(client->width());
-  os->writeU16(client->height());
-  client->pf().write(os);
-  os->writeString(client->name());
+  os->writeU16(width);
+  os->writeU16(height);
+  pf.write(os);
+  os->writeString(name);
   endMsg();
 }
 

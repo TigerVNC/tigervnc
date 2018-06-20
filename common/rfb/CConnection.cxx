@@ -25,6 +25,7 @@
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
+#include <rfb/Decoder.h>
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
@@ -547,7 +548,7 @@ void CConnection::requestNewUpdate()
   }
 
   if (encodingChange) {
-    writer()->writeSetEncodings(preferredEncoding, true);
+    updateEncodings();
     encodingChange = false;
   }
 
@@ -560,4 +561,78 @@ void CConnection::requestNewUpdate()
   }
 
   forceNonincremental = false;
+}
+
+// Ask for encodings based on which decoders are supported.  Assumes higher
+// encoding numbers are more desirable.
+
+void CConnection::updateEncodings()
+{
+  int nEncodings = 0;
+  rdr::U32 encodings[encodingMax+3];
+
+  if (server.supportsLocalCursor) {
+    encodings[nEncodings++] = pseudoEncodingCursorWithAlpha;
+    encodings[nEncodings++] = pseudoEncodingCursor;
+    encodings[nEncodings++] = pseudoEncodingXCursor;
+  }
+  if (server.supportsDesktopResize)
+    encodings[nEncodings++] = pseudoEncodingDesktopSize;
+  if (server.supportsExtendedDesktopSize)
+    encodings[nEncodings++] = pseudoEncodingExtendedDesktopSize;
+  if (server.supportsDesktopRename)
+    encodings[nEncodings++] = pseudoEncodingDesktopName;
+  if (server.supportsLEDState)
+    encodings[nEncodings++] = pseudoEncodingLEDState;
+
+  encodings[nEncodings++] = pseudoEncodingLastRect;
+  encodings[nEncodings++] = pseudoEncodingContinuousUpdates;
+  encodings[nEncodings++] = pseudoEncodingFence;
+  encodings[nEncodings++] = pseudoEncodingQEMUKeyEvent;
+
+  if (Decoder::supported(preferredEncoding)) {
+    encodings[nEncodings++] = preferredEncoding;
+  }
+
+  encodings[nEncodings++] = encodingCopyRect;
+
+  /*
+   * Prefer encodings in this order:
+   *
+   *   Tight, ZRLE, Hextile, *
+   */
+
+  if ((preferredEncoding != encodingTight) &&
+      Decoder::supported(encodingTight))
+    encodings[nEncodings++] = encodingTight;
+
+  if ((preferredEncoding != encodingZRLE) &&
+      Decoder::supported(encodingZRLE))
+    encodings[nEncodings++] = encodingZRLE;
+
+  if ((preferredEncoding != encodingHextile) &&
+      Decoder::supported(encodingHextile))
+    encodings[nEncodings++] = encodingHextile;
+
+  // Remaining encodings
+  for (int i = encodingMax; i >= 0; i--) {
+    switch (i) {
+    case encodingCopyRect:
+    case encodingTight:
+    case encodingZRLE:
+    case encodingHextile:
+      /* These have already been sent earlier */
+      break;
+    default:
+      if ((i != preferredEncoding) && Decoder::supported(i))
+        encodings[nEncodings++] = i;
+    }
+  }
+
+  if (server.compressLevel >= 0 && server.compressLevel <= 9)
+      encodings[nEncodings++] = pseudoEncodingCompressLevel0 + server.compressLevel;
+  if (server.qualityLevel >= 0 && server.qualityLevel <= 9)
+      encodings[nEncodings++] = pseudoEncodingQualityLevel0 + server.qualityLevel;
+
+  writer()->writeSetEncodings(nEncodings, encodings);
 }

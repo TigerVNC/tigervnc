@@ -20,13 +20,11 @@
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>
-#include <rfb/encodings.h>
 #include <rfb/qemuTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb/ServerParams.h>
-#include <rfb/Decoder.h>
 #include <rfb/CMsgWriter.h>
 
 using namespace rfb;
@@ -62,82 +60,6 @@ void CMsgWriter::writeSetEncodings(int nEncodings, rdr::U32* encodings)
   for (int i = 0; i < nEncodings; i++)
     os->writeU32(encodings[i]);
   endMsg();
-}
-
-// Ask for encodings based on which decoders are supported.  Assumes higher
-// encoding numbers are more desirable.
-
-void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
-{
-  int nEncodings = 0;
-  rdr::U32 encodings[encodingMax+3];
-
-  if (server->supportsLocalCursor) {
-    encodings[nEncodings++] = pseudoEncodingCursorWithAlpha;
-    encodings[nEncodings++] = pseudoEncodingCursor;
-    encodings[nEncodings++] = pseudoEncodingXCursor;
-  }
-  if (server->supportsDesktopResize)
-    encodings[nEncodings++] = pseudoEncodingDesktopSize;
-  if (server->supportsExtendedDesktopSize)
-    encodings[nEncodings++] = pseudoEncodingExtendedDesktopSize;
-  if (server->supportsDesktopRename)
-    encodings[nEncodings++] = pseudoEncodingDesktopName;
-  if (server->supportsLEDState)
-    encodings[nEncodings++] = pseudoEncodingLEDState;
-
-  encodings[nEncodings++] = pseudoEncodingLastRect;
-  encodings[nEncodings++] = pseudoEncodingContinuousUpdates;
-  encodings[nEncodings++] = pseudoEncodingFence;
-  encodings[nEncodings++] = pseudoEncodingQEMUKeyEvent;
-
-  if (Decoder::supported(preferredEncoding)) {
-    encodings[nEncodings++] = preferredEncoding;
-  }
-
-  if (useCopyRect) {
-    encodings[nEncodings++] = encodingCopyRect;
-  }
-
-  /*
-   * Prefer encodings in this order:
-   *
-   *   Tight, ZRLE, Hextile, *
-   */
-
-  if ((preferredEncoding != encodingTight) &&
-      Decoder::supported(encodingTight))
-    encodings[nEncodings++] = encodingTight;
-
-  if ((preferredEncoding != encodingZRLE) &&
-      Decoder::supported(encodingZRLE))
-    encodings[nEncodings++] = encodingZRLE;
-
-  if ((preferredEncoding != encodingHextile) &&
-      Decoder::supported(encodingHextile))
-    encodings[nEncodings++] = encodingHextile;
-
-  // Remaining encodings
-  for (int i = encodingMax; i >= 0; i--) {
-    switch (i) {
-    case encodingCopyRect:
-    case encodingTight:
-    case encodingZRLE:
-    case encodingHextile:
-      /* These have already been sent earlier */
-      break;
-    default:
-      if ((i != preferredEncoding) && Decoder::supported(i))
-        encodings[nEncodings++] = i;
-    }
-  }
-
-  if (server->compressLevel >= 0 && server->compressLevel <= 9)
-      encodings[nEncodings++] = pseudoEncodingCompressLevel0 + server->compressLevel;
-  if (server->qualityLevel >= 0 && server->qualityLevel <= 9)
-      encodings[nEncodings++] = pseudoEncodingQualityLevel0 + server->qualityLevel;
-
-  writeSetEncodings(nEncodings, encodings);
 }
 
 void CMsgWriter::writeSetDesktopSize(int width, int height,
