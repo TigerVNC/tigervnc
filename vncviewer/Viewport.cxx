@@ -635,6 +635,12 @@ int Viewport::handle(int event)
       exit_vncviewer(e.str());
     }
 
+    // Resend Ctrl/Alt if needed
+    if (menuCtrlKey)
+      handleKeyPress(0x1d, XK_Control_L);
+    if (menuAltKey)
+      handleKeyPress(0x38, XK_Alt_L);
+
     // Yes, we would like some focus please!
     return 1;
 
