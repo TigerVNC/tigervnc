@@ -139,6 +139,22 @@ void vncInitInputDevice(void)
 	vncPrepareInputDevices();
 }
 
+#if XORG < 111
+static void enqueueEvents(DeviceIntPtr dev, int n)
+{
+	int i;
+
+	for (i = 0; i < n; i++) {
+		/*
+		 * Passing arguments in global variable eventq is probably not
+		 * good programming practise but in this case it is safe and
+		 * clear.
+		 */
+		mieqEnqueue(dev, (InternalEvent *) (eventq + i)->event);
+	}
+}
+#endif /* XORG < 111 */
+
 void vncPointerButtonAction(int buttonMask)
 {
 	int i;
@@ -225,22 +241,6 @@ void vncGetPointerPos(int *x, int *y)
 	*x = cursorPosX;
 	*y = cursorPosY;
 }
-
-#if XORG < 111
-static void enqueueEvents(DeviceIntPtr dev, int n)
-{
-	int i;
-
-	for (i = 0; i < n; i++) {
-		/*
-		 * Passing arguments in global variable eventq is probably not
-		 * good programming practise but in this case it is safe and
-		 * clear.
-		 */
-		mieqEnqueue(dev, (InternalEvent *) (eventq + i)->event);
-	}
-}
-#endif /* XORG < 111 */
 
 static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 {
