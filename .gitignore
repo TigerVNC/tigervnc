@@ -1,0 +1,16 @@
+*.[ao]
+*.mo
+*.la
+*.lo
+.deps
+.libs
+
+CMakeFiles
+CMakeCache.txt
+*.cmake
+Makefile
+Makefile.in
+config.h
+
+vncviewer.desktop.in
+vncviewer.desktop
