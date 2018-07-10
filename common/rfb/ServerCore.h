@@ -39,6 +39,8 @@ namespace rfb {
     static IntParameter clientWaitTimeMillis;
     static IntParameter compareFB;
     static IntParameter frameRate;
+    static IntParameter dynamicQualityMin;
+    static IntParameter dynamicQualityMax;
     static BoolParameter protocol3_3;
     static BoolParameter alwaysShared;
     static BoolParameter neverShared;
@@ -49,6 +51,7 @@ namespace rfb {
     static BoolParameter sendCutText;
     static BoolParameter acceptSetDesktopSize;
     static BoolParameter queryConnect;
+    static PresetParameter preferBandwidth;
 
   };
 

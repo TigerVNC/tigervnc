@@ -969,6 +969,7 @@ void VNCSConnectionST::writeDataUpdate()
   UpdateInfo ui;
   bool needNewUpdateInfo;
   const RenderedCursor *cursor;
+  size_t maxUpdateSize;
 
   updates.enable_copyrect(cp.useCopyRect);
 
@@ -1072,22 +1073,19 @@ void VNCSConnectionST::writeDataUpdate()
 
   writeRTTPing();
 
+  // FIXME: If continuous updates aren't used then the client might
+  //        be slower than frameRate in its requests and we could
+  //        afford a larger update size
+
+  // FIXME: Bandwidth estimation without congestion control
+  maxUpdateSize = congestion.getBandwidth() *
+                  server->msToNextUpdate() / 1000;
+
   if (!ui.is_empty())
-    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
-  else {
-    size_t maxUpdateSize;
-
-    // FIXME: If continuous updates aren't used then the client might
-    //        be slower than frameRate in its requests and we could
-    //        afford a larger update size
-
-    // FIXME: Bandwidth estimation without congestion control
-    maxUpdateSize = congestion.getBandwidth() *
-                    server->msToNextUpdate() / 1000;
-
+    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor, maxUpdateSize);
+  else
     encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
                                        cursor, maxUpdateSize);
-  }
 
   writeRTTPing();
 

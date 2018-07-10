@@ -186,6 +186,28 @@ update to the client. Note that this only controls the maximum rate and a
 client may get a lower rate when resources are limited. Default is \fB60\fP.
 .
 .TP
+.B \-DynamicQualityMin \fImin\fP
+The minimum quality to with dynamic JPEG quality scaling. The accepted values
+are 0-9 where 0 is low and 9 is high, with the same meaning as the client-side
+-quality parameter. Default is \fB7\fP.
+.
+.TP
+.B \-DynamicQualityMax \fImax\fP
+The maximum quality to use with dynamic JPEG quality scaling. Setting this to
+zero disables dynamic JPEG quality scaling. The accepted values are 0-9 where 0
+is low and 9 is high, with the same meaning as the client-side -quality parameter.
+Default is \fB8\fP.
+.
+.TP
+.B \-PreferBandwidth
+Prefer bandwidth over quality, and set various options for lower bandwidth use.
+The default is off, aka to prefer quality. You can override individual values
+by setting them after this switch on the command line. This switch sets the
+following:
+.br
+- dynamic JPEG quality range 2-9
+.
+.TP
 .B \-CompareFB \fImode\fP
 Perform pixel comparison on framebuffer to reduce unnecessary updates. Can
 be either \fB0\fP (off), \fB1\fP (always) or \fB2\fP (auto). Default is
