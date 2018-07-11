@@ -624,16 +624,11 @@ int Viewport::handle(int event)
   case FL_FOCUS:
     Fl::disable_im();
 
-    try {
-      flushPendingClipboard();
+    flushPendingClipboard();
 
-      // We may have gotten our lock keys out of sync with the server
-      // whilst we didn't have focus. Try to sort this out.
-      pushLEDState();
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
-    }
+    // We may have gotten our lock keys out of sync with the server
+    // whilst we didn't have focus. Try to sort this out.
+    pushLEDState();
 
     // Resend Ctrl/Alt if needed
     if (menuCtrlKey)
@@ -759,7 +754,12 @@ void Viewport::flushPendingClipboard()
   if (pendingClientCutText) {
     size_t len = strlen(pendingClientCutText);
     vlog.debug("Sending pending clipboard data (%d bytes)", (int)len);
-    cc->writer()->writeClientCutText(pendingClientCutText, len);
+    try {
+      cc->writer()->writeClientCutText(pendingClientCutText, len);
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
   }
 
   clearPendingClipboard();
