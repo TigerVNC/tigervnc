@@ -263,8 +263,7 @@ if(ENABLE_GNUTLS)
 endif()
 
 # Check for PAM library
-option(ENABLE_PAM "Enable PAM authentication support" ON)
-if(ENABLE_PAM)
+if(UNIX AND NOT APPLE)
   check_include_files(security/pam_appl.h HAVE_PAM_H)
   set(CMAKE_REQUIRED_LIBRARIES -lpam)
   check_function_exists(pam_start HAVE_PAM_START)
@@ -272,10 +271,9 @@ if(ENABLE_PAM)
   if(HAVE_PAM_H AND HAVE_PAM_START)
     set(PAM_LIBS pam)
   else()
-    set(ENABLE_PAM 0)
+    message(FATAL_ERROR "Could not find PAM development files")
   endif()
 endif()
-set(HAVE_PAM ${ENABLE_PAM})
 
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)

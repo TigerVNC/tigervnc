@@ -21,14 +21,6 @@
 #ifndef __RFB_PAM_H__
 #define __RFB_PAM_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifndef HAVE_PAM
-#error "This header should not be included when PAM is unsupported"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
