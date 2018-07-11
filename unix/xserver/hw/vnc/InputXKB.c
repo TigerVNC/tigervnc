@@ -43,7 +43,11 @@
 #endif
 
 #if XORG < 118
+#if XORG < 110
+#define GetMaster(dev, type) ((dev)->u.master)
+#else
 #define GetMaster(dev, type) ((dev)->master)
+#endif
 #endif
 
 extern DeviceIntPtr vncKeyboardDev;
