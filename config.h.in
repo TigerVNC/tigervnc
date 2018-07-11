@@ -4,7 +4,6 @@
 #cmakedefine HAVE_ACTIVE_DESKTOP_H
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1
-#cmakedefine HAVE_PAM
 
 #cmakedefine DATA_DIR "@DATA_DIR@"
 #cmakedefine LOCALE_DIR "@LOCALE_DIR@"

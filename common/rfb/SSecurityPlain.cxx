@@ -25,10 +25,10 @@
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>
 #include <rdr/InStream.h>
-#ifdef HAVE_PAM
+#if !defined(WIN32) && !defined(__APPLE__)
 #include <rfb/UnixPasswordValidator.h>
 #endif
-#ifdef BUILD_WIN
+#ifdef WIN32
 #include <rfb/WinPasswdValidator.h>
 #endif
 
@@ -62,10 +62,10 @@ bool PasswordValidator::validUser(const char* username)
 
 SSecurityPlain::SSecurityPlain(SConnection* sc) : SSecurity(sc)
 {
-#ifdef HAVE_PAM
-  valid = new UnixPasswordValidator();
-#elif BUILD_WIN
+#ifdef WIN32
   valid = new WinPasswdValidator();
+#elif !defined(__APPLE__)
+  valid = new UnixPasswordValidator();
 #else
   valid = NULL;
 #endif
