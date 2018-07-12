@@ -41,6 +41,7 @@ namespace rfb {
     static IntParameter frameRate;
     static IntParameter dynamicQualityMin;
     static IntParameter dynamicQualityMax;
+    static IntParameter treatLossless;
     static BoolParameter protocol3_3;
     static BoolParameter alwaysShared;
     static BoolParameter neverShared;

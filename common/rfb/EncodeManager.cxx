@@ -550,7 +550,7 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
   encoder = encoders[klass];
   conn->writer()->startRect(rect, encoder->encoding);
 
-  if (encoder->flags & EncoderLossy)
+  if (encoder->flags & EncoderLossy && !encoder->treatLossless())
     lossyRegion.assign_union(Region(rect));
   else
     lossyRegion.assign_subtract(Region(rect));

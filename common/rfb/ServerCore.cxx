@@ -109,10 +109,15 @@ rfb::IntParameter rfb::Server::dynamicQualityMax
 ("DynamicQualityMax",
  "The maximum dynamic JPEG quality, 0 = low, 9 = high",
  8, 0, 9);
+rfb::IntParameter rfb::Server::treatLossless
+("TreatLossless",
+ "Treat lossy quality levels above and including this as lossless, 0-9. 10 = off",
+ 10, 0, 10);
 
 static void bandwidthPreset() {
   rfb::Server::dynamicQualityMin.setParam(2);
   rfb::Server::dynamicQualityMax.setParam(9);
+  rfb::Server::treatLossless.setParam(8);
 }
 
 rfb::PresetParameter rfb::Server::preferBandwidth

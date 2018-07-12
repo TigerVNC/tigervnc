@@ -20,6 +20,7 @@
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
 #include <rfb/SConnection.h>
+#include <rfb/ServerCore.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/TightJPEGEncoder.h>
 #include <rfb/TightConstants.h>
@@ -99,6 +100,11 @@ void TightJPEGEncoder::setFineQualityLevel(int quality, int subsampling)
 {
   fineQuality = quality;
   fineSubsampling = subsampling;
+}
+
+bool TightJPEGEncoder::treatLossless()
+{
+  return qualityLevel >= rfb::Server::treatLossless;
 }
 
 void TightJPEGEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
