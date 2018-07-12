@@ -325,6 +325,39 @@ BoolParameter::operator bool() const {
   return value;
 }
 
+// -=- PresetParameter
+
+PresetParameter::PresetParameter(const char* name_, const char* desc_, bool v,
+				 void (*onSet)(void),
+				 ConfigurationObject co)
+: BoolParameter(name_, desc_, v, co), onSetCB(onSet) {
+}
+
+bool PresetParameter::setParam(const char* value_) {
+  const bool ret = BoolParameter::setParam(value_);
+
+  if (ret && onSetCB && value)
+    onSetCB();
+
+  return ret;
+}
+
+bool PresetParameter::setParam() {
+  const bool ret = BoolParameter::setParam();
+
+  if (ret && onSetCB && value)
+    onSetCB();
+
+  return ret;
+}
+
+void PresetParameter::setParam(bool b) {
+  BoolParameter::setParam(b);
+
+  if (onSetCB && value)
+    onSetCB();
+}
+
 // -=- IntParameter
 
 IntParameter::IntParameter(const char* name_, const char* desc_, int v,
