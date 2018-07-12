@@ -57,7 +57,7 @@ namespace rfb {
 
     void writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
                      const RenderedCursor* renderedCursor,
-                     size_t maxUpdateSize);
+                     size_t maxUpdateSize = 2000);
 
     void writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
                               const RenderedCursor* renderedCursor,
