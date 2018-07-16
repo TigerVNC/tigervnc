@@ -30,8 +30,11 @@
 # First make sure we're operating in a sane environment.
 $exedir = "";
 $slashndx = rindex($0, "/");
-if($slashndx>=0) {
-    $exedir = substr($0, 0, $slashndx+1);
+if($slashndx>=1) {
+    $slashndx = rindex($0, "/", $slashndx-1);
+    if($slashndx>=0) {
+        $exedir = substr($0, 0, $slashndx+1) . "bin/";
+    }
 }
 
 &SanityCheck();
@@ -94,8 +97,6 @@ if ((@ARGV == 1) && ($ARGV[0] =~ /^:(\d+)$/)) {
     if (!&CheckDisplayNumber($displayNumber)) {
 	die "A VNC server is already running as :$displayNumber\n";
     }
-} elsif (@ARGV == 0) {
-    $displayNumber = &GetDisplayNumber();
 } else {
     &Usage();
 }
@@ -133,8 +134,8 @@ LoadConfig($vncUserConfig);
 LoadConfig($vncSystemConfigMandatoryFile, 1);
 
 #
-# Check whether VNC authentication is enabled, and if so, prompt the user to
-# create a VNC password if they don't already have one.
+# Check whether VNC authentication is enabled, and if so, check that
+# a VNC password has been created.
 #
 
 $securityTypeArgSpecified = 0;
@@ -160,11 +161,7 @@ if ($config{'password'} ||
 if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
     ($z,$z,$mode) = stat("$vncUserDir/passwd");
     if (!(-e "$vncUserDir/passwd") || ($mode & 077)) {
-        warn "\nYou will require a password to access your desktops.\n\n";
-        system($exedir."vncpasswd -q $vncUserDir/passwd");
-        if (($? >> 8) != 0) {
-            exit 1;
-        }
+        die "VNC authentication enabled, but no password file created.\n";
     }
 }
 
@@ -313,24 +310,6 @@ sub LoadConfig {
 
 
 #
-# GetDisplayNumber gets the lowest available display number.  A display number
-# n is taken if something is listening on the VNC server port (5900+n) or the
-# X server port (6000+n).
-#
-
-sub GetDisplayNumber
-{
-    foreach $n (1..99) {
-	if (&CheckDisplayNumber($n)) {
-	    return $n+0; # Bruce Mah's workaround for bug in perl 5.005_02
-	}
-    }
-
-    die "$prog: no free display number on $host.\n";
-}
-
-
-#
 # Load a session desktop file
 #
 sub LoadXSession {
@@ -436,12 +415,7 @@ sub CheckDisplayNumber
 
 sub Usage
 {
-    die("\nusage: $prog [:<number>]\n".
-	"                 [-fg]\n".
-	"                 [-autokill]\n".
-	"\n".
-	"       $prog -kill <X-display>\n\n".
-	"       $prog -list\n\n");
+    die("\nusage: $prog <display>\n\n");
 }
 
 
