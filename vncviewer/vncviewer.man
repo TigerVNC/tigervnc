@@ -333,7 +333,7 @@ Default certificate revocation list.
 .BR Xvnc (1),
 .BR vncpasswd (1),
 .BR vncconfig (1),
-.BR vncserver (1)
+.BR vncsession (8)
 .br
 https://www.tigervnc.org
 

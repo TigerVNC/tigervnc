@@ -4,8 +4,9 @@ set -e
 
 if [ "$1" = "remove" ] ; then
     BIN=/usr/bin
+    SBIN=/usr/sbin
     update-alternatives --remove \
-       vncserver $BIN/tigervncserver
+       vncsession $SBIN/tigervncsession
     update-alternatives --remove \
        Xvnc $BIN/Xtigervnc
     update-alternatives --remove \

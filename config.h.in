@@ -5,6 +5,7 @@
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1
 
+#cmakedefine LIBEXEC_DIR "@LIBEXEC_DIR@"
 #cmakedefine DATA_DIR "@DATA_DIR@"
 #cmakedefine LOCALE_DIR "@LOCALE_DIR@"
 

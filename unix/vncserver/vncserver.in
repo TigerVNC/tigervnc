@@ -88,8 +88,6 @@ if ((@ARGV == 1) && ($ARGV[0] =~ /^:(\d+)$/)) {
     if (!&CheckDisplayNumber($displayNumber)) {
 	die "A VNC server is already running as :$displayNumber\n";
     }
-} elsif (@ARGV == 0) {
-    $displayNumber = &GetDisplayNumber();
 } else {
     &Usage();
 }
@@ -127,8 +125,8 @@ LoadConfig($vncUserConfig);
 LoadConfig($vncSystemConfigMandatoryFile, 1);
 
 #
-# Check whether VNC authentication is enabled, and if so, prompt the user to
-# create a VNC password if they don't already have one.
+# Check whether VNC authentication is enabled, and if so, check that
+# a VNC password has been created.
 #
 
 $securityTypeArgSpecified = 0;
@@ -154,16 +152,9 @@ if ($config{'password'} ||
 if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
     ($z,$z,$mode) = stat("$vncUserDir/passwd");
     if (!(-e "$vncUserDir/passwd") || ($mode & 077)) {
-        warn "\nYou will require a password to access your desktops.\n\n";
-        system($exedir."vncpasswd -q $vncUserDir/passwd");
-        if (($? >> 8) != 0) {
-            exit 1;
-        }
+        die "VNC authentication enabled, but no password file created.\n";
     }
 }
-
-$desktopLog = "$vncUserDir/$host:$displayNumber.log";
-unlink($desktopLog);
 
 #
 # Find a desktop session to run
@@ -264,11 +255,6 @@ warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
 
 warn "Starting desktop session $sessionname\n";
 
-warn "Log file is $desktopLog\n\n";
-
-open STDOUT, "> $desktopLog"
-open STDERR, ">&STDOUT"
-
 exec(@cmd);
 
 die "Failed to start session.\n";
@@ -311,24 +297,6 @@ sub LoadConfig {
       close(IN);
     }
   }
-}
-
-
-#
-# GetDisplayNumber gets the lowest available display number.  A display number
-# n is taken if something is listening on the VNC server port (5900+n) or the
-# X server port (6000+n).
-#
-
-sub GetDisplayNumber
-{
-    foreach $n (1..99) {
-	if (&CheckDisplayNumber($n)) {
-	    return $n+0; # Bruce Mah's workaround for bug in perl 5.005_02
-	}
-    }
-
-    die "$prog: no free display number on $host.\n";
 }
 
 
@@ -439,7 +407,7 @@ sub CheckDisplayNumber
 
 sub Usage
 {
-    die("\nusage: $prog [:<number>]\n\n");
+    die("\nusage: $prog <display>\n\n");
 }
 
 

@@ -35,8 +35,6 @@ Obsoletes:      vnc < 4.1.3-2, vnc-libs < 4.1.3-2
 Provides:       tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes:      tightvnc < 1.5.0-0.15.20090204svn3586
 
-Patch17:        tigervnc-shebang.patch
-
 %description
 Virtual Network Computing (VNC) is a remote display system which
 allows you to view a computing 'desktop' environment not only on the
@@ -129,9 +127,6 @@ done
 patch -p1 -b --suffix .vnc < ../xserver120.patch
 popd
 
-# Don't use shebang in vncserver script.
-%patch17 -p1 -b .shebang
-
 %build
 %ifarch sparcv9 sparc64 s390 s390x
 export CFLAGS="$RPM_OPT_FLAGS -fPIC"
@@ -222,13 +217,18 @@ fi
 
 %files server
 %defattr(-,root,root,-)
+%config(noreplace) %{_sysconfdir}/pam.d/tigervnc
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
-%{_bindir}/vncserver
-%{_mandir}/man1/vncserver.1*
+%{_sbindir}/vncsession
+%{_libexecdir}/vncserver
+%{_libexecdir}/vncsession-start
 %{_mandir}/man1/x0vncserver.1*
+%{_mandir}/man8/vncserver.8*
+%{_mandir}/man8/vncsession.8*
 
 %files server-minimal
 %defattr(-,root,root,-)

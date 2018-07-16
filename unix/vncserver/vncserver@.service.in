@@ -1,13 +1,11 @@
 # The vncserver service unit file
 #
 # Quick HowTo:
-# 1. Copy this file to /etc/systemd/system/vncserver@.service
-# 2. Switches for vncserver should be entered in ~/.vnc/config rather than
-#    hard-coded into this unit file. See the vncserver(1) manpage.
-# 3. Replace <USER> with the desired user
-#   ("runuser -l <USER> -c /usr/bin/vncserver %i")
-# 4. Run `systemctl daemon-reload`
-# 5. Run `systemctl enable vncserver@:<display>.service`
+# 1. Add a user mapping to /etc/tigervnc/vncserver.users.
+# 2. Adjust the global or user configuration. See the
+#    vncsession(8) manpage for details. (OPTIONAL)
+# 3. Run `systemctl enable vncserver@:<display>.service`
+# 4. Run `systemctl start vncserver@:<display>.service`
 #
 # DO NOT RUN THIS SERVICE if your local area network is
 # untrusted!  For a secure way of using VNC, you should
@@ -24,9 +22,9 @@
 # You can then point a VNC client on hostA at vncdisplay N of localhost and with
 # the help of ssh, you end up seeing what hostB makes available on port 590M
 #
-# Use "-nolisten tcp" to prevent X connections to your VNC server via TCP.
+# Use "nolisten=tcp" to prevent X connections to your VNC server via TCP.
 #
-# Use "-localhost" to prevent remote VNC clients connecting except when
+# Use "localhost" to prevent remote VNC clients connecting except when
 # doing so through a secure tunnel.  See the "-via" option in the
 # `man vncviewer' manual page.
 
@@ -37,11 +35,8 @@ After=syslog.target network.target
 
 [Service]
 Type=forking
-# Clean any existing files in /tmp/.X11-unix environment
-ExecStartPre=/bin/sh -c '@BIN_DIR@/vncserver -kill %i > /dev/null 2>&1 || :'
-ExecStart=/usr/sbin/runuser -l <USER> -c "@BIN_DIR@/vncserver %i"
-PIDFile=/home/<USER>/.vnc/%H%i.pid
-ExecStop=/bin/sh -c '@BIN_DIR@/vncserver -kill %i > /dev/null 2>&1 || :'
+ExecStart=/usr/libexec/vncsession-start %i
+PIDFile=/var/run/vncsession-%i.pid
 
 [Install]
 WantedBy=multi-user.target
