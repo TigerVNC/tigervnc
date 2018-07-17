@@ -883,7 +883,7 @@ void VNCSConnectionST::writeRTTPing()
 
 bool VNCSConnectionST::isCongested()
 {
-  unsigned eta;
+  int eta;
 
   congestionTimer.stop();
 
