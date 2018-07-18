@@ -561,13 +561,13 @@ msgstr "Неправилен параметър „%s“ на ред %d във �
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
-"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "Визуализатор на TigerVNC, %d-битов,  версия: %s\n"
 "Компилиран на: %s\n"
 "Авторски права © 1999-%d екипът на TigerVNC и мн. др.\n"
-"(погледнете файла README.txt)\n"
+"(погледнете файла README.rst)\n"
 "За повече информация за TigerVNC: http://www.tigervnc.org"
 
 #: vncviewer/vncviewer.cxx:127

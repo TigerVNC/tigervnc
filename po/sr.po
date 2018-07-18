@@ -560,12 +560,12 @@ msgstr "Непознат параметар „%s“ у %d. реду у дато
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
-"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "Прегледач ТигарВНЦ %d-бита и%s\n"
 "Изграђен: %s\n"
-"Ауторска права © 1999-%d Тим Тигра ВНЦ-а и многи други (видите „README.txt“)\n"
+"Ауторска права © 1999-%d Тим Тигра ВНЦ-а и многи други (видите „README.rst“)\n"
 "Посетите „http://www.tigervnc.org“ да сазнате више о програму."
 
 #: vncviewer/vncviewer.cxx:127
