@@ -184,7 +184,9 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   }
 
   // Show hint about menu key
-  Fl::add_timeout(0.5, menuOverlay, this);
+  if (!noReminder) {
+    Fl::add_timeout(0.5, menuOverlay, this);
+  }
 }
 
 
