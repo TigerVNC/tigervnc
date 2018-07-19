@@ -142,6 +142,10 @@ StringParameter display("display",
 StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
                         "F8");
 
+BoolParameter noReminder("NoReminder",
+                         "Disable the floating MenuKey reminder at startup",
+                         false);
+
 BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
                                    "Pass special keys (like Alt+Tab) directly "
                                    "to the server when in full screen mode.",
@@ -181,6 +185,7 @@ static VoidParameter* parameterArray[] = {
   &sendPrimary,
 #endif
   &menuKey,
+  &noReminder,
   &fullscreenSystemKeys,
   &alertOnFatalError
 };
