@@ -37,6 +37,7 @@ After=syslog.target network.target
 Type=forking
 ExecStart=/usr/libexec/vncsession-start %i
 PIDFile=/var/run/vncsession-%i.pid
+SELinuxContext=system_u:system_r:vnc_session_t:s0
 
 [Install]
 WantedBy=multi-user.target
