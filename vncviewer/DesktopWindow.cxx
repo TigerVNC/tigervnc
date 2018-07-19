@@ -498,6 +498,9 @@ void DesktopWindow::menuOverlay(void* data)
 
 void DesktopWindow::setOverlay(const char* text, ...)
 {
+  const Fl_Fontsize fontsize = 16;
+  const int margin = 10;
+
   va_list ap;
   char textbuf[1024];
 
@@ -528,22 +531,22 @@ void DesktopWindow::setOverlay(const char* text, ...)
     fl_gc = XDefaultGC(fl_display, 0);
 #endif
 
-  fl_font(FL_HELVETICA, FL_NORMAL_SIZE * 2);
+  fl_font(FL_HELVETICA, fontsize);
   w = 0;
   fl_measure(textbuf, w, h);
 
   // Margins
-  w += 80;
-  h += 40;
+  w += margin * 2 * 2;
+  h += margin * 2;
 
   surface = new Fl_Image_Surface(w, h);
   surface->set_current();
 
   fl_rectf(0, 0, w, h, 0, 0, 0);
 
-  fl_font(FL_HELVETICA, FL_NORMAL_SIZE * 2);
+  fl_font(FL_HELVETICA, fontsize);
   fl_color(FL_WHITE);
-  fl_draw(textbuf, 40, 20 + fl_height() - fl_descent());
+  fl_draw(textbuf, 0, 0, w, h, FL_ALIGN_CENTER);
 
   imageText = surface->image();
   delete surface;
