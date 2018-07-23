@@ -5,13 +5,13 @@
 # Peter Åstrand <astrand@cendio.se>, 2011.
 # Göran Uddeborg <goeran@uddeborg.se>, 2015, 2016, 2017, 2018.
 #
-# $Revision: 1.17 $
+# $Revision: 1.18 $
 msgid ""
 msgstr ""
 "Project-Id-Version: tigervnc 1.8.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2018-06-13 14:22+0000\n"
-"PO-Revision-Date: 2018-07-14 15:41+0200\n"
+"PO-Revision-Date: 2018-07-23 19:27+0200\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -398,7 +398,7 @@ msgstr "Autentisering avbruten"
 #: vncviewer/Viewport.cxx:377
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
-msgstr "Misslyckades att uppdatera tillståndet för tengentbords-LED: %lu"
+msgstr "Misslyckades att uppdatera tillståndet för tangentbords-LED: %lu"
 
 #: vncviewer/Viewport.cxx:383 vncviewer/Viewport.cxx:389
 #, c-format
@@ -417,7 +417,7 @@ msgstr "Misslyckades att hämta tillståndet för tangentbords-LED: %d"
 
 #: vncviewer/Viewport.cxx:817
 msgid "No key code specified on key press"
-msgstr "Ingen tangentkot angiven vid tangenttryckning"
+msgstr "Ingen tangentkod angiven vid tangenttryckning"
 
 #: vncviewer/Viewport.cxx:959
 #, c-format
