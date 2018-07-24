@@ -22,7 +22,7 @@ Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1:        vncserver.service
 Source2:        vncserver.sysconfig
 Source3:        10-libvnc.conf
-Source11:	http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
+Source11:	http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-1-source.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  libX11-devel, automake, autoconf, libtool, gettext, gettext-autopoint
@@ -392,6 +392,9 @@ fi
 %endif
 
 %changelog
+* Sun Jul 22 2018 Brian P. Hinz <bphinz@users.sourceforge.net> 1.9.80-1
+- Updated fltk to latest version
+
 * Thu Dec 24 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-1
 - Adapted from RedHat EL7 Spec
 
