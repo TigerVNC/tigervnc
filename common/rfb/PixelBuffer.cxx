@@ -204,6 +204,7 @@ void ModifiablePixelBuffer::copyRect(const Rect &rect,
                                      const Point &move_by_delta)
 {
   int srcStride, dstStride;
+  int bytesPerPixel;
   const U8* srcData;
   U8* dstData;
 
@@ -221,6 +222,8 @@ void ModifiablePixelBuffer::copyRect(const Rect &rect,
                          srect.width(), srect.height(),
                          srect.tl.x, srect.tl.y, width_, height_);
 
+  bytesPerPixel = format.bpp/8;
+
   srcData = getBuffer(srect, &srcStride);
   dstData = getBufferRW(drect, &dstStride);
 
@@ -228,27 +231,27 @@ void ModifiablePixelBuffer::copyRect(const Rect &rect,
     // Possible overlap. Be careful and use memmove().
     int h = drect.height();
     while (h--) {
-      memmove(dstData, srcData, drect.width() * format.bpp/8);
-      dstData += dstStride * format.bpp/8;
-      srcData += srcStride * format.bpp/8;
+      memmove(dstData, srcData, drect.width() * bytesPerPixel);
+      dstData += dstStride * bytesPerPixel;
+      srcData += srcStride * bytesPerPixel;
     }
   } else if (move_by_delta.y < 0) {
     // The data shifted upwards. Copy from top to bottom.
     int h = drect.height();
     while (h--) {
-      memcpy(dstData, srcData, drect.width() * format.bpp/8);
-      dstData += dstStride * format.bpp/8;
-      srcData += srcStride * format.bpp/8;
+      memcpy(dstData, srcData, drect.width() * bytesPerPixel);
+      dstData += dstStride * bytesPerPixel;
+      srcData += srcStride * bytesPerPixel;
     }
   } else {
     // The data shifted downwards. Copy from bottom to top.
     int h = drect.height();
-    dstData += (h-1) * dstStride * format.bpp/8;
-    srcData += (h-1) * srcStride * format.bpp/8;
+    dstData += (h-1) * dstStride * bytesPerPixel;
+    srcData += (h-1) * srcStride * bytesPerPixel;
     while (h--) {
-      memcpy(dstData, srcData, drect.width() * format.bpp/8);
-      dstData -= dstStride * format.bpp/8;
-      srcData -= srcStride * format.bpp/8;
+      memcpy(dstData, srcData, drect.width() * bytesPerPixel);
+      dstData -= dstStride * bytesPerPixel;
+      srcData -= srcStride * bytesPerPixel;
     }
   }
 
@@ -304,7 +307,7 @@ rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
                          r.tl.x, r.tl.y, width_, height_);
 
   *stride_ = stride;
-  return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
+  return &data[(r.tl.x + (r.tl.y * stride)) * (format.bpp/8)];
 }
 
 void FullFramePixelBuffer::commitBufferRW(const Rect& r)
@@ -319,7 +322,7 @@ const rdr::U8* FullFramePixelBuffer::getBuffer(const Rect& r, int* stride_) cons
                          r.tl.x, r.tl.y, width_, height_);
 
   *stride_ = stride;
-  return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
+  return &data[(r.tl.x + (r.tl.y * stride)) * (format.bpp/8)];
 }
 
 // -=- Managed pixel buffer class

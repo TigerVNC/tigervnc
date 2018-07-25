@@ -36,13 +36,13 @@ RawDecoder::~RawDecoder()
 void RawDecoder::readRect(const Rect& r, rdr::InStream* is,
                           const ConnParams& cp, rdr::OutStream* os)
 {
-  os->copyBytes(is, r.area() * cp.pf().bpp/8);
+  os->copyBytes(is, r.area() * (cp.pf().bpp/8));
 }
 
 void RawDecoder::decodeRect(const Rect& r, const void* buffer,
                             size_t buflen, const ConnParams& cp,
                             ModifiablePixelBuffer* pb)
 {
-  assert(buflen >= (size_t)r.area() * cp.pf().bpp/8);
+  assert(buflen >= (size_t)r.area() * (cp.pf().bpp/8));
   pb->imageRect(cp.pf(), r, buffer);
 }
