@@ -346,13 +346,17 @@ void XDesktop::keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
     }
   }
 
-  if (!keycode)
+  if (!keycode) {
+    vlog.error("Could not map key event to X11 key code");
     return;
+  }
 
   if (down)
     pressedKeys[keysym] = keycode;
   else
     pressedKeys.erase(keysym);
+
+  vlog.debug("%d %s", keycode, down ? "down" : "up");
 
   XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #endif
