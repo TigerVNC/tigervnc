@@ -1,6 +1,7 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright (C) 2018 Lauri Kasanen
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +22,14 @@
 #define __RFB_ENCODEMANAGER_H__
 
 #include <vector>
+#include <list>
 
 #include <rdr/types.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Region.h>
+#include <rfb/util.h>
+
+#include <sys/time.h>
 
 namespace rfb {
   class SConnection;
@@ -35,6 +40,7 @@ namespace rfb {
   struct Rect;
 
   struct RectInfo;
+  struct QualityInfo;
 
   class EncodeManager {
   public:
@@ -50,7 +56,8 @@ namespace rfb {
     void pruneLosslessRefresh(const Region& limits);
 
     void writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
-                     const RenderedCursor* renderedCursor);
+                     const RenderedCursor* renderedCursor,
+                     size_t maxUpdateSize = 2000);
 
     void writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
                               const RenderedCursor* renderedCursor,
@@ -91,6 +98,11 @@ namespace rfb {
     bool analyseRect(const PixelBuffer *pb,
                      struct RectInfo *info, int maxColours);
 
+    void updateQualities();
+    void trackRectQuality(const Rect& rect);
+    unsigned getQuality(const Rect& rect) const;
+    unsigned scaledQuality(const Rect& rect) const;
+
   protected:
     // Preprocessor generated, optimised methods
     inline bool checkSolidTile(const Rect& r, rdr::U8 colourValue,
@@ -126,11 +138,16 @@ namespace rfb {
     };
     typedef std::vector< std::vector<struct EncoderStats> > StatsVector;
 
+    std::list<QualityInfo*> qualityList;
+    int dynamicQualityMin;
+    int dynamicQualityOff;
+
     unsigned updates;
     EncoderStats copyStats;
     StatsVector stats;
     int activeType;
     int beforeLength;
+    size_t curMaxUpdateSize;
 
     class OffsetPixelBuffer : public FullFramePixelBuffer {
     public:

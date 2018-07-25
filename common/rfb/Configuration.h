@@ -216,6 +216,18 @@ namespace rfb {
     bool def_value;
   };
 
+  class PresetParameter : public BoolParameter {
+  public:
+    PresetParameter(const char* name_, const char* desc_, bool v,
+		    void (*onSet)(void),
+		    ConfigurationObject co=ConfGlobal);
+    virtual bool setParam(const char* value);
+    virtual bool setParam();
+    virtual void setParam(bool b);
+  protected:
+    void (*onSetCB)(void);
+  };
+
   class IntParameter : public VoidParameter {
   public:
     IntParameter(const char* name_, const char* desc_, int v,

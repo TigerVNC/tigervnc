@@ -1,6 +1,7 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright (C) 2018 Lauri Kasanen
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@
 #include <rfb/Encoder.h>
 #include <rfb/Palette.h>
 #include <rfb/SConnection.h>
+#include <rfb/ServerCore.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
@@ -38,6 +40,9 @@
 using namespace rfb;
 
 static LogWriter vlog("EncodeManager");
+
+// If this rect was touched this update, add this to its quality score
+#define SCORE_INCREMENT 8
 
 // Split each rectangle into smaller ones no larger than this area,
 // and no wider than this width.
@@ -75,6 +80,12 @@ enum EncoderType {
 struct RectInfo {
   int rleRuns;
   Palette palette;
+};
+
+struct QualityInfo {
+  struct timeval lastUpdate;
+  Rect rect;
+  unsigned score;
 };
 
 };
@@ -123,7 +134,8 @@ static const char *encoderTypeName(EncoderType type)
   return "Unknown Encoder Type";
 }
 
-EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
+EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_),
+  dynamicQualityMin(-1), dynamicQualityOff(-1)
 {
   StatsVector::iterator iter;
 
@@ -146,6 +158,12 @@ EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
     for (iter2 = iter->begin();iter2 != iter->end();++iter2)
       memset(&*iter2, 0, sizeof(EncoderStats));
   }
+
+  if (Server::dynamicQualityMax && Server::dynamicQualityMax <= 9 &&
+      Server::dynamicQualityMax > Server::dynamicQualityMin) {
+    dynamicQualityMin = Server::dynamicQualityMin;
+    dynamicQualityOff = Server::dynamicQualityMax - Server::dynamicQualityMin;
+  }
 }
 
 EncodeManager::~EncodeManager()
@@ -156,6 +174,9 @@ EncodeManager::~EncodeManager()
 
   for (iter = encoders.begin();iter != encoders.end();iter++)
     delete *iter;
+
+  for (std::list<QualityInfo*>::iterator it = qualityList.begin(); it != qualityList.end(); it++)
+    delete *it;
 }
 
 void EncodeManager::logStats()
@@ -259,8 +280,10 @@ void EncodeManager::pruneLosslessRefresh(const Region& limits)
 }
 
 void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
-                                const RenderedCursor* renderedCursor)
+                                const RenderedCursor* renderedCursor,
+                                size_t maxUpdateSize)
 {
+    curMaxUpdateSize = maxUpdateSize;
     doUpdate(true, ui.changed, ui.copied, ui.copy_delta, pb, renderedCursor);
 }
 
@@ -316,6 +339,8 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
 
     writeRects(changed, pb);
     writeRects(cursorRegion, renderedCursor);
+
+    updateQualities();
 
     conn->writer()->writeFramebufferUpdateEnd();
 }
@@ -525,7 +550,7 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
   encoder = encoders[klass];
   conn->writer()->startRect(rect, encoder->encoding);
 
-  if (encoder->flags & EncoderLossy)
+  if (encoder->flags & EncoderLossy && !encoder->treatLossless())
     lossyRegion.assign_union(Region(rect));
   else
     lossyRegion.assign_subtract(Region(rect));
@@ -804,6 +829,14 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
   if (encoder->flags & EncoderUseNativePF)
     ppb = preparePixelBuffer(rect, pb, false);
 
+  if (type == encoderFullColour && dynamicQualityMin > -1) {
+    trackRectQuality(rect);
+
+    // Set the dynamic quality here. Unset fine quality, as it would overrule us
+    encoder->setQualityLevel(scaledQuality(rect));
+    encoder->setFineQualityLevel(-1, subsampleUndefined);
+  }
+
   encoder->writeRect(ppb, info.palette);
 
   endRect();
@@ -997,3 +1030,125 @@ void EncodeManager::OffsetPixelBuffer::update(const PixelFormat& pf,
 #define BPP 32
 #include "EncodeManagerBPP.cxx"
 #undef BPP
+
+// Dynamic quality tracking
+void EncodeManager::updateQualities() {
+  struct timeval now;
+  gettimeofday(&now, NULL);
+
+  // Remove elements that haven't been touched in 5s. Update the scores.
+  for (std::list<QualityInfo*>::iterator it = qualityList.begin(); it != qualityList.end(); ) {
+    QualityInfo * const cur = *it;
+    const unsigned since = msBetween(&cur->lastUpdate, &now);
+    if (since > 5000) {
+      delete cur;
+      it = qualityList.erase(it);
+    } else {
+      cur->score -= cur->score / 16;
+      it++;
+    }
+  }
+}
+
+static bool closeEnough(const Rect& unioned, const int& unionArea,
+                        const Rect& check, const int& checkArea) {
+  const Point p = unioned.tl.subtract(check.tl);
+  if (abs(p.x) > 32 ||
+      abs(p.y) > 32)
+      return false;
+
+  if (abs(unionArea - checkArea) > 4096)
+    return false;
+
+  return true;
+}
+
+void EncodeManager::trackRectQuality(const Rect& rect) {
+
+  const int searchArea = rect.area();
+  struct timeval now;
+  gettimeofday(&now, NULL);
+
+  for (std::list<QualityInfo*>::iterator it = qualityList.begin(); it != qualityList.end(); it++) {
+    QualityInfo * const cur = *it;
+    const int curArea = cur->rect.area();
+    const Rect unioned = cur->rect.union_boundary(rect);
+    const int unionArea = unioned.area();
+    // Is this close enough to match?
+    // e.g. ads that change parts in one frame and more in others
+    if (rect.enclosed_by(cur->rect) ||
+        cur->rect.enclosed_by(rect) ||
+        closeEnough(unioned, unionArea, cur->rect, curArea) ||
+        closeEnough(unioned, unionArea, rect, searchArea)) {
+
+        // This existing rect matched. Set it to the larger of the two,
+        // and add to its score.
+        if (searchArea > curArea)
+          cur->rect = rect;
+
+        cur->score += SCORE_INCREMENT;
+        cur->lastUpdate = now;
+        return;
+    }
+  }
+
+  // It wasn't found, add it
+  QualityInfo *info = new QualityInfo;
+  info->rect = rect;
+  info->score = 0;
+  info->lastUpdate = now;
+  qualityList.push_back(info);
+}
+
+// Returns the change-tracked quality, 0-128, where 128 is max quality
+unsigned EncodeManager::getQuality(const Rect& rect) const {
+
+  const int searchArea = rect.area();
+
+  for (std::list<QualityInfo*>::const_iterator it = qualityList.begin(); it != qualityList.end(); it++) {
+    const QualityInfo * const cur = *it;
+    const int curArea = cur->rect.area();
+    const Rect unioned = cur->rect.union_boundary(rect);
+    const int unionArea = unioned.area();
+    // Is this close enough to match?
+    // e.g. ads that change parts in one frame and more in others
+    if (rect.enclosed_by(cur->rect) ||
+        cur->rect.enclosed_by(rect) ||
+        closeEnough(unioned, unionArea, cur->rect, curArea) ||
+        closeEnough(unioned, unionArea, rect, searchArea)) {
+
+        unsigned score = cur->score;
+        if (score > 128)
+          score = 128;
+        score = 128 - score;
+
+        return score;
+    }
+  }
+
+  return 128; // Not found, this shouldn't happen - return max quality then
+}
+
+// Returns the scaled quality, 0-9, where 9 is max
+// Optionally takes bandwidth into account
+unsigned EncodeManager::scaledQuality(const Rect& rect) const {
+
+  unsigned dynamic;
+
+  dynamic = getQuality(rect);
+
+  // The tracker gives quality as 0-128. Convert to our desired range
+  dynamic *= dynamicQualityOff;
+  dynamic += 64; // Rounding
+  dynamic /= 128;
+  dynamic += dynamicQualityMin;
+
+  // Bandwidth adjustment
+  if (!Server::preferBandwidth) {
+    // Prefer quality, if there's bandwidth available, don't go below 7
+    if (curMaxUpdateSize > 2000 && dynamic < 7)
+      dynamic = 7;
+  }
+
+  return dynamic;
+}
