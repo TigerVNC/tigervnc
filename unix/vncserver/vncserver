@@ -56,8 +56,6 @@ $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 $xstartupFile = $vncUserDir . "/xstartup";
 $defaultXStartup
     = ("#!/bin/sh\n\n".
-       "unset SESSION_MANAGER\n".
-       "unset DBUS_SESSION_BUS_ADDRESS\n".
        "OS=`uname -s`\n".
        "if [ \$OS = 'Linux' ]; then\n".
        "  case \"\$WINDOWMANAGER\" in\n".
