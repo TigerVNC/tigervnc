@@ -587,7 +587,10 @@ int Viewport::handle(int event)
 
   case FL_LEAVE:
     window()->cursor(FL_CURSOR_DEFAULT);
-    // Fall through as we want a last move event to help trigger edge stuff
+    // We want a last move event to help trigger edge stuff
+    handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), 0);
+    return 1;
+
   case FL_PUSH:
   case FL_RELEASE:
   case FL_DRAG:
