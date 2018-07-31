@@ -66,11 +66,6 @@ The VNC password file.
 .TP
 $HOME/.vnc/\fIhost\fP:\fIdisplay#\fP.log
 The log file for Xvnc and the session.
-.TP
-$HOME/.vnc/\fIhost\fP:\fIdisplay#\fP.pid
-Identifies the Xvnc process ID, used by the
-.B \-kill
-option.
 
 .SH SEE ALSO
 .BR vncviewer (1),

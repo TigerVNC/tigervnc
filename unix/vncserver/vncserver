@@ -109,8 +109,8 @@ my %config;
 
 # We set some reasonable defaults. Config file settings
 # override these where present.
-$default_opts{desktop} = &quotedString($desktopName);
-$default_opts{auth} = &quotedString($xauthorityFile);
+$default_opts{desktop} = $desktopName;
+$default_opts{auth} = $xauthorityFile;
 $default_opts{rfbwait} = 30000;
 $default_opts{rfbauth} = "$vncUserDir/passwd";
 $default_opts{rfbport} = $vncPort;
@@ -242,76 +242,42 @@ print XAUTH "add $host:$displayNumber . $cookie\n";
 print XAUTH "add $host/unix:$displayNumber . $cookie\n";
 close(XAUTH);
 
+$ENV{XAUTHORITY} = $xauthorityFile;
+
 # Now start the X VNC Server
 
+@cmd = ("xinit");
+
+push(@cmd, $Xsession, $session{'Exec'});
+
+push(@cmd, '--');
+
 # We build up our Xvnc command with options
-$cmd = $exedir."Xvnc :$displayNumber";
+push(@cmd, $exedir."Xvnc", ":$displayNumber");
 
 foreach my $k (sort keys %config) {
-  $cmd .= " -$k $config{$k}";
+  push(@cmd, "-$k");
+  push(@cmd, $config{$k}) if $config{$k};
   delete $default_opts{$k}; # file options take precedence
 }
 
 foreach my $k (sort keys %default_opts) {
-  $cmd .= " -$k $default_opts{$k}";
-}
-
-# Run $cmd and record the process ID.
-$pidFile = "$vncUserDir/$host:$displayNumber.pid";
-system("$cmd & echo \$! >$pidFile");
-
-# Give Xvnc a chance to start up
-
-sleep(3);
-if ($fontPath ne $defFontPath) {
-    unless (kill 0, `cat $pidFile`) {
-        if ($fpArgSpecified) {
-	    warn "\nWARNING: The first attempt to start Xvnc failed, probably because the font\n";
-	    warn "path you specified using the -fp argument is incorrect.  Attempting to\n";
-	    warn "determine an appropriate font path for this system and restart Xvnc using\n";
-	    warn "that font path ...\n";
-        } else {
-	    warn "\nWARNING: The first attempt to start Xvnc failed, possibly because the font\n";
-	    warn "catalog is not properly configured.  Attempting to determine an appropriate\n";
-	    warn "font path for this system and restart Xvnc using that font path ...\n";
-        }
-	$cmd =~ s@-fp [^ ]+@@;
-	$cmd .= " -fp $defFontPath" if ($defFontPath);
-	system("$cmd & echo \$! >$pidFile");
-	sleep(3);
-    }
-}
-unless (kill 0, `cat $pidFile`) {
-    warn "Could not start Xvnc.\n\n";
-    unlink $pidFile;
-    open(LOG, "<$desktopLog");
-    while (<LOG>) { print; }
-    close(LOG);
-    die "\n";
+  push(@cmd, "-$k");
+  push(@cmd, $default_opts{$k}) if $default_opts{$k};
 }
 
 warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
 
-# Run the X startup script.
 warn "Starting desktop session $sessionname\n";
 
 warn "Log file is $desktopLog\n\n";
 
-# If the unix domain socket exists then use that (DISPLAY=:n) otherwise use
-# TCP (DISPLAY=host:n)
+open STDOUT, "> $desktopLog"
+open STDERR, ">&STDOUT"
 
-if (-e "/tmp/.X11-unix/X$displayNumber" ||
-    -e "/usr/spool/sockets/X11/$displayNumber")
-{
-    $ENV{DISPLAY}= ":$displayNumber";
-} else {
-    $ENV{DISPLAY}= "$host:$displayNumber";
-}
-$ENV{VNCDESKTOP}= $desktopName;
+exec(@cmd);
 
-system("$Xsession $session{'Exec'} >> " . &quotedString($desktopLog) . " 2>&1");
-
-exit;
+die "Failed to start session.\n";
 
 ###############################################################################
 # Functions
@@ -474,35 +440,6 @@ sub CheckDisplayNumber
 }
 
 #
-# quotedString returns a string which yields the original string when parsed
-# by a shell.
-#
-
-sub quotedString
-{
-    local ($in) = @_;
-
-    $in =~ s/\'/\'\"\'\"\'/g;
-
-    return "'$in'";
-}
-
-
-#
-# removeSlashes turns slashes into underscores for use as a file name.
-#
-
-sub removeSlashes
-{
-    local ($in) = @_;
-
-    $in =~ s|/|_|g;
-
-    return "$in";
-}
-
-
-#
 # Usage
 #
 
@@ -525,7 +462,7 @@ sub SanityCheck
     #
 
  cmd:
-    foreach $cmd ("uname","xauth") {
+    foreach $cmd ("uname","xauth","xinit") {
 	for (split(/:/,$ENV{PATH})) {
 	    if (-x "$_/$cmd") {
 		next cmd;
