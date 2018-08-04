@@ -118,6 +118,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 #ifdef WIN32
     altGrArmed(false),
 #endif
+    firstLEDState(true),
     pendingServerCutText(NULL), pendingClientCutText(NULL),
     menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
@@ -320,6 +321,15 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 void Viewport::setLEDState(unsigned int state)
 {
   vlog.debug("Got server LED state: 0x%08x", state);
+
+  // The first message is just considered to be the server announcing
+  // support for this extension, so start by pushing our state to the
+  // remote end to get things in sync
+  if (firstLEDState) {
+    firstLEDState = false;
+    pushLEDState();
+    return;
+  }
 
   if (!hasFocus())
     return;
@@ -577,7 +587,10 @@ int Viewport::handle(int event)
 
   case FL_LEAVE:
     window()->cursor(FL_CURSOR_DEFAULT);
-    // Fall through as we want a last move event to help trigger edge stuff
+    // We want a last move event to help trigger edge stuff
+    handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), 0);
+    return 1;
+
   case FL_PUSH:
   case FL_RELEASE:
   case FL_DRAG:
@@ -614,16 +627,17 @@ int Viewport::handle(int event)
   case FL_FOCUS:
     Fl::disable_im();
 
-    try {
-      flushPendingClipboard();
+    flushPendingClipboard();
 
-      // We may have gotten our lock keys out of sync with the server
-      // whilst we didn't have focus. Try to sort this out.
-      pushLEDState();
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
-    }
+    // We may have gotten our lock keys out of sync with the server
+    // whilst we didn't have focus. Try to sort this out.
+    pushLEDState();
+
+    // Resend Ctrl/Alt if needed
+    if (menuCtrlKey)
+      handleKeyPress(0x1d, XK_Control_L);
+    if (menuAltKey)
+      handleKeyPress(0x38, XK_Alt_L);
 
     // Yes, we would like some focus please!
     return 1;
@@ -743,7 +757,12 @@ void Viewport::flushPendingClipboard()
   if (pendingClientCutText) {
     size_t len = strlen(pendingClientCutText);
     vlog.debug("Sending pending clipboard data (%d bytes)", (int)len);
-    cc->writer()->writeClientCutText(pendingClientCutText, len);
+    try {
+      cc->writer()->writeClientCutText(pendingClientCutText, len);
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
   }
 
   clearPendingClipboard();

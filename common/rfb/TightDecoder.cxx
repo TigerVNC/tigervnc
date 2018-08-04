@@ -364,7 +364,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   if (directDecode)
     outbuf = pb->getBufferRW(r, &stride);
   else {
-    outbuf = new rdr::U8[r.area() * pf.bpp/8];
+    outbuf = new rdr::U8[r.area() * (pf.bpp/8)];
     stride = r.width();
   }
 

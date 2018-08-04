@@ -21,12 +21,12 @@ URL: http://www.tigervnc.com
 Source0: %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1: vncserver.service
 Source2: vncserver.sysconfig
-Source11: http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
-Source13: http://downloads.sourceforge.net/project/libpng/libpng15/1.5.24/libpng-1.5.24.tar.bz2
-Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
-Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.7.tar.gz
-Source16: https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz
-Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.19.tar.xz
+Source11: http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-1-source.tar.gz
+Source13: http://downloads.sourceforge.net/project/libpng/libpng16/1.6.34/libpng-1.6.34.tar.gz
+Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.bz2
+Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.13.tar.gz
+Source16: https://ftp.gnu.org/gnu/nettle/nettle-3.4.tar.gz
+Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.30.tar.xz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: gcc, gcc-c++
@@ -60,7 +60,6 @@ Provides: tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 Patch16: tigervnc-xorg-manpages.patch
-Patch17: nettle-2.7.1-ecc-cve.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -162,14 +161,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %if %{_bootstrap}
 tar xzf %SOURCE11
-tar xjf %SOURCE13
+tar xzf %SOURCE13
 tar xjf %SOURCE14
 tar xzf %SOURCE15
 tar xzf %SOURCE16
-pushd nettle-*
-%patch17 -p1 -b .ecc-cve
-popd
-xzcat %SOURCE17 | tar xf -
+tar xJf %SOURCE17
 %endif
 
 cp -r /usr/share/xorg-x11-server-source/* unix/xserver
@@ -460,6 +456,9 @@ fi
 %endif
 
 %changelog
+* Sun Jul 22 2018 Brian P. Hinz <bphinz@users.sourceforge.net> 1.9.80-1
+- Update gnutls, libtasn1, libpng, gmp, fltk to latest upstream versions.
+
 * Mon Jun 20 2016 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-5
 - Patch for Xorg 1.17 due to vendor bump of Xorg version
 

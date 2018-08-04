@@ -350,7 +350,7 @@ void SMsgWriter::writePseudoRects()
   if (needSetCursor) {
     const Cursor& cursor = cp->cursor();
 
-    rdr::U8Array data(cursor.width()*cursor.height() * cp->pf().bpp/8);
+    rdr::U8Array data(cursor.width()*cursor.height() * (cp->pf().bpp/8));
     rdr::U8Array mask(cursor.getMask());
 
     const rdr::U8* in;

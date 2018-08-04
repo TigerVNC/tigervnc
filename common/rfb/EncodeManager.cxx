@@ -519,7 +519,7 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
 
   stats[klass][activeType].rects++;
   stats[klass][activeType].pixels += rect.area();
-  equiv = 12 + rect.area() * conn->cp.pf().bpp/8;
+  equiv = 12 + rect.area() * (conn->cp.pf().bpp/8);
   stats[klass][activeType].equivalent += equiv;
 
   encoder = encoders[klass];
@@ -561,7 +561,7 @@ void EncodeManager::writeCopyRects(const Region& copied, const Point& delta)
 
     copyStats.rects++;
     copyStats.pixels += rect->area();
-    equiv = 12 + rect->area() * conn->cp.pf().bpp/8;
+    equiv = 12 + rect->area() * (conn->cp.pf().bpp/8);
     copyStats.equivalent += equiv;
 
     conn->writer()->writeCopyRect(*rect, rect->tl.x - delta.x,

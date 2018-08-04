@@ -223,7 +223,7 @@ void ZRLEEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
   pf.bufferFromPixel(pixBuf, maxPixel);
 
   if ((pf.bpp != 32) || ((pixBuf[0] != 0) && (pixBuf[3] != 0))) {
-    zos.writeBytes(buffer, count * pf.bpp/8);
+    zos.writeBytes(buffer, count * (pf.bpp/8));
     return;
   }
 

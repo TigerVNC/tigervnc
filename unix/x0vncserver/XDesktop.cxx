@@ -289,6 +289,7 @@ void XDesktop::pointerEvent(const Point& pos, int buttonMask) {
 KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
   XkbDescPtr xkb;
   XkbStateRec state;
+  unsigned int mods;
   unsigned keycode;
 
   xkb = XkbGetMap(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
@@ -296,15 +297,15 @@ KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
     return 0;
 
   XkbGetState(dpy, XkbUseCoreKbd, &state);
+  // XkbStateFieldFromRec() doesn't work properly because
+  // state.lookup_mods isn't properly updated, so we do this manually
+  mods = XkbBuildCoreState(XkbStateMods(&state), state.group);
 
   for (keycode = xkb->min_key_code;
        keycode <= xkb->max_key_code;
        keycode++) {
     KeySym cursym;
-    unsigned int mods, out_mods;
-    // XkbStateFieldFromRec() doesn't work properly because
-    // state.lookup_mods isn't properly updated, so we do this manually
-    mods = XkbBuildCoreState(XkbStateMods(&state), state.group);
+    unsigned int out_mods;
     XkbTranslateKeyCode(xkb, keycode, mods, &out_mods, &cursym);
     if (cursym == keysym)
       break;
@@ -314,6 +315,11 @@ KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
     keycode = 0;
 
   XkbFreeKeyboard(xkb, XkbAllComponentsMask, True);
+
+  // Shift+Tab is usually ISO_Left_Tab, but RFB hides this fact. Do
+  // another attempt if we failed the initial lookup
+  if ((keycode == 0) && (keysym == XK_Tab) && (mods & ShiftMask))
+    return XkbKeysymToKeycode(dpy, XK_ISO_Left_Tab);
 
   return keycode;
 }
@@ -340,13 +346,17 @@ void XDesktop::keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
     }
   }
 
-  if (!keycode)
+  if (!keycode) {
+    vlog.error("Could not map key event to X11 key code");
     return;
+  }
 
   if (down)
     pressedKeys[keysym] = keycode;
   else
     pressedKeys.erase(keysym);
+
+  vlog.debug("%d %s", keycode, down ? "down" : "up");
 
   XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #endif

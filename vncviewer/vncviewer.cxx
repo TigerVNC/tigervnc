@@ -520,12 +520,14 @@ int main(int argc, char** argv)
   Configuration::enableViewerParams();
 
   /* Load the default parameter settings */
-  char defaultServerName[VNCSERVERNAMELEN];
+  char defaultServerName[VNCSERVERNAMELEN] = "";
   HostnameList hostHistory;
   try {
-    strncpy(defaultServerName, loadViewerParameters(NULL,&hostHistory), VNCSERVERNAMELEN);
+    const char* configServerName;
+    configServerName = loadViewerParameters(NULL,&hostHistory);
+    if (configServerName != NULL)
+      strncpy(defaultServerName, configServerName, VNCSERVERNAMELEN);
   } catch (rfb::Exception& e) {
-    strcpy(defaultServerName, "");
     vlog.error("%s", e.str());
     if (alertOnFatalError)
       fl_alert("%s", e.str());

@@ -47,6 +47,9 @@ from the X Consortium.
 #include <X11/Xproto.h>
 #include <X11/Xos.h>
 #include "scrnintstr.h"
+#if XORG >= 120
+#include "glx_extinit.h"
+#endif
 #include "servermd.h"
 #include "fb.h"
 #include "mi.h"
@@ -84,7 +87,7 @@ from the X Consortium.
 #include "version-config.h"
 #include "site.h"
 
-#define XVNCVERSION "TigerVNC 1.8.80"
+#define XVNCVERSION "TigerVNC 1.9.80"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2018 TigerVNC Team and many others (see README.rst)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
@@ -202,6 +205,7 @@ vfbBitsPerPixel(int depth)
 static void vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb);
 
 #ifdef DPMSExtension
+#if XORG < 120
     /* Why support DPMS? Because stupid modern desktop environments
        such as Unity 2D on Ubuntu 11.10 crashes if DPMS is not
        available. (DPMSSet is called by dpms.c, but the return value
@@ -217,6 +221,7 @@ Bool DPMSSupported(void)
        capable */
     return FALSE;
 }
+#endif
 #endif
 
 #if XORG < 111
@@ -1738,6 +1743,10 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
 
     vncPrintBanner();
 
+#if XORG >= 120
+    xorgGlxCreateVendor();
+#else
+
 #if XORG >= 113
 #ifdef GLXEXT
     if (serverGeneration == 1)
@@ -1747,6 +1756,8 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
         LoadExtension(&glxExt, TRUE);
 #endif
 #endif
+#endif
+
 #endif
 
     /* initialize pixmap formats */
