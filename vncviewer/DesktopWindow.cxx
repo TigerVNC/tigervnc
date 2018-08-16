@@ -365,9 +365,28 @@ void DesktopWindow::draw()
   // Overlay (if active)
   if (overlay) {
     int ox, oy, ow, oh;
+    int sx, sy, sw;
 
-    ox = X = (w() - overlay->width()) / 2;
-    oy = Y = 50;
+    // Make sure it's properly seen by adjusting it relative to the
+    // primary screen rather than the entire window
+    if (fullscreen_active()) {
+      ScreenSet layout;
+
+      layout = cc->cp.screenLayout;
+
+      assert(layout.num_screens() >= 1);
+
+      sx = layout.begin()->dimensions.tl.x;
+      sy = layout.begin()->dimensions.tl.y;
+      sw = layout.begin()->dimensions.width();
+    } else {
+      sx = 0;
+      sy = 0;
+      sw = w();
+    }
+
+    ox = X = sx + (sw - overlay->width()) / 2;
+    oy = Y = sy + 50;
     ow = overlay->width();
     oh = overlay->height();
 
