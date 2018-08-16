@@ -85,7 +85,7 @@ public class VncViewer extends javax.swing.JApplet
   private static VncViewer applet;
 
   private String defaultServerName;
-  int VNCSERVERNAMELEN = 64;
+  int VNCSERVERNAMELEN = 256;
   CharBuffer vncServerName = CharBuffer.allocate(VNCSERVERNAMELEN);
 
   public static void setLookAndFeel() {
