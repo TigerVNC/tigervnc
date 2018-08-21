@@ -116,16 +116,18 @@ public class DecodeManager {
     // Wait for an available memory buffer
     queueMutex.lock();
 
-    while (freeBuffers.isEmpty())
-      try {
-      producerCond.await();
-      } catch (InterruptedException e) { }
+    try {
+      while (freeBuffers.isEmpty())
+        try {
+        producerCond.await();
+        } catch (InterruptedException e) { }
 
-    // Don't pop the buffer in case we throw an exception
-    // whilst reading
-    bufferStream = freeBuffers.getFirst();
-
-    queueMutex.unlock();
+      // Don't pop the buffer in case we throw an exception
+      // whilst reading
+      bufferStream = freeBuffers.getFirst();
+    } finally {
+      queueMutex.unlock();
+    }
 
     // First check if any thread has encountered a problem
     throwThreadException();
@@ -151,29 +153,33 @@ public class DecodeManager {
 
     queueMutex.lock();
 
-    // The workers add buffers to the end so it's safe to assume
-    // the front is still the same buffer
-    freeBuffers.removeFirst();
+    try {
+      // The workers add buffers to the end so it's safe to assume
+      // the front is still the same buffer
+      freeBuffers.removeFirst();
 
-    workQueue.addLast(entry);
+      workQueue.addLast(entry);
 
-    // We only put a single entry on the queue so waking a single
-    // thread is sufficient
-    consumerCond.signal();
-
-    queueMutex.unlock();
+      // We only put a single entry on the queue so waking a single
+      // thread is sufficient
+      consumerCond.signal();
+    } finally {
+      queueMutex.unlock();
+    }
   }
 
   public void flush()
   {
     queueMutex.lock();
 
-    while (!workQueue.isEmpty())
-      try {
-      producerCond.await();
-      } catch (InterruptedException e) { }
-
-    queueMutex.unlock();
+    try {
+      while (!workQueue.isEmpty())
+        try {
+        producerCond.await();
+        } catch (InterruptedException e) { }
+    } finally {
+      queueMutex.unlock();
+    }
 
     throwThreadException();
   }
@@ -183,11 +189,15 @@ public class DecodeManager {
     //os::AutoMutex a(queueMutex);
     queueMutex.lock();
 
-    if (threadException != null)
-      return;
+    try {
+      if (threadException != null)
+        return;
 
-    threadException =
-      new Exception("Exception on worker thread: "+e.getMessage());
+      threadException =
+        new Exception("Exception on worker thread: "+e.getMessage());
+    } finally {
+      queueMutex.unlock();
+    }
   }
 
   private void throwThreadException()
@@ -195,14 +205,18 @@ public class DecodeManager {
     //os::AutoMutex a(queueMutex);
     queueMutex.lock();
 
-    if (threadException == null)
-      return;
+    try {
+      if (threadException == null)
+        return;
 
-    Exception e = new Exception(threadException.getMessage());
+      Exception e = new Exception(threadException.getMessage());
 
-    threadException = null;
+      threadException = null;
 
-    throw e;
+      throw e;
+    } finally {
+      queueMutex.unlock();
+    }
   }
 
   private class QueueEntry {
@@ -236,13 +250,17 @@ public class DecodeManager {
       //os::AutoMutex a(manager.queueMutex);
       manager.queueMutex.lock();
 
-      if (!thread.isAlive())
-        return;
+      try {
+        if (!thread.isAlive())
+          return;
 
-      stopRequested = true;
+        stopRequested = true;
 
-      // We can't wake just this thread, so wake everyone
-      manager.consumerCond.signalAll();
+        // We can't wake just this thread, so wake everyone
+        manager.consumerCond.signalAll();
+      } finally {
+        manager.queueMutex.unlock();
+      }
     }
 
     public void run()
