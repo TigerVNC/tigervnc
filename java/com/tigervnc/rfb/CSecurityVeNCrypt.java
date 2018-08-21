@@ -51,16 +51,16 @@ public class CSecurityVeNCrypt extends CSecurity {
     OutStream os = cc.getOutStream();
 
     /* get major, minor versions, send what we can support (or 0.0 for can't support it) */
-    if (!haveRecvdMinorVersion) {
-      minorVersion = is.readU8();
-      haveRecvdMinorVersion = true;
+    if (!haveRecvdMajorVersion) {
+      majorVersion = is.readU8();
+      haveRecvdMajorVersion = true;
 
       return false;
     }
 
-    if (!haveRecvdMajorVersion) {
-      majorVersion = is.readU8();
-      haveRecvdMajorVersion = true;
+    if (!haveRecvdMinorVersion) {
+      minorVersion = is.readU8();
+      haveRecvdMinorVersion = true;
     }
 
     /* major version in upper 8 bits and minor version in lower 8 bits */
