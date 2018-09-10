@@ -204,6 +204,8 @@ void XDesktop::poll() {
     unsigned int mask;
     XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
                   &x, &y, &wx, &wy, &mask);
+    x -= geometry->offsetLeft();
+    y -= geometry->offsetTop();
     server->setCursorPos(rfb::Point(x, y));
   }
 }
