@@ -601,11 +601,6 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   delete imageText;
 
-  x = (this->w() - image->w()) / 2;
-  y = 50;
-  w = image->w();
-  h = image->h();
-
   overlay = new Surface(image);
   overlayAlpha = 0;
   gettimeofday(&overlayStart, NULL);
