@@ -567,11 +567,14 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
      VNCSConnectionST::setDesktopSize. Another ExtendedDesktopSize
      with reason=0 will be sent in response to the changes seen by the
      event handler. */
-  if (adjustedLayout != layout) {
+  if (adjustedLayout != layout)
     return rfb::resultInvalid;
-  } else {
-    return ret;
-  }
+
+  // Explicitly update the server state with the result as there
+  // can be corner cases where we don't get feedback from the X server
+  server->setScreenLayout(computeScreenLayout());
+
+  return ret;
 
 #else
   return rfb::resultProhibited;

@@ -557,6 +557,8 @@ void XserverDesktop::clientCutText(const char* str, int len)
 unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
                                              const rfb::ScreenSet& layout)
 {
+  unsigned int result;
+
   char buffer[2048];
   vlog.debug("Got request for framebuffer resize to %dx%d",
              fb_width, fb_height);
@@ -564,7 +566,13 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   vlog.debug("%s", buffer);
 
   vncSetGlueContext(screenIndex);
-  return ::setScreenLayout(fb_width, fb_height, layout, &outputIdMap);
+  result = ::setScreenLayout(fb_width, fb_height, layout, &outputIdMap);
+
+  // Explicitly update the server state with the result as there
+  // can be corner cases where we don't get feedback from the X core
+  refreshScreenLayout();
+
+  return result;
 }
 
 void XserverDesktop::grabRegion(const rfb::Region& region)
