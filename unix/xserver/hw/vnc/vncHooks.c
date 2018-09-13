@@ -815,20 +815,6 @@ static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   RENDER_EPILOGUE(Composite);
 }
 
-static int
-GlyphCount(int nlist, GlyphListPtr list, GlyphPtr * glyphs)
-{
-  int count;
-
-  count = 0;
-  while (nlist--) {
-    count += list->len;
-    list++;
-  }
-
-  return count;
-}
-
 static RegionPtr
 GlyphsToRegion(ScreenPtr pScreen, int nlist, GlyphListPtr list, GlyphPtr *glyphs)
 {
@@ -836,7 +822,7 @@ GlyphsToRegion(ScreenPtr pScreen, int nlist, GlyphListPtr list, GlyphPtr *glyphs
   GlyphPtr glyph;
   int x, y;
 
-  int nrects = GlyphCount(nlist, list, glyphs);
+  int nrects = nlist;
   xRectangle rects[nrects];
   xRectanglePtr rect;
 
@@ -844,20 +830,48 @@ GlyphsToRegion(ScreenPtr pScreen, int nlist, GlyphListPtr list, GlyphPtr *glyphs
   y = 0;
   rect = &rects[0];
   while (nlist--) {
+    int left, right, top, bottom;
+
     x += list->xOff;
     y += list->yOff;
     n = list->len;
     list++;
+
+    left = INT_MAX;
+    top = INT_MAX;
+    right = -INT_MAX;
+    bottom = -INT_MAX;
     while (n--) {
+      int gx, gy, gw, gh;
+
       glyph = *glyphs++;
-      rect->x = x - glyph->info.x;
-      rect->y = y - glyph->info.y;
-      rect->width = glyph->info.width;
-      rect->height = glyph->info.height;
+      gx = x - glyph->info.x;
+      gy = y - glyph->info.y;
+      gw = glyph->info.width;
+      gh = glyph->info.height;
       x += glyph->info.xOff;
       y += glyph->info.yOff;
-      rect++;
+
+      if (gx < left)
+        left = gx;
+      if (gy < top)
+        top = gy;
+      if (gx + gw > right)
+        right = gx + gw;
+      if (gy + gh > bottom)
+        bottom = gy + gh;
     }
+
+    rect->x = left;
+    rect->y = top;
+    if ((right > left) && (bottom > top)) {
+      rect->width = right - left;
+      rect->height = bottom - top;
+    } else {
+      rect->width = 0;
+      rect->height = 0;
+    }
+    rect++;
   }
 
   return RECTS_TO_REGION(pScreen, nrects, rects, CT_NONE);
