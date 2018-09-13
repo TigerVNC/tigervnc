@@ -135,6 +135,12 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
     y += 20 + 5;
     username = new Fl_Input(70, y, win->w()-70-10, 25);
     y += 25 + 5;
+  } else {
+    /*
+     * Compiler is not bright enough to understand that
+     * username won't be used further down...
+     */
+    username = NULL;
   }
 
   (new Fl_Box(70, y, win->w()-70-10, 20, _("Password:")))

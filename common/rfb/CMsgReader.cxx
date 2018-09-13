@@ -210,18 +210,19 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
 
-  rdr::U8 pr, pg, pb;
-  rdr::U8 sr, sg, sb;
-  int data_len = ((width+7)/8) * height;
-  int mask_len = ((width+7)/8) * height;
-  rdr::U8Array data(data_len);
-  rdr::U8Array mask(mask_len);
-
-  int x, y;
   rdr::U8 buf[width*height*4];
-  rdr::U8* out;
 
   if (width * height > 0) {
+    rdr::U8 pr, pg, pb;
+    rdr::U8 sr, sg, sb;
+    int data_len = ((width+7)/8) * height;
+    int mask_len = ((width+7)/8) * height;
+    rdr::U8Array data(data_len);
+    rdr::U8Array mask(mask_len);
+
+    int x, y;
+    rdr::U8* out;
+
     pr = is->readU8();
     pg = is->readU8();
     pb = is->readU8();
@@ -232,31 +233,31 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
 
     is->readBytes(data.buf, data_len);
     is->readBytes(mask.buf, mask_len);
-  }
 
-  int maskBytesPerRow = (width+7)/8;
-  out = buf;
-  for (y = 0;y < height;y++) {
-    for (x = 0;x < width;x++) {
-      int byte = y * maskBytesPerRow + x / 8;
-      int bit = 7 - x % 8;
+    int maskBytesPerRow = (width+7)/8;
+    out = buf;
+    for (y = 0;y < height;y++) {
+      for (x = 0;x < width;x++) {
+        int byte = y * maskBytesPerRow + x / 8;
+        int bit = 7 - x % 8;
 
-      if (data.buf[byte] & (1 << bit)) {
-        out[0] = pr;
-        out[1] = pg;
-        out[2] = pb;
-      } else {
-        out[0] = sr;
-        out[1] = sg;
-        out[2] = sb;
+        if (data.buf[byte] & (1 << bit)) {
+          out[0] = pr;
+          out[1] = pg;
+          out[2] = pb;
+        } else {
+          out[0] = sr;
+          out[1] = sg;
+          out[2] = sb;
+        }
+
+        if (mask.buf[byte] & (1 << bit))
+          out[3] = 255;
+        else
+          out[3] = 0;
+
+        out += 4;
       }
-
-      if (mask.buf[byte] & (1 << bit))
-        out[3] = 255;
-      else
-        out[3] = 0;
-
-      out += 4;
     }
   }
 
