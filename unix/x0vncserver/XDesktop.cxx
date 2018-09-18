@@ -708,16 +708,15 @@ bool XDesktop::setCursor()
     for (int x = 0; x < cim->width; x++) {
       rdr::U8 alpha;
       rdr::U32 pixel = *pixels++;
-      rdr::U8 *in = (rdr::U8 *) &pixel;
 
-      alpha = in[3];
+      alpha = (pixel >> 24) & 0xff;
       if (alpha == 0)
         alpha = 1; // Avoid division by zero
 
-      *out++ = (unsigned)*in++ * 255/alpha;
-      *out++ = (unsigned)*in++ * 255/alpha;
-      *out++ = (unsigned)*in++ * 255/alpha;
-      *out++ = *in++;
+      *out++ = ((pixel >> 16) & 0xff) * 255/alpha;
+      *out++ = ((pixel >>  8) & 0xff) * 255/alpha;
+      *out++ = ((pixel >>  0) & 0xff) * 255/alpha;
+      *out++ = ((pixel >> 24) & 0xff);
     }
   }
 
