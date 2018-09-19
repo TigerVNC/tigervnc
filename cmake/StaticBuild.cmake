@@ -19,10 +19,7 @@ if(BUILD_STATIC)
   set(BUILD_STATIC_GCC 1)
 
   set(JPEG_LIBRARIES "-Wl,-Bstatic -ljpeg -Wl,-Bdynamic")
-
-  if(WIN32)
-    set(ZLIB_LIBRARIES "-Wl,-Bstatic -lz -Wl,-Bdynamic")
-  endif()
+  set(ZLIB_LIBRARIES "-Wl,-Bstatic -lz -Wl,-Bdynamic")
 
   # gettext is included in libc on many unix systems
   if(NOT LIBC_HAS_DGETTEXT)
