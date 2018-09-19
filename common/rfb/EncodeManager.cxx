@@ -476,6 +476,9 @@ Region EncodeManager::getLosslessRefresh(const Region& req,
   // We make a conservative guess at the compression ratio at 2:1
   maxUpdateSize *= 2;
 
+  // We will measure pixels, not bytes (assume 32 bpp)
+  maxUpdateSize /= 4;
+
   area = 0;
   pendingRefreshRegion.intersect(req).get_rects(&rects);
   while (!rects.empty()) {
