@@ -1087,18 +1087,21 @@ void VNCSConnectionST::writeDataUpdate()
   if (!ui.is_empty())
     encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
   else {
-    size_t maxUpdateSize;
+    int nextUpdate;
 
     // FIXME: If continuous updates aren't used then the client might
     //        be slower than frameRate in its requests and we could
     //        afford a larger update size
+    nextUpdate = server->msToNextUpdate();
+    if (nextUpdate > 0) {
+      size_t maxUpdateSize;
 
-    // FIXME: Bandwidth estimation without congestion control
-    maxUpdateSize = congestion.getBandwidth() *
-                    server->msToNextUpdate() / 1000;
+      // FIXME: Bandwidth estimation without congestion control
+      maxUpdateSize = congestion.getBandwidth() * nextUpdate / 1000;
 
-    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
-                                       cursor, maxUpdateSize);
+      encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
+                                         cursor, maxUpdateSize);
+    }
   }
 
   writeRTTPing();
