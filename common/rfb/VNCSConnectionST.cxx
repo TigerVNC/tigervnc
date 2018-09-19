@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2018 Pierre Ossman for Cendio AB
+ * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +49,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(NULL), congestionTimer(this),
-    server(server_), updates(false),
+    losslessTimer(this), server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
     clientHasCursor(false),
@@ -839,7 +840,8 @@ void VNCSConnectionST::supportsLEDState()
 bool VNCSConnectionST::handleTimeout(Timer* t)
 {
   try {
-    if (t == &congestionTimer)
+    if ((t == &congestionTimer) ||
+        (t == &losslessTimer))
       writeFramebufferUpdate();
   } catch (rdr::Exception& e) {
     close(e.str());
@@ -1065,10 +1067,20 @@ void VNCSConnectionST::writeDataUpdate()
   }
 
   // Return if there is nothing to send the client.
+  if (ui.is_empty() && !writer()->needFakeUpdate()) {
+    int eta;
 
-  if (ui.is_empty() && !writer()->needFakeUpdate() &&
-      !encodeManager.needsLosslessRefresh(req))
-    return;
+    // Any lossless refresh that needs handling?
+    if (!encodeManager.needsLosslessRefresh(req))
+      return;
+
+    // Now? Or later?
+    eta = encodeManager.getNextLosslessRefresh(req);
+    if (eta > 0) {
+      losslessTimer.start(eta);
+      return;
+    }
+  }
 
   writeRTTPing();
 
