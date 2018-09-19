@@ -1094,11 +1094,16 @@ void VNCSConnectionST::writeDataUpdate()
     //        afford a larger update size
     nextUpdate = server->msToNextUpdate();
     if (nextUpdate > 0) {
-      size_t maxUpdateSize;
+      size_t bandwidth, maxUpdateSize;
 
       // FIXME: Bandwidth estimation without congestion control
-      maxUpdateSize = congestion.getBandwidth() * nextUpdate / 1000;
+      bandwidth = congestion.getBandwidth();
 
+      // FIXME: Hard coded value for maximum CPU throughput
+      if (bandwidth > 5000000)
+        bandwidth = 5000000;
+
+      maxUpdateSize = bandwidth * nextUpdate / 1000;
       encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
                                          cursor, maxUpdateSize);
     }
