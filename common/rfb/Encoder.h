@@ -42,7 +42,7 @@ namespace rfb {
   class Encoder {
   public:
     Encoder(SConnection* conn, int encoding,
-            enum EncoderFlags flags, unsigned int maxPaletteSize);
+            enum EncoderFlags flags, unsigned int maxPaletteSize=-1);
     virtual ~Encoder();
 
     // isSupported() should return a boolean indicating if this encoder
