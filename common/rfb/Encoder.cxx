@@ -24,9 +24,11 @@
 using namespace rfb;
 
 Encoder::Encoder(SConnection *conn_, int encoding_,
-                 enum EncoderFlags flags_, unsigned int maxPaletteSize_) :
+                 enum EncoderFlags flags_,
+                 unsigned int maxPaletteSize_, int losslessQuality_) :
   encoding(encoding_), flags(flags_),
-  maxPaletteSize(maxPaletteSize_), conn(conn_)
+  maxPaletteSize(maxPaletteSize_), losslessQuality(losslessQuality_),
+  conn(conn_)
 {
 }
 

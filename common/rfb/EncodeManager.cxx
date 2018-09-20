@@ -364,12 +364,20 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   enum EncoderClass solid, bitmap, bitmapRLE;
   enum EncoderClass indexed, indexedRLE, fullColour;
 
+  bool allowJPEG;
+
   rdr::S32 preferred;
 
   std::vector<int>::iterator iter;
 
   solid = bitmap = bitmapRLE = encoderRaw;
   indexed = indexedRLE = fullColour = encoderRaw;
+
+  allowJPEG = conn->cp.pf().bpp >= 16;
+  if (!allowLossy) {
+    if (encoders[encoderTightJPEG]->losslessQuality == -1)
+      allowJPEG = false;
+  }
 
   // Try to respect the client's wishes
   preferred = conn->getPreferredEncoding();
@@ -383,8 +391,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     bitmapRLE = indexedRLE = fullColour = encoderHextile;
     break;
   case encodingTight:
-    if (encoders[encoderTightJPEG]->isSupported() &&
-        (conn->cp.pf().bpp >= 16) && allowLossy)
+    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
       fullColour = encoderTightJPEG;
     else
       fullColour = encoderTight;
@@ -401,8 +408,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   // Any encoders still unassigned?
 
   if (fullColour == encoderRaw) {
-    if (encoders[encoderTightJPEG]->isSupported() &&
-        (conn->cp.pf().bpp >= 16) && allowLossy)
+    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
       fullColour = encoderTightJPEG;
     else if (encoders[encoderZRLE]->isSupported())
       fullColour = encoderZRLE;
@@ -460,9 +466,17 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     encoder = encoders[*iter];
 
     encoder->setCompressLevel(conn->cp.compressLevel);
-    encoder->setQualityLevel(conn->cp.qualityLevel);
-    encoder->setFineQualityLevel(conn->cp.fineQualityLevel,
-                                 conn->cp.subsampling);
+
+    if (allowLossy) {
+      encoder->setQualityLevel(conn->cp.qualityLevel);
+      encoder->setFineQualityLevel(conn->cp.fineQualityLevel,
+                                   conn->cp.subsampling);
+    } else {
+      int level = __rfbmax(conn->cp.qualityLevel,
+                           encoder->losslessQuality);
+      encoder->setQualityLevel(level);
+      encoder->setFineQualityLevel(-1, subsampleUndefined);
+    }
   }
 }
 
@@ -567,7 +581,9 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
   encoder = encoders[klass];
   conn->writer()->startRect(rect, encoder->encoding);
 
-  if (encoder->flags & EncoderLossy)
+  if ((encoder->flags & EncoderLossy) &&
+      ((encoder->losslessQuality == -1) ||
+       (encoder->getQualityLevel() < encoder->losslessQuality)))
     lossyRegion.assign_union(Region(rect));
   else
     lossyRegion.assign_subtract(Region(rect));

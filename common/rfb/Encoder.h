@@ -42,7 +42,8 @@ namespace rfb {
   class Encoder {
   public:
     Encoder(SConnection* conn, int encoding,
-            enum EncoderFlags flags, unsigned int maxPaletteSize=-1);
+            enum EncoderFlags flags, unsigned int maxPaletteSize=-1,
+            int losslessQuality=-1);
     virtual ~Encoder();
 
     // isSupported() should return a boolean indicating if this encoder
@@ -94,6 +95,10 @@ namespace rfb {
 
     // Maximum size of the palette per rect
     const unsigned int maxPaletteSize;
+
+    // Minimum level where the quality loss will not be noticed by
+    // most users (only relevant with EncoderLossy flag)
+    const int losslessQuality;
 
   protected:
     SConnection* conn;
