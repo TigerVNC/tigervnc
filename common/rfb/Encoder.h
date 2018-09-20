@@ -54,6 +54,9 @@ namespace rfb {
     virtual void setQualityLevel(int level) {};
     virtual void setFineQualityLevel(int quality, int subsampling) {};
 
+    virtual int getCompressLevel() { return -1; };
+    virtual int getQualityLevel() { return -1; };
+
     // writeRect() is the main interface that encodes the given rectangle
     // with data from the PixelBuffer onto the SConnection given at
     // encoder creation.

@@ -101,6 +101,11 @@ void TightJPEGEncoder::setFineQualityLevel(int quality, int subsampling)
   fineSubsampling = subsampling;
 }
 
+int TightJPEGEncoder::getQualityLevel()
+{
+  return qualityLevel;
+}
+
 void TightJPEGEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 {
   const rdr::U8* buffer;
