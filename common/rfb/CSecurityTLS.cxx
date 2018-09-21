@@ -69,7 +69,7 @@ static LogWriter vlog("TLS");
 
 CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
   : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
-    anon(_anon), fis(NULL), fos(NULL)
+    anon(_anon), tlsis(NULL), tlsos(NULL)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
@@ -116,6 +116,15 @@ void CSecurityTLS::shutdown(bool needbye)
     cert_cred = 0;
   }
 
+  if (tlsis) {
+    delete tlsis;
+    tlsis = NULL;
+  }
+  if (tlsos) {
+    delete tlsos;
+    tlsos = NULL;
+  }
+
   if (session) {
     gnutls_deinit(session);
     session = 0;
@@ -126,11 +135,6 @@ void CSecurityTLS::shutdown(bool needbye)
 CSecurityTLS::~CSecurityTLS()
 {
   shutdown(true);
-
-  if (fis)
-    delete fis;
-  if (fos)
-    delete fos;
 
   delete[] cafile;
   delete[] crlfile;
@@ -165,17 +169,16 @@ bool CSecurityTLS::processMsg()
       throw AuthFailureException("gnutls_set_default_priority failed");
 
     setParam();
-  }
 
-  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
-  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
+    // Create these early as they set up the push/pull functions
+    // for GnuTLS
+    tlsis = new rdr::TLSInStream(is, session);
+    tlsos = new rdr::TLSOutStream(os, session);
+  }
 
   int err;
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
-    delete tlsis;
-    delete tlsos;
-
     if (!gnutls_error_is_fatal(err))
       return false;
 
@@ -186,7 +189,7 @@ bool CSecurityTLS::processMsg()
 
   checkSession();
 
-  cc->setStreams(fis = tlsis, fos = tlsos);
+  cc->setStreams(tlsis, tlsos);
 
   return true;
 }

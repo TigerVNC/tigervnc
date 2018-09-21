@@ -63,8 +63,8 @@ namespace rfb {
     int type;
     bool anon;
 
-    rdr::InStream* fis;
-    rdr::OutStream* fos;
+    rdr::InStream* tlsis;
+    rdr::OutStream* tlsos;
   };
 
 }

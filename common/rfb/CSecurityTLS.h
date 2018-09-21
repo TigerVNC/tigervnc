@@ -69,8 +69,9 @@ namespace rfb {
     bool anon;
 
     char *cafile, *crlfile;
-    rdr::InStream* fis;
-    rdr::OutStream* fos;
+
+    rdr::InStream* tlsis;
+    rdr::OutStream* tlsos;
   };
 }
 
