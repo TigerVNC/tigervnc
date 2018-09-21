@@ -134,6 +134,8 @@ static keymap_t keymap[] = {
   { XK_Control_R,        VK_CONTROL, 1 },
   { XK_Alt_L,            VK_MENU, 0 },
   { XK_Alt_R,            VK_MENU, 1 },
+  { XK_Meta_L,           VK_MENU, 0 },
+  { XK_Meta_R,           VK_MENU, 1 },
 
   // Left & Right Windows keys & Windows Menu Key
 
