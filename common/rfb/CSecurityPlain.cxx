@@ -26,7 +26,7 @@
 
 using namespace rfb;
 
-bool CSecurityPlain::processMsg(CConnection* cc)
+bool CSecurityPlain::processMsg()
 {
    rdr::OutStream* os = cc->getOutStream();
 

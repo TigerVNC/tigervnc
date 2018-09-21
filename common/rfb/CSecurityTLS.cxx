@@ -67,8 +67,9 @@ StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer
 
 static LogWriter vlog("TLS");
 
-CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
-						 cert_cred(0), anon(_anon), fis(0), fos(0)
+CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
+  : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
+    anon(_anon), fis(NULL), fos(NULL)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
@@ -137,7 +138,7 @@ CSecurityTLS::~CSecurityTLS()
   gnutls_global_deinit();
 }
 
-bool CSecurityTLS::processMsg(CConnection* cc)
+bool CSecurityTLS::processMsg()
 {
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();

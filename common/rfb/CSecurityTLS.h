@@ -42,9 +42,9 @@ namespace rfb {
   class UserMsgBox;
   class CSecurityTLS : public CSecurity {
   public:
-    CSecurityTLS(bool _anon);
+    CSecurityTLS(CConnection* cc, bool _anon);
     virtual ~CSecurityTLS();
-    virtual bool processMsg(CConnection* cc);
+    virtual bool processMsg();
     virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
     virtual const char* description() const
       { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }

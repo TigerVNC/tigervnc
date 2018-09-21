@@ -235,14 +235,14 @@ void CConnection::processSecurityTypesMsg()
   }
 
   state_ = RFBSTATE_SECURITY;
-  csecurity = security.GetCSecurity(secType);
+  csecurity = security.GetCSecurity(this, secType);
   processSecurityMsg();
 }
 
 void CConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
-  if (csecurity->processMsg(this)) {
+  if (csecurity->processMsg()) {
     state_ = RFBSTATE_SECURITY_RESULT;
     processSecurityResultMsg();
   }

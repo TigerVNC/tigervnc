@@ -20,8 +20,11 @@
 
 using namespace rfb;
 
-SSecurityStack::SSecurityStack(int Type, SSecurity* s0, SSecurity* s1)
-  :state(0), state0(s0), state1(s1), type(Type) {}
+SSecurityStack::SSecurityStack(SConnection* sc, int Type,
+                               SSecurity* s0, SSecurity* s1)
+  : SSecurity(sc), state(0), state0(s0), state1(s1), type(Type)
+{
+}
 
 SSecurityStack::~SSecurityStack()
 {
@@ -31,13 +34,13 @@ SSecurityStack::~SSecurityStack()
     delete state1;
 }
 
-bool SSecurityStack::processMsg(SConnection* cc)
+bool SSecurityStack::processMsg()
 {
   bool res = true;
 
   if (state == 0) {
     if (state0)
-      res = state0->processMsg(cc);
+      res = state0->processMsg();
     if (!res)
       return res;
     state++;
@@ -45,7 +48,7 @@ bool SSecurityStack::processMsg(SConnection* cc)
 
   if (state == 1) {
     if (state1)
-      res = state1->processMsg(cc);
+      res = state1->processMsg();
     if (!res)
       return res;
     state++;

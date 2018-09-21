@@ -36,7 +36,8 @@ using namespace std;
 
 static LogWriter vlog("CVeNCrypt");
 
-CSecurityVeNCrypt::CSecurityVeNCrypt(SecurityClient* sec) : csecurity(NULL), security(sec)
+CSecurityVeNCrypt::CSecurityVeNCrypt(CConnection* cc, SecurityClient* sec)
+  : CSecurity(cc), csecurity(NULL), security(sec)
 {
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -59,7 +60,7 @@ CSecurityVeNCrypt::~CSecurityVeNCrypt()
 	delete[] availableTypes;
 }
 
-bool CSecurityVeNCrypt::processMsg(CConnection* cc)
+bool CSecurityVeNCrypt::processMsg()
 {
   InStream* is = cc->getInStream();
   OutStream* os = cc->getOutStream();
@@ -171,7 +172,7 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
       if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
 	throw AuthFailureException("No valid VeNCrypt sub-type");
 
-      csecurity = security->GetCSecurity(chosenType);
+      csecurity = security->GetCSecurity(cc, chosenType);
 
       /* send chosen type to server */
       os->writeU32(chosenType);
@@ -188,7 +189,7 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
     throw AuthFailureException("The server reported 0 VeNCrypt sub-types");
   }
 
-  return csecurity->processMsg(cc);
+  return csecurity->processMsg();
 }
 
 const char* CSecurityVeNCrypt::description() const

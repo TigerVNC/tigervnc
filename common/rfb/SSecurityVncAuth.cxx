@@ -48,8 +48,9 @@ VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 ("Password", "Obfuscated binary encoding of the password which clients must supply to "
  "access the server", &SSecurityVncAuth::vncAuthPasswdFile);
 
-SSecurityVncAuth::SSecurityVncAuth(void)
-  : sentChallenge(false), responsePos(0), pg(&vncAuthPasswd), accessRights(0)
+SSecurityVncAuth::SSecurityVncAuth(SConnection* sc)
+  : SSecurity(sc), sentChallenge(false), responsePos(0),
+    pg(&vncAuthPasswd), accessRights(0)
 {
 }
 
@@ -70,7 +71,7 @@ bool SSecurityVncAuth::verifyResponse(const PlainPasswd &password)
   return memcmp(response, expectedResponse, vncAuthChallengeSize) == 0;
 }
 
-bool SSecurityVncAuth::processMsg(SConnection* sc)
+bool SSecurityVncAuth::processMsg()
 {
   rdr::InStream* is = sc->getInStream();
   rdr::OutStream* os = sc->getOutStream();

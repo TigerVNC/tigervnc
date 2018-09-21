@@ -55,7 +55,7 @@ StringParameter SecurityClient::secTypes
 #endif
 ConfViewer);
 
-CSecurity* SecurityClient::GetCSecurity(U32 secType)
+CSecurity* SecurityClient::GetCSecurity(CConnection* cc, U32 secType)
 {
   assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
 #ifdef HAVE_GNUTLS
@@ -66,29 +66,39 @@ CSecurity* SecurityClient::GetCSecurity(U32 secType)
     goto bail;
 
   switch (secType) {
-  case secTypeNone: return new CSecurityNone();
-  case secTypeVncAuth: return new CSecurityVncAuth();
-  case secTypeVeNCrypt: return new CSecurityVeNCrypt(this);
-  case secTypePlain: return new CSecurityPlain();
+  case secTypeNone: return new CSecurityNone(cc);
+  case secTypeVncAuth: return new CSecurityVncAuth(cc);
+  case secTypeVeNCrypt: return new CSecurityVeNCrypt(cc, this);
+  case secTypePlain: return new CSecurityPlain(cc);
 #ifdef HAVE_GNUTLS
   case secTypeTLSNone:
-    return new CSecurityStack(secTypeTLSNone, "TLS with no password",
-			      new CSecurityTLS(true));
+    return new CSecurityStack(cc, secTypeTLSNone,
+                              "TLS with no password",
+                              new CSecurityTLS(cc, true));
   case secTypeTLSVnc:
-    return new CSecurityStack(secTypeTLSVnc, "TLS with VNCAuth",
-			      new CSecurityTLS(true), new CSecurityVncAuth());
+    return new CSecurityStack(cc, secTypeTLSVnc,
+                              "TLS with VNCAuth",
+                              new CSecurityTLS(cc, true),
+                              new CSecurityVncAuth(cc));
   case secTypeTLSPlain:
-    return new CSecurityStack(secTypeTLSPlain, "TLS with Username/Password",
-			      new CSecurityTLS(true), new CSecurityPlain());
+    return new CSecurityStack(cc, secTypeTLSPlain,
+                              "TLS with Username/Password",
+                              new CSecurityTLS(cc, true),
+                              new CSecurityPlain(cc));
   case secTypeX509None:
-    return new CSecurityStack(secTypeX509None, "X509 with no password",
-			      new CSecurityTLS(false));
+    return new CSecurityStack(cc, secTypeX509None,
+                              "X509 with no password",
+                              new CSecurityTLS(cc, false));
   case secTypeX509Vnc:
-    return new CSecurityStack(secTypeX509Vnc, "X509 with VNCAuth",
-			      new CSecurityTLS(false), new CSecurityVncAuth());
+    return new CSecurityStack(cc, secTypeX509Vnc,
+                              "X509 with VNCAuth",
+                              new CSecurityTLS(cc, false),
+                              new CSecurityVncAuth(cc));
   case secTypeX509Plain:
-    return new CSecurityStack(secTypeX509Plain, "X509 with Username/Password",
-			      new CSecurityTLS(false), new CSecurityPlain());
+    return new CSecurityStack(cc, secTypeX509Plain,
+                              "X509 with Username/Password",
+                              new CSecurityTLS(cc, false),
+                              new CSecurityPlain(cc));
 #endif
   }
 

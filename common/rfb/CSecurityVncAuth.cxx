@@ -40,7 +40,7 @@ using namespace rfb;
 
 static const int vncAuthChallengeSize = 16;
 
-bool CSecurityVncAuth::processMsg(CConnection* cc)
+bool CSecurityVncAuth::processMsg()
 {
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();

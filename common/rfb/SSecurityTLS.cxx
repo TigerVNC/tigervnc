@@ -49,9 +49,9 @@ StringParameter SSecurityTLS::X509_KeyFile
 
 static LogWriter vlog("TLS");
 
-SSecurityTLS::SSecurityTLS(bool _anon) : session(0), dh_params(0),
-						 anon_cred(0), cert_cred(0),
-						 anon(_anon), fis(0), fos(0)
+SSecurityTLS::SSecurityTLS(SConnection* sc, bool _anon)
+  : SSecurity(sc), session(NULL), dh_params(NULL), anon_cred(NULL),
+    cert_cred(NULL), anon(_anon), fis(NULL), fos(NULL)
 {
   certfile = X509_CertFile.getData();
   keyfile = X509_KeyFile.getData();
@@ -106,7 +106,7 @@ SSecurityTLS::~SSecurityTLS()
   gnutls_global_deinit();
 }
 
-bool SSecurityTLS::processMsg(SConnection *sc)
+bool SSecurityTLS::processMsg()
 {
   rdr::InStream* is = sc->getInStream();
   rdr::OutStream* os = sc->getOutStream();

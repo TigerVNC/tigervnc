@@ -36,9 +36,9 @@ namespace rfb {
 
   class SSecurityVeNCrypt : public SSecurity {
   public:
-    SSecurityVeNCrypt(SecurityServer *sec);
+    SSecurityVeNCrypt(SConnection* sc, SecurityServer *sec);
     ~SSecurityVeNCrypt();
-    virtual bool processMsg(SConnection* sc);// { return true; }
+    virtual bool processMsg();
     virtual int getType() const { return chosenType; }
     virtual const char* getUserName() const;
     virtual SConnection::AccessRights getAccessRights() const;

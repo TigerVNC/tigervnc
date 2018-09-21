@@ -156,7 +156,7 @@ void SConnection::processVersionMsg()
     os->writeU32(*i);
     if (*i == secTypeNone) os->flush();
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security.GetSSecurity(*i);
+    ssecurity = security.GetSSecurity(this, *i);
     processSecurityMsg();
     return;
   }
@@ -199,7 +199,7 @@ void SConnection::processSecurityType(int secType)
 
   try {
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security.GetSSecurity(secType);
+    ssecurity = security.GetSSecurity(this, secType);
   } catch (rdr::Exception& e) {
     throwConnFailedException("%s", e.str());
   }
@@ -211,7 +211,7 @@ void SConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
   try {
-    bool done = ssecurity->processMsg(this);
+    bool done = ssecurity->processMsg();
     if (done) {
       state_ = RFBSTATE_QUERYING;
       setAccessRights(ssecurity->getAccessRights());
