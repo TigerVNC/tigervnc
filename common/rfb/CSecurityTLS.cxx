@@ -68,7 +68,7 @@ StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer
 static LogWriter vlog("TLS");
 
 CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
-						 anon(_anon), fis(0), fos(0)
+						 cert_cred(0), anon(_anon), fis(0), fos(0)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
