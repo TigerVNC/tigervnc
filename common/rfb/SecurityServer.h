@@ -24,7 +24,8 @@
 #include <rfb/Security.h>
 
 namespace rfb {
-  
+
+  class SConnection;
   class SSecurity;
 
   class SecurityServer : public Security {
@@ -32,7 +33,7 @@ namespace rfb {
     SecurityServer(void) : Security(secTypes) {}
 
     /* Create server side SSecurity class instance */
-    SSecurity* GetSSecurity(rdr::U32 secType);
+    SSecurity* GetSSecurity(SConnection* sc, rdr::U32 secType);
 
     static StringParameter secTypes;
   };

@@ -67,8 +67,9 @@ StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer
 
 static LogWriter vlog("TLS");
 
-CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
-						 anon(_anon), fis(0), fos(0)
+CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
+  : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
+    anon(_anon), tlsis(NULL), tlsos(NULL), rawis(NULL), rawos(NULL)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
@@ -115,6 +116,21 @@ void CSecurityTLS::shutdown(bool needbye)
     cert_cred = 0;
   }
 
+  if (rawis && rawos) {
+    cc->setStreams(rawis, rawos);
+    rawis = NULL;
+    rawos = NULL;
+  }
+
+  if (tlsis) {
+    delete tlsis;
+    tlsis = NULL;
+  }
+  if (tlsos) {
+    delete tlsos;
+    tlsos = NULL;
+  }
+
   if (session) {
     gnutls_deinit(session);
     session = 0;
@@ -126,18 +142,13 @@ CSecurityTLS::~CSecurityTLS()
 {
   shutdown(true);
 
-  if (fis)
-    delete fis;
-  if (fos)
-    delete fos;
-
   delete[] cafile;
   delete[] crlfile;
 
   gnutls_global_deinit();
 }
 
-bool CSecurityTLS::processMsg(CConnection* cc)
+bool CSecurityTLS::processMsg()
 {
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();
@@ -164,17 +175,19 @@ bool CSecurityTLS::processMsg(CConnection* cc)
       throw AuthFailureException("gnutls_set_default_priority failed");
 
     setParam();
-  }
 
-  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
-  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
+    // Create these early as they set up the push/pull functions
+    // for GnuTLS
+    tlsis = new rdr::TLSInStream(is, session);
+    tlsos = new rdr::TLSOutStream(os, session);
+
+    rawis = is;
+    rawos = os;
+  }
 
   int err;
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
-    delete tlsis;
-    delete tlsos;
-
     if (!gnutls_error_is_fatal(err))
       return false;
 
@@ -185,7 +198,7 @@ bool CSecurityTLS::processMsg(CConnection* cc)
 
   checkSession();
 
-  cc->setStreams(fis = tlsis, fos = tlsos);
+  cc->setStreams(tlsis, tlsos);
 
   return true;
 }

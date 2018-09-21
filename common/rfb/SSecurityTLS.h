@@ -40,9 +40,9 @@ namespace rfb {
 
   class SSecurityTLS : public SSecurity {
   public:
-    SSecurityTLS(bool _anon);
+    SSecurityTLS(SConnection* sc, bool _anon);
     virtual ~SSecurityTLS();
-    virtual bool processMsg(SConnection* sc);
+    virtual bool processMsg();
     virtual const char* getUserName() const {return 0;}
     virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None;}
 
@@ -63,8 +63,11 @@ namespace rfb {
     int type;
     bool anon;
 
-    rdr::InStream* fis;
-    rdr::OutStream* fos;
+    rdr::InStream* tlsis;
+    rdr::OutStream* tlsos;
+
+    rdr::InStream* rawis;
+    rdr::OutStream* rawos;
   };
 
 }

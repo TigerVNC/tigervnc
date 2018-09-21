@@ -52,9 +52,9 @@ namespace rfb {
 
   class SSecurity {
   public:
+    SSecurity(SConnection* sc) { this->sc = sc; }
     virtual ~SSecurity() {}
-    virtual bool processMsg(SConnection* sc)=0;
-    virtual void destroy() { delete this; }
+    virtual bool processMsg() = 0;
     virtual int getType() const = 0;
 
     // getUserName() gets the name of the user attempting authentication.  The
@@ -64,6 +64,9 @@ namespace rfb {
     virtual const char* getUserName() const = 0;
 
     virtual SConnection::AccessRights getAccessRights() const { return SConnection::AccessDefault; }
+
+  protected:
+    SConnection* sc;
   };
 
 }

@@ -64,7 +64,8 @@ static const struct TightJPEGConfiguration conf[10] = {
 
 
 TightJPEGEncoder::TightJPEGEncoder(SConnection* conn) :
-  Encoder(conn, encodingTight, (EncoderFlags)(EncoderUseNativePF | EncoderLossy), -1),
+  Encoder(conn, encodingTight,
+          (EncoderFlags)(EncoderUseNativePF | EncoderLossy), -1, 9),
   qualityLevel(-1), fineQuality(-1), fineSubsampling(subsampleUndefined)
 {
 }
@@ -99,6 +100,11 @@ void TightJPEGEncoder::setFineQualityLevel(int quality, int subsampling)
 {
   fineQuality = quality;
   fineSubsampling = subsampling;
+}
+
+int TightJPEGEncoder::getQualityLevel()
+{
+  return qualityLevel;
 }
 
 void TightJPEGEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)

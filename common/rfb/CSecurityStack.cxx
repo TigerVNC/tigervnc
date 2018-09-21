@@ -21,9 +21,9 @@
 
 using namespace rfb;
 
-CSecurityStack::CSecurityStack(int Type, const char*Name, CSecurity* s0,
-			       CSecurity* s1)
-  :name(Name),type(Type)
+CSecurityStack::CSecurityStack(CConnection* cc, int Type, const char* Name,
+                               CSecurity* s0, CSecurity* s1)
+  : CSecurity(cc), name(Name), type(Type)
 {
   state = 0;
   state0 = s0;
@@ -38,12 +38,12 @@ CSecurityStack::~CSecurityStack()
     delete state1;
 }
 
-bool CSecurityStack::processMsg(CConnection* cc)
+bool CSecurityStack::processMsg()
 {
   bool res=true;
   if (state == 0) {
     if (state0)
-      res = state0->processMsg(cc);
+      res = state0->processMsg();
 
     if (!res)
       return res;
@@ -53,7 +53,7 @@ bool CSecurityStack::processMsg(CConnection* cc)
 
   if (state == 1) {
     if(state1)
-      res = state1->processMsg(cc);
+      res = state1->processMsg();
 
     if(!res)
       return res;

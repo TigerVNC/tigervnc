@@ -38,7 +38,8 @@ using namespace std;
 
 static LogWriter vlog("SVeNCrypt");
 
-SSecurityVeNCrypt::SSecurityVeNCrypt(SecurityServer *sec) : security(sec)
+SSecurityVeNCrypt::SSecurityVeNCrypt(SConnection* sc, SecurityServer *sec)
+  : SSecurity(sc), security(sec)
 {
   ssecurity = NULL;
   haveSentVersion = false;
@@ -63,7 +64,7 @@ SSecurityVeNCrypt::~SSecurityVeNCrypt()
   }
 }
 
-bool SSecurityVeNCrypt::processMsg(SConnection* sc)
+bool SSecurityVeNCrypt::processMsg()
 {
   rdr::InStream* is = sc->getInStream();
   rdr::OutStream* os = sc->getOutStream();
@@ -166,11 +167,11 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
     if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
       throw AuthFailureException("No valid VeNCrypt sub-type");
 
-    ssecurity = security->GetSSecurity(chosenType);
+    ssecurity = security->GetSSecurity(sc, chosenType);
   }
 
   /* continue processing the messages */
-  return ssecurity->processMsg(sc);
+  return ssecurity->processMsg();
 }
 
 const char* SSecurityVeNCrypt::getUserName() const

@@ -49,29 +49,29 @@ StringParameter SecurityServer::secTypes
 #endif
 ConfServer);
 
-SSecurity* SecurityServer::GetSSecurity(U32 secType)
+SSecurity* SecurityServer::GetSSecurity(SConnection* sc, U32 secType)
 {
   if (!IsSupported(secType))
     goto bail;
 
   switch (secType) {
-  case secTypeNone: return new SSecurityNone();
-  case secTypeVncAuth: return new SSecurityVncAuth();
-  case secTypeVeNCrypt: return new SSecurityVeNCrypt(this);
-  case secTypePlain: return new SSecurityPlain();
+  case secTypeNone: return new SSecurityNone(sc);
+  case secTypeVncAuth: return new SSecurityVncAuth(sc);
+  case secTypeVeNCrypt: return new SSecurityVeNCrypt(sc, this);
+  case secTypePlain: return new SSecurityPlain(sc);
 #ifdef HAVE_GNUTLS
   case secTypeTLSNone:
-    return new SSecurityStack(secTypeTLSNone, new SSecurityTLS(true));
+    return new SSecurityStack(sc, secTypeTLSNone, new SSecurityTLS(sc, true));
   case secTypeTLSVnc:
-    return new SSecurityStack(secTypeTLSVnc, new SSecurityTLS(true), new SSecurityVncAuth());
+    return new SSecurityStack(sc, secTypeTLSVnc, new SSecurityTLS(sc, true), new SSecurityVncAuth(sc));
   case secTypeTLSPlain:
-    return new SSecurityStack(secTypeTLSPlain, new SSecurityTLS(true), new SSecurityPlain());
+    return new SSecurityStack(sc, secTypeTLSPlain, new SSecurityTLS(sc, true), new SSecurityPlain(sc));
   case secTypeX509None:
-    return new SSecurityStack(secTypeX509None, new SSecurityTLS(false));
+    return new SSecurityStack(sc, secTypeX509None, new SSecurityTLS(sc, false));
   case secTypeX509Vnc:
-    return new SSecurityStack(secTypeX509None, new SSecurityTLS(false), new SSecurityVncAuth());
+    return new SSecurityStack(sc, secTypeX509None, new SSecurityTLS(sc, false), new SSecurityVncAuth(sc));
   case secTypeX509Plain:
-    return new SSecurityStack(secTypeX509Plain, new SSecurityTLS(false), new SSecurityPlain());
+    return new SSecurityStack(sc, secTypeX509Plain, new SSecurityTLS(sc, false), new SSecurityPlain(sc));
 #endif
   }
 

@@ -34,9 +34,9 @@ namespace rfb {
   class CSecurityVeNCrypt : public CSecurity {
   public:
 
-    CSecurityVeNCrypt(SecurityClient* sec);
+    CSecurityVeNCrypt(CConnection* cc, SecurityClient* sec);
     ~CSecurityVeNCrypt();
-    virtual bool processMsg(CConnection* cc);// { return true; }
+    virtual bool processMsg();
     int getType() const {return chosenType;}
     virtual const char* description() const;
     virtual bool isSecure() const;

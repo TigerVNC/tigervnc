@@ -291,11 +291,20 @@ int Congestion::getUncongestedETA()
 
 size_t Congestion::getBandwidth()
 {
+  size_t bandwidth;
+
   // No measurements yet? Guess RTT of 60 ms
   if (safeBaseRTT == (unsigned)-1)
-    return congWindow * 1000 / 60;
+    bandwidth = congWindow * 1000 / 60;
+  else
+    bandwidth = congWindow * 1000 / safeBaseRTT;
 
-  return congWindow * 1000 / safeBaseRTT;
+  // We're still probing so guess actual bandwidth is halfway between
+  // the current guess and the next one (slow start doubles each time)
+  if (inSlowStart)
+    bandwidth = bandwidth + bandwidth / 2;
+
+  return bandwidth;
 }
 
 void Congestion::debugTrace(const char* filename, int fd)

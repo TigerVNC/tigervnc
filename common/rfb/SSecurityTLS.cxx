@@ -49,9 +49,10 @@ StringParameter SSecurityTLS::X509_KeyFile
 
 static LogWriter vlog("TLS");
 
-SSecurityTLS::SSecurityTLS(bool _anon) : session(0), dh_params(0),
-						 anon_cred(0), cert_cred(0),
-						 anon(_anon), fis(0), fos(0)
+SSecurityTLS::SSecurityTLS(SConnection* sc, bool _anon)
+  : SSecurity(sc), session(NULL), dh_params(NULL), anon_cred(NULL),
+    cert_cred(NULL), anon(_anon), tlsis(NULL), tlsos(NULL),
+    rawis(NULL), rawos(NULL)
 {
   certfile = X509_CertFile.getData();
   keyfile = X509_KeyFile.getData();
@@ -84,6 +85,21 @@ void SSecurityTLS::shutdown()
     cert_cred = 0;
   }
 
+  if (rawis && rawos) {
+    sc->setStreams(rawis, rawos);
+    rawis = NULL;
+    rawos = NULL;
+  }
+
+  if (tlsis) {
+    delete tlsis;
+    tlsis = NULL;
+  }
+  if (tlsos) {
+    delete tlsos;
+    tlsos = NULL;
+  }
+
   if (session) {
     gnutls_deinit(session);
     session = 0;
@@ -95,25 +111,20 @@ SSecurityTLS::~SSecurityTLS()
 {
   shutdown();
 
-  if (fis)
-    delete fis;
-  if (fos)
-    delete fos;
-
   delete[] keyfile;
   delete[] certfile;
 
   gnutls_global_deinit();
 }
 
-bool SSecurityTLS::processMsg(SConnection *sc)
+bool SSecurityTLS::processMsg()
 {
-  rdr::InStream* is = sc->getInStream();
-  rdr::OutStream* os = sc->getOutStream();
-
   vlog.debug("Process security message (session %p)", session);
 
   if (!session) {
+    rdr::InStream* is = sc->getInStream();
+    rdr::OutStream* os = sc->getOutStream();
+
     if (gnutls_init(&session, GNUTLS_SERVER) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_init failed");
 
@@ -130,17 +141,19 @@ bool SSecurityTLS::processMsg(SConnection *sc)
 
     os->writeU8(1);
     os->flush();
-  }
 
-  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
-  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
+    // Create these early as they set up the push/pull functions
+    // for GnuTLS
+    tlsis = new rdr::TLSInStream(is, session);
+    tlsos = new rdr::TLSOutStream(os, session);
+
+    rawis = is;
+    rawos = os;
+  }
 
   int err;
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
-    delete tlsis;
-    delete tlsos;
-
     if (!gnutls_error_is_fatal(err)) {
       vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
       return false;
@@ -152,7 +165,7 @@ bool SSecurityTLS::processMsg(SConnection *sc)
 
   vlog.debug("Handshake completed");
 
-  sc->setStreams(fis = tlsis, fos = tlsos);
+  sc->setStreams(tlsis, tlsos);
 
   return true;
 }
