@@ -537,9 +537,9 @@ static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 	 * get confused when we do a fake shift to get the same effect
 	 * that having NumLock active would produce.
 	 *
-	 * Until we have proper NumLock synchronisation (so we can
-	 * avoid faking shift), we try to avoid the fake shifts if we
-	 * can use an alternative keysym.
+	 * Not all clients have proper NumLock synchronisation (so we
+	 * can avoid faking shift) so we try to avoid the fake shifts
+	 * if we can use an alternative keysym.
 	 */
 	if (((state & ShiftMask) != (new_state & ShiftMask)) &&
 	    vncGetAvoidShiftNumLock() && vncIsAffectedByNumLock(keycode)) {
