@@ -54,7 +54,6 @@ namespace rfb {
   public:
     virtual ~SSecurity() {}
     virtual bool processMsg(SConnection* sc)=0;
-    virtual void destroy() { delete this; }
     virtual int getType() const = 0;
 
     // getUserName() gets the name of the user attempting authentication.  The

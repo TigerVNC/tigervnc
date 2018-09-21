@@ -49,7 +49,8 @@ CConnection::CConnection()
 CConnection::~CConnection()
 {
   setFramebuffer(NULL);
-  if (csecurity) csecurity->destroy();
+  if (csecurity)
+    delete csecurity;
   delete reader_;
   reader_ = 0;
   delete writer_;

@@ -46,7 +46,6 @@ namespace rfb {
   public:
     virtual ~CSecurity() {}
     virtual bool processMsg(CConnection* cc)=0;
-    virtual void destroy() { delete this; }
     virtual int getType() const = 0;
     virtual const char* description() const = 0;
     virtual bool isSecure() const { return false; }
