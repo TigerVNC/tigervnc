@@ -191,6 +191,7 @@ namespace rfb {
 
     Congestion congestion;
     Timer congestionTimer;
+    Timer losslessTimer;
 
     VNCServerST* server;
     SimpleUpdateTracker updates;

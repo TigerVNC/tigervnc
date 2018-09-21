@@ -37,7 +37,7 @@ using namespace rfb;
 #undef BPP
 
 RREEncoder::RREEncoder(SConnection* conn) :
-  Encoder(conn, encodingRRE, EncoderPlain, -1)
+  Encoder(conn, encodingRRE, EncoderPlain)
 {
 }
 

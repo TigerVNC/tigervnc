@@ -42,7 +42,8 @@ namespace rfb {
   class Encoder {
   public:
     Encoder(SConnection* conn, int encoding,
-            enum EncoderFlags flags, unsigned int maxPaletteSize);
+            enum EncoderFlags flags, unsigned int maxPaletteSize=-1,
+            int losslessQuality=-1);
     virtual ~Encoder();
 
     // isSupported() should return a boolean indicating if this encoder
@@ -53,6 +54,9 @@ namespace rfb {
     virtual void setCompressLevel(int level) {};
     virtual void setQualityLevel(int level) {};
     virtual void setFineQualityLevel(int quality, int subsampling) {};
+
+    virtual int getCompressLevel() { return -1; };
+    virtual int getQualityLevel() { return -1; };
 
     // writeRect() is the main interface that encodes the given rectangle
     // with data from the PixelBuffer onto the SConnection given at
@@ -91,6 +95,10 @@ namespace rfb {
 
     // Maximum size of the palette per rect
     const unsigned int maxPaletteSize;
+
+    // Minimum level where the quality loss will not be noticed by
+    // most users (only relevant with EncoderLossy flag)
+    const int losslessQuality;
 
   protected:
     SConnection* conn;

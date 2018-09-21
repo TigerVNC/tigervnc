@@ -151,7 +151,7 @@ int Timer::getTimeoutMs() {
 int Timer::getRemainingMs() {
   timeval now;
   gettimeofday(&now, 0);
-  return __rfbmax(0, diffTimeMillis(pending.front()->dueTime, now));
+  return __rfbmax(0, diffTimeMillis(dueTime, now));
 }
 
 bool Timer::isBefore(timeval other) {

@@ -1,6 +1,7 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +50,9 @@ static const int SubRectMaxWidth = 2048;
 static const int SolidSearchBlock = 16;
 // Don't bother with blocks smaller than this
 static const int SolidBlockMinArea = 2048;
+
+// How long we consider a region recently changed (in ms)
+static const int RecentChangeTimeout = 50;
 
 namespace rfb {
 
@@ -123,7 +127,8 @@ static const char *encoderTypeName(EncoderType type)
   return "Unknown Encoder Type";
 }
 
-EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
+EncodeManager::EncodeManager(SConnection* conn_)
+  : conn(conn_), recentChangeTimer(this)
 {
   StatsVector::iterator iter;
 
@@ -253,23 +258,57 @@ bool EncodeManager::needsLosslessRefresh(const Region& req)
   return !lossyRegion.intersect(req).is_empty();
 }
 
+int EncodeManager::getNextLosslessRefresh(const Region& req)
+{
+  // Do we have something we can send right away?
+  if (!pendingRefreshRegion.intersect(req).is_empty())
+    return 0;
+
+  assert(needsLosslessRefresh(req));
+  assert(recentChangeTimer.isStarted());
+
+  return recentChangeTimer.getNextTimeout();
+}
+
 void EncodeManager::pruneLosslessRefresh(const Region& limits)
 {
   lossyRegion.assign_intersect(limits);
+  pendingRefreshRegion.assign_intersect(limits);
 }
 
 void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
                                 const RenderedCursor* renderedCursor)
 {
-    doUpdate(true, ui.changed, ui.copied, ui.copy_delta, pb, renderedCursor);
+  doUpdate(true, ui.changed, ui.copied, ui.copy_delta, pb, renderedCursor);
+
+  recentlyChangedRegion.assign_union(ui.changed);
+  recentlyChangedRegion.assign_union(ui.copied);
+  if (!recentChangeTimer.isStarted())
+    recentChangeTimer.start(RecentChangeTimeout);
 }
 
 void EncodeManager::writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
                                          const RenderedCursor* renderedCursor,
                                          size_t maxUpdateSize)
 {
-    doUpdate(false, getLosslessRefresh(req, maxUpdateSize),
-             Region(), Point(), pb, renderedCursor);
+  doUpdate(false, getLosslessRefresh(req, maxUpdateSize),
+           Region(), Point(), pb, renderedCursor);
+}
+
+bool EncodeManager::handleTimeout(Timer* t)
+{
+  if (t == &recentChangeTimer) {
+    // Any lossy region that wasn't recently updated can
+    // now be scheduled for a refresh
+    pendingRefreshRegion.assign_union(lossyRegion.subtract(recentlyChangedRegion));
+    recentlyChangedRegion.clear();
+
+    // Will there be more to do? (i.e. do we need another round)
+    if (!lossyRegion.subtract(pendingRefreshRegion).is_empty())
+      return true;
+  }
+
+  return false;
 }
 
 void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
@@ -325,12 +364,20 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   enum EncoderClass solid, bitmap, bitmapRLE;
   enum EncoderClass indexed, indexedRLE, fullColour;
 
+  bool allowJPEG;
+
   rdr::S32 preferred;
 
   std::vector<int>::iterator iter;
 
   solid = bitmap = bitmapRLE = encoderRaw;
   indexed = indexedRLE = fullColour = encoderRaw;
+
+  allowJPEG = conn->cp.pf().bpp >= 16;
+  if (!allowLossy) {
+    if (encoders[encoderTightJPEG]->losslessQuality == -1)
+      allowJPEG = false;
+  }
 
   // Try to respect the client's wishes
   preferred = conn->getPreferredEncoding();
@@ -344,8 +391,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     bitmapRLE = indexedRLE = fullColour = encoderHextile;
     break;
   case encodingTight:
-    if (encoders[encoderTightJPEG]->isSupported() &&
-        (conn->cp.pf().bpp >= 16) && allowLossy)
+    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
       fullColour = encoderTightJPEG;
     else
       fullColour = encoderTight;
@@ -362,8 +408,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   // Any encoders still unassigned?
 
   if (fullColour == encoderRaw) {
-    if (encoders[encoderTightJPEG]->isSupported() &&
-        (conn->cp.pf().bpp >= 16) && allowLossy)
+    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
       fullColour = encoderTightJPEG;
     else if (encoders[encoderZRLE]->isSupported())
       fullColour = encoderZRLE;
@@ -421,9 +466,17 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     encoder = encoders[*iter];
 
     encoder->setCompressLevel(conn->cp.compressLevel);
-    encoder->setQualityLevel(conn->cp.qualityLevel);
-    encoder->setFineQualityLevel(conn->cp.fineQualityLevel,
-                                 conn->cp.subsampling);
+
+    if (allowLossy) {
+      encoder->setQualityLevel(conn->cp.qualityLevel);
+      encoder->setFineQualityLevel(conn->cp.fineQualityLevel,
+                                   conn->cp.subsampling);
+    } else {
+      int level = __rfbmax(conn->cp.qualityLevel,
+                           encoder->losslessQuality);
+      encoder->setQualityLevel(level);
+      encoder->setFineQualityLevel(-1, subsampleUndefined);
+    }
   }
 }
 
@@ -437,8 +490,11 @@ Region EncodeManager::getLosslessRefresh(const Region& req,
   // We make a conservative guess at the compression ratio at 2:1
   maxUpdateSize *= 2;
 
+  // We will measure pixels, not bytes (assume 32 bpp)
+  maxUpdateSize /= 4;
+
   area = 0;
-  lossyRegion.intersect(req).get_rects(&rects);
+  pendingRefreshRegion.intersect(req).get_rects(&rects);
   while (!rects.empty()) {
     size_t idx;
     Rect rect;
@@ -525,10 +581,16 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
   encoder = encoders[klass];
   conn->writer()->startRect(rect, encoder->encoding);
 
-  if (encoder->flags & EncoderLossy)
+  if ((encoder->flags & EncoderLossy) &&
+      ((encoder->losslessQuality == -1) ||
+       (encoder->getQualityLevel() < encoder->losslessQuality)))
     lossyRegion.assign_union(Region(rect));
   else
     lossyRegion.assign_subtract(Region(rect));
+
+  // This was either a rect getting refreshed, or a rect that just got
+  // new content. Either way we should not try to refresh it anymore.
+  pendingRefreshRegion.assign_subtract(Region(rect));
 
   return encoder;
 }
@@ -574,6 +636,10 @@ void EncodeManager::writeCopyRects(const Region& copied, const Point& delta)
   lossyCopy.translate(delta);
   lossyCopy.assign_intersect(copied);
   lossyRegion.assign_union(lossyCopy);
+
+  // Stop any pending refresh as a copy is enough that we consider
+  // this region to be recently changed
+  pendingRefreshRegion.assign_subtract(copied);
 }
 
 void EncodeManager::writeSolidRects(Region *changed, const PixelBuffer* pb)

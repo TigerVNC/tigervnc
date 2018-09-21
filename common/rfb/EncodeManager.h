@@ -25,6 +25,7 @@
 #include <rdr/types.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Region.h>
+#include <rfb/Timer.h>
 
 namespace rfb {
   class SConnection;
@@ -36,7 +37,7 @@ namespace rfb {
 
   struct RectInfo;
 
-  class EncodeManager {
+  class EncodeManager : public Timer::Callback {
   public:
     EncodeManager(SConnection* conn);
     ~EncodeManager();
@@ -47,6 +48,8 @@ namespace rfb {
     static bool supported(int encoding);
 
     bool needsLosslessRefresh(const Region& req);
+    int getNextLosslessRefresh(const Region& req);
+
     void pruneLosslessRefresh(const Region& limits);
 
     void writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
@@ -57,6 +60,8 @@ namespace rfb {
                               size_t maxUpdateSize);
 
   protected:
+    virtual bool handleTimeout(Timer* t);
+
     void doUpdate(bool allowLossy, const Region& changed,
                   const Region& copied, const Point& copy_delta,
                   const PixelBuffer* pb,
@@ -117,6 +122,10 @@ namespace rfb {
     std::vector<int> activeEncoders;
 
     Region lossyRegion;
+    Region recentlyChangedRegion;
+    Region pendingRefreshRegion;
+
+    Timer recentChangeTimer;
 
     struct EncoderStats {
       unsigned rects;

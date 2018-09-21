@@ -25,7 +25,7 @@
 using namespace rfb;
 
 RawEncoder::RawEncoder(SConnection* conn) :
-  Encoder(conn, encodingRaw, EncoderPlain, -1)
+  Encoder(conn, encodingRaw, EncoderPlain)
 {
 }
 
