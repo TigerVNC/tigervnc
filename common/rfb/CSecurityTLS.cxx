@@ -69,7 +69,7 @@ static LogWriter vlog("TLS");
 
 CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
   : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
-    anon(_anon), tlsis(NULL), tlsos(NULL)
+    anon(_anon), tlsis(NULL), tlsos(NULL), rawis(NULL), rawos(NULL)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
@@ -114,6 +114,12 @@ void CSecurityTLS::shutdown(bool needbye)
   if (cert_cred) {
     gnutls_certificate_free_credentials(cert_cred);
     cert_cred = 0;
+  }
+
+  if (rawis && rawos) {
+    cc->setStreams(rawis, rawos);
+    rawis = NULL;
+    rawos = NULL;
   }
 
   if (tlsis) {
@@ -174,6 +180,9 @@ bool CSecurityTLS::processMsg()
     // for GnuTLS
     tlsis = new rdr::TLSInStream(is, session);
     tlsos = new rdr::TLSOutStream(os, session);
+
+    rawis = is;
+    rawos = os;
   }
 
   int err;

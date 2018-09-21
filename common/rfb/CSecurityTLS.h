@@ -72,6 +72,9 @@ namespace rfb {
 
     rdr::InStream* tlsis;
     rdr::OutStream* tlsos;
+
+    rdr::InStream* rawis;
+    rdr::OutStream* rawos;
   };
 }
 

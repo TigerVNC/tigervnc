@@ -51,7 +51,8 @@ static LogWriter vlog("TLS");
 
 SSecurityTLS::SSecurityTLS(SConnection* sc, bool _anon)
   : SSecurity(sc), session(NULL), dh_params(NULL), anon_cred(NULL),
-    cert_cred(NULL), anon(_anon), tlsis(NULL), tlsos(NULL)
+    cert_cred(NULL), anon(_anon), tlsis(NULL), tlsos(NULL),
+    rawis(NULL), rawos(NULL)
 {
   certfile = X509_CertFile.getData();
   keyfile = X509_KeyFile.getData();
@@ -82,6 +83,12 @@ void SSecurityTLS::shutdown()
   if (cert_cred) {
     gnutls_certificate_free_credentials(cert_cred);
     cert_cred = 0;
+  }
+
+  if (rawis && rawos) {
+    sc->setStreams(rawis, rawos);
+    rawis = NULL;
+    rawos = NULL;
   }
 
   if (tlsis) {
@@ -139,6 +146,9 @@ bool SSecurityTLS::processMsg()
     // for GnuTLS
     tlsis = new rdr::TLSInStream(is, session);
     tlsos = new rdr::TLSOutStream(os, session);
+
+    rawis = is;
+    rawos = os;
   }
 
   int err;
