@@ -489,6 +489,30 @@ static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 
 	keycode = vncKeysymToKeycode(keysym, state, &new_state);
 
+	/*
+	 * Shift+Alt is often mapped to Meta, so try that rather than
+	 * allocating a new entry, faking shift, or using the dummy
+	 * key entries that many layouts have.
+	 */
+	if ((state & ShiftMask) &&
+	    ((keysym == XK_Alt_L) || (keysym == XK_Alt_R))) {
+		KeyCode alt, meta;
+
+		if (keysym == XK_Alt_L) {
+			alt = vncKeysymToKeycode(XK_Alt_L, state & ~ShiftMask, NULL);
+			meta = vncKeysymToKeycode(XK_Meta_L, state, NULL);
+		} else {
+			alt = vncKeysymToKeycode(XK_Alt_R, state & ~ShiftMask, NULL);
+			meta = vncKeysymToKeycode(XK_Meta_R, state, NULL);
+		}
+
+		if ((meta != 0) && (alt == meta)) {
+			LOG_DEBUG("Replacing Shift+Alt with Shift+Meta");
+			keycode = meta;
+			new_state = state;
+		}
+	}
+
 	/* Try some equivalent keysyms if we couldn't find a perfect match */
 	if (keycode == 0) {
 		for (i = 0;i < sizeof(altKeysym)/sizeof(altKeysym[0]);i++) {
