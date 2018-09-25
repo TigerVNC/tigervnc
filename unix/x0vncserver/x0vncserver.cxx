@@ -439,6 +439,13 @@ int main(int argc, char** argv)
 
   TXWindow::handleXEvents(dpy);
 
+  // Run listener destructors; remove UNIX sockets etc
+  for (std::list<SocketListener*>::iterator i = listeners.begin();
+       i != listeners.end();
+       i++) {
+    delete *i;
+  }
+
   vlog.info("Terminated");
   return 0;
 }
