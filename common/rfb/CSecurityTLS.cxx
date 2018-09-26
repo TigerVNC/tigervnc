@@ -95,9 +95,9 @@ void CSecurityTLS::setDefaults()
   delete [] homeDir;
 
  if (!fileexists(caDefault.buf))
-   X509CA.setDefaultStr(strdup(caDefault.buf));
+   X509CA.setDefaultStr(caDefault.buf);
  if (!fileexists(crlDefault.buf))
-   X509CRL.setDefaultStr(strdup(crlDefault.buf));
+   X509CRL.setDefaultStr(crlDefault.buf);
 }
 
 void CSecurityTLS::shutdown(bool needbye)
