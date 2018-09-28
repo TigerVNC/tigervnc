@@ -158,8 +158,8 @@ The following procedure will build both the TigerVNC Viewer and a
 "legacy-friendly" version of the TigerVNC Server:
 
   cd {build_directory}
-  sh {source_directory}/contrib/xorg/build-xorg init
-  sh {source_directory}/contrib/xorg/build-xorg build [additional CMake flags]
+  bash {source_directory}/contrib/xorg/build-xorg init
+  bash {source_directory}/contrib/xorg/build-xorg build [additional CMake flags]
 
 build-xorg generates a version of Xvnc that has no external dependencies on the
 X11 shared libraries or any other distribution-specific shared libraries.  This
