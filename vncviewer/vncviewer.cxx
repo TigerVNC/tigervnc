@@ -348,10 +348,19 @@ static void usage(const char *programName)
 #endif
 
   fprintf(stderr,
-          "\nusage: %s [parameters] [host:displayNum] [parameters]\n"
-          "       %s [parameters] -listen [port] [parameters]\n"
+          "\n"
+          "usage: %s [parameters] [host][:displayNum]\n"
+          "       %s [parameters] [host][::port]\n"
+#ifndef WIN32
+          "       %s [parameters] [unix socket]\n"
+#endif
+          "       %s [parameters] -listen [port]\n"
           "       %s [parameters] [.tigervnc file]\n",
-          programName, programName, programName);
+          programName, programName,
+#ifndef WIN32
+          programName,
+#endif
+          programName, programName);
   fprintf(stderr,"\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
           "Parameters which take a value can be specified as "

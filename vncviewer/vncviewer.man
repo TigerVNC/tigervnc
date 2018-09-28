@@ -11,13 +11,17 @@ vncviewer \- VNC viewer for X
 .RI [ host ][:: port ]
 .br
 .B vncviewer
+.RI [ options ]
+.RI [ unix\ socket ]
+.br
+.B vncviewer
 .RI [ options ] 
 .B \-listen
 .RI [ port ]
 .br
 .B vncviewer
 .RI [ options ]
-.RI [ .tigervnc file ]
+.RI [ .tigervnc\ file ]
 .SH DESCRIPTION
 .B vncviewer
 is a viewer (client) for Virtual Network Computing.  This manual page documents
