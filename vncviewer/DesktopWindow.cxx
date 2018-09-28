@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgWriter.h>
@@ -34,10 +35,13 @@
 #include "parameters.h"
 #include "vncviewer.h"
 #include "CConn.h"
+#include "Surface.h"
 #include "Viewport.h"
 
 #include <FL/Fl.H>
-#include <FL/Fl_Scroll.H>
+#include <FL/Fl_Image_Surface.H>
+#include <FL/Fl_Scrollbar.H>
+#include <FL/fl_draw.H>
 #include <FL/x.H>
 
 #ifdef WIN32
@@ -58,18 +62,30 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), firstUpdate(true),
-    delayedFullscreen(false), delayedDesktopSize(false)
+  : Fl_Window(w, h), cc(cc_), offscreen(NULL), overlay(NULL),
+    firstUpdate(true),
+    delayedFullscreen(false), delayedDesktopSize(false),
+    keyboardGrabbed(false), mouseGrabbed(false),
+    statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
+    statsGraph(NULL)
 {
-  scroll = new Fl_Scroll(0, 0, w, h);
-  scroll->color(FL_BLACK);
+  Fl_Group* group;
 
-  // Automatically adjust the scroll box to the window
-  resizable(scroll);
+  // Dummy group to prevent FLTK from moving our widgets around
+  group = new Fl_Group(0, 0, w, h);
+  group->resizable(NULL);
+  resizable(group);
 
   viewport = new Viewport(w, h, serverPF, cc);
 
-  scroll->end();
+  // Position will be adjusted later
+  hscroll = new Fl_Scrollbar(0, 0, 0, 0);
+  vscroll = new Fl_Scrollbar(0, 0, 0, 0);
+  hscroll->type(FL_HORIZONTAL);
+  hscroll->callback(handleScroll, this);
+  vscroll->callback(handleScroll, this);
+
+  group->end();
 
   callback(handleClose, this);
 
@@ -150,11 +166,8 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   }
 #endif
 
-  // The window manager might give us an initial window size that is different
-  // than the one we requested, and in those cases we need to manually adjust
-  // the scroll widget for things to behave sanely.
-  if ((w != this->w()) || (h != this->h()))
-    scroll->size(this->w(), this->h());
+  // Adjust layout now that we're visible and know our final size
+  repositionWidgets();
 
   if (delayedFullscreen) {
     // Hack: Fullscreen requests may be ignored, so we need a timeout for
@@ -163,6 +176,15 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     Fl::add_timeout(0.5, handleFullscreenTimeout, this);
     fullscreen_on();
   }
+
+  // Throughput graph for debugging
+  if (vlog.getLevel() >= LogWriter::LEVEL_DEBUG) {
+    memset(&stats, 0, sizeof(stats));
+    Fl::add_timeout(0, handleStatsTimeout, this);
+  }
+
+  // Show hint about menu key
+  Fl::add_timeout(0.5, menuOverlay, this);
 }
 
 
@@ -174,8 +196,16 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleResizeTimeout, this);
   Fl::remove_timeout(handleFullscreenTimeout, this);
   Fl::remove_timeout(handleEdgeScroll, this);
+  Fl::remove_timeout(handleStatsTimeout, this);
+  Fl::remove_timeout(menuOverlay, this);
+  Fl::remove_timeout(updateOverlay, this);
 
   OptionsDialog::removeCallback(handleOptions);
+
+  delete overlay;
+  delete offscreen;
+
+  delete statsGraph;
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -242,21 +272,151 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
   viewport->size(new_w, new_h);
 
-  // We might not resize the main window, so we need to manually call this
-  // to make sure the viewport is centered.
-  repositionViewport();
-
-  // repositionViewport() makes sure the scroll widget notices any changes
-  // in position, but it might be just the size that changes so we also
-  // need a poke here as well.
-  redraw();
+  repositionWidgets();
 }
 
 
-void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
-                              void* data, void* mask)
+void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
 {
-  viewport->setCursor(width, height, hotspot, data, mask);
+  viewport->serverCutText(str, len);
+}
+
+
+void DesktopWindow::setCursor(int width, int height,
+                              const rfb::Point& hotspot,
+                              const rdr::U8* data)
+{
+  viewport->setCursor(width, height, hotspot, data);
+}
+
+
+void DesktopWindow::draw()
+{
+  bool redraw;
+
+  int X, Y, W, H;
+
+  // X11 needs an off screen buffer for compositing to avoid flicker,
+  // and alpha blending doesn't work for windows on Win32
+#if !defined(__APPLE__)
+
+  // Adjust offscreen surface dimensions
+  if ((offscreen == NULL) ||
+      (offscreen->width() != w()) || (offscreen->height() != h())) {
+    delete offscreen;
+    offscreen = new Surface(w(), h());
+  }
+
+#endif
+
+  // Active area inside scrollbars
+  W = w() - (vscroll->visible() ? vscroll->w() : 0);
+  H = h() - (hscroll->visible() ? hscroll->h() : 0);
+
+  // Full redraw?
+  redraw = (damage() & ~FL_DAMAGE_CHILD);
+
+  // Simplify the clip region to a simple rectangle in order to
+  // properly draw all the layers even if they only partially overlap
+  if (redraw)
+    X = Y = 0;
+  else
+    fl_clip_box(0, 0, W, H, X, Y, W, H);
+  fl_push_no_clip();
+  fl_push_clip(X, Y, W, H);
+
+  // Redraw background only on full redraws
+  if (redraw) {
+    if (offscreen)
+      offscreen->clear(40, 40, 40);
+    else
+      fl_rectf(0, 0, W, H, 40, 40, 40);
+  }
+
+  if (offscreen) {
+    viewport->draw(offscreen);
+    viewport->clear_damage();
+  } else {
+    if (redraw)
+      draw_child(*viewport);
+    else
+      update_child(*viewport);
+  }
+
+  // Debug graph (if active)
+  if (statsGraph) {
+    int ox, oy, ow, oh;
+
+    ox = X = w() - statsGraph->width() - 30;
+    oy = Y = h() - statsGraph->height() - 30;
+    ow = statsGraph->width();
+    oh = statsGraph->height();
+
+    fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
+
+    if ((ow != 0) && (oh != 0)) {
+      if (offscreen)
+        statsGraph->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, 204);
+      else
+        statsGraph->blend(ox - X, oy - Y, ox, oy, ow, oh, 204);
+    }
+  }
+
+  // Overlay (if active)
+  if (overlay) {
+    int ox, oy, ow, oh;
+    int sx, sy, sw, sh;
+
+    // Make sure it's properly seen by adjusting it relative to the
+    // primary screen rather than the entire window
+    if (fullscreen_active() && fullScreenAllMonitors) {
+      assert(Fl::screen_count() >= 1);
+      Fl::screen_xywh(sx, sy, sw, sh, 0);
+    } else {
+      sx = 0;
+      sy = 0;
+      sw = w();
+    }
+
+    ox = X = sx + (sw - overlay->width()) / 2;
+    oy = Y = sy + 50;
+    ow = overlay->width();
+    oh = overlay->height();
+
+    fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
+
+    if ((ow != 0) && (oh != 0)) {
+      if (offscreen)
+        overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+      else
+        overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+    }
+  }
+
+  // Flush offscreen surface to screen
+  if (offscreen) {
+    fl_clip_box(0, 0, w(), h(), X, Y, W, H);
+    offscreen->draw(X, Y, X, Y, W, H);
+  }
+
+  fl_pop_clip();
+  fl_pop_clip();
+
+  // Finally the scrollbars
+
+  if (redraw) {
+    draw_child(*hscroll);
+    draw_child(*vscroll);
+  } else {
+    update_child(*hscroll);
+    update_child(*vscroll);
+  }
+}
+
+
+void DesktopWindow::setLEDState(unsigned int state)
+{
+  viewport->setLEDState(state);
 }
 
 
@@ -334,9 +494,139 @@ void DesktopWindow::resize(int x, int y, int w, int h)
       Fl::add_timeout(0.5, handleResizeTimeout, this);
     }
 
-    // Deal with some scrolling corner cases
-    repositionViewport();
+    repositionWidgets();
   }
+}
+
+
+void DesktopWindow::menuOverlay(void* data)
+{
+  DesktopWindow *self;
+
+  self = (DesktopWindow*)data;
+  self->setOverlay(_("Press %s to open the context menu"),
+                   (const char*)menuKey);
+}
+
+void DesktopWindow::setOverlay(const char* text, ...)
+{
+  const Fl_Fontsize fontsize = 16;
+  const int margin = 10;
+
+  va_list ap;
+  char textbuf[1024];
+
+  Fl_Image_Surface *surface;
+
+  Fl_RGB_Image* imageText;
+  Fl_RGB_Image* image;
+
+  unsigned char* buffer;
+
+  int x, y;
+  int w, h;
+
+  unsigned char* a;
+  const unsigned char* b;
+
+  delete overlay;
+  Fl::remove_timeout(updateOverlay, this);
+
+  va_start(ap, text);
+  vsnprintf(textbuf, sizeof(textbuf), text, ap);
+  textbuf[sizeof(textbuf)-1] = '\0';
+  va_end(ap);
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  // FLTK < 1.3.5 crashes if fl_gc is unset
+  if (!fl_gc)
+    fl_gc = XDefaultGC(fl_display, 0);
+#endif
+
+  fl_font(FL_HELVETICA, fontsize);
+  w = 0;
+  fl_measure(textbuf, w, h);
+
+  // Margins
+  w += margin * 2 * 2;
+  h += margin * 2;
+
+  surface = new Fl_Image_Surface(w, h);
+  surface->set_current();
+
+  fl_rectf(0, 0, w, h, 0, 0, 0);
+
+  fl_font(FL_HELVETICA, fontsize);
+  fl_color(FL_WHITE);
+  fl_draw(textbuf, 0, 0, w, h, FL_ALIGN_CENTER);
+
+  imageText = surface->image();
+  delete surface;
+
+  Fl_Display_Device::display_device()->set_current();
+
+  buffer = new unsigned char[w * h * 4];
+  image = new Fl_RGB_Image(buffer, w, h, 4);
+
+  a = buffer;
+  for (x = 0;x < image->w() * image->h();x++) {
+    a[0] = a[1] = a[2] = 0x40;
+    a[3] = 0xcc;
+    a += 4;
+  }
+
+  a = buffer;
+  b = (const unsigned char*)imageText->data()[0];
+  for (y = 0;y < h;y++) {
+    for (x = 0;x < w;x++) {
+      unsigned char alpha;
+      alpha = *b;
+      a[0] = (unsigned)a[0] * (255 - alpha) / 255 + alpha;
+      a[1] = (unsigned)a[1] * (255 - alpha) / 255 + alpha;
+      a[2] = (unsigned)a[2] * (255 - alpha) / 255 + alpha;
+      a[3] = 255 - (255 - a[3]) * (255 - alpha) / 255;
+      a += 4;
+      b += imageText->d();
+    }
+    if (imageText->ld() != 0)
+      b += imageText->ld() - w * imageText->d();
+  }
+
+  delete imageText;
+
+  overlay = new Surface(image);
+  overlayAlpha = 0;
+  gettimeofday(&overlayStart, NULL);
+
+  delete image;
+
+  Fl::add_timeout(1.0/60, updateOverlay, this);
+}
+
+void DesktopWindow::updateOverlay(void *data)
+{
+  DesktopWindow *self;
+  unsigned elapsed;
+
+  self = (DesktopWindow*)data;
+
+  elapsed = msSince(&self->overlayStart);
+
+  if (elapsed < 500) {
+    self->overlayAlpha = (unsigned)255 * elapsed / 500;
+    Fl::add_timeout(1.0/60, updateOverlay, self);
+  } else if (elapsed < 3500) {
+    self->overlayAlpha = 255;
+    Fl::add_timeout(3.0, updateOverlay, self);
+  } else if (elapsed < 4000) {
+    self->overlayAlpha = (unsigned)255 * (4000 - elapsed) / 500;
+    Fl::add_timeout(1.0/60, updateOverlay, self);
+  } else {
+    delete self->overlay;
+    self->overlay = NULL;
+  }
+
+  self->damage(FL_DAMAGE_USER1);
 }
 
 
@@ -346,15 +636,8 @@ int DesktopWindow::handle(int event)
   case FL_FULLSCREEN:
     fullScreen.setParam(fullscreen_active());
 
-    if (fullscreen_active())
-      scroll->type(0);
-    else
-      scroll->type(Fl_Scroll::BOTH);
-
-    // The scroll widget isn't clever enough to actually redraw the
-    // scroll bars when they are added/removed, so we need to give
-    // it a push.
-    scroll->redraw();
+    // Update scroll bars
+    repositionWidgets();
 
     if (!fullscreenSystemKeys)
       break;
@@ -367,9 +650,18 @@ int DesktopWindow::handle(int event)
     break;
 
   case FL_ENTER:
+      if (keyboardGrabbed)
+          grabPointer();
   case FL_LEAVE:
   case FL_DRAG:
   case FL_MOVE:
+    // We don't get FL_LEAVE with a grabbed pointer, so check manually
+    if (mouseGrabbed) {
+      if ((Fl::event_x() < 0) || (Fl::event_x() >= w()) ||
+          (Fl::event_y() < 0) || (Fl::event_y() >= h())) {
+        ungrabPointer();
+      }
+    }
     if (fullscreen_active()) {
       if (((viewport->x() < 0) && (Fl::event_x() < EDGE_SCROLL_SIZE)) ||
           ((viewport->x() + viewport->w() > w()) && (Fl::event_x() > w() - EDGE_SCROLL_SIZE)) ||
@@ -400,23 +692,32 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
   DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
 
-  if (dw && fullscreenSystemKeys) {
+  if (dw) {
     switch (event) {
+    // Focus might not stay with us just because we have grabbed the
+    // keyboard. E.g. we might have sub windows, or we're not using
+    // all monitors and the user clicked on another application.
+    // Make sure we update our grabs with the focus changes.
     case FL_FOCUS:
-      // FIXME: We reassert the keyboard grabbing on focus as FLTK there are
-      //        some issues we need to work around:
-      //        a) Fl::grab(0) on X11 will release the keyboard grab for us.
-      //        b) Gaining focus on the system level causes FLTK to switch
-      //           window level on OS X.
-      if (dw->fullscreen_active())
-        dw->grabKeyboard();
+      if (fullscreenSystemKeys) {
+        if (dw->fullscreen_active())
+          dw->grabKeyboard();
+      }
+      break;
+    case FL_UNFOCUS:
+      if (fullscreenSystemKeys) {
+        dw->ungrabKeyboard();
+      }
       break;
 
-    case FL_UNFOCUS:
-      // FIXME: We need to relinquish control when the entire window loses
-      //        focus as it is very tied to this specific window on some
-      //        platforms and we want to be able to open subwindows.
-      dw->ungrabKeyboard();
+    case FL_RELEASE:
+      // We usually fail to grab the mouse if a mouse button was
+      // pressed when we gained focus (e.g. clicking on our window),
+      // so we may need to try again when the button is released.
+      // (We do it here rather than handle() because a window does not
+      // see FL_RELEASE events if a child widget grabs it first)
+      if (dw->keyboardGrabbed && !dw->mouseGrabbed)
+        dw->grabPointer();
       break;
     }
   }
@@ -466,8 +767,26 @@ void DesktopWindow::fullscreen_on()
     fullscreen_screens(top, bottom, left, right);
   }
 
-  fullscreen();
+  if (!fullscreen_active())
+    fullscreen();
 }
+
+#if !defined(WIN32) && !defined(__APPLE__)
+Bool eventIsFocusWithSerial(Display *display, XEvent *event, XPointer arg)
+{
+  unsigned long serial;
+
+  serial = *(unsigned long*)arg;
+
+  if (event->xany.serial != serial)
+    return False;
+
+  if ((event->type != FocusIn) && (event->type != FocusOut))
+    return False;
+
+  return True;
+}
+#endif
 
 void DesktopWindow::grabKeyboard()
 {
@@ -481,16 +800,25 @@ void DesktopWindow::grabKeyboard()
   int ret;
   
   ret = win32_enable_lowlevel_keyboard(fl_xid(this));
-  if (ret != 0)
+  if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
+    return;
+  }
 #elif defined(__APPLE__)
   int ret;
   
   ret = cocoa_capture_display(this, fullScreenAllMonitors);
-  if (ret != 0)
+  if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
+    return;
+  }
 #else
   int ret;
+
+  XEvent xev;
+  unsigned long serial;
+
+  serial = XNextRequest(fl_display);
 
   ret = XGrabKeyboard(fl_display, fl_xid(this), True,
                       GrabModeAsync, GrabModeAsync, CurrentTime);
@@ -503,24 +831,34 @@ void DesktopWindow::grabKeyboard()
     } else {
       vlog.error(_("Failure grabbing keyboard"));
     }
+    return;
   }
 
-  // We also need to grab the pointer as some WMs like to grab buttons
-  // combined with modifies (e.g. Alt+Button0 in metacity).
-  ret = XGrabPointer(fl_display, fl_xid(this), True,
-                     ButtonPressMask|ButtonReleaseMask|
-                     ButtonMotionMask|PointerMotionMask,
-                     GrabModeAsync, GrabModeAsync,
-                     None, None, CurrentTime);
-  if (ret)
-    vlog.error(_("Failure grabbing mouse"));
+  // Xorg 1.20+ generates FocusIn/FocusOut even when there is no actual
+  // change of focus. This causes us to get stuck in an endless loop
+  // grabbing and ungrabbing the keyboard. Avoid this by filtering out
+  // any focus events generated by XGrabKeyboard().
+  XSync(fl_display, False);
+  while (XCheckIfEvent(fl_display, &xev, &eventIsFocusWithSerial,
+                       (XPointer)&serial) == True) {
+    vlog.debug("Ignored synthetic focus event cause by grab change");
+  }
 #endif
+
+  keyboardGrabbed = true;
+
+  if (contains(Fl::belowmouse()))
+    grabPointer();
 }
 
 
 void DesktopWindow::ungrabKeyboard()
 {
   Fl::remove_timeout(handleGrab, this);
+
+  keyboardGrabbed = false;
+
+  ungrabPointer();
 
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
@@ -531,8 +869,54 @@ void DesktopWindow::ungrabKeyboard()
   if (Fl::grab())
     return;
 
-  XUngrabPointer(fl_display, fl_event_time);
-  XUngrabKeyboard(fl_display, fl_event_time);
+  XEvent xev;
+  unsigned long serial;
+
+  serial = XNextRequest(fl_display);
+
+  XUngrabKeyboard(fl_display, CurrentTime);
+
+  // See grabKeyboard()
+  XSync(fl_display, False);
+  while (XCheckIfEvent(fl_display, &xev, &eventIsFocusWithSerial,
+                       (XPointer)&serial) == True) {
+    vlog.debug("Ignored synthetic focus event cause by grab change");
+  }
+#endif
+}
+
+
+void DesktopWindow::grabPointer()
+{
+#if !defined(WIN32) && !defined(__APPLE__)
+  int ret;
+
+  // We also need to grab the pointer as some WMs like to grab buttons
+  // combined with modifies (e.g. Alt+Button0 in metacity).
+  ret = XGrabPointer(fl_display, fl_xid(this), True,
+                     ButtonPressMask|ButtonReleaseMask|
+                     ButtonMotionMask|PointerMotionMask,
+                     GrabModeAsync, GrabModeAsync,
+                     None, None, CurrentTime);
+  if (ret) {
+    // Having a button pressed prevents us from grabbing, we make
+    // a new attempt in fltkHandle()
+    if (ret == AlreadyGrabbed)
+      return;
+    vlog.error(_("Failure grabbing mouse"));
+    return;
+  }
+#endif
+
+  mouseGrabbed = true;
+}
+
+
+void DesktopWindow::ungrabPointer()
+{
+  mouseGrabbed = false;
+#if !defined(WIN32) && !defined(__APPLE__)
+  XUngrabPointer(fl_display, CurrentTime);
 #endif
 }
 
@@ -667,7 +1051,7 @@ void DesktopWindow::remoteResize(int width, int height)
     int i;
     rdr::U32 id;
     int sx, sy, sw, sh;
-    Rect viewport_rect, screen_rect;
+    rfb::Rect viewport_rect, screen_rect;
 
     // In full screen we report all screens that are fully covered.
 
@@ -751,17 +1135,11 @@ void DesktopWindow::remoteResize(int width, int height)
 }
 
 
-void DesktopWindow::repositionViewport()
+void DesktopWindow::repositionWidgets()
 {
   int new_x, new_y;
 
-  // Deal with some scrolling corner cases:
-  //
-  // a) If the window is larger then the viewport, center the viewport.
-  // b) If the window is smaller than the viewport, make sure there is
-  //    no wasted space on the sides.
-  //
-  // FIXME: Doesn't compensate for scroll widget size properly.
+  // Viewport position
 
   new_x = viewport->x();
   new_y = viewport->y();
@@ -787,11 +1165,60 @@ void DesktopWindow::repositionViewport()
 
   if ((new_x != viewport->x()) || (new_y != viewport->y())) {
     viewport->position(new_x, new_y);
-
-    // The scroll widget does not notice when you move around child widgets,
-    // so redraw everything to make sure things update.
-    redraw();
+    damage(FL_DAMAGE_SCROLL);
   }
+
+  // Scrollbars visbility
+
+  if (fullscreen_active()) {
+    hscroll->hide();
+    vscroll->hide();
+  } else {
+    // Decide whether to show a scrollbar by checking if the window
+    // size (possibly minus scrollbar_size) is less than the viewport
+    // (remote framebuffer) size.
+    //
+    // We decide whether to subtract scrollbar_size on an axis by
+    // checking if the other axis *definitely* needs a scrollbar.  You
+    // might be tempted to think that this becomes a weird recursive
+    // problem, but it isn't: If the window size is less than the
+    // viewport size (without subtracting the scrollbar_size), then
+    // that axis *definitely* needs a scrollbar; if the check changes
+    // when we subtract scrollbar_size, then that axis only *maybe*
+    // needs a scrollbar.  If both axes only "maybe" need a scrollbar,
+    // then neither does; so we don't need to recurse on the "maybe"
+    // cases.
+
+    if (w() - (h() < viewport->h() ? Fl::scrollbar_size() : 0) < viewport->w())
+      hscroll->show();
+    else
+      hscroll->hide();
+
+    if (h() - (w() < viewport->w() ? Fl::scrollbar_size() : 0) < viewport->h())
+      vscroll->show();
+    else
+      vscroll->hide();
+  }
+
+  // Scrollbars positions
+
+  hscroll->resize(0, h() - Fl::scrollbar_size(),
+                  w() - (vscroll->visible() ? Fl::scrollbar_size() : 0),
+                  Fl::scrollbar_size());
+  vscroll->resize(w() - Fl::scrollbar_size(), 0,
+                  Fl::scrollbar_size(),
+                  h() - (hscroll->visible() ? Fl::scrollbar_size() : 0));
+
+  // Scrollbars range
+
+  hscroll->value(-viewport->x(),
+                 w() - (vscroll->visible() ? vscroll->w() : 0),
+                 0, viewport->w());
+  vscroll->value(-viewport->y(),
+                 h() - (hscroll->visible() ? hscroll->h() : 0),
+                 0, viewport->h());
+  hscroll->value(hscroll->clamp(hscroll->value()));
+  vscroll->value(vscroll->clamp(vscroll->value()));
 }
 
 void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
@@ -809,7 +1236,9 @@ void DesktopWindow::handleOptions(void *data)
   else
     self->ungrabKeyboard();
 
-  if (fullScreen && !self->fullscreen_active())
+  // Call fullscreen_on even if active since it handles
+  // fullScreenAllMonitors
+  if (fullScreen)
     self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
@@ -827,6 +1256,33 @@ void DesktopWindow::handleFullscreenTimeout(void *data)
     self->handleDesktopSize();
     self->delayedDesktopSize = false;
   }
+}
+
+void DesktopWindow::scrollTo(int x, int y)
+{
+  x = hscroll->clamp(x);
+  y = vscroll->clamp(y);
+
+  hscroll->value(x);
+  vscroll->value(y);
+
+  // Scrollbar position results in inverse movement of
+  // the viewport widget
+  x = -x;
+  y = -y;
+
+  if ((viewport->x() == x) && (viewport->y() == y))
+    return;
+
+  viewport->position(x, y);
+  damage(FL_DAMAGE_SCROLL);
+}
+
+void DesktopWindow::handleScroll(Fl_Widget *widget, void *data)
+{
+  DesktopWindow *self = (DesktopWindow *)data;
+
+  self->scrollTo(self->hscroll->value(), self->vscroll->value());
 }
 
 void DesktopWindow::handleEdgeScroll(void *data)
@@ -874,17 +1330,132 @@ void DesktopWindow::handleEdgeScroll(void *data)
   if ((dx == 0) && (dy == 0))
     return;
 
-  // Make sure we don't move the viewport too much
-  if (self->viewport->x() + dx > 0)
-    dx = -self->viewport->x();
-  if (self->viewport->x() + dx + self->viewport->w() < self->w())
-    dx = self->w() - (self->viewport->x() + self->viewport->w());
-  if (self->viewport->y() + dy > 0)
-    dy = -self->viewport->y();
-  if (self->viewport->y() + dy + self->viewport->h() < self->h())
-    dy = self->h() - (self->viewport->y() + self->viewport->h());
-
-  self->scroll->scroll_to(self->scroll->xposition() - dx, self->scroll->yposition() - dy);
+  self->scrollTo(self->hscroll->value() - dx, self->vscroll->value() - dy);
 
   Fl::repeat_timeout(0.1, handleEdgeScroll, data);
+}
+
+void DesktopWindow::handleStatsTimeout(void *data)
+{
+  DesktopWindow *self = (DesktopWindow*)data;
+
+  const size_t statsCount = sizeof(self->stats)/sizeof(self->stats[0]);
+
+  unsigned updates, pixels, pos;
+  unsigned elapsed;
+
+  const unsigned statsWidth = 200;
+  const unsigned statsHeight = 100;
+  const unsigned graphWidth = statsWidth - 10;
+  const unsigned graphHeight = statsHeight - 25;
+
+  Fl_Image_Surface *surface;
+  Fl_RGB_Image *image;
+
+  unsigned maxUPS, maxPPS, maxBPS;
+  size_t i;
+
+  char buffer[256];
+
+  updates = self->cc->getUpdateCount();
+  pixels = self->cc->getPixelCount();
+  pos = self->cc->getPosition();
+  elapsed = msSince(&self->statsLastTime);
+  if (elapsed < 1)
+    elapsed = 1;
+
+  memmove(&self->stats[0], &self->stats[1], sizeof(self->stats[0])*(statsCount-1));
+
+  self->stats[statsCount-1].ups = (updates - self->statsLastUpdates) * 1000 / elapsed;
+  self->stats[statsCount-1].pps = (pixels - self->statsLastPixels) * 1000 / elapsed;
+  self->stats[statsCount-1].bps = (pos - self->statsLastPosition) * 1000 / elapsed;
+
+  gettimeofday(&self->statsLastTime, NULL);
+  self->statsLastUpdates = updates;
+  self->statsLastPixels = pixels;
+  self->statsLastPosition = pos;
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  // FLTK < 1.3.5 crashes if fl_gc is unset
+  if (!fl_gc)
+    fl_gc = XDefaultGC(fl_display, 0);
+#endif
+
+  surface = new Fl_Image_Surface(statsWidth, statsHeight);
+  surface->set_current();
+
+  fl_rectf(0, 0, statsWidth, statsHeight, FL_BLACK);
+
+  fl_rect(5, 5, graphWidth, graphHeight, FL_WHITE);
+
+  maxUPS = maxPPS = maxBPS = 0;
+  for (i = 0;i < statsCount;i++) {
+    if (self->stats[i].ups > maxUPS)
+      maxUPS = self->stats[i].ups;
+    if (self->stats[i].pps > maxPPS)
+      maxPPS = self->stats[i].pps;
+    if (self->stats[i].bps > maxBPS)
+      maxBPS = self->stats[i].bps;
+  }
+
+  if (maxUPS != 0) {
+    fl_color(FL_GREEN);
+    for (i = 0;i < statsCount-1;i++) {
+      fl_line(5 + i * graphWidth / statsCount,
+              5 + graphHeight - graphHeight * self->stats[i].ups / maxUPS,
+              5 + (i+1) * graphWidth / statsCount,
+              5 + graphHeight - graphHeight * self->stats[i+1].ups / maxUPS);
+    }
+  }
+
+  if (maxPPS != 0) {
+    fl_color(FL_YELLOW);
+    for (i = 0;i < statsCount-1;i++) {
+      fl_line(5 + i * graphWidth / statsCount,
+              5 + graphHeight - graphHeight * self->stats[i].pps / maxPPS,
+              5 + (i+1) * graphWidth / statsCount,
+              5 + graphHeight - graphHeight * self->stats[i+1].pps / maxPPS);
+    }
+  }
+
+  if (maxBPS != 0) {
+    fl_color(FL_RED);
+    for (i = 0;i < statsCount-1;i++) {
+      fl_line(5 + i * graphWidth / statsCount,
+              5 + graphHeight - graphHeight * self->stats[i].bps / maxBPS,
+              5 + (i+1) * graphWidth / statsCount,
+              5 + graphHeight - graphHeight * self->stats[i+1].bps / maxBPS);
+    }
+  }
+
+  fl_font(FL_HELVETICA, 10);
+
+  fl_color(FL_GREEN);
+  snprintf(buffer, sizeof(buffer), "%u upd/s", self->stats[statsCount-1].ups);
+  fl_draw(buffer, 5, statsHeight - 5);
+
+  fl_color(FL_YELLOW);
+  siPrefix(self->stats[statsCount-1].pps, "pix/s",
+           buffer, sizeof(buffer), 3);
+  fl_draw(buffer, 5 + (statsWidth-10)/3, statsHeight - 5);
+
+  fl_color(FL_RED);
+  siPrefix(self->stats[statsCount-1].bps * 8, "bps",
+           buffer, sizeof(buffer), 3);
+  fl_draw(buffer, 5 + (statsWidth-10)*2/3, statsHeight - 5);
+
+  image = surface->image();
+  delete surface;
+
+  Fl_Display_Device::display_device()->set_current();
+
+  delete self->statsGraph;
+  self->statsGraph = new Surface(image);
+  delete image;
+
+  self->damage(FL_DAMAGE_CHILD, self->w() - statsWidth - 30,
+               self->h() - statsHeight - 30,
+               statsWidth, statsHeight);
+
+  Fl::repeat_timeout(0.5, handleStatsTimeout, data);
 }

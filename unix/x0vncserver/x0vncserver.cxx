@@ -31,7 +31,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
-#include <tx/TXWindow.h>
+#include <network/UnixSocket.h>
 
 #include <vncconfig/QueryConnectDialog.h>
 
@@ -39,22 +39,11 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#ifdef HAVE_XTEST
-#include <X11/extensions/XTest.h>
-#endif
-#ifdef HAVE_XDAMAGE
-#include <X11/extensions/Xdamage.h>
-#endif
 
+#include <x0vncserver/XDesktop.h>
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/Image.h>
-#include <x0vncserver/XPixelBuffer.h>
 #include <x0vncserver/PollingScheduler.h>
-
-// XXX Lynx/OS 2.3: protos for select(), bzero()
-#ifdef Lynx
-#include <sys/proto.h>
-#endif
 
 extern char buildtime[];
 
@@ -68,11 +57,10 @@ IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
                           "adjusted to satisfy MaxProcessorUsage setting", 30);
 IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
                                "CPU time to be consumed", 35);
-BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
-BoolParameter useOverlay("OverlayMode", "Use overlay mode under "
-                         "IRIX or Solaris", true);
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
+StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
+IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
 IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "Number of seconds to show the Accept Connection dialog before "
                                  "rejecting the connection",
@@ -132,180 +120,6 @@ private:
   VNCServerST* server;
   QueryConnectDialog* queryConnectDialog;
   network::Socket* queryConnectSock;
-};
-
-
-class XDesktop : public SDesktop, public TXGlobalEventHandler
-{
-public:
-  XDesktop(Display* dpy_, Geometry *geometry_)
-    : dpy(dpy_), geometry(geometry_), pb(0), server(0),
-      oldButtonMask(0), haveXtest(false), haveDamage(false),
-      maxButtons(0), running(false)
-  {
-#ifdef HAVE_XTEST
-    int xtestEventBase;
-    int xtestErrorBase;
-    int major, minor;
-
-    if (XTestQueryExtension(dpy, &xtestEventBase,
-                            &xtestErrorBase, &major, &minor)) {
-      XTestGrabControl(dpy, True);
-      vlog.info("XTest extension present - version %d.%d",major,minor);
-      haveXtest = true;
-    } else {
-#endif
-      vlog.info("XTest extension not present");
-      vlog.info("Unable to inject events or display while server is grabbed");
-#ifdef HAVE_XTEST
-    }
-#endif
-
-#ifdef HAVE_XDAMAGE
-    int xdamageErrorBase;
-
-    if (XDamageQueryExtension(dpy, &xdamageEventBase, &xdamageErrorBase)) {
-      TXWindow::setGlobalEventHandler(this);
-      haveDamage = true;
-    } else {
-#endif
-      vlog.info("DAMAGE extension not present");
-      vlog.info("Will have to poll screen for changes");
-#ifdef HAVE_XDAMAGE
-    }
-#endif
-  }
-  virtual ~XDesktop() {
-    stop();
-  }
-
-  inline void poll() {
-    if (pb and not haveDamage)
-      pb->poll(server);
-  }
-
-  // -=- SDesktop interface
-
-  virtual void start(VNCServer* vs) {
-
-    // Determine actual number of buttons of the X pointer device.
-    unsigned char btnMap[8];
-    int numButtons = XGetPointerMapping(dpy, btnMap, 8);
-    maxButtons = (numButtons > 8) ? 8 : numButtons;
-    vlog.info("Enabling %d button%s of X pointer device",
-              maxButtons, (maxButtons != 1) ? "s" : "");
-
-    // Create an ImageFactory instance for producing Image objects.
-    ImageFactory factory((bool)useShm, (bool)useOverlay);
-
-    // Create pixel buffer and provide it to the server object.
-    pb = new XPixelBuffer(dpy, factory, geometry->getRect());
-    vlog.info("Allocated %s", pb->getImage()->classDesc());
-
-    server = (VNCServerST *)vs;
-    server->setPixelBuffer(pb);
-
-#ifdef HAVE_XDAMAGE
-    if (haveDamage) {
-      damage = XDamageCreate(dpy, DefaultRootWindow(dpy),
-                             XDamageReportRawRectangles);
-    }
-#endif
-
-    running = true;
-  }
-
-  virtual void stop() {
-    running = false;
-
-#ifdef HAVE_XDAMAGE
-    if (haveDamage)
-      XDamageDestroy(dpy, damage);
-#endif
-
-    delete pb;
-    pb = 0;
-  }
-
-  inline bool isRunning() {
-    return running;
-  }
-
-  virtual void pointerEvent(const Point& pos, int buttonMask) {
-#ifdef HAVE_XTEST
-    if (!haveXtest) return;
-    XTestFakeMotionEvent(dpy, DefaultScreen(dpy),
-                         geometry->offsetLeft() + pos.x,
-                         geometry->offsetTop() + pos.y,
-                         CurrentTime);
-    if (buttonMask != oldButtonMask) {
-      for (int i = 0; i < maxButtons; i++) {
-	if ((buttonMask ^ oldButtonMask) & (1<<i)) {
-          if (buttonMask & (1<<i)) {
-            XTestFakeButtonEvent(dpy, i+1, True, CurrentTime);
-          } else {
-            XTestFakeButtonEvent(dpy, i+1, False, CurrentTime);
-          }
-        }
-      }
-    }
-    oldButtonMask = buttonMask;
-#endif
-  }
-
-  virtual void keyEvent(rdr::U32 key, bool down) {
-#ifdef HAVE_XTEST
-    if (!haveXtest) return;
-    int keycode = XKeysymToKeycode(dpy, key);
-    if (keycode)
-      XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
-#endif
-  }
-
-  virtual void clientCutText(const char* str, int len) {
-  }
-
-  virtual Point getFbSize() {
-    return Point(pb->width(), pb->height());
-  }
-
-  // -=- TXGlobalEventHandler interface
-
-  virtual bool handleGlobalEvent(XEvent* ev) {
-#ifdef HAVE_XDAMAGE
-    XDamageNotifyEvent* dev;
-    Rect rect;
-
-    if (ev->type != xdamageEventBase)
-      return false;
-
-    if (!running)
-      return true;
-
-    dev = (XDamageNotifyEvent*)ev;
-    rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
-    server->add_changed(rect);
-
-    return true;
-#else
-  return false;
-#endif
-  }
-
-protected:
-  Display* dpy;
-  Geometry* geometry;
-  XPixelBuffer* pb;
-  VNCServerST* server;
-  int oldButtonMask;
-  bool haveXtest;
-  bool haveDamage;
-  int maxButtons;
-  bool running;
-#ifdef HAVE_XDAMAGE
-  Damage damage;
-  int xdamageEventBase;
-#endif
 };
 
 
@@ -442,6 +256,9 @@ int main(int argc, char** argv)
 
   Configuration::enableServerParams();
 
+  // Disable configuration parameters which we do not support
+  Configuration::removeParam("AcceptSetDesktopSize");
+
   for (int i = 1; i < argc; i++) {
     if (Configuration::setParam(argv[i]))
       continue;
@@ -477,7 +294,7 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  std::list<TcpListener*> listeners;
+  std::list<SocketListener*> listeners;
 
   try {
     TXWindow::init(dpy,"x0vncserver");
@@ -493,13 +310,18 @@ int main(int argc, char** argv)
     QueryConnHandler qcHandler(dpy, &server);
     server.setQueryConnectionHandler(&qcHandler);
 
-    createTcpListeners(&listeners, 0, (int)rfbport);
-    vlog.info("Listening on port %d", (int)rfbport);
+    if (rfbunixpath.getValueStr()[0] != '\0') {
+      listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
+      vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
+    } else {
+      createTcpListeners(&listeners, 0, (int)rfbport);
+      vlog.info("Listening on port %d", (int)rfbport);
+    }
 
     const char *hostsData = hostsFile.getData();
     FileTcpFilter fileTcpFilter(hostsData);
     if (strlen(hostsData) != 0)
-      for (std::list<TcpListener*>::iterator i = listeners.begin();
+      for (std::list<SocketListener*>::iterator i = listeners.begin();
            i != listeners.end();
            i++)
         (*i)->setFilter(&fileTcpFilter);
@@ -521,7 +343,7 @@ int main(int argc, char** argv)
       FD_ZERO(&wfds);
 
       FD_SET(ConnectionNumber(dpy), &rfds);
-      for (std::list<TcpListener*>::iterator i = listeners.begin();
+      for (std::list<SocketListener*>::iterator i = listeners.begin();
            i != listeners.end();
            i++)
         FD_SET((*i)->getFd(), &rfds);
@@ -573,7 +395,7 @@ int main(int argc, char** argv)
       }
 
       // Accept new VNC connections
-      for (std::list<TcpListener*>::iterator i = listeners.begin();
+      for (std::list<SocketListener*>::iterator i = listeners.begin();
            i != listeners.end();
            i++) {
         if (FD_ISSET((*i)->getFd(), &rfds)) {

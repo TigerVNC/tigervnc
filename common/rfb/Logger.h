@@ -28,6 +28,12 @@
 // and is attached to a particular Logger instance and
 // is assigned a particular log level.
 
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
+
 namespace rfb {
 
   class Logger {
@@ -45,7 +51,7 @@ namespace rfb {
     // -=- Write data to a log
 
     virtual void write(int level, const char *logname, const char *text) = 0;
-    void write(int level, const char *logname, const char* format, va_list ap);
+    void write(int level, const char *logname, const char* format, va_list ap) __printf_attr(4, 0);
 
     // -=- Register a logger
 

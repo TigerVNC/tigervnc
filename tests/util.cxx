@@ -24,6 +24,7 @@
 #include <windows.h>
 #else
 #include <sys/resource.h>
+#include <sys/time.h>
 #endif
 
 #include "util.h"
@@ -131,4 +132,47 @@ double getCpuCounter(cpucounter_t c)
 #endif
 
   return sysSeconds + userSeconds;
+}
+
+#ifdef WIN32
+static LARGE_INTEGER timeStart, timeEnd;
+#else
+static struct timeval timeStart, timeEnd;
+#endif
+
+void startTimeCounter(void)
+{
+#ifdef WIN32
+  QueryPerformanceCounter(&timeStart);
+#else
+  gettimeofday(&timeStart, NULL);
+#endif
+}
+
+void endTimeCounter(void)
+{
+#ifdef WIN32
+  QueryPerformanceCounter(&timeEnd);
+#else
+  gettimeofday(&timeEnd, NULL);
+#endif
+}
+
+double getTimeCounter(void)
+{
+  double time;
+
+#ifdef WIN32
+  LARGE_INTEGER freq;
+
+  QueryPerformanceFrequency(&freq);
+
+  time = timeEnd.QuadPart - timeStart.QuadPart;
+  time = time / freq.QuadPart;
+#else
+  time = (double)timeEnd.tv_sec - timeStart.tv_sec;
+  time += (double)(timeEnd.tv_usec - timeStart.tv_usec) / 1000000.0;
+#endif
+
+  return time;
 }

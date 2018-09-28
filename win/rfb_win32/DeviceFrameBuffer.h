@@ -92,8 +92,6 @@ namespace rfb {
       Point desktopToDevice(const Point p) const {return p.translate(deviceCoords.tl);}
 
       HDC device;
-      DIBSectionBuffer cursorBm;
-      Cursor cursor;
       Rect deviceCoords;
       bool ignoreGrabErrors;
     };

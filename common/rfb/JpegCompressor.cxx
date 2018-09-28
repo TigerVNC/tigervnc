@@ -42,7 +42,7 @@ static const PixelFormat pfXRGB(32, 24, false, true, 255, 255, 255, 8, 16, 24);
 static const PixelFormat pfXBGR(32, 24, false, true, 255, 255, 255, 24, 16, 8);
 
 //
-// Error manager implmentation for the JPEG library
+// Error manager implementation for the JPEG library
 //
 
 struct JPEG_ERROR_MGR {

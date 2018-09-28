@@ -40,6 +40,10 @@ public:
 
   const char *connectionInfo();
 
+  unsigned getUpdateCount();
+  unsigned getPixelCount();
+  unsigned getPosition();
+
   // FdInStreamBlockCallback methods
   void blockCallback();
 
@@ -66,9 +70,11 @@ public:
   void dataRect(const rfb::Rect& r, int encoding);
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 void* data, void* mask);
+                 const rdr::U8* data);
 
   void fence(rdr::U32 flags, unsigned len, const char data[]);
+
+  void setLEDState(unsigned int state);
 
 private:
 
@@ -88,6 +94,9 @@ private:
   network::Socket* sock;
 
   DesktopWindow *desktop;
+
+  unsigned updateCount;
+  unsigned pixelCount;
 
   rfb::PixelFormat serverPF;
   rfb::PixelFormat fullColourPF;

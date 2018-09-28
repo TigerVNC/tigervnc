@@ -125,7 +125,7 @@ copyStream(InStream& is, OutStream& os) {
     while (1) {
       os.writeU8(is.readU8());
     }
-  } catch (rdr::EndOfStream) {
+  } catch (rdr::EndOfStream&) {
   }
 }
 

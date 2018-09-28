@@ -38,6 +38,10 @@ struct timeval;
 #  define __printf_attr(a, b)
 #endif // __GNUC__
 
+#ifndef __unused_attr
+#  define __unused_attr __attribute((__unused__))
+#endif
+
 namespace rfb {
 
   // -=- Class to handle cleanup of arrays of characters
@@ -95,13 +99,21 @@ namespace rfb {
     return (secs < 0 || secs > (INT_MAX/1000) ? INT_MAX : secs * 1000);
   }
 
+  // Returns time elapsed between two moments in milliseconds.
+  unsigned msBetween(const struct timeval *first,
+                     const struct timeval *second);
+
   // Returns time elapsed since given moment in milliseconds.
   unsigned msSince(const struct timeval *then);
 
+  // Returns true if first happened before seconds
+  bool isBefore(const struct timeval *first,
+                const struct timeval *second);
+
   size_t siPrefix(long long value, const char *unit,
-                  char *buffer, size_t maxlen);
+                  char *buffer, size_t maxlen, int precision=6);
   size_t iecPrefix(long long value, const char *unit,
-                   char *buffer, size_t maxlen);
+                   char *buffer, size_t maxlen, int precision=6);
 }
 
 // Some platforms (e.g. Windows) include max() and min() macros in their

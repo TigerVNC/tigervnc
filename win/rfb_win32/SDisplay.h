@@ -66,9 +66,8 @@ namespace rfb {
       virtual void start(VNCServer* vs);
       virtual void stop();
       virtual void pointerEvent(const Point& pos, int buttonmask);
-      virtual void keyEvent(rdr::U32 key, bool down);
+      virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
       virtual void clientCutText(const char* str, int len);
-      virtual Point getFbSize();
 
       // -=- Clipboard
       
@@ -86,6 +85,10 @@ namespace rfb {
       // -=- Notification of whether or not SDisplay is started
 
       void setStatusLocation(bool* status) {statusLocation = status;}
+
+      // -=- Used (indirectly) by JavaViewer to get desktop size
+
+      Point getFbSize();
 
       friend class SDisplayCore;
 
@@ -106,6 +109,7 @@ namespace rfb {
       void restartCore();
       void recreatePixelBuffer(bool force=false);
       bool flushChangeTracker();  // true if flushed, false if empty
+      bool checkLedState();
 
       VNCServer* server;
 
@@ -151,6 +155,8 @@ namespace rfb {
 
       // -=- Where to write the active/inactive indicator to
       bool* statusLocation;
+
+      unsigned ledState;
     };
 
   }

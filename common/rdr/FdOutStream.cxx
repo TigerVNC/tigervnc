@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman for Cendio AB
+ * Copyright 2017 Peter Astrand <astrand@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +27,6 @@
 #include <errno.h>
 #ifdef _WIN32
 #include <winsock2.h>
-#define write(s,b,l) send(s,(const char*)b,l,0)
 #undef errno
 #define errno WSAGetLastError()
 #include <os/winerrno.h>
@@ -34,6 +34,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <sys/socket.h>
 #endif
 
 /* Old systems have select() in sys/time.h */
@@ -159,10 +160,10 @@ int FdOutStream::overrun(int itemSize, int nItems)
 // writeWithTimeout() writes up to the given length in bytes from the given
 // buffer to the file descriptor.  If there is a timeout set and that timeout
 // expires, it throws a TimedOut exception.  Otherwise it returns the number of
-// bytes written.  It never attempts to write() unless select() indicates that
+// bytes written.  It never attempts to send() unless select() indicates that
 // the fd is writable - this means it can be used on an fd which has been set
 // non-blocking.  It also has to cope with the annoying possibility of both
-// select() and write() returning EINTR.
+// select() and send() returning EINTR.
 //
 
 int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
@@ -193,7 +194,14 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
     return 0;
 
   do {
-    n = ::write(fd, data, length);
+    // select only guarantees that you can write SO_SNDLOWAT without
+    // blocking, which is normally 1. Use MSG_DONTWAIT to avoid
+    // blocking, when possible.
+#ifndef MSG_DONTWAIT
+    n = ::send(fd, (const char*)data, length, 0);
+#else
+    n = ::send(fd, (const char*)data, length, MSG_DONTWAIT);
+#endif
   } while (n < 0 && (errno == EINTR));
 
   if (n < 0)

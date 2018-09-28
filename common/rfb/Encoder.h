@@ -35,15 +35,18 @@ namespace rfb {
     // Give us the raw frame buffer, and not something converted to
     // the what the client is asking for.
     EncoderUseNativePF = 1 << 0,
+    // Encoder does not encode pixels perfectly accurate
+    EncoderLossy = 1 << 1,
   };
 
   class Encoder {
   public:
     Encoder(SConnection* conn, int encoding,
-            enum EncoderFlags flags, unsigned int maxPaletteSize);
+            enum EncoderFlags flags, unsigned int maxPaletteSize=-1,
+            int losslessQuality=-1);
     virtual ~Encoder();
 
-    // isSupported() should return a boolean indiciating if this encoder
+    // isSupported() should return a boolean indicating if this encoder
     // is okay to use with the current connection. This usually involves
     // checking the list of encodings in the connection parameters.
     virtual bool isSupported()=0;
@@ -51,6 +54,9 @@ namespace rfb {
     virtual void setCompressLevel(int level) {};
     virtual void setQualityLevel(int level) {};
     virtual void setFineQualityLevel(int quality, int subsampling) {};
+
+    virtual int getCompressLevel() { return -1; };
+    virtual int getQualityLevel() { return -1; };
 
     // writeRect() is the main interface that encodes the given rectangle
     // with data from the PixelBuffer onto the SConnection given at
@@ -89,6 +95,10 @@ namespace rfb {
 
     // Maximum size of the palette per rect
     const unsigned int maxPaletteSize;
+
+    // Minimum level where the quality loss will not be noticed by
+    // most users (only relevant with EncoderLossy flag)
+    const int losslessQuality;
 
   protected:
     SConnection* conn;

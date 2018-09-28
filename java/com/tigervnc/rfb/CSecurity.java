@@ -37,10 +37,11 @@ abstract public class CSecurity {
   abstract public boolean processMsg(CConnection cc);
   abstract public int getType();
   abstract public String description();
+  public boolean isSecure() { return false; }
 
   /*
    * Use variable directly instead of dumb get/set methods.
    * It MUST be set by viewer.
    */
-  static UserPasswdGetter upg;
+  public static UserPasswdGetter upg;
 }

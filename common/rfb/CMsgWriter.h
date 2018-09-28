@@ -25,18 +25,17 @@
 
 #include <rdr/types.h>
 
-#include <rfb/InputHandler.h>
-
 namespace rdr { class OutStream; }
 
 namespace rfb {
 
   class PixelFormat;
   class ConnParams;
-  class ScreenSet;
+  struct ScreenSet;
+  struct Point;
   struct Rect;
 
-  class CMsgWriter : public InputHandler {
+  class CMsgWriter {
   public:
     CMsgWriter(ConnParams* cp, rdr::OutStream* os);
     virtual ~CMsgWriter();
@@ -53,11 +52,9 @@ namespace rfb {
 
     void writeFence(rdr::U32 flags, unsigned len, const char data[]);
 
-    // InputHandler implementation
-
-    virtual void keyEvent(rdr::U32 key, bool down);
-    virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void clientCutText(const char* str, rdr::U32 len);
+    void writeKeyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+    void writePointerEvent(const Point& pos, int buttonMask);
+    void writeClientCutText(const char* str, rdr::U32 len);
 
   protected:
     void startMsg(int type);

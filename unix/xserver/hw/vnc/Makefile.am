@@ -1,12 +1,13 @@
 TIGERVNC_SRCDIR=${top_srcdir}/../..
-LIB_DIR=${top_builddir}/../../common
+TIGERVNC_BUILDDIR=${TIGERVNC_SRCDIR}
 
-RFB_LIB=$(LIB_DIR)/rfb/librfb.la
-RDR_LIB=$(LIB_DIR)/rdr/librdr.la
-OS_LIB=$(LIB_DIR)/os/libos.la
-NETWORK_LIB=$(LIB_DIR)/network/libnetwork.la
-XREGION_LIB=$(LIB_DIR)/Xregion/libXregion.la
-COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB) $(OS_LIB)
+RFB_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfb.la
+RDR_LIB=$(TIGERVNC_BUILDDIR)/common/rdr/librdr.la
+OS_LIB=$(TIGERVNC_BUILDDIR)/common/os/libos.la
+NETWORK_LIB=$(TIGERVNC_BUILDDIR)/common/network/libnetwork.la
+XREGION_LIB=$(TIGERVNC_BUILDDIR)/common/Xregion/libXregion.la
+UNIXCOMMON_LIB=$(TIGERVNC_BUILDDIR)/unix/common/libunixcommon.la
+COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB) $(OS_LIB) $(UNIXCOMMON_LIB)
 
 noinst_LTLIBRARIES = libvnccommon.la
 
@@ -17,10 +18,10 @@ HDRS = vncExtInit.h vncHooks.h \
 
 libvnccommon_la_SOURCES = $(HDRS) \
 	vncExt.c vncExtInit.cc vncHooks.c vncSelection.c \
-	vncBlockHandler.c XorgGlue.c RFBGlue.cc XserverDesktop.cc \
-	Input.c InputXKB.c
+	vncBlockHandler.c XorgGlue.c RandrGlue.c RFBGlue.cc XserverDesktop.cc \
+	Input.c InputXKB.c qnum_to_xorgevdev.c qnum_to_xorgkbd.c
 
-libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
+libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" -I$(TIGERVNC_SRCDIR)/unix/common \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
 	-I$(TIGERVNC_SRCDIR)/unix/vncconfig $(XVNC_CPPFLAGS) ${XSERVERLIBS_CFLAGS} -I$(includedir) \
 	-I$(top_srcdir)/include
@@ -41,7 +42,7 @@ nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
 Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_MODULE_EXTS \
 	-UHAVE_CONFIG_H \
 	-DXFree86Server -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
-	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common \
+	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common -I$(TIGERVNC_SRCDIR)/unix/common \
 	-I$(top_srcdir)/include ${XSERVERLIBS_CFLAGS} -I$(includedir)
 
 Xvnc_LDADD = $(XVNC_LIBS) libvnccommon.la $(COMMON_LIBS) \
@@ -58,6 +59,7 @@ libvnc_la_SOURCES = vncModule.c
 nodist_EXTRA_libvnc_la_SOURCES = dummy.cxx
 
 libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
+	-I$(TIGERVNC_SRCDIR)/unix/common \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus \

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2016 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,118 +17,71 @@
  * USA.
  */
 
-//
-// PixelBuffer - note that this code is only written for the 8, 16, and 32 bpp cases at the
-// moment.
-//
+// -=- Generic pixel buffer class
 
 package com.tigervnc.rfb;
 
+import java.awt.*;
 import java.awt.image.*;
+import java.awt.Color;
+import java.nio.*;
+import java.util.concurrent.atomic.*;
 
-public class PixelBuffer {
+public abstract class PixelBuffer {
 
-  public PixelBuffer() {
-    setPF(new PixelFormat());
-  }
-
-  public void setPF(PixelFormat pf) {
-    if (!(pf.bpp == 32) && !(pf.bpp == 16) && !(pf.bpp == 8))
-      throw new Exception("Internal error: bpp must be 8, 16, or 32 in PixelBuffer ("+pf.bpp+")");
+  public PixelBuffer(PixelFormat pf, int w, int h) {
     format = pf;
-    switch (pf.depth) {
-    case  3:
-      // Fall-through to depth 8
-    case  6:
-      // Fall-through to depth 8
-    case  8:
-      if (!pf.trueColour) {
-        if (cm == null)
-          cm = new IndexColorModel(8, 256, new byte[256], new byte[256], new byte[256]);
-        break;
-      }
-      int rmask = pf.redMax << pf.redShift;
-      int gmask = pf.greenMax << pf.greenShift;
-      int bmask = pf.blueMax << pf.blueShift;
-      cm = new DirectColorModel(8, rmask, gmask, bmask);
-      break;
-    case 16:
-      cm = new DirectColorModel(32, 0xF800, 0x07C0, 0x003E);
-      break;
-    case 24:
-      cm = new DirectColorModel(32, (0xff << 16), (0xff << 8), 0xff);
-      break;
-    case 32:
-      cm = new DirectColorModel(32, (0xff << pf.redShift),
-        (0xff << pf.greenShift), (0xff << pf.blueShift));
-      break;
-    default:
-      throw new Exception("Unsupported color depth ("+pf.depth+")");
-    }
+    width_ = w;
+    height_= h;
   }
-  public PixelFormat getPF() { return format; }
 
+  protected PixelBuffer() { width_ = 0; height_ = 0; }
+
+  // Get pixel format
+  public final PixelFormat getPF() { return format; }
+
+  // Get width, height and number of pixels
   public final int width() { return width_; }
   public final int height() { return height_; }
   public final int area() { return width_ * height_; }
 
-  public void fillRect(int x, int y, int w, int h, int pix) {
-    for (int ry = y; ry < y + h; ry++)
-      for (int rx = x; rx < x + w; rx++)
-        data[ry * width_ + rx] = pix;
+  // Get rectangle encompassing this buffer
+  //   Top-left of rectangle is either at (0,0), or the specified point.
+  public final Rect getRect() { return new Rect(0, 0, width_, height_); }
+  public final Rect getRect(Point pos) {
+    return new Rect(pos, pos.translate(new Point(width_, height_)));
   }
 
-  public void imageRect(int x, int y, int w, int h, int[] pix) {
-    for (int j = 0; j < h; j++)
-      System.arraycopy(pix, (w * j), data, width_ * (y + j) + x, w);
-  }
+  ///////////////////////////////////////////////
+  // Access to pixel data
+  //
 
-  public void copyRect(int x, int y, int w, int h, int srcX, int srcY) {
-    int dest = (width_ * y) + x;
-    int src = (width_ * srcY) + srcX;
-    int inc = width_;
+  // Get a pointer into the buffer
+  //   The pointer is to the top-left pixel of the specified Rect.
+  public abstract Raster getBuffer(Rect r);
 
-    if (y > srcY) {
-      src += (h-1) * inc;
-      dest += (h-1) * inc;
-      inc = -inc;
-    }
-    int destEnd = dest + h * inc;
+  // Get pixel data for a given part of the buffer
+  //   Data is copied into the supplied buffer, with the specified
+  //   stride. Try to avoid using this though as getBuffer() will in
+  //   most cases avoid the extra memory copy.
+  //void getImage(void* imageBuf, const Rect& r, int stride=0) const;
+  // Get pixel data in a given format
+  //   Works just the same as getImage(), but guaranteed to be in a
+  //   specific format.
+  //void getImage(const PixelFormat& pf, void* imageBuf,
+  //                const Rect& r, int stride=0) const;
+  public Image getImage() { return image; }
 
-    while (dest != destEnd) {
-      System.arraycopy(data, src, data, dest, w);
-      src += inc;
-      dest += inc;
-    }
-  }
+  ///////////////////////////////////////////////
+  // Framebuffer update methods
+  //
 
-  public void maskRect(int x, int y, int w, int h, int[] pix, byte[] mask) {
-    int maskBytesPerRow = (w + 7) / 8;
-
-    for (int j = 0; j < h; j++) {
-      int cy = y + j;
-
-      if (cy < 0 || cy >= height_)
-        continue;
-
-      for (int i = 0; i < w; i++) {
-        int cx = x + i;
-
-        if (cx < 0 || cx >= width_)
-          continue;
-
-        int byte_ = j * maskBytesPerRow + i / 8;
-        int bit = 7 - i % 8;
-
-        if ((mask[byte_] & (1 << bit)) != 0)
-         data[cy * width_ + cx] = pix[j * w + i];
-      }
-    }
-  }
-
-  public int[] data;
-  public ColorModel cm;
+  // Ensure that the specified rectangle of buffer is up to date.
+  //   Overridden by derived classes implementing framebuffer access
+  //   to copy the required display data into place.
+  //public abstract void grabRegion(Region& region) {}
 
   protected PixelFormat format;
   protected int width_, height_;
+  protected Image image;
 }

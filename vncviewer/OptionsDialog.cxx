@@ -700,6 +700,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                          CHECK_MIN_WIDTH,
                                                          CHECK_HEIGHT,
                                                          _("Accept clipboard from server")));
+  acceptClipboardCheckbox->callback(handleClipboard, this);
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -714,10 +715,11 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                        CHECK_MIN_WIDTH,
                                                        CHECK_HEIGHT,
                                                        _("Send clipboard to server")));
+  sendClipboardCheckbox->callback(handleClipboard, this);
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
 #if !defined(WIN32) && !defined(__APPLE__)
-  sendPrimaryCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+  sendPrimaryCheckbox = new Fl_Check_Button(LBLRIGHT(tx + INDENT, ty,
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
                                                      _("Send primary selection as clipboard")));
@@ -874,6 +876,22 @@ void OptionsDialog::handleDesktopSize(Fl_Widget *widget, void *data)
     dialog->desktopWidthInput->deactivate();
     dialog->desktopHeightInput->deactivate();
   }
+}
+
+void OptionsDialog::handleClipboard(Fl_Widget *widget, void *data)
+{
+#if !defined(WIN32) && !defined(__APPLE__)
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  if (dialog->acceptClipboardCheckbox->value())
+    dialog->setPrimaryCheckbox->activate();
+  else
+    dialog->setPrimaryCheckbox->deactivate();
+  if (dialog->sendClipboardCheckbox->value())
+    dialog->sendPrimaryCheckbox->activate();
+  else
+    dialog->sendPrimaryCheckbox->deactivate();
+#endif
 }
 
 void OptionsDialog::handleCancel(Fl_Widget *widget, void *data)

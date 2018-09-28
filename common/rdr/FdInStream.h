@@ -30,6 +30,7 @@ namespace rdr {
   class FdInStreamBlockCallback {
   public:
     virtual void blockCallback() = 0;
+    virtual ~FdInStreamBlockCallback() {}
   };
 
   class FdInStream : public InStream {

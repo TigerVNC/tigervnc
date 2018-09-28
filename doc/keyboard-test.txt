@@ -12,8 +12,8 @@ We currently have a limitation in Xvnc where it can run out of symbols,
 resulting in nothing being sent to the applications. Just run setxkbmap
 with any layout to reset the symbol table.
 
-Client
-------
+Client (classic, non-raw, mode)
+-------------------------------
 
 - Normal symbols:
 
@@ -64,19 +64,18 @@ Client
   X11: You can usually toggle Hyper/Super and Compose/Scroll_Lock using
        XKB options.
 
-  - CapsLock, NumLock (sent but ignored by server)
+  - CapsLock, NumLock
   - Shift, Ctrl
-  - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
+  - Alt, AltGr, Super [Win, X11]
+  - Ctrl+AltGr [Win]
   - Meta [X11]
-  - Left/right identification (FIXME: broken for Shift on Win)
+  - Left/right identification (FIXME: broken release for Shift on Win)
   - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [OS X]
   - Hyper sends Super [X11]
 
   - CapsLock, Shift and AltGr affect symbol lookup
   - Ctrl does not affect symbol lookup
-  - CtrlL+AltR is fake released to compensate for Windows' AltGr magic [Win]
-  - Ctrl+Alt+<ANY> sends the same symbol as <ANY> (note behaviour above though)
-  - Ctrl+AltGr+<ANY> sends the same symbol as AltGr+<ANY> (FIXME: broken on Win)
+  - Ctrl+Alt+<ANY> sends the same symbol as <ANY>
   - "Shift press, A press, Shift release, A release" should not send "a release"
 
 - Numpad:
@@ -115,11 +114,25 @@ Client
 
 - French layout (AZERTY and inverted shift behaviour for many keys)
 
+- Local layout changes are respected
+
+Client (raw mode)
+-----------------
+
+- All physical keys (modifiers or type of symbol shouldn't matter)
+
+  - Normal keys
+  - Dead keys
+  - Numpad
+  - Multimedia keys
+  - Non-character keys
+
+Client (both modes)
+-------------------
+
 - Key repeat should not send repeated release events
 
 - Keys are released on loss of focus
-
-- Local layout changes are respected
 
 - Local input methods are disabled/enabled with focus
 
@@ -134,5 +147,16 @@ Client
   - Ctrl+Alt+Delete
   - Ctrl+Esc
   - F8-F12
+
+- Lock key states:
+
+  - Adjusted on server when connecting
+  - Adjusted on server when regaining focus
+  - Server changes are honored when focused
+  - Server changes are not honored when not focused
+
+  - CapsLock
+  - NumLock (hidden state on macOS)
+  - ScollLock [X11, Win]
 
 - Virtual keyboard (as much of the above as is possible)

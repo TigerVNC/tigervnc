@@ -18,12 +18,13 @@
 package com.tigervnc.network;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import com.tigervnc.rdr.Exception;
 
 public interface FileDescriptor {
 
-  public int read(byte[] buf, int bufPtr, int length) throws Exception;
-  public int write(byte[] buf, int bufPtr, int length) throws Exception;
+  public int read(ByteBuffer buf, int length) throws Exception;
+  public int write(ByteBuffer buf, int length) throws Exception;
   public int select(int interestOps, Integer timeout) throws Exception;
   public void close() throws IOException;
 

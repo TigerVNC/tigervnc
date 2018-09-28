@@ -64,22 +64,20 @@ namespace rfb {
     virtual void closeClients(const char* reason) = 0;
 
     // setCursor() tells the server that the cursor has changed.  The
-    // cursorData argument contains width*height pixel values in the pixel
-    // buffer's format.  The mask argument is a bitmask with a 1-bit meaning
-    // the corresponding pixel in cursorData is valid.  The mask consists of
-    // left-to-right, top-to-bottom scanlines, where each scanline is padded to
-    // a whole number of bytes [(width+7)/8].  Within each byte the most
-    // significant bit represents the leftmost pixel, and the bytes are simply
-    // in left-to-right order.  The server takes its own copy of the data in
-    // cursorData and mask.
+    // cursorData argument contains width*height rgba quadruplets with
+    // non-premultiplied alpha.
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           const void* cursorData, const void* mask) = 0;
+                           const rdr::U8* cursorData) = 0;
 
     // setCursorPos() tells the server the current position of the cursor.
     virtual void setCursorPos(const Point& p) = 0;
 
     // setName() tells the server what desktop title to supply to clients
     virtual void setName(const char* name) = 0;
+
+    // setLEDState() tells the server what the current lock keys LED
+    // state is
+    virtual void setLEDState(unsigned int state) = 0;
   };
 }
 #endif

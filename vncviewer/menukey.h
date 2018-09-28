@@ -22,11 +22,12 @@
 
 typedef struct {
   const char* name;
+  int fltkcode;
   int keycode;
   rdr::U32 keysym;
 } MenuKeySymbol;
 
-void getMenuKey(int *keycode, rdr::U32 *keysym);
+void getMenuKey(int *fltkcode, int *keycode, rdr::U32 *keysym);
 int getMenuKeySymbolCount();
 const MenuKeySymbol* getMenuKeySymbols();
 

@@ -67,8 +67,9 @@ StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer
 
 static LogWriter vlog("TLS");
 
-CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
-						 anon(_anon), fis(0), fos(0)
+CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
+  : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
+    anon(_anon), tlsis(NULL), tlsos(NULL), rawis(NULL), rawos(NULL)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
@@ -115,6 +116,21 @@ void CSecurityTLS::shutdown(bool needbye)
     cert_cred = 0;
   }
 
+  if (rawis && rawos) {
+    cc->setStreams(rawis, rawos);
+    rawis = NULL;
+    rawos = NULL;
+  }
+
+  if (tlsis) {
+    delete tlsis;
+    tlsis = NULL;
+  }
+  if (tlsos) {
+    delete tlsos;
+    tlsos = NULL;
+  }
+
   if (session) {
     gnutls_deinit(session);
     session = 0;
@@ -126,18 +142,13 @@ CSecurityTLS::~CSecurityTLS()
 {
   shutdown(true);
 
-  if (fis)
-    delete fis;
-  if (fos)
-    delete fos;
-
   delete[] cafile;
   delete[] crlfile;
 
   gnutls_global_deinit();
 }
 
-bool CSecurityTLS::processMsg(CConnection* cc)
+bool CSecurityTLS::processMsg()
 {
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();
@@ -153,7 +164,7 @@ bool CSecurityTLS::processMsg(CConnection* cc)
       if (result == secResultFailed || result == secResultTooMany)
         reason.buf = is->readString();
       else
-        reason.buf = strDup("Authentication failure (protocol error)");
+        reason.buf = strDup("protocol error");
       throw AuthFailureException(reason.buf);
     }
 
@@ -164,17 +175,19 @@ bool CSecurityTLS::processMsg(CConnection* cc)
       throw AuthFailureException("gnutls_set_default_priority failed");
 
     setParam();
-  }
 
-  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
-  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
+    // Create these early as they set up the push/pull functions
+    // for GnuTLS
+    tlsis = new rdr::TLSInStream(is, session);
+    tlsos = new rdr::TLSOutStream(os, session);
+
+    rawis = is;
+    rawos = os;
+  }
 
   int err;
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
-    delete tlsis;
-    delete tlsos;
-
     if (!gnutls_error_is_fatal(err))
       return false;
 
@@ -185,7 +198,7 @@ bool CSecurityTLS::processMsg(CConnection* cc)
 
   checkSession();
 
-  cc->setStreams(fis = tlsis, fos = tlsos);
+  cc->setStreams(tlsis, tlsos);
 
   return true;
 }
@@ -229,6 +242,9 @@ void CSecurityTLS::setParam()
     if (gnutls_certificate_allocate_credentials(&cert_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_certificate_allocate_credentials failed");
 
+    if (gnutls_certificate_set_x509_system_trust(cert_cred) != GNUTLS_E_SUCCESS)
+      vlog.error("Could not load system certificate trust store");
+
     if (*cafile && gnutls_certificate_set_x509_trust_file(cert_cred,cafile,GNUTLS_X509_FMT_PEM) < 0)
       throw AuthFailureException("load of CA cert failed");
 
@@ -253,6 +269,11 @@ void CSecurityTLS::setParam()
 
     if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_credentials_set failed");
+
+    if (gnutls_server_name_set(session, GNUTLS_NAME_DNS,
+                               client->getServerName(),
+                               strlen(client->getServerName())) != GNUTLS_E_SUCCESS)
+      vlog.error("Failed to configure the server name for TLS handshake");
 
     vlog.debug("X509 session has been set");
   }
@@ -331,6 +352,9 @@ void CSecurityTLS::checkSession()
     vlog.debug("server cert signer not found");
   if (status & GNUTLS_CERT_SIGNER_NOT_CA)
     vlog.debug("server cert signer not CA");
+
+  if (status & GNUTLS_CERT_INSECURE_ALGORITHM)
+    throw AuthFailureException("The server certificate uses an insecure algorithm");
 
   if ((status & (~allowed_errors)) != 0) {
     /* No other errors are allowed */

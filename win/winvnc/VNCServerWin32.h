@@ -78,6 +78,10 @@ namespace winvnc {
 
     bool setClientsStatus(rfb::ListConnInfo* LCInfo);
 
+    // Used by JavaViewerServer
+    const char* getName() {return vncServer.getName();}
+    rfb::Point getDesktopSize() {return desktop.getFbSize();}
+
   protected:
     // VNCServerST::QueryConnectionHandler interface
     // Callback used to prompt user to accept or reject a connection.
@@ -91,7 +95,7 @@ namespace winvnc {
     virtual void processAddressChange();
 
     // RegConfig::Callback interface
-    // Called via the EventManager whenver RegConfig sees the registry change
+    // Called via the EventManager whenever RegConfig sees the registry change
     virtual void regConfigChanged();
 
     // EventHandler interface

@@ -79,10 +79,9 @@ inline Pixel PixelFormat::pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 bl
 {
   Pixel p;
 
-  /* We don't need to mask since we shift out unwanted bits */
-  p = ((Pixel)red >> (16 - redBits)) << redShift;
-  p |= ((Pixel)green >> (16 - greenBits)) << greenShift;
-  p |= ((Pixel)blue >> (16 - blueBits)) << blueShift;
+  p = (Pixel)downconvTable[(redBits-1)*256 + (red >> 8)] << redShift;
+  p |= (Pixel)downconvTable[(greenBits-1)*256 + (green >> 8)] << greenShift;
+  p |= (Pixel)downconvTable[(blueBits-1)*256 + (blue >> 8)] << blueShift;
 
   return p;
 }
@@ -92,9 +91,9 @@ inline Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue)
 {
   Pixel p;
 
-  p = ((Pixel)red >> (8 - redBits)) << redShift;
-  p |= ((Pixel)green >> (8 - greenBits)) << greenShift;
-  p |= ((Pixel)blue >> (8 - blueBits)) << blueShift;
+  p = (Pixel)downconvTable[(redBits-1)*256 + red] << redShift;
+  p |= (Pixel)downconvTable[(greenBits-1)*256 + green] << greenShift;
+  p |= (Pixel)downconvTable[(blueBits-1)*256 + blue] << blueShift;
 
   return p;
 }

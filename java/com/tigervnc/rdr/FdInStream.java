@@ -19,11 +19,13 @@
 
 package com.tigervnc.rdr;
 
-import com.tigervnc.network.*;
+import java.nio.*;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 import java.util.Set;
 import java.util.Iterator;
+
+import com.tigervnc.network.*;
 
 public class FdInStream extends InStream {
 
@@ -58,22 +60,24 @@ public class FdInStream extends InStream {
     this(fd_, blockCallback_, 0);
   }
 
-  public final void readBytes(byte[] data, int dataPtr, int length) {
+  public final void readBytes(ByteBuffer data, int length) {
     if (length < minBulkSize) {
-      super.readBytes(data, dataPtr, length);
+      super.readBytes(data, length);
       return;
     }
+
+    int dataPtr = data.position();
 
     int n = end - ptr;
     if (n > length) n = length;
 
-    System.arraycopy(b, ptr, data, dataPtr, n);
+    data.put(b, ptr, n);
     dataPtr += n;
     length -= n;
     ptr += n;
 
     while (length > 0) {
-      n = readWithTimeoutOrCallback(data, dataPtr, length);
+      n = readWithTimeoutOrCallback(data, length);
       dataPtr += n;
       length -= n;
       offset += n;
@@ -139,7 +143,8 @@ public class FdInStream extends InStream {
         // bytes is ineffecient.
         bytes_to_read = Math.min(bytes_to_read, Math.max(itemSize*nItems, 8));
       }
-      int n = readWithTimeoutOrCallback(b, end, bytes_to_read, wait);
+      Buffer buf = ByteBuffer.wrap(b).position(end);
+      int n = readWithTimeoutOrCallback((ByteBuffer)buf, bytes_to_read, wait);
       if (n == 0) return 0;
       end += n;
     }
@@ -150,7 +155,7 @@ public class FdInStream extends InStream {
     return nItems;
   }
 
-  protected int readWithTimeoutOrCallback(byte[] buf, int bufPtr, int len, boolean wait) {
+  protected int readWithTimeoutOrCallback(ByteBuffer buf, int len, boolean wait) {
     long before = 0;
     if (timing)
       before = System.nanoTime();
@@ -184,7 +189,7 @@ public class FdInStream extends InStream {
     }
 
     try {
-      n = fd.read(buf, bufPtr, len);
+      n = fd.read(buf, len);
     } catch (Exception e) {
       throw new SystemException("read:"+e.toString());
     }
@@ -211,8 +216,8 @@ public class FdInStream extends InStream {
     return n;
   }
 
-  private int readWithTimeoutOrCallback(byte[] buf, int bufPtr, int len) {
-    return readWithTimeoutOrCallback(buf, bufPtr, len, true);
+  private int readWithTimeoutOrCallback(ByteBuffer buf, int len) {
+    return readWithTimeoutOrCallback(buf, len, true);
   }
 
   public FileDescriptor getFd() {

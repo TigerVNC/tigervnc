@@ -78,7 +78,7 @@ static void programUsage() {
   printf("\nLog destinations:\n");
   Logger::listLoggers();
   printf("\nAvailable configuration parameters:\n");
-  Configuration::listParams(ConfServer);
+  Configuration::listParams(79, 14);
 }
 
 static void MsgBoxOrLog(const char* msg, bool isError=false) {
@@ -172,13 +172,13 @@ static void processParams(int argc, char** argv) {
         // Try to clean up earlier services we've had
         try {
           rfb::win32::unregisterService("WinVNC4");
-        } catch (rdr::SystemException) {
+        } catch (rdr::SystemException&) {
           // Do nothing as we might fail simply because there was no
           // service to remove
         }
         try {
           rfb::win32::unregisterService("TigerVNC Server");
-        } catch (rdr::SystemException) {
+        } catch (rdr::SystemException&) {
         }
 
         if (rfb::win32::registerService(VNCServerService::Name,

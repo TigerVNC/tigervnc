@@ -31,11 +31,6 @@
 #include "TXWindow.h"
 #include <errno.h>
 
-// XXX Lynx/OS 2.3: protos for bzero(), select()
-#ifdef Lynx
-#include <sys/proto.h>
-#endif
-
 class TXDialog : public TXWindow, public TXDeleteWindowCallback {
 public:
   TXDialog(Display* dpy, int width, int height, const char* name,
@@ -78,7 +73,7 @@ public:
   // to make sure that checkboxes have the right state, etc.
   virtual void initDialog() {}
 
-  // resize() is overidden here to re-center the dialog
+  // resize() is overridden here to re-center the dialog
   void resize(int w, int h) {
     TXWindow::resize(w,h);
     int dpyWidth = WidthOfScreen(DefaultScreenOfDisplay(dpy));

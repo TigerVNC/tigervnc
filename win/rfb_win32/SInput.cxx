@@ -134,6 +134,9 @@ win32::SPointer::pointerEvent(const Point& pos, int buttonmask)
 BoolParameter rfb::win32::SKeyboard::deadKeyAware("DeadKeyAware",
   "Whether to assume the viewer has already interpreted dead key sequences "
   "into latin-1 characters", true);
+BoolParameter rfb::win32::SKeyboard::rawKeyboard("RawKeyboard",
+  "Send keyboard events straight through and avoid mapping them to the "
+  "current keyboard layout", false);
 
 // The keysymToAscii table transforms a couple of awkward keysyms into their
 // ASCII equivalents.
@@ -229,6 +232,41 @@ inline void doKeyboardEvent(BYTE vkCode, DWORD flags) {
   keybd_event(vkCode, MapVirtualKey(vkCode, 0), flags, 0);
 }
 
+inline void doScanCodeEvent(BYTE scancode, bool down) {
+  INPUT evt;
+
+  evt.type = INPUT_KEYBOARD;
+  evt.ki.wVk = 0;
+  evt.ki.dwFlags = KEYEVENTF_SCANCODE;
+
+  if (!down)
+    evt.ki.dwFlags |= KEYEVENTF_KEYUP;
+
+  if (scancode & 0x80) {
+    evt.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+    scancode &= ~0x80;
+  }
+
+  evt.ki.wScan = scancode;
+  evt.ki.dwExtraInfo = 0;
+  evt.ki.time = 0;
+  vlog.debug("SendInput ScanCode: 0x%x Flags: 0x%lx %s", scancode,
+             evt.ki.dwFlags, down ? "Down" : "Up");
+
+  // Windows has some bug where it doesn't look up scan code 0x45
+  // properly, so we need to help it out
+  if (evt.ki.wScan == 0x45) {
+    evt.ki.dwFlags &= ~KEYEVENTF_SCANCODE;
+    if (evt.ki.dwFlags & KEYEVENTF_EXTENDEDKEY)
+      evt.ki.wVk = VK_NUMLOCK;
+    else
+      evt.ki.wVk = VK_PAUSE;
+  }
+
+  if (SendInput(1, &evt, sizeof(evt)) != 1)
+    vlog.error("SendInput %lu", GetLastError());
+}
+
 // KeyStateModifier is a class which helps simplify generating a "fake" press
 // or release of shift, ctrl, alt, etc.  An instance of the class is created
 // for every key which may need to be pressed or released.  Then either press()
@@ -321,8 +359,36 @@ win32::SKeyboard::SKeyboard()
 }
 
 
-void win32::SKeyboard::keyEvent(rdr::U32 keysym, bool down)
+void win32::SKeyboard::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
+  // If scan code is available use that directly as windows uses
+  // compatible scancodes
+  if (keycode && rawKeyboard) {
+    // However NumLock incorrectly has the extended bit set
+    if (keycode == 0x45)
+      keycode = 0xc5;
+
+    // And Pause uses NumLock's proper code, except when Control is
+    // also pressed (i.e. when it is generating Break)
+    if ((keycode == 0xc6) && !(GetAsyncKeyState(VK_CONTROL) & 0x8000))
+      keycode = 0x45;
+
+    // And PrintScreen uses a different code than Alt+PrintScreen (SysRq)
+    if ((keycode == 0x54) && !(GetAsyncKeyState(VK_MENU) & 0x8000))
+      keycode = 0xb7;
+
+    if (down && (keycode == 0xd3) &&
+        ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) &&
+        ((GetAsyncKeyState(VK_MENU) & 0x8000) != 0))
+    {
+      rfb::win32::emulateCtrlAltDel();
+      return;
+    }
+
+    doScanCodeEvent(keycode, down);
+    return;
+  }
+
   for (unsigned int i = 0; i < sizeof(keysymToAscii) / sizeof(keysymToAscii_t); i++) {
     if (keysymToAscii[i].keysym == keysym) {
       keysym = keysymToAscii[i].ascii;

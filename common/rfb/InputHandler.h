@@ -25,15 +25,20 @@
 
 #include <rdr/types.h>
 #include <rfb/Rect.h>
+#include <rfb/util.h>
 
 namespace rfb {
 
   class InputHandler {
   public:
     virtual ~InputHandler() {}
-    virtual void keyEvent(rdr::U32 key, bool down) {}
-    virtual void pointerEvent(const Point& pos, int buttonMask) {}
-    virtual void clientCutText(const char* str, int len) {}
+    virtual void keyEvent(rdr::U32 __unused_attr keysym,
+                          rdr::U32 __unused_attr keycode,
+                          bool __unused_attr down) { }
+    virtual void pointerEvent(const Point& __unused_attr pos,
+                              int __unused_attr buttonMask) { }
+    virtual void clientCutText(const char* __unused_attr str,
+                               int __unused_attr len) { }
   };
 
 }

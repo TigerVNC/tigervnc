@@ -63,7 +63,7 @@ VNCServerWin32::VNCServerWin32()
       CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
     vncServer(CStr(ComputerName().buf), &desktop),
     thread_id(-1), runServer(false), isDesktopStarted(false),
-    httpServer(&vncServer), config(&sockMgr),
+    httpServer(this), config(&sockMgr),
     rfbSock(&sockMgr), httpSock(&sockMgr), trayIcon(0),
     queryConnectDialog(0)
 {

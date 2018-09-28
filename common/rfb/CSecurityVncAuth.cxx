@@ -40,7 +40,7 @@ using namespace rfb;
 
 static const int vncAuthChallengeSize = 16;
 
-bool CSecurityVncAuth::processMsg(CConnection* cc)
+bool CSecurityVncAuth::processMsg()
 {
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();
@@ -49,7 +49,7 @@ bool CSecurityVncAuth::processMsg(CConnection* cc)
   rdr::U8 challenge[vncAuthChallengeSize];
   is->readBytes(challenge, vncAuthChallengeSize);
   PlainPasswd passwd;
-  (CSecurity::upg)->getUserPasswd(0, &passwd.buf);
+  (CSecurity::upg)->getUserPasswd(cc->isSecure(), 0, &passwd.buf);
 
   // Calculate the correct response
   rdr::U8 key[8];

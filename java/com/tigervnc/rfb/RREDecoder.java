@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2016 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,30 +19,90 @@
 
 package com.tigervnc.rfb;
 
+import java.nio.*;
+
 import com.tigervnc.rdr.*;
 
 public class RREDecoder extends Decoder {
 
-  public RREDecoder(CMsgReader reader_) { reader = reader_; }
+  public RREDecoder() { super(DecoderFlags.DecoderPlain); }
 
-  public void readRect(Rect r, CMsgHandler handler) {
-    InStream is = reader.getInStream();
-    int bytesPerPixel = handler.cp.pf().bpp / 8;
-    boolean bigEndian = handler.cp.pf().bigEndian;
+  public void readRect(Rect r, InStream is,
+                       ConnParams cp, OutStream os)
+  {
+    int numRects;
+
+    numRects = is.readU32();
+    os.writeU32(numRects);
+
+    os.copyBytes(is, cp.pf().bpp/8 + numRects * (cp.pf().bpp/8 + 8));
+  }
+
+  public void decodeRect(Rect r, Object buffer,
+                         int buflen, ConnParams cp,
+                         ModifiablePixelBuffer pb)
+  {
+    MemInStream is = new MemInStream((byte[])buffer, 0, buflen);
+    PixelFormat pf = cp.pf();
+    switch (pf.bpp) {
+    case 8:  rreDecode8 (r, is, pf, pb); break;
+    case 16: rreDecode16(r, is, pf, pb); break;
+    case 32: rreDecode32(r, is, pf, pb); break;
+    }
+  }
+
+  private static ByteBuffer READ_PIXEL(InStream is, PixelFormat pf) {
+    ByteBuffer b = ByteBuffer.allocate(4);
+    switch (pf.bpp) {
+    case 8:
+      b.putInt(is.readOpaque8());
+      return ByteBuffer.allocate(1).put(b.get(3));
+    case 16:
+      b.putInt(is.readOpaque16());
+      return ByteBuffer.allocate(2).put(b.array(), 2, 2);
+    case 32:
+    default:
+      b.putInt(is.readOpaque32());
+      return b;
+    }
+  }
+
+  private void RRE_DECODE(Rect r, InStream is,
+                          PixelFormat pf, ModifiablePixelBuffer pb)
+  {
     int nSubrects = is.readU32();
-    int bg = is.readPixel(bytesPerPixel, bigEndian);
-    handler.fillRect(r, bg);
+    byte[] bg = READ_PIXEL(is, pf).array();
+    pb.fillRect(pf, r, bg);
 
     for (int i = 0; i < nSubrects; i++) {
-      int pix = is.readPixel(bytesPerPixel, bigEndian);
+      byte[] pix = READ_PIXEL(is, pf).array();
       int x = is.readU16();
       int y = is.readU16();
       int w = is.readU16();
       int h = is.readU16();
-      handler.fillRect(new Rect(r.tl.x + x, r.tl.y + y,
-                                r.tl.x + x + w, r.tl.y + y + h), pix);
+      pb.fillRect(pf, new Rect(r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h), pix);
     }
   }
 
-  CMsgReader reader;
+  private void rreDecode8(Rect r, InStream is,
+                          PixelFormat pf,
+                          ModifiablePixelBuffer pb)
+  {
+    RRE_DECODE(r, is, pf, pb);
+  }
+
+  private void rreDecode16(Rect r, InStream is,
+                           PixelFormat pf,
+                           ModifiablePixelBuffer pb)
+  {
+    RRE_DECODE(r, is, pf, pb);
+  }
+
+  private void rreDecode32(Rect r, InStream is,
+                           PixelFormat pf,
+                           ModifiablePixelBuffer pb)
+  {
+    RRE_DECODE(r, is, pf, pb);
+  }
+
 }

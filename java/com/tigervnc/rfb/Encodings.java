@@ -40,6 +40,7 @@ public class Encodings {
   public static final int pseudoEncodingClientRedirect = -311;
   public static final int pseudoEncodingFence = -312;
   public static final int pseudoEncodingContinuousUpdates = -313;
+  public static final int pseudoEncodingCursorWithAlpha = -314;
 
   // TightVNC-specific
   public static final int pseudoEncodingLastRect = -224;

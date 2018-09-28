@@ -31,7 +31,7 @@ ManagedListener::ManagedListener(SocketManager* mgr)
 
 ManagedListener::~ManagedListener() {
   if (!sockets.empty()) {
-    std::list<network::TcpListener*>::iterator iter;
+    std::list<network::SocketListener*>::iterator iter;
     for (iter = sockets.begin(); iter != sockets.end(); ++iter)
       manager->remListener(*iter);
     sockets.clear();
@@ -62,7 +62,7 @@ void ManagedListener::setFilter(const char* filterStr) {
   delete filter;
   filter = new network::TcpFilter(filterStr);
   if (!sockets.empty() && !localOnly) {
-    std::list<network::TcpListener*>::iterator iter;
+    std::list<network::SocketListener*>::iterator iter;
     for (iter = sockets.begin(); iter != sockets.end(); ++iter)
       (*iter)->setFilter(filter);
   }
@@ -80,7 +80,7 @@ bool ManagedListener::isListening() {
 }
 
 void ManagedListener::refresh() {
-  std::list<network::TcpListener*>::iterator iter;
+  std::list<network::SocketListener*>::iterator iter;
   if (!sockets.empty()) {
     for (iter = sockets.begin(); iter != sockets.end(); ++iter)
       manager->remListener(*iter);
@@ -107,7 +107,7 @@ void ManagedListener::refresh() {
       for (iter = sockets.begin(); iter != sockets.end(); ++iter)
         manager->addListener(*iter, server, addrChangeNotifier);
     } catch (...) {
-      std::list<network::TcpListener*>::iterator iter2;
+      std::list<network::SocketListener*>::iterator iter2;
       for (iter2 = sockets.begin(); iter2 != iter; ++iter2)
         manager->remListener(*iter2);
       for (; iter2 != sockets.end(); ++iter2)

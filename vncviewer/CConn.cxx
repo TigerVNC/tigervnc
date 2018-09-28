@@ -39,6 +39,9 @@
 #include <rdr/MemInStream.h>
 #include <rdr/MemOutStream.h>
 #include <network/TcpSocket.h>
+#ifndef WIN32
+#include <network/UnixSocket.h>
+#endif
 
 #include <FL/Fl.H>
 #include <FL/fl_ask.H>
@@ -73,7 +76,7 @@ static const PixelFormat mediumColourPF(8, 8, false, true,
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
-    pendingPFChange(false),
+    updateCount(0), pixelCount(0), pendingPFChange(false),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
@@ -92,6 +95,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   cp.supportsExtendedDesktopSize = true;
   cp.supportsDesktopRename = true;
 
+  cp.supportsLEDState = true;
+
   if (customCompressLevel)
     cp.compressLevel = compressLevel;
   else
@@ -104,13 +109,23 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
   if(sock == NULL) {
     try {
-      getHostAndPort(vncServerName, &serverHost, &serverPort);
+#ifndef WIN32
+      if (strchr(vncServerName, '/') != NULL) {
+        sock = new network::UnixSocket(vncServerName);
+        serverHost = sock->getPeerAddress();
+        vlog.info(_("connected to socket %s"), serverHost);
+      } else
+#endif
+      {
+        getHostAndPort(vncServerName, &serverHost, &serverPort);
 
-      sock = new network::TcpSocket(serverHost, serverPort);
-      vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
+        sock = new network::TcpSocket(serverHost, serverPort);
+        vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
+      }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      fl_alert("%s", e.str());
+      if (alertOnFatalError)
+        fl_alert("%s", e.str());
       exit_vncviewer();
       return;
     }
@@ -223,6 +238,21 @@ const char *CConn::connectionInfo()
   return infoText;
 }
 
+unsigned CConn::getUpdateCount()
+{
+  return updateCount;
+}
+
+unsigned CConn::getPixelCount()
+{
+  return pixelCount;
+}
+
+unsigned CConn::getPosition()
+{
+  return sock->inStream().pos();
+}
+
 // The RFB core is not properly asynchronous, so it calls this callback
 // whenever it needs to block to wait for more data. Since FLTK is
 // monitoring the socket, we just make sure FLTK gets to run.
@@ -254,6 +284,15 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     // until the buffers are empty or things will stall.
     do {
       cc->processMsg();
+
+      // Make sure that the FLTK handling and the timers gets some CPU
+      // time in case of back to back messages
+       Fl::check();
+       Timer::checkTimeouts();
+
+       // Also check if we need to stop reading and terminate
+       if (should_exit())
+         break;
     } while (cc->sock->inStream().checkNoWait(1));
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
@@ -337,31 +376,12 @@ void CConn::setName(const char* name)
 // one.
 void CConn::framebufferUpdateStart()
 {
-  ModifiablePixelBuffer* pb;
-  PlatformPixelBuffer* ppb;
-
   CConnection::framebufferUpdateStart();
 
   // Note: This might not be true if sync fences are supported
   pendingUpdate = false;
 
   requestNewUpdate();
-
-  // We might still be rendering the previous update
-  pb = getFramebuffer();
-  assert(pb != NULL);
-  ppb = dynamic_cast<PlatformPixelBuffer*>(pb);
-  assert(ppb != NULL);
-  if (ppb->isRendering()) {
-    // Need to stop monitoring the socket or we'll just busy loop
-    assert(sock != NULL);
-    Fl::remove_fd(sock->getFd());
-
-    while (ppb->isRendering())
-      run_mainloop();
-
-    Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
-  }
 
   // Update the screen prematurely for very slow updates
   Fl::add_timeout(1.0, handleUpdateTimeout, this);
@@ -374,6 +394,8 @@ void CConn::framebufferUpdateStart()
 void CConn::framebufferUpdateEnd()
 {
   CConnection::framebufferUpdateEnd();
+
+  updateCount++;
 
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
@@ -397,11 +419,6 @@ void CConn::framebufferUpdateEnd()
   // Compute new settings based on updated bandwidth values
   if (autoSelect)
     autoSelectFormatAndEncoding();
-
-  // Make sure that the FLTK handling and the timers gets some CPU time
-  // in case of back to back framebuffer updates.
-  Fl::check();
-  Timer::checkTimeouts();
 }
 
 // The rest of the callbacks are fairly self-explanatory...
@@ -418,32 +435,7 @@ void CConn::bell()
 
 void CConn::serverCutText(const char* str, rdr::U32 len)
 {
-  char *buffer;
-  int size, ret;
-
-  if (!acceptClipboard)
-    return;
-
-  size = fl_utf8froma(NULL, 0, str, len);
-  if (size <= 0)
-    return;
-
-  size++;
-
-  buffer = new char[size];
-
-  ret = fl_utf8froma(buffer, size, str, len);
-  assert(ret < size);
-
-  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
-
-  // RFB doesn't have separate selection and clipboard concepts, so we
-  // dump the data into both variants.
-  if (setPrimary)
-    Fl::copy(buffer, ret, 0);
-  Fl::copy(buffer, ret, 1);
-
-  delete [] buffer;
+  desktop->serverCutText(str, len);
 }
 
 void CConn::dataRect(const Rect& r, int encoding)
@@ -456,12 +448,14 @@ void CConn::dataRect(const Rect& r, int encoding)
   CConnection::dataRect(r, encoding);
 
   sock->inStream().stopTiming();
+
+  pixelCount += r.area();
 }
 
 void CConn::setCursor(int width, int height, const Point& hotspot,
-                      void* data, void* mask)
+                      const rdr::U8* data)
 {
-  desktop->setCursor(width, height, hotspot, data, mask);
+  desktop->setCursor(width, height, hotspot, data);
 }
 
 void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
@@ -496,6 +490,13 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
 
     cp.setPF(pf);
   }
+}
+
+void CConn::setLEDState(unsigned int state)
+{
+  CConnection::setLEDState(state);
+
+  desktop->setLEDState(state);
 }
 
 

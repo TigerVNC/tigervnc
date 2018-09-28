@@ -195,7 +195,7 @@ static int vncOwnSelection(Atom selection)
 
 static int vncConvertSelection(ClientPtr client, Atom selection,
                                Atom target, Atom property,
-                               Window requestor, TimeStamp time)
+                               Window requestor, CARD32 time)
 {
   Selection *pSel;
   WindowPtr pWin;
@@ -212,8 +212,8 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
   if (rc != Success)
     return rc;
 
-  if (CompareTimeStamps(time, pSel->lastTimeChanged) != LATER)
-    return BadMatch;
+  /* We do not validate the time argument because neither does
+   * dix/selection.c and some clients (e.g. Qt) relies on this */
 
   rc = dixLookupWindow(&pWin, requestor, client, DixSetAttrAccess);
   if (rc != Success)
@@ -230,23 +230,24 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
     Atom targets[] = { xaTARGETS, xaTIMESTAMP,
                        xaSTRING, xaTEXT, xaUTF8_STRING };
 
-    rc = ChangeWindowProperty(pWin, realProperty, XA_ATOM, 32,
-                              PropModeReplace,
-                              sizeof(targets)/sizeof(targets[0]),
-                              targets, TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 XA_ATOM, 32, PropModeReplace,
+                                 sizeof(targets)/sizeof(targets[0]),
+                                 targets, TRUE);
     if (rc != Success)
       return rc;
   } else if (target == xaTIMESTAMP) {
-    rc = ChangeWindowProperty(pWin, realProperty, XA_INTEGER, 32,
-                              PropModeReplace, 1,
-                              &pSel->lastTimeChanged.milliseconds,
-                              TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 XA_INTEGER, 32, PropModeReplace, 1,
+                                 &pSel->lastTimeChanged.milliseconds,
+                                 TRUE);
     if (rc != Success)
       return rc;
   } else if ((target == xaSTRING) || (target == xaTEXT)) {
-    rc = ChangeWindowProperty(pWin, realProperty, XA_STRING, 8,
-                              PropModeReplace, clientCutTextLen,
-                              clientCutText, TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 XA_STRING, 8, PropModeReplace,
+                                 clientCutTextLen, clientCutText,
+                                 TRUE);
     if (rc != Success)
       return rc;
   } else if (target == xaUTF8_STRING) {
@@ -279,8 +280,9 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
       }
     }
 
-    rc = ChangeWindowProperty(pWin, realProperty, xaUTF8_STRING, 8,
-                              PropModeReplace, len, buffer, TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 xaUTF8_STRING, 8, PropModeReplace,
+                                 len, buffer, TRUE);
     free(buffer);
     if (rc != Success)
       return rc;
@@ -289,7 +291,7 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
   }
 
   event.u.u.type = SelectionNotify;
-  event.u.selectionNotify.time = time.milliseconds;
+  event.u.selectionNotify.time = time;
   event.u.selectionNotify.requestor = requestor;
   event.u.selectionNotify.selection = selection;
   event.u.selectionNotify.target = target;
@@ -322,11 +324,9 @@ static int vncProcConvertSelection(ClientPtr client)
   rc = dixLookupSelection(&pSel, stuff->selection, client, DixReadAccess);
   if (rc == Success && pSel->client == serverClient &&
       pSel->window == wid) {
-    TimeStamp time;
-    time = ClientTimeToServerTime(stuff->time);
     rc = vncConvertSelection(client, stuff->selection,
                              stuff->target, stuff->property,
-                             stuff->requestor, time);
+                             stuff->requestor, stuff->time);
     if (rc != Success) {
       xEvent event;
 
@@ -508,6 +508,9 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
     return;
   if (info->client == serverClient)
     return;
+
+  LOG_DEBUG("Selection owner change for %s",
+            NameForAtom(info->selection->selection));
 
   if ((info->selection->selection != xaPRIMARY) &&
       (info->selection->selection != xaCLIPBOARD))

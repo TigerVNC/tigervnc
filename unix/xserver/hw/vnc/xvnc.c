@@ -35,6 +35,7 @@ from the X Consortium.
 #include "vncExtInit.h"
 #include "RFBGlue.h"
 #include "XorgGlue.h"
+#include "RandrGlue.h"
 #include "xorg-version.h"
 
 #ifdef WIN32
@@ -46,6 +47,9 @@ from the X Consortium.
 #include <X11/Xproto.h>
 #include <X11/Xos.h>
 #include "scrnintstr.h"
+#if XORG >= 120
+#include "glx_extinit.h"
+#endif
 #include "servermd.h"
 #include "fb.h"
 #include "mi.h"
@@ -72,9 +76,7 @@ from the X Consortium.
 #include "os.h"
 #include "miline.h"
 #include "inputstr.h"
-#ifdef RANDR
 #include "randrstr.h"
-#endif /* RANDR */
 #ifdef DPMSExtension
 #include "dpmsproc.h"
 #endif
@@ -85,8 +87,8 @@ from the X Consortium.
 #include "version-config.h"
 #include "site.h"
 
-#define XVNCVERSION "TigerVNC 1.7.80"
-#define XVNCCOPYRIGHT ("Copyright (C) 1999-2016 TigerVNC Team and many others (see README.txt)\n" \
+#define XVNCVERSION "TigerVNC 1.9.80"
+#define XVNCCOPYRIGHT ("Copyright (C) 1999-2018 TigerVNC Team and many others (see README.rst)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
 #define VFB_DEFAULT_WIDTH  1024
@@ -203,6 +205,7 @@ vfbBitsPerPixel(int depth)
 static void vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb);
 
 #ifdef DPMSExtension
+#if XORG < 120
     /* Why support DPMS? Because stupid modern desktop environments
        such as Unity 2D on Ubuntu 11.10 crashes if DPMS is not
        available. (DPMSSet is called by dpms.c, but the return value
@@ -218,6 +221,7 @@ Bool DPMSSupported(void)
        capable */
     return FALSE;
 }
+#endif
 #endif
 
 #if XORG < 111
@@ -572,9 +576,17 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
     if (strcmp(argv[i], "-inetd") == 0)
     {
+	int nullfd;
+
 	dup2(0,3);
 	vncInetdSock = 3;
-	close(2);
+
+	/* Avoid xserver >= 1.19's epoll-fd becoming fd 2 / stderr only to be
+	   replaced by /dev/null by OsInit() because the pollfd is not
+	   writable, breaking ospoll_wait(). */
+	nullfd = open("/dev/null", O_WRONLY);
+	dup2(nullfd, 2);
+	close(nullfd);
 	
 	if (!displaySpecified) {
 	    int port = vncGetSocketPort(vncInetdSock);
@@ -944,7 +956,6 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs = {
     miPointerWarpCursor
 };
 
-#ifdef RANDR
 
 static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
@@ -1371,41 +1382,87 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
 }
 
 /* Used from XserverDesktop when it needs more outputs... */
-int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
+
+int vncRandRCanCreateScreenOutputs(int scrIdx, int extraOutputs)
+{
+    return 1;
+}
+
+int vncRandRCreateScreenOutputs(int scrIdx, int extraOutputs)
 {
     RRCrtcPtr crtc;
 
     while (extraOutputs > 0) {
         crtc = vncRandRCrtcCreate(screenInfo.screens[scrIdx]);
         if (crtc == NULL)
-            return -1;
+            return 0;
         extraOutputs--;
     }
 
-    return 0;
+    return 1;
 }
 
-/* Used to create a preferred mode from various places */
-void *vncRandRCreatePreferredMode(void *out, int width, int height)
+/* Creating and modifying modes, used by XserverDesktop and init here */
+
+int vncRandRCanCreateModes()
+{
+    return 1;
+}
+
+void* vncRandRCreateMode(void* out, int width, int height)
 {
     RROutputPtr output;
 
     output = out;
 
+    /* Do we already have the mode? */
+    for (int i = 0; i < output->numModes; i++) {
+        if ((output->modes[i]->mode.width == width) &&
+            (output->modes[i]->mode.height == height))
+            return output->modes[i];
+    }
+
+    /* Just recreate the entire list */
+    vncRandRSetModes(output, width, height);
+
+    /* Find the new mode */
+    for (int i = 0; i < output->numModes; i++) {
+        if ((output->modes[i]->mode.width == width) &&
+            (output->modes[i]->mode.height == height))
+            return output->modes[i];
+    }
+
+    /* Something went horribly wrong */
+    return NULL;
+}
+
+void* vncRandRSetPreferredMode(void* out, void* m)
+{
+    RRModePtr mode;
+    RROutputPtr output;
+    int width, height;
+
+    mode = m;
+    output = out;
+
+    width = mode->mode.width;
+    height = mode->mode.height;
+
     /* Already the preferred mode? */
     if ((output->numModes >= 1) && (output->numPreferred == 1) &&
-        (output->modes[0]->mode.width == width) &&
-        (output->modes[0]->mode.height == height))
-        return output->modes[0];
+        (output->modes[0] == mode))
+        return mode;
 
     /* Recreate the list, with the mode we want as preferred */
     vncRandRSetModes(output, width, height);
 
+    /* Sanity check */
     if ((output->numModes >= 1) && (output->numPreferred == 1) &&
         (output->modes[0]->mode.width == width) &&
         (output->modes[0]->mode.height == height))
         return output->modes[0];
 
+    /* Something went horribly wrong */
     return NULL;
 }
 
@@ -1428,8 +1485,11 @@ static Bool vncRandRInit(ScreenPtr pScreen)
     crtc = vncRandRCrtcCreate(pScreen);
 
     /* Make sure the current screen size is the active mode */
-    mode = vncRandRCreatePreferredMode(crtc->outputs[0],
-                                       pScreen->width, pScreen->height);
+    mode = vncRandRCreateMode(crtc->outputs[0],
+                              pScreen->width, pScreen->height);
+    if (mode == NULL)
+        return FALSE;
+    mode = vncRandRSetPreferredMode(crtc->outputs[0], mode);
     if (mode == NULL)
         return FALSE;
 
@@ -1441,7 +1501,6 @@ static Bool vncRandRInit(ScreenPtr pScreen)
     return TRUE;
 }
 
-#endif
 
 static Bool
 #if XORG < 113
@@ -1498,9 +1557,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     int ret;
     void *pbits;
 
-#ifdef RANDR
     rrScrPrivPtr rp;
-#endif
 
 #if XORG >= 113
     if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
@@ -1636,7 +1693,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
 
-#ifdef RANDR
     ret = RRScreenInit(pScreen);
     if (!ret) return FALSE;
 
@@ -1651,7 +1707,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     ret = vncRandRInit(pScreen);
     if (!ret) return FALSE;
-#endif
 
 
   return TRUE;
@@ -1688,6 +1743,10 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
 
     vncPrintBanner();
 
+#if XORG >= 120
+    xorgGlxCreateVendor();
+#else
+
 #if XORG >= 113
 #ifdef GLXEXT
     if (serverGeneration == 1)
@@ -1697,6 +1756,8 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
         LoadExtension(&glxExt, TRUE);
 #endif
 #endif
+#endif
+
 #endif
 
     /* initialize pixmap formats */
@@ -1773,16 +1834,8 @@ void ProcessInputEvents(void)
   mieqProcessInputEvents();
 }
 
-// InitInput is called after InitExtensions, so we're guaranteed that
-// vncExtensionInit() has already been called.
-
 void InitInput(int argc, char *argv[])
 {
-  int i;
-  for (i = 0;i < screenInfo.numScreens;i++) {
-    if (!vncExtensionIsActive(i))
-        FatalError("failed to activate VNC extension for one or more screens");
-  }
   mieqInit ();
 }
 

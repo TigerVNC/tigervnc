@@ -50,12 +50,16 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           void* data, void* mask) = 0;
+                           const rdr::U8* data) = 0;
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void endOfContinuousUpdates();
+    virtual void supportsQEMUKeyEvent();
     virtual void serverInit() = 0;
+
+    virtual void readAndDecodeRect(const Rect& r, int encoding,
+                                   ModifiablePixelBuffer* pb) = 0;
 
     virtual void framebufferUpdateStart();
     virtual void framebufferUpdateEnd();
@@ -65,6 +69,8 @@ namespace rfb {
 				     rdr::U16* rgbs) = 0;
     virtual void bell() = 0;
     virtual void serverCutText(const char* str, rdr::U32 len) = 0;
+
+    virtual void setLEDState(unsigned int state);
 
     ConnParams cp;
   };

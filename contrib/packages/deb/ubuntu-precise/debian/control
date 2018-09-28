@@ -9,7 +9,7 @@ Homepage: http://www.tigervnc.com
 Package: tigervncserver
 Architecture: any
 Provides: xserver, vnc-server
-Depends: x11-common | xserver-common, x11-utils, xauth, libbz2-1.0, libc6, libfontenc1, libfreetype6, libgcc1, libgl1-mesa-dri, libgnutls28, libjpeg-turbo8, libp11-kit0, libpam0g, libpixman-1-0, libstdc++6, libtasn1-3, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxfont1, libxtst6, zlib1g, libglu1-mesa, libxcursor1, libxinerama1, libxfixes3, x11-xkb-utils
+Depends: x11-common | xserver-common, x11-utils, xauth, libbz2-1.0, libc6, libfontenc1, libfreetype6, libgcc1, libgl1-mesa-dri, libgnutls28, libjpeg-turbo8, libp11-kit0, libpam0g, libpixman-1-0, libstdc++6, libtasn1-3, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxfont1, libxtst6, zlib1g, libglu1-mesa, libxcursor1, libxinerama1, libxfixes3, x11-xkb-utils, libgcrypt11
 Recommends: xfonts-base, x11-xserver-utils
 Suggests: xtigervncviewer, tigervnc-java
 Description: virtual network computing server software

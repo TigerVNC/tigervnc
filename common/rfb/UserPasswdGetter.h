@@ -24,7 +24,9 @@ namespace rfb {
     // dialog, getpass(), etc.  The user buffer pointer can be null, in which
     // case no user name will be retrieved.  The caller MUST delete [] the
     // result(s).
-    virtual void getUserPasswd(char** user, char** password)=0;
+    virtual void getUserPasswd(bool secure, char** user, char** password)=0;
+
+    virtual ~UserPasswdGetter() {}
   };
 }
 #endif

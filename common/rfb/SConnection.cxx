@@ -51,7 +51,7 @@ const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 SConnection::SConnection()
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
-    security(0), ssecurity(0), state_(RFBSTATE_UNINITIALISED),
+    ssecurity(0), state_(RFBSTATE_UNINITIALISED),
     preferredEncoding(encodingRaw)
 {
   defaultMajorVersion = 3;
@@ -60,13 +60,12 @@ SConnection::SConnection()
     defaultMinorVersion = 3;
 
   cp.setVersion(defaultMajorVersion, defaultMinorVersion);
-
-  security = new SecurityServer();
 }
 
 SConnection::~SConnection()
 {
-  if (ssecurity) ssecurity->destroy();
+  if (ssecurity)
+    delete ssecurity;
   delete reader_;
   reader_ = 0;
   delete writer_;
@@ -118,11 +117,9 @@ void SConnection::processVersionMsg()
 
   if (cp.majorVersion != 3) {
     // unknown protocol version
-    char msg[256];
-    sprintf(msg,"Error: client needs protocol version %d.%d, server has %d.%d",
-            cp.majorVersion, cp.minorVersion,
-            defaultMajorVersion, defaultMinorVersion);
-    throwConnFailedException(msg);
+    throwConnFailedException("Client needs protocol version %d.%d, server has %d.%d",
+                             cp.majorVersion, cp.minorVersion,
+                             defaultMajorVersion, defaultMinorVersion);
   }
 
   if (cp.minorVersion != 3 && cp.minorVersion != 7 && cp.minorVersion != 8) {
@@ -142,7 +139,7 @@ void SConnection::processVersionMsg()
 
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;
-  secTypes = security->GetEnabledSecTypes();
+  secTypes = security.GetEnabledSecTypes();
 
   if (cp.isVersion(3,3)) {
 
@@ -152,16 +149,14 @@ void SConnection::processVersionMsg()
       if (*i == secTypeNone || *i == secTypeVncAuth) break;
     }
     if (i == secTypes.end()) {
-      char msg[256];
-      sprintf(msg,"No supported security type for %d.%d client",
-              cp.majorVersion, cp.minorVersion);
-      throwConnFailedException(msg);
+      throwConnFailedException("No supported security type for %d.%d client",
+                               cp.majorVersion, cp.minorVersion);
     }
 
     os->writeU32(*i);
     if (*i == secTypeNone) os->flush();
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security->GetSSecurity(*i);
+    ssecurity = security.GetSSecurity(this, *i);
     processSecurityMsg();
     return;
   }
@@ -193,7 +188,7 @@ void SConnection::processSecurityType(int secType)
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;
 
-  secTypes = security->GetEnabledSecTypes();
+  secTypes = security.GetEnabledSecTypes();
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
     if (*i == secType) break;
   if (i == secTypes.end())
@@ -204,9 +199,9 @@ void SConnection::processSecurityType(int secType)
 
   try {
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security->GetSSecurity(secType);
+    ssecurity = security.GetSSecurity(this, secType);
   } catch (rdr::Exception& e) {
-    throwConnFailedException(e.str());
+    throwConnFailedException("%s", e.str());
   }
 
   processSecurityMsg();
@@ -216,7 +211,7 @@ void SConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
   try {
-    bool done = ssecurity->processMsg(this);
+    bool done = ssecurity->processMsg();
     if (done) {
       state_ = RFBSTATE_QUERYING;
       setAccessRights(ssecurity->getAccessRights());
@@ -238,22 +233,31 @@ void SConnection::processInitMsg()
   reader_->readClientInit();
 }
 
-void SConnection::throwConnFailedException(const char* msg)
+void SConnection::throwConnFailedException(const char* format, ...)
 {
-  vlog.info("%s", msg);
+	va_list ap;
+	char str[256];
+
+	va_start(ap, format);
+	(void) vsnprintf(str, sizeof(str), format, ap);
+	va_end(ap);
+
+  vlog.info("Connection failed: %s", str);
+
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (cp.majorVersion == 3 && cp.minorVersion == 3) {
       os->writeU32(0);
-      os->writeString(msg);
+      os->writeString(str);
       os->flush();
     } else {
       os->writeU8(0);
-      os->writeString(msg);
+      os->writeString(str);
       os->flush();
     }
   }
+
   state_ = RFBSTATE_INVALID;
-  throw ConnFailedException(msg);
+  throw ConnFailedException(str);
 }
 
 void SConnection::writeConnFailedFromScratch(const char* msg,
@@ -280,6 +284,11 @@ void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
   SMsgHandler::setEncodings(nEncodings, encodings);
 }
 
+void SConnection::supportsQEMUKeyEvent()
+{
+  writer()->writeQEMUKeyEvent();
+}
+
 void SConnection::versionReceived()
 {
 }
@@ -298,15 +307,17 @@ void SConnection::approveConnection(bool accept, const char* reason)
   if (state_ != RFBSTATE_QUERYING)
     throw Exception("SConnection::approveConnection: invalid state");
 
-  if (!reason) reason = "Authentication failure";
-
   if (!cp.beforeVersion(3,8) || ssecurity->getType() != secTypeNone) {
     if (accept) {
       os->writeU32(secResultOK);
     } else {
       os->writeU32(secResultFailed);
-      if (!cp.beforeVersion(3,8)) // 3.8 onwards have failure message
-        os->writeString(reason);
+      if (!cp.beforeVersion(3,8)) { // 3.8 onwards have failure message
+        if (reason)
+          os->writeString(reason);
+        else
+          os->writeString("Authentication failure");
+      }
     }
     os->flush();
   }
@@ -318,7 +329,10 @@ void SConnection::approveConnection(bool accept, const char* reason)
     authSuccess();
   } else {
     state_ = RFBSTATE_INVALID;
-    throw AuthFailureException(reason);
+    if (reason)
+      throw AuthFailureException(reason);
+    else
+      throw AuthFailureException();
   }
 }
 

@@ -30,51 +30,40 @@
 
 namespace network {
 
+  void initSockets();
+
+  bool isSocketListening(int sock);
+
   class Socket {
   public:
-    Socket(int fd)
-      : instream(new rdr::FdInStream(fd)),
-      outstream(new rdr::FdOutStream(fd)),
-      ownStreams(true), isShutdown_(false),
-      queryConnection(false) {}
-    virtual ~Socket() {
-      if (ownStreams) {
-        delete instream;
-        delete outstream;
-      }
-    }
+    Socket(int fd);
+    virtual ~Socket();
+
     rdr::FdInStream &inStream() {return *instream;}
     rdr::FdOutStream &outStream() {return *outstream;}
     int getFd() {return outstream->getFd();}
 
-    // if shutdown() is overridden then the override MUST call on to here
-    virtual void shutdown() {isShutdown_ = true;}
-    bool isShutdown() const {return isShutdown_;}
+    void shutdown();
+    bool isShutdown() const;
 
-    // information about this end of the socket
-    virtual int getMyPort() = 0;
+    virtual bool cork(bool enable) = 0;
 
     // information about the remote end of the socket
     virtual char* getPeerAddress() = 0; // a string e.g. "192.168.0.1"
-    virtual int getPeerPort() = 0;
     virtual char* getPeerEndpoint() = 0; // <address>::<port>
 
-    // Is the remote end on the same machine?
-    virtual bool sameMachine() = 0;
-
     // Was there a "?" in the ConnectionFilter used to accept this Socket?
-    void setRequiresQuery() {queryConnection = true;}
-    bool requiresQuery() const {return queryConnection;}
+    void setRequiresQuery();
+    bool requiresQuery() const;
 
   protected:
-    Socket() : instream(0), outstream(0), ownStreams(false),
-      isShutdown_(false), queryConnection(false) {}
-    Socket(rdr::FdInStream* i, rdr::FdOutStream* o, bool own)
-      : instream(i), outstream(o), ownStreams(own),
-      isShutdown_(false), queryConnection(false) {}
+    Socket();
+
+    void setFd(int fd);
+
+  private:
     rdr::FdInStream* instream;
     rdr::FdOutStream* outstream;
-    bool ownStreams;
     bool isShutdown_;
     bool queryConnection;
   };
@@ -82,24 +71,37 @@ namespace network {
   class ConnectionFilter {
   public:
     virtual bool verifyConnection(Socket* s) = 0;
+    virtual ~ConnectionFilter() {}
   };
 
   class SocketListener {
   public:
-    SocketListener() : fd(0), filter(0) {}
-    virtual ~SocketListener() {}
+    SocketListener(int fd);
+    virtual ~SocketListener();
 
     // shutdown() stops the socket from accepting further connections
-    virtual void shutdown() = 0;
+    void shutdown();
 
     // accept() returns a new Socket object if there is a connection
     // attempt in progress AND if the connection passes the filter
     // if one is installed.  Otherwise, returns 0.
-    virtual Socket* accept() = 0;
+    Socket* accept();
+
+    virtual int getMyPort() = 0;
 
     // setFilter() applies the specified filter to all new connections
     void setFilter(ConnectionFilter* f) {filter = f;}
     int getFd() {return fd;}
+
+  protected:
+    SocketListener();
+
+    void listen(int fd);
+
+    // createSocket() should create a new socket of the correct class
+    // for the given file descriptor
+    virtual Socket* createSocket(int fd) = 0;
+
   protected:
     int fd;
     ConnectionFilter* filter;

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,13 +44,13 @@ CConnection::CConnection()
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
     framebuffer(NULL), decoder(this)
 {
-  security = new SecurityClient();
 }
 
 CConnection::~CConnection()
 {
   setFramebuffer(NULL);
-  if (csecurity) csecurity->destroy();
+  if (csecurity)
+    delete csecurity;
   delete reader_;
   reader_ = 0;
   delete writer_;
@@ -166,7 +167,7 @@ void CConnection::processSecurityTypesMsg()
   int secType = secTypeInvalid;
 
   std::list<rdr::U8> secTypes;
-  secTypes = security->GetEnabledSecTypes();
+  secTypes = security.GetEnabledSecTypes();
 
   if (cp.isVersion(3,3)) {
 
@@ -234,14 +235,14 @@ void CConnection::processSecurityTypesMsg()
   }
 
   state_ = RFBSTATE_SECURITY;
-  csecurity = security->GetCSecurity(secType);
+  csecurity = security.GetCSecurity(this, secType);
   processSecurityMsg();
 }
 
 void CConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
-  if (csecurity->processMsg(this)) {
+  if (csecurity->processMsg()) {
     state_ = RFBSTATE_SECURITY_RESULT;
     processSecurityResultMsg();
   }
@@ -270,12 +271,10 @@ void CConnection::processSecurityResultMsg()
   default:
     throw Exception("Unknown security result from server");
   }
-  CharArray reason;
-  if (cp.beforeVersion(3,8))
-    reason.buf = strDup("Authentication failure");
-  else
-    reason.buf = is->readString();
   state_ = RFBSTATE_INVALID;
+  if (cp.beforeVersion(3,8))
+    throw AuthFailureException();
+  CharArray reason(is->readString());
   throw AuthFailureException(reason.buf);
 }
 
@@ -318,6 +317,13 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
   decoder.flush();
 
   CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
+}
+
+void CConnection::readAndDecodeRect(const Rect& r, int encoding,
+                                    ModifiablePixelBuffer* pb)
+{
+  decoder.decodeRect(r, encoding, pb);
+  decoder.flush();
 }
 
 void CConnection::framebufferUpdateStart()

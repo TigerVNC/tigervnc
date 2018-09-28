@@ -31,13 +31,18 @@ public class ScreenSet {
     screens = new ArrayList<Screen>();
   }
 
+  public final ListIterator<Screen> begin() { return screens.listIterator(0); }
+  public final ListIterator<Screen> end() {
+    return screens.listIterator(screens.size());
+  }
   public final int num_screens() { return screens.size(); }
 
   public final void add_screen(Screen screen) { screens.add(screen); }
   public final void remove_screen(int id) {
-    for (Iterator<Screen> iter = screens.iterator(); iter.hasNext(); ) {
-      Screen refScreen = (Screen)iter.next();
-      if (refScreen.id == id)
+    ListIterator iter, nextiter;
+    for (iter = begin(); iter != end(); iter = nextiter) {
+      nextiter = iter; nextiter.next();
+      if (((Screen)iter.next()).id == id)
         iter.remove();
     }
   }
@@ -68,9 +73,10 @@ public class ScreenSet {
   }
 
   public final void debug_print() {
+    vlog.debug(num_screens()+" screen(s)");
     for (Iterator<Screen> iter = screens.iterator(); iter.hasNext(); ) {
       Screen refScreen = (Screen)iter.next();
-      vlog.error("    "+refScreen.id+" (0x"+refScreen.id+"): "+
+      vlog.debug("    "+refScreen.id+" (0x"+refScreen.id+"): "+
                 refScreen.dimensions.width()+"x"+refScreen.dimensions.height()+
                 "+"+refScreen.dimensions.tl.x+"+"+refScreen.dimensions.tl.y+
                 " (flags 0x"+refScreen.flags+")");

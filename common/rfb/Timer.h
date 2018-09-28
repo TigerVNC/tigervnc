@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +50,8 @@ namespace rfb {
       //   appropriate interval.
       //   If the handler returns false then the Timer is cancelled.
       virtual bool handleTimeout(Timer* t) = 0;
+
+      virtual ~Callback() {}
     };
 
     // checkTimeouts()
@@ -82,6 +85,11 @@ namespace rfb {
     //   Determines the previously used timeout value, if any.
     //   Usually used with isStarted() to get the _current_ timeout.
     int getTimeoutMs();
+
+    // getRemainingMs
+    //   Determines how many milliseconds are left before the Timer
+    //   will timeout. Only valid for an active timer.
+    int getRemainingMs();
 
     // isBefore
     //   Determine whether the Timer will timeout before the specified time.

@@ -1,0 +1,659 @@
+# Hungarian translation for TigerVNC.
+# Copyright (C) 2017 the TigerVNC Team (msgids)
+# This file is distributed under the same license as the tigervnc package.
+#
+# Balázs Úr <urbalazs@gmail.com>, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: tigervnc 1.7.90\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2017-04-19 13:05+0000\n"
+"PO-Revision-Date: 2017-04-29 23:20+0200\n"
+"Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
+"Language-Team: Hungarian <translation-team-hu@lists.sourceforge.net>\n"
+"Language: hu\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.2\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: vncviewer/CConn.cxx:110
+#, c-format
+msgid "connected to host %s port %d"
+msgstr "kapcsolódva a(z) %s géphez a következő porton: %d"
+
+#: vncviewer/CConn.cxx:169
+#, c-format
+msgid "Desktop name: %.80s"
+msgstr "Asztal neve: %.80s"
+
+#: vncviewer/CConn.cxx:174
+#, c-format
+msgid "Host: %.80s port: %d"
+msgstr "Gép: %.80s port: %d"
+
+#: vncviewer/CConn.cxx:179
+#, c-format
+msgid "Size: %d x %d"
+msgstr "Méret: %d x %d"
+
+#: vncviewer/CConn.cxx:187
+#, c-format
+msgid "Pixel format: %s"
+msgstr "Képpontformátum: %s"
+
+#: vncviewer/CConn.cxx:194
+#, c-format
+msgid "(server default %s)"
+msgstr "(kiszolgáló alapértéke: %s)"
+
+#: vncviewer/CConn.cxx:199
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Kért kódolás: %s"
+
+#: vncviewer/CConn.cxx:204
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "Legutóbb használt kódolás: %s"
+
+#: vncviewer/CConn.cxx:209
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "Vonali sebesség becslés: %d kbit/s"
+
+#: vncviewer/CConn.cxx:214
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "Protokollverzió: %d.%d"
+
+#: vncviewer/CConn.cxx:219
+#, c-format
+msgid "Security method: %s"
+msgstr "Biztonsági módszer: %s"
+
+#: vncviewer/CConn.cxx:343
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "Az asztal méretének beállítása sikertelen: %d"
+
+#: vncviewer/CConn.cxx:413
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "Érvénytelen színtérkép-bejegyzések beállítás a kiszolgálóról!"
+
+#: vncviewer/CConn.cxx:489
+msgid "Enabling continuous updates"
+msgstr "Folyamatos frissítések engedélyezése"
+
+#: vncviewer/CConn.cxx:559
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr "Áteresztőképesség %d kbit/s - váltás a(z) %d. minőségre"
+
+#: vncviewer/CConn.cxx:581
+#, c-format
+msgid "Throughput %d kbit/s - full color is now %s"
+msgstr "Áteresztőképesség %d kbit/s - a teljes szín most %s"
+
+#: vncviewer/CConn.cxx:583
+msgid "disabled"
+msgstr "letiltva"
+
+#: vncviewer/CConn.cxx:583
+msgid "enabled"
+msgstr "engedélyezve"
+
+#: vncviewer/CConn.cxx:593
+#, c-format
+msgid "Using %s encoding"
+msgstr "%s kódolás használata"
+
+#: vncviewer/CConn.cxx:640
+#, c-format
+msgid "Using pixel format %s"
+msgstr "%s képpontformátum használata"
+
+#: vncviewer/DesktopWindow.cxx:121
+msgid "Invalid geometry specified!"
+msgstr "Érvénytelen geometria lett megadva!"
+
+#: vncviewer/DesktopWindow.cxx:434
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "Ablakméret igazítása az esetleges teljes képernyős kérés elkerüléséhez"
+
+#: vncviewer/DesktopWindow.cxx:478
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "Nyomja meg a(z) %s billentyűt a helyi menü megnyitásához"
+
+#: vncviewer/DesktopWindow.cxx:741 vncviewer/DesktopWindow.cxx:747
+#: vncviewer/DesktopWindow.cxx:760
+msgid "Failure grabbing keyboard"
+msgstr "A billentyűzet elfogása sikertelen"
+
+#: vncviewer/DesktopWindow.cxx:772
+msgid "Failure grabbing mouse"
+msgstr "Az egér elfogása sikertelen"
+
+#: vncviewer/DesktopWindow.cxx:1002
+msgid "Invalid screen layout computed for resize request!"
+msgstr "Érvénytelen számított képernyő elrendezés az átméretezési kérésnél!"
+
+#: vncviewer/FLTKPixelBuffer.cxx:33
+msgid "Not enough memory for framebuffer"
+msgstr "Nincs elég memória a keretpufferhez"
+
+#: vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC megjelenítő: kapcsolat beállításai"
+
+#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
+#: vncviewer/vncviewer.cxx:282
+msgid "Cancel"
+msgstr "Mégse"
+
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:281
+msgid "OK"
+msgstr "OK"
+
+#: vncviewer/OptionsDialog.cxx:423
+msgid "Compression"
+msgstr "Tömörítés"
+
+#: vncviewer/OptionsDialog.cxx:439
+msgid "Auto select"
+msgstr "Automatikus kiválasztás"
+
+#: vncviewer/OptionsDialog.cxx:451
+msgid "Preferred encoding"
+msgstr "Előnyben részesített kódolás"
+
+#: vncviewer/OptionsDialog.cxx:499
+msgid "Color level"
+msgstr "Színszint"
+
+#: vncviewer/OptionsDialog.cxx:510
+msgid "Full (all available colors)"
+msgstr "Teljes (az összes elérhető szín)"
+
+#: vncviewer/OptionsDialog.cxx:517
+msgid "Medium (256 colors)"
+msgstr "Közepes (256 szín)"
+
+#: vncviewer/OptionsDialog.cxx:524
+msgid "Low (64 colors)"
+msgstr "Alacsony (64 szín)"
+
+#: vncviewer/OptionsDialog.cxx:531
+msgid "Very low (8 colors)"
+msgstr "Nagyon alacsony (8 szín)"
+
+#: vncviewer/OptionsDialog.cxx:548
+msgid "Custom compression level:"
+msgstr "Egyéni tömörítési szint:"
+
+#: vncviewer/OptionsDialog.cxx:554
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "szint (1=gyors, 6=legjobb [4-6 ritkán hasznos])"
+
+#: vncviewer/OptionsDialog.cxx:561
+msgid "Allow JPEG compression:"
+msgstr "JPEG tömörítés engedélyezése:"
+
+#: vncviewer/OptionsDialog.cxx:567
+msgid "quality (0=poor, 9=best)"
+msgstr "minőség (0=szegényes, 9=legjobb)"
+
+#: vncviewer/OptionsDialog.cxx:578
+msgid "Security"
+msgstr "Biztonság"
+
+#: vncviewer/OptionsDialog.cxx:593
+msgid "Encryption"
+msgstr "Titkosítás"
+
+#: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
+#: vncviewer/OptionsDialog.cxx:737
+msgid "None"
+msgstr "Nincs"
+
+#: vncviewer/OptionsDialog.cxx:610
+msgid "TLS with anonymous certificates"
+msgstr "TLS névtelen tanúsítványokkal"
+
+#: vncviewer/OptionsDialog.cxx:616
+msgid "TLS with X509 certificates"
+msgstr "TLS X509 tanúsítványokkal"
+
+#: vncviewer/OptionsDialog.cxx:623
+msgid "Path to X509 CA certificate"
+msgstr "Útvonal az X509 CA tanúsítványhoz"
+
+#: vncviewer/OptionsDialog.cxx:630
+msgid "Path to X509 CRL file"
+msgstr "Útvonal az X509 CRL fájlhoz"
+
+#: vncviewer/OptionsDialog.cxx:646
+msgid "Authentication"
+msgstr "Hitelesítés"
+
+#: vncviewer/OptionsDialog.cxx:663
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Szabványos VNC (titkosítás nélkül nem biztonságos)"
+
+#: vncviewer/OptionsDialog.cxx:669
+msgid "Username and password (insecure without encryption)"
+msgstr "Felhasználónév és jelszó (titkosítás nélkül nem biztonságos)"
+
+#: vncviewer/OptionsDialog.cxx:688
+msgid "Input"
+msgstr "Bemenet"
+
+#: vncviewer/OptionsDialog.cxx:696
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Csak megtekintés (egér és billentyűzet mellőzése)"
+
+#: vncviewer/OptionsDialog.cxx:702
+msgid "Accept clipboard from server"
+msgstr "Vágólap elfogadása a kiszolgálóról"
+
+#: vncviewer/OptionsDialog.cxx:710
+msgid "Also set primary selection"
+msgstr "Elsődleges kijelölés beállítása"
+
+#: vncviewer/OptionsDialog.cxx:717
+msgid "Send clipboard to server"
+msgstr "Vágólap küldése a kiszolgálónak"
+
+#: vncviewer/OptionsDialog.cxx:725
+msgid "Send primary selection as clipboard"
+msgstr "Elsődleges kijelölés küldése vágólapként"
+
+#: vncviewer/OptionsDialog.cxx:732
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Rendszerbillentyűk közvetlen átadása a kiszolgálónak (teljes képernyő)"
+
+#: vncviewer/OptionsDialog.cxx:735
+msgid "Menu key"
+msgstr "Menü billentyű"
+
+#: vncviewer/OptionsDialog.cxx:751
+msgid "Screen"
+msgstr "Képernyő"
+
+#: vncviewer/OptionsDialog.cxx:759
+msgid "Resize remote session on connect"
+msgstr "Távoli munkamenet átméretezése kapcsolódáskor"
+
+#: vncviewer/OptionsDialog.cxx:772
+msgid "Resize remote session to the local window"
+msgstr "Távoli munkamenet átméretezése a helyi ablakhoz"
+
+#: vncviewer/OptionsDialog.cxx:778
+msgid "Full-screen mode"
+msgstr "Teljes képernyős mód"
+
+#: vncviewer/OptionsDialog.cxx:784
+msgid "Enable full-screen mode over all monitors"
+msgstr "Teljes képernyős mód engedélyezése az összes kijelzőn"
+
+#: vncviewer/OptionsDialog.cxx:793
+msgid "Misc."
+msgstr "Egyéb"
+
+#: vncviewer/OptionsDialog.cxx:801
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Megosztott (ne válassza le a többi nézőt)"
+
+#: vncviewer/OptionsDialog.cxx:807
+msgid "Show dot when no cursor"
+msgstr "Pont megjelenítése, ha nincs kurzor"
+
+#: vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC megjelenítő: kapcsolat részletei"
+
+#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "VNC kiszolgáló:"
+
+#: vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Beállítások…"
+
+#: vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Betöltés…"
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Mentés másként…"
+
+#: vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "Névjegy…"
+
+#: vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "Kapcsolódás"
+
+#: vncviewer/UserDialog.cxx:74
+msgid "Opening password file failed"
+msgstr "A jelszófájl megnyitása sikertelen"
+
+#: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
+msgid "VNC authentication"
+msgstr "VNC hitelesítés"
+
+#: vncviewer/UserDialog.cxx:87 vncviewer/UserDialog.cxx:102
+msgid "Password:"
+msgstr "Jelszó:"
+
+#: vncviewer/UserDialog.cxx:89
+msgid "Authentication cancelled"
+msgstr "Hitelesítés megszakítva"
+
+#: vncviewer/UserDialog.cxx:99
+msgid "Username:"
+msgstr "Felhasználónév:"
+
+#: vncviewer/Viewport.cxx:586
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Nincs keresőkód a kiterjesztett virtuális billentyűhöz: 0x%02x"
+
+#: vncviewer/Viewport.cxx:588
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Nincs keresőkód a virtuális billentyűhöz: 0x%02x"
+
+#: vncviewer/Viewport.cxx:605
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Nincs szimbólum a kiterjesztett virtuális billentyűhöz: 0x%02x"
+
+#: vncviewer/Viewport.cxx:607
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Nincs szimbólum a virtuális billentyűhöz: 0x%02x"
+
+#: vncviewer/Viewport.cxx:645
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "Nincs szimbólum a billentyűkódhoz: 0x%02x (a jelenlegi állapotban)"
+
+#: vncviewer/Viewport.cxx:671
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "Nincs szimbólum a billentyűkódhoz: %d (a jelenlegi állapotban)"
+
+#: vncviewer/Viewport.cxx:708
+msgctxt "ContextMenu|"
+msgid "E&xit viewer"
+msgstr "&Kilépés a megjelenítőből"
+
+#: vncviewer/Viewport.cxx:711
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "&Teljes képernyő"
+
+#: vncviewer/Viewport.cxx:714
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "Minimali&zálás"
+
+#: vncviewer/Viewport.cxx:716
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "&Ablak átméretezése a munkamenethez"
+
+#: vncviewer/Viewport.cxx:721
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "&Ctrl"
+
+#: vncviewer/Viewport.cxx:724
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&Alt"
+
+#: vncviewer/Viewport.cxx:730
+#, c-format
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "%s küldése"
+
+#: vncviewer/Viewport.cxx:736
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Ctrl+Alt+&Del küldése"
+
+#: vncviewer/Viewport.cxx:739
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "Képernyő &frissítése"
+
+#: vncviewer/Viewport.cxx:742
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "&Beállítások…"
+
+#: vncviewer/Viewport.cxx:744
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "Kapcsolatinformációk…"
+
+#: vncviewer/Viewport.cxx:746
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "A &TigerVNC megjelenítő névjegye…"
+
+#: vncviewer/Viewport.cxx:749
+msgctxt "ContextMenu|"
+msgid "Dismiss &menu"
+msgstr "&Menü eltüntetése"
+
+#: vncviewer/Viewport.cxx:833
+msgid "VNC connection info"
+msgstr "VNC kapcsolatinformációk"
+
+#: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
+#, c-format
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr "A(z) %s paraméter neve túl nagy volt a regisztrációs adatbázisba történő íráshoz"
+
+#: vncviewer/parameters.cxx:292 vncviewer/parameters.cxx:299
+#, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr "A(z) %s paraméter túl nagy volt a regisztrációs adatbázisba történő íráshoz"
+
+#: vncviewer/parameters.cxx:305 vncviewer/parameters.cxx:326
+#, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr "Nem sikerült a(z) %2$s típusú %1$s paraméter írása a regisztrációs adatbázisba: %3$ld"
+
+#: vncviewer/parameters.cxx:341 vncviewer/parameters.cxx:380
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr "A(z) %s paraméter neve túl nagy volt a regisztrációs adatbázisból történő olvasáshoz"
+
+#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:389
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr "Nem sikerült a(z) %s paraméter olvasása a regisztrációs adatbázisból: %ld"
+
+#: vncviewer/parameters.cxx:359
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr "A(z) %s paraméter túl nagy volt a regisztrációs adatbázisból történő olvasáshoz"
+
+#: vncviewer/parameters.cxx:409
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr "Nem sikerült létrehozni a regisztrációs adatbázis kulcsot: %ld"
+
+#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
+#: vncviewer/parameters.cxx:534 vncviewer/parameters.cxx:665
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr "Ismeretlen paramétertípus a(z) %s paraméternél"
+
+#: vncviewer/parameters.cxx:430 vncviewer/parameters.cxx:479
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr "Nem sikerült lezárni a regisztrációs adatbázis kulcsot: %ld"
+
+#: vncviewer/parameters.cxx:446
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr "Nem sikerült megnyitni a regisztrációs adatbázis kulcsot: %ld"
+
+#: vncviewer/parameters.cxx:503
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "Nem sikerült kiírni a beállítófájlt, nem lehet megszerezni a saját könyvtár útvonalát."
+
+#: vncviewer/parameters.cxx:516
+#, c-format
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "Nem sikerült kiírni a beállítófájlt, nem lehet megnyitni: %s: %s"
+
+#: vncviewer/parameters.cxx:559
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "Nem sikerült beolvasni a beállítófájlt, nem lehet megszerezni a saját könyvtár útvonalát."
+
+#: vncviewer/parameters.cxx:572
+#, c-format
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "Nem sikerült beolvasni a beállítófájlt, nem lehet megnyitni: %s: %s"
+
+#: vncviewer/parameters.cxx:585 vncviewer/parameters.cxx:590
+#: vncviewer/parameters.cxx:615 vncviewer/parameters.cxx:628
+#: vncviewer/parameters.cxx:644
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "Nem sikerült a(z) %d. sort olvasni a(z) %s fájlban: %s"
+
+#: vncviewer/parameters.cxx:591
+msgid "Line too long"
+msgstr "Túl hosszú sor"
+
+#: vncviewer/parameters.cxx:598
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "A(z) %s beállítófájl érvénytelen formátumú"
+
+#: vncviewer/parameters.cxx:616
+msgid "Invalid format"
+msgstr "Érvénytelen formátum"
+
+#: vncviewer/parameters.cxx:629 vncviewer/parameters.cxx:645
+msgid "Invalid format or too large value"
+msgstr "Érvénytelen formátum vagy túl nagy érték"
+
+#: vncviewer/parameters.cxx:672
+#, c-format
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "Ismeretlen %s paraméter a(z) %d. sornál a(z) %s fájlban"
+
+#: vncviewer/vncviewer.cxx:100
+#, c-format
+msgid ""
+"TigerVNC Viewer %d-bit v%s\n"
+"Built on: %s\n"
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+"See http://www.tigervnc.org for information on TigerVNC."
+msgstr ""
+"TigerVNC megjelenítő %d-bit v%s\n"
+"Összeállítva: %s\n"
+"Copyright (C) 1999-%d TigerVNC csapat és sokan mások (lásd: README.txt)\n"
+"Nézze meg a http://www.tigervnc.org oldalt a TigerVNC információiért."
+
+#: vncviewer/vncviewer.cxx:127
+msgid "About TigerVNC Viewer"
+msgstr "A TigerVNC megjelenítő névjegye"
+
+#: vncviewer/vncviewer.cxx:140
+msgid "Internal FLTK error. Exiting."
+msgstr "Belső FLTK hiba. Kilépés."
+
+#: vncviewer/vncviewer.cxx:158 vncviewer/vncviewer.cxx:170
+#, c-format
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "Hiba az új TigerVNC megjelenítő indításakor: %s"
+
+#: vncviewer/vncviewer.cxx:179
+#, c-format
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr "%d befejezési szignál érkezett. A TigerVNC megjelenítő most ki fog lépni."
+
+#: vncviewer/vncviewer.cxx:271
+msgid "TigerVNC Viewer"
+msgstr "TigerVNC megjelenítő"
+
+#: vncviewer/vncviewer.cxx:279
+msgid "No"
+msgstr "Nem"
+
+#: vncviewer/vncviewer.cxx:280
+msgid "Yes"
+msgstr "Igen"
+
+#: vncviewer/vncviewer.cxx:283
+msgid "Close"
+msgstr "Bezárás"
+
+#: vncviewer/vncviewer.cxx:288
+msgid "About"
+msgstr "Névjegy"
+
+#: vncviewer/vncviewer.cxx:291
+msgid "Hide"
+msgstr "Elrejtés"
+
+#: vncviewer/vncviewer.cxx:294
+msgid "Quit"
+msgstr "Kilépés"
+
+#: vncviewer/vncviewer.cxx:298
+msgid "Services"
+msgstr "Szolgáltatások"
+
+#: vncviewer/vncviewer.cxx:299
+msgid "Hide Others"
+msgstr "Egyebek elrejtése"
+
+#: vncviewer/vncviewer.cxx:300
+msgid "Show All"
+msgstr "Összes megjelenítése"
+
+#: vncviewer/vncviewer.cxx:309
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "&Fájl"
+
+#: vncviewer/vncviewer.cxx:312
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "Új &kapcsolat"
+
+#: vncviewer/vncviewer.cxx:324
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "Nem sikerült létrehozni a VNC saját könyvtárát: nem lehet megszerezni a saját könyvtár útvonalát."
+
+#: vncviewer/vncviewer.cxx:329
+#, c-format
+msgid "Could not create VNC home directory: %s."
+msgstr "Nem sikerült létrehozni a VNC saját könyvtárát: %s"
+
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:534 vncviewer/vncviewer.cxx:535
+msgid "Parameters -listen and -via are incompatible"
+msgstr "A -listen és a -via paraméterek összeférhetetlenek"
+
+#: vncviewer/vncviewer.cxx:550
+#, c-format
+msgid "Listening on port %d"
+msgstr "Figyelés ezen a porton: %d"

@@ -21,8 +21,11 @@ package com.tigervnc.vncviewer;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.nio.CharBuffer;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.*;
 import javax.swing.WindowConstants.*;
 import java.util.*;
 
@@ -30,51 +33,64 @@ import com.tigervnc.rfb.*;
 
 import static java.awt.GridBagConstraints.HORIZONTAL;
 import static java.awt.GridBagConstraints.LINE_START;
+import static java.awt.GridBagConstraints.LINE_END;
 import static java.awt.GridBagConstraints.NONE;
 import static java.awt.GridBagConstraints.REMAINDER;
 
-class ServerDialog extends Dialog {
+import static com.tigervnc.vncviewer.Parameters.*;
+
+class ServerDialog extends Dialog implements Runnable {
 
   @SuppressWarnings({"unchecked","rawtypes"})
-  public ServerDialog(OptionsDialog options_,
-                      String defaultServerName, CConn cc_) {
-
+  public ServerDialog(String defaultServerName,
+                      CharBuffer vncServerName) {
     super(true);
-    cc = cc_;
+    this.vncServerName = vncServerName;
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setTitle("VNC Viewer: Connection Details");
     setResizable(false);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        if (VncViewer.nViewers == 1) {
-          cc.viewer.exit(1);
-        } else {
-          ret = false;
-          endDialog();
-        }
+        endDialog();
+        System.exit(1);
       }
     });
 
-    options = options_;
+    JLabel serverLabel = new JLabel("VNC server:", JLabel.RIGHT);
+    String valueStr = new String(defaultServerName);
+    ArrayList<String> servernames = new ArrayList<String>();
+    if (!valueStr.isEmpty())
+      servernames.add(valueStr);
+    String history = UserPreferences.get("ServerDialog", "history");
+    if (history != null) {
+      for (String s : history.split(",")) {
+        if (servernames.indexOf(s) < 0)
+          servernames.add(s);
+      }
+    }
+    serverName = new MyJComboBox(servernames.toArray());
+    serverName.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        JComboBox s = (JComboBox)e.getSource();
+        if (e.getActionCommand().equals("comboBoxEdited")) {
+          s.insertItemAt(editor.getItem(), 0);
+          s.setSelectedIndex(0);
+        }
+      }
+    });
+    if (servernames.size() == 0)
+      serverName.setPrototypeDisplayValue("255.255.255.255:5900");
 
-    JLabel serverLabel = new JLabel("VNC Server:", JLabel.RIGHT);
-    String valueStr = new String("");
-    if (UserPreferences.get("ServerDialog", "history") != null)
-      valueStr = UserPreferences.get("ServerDialog", "history");
-    server = new MyJComboBox(valueStr.split(","));
-    if (valueStr.equals(""))
-      server.setPrototypeDisplayValue("255.255.255.255:5900");
-
-    server.setEditable(true);
-    editor = server.getEditor();
+    serverName.setEditable(true);
+    editor = serverName.getEditor();
     editor.getEditorComponent().addKeyListener(new KeyListener() {
       public void keyTyped(KeyEvent e) {}
       public void keyReleased(KeyEvent e) {}
       public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-          server.insertItemAt(editor.getItem(), 0);
-          server.setSelectedIndex(0);
-          commit();
+          serverName.insertItemAt(editor.getItem(), 0);
+          serverName.setSelectedIndex(0);
+          handleConnect();
         }
       }
     });
@@ -84,9 +100,41 @@ class ServerDialog extends Dialog {
 
     JLabel icon = new JLabel(VncViewer.logoIcon);
     optionsButton = new JButton("Options...");
+    optionsButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        handleOptions();
+      }
+    });
+    JButton loadButton = new JButton("Load...");
+    loadButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        handleLoad();
+      }
+    });
+    JButton saveAsButton = new JButton("Save As...");
+    saveAsButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        handleSaveAs();
+      }
+    });
     aboutButton = new JButton("About...");
-    okButton = new JButton("OK");
+    aboutButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        handleAbout();
+      }
+    });
     cancelButton = new JButton("Cancel");
+    cancelButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        handleCancel();
+      }
+    });
+    connectButton = new JButton("Connect   \u21B5");
+    connectButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        handleConnect();
+      }
+    });
 
     contentPane.add(icon,
                     new GridBagConstraints(0, 0,
@@ -102,89 +150,145 @@ class ServerDialog extends Dialog {
                                            LINE_START, NONE,
                                            new Insets(5, 10, 5, 5),
                                            NONE, NONE));
-    contentPane.add(server,
+    contentPane.add(serverName,
                     new GridBagConstraints(2, 0,
                                            REMAINDER, 1,
                                            HEAVY, LIGHT,
                                            LINE_START, HORIZONTAL,
                                            new Insets(5, 0, 5, 5),
                                            NONE, NONE));
-    JPanel buttonPane = new JPanel();
-    buttonPane.setLayout(new GridLayout(1, 4, 5, 5));
-    buttonPane.add(aboutButton);
-    buttonPane.add(optionsButton);
-    buttonPane.add(okButton);
-    buttonPane.add(cancelButton);
-    contentPane.add(buttonPane,
+    JPanel buttonPane1 = new JPanel();
+    Box box = Box.createHorizontalBox();
+    JSeparator separator1 = new JSeparator();
+    JSeparator separator2 = new JSeparator();
+    GroupLayout layout = new GroupLayout(buttonPane1);
+    buttonPane1.setLayout(layout);
+    layout.setAutoCreateGaps(false);
+    layout.setAutoCreateContainerGaps(false);
+		layout.setHorizontalGroup(
+		  layout.createSequentialGroup()
+		    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+		      .addGroup(layout.createSequentialGroup()
+		        .addGap(10)
+		        .addComponent(optionsButton))
+		      .addComponent(separator1)
+		      .addGroup(layout.createSequentialGroup()
+		        .addGap(10)
+		        .addComponent(aboutButton)))
+		    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+		      .addGroup(layout.createSequentialGroup()
+		        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+		        .addComponent(loadButton)
+		        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+		        .addComponent(saveAsButton)
+		        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+		        .addComponent(box)
+		        .addGap(10))
+		      .addComponent(separator2)
+		      .addGroup(layout.createSequentialGroup()
+		        .addComponent(cancelButton)
+		        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+		        .addComponent(connectButton)
+		        .addGap(10)))
+		);
+		layout.setVerticalGroup(
+		  layout.createSequentialGroup()
+		    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		      .addComponent(optionsButton)
+		      .addComponent(loadButton)
+		      .addComponent(saveAsButton)
+		      .addComponent(box))
+		    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+		    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		      .addComponent(separator1)
+		      .addComponent(separator2))
+		    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+		    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		      .addComponent(aboutButton)
+		      .addComponent(cancelButton)
+		      .addComponent(connectButton))
+		    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+		);
+		layout.linkSize(SwingConstants.HORIZONTAL,
+                    optionsButton, loadButton, saveAsButton,
+                    aboutButton, cancelButton, box);
+    contentPane.add(buttonPane1,
                     new GridBagConstraints(0, 1,
                                            REMAINDER, 1,
                                            LIGHT, LIGHT,
                                            LINE_START, HORIZONTAL,
-                                           new Insets(5, 5, 5, 5),
+                                           new Insets(5, 0, 10, 0),
                                            NONE, NONE));
-    addListeners(this);
     pack();
   }
 
-  @SuppressWarnings({"unchecked","rawtypes"})
-  public void actionPerformed(ActionEvent e) {
-    Object s = e.getSource();
-    if (s instanceof JButton && (JButton)s == okButton) {
-      commit();
-    } else if (s instanceof JButton && (JButton)s == cancelButton) {
-      if (VncViewer.nViewers == 1)
-        cc.viewer.exit(1);
-      ret = false;
-      endDialog();
-    } else if (s instanceof JButton && (JButton)s == optionsButton) {
-      options.showDialog(this);
-    } else if (s instanceof JButton && (JButton)s == aboutButton) {
-      cc.showAbout();
-    } else if (s instanceof JComboBox && (JComboBox)s == server) {
-      if (e.getActionCommand().equals("comboBoxEdited")) {
-        server.insertItemAt(editor.getItem(), 0);
-        server.setSelectedIndex(0);
-      }
-    }
+  public void run() {
+    this.showDialog();
   }
 
-  private void commit() {
-    String serverName = (String)server.getSelectedItem();
-    if (serverName == null || serverName.equals("")) {
-      vlog.error("Invalid servername specified");
-      if (VncViewer.nViewers == 1)
-        cc.viewer.exit(1);
-      ret = false;
-      endDialog();
+  private void handleOptions() {
+    OptionsDialog.showDialog(this);
+  }
+
+  private void handleLoad() {
+    String title = "Select a TigerVNC configuration file";
+    File dflt = new File(FileUtils.getVncHomeDir().concat("default.tigervnc"));
+    FileNameExtensionFilter filter =
+      new FileNameExtensionFilter("TigerVNC configuration (*.tigervnc)", "tigervnc");
+    File f = showChooser(title, dflt, filter);
+    if (f != null && f.exists() && f.canRead())
+      loadViewerParameters(f.getAbsolutePath());
+  }
+
+  private void handleSaveAs() {
+    String title = "Save the TigerVNC configuration to file";
+    File dflt = new File(FileUtils.getVncHomeDir().concat("default.tigervnc"));
+    if (!dflt.exists() || !dflt.isFile())
+      dflt = new File(FileUtils.getVncHomeDir());
+    FileNameExtensionFilter filter =
+      new FileNameExtensionFilter("TigerVNC configuration (*.tigervnc)", "tigervnc");
+    File f = showChooser(title, dflt, filter);
+    while (f != null && f.exists() && f.isFile()) {
+      String msg = f.getAbsolutePath();
+      msg = msg.concat(" already exists. Do you want to overwrite?");
+      Object[] options = {"Overwrite", "No  \u21B5"};
+      JOptionPane op =
+        new JOptionPane(msg, JOptionPane.QUESTION_MESSAGE,
+                        JOptionPane.OK_CANCEL_OPTION, null, options, options[1]);
+      JDialog dlg = op.createDialog(this, "TigerVNC Viewer");
+      dlg.setIconImage(VncViewer.frameIcon);
+      dlg.setAlwaysOnTop(true);
+      dlg.setVisible(true);
+      if (op.getValue() == options[0])
+        break;
+      else
+        f = showChooser(title, f, filter);
     }
-    // set params
-    Configuration.setParam("Server", Hostname.getHost(serverName));
-    Configuration.setParam("Port",
-                            Integer.toString(Hostname.getPort(serverName)));
-    // Update the history list
-    String valueStr = UserPreferences.get("ServerDialog", "history");
-    String t = (valueStr == null) ? "" : valueStr;
-    StringTokenizer st = new StringTokenizer(t, ",");
-    StringBuffer sb =
-        new StringBuffer().append((String)server.getSelectedItem());
-    while (st.hasMoreTokens()) {
-      String str = st.nextToken();
-      if (!str.equals((String)server.getSelectedItem()) && !str.equals("")) {
-        sb.append(',');
-        sb.append(str);
-      }
-    }
-    UserPreferences.set("ServerDialog", "history", sb.toString());
-    UserPreferences.save("ServerDialog");
+    if (f != null && (!f.exists() || f.canWrite()))
+      saveViewerParameters(f.getAbsolutePath(), (String)serverName.getSelectedItem());
+  }
+
+  private void handleAbout() {
+    VncViewer.about_vncviewer(this);
+  }
+
+  private void handleCancel() {
     endDialog();
   }
 
-  CConn cc;
+  private void handleConnect() {
+    String servername = (String)serverName.getSelectedItem();
+    vncServerName.put(servername).flip();
+    saveViewerParameters(null, servername);
+    endDialog();
+  }
+
   @SuppressWarnings("rawtypes")
-  MyJComboBox server;
+  MyJComboBox serverName;
   ComboBoxEditor editor;
-  JButton aboutButton, optionsButton, okButton, cancelButton;
+  JButton aboutButton, optionsButton, connectButton, cancelButton;
   OptionsDialog options;
+  CharBuffer vncServerName;
   static LogWriter vlog = new LogWriter("ServerDialog");
 
 }

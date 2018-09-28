@@ -99,10 +99,10 @@ static const char *about_text()
   snprintf(buffer, sizeof(buffer),
            _("TigerVNC Viewer %d-bit v%s\n"
              "Built on: %s\n"
-             "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+             "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
              "See http://www.tigervnc.org for information on TigerVNC."),
            (int)sizeof(size_t)*8, PACKAGE_VERSION,
-           BUILD_TIMESTAMP, 2016);
+           BUILD_TIMESTAMP, 2018);
 
   return buffer;
 }
@@ -185,14 +185,14 @@ static void init_fltk()
   // Basic text size (10pt @ 96 dpi => 13px)
   FL_NORMAL_SIZE = 13;
 
-#ifndef __APPLE__
   // Select a FLTK scheme and background color that looks somewhat
-  // close to modern Linux and Windows.
+  // close to modern systems
   Fl::scheme("gtk+");
   Fl::background(220, 220, 220);
-#else
-  // On Mac OS X there is another scheme that fits better though.
-  Fl::scheme("plastic");
+
+  // macOS has a slightly brighter default background though
+#ifdef __APPLE__
+  Fl::background(240, 240, 240);
 #endif
 
   // Proper Gnome Shell integration requires that we set a sensible
@@ -348,8 +348,18 @@ static void usage(const char *programName)
 #endif
 
   fprintf(stderr,
-          "\nusage: %s [parameters] [host:displayNum] [parameters]\n"
-          "       %s [parameters] -listen [port] [parameters]\n",
+          "\n"
+          "usage: %s [parameters] [host][:displayNum]\n"
+          "       %s [parameters] [host][::port]\n"
+#ifndef WIN32
+          "       %s [parameters] [unix socket]\n"
+#endif
+          "       %s [parameters] -listen [port]\n"
+          "       %s [parameters] [.tigervnc file]\n",
+          programName, programName,
+#ifndef WIN32
+          programName,
+#endif
           programName, programName);
   fprintf(stderr,"\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
@@ -366,6 +376,40 @@ static void usage(const char *programName)
 #endif
 
   exit(1);
+}
+
+static void
+potentiallyLoadConfigurationFile(char *vncServerName)
+{
+  const bool hasPathSeparator = (strchr(vncServerName, '/') != NULL ||
+                                 (strchr(vncServerName, '\\')) != NULL);
+
+  if (hasPathSeparator) {
+#ifndef WIN32
+    struct stat sb;
+
+    // This might be a UNIX socket, we need to check
+    if (stat(vncServerName, &sb) == -1) {
+      // Some access problem; let loadViewerParameters() deal with it...
+    } else {
+      if ((sb.st_mode & S_IFMT) == S_IFSOCK)
+        return;
+    }
+#endif
+
+    try {
+      const char* newServerName;
+      newServerName = loadViewerParameters(vncServerName);
+      // This might be empty, but we still need to clear it so we
+      // don't try to connect to the filename
+      strncpy(vncServerName, newServerName, VNCSERVERNAMELEN);
+    } catch (rfb::Exception& e) {
+      vlog.error("%s", e.str());
+      if (alertOnFatalError)
+        fl_alert("%s", e.str());
+      exit(EXIT_FAILURE);
+    }
+  }
 }
 
 #ifndef WIN32
@@ -481,43 +525,55 @@ int main(int argc, char** argv)
 
   init_fltk();
 
-#if !defined(WIN32) && !defined(__APPLE__)
-  fl_open_display();
-  XkbSetDetectableAutoRepeat(fl_display, True, NULL);
-#endif
-
   Configuration::enableViewerParams();
 
   /* Load the default parameter settings */
-  const char* defaultServerName;
+  char defaultServerName[VNCSERVERNAMELEN] = "";
   try {
-    defaultServerName = loadViewerParameters(NULL);
+    const char* configServerName;
+    configServerName = loadViewerParameters(NULL);
+    if (configServerName != NULL)
+      strncpy(defaultServerName, configServerName, VNCSERVERNAMELEN);
   } catch (rfb::Exception& e) {
-    defaultServerName = "";
-    fl_alert("%s", e.str());
+    vlog.error("%s", e.str());
+    if (alertOnFatalError)
+      fl_alert("%s", e.str());
   }
-  
-  int i = 1;
-  if (!Fl::args(argc, argv, i) || i < argc)
-    for (; i < argc; i++) {
-      if (Configuration::setParam(argv[i]))
-        continue;
 
-      if (argv[i][0] == '-') {
-        if (i+1 < argc) {
-          if (Configuration::setParam(&argv[i][1], argv[i+1])) {
-            i++;
-            continue;
-          }
-        }
-        usage(argv[0]);
-      }
-
-      strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
-      vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+  for (int i = 1; i < argc;) {
+    if (Configuration::setParam(argv[i])) {
+      i++;
+      continue;
     }
 
+    if (argv[i][0] == '-') {
+      if (i+1 < argc) {
+        if (Configuration::setParam(&argv[i][1], argv[i+1])) {
+          i += 2;
+          continue;
+        }
+      }
+
+      usage(argv[0]);
+    }
+
+    strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
+    vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+    i++;
+  }
+
+  // Check if the server name in reality is a configuration file
+  potentiallyLoadConfigurationFile(vncServerName);
+
   mkvnchomedir();
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  if (strcmp(display, "") != 0) {
+    Fl::display(display);
+  }
+  fl_open_display();
+  XkbSetDetectableAutoRepeat(fl_display, True, NULL);
+#endif
 
   CSecurity::upg = &dlg;
 #ifdef HAVE_GNUTLS
@@ -532,14 +588,15 @@ int main(int argc, char** argv)
     // TRANSLATORS: "Parameters" are command line arguments, or settings
     // from a file or the Windows registry.
     vlog.error(_("Parameters -listen and -via are incompatible"));
-    fl_alert(_("Parameters -listen and -via are incompatible"));
+    if (alertOnFatalError)
+      fl_alert(_("Parameters -listen and -via are incompatible"));
     exit_vncviewer();
     return 1;
   }
 #endif
 
   if (listenMode) {
-    std::list<TcpListener*> listeners;
+    std::list<SocketListener*> listeners;
     try {
       int port = 5500;
       if (isdigit(vncServerName[0]))
@@ -553,7 +610,7 @@ int main(int argc, char** argv)
       while (sock == NULL) {
         fd_set rfds;
         FD_ZERO(&rfds);
-        for (std::list<TcpListener*>::iterator i = listeners.begin();
+        for (std::list<SocketListener*>::iterator i = listeners.begin();
              i != listeners.end();
              i++)
           FD_SET((*i)->getFd(), &rfds);
@@ -568,7 +625,7 @@ int main(int argc, char** argv)
           }
         }
 
-        for (std::list<TcpListener*>::iterator i = listeners.begin ();
+        for (std::list<SocketListener*>::iterator i = listeners.begin ();
              i != listeners.end();
              i++)
           if (FD_ISSET((*i)->getFd(), &rfds)) {
@@ -580,7 +637,8 @@ int main(int argc, char** argv)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      fl_alert("%s", e.str());
+      if (alertOnFatalError)
+        fl_alert("%s", e.str());
       exit_vncviewer();
       return 1; 
     }
@@ -609,7 +667,7 @@ int main(int argc, char** argv)
 
   delete cc;
 
-  if (exitError != NULL)
+  if (exitError != NULL && alertOnFatalError)
     fl_alert("%s", exitError);
 
   return 0;

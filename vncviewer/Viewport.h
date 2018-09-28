@@ -22,17 +22,16 @@
 
 #include <map>
 
-namespace rfb { class ModifiablePixelBuffer; }
+#include <rfb/Rect.h>
 
 #include <FL/Fl_Widget.H>
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;
 
-namespace rfb { class PixelTransformer; }
-
 class CConn;
 class PlatformPixelBuffer;
+class Surface;
 
 class Viewport : public Fl_Widget {
 public:
@@ -46,9 +45,17 @@ public:
   // Flush updates to screen
   void updateWindow();
 
+  // Incoming clipboard from server
+  void serverCutText(const char* str, rdr::U32 len);
+
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 void* data, void* mask);
+                 const rdr::U8* data);
+
+  // Change client LED state
+  void setLEDState(unsigned int state);
+
+  void draw(Surface* dst);
 
   // Fl_Widget callback methods
 
@@ -59,10 +66,14 @@ public:
   int handle(int event);
 
 private:
+  bool hasFocus();
 
-  PlatformPixelBuffer* createFramebuffer(int w, int h);
+  unsigned int getModifierMask(unsigned int keysym);
 
   static void handleClipboardChange(int source, void *data);
+
+  void clearPendingClipboard();
+  void flushPendingClipboard();
 
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
@@ -71,6 +82,12 @@ private:
   void handleKeyRelease(int keyCode);
 
   static int handleSystemEvent(void *event, void *data);
+
+#ifdef WIN32
+  static void handleAltGrTimeout(void *data);
+#endif
+
+  void pushLEDState();
 
   void initContextMenu();
   void popupContextMenu();
@@ -90,8 +107,18 @@ private:
   typedef std::map<int, rdr::U32> DownMap;
   DownMap downKeySym;
 
+#ifdef WIN32
+  bool altGrArmed;
+  unsigned int altGrCtrlTime;
+#endif
+
+  bool firstLEDState;
+
+  const char* pendingServerCutText;
+  const char* pendingClientCutText;
+
   rdr::U32 menuKeySym;
-  int menuKeyCode;
+  int menuKeyCode, menuKeyFLTK;
   Fl_Menu_Button *contextMenu;
 
   bool menuCtrlKey;

@@ -206,17 +206,19 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,10,172,15
     CONTROL         "Accept keyboard events from clients",IDC_ACCEPT_KEYS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,25,172,15
+    CONTROL         "Send raw keyboard events to applications",IDC_RAW_KEYBOARD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,172,15
     CONTROL         "Accept clipboard updates from clients",
                     IDC_ACCEPT_CUTTEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    7,40,172,15
+                    7,55,172,15
     CONTROL         "Send clipboard updates to clients",IDC_SEND_CUTTEXT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,172,15
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,70,172,15
     CONTROL         "Allow input events to affect the screen-saver",
                     IDC_AFFECT_SCREENSAVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,70,172,15
+                    WS_TABSTOP,7,85,172,15
     CONTROL         "Disable local inputs while server is in use",
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,95,172,15
+                    WS_TABSTOP,7,110,172,15
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 300, 92
@@ -470,7 +472,7 @@ BEGIN
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "vncconfig\0"
-            VALUE "LegalCopyright", "Copyright (C) 1999-2016 TigerVNC Team and many others (see README.txt)\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2018 TigerVNC Team and many others (see README.rst)\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncconfig.exe\0"
             VALUE "PrivateBuild", "\0"

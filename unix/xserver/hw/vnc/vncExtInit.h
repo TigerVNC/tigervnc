@@ -37,7 +37,7 @@ extern "C" {
 // vncExt.c
 extern int vncNoClipboard;
 
-int vncAddExtension(void);
+void vncAddExtension(void);
 
 int vncNotifyQueryConnect(void);
 
@@ -48,7 +48,7 @@ extern int vncFbstride[];
 extern int vncInetdSock;
 
 void vncExtensionInit(void);
-int vncExtensionIsActive(int scrIdx);
+void vncExtensionClose(void);
 
 void vncHandleSocketEvent(int fd, int scrIdx, int read, int write);
 void vncCallBlockHandlers(int* timeout);
@@ -69,6 +69,8 @@ void vncGetQueryConnect(uint32_t *opaqueId, const char**username,
 void vncApproveConnection(uint32_t opaqueId, int approve);
 
 void vncBell(void);
+
+void vncSetLEDState(unsigned long leds);
 
 // Must match rfb::ShortRect in common/rfb/Region.h, and BoxRec in the
 // Xorg source.

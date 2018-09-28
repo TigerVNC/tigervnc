@@ -33,6 +33,9 @@
 #define MAPVK_VK_TO_CHAR 2
 #endif
 
+int has_altgr;
+HKL current_layout = 0;
+
 static HANDLE thread;
 static DWORD thread_id;
 
@@ -129,6 +132,7 @@ void win32_disable_lowlevel_keyboard(HWND hwnd)
 }
 
 static const int vkey_map[][3] = {
+  { VK_CANCEL,              NoSymbol,       XK_Break },
   { VK_BACK,                XK_BackSpace,   NoSymbol },
   { VK_TAB,                 XK_Tab,         NoSymbol },
   { VK_CLEAR,               XK_Clear,       NoSymbol },
@@ -298,4 +302,59 @@ int win32_vkey_to_keysym(UINT vkey, int extended)
   }
 
   return NoSymbol;
+}
+
+int win32_has_altgr(void)
+{
+  BYTE orig_state[256];
+  BYTE altgr_state[256];
+
+  if (current_layout == GetKeyboardLayout(0))
+    return has_altgr;
+
+  // Save current keyboard state so we can get things sane again after
+  // we're done
+  if (!GetKeyboardState(orig_state))
+    return 0;
+
+  // We press Ctrl+Alt (Windows fake AltGr) and then test every key
+  // to see if it produces a printable character. If so then we assume
+  // AltGr is used in the current layout.
+
+  has_altgr = 0;
+
+  memset(altgr_state, 0, sizeof(altgr_state));
+  altgr_state[VK_CONTROL] = 0x80;
+  altgr_state[VK_MENU] = 0x80;
+
+  for (UINT vkey = 0;vkey <= 0xff;vkey++) {
+    int ret;
+    WCHAR wstr[10];
+
+    // Need to skip this one as it is a bit magical and will trigger
+    // a false positive
+    if (vkey == VK_PACKET)
+      continue;
+
+    ret = ToUnicode(vkey, 0, altgr_state, wstr,
+                    sizeof(wstr)/sizeof(wstr[0]), 0);
+    if (ret == 1) {
+      has_altgr = 1;
+      break;
+    }
+
+    if (ret == -1) {
+      // Dead key, need to clear out state before we proceed
+      do {
+        ret = ToUnicode(vkey, 0, altgr_state, wstr,
+                        sizeof(wstr)/sizeof(wstr[0]), 0);
+      } while (ret < 0);
+    }
+  }
+
+  SetKeyboardState(orig_state);
+
+  current_layout = GetKeyboardLayout(0);
+
+  return has_altgr;
 }

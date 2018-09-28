@@ -38,8 +38,6 @@ public:
   Image(Display *d, int width, int height);
   virtual ~Image();
 
-  bool isTrueColor() const { return trueColor; }
-
   virtual const char *className() const {
     return "Image";
   }
@@ -84,15 +82,11 @@ protected:
                   int w, int h);
 
   Display *dpy;
-  bool trueColor;
-
 };
 
 //
 // ShmImage uses MIT-SHM extension of an X server to get image data.
 //
-
-#ifdef HAVE_MITSHM
 
 #include <X11/extensions/XShm.h>
 
@@ -124,89 +118,6 @@ protected:
 };
 
 //
-// IrixOverlayShmImage uses ReadDisplay extension of an X server to
-// get truecolor image data, regardless of the default X visual type. 
-// This method is available on Irix only.
-//
-
-#ifdef HAVE_READDISPLAY
-
-#include <X11/extensions/readdisplay.h>
-
-class IrixOverlayShmImage : public ShmImage {
-
-public:
-
-  IrixOverlayShmImage(Display *d);
-  IrixOverlayShmImage(Display *d, int width, int height);
-  virtual ~IrixOverlayShmImage();
-
-  virtual const char *className() const {
-    return "IrixOverlayShmImage";
-  }
-  virtual const char *classDesc() const {
-    return "IRIX-specific SHM-aware overlay image";
-  }
-
-  virtual void get(Window wnd, int x = 0, int y = 0);
-  virtual void get(Window wnd, int x, int y, int w, int h,
-                   int dst_x = 0, int dst_y = 0);
-
-protected:
-
-  void Init(int width, int height);
-
-  // This method searches available X visuals for one that matches
-  // actual pixel format returned by XReadDisplay(). Returns true on
-  // success, false if there is no matching visual. On success, visual
-  // information is placed into the structure pointed by vinfo_ret.
-  bool getOverlayVisualInfo(XVisualInfo *vinfo_ret);
-
-  ShmReadDisplayBuf *readDisplayBuf;
-
-};
-
-#endif // HAVE_READDISPLAY
-#endif // HAVE_MITSHM
-
-//
-// SolarisOverlayImage uses SUN_OVL extension of an X server to get
-// truecolor image data, regardless of the default X visual type. This
-// method is available on Solaris only.
-//
-
-#ifdef HAVE_SUN_OVL
-
-#include <X11/extensions/transovl.h>
-
-class SolarisOverlayImage : public Image {
-
-public:
-
-  SolarisOverlayImage(Display *d);
-  SolarisOverlayImage(Display *d, int width, int height);
-  virtual ~SolarisOverlayImage();
-
-  virtual const char *className() const {
-    return "SolarisOverlayImage";
-  }
-  virtual const char *classDesc() const {
-    return "Solaris-specific non-SHM overlay image";
-  }
-
-  virtual void get(Window wnd, int x = 0, int y = 0);
-  virtual void get(Window wnd, int x, int y, int w, int h,
-                   int dst_x = 0, int dst_y = 0);
-
-protected:
-
-  void Init(int width, int height);
-
-};
-
-#endif // HAVE_SUN_OVL
-
-//
 // ImageFactory class is used to produce instances of Image-derived
 // objects that are most appropriate for current X server and user
 // settings.
@@ -216,18 +127,16 @@ class ImageFactory {
 
 public:
 
-  ImageFactory(bool allowShm, bool allowOverlay);
+  ImageFactory(bool allowShm);
   virtual ~ImageFactory();
 
   bool isShmAllowed()     { return mayUseShm; }
-  bool isOverlayAllowed() { return mayUseOverlay; }
 
   virtual Image *newImage(Display *d, int width, int height);
 
 protected:
 
   bool mayUseShm;
-  bool mayUseOverlay;
 
 };
 

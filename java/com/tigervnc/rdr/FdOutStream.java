@@ -20,8 +20,10 @@
 
 package com.tigervnc.rdr;
 
-import com.tigervnc.network.*;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+
+import com.tigervnc.network.*;
 
 public class FdOutStream extends OutStream {
 
@@ -36,6 +38,8 @@ public class FdOutStream extends OutStream {
     offset = 0;
     ptr = sentUpTo = start = 0;
     end = start + bufSize;
+
+    lastWrite = System.currentTimeMillis();
   }
 
   public FdOutStream(FileDescriptor fd_) { this(fd_, true, -1, 0); }
@@ -53,17 +57,22 @@ public class FdOutStream extends OutStream {
     return offset + ptr - sentUpTo;
   }
 
+  int bufferUsage()
+  {
+    return ptr - sentUpTo;
+  }
+
+  long getIdleTime()
+  {
+    return System.currentTimeMillis()-lastWrite;
+  }
+
   public void flush()
   {
-    int timeoutms_;
-
-    if (blocking)
-      timeoutms_ = timeoutms;
-    else
-      timeoutms_ = 0;
-
     while (sentUpTo < ptr) {
-      int n = writeWithTimeout(b, sentUpTo, ptr - sentUpTo, timeoutms_);
+      int n = writeWithTimeout(b, sentUpTo,
+                               ptr - sentUpTo,
+                               blocking ? timeoutms : 0);
 
       // Timeout?
       if (n == 0) {
@@ -71,13 +80,6 @@ public class FdOutStream extends OutStream {
         if (!blocking)
           break;
 
-        // Otherwise try blocking (with possible timeout)
-        if ((timeoutms_ == 0) && (timeoutms != 0)) {
-          timeoutms_ = timeoutms;
-          break;
-        }
-
-        // Proper timeout
         throw new TimedOut();
       }
 
@@ -88,39 +90,6 @@ public class FdOutStream extends OutStream {
     // Managed to flush everything?
     if (sentUpTo == ptr)
       ptr = sentUpTo = start;
-  }
-
-  private int writeWithTimeout(byte[] data, int dataPtr, int length, int timeoutms)
-  {
-    int n;
-
-    do {
-
-      Integer tv;
-      if (timeoutms != -1) {
-        tv = new Integer(timeoutms);
-      } else {
-        tv = null;
-      }
-
-      try {
-        n = fd.select(SelectionKey.OP_WRITE, tv);
-      } catch (java.lang.Exception e) {
-        System.out.println(e.toString());
-        throw new Exception(e.getMessage());
-      }
-
-    } while (n < 0);
-
-    if (n == 0) return 0;
-
-    try {
-      n = fd.write(data, dataPtr, length);
-    } catch (java.lang.Exception e) {
-      throw new Exception(e.getMessage());
-    }
-
-    return n;
   }
 
   protected int overrun(int itemSize, int nItems)
@@ -159,6 +128,41 @@ public class FdOutStream extends OutStream {
     return nItems;
   }
 
+  private int writeWithTimeout(byte[] data, int dataPtr, int length, int timeoutms)
+  {
+    int n;
+
+    do {
+
+      Integer tv;
+      if (timeoutms != -1) {
+        tv = new Integer(timeoutms);
+      } else {
+        tv = null;
+      }
+
+      try {
+        n = fd.select(SelectionKey.OP_WRITE, tv);
+      } catch (java.lang.Exception e) {
+        System.out.println(e.toString());
+        throw new Exception(e.getMessage());
+      }
+
+    } while (n < 0);
+
+    if (n == 0) return 0;
+
+    try {
+      n = fd.write(ByteBuffer.wrap(data, dataPtr, length), length);
+    } catch (java.lang.Exception e) {
+      throw new Exception(e.getMessage());
+    }
+
+    lastWrite = System.currentTimeMillis();
+
+    return n;
+  }
+
   public FileDescriptor getFd() {
     return fd;
   }
@@ -178,4 +182,5 @@ public class FdOutStream extends OutStream {
   protected int sentUpTo;
   protected int offset;
   protected int bufSize;
+  private long lastWrite;
 }

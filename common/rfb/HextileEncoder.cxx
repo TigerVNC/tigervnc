@@ -45,7 +45,7 @@ BoolParameter improvedHextile("ImprovedHextile",
 #undef BPP
 
 HextileEncoder::HextileEncoder(SConnection* conn) :
-  Encoder(conn, encodingHextile, EncoderPlain, -1)
+  Encoder(conn, encodingHextile, EncoderPlain)
 {
 }
 

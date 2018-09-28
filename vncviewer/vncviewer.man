@@ -11,9 +11,17 @@ vncviewer \- VNC viewer for X
 .RI [ host ][:: port ]
 .br
 .B vncviewer
+.RI [ options ]
+.RI [ unix\ socket ]
+.br
+.B vncviewer
 .RI [ options ] 
 .B \-listen
 .RI [ port ]
+.br
+.B vncviewer
+.RI [ options ]
+.RI [ .tigervnc\ file ]
 .SH DESCRIPTION
 .B vncviewer
 is a viewer (client) for Virtual Network Computing.  This manual page documents
@@ -30,6 +38,18 @@ where 'snoopy' is the name of the machine, and '2' is the display number of the
 VNC server on that machine.  Either the machine name or display number can be
 omitted.  So for example ":1" means display number 1 on the same machine, and
 "snoopy" means "snoopy:0" i.e. display 0 on machine "snoopy".
+
+As another quick way to start a connection to a VNC server, specify a .tigervnc
+configuration file as an argument to the viewer, e.g.:
+
+.RS
+vncviewer ./some.tigervnc
+.RE
+
+where './some.tigervnc' is an existing and valid TigerVNC configuration file.
+The file name needs to include a path separator.  Additional options may be
+given too, but the given configuration file will overwrite any conflicting
+parameters.
 
 If the VNC server is successfully contacted, you will be prompted for a
 password to authenticate you.  If the password is correct, a window will appear
@@ -243,7 +263,7 @@ Show the dot cursor when the server sends an invisible cursor. Default is off.
 .TP
 .B \-PointerEventInterval \fItime\fP
 Time in milliseconds to rate-limit successive pointer events. Default is
-to send events immediately.
+17 ms (60 Hz).
 .
 .TP
 .B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
@@ -257,8 +277,7 @@ specific source file if you know the name of its "LogWriter".  Default is
 .B \-MenuKey \fIkeysym-name\fP
 This option specifies the key which brings up the popup menu. The currently
 supported list is: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Pause,
-Print, Scroll_Lock, Escape, Insert, Delete, Home, Page_Up, Page_Down).
-Default is F8.
+Scroll_Lock, Escape, Insert, Delete, Home, Page_Up, Page_Down). Default is F8.
 .
 .TP
 \fB\-via\fR \fIgateway\fR
@@ -276,6 +295,10 @@ command is executed with the environment variables \fIL\fR, \fIH\fR,
 \fIR\fR, and \fIG\fR taken the values of the local port number, the remote
 host, the port number on the remote host, and the gateway machine
 respectively.
+.
+.TP
+.B \-AlertOnFatalError
+Display a dialog with any fatal error before exiting. Default is on.
 
 .SH FILES
 .TP

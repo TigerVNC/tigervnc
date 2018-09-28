@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
+#include <assert.h>
 #include <stdio.h>
+
 #include <rfb/msgTypes.h>
 #include <rdr/InStream.h>
 #include <rfb/Exception.h>
@@ -88,8 +91,14 @@ void CMsgReader::readMsg()
     case pseudoEncodingLastRect:
       nUpdateRectsLeft = 1;     // this rectangle is the last one
       break;
+    case pseudoEncodingXCursor:
+      readSetXCursor(w, h, Point(x,y));
+      break;
     case pseudoEncodingCursor:
       readSetCursor(w, h, Point(x,y));
+      break;
+    case pseudoEncodingCursorWithAlpha:
+      readSetCursorWithAlpha(w, h, Point(x,y));
       break;
     case pseudoEncodingDesktopName:
       readSetDesktopName(x, y, w, h);
@@ -99,6 +108,11 @@ void CMsgReader::readMsg()
       break;
     case pseudoEncodingExtendedDesktopSize:
       readExtendedDesktopSize(x, y, w, h);
+      break;
+    case pseudoEncodingLEDState:
+      readLEDState();
+    case pseudoEncodingQEMUKeyEvent:
+      handler->supportsQEMUKeyEvent();
       break;
     default:
       readRect(Rect(x, y, x+w, y+h), encoding);
@@ -191,17 +205,150 @@ void CMsgReader::readRect(const Rect& r, int encoding)
   handler->dataRect(r, encoding);
 }
 
+void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
+{
+  if (width > maxCursorSize || height > maxCursorSize)
+    throw Exception("Too big cursor");
+
+  rdr::U8 buf[width*height*4];
+
+  if (width * height > 0) {
+    rdr::U8 pr, pg, pb;
+    rdr::U8 sr, sg, sb;
+    int data_len = ((width+7)/8) * height;
+    int mask_len = ((width+7)/8) * height;
+    rdr::U8Array data(data_len);
+    rdr::U8Array mask(mask_len);
+
+    int x, y;
+    rdr::U8* out;
+
+    pr = is->readU8();
+    pg = is->readU8();
+    pb = is->readU8();
+
+    sr = is->readU8();
+    sg = is->readU8();
+    sb = is->readU8();
+
+    is->readBytes(data.buf, data_len);
+    is->readBytes(mask.buf, mask_len);
+
+    int maskBytesPerRow = (width+7)/8;
+    out = buf;
+    for (y = 0;y < height;y++) {
+      for (x = 0;x < width;x++) {
+        int byte = y * maskBytesPerRow + x / 8;
+        int bit = 7 - x % 8;
+
+        if (data.buf[byte] & (1 << bit)) {
+          out[0] = pr;
+          out[1] = pg;
+          out[2] = pb;
+        } else {
+          out[0] = sr;
+          out[1] = sg;
+          out[2] = sb;
+        }
+
+        if (mask.buf[byte] & (1 << bit))
+          out[3] = 255;
+        else
+          out[3] = 0;
+
+        out += 4;
+      }
+    }
+  }
+
+  handler->setCursor(width, height, hotspot, buf);
+}
+
 void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 {
+  if (width > maxCursorSize || height > maxCursorSize)
+    throw Exception("Too big cursor");
+
   int data_len = width * height * (handler->cp.pf().bpp/8);
   int mask_len = ((width+7)/8) * height;
   rdr::U8Array data(data_len);
   rdr::U8Array mask(mask_len);
 
+  int x, y;
+  rdr::U8 buf[width*height*4];
+  rdr::U8* in;
+  rdr::U8* out;
+
   is->readBytes(data.buf, data_len);
   is->readBytes(mask.buf, mask_len);
 
-  handler->setCursor(width, height, hotspot, data.buf, mask.buf);
+  int maskBytesPerRow = (width+7)/8;
+  in = data.buf;
+  out = buf;
+  for (y = 0;y < height;y++) {
+    for (x = 0;x < width;x++) {
+      int byte = y * maskBytesPerRow + x / 8;
+      int bit = 7 - x % 8;
+
+      handler->cp.pf().rgbFromBuffer(out, in, 1);
+
+      if (mask.buf[byte] & (1 << bit))
+        out[3] = 255;
+      else
+        out[3] = 0;
+
+      in += handler->cp.pf().bpp/8;
+      out += 4;
+    }
+  }
+
+  handler->setCursor(width, height, hotspot, buf);
+}
+
+void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hotspot)
+{
+  if (width > maxCursorSize || height > maxCursorSize)
+    throw Exception("Too big cursor");
+
+  int encoding;
+
+  const PixelFormat rgbaPF(32, 32, false, true, 255, 255, 255, 16, 8, 0);
+  ManagedPixelBuffer pb(rgbaPF, width, height);
+  PixelFormat origPF;
+
+  rdr::U8* buf;
+  int stride;
+
+  encoding = is->readS32();
+
+  origPF = handler->cp.pf();
+  handler->cp.setPF(rgbaPF);
+  handler->readAndDecodeRect(pb.getRect(), encoding, &pb);
+  handler->cp.setPF(origPF);
+
+  // On-wire data has pre-multiplied alpha, but we store it
+  // non-pre-multiplied
+  buf = pb.getBufferRW(pb.getRect(), &stride);
+  assert(stride == width);
+
+  for (int i = 0;i < pb.area();i++) {
+    rdr::U8 alpha;
+
+    alpha = buf[3];
+    if (alpha == 0)
+      alpha = 1; // Avoid division by zero
+
+    buf[0] = (unsigned)buf[0] * 255/alpha;
+    buf[1] = (unsigned)buf[1] * 255/alpha;
+    buf[2] = (unsigned)buf[2] * 255/alpha;
+
+    buf += 4;
+  }
+
+  pb.commitBufferRW(pb.getRect());
+
+  handler->setCursor(width, height, hotspot,
+                     pb.getBuffer(pb.getRect(), &stride));
 }
 
 void CMsgReader::readSetDesktopName(int x, int y, int w, int h)
@@ -239,4 +386,13 @@ void CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
   }
 
   handler->setExtendedDesktopSize(x, y, w, h, layout);
+}
+
+void CMsgReader::readLEDState()
+{
+  rdr::U8 state;
+
+  state = is->readU8();
+
+  handler->setLEDState(state);
 }

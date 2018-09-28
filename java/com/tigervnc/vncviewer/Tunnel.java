@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012-2016 All Rights Reserved.
+ *  Copyright (C) 2012-2016 Brian P. Hinz. All Rights Reserved.
  *  Copyright (C) 2000 Const Kaplinsky.  All Rights Reserved.
  *  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
  *
@@ -43,6 +43,8 @@ import com.jcraft.jsch.Logger;
 import com.jcraft.jsch.OpenSSHConfig;
 import com.jcraft.jsch.Session;
 
+import static com.tigervnc.vncviewer.Parameters.*;
+
 public class Tunnel {
 
   private final static String DEFAULT_TUNNEL_TEMPLATE
@@ -56,27 +58,26 @@ public class Tunnel {
     String remoteHost;
 
     remotePort = cc.getServerPort();
-    if (cc.viewer.tunnel.getValue()) {
-      gatewayHost = cc.getServerName();
-      remoteHost = "localhost";
-    } else {
-      gatewayHost = getSshHost(cc);
+    gatewayHost = cc.getServerName();
+    remoteHost = "localhost";
+    if (!via.getValue().isEmpty()) {
+      gatewayHost = getSshHost();
       remoteHost = cc.getServerName();
     }
 
-    String pattern = cc.viewer.extSSHArgs.getValue();
-    if (pattern == null) {
-      if (cc.viewer.tunnel.getValue())
+    String pattern = extSSHArgs.getValue();
+    if (pattern == null || pattern.isEmpty()) {
+      if (tunnel.getValue() && via.getValue().isEmpty())
         pattern = System.getProperty("VNC_TUNNEL_CMD");
       else
         pattern = System.getProperty("VNC_VIA_CMD");
     }
 
-    if (cc.viewer.extSSH.getValue() || 
+    if (extSSH.getValue() || 
         (pattern != null && pattern.length() > 0)) {
-      createTunnelExt(gatewayHost, remoteHost, remotePort, localPort, pattern, cc);
+      createTunnelExt(gatewayHost, remoteHost, remotePort, localPort, pattern);
     } else {
-      createTunnelJSch(gatewayHost, remoteHost, remotePort, localPort, cc);
+      createTunnelJSch(gatewayHost, remoteHost, remotePort, localPort);
     }
   }
 
@@ -99,10 +100,10 @@ public class Tunnel {
     }
   }
 
-  public static String getSshHost(CConn cc) {
-    String sshHost = cc.viewer.via.getValue();
-    if (sshHost == null)
-      return cc.getServerName();
+  public static String getSshHost() {
+    String sshHost = via.getValue();
+    if (sshHost.isEmpty())
+      return vncServerName.getValue();
     int end = sshHost.indexOf(":");
     if (end < 0)
       end = sshHost.length();
@@ -110,37 +111,42 @@ public class Tunnel {
     return sshHost;
   }
 
-  public static String getSshUser(CConn cc) {
+  public static String getSshUser() {
     String sshUser = (String)System.getProperties().get("user.name");
-    String via = cc.viewer.via.getValue();
-    if (via != null && via.indexOf("@") > 0)
-      sshUser = via.substring(0, via.indexOf("@"));
+    String viaStr = via.getValue();
+    if (!viaStr.isEmpty() && viaStr.indexOf("@") > 0)
+      sshUser = viaStr.substring(0, viaStr.indexOf("@"));
     return sshUser;
   }
 
-  public static int getSshPort(CConn cc) {
+  public static int getSshPort() {
     String sshPort = "22";
-    String via = cc.viewer.via.getValue();
-    if (via != null && via.indexOf(":") > 0)
-      sshPort = via.substring(via.indexOf(":")+1, via.length());
+    String viaStr = via.getValue();
+    if (!viaStr.isEmpty() && viaStr.indexOf(":") > 0)
+      sshPort = viaStr.substring(viaStr.indexOf(":")+1, viaStr.length());
     return Integer.parseInt(sshPort);
   }
 
-  public static String getSshKeyFile(CConn cc) {
-    if (cc.viewer.sshKeyFile.getValue() != null)
-      return cc.viewer.sshKeyFile.getValue();
+  public static String getSshKeyFile() {
+    if (!sshKeyFile.getValue().isEmpty())
+      return sshKeyFile.getValue();
     String[] ids = { "id_dsa", "id_rsa" };
     for (String id : ids) {
       File f = new File(FileUtils.getHomeDir()+".ssh/"+id);
       if (f.exists() && f.canRead())
         return(f.getAbsolutePath());
     }
-    return null;
+    return "";
+  }
+
+  public static String getSshKey() {
+    if (!sshKey.getValue().isEmpty())
+      return sshKeyFile.getValue().replaceAll("\\\\n", "\n");
+    return "";
   }
 
   private static void createTunnelJSch(String gatewayHost, String remoteHost,
-                                       int remotePort, int localPort,
-                                       CConn cc) throws Exception {
+                                       int remotePort, int localPort) throws Exception {
     JSch.setLogger(new MyJSchLogger());
     JSch jsch=new JSch();
 
@@ -152,44 +158,39 @@ public class Tunnel {
       if (knownHosts.exists() && knownHosts.canRead())
   	    jsch.setKnownHosts(knownHosts.getAbsolutePath());
       ArrayList<File> privateKeys = new ArrayList<File>();
-      String sshKeyFile = cc.options.sshKeyFile.getText();
-      String sshKey = cc.viewer.sshKey.getValue();
-      if (sshKey != null) {
-        String sshKeyPass = cc.viewer.sshKeyPass.getValue();
+      if (!getSshKey().isEmpty()) {
         byte[] keyPass = null, key;
-        if (sshKeyPass != null)
-          keyPass = sshKeyPass.getBytes();
-        sshKey = sshKey.replaceAll("\\\\n", "\n");
-        key = sshKey.getBytes();
-        jsch.addIdentity("TigerVNC", key, null, keyPass);
-      } else if (!sshKeyFile.equals("")) {
-        File f = new File(sshKeyFile);
+        if (!sshKeyPass.getValue().isEmpty())
+          keyPass = sshKeyPass.getValue().getBytes();
+        jsch.addIdentity("TigerVNC", getSshKey().getBytes(), null, keyPass);
+      } else if (!getSshKeyFile().isEmpty()) {
+        File f = new File(getSshKeyFile());
         if (!f.exists() || !f.canRead())
-          throw new Exception("Cannot access SSH key file "+ sshKeyFile);
+          throw new Exception("Cannot access SSH key file "+getSshKeyFile());
         privateKeys.add(f);
       }
       for (Iterator<File> i = privateKeys.iterator(); i.hasNext();) {
         File privateKey = (File)i.next();
         if (privateKey.exists() && privateKey.canRead())
-          if (cc.viewer.sshKeyPass.getValue() != null)
+          if (!sshKeyPass.getValue().isEmpty())
   	        jsch.addIdentity(privateKey.getAbsolutePath(),
-                             cc.viewer.sshKeyPass.getValue());
+                             sshKeyPass.getValue());
           else
   	        jsch.addIdentity(privateKey.getAbsolutePath());
       }
-  
-      String user = getSshUser(cc);
+
+      String user = getSshUser();
       String label = new String("SSH Authentication");
       PasswdDialog dlg =
         new PasswdDialog(label, (user == null ? false : true), false);
       dlg.userEntry.setText(user != null ? user : "");
-      File ssh_config = new File(cc.viewer.sshConfig.getValue());
+      File ssh_config = new File(sshConfig.getValue());
       if (ssh_config.exists() && ssh_config.canRead()) {
         ConfigRepository repo =
           OpenSSHConfig.parse(ssh_config.getAbsolutePath());
         jsch.setConfigRepository(repo);
       }
-      Session session=jsch.getSession(user, gatewayHost, getSshPort(cc));
+      Session session=jsch.getSession(user, gatewayHost, getSshPort());
       session.setUserInfo(dlg);
       // OpenSSHConfig doesn't recognize StrictHostKeyChecking
       if (session.getConfig("StrictHostKeyChecking") == null)
@@ -201,93 +202,19 @@ public class Tunnel {
     }
   }
 
-  private static class MyExtProcess implements Runnable {
-
-    private String cmd = null;
-    private Process pid = null;
-
-    private static class MyProcessLogger extends Thread {
-      private final BufferedReader err;
-  
-      public MyProcessLogger(Process p) {
-        InputStreamReader reader = 
-          new InputStreamReader(p.getErrorStream());
-        err = new BufferedReader(reader);
-      }
-  
-      @Override
-      public void run() {
-        try {
-          while (true) {
-            String msg = err.readLine();
-            if (msg != null)
-              vlog.info(msg);
-          }
-        } catch(java.io.IOException e) {
-          vlog.info(e.getMessage());
-        } finally {
-          try {
-            if (err != null)
-              err.close();
-          } catch (java.io.IOException e ) { }
-        }
-      }
-    }
-
-    private static class MyShutdownHook extends Thread {
-
-      private Process proc = null;
-
-      public MyShutdownHook(Process p) {
-        proc = p;
-      }
-  
-      @Override
-      public void run() {
-        try {
-          proc.exitValue();
-        } catch (IllegalThreadStateException e) {
-          try {
-            // wait for CConn to shutdown the socket
-            Thread.sleep(500);
-          } catch(InterruptedException ie) { }
-          proc.destroy();
-        }
-      }
-    }
-
-    public MyExtProcess(String command) {
-      cmd = command;  
-    }
-
-    public void run() {
-      try {
-        Runtime runtime = Runtime.getRuntime();
-        pid = runtime.exec(cmd);
-        runtime.addShutdownHook(new MyShutdownHook(pid));
-        new MyProcessLogger(pid).start();
-        pid.waitFor();
-      } catch(InterruptedException e) {
-        vlog.info(e.getMessage());
-      } catch(java.io.IOException e) {
-        vlog.info(e.getMessage());
-      }
-    }
-  }
-
   private static void createTunnelExt(String gatewayHost, String remoteHost,
                                       int remotePort, int localPort,
-                                      String pattern, CConn cc) throws Exception {
+                                      String pattern) throws Exception {
     if (pattern == null || pattern.length() < 1) {
-      if (cc.viewer.tunnel.getValue())
+      if (tunnel.getValue() && via.getValue().isEmpty())
         pattern = DEFAULT_TUNNEL_TEMPLATE;
       else
         pattern = DEFAULT_VIA_TEMPLATE;
     }
     String cmd = fillCmdPattern(pattern, gatewayHost, remoteHost,
-                                remotePort, localPort, cc);
+                                remotePort, localPort);
     try {
-      Thread t = new Thread(new MyExtProcess(cmd));
+      Thread t = new Thread(new ExtProcess(cmd, vlog, true));
       t.start();
       // wait for the ssh process to start
       Thread.sleep(1000);
@@ -298,21 +225,21 @@ public class Tunnel {
 
   private static String fillCmdPattern(String pattern, String gatewayHost,
                                        String remoteHost, int remotePort,
-                                       int localPort, CConn cc) {
+                                       int localPort) {
     boolean H_found = false, G_found = false, R_found = false, L_found = false;
     boolean P_found = false;
-    String cmd = cc.options.sshClient.getText() + " ";
+    String cmd = extSSHClient.getValue() + " ";
     pattern.replaceAll("^\\s+", "");
 
-    String user = getSshUser(cc);
-    int sshPort = getSshPort(cc);
+    String user = getSshUser();
+    int sshPort = getSshPort();
     gatewayHost = user + "@" + gatewayHost;
 
     for (int i = 0; i < pattern.length(); i++) {
       if (pattern.charAt(i) == '%') {
         switch (pattern.charAt(++i)) {
         case 'H':
-          cmd += (cc.viewer.tunnel.getValue() ? gatewayHost : remoteHost);
+          cmd += remoteHost;
   	      H_found = true;
           continue;
         case 'G':
@@ -342,7 +269,7 @@ public class Tunnel {
     if (!H_found || !R_found || !L_found)
       throw new Exception("%H, %R or %L absent in tunneling command template.");
 
-    if (!cc.viewer.tunnel.getValue() && !G_found)
+    if (!tunnel.getValue() && !G_found)
       throw new Exception("%G pattern absent in tunneling command template.");
 
     vlog.info("SSH command line: "+cmd);

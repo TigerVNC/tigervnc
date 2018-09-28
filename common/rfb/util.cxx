@@ -16,20 +16,6 @@
  * USA.
  */
 
-/*
- * The following applies to stcasecmp and strncasecmp implementations:
- *
- * Copyright (c) 1987 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of California at Berkeley. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific written prior permission. This software
- * is provided ``as is'' without express or implied warranty.
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -44,7 +30,7 @@ namespace rfb {
 
   void CharArray::format(const char *fmt, ...) {
     va_list ap;
-    size_t len;
+    int len;
 
     va_start(ap, fmt);
     len = vsnprintf(NULL, 0, fmt, ap);
@@ -121,25 +107,44 @@ namespace rfb {
     dest[src ? destlen-1 : 0] = 0;
   }
 
+  unsigned msBetween(const struct timeval *first,
+                     const struct timeval *second)
+  {
+    unsigned diff;
+
+    diff = (second->tv_sec - first->tv_sec) * 1000;
+
+    diff += second->tv_usec / 1000;
+    diff -= first->tv_usec / 1000;
+
+    return diff;
+  }
+
   unsigned msSince(const struct timeval *then)
   {
     struct timeval now;
-    unsigned diff;
 
     gettimeofday(&now, NULL);
 
-    diff = (now.tv_sec - then->tv_sec) * 1000;
+    return msBetween(then, &now);
+  }
 
-    diff += now.tv_usec / 1000;
-    diff -= then->tv_usec / 1000;
-
-    return diff;
+  bool isBefore(const struct timeval *first,
+                const struct timeval *second)
+  {
+    if (first->tv_sec < second->tv_sec)
+      return true;
+    if (first->tv_sec > second->tv_sec)
+      return false;
+    if (first->tv_usec < second->tv_usec)
+      return true;
+    return false;
   }
 
   static size_t doPrefix(long long value, const char *unit,
                          char *buffer, size_t maxlen,
                          unsigned divisor, const char **prefixes,
-                         size_t prefixCount) {
+                         size_t prefixCount, int precision) {
     double newValue;
     size_t prefix, len;
 
@@ -152,7 +157,7 @@ namespace rfb {
       prefix++;
     }
 
-    len = snprintf(buffer, maxlen, "%g %s%s", newValue,
+    len = snprintf(buffer, maxlen, "%.*g %s%s", precision, newValue,
                    (prefix == 0) ? "" : prefixes[prefix-1], unit);
     buffer[maxlen-1] = '\0';
 
@@ -165,14 +170,16 @@ namespace rfb {
     { "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
 
   size_t siPrefix(long long value, const char *unit,
-                  char *buffer, size_t maxlen) {
+                  char *buffer, size_t maxlen, int precision) {
     return doPrefix(value, unit, buffer, maxlen, 1000, siPrefixes,
-                    sizeof(siPrefixes)/sizeof(*siPrefixes));
+                    sizeof(siPrefixes)/sizeof(*siPrefixes),
+                    precision);
   }
 
   size_t iecPrefix(long long value, const char *unit,
-                   char *buffer, size_t maxlen) {
+                   char *buffer, size_t maxlen, int precision) {
     return doPrefix(value, unit, buffer, maxlen, 1024, iecPrefixes,
-                    sizeof(iecPrefixes)/sizeof(*iecPrefixes));
+                    sizeof(iecPrefixes)/sizeof(*iecPrefixes),
+                    precision);
   }
 };

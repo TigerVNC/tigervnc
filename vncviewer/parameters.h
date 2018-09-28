@@ -55,11 +55,13 @@ extern rfb::BoolParameter setPrimary;
 extern rfb::BoolParameter sendClipboard;
 #if !defined(WIN32) && !defined(__APPLE__)
 extern rfb::BoolParameter sendPrimary;
+extern rfb::StringParameter display;
 #endif
 
 extern rfb::StringParameter menuKey;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
+extern rfb::BoolParameter alertOnFatalError;
 
 #ifndef WIN32
 extern rfb::StringParameter via;

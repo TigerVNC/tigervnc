@@ -60,13 +60,18 @@ namespace rfb {
 
     void readRect(const Rect& r, int encoding);
 
+    void readSetXCursor(int width, int height, const Point& hotspot);
     void readSetCursor(int width, int height, const Point& hotspot);
+    void readSetCursorWithAlpha(int width, int height, const Point& hotspot);
     void readSetDesktopName(int x, int y, int w, int h);
     void readExtendedDesktopSize(int x, int y, int w, int h);
+    void readLEDState();
 
     CMsgHandler* handler;
     rdr::InStream* is;
     int nUpdateRectsLeft;
+
+    static const int maxCursorSize = 256;
   };
 }
 #endif

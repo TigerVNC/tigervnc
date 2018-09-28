@@ -43,7 +43,11 @@
 #endif
 
 #if XORG < 118
+#if XORG < 110
+#define GetMaster(dev, type) ((dev)->u.master)
+#else
 #define GetMaster(dev, type) ((dev)->master)
+#endif
 #endif
 
 extern DeviceIntPtr vncKeyboardDev;
@@ -483,23 +487,6 @@ KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state)
 		return key;
 
 	return 0;
-}
-
-int vncIsLockModifier(KeyCode keycode, unsigned state)
-{
-	XkbDescPtr xkb;
-	XkbAction *act;
-
-	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
-
-	act = XkbKeyActionPtr(xkb, keycode, state);
-	if (act == NULL)
-		return 0;
-
-	if (act->type != XkbSA_LockMods)
-		return 0;
-
-	return 1;
 }
 
 int vncIsAffectedByNumLock(KeyCode keycode)

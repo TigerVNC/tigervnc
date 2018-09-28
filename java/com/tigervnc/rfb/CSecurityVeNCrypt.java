@@ -51,16 +51,16 @@ public class CSecurityVeNCrypt extends CSecurity {
     OutStream os = cc.getOutStream();
 
     /* get major, minor versions, send what we can support (or 0.0 for can't support it) */
-    if (!haveRecvdMinorVersion) {
-      minorVersion = is.readU8();
-      haveRecvdMinorVersion = true;
+    if (!haveRecvdMajorVersion) {
+      majorVersion = is.readU8();
+      haveRecvdMajorVersion = true;
 
       return false;
     }
 
-    if (!haveRecvdMajorVersion) {
-      majorVersion = is.readU8();
-      haveRecvdMajorVersion = true;
+    if (!haveRecvdMinorVersion) {
+      minorVersion = is.readU8();
+      haveRecvdMinorVersion = true;
     }
 
     /* major version in upper 8 bits and minor version in lower 8 bits */
@@ -134,7 +134,7 @@ public class CSecurityVeNCrypt extends CSecurity {
           Iterator<Integer> j;
           List<Integer> secTypes = new ArrayList<Integer>();
 
-          secTypes = Security.GetEnabledExtSecTypes();
+          secTypes = security.GetEnabledExtSecTypes();
 
           /* Honor server's security type order */
           for (i = 0; i < nAvailableTypes; i++) {
@@ -178,7 +178,19 @@ public class CSecurityVeNCrypt extends CSecurity {
   }
 
   public final int getType() { return chosenType; }
-  public final String description() { return Security.secTypeName(chosenType); }
+  public final String description()
+  {
+    if (csecurity != null)
+      return csecurity.description();
+    return "VeNCrypt";
+  }
+
+  public final boolean isSecure()
+  {
+    if (csecurity != null && csecurity.isSecure())
+      return true;
+    return false;
+  }
 
   public static StringParameter secTypesStr;
 

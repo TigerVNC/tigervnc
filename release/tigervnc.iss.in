@@ -18,6 +18,11 @@ DefaultGroupName=TigerVNC
 #endif
 LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.txt
 
+[Dirs]
+; This directory is necessary to prevent the X509 file chooser from causing
+; an error dialog to appear when GetOpenFileName is called by SYSTEM account.
+Name: "{sys}\config\systemprofile\Desktop"
+
 [Files]
 #ifdef BUILD_WINVNC
 Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
@@ -25,7 +30,7 @@ Source: "@CMAKE_CURRENT_BINARY_DIR@\win\wm_hooks\wm_hooks.dll"; DestDir: "{app}"
 Source: "@CMAKE_CURRENT_BINARY_DIR@\win\vncconfig\vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 #endif
 Source: "@CMAKE_CURRENT_BINARY_DIR@\vncviewer\vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
-Source: "@CMAKE_SOURCE_DIR@\README.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@CMAKE_SOURCE_DIR@\README.rst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 
 
@@ -44,7 +49,7 @@ Name: "{group}\VNC Server (Service-Mode)\Start VNC Service"; FileName: "{app}\wi
 Name: "{group}\VNC Server (Service-Mode)\Stop VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole -stop";
 #endif
 Name: "{group}\License"; FileName: "write.exe"; Parameters: "LICENCE.TXT"; WorkingDir: "{app}"; Flags: "useapppaths"
-Name: "{group}\Read Me"; FileName: "write.exe"; Parameters: "README.txt"; WorkingDir: "{app}"; Flags: "useapppaths"
+Name: "{group}\Read Me"; FileName: "write.exe"; Parameters: "README.rst"; WorkingDir: "{app}"; Flags: "useapppaths"
 Name: "{group}\Uninstall TigerVNC"; FileName: "{uninstallexe}"; WorkingDir: "{app}";
 
 #ifdef BUILD_WINVNC

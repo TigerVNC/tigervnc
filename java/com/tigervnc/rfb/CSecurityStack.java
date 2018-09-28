@@ -59,6 +59,15 @@ public class CSecurityStack extends CSecurity {
     return res;
   }
 
+  public boolean isSecure()
+  {
+    if (state0 != null && state0.isSecure())
+      return true;
+    if (state == 1 && state1 != null && state1.isSecure())
+      return true;
+    return false;
+  }
+
   public final int getType() { return type; }
   public final String description() { return name; }
 

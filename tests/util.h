@@ -34,4 +34,9 @@ void endCpuCounter(cpucounter_t c);
 
 double getCpuCounter(cpucounter_t c);
 
+void startTimeCounter(void);
+void endTimeCounter(void);
+
+double getTimeCounter(void);
+
 #endif

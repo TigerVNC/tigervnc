@@ -22,6 +22,8 @@
 
 #include <map>
 
+#include <sys/time.h>
+
 #include <rfb/Rect.h>
 #include <rfb/Pixel.h>
 
@@ -30,9 +32,16 @@
 namespace rfb { class ModifiablePixelBuffer; }
 
 class CConn;
+class Surface;
 class Viewport;
 
-class Fl_Scroll;
+class Fl_Scrollbar;
+
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
 
 class DesktopWindow : public Fl_Window {
 public:
@@ -53,11 +62,18 @@ public:
   // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
 
+  // Incoming clipboard from server
+  void serverCutText(const char* str, rdr::U32 len);
+
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 void* data, void* mask);
+                 const rdr::U8* data);
+
+  // Change client LED state
+  void setLEDState(unsigned int state);
 
   // Fl_Window callback methods
+  void draw();
   void resize(int x, int y, int w, int h);
 
   int handle(int event);
@@ -65,10 +81,17 @@ public:
   void fullscreen_on();
 
 private:
+  static void menuOverlay(void *data);
+
+  void setOverlay(const char *text, ...) __printf_attr(2, 3);
+  static void updateOverlay(void *data);
+
   static int fltkHandle(int event, Fl_Window *win);
 
   void grabKeyboard();
   void ungrabKeyboard();
+  void grabPointer();
+  void ungrabPointer();
 
   static void handleGrab(void *data);
 
@@ -78,7 +101,7 @@ private:
   static void handleResizeTimeout(void *data);
   void remoteResize(int width, int height);
 
-  void repositionViewport();
+  void repositionWidgets();
 
   static void handleClose(Fl_Widget *wnd, void *data);
 
@@ -86,16 +109,41 @@ private:
 
   static void handleFullscreenTimeout(void *data);
 
+  void scrollTo(int x, int y);
+  static void handleScroll(Fl_Widget *wnd, void *data);
   static void handleEdgeScroll(void *data);
+
+  static void handleStatsTimeout(void *data);
 
 private:
   CConn* cc;
-  Fl_Scroll *scroll;
+  Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
+  Surface *offscreen;
+  Surface *overlay;
+  unsigned char overlayAlpha;
+  struct timeval overlayStart;
 
   bool firstUpdate;
   bool delayedFullscreen;
   bool delayedDesktopSize;
+
+  bool keyboardGrabbed;
+  bool mouseGrabbed;
+
+  struct statsEntry {
+    unsigned ups;
+    unsigned pps;
+    unsigned bps;
+  };
+  struct statsEntry stats[100];
+
+  struct timeval statsLastTime;
+  unsigned statsLastUpdates;
+  unsigned statsLastPixels;
+  unsigned statsLastPosition;
+
+  Surface *statsGraph;
 };
 
 #endif

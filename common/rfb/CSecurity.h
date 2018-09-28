@@ -44,17 +44,21 @@ namespace rfb {
   class CConnection;
   class CSecurity {
   public:
+    CSecurity(CConnection* cc) { this->cc = cc; }
     virtual ~CSecurity() {}
-    virtual bool processMsg(CConnection* cc)=0;
-    virtual void destroy() { delete this; }
+    virtual bool processMsg() = 0;
     virtual int getType() const = 0;
     virtual const char* description() const = 0;
+    virtual bool isSecure() const { return false; }
 
     /*
      * Use variable directly instead of dumb get/set methods.
      * It MUST be set by viewer.
      */
     static UserPasswdGetter *upg;
+
+  protected:
+    CConnection* cc;
   };
 }
 #endif

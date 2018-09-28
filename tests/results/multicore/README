@@ -34,7 +34,7 @@ that it gets a mere 32% increase on average. It is unknown why at this
 point and tracing doesn't reveal anything obvious. It may be because it
 is not a true quad core system, but rather uses HyperThreading.
 
-So in summary, the new code can do a noticable improvement on decoding
+So in summary, the new code can do a noticeable improvement on decoding
 time. However it does so at a cost of efficiency. Four times the CPUs
 only gives you about twice the performance. More improvements may be
 possible.

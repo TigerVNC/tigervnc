@@ -35,6 +35,8 @@ namespace rfb {
     virtual void setQualityLevel(int level);
     virtual void setFineQualityLevel(int quality, int subsampling);
 
+    virtual int getQualityLevel();
+
     virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
     virtual void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,

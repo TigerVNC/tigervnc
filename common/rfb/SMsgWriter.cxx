@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include <rfb/Encoder.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/LogWriter.h>
+#include <rfb/ledStates.h>
 
 using namespace rfb;
 
@@ -36,7 +37,9 @@ SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
   : cp(cp_), os(os_),
     nRectsInUpdate(0), nRectsInHeader(0),
     needSetDesktopSize(false), needExtendedDesktopSize(false),
-    needSetDesktopName(false), needSetCursor(false), needSetXCursor(false)
+    needSetDesktopName(false), needSetCursor(false),
+    needSetXCursor(false), needSetCursorWithAlpha(false),
+    needLEDState(false), needQEMUKeyEvent(false)
 {
 }
 
@@ -100,7 +103,9 @@ void SMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
   os->writeU32(flags);
 
   os->writeU8(len);
-  os->writeBytes(data, len);
+
+  if (len > 0)
+    os->writeBytes(data, len);
 
   endMsg();
 }
@@ -180,11 +185,47 @@ bool SMsgWriter::writeSetXCursor()
   return true;
 }
 
+bool SMsgWriter::writeSetCursorWithAlpha()
+{
+  if (!cp->supportsLocalCursorWithAlpha)
+    return false;
+
+  needSetCursorWithAlpha = true;
+
+  return true;
+}
+
+bool SMsgWriter::writeLEDState()
+{
+  if (!cp->supportsLEDState)
+    return false;
+  if (cp->ledState() == ledUnknown)
+    return false;
+
+  needLEDState = true;
+
+  return true;
+}
+
+bool SMsgWriter::writeQEMUKeyEvent()
+{
+  if (!cp->supportsQEMUKeyEvent)
+    return false;
+
+  needQEMUKeyEvent = true;
+
+  return true;
+}
+
 bool SMsgWriter::needFakeUpdate()
 {
   if (needSetDesktopName)
     return true;
-  if (needSetCursor || needSetXCursor)
+  if (needSetCursor || needSetXCursor || needSetCursorWithAlpha)
+    return true;
+  if (needLEDState)
+    return true;
+  if (needQEMUKeyEvent)
     return true;
   if (needNoDataUpdate())
     return true;
@@ -231,6 +272,12 @@ void SMsgWriter::writeFramebufferUpdateStart(int nRects)
     if (needSetCursor)
       nRects++;
     if (needSetXCursor)
+      nRects++;
+    if (needSetCursorWithAlpha)
+      nRects++;
+    if (needLEDState)
+      nRects++;
+    if (needQEMUKeyEvent)
       nRects++;
   }
 
@@ -301,44 +348,61 @@ void SMsgWriter::endMsg()
 void SMsgWriter::writePseudoRects()
 {
   if (needSetCursor) {
-    rdr::U8* data;
-
     const Cursor& cursor = cp->cursor();
 
-    data = new rdr::U8[cursor.area() * cp->pf().bpp/8];
-    cursor.getImage(cp->pf(), data, cursor.getRect());
+    rdr::U8Array data(cursor.width()*cursor.height() * (cp->pf().bpp/8));
+    rdr::U8Array mask(cursor.getMask());
+
+    const rdr::U8* in;
+    rdr::U8* out;
+
+    in = cursor.getBuffer();
+    out = data.buf;
+    for (int i = 0;i < cursor.width()*cursor.height();i++) {
+      cp->pf().bufferFromRGB(out, in, 1);
+      in += 4;
+      out += cp->pf().bpp/8;
+    }
 
     writeSetCursorRect(cursor.width(), cursor.height(),
-                       cursor.hotspot.x, cursor.hotspot.y,
-                       data, cursor.mask.buf);
+                       cursor.hotspot().x, cursor.hotspot().y,
+                       data.buf, mask.buf);
     needSetCursor = false;
-
-    delete [] data;
   }
 
   if (needSetXCursor) {
     const Cursor& cursor = cp->cursor();
-    Pixel pix0, pix1;
-    rdr::U8 rgb0[3], rgb1[3];
-    rdr::U8Array bitmap(cursor.getBitmap(&pix0, &pix1));
-
-    if (!bitmap.buf) {
-      // FIXME: We could reduce to two colors.
-      throw Exception("SMsgWriter::writePseudoRects: Unable to send multicolor cursor: RichCursor not supported by client");
-    }
-
-    cp->pf().rgbFromPixel(pix0, &rgb0[0], &rgb0[1], &rgb0[2]);
-    cp->pf().rgbFromPixel(pix1, &rgb1[0], &rgb1[1], &rgb1[2]);
+    rdr::U8Array bitmap(cursor.getBitmap());
+    rdr::U8Array mask(cursor.getMask());
 
     writeSetXCursorRect(cursor.width(), cursor.height(),
-                        cursor.hotspot.x, cursor.hotspot.y,
-                        rgb0, rgb1, bitmap.buf, cursor.mask.buf);
+                        cursor.hotspot().x, cursor.hotspot().y,
+                        bitmap.buf, mask.buf);
     needSetXCursor = false;
+  }
+
+  if (needSetCursorWithAlpha) {
+    const Cursor& cursor = cp->cursor();
+
+    writeSetCursorWithAlphaRect(cursor.width(), cursor.height(),
+                                cursor.hotspot().x, cursor.hotspot().y,
+                                cursor.getBuffer());
+    needSetCursorWithAlpha = false;
   }
 
   if (needSetDesktopName) {
     writeSetDesktopNameRect(cp->name());
     needSetDesktopName = false;
+  }
+
+  if (needLEDState) {
+    writeLEDStateRect(cp->ledState());
+    needLEDState = false;
+  }
+
+  if (needQEMUKeyEvent) {
+    writeQEMUKeyEventRect();
+    needQEMUKeyEvent = false;
   }
 }
 
@@ -452,8 +516,6 @@ void SMsgWriter::writeSetCursorRect(int width, int height,
 
 void SMsgWriter::writeSetXCursorRect(int width, int height,
                                      int hotspotX, int hotspotY,
-                                     const rdr::U8 pix0[],
-                                     const rdr::U8 pix1[],
                                      const void* data, const void* mask)
 {
   if (!cp->supportsLocalXCursor)
@@ -466,14 +528,73 @@ void SMsgWriter::writeSetXCursorRect(int width, int height,
   os->writeU16(width);
   os->writeU16(height);
   os->writeU32(pseudoEncodingXCursor);
-  if (width * height) {
-    os->writeU8(pix0[0]);
-    os->writeU8(pix0[1]);
-    os->writeU8(pix0[2]);
-    os->writeU8(pix1[0]);
-    os->writeU8(pix1[1]);
-    os->writeU8(pix1[2]);
+  if (width * height > 0) {
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeU8(0);
+    os->writeU8(0);
+    os->writeU8(0);
     os->writeBytes(data, (width+7)/8 * height);
     os->writeBytes(mask, (width+7)/8 * height);
   }
+}
+
+void SMsgWriter::writeSetCursorWithAlphaRect(int width, int height,
+                                             int hotspotX, int hotspotY,
+                                             const rdr::U8* data)
+{
+  if (!cp->supportsLocalCursorWithAlpha)
+    throw Exception("Client does not support local cursors");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetCursorWithAlphaRect: nRects out of sync");
+
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingCursorWithAlpha);
+
+  // FIXME: Use an encoder with compression?
+  os->writeU32(encodingRaw);
+
+  // Alpha needs to be pre-multiplied
+  for (int i = 0;i < width*height;i++) {
+    os->writeU8((unsigned)data[0] * data[3] / 255);
+    os->writeU8((unsigned)data[1] * data[3] / 255);
+    os->writeU8((unsigned)data[2] * data[3] / 255);
+    os->writeU8(data[3]);
+    data += 4;
+  }
+}
+
+void SMsgWriter::writeLEDStateRect(rdr::U8 state)
+{
+  if (!cp->supportsLEDState)
+    throw Exception("Client does not support LED state updates");
+  if (cp->ledState() == ledUnknown)
+    throw Exception("Server does not support LED state updates");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeLEDStateRect: nRects out of sync");
+
+  os->writeS16(0);
+  os->writeS16(0);
+  os->writeU16(0);
+  os->writeU16(0);
+  os->writeU32(pseudoEncodingLEDState);
+  os->writeU8(state);
+}
+
+void SMsgWriter::writeQEMUKeyEventRect()
+{
+  if (!cp->supportsQEMUKeyEvent)
+    throw Exception("Client does not support QEMU extended key events");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeQEMUKeyEventRect: nRects out of sync");
+
+  os->writeS16(0);
+  os->writeS16(0);
+  os->writeU16(0);
+  os->writeU16(0);
+  os->writeU32(pseudoEncodingQEMUKeyEvent);
 }

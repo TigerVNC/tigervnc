@@ -57,7 +57,7 @@ struct VncInputSelect {
   struct VncInputSelect* next;
 };
 
-int vncAddExtension(void)
+void vncAddExtension(void)
 {
   ExtensionEntry* extEntry;
 
@@ -65,8 +65,7 @@ int vncAddExtension(void)
                           ProcVncExtDispatch, SProcVncExtDispatch, vncResetProc,
                           StandardMinorOpcode);
   if (!extEntry) {
-    ErrorF("vncAddExtension: AddExtension failed\n");
-    return -1;
+    FatalError("vncAddExtension: AddExtension failed\n");
   }
 
   vncErrorBase = extEntry->errorBase;
@@ -75,8 +74,6 @@ int vncAddExtension(void)
   if (!AddCallback(&ClientStateCallback, vncClientStateChange, 0)) {
     FatalError("Add ClientStateCallback failed\n");
   }
-
-  return 0;
 }
 
 int vncNotifyQueryConnect(void)
@@ -588,6 +585,7 @@ static int SProcVncExtDispatch(ClientPtr client)
 
 static void vncResetProc(ExtensionEntry* extEntry)
 {
+  vncExtensionClose();
 }
 
 static void vncClientStateChange(CallbackListPtr * l, void * d, void * p)

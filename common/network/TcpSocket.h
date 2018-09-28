@@ -48,48 +48,41 @@ namespace network {
   /* Tunnelling support. */
   int findFreeTcpPort (void);
 
+  int getSockPort(int sock);
+
   class TcpSocket : public Socket {
   public:
-    TcpSocket(int sock, bool close=true);
+    TcpSocket(int sock);
     TcpSocket(const char *name, int port);
-    virtual ~TcpSocket();
-
-    virtual int getMyPort();
 
     virtual char* getPeerAddress();
-    virtual int getPeerPort();
     virtual char* getPeerEndpoint();
-    virtual bool sameMachine();
 
-    virtual void shutdown();
+    virtual bool cork(bool enable);
 
-    static bool enableNagles(int sock, bool enable);
-    static bool cork(int sock, bool enable);
-    static bool isListening(int sock);
-    static int getSockPort(int sock);
-  private:
-    bool closeFd;
+  protected:
+    bool enableNagles(bool enable);
   };
 
   class TcpListener : public SocketListener {
   public:
     TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
     TcpListener(int sock);
-    virtual ~TcpListener();
 
-    virtual void shutdown();
-    virtual Socket* accept();
+    virtual int getMyPort();
 
     static void getMyAddresses(std::list<char*>* result);
-    int getMyPort();
+
+  protected:
+    virtual Socket* createSocket(int fd);
   };
 
-  void createLocalTcpListeners(std::list<TcpListener*> *listeners,
+  void createLocalTcpListeners(std::list<SocketListener*> *listeners,
                                int port);
-  void createTcpListeners(std::list<TcpListener*> *listeners,
+  void createTcpListeners(std::list<SocketListener*> *listeners,
                           const char *addr,
                           int port);
-  void createTcpListeners(std::list<TcpListener*> *listeners,
+  void createTcpListeners(std::list<SocketListener*> *listeners,
                           const struct addrinfo *ai);
 
   typedef struct vnc_sockaddr {

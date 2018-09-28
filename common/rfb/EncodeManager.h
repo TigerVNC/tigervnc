@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 
 #include <rdr/types.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/Region.h>
+#include <rfb/Timer.h>
 
 namespace rfb {
   class SConnection;
@@ -31,12 +33,11 @@ namespace rfb {
   class UpdateInfo;
   class PixelBuffer;
   class RenderedCursor;
-  class Region;
-  class Rect;
+  struct Rect;
 
   struct RectInfo;
 
-  class EncodeManager {
+  class EncodeManager : public Timer::Callback {
   public:
     EncodeManager(SConnection* conn);
     ~EncodeManager();
@@ -46,18 +47,35 @@ namespace rfb {
     // Hack to let ConnParams calculate the client's preferred encoding
     static bool supported(int encoding);
 
+    bool needsLosslessRefresh(const Region& req);
+    int getNextLosslessRefresh(const Region& req);
+
+    void pruneLosslessRefresh(const Region& limits);
+
     void writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
                      const RenderedCursor* renderedCursor);
 
+    void writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
+                              const RenderedCursor* renderedCursor,
+                              size_t maxUpdateSize);
+
   protected:
-    void prepareEncoders();
+    virtual bool handleTimeout(Timer* t);
+
+    void doUpdate(bool allowLossy, const Region& changed,
+                  const Region& copied, const Point& copy_delta,
+                  const PixelBuffer* pb,
+                  const RenderedCursor* renderedCursor);
+    void prepareEncoders(bool allowLossy);
+
+    Region getLosslessRefresh(const Region& req, size_t maxUpdateSize);
 
     int computeNumRects(const Region& changed);
 
     Encoder *startRect(const Rect& rect, int type);
     void endRect();
 
-    void writeCopyRects(const UpdateInfo& ui);
+    void writeCopyRects(const Region& copied, const Point& delta);
     void writeSolidRects(Region *changed, const PixelBuffer* pb);
     void findSolidRect(const Rect& rect, Region *changed, const PixelBuffer* pb);
     void writeRects(const Region& changed, const PixelBuffer* pb);
@@ -102,6 +120,12 @@ namespace rfb {
 
     std::vector<Encoder*> encoders;
     std::vector<int> activeEncoders;
+
+    Region lossyRegion;
+    Region recentlyChangedRegion;
+    Region pendingRefreshRegion;
+
+    Timer recentChangeTimer;
 
     struct EncoderStats {
       unsigned rects;

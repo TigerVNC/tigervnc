@@ -42,11 +42,11 @@ rfb::win32::WMCopyRect::processEvent() {
       Rect winrect(wrect.left, wrect.top, wrect.right, wrect.bottom);
       if (fg_window == window) {
         if (!fg_window_rect.tl.equals(winrect.tl)  && ut) {
-          // Window has moved - send a copyrect event to the client
-          Point delta = Point(winrect.tl.x-fg_window_rect.tl.x, winrect.tl.y-fg_window_rect.tl.y);
-          Region copy_dest = winrect;
-          ut->add_copied(copy_dest, delta);
-          ut->add_changed(Region(fg_window_rect).subtract(copy_dest));
+          // Window has moved - mark both the previous and new position as changed
+          // (we can't use add_copied() here because we aren't that properly synced
+          // with the actual state of the framebuffer)
+          ut->add_changed(Region(winrect));
+          ut->add_changed(Region(fg_window_rect));
         }
       }
       fg_window = window;

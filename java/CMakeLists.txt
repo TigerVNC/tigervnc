@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 2.8)
 
 project(tigervnc-java Java)
 if(NOT VERSION)
-  set(VERSION 1.7.80)
+  set(VERSION 1.9.80)
 endif()
 
 find_package(Java)
 
-set(DEFAULT_JAVACFLAGS "-source 1.6 -target 1.6 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation,-rawtypes")
+set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share")
+
+set(DEFAULT_JAVACFLAGS "-source 7 -target 7 -encoding UTF-8 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation,-rawtypes")
 set(JAVACFLAGS ${DEFAULT_JAVACFLAGS} CACHE STRING
   "Java compiler flags (Default: ${DEFAULT_JAVACFLAGS})")
 message(STATUS "Java compiler flags = ${JAVACFLAGS}")
@@ -124,15 +126,18 @@ configure_file(${CLASSPATH}/timestamp.in ${CLASSPATH}/timestamp)
 
 if(NOT "${SRCDIR}" STREQUAL "${BINDIR}")
 
-add_custom_command(OUTPUT ${BINDIR}/${CLASSPATH}/tigervnc.png
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${SRCDIR}/${CLASSPATH}/tigervnc.png ${BINDIR}/${CLASSPATH}/tigervnc.png
-  DEPENDS ${SRCDIR}/${CLASSPATH}/tigervnc.png)
+set(ICONS
+tigervnc.ico
+tigervnc.png
+insecure.png
+secure.png)
 
-add_custom_command(OUTPUT ${BINDIR}/${CLASSPATH}/tigervnc.ico
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${SRCDIR}/${CLASSPATH}/tigervnc.ico ${BINDIR}/${CLASSPATH}/tigervnc.ico
-  DEPENDS ${SRCDIR}/${CLASSPATH}/tigervnc.ico)
+foreach(icon ${ICONS})
+  add_custom_command(OUTPUT ${BINDIR}/${CLASSPATH}/${icon}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${SRCDIR}/${CLASSPATH}/${icon} ${BINDIR}/${CLASSPATH}/${icon}
+    DEPENDS ${SRCDIR}/${CLASSPATH}/${icon})
+endforeach()
 
 endif()
 
@@ -143,8 +148,10 @@ add_custom_command(OUTPUT VncViewer.jar
   DEPENDS ${JAVA_CLASSES}
     ${SRCDIR}/${CLASSPATH}/MANIFEST.MF
     ${BINDIR}/${CLASSPATH}/timestamp
-    ${BINDIR}/${CLASSPATH}/tigervnc.png
     ${BINDIR}/${CLASSPATH}/tigervnc.ico
+    ${BINDIR}/${CLASSPATH}/tigervnc.png
+    ${BINDIR}/${CLASSPATH}/insecure.png
+    ${BINDIR}/${CLASSPATH}/secure.png
   COMMAND ${JAVA_ARCHIVE}
   ARGS cfm VncViewer.jar
     ${SRCDIR}/${CLASSPATH}/MANIFEST.MF
@@ -157,7 +164,7 @@ add_custom_command(OUTPUT VncViewer.jar
     com/jcraft/jsch/jcraft/*.class
     com/jcraft/jsch/jce/*.class
     com/jcraft/jsch/*.class
-    com/tigervnc/vncviewer/tigervnc.png
+    com/tigervnc/vncviewer/*.png
     com/tigervnc/vncviewer/tigervnc.ico
   COMMAND ${CMAKE_COMMAND}
   ARGS -DJava_PATH=${Java_PATH} -DJAR_FILE=${BINDIR}/VncViewer.jar

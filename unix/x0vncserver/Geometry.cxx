@@ -23,6 +23,8 @@
 #include <rfb/LogWriter.h>
 #include <x0vncserver/Geometry.h>
 
+using namespace rfb;
+
 static LogWriter vlog("Geometry");
 
 StringParameter Geometry::m_geometryParam("Geometry",
@@ -33,10 +35,16 @@ StringParameter Geometry::m_geometryParam("Geometry",
   "");
 
 Geometry::Geometry(int fullWidth, int fullHeight)
-  : m_fullWidth(fullWidth),
-    m_fullHeight(fullHeight),
-    m_rect(0, 0, fullWidth, fullHeight)
 {
+  recalc(fullWidth, fullHeight);
+}
+
+void Geometry::recalc(int fullWidth, int fullHeight)
+{
+  m_fullWidth = fullWidth;
+  m_fullHeight = fullHeight;
+  m_rect.setXYWH(0, 0, fullWidth, fullHeight);
+
   // Parse geometry specification and save the result in m_rect.
   const char *param = m_geometryParam.getData();
   bool geometrySpecified = (strlen(param) > 0);

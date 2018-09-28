@@ -1,4 +1,4 @@
-/* Copyright 2011-2014 Pierre Ossman for Cendio AB
+/* Copyright 2011-2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,26 +19,46 @@
 #ifndef __PLATFORMPIXELBUFFER_H__
 #define __PLATFORMPIXELBUFFER_H__
 
+#if !defined(WIN32) && !defined(__APPLE__)
+#include <X11/Xlib.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <X11/extensions/XShm.h>
+#endif
+
+#include <list>
+
 #include <os/Mutex.h>
 
 #include <rfb/PixelBuffer.h>
 #include <rfb/Region.h>
 
-class PlatformPixelBuffer: public rfb::FullFramePixelBuffer {
+#include "Surface.h"
+
+class PlatformPixelBuffer: public rfb::FullFramePixelBuffer, public Surface {
 public:
-  PlatformPixelBuffer(const rfb::PixelFormat& pf, int width, int height,
-                      rdr::U8* data, int stride);
+  PlatformPixelBuffer(int width, int height);
+  ~PlatformPixelBuffer();
 
   virtual void commitBufferRW(const rfb::Rect& r);
 
-  virtual void draw(int src_x, int src_y, int x, int y, int w, int h) = 0;
   rfb::Rect getDamage(void);
 
-  virtual bool isRendering(void);
+  using rfb::FullFramePixelBuffer::width;
+  using rfb::FullFramePixelBuffer::height;
 
 protected:
   os::Mutex mutex;
   rfb::Region damage;
+
+#if !defined(WIN32) && !defined(__APPLE__)
+protected:
+  bool setupShm();
+
+protected:
+  XShmSegmentInfo *shminfo;
+  XImage *xim;
+#endif
 };
 
 #endif

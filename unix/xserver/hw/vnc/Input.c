@@ -44,6 +44,11 @@ extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+extern const unsigned short code_map_qnum_to_xorgevdev[];
+extern const unsigned int code_map_qnum_to_xorgevdev_len;
+extern const unsigned short code_map_qnum_to_xorgkbd[];
+extern const unsigned int code_map_qnum_to_xorgkbd_len;
+
 #define BUTTONS 7
 
 /* Event queue is shared between all devices. */
@@ -57,12 +62,17 @@ DeviceIntPtr vncPointerDev;
 static int oldButtonMask;
 static int cursorPosX, cursorPosY;
 
+static const unsigned short *codeMap;
+static unsigned int codeMapLen;
+
 static KeySym pressedKeys[256];
 
 static int vncPointerProc(DeviceIntPtr pDevice, int onoff);
 static void vncKeyboardBell(int percent, DeviceIntPtr device,
                             void * ctrl, int class);
 static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff);
+
+static void vncKeysymKeyboardEvent(KeySym keysym, int down);
 
 #define LOG_NAME "Input"
 
@@ -74,7 +84,7 @@ static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff);
 /*
  * Init input device.
  * This has to be called after core pointer/keyboard
- * initialization which unfortunately is after extesions
+ * initialization which unfortunately is after extensions
  * initialization (which means we cannot call it in
  * vncExtensionInit(). Check InitExtensions(),
  * InitCoreDevices() and InitInput() calls in dix/main.c.
@@ -87,6 +97,19 @@ void vncInitInputDevice(void)
 
 	if ((vncPointerDev != NULL) || (vncKeyboardDev != NULL))
 		return;
+
+	/*
+	 * On Linux we try to provide the same key codes as Xorg with
+	 * the evdev driver. On other platforms we mimic the older
+	 * Xorg KBD driver.
+	 */
+#ifdef __linux__
+	codeMap = code_map_qnum_to_xorgevdev;
+	codeMapLen = code_map_qnum_to_xorgevdev_len;
+#else
+	codeMap = code_map_qnum_to_xorgkbd;
+	codeMapLen = code_map_qnum_to_xorgkbd_len;
+#endif
 
 	for (i = 0;i < 256;i++)
 		pressedKeys[i] = NoSymbol;
@@ -115,6 +138,22 @@ void vncInitInputDevice(void)
 
 	vncPrepareInputDevices();
 }
+
+#if XORG < 111
+static void enqueueEvents(DeviceIntPtr dev, int n)
+{
+	int i;
+
+	for (i = 0; i < n; i++) {
+		/*
+		 * Passing arguments in global variable eventq is probably not
+		 * good programming practise but in this case it is safe and
+		 * clear.
+		 */
+		mieqEnqueue(dev, (InternalEvent *) (eventq + i)->event);
+	}
+}
+#endif /* XORG < 111 */
 
 void vncPointerButtonAction(int buttonMask)
 {
@@ -203,22 +242,6 @@ void vncGetPointerPos(int *x, int *y)
 	*y = cursorPosY;
 }
 
-#if XORG < 111
-static void enqueueEvents(DeviceIntPtr dev, int n)
-{
-	int i;
-
-	for (i = 0; i < n; i++) {
-		/*
-		 * Passing arguments in global variable eventq is probably not
-		 * good programming practise but in this case it is safe and
-		 * clear.
-		 */
-		mieqEnqueue(dev, (InternalEvent *) (eventq + i)->event);
-	}
-}
-#endif /* XORG < 111 */
-
 static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 {
 	BYTE map[BUTTONS + 1];
@@ -273,6 +296,11 @@ static void vncKeyboardBell(int percent, DeviceIntPtr device,
 		vncBell();
 }
 
+static void vncKeyboardCtrl(DeviceIntPtr pDevice, KeybdCtrl *ctrl)
+{
+	vncSetLEDState(ctrl->leds);
+}
+
 static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 {
 	DevicePtr pDev = (DevicePtr)pDevice;
@@ -280,7 +308,7 @@ static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 	switch (onoff) {
 	case DEVICE_INIT:
 		InitKeyboardDeviceStruct(pDevice, NULL, vncKeyboardBell,
-					 (KbdCtrlProcPtr)NoopDDA);
+					 vncKeyboardCtrl);
 		break;
 	case DEVICE_ON:
 		pDev->on = TRUE;
@@ -315,6 +343,48 @@ static inline void pressKey(DeviceIntPtr dev, int kc, Bool down, const char *msg
 #else
 	QueueKeyboardEvents(dev, action, kc);
 #endif
+}
+
+/*
+ * vncKeyboardEvent() - add X11 events for the given RFB key event
+ */
+void vncKeyboardEvent(KeySym keysym, unsigned xtcode, int down)
+{
+	/* Simple case: the client has specified the key */
+	if (xtcode && xtcode < codeMapLen) {
+		int keycode;
+
+		keycode = codeMap[xtcode];
+		if (!keycode) {
+			/*
+			 * Figure something out based on keysym if we
+			 * cannot find a mapping.
+			 */
+			if (keysym)
+				vncKeysymKeyboardEvent(keysym, down);
+			return;
+		}
+
+		/*
+		 * We update the state table in case we get a mix of
+		 * events with and without key codes.
+		 */
+		if (down)
+			pressedKeys[keycode] = keysym;
+		else
+			pressedKeys[keycode] = NoSymbol;
+
+		pressKey(vncKeyboardDev, keycode, down, "raw keycode");
+		mieqProcessInputEvents();
+		return;
+	}
+
+	/*
+	 * Advanced case: We have to figure out a sequence of keys that
+	 *                result in the given keysym
+	 */
+	if (keysym)
+		vncKeysymKeyboardEvent(keysym, down);
 }
 
 /* altKeysym is a table of alternative keysyms which have the same meaning. */
@@ -367,14 +437,14 @@ static struct altKeysym_t {
 };
 
 /*
- * vncKeyboardEvent() - work out the best keycode corresponding to the keysym
- * sent by the viewer. This is basically impossible in the general case, but
- * we make a best effort by assuming that all useful keysyms can be reached
- * using just the Shift and Level 3 (AltGr) modifiers. For core keyboards this
- * is basically always true, and should be true for most sane, western XKB
- * layouts.
+ * vncKeysymKeyboardEvent() - work out the best keycode corresponding
+ * to the keysym sent by the viewer. This is basically impossible in
+ * the general case, but we make a best effort by assuming that all
+ * useful keysyms can be reached using just the Shift and
+ * Level 3 (AltGr) modifiers. For core keyboards this is basically
+ * always true, and should be true for most sane, western XKB layouts.
  */
-void vncKeyboardEvent(KeySym keysym, int down)
+static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 {
 	int i;
 	unsigned state, new_state;
@@ -419,6 +489,30 @@ void vncKeyboardEvent(KeySym keysym, int down)
 
 	keycode = vncKeysymToKeycode(keysym, state, &new_state);
 
+	/*
+	 * Shift+Alt is often mapped to Meta, so try that rather than
+	 * allocating a new entry, faking shift, or using the dummy
+	 * key entries that many layouts have.
+	 */
+	if ((state & ShiftMask) &&
+	    ((keysym == XK_Alt_L) || (keysym == XK_Alt_R))) {
+		KeyCode alt, meta;
+
+		if (keysym == XK_Alt_L) {
+			alt = vncKeysymToKeycode(XK_Alt_L, state & ~ShiftMask, NULL);
+			meta = vncKeysymToKeycode(XK_Meta_L, state, NULL);
+		} else {
+			alt = vncKeysymToKeycode(XK_Alt_R, state & ~ShiftMask, NULL);
+			meta = vncKeysymToKeycode(XK_Meta_R, state, NULL);
+		}
+
+		if ((meta != 0) && (alt == meta)) {
+			LOG_DEBUG("Replacing Shift+Alt with Shift+Meta");
+			keycode = meta;
+			new_state = state;
+		}
+	}
+
 	/* Try some equivalent keysyms if we couldn't find a perfect match */
 	if (keycode == 0) {
 		for (i = 0;i < sizeof(altKeysym)/sizeof(altKeysym[0]);i++) {
@@ -435,12 +529,6 @@ void vncKeyboardEvent(KeySym keysym, int down)
 			if (keycode != 0)
 				break;
 		}
-	}
-
-	/* We don't have lock synchronisation... */
-	if (vncIsLockModifier(keycode, new_state)) {
-		LOG_DEBUG("Ignoring lock key (e.g. caps lock)");
-		return;
 	}
 
 	/* No matches. Will have to add a new entry... */
@@ -473,9 +561,9 @@ void vncKeyboardEvent(KeySym keysym, int down)
 	 * get confused when we do a fake shift to get the same effect
 	 * that having NumLock active would produce.
 	 *
-	 * Until we have proper NumLock synchronisation (so we can
-	 * avoid faking shift), we try to avoid the fake shifts if we
-	 * can use an alternative keysym.
+	 * Not all clients have proper NumLock synchronisation (so we
+	 * can avoid faking shift) so we try to avoid the fake shifts
+	 * if we can use an alternative keysym.
 	 */
 	if (((state & ShiftMask) != (new_state & ShiftMask)) &&
 	    vncGetAvoidShiftNumLock() && vncIsAffectedByNumLock(keycode)) {

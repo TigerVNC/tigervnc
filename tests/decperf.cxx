@@ -49,7 +49,7 @@ public:
 
   virtual void setDesktopSize(int w, int h);
   virtual void setPixelFormat(const rfb::PixelFormat& pf);
-  virtual void setCursor(int, int, const rfb::Point&, void*, void*);
+  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
   virtual void setColourMapEntries(int, int, rdr::U16*);
@@ -94,7 +94,7 @@ void CConn::setPixelFormat(const rfb::PixelFormat& pf)
   CConnection::setPixelFormat(filePF);
 }
 
-void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
+void CConn::setCursor(int, int, const rfb::Point&, const rdr::U8*)
 {
 }
 
@@ -142,7 +142,7 @@ static struct stats runTest(const char *fn)
 
   try {
     cc = new CConn(fn);
-  } catch (rdr::Exception e) {
+  } catch (rdr::Exception& e) {
     fprintf(stderr, "Failed to open rfb file: %s\n", e.str());
     exit(1);
   }
@@ -150,8 +150,8 @@ static struct stats runTest(const char *fn)
   try {
     while (true)
       cc->processMsg();
-  } catch (rdr::EndOfStream e) {
-  } catch (rdr::Exception e) {
+  } catch (rdr::EndOfStream& e) {
+  } catch (rdr::Exception& e) {
     fprintf(stderr, "Failed to run rfb file: %s\n", e.str());
     exit(1);
   }

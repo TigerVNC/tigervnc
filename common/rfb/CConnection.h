@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +26,7 @@
 
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
+#include <rfb/SecurityClient.h>
 #include <rfb/util.h>
 
 namespace rfb {
@@ -33,7 +35,6 @@ namespace rfb {
   class CMsgWriter;
   class CSecurity;
   class IdentityVerifier;
-  class SecurityClient;
 
   class CConnection : public CMsgHandler {
   public:
@@ -99,6 +100,9 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
 
+    virtual void readAndDecodeRect(const Rect& r, int encoding,
+                                   ModifiablePixelBuffer* pb);
+
     virtual void framebufferUpdateStart();
     virtual void framebufferUpdateEnd();
     virtual void dataRect(const Rect& r, int encoding);
@@ -130,6 +134,8 @@ namespace rfb {
     // Identities, to determine the unique(ish) name of the server.
     const char* getServerName() const { return serverName.buf; }
 
+    bool isSecure() const { return csecurity ? csecurity->isSecure() : false; }
+
     enum stateEnum {
       RFBSTATE_UNINITIALISED,
       RFBSTATE_PROTOCOL_VERSION,
@@ -144,7 +150,7 @@ namespace rfb {
     stateEnum state() { return state_; }
 
     CSecurity *csecurity;
-    SecurityClient *security;
+    SecurityClient security;
   protected:
     void setState(stateEnum s) { state_ = s; }
 

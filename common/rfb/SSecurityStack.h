@@ -26,9 +26,10 @@ namespace rfb {
 
   class SSecurityStack : public SSecurity {
   public:
-    SSecurityStack(int Type, SSecurity* s0 = 0, SSecurity* s1 = 0);
+    SSecurityStack(SConnection* sc, int Type,
+                   SSecurity* s0 = NULL, SSecurity* s1 = NULL);
     ~SSecurityStack();
-    virtual bool processMsg(SConnection* cc);
+    virtual bool processMsg();
     virtual int getType() const { return type; };
     virtual const char* getUserName() const;
     virtual SConnection::AccessRights getAccessRights() const;

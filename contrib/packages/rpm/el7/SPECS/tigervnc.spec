@@ -22,7 +22,7 @@ Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1:        vncserver.service
 Source2:        vncserver.sysconfig
 Source3:        10-libvnc.conf
-Source11:	http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
+Source11:	http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-1-source.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  libX11-devel, automake, autoconf, libtool, gettext, gettext-autopoint
@@ -31,7 +31,7 @@ BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
-BuildRequires:  freetype-devel, libXdmcp-devel
+BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
 BuildRequires:  java-devel, jpackage-utils
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake
@@ -162,7 +162,7 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
         chmod -x "$all"
 done
-patch -p1 -b --suffix .vnc < ../xserver117.patch
+patch -p1 -b --suffix .vnc < ../xserver119.patch
 popd
 
 # Don't use shebang in vncserver script.
@@ -262,7 +262,7 @@ pushd java
 	-DJAVA_TSA_URL=http://timestamp.geotrust.com/tsa .
 %endif
 
-JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
+make
 popd
 
 %install
@@ -340,7 +340,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc %{_docdir}/%{name}-%{version}/README.txt
+%doc %{_docdir}/%{name}-%{version}/README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
 %{_mandir}/man1/vncviewer.1*
@@ -392,6 +392,9 @@ fi
 %endif
 
 %changelog
+* Sun Jul 22 2018 Brian P. Hinz <bphinz@users.sourceforge.net> 1.9.80-1
+- Updated fltk to latest version
+
 * Thu Dec 24 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-1
 - Adapted from RedHat EL7 Spec
 

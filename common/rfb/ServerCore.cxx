@@ -52,6 +52,10 @@ rfb::IntParameter rfb::Server::compareFB
  "Perform pixel comparison on framebuffer to reduce unnecessary updates "
  "(0: never, 1: always, 2: auto)",
  2);
+rfb::IntParameter rfb::Server::frameRate
+("FrameRate",
+ "The maximum number of updates per second sent to each client",
+ 60);
 rfb::BoolParameter rfb::Server::protocol3_3
 ("Protocol3.3",
  "Always use protocol version 3.3 for backwards compatibility with "
@@ -97,8 +101,3 @@ rfb::BoolParameter rfb::Server::queryConnect
 ("QueryConnect",
  "Prompt the local user to accept or reject incoming connections.",
  false);
-rfb::IntParameter rfb::Server::queryConnectTimeout
-("QueryConnectTimeout",
- "Number of seconds to show the Accept Connection dialog before "
- "rejecting the connection",
- 10);

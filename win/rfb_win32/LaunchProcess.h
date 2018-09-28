@@ -44,7 +44,7 @@ namespace rfb {
       //   as an extra flag to the process creation call.
       void start(HANDLE userToken, bool createConsole=false);
 
-      // Detatch from the child process. After detatching from a child
+      // Detach from the child process. After detaching from a child
       //   process, no other methods should be called on the object
       //   that started it
       void detach();

@@ -28,21 +28,17 @@
 #else
 #define errorNumber errno
 #define closesocket close
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <errno.h>
-#include <string.h>
-#include <signal.h>
-#include <fcntl.h>
 #endif
 
 #include <stdlib.h>
 #include <unistd.h>
+
 #include <network/TcpSocket.h>
-#include <rfb/util.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 
@@ -99,40 +95,35 @@ int network::findFreeTcpPort (void)
   return ntohs(addr.sin_port);
 }
 
+int network::getSockPort(int sock)
+{
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
+  if (getsockname(sock, &sa.u.sa, &sa_size) < 0)
+    return 0;
 
-// -=- Socket initialisation
-static bool socketsInitialised = false;
-static void initSockets() {
-  if (socketsInitialised)
-    return;
-#ifdef WIN32
-  WORD requiredVersion = MAKEWORD(2,0);
-  WSADATA initResult;
-  
-  if (WSAStartup(requiredVersion, &initResult) != 0)
-    throw SocketException("unable to initialise Winsock2", errorNumber);
-#else
-  signal(SIGPIPE, SIG_IGN);
-#endif
-  socketsInitialised = true;
+  switch (sa.u.sa.sa_family) {
+  case AF_INET6:
+    return ntohs(sa.u.sin6.sin6_port);
+  default:
+    return ntohs(sa.u.sin.sin_port);
+  }
 }
-
 
 // -=- TcpSocket
 
-TcpSocket::TcpSocket(int sock, bool close)
-  : Socket(new FdInStream(sock), new FdOutStream(sock), true), closeFd(close)
+TcpSocket::TcpSocket(int sock) : Socket(sock)
 {
+  // Disable Nagle's algorithm, to reduce latency
+  enableNagles(false);
 }
 
 TcpSocket::TcpSocket(const char *host, int port)
-  : closeFd(true)
 {
   int sock, err, result;
   struct addrinfo *ai, *current, hints;
 
   // - Create a socket
-  initSockets();
 
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
@@ -214,27 +205,11 @@ TcpSocket::TcpSocket(const char *host, int port)
       throw SocketException("unable connect to socket", err);
   }
 
-#ifndef WIN32
-  // - By default, close the socket on exec()
-  fcntl(sock, F_SETFD, FD_CLOEXEC);
-#endif
+  // Take proper ownership of the socket
+  setFd(sock);
 
   // Disable Nagle's algorithm, to reduce latency
-  enableNagles(sock, false);
-
-  // Create the input and output streams
-  instream = new FdInStream(sock);
-  outstream = new FdOutStream(sock);
-  ownStreams = true;
-}
-
-TcpSocket::~TcpSocket() {
-  if (closeFd)
-    closesocket(getFd());
-}
-
-int TcpSocket::getMyPort() {
-  return getSockPort(getFd());
+  enableNagles(false);
 }
 
 char* TcpSocket::getPeerAddress() {
@@ -281,25 +256,20 @@ char* TcpSocket::getPeerAddress() {
   return rfb::strDup("");
 }
 
-int TcpSocket::getPeerPort() {
+char* TcpSocket::getPeerEndpoint() {
+  rfb::CharArray address; address.buf = getPeerAddress();
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
+  int port;
 
   getpeername(getFd(), &sa.u.sa, &sa_size);
 
-  switch (sa.u.sa.sa_family) {
-  case AF_INET6:
-    return ntohs(sa.u.sin6.sin6_port);
-  case AF_INET:
-    return ntohs(sa.u.sin.sin_port);
-  default:
-    return 0;
-  }
-}
-
-char* TcpSocket::getPeerEndpoint() {
-  rfb::CharArray address; address.buf = getPeerAddress();
-  int port = getPeerPort();
+  if (sa.u.sa.sa_family == AF_INET6)
+    port = ntohs(sa.u.sin6.sin6_port);
+  else if (sa.u.sa.sa_family == AF_INET)
+    port = ntohs(sa.u.sin.sin_port);
+  else
+    port = 0;
 
   int buflen = strlen(address.buf) + 32;
   char* buffer = new char[buflen];
@@ -307,40 +277,9 @@ char* TcpSocket::getPeerEndpoint() {
   return buffer;
 }
 
-bool TcpSocket::sameMachine() {
-  vnc_sockaddr_t peeraddr, myaddr;
-  socklen_t addrlen;
-
-  addrlen = sizeof(peeraddr);
-  if (getpeername(getFd(), &peeraddr.u.sa, &addrlen) < 0)
-      throw SocketException ("unable to get peer address", errorNumber);
-
-  addrlen = sizeof(myaddr); /* need to reset, since getpeername overwrote */
-  if (getsockname(getFd(), &myaddr.u.sa, &addrlen) < 0)
-      throw SocketException ("unable to get my address", errorNumber);
-
-  if (peeraddr.u.sa.sa_family != myaddr.u.sa.sa_family)
-      return false;
-
-  if (peeraddr.u.sa.sa_family == AF_INET6)
-      return IN6_ARE_ADDR_EQUAL(&peeraddr.u.sin6.sin6_addr,
-                                &myaddr.u.sin6.sin6_addr);
-  if (peeraddr.u.sa.sa_family == AF_INET)
-    return (peeraddr.u.sin.sin_addr.s_addr == myaddr.u.sin.sin_addr.s_addr);
-
-  // No idea what this is. Assume we're on different machines.
-  return false;
-}
-
-void TcpSocket::shutdown()
-{
-  Socket::shutdown();
-  ::shutdown(getFd(), 2);
-}
-
-bool TcpSocket::enableNagles(int sock, bool enable) {
+bool TcpSocket::enableNagles(bool enable) {
   int one = enable ? 0 : 1;
-  if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+  if (setsockopt(getFd(), IPPROTO_TCP, TCP_NODELAY,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     vlog.error("unable to setsockopt TCP_NODELAY: %d", e);
@@ -349,45 +288,19 @@ bool TcpSocket::enableNagles(int sock, bool enable) {
   return true;
 }
 
-bool TcpSocket::cork(int sock, bool enable) {
+bool TcpSocket::cork(bool enable) {
 #ifndef TCP_CORK
   return false;
 #else
   int one = enable ? 1 : 0;
-  if (setsockopt(sock, IPPROTO_TCP, TCP_CORK, (char *)&one, sizeof(one)) < 0)
+  if (setsockopt(getFd(), IPPROTO_TCP, TCP_CORK, (char *)&one, sizeof(one)) < 0)
     return false;
   return true;
 #endif
 }
 
-bool TcpSocket::isListening(int sock)
+TcpListener::TcpListener(int sock) : SocketListener(sock)
 {
-  int listening = 0;
-  socklen_t listening_size = sizeof(listening);
-  if (getsockopt(sock, SOL_SOCKET, SO_ACCEPTCONN,
-                 (char *)&listening, &listening_size) < 0)
-    return false;
-  return listening != 0;
-}
-
-int TcpSocket::getSockPort(int sock)
-{
-  vnc_sockaddr_t sa;
-  socklen_t sa_size = sizeof(sa);
-  if (getsockname(sock, &sa.u.sa, &sa_size) < 0)
-    return 0;
-
-  switch (sa.u.sa.sa_family) {
-  case AF_INET6:
-    return ntohs(sa.u.sin6.sin6_port);
-  default:
-    return ntohs(sa.u.sin.sin_port);
-  }
-}
-
-TcpListener::TcpListener(int sock)
-{
-  fd = sock;
 }
 
 TcpListener::TcpListener(const struct sockaddr *listenaddr,
@@ -396,8 +309,6 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   int one = 1;
   vnc_sockaddr_t sa;
   int sock;
-
-  initSockets();
 
   if ((sock = socket (listenaddr->sa_family, SOCK_STREAM, 0)) < 0)
     throw SocketException("unable to create listening socket", errorNumber);
@@ -436,53 +347,11 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
     throw SocketException("failed to bind socket", e);
   }
 
-  // - Set it to be a listening socket
-  if (listen(sock, 5) < 0) {
-    int e = errorNumber;
-    closesocket(sock);
-    throw SocketException("unable to set socket to listening mode", e);
-  }
-
-  fd = sock;
+  listen(sock);
 }
 
-TcpListener::~TcpListener() {
-  closesocket(fd);
-}
-
-void TcpListener::shutdown()
-{
-#ifdef WIN32
-  closesocket(getFd());
-#else
-  ::shutdown(getFd(), 2);
-#endif
-}
-
-
-Socket*
-TcpListener::accept() {
-  int new_sock = -1;
-
-  // Accept an incoming connection
-  if ((new_sock = ::accept(fd, 0, 0)) < 0)
-    throw SocketException("unable to accept new connection", errorNumber);
-
-#ifndef WIN32
-  // - By default, close the socket on exec()
-  fcntl(new_sock, F_SETFD, FD_CLOEXEC);
-#endif
-
-  // Disable Nagle's algorithm, to reduce latency
-  TcpSocket::enableNagles(new_sock, false);
-
-  // Create the socket object & check connection is allowed
-  TcpSocket* s = new TcpSocket(new_sock);
-  if (filter && !filter->verifyConnection(s)) {
-    delete s;
-    return 0;
-  }
-  return s;
+Socket* TcpListener::createSocket(int fd) {
+  return new TcpSocket(fd);
 }
 
 void TcpListener::getMyAddresses(std::list<char*>* result) {
@@ -528,11 +397,11 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
 }
 
 int TcpListener::getMyPort() {
-  return TcpSocket::getSockPort(getFd());
+  return getSockPort(getFd());
 }
 
 
-void network::createLocalTcpListeners(std::list<TcpListener*> *listeners,
+void network::createLocalTcpListeners(std::list<SocketListener*> *listeners,
                                       int port)
 {
   struct addrinfo ai[2];
@@ -562,7 +431,7 @@ void network::createLocalTcpListeners(std::list<TcpListener*> *listeners,
   createTcpListeners(listeners, ai);
 }
 
-void network::createTcpListeners(std::list<TcpListener*> *listeners,
+void network::createTcpListeners(std::list<SocketListener*> *listeners,
                                  const char *addr,
                                  int port)
 {
@@ -594,11 +463,11 @@ void network::createTcpListeners(std::list<TcpListener*> *listeners,
   }
 }
 
-void network::createTcpListeners(std::list<TcpListener*> *listeners,
+void network::createTcpListeners(std::list<SocketListener*> *listeners,
                                  const struct addrinfo *ai)
 {
   const struct addrinfo *current;
-  std::list<TcpListener*> new_listeners;
+  std::list<SocketListener*> new_listeners;
 
   initSockets();
 

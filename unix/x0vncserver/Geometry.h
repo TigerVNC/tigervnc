@@ -26,12 +26,11 @@
 #include <rfb/Rect.h>
 #include <rfb/Configuration.h>
 
-using namespace rfb;
-
 class Geometry
 {
 public:
   Geometry(int fullWidth, int fullHeight);
+  void recalc(int fullWidth, int fullHeight);
 
   // Return coordinates and dimensions that specify a rectangular part
   // of the desktop that would be shown to RFB clients. This
@@ -43,18 +42,18 @@ public:
   int offsetTop() const { return m_rect.tl.y; }
 
   // Return the same information as a Rect structure.
-  const Rect& getRect() const { return m_rect; }
+  const rfb::Rect& getRect() const { return m_rect; }
 
 protected:
   // Parse a string, extract size and coordinates,
   // and return that rectangle clipped to m_rect.
-  Rect parseString(const char *arg) const;
+  rfb::Rect parseString(const char *arg) const;
 
-  static StringParameter m_geometryParam;
+  static rfb::StringParameter m_geometryParam;
 
   int m_fullWidth;
   int m_fullHeight;
-  Rect m_rect;
+  rfb::Rect m_rect;
 };
 
 #endif // __GEOMETRY_H__

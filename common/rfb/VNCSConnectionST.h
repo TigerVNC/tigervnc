@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,16 +27,15 @@
 #ifndef __RFB_VNCSCONNECTIONST_H__
 #define __RFB_VNCSCONNECTIONST_H__
 
-#include <set>
-#include <rfb/SConnection.h>
-#include <rfb/SMsgWriter.h>
-#include <rfb/VNCServerST.h>
-#include <rfb/Timer.h>
-#include <rfb/EncodeManager.h>
+#include <map>
 
-struct RTTInfo;
+#include <rfb/Congestion.h>
+#include <rfb/EncodeManager.h>
+#include <rfb/SConnection.h>
+#include <rfb/Timer.h>
 
 namespace rfb {
+  class VNCServerST;
 
   class VNCSConnectionST : public SConnection,
                            public Timer::Callback {
@@ -78,6 +77,7 @@ namespace rfb {
     void bellOrClose();
     void serverCutTextOrClose(const char *str, int len);
     void setDesktopNameOrClose(const char *name);
+    void setLEDStateOrClose(unsigned int state);
 
     // checkIdleTimeout() returns the number of milliseconds left until the
     // idle timeout expires.  If it has expired, the connection is closed and
@@ -135,7 +135,7 @@ namespace rfb {
     virtual void clientInit(bool shared);
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void keyEvent(rdr::U32 key, bool down);
+    virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     virtual void clientCutText(const char* str, int len);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setDesktopSize(int fb_width, int fb_height,
@@ -146,6 +146,7 @@ namespace rfb {
     virtual void supportsLocalCursor();
     virtual void supportsFence();
     virtual void supportsContinuousUpdates();
+    virtual void supportsLEDState();
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
@@ -158,27 +159,28 @@ namespace rfb {
 
     // Internal methods
 
+    bool isShiftPressed();
+
     // Congestion control
     void writeRTTPing();
-    void handleRTTPong(const struct RTTInfo &rttInfo);
     bool isCongested();
-    void updateCongestion();
 
     // writeFramebufferUpdate() attempts to write a framebuffer update to the
     // client.
 
     void writeFramebufferUpdate();
+    void writeNoDataUpdate();
+    void writeDataUpdate();
 
     void screenLayoutChange(rdr::U16 reason);
     void setCursor();
     void setDesktopName(const char *name);
+    void setLEDState(unsigned int state);
     void setSocketTimeouts();
 
     network::Socket* sock;
     CharArray peerEndpoint;
     bool reverseConnection;
-
-    Timer queryConnectTimer;
 
     bool inProcessMessages;
 
@@ -187,14 +189,9 @@ namespace rfb {
     unsigned fenceDataLen;
     char *fenceData;
 
-    unsigned baseRTT;
-    unsigned congWindow;
-    unsigned ackedOffset, sentOffset;
-
-    unsigned minRTT;
-    bool seenCongestion;
-    unsigned pingCounter;
+    Congestion congestion;
     Timer congestionTimer;
+    Timer losslessTimer;
 
     VNCServerST* server;
     SimpleUpdateTracker updates;
@@ -205,11 +202,12 @@ namespace rfb {
     Region cuRegion;
     EncodeManager encodeManager;
 
-    std::set<rdr::U32> pressedKeys;
+    std::map<rdr::U32, rdr::U32> pressedKeys;
 
     time_t lastEventTime;
     time_t pointerEventTime;
     Point pointerEventPos;
+    bool clientHasCursor;
 
     AccessRights accessRights;
 

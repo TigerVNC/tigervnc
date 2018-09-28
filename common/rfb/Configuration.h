@@ -80,6 +80,9 @@ namespace rfb {
     // - List the parameters of this Configuration group
     void list(int width=79, int nameWidth=10);
 
+    // - Remove a parameter from this Configuration group
+    bool remove(const char* param);
+
     // - readFromFile
     //   Read configuration parameters from the specified file.
     void readFromFile(const char* filename);
@@ -115,6 +118,9 @@ namespace rfb {
     static VoidParameter* getParam(const char* param) { return global()->get(param); }
     static void listParams(int width=79, int nameWidth=10) {
       global()->list(width, nameWidth);
+    }
+    static bool removeParam(const char* param) {
+      return global()->remove(param);
     }
 
   private:
@@ -215,6 +221,7 @@ namespace rfb {
     IntParameter(const char* name_, const char* desc_, int v,
                  int minValue=INT_MIN, int maxValue=INT_MAX,
 		 ConfigurationObject co=ConfGlobal);
+    using VoidParameter::setParam;
     virtual bool setParam(const char* value);
     virtual bool setParam(int v);
     virtual char* getDefaultStr() const;
@@ -251,6 +258,7 @@ namespace rfb {
   public:
     BinaryParameter(const char* name_, const char* desc_, const void* v, int l,
 		    ConfigurationObject co=ConfGlobal);
+    using VoidParameter::setParam;
     virtual ~BinaryParameter();
     virtual bool setParam(const char* value);
     virtual void setParam(const void* v, int l);

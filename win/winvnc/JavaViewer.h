@@ -25,14 +25,15 @@
 #define WINVNC_JAVA_VIEWER
 
 #include <rfb/HTTPServer.h>
-#include <rfb/VNCServerST.h>
 #include <rdr/SubstitutingInStream.h>
 
 namespace winvnc {
 
+  class VNCServerWin32;
+
   class JavaViewerServer : public rfb::HTTPServer, public rdr::Substitutor {
   public:
-    JavaViewerServer(rfb::VNCServerST* desktop);
+    JavaViewerServer(VNCServerWin32* desktop);
     virtual ~JavaViewerServer();
 
     virtual rdr::InStream* getFile(const char* name, const char** contentType,
@@ -46,7 +47,7 @@ namespace winvnc {
     }
   protected:
     int rfbPort;
-    rfb::VNCServerST* server;
+    VNCServerWin32* server;
   };
 
 };

@@ -64,6 +64,8 @@ protected:
 
   static void handleDesktopSize(Fl_Widget *widget, void *data);
 
+  static void handleClipboard(Fl_Widget *widget, void *data);
+
   static void handleCancel(Fl_Widget *widget, void *data);
   static void handleOK(Fl_Widget *widget, void *data);
 

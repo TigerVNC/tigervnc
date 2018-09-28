@@ -37,22 +37,24 @@
 #include <rfb/Configuration.h>
 #include <rfb/VNCServerST.h>
 #include <rdr/SubstitutingInStream.h>
+#include <unixcommon.h>
 #include "Input.h"
 
 namespace rfb {
   class VNCServerST;
 }
 
-namespace network { class TcpListener; class Socket; class SocketServer; }
+namespace network { class SocketListener; class Socket; class SocketServer; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public rdr::Substitutor,
-                       public rfb::VNCServerST::QueryConnectionHandler {
+                       public rfb::VNCServerST::QueryConnectionHandler,
+                       public rfb::Timer::Callback {
 public:
 
   XserverDesktop(int screenIndex,
-                 std::list<network::TcpListener*> listeners_,
-                 std::list<network::TcpListener*> httpListeners_,
+                 std::list<network::SocketListener*> listeners_,
+                 std::list<network::SocketListener*> httpListeners_,
                  const char* name, const rfb::PixelFormat &pf,
                  int width, int height, void* fbptr, int stride);
   virtual ~XserverDesktop();
@@ -63,6 +65,7 @@ public:
   void setFramebuffer(int w, int h, void* fbptr, int stride);
   void refreshScreenLayout();
   void bell();
+  void setLEDState(unsigned int state);
   void serverCutText(const char* str, int len);
   void setDesktopName(const char* name);
   void setCursor(int width, int height, int hotX, int hotY,
@@ -88,9 +91,8 @@ public:
 
   // rfb::SDesktop callbacks
   virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
-  virtual void keyEvent(rdr::U32 key, bool down);
+  virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
   virtual void clientCutText(const char* str, int len);
-  virtual rfb::Point getFbSize() { return rfb::Point(width(), height()); }
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
                                        const rfb::ScreenSet& layout);
 
@@ -107,32 +109,30 @@ public:
 
 protected:
   bool handleListenerEvent(int fd,
-                           std::list<network::TcpListener*>* sockets,
+                           std::list<network::SocketListener*>* sockets,
                            network::SocketServer* sockserv);
   bool handleSocketEvent(int fd,
                          network::SocketServer* sockserv,
                          bool read, bool write);
 
+  virtual bool handleTimeout(rfb::Timer* t);
+
 private:
-  rfb::ScreenSet computeScreenLayout();
 
   int screenIndex;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
-  std::list<network::TcpListener*> listeners;
-  std::list<network::TcpListener*> httpListeners;
-  bool deferredUpdateTimerSet;
+  std::list<network::SocketListener*> listeners;
+  std::list<network::SocketListener*> httpListeners;
   bool directFbptr;
 
   uint32_t queryConnectId;
   network::Socket* queryConnectSocket;
   rfb::CharArray queryConnectAddress;
   rfb::CharArray queryConnectUsername;
+  rfb::Timer queryConnectTimer;
 
-#ifdef RANDR
-  typedef std::map<intptr_t, rdr::U32> OutputIdMap;
   OutputIdMap outputIdMap;
-#endif
 
   rfb::Point oldCursorPos;
 };

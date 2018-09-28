@@ -120,7 +120,9 @@ SecurityPage::onCommand(int id, int cmd)
 
 bool
 SecurityPage::onOk() {
+#ifdef HAVE_GNUTLS
   bool x509_loaded = false;
+#endif
   bool vnc_loaded = false;
   list<U32> secTypes;
 

@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2015 Pierre Ossman for Cendio AB
+ * Copyright 2009-2018 Pierre Ossman for Cendio AB
+ * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,27 +18,21 @@
  * USA.
  */
 
-// Debug output on what the congestion control is up to
-#undef CONGESTION_DEBUG
-
-#include <sys/time.h>
-
-#ifdef CONGESTION_DEBUG
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#endif
-
 #include <network/TcpSocket.h>
-#include <rfb/VNCSConnectionST.h>
+
+#include <rfb/ComparingUpdateTracker.h>
+#include <rfb/Encoder.h>
+#include <rfb/KeyRemapper.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
+#include <rfb/ServerCore.h>
+#include <rfb/SMsgWriter.h>
+#include <rfb/VNCServerST.h>
+#include <rfb/VNCSConnectionST.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
-#include <rfb/ServerCore.h>
-#include <rfb/ComparingUpdateTracker.h>
-#include <rfb/KeyRemapper.h>
-#include <rfb/Encoder.h>
+#include <rfb/ledStates.h>
+#define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -46,36 +41,18 @@ using namespace rfb;
 
 static LogWriter vlog("VNCSConnST");
 
-// This window should get us going fairly fast on a decent bandwidth network.
-// If it's too high, it will rapidly be reduced and stay low.
-static const unsigned INITIAL_WINDOW = 16384;
-
-// TCP's minimal window is 3*MSS. But since we don't know the MSS, we
-// make a guess at 4 KiB (it's probaly a bit higher).
-static const unsigned MINIMUM_WINDOW = 4096;
-
-// The current default maximum window for Linux (4 MiB). Should be a good
-// limit for now...
-static const unsigned MAXIMUM_WINDOW = 4194304;
-
-struct RTTInfo {
-  struct timeval tv;
-  int offset;
-  unsigned inFlight;
-};
+static Cursor emptyCursor(0, 0, Point(0, 0), NULL);
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
   : sock(s), reverseConnection(reverse),
-    queryConnectTimer(this), inProcessMessages(false),
+    inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
-    fenceDataLen(0), fenceData(NULL),
-    baseRTT(-1), congWindow(0), ackedOffset(0), sentOffset(0),
-    minRTT(-1), seenCongestion(false),
-    pingCounter(0), congestionTimer(this),
-    server(server_), updates(false),
+    fenceDataLen(0), fenceData(NULL), congestionTimer(this),
+    losslessTimer(this), server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
+    clientHasCursor(false),
     accessRights(AccessDefault), startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
@@ -98,11 +75,18 @@ VNCSConnectionST::~VNCSConnectionST()
                                     (closeReason.buf) ? closeReason.buf : "");
 
   // Release any keys the client still had pressed
-  std::set<rdr::U32>::iterator i;
-  for (i=pressedKeys.begin(); i!=pressedKeys.end(); i++) {
-    vlog.debug("Releasing key 0x%x on client disconnect", *i);
-    server->desktop->keyEvent(*i, false);
+  while (!pressedKeys.empty()) {
+    rdr::U32 keysym, keycode;
+
+    keysym = pressedKeys.begin()->second;
+    keycode = pressedKeys.begin()->first;
+    pressedKeys.erase(pressedKeys.begin());
+
+    vlog.debug("Releasing key 0x%x / 0x%x on client disconnect",
+               keysym, keycode);
+    server->desktop->keyEvent(keysym, keycode, false);
   }
+
   if (server->pointerClient == this)
     server->pointerClient = 0;
 
@@ -157,7 +141,7 @@ void VNCSConnectionST::processMessages()
 
     // Get the underlying TCP layer to build large packets if we send
     // multiple small responses.
-    network::TcpSocket::cork(sock->getFd(), true);
+    sock->cork(true);
 
     while (getInStream()->checkNoWait(1)) {
       if (pendingSyncFence) {
@@ -174,7 +158,7 @@ void VNCSConnectionST::processMessages()
     }
 
     // Flush out everything in case we go idle after this.
-    network::TcpSocket::cork(sock->getFd(), false);
+    sock->cork(false);
 
     inProcessMessages = false;
 
@@ -240,6 +224,9 @@ void VNCSConnectionST::pixelBufferChange()
           }
         }
       }
+
+      // Drop any lossy tracking that is now outside the framebuffer
+      encodeManager.pruneLosslessRefresh(Region(server->pb->getRect()));
     }
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
@@ -264,6 +251,7 @@ void VNCSConnectionST::screenLayoutChangeOrClose(rdr::U16 reason)
 {
   try {
     screenLayoutChange(reason);
+    writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
   }
@@ -295,6 +283,7 @@ void VNCSConnectionST::setDesktopNameOrClose(const char *name)
 {
   try {
     setDesktopName(name);
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -305,6 +294,18 @@ void VNCSConnectionST::setCursorOrClose()
 {
   try {
     setCursor();
+    writeFramebufferUpdate();
+  } catch(rdr::Exception& e) {
+    close(e.str());
+  }
+}
+
+
+void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
+{
+  try {
+    setLEDState(state);
+    writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -357,7 +358,11 @@ bool VNCSConnectionST::getComparerState()
 void VNCSConnectionST::renderedCursorChange()
 {
   if (state() != RFBSTATE_NORMAL) return;
-  if (!damagedCursorRegion.is_empty())
+  // Are we switching between client-side and server-side cursor?
+  if (clientHasCursor == needRenderedCursor())
+    setCursorOrClose();
+  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
+  if (hasRenderedCursor)
     removeRenderedCursor = true;
   if (needRenderedCursor()) {
     updateRenderedCursor = true;
@@ -377,9 +382,17 @@ void VNCSConnectionST::renderedCursorChange()
 
 bool VNCSConnectionST::needRenderedCursor()
 {
-  bool pointerpos = (!server->cursorPos.equals(pointerEventPos) && (time(0) - pointerEventTime) > 0);
-  return (state() == RFBSTATE_NORMAL
-          && ((!cp.supportsLocalCursor && !cp.supportsLocalXCursor) || pointerpos));
+  if (state() != RFBSTATE_NORMAL)
+    return false;
+
+  if (!cp.supportsLocalCursorWithAlpha &&
+      !cp.supportsLocalCursor && !cp.supportsLocalXCursor)
+    return true;
+  if (!server->cursorPos.equals(pointerEventPos) &&
+      (time(0) - pointerEventTime) > 0)
+    return true;
+
+  return false;
 }
 
 
@@ -408,6 +421,7 @@ void VNCSConnectionST::authSuccess()
   cp.height = server->pb->height();
   cp.screenLayout = server->screenLayout;
   cp.setName(server->getName());
+  cp.setLEDState(server->ledState);
   
   // - Set the default pixel format
   cp.setPF(server->pb->getPF());
@@ -418,10 +432,6 @@ void VNCSConnectionST::authSuccess()
   // - Mark the entire display as "dirty"
   updates.add_changed(server->pb->getRect());
   startTime = time(0);
-
-  // - Bootstrap the congestion control
-  ackedOffset = sock->outStream().length();
-  congWindow = INITIAL_WINDOW;
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -452,10 +462,8 @@ void VNCSConnectionST::queryConnection(const char* userName)
   CharArray reason;
   VNCServerST::queryResult qr = server->queryConnection(sock, userName,
                                                         &reason.buf);
-  if (qr == VNCServerST::PENDING) {
-    queryConnectTimer.start(rfb::Server::queryConnectTimeout * 1000);
+  if (qr == VNCServerST::PENDING)
     return;
-  }
 
   // - If server returns ACCEPT/REJECT then pass result to SConnection
   approveConnection(qr == VNCServerST::ACCEPT, reason.buf);
@@ -517,12 +525,12 @@ public:
   ~VNCSConnectionSTShiftPresser() {
     if (pressed) {
       vlog.debug("Releasing fake Shift_L");
-      desktop->keyEvent(XK_Shift_L, false);
+      desktop->keyEvent(XK_Shift_L, 0, false);
     }
   }
   void press() {
     vlog.debug("Pressing fake Shift_L");
-    desktop->keyEvent(XK_Shift_L, true);
+    desktop->keyEvent(XK_Shift_L, 0, true);
     pressed = true;
   }
   SDesktop* desktop;
@@ -531,42 +539,127 @@ public:
 
 // keyEvent() - record in the pressedKeys which keys were pressed.  Allow
 // multiple down events (for autorepeat), but only allow a single up event.
-void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
+void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
+  rdr::U32 lookup;
+
   lastEventTime = time(0);
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
   if (down)
-    vlog.debug("Key pressed: 0x%x", key);
+    vlog.debug("Key pressed: 0x%x / 0x%x", keysym, keycode);
   else
-    vlog.debug("Key released: 0x%x", key);
+    vlog.debug("Key released: 0x%x / 0x%x", keysym, keycode);
 
   // Remap the key if required
   if (server->keyRemapper) {
     rdr::U32 newkey;
-    newkey = server->keyRemapper->remapKey(key);
-    if (newkey != key) {
+    newkey = server->keyRemapper->remapKey(keysym);
+    if (newkey != keysym) {
       vlog.debug("Key remapped to 0x%x", newkey);
-      key = newkey;
+      keysym = newkey;
+    }
+  }
+
+  // Avoid lock keys if we don't know the server state
+  if ((server->ledState == ledUnknown) &&
+      ((keysym == XK_Caps_Lock) ||
+       (keysym == XK_Num_Lock) ||
+       (keysym == XK_Scroll_Lock))) {
+    vlog.debug("Ignoring lock key (e.g. caps lock)");
+    return;
+  }
+
+  // Lock key heuristics
+  // (only for clients that do not support the LED state extension)
+  if (!cp.supportsLEDState) {
+    // Always ignore ScrollLock as we don't have a heuristic
+    // for that
+    if (keysym == XK_Scroll_Lock) {
+      vlog.debug("Ignoring lock key (e.g. caps lock)");
+      return;
+    }
+
+    if (down && (server->ledState != ledUnknown)) {
+      // CapsLock synchronisation heuristic
+      // (this assumes standard interaction between CapsLock the Shift
+      // keys and normal characters)
+      if (((keysym >= XK_A) && (keysym <= XK_Z)) ||
+          ((keysym >= XK_a) && (keysym <= XK_z))) {
+        bool uppercase, shift, lock;
+
+        uppercase = (keysym >= XK_A) && (keysym <= XK_Z);
+        shift = isShiftPressed();
+        lock = server->ledState & ledCapsLock;
+
+        if (lock == (uppercase == shift)) {
+          vlog.debug("Inserting fake CapsLock to get in sync with client");
+          server->desktop->keyEvent(XK_Caps_Lock, 0, true);
+          server->desktop->keyEvent(XK_Caps_Lock, 0, false);
+        }
+      }
+
+      // NumLock synchronisation heuristic
+      // (this is more cautious because of the differences between Unix,
+      // Windows and macOS)
+      if (((keysym >= XK_KP_Home) && (keysym <= XK_KP_Delete)) ||
+          ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
+          (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal)) {
+        bool number, shift, lock;
+
+        number = ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
+                  (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
+        shift = isShiftPressed();
+        lock = server->ledState & ledNumLock;
+
+        if (shift) {
+          // We don't know the appropriate NumLock state for when Shift
+          // is pressed as it could be one of:
+          //
+          // a) A Unix client where Shift negates NumLock
+          //
+          // b) A Windows client where Shift only cancels NumLock
+          //
+          // c) A macOS client where Shift doesn't have any effect
+          //
+        } else if (lock == (number == shift)) {
+          vlog.debug("Inserting fake NumLock to get in sync with client");
+          server->desktop->keyEvent(XK_Num_Lock, 0, true);
+          server->desktop->keyEvent(XK_Num_Lock, 0, false);
+        }
+      }
     }
   }
 
   // Turn ISO_Left_Tab into shifted Tab.
   VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
-  if (key == XK_ISO_Left_Tab) {
-    if (pressedKeys.find(XK_Shift_L) == pressedKeys.end() &&
-        pressedKeys.find(XK_Shift_R) == pressedKeys.end())
+  if (keysym == XK_ISO_Left_Tab) {
+    if (!isShiftPressed())
       shiftPresser.press();
-    key = XK_Tab;
+    keysym = XK_Tab;
   }
 
+  // We need to be able to track keys, so generate a fake index when we
+  // aren't given a keycode
+  if (keycode == 0)
+    lookup = 0x80000000 | keysym;
+  else
+    lookup = keycode;
+
+  // We force the same keysym for an already down key for the
+  // sake of sanity
+  if (pressedKeys.find(lookup) != pressedKeys.end())
+    keysym = pressedKeys[lookup];
+
   if (down) {
-    pressedKeys.insert(key);
+    pressedKeys[lookup] = keysym;
   } else {
-    if (!pressedKeys.erase(key)) return;
+    if (!pressedKeys.erase(lookup))
+      return;
   }
-  server->desktop->keyEvent(key, down);
+
+  server->desktop->keyEvent(keysym, keycode, down);
 }
 
 void VNCSConnectionST::clientCutText(const char* str, int len)
@@ -602,7 +695,6 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   if (!incremental) {
     // Non-incremental update - treat as if area requested has changed
     updates.add_changed(reqRgn);
-    server->comparer->add_changed(reqRgn);
 
     // And send the screen layout to the client (which, unlike the
     // framebuffer dimensions, the client doesn't get during init)
@@ -627,7 +719,6 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   if (!layout.validate(fb_width, fb_height)) {
     writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
                                        fb_width, fb_height, layout);
-    writeFramebufferUpdate();
     return;
   }
 
@@ -645,14 +736,12 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
         throw Exception("Desktop configured a different screen layout than requested");
     server->notifyScreenLayoutChange(this);
   }
-
-  // but always send back a reply to the requesting client
-  // (do this last as it might throw an exception on socket errors)
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
 {
+  rdr::U8 type;
+
   if (flags & fenceFlagRequest) {
     if (flags & fenceFlagSyncNext) {
       pendingSyncFence = true;
@@ -660,6 +749,7 @@ void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
       fenceFlags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter | fenceFlagSyncNext);
       fenceDataLen = len;
       delete [] fenceData;
+      fenceData = NULL;
       if (len > 0) {
         fenceData = new char[len];
         memcpy(fenceData, data, len);
@@ -675,18 +765,20 @@ void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
     return;
   }
 
-  struct RTTInfo rttInfo;
+  if (len < 1)
+    vlog.error("Fence response of unexpected size received");
 
-  switch (len) {
+  type = data[0];
+
+  switch (type) {
   case 0:
     // Initial dummy fence;
     break;
-  case sizeof(struct RTTInfo):
-    memcpy(&rttInfo, data, sizeof(struct RTTInfo));
-    handleRTTPong(rttInfo);
+  case 1:
+    congestion.gotPong();
     break;
   default:
-    vlog.error("Fence response of unexpected size received");
+    vlog.error("Fence response of unexpected type received");
   }
 }
 
@@ -705,7 +797,6 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
   if (enable) {
     requested.clear();
-    writeFramebufferUpdate();
   } else {
     writer()->writeEndOfContinuousUpdates();
   }
@@ -718,16 +809,16 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
 void VNCSConnectionST::supportsLocalCursor()
 {
-  if (cp.supportsLocalCursor || cp.supportsLocalXCursor) {
-    if (!damagedCursorRegion.is_empty())
-      removeRenderedCursor = true;
-    setCursor();
-  }
+  bool hasRenderedCursor = !damagedCursorRegion.is_empty();
+  if (hasRenderedCursor && !needRenderedCursor())
+    removeRenderedCursor = true;
+  setCursor();
 }
 
 void VNCSConnectionST::supportsFence()
 {
-  writer()->writeFence(fenceFlagRequest, 0, NULL);
+  char type = 0;
+  writer()->writeFence(fenceFlagRequest, sizeof(type), &type);
 }
 
 void VNCSConnectionST::supportsContinuousUpdates()
@@ -740,16 +831,18 @@ void VNCSConnectionST::supportsContinuousUpdates()
   writer()->writeEndOfContinuousUpdates();
 }
 
+void VNCSConnectionST::supportsLEDState()
+{
+  writer()->writeLEDState();
+}
+
 
 bool VNCSConnectionST::handleTimeout(Timer* t)
 {
   try {
-    if (t == &congestionTimer)
-      updateCongestion();
-    else if (t == &queryConnectTimer) {
-      if (state() == RFBSTATE_QUERYING)
-        approveConnection(false, "The attempt to prompt the user to accept the connection failed");
-    }
+    if ((t == &congestionTimer) ||
+        (t == &losslessTimer))
+      writeFramebufferUpdate();
   } catch (rdr::Exception& e) {
     close(e.str());
   }
@@ -757,189 +850,69 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
   return false;
 }
 
+bool VNCSConnectionST::isShiftPressed()
+{
+    std::map<rdr::U32, rdr::U32>::const_iterator iter;
+
+    for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
+      if (iter->second == XK_Shift_L)
+        return true;
+      if (iter->second == XK_Shift_R)
+        return true;
+    }
+
+  return false;
+}
 
 void VNCSConnectionST::writeRTTPing()
 {
-  struct RTTInfo rttInfo;
+  char type;
 
   if (!cp.supportsFence)
     return;
 
-  memset(&rttInfo, 0, sizeof(struct RTTInfo));
-
-  gettimeofday(&rttInfo.tv, NULL);
-  rttInfo.offset = sock->outStream().length();
-  rttInfo.inFlight = rttInfo.offset - ackedOffset;
+  congestion.updatePosition(sock->outStream().length());
 
   // We need to make sure any old update are already processed by the
   // time we get the response back. This allows us to reliably throttle
   // back on client overload, as well as network overload.
+  type = 1;
   writer()->writeFence(fenceFlagRequest | fenceFlagBlockBefore,
-                       sizeof(struct RTTInfo), (const char*)&rttInfo);
+                       sizeof(type), &type);
 
-  pingCounter++;
-
-  sentOffset = rttInfo.offset;
-
-  // Let some data flow before we adjust the settings
-  if (!congestionTimer.isStarted())
-    congestionTimer.start(__rfbmin(baseRTT * 2, 100));
-}
-
-void VNCSConnectionST::handleRTTPong(const struct RTTInfo &rttInfo)
-{
-  unsigned rtt, delay;
-
-  pingCounter--;
-
-  rtt = msSince(&rttInfo.tv);
-  if (rtt < 1)
-    rtt = 1;
-
-  ackedOffset = rttInfo.offset;
-
-  // Try to estimate wire latency by tracking lowest seen latency
-  if (rtt < baseRTT)
-    baseRTT = rtt;
-
-  if (rttInfo.inFlight > congWindow) {
-    seenCongestion = true;
-
-    // Estimate added delay because of overtaxed buffers
-    delay = (rttInfo.inFlight - congWindow) * baseRTT / congWindow;
-
-    if (delay < rtt)
-      rtt -= delay;
-    else
-      rtt = 1;
-
-    // If we underestimate the congestion window, then we'll get a latency
-    // that's less than the wire latency, which will confuse other portions
-    // of the code.
-    if (rtt < baseRTT)
-      rtt = baseRTT;
-  }
-
-  // We only keep track of the minimum latency seen (for a given interval)
-  // on the basis that we want to avoid continous buffer issue, but don't
-  // mind (or even approve of) bursts.
-  if (rtt < minRTT)
-    minRTT = rtt;
+  congestion.sentPing();
 }
 
 bool VNCSConnectionST::isCongested()
 {
-  int offset;
+  int eta;
+
+  congestionTimer.stop();
 
   // Stuff still waiting in the send buffer?
   sock->outStream().flush();
+  congestion.debugTrace("congestion-trace.csv", sock->getFd());
   if (sock->outStream().bufferUsage() > 0)
     return true;
 
   if (!cp.supportsFence)
     return false;
 
-  // Idle for too long? (and no data on the wire)
-  //
-  // FIXME: This should really just be one baseRTT, but we're getting
-  //        problems with triggering the idle timeout on each update.
-  //        Maybe we need to use a moving average for the wire latency
-  //        instead of baseRTT.
-  if ((sentOffset == ackedOffset) &&
-      (sock->outStream().getIdleTime() > 2 * baseRTT)) {
-
-#ifdef CONGESTION_DEBUG
-    if (congWindow > INITIAL_WINDOW)
-      fprintf(stderr, "Reverting to initial window (%d KiB) after %d ms\n",
-              INITIAL_WINDOW / 1024, sock->outStream().getIdleTime());
-#endif
-
-    // Close congestion window and allow a transfer
-    // FIXME: Reset baseRTT like Linux Vegas?
-    congWindow = __rfbmin(INITIAL_WINDOW, congWindow);
-
-    return false;
-  }
-
-  offset = sock->outStream().length();
-
-  // FIXME: Should we compensate for non-update data?
-  //        (i.e. use sentOffset instead of offset)
-  if ((offset - ackedOffset) < congWindow)
+  congestion.updatePosition(sock->outStream().length());
+  if (!congestion.isCongested())
     return false;
 
-  // If we just have one outstanding "ping", that means the client has
-  // started receiving our update. In order to not regress compared to
-  // before we had congestion avoidance, we allow another update here.
-  // This could further clog up the tubes, but congestion control isn't
-  // really working properly right now anyway as the wire would otherwise
-  // be idle for at least RTT/2.
-  if (pingCounter == 1)
-    return false;
+  eta = congestion.getUncongestedETA();
+  if (eta >= 0)
+    congestionTimer.start(eta);
 
   return true;
 }
 
 
-void VNCSConnectionST::updateCongestion()
-{
-  unsigned diff;
-
-  if (!seenCongestion)
-    return;
-
-  diff = minRTT - baseRTT;
-
-  if (diff > __rfbmin(100, baseRTT)) {
-    // Way too fast
-    congWindow = congWindow * baseRTT / minRTT;
-  } else if (diff > __rfbmin(50, baseRTT/2)) {
-    // Slightly too fast
-    congWindow -= 4096;
-  } else if (diff < 5) {
-    // Way too slow
-    congWindow += 8192;
-  } else if (diff < 25) {
-    // Too slow
-    congWindow += 4096;
-  }
-
-  if (congWindow < MINIMUM_WINDOW)
-    congWindow = MINIMUM_WINDOW;
-  if (congWindow > MAXIMUM_WINDOW)
-    congWindow = MAXIMUM_WINDOW;
-
-#ifdef CONGESTION_DEBUG
-  fprintf(stderr, "RTT: %d ms (%d ms), Window: %d KiB, Bandwidth: %g Mbps\n",
-          minRTT, baseRTT, congWindow / 1024,
-          congWindow * 8.0 / baseRTT / 1000.0);
-
-#ifdef TCP_INFO
-  struct tcp_info tcp_info;
-  socklen_t tcp_info_length;
-
-  tcp_info_length = sizeof(tcp_info);
-  if (getsockopt(sock->getFd(), SOL_TCP, TCP_INFO,
-                 (void *)&tcp_info, &tcp_info_length) == 0) {
-    fprintf(stderr, "Socket: RTT: %d ms (+/- %d ms) Window %d KiB\n",
-            tcp_info.tcpi_rtt / 1000, tcp_info.tcpi_rttvar / 1000,
-            tcp_info.tcpi_snd_mss * tcp_info.tcpi_snd_cwnd / 1024);
-  }
-#endif
-
-#endif
-
-  minRTT = -1;
-  seenCongestion = false;
-}
-
-
 void VNCSConnectionST::writeFramebufferUpdate()
 {
-  Region req;
-  UpdateInfo ui;
-  bool needNewUpdateInfo;
-  bool drawRenderedCursor;
+  congestion.updatePosition(sock->outStream().length());
 
   // We're in the middle of processing a command that's supposed to be
   // synchronised. Allowing an update to slip out right now might violate
@@ -963,37 +936,59 @@ void VNCSConnectionST::writeFramebufferUpdate()
   if (isCongested())
     return;
 
-  // In continuous mode, we will be outputting at least three distinct
-  // messages. We need to aggregate these in order to not clog up TCP's
-  // congestion window.
-  network::TcpSocket::cork(sock->getFd(), true);
+  // Updates often consists of many small writes, and in continuous
+  // mode, we will also have small fence messages around the update. We
+  // need to aggregate these in order to not clog up TCP's congestion
+  // window.
+  sock->cork(true);
 
   // First take care of any updates that cannot contain framebuffer data
   // changes.
-  if (writer()->needNoDataUpdate()) {
-    writer()->writeNoDataUpdate();
-    requested.clear();
-    if (!continuousUpdates)
-      goto out;
-  }
+  writeNoDataUpdate();
+
+  // Then real data (if possible)
+  writeDataUpdate();
+
+  sock->cork(false);
+
+  congestion.updatePosition(sock->outStream().length());
+}
+
+void VNCSConnectionST::writeNoDataUpdate()
+{
+  if (!writer()->needNoDataUpdate())
+    return;
+
+  writer()->writeNoDataUpdate();
+
+  // Make sure no data update is sent until next request
+  requested.clear();
+}
+
+void VNCSConnectionST::writeDataUpdate()
+{
+  Region req, pending;
+  UpdateInfo ui;
+  bool needNewUpdateInfo;
+  const RenderedCursor *cursor;
 
   updates.enable_copyrect(cp.useCopyRect);
 
-  // Fetch updates from server object, and see if we are allowed to send
-  // anything right now (the framebuffer might have changed in ways we
-  // haven't yet been informed of).
-  if (!server->checkUpdate())
-    goto out;
-
-  // Get the lists of updates. Prior to exporting the data to the `ui' object,
-  // getUpdateInfo() will normalize the `updates' object such way that its
-  // `changed' and `copied' regions would not intersect.
-
+  // See what the client has requested (if anything)
   if (continuousUpdates)
     req = cuRegion.union_(requested);
   else
     req = requested;
 
+  if (req.is_empty())
+    return;
+
+  // Get any framebuffer changes we haven't yet been informed of
+  pending = server->getPendingRegion();
+
+  // Get the lists of updates. Prior to exporting the data to the `ui' object,
+  // getUpdateInfo() will normalize the `updates' object such way that its
+  // `changed' and `copied' regions would not intersect.
   updates.getUpdateInfo(&ui, req);
   needNewUpdateInfo = false;
 
@@ -1004,7 +999,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   if (!ui.copied.is_empty() && !damagedCursorRegion.is_empty()) {
     Region bogusCopiedCursor;
 
-    bogusCopiedCursor.copyFrom(damagedCursorRegion);
+    bogusCopiedCursor = damagedCursorRegion;
     bogusCopiedCursor.translate(ui.copy_delta);
     bogusCopiedCursor.assign_intersect(server->pb->getRect());
     if (!ui.copied.intersect(bogusCopiedCursor).is_empty()) {
@@ -1023,74 +1018,104 @@ void VNCSConnectionST::writeFramebufferUpdate()
     removeRenderedCursor = false;
   }
 
-  // Return if there is nothing to send the client.
+  // If we need a full cursor update then make sure its entire region
+  // is marked as changed.
 
-  if (updates.is_empty() && !writer()->needFakeUpdate() && !updateRenderedCursor)
-    goto out;
+  if (updateRenderedCursor) {
+    updates.add_changed(server->getRenderedCursor()->getEffectiveRect());
+    needNewUpdateInfo = true;
+    updateRenderedCursor = false;
+  }
 
   // The `updates' object could change, make sure we have valid update info.
 
   if (needNewUpdateInfo)
     updates.getUpdateInfo(&ui, req);
 
-  // If the client needs a server-side rendered cursor, work out the cursor
-  // rectangle.  If it's empty then don't bother drawing it, but if it overlaps
-  // with the update region, we need to draw the rendered cursor regardless of
-  // whether it has changed.
+  // If there are queued updates then we cannot safely send an update
+  // without risking a partially updated screen
 
-  drawRenderedCursor = false;
+  if (!pending.is_empty()) {
+    // However we might still be able to send a lossless refresh
+    req.assign_subtract(pending);
+    req.assign_subtract(ui.changed);
+    req.assign_subtract(ui.copied);
+
+    ui.changed.clear();
+    ui.copied.clear();
+  }
+
+  // Does the client need a server-side rendered cursor?
+
+  cursor = NULL;
   if (needRenderedCursor()) {
     Rect renderedCursorRect;
 
-    renderedCursorRect
-      = server->renderedCursor.getEffectiveRect()
-         .intersect(req.get_bounding_rect());
+    cursor = server->getRenderedCursor();
+    renderedCursorRect = cursor->getEffectiveRect();
 
-    if (renderedCursorRect.is_empty()) {
-      drawRenderedCursor = false;
-    } else if (updateRenderedCursor) {
-      drawRenderedCursor = true;
-    } else if (!ui.changed.union_(ui.copied)
-               .intersect(renderedCursorRect).is_empty()) {
-      drawRenderedCursor = true;
+    // Check that we don't try to copy over the cursor area, and
+    // if that happens we need to treat it as changed so that we can
+    // re-render it
+    if (!ui.copied.intersect(renderedCursorRect).is_empty()) {
+      ui.changed.assign_union(ui.copied.intersect(renderedCursorRect));
+      ui.copied.assign_subtract(renderedCursorRect);
     }
 
-    // We could remove the new cursor rect from updates here.  It's not clear
-    // whether this is worth it.  If we do remove it, then we won't draw over
-    // the same bit of screen twice, but we have the overhead of a more complex
-    // region.
-
-    //if (drawRenderedCursor) {
-    //  updates.subtract(renderedCursorRect);
-    //  updates.getUpdateInfo(&ui, req);
-    //}
-
-    damagedCursorRegion.assign_union(renderedCursorRect);
-    updateRenderedCursor = false;
+    // Track where we've rendered the cursor
+    damagedCursorRegion.assign_union(ui.changed.intersect(renderedCursorRect));
   }
 
-  if (!ui.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
-    RenderedCursor *cursor;
+  // Return if there is nothing to send the client.
+  if (ui.is_empty() && !writer()->needFakeUpdate()) {
+    int eta;
 
-    cursor = NULL;
-    if (drawRenderedCursor)
-      cursor = &server->renderedCursor;
+    // Any lossless refresh that needs handling?
+    if (!encodeManager.needsLosslessRefresh(req))
+      return;
 
-    writeRTTPing();
+    // Now? Or later?
+    eta = encodeManager.getNextLosslessRefresh(req);
+    if (eta > 0) {
+      losslessTimer.start(eta);
+      return;
+    }
+  }
 
+  writeRTTPing();
+
+  if (!ui.is_empty())
     encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  else {
+    int nextUpdate;
 
-    writeRTTPing();
+    // FIXME: If continuous updates aren't used then the client might
+    //        be slower than frameRate in its requests and we could
+    //        afford a larger update size
+    nextUpdate = server->msToNextUpdate();
+    if (nextUpdate > 0) {
+      size_t bandwidth, maxUpdateSize;
 
-    // The request might be for just part of the screen, so we cannot
-    // just clear the entire update tracker.
-    updates.subtract(req);
+      // FIXME: Bandwidth estimation without congestion control
+      bandwidth = congestion.getBandwidth();
 
-    requested.clear();
+      // FIXME: Hard coded value for maximum CPU throughput
+      if (bandwidth > 5000000)
+        bandwidth = 5000000;
+
+      maxUpdateSize = bandwidth * nextUpdate / 1000;
+      encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
+                                         cursor, maxUpdateSize);
+    }
   }
 
-out:
-  network::TcpSocket::cork(sock->getFd(), false);
+  writeRTTPing();
+
+  // The request might be for just part of the screen, so we cannot
+  // just clear the entire update tracker.
+  updates.subtract(req);
+
+  requested.clear();
 }
 
 
@@ -1106,7 +1131,6 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
 
   writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
                                      cp.screenLayout);
-  writeFramebufferUpdate();
 }
 
 
@@ -1119,16 +1143,23 @@ void VNCSConnectionST::setCursor()
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  cp.setCursor(server->cursor);
-
-  if (!writer()->writeSetCursor()) {
-    if (!writer()->writeSetXCursor()) {
-      // No client support
-      return;
-    }
+  // We need to blank out the client's cursor or there will be two
+  if (needRenderedCursor()) {
+    cp.setCursor(emptyCursor);
+    clientHasCursor = false;
+  } else {
+    cp.setCursor(*server->cursor);
+    clientHasCursor = true;
   }
 
-  writeFramebufferUpdate();
+  if (!writer()->writeSetCursorWithAlpha()) {
+    if (!writer()->writeSetCursor()) {
+      if (!writer()->writeSetXCursor()) {
+        // No client support
+        return;
+      }
+    }
+  }
 }
 
 void VNCSConnectionST::setDesktopName(const char *name)
@@ -1142,8 +1173,16 @@ void VNCSConnectionST::setDesktopName(const char *name)
     fprintf(stderr, "Client does not support desktop rename\n");
     return;
   }
+}
 
-  writeFramebufferUpdate();
+void VNCSConnectionST::setLEDState(unsigned int ledstate)
+{
+  if (state() != RFBSTATE_NORMAL)
+    return;
+
+  cp.setLEDState(ledstate);
+
+  writer()->writeLEDState();
 }
 
 void VNCSConnectionST::setSocketTimeouts()

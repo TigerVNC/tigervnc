@@ -134,8 +134,8 @@ void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
 void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", "TigerVNC configuration (*.tigervnc)", 
-						      0, "Select a TigerVNC configuration file");
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
+						      0, _("Select a TigerVNC configuration file"));
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
   file_chooser->show();
@@ -168,8 +168,8 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
   const char* servername = strdup(dialog->serverName->value());
   char* filename;
 
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", "TigerVNC configuration (*.tigervnc)", 
-						      2, "Save the TigerVNC configuration to file");
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
+						      2, _("Save the TigerVNC configuration to file"));
   
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
@@ -194,8 +194,8 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 
       // The file already exists.
       fclose(f);
-      int overwrite_choice = fl_choice("%s already exists. Do you want to overwrite?", 
-				       "Overwrite", "No", NULL, filename);
+      int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"), 
+				       _("Overwrite"), _("No"), NULL, filename);
       if (overwrite_choice == 1) {
 
 	// If the user doesn't want to overwrite:

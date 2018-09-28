@@ -77,21 +77,27 @@ namespace rfb {
     const char* name() const { return name_; }
     void setName(const char* name);
 
-    const Cursor& cursor() const { return cursor_; }
+    const Cursor& cursor() const { return *cursor_; }
     void setCursor(const Cursor& cursor);
 
     bool supportsEncoding(rdr::S32 encoding) const;
 
     void setEncodings(int nEncodings, const rdr::S32* encodings);
 
+    unsigned int ledState() { return ledState_; }
+    void setLEDState(unsigned int state);
+
     bool useCopyRect;
 
     bool supportsLocalCursor;
     bool supportsLocalXCursor;
+    bool supportsLocalCursorWithAlpha;
     bool supportsDesktopResize;
     bool supportsExtendedDesktopSize;
     bool supportsDesktopRename;
     bool supportsLastRect;
+    bool supportsLEDState;
+    bool supportsQEMUKeyEvent;
 
     bool supportsSetDesktopSize;
     bool supportsFence;
@@ -106,10 +112,11 @@ namespace rfb {
 
     PixelFormat pf_;
     char* name_;
-    Cursor cursor_;
+    Cursor* cursor_;
     std::set<rdr::S32> encodings_;
     char verStr[13];
     int verStrPos;
+    unsigned int ledState_;
   };
 }
 #endif

@@ -30,6 +30,7 @@
 #include <rfb_win32/SDisplayCoreWMHooks.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rfb/ledStates.h>
 
 
 using namespace rdr;
@@ -65,7 +66,7 @@ SDisplay::SDisplay()
   : server(0), pb(0), device(0),
     core(0), ptr(0), kbd(0), clipboard(0),
     inputs(0), monitor(0), cleanDesktop(0), cursor(0),
-    statusLocation(0)
+    statusLocation(0), ledState(0)
 {
   updateEvent.h = CreateEvent(0, TRUE, FALSE, 0);
 }
@@ -196,6 +197,10 @@ void SDisplay::startCore() {
     cleanDesktop->disableEffects();
   isWallpaperRemoved = removeWallpaper;
   areEffectsDisabled = disableEffects;
+
+  checkLedState();
+  if (server)
+    server->setLEDState(ledState);
 }
 
 void SDisplay::stopCore() {
@@ -275,12 +280,30 @@ void SDisplay::pointerEvent(const Point& pos, int buttonmask) {
   }
 }
 
-void SDisplay::keyEvent(rdr::U32 key, bool down) {
+void SDisplay::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   // - Check that the SDesktop doesn't need restarting
   if (isRestartRequired())
     restartCore();
   if (kbd)
-    kbd->keyEvent(key, down);
+    kbd->keyEvent(keysym, keycode, down);
+}
+
+bool SDisplay::checkLedState() {
+  unsigned state = 0;
+
+  if (GetKeyState(VK_SCROLL) & 0x0001)
+    state |= ledScrollLock;
+  if (GetKeyState(VK_NUMLOCK) & 0x0001)
+    state |= ledNumLock;
+  if (GetKeyState(VK_CAPITAL) & 0x0001)
+    state |= ledCapsLock;
+
+  if (ledState != state) {
+    ledState = state;
+    return true;
+  }
+
+  return false;
 }
 
 void SDisplay::clientCutText(const char* text, int len) {
@@ -384,6 +407,10 @@ SDisplay::processEvent(HANDLE event) {
 
       // Flush any changes to the server
       flushChangeTracker();
+
+      // Forward current LED state to the server
+      if (checkLedState())
+        server->setLEDState(ledState);
     }
     return;
   }
