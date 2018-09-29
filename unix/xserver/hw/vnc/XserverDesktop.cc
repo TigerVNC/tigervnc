@@ -22,6 +22,7 @@
 //
 
 #include <assert.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -422,6 +423,11 @@ void XserverDesktop::approveConnection(uint32_t opaqueId, bool accept,
 //
 // SDesktop callbacks
 
+
+void XserverDesktop::terminate()
+{
+  kill(getpid(), SIGTERM);
+}
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {

@@ -49,6 +49,7 @@ public:
   // -=- SDesktop interface
   virtual void start(rfb::VNCServer* vs);
   virtual void stop();
+  virtual void terminate();
   bool isRunning();
   virtual void queryConnection(network::Socket* sock,
                                const char* userName);

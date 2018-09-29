@@ -71,6 +71,7 @@ SDisplay::SDisplay()
     statusLocation(0), queryConnectionHandler(0), ledState(0)
 {
   updateEvent.h = CreateEvent(0, TRUE, FALSE, 0);
+  terminateEvent.h = CreateEvent(0, TRUE, FALSE, 0);
 }
 
 SDisplay::~SDisplay()
@@ -138,6 +139,11 @@ void SDisplay::stop()
   vlog.debug("stopped");
 
   if (statusLocation) *statusLocation = false;
+}
+
+void SDisplay::terminate()
+{
+  SetEvent(terminateEvent);
 }
 
 

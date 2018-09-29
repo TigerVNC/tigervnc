@@ -72,6 +72,7 @@ namespace rfb {
 
       virtual void start(VNCServer* vs);
       virtual void stop();
+      virtual void terminate();
       virtual void queryConnection(network::Socket* sock,
                                    const char* userName);
       virtual void pointerEvent(const Point& pos, int buttonmask);
@@ -89,6 +90,7 @@ namespace rfb {
       // -=- EventHandler interface
 
       HANDLE getUpdateEvent() {return updateEvent;}
+      HANDLE getTerminateEvent() {return terminateEvent;}
       virtual void processEvent(HANDLE event);
 
       // -=- Notification of whether or not SDisplay is started
@@ -161,6 +163,8 @@ namespace rfb {
 
       // -=- Event signalled to trigger an update to be flushed
       Handle updateEvent;
+      // -=- Event signalled to terminate the server
+      Handle terminateEvent;
 
       // -=- Where to write the active/inactive indicator to
       bool* statusLocation;

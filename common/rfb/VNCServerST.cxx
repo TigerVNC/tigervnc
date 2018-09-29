@@ -574,13 +574,13 @@ bool VNCServerST::handleTimeout(Timer* t)
     return true;
   } else if (t == &idleTimer) {
     slog.info("MaxIdleTime reached, exiting");
-    exit(0);
+    desktop->terminate();
   } else if (t == &disconnectTimer) {
     slog.info("MaxDisconnectionTime reached, exiting");
-    exit(0);
+    desktop->terminate();
   } else if (t == &connectTimer) {
     slog.info("MaxConnectionTime reached, exiting");
-    exit(0);
+    desktop->terminate();
   }
 
   return false;
