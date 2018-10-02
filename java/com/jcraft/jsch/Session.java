@@ -200,7 +200,7 @@ public class Session implements Runnable{
         if(isConnected){
           String message = e.toString();
           packet.reset();
-          writeDisconnectMessage(message);
+          writeDisconnectMessageToBuf(message, buf);
           write(packet);
         }
       }
@@ -218,7 +218,7 @@ public class Session implements Runnable{
     }
   }
 
-    private void writeDisconnectMessage(String message) {
+    private void writeDisconnectMessageToBuf(String message, Buffer buf) {
       buf.checkFreeSize(1 + 4 * 3 + message.length() + 2 + buffer_margin);
       buf.putByte((byte) SSH_MSG_DISCONNECT);
       buf.putInt(3);
