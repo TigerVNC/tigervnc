@@ -184,26 +184,12 @@ public class Session implements Runnable{
   }
 
   public void connect(int connectTimeout) throws JSchException{
-    if(isConnected){
-      throw new JSchException("session is already connected");
-    }
+    validateNotConnected();
 
     io=new IO();
-    if(random==null){
-      try{
-	Class c=Class.forName(getConfig("random"));
-        random=(Random)(c.newInstance());
-      }
-      catch(Exception e){ 
-        throw new JSchException(e.toString(), e);
-      }
-    }
-    Packet.setRandom(random);
+    initRandom();
 
-    if(JSch.getLogger().isEnabled(Logger.INFO)){
-      JSch.getLogger().log(Logger.INFO, 
-                           "Connecting to "+host+" port "+port);
-    }
+    initLogger();
 
     try	{
       int i, j;
@@ -250,10 +236,8 @@ public class Session implements Runnable{
 
       {
 	// Some Cisco devices will miss to read '\n' if it is sent separately.
-	byte[] foo=new byte[V_C.length+1];
-	System.arraycopy(V_C, 0, foo, 0, V_C.length);
-	foo[foo.length-1]=(byte)'\n';
-	io.put(foo, 0, foo.length);
+        byte[] foo = concatNewLine(V_C);
+        io.put(foo, 0, foo.length);
       }
 
       while(true){
@@ -561,6 +545,39 @@ public class Session implements Runnable{
       Util.bzero(this.password);
       this.password=null;
     }
+  }
+
+  private void validateNotConnected() throws JSchException {
+    if(isConnected){
+      throw new JSchException("session is already connected");
+    }
+  }
+
+  private void initLogger() {
+    if(JSch.getLogger().isEnabled(Logger.INFO)){
+      JSch.getLogger().log(Logger.INFO,
+                           "Connecting to "+host+" port "+port);
+    }
+  }
+
+  private void initRandom() throws JSchException {
+    if(random==null){
+      try{
+	Class c=Class.forName(getConfig("random"));
+        random=(Random)(c.newInstance());
+      }
+      catch(Exception e){
+        throw new JSchException(e.toString(), e);
+      }
+    }
+    Packet.setRandom(random);
+  }
+
+  private byte[] concatNewLine(byte[] data) {
+    byte[] foo=new byte[data.length+1];
+    System.arraycopy(V_C, 0, foo, 0, V_C.length);
+    foo[foo.length-1]=(byte)'\n';
+    return foo;
   }
 
   private KeyExchange receive_kexinit(Buffer buf) throws Exception {
