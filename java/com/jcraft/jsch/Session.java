@@ -229,34 +229,7 @@ public class Session implements Runnable{
   private void tryConnect(int connectTimeout) throws JSchException, Exception {
     int i, j;
 
-    if(proxy==null) {
-      InputStream in;
-      OutputStream out;
-      if(socket_factory==null) {
-        socket=Util.createSocket(host, port, connectTimeout);
-        in=socket.getInputStream();
-        out=socket.getOutputStream();
-      } else {
-        socket=socket_factory.createSocket(host, port);
-        in=socket_factory.getInputStream(socket);
-        out=socket_factory.getOutputStream(socket);
-      }
-      //if(timeout>0){ socket.setSoTimeout(timeout); }
-      socket.setTcpNoDelay(true);
-      io.setInputStream(in);
-      io.setOutputStream(out);
-    } else {
-      synchronized (proxy) {
-        proxy.connect(socket_factory, host, port, connectTimeout);
-        io.setInputStream(proxy.getInputStream());
-        io.setOutputStream(proxy.getOutputStream());
-        socket=proxy.getSocket();
-      }
-    }
-
-    if(connectTimeout > 0&&socket!=null) {
-      socket.setSoTimeout(connectTimeout);
-    }
+    initSocketAndIO(connectTimeout);
 
     isConnected=true;
 
@@ -544,7 +517,38 @@ public class Session implements Runnable{
     }
   }
 
-    private void validateNotConnected() throws JSchException {
+  private void initSocketAndIO(int connectTimeout) {
+    if(proxy==null) {
+      InputStream in;
+      OutputStream out;
+      if(socket_factory==null) {
+        socket=Util.createSocket(host, port, connectTimeout);
+        in=socket.getInputStream();
+        out=socket.getOutputStream();
+      } else {
+        socket=socket_factory.createSocket(host, port);
+        in=socket_factory.getInputStream(socket);
+        out=socket_factory.getOutputStream(socket);
+      }
+      //if(timeout>0){ socket.setSoTimeout(timeout); }
+      socket.setTcpNoDelay(true);
+      io.setInputStream(in);
+      io.setOutputStream(out);
+    } else {
+      synchronized (proxy) {
+        proxy.connect(socket_factory, host, port, connectTimeout);
+        io.setInputStream(proxy.getInputStream());
+        io.setOutputStream(proxy.getOutputStream());
+        socket=proxy.getSocket();
+      }
+    }
+
+    if(connectTimeout > 0&&socket!=null) {
+      socket.setSoTimeout(connectTimeout);
+    }
+  }
+
+  private void validateNotConnected() throws JSchException {
     if(isConnected){
       throw new JSchException("session is already connected");
     }
