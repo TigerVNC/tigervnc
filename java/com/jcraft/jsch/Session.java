@@ -227,7 +227,6 @@ public class Session implements Runnable{
     }
 
   private void tryConnect(int connectTimeout) throws JSchException, Exception {
-    int i, j;
 
     initSocketAndIO(connectTimeout);
 
@@ -246,47 +245,10 @@ public class Session implements Runnable{
       io.put(foo, 0, foo.length);
     }
 
-    while (true) {
-      i=0;
-      j=0;
-      while (i < buf.buffer.length) {
-        j=io.getByte();
-        if(j < 0) break;
-        buf.buffer[i]=(byte) j;
-        i++;
-        if(j==10) break;
-      }
-      if(j < 0) {
-        throw new JSchException("connection is closed by foreign host");
-      }
+    int bufSize=readFromIOIntoBuf(buf);
 
-      if(buf.buffer[i - 1]==10) {    // 0x0a
-        i--;
-        if(i > 0&&buf.buffer[i - 1]==13) {  // 0x0d
-          i--;
-        }
-      }
-
-      if(i <= 3||
-          ((i!=buf.buffer.length)&&
-              (buf.buffer[0]!='S'||buf.buffer[1]!='S'||
-                  buf.buffer[2]!='H'||buf.buffer[3]!='-'))) {
-        // It must not start with 'SSH-'
-        //System.err.println(new String(buf.buffer, 0, i);
-        continue;
-      }
-
-      if(i==buf.buffer.length||
-          i < 7||                                      // SSH-1.99 or SSH-2.0
-          (buf.buffer[4]=='1'&&buf.buffer[6]!='9')  // SSH-1.5
-      ) {
-        throw new JSchException("invalid server's version string");
-      }
-      break;
-    }
-
-    V_S=new byte[i];
-    System.arraycopy(buf.buffer, 0, V_S, 0, i);
+    V_S=new byte[bufSize];
+    System.arraycopy(buf.buffer, 0, V_S, 0, bufSize);
     //System.err.println("V_S: ("+i+") ["+new String(V_S)+"]");
 
     if(JSch.getLogger().isEnabled(Logger.INFO)) {
@@ -304,6 +266,29 @@ public class Session implements Runnable{
       throw new JSchException("invalid protocol: " + buf.getCommand());
     }
 
+    exchangeKeys();
+
+    authenticate();
+
+    if(socket!=null&&(connectTimeout > 0||timeout > 0)) {
+      socket.setSoTimeout(timeout);
+    }
+
+    isAuthed=true;
+
+    synchronized (lock) {
+      if(isConnected) {
+        initConnectionThread();
+
+        requestPortForwarding();
+      } else {
+        // The session has been already down and
+        // we don't have to start new thread.
+      }
+    }
+  }
+
+  private void exchangeKeys() throws Exception, JSchException {
     if(JSch.getLogger().isEnabled(Logger.INFO)) {
       JSch.getLogger().log(Logger.INFO,
           "SSH_MSG_KEXINIT received");
@@ -354,7 +339,18 @@ public class Session implements Runnable{
       in_kex=false;
       throw new JSchException("invalid protocol(newkyes): " + buf.getCommand());
     }
+  }
 
+  private void initConnectionThread() {
+    connectThread=new Thread(this);
+    connectThread.setName("Connect thread " + host + " session");
+    if(daemon_thread) {
+      connectThread.setDaemon(daemon_thread);
+    }
+    connectThread.start();
+  }
+
+  private void authenticate() throws JSchException {
     try {
       String s=getConfig("MaxAuthTries");
       if(s!=null) {
@@ -493,28 +489,49 @@ public class Session implements Runnable{
         throw new JSchException("Auth cancel");
       throw new JSchException("Auth fail");
     }
+  }
 
-    if(socket!=null&&(connectTimeout > 0||timeout > 0)) {
-      socket.setSoTimeout(timeout);
-    }
-
-    isAuthed=true;
-
-    synchronized (lock) {
-      if(isConnected) {
-        connectThread=new Thread(this);
-        connectThread.setName("Connect thread " + host + " session");
-        if(daemon_thread) {
-          connectThread.setDaemon(daemon_thread);
-        }
-        connectThread.start();
-
-        requestPortForwarding();
-      } else {
-        // The session has been already down and
-        // we don't have to start new thread.
+  private int readFromIOIntoBuf(Buffer buf) throws JSchException {
+    int i, j;
+    while (true) {
+      i=0;
+      j=0;
+      while (i < buf.buffer.length) {
+        j=io.getByte();
+        if(j < 0) break;
+        buf.buffer[i]=(byte) j;
+        i++;
+        if(j==10) break;
       }
+      if(j < 0) {
+        throw new JSchException("connection is closed by foreign host");
+      }
+
+      if(buf.buffer[i - 1]==10) {    // 0x0a
+        i--;
+        if(i > 0&&buf.buffer[i - 1]==13) {  // 0x0d
+          i--;
+        }
+      }
+
+      if(i <= 3||
+          ((i!=buf.buffer.length)&&
+              (buf.buffer[0]!='S'||buf.buffer[1]!='S'||
+                  buf.buffer[2]!='H'||buf.buffer[3]!='-'))) {
+        // It must not start with 'SSH-'
+        //System.err.println(new String(buf.buffer, 0, i);
+        continue;
+      }
+
+      if(i==buf.buffer.length||
+          i < 7||                                      // SSH-1.99 or SSH-2.0
+          (buf.buffer[4]=='1'&&buf.buffer[6]!='9')  // SSH-1.5
+      ) {
+        throw new JSchException("invalid server's version string");
+      }
+      break;
     }
+    return i;
   }
 
   private void initSocketAndIO(int connectTimeout) {
