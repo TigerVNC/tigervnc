@@ -120,6 +120,11 @@ namespace rfb {
     const char* getName() const { return name.buf; }
     unsigned getLEDState() const { return ledState; }
 
+    // Event handlers
+    void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+    void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
+    void clientCutText(const char* str, int len);
+
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);

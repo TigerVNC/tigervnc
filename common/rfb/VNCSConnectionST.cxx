@@ -84,11 +84,8 @@ VNCSConnectionST::~VNCSConnectionST()
 
     vlog.debug("Releasing key 0x%x / 0x%x on client disconnect",
                keysym, keycode);
-    server->desktop->keyEvent(keysym, keycode, false);
+    server->keyEvent(keysym, keycode, false);
   }
-
-  if (server->pointerClient == this)
-    server->pointerClient = 0;
 
   // Remove this client from the server
   server->clients.remove(this);
@@ -497,36 +494,29 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
 void VNCSConnectionST::pointerEvent(const Point& pos, int buttonMask)
 {
   pointerEventTime = lastEventTime = time(0);
-  server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
-  if (!server->pointerClient || server->pointerClient == this) {
-    pointerEventPos = pos;
-    if (buttonMask)
-      server->pointerClient = this;
-    else
-      server->pointerClient = 0;
-    server->desktop->pointerEvent(pointerEventPos, buttonMask);
-  }
+  pointerEventPos = pos;
+  server->pointerEvent(this, pointerEventPos, buttonMask);
 }
 
 
 class VNCSConnectionSTShiftPresser {
 public:
-  VNCSConnectionSTShiftPresser(SDesktop* desktop_)
-    : desktop(desktop_), pressed(false) {}
+  VNCSConnectionSTShiftPresser(VNCServerST* server_)
+    : server(server_), pressed(false) {}
   ~VNCSConnectionSTShiftPresser() {
     if (pressed) {
       vlog.debug("Releasing fake Shift_L");
-      desktop->keyEvent(XK_Shift_L, 0, false);
+      server->keyEvent(XK_Shift_L, 0, false);
     }
   }
   void press() {
     vlog.debug("Pressing fake Shift_L");
-    desktop->keyEvent(XK_Shift_L, 0, true);
+    server->keyEvent(XK_Shift_L, 0, true);
     pressed = true;
   }
-  SDesktop* desktop;
+  VNCServerST* server;
   bool pressed;
 };
 
@@ -536,7 +526,6 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   rdr::U32 lookup;
 
   lastEventTime = time(0);
-  server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
@@ -544,16 +533,6 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
     vlog.debug("Key pressed: 0x%x / 0x%x", keysym, keycode);
   else
     vlog.debug("Key released: 0x%x / 0x%x", keysym, keycode);
-
-  // Remap the key if required
-  if (server->keyRemapper) {
-    rdr::U32 newkey;
-    newkey = server->keyRemapper->remapKey(keysym);
-    if (newkey != keysym) {
-      vlog.debug("Key remapped to 0x%x", newkey);
-      keysym = newkey;
-    }
-  }
 
   // Avoid lock keys if we don't know the server state
   if ((server->getLEDState() == ledUnknown) &&
@@ -588,8 +567,8 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
 
         if (lock == (uppercase == shift)) {
           vlog.debug("Inserting fake CapsLock to get in sync with client");
-          server->desktop->keyEvent(XK_Caps_Lock, 0, true);
-          server->desktop->keyEvent(XK_Caps_Lock, 0, false);
+          server->keyEvent(XK_Caps_Lock, 0, true);
+          server->keyEvent(XK_Caps_Lock, 0, false);
         }
       }
 
@@ -618,15 +597,15 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
           //
         } else if (lock == (number == shift)) {
           vlog.debug("Inserting fake NumLock to get in sync with client");
-          server->desktop->keyEvent(XK_Num_Lock, 0, true);
-          server->desktop->keyEvent(XK_Num_Lock, 0, false);
+          server->keyEvent(XK_Num_Lock, 0, true);
+          server->keyEvent(XK_Num_Lock, 0, false);
         }
       }
     }
   }
 
   // Turn ISO_Left_Tab into shifted Tab.
-  VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
+  VNCSConnectionSTShiftPresser shiftPresser(server);
   if (keysym == XK_ISO_Left_Tab) {
     if (!isShiftPressed())
       shiftPresser.press();
@@ -652,14 +631,14 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
       return;
   }
 
-  server->desktop->keyEvent(keysym, keycode, down);
+  server->keyEvent(keysym, keycode, down);
 }
 
 void VNCSConnectionST::clientCutText(const char* str, int len)
 {
   if (!(accessRights & AccessCutText)) return;
   if (!rfb::Server::acceptCutText) return;
-  server->desktop->clientCutText(str, len);
+  server->clientCutText(str, len);
 }
 
 void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)

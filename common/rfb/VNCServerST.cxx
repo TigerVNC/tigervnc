@@ -147,6 +147,10 @@ void VNCServerST::removeSocket(network::Socket* sock) {
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
+      // - Release the cursor if this client owns it
+      if (pointerClient == *ci)
+        pointerClient = NULL;
+
       // - Delete the per-Socket resources
       delete *ci;
 
@@ -465,6 +469,48 @@ void VNCServerST::setLEDState(unsigned int state)
     ci_next = ci; ci_next++;
     (*ci)->setLEDStateOrClose(state);
   }
+}
+
+// Event handlers
+
+void VNCServerST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
+{
+  lastUserInputTime = time(0);
+
+  // Remap the key if required
+  if (keyRemapper) {
+    rdr::U32 newkey;
+    newkey = keyRemapper->remapKey(keysym);
+    if (newkey != keysym) {
+      slog.debug("Key remapped to 0x%x", newkey);
+      keysym = newkey;
+    }
+  }
+
+  desktop->keyEvent(keysym, keycode, down);
+}
+
+void VNCServerST::pointerEvent(VNCSConnectionST* client,
+                               const Point& pos, int buttonMask)
+{
+  lastUserInputTime = time(0);
+
+  // Let one client own the cursor whilst buttons are pressed in order
+  // to provide a bit more sane user experience
+  if ((pointerClient != NULL) && (pointerClient != client))
+    return;
+
+  if (buttonMask)
+    pointerClient = client;
+  else
+    pointerClient = NULL;
+
+  desktop->pointerEvent(pos, buttonMask);
+}
+
+void VNCServerST::clientCutText(const char* str, int len)
+{
+  desktop->clientCutText(str, len);
 }
 
 // Other public methods
