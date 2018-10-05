@@ -457,16 +457,7 @@ void VNCSConnectionST::queryConnection(const char* userName)
   }
 
   // - Get the server to display an Accept/Reject dialog, if required
-  //   If a dialog is displayed, the result will be PENDING, and the
-  //   server will call approveConnection at a later time
-  CharArray reason;
-  VNCServerST::queryResult qr = server->queryConnection(sock, userName,
-                                                        &reason.buf);
-  if (qr == VNCServerST::PENDING)
-    return;
-
-  // - If server returns ACCEPT/REJECT then pass result to SConnection
-  approveConnection(qr == VNCServerST::ACCEPT, reason.buf);
+  server->queryConnection(sock, userName);
 }
 
 void VNCSConnectionST::clientInit(bool shared)

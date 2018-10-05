@@ -87,12 +87,11 @@ public:
   ~QueryConnHandler() { delete queryConnectDialog; }
 
   // -=- VNCServerST::QueryConnectionHandler interface
-  virtual VNCServerST::queryResult queryConnection(network::Socket* sock,
-                                                   const char* userName,
-                                                   char** reason) {
+  virtual void queryConnection(network::Socket* sock,
+                               const char* userName) {
     if (queryConnectSock) {
-      *reason = strDup("Another connection is currently being queried.");
-      return VNCServerST::REJECT;
+      server->approveConnection(sock, false, "Another connection is currently being queried.");
+      return;
     }
     if (!userName) userName = "(anonymous)";
     queryConnectSock = sock;
@@ -102,7 +101,6 @@ public:
                                                 userName, queryConnectTimeout,
                                                 this);
     queryConnectDialog->map();
-    return VNCServerST::PENDING;
   }
 
   // -=- QueryResultCallback interface

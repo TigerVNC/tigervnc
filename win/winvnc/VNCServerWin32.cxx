@@ -249,19 +249,19 @@ bool VNCServerWin32::setClientsStatus(rfb::ListConnInfo* LCInfo) {
   return queueCommand(SetClientsStatus, LCInfo, 0);
 }
 
-VNCServerST::queryResult VNCServerWin32::queryConnection(network::Socket* sock,
-                                            const char* userName,
-                                            char** reason)
+void VNCServerWin32::queryConnection(network::Socket* sock,
+                                     const char* userName)
 {
-  if (queryOnlyIfLoggedOn && CurrentUserToken().noUserLoggedOn())
-    return VNCServerST::ACCEPT;
+  if (queryOnlyIfLoggedOn && CurrentUserToken().noUserLoggedOn()) {
+    vncServer.approveConnection(sock, true, NULL);
+    return;
+  }
   if (queryConnectDialog) {
-    *reason = rfb::strDup("Another connection is currently being queried.");
-    return VNCServerST::REJECT;
+    vncServer.approveConnection(sock, false, "Another connection is currently being queried.");
+    return;
   }
   queryConnectDialog = new QueryConnectDialog(sock, userName, this);
   queryConnectDialog->startDialog();
-  return VNCServerST::PENDING;
 }
 
 void VNCServerWin32::queryConnectionComplete() {

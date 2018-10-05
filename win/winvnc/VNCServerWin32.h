@@ -81,9 +81,8 @@ namespace winvnc {
     // VNCServerST::QueryConnectionHandler interface
     // Callback used to prompt user to accept or reject a connection.
     // CALLBACK IN VNCServerST "HOST" THREAD
-    virtual rfb::VNCServerST::queryResult queryConnection(network::Socket* sock,
-                                                          const char* userName,
-                                                          char** reason);
+    virtual void queryConnection(network::Socket* sock,
+                                 const char* userName);
 
     // SocketManager::AddressChangeNotifier interface
     // Used to keep tray icon up to date

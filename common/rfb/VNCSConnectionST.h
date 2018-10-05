@@ -78,6 +78,7 @@ namespace rfb {
     void serverCutTextOrClose(const char *str, int len);
     void setDesktopNameOrClose(const char *name);
     void setLEDStateOrClose(unsigned int state);
+    void approveConnectionOrClose(bool accept, const char* reason);
 
     // checkIdleTimeout() returns the number of milliseconds left until the
     // idle timeout expires.  If it has expired, the connection is closed and
@@ -109,14 +110,6 @@ namespace rfb {
     }
 
     const char* getPeerEndpoint() const {return peerEndpoint.buf;}
-
-    // approveConnectionOrClose() is called some time after
-    // VNCServerST::queryConnection() has returned with PENDING to accept or
-    // reject the connection.  The accept argument should be true for
-    // acceptance, or false for rejection, in which case a string reason may
-    // also be given.
-
-    void approveConnectionOrClose(bool accept, const char* reason);
 
     char* getStartTime();
 

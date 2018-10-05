@@ -96,9 +96,8 @@ public:
   virtual void grabRegion(const rfb::Region& r);
 
   // rfb::VNCServerST::QueryConnectionHandler callback
-  virtual rfb::VNCServerST::queryResult queryConnection(network::Socket* sock,
-                                                        const char* userName,
-                                                        char** reason);
+  virtual void queryConnection(network::Socket* sock,
+                               const char* userName);
 
 protected:
   bool handleListenerEvent(int fd,

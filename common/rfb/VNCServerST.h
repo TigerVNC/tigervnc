@@ -133,19 +133,13 @@ namespace rfb {
     //
     // queryConnection() is called when a connection has been
     // successfully authenticated.  The sock and userName arguments identify
-    // the socket and the name of the authenticated user, if any.  It should
-    // return ACCEPT if the connection should be accepted, REJECT if it should
-    // be rejected, or PENDING if a decision cannot yet be reached.  If REJECT
-    // is returned, *reason can be set to a string describing the reason - this
-    // will be delete[]ed when it is finished with.  If PENDING is returned,
+    // the socket and the name of the authenticated user, if any.
     // approveConnection() must be called some time later to accept or reject
     // the connection.
-    enum queryResult { ACCEPT, REJECT, PENDING };
     struct QueryConnectionHandler {
       virtual ~QueryConnectionHandler() {}
-      virtual queryResult queryConnection(network::Socket* sock,
-                                          const char* userName,
-                                          char** reason) = 0;
+      virtual void queryConnection(network::Socket* sock,
+                                   const char* userName) = 0;
     };
     void setQueryConnectionHandler(QueryConnectionHandler* qch) {
       queryConnectionHandler = qch;
@@ -154,12 +148,13 @@ namespace rfb {
     // queryConnection is called as described above, and either passes the
     // request on to the registered handler, or accepts the connection if
     // no handler has been specified.
-    virtual queryResult queryConnection(network::Socket* sock,
-                                        const char* userName,
-                                        char** reason) {
-      return queryConnectionHandler
-        ? queryConnectionHandler->queryConnection(sock, userName, reason)
-        : ACCEPT;
+    virtual void queryConnection(network::Socket* sock,
+                                 const char* userName) {
+      if (queryConnectionHandler) {
+        queryConnectionHandler->queryConnection(sock, userName);
+        return;
+      }
+      approveConnection(sock, true, NULL);
     }
 
     // approveConnection() is called by the active QueryConnectionHandler,
