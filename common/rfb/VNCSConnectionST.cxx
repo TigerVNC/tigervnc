@@ -56,22 +56,18 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
-  VNCServerST::connectionsLog.write(1,"accepted: %s", peerEndpoint.buf);
 
   // Configure the socket
   setSocketTimeouts();
   lastEventTime = time(0);
-
-  server->clients.push_front(this);
 }
 
 
 VNCSConnectionST::~VNCSConnectionST()
 {
   // If we reach here then VNCServerST is deleting us!
-  VNCServerST::connectionsLog.write(1,"closed: %s (%s)",
-                                    peerEndpoint.buf,
-                                    (closeReason.buf) ? closeReason.buf : "");
+  if (closeReason.buf)
+    vlog.info("closing %s: %s", peerEndpoint.buf, closeReason.buf);
 
   // Release any keys the client still had pressed
   while (!pressedKeys.empty()) {
@@ -85,9 +81,6 @@ VNCSConnectionST::~VNCSConnectionST()
                keysym, keycode);
     server->keyEvent(keysym, keycode, false);
   }
-
-  // Remove this client from the server
-  server->clients.remove(this);
 
   delete [] fenceData;
 }
@@ -112,10 +105,6 @@ void VNCSConnectionST::close(const char* reason)
     closeReason.buf = strDup(reason);
   else
     vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
-
-  if (authenticated()) {
-      server->lastDisconnectTime = time(0);
-  }
 
   // Just shutdown the socket and mark our state as closing.  Eventually the
   // calling code will call VNCServerST's removeSocket() method causing us to
@@ -445,30 +434,7 @@ void VNCSConnectionST::authSuccess()
 
 void VNCSConnectionST::queryConnection(const char* userName)
 {
-  // - Authentication succeeded - clear from blacklist
-  CharArray name; name.buf = sock->getPeerAddress();
-  server->blHosts->clearBlackmark(name.buf);
-
-  // - Prepare the desktop that we might be making calls
-  server->startDesktop();
-
-  // - Special case to provide a more useful error message
-  if (rfb::Server::neverShared && !rfb::Server::disconnectClients &&
-    server->authClientCount() > 0) {
-    approveConnection(false, "The server is already in use");
-    return;
-  }
-
-  // - Does the client have the right to bypass the query?
-  if (!(rfb::Server::queryConnect || sock->requiresQuery()) ||
-      accessCheck(AccessNoQuery))
-  {
-    approveConnection(true);
-    return;
-  }
-
-  // - Get the server to display an Accept/Reject dialog, if required
-  server->queryConnection(sock, userName);
+  server->queryConnection(this, userName);
 }
 
 void VNCSConnectionST::clientInit(bool shared)
@@ -477,21 +443,8 @@ void VNCSConnectionST::clientInit(bool shared)
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
   if (!accessCheck(AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
-  if (!shared) {
-    if (rfb::Server::disconnectClients && accessCheck(AccessNonShared)) {
-      // - Close all the other connected clients
-      vlog.debug("non-shared connection - closing clients");
-      server->closeClients("Non-shared connection requested", getSock());
-    } else {
-      // - Refuse this connection if there are existing clients, in addition to
-      // this one
-      if (server->authClientCount() > 1) {
-        close("Server is already in use");
-        return;
-      }
-    }
-  }
   SConnection::clientInit(shared);
+  server->clientReady(this, shared);
 }
 
 void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)

@@ -20,6 +20,8 @@
 
 #include <assert.h>
 
+#include <rfb/LogWriter.h>
+
 #include <x0vncserver/XDesktop.h>
 
 #include <X11/XKBlib.h>

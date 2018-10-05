@@ -28,7 +28,6 @@
 
 #include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
 #include <rfb/Timer.h>
@@ -134,13 +133,9 @@ namespace rfb {
     // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);
 
-    // queryConnection() is called when a connection has been
-    // successfully authenticated.  The sock and userName arguments identify
-    // the socket and the name of the authenticated user, if any.
-    // approveConnection() must be called some time later to accept or reject
-    // the connection.
-    virtual void queryConnection(network::Socket* sock,
-                                 const char* userName);
+    // queryConnection() does some basic checks and then passes on the
+    // request to the desktop.
+    void queryConnection(VNCSConnectionST* client, const char* userName);
 
     // setBlacklist() is called to replace the VNCServerST's internal
     // Blacklist instance with another instance.  This allows a single
@@ -157,9 +152,22 @@ namespace rfb {
     bool getDisable() { return disableclients;};
     void setDisable(bool disable) { disableclients = disable;};
 
-  protected:
+    // clientReady() is called by a VNCSConnectionST instance when the
+    // client has completed the handshake and is ready for normal
+    // communication.
+    void clientReady(VNCSConnectionST* client, bool shared);
 
-    friend class VNCSConnectionST;
+    // Estimated time until the next time new updates will be pushed
+    // to clients
+    int msToNextUpdate();
+
+    // Part of the framebuffer that has been modified but is not yet
+    // ready to be sent to clients
+    Region getPendingRegion();
+
+    const RenderedCursor* getRenderedCursor();
+
+  protected:
 
     // Timer callbacks
     virtual bool handleTimeout(Timer* t);
@@ -169,7 +177,6 @@ namespace rfb {
     void startDesktop();
     void stopDesktop();
 
-    static LogWriter connectionsLog;
     Blacklist blacklist;
     Blacklist* blHosts;
 
@@ -199,10 +206,7 @@ namespace rfb {
     bool needRenderedCursor();
     void startFrameClock();
     void stopFrameClock();
-    int msToNextUpdate();
     void writeUpdate();
-    Region getPendingRegion();
-    const RenderedCursor* getRenderedCursor();
 
     bool getComparerState();
 

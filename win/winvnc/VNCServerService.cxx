@@ -19,6 +19,7 @@
 // -=- WinVNC Version 4.0 Service-Mode implementation
 
 #include <winvnc/VNCServerService.h>
+#include <rfb/LogWriter.h>
 #include <rfb_win32/TsSessions.h>
 #include <rfb_win32/ModuleFileName.h>
 #include <windows.h>

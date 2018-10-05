@@ -54,6 +54,7 @@
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/ListConnInfo.h>
+#include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
 #include <rfb/VNCServerST.h>
@@ -66,7 +67,7 @@
 using namespace rfb;
 
 static LogWriter slog("VNCServerST");
-LogWriter VNCServerST::connectionsLog("Connections");
+static LogWriter connectionsLog("Connections");
 
 //
 // -=- VNCServerST Implementation
@@ -99,9 +100,11 @@ VNCServerST::~VNCServerST()
   stopFrameClock();
 
   // Delete all the clients, and their sockets, and any closing sockets
-  //   NB: Deleting a client implicitly removes it from the clients list
   while (!clients.empty()) {
-    delete clients.front();
+    VNCSConnectionST* client;
+    client = clients.front();
+    clients.pop_front();
+    delete client;
   }
 
   // Stop the desktop object if active, *only* after deleting all clients!
@@ -134,11 +137,16 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
     return;
   }
 
+  CharArray name;
+  name.buf = sock->getPeerEndpoint();
+  connectionsLog.status("accepted: %s", name.buf);
+
   if (clients.empty()) {
     lastConnectionTime = time(0);
   }
 
   VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing);
+  clients.push_front(client);
   client->init();
 }
 
@@ -147,12 +155,21 @@ void VNCServerST::removeSocket(network::Socket* sock) {
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
+      clients.remove(*ci);
+
       // - Release the cursor if this client owns it
       if (pointerClient == *ci)
         pointerClient = NULL;
 
+      if ((*ci)->authenticated())
+        lastDisconnectTime = time(0);
+
       // - Delete the per-Socket resources
       delete *ci;
+
+      CharArray name;
+      name.buf = sock->getPeerEndpoint();
+      connectionsLog.status("closed: %s", name.buf);
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
@@ -613,10 +630,61 @@ bool VNCServerST::handleTimeout(Timer* t)
   return false;
 }
 
-void VNCServerST::queryConnection(network::Socket* sock,
+void VNCServerST::queryConnection(VNCSConnectionST* client,
                                   const char* userName)
 {
-  desktop->queryConnection(sock, userName);
+  // - Authentication succeeded - clear from blacklist
+  CharArray name;
+  name.buf = client->getSock()->getPeerAddress();
+  blHosts->clearBlackmark(name.buf);
+
+  // - Prepare the desktop for that the client will start requiring
+  // resources after this
+  startDesktop();
+
+  // - Special case to provide a more useful error message
+  if (rfb::Server::neverShared &&
+      !rfb::Server::disconnectClients &&
+      authClientCount() > 0) {
+    approveConnection(client->getSock(), false,
+                      "The server is already in use");
+    return;
+  }
+
+  // - Are we configured to do queries?
+  if (!rfb::Server::queryConnect &&
+      !client->getSock()->requiresQuery()) {
+    approveConnection(client->getSock(), true, NULL);
+    return;
+  }
+
+  // - Does the client have the right to bypass the query?
+  if (client->accessCheck(SConnection::AccessNoQuery))
+  {
+    approveConnection(client->getSock(), true, NULL);
+    return;
+  }
+
+  desktop->queryConnection(client->getSock(), userName);
+}
+
+void VNCServerST::clientReady(VNCSConnectionST* client, bool shared)
+{
+  if (!shared) {
+    if (rfb::Server::disconnectClients &&
+        client->accessCheck(SConnection::AccessNonShared)) {
+      // - Close all the other connected clients
+      slog.debug("non-shared connection - closing clients");
+      closeClients("Non-shared connection requested", client->getSock());
+    } else {
+      // - Refuse this connection if there are existing clients, in addition to
+      // this one
+      if (authClientCount() > 1) {
+        client->close("Server is already in use");
+        return;
+      }
+    }
+  }
 }
 
 // -=- Internal methods
