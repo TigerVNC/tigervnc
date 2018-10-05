@@ -34,7 +34,7 @@
 #include <rfb/SDesktop.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Configuration.h>
-#include <rfb/VNCServerST.h>
+#include <rfb/Timer.h>
 #include <unixcommon.h>
 #include "Input.h"
 
@@ -111,7 +111,7 @@ protected:
 private:
 
   int screenIndex;
-  rfb::VNCServerST* server;
+  rfb::VNCServer* server;
   std::list<network::SocketListener*> listeners;
   bool directFbptr;
 

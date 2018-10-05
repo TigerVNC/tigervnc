@@ -236,7 +236,7 @@ void XDesktop::start(VNCServer* vs) {
   pb = new XPixelBuffer(dpy, factory, geometry->getRect());
   vlog.info("Allocated %s", pb->getImage()->classDesc());
 
-  server = (VNCServerST *)vs;
+  server = vs;
   server->setPixelBuffer(pb, computeScreenLayout());
 
 #ifdef HAVE_XDAMAGE

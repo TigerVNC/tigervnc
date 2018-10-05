@@ -31,7 +31,6 @@
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
 #include <rfb/Timer.h>
-#include <network/Socket.h>
 #include <rfb/ScreenSet.h>
 
 namespace rfb {
@@ -43,8 +42,7 @@ namespace rfb {
   class KeyRemapper;
 
   class VNCServerST : public VNCServer,
-                      public Timer::Callback,
-                      public network::SocketServer {
+                      public Timer::Callback {
   public:
     // -=- Constructors
 

@@ -21,7 +21,7 @@
 #ifndef __XDESKTOP_H__
 #define __XDESKTOP_H__
 
-#include <rfb/VNCServerST.h>
+#include <rfb/SDesktop.h>
 #include <tx/TXWindow.h>
 #include <unixcommon.h>
 
@@ -70,7 +70,7 @@ protected:
   Display* dpy;
   Geometry* geometry;
   XPixelBuffer* pb;
-  rfb::VNCServerST* server;
+  rfb::VNCServer* server;
   QueryConnectDialog* queryConnectDialog;
   network::Socket* queryConnectSock;
   int oldButtonMask;

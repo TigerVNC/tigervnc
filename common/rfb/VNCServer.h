@@ -22,15 +22,16 @@
 #ifndef __RFB_VNCSERVER_H__
 #define __RFB_VNCSERVER_H__
 
+#include <network/Socket.h>
+
 #include <rfb/UpdateTracker.h>
 #include <rfb/SSecurity.h>
 #include <rfb/ScreenSet.h>
 
-namespace network { class Socket; }
-
 namespace rfb {
 
-  class VNCServer : public UpdateTracker {
+  class VNCServer : public UpdateTracker,
+                    public network::SocketServer {
   public:
     // blockUpdates()/unblockUpdates() tells the server that the pixel buffer
     // is currently in flux and may not be accessed. The attributes of the
