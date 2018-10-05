@@ -52,7 +52,7 @@ namespace rfb {
     virtual void setScreenLayout(const ScreenSet& layout) = 0;
 
     // getPixelBuffer() returns a pointer to the PixelBuffer object.
-    virtual PixelBuffer* getPixelBuffer() const = 0;
+    virtual const PixelBuffer* getPixelBuffer() const = 0;
 
     // serverCutText() tells the server that the cut text has changed.  This
     // will normally be sent to all clients.

@@ -192,8 +192,9 @@ void VNCSConnectionST::pixelBufferChange()
 {
   try {
     if (!authenticated()) return;
-    if (cp.width && cp.height && (server->pb->width() != cp.width ||
-                                  server->pb->height() != cp.height))
+    if (cp.width && cp.height &&
+        (server->getPixelBuffer()->width() != cp.width ||
+         server->getPixelBuffer()->height() != cp.height))
     {
       // We need to clip the next update to the new size, but also add any
       // extra bits if it's bigger.  If we wanted to do this exactly, something
@@ -210,11 +211,11 @@ void VNCSConnectionST::pixelBufferChange()
       //  updates.add_changed(Rect(0, cp.height, cp.width,
       //                           server->pb->height()));
 
-      damagedCursorRegion.assign_intersect(server->pb->getRect());
+      damagedCursorRegion.assign_intersect(server->getPixelBuffer()->getRect());
 
-      cp.width = server->pb->width();
-      cp.height = server->pb->height();
-      cp.screenLayout = server->screenLayout;
+      cp.width = server->getPixelBuffer()->width();
+      cp.height = server->getPixelBuffer()->height();
+      cp.screenLayout = server->getScreenLayout();
       if (state() == RFBSTATE_NORMAL) {
         // We should only send EDS to client asking for both
         if (!writer()->writeExtendedDesktopSize()) {
@@ -226,12 +227,12 @@ void VNCSConnectionST::pixelBufferChange()
       }
 
       // Drop any lossy tracking that is now outside the framebuffer
-      encodeManager.pruneLosslessRefresh(Region(server->pb->getRect()));
+      encodeManager.pruneLosslessRefresh(Region(server->getPixelBuffer()->getRect()));
     }
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
     updates.clear();
-    updates.add_changed(server->pb->getRect());
+    updates.add_changed(server->getPixelBuffer()->getRect());
     writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
@@ -388,7 +389,7 @@ bool VNCSConnectionST::needRenderedCursor()
   if (!cp.supportsLocalCursorWithAlpha &&
       !cp.supportsLocalCursor && !cp.supportsLocalXCursor)
     return true;
-  if (!server->cursorPos.equals(pointerEventPos) &&
+  if (!server->getCursorPos().equals(pointerEventPos) &&
       (time(0) - pointerEventTime) > 0)
     return true;
 
@@ -415,20 +416,20 @@ void VNCSConnectionST::authSuccess()
   lastEventTime = time(0);
 
   // - Set the connection parameters appropriately
-  cp.width = server->pb->width();
-  cp.height = server->pb->height();
-  cp.screenLayout = server->screenLayout;
+  cp.width = server->getPixelBuffer()->width();
+  cp.height = server->getPixelBuffer()->height();
+  cp.screenLayout = server->getScreenLayout();
   cp.setName(server->getName());
-  cp.setLEDState(server->ledState);
+  cp.setLEDState(server->getLEDState());
   
   // - Set the default pixel format
-  cp.setPF(server->pb->getPF());
+  cp.setPF(server->getPixelBuffer()->getPF());
   char buffer[256];
   cp.pf().print(buffer, 256);
   vlog.info("Server default pixel format %s", buffer);
 
   // - Mark the entire display as "dirty"
-  updates.add_changed(server->pb->getRect());
+  updates.add_changed(server->getPixelBuffer()->getRect());
   startTime = time(0);
 }
 
@@ -555,7 +556,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   }
 
   // Avoid lock keys if we don't know the server state
-  if ((server->ledState == ledUnknown) &&
+  if ((server->getLEDState() == ledUnknown) &&
       ((keysym == XK_Caps_Lock) ||
        (keysym == XK_Num_Lock) ||
        (keysym == XK_Scroll_Lock))) {
@@ -573,7 +574,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
       return;
     }
 
-    if (down && (server->ledState != ledUnknown)) {
+    if (down && (server->getLEDState() != ledUnknown)) {
       // CapsLock synchronisation heuristic
       // (this assumes standard interaction between CapsLock the Shift
       // keys and normal characters)
@@ -583,7 +584,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
 
         uppercase = (keysym >= XK_A) && (keysym <= XK_Z);
         shift = isShiftPressed();
-        lock = server->ledState & ledCapsLock;
+        lock = server->getLEDState() & ledCapsLock;
 
         if (lock == (uppercase == shift)) {
           vlog.debug("Inserting fake CapsLock to get in sync with client");
@@ -603,7 +604,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
         number = ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
                   (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
         shift = isShiftPressed();
-        lock = server->ledState & ledNumLock;
+        lock = server->getLEDState() & ledNumLock;
 
         if (shift) {
           // We don't know the appropriate NumLock state for when Shift
@@ -993,7 +994,7 @@ void VNCSConnectionST::writeDataUpdate()
 
     bogusCopiedCursor = damagedCursorRegion;
     bogusCopiedCursor.translate(ui.copy_delta);
-    bogusCopiedCursor.assign_intersect(server->pb->getRect());
+    bogusCopiedCursor.assign_intersect(server->getPixelBuffer()->getRect());
     if (!ui.copied.intersect(bogusCopiedCursor).is_empty()) {
       updates.add_changed(bogusCopiedCursor);
       needNewUpdateInfo = true;
@@ -1116,7 +1117,7 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   if (!authenticated())
     return;
 
-  cp.screenLayout = server->screenLayout;
+  cp.screenLayout = server->getScreenLayout();
 
   if (state() != RFBSTATE_NORMAL)
     return;
@@ -1140,7 +1141,7 @@ void VNCSConnectionST::setCursor()
     cp.setCursor(emptyCursor);
     clientHasCursor = false;
   } else {
-    cp.setCursor(*server->cursor);
+    cp.setCursor(*server->getCursor());
     clientHasCursor = true;
   }
 
@@ -1207,7 +1208,7 @@ void VNCSConnectionST::setStatus(int status)
     accessRights = accessRights & ~(AccessPtrEvents | AccessKeyEvents | AccessView);
     break;
   }
-  framebufferUpdateRequest(server->pb->getRect(), false);
+  framebufferUpdateRequest(server->getPixelBuffer()->getRect(), false);
 }
 int VNCSConnectionST::getStatus()
 {

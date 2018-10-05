@@ -93,7 +93,7 @@ namespace rfb {
     virtual void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout);
     virtual void setPixelBuffer(PixelBuffer* pb);
     virtual void setScreenLayout(const ScreenSet& layout);
-    virtual PixelBuffer* getPixelBuffer() const { return pb; }
+    virtual const PixelBuffer* getPixelBuffer() const { return pb; }
     virtual void serverCutText(const char* str, int len);
 
     virtual void approveConnection(network::Socket* sock, bool accept,
@@ -105,11 +105,20 @@ namespace rfb {
     virtual void setCursor(int width, int height, const Point& hotspot,
                            const rdr::U8* data);
     virtual void setCursorPos(const Point& p);
+    virtual void setName(const char* name_);
     virtual void setLEDState(unsigned state);
 
     virtual void bell();
 
     // VNCServerST-only methods
+
+    // Methods to get the currently set server state
+
+    const ScreenSet& getScreenLayout() const { return screenLayout; }
+    const Cursor* getCursor() const { return cursor; }
+    const Point& getCursorPos() const { return cursorPos; }
+    const char* getName() const { return name.buf; }
+    unsigned getLEDState() const { return ledState; }
 
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
@@ -119,15 +128,6 @@ namespace rfb {
     // the Socket is not recognised then null is returned.
 
     SConnection* getSConnection(network::Socket* sock);
-
-    // getName() returns the name of this VNC Server.  NB: The value returned
-    // is the server's internal buffer which may change after any other methods
-    // are called - take a copy if necessary.
-    const char* getName() const {return name.buf;}
-
-    // setName() specifies the desktop name that the server should provide to
-    // clients
-    virtual void setName(const char* name_);
 
     // queryConnection() is called when a connection has been
     // successfully authenticated.  The sock and userName arguments identify
