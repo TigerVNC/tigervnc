@@ -125,6 +125,10 @@ namespace rfb {
     void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
     void clientCutText(const char* str, int len);
 
+    unsigned int setDesktopSize(VNCSConnectionST* requester,
+                                int fb_width, int fb_height,
+                                const ScreenSet& layout);
+
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);
@@ -203,8 +207,6 @@ namespace rfb {
     void writeUpdate();
     Region getPendingRegion();
     const RenderedCursor* getRenderedCursor();
-
-    void notifyScreenLayoutChange(VNCSConnectionST *requester);
 
     bool getComparerState();
 

@@ -687,27 +687,9 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   if (!(accessRights & AccessSetDesktopSize)) return;
   if (!rfb::Server::acceptSetDesktopSize) return;
 
-  // Don't bother the desktop with an invalid configuration
-  if (!layout.validate(fb_width, fb_height)) {
-    writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
-                                       fb_width, fb_height, layout);
-    return;
-  }
-
-  // FIXME: the desktop will call back to VNCServerST and an extra set
-  // of ExtendedDesktopSize messages will be sent. This is okay
-  // protocol-wise, but unnecessary.
-  result = server->desktop->setScreenLayout(fb_width, fb_height, layout);
-
+  result = server->setDesktopSize(this, fb_width, fb_height, layout);
   writer()->writeExtendedDesktopSize(reasonClient, result,
                                      fb_width, fb_height, layout);
-
-  // Only notify other clients on success
-  if (result == resultSuccess) {
-    if (server->screenLayout != layout)
-        throw Exception("Desktop configured a different screen layout than requested");
-    server->notifyScreenLayoutChange(this);
-  }
 }
 
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])

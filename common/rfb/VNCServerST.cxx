@@ -513,6 +513,39 @@ void VNCServerST::clientCutText(const char* str, int len)
   desktop->clientCutText(str, len);
 }
 
+unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
+                                         int fb_width, int fb_height,
+                                         const ScreenSet& layout)
+{
+  unsigned int result;
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+
+  // Don't bother the desktop with an invalid configuration
+  if (!layout.validate(fb_width, fb_height))
+    return resultInvalid;
+
+  // FIXME: the desktop will call back to VNCServerST and an extra set
+  // of ExtendedDesktopSize messages will be sent. This is okay
+  // protocol-wise, but unnecessary.
+  result = desktop->setScreenLayout(fb_width, fb_height, layout);
+  if (result != resultSuccess)
+    return result;
+
+  // Sanity check
+  if (screenLayout != layout)
+    throw Exception("Desktop configured a different screen layout than requested");
+
+  // Notify other clients
+  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
+    ci_next = ci; ci_next++;
+    if ((*ci) == requester)
+      continue;
+    (*ci)->screenLayoutChangeOrClose(reasonOtherClient);
+  }
+
+  return resultSuccess;
+}
+
 // Other public methods
 
 void VNCServerST::approveConnection(network::Socket* sock, bool accept,
@@ -771,17 +804,6 @@ void VNCServerST::setConnStatus(ListConnInfo* listConn)
         break;
       }
     }
-  }
-}
-
-void VNCServerST::notifyScreenLayoutChange(VNCSConnectionST* requester)
-{
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
-    if ((*ci) == requester)
-      continue;
-    (*ci)->screenLayoutChangeOrClose(reasonOtherClient);
   }
 }
 
