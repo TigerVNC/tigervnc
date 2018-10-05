@@ -414,8 +414,6 @@ void VNCSConnectionST::authSuccess()
 {
   lastEventTime = time(0);
 
-  server->startDesktop();
-
   // - Set the connection parameters appropriately
   cp.width = server->pb->width();
   cp.height = server->pb->height();
@@ -439,6 +437,9 @@ void VNCSConnectionST::queryConnection(const char* userName)
   // - Authentication succeeded - clear from blacklist
   CharArray name; name.buf = sock->getPeerAddress();
   server->blHosts->clearBlackmark(name.buf);
+
+  // - Prepare the desktop that we might be making calls
+  server->startDesktop();
 
   // - Special case to provide a more useful error message
   if (rfb::Server::neverShared && !rfb::Server::disconnectClients &&

@@ -26,6 +26,8 @@
 #include <rfb/SSecurity.h>
 #include <rfb/ScreenSet.h>
 
+namespace network { class Socket; }
+
 namespace rfb {
 
   class VNCServer : public UpdateTracker {
@@ -58,6 +60,14 @@ namespace rfb {
 
     // bell() tells the server that it should make all clients make a bell sound.
     virtual void bell() = 0;
+
+    // approveConnection() is called some time after
+    // SDesktop::queryConnection() has been called, to accept or reject
+    // the connection.  The accept argument should be true for
+    // acceptance, or false for rejection, in which case a string
+    // reason may also be given.
+    virtual void approveConnection(network::Socket* sock, bool accept,
+                                   const char* reason = NULL) = 0;
 
     // - Close all currently-connected clients, by calling
     //   their close() method with the supplied reason.

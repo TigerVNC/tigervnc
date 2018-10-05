@@ -71,9 +71,7 @@ VNCServerWin32::VNCServerWin32()
 
   // Initialise the desktop
   desktop.setStatusLocation(&isDesktopStarted);
-
-  // Initialise the VNC server
-  vncServer.setQueryConnectionHandler(this);
+  desktop.setQueryConnectionHandler(this);
 
   // Register the desktop's event to be handled
   sockMgr.addEvent(desktop.getUpdateEvent(), &desktop);

@@ -18,6 +18,8 @@
  * USA.
  */
 
+#include <assert.h>
+
 #include <x0vncserver/XDesktop.h>
 
 #include <X11/XKBlib.h>
@@ -53,6 +55,10 @@ BoolParameter rawKeyboard("RawKeyboard",
                           "Send keyboard events straight through and "
                           "avoid mapping them to the current keyboard "
                           "layout", false);
+IntParameter queryConnectTimeout("QueryConnectTimeout",
+                                 "Number of seconds to show the Accept Connection dialog before "
+                                 "rejecting the connection",
+                                 10);
 
 static rfb::LogWriter vlog("XDesktop");
 
@@ -63,6 +69,7 @@ static const char * ledNames[XDESKTOP_N_LEDS] = {
 
 XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
   : dpy(dpy_), geometry(geometry_), pb(0), server(0),
+    queryConnectDialog(0), queryConnectSock(0),
     oldButtonMask(0), haveXtest(false), haveDamage(false),
     maxButtons(0), running(false), ledMasks(), ledState(0),
     codeMap(0), codeMapLen(0)
@@ -254,6 +261,9 @@ void XDesktop::stop() {
     XDamageDestroy(dpy, damage);
 #endif
 
+  delete queryConnectDialog;
+  queryConnectDialog = 0;
+
   server->setPixelBuffer(0);
   server = 0;
 
@@ -263,6 +273,30 @@ void XDesktop::stop() {
 
 bool XDesktop::isRunning() {
   return running;
+}
+
+void XDesktop::queryConnection(network::Socket* sock,
+                               const char* userName)
+{
+  assert(isRunning());
+
+  if (queryConnectSock) {
+    server->approveConnection(sock, false, "Another connection is currently being queried.");
+    return;
+  }
+
+  if (!userName)
+    userName = "(anonymous)";
+
+  queryConnectSock = sock;
+
+  CharArray address(sock->getPeerAddress());
+  delete queryConnectDialog;
+  queryConnectDialog = new QueryConnectDialog(dpy, address.buf,
+                                              userName,
+                                              queryConnectTimeout,
+                                              this);
+  queryConnectDialog->map();
 }
 
 void XDesktop::pointerEvent(const Point& pos, int buttonMask) {
@@ -682,6 +716,21 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
   }
 
   return false;
+}
+
+void XDesktop::queryApproved()
+{
+  assert(isRunning());
+  server->approveConnection(queryConnectSock, true, 0);
+  queryConnectSock = 0;
+}
+
+void XDesktop::queryRejected()
+{
+  assert(isRunning());
+  server->approveConnection(queryConnectSock, false,
+                            "Connection rejected by local user");
+  queryConnectSock = 0;
 }
 
 bool XDesktop::setCursor()

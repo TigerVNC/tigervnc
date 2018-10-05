@@ -81,7 +81,6 @@ XserverDesktop::XserverDesktop(int screenIndex_,
 
   server = new VNCServerST(name, this);
   setFramebuffer(width, height, fbptr, stride);
-  server->setQueryConnectionHandler(this);
 
   for (std::list<SocketListener*>::iterator i = listeners.begin();
        i != listeners.end();
@@ -143,6 +142,17 @@ void XserverDesktop::refreshScreenLayout()
 {
   vncSetGlueContext(screenIndex);
   server->setScreenLayout(::computeScreenLayout(&outputIdMap));
+}
+
+void XserverDesktop::start(rfb::VNCServer* vs)
+{
+  // We already own the server object, and we always keep it in a
+  // ready state
+  assert(vs == server);
+}
+
+void XserverDesktop::stop()
+{
 }
 
 void XserverDesktop::queryConnection(network::Socket* sock,

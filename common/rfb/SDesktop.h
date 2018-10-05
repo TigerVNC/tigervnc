@@ -44,6 +44,8 @@
 #include <rfb/screenTypes.h>
 #include <rfb/util.h>
 
+namespace network { class Socket; }
+
 namespace rfb {
 
   class VNCServer;
@@ -56,14 +58,22 @@ namespace rfb {
     // set via the VNCServer's setPixelBuffer() method by the time this call
     // returns.
 
-    virtual void start(VNCServer* __unused_attr vs) {}
+    virtual void start(VNCServer* vs) = 0;
 
     // stop() is called by the server when there are no longer any
     // authenticated clients, and therefore the desktop can cease any
     // expensive tasks.  No further calls to the VNCServer passed to start()
     // can be made once stop has returned.
 
-    virtual void stop() {}
+    virtual void stop() = 0;
+
+    // queryConnection() is called when a connection has been
+    // successfully authenticated.  The sock and userName arguments
+    // identify the socket and the name of the authenticated user, if
+    // any. At some point later VNCServer::approveConnection() should
+    // be called to either accept or reject the client.
+    virtual void queryConnection(network::Socket* sock,
+                                 const char* userName) = 0;
 
     // setScreenLayout() requests to reconfigure the framebuffer and/or
     // the layout of screens.
@@ -111,6 +121,10 @@ namespace rfb {
     virtual void stop() {
       server->setPixelBuffer(0);
       server = 0;
+    }
+    virtual void queryConnection(network::Socket* sock,
+                                 const char* userName) {
+      server->approveConnection(sock, true, NULL);
     }
 
   protected:

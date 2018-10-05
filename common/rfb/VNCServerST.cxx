@@ -80,7 +80,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     name(strDup(name_)), pointerClient(0), comparer(0),
     cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
-    queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
+    keyRemapper(&KeyRemapper::defInstance),
     lastConnectionTime(0), disableclients(false),
     frameTimer(this)
 {
@@ -532,6 +532,12 @@ bool VNCServerST::handleTimeout(Timer* t)
   }
 
   return false;
+}
+
+void VNCServerST::queryConnection(network::Socket* sock,
+                                  const char* userName)
+{
+  desktop->queryConnection(sock, userName);
 }
 
 // -=- Internal methods

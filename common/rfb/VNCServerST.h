@@ -95,6 +95,11 @@ namespace rfb {
     virtual void setScreenLayout(const ScreenSet& layout);
     virtual PixelBuffer* getPixelBuffer() const { return pb; }
     virtual void serverCutText(const char* str, int len);
+
+    virtual void approveConnection(network::Socket* sock, bool accept,
+                                   const char* reason);
+    virtual void closeClients(const char* reason) {closeClients(reason, 0);}
+
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
     virtual void setCursor(int width, int height, const Point& hotspot,
@@ -103,10 +108,6 @@ namespace rfb {
     virtual void setLEDState(unsigned state);
 
     virtual void bell();
-
-    // - Close all currently-connected clients, by calling
-    //   their close() method with the supplied reason.
-    virtual void closeClients(const char* reason) {closeClients(reason, 0);}
 
     // VNCServerST-only methods
 
@@ -128,42 +129,13 @@ namespace rfb {
     // clients
     virtual void setName(const char* name_);
 
-    // A QueryConnectionHandler, if supplied, is passed details of incoming
-    // connections to approve, reject, or query the user about.
-    //
     // queryConnection() is called when a connection has been
     // successfully authenticated.  The sock and userName arguments identify
     // the socket and the name of the authenticated user, if any.
     // approveConnection() must be called some time later to accept or reject
     // the connection.
-    struct QueryConnectionHandler {
-      virtual ~QueryConnectionHandler() {}
-      virtual void queryConnection(network::Socket* sock,
-                                   const char* userName) = 0;
-    };
-    void setQueryConnectionHandler(QueryConnectionHandler* qch) {
-      queryConnectionHandler = qch;
-    }
-
-    // queryConnection is called as described above, and either passes the
-    // request on to the registered handler, or accepts the connection if
-    // no handler has been specified.
     virtual void queryConnection(network::Socket* sock,
-                                 const char* userName) {
-      if (queryConnectionHandler) {
-        queryConnectionHandler->queryConnection(sock, userName);
-        return;
-      }
-      approveConnection(sock, true, NULL);
-    }
-
-    // approveConnection() is called by the active QueryConnectionHandler,
-    // some time after queryConnection() has returned with PENDING, to accept
-    // or reject the connection.  The accept argument should be true for
-    // acceptance, or false for rejection, in which case a string reason may
-    // also be given.
-    void approveConnection(network::Socket* sock, bool accept,
-                           const char* reason);
+                                 const char* userName);
 
     // setBlacklist() is called to replace the VNCServerST's internal
     // Blacklist instance with another instance.  This allows a single
@@ -231,7 +203,6 @@ namespace rfb {
 
     bool getComparerState();
 
-    QueryConnectionHandler* queryConnectionHandler;
     KeyRemapper* keyRemapper;
 
     time_t lastUserInputTime;

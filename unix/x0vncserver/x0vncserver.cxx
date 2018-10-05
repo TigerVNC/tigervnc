@@ -33,8 +33,6 @@
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
 
-#include <vncconfig/QueryConnectDialog.h>
-
 #include <signal.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -61,10 +59,6 @@ StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
 StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
 IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
-IntParameter queryConnectTimeout("QueryConnectTimeout",
-                                 "Number of seconds to show the Accept Connection dialog before "
-                                 "rejecting the connection",
-                                 10);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
 
 //
@@ -77,48 +71,6 @@ static void CleanupSignalHandler(int sig)
 {
   caughtSignal = true;
 }
-
-
-class QueryConnHandler : public VNCServerST::QueryConnectionHandler,
-                         public QueryResultCallback {
-public:
-  QueryConnHandler(Display* dpy, VNCServerST* vs)
-    : display(dpy), server(vs), queryConnectDialog(0), queryConnectSock(0) {}
-  ~QueryConnHandler() { delete queryConnectDialog; }
-
-  // -=- VNCServerST::QueryConnectionHandler interface
-  virtual void queryConnection(network::Socket* sock,
-                               const char* userName) {
-    if (queryConnectSock) {
-      server->approveConnection(sock, false, "Another connection is currently being queried.");
-      return;
-    }
-    if (!userName) userName = "(anonymous)";
-    queryConnectSock = sock;
-    CharArray address(sock->getPeerAddress());
-    delete queryConnectDialog;
-    queryConnectDialog = new QueryConnectDialog(display, address.buf,
-                                                userName, queryConnectTimeout,
-                                                this);
-    queryConnectDialog->map();
-  }
-
-  // -=- QueryResultCallback interface
-  virtual void queryApproved() {
-    server->approveConnection(queryConnectSock, true, 0);
-    queryConnectSock = 0;
-  }
-  virtual void queryRejected() {
-    server->approveConnection(queryConnectSock, false,
-                              "Connection rejected by local user");
-    queryConnectSock = 0;
-  }
-private:
-  Display* display;
-  VNCServerST* server;
-  QueryConnectDialog* queryConnectDialog;
-  network::Socket* queryConnectSock;
-};
 
 
 class FileTcpFilter : public TcpFilter
@@ -305,8 +257,6 @@ int main(int argc, char** argv)
     XDesktop desktop(dpy, &geo);
 
     VNCServerST server("x0vncserver", &desktop);
-    QueryConnHandler qcHandler(dpy, &server);
-    server.setQueryConnectionHandler(&qcHandler);
 
     if (rfbunixpath.getValueStr()[0] != '\0') {
       listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));

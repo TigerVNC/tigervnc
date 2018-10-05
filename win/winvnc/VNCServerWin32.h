@@ -39,7 +39,7 @@ namespace winvnc {
 
   class STrayIconThread;
 
-  class VNCServerWin32 : rfb::VNCServerST::QueryConnectionHandler,
+  class VNCServerWin32 : rfb::win32::QueryConnectionHandler,
                          rfb::win32::SocketManager::AddressChangeNotifier,
                          rfb::win32::RegConfig::Callback,
                          rfb::win32::EventHandler {
@@ -78,7 +78,7 @@ namespace winvnc {
     bool setClientsStatus(rfb::ListConnInfo* LCInfo);
 
   protected:
-    // VNCServerST::QueryConnectionHandler interface
+    // QueryConnectionHandler interface
     // Callback used to prompt user to accept or reject a connection.
     // CALLBACK IN VNCServerST "HOST" THREAD
     virtual void queryConnection(network::Socket* sock,
