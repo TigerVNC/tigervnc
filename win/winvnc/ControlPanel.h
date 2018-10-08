@@ -11,10 +11,10 @@
 
 #include <list>
 #include <winvnc/resource.h>
+#include <winvnc/ListConnInfo.h>
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/ListViewControl.h>
 #include <rfb_win32/Win32Util.h>
-#include <rfb/ListConnInfo.h>
 
 namespace winvnc {
   
@@ -27,17 +27,17 @@ namespace winvnc {
     virtual bool showDialog();
     virtual void initDialog();
     virtual bool onCommand(int cmd);
-    void UpdateListView(rfb::ListConnInfo* LCInfo);
+    void UpdateListView(ListConnInfo* LCInfo);
     HWND GetHandle() {return handle;};
     void SendCommand(DWORD command, int data);
     ~ControlPanel();
-    rfb::ListConnInfo ListConnStatus;
+    ListConnInfo ListConnStatus;
   protected: 
     virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     void getSelConnInfo();
     HWND m_hSTIcon;
-    rfb::ListConnInfo ListConn;
-    rfb::ListConnInfo ListSelConn;
+    ListConnInfo ListConn;
+    ListConnInfo ListSelConn;
     bool stop_updating;
   };
 };

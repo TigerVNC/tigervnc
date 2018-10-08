@@ -144,12 +144,6 @@ namespace rfb {
     // NB: A null pointer is valid here.
     void setKeyRemapper(KeyRemapper* kr) { keyRemapper = kr; }
 
-    void getConnInfo(ListConnInfo * listConn);
-    void setConnStatus(ListConnInfo* listConn);
-
-    bool getDisable() { return disableclients;};
-    void setDisable(bool disable) { disableclients = disable;};
-
     // clientReady() is called by a VNCSConnectionST instance when the
     // client has completed the handshake and is ready for normal
     // communication.
@@ -213,8 +207,6 @@ namespace rfb {
     time_t lastUserInputTime;
     time_t lastDisconnectTime;
     time_t lastConnectionTime;
-
-    bool disableclients;
 
     Timer frameTimer;
   };

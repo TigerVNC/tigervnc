@@ -112,11 +112,6 @@ namespace rfb {
 
     const char* getPeerEndpoint() const {return peerEndpoint.buf;}
 
-    char* getStartTime();
-
-    void setStatus(int status);
-    int getStatus();
-
   private:
     // SConnection callbacks
 
@@ -198,7 +193,6 @@ namespace rfb {
     bool clientHasCursor;
 
     CharArray closeReason;
-    time_t startTime;
   };
 }
 #endif

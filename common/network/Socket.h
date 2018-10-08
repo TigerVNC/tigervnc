@@ -151,8 +151,6 @@ namespace network {
     //   there is no timeout and checkTimeouts() should be called the next time
     //   an event occurs.
     virtual int checkTimeouts() = 0;
-
-    virtual bool getDisable() {return false;};
   };
 
 }

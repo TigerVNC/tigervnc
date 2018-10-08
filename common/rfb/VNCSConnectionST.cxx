@@ -52,7 +52,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     losslessTimer(this), server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
-    clientHasCursor(false), startTime(time(0))
+    clientHasCursor(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -429,7 +429,6 @@ void VNCSConnectionST::authSuccess()
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->getPixelBuffer()->getRect());
-  startTime = time(0);
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -1113,44 +1112,3 @@ void VNCSConnectionST::setSocketTimeouts()
   sock->inStream().setTimeout(timeoutms);
   sock->outStream().setTimeout(timeoutms);
 }
-
-char* VNCSConnectionST::getStartTime()
-{
-  char* result = ctime(&startTime);
-  result[24] = '\0';
-  return result; 
-}
-
-void VNCSConnectionST::setStatus(int status)
-{
-  AccessRights ar;
-
-  ar = AccessDefault;
-
-  switch (status) {
-  case 0:
-    ar |= AccessPtrEvents | AccessKeyEvents | AccessView;
-    break;
-  case 1:
-    ar |= rfb::SConnection::AccessView;
-    ar &= ~(AccessPtrEvents | AccessKeyEvents);
-    break;
-  case 2:
-    ar &= ~(AccessPtrEvents | AccessKeyEvents | AccessView);
-    break;
-  }
-
-  setAccessRights(ar);
-
-  framebufferUpdateRequest(server->getPixelBuffer()->getRect(), false);
-}
-int VNCSConnectionST::getStatus()
-{
-  if (accessCheck(AccessPtrEvents | AccessKeyEvents | AccessView))
-    return 0;
-  else if (accessCheck(AccessView))
-    return 1;
-  else
-    return 2;
-}
-

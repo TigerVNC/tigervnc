@@ -37,6 +37,7 @@ namespace os {
 
 namespace winvnc {
 
+  class ListConnInfo;
   class STrayIconThread;
 
   class VNCServerWin32 : rfb::win32::QueryConnectionHandler,
@@ -73,9 +74,9 @@ namespace winvnc {
     // Where to read the configuration settings from
     static const TCHAR* RegConfigPath;
 
-    bool getClientsInfo(rfb::ListConnInfo* LCInfo);
+    bool getClientsInfo(ListConnInfo* LCInfo);
 
-    bool setClientsStatus(rfb::ListConnInfo* LCInfo);
+    bool setClientsStatus(ListConnInfo* LCInfo);
 
   protected:
     // QueryConnectionHandler interface
@@ -95,6 +96,9 @@ namespace winvnc {
     // EventHandler interface
     // Used to perform queued commands
     virtual void processEvent(HANDLE event);
+
+    void getConnInfo(ListConnInfo * listConn);
+    void setConnStatus(ListConnInfo* listConn);
 
   protected:
     // Perform a particular internal function in the server thread

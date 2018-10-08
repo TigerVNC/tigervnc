@@ -53,7 +53,6 @@
 
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
-#include <rfb/ListConnInfo.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
@@ -82,8 +81,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
-    lastConnectionTime(0), disableclients(false),
-    frameTimer(this)
+    lastConnectionTime(0), frameTimer(this)
 {
   lastUserInputTime = lastDisconnectTime = time(0);
   slog.debug("creating single-threaded server %s", name.buf);
@@ -840,39 +838,6 @@ const RenderedCursor* VNCServerST::getRenderedCursor()
   }
 
   return &renderedCursor;
-}
-
-void VNCServerST::getConnInfo(ListConnInfo * listConn)
-{
-  listConn->Clear();
-  listConn->setDisable(getDisable());
-  if (clients.empty())
-    return;
-  std::list<VNCSConnectionST*>::iterator i;
-  for (i = clients.begin(); i != clients.end(); i++)
-    listConn->addInfo((void*)(*i), (*i)->getSock()->getPeerAddress(),
-                      (*i)->getStartTime(), (*i)->getStatus());
-}
-
-void VNCServerST::setConnStatus(ListConnInfo* listConn)
-{
-  setDisable(listConn->getDisable());
-  if (listConn->Empty() || clients.empty()) return;
-  for (listConn->iBegin(); !listConn->iEnd(); listConn->iNext()) {
-    VNCSConnectionST* conn = (VNCSConnectionST*)listConn->iGetConn();
-    std::list<VNCSConnectionST*>::iterator i;
-    for (i = clients.begin(); i != clients.end(); i++) {
-      if ((*i) == conn) {
-        int status = listConn->iGetStatus();
-        if (status == 3) {
-          (*i)->close(0);
-        } else {
-          (*i)->setStatus(status);
-        }
-        break;
-      }
-    }
-  }
 }
 
 bool VNCServerST::getComparerState()
