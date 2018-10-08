@@ -51,10 +51,6 @@ namespace rfb {
     // Methods called from VNCServerST.  None of these methods ever knowingly
     // throw an exception.
 
-    // Unless otherwise stated, the SConnectionST may not be valid after any of
-    // these methods are called, since they catch exceptions and may have
-    // called close() which deletes the object.
-
     // init() must be called to initialise the protocol.  If it fails it
     // returns false, and close() will have been called.
     bool init();
@@ -86,8 +82,7 @@ namespace rfb {
     // zero is returned.  Zero is also returned if there is no idle timeout.
     int checkIdleTimeout();
 
-    // The following methods never throw exceptions nor do they ever delete the
-    // SConnectionST object.
+    // The following methods never throw exceptions
 
     // getComparerState() returns if this client would like the framebuffer
     // comparer to be enabled.
@@ -115,9 +110,7 @@ namespace rfb {
   private:
     // SConnection callbacks
 
-    // These methods are invoked as callbacks from processMsg().  Note that
-    // none of these methods should call any of the above methods which may
-    // delete the SConnectionST object.
+    // These methods are invoked as callbacks from processMsg()
 
     virtual void authSuccess();
     virtual void queryConnection(const char* userName);
