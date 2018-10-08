@@ -52,8 +52,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     losslessTimer(this), server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
-    clientHasCursor(false),
-    accessRights(AccessDefault), startTime(time(0))
+    clientHasCursor(false), startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -94,17 +93,16 @@ VNCSConnectionST::~VNCSConnectionST()
 }
 
 
-// Methods called from VNCServerST
+// SConnection methods
 
-bool VNCSConnectionST::init()
+bool VNCSConnectionST::accessCheck(AccessRights ar) const
 {
-  try {
-    initialiseProtocol();
-  } catch (rdr::Exception& e) {
-    close(e.str());
-    return false;
-  }
-  return true;
+  // Reverse connections are user initiated, so they are implicitly
+  // allowed to bypass the query
+  if (reverseConnection)
+    ar &= ~AccessNoQuery;
+
+  return SConnection::accessCheck(ar);
 }
 
 void VNCSConnectionST::close(const char* reason)
@@ -123,7 +121,22 @@ void VNCSConnectionST::close(const char* reason)
   // calling code will call VNCServerST's removeSocket() method causing us to
   // be deleted.
   sock->shutdown();
-  setState(RFBSTATE_CLOSING);
+
+  SConnection::close(reason);
+}
+
+
+// Methods called from VNCServerST
+
+bool VNCSConnectionST::init()
+{
+  try {
+    initialiseProtocol();
+  } catch (rdr::Exception& e) {
+    close(e.str());
+    return false;
+  }
+  return true;
 }
 
 
@@ -267,7 +280,7 @@ void VNCSConnectionST::bellOrClose()
 void VNCSConnectionST::serverCutTextOrClose(const char *str, int len)
 {
   try {
-    if (!(accessRights & AccessCutText)) return;
+    if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::sendCutText) return;
     if (state() == RFBSTATE_NORMAL)
       writer()->writeServerCutText(str, len);
@@ -447,9 +460,8 @@ void VNCSConnectionST::queryConnection(const char* userName)
   }
 
   // - Does the client have the right to bypass the query?
-  if (reverseConnection ||
-      !(rfb::Server::queryConnect || sock->requiresQuery()) ||
-      (accessRights & AccessNoQuery))
+  if (!(rfb::Server::queryConnect || sock->requiresQuery()) ||
+      accessCheck(AccessNoQuery))
   {
     approveConnection(true);
     return;
@@ -463,10 +475,10 @@ void VNCSConnectionST::clientInit(bool shared)
 {
   lastEventTime = time(0);
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
-  if (!(accessRights & AccessNonShared)) shared = true;
+  if (!accessCheck(AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
   if (!shared) {
-    if (rfb::Server::disconnectClients && (accessRights & AccessNonShared)) {
+    if (rfb::Server::disconnectClients && accessCheck(AccessNonShared)) {
       // - Close all the other connected clients
       vlog.debug("non-shared connection - closing clients");
       server->closeClients("Non-shared connection requested", getSock());
@@ -494,7 +506,7 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
 void VNCSConnectionST::pointerEvent(const Point& pos, int buttonMask)
 {
   pointerEventTime = lastEventTime = time(0);
-  if (!(accessRights & AccessPtrEvents)) return;
+  if (!accessCheck(AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
   pointerEventPos = pos;
   server->pointerEvent(this, pointerEventPos, buttonMask);
@@ -526,7 +538,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   rdr::U32 lookup;
 
   lastEventTime = time(0);
-  if (!(accessRights & AccessKeyEvents)) return;
+  if (!accessCheck(AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
   if (down)
@@ -636,7 +648,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
 
 void VNCSConnectionST::clientCutText(const char* str, int len)
 {
-  if (!(accessRights & AccessCutText)) return;
+  if (!accessCheck(AccessCutText)) return;
   if (!rfb::Server::acceptCutText) return;
   server->clientCutText(str, len);
 }
@@ -645,7 +657,7 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 {
   Rect safeRect;
 
-  if (!(accessRights & AccessView)) return;
+  if (!accessCheck(AccessView)) return;
 
   SConnection::framebufferUpdateRequest(r, incremental);
 
@@ -684,7 +696,7 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 {
   unsigned int result;
 
-  if (!(accessRights & AccessSetDesktopSize)) return;
+  if (!accessCheck(AccessSetDesktopSize)) return;
   if (!rfb::Server::acceptSetDesktopSize) return;
 
   result = server->setDesktopSize(this, fb_width, fb_height, layout);
@@ -1158,27 +1170,34 @@ char* VNCSConnectionST::getStartTime()
 
 void VNCSConnectionST::setStatus(int status)
 {
+  AccessRights ar;
+
+  ar = AccessDefault;
+
   switch (status) {
   case 0:
-    accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
+    ar |= AccessPtrEvents | AccessKeyEvents | AccessView;
     break;
   case 1:
-    accessRights = (accessRights & ~(AccessPtrEvents | AccessKeyEvents)) | AccessView;
+    ar |= rfb::SConnection::AccessView;
+    ar &= ~(AccessPtrEvents | AccessKeyEvents);
     break;
   case 2:
-    accessRights = accessRights & ~(AccessPtrEvents | AccessKeyEvents | AccessView);
+    ar &= ~(AccessPtrEvents | AccessKeyEvents | AccessView);
     break;
   }
+
+  setAccessRights(ar);
+
   framebufferUpdateRequest(server->getPixelBuffer()->getRect(), false);
 }
 int VNCSConnectionST::getStatus()
 {
-  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0007)
+  if (accessCheck(AccessPtrEvents | AccessKeyEvents | AccessView))
     return 0;
-  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0001)
+  else if (accessCheck(AccessView))
     return 1;
-  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0000)
+  else
     return 2;
-  return 4;
 }
 

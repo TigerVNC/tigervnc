@@ -43,6 +43,11 @@ namespace rfb {
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
     virtual ~VNCSConnectionST();
 
+    // SConnection methods
+
+    virtual bool accessCheck(AccessRights ar) const;
+    virtual void close(const char* reason);
+
     // Methods called from VNCServerST.  None of these methods ever knowingly
     // throw an exception.
 
@@ -53,10 +58,6 @@ namespace rfb {
     // init() must be called to initialise the protocol.  If it fails it
     // returns false, and close() will have been called.
     bool init();
-
-    // close() shuts down the socket to the client and deletes the
-    // SConnectionST object.
-    void close(const char* reason);
 
     // processMessages() processes incoming messages from the client, invoking
     // various callbacks as a result.  It continues to process messages until
@@ -141,12 +142,6 @@ namespace rfb {
     virtual void supportsContinuousUpdates();
     virtual void supportsLEDState();
 
-    // setAccessRights() allows a security package to limit the access rights
-    // of a VNCSConnectioST to the server.  These access rights are applied
-    // such that the actual rights granted are the minimum of the server's
-    // default access settings and the connection's access settings.
-    virtual void setAccessRights(AccessRights ar) {accessRights=ar;}
-
     // Timer callbacks
     virtual bool handleTimeout(Timer* t);
 
@@ -201,8 +196,6 @@ namespace rfb {
     time_t pointerEventTime;
     Point pointerEventPos;
     bool clientHasCursor;
-
-    AccessRights accessRights;
 
     CharArray closeReason;
     time_t startTime;

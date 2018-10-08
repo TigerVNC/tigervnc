@@ -69,6 +69,13 @@ namespace rfb {
     void approveConnection(bool accept, const char* reason=0);
 
 
+    // Methods to terminate the connection
+
+    // close() shuts down the connection to the client and awaits
+    // cleanup of the SConnection object by the server
+    virtual void close(const char* reason);
+
+
     // Overridden from SMsgHandler
 
     virtual void setEncodings(int nEncodings, const rdr::S32* encodings);
@@ -118,8 +125,10 @@ namespace rfb {
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h);
 
+    // Other methods
+
     // setAccessRights() allows a security package to limit the access rights
-    // of a VNCSConnectionST to the server.  How the access rights are treated
+    // of a SConnection to the server.  How the access rights are treated
     // is up to the derived class.
 
     typedef rdr::U16 AccessRights;
@@ -132,9 +141,8 @@ namespace rfb {
     static const AccessRights AccessDefault;        // The default rights, INCLUDING FUTURE ONES
     static const AccessRights AccessNoQuery;        // Connect without local user accepting
     static const AccessRights AccessFull;           // All of the available AND FUTURE rights
-    virtual void setAccessRights(AccessRights ar) = 0;
-
-    // Other methods
+    virtual void setAccessRights(AccessRights ar);
+    virtual bool accessCheck(AccessRights ar) const;
 
     // authenticated() returns true if the client has authenticated
     // successfully.
@@ -201,6 +209,7 @@ namespace rfb {
     SSecurity* ssecurity;
     stateEnum state_;
     rdr::S32 preferredEncoding;
+    AccessRights accessRights;
   };
 }
 #endif

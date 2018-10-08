@@ -73,6 +73,10 @@ namespace rfb {
     //   their close() method with the supplied reason.
     virtual void closeClients(const char* reason) = 0;
 
+    // getConnection() gets the SConnection for a particular Socket.  If
+    // the Socket is not recognised then null is returned.
+    virtual SConnection* getConnection(network::Socket* sock) = 0;
+
     // setCursor() tells the server that the cursor has changed.  The
     // cursorData argument contains width*height rgba quadruplets with
     // non-premultiplied alpha.

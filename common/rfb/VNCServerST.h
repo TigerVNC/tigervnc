@@ -99,6 +99,7 @@ namespace rfb {
     virtual void approveConnection(network::Socket* sock, bool accept,
                                    const char* reason);
     virtual void closeClients(const char* reason) {closeClients(reason, 0);}
+    virtual SConnection* getConnection(network::Socket* sock);
 
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
@@ -132,11 +133,6 @@ namespace rfb {
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);
-
-    // getSConnection() gets the SConnection for a particular Socket.  If
-    // the Socket is not recognised then null is returned.
-
-    SConnection* getSConnection(network::Socket* sock);
 
     // queryConnection() is called when a connection has been
     // successfully authenticated.  The sock and userName arguments identify

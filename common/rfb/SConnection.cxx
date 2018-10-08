@@ -269,6 +269,16 @@ void SConnection::writeConnFailedFromScratch(const char* msg,
   os->flush();
 }
 
+void SConnection::setAccessRights(AccessRights ar)
+{
+  accessRights = ar;
+}
+
+bool SConnection::accessCheck(AccessRights ar) const
+{
+  return (accessRights & ar) == ar;
+}
+
 void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
   int i;
@@ -340,6 +350,11 @@ void SConnection::clientInit(bool shared)
 {
   writer_->writeServerInit();
   state_ = RFBSTATE_NORMAL;
+}
+
+void SConnection::close(const char* reason)
+{
+  state_ = RFBSTATE_CLOSING;
 }
 
 void SConnection::setPixelFormat(const PixelFormat& pf)
