@@ -314,21 +314,6 @@ void SDisplay::clientCutText(const char* text, int len) {
 }
 
 
-Point SDisplay::getFbSize() {
-  bool startAndStop = !core;
-
-  // If not started, do minimal initialisation to get desktop size.
-  if (startAndStop)
-    recreatePixelBuffer();
-  Point result = Point(pb->width(), pb->height());
-
-  // Destroy the initialised structures.
-  if (startAndStop)
-    stopCore();
-  return result;
-}
-
-
 void
 SDisplay::notifyClipboardChanged(const char* text, int len) {
   vlog.debug("clipboard text changed");

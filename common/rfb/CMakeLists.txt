@@ -21,7 +21,6 @@ set(RFB_SOURCES
   d3des.c
   EncodeManager.cxx
   Encoder.cxx
-  HTTPServer.cxx
   HextileDecoder.cxx
   HextileEncoder.cxx
   JpegCompressor.cxx

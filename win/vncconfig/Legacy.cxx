@@ -192,10 +192,6 @@ void LegacyPage::LoadPrefs()
 
       void LegacyPage::LoadUserPrefs(const RegKey& key)
       {
-        if (key.getBool(_T("HTTPConnect"), true))
-          regKey.setInt(_T("HTTPPortNumber"), key.getInt(_T("PortNumber"), 5900)-100);
-        else
-          regKey.setInt(_T("HTTPPortNumber"), 0);
         regKey.setInt(_T("PortNumber"), key.getBool(_T("SocketConnect")) ? key.getInt(_T("PortNumber"), 5900) : 0);
         if (key.getBool(_T("AutoPortSelect"), false)) {
           MsgBox(0, _T("The AutoPortSelect setting is not supported by this release.")

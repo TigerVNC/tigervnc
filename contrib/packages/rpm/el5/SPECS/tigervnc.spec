@@ -115,7 +115,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # xorg requires newer versions of automake, & autoconf than are available with el5. Use el6 versions.
 BuildRequires: automake >= 1.11, autoconf >= 2.60, libtool >= 1.4, gettext >= 0.14.4, gettext-devel >= 0.14.4, bison-devel, python26
-BuildRequires: java-devel, jpackage-utils
 BuildRequires: pam-devel
 BuildRequires: cmake28
 BuildRequires: pkgconfig >= 0.20
@@ -246,18 +245,6 @@ The VNC system allows you to access the same desktop from a wide
 variety of platforms. This package contains minimal installation
 of TigerVNC server, allowing others to access the desktop on your
 machine.
-
-%package server-applet
-Summary: Java TigerVNC viewer applet for TigerVNC server
-Group: User Interface/X
-Requires: tigervnc-server, java, jpackage-utils
-%if 0%{?fedora} >= 10 || 0%{?rhel} >= 6 || 0%{?centos} >= 6
-BuildArch: noarch
-%endif
-
-%description server-applet
-The Java TigerVNC viewer applet for web browsers. Install this package to allow
-clients to use web browser when connect to the TigerVNC server.
 
 %package license
 Summary: License of TigerVNC suite
@@ -915,21 +902,6 @@ pushd media
 make
 popd
 
-# Build Java applet
-pushd java
-%{cmake28} \
-%if !%{_self_signed}
-  -DJAVA_KEYSTORE=%{_keystore} \
-  -DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
-  -DJAVA_KEY_ALIAS=%{_key_alias} \
-  -DJAVA_STOREPASS=":env STOREPASS" \
-  -DJAVA_KEYPASS=":env KEYPASS" \
-  -DJAVA_TSA_URL=https://timestamp.geotrust.com/tsa .
-%endif
-
-JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
-popd
-
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
 
@@ -947,13 +919,6 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/init.d
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 install -m644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/init.d/vncserver
 install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/vncservers
-
-# Install Java applet
-pushd java
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/vnc/classes
-install -m755 VncViewer.jar $RPM_BUILD_ROOT%{_datadir}/vnc/classes
-install -m644 com/tigervnc/vncviewer/index.vnc $RPM_BUILD_ROOT%{_datadir}/vnc/classes
-popd
 
 %find_lang %{name} %{name}.lang
 
@@ -1023,11 +988,6 @@ fi
 %{_mandir}/man1/vncpasswd.1*
 %{_mandir}/man1/vncconfig.1*
 %{_libdir}/*
-
-%files server-applet
-%defattr(-,root,root,-)
-%doc java/com/tigervnc/vncviewer/README
-%{_datadir}/vnc/classes/*
 
 %files license
 %defattr(-,root,root,-)

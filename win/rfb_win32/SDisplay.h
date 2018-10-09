@@ -86,12 +86,6 @@ namespace rfb {
 
       void setStatusLocation(bool* status) {statusLocation = status;}
 
-      // -=- Used (indirectly) by JavaViewer to get desktop size
-
-      Point getFbSize();
-
-      friend class SDisplayCore;
-
       static IntParameter updateMethod;
       static BoolParameter disableLocalInputs;
       static StringParameter disconnectAction;

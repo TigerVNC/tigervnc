@@ -8,7 +8,6 @@
 #define IDD_DIALOG1                     103
 #define IDD_ABOUT                       104
 #define IDI_CONNECTED                   105
-#define IDR_VNCVIEWER_JAR               106
 #define IDD_QUERY_CONNECT               107
 #define IDD_ADD_NEW_CLIENT              108
 #define IDB_BITMAP                      109

@@ -32,11 +32,9 @@
 #include <stdint.h>
 
 #include <rfb/SDesktop.h>
-#include <rfb/HTTPServer.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Configuration.h>
 #include <rfb/VNCServerST.h>
-#include <rdr/SubstitutingInStream.h>
 #include <unixcommon.h>
 #include "Input.h"
 
@@ -47,14 +45,12 @@ namespace rfb {
 namespace network { class SocketListener; class Socket; class SocketServer; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
-                       public rdr::Substitutor,
                        public rfb::VNCServerST::QueryConnectionHandler,
                        public rfb::Timer::Callback {
 public:
 
   XserverDesktop(int screenIndex,
                  std::list<network::SocketListener*> listeners_,
-                 std::list<network::SocketListener*> httpListeners_,
                  const char* name, const rfb::PixelFormat &pf,
                  int width, int height, void* fbptr, int stride);
   virtual ~XserverDesktop();
@@ -99,9 +95,6 @@ public:
   // rfb::PixelBuffer callbacks
   virtual void grabRegion(const rfb::Region& r);
 
-  // rdr::Substitutor callback
-  virtual char* substitute(const char* varName);
-
   // rfb::VNCServerST::QueryConnectionHandler callback
   virtual rfb::VNCServerST::queryResult queryConnection(network::Socket* sock,
                                                         const char* userName,
@@ -121,9 +114,7 @@ private:
 
   int screenIndex;
   rfb::VNCServerST* server;
-  rfb::HTTPServer* httpServer;
   std::list<network::SocketListener*> listeners;
-  std::list<network::SocketListener*> httpListeners;
   bool directFbptr;
 
   uint32_t queryConnectId;

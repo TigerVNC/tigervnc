@@ -23,13 +23,6 @@
 #include <stddef.h>
 #include <sys/select.h>
 
-// Only from C++
-#ifdef __cplusplus
-namespace rfb { class StringParameter; };
-
-extern rfb::StringParameter httpDir;
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

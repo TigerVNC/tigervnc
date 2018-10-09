@@ -35,7 +35,6 @@
 #include <network/Socket.h>
 #include <rfb/Exception.h>
 #include <rfb/VNCServerST.h>
-#include <rfb/HTTPServer.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 #include <rfb/ServerCore.h>
@@ -67,54 +66,14 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "rejecting the connection",
                                  10);
 
-class FileHTTPServer : public rfb::HTTPServer {
-public:
-  FileHTTPServer(XserverDesktop* d) : desktop(d) {}
-  virtual ~FileHTTPServer() {}
-
-  virtual rdr::InStream* getFile(const char* name, const char** contentType,
-                                 int* contentLength, time_t* lastModified)
-  {
-    if (name[0] != '/' || strstr(name, "..") != 0) {
-      vlog.info("http request was for invalid file name");
-      return 0;
-    }
-
-    if (strcmp(name, "/") == 0) name = "/index.vnc";
-
-    CharArray httpDirStr(httpDir.getData());
-    CharArray fname(strlen(httpDirStr.buf)+strlen(name)+1);
-    sprintf(fname.buf, "%s%s", httpDirStr.buf, name);
-    int fd = open(fname.buf, O_RDONLY);
-    if (fd < 0) return 0;
-    rdr::InStream* is = new rdr::FdInStream(fd, -1, 0, true);
-    *contentType = guessContentType(name, *contentType);
-    if (strlen(name) > 4 && strcasecmp(&name[strlen(name)-4], ".vnc") == 0) {
-      is = new rdr::SubstitutingInStream(is, desktop, 20);
-      *contentType = "text/html";
-    } else {
-      struct stat st;
-      if (fstat(fd, &st) == 0) {
-        *contentLength = st.st_size;
-        *lastModified = st.st_mtime;
-      }
-    }
-    return is;
-  }
-
-  XserverDesktop* desktop;
-};
-
 
 XserverDesktop::XserverDesktop(int screenIndex_,
                                std::list<network::SocketListener*> listeners_,
-                               std::list<network::SocketListener*> httpListeners_,
                                const char* name, const rfb::PixelFormat &pf,
                                int width, int height,
                                void* fbptr, int stride)
   : screenIndex(screenIndex_),
-    server(0), httpServer(0),
-    listeners(listeners_), httpListeners(httpListeners_),
+    server(0), listeners(listeners_),
     directFbptr(true),
     queryConnectId(0), queryConnectTimer(this)
 {
@@ -124,17 +83,8 @@ XserverDesktop::XserverDesktop(int screenIndex_,
   setFramebuffer(width, height, fbptr, stride);
   server->setQueryConnectionHandler(this);
 
-  if (!httpListeners.empty ())
-    httpServer = new FileHTTPServer(this);
-
   for (std::list<SocketListener*>::iterator i = listeners.begin();
        i != listeners.end();
-       i++) {
-    vncSetNotifyFd((*i)->getFd(), screenIndex, true, false);
-  }
-
-  for (std::list<SocketListener*>::iterator i = httpListeners.begin();
-       i != httpListeners.end();
        i++) {
     vncSetNotifyFd((*i)->getFd(), screenIndex, true, false);
   }
@@ -147,14 +97,8 @@ XserverDesktop::~XserverDesktop()
     delete listeners.back();
     listeners.pop_back();
   }
-  while (!httpListeners.empty()) {
-    vncRemoveNotifyFd(listeners.back()->getFd());
-    delete httpListeners.back();
-    httpListeners.pop_back();
-  }
   if (!directFbptr)
     delete [] data;
-  delete httpServer;
   delete server;
 }
 
@@ -199,56 +143,6 @@ void XserverDesktop::refreshScreenLayout()
 {
   vncSetGlueContext(screenIndex);
   server->setScreenLayout(::computeScreenLayout(&outputIdMap));
-}
-
-char* XserverDesktop::substitute(const char* varName)
-{
-  if (strcmp(varName, "$$") == 0) {
-    return rfb::strDup("$");
-  }
-  if (strcmp(varName, "$PORT") == 0) {
-    char* str = new char[10];
-    sprintf(str, "%d", listeners.empty () ? 0 : (*listeners.begin ())->getMyPort());
-    return str;
-  }
-  if (strcmp(varName, "$WIDTH") == 0) {
-    char* str = new char[10];
-    sprintf(str, "%d", width());
-    return str;
-  }
-  if (strcmp(varName, "$HEIGHT") == 0) {
-    char* str = new char[10];
-    sprintf(str, "%d", height());
-    return str;
-  }
-  if (strcmp(varName, "$APPLETWIDTH") == 0) {
-    char* str = new char[10];
-    sprintf(str, "%d", width());
-    return str;
-  }
-  if (strcmp(varName, "$APPLETHEIGHT") == 0) {
-    char* str = new char[10];
-    sprintf(str, "%d", height());
-    return str;
-  }
-  if (strcmp(varName, "$DESKTOP") == 0) {
-    return rfb::strDup(server->getName());
-  }
-  if (strcmp(varName, "$DISPLAY") == 0) {
-    struct utsname uts;
-    uname(&uts);
-    char* str = new char[256];
-    strncpy(str, uts.nodename, 240);
-    str[239] = '\0'; /* Ensure string is zero-terminated */
-    strcat(str, ":");
-    strncat(str, vncGetDisplay(), 10);
-    return str;
-  }
-  if (strcmp(varName, "$USER") == 0) {
-    struct passwd* user = getpwuid(getuid());
-    return rfb::strDup(user ? user->pw_name : "?");
-  }
-  return 0;
 }
 
 rfb::VNCServerST::queryResult
@@ -370,13 +264,9 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
     if (read) {
       if (handleListenerEvent(fd, &listeners, server))
         return;
-      if (handleListenerEvent(fd, &httpListeners, httpServer))
-        return;
     }
 
     if (handleSocketEvent(fd, server, read, write))
-      return;
-    if (handleSocketEvent(fd, httpServer, read, write))
       return;
 
     vlog.error("Cannot find file descriptor for socket event");
@@ -456,21 +346,6 @@ void XserverDesktop::blockHandler(int* timeout)
       } else {
         /* Update existing NotifyFD to listen for write (or not) */
         vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().bufferUsage() > 0);
-      }
-    }
-    if (httpServer) {
-      httpServer->getSockets(&sockets);
-      for (i = sockets.begin(); i != sockets.end(); i++) {
-        int fd = (*i)->getFd();
-        if ((*i)->isShutdown()) {
-          vlog.debug("http client gone, sock %d",fd);
-          vncRemoveNotifyFd(fd);
-          httpServer->removeSocket(*i);
-          delete (*i);
-        } else {
-          /* Update existing NotifyFD to listen for write (or not) */
-          vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().bufferUsage() > 0);
-        }
       }
     }
 

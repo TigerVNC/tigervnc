@@ -107,19 +107,6 @@ viewer has finished sending or receiving a message - note that this does not
 mean an update will be aborted after this time.  Default is 20000 (20 seconds).
 .
 .TP
-.B \-httpd \fIdirectory\fP
-Run a mini-HTTP server which serves files from the given directory.  Normally
-the directory will contain the classes for the Java viewer.  In addition, files
-with a .vnc extension will have certain substitutions made so that a single
-installation of the Java VNC viewer can be served by separate instances of
-Xvnc.
-.
-.TP
-.B \-httpPort \fIport\fP
-Specifies the port on which the mini-HTTP server runs.  Default is 5800 plus
-the display number.
-.
-.TP
 .B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
 Password file for VNC authentication.  There is no default, you should
 specify the password file explicitly.  Password file should be created with

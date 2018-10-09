@@ -42,8 +42,6 @@ static LogWriter vlog("VNCServerWin32");
 const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TigerVNC\\WinVNC4");
 
 
-static IntParameter http_port("HTTPPortNumber",
-  "TCP/IP port on which the server will serve the Java applet VNC Viewer ", 5800);
 static IntParameter port_number("PortNumber",
   "TCP/IP port on which the server will accept connections", 5900);
 static StringParameter hosts("Hosts",
@@ -63,8 +61,7 @@ VNCServerWin32::VNCServerWin32()
       CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
     vncServer(CStr(ComputerName().buf), &desktop),
     thread_id(-1), runServer(false), isDesktopStarted(false),
-    httpServer(this), config(&sockMgr),
-    rfbSock(&sockMgr), httpSock(&sockMgr), trayIcon(0),
+    config(&sockMgr), rfbSock(&sockMgr), trayIcon(0),
     queryConnectDialog(0)
 {
   commandLock = new os::Mutex;
@@ -148,16 +145,10 @@ void VNCServerWin32::regConfigChanged() {
   // -=- Make sure we're listening on the right ports.
   rfbSock.setServer(&vncServer);
   rfbSock.setPort(port_number, localHost);
-  httpSock.setServer(&httpServer);
-  httpSock.setPort(http_port, localHost);
-
-  // -=- Update the Java viewer's web page port number.
-  httpServer.setRFBport(rfbSock.isListening() ? port_number : 0);
 
   // -=- Update the TCP address filter for both ports, if open.
   CharArray pattern(hosts.getData());
   rfbSock.setFilter(pattern.buf);
-  httpSock.setFilter(pattern.buf);
 
   // -=- Update the tray icon tooltip text with IP addresses
   processAddressChange();

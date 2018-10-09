@@ -33,8 +33,6 @@ if($slashndx>=0) {
     $exedir = substr($0, 0, $slashndx+1);
 }
 
-$vncClasses = "";
-
 &SanityCheck();
 
 #
@@ -44,9 +42,6 @@ $vncClasses = "";
 
 $geometry = "1024x768";
 #$depth = 16;
-$vncJavaFiles = (((-d "$vncClasses") && "$vncClasses") ||
-                 ((-d "/usr/share/vnc/classes") && "/usr/share/vnc/classes") ||
-                 ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes"));
 
 $vncUserDir = "$ENV{HOME}/.vnc";
 $vncUserConfig = "$vncUserDir/config";
@@ -206,7 +201,6 @@ my %config;
 # We set some reasonable defaults. Config file settings
 # override these where present.
 $default_opts{desktop} = &quotedString($desktopName);
-$default_opts{httpd} = $vncJavaFiles if ($vncJavaFiles);
 $default_opts{auth} = &quotedString($xauthorityFile);
 $default_opts{geometry} = $geometry if ($geometry);
 $default_opts{depth} = $depth if ($depth);
@@ -848,7 +842,6 @@ sub SanityCheck
 	foreach $cmd ("Xvnc","vncpasswd") {
 	    for (split(/:/,$ENV{PATH})) {
 		if (-x "$_/$cmd") {
-		    $vncClasses = "$_/../vnc/classes";
 		    next cmd2;
 		}
 	    }
@@ -860,7 +853,6 @@ sub SanityCheck
 	foreach $cmd ($exedir."Xvnc",$exedir."vncpasswd") {
 	    for (split(/:/,$ENV{PATH})) {
 		if (-x "$cmd") {
-		    $vncClasses = $exedir."../vnc/classes";
 		    next cmd3;
 		}
 	    }
