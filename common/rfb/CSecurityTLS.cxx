@@ -196,6 +196,9 @@ bool CSecurityTLS::processMsg()
     throw AuthFailureException("TLS Handshake failed");
   }
 
+  vlog.debug("TLS handshake completed with %s",
+             gnutls_session_get_desc(session));
+
   checkSession();
 
   cc->setStreams(tlsis, tlsos);

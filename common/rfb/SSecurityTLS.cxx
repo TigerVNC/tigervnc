@@ -163,7 +163,8 @@ bool SSecurityTLS::processMsg()
     throw AuthFailureException("TLS Handshake failed");
   }
 
-  vlog.debug("Handshake completed");
+  vlog.debug("TLS handshake completed with %s",
+             gnutls_session_get_desc(session));
 
   sc->setStreams(tlsis, tlsos);
 
