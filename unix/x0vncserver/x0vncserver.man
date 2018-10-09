@@ -289,6 +289,10 @@ Time in milliseconds to wait for a viewer which is blocking the server. This is
 necessary because the server is single-threaded and sometimes blocks until the
 viewer has finished sending or receiving a message - note that this does not
 mean an update will be aborted after this time.  Default is 20000 (20 seconds).
+.TP
+.B \-StartCommand \fIcommand\fP
+If the connection to the X display fails, start a new X server using
+the specifed command (typically xinit or startx).
 .
 .TP
 .B \-AcceptCutText

@@ -22,7 +22,9 @@
 
 #include <strings.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 #include <rfb/Logger_stdio.h>
@@ -66,6 +68,8 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "rejecting the connection",
                                  10);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
+StringParameter startCommand("StartCommand", "If connection to X display fails, start a new X server "
+			     "using the specified command", "");
 
 //
 // Allow the main loop terminate itself gracefully on receiving a signal.
@@ -246,6 +250,98 @@ static void usage()
   exit(1);
 }
 
+#define OPEN_DISP_RETRIES 40
+/* Wait for Xserver to accept connections */
+static int
+waitforserver(pid_t pid, const char *serverName)
+{
+  Display *disp = NULL;
+  int status;
+
+  for (int i = 0; i < OPEN_DISP_RETRIES; i++) {
+    if ((disp = XOpenDisplay(serverName))) {
+      return 0;
+    }
+
+    pid_t gotpid = waitpid(pid, &status, WNOHANG);
+    if (gotpid < 0) {
+      if (errno == ECHILD) {
+	break;
+      }
+    }
+    if (gotpid == pid) {
+      break;
+    }
+
+    usleep(500000);
+  }
+
+  return -1;
+}
+
+static void start_xserver(char *display_name)
+{
+  vlog.status("Cannot connect to display - starting Xserver (output to ~/.xsession-errors)");
+
+  // Redirect stdin/stdout/stderr. Call setsid to make sure
+  // Xserver gets new session The Xserver will be a child of us
+  // for as long as we live, then inherited by init.
+  pid_t child = fork();
+  if (child == 0) {
+    /* set stdin to /dev/null */
+    if (close(0) < 0) {
+      vlog.error("Unable to close stdin");
+    }
+    int devnull = open("/dev/null", O_RDONLY);
+    if (devnull < 0) {
+      vlog.error("Unable to open /dev/null");
+    }
+    else if (devnull != 0) {
+      vlog.error("Didn't get fd 0 for stdin");
+    }
+
+    /* close stdout */
+    if (close(1) < 0) {
+      vlog.error("Unable to close stdout");
+    }
+
+    /* open log file */
+    char *home = getenv("HOME");
+    if (!home || chdir(home) < 0) {
+      vlog.error("Unable to change to home dir: .xsession-errors created in working directory");
+    }
+    int log = open(".xsession-errors", O_WRONLY | O_CREAT | O_APPEND, 0600);
+    if (log < 0) {
+      vlog.error("Unable to open .xsession-errors for writing");
+    }
+    else if (log != 1) {
+      vlog.error("Didn't get fd 1 for stdout");
+    }
+
+    /* since we are mixing stdout, stderr, and program output, it's
+       convenient to have stdout at least line buffered */
+    setvbuf(stdout, NULL, _IOLBF, 0);
+
+    /* redirect stderr */
+    if (close(2) < 0) {
+      vlog.error(" unable to close stderr");
+    }
+    else {
+      dup(log);
+    }
+
+    setsid();
+    execl("/bin/sh", "sh", "-c", startCommand.getValueStr(), (char *)0);
+    _exit(127);
+  }
+  if (waitforserver(child, display_name) < 0) {
+    vlog.error("Xserver failed to start within timeout");
+    exit(1);
+  } else {
+    vlog.status("Xserver started");
+  }
+}
+
 int main(int argc, char** argv)
 {
   initStdIOLoggers();
@@ -283,11 +379,18 @@ int main(int argc, char** argv)
   }
 
   CharArray dpyStr(displayname.getData());
-  if (!(dpy = XOpenDisplay(dpyStr.buf[0] ? dpyStr.buf : 0))) {
-    // FIXME: Why not vlog.error(...)?
-    fprintf(stderr,"%s: unable to open display \"%s\"\r\n",
-            programName, XDisplayName(dpyStr.buf));
-    exit(1);
+  dpy = XOpenDisplay(dpyStr.buf[0] ? dpyStr.buf : 0);
+  if (!dpy) {
+    /* Start a new Xserver if requested */
+    if (strlen(startCommand) > 0) {
+      start_xserver(dpyStr.buf[0] ? dpyStr.buf : 0);
+      dpy = XOpenDisplay(dpyStr.buf[0] ? dpyStr.buf : 0);
+    }
+
+    if (!dpy) {
+      vlog.error("unable to open display \"%s\"", XDisplayName(dpyStr.buf));
+      exit(1);
+    }
   }
 
   signal(SIGHUP, CleanupSignalHandler);
