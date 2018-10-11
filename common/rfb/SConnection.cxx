@@ -260,15 +260,6 @@ void SConnection::throwConnFailedException(const char* format, ...)
   throw ConnFailedException(str);
 }
 
-void SConnection::writeConnFailedFromScratch(const char* msg,
-                                             rdr::OutStream* os)
-{
-  os->writeBytes("RFB 003.003\n", 12);
-  os->writeU32(0);
-  os->writeString(msg);
-  os->flush();
-}
-
 void SConnection::setAccessRights(AccessRights ar)
 {
   accessRights = ar;

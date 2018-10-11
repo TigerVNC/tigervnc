@@ -126,8 +126,13 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
   if (blHosts->isBlackmarked(address.buf)) {
     connectionsLog.error("blacklisted: %s", address.buf);
     try {
-      SConnection::writeConnFailedFromScratch("Too many security failures",
-                                              &sock->outStream());
+      rdr::OutStream& os = sock->outStream();
+
+      // Shortest possible way to tell a client it is not welcome
+      os.writeBytes("RFB 003.003\n", 12);
+      os.writeU32(0);
+      os.writeString("Too many security failures");
+      os.flush();
     } catch (rdr::Exception&) {
     }
     sock->shutdown();

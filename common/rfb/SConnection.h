@@ -154,13 +154,6 @@ namespace rfb {
     // ConnFailedException.
     void throwConnFailedException(const char* format, ...) __printf_attr(2, 3);
 
-    // writeConnFailedFromScratch() sends a conn failed message to an OutStream
-    // without the need to negotiate the protocol version first.  It actually
-    // does this by assuming that the client will understand version 3.3 of the
-    // protocol.
-    static void writeConnFailedFromScratch(const char* msg,
-                                           rdr::OutStream* os);
-
     SMsgReader* reader() { return reader_; }
     SMsgWriter* writer() { return writer_; }
 
