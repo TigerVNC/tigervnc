@@ -149,11 +149,6 @@ namespace rfb {
     bool authenticated() { return (state_ == RFBSTATE_INITIALISATION ||
                                    state_ == RFBSTATE_NORMAL); }
 
-    // throwConnFailedException() prints a message to the log, sends a conn
-    // failed message to the client (if possible) and throws a
-    // ConnFailedException.
-    void throwConnFailedException(const char* format, ...) __printf_attr(2, 3);
-
     SMsgReader* reader() { return reader_; }
     SMsgWriter* writer() { return writer_; }
 
@@ -177,6 +172,11 @@ namespace rfb {
     rdr::S32 getPreferredEncoding() { return preferredEncoding; }
 
   protected:
+    // throwConnFailedException() prints a message to the log, sends a conn
+    // failed message to the client (if possible) and throws a
+    // ConnFailedException.
+    void throwConnFailedException(const char* format, ...) __printf_attr(2, 3);
+
     void setState(stateEnum s) { state_ = s; }
 
     void setReader(SMsgReader *r) { reader_ = r; }
