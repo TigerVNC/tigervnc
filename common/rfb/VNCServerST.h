@@ -148,6 +148,8 @@ namespace rfb {
     // ready to be sent to clients
     Region getPendingRegion();
 
+    // getRenderedCursor() returns an up to date version of the server
+    // side rendered cursor buffer
     const RenderedCursor* getRenderedCursor();
 
   protected:
@@ -160,6 +162,17 @@ namespace rfb {
     void startDesktop();
     void stopDesktop();
 
+    // - Check how many of the clients are authenticated.
+    int authClientCount();
+
+    bool needRenderedCursor();
+    void startFrameClock();
+    void stopFrameClock();
+    void writeUpdate();
+
+    bool getComparerState();
+
+  protected:
     Blacklist blacklist;
     Blacklist* blHosts;
 
@@ -182,16 +195,6 @@ namespace rfb {
     Cursor* cursor;
     RenderedCursor renderedCursor;
     bool renderedCursorInvalid;
-
-    // - Check how many of the clients are authenticated.
-    int authClientCount();
-
-    bool needRenderedCursor();
-    void startFrameClock();
-    void stopFrameClock();
-    void writeUpdate();
-
-    bool getComparerState();
 
     KeyRemapper* keyRemapper;
 
