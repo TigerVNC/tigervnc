@@ -105,8 +105,6 @@ namespace rfb {
       updates.add_copied(dest, delta);
     }
 
-    const char* getPeerEndpoint() const {return peerEndpoint.buf;}
-
   private:
     // SConnection callbacks
 

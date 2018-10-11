@@ -135,15 +135,6 @@ namespace rfb {
     // request to the desktop.
     void queryConnection(VNCSConnectionST* client, const char* userName);
 
-    // setBlacklist() is called to replace the VNCServerST's internal
-    // Blacklist instance with another instance.  This allows a single
-    // Blacklist to be shared by multiple VNCServerST instances.
-    void setBlacklist(Blacklist* bl) {blHosts = bl ? bl : &blacklist;}
-
-    // setKeyRemapper() replaces the VNCServerST's default key remapper.
-    // NB: A null pointer is valid here.
-    void setKeyRemapper(KeyRemapper* kr) { keyRemapper = kr; }
-
     // clientReady() is called by a VNCSConnectionST instance when the
     // client has completed the handshake and is ready for normal
     // communication.
