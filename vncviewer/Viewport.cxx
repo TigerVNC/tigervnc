@@ -1214,7 +1214,7 @@ void Viewport::initContextMenu()
                 0, NULL, (void*)ID_OPTIONS, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
                 0, NULL, (void*)ID_INFO, 0);
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
+  fltk_menu_add(contextMenu, p_("ContextMenu|", "About &" PROGNAME_LONG "..."),
                 0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Dismiss &menu"),

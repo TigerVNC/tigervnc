@@ -38,6 +38,7 @@
 #include "i18n.h"
 #include "menukey.h"
 #include "parameters.h"
+#include "vncviewer.h"
 
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Button.H>
@@ -54,7 +55,7 @@ using namespace rfb;
 std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
 
 OptionsDialog::OptionsDialog()
-  : Fl_Window(450, 450, _("VNC Viewer: Connection Options"))
+  : Fl_Window(450, 450, _(PROGNAME_LONG ": Connection Options"))
 {
   int x, y;
   Fl_Button *button;
