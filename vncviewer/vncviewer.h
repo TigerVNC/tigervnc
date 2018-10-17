@@ -19,7 +19,12 @@
 #ifndef __VNCVIEWER_H__
 #define __VNCVIEWER_H__
 
+#include <stddef.h>
+
 #define VNCSERVERNAMELEN 256
+
+#define PROGNAME_SHORT "vncviewer"
+#define PROGNAME_LONG "TigerVNC Viewer"
 
 void exit_vncviewer(const char *error = NULL);
 bool should_exit();

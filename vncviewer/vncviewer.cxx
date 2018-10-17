@@ -97,7 +97,7 @@ static const char *about_text()
   // encodings, so we need to make sure we get a fresh string every
   // time.
   snprintf(buffer, sizeof(buffer),
-           _("TigerVNC Viewer %d-bit v%s\n"
+           _(PROGNAME_LONG " %d-bit v%s\n"
              "Built on: %s\n"
              "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
              "See http://www.tigervnc.org for information on TigerVNC."),
@@ -124,7 +124,7 @@ bool should_exit()
 
 void about_vncviewer()
 {
-  fl_message_title(_("About TigerVNC Viewer"));
+  fl_message_title(_("About " PROGNAME_LONG));
   fl_message("%s", about_text());
 }
 
@@ -155,7 +155,7 @@ static void new_connection_cb(Fl_Widget *widget, void *data)
 
   pid = fork();
   if (pid == -1) {
-    vlog.error(_("Error starting new TigerVNC Viewer: %s"), strerror(errno));
+    vlog.error(_("Error starting new " PROGNAME_LONG ": %s"), strerror(errno));
     return;
   }
 
@@ -167,7 +167,7 @@ static void new_connection_cb(Fl_Widget *widget, void *data)
 
   execvp(argv[0], (char * const *)argv);
 
-  vlog.error(_("Error starting new TigerVNC Viewer: %s"), strerror(errno));
+  vlog.error(_("Error starting new " PROGNAME_LONG ": %s"), strerror(errno));
   _exit(1);
 }
 #endif
@@ -176,7 +176,7 @@ static void CleanupSignalHandler(int sig)
 {
   // CleanupSignalHandler allows C++ object cleanup to happen because it calls
   // exit() rather than the default which is to abort.
-  vlog.info(_("Termination signal %d has been received. TigerVNC Viewer will now exit."), sig);
+  vlog.info(_("Termination signal %d has been received. " PROGNAME_LONG " will now exit."), sig);
   exit(1);
 }
 
@@ -197,7 +197,7 @@ static void init_fltk()
 
   // Proper Gnome Shell integration requires that we set a sensible
   // WM_CLASS for the window.
-  Fl_Window::default_xclass("vncviewer");
+  Fl_Window::default_xclass(PROGNAME_SHORT);
 
   // Set the default icon for all windows.
 #ifdef WIN32
@@ -268,7 +268,7 @@ static void init_fltk()
   fl_message_hotspot(false);
 
   // Avoid empty titles for popups
-  fl_message_title_default(_("TigerVNC Viewer"));
+  fl_message_title_default(_(PROGNAME_LONG));
 
 #ifdef WIN32
   // Most "normal" Windows apps use this font for UI elements.
@@ -511,9 +511,9 @@ int main(int argc, char** argv)
 
   rfb::initStdIOLoggers();
 #ifdef WIN32
-  rfb::initFileLogger("C:\\temp\\vncviewer.log");
+  rfb::initFileLogger("C:\\temp\\" PROGNAME_SHORT ".log");
 #else
-  rfb::initFileLogger("/tmp/vncviewer.log");
+  rfb::initFileLogger("/tmp/" PROGNAME_SHORT ".log");
 #endif
   rfb::LogWriter::setLogParams("*:stderr:30");
 

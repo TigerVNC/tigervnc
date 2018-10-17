@@ -31,6 +31,7 @@
 #include <tchar.h>
 #endif
 
+#include "vncviewer.h"
 #include "parameters.h"
 
 #include <os/os.h>
@@ -135,7 +136,7 @@ BoolParameter sendPrimary("SendPrimary",
                           "server as well as the clipboard selection",
                           true);
 StringParameter display("display",
-			"Specifies the X display on which the VNC viewer window should appear.",
+			"Specifies the X display on which the " PROGNAME_LONG " window should appear.",
 			"");
 #endif
 
@@ -395,7 +396,7 @@ static void saveToReg(const char* servername) {
   HKEY hKey;
     
   LONG res = RegCreateKeyExW(HKEY_CURRENT_USER,
-                             L"Software\\TigerVNC\\vncviewer", 0, NULL,
+                             L"Software\\TigerVNC\\" PROGNAME_SHORT, 0, NULL,
                              REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,
                              &hKey, NULL);
   if (res != ERROR_SUCCESS) {

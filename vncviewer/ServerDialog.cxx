@@ -39,7 +39,7 @@
 #include "rfb/Exception.h"
 
 ServerDialog::ServerDialog()
-  : Fl_Window(450, 160, _("VNC Viewer: Connection Details"))
+  : Fl_Window(450, 160, _(PROGNAME_LONG ": Connection Details"))
 {
   int x, y;
   Fl_Button *button;
