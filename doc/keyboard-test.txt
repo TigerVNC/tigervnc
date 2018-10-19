@@ -164,3 +164,40 @@ Client (both modes)
   * Usually needs to be enabled with: xmodmap -e "add mod3 = Scroll_Lock"
 
 - Virtual keyboard (as much of the above as is possible)
+
+Server
+------
+
+- Fake key events
+
+  An extra press or release should be added before the real key press
+  in order to get the correct state to get the desired symbol. A second
+  fake event should be added after the real key press to restore state.
+  No extra events should be added for a key release.
+
+  Possible fake keys:
+
+  - Shift
+  - AltGr
+
+  - Shift+Tab bypasses this and never fake releases Shift
+
+- Alternative keys
+
+  A semantically equivalent key is sent when the desired key cannot be
+  reached in the current keyboard state:
+
+  - Left modifier <=> Right modifier (e.g. Alt_R for Alt_L)
+  - Keypad key <=> Standard key
+  - ISO_Level3_Shift <=> Mode_Switch
+
+- Meta for Shift+Alt (if server keymap agrees)
+
+- Lock key heuristics (for clients without lock key extension)
+
+  - CapsLock is corrected when A-Z or a-z are pressed
+  - CapsLock is corrected when Shift and A-Z or a-z are pressed*
+  - NumLock is corrected when 0-9 on the keypad are pressed
+
+  * Gives incorrect behaviour if the client doesn't have "Shift cancels
+    CapsLock behaviour", e.g. macOS
