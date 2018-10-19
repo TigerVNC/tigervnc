@@ -4,9 +4,11 @@ Test protocol for keyboard handling
 Platform specific tests/issues are marked with [].
 
 These tests are primarily about what is sent over the protocol and some
-may be difficult or impossible to test using normal applications. In
-these cases you can turn on debug logging in either the client or the
-server by specifying "-Log *:stderr:100".
+may be difficult or impossible to test using normal applications. One
+such case is that xev will see fake KeyRelease events on key repeat,
+even when no such events were sent by the client. In these cases you
+can turn on debug logging in either the client or the server by
+specifying "-Log *:stderr:100".
 
 We currently have a limitation in Xvnc where it can run out of symbols,
 resulting in nothing being sent to the applications. Just run setxkbmap
@@ -103,7 +105,7 @@ Client (classic, non-raw, mode)
 
   - F1-F24 (FIXME: F14-F15 broken on OS X)
   - Tab, Space, Backspace, Return, Esc
-  - LeftTab sends Tab [X11?]
+  - LeftTab sends Tab [X11]
   - PrntScrn, ScrollLock, Pause [X11, Win]
   - Help [X11?, OS X]
   - Insert [X11, Win]
@@ -157,6 +159,8 @@ Client (both modes)
 
   - CapsLock
   - NumLock (hidden state on macOS)
-  - ScollLock [X11, Win]
+  - ScollLock* [X11, Win]
+
+  * Usually needs to be enabled with: xmodmap -e "add mod3 = Scroll_Lock"
 
 - Virtual keyboard (as much of the above as is possible)
