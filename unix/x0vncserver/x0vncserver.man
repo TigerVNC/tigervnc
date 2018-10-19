@@ -302,7 +302,7 @@ Currently unused.
 .BR Xvnc (1),
 .BR vncpasswd (1),
 .br
-http://www.tigervnc.org/
+https://www.tigervnc.org/
 
 .SH AUTHOR
 Constantin Kaplinsky and others.

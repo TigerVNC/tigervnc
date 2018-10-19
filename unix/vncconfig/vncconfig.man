@@ -114,7 +114,7 @@ When run as a "helper" app, make the window iconified at startup.
 .BR vncserver (1),
 .BR Xvnc (1)
 .br
-http://www.tigervnc.org
+https://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd. and others.

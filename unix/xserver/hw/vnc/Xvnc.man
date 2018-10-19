@@ -396,7 +396,7 @@ created automatically the next time he connects.
 .BR Xserver (1),
 .BR inetd (1)
 .br
-http://www.tigervnc.org
+https://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd. and others.

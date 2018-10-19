@@ -18,5 +18,5 @@ $USER's $DESKTOP desktop ($DISPLAY)
 <param name="draggable" value="true">
 </APPLET>
 <BR>
-<A href="http://www.tigervnc.org/">TigerVNC site</A>
+<A href="https://www.tigervnc.org/">TigerVNC site</A>
 </HTML>

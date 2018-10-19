@@ -233,7 +233,7 @@ BEGIN
     LTEXT           ">version<",IDC_VERSION,165,7,77,18
     LTEXT           ">buildtime<",IDC_BUILDTIME,40,25,202,15
     LTEXT           ">copyright<",IDC_COPYRIGHT,40,40,256,15
-    LTEXT           "See http://www.tigervnc.org for more information on TigerVNC.",
+    LTEXT           "See https://www.tigervnc.org for more information on TigerVNC.",
                     IDC_STATIC,40,55,202,15
 END
 

@@ -9,7 +9,7 @@ AppVerName=TigerVNC v@VERSION@ (@BUILD@)
 #endif
 AppVersion=@VERSION@
 AppPublisher=TigerVNC project
-AppPublisherURL=http://tigervnc.org
+AppPublisherURL=https://tigervnc.org
 DefaultDirName={pf}\TigerVNC
 #ifdef WIN64
 DefaultGroupName=TigerVNC 64-bit

@@ -66,7 +66,7 @@ public class VncViewer extends javax.swing.JApplet
     new String("TigerVNC Java Viewer v%s (%s)%n"+
                "Built on %s at %s%n"+
                "Copyright (C) 1999-2018 TigerVNC Team and many others (see README.rst)%n"+
-               "See http://www.tigervnc.org for information on TigerVNC.");
+               "See https://www.tigervnc.org for information on TigerVNC.");
 
   public static String version = null;
   public static String build = null;

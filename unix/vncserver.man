@@ -192,7 +192,7 @@ option.
 .BR vncconfig (1),
 .BR Xvnc (1)
 .br
-http://www.tigervnc.org
+https://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd., D. R. Commander and others.

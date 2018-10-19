@@ -47,7 +47,7 @@ Default location of the VNC password file.
 .BR Xvnc (1)
 .BR vncconfig (1),
 .br
-http://www.tigervnc.org
+https://www.tigervnc.org
 
 .SH AUTHORS
 Tristan Richardson, RealVNC Ltd., Antoine Martin, D. R. Commander and others.

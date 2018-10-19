@@ -885,7 +885,7 @@ GL_LIBS='-Wl,-Bdynamic -lGL' LDFLAGS="$LDFLAGS -Wl,-rpath,"'\$$'"ORIGIN/../..%{_
   --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_datadir}/man \
   --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} \
   --with-vendor-name="The TigerVNC Project" --with-vendor-name-short="TigerVNC" \
-  --with-vendor-web="http://www.tigervnc.org" \
+  --with-vendor-web="https://www.tigervnc.org" \
   --disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
   --disable-xwin --disable-xephyr --disable-kdrive --disable-wayland \
   --with-pic --enable-static --disable-shared --enable-xinerama \
