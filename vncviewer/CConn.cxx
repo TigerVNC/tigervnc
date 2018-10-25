@@ -113,14 +113,14 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
       if (strchr(vncServerName, '/') != NULL) {
         sock = new network::UnixSocket(vncServerName);
         serverHost = sock->getPeerAddress();
-        vlog.info(_("connected to socket %s"), serverHost);
+        vlog.info(_("Connected to socket %s"), serverHost);
       } else
 #endif
       {
         getHostAndPort(vncServerName, &serverHost, &serverPort);
 
         sock = new network::TcpSocket(serverHost, serverPort);
-        vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
+        vlog.info(_("Connected to host %s port %d"), serverHost, serverPort);
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
@@ -575,9 +575,12 @@ void CConn::autoSelectFormatAndEncoding()
   // Select best color level
   newFullColour = (kbitsPerSecond > 256);
   if (newFullColour != fullColour) {
-    vlog.info(_("Throughput %d kbit/s - full color is now %s"), 
-              kbitsPerSecond,
-              newFullColour ? _("enabled") : _("disabled"));
+    if (newFullColour)
+      vlog.info(_("Throughput %d kbit/s - full color is now enabled"),
+                kbitsPerSecond);
+    else
+      vlog.info(_("Throughput %d kbit/s - full color is now disabled"),
+                kbitsPerSecond);
     fullColour.setParam(newFullColour);
     formatChange = true;
   } 
