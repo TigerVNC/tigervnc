@@ -109,6 +109,7 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
 
 void Surface::alloc()
 {
+  XRenderPictFormat templ;
   XRenderPictFormat* format;
 
   // Might not be open at this point
@@ -117,7 +118,37 @@ void Surface::alloc()
   pixmap = XCreatePixmap(fl_display, XDefaultRootWindow(fl_display),
                          width(), height(), 32);
 
-  format = XRenderFindStandardFormat(fl_display, PictStandardARGB32);
+  // Our code assumes a BGRA byte order, regardless of what the endian
+  // of the machine is or the native byte order of XImage, so make sure
+  // we find such a format
+  templ.type = PictTypeDirect;
+  templ.depth = 32;
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  templ.direct.alpha = 0;
+  templ.direct.red   = 8;
+  templ.direct.green = 16;
+  templ.direct.blue  = 24;
+#else
+  templ.direct.alpha = 24;
+  templ.direct.red   = 16;
+  templ.direct.green = 8;
+  templ.direct.blue  = 0;
+#endif
+  templ.direct.alphaMask = 0xff;
+  templ.direct.redMask = 0xff;
+  templ.direct.greenMask = 0xff;
+  templ.direct.blueMask = 0xff;
+
+  format = XRenderFindFormat(fl_display, PictFormatType | PictFormatDepth |
+                             PictFormatRed | PictFormatRedMask |
+                             PictFormatGreen | PictFormatGreenMask |
+                             PictFormatBlue | PictFormatBlueMask |
+                             PictFormatAlpha | PictFormatAlphaMask,
+                             &templ, 0);
+
+  if (!format)
+    throw rdr::Exception("XRenderFindFormat");
+
   picture = XRenderCreatePicture(fl_display, pixmap, format, 0, NULL);
 
   visFormat = XRenderFindVisualFormat(fl_display, fl_visual->visual);

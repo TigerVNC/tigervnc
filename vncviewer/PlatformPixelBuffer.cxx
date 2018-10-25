@@ -34,13 +34,8 @@
 static rfb::LogWriter vlog("PlatformPixelBuffer");
 
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
-  FullFramePixelBuffer(rfb::PixelFormat(32, 24,
-#if !defined(WIN32) && !defined(__APPLE__)
-                                        ImageByteOrder(fl_display) == MSBFirst,
-#else
-                                        false,
-#endif
-                                        true, 255, 255, 255, 16, 8, 0),
+  FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
+                                        255, 255, 255, 16, 8, 0),
                        width, height, 0, stride),
   Surface(width, height)
 #if !defined(WIN32) && !defined(__APPLE__)
