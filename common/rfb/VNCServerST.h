@@ -198,9 +198,9 @@ namespace rfb {
 
     KeyRemapper* keyRemapper;
 
-    time_t lastUserInputTime;
-    time_t lastDisconnectTime;
-    time_t lastConnectionTime;
+    Timer idleTimer;
+    Timer disconnectTimer;
+    Timer connectTimer;
 
     Timer frameTimer;
   };

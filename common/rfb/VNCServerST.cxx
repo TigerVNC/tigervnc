@@ -81,10 +81,16 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
-    lastConnectionTime(0), frameTimer(this)
+    idleTimer(this), disconnectTimer(this), connectTimer(this),
+    frameTimer(this)
 {
-  lastUserInputTime = lastDisconnectTime = time(0);
   slog.debug("creating single-threaded server %s", name.buf);
+
+  // FIXME: Do we really want to kick off these right away?
+  if (rfb::Server::maxIdleTime)
+    idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
+  if (rfb::Server::maxDisconnectionTime)
+    disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
 }
 
 VNCServerST::~VNCServerST()
@@ -144,9 +150,10 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
   name.buf = sock->getPeerEndpoint();
   connectionsLog.status("accepted: %s", name.buf);
 
-  if (clients.empty()) {
-    lastConnectionTime = time(0);
-  }
+  // Adjust the exit timers
+  if (rfb::Server::maxConnectionTime && clients.empty())
+    connectTimer.start(secsToMillis(rfb::Server::maxConnectionTime));
+  disconnectTimer.stop();
 
   VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing);
   clients.push_front(client);
@@ -164,8 +171,10 @@ void VNCServerST::removeSocket(network::Socket* sock) {
       if (pointerClient == *ci)
         pointerClient = NULL;
 
-      if ((*ci)->authenticated())
-        lastDisconnectTime = time(0);
+      // Adjust the exit timers
+      connectTimer.stop();
+      if (rfb::Server::maxDisconnectionTime && clients.empty())
+        disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
 
       // - Delete the per-Socket resources
       delete *ci;
@@ -225,73 +234,6 @@ int VNCServerST::checkTimeouts()
   for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
     ci_next = ci; ci_next++;
     soonestTimeout(&timeout, (*ci)->checkIdleTimeout());
-  }
-
-  int timeLeft;
-  time_t now = time(0);
-
-  // Check MaxDisconnectionTime 
-  if (rfb::Server::maxDisconnectionTime && clients.empty()) {
-    if (now < lastDisconnectTime) {
-      // Someone must have set the time backwards. 
-      slog.info("Time has gone backwards - resetting lastDisconnectTime");
-      lastDisconnectTime = now;
-    }
-    timeLeft = lastDisconnectTime + rfb::Server::maxDisconnectionTime - now;
-    if (timeLeft < -60) {
-      // Someone must have set the time forwards.
-      slog.info("Time has gone forwards - resetting lastDisconnectTime");
-      lastDisconnectTime = now;
-      timeLeft = rfb::Server::maxDisconnectionTime;
-    }
-    if (timeLeft <= 0) { 
-      slog.info("MaxDisconnectionTime reached, exiting");
-      exit(0);
-    }
-    soonestTimeout(&timeout, timeLeft * 1000);
-  }
-
-  // Check MaxConnectionTime 
-  if (rfb::Server::maxConnectionTime && lastConnectionTime && !clients.empty()) {
-    if (now < lastConnectionTime) {
-      // Someone must have set the time backwards. 
-      slog.info("Time has gone backwards - resetting lastConnectionTime");
-      lastConnectionTime = now;
-    }
-    timeLeft = lastConnectionTime + rfb::Server::maxConnectionTime - now;
-    if (timeLeft < -60) {
-      // Someone must have set the time forwards.
-      slog.info("Time has gone forwards - resetting lastConnectionTime");
-      lastConnectionTime = now;
-      timeLeft = rfb::Server::maxConnectionTime;
-    }
-    if (timeLeft <= 0) {
-      slog.info("MaxConnectionTime reached, exiting");
-      exit(0);
-    }
-    soonestTimeout(&timeout, timeLeft * 1000);
-  }
-
-  
-  // Check MaxIdleTime 
-  if (rfb::Server::maxIdleTime) {
-    if (now < lastUserInputTime) {
-      // Someone must have set the time backwards. 
-      slog.info("Time has gone backwards - resetting lastUserInputTime");
-      lastUserInputTime = now;
-    }
-    timeLeft = lastUserInputTime + rfb::Server::maxIdleTime - now;
-    if (timeLeft < -60) {
-      // Someone must have set the time forwards.
-      slog.info("Time has gone forwards - resetting lastUserInputTime");
-      lastUserInputTime = now;
-      timeLeft = rfb::Server::maxIdleTime;
-    }
-    if (timeLeft <= 0) {
-      slog.info("MaxIdleTime reached, exiting");
-      exit(0);
-    }
-    soonestTimeout(&timeout, timeLeft * 1000);
   }
   
   return timeout;
@@ -495,7 +437,8 @@ void VNCServerST::setLEDState(unsigned int state)
 
 void VNCServerST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
-  lastUserInputTime = time(0);
+  if (rfb::Server::maxIdleTime)
+    idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Remap the key if required
   if (keyRemapper) {
@@ -513,7 +456,8 @@ void VNCServerST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 void VNCServerST::pointerEvent(VNCSConnectionST* client,
                                const Point& pos, int buttonMask)
 {
-  lastUserInputTime = time(0);
+  if (rfb::Server::maxIdleTime)
+    idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Let one client own the cursor whilst buttons are pressed in order
   // to provide a bit more sane user experience
@@ -628,6 +572,15 @@ bool VNCServerST::handleTimeout(Timer* t)
     }
 
     return true;
+  } else if (t == &idleTimer) {
+    slog.info("MaxIdleTime reached, exiting");
+    exit(0);
+  } else if (t == &disconnectTimer) {
+    slog.info("MaxDisconnectionTime reached, exiting");
+    exit(0);
+  } else if (t == &connectTimer) {
+    slog.info("MaxConnectionTime reached, exiting");
+    exit(0);
   }
 
   return false;
