@@ -177,12 +177,3 @@ add_custom_command(OUTPUT VncViewer.jar
     -P ${SRCDIR}/cmake/SignJar.cmake)
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)
-
-if(NOT WIN32)
-  install(FILES
-    ${BINDIR}/VncViewer.jar
-    ${SRCDIR}/${CLASSPATH}/README
-    ${SRCDIR}/${CLASSPATH}/index.vnc
-    ${SRCDIR}/${CLASSPATH}/favicon.ico
-    DESTINATION ${DATA_DIR}/vnc/classes)
-endif()

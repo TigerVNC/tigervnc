@@ -217,18 +217,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// HTTPFILE
-//
-
-#cmakedefine BUILD_JAVA
-
-#ifdef BUILD_JAVA
-VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "@VNCVIEWER_JAR_PATH@"
-INDEX.VNC              HTTPFILE DISCARDABLE    "@INDEX_VNC_PATH@"
-#endif
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // 24
 //
 

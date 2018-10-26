@@ -27,86 +27,24 @@ available.
 Installation
 ============
 
-There are three basic ways to use the TigerVNC Java Viewer:
+The TigerVNC Java Viewer requires installation of either a JRE (Java
+Runtime Environment) or a JDK (Java Development Kit).  If VncViewer.jar is
+in the current directory, then the TigerVNC Java Viewer can be launched
+with the following command line:
 
-  1. Running the applet as part of a TigerVNC Server installation.
+   java -jar VncViewer.jar [parameters]
 
-     Both the Unix and Windows versions of the TigerVNC Server include a small
-     built-in HTTP server that can serve the TigerVNC Java Viewer to web
-     clients.  This enables easy access to the shared desktop without the need
-     to install any software on the client machine.
-
-     The Unix TigerVNC Server (Xvnc) is able to serve up any set of files that
-     are present in a particular directory, which is specified in the -httpd
-     argument to Xvnc.  The default version of the vncserver script will look
-     for a directory called vnc/classes, one level up from the directory
-     containing the vncserver script, then it will look for a directory called
-     /usr/share/vnc/classes, then /usr/local/vnc/classes.  It will set the
-     -httpd argument to Xvnc to the first one of these VNC classes directories
-     it finds.  Thus, one can easily deploy a modified version of the TigerVNC
-     Java Viewer by simply copying a new version of VncViewer.jar and/or
-     index.vnc into the VNC classes directory.
-
-     On Windows and Linux, the embedded applet can be drag-undocked from the 
-     browser window and converted to a standalone application. The drag
-     gesture ALT+drag on Windows, and SHIFT+drag on Linux.
-
-     In the case of the Windows TigerVNC Server, VncViewer.jar and index.vnc
-     are embedded as resources in the WinVNC executable, so deploying a
-     modified version of the TigerVNC Java Viewer on a Windows server requires
-     rebuilding WinVNC.
-
-  2. Running the applet from a standalone web server.
-
-     Another possibility for using the TigerVNC Java Viewer is to install it
-     under a fully-functional HTTP server, such as Apache or IIS.  Due to Java
-     security restrictions, the applet must be signed in order for it to
-     connect to a VNC server running on a different machine from the HTTP
-     server.
-
-     One can install the TigerVNC Java Viewer by simply copying the .class and
-     .jar files into a directory that is under the control of the HTTP server.
-     Also, an HTML page should be created to act as a the base document for the
-     TigerVNC Java Viewer applet (an example named index.html is provided in
-     this directory.  Modify this file to suit your specific needs.)
-
-  3. Running the viewer as a standalone application.
-
-     Finally, the TigerVNC Java Viewer can be executed locally on the client
-     machine, but this method requires installation of either a JRE (Java
-     Runtime Environment) or a JDK (Java Development Kit).  If VncViewer.jar is
-     in the current directory, then the TigerVNC Java Viewer can be launched
-     with the following command line:
-
-         java -jar VncViewer.jar [parameters]
-
-     Add an argument of -? to the above command line to print a list of
-     optional parameters supported by VncViewer.
+Add an argument of -? to the above command line to print a list of
+optional parameters supported by VncViewer.
 
 
 Parameters
 ==========
 
 The TigerVNC Java Viewer accepts a number of optional parameters, allowing you
-to customize its behavior.
+to customize its behavior. Example:
 
-Parameters can be specified in one of the two ways, depending on how the
-TigerVNC Java Viewer is used:
-
-  1. When the TigerVNC Java Viewer is run as an applet (embedded within an HTML
-     document), parameters should be specified using the <PARAM> HTML tags
-     within the appropriate <APPLET> section.  Example:
-
-    <APPLET CODE=com.tigervnc.vncviewer.VncViewer ARCHIVE=VncViewer.jar
-      WIDTH=400 HEIGHT=300>
-      <PARAM NAME="PORT" VALUE=5901>
-      <PARAM NAME="ScalingFactor" VALUE=50>
-    </APPLET>
-
-  2. When run as a standalone application, the TigerVNC Java Viewer reads
-     parameters from the command line.  Example:
-
-     java -jar VncViewer.jar Port=5901 ScalingFactor=50
+  java -jar VncViewer.jar Port=5901 ScalingFactor=50
 
 Both parameter names and their values are case-insensitive.
 

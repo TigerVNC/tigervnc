@@ -73,10 +73,6 @@ struct CaseInsensitiveCompare {
 typedef std::set<std::string, CaseInsensitiveCompare> ParamSet;
 static ParamSet allowOverrideSet;
 
-rfb::StringParameter httpDir("httpd",
-                             "Directory containing files to serve via HTTP",
-                             "");
-rfb::IntParameter httpPort("httpPort", "TCP port to listen for HTTP",0);
 rfb::AliasParameter rfbwait("rfbwait", "Alias for ClientWaitTimeMillis",
                             &rfb::Server::clientWaitTimeMillis);
 rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
@@ -177,7 +173,6 @@ void vncExtensionInit(void)
 
       if (!desktop[scr]) {
         std::list<network::SocketListener*> listeners;
-        std::list<network::SocketListener*> httpListeners;
         if (scr == 0 && vncInetdSock != -1) {
           if (network::isSocketListening(vncInetdSock))
           {
@@ -214,21 +209,6 @@ void vncExtensionInit(void)
           vlog.info("Listening for VNC connections on %s interface(s), port %d",
                     localhostOnly ? "local" : (const char*)interface,
                     port);
-
-          CharArray httpDirStr(httpDir.getData());
-          if (httpDirStr.buf[0]) {
-            port = httpPort;
-            if (port == 0) port = 5800 + atoi(vncGetDisplay());
-            port += 1000 * scr;
-            if (localhostOnly)
-              network::createLocalTcpListeners(&httpListeners, port);
-            else
-              network::createTcpListeners(&httpListeners, addr, port);
-
-            vlog.info("Listening for HTTP connections on %s interface(s), port %d",
-                      localhostOnly ? "local" : (const char*)interface,
-                      port);
-          }
         }
 
         CharArray desktopNameStr(desktopName.getData());
@@ -237,7 +217,6 @@ void vncExtensionInit(void)
         vncSetGlueContext(scr);
         desktop[scr] = new XserverDesktop(scr,
                                           listeners,
-                                          httpListeners,
                                           desktopNameStr.buf,
                                           pf,
                                           vncGetScreenWidth(),

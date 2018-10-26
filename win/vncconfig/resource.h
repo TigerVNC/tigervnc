@@ -52,8 +52,6 @@
 #define IDC_BUILDTIME                   1040
 #define IDC_VERSION                     1041
 #define IDC_COPYRIGHT                   1042
-#define IDC_HTTP_ENABLE                 1043
-#define IDC_HTTP_PORT                   1044
 #define IDC_BL_THRESHOLD                1046
 #define IDC_BL_TIMEOUT                  1047
 #define IDC_AFFECT_SCREENSAVER          1048

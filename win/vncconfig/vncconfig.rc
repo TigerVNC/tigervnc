@@ -110,9 +110,6 @@ BEGIN
     LTEXT           "Disconnect idle clients after (seconds):",IDC_STATIC,7,
                     25,138,15,SS_CENTERIMAGE
     EDITTEXT        IDC_IDLE_TIMEOUT,150,25,61,15,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Serve Java viewer via HTTP on port:",IDC_HTTP_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,138,15
-    EDITTEXT        IDC_HTTP_PORT,150,40,61,15,ES_AUTOHSCROLL | ES_NUMBER
     GROUPBOX        "Access Control",IDC_STATIC,7,55,204,135
     CONTROL         "Only accept connections from the local machine",
                     IDC_LOCALHOST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,

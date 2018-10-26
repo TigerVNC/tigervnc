@@ -27,7 +27,6 @@
 #include <rfb_win32/SocketManager.h>
 #include <rfb_win32/TCharArray.h>
 #include <winvnc/QueryConnectDialog.h>
-#include <winvnc/JavaViewer.h>
 #include <winvnc/ManagedListener.h>
 
 namespace os {
@@ -78,10 +77,6 @@ namespace winvnc {
 
     bool setClientsStatus(rfb::ListConnInfo* LCInfo);
 
-    // Used by JavaViewerServer
-    const char* getName() {return vncServer.getName();}
-    rfb::Point getDesktopSize() {return desktop.getFbSize();}
-
   protected:
     // VNCServerST::QueryConnectionHandler interface
     // Callback used to prompt user to accept or reject a connection.
@@ -121,12 +116,10 @@ namespace winvnc {
     DWORD thread_id;
     bool runServer;
     bool isDesktopStarted;
-    JavaViewerServer httpServer;
     rfb::win32::SocketManager sockMgr;
     rfb::win32::RegConfig config;
 
     ManagedListener rfbSock;
-    ManagedListener httpSock;
     STrayIconThread* trayIcon;
 
     QueryConnectDialog* queryConnectDialog;

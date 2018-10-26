@@ -27,8 +27,6 @@
 #include <rfb/Blacklist.h>
 #include <network/TcpSocket.h>
 
-static rfb::IntParameter http_port("HTTPPortNumber",
-  "TCP/IP port on which the server will serve the Java applet VNC Viewer ", 5800);
 static rfb::IntParameter port_number("PortNumber",
   "TCP/IP port on which the server will accept connections", 5900);
 static rfb::StringParameter hosts("Hosts",
@@ -96,10 +94,6 @@ namespace rfb {
         setItemInt(IDC_PORT, port_number ? port_number : 5900);
         setItemChecked(IDC_RFB_ENABLE, port_number != 0);
         setItemInt(IDC_IDLE_TIMEOUT, rfb::Server::idleTimeout);
-        vlog.debug("set IDC_HTTP_PORT %d", (int)http_port);
-        setItemInt(IDC_HTTP_PORT, http_port ? http_port : 5800);
-        setItemChecked(IDC_HTTP_ENABLE, http_port != 0);
-        enableItem(IDC_HTTP_PORT, http_port != 0);
         setItemChecked(IDC_LOCALHOST, localHost);
 
         HWND listBox = GetDlgItem(handle, IDC_HOSTS);
@@ -133,26 +127,14 @@ namespace rfb {
           return true;
 
         case IDC_PORT:
-          if (cmd == EN_CHANGE) {
-            try {
-              setItemInt(IDC_HTTP_PORT, rfbPortToHTTP(getItemInt(IDC_PORT)));
-            } catch (...) {
-            }
-          }
-        case IDC_HTTP_PORT:
         case IDC_IDLE_TIMEOUT:
           if (cmd == EN_CHANGE)
             setChanged(isChanged());
           return false;
 
-        case IDC_HTTP_ENABLE:
         case IDC_RFB_ENABLE:
         case IDC_LOCALHOST:
           {
-            // HTTP port
-            enableItem(IDC_HTTP_PORT, isItemChecked(IDC_HTTP_ENABLE) && isItemChecked(IDC_RFB_ENABLE));
-            enableItem(IDC_HTTP_ENABLE, isItemChecked(IDC_RFB_ENABLE));
-
             // RFB port
             enableItem(IDC_PORT, isItemChecked(IDC_RFB_ENABLE));
 
@@ -245,8 +227,6 @@ namespace rfb {
       bool onOk() {
         regKey.setInt(_T("PortNumber"), isItemChecked(IDC_RFB_ENABLE) ? getItemInt(IDC_PORT) : 0);
         regKey.setInt(_T("IdleTimeout"), getItemInt(IDC_IDLE_TIMEOUT));
-        regKey.setInt(_T("HTTPPortNumber"), isItemChecked(IDC_HTTP_ENABLE) && isItemChecked(IDC_RFB_ENABLE)
-                                            ? getItemInt(IDC_HTTP_PORT) : 0);
         regKey.setInt(_T("LocalHost"), isItemChecked(IDC_LOCALHOST));
         regKey.setString(_T("Hosts"), TCharArray(getHosts()).buf);
         return true;
@@ -258,8 +238,6 @@ namespace rfb {
           return (strcmp(new_hosts.buf, old_hosts.buf) != 0) ||
               (localHost != isItemChecked(IDC_LOCALHOST)) ||
               (port_number != getItemInt(IDC_PORT)) ||
-              (http_port != getItemInt(IDC_HTTP_PORT)) ||
-              ((http_port!=0) != (isItemChecked(IDC_HTTP_ENABLE)!=0)) ||
               (rfb::Server::idleTimeout != getItemInt(IDC_IDLE_TIMEOUT));
         } catch (rdr::Exception&) {
           return false;
@@ -280,15 +258,6 @@ namespace rfb {
           outPos++;
         }
         return strDup(hosts_str.buf);
-      }
-      int rfbPortToHTTP(int rfbPort) {
-        int offset = -100;
-        if (http_port)
-          offset = http_port - port_number;
-        int httpPort = rfbPort + offset;
-        if (httpPort <= 0)
-          httpPort = rfbPort;
-        return httpPort;
       }
 
     protected:

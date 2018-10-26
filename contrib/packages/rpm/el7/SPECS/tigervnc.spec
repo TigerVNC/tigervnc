@@ -32,7 +32,6 @@ BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
-BuildRequires:  java-devel, jpackage-utils
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake
 
@@ -113,16 +112,6 @@ Requires:       tigervnc-license
 This package contains libvnc.so module to X server, allowing others
 to access the desktop on your machine.
 %endif
-
-%package server-applet
-Summary:        Java TigerVNC viewer applet for TigerVNC server
-Group:          User Interface/X
-Requires:       tigervnc-server, java, jpackage-utils
-BuildArch:      noarch
-
-%description server-applet
-The Java TigerVNC viewer applet for web browsers. Install this package to allow
-clients to use web browser when connect to the TigerVNC server.
 
 %package license
 Summary:        License of TigerVNC suite
@@ -250,21 +239,6 @@ pushd media
 make
 popd
 
-# Build Java applet
-pushd java
-%{cmake} \
-%if !%{_self_signed}
-	-DJAVA_KEYSTORE=%{_keystore} \
-	-DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
-	-DJAVA_KEY_ALIAS=%{_key_alias} \
-	-DJAVA_STOREPASS=":env STOREPASS" \
-	-DJAVA_KEYPASS=":env KEYPASS" \
-	-DJAVA_TSA_URL=http://timestamp.geotrust.com/tsa .
-%endif
-
-make
-popd
-
 %install
 %if %{_bootstrap}
 for l in fltk; do
@@ -290,13 +264,6 @@ rm -rf %{buildroot}%{_initrddir}
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/vncservers
-
-# Install Java applet
-pushd java
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/vnc/classes
-install -m755 VncViewer.jar $RPM_BUILD_ROOT%{_datadir}/vnc/classes
-install -m644 com/tigervnc/vncviewer/index.vnc $RPM_BUILD_ROOT%{_datadir}/vnc/classes
-popd
 
 %find_lang %{name} %{name}.lang
 
@@ -369,11 +336,6 @@ fi
 %{_libdir}/xorg/modules/extensions/libvnc.so
 %config %{_sysconfdir}/X11/xorg.conf.d/10-libvnc.conf
 %endif
-
-%files server-applet
-%defattr(-,root,root,-)
-%doc java/com/tigervnc/vncviewer/README
-%{_datadir}/vnc/classes/*
 
 %files license
 %doc %{_docdir}/%{name}-%{version}/LICENCE.TXT
