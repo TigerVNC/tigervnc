@@ -144,13 +144,6 @@ namespace network {
     //   This is only necessary if the Socket has been put in non-blocking
     //   mode and needs this callback to flush the buffer.
     virtual void processSocketWriteEvent(network::Socket* sock) = 0;
-
-    // checkTimeouts() allows the server to check socket timeouts, etc.  The
-    //   return value is the number of milliseconds to wait before
-    //   checkTimeouts() should be called again.  If this number is zero then
-    //   there is no timeout and checkTimeouts() should be called the next time
-    //   an event occurs.
-    virtual int checkTimeouts() = 0;
   };
 
 }

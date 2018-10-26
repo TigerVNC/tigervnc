@@ -224,16 +224,6 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
   throw rdr::Exception("invalid Socket in VNCServerST");
 }
 
-int VNCServerST::checkTimeouts()
-{
-  int timeout = 0;
-
-  soonestTimeout(&timeout, Timer::checkTimeouts());
-  
-  return timeout;
-}
-
-
 // VNCServer methods
 
 void VNCServerST::blockUpdates()

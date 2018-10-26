@@ -21,6 +21,7 @@
 #include <winsock2.h>
 #include <list>
 #include <rfb/LogWriter.h>
+#include <rfb/Timer.h>
 #include <rfb_win32/SocketManager.h>
 
 using namespace rfb;
@@ -161,7 +162,7 @@ int SocketManager::checkTimeouts() {
 
   std::map<HANDLE,ListenInfo>::iterator i;
   for (i=listeners.begin(); i!=listeners.end(); i++)
-    soonestTimeout(&timeout, i->second.server->checkTimeouts());
+    soonestTimeout(&timeout, Timer::checkTimeouts());
 
   std::list<network::Socket*> shutdownSocks;
   std::map<HANDLE,ConnInfo>::iterator j, j_next;

@@ -76,12 +76,6 @@ namespace rfb {
     //   Flush pending data from the Socket on to the network.
     virtual void processSocketWriteEvent(network::Socket* sock);
 
-    // checkTimeouts
-    //   Returns the number of milliseconds left until the next idle timeout
-    //   expires.  If any have already expired, the corresponding connections
-    //   are closed.  Zero is returned if there is no idle timeout.
-    virtual int checkTimeouts();
-
 
     // Methods overridden from VNCServer
 
