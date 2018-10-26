@@ -77,11 +77,6 @@ namespace rfb {
     void setLEDStateOrClose(unsigned int state);
     void approveConnectionOrClose(bool accept, const char* reason);
 
-    // checkIdleTimeout() returns the number of milliseconds left until the
-    // idle timeout expires.  If it has expired, the connection is closed and
-    // zero is returned.  Zero is also returned if there is no idle timeout.
-    int checkIdleTimeout();
-
     // The following methods never throw exceptions
 
     // getComparerState() returns if this client would like the framebuffer
@@ -182,7 +177,8 @@ namespace rfb {
 
     std::map<rdr::U32, rdr::U32> pressedKeys;
 
-    time_t lastEventTime;
+    Timer idleTimer;
+
     time_t pointerEventTime;
     Point pointerEventPos;
     bool clientHasCursor;

@@ -227,14 +227,8 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
 int VNCServerST::checkTimeouts()
 {
   int timeout = 0;
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
 
   soonestTimeout(&timeout, Timer::checkTimeouts());
-
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
-    soonestTimeout(&timeout, (*ci)->checkIdleTimeout());
-  }
   
   return timeout;
 }
