@@ -132,13 +132,12 @@ void SMsgWriter::writeDesktopSize(rdr::U16 reason, rdr::U16 result)
   extendedDesktopSizeMsgs.push_back(msg);
 }
 
-bool SMsgWriter::writeSetDesktopName() {
+void SMsgWriter::writeSetDesktopName()
+{
   if (!client->supportsEncoding(pseudoEncodingDesktopName))
-    return false;
+    throw Exception("Client does not support desktop name changes");
 
   needSetDesktopName = true;
-
-  return true;
 }
 
 void SMsgWriter::writeCursor()
@@ -151,26 +150,22 @@ void SMsgWriter::writeCursor()
   needCursor = true;
 }
 
-bool SMsgWriter::writeLEDState()
+void SMsgWriter::writeLEDState()
 {
   if (!client->supportsEncoding(pseudoEncodingLEDState))
-    return false;
+    throw Exception("Client does not support LED state");
   if (client->ledState() == ledUnknown)
-    return false;
+    throw Exception("Server has not specified LED state");
 
   needLEDState = true;
-
-  return true;
 }
 
-bool SMsgWriter::writeQEMUKeyEvent()
+void SMsgWriter::writeQEMUKeyEvent()
 {
   if (!client->supportsEncoding(pseudoEncodingQEMUKeyEvent))
-    return false;
+    throw Exception("Client does not support QEMU key events");
 
   needQEMUKeyEvent = true;
-
-  return true;
 }
 
 bool SMsgWriter::needFakeUpdate()

@@ -69,17 +69,17 @@ namespace rfb {
     // write the relevant pseudo-rectangle as part of the next update.
     void writeDesktopSize(rdr::U16 reason, rdr::U16 result=0);
 
-    bool writeSetDesktopName();
+    void writeSetDesktopName();
 
     // Like setDesktopSize, we can't just write out a cursor message
     // immediately. 
     void writeCursor();
 
     // Same for LED state message
-    bool writeLEDState();
+    void writeLEDState();
 
     // And QEMU keyboard event handshake
-    bool writeQEMUKeyEvent();
+    void writeQEMUKeyEvent();
 
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out pseudo-rectangles to the client.

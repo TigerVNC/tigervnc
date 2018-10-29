@@ -829,6 +829,9 @@ void VNCSConnectionST::supportsContinuousUpdates()
 
 void VNCSConnectionST::supportsLEDState()
 {
+  if (client.ledState() == ledUnknown)
+    return;
+
   writer()->writeLEDState();
 }
 
@@ -1157,10 +1160,8 @@ void VNCSConnectionST::setDesktopName(const char *name)
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  if (!writer()->writeSetDesktopName()) {
-    fprintf(stderr, "Client does not support desktop rename\n");
-    return;
-  }
+  if (client.supportsEncoding(pseudoEncodingDesktopName))
+    writer()->writeSetDesktopName();
 }
 
 void VNCSConnectionST::setLEDState(unsigned int ledstate)
@@ -1170,7 +1171,8 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
 
   client.setLEDState(ledstate);
 
-  writer()->writeLEDState();
+  if (client.supportsLEDState())
+    writer()->writeLEDState();
 }
 
 void VNCSConnectionST::setSocketTimeouts()
