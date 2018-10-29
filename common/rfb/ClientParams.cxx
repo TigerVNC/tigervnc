@@ -147,6 +147,15 @@ bool ClientParams::supportsLocalCursor() const
   return false;
 }
 
+bool ClientParams::supportsDesktopSize() const
+{
+  if (supportsEncoding(pseudoEncodingExtendedDesktopSize))
+    return true;
+  if (supportsEncoding(pseudoEncodingDesktopSize))
+    return true;
+  return false;
+}
+
 bool ClientParams::supportsLEDState() const
 {
   if (supportsEncoding(pseudoEncodingLEDState))

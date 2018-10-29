@@ -65,22 +65,15 @@ namespace rfb {
     // updates mode.
     void writeEndOfContinuousUpdates();
 
-    // writeSetDesktopSize() won't actually write immediately, but will
+    // writeDesktopSize() won't actually write immediately, but will
     // write the relevant pseudo-rectangle as part of the next update.
-    bool writeSetDesktopSize();
-    // Same thing for the extended version. The first version queues up a
-    // generic update of the current server state, but the second queues a
-    // specific message.
-    bool writeExtendedDesktopSize();
-    bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result);
+    void writeDesktopSize(rdr::U16 reason, rdr::U16 result=0);
 
     bool writeSetDesktopName();
 
     // Like setDesktopSize, we can't just write out a cursor message
     // immediately. 
-    bool writeSetCursor();
-    bool writeSetXCursor();
-    bool writeSetCursorWithAlpha();
+    void writeCursor();
 
     // Same for LED state message
     bool writeLEDState();
@@ -146,12 +139,8 @@ namespace rfb {
     int nRectsInUpdate;
     int nRectsInHeader;
 
-    bool needSetDesktopSize;
-    bool needExtendedDesktopSize;
     bool needSetDesktopName;
-    bool needSetCursor;
-    bool needSetXCursor;
-    bool needSetCursorWithAlpha;
+    bool needCursor;
     bool needLEDState;
     bool needQEMUKeyEvent;
 

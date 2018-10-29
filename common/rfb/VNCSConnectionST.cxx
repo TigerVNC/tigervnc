@@ -216,13 +216,11 @@ void VNCSConnectionST::pixelBufferChange()
       client.setDimensions(server->pb->width(), server->pb->height(),
                            server->screenLayout);
       if (state() == RFBSTATE_NORMAL) {
-        // We should only send EDS to client asking for both
-        if (!writer()->writeExtendedDesktopSize()) {
-          if (!writer()->writeSetDesktopSize()) {
-            close("Client does not support desktop resize");
-            return;
-          }
+        if (!client.supportsDesktopSize()) {
+          close("Client does not support desktop resize");
+          return;
         }
+        writer()->writeDesktopSize(reasonServer);
       }
 
       // Drop any lossy tracking that is now outside the framebuffer
@@ -697,7 +695,8 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 
     // And send the screen layout to the client (which, unlike the
     // framebuffer dimensions, the client doesn't get during init)
-    writer()->writeExtendedDesktopSize();
+    if (client.supportsEncoding(pseudoEncodingExtendedDesktopSize))
+      writer()->writeDesktopSize(reasonServer);
 
     // We do not send a DesktopSize since it only contains the
     // framebuffer size (which the client already should know) and
@@ -716,7 +715,7 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height)) {
-    writer()->writeExtendedDesktopSize(reasonClient, resultInvalid);
+    writer()->writeDesktopSize(reasonClient, resultInvalid);
     return;
   }
 
@@ -725,7 +724,7 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   // protocol-wise, but unnecessary.
   result = server->desktop->setScreenLayout(fb_width, fb_height, layout);
 
-  writer()->writeExtendedDesktopSize(reasonClient, result);
+  writer()->writeDesktopSize(reasonClient, result);
 
   // Only notify other clients on success
   if (result == resultSuccess) {
@@ -1125,7 +1124,7 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  writer()->writeExtendedDesktopSize(reason, 0);
+  writer()->writeDesktopSize(reason);
 }
 
 
@@ -1147,14 +1146,8 @@ void VNCSConnectionST::setCursor()
     clientHasCursor = true;
   }
 
-  if (!writer()->writeSetCursorWithAlpha()) {
-    if (!writer()->writeSetCursor()) {
-      if (!writer()->writeSetXCursor()) {
-        // No client support
-        return;
-      }
-    }
-  }
+  if (client.supportsLocalCursor())
+    writer()->writeCursor();
 }
 
 void VNCSConnectionST::setDesktopName(const char *name)

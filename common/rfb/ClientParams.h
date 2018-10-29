@@ -87,6 +87,7 @@ namespace rfb {
     // Wrappers to check for functionality rather than specific
     // encodings
     bool supportsLocalCursor() const;
+    bool supportsDesktopSize() const;
     bool supportsLEDState() const;
     bool supportsFence() const;
     bool supportsContinuousUpdates() const;

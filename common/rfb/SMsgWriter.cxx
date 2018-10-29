@@ -36,9 +36,7 @@ static LogWriter vlog("SMsgWriter");
 SMsgWriter::SMsgWriter(ClientParams* client_, rdr::OutStream* os_)
   : client(client_), os(os_),
     nRectsInUpdate(0), nRectsInHeader(0),
-    needSetDesktopSize(false), needExtendedDesktopSize(false),
-    needSetDesktopName(false), needSetCursor(false),
-    needSetXCursor(false), needSetCursorWithAlpha(false),
+    needSetDesktopName(false), needCursor(false),
     needLEDState(false), needQEMUKeyEvent(false)
 {
 }
@@ -120,36 +118,18 @@ void SMsgWriter::writeEndOfContinuousUpdates()
   endMsg();
 }
 
-bool SMsgWriter::writeSetDesktopSize() {
-  if (!client->supportsEncoding(pseudoEncodingDesktopSize))
-    return false;
-
-  needSetDesktopSize = true;
-
-  return true;
-}
-
-bool SMsgWriter::writeExtendedDesktopSize() {
-  if (!client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
-    return false;
-
-  needExtendedDesktopSize = true;
-
-  return true;
-}
-
-bool SMsgWriter::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result) {
+void SMsgWriter::writeDesktopSize(rdr::U16 reason, rdr::U16 result)
+{
   ExtendedDesktopSizeMsg msg;
 
-  if (!client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
-    return false;
+  if (!client->supportsEncoding(pseudoEncodingDesktopSize) &&
+      !client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
+    throw Exception("Client does not support desktop size changes");
 
   msg.reason = reason;
   msg.result = result;
 
   extendedDesktopSizeMsgs.push_back(msg);
-
-  return true;
 }
 
 bool SMsgWriter::writeSetDesktopName() {
@@ -161,34 +141,14 @@ bool SMsgWriter::writeSetDesktopName() {
   return true;
 }
 
-bool SMsgWriter::writeSetCursor()
+void SMsgWriter::writeCursor()
 {
-  if (!client->supportsEncoding(pseudoEncodingCursor))
-    return false;
+  if (!client->supportsEncoding(pseudoEncodingCursor) &&
+      !client->supportsEncoding(pseudoEncodingXCursor) &&
+      !client->supportsEncoding(pseudoEncodingCursorWithAlpha))
+    throw Exception("Client does not support local cursor");
 
-  needSetCursor = true;
-
-  return true;
-}
-
-bool SMsgWriter::writeSetXCursor()
-{
-  if (!client->supportsEncoding(pseudoEncodingXCursor))
-    return false;
-
-  needSetXCursor = true;
-
-  return true;
-}
-
-bool SMsgWriter::writeSetCursorWithAlpha()
-{
-  if (!client->supportsEncoding(pseudoEncodingCursorWithAlpha))
-    return false;
-
-  needSetCursorWithAlpha = true;
-
-  return true;
+  needCursor = true;
 }
 
 bool SMsgWriter::writeLEDState()
@@ -217,7 +177,7 @@ bool SMsgWriter::needFakeUpdate()
 {
   if (needSetDesktopName)
     return true;
-  if (needSetCursor || needSetXCursor || needSetCursorWithAlpha)
+  if (needCursor)
     return true;
   if (needLEDState)
     return true;
@@ -231,9 +191,7 @@ bool SMsgWriter::needFakeUpdate()
 
 bool SMsgWriter::needNoDataUpdate()
 {
-  if (needSetDesktopSize)
-    return true;
-  if (needExtendedDesktopSize || !extendedDesktopSizeMsgs.empty())
+  if (!extendedDesktopSizeMsgs.empty())
     return true;
 
   return false;
@@ -245,12 +203,12 @@ void SMsgWriter::writeNoDataUpdate()
 
   nRects = 0;
 
-  if (needSetDesktopSize)
-    nRects++;
-  if (needExtendedDesktopSize)
-    nRects++;
-  if (!extendedDesktopSizeMsgs.empty())
-    nRects += extendedDesktopSizeMsgs.size();
+  if (!extendedDesktopSizeMsgs.empty()) {
+    if (client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
+      nRects += extendedDesktopSizeMsgs.size();
+    else
+      nRects++;
+  }
 
   writeFramebufferUpdateStart(nRects);
   writeNoDataRects();
@@ -265,11 +223,7 @@ void SMsgWriter::writeFramebufferUpdateStart(int nRects)
   if (nRects != 0xFFFF) {
     if (needSetDesktopName)
       nRects++;
-    if (needSetCursor)
-      nRects++;
-    if (needSetXCursor)
-      nRects++;
-    if (needSetCursorWithAlpha)
+    if (needCursor)
       nRects++;
     if (needLEDState)
       nRects++;
@@ -343,47 +297,43 @@ void SMsgWriter::endMsg()
 
 void SMsgWriter::writePseudoRects()
 {
-  if (needSetCursor) {
+  if (needCursor) {
     const Cursor& cursor = client->cursor();
 
-    rdr::U8Array data(cursor.width()*cursor.height() * (client->pf().bpp/8));
-    rdr::U8Array mask(cursor.getMask());
+    if (client->supportsEncoding(pseudoEncodingCursorWithAlpha)) {
+      writeSetCursorWithAlphaRect(cursor.width(), cursor.height(),
+                                  cursor.hotspot().x, cursor.hotspot().y,
+                                  cursor.getBuffer());
+    } else if (client->supportsEncoding(pseudoEncodingCursor)) {
+      rdr::U8Array data(cursor.width()*cursor.height() * (client->pf().bpp/8));
+      rdr::U8Array mask(cursor.getMask());
 
-    const rdr::U8* in;
-    rdr::U8* out;
+      const rdr::U8* in;
+      rdr::U8* out;
 
-    in = cursor.getBuffer();
-    out = data.buf;
-    for (int i = 0;i < cursor.width()*cursor.height();i++) {
-      client->pf().bufferFromRGB(out, in, 1);
-      in += 4;
-      out += client->pf().bpp/8;
+      in = cursor.getBuffer();
+      out = data.buf;
+      for (int i = 0;i < cursor.width()*cursor.height();i++) {
+        client->pf().bufferFromRGB(out, in, 1);
+        in += 4;
+        out += client->pf().bpp/8;
+      }
+
+      writeSetCursorRect(cursor.width(), cursor.height(),
+                         cursor.hotspot().x, cursor.hotspot().y,
+                         data.buf, mask.buf);
+    } else if (client->supportsEncoding(pseudoEncodingXCursor)) {
+      rdr::U8Array bitmap(cursor.getBitmap());
+      rdr::U8Array mask(cursor.getMask());
+
+      writeSetXCursorRect(cursor.width(), cursor.height(),
+                          cursor.hotspot().x, cursor.hotspot().y,
+                          bitmap.buf, mask.buf);
+    } else {
+      throw Exception("Client does not support local cursor");
     }
 
-    writeSetCursorRect(cursor.width(), cursor.height(),
-                       cursor.hotspot().x, cursor.hotspot().y,
-                       data.buf, mask.buf);
-    needSetCursor = false;
-  }
-
-  if (needSetXCursor) {
-    const Cursor& cursor = client->cursor();
-    rdr::U8Array bitmap(cursor.getBitmap());
-    rdr::U8Array mask(cursor.getMask());
-
-    writeSetXCursorRect(cursor.width(), cursor.height(),
-                        cursor.hotspot().x, cursor.hotspot().y,
-                        bitmap.buf, mask.buf);
-    needSetXCursor = false;
-  }
-
-  if (needSetCursorWithAlpha) {
-    const Cursor& cursor = client->cursor();
-
-    writeSetCursorWithAlphaRect(cursor.width(), cursor.height(),
-                                cursor.hotspot().x, cursor.hotspot().y,
-                                cursor.getBuffer());
-    needSetCursorWithAlpha = false;
+    needCursor = false;
   }
 
   if (needSetDesktopName) {
@@ -404,31 +354,24 @@ void SMsgWriter::writePseudoRects()
 
 void SMsgWriter::writeNoDataRects()
 {
-  // Start with specific ExtendedDesktopSize messages
   if (!extendedDesktopSizeMsgs.empty()) {
-    std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
-
-    for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
-      writeExtendedDesktopSizeRect(ri->reason, ri->result,
-                                   client->width(), client->height(),
-                                   client->screenLayout());
+    if (client->supportsEncoding(pseudoEncodingExtendedDesktopSize)) {
+      std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
+      for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
+        // FIXME: We can probably skip multiple reasonServer entries
+        writeExtendedDesktopSizeRect(ri->reason, ri->result,
+                                     client->width(), client->height(),
+                                     client->screenLayout());
+      }
+    } else if (client->supportsEncoding(pseudoEncodingDesktopSize)) {
+      // Some clients assume this is the last rectangle so don't send anything
+      // more after this
+      writeSetDesktopSizeRect(client->width(), client->height());
+    } else {
+      throw Exception("Client does not support desktop size changes");
     }
 
     extendedDesktopSizeMsgs.clear();
-  }
-
-  // Send this before SetDesktopSize to make life easier on the clients
-  if (needExtendedDesktopSize) {
-    writeExtendedDesktopSizeRect(0, 0, client->width(), client->height(),
-                                 client->screenLayout());
-    needExtendedDesktopSize = false;
-  }
-
-  // Some clients assume this is the last rectangle so don't send anything
-  // more after this
-  if (needSetDesktopSize) {
-    writeSetDesktopSizeRect(client->width(), client->height());
-    needSetDesktopSize = false;
   }
 }
 
