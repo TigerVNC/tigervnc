@@ -43,13 +43,10 @@ void CMsgReader::readServerInit()
 {
   int width = is->readU16();
   int height = is->readU16();
-  handler->setDesktopSize(width, height);
   PixelFormat pf;
   pf.read(is);
-  handler->setPixelFormat(pf);
   CharArray name(is->readString());
-  handler->setName(name.buf);
-  handler->serverInit();
+  handler->serverInit(width, height, pf, name.buf);
 }
 
 void CMsgReader::readMsg()

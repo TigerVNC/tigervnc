@@ -89,7 +89,7 @@ public:
   void getStats(double& ratio, unsigned long long& bytes,
                 unsigned long long& rawEquivalent);
 
-  virtual void setDesktopSize(int w, int h);
+  virtual void initDone();
   virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
@@ -196,11 +196,9 @@ void CConn::getStats(double& ratio, unsigned long long& bytes,
   sc->getStats(ratio, bytes, rawEquivalent);
 }
 
-void CConn::setDesktopSize(int w, int h)
+void CConn::initDone()
 {
   rfb::ModifiablePixelBuffer *pb;
-
-  CConnection::setDesktopSize(w, h);
 
   pb = new rfb::ManagedPixelBuffer((bool)translate ? fbPF : server.pf(),
                                    server.width(), server.height());

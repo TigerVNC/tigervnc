@@ -100,7 +100,9 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
 
-    virtual void serverInit();
+    virtual void serverInit(int width, int height,
+                            const PixelFormat& pf,
+                            const char* name);
 
     virtual void readAndDecodeRect(const Rect& r, int encoding,
                                    ModifiablePixelBuffer* pb);
@@ -118,8 +120,10 @@ namespace rfb {
     // initDone() is called when the connection is fully established
     // and standard messages can be sent. This is called before the
     // initial FramebufferUpdateRequest giving a derived class the
-    // chance to modify pixel format and settings.
-    virtual void initDone();
+    // chance to modify pixel format and settings. The derived class
+    // must also make sure it has provided a valid framebuffer before
+    // returning.
+    virtual void initDone() = 0;
 
 
     // Other methods

@@ -74,6 +74,15 @@ void CMsgHandler::supportsQEMUKeyEvent()
   server.supportsQEMUKeyEvent = true;
 }
 
+void CMsgHandler::serverInit(int width, int height,
+                             const PixelFormat& pf,
+                             const char* name)
+{
+  server.setDimensions(width, height);
+  server.setPF(pf);
+  server.setName(name);
+}
+
 void CMsgHandler::framebufferUpdateStart()
 {
 }

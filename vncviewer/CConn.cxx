@@ -363,8 +363,7 @@ void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
 void CConn::setName(const char* name)
 {
   CConnection::setName(name);
-  if (desktop)
-    desktop->setName(name);
+  desktop->setName(name);
 }
 
 // framebufferUpdateStart() is called at the beginning of an update.
@@ -495,9 +494,6 @@ void CConn::setLEDState(unsigned int state)
 
 void CConn::resizeFramebuffer()
 {
-  if (!desktop)
-    return;
-
   if (continuousUpdates)
     writer()->writeEnableContinuousUpdates(true, 0, 0,
                                            server.width(),

@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -335,12 +336,19 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
   CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
 }
 
-void CConnection::serverInit()
+void CConnection::serverInit(int width, int height,
+                             const PixelFormat& pf,
+                             const char* name)
 {
+  CMsgHandler::serverInit(width, height, pf, name);
+
   state_ = RFBSTATE_NORMAL;
   vlog.debug("initialisation done");
 
   initDone();
+  assert(framebuffer != NULL);
+  assert(framebuffer->width() == server.width());
+  assert(framebuffer->height() == server.height());
 }
 
 void CConnection::readAndDecodeRect(const Rect& r, int encoding,
