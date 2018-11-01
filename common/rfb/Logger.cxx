@@ -47,7 +47,16 @@ void Logger::write(int level, const char *logname, const char* format,
   char buf1[4096];
   vsnprintf(buf1, sizeof(buf1)-1, format, ap);
   buf1[sizeof(buf1)-1] = 0;
-  write(level, logname, buf1);
+  char *buf = buf1;
+  while (true) {
+    char *end = strchr(buf, '\n');
+    if (end)
+      *end = '\0';
+    write(level, logname, buf);
+    if (!end)
+      break;
+    buf = end + 1;
+  }
 }
 
 void
