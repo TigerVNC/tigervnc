@@ -64,11 +64,14 @@ int vncRandRIsValidScreenSize(int width, int height)
 int vncRandRResizeScreen(int width, int height)
 {
   ScreenPtr pScreen = screenInfo.screens[scrIdx];
+  int dpi, mwidth, mheight;
 
-  /* Try to retain DPI when we resize */
-  return RRScreenSizeSet(pScreen, width, height,
-                         pScreen->mmWidth * width / pScreen->width,
-                         pScreen->mmHeight * height / pScreen->height);
+  /* Keep the DPI specified at start */
+  dpi = monitorResolution ? monitorResolution : 96;
+  mwidth = width * 254 / dpi / 10;
+  mheight = height * 254 / dpi / 10;
+
+  return RRScreenSizeSet(pScreen, width, height, mwidth, mheight);
 }
 
 void vncRandRUpdateSetTime(void)

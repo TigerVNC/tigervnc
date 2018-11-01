@@ -117,15 +117,15 @@ int vncRandRResizeScreen(int width, int height)
 {
   vncGlueContext *ctx = &randrGlueContext;
 
-  int xwidth = DisplayWidth(ctx->dpy, DefaultScreen(ctx->dpy));
-  int xheight = DisplayHeight(ctx->dpy, DefaultScreen(ctx->dpy));
-  int xwidthmm = DisplayWidthMM(ctx->dpy, DefaultScreen(ctx->dpy));
-  int xheightmm = DisplayHeightMM(ctx->dpy, DefaultScreen(ctx->dpy));
+  int mwidth, mheight;
 
-  /* Try to retain DPI when we resize */
-  XRRSetScreenSize(ctx->dpy, DefaultRootWindow(ctx->dpy), width, height,
-                   xwidthmm * width / xwidth,
-                   xheightmm * height / xheight);
+  // Always calculate a DPI of 96.
+  // It's what mutter does, so good enough for us.
+  mwidth = width * 254 / 96 / 10;
+  mheight = height * 254 / 96 / 10;
+
+  XRRSetScreenSize(ctx->dpy, DefaultRootWindow(ctx->dpy),
+                   width, height, mwidth, mheight);
 
   return 1;
 }
