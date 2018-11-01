@@ -381,6 +381,20 @@ ScreenSet XDesktop::computeScreenLayout()
 
   layout = ::computeScreenLayout(&outputIdMap);
   XRRFreeScreenResources(res);
+
+  // Adjust the layout relative to the geometry
+  ScreenSet::iterator iter, iter_next;
+  Point offset(-geometry->offsetLeft(), -geometry->offsetTop());
+  for (iter = layout.begin();iter != layout.end();iter = iter_next) {
+    iter_next = iter; ++iter_next;
+    iter->dimensions = iter->dimensions.translate(offset);
+    if (iter->dimensions.enclosed_by(geometry->getRect()))
+        continue;
+    iter->dimensions = iter->dimensions.intersect(geometry->getRect());
+    if (iter->dimensions.is_empty()) {
+      layout.remove_screen(iter->id);
+    }
+  }
 #endif
 
   return layout;
