@@ -397,6 +397,11 @@ ScreenSet XDesktop::computeScreenLayout()
   }
 #endif
 
+  // Make sure that we have at least one screen
+  if (layout.num_screens() == 0)
+    layout.add_screen(rfb::Screen(0, 0, 0, geometry->width(),
+                                  geometry->height(), 0));
+
   return layout;
 }
 

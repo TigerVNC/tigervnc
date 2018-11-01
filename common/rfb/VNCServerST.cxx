@@ -305,8 +305,6 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
   delete comparer;
   comparer = 0;
 
-  screenLayout = layout;
-
   if (!pb) {
     screenLayout = ScreenSet();
 
@@ -316,15 +314,16 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
     return;
   }
 
+  if (!layout.validate(pb->width(), pb->height()))
+    throw Exception("setPixelBuffer: invalid screen layout");
+
+  screenLayout = layout;
+
   // Assume the framebuffer contents wasn't saved and reset everything
   // that tracks its contents
   comparer = new ComparingUpdateTracker(pb);
   renderedCursorInvalid = true;
   add_changed(pb->getRect());
-
-  // Make sure that we have at least one screen
-  if (screenLayout.num_screens() == 0)
-    screenLayout.add_screen(Screen(0, 0, 0, pb->width(), pb->height(), 0));
 
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
@@ -358,6 +357,10 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
       }
     }
   }
+
+  // Make sure that we have at least one screen
+  if (layout.num_screens() == 0)
+    layout.add_screen(Screen(0, 0, 0, pb->width(), pb->height(), 0));
 
   setPixelBuffer(pb_, layout);
 }
