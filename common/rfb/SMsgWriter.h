@@ -130,6 +130,9 @@ namespace rfb {
     void writeSetCursorWithAlphaRect(int width, int height,
                                      int hotspotX, int hotspotY,
                                      const rdr::U8* data);
+    void writeSetVMwareCursorRect(int width, int height,
+                                  int hotspotX, int hotspotY,
+                                  const rdr::U8* data);
     void writeLEDStateRect(rdr::U8 state);
     void writeQEMUKeyEventRect();
 

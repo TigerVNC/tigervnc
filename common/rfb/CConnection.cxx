@@ -596,6 +596,7 @@ void CConnection::updateEncodings()
 
   if (supportsLocalCursor) {
     encodings.push_back(pseudoEncodingCursorWithAlpha);
+    encodings.push_back(pseudoEncodingVMwareCursor);
     encodings.push_back(pseudoEncodingCursor);
     encodings.push_back(pseudoEncodingXCursor);
   }

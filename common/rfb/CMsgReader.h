@@ -63,6 +63,7 @@ namespace rfb {
     void readSetXCursor(int width, int height, const Point& hotspot);
     void readSetCursor(int width, int height, const Point& hotspot);
     void readSetCursorWithAlpha(int width, int height, const Point& hotspot);
+    void readSetVMwareCursor(int width, int height, const Point& hotspot);
     void readSetDesktopName(int x, int y, int w, int h);
     void readExtendedDesktopSize(int x, int y, int w, int h);
     void readLEDState();

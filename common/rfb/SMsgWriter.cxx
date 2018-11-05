@@ -144,7 +144,8 @@ void SMsgWriter::writeCursor()
 {
   if (!client->supportsEncoding(pseudoEncodingCursor) &&
       !client->supportsEncoding(pseudoEncodingXCursor) &&
-      !client->supportsEncoding(pseudoEncodingCursorWithAlpha))
+      !client->supportsEncoding(pseudoEncodingCursorWithAlpha) &&
+      !client->supportsEncoding(pseudoEncodingVMwareCursor))
     throw Exception("Client does not support local cursor");
 
   needCursor = true;
@@ -299,6 +300,10 @@ void SMsgWriter::writePseudoRects()
       writeSetCursorWithAlphaRect(cursor.width(), cursor.height(),
                                   cursor.hotspot().x, cursor.hotspot().y,
                                   cursor.getBuffer());
+    } else if (client->supportsEncoding(pseudoEncodingVMwareCursor)) {
+      writeSetVMwareCursorRect(cursor.width(), cursor.height(),
+                               cursor.hotspot().x, cursor.hotspot().y,
+                               cursor.getBuffer());
     } else if (client->supportsEncoding(pseudoEncodingCursor)) {
       rdr::U8Array data(cursor.width()*cursor.height() * (client->pf().bpp/8));
       rdr::U8Array mask(cursor.getMask());
@@ -501,6 +506,28 @@ void SMsgWriter::writeSetCursorWithAlphaRect(int width, int height,
     os->writeU8(data[3]);
     data += 4;
   }
+}
+
+void SMsgWriter::writeSetVMwareCursorRect(int width, int height,
+                                          int hotspotX, int hotspotY,
+                                          const rdr::U8* data)
+{
+  if (!client->supportsEncoding(pseudoEncodingVMwareCursor))
+    throw Exception("Client does not support local cursors");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetVMwareCursorRect: nRects out of sync");
+
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingVMwareCursor);
+
+  os->writeU8(1); // Alpha cursor
+  os->pad(1);
+
+  // FIXME: Should alpha be premultiplied?
+  os->writeBytes(data, width*height*4);
 }
 
 void SMsgWriter::writeLEDStateRect(rdr::U8 state)
