@@ -611,6 +611,8 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 
     dev = (XDamageNotifyEvent*)ev;
     rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
+    rect = rect.translate(Point(-geometry->offsetLeft(),
+                                -geometry->offsetTop()));
     server->add_changed(rect);
 
     return true;
