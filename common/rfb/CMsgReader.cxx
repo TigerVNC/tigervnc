@@ -111,6 +111,10 @@ void CMsgReader::readMsg()
       break;
     case pseudoEncodingLEDState:
       readLEDState();
+      break;
+    case pseudoEncodingVMwareLEDState:
+      readVMwareLEDState();
+      break;
     case pseudoEncodingQEMUKeyEvent:
       handler->supportsQEMUKeyEvent();
       break;
@@ -482,6 +486,18 @@ void CMsgReader::readLEDState()
   rdr::U8 state;
 
   state = is->readU8();
+
+  handler->setLEDState(state);
+}
+
+void CMsgReader::readVMwareLEDState()
+{
+  rdr::U32 state;
+
+  state = is->readU32();
+
+  // As luck has it, this extension uses the same bit definitions,
+  // so no conversion required
 
   handler->setLEDState(state);
 }

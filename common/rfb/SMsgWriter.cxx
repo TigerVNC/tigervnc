@@ -153,7 +153,8 @@ void SMsgWriter::writeCursor()
 
 void SMsgWriter::writeLEDState()
 {
-  if (!client->supportsEncoding(pseudoEncodingLEDState))
+  if (!client->supportsEncoding(pseudoEncodingLEDState) &&
+      !client->supportsEncoding(pseudoEncodingVMwareLEDState))
     throw Exception("Client does not support LED state");
   if (client->ledState() == ledUnknown)
     throw Exception("Server has not specified LED state");
@@ -532,7 +533,8 @@ void SMsgWriter::writeSetVMwareCursorRect(int width, int height,
 
 void SMsgWriter::writeLEDStateRect(rdr::U8 state)
 {
-  if (!client->supportsEncoding(pseudoEncodingLEDState))
+  if (!client->supportsEncoding(pseudoEncodingLEDState) &&
+      !client->supportsEncoding(pseudoEncodingVMwareLEDState))
     throw Exception("Client does not support LED state updates");
   if (client->ledState() == ledUnknown)
     throw Exception("Server does not support LED state updates");
@@ -543,8 +545,13 @@ void SMsgWriter::writeLEDStateRect(rdr::U8 state)
   os->writeS16(0);
   os->writeU16(0);
   os->writeU16(0);
-  os->writeU32(pseudoEncodingLEDState);
-  os->writeU8(state);
+  if (client->supportsEncoding(pseudoEncodingLEDState)) {
+    os->writeU32(pseudoEncodingLEDState);
+    os->writeU8(state);
+  } else {
+    os->writeU32(pseudoEncodingVMwareLEDState);
+    os->writeU32(state);
+  }
 }
 
 void SMsgWriter::writeQEMUKeyEventRect()

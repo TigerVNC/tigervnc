@@ -162,6 +162,8 @@ bool ClientParams::supportsLEDState() const
 {
   if (supportsEncoding(pseudoEncodingLEDState))
     return true;
+  if (supportsEncoding(pseudoEncodingVMwareLEDState))
+    return true;
   return false;
 }
 

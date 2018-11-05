@@ -61,6 +61,7 @@ namespace rfb {
 
   // VMware-specific
   const int pseudoEncodingVMwareCursor = 0x574d5664;
+  const int pseudoEncodingVMwareLEDState = 0x574d5668;
 
   int encodingNum(const char* name);
   const char* encodingName(int num);
