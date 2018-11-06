@@ -936,6 +936,13 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
     keyCode = ((msg->lParam >> 16) & 0xff);
 
+    // Windows' touch keyboard doesn't set a scan code for the Alt
+    // portion of the AltGr sequence, so we need to help it out
+    if (!isExtended && (keyCode == 0x00) && (vKey == VK_MENU)) {
+      isExtended = true;
+      keyCode = 0x38;
+    }
+
     // Windows doesn't have a proper AltGr, but handles it using fake
     // Ctrl+Alt. However the remote end might not be Windows, so we need
     // to merge those in to a single AltGr event. We detect this case
@@ -944,13 +951,6 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (self->altGrArmed) {
       self->altGrArmed = false;
       Fl::remove_timeout(handleAltGrTimeout);
-
-      // Windows' touch keyboard doesn't set a scan code for the Alt
-      // portion of the AltGr sequence, so we need to help it out
-      if (!isExtended && (keyCode == 0x00)) {
-        isExtended = true;
-        keyCode = 0x38;
-      }
 
       if (isExtended && (keyCode == 0x38) && (vKey == VK_MENU) &&
           ((msg->time - self->altGrCtrlTime) < 50)) {
@@ -1046,6 +1046,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
     isExtended = (msg->lParam & (1 << 24)) != 0;
 
     keyCode = ((msg->lParam >> 16) & 0xff);
+
+    // Touch keyboard AltGr (see above)
+    if (!isExtended && (keyCode == 0x00) && (vKey == VK_MENU)) {
+      isExtended = true;
+      keyCode = 0x38;
+    }
 
     // We can't get a release in the middle of an AltGr sequence, so
     // abort that detection
