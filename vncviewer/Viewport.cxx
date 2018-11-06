@@ -945,6 +945,13 @@ int Viewport::handleSystemEvent(void *event, void *data)
       self->altGrArmed = false;
       Fl::remove_timeout(handleAltGrTimeout);
 
+      // Windows' touch keyboard doesn't set a scan code for the Alt
+      // portion of the AltGr sequence, so we need to help it out
+      if (!isExtended && (keyCode == 0x00)) {
+        isExtended = true;
+        keyCode = 0x38;
+      }
+
       if (isExtended && (keyCode == 0x38) && (vKey == VK_MENU) &&
           ((msg->time - self->altGrCtrlTime) < 50)) {
         // Alt seen, so this is an AltGr sequence
