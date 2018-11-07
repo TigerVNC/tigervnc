@@ -325,9 +325,10 @@ static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
 
 static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* hKey) {
   
-  DWORD buffersize = 256;
-  WCHAR value[destSize];
+  const DWORD buffersize = 256;
   wchar_t name[buffersize];
+  WCHAR* value;
+  DWORD valuesize;
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize) {
@@ -335,8 +336,11 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
     return false;
   }
 
-  LONG res = RegQueryValueExW(*hKey, name, 0, NULL, (LPBYTE)value, &buffersize);
+  value = new WCHAR[destSize];
+  valuesize = destSize;
+  LONG res = RegQueryValueExW(*hKey, name, 0, NULL, (LPBYTE)value, &valuesize);
   if (res != ERROR_SUCCESS){
+    delete [] value;
     if (res == ERROR_FILE_NOT_FOUND) {
       // The value does not exist, defaults will be used.
     } else {
@@ -346,18 +350,19 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
     return false;
   }
   
-  char utf8val[destSize];
-  size = fl_utf8fromwc(utf8val, sizeof(utf8val), value, wcslen(value)+1);
-  if (size >= sizeof(utf8val)) {
+  char* utf8val = new char[destSize];
+  size = fl_utf8fromwc(utf8val, destSize, value, wcslen(value)+1);
+  delete [] value;
+  if (size >= destSize) {
+    delete [] utf8val;
     vlog.error(_("The parameter %s was too large to read from the registry"), _name);
     return false;
   }
-  const char *ret = utf8val;
   
-  if(decodeValue(ret, dest, destSize))
-    return true;
-  else 
-    return false;
+  bool ret = decodeValue(utf8val, dest, destSize);
+  delete [] utf8val;
+
+  return ret;
 }
 
 

@@ -423,8 +423,9 @@ int main(int argc, char **argv)
   }
 
   int runCount = count;
-  struct stats runs[runCount];
-  double values[runCount], dev[runCount];
+  struct stats *runs = new struct stats[runCount];
+  double *values = new double[runCount];
+  double *dev = new double[runCount];
   double median, meddev;
 
   if (fn == NULL) {

@@ -184,7 +184,7 @@ npgettext_aux (const char *domain,
 
 #include <string.h>
 
-#if (((__GNUC__ >= 3 || __GNUG__ >= 2) && !defined __STRICT_ANSI__) \
+#if (((__GNUC__ >= 3 || __GNUG__ >= 2) && !defined __STRICT_ANSI__ && !defined __cplusplus) \
      /* || __STDC_VERSION__ == 199901L
         || (__STDC_VERSION__ >= 201112L && !defined __STDC_NO_VLA__) */ )
 # define _LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS 1
