@@ -87,6 +87,7 @@ public:
   // rfb::SDesktop callbacks
   virtual void start(rfb::VNCServer* vs);
   virtual void stop();
+  virtual void terminate();
   virtual void queryConnection(network::Socket* sock,
                                const char* userName);
   virtual void pointerEvent(const rfb::Point& pos, int buttonMask);

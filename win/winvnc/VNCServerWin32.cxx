@@ -76,6 +76,7 @@ VNCServerWin32::VNCServerWin32()
 
   // Register the desktop's event to be handled
   sockMgr.addEvent(desktop.getUpdateEvent(), &desktop);
+  sockMgr.addEvent(desktop.getTerminateEvent(), this);
 
   // Register the queued command event to be handled
   sockMgr.addEvent(commandEvent, this);
@@ -335,7 +336,8 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       command = NoCommand;
       commandSig->signal();
     }
-  } else if (event_ == sessionEvent.h) {
+  } else if ((event_ == sessionEvent.h) ||
+             (event_ == desktop.getTerminateEvent())) {
     stop();
   }
 }

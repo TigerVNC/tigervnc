@@ -51,15 +51,23 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     fenceDataLen(0), fenceData(NULL), congestionTimer(this),
     losslessTimer(this), server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
-    continuousUpdates(false), encodeManager(this), pointerEventTime(0),
-    clientHasCursor(false)
+    continuousUpdates(false), encodeManager(this), idleTimer(this),
+    pointerEventTime(0), clientHasCursor(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
 
   // Configure the socket
   setSocketTimeouts();
-  lastEventTime = time(0);
+
+  // Kick off the idle timer
+  if (rfb::Server::idleTimeout) {
+    // minimum of 15 seconds while authenticating
+    if (rfb::Server::idleTimeout < 15)
+      idleTimer.start(secsToMillis(15));
+    else
+      idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+  }
 }
 
 
@@ -312,36 +320,6 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
 }
 
 
-int VNCSConnectionST::checkIdleTimeout()
-{
-  int idleTimeout = rfb::Server::idleTimeout;
-  if (idleTimeout == 0) return 0;
-  if (state() != RFBSTATE_NORMAL && idleTimeout < 15)
-    idleTimeout = 15; // minimum of 15 seconds while authenticating
-  time_t now = time(0);
-  if (now < lastEventTime) {
-    // Someone must have set the time backwards.  Set lastEventTime so that the
-    // idleTimeout will count from now.
-    vlog.info("Time has gone backwards - resetting idle timeout");
-    lastEventTime = now;
-  }
-  int timeLeft = lastEventTime + idleTimeout - now;
-  if (timeLeft < -60) {
-    // Our callback is over a minute late - someone must have set the time
-    // forwards.  Set lastEventTime so that the idleTimeout will count from
-    // now.
-    vlog.info("Time has gone forwards - resetting idle timeout");
-    lastEventTime = now;
-    return secsToMillis(idleTimeout);
-  }
-  if (timeLeft <= 0) {
-    close("Idle timeout");
-    return 0;
-  }
-  return secsToMillis(timeLeft);
-}
-
-
 bool VNCSConnectionST::getComparerState()
 {
   // We interpret a low compression level as an indication that the client
@@ -412,7 +390,8 @@ void VNCSConnectionST::approveConnectionOrClose(bool accept,
 
 void VNCSConnectionST::authSuccess()
 {
-  lastEventTime = time(0);
+  if (rfb::Server::idleTimeout)
+    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
 
   // - Set the connection parameters appropriately
   cp.width = server->getPixelBuffer()->width();
@@ -438,7 +417,8 @@ void VNCSConnectionST::queryConnection(const char* userName)
 
 void VNCSConnectionST::clientInit(bool shared)
 {
-  lastEventTime = time(0);
+  if (rfb::Server::idleTimeout)
+    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
   if (!accessCheck(AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
@@ -457,7 +437,9 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
 
 void VNCSConnectionST::pointerEvent(const Point& pos, int buttonMask)
 {
-  pointerEventTime = lastEventTime = time(0);
+  if (rfb::Server::idleTimeout)
+    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+  pointerEventTime = time(0);
   if (!accessCheck(AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
   pointerEventPos = pos;
@@ -489,7 +471,8 @@ public:
 void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   rdr::U32 lookup;
 
-  lastEventTime = time(0);
+  if (rfb::Server::idleTimeout)
+    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
   if (!accessCheck(AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
@@ -764,6 +747,9 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
   } catch (rdr::Exception& e) {
     close(e.str());
   }
+
+  if (t == &idleTimer)
+    close("Idle timeout");
 
   return false;
 }
@@ -1106,7 +1092,6 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
 void VNCSConnectionST::setSocketTimeouts()
 {
   int timeoutms = rfb::Server::clientWaitTimeMillis;
-  soonestTimeout(&timeoutms, secsToMillis(rfb::Server::idleTimeout));
   if (timeoutms == 0)
     timeoutms = -1;
   sock->inStream().setTimeout(timeoutms);

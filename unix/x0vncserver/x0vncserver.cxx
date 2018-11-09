@@ -322,7 +322,7 @@ int main(int argc, char** argv)
         }
       }
 
-      soonestTimeout(&wait_ms, server.checkTimeouts());
+      soonestTimeout(&wait_ms, Timer::checkTimeouts());
 
       tv.tv_sec = wait_ms / 1000;
       tv.tv_usec = (wait_ms % 1000) * 1000;
@@ -357,7 +357,7 @@ int main(int argc, char** argv)
         }
       }
 
-      server.checkTimeouts();
+      Timer::checkTimeouts();
 
       // Client list could have been changed.
       server.getSockets(&sockets);

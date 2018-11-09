@@ -22,6 +22,7 @@
 //
 
 #include <assert.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -367,7 +368,7 @@ void XserverDesktop::blockHandler(int* timeout)
     }
 
     // Trigger timers and check when the next will expire
-    int nextTimeout = server->checkTimeouts();
+    int nextTimeout = Timer::checkTimeouts();
     if (nextTimeout > 0 && (*timeout == -1 || nextTimeout < *timeout))
       *timeout = nextTimeout;
   } catch (rdr::Exception& e) {
@@ -422,6 +423,11 @@ void XserverDesktop::approveConnection(uint32_t opaqueId, bool accept,
 //
 // SDesktop callbacks
 
+
+void XserverDesktop::terminate()
+{
+  kill(getpid(), SIGTERM);
+}
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {

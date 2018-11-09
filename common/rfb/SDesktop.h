@@ -75,6 +75,12 @@ namespace rfb {
     virtual void queryConnection(network::Socket* sock,
                                  const char* userName) = 0;
 
+    // terminate() is called by the server when it wishes to terminate
+    // itself, e.g. because it was configured to terminate when no one is
+    // using it.
+
+    virtual void terminate() = 0;
+
     // setScreenLayout() requests to reconfigure the framebuffer and/or
     // the layout of screens.
     virtual unsigned int setScreenLayout(int __unused_attr fb_width,

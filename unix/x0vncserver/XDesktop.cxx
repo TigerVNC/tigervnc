@@ -19,6 +19,8 @@
  */
 
 #include <assert.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include <rfb/LogWriter.h>
 
@@ -271,6 +273,10 @@ void XDesktop::stop() {
 
   delete pb;
   pb = 0;
+}
+
+void XDesktop::terminate() {
+  kill(getpid(), SIGTERM);
 }
 
 bool XDesktop::isRunning() {
