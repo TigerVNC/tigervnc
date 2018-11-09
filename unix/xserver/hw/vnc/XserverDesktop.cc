@@ -81,7 +81,6 @@ XserverDesktop::XserverDesktop(int screenIndex_,
 
   server = new VNCServerST(name, this);
   setFramebuffer(width, height, fbptr, stride);
-  server->setQueryConnectionHandler(this);
 
   for (std::list<SocketListener*>::iterator i = listeners.begin();
        i != listeners.end();
@@ -145,22 +144,31 @@ void XserverDesktop::refreshScreenLayout()
   server->setScreenLayout(::computeScreenLayout(&outputIdMap));
 }
 
-rfb::VNCServerST::queryResult
-XserverDesktop::queryConnection(network::Socket* sock,
-                                const char* userName,
-                                char** reason)
+void XserverDesktop::start(rfb::VNCServer* vs)
+{
+  // We already own the server object, and we always keep it in a
+  // ready state
+  assert(vs == server);
+}
+
+void XserverDesktop::stop()
+{
+}
+
+void XserverDesktop::queryConnection(network::Socket* sock,
+                                     const char* userName)
 {
   int count;
 
   if (queryConnectTimer.isStarted()) {
-    *reason = strDup("Another connection is currently being queried.");
-    return rfb::VNCServerST::REJECT;
+    server->approveConnection(sock, false, "Another connection is currently being queried.");
+    return;
   }
 
   count = vncNotifyQueryConnect();
   if (count == 0) {
-    *reason = strDup("Unable to query the local user to accept the connection.");
-    return rfb::VNCServerST::REJECT;
+    server->approveConnection(sock, false, "Unable to query the local user to accept the connection.");
+    return;
   }
 
   queryConnectAddress.replaceBuf(sock->getPeerAddress());
@@ -171,8 +179,6 @@ XserverDesktop::queryConnection(network::Socket* sock,
   queryConnectSocket = sock;
 
   queryConnectTimer.start(queryConnectTimeout * 1000);
-
-  return rfb::VNCServerST::PENDING;
 }
 
 void XserverDesktop::bell()

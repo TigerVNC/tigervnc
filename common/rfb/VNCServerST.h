@@ -28,11 +28,9 @@
 
 #include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
 #include <rfb/Timer.h>
-#include <network/Socket.h>
 #include <rfb/ScreenSet.h>
 
 namespace rfb {
@@ -44,8 +42,7 @@ namespace rfb {
   class KeyRemapper;
 
   class VNCServerST : public VNCServer,
-                      public Timer::Callback,
-                      public network::SocketServer {
+                      public Timer::Callback {
   public:
     // -=- Constructors
 
@@ -93,101 +90,69 @@ namespace rfb {
     virtual void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout);
     virtual void setPixelBuffer(PixelBuffer* pb);
     virtual void setScreenLayout(const ScreenSet& layout);
-    virtual PixelBuffer* getPixelBuffer() const { return pb; }
+    virtual const PixelBuffer* getPixelBuffer() const { return pb; }
     virtual void serverCutText(const char* str, int len);
+
+    virtual void approveConnection(network::Socket* sock, bool accept,
+                                   const char* reason);
+    virtual void closeClients(const char* reason) {closeClients(reason, 0);}
+    virtual SConnection* getConnection(network::Socket* sock);
+
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
     virtual void setCursor(int width, int height, const Point& hotspot,
                            const rdr::U8* data);
     virtual void setCursorPos(const Point& p);
+    virtual void setName(const char* name_);
     virtual void setLEDState(unsigned state);
 
     virtual void bell();
 
-    // - Close all currently-connected clients, by calling
-    //   their close() method with the supplied reason.
-    virtual void closeClients(const char* reason) {closeClients(reason, 0);}
-
     // VNCServerST-only methods
+
+    // Methods to get the currently set server state
+
+    const ScreenSet& getScreenLayout() const { return screenLayout; }
+    const Cursor* getCursor() const { return cursor; }
+    const Point& getCursorPos() const { return cursorPos; }
+    const char* getName() const { return name.buf; }
+    unsigned getLEDState() const { return ledState; }
+
+    // Event handlers
+    void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+    void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
+    void clientCutText(const char* str, int len);
+
+    unsigned int setDesktopSize(VNCSConnectionST* requester,
+                                int fb_width, int fb_height,
+                                const ScreenSet& layout);
 
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);
 
-    // getSConnection() gets the SConnection for a particular Socket.  If
-    // the Socket is not recognised then null is returned.
+    // queryConnection() does some basic checks and then passes on the
+    // request to the desktop.
+    void queryConnection(VNCSConnectionST* client, const char* userName);
 
-    SConnection* getSConnection(network::Socket* sock);
+    // clientReady() is called by a VNCSConnectionST instance when the
+    // client has completed the handshake and is ready for normal
+    // communication.
+    void clientReady(VNCSConnectionST* client, bool shared);
 
-    // getName() returns the name of this VNC Server.  NB: The value returned
-    // is the server's internal buffer which may change after any other methods
-    // are called - take a copy if necessary.
-    const char* getName() const {return name.buf;}
+    // Estimated time until the next time new updates will be pushed
+    // to clients
+    int msToNextUpdate();
 
-    // setName() specifies the desktop name that the server should provide to
-    // clients
-    virtual void setName(const char* name_);
+    // Part of the framebuffer that has been modified but is not yet
+    // ready to be sent to clients
+    Region getPendingRegion();
 
-    // A QueryConnectionHandler, if supplied, is passed details of incoming
-    // connections to approve, reject, or query the user about.
-    //
-    // queryConnection() is called when a connection has been
-    // successfully authenticated.  The sock and userName arguments identify
-    // the socket and the name of the authenticated user, if any.  It should
-    // return ACCEPT if the connection should be accepted, REJECT if it should
-    // be rejected, or PENDING if a decision cannot yet be reached.  If REJECT
-    // is returned, *reason can be set to a string describing the reason - this
-    // will be delete[]ed when it is finished with.  If PENDING is returned,
-    // approveConnection() must be called some time later to accept or reject
-    // the connection.
-    enum queryResult { ACCEPT, REJECT, PENDING };
-    struct QueryConnectionHandler {
-      virtual ~QueryConnectionHandler() {}
-      virtual queryResult queryConnection(network::Socket* sock,
-                                          const char* userName,
-                                          char** reason) = 0;
-    };
-    void setQueryConnectionHandler(QueryConnectionHandler* qch) {
-      queryConnectionHandler = qch;
-    }
-
-    // queryConnection is called as described above, and either passes the
-    // request on to the registered handler, or accepts the connection if
-    // no handler has been specified.
-    virtual queryResult queryConnection(network::Socket* sock,
-                                        const char* userName,
-                                        char** reason) {
-      return queryConnectionHandler
-        ? queryConnectionHandler->queryConnection(sock, userName, reason)
-        : ACCEPT;
-    }
-
-    // approveConnection() is called by the active QueryConnectionHandler,
-    // some time after queryConnection() has returned with PENDING, to accept
-    // or reject the connection.  The accept argument should be true for
-    // acceptance, or false for rejection, in which case a string reason may
-    // also be given.
-    void approveConnection(network::Socket* sock, bool accept,
-                           const char* reason);
-
-    // setBlacklist() is called to replace the VNCServerST's internal
-    // Blacklist instance with another instance.  This allows a single
-    // Blacklist to be shared by multiple VNCServerST instances.
-    void setBlacklist(Blacklist* bl) {blHosts = bl ? bl : &blacklist;}
-
-    // setKeyRemapper() replaces the VNCServerST's default key remapper.
-    // NB: A null pointer is valid here.
-    void setKeyRemapper(KeyRemapper* kr) { keyRemapper = kr; }
-
-    void getConnInfo(ListConnInfo * listConn);
-    void setConnStatus(ListConnInfo* listConn);
-
-    bool getDisable() { return disableclients;};
-    void setDisable(bool disable) { disableclients = disable;};
+    // getRenderedCursor() returns an up to date version of the server
+    // side rendered cursor buffer
+    const RenderedCursor* getRenderedCursor();
 
   protected:
-
-    friend class VNCSConnectionST;
 
     // Timer callbacks
     virtual bool handleTimeout(Timer* t);
@@ -197,7 +162,17 @@ namespace rfb {
     void startDesktop();
     void stopDesktop();
 
-    static LogWriter connectionsLog;
+    // - Check how many of the clients are authenticated.
+    int authClientCount();
+
+    bool needRenderedCursor();
+    void startFrameClock();
+    void stopFrameClock();
+    void writeUpdate();
+
+    bool getComparerState();
+
+  protected:
     Blacklist blacklist;
     Blacklist* blHosts;
 
@@ -221,29 +196,11 @@ namespace rfb {
     RenderedCursor renderedCursor;
     bool renderedCursorInvalid;
 
-    // - Check how many of the clients are authenticated.
-    int authClientCount();
-
-    bool needRenderedCursor();
-    void startFrameClock();
-    void stopFrameClock();
-    int msToNextUpdate();
-    void writeUpdate();
-    Region getPendingRegion();
-    const RenderedCursor* getRenderedCursor();
-
-    void notifyScreenLayoutChange(VNCSConnectionST *requester);
-
-    bool getComparerState();
-
-    QueryConnectionHandler* queryConnectionHandler;
     KeyRemapper* keyRemapper;
 
     time_t lastUserInputTime;
     time_t lastDisconnectTime;
     time_t lastConnectionTime;
-
-    bool disableclients;
 
     Timer frameTimer;
   };

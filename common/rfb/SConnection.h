@@ -69,6 +69,13 @@ namespace rfb {
     void approveConnection(bool accept, const char* reason=0);
 
 
+    // Methods to terminate the connection
+
+    // close() shuts down the connection to the client and awaits
+    // cleanup of the SConnection object by the server
+    virtual void close(const char* reason);
+
+
     // Overridden from SMsgHandler
 
     virtual void setEncodings(int nEncodings, const rdr::S32* encodings);
@@ -118,8 +125,10 @@ namespace rfb {
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h);
 
+    // Other methods
+
     // setAccessRights() allows a security package to limit the access rights
-    // of a VNCSConnectionST to the server.  How the access rights are treated
+    // of a SConnection to the server.  How the access rights are treated
     // is up to the derived class.
 
     typedef rdr::U16 AccessRights;
@@ -132,26 +141,13 @@ namespace rfb {
     static const AccessRights AccessDefault;        // The default rights, INCLUDING FUTURE ONES
     static const AccessRights AccessNoQuery;        // Connect without local user accepting
     static const AccessRights AccessFull;           // All of the available AND FUTURE rights
-    virtual void setAccessRights(AccessRights ar) = 0;
-
-    // Other methods
+    virtual void setAccessRights(AccessRights ar);
+    virtual bool accessCheck(AccessRights ar) const;
 
     // authenticated() returns true if the client has authenticated
     // successfully.
     bool authenticated() { return (state_ == RFBSTATE_INITIALISATION ||
                                    state_ == RFBSTATE_NORMAL); }
-
-    // throwConnFailedException() prints a message to the log, sends a conn
-    // failed message to the client (if possible) and throws a
-    // ConnFailedException.
-    void throwConnFailedException(const char* format, ...) __printf_attr(2, 3);
-
-    // writeConnFailedFromScratch() sends a conn failed message to an OutStream
-    // without the need to negotiate the protocol version first.  It actually
-    // does this by assuming that the client will understand version 3.3 of the
-    // protocol.
-    static void writeConnFailedFromScratch(const char* msg,
-                                           rdr::OutStream* os);
 
     SMsgReader* reader() { return reader_; }
     SMsgWriter* writer() { return writer_; }
@@ -176,6 +172,11 @@ namespace rfb {
     rdr::S32 getPreferredEncoding() { return preferredEncoding; }
 
   protected:
+    // throwConnFailedException() prints a message to the log, sends a conn
+    // failed message to the client (if possible) and throws a
+    // ConnFailedException.
+    void throwConnFailedException(const char* format, ...) __printf_attr(2, 3);
+
     void setState(stateEnum s) { state_ = s; }
 
     void setReader(SMsgReader *r) { reader_ = r; }
@@ -201,6 +202,7 @@ namespace rfb {
     SSecurity* ssecurity;
     stateEnum state_;
     rdr::S32 preferredEncoding;
+    AccessRights accessRights;
   };
 }
 #endif

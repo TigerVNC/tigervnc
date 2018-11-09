@@ -20,6 +20,7 @@
 
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/resource.h>
+#include <winvnc/ListConnInfo.h>
 #include <winvnc/STrayIcon.h>
 
 #include <os/Mutex.h>
@@ -71,9 +72,7 @@ VNCServerWin32::VNCServerWin32()
 
   // Initialise the desktop
   desktop.setStatusLocation(&isDesktopStarted);
-
-  // Initialise the VNC server
-  vncServer.setQueryConnectionHandler(this);
+  desktop.setQueryConnectionHandler(this);
 
   // Register the desktop's event to be handled
   sockMgr.addEvent(desktop.getUpdateEvent(), &desktop);
@@ -241,27 +240,27 @@ bool VNCServerWin32::addNewClient(const char* client) {
   return false;
 }
 
-bool VNCServerWin32::getClientsInfo(rfb::ListConnInfo* LCInfo) {
+bool VNCServerWin32::getClientsInfo(ListConnInfo* LCInfo) {
   return queueCommand(GetClientsInfo, LCInfo, 0);
 }
 
-bool VNCServerWin32::setClientsStatus(rfb::ListConnInfo* LCInfo) {
+bool VNCServerWin32::setClientsStatus(ListConnInfo* LCInfo) {
   return queueCommand(SetClientsStatus, LCInfo, 0);
 }
 
-VNCServerST::queryResult VNCServerWin32::queryConnection(network::Socket* sock,
-                                            const char* userName,
-                                            char** reason)
+void VNCServerWin32::queryConnection(network::Socket* sock,
+                                     const char* userName)
 {
-  if (queryOnlyIfLoggedOn && CurrentUserToken().noUserLoggedOn())
-    return VNCServerST::ACCEPT;
+  if (queryOnlyIfLoggedOn && CurrentUserToken().noUserLoggedOn()) {
+    vncServer.approveConnection(sock, true, NULL);
+    return;
+  }
   if (queryConnectDialog) {
-    *reason = rfb::strDup("Another connection is currently being queried.");
-    return VNCServerST::REJECT;
+    vncServer.approveConnection(sock, false, "Another connection is currently being queried.");
+    return;
   }
   queryConnectDialog = new QueryConnectDialog(sock, userName, this);
   queryConnectDialog->startDialog();
-  return VNCServerST::PENDING;
 }
 
 void VNCServerWin32::queryConnectionComplete() {
@@ -309,10 +308,10 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       sockMgr.addSocket((network::Socket*)commandData, &vncServer);
       break;
   case GetClientsInfo:
-    vncServer.getConnInfo((ListConnInfo*)commandData); 
+    getConnInfo((ListConnInfo*)commandData);
     break;
   case SetClientsStatus:
-    vncServer.setConnStatus((ListConnInfo*)commandData); 
+    setConnStatus((ListConnInfo*)commandData);
     break;
 
     case QueryConnectionComplete:
@@ -341,3 +340,82 @@ void VNCServerWin32::processEvent(HANDLE event_) {
   }
 }
 
+void VNCServerWin32::getConnInfo(ListConnInfo * listConn)
+{
+  std::list<network::Socket*> sockets;
+  std::list<network::Socket*>::iterator i;
+
+  listConn->Clear();
+  listConn->setDisable(sockMgr.getDisable(&vncServer));
+
+  vncServer.getSockets(&sockets);
+
+  for (i = sockets.begin(); i != sockets.end(); i++) {
+    rfb::SConnection* conn;
+    int status;
+
+    conn = vncServer.getConnection(*i);
+    if (!conn)
+      continue;
+
+    if (conn->accessCheck(rfb::SConnection::AccessPtrEvents |
+                          rfb::SConnection::AccessKeyEvents |
+                          rfb::SConnection::AccessView))
+      status = 0;
+    else if (conn->accessCheck(rfb::SConnection::AccessView))
+      status = 1;
+    else
+      status = 2;
+
+    listConn->addInfo((void*)(*i), (*i)->getPeerAddress(), status);
+  }
+}
+
+void VNCServerWin32::setConnStatus(ListConnInfo* listConn)
+{
+  sockMgr.setDisable(&vncServer, listConn->getDisable());
+
+  if (listConn->Empty())
+    return;
+
+  for (listConn->iBegin(); !listConn->iEnd(); listConn->iNext()) {
+    network::Socket* sock;
+    rfb::SConnection* conn;
+    int status;
+
+    sock = (network::Socket*)listConn->iGetConn();
+
+    conn = vncServer.getConnection(sock);
+    if (!conn)
+      continue;
+
+    status = listConn->iGetStatus();
+    if (status == 3) {
+      conn->close(0);
+    } else {
+      rfb::SConnection::AccessRights ar;
+
+      ar = rfb::SConnection::AccessDefault;
+
+      switch (status) {
+      case 0:
+        ar |= rfb::SConnection::AccessPtrEvents |
+              rfb::SConnection::AccessKeyEvents |
+              rfb::SConnection::AccessView;
+        break;
+      case 1:
+        ar |= rfb::SConnection::AccessView;
+        ar &= ~(rfb::SConnection::AccessPtrEvents |
+                rfb::SConnection::AccessKeyEvents);
+        break;
+      case 2:
+        ar &= ~(rfb::SConnection::AccessPtrEvents |
+                rfb::SConnection::AccessKeyEvents |
+                rfb::SConnection::AccessView);
+        break;
+      }
+      conn->setAccessRights(ar);
+      conn->framebufferUpdateRequest(vncServer.getPixelBuffer()->getRect(), false);
+    }
+  }
+}

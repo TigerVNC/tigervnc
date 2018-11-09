@@ -37,9 +37,10 @@ namespace os {
 
 namespace winvnc {
 
+  class ListConnInfo;
   class STrayIconThread;
 
-  class VNCServerWin32 : rfb::VNCServerST::QueryConnectionHandler,
+  class VNCServerWin32 : rfb::win32::QueryConnectionHandler,
                          rfb::win32::SocketManager::AddressChangeNotifier,
                          rfb::win32::RegConfig::Callback,
                          rfb::win32::EventHandler {
@@ -73,17 +74,16 @@ namespace winvnc {
     // Where to read the configuration settings from
     static const TCHAR* RegConfigPath;
 
-    bool getClientsInfo(rfb::ListConnInfo* LCInfo);
+    bool getClientsInfo(ListConnInfo* LCInfo);
 
-    bool setClientsStatus(rfb::ListConnInfo* LCInfo);
+    bool setClientsStatus(ListConnInfo* LCInfo);
 
   protected:
-    // VNCServerST::QueryConnectionHandler interface
+    // QueryConnectionHandler interface
     // Callback used to prompt user to accept or reject a connection.
     // CALLBACK IN VNCServerST "HOST" THREAD
-    virtual rfb::VNCServerST::queryResult queryConnection(network::Socket* sock,
-                                                          const char* userName,
-                                                          char** reason);
+    virtual void queryConnection(network::Socket* sock,
+                                 const char* userName);
 
     // SocketManager::AddressChangeNotifier interface
     // Used to keep tray icon up to date
@@ -96,6 +96,9 @@ namespace winvnc {
     // EventHandler interface
     // Used to perform queued commands
     virtual void processEvent(HANDLE event);
+
+    void getConnInfo(ListConnInfo * listConn);
+    void setConnStatus(ListConnInfo* listConn);
 
   protected:
     // Perform a particular internal function in the server thread

@@ -52,27 +52,22 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     losslessTimer(this), server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
-    clientHasCursor(false),
-    accessRights(AccessDefault), startTime(time(0))
+    clientHasCursor(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
-  VNCServerST::connectionsLog.write(1,"accepted: %s", peerEndpoint.buf);
 
   // Configure the socket
   setSocketTimeouts();
   lastEventTime = time(0);
-
-  server->clients.push_front(this);
 }
 
 
 VNCSConnectionST::~VNCSConnectionST()
 {
   // If we reach here then VNCServerST is deleting us!
-  VNCServerST::connectionsLog.write(1,"closed: %s (%s)",
-                                    peerEndpoint.buf,
-                                    (closeReason.buf) ? closeReason.buf : "");
+  if (closeReason.buf)
+    vlog.info("closing %s: %s", peerEndpoint.buf, closeReason.buf);
 
   // Release any keys the client still had pressed
   while (!pressedKeys.empty()) {
@@ -84,16 +79,39 @@ VNCSConnectionST::~VNCSConnectionST()
 
     vlog.debug("Releasing key 0x%x / 0x%x on client disconnect",
                keysym, keycode);
-    server->desktop->keyEvent(keysym, keycode, false);
+    server->keyEvent(keysym, keycode, false);
   }
 
-  if (server->pointerClient == this)
-    server->pointerClient = 0;
-
-  // Remove this client from the server
-  server->clients.remove(this);
-
   delete [] fenceData;
+}
+
+
+// SConnection methods
+
+bool VNCSConnectionST::accessCheck(AccessRights ar) const
+{
+  // Reverse connections are user initiated, so they are implicitly
+  // allowed to bypass the query
+  if (reverseConnection)
+    ar &= ~AccessNoQuery;
+
+  return SConnection::accessCheck(ar);
+}
+
+void VNCSConnectionST::close(const char* reason)
+{
+  // Log the reason for the close
+  if (!closeReason.buf)
+    closeReason.buf = strDup(reason);
+  else
+    vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
+
+  // Just shutdown the socket and mark our state as closing.  Eventually the
+  // calling code will call VNCServerST's removeSocket() method causing us to
+  // be deleted.
+  sock->shutdown();
+
+  SConnection::close(reason);
 }
 
 
@@ -108,25 +126,6 @@ bool VNCSConnectionST::init()
     return false;
   }
   return true;
-}
-
-void VNCSConnectionST::close(const char* reason)
-{
-  // Log the reason for the close
-  if (!closeReason.buf)
-    closeReason.buf = strDup(reason);
-  else
-    vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
-
-  if (authenticated()) {
-      server->lastDisconnectTime = time(0);
-  }
-
-  // Just shutdown the socket and mark our state as closing.  Eventually the
-  // calling code will call VNCServerST's removeSocket() method causing us to
-  // be deleted.
-  sock->shutdown();
-  setState(RFBSTATE_CLOSING);
 }
 
 
@@ -192,8 +191,9 @@ void VNCSConnectionST::pixelBufferChange()
 {
   try {
     if (!authenticated()) return;
-    if (cp.width && cp.height && (server->pb->width() != cp.width ||
-                                  server->pb->height() != cp.height))
+    if (cp.width && cp.height &&
+        (server->getPixelBuffer()->width() != cp.width ||
+         server->getPixelBuffer()->height() != cp.height))
     {
       // We need to clip the next update to the new size, but also add any
       // extra bits if it's bigger.  If we wanted to do this exactly, something
@@ -210,11 +210,11 @@ void VNCSConnectionST::pixelBufferChange()
       //  updates.add_changed(Rect(0, cp.height, cp.width,
       //                           server->pb->height()));
 
-      damagedCursorRegion.assign_intersect(server->pb->getRect());
+      damagedCursorRegion.assign_intersect(server->getPixelBuffer()->getRect());
 
-      cp.width = server->pb->width();
-      cp.height = server->pb->height();
-      cp.screenLayout = server->screenLayout;
+      cp.width = server->getPixelBuffer()->width();
+      cp.height = server->getPixelBuffer()->height();
+      cp.screenLayout = server->getScreenLayout();
       if (state() == RFBSTATE_NORMAL) {
         // We should only send EDS to client asking for both
         if (!writer()->writeExtendedDesktopSize()) {
@@ -226,12 +226,12 @@ void VNCSConnectionST::pixelBufferChange()
       }
 
       // Drop any lossy tracking that is now outside the framebuffer
-      encodeManager.pruneLosslessRefresh(Region(server->pb->getRect()));
+      encodeManager.pruneLosslessRefresh(Region(server->getPixelBuffer()->getRect()));
     }
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
     updates.clear();
-    updates.add_changed(server->pb->getRect());
+    updates.add_changed(server->getPixelBuffer()->getRect());
     writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
@@ -269,7 +269,7 @@ void VNCSConnectionST::bellOrClose()
 void VNCSConnectionST::serverCutTextOrClose(const char *str, int len)
 {
   try {
-    if (!(accessRights & AccessCutText)) return;
+    if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::sendCutText) return;
     if (state() == RFBSTATE_NORMAL)
       writer()->writeServerCutText(str, len);
@@ -388,7 +388,7 @@ bool VNCSConnectionST::needRenderedCursor()
   if (!cp.supportsLocalCursorWithAlpha &&
       !cp.supportsLocalCursor && !cp.supportsLocalXCursor)
     return true;
-  if (!server->cursorPos.equals(pointerEventPos) &&
+  if (!server->getCursorPos().equals(pointerEventPos) &&
       (time(0) - pointerEventTime) > 0)
     return true;
 
@@ -414,82 +414,36 @@ void VNCSConnectionST::authSuccess()
 {
   lastEventTime = time(0);
 
-  server->startDesktop();
-
   // - Set the connection parameters appropriately
-  cp.width = server->pb->width();
-  cp.height = server->pb->height();
-  cp.screenLayout = server->screenLayout;
+  cp.width = server->getPixelBuffer()->width();
+  cp.height = server->getPixelBuffer()->height();
+  cp.screenLayout = server->getScreenLayout();
   cp.setName(server->getName());
-  cp.setLEDState(server->ledState);
+  cp.setLEDState(server->getLEDState());
   
   // - Set the default pixel format
-  cp.setPF(server->pb->getPF());
+  cp.setPF(server->getPixelBuffer()->getPF());
   char buffer[256];
   cp.pf().print(buffer, 256);
   vlog.info("Server default pixel format %s", buffer);
 
   // - Mark the entire display as "dirty"
-  updates.add_changed(server->pb->getRect());
-  startTime = time(0);
+  updates.add_changed(server->getPixelBuffer()->getRect());
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
 {
-  // - Authentication succeeded - clear from blacklist
-  CharArray name; name.buf = sock->getPeerAddress();
-  server->blHosts->clearBlackmark(name.buf);
-
-  // - Special case to provide a more useful error message
-  if (rfb::Server::neverShared && !rfb::Server::disconnectClients &&
-    server->authClientCount() > 0) {
-    approveConnection(false, "The server is already in use");
-    return;
-  }
-
-  // - Does the client have the right to bypass the query?
-  if (reverseConnection ||
-      !(rfb::Server::queryConnect || sock->requiresQuery()) ||
-      (accessRights & AccessNoQuery))
-  {
-    approveConnection(true);
-    return;
-  }
-
-  // - Get the server to display an Accept/Reject dialog, if required
-  //   If a dialog is displayed, the result will be PENDING, and the
-  //   server will call approveConnection at a later time
-  CharArray reason;
-  VNCServerST::queryResult qr = server->queryConnection(sock, userName,
-                                                        &reason.buf);
-  if (qr == VNCServerST::PENDING)
-    return;
-
-  // - If server returns ACCEPT/REJECT then pass result to SConnection
-  approveConnection(qr == VNCServerST::ACCEPT, reason.buf);
+  server->queryConnection(this, userName);
 }
 
 void VNCSConnectionST::clientInit(bool shared)
 {
   lastEventTime = time(0);
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
-  if (!(accessRights & AccessNonShared)) shared = true;
+  if (!accessCheck(AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
-  if (!shared) {
-    if (rfb::Server::disconnectClients && (accessRights & AccessNonShared)) {
-      // - Close all the other connected clients
-      vlog.debug("non-shared connection - closing clients");
-      server->closeClients("Non-shared connection requested", getSock());
-    } else {
-      // - Refuse this connection if there are existing clients, in addition to
-      // this one
-      if (server->authClientCount() > 1) {
-        close("Server is already in use");
-        return;
-      }
-    }
-  }
   SConnection::clientInit(shared);
+  server->clientReady(this, shared);
 }
 
 void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
@@ -504,36 +458,29 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
 void VNCSConnectionST::pointerEvent(const Point& pos, int buttonMask)
 {
   pointerEventTime = lastEventTime = time(0);
-  server->lastUserInputTime = lastEventTime;
-  if (!(accessRights & AccessPtrEvents)) return;
+  if (!accessCheck(AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
-  if (!server->pointerClient || server->pointerClient == this) {
-    pointerEventPos = pos;
-    if (buttonMask)
-      server->pointerClient = this;
-    else
-      server->pointerClient = 0;
-    server->desktop->pointerEvent(pointerEventPos, buttonMask);
-  }
+  pointerEventPos = pos;
+  server->pointerEvent(this, pointerEventPos, buttonMask);
 }
 
 
 class VNCSConnectionSTShiftPresser {
 public:
-  VNCSConnectionSTShiftPresser(SDesktop* desktop_)
-    : desktop(desktop_), pressed(false) {}
+  VNCSConnectionSTShiftPresser(VNCServerST* server_)
+    : server(server_), pressed(false) {}
   ~VNCSConnectionSTShiftPresser() {
     if (pressed) {
       vlog.debug("Releasing fake Shift_L");
-      desktop->keyEvent(XK_Shift_L, 0, false);
+      server->keyEvent(XK_Shift_L, 0, false);
     }
   }
   void press() {
     vlog.debug("Pressing fake Shift_L");
-    desktop->keyEvent(XK_Shift_L, 0, true);
+    server->keyEvent(XK_Shift_L, 0, true);
     pressed = true;
   }
-  SDesktop* desktop;
+  VNCServerST* server;
   bool pressed;
 };
 
@@ -543,8 +490,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   rdr::U32 lookup;
 
   lastEventTime = time(0);
-  server->lastUserInputTime = lastEventTime;
-  if (!(accessRights & AccessKeyEvents)) return;
+  if (!accessCheck(AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
   if (down)
@@ -552,18 +498,8 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   else
     vlog.debug("Key released: 0x%x / 0x%x", keysym, keycode);
 
-  // Remap the key if required
-  if (server->keyRemapper) {
-    rdr::U32 newkey;
-    newkey = server->keyRemapper->remapKey(keysym);
-    if (newkey != keysym) {
-      vlog.debug("Key remapped to 0x%x", newkey);
-      keysym = newkey;
-    }
-  }
-
   // Avoid lock keys if we don't know the server state
-  if ((server->ledState == ledUnknown) &&
+  if ((server->getLEDState() == ledUnknown) &&
       ((keysym == XK_Caps_Lock) ||
        (keysym == XK_Num_Lock) ||
        (keysym == XK_Scroll_Lock))) {
@@ -581,7 +517,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
       return;
     }
 
-    if (down && (server->ledState != ledUnknown)) {
+    if (down && (server->getLEDState() != ledUnknown)) {
       // CapsLock synchronisation heuristic
       // (this assumes standard interaction between CapsLock the Shift
       // keys and normal characters)
@@ -591,12 +527,12 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
 
         uppercase = (keysym >= XK_A) && (keysym <= XK_Z);
         shift = isShiftPressed();
-        lock = server->ledState & ledCapsLock;
+        lock = server->getLEDState() & ledCapsLock;
 
         if (lock == (uppercase == shift)) {
           vlog.debug("Inserting fake CapsLock to get in sync with client");
-          server->desktop->keyEvent(XK_Caps_Lock, 0, true);
-          server->desktop->keyEvent(XK_Caps_Lock, 0, false);
+          server->keyEvent(XK_Caps_Lock, 0, true);
+          server->keyEvent(XK_Caps_Lock, 0, false);
         }
       }
 
@@ -611,7 +547,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
         number = ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
                   (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
         shift = isShiftPressed();
-        lock = server->ledState & ledNumLock;
+        lock = server->getLEDState() & ledNumLock;
 
         if (shift) {
           // We don't know the appropriate NumLock state for when Shift
@@ -625,15 +561,15 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
           //
         } else if (lock == (number == shift)) {
           vlog.debug("Inserting fake NumLock to get in sync with client");
-          server->desktop->keyEvent(XK_Num_Lock, 0, true);
-          server->desktop->keyEvent(XK_Num_Lock, 0, false);
+          server->keyEvent(XK_Num_Lock, 0, true);
+          server->keyEvent(XK_Num_Lock, 0, false);
         }
       }
     }
   }
 
   // Turn ISO_Left_Tab into shifted Tab.
-  VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
+  VNCSConnectionSTShiftPresser shiftPresser(server);
   if (keysym == XK_ISO_Left_Tab) {
     if (!isShiftPressed())
       shiftPresser.press();
@@ -659,21 +595,21 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
       return;
   }
 
-  server->desktop->keyEvent(keysym, keycode, down);
+  server->keyEvent(keysym, keycode, down);
 }
 
 void VNCSConnectionST::clientCutText(const char* str, int len)
 {
-  if (!(accessRights & AccessCutText)) return;
+  if (!accessCheck(AccessCutText)) return;
   if (!rfb::Server::acceptCutText) return;
-  server->desktop->clientCutText(str, len);
+  server->clientCutText(str, len);
 }
 
 void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 {
   Rect safeRect;
 
-  if (!(accessRights & AccessView)) return;
+  if (!accessCheck(AccessView)) return;
 
   SConnection::framebufferUpdateRequest(r, incremental);
 
@@ -712,30 +648,12 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 {
   unsigned int result;
 
-  if (!(accessRights & AccessSetDesktopSize)) return;
+  if (!accessCheck(AccessSetDesktopSize)) return;
   if (!rfb::Server::acceptSetDesktopSize) return;
 
-  // Don't bother the desktop with an invalid configuration
-  if (!layout.validate(fb_width, fb_height)) {
-    writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
-                                       fb_width, fb_height, layout);
-    return;
-  }
-
-  // FIXME: the desktop will call back to VNCServerST and an extra set
-  // of ExtendedDesktopSize messages will be sent. This is okay
-  // protocol-wise, but unnecessary.
-  result = server->desktop->setScreenLayout(fb_width, fb_height, layout);
-
+  result = server->setDesktopSize(this, fb_width, fb_height, layout);
   writer()->writeExtendedDesktopSize(reasonClient, result,
                                      fb_width, fb_height, layout);
-
-  // Only notify other clients on success
-  if (result == resultSuccess) {
-    if (server->screenLayout != layout)
-        throw Exception("Desktop configured a different screen layout than requested");
-    server->notifyScreenLayoutChange(this);
-  }
 }
 
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
@@ -1001,7 +919,7 @@ void VNCSConnectionST::writeDataUpdate()
 
     bogusCopiedCursor = damagedCursorRegion;
     bogusCopiedCursor.translate(ui.copy_delta);
-    bogusCopiedCursor.assign_intersect(server->pb->getRect());
+    bogusCopiedCursor.assign_intersect(server->getPixelBuffer()->getRect());
     if (!ui.copied.intersect(bogusCopiedCursor).is_empty()) {
       updates.add_changed(bogusCopiedCursor);
       needNewUpdateInfo = true;
@@ -1124,7 +1042,7 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   if (!authenticated())
     return;
 
-  cp.screenLayout = server->screenLayout;
+  cp.screenLayout = server->getScreenLayout();
 
   if (state() != RFBSTATE_NORMAL)
     return;
@@ -1148,7 +1066,7 @@ void VNCSConnectionST::setCursor()
     cp.setCursor(emptyCursor);
     clientHasCursor = false;
   } else {
-    cp.setCursor(*server->cursor);
+    cp.setCursor(*server->getCursor());
     clientHasCursor = true;
   }
 
@@ -1194,37 +1112,3 @@ void VNCSConnectionST::setSocketTimeouts()
   sock->inStream().setTimeout(timeoutms);
   sock->outStream().setTimeout(timeoutms);
 }
-
-char* VNCSConnectionST::getStartTime()
-{
-  char* result = ctime(&startTime);
-  result[24] = '\0';
-  return result; 
-}
-
-void VNCSConnectionST::setStatus(int status)
-{
-  switch (status) {
-  case 0:
-    accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
-    break;
-  case 1:
-    accessRights = (accessRights & ~(AccessPtrEvents | AccessKeyEvents)) | AccessView;
-    break;
-  case 2:
-    accessRights = accessRights & ~(AccessPtrEvents | AccessKeyEvents | AccessView);
-    break;
-  }
-  framebufferUpdateRequest(server->pb->getRect(), false);
-}
-int VNCSConnectionST::getStatus()
-{
-  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0007)
-    return 0;
-  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0001)
-    return 1;
-  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0000)
-    return 2;
-  return 4;
-}
-

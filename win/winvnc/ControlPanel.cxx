@@ -19,10 +19,9 @@ void ControlPanel::initDialog()
 {
   TCHAR *ColumnsStrings[] = {
     (TCHAR *) "IP address",
-    (TCHAR *) "Time connected",
     (TCHAR *) "Status"
   };
-  InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 3, ColumnsStrings,
+  InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 2, ColumnsStrings,
                 LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
                 LVS_EX_FULLROWSELECT, LVCFMT_LEFT);
   SendCommand(4, -1);
@@ -74,7 +73,7 @@ bool ControlPanel::onCommand(int cmd)
   
 }
 
-void ControlPanel::UpdateListView(rfb::ListConnInfo* LCInfo)
+void ControlPanel::UpdateListView(ListConnInfo* LCInfo)
 {
   getSelConnInfo();
   DeleteAllLVItem(IDC_LIST_CONNECTIONS, handle);
@@ -85,12 +84,12 @@ void ControlPanel::UpdateListView(rfb::ListConnInfo* LCInfo)
 
   ListConn.Copy(LCInfo);
 
-  char* ItemString[3];
+  char* ItemString[2];
   int i = 0;
 
   for (ListConn.iBegin(); !ListConn.iEnd(); ListConn.iNext()) {
     ListConn.iGetCharInfo(ItemString);
-    InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, (TCHAR **) ItemString, 3);
+    InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, (TCHAR **) ItemString, 2);
     for (ListSelConn.iBegin(); !ListSelConn.iEnd(); ListSelConn.iNext()) {
       if (ListSelConn.iGetConn() == ListConn.iGetConn())
         SelectLVItem(IDC_LIST_CONNECTIONS, handle, i);
@@ -141,6 +140,8 @@ void ControlPanel::SendCommand(DWORD command, int data)
 {
   COPYDATASTRUCT copyData;
   copyData.dwData = command;
+  copyData.cbData = 0;
+  copyData.lpData = 0;
   getSelConnInfo();
   if (data != -1) {
     ListConnStatus.Copy(&ListSelConn);
@@ -149,8 +150,6 @@ void ControlPanel::SendCommand(DWORD command, int data)
   } else {
     ListConnStatus.Clear();
   }
-  copyData.cbData = 0;
-  copyData.lpData = &ListConnStatus;
   SendMessage(m_hSTIcon, WM_COPYDATA, 0, (LPARAM)&copyData);
 }
 
