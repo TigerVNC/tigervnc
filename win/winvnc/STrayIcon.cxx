@@ -184,7 +184,7 @@ public:
         case 2:
           return thread.server.disconnectClients("IPC disconnect") ? 1 : 0;
         case 3:
-          thread.server.setClientsStatus((ListConnInfo *)command->lpData);
+          thread.server.setClientsStatus(&CPanel->ListConnStatus);
         case 4:
           thread.server.getClientsInfo(&LCInfo);
           CPanel->UpdateListView(&LCInfo);

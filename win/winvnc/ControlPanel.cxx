@@ -140,6 +140,8 @@ void ControlPanel::SendCommand(DWORD command, int data)
 {
   COPYDATASTRUCT copyData;
   copyData.dwData = command;
+  copyData.cbData = 0;
+  copyData.lpData = 0;
   getSelConnInfo();
   if (data != -1) {
     ListConnStatus.Copy(&ListSelConn);
@@ -148,8 +150,6 @@ void ControlPanel::SendCommand(DWORD command, int data)
   } else {
     ListConnStatus.Clear();
   }
-  copyData.cbData = 0;
-  copyData.lpData = &ListConnStatus;
   SendMessage(m_hSTIcon, WM_COPYDATA, 0, (LPARAM)&copyData);
 }
 
