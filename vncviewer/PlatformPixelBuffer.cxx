@@ -58,6 +58,9 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
 
   data = (rdr::U8*)xim->data;
   stride = xim->bytes_per_line / (getPF().bpp/8);
+
+  // On X11, the Pixmap backing this Surface is uninitialized.
+  clear(0, 0, 0);
 #else
   FullFramePixelBuffer::data = (rdr::U8*)Surface::data;
   stride = width;
