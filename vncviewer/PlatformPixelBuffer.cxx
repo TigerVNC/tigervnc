@@ -104,6 +104,9 @@ rfb::Rect PlatformPixelBuffer::getDamage(void)
   mutex.unlock();
 
 #if !defined(WIN32) && !defined(__APPLE__)
+  if (r.width() == 0 || r.height() == 0)
+    return r;
+
   GC gc;
 
   gc = XCreateGC(fl_display, pixmap, 0, NULL);
