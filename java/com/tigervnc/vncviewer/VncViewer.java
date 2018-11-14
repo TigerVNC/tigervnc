@@ -101,41 +101,10 @@ public class VncViewer extends javax.swing.JApplet
           appClass.getMethod("setDockIconImage", paramTypes);
         setDockIconImage.invoke(app, VncViewer.logoImage);
       }
-      // Use Nimbus LookAndFeel if it's available, otherwise fallback
-      // to the native laf, or Metal if no native laf is available.
-      String laf = System.getProperty("swing.defaultlaf");
-      if (laf == null) {
-        LookAndFeelInfo[] installedLafs = UIManager.getInstalledLookAndFeels();
-        for (int i = 0; i < installedLafs.length; i++) {
-          if (installedLafs[i].getName().equals("Nimbus"))
-            laf = installedLafs[i].getClassName();
-        }
-        if (laf == null)
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-      }
-      UIManager.setLookAndFeel(laf);
-      if (UIManager.getLookAndFeel().getName().equals("Metal")) {
-        UIManager.put("swing.boldMetal", Boolean.FALSE);
-        Enumeration<Object> keys = UIManager.getDefaults().keys();
-        while (keys.hasMoreElements()) {
-          Object key = keys.nextElement();
-          Object value = UIManager.get(key);
-          if (value instanceof FontUIResource) {
-            String name = ((FontUIResource)value).getName();
-            int style = ((FontUIResource)value).getStyle();
-            int size = ((FontUIResource)value).getSize()-1;
-            FontUIResource f = new FontUIResource(name, style, size);
-            UIManager.put(key, f);
-          }
-        }
-      } else if (UIManager.getLookAndFeel().getName().equals("Nimbus")) {
-        Font f = UIManager.getFont("TitledBorder.font");
-        String name = f.getName();
-        int style = f.getStyle();
-        int size = f.getSize()-2;
-        FontUIResource r = new FontUIResource(name, style, size);
-      	UIManager.put("TitledBorder.font", r);
-      }
+
+      // Uses the native LookAndFeel of the system, if it does not exist it uses
+      // a cross-platform available in the system.
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     } catch (java.lang.Exception e) {
       vlog.info(e.toString());
     }
