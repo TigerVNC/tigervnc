@@ -766,10 +766,13 @@ vfbUninstallColormap(ColormapPtr pmap)
 	    curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
 						   RT_COLORMAP);
 #else
-	    dixLookupResourceByType((void * *) &curpmap, pmap->pScreen->defColormap,
-				    RT_COLORMAP, serverClient, DixUnknownAccess);
+	    int rc =  dixLookupResourceByType((void * *) &curpmap, pmap->pScreen->defColormap,
+					      RT_COLORMAP, serverClient, DixUnknownAccess);
+	    if (rc != Success)
+		ErrorF("Failed to uninstall color map\n");
+	    else
 #endif
-	    (*pmap->pScreen->InstallColormap)(curpmap);
+		(*pmap->pScreen->InstallColormap)(curpmap);
 	}
     }
 }
