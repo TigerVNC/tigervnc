@@ -76,7 +76,7 @@ static unsigned short srgb_to_lin(unsigned char srgb)
 }
 
 // Floyd-Steinberg dithering
-static void dither(int width, int height, int* data)
+static void dither(int width, int height, rdr::U16* data)
 {
   for (int y = 0; y < height; y++) {
     for (int x_ = 0; x_ < width; x_++) {
@@ -122,31 +122,33 @@ static void dither(int width, int height, int* data)
 rdr::U8* Cursor::getBitmap() const
 {
   // First step is converting to luminance
-  int luminance[width()*height()];
-  int *lum_ptr = luminance;
+  rdr::U16Array luminance(width()*height());
+  rdr::U16 *lum_ptr = luminance.buf;
   const rdr::U8 *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
-      // Use BT.709 coefficients for grayscale
-      *lum_ptr = 0;
-      *lum_ptr += (int)srgb_to_lin(data_ptr[0]) * 6947;  // 0.2126
-      *lum_ptr += (int)srgb_to_lin(data_ptr[1]) * 23436; // 0.7152
-      *lum_ptr += (int)srgb_to_lin(data_ptr[2]) * 2366;  // 0.0722
-      *lum_ptr /= 32768;
+      rdr::U32 lum;
 
-      lum_ptr++;
+      // Use BT.709 coefficients for grayscale
+      lum = 0;
+      lum += (rdr::U32)srgb_to_lin(data_ptr[0]) * 6947;  // 0.2126
+      lum += (rdr::U32)srgb_to_lin(data_ptr[1]) * 23436; // 0.7152
+      lum += (rdr::U32)srgb_to_lin(data_ptr[2]) * 2366;  // 0.0722
+      lum /= 32768;
+
+      *lum_ptr++ = lum;
       data_ptr += 4;
     }
   }
 
   // Then diterhing
-  dither(width(), height(), luminance);
+  dither(width(), height(), luminance.buf);
 
   // Then conversion to a bit mask
   rdr::U8Array source((width()+7)/8*height());
   memset(source.buf, 0, (width()+7)/8*height());
   int maskBytesPerRow = (width() + 7) / 8;
-  lum_ptr = luminance;
+  lum_ptr = luminance.buf;
   data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
@@ -165,25 +167,24 @@ rdr::U8* Cursor::getBitmap() const
 rdr::U8* Cursor::getMask() const
 {
   // First step is converting to integer array
-  int alpha[width()*height()];
-  int *alpha_ptr = alpha;
+  rdr::U16Array alpha(width()*height());
+  rdr::U16 *alpha_ptr = alpha.buf;
   const rdr::U8 *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
-      *alpha_ptr = (int)data_ptr[3] * 65535 / 255;
-      alpha_ptr++;
+      *alpha_ptr++ = (rdr::U32)data_ptr[3] * 65535 / 255;
       data_ptr += 4;
     }
   }
 
   // Then diterhing
-  dither(width(), height(), alpha);
+  dither(width(), height(), alpha.buf);
 
   // Then conversion to a bit mask
   rdr::U8Array mask((width()+7)/8*height());
   memset(mask.buf, 0, (width()+7)/8*height());
   int maskBytesPerRow = (width() + 7) / 8;
-  alpha_ptr = alpha;
+  alpha_ptr = alpha.buf;
   data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {

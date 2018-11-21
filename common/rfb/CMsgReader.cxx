@@ -210,7 +210,7 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
 
-  rdr::U8 buf[width*height*4];
+  rdr::U8Array rgba(width*height*4);
 
   if (width * height > 0) {
     rdr::U8 pr, pg, pb;
@@ -235,7 +235,7 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
     is->readBytes(mask.buf, mask_len);
 
     int maskBytesPerRow = (width+7)/8;
-    out = buf;
+    out = rgba.buf;
     for (y = 0;y < height;y++) {
       for (x = 0;x < width;x++) {
         int byte = y * maskBytesPerRow + x / 8;
@@ -261,7 +261,7 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
     }
   }
 
-  handler->setCursor(width, height, hotspot, buf);
+  handler->setCursor(width, height, hotspot, rgba.buf);
 }
 
 void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
@@ -275,7 +275,7 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   rdr::U8Array mask(mask_len);
 
   int x, y;
-  rdr::U8 buf[width*height*4];
+  rdr::U8Array rgba(width*height*4);
   rdr::U8* in;
   rdr::U8* out;
 
@@ -284,7 +284,7 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 
   int maskBytesPerRow = (width+7)/8;
   in = data.buf;
-  out = buf;
+  out = rgba.buf;
   for (y = 0;y < height;y++) {
     for (x = 0;x < width;x++) {
       int byte = y * maskBytesPerRow + x / 8;
@@ -302,7 +302,7 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
     }
   }
 
-  handler->setCursor(width, height, hotspot, buf);
+  handler->setCursor(width, height, hotspot, rgba.buf);
 }
 
 void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hotspot)

@@ -16,5 +16,5 @@ before_install:
  - popd
 
 script:
- - cmake . && make
+ - cmake -DCMAKE_BUILD_TYPE=Debug . && make
  - cd java && cmake . && make

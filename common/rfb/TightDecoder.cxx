@@ -266,15 +266,16 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
       buflen -= 1;
 
       if (pf.is888()) {
-        rdr::U8 tightPalette[palSize * 3];
+        size_t len = palSize * 3;
+        rdr::U8Array tightPalette(len);
 
-        assert(buflen >= sizeof(tightPalette));
+        assert(buflen >= sizeof(len));
 
-        memcpy(tightPalette, bufptr, sizeof(tightPalette));
-        bufptr += sizeof(tightPalette);
-        buflen -= sizeof(tightPalette);
+        memcpy(tightPalette.buf, bufptr, len);
+        bufptr += len;
+        buflen -= len;
 
-        pf.bufferFromRGB(palette, tightPalette, palSize);
+        pf.bufferFromRGB(palette, tightPalette.buf, palSize);
       } else {
         size_t len;
 
