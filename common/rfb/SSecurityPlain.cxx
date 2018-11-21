@@ -41,7 +41,7 @@ StringParameter PasswordValidator::plainUsers
 
 bool PasswordValidator::validUser(const char* username)
 {
-  CharArray users(strDup(plainUsers.getValueStr())), user;
+  CharArray users(plainUsers.getValueStr()), user;
 
   while (users.buf) {
     strSplit(users.buf, ',', &user.buf, &users.buf);

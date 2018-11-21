@@ -105,7 +105,7 @@ void vncClientCutText(const char* str, int len)
       LOG_ERROR("Could not set PRIMARY selection");
   }
 
-  vncOwnSelection(xaCLIPBOARD);
+  rc = vncOwnSelection(xaCLIPBOARD);
   if (rc != Success)
     LOG_ERROR("Could not set CLIPBOARD selection");
 }

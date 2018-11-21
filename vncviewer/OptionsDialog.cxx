@@ -282,7 +282,7 @@ void OptionsDialog::loadOptions(void)
   /* Screen */
   int width, height;
 
-  if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2) {
+  if (sscanf((const char*)desktopSize, "%dx%d", &width, &height) != 2) {
     desktopSizeCheckbox->value(false);
     desktopWidthInput->value("1024");
     desktopHeightInput->value("768");

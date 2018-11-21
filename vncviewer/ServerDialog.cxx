@@ -150,7 +150,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
     return;
   }
   
-  const char* filename = strdup(file_chooser->value());
+  const char* filename = file_chooser->value();
 
   try {
     dialog->serverName->value(loadViewerParameters(filename));
@@ -165,8 +165,8 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 { 
   ServerDialog *dialog = (ServerDialog*)data;
-  const char* servername = strdup(dialog->serverName->value());
-  char* filename;
+  const char* servername = dialog->serverName->value();
+  const char* filename;
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
 						      2, _("Save the TigerVNC configuration to file"));
@@ -187,7 +187,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
       return;
     }
     
-    filename = strdup(file_chooser->value());
+    filename = file_chooser->value();
     
     FILE* f = fopen(filename, "r");
     if (f) {
@@ -235,7 +235,7 @@ void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
 void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
-  const char* servername = strdup(dialog->serverName->value());
+  const char* servername = dialog->serverName->value();
 
   dialog->hide();
   

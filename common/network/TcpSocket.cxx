@@ -736,7 +736,7 @@ char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
                 buffer + 1, sizeof (buffer) - 2, NULL, 0, NI_NUMERICHOST);
     strcat(buffer, "]");
     addr.buf = rfb::strDup(buffer);
-  } else if (p.address.u.sa.sa_family == AF_UNSPEC)
+  } else
     addr.buf = rfb::strDup("");
 
   char action;

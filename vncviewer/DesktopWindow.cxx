@@ -103,12 +103,12 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   int geom_x = 0, geom_y = 0;
   if (strcmp(geometry, "") != 0) {
     int matched;
-    matched = sscanf(geometry.getValueStr(), "+%d+%d", &geom_x, &geom_y);
+    matched = sscanf((const char*)geometry, "+%d+%d", &geom_x, &geom_y);
     if (matched == 2) {
       force_position(1);
     } else {
       int geom_w, geom_h;
-      matched = sscanf(geometry.getValueStr(), "%dx%d+%d+%d", &geom_w, &geom_h, &geom_x, &geom_y);
+      matched = sscanf((const char*)geometry, "%dx%d+%d+%d", &geom_w, &geom_h, &geom_x, &geom_y);
       switch (matched) {
       case 4:
         force_position(1);

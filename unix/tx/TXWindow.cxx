@@ -24,6 +24,7 @@
 #include <list>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 #include <rfb/util.h>
 
 std::list<TXWindow*> windows;
@@ -132,20 +133,20 @@ TXGlobalEventHandler* TXWindow::setGlobalEventHandler(TXGlobalEventHandler* h)
 
 void TXWindow::getColours(Display* dpy, XColor* cols, int nCols)
 {
-  bool* got = new bool[nCols];
+  std::vector<bool> got;
+
   bool failed = false;
   int i;
   for (i = 0; i < nCols; i++) {
     if (XAllocColor(dpy, cmap, &cols[i])) {
-      got[i] = true;
+      got.push_back(true);
     } else {
-      got[i] = false;
+      got.push_back(false);
       failed = true;
     }
   }
 
   if (!failed) {
-    delete [] got;
     return;
   }
 
@@ -168,12 +169,13 @@ void TXWindow::getColours(Display* dpy, XColor* cols, int nCols)
   int cmapSize = DisplayCells(dpy,DefaultScreen(dpy));
 
   XColor* cm = new XColor[cmapSize];
-  bool* shared = new bool[cmapSize];
-  bool* usedAsNearest = new bool[cmapSize];
+  std::vector<bool> shared;
+  std::vector<bool> usedAsNearest;
 
   for (i = 0; i < cmapSize; i++) {
     cm[i].pixel = i;
-    shared[i] = usedAsNearest[i] = false;
+    shared.push_back(false);
+    usedAsNearest.push_back(false);
   }
 
   XQueryColors(dpy, cmap, cm, cmapSize);

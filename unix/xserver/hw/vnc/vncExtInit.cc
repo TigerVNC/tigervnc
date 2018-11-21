@@ -179,7 +179,7 @@ void vncExtensionInit(void)
             listeners.push_back(new network::TcpListener(vncInetdSock));
             vlog.info("inetd wait");
           }
-        } else if (rfbunixpath.getValueStr()[0] != '\0') {
+        } else if (((const char*)rfbunixpath)[0] != '\0') {
           char path[PATH_MAX];
           int mode = (int)rfbunixmode;
 
@@ -187,7 +187,7 @@ void vncExtensionInit(void)
             strncpy(path, rfbunixpath, sizeof(path));
           else
             snprintf(path, sizeof(path), "%s.%d",
-                     rfbunixpath.getValueStr(), scr);
+                     (const char*)rfbunixpath, scr);
           path[sizeof(path)-1] = '\0';
 
           listeners.push_back(new network::UnixListener(path, mode));

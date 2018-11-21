@@ -479,9 +479,9 @@ static int mktunnel()
   int localPort = findFreeTcpPort();
   int remotePort;
 
-  gatewayHost = strDup(via.getValueStr());
   if (interpretViaParam(remoteHost, &remotePort, localPort) != 0)
     return 1;
+  gatewayHost = (const char*)via;
   createTunnel(gatewayHost, remoteHost, remotePort, localPort);
 
   return 0;
