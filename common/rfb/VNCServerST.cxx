@@ -177,13 +177,13 @@ void VNCServerST::removeSocket(network::Socket* sock) {
       if (rfb::Server::maxDisconnectionTime && clients.empty())
         disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
 
+      CharArray name(strDup((*ci)->getPeerEndpoint()));
+
       // - Delete the per-Socket resources
       delete *ci;
 
       clients.remove(*ci);
 
-      CharArray name;
-      name.buf = sock->getPeerEndpoint();
       connectionsLog.status("closed: %s", name.buf);
 
       // - Check that the desktop object is still required
