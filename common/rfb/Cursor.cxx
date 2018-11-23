@@ -76,7 +76,7 @@ static unsigned short srgb_to_lin(unsigned char srgb)
 }
 
 // Floyd-Steinberg dithering
-static void dither(int width, int height, rdr::U16* data)
+static void dither(int width, int height, rdr::S32* data)
 {
   for (int y = 0; y < height; y++) {
     for (int x_ = 0; x_ < width; x_++) {
@@ -122,12 +122,12 @@ static void dither(int width, int height, rdr::U16* data)
 rdr::U8* Cursor::getBitmap() const
 {
   // First step is converting to luminance
-  rdr::U16Array luminance(width()*height());
-  rdr::U16 *lum_ptr = luminance.buf;
+  rdr::S32Array luminance(width()*height());
+  rdr::S32 *lum_ptr = luminance.buf;
   const rdr::U8 *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
-      rdr::U32 lum;
+      rdr::S32 lum;
 
       // Use BT.709 coefficients for grayscale
       lum = 0;
@@ -167,8 +167,8 @@ rdr::U8* Cursor::getBitmap() const
 rdr::U8* Cursor::getMask() const
 {
   // First step is converting to integer array
-  rdr::U16Array alpha(width()*height());
-  rdr::U16 *alpha_ptr = alpha.buf;
+  rdr::S32Array alpha(width()*height());
+  rdr::S32 *alpha_ptr = alpha.buf;
   const rdr::U8 *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
