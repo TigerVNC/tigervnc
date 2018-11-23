@@ -269,7 +269,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
         size_t len = palSize * 3;
         rdr::U8Array tightPalette(len);
 
-        assert(buflen >= sizeof(len));
+        assert(buflen >= len);
 
         memcpy(tightPalette.buf, bufptr, len);
         bufptr += len;
