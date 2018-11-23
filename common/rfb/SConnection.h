@@ -230,6 +230,7 @@ namespace rfb {
     void setWriter(SMsgWriter *w) { writer_ = w; }
 
   private:
+    void cleanup();
     void writeFakeColourMap(void);
 
     bool readyForSetColourMapEntries;

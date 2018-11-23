@@ -66,13 +66,7 @@ SConnection::SConnection()
 
 SConnection::~SConnection()
 {
-  if (ssecurity)
-    delete ssecurity;
-  delete reader_;
-  reader_ = 0;
-  delete writer_;
-  writer_ = 0;
-  strFree(clientClipboard);
+  cleanup();
 }
 
 void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -464,6 +458,7 @@ void SConnection::clientInit(bool shared)
 void SConnection::close(const char* reason)
 {
   state_ = RFBSTATE_CLOSING;
+  cleanup();
 }
 
 void SConnection::setPixelFormat(const PixelFormat& pf)
@@ -550,6 +545,18 @@ void SConnection::sendClipboardData(const char* data)
 
     writer()->writeServerCutText(latin1.buf);
   }
+}
+
+void SConnection::cleanup()
+{
+  delete ssecurity;
+  ssecurity = NULL;
+  delete reader_;
+  reader_ = NULL;
+  delete writer_;
+  writer_ = NULL;
+  strFree(clientClipboard);
+  clientClipboard = NULL;
 }
 
 void SConnection::writeFakeColourMap(void)

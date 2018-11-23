@@ -129,6 +129,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
 CConn::~CConn()
 {
+  close();
+
   OptionsDialog::removeCallback(handleOptions);
   Fl::remove_timeout(handleUpdateTimeout, this);
 

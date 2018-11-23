@@ -60,14 +60,7 @@ CConnection::CConnection()
 
 CConnection::~CConnection()
 {
-  setFramebuffer(NULL);
-  if (csecurity)
-    delete csecurity;
-  delete reader_;
-  reader_ = 0;
-  delete writer_;
-  writer_ = 0;
-  strFree(serverClipboard);
+  close();
 }
 
 void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -334,6 +327,21 @@ void CConnection::securityCompleted()
   vlog.debug("Authentication success!");
   authSuccess();
   writer_->writeClientInit(shared);
+}
+
+void CConnection::close()
+{
+  state_ = RFBSTATE_CLOSING;
+
+  setFramebuffer(NULL);
+  delete csecurity;
+  csecurity = NULL;
+  delete reader_;
+  reader_ = NULL;
+  delete writer_;
+  writer_ = NULL;
+  strFree(serverClipboard);
+  serverClipboard = NULL;
 }
 
 void CConnection::setDesktopSize(int w, int h)

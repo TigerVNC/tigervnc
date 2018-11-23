@@ -86,6 +86,11 @@ namespace rfb {
     // NB: In either case, you must have called initialiseProtocol() first.
     void processMsg();
 
+    // close() gracefully shuts down the connection to the server and
+    // should be called before terminating the underlying network
+    // connection
+    void close();
+
 
     // Methods overridden from CMsgHandler
 
@@ -213,6 +218,7 @@ namespace rfb {
       RFBSTATE_SECURITY_RESULT,
       RFBSTATE_INITIALISATION,
       RFBSTATE_NORMAL,
+      RFBSTATE_CLOSING,
       RFBSTATE_INVALID
     };
 

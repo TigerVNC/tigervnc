@@ -108,6 +108,8 @@ bool VNCSConnectionST::accessCheck(AccessRights ar) const
 
 void VNCSConnectionST::close(const char* reason)
 {
+  SConnection::close(reason);
+
   // Log the reason for the close
   if (!closeReason.buf)
     closeReason.buf = strDup(reason);
@@ -129,8 +131,6 @@ void VNCSConnectionST::close(const char* reason)
   // calling code will call VNCServerST's removeSocket() method causing us to
   // be deleted.
   sock->shutdown();
-
-  SConnection::close(reason);
 }
 
 
