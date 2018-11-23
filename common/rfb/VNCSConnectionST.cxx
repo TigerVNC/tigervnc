@@ -871,7 +871,7 @@ void VNCSConnectionST::writeNoDataUpdate()
 
 void VNCSConnectionST::writeDataUpdate()
 {
-  Region req, pending;
+  Region req;
   UpdateInfo ui;
   bool needNewUpdateInfo;
   const RenderedCursor *cursor;
@@ -886,9 +886,6 @@ void VNCSConnectionST::writeDataUpdate()
 
   if (req.is_empty())
     return;
-
-  // Get any framebuffer changes we haven't yet been informed of
-  pending = server->getPendingRegion();
 
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
@@ -938,13 +935,8 @@ void VNCSConnectionST::writeDataUpdate()
 
   // If there are queued updates then we cannot safely send an update
   // without risking a partially updated screen
-
-  if (!pending.is_empty()) {
-    // However we might still be able to send a lossless refresh
-    req.assign_subtract(pending);
-    req.assign_subtract(ui.changed);
-    req.assign_subtract(ui.copied);
-
+  if (!server->getPendingRegion().is_empty()) {
+    req.clear();
     ui.changed.clear();
     ui.copied.clear();
   }
@@ -970,54 +962,95 @@ void VNCSConnectionST::writeDataUpdate()
     damagedCursorRegion.assign_union(ui.changed.intersect(renderedCursorRect));
   }
 
-  // Return if there is nothing to send the client.
+  // If we don't have a normal update, then try a lossless refresh
   if (ui.is_empty() && !writer()->needFakeUpdate()) {
-    int eta;
-
-    // Any lossless refresh that needs handling?
-    if (!encodeManager.needsLosslessRefresh(req))
-      return;
-
-    // Now? Or later?
-    eta = encodeManager.getNextLosslessRefresh(req);
-    if (eta > 0) {
-      losslessTimer.start(eta);
-      return;
-    }
+    writeLosslessRefresh();
+    return;
   }
+
+  // We have something to send, so let's get to it
 
   writeRTTPing();
 
-  if (!ui.is_empty())
-    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
-  else {
-    int nextUpdate;
-
-    // FIXME: If continuous updates aren't used then the client might
-    //        be slower than frameRate in its requests and we could
-    //        afford a larger update size
-    nextUpdate = server->msToNextUpdate();
-    if (nextUpdate > 0) {
-      size_t bandwidth, maxUpdateSize;
-
-      // FIXME: Bandwidth estimation without congestion control
-      bandwidth = congestion.getBandwidth();
-
-      // FIXME: Hard coded value for maximum CPU throughput
-      if (bandwidth > 5000000)
-        bandwidth = 5000000;
-
-      maxUpdateSize = bandwidth * nextUpdate / 1000;
-      encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
-                                         cursor, maxUpdateSize);
-    }
-  }
+  encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
 
   writeRTTPing();
 
   // The request might be for just part of the screen, so we cannot
   // just clear the entire update tracker.
   updates.subtract(req);
+
+  requested.clear();
+}
+
+void VNCSConnectionST::writeLosslessRefresh()
+{
+  Region req, pending;
+  const RenderedCursor *cursor;
+
+  int nextRefresh, nextUpdate;
+
+  if (continuousUpdates)
+    req = cuRegion.union_(requested);
+  else
+    req = requested;
+
+  // If there are queued updates then we could not safely send an
+  // update without risking a partially updated screen, however we
+  // might still be able to send a lossless refresh
+  pending = server->getPendingRegion();
+  if (!pending.is_empty()) {
+    UpdateInfo ui;
+
+    // Don't touch the updates pending in the server core
+    req.assign_subtract(pending);
+
+    // Or any updates pending just for this connection
+    updates.getUpdateInfo(&ui, req);
+    req.assign_subtract(ui.changed);
+    req.assign_subtract(ui.copied);
+  }
+
+  // Any lossy area we can refresh?
+  if (!encodeManager.needsLosslessRefresh(req))
+    return;
+
+  // Right away? Or later?
+  nextRefresh = encodeManager.getNextLosslessRefresh(req);
+  if (nextRefresh > 0) {
+    losslessTimer.start(nextRefresh);
+    return;
+  }
+
+  // Prepare the cursor in case it overlaps with a region getting
+  // refreshed
+  cursor = NULL;
+  if (needRenderedCursor())
+    cursor = server->getRenderedCursor();
+
+  writeRTTPing();
+
+  // FIXME: If continuous updates aren't used then the client might
+  //        be slower than frameRate in its requests and we could
+  //        afford a larger update size
+  nextUpdate = server->msToNextUpdate();
+  if (nextUpdate > 0) {
+    size_t bandwidth, maxUpdateSize;
+
+    // FIXME: Bandwidth estimation without congestion control
+    bandwidth = congestion.getBandwidth();
+
+    // FIXME: Hard coded value for maximum CPU throughput
+    if (bandwidth > 5000000)
+      bandwidth = 5000000;
+
+    maxUpdateSize = bandwidth * nextUpdate / 1000;
+
+    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
+                                       cursor, maxUpdateSize);
+  }
+
+  writeRTTPing();
 
   requested.clear();
 }

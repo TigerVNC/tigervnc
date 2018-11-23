@@ -143,6 +143,7 @@ namespace rfb {
     void writeFramebufferUpdate();
     void writeNoDataUpdate();
     void writeDataUpdate();
+    void writeLosslessRefresh();
 
     void screenLayoutChange(rdr::U16 reason);
     void setCursor();
