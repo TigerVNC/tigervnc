@@ -989,6 +989,7 @@ void VNCSConnectionST::writeLosslessRefresh()
   const RenderedCursor *cursor;
 
   int nextRefresh, nextUpdate;
+  size_t bandwidth, maxUpdateSize;
 
   if (continuousUpdates)
     req = cuRegion.union_(requested);
@@ -1028,27 +1029,28 @@ void VNCSConnectionST::writeLosslessRefresh()
   if (needRenderedCursor())
     cursor = server->getRenderedCursor();
 
-  writeRTTPing();
-
   // FIXME: If continuous updates aren't used then the client might
   //        be slower than frameRate in its requests and we could
   //        afford a larger update size
   nextUpdate = server->msToNextUpdate();
-  if (nextUpdate > 0) {
-    size_t bandwidth, maxUpdateSize;
 
-    // FIXME: Bandwidth estimation without congestion control
-    bandwidth = congestion.getBandwidth();
+  // Don't bother if we're about to send a real update
+  if (nextUpdate == 0)
+    return;
 
-    // FIXME: Hard coded value for maximum CPU throughput
-    if (bandwidth > 5000000)
-      bandwidth = 5000000;
+  // FIXME: Bandwidth estimation without congestion control
+  bandwidth = congestion.getBandwidth();
 
-    maxUpdateSize = bandwidth * nextUpdate / 1000;
+  // FIXME: Hard coded value for maximum CPU throughput
+  if (bandwidth > 5000000)
+    bandwidth = 5000000;
 
-    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
-                                       cursor, maxUpdateSize);
-  }
+  maxUpdateSize = bandwidth * nextUpdate / 1000;
+
+  writeRTTPing();
+
+  encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
+                                     cursor, maxUpdateSize);
 
   writeRTTPing();
 
