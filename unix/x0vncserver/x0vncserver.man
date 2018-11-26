@@ -187,6 +187,10 @@ Accept key press and release events from clients. Default is on.
 Accept pointer press and release events from clients. Default is on.
 .
 .TP
+.B \-AcceptSetDesktopSize
+Accept requests to resize the size of the desktop. Default is on.
+.
+.TP
 .B \-RemapKeys \fImapping
 Sets up a keyboard mapping.
 .I mapping
