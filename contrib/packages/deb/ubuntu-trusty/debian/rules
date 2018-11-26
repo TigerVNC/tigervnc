@@ -151,7 +151,7 @@ build-indep-stamp:
 	#  anything for this package.
 	#/usr/bin/docbook-to-man debian/vnc.sgml > vnc.1
 	(cd media;make)
-	(cd java;cmake -G"Unix Makefiles";make)
+	#(cd java;cmake -G"Unix Makefiles";make)
 
 	touch build-indep-stamp
 
@@ -213,8 +213,8 @@ install: build
 	mv $(CURDIR)/debian/xtigervncviewer/usr/share/man/man1/vncviewer.1 \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/man/man1/xtigervncviewer.1
 	# tigervnc-java
-	mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
-	(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
+	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
+	#(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
 	#dh_movefiles
 
 # Build architecture-independent files here.

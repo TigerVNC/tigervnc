@@ -138,7 +138,7 @@ build-indep-stamp:
 	#  anything for this package.
 	#/usr/bin/docbook-to-man debian/vnc.sgml > vnc.1
 	(cd media;make)
-	(cd java;cmake -G"Unix Makefiles";make)
+	#(cd java;cmake -G"Unix Makefiles";make)
 
 	touch build-indep-stamp
 
@@ -204,14 +204,14 @@ install: build
 	mv $(CURDIR)/debian/tigervncserver/usr/share/icons \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/
 	# tigervnc-java
-	mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
-	(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
+	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
+	#(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
 	# install additional license files
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer
 	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer/
-	mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java
-	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
+	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java
+	#cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
 		$(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java/
 	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
 	mv $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
