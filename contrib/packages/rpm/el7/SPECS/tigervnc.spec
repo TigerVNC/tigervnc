@@ -9,8 +9,8 @@
 %endif
 
 Name:           tigervnc
-Version:        1.6.80
-Release:        1%{?snap:.%{snap}}%{?dist}
+Version:        1.9.80
+Release:        2%{?snap:.%{snap}}%{?dist}
 Summary:        A TigerVNC remote display system
 
 Group:          User Interface/Desktops
@@ -219,7 +219,7 @@ autoreconf -fiv
         --with-fontdir=%{_datadir}/X11/fonts \
         --with-xkb-output=%{_localstatedir}/lib/xkb \
         --enable-install-libxf86config \
-        --enable-glx --disable-dri --enable-dri2 \
+        --enable-glx --disable-dri --enable-dri2 --disable-dri3 \
         --disable-wayland \
         --disable-present \
         --disable-config-dbus \
@@ -354,6 +354,9 @@ fi
 %endif
 
 %changelog
+* Sun Nov 26 2018 Brian P. Hinz <bphinz@users.sourceforge.net> 1.9.80-2
+- Bumped Xorg version to 1.2.0
+
 * Sun Jul 22 2018 Brian P. Hinz <bphinz@users.sourceforge.net> 1.9.80-1
 - Updated fltk to latest version
 

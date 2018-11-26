@@ -212,7 +212,7 @@ install: build
 		$(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer/
 	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java
 	#cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
-		$(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java/
+		#$(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java/
 	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
 	mv $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
 		$(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver/
