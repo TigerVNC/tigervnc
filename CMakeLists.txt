@@ -2,7 +2,7 @@
 # Setup
 #
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 if(POLICY CMP0022)
   cmake_policy(SET CMP0022 OLD)
 endif()
@@ -43,9 +43,7 @@ if(MSVC)
 endif()
 
 if(NOT BUILD_TIMESTAMP)
-  set(BUILD_TIMESTAMP "")
-  execute_process(COMMAND "date" "+%Y-%m-%d %H:%M" OUTPUT_VARIABLE BUILD_TIMESTAMP)
-  string(REGEX REPLACE "\n" "" BUILD_TIMESTAMP ${BUILD_TIMESTAMP})
+  STRING(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M" UTC)
 endif()
 
 # Default to optimised builds instead of debug ones. Our code has no bugs ;)
