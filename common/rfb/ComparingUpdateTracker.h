@@ -50,7 +50,7 @@ namespace rfb {
     bool firstCompare;
     bool enabled;
 
-    rdr::U32 totalPixels, missedPixels;
+    unsigned long long totalPixels, missedPixels;
   };
 
 }
