@@ -1,6 +1,6 @@
 /* Copyright (C) 2009 TightVNC Team
  * Copyright (C) 2009 Red Hat, Inc.
- * Copyright 2013-2015 Pierre Ossman for Cendio AB
+ * Copyright 2013-2018 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,14 @@
 #endif
 
 extern DeviceIntPtr vncKeyboardDev;
+
+static const KeyCode fakeKeys[] = {
+#ifdef __linux__
+    92, 203, 204, 205, 206, 207
+#else
+    8, 124, 125, 156, 127, 128
+#endif
+    };
 
 static void vncXkbProcessDeviceEvent(int screenNum,
                                      InternalEvent *event,
@@ -430,17 +438,20 @@ size_t vncReleaseLevelThree(KeyCode *keys, size_t maxKeys)
 KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state)
 {
 	XkbDescPtr xkb;
-	unsigned int key;
+	unsigned int key; // KeyCode has insufficient range for the loop
+	KeyCode fallback;
 	KeySym ks;
 	unsigned level_three_mask;
 
 	if (new_state != NULL)
 		*new_state = state;
 
+	fallback = 0;
 	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		unsigned int state_out;
 		KeySym dummy;
+		size_t fakeIdx;
 
 		XkbTranslateKeyCode(xkb, key, state, &state_out, &ks);
 		if (ks == NoSymbol)
@@ -456,9 +467,34 @@ KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state)
 		if (state_out & LockMask)
 			XkbConvertCase(ks, &dummy, &ks);
 
-		if (ks == keysym)
-			return key;
+		if (ks != keysym)
+			continue;
+
+		/*
+		 * Some keys are never sent by a real keyboard and are
+		 * used in the default layouts as a fallback for
+		 * modifiers. Make sure we use them last as some
+		 * applications can be confused by these normally
+		 * unused keys.
+		 */
+		for (fakeIdx = 0;
+		     fakeIdx < sizeof(fakeKeys)/sizeof(fakeKeys[0]);
+		     fakeIdx++) {
+			if (key == fakeKeys[fakeIdx]) {
+				if (fallback == 0)
+					fallback = key;
+				break;
+			}
+		}
+		if (fakeIdx < sizeof(fakeKeys)/sizeof(fakeKeys[0]))
+			continue;
+
+		return key;
 	}
+
+	/* Use the fallback key, if one was found */
+	if (fallback != 0)
+		return fallback;
 
 	if (new_state == NULL)
 		return 0;
