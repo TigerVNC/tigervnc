@@ -10,7 +10,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 5%{?snap:.%{snap}}%{?dist}
+Release: 6%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -50,8 +50,8 @@ Requires(post): initscripts chkconfig coreutils
 Requires(postun): coreutils
 Requires: libjpeg-turbo
 Requires: hicolor-icon-theme
-Requires: tigervnc-license
-Requires: tigervnc-icons
+Requires: tigervnc-license = %{version}-%{release}
+Requires: tigervnc-icons = %{version}-%{release}
 
 Provides: vnc = 4.1.3-2, vnc-libs = 4.1.3-2
 Obsoletes: vnc < 4.1.3-2, vnc-libs < 4.1.3-2
@@ -76,7 +76,7 @@ Obsoletes: vnc-server < 4.1.3-2, vnc-libs < 4.1.3-2
 Provides: tightvnc-server = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc-server < 1.5.0-0.15.20090204svn3586
 Requires: perl
-Requires: tigervnc-server-minimal
+Requires: tigervnc-server-minimal = %{version}-%{release}
 Requires: xorg-x11-xauth
 
 %description server
@@ -95,7 +95,7 @@ Requires(preun):initscripts
 Requires(postun):initscripts
 
 Requires: mesa-dri-drivers, xkeyboard-config, xorg-x11-xkb-utils
-Requires: tigervnc-license
+Requires: tigervnc-license = %{version}-%{release}
 
 %description server-minimal
 The VNC system allows you to access the same desktop from a wide
@@ -112,7 +112,7 @@ Obsoletes: vnc-server < 4.1.3-2, vnc-libs < 4.1.3-2
 Provides: tightvnc-server-module = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc-server-module < 1.5.0-0.15.20090204svn3586
 Requires: xorg-x11-server-Xorg
-Requires: tigervnc-license
+Requires: tigervnc-license = %{version}-%{release}
 
 %description server-module
 This package contains libvnc.so module to X server, allowing others
@@ -418,7 +418,10 @@ fi
 %endif
 
 %changelog
-* Sun Jul 22 2018 Brian P. Hinz <bphinz@users.sourceforge.net> 1.9.80-1
+* Sun Dec 09 2018 Mark Mielke <mmielke@ciena.com> 1.9.80-6
+- Update package dependencies to require version alignment between packages.
+
+* Sun Jul 22 2018 Brian P. Hinz <bphinz@users.sourceforge.net> 1.9.80-5
 - Update gnutls, libtasn1, libpng, gmp, fltk to latest upstream versions.
 
 * Mon Jun 20 2016 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-5
