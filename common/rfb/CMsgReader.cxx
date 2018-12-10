@@ -97,6 +97,9 @@ void CMsgReader::readMsg()
     case pseudoEncodingCursorWithAlpha:
       readSetCursorWithAlpha(w, h, Point(x,y));
       break;
+    case pseudoEncodingVMwareCursor:
+      readSetVMwareCursor(w, h, Point(x,y));
+      break;
     case pseudoEncodingDesktopName:
       readSetDesktopName(x, y, w, h);
       break;
@@ -108,6 +111,10 @@ void CMsgReader::readMsg()
       break;
     case pseudoEncodingLEDState:
       readLEDState();
+      break;
+    case pseudoEncodingVMwareLEDState:
+      readVMwareLEDState();
+      break;
     case pseudoEncodingQEMUKeyEvent:
       handler->supportsQEMUKeyEvent();
       break;
@@ -349,6 +356,94 @@ void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hots
                      pb.getBuffer(pb.getRect(), &stride));
 }
 
+void CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot)
+{
+  if (width > maxCursorSize || height > maxCursorSize)
+    throw Exception("Too big cursor");
+
+  rdr::U8 type;
+
+  type = is->readU8();
+  is->skip(1);
+
+  if (type == 0) {
+    int len = width * height * (handler->server.pf().bpp/8);
+    rdr::U8Array andMask(len);
+    rdr::U8Array xorMask(len);
+
+    rdr::U8Array data(width*height*4);
+
+    rdr::U8* andIn;
+    rdr::U8* xorIn;
+    rdr::U8* out;
+    int Bpp;
+
+    is->readBytes(andMask.buf, len);
+    is->readBytes(xorMask.buf, len);
+
+    andIn = andMask.buf;
+    xorIn = xorMask.buf;
+    out = data.buf;
+    Bpp = handler->server.pf().bpp/8;
+    for (int y = 0;y < height;y++) {
+      for (int x = 0;x < width;x++) {
+        Pixel andPixel, xorPixel;
+
+        andPixel = handler->server.pf().pixelFromBuffer(andIn);
+        xorPixel = handler->server.pf().pixelFromBuffer(xorIn);
+        andIn += Bpp;
+        xorIn += Bpp;
+
+        if (andPixel == 0) {
+          rdr::U8 r, g, b;
+
+          // Opaque pixel
+
+          handler->server.pf().rgbFromPixel(xorPixel, &r, &g, &b);
+          *out++ = r;
+          *out++ = g;
+          *out++ = b;
+          *out++ = 0xff;
+        } else if (xorPixel == 0) {
+          // Fully transparent pixel
+          *out++ = 0;
+          *out++ = 0;
+          *out++ = 0;
+          *out++ = 0;
+        } else if (andPixel == xorPixel) {
+          // Inverted pixel
+
+          // We don't really support this, so just turn the pixel black
+          // FIXME: Do an outline like WinVNC does?
+          *out++ = 0;
+          *out++ = 0;
+          *out++ = 0;
+          *out++ = 0xff;
+        } else {
+          // Partially transparent/inverted pixel
+
+          // We _really_ can't handle this, just make it black
+          *out++ = 0;
+          *out++ = 0;
+          *out++ = 0;
+          *out++ = 0xff;
+        }
+      }
+    }
+
+    handler->setCursor(width, height, hotspot, data.buf);
+  } else if (type == 1) {
+    rdr::U8Array data(width*height*4);
+
+    // FIXME: Is alpha premultiplied?
+    is->readBytes(data.buf, width*height*4);
+
+    handler->setCursor(width, height, hotspot, data.buf);
+  } else {
+    throw Exception("Unknown cursor type");
+  }
+}
+
 void CMsgReader::readSetDesktopName(int x, int y, int w, int h)
 {
   char* name = is->readString();
@@ -391,6 +486,18 @@ void CMsgReader::readLEDState()
   rdr::U8 state;
 
   state = is->readU8();
+
+  handler->setLEDState(state);
+}
+
+void CMsgReader::readVMwareLEDState()
+{
+  rdr::U32 state;
+
+  state = is->readU32();
+
+  // As luck has it, this extension uses the same bit definitions,
+  // so no conversion required
 
   handler->setLEDState(state);
 }

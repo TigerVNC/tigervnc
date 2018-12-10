@@ -144,7 +144,8 @@ void SMsgWriter::writeCursor()
 {
   if (!client->supportsEncoding(pseudoEncodingCursor) &&
       !client->supportsEncoding(pseudoEncodingXCursor) &&
-      !client->supportsEncoding(pseudoEncodingCursorWithAlpha))
+      !client->supportsEncoding(pseudoEncodingCursorWithAlpha) &&
+      !client->supportsEncoding(pseudoEncodingVMwareCursor))
     throw Exception("Client does not support local cursor");
 
   needCursor = true;
@@ -152,7 +153,8 @@ void SMsgWriter::writeCursor()
 
 void SMsgWriter::writeLEDState()
 {
-  if (!client->supportsEncoding(pseudoEncodingLEDState))
+  if (!client->supportsEncoding(pseudoEncodingLEDState) &&
+      !client->supportsEncoding(pseudoEncodingVMwareLEDState))
     throw Exception("Client does not support LED state");
   if (client->ledState() == ledUnknown)
     throw Exception("Server has not specified LED state");
@@ -299,6 +301,10 @@ void SMsgWriter::writePseudoRects()
       writeSetCursorWithAlphaRect(cursor.width(), cursor.height(),
                                   cursor.hotspot().x, cursor.hotspot().y,
                                   cursor.getBuffer());
+    } else if (client->supportsEncoding(pseudoEncodingVMwareCursor)) {
+      writeSetVMwareCursorRect(cursor.width(), cursor.height(),
+                               cursor.hotspot().x, cursor.hotspot().y,
+                               cursor.getBuffer());
     } else if (client->supportsEncoding(pseudoEncodingCursor)) {
       rdr::U8Array data(cursor.width()*cursor.height() * (client->pf().bpp/8));
       rdr::U8Array mask(cursor.getMask());
@@ -503,9 +509,32 @@ void SMsgWriter::writeSetCursorWithAlphaRect(int width, int height,
   }
 }
 
+void SMsgWriter::writeSetVMwareCursorRect(int width, int height,
+                                          int hotspotX, int hotspotY,
+                                          const rdr::U8* data)
+{
+  if (!client->supportsEncoding(pseudoEncodingVMwareCursor))
+    throw Exception("Client does not support local cursors");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetVMwareCursorRect: nRects out of sync");
+
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingVMwareCursor);
+
+  os->writeU8(1); // Alpha cursor
+  os->pad(1);
+
+  // FIXME: Should alpha be premultiplied?
+  os->writeBytes(data, width*height*4);
+}
+
 void SMsgWriter::writeLEDStateRect(rdr::U8 state)
 {
-  if (!client->supportsEncoding(pseudoEncodingLEDState))
+  if (!client->supportsEncoding(pseudoEncodingLEDState) &&
+      !client->supportsEncoding(pseudoEncodingVMwareLEDState))
     throw Exception("Client does not support LED state updates");
   if (client->ledState() == ledUnknown)
     throw Exception("Server does not support LED state updates");
@@ -516,8 +545,13 @@ void SMsgWriter::writeLEDStateRect(rdr::U8 state)
   os->writeS16(0);
   os->writeU16(0);
   os->writeU16(0);
-  os->writeU32(pseudoEncodingLEDState);
-  os->writeU8(state);
+  if (client->supportsEncoding(pseudoEncodingLEDState)) {
+    os->writeU32(pseudoEncodingLEDState);
+    os->writeU8(state);
+  } else {
+    os->writeU32(pseudoEncodingVMwareLEDState);
+    os->writeU32(state);
+  }
 }
 
 void SMsgWriter::writeQEMUKeyEventRect()

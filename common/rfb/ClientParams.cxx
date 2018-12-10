@@ -140,6 +140,8 @@ bool ClientParams::supportsLocalCursor() const
 {
   if (supportsEncoding(pseudoEncodingCursorWithAlpha))
     return true;
+  if (supportsEncoding(pseudoEncodingVMwareCursor))
+    return true;
   if (supportsEncoding(pseudoEncodingCursor))
     return true;
   if (supportsEncoding(pseudoEncodingXCursor))
@@ -159,6 +161,8 @@ bool ClientParams::supportsDesktopSize() const
 bool ClientParams::supportsLEDState() const
 {
   if (supportsEncoding(pseudoEncodingLEDState))
+    return true;
+  if (supportsEncoding(pseudoEncodingVMwareLEDState))
     return true;
   return false;
 }

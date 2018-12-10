@@ -59,6 +59,10 @@ namespace rfb {
   const int pseudoEncodingSubsamp8X = -764;
   const int pseudoEncodingSubsamp16X = -763;
 
+  // VMware-specific
+  const int pseudoEncodingVMwareCursor = 0x574d5664;
+  const int pseudoEncodingVMwareLEDState = 0x574d5668;
+
   int encodingNum(const char* name);
   const char* encodingName(int num);
 }

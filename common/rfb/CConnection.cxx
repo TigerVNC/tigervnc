@@ -596,6 +596,7 @@ void CConnection::updateEncodings()
 
   if (supportsLocalCursor) {
     encodings.push_back(pseudoEncodingCursorWithAlpha);
+    encodings.push_back(pseudoEncodingVMwareCursor);
     encodings.push_back(pseudoEncodingCursor);
     encodings.push_back(pseudoEncodingXCursor);
   }
@@ -603,8 +604,10 @@ void CConnection::updateEncodings()
     encodings.push_back(pseudoEncodingDesktopSize);
     encodings.push_back(pseudoEncodingExtendedDesktopSize);
   }
-  if (supportsLEDState)
+  if (supportsLEDState) {
     encodings.push_back(pseudoEncodingLEDState);
+    encodings.push_back(pseudoEncodingVMwareLEDState);
+  }
 
   encodings.push_back(pseudoEncodingDesktopName);
   encodings.push_back(pseudoEncodingLastRect);
