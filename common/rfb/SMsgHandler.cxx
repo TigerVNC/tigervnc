@@ -19,6 +19,7 @@
 #include <rfb/Exception.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/ScreenSet.h>
+#include <rfb/encodings.h>
 
 using namespace rfb;
 
@@ -36,7 +37,7 @@ void SMsgHandler::clientInit(bool shared)
 
 void SMsgHandler::setPixelFormat(const PixelFormat& pf)
 {
-  cp.setPF(pf);
+  client.setPF(pf);
 }
 
 void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
@@ -44,22 +45,22 @@ void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
   bool firstFence, firstContinuousUpdates, firstLEDState,
        firstQEMUKeyEvent;
 
-  firstFence = !cp.supportsFence;
-  firstContinuousUpdates = !cp.supportsContinuousUpdates;
-  firstLEDState = !cp.supportsLEDState;
-  firstQEMUKeyEvent = !cp.supportsQEMUKeyEvent;
+  firstFence = !client.supportsFence();
+  firstContinuousUpdates = !client.supportsContinuousUpdates();
+  firstLEDState = !client.supportsLEDState();
+  firstQEMUKeyEvent = !client.supportsEncoding(pseudoEncodingQEMUKeyEvent);
 
-  cp.setEncodings(nEncodings, encodings);
+  client.setEncodings(nEncodings, encodings);
 
   supportsLocalCursor();
 
-  if (cp.supportsFence && firstFence)
+  if (client.supportsFence() && firstFence)
     supportsFence();
-  if (cp.supportsContinuousUpdates && firstContinuousUpdates)
+  if (client.supportsContinuousUpdates() && firstContinuousUpdates)
     supportsContinuousUpdates();
-  if (cp.supportsLEDState && firstLEDState)
+  if (client.supportsLEDState() && firstLEDState)
     supportsLEDState();
-  if (cp.supportsQEMUKeyEvent && firstQEMUKeyEvent)
+  if (client.supportsEncoding(pseudoEncodingQEMUKeyEvent) && firstQEMUKeyEvent)
     supportsQEMUKeyEvent();
 }
 
@@ -82,12 +83,3 @@ void SMsgHandler::supportsLEDState()
 void SMsgHandler::supportsQEMUKeyEvent()
 {
 }
-
-void SMsgHandler::setDesktopSize(int fb_width, int fb_height,
-                                 const ScreenSet& layout)
-{
-  cp.width = fb_width;
-  cp.height = fb_height;
-  cp.screenLayout = layout;
-}
-

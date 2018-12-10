@@ -25,7 +25,7 @@
 
 #include <rdr/types.h>
 #include <rfb/PixelFormat.h>
-#include <rfb/ConnParams.h>
+#include <rfb/ClientParams.h>
 #include <rfb/InputHandler.h>
 #include <rfb/ScreenSet.h>
 
@@ -40,8 +40,8 @@ namespace rfb {
 
     // The following methods are called as corresponding messages are read.  A
     // derived class should override these methods as desired.  Note that for
-    // the setPixelFormat(), setEncodings() and setDesktopSize() methods, a
-    // derived class must call on to SMsgHandler's methods.
+    // the setPixelFormat(), and setEncodings() methods, a derived class must
+    // call on to SMsgHandler's methods.
 
     virtual void clientInit(bool shared);
 
@@ -85,7 +85,7 @@ namespace rfb {
     // handler will send a pseudo-rect back, signalling server support.
     virtual void supportsQEMUKeyEvent();
 
-    ConnParams cp;
+    ClientParams client;
   };
 }
 #endif

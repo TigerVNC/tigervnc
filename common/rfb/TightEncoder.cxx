@@ -23,7 +23,6 @@
 #include <rfb/PixelBuffer.h>
 #include <rfb/Palette.h>
 #include <rfb/encodings.h>
-#include <rfb/ConnParams.h>
 #include <rfb/SConnection.h>
 #include <rfb/TightEncoder.h>
 #include <rfb/TightConstants.h>
@@ -68,7 +67,7 @@ TightEncoder::~TightEncoder()
 
 bool TightEncoder::isSupported()
 {
-  return conn->cp.supportsEncoding(encodingTight);
+  return conn->client.supportsEncoding(encodingTight);
 }
 
 void TightEncoder::setCompressLevel(int level)

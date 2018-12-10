@@ -26,7 +26,7 @@
 
 #include <rdr/types.h>
 #include <rfb/Pixel.h>
-#include <rfb/ConnParams.h>
+#include <rfb/ServerParams.h>
 #include <rfb/Rect.h>
 #include <rfb/ScreenSet.h>
 
@@ -41,9 +41,9 @@ namespace rfb {
 
     // The following methods are called as corresponding messages are read.  A
     // derived class should override these methods as desired.  Note that for
-    // the setDesktopSize(), setExtendedDesktopSize(), setPixelFormat() and
-    // setName() methods, a derived class should call on to CMsgHandler's
-    // methods to set the members of cp appropriately.
+    // the setDesktopSize(), setExtendedDesktopSize(), setPixelFormat(),
+    // setName() and serverInit() methods, a derived class should call on to
+    // CMsgHandler's methods to set the members of "server" appropriately.
 
     virtual void setDesktopSize(int w, int h);
     virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
@@ -56,7 +56,9 @@ namespace rfb {
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void endOfContinuousUpdates();
     virtual void supportsQEMUKeyEvent();
-    virtual void serverInit() = 0;
+    virtual void serverInit(int width, int height,
+                            const PixelFormat& pf,
+                            const char* name) = 0;
 
     virtual void readAndDecodeRect(const Rect& r, int encoding,
                                    ModifiablePixelBuffer* pb) = 0;
@@ -72,7 +74,7 @@ namespace rfb {
 
     virtual void setLEDState(unsigned int state);
 
-    ConnParams cp;
+    ServerParams server;
   };
 }
 #endif

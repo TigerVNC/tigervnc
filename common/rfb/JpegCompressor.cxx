@@ -22,7 +22,7 @@
 #include <rdr/Exception.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
-#include <rfb/ConnParams.h>
+#include <rfb/ClientParams.h>
 
 #include <stdio.h>
 extern "C" {

@@ -43,13 +43,10 @@ void CMsgReader::readServerInit()
 {
   int width = is->readU16();
   int height = is->readU16();
-  handler->setDesktopSize(width, height);
   PixelFormat pf;
   pf.read(is);
-  handler->setPixelFormat(pf);
   CharArray name(is->readString());
-  handler->setName(name.buf);
-  handler->serverInit();
+  handler->serverInit(width, height, pf, name.buf);
 }
 
 void CMsgReader::readMsg()
@@ -192,10 +189,11 @@ void CMsgReader::readFramebufferUpdate()
 
 void CMsgReader::readRect(const Rect& r, int encoding)
 {
-  if ((r.br.x > handler->cp.width) || (r.br.y > handler->cp.height)) {
+  if ((r.br.x > handler->server.width()) ||
+      (r.br.y > handler->server.height())) {
     fprintf(stderr, "Rect too big: %dx%d at %d,%d exceeds %dx%d\n",
 	    r.width(), r.height(), r.tl.x, r.tl.y,
-            handler->cp.width, handler->cp.height);
+            handler->server.width(), handler->server.height());
     throw Exception("Rect too big");
   }
 
@@ -269,7 +267,7 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
 
-  int data_len = width * height * (handler->cp.pf().bpp/8);
+  int data_len = width * height * (handler->server.pf().bpp/8);
   int mask_len = ((width+7)/8) * height;
   rdr::U8Array data(data_len);
   rdr::U8Array mask(mask_len);
@@ -290,14 +288,14 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
       int byte = y * maskBytesPerRow + x / 8;
       int bit = 7 - x % 8;
 
-      handler->cp.pf().rgbFromBuffer(out, in, 1);
+      handler->server.pf().rgbFromBuffer(out, in, 1);
 
       if (mask.buf[byte] & (1 << bit))
         out[3] = 255;
       else
         out[3] = 0;
 
-      in += handler->cp.pf().bpp/8;
+      in += handler->server.pf().bpp/8;
       out += 4;
     }
   }
@@ -321,10 +319,10 @@ void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hots
 
   encoding = is->readS32();
 
-  origPF = handler->cp.pf();
-  handler->cp.setPF(rgbaPF);
+  origPF = handler->server.pf();
+  handler->server.setPF(rgbaPF);
   handler->readAndDecodeRect(pb.getRect(), encoding, &pb);
-  handler->cp.setPF(origPF);
+  handler->server.setPF(origPF);
 
   // On-wire data has pre-multiplied alpha, but we store it
   // non-pre-multiplied

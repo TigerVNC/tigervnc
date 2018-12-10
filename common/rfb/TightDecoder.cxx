@@ -25,7 +25,7 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
-#include <rfb/ConnParams.h>
+#include <rfb/ServerParams.h>
 #include <rfb/Exception.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/TightConstants.h>
@@ -55,7 +55,7 @@ TightDecoder::~TightDecoder()
 }
 
 void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
-                            const ConnParams& cp, rdr::OutStream* os)
+                            const ServerParams& server, rdr::OutStream* os)
 {
   rdr::U8 comp_ctl;
 
@@ -66,10 +66,10 @@ void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
 
   // "Fill" compression type.
   if (comp_ctl == tightFill) {
-    if (cp.pf().is888())
+    if (server.pf().is888())
       os->copyBytes(is, 3);
     else
-      os->copyBytes(is, cp.pf().bpp/8);
+      os->copyBytes(is, server.pf().bpp/8);
     return;
   }
 
@@ -106,13 +106,13 @@ void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
       palSize = is->readU8() + 1;
       os->writeU8(palSize - 1);
 
-      if (cp.pf().is888())
+      if (server.pf().is888())
         os->copyBytes(is, palSize * 3);
       else
-        os->copyBytes(is, palSize * cp.pf().bpp/8);
+        os->copyBytes(is, palSize * server.pf().bpp/8);
       break;
     case tightFilterGradient:
-      if (cp.pf().bpp == 8)
+      if (server.pf().bpp == 8)
         throw Exception("TightDecoder: invalid BPP for gradient filter");
       break;
     case tightFilterCopy:
@@ -129,10 +129,10 @@ void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
       rowSize = (r.width() + 7) / 8;
     else
       rowSize = r.width();
-  } else if (cp.pf().is888()) {
+  } else if (server.pf().is888()) {
     rowSize = r.width() * 3;
   } else {
-    rowSize = r.width() * cp.pf().bpp/8;
+    rowSize = r.width() * server.pf().bpp/8;
   }
 
   dataSize = r.height() * rowSize;
@@ -154,7 +154,7 @@ bool TightDecoder::doRectsConflict(const Rect& rectA,
                                    const Rect& rectB,
                                    const void* bufferB,
                                    size_t buflenB,
-                                   const ConnParams& cp)
+                                   const ServerParams& server)
 {
   rdr::U8 comp_ctl_a, comp_ctl_b;
 
@@ -177,11 +177,11 @@ bool TightDecoder::doRectsConflict(const Rect& rectA,
 }
 
 void TightDecoder::decodeRect(const Rect& r, const void* buffer,
-                              size_t buflen, const ConnParams& cp,
+                              size_t buflen, const ServerParams& server,
                               ModifiablePixelBuffer* pb)
 {
   const rdr::U8* bufptr;
-  const PixelFormat& pf = cp.pf();
+  const PixelFormat& pf = server.pf();
 
   rdr::U8 comp_ctl;
 

@@ -34,50 +34,53 @@ CMsgHandler::~CMsgHandler()
 
 void CMsgHandler::setDesktopSize(int width, int height)
 {
-  cp.width = width;
-  cp.height = height;
+  server.setDimensions(width, height);
 }
 
 void CMsgHandler::setExtendedDesktopSize(unsigned reason, unsigned result,
                                          int width, int height,
                                          const ScreenSet& layout)
 {
-  cp.supportsSetDesktopSize = true;
+  server.supportsSetDesktopSize = true;
 
   if ((reason == reasonClient) && (result != resultSuccess))
     return;
 
-  if (!layout.validate(width, height))
-    fprintf(stderr, "Server sent us an invalid screen layout\n");
-
-  cp.width = width;
-  cp.height = height;
-  cp.screenLayout = layout;
+  server.setDimensions(width, height, layout);
 }
 
 void CMsgHandler::setPixelFormat(const PixelFormat& pf)
 {
-  cp.setPF(pf);
+  server.setPF(pf);
 }
 
 void CMsgHandler::setName(const char* name)
 {
-  cp.setName(name);
+  server.setName(name);
 }
 
 void CMsgHandler::fence(rdr::U32 flags, unsigned len, const char data[])
 {
-  cp.supportsFence = true;
+  server.supportsFence = true;
 }
 
 void CMsgHandler::endOfContinuousUpdates()
 {
-  cp.supportsContinuousUpdates = true;
+  server.supportsContinuousUpdates = true;
 }
 
 void CMsgHandler::supportsQEMUKeyEvent()
 {
-  cp.supportsQEMUKeyEvent = true;
+  server.supportsQEMUKeyEvent = true;
+}
+
+void CMsgHandler::serverInit(int width, int height,
+                             const PixelFormat& pf,
+                             const char* name)
+{
+  server.setDimensions(width, height);
+  server.setPF(pf);
+  server.setName(name);
 }
 
 void CMsgHandler::framebufferUpdateStart()
@@ -90,5 +93,5 @@ void CMsgHandler::framebufferUpdateEnd()
 
 void CMsgHandler::setLEDState(unsigned int state)
 {
-  cp.setLEDState(state);
+  server.setLEDState(state);
 }

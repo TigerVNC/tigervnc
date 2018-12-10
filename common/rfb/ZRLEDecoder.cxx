@@ -21,7 +21,7 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
-#include <rfb/ConnParams.h>
+#include <rfb/ServerParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/ZRLEDecoder.h>
 
@@ -72,7 +72,7 @@ ZRLEDecoder::~ZRLEDecoder()
 }
 
 void ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
-                           const ConnParams& cp, rdr::OutStream* os)
+                           const ServerParams& server, rdr::OutStream* os)
 {
   rdr::U32 len;
 
@@ -82,11 +82,11 @@ void ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
 }
 
 void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
-                             size_t buflen, const ConnParams& cp,
+                             size_t buflen, const ServerParams& server,
                              ModifiablePixelBuffer* pb)
 {
   rdr::MemInStream is(buffer, buflen);
-  const rfb::PixelFormat& pf = cp.pf();
+  const rfb::PixelFormat& pf = server.pf();
   switch (pf.bpp) {
   case 8:  zrleDecode8 (r, &is, &zis, pf, pb); break;
   case 16: zrleDecode16(r, &is, &zis, pf, pb); break;

@@ -20,7 +20,7 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
-#include <rfb/ConnParams.h>
+#include <rfb/ServerParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/RREDecoder.h>
 
@@ -45,22 +45,22 @@ RREDecoder::~RREDecoder()
 }
 
 void RREDecoder::readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, rdr::OutStream* os)
+                          const ServerParams& server, rdr::OutStream* os)
 {
   rdr::U32 numRects;
 
   numRects = is->readU32();
   os->writeU32(numRects);
 
-  os->copyBytes(is, cp.pf().bpp/8 + numRects * (cp.pf().bpp/8 + 8));
+  os->copyBytes(is, server.pf().bpp/8 + numRects * (server.pf().bpp/8 + 8));
 }
 
 void RREDecoder::decodeRect(const Rect& r, const void* buffer,
-                            size_t buflen, const ConnParams& cp,
+                            size_t buflen, const ServerParams& server,
                             ModifiablePixelBuffer* pb)
 {
   rdr::MemInStream is(buffer, buflen);
-  const PixelFormat& pf = cp.pf();
+  const PixelFormat& pf = server.pf();
   switch (pf.bpp) {
   case 8:  rreDecode8 (r, &is, pf, pb); break;
   case 16: rreDecode16(r, &is, pf, pb); break;

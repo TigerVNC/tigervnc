@@ -34,7 +34,6 @@
 #endif
 
 #include <rfb/CSecurityTLS.h>
-#include <rfb/SSecurityVeNCrypt.h> 
 #include <rfb/CConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>

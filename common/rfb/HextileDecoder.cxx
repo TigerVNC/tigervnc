@@ -20,7 +20,7 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
-#include <rfb/ConnParams.h>
+#include <rfb/ServerParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/HextileDecoder.h>
 
@@ -45,12 +45,12 @@ HextileDecoder::~HextileDecoder()
 }
 
 void HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
-                              const ConnParams& cp, rdr::OutStream* os)
+                              const ServerParams& server, rdr::OutStream* os)
 {
   Rect t;
   size_t bytesPerPixel;
 
-  bytesPerPixel = cp.pf().bpp/8;
+  bytesPerPixel = server.pf().bpp/8;
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
@@ -91,11 +91,11 @@ void HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
 }
 
 void HextileDecoder::decodeRect(const Rect& r, const void* buffer,
-                                size_t buflen, const ConnParams& cp,
+                                size_t buflen, const ServerParams& server,
                                 ModifiablePixelBuffer* pb)
 {
   rdr::MemInStream is(buffer, buflen);
-  const PixelFormat& pf = cp.pf();
+  const PixelFormat& pf = server.pf();
   switch (pf.bpp) {
   case 8:  hextileDecode8 (r, &is, pf, pb); break;
   case 16: hextileDecode16(r, &is, pf, pb); break;

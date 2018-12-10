@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2018 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,38 +17,22 @@
  * USA.
  */
 //
-// ConnParams - structure containing the connection parameters.
+// ServerParams - structure describing the current state of the remote server
 //
 
-#ifndef __RFB_CONNPARAMS_H__
-#define __RFB_CONNPARAMS_H__
+#ifndef __RFB_SERVERPARAMS_H__
+#define __RFB_SERVERPARAMS_H__
 
-#include <set>
-
-#include <rdr/types.h>
 #include <rfb/Cursor.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ScreenSet.h>
 
-namespace rdr { class InStream; }
-
 namespace rfb {
 
-  const int subsampleUndefined = -1;
-  const int subsampleNone = 0;
-  const int subsampleGray = 1;
-  const int subsample2X = 2;
-  const int subsample4X = 3;
-  const int subsample8X = 4;
-  const int subsample16X = 5;
-
-  class ConnParams {
+  class ServerParams {
   public:
-    ConnParams();
-    ~ConnParams();
-
-    bool readVersion(rdr::InStream* is, bool* done);
-    void writeVersion(rdr::OutStream* os);
+    ServerParams();
+    ~ServerParams();
 
     int majorVersion;
     int minorVersion;
@@ -67,9 +51,11 @@ namespace rfb {
       return !beforeVersion(major,minor+1);
     }
 
-    int width;
-    int height;
-    ScreenSet screenLayout;
+    const int width() const { return width_; }
+    const int height() const { return height_; }
+    const ScreenSet& screenLayout() const { return screenLayout_; }
+    void setDimensions(int width, int height);
+    void setDimensions(int width, int height, const ScreenSet& layout);
 
     const PixelFormat& pf() const { return pf_; }
     void setPF(const PixelFormat& pf);
@@ -80,42 +66,23 @@ namespace rfb {
     const Cursor& cursor() const { return *cursor_; }
     void setCursor(const Cursor& cursor);
 
-    bool supportsEncoding(rdr::S32 encoding) const;
-
-    void setEncodings(int nEncodings, const rdr::S32* encodings);
-
     unsigned int ledState() { return ledState_; }
     void setLEDState(unsigned int state);
 
-    bool useCopyRect;
-
-    bool supportsLocalCursor;
-    bool supportsLocalXCursor;
-    bool supportsLocalCursorWithAlpha;
-    bool supportsDesktopResize;
-    bool supportsExtendedDesktopSize;
-    bool supportsDesktopRename;
-    bool supportsLastRect;
-    bool supportsLEDState;
     bool supportsQEMUKeyEvent;
-
     bool supportsSetDesktopSize;
     bool supportsFence;
     bool supportsContinuousUpdates;
 
-    int compressLevel;
-    int qualityLevel;
-    int fineQualityLevel;
-    int subsampling;
-
   private:
+
+    int width_;
+    int height_;
+    ScreenSet screenLayout_;
 
     PixelFormat pf_;
     char* name_;
     Cursor* cursor_;
-    std::set<rdr::S32> encodings_;
-    char verStr[13];
-    int verStrPos;
     unsigned int ledState_;
   };
 }

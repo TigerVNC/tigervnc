@@ -23,6 +23,8 @@
 #ifndef __RFB_CMSGWRITER_H__
 #define __RFB_CMSGWRITER_H__
 
+#include <list>
+
 #include <rdr/types.h>
 
 namespace rdr { class OutStream; }
@@ -30,21 +32,20 @@ namespace rdr { class OutStream; }
 namespace rfb {
 
   class PixelFormat;
-  class ConnParams;
+  class ServerParams;
   struct ScreenSet;
   struct Point;
   struct Rect;
 
   class CMsgWriter {
   public:
-    CMsgWriter(ConnParams* cp, rdr::OutStream* os);
+    CMsgWriter(ServerParams* server, rdr::OutStream* os);
     virtual ~CMsgWriter();
 
     void writeClientInit(bool shared);
 
     void writeSetPixelFormat(const PixelFormat& pf);
-    void writeSetEncodings(int nEncodings, rdr::U32* encodings);
-    void writeSetEncodings(int preferredEncoding, bool useCopyRect);
+    void writeSetEncodings(const std::list<rdr::U32> encodings);
     void writeSetDesktopSize(int width, int height, const ScreenSet& layout);
 
     void writeFramebufferUpdateRequest(const Rect& r,bool incremental);
@@ -60,7 +61,7 @@ namespace rfb {
     void startMsg(int type);
     void endMsg();
 
-    ConnParams* cp;
+    ServerParams* server;
     rdr::OutStream* os;
   };
 }

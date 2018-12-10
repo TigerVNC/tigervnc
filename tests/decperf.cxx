@@ -47,7 +47,7 @@ public:
   CConn(const char *filename);
   ~CConn();
 
-  virtual void setDesktopSize(int w, int h);
+  virtual void initDone();
   virtual void setPixelFormat(const rfb::PixelFormat& pf);
   virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
   virtual void framebufferUpdateStart();
@@ -81,11 +81,11 @@ CConn::~CConn()
   delete in;
 }
 
-void CConn::setDesktopSize(int w, int h)
+void CConn::initDone()
 {
-  CConnection::setDesktopSize(w, h);
-
-  setFramebuffer(new rfb::ManagedPixelBuffer(filePF, cp.width, cp.height));
+  setFramebuffer(new rfb::ManagedPixelBuffer(filePF,
+                                             server.width(),
+                                             server.height()));
 }
 
 void CConn::setPixelFormat(const rfb::PixelFormat& pf)

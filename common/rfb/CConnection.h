@@ -100,6 +100,12 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
 
+    virtual void endOfContinuousUpdates();
+
+    virtual void serverInit(int width, int height,
+                            const PixelFormat& pf,
+                            const char* name);
+
     virtual void readAndDecodeRect(const Rect& r, int encoding,
                                    ModifiablePixelBuffer* pb);
 
@@ -110,19 +116,42 @@ namespace rfb {
 
     // Methods to be overridden in a derived class
 
-    // getIdVerifier() returns the identity verifier associated with the connection.
-    // Ownership of the IdentityVerifier is retained by the CConnection instance.
-    virtual IdentityVerifier* getIdentityVerifier() {return 0;}
-
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
 
-    // serverInit() is called when the ServerInit message is received.  The
-    // derived class must call on to CConnection::serverInit().
-    virtual void serverInit();
+    // initDone() is called when the connection is fully established
+    // and standard messages can be sent. This is called before the
+    // initial FramebufferUpdateRequest giving a derived class the
+    // chance to modify pixel format and settings. The derived class
+    // must also make sure it has provided a valid framebuffer before
+    // returning.
+    virtual void initDone() = 0;
+
+    // resizeFramebuffer() is called whenever the framebuffer
+    // dimensions or the screen layout changes. A subclass must make
+    // sure the pixel buffer has been updated once this call returns.
+    virtual void resizeFramebuffer();
 
 
     // Other methods
+
+    // refreshFramebuffer() forces a complete refresh of the entire
+    // framebuffer
+    void refreshFramebuffer();
+
+    // setPreferredEncoding()/getPreferredEncoding() adjusts which
+    // encoding is listed first as a hint to the server that it is the
+    // preferred one
+    void setPreferredEncoding(int encoding);
+    int getPreferredEncoding();
+    // setCompressLevel()/setQualityLevel() controls the encoding hints
+    // sent to the server
+    void setCompressLevel(int level);
+    void setQualityLevel(int level);
+    // setPF() controls the pixel format requested from the server.
+    // server.pf() will automatically be adjusted once the new format
+    // is active.
+    void setPF(const PixelFormat& pf);
 
     CMsgReader* reader() { return reader_; }
     CMsgWriter* writer() { return writer_; }
@@ -159,6 +188,13 @@ namespace rfb {
 
     ModifiablePixelBuffer* getFramebuffer() { return framebuffer; }
 
+  protected:
+    // Optional capabilities that a subclass is expected to set to true
+    // if supported
+    bool supportsLocalCursor;
+    bool supportsDesktopResize;
+    bool supportsLEDState;
+
   private:
     // This is a default implementation of fences that automatically
     // responds to requests, stating no support for synchronisation.
@@ -176,6 +212,9 @@ namespace rfb {
     void throwConnFailedException();
     void securityCompleted();
 
+    void requestNewUpdate();
+    void updateEncodings();
+
     rdr::InStream* is;
     rdr::OutStream* os;
     CMsgReader* reader_;
@@ -187,6 +226,23 @@ namespace rfb {
     CharArray serverName;
 
     bool useProtocol3_3;
+
+    bool pendingPFChange;
+    rfb::PixelFormat pendingPF;
+
+    int preferredEncoding;
+    int compressLevel;
+    int qualityLevel;
+
+    bool formatChange;
+    rfb::PixelFormat nextPF;
+    bool encodingChange;
+
+    bool firstUpdate;
+    bool pendingUpdate;
+    bool continuousUpdates;
+
+    bool forceNonincremental;
 
     ModifiablePixelBuffer* framebuffer;
     DecodeManager decoder;
