@@ -138,9 +138,7 @@ bool SMsgWriter::writeExtendedDesktopSize() {
   return true;
 }
 
-bool SMsgWriter::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
-                                          int fb_width, int fb_height,
-                                          const ScreenSet& layout) {
+bool SMsgWriter::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result) {
   ExtendedDesktopSizeMsg msg;
 
   if (!client->supportsEncoding(pseudoEncodingExtendedDesktopSize))
@@ -148,9 +146,6 @@ bool SMsgWriter::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
 
   msg.reason = reason;
   msg.result = result;
-  msg.fb_width = fb_width;
-  msg.fb_height = fb_height;
-  msg.layout = layout;
 
   extendedDesktopSizeMsgs.push_back(msg);
 
@@ -415,7 +410,8 @@ void SMsgWriter::writeNoDataRects()
 
     for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
       writeExtendedDesktopSizeRect(ri->reason, ri->result,
-                                   ri->fb_width, ri->fb_height, ri->layout);
+                                   client->width(), client->height(),
+                                   client->screenLayout());
     }
 
     extendedDesktopSizeMsgs.clear();

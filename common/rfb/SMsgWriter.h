@@ -72,9 +72,7 @@ namespace rfb {
     // generic update of the current server state, but the second queues a
     // specific message.
     bool writeExtendedDesktopSize();
-    bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
-                                  int fb_width, int fb_height,
-                                  const ScreenSet& layout);
+    bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result);
 
     bool writeSetDesktopName();
 
@@ -159,8 +157,6 @@ namespace rfb {
 
     typedef struct {
       rdr::U16 reason, result;
-      int fb_width, fb_height;
-      ScreenSet layout;
     } ExtendedDesktopSizeMsg;
 
     std::list<ExtendedDesktopSizeMsg> extendedDesktopSizeMsgs;

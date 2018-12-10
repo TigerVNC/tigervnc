@@ -716,8 +716,7 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height)) {
-    writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
-                                       fb_width, fb_height, layout);
+    writer()->writeExtendedDesktopSize(reasonClient, resultInvalid);
     return;
   }
 
@@ -726,8 +725,7 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   // protocol-wise, but unnecessary.
   result = server->desktop->setScreenLayout(fb_width, fb_height, layout);
 
-  writer()->writeExtendedDesktopSize(reasonClient, result,
-                                     fb_width, fb_height, layout);
+  writer()->writeExtendedDesktopSize(reasonClient, result);
 
   // Only notify other clients on success
   if (result == resultSuccess) {
@@ -1127,9 +1125,7 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  writer()->writeExtendedDesktopSize(reason, 0,
-                                     client.width(), client.height(),
-                                     client.screenLayout());
+  writer()->writeExtendedDesktopSize(reason, 0);
 }
 
 
