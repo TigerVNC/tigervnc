@@ -9,7 +9,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 7%{?snap:.%{snap}}%{?dist}
+Release: 8%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -161,7 +161,12 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
 	chmod -x "$all"
 done
-patch -p1 -b --suffix .vnc < ../xserver117.patch
+xserver_patch="../xserver$(rpm -q --qf '%{VERSION}' xorg-x11-server-source | awk -F. '{ print $1 $2 }').patch"
+if [ -e "$xserver_patch" ]; then
+        patch -p1 -b --suffix .vnc < "$xserver_patch"
+else
+        patch -p1 -b --suffix .vnc < ../xserver117.patch
+fi
 popd
 
 %patch16 -p0 -b .man
@@ -417,6 +422,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 11 2019 Mark Mielke <mmielke@ciena.com> 1.9.80-8
+- Automatically detect and apply the correct X.org patch.
+
 * Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-7
 - Add libXrandr-devel as a dependency so x0vncserver gets resize support.
 
