@@ -76,17 +76,6 @@ $defaultXStartup
        "xterm -geometry 80x24+10+10 -ls -title \"\$VNCDESKTOP Desktop\" &\n".
        "twm\n");
 
-$defaultConfig
-    = ("## Supported server options to pass to vncserver upon invocation can be listed\n".
-       "## in this file. See the following manpages for more: vncserver(1) Xvnc(1).\n".
-       "## Several common ones are shown below. Uncomment and modify to your liking.\n".
-       "##\n".
-       "# securitytypes=vncauth,tlsvnc\n".
-       "# desktop=sandbox\n".
-       "# geometry=2000x1200\n".
-       "# localhost\n".
-       "# alwaysshared\n");
-
 chop($host = `uname -n`);
 
 if (-d "/etc/X11/fontpath.d") {
@@ -318,15 +307,6 @@ if (! $skipxstartup) {
         close(XSTARTUP);
         chmod 0755, "$xstartupFile";
     }
-}
-
-# Create the user's config file if necessary.
-if (!(-e "$vncUserDir/config")) {
-    warn "Creating default config $vncUserDir/config\n";
-    open(VNCUSERCONFIG, ">$vncUserDir/config");
-    print VNCUSERCONFIG $defaultConfig;
-    close(VNCUSERCONFIG);
-    chmod 0644, "$vncUserDir/config";
 }
 
 # Run the X startup script.
