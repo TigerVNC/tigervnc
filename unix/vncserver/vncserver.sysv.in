@@ -23,7 +23,9 @@
 lockdir=/var/lock
 [ -d /var/lock/subsys ] && lockdir=/var/lock/subsys
 
-[ -r "@SYSCONF_DIR@/tigervnc/vncservers" ] && . "@SYSCONF_DIR@/tigervnc/vncservers"
+list_servers() {
+    cat @SYSCONF_DIR@/tigervnc/vncserver.users | grep "^:[0-9]*=.*"
+}
 
 start() {
     [ "$EUID" != "0" ] && exit 4
@@ -31,17 +33,17 @@ start() {
     [ -x @BIN_DIR@/vncservers ] || exit 5
 
     RETVAL=0
-    for display in ${VNCSERVERS}; do
+    list_servers | while read line; do
         SERVS=1
-        DISP=${display%:*}
-        USER=${display#*:}
+        DISP=${line#*=}
+        USER=${line%=*}
         su $USER -c \
-            "@BIN_DIR@/vncserver :$DISP ${VNCSERVERARGS[$DISP]}"
+            "@BIN_DIR@/vncserver $DISP"
         RETVAL=$?
         if [ "$RETVAL" -eq 0 ]; then
-            log_success_msg "Started VNC server on :$DISP for $USER"
+            log_success_msg "Started VNC server on $DISP for $USER"
         else
-            log_failure_msg "Failed to start VNC server on :$DISP for $USER"
+            log_failure_msg "Failed to start VNC server on $DISP for $USER"
             break
         fi
     done
@@ -61,11 +63,11 @@ stop() {
     [ "$EUID" != "0" ] && exit 4
 
     RETVAL=0
-    for display in ${VNCSERVERS}; do
-        DISP=${display%:*}
-        USER=${display#*:}
+    list_servers | while read line; do
+        DISP=${line#*=}
+        USER=${line%=*}
         su $USER -c \
-            "@BIN_DIR@/vncserver -kill :$DISP"
+            "@BIN_DIR@/vncserver -kill $DISP"
         RETVAL=$?
         if [ "$RETVAL" -eq 0 ]; then
             log_success_msg "Stopped VNC server on $DISP"
@@ -83,11 +85,11 @@ status() {
     [ "$EUID" != "0" ] && exit 4
 
     RETVAL=0
-    for display in ${VNCSERVERS}; do
-        DISP=${display%:*}
-        USER=${display#*:}
+    list_servers | while read line; do
+        DISP=${line#*=}
+        USER=${line%=*}
         su $USER -c \
-            "@BIN_DIR@/vncserver -kill :$DISP" | grep "^:$DISP"
+            "@BIN_DIR@/vncserver -kill $DISP" | grep "^$DISP"
         RETVAL=$?
         if [ "$RETVAL" -eq 0 ]; then
             log_success_msg "VNC server on $DISP is running"
