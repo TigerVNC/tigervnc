@@ -40,6 +40,7 @@ set(DOC_DIR "${CMAKE_INSTALL_PREFIX}")
 endif()
 
 option(INSTALL_SYSTEMD_UNITS "Install TigerVNC systemd units" ON)
+option(INSTALL_SYSV_INIT "Install TigerVNC SysV init files" OFF)
 
 if(MSVC)
   message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")

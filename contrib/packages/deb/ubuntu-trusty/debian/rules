@@ -212,10 +212,6 @@ install: build
 	rm $(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions/libvnc.la
 	rm $(CURDIR)/debian/tigervncserver/usr/bin/vncviewer
 	rm $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncviewer.1
-	install -o root -g root -m 755 -D $(CURDIR)/debian/local/vncserver.service \
-		$(CURDIR)/debian/tigervncserver/etc/init.d/vncserver
-	install -o root -g root -m 644 -D $(CURDIR)/debian/local/vncserver.sysconfig \
-		$(CURDIR)/debian/tigervncserver/etc/default/vncservers
 	# xtigervncviewer
 	(cd vncviewer; make install DESTDIR=$(CURDIR)/debian/xtigervncviewer)
 	# Install desktop stuff

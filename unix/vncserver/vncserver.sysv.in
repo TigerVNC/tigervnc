@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# Init file for TigerVNC Server
+#
+# chkconfig: - 91 35
+# description: Starts and stops vncserver. \
+#	       used to provide remote desktop services.
+#
+
+### BEGIN INIT INFO
+# Provides: vncserver
+# Required-Start: $network $named
+# Required-Stop: $network $named
+# Default-Start:
+# Default-Stop: 0 1 2 3 4 5 6
+# Short-Description: start|stop|restart|try-restart|status|force-reload vncserver
+# Description: control vncserver which exports your desktop
+### END INIT INFO
+
+# Source function library.
+. /lib/lsb/init-functions
+
+lockdir=/var/lock
+[ -d /var/lock/subsys ] && lockdir=/var/lock/subsys
+
+[ -r "@SYSCONF_DIR@/tigervnc/vncservers" ] && . "@SYSCONF_DIR@/tigervnc/vncservers"
+
+start() {
+    [ "$EUID" != "0" ] && exit 4
+    
+    [ -x @BIN_DIR@/vncservers ] || exit 5
+
+    RETVAL=0
+    for display in ${VNCSERVERS}; do
+        SERVS=1
+        DISP=${display%:*}
+        USER=${display#*:}
+        su $USER -c \
+            "@BIN_DIR@/vncserver :$DISP ${VNCSERVERARGS[$DISP]}"
+        RETVAL=$?
+        if [ "$RETVAL" -eq 0 ]; then
+            log_success_msg "Started VNC server on :$DISP for $USER"
+        else
+            log_failure_msg "Failed to start VNC server on :$DISP for $USER"
+            break
+        fi
+    done
+    if [ -z "$SERVS" ]; then
+        log_failure_msg "no displays configured "
+        RETVAL=6
+    fi
+
+    if [ "$RETVAL" -eq 0 ]; then
+        touch $lockdir/vncserver
+    fi
+
+    return "$RETVAL"
+}
+
+stop() {
+    [ "$EUID" != "0" ] && exit 4
+
+    RETVAL=0
+    for display in ${VNCSERVERS}; do
+        DISP=${display%:*}
+        USER=${display#*:}
+        su $USER -c \
+            "@BIN_DIR@/vncserver -kill :$DISP"
+        RETVAL=$?
+        if [ "$RETVAL" -eq 0 ]; then
+            log_success_msg "Stopped VNC server on $DISP"
+        else
+            log_failure_msg "Stopped VNC server on $DISP"
+        fi
+    done
+
+    rm -f $lockdir/vncserver
+
+    return "$RETVAL"
+}
+
+status() {
+    [ "$EUID" != "0" ] && exit 4
+
+    RETVAL=0
+    for display in ${VNCSERVERS}; do
+        DISP=${display%:*}
+        USER=${display#*:}
+        su $USER -c \
+            "@BIN_DIR@/vncserver -kill :$DISP" | grep "^:$DISP"
+        RETVAL=$?
+        if [ "$RETVAL" -eq 0 ]; then
+            log_success_msg "VNC server on $DISP is running"
+        else
+            log_failure_msg "VNC server on $DISP is stopped"
+        fi
+    done
+
+    return "$RETVAL"
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    restart|force-reload)
+	stop
+	sleep 3
+	start
+	;;
+    condrestart|try-restart)
+        if [ -e $lockdir/vncserver ]; then
+            stop
+            sleep 3
+            start
+        fi
+        ;;
+    status)
+	status
+	;;
+    reload)
+	exit 3
+	;;
+     *)
+	echo $"Usage: $0 {start|stop|restart|try-restart|status|force-reload}"
+	exit 2
+esac
