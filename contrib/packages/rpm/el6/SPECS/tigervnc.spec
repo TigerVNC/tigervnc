@@ -20,7 +20,7 @@ URL: http://www.tigervnc.com
 Source0: %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1: vncserver.service
 Source2: vncserver.sysconfig
-Source11: http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-1-source.tar.gz
+Source11: http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-2-source.tar.gz
 Source13: http://downloads.sourceforge.net/project/libpng/libpng16/1.6.34/libpng-1.6.34.tar.gz
 Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.bz2
 Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.13.tar.gz
