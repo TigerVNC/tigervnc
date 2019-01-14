@@ -23,7 +23,7 @@ BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
-BuildRequires:  fltk-devel >= 1.3.3
+BuildRequires:  libXrandr-devel, fltk-devel >= 1.3.3
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake
 
@@ -279,6 +279,7 @@ fi
 %changelog
 * Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-4
 - Use system FLTK for build
+- Add libXrandr-devel as a dependency so x0vncserver gets resize support.
 
 * Sun Dec 09 2018 Mark Mielke <mmielke@ciena.com> 1.9.80-3
 - Update package dependencies to require version alignment between packages.

@@ -10,7 +10,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 6%{?snap:.%{snap}}%{?dist}
+Release: 7%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -36,7 +36,7 @@ BuildRequires: xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires: libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires: libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires: mesa-libGL-devel, libXinerama-devel, ImageMagick
-BuildRequires: freetype-devel, libXdmcp-devel
+BuildRequires: freetype-devel, libXdmcp-devel, libXrandr-devel
 BuildRequires: libjpeg-turbo-devel, pam-devel
 BuildRequires: cmake >= 2.8
 %if !%{_bootstrap}
@@ -418,6 +418,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-7
+- Add libXrandr-devel as a dependency so x0vncserver gets resize support.
+
 * Sun Dec 09 2018 Mark Mielke <mmielke@ciena.com> 1.9.80-6
 - Update package dependencies to require version alignment between packages.
 
