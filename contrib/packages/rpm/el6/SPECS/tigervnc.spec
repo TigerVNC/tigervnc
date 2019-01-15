@@ -36,7 +36,7 @@ BuildRequires: xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires: libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires: libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires: mesa-libGL-devel, libXinerama-devel, ImageMagick
-BuildRequires: freetype-devel, libXdmcp-devel, libXrandr-devel
+BuildRequires: freetype-devel, libXdmcp-devel, libXft-devel, libXrandr-devel
 BuildRequires: libjpeg-turbo-devel, pam-devel
 BuildRequires: cmake >= 2.8
 %if !%{_bootstrap}
