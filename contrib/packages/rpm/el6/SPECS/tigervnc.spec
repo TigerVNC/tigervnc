@@ -1,4 +1,3 @@
-%{!?_self_signed: %define _self_signed 1}
 %{!?_bootstrap: %define _bootstrap 1}
 %define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 %global scl_name %{name}16

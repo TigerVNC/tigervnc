@@ -1,7 +1,5 @@
-%{!?_self_signed: %define _self_signed 1}
-
 Name:           tigervnc
-Version:        1.9.80
+Version:        @VERSION@
 Release:        4%{?snap:.%{snap}}%{?dist}
 Summary:        A TigerVNC remote display system
 
