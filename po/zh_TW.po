@@ -1,0 +1,730 @@
+# Chinese (Traditional) translation of tigervnc
+# Copyright (C) 2019 the TigerVNC Team (msgids)
+# This file is distributed under the same license as the tigervnc package.
+#
+# pan93412 <pan93412@gmail.com>, 2019.
+msgid ""
+msgstr ""
+"Project-Id-Version: tigervnc 1.8.90\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2018-06-13 14:22+0000\n"
+"PO-Revision-Date: 2019-01-15 19:48+0800\n"
+"Last-Translator: pan93412 <pan93412@gmail.com>\n"
+"Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
+"Language: zh_TW\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 18.12.1\n"
+
+#: vncviewer/CConn.cxx:116
+#, c-format
+msgid "connected to socket %s"
+msgstr "已連線到 socket %s"
+
+#: vncviewer/CConn.cxx:123
+#, c-format
+msgid "connected to host %s port %d"
+msgstr "已連線到主機位址 %s (連線埠 %d)"
+
+#: vncviewer/CConn.cxx:184
+#, c-format
+msgid "Desktop name: %.80s"
+msgstr "桌面名稱：%.80s"
+
+#: vncviewer/CConn.cxx:189
+#, c-format
+msgid "Host: %.80s port: %d"
+msgstr "主機名稱：%.80s 連線埠：%d"
+
+#: vncviewer/CConn.cxx:194
+#, c-format
+msgid "Size: %d x %d"
+msgstr "大小：%d x %d"
+
+#: vncviewer/CConn.cxx:202
+#, c-format
+msgid "Pixel format: %s"
+msgstr "像素格式：%s"
+
+#: vncviewer/CConn.cxx:209
+#, c-format
+msgid "(server default %s)"
+msgstr "（伺服器預設值：%s）"
+
+#: vncviewer/CConn.cxx:214
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "請求的編碼方式：%s"
+
+#: vncviewer/CConn.cxx:219
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "上次使用的編碼方式：%s"
+
+#: vncviewer/CConn.cxx:224
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "估計線速：%d kbit/秒"
+
+#: vncviewer/CConn.cxx:229
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "協定版本：%d.%d"
+
+#: vncviewer/CConn.cxx:234
+#, c-format
+msgid "Security method: %s"
+msgstr "安全性方法：%s"
+
+#: vncviewer/CConn.cxx:358
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "執行 SetDesktopSize 失敗：%d"
+
+#: vncviewer/CConn.cxx:428
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "伺服器傳來無效的 SetColourMapEntries！"
+
+#: vncviewer/CConn.cxx:479
+msgid "Enabling continuous updates"
+msgstr "啟用持續更新功能"
+
+#: vncviewer/CConn.cxx:556
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr "輸送量 %d kbit/秒 - 將品質等級變更至 %d"
+
+#: vncviewer/CConn.cxx:578
+#, c-format
+msgid "Throughput %d kbit/s - full color is now %s"
+msgstr "輸送量 %d kbit/秒 - 全彩模式現在狀態為 %s"
+
+#: vncviewer/CConn.cxx:580
+msgid "disabled"
+msgstr "停用"
+
+#: vncviewer/CConn.cxx:580
+msgid "enabled"
+msgstr "啟用"
+
+#: vncviewer/CConn.cxx:590
+#, c-format
+msgid "Using %s encoding"
+msgstr "使用 %s 編碼方式"
+
+#: vncviewer/CConn.cxx:637
+#, c-format
+msgid "Using pixel format %s"
+msgstr "使用像素格式 %s"
+
+#: vncviewer/DesktopWindow.cxx:122
+msgid "Invalid geometry specified!"
+msgstr "指定了無效的幾何大小！"
+
+#: vncviewer/DesktopWindow.cxx:451
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "將調整視窗大小以避免非預期的全螢幕請求"
+
+#: vncviewer/DesktopWindow.cxx:495
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "按下 %s 鍵開啟內容選單"
+
+#: vncviewer/DesktopWindow.cxx:794 vncviewer/DesktopWindow.cxx:802
+#: vncviewer/DesktopWindow.cxx:822
+msgid "Failure grabbing keyboard"
+msgstr "擷取鍵盤失敗"
+
+#: vncviewer/DesktopWindow.cxx:896
+msgid "Failure grabbing mouse"
+msgstr "擷取滑鼠失敗"
+
+#: vncviewer/DesktopWindow.cxx:1120
+msgid "Invalid screen layout computed for resize request!"
+msgstr "為縮放請求計算的螢幕版面配置無效！"
+
+#: vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC 檢視器：連線設定"
+
+#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
+#: vncviewer/vncviewer.cxx:282
+msgid "Cancel"
+msgstr "取消"
+
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:281
+msgid "OK"
+msgstr "確認"
+
+#: vncviewer/OptionsDialog.cxx:423
+msgid "Compression"
+msgstr "壓縮模式"
+
+#: vncviewer/OptionsDialog.cxx:439
+msgid "Auto select"
+msgstr "自動選擇"
+
+#: vncviewer/OptionsDialog.cxx:451
+msgid "Preferred encoding"
+msgstr "偏好編碼方式"
+
+#: vncviewer/OptionsDialog.cxx:499
+msgid "Color level"
+msgstr "色彩等級"
+
+#: vncviewer/OptionsDialog.cxx:510
+msgid "Full (all available colors)"
+msgstr "全彩 (所有可顯示的顏色)"
+
+#: vncviewer/OptionsDialog.cxx:517
+msgid "Medium (256 colors)"
+msgstr "中等 (256 色)"
+
+#: vncviewer/OptionsDialog.cxx:524
+msgid "Low (64 colors)"
+msgstr "較少 (64 色)"
+
+#: vncviewer/OptionsDialog.cxx:531
+msgid "Very low (8 colors)"
+msgstr "極少 (8 色)"
+
+#: vncviewer/OptionsDialog.cxx:548
+msgid "Custom compression level:"
+msgstr "自訂壓縮等級："
+
+#: vncviewer/OptionsDialog.cxx:554
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "等級 (1=壓縮最快、6=大小最小 [4-6 可用性較低])"
+
+#: vncviewer/OptionsDialog.cxx:561
+msgid "Allow JPEG compression:"
+msgstr "允許 JPEG 壓縮方式："
+
+#: vncviewer/OptionsDialog.cxx:567
+msgid "quality (0=poor, 9=best)"
+msgstr "品質 (0=最低、9=最好)"
+
+#: vncviewer/OptionsDialog.cxx:578
+msgid "Security"
+msgstr "安全性"
+
+#: vncviewer/OptionsDialog.cxx:593
+msgid "Encryption"
+msgstr "加密方式"
+
+#: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
+#: vncviewer/OptionsDialog.cxx:737
+msgid "None"
+msgstr "無"
+
+#: vncviewer/OptionsDialog.cxx:610
+msgid "TLS with anonymous certificates"
+msgstr "使用匿名憑證的 TLS"
+
+#: vncviewer/OptionsDialog.cxx:616
+msgid "TLS with X509 certificates"
+msgstr "使用 X509 憑證的 TLS"
+
+#: vncviewer/OptionsDialog.cxx:623
+msgid "Path to X509 CA certificate"
+msgstr "X509 CA 憑證位置"
+
+#: vncviewer/OptionsDialog.cxx:630
+msgid "Path to X509 CRL file"
+msgstr "X509 CRL 檔案位置"
+
+#: vncviewer/OptionsDialog.cxx:646
+msgid "Authentication"
+msgstr "認證方式"
+
+#: vncviewer/OptionsDialog.cxx:663
+msgid "Standard VNC (insecure without encryption)"
+msgstr "標準 VNC 認證方式 (若未開啟加密功能則不安全)"
+
+#: vncviewer/OptionsDialog.cxx:669
+msgid "Username and password (insecure without encryption)"
+msgstr "使用者與密碼認證方式 (若未開啟加密功能則不安全)"
+
+#: vncviewer/OptionsDialog.cxx:688
+msgid "Input"
+msgstr "輸入"
+
+#: vncviewer/OptionsDialog.cxx:696
+msgid "View only (ignore mouse and keyboard)"
+msgstr "僅供檢視模式 (忽略滑鼠與鍵盤動作)"
+
+#: vncviewer/OptionsDialog.cxx:702
+msgid "Accept clipboard from server"
+msgstr "接受來自伺服器的剪貼簿內容"
+
+#: vncviewer/OptionsDialog.cxx:710
+msgid "Also set primary selection"
+msgstr "亦設定主要選區"
+
+#: vncviewer/OptionsDialog.cxx:717
+msgid "Send clipboard to server"
+msgstr "將剪貼簿內容傳至伺服器"
+
+#: vncviewer/OptionsDialog.cxx:725
+msgid "Send primary selection as clipboard"
+msgstr "將主要選取區塊作為剪貼簿內容傳送"
+
+#: vncviewer/OptionsDialog.cxx:732
+msgid "Pass system keys directly to server (full screen)"
+msgstr "直接將系統鍵傳至伺服器 (全螢幕模式)"
+
+#: vncviewer/OptionsDialog.cxx:735
+msgid "Menu key"
+msgstr "選單鍵"
+
+#: vncviewer/OptionsDialog.cxx:751
+msgid "Screen"
+msgstr "螢幕"
+
+#: vncviewer/OptionsDialog.cxx:759
+msgid "Resize remote session on connect"
+msgstr "連線時調整遠端階段的大小"
+
+#: vncviewer/OptionsDialog.cxx:772
+msgid "Resize remote session to the local window"
+msgstr "將遠端階段縮放至與本機視窗同大小"
+
+#: vncviewer/OptionsDialog.cxx:778
+msgid "Full-screen mode"
+msgstr "全螢幕模式"
+
+#: vncviewer/OptionsDialog.cxx:784
+msgid "Enable full-screen mode over all monitors"
+msgstr "於所有顯示器啟用全螢幕模式"
+
+#: vncviewer/OptionsDialog.cxx:793
+msgid "Misc."
+msgstr "雜項設定"
+
+#: vncviewer/OptionsDialog.cxx:801
+msgid "Shared (don't disconnect other viewers)"
+msgstr "共用連線 (不斷開其他檢視器的連線)"
+
+#: vncviewer/OptionsDialog.cxx:807
+msgid "Show dot when no cursor"
+msgstr "若無游標則改顯示一個點"
+
+#: vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC 檢視器：連線詳細資訊"
+
+#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "VNC 伺服器："
+
+#: vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "選項…"
+
+#: vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "載入…"
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "另存新檔…"
+
+#: vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "關於…"
+
+#: vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "連線"
+
+#: vncviewer/ServerDialog.cxx:137 vncviewer/ServerDialog.cxx:171
+msgid "TigerVNC configuration (*.tigervnc)"
+msgstr "TigerVNC 組態設定 (*.tigervnc)"
+
+#: vncviewer/ServerDialog.cxx:138
+msgid "Select a TigerVNC configuration file"
+msgstr "請選取 TigerVNC 組態設定檔"
+
+#: vncviewer/ServerDialog.cxx:172
+msgid "Save the TigerVNC configuration to file"
+msgstr "將 TigerVNC 組態設定儲存為檔案"
+
+#: vncviewer/ServerDialog.cxx:197
+#, c-format
+msgid "%s already exists. Do you want to overwrite?"
+msgstr "%s 已存在，是否覆寫？"
+
+#: vncviewer/ServerDialog.cxx:198 vncviewer/vncviewer.cxx:279
+msgid "No"
+msgstr "否"
+
+#: vncviewer/ServerDialog.cxx:198
+msgid "Overwrite"
+msgstr "覆寫"
+
+#: vncviewer/UserDialog.cxx:85
+msgid "Opening password file failed"
+msgstr "開啟密碼檔失敗"
+
+#: vncviewer/UserDialog.cxx:105
+msgid "VNC authentication"
+msgstr "VNC 認證"
+
+#: vncviewer/UserDialog.cxx:112
+msgid "This connection is secure"
+msgstr "此連線階段安全"
+
+#: vncviewer/UserDialog.cxx:116
+msgid "This connection is not secure"
+msgstr "此連線階段不安全"
+
+#: vncviewer/UserDialog.cxx:133
+msgid "Username:"
+msgstr "使用者名稱："
+
+#: vncviewer/UserDialog.cxx:140
+msgid "Password:"
+msgstr "密碼："
+
+#: vncviewer/UserDialog.cxx:179
+msgid "Authentication cancelled"
+msgstr "已取消認證程序"
+
+#: vncviewer/Viewport.cxx:377
+#, c-format
+msgid "Failed to update keyboard LED state: %lu"
+msgstr "更新鍵盤 LED 狀態失敗：%lu"
+
+#: vncviewer/Viewport.cxx:383 vncviewer/Viewport.cxx:389
+#, c-format
+msgid "Failed to update keyboard LED state: %d"
+msgstr "更新鍵盤 LED 狀態失敗：%d"
+
+#: vncviewer/Viewport.cxx:419
+msgid "Failed to update keyboard LED state"
+msgstr "更新鍵盤 LED 狀態失敗"
+
+#: vncviewer/Viewport.cxx:446 vncviewer/Viewport.cxx:454
+#: vncviewer/Viewport.cxx:471
+#, c-format
+msgid "Failed to get keyboard LED state: %d"
+msgstr "取得鍵盤 LED 狀態失敗：%d"
+
+#: vncviewer/Viewport.cxx:817
+msgid "No key code specified on key press"
+msgstr "沒有指定按下按鍵事件的按鍵代碼"
+
+#: vncviewer/Viewport.cxx:959
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "沒有對應到延伸虛擬代碼 0x%02x 的掃描碼"
+
+#: vncviewer/Viewport.cxx:961
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "沒有對應到虛擬按鍵 0x%02x 的掃描碼"
+
+#: vncviewer/Viewport.cxx:967
+#, c-format
+msgid "Invalid scan code 0x%02x"
+msgstr "掃描碼 0x%02x 無效"
+
+#: vncviewer/Viewport.cxx:997
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "沒有對應到延伸虛擬代碼 0x%02x 的符號"
+
+#: vncviewer/Viewport.cxx:999
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "沒有對應到虛擬按鍵 0x%02x 的符號"
+
+#: vncviewer/Viewport.cxx:1086
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "沒有對應到按鍵代碼 0x%02x 的符號 (目前狀態)"
+
+#: vncviewer/Viewport.cxx:1119
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "沒有對應到按鍵代碼 %d 的符號 (目前狀態)"
+
+#: vncviewer/Viewport.cxx:1170
+msgctxt "ContextMenu|"
+msgid "E&xit viewer"
+msgstr "退出檢視器(&X)"
+
+#: vncviewer/Viewport.cxx:1173
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "全螢幕(&F)"
+
+#: vncviewer/Viewport.cxx:1176
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "最小化(&Z)"
+
+#: vncviewer/Viewport.cxx:1178
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "將視窗縮放至與連線階段同大小(&W)"
+
+#: vncviewer/Viewport.cxx:1183
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "&Ctrl"
+
+#: vncviewer/Viewport.cxx:1186
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&Alt"
+
+#: vncviewer/Viewport.cxx:1192
+#, c-format
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "傳送 %s 鍵"
+
+#: vncviewer/Viewport.cxx:1198
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "傳送 Ctrl-Alt-&Del 鍵"
+
+#: vncviewer/Viewport.cxx:1201
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "重新整理螢幕(&R)"
+
+#: vncviewer/Viewport.cxx:1204
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "選項(&O)…"
+
+#: vncviewer/Viewport.cxx:1206
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "連線資訊(&I)…"
+
+#: vncviewer/Viewport.cxx:1208
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "關於 TigerVNC 檢視器(&T)…"
+
+#: vncviewer/Viewport.cxx:1211
+msgctxt "ContextMenu|"
+msgid "Dismiss &menu"
+msgstr "關閉選單(&M)"
+
+#: vncviewer/Viewport.cxx:1300
+msgid "VNC connection info"
+msgstr "VNC 連線資訊"
+
+#: vncviewer/parameters.cxx:279 vncviewer/parameters.cxx:313
+#, c-format
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr "參數 %s 的名稱過長以至於無法寫入登錄表"
+
+#: vncviewer/parameters.cxx:285 vncviewer/parameters.cxx:292
+#, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr "參數 %s 過長以至於無法寫入登錄表"
+
+#: vncviewer/parameters.cxx:298 vncviewer/parameters.cxx:319
+#, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr "寫入參數 %s (類型 %s) 至登錄表失敗：%ld"
+
+#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:373
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr "參數 %s 之名稱過長以至於無法從登錄表讀取"
+
+#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:382
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr "從登錄表讀取參數 %s 失敗：%ld"
+
+#: vncviewer/parameters.cxx:352
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr "參數 %s 過長以至於無法從登錄表讀取"
+
+#: vncviewer/parameters.cxx:402
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr "建立登錄機碼失敗：%ld"
+
+#: vncviewer/parameters.cxx:416 vncviewer/parameters.cxx:465
+#: vncviewer/parameters.cxx:527 vncviewer/parameters.cxx:660
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr "參數 %s 的類型未知"
+
+#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr "關閉登錄機碼失敗：%ld"
+
+#: vncviewer/parameters.cxx:439
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr "開啟登錄機碼失敗：%ld"
+
+#: vncviewer/parameters.cxx:496
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "寫入組態檔案失敗，無法取得家目錄路徑。"
+
+#: vncviewer/parameters.cxx:509
+#, c-format
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "寫入組態檔案失敗，無法開啟 %s：%s"
+
+#: vncviewer/parameters.cxx:554
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "讀取組態檔案失敗，無法取得家目錄路徑。"
+
+#: vncviewer/parameters.cxx:567
+#, c-format
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "讀取組態檔案失敗，無法開啟 %s：%s"
+
+#: vncviewer/parameters.cxx:580 vncviewer/parameters.cxx:585
+#: vncviewer/parameters.cxx:610 vncviewer/parameters.cxx:623
+#: vncviewer/parameters.cxx:639
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "讀取檔案 %2$s 中第 %1$d 行失敗：%3$s"
+
+#: vncviewer/parameters.cxx:586
+msgid "Line too long"
+msgstr "行字數過長"
+
+#: vncviewer/parameters.cxx:593
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "組態檔案 %s 格式無效"
+
+#: vncviewer/parameters.cxx:611
+msgid "Invalid format"
+msgstr "格式無效"
+
+#: vncviewer/parameters.cxx:624 vncviewer/parameters.cxx:640
+msgid "Invalid format or too large value"
+msgstr "格式無效或數值過大"
+
+#: vncviewer/parameters.cxx:667
+#, c-format
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "檔案 %s 中第 %d 行發現不明參數 %s"
+
+#: vncviewer/vncviewer.cxx:100
+#, c-format
+msgid ""
+"TigerVNC Viewer %d-bit v%s\n"
+"Built on: %s\n"
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
+"See http://www.tigervnc.org for information on TigerVNC."
+msgstr ""
+"TigerVNC 檢視器 (%d 位元) v%s\n"
+"編譯時間：%s\n"
+"版權所有 (C) 1999-%d TigerVNC 團隊以及其他人 (詳閱 README.rst)\n"
+"前往 http://www.tigervnc.org 取得 TigerVNC 的相關資訊。"
+
+#: vncviewer/vncviewer.cxx:127
+msgid "About TigerVNC Viewer"
+msgstr "關於 TigerVNC 檢視器"
+
+#: vncviewer/vncviewer.cxx:140
+msgid "Internal FLTK error. Exiting."
+msgstr "內部 FLTK 錯誤。退出。"
+
+#: vncviewer/vncviewer.cxx:158 vncviewer/vncviewer.cxx:170
+#, c-format
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "啟動新的 TigerVNC 檢視器時發生錯誤：%s"
+
+#: vncviewer/vncviewer.cxx:179
+#, c-format
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr "接收到終端器信號 %d。TigerVNC 檢視器現將退出。"
+
+#: vncviewer/vncviewer.cxx:271 vncviewer/vncviewer.desktop.in.in:3
+msgid "TigerVNC Viewer"
+msgstr "TigerVNC 檢視器"
+
+#: vncviewer/vncviewer.cxx:280
+msgid "Yes"
+msgstr "確認"
+
+#: vncviewer/vncviewer.cxx:283
+msgid "Close"
+msgstr "關閉"
+
+#: vncviewer/vncviewer.cxx:288
+msgid "About"
+msgstr "關於"
+
+#: vncviewer/vncviewer.cxx:291
+msgid "Hide"
+msgstr "隱藏"
+
+#: vncviewer/vncviewer.cxx:294
+msgid "Quit"
+msgstr "關閉"
+
+#: vncviewer/vncviewer.cxx:298
+msgid "Services"
+msgstr "服務"
+
+#: vncviewer/vncviewer.cxx:299
+msgid "Hide Others"
+msgstr "隱藏其他"
+
+#: vncviewer/vncviewer.cxx:300
+msgid "Show All"
+msgstr "全部顯示"
+
+#: vncviewer/vncviewer.cxx:309
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "檔案(&F)"
+
+#: vncviewer/vncviewer.cxx:312
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "建立新連線(&N)"
+
+#: vncviewer/vncviewer.cxx:324
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "無法建立 VNC 家目錄：無法取得家目錄路徑。"
+
+#: vncviewer/vncviewer.cxx:329
+#, c-format
+msgid "Could not create VNC home directory: %s."
+msgstr "無法建立 VNC 家目錄：%s。"
+
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:581 vncviewer/vncviewer.cxx:583
+msgid "Parameters -listen and -via are incompatible"
+msgstr "-listen 與 -via 參數不相容"
+
+#: vncviewer/vncviewer.cxx:598
+#, c-format
+msgid "Listening on port %d"
+msgstr "正於 %d 連線埠監聽"
+
+#: vncviewer/vncviewer.desktop.in.in:4
+msgid "Remote Desktop Viewer"
+msgstr "遠端桌面檢視器"
+
+#: vncviewer/vncviewer.desktop.in.in:5
+msgid "Connect to VNC server and display remote desktop"
+msgstr "連線到 VNC 伺服器並顯示遠端桌面"
+
+#: vncviewer/vncviewer.desktop.in.in:7
+msgid "tigervnc"
+msgstr "tigervnc"
