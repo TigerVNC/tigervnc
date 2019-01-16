@@ -60,6 +60,9 @@ IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
 StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
 IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
+BoolParameter localhostOnly("localhost",
+                            "Only allow connections from localhost",
+                            false);
 
 //
 // Allow the main loop terminate itself gracefully on receiving a signal.
@@ -259,7 +262,10 @@ int main(int argc, char** argv)
       listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
       vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
     } else {
-      createTcpListeners(&listeners, 0, (int)rfbport);
+      if (localhostOnly)
+        createLocalTcpListeners(&listeners, (int)rfbport);
+      else
+        createTcpListeners(&listeners, 0, (int)rfbport);
       vlog.info("Listening on port %d", (int)rfbport);
     }
 

@@ -162,6 +162,11 @@ Number of seconds to show the Accept Connection dialog before rejecting the
 connection.  Default is \fB10\fP.
 .
 .TP
+.B \-localhost
+Only allow connections from the same machine. Useful if you use SSH and want to
+stop non-SSH connections from any other hosts.
+.
+.TP
 .B \-AlwaysShared
 Always treat incoming connections as shared, regardless of the client-specified
 setting. Default is off.
