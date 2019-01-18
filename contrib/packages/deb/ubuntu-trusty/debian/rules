@@ -42,14 +42,6 @@ endif
 
 export CC = gcc
 
-XCFLAGS = -Wall -Wunused -Wno-format-y2k -fPIE -fno-strict-aliasing
-
-get-orig-source: $(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz
-	@
-
-$(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz:
-	$(CURDIR)/get-orig-source.sh
-
 # use xorg sources as shipped in xorg-server-source package
 XORG_SOURCE_ARCHIVE = /usr/src/xorg-server.tar.xz
 
@@ -60,18 +52,24 @@ xorg-source-stamp: $(XORG_SOURCE_ARCHIVE)
 	patch -p1 < debian/xorg-source-patches/516_tigervnc-xorg-manpages.patch
 	touch xorg-source-stamp
 
-configure: config-stamp
-config-stamp: xorg-source-stamp
-	dh_testdir
-	# Add here commands to configure the package.
+XCFLAGS = -Wall -Wunused -Wno-format-y2k -fPIE -fno-strict-aliasing
+
+fltk-stamp:
 	(cd fltk-*;DSOFLAGS="$(filter-out -fPIE -pie,$(LDFLAGS))" \
     ./configure --enable-shared=no --enable-cairo --enable-cp936 \
-    --with-optim="$(CFLAGS) $(XCFLAGS)" --libdir=$(libdir);make)
+    --with-optim="$(CFLAGS) $(XCFLAGS)" --libdir=$(libdir))
+	make -C fltk-*
+	touch fltk-stamp
+
+configure: config-stamp
+config-stamp: xorg-source-stamp fltk-stamp
+	dh_testdir
+	# Add here commands to configure the package.
 	cmake -G"Unix Makefiles" \
     -DBUILD_STATIC=off \
   	-DCMAKE_INSTALL_PREFIX=/usr \
-  	-DFLTK_LIBRARIES="$(CURDIR)/fltk-1.3.4-1/lib/libfltk.a;$(CURDIR)/fltk-1.3.4-1/lib/libfltk_images.a;-lpng" \
-  	-DFLTK_INCLUDE_DIR=$(CURDIR)/fltk-1.3.4-1
+  	-DFLTK_LIBRARIES="$(CURDIR)/fltk-1.3.4-2/lib/libfltk.a;$(CURDIR)/fltk-1.3.4-2/lib/libfltk_images.a;-lpng;-ldl" \
+  	-DFLTK_INCLUDE_DIR=$(CURDIR)/fltk-1.3.4-2
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
@@ -291,4 +289,4 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install get-orig-source
+.PHONY: build clean binary-indep binary-arch binary install
