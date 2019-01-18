@@ -1,8 +1,0 @@
-## Patches with a number < 100 are applied in debian.
-## Ubuntu patches start with 100.
-
-# Ubuntu patches
-100_rethrow_signals.patch
-
-# Upstream patches
-516_tigervnc-xorg-manpages.patch

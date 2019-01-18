@@ -1,3 +1,9 @@
+tigervnc (1.9.80-1) trusty; urgency=low
+
+  * Build Xvnc against distro xorg sources.
+
+ -- Pierre Ossman <ossman@cendio.se>  Fri, 18 Jan 2019 15:42:46 +0100
+
 tigervnc (1.3.0-3ubuntu1) precise; urgency=low
 
   * Build Xvnc against native upstream xorg sources, using native config

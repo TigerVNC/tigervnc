@@ -16,20 +16,6 @@ pushd fltk-*
 sh ../../debian/patch_fltk.sh
 find . -name "*.orig" -exec rm {} \;
 popd
-curl -L -o xorg-server-1.11.4-0ubuntu10.3.tar.gz 'http://anonscm.debian.org/gitweb/?p=pkg-xorg/xserver/xorg-server.git;a=snapshot;h=cbf435a091906484112f5c4cf35b17738e779ce9;sf=tgz'
-tar xzf xorg-server-*.tar.gz
-rm xorg-server-*.tar.gz
-pushd xorg-server-*
-QUILT_PATCHES=debian/patches quilt push -a
-popd
-cp -r xorg-server-*/* unix/xserver 
-rm -rf xorg-server-*
-pushd unix/xserver
-for all in `find . -type f -perm -001`; do
-        chmod -x "$all"
-done
-patch -p1 -b --suffix .vnc < ../xserver111.patch
-popd
 popd
 if [ -e tigervnc_1.3.80.orig.tar.gz ] ; then
 	rm tigervnc_1.3.80.orig.tar.gz

@@ -50,8 +50,18 @@ get-orig-source: $(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz
 $(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz:
 	$(CURDIR)/get-orig-source.sh
 
+# use xorg sources as shipped in xorg-server-source package
+XORG_SOURCE_ARCHIVE = /usr/src/xorg-server.tar.xz
+
+xorg-source-stamp: $(XORG_SOURCE_ARCHIVE)
+	tar -C unix/xserver -axf $(XORG_SOURCE_ARCHIVE) --strip-components=1
+	cd unix/xserver && patch -p1 < ../xserver115.patch
+	patch -p1 < debian/xorg-source-patches/100_rethrow_signals.patch
+	patch -p1 < debian/xorg-source-patches/516_tigervnc-xorg-manpages.patch
+	touch xorg-source-stamp
+
 configure: config-stamp
-config-stamp:
+config-stamp: xorg-source-stamp
 	dh_testdir
 	# Add here commands to configure the package.
 	(cd fltk-*;DSOFLAGS="$(filter-out -fPIE -pie,$(LDFLAGS))" \
@@ -65,7 +75,7 @@ config-stamp:
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
-  patch -p1 -i ../../debian/patches/debian_libtool.patch; \
+  patch -p1 -i ../../debian/xorg-source-patches/debian_libtool.patch; \
 	./configure --prefix=/usr \
 		--disable-silent-rules \
 		--disable-static \
