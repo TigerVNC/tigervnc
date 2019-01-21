@@ -10,6 +10,8 @@ LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS)
 
 export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
+NUMJOBS := -j$(shell nproc)
+
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
@@ -124,8 +126,8 @@ build-arch-stamp:
 	# Add here command to compile/build the package.
 	# Build first things.
 	# Build Xvnc
-	make LDFLAGS="-lpng"
-	(cd unix/xserver;make)
+	make $(NUMJOBS) LDFLAGS="-lpng"
+	make $(NUMJOBS) -C unix/xserver
 
 	touch build-arch-stamp
 
