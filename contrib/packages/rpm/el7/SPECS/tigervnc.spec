@@ -1,16 +1,6 @@
-%{!?_self_signed: %define _self_signed 1}
-%{!?_bootstrap: %define _bootstrap 1}
-%define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
-%global scl_name %{name}16
-%if %{_bootstrap}
-%define static_lib_buildroot %{tigervnc_src_dir}/opt/%{name}/%{scl_name}
-%else
-%define static_lib_buildroot /opt/%{name}/%{scl_name}
-%endif
-
 Name:           tigervnc
-Version:        1.9.80
-Release:        3%{?snap:.%{snap}}%{?dist}
+Version:        @VERSION@
+Release:        4%{?snap:.%{snap}}%{?dist}
 Summary:        A TigerVNC remote display system
 
 Group:          User Interface/Desktops
@@ -22,7 +12,6 @@ Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1:        vncserver.service
 Source2:        vncserver.sysconfig
 Source3:        10-libvnc.conf
-Source11:	http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-1-source.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  libX11-devel, automake, autoconf, libtool, gettext, gettext-autopoint
@@ -32,6 +21,7 @@ BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
+BuildRequires:  libXrandr-devel, fltk-devel >= 1.3.3
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake
 
@@ -129,22 +119,9 @@ BuildArch:      noarch
 %description icons
 This package contains icons for TigerVNC viewer
 
-%if %{_bootstrap}
-%package static-devel
-Summary: Static development files necessary to build TigerVNC
-Group: Development/Libraries
-
-%description static-devel
-This package contains static development files necessary to build TigerVNC
-%endif
-
 %prep
 rm -rf $RPM_BUILD_ROOT
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
-
-%if %{_bootstrap}
-tar xzf %SOURCE11
-%endif
 
 cp -r /usr/share/xorg-x11-server-source/* unix/xserver
 pushd unix/xserver
@@ -158,55 +135,19 @@ popd
 %patch17 -p1 -b .shebang
 
 %build
-%if %{_bootstrap}
-mkdir -p %{static_lib_buildroot}%{_libdir}
-%endif
-
 %ifarch sparcv9 sparc64 s390 s390x
-export CFLAGS="$RPM_OPT_FLAGS -fPIC -I%{static_lib_buildroot}%{_includedir}"
+export CFLAGS="$RPM_OPT_FLAGS -fPIC"
 %else
-export CFLAGS="$RPM_OPT_FLAGS -fpic -I%{static_lib_buildroot}%{_includedir}"
+export CFLAGS="$RPM_OPT_FLAGS -fpic"
 %endif
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CXXFLAGS"
-export PKG_CONFIG_PATH="%{static_lib_buildroot}%{_libdir}/pkgconfig:%{static_lib_buildroot}%{_datadir}/pkgconfig:%{_libdir}/pkgconfig:%{_datadir}/pkgconfig"
 
-%if %{_bootstrap}
-echo "*** Building fltk ***"
-pushd fltk-*
-%endif
-export CMAKE_PREFIX_PATH="%{static_lib_buildroot}%{_prefix}:%{_prefix}"
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
-export PKG_CONFIG="pkg-config --static"
-%if %{_bootstrap}
-#CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lpng -Wl,-Bdynamic $LDFLAGS" 
-./configure \
-  --prefix=%{_prefix} \
-  --libdir=%{_libdir} \
-  --host=%{_host} \
-  --build=%{_build} \
-  --enable-x11 \
-  --enable-gl \
-  --disable-shared \
-  --enable-localjpeg \
-  --enable-localzlib \
-  --disable-localpng \
-  --enable-xinerama \
-  --enable-xft \
-  --enable-xdbe \
-  --enable-xfixes \
-  --enable-xcursor \
-  --with-x
-make %{?_smp_mflags} 
-make DESTDIR=%{static_lib_buildroot} install
-popd
-%endif
 
 %{cmake} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DFLTK_LIBRARIES="%{static_lib_buildroot}%{_libdir}/libfltk.a;%{static_lib_buildroot}%{_libdir}/libfltk_images.a;-lpng;-ldl" \
-  -DFLTK_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir}
+  -DCMAKE_INSTALL_PREFIX=%{_prefix}
 make %{?_smp_mflags}
 
 pushd unix/xserver
@@ -240,17 +181,6 @@ make
 popd
 
 %install
-%if %{_bootstrap}
-for l in fltk; do
-pushd $l-*
-make install DESTDIR=$RPM_BUILD_ROOT/opt/%{name}/%{scl_name}
-popd
-done
-find %{buildroot}/opt/%{name}/%{scl_name}%{_prefix} -type f -name "*.la" -delete
-find %{buildroot}/opt/%{name}/%{scl_name}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=/opt/%{name}/%{scl_name}%{_libdir}|" {} \;
-find %{buildroot}/opt/%{name}/%{scl_name}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=/opt/%{name}/%{scl_name}%{_prefix}|" {} \;
-%endif
-
 make install DESTDIR=$RPM_BUILD_ROOT
 
 pushd unix/xserver/hw/vnc
@@ -344,16 +274,11 @@ fi
 %defattr(-,root,root,-)
 %{_datadir}/icons/hicolor/*/apps/*
 
-%if %{_bootstrap}
-%files static-devel
-%defattr(-,root,root,-)
-/opt/%{name}/%{scl_name}%{_bindir}/*
-/opt/%{name}/%{scl_name}%{_includedir}/*
-/opt/%{name}/%{scl_name}%{_libdir}/*
-/opt/%{name}/%{scl_name}%{_datadir}/*
-%endif
-
 %changelog
+* Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-4
+- Use system FLTK for build
+- Add libXrandr-devel as a dependency so x0vncserver gets resize support.
+
 * Sun Dec 09 2018 Mark Mielke <mmielke@ciena.com> 1.9.80-3
 - Update package dependencies to require version alignment between packages.
 

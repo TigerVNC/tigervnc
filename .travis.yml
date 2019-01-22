@@ -1,20 +1,31 @@
-language:
- - c++
- - java
+dist: xenial
+language: minimal
 
-# Travis is still stuck on Ubuntu 14.04, which has too old crap
+env:
+  - DOCKER=centos6
+  - DOCKER=centos7
+  - DOCKER=trusty
+  - DOCKER=xenial
+
+matrix:
+  include:
+  - language: c++
+    env:
+    before_install:
+    - sudo apt-get install -y libgnutls-dev libfltk1.3-dev fluid
+    - sudo apt-get install -y libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev
+    script:
+    - cmake -DCMAKE_BUILD_TYPE=Debug . && make
+
+  - language: java
+    # We're not compatible with the newer java
+    dist: trusty
+    env:
+    before_install: skip
+    script:
+    - cd java && cmake . && make
+
 before_install:
-# GnuTLS 3.x
- - sudo apt-get install -y libgnutls28-dev
-# FLTK 1.3.4
- - wget http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-2-source.tar.gz
- - tar -xvf fltk-1.3.4-2-source.tar.gz
- - pushd fltk-1.3.4-2
- - ./configure --prefix=/usr --enable-shared
- - make -j2
- - sudo make install
- - popd
-
+  - docker build -t tigervnc/$DOCKER .travis/$DOCKER
 script:
- - cmake -DCMAKE_BUILD_TYPE=Debug . && make
- - cd java && cmake . && make
+  - .travis/$DOCKER/build.sh

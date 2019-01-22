@@ -10,6 +10,8 @@ LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS)
 
 export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
+NUMJOBS := -j$(shell nproc)
+
 # Uncomment this to turn on verbose mode. 
 #export DH_VERBOSE=1
 
@@ -42,30 +44,38 @@ endif
 
 export CC = gcc
 
+# use xorg sources as shipped in xorg-server-source package
+XORG_SOURCE_ARCHIVE = /usr/src/xorg-server.tar.xz
+
+xorg-source-stamp: $(XORG_SOURCE_ARCHIVE)
+	tar -C unix/xserver -axf $(XORG_SOURCE_ARCHIVE) --strip-components=1
+	cd unix/xserver && patch -p1 < ../xserver115.patch
+	patch -p1 < debian/xorg-source-patches/100_rethrow_signals.patch
+	patch -p1 < debian/xorg-source-patches/516_tigervnc-xorg-manpages.patch
+	touch xorg-source-stamp
+
 XCFLAGS = -Wall -Wunused -Wno-format-y2k -fPIE -fno-strict-aliasing
 
-get-orig-source: $(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz
-	@
-
-$(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz:
-	$(CURDIR)/get-orig-source.sh
-
-configure: config-stamp
-config-stamp:
-	dh_testdir
-	# Add here commands to configure the package.
+fltk-stamp:
 	(cd fltk-*;DSOFLAGS="$(filter-out -fPIE -pie,$(LDFLAGS))" \
     ./configure --enable-shared=no --enable-cairo --enable-cp936 \
-    --with-optim="$(CFLAGS) $(XCFLAGS)" --libdir=$(libdir);make)
+    --with-optim="$(CFLAGS) $(XCFLAGS)" --libdir=$(libdir))
+	make $(NUMJOBS) -C fltk-*
+	touch fltk-stamp
+
+configure: config-stamp
+config-stamp: xorg-source-stamp fltk-stamp
+	dh_testdir
+	# Add here commands to configure the package.
 	cmake -G"Unix Makefiles" \
     -DBUILD_STATIC=off \
   	-DCMAKE_INSTALL_PREFIX=/usr \
-  	-DFLTK_LIBRARIES="$(CURDIR)/fltk-1.3.4-1/lib/libfltk.a;$(CURDIR)/fltk-1.3.4-1/lib/libfltk_images.a;-lpng" \
-  	-DFLTK_INCLUDE_DIR=$(CURDIR)/fltk-1.3.4-1
+  	-DFLTK_LIBRARIES="$(CURDIR)/fltk-1.3.4-2/lib/libfltk.a;$(CURDIR)/fltk-1.3.4-2/lib/libfltk_images.a;-lpng;-ldl" \
+  	-DFLTK_INCLUDE_DIR=$(CURDIR)/fltk-1.3.4-2
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
-  patch -p1 -i ../../debian/patches/debian_libtool.patch; \
+  patch -p1 -i ../../debian/xorg-source-patches/debian_libtool.patch; \
 	./configure --prefix=/usr \
 		--disable-silent-rules \
 		--disable-static \
@@ -137,8 +147,8 @@ build-arch-stamp:
 	# Add here command to compile/build the package.
 	# Build first things.
 	# Build Xvnc
-	make LDFLAGS="-lpng" 
-	(cd unix/xserver;make)
+	make $(NUMJOBS) LDFLAGS="-lpng"
+	make $(NUMJOBS) -C unix/xserver
 
 	touch build-arch-stamp
 
@@ -281,4 +291,4 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install get-orig-source
+.PHONY: build clean binary-indep binary-arch binary install
