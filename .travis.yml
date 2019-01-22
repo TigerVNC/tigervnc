@@ -9,7 +9,7 @@ env:
 
 matrix:
   include:
-  - language: c++
+  - language: cpp
     env:
     before_install:
     - sudo apt-get install -y libgnutls-dev libfltk1.3-dev fluid
