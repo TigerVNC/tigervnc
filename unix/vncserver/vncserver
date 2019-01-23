@@ -460,96 +460,16 @@ sub CheckDisplayNumber
     return 1;
 }
 
-
-#
-# GetXDisplayDefaults uses xdpyinfo to find out the geometry, depth and pixel
-# format of the current X display being used.  If successful, it sets the
-# options as appropriate so that the X VNC server will use the same settings
-# (minus an allowance for window manager decorations on the geometry).  Using
-# the same depth and pixel format means that the VNC server won't have to
-# translate pixels when the desktop is being viewed on this X display (for
-# TrueColor displays anyway).
-#
-
-sub GetXDisplayDefaults
-{
-    local (@lines, @matchlines, $width, $height, $defaultVisualId, $i,
-	   $red, $green, $blue);
-
-    $wmDecorationWidth = 4;	# a guess at typical size for window manager
-    $wmDecorationHeight = 24;	# decoration size
-
-    return if (!defined($ENV{DISPLAY}));
-
-    @lines = `xdpyinfo 2>/dev/null`;
-
-    return if ($? != 0);
-
-    @matchlines = grep(/dimensions/, @lines);
-    if (@matchlines) {
-	($width, $height) = ($matchlines[0] =~ /(\d+)x(\d+) pixels/);
-
-	$width -= $wmDecorationWidth;
-	$height -= $wmDecorationHeight;
-
-	$geometry = "${width}x$height";
-    }
-
-    @matchlines = grep(/default visual id/, @lines);
-    if (@matchlines) {
-	($defaultVisualId) = ($matchlines[0] =~ /id:\s+(\S+)/);
-
-	for ($i = 0; $i < @lines; $i++) {
-	    if ($lines[$i] =~ /^\s*visual id:\s+$defaultVisualId$/) {
-		if (($lines[$i+1] !~ /TrueColor/) ||
-		    ($lines[$i+2] !~ /depth/) ||
-		    ($lines[$i+4] !~ /red, green, blue masks/))
-		{
-		    return;
-		}
-		last;
-	    }
-	}
-
-	return if ($i >= @lines);
-
-	($depth) = ($lines[$i+2] =~ /depth:\s+(\d+)/);
-	($red,$green,$blue)
-	    = ($lines[$i+4]
-	       =~ /masks:\s+0x([0-9a-f]+), 0x([0-9a-f]+), 0x([0-9a-f]+)/);
-
-	$red = hex($red);
-	$green = hex($green);
-	$blue = hex($blue);
-
-	if ($red > $blue) {
-	    $red = int(log($red) / log(2)) - int(log($green) / log(2));
-	    $green = int(log($green) / log(2)) - int(log($blue) / log(2));
-	    $blue = int(log($blue) / log(2)) + 1;
-	    $pixelformat = "rgb$red$green$blue";
-	} else {
-	    $blue = int(log($blue) / log(2)) - int(log($green) / log(2));
-	    $green = int(log($green) / log(2)) - int(log($red) / log(2));
-	    $red = int(log($red) / log(2)) + 1;
-	    $pixelformat = "bgr$blue$green$red";
-	}
-    }
-}
-
-
 #
 # Usage
 #
 
 sub Usage
 {
-    die("\nusage: $prog [:<number>] [-name <desktop-name>] [-depth <depth>]\n".
-	"                 [-geometry <width>x<height>]\n".
-	"                 [-pixelformat rgbNNN|bgrNNN]\n".
-	"                 [-fp <font-path>]\n".
+    die("\nusage: $prog [:<number>]\n".
 	"                 [-fg]\n".
 	"                 [-autokill]\n".
-	"                 <Xvnc-options>...\n\n".
+	"\n".
 	"       $prog -kill <X-display>\n\n".
 	"       $prog -list\n\n");
 }

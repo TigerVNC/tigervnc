@@ -77,11 +77,9 @@ options defined in a user's $HOME/.vnc/config. This file offers a mechanism
 to establish some basic form of system-wide policy. WARNING! There is
 nothing stopping users from constructing their own vncserver-like script
 that calls Xvnc directly to bypass any options defined in
-/etc/tigervnc/vncserver-config-mandatory.  Likewise, any CLI arguments passed
-to vncserver will override ANY config file setting of the same name. The
-overall configuration file load order is:
-/etc/tigervnc/vncserver-config-defaults, $HOME/.vnc/config, and then this file.
-None are required to exist.
+/etc/tigervnc/vncserver-config-mandatory. The overall configuration file load
+order is: /etc/tigervnc/vncserver-config-defaults, $HOME/.vnc/config, and then
+this file. None are required to exist.
 .TP
 $HOME/.vnc/config
 An optional server config file wherein options to be passed to Xvnc are listed
