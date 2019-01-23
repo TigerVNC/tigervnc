@@ -6,7 +6,6 @@ vncserver \- start or stop a VNC server
 .RI [: display# ]
 .RB [ \-fg ]
 .RB [ \-autokill ]
-.IR script ]
 .br
 .BI "vncserver \-kill :" display#
 .br
