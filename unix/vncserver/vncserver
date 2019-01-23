@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 #
+#  Copyright (C) 2015-2019 Pierre Ossman for Cendio AB
 #  Copyright (C) 2009-2010 D. R. Commander.  All Rights Reserved.
 #  Copyright (C) 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
 #  Copyright (C) 2002-2003 Constantin Kaplinsky.  All Rights Reserved.
@@ -39,9 +40,6 @@ if($slashndx>=0) {
 # Global variables.  You may want to configure some of these for
 # your site
 #
-
-$geometry = "1024x768";
-#$depth = 16;
 
 $vncUserDir = "$ENV{HOME}/.vnc";
 $vncUserConfig = "$vncUserDir/config";
@@ -129,8 +127,8 @@ if ($fontPath eq "") {
 
 # Check command line options
 
-&ParseOptions("-geometry",1,"-depth",1,"-pixelformat",1,"-name",1,"-kill",1,
-	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0,"-autokill",0,"-noxstartup",0,"-xstartup",1);
+&ParseOptions("-kill",1,"-help",0,"-h",0,"--help",0,"-list",0,
+	      "-fg",0,"-autokill",0,"-noxstartup",0,"-xstartup",1);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
@@ -138,32 +136,12 @@ if ($fontPath eq "") {
 
 &List() if ($opt{'-list'});
 
-# Uncomment this line if you want default geometry, depth and pixelformat
-# to match the current X display:
-# &GetXDisplayDefaults();
-
-if ($opt{'-geometry'}) {
-    $geometry = $opt{'-geometry'};
-}
-if ($opt{'-depth'}) {
-    $depth = $opt{'-depth'};
-    $pixelformat = "";
-}
-if ($opt{'-pixelformat'}) {
-    $pixelformat = $opt{'-pixelformat'};
-}
 if ($opt{'-noxstartup'}) {
     $skipxstartup = 1;
 }
 if ($opt{'-xstartup'}) {
     $xstartupFile = $opt{'-xstartup'};
 }
-if ($opt{'-fp'}) {
-    $fontPath = $opt{'-fp'};
-    $fpArgSpecified = 1;
-}
-
-&CheckGeometryAndDepth();
 
 # Create the user's vnc directory if necessary.
 if (!(-e $vncUserDir)) {
@@ -187,11 +165,7 @@ if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
 
 $vncPort = 5900 + $displayNumber;
 
-if ($opt{'-name'}) {
-    $desktopName = $opt{'-name'};
-} else {
-    $desktopName = "$host:$displayNumber ($ENV{USER})";
-}
+$desktopName = "$host:$displayNumber ($ENV{USER})";
 
 my %default_opts;
 my %config;
@@ -200,9 +174,6 @@ my %config;
 # override these where present.
 $default_opts{desktop} = &quotedString($desktopName);
 $default_opts{auth} = &quotedString($xauthorityFile);
-$default_opts{geometry} = $geometry if ($geometry);
-$default_opts{depth} = $depth if ($depth);
-$default_opts{pixelformat} = $pixelformat if ($pixelformat);
 $default_opts{rfbwait} = 30000;
 $default_opts{rfbauth} = "$vncUserDir/passwd";
 $default_opts{rfbport} = $vncPort;
@@ -243,31 +214,10 @@ if ($config{'securitytypes'}) {
     }
   }
 }
-
-# ...and finally we check CLI args, which in the case of the topic at
-# hand (VNC auth or not), override anything found in configuration files
-# (even so-called "mandatory" settings).
-for ($i = 0; $i < @ARGV; ++$i) {
-    # -SecurityTypes can be followed by a space or "="
-    my @splitargs = split('=', $ARGV[$i]);
-    if (@splitargs <= 1 && $i < @ARGV - 1) {
-        push(@splitargs, $ARGV[$i + 1]);
-    }
-    if (lc(@splitargs[0]) eq "-securitytypes") {
-        if (@splitargs > 1) {
-            $securityTypeArgSpecified = 1;
-        }
-        foreach $arg2 (split(',', @splitargs[1])) {
-            if (grep {$_ eq lc($arg2)} @vncAuthStrings) {
-                $vncAuthEnabled = 1;
-            }
-        }
-    }
-    if ((lc(@splitargs[0]) eq "-password")
-     || (lc(@splitargs[0]) eq "-passwordfile"
-     || (lc(@splitargs[0]) eq "-rfbauth"))) {
-        $passwordArgSpecified = 1;
-    }
+if ($config{'password'} ||
+    $config{'passwordfile'} ||
+    $config{'rfbauth'}) {
+    $passwordArgSpecified = 1;
 }
 
 if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
@@ -322,14 +272,6 @@ foreach my $k (sort keys %config) {
 foreach my $k (sort keys %default_opts) {
   $cmd .= " -$k $default_opts{$k}";
 }
-
-# Add color database stuff here, e.g.:
-# $cmd .= " -co /usr/lib/X11/rgb";
-
-foreach $arg (@ARGV) {
-  $cmd .= " " . &quotedString($arg);
-}
-$cmd .= " >> " . &quotedString($desktopLog) . " 2>&1";
 
 # Run $cmd and record the process ID.
 $pidFile = "$vncUserDir/$host:$displayNumber.pid";
@@ -469,30 +411,6 @@ sub LoadConfig {
   }
 }
 
-#
-# CheckGeometryAndDepth simply makes sure that the geometry and depth values
-# are sensible.
-#
-
-sub CheckGeometryAndDepth
-{
-    if ($geometry =~ /^(\d+)x(\d+)$/) {
-	$width = $1; $height = $2;
-
-	if (($width<1) || ($height<1)) {
-	    die "$prog: geometry $geometry is invalid\n";
-	}
-
-	$geometry = "${width}x$height";
-    } else {
-	die "$prog: geometry $geometry is invalid\n";
-    }
-
-    if ($depth && (($depth < 8) || ($depth > 32))) {
-	die "Depth must be between 8 and 32\n";
-    }
-}
-
 
 #
 # GetDisplayNumber gets the lowest available display number.  A display number
@@ -560,83 +478,6 @@ sub CheckDisplayNumber
     return 1;
 }
 
-
-#
-# GetXDisplayDefaults uses xdpyinfo to find out the geometry, depth and pixel
-# format of the current X display being used.  If successful, it sets the
-# options as appropriate so that the X VNC server will use the same settings
-# (minus an allowance for window manager decorations on the geometry).  Using
-# the same depth and pixel format means that the VNC server won't have to
-# translate pixels when the desktop is being viewed on this X display (for
-# TrueColor displays anyway).
-#
-
-sub GetXDisplayDefaults
-{
-    local (@lines, @matchlines, $width, $height, $defaultVisualId, $i,
-	   $red, $green, $blue);
-
-    $wmDecorationWidth = 4;	# a guess at typical size for window manager
-    $wmDecorationHeight = 24;	# decoration size
-
-    return if (!defined($ENV{DISPLAY}));
-
-    @lines = `xdpyinfo 2>/dev/null`;
-
-    return if ($? != 0);
-
-    @matchlines = grep(/dimensions/, @lines);
-    if (@matchlines) {
-	($width, $height) = ($matchlines[0] =~ /(\d+)x(\d+) pixels/);
-
-	$width -= $wmDecorationWidth;
-	$height -= $wmDecorationHeight;
-
-	$geometry = "${width}x$height";
-    }
-
-    @matchlines = grep(/default visual id/, @lines);
-    if (@matchlines) {
-	($defaultVisualId) = ($matchlines[0] =~ /id:\s+(\S+)/);
-
-	for ($i = 0; $i < @lines; $i++) {
-	    if ($lines[$i] =~ /^\s*visual id:\s+$defaultVisualId$/) {
-		if (($lines[$i+1] !~ /TrueColor/) ||
-		    ($lines[$i+2] !~ /depth/) ||
-		    ($lines[$i+4] !~ /red, green, blue masks/))
-		{
-		    return;
-		}
-		last;
-	    }
-	}
-
-	return if ($i >= @lines);
-
-	($depth) = ($lines[$i+2] =~ /depth:\s+(\d+)/);
-	($red,$green,$blue)
-	    = ($lines[$i+4]
-	       =~ /masks:\s+0x([0-9a-f]+), 0x([0-9a-f]+), 0x([0-9a-f]+)/);
-
-	$red = hex($red);
-	$green = hex($green);
-	$blue = hex($blue);
-
-	if ($red > $blue) {
-	    $red = int(log($red) / log(2)) - int(log($green) / log(2));
-	    $green = int(log($green) / log(2)) - int(log($blue) / log(2));
-	    $blue = int(log($blue) / log(2)) + 1;
-	    $pixelformat = "rgb$red$green$blue";
-	} else {
-	    $blue = int(log($blue) / log(2)) - int(log($green) / log(2));
-	    $green = int(log($green) / log(2)) - int(log($red) / log(2));
-	    $red = int(log($red) / log(2)) + 1;
-	    $pixelformat = "bgr$blue$green$red";
-	}
-    }
-}
-
-
 #
 # quotedString returns a string which yields the original string when parsed
 # by a shell.
@@ -672,15 +513,12 @@ sub removeSlashes
 
 sub Usage
 {
-    die("\nusage: $prog [:<number>] [-name <desktop-name>] [-depth <depth>]\n".
-	"                 [-geometry <width>x<height>]\n".
-	"                 [-pixelformat rgbNNN|bgrNNN]\n".
-	"                 [-fp <font-path>]\n".
+    die("\nusage: $prog [:<number>]\n".
 	"                 [-fg]\n".
 	"                 [-autokill]\n".
 	"                 [-noxstartup]\n".
 	"                 [-xstartup <file>]\n".
-	"                 <Xvnc-options>...\n\n".
+	"\n".
 	"       $prog -kill <X-display>\n\n".
 	"       $prog -list\n\n");
 }
