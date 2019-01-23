@@ -88,35 +88,16 @@ if ($fontPath eq "") {
     $fontPath = $defFontPath;
 }
 
-# Check command line options
-
-&ParseOptions("-kill",1,"-help",0,"-h",0,"--help",0,"-list",0,
-	      "-fg",0,"-autokill",0);
-
-&Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
-
-&Kill() if ($opt{'-kill'});
-
-&List() if ($opt{'-list'});
-
-# Create the user's vnc directory if necessary.
-if (!(-e $vncUserDir)) {
-    if (!mkdir($vncUserDir,0755)) {
-	die "$prog: Could not create $vncUserDir.\n";
-    }
-}
-
 # Find display number.
-if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
+if ((@ARGV == 1) && ($ARGV[0] =~ /^:(\d+)$/)) {
     $displayNumber = $1;
-    shift(@ARGV);
     if (!&CheckDisplayNumber($displayNumber)) {
 	die "A VNC server is already running as :$displayNumber\n";
     }
-} elsif ((@ARGV > 0) && ($ARGV[0] !~ /^-/) && ($ARGV[0] !~ /^\+/)) {
-    &Usage();
-} else {
+} elsif (@ARGV == 0) {
     $displayNumber = &GetDisplayNumber();
+} else {
+    &Usage();
 }
 
 $vncPort = 5900 + $displayNumber;
@@ -328,19 +309,7 @@ if (-e "/tmp/.X11-unix/X$displayNumber" ||
 }
 $ENV{VNCDESKTOP}= $desktopName;
 
-if ($opt{'-fg'}) {
-    system("$Xsession $session{'Exec'} >> " . &quotedString($desktopLog) . " 2>&1");
-    if (kill 0, `cat $pidFile`) {
-        $opt{'-kill'} = ':'.$displayNumber;
-        &Kill();
-    }
-} else {
-    if ($opt{'-autokill'}) {
-        system("$Xsession $session{'Exec'}; $0 -kill :$displayNumber) >> " . &quotedString($desktopLog) . " 2>&1 &");
-    } else {
-        system("$Xsession $session{'Exec'} >> " . &quotedString($desktopLog) . " 2>&1 &");
-    }
-}
+system("$Xsession $session{'Exec'} >> " . &quotedString($desktopLog) . " 2>&1");
 
 exit;
 
@@ -539,139 +508,7 @@ sub removeSlashes
 
 sub Usage
 {
-    die("\nusage: $prog [:<number>]\n".
-	"                 [-fg]\n".
-	"                 [-autokill]\n".
-	"\n".
-	"       $prog -kill <X-display>\n\n".
-	"       $prog -list\n\n");
-}
-
-
-#
-# List
-#
-
-sub List
-{
-    opendir(dir, $vncUserDir);
-    my @filelist = readdir(dir);
-    closedir(dir);
-    print "\nTigerVNC server sessions:\n\n";
-    print "X DISPLAY #\tPROCESS ID\n";
-    foreach my $file (@filelist) {
-	if ($file =~ /$host:(\d+)$\.pid/) {
-	    chop($tmp_pid = `cat $vncUserDir/$file`);
-	    if (kill 0, $tmp_pid) {
-		print ":".$1."\t\t".`cat $vncUserDir/$file`;
-	    } else {
-		unlink ($vncUserDir . "/" . $file);
-	    }
-	}
-    }
-    exit;
-}
-
-
-#
-# Kill
-#
-
-sub Kill
-{
-    $opt{'-kill'} =~ s/(:\d+)\.\d+$/$1/; # e.g. turn :1.0 into :1
-
-    if ($opt{'-kill'} =~ /^:\d+$/) {
-	$pidFile = "$vncUserDir/$host$opt{'-kill'}.pid";
-    } else {
-	if ($opt{'-kill'} !~ /^$host:/) {
-	    die "\nCan't tell if $opt{'-kill'} is on $host\n".
-		"Use -kill :<number> instead\n\n";
-	}
-	$pidFile = "$vncUserDir/$opt{'-kill'}.pid";
-    }
-
-    if (! -r $pidFile) {
-	die "\nCan't find file $pidFile\n".
-	    "You'll have to kill the Xvnc process manually\n\n";
-    }
-
-    $SIG{'HUP'} = 'IGNORE';
-    chop($pid = `cat $pidFile`);
-    warn "Killing Xvnc process ID $pid\n";
-
-    if (kill 0, $pid) {
-	system("kill $pid");
-	sleep(1);
-	if (kill 0, $pid) {
-	    print "Xvnc seems to be deadlocked.  Kill the process manually and then re-run\n";
-	    print "    ".$0." -kill ".$opt{'-kill'}."\n";
-	    print "to clean up the socket files.\n";
-	    exit
-	}
-
-    } else {
-	warn "Xvnc process ID $pid already killed\n";
-	$opt{'-kill'} =~ s/://;
-
-	if (-e "/tmp/.X11-unix/X$opt{'-kill'}") {
-	    print "Xvnc did not appear to shut down cleanly.";
-	    print " Removing /tmp/.X11-unix/X$opt{'-kill'}\n";
-	    unlink "/tmp/.X11-unix/X$opt{'-kill'}";
-	}
-	if (-e "/tmp/.X$opt{'-kill'}-lock") {
-	    print "Xvnc did not appear to shut down cleanly.";
-	    print " Removing /tmp/.X$opt{'-kill'}-lock\n";
-	    unlink "/tmp/.X$opt{'-kill'}-lock";
-	}
-    }
-
-    unlink $pidFile;
-    exit;
-}
-
-
-#
-# ParseOptions takes a list of possible options and a boolean indicating
-# whether the option has a value following, and sets up an associative array
-# %opt of the values of the options given on the command line. It removes all
-# the arguments it uses from @ARGV and returns them in @optArgs.
-#
-
-sub ParseOptions
-{
-    local (@optval) = @_;
-    local ($opt, @opts, %valFollows, @newargs);
-
-    while (@optval) {
-	$opt = shift(@optval);
-	push(@opts,$opt);
-	$valFollows{$opt} = shift(@optval);
-    }
-
-    @optArgs = ();
-    %opt = ();
-
-    arg: while (defined($arg = shift(@ARGV))) {
-	foreach $opt (@opts) {
-	    if ($arg eq $opt) {
-		push(@optArgs, $arg);
-		if ($valFollows{$opt}) {
-		    if (@ARGV == 0) {
-			&Usage();
-		    }
-		    $opt{$opt} = shift(@ARGV);
-		    push(@optArgs, $opt{$opt});
-		} else {
-		    $opt{$opt} = 1;
-		}
-		next arg;
-	    }
-	}
-	push(@newargs,$arg);
-    }
-
-    @ARGV = @newargs;
+    die("\nusage: $prog [:<number>]\n\n");
 }
 
 

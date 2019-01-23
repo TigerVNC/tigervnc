@@ -1,15 +1,9 @@
 .TH vncserver 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
-vncserver \- start or stop a VNC server
+vncserver \- start a VNC server
 .SH SYNOPSIS
 .B vncserver
 .RI [: display# ]
-.RB [ \-fg ]
-.RB [ \-autokill ]
-.br
-.BI "vncserver \-kill :" display#
-.br
-.BI "vncserver \-list"
 .SH DESCRIPTION
 .B vncserver
 is used to start a VNC (Virtual Network Computing) desktop.
@@ -30,34 +24,7 @@ available.  For example:
 vncserver :13
 .RE
 
-.SH OPTIONS
-You can get a list of options by passing \fB\-h\fP as an option to vncserver.
-
-.TP
-.B \-kill :\fIdisplay#\fP
-This kills a VNC desktop previously started with vncserver.  It does this by
-killing the Xvnc process, whose process ID is stored in the file
-"$HOME/.vnc/\fIhost\fP:\fIdisplay#\fP.pid".  The
-.B \-kill
-option ignores anything preceding the first colon (":") in the display
-argument.  Thus, you can invoke "vncserver \-kill $DISPLAY", for example
-inside your session to terminate it.
-.
-.TP
-.B \-fg
-Runs Xvnc as a foreground process.  This has two effects: (1) The VNC server
-can be aborted with CTRL-C, and (2) the VNC server will exit as soon as the
-user logs out of the window manager in the VNC session.  This may be necessary
-when launching TigerVNC from within certain grid computing environments.
-.
-.TP
-.B \-autokill
-Automatically kill Xvnc whenever the session exits.  In most cases, this has
-the effect of terminating Xvnc when the user logs out of the window manager.
-.
-.TP
-.B \-list
-Lists all VNC desktops started by vncserver.
+vncserver will exit once the started session exits.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
