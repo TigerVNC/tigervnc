@@ -147,7 +147,8 @@ export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 
 %{cmake} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix}
+  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+  -DSYSCONF_DIR=%{_sysconfdir}
 make %{?_smp_mflags}
 
 pushd unix/xserver
@@ -245,6 +246,8 @@ fi
 %files server
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/sysconfig/vncservers
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
 %{_bindir}/vncserver
