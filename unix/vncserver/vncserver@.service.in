@@ -2,10 +2,12 @@
 #
 # Quick HowTo:
 # 1. Copy this file to /etc/systemd/system/vncserver@.service
-# 2. Edit <USER> and vncserver parameters appropriately
-#   ("runuser -l <USER> -c /usr/bin/vncserver %i -arg1 -arg2")
-# 3. Run `systemctl daemon-reload`
-# 4. Run `systemctl enable vncserver@:<display>.service`
+# 2. Switches for vncserver should be entered in ~/.vnc/config rather than
+#    hard-coded into this unit file. See the vncserver(1) manpage.
+# 3. Replace <USER> with the desired user
+#   ("runuser -l <USER> -c /usr/bin/vncserver %i")
+# 4. Run `systemctl daemon-reload`
+# 5. Run `systemctl enable vncserver@:<display>.service`
 #
 # DO NOT RUN THIS SERVICE if your local area network is
 # untrusted!  For a secure way of using VNC, you should

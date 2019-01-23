@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 #
+#  Copyright (C) 2015-2019 Pierre Ossman for Cendio AB
 #  Copyright (C) 2009-2010 D. R. Commander.  All Rights Reserved.
 #  Copyright (C) 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
 #  Copyright (C) 2002-2003 Constantin Kaplinsky.  All Rights Reserved.
@@ -129,8 +130,8 @@ if ($fontPath eq "") {
 
 # Check command line options
 
-&ParseOptions("-geometry",1,"-depth",1,"-pixelformat",1,"-name",1,"-kill",1,
-	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0,"-autokill",0,"-noxstartup",0,"-xstartup",1);
+&ParseOptions("-kill",1,"-help",0,"-h",0,"--help",0,"-list",0,
+	      "-fg",0,"-autokill",0,"-noxstartup",0,"-xstartup",1);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
@@ -138,32 +139,12 @@ if ($fontPath eq "") {
 
 &List() if ($opt{'-list'});
 
-# Uncomment this line if you want default geometry, depth and pixelformat
-# to match the current X display:
-# &GetXDisplayDefaults();
-
-if ($opt{'-geometry'}) {
-    $geometry = $opt{'-geometry'};
-}
-if ($opt{'-depth'}) {
-    $depth = $opt{'-depth'};
-    $pixelformat = "";
-}
-if ($opt{'-pixelformat'}) {
-    $pixelformat = $opt{'-pixelformat'};
-}
 if ($opt{'-noxstartup'}) {
     $skipxstartup = 1;
 }
 if ($opt{'-xstartup'}) {
     $xstartupFile = $opt{'-xstartup'};
 }
-if ($opt{'-fp'}) {
-    $fontPath = $opt{'-fp'};
-    $fpArgSpecified = 1;
-}
-
-&CheckGeometryAndDepth();
 
 # Create the user's vnc directory if necessary.
 if (!(-e $vncUserDir)) {
@@ -187,11 +168,7 @@ if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
 
 $vncPort = 5900 + $displayNumber;
 
-if ($opt{'-name'}) {
-    $desktopName = $opt{'-name'};
-} else {
-    $desktopName = "$host:$displayNumber ($ENV{USER})";
-}
+$desktopName = "$host:$displayNumber ($ENV{USER})";
 
 my %default_opts;
 my %config;
@@ -200,9 +177,6 @@ my %config;
 # override these where present.
 $default_opts{desktop} = &quotedString($desktopName);
 $default_opts{auth} = &quotedString($xauthorityFile);
-$default_opts{geometry} = $geometry if ($geometry);
-$default_opts{depth} = $depth if ($depth);
-$default_opts{pixelformat} = $pixelformat if ($pixelformat);
 $default_opts{rfbwait} = 30000;
 $default_opts{rfbauth} = "$vncUserDir/passwd";
 $default_opts{rfbport} = $vncPort;
@@ -243,31 +217,10 @@ if ($config{'securitytypes'}) {
     }
   }
 }
-
-# ...and finally we check CLI args, which in the case of the topic at
-# hand (VNC auth or not), override anything found in configuration files
-# (even so-called "mandatory" settings).
-for ($i = 0; $i < @ARGV; ++$i) {
-    # -SecurityTypes can be followed by a space or "="
-    my @splitargs = split('=', $ARGV[$i]);
-    if (@splitargs <= 1 && $i < @ARGV - 1) {
-        push(@splitargs, $ARGV[$i + 1]);
-    }
-    if (lc(@splitargs[0]) eq "-securitytypes") {
-        if (@splitargs > 1) {
-            $securityTypeArgSpecified = 1;
-        }
-        foreach $arg2 (split(',', @splitargs[1])) {
-            if (grep {$_ eq lc($arg2)} @vncAuthStrings) {
-                $vncAuthEnabled = 1;
-            }
-        }
-    }
-    if ((lc(@splitargs[0]) eq "-password")
-     || (lc(@splitargs[0]) eq "-passwordfile"
-     || (lc(@splitargs[0]) eq "-rfbauth"))) {
-        $passwordArgSpecified = 1;
-    }
+if ($config{'password'} ||
+    $config{'passwordfile'} ||
+    $config{'rfbauth'}) {
+    $passwordArgSpecified = 1;
 }
 
 if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
@@ -322,14 +275,6 @@ foreach my $k (sort keys %config) {
 foreach my $k (sort keys %default_opts) {
   $cmd .= " -$k $default_opts{$k}";
 }
-
-# Add color database stuff here, e.g.:
-# $cmd .= " -co /usr/lib/X11/rgb";
-
-foreach $arg (@ARGV) {
-  $cmd .= " " . &quotedString($arg);
-}
-$cmd .= " >> " . &quotedString($desktopLog) . " 2>&1";
 
 # Run $cmd and record the process ID.
 $pidFile = "$vncUserDir/$host:$displayNumber.pid";
@@ -467,30 +412,6 @@ sub LoadConfig {
       close(IN);
     }
   }
-}
-
-#
-# CheckGeometryAndDepth simply makes sure that the geometry and depth values
-# are sensible.
-#
-
-sub CheckGeometryAndDepth
-{
-    if ($geometry =~ /^(\d+)x(\d+)$/) {
-	$width = $1; $height = $2;
-
-	if (($width<1) || ($height<1)) {
-	    die "$prog: geometry $geometry is invalid\n";
-	}
-
-	$geometry = "${width}x$height";
-    } else {
-	die "$prog: geometry $geometry is invalid\n";
-    }
-
-    if ($depth && (($depth < 8) || ($depth > 32))) {
-	die "Depth must be between 8 and 32\n";
-    }
 }
 
 
