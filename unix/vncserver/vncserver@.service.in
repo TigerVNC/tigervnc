@@ -34,8 +34,9 @@ Description=Remote desktop service (VNC)
 After=syslog.target network.target
 
 [Service]
-Type=exec
+Type=forking
 ExecStart=/usr/libexec/vncsession-start %i
+PIDFile=/var/run/vncsession-%i.pid
 
 [Install]
 WantedBy=multi-user.target

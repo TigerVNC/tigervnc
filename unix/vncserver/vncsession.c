@@ -29,6 +29,7 @@
 #include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
+#include <syslog.h>
 #include <security/pam_appl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -320,13 +321,13 @@ run_script(const char *username, const char *display, char **envp)
 
     pwent = getpwnam(username);
     if (pwent == NULL) {
-        perror("getpwnam");
+        syslog(LOG_CRIT, "getpwnam: %s", strerror(errno));
         return -1;
     }
 
     pid = fork();
     if (pid < 0) {
-        perror("subprocess: fork");
+        syslog(LOG_CRIT, "fork: %s", strerror(errno));
         return pid;
     }
 
@@ -381,6 +382,9 @@ run_script(const char *username, const char *display, char **envp)
 int
 main(int argc, char **argv)
 {
+    char pid_file[PATH_MAX];
+    FILE *f;
+
     const char *username, *display;
 
     if ((argc != 3) || (argv[2][0] != ':')) {
@@ -389,6 +393,18 @@ main(int argc, char **argv)
         return EX_USAGE;
     }
 
+    if (geteuid() != 0) {
+        fprintf(stderr, "This program needs to be run as root!\n");
+        return EX_USAGE;
+    }
+
+    if (daemon(0, 0) == -1) {
+        perror("daemon");
+        return EX_OSERR;
+    }
+
+    openlog("vncsession", LOG_PID, LOG_AUTH);
+
     username = argv[1];
     display = argv[2];
 
@@ -396,7 +412,7 @@ main(int argc, char **argv)
        this here before PAM as pam_systemd.so looks at these. */
     if ((putenv("XDG_SESSION_CLASS=user") < 0) ||
         (putenv("XDG_SESSION_TYPE=x11") < 0)) {
-        perror("putenv");
+        syslog(LOG_CRIT, "putenv: %s", strerror(errno));
         return EX_OSERR;
     }
 
@@ -414,7 +430,7 @@ main(int argc, char **argv)
     char **child_env;
     child_env = prepare_environ(pamh);
     if (child_env == NULL) {
-        fprintf(stderr, "Failure creating child process environment\n");
+        syslog(LOG_CRIT, "Failure creating child process environment");
         return EX_OSERR;
     }
 
@@ -422,8 +438,19 @@ main(int argc, char **argv)
 
     script = run_script(username, display, child_env);
     if (script == -1) {
-        fprintf(stderr, "Failure starting vncserver script\n");
+        syslog(LOG_CRIT, "Failure starting vncserver script");
         return EX_OSERR;
+    }
+
+    snprintf(pid_file, sizeof(pid_file),
+             "/var/run/vncsession-%s.pid", display);
+    f = fopen(pid_file, "w");
+    if (f == NULL) {
+        syslog(LOG_ERR, "Failure creating pid file \"%s\": %s",
+               pid_file, strerror(errno));
+    } else {
+        fprintf(f, "%ld\n", (long)getpid());
+        fclose(f);
     }
 
     while (1) {
@@ -431,26 +458,28 @@ main(int argc, char **argv)
         pid_t gotpid = waitpid(script, &status, 0);
         if (gotpid < 0) {
             if (errno != EINTR) {
-                perror("waitpid");
+                syslog(LOG_CRIT, "waitpid: %s", strerror(errno));
                 exit(EXIT_FAILURE);
             }
             continue;
         }
         if (WIFEXITED(status)) {
             if (WEXITSTATUS(status) != 0) {
-                fprintf(stderr,
-                        "vncsession: vncserver exited with status=%d\n",
+                syslog(LOG_WARNING,
+                        "vncsession: vncserver exited with status=%d",
                         WEXITSTATUS(status));
             }
             break;
         }
         else if (WIFSIGNALED(status)) {
-            fprintf(stderr,
-                    "vncsession: vncserver was terminated by signal %d\n",
+            syslog(LOG_WARNING,
+                    "vncsession: vncserver was terminated by signal %d",
                     WTERMSIG(status));
             break;
         }
     }
+
+    unlink(pid_file);
 
     stop_pam(pamh, pamret);
 
