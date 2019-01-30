@@ -18,8 +18,6 @@ Packager: Brian P. Hinz <bphinz@users.sourceforge.net>
 URL: http://www.tigervnc.com
 
 Source0: %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
-Source1: vncserver.service
-Source2: vncserver.sysconfig
 Source11: http://fltk.org/pub/fltk/1.3.4/fltk-1.3.4-2-source.tar.gz
 Source13: http://downloads.sourceforge.net/project/libpng/libpng16/1.6.34/libpng-1.6.34.tar.gz
 Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.bz2
@@ -279,6 +277,7 @@ popd
 %{cmake} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
   -DINSTALL_SYSTEMD_UNIT=off \
+  -DINSTALL_SYSV_INIT=on \
   -DCMAKE_INSTALL_PREFIX=%{_prefix} \
   -DFLTK_LIBRARIES="%{static_lib_buildroot}%{_libdir}/libfltk.a;%{static_lib_buildroot}%{_libdir}/libfltk_images.a;%{static_lib_buildroot}%{_libdir}/libpng.a" \
   -DFLTK_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
