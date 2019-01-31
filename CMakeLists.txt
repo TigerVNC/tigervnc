@@ -27,6 +27,7 @@ set(VERSION 1.9.80)
 set(RCVERSION 1,9,80,0)
 
 # Installation paths
+set(SYSCONF_DIR "${CMAKE_INSTALL_PREFIX}/etc")
 set(BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")
 set(SBIN_DIR "${CMAKE_INSTALL_PREFIX}/sbin")
 set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share")

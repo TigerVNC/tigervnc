@@ -279,6 +279,7 @@ popd
   -DINSTALL_SYSTEMD_UNIT=off \
   -DINSTALL_SYSV_INIT=on \
   -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+  -DSYSCONF_DIR=%{_sysconfdir} \
   -DFLTK_LIBRARIES="%{static_lib_buildroot}%{_libdir}/libfltk.a;%{static_lib_buildroot}%{_libdir}/libfltk_images.a;%{static_lib_buildroot}%{_libdir}/libpng.a" \
   -DFLTK_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
   -DGNUTLS_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
@@ -379,6 +380,8 @@ fi
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/sysconfig/vncservers
 %config(noreplace) %{_sysconfdir}/init.d/vncserver
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
 %{_bindir}/x0vncserver
 %{_bindir}/vncserver
 %{_mandir}/man1/vncserver.1*
