@@ -231,7 +231,7 @@ fi
 %defattr(-,root,root,-)
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
-%{_bindir}/vncsession
+%{_sbindir}/vncsession
 %{_libexecdir}/vncserver
 %{_libexecdir}/vncsession-start
 %{_mandir}/man1/x0vncserver.1*
