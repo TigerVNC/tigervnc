@@ -431,6 +431,7 @@ main(int argc, char **argv)
     child_env = prepare_environ(pamh);
     if (child_env == NULL) {
         syslog(LOG_CRIT, "Failure creating child process environment");
+        stop_pam(pamh, pamret);
         return EX_OSERR;
     }
 
@@ -439,6 +440,7 @@ main(int argc, char **argv)
     script = run_script(username, display, child_env);
     if (script == -1) {
         syslog(LOG_CRIT, "Failure starting vncserver script");
+        stop_pam(pamh, pamret);
         return EX_OSERR;
     }
 

@@ -193,16 +193,12 @@ install: build
 		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncconfig
 	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncpasswd \
 		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncpasswd
-	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncserver \
-		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncserver
 	mv $(CURDIR)/debian/tigervncserver/usr/bin/x0vncserver \
 		$(CURDIR)/debian/tigervncserver/usr/bin/x0tigervncserver
 	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncconfig.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncconfig.1
 	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncpasswd.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncpasswd.1
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncserver.1 \
-		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncserver.1
 	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/x0vncserver.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/x0tigervncserver.1
 	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/Xvnc.1 \
