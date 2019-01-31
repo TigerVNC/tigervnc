@@ -9,7 +9,6 @@ Packager: 	Brian P. Hinz <bphinz@users.sourceforge.net>
 URL:            http://www.tigervnc.com
 
 Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
-Source2:        vncserver.sysconfig
 Source3:        10-libvnc.conf
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -181,9 +180,6 @@ pushd unix/xserver/hw/vnc
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
 
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/vncservers
-
 %find_lang %{name} %{name}.lang
 
 # remove unwanted files
@@ -233,7 +229,6 @@ fi
 
 %files server
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/sysconfig/vncservers
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
 %{_bindir}/vncsession
