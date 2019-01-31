@@ -378,10 +378,10 @@ fi
 
 %files server
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/sysconfig/vncservers
 %config(noreplace) %{_sysconfdir}/init.d/vncserver
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
 %{_bindir}/x0vncserver
 %{_bindir}/vncserver
 %{_mandir}/man1/vncserver.1*

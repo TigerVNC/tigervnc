@@ -232,6 +232,7 @@ fi
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
 %{_sbindir}/vncsession
