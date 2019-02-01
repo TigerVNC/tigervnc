@@ -2,7 +2,7 @@
 Name=TigerVNC Viewer
 GenericName=Remote Desktop Viewer
 Comment=Connect to VNC server and display remote desktop
-Exec=@BIN_DIR@/vncviewer
+Exec=@CMAKE_INSTALL_FULL_BINDIR@/vncviewer
 Icon=tigervnc
 Terminal=false
 Type=Application

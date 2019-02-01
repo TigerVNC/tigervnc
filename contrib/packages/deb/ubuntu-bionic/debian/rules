@@ -57,9 +57,8 @@ config-stamp: xorg-source-stamp
 	cmake -G"Unix Makefiles" \
 		-DBUILD_STATIC=off \
 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
-		-DSYSCONF_DIR:PATH=/etc \
-		-DLIBEXEC_DIR:PATH=/usr/lib/$(DEB_HOST_MULTIARCH) \
-		-DUNIT_DIR:PATH=/lib/systemd/system
+		-DCMAKE_INSTALL_LIBEXECDIR:PATH=lib/$(DEB_HOST_MULTIARCH) \
+		-DCMAKE_INSTALL_UNITDIR:PATH=/lib/systemd/system
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
@@ -211,15 +210,14 @@ install: build
 	#(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
 	# install additional license files
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer
-	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
+	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer/
 	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java
-	#cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
+	#cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
 		#$(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java/
 	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
-	mv $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/* \
-		$(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver/
-	rm -rf $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc-*/
+	mv $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc \
+		$(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
 #	dh_movefiles
 	sed 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g' \
 		debian/tigervncserver.postinst.in > debian/tigervncserver.postinst

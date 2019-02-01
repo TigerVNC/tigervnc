@@ -461,7 +461,7 @@ run_script(const char *username, const char *display, char **envp)
     setenv("USER", pwent->pw_name, 1);
     setenv("USERNAME", pwent->pw_name, 1);
 
-    child_argv[0] = LIBEXEC_DIR "/vncserver";
+    child_argv[0] = CMAKE_INSTALL_FULL_LIBEXECDIR "/vncserver";
     child_argv[1] = display;
     child_argv[2] = NULL;
 

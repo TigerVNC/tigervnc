@@ -5,5 +5,5 @@ add_executable(vncpasswd
 
 target_link_libraries(vncpasswd tx rfb os)
 
-install(TARGETS vncpasswd DESTINATION ${BIN_DIR})
-install(FILES vncpasswd.man DESTINATION ${MAN_DIR}/man1 RENAME vncpasswd.1)
+install(TARGETS vncpasswd DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(FILES vncpasswd.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 RENAME vncpasswd.1)

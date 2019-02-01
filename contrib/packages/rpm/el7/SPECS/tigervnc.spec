@@ -151,10 +151,11 @@ export CPPFLAGS="$CXXFLAGS"
 
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 
+# The cmake in RHEL is too old and doesn't set up
+# CMAKE_INSTALL_SYSCONFDIR properly
 %{cmake} -G"Unix Makefiles" \
-  -DBUILD_STATIC=off \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DSYSCONF_DIR=%{_sysconfdir}
+  -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
+  -DBUILD_STATIC=off
 make %{?_smp_mflags}
 
 pushd unix/xserver
@@ -248,7 +249,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc %{_docdir}/%{name}-%{version}/README.rst
+%doc %{_docdir}/%{name}/README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
 %{_mandir}/man1/vncviewer.1*
@@ -285,7 +286,7 @@ fi
 %endif
 
 %files license
-%doc %{_docdir}/%{name}-%{version}/LICENCE.TXT
+%doc %{_docdir}/%{name}/LICENCE.TXT
 
 %files icons
 %defattr(-,root,root,-)

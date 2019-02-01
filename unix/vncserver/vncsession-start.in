@@ -18,7 +18,7 @@
 #  USA.
 #
 
-USERSFILE="@SYSCONF_DIR@/tigervnc/vncserver.users"
+USERSFILE="@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver.users"
 
 if [ $# -ne 1 ]; then
 	echo "Syntax:" >&2
@@ -40,4 +40,4 @@ if [ -z "${USER}" ]; then
 	exit 1
 fi
 
-exec "@SBIN_DIR@/vncsession" "${USER}" "${DISPLAY}"
+exec "@CMAKE_INSTALL_FULL_SBINDIR@/vncsession" "${USER}" "${DISPLAY}"

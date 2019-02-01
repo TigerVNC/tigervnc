@@ -238,7 +238,7 @@ push(@cmd, $Xsession, $session{'Exec'});
 push(@cmd, '--');
 
 # We build up our Xvnc command with options
-push(@cmd, "@BIN_DIR@/Xvnc", ":$displayNumber");
+push(@cmd, "@CMAKE_INSTALL_FULL_BINDIR@/Xvnc", ":$displayNumber");
 
 foreach my $k (sort keys %config) {
   push(@cmd, "-$k");
