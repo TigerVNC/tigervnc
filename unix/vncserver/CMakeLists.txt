@@ -11,7 +11,7 @@ install(TARGETS vncsession DESTINATION ${SBIN_DIR})
 install(FILES vncsession.man DESTINATION ${MAN_DIR}/man8 RENAME vncsession.8)
 install(PROGRAMS vncserver DESTINATION ${LIBEXEC_DIR})
 install(FILES vncserver.man DESTINATION ${MAN_DIR}/man8 RENAME vncserver.8)
-install(FILES vncserver-config-defaults vncserver-config-mandatory DESTINATION ${SYSCONF_DIR}/tigervnc)
+install(FILES vncserver-config-defaults vncserver-config-mandatory DESTINATION ${SYSCONF_INSTALL_DIR}/tigervnc)
 
 install(FILES vncserver.users DESTINATION ${SYSCONF_DIR}/tigervnc)
 
