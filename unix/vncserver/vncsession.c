@@ -17,6 +17,8 @@
  * USA.
  */
 
+#include <config.h>
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -367,7 +369,7 @@ run_script(const char *username, const char *display, char **envp)
     setenv("USER", pwent->pw_name, 1);
     setenv("USERNAME", pwent->pw_name, 1);
 
-    child_argv[0] = LIBEXEC_DIR "/vncserver";
+    child_argv[0] = LIBEXEC_INSTALL_DIR "/vncserver";
     child_argv[1] = display;
     child_argv[2] = NULL;
 

@@ -30,7 +30,7 @@ list_servers() {
 start() {
     [ "$EUID" != "0" ] && exit 4
     
-    [ -x @LIBEXEC_DIR@/vncsession ] || exit 5
+    [ -x @LIBEXEC_INSTALL_DIR@/vncsession ] || exit 5
 
     RETVAL=0
     list_servers | while read line; do
@@ -39,7 +39,7 @@ start() {
         USER=${line%=*}
         start_daemon \
             -p "/var/run/vncsession-$DISP.pid" \
-            @LIBEXEC_DIR@/vncsession "$USER" "$DISP"
+            @LIBEXEC_INSTALL_DIR@/vncsession "$USER" "$DISP"
         RETVAL=$?
         if [ "$RETVAL" -eq 0 ]; then
             log_success_msg "Started VNC server on $DISP for $USER"
@@ -67,7 +67,7 @@ stop() {
     for pidfile in /var/run/vncsession-*.pid; do
         DISP=`echo $pidfile | cut -d - -f 2-`
         killproc -p pidfile \
-            @LIBEXEC_DIR@/vncsession
+            @LIBEXEC_INSTALL_DIR@/vncsession
         RETVAL=$?
         if [ "$RETVAL" -eq 0 ]; then
             log_success_msg "Stopped VNC server on $DISP"
@@ -88,7 +88,7 @@ status() {
     for pidfile in /var/run/vncsession-*.pid; do
         DISP=`echo $pidfile | cut -d - -f 2-`
         pidofproc -p pidfile \
-            @LIBEXEC_DIR@/vncsession > /dev/null
+            @LIBEXEC_INSTALL_DIR@/vncsession > /dev/null
         RETVAL=$?
         if [ "$RETVAL" -eq 0 ]; then
             log_success_msg "VNC server on $DISP is running"
