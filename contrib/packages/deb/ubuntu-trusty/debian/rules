@@ -70,6 +70,7 @@ config-stamp: xorg-source-stamp fltk-stamp
 	cmake -G"Unix Makefiles" \
     -DBUILD_STATIC=off \
 	-DINSTALL_SYSTEMD_UNITS=off \
+	-DINSTALL_SYSV_INIT=on \
 	-DCMAKE_INSTALL_PREFIX:PATH=/usr \
 	-DSYSCONF_INSTALL_DIR:PATH=/etc \
   	-DFLTK_LIBRARIES="$(CURDIR)/fltk-1.3.4-2/lib/libfltk.a;$(CURDIR)/fltk-1.3.4-2/lib/libfltk_images.a;-lpng;-ldl" \
