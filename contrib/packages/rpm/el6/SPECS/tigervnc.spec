@@ -376,9 +376,10 @@ fi
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
 %{_bindir}/x0vncserver
-%{_bindir}/vncserver
-%{_mandir}/man1/vncserver.1*
+%{_sbindir}/vncsession
 %{_mandir}/man1/x0vncserver.1*
+%{_mandir}/man8/vncsession.8*
+%{_mandir}/man8/vncserver.8*
 
 %files server-minimal
 %defattr(-,root,root,-)
