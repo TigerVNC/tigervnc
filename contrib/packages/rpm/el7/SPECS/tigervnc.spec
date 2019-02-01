@@ -206,19 +206,6 @@ if [ -x %{_bindir}/gtk-update-icon-cache ]; then
         %{_bindir}/gtk-update-icon-cache -q %{_datadir}/icons/hicolor || :
 fi
 
-%post server
-%systemd_post vncserver.service
-
-%triggerun -- tigervnc-server < 1.0.90-6
-%{_bindir}/systemd-sysv-convert --save vncserver >/dev/null 2>&1 ||:
-/sbin/chkconfig --del vncserver >/dev/null 2>&1 || :
-
-%preun server
-%systemd_preun vncserver.service
-
-%postun server
-%systemd_postun
-
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc %{_docdir}/%{name}-%{version}/README.rst
