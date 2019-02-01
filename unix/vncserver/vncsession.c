@@ -45,6 +45,98 @@ const char *SERVICE_NAME = "tigervnc";
 // Main script PID
 volatile static pid_t script = -1;
 
+// Daemon completion pipe
+int daemon_pipe_fd = -1;
+
+static int
+begin_daemon(void)
+{
+    int devnull, fds[2];
+    pid_t pid;
+
+    /* Pipe to report startup success */
+    if (pipe(fds) < 0) {
+        perror("pipe");
+        return -1;
+    }
+
+    /* First fork */
+    pid = fork();
+    if (pid < 0) {
+        perror("fork");
+        return -1;
+    }
+
+    if (pid != 0) {
+        ssize_t len;
+        char buf[1];
+
+        close(fds[1]);
+
+        /* Wait for child to finish startup */
+        len = read(fds[0], buf, 1);
+        if (len != 1) {
+            fprintf(stderr, "Failure daemonizing\n");
+            _exit(EX_OSERR);
+        }
+
+        _exit(0);
+    }
+
+    close(fds[0]);
+    daemon_pipe_fd = fds[1];
+
+    /* Detach from terminal */
+    if (setsid() < 0) {
+        perror("setsid");
+        return -1;
+    }
+
+    /* Another fork required to fully detach */
+    pid = fork();
+    if (pid < 0) {
+        perror("fork");
+        return -1;
+    }
+
+    if (pid == 0)
+        _exit(0);
+
+    /* Send all stdio to /dev/null */
+    devnull = open("/dev/null", O_RDWR);
+    if (devnull < 0) {
+        fprintf(stderr, "Failed to open /dev/null: %s\n", strerror(errno));
+        return -1;
+    }
+    if ((dup2(devnull, 0) < 0) ||
+        (dup2(devnull, 1) < 0) ||
+        (dup2(devnull, 2) < 0)) {
+        perror("dup2");
+        return -1;
+    }
+    if (devnull > 2)
+        close(devnull);
+
+    /* Full control of access bits */
+    umask(0);
+
+    /* A safe working directory */
+    if (chdir("/") < 0) {
+        perror("chdir");
+        return -1;
+    }
+
+    return 0;
+}
+
+static void
+finish_daemon(void)
+{
+    write(daemon_pipe_fd, "+", 1);
+    close(daemon_pipe_fd);
+    daemon_pipe_fd = -1;
+}
+
 static void
 sighandler(int sig)
 {
@@ -412,10 +504,8 @@ main(int argc, char **argv)
         return EX_OSERR;
     }
 
-    if (daemon(0, 0) == -1) {
-        perror("daemon");
+    if (begin_daemon() == -1)
         return EX_OSERR;
-    }
 
     openlog("vncsession", LOG_PID, LOG_AUTH);
 
@@ -465,6 +555,8 @@ main(int argc, char **argv)
         fprintf(f, "%ld\n", (long)getpid());
         fclose(f);
     }
+
+    finish_daemon();
 
     while (1) {
         int status;
