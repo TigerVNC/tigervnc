@@ -94,7 +94,7 @@ run_pam(int *pamret, const char *username, const char *display)
            fails, pamh is invalid. In practice, at least the Linux
            implementation of pam_strerror does not use the pamh
            argument, but let's take care - avoid pam_strerror here. */
-        fprintf(stderr, "pam_start failed: %d\n", *pamret);
+        syslog(LOG_CRIT, "pam_start failed: %d", *pamret);
         return NULL;
     }
 
@@ -108,8 +108,8 @@ run_pam(int *pamret, const char *username, const char *display)
     /* FIXME: This might throw an error on a IPv6-only host */
     *pamret = pam_set_item(pamh, PAM_RHOST, "203.0.113.20");
     if (*pamret != PAM_SUCCESS) {
-        fprintf(stderr, "pam_set_item(PAM_RHOST) failed: %d (%s)\n",
-                *pamret, pam_strerror(pamh, *pamret));
+        syslog(LOG_CRIT, "pam_set_item(PAM_RHOST) failed: %d (%s)",
+               *pamret, pam_strerror(pamh, *pamret));
         return pamh;
     }
 
@@ -118,8 +118,8 @@ run_pam(int *pamret, const char *username, const char *display)
     *pamret = pam_set_item(pamh, PAM_XDISPLAY, display);
     /* Note: PAM_XDISPLAY is only supported by modern versions of PAM */
     if (*pamret != PAM_BAD_ITEM && *pamret != PAM_SUCCESS) {
-        fprintf(stderr, "pam_set_item(PAM_XDISPLAY) failed: %d (%s)\n",
-                *pamret, pam_strerror(pamh, *pamret));
+        syslog(LOG_CRIT, "pam_set_item(PAM_XDISPLAY) failed: %d (%s)",
+               *pamret, pam_strerror(pamh, *pamret));
         return pamh;
     }
 #endif
@@ -127,8 +127,8 @@ run_pam(int *pamret, const char *username, const char *display)
     /* Open session */
     *pamret = pam_open_session(pamh, PAM_SILENT);
     if (*pamret != PAM_SUCCESS) {
-        fprintf(stderr, "pam_open_session failed: %d (%s)\n",
-                *pamret, pam_strerror(pamh, *pamret));
+        syslog(LOG_CRIT, "pam_open_session failed: %d (%s)",
+               *pamret, pam_strerror(pamh, *pamret));
         return pamh;
     }
 
@@ -142,8 +142,8 @@ stop_pam(pam_handle_t * pamh, int pamret)
     if (pamret == PAM_SUCCESS) {
         pamret = pam_close_session(pamh, PAM_SILENT);
         if (pamret != PAM_SUCCESS) {
-            fprintf(stderr, "pam_close_session failed: %d (%s)\n",
-                    pamret, pam_strerror(pamh, pamret));
+            syslog(LOG_ERR, "pam_close_session failed: %d (%s)",
+                   pamret, pam_strerror(pamh, pamret));
         }
     }
 
@@ -154,7 +154,7 @@ stop_pam(pam_handle_t * pamh, int pamret)
     pamret = pam_end(pamh, pamret);
     if (pamret != PAM_SUCCESS) {
         /* avoid pam_strerror - we have no pamh. */
-        fprintf(stderr, "pam_end failed: %d\n", pamret);
+        syslog(LOG_ERR, "pam_end failed: %d", pamret);
         return EX_OSERR;
     }
     return pamret;
@@ -395,9 +395,21 @@ main(int argc, char **argv)
         return EX_USAGE;
     }
 
+    username = argv[1];
+    display = argv[2];
+
     if (geteuid() != 0) {
         fprintf(stderr, "This program needs to be run as root!\n");
         return EX_USAGE;
+    }
+
+    if (getpwnam(username) == NULL) {
+        if (errno == 0)
+          fprintf(stderr, "User \"%s\" does not exist\n", username);
+        else
+          fprintf(stderr, "Cannot look up user \"%s\": %s\n",
+                  username, strerror(errno));
+        return EX_OSERR;
     }
 
     if (daemon(0, 0) == -1) {
@@ -406,9 +418,6 @@ main(int argc, char **argv)
     }
 
     openlog("vncsession", LOG_PID, LOG_AUTH);
-
-    username = argv[1];
-    display = argv[2];
 
     /* Indicate that this is a graphical user session. We need to do
        this here before PAM as pam_systemd.so looks at these. */
