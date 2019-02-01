@@ -227,7 +227,7 @@ static void init_fltk()
       bool exists;
 
       sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tigervnc.png",
-              DATA_DIR, icon_sizes[i], icon_sizes[i]);
+              DATA_INSTALL_DIR, icon_sizes[i], icon_sizes[i]);
 
 #ifndef WIN32
       struct stat st;
@@ -495,7 +495,7 @@ int main(int argc, char** argv)
   argv0 = argv[0];
 
   setlocale(LC_ALL, "");
-  bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
+  bindtextdomain(PACKAGE_NAME, LOCALE_INSTALL_DIR);
   textdomain(PACKAGE_NAME);
 
   rfb::SecurityClient::setDefaults();

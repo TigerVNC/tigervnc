@@ -52,5 +52,5 @@ endif()
 
 target_link_libraries(x0vncserver ${X11_LIBRARIES})
 
-install(TARGETS x0vncserver DESTINATION ${BIN_DIR})
-install(FILES x0vncserver.man DESTINATION ${MAN_DIR}/man1 RENAME x0vncserver.1)
+install(TARGETS x0vncserver DESTINATION ${BIN_INSTALL_DIR})
+install(FILES x0vncserver.man DESTINATION ${MAN_INSTALL_DIR}/man1 RENAME x0vncserver.1)

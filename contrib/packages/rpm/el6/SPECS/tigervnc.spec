@@ -278,8 +278,6 @@ popd
   -DBUILD_STATIC=off \
   -DINSTALL_SYSTEMD_UNIT=off \
   -DINSTALL_SYSV_INIT=on \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DSYSCONF_DIR=%{_sysconfdir} \
   -DFLTK_LIBRARIES="%{static_lib_buildroot}%{_libdir}/libfltk.a;%{static_lib_buildroot}%{_libdir}/libfltk_images.a;%{static_lib_buildroot}%{_libdir}/libpng.a" \
   -DFLTK_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
   -DGNUTLS_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \

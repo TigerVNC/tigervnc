@@ -139,9 +139,7 @@ export CPPFLAGS="$CXXFLAGS"
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 
 %{cmake} -G"Unix Makefiles" \
-  -DBUILD_STATIC=off \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DSYSCONF_DIR=%{_sysconfdir}
+  -DBUILD_STATIC=off
 make %{?_smp_mflags}
 
 pushd unix/xserver

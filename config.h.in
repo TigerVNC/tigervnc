@@ -5,8 +5,8 @@
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1
 
-#cmakedefine DATA_DIR "@DATA_DIR@"
-#cmakedefine LOCALE_DIR "@LOCALE_DIR@"
+#cmakedefine DATA_INSTALL_DIR "@DATA_INSTALL_DIR@"
+#cmakedefine LOCALE_INSTALL_DIR "@LOCALE_INSTALL_DIR@"
 
 /* MS Visual Studio 2008 and newer doesn't know ssize_t */
 #if defined(HAVE_GNUTLS) && defined(WIN32) && !defined(__MINGW32__)

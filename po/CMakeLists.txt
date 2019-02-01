@@ -46,7 +46,7 @@ foreach(lang ${po_FILES})
   )
 
   install(FILES ${mo}
-    DESTINATION "${LOCALE_DIR}/${lang}/LC_MESSAGES"
+    DESTINATION "${LOCALE_INSTALL_DIR}/${lang}/LC_MESSAGES"
     RENAME tigervnc.mo
   )
 
