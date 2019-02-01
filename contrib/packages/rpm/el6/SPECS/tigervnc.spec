@@ -276,7 +276,7 @@ popd
 
 %{cmake} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
-  -DINSTALL_SYSTEMD_UNIT=off \
+  -DINSTALL_SYSTEMD_UNITS=off \
   -DINSTALL_SYSV_INIT=on \
   -DFLTK_LIBRARIES="%{static_lib_buildroot}%{_libdir}/libfltk.a;%{static_lib_buildroot}%{_libdir}/libfltk_images.a;%{static_lib_buildroot}%{_libdir}/libpng.a" \
   -DFLTK_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
