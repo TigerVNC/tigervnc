@@ -22,7 +22,7 @@ USERSFILE="@SYSCONF_INSTALL_DIR@/tigervnc/vncserver.users"
 
 if [ $# -ne 1 ]; then
 	echo "Syntax:" >&2
-	echo "    $0 <display>" > &2
+	echo "    $0 <display>" >&2
 	exit 1
 fi
 
@@ -40,4 +40,4 @@ if [ -z "${USER}" ]; then
 	exit 1
 fi
 
-exec "@LIBEXEC_INSTALL_DIR@/vncsession" "${USER}" "${DISPLAY}"
+exec "@SBIN_INSTALL_DIR@/vncsession" "${USER}" "${DISPLAY}"
