@@ -17,5 +17,5 @@
 #  USA.
 #
 
-/usr/(local/)?libexec/vncsession		--	gen_context(system_u:object_r:vnc_session_exec_t,s0)
+/usr/(local/)?sbin/vncsession		--	gen_context(system_u:object_r:vnc_session_exec_t,s0)
 

@@ -21,7 +21,7 @@ BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
 BuildRequires:  libXrandr-devel, fltk-devel >= 1.3.3
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
-BuildRequires:  systemd, cmake
+BuildRequires:  systemd, cmake, selinux-policy-devel
 
 Requires(post):   coreutils
 Requires(postun): coreutils
@@ -52,6 +52,7 @@ Provides:       tightvnc-server = 1.5.0-0.15.20090204svn3586
 Obsoletes:      tightvnc-server < 1.5.0-0.15.20090204svn3586
 Requires:       perl
 Requires:       tigervnc-server-minimal = %{version}-%{release}
+Requires:       tigervnc-selinux = %{version}-%{release}
 Requires:       xorg-x11-xauth
 Requires:       xorg-x11-xinit
 Requires(post):   systemd
@@ -115,6 +116,18 @@ BuildArch:      noarch
 %description icons
 This package contains icons for TigerVNC viewer
 
+%package selinux
+Summary:        SELinux module for TigerVNC
+BuildArch:      noarch
+Requires(pre):  libselinux-utils
+Requires(post): selinux-policy-base >= %{_selinux_policy_version}
+Requires(post): policycoreutils policycoreutils-python
+Requires(post): libselinux-utils
+
+%description selinux
+This package provides the SELinux policy module to ensure TigerVNC
+runs properly under an environment with SELinux enabled.
+
 %prep
 rm -rf $RPM_BUILD_ROOT
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
@@ -172,10 +185,19 @@ pushd media
 make
 popd
 
+# SELinux
+pushd unix/vncserver/selinux
+make
+popd
+
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
 
 pushd unix/xserver/hw/vnc
+make install DESTDIR=$RPM_BUILD_ROOT
+popd
+
+pushd unix/vncserver/selinux
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
 
@@ -204,6 +226,22 @@ fi
 touch -c %{_datadir}/icons/hicolor
 if [ -x %{_bindir}/gtk-update-icon-cache ]; then
         %{_bindir}/gtk-update-icon-cache -q %{_datadir}/icons/hicolor || :
+fi
+
+%pre selinux
+%selinux_relabel_pre
+
+%post selinux
+%selinux_modules_install %{_datadir}/selinux/packages/vncsession.pp
+%selinux_relabel_post
+
+%posttrans selinux
+%selinux_relabel_post
+
+%postun selinux
+%selinux_modules_uninstall tigervnc
+if [ $1 -eq 0 ]; then
+    %selinux_relabel_post
 fi
 
 %files -f %{name}.lang
@@ -249,6 +287,9 @@ fi
 %files icons
 %defattr(-,root,root,-)
 %{_datadir}/icons/hicolor/*/apps/*
+
+%files selinux
+%{_datadir}/selinux/packages/vncsession.pp
 
 %changelog
 * Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-4

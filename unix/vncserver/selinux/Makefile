@@ -4,7 +4,7 @@
 # it you should also run:
 #
 #     sudo semodule -i /usr/share/selinux/packages/vncsession.pp
-#     sudo restorecon /usr/libexec/vncsession
+#     sudo restorecon /usr/sbin/vncsession
 #
 
 PREFIX=/usr
@@ -20,5 +20,5 @@ clean:
 	rm -rf tmp
 
 install: vncsession.pp
-	mkdir -p $(DATADIR)/selinux/packages
-	install vncsession.pp $(DATADIR)/selinux/packages/vncsession.pp
+	mkdir -p $(DESTDIR)$(DATADIR)/selinux/packages
+	install vncsession.pp $(DESTDIR)$(DATADIR)/selinux/packages/vncsession.pp
