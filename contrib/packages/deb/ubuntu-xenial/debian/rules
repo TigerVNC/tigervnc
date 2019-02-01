@@ -58,7 +58,7 @@ config-stamp: xorg-source-stamp
 	cmake -G"Unix Makefiles" \
 		-DBUILD_STATIC=off \
 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
-		-DSYSCONFDIR_INSTALL_DIR:PATH=/etc
+		-DSYSCONF_INSTALL_DIR:PATH=/etc
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
