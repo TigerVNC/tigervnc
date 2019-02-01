@@ -27,7 +27,6 @@ set(VERSION 1.9.80)
 set(RCVERSION 1,9,80,0)
 
 # Installation paths
-set(UNIT_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib/systemd/system")
 if(WIN32)
   set(BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Install directory for binary files")
   set(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Install directory for documentation")
@@ -40,6 +39,7 @@ else()
   set(MAN_INSTALL_DIR "${DATA_INSTALL_DIR}/man" CACHE PATH "Install directory for manual pages")
   set(LOCALE_INSTALL_DIR "${DATA_INSTALL_DIR}/locale" CACHE PATH "Install directory for translations")
   set(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/doc/${CMAKE_PROJECT_NAME}-${VERSION}" CACHE PATH "Install directory for documentation")
+  set(UNIT_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib/systemd/system" CACHE PATH "Install directory for systemd unit files")
 endif()
 
 option(INSTALL_SYSTEMD_UNITS "Install TigerVNC systemd units" ON)
