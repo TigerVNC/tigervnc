@@ -18,7 +18,7 @@
 #  USA.
 #
 
-USERSFILE="@SYSCONF_DIR@/tigervnc/vncserver.users"
+USERSFILE="@SYSCONF_INSTALL_DIR@/tigervnc/vncserver.users"
 
 if [ $# -ne 1 ]; then
 	echo "Syntax:" >&2
@@ -40,4 +40,4 @@ if [ -z "${USER}" ]; then
 	exit 1
 fi
 
-exec "@LIBEXEC_DIR@/vncsession" "${USER}" "${DISPLAY}"
+exec "@LIBEXEC_INSTALL_DIR@/vncsession" "${USER}" "${DISPLAY}"
