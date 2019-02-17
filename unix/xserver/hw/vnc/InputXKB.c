@@ -532,7 +532,7 @@ int vncIsAffectedByNumLock(KeyCode keycode)
 	return 1;
 }
 
-KeyCode vncAddKeysym(KeySym keysym, unsigned state)
+KeyCode vncAddKeysym(KeySym keysym, unsigned state, unsigned fastmode)
 {
 	DeviceIntPtr master;
 	XkbDescPtr xkb;
@@ -547,13 +547,18 @@ KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 
 	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
 	xkb = master->key->xkbInfo->desc;
-	for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
-		if (XkbKeyNumGroups(xkb, key) == 0)
-			break;
-	}
 
-	if (key < xkb->min_key_code)
-		return 0;
+	if (fastmode) {
+		key = xkb->max_key_code;
+	} else {
+		for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
+			if (XkbKeyNumGroups(xkb, key) == 0)
+				break;
+		}
+
+		if (key < xkb->min_key_code)
+			return 0;
+	}
 
 	memset(&changes, 0, sizeof(changes));
 	memset(&cause, 0, sizeof(cause));

@@ -509,14 +509,13 @@ static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 
 	/* No matches. Will have to add a new entry... */
 	if (keycode == 0) {
-		keycode = vncAddKeysym(keysym, state);
+		keycode = vncAddKeysym(keysym, state, 1);
 		if (keycode == 0) {
 			LOG_ERROR("Failure adding new keysym 0x%x", keysym);
 			return;
 		}
 
-		LOG_INFO("Added unknown keysym 0x%x to keycode %d",
-		         keysym, keycode);
+		//LOG_INFO("Added unknown keysym 0x%x to keycode %d", keysym, keycode);
 
 		/*
 		 * The state given to addKeysym() is just a hint and
