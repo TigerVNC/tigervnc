@@ -55,7 +55,7 @@ KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state);
 
 int vncIsAffectedByNumLock(KeyCode keycode);
 
-KeyCode vncAddKeysym(KeySym keysym, unsigned state);
+KeyCode vncAddKeysym(KeySym keysym, unsigned state, unsigned fastmode);
 
 #ifdef __cplusplus
 }
