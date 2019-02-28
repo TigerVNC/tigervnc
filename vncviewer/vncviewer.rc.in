@@ -52,7 +52,7 @@ BEGIN
             #endif
             VALUE "FileVersion", "@RCVERSION@\0"
             VALUE "InternalName", "vncviewer\0"
-            VALUE "LegalCopyright", "Copyright (C) 1999-2018 TigerVNC Team and many others (see README.rst)\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2019 TigerVNC Team and many others (see README.rst)\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
