@@ -323,11 +323,13 @@ void Viewport::setLEDState(unsigned int state)
   vlog.debug("Got server LED state: 0x%08x", state);
 
   // The first message is just considered to be the server announcing
-  // support for this extension, so start by pushing our state to the
-  // remote end to get things in sync
+  // support for this extension. We will push our state to sync up the
+  // server when we get focus. If we already have focus we need to push
+  // it here though.
   if (firstLEDState) {
     firstLEDState = false;
-    pushLEDState();
+    if (hasFocus())
+      pushLEDState();
     return;
   }
 
