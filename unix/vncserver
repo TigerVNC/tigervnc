@@ -335,7 +335,7 @@ $cmd .= " >> " . &quotedString($desktopLog) . " 2>&1";
 
 # Run $cmd and record the process ID.
 $pidFile = "$vncUserDir/$host:$displayNumber.pid";
-system("$cmd & echo \$! >$pidFile");
+system("/usr/bin/sh -c \"echo \$\$ >$pidFile && exec $cmd\"");
 
 # Give Xvnc a chance to start up
 
