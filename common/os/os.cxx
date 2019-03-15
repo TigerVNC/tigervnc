@@ -38,23 +38,14 @@
 
 static int getvnchomedir(char **dirp)
 {
-#ifndef WIN32
-	char *homedir, *dir;
-	size_t len;
-	uid_t uid;
-	struct passwd *passwd;
-#else
-	TCHAR *dir;
-	BOOL ret;
-#endif
 
 	assert(dirp != NULL && *dirp == NULL);
 
 #ifndef WIN32
-	homedir = getenv("HOME");
+    char *homedir = getenv("HOME");
 	if (homedir == NULL) {
-		uid = getuid();
-		passwd = getpwuid(uid);
+        const uid_t uid = getuid();
+        const struct passwd *passwd = getpwuid(uid);
 		if (passwd == NULL) {
 			/* Do we want emit error msg here? */
 			return -1;
@@ -62,19 +53,19 @@ static int getvnchomedir(char **dirp)
 		homedir = passwd->pw_dir;
 	}
 
-	len = strlen(homedir);
-	dir = new char[len+7];
+    const size_t len = strlen(homedir);
+    char *dir = new char[len+7];
 	if (dir == NULL)
 		return -1;
 
 	memcpy(dir, homedir, len);
 	memcpy(dir + len, "/.vnc/\0", 7);
 #else
-	dir = new TCHAR[MAX_PATH];
+    TCHAR *dir = new TCHAR[MAX_PATH];
 	if (dir == NULL)
 		return -1;
 
-	ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_APPDATA, FALSE);
+	const BOOL ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_APPDATA, FALSE);
 	if (ret == FALSE) {
 		delete [] dir;
 		return -1;
@@ -98,7 +89,7 @@ int fileexists(char *file)
 std::string getvnchomedir()
 {
 	std::string result;
-	char * homeDir = nullptr;
+	char * homeDir = NULL;
 	if (getvnchomedir(&homeDir) != -1){
 		result = homeDir;
 		delete[] homeDir;
