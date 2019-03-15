@@ -141,15 +141,14 @@ int main(int argc, char** argv)
   }
 
   if (!fname) {
-    char *homeDir = NULL;
-    if (getvnchomedir(&homeDir) == -1) {
+    const std::string homeDir = getvnchomedir();
+    if (homeDir.empty()) {
       fprintf(stderr, "Can't obtain VNC home directory\n");
       exit(1);
     }
-    mkdir(homeDir, 0777);
-    fname = new char[strlen(homeDir) + 7];
-    sprintf(fname, "%spasswd", homeDir);
-    delete [] homeDir;
+    mkdir(homeDir.c_str(), 0777);
+    fname = new char[homeDir.length() + 7];
+    sprintf(fname, "%spasswd", homeDir.c_str());
   }
 
   while (true) {

@@ -24,7 +24,7 @@
 #endif
 
 #include <os/w32tiger.h>
-
+#include <string>
 /*
  * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
  * If HOME environment variable is set then it is used.
@@ -37,7 +37,7 @@
  * 0 - Success
  * -1 - Failure
  */
-int getvnchomedir(char **dirp);
+std::string getvnchomedir();
 
 /*
  * Check if the file exists

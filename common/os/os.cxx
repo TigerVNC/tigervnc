@@ -36,7 +36,7 @@
 #include <shlobj.h>
 #endif
 
-int getvnchomedir(char **dirp)
+static int getvnchomedir(char **dirp)
 {
 #ifndef WIN32
 	char *homedir, *dir;
@@ -95,3 +95,14 @@ int fileexists(char *file)
 }
 
 
+std::string getvnchomedir()
+{
+	std::string result;
+	char * homeDir = nullptr;
+	if (getvnchomedir(&homeDir) != -1){
+		result = homeDir;
+		delete[] homeDir;
+	}
+
+	return result;
+}
