@@ -383,7 +383,7 @@ void CSecurityTLS::checkSession()
   size_t out_size = 0;
   char *out_buf = NULL;
   char *certinfo = NULL;
-  int len = 0;
+  size_t len = 0;
 
   vlog.debug("certificate issuer unknown");
 
@@ -403,7 +403,7 @@ void CSecurityTLS::checkSession()
                           "authority:\n\n%s\n\nDo you want to save it and "
                           "continue? ", info.data);
 
-  for (int i = 0; i < len - 1; i++)
+  for (size_t i = 0; i < len - 1; i++)
     if (certinfo[i] == ',' && certinfo[i + 1] == ' ')
       certinfo[i] = '\n';
 
