@@ -402,7 +402,7 @@ potentiallyLoadConfigurationFile(char *vncServerName)
       newServerName = loadViewerParameters(vncServerName);
       // This might be empty, but we still need to clear it so we
       // don't try to connect to the filename
-      strncpy(vncServerName, newServerName, VNCSERVERNAMELEN);
+      strncpy(vncServerName, newServerName, VNCSERVERNAMELEN-1);
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
       if (alertOnFatalError)
@@ -533,7 +533,7 @@ int main(int argc, char** argv)
     const char* configServerName;
     configServerName = loadViewerParameters(NULL);
     if (configServerName != NULL)
-      strncpy(defaultServerName, configServerName, VNCSERVERNAMELEN);
+      strncpy(defaultServerName, configServerName, VNCSERVERNAMELEN-1);
   } catch (rfb::Exception& e) {
     vlog.error("%s", e.str());
     if (alertOnFatalError)
