@@ -231,6 +231,11 @@ GnuTLS priority string that controls the TLS session’s handshake algorithms.
 See the GnuTLS manual for possible values. Default is \fBNORMAL\fP.
 .
 .TP
+.B \-UseBlacklist
+Temporarily reject connections from a host if it repeatedly fails to
+authenticate. Default is on.
+.
+.TP
 .B \-BlacklistThreshold \fIcount\fP
 The number of unauthenticated connection attempts allowed from any individual
 host before that host is black-listed.  Default is 5.

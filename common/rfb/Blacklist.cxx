@@ -20,6 +20,10 @@
 
 using namespace rfb;
 
+BoolParameter enabled("UseBlacklist",
+                      "Temporarily reject connections from a host if it "
+                      "repeatedly fails to authenticate.",
+                      true);
 IntParameter threshold("BlacklistThreshold",
                        "The number of unauthenticated connection attempts "
                        "allowed from any individual host before that host "
@@ -44,6 +48,9 @@ Blacklist::~Blacklist() {
 }
 
 bool Blacklist::isBlackmarked(const char* name) {
+  if (!enabled)
+    return false;
+
   BlacklistMap::iterator i = blm.find(name);
   if (i == blm.end()) {
     // Entry is not already black-marked.
