@@ -20,14 +20,16 @@
 
 using namespace rfb;
 
-IntParameter Blacklist::threshold("BlacklistThreshold",
-                              "The number of unauthenticated connection attempts allowed from any "
-                              "individual host before that host is black-listed",
-                              5);
-IntParameter Blacklist::initialTimeout("BlacklistTimeout",
-                              "The initial timeout applied when a host is first black-listed.  "
-                              "The host cannot re-attempt a connection until the timeout expires.",
-                              10);
+IntParameter threshold("BlacklistThreshold",
+                       "The number of unauthenticated connection attempts "
+                       "allowed from any individual host before that host "
+                       "is black-listed",
+                       5);
+IntParameter initialTimeout("BlacklistTimeout",
+                            "The initial timeout applied when a host is "
+                            "first black-listed. The host cannot re-attempt "
+                            "a connection until the timeout expires.",
+                            10);
 
 
 Blacklist::Blacklist() {

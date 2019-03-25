@@ -67,9 +67,6 @@ namespace rfb {
     bool isBlackmarked(const char* name);
     void clearBlackmark(const char* name);
 
-    static IntParameter threshold;
-    static IntParameter initialTimeout;
-
   protected:
     struct ltStr {
       bool operator()(const char* s1, const char* s2) const {
