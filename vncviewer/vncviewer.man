@@ -119,7 +119,11 @@ Specifies the X display on which the VNC viewer window should appear.
 .
 .TP
 .B \-geometry \fIgeometry\fP
-Standard X position and sizing specification.
+Initial position of the main VNC viewer window. The format is
+.B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
+, where `+' signs can be replaced with `\-' signs to specify offsets from the
+right and/or from the bottom of the screen.  Offsets are optional and the
+window will be placed by the window manager by default.
 .
 .TP
 .B \-listen \fI[port]\fP

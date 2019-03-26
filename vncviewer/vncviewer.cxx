@@ -366,7 +366,8 @@ static void usage(const char *programName)
   fprintf(stderr,"\n"
           "Options:\n\n"
           "  -display Xdisplay  - Specifies the X display for the viewer window\n"
-          "  -geometry geometry - Standard X position and sizing specification.\n");
+          "  -geometry geometry - Initial position of the main VNC viewer window. See the\n"
+          "                       man page for details.\n");
 #endif
 
   fprintf(stderr,"\n"
