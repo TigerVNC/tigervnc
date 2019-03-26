@@ -36,7 +36,7 @@
 #include <shlobj.h>
 #endif
 
-static int getvnchomedir(char **dirp)
+int getvnchomedir(char **dirp)
 {
 
 	assert(dirp != NULL && *dirp == NULL);
@@ -86,14 +86,3 @@ int fileexists(char *file)
 }
 
 
-std::string getvnchomedir()
-{
-	std::string result;
-	char * homeDir = NULL;
-	if (getvnchomedir(&homeDir) != -1){
-		result = homeDir;
-		delete[] homeDir;
-	}
-
-	return result;
-}

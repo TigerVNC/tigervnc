@@ -79,18 +79,19 @@ CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
 
 void CSecurityTLS::setDefaults()
 {
-  const std::string homeDir = getvnchomedir();
+  char* homeDir = NULL;
 
-  if (homeDir.empty()) {
+  if (getvnchomedir(&homeDir) == -1) {
     vlog.error("Could not obtain VNC home directory path");
     return;
   }
 
-  const int len = homeDir.length();
+  int len = strlen(homeDir) + 1;
   CharArray caDefault(len + 11);
   CharArray crlDefault(len + 12);
-  sprintf(caDefault.buf, "%sx509_ca.pem", homeDir.c_str());
-  sprintf(crlDefault.buf, "%s509_crl.pem", homeDir.c_str());
+  sprintf(caDefault.buf, "%sx509_ca.pem", homeDir);
+  sprintf(crlDefault.buf, "%s509_crl.pem", homeDir);
+  delete [] homeDir;
 
  if (!fileexists(caDefault.buf))
    X509CA.setDefaultStr(caDefault.buf);
@@ -250,13 +251,14 @@ void CSecurityTLS::setParam()
       throw AuthFailureException("load of CA cert failed");
 
     /* Load previously saved certs */
-    const std::string homeDir = getvnchomedir();
+    char *homeDir = NULL;
     int err;
-    if (homeDir.empty())
+    if (getvnchomedir(&homeDir) == -1)
       vlog.error("Could not obtain VNC home directory path");
     else {
-      CharArray caSave(homeDir.length() + 19 + 1);
-      sprintf(caSave.buf, "%sx509_savedcerts.pem", homeDir.c_str());
+      CharArray caSave(strlen(homeDir) + 19 + 1);
+      sprintf(caSave.buf, "%sx509_savedcerts.pem", homeDir);
+      delete [] homeDir;
 
       err = gnutls_certificate_set_x509_trust_file(cert_cred, caSave.buf,
                                                    GNUTLS_X509_FMT_PEM);
@@ -426,13 +428,14 @@ void CSecurityTLS::checkSession()
     AuthFailureException("certificate issuer unknown, and certificate "
 			 "export failed");
 
-  const std::string homeDir = getvnchomedir();
-  if (homeDir.empty())
+  char *homeDir = NULL;
+  if (getvnchomedir(&homeDir) == -1)
     vlog.error("Could not obtain VNC home directory path");
   else {
     FILE *f;
-    CharArray caSave(homeDir.length() + 1 + 19);
-    sprintf(caSave.buf, "%sx509_savedcerts.pem", homeDir.c_str());
+    CharArray caSave(strlen(homeDir) + 1 + 19);
+    sprintf(caSave.buf, "%sx509_savedcerts.pem", homeDir);
+    delete [] homeDir;
     f = fopen(caSave.buf, "a+");
     if (!f)
       msg->showMsgBox(UserMsgBox::M_OK, "certificate save failed",

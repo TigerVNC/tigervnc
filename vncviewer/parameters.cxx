@@ -496,14 +496,15 @@ void saveViewerParameters(const char *filename, const char *servername) {
     return;
 #endif
     
-    const std::string homeDir = getvnchomedir();
-    if (homeDir.empty()) {
+    char* homeDir = NULL;
+    if (getvnchomedir(&homeDir) == -1) {
       vlog.error(_("Failed to write configuration file, can't obtain home "
                    "directory path."));
       return;
     }
 
-    snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir.c_str());
+    snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir);
+    free(homeDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
@@ -554,12 +555,13 @@ char* loadViewerParameters(const char *filename) {
     return loadFromReg();
 #endif
 
-    const std::string homeDir = getvnchomedir();
-    if (homeDir.empty())
+    char* homeDir = NULL;
+    if (getvnchomedir(&homeDir) == -1)
       throw Exception(_("Failed to read configuration file, "
                         "can't obtain home directory path."));
 
-    snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir.c_str());
+    snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir);
+    free(homeDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
