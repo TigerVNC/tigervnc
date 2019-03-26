@@ -391,7 +391,7 @@ void CSecurityTLS::checkSession()
                           "authority:\n\n%s\n\nDo you want to save it and "
                           "continue?\n ", info.data);
   if (len < 0)
-    AuthFailureException("certificate decoding error");
+    throw AuthFailureException("certificate decoding error");
 
   vlog.debug("%s", info.data);
 
@@ -417,16 +417,16 @@ void CSecurityTLS::checkSession()
 
   if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, NULL, &out_size)
       == GNUTLS_E_SHORT_MEMORY_BUFFER)
-    AuthFailureException("Out of memory");
+    throw AuthFailureException("Out of memory");
 
   // Save cert
   out_buf =  new char[out_size];
   if (out_buf == NULL)
-    AuthFailureException("Out of memory");
+    throw AuthFailureException("Out of memory");
 
   if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, out_buf, &out_size) < 0)
-    AuthFailureException("certificate issuer unknown, and certificate "
-			 "export failed");
+    throw AuthFailureException("certificate issuer unknown, and certificate "
+                               "export failed");
 
   char *homeDir = NULL;
   if (getvnchomedir(&homeDir) == -1)

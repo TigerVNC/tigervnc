@@ -254,7 +254,7 @@ TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
       TCharArray result(required);
       length = ExpandEnvironmentStrings(str.buf, result.buf, required);
       if (required<length)
-        rdr::Exception("unable to expand environment strings");
+        throw rdr::Exception("unable to expand environment strings");
       return result.takeBuf();
     } else {
       return tstrDup(_T(""));
