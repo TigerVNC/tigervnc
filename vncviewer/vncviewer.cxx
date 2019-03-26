@@ -361,6 +361,14 @@ static void usage(const char *programName)
           programName,
 #endif
           programName, programName);
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  fprintf(stderr,"\n"
+          "Options:\n\n"
+          "  -display Xdisplay  - Specifies the X display for the viewer window\n"
+          "  -geometry geometry - Standard X position and sizing specification.\n");
+#endif
+
   fprintf(stderr,"\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
           "Parameters which take a value can be specified as "
