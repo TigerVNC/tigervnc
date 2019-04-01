@@ -46,7 +46,7 @@ CConnection::CConnection()
     supportsLEDState(false),
     is(0), os(0), reader_(0), writer_(0),
     shared(false),
-    state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
+    state_(RFBSTATE_UNINITIALISED),
     pendingPFChange(false), preferredEncoding(encodingTight),
     compressLevel(2), qualityLevel(-1),
     formatChange(false), encodingChange(false),
@@ -173,7 +173,7 @@ void CConnection::processVersionMsg()
     state_ = RFBSTATE_INVALID;
     throw Exception("Server gave unsupported RFB protocol version %d.%d",
                     server.majorVersion, server.minorVersion);
-  } else if (useProtocol3_3 || server.beforeVersion(3,7)) {
+  } else if (server.beforeVersion(3,7)) {
     server.setVersion(3,3);
   } else if (server.afterVersion(3,8)) {
     server.setVersion(3,8);

@@ -62,10 +62,6 @@ namespace rfb {
     // server upon initialisation.
     void setShared(bool s) { shared = s; }
 
-    // setProtocol3_3 configures whether or not the CConnection should
-    // only ever support protocol version 3.3
-    void setProtocol3_3(bool s) {useProtocol3_3 = s;}
-
     // setFramebuffer configures the PixelBuffer that the CConnection
     // should render all pixel data in to. Note that the CConnection
     // takes ownership of the PixelBuffer and it must not be deleted by
@@ -224,8 +220,6 @@ namespace rfb {
     stateEnum state_;
 
     CharArray serverName;
-
-    bool useProtocol3_3;
 
     bool pendingPFChange;
     rfb::PixelFormat pendingPF;
