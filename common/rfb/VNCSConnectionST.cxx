@@ -52,7 +52,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     losslessTimer(this), server(server_),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), idleTimer(this),
-    pointerEventTime(0), clientHasCursor(false)
+    pointerEventTime(0), clientHasCursor(false),
+    authFailureTimer(this)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -151,6 +152,15 @@ void VNCSConnectionST::processMessages()
     sock->cork(true);
 
     while (getInStream()->checkNoWait(1)) {
+      // Silently drop any data if we are currently delaying an
+      // authentication failure response as otherwise we would close
+      // the connection on unexpected data, and an attacker could use
+      // that to detect our delayed state.
+      if (state() == RFBSTATE_SECURITY_FAILURE) {
+        getInStream()->skip(1);
+        continue;
+      }
+
       if (pendingSyncFence) {
         syncFence = true;
         pendingSyncFence = false;
@@ -405,6 +415,14 @@ void VNCSConnectionST::authSuccess()
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->getPixelBuffer()->getRect());
+}
+
+void VNCSConnectionST::authFailure(const char* reason)
+{
+  // Introduce a slight delay of the authentication failure response
+  // to make it difficult to brute force a password
+  authFailureMsg.replaceBuf(strDup(reason));
+  authFailureTimer.start(100);
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -745,6 +763,8 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
     if ((t == &congestionTimer) ||
         (t == &losslessTimer))
       writeFramebufferUpdate();
+    else if (t == &authFailureTimer)
+      SConnection::authFailure(authFailureMsg.buf);
   } catch (rdr::Exception& e) {
     close(e.str());
   }

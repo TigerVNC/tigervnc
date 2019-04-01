@@ -236,11 +236,8 @@ void SConnection::processSecurityMsg()
     }
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
-    os->writeU32(secResultFailed);
-    if (!client.beforeVersion(3,8)) // 3.8 onwards have failure message
-      os->writeString(e.str());
-    os->flush();
-    throw;
+    state_ = RFBSTATE_SECURITY_FAILURE;
+    authFailure(e.str());
   }
 }
 
@@ -313,6 +310,19 @@ void SConnection::versionReceived()
 
 void SConnection::authSuccess()
 {
+}
+
+void SConnection::authFailure(const char* reason)
+{
+  if (state_ != RFBSTATE_SECURITY_FAILURE)
+    throw Exception("SConnection::authFailure: invalid state");
+
+  os->writeU32(secResultFailed);
+  if (!client.beforeVersion(3,8)) // 3.8 onwards have failure message
+    os->writeString(reason);
+  os->flush();
+
+  throw AuthFailureException(reason);
 }
 
 void SConnection::queryConnection(const char* userName)

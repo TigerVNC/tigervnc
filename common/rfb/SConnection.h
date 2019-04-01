@@ -92,6 +92,10 @@ namespace rfb {
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
 
+    // authFailure() is called when authentication has failed. The default
+    // implementation will inform the client and throw a AuthFailureException.
+    virtual void authFailure(const char* reason);
+
     // queryConnection() is called when authentication has succeeded, but
     // before informing the client.  It can be overridden to query a local user
     // to accept the incoming connection, for example.  The userName argument
@@ -160,6 +164,7 @@ namespace rfb {
       RFBSTATE_PROTOCOL_VERSION,
       RFBSTATE_SECURITY_TYPE,
       RFBSTATE_SECURITY,
+      RFBSTATE_SECURITY_FAILURE,
       RFBSTATE_QUERYING,
       RFBSTATE_INITIALISATION,
       RFBSTATE_NORMAL,
