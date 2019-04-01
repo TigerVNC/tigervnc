@@ -143,7 +143,7 @@ void CConnection::processMsg()
 
 void CConnection::processVersionMsg()
 {
-  char verStr[13];
+  char verStr[27]; // FIXME: gcc has some bug in format-overflow
   int majorVersion;
   int minorVersion;
 
