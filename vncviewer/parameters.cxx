@@ -171,7 +171,6 @@ static VoidParameter* parameterArray[] = {
   &fullScreen,
   &fullScreenAllMonitors,
   &desktopSize,
-  &geometry,
   &remoteResize,
   &viewOnly,
   &shared,
@@ -179,10 +178,10 @@ static VoidParameter* parameterArray[] = {
   &sendClipboard,
 #if !defined(WIN32) && !defined(__APPLE__)
   &sendPrimary,
+  &setPrimary,
 #endif
   &menuKey,
-  &fullscreenSystemKeys,
-  &alertOnFatalError
+  &fullscreenSystemKeys
 };
 
 // Encoding Table
