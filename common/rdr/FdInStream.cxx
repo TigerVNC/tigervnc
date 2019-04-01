@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2019 m-privacy GmbH
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,11 +51,14 @@
 
 #include <rdr/FdInStream.h>
 #include <rdr/Exception.h>
+#include <rfb/Configuration.h>
 
 using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 8192,
        MIN_BULK_SIZE = 1024 };
+
+rfb::IntParameter readAheadSize("ReadAheadSize", "How many bytes to read extra into buffer, if only few are requested", 2048, 8, 32 * 1024);
 
 FdInStream::FdInStream(int fd_, int timeoutms_, int bufSize_,
                        bool closeWhenDone_)
@@ -145,7 +149,7 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
       // during timing=1 can be satisfied without calling
       // readWithTimeoutOrCallback. However, reading only 1 or 2 bytes
       // bytes is ineffecient.
-      bytes_to_read = vncmin(bytes_to_read, vncmax(itemSize*nItems, 8));
+      bytes_to_read = vncmin(bytes_to_read, vncmax(itemSize*nItems, readAheadSize));
     }
     int n = readWithTimeoutOrCallback((U8*)end, bytes_to_read, wait);
     if (n == 0) return 0;
