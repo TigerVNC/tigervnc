@@ -262,8 +262,10 @@ void Viewport::serverCutText(const char* str, rdr::U32 len)
 
   // RFB doesn't have separate selection and clipboard concepts, so we
   // dump the data into both variants.
+#if !defined(WIN32) && !defined(__APPLE__)
   if (setPrimary)
     Fl::copy(buffer, ret, 0);
+#endif
   Fl::copy(buffer, ret, 1);
 
   delete [] buffer;
@@ -752,8 +754,10 @@ void Viewport::flushPendingClipboard()
 {
   if (pendingServerCutText) {
     size_t len = strlen(pendingServerCutText);
+#if !defined(WIN32) && !defined(__APPLE__)
     if (setPrimary)
       Fl::copy(pendingServerCutText, len, 0);
+#endif
     Fl::copy(pendingServerCutText, len, 1);
   }
   if (pendingClientCutText) {
