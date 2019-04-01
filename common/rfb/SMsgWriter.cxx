@@ -355,7 +355,7 @@ void SMsgWriter::writePseudoRects()
 
 void SMsgWriter::writeNoDataRects()
 {
-  if (!extendedDesktopSizeMsgs.empty()) {
+  if (!extendedDesktopSizeMsgs.empty() && client->screenLayout().num_screens() > 0) {
     if (client->supportsEncoding(pseudoEncodingExtendedDesktopSize)) {
       std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
       for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
