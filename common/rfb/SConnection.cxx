@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman for Cendio AB
+ * Copyright 2019 m-privacy GmbH, Berlin
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +33,16 @@
 
 #include <rfb/LogWriter.h>
 
+#if !defined(WIN32) && !defined(WIN64)
+#include <signal.h>
+#include <unistd.h>
+#include <execinfo.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
 using namespace rfb;
 
 static LogWriter vlog("SConnection");
@@ -48,6 +59,30 @@ const SConnection::AccessRights SConnection::AccessNoQuery        = 0x0400;
 const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 
 
+#if !defined(WIN32) && !defined(WIN64)
+static void SegvSignalHandler(int sig) {
+  vlog.info("SegvSignalHandler() called, signal %u", sig);
+  void *array[20];
+  size_t size;
+  int fd;
+  char traceName[100];
+
+  size = backtrace(array, 20);
+  fprintf(stderr, "Error: signal %i:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+
+  if (vlog.getLevel() >= vlog.LEVEL_DEBUG) {
+    snprintf(traceName, 99, "/tmp/Xtightgatevnc-%u-trace.log", getpid());
+    fd = open(traceName, O_WRONLY | O_APPEND | O_CREAT | O_NOFOLLOW | O_TRUNC, S_IRUSR|S_IWUSR);
+    if (fd >= 0) {
+      backtrace_symbols_fd(array, size, fd);
+      close(fd);
+    }
+  }
+  exit(1);
+}
+#endif
+
 SConnection::SConnection()
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
@@ -60,6 +95,11 @@ SConnection::SConnection()
     defaultMinorVersion = 3;
 
   client.setVersion(defaultMajorVersion, defaultMinorVersion);
+
+#if !defined(WIN32) && !defined(WIN64)
+  signal(SIGSEGV, SegvSignalHandler);
+  signal(SIGABRT, SegvSignalHandler);
+#endif
 }
 
 SConnection::~SConnection()

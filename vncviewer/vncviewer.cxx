@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2019 m-privacy GmbH
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +75,8 @@
 #ifdef WIN32
 #include "resource.h"
 #include "win32.h"
+#else
+#include <execinfo.h>
 #endif
 
 rfb::LogWriter vlog("main");
@@ -127,6 +130,58 @@ void about_vncviewer()
   fl_message_title(_("About TigerVNC Viewer"));
   fl_message("%s", about_text());
 }
+
+#if defined(WIN32) || defined(WIN64)
+static void SegvSignalHandler(int sig) {
+	void *array[20];
+	unsigned short size;
+	int fd;
+	unsigned int i;
+	SYMBOL_INFO * symbol;
+	HANDLE process;
+
+	vlog.info("SegvSignalHandler() called");
+
+	fd = open(get_viewer_trace_file_path(), O_WRONLY | O_APPEND | O_CREAT | O_TRUNC, S_IRUSR|S_IWUSR);
+	if (fd >= 0) {
+		FILE * file;
+
+		file = fdopen(fd, "a");
+		process = GetCurrentProcess();
+		SymInitialize(process, NULL, TRUE);
+		size = CaptureStackBackTrace(0, 20, array, NULL);
+		symbol = ( SYMBOL_INFO * )calloc( sizeof( SYMBOL_INFO ) + 256 * sizeof( char ), 1 );
+		symbol->MaxNameLen   = 255;
+		symbol->SizeOfStruct = sizeof( SYMBOL_INFO );
+		for( i = 0; i < size; i++ ) {
+			SymFromAddr(process, (DWORD64)(array[i]), 0, symbol);
+			fprintf(file, "%i: %s - 0x%0lX\n", size - i - 1, symbol->Name, (long unsigned int) symbol->Address);
+		}
+		free(symbol);
+		close(fd);
+	}
+}
+
+#else
+
+static void SegvSignalHandler(int sig) {
+	void *array[20];
+	size_t size;
+	int fd;
+
+	vlog.info("SegvSignalHandler() called");
+	size = backtrace(array, 20);
+
+	fprintf(stderr, "Error: signal %i:\n", sig);
+	backtrace_symbols_fd(array, size, STDERR_FILENO);
+	fd = open("/tmp/vncviewer-trace.log", O_WRONLY | O_APPEND | O_CREAT | O_NOFOLLOW | O_TRUNC, S_IRUSR|S_IWUSR);
+	if (fd >= 0) {
+		backtrace_symbols_fd(array, size, fd);
+		close(fd);
+	}
+	exit(1);
+}
+#endif
 
 void run_mainloop()
 {
@@ -532,6 +587,8 @@ int main(int argc, char** argv)
 #endif
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
+
+  signal(SIGSEGV, SegvSignalHandler);
 
   init_fltk();
 
