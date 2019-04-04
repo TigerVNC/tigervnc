@@ -232,7 +232,7 @@ static NSString *key_translate(UInt16 keyCode, UInt32 modifierFlags)
   TISInputSourceRef keyboard;
   CFDataRef uchr;
 
-  keyboard = TISCopyCurrentKeyboardInputSource();
+  keyboard = TISCopyCurrentKeyboardLayoutInputSource();
   uchr = (CFDataRef)TISGetInputSourceProperty(keyboard,
                                               kTISPropertyUnicodeKeyLayoutData);
   if (uchr == NULL)
