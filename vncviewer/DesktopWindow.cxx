@@ -37,6 +37,7 @@
 #include "CConn.h"
 #include "Surface.h"
 #include "Viewport.h"
+#include "touch.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Image_Surface.H>
@@ -967,23 +968,13 @@ void DesktopWindow::ungrabKeyboard()
 void DesktopWindow::grabPointer()
 {
 #if !defined(WIN32) && !defined(__APPLE__)
-  int ret;
-
   // We also need to grab the pointer as some WMs like to grab buttons
   // combined with modifies (e.g. Alt+Button0 in metacity).
-  ret = XGrabPointer(fl_display, fl_xid(this), True,
-                     ButtonPressMask|ButtonReleaseMask|
-                     ButtonMotionMask|PointerMotionMask,
-                     GrabModeAsync, GrabModeAsync,
-                     None, None, CurrentTime);
-  if (ret) {
-    // Having a button pressed prevents us from grabbing, we make
-    // a new attempt in fltkHandle()
-    if (ret == AlreadyGrabbed)
-      return;
-    vlog.error(_("Failure grabbing mouse"));
+
+  // Having a button pressed prevents us from grabbing, we make
+  // a new attempt in fltkHandle()
+  if (!x11_grab_pointer(fl_xid(this)))
     return;
-  }
 #endif
 
   mouseGrabbed = true;
@@ -993,8 +984,9 @@ void DesktopWindow::grabPointer()
 void DesktopWindow::ungrabPointer()
 {
   mouseGrabbed = false;
+
 #if !defined(WIN32) && !defined(__APPLE__)
-  XUngrabPointer(fl_display, CurrentTime);
+  x11_ungrab_pointer(fl_xid(this));
 #endif
 }
 

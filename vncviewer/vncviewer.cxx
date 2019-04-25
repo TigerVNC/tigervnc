@@ -68,6 +68,7 @@
 #include "CConn.h"
 #include "ServerDialog.h"
 #include "UserDialog.h"
+#include "touch.h"
 #include "vncviewer.h"
 #include "fltk_layout.h"
 
@@ -585,6 +586,7 @@ int main(int argc, char** argv)
 #endif
 
   init_fltk();
+  enable_touch();
 
   // Check if the server name in reality is a configuration file
   potentiallyLoadConfigurationFile(vncServerName);
