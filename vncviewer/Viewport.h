@@ -96,6 +96,10 @@ private:
 
   static void handleOptions(void *data);
 
+#if ! (defined(WIN32) || defined(__APPLE__))
+  void selectEvents();
+#endif // LINUX
+
 private:
   CConn* cc;
 
