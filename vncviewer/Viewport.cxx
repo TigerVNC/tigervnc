@@ -71,6 +71,10 @@
 
 #include "PlatformPixelBuffer.h"
 
+#if !defined(WIN32) && !defined(__APPLE__)
+#include "GestureHandler.h"
+#endif // LINUX
+
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
 
@@ -97,6 +101,10 @@ extern const unsigned int code_map_osx_to_qnum_len;
 #ifdef WIN32
 #include "win32.h"
 #endif
+
+#if !defined(WIN32) && !defined(__APPLE__)
+GestureHandler* Viewport::gh = new GestureHandler();
+#endif // LINUX
 
 
 using namespace rfb;
@@ -217,7 +225,6 @@ Viewport::~Viewport()
   // them ourselves here
 }
 
-
 #if ! (defined(WIN32) || defined(__APPLE__))
 void Viewport::selectEvents() {
   XIEventMask eventmask;
@@ -236,8 +243,80 @@ void Viewport::selectEvents() {
 
   XISelectEvents(fl_display, fl_xid(window()), &eventmask, 1);
 }
-#endif // LINUX
 
+
+void Viewport::processEventQueue(void *data) {
+  Viewport *self = (Viewport *)data;
+  std::vector<GHEvent> eventQueue;
+
+  int buttonMask = self->lastButtonMask;
+
+  eventQueue = gh->getEventQueue();
+
+  for (size_t i = 0; i < eventQueue.size(); i++) {
+    GHEvent ev = eventQueue[i];
+
+    // FIXME: Can we get away with clobbering buttonMask like this
+    // in the case of touch gestures, rather than bitshifting?
+    switch (ev.type) {
+      case GH_GestureBegin:
+	switch (ev.detail) {
+	  case GH_LEFTBTN:
+	  case GH_MIDDLEBTN:
+	  case GH_RIGHTBTN:
+	    buttonMask = ev.detail;
+	    break;
+
+	  case GH_ZOOM:
+            self->handleKeyPress(0x1d, XK_Control_L);
+	    break;
+	}
+	break;
+
+      case GH_GestureEnd:
+	switch (ev.detail) {
+	  case GH_LEFTBTN:
+	  case GH_MIDDLEBTN:
+	  case GH_RIGHTBTN:
+	    buttonMask = 0;
+	    break;
+
+	  case GH_ZOOM:
+            self->handleKeyRelease(0x1d);
+	    break;
+	}
+	break;
+
+      case GH_GestureUpdate:
+	switch (gh->getState()) {
+	  case GH_LEFTBTN:
+	  case GH_MIDDLEBTN:
+	  case GH_RIGHTBTN:
+	    break;
+
+	  case GH_SCROLL:
+	  case GH_ZOOM:
+	    if (ev.detail > 0)
+              self->handlePointerEvent(rfb::Point(ev.event_x, ev.event_y), 8);
+	    else if (ev.detail < 0)
+              self->handlePointerEvent(rfb::Point(ev.event_x, ev.event_y), 16);
+	    break;
+	}
+	break;
+    }
+
+    self->handlePointerEvent(rfb::Point(ev.event_x, ev.event_y), buttonMask);
+  }
+
+  gh->clearEventQueue();
+}
+
+
+void Viewport::touchTimeout(void *data) {
+  gh->expireEvents();
+  processEventQueue(data);
+}
+#endif // LINUX
 
 const rfb::PixelFormat &Viewport::getPreferredPF()
 {
@@ -626,7 +705,12 @@ int Viewport::handle(int event)
     // We want a last move event to help trigger edge stuff
     handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), 0);
     return 1;
+
 #if (defined(WIN32) || defined(__APPLE__))
+  // The events FL_PUSH, FL_RELEASE, FL_DRAG, FL_MOVE,
+  // and FL_MOUSEWHEEL are handled by XInput2 on Linux.
+  //
+  // FIXME: Make sure that this is true for FL_MOUSEWHEEL
   case FL_PUSH:
   case FL_RELEASE:
   case FL_DRAG:
@@ -660,6 +744,7 @@ int Viewport::handle(int event)
     handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), buttonMask);
     return 1;
 #endif // !LINUX
+
   case FL_FOCUS:
     Fl::disable_im();
 
@@ -1273,16 +1358,27 @@ int Viewport::handleSystemEvent(void *event, void *data)
               break;
           }
           break;
+
         case XI_TouchBegin:
-          buttonMask = 1;
+          if (gh->registerEvent(devev) == 1) {
+            // First touch. Give the user some time to complete
+	    // a gesture, then come back and process the events.
+            Fl::add_timeout(GH_TOUCHDELAY, touchTimeout, self);
+          }
           break;
+
         case XI_TouchUpdate:
-          break;
         case XI_TouchEnd:
-          buttonMask = 0;
+	  gh->registerEvent(devev);
           break;
       }
-      self->handlePointerEvent(rfb::Point(devev->event_x, devev->event_y), buttonMask);
+
+      if (devev->evtype == XI_TouchBegin  ||
+          devev->evtype == XI_TouchUpdate ||
+	  devev->evtype == XI_TouchEnd)
+        processEventQueue(self);
+      else
+        self->handlePointerEvent(rfb::Point(devev->event_x, devev->event_y), buttonMask);
 
       XFreeEventData(fl_display, cookie);
     }

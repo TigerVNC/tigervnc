@@ -12,6 +12,7 @@ set(VNCVIEWER_SOURCES
   OptionsDialog.cxx
   PlatformPixelBuffer.cxx
   Viewport.cxx
+  GestureHandler.cxx
   parameters.cxx
   keysym2ucs.c
   vncviewer.cxx)
@@ -48,7 +49,11 @@ else()
   add_executable(vncviewer ${VNCVIEWER_SOURCES})
 endif()
 
-target_link_libraries(vncviewer rfb network rdr os ${X11_Xi_LIB} ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+
+if(UNIX)
+  target_link_libraries(vncviewer ${X11_Xi_LIB})
+endif()
 
 if(WIN32)
   target_link_libraries(vncviewer msimg32)
