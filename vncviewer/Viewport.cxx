@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011-2014 Pierre Ossman for Cendio AB
+ * Copyright 2019 Aaron Sowry for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +44,8 @@
 #endif
 
 #if ! (defined(WIN32) || defined(__APPLE__))
+#include <X11/extensions/XInput2.h>
+#include <X11/extensions/XI2.h>
 #include <X11/XKBlib.h>
 #endif
 
@@ -213,6 +216,27 @@ Viewport::~Viewport()
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
 }
+
+
+#if ! (defined(WIN32) || defined(__APPLE__))
+void Viewport::selectEvents() {
+  XIEventMask eventmask;
+  unsigned char flags[XIMaskLen(XI_LASTEVENT)] = { 0 };
+
+  eventmask.deviceid = XIAllMasterDevices;
+  eventmask.mask_len = sizeof(flags);
+  eventmask.mask = flags;
+
+  XISetMask(flags, XI_ButtonPress);
+  XISetMask(flags, XI_Motion);
+  XISetMask(flags, XI_ButtonRelease);
+  XISetMask(flags, XI_TouchBegin);
+  XISetMask(flags, XI_TouchUpdate);
+  XISetMask(flags, XI_TouchEnd);
+
+  XISelectEvents(fl_display, fl_xid(window()), &eventmask, 1);
+}
+#endif // LINUX
 
 
 const rfb::PixelFormat &Viewport::getPreferredPF()
@@ -551,10 +575,18 @@ int Viewport::handle(int event)
 {
   char *buffer;
   int ret;
+#if (defined(WIN32) || defined(__APPLE__))
   int buttonMask, wheelMask;
+#endif // !LINUX
   DownMap::const_iterator iter;
 
   switch (event) {
+#if ! (defined(WIN32) || defined(__APPLE__))
+  case FL_SHOW:
+    selectEvents();
+    break;
+#endif // LINUX
+
   case FL_PASTE:
     buffer = new char[Fl::event_length() + 1];
 
@@ -594,7 +626,7 @@ int Viewport::handle(int event)
     // We want a last move event to help trigger edge stuff
     handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), 0);
     return 1;
-
+#if (defined(WIN32) || defined(__APPLE__))
   case FL_PUSH:
   case FL_RELEASE:
   case FL_DRAG:
@@ -627,7 +659,7 @@ int Viewport::handle(int event)
 
     handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), buttonMask);
     return 1;
-
+#endif // !LINUX
   case FL_FOCUS:
     Fl::disable_im();
 
@@ -1129,6 +1161,7 @@ int Viewport::handleSystemEvent(void *event, void *data)
   }
 #else
   XEvent *xevent = (XEvent*)event;
+  XGenericEventCookie *cookie;
 
   if (xevent->type == KeyPress) {
     int keycode;
@@ -1174,8 +1207,87 @@ int Viewport::handleSystemEvent(void *event, void *data)
     self->handleKeyRelease(keycode);
     return 1;
   }
-#endif
+  else if (xevent->type == GenericEvent) {
+    int buttonMask = self->lastButtonMask;
+    cookie = &xevent->xcookie;
 
+    if (XGetEventData(fl_display, cookie)) {
+      XIDeviceEvent *devev = (XIDeviceEvent*)cookie->data;
+
+      switch (devev->evtype) {
+        case XI_Motion:
+          break;
+
+        case XI_ButtonPress:
+          buttonMask = devev->buttons.mask[0] >> 1;
+
+          switch (devev->detail) {
+            case 1: // Left mouse
+              buttonMask |= 1;
+              break;
+            case 2: // Middle mouse
+              buttonMask |= 2;
+              break;
+            case 3: // Right mouse
+              buttonMask |= 4;
+              break;
+            case 4: // Wheel up
+              buttonMask |= 8;
+              break;
+            case 5: // Wheel down
+              buttonMask |= 16;
+              break;
+            case 6: // Wheel left
+              buttonMask |= 32;
+              break;
+            case 7: // Wheel right
+              buttonMask |= 64;
+              break;
+          }
+          break;
+
+        case XI_ButtonRelease:
+          buttonMask = devev->buttons.mask[0] >> 1;
+
+          switch (devev->detail) {
+            case 1: // Left mouse
+              buttonMask &= ~1;
+              break;
+            case 2: // Middle mouse
+              buttonMask &= ~2;
+              break;
+            case 3: // Right mouse
+              buttonMask &= ~4;
+              break;
+            case 4: // Wheel up
+              buttonMask &= ~8;
+              break;
+            case 5: // Wheel down
+              buttonMask &= ~16;
+              break;
+            case 6: // Wheel left
+              buttonMask &= ~32;
+              break;
+            case 7: // Wheel right
+              buttonMask &= ~64;
+              break;
+          }
+          break;
+        case XI_TouchBegin:
+          buttonMask = 1;
+          break;
+        case XI_TouchUpdate:
+          break;
+        case XI_TouchEnd:
+          buttonMask = 0;
+          break;
+      }
+      self->handlePointerEvent(rfb::Point(devev->event_x, devev->event_y), buttonMask);
+
+      XFreeEventData(fl_display, cookie);
+    }
+  }
+#endif
   return 0;
 }
 
