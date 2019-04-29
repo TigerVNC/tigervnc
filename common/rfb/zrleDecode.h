@@ -134,7 +134,6 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
             } while (b == 255);
 
             if (end - ptr < len) {
-              fprintf (stderr, "ZRLE decode error\n");
               throw Exception ("ZRLE decode error");
             }
 
@@ -158,7 +157,6 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
               } while (b == 255);
 
               if (end - ptr < len) {
-                fprintf (stderr, "ZRLE decode error\n");
                 throw Exception ("ZRLE decode error");
               }
             }
