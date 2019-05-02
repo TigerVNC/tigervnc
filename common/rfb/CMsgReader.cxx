@@ -157,10 +157,10 @@ void CMsgReader::readServerCutText()
     vlog.error("cut text too long (%d bytes) - ignoring",len);
     return;
   }
-  CharArray ca(len+1);
-  ca.buf[len] = 0;
+  CharArray ca(len);
   is->readBytes(ca.buf, len);
-  handler->serverCutText(ca.buf, len);
+  CharArray filtered(convertLF(ca.buf, len));
+  handler->serverCutText(filtered.buf, strlen(filtered.buf));
 }
 
 void CMsgReader::readFence()

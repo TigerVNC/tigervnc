@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2014 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -549,7 +549,7 @@ void Viewport::resize(int x, int y, int w, int h)
 
 int Viewport::handle(int event)
 {
-  char *buffer;
+  char *buffer, *filtered;
   int ret;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
@@ -564,22 +564,26 @@ int Viewport::handle(int event)
     ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer,
                      Fl::event_length() + 1);
     assert(ret < (Fl::event_length() + 1));
+    filtered = convertLF(buffer, ret);
+    delete [] buffer;
 
     if (!hasFocus()) {
-      pendingClientCutText = buffer;
+      pendingClientCutText = new char[strlen(filtered) + 1];
+      strcpy((char*)pendingClientCutText, filtered);
+      strFree(filtered);
       return 1;
     }
 
-    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(buffer));
+    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(filtered));
 
     try {
-      cc->writer()->writeClientCutText(buffer, ret);
+      cc->writer()->writeClientCutText(filtered, strlen(filtered));
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
 
-    delete [] buffer;
+    strFree(filtered);
 
     return 1;
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2015 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -209,4 +209,18 @@ int vncIsTCPPortUsed(int port)
     return 1;
   }
   return 0;
+}
+
+char* vncConvertLF(const char* src, size_t bytes)
+{
+  try {
+    return convertLF(src, bytes);
+  } catch (...) {
+    return NULL;
+  }
+}
+
+void vncStrFree(char* str)
+{
+  strFree(str);
 }

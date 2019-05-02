@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +84,9 @@ namespace rfb {
   // Copies src to dest, up to specified length-1, and guarantees termination
   void strCopy(char* dest, const char* src, int destlen);
 
+  // Makes sure line endings are in a certain format
+
+  char* convertLF(const char* src, size_t bytes = (size_t)-1);
 
   // HELPER functions for timeout handling
 

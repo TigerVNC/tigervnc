@@ -342,6 +342,8 @@ void VNCServerST::bell()
 
 void VNCServerST::serverCutText(const char* str, int len)
 {
+  if (memchr(str, '\r', len) != NULL)
+    throw Exception("Invalid carriage return in clipboard data");
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;

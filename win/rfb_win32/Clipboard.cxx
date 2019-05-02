@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2012-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,18 +34,6 @@ static LogWriter vlog("Clipboard");
 //
 // -=- CR/LF handlers
 //
-
-char*
-dos2unix(const char* text) {
-  int len = strlen(text)+1;
-  char* unix = new char[strlen(text)+1];
-  int i, j=0;
-  for (i=0; i<len; i++) {
-    if (text[i] != '\x0d')
-      unix[j++] = text[i];
-  }
-  return unix;
-}
 
 char*
 unix2dos(const char* text) {
@@ -126,8 +115,7 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
               if (!clipdata) {
                 notifier->notifyClipboardChanged(0, 0);
               } else {
-                CharArray unix_text;
-                unix_text.buf = dos2unix(clipdata);
+                CharArray unix_text(convertLF(clipdata, strlen(clipdata)));
                 removeNonISOLatin1Chars(unix_text.buf);
                 notifier->notifyClipboardChanged(unix_text.buf, strlen(unix_text.buf));
               }

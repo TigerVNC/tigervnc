@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,6 +106,61 @@ namespace rfb {
     if (src)
       strncpy(dest, src, destlen-1);
     dest[src ? destlen-1 : 0] = 0;
+  }
+
+  char* convertLF(const char* src, size_t bytes)
+  {
+    char* buffer;
+    size_t sz;
+
+    char* out;
+    const char* in;
+    size_t in_len;
+
+    // Always include space for a NULL
+    sz = 1;
+
+    // Compute output size
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      if (*in != '\r') {
+        sz++;
+        in++;
+        in_len--;
+        continue;
+      }
+
+      if ((in_len == 0) || (*(in+1) != '\n'))
+        sz++;
+
+      in++;
+      in_len--;
+    }
+
+    // Alloc
+    buffer = new char[sz];
+    memset(buffer, 0, sz);
+
+    // And convert
+    out = buffer;
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      if (*in != '\r') {
+        *out++ = *in++;
+        in_len--;
+        continue;
+      }
+
+      if ((in_len == 0) || (*(in+1) != '\n'))
+        *out++ = '\n';
+
+      in++;
+      in_len--;
+    }
+
+    return buffer;
   }
 
   unsigned msBetween(const struct timeval *first,

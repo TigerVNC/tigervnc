@@ -181,6 +181,9 @@ void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
 
 void CMsgWriter::writeClientCutText(const char* str, rdr::U32 len)
 {
+  if (memchr(str, '\r', len) != NULL)
+    throw Exception("Invalid carriage return in clipboard data");
+
   startMsg(msgTypeClientCutText);
   os->pad(3);
   os->writeU32(len);

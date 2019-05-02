@@ -80,6 +80,9 @@ void SMsgWriter::writeBell()
 
 void SMsgWriter::writeServerCutText(const char* str, int len)
 {
+  if (memchr(str, '\r', len) != NULL)
+    throw Exception("Invalid carriage return in clipboard data");
+
   startMsg(msgTypeServerCutText);
   os->pad(3);
   os->writeU32(len);

@@ -1,4 +1,4 @@
-/* Copyright 2016 Pierre Ossman for Cendio AB
+/* Copyright 2016-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -415,13 +415,22 @@ static void vncHandleSelection(Atom selection, Atom target,
     else if (vncHasAtom(xaUTF8_STRING, (const Atom*)prop->data, prop->size))
       vncSelectionRequest(selection, xaUTF8_STRING);
   } else if (target == xaSTRING) {
+    char* filtered;
+
     if (prop->format != 8)
       return;
     if (prop->type != xaSTRING)
       return;
 
-    vncServerCutText(prop->data, prop->size);
+    filtered = vncConvertLF(prop->data, prop->size);
+    if (filtered == NULL)
+      return;
+
+    vncServerCutText(filtered, strlen(filtered));
+
+    vncStrFree(filtered);
   } else if (target == xaUTF8_STRING) {
+    char *filtered;
     unsigned char* buffer;
     unsigned char* out;
     size_t len;
@@ -470,9 +479,14 @@ static void vncHandleSelection(Atom selection, Atom target,
       }
     }
 
-    vncServerCutText((const char*)buffer, len);
-
+    filtered = vncConvertLF(buffer, len);
     free(buffer);
+    if (filtered == NULL)
+      return;
+
+    vncServerCutText(filtered, strlen(filtered));
+
+    vncStrFree(filtered);
   }
 }
 
