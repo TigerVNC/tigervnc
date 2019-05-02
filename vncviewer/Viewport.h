@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ public:
   void updateWindow();
 
   // Incoming clipboard from server
-  void serverCutText(const char* str, rdr::U32 len);
+  void serverCutText(const char* str);
 
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,

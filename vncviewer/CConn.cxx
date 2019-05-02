@@ -377,9 +377,9 @@ void CConn::bell()
   fl_beep();
 }
 
-void CConn::serverCutText(const char* str, rdr::U32 len)
+void CConn::serverCutText(const char* str)
 {
-  desktop->serverCutText(str, len);
+  desktop->serverCutText(str);
 }
 
 void CConn::dataRect(const Rect& r, int encoding)

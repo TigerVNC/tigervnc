@@ -57,7 +57,7 @@ namespace rfb {
 
     // serverCutText() tells the server that the cut text has changed.  This
     // will normally be sent to all clients.
-    virtual void serverCutText(const char* str, int len) = 0;
+    virtual void serverCutText(const char* str) = 0;
 
     // bell() tells the server that it should make all clients make a bell sound.
     virtual void bell() = 0;

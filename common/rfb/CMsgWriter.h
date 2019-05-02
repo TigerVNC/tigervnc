@@ -55,7 +55,7 @@ namespace rfb {
 
     void writeKeyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     void writePointerEvent(const Point& pos, int buttonMask);
-    void writeClientCutText(const char* str, rdr::U32 len);
+    void writeClientCutText(const char* str);
 
   protected:
     void startMsg(int type);

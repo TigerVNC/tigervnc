@@ -70,7 +70,7 @@ namespace rfb {
     virtual void setColourMapEntries(int firstColour, int nColours,
 				     rdr::U16* rgbs) = 0;
     virtual void bell() = 0;
-    virtual void serverCutText(const char* str, rdr::U32 len) = 0;
+    virtual void serverCutText(const char* str) = 0;
 
     virtual void setLEDState(unsigned int state);
 

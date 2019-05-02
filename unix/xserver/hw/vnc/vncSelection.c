@@ -48,7 +48,6 @@ static WindowPtr pWindow;
 static Window wid;
 
 static char* clientCutText;
-static int clientCutTextLen;
 
 static int vncCreateSelectionWindow(void);
 static int vncOwnSelection(Atom selection);
@@ -82,22 +81,19 @@ void vncSelectionInit(void)
     FatalError("Add VNC SelectionCallback failed\n");
 }
 
-void vncClientCutText(const char* str, int len)
+void vncClientCutText(const char* str)
 {
   int rc;
 
   if (clientCutText != NULL)
     free(clientCutText);
 
-  clientCutText = malloc(len);
+  clientCutText = strdup(str);
   if (clientCutText == NULL) {
     LOG_ERROR("Could not allocate clipboard buffer");
     DeleteWindowFromAnySelections(pWindow);
     return;
   }
-
-  memcpy(clientCutText, str, len);
-  clientCutTextLen = len;
 
   if (vncGetSetPrimary()) {
     rc = vncOwnSelection(xaPRIMARY);
@@ -246,7 +242,7 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
   } else if ((target == xaSTRING) || (target == xaTEXT)) {
     rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
                                  XA_STRING, 8, PropModeReplace,
-                                 clientCutTextLen, clientCutText,
+                                 strlen(clientCutText), clientCutText,
                                  TRUE);
     if (rc != Success)
       return rc;
@@ -258,25 +254,22 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
     const unsigned char* in;
     size_t in_len;
 
-    buffer = malloc(clientCutTextLen*2);
+    buffer = malloc(strlen(clientCutText)*2);
     if (buffer == NULL)
       return BadAlloc;
 
     out = buffer;
     len = 0;
     in = clientCutText;
-    in_len = clientCutTextLen;
-    while (in_len > 0) {
+    while (*in != '\0') {
       if (*in & 0x80) {
         *out++ = 0xc0 | (*in >> 6);
         *out++ = 0x80 | (*in & 0x3f);
         len += 2;
         in++;
-        in_len--;
       } else {
         *out++ = *in++;
         len++;
-        in_len--;
       }
     }
 
@@ -426,7 +419,7 @@ static void vncHandleSelection(Atom selection, Atom target,
     if (filtered == NULL)
       return;
 
-    vncServerCutText(filtered, strlen(filtered));
+    vncServerCutText(filtered);
 
     vncStrFree(filtered);
   } else if (target == xaUTF8_STRING) {
@@ -484,7 +477,7 @@ static void vncHandleSelection(Atom selection, Atom target,
     if (filtered == NULL)
       return;
 
-    vncServerCutText(filtered, strlen(filtered));
+    vncServerCutText(filtered);
 
     vncStrFree(filtered);
   }

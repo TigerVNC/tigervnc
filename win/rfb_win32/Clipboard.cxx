@@ -113,11 +113,11 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
             // Notify clients
             if (notifier) {
               if (!clipdata) {
-                notifier->notifyClipboardChanged(0, 0);
+                notifier->notifyClipboardChanged(0);
               } else {
                 CharArray unix_text(convertLF(clipdata, strlen(clipdata)));
                 removeNonISOLatin1Chars(unix_text.buf);
-                notifier->notifyClipboardChanged(unix_text.buf, strlen(unix_text.buf));
+                notifier->notifyClipboardChanged(unix_text.buf);
               }
             } else {
               vlog.debug("no clipboard notifier registered");

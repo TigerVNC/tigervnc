@@ -285,10 +285,10 @@ void vncUpdateDesktopName(void)
     desktop[scr]->setDesktopName(desktopName);
 }
 
-void vncServerCutText(const char *text, size_t len)
+void vncServerCutText(const char *text)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    desktop[scr]->serverCutText(text, len);
+    desktop[scr]->serverCutText(text);
 }
 
 int vncConnectClient(const char *addr)

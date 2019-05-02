@@ -72,7 +72,7 @@ namespace rfb {
     void screenLayoutChangeOrClose(rdr::U16 reason);
     void setCursorOrClose();
     void bellOrClose();
-    void serverCutTextOrClose(const char *str, int len);
+    void serverCutTextOrClose(const char *str);
     void setDesktopNameOrClose(const char *name);
     void setLEDStateOrClose(unsigned int state);
     void approveConnectionOrClose(bool accept, const char* reason);
@@ -115,7 +115,7 @@ namespace rfb {
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void pointerEvent(const Point& pos, int buttonMask);
     virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
-    virtual void clientCutText(const char* str, int len);
+    virtual void clientCutText(const char* str);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout);

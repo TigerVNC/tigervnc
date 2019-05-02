@@ -85,7 +85,7 @@ namespace rfb {
     virtual void setPixelBuffer(PixelBuffer* pb);
     virtual void setScreenLayout(const ScreenSet& layout);
     virtual const PixelBuffer* getPixelBuffer() const { return pb; }
-    virtual void serverCutText(const char* str, int len);
+    virtual void serverCutText(const char* str);
 
     virtual void approveConnection(network::Socket* sock, bool accept,
                                    const char* reason);
@@ -115,7 +115,7 @@ namespace rfb {
     // Event handlers
     void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
-    void clientCutText(const char* str, int len);
+    void clientCutText(const char* str);
 
     unsigned int setDesktopSize(VNCSConnectionST* requester,
                                 int fb_width, int fb_height,

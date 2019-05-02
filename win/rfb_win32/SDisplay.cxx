@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -328,19 +329,16 @@ bool SDisplay::checkLedState() {
   return false;
 }
 
-void SDisplay::clientCutText(const char* text, int len) {
-  CharArray clip_sz(len+1);
-  memcpy(clip_sz.buf, text, len);
-  clip_sz.buf[len] = 0;
-  clipboard->setClipText(clip_sz.buf);
+void SDisplay::clientCutText(const char* text) {
+  clipboard->setClipText(text);
 }
 
 
 void
-SDisplay::notifyClipboardChanged(const char* text, int len) {
+SDisplay::notifyClipboardChanged(const char* text) {
   vlog.debug("clipboard text changed");
   if (server)
-    server->serverCutText(text, len);
+    server->serverCutText(text);
 }
 
 

@@ -63,7 +63,7 @@ public:
   void resizeFramebuffer(int new_w, int new_h);
 
   // Incoming clipboard from server
-  void serverCutText(const char* str, rdr::U32 len);
+  void serverCutText(const char* str);
 
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,

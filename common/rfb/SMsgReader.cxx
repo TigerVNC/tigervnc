@@ -215,7 +215,7 @@ void SMsgReader::readClientCutText()
   CharArray ca(len);
   is->readBytes(ca.buf, len);
   CharArray filtered(convertLF(ca.buf, len));
-  handler->clientCutText(filtered.buf, strlen(filtered.buf));
+  handler->clientCutText(filtered.buf);
 }
 
 void SMsgReader::readQEMUMessage()

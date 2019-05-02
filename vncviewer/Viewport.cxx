@@ -232,7 +232,7 @@ void Viewport::updateWindow()
   damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
 }
 
-void Viewport::serverCutText(const char* str, rdr::U32 len)
+void Viewport::serverCutText(const char* str)
 {
   char *buffer;
   int size, ret;
@@ -242,7 +242,7 @@ void Viewport::serverCutText(const char* str, rdr::U32 len)
   if (!acceptClipboard)
     return;
 
-  size = fl_utf8froma(NULL, 0, str, len);
+  size = fl_utf8froma(NULL, 0, str, strlen(str));
   if (size <= 0)
     return;
 
@@ -250,7 +250,7 @@ void Viewport::serverCutText(const char* str, rdr::U32 len)
 
   buffer = new char[size];
 
-  ret = fl_utf8froma(buffer, size, str, len);
+  ret = fl_utf8froma(buffer, size, str, strlen(str));
   assert(ret < size);
 
   vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
@@ -577,7 +577,7 @@ int Viewport::handle(int event)
     vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(filtered));
 
     try {
-      cc->writer()->writeClientCutText(filtered, strlen(filtered));
+      cc->writer()->writeClientCutText(filtered);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
@@ -768,7 +768,7 @@ void Viewport::flushPendingClipboard()
     size_t len = strlen(pendingClientCutText);
     vlog.debug("Sending pending clipboard data (%d bytes)", (int)len);
     try {
-      cc->writer()->writeClientCutText(pendingClientCutText, len);
+      cc->writer()->writeClientCutText(pendingClientCutText);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());

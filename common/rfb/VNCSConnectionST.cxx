@@ -282,13 +282,13 @@ void VNCSConnectionST::bellOrClose()
   }
 }
 
-void VNCSConnectionST::serverCutTextOrClose(const char *str, int len)
+void VNCSConnectionST::serverCutTextOrClose(const char *str)
 {
   try {
     if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::sendCutText) return;
     if (state() == RFBSTATE_NORMAL)
-      writer()->writeServerCutText(str, len);
+      writer()->writeServerCutText(str);
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -596,11 +596,11 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   server->keyEvent(keysym, keycode, down);
 }
 
-void VNCSConnectionST::clientCutText(const char* str, int len)
+void VNCSConnectionST::clientCutText(const char* str)
 {
   if (!accessCheck(AccessCutText)) return;
   if (!rfb::Server::acceptCutText) return;
-  server->clientCutText(str, len);
+  server->clientCutText(str);
 }
 
 void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)

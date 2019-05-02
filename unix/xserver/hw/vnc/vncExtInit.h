@@ -53,7 +53,7 @@ int vncGetSendPrimary(void);
 
 void vncUpdateDesktopName(void);
 
-void vncServerCutText(const char *text, size_t len);
+void vncServerCutText(const char *text);
 
 int vncConnectClient(const char *addr);
 

@@ -61,7 +61,7 @@ public:
   void refreshScreenLayout();
   void bell();
   void setLEDState(unsigned int state);
-  void serverCutText(const char* str, int len);
+  void serverCutText(const char* str);
   void setDesktopName(const char* name);
   void setCursor(int width, int height, int hotX, int hotY,
                  const unsigned char *rgbaData);
@@ -92,7 +92,7 @@ public:
                                const char* userName);
   virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
   virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
-  virtual void clientCutText(const char* str, int len);
+  virtual void clientCutText(const char* str);
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
                                        const rfb::ScreenSet& layout);
 

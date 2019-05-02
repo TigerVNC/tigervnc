@@ -192,10 +192,10 @@ void XserverDesktop::setLEDState(unsigned int state)
   server->setLEDState(state);
 }
 
-void XserverDesktop::serverCutText(const char* str, int len)
+void XserverDesktop::serverCutText(const char* str)
 {
   try {
-    server->serverCutText(str, len);
+    server->serverCutText(str);
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::serverCutText: %s",e.str());
   }
@@ -436,9 +436,9 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
   vncPointerButtonAction(buttonMask);
 }
 
-void XserverDesktop::clientCutText(const char* str, int len)
+void XserverDesktop::clientCutText(const char* str)
 {
-  vncClientCutText(str, len);
+  vncClientCutText(str);
 }
 
 unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,

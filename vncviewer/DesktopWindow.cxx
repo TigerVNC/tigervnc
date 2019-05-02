@@ -276,9 +276,9 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
-void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
+void DesktopWindow::serverCutText(const char* str)
 {
-  viewport->serverCutText(str, len);
+  viewport->serverCutText(str);
 }
 
 
