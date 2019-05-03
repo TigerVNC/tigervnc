@@ -103,32 +103,10 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       } else {
         vlog.debug("local clipboard changed by %p", owner);
 
-			  // Open the clipboard
-			  if (OpenClipboard(getHandle())) {
-				  // Get the clipboard data
-				  HGLOBAL cliphandle = GetClipboardData(CF_TEXT);
-				  if (cliphandle) {
-					  char* clipdata = (char*) GlobalLock(cliphandle);
-
-            // Notify clients
-            if (notifier) {
-              if (!clipdata) {
-                notifier->notifyClipboardChanged(0);
-              } else {
-                CharArray unix_text(convertLF(clipdata, strlen(clipdata)));
-                removeNonISOLatin1Chars(unix_text.buf);
-                notifier->notifyClipboardChanged(unix_text.buf);
-              }
-            } else {
-              vlog.debug("no clipboard notifier registered");
-            }
-
-					  // Release the buffer and close the clipboard
-					  GlobalUnlock(cliphandle);
-				  }
-
-				  CloseClipboard();
-        }
+        if (notifier == NULL)
+          vlog.debug("no clipboard notifier registered");
+        else
+          notifier->notifyClipboardChanged(IsClipboardFormatAvailable(CF_TEXT));
 			}
     }
     if (next_window)
@@ -138,6 +116,40 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   };
   return MsgWindow::processMessage(msg, wParam, lParam);
 };
+
+char*
+Clipboard::getClipText() {
+  HGLOBAL cliphandle;
+  char* clipdata;
+  char* filtered;
+
+  // Open the clipboard
+  if (!OpenClipboard(getHandle()))
+    return NULL;
+
+  // Get the clipboard data
+  cliphandle = GetClipboardData(CF_TEXT);
+  if (!cliphandle) {
+    CloseClipboard();
+    return NULL;
+  }
+
+  clipdata = (char*) GlobalLock(cliphandle);
+  if (!clipdata) {
+    CloseClipboard();
+    return NULL;
+  }
+
+  // Filter out anything unwanted
+  filtered = convertLF(clipdata, strlen(clipdata));
+  removeNonISOLatin1Chars(filtered);
+
+  // Release the buffer and close the clipboard
+  GlobalUnlock(cliphandle);
+  CloseClipboard();
+
+  return filtered;
+}
 
 void
 Clipboard::setClipText(const char* text) {

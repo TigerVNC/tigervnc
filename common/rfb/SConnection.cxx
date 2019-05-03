@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,8 @@ SConnection::SConnection()
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
     ssecurity(0), state_(RFBSTATE_UNINITIALISED),
-    preferredEncoding(encodingRaw)
+    preferredEncoding(encodingRaw),
+    clientClipboard(NULL)
 {
   defaultMajorVersion = 3;
   defaultMinorVersion = 8;
@@ -70,6 +71,7 @@ SConnection::~SConnection()
   reader_ = 0;
   delete writer_;
   writer_ = 0;
+  strFree(clientClipboard);
 }
 
 void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -299,6 +301,16 @@ void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
   SMsgHandler::setEncodings(nEncodings, encodings);
 }
 
+void SConnection::clientCutText(const char* str)
+{
+  strFree(clientClipboard);
+  clientClipboard = NULL;
+
+  clientClipboard = strDup(str);
+
+  handleClipboardAnnounce(true);
+}
+
 void SConnection::supportsQEMUKeyEvent()
 {
   writer()->writeQEMUKeyEvent();
@@ -408,6 +420,37 @@ void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
 void SConnection::enableContinuousUpdates(bool enable,
                                           int x, int y, int w, int h)
 {
+}
+
+void SConnection::handleClipboardRequest()
+{
+}
+
+void SConnection::handleClipboardAnnounce(bool available)
+{
+}
+
+void SConnection::handleClipboardData(const char* data)
+{
+}
+
+void SConnection::requestClipboard()
+{
+  if (clientClipboard != NULL) {
+    handleClipboardData(clientClipboard);
+    return;
+  }
+}
+
+void SConnection::announceClipboard(bool available)
+{
+  if (available)
+    handleClipboardRequest();
+}
+
+void SConnection::sendClipboardData(const char* data)
+{
+  writer()->writeServerCutText(data);
 }
 
 void SConnection::writeFakeColourMap(void)

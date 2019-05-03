@@ -39,7 +39,7 @@ namespace rfb {
       // -=- Abstract base class for callback recipients
       class Notifier {
       public:
-        virtual void notifyClipboardChanged(const char* text) = 0;
+        virtual void notifyClipboardChanged(bool available) = 0;
         virtual ~Notifier() {};
       };
 
@@ -48,6 +48,9 @@ namespace rfb {
 
       // - Set the notifier to use
       void setNotifier(Notifier* cbn) {notifier = cbn;}
+
+      // - Get the clipboard contents
+      char* getClipText();
 
       // - Set the clipboard contents
       void setClipText(const char* text);

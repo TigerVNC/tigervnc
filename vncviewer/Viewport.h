@@ -45,9 +45,6 @@ public:
   // Flush updates to screen
   void updateWindow();
 
-  // Incoming clipboard from server
-  void serverCutText(const char* str);
-
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
@@ -56,6 +53,11 @@ public:
   void setLEDState(unsigned int state);
 
   void draw(Surface* dst);
+
+  // Clipboard events
+  void handleClipboardRequest();
+  void handleClipboardAnnounce(bool available);
+  void handleClipboardData(const char* data);
 
   // Fl_Widget callback methods
 
@@ -72,7 +74,6 @@ private:
 
   static void handleClipboardChange(int source, void *data);
 
-  void clearPendingClipboard();
   void flushPendingClipboard();
 
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
@@ -114,8 +115,10 @@ private:
 
   bool firstLEDState;
 
-  char* pendingServerCutText;
-  char* pendingClientCutText;
+  bool pendingServerClipboard;
+  bool pendingClientClipboard;
+
+  int clipboardSource;
 
   rdr::U32 menuKeySym;
   int menuKeyCode, menuKeyFLTK;

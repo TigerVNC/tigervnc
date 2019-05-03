@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2017 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,8 @@ CConnection::CConnection()
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
-    framebuffer(NULL), decoder(this)
+    framebuffer(NULL), decoder(this),
+    serverClipboard(NULL)
 {
 }
 
@@ -65,6 +66,7 @@ CConnection::~CConnection()
   reader_ = 0;
   delete writer_;
   writer_ = 0;
+  strFree(serverClipboard);
 }
 
 void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -463,6 +465,16 @@ void CConnection::dataRect(const Rect& r, int encoding)
   decoder.decodeRect(r, encoding, framebuffer);
 }
 
+void CConnection::serverCutText(const char* str)
+{
+  strFree(serverClipboard);
+  serverClipboard = NULL;
+
+  serverClipboard = strDup(str);
+
+  handleClipboardAnnounce(true);
+}
+
 void CConnection::authSuccess()
 {
 }
@@ -474,6 +486,37 @@ void CConnection::initDone()
 void CConnection::resizeFramebuffer()
 {
   assert(false);
+}
+
+void CConnection::handleClipboardRequest()
+{
+}
+
+void CConnection::handleClipboardAnnounce(bool available)
+{
+}
+
+void CConnection::handleClipboardData(const char* data)
+{
+}
+
+void CConnection::requestClipboard()
+{
+  if (serverClipboard != NULL) {
+    handleClipboardData(serverClipboard);
+    return;
+  }
+}
+
+void CConnection::announceClipboard(bool available)
+{
+  if (available)
+    handleClipboardRequest();
+}
+
+void CConnection::sendClipboardData(const char* data)
+{
+  writer()->writeClientCutText(data);
 }
 
 void CConnection::refreshFramebuffer()

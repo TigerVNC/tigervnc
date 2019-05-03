@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,6 +94,25 @@ namespace rfb {
     // pointerEvent(), keyEvent() and clientCutText() are called in response to
     // the relevant RFB protocol messages from clients.
     // See InputHandler for method signatures.
+
+    // handleClipboardRequest() is called whenever a client requests
+    // the server to send over its clipboard data. It will only be
+    // called after the server has first announced a clipboard change
+    // via VNCServer::announceClipboard().
+    virtual void handleClipboardRequest() {}
+
+    // handleClipboardAnnounce() is called to indicate a change in the
+    // clipboard on a client. Call VNCServer::requestClipboard() to
+    // access the actual data.
+    virtual void handleClipboardAnnounce(bool __unused_attr available) {}
+
+    // handleClipboardData() is called when a client has sent over
+    // the clipboard data as a result of a previous call to
+    // VNCServer::requestClipboard(). Note that this function might
+    // never be called if the clipboard data was no longer available
+    // when the client received the request.
+    virtual void handleClipboardData(const char* __unused_attr data) {}
+
   protected:
     virtual ~SDesktop() {}
   };

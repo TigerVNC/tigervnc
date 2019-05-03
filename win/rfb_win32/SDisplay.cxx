@@ -292,6 +292,22 @@ void SDisplay::restartCore() {
 }
 
 
+void SDisplay::handleClipboardRequest() {
+  CharArray data(clipboard->getClipText());
+  server->sendClipboardData(data.buf);
+}
+
+void SDisplay::handleClipboardAnnounce(bool available) {
+  // FIXME: Wait for an application to actually request it
+  if (available)
+    server->requestClipboard();
+}
+
+void SDisplay::handleClipboardData(const char* data) {
+  clipboard->setClipText(data);
+}
+
+
 void SDisplay::pointerEvent(const Point& pos, int buttonmask) {
   if (pb->getRect().contains(pos)) {
     Point screenPos = pos.translate(screenRect.tl);
@@ -329,16 +345,12 @@ bool SDisplay::checkLedState() {
   return false;
 }
 
-void SDisplay::clientCutText(const char* text) {
-  clipboard->setClipText(text);
-}
-
 
 void
-SDisplay::notifyClipboardChanged(const char* text) {
+SDisplay::notifyClipboardChanged(bool available) {
   vlog.debug("clipboard text changed");
   if (server)
-    server->serverCutText(text);
+    server->announceClipboard(available);
 }
 
 
