@@ -38,8 +38,8 @@
 // Timeout when waiting for gestures
 #define GH_TOUCHDELAY  0.25 // s
 
-// Movement threshold for clicks
-#define GH_CLCKTHRESHOLD 10
+// Movement threshold for gestures
+#define GH_MTHRESHOLD 10
 
 // Invert the scroll
 #define GH_INVERTSCR   1

@@ -247,7 +247,7 @@ int GestureHandler::updateTouch(XIDeviceEvent ev, GHEvent *ghev) {
 						ev.event_x, ev.event_y));
 
        /*
-	* - If the finger has moved more than GH_CLCKTHRESHOLD, then we can
+	* - If the finger has moved more than GH_MTHRESHOLD, then we can
 	*   eliminate the possibility of a click.
 	*
 	* - If the finger has moved along the y axis _more_ than what it has
@@ -257,9 +257,9 @@ int GestureHandler::updateTouch(XIDeviceEvent ev, GHEvent *ghev) {
 	*   what it has along the y axis, then we're not looking at a scroll.
 	*/
 
-        if (dx > GH_CLCKTHRESHOLD ||
-	    dy > GH_CLCKTHRESHOLD ||
-	    dt > GH_CLCKTHRESHOLD)
+        if (dx > GH_MTHRESHOLD ||
+	    dy > GH_MTHRESHOLD ||
+	    dt > GH_MTHRESHOLD)
 	{
           this->state &= ~(GH_LEFTBTN | GH_MIDDLEBTN | GH_RIGHTBTN);
 
@@ -302,6 +302,15 @@ int GestureHandler::updateTouch(XIDeviceEvent ev, GHEvent *ghev) {
 	  event_y = ev.event_y;
       }
     }
+
+    // If the scroll/zoom movements aren't above the threshold, then just
+    // return here as if we're processing an untracked touch
+    //
+    // FIXME: We should do the same thing here if the touch coordinates are
+    // outside the root window boundaries
+    if (this->state == GH_SCROLL || this->state == GH_ZOOM)
+      if (std::abs(detail) < GH_MTHRESHOLD)
+        return -1;
 
     // Update the coordinates for the tracked touch
     tracked[idx].last_x = ev.event_x;
