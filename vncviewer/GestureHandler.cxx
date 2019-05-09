@@ -35,6 +35,8 @@ int GestureHandler::registerEvent(void *ev) {
   XIDeviceEvent *devev = (XIDeviceEvent*)ev;
   GHEvent ghev;
 
+  double xavg, yavg;
+
   switch (devev->evtype) {
     case XI_TouchBegin:
       if (!hasState(this->state))
@@ -56,6 +58,8 @@ int GestureHandler::registerEvent(void *ev) {
       // FIXME: By this point we should have a state, right?
       //assert(hasState(this->state));
 
+      avgTrackedTouches(&xavg, &yavg, GH_GestureEnd);
+
       switch (this->state) {
         case GH_LEFTBTN:
         case GH_RIGHTBTN:
@@ -63,8 +67,8 @@ int GestureHandler::registerEvent(void *ev) {
 	case GH_SCROLL:
 	case GH_ZOOM:
           ghev.detail = this->state;
-          ghev.event_x = devev->event_x;
-          ghev.event_y = devev->event_y;
+          ghev.event_x = xavg;
+          ghev.event_y = yavg;
           ghev.type = GH_GestureEnd;
           eventQueue.push_back(ghev);
 	  break;
@@ -110,9 +114,13 @@ int GestureHandler::expireEvents() {
   }
 
   if (hasState(this->state)) {
+    double xavg, yavg;
+
+    avgTrackedTouches(&xavg, &yavg, GH_GestureBegin);
+
     ghev.detail = this->state;
-    ghev.event_x = tracked[0].first_x;
-    ghev.event_y = tracked[0].first_y;
+    ghev.event_x = xavg;
+    ghev.event_y = yavg;
     ghev.type = GH_GestureBegin;
     eventQueue.push_back(ghev);
   }
@@ -171,6 +179,31 @@ std::vector<GHEvent> GestureHandler::getEventQueue() {
 
 void GestureHandler::clearEventQueue() {
   eventQueue.clear();
+}
+
+size_t GestureHandler::avgTrackedTouches(double *x, double *y, GHEventType t) {
+  size_t size = tracked.size();
+  double _x = 0, _y = 0;
+
+  switch (t) {
+    case GH_GestureBegin:
+      for (size_t i = 0; i < size; i++) {
+        _x += tracked[i].first_x;
+        _y += tracked[i].first_y;
+      }
+      break;
+
+    default:
+      for (size_t i = 0; i < size; i++) {
+        _x += tracked[i].last_x;
+        _y += tracked[i].last_y;
+      }
+  }
+
+  *x = _x / size;
+  *y = _y / size;
+
+  return size;
 }
 
 int GestureHandler::relativeDistanceMoved(int t0_x, int t0_y,

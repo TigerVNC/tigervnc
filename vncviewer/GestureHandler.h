@@ -88,6 +88,8 @@ class GestureHandler {
     int trackTouch(XIDeviceEvent ev);
     int isTracked(XIDeviceEvent ev);
 
+    size_t avgTrackedTouches(double *x, double *y, GHEventType t);
+
     int relativeDistanceMoved(int t0_x, int t0_y,
 		              int t1_x, int t1_y,
 			      int t2_x, int t2_y);
