@@ -672,6 +672,7 @@ int main(int argc, char** argv)
 #endif
   }
 
+   //创建连接，并处理event
   CConn *cc = new CConn(vncServerName, sock);
 
   while (!exitMainloop)

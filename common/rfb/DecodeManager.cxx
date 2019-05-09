@@ -102,6 +102,8 @@ DecodeManager::~DecodeManager()
     delete decoders[i];
 }
 
+//这里，decodeRect把rect的数据缓冲到workQueue里，并由worker线程处理
+//处理函数在DecodeManager::DecodeThread::worker
 void DecodeManager::decodeRect(const Rect& r, int encoding,
                                ModifiablePixelBuffer* pb)
 {
@@ -274,6 +276,7 @@ void DecodeManager::DecodeThread::worker()
 
     // Do the actual decoding
     try {
+	//这里调用到TightDecoder::decodeRect
       entry->decoder->decodeRect(entry->rect, entry->bufferStream->data(),
                                  entry->bufferStream->length(),
                                  *entry->server, entry->pb);

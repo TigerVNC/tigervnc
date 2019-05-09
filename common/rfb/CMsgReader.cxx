@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2017 Pierre Ossman for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -54,6 +54,8 @@ void CMsgReader::readServerInit()
 
 void CMsgReader::readMsg()
 {
+  //一个包可能分多个消息，比如多个rect矩形框的变化,
+  //nUpdateRectsLeft在readFramebufferUpdate获取
   if (nUpdateRectsLeft == 0) {
     int type = is->readU8();
 
@@ -121,7 +123,12 @@ void CMsgReader::readMsg()
     case pseudoEncodingQEMUKeyEvent:
       handler->supportsQEMUKeyEvent();
       break;
+    case pseudoEncodingWatermarkEnabled:
+        readRect(Rect(x, y, x+w, y+h), encoding);
+        break;
     default:
+	//这里读取需要update的rect框数据
+	//由CConnection::dataRect处理
       readRect(Rect(x, y, x+w, y+h), encoding);
       break;
     };
@@ -130,6 +137,13 @@ void CMsgReader::readMsg()
     if (nUpdateRectsLeft == 0)
       handler->framebufferUpdateEnd();
   }
+}
+
+void CMsgReader::enableWatermark()
+{
+    if(is == NULL){
+        return;
+    }
 }
 
 void CMsgReader::readSetColourMapEntries()

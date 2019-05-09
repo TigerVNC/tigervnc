@@ -1,17 +1,17 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * Copyright 2009-2014 Pierre Ossman for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -43,6 +43,8 @@
 
 #include <FL/Fl.H>
 #include <FL/fl_ask.H>
+#include <FL/Fl_Image.H>
+#include <FL/Fl_PNG_Image.H>
 
 #include "CConn.h"
 #include "OptionsDialog.h"
@@ -113,7 +115,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
       return;
     }
   }
-
+  //连接成功后，读数据，并使用socketEvent来处理事件
   Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
 
   // See callback below
@@ -256,6 +258,8 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     // processMsg() only processes one message, so we need to loop
     // until the buffers are empty or things will stall.
     do {
+	//根据消息类型处理消息， 从server接收消息，client处理
+	//另一个消息渠道是从客户端接受鼠标键盘等系统事件，发送给server处理
       cc->processMsg();
 
       // Make sure that the FLTK handling and the timers gets some CPU
@@ -289,7 +293,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
 void CConn::initDone()
 {
   // If using AutoSelect with old servers, start in FullColor
-  // mode. See comment in autoSelectFormatAndEncoding. 
+  // mode. See comment in autoSelectFormatAndEncoding.
   if (server.beforeVersion(3, 8) && autoSelect)
     fullColour.setParam(true);
 
@@ -297,6 +301,12 @@ void CConn::initDone()
 
   desktop = new DesktopWindow(server.width(), server.height(),
                               server.name(), serverPF, this);
+  Fl_PNG_Image *bkgImage = new Fl_PNG_Image("/home/jamesl/temp/vncbkg.png");
+  if(bkgImage){
+      desktop->setWatermark(bkgImage);
+      delete bkgImage;
+  }
+
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
@@ -304,6 +314,7 @@ void CConn::initDone()
   int encNum = encodingNum(::preferredEncoding);
   if (encNum != -1)
     setPreferredEncoding(encNum);
+  enableWatermark(true);
 }
 
 // setDesktopSize() is called when the desktop size changes (including when
@@ -484,7 +495,7 @@ void CConn::autoSelectFormatAndEncoding()
     // old servers.
     return;
   }
-  
+
   // Select best color level
   newFullColour = (kbitsPerSecond > 256);
   if (newFullColour != fullColour) {
@@ -496,7 +507,7 @@ void CConn::autoSelectFormatAndEncoding()
                 kbitsPerSecond);
     fullColour.setParam(newFullColour);
     updatePixelFormat();
-  } 
+  }
 }
 
 // requestNewUpdate() requests an update from the server, having set the

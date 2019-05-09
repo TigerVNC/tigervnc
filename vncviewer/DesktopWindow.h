@@ -79,6 +79,7 @@ public:
   int handle(int event);
 
   void fullscreen_on();
+  void setWatermark(const Fl_RGB_Image *watermarkImage);
 
 private:
   static void menuOverlay(void *data);
@@ -144,6 +145,7 @@ private:
   unsigned statsLastPosition;
 
   Surface *statsGraph;
+  Surface *watermark;
 };
 
 #endif

@@ -176,6 +176,8 @@ bool TightDecoder::doRectsConflict(const Rect& rectA,
   return false;
 }
 
+//这里主要作用是将rect的数据解析成图形数据，然后保存在PixelBuffer中
+
 void TightDecoder::decodeRect(const Rect& r, const void* buffer,
                               size_t buflen, const ServerParams& server,
                               ModifiablePixelBuffer* pb)
@@ -202,6 +204,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   }
 
   // "Fill" compression type.
+  //pb PlatformPixelBuffer(ModifiablePixelBuffer)，填充pixelFormat
   if (comp_ctl == tightFill) {
     if (pf.is888()) {
       rdr::U8 pix[4];

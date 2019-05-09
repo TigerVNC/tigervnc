@@ -67,7 +67,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     delayedFullscreen(false), delayedDesktopSize(false),
     keyboardGrabbed(false), mouseGrabbed(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
-    statsGraph(NULL)
+    statsGraph(NULL), watermark(NULL)
 {
   Fl_Group* group;
 
@@ -206,6 +206,7 @@ DesktopWindow::~DesktopWindow()
   delete offscreen;
 
   delete statsGraph;
+  delete watermark;
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -393,6 +394,14 @@ void DesktopWindow::draw()
     }
   }
 
+  if(watermark){
+      if(offscreen){
+	  watermark->blend(offscreen, X, Y, X, Y, W, H);
+      }else{
+	  watermark->blend(X, Y, X, Y, W, H);
+      }
+  }
+
   // Flush offscreen surface to screen
   if (offscreen) {
     fl_clip_box(0, 0, w(), h(), X, Y, W, H);
@@ -506,6 +515,12 @@ void DesktopWindow::menuOverlay(void* data)
   self = (DesktopWindow*)data;
   self->setOverlay(_("Press %s to open the context menu"),
                    (const char*)menuKey);
+}
+
+void DesktopWindow::setWatermark(const Fl_RGB_Image *image)
+{
+  delete watermark;
+  watermark = new Surface(image);
 }
 
 void DesktopWindow::setOverlay(const char* text, ...)

@@ -48,6 +48,7 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   XRenderFreePicture(fl_display, winPict);
 }
 
+//重新绘制xywh区域内的数据
 void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
 {
   XRenderComposite(fl_display, PictOpSrc, picture, None, dst->picture,
