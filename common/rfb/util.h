@@ -68,6 +68,7 @@ namespace rfb {
 
   char* strDup(const char* s);
   void strFree(char* s);
+  void strFree(wchar_t* s);
 
   // Returns true if split successful.  Returns false otherwise.
   // ALWAYS *copies* first part of string to out1 buffer.
@@ -87,6 +88,7 @@ namespace rfb {
   // Makes sure line endings are in a certain format
 
   char* convertLF(const char* src, size_t bytes = (size_t)-1);
+  char* convertCRLF(const char* src, size_t bytes = (size_t)-1);
 
   // Convertions between various Unicode formats. The returned strings are
   // always null terminated and must be freed using strFree().
@@ -94,8 +96,14 @@ namespace rfb {
   size_t ucs4ToUTF8(unsigned src, char* dst);
   size_t utf8ToUCS4(const char* src, size_t max, unsigned* dst);
 
+  size_t ucs4ToUTF16(unsigned src, wchar_t* dst);
+  size_t utf16ToUCS4(const wchar_t* src, size_t max, unsigned* dst);
+
   char* latin1ToUTF8(const char* src, size_t bytes = (size_t)-1);
   char* utf8ToLatin1(const char* src, size_t bytes = (size_t)-1);
+
+  char* utf16ToUTF8(const wchar_t* src, size_t units = (size_t)-1);
+  wchar_t* utf8ToUTF16(const char* src, size_t bytes = (size_t)-1);
 
   // HELPER functions for timeout handling
 

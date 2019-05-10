@@ -306,7 +306,7 @@ void SConnection::clientCutText(const char* str)
   strFree(clientClipboard);
   clientClipboard = NULL;
 
-  clientClipboard = strDup(str);
+  clientClipboard = latin1ToUTF8(str);
 
   handleClipboardAnnounce(true);
 }
@@ -450,7 +450,9 @@ void SConnection::announceClipboard(bool available)
 
 void SConnection::sendClipboardData(const char* data)
 {
-  writer()->writeServerCutText(data);
+  CharArray latin1(utf8ToLatin1(data));
+
+  writer()->writeServerCutText(latin1.buf);
 }
 
 void SConnection::writeFakeColourMap(void)

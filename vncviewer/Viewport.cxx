@@ -310,14 +310,12 @@ void Viewport::handleClipboardAnnounce(bool available)
 
 void Viewport::handleClipboardData(const char* data)
 {
-  char* buffer;
   size_t len;
 
   if (!hasFocus())
     return;
 
-  buffer = latin1ToUTF8(data);
-  len = strlen(buffer);
+  len = strlen(data);
 
   vlog.debug("Got clipboard data (%d bytes)", (int)len);
 
@@ -325,11 +323,9 @@ void Viewport::handleClipboardData(const char* data)
   // dump the data into both variants.
 #if !defined(WIN32) && !defined(__APPLE__)
   if (setPrimary)
-    Fl::copy(buffer, len, 0);
+    Fl::copy(data, len, 0);
 #endif
-  Fl::copy(buffer, len, 1);
-
-  strFree(buffer);
+  Fl::copy(data, len, 1);
 }
 
 void Viewport::setLEDState(unsigned int state)
@@ -561,15 +557,13 @@ void Viewport::resize(int x, int y, int w, int h)
 
 int Viewport::handle(int event)
 {
-  char *buffer, *filtered;
+  char *filtered;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
 
   switch (event) {
   case FL_PASTE:
-    buffer = utf8ToLatin1(Fl::event_text(), Fl::event_length());
-    filtered = convertLF(buffer);
-    strFree(buffer);
+    filtered = convertLF(Fl::event_text(), Fl::event_length());
 
     vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(filtered));
 

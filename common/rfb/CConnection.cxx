@@ -470,7 +470,7 @@ void CConnection::serverCutText(const char* str)
   strFree(serverClipboard);
   serverClipboard = NULL;
 
-  serverClipboard = strDup(str);
+  serverClipboard = latin1ToUTF8(str);
 
   handleClipboardAnnounce(true);
 }
@@ -516,7 +516,9 @@ void CConnection::announceClipboard(bool available)
 
 void CConnection::sendClipboardData(const char* data)
 {
-  writer()->writeClientCutText(data);
+  CharArray latin1(utf8ToLatin1(data));
+
+  writer()->writeClientCutText(latin1.buf);
 }
 
 void CConnection::refreshFramebuffer()

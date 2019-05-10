@@ -362,23 +362,24 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
       return Success;
     } else {
       if ((target == xaSTRING) || (target == xaTEXT)) {
-        rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
-                                     XA_STRING, 8, PropModeReplace,
-                                     strlen(data), (char*)data,
-                                     TRUE);
-        if (rc != Success)
-          return rc;
-      } else if (target == xaUTF8_STRING) {
-        char* buffer;
+        char* latin1;
 
-        buffer = vncLatin1ToUTF8(data, (size_t)-1);
-        if (buffer == NULL)
+        latin1 = vncUTF8ToLatin1(data, (size_t)-1);
+        if (latin1 == NULL)
           return BadAlloc;
 
         rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                     XA_STRING, 8, PropModeReplace,
+                                     strlen(latin1), latin1, TRUE);
+
+        vncStrFree(latin1);
+
+        if (rc != Success)
+          return rc;
+      } else if (target == xaUTF8_STRING) {
+        rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
                                      xaUTF8_STRING, 8, PropModeReplace,
-                                     strlen(buffer), buffer, TRUE);
-        vncStrFree(buffer);
+                                     strlen(data), data, TRUE);
         if (rc != Success)
           return rc;
       } else {
@@ -515,13 +516,14 @@ static void vncHandleSelection(Atom selection, Atom target,
         vncAnnounceClipboard(TRUE);
       }
     } else {
-      if (vncHasAtom(xaSTRING, (const Atom*)prop->data, prop->size))
-        vncSelectionRequest(selection, xaSTRING);
-      else if (vncHasAtom(xaUTF8_STRING, (const Atom*)prop->data, prop->size))
+      if (vncHasAtom(xaUTF8_STRING, (const Atom*)prop->data, prop->size))
         vncSelectionRequest(selection, xaUTF8_STRING);
+      else if (vncHasAtom(xaSTRING, (const Atom*)prop->data, prop->size))
+        vncSelectionRequest(selection, xaSTRING);
     }
   } else if (target == xaSTRING) {
     char* filtered;
+    char* utf8;
 
     if (prop->format != 8)
       return;
@@ -532,27 +534,26 @@ static void vncHandleSelection(Atom selection, Atom target,
     if (filtered == NULL)
       return;
 
-    LOG_DEBUG("Sending clipboard to clients (%d bytes)",
-              (int)strlen(filtered));
-
-    vncSendClipboardData(filtered);
-
+    utf8 = vncLatin1ToUTF8(filtered, (size_t)-1);
     vncStrFree(filtered);
+    if (utf8 == NULL)
+      return;
+
+    LOG_DEBUG("Sending clipboard to clients (%d bytes)",
+              (int)strlen(utf8));
+
+    vncSendClipboardData(utf8);
+
+    vncStrFree(utf8);
   } else if (target == xaUTF8_STRING) {
     char *filtered;
-    char* buffer;
 
     if (prop->format != 8)
       return;
     if (prop->type != xaUTF8_STRING)
       return;
 
-    buffer = vncUTF8ToLatin1(prop->data, prop->size);
-    if (buffer == NULL)
-      return;
-
-    filtered = vncConvertLF(buffer, (size_t)-1);
-    vncStrFree(buffer);
+    filtered = vncConvertLF(prop->data, prop->size);
     if (filtered == NULL)
       return;
 
