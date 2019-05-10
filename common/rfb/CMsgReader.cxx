@@ -22,6 +22,7 @@
 
 #include <rfb/msgTypes.h>
 #include <rdr/InStream.h>
+#include <rdr/MemOutStream.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
@@ -124,8 +125,8 @@ void CMsgReader::readMsg()
       handler->supportsQEMUKeyEvent();
       break;
     case pseudoEncodingWatermarkEnabled:
-        readRect(Rect(x, y, x+w, y+h), encoding);
-        break;
+    	setWatermark();
+      break;
     default:
 	//这里读取需要update的rect框数据
 	//由CConnection::dataRect处理
@@ -139,12 +140,18 @@ void CMsgReader::readMsg()
   }
 }
 
-void CMsgReader::enableWatermark()
+void CMsgReader::setWatermark()
 {
-    if(is == NULL){
-        return;
-    }
+	int format = is->readU8();
+	int length = is->readS32();
+    if(length < 0)
+        throw Exception("Invalid watermark data");
+    rdr::MemOutStream *bufferStream = new rdr::MemOutStream();
+    bufferStream ->copyBytes(is, length);
+    handler->setWatermark(bufferStream->data(), length, format);
+    delete bufferStream;
 }
+
 
 void CMsgReader::readSetColourMapEntries()
 {

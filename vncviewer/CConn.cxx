@@ -325,6 +325,24 @@ void CConn::setDesktopSize(int w, int h)
   resizeFramebuffer();
 }
 
+void CConn::setWatermark(const void *data, int length, int format)
+{
+  if(!desktop)
+      return;
+  Fl_RGB_Image *image = NULL;
+  if(format == 1){
+      image = new Fl_PNG_Image("background", (const unsigned char *)data, length);
+  }else if(format == 0){
+      //image = new Fl_BMP_Image("background", (const unsigned char *)data, length);
+  }else{
+      vlog.error(_("Unsupport background image format %d"), format);
+  }
+  if(image){
+      desktop->setWatermark(image);
+      delete image;
+  }
+}
+
 // setExtendedDesktopSize() is a more advanced version of setDesktopSize()
 void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
                                    int w, int h, const rfb::ScreenSet& layout)

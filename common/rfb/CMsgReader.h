@@ -68,7 +68,7 @@ namespace rfb {
     void readExtendedDesktopSize(int x, int y, int w, int h);
     void readLEDState();
     void readVMwareLEDState();
-    void enableWatermark();
+    void setWatermark();
 
     CMsgHandler* handler;
     rdr::InStream* is;

@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -344,6 +344,26 @@ void DesktopWindow::draw()
       update_child(*viewport);
   }
 
+  if(watermark && 0){
+      int ww = watermark->width();
+      int wh = watermark->height();
+      int wx = X;
+      int wy = Y;
+      for(wx = X; wx < W; wx += ww) {
+          for(wy = Y; wy < H; wy += wh) {
+              if(offscreen){
+                watermark->blend(offscreen, X, Y, wx, wy,
+                        (W - wx) < ww ? W-wx : ww, (H-wy) < wh ? H-wy : wh);
+              }else{
+                watermark->blend(X, Y, wx, wy,
+                        (W - wx) < ww ? W-wx : ww, (H-wy) < wh ? H-wy : wh);
+              }
+
+          }
+      }
+  }
+
+
   // Debug graph (if active)
   if (statsGraph) {
     int ox, oy, ow, oh;
@@ -392,14 +412,6 @@ void DesktopWindow::draw()
       else
         overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
     }
-  }
-
-  if(watermark){
-      if(offscreen){
-	  watermark->blend(offscreen, X, Y, X, Y, W, H);
-      }else{
-	  watermark->blend(X, Y, X, Y, W, H);
-      }
   }
 
   // Flush offscreen surface to screen
@@ -813,7 +825,7 @@ void DesktopWindow::grabKeyboard()
 
 #if defined(WIN32)
   int ret;
-  
+
   ret = win32_enable_lowlevel_keyboard(fl_xid(this));
   if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
@@ -821,7 +833,7 @@ void DesktopWindow::grabKeyboard()
   }
 #elif defined(__APPLE__)
   int ret;
-  
+
   ret = cocoa_capture_display(this, fullScreenAllMonitors);
   if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
