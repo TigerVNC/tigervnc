@@ -12,7 +12,6 @@ set(VNCVIEWER_SOURCES
   OptionsDialog.cxx
   PlatformPixelBuffer.cxx
   Viewport.cxx
-  GestureHandler.cxx
   parameters.cxx
   keysym2ucs.c
   vncviewer.cxx)
@@ -32,7 +31,7 @@ if(WIN32)
 elseif(APPLE)
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm osx_to_qnum.c)
 else()
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} xkb_to_qnum.c)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} GestureHandler.cxx xkb_to_qnum.c)
 endif()
 
 if(WIN32)
@@ -51,18 +50,14 @@ endif()
 
 target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
-if(UNIX)
-  target_link_libraries(vncviewer ${X11_Xi_LIB})
-endif()
-
 if(WIN32)
   target_link_libraries(vncviewer msimg32)
-endif()
-
-if(APPLE)
+elseif(APPLE)
   target_link_libraries(vncviewer "-framework Cocoa")
   target_link_libraries(vncviewer "-framework Carbon")
   target_link_libraries(vncviewer "-framework IOKit")
+else()
+	target_link_libraries(vncviewer ${X11_Xi_LIB})
 endif()
 
 install(TARGETS vncviewer DESTINATION ${BIN_DIR})
