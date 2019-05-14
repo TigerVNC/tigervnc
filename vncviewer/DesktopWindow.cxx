@@ -889,23 +889,55 @@ void DesktopWindow::ungrabKeyboard()
 void DesktopWindow::grabPointer()
 {
 #if !defined(WIN32) && !defined(__APPLE__)
-  int ret;
+  int ret, ndevices;
 
-  // We also need to grab the pointer as some WMs like to grab buttons
-  // combined with modifies (e.g. Alt+Button0 in metacity).
-  ret = XGrabPointer(fl_display, fl_xid(this), True,
-                     ButtonPressMask|ButtonReleaseMask|
-                     ButtonMotionMask|PointerMotionMask,
-                     GrabModeAsync, GrabModeAsync,
-                     None, None, CurrentTime);
-  if (ret) {
-    // Having a button pressed prevents us from grabbing, we make
-    // a new attempt in fltkHandle()
-    if (ret == AlreadyGrabbed)
-      return;
-    vlog.error(_("Failure grabbing mouse"));
-    return;
+  XIEventMask eventmask;
+  XIDeviceInfo *devices, *device;
+
+  unsigned char flags[XIMaskLen(XI_LASTEVENT)] = { 0 };
+
+  XISetMask(flags, XI_ButtonPress);
+  XISetMask(flags, XI_Motion);
+  XISetMask(flags, XI_ButtonRelease);
+  XISetMask(flags, XI_TouchBegin);
+  XISetMask(flags, XI_TouchUpdate);
+  XISetMask(flags, XI_TouchEnd);
+
+  eventmask.mask = flags;
+  eventmask.mask_len = sizeof(flags);
+
+  devices = XIQueryDevice(fl_display, XIAllMasterDevices, &ndevices);
+
+  for (int i = 0; i < ndevices; i++) {
+    device = &devices[i];
+
+    if (device->use != XIMasterPointer)
+      continue;
+
+    eventmask.deviceid = device->deviceid;
+
+    ret = XIGrabDevice(fl_display,
+		       device->deviceid,
+		       fl_xid(this),
+		       CurrentTime,
+		       None,
+		       XIGrabModeAsync,
+		       XIGrabModeAsync,
+		       True,
+		       &eventmask);
+
+    if (ret) {
+      if (ret == XIAlreadyGrabbed)
+        continue;
+      else {
+        vlog.error(_("Failure grabbing mouse"));
+        ungrabPointer();
+        return;
+      }
+    }
   }
+
+  XIFreeDeviceInfo(devices);
 #endif
 
   mouseGrabbed = true;
@@ -916,7 +948,21 @@ void DesktopWindow::ungrabPointer()
 {
   mouseGrabbed = false;
 #if !defined(WIN32) && !defined(__APPLE__)
-  XUngrabPointer(fl_display, CurrentTime);
+  int ndevices;
+  XIDeviceInfo *devices, *device;
+
+  devices = XIQueryDevice(fl_display, XIAllMasterDevices, &ndevices);
+
+  for (int i = 0; i < ndevices; i++) {
+    device = &devices[i];
+
+    if (device->use != XIMasterPointer)
+      continue;
+
+    XIUngrabDevice(fl_display, device->deviceid, CurrentTime);
+  }
+
+  XIFreeDeviceInfo(devices);
 #endif
 }
 
