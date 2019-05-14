@@ -279,7 +279,7 @@ int GestureHandler::updateTouch(XIDeviceEvent ev, GHEvent *ghev) {
       switch (this->state) {
         case GH_SCROLL:
 	  //assert(tracked.size() == 2);
-	  detail = GH_INVERTSCR ? -(tracked[idx].last_y - ev.event_y)
+	  detail = GH_INVRTSCRL ? -(tracked[idx].last_y - ev.event_y)
 		                :   tracked[idx].last_y - ev.event_y;
 	  event_x = tracked[0].first_x;
 	  event_y = tracked[0].first_y;
@@ -308,8 +308,8 @@ int GestureHandler::updateTouch(XIDeviceEvent ev, GHEvent *ghev) {
     //
     // FIXME: We should do the same thing here if the touch coordinates are
     // outside the root window boundaries
-    if (this->state == GH_SCROLL || this->state == GH_ZOOM)
-      if (std::abs(detail) < GH_MTHRESHOLD)
+    if ((this->state == GH_SCROLL && std::abs(detail) < GH_SCRLSENS) ||
+	(this->state == GH_ZOOM && std::abs(detail) < GH_ZOOMSENS))
         return -1;
 
     // Update the coordinates for the tracked touch

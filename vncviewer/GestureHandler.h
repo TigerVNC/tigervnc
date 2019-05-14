@@ -39,10 +39,14 @@
 #define GH_TOUCHDELAY  0.25 // s
 
 // Movement threshold for gestures
-#define GH_MTHRESHOLD 10
+#define GH_MTHRESHOLD  10
+
+// Sensitivity threshold for gestures
+#define GH_ZOOMSENS    30
+#define GH_SCRLSENS    50
 
 // Invert the scroll
-#define GH_INVERTSCR   1
+#define GH_INVRTSCRL   1
 
 enum GHEventType {
   GH_GestureBegin,
