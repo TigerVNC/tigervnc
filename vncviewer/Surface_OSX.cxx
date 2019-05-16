@@ -168,6 +168,12 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   CGContextRelease(bitmap);
 }
 
+void Surface::blendWatermark(Surface* dst, int X, int Y, int W, int H, int a)
+{
+
+}
+
+
 void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
 {
   CGColorSpaceRef lut;
@@ -259,4 +265,50 @@ void Surface::update(const Fl_RGB_Image* image)
     if (image->ld() != 0)
       in += image->ld() - image->w() * image->d();
   }
+}
+
+covermap Surface::get_cover_map(int X, int Y, int W, int H, int w, int h)
+{
+	covermap map;
+	int alignedX = (X/w)*w;
+	int alignedY = (Y/h)*h;
+	int alignedW = ((X+W-1)/w + 1)*w - alignedX;
+	int alignedH = ((Y+H-1)/h + 1)*h - alignedY;
+	int xSeg = alignedW / w;
+	int ySeg = alignedH / h;
+	int xi;
+	int yi = 0;
+	for(xi = 0; xi < xSeg; xi++){
+		for(yi = 0; yi < ySeg; yi++){
+			int dstX = alignedX + xi * w;
+			int dstY = alignedY + yi * h;
+			int srcX = 0;
+			int srcY = 0;
+			int blockW = w;
+			int blockH = h;
+			int delta = 0;
+			if(dstX < X){
+				delta = X - dstX;
+				srcX += delta;
+				blockW -= delta;
+				dstX = X;
+			}
+			if(dstX - delta + w > X + W){
+				blockW -= (dstX - delta + w - (X + W));
+			}
+			delta = 0;
+			if(dstY < Y){
+				delta = Y - dstY;
+				srcY += delta;
+				blockH -= delta;
+				dstY = Y;
+			}
+			if(dstY -delta + h > Y + H){
+				blockH -= ((dstY - delta + h) - (Y+H));
+			}
+			blockmap block = std::make_tuple(srcX, srcY, dstX, dstY, blockW, blockH);
+			map.push_back(block);
+		}
+	}
+	return map;
 }

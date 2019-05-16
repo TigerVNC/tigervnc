@@ -75,7 +75,7 @@ VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
     vlog.error("failed to register handler: %lu", err);
     ExitProcess(err);
   }
-  vlog.debug("registered handler (%p)", service->status_handle);
+  vlog.debug("registered handler (%p)", (void *)(service->status_handle));
   service->setStatus(SERVICE_START_PENDING);
   vlog.debug("entering %s serviceMain", service->getName());
   service->status.dwWin32ExitCode = service->serviceMain(dwArgc, lpszArgv);

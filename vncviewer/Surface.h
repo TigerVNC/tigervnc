@@ -28,7 +28,14 @@ typedef struct CGImage* CGImageRef;
 #include <X11/extensions/Xrender.h>
 #endif
 
+#include <tuple>
+#include <vector>
+
 class Fl_RGB_Image;
+using namespace std;
+typedef tuple<int, int, int, int, int, int> blockmap;
+typedef vector<blockmap> covermap;
+
 
 class Surface {
 public:
@@ -46,6 +53,7 @@ public:
 
   void blend(int src_x, int src_y, int x, int y, int w, int h, int a=255);
   void blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a=255);
+  void blendWatermark(Surface* dst, int X, int Y, int W, int H, int a = 255);
 
 protected:
   void alloc();
@@ -54,6 +62,8 @@ protected:
 
 protected:
   int w, h;
+  //cover (X, Y, W, H) with image size(w, h)
+  covermap get_cover_map(int X, int Y, int W, int H, int w, int h);
 
 #if defined(WIN32)
   RGBQUAD* data;

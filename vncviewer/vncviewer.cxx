@@ -521,7 +521,7 @@ int main(int argc, char** argv)
 
   rfb::initStdIOLoggers();
 #ifdef WIN32
-  rfb::initFileLogger("C:\\temp\\vncviewer.log");
+  rfb::initFileLogger("d:\\temp\\vncviewer.log");
 #else
   rfb::initFileLogger("/tmp/vncviewer.log");
 #endif

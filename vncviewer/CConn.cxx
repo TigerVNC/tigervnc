@@ -258,8 +258,8 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     // processMsg() only processes one message, so we need to loop
     // until the buffers are empty or things will stall.
     do {
-	//根据消息类型处理消息， 从server接收消息，client处理
-	//另一个消息渠道是从客户端接受鼠标键盘等系统事件，发送给server处理
+    	//根据消息类型处理消息， 从server接收消息，client处理
+    	//另一个消息渠道是从客户端接受鼠标键盘等系统事件，发送给server处理
       cc->processMsg();
 
       // Make sure that the FLTK handling and the timers gets some CPU
@@ -301,12 +301,13 @@ void CConn::initDone()
 
   desktop = new DesktopWindow(server.width(), server.height(),
                               server.name(), serverPF, this);
-  Fl_PNG_Image *bkgImage = new Fl_PNG_Image("/home/jamesl/temp/vncbkg.png");
-  if(bkgImage){
+#ifdef _DEBUG_WATERMARK
+  Fl_PNG_Image *bkgImage = new Fl_PNG_Image("d:\\temp\\vncbkg.png");
+  if(bkgImage && bkgImage->w() && bkgImage->h()){
       desktop->setWatermark(bkgImage);
       delete bkgImage;
   }
-
+#endif
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like

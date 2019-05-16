@@ -44,6 +44,8 @@ endif()
 
 if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_executable(vncviewer WIN32 ${VNCVIEWER_SOURCES})
+  add_definitions(-D_DEBUG_WATERMARK)
+  #target_link_libraries(vncviewer PUBLIC "-static")
 else()
   add_executable(vncviewer ${VNCVIEWER_SOURCES})
 endif()

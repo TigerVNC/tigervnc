@@ -51,6 +51,8 @@
 #ifdef __APPLE__
 #include "cocoa.h"
 #endif
+#include <array>
+#include <tuple>
 
 #define EDGE_SCROLL_SIZE 32
 #define EDGE_SCROLL_SPEED 20
@@ -344,26 +346,8 @@ void DesktopWindow::draw()
       update_child(*viewport);
   }
 
-  if(watermark && 0){
-      int ww = watermark->width();
-      int wh = watermark->height();
-      int wx = X;
-      int wy = Y;
-      for(wx = X; wx < W; wx += ww) {
-          for(wy = Y; wy < H; wy += wh) {
-              if(offscreen){
-                watermark->blend(offscreen, X, Y, wx, wy,
-                        (W - wx) < ww ? W-wx : ww, (H-wy) < wh ? H-wy : wh);
-              }else{
-                watermark->blend(X, Y, wx, wy,
-                        (W - wx) < ww ? W-wx : ww, (H-wy) < wh ? H-wy : wh);
-              }
 
-          }
-      }
-  }
-
-
+  std::tuple<int, int, int, int> oldRect = std::make_tuple(X, Y, W, H);
   // Debug graph (if active)
   if (statsGraph) {
     int ox, oy, ow, oh;
@@ -412,6 +396,22 @@ void DesktopWindow::draw()
       else
         overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
     }
+  }
+  if(watermark && 1){
+      X = std::get<0>(oldRect);
+      Y = std::get<1>(oldRect);
+      W = std::get<2>(oldRect);
+      H = std::get<3>(oldRect);
+
+      //vlog.info(_("offscreen X:Y:W:H-->%d:%d:%d:%d"), X, Y, W, H);
+      if(offscreen){
+    	  //FIXME: invalid parameter
+        //watermark->blendWatermark(offscreen, 0, 0, 0, 0, ww, wh);
+    	  watermark->blendWatermark(offscreen, X, Y, W, H, 240);
+
+      }else{
+    	//watermark->blend(X, Y, 0, 0, ww, wh);
+      }
   }
 
   // Flush offscreen surface to screen

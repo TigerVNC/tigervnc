@@ -25,6 +25,7 @@
 #include <rdr/Exception.h>
 #include <malloc.h>
 #include <tchar.h>
+#include <stdint.h>
 
 using namespace rfb;
 using namespace rfb::win32;

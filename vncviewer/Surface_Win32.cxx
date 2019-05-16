@@ -95,6 +95,7 @@ void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
   assert(false);
 }
 
+
 void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a)
 {
   HDC dstdc, srcdc;
@@ -125,6 +126,53 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
     // so only ignore this combination.
     if (GetLastError() != ERROR_INVALID_HANDLE)
       throw rdr::SystemException("BitBlt", GetLastError());
+  }
+
+  DeleteDC(srcdc);
+  DeleteDC(dstdc);
+}
+
+void Surface::blendWatermark(Surface* dst, int X, int Y, int W, int H, int a)
+{
+  HDC dstdc, srcdc;
+  BLENDFUNCTION blend;
+
+  dstdc = CreateCompatibleDC(NULL);
+  if (!dstdc)
+    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+  srcdc = CreateCompatibleDC(NULL);
+  if (!srcdc)
+    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+
+  if (!SelectObject(dstdc, dst->bitmap))
+    throw rdr::SystemException("SelectObject", GetLastError());
+  if (!SelectObject(srcdc, bitmap))
+    throw rdr::SystemException("SelectObject", GetLastError());
+
+  covermap map = get_cover_map(X, Y, W, H, w, h);
+  covermap::iterator it ;
+  for(it = map.begin(); it != map.end(); it ++){
+		blockmap block = *it;
+		blend.BlendOp = AC_SRC_OVER;
+		blend.BlendFlags = 0;
+		blend.SourceConstantAlpha = a;
+		blend.AlphaFormat = AC_SRC_ALPHA;
+		int src_x = std::get<0>(block);
+		int src_y = std::get<1>(block);
+		int dst_x = std::get<2>(block);
+		int dst_y = std::get<3>(block);
+		int ow = std::get<4>(block);
+		int oh = std::get<5>(block);
+		if (!AlphaBlend(dstdc, dst_x, dst_y, ow, oh, srcdc, src_x, src_y, ow,
+				oh, blend)) {
+			// If the desktop we're rendering to is inactive (like when the screen
+			// is locked or the UAC is active), then GDI calls will randomly fail.
+			// This is completely undocumented so we have no idea how best to deal
+			// with it. For now, we've only seen this error and for this function
+			// so only ignore this combination.
+			if (GetLastError() != ERROR_INVALID_HANDLE)
+				throw rdr::SystemException("BitBlt", GetLastError());
+		}
   }
 
   DeleteDC(srcdc);
@@ -205,3 +253,48 @@ void Surface::update(const Fl_RGB_Image* image)
   }
 }
 
+covermap Surface::get_cover_map(int X, int Y, int W, int H, int w, int h)
+{
+	covermap map;
+	int alignedX = (X/w)*w;
+	int alignedY = (Y/h)*h;
+	int alignedW = ((X+W-1)/w + 1)*w - alignedX;
+	int alignedH = ((Y+H-1)/h + 1)*h - alignedY;
+	int xSeg = alignedW / w;
+	int ySeg = alignedH / h;
+	int xi;
+	int yi = 0;
+	for(xi = 0; xi < xSeg; xi++){
+		for(yi = 0; yi < ySeg; yi++){
+			int dstX = alignedX + xi * w;
+			int dstY = alignedY + yi * h;
+			int srcX = 0;
+			int srcY = 0;
+			int blockW = w;
+			int blockH = h;
+			int delta = 0;
+			if(dstX < X){
+				delta = X - dstX;
+				srcX += delta;
+				blockW -= delta;
+				dstX = X;
+			}
+			if(dstX - delta + w > X + W){
+				blockW -= (dstX - delta + w - (X + W));
+			}
+			delta = 0;
+			if(dstY < Y){
+				delta = Y - dstY;
+				srcY += delta;
+				blockH -= delta;
+				dstY = Y;
+			}
+			if(dstY -delta + h > Y + H){
+				blockH -= ((dstY - delta + h) - (Y+H));
+			}
+			blockmap block = std::make_tuple(srcX, srcY, dstX, dstY, blockW, blockH);
+			map.push_back(block);
+		}
+	}
+	return map;
+}
