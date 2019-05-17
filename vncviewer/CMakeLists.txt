@@ -61,6 +61,7 @@ if(APPLE)
   target_link_libraries(vncviewer "-framework Carbon")
   target_link_libraries(vncviewer "-framework IOKit")
 endif()
+#set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 install(TARGETS vncviewer DESTINATION ${BIN_DIR})
 if(UNIX)

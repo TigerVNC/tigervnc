@@ -201,6 +201,10 @@ set(JPEG_TEST_SOURCE "\n
     return 0;\n
   }")
 
+find_package(PNG REQUIRED)
+set(CMAKE_REQUIRED_LIBRARIES ${PNG_LIBRARIES})
+set(CMAKE_REQUIRED_FLAGS -I${PNG_INCLUDE_DIR})
+
 if(CMAKE_CROSSCOMPILING)
   check_c_source_compiles("${JPEG_TEST_SOURCE}" FOUND_LIBJPEG_TURBO)
 else()

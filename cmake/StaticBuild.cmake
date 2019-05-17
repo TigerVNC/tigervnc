@@ -20,6 +20,7 @@ if(BUILD_STATIC)
 
   set(JPEG_LIBRARIES "-Wl,-Bstatic -ljpeg -Wl,-Bdynamic")
   set(ZLIB_LIBRARIES "-Wl,-Bstatic -lz -Wl,-Bdynamic")
+  set(PNG_LIBRARIES "-Wl,-Bstatic -lpng -Wl,-Bdynamic")
 
   # gettext is included in libc on many unix systems
   if(NOT LIBC_HAS_DGETTEXT)
@@ -115,7 +116,7 @@ endif()
 if(BUILD_STATIC_GCC)
   # This ensures that we don't depend on libstdc++ or libgcc_s
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nodefaultlibs")
-  set(STATIC_BASE_LIBRARIES "-Wl,-Bstatic -lstdc++ -Wl,-Bdynamic")
+  set(STATIC_BASE_LIBRARIES "-Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic")
   if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lasan -Wl,-Bdynamic -ldl -lm -lpthread")
   endif()
