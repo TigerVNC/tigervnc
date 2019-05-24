@@ -17,42 +17,35 @@
  * USA.
  */
 
-#ifndef __XINPUTTOUCHHANDLER_H__
-#define __XINPUTTOUCHHANDLER_H__
+#ifndef __BASETOUCHHANDLER_H__
+#define __BASETOUCHHANDLER_H__
 
-#include "BaseTouchHandler.h"
-#include "GestureHandler.h"
+#include "GestureEvent.h"
 
-class XInputTouchHandler: public BaseTouchHandler, GestureHandler {
+class BaseTouchHandler {
   public:
-    XInputTouchHandler(Window wnd);
-
-    bool grabPointer();
-    void ungrabPointer();
-
-    void processEvent(const XIDeviceEvent* devev);
+    virtual ~BaseTouchHandler();
 
   protected:
-    void preparePointerEvent(XEvent* dst, const XIDeviceEvent* src);
-    void fakeMotionEvent(const XIDeviceEvent* origEvent);
-    void fakeButtonEvent(bool press, int button,
-                         const XIDeviceEvent* origEvent);
+    BaseTouchHandler();
 
-    void preparePointerEvent(XEvent* dst, const GestureEvent src);
-    virtual void fakeMotionEvent(const GestureEvent origEvent);
+  protected:
+    virtual void fakeMotionEvent(const GestureEvent origEvent) = 0;
     virtual void fakeButtonEvent(bool press, int button,
-                                 const GestureEvent origEvent);
+                                 const GestureEvent origEvent) = 0;
     virtual void fakeKeyEvent(bool press, int keycode,
-                              const GestureEvent origEvent);
+                              const GestureEvent origEvent) = 0;
 
     virtual void handleGestureEvent(const GestureEvent& event);
 
   private:
-    void pushFakeEvent(XEvent* event);
+    void handleTapEvent(const GestureEvent& ev, int buttonEvent);
 
-  private:
-    Window wnd;
-    int fakeStateMask;
+    double lastMagnitudeX;
+    double lastMagnitudeY;
+
+    GestureEvent firstDoubleTapEvent;
+    struct timeval lastTapTime;
 };
 
 #endif

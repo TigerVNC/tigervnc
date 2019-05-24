@@ -4,6 +4,7 @@ include_directories(${GETTEXT_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/common)
 set(VNCVIEWER_SOURCES
   menukey.cxx
+  BaseTouchHandler.cxx
   CConn.cxx
   DesktopWindow.cxx
   EmulateMB.cxx
@@ -33,7 +34,7 @@ if(WIN32)
 elseif(APPLE)
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm osx_to_qnum.c)
 else()
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} XInputTouchHandler.cxx xkb_to_qnum.c)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} GestureHandler.cxx XInputTouchHandler.cxx xkb_to_qnum.c)
 endif()
 
 if(WIN32)
