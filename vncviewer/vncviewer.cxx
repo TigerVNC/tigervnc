@@ -539,8 +539,6 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  init_fltk();
-
   Configuration::enableViewerParams();
 
   /* Load the default parameter settings */
@@ -578,11 +576,6 @@ int main(int argc, char** argv)
     i++;
   }
 
-  // Check if the server name in reality is a configuration file
-  potentiallyLoadConfigurationFile(vncServerName);
-
-  mkvnchomedir();
-
 #if !defined(WIN32) && !defined(__APPLE__)
   if (strcmp(display, "") != 0) {
     Fl::display(display);
@@ -590,6 +583,13 @@ int main(int argc, char** argv)
   fl_open_display();
   XkbSetDetectableAutoRepeat(fl_display, True, NULL);
 #endif
+
+  init_fltk();
+
+  // Check if the server name in reality is a configuration file
+  potentiallyLoadConfigurationFile(vncServerName);
+
+  mkvnchomedir();
 
   CSecurity::upg = &dlg;
 #ifdef HAVE_GNUTLS
