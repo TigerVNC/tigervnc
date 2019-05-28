@@ -86,6 +86,7 @@ char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
 static const char *argv0 = NULL;
 
+static bool inMainloop = false;
 static bool exitMainloop = false;
 static const char *exitError = NULL;
 
@@ -114,7 +115,14 @@ void exit_vncviewer(const char *error)
   if ((error != NULL) && (exitError == NULL))
     exitError = strdup(error);
 
-  exitMainloop = true;
+  if (inMainloop)
+    exitMainloop = true;
+  else {
+    // We're early in the startup. Assume we can just exit().
+    if (alertOnFatalError)
+      fl_alert("%s", exitError);
+    exit(EXIT_FAILURE);
+  }
 }
 
 bool should_exit()
@@ -415,9 +423,7 @@ potentiallyLoadConfigurationFile(char *vncServerName)
       vncServerName[VNCSERVERNAMELEN-1] = '\0';
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
-      if (alertOnFatalError)
-        fl_alert("%s", e.str());
-      exit(EXIT_FAILURE);
+      exit_vncviewer(e.str());
     }
   }
 }
@@ -600,10 +606,8 @@ int main(int argc, char** argv)
     // TRANSLATORS: "Parameters" are command line arguments, or settings
     // from a file or the Windows registry.
     vlog.error(_("Parameters -listen and -via are incompatible"));
-    if (alertOnFatalError)
-      fl_alert(_("Parameters -listen and -via are incompatible"));
-    exit_vncviewer();
-    return 1;
+    exit_vncviewer(_("Parameters -listen and -via are incompatible"));
+    return 1; /* Not reached */
   }
 #endif
 
@@ -649,10 +653,8 @@ int main(int argc, char** argv)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      if (alertOnFatalError)
-        fl_alert("%s", e.str());
-      exit_vncviewer();
-      return 1; 
+      exit_vncviewer(e.str());
+      return 1; /* Not reached */
     }
 
     while (!listeners.empty()) {
@@ -674,8 +676,10 @@ int main(int argc, char** argv)
 
   CConn *cc = new CConn(vncServerName, sock);
 
+  inMainloop = true;
   while (!exitMainloop)
     run_mainloop();
+  inMainloop = false;
 
   delete cc;
 
