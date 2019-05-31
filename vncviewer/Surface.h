@@ -54,6 +54,7 @@ public:
   void blend(int src_x, int src_y, int x, int y, int w, int h, int a=255);
   void blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a=255);
   void blendWatermark(Surface* dst, int X, int Y, int W, int H, int a = 255);
+  void blendWatermark(int X, int Y, int W, int H, int a = 255);
 
 protected:
   void alloc();

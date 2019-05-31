@@ -402,15 +402,13 @@ void DesktopWindow::draw()
       Y = std::get<1>(oldRect);
       W = std::get<2>(oldRect);
       H = std::get<3>(oldRect);
+      vlog.info("blend watermark at screen (%p) position (%d:%d:%d:%d)\n",
+	  offscreen, X, Y, W, H);
 
-      //vlog.info(_("offscreen X:Y:W:H-->%d:%d:%d:%d"), X, Y, W, H);
       if(offscreen){
-    	  //FIXME: invalid parameter
-        //watermark->blendWatermark(offscreen, 0, 0, 0, 0, ww, wh);
     	  watermark->blendWatermark(offscreen, X, Y, W, H, 240);
-
       }else{
-    	//watermark->blend(X, Y, 0, 0, ww, wh);
+    	  watermark->blendWatermark(X, Y, W, H, 240);
       }
   }
 

@@ -96,6 +96,12 @@ void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
     XRenderFreePicture(fl_display, alpha);
 }
 
+void Surface::blendWatermark(int X, int Y, int W, int H, int a)
+{
+
+}
+
+
 void Surface::blendWatermark(Surface* dst, int X, int Y, int W, int H, int a)
 {
 

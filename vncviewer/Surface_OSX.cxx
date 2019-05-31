@@ -168,10 +168,6 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   CGContextRelease(bitmap);
 }
 
-void Surface::blendWatermark(Surface* dst, int X, int Y, int W, int H, int a)
-{
-
-}
 
 
 void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
@@ -207,6 +203,64 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
   render(bitmap, srgb, data, kCGBlendModeNormal, (CGFloat)a/255.0,
          src_x, src_y, width(), height(), x, y, w, h);
 
+  CGContextRelease(bitmap);
+}
+
+void Surface::blendWatermark(int X, int Y, int W, int H, int a)
+{
+
+  CGColorSpaceRef lut;
+
+  CGContextSaveGState(fl_gc);
+
+  // Reset the transformation matrix back to the default identity
+  // matrix as otherwise we get a massive performance hit
+  CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
+
+  lut = cocoa_win_color_space(Fl_Window::current());
+
+  covermap map = get_cover_map(X, Y, W, H, w, h);
+  covermap::iterator it ;
+  for(it = map.begin(); it != map.end(); it ++){
+     blockmap block = *it;
+     int src_x = std::get<0>(block);
+     int src_y = std::get<1>(block);
+     int dst_x = std::get<2>(block);
+     int dst_y = std::get<3>(block);
+
+     int ow = std::get<4>(block);
+     int oh = std::get<5>(block);
+
+     dst_y = Fl_Window::current()->h() - (dst_y + oh);
+     render(fl_gc, lut, data, kCGBlendModeNormal, (CGFloat)a/255.0,
+        src_x, src_y, ow, oh, dst_x, dst_y, ow, oh);
+  }
+  CGColorSpaceRelease(lut);
+  CGContextRestoreGState(fl_gc);
+}
+
+void Surface::blendWatermark(Surface* dst, int X, int Y, int W, int H, int a)
+{
+  CGContextRef bitmap;
+
+  bitmap = make_bitmap(dst->width(), dst->height(), dst->data);
+  covermap map = get_cover_map(X, Y, W, H, w, h);
+  covermap::iterator it ;
+  for(it = map.begin(); it != map.end(); it ++){
+     blockmap block = *it;
+     int src_x = std::get<0>(block);
+     int src_y = std::get<1>(block);
+     int dst_x = std::get<2>(block);
+     int dst_y = std::get<3>(block);
+
+     int ow = std::get<4>(block);
+     int oh = std::get<5>(block);
+
+     dst_y = dst->height() - (dst_y + oh);
+
+     render(bitmap, srgb, data, kCGBlendModeNormal, (CGFloat)a/255.0,
+        src_x, src_y, ow, oh, dst_x, dst_y, ow, oh);
+  }
   CGContextRelease(bitmap);
 }
 

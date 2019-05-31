@@ -68,6 +68,7 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -UNDEBUG")
 
 # Make sure we get a sane C version
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++0x")
 
 # Tell the compiler to be stringent
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat=2")
@@ -185,6 +186,8 @@ find_package(JPEG REQUIRED)
 # Warn if it doesn't seem to be the accelerated libjpeg that's found
 set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARIES})
 set(CMAKE_REQUIRED_FLAGS -I${JPEG_INCLUDE_DIR})
+
+message(STATUS "CMAKE_REQUIRED_LIBRARIES-------" ${CMAKE_REQUIRED_LIBRARIES})
 
 set(JPEG_TEST_SOURCE "\n
   #include <stdio.h>\n

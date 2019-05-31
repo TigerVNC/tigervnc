@@ -30,7 +30,7 @@ IF(ICONV_FOUND)
   check_c_compiler_flag("-Werror" ICONV_HAVE_WERROR)
   set (CMAKE_C_FLAGS_BACKUP "${CMAKE_C_FLAGS}")
   if(ICONV_HAVE_WERROR)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=vla")
   endif(ICONV_HAVE_WERROR)
   check_c_source_compiles("
   #include <iconv.h>

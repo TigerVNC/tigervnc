@@ -132,6 +132,10 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
   DeleteDC(dstdc);
 }
 
+void Surface::blendWatermark(int X, int Y, int W, int H, int a)
+{
+}
+
 void Surface::blendWatermark(Surface* dst, int X, int Y, int W, int H, int a)
 {
   HDC dstdc, srcdc;
