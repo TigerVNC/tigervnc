@@ -402,8 +402,8 @@ void DesktopWindow::draw()
       Y = std::get<1>(oldRect);
       W = std::get<2>(oldRect);
       H = std::get<3>(oldRect);
-      vlog.info("blend watermark at screen (%p) position (%d:%d:%d:%d)\n",
-	  offscreen, X, Y, W, H);
+      //vlog.info("blend watermark at screen (%p) position (%d:%d:%d:%d)\n",
+      //	  offscreen, X, Y, W, H);
 
       if(offscreen){
     	  watermark->blendWatermark(offscreen, X, Y, W, H, 240);

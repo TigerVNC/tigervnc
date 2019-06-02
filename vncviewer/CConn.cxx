@@ -301,7 +301,7 @@ void CConn::initDone()
 
   desktop = new DesktopWindow(server.width(), server.height(),
                               server.name(), serverPF, this);
-//#ifdef _DEBUG_WATERMARK
+#ifdef _DEBUG_WATERMARK
   Fl_PNG_Image *bkgImage = new Fl_PNG_Image("vncbkg.png");
   if(bkgImage && bkgImage->w() && bkgImage->h()){
       desktop->setWatermark(bkgImage);
@@ -310,7 +310,7 @@ void CConn::initDone()
   }else{
       throw rdr::Exception("load watermark failed");
   }
-//#endif
+#endif
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like

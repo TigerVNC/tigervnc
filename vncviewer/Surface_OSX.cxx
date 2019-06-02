@@ -233,7 +233,7 @@ void Surface::blendWatermark(int X, int Y, int W, int H, int a)
 
      dst_y = Fl_Window::current()->h() - (dst_y + oh);
      render(fl_gc, lut, data, kCGBlendModeNormal, (CGFloat)a/255.0,
-        src_x, src_y, ow, oh, dst_x, dst_y, ow, oh);
+        src_x, src_y, width(), height(), dst_x, dst_y, ow, oh);
   }
   CGColorSpaceRelease(lut);
   CGContextRestoreGState(fl_gc);
@@ -259,7 +259,8 @@ void Surface::blendWatermark(Surface* dst, int X, int Y, int W, int H, int a)
      dst_y = dst->height() - (dst_y + oh);
 
      render(bitmap, srgb, data, kCGBlendModeNormal, (CGFloat)a/255.0,
-        src_x, src_y, ow, oh, dst_x, dst_y, ow, oh);
+        src_x, src_y, width(), height(), dst_x, dst_y, ow, oh);
+        //src_x, src_y, ow, oh, dst_x, dst_y, ow, oh);
   }
   CGContextRelease(bitmap);
 }
