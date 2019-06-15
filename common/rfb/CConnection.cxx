@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011-2017 Pierre Ossman for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -18,12 +18,14 @@
  */
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <rfb/Exception.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
+#include <rfb/Configuration.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Decoder.h>
 #include <rfb/Security.h>
@@ -166,17 +168,30 @@ void CConnection::processVersionMsg()
   vlog.info("Server supports RFB protocol version %d.%d",
             server.majorVersion, server.minorVersion);
 
-  // The only official RFB protocol versions are currently 3.3, 3.7 and 3.8
-  if (server.beforeVersion(3,3)) {
-    vlog.error("Server gave unsupported RFB protocol version %d.%d",
-               server.majorVersion, server.minorVersion);
-    state_ = RFBSTATE_INVALID;
-    throw Exception("Server gave unsupported RFB protocol version %d.%d",
-                    server.majorVersion, server.minorVersion);
-  } else if (server.beforeVersion(3,7)) {
-    server.setVersion(3,3);
-  } else if (server.afterVersion(3,8)) {
-    server.setVersion(3,8);
+  if ( VoidParameter* rfbVer = Configuration::getParam("rfbVersion") ) {
+    CharArray major, minor;
+    if (strSplit(rfbVer->getValueStr(), '.', &major.buf, &minor.buf, false)) {
+      server.setVersion(atoi(major.buf),atoi(minor.buf));
+    } else {
+        vlog.error("Invalid value for parameter rfbVersion = %s",
+            rfbVer->getValueStr());
+        state_ = RFBSTATE_INVALID;
+        throw Exception("Invalid RFB protocol version %s",
+            rfbVer->getValueStr());
+    }
+  } else {
+    // The only official RFB protocol versions are currently 3.3, 3.7 and 3.8
+    if (server.beforeVersion(3,3)) {
+      vlog.error("Server gave unsupported RFB protocol version %d.%d",
+          server.majorVersion, server.minorVersion);
+      state_ = RFBSTATE_INVALID;
+      throw Exception("Server gave unsupported RFB protocol version %d.%d",
+          server.majorVersion, server.minorVersion);
+    } else if (server.beforeVersion(3,7)) {
+      server.setVersion(3,3);
+    } else if (server.afterVersion(3,8)) {
+      server.setVersion(3,8);
+    }
   }
 
   sprintf(verStr, "RFB %03d.%03d\n",

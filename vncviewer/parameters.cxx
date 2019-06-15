@@ -82,6 +82,9 @@ AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", 
 StringParameter preferredEncoding("PreferredEncoding",
                                   "Preferred encoding to use (Tight, ZRLE, Hextile or"
                                   " Raw)", "Tight");
+StringParameter rfbVersion("rfbVersion",
+                           "Use specific RFB version (3.3, 3.7 or 3.8)",
+                           "");
 BoolParameter customCompressLevel("CustomCompressLevel",
                                   "Use custom compression level. "
                                   "Default if CompressLevel is specified.", false);
@@ -164,6 +167,7 @@ static VoidParameter* parameterArray[] = {
   &fullColour,
   &lowColourLevel,
   &preferredEncoding,
+  &rfbVersion,
   &customCompressLevel,
   &compressLevel,
   &noJpeg,
