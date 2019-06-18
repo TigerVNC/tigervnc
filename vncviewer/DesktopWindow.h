@@ -74,10 +74,10 @@ public:
 
   // Fl_Window callback methods
   virtual void show();
-  void draw();
-  void resize(int x, int y, int w, int h);
+  virtual void draw();
+  virtual void resize(int x, int y, int w, int h);
 
-  int handle(int event);
+  virtual int handle(int event);
 
   void fullscreen_on();
 
