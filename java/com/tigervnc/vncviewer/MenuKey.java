@@ -64,7 +64,8 @@ public class MenuKey
     new MenuKeySymbol("Delete", VK_DELETE, 0xd3, XK_Delete),
     new MenuKeySymbol("Home", VK_HOME, 0xc7, XK_Home),
     new MenuKeySymbol("Page_Up", VK_PAGE_UP, 0xc9, XK_Page_Up),
-    new MenuKeySymbol("Page_Down", VK_PAGE_DOWN, 0xd1, XK_Page_Down)
+    new MenuKeySymbol("Page_Down", VK_PAGE_DOWN, 0xd1, XK_Page_Down),
+    new MenuKeySymbol("None", VK_UNDEFINED, 0, 0)
   };
 
   static int getMenuKeySymbolCount() {
