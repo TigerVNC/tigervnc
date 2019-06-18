@@ -65,7 +65,13 @@ public class DesktopWindow extends JFrame
     scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
     getContentPane().add(scroll);
 
-    setName(name);
+    String windowTitleStr = windowTitle.getValueStr();
+    if (windowTitleStr != 
+        windowTitle.getDefaultStr()) {
+      setName(windowTitleStr);
+    } else {
+      setName(name);
+    }
 
     lastScaleFactor = scalingFactor.getValue();
     if (VncViewer.os.startsWith("mac os x"))

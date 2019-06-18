@@ -288,6 +288,11 @@ public class Parameters {
     "JPEG quality level. 0 = Low, 9 = High",
     8);
 
+  public static StringParameter windowTitle
+  = new StringParameter("WindowTitle",
+    "Title for application window.",
+    "");
+
   private static final String IDENTIFIER_STRING
   = "TigerVNC Configuration file Version 1.0";
 
@@ -326,6 +331,7 @@ public class Parameters {
     extSSHArgs,
     sshConfig,
     sshKeyFile,
+    windowTitle,
   };
 
 
