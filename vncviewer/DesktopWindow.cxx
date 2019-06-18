@@ -290,6 +290,28 @@ void DesktopWindow::setCursor(int width, int height,
 }
 
 
+void DesktopWindow::show()
+{
+  Fl_Window::show();
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  XEvent e;
+
+  // Request ability to grab keyboard under Xwayland
+  e.xany.type = ClientMessage;
+  e.xany.window = fl_xid(this);
+  e.xclient.message_type = XInternAtom (fl_display, "_XWAYLAND_MAY_GRAB_KEYBOARD", 0);
+  e.xclient.format = 32;
+  e.xclient.data.l[0] = 1;
+  e.xclient.data.l[1] = 0;
+  e.xclient.data.l[2] = 0;
+  e.xclient.data.l[3] = 0;
+  e.xclient.data.l[4] = 0;
+  XSendEvent(fl_display, RootWindow(fl_display, fl_screen), 0, SubstructureNotifyMask | SubstructureRedirectMask, &e);
+#endif
+}
+
+
 void DesktopWindow::draw()
 {
   bool redraw;

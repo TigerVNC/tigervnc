@@ -73,6 +73,7 @@ public:
   void setLEDState(unsigned int state);
 
   // Fl_Window callback methods
+  virtual void show();
   void draw();
   void resize(int x, int y, int w, int h);
 
