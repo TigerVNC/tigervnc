@@ -185,7 +185,7 @@ int rfb::Region::numRects() const {
 }
 
 bool rfb::Region::get_rects(std::vector<Rect>* rects,
-                            bool left2right, bool topdown, int maxArea) const
+                            bool left2right, bool topdown) const
 {
   int nRects = xrgn->numRects;
   int xInc = left2right ? 1 : -1;
@@ -209,16 +209,9 @@ bool rfb::Region::get_rects(std::vector<Rect>* rects,
       i = firstInNextBand - yInc;
 
     while (nRectsInBand > 0) {
-      int y = xrgn->rects[i].y1;
-      int h = maxArea / (xrgn->rects[i].x2 - xrgn->rects[i].x1);
-      if (!h) h = xrgn->rects[i].y2 - y;
-      do {
-        if (h > xrgn->rects[i].y2 - y)
-          h = xrgn->rects[i].y2 - y;
-        Rect r(xrgn->rects[i].x1, y, xrgn->rects[i].x2, y+h);
-        rects->push_back(r);
-        y += h;
-      } while (y < xrgn->rects[i].y2);
+      Rect r(xrgn->rects[i].x1, xrgn->rects[i].y1,
+             xrgn->rects[i].x2, xrgn->rects[i].y2);
+      rects->push_back(r);
       i += xInc;
       nRectsInBand--;
     }
