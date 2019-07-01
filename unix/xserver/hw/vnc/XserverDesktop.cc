@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2017 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * Copyright 2014 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
@@ -182,6 +182,33 @@ void XserverDesktop::queryConnection(network::Socket* sock,
   queryConnectTimer.start(queryConnectTimeout * 1000);
 }
 
+void XserverDesktop::requestClipboard()
+{
+  try {
+    server->requestClipboard();
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::requestClipboard: %s",e.str());
+  }
+}
+
+void XserverDesktop::announceClipboard(bool available)
+{
+  try {
+    server->announceClipboard(available);
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::announceClipboard: %s",e.str());
+  }
+}
+
+void XserverDesktop::sendClipboardData(const char* data)
+{
+  try {
+    server->sendClipboardData(data);
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::sendClipboardData: %s",e.str());
+  }
+}
+
 void XserverDesktop::bell()
 {
   server->bell();
@@ -190,15 +217,6 @@ void XserverDesktop::bell()
 void XserverDesktop::setLEDState(unsigned int state)
 {
   server->setLEDState(state);
-}
-
-void XserverDesktop::serverCutText(const char* str, int len)
-{
-  try {
-    server->serverCutText(str, len);
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::serverCutText: %s",e.str());
-  }
 }
 
 void XserverDesktop::setDesktopName(const char* name)
@@ -436,11 +454,6 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
   vncPointerButtonAction(buttonMask);
 }
 
-void XserverDesktop::clientCutText(const char* str, int len)
-{
-  vncClientCutText(str, len);
-}
-
 unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
                                              const rfb::ScreenSet& layout)
 {
@@ -460,6 +473,21 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   refreshScreenLayout();
 
   return result;
+}
+
+void XserverDesktop::handleClipboardRequest()
+{
+  vncHandleClipboardRequest();
+}
+
+void XserverDesktop::handleClipboardAnnounce(bool available)
+{
+  vncHandleClipboardAnnounce(available);
+}
+
+void XserverDesktop::handleClipboardData(const char* data_)
+{
+  vncHandleClipboardData(data_);
 }
 
 void XserverDesktop::grabRegion(const rfb::Region& region)

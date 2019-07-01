@@ -54,7 +54,7 @@ public:
   virtual void framebufferUpdateEnd();
   virtual void setColourMapEntries(int, int, rdr::U16*);
   virtual void bell();
-  virtual void serverCutText(const char*, rdr::U32);
+  virtual void serverCutText(const char*);
 
 public:
   double cpuTime;
@@ -122,7 +122,7 @@ void CConn::bell()
 {
 }
 
-void CConn::serverCutText(const char*, rdr::U32)
+void CConn::serverCutText(const char*)
 {
 }
 

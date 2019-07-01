@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,13 +76,15 @@ namespace rfb {
       virtual void terminate();
       virtual void queryConnection(network::Socket* sock,
                                    const char* userName);
+      virtual void handleClipboardRequest();
+      virtual void handleClipboardAnnounce(bool available);
+      virtual void handleClipboardData(const char* data);
       virtual void pointerEvent(const Point& pos, int buttonmask);
       virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
-      virtual void clientCutText(const char* str, int len);
 
-      // -=- Clipboard
+      // -=- Clipboard events
       
-      virtual void notifyClipboardChanged(const char* text, int len);
+      virtual void notifyClipboardChanged(bool available);
 
       // -=- Display events
       

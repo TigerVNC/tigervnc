@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2016-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +39,7 @@ namespace rfb {
       // -=- Abstract base class for callback recipients
       class Notifier {
       public:
-        virtual void notifyClipboardChanged(const char* text, int len) = 0;
+        virtual void notifyClipboardChanged(bool available) = 0;
         virtual ~Notifier() {};
       };
 
@@ -47,6 +48,9 @@ namespace rfb {
 
       // - Set the notifier to use
       void setNotifier(Notifier* cbn) {notifier = cbn;}
+
+      // - Get the clipboard contents
+      char* getClipText();
 
       // - Set the clipboard contents
       void setClipText(const char* text);

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +64,10 @@ namespace rfb {
     delete [] s;
   }
 
+  void strFree(wchar_t* s) {
+    delete [] s;
+  }
+
 
   bool strSplit(const char* src, const char limiter, char** out1, char** out2, bool fromEnd) {
     CharArray out1old, out2old;
@@ -105,6 +110,441 @@ namespace rfb {
     if (src)
       strncpy(dest, src, destlen-1);
     dest[src ? destlen-1 : 0] = 0;
+  }
+
+  char* convertLF(const char* src, size_t bytes)
+  {
+    char* buffer;
+    size_t sz;
+
+    char* out;
+    const char* in;
+    size_t in_len;
+
+    // Always include space for a NULL
+    sz = 1;
+
+    // Compute output size
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      if (*in != '\r') {
+        sz++;
+        in++;
+        in_len--;
+        continue;
+      }
+
+      if ((in_len == 0) || (*(in+1) != '\n'))
+        sz++;
+
+      in++;
+      in_len--;
+    }
+
+    // Alloc
+    buffer = new char[sz];
+    memset(buffer, 0, sz);
+
+    // And convert
+    out = buffer;
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      if (*in != '\r') {
+        *out++ = *in++;
+        in_len--;
+        continue;
+      }
+
+      if ((in_len == 0) || (*(in+1) != '\n'))
+        *out++ = '\n';
+
+      in++;
+      in_len--;
+    }
+
+    return buffer;
+  }
+
+  char* convertCRLF(const char* src, size_t bytes)
+  {
+    char* buffer;
+    size_t sz;
+
+    char* out;
+    const char* in;
+    size_t in_len;
+
+    // Always include space for a NULL
+    sz = 1;
+
+    // Compute output size
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      sz++;
+
+      if (*in == '\r') {
+        if ((in_len == 0) || (*(in+1) != '\n'))
+          sz++;
+      } else if (*in == '\n') {
+        if ((in == src) || (*(in-1) != '\r'))
+          sz++;
+      }
+
+      in++;
+      in_len--;
+    }
+
+    // Alloc
+    buffer = new char[sz];
+    memset(buffer, 0, sz);
+
+    // And convert
+    out = buffer;
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      if (*in == '\n') {
+        if ((in == src) || (*(in-1) != '\r'))
+          *out++ = '\r';
+      }
+
+      *out = *in;
+
+      if (*in == '\r') {
+        if ((in_len == 0) || (*(in+1) != '\n')) {
+          out++;
+          *out = '\n';
+        }
+      }
+
+      out++;
+      in++;
+      in_len--;
+    }
+
+    return buffer;
+  }
+
+  size_t ucs4ToUTF8(unsigned src, char* dst) {
+    if (src < 0x80) {
+      *dst++ = src;
+      *dst++ = '\0';
+      return 1;
+    } else if (src < 0x800) {
+      *dst++ = 0xc0 | (src >> 6);
+      *dst++ = 0x80 | (src & 0x3f);
+      *dst++ = '\0';
+      return 2;
+    } else if (src < 0x10000) {
+      *dst++ = 0xe0 | (src >> 12);
+      *dst++ = 0x80 | ((src >> 6) & 0x3f);
+      *dst++ = 0x80 | (src & 0x3f);
+      *dst++ = '\0';
+      return 3;
+    } else if (src < 0x110000) {
+      *dst++ = 0xf0 | (src >> 18);
+      *dst++ = 0x80 | ((src >> 12) & 0x3f);
+      *dst++ = 0x80 | ((src >> 6) & 0x3f);
+      *dst++ = 0x80 | (src & 0x3f);
+      *dst++ = '\0';
+      return 4;
+    } else {
+      return ucs4ToUTF8(0xfffd, dst);
+    }
+  }
+
+  size_t utf8ToUCS4(const char* src, size_t max, unsigned* dst) {
+    size_t count, consumed;
+
+    *dst = 0xfffd;
+
+    if (max == 0)
+      return 0;
+
+    consumed = 1;
+
+    if ((*src & 0x80) == 0) {
+      *dst = *src;
+      count = 0;
+    } else if ((*src & 0xe0) == 0xc0) {
+      *dst = *src & 0x1f;
+      count = 1;
+    } else if ((*src & 0xf0) == 0xe0) {
+      *dst = *src & 0x0f;
+      count = 2;
+    } else if ((*src & 0xf8) == 0xf0) {
+      *dst = *src & 0x07;
+      count = 3;
+    } else {
+      // Invalid sequence, consume all continuation characters
+      src++;
+      max--;
+      while ((max-- > 0) && ((*src++ & 0xc0) == 0x80))
+        consumed++;
+      return consumed;
+    }
+
+    src++;
+    max--;
+
+    while (count--) {
+      // Invalid or truncated sequence?
+      if ((max == 0) || ((*src & 0xc0) != 0x80)) {
+        *dst = 0xfffd;
+        return consumed;
+      }
+
+      *dst <<= 6;
+      *dst |= *src & 0x3f;
+
+      src++;
+      max--;
+    }
+
+    return consumed;
+  }
+
+  size_t ucs4ToUTF16(unsigned src, wchar_t* dst) {
+    if ((src < 0xd800) || ((src >= 0xe000) && (src < 0x10000))) {
+      *dst++ = src;
+      *dst++ = L'\0';
+      return 1;
+    } else if (src < 0x110000) {
+      *dst++ = 0xd800 | ((src >> 10) & 0x07ff);
+      *dst++ = 0xdc00 | (src & 0x07ff);
+      *dst++ = L'\0';
+      return 2;
+    } else {
+      return ucs4ToUTF16(0xfffd, dst);
+    }
+  }
+
+  size_t utf16ToUCS4(const wchar_t* src, size_t max, unsigned* dst) {
+    *dst = 0xfffd;
+
+    if (max == 0)
+      return 0;
+
+    if ((*src < 0xd800) || (*src >= 0xe000)) {
+      *dst = *src;
+      return 1;
+    }
+
+    if (*src & 0x0400) {
+      size_t consumed;
+
+      // Invalid sequence, consume all continuation characters
+      consumed = 0;
+      while ((max > 0) && (*src & 0x0400)) {
+        src++;
+        max--;
+        consumed++;
+      }
+
+      return consumed;
+    }
+
+    *dst = *src++;
+    max--;
+
+    // Invalid or truncated sequence?
+    if ((max == 0) || ((*src & 0xfc00) != 0xdc00)) {
+      *dst = 0xfffd;
+      return 1;
+    }
+
+    *dst = 0x10000 | ((*dst & 0x03ff) << 10);
+    *dst |= *src & 0x3ff;
+
+    return 2;
+  }
+
+  char* latin1ToUTF8(const char* src, size_t bytes) {
+    char* buffer;
+    size_t sz;
+
+    char* out;
+    const char* in;
+    size_t in_len;
+
+    // Always include space for a NULL
+    sz = 1;
+
+    // Compute output size
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      char buf[5];
+      sz += ucs4ToUTF8(*in, buf);
+      in++;
+      in_len--;
+    }
+
+    // Alloc
+    buffer = new char[sz];
+    memset(buffer, 0, sz);
+
+    // And convert
+    out = buffer;
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      out += ucs4ToUTF8(*in, out);
+      in++;
+      in_len--;
+    }
+
+    return buffer;
+  }
+
+  char* utf8ToLatin1(const char* src, size_t bytes) {
+    char* buffer;
+    size_t sz;
+
+    char* out;
+    const char* in;
+    size_t in_len;
+
+    // Always include space for a NULL
+    sz = 1;
+
+    // Compute output size
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf8ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+      sz++;
+    }
+
+    // Alloc
+    buffer = new char[sz];
+    memset(buffer, 0, sz);
+
+    // And convert
+    out = buffer;
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf8ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+
+      if (ucs > 0xff)
+        *out++ = '?';
+      else
+        *out++ = (unsigned char)ucs;
+    }
+
+    return buffer;
+  }
+
+  char* utf16ToUTF8(const wchar_t* src, size_t units)
+  {
+    char* buffer;
+    size_t sz;
+
+    char* out;
+    const wchar_t* in;
+    size_t in_len;
+
+    // Always include space for a NULL
+    sz = 1;
+
+    // Compute output size
+    in = src;
+    in_len = units;
+    while ((*in != '\0') && (in_len > 0)) {
+      size_t len;
+      unsigned ucs;
+      char buf[5];
+
+      len = utf16ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+
+      sz += ucs4ToUTF8(ucs, buf);
+    }
+
+    // Alloc
+    buffer = new char[sz];
+    memset(buffer, 0, sz);
+
+    // And convert
+    out = buffer;
+    in = src;
+    in_len = units;
+    while ((*in != '\0') && (in_len > 0)) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf16ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+
+      out += ucs4ToUTF8(ucs, out);
+    }
+
+    return buffer;
+  }
+
+  wchar_t* utf8ToUTF16(const char* src, size_t bytes)
+  {
+    wchar_t* buffer;
+    size_t sz;
+
+    wchar_t* out;
+    const char* in;
+    size_t in_len;
+
+    // Always include space for a NULL
+    sz = 1;
+
+    // Compute output size
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      size_t len;
+      unsigned ucs;
+      wchar_t buf[3];
+
+      len = utf8ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+
+      sz += ucs4ToUTF16(ucs, buf);
+    }
+
+    // Alloc
+    buffer = new wchar_t[sz];
+    memset(buffer, 0, sz);
+
+    // And convert
+    out = buffer;
+    in = src;
+    in_len = bytes;
+    while ((*in != '\0') && (in_len > 0)) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf8ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+
+      out += ucs4ToUTF16(ucs, out);
+    }
+
+    return buffer;
   }
 
   unsigned msBetween(const struct timeval *first,

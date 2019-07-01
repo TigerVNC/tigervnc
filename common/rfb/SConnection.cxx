@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include <string.h>
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
+#include <rfb/clipboardTypes.h>
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/SMsgReader.h>
@@ -52,7 +53,8 @@ SConnection::SConnection()
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
     ssecurity(0), state_(RFBSTATE_UNINITIALISED),
-    preferredEncoding(encodingRaw)
+    preferredEncoding(encodingRaw),
+    clientClipboard(NULL), hasLocalClipboard(false)
 {
   defaultMajorVersion = 3;
   defaultMinorVersion = 8;
@@ -70,6 +72,7 @@ SConnection::~SConnection()
   reader_ = 0;
   delete writer_;
   writer_ = 0;
+  strFree(clientClipboard);
 }
 
 void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -297,6 +300,69 @@ void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
   }
 
   SMsgHandler::setEncodings(nEncodings, encodings);
+
+  if (client.supportsEncoding(pseudoEncodingExtendedClipboard)) {
+    rdr::U32 sizes[] = { 0 };
+    writer()->writeClipboardCaps(rfb::clipboardUTF8 |
+                                 rfb::clipboardRequest |
+                                 rfb::clipboardPeek |
+                                 rfb::clipboardNotify |
+                                 rfb::clipboardProvide,
+                                 sizes);
+  }
+}
+
+void SConnection::clientCutText(const char* str)
+{
+  strFree(clientClipboard);
+  clientClipboard = NULL;
+
+  clientClipboard = latin1ToUTF8(str);
+
+  handleClipboardAnnounce(true);
+}
+
+void SConnection::handleClipboardRequest(rdr::U32 flags)
+{
+  if (!(flags & rfb::clipboardUTF8))
+    return;
+  if (!hasLocalClipboard)
+    return;
+  handleClipboardRequest();
+}
+
+void SConnection::handleClipboardPeek(rdr::U32 flags)
+{
+  if (!hasLocalClipboard)
+    return;
+  if (client.clipboardFlags() & rfb::clipboardNotify)
+    writer()->writeClipboardNotify(rfb::clipboardUTF8);
+}
+
+void SConnection::handleClipboardNotify(rdr::U32 flags)
+{
+  strFree(clientClipboard);
+  clientClipboard = NULL;
+
+  if (flags & rfb::clipboardUTF8)
+    handleClipboardAnnounce(true);
+  else
+    handleClipboardAnnounce(false);
+}
+
+void SConnection::handleClipboardProvide(rdr::U32 flags,
+                                         const size_t* lengths,
+                                         const rdr::U8* const* data)
+{
+  if (!(flags & rfb::clipboardUTF8))
+    return;
+
+  strFree(clientClipboard);
+  clientClipboard = NULL;
+
+  clientClipboard = convertLF((const char*)data[0], lengths[0]);
+
+  handleClipboardData(clientClipboard);
 }
 
 void SConnection::supportsQEMUKeyEvent()
@@ -408,6 +474,58 @@ void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
 void SConnection::enableContinuousUpdates(bool enable,
                                           int x, int y, int w, int h)
 {
+}
+
+void SConnection::handleClipboardRequest()
+{
+}
+
+void SConnection::handleClipboardAnnounce(bool available)
+{
+}
+
+void SConnection::handleClipboardData(const char* data)
+{
+}
+
+void SConnection::requestClipboard()
+{
+  if (clientClipboard != NULL) {
+    handleClipboardData(clientClipboard);
+    return;
+  }
+
+  if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
+      (client.clipboardFlags() & rfb::clipboardRequest))
+    writer()->writeClipboardRequest(rfb::clipboardUTF8);
+}
+
+void SConnection::announceClipboard(bool available)
+{
+  hasLocalClipboard = available;
+
+  if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
+      (client.clipboardFlags() & rfb::clipboardNotify))
+    writer()->writeClipboardNotify(available ? rfb::clipboardUTF8 : 0);
+  else {
+    if (available)
+      handleClipboardRequest();
+  }
+}
+
+void SConnection::sendClipboardData(const char* data)
+{
+  if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
+      (client.clipboardFlags() & rfb::clipboardProvide)) {
+    CharArray filtered(convertCRLF(data));
+    size_t sizes[1] = { strlen(filtered.buf) + 1 };
+    const rdr::U8* data[1] = { (const rdr::U8*)filtered.buf };
+    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
+  } else {
+    CharArray latin1(utf8ToLatin1(data));
+
+    writer()->writeServerCutText(latin1.buf);
+  }
 }
 
 void SConnection::writeFakeColourMap(void)

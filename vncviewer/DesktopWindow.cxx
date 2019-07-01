@@ -276,12 +276,6 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
-void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
-{
-  viewport->serverCutText(str, len);
-}
-
-
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
                               const rdr::U8* data)
@@ -439,6 +433,22 @@ void DesktopWindow::draw()
 void DesktopWindow::setLEDState(unsigned int state)
 {
   viewport->setLEDState(state);
+}
+
+
+void DesktopWindow::handleClipboardRequest()
+{
+  viewport->handleClipboardRequest();
+}
+
+void DesktopWindow::handleClipboardAnnounce(bool available)
+{
+  viewport->handleClipboardAnnounce(available);
+}
+
+void DesktopWindow::handleClipboardData(const char* data)
+{
+  viewport->handleClipboardData(data);
 }
 
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2014 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,7 +119,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
     altGrArmed(false),
 #endif
     firstLEDState(true),
-    pendingServerCutText(NULL), pendingClientCutText(NULL),
+    pendingServerClipboard(false), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -208,8 +208,6 @@ Viewport::~Viewport()
     delete cursor;
   }
 
-  clearPendingClipboard();
-
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
 }
@@ -230,45 +228,6 @@ void Viewport::updateWindow()
 
   r = frameBuffer->getDamage();
   damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
-}
-
-void Viewport::serverCutText(const char* str, rdr::U32 len)
-{
-  char *buffer;
-  int size, ret;
-
-  clearPendingClipboard();
-
-  if (!acceptClipboard)
-    return;
-
-  size = fl_utf8froma(NULL, 0, str, len);
-  if (size <= 0)
-    return;
-
-  size++;
-
-  buffer = new char[size];
-
-  ret = fl_utf8froma(buffer, size, str, len);
-  assert(ret < size);
-
-  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
-
-  if (!hasFocus()) {
-    pendingServerCutText = buffer;
-    return;
-  }
-
-  // RFB doesn't have separate selection and clipboard concepts, so we
-  // dump the data into both variants.
-#if !defined(WIN32) && !defined(__APPLE__)
-  if (setPrimary)
-    Fl::copy(buffer, ret, 0);
-#endif
-  Fl::copy(buffer, ret, 1);
-
-  delete [] buffer;
 }
 
 static const char * dotcursor_xpm[] = {
@@ -319,6 +278,55 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 }
 
+void Viewport::handleClipboardRequest()
+{
+  Fl::paste(*this, clipboardSource);
+}
+
+void Viewport::handleClipboardAnnounce(bool available)
+{
+  if (!acceptClipboard)
+    return;
+
+  if (available)
+    vlog.debug("Got notification of new clipboard on server");
+  else
+    vlog.debug("Clipboard is no longer available on server");
+
+  if (!available) {
+    pendingServerClipboard = false;
+    return;
+  }
+
+  pendingClientClipboard = false;
+
+  if (!hasFocus()) {
+    pendingServerClipboard = true;
+    return;
+  }
+
+  cc->requestClipboard();
+}
+
+void Viewport::handleClipboardData(const char* data)
+{
+  size_t len;
+
+  if (!hasFocus())
+    return;
+
+  len = strlen(data);
+
+  vlog.debug("Got clipboard data (%d bytes)", (int)len);
+
+  // RFB doesn't have separate selection and clipboard concepts, so we
+  // dump the data into both variants.
+#if !defined(WIN32) && !defined(__APPLE__)
+  if (setPrimary)
+    Fl::copy(data, len, 0);
+#endif
+  Fl::copy(data, len, 1);
+}
 
 void Viewport::setLEDState(unsigned int state)
 {
@@ -549,37 +557,24 @@ void Viewport::resize(int x, int y, int w, int h)
 
 int Viewport::handle(int event)
 {
-  char *buffer;
-  int ret;
+  char *filtered;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
 
   switch (event) {
   case FL_PASTE:
-    buffer = new char[Fl::event_length() + 1];
+    filtered = convertLF(Fl::event_text(), Fl::event_length());
 
-    clearPendingClipboard();
-
-    // This is documented as to ASCII, but actually does to 8859-1
-    ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer,
-                     Fl::event_length() + 1);
-    assert(ret < (Fl::event_length() + 1));
-
-    if (!hasFocus()) {
-      pendingClientCutText = buffer;
-      return 1;
-    }
-
-    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(buffer));
+    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(filtered));
 
     try {
-      cc->writer()->writeClientCutText(buffer, ret);
+      cc->sendClipboardData(filtered);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
 
-    delete [] buffer;
+    strFree(filtered);
 
     return 1;
 
@@ -737,41 +732,47 @@ void Viewport::handleClipboardChange(int source, void *data)
     return;
 #endif
 
-  Fl::paste(*self, source);
-}
+  self->clipboardSource = source;
 
+  self->pendingServerClipboard = false;
 
-void Viewport::clearPendingClipboard()
-{
-  delete [] pendingServerCutText;
-  pendingServerCutText = NULL;
-  delete [] pendingClientCutText;
-  pendingClientCutText = NULL;
+  if (!self->hasFocus()) {
+    self->pendingClientClipboard = true;
+    // Clear any older client clipboard from the server
+    self->cc->announceClipboard(false);
+    return;
+  }
+
+  try {
+    self->cc->announceClipboard(true);
+  } catch (rdr::Exception& e) {
+    vlog.error("%s", e.str());
+    exit_vncviewer(e.str());
+  }
 }
 
 
 void Viewport::flushPendingClipboard()
 {
-  if (pendingServerCutText) {
-    size_t len = strlen(pendingServerCutText);
-#if !defined(WIN32) && !defined(__APPLE__)
-    if (setPrimary)
-      Fl::copy(pendingServerCutText, len, 0);
-#endif
-    Fl::copy(pendingServerCutText, len, 1);
-  }
-  if (pendingClientCutText) {
-    size_t len = strlen(pendingClientCutText);
-    vlog.debug("Sending pending clipboard data (%d bytes)", (int)len);
+  if (pendingServerClipboard) {
     try {
-      cc->writer()->writeClientCutText(pendingClientCutText, len);
+      cc->requestClipboard();
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+  }
+  if (pendingClientClipboard) {
+    try {
+      cc->announceClipboard(true);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
   }
 
-  clearPendingClipboard();
+  pendingServerClipboard = false;
+  pendingClientClipboard = false;
 }
 
 

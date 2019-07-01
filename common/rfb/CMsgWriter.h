@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,15 @@ namespace rfb {
 
     void writeKeyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     void writePointerEvent(const Point& pos, int buttonMask);
-    void writeClientCutText(const char* str, rdr::U32 len);
+
+    void writeClientCutText(const char* str);
+
+    void writeClipboardCaps(rdr::U32 caps, const rdr::U32* lengths);
+    void writeClipboardRequest(rdr::U32 flags);
+    void writeClipboardPeek(rdr::U32 flags);
+    void writeClipboardNotify(rdr::U32 flags);
+    void writeClipboardProvide(rdr::U32 flags, const size_t* lengths,
+                               const rdr::U8* const* data);
 
   protected:
     void startMsg(int type);
