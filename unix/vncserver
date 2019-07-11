@@ -709,7 +709,7 @@ sub List
 	    }
 	}
     }
-    exit 1;
+    exit;
 }
 
 
