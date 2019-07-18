@@ -50,6 +50,7 @@ $vncSystemConfigDir = "/etc/tigervnc";
 $vncSystemConfigDefaultsFile = "$vncSystemConfigDir/vncserver-config-defaults";
 $vncSystemConfigMandatoryFile = "$vncSystemConfigDir/vncserver-config-mandatory";
 
+$skipxorgportcheck = 0;
 $skipxstartup = 0;
 $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 
@@ -132,7 +133,7 @@ if ($fontPath eq "") {
 # Check command line options
 
 &ParseOptions("-geometry",1,"-depth",1,"-pixelformat",1,"-name",1,"-kill",1,
-	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0,"-autokill",0,"-noxstartup",0,"-xstartup",1);
+	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0,"-autokill",0,"-noxstartup",0,"-noxorgportcheck",0,"-xstartup",1);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
@@ -156,6 +157,9 @@ if ($opt{'-pixelformat'}) {
 }
 if ($opt{'-noxstartup'}) {
     $skipxstartup = 1;
+}
+if ($opt{'-noxorgportcheck'}) {
+    $skipxorgportcheck = 1;
 }
 if ($opt{'-xstartup'}) {
     $xstartupFile = $opt{'-xstartup'};
@@ -524,13 +528,15 @@ sub CheckDisplayNumber
 {
     local ($n) = @_;
 
-    socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
-    eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-    if (!bind(S, pack('S n x12', $AF_INET, 6000 + $n))) {
+    if (! $skipxorgportcheck) {
+	socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+	eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
+	if (!bind(S, pack('S n x12', $AF_INET, 6000 + $n))) {
+	    close(S);
+	    return 0;
+	}
 	close(S);
-	return 0;
     }
-    close(S);
 
     socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
     eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
