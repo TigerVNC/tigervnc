@@ -127,7 +127,7 @@ namespace rfb {
     // Compute output size
     in = src;
     in_len = bytes;
-    while ((*in != '\0') && (in_len > 0)) {
+    while ((in_len > 0) && (*in != '\0')) {
       if (*in != '\r') {
         sz++;
         in++;
@@ -150,7 +150,7 @@ namespace rfb {
     out = buffer;
     in = src;
     in_len = bytes;
-    while ((*in != '\0') && (in_len > 0)) {
+    while ((in_len > 0) && (*in != '\0')) {
       if (*in != '\r') {
         *out++ = *in++;
         in_len--;
@@ -182,7 +182,7 @@ namespace rfb {
     // Compute output size
     in = src;
     in_len = bytes;
-    while ((*in != '\0') && (in_len > 0)) {
+    while ((in_len > 0) && (*in != '\0')) {
       sz++;
 
       if (*in == '\r') {
@@ -205,7 +205,7 @@ namespace rfb {
     out = buffer;
     in = src;
     in_len = bytes;
-    while ((*in != '\0') && (in_len > 0)) {
+    while ((in_len > 0) && (*in != '\0')) {
       if (*in == '\n') {
         if ((in == src) || (*(in-1) != '\r'))
           *out++ = '\r';
