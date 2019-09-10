@@ -108,6 +108,12 @@ int main(int argc, char** argv)
 
     doTest(true, 32, 16, false, true, 255, 255, 255, 0, 8, 16);
 
+    /* Invalid shift values */
+
+    doTest(true, 32, 24, false, true, 255, 255, 255, 25, 8, 16);
+    doTest(true, 32, 24, false, true, 255, 255, 255, 0, 25, 16);
+    doTest(true, 32, 24, false, true, 255, 255, 255, 0, 8, 25);
+
     /* Overlapping channels */
 
     doTest(true, 32, 24, false, true, 255, 255, 255, 0, 7, 16);
