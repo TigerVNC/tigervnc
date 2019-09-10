@@ -679,7 +679,7 @@ bool PixelFormat::isSane(void)
     return false;
 
   totalBits = bits(redMax) + bits(greenMax) + bits(blueMax);
-  if (totalBits > bpp)
+  if (totalBits > depth)
     return false;
 
   if (((redMax << redShift) & (greenMax << greenShift)) != 0)
