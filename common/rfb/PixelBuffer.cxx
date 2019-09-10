@@ -31,6 +31,14 @@ using namespace rdr;
 
 static LogWriter vlog("PixelBuffer");
 
+// We do a lot of byte offset calculations that assume the result fits
+// inside a signed 32 bit integer. Limit the maximum size of pixel
+// buffers so that these calculations never overflow.
+
+const int maxPixelBufferWidth = 16384;
+const int maxPixelBufferHeight = 16384;
+const int maxPixelBufferStride = 16384;
+
 
 // -=- Generic pixel buffer class
 
@@ -108,6 +116,11 @@ void PixelBuffer::getImage(const PixelFormat& pf, void* imageBuf,
 
 void PixelBuffer::setSize(int width, int height)
 {
+  if ((width < 0) || (width > maxPixelBufferWidth))
+    throw rfb::Exception("Invalid PixelBuffer width of %d pixels requested", width);
+  if ((height < 0) || (height > maxPixelBufferHeight))
+    throw rfb::Exception("Invalid PixelBuffer height of %d pixels requested", height);
+
   width_ = width;
   height_ = height;
 }
@@ -340,6 +353,15 @@ const rdr::U8* FullFramePixelBuffer::getBuffer(const Rect& r, int* stride_) cons
 void FullFramePixelBuffer::setBuffer(int width, int height,
                                      rdr::U8* data_, int stride_)
 {
+  if ((width < 0) || (width > maxPixelBufferWidth))
+    throw rfb::Exception("Invalid PixelBuffer width of %d pixels requested", width);
+  if ((height < 0) || (height > maxPixelBufferHeight))
+    throw rfb::Exception("Invalid PixelBuffer height of %d pixels requested", height);
+  if ((stride_ < 0) || (stride_ > maxPixelBufferStride) || (stride_ < width))
+    throw rfb::Exception("Invalid PixelBuffer stride of %d pixels requested", stride_);
+  if ((width != 0) && (height != 0) && (data_ == NULL))
+    throw rfb::Exception("PixelBuffer requested without a valid memory area");
+
   ModifiablePixelBuffer::setSize(width, height);
   stride = stride_;
   data = data_;
