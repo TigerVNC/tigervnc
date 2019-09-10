@@ -38,7 +38,7 @@ namespace rdr {
     virtual ~ZlibInStream();
 
     void setUnderlying(InStream* is, int bytesIn);
-    void removeUnderlying();
+    void flushUnderlying();
     int pos();
     void reset();
 

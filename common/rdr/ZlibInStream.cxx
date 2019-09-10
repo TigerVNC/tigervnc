@@ -52,16 +52,16 @@ int ZlibInStream::pos()
   return offset + ptr - start;
 }
 
-void ZlibInStream::removeUnderlying()
+void ZlibInStream::flushUnderlying()
 {
   ptr = end = start;
-  if (!underlying) return;
 
   while (bytesIn > 0) {
     decompress(true);
     end = start; // throw away any data
   }
-  underlying = 0;
+
+  setUnderlying(NULL, 0);
 }
 
 void ZlibInStream::reset()
@@ -90,7 +90,7 @@ void ZlibInStream::init()
 void ZlibInStream::deinit()
 {
   assert(zs != NULL);
-  removeUnderlying();
+  setUnderlying(NULL, 0);
   inflateEnd(zs);
   delete zs;
   zs = NULL;
@@ -100,8 +100,6 @@ int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
 {
   if (itemSize > bufSize)
     throw Exception("ZlibInStream overrun: max itemSize exceeded");
-  if (!underlying)
-    throw Exception("ZlibInStream overrun: no underlying stream");
 
   if (end - ptr != 0)
     memmove(start, ptr, end - ptr);
@@ -127,6 +125,9 @@ int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
 
 bool ZlibInStream::decompress(bool wait)
 {
+  if (!underlying)
+    throw Exception("ZlibInStream overrun: no underlying stream");
+
   zs->next_out = (U8*)end;
   zs->avail_out = start + bufSize - end;
 
