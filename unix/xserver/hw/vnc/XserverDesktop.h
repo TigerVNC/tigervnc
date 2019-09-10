@@ -118,7 +118,7 @@ private:
   int screenIndex;
   rfb::VNCServer* server;
   std::list<network::SocketListener*> listeners;
-  bool directFbptr;
+  rdr::U8* shadowFramebuffer;
 
   uint32_t queryConnectId;
   network::Socket* queryConnectSocket;

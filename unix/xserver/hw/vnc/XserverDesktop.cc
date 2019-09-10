@@ -75,7 +75,7 @@ XserverDesktop::XserverDesktop(int screenIndex_,
                                void* fbptr, int stride)
   : screenIndex(screenIndex_),
     server(0), listeners(listeners_),
-    directFbptr(true),
+    shadowFramebuffer(NULL),
     queryConnectId(0), queryConnectTimer(this)
 {
   format = pf;
@@ -97,8 +97,8 @@ XserverDesktop::~XserverDesktop()
     delete listeners.back();
     listeners.pop_back();
   }
-  if (!directFbptr)
-    delete [] data;
+  if (shadowFramebuffer)
+    delete [] shadowFramebuffer;
   delete server;
 }
 
@@ -116,22 +116,18 @@ void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride_)
 {
   ScreenSet layout;
 
-  width_ = w;
-  height_ = h;
-
-  if (!directFbptr) {
-    delete [] data;
-    directFbptr = true;
+  if (shadowFramebuffer) {
+    delete [] shadowFramebuffer;
+    shadowFramebuffer = NULL;
   }
 
   if (!fbptr) {
-    fbptr = new rdr::U8[w * h * (format.bpp/8)];
+    shadowFramebuffer = new rdr::U8[w * h * (format.bpp/8)];
+    fbptr = shadowFramebuffer;
     stride_ = w;
-    directFbptr = false;
   }
 
-  data = (rdr::U8*)fbptr;
-  stride = stride_;
+  setBuffer(w, h, (rdr::U8*)fbptr, stride_);
 
   vncSetGlueContext(screenIndex);
   layout = ::computeScreenLayout(&outputIdMap);
@@ -492,7 +488,7 @@ void XserverDesktop::handleClipboardData(const char* data_)
 
 void XserverDesktop::grabRegion(const rfb::Region& region)
 {
-  if (directFbptr)
+  if (shadowFramebuffer == NULL)
     return;
 
   std::vector<rfb::Rect> rects;

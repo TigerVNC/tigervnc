@@ -36,7 +36,7 @@ static rfb::LogWriter vlog("PlatformPixelBuffer");
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                         255, 255, 255, 16, 8, 0),
-                       width, height, NULL, 0),
+                       0, 0, NULL, 0),
   Surface(width, height)
 #if !defined(WIN32) && !defined(__APPLE__)
   , shminfo(NULL), xim(NULL)
@@ -56,14 +56,13 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
     vlog.debug("Using standard XImage");
   }
 
-  data = (rdr::U8*)xim->data;
-  stride = xim->bytes_per_line / (getPF().bpp/8);
+  setBuffer(width, height, (rdr::U8*)xim->data,
+            xim->bytes_per_line / (getPF().bpp/8));
 
   // On X11, the Pixmap backing this Surface is uninitialized.
   clear(0, 0, 0);
 #else
-  FullFramePixelBuffer::data = (rdr::U8*)Surface::data;
-  stride = width;
+  setBuffer(width, height, (rdr::U8*)Surface::data, width);
 #endif
 }
 

@@ -272,8 +272,7 @@ void RenderedCursor::update(PixelBuffer* framebuffer,
   assert(cursor);
 
   format = framebuffer->getPF();
-  width_ = framebuffer->width();
-  height_ = framebuffer->height();
+  setSize(framebuffer->width(), framebuffer->height());
 
   rawOffset = pos.subtract(cursor->hotspot());
   clippedRect = Rect(0, 0, cursor->width(), cursor->height())

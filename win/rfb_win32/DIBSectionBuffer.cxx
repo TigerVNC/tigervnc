@@ -52,39 +52,28 @@ void DIBSectionBuffer::setPF(const PixelFormat& pf) {
   if (!pf.trueColour)
     throw rfb::Exception("palette format not supported");
   format = pf;
-  recreateBuffer();
+  setSize(width(), height());
 }
-
-void DIBSectionBuffer::setSize(int w, int h) {
-  if (width_ == w && height_ == h) {
-    vlog.debug("size unchanged by setSize()");
-    return;
-  }
-  width_ = w;
-  height_ = h;
-  recreateBuffer();
-}
-
 
 inline void initMaxAndShift(DWORD mask, int* max, int* shift) {
   for ((*shift) = 0; (mask & 1) == 0; (*shift)++) mask >>= 1;
   (*max) = (rdr::U16)mask;
 }
 
-void DIBSectionBuffer::recreateBuffer() {
+void DIBSectionBuffer::setSize(int w, int h) {
   HBITMAP new_bitmap = 0;
   rdr::U8* new_data = 0;
 
-  if (width_ && height_ && (format.depth != 0)) {
+  if (w && h && (format.depth != 0)) {
     BitmapInfo bi;
     memset(&bi, 0, sizeof(bi));
     UINT iUsage = DIB_RGB_COLORS;
     bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bi.bmiHeader.biBitCount = format.bpp;
-    bi.bmiHeader.biSizeImage = (format.bpp / 8) * width_ * height_;
+    bi.bmiHeader.biSizeImage = (format.bpp / 8) * w * h;
     bi.bmiHeader.biPlanes = 1;
-    bi.bmiHeader.biWidth = width_;
-    bi.bmiHeader.biHeight = -height_;
+    bi.bmiHeader.biWidth = w;
+    bi.bmiHeader.biHeight = -h;
     bi.bmiHeader.biCompression = (format.bpp > 8) ? BI_BITFIELDS : BI_RGB;
     bi.mask.red = format.pixelFromRGB((rdr::U16)~0, 0, 0);
     bi.mask.green = format.pixelFromRGB(0, (rdr::U16)~0, 0);
@@ -115,12 +104,12 @@ void DIBSectionBuffer::recreateBuffer() {
     if (device) {
       BitmapDC src_dev(device, bitmap);
       BitmapDC dest_dev(device, new_bitmap);
-      BitBlt(dest_dev, 0, 0, width_, height_, src_dev, 0, 0, SRCCOPY);
+      BitBlt(dest_dev, 0, 0, w, h, src_dev, 0, 0, SRCCOPY);
     } else {
       WindowDC wndDC(window);
       BitmapDC src_dev(wndDC, bitmap);
       BitmapDC dest_dev(wndDC, new_bitmap);
-      BitBlt(dest_dev, 0, 0, width_, height_, src_dev, 0, 0, SRCCOPY);
+      BitBlt(dest_dev, 0, 0, w, h, src_dev, 0, 0, SRCCOPY);
     }
   }
   
@@ -128,17 +117,17 @@ void DIBSectionBuffer::recreateBuffer() {
     // Delete the old bitmap
     DeleteObject(bitmap);
     bitmap = 0;
-    data = 0;
+    setBuffer(0, 0, NULL, 0);
   }
 
   if (new_bitmap) {
     int bpp, depth;
     int redMax, greenMax, blueMax;
     int redShift, greenShift, blueShift;
+    int new_stride;
 
     // Set up the new bitmap
     bitmap = new_bitmap;
-    data = new_data;
 
     // Determine the *actual* DIBSection format
     DIBSECTION ds;
@@ -147,13 +136,15 @@ void DIBSectionBuffer::recreateBuffer() {
 
     // Correct the "stride" of the DIB
     // *** This code DWORD aligns each row - is that right???
-    stride = width_;
-    int bytesPerRow = stride * format.bpp/8;
+    new_stride = w;
+    int bytesPerRow = new_stride * format.bpp/8;
     if (bytesPerRow % 4) {
       bytesPerRow += 4 - (bytesPerRow % 4);
-      stride = (bytesPerRow * 8) / format.bpp;
-      vlog.info("adjusting DIB stride: %d to %d", width_, stride);
+      new_stride = (bytesPerRow * 8) / format.bpp;
+      vlog.info("adjusting DIB stride: %d to %d", w, new_stride);
     }
+
+    setBuffer(w, h, new_data, new_stride);
 
     // Calculate the PixelFormat for the DIB
     bpp = depth = ds.dsBm.bmBitsPixel;
