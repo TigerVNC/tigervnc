@@ -341,7 +341,8 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
 
     zis[streamId].readBytes(netbuf, dataSize);
 
-    zis[streamId].removeUnderlying();
+    zis[streamId].flushUnderlying();
+    zis[streamId].setUnderlying(NULL, 0);
     delete ms;
 
     bufptr = netbuf;

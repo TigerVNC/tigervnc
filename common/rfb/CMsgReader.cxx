@@ -242,7 +242,8 @@ void CMsgReader::readExtendedClipboard(rdr::S32 len)
       num++;
     }
 
-    zis.removeUnderlying();
+    zis.flushUnderlying();
+    zis.setUnderlying(NULL, 0);
 
     handler->handleClipboardProvide(flags, lengths, buffers);
 
