@@ -104,6 +104,10 @@ int main(int argc, char** argv)
     doTest(true, 32, 24, false, true, 127, 511, 127, 0, 4, 20);
     doTest(true, 32, 24, false, true, 127, 127, 511, 0, 4, 8);
 
+    /* Insufficient depth */
+
+    doTest(true, 32, 16, false, true, 255, 255, 255, 0, 8, 16);
+
     /* Overlapping channels */
 
     doTest(true, 32, 24, false, true, 255, 255, 255, 0, 7, 16);
