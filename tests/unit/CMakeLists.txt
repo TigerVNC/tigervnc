@@ -8,3 +8,6 @@ target_link_libraries(convertlf rfb)
 
 add_executable(hostport hostport.cxx)
 target_link_libraries(hostport rfb)
+
+add_executable(pixelformat pixelformat.cxx)
+target_link_libraries(pixelformat rfb)

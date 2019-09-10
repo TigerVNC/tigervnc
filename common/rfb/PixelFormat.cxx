@@ -81,7 +81,8 @@ PixelFormat::PixelFormat(int b, int d, bool e, bool t,
     redMax(rm), greenMax(gm), blueMax(bm),
     redShift(rs), greenShift(gs), blueShift(bs)
 {
-  assert(isSane());
+  if (!isSane())
+    throw Exception("invalid pixel format");
 
   updateState();
 }
