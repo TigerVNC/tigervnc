@@ -75,12 +75,12 @@ TLSInStream::~TLSInStream()
   delete[] start;
 }
 
-int TLSInStream::pos()
+size_t TLSInStream::pos()
 {
   return offset + ptr - start;
 }
 
-int TLSInStream::overrun(int itemSize, int nItems, bool wait)
+size_t TLSInStream::overrun(size_t itemSize, size_t nItems, bool wait)
 {
   if (itemSize > bufSize)
     throw Exception("TLSInStream overrun: max itemSize exceeded");
@@ -93,19 +93,19 @@ int TLSInStream::overrun(int itemSize, int nItems, bool wait)
   ptr = start;
 
   while (end < start + itemSize) {
-    int n = readTLS((U8*) end, start + bufSize - end, wait);
+    size_t n = readTLS((U8*) end, start + bufSize - end, wait);
     if (!wait && n == 0)
       return 0;
     end += n;
   }
 
-  if (itemSize * nItems > end - ptr)
+  if (itemSize * nItems > (size_t)(end - ptr))
     nItems = (end - ptr) / itemSize;
 
   return nItems;
 }
 
-int TLSInStream::readTLS(U8* buf, int len, bool wait)
+size_t TLSInStream::readTLS(U8* buf, size_t len, bool wait)
 {
   int n;
 

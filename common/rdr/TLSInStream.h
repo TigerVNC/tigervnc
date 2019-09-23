@@ -36,17 +36,17 @@ namespace rdr {
     TLSInStream(InStream* in, gnutls_session_t session);
     virtual ~TLSInStream();
 
-    int pos();
+    size_t pos();
 
   private:
-    int overrun(int itemSize, int nItems, bool wait);
-    int readTLS(U8* buf, int len, bool wait);
+    size_t overrun(size_t itemSize, size_t nItems, bool wait);
+    size_t readTLS(U8* buf, size_t len, bool wait);
     static ssize_t pull(gnutls_transport_ptr_t str, void* data, size_t size);
 
     gnutls_session_t session;
     InStream* in;
-    int bufSize;
-    int offset;
+    size_t bufSize;
+    size_t offset;
     U8* start;
   };
 };

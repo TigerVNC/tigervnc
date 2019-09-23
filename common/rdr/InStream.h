@@ -41,7 +41,7 @@ namespace rdr {
     // for the bytes, zero is returned if the bytes are not immediately
     // available.
 
-    inline int check(int itemSize, int nItems=1, bool wait=true)
+    inline size_t check(size_t itemSize, size_t nItems=1, bool wait=true)
     {
       if (ptr + itemSize * nItems > end) {
         if (ptr + itemSize > end)
@@ -56,7 +56,7 @@ namespace rdr {
     // be read without blocking.  It returns true if this is the case, false
     // otherwise.  The length must be "small" (less than the buffer size).
 
-    inline bool checkNoWait(int length) { return check(length, 1, false)!=0; }
+    inline bool checkNoWait(size_t length) { return check(length, 1, false)!=0; }
 
     // readU/SN() methods read unsigned and signed N-bit integers.
 
@@ -82,9 +82,9 @@ namespace rdr {
 
     static U32 maxStringLength;
 
-    inline void skip(int bytes) {
+    inline void skip(size_t bytes) {
       while (bytes > 0) {
-        int n = check(1, bytes);
+        size_t n = check(1, bytes);
         ptr += n;
         bytes -= n;
       }
@@ -92,11 +92,11 @@ namespace rdr {
 
     // readBytes() reads an exact number of bytes.
 
-    void readBytes(void* data, int length) {
+    void readBytes(void* data, size_t length) {
       U8* dataPtr = (U8*)data;
       U8* dataEnd = dataPtr + length;
       while (dataPtr < dataEnd) {
-        int n = check(1, dataEnd - dataPtr);
+        size_t n = check(1, dataEnd - dataPtr);
         memcpy(dataPtr, ptr, n);
         ptr += n;
         dataPtr += n;
@@ -114,7 +114,7 @@ namespace rdr {
 
     // pos() returns the position in the stream.
 
-    virtual int pos() = 0;
+    virtual size_t pos() = 0;
 
     // getptr(), getend() and setptr() are "dirty" methods which allow you to
     // manipulate the buffer directly.  This is useful for a stream which is a
@@ -133,7 +133,7 @@ namespace rdr {
     // instead of blocking to wait for the bytes, zero is returned if the bytes
     // are not immediately available.
 
-    virtual int overrun(int itemSize, int nItems, bool wait=true) = 0;
+    virtual size_t overrun(size_t itemSize, size_t nItems, bool wait=true) = 0;
 
   protected:
 

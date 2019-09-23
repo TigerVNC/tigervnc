@@ -71,11 +71,11 @@ class DummyOutStream : public rdr::OutStream {
 public:
   DummyOutStream();
 
-  virtual int length();
+  virtual size_t length();
   virtual void flush();
 
 private:
-  virtual int overrun(int itemSize, int nItems);
+  virtual size_t overrun(size_t itemSize, size_t nItems);
 
   int offset;
   rdr::U8 buf[131072];
@@ -141,7 +141,7 @@ DummyOutStream::DummyOutStream()
   end = buf + sizeof(buf);
 }
 
-int DummyOutStream::length()
+size_t DummyOutStream::length()
 {
   flush();
   return offset;
@@ -153,10 +153,10 @@ void DummyOutStream::flush()
   ptr = buf;
 }
 
-int DummyOutStream::overrun(int itemSize, int nItems)
+size_t DummyOutStream::overrun(size_t itemSize, size_t nItems)
 {
   flush();
-  if (itemSize * nItems > end - ptr)
+  if (itemSize * nItems > (size_t)(end - ptr))
     nItems = (end - ptr) / itemSize;
   return nItems;
 }
