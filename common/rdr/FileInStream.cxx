@@ -48,7 +48,7 @@ void FileInStream::reset(void) {
   ptr = end = b;
 }
 
-int FileInStream::pos()
+size_t FileInStream::pos()
 {
   if (!file)
     throw Exception("File is not open");
@@ -56,9 +56,9 @@ int FileInStream::pos()
   return ftell(file) + ptr - b;
 }
 
-int FileInStream::overrun(int itemSize, int nItems, bool wait)
+size_t FileInStream::overrun(size_t itemSize, size_t nItems, bool wait)
 {
-  if (itemSize > (int)sizeof(b))
+  if (itemSize > sizeof(b))
     throw Exception("FileInStream overrun: max itemSize exceeded");
 
   if (end - ptr != 0)
@@ -80,7 +80,7 @@ int FileInStream::overrun(int itemSize, int nItems, bool wait)
     end += b + sizeof(b) - end;
   }
 
-  if (itemSize * nItems > end - ptr)
+  if (itemSize * nItems > (size_t)(end - ptr))
     nItems = (end - ptr) / itemSize;
 
   return nItems;

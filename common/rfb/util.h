@@ -50,7 +50,7 @@ namespace rfb {
   public:
     CharArray() : buf(0) {}
     CharArray(char* str) : buf(str) {} // note: assumes ownership
-    CharArray(int len) {
+    CharArray(size_t len) {
       buf = new char[len]();
     }
     ~CharArray() {

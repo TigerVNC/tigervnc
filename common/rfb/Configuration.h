@@ -256,24 +256,25 @@ namespace rfb {
 
   class BinaryParameter : public VoidParameter {
   public:
-    BinaryParameter(const char* name_, const char* desc_, const void* v, int l,
-		    ConfigurationObject co=ConfGlobal);
+    BinaryParameter(const char* name_, const char* desc_,
+                    const void* v, size_t l,
+                    ConfigurationObject co=ConfGlobal);
     using VoidParameter::setParam;
     virtual ~BinaryParameter();
     virtual bool setParam(const char* value);
-    virtual void setParam(const void* v, int l);
+    virtual void setParam(const void* v, size_t l);
     virtual char* getDefaultStr() const;
     virtual char* getValueStr() const;
 
     // getData() will return length zero if there is no data
     // NB: data may be set to zero, OR set to a zero-length buffer
-    void getData(void** data, int* length) const;
+    void getData(void** data, size_t* length) const;
 
   protected:
     char* value;
-    int length;
+    size_t length;
     char* def_value;
-    int def_length;
+    size_t def_length;
   };
 
   // -=- ParameterIterator

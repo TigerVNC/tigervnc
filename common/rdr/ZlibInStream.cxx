@@ -26,7 +26,7 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
-ZlibInStream::ZlibInStream(int bufSize_)
+ZlibInStream::ZlibInStream(size_t bufSize_)
   : underlying(0), bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0),
     zs(NULL), bytesIn(0)
 {
@@ -40,14 +40,14 @@ ZlibInStream::~ZlibInStream()
   delete [] start;
 }
 
-void ZlibInStream::setUnderlying(InStream* is, int bytesIn_)
+void ZlibInStream::setUnderlying(InStream* is, size_t bytesIn_)
 {
   underlying = is;
   bytesIn = bytesIn_;
   ptr = end = start;
 }
 
-int ZlibInStream::pos()
+size_t ZlibInStream::pos()
 {
   return offset + ptr - start;
 }
@@ -96,7 +96,7 @@ void ZlibInStream::deinit()
   zs = NULL;
 }
 
-int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
+size_t ZlibInStream::overrun(size_t itemSize, size_t nItems, bool wait)
 {
   if (itemSize > bufSize)
     throw Exception("ZlibInStream overrun: max itemSize exceeded");
@@ -108,12 +108,12 @@ int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
   end -= ptr - start;
   ptr = start;
 
-  while (end - ptr < itemSize) {
+  while ((size_t)(end - ptr) < itemSize) {
     if (!decompress(wait))
       return 0;
   }
 
-  if (itemSize * nItems > end - ptr)
+  if (itemSize * nItems > (size_t)(end - ptr))
     nItems = (end - ptr) / itemSize;
 
   return nItems;
@@ -131,11 +131,11 @@ bool ZlibInStream::decompress(bool wait)
   zs->next_out = (U8*)end;
   zs->avail_out = start + bufSize - end;
 
-  int n = underlying->check(1, 1, wait);
+  size_t n = underlying->check(1, 1, wait);
   if (n == 0) return false;
   zs->next_in = (U8*)underlying->getptr();
   zs->avail_in = underlying->getend() - underlying->getptr();
-  if ((int)zs->avail_in > bytesIn)
+  if (zs->avail_in > bytesIn)
     zs->avail_in = bytesIn;
 
   int rc = inflate(zs, Z_SYNC_FLUSH);

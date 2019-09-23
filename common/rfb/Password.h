@@ -28,7 +28,7 @@ namespace rfb {
   public:
     PlainPasswd();
     PlainPasswd(char* pwd);
-    PlainPasswd(int len);
+    PlainPasswd(size_t len);
     PlainPasswd(const ObfuscatedPasswd& obfPwd);
     ~PlainPasswd();
     void replaceBuf(char* b);
@@ -37,10 +37,10 @@ namespace rfb {
   class ObfuscatedPasswd : public CharArray {
   public:
     ObfuscatedPasswd();
-    ObfuscatedPasswd(int l);
+    ObfuscatedPasswd(size_t l);
     ObfuscatedPasswd(const PlainPasswd& plainPwd);
     ~ObfuscatedPasswd();
-    int length;
+    size_t length;
   };
 
 }

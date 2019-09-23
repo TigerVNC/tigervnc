@@ -34,7 +34,7 @@ namespace rdr {
 
   public:
 
-    FdOutStream(int fd, bool blocking=true, int timeoutms=-1, int bufSize=0);
+    FdOutStream(int fd, bool blocking=true, int timeoutms=-1, size_t bufSize=0);
     virtual ~FdOutStream();
 
     void setTimeout(int timeoutms);
@@ -42,20 +42,20 @@ namespace rdr {
     int getFd() { return fd; }
 
     void flush();
-    int length();
+    size_t length();
 
     int bufferUsage();
 
     unsigned getIdleTime();
 
   private:
-    int overrun(int itemSize, int nItems);
-    int writeWithTimeout(const void* data, int length, int timeoutms);
+    size_t overrun(size_t itemSize, size_t nItems);
+    size_t writeWithTimeout(const void* data, size_t length, int timeoutms);
     int fd;
     bool blocking;
     int timeoutms;
-    int bufSize;
-    int offset;
+    size_t bufSize;
+    size_t offset;
     U8* start;
     U8* sentUpTo;
     struct timeval lastWrite;

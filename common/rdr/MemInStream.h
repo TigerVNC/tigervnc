@@ -36,7 +36,7 @@ namespace rdr {
 
   public:
 
-    MemInStream(const void* data, int len, bool deleteWhenDone_=false)
+    MemInStream(const void* data, size_t len, bool deleteWhenDone_=false)
       : start((const U8*)data), deleteWhenDone(deleteWhenDone_)
     {
       ptr = start;
@@ -48,12 +48,12 @@ namespace rdr {
         delete [] start;
     }
 
-    int pos() { return ptr - start; }
-    void reposition(int pos) { ptr = start + pos; }
+    size_t pos() { return ptr - start; }
+    void reposition(size_t pos) { ptr = start + pos; }
 
   private:
 
-    int overrun(int itemSize, int nItems, bool wait) { throw EndOfStream(); }
+    size_t overrun(size_t itemSize, size_t nItems, bool wait) { throw EndOfStream(); }
     const U8* start;
     bool deleteWhenDone;
   };
