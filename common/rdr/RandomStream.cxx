@@ -126,8 +126,10 @@ size_t RandomStream::overrun(size_t itemSize, size_t nItems, bool wait) {
       *(U8*)end++ = (int) (256.0*rand()/(RAND_MAX+1.0));
   }
 
-  if (itemSize * nItems > (size_t)(end - ptr))
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }

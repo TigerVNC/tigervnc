@@ -113,8 +113,10 @@ size_t ZlibInStream::overrun(size_t itemSize, size_t nItems, bool wait)
       return 0;
   }
 
-  if (itemSize * nItems > (size_t)(end - ptr))
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }

@@ -43,12 +43,15 @@ namespace rdr {
 
     inline size_t check(size_t itemSize, size_t nItems=1, bool wait=true)
     {
-      if (ptr + itemSize * nItems > end) {
-        if (ptr + itemSize > end)
-          return overrun(itemSize, nItems, wait);
+      size_t nAvail;
 
-        nItems = (end - ptr) / itemSize;
-      }
+      if (itemSize > (size_t)(end - ptr))
+        return overrun(itemSize, nItems, wait);
+
+      nAvail = (end - ptr) / itemSize;
+      if (nAvail < nItems)
+        return nAvail;
+
       return nItems;
     }
 
@@ -93,13 +96,12 @@ namespace rdr {
     // readBytes() reads an exact number of bytes.
 
     void readBytes(void* data, size_t length) {
-      U8* dataPtr = (U8*)data;
-      U8* dataEnd = dataPtr + length;
-      while (dataPtr < dataEnd) {
-        size_t n = check(1, dataEnd - dataPtr);
-        memcpy(dataPtr, ptr, n);
+      while (length > 0) {
+        size_t n = check(1, length);
+        memcpy(data, ptr, n);
         ptr += n;
-        dataPtr += n;
+        data = (U8*)data + n;
+        length -= n;
       }
     }
 
