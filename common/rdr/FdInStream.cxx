@@ -136,7 +136,7 @@ size_t FdInStream::overrun(size_t itemSize, size_t nItems, bool wait)
   ptr = start;
 
   size_t bytes_to_read;
-  while (end < start + itemSize) {
+  while ((size_t)(end - start) < itemSize) {
     bytes_to_read = start + bufSize - end;
     if (!timing) {
       // When not timing, we must be careful not to read too much
@@ -152,8 +152,10 @@ size_t FdInStream::overrun(size_t itemSize, size_t nItems, bool wait)
     end += n;
   }
 
-  if (itemSize * nItems > (size_t)(end - ptr))
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }

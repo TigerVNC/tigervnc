@@ -46,12 +46,15 @@ namespace rdr {
 
     inline size_t check(size_t itemSize, size_t nItems=1)
     {
-      if (ptr + itemSize * nItems > end) {
-        if (ptr + itemSize > end)
-          return overrun(itemSize, nItems);
+      size_t nAvail;
 
-        nItems = (end - ptr) / itemSize;
-      }
+      if (itemSize > (size_t)(end - ptr))
+        return overrun(itemSize, nItems);
+
+      nAvail = (end - ptr) / itemSize;
+      if (nAvail < nItems)
+        return nAvail;
+
       return nItems;
     }
 
@@ -91,13 +94,12 @@ namespace rdr {
     // writeBytes() writes an exact number of bytes.
 
     void writeBytes(const void* data, size_t length) {
-      const U8* dataPtr = (const U8*)data;
-      const U8* dataEnd = dataPtr + length;
-      while (dataPtr < dataEnd) {
-        size_t n = check(1, dataEnd - dataPtr);
-        memcpy(ptr, dataPtr, n);
+      while (length > 0) {
+        size_t n = check(1, length);
+        memcpy(ptr, data, n);
         ptr += n;
-        dataPtr += n;
+        data = (U8*)data + n;
+        length -= n;
       }
     }
 

@@ -68,7 +68,7 @@ size_t FileInStream::overrun(size_t itemSize, size_t nItems, bool wait)
   ptr = b;
 
 
-  while (end < b + itemSize) {
+  while ((size_t)(end - b) < itemSize) {
     size_t n = fread((U8 *)end, b + sizeof(b) - end, 1, file);
     if (n == 0) {
       if (ferror(file))
@@ -80,8 +80,10 @@ size_t FileInStream::overrun(size_t itemSize, size_t nItems, bool wait)
     end += b + sizeof(b) - end;
   }
 
-  if (itemSize * nItems > (size_t)(end - ptr))
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }
