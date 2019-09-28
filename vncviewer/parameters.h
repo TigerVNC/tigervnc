@@ -24,6 +24,7 @@
 
 extern rfb::IntParameter pointerEventInterval;
 extern rfb::BoolParameter dotWhenNoCursor;
+extern rfb::BoolParameter fixedPointer;
 
 extern rfb::StringParameter passwordFile;
 

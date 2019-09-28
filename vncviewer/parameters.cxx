@@ -59,6 +59,8 @@ BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
 
+BoolParameter fixedPointer("FixedPointer", "Ignore pointer bitmap events", false);
+
 BoolParameter alertOnFatalError("AlertOnFatalError",
                                 "Give a dialog on connection problems rather "
                                 "than exiting immediately", true);
@@ -160,6 +162,7 @@ static VoidParameter* parameterArray[] = {
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   &dotWhenNoCursor,
+  &fixedPointer,
   &autoSelect,
   &fullColour,
   &lowColourLevel,

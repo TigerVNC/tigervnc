@@ -243,6 +243,8 @@ static const char * dotcursor_xpm[] = {
 void Viewport::setCursor(int width, int height, const Point& hotspot,
                          const rdr::U8* data)
 {
+  if(fixedPointer) return;
+    
   int i;
 
   if (cursor) {

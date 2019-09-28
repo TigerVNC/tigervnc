@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>CConn.h</itemPath>
+      <itemPath>DesktopWindow.h</itemPath>
+      <itemPath>OptionsDialog.h</itemPath>
+      <itemPath>PlatformPixelBuffer.h</itemPath>
+      <itemPath>ServerDialog.h</itemPath>
+      <itemPath>Surface.h</itemPath>
+      <itemPath>UserDialog.h</itemPath>
+      <itemPath>Viewport.h</itemPath>
+      <itemPath>cocoa.h</itemPath>
+      <itemPath>fltk_layout.h</itemPath>
+      <itemPath>gettext.h</itemPath>
+      <itemPath>i18n.h</itemPath>
+      <itemPath>keysym2ucs.h</itemPath>
+      <itemPath>menukey.h</itemPath>
+      <itemPath>parameters.h</itemPath>
+      <itemPath>resource.h</itemPath>
+      <itemPath>vncviewer.h</itemPath>
+      <itemPath>win32.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>CConn.cxx</itemPath>
+      <itemPath>DesktopWindow.cxx</itemPath>
+      <itemPath>OptionsDialog.cxx</itemPath>
+      <itemPath>PlatformPixelBuffer.cxx</itemPath>
+      <itemPath>ServerDialog.cxx</itemPath>
+      <itemPath>Surface.cxx</itemPath>
+      <itemPath>Surface_OSX.cxx</itemPath>
+      <itemPath>Surface_Win32.cxx</itemPath>
+      <itemPath>Surface_X11.cxx</itemPath>
+      <itemPath>UserDialog.cxx</itemPath>
+      <itemPath>Viewport.cxx</itemPath>
+      <itemPath>cocoa.mm</itemPath>
+      <itemPath>menukey.cxx</itemPath>
+      <itemPath>parameters.cxx</itemPath>
+      <itemPath>vncviewer.cxx</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../common</pElem>
+          </incDir>
+        </ccTool>
+      </compileType>
+      <item path="CConn.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CConn.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="DesktopWindow.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="DesktopWindow.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="OptionsDialog.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OptionsDialog.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="PlatformPixelBuffer.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="PlatformPixelBuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ServerDialog.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ServerDialog.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Surface.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Surface.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Surface_OSX.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Surface_Win32.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Surface_X11.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="UserDialog.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="UserDialog.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Viewport.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Viewport.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="cocoa.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="cocoa.mm" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="fltk_layout.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="gettext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="i18n.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="keysym2ucs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="menukey.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="menukey.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="parameters.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="parameters.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="resource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="vncviewer.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="vncviewer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="win32.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="CConn.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CConn.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="DesktopWindow.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="DesktopWindow.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="OptionsDialog.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OptionsDialog.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="PlatformPixelBuffer.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="PlatformPixelBuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ServerDialog.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ServerDialog.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Surface.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Surface.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Surface_OSX.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Surface_Win32.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Surface_X11.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="UserDialog.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="UserDialog.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Viewport.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Viewport.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="cocoa.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="cocoa.mm" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="fltk_layout.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="gettext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="i18n.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="keysym2ucs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="menukey.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="menukey.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="parameters.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="parameters.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="resource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="vncviewer.cxx" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="vncviewer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="win32.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
