@@ -52,8 +52,31 @@ static void doTest(bool should_fail, int b, int d, bool e, bool t,
     fflush(stdout);
 }
 
-int main(int argc, char** argv)
+static void do888Test(bool expected, int b, int d, bool e, bool t,
+                   int rm, int gm, int bm, int rs, int gs, int bs)
 {
+    rfb::PixelFormat* pf;
+
+    printf("PixelFormat(%d, %d, %s, %s, %d, %d, %d, %d, %d, %d): ",
+           b, d, e ? "true" : "false", t ? "true": "false",
+           rm, gm, bm, rs, gs, bs);
+
+    pf = new rfb::PixelFormat(b, d, e, t, rm, gm, bm, rs, gs, bs);
+
+    if (pf->is888() == expected)
+        printf("OK");
+    else
+        printf("FAILED");
+    printf("\n");
+    fflush(stdout);
+
+    delete pf;
+}
+
+static void sanityTests()
+{
+    printf("Sanity checks:\n\n");
+
     /* Normal true color formats */
 
     doTest(false, 32, 24, false, true, 255, 255, 255, 0, 8, 16);
@@ -119,6 +142,41 @@ int main(int argc, char** argv)
     doTest(true, 32, 24, false, true, 255, 255, 255, 0, 7, 16);
     doTest(true, 32, 24, false, true, 255, 255, 255, 0, 8, 15);
     doTest(true, 32, 24, false, true, 255, 255, 255, 0, 16, 7);
+
+    printf("\n");
+}
+
+void is888Tests()
+{
+    printf("Simple format detection:\n\n");
+
+    /* Positive cases */
+
+    do888Test(true, 32, 24, false, true, 255, 255, 255, 0, 8, 16);
+    do888Test(true, 32, 24, false, true, 255, 255, 255, 24, 16, 8);
+    do888Test(true, 32, 24, false, true, 255, 255, 255, 24, 8, 0);
+
+    /* Low depth */
+
+    do888Test(false, 32, 16, false, true, 15, 31, 15, 0, 8, 16);
+    do888Test(false, 32, 8, false, true, 3, 7, 3, 0, 8, 16);
+
+    /* Low bpp and depth */
+
+    do888Test(false, 16, 16, false, true, 15, 31, 15, 0, 5, 11);
+    do888Test(false, 8, 8, false, true, 3, 7, 3, 0, 2, 5);
+
+    /* Colour map */
+
+    do888Test(false, 8, 8, false, false, 0, 0, 0, 0, 0, 0);
+
+    printf("\n");
+}
+
+int main(int argc, char** argv)
+{
+    sanityTests();
+    is888Tests();
 
     return 0;
 }
