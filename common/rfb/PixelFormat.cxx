@@ -206,6 +206,12 @@ bool PixelFormat::is888(void) const
     return false;
   if (blueMax != 255)
     return false;
+  if ((redShift & 0x7) != 0)
+    return false;
+  if ((greenShift & 0x7) != 0)
+    return false;
+  if ((blueShift & 0x7) != 0)
+    return false;
 
   return true;
 }

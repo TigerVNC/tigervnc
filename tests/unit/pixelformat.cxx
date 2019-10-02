@@ -170,6 +170,12 @@ void is888Tests()
 
     do888Test(false, 8, 8, false, false, 0, 0, 0, 0, 0, 0);
 
+    /* Odd shifts */
+
+    do888Test(false, 32, 24, false, true, 255, 255, 255, 0, 8, 18);
+    do888Test(false, 32, 24, false, true, 255, 255, 255, 0, 11, 24);
+    do888Test(false, 32, 24, false, true, 255, 255, 255, 4, 16, 24);
+
     printf("\n");
 }
 
