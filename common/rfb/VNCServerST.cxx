@@ -313,7 +313,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 
   // Make sure that we have at least one screen
   if (layout.num_screens() == 0)
-    layout.add_screen(Screen(0, 0, 0, pb->width(), pb->height(), 0));
+    layout.add_screen(Screen(0, 0, 0, pb_->width(), pb_->height(), 0));
 
   setPixelBuffer(pb_, layout);
 }
