@@ -165,8 +165,6 @@ void VNCServerST::removeSocket(network::Socket* sock) {
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
-      clients.remove(*ci);
-
       // - Remove any references to it
       if (pointerClient == *ci)
         pointerClient = NULL;
@@ -181,6 +179,8 @@ void VNCServerST::removeSocket(network::Socket* sock) {
 
       // - Delete the per-Socket resources
       delete *ci;
+
+      clients.remove(*ci);
 
       CharArray name;
       name.buf = sock->getPeerEndpoint();
