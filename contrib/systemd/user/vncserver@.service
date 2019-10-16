@@ -14,12 +14,12 @@
 
 [Unit]
 Description=Remote desktop service (VNC)
-After=syslog.target network.target
+After=syslog.target network.target getty.target
 
 [Service]
 Type=forking
 ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'
-ExecStart=/usr/bin/vncserver %i
+ExecStart=/bin/sh -c '/usr/bin/vncserver %i'
 ExecStop=/usr/bin/vncserver -kill %i
 
 [Install]
