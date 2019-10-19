@@ -256,6 +256,7 @@ fi
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
+%{_sysconfdir}/pam.d/tigervnc
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
 %{_sbindir}/vncsession
@@ -292,6 +293,9 @@ fi
 %{_datadir}/selinux/packages/vncsession.pp
 
 %changelog
+* Sat Oct 19 2019 Evan Burns <evanburnsdev@gmail.com> 1.9.80-5
+- Fix error with pam.d not packaged
+
 * Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-4
 - Use system FLTK for build
 - Add libXrandr-devel as a dependency so x0vncserver gets resize support.

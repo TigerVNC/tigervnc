@@ -294,7 +294,8 @@ fi
 %{_datadir}/selinux/packages/vncsession.pp
 
 %changelog
-* Fri Oct 19 2019 Evan Burns <evanburnsdev@gmail.com> 1.9.80-5
+* Sat Oct 19 2019 Evan Burns <evanburnsdev@gmail.com> 1.9.80-5
+- Fix error with pam.d not packaged
 - Add support for CentOS 8
 
 * Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-4
