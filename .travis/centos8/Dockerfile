@@ -2,8 +2,8 @@ FROM centos:latest
 
 RUN yum -y groupinstall 'Development Tools'
 RUN yum -y install dnf-utils --nogpgcheck
-RUN yum -y install wget
-RUN yum -y install sudo
+RUN yum -y install wget --nogpgcheck
+RUN yum -y install sudo --nogpgcheck
 
 RUN dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 
