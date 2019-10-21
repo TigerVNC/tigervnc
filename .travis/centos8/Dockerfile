@@ -3,7 +3,7 @@ FROM centos:latest
 RUN echo 10.197.100.1 > /etc/resolv.conf
 
 RUN yum -y groupinstall 'Development Tools'
-RUN yum -y install dnf-utils
+RUN yum -y install dnf-utils --nogpgcheck
 RUN yum -y install wget
 RUN yum -y install sudo
 
