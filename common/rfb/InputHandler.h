@@ -37,8 +37,7 @@ namespace rfb {
                           bool __unused_attr down) { }
     virtual void pointerEvent(const Point& __unused_attr pos,
                               int __unused_attr buttonMask) { }
-    virtual void clientCutText(const char* __unused_attr str,
-                               int __unused_attr len) { }
+    virtual void clientCutText(const char* __unused_attr str) { }
   };
 
 }

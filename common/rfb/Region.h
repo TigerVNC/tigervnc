@@ -68,7 +68,7 @@ namespace rfb {
     bool is_empty() const { return numRects() == 0; }
 
     bool get_rects(std::vector<Rect>* rects, bool left2right=true,
-                   bool topdown=true, int maxArea=0) const;
+                   bool topdown=true) const;
     Rect get_bounding_rect() const;
 
     void debug_print(const char *prefix) const;

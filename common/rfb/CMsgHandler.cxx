@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,11 @@
 #include <stdio.h>
 
 #include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/screenTypes.h>
+
+static rfb::LogWriter vlog("CMsgHandler");
 
 using namespace rfb;
 
@@ -94,4 +97,27 @@ void CMsgHandler::framebufferUpdateEnd()
 void CMsgHandler::setLEDState(unsigned int state)
 {
   server.setLEDState(state);
+}
+
+void CMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+{
+  server.setClipboardCaps(flags, lengths);
+}
+
+void CMsgHandler::handleClipboardRequest(rdr::U32 flags)
+{
+}
+
+void CMsgHandler::handleClipboardPeek(rdr::U32 flags)
+{
+}
+
+void CMsgHandler::handleClipboardNotify(rdr::U32 flags)
+{
+}
+
+void CMsgHandler::handleClipboardProvide(rdr::U32 flags,
+                                         const size_t* lengths,
+                                         const rdr::U8* const* data)
+{
 }

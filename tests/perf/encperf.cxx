@@ -96,7 +96,7 @@ public:
   virtual void dataRect(const rfb::Rect&, int);
   virtual void setColourMapEntries(int, int, rdr::U16*);
   virtual void bell();
-  virtual void serverCutText(const char*, rdr::U32);
+  virtual void serverCutText(const char*);
 
 public:
   double decodeTime;
@@ -254,7 +254,7 @@ void CConn::bell()
 {
 }
 
-void CConn::serverCutText(const char*, rdr::U32)
+void CConn::serverCutText(const char*)
 {
 }
 

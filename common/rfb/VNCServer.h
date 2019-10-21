@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,9 +56,21 @@ namespace rfb {
     // getPixelBuffer() returns a pointer to the PixelBuffer object.
     virtual const PixelBuffer* getPixelBuffer() const = 0;
 
-    // serverCutText() tells the server that the cut text has changed.  This
-    // will normally be sent to all clients.
-    virtual void serverCutText(const char* str, int len) = 0;
+    // requestClipboard() will result in a request to a client to
+    // transfer its clipboard data. A call to
+    // SDesktop::handleClipboardData() will be made once the data is
+    // available.
+    virtual void requestClipboard() = 0;
+
+    // announceClipboard() informs all clients of changes to the
+    // clipboard on the server. A client may later request the
+    // clipboard data via SDesktop::handleClipboardRequest().
+    virtual void announceClipboard(bool available) = 0;
+
+    // sendClipboardData() transfers the clipboard data to a client
+    // and should be called whenever a client has requested the
+    // clipboard via SDesktop::handleClipboardRequest().
+    virtual void sendClipboardData(const char* data) = 0;
 
     // bell() tells the server that it should make all clients make a bell sound.
     virtual void bell() = 0;

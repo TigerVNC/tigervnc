@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2012-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,53 +29,6 @@ using namespace rfb;
 using namespace rfb::win32;
 
 static LogWriter vlog("Clipboard");
-
-
-//
-// -=- CR/LF handlers
-//
-
-char*
-dos2unix(const char* text) {
-  int len = strlen(text)+1;
-  char* unix = new char[strlen(text)+1];
-  int i, j=0;
-  for (i=0; i<len; i++) {
-    if (text[i] != '\x0d')
-      unix[j++] = text[i];
-  }
-  return unix;
-}
-
-char*
-unix2dos(const char* text) {
-  int len = strlen(text)+1;
-  char* dos = new char[strlen(text)*2+1];
-  int i, j=0;
-  for (i=0; i<len; i++) {
-    if (text[i] == '\x0a')
-      dos[j++] = '\x0d';
-    dos[j++] = text[i];
-  }
-  return dos;
-}
-
-
-//
-// -=- ISO-8859-1 (Latin 1) filter (in-place)
-//
-
-void
-removeNonISOLatin1Chars(char* text) {
-  int len = strlen(text);
-  int i=0, j=0;
-  for (; i<len; i++) {
-    if (((text[i] >= 1) && (text[i] <= 127)) ||
-        ((text[i] >= 160) && (text[i] <= 255)))
-      text[j++] = text[i];
-  }
-  text[j] = 0;
-}
 
 //
 // -=- Clipboard object
@@ -114,33 +68,10 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       } else {
         vlog.debug("local clipboard changed by %p", owner);
 
-			  // Open the clipboard
-			  if (OpenClipboard(getHandle())) {
-				  // Get the clipboard data
-				  HGLOBAL cliphandle = GetClipboardData(CF_TEXT);
-				  if (cliphandle) {
-					  char* clipdata = (char*) GlobalLock(cliphandle);
-
-            // Notify clients
-            if (notifier) {
-              if (!clipdata) {
-                notifier->notifyClipboardChanged(0, 0);
-              } else {
-                CharArray unix_text;
-                unix_text.buf = dos2unix(clipdata);
-                removeNonISOLatin1Chars(unix_text.buf);
-                notifier->notifyClipboardChanged(unix_text.buf, strlen(unix_text.buf));
-              }
-            } else {
-              vlog.debug("no clipboard notifier registered");
-            }
-
-					  // Release the buffer and close the clipboard
-					  GlobalUnlock(cliphandle);
-				  }
-
-				  CloseClipboard();
-        }
+        if (notifier == NULL)
+          vlog.debug("no clipboard notifier registered");
+        else
+          notifier->notifyClipboardChanged(IsClipboardFormatAvailable(CF_UNICODETEXT));
 			}
     }
     if (next_window)
@@ -150,6 +81,39 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   };
   return MsgWindow::processMessage(msg, wParam, lParam);
 };
+
+char*
+Clipboard::getClipText() {
+  HGLOBAL cliphandle;
+  wchar_t* clipdata;
+  CharArray utf8;
+
+  // Open the clipboard
+  if (!OpenClipboard(getHandle()))
+    return NULL;
+
+  // Get the clipboard data
+  cliphandle = GetClipboardData(CF_UNICODETEXT);
+  if (!cliphandle) {
+    CloseClipboard();
+    return NULL;
+  }
+
+  clipdata = (wchar_t*) GlobalLock(cliphandle);
+  if (!clipdata) {
+    CloseClipboard();
+    return NULL;
+  }
+
+  // Convert it to UTF-8
+  utf8.replaceBuf(utf16ToUTF8(clipdata));
+
+  // Release the buffer and close the clipboard
+  GlobalUnlock(cliphandle);
+  CloseClipboard();
+
+  return convertLF(utf8.buf);
+}
 
 void
 Clipboard::setClipText(const char* text) {
@@ -161,26 +125,27 @@ Clipboard::setClipText(const char* text) {
     if (!OpenClipboard(getHandle()))
       throw rdr::SystemException("unable to open Win32 clipboard", GetLastError());
 
-    // - Pre-process the supplied clipboard text into DOS format
-    CharArray dos_text;
-    dos_text.buf = unix2dos(text);
-    removeNonISOLatin1Chars(dos_text.buf);
-    int dos_text_len = strlen(dos_text.buf);
+    // - Convert the supplied clipboard text into UTF-16 format with CRLF
+    CharArray filtered(convertCRLF(text));
+    wchar_t* utf16;
+
+    utf16 = utf8ToUTF16(filtered.buf);
 
     // - Allocate global memory for the data
-    clip_handle = ::GlobalAlloc(GMEM_MOVEABLE, dos_text_len+1);
+    clip_handle = ::GlobalAlloc(GMEM_MOVEABLE, (wcslen(utf16) + 1) * 2);
 
-    char* data = (char*) GlobalLock(clip_handle);
-    memcpy(data, dos_text.buf, dos_text_len+1);
-    data[dos_text_len] = 0;
+    wchar_t* data = (wchar_t*) GlobalLock(clip_handle);
+    wcscpy(data, utf16);
     GlobalUnlock(clip_handle);
+
+    strFree(utf16);
 
     // - Next, we must clear out any existing data
     if (!EmptyClipboard())
       throw rdr::SystemException("unable to empty Win32 clipboard", GetLastError());
 
     // - Set the new clipboard data
-    if (!SetClipboardData(CF_TEXT, clip_handle))
+    if (!SetClipboardData(CF_UNICODETEXT, clip_handle))
       throw rdr::SystemException("unable to set Win32 clipboard", GetLastError());
     clip_handle = 0;
 

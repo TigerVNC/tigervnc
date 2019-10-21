@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2018 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
@@ -52,7 +52,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     losslessTimer(this), server(server_),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), idleTimer(this),
-    pointerEventTime(0), clientHasCursor(false)
+    pointerEventTime(0), clientHasCursor(false),
+    authFailureTimer(this)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -151,6 +152,15 @@ void VNCSConnectionST::processMessages()
     sock->cork(true);
 
     while (getInStream()->checkNoWait(1)) {
+      // Silently drop any data if we are currently delaying an
+      // authentication failure response as otherwise we would close
+      // the connection on unexpected data, and an attacker could use
+      // that to detect our delayed state.
+      if (state() == RFBSTATE_SECURITY_FAILURE) {
+        getInStream()->skip(1);
+        continue;
+      }
+
       if (pendingSyncFence) {
         syncFence = true;
         pendingSyncFence = false;
@@ -272,19 +282,6 @@ void VNCSConnectionST::bellOrClose()
   }
 }
 
-void VNCSConnectionST::serverCutTextOrClose(const char *str, int len)
-{
-  try {
-    if (!accessCheck(AccessCutText)) return;
-    if (!rfb::Server::sendCutText) return;
-    if (state() == RFBSTATE_NORMAL)
-      writer()->writeServerCutText(str, len);
-  } catch(rdr::Exception& e) {
-    close(e.str());
-  }
-}
-
-
 void VNCSConnectionST::setDesktopNameOrClose(const char *name)
 {
   try {
@@ -294,7 +291,6 @@ void VNCSConnectionST::setDesktopNameOrClose(const char *name)
     close(e.str());
   }
 }
-
 
 void VNCSConnectionST::setCursorOrClose()
 {
@@ -306,7 +302,6 @@ void VNCSConnectionST::setCursorOrClose()
   }
 }
 
-
 void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
 {
   try {
@@ -317,6 +312,41 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
   }
 }
 
+void VNCSConnectionST::requestClipboardOrClose()
+{
+  try {
+    if (!accessCheck(AccessCutText)) return;
+    if (!rfb::Server::acceptCutText) return;
+    if (state() != RFBSTATE_NORMAL) return;
+    requestClipboard();
+  } catch(rdr::Exception& e) {
+    close(e.str());
+  }
+}
+
+void VNCSConnectionST::announceClipboardOrClose(bool available)
+{
+  try {
+    if (!accessCheck(AccessCutText)) return;
+    if (!rfb::Server::sendCutText) return;
+    if (state() != RFBSTATE_NORMAL) return;
+    announceClipboard(available);
+  } catch(rdr::Exception& e) {
+    close(e.str());
+  }
+}
+
+void VNCSConnectionST::sendClipboardDataOrClose(const char* data)
+{
+  try {
+    if (!accessCheck(AccessCutText)) return;
+    if (!rfb::Server::sendCutText) return;
+    if (state() != RFBSTATE_NORMAL) return;
+    sendClipboardData(data);
+  } catch(rdr::Exception& e) {
+    close(e.str());
+  }
+}
 
 bool VNCSConnectionST::getComparerState()
 {
@@ -405,6 +435,14 @@ void VNCSConnectionST::authSuccess()
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->getPixelBuffer()->getRect());
+}
+
+void VNCSConnectionST::authFailure(const char* reason)
+{
+  // Introduce a slight delay of the authentication failure response
+  // to make it difficult to brute force a password
+  authFailureMsg.replaceBuf(strDup(reason));
+  authFailureTimer.start(100);
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -578,13 +616,6 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   server->keyEvent(keysym, keycode, down);
 }
 
-void VNCSConnectionST::clientCutText(const char* str, int len)
-{
-  if (!accessCheck(AccessCutText)) return;
-  if (!rfb::Server::acceptCutText) return;
-  server->clientCutText(str, len);
-}
-
 void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 {
   Rect safeRect;
@@ -701,6 +732,26 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
   }
 }
 
+void VNCSConnectionST::handleClipboardRequest()
+{
+  if (!accessCheck(AccessCutText)) return;
+  server->handleClipboardRequest(this);
+}
+
+void VNCSConnectionST::handleClipboardAnnounce(bool available)
+{
+  if (!accessCheck(AccessCutText)) return;
+  if (!rfb::Server::acceptCutText) return;
+  server->handleClipboardAnnounce(this, available);
+}
+
+void VNCSConnectionST::handleClipboardData(const char* data)
+{
+  if (!accessCheck(AccessCutText)) return;
+  if (!rfb::Server::acceptCutText) return;
+  server->handleClipboardData(this, data);
+}
+
 // supportsLocalCursor() is called whenever the status of
 // client.supportsLocalCursor() has changed.  If the client does now support local
 // cursor, we make sure that the old server-side rendered cursor is cleaned up
@@ -738,13 +789,14 @@ void VNCSConnectionST::supportsLEDState()
   writer()->writeLEDState();
 }
 
-
 bool VNCSConnectionST::handleTimeout(Timer* t)
 {
   try {
     if ((t == &congestionTimer) ||
         (t == &losslessTimer))
       writeFramebufferUpdate();
+    else if (t == &authFailureTimer)
+      SConnection::authFailure(authFailureMsg.buf);
   } catch (rdr::Exception& e) {
     close(e.str());
   }

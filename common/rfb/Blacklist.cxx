@@ -20,14 +20,20 @@
 
 using namespace rfb;
 
-IntParameter Blacklist::threshold("BlacklistThreshold",
-                              "The number of unauthenticated connection attempts allowed from any "
-                              "individual host before that host is black-listed",
-                              5);
-IntParameter Blacklist::initialTimeout("BlacklistTimeout",
-                              "The initial timeout applied when a host is first black-listed.  "
-                              "The host cannot re-attempt a connection until the timeout expires.",
-                              10);
+BoolParameter enabled("UseBlacklist",
+                      "Temporarily reject connections from a host if it "
+                      "repeatedly fails to authenticate.",
+                      true);
+IntParameter threshold("BlacklistThreshold",
+                       "The number of unauthenticated connection attempts "
+                       "allowed from any individual host before that host "
+                       "is black-listed",
+                       5);
+IntParameter initialTimeout("BlacklistTimeout",
+                            "The initial timeout applied when a host is "
+                            "first black-listed. The host cannot re-attempt "
+                            "a connection until the timeout expires.",
+                            10);
 
 
 Blacklist::Blacklist() {
@@ -42,6 +48,9 @@ Blacklist::~Blacklist() {
 }
 
 bool Blacklist::isBlackmarked(const char* name) {
+  if (!enabled)
+    return false;
+
   BlacklistMap::iterator i = blm.find(name);
   if (i == blm.end()) {
     // Entry is not already black-marked.

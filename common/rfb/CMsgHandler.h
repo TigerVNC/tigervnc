@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
@@ -42,8 +42,9 @@ namespace rfb {
     // The following methods are called as corresponding messages are read.  A
     // derived class should override these methods as desired.  Note that for
     // the setDesktopSize(), setExtendedDesktopSize(), setPixelFormat(),
-    // setName() and serverInit() methods, a derived class should call on to
-    // CMsgHandler's methods to set the members of "server" appropriately.
+    // setName(), serverInit() and clipboardCaps methods, a derived class
+    // should call on to CMsgHandler's methods to set the members of "server"
+    // appropriately.
 
     virtual void setDesktopSize(int w, int h);
     virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
@@ -70,9 +71,18 @@ namespace rfb {
     virtual void setColourMapEntries(int firstColour, int nColours,
 				     rdr::U16* rgbs) = 0;
     virtual void bell() = 0;
-    virtual void serverCutText(const char* str, rdr::U32 len) = 0;
+    virtual void serverCutText(const char* str) = 0;
 
     virtual void setLEDState(unsigned int state);
+
+    virtual void handleClipboardCaps(rdr::U32 flags,
+                                     const rdr::U32* lengths);
+    virtual void handleClipboardRequest(rdr::U32 flags);
+    virtual void handleClipboardPeek(rdr::U32 flags);
+    virtual void handleClipboardNotify(rdr::U32 flags);
+    virtual void handleClipboardProvide(rdr::U32 flags,
+                                        const size_t* lengths,
+                                        const rdr::U8* const* data);
 
     ServerParams server;
   };

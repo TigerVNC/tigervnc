@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2009-2017 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,14 @@
  * USA.
  */
 #include <stdio.h>
+
 #include <rdr/OutStream.h>
+#include <rdr/MemOutStream.h>
+#include <rdr/ZlibOutStream.h>
+
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>
+#include <rfb/clipboardTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/ClientParams.h>
 #include <rfb/UpdateTracker.h>
@@ -78,12 +83,124 @@ void SMsgWriter::writeBell()
   endMsg();
 }
 
-void SMsgWriter::writeServerCutText(const char* str, int len)
+void SMsgWriter::writeServerCutText(const char* str)
 {
+  size_t len;
+
+  if (strchr(str, '\r') != NULL)
+    throw Exception("Invalid carriage return in clipboard data");
+
+  len = strlen(str);
   startMsg(msgTypeServerCutText);
   os->pad(3);
   os->writeU32(len);
   os->writeBytes(str, len);
+  endMsg();
+}
+
+void SMsgWriter::writeClipboardCaps(rdr::U32 caps,
+                                    const rdr::U32* lengths)
+{
+  size_t i, count;
+
+  if (!client->supportsEncoding(pseudoEncodingExtendedClipboard))
+    throw Exception("Client does not support extended clipboard");
+
+  count = 0;
+  for (i = 0;i < 16;i++) {
+    if (caps & (1 << i))
+      count++;
+  }
+
+  startMsg(msgTypeServerCutText);
+  os->pad(3);
+  os->writeS32(-(4 + 4 * count));
+
+  os->writeU32(caps | clipboardCaps);
+
+  count = 0;
+  for (i = 0;i < 16;i++) {
+    if (caps & (1 << i))
+      os->writeU32(lengths[count++]);
+  }
+
+  endMsg();
+}
+
+void SMsgWriter::writeClipboardRequest(rdr::U32 flags)
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedClipboard))
+    throw Exception("Client does not support extended clipboard");
+  if (!(client->clipboardFlags() & clipboardRequest))
+    throw Exception("Client does not support clipboard \"request\" action");
+
+  startMsg(msgTypeServerCutText);
+  os->pad(3);
+  os->writeS32(-4);
+  os->writeU32(flags | clipboardRequest);
+  endMsg();
+}
+
+void SMsgWriter::writeClipboardPeek(rdr::U32 flags)
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedClipboard))
+    throw Exception("Client does not support extended clipboard");
+  if (!(client->clipboardFlags() & clipboardPeek))
+    throw Exception("Client does not support clipboard \"peek\" action");
+
+  startMsg(msgTypeServerCutText);
+  os->pad(3);
+  os->writeS32(-4);
+  os->writeU32(flags | clipboardPeek);
+  endMsg();
+}
+
+void SMsgWriter::writeClipboardNotify(rdr::U32 flags)
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedClipboard))
+    throw Exception("Client does not support extended clipboard");
+  if (!(client->clipboardFlags() & clipboardNotify))
+    throw Exception("Client does not support clipboard \"notify\" action");
+
+  startMsg(msgTypeServerCutText);
+  os->pad(3);
+  os->writeS32(-4);
+  os->writeU32(flags | clipboardNotify);
+  endMsg();
+}
+
+void SMsgWriter::writeClipboardProvide(rdr::U32 flags,
+                                      const size_t* lengths,
+                                      const rdr::U8* const* data)
+{
+  rdr::MemOutStream mos;
+  rdr::ZlibOutStream zos;
+
+  int i, count;
+
+  if (!client->supportsEncoding(pseudoEncodingExtendedClipboard))
+    throw Exception("Client does not support extended clipboard");
+  if (!(client->clipboardFlags() & clipboardProvide))
+    throw Exception("Client does not support clipboard \"provide\" action");
+
+  zos.setUnderlying(&mos);
+
+  count = 0;
+  for (i = 0;i < 16;i++) {
+    if (!(flags & (1 << i)))
+      continue;
+    zos.writeU32(lengths[count]);
+    zos.writeBytes(data[count], lengths[count]);
+    count++;
+  }
+
+  zos.flush();
+
+  startMsg(msgTypeServerCutText);
+  os->pad(3);
+  os->writeS32(-(4 + mos.length()));
+  os->writeU32(flags | clipboardProvide);
+  os->writeBytes(mos.data(), mos.length());
   endMsg();
 }
 

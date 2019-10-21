@@ -18,6 +18,7 @@
 
 #include <rdr/RandomStream.h>
 #include <rdr/Exception.h>
+#include <rfb/LogWriter.h>
 #include <time.h>
 #include <stdlib.h>
 #ifndef WIN32
@@ -29,6 +30,8 @@
 #pragma message("  NOTE: Not building WinCrypt-based RandomStream")
 #endif
 #endif
+
+static rfb::LogWriter vlog("RandomStream");
 
 using namespace rdr;
 
@@ -46,11 +49,11 @@ RandomStream::RandomStream()
   if (!CryptAcquireContext(&provider, 0, 0, PROV_RSA_FULL, 0)) {
     if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(&provider, 0, 0, PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
-        fprintf(stderr, "RandomStream: unable to create keyset\n");
+        vlog.error("unable to create keyset");
         provider = 0;
       }
     } else {
-      fprintf(stderr, "RandomStream: unable to acquire context\n");
+      vlog.error("unable to acquire context");
       provider = 0;
     }
   }
@@ -65,7 +68,7 @@ RandomStream::RandomStream()
   {
 #endif
 #endif
-    fprintf(stderr,"RandomStream: warning: no OS supplied random source - using rand()\n");
+    vlog.error("no OS supplied random source - using rand()");
     seed += (unsigned int) time(0) + getpid() + getpid() * 987654 + rand();
     srand(seed);
   }

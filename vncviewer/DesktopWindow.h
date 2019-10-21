@@ -62,9 +62,6 @@ public:
   // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
 
-  // Incoming clipboard from server
-  void serverCutText(const char* str, rdr::U32 len);
-
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
@@ -72,11 +69,17 @@ public:
   // Change client LED state
   void setLEDState(unsigned int state);
 
-  // Fl_Window callback methods
-  void draw();
-  void resize(int x, int y, int w, int h);
+  // Clipboard events
+  void handleClipboardRequest();
+  void handleClipboardAnnounce(bool available);
+  void handleClipboardData(const char* data);
 
-  int handle(int event);
+  // Fl_Window callback methods
+  virtual void show();
+  virtual void draw();
+  virtual void resize(int x, int y, int w, int h);
+
+  virtual int handle(int event);
 
   void fullscreen_on();
 

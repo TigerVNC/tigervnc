@@ -276,17 +276,33 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
-void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
-{
-  viewport->serverCutText(str, len);
-}
-
-
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
                               const rdr::U8* data)
 {
   viewport->setCursor(width, height, hotspot, data);
+}
+
+
+void DesktopWindow::show()
+{
+  Fl_Window::show();
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  XEvent e;
+
+  // Request ability to grab keyboard under Xwayland
+  e.xany.type = ClientMessage;
+  e.xany.window = fl_xid(this);
+  e.xclient.message_type = XInternAtom (fl_display, "_XWAYLAND_MAY_GRAB_KEYBOARD", 0);
+  e.xclient.format = 32;
+  e.xclient.data.l[0] = 1;
+  e.xclient.data.l[1] = 0;
+  e.xclient.data.l[2] = 0;
+  e.xclient.data.l[3] = 0;
+  e.xclient.data.l[4] = 0;
+  XSendEvent(fl_display, RootWindow(fl_display, fl_screen), 0, SubstructureNotifyMask | SubstructureRedirectMask, &e);
+#endif
 }
 
 
@@ -417,6 +433,22 @@ void DesktopWindow::draw()
 void DesktopWindow::setLEDState(unsigned int state)
 {
   viewport->setLEDState(state);
+}
+
+
+void DesktopWindow::handleClipboardRequest()
+{
+  viewport->handleClipboardRequest();
+}
+
+void DesktopWindow::handleClipboardAnnounce(bool available)
+{
+  viewport->handleClipboardAnnounce(available);
+}
+
+void DesktopWindow::handleClipboardData(const char* data)
+{
+  viewport->handleClipboardData(data);
 }
 
 

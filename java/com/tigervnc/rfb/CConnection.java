@@ -35,7 +35,7 @@ abstract public class CConnection extends CMsgHandler {
     super();
     csecurity = null; is = null; os = null; reader_ = null; writer_ = null;
     shared = false;
-    state_ = RFBSTATE_UNINITIALISED; useProtocol3_3 = false;
+    state_ = RFBSTATE_UNINITIALISED;
     framebuffer = null; decoder = new DecodeManager(this);
     security = new SecurityClient();
   }
@@ -53,10 +53,6 @@ abstract public class CConnection extends CMsgHandler {
   // setShared sets the value of the shared flag which will be sent to the
   // server upon initialisation.
   public final void setShared(boolean s) { shared = s; }
-
-  // setProtocol3_3 configures whether or not the CConnection should
-  // only ever support protocol version 3.3
-  public final void setProtocol3_3(boolean s) { useProtocol3_3 = s; }
 
   // setStreams() sets the streams to be used for the connection.  These must
   // be set before initialiseProtocol() and processMsg() are called.  The
@@ -161,7 +157,7 @@ abstract public class CConnection extends CMsgHandler {
       vlog.error(msg);
       state_ = RFBSTATE_INVALID;
       throw new Exception(msg);
-    } else if (useProtocol3_3 || cp.beforeVersion(3,7)) {
+    } else if (cp.beforeVersion(3,7)) {
       cp.setVersion(3,3);
     } else if (cp.afterVersion(3,8)) {
       cp.setVersion(3,8);
@@ -451,8 +447,6 @@ abstract public class CConnection extends CMsgHandler {
   private int state_ = RFBSTATE_UNINITIALISED;
 
   private String serverName;
-
-  private boolean useProtocol3_3;
 
   protected ModifiablePixelBuffer framebuffer;
   private DecodeManager decoder;

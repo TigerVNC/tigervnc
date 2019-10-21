@@ -24,6 +24,7 @@
 //
 
 #include <rfb/Region.h>
+#include <rfb/LogWriter.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -32,6 +33,8 @@ extern "C" {
 #include <Xregion/Xutil.h>
 #include <Xregion/Xregion.h>
 }
+
+static rfb::LogWriter vlog("Region");
 
 // A _RectRegion must never be passed as a return parameter to the Xlib region
 // operations.  This is because for efficiency its "rects" member has not been
@@ -123,7 +126,7 @@ void rfb::Region::setExtentsAndOrderedRects(const ShortRect* extents,
     BOX* prevRects = xrgn->rects;
     xrgn->rects = (BOX*)Xrealloc((char*)xrgn->rects, nRects * sizeof(BOX));
     if (!xrgn->rects) {
-      fprintf(stderr,"Xrealloc failed\n");
+      vlog.error("Xrealloc failed");
       Xfree(prevRects);
       return;
     }
@@ -182,7 +185,7 @@ int rfb::Region::numRects() const {
 }
 
 bool rfb::Region::get_rects(std::vector<Rect>* rects,
-                            bool left2right, bool topdown, int maxArea) const
+                            bool left2right, bool topdown) const
 {
   int nRects = xrgn->numRects;
   int xInc = left2right ? 1 : -1;
@@ -206,16 +209,9 @@ bool rfb::Region::get_rects(std::vector<Rect>* rects,
       i = firstInNextBand - yInc;
 
     while (nRectsInBand > 0) {
-      int y = xrgn->rects[i].y1;
-      int h = maxArea / (xrgn->rects[i].x2 - xrgn->rects[i].x1);
-      if (!h) h = xrgn->rects[i].y2 - y;
-      do {
-        if (h > xrgn->rects[i].y2 - y)
-          h = xrgn->rects[i].y2 - y;
-        Rect r(xrgn->rects[i].x1, y, xrgn->rects[i].x2, y+h);
-        rects->push_back(r);
-        y += h;
-      } while (y < xrgn->rects[i].y2);
+      Rect r(xrgn->rects[i].x1, xrgn->rects[i].y1,
+             xrgn->rects[i].x2, xrgn->rects[i].y2);
+      rects->push_back(r);
       i += xInc;
       nRectsInBand--;
     }
@@ -234,13 +230,13 @@ rfb::Rect rfb::Region::get_bounding_rect() const {
 
 void rfb::Region::debug_print(const char* prefix) const
 {
-  fprintf(stderr,"%s num rects %3ld extents %3d,%3d %3dx%3d\n",
+  vlog.debug("%s num rects %3ld extents %3d,%3d %3dx%3d",
           prefix, xrgn->numRects, xrgn->extents.x1, xrgn->extents.y1,
           xrgn->extents.x2-xrgn->extents.x1,
           xrgn->extents.y2-xrgn->extents.y1);
 
   for (int i = 0; i < xrgn->numRects; i++) {
-    fprintf(stderr,"    rect %3d,%3d %3dx%3d\n",
+    vlog.debug("    rect %3d,%3d %3dx%3d",
             xrgn->rects[i].x1, xrgn->rects[i].y1,
             xrgn->rects[i].x2-xrgn->rects[i].x1,
             xrgn->rects[i].y2-xrgn->rects[i].y1);

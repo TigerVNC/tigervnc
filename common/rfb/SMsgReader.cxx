@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,9 +17,13 @@
  * USA.
  */
 #include <stdio.h>
+
 #include <rdr/InStream.h>
+#include <rdr/ZlibInStream.h>
+
 #include <rfb/msgTypes.h>
 #include <rfb/qemuTypes.h>
+#include <rfb/clipboardTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/util.h>
 #include <rfb/SMsgHandler.h>
@@ -83,7 +87,7 @@ void SMsgReader::readMsg()
     readQEMUMessage();
     break;
   default:
-    fprintf(stderr, "unknown message type %d\n", msgType);
+    vlog.error("unknown message type %d", msgType);
     throw Exception("unknown message type");
   }
 }
@@ -173,7 +177,7 @@ void SMsgReader::readFence()
 
   len = is->readU8();
   if (len > sizeof(data)) {
-    fprintf(stderr, "Ignoring fence with too large payload\n");
+    vlog.error("Ignoring fence with too large payload");
     is->skip(len);
     return;
   }
@@ -203,19 +207,117 @@ void SMsgReader::readPointerEvent()
 void SMsgReader::readClientCutText()
 {
   is->skip(3);
-  int len = is->readU32();
-  if (len < 0) {
-    throw Exception("Cut text too long.");
+  rdr::U32 len = is->readU32();
+
+  if (len & 0x80000000) {
+    rdr::S32 slen = len;
+    slen = -slen;
+    readExtendedClipboard(slen);
+    return;
   }
-  if (len > maxCutText) {
+
+  if (len > (size_t)maxCutText) {
     is->skip(len);
     vlog.error("Cut text too long (%d bytes) - ignoring", len);
     return;
   }
-  CharArray ca(len+1);
-  ca.buf[len] = 0;
+  CharArray ca(len);
   is->readBytes(ca.buf, len);
-  handler->clientCutText(ca.buf, len);
+  CharArray filtered(convertLF(ca.buf, len));
+  handler->clientCutText(filtered.buf);
+}
+
+void SMsgReader::readExtendedClipboard(rdr::S32 len)
+{
+  rdr::U32 flags;
+  rdr::U32 action;
+
+  if (len < 4)
+    throw Exception("Invalid extended clipboard message");
+  if (len > maxCutText) {
+    vlog.error("Extended clipboard message too long (%d bytes) - ignoring", len);
+    is->skip(len);
+    return;
+  }
+
+  flags = is->readU32();
+  action = flags & clipboardActionMask;
+
+  if (action & clipboardCaps) {
+    int i;
+    size_t num;
+    rdr::U32 lengths[16];
+
+    num = 0;
+    for (i = 0;i < 16;i++) {
+      if (flags & (1 << i))
+        num++;
+    }
+
+    if (len < (rdr::S32)(4 + 4*num))
+      throw Exception("Invalid extended clipboard message");
+
+    num = 0;
+    for (i = 0;i < 16;i++) {
+      if (flags & (1 << i))
+        lengths[num++] = is->readU32();
+    }
+
+    handler->handleClipboardCaps(flags, lengths);
+  } else if (action == clipboardProvide) {
+    rdr::ZlibInStream zis;
+
+    int i;
+    size_t num;
+    size_t lengths[16];
+    rdr::U8* buffers[16];
+
+    zis.setUnderlying(is, len - 4);
+
+    num = 0;
+    for (i = 0;i < 16;i++) {
+      if (!(flags & 1 << i))
+        continue;
+
+      lengths[num] = zis.readU32();
+      if (lengths[num] > (size_t)maxCutText) {
+        vlog.error("Extended clipboard data too long (%d bytes) - ignoring",
+                   (unsigned)lengths[num]);
+        zis.skip(lengths[num]);
+        flags &= ~(1 << i);
+        continue;
+      }
+
+      buffers[num] = new rdr::U8[lengths[num]];
+      zis.readBytes(buffers[num], lengths[num]);
+      num++;
+    }
+
+    zis.removeUnderlying();
+
+    handler->handleClipboardProvide(flags, lengths, buffers);
+
+    num = 0;
+    for (i = 0;i < 16;i++) {
+      if (!(flags & 1 << i))
+        continue;
+      delete [] buffers[num++];
+    }
+  } else {
+    switch (action) {
+    case clipboardRequest:
+      handler->handleClipboardRequest(flags);
+      break;
+    case clipboardPeek:
+      handler->handleClipboardPeek(flags);
+      break;
+    case clipboardNotify:
+      handler->handleClipboardNotify(flags);
+      break;
+    default:
+      throw Exception("Invalid extended clipboard action");
+    }
+  }
 }
 
 void SMsgReader::readQEMUMessage()

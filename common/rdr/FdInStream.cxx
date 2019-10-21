@@ -215,19 +215,9 @@ int FdInStream::readWithTimeoutOrCallback(void* buf, int len, bool wait)
 
   if (timing) {
     gettimeofday(&after, 0);
-//      fprintf(stderr,"%d.%06d\n",(after.tv_sec - before.tv_sec),
-//              (after.tv_usec - before.tv_usec));
     int newTimeWaited = ((after.tv_sec - before.tv_sec) * 10000 +
                          (after.tv_usec - before.tv_usec) / 100);
     int newKbits = n * 8 / 1000;
-
-//      if (newTimeWaited == 0) {
-//        fprintf(stderr,"new kbps infinite t %d k %d\n",
-//                newTimeWaited, newKbits);
-//      } else {
-//        fprintf(stderr,"new kbps %d t %d k %d\n",
-//                newKbits * 10000 / newTimeWaited, newTimeWaited, newKbits);
-//      }
 
     // limit rate to between 10kbit/s and 40Mbit/s
 

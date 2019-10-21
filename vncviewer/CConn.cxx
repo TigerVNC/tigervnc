@@ -377,11 +377,6 @@ void CConn::bell()
   fl_beep();
 }
 
-void CConn::serverCutText(const char* str, rdr::U32 len)
-{
-  desktop->serverCutText(str, len);
-}
-
 void CConn::dataRect(const Rect& r, int encoding)
 {
   sock->inStream().startTiming();
@@ -420,6 +415,21 @@ void CConn::setLEDState(unsigned int state)
   CConnection::setLEDState(state);
 
   desktop->setLEDState(state);
+}
+
+void CConn::handleClipboardRequest()
+{
+  desktop->handleClipboardRequest();
+}
+
+void CConn::handleClipboardAnnounce(bool available)
+{
+  desktop->handleClipboardAnnounce(available);
+}
+
+void CConn::handleClipboardData(const char* data)
+{
+  desktop->handleClipboardData(data);
 }
 
 
