@@ -375,6 +375,7 @@ fi
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
+%{_sysconfdir}/pam.d/tigervnc
 %{_bindir}/x0vncserver
 %{_sbindir}/vncsession
 %{_libexecdir}/vncserver
