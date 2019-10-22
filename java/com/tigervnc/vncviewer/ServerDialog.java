@@ -278,6 +278,7 @@ class ServerDialog extends Dialog implements Runnable {
 
   private void handleConnect() {
     String servername = (String)serverName.getSelectedItem();
+    servername.trim();
     vncServerName.put(servername).flip();
     saveViewerParameters(null, servername);
     endDialog();
