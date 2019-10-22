@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 m-privacy GmbH
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011-2017 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  * Copyright (C) 2015 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -50,7 +51,6 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.HostnameVerifier;
 import javax.swing.JOptionPane;
-import javax.xml.bind.DatatypeConverter;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.network.*;
@@ -252,6 +252,18 @@ public class CSecurityTLS extends CSecurity {
       tm.checkClientTrusted(chain, authType);
     }
 
+    private final char[] hexCode = "0123456789ABCDEF".toCharArray();
+
+    private String printHexBinary(byte[] data)
+    {
+      StringBuilder r = new StringBuilder(data.length*2);
+      for (byte b : data) {
+        r.append(hexCode[(b >> 4) & 0xF]);
+        r.append(hexCode[(b & 0xF)]); 
+      }
+      return r.toString();
+    }
+
     public void checkServerTrusted(X509Certificate[] chain, String authType)
       throws CertificateException
     {
@@ -302,7 +314,7 @@ public class CSecurityTLS extends CSecurity {
           }
           if (certs == null || !certs.contains(cert)) {
             byte[] der = cert.getEncoded();
-            String pem = DatatypeConverter.printBase64Binary(der);
+            String pem = Base64.getEncoder().encodeToString(der);
             pem = pem.replaceAll("(.{64})", "$1\n");
             FileWriter fw = null;
             try {
@@ -345,7 +357,7 @@ public class CSecurityTLS extends CSecurity {
       try {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         md.update(cert.getEncoded());
-        thumbprint = DatatypeConverter.printHexBinary(md.digest());
+        thumbprint = printHexBinary(md.digest());
         thumbprint = thumbprint.replaceAll("..(?!$)", "$0 ");
       } catch(CertificateEncodingException e) {
         throw new SystemException(e.getMessage());
