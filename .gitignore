@@ -11,3 +11,5 @@ CMakeCache.txt
 Makefile
 Makefile.in
 config.h
+build/*
+.travis/centos8/rpmbuild/*
