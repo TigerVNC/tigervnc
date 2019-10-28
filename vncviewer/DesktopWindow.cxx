@@ -536,8 +536,11 @@ void DesktopWindow::menuOverlay(void* data)
   DesktopWindow *self;
 
   self = (DesktopWindow*)data;
-  self->setOverlay(_("Press %s to open the context menu"),
-                   (const char*)menuKey);
+
+  if (strcmp((const char*)menuKey, "") != 0) {
+    self->setOverlay(_("Press %s to open the context menu"),
+                     (const char*)menuKey);
+  }
 }
 
 void DesktopWindow::setOverlay(const char* text, ...)
