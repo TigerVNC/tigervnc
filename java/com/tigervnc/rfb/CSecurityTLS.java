@@ -377,8 +377,7 @@ public class CSecurityTLS extends CSecurity {
           LdapName ln = new LdapName(dn);
           for (Rdn rdn : ln.getRdns()) {
             if (rdn.getType().equalsIgnoreCase("CN")) {
-              String peer =
-                ((CConn)client).getSocket().getPeerName().toLowerCase();
+              String peer = client.getServerName().toLowerCase();
               if (peer.equals(((String)rdn.getValue()).toLowerCase()))
                 return;
             }
@@ -388,8 +387,7 @@ public class CSecurityTLS extends CSecurity {
           while (i.hasNext()) {
             List nxt = (List)i.next();
             if (((Integer)nxt.get(0)).intValue() == 2) {
-              String peer =
-                ((CConn)client).getSocket().getPeerName().toLowerCase();
+              String peer = client.getServerName().toLowerCase();
               if (peer.equals(((String)nxt.get(1)).toLowerCase()))
                 return;
             } else if (((Integer)nxt.get(0)).intValue() == 7) {
