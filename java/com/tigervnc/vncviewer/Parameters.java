@@ -183,11 +183,6 @@ public class Parameters {
     "specified in an applet parameter or on the command line",
     false);
 
-  public static StringParameter vncServerName
-  = new StringParameter("Server",
-    "The VNC server <host>[:<dpyNum>] or <host>::<port>",
-    "");
-
   public static BoolParameter acceptBell
   = new BoolParameter("AcceptBell",
     "Produce a system beep when requested to by the server.",

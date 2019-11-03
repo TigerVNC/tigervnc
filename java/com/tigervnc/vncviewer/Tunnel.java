@@ -52,18 +52,10 @@ public class Tunnel {
   private final static String DEFAULT_VIA_TEMPLATE
     = "-f -L %L:%H:%R %G sleep 20";
 
-  public static void createTunnel(CConn cc, int localPort) throws Exception {
-    int remotePort;
-    String gatewayHost;
-    String remoteHost;
-
-    remotePort = cc.getServerPort();
-    gatewayHost = cc.getServerName();
-    remoteHost = "localhost";
-    if (!via.getValue().isEmpty()) {
-      gatewayHost = getSshHost();
-      remoteHost = cc.getServerName();
-    }
+  public static void createTunnel(String gatewayHost,
+                                  String remoteHost,
+                                  int remotePort,
+                                  int localPort) throws Exception {
 
     String pattern = extSSHArgs.getValue();
     if (pattern == null || pattern.isEmpty()) {
@@ -102,12 +94,12 @@ public class Tunnel {
 
   public static String getSshHost() {
     String sshHost = via.getValue();
-    if (sshHost.isEmpty())
-      return vncServerName.getValue();
-    int end = sshHost.indexOf(":");
-    if (end < 0)
-      end = sshHost.length();
-    sshHost = sshHost.substring(sshHost.indexOf("@")+1, end);
+    if (!sshHost.isEmpty()) {
+      int end = sshHost.indexOf(":");
+      if (end < 0)
+        end = sshHost.length();
+      sshHost = sshHost.substring(sshHost.indexOf("@")+1, end);
+    }
     return sshHost;
   }
 
@@ -132,7 +124,8 @@ public class Tunnel {
       return sshKeyFile.getValue();
     String[] ids = { "id_dsa", "id_rsa" };
     for (String id : ids) {
-      File f = new File(FileUtils.getHomeDir()+".ssh/"+id);
+      File f = new File(FileUtils.getHomeDir()+".ssh"+
+                        FileUtils.getFileSeparator()+id);
       if (f.exists() && f.canRead())
         return(f.getAbsolutePath());
     }
@@ -154,7 +147,8 @@ public class Tunnel {
       // NOTE: jsch does not support all ciphers.  User may be
       //       prompted to accept host key authenticy even if
       //       the key is in the known_hosts file.
-      File knownHosts = new File(FileUtils.getHomeDir()+".ssh/known_hosts");
+      File knownHosts = new File(FileUtils.getHomeDir()+".ssh"+
+                                 FileUtils.getFileSeparator()+"known_hosts");
       if (knownHosts.exists() && knownHosts.canRead())
   	    jsch.setKnownHosts(knownHosts.getAbsolutePath());
       ArrayList<File> privateKeys = new ArrayList<File>();
@@ -196,7 +190,10 @@ public class Tunnel {
       if (session.getConfig("StrictHostKeyChecking") == null)
         session.setConfig("StrictHostKeyChecking", "ask");
       session.connect();
-      session.setPortForwardingL(localPort, remoteHost, remotePort);
+      if (gatewayHost.equals(remoteHost))
+        session.setPortForwardingL(localPort, new String("localhost"), remotePort);
+      else
+        session.setPortForwardingL(localPort, remoteHost, remotePort);
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage()); 
     }
