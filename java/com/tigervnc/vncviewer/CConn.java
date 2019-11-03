@@ -128,15 +128,20 @@ public class CConn extends CConnection implements
           int localPort = TcpSocket.findFreeTcpPort();
           if (localPort == 0)
             throw new Exception("Could not obtain free TCP port");
-          Tunnel.createTunnel(this, localPort);
+          String gatewayHost = Tunnel.getSshHost();
+          if (gatewayHost.isEmpty())
+            gatewayHost = getServerName();
+          Tunnel.createTunnel(gatewayHost, getServerName(),
+                              getServerPort(), localPort);
           sock = new TcpSocket("localhost", localPort);
+          vlog.info("connected to localhost port "+localPort);
         } else {
           sock = new TcpSocket(getServerName(), getServerPort());
+          vlog.info("connected to host "+getServerName()+" port "+getServerPort());
         }
       } catch (java.lang.Exception e) {
         throw new Exception(e.getMessage());
       }
-      vlog.info("connected to host "+getServerName()+" port "+getServerPort());
     } else {
       String name = sock.getPeerEndpoint();
       if (listenMode.getValue())
