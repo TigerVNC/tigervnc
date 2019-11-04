@@ -56,17 +56,19 @@ public class Tunnel {
                                   String remoteHost,
                                   int remotePort,
                                   int localPort) throws Exception {
-
-    String pattern = extSSHArgs.getValue();
-    if (pattern == null || pattern.isEmpty()) {
-      if (tunnel.getValue() && via.getValue().isEmpty())
-        pattern = System.getProperty("VNC_TUNNEL_CMD");
-      else
-        pattern = System.getProperty("VNC_VIA_CMD");
-    }
-
-    if (extSSH.getValue() || 
-        (pattern != null && pattern.length() > 0)) {
+    if (extSSH.getValue()) {
+      String pattern = extSSHArgs.getValueStr();
+      if (pattern == null || pattern.isEmpty()) {
+        if (tunnel.getValue() && via.getValue().isEmpty()) {
+          pattern = System.getProperty("VNC_TUNNEL_CMD");
+          if (pattern == null || pattern.isEmpty())
+            pattern = DEFAULT_TUNNEL_TEMPLATE;
+        } else {
+          pattern = System.getProperty("VNC_VIA_CMD");
+          if (pattern == null || pattern.isEmpty())
+            pattern = DEFAULT_VIA_TEMPLATE;
+        }
+      }
       createTunnelExt(gatewayHost, remoteHost, remotePort, localPort, pattern);
     } else {
       createTunnelJSch(gatewayHost, remoteHost, remotePort, localPort);
@@ -202,12 +204,6 @@ public class Tunnel {
   private static void createTunnelExt(String gatewayHost, String remoteHost,
                                       int remotePort, int localPort,
                                       String pattern) throws Exception {
-    if (pattern == null || pattern.length() < 1) {
-      if (tunnel.getValue() && via.getValue().isEmpty())
-        pattern = DEFAULT_TUNNEL_TEMPLATE;
-      else
-        pattern = DEFAULT_VIA_TEMPLATE;
-    }
     String cmd = fillCmdPattern(pattern, gatewayHost, remoteHost,
                                 remotePort, localPort);
     try {

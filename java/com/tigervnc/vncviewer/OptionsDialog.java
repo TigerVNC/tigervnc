@@ -622,9 +622,12 @@ class OptionsDialog extends Dialog {
     extSSH.setParam(extSSHCheckbox.isSelected());
     if (!sshClientInput.getText().isEmpty())
       extSSHClient.setParam(sshClientInput.getText());
-    if (sshArgsDefaultButton.isSelected())
-      if (!sshArgsInput.getText().isEmpty())
+    if (sshArgsCustomButton.isSelected() &&
+        !sshArgsInput.getText().isEmpty()) {
         extSSHArgs.setParam(sshArgsInput.getText());
+    } else {
+      extSSHArgs.setParam(new String());
+    }
     if (!sshConfigInput.getText().isEmpty())
       sshConfig.setParam(sshConfigInput.getText());
     if (!sshKeyFileInput.getText().isEmpty())
