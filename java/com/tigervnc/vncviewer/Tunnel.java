@@ -29,6 +29,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
+import java.net.*;
 import java.util.*;
 
 import com.tigervnc.rdr.*;
@@ -209,11 +211,36 @@ public class Tunnel {
     try {
       Thread t = new Thread(new ExtProcess(cmd, vlog, true));
       t.start();
-      // wait for the ssh process to start
-      Thread.sleep(1000);
+      // try for up to 5s
+      for (int i=0;i<50;i++) {
+        if (isTunnelReady(localPort))
+          return;
+        else
+          Thread.sleep(100);
+      }
+      throw new Exception("SSH Tunnel not ready");
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }
+  }
+
+  private static boolean isTunnelReady(int localPort) throws Exception {
+      // test the local forwarding socket to make
+      // sure the tunnel is up before connecting
+      SocketAddress sockAddr =
+        new InetSocketAddress("localhost", localPort);
+      java.net.Socket socket = new java.net.Socket();
+      boolean ready = false;
+      try {
+        socket.connect(sockAddr);
+        ready = socket.isConnected();
+        socket.close();
+      } catch (IOException e) {
+        // expected until tunnel is up
+      } catch (java.lang.Exception e) {
+        throw new Exception(e.getMessage());
+      }
+      return ready;
   }
 
   private static String fillCmdPattern(String pattern, String gatewayHost,
