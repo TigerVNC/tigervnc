@@ -212,7 +212,8 @@ public class Tunnel {
       Thread t = new Thread(new ExtProcess(cmd, vlog, true));
       t.start();
       // try for up to 5s
-      for (int i=0;i<50;i++) {
+      long start = System.currentTimeMillis();
+      while (System.currentTimeMillis() - start < 5000) {
         if (isTunnelReady(localPort))
           return;
         else
@@ -232,7 +233,7 @@ public class Tunnel {
       java.net.Socket socket = new java.net.Socket();
       boolean ready = false;
       try {
-        socket.connect(sockAddr);
+        socket.connect(sockAddr, 1000);
         ready = socket.isConnected();
         socket.close();
       } catch (IOException e) {
