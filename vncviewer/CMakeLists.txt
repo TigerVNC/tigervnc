@@ -11,8 +11,7 @@ set(VNCVIEWER_SOURCES
   Surface.cxx
   OptionsDialog.cxx
   PlatformPixelBuffer.cxx
-  Viewport.cxx
-  parameters.cxx
+  Viewport.cxx parameters.cxx
   keysym2ucs.c
   vncviewer.cxx)
 
@@ -48,7 +47,7 @@ else()
   add_executable(vncviewer ${VNCVIEWER_SOURCES})
 endif()
 
-target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES} dl util png16)
 
 if(WIN32)
   target_link_libraries(vncviewer msimg32)
