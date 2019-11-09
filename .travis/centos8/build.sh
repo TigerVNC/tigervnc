@@ -32,7 +32,8 @@ docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/bui
 	sudo chown rpm.rpm /home/rpm/builddeps &&
         mv ~/rpmbuild/RPMS/x86_64/libdmx-1.*.rpm ~/builddeps &&
         mv ~/rpmbuild/RPMS/x86_64/libdmx-devel-*.rpm ~/builddeps &&
-	sudo chown -R 0.0 ~/rpmbuild
+	sudo chown -R 0.0 ~/rpmbuild &&
+	sudo rm -rf ~/rpmbuild/*
 	"
 
 ## Clean the build directory
@@ -52,7 +53,8 @@ docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/bui
 	sudo chown rpm.rpm /home/rpm/builddeps &&
         mv ~/rpmbuild/RPMS/x86_64/egl-wayland-1.*.rpm ~/builddeps &&
         mv ~/rpmbuild/RPMS/x86_64/egl-wayland-devel-*.rpm ~/builddeps &&
-        sudo chown -R 0.0 ~/rpmbuild
+        sudo chown -R 0.0 ~/rpmbuild &&
+        sudo rm -rf ~/rpmbuild/*
         "
 
 ## Clean the build directory
@@ -71,7 +73,8 @@ docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/bui
         rpmbuild -ba ~/rpmbuild/SPECS/xorg-x11-server.spec &&
 	sudo chown rpm.rpm ~/builddeps &&
         mv ~/rpmbuild/RPMS/noarch/xorg-x11-server-source-*.rpm ~/builddeps &&
-        sudo chown -R 0.0 ~/rpmbuild
+        sudo chown -R 0.0 ~/rpmbuild &&
+        sudo rm -rf ~/rpmbuild/*
         "
 
 ## Clean the build directory
