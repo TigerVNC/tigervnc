@@ -18,13 +18,15 @@ chmod a+w ${CURDIR}/rpmbuild/{BUILD,BUILDROOT,SRPMS,RPMS}
 
 rm -rf ${CURDIR}/builddeps
 mkdir -p ${CURDIR}/builddeps
-chmod a+w ${CURDIR}/rpmbuild/{BUILD,BUILDROOT,SRPMS,RPMS}
-[ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled && chcon -Rt container_file_t ${CURDIR}/rpmbuild
+chmod a+w ${CURDIR}/builddeps
+[ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled && chcon -Rt container_file_t ${CURDIR}/builddeps
 
 ## Build libdmx-devel from source
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/builddeps:/home/rpm/builddeps --interactive --tty --rm tigervnc/${DOCKER} \
         bash -c "
 	yumdownloader --source libdmx &&
+        sudo chown 0.0 ~/rpmbuild/SOURCES/* &&
+        sudo chown 0.0 ~/rpmbuild/SPECS/* &&
 	rpm -i libdmx-*.rpm
 	sudo yum-builddep -y ~/rpmbuild/SPECS/libdmx.spec &&
 	rpmbuild -ba ~/rpmbuild/SPECS/libdmx.spec &&
@@ -42,6 +44,8 @@ chmod a+w ${CURDIR}/rpmbuild/{BUILD,BUILDROOT,SRPMS,RPMS,BUILDDEPS}
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/builddeps:/home/rpm/builddeps --interactive --tty --rm tigervnc/${DOCKER} \
         bash -c "
         yumdownloader --source egl-wayland &&
+        sudo chown 0.0 ~/rpmbuild/SOURCES/* &&
+        sudo chown 0.0 ~/rpmbuild/SPECS/* &&
         rpm -i egl-wayland-*.rpm
         sudo yum-builddep -y ~/rpmbuild/SPECS/egl-wayland.spec &&
         rpmbuild -ba ~/rpmbuild/SPECS/egl-wayland.spec &&
@@ -59,6 +63,8 @@ chmod a+w ${CURDIR}/rpmbuild/{BUILD,BUILDROOT,SRPMS,RPMS,BUILDDEPS}
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/builddeps:/home/rpm/builddeps --interactive --tty --rm tigervnc/${DOCKER} \
         bash -c "
         yumdownloader --source xorg-x11-server-Xorg &&
+        sudo chown 0.0 ~/rpmbuild/SOURCES/* &&
+        sudo chown 0.0 ~/rpmbuild/SPECS/* &&
         rpm -i xorg-x11-server-*.rpm
         sudo yum-builddep -y ~/rpmbuild/SPECS/xorg-x11-server.spec &&
         rpmbuild -ba ~/rpmbuild/SPECS/xorg-x11-server.spec &&
