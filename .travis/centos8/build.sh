@@ -23,15 +23,15 @@ chmod a+w ${CURDIR}/builddeps
 
 ## Build libdmx-devel from source
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/builddeps:/home/rpm/builddeps --interactive --tty --rm tigervnc/${DOCKER} \
-        bash -c "
+	bash -c "
 	yumdownloader --source libdmx &&
 	sudo chown rpm.rpm ~/rpmbuild/* &&
 	rpm -i libdmx-*.rpm
 	sudo yum-builddep -y /home/rpm/rpmbuild/SPECS/libdmx.spec &&
 	rpmbuild -ba ~/rpmbuild/SPECS/libdmx.spec &&
 	sudo chown rpm.rpm /home/rpm/builddeps &&
-        mv ~/rpmbuild/RPMS/x86_64/libdmx-1.*.rpm ~/builddeps &&
-        mv ~/rpmbuild/RPMS/x86_64/libdmx-devel-*.rpm ~/builddeps &&
+	mv ~/rpmbuild/RPMS/x86_64/libdmx-1.*.rpm ~/builddeps &&
+	mv ~/rpmbuild/RPMS/x86_64/libdmx-devel-*.rpm ~/builddeps &&
 	sudo chown -R 0.0 ~/rpmbuild &&
 	sudo rm -rf ~/rpmbuild/*
 	"
@@ -44,18 +44,18 @@ chmod a+w ${CURDIR}/rpmbuild/{BUILD,BUILDROOT,SRPMS,RPMS,BUILDDEPS}
 
 ## Build egl-wayland-devel from source
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/builddeps:/home/rpm/builddeps --interactive --tty --rm tigervnc/${DOCKER} \
-        bash -c "
-        yumdownloader --source egl-wayland &&
+	bash -c "
+	yumdownloader --source egl-wayland &&
 	sudo chown rpm.rpm ~/rpmbuild/* &&
-        rpm -i egl-wayland-*.rpm
-        sudo yum-builddep -y /home/rpm/rpmbuild/SPECS/egl-wayland.spec &&
-        rpmbuild -ba ~/rpmbuild/SPECS/egl-wayland.spec &&
+	rpm -i egl-wayland-*.rpm
+	sudo yum-builddep -y /home/rpm/rpmbuild/SPECS/egl-wayland.spec &&
+	rpmbuild -ba ~/rpmbuild/SPECS/egl-wayland.spec &&
 	sudo chown rpm.rpm /home/rpm/builddeps &&
-        mv ~/rpmbuild/RPMS/x86_64/egl-wayland-1.*.rpm ~/builddeps &&
-        mv ~/rpmbuild/RPMS/x86_64/egl-wayland-devel-*.rpm ~/builddeps &&
-        sudo chown -R 0.0 ~/rpmbuild &&
-        sudo rm -rf ~/rpmbuild/*
-        "
+	mv ~/rpmbuild/RPMS/x86_64/egl-wayland-1.*.rpm ~/builddeps &&
+	mv ~/rpmbuild/RPMS/x86_64/egl-wayland-devel-*.rpm ~/builddeps &&
+	sudo chown -R 0.0 ~/rpmbuild &&
+	sudo rm -rf ~/rpmbuild/*
+	"
 
 ## Clean the build directory
 rm -rf ${CURDIR}/rpmbuild
@@ -65,19 +65,19 @@ chmod a+w ${CURDIR}/rpmbuild/{BUILD,BUILDROOT,SRPMS,RPMS,BUILDDEPS}
 
 ## Build xorg-x11-server-source from source
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/builddeps:/home/rpm/builddeps --interactive --tty --rm tigervnc/${DOCKER} \
-        bash -c "
+	bash -c "
 	sudo yum -y install ~/builddeps/*.rpm &&
 	sudo rm -f ~/builddeps/* &&
-        yumdownloader --source xorg-x11-server-Xorg &&
+	yumdownloader --source xorg-x11-server-Xorg &&
 	sudo chown rpm.rpm ~/rpmbuild/* &&
-        rpm -i xorg-x11-server-*.rpm
-        sudo yum-builddep -y /home/rpm/rpmbuild/SPECS/xorg-x11-server.spec &&
-        rpmbuild -ba ~/rpmbuild/SPECS/xorg-x11-server.spec &&
+	rpm -i xorg-x11-server-*.rpm
+	sudo yum-builddep -y /home/rpm/rpmbuild/SPECS/xorg-x11-server.spec &&
+	rpmbuild -ba ~/rpmbuild/SPECS/xorg-x11-server.spec &&
 	sudo chown rpm.rpm ~/builddeps &&
-        mv ~/rpmbuild/RPMS/noarch/xorg-x11-server-source-*.rpm ~/builddeps &&
-        sudo chown -R 0.0 ~/rpmbuild &&
-        sudo rm -rf ~/rpmbuild/*
-        "
+	mv ~/rpmbuild/RPMS/noarch/xorg-x11-server-source-*.rpm ~/builddeps &&
+	sudo chown -R 0.0 ~/rpmbuild &&
+	sudo rm -rf ~/rpmbuild/*
+	"
 
 ## Clean the build directory
 rm -rf ${CURDIR}/rpmbuild
