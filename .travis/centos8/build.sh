@@ -66,6 +66,8 @@ chmod a+w ${CURDIR}/rpmbuild/{BUILD,BUILDROOT,SRPMS,RPMS,BUILDDEPS}
 ## Build xorg-x11-server-source from source
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --volume ${CURDIR}/builddeps:/home/rpm/builddeps --interactive --tty --rm tigervnc/${DOCKER} \
         bash -c "
+	sudo yum -y install ~/builddeps/*.rpm &&
+	sudo rm -f ~/builddeps/* &&
         yumdownloader --source xorg-x11-server-Xorg &&
 	sudo chown rpm.rpm ~/rpmbuild/* &&
         rpm -i xorg-x11-server-*.rpm
