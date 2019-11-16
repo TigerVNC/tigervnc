@@ -64,8 +64,8 @@ public class ScreenSet {
           return false;
         if (!refScreen.dimensions.enclosed_by(fb_rect))
           return false;
-        //if (seen_ids.lastIndexOf(refScreen.id) != seen_ids.get(-1))
-        //  return false;
+        if (seen_ids.lastIndexOf(refScreen.id) != -1)
+          return false;
         seen_ids.add(refScreen.id);
       }
 
