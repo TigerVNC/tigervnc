@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +53,7 @@ public class ZRLEDecoder extends Decoder {
   }
 
   public void readRect(Rect r, InStream is,
-                      ConnParams cp, OutStream os)
+                      ServerParams server, OutStream os)
   {
     int len;
 
@@ -62,11 +63,11 @@ public class ZRLEDecoder extends Decoder {
   }
 
   public void decodeRect(Rect r, Object buffer,
-                         int buflen, ConnParams cp,
+                         int buflen, ServerParams server,
                          ModifiablePixelBuffer pb)
   {
     MemInStream is = new MemInStream((byte[])buffer, 0, buflen);
-    PixelFormat pf = cp.pf();
+    PixelFormat pf = server.pf();
     switch (pf.bpp) {
     case 8:  zrleDecode8(r, is, zis, pf, pb); break;
     case 16: zrleDecode16(r, is, zis, pf, pb); break;

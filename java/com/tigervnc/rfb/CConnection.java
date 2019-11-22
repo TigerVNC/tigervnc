@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2012 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,24 @@ import com.tigervnc.rdr.*;
 
 abstract public class CConnection extends CMsgHandler {
 
+  static LogWriter vlog = new LogWriter("CConnection");
+
+  private static final String osName = 
+    System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+
   public CConnection()
   {
     super();
-    csecurity = null; is = null; os = null; reader_ = null; writer_ = null;
+    csecurity = null;
+    supportsLocalCursor = false; supportsDesktopResize = false;
+    is = null; os = null; reader_ = null; writer_ = null;
     shared = false;
-    state_ = RFBSTATE_UNINITIALISED;
+    state_ = stateEnum.RFBSTATE_UNINITIALISED;
+    pendingPFChange = false; preferredEncoding = Encodings.encodingTight;
+    compressLevel = 2; qualityLevel = -1;
+    formatChange = false; encodingChange = false;
+    firstUpdate = true; pendingUpdate = false; continuousUpdates = false;
+    forceNonincremental = true;
     framebuffer = null; decoder = new DecodeManager(this);
     security = new SecurityClient();
   }
@@ -46,13 +58,9 @@ abstract public class CConnection extends CMsgHandler {
   // which we are connected.  This might be the result of getPeerEndpoint on
   // a TcpSocket, for example, or a host specified by DNS name & port.
   // The serverName is used when verifying the Identity of a host (see RA2).
-  public final void setServerName(String name) {
-    serverName = name;
-  }
+  public void setServerName(String name_) { serverName = name_; }
 
-  // setShared sets the value of the shared flag which will be sent to the
-  // server upon initialisation.
-  public final void setShared(boolean s) { shared = s; }
+  public void setServerPort(int port_) { serverPort = port_; }
 
   // setStreams() sets the streams to be used for the connection.  These must
   // be set before initialiseProtocol() and processMsg() are called.  The
@@ -66,6 +74,10 @@ abstract public class CConnection extends CMsgHandler {
     os = os_;
   }
 
+  // setShared sets the value of the shared flag which will be sent to the
+  // server upon initialisation.
+  public final void setShared(boolean s) { shared = s; }
+
   // setFramebuffer configures the PixelBuffer that the CConnection
   // should render all pixel data in to. Note that the CConnection
   // takes ownership of the PixelBuffer and it must not be deleted by
@@ -74,6 +86,11 @@ abstract public class CConnection extends CMsgHandler {
   public void setFramebuffer(ModifiablePixelBuffer fb)
   {
     decoder.flush();
+
+    if (fb != null) {
+      assert(fb.width() == server.width());
+      assert(fb.height() == server.height());
+    }
 
     if ((framebuffer != null) && (fb != null)) {
       Rect rect = new Rect();
@@ -115,7 +132,7 @@ abstract public class CConnection extends CMsgHandler {
   // there is data to read on the InStream.
   public final void initialiseProtocol()
   {
-    state_ = RFBSTATE_PROTOCOL_VERSION;
+    state_ = stateEnum.RFBSTATE_PROTOCOL_VERSION;
   }
 
   // processMsg() should be called whenever there is data to read on the
@@ -139,35 +156,55 @@ abstract public class CConnection extends CMsgHandler {
 
   private void processVersionMsg()
   {
+    ByteBuffer verStr = ByteBuffer.allocate(12);
+    int majorVersion;
+    int minorVersion;
+
     vlog.debug("reading protocol version");
-    AtomicBoolean done = new AtomicBoolean();
-    if (!cp.readVersion(is, done)) {
-      state_ = RFBSTATE_INVALID;
+
+    if (!is.checkNoWait(12))
+      return;
+
+    is.readBytes(verStr, 12);
+
+    if ((new String(verStr.array())).matches("RFB \\d{3}\\.\\d{3}\\n")) {
+      majorVersion =
+        Integer.parseInt((new String(verStr.array())).substring(4,7));
+      minorVersion =
+        Integer.parseInt((new String(verStr.array())).substring(8,11));
+    } else {
+      state_ = stateEnum.RFBSTATE_INVALID;
       throw new Exception("reading version failed: not an RFB server?");
     }
-    if (!done.get()) return;
+
+    server.setVersion(majorVersion, minorVersion);
 
     vlog.info("Server supports RFB protocol version "
-              +cp.majorVersion+"."+ cp.minorVersion);
+              +server.majorVersion+"."+ server.minorVersion);
 
     // The only official RFB protocol versions are currently 3.3, 3.7 and 3.8
-    if (cp.beforeVersion(3,3)) {
+    if (server.beforeVersion(3,3)) {
       String msg = ("Server gave unsupported RFB protocol version "+
-                    cp.majorVersion+"."+cp.minorVersion);
+                    server.majorVersion+"."+server.minorVersion);
       vlog.error(msg);
-      state_ = RFBSTATE_INVALID;
+      state_ = stateEnum.RFBSTATE_INVALID;
       throw new Exception(msg);
-    } else if (cp.beforeVersion(3,7)) {
-      cp.setVersion(3,3);
-    } else if (cp.afterVersion(3,8)) {
-      cp.setVersion(3,8);
+    } else if (server.beforeVersion(3,7)) {
+      server.setVersion(3,3);
+    } else if (server.afterVersion(3,8)) {
+      server.setVersion(3,8);
     }
 
-    cp.writeVersion(os);
-    state_ = RFBSTATE_SECURITY_TYPES;
+    verStr.clear();
+    verStr.put(String.format("RFB %03d.%03d\n",
+               majorVersion, minorVersion).getBytes()).flip();
+    os.writeBytes(verStr.array(), 0, 12);
+    os.flush();
+
+    state_ = stateEnum.RFBSTATE_SECURITY_TYPES;
 
     vlog.info("Using RFB protocol version "+
-              cp.majorVersion+"."+cp.minorVersion);
+              server.majorVersion+"."+server.minorVersion);
   }
 
   private void processSecurityTypesMsg()
@@ -179,7 +216,7 @@ abstract public class CConnection extends CMsgHandler {
     List<Integer> secTypes = new ArrayList<Integer>();
     secTypes = security.GetEnabledSecTypes();
 
-    if (cp.isVersion(3,3)) {
+    if (server.isVersion(3,3)) {
 
       // legacy 3.3 server may only offer "vnc authentication" or "none"
 
@@ -244,12 +281,12 @@ abstract public class CConnection extends CMsgHandler {
     }
 
     if (secType == Security.secTypeInvalid) {
-      state_ = RFBSTATE_INVALID;
+      state_ = stateEnum.RFBSTATE_INVALID;
       vlog.error("No matching security types");
       throw new Exception("No matching security types");
     }
 
-    state_ = RFBSTATE_SECURITY;
+    state_ = stateEnum.RFBSTATE_SECURITY;
     csecurity = security.GetCSecurity(secType);
     processSecurityMsg();
   }
@@ -257,7 +294,7 @@ abstract public class CConnection extends CMsgHandler {
   private void processSecurityMsg() {
     vlog.debug("processing security message");
     if (csecurity.processMsg(this)) {
-      state_ = RFBSTATE_SECURITY_RESULT;
+      state_ = stateEnum.RFBSTATE_SECURITY_RESULT;
       processSecurityResultMsg();
     }
   }
@@ -265,7 +302,7 @@ abstract public class CConnection extends CMsgHandler {
   private void processSecurityResultMsg() {
     vlog.debug("processing security result message");
     int result;
-    if (cp.beforeVersion(3,8) && csecurity.getType() == Security.secTypeNone) {
+    if (server.beforeVersion(3,8) && csecurity.getType() == Security.secTypeNone) {
       result = Security.secResultOK;
     } else {
       if (!is.checkNoWait(1)) return;
@@ -284,12 +321,10 @@ abstract public class CConnection extends CMsgHandler {
     default:
       throw new Exception("Unknown security result from server");
     }
-    String reason;
-    if (cp.beforeVersion(3,8))
-      reason = "Authentication failure";
-    else
-      reason = is.readString();
-    state_ = RFBSTATE_INVALID;
+    state_ = stateEnum.RFBSTATE_INVALID;
+    if (server.beforeVersion(3,8))
+      throw new AuthFailureException();
+    String reason = is.readString();
     throw new AuthFailureException(reason);
   }
 
@@ -299,22 +334,22 @@ abstract public class CConnection extends CMsgHandler {
   }
 
   private void throwConnFailedException() {
-    state_ = RFBSTATE_INVALID;
+    state_ = stateEnum.RFBSTATE_INVALID;
     String reason;
     reason = is.readString();
     throw new ConnFailedException(reason);
   }
 
   private void securityCompleted() {
-    state_ = RFBSTATE_INITIALISATION;
+    state_ = stateEnum.RFBSTATE_INITIALISATION;
     reader_ = new CMsgReader(this, is);
-    writer_ = new CMsgWriter(cp, os);
+    writer_ = new CMsgWriter(server, os);
     vlog.debug("Authentication success!");
     authSuccess();
     writer_.writeClientInit(shared);
   }
 
-  // Methods to be overridden in a derived class
+  // Methods overridden from CMsgHandler
 
   // Note: These must be called by any deriving classes
 
@@ -322,14 +357,79 @@ abstract public class CConnection extends CMsgHandler {
     decoder.flush();
 
     super.setDesktopSize(w,h);
+
+    if (continuousUpdates)
+      writer().writeEnableContinuousUpdates(true, 0, 0,
+                                            server.width(),
+                                            server.height());
+
+    resizeFramebuffer();
+    assert(framebuffer != null);
+    assert(framebuffer.width() == server.width());
+    assert(framebuffer.height() == server.height());
   }
 
   public void setExtendedDesktopSize(int reason,
-                                     int result, int w, int h,
+                                     int result,
+                                     int w, int h,
                                      ScreenSet layout) {
     decoder.flush();
 
     super.setExtendedDesktopSize(reason, result, w, h, layout);
+
+    if (continuousUpdates)
+      writer().writeEnableContinuousUpdates(true, 0, 0,
+                                            server.width(),
+                                            server.height());
+
+    resizeFramebuffer();
+    assert(framebuffer != null);
+    assert(framebuffer.width() == server.width());
+    assert(framebuffer.height() == server.height());
+  }
+
+  public void endOfContinuousUpdates()
+  {
+    super.endOfContinuousUpdates();
+
+    // We've gotten the marker for a format change, so make the pending
+    // one active
+    if (pendingPFChange) {
+      server.setPF(pendingPF);
+      pendingPFChange = false;
+
+      // We might have another change pending
+      if (formatChange)
+        requestNewUpdate();
+    }
+  }
+  // serverInit() is called when the ServerInit message is received.  The
+  // derived class must call on to CConnection::serverInit().
+  public void serverInit(int width, int height,
+                         PixelFormat pf, String name)
+  {
+    super.serverInit(width, height, pf, name);
+    
+    state_ = stateEnum.RFBSTATE_NORMAL;
+    vlog.debug("initialisation done");
+
+    initDone();
+    assert(framebuffer != null);
+    // FIXME: even if the client is scaling?
+    assert(framebuffer.width() == server.width());
+    assert(framebuffer.height() == server.height());
+
+    // We want to make sure we call SetEncodings at least once
+    encodingChange = true;
+
+    requestNewUpdate();
+
+    // This initial update request is a bit of a corner case, so we need
+    // to help out setting the correct format here.
+    if (pendingPFChange) {
+      server.setPF(pendingPF);
+      pendingPFChange = false;
+    }
   }
 
   public void readAndDecodeRect(Rect r, int encoding,
@@ -339,13 +439,16 @@ abstract public class CConnection extends CMsgHandler {
     decoder.flush();
   }
 
-  // getIdVerifier() returns the identity verifier associated with the connection.
-  // Ownership of the IdentityVerifier is retained by the CConnection instance.
-  //public IdentityVerifier getIdentityVerifier() { return 0; }
-
   public void framebufferUpdateStart()
   {
     super.framebufferUpdateStart();
+
+    assert(framebuffer != null);
+
+    // Note: This might not be true if continuous updates are supported
+    pendingUpdate = false;
+
+    requestNewUpdate();
   }
 
   public void framebufferUpdateEnd()
@@ -353,6 +456,25 @@ abstract public class CConnection extends CMsgHandler {
     decoder.flush();
 
     super.framebufferUpdateEnd();
+
+    // A format change has been scheduled and we are now past the update
+    // with the old format. Time to active the new one.
+    if (pendingPFChange && !continuousUpdates) {
+      server.setPF(pendingPF);
+      pendingPFChange = false;
+    }
+
+    if (firstUpdate) {
+      if (server.supportsContinuousUpdates) {
+        vlog.info("Enabling continuous updates");
+        continuousUpdates = true;
+        writer().writeEnableContinuousUpdates(true, 0, 0,
+                                              server.width(),
+                                              server.height());
+      }
+
+      firstUpdate = false;
+    }
   }
 
   public void dataRect(Rect r, int encoding)
@@ -360,20 +482,87 @@ abstract public class CConnection extends CMsgHandler {
     decoder.decodeRect(r, encoding, framebuffer);
   }
 
+  // Methods to be overridden in a derived class
+
   // authSuccess() is called when authentication has succeeded.
-  public void authSuccess()
+  public void authSuccess() { }
+
+  // initDone() is called when the connection is fully established
+  // and standard messages can be sent. This is called before the
+  // initial FramebufferUpdateRequest giving a derived class the
+  // chance to modify pixel format and settings. The derived class
+  // must also make sure it has provided a valid framebuffer before
+  // returning.
+  public void initDone() { }
+
+  // resizeFramebuffer() is called whenever the framebuffer
+  // dimensions or the screen layout changes. A subclass must make
+  // sure the pixel buffer has been updated once this call returns.
+  public void resizeFramebuffer()
   {
+    assert(false);
   }
 
-  // serverInit() is called when the ServerInit message is received.  The
-  // derived class must call on to CConnection::serverInit().
-  public void serverInit()
+  // refreshFramebuffer() forces a complete refresh of the entire
+  // framebuffer
+  public void refreshFramebuffer()
   {
-    state_ = RFBSTATE_NORMAL;
-    vlog.debug("initialisation done");
+    forceNonincremental = true;
+
+    // Without fences, we cannot safely trigger an update request directly
+    // but must wait for the next update to arrive.
+    if (continuousUpdates)
+      requestNewUpdate();
   }
 
-  // Other methods
+  // setPreferredEncoding()/getPreferredEncoding() adjusts which
+  // encoding is listed first as a hint to the server that it is the
+  // preferred one
+  public void setPreferredEncoding(int encoding)
+  {
+    if (preferredEncoding == encoding)
+      return;
+  
+    preferredEncoding = encoding;
+    encodingChange = true;
+  }
+  
+  public int getPreferredEncoding()
+  {
+    return preferredEncoding;
+  }
+  
+  // setCompressLevel()/setQualityLevel() controls the encoding hints
+  // sent to the server
+  public void setCompressLevel(int level)
+  {
+    if (compressLevel == level)
+      return;
+  
+    compressLevel = level;
+    encodingChange = true;
+  }
+  
+  public void setQualityLevel(int level)
+  {
+    if (qualityLevel == level)
+      return;
+  
+    qualityLevel = level;
+    encodingChange = true;
+  }
+
+  // setPF() controls the pixel format requested from the server.
+  // server.pf() will automatically be adjusted once the new format
+  // is active.
+  public void setPF(PixelFormat pf)
+  {
+    if (server.pf().equal(pf) && !formatChange)
+      return;
+
+    nextPF = pf;
+    formatChange = true;
+  }
 
   public CMsgReader reader() { return reader_; }
   public CMsgWriter writer() { return writer_; }
@@ -384,26 +573,24 @@ abstract public class CConnection extends CMsgHandler {
   // Access method used by SSecurity implementations that can verify servers'
   // Identities, to determine the unique(ish) name of the server.
   public String getServerName() { return serverName; }
-
-  public boolean isSecure() { return csecurity != null ? csecurity.isSecure() : false; }
-
-  public static final int RFBSTATE_UNINITIALISED = 0;
-  public static final int RFBSTATE_PROTOCOL_VERSION = 1;
-  public static final int RFBSTATE_SECURITY_TYPES = 2;
-  public static final int RFBSTATE_SECURITY = 3;
-  public static final int RFBSTATE_SECURITY_RESULT = 4;
-  public static final int RFBSTATE_INITIALISATION = 5;
-  public static final int RFBSTATE_NORMAL = 6;
-  public static final int RFBSTATE_INVALID = 7;
-
-  public int state() { return state_; }
-
   public int getServerPort() { return serverPort; }
-  public void setServerPort(int port) {
-    serverPort = port;
-  }
 
-  protected void setState(int s) { state_ = s; }
+  boolean isSecure() { return csecurity != null ? csecurity.isSecure() : false; }
+
+  public enum stateEnum {
+    RFBSTATE_UNINITIALISED,
+    RFBSTATE_PROTOCOL_VERSION,
+    RFBSTATE_SECURITY_TYPES,
+    RFBSTATE_SECURITY,
+    RFBSTATE_SECURITY_RESULT,
+    RFBSTATE_INITIALISATION,
+    RFBSTATE_NORMAL,
+    RFBSTATE_INVALID
+  };
+
+  public stateEnum state() { return state_; }
+
+  protected void setState(stateEnum s) { state_ = s; }
 
   protected void setReader(CMsgReader r) { reader_ = r; }
   protected void setWriter(CMsgWriter w) { writer_ = w; }
@@ -420,23 +607,118 @@ abstract public class CConnection extends CMsgHandler {
     // We cannot guarantee any synchronisation at this level
     flags = 0;
 
-    synchronized(this) {
-      writer().writeFence(flags, len, data);
+    writer().writeFence(flags, len, data);
+  }
+
+  // requestNewUpdate() requests an update from the server, having set the
+  // format and encoding appropriately.
+  private void requestNewUpdate()
+  {
+    if (formatChange && !pendingPFChange) {
+      /* Catch incorrect requestNewUpdate calls */
+      assert(!pendingUpdate || continuousUpdates);
+
+      // We have to make sure we switch the internal format at a safe
+      // time. For continuous updates we temporarily disable updates and
+      // look for a EndOfContinuousUpdates message to see when to switch.
+      // For classical updates we just got a new update right before this
+      // function was called, so we need to make sure we finish that
+      // update before we can switch.
+
+      pendingPFChange = true;
+      pendingPF = nextPF;
+
+      if (continuousUpdates)
+        writer().writeEnableContinuousUpdates(false, 0, 0, 0, 0);
+
+      writer().writeSetPixelFormat(pendingPF);
+
+      if (continuousUpdates)
+        writer().writeEnableContinuousUpdates(true, 0, 0,
+                                              server.width(),
+                                              server.height());
+      formatChange = false;
     }
+
+    if (encodingChange) {
+      updateEncodings();
+      encodingChange = false;
+    }
+
+    if (forceNonincremental || !continuousUpdates) {
+      pendingUpdate = true;
+      writer().writeFramebufferUpdateRequest(new Rect(0, 0,
+                                                      server.width(),
+                                                      server.height()),
+                                             !forceNonincremental);
+    }
+
+    forceNonincremental = false;
+  }
+
+  // Ask for encodings based on which decoders are supported.  Assumes higher
+  // encoding numbers are more desirable.
+
+  private void updateEncodings()
+  {
+    List<Integer> encodings = new ArrayList<Integer>();
+
+    if (server.supportsLocalCursor) {
+      // JRE on Windows does not support alpha cursor
+      if (!osName.contains("windows"))
+        encodings.add(Encodings.pseudoEncodingCursorWithAlpha);
+      encodings.add(Encodings.pseudoEncodingCursor);
+      encodings.add(Encodings.pseudoEncodingXCursor);
+    }
+    if (server.supportsDesktopResize) {
+      encodings.add(Encodings.pseudoEncodingDesktopSize);
+      encodings.add(Encodings.pseudoEncodingExtendedDesktopSize);
+    }
+    if (server.supportsClientRedirect)
+      encodings.add(Encodings.pseudoEncodingClientRedirect);
+
+    encodings.add(Encodings.pseudoEncodingDesktopName);
+    encodings.add(Encodings.pseudoEncodingLastRect);
+    encodings.add(Encodings.pseudoEncodingContinuousUpdates);
+    encodings.add(Encodings.pseudoEncodingFence);
+
+    if (Decoder.supported(preferredEncoding)) {
+      encodings.add(preferredEncoding);
+    }
+
+    encodings.add(Encodings.encodingCopyRect);
+
+    for (int i = Encodings.encodingMax; i >= 0; i--) {
+      if ((i != preferredEncoding) && Decoder.supported(i))
+        encodings.add(i);
+    }
+
+    if (compressLevel >= 0 && compressLevel <= 9)
+      encodings.add(Encodings.pseudoEncodingCompressLevel0 + compressLevel);
+    if (qualityLevel >= 0 && qualityLevel <= 9)
+      encodings.add(Encodings.pseudoEncodingQualityLevel0 + qualityLevel);
+
+    writer().writeSetEncodings(encodings);
   }
 
   private void throwAuthFailureException() {
     String reason;
-    vlog.debug("state="+state()+", ver="+cp.majorVersion+"."+cp.minorVersion);
-    if (state() == RFBSTATE_SECURITY_RESULT && !cp.beforeVersion(3,8)) {
+    vlog.debug("state="+state()+", ver="+server.majorVersion+"."+server.minorVersion);
+    if (state() == stateEnum.RFBSTATE_SECURITY_RESULT && !server.beforeVersion(3,8)) {
       reason = is.readString();
     } else {
       reason = "Authentication failure";
     }
-    state_ = RFBSTATE_INVALID;
+    state_ = stateEnum.RFBSTATE_INVALID;
     vlog.error(reason);
     throw new AuthFailureException(reason);
   }
+
+  public CSecurity csecurity;
+  public SecurityClient security;
+
+  protected boolean supportsLocalCursor;
+  protected boolean supportsDesktopResize;
 
   private InStream is;
   private OutStream os;
@@ -444,20 +726,28 @@ abstract public class CConnection extends CMsgHandler {
   private CMsgWriter writer_;
   private boolean deleteStreamsWhenDone;
   private boolean shared;
-  private int state_ = RFBSTATE_UNINITIALISED;
+  private stateEnum state_;
 
   private String serverName;
+  private int serverPort;
+
+  private boolean pendingPFChange;
+  private PixelFormat pendingPF;
+
+  private int preferredEncoding;
+  private int compressLevel;
+  private int qualityLevel;
+
+  private boolean formatChange;
+  private PixelFormat nextPF;
+  private boolean encodingChange;
+
+  private boolean firstUpdate;
+  private boolean pendingUpdate;
+  private boolean continuousUpdates;
+
+  private boolean forceNonincremental;
 
   protected ModifiablePixelBuffer framebuffer;
   private DecodeManager decoder;
-
-  public CSecurity csecurity;
-  public SecurityClient security;
-  public static final int maxSecTypes = 8;
-  int nSecTypes;
-  int[] secTypes;
-  int serverPort;
-  boolean clientSecTypeOrder;
-
-  static LogWriter vlog = new LogWriter("CConnection");
 }

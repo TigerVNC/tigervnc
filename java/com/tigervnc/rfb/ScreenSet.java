@@ -83,10 +83,6 @@ public class ScreenSet {
     }
   }
 
-  // FIXME: List order shouldn't matter
-  //inline bool operator(const ScreenSet& r) const { return screens == r.screens; }
-  //inline bool operator(const ScreenSet& r) const { return screens != r.screens; }
-
   public ArrayList<Screen> screens;
 
   static LogWriter vlog = new LogWriter("ScreenSet");

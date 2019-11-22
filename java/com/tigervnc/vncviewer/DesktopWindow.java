@@ -129,7 +129,7 @@ public class DesktopWindow extends JFrame
             // c) We're not still waiting for a chance to handle DesktopSize
             // d) We're not still waiting for startup fullscreen to kick in
             if (!firstUpdate && !delayedFullscreen &&
-                remoteResize.getValue() && cc.cp.supportsSetDesktopSize)
+                remoteResize.getValue() && cc.server.supportsSetDesktopSize)
               timer.start();
         } else {
           String scaleString = scalingFactor.getValue();
@@ -233,7 +233,7 @@ public class DesktopWindow extends JFrame
           setExtendedState(JFrame.MAXIMIZED_BOTH);
       }
 
-      if (cc.cp.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
+      if (cc.server.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
         // Hack: Wait until we're in the proper mode and position until
         // resizing things, otherwise we might send the wrong thing.
         if (delayedFullscreen)
@@ -354,7 +354,7 @@ public class DesktopWindow extends JFrame
       // to scroll) we just report a single virtual screen that covers
       // the entire framebuffer.
 
-      layout = cc.cp.screenLayout;
+      layout = cc.server.screenLayout();
 
       // Not sure why we have no screens, but adding a new one should be
       // safe as there is nothing to conflict with...
@@ -418,8 +418,8 @@ public class DesktopWindow extends JFrame
           sy -= viewport_rect.tl.y;
 
           // Look for perfectly matching existing screen...
-          for (iter = cc.cp.screenLayout.begin();
-              iter != cc.cp.screenLayout.end(); iter.next()) {
+          for (iter = cc.server.screenLayout().begin();
+              iter != cc.server.screenLayout().end(); iter.next()) {
             Screen screen = iter.next(); iter.previous();
             if ((screen.dimensions.tl.x == sx) &&
                 (screen.dimensions.tl.y == sy) &&
@@ -429,7 +429,7 @@ public class DesktopWindow extends JFrame
           }
 
           // Found it?
-          if (iter != cc.cp.screenLayout.end()) {
+          if (iter != cc.server.screenLayout().end()) {
             layout.add_screen(iter.next());
             continue;
           }
@@ -438,14 +438,14 @@ public class DesktopWindow extends JFrame
           Random rng = new Random();
           while (true) {
             id = rng.nextInt();
-            for (iter = cc.cp.screenLayout.begin();
-                iter != cc.cp.screenLayout.end(); iter.next()) {
+            for (iter = cc.server.screenLayout().begin();
+                iter != cc.server.screenLayout().end(); iter.next()) {
               Screen screen = iter.next(); iter.previous();
               if (screen.id == id)
                 break;
             }
 
-            if (iter == cc.cp.screenLayout.end())
+            if (iter == cc.server.screenLayout().end())
               break;
           }
 
@@ -460,14 +460,14 @@ public class DesktopWindow extends JFrame
     }
 
     // Do we actually change anything?
-    if ((width == cc.cp.width) &&
-        (height == cc.cp.height) &&
-        (layout == cc.cp.screenLayout))
+    if ((width == cc.server.width()) &&
+        (height == cc.server.height()) &&
+        (layout == cc.server.screenLayout()))
       return;
 
     String buffer;
     vlog.debug(String.format("Requesting framebuffer resize from %dx%d to %dx%d",
-               cc.cp.width, cc.cp.height, width, height));
+               cc.server.width(), cc.server.height(), width, height));
     layout.debug_print();
 
     if (!layout.validate(width, height)) {
@@ -592,7 +592,7 @@ public class DesktopWindow extends JFrame
         if (scaleString.matches("^[0-9]+$")) {
           scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
           scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
-          viewport.setScaledSize(cc.cp.width, cc.cp.height);
+          viewport.setScaledSize(cc.server.width(), cc.server.height());
         } else {
           scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
           scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_NEVER);

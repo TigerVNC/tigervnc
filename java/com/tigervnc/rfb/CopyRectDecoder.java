@@ -1,5 +1,5 @@
 /* Copyright 2014 Pierre Ossman <ossman@cendio.se> for Cendio AB
- * Copyright 2016 Brian P. Hinz
+ * Copyright 2016-2019 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,27 +26,27 @@ public class CopyRectDecoder extends Decoder {
   public CopyRectDecoder() { super(DecoderFlags.DecoderPlain); }
 
   public void readRect(Rect r, InStream is,
-                       ConnParams cp, OutStream os)
+                       ServerParams server, OutStream os)
   {
     os.copyBytes(is, 4);
   }
 
   public void getAffectedRegion(Rect rect, Object buffer,
-                                int buflen, ConnParams cp,
+                                int buflen, ServerParams server,
                                 Region region)
   {
     MemInStream is = new MemInStream((byte[])buffer, 0, buflen);
     int srcX = is.readU16();
     int srcY = is.readU16();
 
-    super.getAffectedRegion(rect, buffer, buflen, cp, region);
+    super.getAffectedRegion(rect, buffer, buflen, server, region);
 
     region.assign_union(new Region(rect.translate(new Point(srcX-rect.tl.x,
                                                             srcY-rect.tl.y))));
   }
 
   public void decodeRect(Rect r, Object buffer,
-                         int buflen, ConnParams cp,
+                         int buflen, ServerParams server,
                          ModifiablePixelBuffer pb)
   {
     MemInStream is = new MemInStream((byte[])buffer, 0, buflen);

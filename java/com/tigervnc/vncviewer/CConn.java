@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2013 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2017 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,42 +83,21 @@ public class CConn extends CConnection implements
   public CConn(String vncServerName, Socket socket)
   {
     serverHost = null; serverPort = 0; desktop = null;
-    pendingPFChange = false;
-    currentEncoding = Encodings.encodingTight; lastServerEncoding = -1;
-    formatChange = false; encodingChange = false;
-    firstUpdate = true; pendingUpdate = false; continuousUpdates = false;
-    forceNonincremental = true; supportsSyncFence = false;
+    updateCount = 0; pixelCount = 0;
+    lastServerEncoding = -1;
 
     setShared(shared.getValue());
     sock = socket;
 
-    int encNum = Encodings.encodingNum(preferredEncoding.getValue());
-    if (encNum != -1)
-      currentEncoding = encNum;
-
-    cp.supportsLocalCursor = true;
-    if (VncViewer.os.contains("windows"))
-      // JRE on Windows does not support alpha cursor
-      cp.supportsLocalCursorWithAlpha = false;
-    else
-      cp.supportsLocalCursorWithAlpha = true;
-
-    cp.supportsDesktopResize = true;
-    cp.supportsExtendedDesktopSize = true;
-    cp.supportsDesktopRename = true;
-
-    cp.supportsSetDesktopSize = false;
-    cp.supportsClientRedirect = true;
+    server.supportsLocalCursor = true;
+    server.supportsDesktopResize = true;
+    server.supportsClientRedirect = true;
 
     if (customCompressLevel.getValue())
-      cp.compressLevel = compressLevel.getValue();
-    else
-      cp.compressLevel = -1;
+      setCompressLevel(compressLevel.getValue());
 
     if (!noJpeg.getValue())
-      cp.qualityLevel = qualityLevel.getValue();
-    else
-      cp.qualityLevel = -1;
+      setQualityLevel(qualityLevel.getValue());
 
     if (sock == null) {
       setServerName(Hostname.getHost(vncServerName));
@@ -160,16 +139,6 @@ public class CConn extends CConnection implements
     OptionsDialog.addCallback("handleOptions", this);
   }
 
-  public void refreshFramebuffer()
-  {
-    forceNonincremental = true;
-
-    // Without fences, we cannot safely trigger an update request directly
-    // but must wait for the next update to arrive.
-    if (supportsSyncFence)
-      requestNewUpdate();
-  }
-
   public String connectionInfo() {
     String info = new String("Desktop name: %s%n"+
                              "Host: %s:%d%n"+
@@ -182,19 +151,29 @@ public class CConn extends CConnection implements
                              "Protocol version: %d.%d%n"+
                              "Security method: %s [%s]%n");
     String infoText =
-      String.format(info, cp.name(),
+      String.format(info, server.name(),
                     sock.getPeerName(), sock.getPeerPort(),
-                    cp.width, cp.height,
-                    cp.pf().print(),
+                    server.width(), server.height(),
+                    server.pf().print(),
                     serverPF.print(),
-                    Encodings.encodingName(currentEncoding),
+                    Encodings.encodingName(getPreferredEncoding()),
                     Encodings.encodingName(lastServerEncoding),
                     sock.inStream().kbitsPerSecond(),
-                    cp.majorVersion, cp.minorVersion,
+                    server.majorVersion, server.minorVersion,
                     Security.secTypeName(csecurity.getType()),
                     csecurity.description());
 
     return infoText;
+  }
+
+  public int getUpdateCount()
+  {
+    return updateCount;
+  }
+
+  public int getPixelCount()
+  {
+    return pixelCount;
   }
 
   // The RFB core is not properly asynchronous, so it calls this callback
@@ -216,31 +195,24 @@ public class CConn extends CConnection implements
   // serverInit() is called when the serverInit message has been received.  At
   // this point we create the desktop window and display it.  We also tell the
   // server the pixel format and encodings to use and request the first update.
-  public void serverInit()
+  public void initDone()
   {
-    super.serverInit();
-
     // If using AutoSelect with old servers, start in FullColor
     // mode. See comment in autoSelectFormatAndEncoding.
-    if (cp.beforeVersion(3, 8) && autoSelect.getValue())
+    if (server.beforeVersion(3, 8) && autoSelect.getValue())
       fullColor.setParam(true);
 
-    serverPF = cp.pf();
+    serverPF = server.pf();
 
-    desktop = new DesktopWindow(cp.width, cp.height, cp.name(), serverPF, this);
+    desktop = new DesktopWindow(server.width(), server.height(),
+                                server.name(), serverPF, this);
     fullColorPF = desktop.getPreferredPF();
 
     // Force a switch to the format and encoding we'd like
-    formatChange = true; encodingChange = true;
-
-    // And kick off the update cycle
-    requestNewUpdate();
-
-    // This initial update request is a bit of a corner case, so we need
-    // to help out setting the correct format here.
-    assert(pendingPFChange);
-    cp.setPF(pendingPF);
-    pendingPFChange = false;
+    updatePixelFormat();
+    int encNum = Encodings.encodingNum(preferredEncoding.getValue());
+    if (encNum != -1)
+      setPreferredEncoding(encNum);
   }
 
   // setDesktopSize() is called when the desktop size changes (including when
@@ -252,8 +224,8 @@ public class CConn extends CConnection implements
   }
 
   // setExtendedDesktopSize() is a more advanced version of setDesktopSize()
-  public void setExtendedDesktopSize(int reason, int result, int w, int h,
-                                     ScreenSet layout)
+  public void setExtendedDesktopSize(int reason, int result,
+                                     int w, int h, ScreenSet layout)
   {
     super.setExtendedDesktopSize(reason, result, w, h, layout);
 
@@ -299,23 +271,9 @@ public class CConn extends CConnection implements
   // one.
   public void framebufferUpdateStart()
   {
-    ModifiablePixelBuffer pb;
-    PlatformPixelBuffer ppb;
 
     super.framebufferUpdateStart();
 
-    // Note: This might not be true if sync fences are supported
-    pendingUpdate = false;
-
-    requestNewUpdate();
-
-    // We might still be rendering the previous update
-    pb = getFramebuffer();
-    assert(pb != null);
-    ppb = (PlatformPixelBuffer)pb;
-    assert(ppb != null);
-
-    //FIXME
   }
 
   // framebufferUpdateEnd() is called at the end of an update.
@@ -326,23 +284,9 @@ public class CConn extends CConnection implements
   {
     super.framebufferUpdateEnd();
 
+    updateCount++;
+
     desktop.updateWindow();
-
-    if (firstUpdate) {
-      // We need fences to make extra update requests and continuous
-      // updates "safe". See fence() for the next step.
-      if (cp.supportsFence)
-        writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext, 0, null);
-
-      firstUpdate = false;
-    }
-
-    // A format change has been scheduled and we are now past the update
-    // with the old format. Time to active the new one.
-    if (pendingPFChange) {
-      cp.setPF(pendingPF);
-      pendingPFChange = false;
-    }
 
     // Compute new settings based on updated bandwidth values
     if (autoSelect.getValue())
@@ -382,6 +326,8 @@ public class CConn extends CConnection implements
     super.dataRect(r, encoding);
 
     sock.inStream().stopTiming();
+
+    pixelCount += r.area();
   }
 
   public void setCursor(int width, int height, Point hotspot,
@@ -393,7 +339,7 @@ public class CConn extends CConnection implements
   public void fence(int flags, int len, byte[] data)
   {
     // can't call super.super.fence(flags, len, data);
-    cp.supportsFence = true;
+    server.supportsFence = true;
 
     if ((flags & fenceTypes.fenceFlagRequest) != 0) {
       // We handle everything synchronously so we trivially honor these modes
@@ -402,39 +348,15 @@ public class CConn extends CConnection implements
       writer().writeFence(flags, len, data);
       return;
     }
-
-    if (len == 0) {
-      // Initial probe
-      if ((flags & fenceTypes.fenceFlagSyncNext) != 0) {
-        supportsSyncFence = true;
-
-        if (cp.supportsContinuousUpdates) {
-          vlog.info("Enabling continuous updates");
-          continuousUpdates = true;
-          writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
-        }
-      }
-    } else {
-      // Pixel format change
-      MemInStream memStream = new MemInStream(data, 0, len);
-      PixelFormat pf = new PixelFormat();
-
-      pf.read(memStream);
-
-      cp.setPF(pf);
-    }
   }
 
   ////////////////////// Internal methods //////////////////////
-  private void resizeFramebuffer()
+  public void resizeFramebuffer()
   {
     if (desktop == null)
       return;
 
-    if (continuousUpdates)
-      writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
-
-    desktop.resizeFramebuffer(cp.width, cp.height);
+    desktop.resizeFramebuffer(server.width(), server.height());
   }
 
   // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
@@ -456,14 +378,11 @@ public class CConn extends CConnection implements
   {
     long kbitsPerSecond = sock.inStream().kbitsPerSecond();
     long timeWaited = sock.inStream().timeWaited();
-    boolean newFullColor = fullColor.getValue();
+    boolean newFullColour = fullColor.getValue();
     int newQualityLevel = qualityLevel.getValue();
 
     // Always use Tight
-    if (currentEncoding != Encodings.encodingTight) {
-      currentEncoding = Encodings.encodingTight;
-      encodingChange = true;
-    }
+    setPreferredEncoding(Encodings.encodingTight);
 
     // Check that we have a decent bandwidth measurement
     if ((kbitsPerSecond == 0) || (timeWaited < 100))
@@ -479,13 +398,12 @@ public class CConn extends CConnection implements
       if (newQualityLevel != qualityLevel.getValue()) {
         vlog.info("Throughput "+kbitsPerSecond+
                   " kbit/s - changing to quality "+newQualityLevel);
-        cp.qualityLevel = newQualityLevel;
         qualityLevel.setParam(newQualityLevel);
-        encodingChange = true;
+        setQualityLevel(newQualityLevel);
       }
     }
 
-    if (cp.beforeVersion(3, 8)) {
+    if (server.beforeVersion(3, 8)) {
       // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
       // cursors "asynchronously". If this happens in the middle of a
       // pixel format change, the server will encode the cursor with
@@ -497,83 +415,38 @@ public class CConn extends CConnection implements
     }
 
     // Select best color level
-    newFullColor = (kbitsPerSecond > 256);
-    if (newFullColor != fullColor.getValue()) {
-      vlog.info("Throughput "+kbitsPerSecond+
-                " kbit/s - full color is now "+
-                (newFullColor ? "enabled" : "disabled"));
-      fullColor.setParam(newFullColor);
-      formatChange = true;
+    newFullColour = (kbitsPerSecond > 256);
+    if (newFullColour != fullColor.getValue()) {
+      if (newFullColour)
+        vlog.info("Throughput "+kbitsPerSecond+ " kbit/s - full color is now enabled");
+      else
+        vlog.info("Throughput "+kbitsPerSecond+ " kbit/s - full color is now disabled");
+      fullColor.setParam(newFullColour);
+      updatePixelFormat();
     }
   }
 
-  // checkEncodings() sends a setEncodings message if one is needed.
-  private void checkEncodings()
-  {
-    if (encodingChange && (writer() != null)) {
-      vlog.info("Using " + Encodings.encodingName(currentEncoding) +
-        " encoding");
-      writer().writeSetEncodings(currentEncoding, true);
-      encodingChange = false;
-    }
-  }
-
-  // requestNewUpdate() requests an update from the server, having set the
+  // updatePixelFormat() requests an update from the server, having set the
   // format and encoding appropriately.
-  private void requestNewUpdate()
+  private void updatePixelFormat()
   {
-    if (formatChange) {
-      PixelFormat pf;
+    PixelFormat pf;
 
-      /* Catch incorrect requestNewUpdate calls */
-      assert(!pendingUpdate || supportsSyncFence);
-
-      if (fullColor.getValue()) {
-        pf = fullColorPF;
+    if (fullColor.getValue()) {
+      pf = fullColorPF;
+    } else {
+      if (lowColorLevel.getValue() == 0) {
+        pf = verylowColorPF;
+      } else if (lowColorLevel.getValue() == 1) {
+        pf = lowColorPF;
       } else {
-        if (lowColorLevel.getValue() == 0) {
-          pf = verylowColorPF;
-        } else if (lowColorLevel.getValue() == 1) {
-          pf = lowColorPF;
-        } else {
-          pf = mediumColorPF;
-        }
+        pf = mediumColorPF;
       }
-
-      if (supportsSyncFence) {
-        // We let the fence carry the pixel format and switch once we
-        // get the response back. That way we will be synchronised with
-        // when the server switches.
-        MemOutStream memStream = new MemOutStream();
-
-        pf.write(memStream);
-
-        writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext,
-                            memStream.length(), (byte[])memStream.data());
-      } else {
-        // New requests are sent out at the start of processing the last
-        // one, so we cannot switch our internal format right now (doing so
-        // would mean misdecoding the current update).
-        pendingPFChange = true;
-        pendingPF = pf;
-      }
-
-      String str = pf.print();
-      vlog.info("Using pixel format " + str);
-      writer().writeSetPixelFormat(pf);
-
-      formatChange = false;
     }
 
-    checkEncodings();
-
-    if (forceNonincremental || !continuousUpdates) {
-      pendingUpdate = true;
-      writer().writeFramebufferUpdateRequest(new Rect(0, 0, cp.width, cp.height),
-                                                 !forceNonincremental);
-    }
-
-    forceNonincremental = false;
+    String str = pf.print();
+    vlog.info("Using pixel format " + str);
+    setPF(pf);
   }
 
   public void handleOptions()
@@ -587,48 +460,20 @@ public class CConn extends CConnection implements
       int encNum = Encodings.encodingNum(preferredEncoding.getValue());
 
       if (encNum != -1)
-        this.currentEncoding = encNum;
+        this.setPreferredEncoding(encNum);
     }
-
-    this.cp.supportsLocalCursor = true;
 
     if (customCompressLevel.getValue())
-      this.cp.compressLevel = compressLevel.getValue();
+      this.setCompressLevel(compressLevel.getValue());
     else
-      this.cp.compressLevel = -1;
+      this.setCompressLevel(-1);
 
     if (!noJpeg.getValue() && !autoSelect.getValue())
-      this.cp.qualityLevel = qualityLevel.getValue();
+      this.setQualityLevel(qualityLevel.getValue());
     else
-      this.cp.qualityLevel = -1;
+      this.setQualityLevel(-1);
 
-    this.encodingChange = true;
-
-    // Format changes refreshes the entire screen though and are therefore
-    // very costly. It's probably worth the effort to see if it is necessary
-    // here.
-    PixelFormat pf;
-
-    if (fullColor.getValue()) {
-      pf = fullColorPF;
-    } else {
-      if (lowColorLevel.getValue() == 0)
-        pf = verylowColorPF;
-      else if (lowColorLevel.getValue() == 1)
-        pf = lowColorPF;
-      else
-        pf = mediumColorPF;
-    }
-
-    if (!pf.equal(this.cp.pf())) {
-      this.formatChange = true;
-
-      // Without fences, we cannot safely trigger an update request directly
-      // but must wait for the next update to arrive.
-      if (this.supportsSyncFence)
-        this.requestNewUpdate();
-    }
-
+    this.updatePixelFormat();
   }
 
   ////////////////////////////////////////////////////////////////////
@@ -654,7 +499,7 @@ public class CConn extends CConnection implements
 
   // writeClientCutText() is called from the clipboard dialog
   public void writeClientCutText(String str, int len) {
-    if (state() != RFBSTATE_NORMAL || shuttingDown)
+    if ((state() != stateEnum.RFBSTATE_NORMAL) || shuttingDown)
       return;
     writer().writeClientCutText(str, len);
   }
@@ -698,24 +543,13 @@ public class CConn extends CConnection implements
 
   protected DesktopWindow desktop;
 
+  private int updateCount;
+  private int pixelCount;
+
   private PixelFormat serverPF;
   private PixelFormat fullColorPF;
 
-  private boolean pendingPFChange;
-  private PixelFormat pendingPF;
-
-  private int currentEncoding, lastServerEncoding;
-
-  private boolean formatChange;
-  private boolean encodingChange;
-
-  private boolean firstUpdate;
-  private boolean pendingUpdate;
-  private boolean continuousUpdates;
-
-  private boolean forceNonincremental;
-
-  private boolean supportsSyncFence;
+  private int lastServerEncoding;
 
   public ActionListener closeListener = null;
 

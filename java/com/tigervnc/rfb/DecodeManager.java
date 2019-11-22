@@ -1,5 +1,5 @@
 /* Copyright 2015 Pierre Ossman for Cendio AB
- * Copyright 2016 Brian P. Hinz
+ * Copyright 2016-2019 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,9 +107,9 @@ public class DecodeManager {
     if (threads.size() == 1) {
       bufferStream = freeBuffers.getFirst();
       bufferStream.clear();
-      decoder.readRect(r, conn.getInStream(), conn.cp, bufferStream);
+      decoder.readRect(r, conn.getInStream(), conn.server, bufferStream);
       decoder.decodeRect(r, (Object)bufferStream.data(), bufferStream.length(),
-                         conn.cp, pb);
+                         conn.server, pb);
       return;
     }
 
@@ -134,7 +134,7 @@ public class DecodeManager {
 
     // Read the rect
     bufferStream.clear();
-    decoder.readRect(r, conn.getInStream(), conn.cp, bufferStream);
+    decoder.readRect(r, conn.getInStream(), conn.server, bufferStream);
 
     // Then try to put it on the queue
     entry = new QueueEntry();
@@ -143,12 +143,12 @@ public class DecodeManager {
     entry.rect = r;
     entry.encoding = encoding;
     entry.decoder = decoder;
-    entry.cp = conn.cp;
+    entry.server = conn.server;
     entry.pb = pb;
     entry.bufferStream = bufferStream;
 
     decoder.getAffectedRegion(r, bufferStream.data(),
-                              bufferStream.length(), conn.cp,
+                              bufferStream.length(), conn.server,
                               entry.affectedRegion);
 
     queueMutex.lock();
@@ -228,7 +228,7 @@ public class DecodeManager {
     public Rect rect;
     public int encoding;
     public Decoder decoder;
-    public ConnParams cp;
+    public ServerParams server;
     public ModifiablePixelBuffer pb;
     public MemOutStream bufferStream;
     public Region affectedRegion;
@@ -289,7 +289,7 @@ public class DecodeManager {
         try {
           entry.decoder.decodeRect(entry.rect, entry.bufferStream.data(),
                                    entry.bufferStream.length(),
-                                   entry.cp, entry.pb);
+                                   entry.server, entry.pb);
         } catch (com.tigervnc.rdr.Exception e) {
           manager.setThreadException(e);
         } catch(java.lang.Exception e) {
@@ -363,7 +363,7 @@ public class DecodeManager {
                                               entry2.rect,
                                               entry2.bufferStream.data(),
                                               entry2.bufferStream.length(),
-                                              entry.cp))
+                                              entry.server))
               lockedRegion.assign_union(entry.affectedRegion);
               continue next;
           }

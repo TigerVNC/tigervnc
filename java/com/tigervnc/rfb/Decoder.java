@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,14 +39,14 @@ abstract public class Decoder {
   }
 
   abstract public void readRect(Rect r, InStream is,
-                                ConnParams cp, OutStream os);
+                                ServerParams server, OutStream os);
 
   abstract public void decodeRect(Rect r, Object buffer,
-                                  int buflen, ConnParams cp,
+                                  int buflen, ServerParams server,
                                   ModifiablePixelBuffer pb);
 
   public void getAffectedRegion(Rect rect, Object buffer,
-                                int buflen, ConnParams cp,
+                                int buflen, ServerParams server,
                                 Region region)
   {
     region.reset(rect);
@@ -54,7 +55,7 @@ abstract public class Decoder {
   public boolean doRectsConflict(Rect rectA, Object bufferA,
                                  int buflenA, Rect rectB,
                                  Object bufferB, int buflenB,
-                                 ConnParams cp)
+                                 ServerParams server)
   {
     return false;
   }

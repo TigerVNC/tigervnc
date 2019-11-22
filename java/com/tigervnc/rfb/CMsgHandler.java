@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,59 +27,62 @@ package com.tigervnc.rfb;
 
 abstract public class CMsgHandler {
 
+  static LogWriter vlog = new LogWriter("CMsgHandler");
+
   public CMsgHandler() {
-    cp = new ConnParams();
+    server = new ServerParams();
   }
 
   public void setDesktopSize(int width, int height)
   {
-    cp.width = width;
-    cp.height = height;
+    server.setDimensions(width, height);
   }
 
   public void setExtendedDesktopSize(int reason, int result,
                                      int width, int height,
                                      ScreenSet layout)
   {
-    cp.supportsSetDesktopSize = true;
+    server.supportsSetDesktopSize = true;
 
     if ((reason == screenTypes.reasonClient) && (result != screenTypes.resultSuccess))
       return;
 
-    if (!layout.validate(width, height))
-      vlog.error("Server sent us an invalid screen layout");
-
-    cp.width = width;
-    cp.height = height;
-    cp.screenLayout = layout;
+    server.setDimensions(width, height, layout);
   }
+
+  abstract public void setCursor(int width, int height, Point hotspot,
+                                 byte[] data);
 
   public void setPixelFormat(PixelFormat pf)
   {
-    cp.setPF(pf);
+    server.setPF(pf);
   }
 
   public void setName(String name)
   {
-    cp.setName(name);
+    server.setName(name);
   }
 
   public void fence(int flags, int len, byte[] data)
   {
-    cp.supportsFence = true;
+    server.supportsFence = true;
   }
 
   public void endOfContinuousUpdates()
   {
-    cp.supportsContinuousUpdates = true;
+    server.supportsContinuousUpdates = true;
   }
 
   abstract public void clientRedirect(int port, String host,
                                       String x509subject);
 
-  abstract public void setCursor(int width, int height, Point hotspot,
-                                 byte[] data);
-  abstract public void serverInit();
+  public void serverInit(int width, int height,
+                         PixelFormat pf, String name)
+  {
+    server.setDimensions(width, height);
+    server.setPF(pf);
+    server.setName(name);
+  }
 
   abstract public void readAndDecodeRect(Rect r, int encoding,
                                          ModifiablePixelBuffer pb);
@@ -93,7 +96,5 @@ abstract public class CMsgHandler {
   abstract public void bell();
   abstract public void serverCutText(String str, int len);
 
-  public ConnParams cp;
-
-  static LogWriter vlog = new LogWriter("CMsgHandler");
+  public ServerParams server;
 }

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,18 +26,18 @@ public class RawDecoder extends Decoder {
   public RawDecoder() { super(DecoderFlags.DecoderPlain); }
 
   public void readRect(Rect r, InStream is,
-                       ConnParams cp, OutStream os)
+                       ServerParams server, OutStream os)
   {
-    os.copyBytes(is, r.area() * cp.pf().bpp/8);
+    os.copyBytes(is, r.area() * server.pf().bpp/8);
   }
 
   static LogWriter vlog = new LogWriter("RawDecoder");
   public void decodeRect(Rect r, Object buffer,
-                         int buflen, ConnParams cp,
+                         int buflen, ServerParams server,
                          ModifiablePixelBuffer pb)
   {
-    assert(buflen >= r.area() * cp.pf().bpp/8);
-    pb.imageRect(cp.pf(), r, (byte[])buffer);
+    assert(buflen >= r.area() * server.pf().bpp/8);
+    pb.imageRect(server.pf(), r, (byte[])buffer);
   }
 
 }

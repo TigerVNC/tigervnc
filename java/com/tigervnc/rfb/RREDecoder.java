@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2016 Brian P. Hinz
+ * Copyright 2016-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,22 +28,22 @@ public class RREDecoder extends Decoder {
   public RREDecoder() { super(DecoderFlags.DecoderPlain); }
 
   public void readRect(Rect r, InStream is,
-                       ConnParams cp, OutStream os)
+                       ServerParams server, OutStream os)
   {
     int numRects;
 
     numRects = is.readU32();
     os.writeU32(numRects);
 
-    os.copyBytes(is, cp.pf().bpp/8 + numRects * (cp.pf().bpp/8 + 8));
+    os.copyBytes(is, server.pf().bpp/8 + numRects * (server.pf().bpp/8 + 8));
   }
 
   public void decodeRect(Rect r, Object buffer,
-                         int buflen, ConnParams cp,
+                         int buflen, ServerParams server,
                          ModifiablePixelBuffer pb)
   {
     MemInStream is = new MemInStream((byte[])buffer, 0, buflen);
-    PixelFormat pf = cp.pf();
+    PixelFormat pf = server.pf();
     switch (pf.bpp) {
     case 8:  rreDecode8 (r, is, pf, pb); break;
     case 16: rreDecode16(r, is, pf, pb); break;

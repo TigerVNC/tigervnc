@@ -1606,7 +1606,7 @@ class OptionsDialog extends Dialog {
   private void handleRfbState()
   {
     CConn cc = VncViewer.cc;
-    if (cc != null && cc.state() == CConnection.RFBSTATE_NORMAL) {
+    if (cc != null && cc.state() == CConnection.stateEnum.RFBSTATE_NORMAL) {
       JComponent[] components = {
           encNoneCheckbox, encTLSCheckbox, encX509Checkbox, authNoneCheckbox,
           authVncCheckbox, authVncCheckbox, authIdentCheckbox, authPlainCheckbox,

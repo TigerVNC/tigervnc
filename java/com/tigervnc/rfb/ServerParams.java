@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2012-2016 Brian P. Hinz
+ * Copyright (C) 2012-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import com.tigervnc.rdr.*;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ConnParams {
+public class ServerParams {
 
   private static final int subsampleUndefined = -1;
   private static final int subsampleNone = 0;
@@ -34,10 +34,10 @@ public class ConnParams {
   private static final int subsample8X = 4;
   private static final int subsample16X = 5;
 
-  public ConnParams()
+  public ServerParams()
   {
     majorVersion = 0; minorVersion = 0;
-    width = 0; height = 0; useCopyRect = false;
+    width_ = 0; height_ = 0; useCopyRect = false;
     supportsLocalCursor = false; supportsLocalXCursor = false;
     supportsLocalCursorWithAlpha = false;
     supportsDesktopResize = false; supportsExtendedDesktopSize = false;
@@ -49,39 +49,9 @@ public class ConnParams {
     subsampling = subsampleUndefined; name_ = null; verStrPos = 0;
 
     encodings_ = new ArrayList();
-    screenLayout = new ScreenSet();
+    screenLayout_ = new ScreenSet();
 
     setName("");
-  }
-
-  public boolean readVersion(InStream is, AtomicBoolean done)
-  {
-    if (verStrPos >= 12) return false;
-    verStr = new StringBuilder(13);
-    while (is.checkNoWait(1) && verStrPos < 12) {
-      verStr.insert(verStrPos++,(char)is.readU8());
-    }
-
-    if (verStrPos < 12) {
-      done.set(false);
-      return true;
-    }
-    done.set(true);
-    verStr.insert(12,'0');
-    verStrPos = 0;
-    if (verStr.toString().matches("RFB \\d{3}\\.\\d{3}\\n0")) {
-      majorVersion = Integer.parseInt(verStr.substring(4,7));
-      minorVersion = Integer.parseInt(verStr.substring(8,11));
-      return true;
-    }
-    return false;
-  }
-
-  public void writeVersion(OutStream os)
-  {
-    String str = String.format("RFB %03d.%03d\n", majorVersion, minorVersion);
-    os.writeBytes(str.getBytes(), 0, 12);
-    os.flush();
   }
 
   public int majorVersion;
@@ -101,9 +71,26 @@ public class ConnParams {
     return !beforeVersion(major,minor+1);
   }
 
-  public int width;
-  public int height;
-  public ScreenSet screenLayout;
+  public int width() { return width_; }
+  public int height() { return height_; }
+  public ScreenSet screenLayout() { return screenLayout_; }
+
+  public void setDimensions(int width, int height)
+  {
+    ScreenSet layout = new ScreenSet();
+    layout.add_screen(new Screen(0, 0, 0, width, height, 0));
+    setDimensions(width, height, layout);
+  }
+
+  public void setDimensions(int width, int height, ScreenSet layout)
+  {
+    if (!layout.validate(width, height))
+      throw new Exception("Attempted to configure an invalid screen layout");
+
+    width_ = width;
+    height_ = height;
+    screenLayout_ = layout;
+  }
 
   public PixelFormat pf() { return pf_; }
   public void setPF(PixelFormat pf) {
@@ -233,6 +220,10 @@ public class ConnParams {
   public int qualityLevel;
   public int fineQualityLevel;
   public int subsampling;
+
+  private int width_;
+  private int height_;
+  private ScreenSet screenLayout_;
 
   private PixelFormat pf_;
   private String name_;

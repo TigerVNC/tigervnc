@@ -1,7 +1,7 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2012 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ public class TightDecoder extends Decoder {
   }
 
   public void readRect(Rect r, InStream is,
-                       ConnParams cp, OutStream os)
+                       ServerParams server, OutStream os)
   {
     int comp_ctl;
 
@@ -70,10 +70,10 @@ public class TightDecoder extends Decoder {
 
     // "Fill" compression type.
     if (comp_ctl == tightFill) {
-      if (cp.pf().is888())
+      if (server.pf().is888())
         os.copyBytes(is, 3);
       else
-        os.copyBytes(is, cp.pf().bpp/8);
+        os.copyBytes(is, server.pf().bpp/8);
       return;
     }
 
@@ -110,13 +110,13 @@ public class TightDecoder extends Decoder {
         palSize = is.readU8() + 1;
         os.writeU32(palSize - 1);
 
-        if (cp.pf().is888())
+        if (server.pf().is888())
           os.copyBytes(is, palSize * 3);
         else
-          os.copyBytes(is, palSize * cp.pf().bpp/8);
+          os.copyBytes(is, palSize * server.pf().bpp/8);
         break;
       case tightFilterGradient:
-        if (cp.pf().bpp == 8)
+        if (server.pf().bpp == 8)
           throw new Exception("TightDecoder: invalid BPP for gradient filter");
         break;
       case tightFilterCopy:
@@ -133,10 +133,10 @@ public class TightDecoder extends Decoder {
         rowSize = (r.width() + 7) / 8;
       else
         rowSize = r.width();
-    } else if (cp.pf().is888()) {
+    } else if (server.pf().is888()) {
       rowSize = r.width() * 3;
     } else {
-      rowSize = r.width() * cp.pf().bpp/8;
+      rowSize = r.width() * server.pf().bpp/8;
     }
 
     dataSize = r.height() * rowSize;
@@ -158,7 +158,7 @@ public class TightDecoder extends Decoder {
                                  Rect rectB,
                                  Object bufferB,
                                  int buflenB,
-                                 ConnParams cp)
+                                 ServerParams server)
   {
     byte comp_ctl_a, comp_ctl_b;
 
@@ -181,11 +181,11 @@ public class TightDecoder extends Decoder {
   }
 
   public void decodeRect(Rect r, Object buffer,
-                         int buflen, ConnParams cp,
+                         int buflen, ServerParams server,
                          ModifiablePixelBuffer pb)
   {
     ByteBuffer bufptr;
-    PixelFormat pf = cp.pf();
+    PixelFormat pf = server.pf();
 
     int comp_ctl;
 
