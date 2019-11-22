@@ -482,7 +482,6 @@ public class CConn extends CConnection implements
   // close() shuts down the socket, thus waking up the RFB thread.
   public void close() {
     if (closeListener != null) {
-      embed.setParam(true);
       JFrame f =
         (JFrame)SwingUtilities.getAncestorOfClass(JFrame.class, desktop);
       if (f != null)
@@ -502,12 +501,6 @@ public class CConn extends CConnection implements
     if ((state() != stateEnum.RFBSTATE_NORMAL) || shuttingDown)
       return;
     writer().writeClientCutText(str, len);
-  }
-
-  // this is a special ActionListener passed in by the
-  // Java Plug-in software to control applet's close behavior
-  public void setCloseListener(ActionListener cl) {
-    closeListener = cl;
   }
 
   public void actionPerformed(ActionEvent e) {}

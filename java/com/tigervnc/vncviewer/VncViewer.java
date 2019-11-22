@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2016 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,13 +20,12 @@
  */
 
 //
-// VncViewer - the VNC viewer applet.  It can also be run from the
-// command-line, when it behaves as much as possibly like the windows and unix
+// VncViewer - the VNC viewer.  It behaves as much as possible like the native
 // viewers.
 //
 // Unfortunately, because of the way Java classes are loaded on demand, only
 // configuration parameters defined in this file can be set from the command
-// line or in applet parameters.
+// line.
 
 package com.tigervnc.vncviewer;
 
@@ -59,8 +58,7 @@ import com.tigervnc.network.*;
 
 import static com.tigervnc.vncviewer.Parameters.*;
 
-public class VncViewer extends javax.swing.JApplet 
-  implements Runnable, ActionListener {
+public class VncViewer implements Runnable {
 
   public static final String aboutText =
     new String("TigerVNC Java Viewer v%s (%s)%n"+
@@ -82,7 +80,6 @@ public class VncViewer extends javax.swing.JApplet
     VncViewer.class.getResourceAsStream("timestamp");
   public static final String os = 
     System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
-  private static VncViewer applet;
 
   private String defaultServerName;
   int VNCSERVERNAMELEN = 256;
@@ -145,11 +142,6 @@ public class VncViewer extends javax.swing.JApplet
     setLookAndFeel();
     VncViewer viewer = new VncViewer(argv);
     viewer.start();
-  }
-
-  public VncViewer() {
-    // Only called in applet mode
-    this(new String[0]);
   }
 
   public VncViewer(String[] argv) {
@@ -324,105 +316,6 @@ public class VncViewer extends javax.swing.JApplet
     }
   }
 
-  public boolean isAppletDragStart(MouseEvent e) {
-    if(e.getID() == MouseEvent.MOUSE_DRAGGED) {
-      // Drag undocking on Mac works, but introduces a host of
-      // problems so disable it for now.
-      if (os.startsWith("mac os x"))
-        return false;
-      else if (os.startsWith("windows"))
-        return (e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) != 0;
-      else
-        return (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
-    } else {
-      return false;
-    }
-  }
-
-  public void appletDragStarted() {
-    embed.setParam(false);
-    //cc.recreateViewport();
-    JFrame f = (JFrame)JOptionPane.getFrameForComponent(this);
-    // The default JFrame created by the drag event will be
-    // visible briefly between appletDragStarted and Finished.
-    if (f != null)
-      f.setSize(0, 0);
-  }
-
-  public void appletDragFinished() {
-    JFrame f = (JFrame)JOptionPane.getFrameForComponent(this);
-    if (f != null)
-      f.dispose();
-  }
-
-  public void setAppletCloseListener(ActionListener cl) {
-    cc.setCloseListener(cl);
-  }
-
-  public void appletRestored() {
-    cc.setCloseListener(null);
-  }
-
-  public static void setupEmbeddedFrame(JScrollPane sp) {
-    InputMap im = sp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
-    if (im != null) {
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlAltShiftMask),
-             "unitScrollUp");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlAltShiftMask),
-             "unitScrollDown");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlAltShiftMask),
-             "unitScrollLeft");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlAltShiftMask),
-             "unitScrollRight");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlAltShiftMask),
-             "scrollUp");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlAltShiftMask),
-             "scrollDown");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, ctrlAltShiftMask),
-             "scrollLeft");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, ctrlAltShiftMask),
-             "scrollRight");
-    }
-    applet.getContentPane().removeAll();
-    applet.getContentPane().add(sp);
-    applet.validate();
-  }
-
-  public void init() {
-    // Called right after zero-arg constructor in applet mode
-    setLookAndFeel();
-    setBackground(Color.white);
-    applet = this;
-    vncServerName.put(loadAppletParameters(applet).toCharArray()).flip();
-    if (embed.getValue()) {
-      fullScreen.setParam(false);
-      remoteResize.setParam(false);
-      maximize.setParam(false);
-      scalingFactor.setParam("100");
-    }
-    setFocusTraversalKeysEnabled(false);
-    addFocusListener(new FocusAdapter() {
-      public void focusGained(FocusEvent e) {
-        if (cc != null && cc.desktop != null)
-          cc.desktop.viewport.requestFocusInWindow();
-      }
-    });
-    Frame frame = (Frame)getFocusCycleRootAncestor();
-    frame.setFocusTraversalKeysEnabled(false);
-    frame.addWindowListener(new WindowAdapter() {
-      // Transfer focus to scrollpane when browser receives it
-      public void windowActivated(WindowEvent e) {
-        if (cc != null && cc.desktop != null)
-          cc.desktop.viewport.requestFocusInWindow();
-      }
-      public void windowDeactivated(WindowEvent e) {
-        if (cc != null)
-          cc.desktop.viewport.releaseDownKeys();
-      }
-    });
-  }
-
   private static void getTimestamp() {
     if (version == null || build == null) {
       try {
@@ -469,16 +362,7 @@ public class VncViewer extends javax.swing.JApplet
   }
 
   public void exit(int n) {
-    if (embed.getValue())
-      destroy();
-    else
-      System.exit(n);
-  }
-
-  // If "Reconnect" button is pressed
-  public void actionPerformed(ActionEvent e) {
-    getContentPane().removeAll();
-    start();
+    System.exit(n);
   }
 
   void reportException(java.lang.Exception e) {
@@ -486,26 +370,7 @@ public class VncViewer extends javax.swing.JApplet
     int msgType = JOptionPane.ERROR_MESSAGE;
     title = "TigerVNC Viewer : Error";
     e.printStackTrace();
-    if (embed.getValue()) {
-      getContentPane().removeAll();
-      JLabel label = new JLabel("<html><center><b>" + title + "</b><p><i>" +
-                                msg + "</i></center></html>", JLabel.CENTER);
-      label.setFont(new Font("Helvetica", Font.PLAIN, 24));
-      label.setMaximumSize(new Dimension(getSize().width, 100));
-      label.setVerticalAlignment(JLabel.CENTER);
-      label.setAlignmentX(Component.CENTER_ALIGNMENT);
-      JButton button = new JButton("Reconnect");
-      button.addActionListener(this);
-      button.setMaximumSize(new Dimension(200, 30));
-      button.setAlignmentX(Component.CENTER_ALIGNMENT);
-      setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-      add(label);
-      add(button);
-      validate();
-      repaint();
-    } else {
-      JOptionPane.showMessageDialog(null, msg, title, msgType);
-    }
+    JOptionPane.showMessageDialog(null, msg, title, msgType);
   }
 
   public void run() {
@@ -569,9 +434,6 @@ public class VncViewer extends javax.swing.JApplet
         reportException(e);
         if (cc != null)
           cc.close();
-      } else if (embed.getValue()) {
-        reportException(new java.lang.Exception("Connection closed"));
-        exit(0);
       }
       exit(1);
     }

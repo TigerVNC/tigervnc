@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2016 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  * Copyright (C) 2012-2013 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
@@ -219,19 +219,13 @@ public class DesktopWindow extends JFrame
   {
     if (firstUpdate) {
       pack();
-      if (embed.getValue()) {
-        scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
-        VncViewer.setupEmbeddedFrame(scroll);
-      } else {
-        if (fullScreen.getValue())
-          fullscreen_on();
-        else
-          setVisible(true);
+      if (fullScreen.getValue())
+        fullscreen_on();
+      else
+        setVisible(true);
 
-        if (maximize.getValue())
-          setExtendedState(JFrame.MAXIMIZED_BOTH);
-      }
+      if (maximize.getValue())
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
       if (cc.server.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
         // Hack: Wait until we're in the proper mode and position until

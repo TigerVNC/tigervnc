@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2016 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -260,15 +260,6 @@ class OptionsDialog extends Dialog {
     this.dispose();
   }
 
-  public void setEmbeddedFeatures(boolean s) {
-    fullScreenCheckbox.setEnabled(s);
-    fullScreenAllMonitorsCheckbox.setEnabled(s);
-    scalingFactorInput.setEnabled(s);
-    Enumeration<AbstractButton> e = sizingGroup.getElements();
-    while (e.hasMoreElements())
-      e.nextElement().setEnabled(s);
-  }
-
   private void loadOptions()
   {
     /* Compression */
@@ -489,7 +480,6 @@ class OptionsDialog extends Dialog {
     handleTunnel();
     handleVia();
     handleExtSSH();
-    handleEmbed();
     handleRfbState();
   }
 
@@ -1586,20 +1576,6 @@ class OptionsDialog extends Dialog {
         sshArgsInput.setEnabled(extSSHCheckbox.isSelected());
       else
         sshArgsInput.setEnabled(false);
-    }
-  }
-
-  private void handleEmbed()
-  {
-    if (embed.getValue()) {
-      desktopSizeCheckbox.setEnabled(false);
-      desktopWidthInput.setEnabled(false);
-      desktopHeightInput.setEnabled(false);
-      remoteResizeButton.setEnabled(false);
-      remoteScaleButton.setEnabled(false);
-      fullScreenCheckbox.setEnabled(false);
-      fullScreenAllMonitorsCheckbox.setEnabled(false);
-      scalingFactorInput.setEnabled(false);
     }
   }
 

@@ -2,7 +2,7 @@
  * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
  * Copyright (C) 2010, 2012-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2017 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -240,8 +240,6 @@ class Viewport extends JPanel implements ActionListener {
     case MouseEvent.MOUSE_ENTERED:
       if (cursor != null)
         setCursor(cursor, cursorHotspot.x, cursorHotspot.y);
-      if (embed.getValue())
-        requestFocus();
       return 1;
     case MouseEvent.MOUSE_EXITED:
       setCursor(java.awt.Cursor.getDefaultCursor());
@@ -629,8 +627,7 @@ class Viewport extends JPanel implements ActionListener {
              this, ID.REFRESH, EnumSet.of(MENU.DIVIDER));
 
     menu_add(contextMenu, "New connection...", KeyEvent.VK_N,
-             this, ID.NEWVIEWER,
-             embed.getValue() ? EnumSet.of(MENU.INACTIVE, MENU.DIVIDER) : EnumSet.of(MENU.DIVIDER));
+             this, ID.NEWVIEWER, EnumSet.of(MENU.DIVIDER));
 
     menu_add(contextMenu, "Options...", KeyEvent.VK_O,
              this, ID.OPTIONS, EnumSet.noneOf(MENU.class));
