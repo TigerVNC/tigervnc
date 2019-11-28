@@ -104,6 +104,9 @@ public class CMsgReader {
       case Encodings.pseudoEncodingCursorWithAlpha:
         readSetCursorWithAlpha(w, h, new Point(x,y));
         break;
+      case Encodings.pseudoEncodingVMwareCursor:
+        readSetVMwareCursor(w, h, new Point(x,y));
+        break;
       case Encodings.pseudoEncodingDesktopName:
         readSetDesktopName(x, y, w, h);
         break;
@@ -349,6 +352,103 @@ public class CMsgReader {
     handler.setCursor(width, height, hotspot, buf.array());
   }
 
+  protected void readSetVMwareCursor(int width, int height, Point hotspot)
+  {
+    // VMware cursor sends RGBA, java BufferedImage needs ARGB
+    if (width > maxCursorSize || height > maxCursorSize)
+      throw new Exception("Too big cursor");
+
+    byte type;
+
+    type = (byte)is.readU8();
+    is.skip(1);
+
+    if (type == 0) {
+      int len = width * height * (handler.server.pf().bpp/8);
+      ByteBuffer andMask = ByteBuffer.allocate(len);
+      ByteBuffer xorMask = ByteBuffer.allocate(len);
+
+      ByteBuffer data = ByteBuffer.allocate(width*height*4);
+
+      ByteBuffer andIn;
+      ByteBuffer xorIn;
+      ByteBuffer out;
+      int Bpp;
+
+      is.readBytes(andMask, len);
+      is.readBytes(xorMask, len);
+
+      andIn = ByteBuffer.wrap(andMask.array());
+      xorIn = ByteBuffer.wrap(xorMask.array());
+      out = ByteBuffer.wrap(data.array());
+      Bpp = handler.server.pf().bpp/8;
+      for (int y = 0;y < height;y++) {
+        for (int x = 0;x < width;x++) {
+          int andPixel, xorPixel;
+
+          andPixel = handler.server.pf().pixelFromBuffer(andIn.duplicate());
+          xorPixel = handler.server.pf().pixelFromBuffer(xorIn.duplicate());
+          andIn.position(andIn.position() + Bpp);
+          xorIn.position(xorIn.position() + Bpp);
+
+          if (andPixel == 0) {
+            byte r, g, b;
+
+            // Opaque pixel
+
+            r = (byte)handler.server.pf().getColorModel().getRed(xorPixel);
+            g = (byte)handler.server.pf().getColorModel().getGreen(xorPixel);
+            b = (byte)handler.server.pf().getColorModel().getBlue(xorPixel);
+            out.put((byte)0xff);
+            out.put(r);
+            out.put(g);
+            out.put(b);
+          } else if (xorPixel == 0) {
+            // Fully transparent pixel
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+          } else if (andPixel == xorPixel) {
+            // Inverted pixel
+
+            // We don't really support this, so just turn the pixel black
+            // FIXME: Do an outline like WinVNC does?
+            out.put((byte)0xff);
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+          } else {
+            // Partially transparent/inverted pixel
+
+            // We _really_ can't handle this, just make it black
+            out.put((byte)0xff);
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+          }
+        }
+      }
+
+      handler.setCursor(width, height, hotspot, data.array());
+    } else if (type == 1) {
+      ByteBuffer data = ByteBuffer.allocate(width*height*4);
+
+      // FIXME: Is alpha premultiplied?
+      ByteBuffer buf = ByteBuffer.allocate(4);
+      for (int i=0;i < width*height*4;i+=4) {
+        is.readBytes(buf,4);
+        data.put(buf.array(),3,1);
+        data.put(buf.array(),0,3);
+        buf.clear();
+      }
+
+      handler.setCursor(width, height, hotspot, data.array());
+    } else {
+      throw new Exception("Unknown cursor type");
+    }
+  }
+
   protected void readSetDesktopName(int x, int y, int w, int h)
   {
     String name = is.readString();
@@ -425,6 +525,7 @@ public class CMsgReader {
   protected CMsgHandler handler;
   protected InStream is;
   protected int nUpdateRectsLeft;
+  protected final int maxCursorSize = 256;
   protected int[] imageBuf;
   protected int imageBufSize;
 }
