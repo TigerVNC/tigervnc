@@ -109,9 +109,11 @@ int TLSInStream::readTLS(U8* buf, int len, bool wait)
 {
   int n;
 
-  n = in->check(1, 1, wait);
-  if (n == 0)
-    return 0;
+  if (gnutls_record_check_pending(session) == 0) {
+    n = in->check(1, 1, wait);
+    if (n == 0)
+      return 0;
+  }
 
   n = gnutls_record_recv(session, (void *) buf, len);
   if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
