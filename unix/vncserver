@@ -78,7 +78,7 @@ $defaultXStartup
        "[ -r \$HOME/.Xresources ] && xrdb \$HOME/.Xresources\n".
        "xsetroot -solid grey\n".
        "xterm -geometry 80x24+10+10 -ls -title \"\$VNCDESKTOP Desktop\" &\n".
-       "twm &\n");
+       "twm\n");
 
 $defaultConfig
     = ("## Supported server options to pass to vncserver upon invocation can be listed\n".
