@@ -691,7 +691,7 @@ class OptionsDialog extends Dialog {
     compressionInput.setPrototypeDisplayValue("0.");
     compressionInput.setEditable(true);
     JLabel compressionLabel =
-      new JLabel("Level (1=fast, 9=best)");
+      new JLabel("Level (0=fast, 9=best)");
     jpegCheckbox = new JCheckBox("Allow JPEG Compression");
     jpegCheckbox.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
