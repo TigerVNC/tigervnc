@@ -259,7 +259,7 @@ JPEG quality level. 0 = Low, 9 = High. May be adjusted automatically if
 .
 .TP
 .B \-CompressLevel \fIlevel\fP
-Use specified lossless compression level. 0 = Low, 6 = High. Default is 2.
+Use specified lossless compression level. 0 = Low, 9 = High. Default is 2.
 .
 .TP
 .B \-CustomCompressLevel

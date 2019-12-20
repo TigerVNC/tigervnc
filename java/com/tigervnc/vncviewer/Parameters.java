@@ -262,7 +262,7 @@ public class Parameters {
 
   public static IntParameter compressLevel
   = new IntParameter("CompressLevel",
-    "Use specified compression level. 0 = Low, 6 = High",
+    "Use specified compression level. 0 = Low, 9 = High",
     1);
 
   public static BoolParameter noJpeg
