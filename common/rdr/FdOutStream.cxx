@@ -51,7 +51,7 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
-FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_, int bufSize_)
+FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_, size_t bufSize_)
   : fd(fd_), blocking(blocking_), timeoutms(timeoutms_),
     bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
 {
@@ -79,7 +79,7 @@ void FdOutStream::setBlocking(bool blocking_) {
   blocking = blocking_;
 }
 
-int FdOutStream::length()
+size_t FdOutStream::length()
 {
   return offset + ptr - sentUpTo;
 }
@@ -97,9 +97,9 @@ unsigned FdOutStream::getIdleTime()
 void FdOutStream::flush()
 {
   while (sentUpTo < ptr) {
-    int n = writeWithTimeout((const void*) sentUpTo,
-                             ptr - sentUpTo,
-                             blocking? timeoutms : 0);
+    size_t n = writeWithTimeout((const void*) sentUpTo,
+                                ptr - sentUpTo,
+                                blocking? timeoutms : 0);
 
     // Timeout?
     if (n == 0) {
@@ -120,7 +120,7 @@ void FdOutStream::flush()
 }
 
 
-int FdOutStream::overrun(int itemSize, int nItems)
+size_t FdOutStream::overrun(size_t itemSize, size_t nItems)
 {
   if (itemSize > bufSize)
     throw Exception("FdOutStream overrun: max itemSize exceeded");
@@ -129,10 +129,10 @@ int FdOutStream::overrun(int itemSize, int nItems)
   flush();
 
   // Still not enough space?
-  if (itemSize > end - ptr) {
+  if (itemSize > (size_t)(end - ptr)) {
     // Can we shuffle things around?
     // (don't do this if it gains us less than 25%)
-    if ((sentUpTo - start > bufSize / 4) &&
+    if (((size_t)(sentUpTo - start) > bufSize / 4) &&
         (itemSize < bufSize - (ptr - sentUpTo))) {
       memmove(start, sentUpTo, ptr - sentUpTo);
       ptr = start + (ptr - sentUpTo);
@@ -149,9 +149,10 @@ int FdOutStream::overrun(int itemSize, int nItems)
     }
   }
 
-  // Can we fit all the items asked for?
-  if (itemSize * nItems > end - ptr)
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }
@@ -166,7 +167,7 @@ int FdOutStream::overrun(int itemSize, int nItems)
 // select() and send() returning EINTR.
 //
 
-int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
+size_t FdOutStream::writeWithTimeout(const void* data, size_t length, int timeoutms)
 {
   int n;
 

@@ -28,6 +28,7 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Exception.h>
 
 #include <rfb/RawEncoder.h>
 #include <rfb/RREEncoder.h>
@@ -1051,11 +1052,13 @@ void EncodeManager::OffsetPixelBuffer::update(const PixelFormat& pf,
                                               int stride_)
 {
   format = pf;
-  width_ = width;
-  height_ = height;
   // Forced cast. We never write anything though, so it should be safe.
-  data = (rdr::U8*)data_;
-  stride = stride_;
+  setBuffer(width, height, (rdr::U8*)data_, stride_);
+}
+
+rdr::U8* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& r, int* stride)
+{
+  throw rfb::Exception("Invalid write attempt to OffsetPixelBuffer");
 }
 
 // Preprocessor generated, optimised methods

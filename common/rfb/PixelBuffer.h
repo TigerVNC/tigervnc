@@ -90,7 +90,12 @@ namespace rfb {
 
   protected:
     PixelBuffer();
+    virtual void setSize(int width, int height);
+
+  protected:
     PixelFormat format;
+
+  private:
     int width_, height_;
   };
 
@@ -154,7 +159,12 @@ namespace rfb {
 
   protected:
     FullFramePixelBuffer();
+    virtual void setBuffer(int width, int height, rdr::U8* data, int stride);
 
+  private:
+    virtual void setSize(int w, int h);
+
+  private:
     rdr::U8* data;
     int stride;
   };
@@ -172,12 +182,9 @@ namespace rfb {
     virtual void setPF(const PixelFormat &pf);
     virtual void setSize(int w, int h);
 
-    // Return the total number of bytes of pixel data in the buffer
-    int dataLen() const { return width_ * height_ * (format.bpp/8); }
-
-  protected:
+  private:
+    rdr::U8* data_; // Mirrors FullFramePixelBuffer::data
     unsigned long datasize;
-    void checkDataSize();
   };
 
 };

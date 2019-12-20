@@ -35,10 +35,10 @@ namespace rdr {
 
     void reset(void);
 
-    int pos();
+    size_t pos();
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait = true);
+    size_t overrun(size_t itemSize, size_t nItems, bool wait = true);
 
   private:
     U8 b[131072];

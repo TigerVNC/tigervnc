@@ -26,21 +26,21 @@ namespace rdr {
   class HexInStream : public InStream {
   public:
 
-    HexInStream(InStream& is, int bufSize=0);
+    HexInStream(InStream& is, size_t bufSize=0);
     virtual ~HexInStream();
 
-    int pos();
+    size_t pos();
 
     static bool readHexAndShift(char c, int* v);
-    static bool hexStrToBin(const char* s, char** data, int* length);
+    static bool hexStrToBin(const char* s, char** data, size_t* length);
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait);
+    size_t overrun(size_t itemSize, size_t nItems, bool wait);
 
   private:
-    int bufSize;
+    size_t bufSize;
     U8* start;
-    int offset;
+    size_t offset;
 
     InStream& in_stream;
   };

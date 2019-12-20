@@ -26,7 +26,7 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
-ZlibInStream::ZlibInStream(int bufSize_)
+ZlibInStream::ZlibInStream(size_t bufSize_)
   : underlying(0), bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0),
     zs(NULL), bytesIn(0)
 {
@@ -40,28 +40,28 @@ ZlibInStream::~ZlibInStream()
   delete [] start;
 }
 
-void ZlibInStream::setUnderlying(InStream* is, int bytesIn_)
+void ZlibInStream::setUnderlying(InStream* is, size_t bytesIn_)
 {
   underlying = is;
   bytesIn = bytesIn_;
   ptr = end = start;
 }
 
-int ZlibInStream::pos()
+size_t ZlibInStream::pos()
 {
   return offset + ptr - start;
 }
 
-void ZlibInStream::removeUnderlying()
+void ZlibInStream::flushUnderlying()
 {
   ptr = end = start;
-  if (!underlying) return;
 
   while (bytesIn > 0) {
     decompress(true);
     end = start; // throw away any data
   }
-  underlying = 0;
+
+  setUnderlying(NULL, 0);
 }
 
 void ZlibInStream::reset()
@@ -90,18 +90,16 @@ void ZlibInStream::init()
 void ZlibInStream::deinit()
 {
   assert(zs != NULL);
-  removeUnderlying();
+  setUnderlying(NULL, 0);
   inflateEnd(zs);
   delete zs;
   zs = NULL;
 }
 
-int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
+size_t ZlibInStream::overrun(size_t itemSize, size_t nItems, bool wait)
 {
   if (itemSize > bufSize)
     throw Exception("ZlibInStream overrun: max itemSize exceeded");
-  if (!underlying)
-    throw Exception("ZlibInStream overrun: no underlying stream");
 
   if (end - ptr != 0)
     memmove(start, ptr, end - ptr);
@@ -110,13 +108,15 @@ int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
   end -= ptr - start;
   ptr = start;
 
-  while (end - ptr < itemSize) {
+  while ((size_t)(end - ptr) < itemSize) {
     if (!decompress(wait))
       return 0;
   }
 
-  if (itemSize * nItems > end - ptr)
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }
@@ -127,14 +127,17 @@ int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
 
 bool ZlibInStream::decompress(bool wait)
 {
+  if (!underlying)
+    throw Exception("ZlibInStream overrun: no underlying stream");
+
   zs->next_out = (U8*)end;
   zs->avail_out = start + bufSize - end;
 
-  int n = underlying->check(1, 1, wait);
+  size_t n = underlying->check(1, 1, wait);
   if (n == 0) return false;
   zs->next_in = (U8*)underlying->getptr();
   zs->avail_in = underlying->getend() - underlying->getptr();
-  if ((int)zs->avail_in > bytesIn)
+  if (zs->avail_in > bytesIn)
     zs->avail_in = bytesIn;
 
   int rc = inflate(zs, Z_SYNC_FLUSH);

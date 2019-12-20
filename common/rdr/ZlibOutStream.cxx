@@ -33,7 +33,7 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
-ZlibOutStream::ZlibOutStream(OutStream* os, int bufSize_, int compressLevel)
+ZlibOutStream::ZlibOutStream(OutStream* os, size_t bufSize_, int compressLevel)
   : underlying(os), compressionLevel(compressLevel), newLevel(compressLevel),
     bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
 {
@@ -75,7 +75,7 @@ void ZlibOutStream::setCompressionLevel(int level)
   newLevel = level;
 }
 
-int ZlibOutStream::length()
+size_t ZlibOutStream::length()
 {
   return offset + ptr - start;
 }
@@ -98,7 +98,7 @@ void ZlibOutStream::flush()
   ptr = start;
 }
 
-int ZlibOutStream::overrun(int itemSize, int nItems)
+size_t ZlibOutStream::overrun(size_t itemSize, size_t nItems)
 {
 #ifdef ZLIBOUT_DEBUG
   vlog.debug("overrun");
@@ -109,7 +109,7 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
 
   checkCompressionLevel();
 
-  while (end - ptr < itemSize) {
+  while ((size_t)(end - ptr) < itemSize) {
     zs->next_in = start;
     zs->avail_in = ptr - start;
 
@@ -130,8 +130,10 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
     }
   }
 
-  if (itemSize * nItems > end - ptr)
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }

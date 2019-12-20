@@ -28,7 +28,7 @@ const int DEFAULT_BUF_LEN = 16384;
 
 static inline int min(int a, int b) {return a<b ? a : b;}
 
-HexInStream::HexInStream(InStream& is, int bufSize_)
+HexInStream::HexInStream(InStream& is, size_t bufSize_)
 : bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_LEN), offset(0), in_stream(is)
 {
   ptr = end = start = new U8[bufSize];
@@ -50,8 +50,8 @@ bool HexInStream::readHexAndShift(char c, int* v) {
   return true;
 }
 
-bool HexInStream::hexStrToBin(const char* s, char** data, int* length) {
-  int l=strlen(s);
+bool HexInStream::hexStrToBin(const char* s, char** data, size_t* length) {
+  size_t l=strlen(s);
   if ((l % 2) == 0) {
     delete [] *data;
     *data = 0; *length = 0;
@@ -59,7 +59,7 @@ bool HexInStream::hexStrToBin(const char* s, char** data, int* length) {
       return true;
     *data = new char[l/2];
     *length = l/2;
-    for(int i=0;i<l;i+=2) {
+    for(size_t i=0;i<l;i+=2) {
       int byte = 0;
       if (!readHexAndShift(s[i], &byte) ||
         !readHexAndShift(s[i+1], &byte))
@@ -76,11 +76,11 @@ decodeError:
 }
 
 
-int HexInStream::pos() {
+size_t HexInStream::pos() {
   return offset + ptr - start;
 }
 
-int HexInStream::overrun(int itemSize, int nItems, bool wait) {
+size_t HexInStream::overrun(size_t itemSize, size_t nItems, bool wait) {
   if (itemSize > bufSize)
     throw Exception("HexInStream overrun: max itemSize exceeded");
 
@@ -91,15 +91,15 @@ int HexInStream::overrun(int itemSize, int nItems, bool wait) {
   offset += ptr - start;
   ptr = start;
 
-  while (end < ptr + itemSize) {
-    int n = in_stream.check(2, 1, wait);
+  while ((size_t)(end - ptr) < itemSize) {
+    size_t n = in_stream.check(2, 1, wait);
     if (n == 0) return 0;
     const U8* iptr = in_stream.getptr();
     const U8* eptr = in_stream.getend();
-    int length = min((eptr - iptr)/2, start + bufSize - end);
+    size_t length = min((eptr - iptr)/2, start + bufSize - end);
 
     U8* optr = (U8*) end;
-    for (int i=0; i<length; i++) {
+    for (size_t i=0; i<length; i++) {
       int v = 0;
       readHexAndShift(iptr[i*2], &v);
       readHexAndShift(iptr[i*2+1], &v);
@@ -110,8 +110,10 @@ int HexInStream::overrun(int itemSize, int nItems, bool wait) {
     end += length;
   }
 
-  if (itemSize * nItems > end - ptr)
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }

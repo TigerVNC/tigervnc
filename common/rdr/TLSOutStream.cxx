@@ -75,7 +75,7 @@ TLSOutStream::~TLSOutStream()
   delete [] start;
 }
 
-int TLSOutStream::length()
+size_t TLSOutStream::length()
 {
   return offset + ptr - start;
 }
@@ -84,7 +84,7 @@ void TLSOutStream::flush()
 {
   U8* sentUpTo = start;
   while (sentUpTo < ptr) {
-    int n = writeTLS(sentUpTo, ptr - sentUpTo);
+    size_t n = writeTLS(sentUpTo, ptr - sentUpTo);
     sentUpTo += n;
     offset += n;
   }
@@ -93,20 +93,22 @@ void TLSOutStream::flush()
   out->flush();
 }
 
-int TLSOutStream::overrun(int itemSize, int nItems)
+size_t TLSOutStream::overrun(size_t itemSize, size_t nItems)
 {
   if (itemSize > bufSize)
     throw Exception("TLSOutStream overrun: max itemSize exceeded");
 
   flush();
 
-  if (itemSize * nItems > end - ptr)
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }
 
-int TLSOutStream::writeTLS(const U8* data, int length)
+size_t TLSOutStream::writeTLS(const U8* data, size_t length)
 {
   int n;
 

@@ -56,15 +56,17 @@ TightDecoder::FilterGradient24(const rdr::U8 *inbuf,
   int rectWidth = r.width();
 
   for (y = 0; y < rectHeight; y++) {
-    /* First pixel in a row */
-    for (c = 0; c < 3; c++) {
-      pix[c] = inbuf[y*rectWidth*3+c] + prevRow[c];
-      thisRow[c] = pix[c];
-    }
-    pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
+    for (x = 0; x < rectWidth; x++) {
+      /* First pixel in a row */
+      if (x == 0) {
+        for (c = 0; c < 3; c++) {
+          pix[c] = inbuf[y*rectWidth*3+c] + prevRow[c];
+          thisRow[c] = pix[c];
+        }
+        pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
+        continue;
+      }
 
-    /* Remaining pixels of a row */
-    for (x = 1; x < rectWidth; x++) {
       for (c = 0; c < 3; c++) {
         est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
         if (est[c] > 0xff) {
@@ -103,17 +105,20 @@ void TightDecoder::FilterGradient(const rdr::U8* inbuf,
   int rectWidth = r.width();
 
   for (y = 0; y < rectHeight; y++) {
-    /* First pixel in a row */
-    pf.rgbFromBuffer(pix, &inbuf[y*rectWidth], 1);
-    for (c = 0; c < 3; c++)
-      pix[c] += prevRow[c];
+    for (x = 0; x < rectWidth; x++) {
+      /* First pixel in a row */
+      if (x == 0) {
+        pf.rgbFromBuffer(pix, &inbuf[y*rectWidth], 1);
+        for (c = 0; c < 3; c++)
+          pix[c] += prevRow[c];
 
-    memcpy(thisRow, pix, sizeof(pix));
+        memcpy(thisRow, pix, sizeof(pix));
 
-    pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
+        pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
 
-    /* Remaining pixels of a row */
-    for (x = 1; x < rectWidth; x++) {
+        continue;
+      }
+
       for (c = 0; c < 3; c++) {
         est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
         if (est[c] > 255) {

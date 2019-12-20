@@ -174,7 +174,8 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
     }
   }
 
-  zis->removeUnderlying();
+  zis->flushUnderlying();
+  zis->setUnderlying(NULL, 0);
 }
 
 #undef ZRLE_DECODE

@@ -43,7 +43,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
       return -1;
     }
 
-    if (in->getend() - in->getptr() < (ptrdiff_t)size)
+    if ((size_t)(in->getend() - in->getptr()) < size)
       size = in->getend() - in->getptr();
   
     in->readBytes(data, size);
@@ -75,12 +75,12 @@ TLSInStream::~TLSInStream()
   delete[] start;
 }
 
-int TLSInStream::pos()
+size_t TLSInStream::pos()
 {
   return offset + ptr - start;
 }
 
-int TLSInStream::overrun(int itemSize, int nItems, bool wait)
+size_t TLSInStream::overrun(size_t itemSize, size_t nItems, bool wait)
 {
   if (itemSize > bufSize)
     throw Exception("TLSInStream overrun: max itemSize exceeded");
@@ -92,20 +92,22 @@ int TLSInStream::overrun(int itemSize, int nItems, bool wait)
   end -= ptr - start;
   ptr = start;
 
-  while (end < start + itemSize) {
-    int n = readTLS((U8*) end, start + bufSize - end, wait);
+  while ((size_t)(end - start) < itemSize) {
+    size_t n = readTLS((U8*) end, start + bufSize - end, wait);
     if (!wait && n == 0)
       return 0;
     end += n;
   }
 
-  if (itemSize * nItems > end - ptr)
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }
 
-int TLSInStream::readTLS(U8* buf, int len, bool wait)
+size_t TLSInStream::readTLS(U8* buf, size_t len, bool wait)
 {
   int n;
 

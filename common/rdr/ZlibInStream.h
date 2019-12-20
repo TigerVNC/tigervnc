@@ -34,12 +34,12 @@ namespace rdr {
 
   public:
 
-    ZlibInStream(int bufSize=0);
+    ZlibInStream(size_t bufSize=0);
     virtual ~ZlibInStream();
 
-    void setUnderlying(InStream* is, int bytesIn);
-    void removeUnderlying();
-    int pos();
+    void setUnderlying(InStream* is, size_t bytesIn);
+    void flushUnderlying();
+    size_t pos();
     void reset();
 
   private:
@@ -47,14 +47,14 @@ namespace rdr {
     void init();
     void deinit();
 
-    int overrun(int itemSize, int nItems, bool wait);
+    size_t overrun(size_t itemSize, size_t nItems, bool wait);
     bool decompress(bool wait);
 
     InStream* underlying;
-    int bufSize;
-    int offset;
+    size_t bufSize;
+    size_t offset;
     z_stream_s* zs;
-    int bytesIn;
+    size_t bytesIn;
     U8* start;
   };
 
