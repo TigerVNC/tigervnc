@@ -668,14 +668,10 @@ class OptionsDialog extends Dialog {
 
     JPanel colorPanel = new JPanel(new GridLayout(4, 1));
     colorPanel.setBorder(BorderFactory.createTitledBorder("Color level"));
-    fullcolorButton = new GroupedJRadioButton("Full (all available colors)",
-                                              colorlevelGroup, colorPanel);
-    mediumcolorButton = new GroupedJRadioButton("Medium (256 colors)",
-                                                colorlevelGroup, colorPanel);
-    lowcolorButton = new GroupedJRadioButton("Low (64 colors)",
-                                             colorlevelGroup, colorPanel);
-    verylowcolorButton = new GroupedJRadioButton("Very low (8 colors)",
-                                                 colorlevelGroup, colorPanel);
+    fullcolorButton = new GroupedJRadioButton("Full", colorlevelGroup, colorPanel);
+    mediumcolorButton = new GroupedJRadioButton("Medium", colorlevelGroup, colorPanel);
+    lowcolorButton = new GroupedJRadioButton("Low", colorlevelGroup, colorPanel);
+    verylowcolorButton = new GroupedJRadioButton("Very low", colorlevelGroup, colorPanel);
 
     JPanel encodingPane = new JPanel(new GridLayout(1, 2, 5, 0));
     encodingPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));

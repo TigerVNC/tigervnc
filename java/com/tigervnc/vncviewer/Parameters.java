@@ -78,8 +78,7 @@ public class Parameters {
   public static IntParameter lowColorLevel
   = new IntParameter("LowColorLevel",
     "Color level to use on slow connections. "+
-    "0 = Very Low (8 colors), 1 = Low (64 colors), "+
-    "2 = Medium (256 colors)",
+    "0 = Very Low, 1 = Low, 2 = Medium",
     2);
 
   public static AliasParameter lowColorLevelAlias

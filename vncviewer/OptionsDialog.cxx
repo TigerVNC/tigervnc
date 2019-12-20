@@ -507,28 +507,28 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
     fullcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                      RADIO_MIN_WIDTH,
                                                      RADIO_HEIGHT,
-                                                     _("Full (all available colors)")));
+                                                     _("Full")));
     fullcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     mediumcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                        RADIO_MIN_WIDTH,
                                                        RADIO_HEIGHT,
-                                                       _("Medium (256 colors)")));
+                                                       _("Medium")));
     mediumcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     lowcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                     RADIO_MIN_WIDTH,
                                                     RADIO_HEIGHT,
-                                                    _("Low (64 colors)")));
+                                                    _("Low")));
     lowcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     verylowcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                         RADIO_MIN_WIDTH,
                                                         RADIO_HEIGHT,
-                                                        _("Very low (8 colors)")));
+                                                        _("Very low")));
     verylowcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
   }
