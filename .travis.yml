@@ -5,6 +5,7 @@ env:
   - DOCKER=centos6
   - DOCKER=centos7
   - DOCKER=xenial
+  - DOCKER=bionic
 
 matrix:
   include:
