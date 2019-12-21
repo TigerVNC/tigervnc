@@ -4,7 +4,6 @@ language: minimal
 env:
   - DOCKER=centos6
   - DOCKER=centos7
-  - DOCKER=trusty
   - DOCKER=xenial
 
 matrix:
@@ -19,9 +18,10 @@ matrix:
 
   - language: java
     # We're not compatible with the newer java
-    dist: trusty
+    dist: xenial
     env:
-    before_install: skip
+    before_install:
+    - sudo apt-get install -y openjdk-8-jdk
     script:
     - cd java && cmake . && make
 
