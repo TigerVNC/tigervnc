@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,12 +35,15 @@ abstract public class InStream {
   // maximum of nItems).
 
   public int check(int itemSize, int nItems, boolean wait) {
-    if (ptr + itemSize * nItems > end) {
-      if (ptr + itemSize > end)
+    int nAvail;
+
+    if (itemSize > (end - ptr))
         return overrun(itemSize, nItems, wait);
 
-      nItems = (end - ptr) / itemSize;
-    }
+    nAvail = (end - ptr) / itemSize;
+    if (nAvail < nItems)
+      return nAvail;
+
     return nItems;
   }
 
@@ -101,12 +105,11 @@ abstract public class InStream {
   // readBytes() reads an exact number of bytes
 
   public void readBytes(ByteBuffer data, int length) {
-    ByteBuffer dataPtr = data;
-    int dataEnd = dataPtr.position() + length;
-    while (dataPtr.position() < dataEnd) {
-      int n = check(1, dataEnd - dataPtr.position());
-      dataPtr.put(b, ptr, n);
+    while (length > 0) {
+      int n = check(1, length);
+      data.put(b, ptr, n);
       ptr += n;
+      length -= n;
     }
   }
 

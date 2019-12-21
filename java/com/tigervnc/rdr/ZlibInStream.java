@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,16 +51,16 @@ public class ZlibInStream extends InStream {
     return offset + ptr - start;
   }
 
-  public void removeUnderlying()
+  public void flushUnderlying()
   {
     ptr = end = start;
-    if (underlying == null) return;
 
     while (bytesIn > 0) {
       decompress(true);
       end = start; // throw away any data
     }
-    underlying = null;
+
+    setUnderlying(null, 0);
   }
 
   public void reset()
@@ -86,7 +86,7 @@ public class ZlibInStream extends InStream {
   public void deinit()
   {
     assert(zs != null);
-    removeUnderlying();
+    setUnderlying(null, 0);
     zs.inflateEnd();
     zs = null;
   }
@@ -95,8 +95,6 @@ public class ZlibInStream extends InStream {
   {
     if (itemSize > bufSize)
       throw new Exception("ZlibInStream overrun: max itemSize exceeded");
-    if (underlying == null)
-      throw new Exception("ZlibInStream overrun: no underlying stream");
 
     if (end - ptr != 0)
       System.arraycopy(b, ptr, b, start, end - ptr);
@@ -110,8 +108,10 @@ public class ZlibInStream extends InStream {
         return 0;
     }
 
-    if (itemSize * nItems > end - ptr)
-      nItems = (end - ptr) / itemSize;
+    int nAvail;
+    nAvail = (end - ptr) / itemSize;
+    if (nAvail < nItems)
+      return nAvail;
 
     return nItems;
   }
@@ -123,6 +123,9 @@ public class ZlibInStream extends InStream {
 
   private boolean decompress(boolean wait)
   {
+    if (underlying == null)
+      throw new Exception("ZlibInStream overrun: no underlying stream");
+
     zs.next_out = b;
     zs.next_out_index = end;
     zs.avail_out = start + bufSize - end;

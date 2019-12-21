@@ -262,8 +262,8 @@ public class Parameters {
 
   public static IntParameter compressLevel
   = new IntParameter("CompressLevel",
-    "Use specified compression level. 0 = Low, 9 = High",
-    1);
+    "Use specified lossless compression level. 0 = Low, 9 = High. Default is 2.",
+    2);
 
   public static BoolParameter noJpeg
   = new BoolParameter("NoJPEG",

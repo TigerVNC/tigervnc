@@ -288,7 +288,8 @@ public class ZRLEDecoder extends Decoder {
       }
     }
 
-    zis.removeUnderlying();
+    zis.flushUnderlying();
+    zis.setUnderlying(null, 0);
   }
 
   private ZlibInStream zis;

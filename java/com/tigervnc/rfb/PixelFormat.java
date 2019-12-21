@@ -41,7 +41,8 @@ public class PixelFormat {
     redMax = rm; greenMax = gm; blueMax = bm;
     redShift = rs; greenShift = gs; blueShift = bs;
     converters = new HashMap<Integer, ColorConvertOp>();
-    assert(isSane());
+    if (!isSane())
+      throw new Exception("invalid pixel format");
 
     updateState();
   }
@@ -166,6 +167,12 @@ public class PixelFormat {
     if(greenMax != 255)
       return false;
     if(blueMax != 255)
+      return false;
+    if ((redShift & 0x7) != 0)
+      return false;
+    if ((greenShift & 0x7) != 0)
+      return false;
+    if ((blueShift & 0x7) != 0)
       return false;
 
     return true;
@@ -503,7 +510,14 @@ public class PixelFormat {
       return false;
 
     totalBits = bits(redMax) + bits(greenMax) + bits(blueMax);
-    if (totalBits > bpp)
+    if (totalBits > depth)
+      return false;
+
+    if ((bits(redMax) + redShift) > bpp)
+      return false;
+    if ((bits(greenMax) + greenShift) > bpp)
+      return false;
+    if ((bits(blueMax) + blueShift) > bpp)
       return false;
 
     if (((redMax << redShift) & (greenMax << greenShift)) != 0)

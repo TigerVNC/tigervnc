@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,12 +35,15 @@ abstract public class OutStream {
   // of nItems).
 
   public final int check(int itemSize, int nItems) {
-    if (ptr + itemSize * nItems > end) {
-      if (ptr + itemSize > end)
-        return overrun(itemSize, nItems);
+    int nAvail;
 
-      nItems = (end - ptr) / itemSize;
-    }
+    if (itemSize > (end - ptr))
+      return overrun(itemSize, nItems);
+
+    nAvail = (end - ptr) / itemSize;
+    if (nAvail < nItems)
+      return nAvail;
+
     return nItems;
   }
 
@@ -119,12 +123,11 @@ abstract public class OutStream {
   }
 
   public void writeBytes(ByteBuffer data, int length) {
-    ByteBuffer dataPtr = data;
-    int dataEnd = dataPtr.position() + length;
-    while (dataPtr.position() < dataEnd) {
-      int n = check(1, dataEnd - dataPtr.position());
-      dataPtr.get(b, ptr, n);
+    while (length > 0) {
+      int n = check(1, length);
+      data.get(b, ptr, n);
       ptr += n;
+      length -= n;
     }
   }
 
