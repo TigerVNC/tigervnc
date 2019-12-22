@@ -27,12 +27,10 @@ sed -i "s/@VERSION@/${VERSION}/" ${CURDIR}/rpmbuild/SPECS/tigervnc.spec
 
 # Extra dependencies built because the distribution lacks what we need
 
-curl -L -o ${CURDIR}/rpmbuild/SOURCES/fltk-1.3.4-2-source.tar.gz https://www.fltk.org/pub/fltk/1.3.4/fltk-1.3.4-2-source.tar.gz
-curl -L -o ${CURDIR}/rpmbuild/SOURCES/libpng-1.6.34.tar.gz https://downloads.sourceforge.net/project/libpng/libpng16/1.6.34/libpng-1.6.34.tar.gz
-curl -L -o ${CURDIR}/rpmbuild/SOURCES/gmp-6.1.2.tar.bz2 https://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.bz2
-curl -L -o ${CURDIR}/rpmbuild/SOURCES/libtasn1-4.13.tar.gz https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.13.tar.gz
-curl -L -o ${CURDIR}/rpmbuild/SOURCES/nettle-3.4.tar.gz https://ftp.gnu.org/gnu/nettle/nettle-3.4.tar.gz
-curl -L -o ${CURDIR}/rpmbuild/SOURCES/gnutls-3.3.30.tar.xz https://www.gnupg.org/ftp/gcrypt/gnutls/v3.3/gnutls-3.3.30.tar.xz
+for url in $(grep -i "^source.*://" ${CURDIR}/rpmbuild/SPECS/tigervnc.spec | awk '{print $2}')
+do
+  curl -L -o ${CURDIR}/rpmbuild/SOURCES/$(basename $url) $url
+done
 
 ## Copy over the source code
 
