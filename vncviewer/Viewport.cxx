@@ -184,6 +184,9 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   setMenuKey();
 
   OptionsDialog::addCallback(handleOptions, this);
+
+  // Make sure we have an initial blank cursor set
+  setCursor(0, 0, rfb::Point(0, 0), NULL);
 }
 
 
@@ -579,8 +582,7 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_ENTER:
-    if (cursor)
-      window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
     // Yes, we would like some pointer events please!
     return 1;
 
@@ -1267,7 +1269,7 @@ void Viewport::popupContextMenu()
   handle(FL_FOCUS);
 
   // Back to our proper mouse pointer.
-  if ((Fl::belowmouse() == this) && cursor)
+  if (Fl::belowmouse())
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 
   if (m == NULL)
@@ -1351,4 +1353,5 @@ void Viewport::handleOptions(void *data)
   Viewport *self = (Viewport*)data;
 
   self->setMenuKey();
+  // FIXME: Need to recheck cursor for dotWhenNoCursor
 }
