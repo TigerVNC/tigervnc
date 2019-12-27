@@ -145,9 +145,9 @@ int cocoa_is_keyboard_event(const void *event)
   nsevent = (NSEvent*)event;
 
   switch ([nsevent type]) {
-  case NSKeyDown:
-  case NSKeyUp:
-  case NSFlagsChanged:
+  case NSEventTypeKeyDown:
+  case NSEventTypeKeyUp:
+  case NSEventTypeFlagsChanged:
     return 1;
   default:
     return 0;
@@ -160,10 +160,10 @@ int cocoa_is_key_press(const void *event)
 
   nsevent = (NSEvent*)event;
 
-  if ([nsevent type] == NSKeyDown)
+  if ([nsevent type] == NSEventTypeKeyDown)
     return 1;
 
-  if ([nsevent type] == NSFlagsChanged) {
+  if ([nsevent type] == NSEventTypeFlagsChanged) {
     UInt32 mask;
 
     // We don't see any event on release of CapsLock
@@ -388,11 +388,11 @@ int cocoa_event_keysym(const void *event)
   // other platforms.
 
   modifiers = 0;
-  if ([nsevent modifierFlags] & NSAlphaShiftKeyMask)
+  if ([nsevent modifierFlags] & NSEventModifierFlagCapsLock)
     modifiers |= alphaLock;
-  if ([nsevent modifierFlags] & NSShiftKeyMask)
+  if ([nsevent modifierFlags] & NSEventModifierFlagShift)
     modifiers |= shiftKey;
-  if ([nsevent modifierFlags] & NSAlternateKeyMask)
+  if ([nsevent modifierFlags] & NSEventModifierFlagOption)
     modifiers |= optionKey;
 
   chars = key_translate(key_code, modifiers);

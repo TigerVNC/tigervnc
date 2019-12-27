@@ -60,7 +60,6 @@ namespace rfb {
     gnutls_certificate_credentials_t cert_cred;
     char *keyfile, *certfile;
 
-    int type;
     bool anon;
 
     rdr::InStream* tlsis;

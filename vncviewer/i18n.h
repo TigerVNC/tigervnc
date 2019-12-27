@@ -27,7 +27,7 @@
 static const char *
 pgettext_aux (const char *domain,
               const char *msg_ctxt_id, const char *msgid,
-              int category) __attribute__ ((format_arg (3)));
+              int category);
 #endif
 
 #define _(String) gettext (String)
