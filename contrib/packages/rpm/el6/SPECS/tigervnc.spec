@@ -1,6 +1,6 @@
 %{!?_bootstrap: %define _bootstrap 1}
 %define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
-%global scl_name %{name}16
+%global scl_name %{name}/%{version}
 %if %{_bootstrap}
 %define static_lib_buildroot %{tigervnc_src_dir}/opt/%{name}/%{scl_name}
 %else
@@ -9,7 +9,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 7%{?snap:.%{snap}}%{?dist}
+Release: 8%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -20,11 +20,11 @@ URL: http://www.tigervnc.com
 Source0: %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1: vncserver.service
 Source2: vncserver.sysconfig
-Source11: https://www.fltk.org/pub/fltk/1.3.4/fltk-1.3.4-2-source.tar.gz
-Source13: https://downloads.sourceforge.net/project/libpng/libpng16/1.6.34/libpng-1.6.34.tar.gz
+Source11: https://www.fltk.org/pub/fltk/1.3.5/fltk-1.3.5-source.tar.gz
+Source13: https://downloads.sourceforge.net/project/libpng/libpng16/1.6.37/libpng-1.6.37.tar.gz
 Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.bz2
-Source15: https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.13.tar.gz
-Source16: https://ftp.gnu.org/gnu/nettle/nettle-3.4.tar.gz
+Source15: https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.14.tar.gz
+Source16: https://ftp.gnu.org/gnu/nettle/nettle-3.4.1.tar.gz
 Source17: https://www.gnupg.org/ftp/gcrypt/gnutls/v3.3/gnutls-3.3.30.tar.xz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -192,7 +192,7 @@ popd
 
 echo "*** Building libtasn1 ***"
 pushd libtasn1-*
-LDFLAGS="-L%{static_lib_buildroot}%{_libdir} $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --host=%{_host} --build=%{_build}
+LDFLAGS="-L%{static_lib_buildroot}%{_libdir} $LDFLAGS" CFLAGS="$CFLAGS -std=c99" CXXFLAGS="$CXXFLAGS -std=c99" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --host=%{_host} --build=%{_build}
 make %{?_smp_mflags} DESTDIR=%{static_lib_buildroot} install
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{static_lib_buildroot}%{_libdir}|" {} \;
@@ -202,7 +202,7 @@ popd
 echo "*** Building nettle ***"
 pushd nettle-*
 autoreconf -fiv
-LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --disable-openssl --host=%{_host} --build=%{_build}
+LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" CFLAGS="$CFLAGS -std=c99" CXXFLAGS="$CXXFLAGS -std=c99" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --disable-openssl --host=%{_host} --build=%{_build}
 make %{?_smp_mflags} DESTDIR=%{static_lib_buildroot} install
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{static_lib_buildroot}%{_libdir}|" {} \;
@@ -211,7 +211,7 @@ popd
 
 echo "*** Building gnutls ***"
 pushd gnutls-*
-LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lnettle -lhogweed -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure \
+LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lhogweed -lnettle -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
   --host=%{_host} \
@@ -251,38 +251,29 @@ echo "*** Building fltk ***"
 pushd fltk-*
 %endif
 export CMAKE_PREFIX_PATH="%{static_lib_buildroot}%{_prefix}:%{_prefix}"
-export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
+export CMAKE_EXE_LINKER_FLAGS="-L%{static_lib_buildroot}%{_libdir} $LDFLAGS"
 export PKG_CONFIG="pkg-config --static"
 %if %{_bootstrap}
-CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lpng -Wl,-Bdynamic $LDFLAGS" ./configure \
-  --prefix=%{_prefix} \
-  --libdir=%{_libdir} \
-  --host=%{_host} \
-  --build=%{_build} \
-  --enable-x11 \
-  --enable-gl \
-  --disable-shared \
-  --enable-localjpeg \
-  --enable-localzlib \
-  --disable-localpng \
-  --enable-xinerama \
-  --enable-xft \
-  --enable-xdbe \
-  --enable-xfixes \
-  --enable-xcursor \
-  --with-x
+CFLAGS="-I%{static_lib_buildroot}%{_includedir} ${CFLAGS}" CXXFLAGS="-I%{static_lib_buildroot}%{_includedir} ${CXXFLAGS}" LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lpng -Wl,-Bdynamic ${LDFLAGS}" %{cmake} -G"Unix Makefiles" \
+  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DOPTION_BUILD_EXAMPLES=off \
+  -DOPTION_USE_SYSTEM_LIBPNG=1 \
+  -DOPTION_USE_SYSTEM_LIBJPEG=0 \
+  -DOPTION_USE_SYSTEM_ZLIB=0
+
 make %{?_smp_mflags} 
 make DESTDIR=%{static_lib_buildroot} install
 popd
 %endif
 
-%{cmake} -G"Unix Makefiles" \
+CFLAGS="-I%{static_lib_buildroot}%{_includedir} ${CFLAGS}" CXXFLAGS="-I%{static_lib_buildroot}%{_includedir} ${CXXFLAGS}" LDFLAGS="-L%{static_lib_buildroot}%{_libdir} ${LDFLAGS}" %{cmake} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
   -DCMAKE_INSTALL_PREFIX=%{_prefix} \
   -DFLTK_LIBRARIES="%{static_lib_buildroot}%{_libdir}/libfltk.a;%{static_lib_buildroot}%{_libdir}/libfltk_images.a;%{static_lib_buildroot}%{_libdir}/libpng.a" \
   -DFLTK_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
   -DGNUTLS_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
-  -DGNUTLS_LIBRARY="%{static_lib_buildroot}%{_libdir}/libgnutls.a;%{static_lib_buildroot}%{_libdir}/libtasn1.a;%{static_lib_buildroot}%{_libdir}/libnettle.a;%{static_lib_buildroot}%{_libdir}/libhogweed.a;%{static_lib_buildroot}%{_libdir}/libgmp.a"
+  -DGNUTLS_LIBRARY="%{static_lib_buildroot}%{_libdir}/libgnutls.a;%{static_lib_buildroot}%{_libdir}/libtasn1.a;%{static_lib_buildroot}%{_libdir}/libhogweed.a;%{static_lib_buildroot}%{_libdir}/libnettle.a;%{static_lib_buildroot}%{_libdir}/libgmp.a"
 make %{?_smp_mflags}
 
 pushd unix/xserver
@@ -417,6 +408,9 @@ fi
 %endif
 
 %changelog
+* Sat Dec 28 2019 Brian P. Hinz <bphinz@users.sourceforge.net> 1.10.80-8
+- Update fltk, libpng, libtasn1, nettle. Fix linker errors.
+
 * Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-7
 - Add libXrandr-devel as a dependency so x0vncserver gets resize support.
 
