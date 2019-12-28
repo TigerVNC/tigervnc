@@ -380,8 +380,6 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("Could not find certificate to display");
   }
 
-  size_t out_size = 0;
-  char *out_buf = NULL;
   char *certinfo = NULL;
   int len = 0;
 
@@ -415,18 +413,14 @@ void CSecurityTLS::checkSession()
 
   delete [] certinfo;
 
-  if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, NULL, &out_size)
-      == GNUTLS_E_SHORT_MEMORY_BUFFER)
-    throw AuthFailureException("Out of memory");
-
   // Save cert
-  out_buf =  new char[out_size];
+  size_t out_size = 4096; // Handle max cert size
+  char *out_buf = new char[out_size];
   if (out_buf == NULL)
     throw AuthFailureException("Out of memory");
 
   if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, out_buf, &out_size) < 0)
-    throw AuthFailureException("certificate issuer unknown, and certificate "
-                               "export failed");
+    throw AuthFailureException("certificate export failed");
 
   char *homeDir = NULL;
   if (getvnchomedir(&homeDir) == -1)
