@@ -416,8 +416,9 @@ void CSecurityTLS::checkSession()
   delete [] certinfo;
 
   if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, NULL, &out_size)
-      == GNUTLS_E_SHORT_MEMORY_BUFFER)
-    throw AuthFailureException("Out of memory");
+      != GNUTLS_E_SHORT_MEMORY_BUFFER)
+    throw AuthFailureException("certificate issuer unknown, and certificate "
+                               "export failed");
 
   // Save cert
   out_buf =  new char[out_size];
