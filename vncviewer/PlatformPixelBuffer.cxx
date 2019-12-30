@@ -43,7 +43,7 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
 #endif
 {
 #if !defined(WIN32) && !defined(__APPLE__)
-  if (!setupShm()) {
+  if (!setupShm(width, height)) {
     xim = XCreateImage(fl_display, CopyFromParent, 32,
                        ZPixmap, 0, 0, width, height, 32, 0);
     if (!xim)
@@ -136,7 +136,7 @@ static int XShmAttachErrorHandler(Display *dpy, XErrorEvent *error)
   return 0;
 }
 
-bool PlatformPixelBuffer::setupShm()
+bool PlatformPixelBuffer::setupShm(int width, int height)
 {
   int major, minor;
   Bool pixmaps;
@@ -153,7 +153,7 @@ bool PlatformPixelBuffer::setupShm()
   shminfo = new XShmSegmentInfo;
 
   xim = XShmCreateImage(fl_display, CopyFromParent, 32,
-                        ZPixmap, 0, shminfo, width(), height());
+                        ZPixmap, 0, shminfo, width, height);
   if (!xim)
     goto free_shminfo;
 
