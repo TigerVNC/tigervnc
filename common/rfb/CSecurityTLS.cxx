@@ -396,8 +396,6 @@ void CSecurityTLS::checkSession()
   vlog.debug("%s", info.data);
 
   certinfo = new char[len];
-  if (certinfo == NULL)
-    throw AuthFailureException("Out of memory");
 
   snprintf(certinfo, len, "This certificate has been signed by an unknown "
                           "authority:\n\n%s\n\nDo you want to save it and "
@@ -422,8 +420,6 @@ void CSecurityTLS::checkSession()
 
   // Save cert
   out_buf =  new char[out_size];
-  if (out_buf == NULL)
-    throw AuthFailureException("Out of memory");
 
   if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, out_buf, &out_size) < 0)
     throw AuthFailureException("certificate issuer unknown, and certificate "
