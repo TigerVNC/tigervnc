@@ -145,7 +145,7 @@ __inline
 inline
 #endif
 #endif
-static const char *
+__attribute__ ((format_arg (3))) static const char *
 pgettext_aux (const char *domain,
               const char *msg_ctxt_id, const char *msgid,
               int category)
