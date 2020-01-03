@@ -44,14 +44,10 @@ namespace rfb {
       DIBSectionBuffer(HDC device);
       virtual ~DIBSectionBuffer();
 
-      virtual void setPF(const PixelFormat &pf);
-      virtual void setSize(int w, int h);
-
-      // *** virtual void copyRect(const Rect &dest, const Point &move_by_delta);
     public:
       HBITMAP bitmap;
     protected:
-      void recreateBuffer();
+      void initBuffer(const PixelFormat& pf, int w, int h);
       HWND window;
       HDC device;
     };

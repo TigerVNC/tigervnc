@@ -74,22 +74,10 @@ DeviceFrameBuffer::DeviceFrameBuffer(HDC deviceContext, const Rect& wRect)
   if (w % 2) w--;
 
   // Configure the underlying DIB to match the device
-  DIBSectionBuffer::setPF(DeviceContext::getPF(device));
-  DIBSectionBuffer::setSize(w, h);
+  initBuffer(DeviceContext::getPF(device), w, h);
 }
 
 DeviceFrameBuffer::~DeviceFrameBuffer() {
-}
-
-
-void
-DeviceFrameBuffer::setPF(const PixelFormat &pf) {
-  throw Exception("setPF not supported");
-}
-
-void
-DeviceFrameBuffer::setSize(int w, int h) {
-  throw Exception("setSize not supported");
 }
 
 

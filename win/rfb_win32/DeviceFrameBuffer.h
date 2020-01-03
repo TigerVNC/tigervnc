@@ -71,11 +71,6 @@ namespace rfb {
       virtual void grabRect(const Rect &rect);
       virtual void grabRegion(const Region &region);
 
-      // - DIBSectionBuffer overrides
-      
-      virtual void setPF(const PixelFormat& pf);
-      virtual void setSize(int w, int h);
-      
       // - DeviceFrameBuffer specific methods
 
       void setCursor(HCURSOR c, VNCServer* server);

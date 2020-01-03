@@ -44,25 +44,19 @@ DIBSectionBuffer::~DIBSectionBuffer() {
 }
 
 
-void DIBSectionBuffer::setPF(const PixelFormat& pf) {
-  if (memcmp(&getPF(), &pf, sizeof(pf)) == 0) {
-    vlog.debug("pixel format unchanged by setPF()");
-    return;
-  }
-  if (!pf.trueColour)
-    throw rfb::Exception("palette format not supported");
-  format = pf;
-  setSize(width(), height());
-}
-
 inline void initMaxAndShift(DWORD mask, int* max, int* shift) {
   for ((*shift) = 0; (mask & 1) == 0; (*shift)++) mask >>= 1;
   (*max) = (rdr::U16)mask;
 }
 
-void DIBSectionBuffer::setSize(int w, int h) {
+void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
   HBITMAP new_bitmap = 0;
   rdr::U8* new_data = 0;
+
+  if (!pf.trueColour)
+    throw rfb::Exception("palette format not supported");
+
+  format = pf;
 
   if (w && h && (format.depth != 0)) {
     BitmapInfo bi;
