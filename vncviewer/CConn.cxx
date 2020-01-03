@@ -82,7 +82,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
   supportsLocalCursor = true;
   supportsDesktopResize = true;
-  supportsLEDState = true;
+  supportsLEDState = false;
 
   if (customCompressLevel)
     setCompressLevel(::compressLevel);
