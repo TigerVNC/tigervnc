@@ -105,7 +105,7 @@ static rfb::LogWriter vlog("Viewport");
 
 enum { ID_EXIT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
-       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
+       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT };
 
 // Used to detect fake input (0xaa is not a real key)
 #ifdef WIN32
@@ -1237,10 +1237,7 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
                 0, NULL, (void*)ID_INFO, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
-                0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
-
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Dismiss &menu"),
-                0, NULL, (void*)ID_DISMISS, 0);
+                0, NULL, (void*)ID_ABOUT, 0);
 }
 
 
@@ -1334,9 +1331,6 @@ void Viewport::popupContextMenu()
     break;
   case ID_ABOUT:
     about_vncviewer();
-    break;
-  case ID_DISMISS:
-    // Don't need to do anything
     break;
   }
 }
