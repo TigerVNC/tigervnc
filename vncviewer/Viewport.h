@@ -97,6 +97,9 @@ private:
 
   static void handleOptions(void *data);
 
+  void startScreenRefreshTimer();
+  static void refreshFramebuffer(void *data);
+
 private:
   CConn* cc;
 

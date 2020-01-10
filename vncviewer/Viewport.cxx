@@ -187,6 +187,8 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 
   // Make sure we have an initial blank cursor set
   setCursor(0, 0, rfb::Point(0, 0), NULL);
+  
+  startScreenRefreshTimer();
 }
 
 
@@ -1354,4 +1356,23 @@ void Viewport::handleOptions(void *data)
 
   self->setMenuKey();
   // FIXME: Need to recheck cursor for dotWhenNoCursor
+}
+
+
+void Viewport::startScreenRefreshTimer()
+{
+  if (forceScreenRefresh != 0)
+  {
+    double period = forceScreenRefresh * 1.0;
+    Fl::add_timeout(period, refreshFramebuffer, this);
+  }
+}
+
+void Viewport::refreshFramebuffer( void* data)
+{
+  Viewport* self = (Viewport*) data;
+  assert(self);
+
+  self->cc->refreshFramebuffer();
+  self->startScreenRefreshTimer();
 }

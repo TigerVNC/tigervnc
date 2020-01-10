@@ -146,6 +146,10 @@ BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
                                    "to the server when in full screen mode.",
                                    true);
 
+IntParameter forceScreenRefresh("ForceScreenRefresh",
+                                "Time in seconds to periodically send screen refresh "
+                                "request to server", 0);
+                                
 #ifndef WIN32
 StringParameter via("via", "Gateway to tunnel via", "");
 #endif
