@@ -1363,8 +1363,7 @@ void Viewport::startScreenRefreshTimer()
 {
   if (forceScreenRefresh != 0)
   {
-    double period = forceScreenRefresh * 1.0;
-    Fl::add_timeout(period, refreshFramebuffer, this);
+    Fl::add_timeout(((double) forceScreenRefresh), refreshFramebuffer, this);
   }
 }
 
