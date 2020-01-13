@@ -660,6 +660,26 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
+void Viewport::sendPointerEvent(const rfb::Point& pos, int buttonMask)
+{
+  if (viewOnly)
+      return;
+
+  if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
+    try {
+      cc->writer()->writePointerEvent(pos, buttonMask);
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+  } else {
+    if (!Fl::has_timeout(handlePointerTimeout, this))
+      Fl::add_timeout((double)pointerEventInterval/1000.0,
+                      handlePointerTimeout, this);
+  }
+  lastPointerPos = pos;
+  lastButtonMask = buttonMask;
+}
 
 bool Viewport::hasFocus()
 {
@@ -780,22 +800,7 @@ void Viewport::flushPendingClipboard()
 
 void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
 {
-  if (!viewOnly) {
-    if (pointerEventInterval == 0 || buttonMask != lastButtonMask) {
-      try {
-        cc->writer()->writePointerEvent(pos, buttonMask);
-      } catch (rdr::Exception& e) {
-        vlog.error("%s", e.str());
-        exit_vncviewer(e.str());
-      }
-    } else {
-      if (!Fl::has_timeout(handlePointerTimeout, this))
-        Fl::add_timeout((double)pointerEventInterval/1000.0,
-                        handlePointerTimeout, this);
-    }
-    lastPointerPos = pos;
-    lastButtonMask = buttonMask;
-  }
+  filterPointerEvent(pos, buttonMask);
 }
 
 

@@ -6,6 +6,7 @@ set(VNCVIEWER_SOURCES
   menukey.cxx
   CConn.cxx
   DesktopWindow.cxx
+  EmulateMB.cxx
   UserDialog.cxx
   ServerDialog.cxx
   Surface.cxx
