@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011-2019 Pierre Ossman <ossman@cendio.se> for Cendio AB
- *
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -47,7 +47,7 @@ public:
 
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
-         const rdr::U8* data);
+                 const rdr::U8* data);
 
   // Change client LED state
   void setLEDState(unsigned int state);
@@ -84,6 +84,9 @@ private:
 
   static int handleSystemEvent(void *event, void *data);
 
+  void startScreenRefreshTimer();
+  static void refreshFramebuffer(void *data);
+
 #ifdef WIN32
   static void handleAltGrTimeout(void *data);
 #endif
@@ -96,10 +99,6 @@ private:
   void setMenuKey();
 
   static void handleOptions(void *data);
-
-  void startScreenRefreshTimer();
-  void repeatScreenRefreshTimer();
-  static void handleFrameBufferRefresh(void *data);
 
 private:
   CConn* cc;
