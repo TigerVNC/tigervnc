@@ -105,7 +105,7 @@ static rfb::LogWriter vlog("Viewport");
 
 enum { ID_EXIT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
-       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
+       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT };
 
 // Used to detect fake input (0xaa is not a real key)
 #ifdef WIN32
@@ -185,6 +185,9 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 
   OptionsDialog::addCallback(handleOptions, this);
 
+  // Make sure we have an initial blank cursor set
+  setCursor(0, 0, rfb::Point(0, 0), NULL);
+
   startScreenRefreshTimer();
 }
 
@@ -197,6 +200,8 @@ Viewport::~Viewport()
 #ifdef WIN32
   Fl::remove_timeout(handleAltGrTimeout, this);
 #endif
+
+  Fl::remove_timeout(handleFrameBufferRefresh, this);
 
   Fl::remove_system_handler(handleSystemEvent);
 
@@ -581,8 +586,7 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_ENTER:
-    if (cursor)
-      window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
     // Yes, we would like some pointer events please!
     return 1;
 
@@ -1237,10 +1241,7 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
                 0, NULL, (void*)ID_INFO, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
-                0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
-
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Dismiss &menu"),
-                0, NULL, (void*)ID_DISMISS, 0);
+                0, NULL, (void*)ID_ABOUT, 0);
 }
 
 
@@ -1269,7 +1270,7 @@ void Viewport::popupContextMenu()
   handle(FL_FOCUS);
 
   // Back to our proper mouse pointer.
-  if ((Fl::belowmouse() == this) && cursor)
+  if (Fl::belowmouse())
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 
   if (m == NULL)
@@ -1335,9 +1336,6 @@ void Viewport::popupContextMenu()
   case ID_ABOUT:
     about_vncviewer();
     break;
-  case ID_DISMISS:
-    // Don't need to do anything
-    break;
   }
 }
 
@@ -1353,22 +1351,27 @@ void Viewport::handleOptions(void *data)
   Viewport *self = (Viewport*)data;
 
   self->setMenuKey();
+  // FIXME: Need to recheck cursor for dotWhenNoCursor
 }
 
 void Viewport::startScreenRefreshTimer()
 {
-	if (forceScreenRefresh != 0)
-	{
-		double period = forceScreenRefresh * 1.0;
-		Fl::add_timeout(period, refreshFramebuffer, this);
-	}
+  if (forceScreenRefresh != 0)
+  {
+    Fl::add_timeout(((double) forceScreenRefresh), handleFrameBufferRefresh, this);
+  }
 }
 
-void Viewport::refreshFramebuffer( void* data)
+void Viewport::repeatScreenRefreshTimer()
 {
-	Viewport* self = (Viewport*) data;
-	assert(self);
+  Fl::repeat_timeout(((double) forceScreenRefresh), handleFrameBufferRefresh, this);
+}
 
-	self->cc->refreshFramebuffer();
-	self->startScreenRefreshTimer();
+void Viewport::handleFrameBufferRefresh( void* data)
+{
+  Viewport* self = (Viewport*) data;
+  assert(self);
+
+  self->cc->refreshFramebuffer();
+  self->repeatScreenRefreshTimer();
 }

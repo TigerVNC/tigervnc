@@ -84,9 +84,6 @@ private:
 
   static int handleSystemEvent(void *event, void *data);
 
-  void startScreenRefreshTimer();
-  static void refreshFramebuffer(void *data);
-
 #ifdef WIN32
   static void handleAltGrTimeout(void *data);
 #endif
@@ -100,6 +97,10 @@ private:
 
   static void handleOptions(void *data);
 
+  void startScreenRefreshTimer();
+  void repeatScreenRefreshTimer();
+  static void handleFrameBufferRefresh(void *data);
+  
 private:
   CConn* cc;
 
