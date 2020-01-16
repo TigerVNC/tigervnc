@@ -26,6 +26,8 @@
 
 #include <FL/Fl_Widget.H>
 
+#include "EmulateMB.h"
+
 class Fl_Menu_Button;
 class Fl_RGB_Image;
 
@@ -33,7 +35,7 @@ class CConn;
 class PlatformPixelBuffer;
 class Surface;
 
-class Viewport : public Fl_Widget {
+class Viewport : public Fl_Widget, public EmulateMB {
 public:
 
   Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_);
@@ -66,6 +68,9 @@ public:
   void resize(int x, int y, int w, int h);
 
   int handle(int event);
+
+protected:
+  virtual void sendPointerEvent(const rfb::Point& pos, int buttonMask);
 
 private:
   bool hasFocus();

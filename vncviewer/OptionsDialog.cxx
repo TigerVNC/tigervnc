@@ -262,6 +262,7 @@ void OptionsDialog::loadOptions(void)
   const char *menuKeyBuf;
 
   viewOnlyCheckbox->value(viewOnly);
+  emulateMBCheckbox->value(emulateMiddleButton);
   acceptClipboardCheckbox->value(acceptClipboard);
 #if !defined(WIN32) && !defined(__APPLE__)
   setPrimaryCheckbox->value(setPrimary);
@@ -375,6 +376,7 @@ void OptionsDialog::storeOptions(void)
 
   /* Input */
   viewOnly.setParam(viewOnlyCheckbox->value());
+  emulateMiddleButton.setParam(emulateMBCheckbox->value());
   acceptClipboard.setParam(acceptClipboardCheckbox->value());
 #if !defined(WIN32) && !defined(__APPLE__)
   setPrimary.setParam(setPrimaryCheckbox->value());
@@ -694,6 +696,12 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
                                                   _("View only (ignore mouse and keyboard)")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+  emulateMBCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                   CHECK_MIN_WIDTH,
+                                                   CHECK_HEIGHT,
+                                                   _("Emulate middle mouse button")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   acceptClipboardCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,

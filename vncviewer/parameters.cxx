@@ -55,6 +55,10 @@ static LogWriter vlog("Parameters");
 IntParameter pointerEventInterval("PointerEventInterval",
                                   "Time in milliseconds to rate-limit"
                                   " successive pointer events", 17);
+BoolParameter emulateMiddleButton("EmulateMiddleButton",
+                                  "Emulate middle mouse button by pressing "
+                                  "left and right mouse buttons simultaneously",
+                                  false);
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
@@ -158,6 +162,7 @@ static VoidParameter* parameterArray[] = {
   &CSecurityTLS::X509CRL,
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
+  &emulateMiddleButton,
   &dotWhenNoCursor,
   &autoSelect,
   &fullColour,
