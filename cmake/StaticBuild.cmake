@@ -24,6 +24,9 @@ if(BUILD_STATIC)
   # gettext is included in libc on many unix systems
   if(NOT LIBC_HAS_DGETTEXT)
     set(GETTEXT_LIBRARIES "-Wl,-Bstatic -lintl -liconv -Wl,-Bdynamic")
+    if(APPLE)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -framework Carbon")
+    endif()
   endif()
 
   if(GNUTLS_FOUND)
