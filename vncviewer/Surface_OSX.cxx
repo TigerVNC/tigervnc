@@ -142,6 +142,14 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   // matrix as otherwise we get a massive performance hit
   CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
 
+  // Scale the image as necessary for the screen. If this is a HiDPI screen,
+  // the CGContext will have increased dimensions compared to the FL_Window.
+
+  double sf_h = (CGBitmapContextGetHeight(fl_gc) / Fl_Window::current()->h());
+  double sf_w = (CGBitmapContextGetWidth(fl_gc) / Fl_Window::current()->w());
+
+  CGContextScaleCTM(fl_gc, sf_h, sf_w);
+
   // macOS Coordinates are from bottom left, not top left
   y = Fl_Window::current()->h() - (y + h);
 
@@ -177,6 +185,12 @@ void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
   // Reset the transformation matrix back to the default identity
   // matrix as otherwise we get a massive performance hit
   CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
+
+  // Scale the image as necessary for the screen. If this is a HiDPI screen,
+  // the CGContext will have increased dimensions compared to the FL_Window.
+
+  double sf_h = (CGBitmapContextGetHeight(fl_gc) / Fl_Window::current()->h());
+  double sf_w = (CGBitmapContextGetWidth(fl_gc) / Fl_Window::current()->w());
 
   // macOS Coordinates are from bottom left, not top left
   y = Fl_Window::current()->h() - (y + h);
