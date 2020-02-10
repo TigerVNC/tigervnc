@@ -78,7 +78,7 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
   char *envUsername = getenv("VNC_USERNAME");
   char *envPassword = getenv("VNC_PASSWORD");
 
-  if(envUsername && envPassword) {
+  if(user && envUsername && envPassword) {
     *user = strdup(envUsername);
     *password = strdup(envPassword);
     return;
