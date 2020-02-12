@@ -79,6 +79,7 @@ private:
 
   static void handleClipboardChange(int source, void *data);
 
+  void sendClipboardData(const char* text, const size_t length);
   void flushPendingClipboard();
 
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);

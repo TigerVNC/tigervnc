@@ -557,16 +557,10 @@ void Viewport::resize(int x, int y, int w, int h)
   Fl_Widget::resize(x, y, w, h);
 }
 
-
-int Viewport::handle(int event)
+void Viewport::sendClipboardData(const char* text, const size_t length)
 {
   char *filtered;
-  int buttonMask, wheelMask;
-  DownMap::const_iterator iter;
-
-  switch (event) {
-  case FL_PASTE:
-    filtered = convertLF(Fl::event_text(), Fl::event_length());
+    filtered = convertLF(text, length);
 
     vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(filtered));
 
@@ -578,6 +572,16 @@ int Viewport::handle(int event)
     }
 
     strFree(filtered);
+}
+
+int Viewport::handle(int event)
+{
+  int buttonMask, wheelMask;
+  DownMap::const_iterator iter;
+
+  switch (event) {
+  case FL_PASTE:
+    sendClipboardData(Fl::event_text(), Fl::event_length());
 
     return 1;
 
