@@ -92,6 +92,8 @@ private:
 
 #ifdef WIN32
   static void handleAltGrTimeout(void *data);
+  char* readClipboardData();
+  void readAndSendClipboardData();
 #endif
 
   void pushLEDState();

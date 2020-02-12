@@ -161,7 +161,10 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   XkbFreeKeyboard(xkb, 0, True);
 #endif
 
+#ifndef WIN32
+  // not registering a listener for clipboard (we will poll it manually on FL_FOCUS events)
   Fl::add_clipboard_notify(handleClipboardChange, this);
+#endif /* #ifdef WIN32 */
 
   // We need to intercept keyboard events early
   Fl::add_system_handler(handleSystemEvent, this);
@@ -201,7 +204,9 @@ Viewport::~Viewport()
 
   Fl::remove_system_handler(handleSystemEvent);
 
+#ifndef WIN32
   Fl::remove_clipboard_notify(handleClipboardChange);
+#endif
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -557,6 +562,38 @@ void Viewport::resize(int x, int y, int w, int h)
   Fl_Widget::resize(x, y, w, h);
 }
 
+#ifdef WIN32
+
+char* Viewport::readClipboardData() {
+  char* clipboardData = NULL;
+  if (OpenClipboard(NULL)) {
+    HANDLE clipboardDataHandle = GetClipboardData(CF_UNICODETEXT);
+    if (clipboardDataHandle) {
+      wchar_t* wclipboardData = (wchar_t*) GlobalLock(clipboardDataHandle);
+      if (wclipboardData) {
+        clipboardData = utf16ToUTF8(wclipboardData);
+        GlobalUnlock(clipboardDataHandle);
+      }
+    }
+    CloseClipboard();
+  }
+  return clipboardData;
+}
+
+void Viewport::readAndSendClipboardData()
+{
+  if (!sendClipboard)
+    return;
+
+  char* clipboardData = readClipboardData();
+
+  if (clipboardData) {
+    sendClipboardData(clipboardData, strlen(clipboardData));
+    strFree(clipboardData);
+  }
+}
+#endif /* #ifdef WIN32 */
+
 void Viewport::sendClipboardData(const char* text, const size_t length)
 {
   char *filtered;
@@ -631,6 +668,12 @@ int Viewport::handle(int event)
 
   case FL_FOCUS:
     Fl::disable_im();
+
+#ifdef WIN32
+    // For Windows, don't listen to clipboard events (on handleClipboardEvent) and read it manually whenever we gain focus.
+    // Like this, we hope that other programs that aren't able to gracefully wait for a "blocked" clipboard (mostly Excel) won't have problems.
+    readAndSendClipboardData();
+#endif /* #ifdef WIN32 */
 
     flushPendingClipboard();
 
