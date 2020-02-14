@@ -75,6 +75,19 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
   CharArray passwordFileStr(passwordFile.getData());
 
   assert(password);
+  char *envUsername = getenv("VNC_USERNAME");
+  char *envPassword = getenv("VNC_PASSWORD");
+
+  if(user && envUsername && envPassword) {
+    *user = strdup(envUsername);
+    *password = strdup(envPassword);
+    return;
+  }
+
+  if (!user && envPassword) {
+    *password = strdup(envPassword);
+    return;
+  }
 
   if (!user && passwordFileStr.buf[0]) {
     ObfuscatedPasswd obfPwd(256);
