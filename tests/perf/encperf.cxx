@@ -90,7 +90,8 @@ public:
   void getStats(double& ratio, unsigned long long& bytes,
                 unsigned long long& rawEquivalent);
 
-  virtual void initDone();
+  virtual void initDone() {};
+  virtual void resizeFramebuffer();
   virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
@@ -201,7 +202,7 @@ void CConn::getStats(double& ratio, unsigned long long& bytes,
   sc->getStats(ratio, bytes, rawEquivalent);
 }
 
-void CConn::initDone()
+void CConn::resizeFramebuffer()
 {
   rfb::ModifiablePixelBuffer *pb;
 
