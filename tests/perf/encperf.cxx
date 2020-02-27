@@ -39,6 +39,7 @@
 
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
+#include <rfb/CMsgWriter.h>
 #include <rfb/UpdateTracker.h>
 
 #include <rfb/EncodeManager.h>
@@ -104,6 +105,7 @@ public:
 
 protected:
   rdr::FileInStream *in;
+  DummyOutStream *out;
   rfb::SimpleUpdateTracker updates;
   class SConn *sc;
 };
@@ -167,12 +169,14 @@ CConn::CConn(const char *filename)
   encodeTime = 0.0;
 
   in = new rdr::FileInStream(filename);
-  setStreams(in, NULL);
+  out = new DummyOutStream;
+  setStreams(in, out);
 
   // Need to skip the initial handshake and ServerInit
   setState(RFBSTATE_NORMAL);
   // That also means that the reader and writer weren't setup
   setReader(new rfb::CMsgReader(this, in));
+  setWriter(new rfb::CMsgWriter(&server, out));
   // Nor the frame buffer size and format
   rfb::PixelFormat pf;
   pf.parse(format);
@@ -188,6 +192,7 @@ CConn::~CConn()
 {
   delete sc;
   delete in;
+  delete out;
 }
 
 void CConn::getStats(double& ratio, unsigned long long& bytes,

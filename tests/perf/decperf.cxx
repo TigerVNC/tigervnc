@@ -31,9 +31,11 @@
 
 #include <rdr/Exception.h>
 #include <rdr/FileInStream.h>
+#include <rdr/OutStream.h>
 
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
+#include <rfb/CMsgWriter.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/PixelFormat.h>
 
@@ -41,6 +43,20 @@
 
 // FIXME: Files are always in this format
 static const rfb::PixelFormat filePF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
+
+class DummyOutStream : public rdr::OutStream {
+public:
+  DummyOutStream();
+
+  virtual size_t length();
+  virtual void flush();
+
+private:
+  virtual size_t overrun(size_t itemSize, size_t nItems);
+
+  int offset;
+  rdr::U8 buf[131072];
+};
 
 class CConn : public rfb::CConnection {
 public:
@@ -61,24 +77,55 @@ public:
 
 protected:
   rdr::FileInStream *in;
+  DummyOutStream *out;
 };
+
+DummyOutStream::DummyOutStream()
+{
+  offset = 0;
+  ptr = buf;
+  end = buf + sizeof(buf);
+}
+
+size_t DummyOutStream::length()
+{
+  flush();
+  return offset;
+}
+
+void DummyOutStream::flush()
+{
+  offset += ptr - buf;
+  ptr = buf;
+}
+
+size_t DummyOutStream::overrun(size_t itemSize, size_t nItems)
+{
+  flush();
+  if (itemSize * nItems > (size_t)(end - ptr))
+    nItems = (end - ptr) / itemSize;
+  return nItems;
+}
 
 CConn::CConn(const char *filename)
 {
   cpuTime = 0.0;
 
   in = new rdr::FileInStream(filename);
-  setStreams(in, NULL);
+  out = new DummyOutStream;
+  setStreams(in, out);
 
   // Need to skip the initial handshake
   setState(RFBSTATE_INITIALISATION);
   // That also means that the reader and writer weren't setup
   setReader(new rfb::CMsgReader(this, in));
+  setWriter(new rfb::CMsgWriter(&server, out));
 }
 
 CConn::~CConn()
 {
   delete in;
+  delete out;
 }
 
 void CConn::initDone()
