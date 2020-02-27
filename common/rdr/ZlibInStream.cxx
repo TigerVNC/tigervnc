@@ -141,7 +141,7 @@ bool ZlibInStream::decompress(bool wait)
     zs->avail_in = bytesIn;
 
   int rc = inflate(zs, Z_SYNC_FLUSH);
-  if (rc != Z_OK) {
+  if (rc < 0) {
     throw Exception("ZlibInStream: inflate failed");
   }
 
