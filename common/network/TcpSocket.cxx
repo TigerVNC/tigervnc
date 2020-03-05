@@ -202,7 +202,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (err == 0)
       throw Exception("No useful address for host");
     else
-      throw SocketException("unable connect to socket", err);
+      throw SocketException("unable to connect to socket", err);
   }
 
   // Take proper ownership of the socket
