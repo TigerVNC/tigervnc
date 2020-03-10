@@ -31,6 +31,9 @@
 #include <tchar.h>
 #include <winsock2.h>
 #include <windows.h>
+#include <ws2tcpip.h>
+#else
+#include <netdb.h>
 #endif
 
 #include <string.h>
@@ -47,6 +50,21 @@ Exception::Exception(const char *format, ...) {
 	va_start(ap, format);
 	(void) vsnprintf(str_, len, format, ap);
 	va_end(ap);
+}
+
+GAIException::GAIException(const char* s, int err)
+  : Exception("%s", s)
+{
+  strncat(str_, ": ", len-1-strlen(str_));
+#ifdef _WIN32
+  wchar_t currStr[len-strlen(str_)];
+  wcsncpy(currStr, gai_strerrorW(err), len-1-strlen(str_));
+  WideCharToMultiByte(CP_UTF8, 0, currStr, -1, str_+strlen(str_),
+                      len-1-strlen(str_), 0, 0);
+#else
+  //FIXME: perhaps print the error number (NNNN)
+  strncat(str_, gai_strerror(err), len-1-strlen(str_));
+#endif
 }
 
 SystemException::SystemException(const char* s, int err_)
