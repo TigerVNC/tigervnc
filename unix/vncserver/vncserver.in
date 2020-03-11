@@ -28,12 +28,6 @@
 #
 
 # First make sure we're operating in a sane environment.
-$exedir = "";
-$slashndx = rindex($0, "/");
-if($slashndx>=0) {
-    $exedir = substr($0, 0, $slashndx+1);
-}
-
 &SanityCheck();
 
 #
@@ -253,7 +247,7 @@ push(@cmd, $Xsession, $session{'Exec'});
 push(@cmd, '--');
 
 # We build up our Xvnc command with options
-push(@cmd, $exedir."Xvnc", ":$displayNumber");
+push(@cmd, "@BIN_DIR@/Xvnc", ":$displayNumber");
 
 foreach my $k (sort keys %config) {
   push(@cmd, "-$k");
@@ -479,29 +473,6 @@ sub SanityCheck
     }
     if (not defined $Xsession) {
         die "$prog: Couldn't find suitable Xsession.\n";
-    }
-
-    if($exedir eq "") {
-      cmd2:
-	foreach $cmd ("Xvnc","vncpasswd") {
-	    for (split(/:/,$ENV{PATH})) {
-		if (-x "$_/$cmd") {
-		    next cmd2;
-		}
-	    }
-	    die "$prog: couldn't find \"$cmd\" on your PATH.\n";
-	}
-    }
-    else {
-      cmd3:
-	foreach $cmd ($exedir."Xvnc",$exedir."vncpasswd") {
-	    for (split(/:/,$ENV{PATH})) {
-		if (-x "$cmd") {
-		    next cmd3;
-		}
-	    }
-	    die "$prog: couldn't find \"$cmd\".\n";
-	}
     }
 
     if (!defined($ENV{HOME})) {
