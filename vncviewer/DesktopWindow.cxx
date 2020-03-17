@@ -252,13 +252,50 @@ void DesktopWindow::updateWindow()
 
 void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 {
+  bool maximized;
+
   if ((new_w == viewport->w()) && (new_h == viewport->h()))
     return;
+
+  maximized = false;
+
+#ifdef WIN32
+  WINDOWPLACEMENT wndpl;
+  memset(&wndpl, 0, sizeof(WINDOWPLACEMENT));
+  wndpl.length = sizeof(WINDOWPLACEMENT);
+  GetWindowPlacement(fl_xid(this), &wndpl);
+  if (wndpl.showCmd == SW_SHOWMAXIMIZED)
+    maximized = true;
+#elif defined(__APPLE__)
+  if (cocoa_win_is_zoomed(this))
+    maximized = true;
+#else
+  Atom net_wm_state = XInternAtom (fl_display, "_NET_WM_STATE", 0);
+  Atom net_wm_state_maximized_vert = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_VERT", 0);
+  Atom net_wm_state_maximized_horz = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_HORZ", 0);
+
+  Atom type;
+  int format;
+  unsigned long nitems, remain;
+  Atom *atoms;
+
+  XGetWindowProperty(fl_display, fl_xid(this), net_wm_state, 0, 1024, False, XA_ATOM, &type, &format, &nitems, &remain, (unsigned char**)&atoms);
+
+  for (unsigned long i = 0;i < nitems;i++) {
+    if ((atoms[i] == net_wm_state_maximized_vert) ||
+        (atoms[i] == net_wm_state_maximized_horz)) {
+      maximized = true;
+      break;
+    }
+  }
+
+  XFree(atoms);
+#endif
 
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
   // like they are.
-  if (!fullscreen_active()) {
+  if (!fullscreen_active() && !maximized) {
     if ((w() == viewport->w()) && (h() == viewport->h()))
       size(new_w, new_h);
     else {
