@@ -40,12 +40,17 @@ namespace rdr {
   struct SystemException : public Exception {
     int err;
     SystemException(const char* s, int err_);
-  }; 
+  };
+
+  struct GAIException : public Exception {
+    int err;
+    GAIException(const char* s, int err_);
+  };
 
   struct TimedOut : public Exception {
     TimedOut() : Exception("Timed out") {}
   };
- 
+
   struct EndOfStream : public Exception {
     EndOfStream() : Exception("End of stream") {}
   };

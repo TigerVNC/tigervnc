@@ -133,8 +133,7 @@ TcpSocket::TcpSocket(const char *host, int port)
   hints.ai_next = NULL;
 
   if ((result = getaddrinfo(host, NULL, &hints, &ai)) != 0) {
-    throw Exception("unable to resolve host by name: %s",
-                    gai_strerror(result));
+    throw GAIException("unable to resolve host by name", result);
   }
 
   sock = -1;
@@ -202,7 +201,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (err == 0)
       throw Exception("No useful address for host");
     else
-      throw SocketException("unable connect to socket", err);
+      throw SocketException("unable to connect to socket", err);
   }
 
   // Take proper ownership of the socket
@@ -452,8 +451,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
   snprintf (service, sizeof (service) - 1, "%d", port);
   service[sizeof (service) - 1] = '\0';
   if ((result = getaddrinfo(addr, service, &hints, &ai)) != 0)
-    throw rdr::Exception("unable to resolve listening address: %s",
-                         gai_strerror(result));
+    throw GAIException("unable to resolve listening address", result);
 
   try {
     createTcpListeners(listeners, ai);
@@ -645,8 +643,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     }
 
     if ((result = getaddrinfo (p, NULL, &hints, &ai)) != 0) {
-      throw Exception("unable to resolve host by name: %s",
-                      gai_strerror(result));
+      throw GAIException("unable to resolve host by name", result);
     }
 
     memcpy (&pattern.address.u.sa, ai->ai_addr, ai->ai_addrlen);
