@@ -96,9 +96,9 @@ if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
 endif()
 
-# Minimum version is Windows Vista/2008 (6.0)
+# Minimum version is Windows 7
 if(WIN32)
-  add_definitions(-D_WIN32_WINNT=0x0600)
+  add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
 
 if(CMAKE_SIZEOF_VOID_P MATCHES 8)
