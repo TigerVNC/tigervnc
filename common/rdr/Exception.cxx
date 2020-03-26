@@ -63,9 +63,18 @@ GAIException::GAIException(const char* s, int err)
                       len-1-strlen(str_), 0, 0);
   delete [] currStr;
 #else
-  //FIXME: perhaps print the error number (NNNN)
   strncat(str_, gai_strerror(err), len-1-strlen(str_));
 #endif
+  strncat(str_, " (", len-1-strlen(str_));
+  char buf[20];
+#ifdef WIN32
+  if (err < 0)
+    sprintf(buf, "%x", err);
+  else
+#endif
+    sprintf(buf,"%d",err);
+  strncat(str_, buf, len-1-strlen(str_));
+  strncat(str_, ")", len-1-strlen(str_));
 }
 
 SystemException::SystemException(const char* s, int err_)
