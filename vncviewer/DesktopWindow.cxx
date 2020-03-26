@@ -1023,15 +1023,9 @@ void DesktopWindow::maximizeWindow()
   } else
     ShowWindow(fl_xid(this), SW_MAXIMIZE);
 #elif defined(__APPLE__)
-  // OS X is somewhat strange and does not really have a concept of a
-  // maximized window, so we can simply resize the window to the workarea.
-  // Note that we shouldn't do this whilst in full screen as that will
-  // incorrectly adjust things.
   if (fullscreen_active())
     return;
-  int X, Y, W, H;
-  Fl::screen_work_area(X, Y, W, H, this->x(), this->y());
-  size(W, H);
+  cocoa_win_zoom(this);
 #else
   // X11
   fl_open_display();
