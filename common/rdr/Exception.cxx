@@ -57,10 +57,11 @@ GAIException::GAIException(const char* s, int err)
 {
   strncat(str_, ": ", len-1-strlen(str_));
 #ifdef _WIN32
-  wchar_t currStr[len-strlen(str_)];
+  wchar_t *currStr = new wchar_t[len-strlen(str_)];
   wcsncpy(currStr, gai_strerrorW(err), len-1-strlen(str_));
   WideCharToMultiByte(CP_UTF8, 0, currStr, -1, str_+strlen(str_),
                       len-1-strlen(str_), 0, 0);
+  delete [] currStr;
 #else
   //FIXME: perhaps print the error number (NNNN)
   strncat(str_, gai_strerror(err), len-1-strlen(str_));
