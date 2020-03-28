@@ -30,7 +30,7 @@ if(WIN32)
 endif()
 
 if(WIN32)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} win32.c)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Win32TouchHandler.cxx win32.c)
 elseif(APPLE)
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm osx_to_qnum.c)
 else()

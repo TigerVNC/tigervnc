@@ -25,7 +25,10 @@
 
 #include <map>
 
-#if !defined(WIN32) && !defined(__APPLE__)
+#if defined(WIN32)
+#include <windows.h>
+#include <commctrl.h>
+#elif !defined(__APPLE__)
 #include <X11/extensions/XInput2.h>
 #include <X11/extensions/XI2.h>
 #endif
@@ -33,11 +36,15 @@
 #include <FL/Fl.H>
 #include <FL/x.H>
 
+#include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
 #include "i18n.h"
 #include "vncviewer.h"
-#if !defined(WIN32) && !defined(__APPLE__)
+#include "BaseTouchHandler.h"
+#if defined(WIN32)
+#include "Win32TouchHandler.h"
+#elif !defined(__APPLE__)
 #include "XInputTouchHandler.h"
 #endif
 
@@ -47,12 +54,39 @@ static rfb::LogWriter vlog("Touch");
 
 #if !defined(WIN32) && !defined(__APPLE__)
 static int xi_major;
-
-typedef std::map<Window, class XInputTouchHandler*> HandlerMap;
-static HandlerMap handlers;
 #endif
 
-#if !defined(WIN32) && !defined(__APPLE__)
+typedef std::map<Window, class BaseTouchHandler*> HandlerMap;
+static HandlerMap handlers;
+
+#if defined(WIN32)
+LRESULT CALLBACK win32WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam,
+                                 LPARAM lParam, UINT_PTR uIdSubclass,
+                                 DWORD_PTR dwRefData)
+{
+  bool handled = false;
+
+  if (uMsg == WM_NCDESTROY) {
+    delete handlers[hWnd];
+    handlers.erase(hWnd);
+    RemoveWindowSubclass(hWnd, &win32WindowProc, 1);
+  } else {
+    if (handlers.count(hWnd) == 0) {
+      vlog.error(_("Got message (0x%x) for an unhandled window"), uMsg);
+    } else {
+      handled = dynamic_cast<Win32TouchHandler*>
+        (handlers[hWnd])->processEvent(uMsg, wParam, lParam);
+    }
+  }
+
+  // Only run the normal WndProc handlers for unhandled events
+  if (handled)
+    return 0;
+  else
+    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+#elif !defined(__APPLE__)
 static void x11_change_touch_ownership(bool enable)
 {
   HandlerMap::const_iterator iter;
@@ -112,7 +146,7 @@ bool x11_grab_pointer(Window window)
   // event.
   x11_change_touch_ownership(false);
 
-  ret = handlers[window]->grabPointer();
+  ret = dynamic_cast<XInputTouchHandler*>(handlers[window])->grabPointer();
 
   if (!ret)
     x11_change_touch_ownership(true);
@@ -127,7 +161,7 @@ void x11_ungrab_pointer(Window window)
     return;
   }
 
-  handlers[window]->ungrabPointer();
+  dynamic_cast<XInputTouchHandler*>(handlers[window])->ungrabPointer();
 
   // Restore XI_TouchOwnership now that the grab is gone
   x11_change_touch_ownership(true);
@@ -136,7 +170,26 @@ void x11_ungrab_pointer(Window window)
 
 static int handleTouchEvent(void *event, void *data)
 {
-#if !defined(WIN32) && !defined(__APPLE__)
+#if defined(WIN32)
+  MSG *msg = (MSG*)event;
+
+  // Trigger on the first WM_PAINT event. We can't trigger on WM_CREATE
+  // events since FLTK's system handlers trigger before WndProc.
+  // WM_CREATE events are sent directly to WndProc.
+  if (msg->message == WM_PAINT && handlers.count(msg->hwnd) == 0) {
+    try {
+      handlers[msg->hwnd] = new Win32TouchHandler(msg->hwnd);
+    } catch (rfb::Exception e) {
+      vlog.error(_("Failed to create touch handler: %s"), e.str());
+      exit_vncviewer(e.str());
+    }
+    // Add a special hook-in for handling events sent directly to WndProc
+    if (!SetWindowSubclass(msg->hwnd, &win32WindowProc, 1, 0)) {
+      vlog.error(_("Couldn't attach event handler to window (error 0x%x)"),
+                 (int)GetLastError());
+    }
+  }
+#elif !defined(__APPLE__)
   XEvent *xevent = (XEvent*)event;
 
   if (xevent->type == MapNotify) {
@@ -174,7 +227,7 @@ static int handleTouchEvent(void *event, void *data)
         return 1;
       }
 
-      handlers[devev->event]->processEvent(devev);
+      dynamic_cast<XInputTouchHandler*>(handlers[devev->event])->processEvent(devev);
 
       XFreeEventData(fl_display, &xevent->xcookie);
 
