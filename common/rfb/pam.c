@@ -22,10 +22,6 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_PAM
-#error "This source should not be compiled when PAM is unsupported"
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <security/pam_appl.h>

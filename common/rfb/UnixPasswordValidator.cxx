@@ -25,9 +25,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/Exception.h>
 #include <rfb/UnixPasswordValidator.h>
-#ifdef HAVE_PAM
 #include <rfb/pam.h>
-#endif
 
 using namespace rfb;
 
@@ -43,10 +41,6 @@ bool UnixPasswordValidator::validateInternal(SConnection * sc,
 					     const char *username,
 					     const char *password)
 {
-#ifdef HAVE_PAM
   CharArray service(strDup(pamService.getData()));
   return do_pam_auth(service.buf, username, password);
-#else
-  throw AuthFailureException("PAM not supported");
-#endif
 }

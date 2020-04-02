@@ -1,0 +1,481 @@
+#!/usr/bin/env perl
+#
+#  Copyright (C) 2015-2019 Pierre Ossman for Cendio AB
+#  Copyright (C) 2009-2010 D. R. Commander.  All Rights Reserved.
+#  Copyright (C) 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
+#  Copyright (C) 2002-2003 Constantin Kaplinsky.  All Rights Reserved.
+#  Copyright (C) 2002-2005 RealVNC Ltd.
+#  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
+#
+#  This is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This software is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this software; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+#  USA.
+#
+
+#
+# vncserver - wrapper script to start an X VNC server.
+#
+
+# First make sure we're operating in a sane environment.
+&SanityCheck();
+
+#
+# Global variables.  You may want to configure some of these for
+# your site
+#
+
+$vncUserDir = "$ENV{HOME}/.vnc";
+$vncUserConfig = "$vncUserDir/config";
+
+$vncSystemConfigDir = "/etc/tigervnc";
+$vncSystemConfigDefaultsFile = "$vncSystemConfigDir/vncserver-config-defaults";
+$vncSystemConfigMandatoryFile = "$vncSystemConfigDir/vncserver-config-mandatory";
+
+$xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
+
+chop($host = `uname -n`);
+
+if (-d "/etc/X11/fontpath.d") {
+    $fontPath = "catalogue:/etc/X11/fontpath.d";
+}
+
+@fontpaths = ('/usr/share/X11/fonts', '/usr/share/fonts', '/usr/share/fonts/X11/');
+if (! -l "/usr/lib/X11") {push(@fontpaths, '/usr/lib/X11/fonts');}
+if (! -l "/usr/X11") {push(@fontpaths, '/usr/X11/lib/X11/fonts');}
+if (! -l "/usr/X11R6") {push(@fontpaths, '/usr/X11R6/lib/X11/fonts');}
+push(@fontpaths, '/usr/share/fonts/default');
+
+@fonttypes = ('misc',
+             '75dpi',
+             '100dpi',
+             'Speedo',
+             'Type1');
+
+foreach $_fpath (@fontpaths) {
+    foreach $_ftype (@fonttypes) {
+        if (-f "$_fpath/$_ftype/fonts.dir") {
+            if (! -l "$_fpath/$_ftype") {
+                $defFontPath .= "$_fpath/$_ftype,";
+            }
+        }
+    }
+}
+
+if ($defFontPath) {
+    if (substr($defFontPath, -1, 1) == ',') {
+        chop $defFontPath;
+    }
+}
+
+if ($fontPath eq "") {
+    $fontPath = $defFontPath;
+}
+
+# Find display number.
+if ((@ARGV == 1) && ($ARGV[0] =~ /^:(\d+)$/)) {
+    $displayNumber = $1;
+    if (!&CheckDisplayNumber($displayNumber)) {
+	die "A VNC server is already running as :$displayNumber\n";
+    }
+} else {
+    &Usage();
+}
+
+$vncPort = 5900 + $displayNumber;
+
+$desktopName = "$host:$displayNumber ($ENV{USER})";
+
+my %default_opts;
+my %config;
+
+# We set some reasonable defaults. Config file settings
+# override these where present.
+$default_opts{desktop} = $desktopName;
+$default_opts{auth} = $xauthorityFile;
+$default_opts{rfbwait} = 30000;
+$default_opts{rfbauth} = "$vncUserDir/passwd";
+$default_opts{rfbport} = $vncPort;
+$default_opts{fp} = $fontPath if ($fontPath);
+$default_opts{pn} = "";
+
+# Load user-overrideable system defaults
+LoadConfig($vncSystemConfigDefaultsFile);
+
+# Then the user's settings
+LoadConfig($vncUserConfig);
+
+# And then override anything set above if mandatory settings exist.
+# WARNING: "Mandatory" is used loosely here! As the man page says,
+# there is nothing stopping someone from EASILY subverting the
+# settings in $vncSystemConfigMandatoryFile by simply passing
+# CLI args to vncserver, which trump config files! To properly
+# hard force policy in a non-subvertible way would require major
+# development work that touches Xvnc itself.
+LoadConfig($vncSystemConfigMandatoryFile, 1);
+
+#
+# Check whether VNC authentication is enabled, and if so, check that
+# a VNC password has been created.
+#
+
+$securityTypeArgSpecified = 0;
+$vncAuthEnabled = 0;
+$passwordArgSpecified = 0;
+@vncAuthStrings = ("vncauth", "tlsvnc", "x509vnc");
+
+# ...first we check our configuration files' settings
+if ($config{'securitytypes'}) {
+  $securityTypeArgSpecified = 1;
+  foreach $arg2 (split(',', $config{'securitytypes'})) {
+    if (grep {$_ eq lc($arg2)} @vncAuthStrings) {
+      $vncAuthEnabled = 1;
+    }
+  }
+}
+if ($config{'password'} ||
+    $config{'passwordfile'} ||
+    $config{'rfbauth'}) {
+    $passwordArgSpecified = 1;
+}
+
+if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
+    ($z,$z,$mode) = stat("$vncUserDir/passwd");
+    if (!(-e "$vncUserDir/passwd") || ($mode & 077)) {
+        die "VNC authentication enabled, but no password file created.\n";
+    }
+}
+
+#
+# Find a desktop session to run
+#
+
+my $sessionname;
+my %session;
+
+$sessionname = delete $config{'session'};
+
+if ($sessionname) {
+  %session = LoadXSession($sessionname);
+  if (!%session) {
+    warn "Could not load configured desktop session $sessionname\n";
+    $sessionname = undef;
+  }
+}
+
+if (!$sessionname) {
+  foreach $file (glob("/usr/share/xsessions/*.desktop")) {
+    ($name) = $file =~ /^.*\/(.*)[.]desktop$/;
+    %session = LoadXSession($name);
+    if (%session) {
+      $sessionname = $name;
+      last;
+    }
+  }
+}
+
+if (!$sessionname) {
+  die "Could not find a desktop session to run\n";
+}
+
+warn "Using desktop session $sessionname\n";
+
+if (!$session{'Exec'}) {
+  die "No command specified for desktop session\n";
+}
+
+$ENV{GDMSESSION} = $sessionname;
+$ENV{DESKTOP_SESSION} = $sessionname;
+$ENV{XDG_SESSION_DESKTOP} = $sessionname;
+
+if ($session{'DesktopNames'}) {
+    $ENV{XDG_DESKTOP_NAMES} = $session{'DesktopNames'} =~ s/;/:/gr;
+}
+
+# Make an X server cookie and set up the Xauthority file
+# mcookie is a part of util-linux, usually only GNU/Linux systems have it.
+$cookie = `mcookie`;
+# Fallback for non GNU/Linux OS - use /dev/urandom on systems that have it,
+# otherwise use perl's random number generator, seeded with the sum
+# of the current time, our PID and part of the encrypted form of the password.
+if ($cookie eq "" && open(URANDOM, '<', '/dev/urandom')) {
+  my $randata;
+  if (sysread(URANDOM, $randata, 16) == 16) {
+    $cookie = unpack 'h*', $randata;
+  }
+  close(URANDOM);
+}
+if ($cookie eq "") {
+  srand(time+$$+unpack("L",`cat $vncUserDir/passwd`));
+  for (1..16) {
+    $cookie .= sprintf("%02x", int(rand(256)) % 256);
+  }
+}
+
+open(XAUTH, "|xauth -f $xauthorityFile source -");
+print XAUTH "add $host:$displayNumber . $cookie\n";
+print XAUTH "add $host/unix:$displayNumber . $cookie\n";
+close(XAUTH);
+
+$ENV{XAUTHORITY} = $xauthorityFile;
+
+# Now start the X VNC Server
+
+@cmd = ("xinit");
+
+push(@cmd, $Xsession, $session{'Exec'});
+
+push(@cmd, '--');
+
+# We build up our Xvnc command with options
+push(@cmd, "@CMAKE_INSTALL_FULL_BINDIR@/Xvnc", ":$displayNumber");
+
+foreach my $k (sort keys %config) {
+  push(@cmd, "-$k");
+  push(@cmd, $config{$k}) if $config{$k};
+  delete $default_opts{$k}; # file options take precedence
+}
+
+foreach my $k (sort keys %default_opts) {
+  push(@cmd, "-$k");
+  push(@cmd, $default_opts{$k}) if $default_opts{$k};
+}
+
+warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
+
+warn "Starting desktop session $sessionname\n";
+
+exec(@cmd);
+
+die "Failed to start session.\n";
+
+###############################################################################
+# Functions
+###############################################################################
+
+#
+# Populate the global %config hash with settings from a specified
+# vncserver configuration file if it exists
+#
+# Args: 1. file path
+#       2. optional boolean flag to enable warning when a previously
+#          set configuration setting is being overridden
+#
+sub LoadConfig {
+  local ($configFile, $warnoverride) = @_;
+  local ($toggle) = undef;
+
+  if (stat($configFile)) {
+    if (open(IN, $configFile)) {
+      while (<IN>) {
+        next if /^#/;
+        if (my ($k, $v) = /^\s*(\w+)\s*=\s*(.+)$/) {
+          $k = lc($k); # must normalize key case
+          if ($warnoverride && $config{$k}) {
+            print("Warning: $configFile is overriding previously defined '$k' to be '$v'\n");
+          }
+          $config{$k} = $v;
+        } elsif ($_ =~ m/^\s*(\S+)/) {
+          # We can't reasonably warn on override of toggles (e.g. AlwaysShared)
+          # because it would get crazy to do so. We'd have to check if the
+          # current config file being loaded defined the logical opposite setting
+          # (NeverShared vs. AlwaysShared, etc etc).
+          $toggle = lc($1); # must normalize key case
+          $config{$toggle} = $k;
+        }
+      }
+      close(IN);
+    }
+  }
+}
+
+
+#
+# Load a session desktop file
+#
+sub LoadXSession {
+  local ($name) = @_;
+  my $file, $found_group, %session;
+
+  $file = "/usr/share/xsessions/$name.desktop";
+
+  if (!stat($file)) {
+    warn "Could not find session desktop file $file";
+    return;
+  }
+
+  if (!open(IN, $file)) {
+    warn "Could not open session desktop file $file";
+    return;
+  }
+
+  $found_group = 0;
+  while (my $line = <IN>) {
+    next if $line =~ /^#/;
+    next if $line =~ /^\s*$/;
+
+    if (!$found_group) {
+        next if $line != "[Desktop Entry]";
+        $found_group = 1;
+        next;
+    } else {
+        last if $line =~ /^\[/;
+    }
+
+    my ($key, $value) = $line =~ /^\s*([]A-Za-z0-9_@\-\[]+)\s*=\s*(.*)$/;
+    if (!$key) {
+        warn "Invalid session desktop file $file";
+        close(IN);
+        return;
+    }
+
+    $value =~ s/\\s/ /g;
+    $value =~ s/\\n/\n/g;
+    $value =~ s/\\t/\t/g;
+    $value =~ s/\\r/\r/g;
+    $value =~ s/\\\\/\\/g;
+
+    $session{$key} = $value;
+  }
+
+  close(IN);
+
+  return %session;
+}
+
+#
+# CheckDisplayNumber checks if the given display number is available.  A
+# display number n is taken if something is listening on the VNC server port
+# (5900+n) or the X server port (6000+n).
+#
+
+sub CheckDisplayNumber
+{
+    local ($n) = @_;
+
+    socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+    eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
+    if (!bind(S, pack('S n x12', $AF_INET, 6000 + $n))) {
+	close(S);
+	return 0;
+    }
+    close(S);
+
+    socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+    eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
+    if (!bind(S, pack('S n x12', $AF_INET, 5900 + $n))) {
+	close(S);
+	return 0;
+    }
+    close(S);
+
+    if (-e "/tmp/.X$n-lock") {
+	warn "\nWarning: $host:$n is taken because of /tmp/.X$n-lock\n";
+	warn "Remove this file if there is no X server $host:$n\n";
+	return 0;
+    }
+
+    if (-e "/tmp/.X11-unix/X$n") {
+	warn "\nWarning: $host:$n is taken because of /tmp/.X11-unix/X$n\n";
+	warn "Remove this file if there is no X server $host:$n\n";
+	return 0;
+    }
+
+    if (-e "/usr/spool/sockets/X11/$n") {
+	warn("\nWarning: $host:$n is taken because of ".
+             "/usr/spool/sockets/X11/$n\n");
+	warn "Remove this file if there is no X server $host:$n\n";
+	return 0;
+    }
+
+    return 1;
+}
+
+#
+# Usage
+#
+
+sub Usage
+{
+    die("\nusage: $prog <display>\n\n");
+}
+
+
+# Routine to make sure we're operating in a sane environment.
+sub SanityCheck
+{
+    local ($cmd);
+
+    # Get the program name
+    ($prog) = ($0 =~ m|([^/]+)$|);
+
+    #
+    # Check we have all the commands we'll need on the path.
+    #
+
+ cmd:
+    foreach $cmd ("uname","xauth","xinit") {
+	for (split(/:/,$ENV{PATH})) {
+	    if (-x "$_/$cmd") {
+		next cmd;
+	    }
+	}
+	die "$prog: couldn't find \"$cmd\" on your PATH.\n";
+    }
+
+    foreach $cmd ("/etc/X11/xinit/Xsession", "/etc/X11/Xsession") {
+        if (-x "$cmd") {
+            $Xsession = $cmd;
+            last;
+        }
+    }
+    if (not defined $Xsession) {
+        die "$prog: Couldn't find suitable Xsession.\n";
+    }
+
+    if (!defined($ENV{HOME})) {
+	die "$prog: The HOME environment variable is not set.\n";
+    }
+
+    #
+    # Find socket constants. 'use Socket' is a perl5-ism, so we wrap it in an
+    # eval, and if it fails we try 'require "sys/socket.ph"'.  If this fails,
+    # we just guess at the values.  If you find perl moaning here, just
+    # hard-code the values of AF_INET and SOCK_STREAM.  You can find these out
+    # for your platform by looking in /usr/include/sys/socket.h and related
+    # files.
+    #
+
+    chop($os = `uname`);
+    chop($osrev = `uname -r`);
+
+    eval 'use Socket';
+    if ($@) {
+	eval 'require "sys/socket.ph"';
+	if ($@) {
+	    if (($os eq "SunOS") && ($osrev !~ /^4/)) {
+		$AF_INET = 2;
+		$SOCK_STREAM = 2;
+	    } else {
+		$AF_INET = 2;
+		$SOCK_STREAM = 1;
+	    }
+	} else {
+	    $AF_INET = &AF_INET;
+	    $SOCK_STREAM = &SOCK_STREAM;
+	}
+    } else {
+	$AF_INET = &AF_INET;
+	$SOCK_STREAM = &SOCK_STREAM;
+    }
+}

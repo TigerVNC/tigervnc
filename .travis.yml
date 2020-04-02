@@ -2,7 +2,6 @@ dist: xenial
 language: minimal
 
 env:
-  - DOCKER=centos6
   - DOCKER=centos7
   - DOCKER=xenial
   - DOCKER=bionic

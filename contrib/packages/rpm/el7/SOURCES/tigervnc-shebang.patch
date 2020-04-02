@@ -1,9 +1,0 @@
-diff -up tigervnc-1.3.0/unix/vncserver.shebang tigervnc-1.3.0/unix/vncserver
---- tigervnc-1.3.0/unix/vncserver.shebang	2013-07-24 12:22:34.962158378 +0100
-+++ tigervnc-1.3.0/unix/vncserver	2013-07-24 12:22:41.593188190 +0100
-@@ -1,4 +1,4 @@
--#!/usr/bin/env perl
-+#!/usr/bin/perl
- #
- #  Copyright (C) 2009-2010 D. R. Commander.  All Rights Reserved.
- #  Copyright (C) 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.

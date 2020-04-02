@@ -75,7 +75,7 @@ endif(WIN32)
 
 set(RFB_LIBRARIES ${JPEG_LIBRARIES} os rdr Xregion)
 
-if(HAVE_PAM)
+if(UNIX AND NOT APPLE)
   set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
     UnixPasswordValidator.h pam.c pam.h)
   set(RFB_LIBRARIES ${RFB_LIBRARIES} ${PAM_LIBS})

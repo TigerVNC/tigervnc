@@ -9,8 +9,6 @@ Packager: 	Brian P. Hinz <bphinz@users.sourceforge.net>
 URL:            http://www.tigervnc.com
 
 Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
-Source1:        vncserver.service
-Source2:        vncserver.sysconfig
 Source3:        10-libvnc.conf
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -23,7 +21,7 @@ BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
 BuildRequires:  libXrandr-devel, fltk-devel >= 1.3.3
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
-BuildRequires:  systemd, cmake
+BuildRequires:  systemd, cmake, selinux-policy-devel
 
 Requires(post):   coreutils
 Requires(postun): coreutils
@@ -36,8 +34,6 @@ Provides:       vnc = 4.1.3-2, vnc-libs = 4.1.3-2
 Obsoletes:      vnc < 4.1.3-2, vnc-libs < 4.1.3-2
 Provides:       tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes:      tightvnc < 1.5.0-0.15.20090204svn3586
-
-Patch17:        tigervnc-shebang.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -56,6 +52,7 @@ Provides:       tightvnc-server = 1.5.0-0.15.20090204svn3586
 Obsoletes:      tightvnc-server < 1.5.0-0.15.20090204svn3586
 Requires:       perl
 Requires:       tigervnc-server-minimal = %{version}-%{release}
+Requires:       tigervnc-selinux = %{version}-%{release}
 Requires:       xorg-x11-xauth
 Requires:       xorg-x11-xinit
 Requires(post):   systemd
@@ -119,6 +116,18 @@ BuildArch:      noarch
 %description icons
 This package contains icons for TigerVNC viewer
 
+%package selinux
+Summary:        SELinux module for TigerVNC
+BuildArch:      noarch
+Requires(pre):  libselinux-utils
+Requires(post): selinux-policy-base >= %{_selinux_policy_version}
+Requires(post): policycoreutils policycoreutils-python
+Requires(post): libselinux-utils
+
+%description selinux
+This package provides the SELinux policy module to ensure TigerVNC
+runs properly under an environment with SELinux enabled.
+
 %prep
 rm -rf $RPM_BUILD_ROOT
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
@@ -131,9 +140,6 @@ done
 patch -p1 -b --suffix .vnc < ../xserver120.patch
 popd
 
-# Don't use shebang in vncserver script.
-%patch17 -p1 -b .shebang
-
 %build
 %ifarch sparcv9 sparc64 s390 s390x
 export CFLAGS="$RPM_OPT_FLAGS -fPIC"
@@ -145,9 +151,11 @@ export CPPFLAGS="$CXXFLAGS"
 
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 
+# The cmake in RHEL is too old and doesn't set up
+# CMAKE_INSTALL_SYSCONFDIR properly
 %{cmake} -G"Unix Makefiles" \
-  -DBUILD_STATIC=off \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix}
+  -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
+  -DBUILD_STATIC=off
 make %{?_smp_mflags}
 
 pushd unix/xserver
@@ -180,6 +188,11 @@ pushd media
 make
 popd
 
+# SELinux
+pushd unix/vncserver/selinux
+make
+popd
+
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
 
@@ -187,13 +200,9 @@ pushd unix/xserver/hw/vnc
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
 
-# Install systemd unit file
-mkdir -p %{buildroot}%{_unitdir}
-install -m644 %{SOURCE1} %{buildroot}%{_unitdir}/vncserver@.service
-rm -rf %{buildroot}%{_initrddir}
-
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/vncservers
+pushd unix/vncserver/selinux
+make install DESTDIR=$RPM_BUILD_ROOT
+popd
 
 %find_lang %{name} %{name}.lang
 
@@ -222,34 +231,43 @@ if [ -x %{_bindir}/gtk-update-icon-cache ]; then
         %{_bindir}/gtk-update-icon-cache -q %{_datadir}/icons/hicolor || :
 fi
 
-%post server
-%systemd_post vncserver.service
+%pre selinux
+%selinux_relabel_pre
 
-%triggerun -- tigervnc-server < 1.0.90-6
-%{_bindir}/systemd-sysv-convert --save vncserver >/dev/null 2>&1 ||:
-/sbin/chkconfig --del vncserver >/dev/null 2>&1 || :
+%post selinux
+%selinux_modules_install %{_datadir}/selinux/packages/vncsession.pp
+%selinux_relabel_post
 
-%preun server
-%systemd_preun vncserver.service
+%posttrans selinux
+%selinux_relabel_post
 
-%postun server
-%systemd_postun
+%postun selinux
+%selinux_modules_uninstall vncsession
+if [ $1 -eq 0 ]; then
+    %selinux_relabel_post
+fi
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc %{_docdir}/%{name}-%{version}/README.rst
+%doc %{_docdir}/%{name}/README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
 %{_mandir}/man1/vncviewer.1*
 
 %files server
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/sysconfig/vncservers
+%config(noreplace) %{_sysconfdir}/pam.d/tigervnc
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
+%config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
-%{_bindir}/vncserver
-%{_mandir}/man1/vncserver.1*
+%{_sbindir}/vncsession
+%{_libexecdir}/vncserver
+%{_libexecdir}/vncsession-start
 %{_mandir}/man1/x0vncserver.1*
+%{_mandir}/man8/vncserver.8*
+%{_mandir}/man8/vncsession.8*
 
 %files server-minimal
 %defattr(-,root,root,-)
@@ -268,11 +286,14 @@ fi
 %endif
 
 %files license
-%doc %{_docdir}/%{name}-%{version}/LICENCE.TXT
+%doc %{_docdir}/%{name}/LICENCE.TXT
 
 %files icons
 %defattr(-,root,root,-)
 %{_datadir}/icons/hicolor/*/apps/*
+
+%files selinux
+%{_datadir}/selinux/packages/vncsession.pp
 
 %changelog
 * Mon Jan 14 2019 Pierre Ossman <ossman@cendio.se> 1.9.80-4

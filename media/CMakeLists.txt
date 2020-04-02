@@ -13,11 +13,11 @@ if(CONVERT_EXECUTABLE)
   if(UNIX AND NOT APPLE)
     foreach(SIZE 16 22 24 32 48)
       install(FILES icons/tigervnc_${SIZE}.png
-        DESTINATION ${DATA_DIR}/icons/hicolor/${SIZE}x${SIZE}/apps
+        DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/${SIZE}x${SIZE}/apps
         RENAME tigervnc.png)
     endforeach()
     install(FILES icons/tigervnc.svg
-      DESTINATION ${DATA_DIR}/icons/hicolor/scalable/apps)
+      DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/scalable/apps)
   endif()
 endif()
 

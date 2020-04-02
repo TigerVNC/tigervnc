@@ -32,9 +32,10 @@ Build Requirements (Unix)
 
 -- Non-Mac platforms:
    * X11 development kit
+   * PAM
 
 -- If building Xvnc/libvnc.so:
-   * Xorg server source code, 1.7 or never
+   * Xorg server source code, 1.16 or never
    * All build requirements Xorg imposes (see its documentation)
 
 ============================
@@ -94,15 +95,14 @@ of TigerVNC on 64-bit systems.
   make
 
 
-Building the TigerVNC Server on Modern Unix/Linux Systems
----------------------------------------------------------
+Building the TigerVNC Server on Unix/Linux Systems
+--------------------------------------------------
 
-Building the TigerVNC Server (Xvnc) is a bit trickier.  On newer systems
-containing Xorg 7.4 or later (such as Fedora), Xvnc is typically built to use
-the X11 shared libraries provided with the system.  The procedure for this is
-system-specific, since it requires specifying such things as font directories,
-but the general outline is as follows (this procedure assumes that the viewer
-has already been built, per above.)
+Building the TigerVNC Server (Xvnc) is a bit trickier. Xvnc is typically built
+to use the X11 shared libraries provided with the system.  The procedure for
+this is system-specific, since it requires specifying such things as font
+directories, but the general outline is as follows (this procedure assumes
+that the viewer has already been built, per above.)
 
   > cd {build_directory}
 
@@ -120,7 +120,7 @@ has already been built, per above.)
   > cd unix/xserver/
   > patch -p1 < {source_directory}/unix/xserver{version}.patch
     (where {version} matches the X server version you are building, such as
-    "17" for version 1.7.x.)
+    "120" for version 1.20.x.)
   > autoreconf -fiv
 
   > ./configure --with-pic --without-dtrace --disable-static --disable-dri \
@@ -142,45 +142,6 @@ has already been built, per above.)
     and DRI directories.)
 
   > make TIGERVNC_SRCDIR={source_directory}
-
-
-Building the TigerVNC Server on Legacy Unix/Linux Systems
----------------------------------------------------------
-
-Those using systems with older versions of Xorg must build a "legacy-friendly"
-version of the TigerVNC Server.  This is accomplished by downloading and
-building the more recent Xorg modules in a local directory and then building
-Xvnc such that it links against the local build of these libraries, not the X11
-libraries installed on the system.  The "build-xorg" script in the TigerVNC
-source distribution (located under contrib/xorg/) automates this process.
-
-The following procedure will build both the TigerVNC Viewer and a
-"legacy-friendly" version of the TigerVNC Server:
-
-  cd {build_directory}
-  bash {source_directory}/contrib/xorg/build-xorg init
-  bash {source_directory}/contrib/xorg/build-xorg build [additional CMake flags]
-
-build-xorg generates a version of Xvnc that has no external dependencies on the
-X11 shared libraries or any other distribution-specific shared libraries.  This
-version of Xvnc should be transportable across multiple O/S distributions.
-build-xorg should work on Red Hat Enterprise 4, its contemporaries, and later
-systems.  It probably will not work on older systems.  It has not been tested
-on non-Linux systems (yet).
-
-build-xorg can also be used to rebuild just the TigerVNC Server and Viewer,
-once the X11 modules and other dependencies have been built for the first time.
-This is convenient for testing changes that just apply to the TigerVNC source
-code.  To accomplish this, run:
-
-  sh {source_directory}/contrib/xorg/build-xorg rebuild [additional make flags]
-
-For instance,
-
-  sh {source_directory}/contrib/xorg/build-xorg rebuild clean
-
-will clean both the Xvnc and vncviewer builds without destroying any of the
-build configuration or module dependencies.
 
 
 Building the Windows TigerVNC Viewer with MinGW
