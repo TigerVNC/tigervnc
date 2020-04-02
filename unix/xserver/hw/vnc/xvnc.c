@@ -1580,16 +1580,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     miSetPixmapDepths();
 
     switch (pvfb->fb.depth) {
-    case 8:
-	miSetVisualTypesAndMasks (8,
-				  ((1 << StaticGray) |
-				  (1 << GrayScale) |
-				  (1 << StaticColor) |
-				  (1 << PseudoColor) |
-				  (1 << TrueColor) |
-				  (1 << DirectColor)),
-				  8, PseudoColor, 0, 0, 0);
-	break;
     case 16:
 	miSetVisualTypesAndMasks (16,
 				  ((1 << TrueColor) |
