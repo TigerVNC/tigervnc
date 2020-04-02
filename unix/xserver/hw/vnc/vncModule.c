@@ -27,9 +27,6 @@
 #include "randrstr.h"
 
 #include "xorg-version.h"
-#if XORG <= 111
-typedef pointer XF86OptionPtr;
-#endif
 
 #include "xf86.h"
 #include "xf86Module.h"
@@ -47,10 +44,6 @@ ExtensionModule vncExt =
 {
     vncModuleInit,
     "VNC",
-#if XORG < 112
-    NULL,
-    NULL,
-#endif
     NULL
 };
 
@@ -72,11 +65,7 @@ _X_EXPORT XF86ModuleData vncModuleData = { &vncVersRec, vncSetup, NULL };
 
 static void *
 vncSetup(void * module, void * opts, int *errmaj, int *errmin) {
-#if XORG >= 116
     LoadExtensionList(&vncExt, 1, FALSE);
-#else
-    LoadExtension(&vncExt, FALSE);
-#endif
     /* Need a non-NULL return value to indicate success */
     return (void *)1;
 }

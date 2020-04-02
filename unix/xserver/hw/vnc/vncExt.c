@@ -89,14 +89,8 @@ int vncNotifyQueryConnect(void)
       ev.sequenceNumber = cur->client->sequence;
       ev.window = cur->window;
       if (cur->client->swapped) {
-#if XORG < 112
-        int n;
-        swaps(&ev.sequenceNumber, n);
-        swapl(&ev.window, n);
-#else
         swaps(&ev.sequenceNumber);
         swapl(&ev.window);
-#endif
       }
       WriteToClient(cur->client, sizeof(xVncExtQueryConnectNotifyEvent),
                     (char *)&ev);
@@ -147,14 +141,8 @@ deny:
   free(param);
 
   if (client->swapped) {
-#if XORG < 112
-    int n;
-    swaps(&rep.sequenceNumber, n);
-    swapl(&rep.length, n);
-#else
     swaps(&rep.sequenceNumber);
     swapl(&rep.length);
-#endif
   }
   WriteToClient(client, sizeof(xVncExtSetParamReply), (char *)&rep);
   return (client->noClientException);
@@ -163,12 +151,7 @@ deny:
 static int SProcVncExtSetParam(ClientPtr client)
 {
   REQUEST(xVncExtSetParamReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
   swaps(&stuff->length);
-#endif
   REQUEST_AT_LEAST_SIZE(xVncExtSetParamReq);
   return ProcVncExtSetParam(client);
 }
@@ -202,16 +185,9 @@ static int ProcVncExtGetParam(ClientPtr client)
   rep.length = (len + 3) >> 2;
   rep.valueLen = len;
   if (client->swapped) {
-#if XORG < 112
-    int n;
-    swaps(&rep.sequenceNumber, n);
-    swapl(&rep.length, n);
-    swaps(&rep.valueLen, n);
-#else
     swaps(&rep.sequenceNumber);
     swapl(&rep.length);
     swaps(&rep.valueLen);
-#endif
   }
   WriteToClient(client, sizeof(xVncExtGetParamReply), (char *)&rep);
   if (value)
@@ -223,12 +199,7 @@ static int ProcVncExtGetParam(ClientPtr client)
 static int SProcVncExtGetParam(ClientPtr client)
 {
   REQUEST(xVncExtGetParamReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
   swaps(&stuff->length);
-#endif
   REQUEST_AT_LEAST_SIZE(xVncExtGetParamReq);
   return ProcVncExtGetParam(client);
 }
@@ -262,16 +233,9 @@ static int ProcVncExtGetParamDesc(ClientPtr client)
   rep.length = (len + 3) >> 2;
   rep.descLen = len;
   if (client->swapped) {
-#if XORG < 112
-    int n;
-    swaps(&rep.sequenceNumber, n);
-    swapl(&rep.length, n);
-    swaps(&rep.descLen, n);
-#else
     swaps(&rep.sequenceNumber);
     swapl(&rep.length);
     swaps(&rep.descLen);
-#endif
   }
   WriteToClient(client, sizeof(xVncExtGetParamDescReply), (char *)&rep);
   if (desc)
@@ -282,12 +246,7 @@ static int ProcVncExtGetParamDesc(ClientPtr client)
 static int SProcVncExtGetParamDesc(ClientPtr client)
 {
   REQUEST(xVncExtGetParamDescReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
   swaps(&stuff->length);
-#endif
   REQUEST_AT_LEAST_SIZE(xVncExtGetParamDescReq);
   return ProcVncExtGetParamDesc(client);
 }
@@ -312,16 +271,9 @@ static int ProcVncExtListParams(ClientPtr client)
   rep.length = (len + 3) >> 2;
   rep.nParams = vncGetParamCount();
   if (client->swapped) {
-#if XORG < 112
-    int n;
-    swaps(&rep.sequenceNumber, n);
-    swapl(&rep.length, n);
-    swaps(&rep.nParams, n);
-#else
     swaps(&rep.sequenceNumber);
     swapl(&rep.length);
     swaps(&rep.nParams);
-#endif
   }
   WriteToClient(client, sizeof(xVncExtListParamsReply), (char *)&rep);
   WriteToClient(client, len, (char*)params);
@@ -332,12 +284,7 @@ static int ProcVncExtListParams(ClientPtr client)
 static int SProcVncExtListParams(ClientPtr client)
 {
   REQUEST(xVncExtListParamsReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
   swaps(&stuff->length);
-#endif
   REQUEST_SIZE_MATCH(xVncExtListParamsReq);
   return ProcVncExtListParams(client);
 }
@@ -379,20 +326,10 @@ static int ProcVncExtSelectInput(ClientPtr client)
 static int SProcVncExtSelectInput(ClientPtr client)
 {
   REQUEST(xVncExtSelectInputReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
   swaps(&stuff->length);
-#endif
   REQUEST_SIZE_MATCH(xVncExtSelectInputReq);
-#if XORG < 112
-  swapl(&stuff->window, n);
-  swapl(&stuff->mask, n);
-#else
   swapl(&stuff->window);
   swapl(&stuff->mask);
-#endif
   return ProcVncExtSelectInput(client);
 }
 
@@ -418,14 +355,8 @@ static int ProcVncExtConnect(ClientPtr client)
   rep.length = 0;
   rep.sequenceNumber = client->sequence;
   if (client->swapped) {
-#if XORG < 112
-    int n;
-    swaps(&rep.sequenceNumber, n);
-    swapl(&rep.length, n);
-#else
     swaps(&rep.sequenceNumber);
     swapl(&rep.length);
-#endif
   }
   WriteToClient(client, sizeof(xVncExtConnectReply), (char *)&rep);
 
@@ -437,12 +368,7 @@ static int ProcVncExtConnect(ClientPtr client)
 static int SProcVncExtConnect(ClientPtr client)
 {
   REQUEST(xVncExtConnectReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
   swaps(&stuff->length);
-#endif
   REQUEST_AT_LEAST_SIZE(xVncExtConnectReq);
   return ProcVncExtConnect(client);
 }
@@ -468,22 +394,12 @@ static int ProcVncExtGetQueryConnect(ClientPtr client)
   rep.opaqueId = (CARD32)(long)opaqueId;
   rep.length = ((rep.userLen + 3) >> 2) + ((rep.addrLen + 3) >> 2);
   if (client->swapped) {
-#if XORG < 112
-    int n;
-    swaps(&rep.sequenceNumber, n);
-    swapl(&rep.addrLen, n);
-    swapl(&rep.userLen, n);
-    swapl(&rep.timeout, n);
-    swapl(&rep.opaqueId, n);
-    swapl(&rep.length, n);
-#else
     swaps(&rep.sequenceNumber);
     swapl(&rep.addrLen);
     swapl(&rep.userLen);
     swapl(&rep.timeout);
     swapl(&rep.opaqueId);
     swapl(&rep.length);
-#endif
   }
   WriteToClient(client, sizeof(xVncExtGetQueryConnectReply), (char *)&rep);
   if (qcTimeout)
@@ -496,12 +412,7 @@ static int ProcVncExtGetQueryConnect(ClientPtr client)
 static int SProcVncExtGetQueryConnect(ClientPtr client)
 {
   REQUEST(xVncExtGetQueryConnectReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
   swaps(&stuff->length);
-#endif
   REQUEST_SIZE_MATCH(xVncExtGetQueryConnectReq);
   return ProcVncExtGetQueryConnect(client);
 }
@@ -520,14 +431,8 @@ static int ProcVncExtApproveConnect(ClientPtr client)
 static int SProcVncExtApproveConnect(ClientPtr client)
 {
   REQUEST(xVncExtApproveConnectReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-  swapl(&stuff->opaqueId, n);
-#else
   swaps(&stuff->length);
   swapl(&stuff->opaqueId);
-#endif
   REQUEST_SIZE_MATCH(xVncExtApproveConnectReq);
   return ProcVncExtApproveConnect(client);
 }
