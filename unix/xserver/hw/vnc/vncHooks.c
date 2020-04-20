@@ -337,6 +337,8 @@ static inline void add_changed(ScreenPtr pScreen, RegionPtr reg)
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
   if (vncHooksScreen->ignoreHooks)
     return;
+  if (REGION_NIL(reg))
+    return;
   vncAddChanged(pScreen->myNum,
                 (const struct UpdateRect*)REGION_EXTENTS(pScreen, reg),
                 REGION_NUM_RECTS(reg),
@@ -348,6 +350,8 @@ static inline void add_copied(ScreenPtr pScreen, RegionPtr dst,
 {
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
   if (vncHooksScreen->ignoreHooks)
+    return;
+  if (REGION_NIL(dst))
     return;
   vncAddCopied(pScreen->myNum,
                (const struct UpdateRect*)REGION_EXTENTS(pScreen, dst),
@@ -498,8 +502,7 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 
   (*pScreen->CopyWindow) (pWin, ptOldOrg, pOldRegion);
 
-  if (REGION_NOTEMPTY(pScreen, &copied))
-    add_copied(pScreen, &copied, dx, dy);
+  add_copied(pScreen, &copied, dx, dy);
 
   REGION_UNINIT(pScreen, &copied);
   REGION_UNINIT(pScreen, &screen_rgn);
@@ -706,8 +709,7 @@ static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   (*ps->Composite)(op, pSrc, pMask, pDst, xSrc, ySrc,
 		   xMask, yMask, xDst, yDst, width, height);
 
-  if (REGION_NOTEMPTY(pScreen, &changed))
-    add_changed(pScreen, &changed);
+  add_changed(pScreen, &changed);
 
   REGION_UNINIT(pScreen, &changed);
 
@@ -809,8 +811,7 @@ static void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   (*ps->Glyphs)(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlists, lists, glyphs);
 
-  if (REGION_NOTEMPTY(pScreen, changed))
-    add_changed(pScreen, changed);
+  add_changed(pScreen, changed);
 
   REGION_DESTROY(pScreen, changed);
 
@@ -832,8 +833,7 @@ static void vncHooksCompositeRects(CARD8 op, PicturePtr pDst,
 
   (*ps->CompositeRects)(op, pDst, color, nRect, rects);
 
-  if (REGION_NOTEMPTY(pScreen, changed))
-    add_changed(pScreen, changed);
+  add_changed(pScreen, changed);
 
   REGION_DESTROY(pScreen, changed);
 
@@ -900,8 +900,7 @@ static void vncHooksTrapezoids(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   (*ps->Trapezoids)(op, pSrc, pDst, maskFormat, xSrc, ySrc, ntrap, traps);
 
-  if (REGION_NOTEMPTY(pScreen, &changed))
-    add_changed(pScreen, &changed);
+  add_changed(pScreen, &changed);
 
   REGION_UNINIT(pScreen, &changed);
 
@@ -966,8 +965,7 @@ static void vncHooksTriangles(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   (*ps->Triangles)(op, pSrc, pDst, maskFormat, xSrc, ySrc, ntri, tris);
 
-  if (REGION_NOTEMPTY(pScreen, &changed))
-    add_changed(pScreen, &changed);
+  add_changed(pScreen, &changed);
 
   REGION_UNINIT(pScreen, &changed);
 
@@ -1025,8 +1023,7 @@ static void vncHooksTriStrip(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   (*ps->TriStrip)(op, pSrc, pDst, maskFormat, xSrc, ySrc, npoint, points);
 
-  if (REGION_NOTEMPTY(pScreen, &changed))
-    add_changed(pScreen, &changed);
+  add_changed(pScreen, &changed);
 
   REGION_UNINIT(pScreen, &changed);
 
@@ -1084,8 +1081,7 @@ static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   (*ps->TriFan)(op, pSrc, pDst, maskFormat, xSrc, ySrc, npoint, points);
 
-  if (REGION_NOTEMPTY(pScreen, &changed))
-    add_changed(pScreen, &changed);
+  add_changed(pScreen, &changed);
 
   REGION_UNINIT(pScreen, &changed);
 
@@ -1395,13 +1391,11 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
 
   ret = (*pGC->ops->CopyArea) (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
 
-  if (REGION_NOTEMPTY(pScreen, &dst))
-    add_copied(pGC->pScreen, &dst,
-               dstx + pDst->x - srcx - pSrc->x,
-               dsty + pDst->y - srcy - pSrc->y);
+  add_copied(pGC->pScreen, &dst,
+             dstx + pDst->x - srcx - pSrc->x,
+             dsty + pDst->y - srcy - pSrc->y);
 
-  if (REGION_NOTEMPTY(pScreen, &changed))
-    add_changed(pGC->pScreen, &changed);
+  add_changed(pGC->pScreen, &changed);
 
   REGION_UNINIT(pGC->pScreen, &dst);
   REGION_UNINIT(pGC->pScreen, &src);
