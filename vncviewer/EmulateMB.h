@@ -36,11 +36,13 @@ protected:
 private:
   void sendAction(const rfb::Point& pos, int buttonMask, int action);
 
+  int createButtonMask(int buttonMask);
+
 private:
   int state;
   int emulatedButtonMask;
   int lastButtonMask;
-  rfb::Point lastPos;
+  rfb::Point lastPos, origPos;
   rfb::Timer timer;
 };
 

@@ -372,7 +372,7 @@ void testBothPressAfterRightTimeout()
   printf("OK\n");
 }
 
-void testTimeoutDuringDrag()
+void testTimeoutAndDrag()
 {
   TestClass test;
 
@@ -401,6 +401,62 @@ void testTimeoutDuringDrag()
   printf("OK\n");
 }
 
+void testDragAndTimeout()
+{
+  TestClass test;
+
+  printf("%s: ", __func__);
+
+  emulateMiddleButton.setParam(true);
+  test.filterPointerEvent(rfb::Point(10, 10), left);
+  test.filterPointerEvent(rfb::Point(30, 30), left);
+  usleep(100000); //0.1s
+  rfb::Timer::checkTimeouts();
+
+  ASSERT_EQ(test.results.size(), 3);
+
+  ASSERT_EQ(test.results[0].pos.x, 10);
+  ASSERT_EQ(test.results[0].pos.y, 10);
+  ASSERT_EQ(test.results[0].mask, empty);
+
+  ASSERT_EQ(test.results[1].pos.x, 10);
+  ASSERT_EQ(test.results[1].pos.y, 10);
+  ASSERT_EQ(test.results[1].mask, left);
+
+  ASSERT_EQ(test.results[2].pos.x, 30);
+  ASSERT_EQ(test.results[2].pos.y, 30);
+  ASSERT_EQ(test.results[2].mask, left);
+
+  printf("OK\n");
+}
+
+void testDragAndRelease()
+{
+  TestClass test;
+
+  printf("%s: ", __func__);
+
+  emulateMiddleButton.setParam(true);
+  test.filterPointerEvent(rfb::Point(10, 10), left);
+  test.filterPointerEvent(rfb::Point(20, 20), empty);
+
+  ASSERT_EQ(test.results.size(), 3);
+
+  ASSERT_EQ(test.results[0].pos.x, 10);
+  ASSERT_EQ(test.results[0].pos.y, 10);
+  ASSERT_EQ(test.results[0].mask, empty);
+
+  ASSERT_EQ(test.results[1].pos.x, 10);
+  ASSERT_EQ(test.results[1].pos.y, 10);
+  ASSERT_EQ(test.results[1].mask, left);
+
+  ASSERT_EQ(test.results[2].pos.x, 20);
+  ASSERT_EQ(test.results[2].pos.y, 20);
+  ASSERT_EQ(test.results[2].mask, empty);
+
+  printf("OK\n");
+}
+
 int main(int argc, char** argv)
 {
   testDisabledOption();
@@ -422,8 +478,10 @@ int main(int argc, char** argv)
   testBothPressAfterLeftTimeout();
   testBothPressAfterRightTimeout();
 
-  testTimeoutDuringDrag();
+  testTimeoutAndDrag();
 
+  testDragAndTimeout();
+  testDragAndRelease();
 
   return 0;
 }
