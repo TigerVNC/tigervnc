@@ -340,7 +340,6 @@ static inline void add_changed(ScreenPtr pScreen, RegionPtr reg)
   if (RegionNil(reg))
     return;
   vncAddChanged(pScreen->myNum,
-                (const struct UpdateRect*)RegionExtents(reg),
                 RegionNumRects(reg),
                 (const struct UpdateRect*)RegionRects(reg));
 }
@@ -354,7 +353,6 @@ static inline void add_copied(ScreenPtr pScreen, RegionPtr dst,
   if (RegionNil(dst))
     return;
   vncAddCopied(pScreen->myNum,
-               (const struct UpdateRect*)RegionExtents(dst),
                RegionNumRects(dst),
                (const struct UpdateRect*)RegionRects(dst), dx, dy);
 }

@@ -67,25 +67,6 @@ void rfb::Region::translate(const Point& delta) {
   pixman_region_translate(rgn, delta.x, delta.y);
 }
 
-void rfb::Region::setOrderedRects(const std::vector<Rect>& rects) {
-  clear();
-  std::vector<Rect>::const_iterator i;
-  for (i=rects.begin(); i != rects.end(); i++)
-    pixman_region_union_rect(rgn, rgn, i->tl.x, i->tl.y, i->width(), i->height());
-}
-
-void rfb::Region::setExtentsAndOrderedRects(const ShortRect* extents,
-                                            int nRects, const ShortRect* rects)
-{
-  clear();
-  std::vector<Rect>::const_iterator i;
-  for (int i = 0; i < nRects; i++) {
-    pixman_region_union_rect(rgn, rgn, rects[i].x1, rects[i].y1,
-                             rects[i].x2 - rects[i].x1,
-                             rects[i].y2 - rects[i].y1);
-  }
-}
-
 void rfb::Region::assign_intersect(const rfb::Region& r) {
   pixman_region_intersect(rgn, rgn, r.rgn);
 }

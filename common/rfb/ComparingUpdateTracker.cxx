@@ -120,8 +120,6 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
   rdr::U8* oldData = oldFb.getBufferRW(r, &oldStride);
   int oldStrideBytes = oldStride * bytesPerPixel;
 
-  std::vector<Rect> changedBlocks;
-
   for (int blockTop = r.tl.y; blockTop < r.br.y; blockTop += BLOCK_SIZE)
   {
     // Get a strip of the source buffer
@@ -146,8 +144,8 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
         if (memcmp(oldPtr, newPtr, blockWidthInBytes) != 0)
         {
           // A block has changed - copy the remainder to the oldFb
-          changedBlocks.push_back(Rect(blockLeft, blockTop,
-                                       blockRight, blockBottom));
+          newChanged->assign_union(Region(Rect(blockLeft, blockTop,
+                                               blockRight, blockBottom)));
           for (int y2 = y; y2 < blockBottom; y2++)
           {
             memcpy(oldPtr, newPtr, blockWidthInBytes);
@@ -169,12 +167,6 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
   }
 
   oldFb.commitBufferRW(r);
-
-  if (!changedBlocks.empty()) {
-    Region temp;
-    temp.setOrderedRects(changedBlocks);
-    newChanged->assign_union(temp);
-  }
 }
 
 void ComparingUpdateTracker::logStats()

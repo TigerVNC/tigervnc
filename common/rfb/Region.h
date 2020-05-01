@@ -29,10 +29,6 @@ struct pixman_region16;
 
 namespace rfb {
 
-  struct ShortRect {
-    short x1, y1, x2, y2;
-  };
-
   class Region {
   public:
     // Create an empty region
@@ -50,9 +46,6 @@ namespace rfb {
     void clear();
     void reset(const Rect& r);
     void translate(const rfb::Point& delta);
-    void setOrderedRects(const std::vector<Rect>& rects);
-    void setExtentsAndOrderedRects(const ShortRect* extents, int nRects,
-                                   const ShortRect* rects);
 
     void assign_intersect(const Region& r);
     void assign_union(const Region& r);
