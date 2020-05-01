@@ -136,7 +136,7 @@ if(BUILD_STATIC_GCC)
     # these things again
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
   else()
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lgcc -lgcc_eh -lc")
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lm -lgcc -lgcc_eh -lc")
   endif()
   set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} ${STATIC_BASE_LIBRARIES}")
   set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic ${STATIC_BASE_LIBRARIES}")
