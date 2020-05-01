@@ -11,6 +11,8 @@ Build Requirements (All Systems)
 
 -- zlib
 
+-- pixman
+
 -- FLTK 1.3.3 or later
 
 -- If building TLS support:

@@ -20,6 +20,7 @@ if(BUILD_STATIC)
 
   set(JPEG_LIBRARIES "-Wl,-Bstatic -ljpeg -Wl,-Bdynamic")
   set(ZLIB_LIBRARIES "-Wl,-Bstatic -lz -Wl,-Bdynamic")
+  set(PIXMAN_LIBRARY "-Wl,-Bstatic -lpixman-1 -Wl,-Bdynamic")
 
   # gettext is included in libc on many unix systems
   if(NOT LIBC_HAS_DGETTEXT)
