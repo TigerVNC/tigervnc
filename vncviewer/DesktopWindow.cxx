@@ -755,6 +755,12 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 {
   int ret;
 
+  // FLTK keeps spamming bogus FL_MOVE events if _any_ X event is
+  // received with the mouse pointer outside our windows
+  // https://github.com/fltk/fltk/issues/76
+  if ((event == FL_MOVE) && (win == NULL))
+    return 0;
+
   ret = Fl::handle_(event, win);
 
   // This is hackish and the result of the dodgy focus handling in FLTK.
