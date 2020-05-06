@@ -32,6 +32,8 @@ files_pid_filetrans(vnc_session_t, vnc_session_var_run_t, file)
 
 auth_write_login_records(vnc_session_t)
 
+can_exec(vnc_session_t, vnc_session_exec_t)
+
 userdom_spec_domtrans_all_users(vnc_session_t)
 userdom_signal_all_users(vnc_session_t)
 
