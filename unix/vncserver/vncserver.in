@@ -233,7 +233,7 @@ $ENV{XAUTHORITY} = $xauthorityFile;
 
 @cmd = ("xinit");
 
-push(@cmd, $Xsession, $session{'Exec'});
+push(@cmd, $Xsession, "dbus-run-session $session{'Exec'}");
 
 push(@cmd, '--');
 
