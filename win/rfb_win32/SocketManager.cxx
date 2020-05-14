@@ -170,6 +170,13 @@ int SocketManager::checkTimeouts() {
     j_next = j; j_next++;
     if (j->second.sock->isShutdown())
       shutdownSocks.push_back(j->second.sock);
+    else {
+      long eventMask = FD_READ | FD_CLOSE;
+      if (j->second.sock->outStream().hasBufferedData())
+        eventMask |= FD_WRITE;
+      if (WSAEventSelect(j->second.sock->getFd(), j->first, eventMask) == SOCKET_ERROR)
+        throw rdr::SystemException("unable to adjust WSAEventSelect:%u", WSAGetLastError());
+    }
   }
 
   std::list<network::Socket*>::iterator k;
@@ -213,6 +220,13 @@ void SocketManager::processEvent(HANDLE event) {
     try {
       // Process data from an active connection
 
+      WSANETWORKEVENTS events;
+      long eventMask;
+
+      // Fetch why this event notification triggered
+      if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &events) == SOCKET_ERROR)
+        throw rdr::SystemException("unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
+
       // Cancel event notification for this socket
       if (WSAEventSelect(ci.sock->getFd(), event, 0) == SOCKET_ERROR)
         throw rdr::SystemException("unable to disable WSAEventSelect:%u", WSAGetLastError());
@@ -220,16 +234,29 @@ void SocketManager::processEvent(HANDLE event) {
       // Reset the event object
       WSAResetEvent(event);
 
+
       // Call the socket server to process the event
-      ci.server->processSocketReadEvent(ci.sock);
-      if (ci.sock->isShutdown()) {
-        remSocket(ci.sock);
-        return;
+      if (events.lNetworkEvents & FD_WRITE) {
+        ci.server->processSocketWriteEvent(ci.sock);
+        if (ci.sock->isShutdown()) {
+          remSocket(ci.sock);
+          return;
+        }
+      }
+      if (events.lNetworkEvents & (FD_READ | FD_CLOSE)) {
+        ci.server->processSocketReadEvent(ci.sock);
+        if (ci.sock->isShutdown()) {
+          remSocket(ci.sock);
+          return;
+        }
       }
 
       // Re-instate the required socket event
       // If the read event is still valid, the event object gets set here
-      if (WSAEventSelect(ci.sock->getFd(), event, FD_READ | FD_CLOSE) == SOCKET_ERROR)
+      eventMask = FD_READ | FD_CLOSE;
+      if (ci.sock->outStream().hasBufferedData())
+        eventMask |= FD_WRITE;
+      if (WSAEventSelect(ci.sock->getFd(), event, eventMask) == SOCKET_ERROR)
         throw rdr::SystemException("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());

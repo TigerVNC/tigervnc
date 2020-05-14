@@ -47,7 +47,7 @@ size_t BufferedInStream::pos()
   return offset + ptr - start;
 }
 
-bool BufferedInStream::overrun(size_t needed, bool wait)
+bool BufferedInStream::overrun(size_t needed)
 {
   struct timeval now;
 
@@ -112,7 +112,7 @@ bool BufferedInStream::overrun(size_t needed, bool wait)
   }
 
   while (avail() < needed) {
-    if (!fillBuffer(start + bufSize - end, wait))
+    if (!fillBuffer(start + bufSize - end))
       return false;
   }
 

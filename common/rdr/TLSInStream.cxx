@@ -39,7 +39,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
   InStream *in = self->in;
 
   try {
-    if (!in->check(1, false)) {
+    if (!in->hasData(1)) {
       gnutls_transport_set_errno(self->session, EAGAIN);
       return -1;
     }
@@ -74,23 +74,22 @@ TLSInStream::~TLSInStream()
   gnutls_transport_set_pull_function(session, NULL);
 }
 
-bool TLSInStream::fillBuffer(size_t maxSize, bool wait)
+bool TLSInStream::fillBuffer(size_t maxSize)
 {
-  size_t n = readTLS((U8*) end, maxSize, wait);
-  if (!wait && n == 0)
+  size_t n = readTLS((U8*) end, maxSize);
+  if (n == 0)
     return false;
   end += n;
 
   return true;
 }
 
-size_t TLSInStream::readTLS(U8* buf, size_t len, bool wait)
+size_t TLSInStream::readTLS(U8* buf, size_t len)
 {
   int n;
 
   if (gnutls_record_check_pending(session) == 0) {
-    n = in->check(1, wait);
-    if (n == 0)
+    if (!in->hasData(1))
       return 0;
   }
 

@@ -45,7 +45,7 @@ void ZlibInStream::setUnderlying(InStream* is, size_t bytesIn_)
 void ZlibInStream::flushUnderlying()
 {
   while (bytesIn > 0) {
-    if (!check(1))
+    if (!hasData(1))
       throw Exception("ZlibInStream: failed to flush remaining stream data");
     skip(avail());
   }
@@ -85,7 +85,7 @@ void ZlibInStream::deinit()
   zs = NULL;
 }
 
-bool ZlibInStream::fillBuffer(size_t maxSize, bool wait)
+bool ZlibInStream::fillBuffer(size_t maxSize)
 {
   if (!underlying)
     throw Exception("ZlibInStream overrun: no underlying stream");
@@ -93,8 +93,8 @@ bool ZlibInStream::fillBuffer(size_t maxSize, bool wait)
   zs->next_out = (U8*)end;
   zs->avail_out = maxSize;
 
-  size_t n = underlying->check(1, wait);
-  if (n == 0) return false;
+  if (!underlying->hasData(1))
+    return false;
   size_t length = underlying->avail();
   if (length > bytesIn)
     length = bytesIn;

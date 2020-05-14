@@ -47,7 +47,7 @@ namespace rfb {
     DecodeManager(CConnection *conn);
     ~DecodeManager();
 
-    void decodeRect(const Rect& r, int encoding,
+    bool decodeRect(const Rect& r, int encoding,
                     ModifiablePixelBuffer* pb);
 
     void flush();

@@ -27,33 +27,22 @@
 
 namespace rdr {
 
-  class FdInStreamBlockCallback {
-  public:
-    virtual void blockCallback() = 0;
-    virtual ~FdInStreamBlockCallback() {}
-  };
-
   class FdInStream : public BufferedInStream {
 
   public:
 
-    FdInStream(int fd, int timeoutms=-1, bool closeWhenDone_=false);
-    FdInStream(int fd, FdInStreamBlockCallback* blockCallback);
+    FdInStream(int fd, bool closeWhenDone_=false);
     virtual ~FdInStream();
 
-    void setTimeout(int timeoutms);
-    void setBlockCallback(FdInStreamBlockCallback* blockCallback);
     int getFd() { return fd; }
 
   private:
-    virtual bool fillBuffer(size_t maxSize, bool wait);
+    virtual bool fillBuffer(size_t maxSize);
 
-    size_t readWithTimeoutOrCallback(void* buf, size_t len, bool wait=true);
+    size_t readFd(void* buf, size_t len);
 
     int fd;
     bool closeWhenDone;
-    int timeoutms;
-    FdInStreamBlockCallback* blockCallback;
 
     size_t offset;
     U8* start;

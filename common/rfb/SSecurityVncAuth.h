@@ -64,7 +64,6 @@ namespace rfb {
     rdr::U8 challenge[vncAuthChallengeSize];
     rdr::U8 response[vncAuthChallengeSize];
     bool sentChallenge;
-    int responsePos;
     VncAuthPasswdGetter* pg;
     SConnection::AccessRights accessRights;
   };

@@ -79,7 +79,7 @@ RandomStream::~RandomStream() {
 #endif
 }
 
-bool RandomStream::fillBuffer(size_t maxSize, bool wait) {
+bool RandomStream::fillBuffer(size_t maxSize) {
 #ifdef RFB_HAVE_WINCRYPT
   if (provider) {
     if (!CryptGenRandom(provider, maxSize, (U8*)end))

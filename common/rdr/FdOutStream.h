@@ -34,11 +34,9 @@ namespace rdr {
 
   public:
 
-    FdOutStream(int fd, bool blocking=true, int timeoutms=-1);
+    FdOutStream(int fd);
     virtual ~FdOutStream();
 
-    void setTimeout(int timeoutms);
-    void setBlocking(bool blocking);
     int getFd() { return fd; }
 
     unsigned getIdleTime();
@@ -46,11 +44,9 @@ namespace rdr {
     virtual void cork(bool enable);
 
   private:
-    virtual bool flushBuffer(bool wait);
-    size_t writeWithTimeout(const void* data, size_t length, int timeoutms);
+    virtual bool flushBuffer();
+    size_t writeFd(const void* data, size_t length);
     int fd;
-    bool blocking;
-    int timeoutms;
     struct timeval lastWrite;
   };
 

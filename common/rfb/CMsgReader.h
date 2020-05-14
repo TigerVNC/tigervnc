@@ -40,39 +40,55 @@ namespace rfb {
     CMsgReader(CMsgHandler* handler, rdr::InStream* is);
     virtual ~CMsgReader();
 
-    void readServerInit();
+    bool readServerInit();
 
     // readMsg() reads a message, calling the handler as appropriate.
-    void readMsg();
+    bool readMsg();
 
     rdr::InStream* getInStream() { return is; }
 
     int imageBufIdealSize;
 
   protected:
-    void readSetColourMapEntries();
-    void readBell();
-    void readServerCutText();
-    void readExtendedClipboard(rdr::S32 len);
-    void readFence();
-    void readEndOfContinuousUpdates();
+    bool readSetColourMapEntries();
+    bool readBell();
+    bool readServerCutText();
+    bool readExtendedClipboard(rdr::S32 len);
+    bool readFence();
+    bool readEndOfContinuousUpdates();
 
-    void readFramebufferUpdate();
+    bool readFramebufferUpdate();
 
-    void readRect(const Rect& r, int encoding);
+    bool readRect(const Rect& r, int encoding);
 
-    void readSetXCursor(int width, int height, const Point& hotspot);
-    void readSetCursor(int width, int height, const Point& hotspot);
-    void readSetCursorWithAlpha(int width, int height, const Point& hotspot);
-    void readSetVMwareCursor(int width, int height, const Point& hotspot);
-    void readSetDesktopName(int x, int y, int w, int h);
-    void readExtendedDesktopSize(int x, int y, int w, int h);
-    void readLEDState();
-    void readVMwareLEDState();
+    bool readSetXCursor(int width, int height, const Point& hotspot);
+    bool readSetCursor(int width, int height, const Point& hotspot);
+    bool readSetCursorWithAlpha(int width, int height, const Point& hotspot);
+    bool readSetVMwareCursor(int width, int height, const Point& hotspot);
+    bool readSetDesktopName(int x, int y, int w, int h);
+    bool readExtendedDesktopSize(int x, int y, int w, int h);
+    bool readLEDState();
+    bool readVMwareLEDState();
 
+  private:
     CMsgHandler* handler;
     rdr::InStream* is;
+
+    enum stateEnum {
+      MSGSTATE_IDLE,
+      MSGSTATE_MESSAGE,
+      MSGSTATE_RECT_HEADER,
+      MSGSTATE_RECT_DATA,
+    };
+
+    stateEnum state;
+
+    rdr::U8 currentMsgType;
     int nUpdateRectsLeft;
+    Rect dataRect;
+    int rectEncoding;
+
+    int cursorEncoding;
 
     static const int maxCursorSize = 256;
   };

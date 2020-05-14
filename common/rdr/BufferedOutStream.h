@@ -45,10 +45,9 @@ namespace rdr {
   private:
     // flushBuffer() requests that the stream be flushed. Returns true if it is
     // able to progress the output (which might still not mean any bytes
-    // actually moved) and can be called again. If wait is true then it will
-    // block until all data has been written.
+    // actually moved) and can be called again.
 
-    virtual bool flushBuffer(bool wait) = 0;
+    virtual bool flushBuffer() = 0;
 
     virtual void overrun(size_t needed);
 

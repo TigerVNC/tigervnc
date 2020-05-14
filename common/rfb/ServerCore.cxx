@@ -42,11 +42,6 @@ rfb::IntParameter rfb::Server::maxIdleTime
 ("MaxIdleTime",
  "Terminate after s seconds of user inactivity", 
  0, 0);
-rfb::IntParameter rfb::Server::clientWaitTimeMillis
-("ClientWaitTimeMillis",
- "The number of milliseconds to wait for a client which is no longer "
- "responding",
- 20000, 0);
 rfb::IntParameter rfb::Server::compareFB
 ("CompareFB",
  "Perform pixel comparison on framebuffer to reduce unnecessary updates "

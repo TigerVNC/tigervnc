@@ -49,27 +49,14 @@
 
 using namespace rdr;
 
-FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_)
-  : fd(fd_), blocking(blocking_), timeoutms(timeoutms_)
+FdOutStream::FdOutStream(int fd_)
+  : fd(fd_)
 {
   gettimeofday(&lastWrite, NULL);
 }
 
 FdOutStream::~FdOutStream()
 {
-  try {
-    while (sentUpTo != ptr)
-      flushBuffer(true);
-  } catch (Exception&) {
-  }
-}
-
-void FdOutStream::setTimeout(int timeoutms_) {
-  timeoutms = timeoutms_;
-}
-
-void FdOutStream::setBlocking(bool blocking_) {
-  blocking = blocking_;
 }
 
 unsigned FdOutStream::getIdleTime()
@@ -87,20 +74,11 @@ void FdOutStream::cork(bool enable)
 #endif
 }
 
-bool FdOutStream::flushBuffer(bool wait)
+bool FdOutStream::flushBuffer()
 {
-  size_t n = writeWithTimeout((const void*) sentUpTo,
-                              ptr - sentUpTo,
-                              (blocking || wait)? timeoutms : 0);
-
-  // Timeout?
-  if (n == 0) {
-    // If non-blocking then we're done here
-    if (!blocking && !wait)
-      return false;
-
-    throw TimedOut();
-  }
+  size_t n = writeFd((const void*) sentUpTo, ptr - sentUpTo);
+  if (n == 0)
+    return false;
 
   sentUpTo += n;
 
@@ -108,34 +86,27 @@ bool FdOutStream::flushBuffer(bool wait)
 }
 
 //
-// writeWithTimeout() writes up to the given length in bytes from the given
-// buffer to the file descriptor.  If there is a timeout set and that timeout
-// expires, it throws a TimedOut exception.  Otherwise it returns the number of
-// bytes written.  It never attempts to send() unless select() indicates that
-// the fd is writable - this means it can be used on an fd which has been set
-// non-blocking.  It also has to cope with the annoying possibility of both
-// select() and send() returning EINTR.
+// writeFd() writes up to the given length in bytes from the given
+// buffer to the file descriptor. It returns the number of bytes written.  It
+// never attempts to send() unless select() indicates that the fd is writable
+// - this means it can be used on an fd which has been set non-blocking.  It
+// also has to cope with the annoying possibility of both select() and send()
+// returning EINTR.
 //
 
-size_t FdOutStream::writeWithTimeout(const void* data, size_t length, int timeoutms)
+size_t FdOutStream::writeFd(const void* data, size_t length)
 {
   int n;
 
   do {
     fd_set fds;
     struct timeval tv;
-    struct timeval* tvp = &tv;
 
-    if (timeoutms != -1) {
-      tv.tv_sec = timeoutms / 1000;
-      tv.tv_usec = (timeoutms % 1000) * 1000;
-    } else {
-      tvp = NULL;
-    }
+    tv.tv_sec = tv.tv_usec = 0;
 
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
-    n = select(fd+1, 0, &fds, 0, tvp);
+    n = select(fd+1, 0, &fds, 0, &tv);
   } while (n < 0 && errno == EINTR);
 
   if (n < 0)

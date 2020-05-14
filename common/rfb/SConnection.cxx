@@ -86,18 +86,20 @@ void SConnection::initialiseProtocol()
   state_ = RFBSTATE_PROTOCOL_VERSION;
 }
 
-void SConnection::processMsg()
+bool SConnection::processMsg()
 {
   switch (state_) {
-  case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();      break;
-  case RFBSTATE_SECURITY_TYPE:    processSecurityTypeMsg(); break;
-  case RFBSTATE_SECURITY:         processSecurityMsg();     break;
-  case RFBSTATE_SECURITY_FAILURE: processSecurityFailure(); break;
-  case RFBSTATE_INITIALISATION:   processInitMsg();         break;
-  case RFBSTATE_NORMAL:           reader_->readMsg();       break;
+  case RFBSTATE_PROTOCOL_VERSION: return processVersionMsg();      break;
+  case RFBSTATE_SECURITY_TYPE:    return processSecurityTypeMsg(); break;
+  case RFBSTATE_SECURITY:         return processSecurityMsg();     break;
+  case RFBSTATE_SECURITY_FAILURE: return processSecurityFailure(); break;
+  case RFBSTATE_INITIALISATION:   return processInitMsg();         break;
+  case RFBSTATE_NORMAL:           return reader_->readMsg();       break;
   case RFBSTATE_QUERYING:
     throw Exception("SConnection::processMsg: bogus data from client while "
                     "querying");
+  case RFBSTATE_CLOSING:
+    throw Exception("SConnection::processMsg: called while closing");
   case RFBSTATE_UNINITIALISED:
     throw Exception("SConnection::processMsg: not initialised yet?");
   default:
@@ -105,7 +107,7 @@ void SConnection::processMsg()
   }
 }
 
-void SConnection::processVersionMsg()
+bool SConnection::processVersionMsg()
 {
   char verStr[13];
   int majorVersion;
@@ -113,8 +115,8 @@ void SConnection::processVersionMsg()
 
   vlog.debug("reading protocol version");
 
-  if (!is->checkNoWait(12))
-    return;
+  if (!is->hasData(12))
+    return false;
 
   is->readBytes(verStr, 12);
   verStr[12] = '\0';
@@ -172,8 +174,7 @@ void SConnection::processVersionMsg()
     if (*i == secTypeNone) os->flush();
     state_ = RFBSTATE_SECURITY;
     ssecurity = security.GetSSecurity(this, *i);
-    processSecurityMsg();
-    return;
+    return true;
   }
 
   // list supported security types for >=3.7 clients
@@ -186,15 +187,23 @@ void SConnection::processVersionMsg()
     os->writeU8(*i);
   os->flush();
   state_ = RFBSTATE_SECURITY_TYPE;
+
+  return true;
 }
 
 
-void SConnection::processSecurityTypeMsg()
+bool SConnection::processSecurityTypeMsg()
 {
   vlog.debug("processing security type message");
+
+  if (!is->hasData(1))
+    return false;
+
   int secType = is->readU8();
 
   processSecurityType(secType);
+
+  return true;
 }
 
 void SConnection::processSecurityType(int secType)
@@ -218,16 +227,14 @@ void SConnection::processSecurityType(int secType)
   } catch (rdr::Exception& e) {
     throwConnFailedException("%s", e.str());
   }
-
-  processSecurityMsg();
 }
 
-void SConnection::processSecurityMsg()
+bool SConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
   try {
     if (!ssecurity->processMsg())
-      return;
+      return false;
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
     state_ = RFBSTATE_SECURITY_FAILURE;
@@ -235,28 +242,41 @@ void SConnection::processSecurityMsg()
     // to make it difficult to brute force a password
     authFailureMsg.replaceBuf(strDup(e.str()));
     authFailureTimer.start(100);
+    return true;
   }
 
   state_ = RFBSTATE_QUERYING;
   setAccessRights(ssecurity->getAccessRights());
   queryConnection(ssecurity->getUserName());
+
+  // If the connection got approved right away then we can continue
+  if (state_ == RFBSTATE_INITIALISATION)
+    return true;
+
+  // Otherwise we need to wait for the result
+  // (or give up if if was rejected)
+  return false;
 }
 
-void SConnection::processSecurityFailure()
+bool SConnection::processSecurityFailure()
 {
   // Silently drop any data if we are currently delaying an
   // authentication failure response as otherwise we would close
   // the connection on unexpected data, and an attacker could use
   // that to detect our delayed state.
 
-  while (is->checkNoWait(1))
-    is->skip(1);
+  if (!is->hasData(1))
+    return false;
+
+  is->skip(is->avail());
+
+  return true;
 }
 
-void SConnection::processInitMsg()
+bool SConnection::processInitMsg()
 {
   vlog.debug("reading client initialisation");
-  reader_->readClientInit();
+  return reader_->readClientInit();
 }
 
 bool SConnection::handleAuthFailureTimeout(Timer* t)

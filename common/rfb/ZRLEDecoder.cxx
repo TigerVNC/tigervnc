@@ -21,6 +21,7 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
+#include <rfb/Exception.h>
 #include <rfb/ServerParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/ZRLEDecoder.h>
@@ -29,7 +30,6 @@ using namespace rfb;
 
 static inline rdr::U32 readOpaque24A(rdr::InStream* is)
 {
-  is->check(3);
   rdr::U32 r=0;
   ((rdr::U8*)&r)[0] = is->readU8();
   ((rdr::U8*)&r)[1] = is->readU8();
@@ -39,12 +39,17 @@ static inline rdr::U32 readOpaque24A(rdr::InStream* is)
 }
 static inline rdr::U32 readOpaque24B(rdr::InStream* is)
 {
-  is->check(3);
   rdr::U32 r=0;
   ((rdr::U8*)&r)[1] = is->readU8();
   ((rdr::U8*)&r)[2] = is->readU8();
   ((rdr::U8*)&r)[3] = is->readU8();
   return r;
+}
+
+static inline void zlibHasData(rdr::ZlibInStream* zis, size_t length)
+{
+  if (!zis->hasData(length))
+    throw Exception("ZRLE decode error");
 }
 
 #define BPP 8
@@ -71,14 +76,27 @@ ZRLEDecoder::~ZRLEDecoder()
 {
 }
 
-void ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
+bool ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
                            const ServerParams& server, rdr::OutStream* os)
 {
   rdr::U32 len;
 
+  if (!is->hasData(4))
+    return false;
+
+  is->setRestorePoint();
+
   len = is->readU32();
   os->writeU32(len);
+
+  if (!is->hasDataOrRestore(len))
+    return false;
+
+  is->clearRestorePoint();
+
   os->copyBytes(is, len);
+
+  return true;
 }
 
 void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,

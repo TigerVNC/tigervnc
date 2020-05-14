@@ -39,7 +39,7 @@ FileInStream::~FileInStream(void) {
   }
 }
 
-bool FileInStream::fillBuffer(size_t maxSize, bool wait)
+bool FileInStream::fillBuffer(size_t maxSize)
 {
   size_t n = fread((U8 *)end, 1, maxSize, file);
   if (n == 0) {

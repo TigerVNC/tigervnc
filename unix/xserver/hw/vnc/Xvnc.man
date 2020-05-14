@@ -98,13 +98,6 @@ connections from viewers, instead of listening on a TCP port.
 Specifies the mode of the Unix domain socket.  The default is 0600.
 .
 .TP
-.B \-rfbwait \fItime\fP, \-ClientWaitTimeMillis \fItime\fP
-Time in milliseconds to wait for a viewer which is blocking the server. This is
-necessary because the server is single-threaded and sometimes blocks until the
-viewer has finished sending or receiving a message - note that this does not
-mean an update will be aborted after this time.  Default is 20000 (20 seconds).
-.
-.TP
 .B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
 Password file for VNC authentication.  There is no default, you should
 specify the password file explicitly.  Password file should be created with

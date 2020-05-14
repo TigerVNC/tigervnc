@@ -57,9 +57,6 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
 
-  // Configure the socket
-  setSocketTimeouts();
-
   // Kick off the idle timer
   if (rfb::Server::idleTimeout) {
     // minimum of 15 seconds while authenticating
@@ -152,26 +149,23 @@ void VNCSConnectionST::processMessages()
 {
   if (state() == RFBSTATE_CLOSING) return;
   try {
-    // - Now set appropriate socket timeouts and process data
-    setSocketTimeouts();
-
     inProcessMessages = true;
 
     // Get the underlying transport to build large packets if we send
     // multiple small responses.
     getOutStream()->cork(true);
 
-    while (getInStream()->checkNoWait(1)) {
-      if (pendingSyncFence) {
+    while (true) {
+      if (pendingSyncFence)
         syncFence = true;
-        pendingSyncFence = false;
-      }
 
-      processMsg();
+      if (!processMsg())
+        break;
 
       if (syncFence) {
         writer()->writeFence(fenceFlags, fenceDataLen, fenceData);
         syncFence = false;
+        pendingSyncFence = false;
       }
     }
 
@@ -195,7 +189,6 @@ void VNCSConnectionST::flushSocket()
 {
   if (state() == RFBSTATE_CLOSING) return;
   try {
-    setSocketTimeouts();
     sock->outStream().flush();
     // Flushing the socket might release an update that was previously
     // delayed because of congestion.
@@ -1149,13 +1142,4 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
 
   if (client.supportsLEDState())
     writer()->writeLEDState();
-}
-
-void VNCSConnectionST::setSocketTimeouts()
-{
-  int timeoutms = rfb::Server::clientWaitTimeMillis;
-  if (timeoutms == 0)
-    timeoutms = -1;
-  sock->inStream().setTimeout(timeoutms);
-  sock->outStream().setTimeout(timeoutms);
 }

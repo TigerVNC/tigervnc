@@ -31,10 +31,13 @@ CopyRectDecoder::~CopyRectDecoder()
 {
 }
 
-void CopyRectDecoder::readRect(const Rect& r, rdr::InStream* is,
+bool CopyRectDecoder::readRect(const Rect& r, rdr::InStream* is,
                                const ServerParams& server, rdr::OutStream* os)
 {
+  if (!is->hasData(4))
+    return false;
   os->copyBytes(is, 4);
+  return true;
 }
 
 

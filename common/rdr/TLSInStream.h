@@ -37,8 +37,8 @@ namespace rdr {
     virtual ~TLSInStream();
 
   private:
-    virtual bool fillBuffer(size_t maxSize, bool wait);
-    size_t readTLS(U8* buf, size_t len, bool wait);
+    virtual bool fillBuffer(size_t maxSize);
+    size_t readTLS(U8* buf, size_t len);
     static ssize_t pull(gnutls_transport_ptr_t str, void* data, size_t size);
 
     gnutls_session_t session;

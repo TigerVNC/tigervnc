@@ -38,9 +38,9 @@ namespace rdr {
     virtual size_t pos();
 
   private:
-    virtual bool fillBuffer(size_t maxSize, bool wait) = 0;
+    virtual bool fillBuffer(size_t maxSize) = 0;
 
-    virtual bool overrun(size_t needed, bool wait);
+    virtual bool overrun(size_t needed);
 
   private:
     size_t bufSize;

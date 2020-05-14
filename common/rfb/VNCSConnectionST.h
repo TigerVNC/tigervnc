@@ -155,7 +155,6 @@ namespace rfb {
     void setCursor();
     void setDesktopName(const char *name);
     void setLEDState(unsigned int state);
-    void setSocketTimeouts();
 
   private:
     network::Socket* sock;

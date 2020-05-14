@@ -55,7 +55,6 @@ namespace rfb {
     rdr::U32 chosenType;
     rdr::U8 nAvailableTypes;
     rdr::U32 *availableTypes;
-    rdr::U8 iAvailableType;
   };
 }
 #endif

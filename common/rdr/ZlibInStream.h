@@ -44,7 +44,7 @@ namespace rdr {
     void init();
     void deinit();
 
-    virtual bool fillBuffer(size_t maxSize, bool wait);
+    virtual bool fillBuffer(size_t maxSize);
 
   private:
     InStream* underlying;

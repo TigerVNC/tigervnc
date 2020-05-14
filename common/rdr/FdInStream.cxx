@@ -46,17 +46,8 @@
 
 using namespace rdr;
 
-enum { DEFAULT_BUF_SIZE = 8192 };
-
-FdInStream::FdInStream(int fd_, int timeoutms_,
-                       bool closeWhenDone_)
-  : fd(fd_), closeWhenDone(closeWhenDone_),
-    timeoutms(timeoutms_), blockCallback(0)
-{
-}
-
-FdInStream::FdInStream(int fd_, FdInStreamBlockCallback* blockCallback_)
-  : fd(fd_), timeoutms(0), blockCallback(blockCallback_)
+FdInStream::FdInStream(int fd_, bool closeWhenDone_)
+  : fd(fd_), closeWhenDone(closeWhenDone_)
 {
 }
 
@@ -66,20 +57,9 @@ FdInStream::~FdInStream()
 }
 
 
-void FdInStream::setTimeout(int timeoutms_) {
-  timeoutms = timeoutms_;
-}
-
-void FdInStream::setBlockCallback(FdInStreamBlockCallback* blockCallback_)
+bool FdInStream::fillBuffer(size_t maxSize)
 {
-  blockCallback = blockCallback_;
-  timeoutms = 0;
-}
-
-
-bool FdInStream::fillBuffer(size_t maxSize, bool wait)
-{
-  size_t n = readWithTimeoutOrCallback((U8*)end, maxSize, wait);
+  size_t n = readFd((U8*)end, maxSize);
   if (n == 0)
     return false;
   end += n;
@@ -88,55 +68,43 @@ bool FdInStream::fillBuffer(size_t maxSize, bool wait)
 }
 
 //
-// readWithTimeoutOrCallback() reads up to the given length in bytes from the
-// file descriptor into a buffer.  If the wait argument is false, then zero is
-// returned if no bytes can be read without blocking.  Otherwise if a
-// blockCallback is set, it will be called (repeatedly) instead of blocking.
-// If alternatively there is a timeout set and that timeout expires, it throws
-// a TimedOut exception.  Otherwise it returns the number of bytes read.  It
+// readFd() reads up to the given length in bytes from the
+// file descriptor into a buffer. Zero is
+// returned if no bytes can be read. Otherwise it returns the number of bytes read.  It
 // never attempts to recv() unless select() indicates that the fd is readable -
 // this means it can be used on an fd which has been set non-blocking.  It also
 // has to cope with the annoying possibility of both select() and recv()
 // returning EINTR.
 //
 
-size_t FdInStream::readWithTimeoutOrCallback(void* buf, size_t len, bool wait)
+size_t FdInStream::readFd(void* buf, size_t len)
 {
   int n;
-  while (true) {
-    do {
-      fd_set fds;
-      struct timeval tv;
-      struct timeval* tvp = &tv;
+  do {
+    fd_set fds;
+    struct timeval tv;
 
-      if (!wait) {
-        tv.tv_sec = tv.tv_usec = 0;
-      } else if (timeoutms != -1) {
-        tv.tv_sec = timeoutms / 1000;
-        tv.tv_usec = (timeoutms % 1000) * 1000;
-      } else {
-        tvp = 0;
-      }
+    tv.tv_sec = tv.tv_usec = 0;
 
-      FD_ZERO(&fds);
-      FD_SET(fd, &fds);
-      n = select(fd+1, &fds, 0, 0, tvp);
-    } while (n < 0 && errno == EINTR);
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+    n = select(fd+1, &fds, 0, 0, &tv);
+  } while (n < 0 && errno == EINTR);
 
-    if (n > 0) break;
-    if (n < 0) throw SystemException("select",errno);
-    if (!wait) return 0;
-    if (!blockCallback) throw TimedOut();
+  if (n < 0)
+    throw SystemException("select",errno);
 
-    blockCallback->blockCallback();
-  }
+  if (n == 0)
+    return 0;
 
   do {
     n = ::recv(fd, (char*)buf, len, 0);
   } while (n < 0 && errno == EINTR);
 
-  if (n < 0) throw SystemException("read",errno);
-  if (n == 0) throw EndOfStream();
+  if (n < 0)
+    throw SystemException("read",errno);
+  if (n == 0)
+    throw EndOfStream();
 
   return n;
 }

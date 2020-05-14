@@ -352,7 +352,6 @@ int main(int argc, char** argv)
         if (FD_ISSET((*i)->getFd(), &rfds)) {
           Socket* sock = (*i)->accept();
           if (sock) {
-            sock->outStream().setBlocking(false);
             server.addSocket(sock);
           } else {
             vlog.status("Client connection rejected");

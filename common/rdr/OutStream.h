@@ -49,14 +49,6 @@ namespace rdr {
       return end - ptr;
     }
 
-    // check() ensures there is buffer space for at least needed bytes.
-
-    inline void check(size_t needed)
-    {
-      if (needed > avail())
-        overrun(needed);
-    }
-
     // writeU/SN() methods write unsigned and signed N-bit integers.
 
     inline void writeU8( U8  u) { check(1); *ptr++ = u; }
@@ -135,6 +127,12 @@ namespace rdr {
                                         ptr += length; }
 
   private:
+
+    inline void check(size_t length)
+    {
+      if (length > avail())
+        overrun(length);
+    }
 
     // overrun() is implemented by a derived class to cope with buffer overrun.
     // It ensures there are at least needed bytes of buffer space.

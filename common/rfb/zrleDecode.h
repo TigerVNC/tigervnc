@@ -22,11 +22,6 @@
 // This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
 
-#include <stdio.h>
-#include <rdr/InStream.h>
-#include <rdr/ZlibInStream.h>
-#include <rfb/Exception.h>
-
 namespace rfb {
 
 // CONCAT2E concatenates its arguments, expanding them if they are macros
@@ -63,11 +58,17 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
 
+      zlibHasData(zis, 1);
       int mode = zis->readU8();
       bool rle = mode & 128;
       int palSize = mode & 127;
       PIXEL_T palette[128];
 
+#ifdef CPIXEL
+      zlibHasData(zis, 3 * palSize);
+#else
+      zlibHasData(zis, BPP/8 * palSize);
+#endif
       for (int i = 0; i < palSize; i++) {
         palette[i] = READ_PIXEL(zis);
       }
@@ -84,10 +85,12 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
           // raw
 
 #ifdef CPIXEL
+          zlibHasData(zis, 3 * t.area());
           for (PIXEL_T* ptr = buf; ptr < buf+t.area(); ptr++) {
             *ptr = READ_PIXEL(zis);
           }
 #else
+          zlibHasData(zis, BPP/8 * t.area());
           zis->readBytes(buf, t.area() * (BPP / 8));
 #endif
 
@@ -106,6 +109,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
             while (ptr < eol) {
               if (nbits == 0) {
+                zlibHasData(zis, 1);
                 byte = zis->readU8();
                 nbits = 8;
               }
@@ -125,10 +129,16 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
           PIXEL_T* ptr = buf;
           PIXEL_T* end = ptr + t.area();
           while (ptr < end) {
+#ifdef CPIXEL
+            zlibHasData(zis, 3);
+#else
+            zlibHasData(zis, BPP/8);
+#endif
             PIXEL_T pix = READ_PIXEL(zis);
             int len = 1;
             int b;
             do {
+              zlibHasData(zis, 1);
               b = zis->readU8();
               len += b;
             } while (b == 255);
@@ -147,11 +157,13 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
           PIXEL_T* ptr = buf;
           PIXEL_T* end = ptr + t.area();
           while (ptr < end) {
+            zlibHasData(zis, 1);
             int index = zis->readU8();
             int len = 1;
             if (index & 128) {
               int b;
               do {
+                zlibHasData(zis, 1);
                 b = zis->readU8();
                 len += b;
               } while (b == 255);

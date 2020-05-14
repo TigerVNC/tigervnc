@@ -154,7 +154,7 @@ bool CSecurityTLS::processMsg()
   client = cc;
 
   if (!session) {
-    if (!is->checkNoWait(1))
+    if (!is->hasData(1))
       return false;
 
     if (is->readU8() == 0)
@@ -180,8 +180,10 @@ bool CSecurityTLS::processMsg()
   int err;
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
-    if (!gnutls_error_is_fatal(err))
+    if (!gnutls_error_is_fatal(err)) {
+      vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
       return false;
+    }
 
     vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
     shutdown(false);

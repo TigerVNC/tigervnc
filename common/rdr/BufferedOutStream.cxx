@@ -60,7 +60,7 @@ void BufferedOutStream::flush()
 
     len = (ptr - sentUpTo);
 
-    if (!flushBuffer(false))
+    if (!flushBuffer())
       break;
 
     offset += len - (ptr - sentUpTo);
@@ -148,4 +148,6 @@ void BufferedOutStream::overrun(size_t needed)
 
   gettimeofday(&lastSizeCheck, NULL);
   peakUsage = totalNeeded;
+
+  return;
 }

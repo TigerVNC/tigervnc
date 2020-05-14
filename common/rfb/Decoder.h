@@ -52,7 +52,7 @@ namespace rfb {
     // InStream to the OutStream, possibly changing it along the way to
     // make it easier to decode. This function will always be called in
     // a serial manner on the main thread.
-    virtual void readRect(const Rect& r, rdr::InStream* is,
+    virtual bool readRect(const Rect& r, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os)=0;
 
     // These functions will be called from any of the worker threads.

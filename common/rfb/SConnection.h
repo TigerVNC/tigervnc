@@ -60,7 +60,7 @@ namespace rfb {
 
     // processMsg() should be called whenever there is data to read on the
     // InStream.  You must have called initialiseProtocol() first.
-    void processMsg();
+    bool processMsg();
 
     // approveConnection() is called to either accept or reject the connection.
     // If accept is false, the reason string gives the reason for the
@@ -235,12 +235,12 @@ namespace rfb {
 
     bool readyForSetColourMapEntries;
 
-    void processVersionMsg();
-    void processSecurityTypeMsg();
+    bool processVersionMsg();
+    bool processSecurityTypeMsg();
     void processSecurityType(int secType);
-    void processSecurityMsg();
-    void processSecurityFailure();
-    void processInitMsg();
+    bool processSecurityMsg();
+    bool processSecurityFailure();
+    bool processInitMsg();
 
     bool handleAuthFailureTimeout(Timer* t);
 

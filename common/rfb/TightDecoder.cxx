@@ -54,10 +54,15 @@ TightDecoder::~TightDecoder()
 {
 }
 
-void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
+bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
                             const ServerParams& server, rdr::OutStream* os)
 {
   rdr::U8 comp_ctl;
+
+  if (!is->hasData(1))
+    return false;
+
+  is->setRestorePoint();
 
   comp_ctl = is->readU8();
   os->writeU8(comp_ctl);
@@ -66,21 +71,38 @@ void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
 
   // "Fill" compression type.
   if (comp_ctl == tightFill) {
-    if (server.pf().is888())
+    if (server.pf().is888()) {
+      if (!is->hasDataOrRestore(3))
+        return false;
       os->copyBytes(is, 3);
-    else
+    } else {
+      if (!is->hasDataOrRestore(server.pf().bpp/8))
+        return false;
       os->copyBytes(is, server.pf().bpp/8);
-    return;
+    }
+    is->clearRestorePoint();
+    return true;
   }
 
   // "JPEG" compression type.
   if (comp_ctl == tightJpeg) {
     rdr::U32 len;
 
+    // FIXME: Might be less than 3 bytes
+    if (!is->hasDataOrRestore(3))
+      return false;
+
     len = readCompact(is);
     os->writeOpaque32(len);
+
+    if (!is->hasDataOrRestore(len))
+      return false;
+
     os->copyBytes(is, len);
-    return;
+
+    is->clearRestorePoint();
+
+    return true;
   }
 
   // Quit on unsupported compression type.
@@ -98,18 +120,29 @@ void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
   if ((comp_ctl & tightExplicitFilter) != 0) {
     rdr::U8 filterId;
 
+    if (!is->hasDataOrRestore(1))
+      return false;
+
     filterId = is->readU8();
     os->writeU8(filterId);
 
     switch (filterId) {
     case tightFilterPalette:
+      if (!is->hasDataOrRestore(1))
+        return false;
+
       palSize = is->readU8() + 1;
       os->writeU8(palSize - 1);
 
-      if (server.pf().is888())
+      if (server.pf().is888()) {
+        if (!is->hasDataOrRestore(palSize * 3))
+          return false;
         os->copyBytes(is, palSize * 3);
-      else
+      } else {
+        if (!is->hasDataOrRestore(palSize * server.pf().bpp/8))
+          return false;
         os->copyBytes(is, palSize * server.pf().bpp/8);
+      }
       break;
     case tightFilterGradient:
       if (server.pf().bpp == 8)
@@ -137,15 +170,29 @@ void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
 
   dataSize = r.height() * rowSize;
 
-  if (dataSize < TIGHT_MIN_TO_COMPRESS)
+  if (dataSize < TIGHT_MIN_TO_COMPRESS) {
+    if (!is->hasDataOrRestore(dataSize))
+      return false;
     os->copyBytes(is, dataSize);
-  else {
+  } else {
     rdr::U32 len;
+
+    // FIXME: Might be less than 3 bytes
+    if (!is->hasDataOrRestore(3))
+      return false;
 
     len = readCompact(is);
     os->writeOpaque32(len);
+
+    if (!is->hasDataOrRestore(len))
+      return false;
+
     os->copyBytes(is, len);
   }
+
+  is->clearRestorePoint();
+
+  return true;
 }
 
 bool TightDecoder::doRectsConflict(const Rect& rectA,
@@ -339,6 +386,8 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
     // Allocate buffer and decompress the data
     netbuf = new rdr::U8[dataSize];
 
+    if (!zis[streamId].hasData(dataSize))
+      throw Exception("Tight decode error");
     zis[streamId].readBytes(netbuf, dataSize);
 
     zis[streamId].flushUnderlying();

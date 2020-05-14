@@ -116,9 +116,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
   Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
 
-  // See callback below
-  sock->inStream().setBlockCallback(this);
-
   setServerName(serverHost);
   setStreams(&sock->inStream(), &sock->outStream());
 
@@ -228,22 +225,11 @@ unsigned CConn::getPosition()
   return sock->inStream().pos();
 }
 
-// The RFB core is not properly asynchronous, so it calls this callback
-// whenever it needs to block to wait for more data. Since FLTK is
-// monitoring the socket, we just make sure FLTK gets to run.
-
-void CConn::blockCallback()
-{
-  run_mainloop();
-
-  if (should_exit())
-    throw rdr::Exception("Termination requested");
-}
-
 void CConn::socketEvent(FL_SOCKET fd, void *data)
 {
   CConn *cc;
   static bool recursing = false;
+  int when;
 
   assert(data);
   cc = (CConn*)data;
@@ -255,10 +241,14 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
   recursing = true;
 
   try {
+    // We might have been called to flush unwritten socket data
+    cc->sock->outStream().flush();
+
+    cc->sock->outStream().cork(true);
+
     // processMsg() only processes one message, so we need to loop
     // until the buffers are empty or things will stall.
-    do {
-      cc->processMsg();
+    while (cc->processMsg()) {
 
       // Make sure that the FLTK handling and the timers gets some CPU
       // time in case of back to back messages
@@ -268,7 +258,10 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
        // Also check if we need to stop reading and terminate
        if (should_exit())
          break;
-    } while (cc->getInStream()->checkNoWait(1));
+    }
+
+    cc->sock->outStream().cork(false);
+    cc->sock->outStream().flush();
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
     exit_vncviewer();
@@ -279,6 +272,12 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     if (!should_exit())
       exit_vncviewer(e.str());
   }
+
+  when = FL_READ | FL_EXCEPT;
+  if (cc->sock->outStream().hasBufferedData())
+    when |= FL_WRITE;
+
+  Fl::add_fd(fd, when, socketEvent, data);
 
   recursing = false;
 }
@@ -402,14 +401,19 @@ void CConn::bell()
   fl_beep();
 }
 
-void CConn::dataRect(const Rect& r, int encoding)
+bool CConn::dataRect(const Rect& r, int encoding)
 {
+  bool ret;
+
   if (encoding != encodingCopyRect)
     lastServerEncoding = encoding;
 
-  CConnection::dataRect(r, encoding);
+  ret = CConnection::dataRect(r, encoding);
 
-  pixelCount += r.area();
+  if (ret)
+    pixelCount += r.area();
+
+  return ret;
 }
 
 void CConn::setCursor(int width, int height, const Point& hotspot,

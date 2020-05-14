@@ -36,7 +36,6 @@ namespace rfb {
     static IntParameter maxDisconnectionTime;
     static IntParameter maxConnectionTime;
     static IntParameter maxIdleTime;
-    static IntParameter clientWaitTimeMillis;
     static IntParameter compareFB;
     static IntParameter frameRate;
     static BoolParameter protocol3_3;
