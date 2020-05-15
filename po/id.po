@@ -1,149 +1,138 @@
 # Indonesian translation of TigerVNC
 # Copyright (C) 2018 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
-# Andika Triwidada <andika@gmail.com>, 2018.
+# Andika Triwidada <andika@gmail.com>, 2018, 2020.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.7.90\n"
+"Project-Id-Version: tigervnc 1.9.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2017-04-19 13:05+0000\n"
-"PO-Revision-Date: 2018-03-08 00:54+0700\n"
+"POT-Creation-Date: 2019-10-18 10:14+0200\n"
+"PO-Revision-Date: 2020-05-16 06:53+0700\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <translation-team-id@lists.sourceforge.net>\n"
 "Language: id\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 2.3\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: vncviewer/CConn.cxx:110
+#: vncviewer/CConn.cxx:99
 #, c-format
-msgid "connected to host %s port %d"
-msgstr "terhubung ke host %s port %d"
+msgid "Connected to socket %s"
+msgstr "Terhubung ke soket %s"
 
-#: vncviewer/CConn.cxx:169
+#: vncviewer/CConn.cxx:106
+#, c-format
+msgid "Connected to host %s port %d"
+msgstr "Terhubung ke host %s port% d"
+
+#: vncviewer/CConn.cxx:157
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Nama desktop: %.80s"
 
-#: vncviewer/CConn.cxx:174
+#: vncviewer/CConn.cxx:162
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Host: %.80s port: %d"
 
-#: vncviewer/CConn.cxx:179
+#: vncviewer/CConn.cxx:167
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Ukuran: %d × %d"
 
-#: vncviewer/CConn.cxx:187
+#: vncviewer/CConn.cxx:175
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Format piksel: %s"
 
-#: vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:182
 #, c-format
 msgid "(server default %s)"
 msgstr "(server baku %s)"
 
-#: vncviewer/CConn.cxx:199
+#: vncviewer/CConn.cxx:187
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Pengkodean yang diminta: %s"
 
-#: vncviewer/CConn.cxx:204
+#: vncviewer/CConn.cxx:192
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Pengkodean yang terakhir dipakai: %s"
 
-#: vncviewer/CConn.cxx:209
+#: vncviewer/CConn.cxx:197
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Estimasi kecepatan saluran: %d kbit/s"
 
-#: vncviewer/CConn.cxx:214
+#: vncviewer/CConn.cxx:202
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Versi protokol: %d.%d"
 
-#: vncviewer/CConn.cxx:219
+#: vncviewer/CConn.cxx:207
 #, c-format
 msgid "Security method: %s"
 msgstr "Metode keamanan: %s"
 
-#: vncviewer/CConn.cxx:343
+#: vncviewer/CConn.cxx:324
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "SetDesktopSize gagal: %d"
 
-#: vncviewer/CConn.cxx:413
+#: vncviewer/CConn.cxx:372
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "SetColourMapEntries yang tidak valid dari server!"
 
-#: vncviewer/CConn.cxx:489
-msgid "Enabling continuous updates"
-msgstr "Memfungsikan pembaruan terus-menerus"
-
-#: vncviewer/CConn.cxx:559
+#: vncviewer/CConn.cxx:480
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Throughput %d kbit/s - mengubah ke kualitas %d"
 
-#: vncviewer/CConn.cxx:581
+#: vncviewer/CConn.cxx:502
 #, c-format
-msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Throughput %d kbit/s - warna penuh sekarang %s"
+msgid "Throughput %d kbit/s - full color is now enabled"
+msgstr "Throughput %d kbit/s - warna penuh sekarang difungsikan"
 
-#: vncviewer/CConn.cxx:583
-msgid "disabled"
-msgstr "dinonaktifkan"
-
-#: vncviewer/CConn.cxx:583
-msgid "enabled"
-msgstr "difungsikan"
-
-#: vncviewer/CConn.cxx:593
+#: vncviewer/CConn.cxx:505
 #, c-format
-msgid "Using %s encoding"
-msgstr "Memakai pengkodean %s"
+msgid "Throughput %d kbit/s - full color is now disabled"
+msgstr "Throughput %d kbit/s - warna penuh sekarang dinonaktifkan"
 
-#: vncviewer/CConn.cxx:640
+#: vncviewer/CConn.cxx:531
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Memakai format piksel %s"
 
-#: vncviewer/DesktopWindow.cxx:121
+#: vncviewer/DesktopWindow.cxx:122
 msgid "Invalid geometry specified!"
 msgstr "Geometri yang dinyatakan tidak valid!"
 
-#: vncviewer/DesktopWindow.cxx:434
+#: vncviewer/DesktopWindow.cxx:495
 msgid "Adjusting window size to avoid accidental full screen request"
 msgstr "Menyetel ukuran jendela untuk menghindari permintaan layar penuh tak disengaja"
 
-#: vncviewer/DesktopWindow.cxx:478
+#: vncviewer/DesktopWindow.cxx:539
 #, c-format
 msgid "Press %s to open the context menu"
 msgstr "Tekan %s untuk membuka menu konteks"
 
-#: vncviewer/DesktopWindow.cxx:741 vncviewer/DesktopWindow.cxx:747
-#: vncviewer/DesktopWindow.cxx:760
+#: vncviewer/DesktopWindow.cxx:836 vncviewer/DesktopWindow.cxx:844
+#: vncviewer/DesktopWindow.cxx:864
 msgid "Failure grabbing keyboard"
 msgstr "Kegagalan dalam mengambil alih papan ketik"
 
-#: vncviewer/DesktopWindow.cxx:772
+#: vncviewer/DesktopWindow.cxx:938
 msgid "Failure grabbing mouse"
 msgstr "Kegagalan dalam mengambil alih tetikus"
 
-#: vncviewer/DesktopWindow.cxx:1002
+#: vncviewer/DesktopWindow.cxx:1162
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Tata letak layar yang tidak valid dihitung untuk permintaan ubah ukuran!"
-
-#: vncviewer/FLTKPixelBuffer.cxx:33
-msgid "Not enough memory for framebuffer"
-msgstr "Tidak cukup memori untuk framebuffer"
 
 #: vncviewer/OptionsDialog.cxx:57
 msgid "VNC Viewer: Connection Options"
@@ -339,182 +328,244 @@ msgstr "Tentang..."
 msgid "Connect"
 msgstr "Sambung"
 
-#: vncviewer/UserDialog.cxx:74
+#: vncviewer/ServerDialog.cxx:137 vncviewer/ServerDialog.cxx:171
+msgid "TigerVNC configuration (*.tigervnc)"
+msgstr "Konfigurasi TigerVNC (*.tigervnc)"
+
+#: vncviewer/ServerDialog.cxx:138
+msgid "Select a TigerVNC configuration file"
+msgstr "Pilih berkas konfigurasi TigerVNC"
+
+#: vncviewer/ServerDialog.cxx:172
+msgid "Save the TigerVNC configuration to file"
+msgstr "Simpan konfigurasi TigerVNC ke berkas"
+
+#: vncviewer/ServerDialog.cxx:197
+#, c-format
+msgid "%s already exists. Do you want to overwrite?"
+msgstr "%s sudah ada. Apakah Anda ingin menimpa?"
+
+#: vncviewer/ServerDialog.cxx:198 vncviewer/vncviewer.cxx:279
+msgid "No"
+msgstr "Tidak"
+
+#: vncviewer/ServerDialog.cxx:198
+msgid "Overwrite"
+msgstr "Timpa"
+
+#: vncviewer/UserDialog.cxx:85
 msgid "Opening password file failed"
 msgstr "Membuka berkas kata sandi gagal"
 
-#: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
+#: vncviewer/UserDialog.cxx:105
 msgid "VNC authentication"
 msgstr "Otentikasi VNC"
 
-#: vncviewer/UserDialog.cxx:87 vncviewer/UserDialog.cxx:102
-msgid "Password:"
-msgstr "Kata Sandi:"
+#: vncviewer/UserDialog.cxx:112
+msgid "This connection is secure"
+msgstr "Sambungan ini aman"
 
-#: vncviewer/UserDialog.cxx:89
-msgid "Authentication cancelled"
-msgstr "Autentikasi dibatalkan"
+#: vncviewer/UserDialog.cxx:116
+msgid "This connection is not secure"
+msgstr "Sambungan ini tidak aman"
 
-#: vncviewer/UserDialog.cxx:99
+#: vncviewer/UserDialog.cxx:133
 msgid "Username:"
 msgstr "Nama Pengguna:"
 
-#: vncviewer/Viewport.cxx:586
+#: vncviewer/UserDialog.cxx:146
+msgid "Password:"
+msgstr "Kata Sandi:"
+
+#: vncviewer/UserDialog.cxx:185
+msgid "Authentication cancelled"
+msgstr "Autentikasi dibatalkan"
+
+#: vncviewer/Viewport.cxx:389
+#, c-format
+msgid "Failed to update keyboard LED state: %lu"
+msgstr "Gagal memperbarui keadaan LED papan tik: %lu"
+
+#: vncviewer/Viewport.cxx:395 vncviewer/Viewport.cxx:401
+#, c-format
+msgid "Failed to update keyboard LED state: %d"
+msgstr "Gagal memperbarui keadaan LED papan tik: %d"
+
+#: vncviewer/Viewport.cxx:431
+msgid "Failed to update keyboard LED state"
+msgstr "Gagal memperbarui keadaan LED papan tik"
+
+#: vncviewer/Viewport.cxx:458 vncviewer/Viewport.cxx:466
+#: vncviewer/Viewport.cxx:483
+#, c-format
+msgid "Failed to get keyboard LED state: %d"
+msgstr "Gagal mendapatkan keadaan LED papan tik: %d"
+
+#: vncviewer/Viewport.cxx:833
+msgid "No key code specified on key press"
+msgstr "Tidak ada kode tombol yang dinyatakan saat penekanan tombol"
+
+#: vncviewer/Viewport.cxx:982
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Tidak ada kode pindai untuk tombol virtual yang diperluas 0x%02x"
 
-#: vncviewer/Viewport.cxx:588
+#: vncviewer/Viewport.cxx:984
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Tidak ada kode pindai untuk tombol virtual 0x%02x"
 
-#: vncviewer/Viewport.cxx:605
+#: vncviewer/Viewport.cxx:990
+#, c-format
+msgid "Invalid scan code 0x%02x"
+msgstr "Kode pindai tidak valid 0x%02x"
+
+#: vncviewer/Viewport.cxx:1020
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Tidak ada simbol untuk tombol virtual yang diperluas 0x%02x"
 
-#: vncviewer/Viewport.cxx:607
+#: vncviewer/Viewport.cxx:1022
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Tidak ada simbol untuk tombol virtual 0x%02x"
 
-#: vncviewer/Viewport.cxx:645
+#: vncviewer/Viewport.cxx:1115
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Tidak ada simbol untuk kode tombol 0x%02x (dalam keadaan saat ini)"
 
-#: vncviewer/Viewport.cxx:671
+#: vncviewer/Viewport.cxx:1148
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Tidak ada simbol untuk kode tombol %d (dalam keadaan saat ini)"
 
-#: vncviewer/Viewport.cxx:708
+#: vncviewer/Viewport.cxx:1199
 msgctxt "ContextMenu|"
 msgid "E&xit viewer"
 msgstr "&Keluar penampil"
 
-#: vncviewer/Viewport.cxx:711
+#: vncviewer/Viewport.cxx:1202
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "Layar &Penuh"
 
-#: vncviewer/Viewport.cxx:714
+#: vncviewer/Viewport.cxx:1205
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "Mi&nimalkan"
 
-#: vncviewer/Viewport.cxx:716
+#: vncviewer/Viewport.cxx:1207
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Ubah ukuran &jendela ke sesi"
 
-#: vncviewer/Viewport.cxx:721
+#: vncviewer/Viewport.cxx:1212
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:724
+#: vncviewer/Viewport.cxx:1215
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:730
+#: vncviewer/Viewport.cxx:1221
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Kirim %s"
 
-#: vncviewer/Viewport.cxx:736
+#: vncviewer/Viewport.cxx:1227
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Kirim Ctrl-Alt-Del"
 
-#: vncviewer/Viewport.cxx:739
+#: vncviewer/Viewport.cxx:1230
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "Sega&rkan layar"
 
-#: vncviewer/Viewport.cxx:742
+#: vncviewer/Viewport.cxx:1233
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "&Opsi..."
 
-#: vncviewer/Viewport.cxx:744
+#: vncviewer/Viewport.cxx:1235
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "&Info koneksi..."
 
-#: vncviewer/Viewport.cxx:746
+#: vncviewer/Viewport.cxx:1237
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Tentang penampil &TigerVNC..."
 
-#: vncviewer/Viewport.cxx:749
+#: vncviewer/Viewport.cxx:1240
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
 msgstr "Tutup &menu"
 
-#: vncviewer/Viewport.cxx:833
+#: vncviewer/Viewport.cxx:1329
 msgid "VNC connection info"
 msgstr "Informasi sambungan VNC"
 
-#: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
+#: vncviewer/parameters.cxx:278 vncviewer/parameters.cxx:312
 #, c-format
 msgid "The name of the parameter %s was too large to write to the registry"
 msgstr "Nama parameter %s terlalu besar untuk ditulis ke registry"
 
-#: vncviewer/parameters.cxx:292 vncviewer/parameters.cxx:299
+#: vncviewer/parameters.cxx:284 vncviewer/parameters.cxx:291
 #, c-format
 msgid "The parameter %s was too large to write to the registry"
 msgstr "Parameter %s terlalu besar untuk ditulis ke registry"
 
-#: vncviewer/parameters.cxx:305 vncviewer/parameters.cxx:326
+#: vncviewer/parameters.cxx:297 vncviewer/parameters.cxx:318
 #, c-format
 msgid "Failed to write parameter %s of type %s to the registry: %ld"
 msgstr "Gagal menulis parameter %s jenis %s ke registry: %ld"
 
-#: vncviewer/parameters.cxx:341 vncviewer/parameters.cxx:380
+#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:377
 #, c-format
 msgid "The name of the parameter %s was too large to read from the registry"
 msgstr "Nama parameter %s terlalu besar untuk dibaca dari registry"
 
-#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:389
+#: vncviewer/parameters.cxx:346 vncviewer/parameters.cxx:386
 #, c-format
 msgid "Failed to read parameter %s from the registry: %ld"
 msgstr "Gagal membaca parameter %s dari registry: %ld"
 
-#: vncviewer/parameters.cxx:359
+#: vncviewer/parameters.cxx:357
 #, c-format
 msgid "The parameter %s was too large to read from the registry"
 msgstr "Parameter %s terlalu besar untuk dibaca dari registry"
 
-#: vncviewer/parameters.cxx:409
+#: vncviewer/parameters.cxx:406
 #, c-format
 msgid "Failed to create registry key: %ld"
 msgstr "Gagal membuat kunci registry: %ld"
 
-#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
-#: vncviewer/parameters.cxx:534 vncviewer/parameters.cxx:665
+#: vncviewer/parameters.cxx:420 vncviewer/parameters.cxx:469
+#: vncviewer/parameters.cxx:532 vncviewer/parameters.cxx:666
 #, c-format
 msgid "Unknown parameter type for parameter %s"
 msgstr "Tipe parameter tidak dikenal untuk parameter %s"
 
-#: vncviewer/parameters.cxx:430 vncviewer/parameters.cxx:479
+#: vncviewer/parameters.cxx:427 vncviewer/parameters.cxx:476
 #, c-format
 msgid "Failed to close registry key: %ld"
 msgstr "Gagal menutup kunci registry: %ld"
 
-#: vncviewer/parameters.cxx:446
+#: vncviewer/parameters.cxx:443
 #, c-format
 msgid "Failed to open registry key: %ld"
 msgstr "Gagal membuka kunci registry: %ld"
 
-#: vncviewer/parameters.cxx:503
+#: vncviewer/parameters.cxx:500
 msgid "Failed to write configuration file, can't obtain home directory path."
 msgstr "Gagal menulis berkas konfigurasi, tak bisa memperoleh path direktori rumah."
 
-#: vncviewer/parameters.cxx:516
+#: vncviewer/parameters.cxx:514
 #, c-format
 msgid "Failed to write configuration file, can't open %s: %s"
 msgstr "Gagal menulis berkas konfigurasi, tak bisa membuka %s: %s"
@@ -523,36 +574,36 @@ msgstr "Gagal menulis berkas konfigurasi, tak bisa membuka %s: %s"
 msgid "Failed to read configuration file, can't obtain home directory path."
 msgstr "Gagal membaca berkas konfigurasi, tak bisa memperoleh path direktori rumah."
 
-#: vncviewer/parameters.cxx:572
+#: vncviewer/parameters.cxx:573
 #, c-format
 msgid "Failed to read configuration file, can't open %s: %s"
 msgstr "Gagal membaca berkas konfigurasi, tak bisa membuka %s: %s"
 
-#: vncviewer/parameters.cxx:585 vncviewer/parameters.cxx:590
-#: vncviewer/parameters.cxx:615 vncviewer/parameters.cxx:628
-#: vncviewer/parameters.cxx:644
+#: vncviewer/parameters.cxx:586 vncviewer/parameters.cxx:591
+#: vncviewer/parameters.cxx:616 vncviewer/parameters.cxx:629
+#: vncviewer/parameters.cxx:645
 #, c-format
 msgid "Failed to read line %d in file %s: %s"
 msgstr "Gagal membaca baris %d dalam berkas %s: %s"
 
-#: vncviewer/parameters.cxx:591
+#: vncviewer/parameters.cxx:592
 msgid "Line too long"
 msgstr "Baris terlalu panjang"
 
-#: vncviewer/parameters.cxx:598
+#: vncviewer/parameters.cxx:599
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Berkas konfigurasi %s berada dalam format yang tidak valid"
 
-#: vncviewer/parameters.cxx:616
+#: vncviewer/parameters.cxx:617
 msgid "Invalid format"
 msgstr "Format tidak valid"
 
-#: vncviewer/parameters.cxx:629 vncviewer/parameters.cxx:645
+#: vncviewer/parameters.cxx:630 vncviewer/parameters.cxx:646
 msgid "Invalid format or too large value"
 msgstr "Format tidak valid atau nilai terlalu besar"
 
-#: vncviewer/parameters.cxx:672
+#: vncviewer/parameters.cxx:673
 #, c-format
 msgid "Unknown parameter %s on line %d in file %s"
 msgstr "Parameter tidak dikenal %s pada baris %d dalam berkas %s"
@@ -562,12 +613,12 @@ msgstr "Parameter tidak dikenal %s pada baris %d dalam berkas %s"
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
-"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
-"See http://www.tigervnc.org for information on TigerVNC."
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
+"See https://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "Penampil TigerVNC %d-bit v%s\n"
 "Dibangun pada: %s\n"
-"Hak Cipta (C) 1999-%d Tim TigerVNC dan banyak lagi (lihat README.txt)\n"
+"Hak Cipta (C) 1999-%d Tim TigerVNC dan banyak lagi (lihat README.rst)\n"
 "Lihat http://www.tigervnc.org untuk informasi tentang TigerVNC."
 
 #: vncviewer/vncviewer.cxx:127
@@ -588,13 +639,9 @@ msgstr "Kesalahan saat memulai Penampil TigerVNC baru: %s"
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr "Sinyal pengakhiran %d telah diterima. Penampil TigerVNC sekarang akan keluar."
 
-#: vncviewer/vncviewer.cxx:271
+#: vncviewer/vncviewer.cxx:271 vncviewer/vncviewer.desktop.in.in:3
 msgid "TigerVNC Viewer"
 msgstr "Penampil TigerVNC"
-
-#: vncviewer/vncviewer.cxx:279
-msgid "No"
-msgstr "Tidak"
 
 #: vncviewer/vncviewer.cxx:280
 msgid "Yes"
@@ -649,11 +696,23 @@ msgstr "Tidak bisa membuat direktori rumah VNC: %s."
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:534 vncviewer/vncviewer.cxx:535
+#: vncviewer/vncviewer.cxx:602 vncviewer/vncviewer.cxx:604
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Parameter -listen dan -via tidak kompatibel"
 
-#: vncviewer/vncviewer.cxx:550
+#: vncviewer/vncviewer.cxx:619
 #, c-format
 msgid "Listening on port %d"
 msgstr "Mendengarkan pada port %d"
+
+#: vncviewer/vncviewer.desktop.in.in:4
+msgid "Remote Desktop Viewer"
+msgstr "Penampil Desktop Jarak Jauh"
+
+#: vncviewer/vncviewer.desktop.in.in:5
+msgid "Connect to VNC server and display remote desktop"
+msgstr "Sambungkan ke server VNC dan tampilkan desktop jarak jauh"
+
+#: vncviewer/vncviewer.desktop.in.in:7
+msgid "tigervnc"
+msgstr "tigervnc"
