@@ -109,11 +109,6 @@ char* UnixSocket::getPeerEndpoint() {
   return getPeerAddress();
 }
 
-bool UnixSocket::cork(bool enable)
-{
-  return true;
-}
-
 UnixListener::UnixListener(const char *path, int mode)
 {
   struct sockaddr_un addr;

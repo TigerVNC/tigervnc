@@ -31,6 +31,7 @@ namespace rdr {
 
     void flush();
     size_t length();
+    virtual void cork(bool enable);
 
     static char intToHex(int i);
     static char* binToHexStr(const char* data, size_t length);

@@ -42,6 +42,7 @@ namespace rdr {
     void setCompressionLevel(int level=-1);
     void flush();
     size_t length();
+    virtual void cork(bool enable);
 
   private:
 

@@ -92,10 +92,25 @@ void ZlibOutStream::flush()
 #endif
 
   // Force out everything from the zlib encoder
-  deflate(Z_SYNC_FLUSH);
+  deflate(corked ? Z_NO_FLUSH : Z_SYNC_FLUSH);
 
-  offset += ptr - start;
-  ptr = start;
+  if (zs->avail_in == 0) {
+    offset += ptr - start;
+    ptr = start;
+  } else {
+    // didn't consume all the data?  try shifting what's left to the
+    // start of the buffer.
+    memmove(start, zs->next_in, ptr - zs->next_in);
+    offset += zs->next_in - start;
+    ptr -= zs->next_in - start;
+  }
+}
+
+void ZlibOutStream::cork(bool enable)
+{
+  OutStream::cork(enable);
+
+  underlying->cork(enable);
 }
 
 void ZlibOutStream::overrun(size_t needed)
@@ -110,24 +125,11 @@ void ZlibOutStream::overrun(size_t needed)
   checkCompressionLevel();
 
   while (avail() < needed) {
-    zs->next_in = start;
-    zs->avail_in = ptr - start;
-
-    deflate(Z_NO_FLUSH);
-
-    // output buffer not full
-
-    if (zs->avail_in == 0) {
-      offset += ptr - start;
-      ptr = start;
-    } else {
-      // but didn't consume all the data?  try shifting what's left to the
-      // start of the buffer.
-      vlog.info("z out buf not full, but in data not consumed");
-      memmove(start, zs->next_in, ptr - zs->next_in);
-      offset += zs->next_in - start;
-      ptr -= zs->next_in - start;
-    }
+    // use corked to make zlib a bit more efficient since we're not trying
+    // to end the stream here, just make some room
+    corked = true;
+    flush();
+    corked = false;
   }
 }
 

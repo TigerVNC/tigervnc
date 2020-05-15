@@ -37,6 +37,7 @@ namespace rdr {
 
     void flush();
     size_t length();
+    virtual void cork(bool enable);
 
   protected:
     virtual void overrun(size_t needed);

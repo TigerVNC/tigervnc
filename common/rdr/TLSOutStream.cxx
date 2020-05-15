@@ -82,7 +82,13 @@ size_t TLSOutStream::length()
 
 void TLSOutStream::flush()
 {
-  U8* sentUpTo = start;
+  U8* sentUpTo;
+
+  // Only give GnuTLS larger chunks if corked to minimize overhead
+  if (corked && ((ptr - start) < 1024))
+    return;
+
+  sentUpTo = start;
   while (sentUpTo < ptr) {
     size_t n = writeTLS(sentUpTo, ptr - sentUpTo);
     sentUpTo += n;
@@ -93,12 +99,22 @@ void TLSOutStream::flush()
   out->flush();
 }
 
+void TLSOutStream::cork(bool enable)
+{
+  OutStream::cork(enable);
+
+  out->cork(enable);
+}
+
 void TLSOutStream::overrun(size_t needed)
 {
   if (needed > bufSize)
     throw Exception("TLSOutStream overrun: buffer size exceeded");
 
+  // A cork might prevent the flush, so disable it temporarily
+  corked = false;
   flush();
+  corked = true;
 }
 
 size_t TLSOutStream::writeTLS(const U8* data, size_t length)

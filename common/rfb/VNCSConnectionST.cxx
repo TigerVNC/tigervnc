@@ -116,7 +116,7 @@ void VNCSConnectionST::close(const char* reason)
 
   try {
     if (sock->outStream().bufferUsage() > 0) {
-      sock->cork(false);
+      sock->outStream().cork(false);
       sock->outStream().flush();
       if (sock->outStream().bufferUsage() > 0)
         vlog.error("Failed to flush remaining socket data on close");
@@ -157,9 +157,9 @@ void VNCSConnectionST::processMessages()
 
     inProcessMessages = true;
 
-    // Get the underlying TCP layer to build large packets if we send
+    // Get the underlying transport to build large packets if we send
     // multiple small responses.
-    sock->cork(true);
+    getOutStream()->cork(true);
 
     while (getInStream()->checkNoWait(1)) {
       if (pendingSyncFence) {
@@ -176,7 +176,7 @@ void VNCSConnectionST::processMessages()
     }
 
     // Flush out everything in case we go idle after this.
-    sock->cork(false);
+    getOutStream()->cork(false);
 
     inProcessMessages = false;
 
@@ -880,7 +880,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // mode, we will also have small fence messages around the update. We
   // need to aggregate these in order to not clog up TCP's congestion
   // window.
-  sock->cork(true);
+  getOutStream()->cork(true);
 
   // First take care of any updates that cannot contain framebuffer data
   // changes.
@@ -889,7 +889,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // Then real data (if possible)
   writeDataUpdate();
 
-  sock->cork(false);
+  getOutStream()->cork(false);
 
   congestion.updatePosition(sock->outStream().length());
 }

@@ -38,7 +38,6 @@ HexOutStream::~HexOutStream() {
   delete [] start;
 }
 
-
 char HexOutStream::intToHex(int i) {
   if ((i>=0) && (i<=9))
     return '0'+i;
@@ -93,6 +92,13 @@ void
 HexOutStream::flush() {
   writeBuffer();
   out_stream.flush();
+}
+
+void HexOutStream::cork(bool enable)
+{
+  OutStream::cork(enable);
+
+  out_stream.cork(enable);
 }
 
 void HexOutStream::overrun(size_t needed) {

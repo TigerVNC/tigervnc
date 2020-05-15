@@ -43,6 +43,8 @@ namespace rdr {
 
     unsigned getIdleTime();
 
+    virtual void cork(bool enable);
+
   private:
     virtual bool flushBuffer(bool wait);
     size_t writeWithTimeout(const void* data, size_t length, int timeoutms);

@@ -34,7 +34,7 @@ namespace rdr {
 
   protected:
 
-    OutStream() {}
+    OutStream() : ptr(NULL), end(NULL), corked(false) {}
 
   public:
 
@@ -128,6 +128,10 @@ namespace rdr {
 
     virtual void flush() {}
 
+    // cork() requests that the stream coalesces flushes in an efficient way
+
+    virtual void cork(bool enable) { corked = enable; flush(); }
+
     // getptr(), getend() and setptr() are "dirty" methods which allow you to
     // manipulate the buffer directly.  This is useful for a stream which is a
     // wrapper around an underlying stream.
@@ -147,6 +151,8 @@ namespace rdr {
 
     U8* ptr;
     U8* end;
+
+    bool corked;
   };
 
 }

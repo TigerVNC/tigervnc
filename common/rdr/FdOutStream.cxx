@@ -77,6 +77,16 @@ unsigned FdOutStream::getIdleTime()
   return rfb::msSince(&lastWrite);
 }
 
+void FdOutStream::cork(bool enable)
+{
+  BufferedOutStream::cork(enable);
+
+#ifdef TCP_CORK
+  int one = enable ? 1 : 0;
+  setsockopt(fd, IPPROTO_TCP, TCP_CORK, (char *)&one, sizeof(one));
+#endif
+}
+
 bool FdOutStream::flushBuffer(bool wait)
 {
   size_t n = writeWithTimeout((const void*) sentUpTo,
