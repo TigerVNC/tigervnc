@@ -83,14 +83,6 @@ namespace rdr {
       while (bytes-- > 0) writeU8(0);
     }
 
-    inline void skip(size_t bytes) {
-      while (bytes > 0) {
-        size_t n = check(1, bytes);
-        ptr += n;
-        bytes -= n;
-      }
-    }
-
     // writeBytes() writes an exact number of bytes.
 
     void writeBytes(const void* data, size_t length) {

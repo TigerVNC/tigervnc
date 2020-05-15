@@ -61,7 +61,7 @@ void CMsgWriter::writeSetEncodings(const std::list<rdr::U32> encodings)
 {
   std::list<rdr::U32>::const_iterator iter;
   startMsg(msgTypeSetEncodings);
-  os->skip(1);
+  os->pad(1);
   os->writeU16(encodings.size());
   for (iter = encodings.begin(); iter != encodings.end(); ++iter)
     os->writeU32(*iter);
