@@ -49,26 +49,20 @@
 
 using namespace rdr;
 
-enum { DEFAULT_BUF_SIZE = 16384 };
-
 FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_, size_t bufSize_)
-  : fd(fd_), blocking(blocking_), timeoutms(timeoutms_),
-    bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
+  : BufferedOutStream(bufSize_),
+    fd(fd_), blocking(blocking_), timeoutms(timeoutms_)
 {
-  ptr = start = sentUpTo = new U8[bufSize];
-  end = start + bufSize;
-
   gettimeofday(&lastWrite, NULL);
 }
 
 FdOutStream::~FdOutStream()
 {
   try {
-    blocking = true;
-    flush();
+    while (sentUpTo != ptr)
+      flushBuffer(true);
   } catch (Exception&) {
   }
-  delete [] start;
 }
 
 void FdOutStream::setTimeout(int timeoutms_) {
@@ -79,82 +73,29 @@ void FdOutStream::setBlocking(bool blocking_) {
   blocking = blocking_;
 }
 
-size_t FdOutStream::length()
-{
-  return offset + ptr - sentUpTo;
-}
-
-int FdOutStream::bufferUsage()
-{
-  return ptr - sentUpTo;
-}
-
 unsigned FdOutStream::getIdleTime()
 {
   return rfb::msSince(&lastWrite);
 }
 
-void FdOutStream::flush()
+bool FdOutStream::flushBuffer(bool wait)
 {
-  while (sentUpTo < ptr) {
-    size_t n = writeWithTimeout((const void*) sentUpTo,
-                                ptr - sentUpTo,
-                                blocking? timeoutms : 0);
+  size_t n = writeWithTimeout((const void*) sentUpTo,
+                              ptr - sentUpTo,
+                              (blocking || wait)? timeoutms : 0);
 
-    // Timeout?
-    if (n == 0) {
-      // If non-blocking then we're done here
-      if (!blocking)
-        break;
+  // Timeout?
+  if (n == 0) {
+    // If non-blocking then we're done here
+    if (!blocking && !wait)
+      return false;
 
-      throw TimedOut();
-    }
-
-    sentUpTo += n;
-    offset += n;
+    throw TimedOut();
   }
 
-   // Managed to flush everything?
-  if (sentUpTo == ptr)
-    ptr = sentUpTo = start;
-}
+  sentUpTo += n;
 
-
-size_t FdOutStream::overrun(size_t itemSize, size_t nItems)
-{
-  if (itemSize > bufSize)
-    throw Exception("FdOutStream overrun: max itemSize exceeded");
-
-  // First try to get rid of the data we have
-  flush();
-
-  // Still not enough space?
-  if (itemSize > avail()) {
-    // Can we shuffle things around?
-    // (don't do this if it gains us less than 25%)
-    if (((size_t)(sentUpTo - start) > bufSize / 4) &&
-        (itemSize < bufSize - (ptr - sentUpTo))) {
-      memmove(start, sentUpTo, ptr - sentUpTo);
-      ptr = start + (ptr - sentUpTo);
-      sentUpTo = start;
-    } else {
-      // Have to get rid of more data, so turn off non-blocking
-      // for a bit...
-      bool realBlocking;
-
-      realBlocking = blocking;
-      blocking = true;
-      flush();
-      blocking = realBlocking;
-    }
-  }
-
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
+  return true;
 }
 
 //

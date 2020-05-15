@@ -24,18 +24,14 @@
 
 using namespace rdr;
 
-const int DEFAULT_BUF_LEN = 16384;
-
 static inline int min(int a, int b) {return a<b ? a : b;}
 
 HexInStream::HexInStream(InStream& is, size_t bufSize_)
-: bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_LEN), offset(0), in_stream(is)
+: BufferedInStream(bufSize_), in_stream(is)
 {
-  ptr = end = start = new U8[bufSize];
 }
 
 HexInStream::~HexInStream() {
-  delete [] start;
 }
 
 
@@ -76,44 +72,24 @@ decodeError:
 }
 
 
-size_t HexInStream::pos() {
-  return offset + ptr - start;
-}
+bool HexInStream::fillBuffer(size_t maxSize, bool wait) {
+  if (!in_stream.check(2, 1, wait))
+    return false;
 
-size_t HexInStream::overrun(size_t itemSize, size_t nItems, bool wait) {
-  if (itemSize > bufSize)
-    throw Exception("HexInStream overrun: max itemSize exceeded");
+  const U8* iptr = in_stream.getptr();
+  const U8* eptr = in_stream.getend();
+  size_t length = min((eptr - iptr)/2, maxSize);
 
-  if (end - ptr != 0)
-    memmove(start, ptr, end - ptr);
-
-  end -= ptr - start;
-  offset += ptr - start;
-  ptr = start;
-
-  while (avail() < itemSize) {
-    size_t n = in_stream.check(2, 1, wait);
-    if (n == 0) return 0;
-    const U8* iptr = in_stream.getptr();
-    const U8* eptr = in_stream.getend();
-    size_t length = min((eptr - iptr)/2, start + bufSize - end);
-
-    U8* optr = (U8*) end;
-    for (size_t i=0; i<length; i++) {
-      int v = 0;
-      readHexAndShift(iptr[i*2], &v);
-      readHexAndShift(iptr[i*2+1], &v);
-      optr[i] = v;
-    }
-
-    in_stream.setptr(iptr + length*2);
-    end += length;
+  U8* optr = (U8*) end;
+  for (size_t i=0; i<length; i++) {
+    int v = 0;
+    readHexAndShift(iptr[i*2], &v);
+    readHexAndShift(iptr[i*2+1], &v);
+    optr[i] = v;
   }
 
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
+  in_stream.setptr(iptr + length*2);
+  end += length;
 
-  return nItems;
+  return true;
 }

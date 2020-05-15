@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2020 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,39 +18,35 @@
  */
 
 //
-// ZlibInStream streams from a compressed data stream ("underlying"),
-// decompressing with zlib on the fly.
+// Base class for input streams with a buffer
 //
 
-#ifndef __RDR_ZLIBINSTREAM_H__
-#define __RDR_ZLIBINSTREAM_H__
+#ifndef __RDR_BUFFEREDINSTREAM_H__
+#define __RDR_BUFFEREDINSTREAM_H__
 
-#include <rdr/BufferedInStream.h>
-
-struct z_stream_s;
+#include <rdr/InStream.h>
 
 namespace rdr {
 
-  class ZlibInStream : public BufferedInStream {
+  class BufferedInStream : public InStream {
 
   public:
-    ZlibInStream(size_t bufSize=0);
-    virtual ~ZlibInStream();
+    virtual ~BufferedInStream();
 
-    void setUnderlying(InStream* is, size_t bytesIn);
-    void flushUnderlying();
-    void reset();
+    virtual size_t pos();
 
   private:
-    void init();
-    void deinit();
+    virtual bool fillBuffer(size_t maxSize, bool wait) = 0;
 
-    virtual bool fillBuffer(size_t maxSize, bool wait);
+    virtual size_t overrun(size_t itemSize, size_t nItems, bool wait);
 
   private:
-    InStream* underlying;
-    z_stream_s* zs;
-    size_t bytesIn;
+    size_t bufSize;
+    size_t offset;
+    U8* start;
+
+  protected:
+    BufferedInStream(size_t bufSize=0);
   };
 
 } // end of namespace rdr

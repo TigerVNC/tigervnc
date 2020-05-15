@@ -30,8 +30,6 @@
 #ifdef HAVE_GNUTLS 
 using namespace rdr;
 
-enum { DEFAULT_BUF_SIZE = 16384 };
-
 ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 {
   TLSInStream* self= (TLSInStream*) str;
@@ -43,8 +41,8 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
       return -1;
     }
 
-    if ((size_t)(in->getend() - in->getptr()) < size)
-      size = in->getend() - in->getptr();
+    if (in->avail() < size)
+      size = in->avail();
   
     in->readBytes(data, size);
 
@@ -57,11 +55,9 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 }
 
 TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
-  : session(_session), in(_in), bufSize(DEFAULT_BUF_SIZE), offset(0)
+  : session(_session), in(_in)
 {
   gnutls_transport_ptr_t recv, send;
-
-  ptr = end = start = new U8[bufSize];
 
   gnutls_transport_set_pull_function(session, pull);
   gnutls_transport_get_ptr2(session, &recv, &send);
@@ -71,40 +67,16 @@ TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
 TLSInStream::~TLSInStream()
 {
   gnutls_transport_set_pull_function(session, NULL);
-
-  delete[] start;
 }
 
-size_t TLSInStream::pos()
+bool TLSInStream::fillBuffer(size_t maxSize, bool wait)
 {
-  return offset + ptr - start;
-}
+  size_t n = readTLS((U8*) end, maxSize, wait);
+  if (!wait && n == 0)
+    return false;
+  end += n;
 
-size_t TLSInStream::overrun(size_t itemSize, size_t nItems, bool wait)
-{
-  if (itemSize > bufSize)
-    throw Exception("TLSInStream overrun: max itemSize exceeded");
-
-  if (end - ptr != 0)
-    memmove(start, ptr, end - ptr);
-
-  offset += ptr - start;
-  end -= ptr - start;
-  ptr = start;
-
-  while ((size_t)(end - start) < itemSize) {
-    size_t n = readTLS((U8*) end, start + bufSize - end, wait);
-    if (!wait && n == 0)
-      return 0;
-    end += n;
-  }
-
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
+  return true;
 }
 
 size_t TLSInStream::readTLS(U8* buf, size_t len, bool wait)

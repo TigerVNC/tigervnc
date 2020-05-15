@@ -36,13 +36,6 @@
 #include <unistd.h>
 #endif
 
-#ifndef vncmin
-#define vncmin(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-#ifndef vncmax
-#define vncmax(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-
 /* Old systems have select() in sys/time.h */
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
@@ -57,26 +50,23 @@ enum { DEFAULT_BUF_SIZE = 8192 };
 
 FdInStream::FdInStream(int fd_, int timeoutms_, size_t bufSize_,
                        bool closeWhenDone_)
-  : fd(fd_), closeWhenDone(closeWhenDone_),
+  : BufferedInStream(bufSize_),
+    fd(fd_), closeWhenDone(closeWhenDone_),
     timeoutms(timeoutms_), blockCallback(0),
-    timing(false), timeWaitedIn100us(5), timedKbits(0),
-    bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
+    timing(false), timeWaitedIn100us(5), timedKbits(0)
 {
-  ptr = end = start = new U8[bufSize];
 }
 
 FdInStream::FdInStream(int fd_, FdInStreamBlockCallback* blockCallback_,
                        size_t bufSize_)
-  : fd(fd_), timeoutms(0), blockCallback(blockCallback_),
-    timing(false), timeWaitedIn100us(5), timedKbits(0),
-    bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
+  : BufferedInStream(bufSize_),
+    fd(fd_), timeoutms(0), blockCallback(blockCallback_),
+    timing(false), timeWaitedIn100us(5), timedKbits(0)
 {
-  ptr = end = start = new U8[bufSize];
 }
 
 FdInStream::~FdInStream()
 {
-  delete [] start;
   if (closeWhenDone) close(fd);
 }
 
@@ -91,46 +81,15 @@ void FdInStream::setBlockCallback(FdInStreamBlockCallback* blockCallback_)
   timeoutms = 0;
 }
 
-size_t FdInStream::pos()
+
+bool FdInStream::fillBuffer(size_t maxSize, bool wait)
 {
-  return offset + ptr - start;
-}
+  size_t n = readWithTimeoutOrCallback((U8*)end, maxSize, wait);
+  if (n == 0)
+    return false;
+  end += n;
 
-size_t FdInStream::overrun(size_t itemSize, size_t nItems, bool wait)
-{
-  if (itemSize > bufSize)
-    throw Exception("FdInStream overrun: max itemSize exceeded");
-
-  if (end - ptr != 0)
-    memmove(start, ptr, end - ptr);
-
-  offset += ptr - start;
-  end -= ptr - start;
-  ptr = start;
-
-  size_t bytes_to_read;
-  while ((size_t)(end - start) < itemSize) {
-    bytes_to_read = start + bufSize - end;
-    if (!timing) {
-      // When not timing, we must be careful not to read too much
-      // extra data into the buffer. Otherwise, the line speed
-      // estimation might stay at zero for a long time: All reads
-      // during timing=1 can be satisfied without calling
-      // readWithTimeoutOrCallback. However, reading only 1 or 2 bytes
-      // bytes is ineffecient.
-      bytes_to_read = vncmin(bytes_to_read, vncmax(itemSize*nItems, 8));
-    }
-    size_t n = readWithTimeoutOrCallback((U8*)end, bytes_to_read, wait);
-    if (n == 0) return 0;
-    end += n;
-  }
-
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
+  return true;
 }
 
 //

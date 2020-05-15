@@ -23,7 +23,7 @@
 #ifndef __RDR_FDINSTREAM_H__
 #define __RDR_FDINSTREAM_H__
 
-#include <rdr/InStream.h>
+#include <rdr/BufferedInStream.h>
 
 namespace rdr {
 
@@ -33,7 +33,7 @@ namespace rdr {
     virtual ~FdInStreamBlockCallback() {}
   };
 
-  class FdInStream : public InStream {
+  class FdInStream : public BufferedInStream {
 
   public:
 
@@ -46,17 +46,15 @@ namespace rdr {
     void setTimeout(int timeoutms);
     void setBlockCallback(FdInStreamBlockCallback* blockCallback);
     int getFd() { return fd; }
-    size_t pos();
 
     void startTiming();
     void stopTiming();
     unsigned int kbitsPerSecond();
     unsigned int timeWaited() { return timeWaitedIn100us; }
 
-  protected:
-    size_t overrun(size_t itemSize, size_t nItems, bool wait);
-
   private:
+    virtual bool fillBuffer(size_t maxSize, bool wait);
+
     size_t readWithTimeoutOrCallback(void* buf, size_t len, bool wait=true);
 
     int fd;
@@ -68,7 +66,6 @@ namespace rdr {
     unsigned int timeWaitedIn100us;
     unsigned int timedKbits;
 
-    size_t bufSize;
     size_t offset;
     U8* start;
   };
