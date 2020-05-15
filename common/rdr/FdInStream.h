@@ -47,7 +47,6 @@ namespace rdr {
     void setBlockCallback(FdInStreamBlockCallback* blockCallback);
     int getFd() { return fd; }
     size_t pos();
-    void readBytes(void* data, size_t length);
 
     void startTiming();
     void stopTiming();

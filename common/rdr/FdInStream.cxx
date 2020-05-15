@@ -53,8 +53,7 @@
 
 using namespace rdr;
 
-enum { DEFAULT_BUF_SIZE = 8192,
-       MIN_BULK_SIZE = 1024 };
+enum { DEFAULT_BUF_SIZE = 8192 };
 
 FdInStream::FdInStream(int fd_, int timeoutms_, size_t bufSize_,
                        bool closeWhenDone_)
@@ -96,32 +95,6 @@ size_t FdInStream::pos()
 {
   return offset + ptr - start;
 }
-
-void FdInStream::readBytes(void* data, size_t length)
-{
-  if (length < MIN_BULK_SIZE) {
-    InStream::readBytes(data, length);
-    return;
-  }
-
-  U8* dataPtr = (U8*)data;
-
-  size_t n = end - ptr;
-  if (n > length) n = length;
-
-  memcpy(dataPtr, ptr, n);
-  dataPtr += n;
-  length -= n;
-  ptr += n;
-
-  while (length > 0) {
-    n = readWithTimeoutOrCallback(dataPtr, length);
-    dataPtr += n;
-    length -= n;
-    offset += n;
-  }
-}
-
 
 size_t FdInStream::overrun(size_t itemSize, size_t nItems, bool wait)
 {

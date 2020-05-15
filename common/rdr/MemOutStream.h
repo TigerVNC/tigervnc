@@ -41,12 +41,6 @@ namespace rdr {
       delete [] start;
     }
 
-    void writeBytes(const void* data, size_t length) {
-      check(length);
-      memcpy(ptr, data, length);
-      ptr += length;
-    }
-
     size_t length() { return ptr - start; }
     void clear() { ptr = start; };
     void clearAndZero() { memset(start, 0, ptr-start); clear(); }
