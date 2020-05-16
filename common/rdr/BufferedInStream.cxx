@@ -51,12 +51,14 @@ bool BufferedInStream::overrun(size_t needed, bool wait)
                     "requested size of %lu bytes exceeds maximum of %lu bytes",
                     (long unsigned)needed, (long unsigned)bufSize);
 
-  if (end - ptr != 0)
+  // Do we need to shuffle things around?
+  if ((bufSize - (ptr - start)) < needed) {
     memmove(start, ptr, end - ptr);
 
-  offset += ptr - start;
-  end -= ptr - start;
-  ptr = start;
+    offset += ptr - start;
+    end -= ptr - start;
+    ptr = start;
+  }
 
   while (avail() < needed) {
     if (!fillBuffer(start + bufSize - end, wait))
