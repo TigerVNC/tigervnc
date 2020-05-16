@@ -24,6 +24,8 @@
 #ifndef __RDR_BUFFEREDOUTSTREAM_H__
 #define __RDR_BUFFEREDOUTSTREAM_H__
 
+#include <sys/time.h>
+
 #include <rdr/OutStream.h>
 
 namespace rdr {
@@ -52,6 +54,9 @@ namespace rdr {
     size_t bufSize;
     size_t offset;
     U8* start;
+
+    struct timeval lastSizeCheck;
+    size_t peakUsage;
 
   protected:
     U8* sentUpTo;

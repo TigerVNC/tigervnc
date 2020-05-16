@@ -29,12 +29,15 @@
 using namespace rdr;
 
 static const size_t DEFAULT_BUF_SIZE = 16384;
+static const size_t MAX_BUF_SIZE = 32 * 1024 * 1024;
 
 BufferedOutStream::BufferedOutStream()
   : bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
   ptr = start = sentUpTo = new U8[bufSize];
   end = start + bufSize;
+  gettimeofday(&lastSizeCheck, NULL);
+  peakUsage = 0;
 }
 
 BufferedOutStream::~BufferedOutStream()
@@ -55,6 +58,8 @@ size_t BufferedOutStream::bufferUsage()
 
 void BufferedOutStream::flush()
 {
+  struct timeval now;
+
   while (sentUpTo < ptr) {
     size_t len;
 
@@ -69,40 +74,78 @@ void BufferedOutStream::flush()
   // Managed to flush everything?
   if (sentUpTo == ptr)
     ptr = sentUpTo = start;
+
+  // Time to shrink an excessive buffer?
+  gettimeofday(&now, NULL);
+  if ((sentUpTo == ptr) && (bufSize > DEFAULT_BUF_SIZE) &&
+      ((now.tv_sec < lastSizeCheck.tv_sec) ||
+       (now.tv_sec > (lastSizeCheck.tv_sec + 5)))) {
+    if (peakUsage < (bufSize / 2)) {
+      size_t newSize;
+
+      newSize = DEFAULT_BUF_SIZE;
+      while (newSize < peakUsage)
+        newSize *= 2;
+
+      // We know the buffer is empty, so just reset everything
+      delete [] start;
+      ptr = start = sentUpTo = new U8[newSize];
+      end = start + newSize;
+      bufSize = newSize;
+    }
+
+    gettimeofday(&lastSizeCheck, NULL);
+    peakUsage = 0;
+  }
 }
 
 void BufferedOutStream::overrun(size_t needed)
 {
-  if (needed > bufSize)
-    throw Exception("BufferedOutStream overrun: "
-                    "requested size of %lu bytes exceeds maximum of %lu bytes",
-                    (long unsigned)needed, (long unsigned)bufSize);
+  size_t totalNeeded, newSize;
+  U8* newBuffer;
 
   // First try to get rid of the data we have
   flush();
 
-  // Still not enough space?
-  while (needed > avail()) {
-    // Can we shuffle things around?
-    // (don't do this if it gains us less than 25%)
-    if (((size_t)(sentUpTo - start) > bufSize / 4) &&
-        (needed < bufSize - (ptr - sentUpTo))) {
-      memmove(start, sentUpTo, ptr - sentUpTo);
-      ptr = start + (ptr - sentUpTo);
-      sentUpTo = start;
-    } else {
-      size_t len;
+  // Make note of the total needed space
+  totalNeeded = needed + (ptr - sentUpTo);
 
-      len = bufferUsage();
+  if (totalNeeded > peakUsage)
+    peakUsage = totalNeeded;
 
-      // Have to get rid of more data, so allow the flush to wait...
-      flushBuffer(true);
+  // Enough free space now?
+  if (avail() > needed)
+    return;
 
-      offset += len - bufferUsage();
-
-       // Managed to flush everything?
-      if (sentUpTo == ptr)
-        ptr = sentUpTo = start;
-    }
+  // Can we shuffle things around?
+  if (needed < bufSize - (ptr - sentUpTo)) {
+    memmove(start, sentUpTo, ptr - sentUpTo);
+    ptr = start + (ptr - sentUpTo);
+    sentUpTo = start;
+    return;
   }
+
+  // We'll need to allocate more buffer space...
+
+  if (totalNeeded > MAX_BUF_SIZE)
+    throw Exception("BufferedOutStream overrun: requested size of "
+                    "%lu bytes exceeds maximum of %lu bytes",
+                    (long unsigned)totalNeeded,
+                    (long unsigned)MAX_BUF_SIZE);
+
+  newSize = DEFAULT_BUF_SIZE;
+  while (newSize < totalNeeded)
+    newSize *= 2;
+
+  newBuffer = new U8[newSize];
+  memcpy(newBuffer, sentUpTo, ptr - sentUpTo);
+  delete [] start;
+  bufSize = newSize;
+
+  ptr = newBuffer + (ptr - sentUpTo);
+  sentUpTo = start = newBuffer;
+  end = newBuffer + newSize;
+
+  gettimeofday(&lastSizeCheck, NULL);
+  peakUsage = totalNeeded;
 }

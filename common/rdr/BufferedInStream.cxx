@@ -27,11 +27,14 @@
 using namespace rdr;
 
 static const size_t DEFAULT_BUF_SIZE = 8192;
+static const size_t MAX_BUF_SIZE = 4 * 1024 * 1024;
 
 BufferedInStream::BufferedInStream()
   : bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
   ptr = end = start = new U8[bufSize];
+  gettimeofday(&lastSizeCheck, NULL);
+  peakUsage = 0;
 }
 
 BufferedInStream::~BufferedInStream()
@@ -46,10 +49,58 @@ size_t BufferedInStream::pos()
 
 bool BufferedInStream::overrun(size_t needed, bool wait)
 {
-  if (needed > bufSize)
-    throw Exception("BufferedInStream overrun: "
-                    "requested size of %lu bytes exceeds maximum of %lu bytes",
-                    (long unsigned)needed, (long unsigned)bufSize);
+  struct timeval now;
+
+  if (needed > bufSize) {
+    size_t newSize;
+    U8* newBuffer;
+
+    if (needed > MAX_BUF_SIZE)
+      throw Exception("BufferedInStream overrun: requested size of "
+                      "%lu bytes exceeds maximum of %lu bytes",
+                      (long unsigned)needed, (long unsigned)MAX_BUF_SIZE);
+
+    newSize = DEFAULT_BUF_SIZE;
+    while (newSize < needed)
+      newSize *= 2;
+
+    newBuffer = new U8[newSize];
+    memcpy(newBuffer, ptr, end - ptr);
+    delete [] start;
+    bufSize = newSize;
+
+    offset += ptr - start;
+    end = newBuffer + (end - ptr);
+    ptr = start = newBuffer;
+
+    gettimeofday(&lastSizeCheck, NULL);
+    peakUsage = needed;
+  }
+
+  if (needed > peakUsage)
+    peakUsage = needed;
+
+  // Time to shrink an excessive buffer?
+  gettimeofday(&now, NULL);
+  if ((avail() == 0) && (bufSize > DEFAULT_BUF_SIZE) &&
+      ((now.tv_sec < lastSizeCheck.tv_sec) ||
+       (now.tv_sec > (lastSizeCheck.tv_sec + 5)))) {
+    if (peakUsage < (bufSize / 2)) {
+      size_t newSize;
+
+      newSize = DEFAULT_BUF_SIZE;
+      while (newSize < peakUsage)
+        newSize *= 2;
+
+      // We know the buffer is empty, so just reset everything
+      delete [] start;
+      ptr = end = start = new U8[newSize];
+      bufSize = newSize;
+    }
+
+    gettimeofday(&lastSizeCheck, NULL);
+    peakUsage = needed;
+  }
 
   // Do we need to shuffle things around?
   if ((bufSize - (ptr - start)) < needed) {

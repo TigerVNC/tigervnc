@@ -24,6 +24,8 @@
 #ifndef __RDR_BUFFEREDINSTREAM_H__
 #define __RDR_BUFFEREDINSTREAM_H__
 
+#include <sys/time.h>
+
 #include <rdr/InStream.h>
 
 namespace rdr {
@@ -44,6 +46,9 @@ namespace rdr {
     size_t bufSize;
     size_t offset;
     U8* start;
+
+    struct timeval lastSizeCheck;
+    size_t peakUsage;
 
   protected:
     BufferedInStream();
