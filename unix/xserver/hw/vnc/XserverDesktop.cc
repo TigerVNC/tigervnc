@@ -366,7 +366,7 @@ void XserverDesktop::blockHandler(int* timeout)
         delete (*i);
       } else {
         /* Update existing NotifyFD to listen for write (or not) */
-        vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().bufferUsage() > 0);
+        vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().hasBufferedData());
       }
     }
 

@@ -38,7 +38,9 @@ namespace rdr {
     virtual size_t length();
     virtual void flush();
 
-    size_t bufferUsage();
+    // hasBufferedData() checks if there is any data yet to be flushed
+
+    bool hasBufferedData();
 
   private:
     // flushBuffer() requests that the stream be flushed. Returns true if it is

@@ -51,11 +51,6 @@ size_t BufferedOutStream::length()
   return offset + ptr - sentUpTo;
 }
 
-size_t BufferedOutStream::bufferUsage()
-{
-  return ptr - sentUpTo;
-}
-
 void BufferedOutStream::flush()
 {
   struct timeval now;
@@ -63,12 +58,12 @@ void BufferedOutStream::flush()
   while (sentUpTo < ptr) {
     size_t len;
 
-    len = bufferUsage();
+    len = (ptr - sentUpTo);
 
     if (!flushBuffer(false))
       break;
 
-    offset += len - bufferUsage();
+    offset += len - (ptr - sentUpTo);
   }
 
   // Managed to flush everything?
@@ -97,6 +92,11 @@ void BufferedOutStream::flush()
     gettimeofday(&lastSizeCheck, NULL);
     peakUsage = 0;
   }
+}
+
+bool BufferedOutStream::hasBufferedData()
+{
+  return sentUpTo != ptr;
 }
 
 void BufferedOutStream::overrun(size_t needed)

@@ -115,10 +115,10 @@ void VNCSConnectionST::close(const char* reason)
     vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
 
   try {
-    if (sock->outStream().bufferUsage() > 0) {
+    if (sock->outStream().hasBufferedData()) {
       sock->outStream().cork(false);
       sock->outStream().flush();
-      if (sock->outStream().bufferUsage() > 0)
+      if (sock->outStream().hasBufferedData())
         vlog.error("Failed to flush remaining socket data on close");
     }
   } catch (rdr::Exception& e) {
@@ -199,7 +199,7 @@ void VNCSConnectionST::flushSocket()
     sock->outStream().flush();
     // Flushing the socket might release an update that was previously
     // delayed because of congestion.
-    if (sock->outStream().bufferUsage() == 0)
+    if (!sock->outStream().hasBufferedData())
       writeFramebufferUpdate();
   } catch (rdr::Exception &e) {
     close(e.str());
@@ -832,7 +832,7 @@ bool VNCSConnectionST::isCongested()
   // Stuff still waiting in the send buffer?
   sock->outStream().flush();
   congestion.debugTrace("congestion-trace.csv", sock->getFd());
-  if (sock->outStream().bufferUsage() > 0)
+  if (sock->outStream().hasBufferedData())
     return true;
 
   if (!client.supportsFence())

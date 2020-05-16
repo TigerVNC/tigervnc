@@ -307,7 +307,7 @@ int main(int argc, char** argv)
           delete (*i);
         } else {
           FD_SET((*i)->getFd(), &rfds);
-          if ((*i)->outStream().bufferUsage() > 0)
+          if ((*i)->outStream().hasBufferedData())
             FD_SET((*i)->getFd(), &wfds);
           clients_connected++;
         }
