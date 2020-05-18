@@ -232,12 +232,8 @@ void SConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
   try {
-    bool done = ssecurity->processMsg();
-    if (done) {
-      state_ = RFBSTATE_QUERYING;
-      setAccessRights(ssecurity->getAccessRights());
-      queryConnection(ssecurity->getUserName());
-    }
+    if (!ssecurity->processMsg())
+      return;
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
     state_ = RFBSTATE_SECURITY_FAILURE;
@@ -246,6 +242,10 @@ void SConnection::processSecurityMsg()
     authFailureMsg.replaceBuf(strDup(e.str()));
     authFailureTimer.start(100);
   }
+
+  state_ = RFBSTATE_QUERYING;
+  setAccessRights(ssecurity->getAccessRights());
+  queryConnection(ssecurity->getUserName());
 }
 
 void SConnection::processSecurityFailure()
