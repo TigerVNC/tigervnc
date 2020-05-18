@@ -35,6 +35,8 @@ namespace rfb {
      dispatch elapsed Timer callbacks and to determine how long to wait in select() for
      the next timeout to occur.
 
+     For classes that can be derived it's best to use MethodTimer which can call a specific
+     method on the class, thus avoiding conflicts when subclassing.
   */
 
   struct Timer {
@@ -99,6 +101,19 @@ namespace rfb {
     static void insertTimer(Timer* t);
     // The list of currently active Timers, ordered by time left until timeout.
     static std::list<Timer*> pending;
+  };
+
+  template<class T> class MethodTimer
+    : public Timer, public Timer::Callback {
+  public:
+    MethodTimer(T* obj_, bool (T::*cb_)(Timer*))
+      : Timer(this), obj(obj_), cb(cb_) {}
+
+    virtual bool handleTimeout(Timer* t) { return (obj->*cb)(t); }
+
+  private:
+    T* obj;
+    bool (T::*cb)(Timer*);
   };
 
 };
