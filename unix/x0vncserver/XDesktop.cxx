@@ -288,9 +288,19 @@ void XDesktop::queryConnection(network::Socket* sock,
 {
   assert(isRunning());
 
+  // Someone already querying?
   if (queryConnectSock) {
-    server->approveConnection(sock, false, "Another connection is currently being queried.");
-    return;
+    std::list<network::Socket*> sockets;
+    std::list<network::Socket*>::iterator i;
+
+    // Check if this socket is still valid
+    server->getSockets(&sockets);
+    for (i = sockets.begin(); i != sockets.end(); i++) {
+      if (*i == queryConnectSock) {
+        server->approveConnection(sock, false, "Another connection is currently being queried.");
+        return;
+      }
+    }
   }
 
   if (!userName)
