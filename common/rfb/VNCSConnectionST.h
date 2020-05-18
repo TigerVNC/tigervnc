@@ -111,7 +111,6 @@ namespace rfb {
     // These methods are invoked as callbacks from processMsg()
 
     virtual void authSuccess();
-    virtual void authFailure(const char* reason);
     virtual void queryConnection(const char* userName);
     virtual void clientInit(bool shared);
     virtual void setPixelFormat(const PixelFormat& pf);
@@ -188,9 +187,6 @@ namespace rfb {
     time_t pointerEventTime;
     Point pointerEventPos;
     bool clientHasCursor;
-
-    Timer authFailureTimer;
-    CharArray authFailureMsg;
 
     CharArray closeReason;
   };

@@ -51,9 +51,9 @@ const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 
 SConnection::SConnection()
   : readyForSetColourMapEntries(false),
-    is(0), os(0), reader_(0), writer_(0),
-    ssecurity(0), state_(RFBSTATE_UNINITIALISED),
-    preferredEncoding(encodingRaw),
+    is(0), os(0), reader_(0), writer_(0), ssecurity(0),
+    authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
+    state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
     clientClipboard(NULL), hasLocalClipboard(false)
 {
   defaultMajorVersion = 3;
@@ -98,6 +98,7 @@ void SConnection::processMsg()
   case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();      break;
   case RFBSTATE_SECURITY_TYPE:    processSecurityTypeMsg(); break;
   case RFBSTATE_SECURITY:         processSecurityMsg();     break;
+  case RFBSTATE_SECURITY_FAILURE: processSecurityFailure(); break;
   case RFBSTATE_INITIALISATION:   processInitMsg();         break;
   case RFBSTATE_NORMAL:           reader_->readMsg();       break;
   case RFBSTATE_QUERYING:
@@ -240,14 +241,50 @@ void SConnection::processSecurityMsg()
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
     state_ = RFBSTATE_SECURITY_FAILURE;
-    authFailure(e.str());
+    // Introduce a slight delay of the authentication failure response
+    // to make it difficult to brute force a password
+    authFailureMsg.replaceBuf(strDup(e.str()));
+    authFailureTimer.start(100);
   }
+}
+
+void SConnection::processSecurityFailure()
+{
+  // Silently drop any data if we are currently delaying an
+  // authentication failure response as otherwise we would close
+  // the connection on unexpected data, and an attacker could use
+  // that to detect our delayed state.
+
+  while (is->checkNoWait(1))
+    is->skip(1);
 }
 
 void SConnection::processInitMsg()
 {
   vlog.debug("reading client initialisation");
   reader_->readClientInit();
+}
+
+bool SConnection::handleAuthFailureTimeout(Timer* t)
+{
+  if (state_ != RFBSTATE_SECURITY_FAILURE) {
+    close("SConnection::handleAuthFailureTimeout: invalid state");
+    return false;
+  }
+
+  try {
+    os->writeU32(secResultFailed);
+    if (!client.beforeVersion(3,8)) // 3.8 onwards have failure message
+      os->writeString(authFailureMsg.buf);
+    os->flush();
+  } catch (rdr::Exception& e) {
+    close(e.str());
+    return false;
+  }
+
+  close(authFailureMsg.buf);
+
+  return false;
 }
 
 void SConnection::throwConnFailedException(const char* format, ...)
@@ -376,19 +413,6 @@ void SConnection::versionReceived()
 
 void SConnection::authSuccess()
 {
-}
-
-void SConnection::authFailure(const char* reason)
-{
-  if (state_ != RFBSTATE_SECURITY_FAILURE)
-    throw Exception("SConnection::authFailure: invalid state");
-
-  os->writeU32(secResultFailed);
-  if (!client.beforeVersion(3,8)) // 3.8 onwards have failure message
-    os->writeString(reason);
-  os->flush();
-
-  throw AuthFailureException(reason);
 }
 
 void SConnection::queryConnection(const char* userName)

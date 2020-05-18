@@ -26,8 +26,10 @@
 
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
+
 #include <rfb/SMsgHandler.h>
 #include <rfb/SecurityServer.h>
+#include <rfb/Timer.h>
 
 namespace rfb {
 
@@ -101,10 +103,6 @@ namespace rfb {
 
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
-
-    // authFailure() is called when authentication has failed. The default
-    // implementation will inform the client and throw a AuthFailureException.
-    virtual void authFailure(const char* reason);
 
     // queryConnection() is called when authentication has succeeded, but
     // before informing the client.  It can be overridden to query a local user
@@ -240,15 +238,25 @@ namespace rfb {
     void processSecurityTypeMsg();
     void processSecurityType(int secType);
     void processSecurityMsg();
+    void processSecurityFailure();
     void processInitMsg();
 
+    bool handleAuthFailureTimeout(Timer* t);
+
     int defaultMajorVersion, defaultMinorVersion;
+
     rdr::InStream* is;
     rdr::OutStream* os;
+
     SMsgReader* reader_;
     SMsgWriter* writer_;
+
     SecurityServer security;
     SSecurity* ssecurity;
+
+    MethodTimer<SConnection> authFailureTimer;
+    CharArray authFailureMsg;
+
     stateEnum state_;
     rdr::S32 preferredEncoding;
     AccessRights accessRights;
