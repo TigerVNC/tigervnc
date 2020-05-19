@@ -33,7 +33,7 @@ namespace rdr {
   class ZlibInStream : public BufferedInStream {
 
   public:
-    ZlibInStream(size_t bufSize=0);
+    ZlibInStream();
     virtual ~ZlibInStream();
 
     void setUnderlying(InStream* is, size_t bytesIn);

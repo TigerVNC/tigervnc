@@ -30,8 +30,8 @@ using namespace rdr;
 
 static const size_t DEFAULT_BUF_SIZE = 16384;
 
-BufferedOutStream::BufferedOutStream(size_t bufSize_)
-  : bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
+BufferedOutStream::BufferedOutStream()
+  : bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
   ptr = start = sentUpTo = new U8[bufSize];
   end = start + bufSize;

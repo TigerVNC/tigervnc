@@ -25,8 +25,8 @@ const int DEFAULT_BUF_LEN = 16384;
 
 static inline size_t min(size_t a, size_t b) {return a<b ? a : b;}
 
-HexOutStream::HexOutStream(OutStream& os, size_t buflen)
-: out_stream(os), offset(0), bufSize(buflen ? buflen : DEFAULT_BUF_LEN)
+HexOutStream::HexOutStream(OutStream& os)
+  : out_stream(os), offset(0), bufSize(DEFAULT_BUF_LEN)
 {
   if (bufSize % 2)
     bufSize--;

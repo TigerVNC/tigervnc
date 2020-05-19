@@ -28,8 +28,8 @@ using namespace rdr;
 
 static const size_t DEFAULT_BUF_SIZE = 8192;
 
-BufferedInStream::BufferedInStream(size_t bufSize_)
-  : bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
+BufferedInStream::BufferedInStream()
+  : bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
   ptr = end = start = new U8[bufSize];
 }

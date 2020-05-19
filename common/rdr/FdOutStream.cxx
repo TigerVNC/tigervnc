@@ -49,9 +49,8 @@
 
 using namespace rdr;
 
-FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_, size_t bufSize_)
-  : BufferedOutStream(bufSize_),
-    fd(fd_), blocking(blocking_), timeoutms(timeoutms_)
+FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_)
+  : fd(fd_), blocking(blocking_), timeoutms(timeoutms_)
 {
   gettimeofday(&lastWrite, NULL);
 }

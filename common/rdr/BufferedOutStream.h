@@ -57,7 +57,7 @@ namespace rdr {
     U8* sentUpTo;
 
   protected:
-    BufferedOutStream(size_t bufSize=0);
+    BufferedOutStream();
   };
 
 }

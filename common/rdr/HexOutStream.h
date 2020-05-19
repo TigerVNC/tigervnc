@@ -26,7 +26,7 @@ namespace rdr {
   class HexOutStream : public OutStream {
   public:
 
-    HexOutStream(OutStream& os, size_t buflen=0);
+    HexOutStream(OutStream& os);
     virtual ~HexOutStream();
 
     void flush();

@@ -34,7 +34,7 @@ namespace rdr {
 
   public:
 
-    FdOutStream(int fd, bool blocking=true, int timeoutms=-1, size_t bufSize=0);
+    FdOutStream(int fd, bool blocking=true, int timeoutms=-1);
     virtual ~FdOutStream();
 
     void setTimeout(int timeoutms);

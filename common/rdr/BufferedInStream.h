@@ -46,7 +46,7 @@ namespace rdr {
     U8* start;
 
   protected:
-    BufferedInStream(size_t bufSize=0);
+    BufferedInStream();
   };
 
 } // end of namespace rdr

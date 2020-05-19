@@ -26,8 +26,8 @@ using namespace rdr;
 
 static inline int min(int a, int b) {return a<b ? a : b;}
 
-HexInStream::HexInStream(InStream& is, size_t bufSize_)
-: BufferedInStream(bufSize_), in_stream(is)
+HexInStream::HexInStream(InStream& is)
+: in_stream(is)
 {
 }
 

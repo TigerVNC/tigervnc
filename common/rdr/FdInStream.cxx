@@ -48,19 +48,16 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 8192 };
 
-FdInStream::FdInStream(int fd_, int timeoutms_, size_t bufSize_,
+FdInStream::FdInStream(int fd_, int timeoutms_,
                        bool closeWhenDone_)
-  : BufferedInStream(bufSize_),
-    fd(fd_), closeWhenDone(closeWhenDone_),
+  : fd(fd_), closeWhenDone(closeWhenDone_),
     timeoutms(timeoutms_), blockCallback(0),
     timing(false), timeWaitedIn100us(5), timedKbits(0)
 {
 }
 
-FdInStream::FdInStream(int fd_, FdInStreamBlockCallback* blockCallback_,
-                       size_t bufSize_)
-  : BufferedInStream(bufSize_),
-    fd(fd_), timeoutms(0), blockCallback(blockCallback_),
+FdInStream::FdInStream(int fd_, FdInStreamBlockCallback* blockCallback_)
+  : fd(fd_), timeoutms(0), blockCallback(blockCallback_),
     timing(false), timeWaitedIn100us(5), timedKbits(0)
 {
 }

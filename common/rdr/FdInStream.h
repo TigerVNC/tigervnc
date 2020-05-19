@@ -37,10 +37,8 @@ namespace rdr {
 
   public:
 
-    FdInStream(int fd, int timeoutms=-1, size_t bufSize=0,
-               bool closeWhenDone_=false);
-    FdInStream(int fd, FdInStreamBlockCallback* blockCallback,
-               size_t bufSize=0);
+    FdInStream(int fd, int timeoutms=-1, bool closeWhenDone_=false);
+    FdInStream(int fd, FdInStreamBlockCallback* blockCallback);
     virtual ~FdInStream();
 
     void setTimeout(int timeoutms);

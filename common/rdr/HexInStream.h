@@ -26,7 +26,7 @@ namespace rdr {
   class HexInStream : public BufferedInStream {
   public:
 
-    HexInStream(InStream& is, size_t bufSize=0);
+    HexInStream(InStream& is);
     virtual ~HexInStream();
 
     static bool readHexAndShift(char c, int* v);

@@ -24,9 +24,8 @@
 
 using namespace rdr;
 
-ZlibInStream::ZlibInStream(size_t bufSize_)
-  : BufferedInStream(bufSize_),
-    underlying(0), zs(NULL), bytesIn(0)
+ZlibInStream::ZlibInStream()
+  : underlying(0), zs(NULL), bytesIn(0)
 {
   init();
 }
