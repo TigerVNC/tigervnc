@@ -103,7 +103,7 @@ HexOutStream::overrun(size_t itemSize, size_t nItems) {
   writeBuffer();
 
   size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
+  nAvail = avail() / itemSize;
   if (nAvail < nItems)
     return nAvail;
 

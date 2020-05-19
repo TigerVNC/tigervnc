@@ -126,7 +126,7 @@ size_t FdInStream::overrun(size_t itemSize, size_t nItems, bool wait)
   }
 
   size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
+  nAvail = avail() / itemSize;
   if (nAvail < nItems)
     return nAvail;
 

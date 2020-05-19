@@ -91,7 +91,7 @@ size_t HexInStream::overrun(size_t itemSize, size_t nItems, bool wait) {
   offset += ptr - start;
   ptr = start;
 
-  while ((size_t)(end - ptr) < itemSize) {
+  while (avail() < itemSize) {
     size_t n = in_stream.check(2, 1, wait);
     if (n == 0) return 0;
     const U8* iptr = in_stream.getptr();
@@ -111,7 +111,7 @@ size_t HexInStream::overrun(size_t itemSize, size_t nItems, bool wait) {
   }
 
   size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
+  nAvail = avail() / itemSize;
   if (nAvail < nItems)
     return nAvail;
 

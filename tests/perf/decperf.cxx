@@ -102,8 +102,8 @@ void DummyOutStream::flush()
 size_t DummyOutStream::overrun(size_t itemSize, size_t nItems)
 {
   flush();
-  if (itemSize * nItems > (size_t)(end - ptr))
-    nItems = (end - ptr) / itemSize;
+  if (itemSize * nItems > avail())
+    nItems = avail() / itemSize;
   return nItems;
 }
 

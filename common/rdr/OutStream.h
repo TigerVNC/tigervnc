@@ -40,6 +40,14 @@ namespace rdr {
 
     virtual ~OutStream() {}
 
+    // avail() returns the number of bytes that currently be written to the
+    // stream without any risk of blocking.
+
+    inline size_t avail()
+    {
+      return end - ptr;
+    }
+
     // check() ensures there is buffer space for at least one item of size
     // itemSize bytes.  Returns the number of items which fit (up to a maximum
     // of nItems).
@@ -48,10 +56,10 @@ namespace rdr {
     {
       size_t nAvail;
 
-      if (itemSize > (size_t)(end - ptr))
+      if (itemSize > avail())
         return overrun(itemSize, nItems);
 
-      nAvail = (end - ptr) / itemSize;
+      nAvail = avail() / itemSize;
       if (nAvail < nItems)
         return nAvail;
 

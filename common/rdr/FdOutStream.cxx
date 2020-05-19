@@ -129,7 +129,7 @@ size_t FdOutStream::overrun(size_t itemSize, size_t nItems)
   flush();
 
   // Still not enough space?
-  if (itemSize > (size_t)(end - ptr)) {
+  if (itemSize > avail()) {
     // Can we shuffle things around?
     // (don't do this if it gains us less than 25%)
     if (((size_t)(sentUpTo - start) > bufSize / 4) &&
@@ -150,7 +150,7 @@ size_t FdOutStream::overrun(size_t itemSize, size_t nItems)
   }
 
   size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
+  nAvail = avail() / itemSize;
   if (nAvail < nItems)
     return nAvail;
 

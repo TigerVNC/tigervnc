@@ -108,13 +108,13 @@ size_t ZlibInStream::overrun(size_t itemSize, size_t nItems, bool wait)
   end -= ptr - start;
   ptr = start;
 
-  while ((size_t)(end - ptr) < itemSize) {
+  while (avail() < itemSize) {
     if (!decompress(wait))
       return 0;
   }
 
   size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
+  nAvail = avail() / itemSize;
   if (nAvail < nItems)
     return nAvail;
 
@@ -136,7 +136,7 @@ bool ZlibInStream::decompress(bool wait)
   size_t n = underlying->check(1, 1, wait);
   if (n == 0) return false;
   zs->next_in = (U8*)underlying->getptr();
-  zs->avail_in = underlying->getend() - underlying->getptr();
+  zs->avail_in = underlying->avail();
   if (zs->avail_in > bytesIn)
     zs->avail_in = bytesIn;
 

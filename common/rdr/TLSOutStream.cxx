@@ -101,7 +101,7 @@ size_t TLSOutStream::overrun(size_t itemSize, size_t nItems)
   flush();
 
   size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
+  nAvail = avail() / itemSize;
   if (nAvail < nItems)
     return nAvail;
 
