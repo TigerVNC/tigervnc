@@ -22,6 +22,7 @@
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/Decoder.h>
+#include <rfb/Exception.h>
 #include <rfb/Region.h>
 
 #include <rfb/LogWriter.h>
@@ -133,8 +134,12 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
     bufferStream = freeBuffers.front();
     bufferStream->clear();
     decoder->readRect(r, conn->getInStream(), conn->server, bufferStream);
-    decoder->decodeRect(r, bufferStream->data(), bufferStream->length(),
-                        conn->server, pb);
+    try {
+      decoder->decodeRect(r, bufferStream->data(), bufferStream->length(),
+                          conn->server, pb);
+    } catch (rdr::Exception& e) {
+      throw Exception("Error decoding rect: %s", e.str());
+    }
     return;
   }
 
