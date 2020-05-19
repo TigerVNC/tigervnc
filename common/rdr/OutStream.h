@@ -48,22 +48,12 @@ namespace rdr {
       return end - ptr;
     }
 
-    // check() ensures there is buffer space for at least one item of size
-    // itemSize bytes.  Returns the number of items which fit (up to a maximum
-    // of nItems).
+    // check() ensures there is buffer space for at least needed bytes.
 
-    inline size_t check(size_t itemSize, size_t nItems=1)
+    inline void check(size_t needed)
     {
-      size_t nAvail;
-
-      if (itemSize > avail())
-        return overrun(itemSize, nItems);
-
-      nAvail = avail() / itemSize;
-      if (nAvail < nItems)
-        return nAvail;
-
-      return nItems;
+      if (needed > avail())
+        overrun(needed);
     }
 
     // writeU/SN() methods write unsigned and signed N-bit integers.
@@ -95,7 +85,10 @@ namespace rdr {
 
     void writeBytes(const void* data, size_t length) {
       while (length > 0) {
-        size_t n = check(1, length);
+        check(1);
+        size_t n = length;
+        if (length > avail())
+          n = avail();
         memcpy(ptr, data, n);
         ptr += n;
         data = (U8*)data + n;
@@ -107,7 +100,10 @@ namespace rdr {
 
     void copyBytes(InStream* is, size_t length) {
       while (length > 0) {
-        size_t n = check(1, length);
+        check(1);
+        size_t n = length;
+        if (length > avail())
+          n = avail();
         is->readBytes(ptr, n);
         ptr += n;
         length -= n;
@@ -143,11 +139,9 @@ namespace rdr {
   private:
 
     // overrun() is implemented by a derived class to cope with buffer overrun.
-    // It ensures there are at least itemSize bytes of buffer space.  Returns
-    // the number of items which fit (up to a maximum of nItems).  itemSize is
-    // supposed to be "small" (a few bytes).
+    // It ensures there are at least needed bytes of buffer space.
 
-    virtual size_t overrun(size_t itemSize, size_t nItems) = 0;
+    virtual void overrun(size_t needed) = 0;
 
   protected:
 

@@ -73,7 +73,7 @@ decodeError:
 
 
 bool HexInStream::fillBuffer(size_t maxSize, bool wait) {
-  if (!in_stream.check(2, 1, wait))
+  if (!in_stream.check(2, wait))
     return false;
 
   const U8* iptr = in_stream.getptr();

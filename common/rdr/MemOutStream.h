@@ -52,11 +52,11 @@ namespace rdr {
 
   protected:
 
-    // overrun() either doubles the buffer or adds enough space for nItems of
-    // size itemSize bytes.
+    // overrun() either doubles the buffer or adds enough space for
+    // needed bytes.
 
-    size_t overrun(size_t itemSize, size_t nItems) {
-      size_t len = ptr - start + itemSize * nItems;
+    virtual void overrun(size_t needed) {
+      size_t len = ptr - start + needed;
       if (len < (size_t)(end - start) * 2)
         len = (end - start) * 2;
 
@@ -69,8 +69,6 @@ namespace rdr {
       delete [] start;
       start = newStart;
       end = newStart + len;
-
-      return nItems;
     }
 
     U8* start;

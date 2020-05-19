@@ -71,22 +71,22 @@ void BufferedOutStream::flush()
     ptr = sentUpTo = start;
 }
 
-size_t BufferedOutStream::overrun(size_t itemSize, size_t nItems)
+void BufferedOutStream::overrun(size_t needed)
 {
-  if (itemSize > bufSize)
+  if (needed > bufSize)
     throw Exception("BufferedOutStream overrun: "
                     "requested size of %lu bytes exceeds maximum of %lu bytes",
-                    (long unsigned)itemSize, (long unsigned)bufSize);
+                    (long unsigned)needed, (long unsigned)bufSize);
 
   // First try to get rid of the data we have
   flush();
 
   // Still not enough space?
-  while (itemSize > avail()) {
+  while (needed > avail()) {
     // Can we shuffle things around?
     // (don't do this if it gains us less than 25%)
     if (((size_t)(sentUpTo - start) > bufSize / 4) &&
-        (itemSize < bufSize - (ptr - sentUpTo))) {
+        (needed < bufSize - (ptr - sentUpTo))) {
       memmove(start, sentUpTo, ptr - sentUpTo);
       ptr = start + (ptr - sentUpTo);
       sentUpTo = start;
@@ -105,11 +105,4 @@ size_t BufferedOutStream::overrun(size_t itemSize, size_t nItems)
         ptr = sentUpTo = start;
     }
   }
-
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
 }

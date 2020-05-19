@@ -44,12 +44,12 @@ size_t BufferedInStream::pos()
   return offset + ptr - start;
 }
 
-size_t BufferedInStream::overrun(size_t itemSize, size_t nItems, bool wait)
+bool BufferedInStream::overrun(size_t needed, bool wait)
 {
-  if (itemSize > bufSize)
+  if (needed > bufSize)
     throw Exception("BufferedInStream overrun: "
                     "requested size of %lu bytes exceeds maximum of %lu bytes",
-                    (long unsigned)itemSize, (long unsigned)bufSize);
+                    (long unsigned)needed, (long unsigned)bufSize);
 
   if (end - ptr != 0)
     memmove(start, ptr, end - ptr);
@@ -58,15 +58,10 @@ size_t BufferedInStream::overrun(size_t itemSize, size_t nItems, bool wait)
   end -= ptr - start;
   ptr = start;
 
-  while (avail() < itemSize) {
+  while (avail() < needed) {
     if (!fillBuffer(start + bufSize - end, wait))
-      return 0;
+      return false;
   }
 
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
+  return true;
 }

@@ -38,7 +38,7 @@ namespace rdr {
   private:
     virtual bool fillBuffer(size_t maxSize, bool wait) = 0;
 
-    virtual size_t overrun(size_t itemSize, size_t nItems, bool wait);
+    virtual bool overrun(size_t needed, bool wait);
 
   private:
     size_t bufSize;

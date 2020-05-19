@@ -39,7 +39,7 @@ namespace rdr {
     size_t length();
 
   protected:
-    size_t overrun(size_t itemSize, size_t nItems);
+    virtual void overrun(size_t needed);
 
   private:
     size_t writeTLS(const U8* data, size_t length);

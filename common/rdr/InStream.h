@@ -43,31 +43,24 @@ namespace rdr {
       return end - ptr;
     }
 
-    // check() ensures there is buffer data for at least one item of size
-    // itemSize bytes.  Returns the number of items in the buffer (up to a
-    // maximum of nItems).  If wait is false, then instead of blocking to wait
-    // for the bytes, zero is returned if the bytes are not immediately
-    // available.
+    // check() ensures there is buffer data for at least needed bytes. Returns
+    // true once the data is available. If wait is false, then instead of
+    // blocking to wait for the bytes, false is returned if the bytes are not
+    // immediately available.
 
-    inline size_t check(size_t itemSize, size_t nItems=1, bool wait=true)
+    inline size_t check(size_t needed, bool wait=true)
     {
-      size_t nAvail;
+      if (needed > avail())
+        return overrun(needed, wait);
 
-      if (itemSize > avail())
-        return overrun(itemSize, nItems, wait);
-
-      nAvail = avail() / itemSize;
-      if (nAvail < nItems)
-        return nAvail;
-
-      return nItems;
+      return true;
     }
 
     // checkNoWait() tries to make sure that the given number of bytes can
     // be read without blocking.  It returns true if this is the case, false
     // otherwise.  The length must be "small" (less than the buffer size).
 
-    inline bool checkNoWait(size_t length) { return check(length, 1, false)!=0; }
+    inline bool checkNoWait(size_t length) { return check(length, false); }
 
     // readU/SN() methods read unsigned and signed N-bit integers.
 
@@ -137,13 +130,12 @@ namespace rdr {
   private:
 
     // overrun() is implemented by a derived class to cope with buffer overrun.
-    // It ensures there are at least itemSize bytes of buffer data.  Returns
-    // the number of items in the buffer (up to a maximum of nItems).  itemSize
-    // is supposed to be "small" (a few bytes).  If wait is false, then
-    // instead of blocking to wait for the bytes, zero is returned if the bytes
-    // are not immediately available.
+    // It ensures there are at least needed bytes of buffer data. Returns true
+    // once the data is available. If wait is false, then instead of blocking
+    // to wait for the bytes, false is returned if the bytes are not
+    // immediately available.
 
-    virtual size_t overrun(size_t itemSize, size_t nItems, bool wait=true) = 0;
+    virtual bool overrun(size_t needed, bool wait=true) = 0;
 
   protected:
 

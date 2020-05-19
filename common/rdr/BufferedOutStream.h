@@ -46,7 +46,7 @@ namespace rdr {
 
     virtual bool flushBuffer(bool wait) = 0;
 
-    virtual size_t overrun(size_t itemSize, size_t nItems);
+    virtual void overrun(size_t needed);
 
   private:
     size_t bufSize;

@@ -37,7 +37,7 @@ namespace rdr {
 
   private:
     void writeBuffer();
-    size_t overrun(size_t itemSize, size_t nItems);
+    virtual void overrun(size_t needed);
 
     OutStream& out_stream;
 

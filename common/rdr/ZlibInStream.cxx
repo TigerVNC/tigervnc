@@ -94,7 +94,7 @@ bool ZlibInStream::fillBuffer(size_t maxSize, bool wait)
   zs->next_out = (U8*)end;
   zs->avail_out = maxSize;
 
-  size_t n = underlying->check(1, 1, wait);
+  size_t n = underlying->check(1, wait);
   if (n == 0) return false;
   zs->next_in = (U8*)underlying->getptr();
   zs->avail_in = underlying->avail();

@@ -49,8 +49,8 @@ namespace rfb {
 
     inline rdr::U8* getstart() { return start; }
 
-    inline int overrun(int itemSize, int nItems) {
-      return MemOutStream::overrun(itemSize, nItems);
+    inline virtual void overrun(int needed) {
+      return MemOutStream::overrun(needed);
     }
 
   private:

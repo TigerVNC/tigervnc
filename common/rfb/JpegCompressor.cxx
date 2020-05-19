@@ -95,7 +95,7 @@ JpegEmptyOutputBuffer(j_compress_ptr cinfo)
   JpegCompressor *jc = dest->instance;
 
   jc->setptr(jc->getend());
-  jc->overrun(jc->getend() - jc->getstart(), 1);
+  jc->overrun(jc->getend() - jc->getstart());
   dest->pub.next_output_byte = jc->getptr();
   dest->pub.free_in_buffer = jc->avail();
 

@@ -95,18 +95,10 @@ HexOutStream::flush() {
   out_stream.flush();
 }
 
-size_t
-HexOutStream::overrun(size_t itemSize, size_t nItems) {
-  if (itemSize > bufSize)
-    throw Exception("HexOutStream overrun: max itemSize exceeded");
+void HexOutStream::overrun(size_t needed) {
+  if (needed > bufSize)
+    throw Exception("HexOutStream overrun: buffer size exceeded");
 
   writeBuffer();
-
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
 }
 

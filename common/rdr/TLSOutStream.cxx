@@ -93,19 +93,12 @@ void TLSOutStream::flush()
   out->flush();
 }
 
-size_t TLSOutStream::overrun(size_t itemSize, size_t nItems)
+void TLSOutStream::overrun(size_t needed)
 {
-  if (itemSize > bufSize)
-    throw Exception("TLSOutStream overrun: max itemSize exceeded");
+  if (needed > bufSize)
+    throw Exception("TLSOutStream overrun: buffer size exceeded");
 
   flush();
-
-  size_t nAvail;
-  nAvail = avail() / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
 }
 
 size_t TLSOutStream::writeTLS(const U8* data, size_t length)

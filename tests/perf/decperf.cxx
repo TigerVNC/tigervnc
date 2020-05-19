@@ -52,7 +52,7 @@ public:
   virtual void flush();
 
 private:
-  virtual size_t overrun(size_t itemSize, size_t nItems);
+  virtual void overrun(size_t needed);
 
   int offset;
   rdr::U8 buf[131072];
@@ -99,12 +99,9 @@ void DummyOutStream::flush()
   ptr = buf;
 }
 
-size_t DummyOutStream::overrun(size_t itemSize, size_t nItems)
+void DummyOutStream::overrun(size_t needed)
 {
   flush();
-  if (itemSize * nItems > avail())
-    nItems = avail() / itemSize;
-  return nItems;
 }
 
 CConn::CConn(const char *filename)
