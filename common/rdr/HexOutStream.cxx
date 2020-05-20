@@ -66,17 +66,15 @@ void
 HexOutStream::writeBuffer() {
   U8* pos = start;
   while (pos != ptr) {
-    out_stream.check(2);
-    U8* optr = out_stream.getptr();
-    U8* oend = out_stream.getend();
-    size_t length = min(ptr-pos, (oend-optr)/2);
+    U8* optr = out_stream.getptr(2);
+    size_t length = min(ptr-pos, out_stream.avail()/2);
 
     for (size_t i=0; i<length; i++) {
       optr[i*2] = intToHex((pos[i] >> 4) & 0xf);
       optr[i*2+1] = intToHex(pos[i] & 0xf);
     }
 
-    out_stream.setptr(optr + length*2);
+    out_stream.setptr(length*2);
     pos += length;
   }
   offset += ptr - start;

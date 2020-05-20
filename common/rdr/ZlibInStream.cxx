@@ -95,18 +95,19 @@ bool ZlibInStream::fillBuffer(size_t maxSize, bool wait)
 
   size_t n = underlying->check(1, wait);
   if (n == 0) return false;
-  zs->next_in = (U8*)underlying->getptr();
-  zs->avail_in = underlying->avail();
-  if (zs->avail_in > bytesIn)
-    zs->avail_in = bytesIn;
+  size_t length = underlying->avail();
+  if (length > bytesIn)
+    length = bytesIn;
+  zs->next_in = (U8*)underlying->getptr(length);
+  zs->avail_in = length;
 
   int rc = inflate(zs, Z_SYNC_FLUSH);
   if (rc < 0) {
     throw Exception("ZlibInStream: inflate failed");
   }
 
-  bytesIn -= zs->next_in - underlying->getptr();
+  bytesIn -= length - zs->avail_in;
   end = zs->next_out;
-  underlying->setptr(zs->next_in);
+  underlying->setptr(length - zs->avail_in);
   return true;
 }

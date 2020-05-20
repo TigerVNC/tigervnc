@@ -144,9 +144,9 @@ void ZlibOutStream::deflate(int flush)
     return;
 
   do {
-    underlying->check(1);
-    zs->next_out = underlying->getptr();
-    zs->avail_out = underlying->avail();
+    size_t chunk;
+    zs->next_out = underlying->getptr(1);
+    zs->avail_out = chunk = underlying->avail();
 
 #ifdef ZLIBOUT_DEBUG
     vlog.debug("calling deflate, avail_in %d, avail_out %d",
@@ -167,7 +167,7 @@ void ZlibOutStream::deflate(int flush)
                zs->next_out-underlying->getptr());
 #endif
 
-    underlying->setptr(zs->next_out);
+    underlying->setptr(chunk - zs->avail_out);
   } while (zs->avail_out == 0);
 }
 

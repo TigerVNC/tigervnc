@@ -76,9 +76,8 @@ bool HexInStream::fillBuffer(size_t maxSize, bool wait) {
   if (!in_stream.check(2, wait))
     return false;
 
-  const U8* iptr = in_stream.getptr();
-  const U8* eptr = in_stream.getend();
-  size_t length = min((eptr - iptr)/2, maxSize);
+  size_t length = min(in_stream.avail()/2, maxSize);
+  const U8* iptr = in_stream.getptr(length*2);
 
   U8* optr = (U8*) end;
   for (size_t i=0; i<length; i++) {
@@ -88,7 +87,7 @@ bool HexInStream::fillBuffer(size_t maxSize, bool wait) {
     optr[i] = v;
   }
 
-  in_stream.setptr(iptr + length*2);
+  in_stream.setptr(length*2);
   end += length;
 
   return true;

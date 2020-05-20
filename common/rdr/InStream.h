@@ -25,6 +25,7 @@
 #define __RDR_INSTREAM_H__
 
 #include <rdr/types.h>
+#include <rdr/Exception.h>
 #include <string.h> // for memcpy
 
 namespace rdr {
@@ -119,13 +120,14 @@ namespace rdr {
 
     virtual size_t pos() = 0;
 
-    // getptr(), getend() and setptr() are "dirty" methods which allow you to
-    // manipulate the buffer directly.  This is useful for a stream which is a
-    // wrapper around an underlying stream.
+    // getptr() and setptr() are "dirty" methods which allow you direct access
+    // to the buffer. This is useful for a stream which is a wrapper around an
+    // some other stream API.
 
-    inline const U8* getptr() const { return ptr; }
-    inline const U8* getend() const { return end; }
-    inline void setptr(const U8* p) { ptr = p; }
+    inline const U8* getptr(size_t length) { check(length); return ptr; }
+    inline void setptr(size_t length) { if (length > avail())
+                                          throw Exception("Input stream overflow");
+                                        skip(length); }
 
   private:
 

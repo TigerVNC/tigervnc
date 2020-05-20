@@ -25,6 +25,7 @@
 #define __RDR_OUTSTREAM_H__
 
 #include <rdr/types.h>
+#include <rdr/Exception.h>
 #include <rdr/InStream.h>
 #include <string.h> // for memcpy
 
@@ -132,13 +133,16 @@ namespace rdr {
 
     virtual void cork(bool enable) { corked = enable; flush(); }
 
-    // getptr(), getend() and setptr() are "dirty" methods which allow you to
-    // manipulate the buffer directly.  This is useful for a stream which is a
-    // wrapper around an underlying stream.
+    // getptr() and setptr() are "dirty" methods which allow you direct access
+    // to the buffer. This is useful for a stream which is a wrapper around an
+    // some other stream API. Note that setptr() should not called with a value
+    // larger than the bytes actually written as doing so can result in
+    // security issues. Use pad() in such cases instead.
 
-    inline U8* getptr() { return ptr; }
-    inline U8* getend() { return end; }
-    inline void setptr(U8* p) { ptr = p; }
+    inline U8* getptr(size_t length) { check(length); return ptr; }
+    inline void setptr(size_t length) { if (length > avail())
+                                          throw Exception("Output stream overflow");
+                                        ptr += length; }
 
   private:
 
