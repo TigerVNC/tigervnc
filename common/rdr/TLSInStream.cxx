@@ -25,10 +25,13 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
+#include <rfb/LogWriter.h>
 #include <errno.h>
 
 #ifdef HAVE_GNUTLS 
 using namespace rdr;
+
+static rfb::LogWriter vlog("TLSInStream");
 
 ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 {
@@ -45,8 +48,10 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
       size = in->avail();
   
     in->readBytes(data, size);
-
+  } catch (EndOfStream&) {
+    return 0;
   } catch (Exception& e) {
+    vlog.error("Failure reading TLS data: %s", e.str());
     gnutls_transport_set_errno(self->session, EINVAL);
     return -1;
   }

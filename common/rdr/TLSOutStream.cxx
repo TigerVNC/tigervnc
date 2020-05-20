@@ -25,10 +25,13 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSOutStream.h>
+#include <rfb/LogWriter.h>
 #include <errno.h>
 
 #ifdef HAVE_GNUTLS
 using namespace rdr;
+
+static rfb::LogWriter vlog("TLSOutStream");
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
@@ -42,6 +45,7 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
     out->writeBytes(data, size);
     out->flush();
   } catch (Exception& e) {
+    vlog.error("Failure sending TLS data: %s", e.str());
     gnutls_transport_set_errno(self->session, EINVAL);
     return -1;
   }
