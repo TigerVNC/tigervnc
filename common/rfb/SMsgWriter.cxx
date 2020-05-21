@@ -56,7 +56,8 @@ void SMsgWriter::writeServerInit(rdr::U16 width, rdr::U16 height,
   os->writeU16(width);
   os->writeU16(height);
   pf.write(os);
-  os->writeString(name);
+  os->writeU32(strlen(name));
+  os->writeBytes(name, strlen(name));
   endMsg();
 }
 
@@ -551,7 +552,8 @@ void SMsgWriter::writeSetDesktopNameRect(const char *name)
   os->writeU16(0);
   os->writeU16(0);
   os->writeU32(pseudoEncodingDesktopName);
-  os->writeString(name);
+  os->writeU32(strlen(name));
+  os->writeBytes(name, strlen(name));
 }
 
 void SMsgWriter::writeSetCursorRect(int width, int height,

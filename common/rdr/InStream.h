@@ -76,17 +76,6 @@ namespace rdr {
     inline S16 readS16() { return (S16)readU16(); }
     inline S32 readS32() { return (S32)readU32(); }
 
-    // readString() reads a string - a U32 length followed by the data.
-    // Returns a null-terminated string - the caller should delete[] it
-    // afterwards.
-
-    char* readString();
-
-    // maxStringLength protects against allocating a huge buffer.  Set it
-    // higher if you need longer strings.
-
-    static U32 maxStringLength;
-
     inline void skip(size_t bytes) {
       while (bytes > 0) {
         size_t n = check(1, bytes);

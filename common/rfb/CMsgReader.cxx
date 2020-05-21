@@ -53,7 +53,10 @@ void CMsgReader::readServerInit()
   int height = is->readU16();
   PixelFormat pf;
   pf.read(is);
-  CharArray name(is->readString());
+  rdr::U32 len = is->readU32();
+  CharArray name(len + 1);
+  is->readBytes(name.buf, len);
+  name.buf[len] = '\0';
   handler->serverInit(width, height, pf, name.buf);
 }
 
@@ -556,15 +559,16 @@ void CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
 
 void CMsgReader::readSetDesktopName(int x, int y, int w, int h)
 {
-  char* name = is->readString();
+  rdr::U32 len = is->readU32();
+  CharArray name(len + 1);
+  is->readBytes(name.buf, len);
+  name.buf[len] = '\0';
 
   if (x || y || w || h) {
     vlog.error("Ignoring DesktopName rect with non-zero position/size");
   } else {
-    handler->setName(name);
+    handler->setName(name.buf);
   }
-
-  delete [] name;
 }
 
 void CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)

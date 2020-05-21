@@ -9,7 +9,6 @@ add_library(rdr STATIC
   FileInStream.cxx
   HexInStream.cxx
   HexOutStream.cxx
-  InStream.cxx
   RandomStream.cxx
   TLSException.cxx
   TLSInStream.cxx

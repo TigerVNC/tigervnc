@@ -301,7 +301,10 @@ void CConnection::processSecurityResultMsg()
   state_ = RFBSTATE_INVALID;
   if (server.beforeVersion(3,8))
     throw AuthFailureException();
-  CharArray reason(is->readString());
+  rdr::U32 len = is->readU32();
+  CharArray reason(len + 1);
+  is->readBytes(reason.buf, len);
+  reason.buf[len] = '\0';
   throw AuthFailureException(reason.buf);
 }
 
@@ -314,8 +317,10 @@ void CConnection::processInitMsg()
 void CConnection::throwConnFailedException()
 {
   state_ = RFBSTATE_INVALID;
-  CharArray reason;
-  reason.buf = is->readString();
+  rdr::U32 len = is->readU32();
+  CharArray reason(len + 1);
+  is->readBytes(reason.buf, len);
+  reason.buf[len] = '\0';
   throw ConnFailedException(reason.buf);
 }
 

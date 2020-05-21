@@ -68,16 +68,6 @@ namespace rdr {
     inline void writeS16(S16 s) { writeU16((U16)s); }
     inline void writeS32(S32 s) { writeU32((U32)s); }
 
-    // writeString() writes a string - a U32 length followed by the data.  The
-    // given string should be null-terminated (but the terminating null is not
-    // written to the stream).
-
-    inline void writeString(const char* str) {
-      U32 len = strlen(str);
-      writeU32(len);
-      writeBytes(str, len);
-    }
-
     inline void pad(size_t bytes) {
       while (bytes-- > 0) writeU8(0);
     }

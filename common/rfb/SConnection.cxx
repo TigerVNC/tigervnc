@@ -268,8 +268,11 @@ bool SConnection::handleAuthFailureTimeout(Timer* t)
 
   try {
     os->writeU32(secResultFailed);
-    if (!client.beforeVersion(3,8)) // 3.8 onwards have failure message
-      os->writeString(authFailureMsg.buf);
+    if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
+      const char* reason = authFailureMsg.buf;
+      os->writeU32(strlen(reason));
+      os->writeBytes(reason, strlen(reason));
+    }
     os->flush();
   } catch (rdr::Exception& e) {
     close(e.str());
@@ -295,11 +298,13 @@ void SConnection::throwConnFailedException(const char* format, ...)
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (client.majorVersion == 3 && client.minorVersion == 3) {
       os->writeU32(0);
-      os->writeString(str);
+      os->writeU32(strlen(str));
+      os->writeBytes(str, strlen(str));
       os->flush();
     } else {
       os->writeU8(0);
-      os->writeString(str);
+      os->writeU32(strlen(str));
+      os->writeBytes(str, strlen(str));
       os->flush();
     }
   }
@@ -425,10 +430,10 @@ void SConnection::approveConnection(bool accept, const char* reason)
     } else {
       os->writeU32(secResultFailed);
       if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
-        if (reason)
-          os->writeString(reason);
-        else
-          os->writeString("Authentication failure");
+        if (!reason)
+          reason = "Authentication failure";
+        os->writeU32(strlen(reason));
+        os->writeBytes(reason, strlen(reason));
       }
     }
     os->flush();
