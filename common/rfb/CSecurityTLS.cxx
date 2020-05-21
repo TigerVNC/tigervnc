@@ -157,15 +157,8 @@ bool CSecurityTLS::processMsg()
     if (!is->checkNoWait(1))
       return false;
 
-    if (is->readU8() == 0) {
-      rdr::U32 result = is->readU32();
-      CharArray reason;
-      if (result == secResultFailed || result == secResultTooMany)
-        reason.buf = is->readString();
-      else
-        reason.buf = strDup("protocol error");
-      throw AuthFailureException(reason.buf);
-    }
+    if (is->readU8() == 0)
+      throw AuthFailureException("Server failed to initialize TLS session");
 
     if (gnutls_init(&session, GNUTLS_CLIENT) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_init failed");
