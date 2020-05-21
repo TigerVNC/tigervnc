@@ -107,9 +107,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      if (alertOnFatalError)
-        fl_alert("%s", e.str());
-      exit_vncviewer();
+      exit_vncviewer(_("Failed to connect to \"%s\":\n\n%s"),
+                     vncServerName, e.str());
       return;
     }
   }
@@ -264,13 +263,18 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     cc->sock->outStream().flush();
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
-    exit_vncviewer();
+    if (!cc->desktop) {
+      vlog.error(_("The connection was dropped by the server before "
+                   "the session could be established."));
+      exit_vncviewer(_("The connection was dropped by the server "
+                       "before the session could be established."));
+    } else {
+      exit_vncviewer();
+    }
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    // Somebody might already have requested us to terminate, and
-    // might have already provided an error message.
-    if (!should_exit())
-      exit_vncviewer(e.str());
+    exit_vncviewer(_("An unexpected error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
   }
 
   when = FL_READ | FL_EXCEPT;

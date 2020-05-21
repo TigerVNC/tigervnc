@@ -107,12 +107,19 @@ static const char *about_text()
   return buffer;
 }
 
-void exit_vncviewer(const char *error)
+void exit_vncviewer(const char *error, ...)
 {
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if ((error != NULL) && (exitError == NULL))
-    exitError = strdup(error);
+  if ((error != NULL) && (exitError == NULL)) {
+    va_list ap;
+
+    va_start(ap, error);
+    exitError = (char*)malloc(1024);
+    if (exitError)
+      (void) vsnprintf((char*)exitError, 1024, error, ap);
+    va_end(ap);
+  }
 
   exitMainloop = true;
 }
@@ -416,7 +423,8 @@ potentiallyLoadConfigurationFile(char *vncServerName)
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
       if (alertOnFatalError)
-        fl_alert("%s", e.str());
+        fl_alert(_("Error reading configuration file \"%s\":\n\n%s"),
+                 vncServerName, e.str());
       exit(EXIT_FAILURE);
     }
   }
@@ -549,7 +557,7 @@ int main(int argc, char** argv)
   } catch (rfb::Exception& e) {
     vlog.error("%s", e.str());
     if (alertOnFatalError)
-      fl_alert("%s", e.str());
+      fl_alert(_("Error reading default configuration:\n\n%s"), e.str());
   }
 
   for (int i = 1; i < argc;) {
@@ -650,7 +658,7 @@ int main(int argc, char** argv)
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       if (alertOnFatalError)
-        fl_alert("%s", e.str());
+        fl_alert(_("Failure waiting for incoming VNC connection:\n\n%s"), e.str());
       exit_vncviewer();
       return 1; 
     }
