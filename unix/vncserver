@@ -699,8 +699,8 @@ sub List
     closedir(dir);
     print "\nTigerVNC server sessions:\n\n";
     print "X DISPLAY #\tPROCESS ID\n";
-    foreach my $file (@filelist) {
-	if ($file =~ /$host:(\d+)$\.pid/) {
+    foreach my $file (sort @filelist) {
+	if ($file =~ /^\Q$host\E:(\d+)\.pid$/) {
 	    chop($tmp_pid = `cat $vncUserDir/$file`);
 	    if (kill 0, $tmp_pid) {
 		print ":".$1."\t\t".`cat $vncUserDir/$file`;
