@@ -45,11 +45,6 @@ namespace rdr {
     void setBlockCallback(FdInStreamBlockCallback* blockCallback);
     int getFd() { return fd; }
 
-    void startTiming();
-    void stopTiming();
-    unsigned int kbitsPerSecond();
-    unsigned int timeWaited() { return timeWaitedIn100us; }
-
   private:
     virtual bool fillBuffer(size_t maxSize, bool wait);
 
@@ -59,10 +54,6 @@ namespace rdr {
     bool closeWhenDone;
     int timeoutms;
     FdInStreamBlockCallback* blockCallback;
-
-    bool timing;
-    unsigned int timeWaitedIn100us;
-    unsigned int timedKbits;
 
     size_t offset;
     U8* start;

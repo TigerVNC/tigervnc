@@ -101,6 +101,10 @@ private:
   rfb::PixelFormat fullColourPF;
 
   int lastServerEncoding;
+
+  struct timeval updateStartTime;
+  size_t updateStartPos;
+  unsigned long long bpsEstimate;
 };
 
 #endif

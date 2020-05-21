@@ -51,14 +51,12 @@ enum { DEFAULT_BUF_SIZE = 8192 };
 FdInStream::FdInStream(int fd_, int timeoutms_,
                        bool closeWhenDone_)
   : fd(fd_), closeWhenDone(closeWhenDone_),
-    timeoutms(timeoutms_), blockCallback(0),
-    timing(false), timeWaitedIn100us(5), timedKbits(0)
+    timeoutms(timeoutms_), blockCallback(0)
 {
 }
 
 FdInStream::FdInStream(int fd_, FdInStreamBlockCallback* blockCallback_)
-  : fd(fd_), timeoutms(0), blockCallback(blockCallback_),
-    timing(false), timeWaitedIn100us(5), timedKbits(0)
+  : fd(fd_), timeoutms(0), blockCallback(blockCallback_)
 {
 }
 
@@ -104,10 +102,6 @@ bool FdInStream::fillBuffer(size_t maxSize, bool wait)
 
 size_t FdInStream::readWithTimeoutOrCallback(void* buf, size_t len, bool wait)
 {
-  struct timeval before, after;
-  if (timing)
-    gettimeofday(&before, 0);
-
   int n;
   while (true) {
     do {
@@ -144,48 +138,5 @@ size_t FdInStream::readWithTimeoutOrCallback(void* buf, size_t len, bool wait)
   if (n < 0) throw SystemException("read",errno);
   if (n == 0) throw EndOfStream();
 
-  if (timing) {
-    gettimeofday(&after, 0);
-    int newTimeWaited = ((after.tv_sec - before.tv_sec) * 10000 +
-                         (after.tv_usec - before.tv_usec) / 100);
-    int newKbits = n * 8 / 1000;
-
-    // limit rate to between 10kbit/s and 40Mbit/s
-
-    if (newTimeWaited > newKbits*1000) newTimeWaited = newKbits*1000;
-    if (newTimeWaited < newKbits/4)    newTimeWaited = newKbits/4;
-
-    timeWaitedIn100us += newTimeWaited;
-    timedKbits += newKbits;
-  }
-
   return n;
-}
-
-void FdInStream::startTiming()
-{
-  timing = true;
-
-  // Carry over up to 1s worth of previous rate for smoothing.
-
-  if (timeWaitedIn100us > 10000) {
-    timedKbits = timedKbits * 10000 / timeWaitedIn100us;
-    timeWaitedIn100us = 10000;
-  }
-}
-
-void FdInStream::stopTiming()
-{
-  timing = false; 
-  if (timeWaitedIn100us < timedKbits/2)
-    timeWaitedIn100us = timedKbits/2; // upper limit 20Mbit/s
-}
-
-unsigned int FdInStream::kbitsPerSecond()
-{
-  // The following calculation will overflow 32-bit arithmetic if we have
-  // received more than about 50Mbytes (400Mbits) since we started timing, so
-  // it should be OK for a single RFB update.
-
-  return timedKbits * 10000 / timeWaitedIn100us;
 }
