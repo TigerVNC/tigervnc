@@ -413,8 +413,13 @@ void vncPostScreenResize(int scrIdx, int success, int width, int height)
 {
   if (success) {
     // Let the RFB core know of the new dimensions and framebuffer
-    desktop[scrIdx]->setFramebuffer(width, height,
-                                    vncFbptr[scrIdx], vncFbstride[scrIdx]);
+    try {
+      desktop[scrIdx]->setFramebuffer(width, height,
+                                      vncFbptr[scrIdx],
+                                      vncFbstride[scrIdx]);
+    } catch (rdr::Exception& e) {
+      vncFatalError("vncPostScreenResize: %s\n", e.str());
+    }
   }
 
   desktop[scrIdx]->unblockUpdates();
