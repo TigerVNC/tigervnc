@@ -57,6 +57,8 @@ if(BUILD_STATIC)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32")
       # And sockets
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lws2_32")
+	  # And others
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lp11-kit -lidn2 -lunistring")
     endif()
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
@@ -130,7 +132,7 @@ if(BUILD_STATIC_GCC)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-z -Wl,muldefs -Wl,-Bstatic -ltsan -Wl,-Bdynamic -ldl -lm")
   endif()
   if(WIN32)
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt -lpthread")
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -luser32 -lkernel32 -ladvapi32 -lshell32")
     # mingw has some fun circular dependencies that requires us to link
     # these things again
@@ -139,5 +141,5 @@ if(BUILD_STATIC_GCC)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lgcc -lgcc_eh -lc")
   endif()
   set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} ${STATIC_BASE_LIBRARIES}")
-  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic ${STATIC_BASE_LIBRARIES}")
+  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${STATIC_BASE_LIBRARIES}")
 endif()
