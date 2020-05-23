@@ -575,7 +575,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 		    if (displayNumFree(displayNum)) break;
 		
 		if (displayNum == 100)
-		    FatalError("Xvnc error: no free display number for -inetd");
+		    FatalError("Xvnc error: no free display number for -inetd\n");
 	    }
 	    
 	    display = displayNumStr;
@@ -1657,7 +1657,7 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
     {
 	if (-1 == AddScreen(vfbScreenInit, argc, argv))
 	{
-	    FatalError("Couldn't add screen %d", i);
+	    FatalError("Couldn't add screen %d\n", i);
 	}
     }
 
