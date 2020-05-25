@@ -19,6 +19,11 @@
 
 policy_module(vncsession, 1.0.0);
 
+gen_require(`
+    attribute userdomain;
+    type xdm_home_t;
+')
+
 type vnc_session_exec_t;
 corecmd_executable_file(vnc_session_exec_t)
 type vnc_session_t;
@@ -41,6 +46,16 @@ allow vnc_session_t self:capability { kill chown dac_override dac_read_search fo
 allow vnc_session_t self:process { getcap setsched setexec setrlimit };
 allow vnc_session_t self:fifo_file rw_fifo_file_perms;
 
+manage_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+manage_fifo_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+manage_sock_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+manage_lnk_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+userdom_user_home_dir_filetrans(vnc_session_t, xdm_home_t, dir, ".vnc")
+userdom_admin_home_dir_filetrans(vnc_session_t, xdm_home_t, dir, ".vnc")
+
+userdom_admin_home_dir_filetrans(userdomain, xdm_home_t, dir, ".vnc")
+userdom_user_home_dir_filetrans(userdomain, xdm_home_t, dir, ".vnc")
+
 miscfiles_read_localization(vnc_session_t)
 
 kernel_read_kernel_sysctls(vnc_session_t)
@@ -50,8 +65,3 @@ logging_append_all_logs(vnc_session_t)
 mcs_process_set_categories(vnc_session_t)
 mcs_killall(vnc_session_t)
 
-# To create the log file in the user home directory
-allow vnc_session_t file_type:dir search_dir_perms;
-userdom_user_home_dir_filetrans_user_home_content(vnc_session_t, dir, ".vnc");
-userdom_manage_user_home_content_dirs(vnc_session_t);
-userdom_manage_user_home_content_files(vnc_session_t);
