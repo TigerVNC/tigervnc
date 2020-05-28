@@ -653,10 +653,11 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 {
   unsigned int result;
 
-  if (!accessCheck(AccessSetDesktopSize)) return;
-  if (!rfb::Server::acceptSetDesktopSize) return;
+  if (!accessCheck(AccessSetDesktopSize) || !rfb::Server::acceptSetDesktopSize)
+    result = resultProhibited;
+  else
+    result = server->setDesktopSize(this, fb_width, fb_height, layout);
 
-  result = server->setDesktopSize(this, fb_width, fb_height, layout);
   writer()->writeDesktopSize(reasonClient, result);
 }
 
