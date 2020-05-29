@@ -17,3 +17,8 @@
         typedef long ssize_t;
     #endif
 #endif
+
+/* We know we use deprecated stuff, it's to support older macOS */
+#if defined(__APPLE__) && defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
