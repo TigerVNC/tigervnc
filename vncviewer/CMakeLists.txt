@@ -4,6 +4,7 @@ include_directories(${GETTEXT_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/common)
 set(VNCVIEWER_SOURCES
   menukey.cxx
+  BaseTouchHandler.cxx
   CConn.cxx
   DesktopWindow.cxx
   EmulateMB.cxx
@@ -15,6 +16,7 @@ set(VNCVIEWER_SOURCES
   Viewport.cxx
   parameters.cxx
   keysym2ucs.c
+  touch.cxx
   vncviewer.cxx)
 
 if(WIN32)
@@ -28,11 +30,11 @@ if(WIN32)
 endif()
 
 if(WIN32)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} win32.c)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Win32TouchHandler.cxx win32.c)
 elseif(APPLE)
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm osx_to_qnum.c)
 else()
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} xkb_to_qnum.c)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} GestureHandler.cxx XInputTouchHandler.cxx xkb_to_qnum.c)
 endif()
 
 if(WIN32)
@@ -53,12 +55,12 @@ target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_L
 
 if(WIN32)
   target_link_libraries(vncviewer msimg32)
-endif()
-
-if(APPLE)
+elseif(APPLE)
   target_link_libraries(vncviewer "-framework Cocoa")
   target_link_libraries(vncviewer "-framework Carbon")
   target_link_libraries(vncviewer "-framework IOKit")
+else()
+  target_link_libraries(vncviewer ${X11_Xi_LIB})
 endif()
 
 install(TARGETS vncviewer DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})

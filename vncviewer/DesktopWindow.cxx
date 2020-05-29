@@ -37,6 +37,7 @@
 #include "CConn.h"
 #include "Surface.h"
 #include "Viewport.h"
+#include "touch.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Image_Surface.H>
@@ -755,6 +756,12 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 {
   int ret;
 
+  // FLTK keeps spamming bogus FL_MOVE events if _any_ X event is
+  // received with the mouse pointer outside our windows
+  // https://github.com/fltk/fltk/issues/76
+  if ((event == FL_MOVE) && (win == NULL))
+    return 0;
+
   ret = Fl::handle_(event, win);
 
   // This is hackish and the result of the dodgy focus handling in FLTK.
@@ -961,23 +968,13 @@ void DesktopWindow::ungrabKeyboard()
 void DesktopWindow::grabPointer()
 {
 #if !defined(WIN32) && !defined(__APPLE__)
-  int ret;
-
   // We also need to grab the pointer as some WMs like to grab buttons
   // combined with modifies (e.g. Alt+Button0 in metacity).
-  ret = XGrabPointer(fl_display, fl_xid(this), True,
-                     ButtonPressMask|ButtonReleaseMask|
-                     ButtonMotionMask|PointerMotionMask,
-                     GrabModeAsync, GrabModeAsync,
-                     None, None, CurrentTime);
-  if (ret) {
-    // Having a button pressed prevents us from grabbing, we make
-    // a new attempt in fltkHandle()
-    if (ret == AlreadyGrabbed)
-      return;
-    vlog.error(_("Failure grabbing mouse"));
+
+  // Having a button pressed prevents us from grabbing, we make
+  // a new attempt in fltkHandle()
+  if (!x11_grab_pointer(fl_xid(this)))
     return;
-  }
 #endif
 
   mouseGrabbed = true;
@@ -987,8 +984,9 @@ void DesktopWindow::grabPointer()
 void DesktopWindow::ungrabPointer()
 {
   mouseGrabbed = false;
+
 #if !defined(WIN32) && !defined(__APPLE__)
-  XUngrabPointer(fl_display, CurrentTime);
+  x11_ungrab_pointer(fl_xid(this));
 #endif
 }
 

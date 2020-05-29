@@ -91,6 +91,7 @@ private:
 
 #ifdef WIN32
   static void handleAltGrTimeout(void *data);
+  void resolveAltGrDetection(bool isAltGrSequence);
 #endif
 
   void pushLEDState();
