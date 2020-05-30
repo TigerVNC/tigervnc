@@ -179,7 +179,7 @@ static int handleTouchEvent(void *event, void *data)
   if (msg->message == WM_PAINT && handlers.count(msg->hwnd) == 0) {
     try {
       handlers[msg->hwnd] = new Win32TouchHandler(msg->hwnd);
-    } catch (rfb::Exception e) {
+    } catch (rfb::Exception& e) {
       vlog.error(_("Failed to create touch handler: %s"), e.str());
       exit_vncviewer(e.str());
     }
