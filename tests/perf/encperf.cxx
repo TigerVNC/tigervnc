@@ -26,6 +26,8 @@
  * are not encoded in the file and must be specified by the user.
  */
 
+#define __USE_MINGW_ANSI_STDIO 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -499,13 +501,8 @@ int main(int argc, char **argv)
 
   printf("Core usage (total): %g (+/- %g %%)\n", median, meddev);
 
-#ifdef WIN32
-  printf("Encoded bytes: %I64d\n", runs[0].bytes);
-  printf("Raw equivalent bytes: %I64d\n", runs[0].rawEquivalent);
-#else
-  printf("Encoded bytes: %lld\n", runs[0].bytes);
-  printf("Raw equivalent bytes: %lld\n", runs[0].rawEquivalent);
-#endif
+  printf("Encoded bytes: %llu\n", runs[0].bytes);
+  printf("Raw equivalent bytes: %llu\n", runs[0].rawEquivalent);
   printf("Ratio: %g\n", runs[0].ratio);
 
   return 0;

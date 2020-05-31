@@ -30,12 +30,10 @@ static LogWriter vlog("DIBSectionBuffer");
 
 DIBSectionBuffer::DIBSectionBuffer(HWND window_)
   : bitmap(0), window(window_), device(0) {
-  memset(&format, 0, sizeof(format));
 }
 
 DIBSectionBuffer::DIBSectionBuffer(HDC device_)
   : bitmap(0), window(0), device(device_) {
-  memset(&format, 0, sizeof(format));
 }
 
 DIBSectionBuffer::~DIBSectionBuffer() {
