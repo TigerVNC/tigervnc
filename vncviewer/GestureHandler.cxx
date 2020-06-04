@@ -192,7 +192,7 @@ void GestureHandler::handleTouchUpdate(int id, double x, double y)
         if (twoTouchTimer.isStarted())
           twoTouchTimer.stop();
 
-      } else if(!twoTouchTimer.isStarted()) {
+      } else if (!twoTouchTimer.isStarted()) {
         // We can't determine the gesture right now, let's
         // wait and see if more events are on their way
         twoTouchTimer.start(GH_TWOTOUCH_TIMEOUT);
@@ -213,7 +213,7 @@ void GestureHandler::handleTouchEnd(int id)
   std::map<int, GHTouch>::const_iterator iter;
 
   // Check if this is an ignored touch
-  if(ignored.count(id)) {
+  if (ignored.count(id)) {
       ignored.erase(id);
       if (ignored.empty() && tracked.empty()) {
         state = GH_INITSTATE;
