@@ -54,6 +54,9 @@ const unsigned GH_TAP_TIMEOUT = 1000;
 // Timeout when waiting for longpress (ms)
 const unsigned GH_LONGPRESS_TIMEOUT = 1000;
 
+// Timeout when waiting to decide between PINCH and TWODRAG (ms)
+const unsigned GH_TWOTOUCH_TIMEOUT = 50;
+
 GestureHandler::GestureHandler() :
   state(GH_INITSTATE), waitingRelease(false),
   longpressTimer(this), twoTouchTimer(this)
@@ -192,7 +195,7 @@ void GestureHandler::handleTouchUpdate(int id, double x, double y)
       } else if(!twoTouchTimer.isStarted()) {
         // We can't determine the gesture right now, let's
         // wait and see if more events are on their way
-        twoTouchTimer.start(50);
+        twoTouchTimer.start(GH_TWOTOUCH_TIMEOUT);
       }
     }
 
