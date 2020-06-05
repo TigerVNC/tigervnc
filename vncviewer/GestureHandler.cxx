@@ -229,7 +229,7 @@ void GestureHandler::handleTouchEnd(int id)
     state = GH_NOGESTURE;
   }
 
-  // Some gesture don't trigger until a touch is released
+  // Some gestures don't trigger until a touch is released
   if (!hasDetectedGesture()) {
     // Can't be a gesture that relies on movement
     state &= ~(GH_DRAG | GH_TWODRAG | GH_PINCH);
@@ -256,7 +256,7 @@ void GestureHandler::handleTouchEnd(int id)
 
   // Waiting for all touches to release? (i.e. some tap)
   if (waitingRelease) {
-    // Were all touches release roughly the same time?
+    // Were all touches released at roughly the same time?
     if (rfb::msSince(&releaseStart) > GH_MULTITOUCH_TIMEOUT)
       state = GH_NOGESTURE;
 
