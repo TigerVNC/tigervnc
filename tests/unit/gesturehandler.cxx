@@ -792,7 +792,6 @@ void testTwoDragTooSlow()
   test.handleTouchBegin(2, 30.0, 30.0);
   test.handleTouchUpdate(2, 50.0, 30.0);
   test.handleTouchUpdate(1, 80.0, 30.0);
-  test.handleTouchEnd(1);
 
   ASSERT_EQ(test.events.size(), 0);
 
