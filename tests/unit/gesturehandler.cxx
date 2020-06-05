@@ -493,7 +493,7 @@ void testLongPressDrag()
   printf("OK\n");
 }
 
-void testTwoDragFastHoriz()
+void testTwoDragFastDistinctHoriz()
 {
   TestClass test;
 
@@ -547,7 +547,7 @@ void testTwoDragFastHoriz()
   printf("OK\n");
 }
 
-void testTwoDragFastVert()
+void testTwoDragFastDistinctVert()
 {
   TestClass test;
 
@@ -600,7 +600,7 @@ void testTwoDragFastVert()
   printf("OK\n");
 }
 
-void testTwoDragFastDiag()
+void testTwoDragFastDistinctDiag()
 {
   TestClass test;
 
@@ -653,7 +653,7 @@ void testTwoDragFastDiag()
   printf("OK\n");
 }
 
-void testTwoDragEndBeforeTimeout()
+void testTwoDragFastAlmost()
 {
   TestClass test;
 
@@ -676,7 +676,7 @@ void testTwoDragEndBeforeTimeout()
   printf("OK\n");
 }
 
-void testTwoDragStartHorizFromTimeout()
+void testTwoDragSlowHoriz()
 {
   TestClass test;
 
@@ -710,7 +710,7 @@ void testTwoDragStartHorizFromTimeout()
   printf("OK\n");
 }
 
-void testTwoDragStartVertFromTimeout()
+void testTwoDragSlowVert()
 {
   TestClass test;
 
@@ -744,7 +744,7 @@ void testTwoDragStartVertFromTimeout()
   printf("OK\n");
 }
 
-void testTwoDragStartDiagFromTimeout()
+void testTwoDragSlowDiag()
 {
   TestClass test;
 
@@ -798,7 +798,7 @@ void testTwoDragTooSlow()
   printf("OK\n");
 }
 
-void testPinchFastIn()
+void testPinchFastDistinctIn()
 {
   TestClass test;
 
@@ -848,7 +848,7 @@ void testPinchFastIn()
   printf("OK\n");
 }
 
-void testPinchFastOut()
+void testPinchFastDistinctOut()
 {
   TestClass test;
 
@@ -898,7 +898,7 @@ void testPinchFastOut()
   printf("OK\n");
 }
 
-void testPinchEndBeforeTimeout()
+void testPinchFastAlmost()
 {
   TestClass test;
 
@@ -920,7 +920,7 @@ void testPinchEndBeforeTimeout()
   printf("OK\n");
 }
 
-void testPinchStartInFromTimeout()
+void testPinchSlowIn()
 {
   TestClass test;
 
@@ -958,7 +958,7 @@ void testPinchStartInFromTimeout()
   printf("OK\n");
 }
 
-void testPinchStartOutFromTimeout()
+void testPinchSlowOut()
 {
   TestClass test;
 
@@ -1202,23 +1202,23 @@ void testLongPress()
 
 void testTwoDrag()
 {
-  testTwoDragFastHoriz();
-  testTwoDragFastVert();
-  testTwoDragFastDiag();
-  testTwoDragEndBeforeTimeout();
-  testTwoDragStartHorizFromTimeout();
-  testTwoDragStartVertFromTimeout();
-  testTwoDragStartDiagFromTimeout();
+  testTwoDragFastDistinctHoriz();
+  testTwoDragFastDistinctVert();
+  testTwoDragFastDistinctDiag();
+  testTwoDragFastAlmost();
+  testTwoDragSlowHoriz();
+  testTwoDragSlowVert();
+  testTwoDragSlowDiag();
   testTwoDragTooSlow();
 }
 
 void testPinch()
 {
-  testPinchFastIn();
-  testPinchFastOut();
-  testPinchEndBeforeTimeout();
-  testPinchStartInFromTimeout();
-  testPinchStartOutFromTimeout();
+  testPinchFastDistinctIn();
+  testPinchFastDistinctOut();
+  testPinchFastAlmost();
+  testPinchSlowIn();
+  testPinchSlowOut();
   testPinchTooSlow();
 }
 
