@@ -860,7 +860,7 @@ void testPinchFastDistinctOut()
   ASSERT_EQ(test.events.size(), 0);
 
   test.handleTouchUpdate(1, 130.0, 70.0);
-  test.handleTouchUpdate(2, 20.0, 200.0);
+  test.handleTouchUpdate(2, 0.0, 200.0);
 
   ASSERT_EQ(test.events.size(), 0);
 
@@ -879,7 +879,7 @@ void testPinchFastDistinctOut()
   ASSERT_EQ(test.events[1].gesture, GesturePinch);
   ASSERT_EQ(test.events[1].eventX, 105.0);
   ASSERT_EQ(test.events[1].eventY, 100.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 160.0);
+  ASSERT_EQ(test.events[1].magnitudeX, 180.0);
   ASSERT_EQ(test.events[1].magnitudeY, 180.0);
 
   test.events.clear();
@@ -892,7 +892,7 @@ void testPinchFastDistinctOut()
   ASSERT_EQ(test.events[0].gesture, GesturePinch);
   ASSERT_EQ(test.events[0].eventX, 105.0);
   ASSERT_EQ(test.events[0].eventY, 100.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 160.0);
+  ASSERT_EQ(test.events[0].magnitudeX, 180.0);
   ASSERT_EQ(test.events[0].magnitudeY, 180.0);
 
   printf("OK\n");
