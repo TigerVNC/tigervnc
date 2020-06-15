@@ -31,7 +31,7 @@ matrix:
       export mingw64="$msys2 -mingw64 -full-path -here -c "\"\$@"\" --"
       export msys2+=" -msys2 -c "\"\$@"\" --"
       $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-toolchain
-      $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-fltk mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-gnutls
+      $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-fltk mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-gnutls mingw-w64-x86_64-pixman
       taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
       export PATH=/C/tools/msys64/mingw64/bin:$PATH
       export MAKE=mingw32-make  # so that Autotools can find it

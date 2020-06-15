@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR} ${PIXMAN_INCLUDE_DIR})
 
 set(RFB_SOURCES
   Blacklist.cxx
@@ -73,7 +73,7 @@ if(WIN32)
   set(RFB_SOURCES ${RFB_SOURCES} WinPasswdValidator.cxx)
 endif(WIN32)
 
-set(RFB_LIBRARIES ${JPEG_LIBRARIES} os rdr Xregion)
+set(RFB_LIBRARIES ${JPEG_LIBRARIES} ${PIXMAN_LIBRARY} os rdr)
 
 if(UNIX AND NOT APPLE)
   set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx

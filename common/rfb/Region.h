@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2016-2020 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
  * USA.
  */
 
-// Cross-platform Region class based on the X11 region implementation
+// Region class wrapper around pixman's region operations
 
 #ifndef __RFB_REGION_INCLUDED__
 #define __RFB_REGION_INCLUDED__
@@ -24,13 +25,9 @@
 #include <rfb/Rect.h>
 #include <vector>
 
-struct _XRegion;
+struct pixman_region16;
 
 namespace rfb {
-
-  struct ShortRect {
-    short x1, y1, x2, y2;
-  };
 
   class Region {
   public:
@@ -49,9 +46,6 @@ namespace rfb {
     void clear();
     void reset(const Rect& r);
     void translate(const rfb::Point& delta);
-    void setOrderedRects(const std::vector<Rect>& rects);
-    void setExtentsAndOrderedRects(const ShortRect* extents, int nRects,
-                                   const ShortRect* rects);
 
     void assign_intersect(const Region& r);
     void assign_union(const Region& r);
@@ -75,7 +69,7 @@ namespace rfb {
 
   protected:
 
-    struct _XRegion* xrgn;
+    struct pixman_region16* rgn;
   };
 
 };

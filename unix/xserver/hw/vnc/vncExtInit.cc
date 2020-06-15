@@ -150,9 +150,6 @@ void vncExtensionInit(void)
   if (vncGetScreenCount() > MAXSCREENS)
     vncFatalError("vncExtensionInit: too many screens\n");
 
-  if (sizeof(ShortRect) != sizeof(struct UpdateRect))
-    vncFatalError("vncExtensionInit: Incompatible ShortRect size\n");
-
   vncAddExtension();
 
   vncSelectionInit();
@@ -372,25 +369,24 @@ void vncSetLEDState(unsigned long leds)
     desktop[scr]->setLEDState(state);
 }
 
-void vncAddChanged(int scrIdx, const struct UpdateRect *extents,
-                   int nRects, const struct UpdateRect *rects)
+void vncAddChanged(int scrIdx, int nRects,
+                   const struct UpdateRect *rects)
 {
-  Region reg;
-
-  reg.setExtentsAndOrderedRects((const ShortRect*)extents,
-                                nRects, (const ShortRect*)rects);
-  desktop[scrIdx]->add_changed(reg);
+  for (int i = 0;i < nRects;i++) {
+    desktop[scrIdx]->add_changed(Region(Rect(rects[i].x1, rects[i].y1,
+                                             rects[i].x2, rects[i].y2)));
+  }
 }
 
-void vncAddCopied(int scrIdx, const struct UpdateRect *extents,
-                  int nRects, const struct UpdateRect *rects,
+void vncAddCopied(int scrIdx, int nRects,
+                  const struct UpdateRect *rects,
                   int dx, int dy)
 {
-  Region reg;
-
-  reg.setExtentsAndOrderedRects((const ShortRect*)extents,
-                                nRects, (const ShortRect*)rects);
-  desktop[scrIdx]->add_copied(reg, rfb::Point(dx, dy));
+  for (int i = 0;i < nRects;i++) {
+    desktop[scrIdx]->add_copied(Region(Rect(rects[i].x1, rects[i].y1,
+                                            rects[i].x2, rects[i].y2)),
+                                Point(dx, dy));
+  }
 }
 
 void vncSetCursor(int width, int height, int hotX, int hotY,
