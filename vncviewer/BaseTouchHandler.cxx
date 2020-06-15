@@ -77,8 +77,7 @@ void BaseTouchHandler::handleGestureEvent(const GestureEvent& ev)
       fakeMotionEvent(ev);
       break;
     case GesturePinch:
-      lastMagnitudeX = sqrt(ev.magnitudeX * ev.magnitudeX +
-                            ev.magnitudeY * ev.magnitudeY);
+      lastMagnitudeX = hypot(ev.magnitudeX, ev.magnitudeY);
       fakeMotionEvent(ev);
       break;
     }
@@ -125,8 +124,7 @@ void BaseTouchHandler::handleGestureEvent(const GestureEvent& ev)
       // We don't know if the mouse was moved so we need to move it
       // every update.
       fakeMotionEvent(ev);
-      magnitude = sqrt(ev.magnitudeX * ev.magnitudeX +
-                       ev.magnitudeY * ev.magnitudeY);
+      magnitude = hypot(ev.magnitudeX, ev.magnitudeY);
       if (abs(magnitude - lastMagnitudeX) > ZOOMSENS) {
         fakeKeyEvent(true, XK_Control_L, ev);
 
@@ -179,7 +177,7 @@ void BaseTouchHandler::handleTapEvent(const GestureEvent& ev,
 
     double dx = firstDoubleTapEvent.eventX - ev.eventX;
     double dy = firstDoubleTapEvent.eventY - ev.eventY;
-    double distance = sqrt((dx * dx) + (dy * dy));
+    double distance = hypot(dx, dy);
 
     if (distance < DOUBLE_TAP_THRESHOLD) {
      newEv.eventX = firstDoubleTapEvent.eventX;
