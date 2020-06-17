@@ -24,7 +24,29 @@ if(BUILD_STATIC)
 
   # gettext is included in libc on many unix systems
   if(NOT LIBC_HAS_DGETTEXT)
-    set(GETTEXT_LIBRARIES "-Wl,-Bstatic -lintl -liconv -Wl,-Bdynamic")
+    FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring
+      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+    FIND_LIBRARY(INTL_LIBRARY NAMES intl libintl
+      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+    FIND_LIBRARY(ICONV_LIBRARY NAMES iconv libiconv
+      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+
+    set(GETTEXT_LIBRARIES "-Wl,-Bstatic")
+
+    if(INTL_LIBRARY)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lintl")
+    endif()
+    
+    if(ICONV_LIBRARY)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -liconv")
+    endif()
+
+    set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -Wl,-Bdynamic")
+
+    if(UNISTRING_LIBRARY)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lunistring")
+    endif()
+
     if(APPLE)
       set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -framework Carbon")
     endif()
@@ -38,6 +60,8 @@ if(BUILD_STATIC)
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
     FIND_LIBRARY(TASN1_LIBRARY NAMES tasn1 libtasn1
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
+    FIND_LIBRARY(IDN2_LIBRARY NAMES idn2 libidn2
+      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
 
     set(GNUTLS_LIBRARIES "-Wl,-Bstatic -lgnutls")
 
@@ -50,14 +74,30 @@ if(BUILD_STATIC)
     if(GCRYPT_LIBRARY)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lgcrypt -lgpg-error")
     endif()
+    if(IDN2_LIBRARY)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lidn2")
+    endif()
 
     set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -Wl,-Bdynamic")
 
     if (WIN32)
+      FIND_LIBRARY(P11KIT_LIBRARY NAMES p11-kit libp11-kit
+        HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
+      FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring
+        HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
+
       # GnuTLS uses various crypto-api stuff
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32 -lncrypt")
       # And sockets
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lws2_32")
+
+      # p11-kit only available as dynamic library for MSYS2 on Windows and dynamic linking of unistring is required
+      if(P11KIT_LIBRARY)
+        set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lp11-kit")
+      endif()
+      if(UNISTRING_LIBRARY)
+        set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lunistring")
+      endif()
     endif()
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
@@ -135,6 +175,11 @@ if(BUILD_STATIC_GCC)
   endif()
   if(WIN32)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
+    find_package(Threads)
+    if(CMAKE_USE_PTHREADS_INIT)
+      # pthread has to be statically linked after libraries above and before kernel32
+      set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lpthread -Wl,-Bdynamic")
+    endif()
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -luser32 -lkernel32 -ladvapi32 -lshell32")
     # mingw has some fun circular dependencies that requires us to link
     # these things again
