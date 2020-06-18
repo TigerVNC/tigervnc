@@ -172,11 +172,6 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         clipboardClient = NULL;
       clipboardRequestors.remove(*ci);
 
-      // Adjust the exit timers
-      connectTimer.stop();
-      if (rfb::Server::maxDisconnectionTime && clients.empty())
-        disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
-
       // - Delete the per-Socket resources
       delete *ci;
 
@@ -192,6 +187,11 @@ void VNCServerST::removeSocket(network::Socket* sock) {
 
       if (comparer)
         comparer->logStats();
+
+      // Adjust the exit timers
+      connectTimer.stop();
+      if (rfb::Server::maxDisconnectionTime && clients.empty())
+        disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
 
       return;
     }
