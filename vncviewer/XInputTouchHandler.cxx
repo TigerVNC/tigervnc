@@ -99,9 +99,9 @@ bool XInputTouchHandler::grabPointer()
   curmasks = XIGetSelectedEvents(fl_display, wnd, &num_masks);
   if (curmasks == NULL) {
     if (num_masks == -1)
-      vlog.error(_("Unable to get X Input 2 event mask for window 0x%08lu"), wnd);
+      vlog.error(_("Unable to get X Input 2 event mask for window 0x%08lx"), wnd);
     else
-      vlog.error(_("Window 0x%08lu has no X Input 2 event mask"), wnd);
+      vlog.error(_("Window 0x%08lx has no X Input 2 event mask"), wnd);
 
     return false;
   }
@@ -109,7 +109,7 @@ bool XInputTouchHandler::grabPointer()
   // Our windows should only have a single mask, which allows us to
   // simplify all the code handling the masks
   if (num_masks > 1) {
-    vlog.error(_("Window 0x%08lu has more than one X Input 2 event mask"), wnd);
+    vlog.error(_("Window 0x%08lx has more than one X Input 2 event mask"), wnd);
     return false;
   }
 

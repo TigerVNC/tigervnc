@@ -104,14 +104,14 @@ static void x11_change_touch_ownership(bool enable)
     curmasks = XIGetSelectedEvents(fl_display, iter->first, &num_masks);
     if (curmasks == NULL) {
       if (num_masks == -1)
-        vlog.error(_("Unable to get X Input 2 event mask for window 0x%08lu"), iter->first);
+        vlog.error(_("Unable to get X Input 2 event mask for window 0x%08lx"), iter->first);
       continue;
     }
 
     // Our windows should only have a single mask, which allows us to
     // simplify all the code handling the masks
     if (num_masks > 1) {
-      vlog.error(_("Window 0x%08lu has more than one X Input 2 event mask"), iter->first);
+      vlog.error(_("Window 0x%08lx has more than one X Input 2 event mask"), iter->first);
       continue;
     }
 
@@ -135,7 +135,7 @@ bool x11_grab_pointer(Window window)
   bool ret;
 
   if (handlers.count(window) == 0) {
-    vlog.error(_("Invalid window 0x%08lu specified for pointer grab"), window);
+    vlog.error(_("Invalid window 0x%08lx specified for pointer grab"), window);
     return BadWindow;
   }
 
@@ -157,7 +157,7 @@ bool x11_grab_pointer(Window window)
 void x11_ungrab_pointer(Window window)
 {
   if (handlers.count(window) == 0) {
-    vlog.error(_("Invalid window 0x%08lu specified for pointer grab"), window);
+    vlog.error(_("Invalid window 0x%08lx specified for pointer grab"), window);
     return;
   }
 
