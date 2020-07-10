@@ -33,7 +33,7 @@ fi
 
 DISPLAY="$1"
 
-USER=`grep "^${DISPLAY}=" "${USERSFILE}" 2>/dev/null | head -1 | cut -d = -f 2-`
+USER=`grep "^ *${DISPLAY}=" "${USERSFILE}" 2>/dev/null | head -1 | cut -d = -f 2- | sed 's/ *$//g'`
 
 if [ -z "${USER}" ]; then
 	echo "No user configured for display ${DISPLAY}" >&2
