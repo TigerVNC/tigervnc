@@ -307,7 +307,7 @@ endif()
 add_subdirectory(tests)
 
 
-include(cmake/BuildPackages.cmake)
+add_subdirectory(release)
 
 # uninstall
 configure_file("${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"

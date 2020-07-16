@@ -25,12 +25,12 @@ if(BUILD_WINVNC)
   set(INST_DEPS ${INST_DEPS} winvnc4 wm_hooks vncconfig)
 endif()
 
-configure_file(release/tigervnc.iss.in release/tigervnc.iss)
+configure_file(tigervnc.iss.in tigervnc.iss)
 
 add_custom_target(installer
-  iscc -o. ${INST_DEFS} -F${INST_NAME} release/tigervnc.iss
+  iscc -o. ${INST_DEFS} -F${INST_NAME} tigervnc.iss
   DEPENDS ${INST_DEPS}
-  SOURCES release/tigervnc.iss)
+  SOURCES tigervnc.iss)
 
 endif() # WIN32
 
@@ -45,16 +45,16 @@ set(DEFAULT_OSX_X86_BUILD ${CMAKE_SOURCE_DIR}/osxx86)
 set(OSX_X86_BUILD ${DEFAULT_OSX_X86_BUILD} CACHE PATH
   "Directory containing 32-bit OS X build to include in universal binaries (default: ${DEFAULT_OSX_X86_BUILD})")
 
-configure_file(release/makemacapp.in release/makemacapp)
-configure_file(release/Info.plist.in release/Info.plist)
+configure_file(makemacapp.in makemacapp)
+configure_file(Info.plist.in Info.plist)
 
-add_custom_target(dmg sh release/makemacapp
+add_custom_target(dmg sh makemacapp
   DEPENDS vncviewer
-  SOURCES release/makemacapp)
+  SOURCES makemacapp)
 
-add_custom_target(udmg sh release/makemacapp universal
+add_custom_target(udmg sh makemacapp universal
   DEPENDS vncviewer
-  SOURCES release/makemacapp)
+  SOURCES makemacapp)
 
 endif() # APPLE
 
@@ -65,20 +65,20 @@ endif() # APPLE
 
 if(UNIX)
 
-configure_file(release/maketarball.in release/maketarball)
+configure_file(maketarball.in maketarball)
 
 set(TARBALL_DEPENDS vncviewer vncpasswd vncconfig)
 if(BUILD_JAVA)
   set(TARBALL_DEPENDS ${TARBALL_DEPENDS} java)
 endif()
 
-add_custom_target(tarball sh release/maketarball
+add_custom_target(tarball sh maketarball
   DEPENDS ${TARBALL_DEPENDS}
-  SOURCES release/maketarball)
+  SOURCES maketarball)
 
-add_custom_target(servertarball sh release/maketarball server
+add_custom_target(servertarball sh maketarball server
   DEPENDS ${TARBALL_DEPENDS}
-  SOURCES release/maketarball)
+  SOURCES maketarball)
 
 endif() #UNIX
 

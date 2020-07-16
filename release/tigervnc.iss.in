@@ -25,11 +25,11 @@ Name: "{sys}\config\systemprofile\Desktop"
 
 [Files]
 #ifdef BUILD_WINVNC
-Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
-Source: "@CMAKE_CURRENT_BINARY_DIR@\win\wm_hooks\wm_hooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
-Source: "@CMAKE_CURRENT_BINARY_DIR@\win\vncconfig\vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\win\winvnc\winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\win\wm_hooks\wm_hooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\win\vncconfig\vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 #endif
-Source: "@CMAKE_CURRENT_BINARY_DIR@\vncviewer\vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\vncviewer\vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 Source: "@CMAKE_SOURCE_DIR@\README.rst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 
