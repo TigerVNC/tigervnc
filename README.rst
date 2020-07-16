@@ -64,6 +64,8 @@ The Windows version of TigerVNC contains the following programs:
 * winvnc - the TigerVNC Server for Windows.  winvnc allows a Windows desktop to
            be accessed remotely using a VNC viewer.
 
+WARNING: winvnc is currently unmaintainted and and may not function correctly.
+
 winvnc may not work if the Fast User Switching or Remote Desktop features are
 in use.
 
