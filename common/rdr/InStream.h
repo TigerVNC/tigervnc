@@ -39,15 +39,19 @@ namespace rdr {
     // itemSize bytes.  Returns the number of items in the buffer (up to a
     // maximum of nItems).  If wait is false, then instead of blocking to wait
     // for the bytes, zero is returned if the bytes are not immediately
-    // available.
+    // available. If itemSize or nItems is zero, check() will return zero.
 
     inline size_t check(size_t itemSize, size_t nItems=1, bool wait=true)
     {
       size_t nAvail;
 
+      if (itemSize == 0 || nItems == 0)
+        return 0;
+
       if (itemSize > (size_t)(end - ptr))
         return overrun(itemSize, nItems, wait);
 
+      // itemSize cannot be zero at this point
       nAvail = (end - ptr) / itemSize;
       if (nAvail < nItems)
         return nAvail;
@@ -58,8 +62,12 @@ namespace rdr {
     // checkNoWait() tries to make sure that the given number of bytes can
     // be read without blocking.  It returns true if this is the case, false
     // otherwise.  The length must be "small" (less than the buffer size).
+    // If length is zero, checkNoWait() will return true.
 
-    inline bool checkNoWait(size_t length) { return check(length, 1, false)!=0; }
+    inline bool checkNoWait(size_t length)
+    {
+      return length == 0 || check(length, 1, false) > 0;
+    }
 
     // readU/SN() methods read unsigned and signed N-bit integers.
 
@@ -94,6 +102,7 @@ namespace rdr {
     }
 
     // readBytes() reads an exact number of bytes.
+    // If length is zero, readBytes() will return immediately.
 
     void readBytes(void* data, size_t length) {
       while (length > 0) {
