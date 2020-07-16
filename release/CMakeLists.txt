@@ -9,28 +9,25 @@
 if(WIN32)
 
 if(CMAKE_SIZEOF_VOID_P MATCHES 8)
-  set(INST_NAME ${CMAKE_PROJECT_NAME}64-${VERSION})
+  set(INST_SUFFIX 64)
   set(INST_DEFS -DWIN64)
-else()
-  set(INST_NAME ${CMAKE_PROJECT_NAME}-${VERSION})
-endif()
-
-set(INST_DEPS vncviewer)
-
-if(BUILD_WINVNC)
-  set(INST_DEFS ${INST_DEFS} -DBUILD_WINVNC)
-  if(BUILD_JAVA)
-    set(INST_DEPS ${INST_DEPS} java)
-  endif()
-  set(INST_DEPS ${INST_DEPS} winvnc4 wm_hooks vncconfig)
 endif()
 
 configure_file(tigervnc.iss.in tigervnc.iss)
 
 add_custom_target(installer
-  iscc -o. ${INST_DEFS} -F${INST_NAME} tigervnc.iss
-  DEPENDS ${INST_DEPS}
+  iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION} tigervnc.iss
+  DEPENDS vncviewer
   SOURCES tigervnc.iss)
+
+if(BUILD_WINVNC)
+  configure_file(winvnc.iss.in winvnc.iss)
+
+  add_custom_target(winvnc_installer
+    iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-winvnc-${VERSION} winvnc.iss
+    DEPENDS winvnc4 wm_hooks vncconfig
+    SOURCES winvnc.iss)
+endif()
 
 endif() # WIN32
 
