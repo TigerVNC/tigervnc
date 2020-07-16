@@ -72,11 +72,11 @@ if(BUILD_JAVA)
   set(TARBALL_DEPENDS ${TARBALL_DEPENDS} java)
 endif()
 
-add_custom_target(tarball sh maketarball
+add_custom_target(tarball bash maketarball
   DEPENDS ${TARBALL_DEPENDS}
   SOURCES maketarball)
 
-add_custom_target(servertarball sh maketarball server
+add_custom_target(servertarball bash maketarball server
   DEPENDS ${TARBALL_DEPENDS}
   SOURCES maketarball)
 
