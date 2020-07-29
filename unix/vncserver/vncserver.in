@@ -393,9 +393,14 @@ sub CheckDisplayNumber
     my $x11_unix_domain = "/tmp/.X11-unix/X$n";
 
     if (-e $x11_unix_domain) {
-	warn "\nWarning: $host:$n is taken because of $x11_unix_domain\n";
-	warn "Remove this file if there is no X server $host:$n\n";
-	return 0;
+        # Connect to UNIX domain socket to confirm it is not in use.
+        socket(S, PF_UNIX, SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+        if (connect(S, sockaddr_un($x11_unix_domain))) {
+            # UNIX domain socket is in use.
+            close(S);
+            return 0;
+        }
+        close(S);
     }
 
     return 1;
