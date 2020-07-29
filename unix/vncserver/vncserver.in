@@ -363,6 +363,12 @@ sub CheckDisplayNumber
 {
     local ($n) = @_;
 
+    if (-e "/tmp/.X$n-lock") {
+	warn "\nWarning: $host:$n is taken because of /tmp/.X$n-lock\n";
+	warn "Remove this file if there is no X server $host:$n\n";
+	return 0;
+    }
+
     socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
     eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
     if (!bind(S, pack('S n x12', $AF_INET, 6000 + $n))) {
@@ -378,12 +384,6 @@ sub CheckDisplayNumber
 	return 0;
     }
     close(S);
-
-    if (-e "/tmp/.X$n-lock") {
-	warn "\nWarning: $host:$n is taken because of /tmp/.X$n-lock\n";
-	warn "Remove this file if there is no X server $host:$n\n";
-	return 0;
-    }
 
     if (-e "/tmp/.X11-unix/X$n") {
 	warn "\nWarning: $host:$n is taken because of /tmp/.X11-unix/X$n\n";
