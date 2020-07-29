@@ -363,15 +363,20 @@ sub CheckDisplayNumber
 {
     local ($n) = @_;
 
-    if (-e "/tmp/.X$n-lock") {
-	warn "\nWarning: $host:$n is taken because of /tmp/.X$n-lock\n";
+    my $x11_lock_path = "/tmp/.X$n-lock";
+
+    if (-e $x11_lock_path) {
+	warn "\nWarning: $host:$n is taken because of $x11_lock_path\n";
 	warn "Remove this file if there is no X server $host:$n\n";
 	return 0;
     }
 
+    my $rfb_port = 5900 + $n;
+    my $x11_port = 6000 + $n;
+
     socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
     eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-    if (!bind(S, pack('S n x12', $AF_INET, 6000 + $n))) {
+    if (!bind(S, pack('S n x12', $AF_INET, $x11_port))) {
 	close(S);
 	return 0;
     }
@@ -379,14 +384,16 @@ sub CheckDisplayNumber
 
     socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
     eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-    if (!bind(S, pack('S n x12', $AF_INET, 5900 + $n))) {
+    if (!bind(S, pack('S n x12', $AF_INET, $rfb_port))) {
 	close(S);
 	return 0;
     }
     close(S);
 
-    if (-e "/tmp/.X11-unix/X$n") {
-	warn "\nWarning: $host:$n is taken because of /tmp/.X11-unix/X$n\n";
+    my $x11_unix_domain = "/tmp/.X11-unix/X$n";
+
+    if (-e $x11_unix_domain) {
+	warn "\nWarning: $host:$n is taken because of $x11_unix_domain\n";
 	warn "Remove this file if there is no X server $host:$n\n";
 	return 0;
     }
