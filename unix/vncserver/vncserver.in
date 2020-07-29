@@ -391,13 +391,6 @@ sub CheckDisplayNumber
 	return 0;
     }
 
-    if (-e "/usr/spool/sockets/X11/$n") {
-	warn("\nWarning: $host:$n is taken because of ".
-             "/usr/spool/sockets/X11/$n\n");
-	warn "Remove this file if there is no X server $host:$n\n";
-	return 0;
-    }
-
     return 1;
 }
 
