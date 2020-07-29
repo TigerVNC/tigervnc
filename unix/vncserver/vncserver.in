@@ -366,9 +366,11 @@ sub CheckDisplayNumber
     my $x11_lock_path = "/tmp/.X$n-lock";
 
     if (-e $x11_lock_path) {
-	warn "\nWarning: $host:$n is taken because of $x11_lock_path\n";
-	warn "Remove this file if there is no X server $host:$n\n";
-	return 0;
+        my($pid) = `cat "$x11_lock_path"` =~ /^\s*(\d+)\s*$/;
+        if (defined($pid) && kill(0, $pid)) {
+            # Lock is associated with valid PID.
+            return 0;
+        }
     }
 
     my $rfb_port = 5900 + $n;
