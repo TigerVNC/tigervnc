@@ -374,21 +374,17 @@ sub CheckDisplayNumber
     my $rfb_port = 5900 + $n;
     my $x11_port = 6000 + $n;
 
-    socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
-    eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-    if (!bind(S, pack('S n x12', $AF_INET, $x11_port))) {
-	close(S);
-	return 0;
+    for my $port ($rfb_port, $x11_port) {
+        # Bind to port to confirm it is not in use.
+        socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+        eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
+        if (!bind(S, pack('S n x12', $AF_INET, $port))) {
+            # Port is in use.
+            close(S);
+            return 0;
+        }
+        close(S);
     }
-    close(S);
-
-    socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
-    eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-    if (!bind(S, pack('S n x12', $AF_INET, $rfb_port))) {
-	close(S);
-	return 0;
-    }
-    close(S);
 
     my $x11_unix_domain = "/tmp/.X11-unix/X$n";
 
