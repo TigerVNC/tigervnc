@@ -1,6 +1,6 @@
 Name:           tigervnc
 Version:        @VERSION@
-Release:        5%{?snap:.%{snap}}%{?dist}
+Release:        1%{?snap:.%{snap}}%{?dist}
 Summary:        A TigerVNC remote display system
 
 Group:          User Interface/Desktops
@@ -15,13 +15,15 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:  libX11-devel, automake, autoconf, libtool, gettext, gettext-autopoint
 BuildRequires:  libXext-devel, xorg-x11-server-source, libXi-devel
 BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
-BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
+BuildRequires:  libdrm-devel, libXt-devel, pixman-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
 BuildRequires:  libXrandr-devel, fltk-devel >= 1.3.3
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake, selinux-policy-devel
+BuildRequires:  libpng-devel
+BuildRequires:  zlib-devel
 
 Requires(post):   coreutils
 Requires(postun): coreutils
@@ -137,7 +139,7 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
         chmod -x "$all"
 done
-xserver_patch="../xserver$(rpm -q --qf '%{VERSION}' xorg-x11-server-source | awk -F. '{ print $1 $2 }').patch"
+xserver_patch="../xserver$(rpm -q --qf '%%{VERSION}' xorg-x11-server-source | awk -F. '{ print $1 $2 }').patch"
 patch -p1 -b --suffix .vnc < "$xserver_patch"
 popd
 
@@ -297,6 +299,9 @@ fi
 %{_datadir}/selinux/packages/vncsession.pp
 
 %changelog
+* Mon Jul 27 2020 Mark Mielke <mmielke@ciena.com> 1.10.1-1
+- Update build requirements and fix unexpected rpm macro expansion.
+
 * Mon Feb 11 2019 Mark Mielke <mmielke@ciena.com> 1.9.80-5
 - Automatically detect and apply the correct X.org patch.
 
