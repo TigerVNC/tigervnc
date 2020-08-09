@@ -42,32 +42,6 @@ import static javax.swing.JOptionPane.*;
 
 public class UserDialog implements UserPasswdGetter, UserMsgBox
 {
-  private class MyLayerUI extends LayerUI {
-    // Using a JButton for the "?" icon yields the best look, but there
-    // does not seem to be any reasonable way to disable a JButton without
-    // also changing the color.  This wrapper just intercepts any mouse
-    // click events so that the button just looks like an icon.
-    @Override
-    public void eventDispatched(AWTEvent e, JLayer l) {
-      if (e instanceof InputEvent)
-        ((InputEvent) e).consume();
-    }
-
-    @Override
-    public void installUI(JComponent c) {
-      super.installUI(c);
-      if (c instanceof JLayer) {
-        JLayer<?> layer = (JLayer<?>)c;
-        layer.setLayerEventMask(AWTEvent.MOUSE_EVENT_MASK);
-      }
-    }
-
-    @Override
-    protected void processMouseEvent(MouseEvent e, JLayer l) {
-      super.processMouseEvent(e, l);
-    }
-  }
-
   public final void getUserPasswd(boolean secure, StringBuffer user, StringBuffer password)
   {
     String passwordFileStr = passwordFile.getValue();
@@ -100,7 +74,6 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
     JDialog win;
     JLabel banner;
     JTextField username = null;
-    JLayer icon;
 
     int y;
 
@@ -129,13 +102,18 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
 
     y = 20 + 10;
 
-    JButton iconb = new JButton("?");
-    iconb.setVerticalAlignment(JLabel.CENTER);
-    iconb.setFont(new Font("Times", Font.BOLD, 34));
-    iconb.setForeground(Color.BLUE);
-    LayerUI ui = new MyLayerUI();
-    icon = new JLayer(iconb, ui);
+    JButton icon = new JButton("?");
+    icon.setVerticalAlignment(JLabel.CENTER);
+    icon.setFont(new Font("Times", Font.BOLD, 34));
+    icon.setForeground(Color.BLUE);
     icon.setBounds(10, y, 50, 50);
+    // the following disables the "?" icon without changing the color
+    UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+    Painter painter = (Painter)defaults.get("Button[Enabled].backgroundPainter");
+    defaults.put("Button[Disabled].backgroundPainter", painter);
+    icon.putClientProperty("Nimbus.Overrides.InheritDefaults", Boolean.TRUE);
+    icon.putClientProperty("Nimbus.Overrides", defaults);
+    icon.setEnabled(false);
     msg.add(icon);
 
     y += 5;
