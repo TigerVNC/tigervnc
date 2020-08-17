@@ -361,41 +361,46 @@ sub LoadXSession {
 
 sub CheckDisplayNumber
 {
-    local ($n) = @_;
+    my($n) = @_;
 
-    socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
-    eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-    if (!bind(S, pack('S n x12', $AF_INET, 6000 + $n))) {
-	close(S);
-	return 0;
-    }
-    close(S);
+    use Socket;
 
-    socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
-    eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-    if (!bind(S, pack('S n x12', $AF_INET, 5900 + $n))) {
-	close(S);
-	return 0;
-    }
-    close(S);
+    my $x11_lock_path = "/tmp/.X$n-lock";
 
-    if (-e "/tmp/.X$n-lock") {
-	warn "\nWarning: $host:$n is taken because of /tmp/.X$n-lock\n";
-	warn "Remove this file if there is no X server $host:$n\n";
-	return 0;
+    if (-e $x11_lock_path) {
+        my($pid) = `cat "$x11_lock_path"` =~ /^\s*(\d+)\s*$/;
+        if (defined($pid) && kill(0, $pid)) {
+            # Lock is associated with valid PID.
+            return 0;
+        }
     }
 
-    if (-e "/tmp/.X11-unix/X$n") {
-	warn "\nWarning: $host:$n is taken because of /tmp/.X11-unix/X$n\n";
-	warn "Remove this file if there is no X server $host:$n\n";
-	return 0;
+    my $rfb_port = 5900 + $n;
+    my $x11_port = 6000 + $n;
+
+    for my $port ($rfb_port, $x11_port) {
+        # Bind to port to confirm it is not in use.
+        socket(S, PF_INET, SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+        setsockopt(S, SOL_SOCKET, SO_REUSEADDR, 1);
+        if (!bind(S, sockaddr_in($port, INADDR_ANY))) {
+            # Port is in use.
+            close(S);
+            return 0;
+        }
+        close(S);
     }
 
-    if (-e "/usr/spool/sockets/X11/$n") {
-	warn("\nWarning: $host:$n is taken because of ".
-             "/usr/spool/sockets/X11/$n\n");
-	warn "Remove this file if there is no X server $host:$n\n";
-	return 0;
+    my $x11_unix_domain = "/tmp/.X11-unix/X$n";
+
+    if (-e $x11_unix_domain) {
+        # Connect to UNIX domain socket to confirm it is not in use.
+        socket(S, PF_UNIX, SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+        if (connect(S, sockaddr_un($x11_unix_domain))) {
+            # UNIX domain socket is in use.
+            close(S);
+            return 0;
+        }
+        close(S);
     }
 
     return 1;
@@ -445,37 +450,5 @@ sub SanityCheck
 
     if (!defined($ENV{HOME})) {
 	die "$prog: The HOME environment variable is not set.\n";
-    }
-
-    #
-    # Find socket constants. 'use Socket' is a perl5-ism, so we wrap it in an
-    # eval, and if it fails we try 'require "sys/socket.ph"'.  If this fails,
-    # we just guess at the values.  If you find perl moaning here, just
-    # hard-code the values of AF_INET and SOCK_STREAM.  You can find these out
-    # for your platform by looking in /usr/include/sys/socket.h and related
-    # files.
-    #
-
-    chop($os = `uname`);
-    chop($osrev = `uname -r`);
-
-    eval 'use Socket';
-    if ($@) {
-	eval 'require "sys/socket.ph"';
-	if ($@) {
-	    if (($os eq "SunOS") && ($osrev !~ /^4/)) {
-		$AF_INET = 2;
-		$SOCK_STREAM = 2;
-	    } else {
-		$AF_INET = 2;
-		$SOCK_STREAM = 1;
-	    }
-	} else {
-	    $AF_INET = &AF_INET;
-	    $SOCK_STREAM = &SOCK_STREAM;
-	}
-    } else {
-	$AF_INET = &AF_INET;
-	$SOCK_STREAM = &SOCK_STREAM;
     }
 }
