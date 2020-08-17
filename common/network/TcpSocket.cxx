@@ -459,6 +459,8 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
     freeaddrinfo(ai);
     throw;
   }
+
+  freeaddrinfo(ai);
 }
 
 void network::createTcpListeners(std::list<SocketListener*> *listeners,
