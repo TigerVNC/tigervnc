@@ -14,7 +14,7 @@ matrix:
     - sudo apt-get install -y libgnutls-dev libfltk1.3-dev fluid
     - sudo apt-get install -y libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev
     script:
-    - cmake -DCMAKE_BUILD_TYPE=Debug . && make
+    - cmake -DCMAKE_BUILD_TYPE=Debug . && make && make tarball
 
   - language: cpp
     os: windows
@@ -22,6 +22,7 @@ matrix:
     # From https://docs.travis-ci.com/user/reference/windows/
     before_install:
     - |-
+      choco install --no-progress -y innosetup
       [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
       choco uninstall -y mingw
       choco upgrade --no-progress -y msys2
@@ -36,7 +37,7 @@ matrix:
       export PATH=/C/tools/msys64/mingw64/bin:$PATH
       export MAKE=mingw32-make  # so that Autotools can find it
     script:
-    - cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=mingw32-make -DCMAKE_C_COMPILER=gcc -DCMAKE=CXX_COMPILER=g++ . && mingw32-make
+    - cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=mingw32-make -DCMAKE_C_COMPILER=gcc -DCMAKE=CXX_COMPILER=g++ . && mingw32-make && mingw32-make installer winvnc_installer
     before_cache:
     - |-
       # https://unix.stackexchange.com/a/137322/107554
@@ -58,7 +59,7 @@ matrix:
           - fltk
     before_install:
     script:
-    - cmake -DCMAKE_BUILD_TYPE=Debug . && make
+    - cmake -DCMAKE_BUILD_TYPE=Debug . && make && make dmg
 
   - language: java
     # compile with java 8 for backwards compatibility
