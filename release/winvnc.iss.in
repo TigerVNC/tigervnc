@@ -16,7 +16,7 @@ DefaultGroupName=TigerVNC Server 64-bit
 #else
 DefaultGroupName=TigerVNC Server
 #endif
-LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.txt
+LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.TXT
 
 [Dirs]
 ; This directory is necessary to prevent the X509 file chooser from causing
