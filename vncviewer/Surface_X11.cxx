@@ -123,17 +123,17 @@ void Surface::alloc()
   // we find such a format
   templ.type = PictTypeDirect;
   templ.depth = 32;
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  templ.direct.alpha = 0;
-  templ.direct.red   = 8;
-  templ.direct.green = 16;
-  templ.direct.blue  = 24;
-#else
-  templ.direct.alpha = 24;
-  templ.direct.red   = 16;
-  templ.direct.green = 8;
-  templ.direct.blue  = 0;
-#endif
+  if (fl_visual->blue_mask == 0xff) {
+    templ.direct.alpha = 24;
+    templ.direct.red   = 16;
+    templ.direct.green = 8;
+    templ.direct.blue  = 0;
+  } else {
+    templ.direct.alpha = 0;
+    templ.direct.red   = 8;
+    templ.direct.green = 16;
+    templ.direct.blue  = 24;
+  }
   templ.direct.alphaMask = 0xff;
   templ.direct.redMask = 0xff;
   templ.direct.greenMask = 0xff;
