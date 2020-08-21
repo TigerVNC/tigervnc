@@ -37,7 +37,7 @@
 namespace rfb {
   class VNCServerST;
 
-  class VNCSConnectionST : public SConnection,
+  class VNCSConnectionST : private SConnection,
                            public Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
@@ -47,6 +47,8 @@ namespace rfb {
 
     virtual bool accessCheck(AccessRights ar) const;
     virtual void close(const char* reason);
+
+    using SConnection::authenticated;
 
     // Methods called from VNCServerST.  None of these methods ever knowingly
     // throw an exception.

@@ -599,7 +599,7 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock)
-      return *ci;
+      return (SConnection*)*ci;
   }
   return 0;
 }
