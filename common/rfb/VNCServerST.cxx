@@ -339,7 +339,7 @@ void VNCServerST::requestClipboard()
   if (clipboardClient == NULL)
     return;
 
-  clipboardClient->requestClipboard();
+  clipboardClient->requestClipboardOrClose();
 }
 
 void VNCServerST::announceClipboard(bool available)
@@ -353,7 +353,7 @@ void VNCServerST::announceClipboard(bool available)
 
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
-    (*ci)->announceClipboard(available);
+    (*ci)->announceClipboardOrClose(available);
   }
 }
 
@@ -367,7 +367,7 @@ void VNCServerST::sendClipboardData(const char* data)
   for (ci = clipboardRequestors.begin();
        ci != clipboardRequestors.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
-    (*ci)->sendClipboardData(data);
+    (*ci)->sendClipboardDataOrClose(data);
   }
 
   clipboardRequestors.clear();
