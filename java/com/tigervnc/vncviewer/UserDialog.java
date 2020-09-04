@@ -129,14 +129,16 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
       y += 25 + 5;
     }
 
-    JLabel passwdLabel = new JLabel("Password:");
-    passwdLabel.setBounds(70, y, msg.getSize().width-70-10, 20);
-    msg.add(passwdLabel);
-    y += 20 + 5;
     final JPasswordField passwd = new JPasswordField(30);
-    passwd.setBounds(70, y, msg.getSize().width-70-10, 25);
-    msg.add(passwd);
-    y += 25 + 5;
+    if (password != null) {
+      JLabel passwdLabel = new JLabel("Password:");
+      passwdLabel.setBounds(70, y, msg.getSize().width-70-10, 20);
+      msg.add(passwdLabel);
+      y += 20 + 5;
+      passwd.setBounds(70, y, msg.getSize().width-70-10, 25);
+      msg.add(passwd);
+      y += 25 + 5;
+    }
 
     msg.setPreferredSize(new Dimension(410, y));
 
@@ -149,7 +151,8 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
                                       options[0]){//default button title
       @Override
       public void selectInitialValue() {
-        passwd.requestFocusInWindow();
+        if (password != null)
+          passwd.requestFocusInWindow();
       }
     };
     pane.setBorder(new EmptyBorder(0,0,0,0));
