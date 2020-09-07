@@ -117,9 +117,6 @@ begin_daemon(void)
     if (devnull > 2)
         close(devnull);
 
-    /* Full control of access bits */
-    umask(0);
-
     /* A safe working directory */
     if (chdir("/") < 0) {
         perror("chdir");
