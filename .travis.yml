@@ -24,7 +24,7 @@ matrix:
       export PATH=/C/tools/msys64/mingw64/bin:$PATH
       export MAKE=mingw32-make  # so that Autotools can find it
     script:
-    - cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=mingw32-make -DCMAKE_C_COMPILER=gcc -DCMAKE=CXX_COMPILER=g++ . && mingw32-make && mingw32-make installer winvnc_installer; cat CMakeFiles/CMakeOutput.log ; cat CMakeFiles/CMakeError.log
+    - LDFLAGS="-Wl,--verbose" cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=mingw32-make -DCMAKE_C_COMPILER=gcc -DCMAKE=CXX_COMPILER=g++ . -DCMAKE_C_FLAGS="-Wl,--verbose" -DCMAKE_CXX_FLAGS="-Wl,--verbose" && mingw32-make && mingw32-make installer winvnc_installer; cat CMakeFiles/CMakeOutput.log ; cat CMakeFiles/CMakeError.log
     before_cache:
     - |-
       # https://unix.stackexchange.com/a/137322/107554
