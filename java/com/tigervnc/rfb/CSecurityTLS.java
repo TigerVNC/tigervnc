@@ -107,12 +107,6 @@ public class CSecurityTLS extends CSecurity {
       X509CRL.setDefaultStr(getDefaultCRL());
   }
 
-// FIXME:
-// Need to shutdown the connection cleanly
-
-// FIXME?
-// add a finalizer method that calls shutdown
-
   public boolean processMsg(CConnection cc) {
     is = (FdInStream)cc.getInStream();
     os = (FdOutStream)cc.getOutStream();
@@ -269,8 +263,13 @@ public class CSecurityTLS extends CSecurity {
     {
       Collection<? extends Certificate> certs = null;
       X509Certificate cert = chain[0];
+      String pk =
+        Base64.getEncoder().encodeToString(cert.getPublicKey().getEncoded());
       try {
         cert.checkValidity();
+        verifyHostname(cert);
+      } catch(CertificateParsingException e) {
+        throw new SystemException(e.getMessage());
       } catch(CertificateNotYetValidException e) {
         throw new AuthFailureException("server certificate has not been activated");
       } catch(CertificateExpiredException e) {
@@ -279,70 +278,108 @@ public class CSecurityTLS extends CSecurity {
 			      "do you want to continue?"))
           throw new AuthFailureException("server certificate has expired");
       }
-      String thumbprint = getThumbprint(cert);
       File vncDir = new File(FileUtils.getVncHomeDir());
-      File certFile = new File(vncDir, "x509_savedcerts.pem");
-      CertificateFactory cf = CertificateFactory.getInstance("X.509");
-      if (vncDir.exists() && certFile.exists() && certFile.canRead()) {
-        InputStream certStream = new MyFileInputStream(certFile);
-        certs = cf.generateCertificates(certStream);
-        for (Certificate c : certs)
-          if (thumbprint.equals(getThumbprint((X509Certificate)c)))
-            return;
-      }
+      if (!vncDir.exists())
+        throw new AuthFailureException("Could not obtain VNC home directory "+
+                                       "path for known hosts storage");
+      File dbPath = new File(vncDir, "x509_known_hosts");
+      String info =
+        "  Subject: "+cert.getSubjectX500Principal().getName()+"\n"+
+        "  Issuer: "+cert.getIssuerX500Principal().getName()+"\n"+
+        "  Serial Number: "+cert.getSerialNumber()+"\n"+
+        "  Version: "+cert.getVersion()+"\n"+
+        "  Signature Algorithm: "+cert.getPublicKey().getAlgorithm()+"\n"+
+        "  Not Valid Before: "+cert.getNotBefore()+"\n"+
+        "  Not Valid After: "+cert.getNotAfter()+"\n"+
+        "  SHA-1 Fingerprint: "+getThumbprint(cert)+"\n";
       try {
-        verifyHostname(cert);
-        tm.checkServerTrusted(chain, authType);
-      } catch (java.lang.Exception e) {
-        if (e.getCause() instanceof CertPathBuilderException) {
-          String certinfo =
-            "This certificate has been signed by an unknown authority\n"+
-            "\n"+
-            "  Subject: "+cert.getSubjectX500Principal().getName()+"\n"+
-            "  Issuer: "+cert.getIssuerX500Principal().getName()+"\n"+
-            "  Serial Number: "+cert.getSerialNumber()+"\n"+
-            "  Version: "+cert.getVersion()+"\n"+
-            "  Signature Algorithm: "+cert.getPublicKey().getAlgorithm()+"\n"+
-            "  Not Valid Before: "+cert.getNotBefore()+"\n"+
-            "  Not Valid After: "+cert.getNotAfter()+"\n"+
-            "  SHA1 Fingerprint: "+getThumbprint(cert)+"\n"+
-            "\n"+
-            "Do you want to save it and continue?";
-          if (!msg.showMsgBox(YES_NO_OPTION, "certificate issuer unknown",
-                certinfo)) {
-            throw new AuthFailureException("certificate issuer unknown");
-          }
-          if (certs == null || !certs.contains(cert)) {
-            byte[] der = cert.getEncoded();
-            String pem = Base64.getEncoder().encodeToString(der);
-            pem = pem.replaceAll("(.{64})", "$1\n");
-            FileWriter fw = null;
-            try {
-              if (!vncDir.exists())
-                vncDir.mkdir();
-              if (!certFile.exists() && !certFile.createNewFile()) {
-                vlog.error("Certificate save failed.");
-              } else {
-                fw = new FileWriter(certFile.getAbsolutePath(), true);
-                fw.write("-----BEGIN CERTIFICATE-----\n");
-                fw.write(pem+"\n");
-                fw.write("-----END CERTIFICATE-----\n");
-              }
-            } catch (IOException ioe) {
-              msg.showMsgBox(OK_OPTION, "certificate save failed",
-                             "Could not save the certificate");
-            } finally {
-              try {
-                if (fw != null)
-                  fw.close();
-              } catch(IOException ioe2) {
-                throw new Exception(ioe2.getMessage());
+        if (dbPath.exists()) {
+          FileReader db = new FileReader(dbPath);
+          BufferedReader dbBuf = new BufferedReader(db);
+          String line;
+          String server = client.getServerName().toLowerCase();
+          while ((line = dbBuf.readLine())!=null) {
+            String fields[] = line.split("\\|");
+            if (fields.length==6) {
+              if (server.equals(fields[2]) && pk.equals(fields[5])) {
+                vlog.debug("Server certificate found in known hosts file");
+                dbBuf.close();
+                return;
+              } else if (server.equals(fields[2]) && !pk.equals(fields[5]) ||
+                         !server.equals(fields[2]) && pk.equals(fields[5])) {
+                throw new CertStoreException();
               }
             }
           }
+          dbBuf.close();
+        }
+        tm.checkServerTrusted(chain, authType);
+      } catch (IOException e) {
+        throw new AuthFailureException("Could not load known hosts database");
+      } catch (CertStoreException e) {
+        vlog.debug("Server host key mismatch");
+        vlog.debug(info);
+        String text =
+          "This host is previously known with a different "+
+          "certificate, and the new certificate has been "+
+          "signed by an unknown authority\n"+
+          "\n"+info+"\n"+
+          "Someone could be trying to impersonate the site and you should not continue.\n"+
+          "\n"+
+          "Do you want to make an exception for this server?";
+        if (!msg.showMsgBox(YES_NO_OPTION, "Unexpected certificate issuer", text))
+          throw new AuthFailureException("Unexpected certificate issuer");
+        store_pubkey(dbPath, client.getServerName().toLowerCase(), pk);
+      } catch (java.lang.Exception e) {
+        if (e.getCause() instanceof CertPathBuilderException) {
+          vlog.debug("Server host not previously known");
+          vlog.debug(info);
+          String text =
+            "This certificate has been signed by an unknown authority\n"+
+            "\n"+info+"\n"+
+            "Someone could be trying to impersonate the site and you should not continue.\n"+
+            "\n"+
+            "Do you want to make an exception for this server?";
+          if (!msg.showMsgBox(YES_NO_OPTION, "Unknown certificate issuer", text))
+            throw new AuthFailureException("Unknown certificate issuer");
+          store_pubkey(dbPath, client.getServerName().toLowerCase(), pk);
         } else {
           throw new SystemException(e.getMessage());
         }
+      }
+    }
+
+    private void store_pubkey(File dbPath, String serverName, String pk)
+    {
+      ArrayList<String> lines = new ArrayList<String>();
+      File vncDir = new File(FileUtils.getVncHomeDir());
+      try {
+        if (dbPath.exists()) {
+          FileReader db = new FileReader(dbPath);
+          BufferedReader dbBuf = new BufferedReader(db);
+          String line;
+          while ((line = dbBuf.readLine())!=null) {
+            String fields[] = line.split("\\|");
+            if (fields.length==6)
+              if (!serverName.equals(fields[2]) && !pk.equals(fields[5]))
+                lines.add(line);
+          }
+          dbBuf.close();
+        }
+      } catch (IOException e) {
+        throw new AuthFailureException("Could not load known hosts database");
+      }
+      try {
+        if (!dbPath.exists())
+          dbPath.createNewFile();
+        FileWriter fw = new FileWriter(dbPath.getAbsolutePath(), false);
+        Iterator i = lines.iterator();
+        while (i.hasNext())
+          fw.write((String)i.next()+"\n");
+        fw.write("|g0|"+serverName+"|*|0|"+pk+"\n");
+        fw.close();
+      } catch (IOException e) {
+        vlog.error("Failed to store server certificate to known hosts database");
       }
     }
 
@@ -399,12 +436,13 @@ public class CSecurityTLS extends CSecurity {
         }
         Object[] answer = {"YES", "NO"};
         int ret = JOptionPane.showOptionDialog(null,
-          "Hostname verification failed. Do you want to continue?",
-          "Hostname Verification Failure",
+          "Hostname ("+client.getServerName()+") does not match the"+
+          " server certificate, do you want to continue?",
+          "Certificate hostname mismatch",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
           null, answer, answer[0]);
         if (ret != JOptionPane.YES_OPTION)
-          throw new WarningException("Hostname verification failed.");
+          throw new WarningException("Certificate hostname mismatch.");
       } catch (CertificateParsingException e) {
         throw new SystemException(e.getMessage());
       } catch (InvalidNameException e) {
