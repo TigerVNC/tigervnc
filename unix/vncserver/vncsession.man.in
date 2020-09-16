@@ -19,22 +19,22 @@ manager.
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
 .TP
-/etc/tigervnc/vncserver-config-defaults
+@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults
 The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
 and defines options to be passed to Xvnc, they will be used as defaults for
 users. The user's $HOME/.vnc/config overrides settings configured in this file.
 The overall configuration file load order is: this file, $HOME/.vnc/config,
-and then /etc/tigervnc/vncserver-config-mandatory. None are required to exist.
+and then @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory. None are required to exist.
 .TP
-/etc/tigervnc/vncserver-config-mandatory
+@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory
 The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
 and defines options to be passed to Xvnc, they will override any of the same
 options defined in a user's $HOME/.vnc/config. This file offers a mechanism
 to establish some basic form of system-wide policy. WARNING! There is
 nothing stopping users from constructing their own vncsession-like script
 that calls Xvnc directly to bypass any options defined in
-/etc/tigervnc/vncserver-config-mandatory. The overall configuration file load
-order is: /etc/tigervnc/vncserver-config-defaults, $HOME/.vnc/config, and then
+@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory. The overall configuration file load
+order is: @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults, $HOME/.vnc/config, and then
 this file. None are required to exist.
 .TP
 $HOME/.vnc/config
