@@ -295,7 +295,7 @@ void ddxBeforeReset(void)
 }
 #endif
 
-#if INPUTTHREAD
+#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,20,7,0,0) && INPUTTHREAD
 /** This function is called in Xserver/os/inputthread.c when starting
     the input thread. */
 void
