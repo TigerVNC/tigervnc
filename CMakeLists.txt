@@ -67,8 +67,7 @@ set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -UNDEBUG")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -UNDEBUG")
 
 # Make sure we get a sane C version
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++0x")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
 # Tell the compiler to be stringent
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat=2")
@@ -101,7 +100,9 @@ endif()
 # Minimum version is Windows Vista/2008 (6.0)
 if(WIN32)
   add_definitions(-D_WIN32_WINNT=0x0600)
-endif()
+  add_definitions(-D_WIN32)
+  add_definitions(-DWIN32)
+  endif()
 
 if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   message(STATUS "64-bit build")
@@ -217,10 +218,8 @@ endif()
 
 
 find_package(PNG REQUIRED)
-set(CMAKE_REQUIRED_LIBRARIES ${PNG_LIBRARIES})
 set(CMAKE_REQUIRED_FLAGS -I${PNG_INCLUDE_DIR})
 
-message(STATUS "CMAKE_REQUIRED_LIBRARIES-------" ${CMAKE_REQUIRED_LIBRARIES})
 set(CMAKE_REQUIRED_LIBRARIES)
 set(CMAKE_REQUIRED_FLAGS)
 set(CMAKE_REQUIRED_DEFINITIONS)
