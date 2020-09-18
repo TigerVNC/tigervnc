@@ -618,6 +618,20 @@ ddxProcessArgument(int argc, char *argv[], int i)
         exit(0);
     }
 
+    /* We need to resolve an ambiguity for booleans */
+    if (argv[i][0] == '-' && i+1 < argc &&
+        vncIsParamBool(&argv[i][1])) {
+        if ((strcasecmp(argv[i+1], "0") == 0) ||
+            (strcasecmp(argv[i+1], "1") == 0) ||
+            (strcasecmp(argv[i+1], "true") == 0) ||
+            (strcasecmp(argv[i+1], "false") == 0) ||
+            (strcasecmp(argv[i+1], "yes") == 0) ||
+            (strcasecmp(argv[i+1], "no") == 0)) {
+            vncSetParam(&argv[i][1], argv[i+1]);
+            return 2;
+        }
+    }
+
     if (vncSetParamSimple(argv[i]))
 	return 1;
     

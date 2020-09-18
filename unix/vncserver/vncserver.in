@@ -107,7 +107,7 @@ $default_opts{rfbwait} = 30000;
 $default_opts{rfbauth} = "$vncUserDir/passwd";
 $default_opts{rfbport} = $vncPort;
 $default_opts{fp} = $fontPath if ($fontPath);
-$default_opts{pn} = "";
+$default_opts{pn} = undef;
 
 # Load user-overrideable system defaults
 LoadConfig($vncSystemConfigDefaultsFile);
@@ -242,13 +242,13 @@ push(@cmd, "@CMAKE_INSTALL_FULL_BINDIR@/Xvnc", ":$displayNumber");
 
 foreach my $k (sort keys %config) {
   push(@cmd, "-$k");
-  push(@cmd, $config{$k}) if $config{$k};
+  push(@cmd, $config{$k}) if defined($config{$k});
   delete $default_opts{$k}; # file options take precedence
 }
 
 foreach my $k (sort keys %default_opts) {
   push(@cmd, "-$k");
-  push(@cmd, $default_opts{$k}) if $default_opts{$k};
+  push(@cmd, $default_opts{$k}) if defined($default_opts{$k});
 }
 
 warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
@@ -291,7 +291,7 @@ sub LoadConfig {
           # current config file being loaded defined the logical opposite setting
           # (NeverShared vs. AlwaysShared, etc etc).
           $toggle = lc($1); # must normalize key case
-          $config{$toggle} = $k;
+          $config{$toggle} = undef;
         }
       }
       close(IN);
