@@ -1,7 +1,7 @@
 # The vncserver service unit file
 #
 # Quick HowTo:
-# 1. Add a user mapping to /etc/tigervnc/vncserver.users.
+# 1. Add a user mapping to @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver.users.
 # 2. Adjust the global or user configuration. See the
 #    vncsession(8) manpage for details. (OPTIONAL)
 # 3. Run `systemctl enable vncserver@:<display>.service`
