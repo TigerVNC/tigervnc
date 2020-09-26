@@ -300,8 +300,13 @@ endif()
 
 option(BUILD_VIEWER "Build TigerVNC viewer" ON)
 if(BUILD_VIEWER)
-  add_subdirectory(vncviewer)
-  add_subdirectory(media)
+  if(FLTK_FOUND)
+    add_subdirectory(vncviewer)
+    add_subdirectory(media)
+  else()
+    message(FATAL_ERROR "Build TigerVNC viewer must be need FLTK")
+  endif()
+
 endif()
 
 add_subdirectory(tests)
