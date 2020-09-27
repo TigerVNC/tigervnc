@@ -1,14 +1,20 @@
+project(tigervnc)
+
+# Check for GNUTLS library
+option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
+if(ENABLE_GNUTLS)
+  find_package(GnuTLS)
+endif()
+
 add_subdirectory(os)
 add_subdirectory(rdr)
 add_subdirectory(network)
 add_subdirectory(rfb)
 
-# For any convenience libraries that are linked into libvnc.so, we need to
-# explicitly build their corresponding sources using PIC.  WIN32 is excluded
-# because PIC code does not exist on that platform and MinGW complains if -fPIC
-# is passed (additionally, libvnc is not used on Windows.)
-
-if(NOT WIN32)
-  set_target_properties(os rdr network rfb
-    PROPERTIES COMPILE_FLAGS -fPIC)
-endif()
+set(tigervnc_FIND_COMPONENTS os rdr network rfb)
+CONFIGURE_FILE(
+    "${CMAKE_SOURCE_DIR}/cmake/tigervncConfig.cmake.in"
+    "${CMAKE_BINARY_DIR}/tigervncConfig.cmake"
+    IMMEDIATE @ONLY)
+INSTALL(FILES "${CMAKE_BINARY_DIR}/tigervncConfig.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tigervnc")

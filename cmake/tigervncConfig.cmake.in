@@ -1,0 +1,49 @@
+# - Try to find tigervnc
+#
+#  Usage from an external project:
+#    In your CMakeLists.txt, add these lines:
+#
+#    find_package(tigervnc)
+#    target_link_libraries(MY_TARGET_NAME ${tigervnc_LIBRARIES})
+#  
+#  This file will define the following variables:
+#    tigervnc_FOUND: True if find tigervnc, other false
+#    tigervnc_LIBRARIES:  The list of all imported targets for tigervnc components
+#
+# Author: Kang Lin <kl222@126.com>
+
+include(FindPackageHandleStandardArgs)
+
+if (NOT tigervnc_FIND_COMPONENTS)
+    set(tigervnc_FIND_COMPONENTS
+        @tigervnc_FIND_COMPONENTS@
+	)
+endif()
+
+get_filename_component(_tigervnc_module_paths "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
+
+set(_tigervnc_FIND_PARTS_REQUIRED)
+if (tigervnc_FIND_REQUIRED)
+    set(_tigervnc_FIND_PARTS_REQUIRED REQUIRED)
+endif()
+set(_tigervnc_FIND_PARTS_QUIET)
+if (tigervnc_FIND_QUIETLY)
+    set(_tigervnc_FIND_PARTS_QUIET QUIET)
+endif()
+
+foreach(module ${tigervnc_FIND_COMPONENTS})
+    find_package(${module}
+        ${_tigervnc_FIND_PARTS_QUIET}
+        ${_tigervnc_FIND_PARTS_REQUIRED}
+        PATHS ${_tigervnc_module_paths} NO_DEFAULT_PATH
+    )
+    if(${module}_FOUND)
+        list(APPEND tigervnc_LIBRARIES tigervnc::${module})
+    endif()
+    list(APPEND required "${module}_FOUND")  
+endforeach()
+
+# Run checks via find_package_handle_standard_args
+find_package_handle_standard_args(tigervnc
+	FOUND_VAR tigervnc_FOUND
+	REQUIRED_VARS ${required})

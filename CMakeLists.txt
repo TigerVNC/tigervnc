@@ -29,6 +29,9 @@ set(VERSION 1.11.80)
 # The RC version must always be four comma-separated numbers
 set(RCVERSION 1,11,80,0)
 
+include(GenerateExportHeader)
+include(CMakePackageConfigHelpers)
+
 # Installation paths
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_UNITDIR "lib/systemd/system" CACHE PATH "systemd unit files (lib/systemd/system)")
@@ -134,12 +137,6 @@ if(UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
 endif()
 
-# Check for zlib
-find_package(ZLIB REQUIRED)
-
-# Check for pixman
-find_package(Pixman REQUIRED)
-
 # Check for gettext
 option(ENABLE_NLS "Enable translation of program messages" ON)
 if(ENABLE_NLS)
@@ -180,9 +177,6 @@ if(ENABLE_NLS)
     set(ENABLE_NLS 0)
   endif()
 endif()
-
-# Check for libjpeg
-find_package(JPEG REQUIRED)
 
 # Warn if it doesn't seem to be the accelerated libjpeg that's found
 set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARIES})
@@ -252,17 +246,6 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
-# Check for GNUTLS library
-option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
-if(ENABLE_GNUTLS)
-  find_package(GnuTLS)
-  if (GNUTLS_FOUND)
-    include_directories(${GNUTLS_INCLUDE_DIR})
-    add_definitions("-DHAVE_GNUTLS")
-    add_definitions(${GNUTLS_DEFINITIONS})
-  endif()
-endif()
-
 # Check for PAM library
 if(UNIX AND NOT APPLE)
   check_include_files(security/pam_appl.h HAVE_PAM_H)
@@ -309,8 +292,10 @@ if(BUILD_VIEWER)
 
 endif()
 
-add_subdirectory(tests)
-
+option(BUILD_TESTS "Build TigerVNC tests" ON)
+if(BUILD_TESTS AND BUILD_VIEWER AND FLTK_FOUND)
+    add_subdirectory(tests)    
+endif()
 
 add_subdirectory(release)
 
