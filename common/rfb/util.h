@@ -30,17 +30,20 @@
 
 #include <limits.h>
 #include <string.h>
-
-struct timeval;
+#include <os/os.h>
 
 #ifdef __GNUC__
-#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
-#else
-#  define __printf_attr(a, b)
+	#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+	#else
+	#  define __printf_attr(a, b)
 #endif // __GNUC__
 
 #ifndef __unused_attr
-#  define __unused_attr __attribute((__unused__))
+	#ifdef __GNUC__
+		#  define __unused_attr __attribute((__unused__))
+	#else
+		#  define __unused_attr
+	#endif
 #endif
 
 namespace rfb {

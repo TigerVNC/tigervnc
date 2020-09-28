@@ -21,7 +21,7 @@
 #ifndef __RFB_WIN32_WM_HOOKS_H__
 #define __RFB_WIN32_WM_HOOKS_H__
 
-#include <windows.h>
+#include <os/os.h>
 #include <rfb/UpdateTracker.h>
 #include <rdr/Exception.h>
 #include <rfb_win32/Win32Util.h>

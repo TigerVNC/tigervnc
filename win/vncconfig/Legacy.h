@@ -19,7 +19,6 @@
 #ifndef WINVNCCONF_LEGACY
 #define WINVNCCONF_LEGACY
 
-#include <windows.h>
 #include <lmcons.h>
 #include <vncconfig/resource.h>
 #include <rfb_win32/Registry.h>
@@ -27,6 +26,7 @@
 #include <rfb_win32/MsgBox.h>
 #include <rfb/ServerCore.h>
 #include <rfb/Security.h>
+#include <windows.h>
 
 namespace rfb {
 

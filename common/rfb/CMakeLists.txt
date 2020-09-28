@@ -9,10 +9,11 @@ set(RFB_LIBRARIES ${JPEG_LIBRARIES})
 
 # Check for pixman
 find_package(Pixman REQUIRED)
-list(APPEND RFB_INCLUDE_HEADS ${PIXMAN_INCLUDE_DIR})
+list(APPEND RFB_INCLUDE_HEADS ${PIXMAN_INCLUDE_DIRS})
 list(APPEND RFB_LIBRARIES ${PIXMAN_LIBRARY})
 
 set(HEADER_FILES
+	util.h
     Blacklist.h
     Congestion.h
     CConnection.h
@@ -74,11 +75,13 @@ set(HEADER_FILES
     ZRLEEncoder.h
     ZRLEDecoder.h
     encodings.h
-    util.h
     )
+
 set(RFB_SOURCES
+	util.cxx
+	Timer.cxx
+	Congestion.cxx
     Blacklist.cxx
-    Congestion.cxx
     CConnection.cxx
     CMsgHandler.cxx
     CMsgReader.cxx
@@ -128,7 +131,6 @@ set(RFB_SOURCES
     SSecurityVncAuth.cxx
     SSecurityVeNCrypt.cxx
     ScaleFilters.cxx
-    Timer.cxx
     TightDecoder.cxx
     TightEncoder.cxx
     TightJPEGEncoder.cxx
@@ -138,7 +140,7 @@ set(RFB_SOURCES
     ZRLEEncoder.cxx
     ZRLEDecoder.cxx
     encodings.cxx
-    util.cxx)
+    )
 
 if(UNIX)
     LIST(APPEND RFB_SOURCES Logger_syslog.cxx)
@@ -148,7 +150,6 @@ endif()
 if(WIN32)
     LIST(APPEND RFB_SOURCES WinPasswdValidator.cxx)
     LIST(APPEND HEADER_FILES WinPasswdValidator.h)
-    LIST(APPEND RFB_INCLUDE_HEADS ${CMAKE_SOURCE_DIR}/win)
 endif(WIN32)
 
 if(UNIX AND NOT APPLE)
@@ -175,7 +176,7 @@ endif()
 LIST(APPEND RFB_LIBRARIES rdr)
 
 string(TOLOWER ${PROJECT_NAME} LOWER_PROJECT_NAME)
-LIST(APPEND HEADER_FILES ${HEADER_FILES} 
+LIST(APPEND HEADER_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${LOWER_PROJECT_NAME}_export.h)
 
 add_library(${PROJECT_NAME} ${RFB_SOURCES} ${HEADER_FILES})

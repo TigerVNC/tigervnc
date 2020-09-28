@@ -20,6 +20,7 @@
 #define __RFB_CONGESTION_H__
 
 #include <list>
+#include <os/os.h>
 
 namespace rfb {
   class Congestion {

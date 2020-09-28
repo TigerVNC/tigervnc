@@ -23,7 +23,7 @@
 #ifndef __RFB_WIN32_TSSESSIONS_H__
 #define __RFB_WIN32_TSSESSIONS_H__
 
-#include <windows.h>
+#include <os/os.h>
 
 namespace rfb {
 

@@ -23,7 +23,7 @@
 #ifndef __RFB_WIN32_TRAY_ICON_H__
 #define __RFB_WIN32_TRAY_ICON_H__
 
-#include <windows.h>
+#include <os/os.h>
 #include <shellapi.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rdr/Exception.h>

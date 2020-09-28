@@ -16,6 +16,7 @@
  * USA.
  */
 
+#include <os/os.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>

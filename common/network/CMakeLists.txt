@@ -4,8 +4,8 @@ project(network)
 
 set(HEADER_FILES Socket.h TcpSocket.h)
 set(NETWORK_SOURCES
-  Socket.cxx
-  TcpSocket.cxx)
+    Socket.cxx
+    TcpSocket.cxx)
 
 if(NOT WIN32)
     LIST(APPEND HEADER_FILES UnixSocket.h)
@@ -13,10 +13,10 @@ if(NOT WIN32)
 endif()
 
 string(TOLOWER ${PROJECT_NAME} LOWER_PROJECT_NAME)
-LIST(APPEND HEADER_FILES ${HEADER_FILES} 
+LIST(APPEND HEADER_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${LOWER_PROJECT_NAME}_export.h)
 
-add_library(${PROJECT_NAME} ${NETWORK_SOURCES})
+add_library(${PROJECT_NAME} ${NETWORK_SOURCES} ${HEADER_FILES})
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)

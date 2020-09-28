@@ -18,8 +18,6 @@
  * USA.
  */
 
-#include <network/TcpSocket.h>
-
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Encoder.h>
 #include <rfb/KeyRemapper.h>
@@ -36,6 +34,7 @@
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
+#include <network/TcpSocket.h>
 
 using namespace rfb;
 

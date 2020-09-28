@@ -24,7 +24,7 @@
 #ifndef __RFB_WIN32_LAUNCHPROCESS_H__
 #define __RFB_WIN32_LAUNCHPROCESS_H__
 
-#include <windows.h>
+#include <os/os.h>
 #include <rfb_win32/TCharArray.h>
 
 namespace rfb {

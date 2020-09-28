@@ -25,7 +25,7 @@
 #ifndef __RFB_WIN32_SERVICE_H__
 #define __RFB_WIN32_SERVICE_H__
 
-#include <windows.h>
+#include <os/os.h>
 
 namespace rfb {
 

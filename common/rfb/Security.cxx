@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <os/os.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

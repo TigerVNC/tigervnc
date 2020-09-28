@@ -22,7 +22,7 @@
 #ifndef __RFB_WIN32_MONITORINFO_H__
 #define __RFB_WIN32_MONITORINFO_H__
 
-#include <windows.h>
+#include <os/os.h>
 
 namespace rfb {
   namespace win32 {

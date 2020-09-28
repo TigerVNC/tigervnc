@@ -1,7 +1,19 @@
-include_directories(${CMAKE_BINARY_DIR}/win ${CMAKE_CURRENT_SOURCE_DIR})
+project(winvnc4)
 
-add_executable(winvnc4 WIN32
-  buildTime.cxx
+set(WINVNC_HEADS
+	AddNewClientDialog.h
+	ManagedListener.h
+	STrayIcon.h
+	ControlPanel.h
+	QueryConnectDialog.h
+	VNCServerService.h
+	ListConnInfo.h
+	resource.h
+	VNCServerWin32.h
+)
+
+set(WINVNC_SOURCE
+	buildTime.cxx
   ControlPanel.cxx
   ManagedListener.cxx
   QueryConnectDialog.cxx
@@ -9,10 +21,23 @@ add_executable(winvnc4 WIN32
   VNCServerService.cxx
   VNCServerWin32.cxx
   winvnc.cxx
-  winvnc.rc)
-
-target_link_libraries(winvnc4 rfb rfb_win32 network rdr ws2_32.lib)
-
-install(TARGETS winvnc4
-  RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
 )
+
+add_executable(${PROJECT_NAME} WIN32
+	${WINVNC_SOURCE} ${WINVNC_HEADS} winvnc.rc)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    rfb_win32 rfb)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/win)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    VERSION ${VERSION})
+
+INSTALL(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        COMPONENT Runtime
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        COMPONENT Runtime
+    )

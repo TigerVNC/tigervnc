@@ -24,7 +24,7 @@
 #ifndef __RFB_VNCSERVERST_H__
 #define __RFB_VNCSERVERST_H__
 
-#include <sys/time.h>
+#include <os/os.h>
 
 #include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
@@ -37,7 +37,6 @@ namespace rfb {
 
   class VNCSConnectionST;
   class ComparingUpdateTracker;
-  class ListConnInfo;
   class PixelBuffer;
   class KeyRemapper;
 

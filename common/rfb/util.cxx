@@ -17,15 +17,15 @@
  * USA.
  */
 
+#include <rfb/util.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <stdarg.h>
 #include <stdio.h>
-#include <sys/time.h>
-
-#include <rfb/util.h>
+#include <os/os.h>
 
 namespace rfb {
 

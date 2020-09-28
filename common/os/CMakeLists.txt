@@ -5,7 +5,8 @@ project(os)
 set(HEADER_FILES
     Mutex.h
     Thread.h
-    os.h)
+    os.h
+	)
 set(OS_SOURCES
     Mutex.cxx
     Thread.cxx
@@ -13,17 +14,21 @@ set(OS_SOURCES
 
 if(WIN32)
     LIST(APPEND HEADER_FILES w32tiger.h winerrno.h)
-    LIST(APPEND OS_SOURCES w32tiger.c)
+    LIST(APPEND OS_SOURCES w32tiger.cxx)
 endif()
 
 string(TOLOWER ${PROJECT_NAME} LOWER_PROJECT_NAME)
-LIST(APPEND HEADER_FILES ${HEADER_FILES} 
+LIST(APPEND HEADER_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${LOWER_PROJECT_NAME}_export.h)
 
 add_library(${PROJECT_NAME} ${OS_SOURCES} ${HEADER_FILES})
 
 if(UNIX)
   target_link_libraries(${PROJECT_NAME} PUBLIC pthread)
+endif()
+
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PUBLIC /FS)
 endif()
 
 if(NOT WIN32)

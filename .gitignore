@@ -4,9 +4,16 @@
 *.lo
 .deps
 .libs
+.vs
+*.user
+
+*~
+*.bak
 
 CMakeFiles
 CMakeCache.txt
 Makefile
 Makefile.in
 config.h
+
+build/
