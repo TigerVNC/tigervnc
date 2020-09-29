@@ -36,7 +36,7 @@ After=syslog.target network.target
 [Service]
 Type=forking
 ExecStart=@CMAKE_INSTALL_FULL_LIBEXECDIR@/vncsession-start %i
-PIDFile=/var/run/vncsession-%i.pid
+PIDFile=/run/vncsession-%i.pid
 SELinuxContext=system_u:system_r:vnc_session_t:s0
 
 [Install]

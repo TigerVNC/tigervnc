@@ -23,4 +23,4 @@ HOME_ROOT/\.vnc(/.*)?      gen_context(system_u:object_r:xdm_home_t,s0)
 /usr/sbin/vncsession			--	gen_context(system_u:object_r:vnc_session_exec_t,s0)
 /usr/libexec/vncsession-start		--	gen_context(system_u:object_r:vnc_session_exec_t,s0)
 
-/var/run/vncsession-:[0-9]*\.pid	--      gen_context(system_u:object_r:vnc_session_var_run_t,s0)
+/run/vncsession-:[0-9]*\.pid	--      gen_context(system_u:object_r:vnc_session_var_run_t,s0)
