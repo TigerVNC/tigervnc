@@ -8,8 +8,7 @@ remote machine and send only the display from these applications to your local
 machine.  VNC is platform-independent and supports a wide variety of operating
 systems and architectures as both servers and clients.
 
-TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code
-bases.  TigerVNC started as a next-generation development effort for TightVNC
+TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org codebases.  TigerVNC started as a next-generation development effort for TightVNC
 on Unix and Linux platforms, but it split from its parent project in early 2009
 so that TightVNC could focus on Windows platforms.  TigerVNC supports a variant
 of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo
@@ -51,8 +50,7 @@ All Platforms
 All versions of TigerVNC contain the following programs:
 
 * vncviewer - the cross-platform TigerVNC Viewer, written using FLTK.
-              vncviewer connects to a VNC server and allows you to interact
-              with the remote desktop being displayed by the VNC server.  The
+              vncviewer connects to a VNC server and allows you to interact with the remote desktop being displayed by the VNC server.  The
               VNC server can be running on a Windows or a Unix/Linux machine.
 
 
@@ -61,10 +59,9 @@ Windows-Specific
 
 The Windows version of TigerVNC contains the following programs:
 
-* winvnc - the TigerVNC Server for Windows.  winvnc allows a Windows desktop to
-           be accessed remotely using a VNC viewer.
+* winvnc - the TigerVNC Server for Windows.  winvnc allows a Windows desktop to be accessed remotely using a VNC viewer.
 
-WARNING: winvnc is currently unmaintainted and and may not function correctly.
+WARNING: winvnc is currently unmaintained and may not function correctly.
 
 winvnc may not work if the Fast User Switching or Remote Desktop features are
 in use.
@@ -76,8 +73,7 @@ Unix/Linux-Specific (not Mac)
 The Unix/Linux version of TigerVNC contains the following programs:
 
 * Xvnc - the TigerVNC Server for Unix.  Xvnc is both a VNC server and an X
-         server with a "virtual" framebuffer.  You should normally use the
-         vncserver script to start Xvnc.
+         server with a "virtual" framebuffer.  You should normally use the vncserver script to start Xvnc.
 
 * vncserver - a wrapper script which makes starting Xvnc more convenient.
               vncserver requires Perl.
@@ -91,9 +87,8 @@ The Unix/Linux version of TigerVNC contains the following programs:
 * vncconfig - a program which is used to configure and control a running
               instance of Xvnc.
 
-* x0vncserver - an inefficient VNC server which continuously polls any X
-                display, allowing it to be controlled via VNC.  It is intended
-                mainly as a demonstration of a simple VNC server.
+* x0vncserver - an inefficient VNC server that continuously polls any X
+                display, allowing it to be controlled via VNC.  It is intended mainly as a demonstration of a simple VNC server.
 
 
 ACKNOWLEDGEMENTS
@@ -103,20 +98,14 @@ This distribution contains zlib compression software.  This is:
 
   Copyright (C) 1995-2002 Jean-loup Gailly and Mark Adler
 
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
+  This software is provided 'as-is', without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this software.
 
   Permission is granted to anyone to use this software for any purpose,
   including commercial applications, and to alter it and redistribute it
   freely, subject to the following restrictions:
 
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
+  1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+  2. Altered source versions must be marked as such, and must not be misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
   Jean-loup Gailly        Mark Adler
