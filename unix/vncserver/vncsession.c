@@ -543,7 +543,7 @@ main(int argc, char **argv)
     }
 
     snprintf(pid_file, sizeof(pid_file),
-             "/var/run/vncsession-%s.pid", display);
+             "/run/vncsession-%s.pid", display);
     f = fopen(pid_file, "w");
     if (f == NULL) {
         syslog(LOG_ERR, "Failure creating pid file \"%s\": %s",
