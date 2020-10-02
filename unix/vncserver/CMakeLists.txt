@@ -4,6 +4,7 @@ target_link_libraries(vncsession ${PAM_LIBS})
 configure_file(vncserver@.service.in vncserver@.service @ONLY)
 configure_file(vncsession-start.in vncsession-start @ONLY)
 configure_file(vncserver.in vncserver @ONLY)
+configure_file(vncsession.man.in vncsession.man @ONLY)
 
 install(TARGETS vncsession DESTINATION ${CMAKE_INSTALL_FULL_SBINDIR})
 install(FILES tigervnc.pam DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/pam.d RENAME tigervnc)

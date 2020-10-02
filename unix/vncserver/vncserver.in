@@ -38,7 +38,7 @@
 $vncUserDir = "$ENV{HOME}/.vnc";
 $vncUserConfig = "$vncUserDir/config";
 
-$vncSystemConfigDir = "/etc/tigervnc";
+$vncSystemConfigDir = "@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc";
 $vncSystemConfigDefaultsFile = "$vncSystemConfigDir/vncserver-config-defaults";
 $vncSystemConfigMandatoryFile = "$vncSystemConfigDir/vncserver-config-mandatory";
 
