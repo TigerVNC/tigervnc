@@ -8,7 +8,7 @@ configure_file(vncsession.man.in vncsession.man @ONLY)
 
 install(TARGETS vncsession DESTINATION ${CMAKE_INSTALL_FULL_SBINDIR})
 install(FILES tigervnc.pam DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/pam.d RENAME tigervnc)
-install(FILES vncsession.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man8 RENAME vncsession.8)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vncsession.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man8 RENAME vncsession.8)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/vncserver DESTINATION ${CMAKE_INSTALL_FULL_LIBEXECDIR})
 install(FILES vncserver.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man8 RENAME vncserver.8)
 install(FILES vncserver-config-defaults vncserver-config-mandatory DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/tigervnc)
