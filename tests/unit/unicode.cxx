@@ -50,6 +50,8 @@ struct _ucs4utf16 ucs4utf16[] = {
     { 0x0061, L"a" },
     { 0x00f6, L"\xf6" },
     { 0x263a, L"\x263a" },
+    { 0x1f638, L"\xd83d\xde38" },
+    { 0x2d006, L"\xd874\xdc06" },
     { 0xfffd, L"\xdc40\xdc12" },
     { 0x110200, L"\xfffd" },
 };
@@ -58,6 +60,8 @@ struct _utf8utf16 utf8utf16[] = {
     { "abc",                                                L"abc" },
     { "\xc3\xa5\xc3\xa4\xc3\xb6",                           L"\xe5\xe4\xf6" },
     { "\xe2\x98\xb9\xe2\x98\xba\xe2\x98\xbb",               L"\x2639\x263a\x263b" },
+    { "\xf0\x9f\x98\xb8\xf0\x9f\x99\x81\xf0\x9f\x99\x82",   L"\xd83d\xde38\xd83d\xde41\xd83d\xde42" },
+    { "\xf0\xad\x80\x86\xf0\xad\x80\x88",                   L"\xd874\xdc06\xd874\xdc08" },
     { "\xef\xbf\xbd\xc3\xa5",                               L"\xd840\xe5" },
 };
 

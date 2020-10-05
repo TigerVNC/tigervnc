@@ -315,8 +315,9 @@ namespace rfb {
       *dst++ = L'\0';
       return 1;
     } else if (src < 0x110000) {
-      *dst++ = 0xd800 | ((src >> 10) & 0x07ff);
-      *dst++ = 0xdc00 | (src & 0x07ff);
+      src -= 0x10000;
+      *dst++ = 0xd800 | ((src >> 10) & 0x03ff);
+      *dst++ = 0xdc00 | (src & 0x03ff);
       *dst++ = L'\0';
       return 2;
     } else {
@@ -358,7 +359,7 @@ namespace rfb {
       return 1;
     }
 
-    *dst = 0x10000 | ((*dst & 0x03ff) << 10);
+    *dst = 0x10000 + ((*dst & 0x03ff) << 10);
     *dst |= *src & 0x3ff;
 
     return 2;
