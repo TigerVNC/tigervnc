@@ -291,6 +291,8 @@ namespace rfb {
     max--;
 
     while (count--) {
+      consumed++;
+
       // Invalid or truncated sequence?
       if ((max == 0) || ((*src & 0xc0) != 0x80)) {
         *dst = 0xfffd;
@@ -312,9 +314,10 @@ namespace rfb {
       *dst++ = src;
       *dst++ = L'\0';
       return 1;
-    } else if (src < 0x110000) {
-      *dst++ = 0xd800 | ((src >> 10) & 0x07ff);
-      *dst++ = 0xdc00 | (src & 0x07ff);
+    } else if ((src >= 0x10000) && (src < 0x110000)) {
+      src -= 0x10000;
+      *dst++ = 0xd800 | ((src >> 10) & 0x03ff);
+      *dst++ = 0xdc00 | (src & 0x03ff);
       *dst++ = L'\0';
       return 2;
     } else {
@@ -356,7 +359,7 @@ namespace rfb {
       return 1;
     }
 
-    *dst = 0x10000 | ((*dst & 0x03ff) << 10);
+    *dst = 0x10000 + ((*dst & 0x03ff) << 10);
     *dst |= *src & 0x3ff;
 
     return 2;
@@ -378,7 +381,7 @@ namespace rfb {
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
       char buf[5];
-      sz += ucs4ToUTF8(*in, buf);
+      sz += ucs4ToUTF8(*(const unsigned char*)in, buf);
       in++;
       in_len--;
     }
@@ -392,7 +395,7 @@ namespace rfb {
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
-      out += ucs4ToUTF8(*in, out);
+      out += ucs4ToUTF8(*(const unsigned char*)in, out);
       in++;
       in_len--;
     }
@@ -527,7 +530,7 @@ namespace rfb {
 
     // Alloc
     buffer = new wchar_t[sz];
-    memset(buffer, 0, sz);
+    memset(buffer, 0, sz * sizeof(wchar_t));
 
     // And convert
     out = buffer;
