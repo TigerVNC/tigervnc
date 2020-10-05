@@ -59,6 +59,7 @@ struct _ucs4utf16 ucs4utf16[] = {
     { 0x2d006, L"\xd874\xdc06" },
     { 0xfffd, L"\xdc40\xdc12" },
     { 0x110200, L"\xfffd" },
+    { 0xd87f, L"\xfffd" },
 };
 
 struct _latin1utf8 latin1utf8[] = {
@@ -75,6 +76,7 @@ struct _utf8utf16 utf8utf16[] = {
     { "\xf0\x9f\x98\xb8\xf0\x9f\x99\x81\xf0\x9f\x99\x82",   L"\xd83d\xde38\xd83d\xde41\xd83d\xde42" },
     { "\xf0\xad\x80\x86\xf0\xad\x80\x88",                   L"\xd874\xdc06\xd874\xdc08" },
     { "\xef\xbf\xbd\xc3\xa5",                               L"\xd840\xe5" },
+    { "\xed\xa1\xbf",                                       L"\xfffd" },
 };
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(*a))

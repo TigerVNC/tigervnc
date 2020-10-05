@@ -314,7 +314,7 @@ namespace rfb {
       *dst++ = src;
       *dst++ = L'\0';
       return 1;
-    } else if (src < 0x110000) {
+    } else if ((src >= 0x10000) && (src < 0x110000)) {
       src -= 0x10000;
       *dst++ = 0xd800 | ((src >> 10) & 0x03ff);
       *dst++ = 0xdc00 | (src & 0x03ff);
