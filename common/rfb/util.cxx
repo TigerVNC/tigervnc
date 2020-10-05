@@ -291,6 +291,8 @@ namespace rfb {
     max--;
 
     while (count--) {
+      consumed++;
+
       // Invalid or truncated sequence?
       if ((max == 0) || ((*src & 0xc0) != 0x80)) {
         *dst = 0xfffd;

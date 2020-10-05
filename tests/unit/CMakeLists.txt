@@ -16,5 +16,8 @@ target_link_libraries(hostport rfb)
 add_executable(pixelformat pixelformat.cxx)
 target_link_libraries(pixelformat rfb)
 
+add_executable(unicode unicode.cxx)
+target_link_libraries(unicode rfb)
+
 add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
 target_link_libraries(emulatemb rfb  ${GETTEXT_LIBRARIES})
