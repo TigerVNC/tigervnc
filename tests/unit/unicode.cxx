@@ -31,6 +31,11 @@ struct _ucs4utf16 {
     const wchar_t *utf16;
 };
 
+struct _latin1utf8 {
+    const char *latin1;
+    const char *utf8;
+};
+
 struct _utf8utf16 {
     const char *utf8;
     const wchar_t *utf16;
@@ -54,6 +59,13 @@ struct _ucs4utf16 ucs4utf16[] = {
     { 0x2d006, L"\xd874\xdc06" },
     { 0xfffd, L"\xdc40\xdc12" },
     { 0x110200, L"\xfffd" },
+};
+
+struct _latin1utf8 latin1utf8[] = {
+    { "abc",            "abc" },
+    { "\xe5\xe4\xf6",   "\xc3\xa5\xc3\xa4\xc3\xb6" },
+    { "???",            "\xe2\x98\xb9\xe2\x98\xba\xe2\x98\xbb" },
+    { "?",              "\xe5\xe4" },
 };
 
 struct _utf8utf16 utf8utf16[] = {
@@ -131,6 +143,28 @@ int main(int argc, char** argv)
             printf("FAILED: utf16ToUCS4() #%d\n", (int)i+1);
             failures++;
         }
+    }
+
+    for (i = 0;i < ARRAY_SIZE(latin1utf8);i++) {
+        /* Expected failure? */
+        if (strchr(latin1utf8[i].latin1, '?') != NULL)
+            continue;
+
+        out = rfb::latin1ToUTF8(latin1utf8[i].latin1);
+        if (strcmp(out, latin1utf8[i].utf8) != 0) {
+            printf("FAILED: latin1ToUTF8() #%d\n", (int)i+1);
+            failures++;
+        }
+        rfb::strFree(out);
+    }
+
+    for (i = 0;i < ARRAY_SIZE(latin1utf8);i++) {
+        out = rfb::utf8ToLatin1(latin1utf8[i].utf8);
+        if (strcmp(out, latin1utf8[i].latin1) != 0) {
+            printf("FAILED: utf8ToLatin1() #%d\n", (int)i+1);
+            failures++;
+        }
+        rfb::strFree(out);
     }
 
     for (i = 0;i < ARRAY_SIZE(utf8utf16);i++) {

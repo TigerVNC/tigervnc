@@ -381,7 +381,7 @@ namespace rfb {
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
       char buf[5];
-      sz += ucs4ToUTF8(*in, buf);
+      sz += ucs4ToUTF8(*(const unsigned char*)in, buf);
       in++;
       in_len--;
     }
@@ -395,7 +395,7 @@ namespace rfb {
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
-      out += ucs4ToUTF8(*in, out);
+      out += ucs4ToUTF8(*(const unsigned char*)in, out);
       in++;
       in_len--;
     }
