@@ -530,7 +530,7 @@ namespace rfb {
 
     // Alloc
     buffer = new wchar_t[sz];
-    memset(buffer, 0, sz);
+    memset(buffer, 0, sz * sizeof(wchar_t));
 
     // And convert
     out = buffer;
