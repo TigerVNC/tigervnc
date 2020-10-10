@@ -20,7 +20,7 @@
 #define __SURFACE_H__
 
 #if defined(WIN32)
-#include <windows.h>
+#include <os/os.h>
 #elif defined(__APPLE__)
 // Apple headers conflict with FLTK, so redefine types here
 typedef struct CGImage* CGImageRef;

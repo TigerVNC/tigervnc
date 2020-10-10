@@ -16,4 +16,4 @@ Makefile
 Makefile.in
 config.h
 
-build/
+build*/

@@ -26,7 +26,7 @@
 #include <map>
 
 #if defined(WIN32)
-#include <windows.h>
+#include <os/os.h>
 #include <commctrl.h>
 #elif !defined(__APPLE__)
 #include <X11/extensions/XInput2.h>

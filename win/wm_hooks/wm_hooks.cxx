@@ -23,7 +23,7 @@
 #include <tchar.h>
 
 #include <wm_hooks/wm_hooks.h>
-#include <Windows.h>
+#include <os/os.h>
 
 #ifdef __GNUC__
 #define SHARED __attribute__((section ("shared"), shared))

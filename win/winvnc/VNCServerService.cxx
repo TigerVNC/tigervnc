@@ -22,7 +22,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb_win32/TsSessions.h>
 #include <rfb_win32/ModuleFileName.h>
-#include <windows.h>
+#include <os/os.h>
 #include <wtsapi32.h>
 #include <tlhelp32.h>
 

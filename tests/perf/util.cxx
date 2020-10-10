@@ -21,7 +21,7 @@
 #include <string.h>
 
 #ifdef WIN32
-#include <windows.h>
+#include <os/os.h>
 #else
 #include <sys/resource.h>
 #include <sys/time.h>

@@ -18,7 +18,7 @@
 #ifndef WINVNCCONF_AUTHENTICATION
 #define WINVNCCONF_AUTHENTICATION
 
-#include <windows.h>
+#include <os/os.h>
 #include <commctrl.h>
 
 #include <vncconfig/PasswordDialog.h>

@@ -27,7 +27,7 @@
 #ifndef __WM_HOOKS_H__
 #define __WM_HOOKS_H__
 
-#include <windows.h>
+#include <os/os.h>
 
 #define DLLEXPORT __declspec(dllexport)
 

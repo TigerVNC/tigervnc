@@ -17,7 +17,7 @@
  * USA.
  */
 
-#include <windows.h>
+#include <os/os.h>
 
 #define XK_MISCELLANY
 #define XK_XKB_KEYS

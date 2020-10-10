@@ -27,18 +27,17 @@
 #endif
 
 #ifdef _WIN32
-#include <windows.h>
 #include <tchar.h>
 #endif
 
 #include "parameters.h"
 
-#include <os/os.h>
+#include <FL/fl_utf8.h>
+
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/SecurityClient.h>
-
-#include <FL/fl_utf8.h>
+#include <os/os.h>
 
 #include <stdio.h>
 #include <string.h>

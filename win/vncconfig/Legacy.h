@@ -26,7 +26,7 @@
 #include <rfb_win32/MsgBox.h>
 #include <rfb/ServerCore.h>
 #include <rfb/Security.h>
-#include <windows.h>
+#include <os/os.h>
 
 namespace rfb {
 

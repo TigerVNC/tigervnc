@@ -19,7 +19,7 @@
 #ifndef __WIN32TOUCHHANDLER_H__
 #define __WIN32TOUCHHANDLER_H__
 
-#include <windows.h>
+#include <os/os.h>
 
 #include "BaseTouchHandler.h"
 #include "GestureEvent.h"
