@@ -93,5 +93,3 @@ int fileexists(char *file)
   return access(file, R_OK);
 #endif
 }
-
-

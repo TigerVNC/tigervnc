@@ -34,9 +34,9 @@
  */
 
 #include <assert.h>
-#include <sys/time.h>
 
 #ifdef __linux__
+#include <sys/time.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -47,6 +47,7 @@
 #include <rfb/Congestion.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
+#include <os/os.h>
 
 // Debug output on what the congestion control is up to
 #undef CONGESTION_DEBUG

@@ -1,3 +1,8 @@
+#ifndef OS_WINERRNO_KL
+#define OS_WINERRNO_KL
+
+#pragma once
+#ifdef __GNUC__
 
 /* Generated with:
 cat /usr/i686-pc-mingw32/sys-root/mingw/include/winerror.h \
@@ -87,3 +92,6 @@ cat /usr/i686-pc-mingw32/sys-root/mingw/include/winerror.h \
 #define ECANCELLED WSAECANCELLED
 #undef EREFUSED
 #define EREFUSED WSAEREFUSED
+
+#endif // HAVE_MINGW
+#endif // OS_WINERRNO_KL

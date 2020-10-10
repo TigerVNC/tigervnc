@@ -19,11 +19,17 @@
 #ifndef OS_OS_H
 #define OS_OS_H
 
+#pragma once
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <os/w32tiger.h>
+#ifdef WIN32
+	#include <os/w32tiger.h>
+#else
+	#include <sys/time.h>
+#endif
 
 /*
  * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).

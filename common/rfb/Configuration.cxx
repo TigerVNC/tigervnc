@@ -24,6 +24,7 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <os/os.h>
 #include <os/Mutex.h>
 
 #include <rfb/util.h>

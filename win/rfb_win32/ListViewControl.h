@@ -5,7 +5,7 @@
 #ifndef AFX_LISTVIEWCONTROL_H__
 #define AFX_LISTVIEWCONTROL_H__
 
-#include <windows.h>
+#include <os/os.h>
 #include "commctrl.h"
 
 namespace rfb {

@@ -26,11 +26,10 @@
 #include <stdarg.h>
 
 #include <rdr/Exception.h>
-#include <rdr/TLSException.h>
+
 #ifdef _WIN32
 #include <tchar.h>
 #include <winsock2.h>
-#include <windows.h>
 #include <ws2tcpip.h>
 #else
 #include <netdb.h>
@@ -39,7 +38,7 @@
 #include <string.h>
 
 #ifdef HAVE_GNUTLS
-#include <gnutls/gnutls.h>
+#include <rdr/TLSException.h>
 #endif
 
 using namespace rdr;

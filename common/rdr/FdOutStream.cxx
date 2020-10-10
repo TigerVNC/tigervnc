@@ -45,7 +45,7 @@
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>
 #include <rfb/util.h>
-
+#include <os/os.h>
 
 using namespace rdr;
 

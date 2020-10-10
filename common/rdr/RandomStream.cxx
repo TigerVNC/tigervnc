@@ -16,9 +16,9 @@
  * USA.
  */
 
-#include <rdr/RandomStream.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rdr/RandomStream.h>
 #include <time.h>
 #include <stdlib.h>
 #ifndef WIN32

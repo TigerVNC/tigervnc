@@ -20,7 +20,6 @@
 // -=- Timer.cxx
 
 #include <stdio.h>
-#include <sys/time.h>
 
 #include <rfb/Timer.h>
 #include <rfb/util.h>

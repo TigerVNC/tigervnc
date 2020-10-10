@@ -21,20 +21,19 @@
 // XXX not thread-safe, because d3des isn't - do we need to worry about this?
 //
 
+#include <string.h>
+#include <stdio.h>
 #include <rfb/SSecurityVncAuth.h>
-#include <rdr/RandomStream.h>
 #include <rfb/SConnection.h>
 #include <rfb/Password.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rfb/Exception.h>
-#include <string.h>
-#include <stdio.h>
 extern "C" {
 #include <rfb/d3des.h>
 }
-
+#include <rdr/RandomStream.h>
 
 using namespace rfb;
 

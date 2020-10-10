@@ -33,11 +33,10 @@
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <errno.h>
+#include <unistd.h>
 #endif
 
 #include <stdlib.h>
-#include <unistd.h>
-
 #include <network/TcpSocket.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>

@@ -20,8 +20,10 @@
 #ifndef __RFB_TIMER_H__
 #define __RFB_TIMER_H__
 
+#pragma once
+
 #include <list>
-#include <sys/time.h>
+#include <os/os.h>
 
 namespace rfb {
 
@@ -89,10 +91,10 @@ namespace rfb {
 
     // isBefore
     //   Determine whether the Timer will timeout before the specified time.
-    bool isBefore(timeval other);
+    bool isBefore(struct timeval other);
 
   protected:
-    timeval dueTime;
+    struct timeval dueTime;
     int timeoutMs;
     Callback* cb;
 
