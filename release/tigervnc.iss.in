@@ -19,7 +19,7 @@ DefaultGroupName=TigerVNC
 LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.TXT
 
 [Files]
-Source: "@CMAKE_BINARY_DIR@\vncviewer\vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\bin\vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 Source: "@CMAKE_SOURCE_DIR@\README.rst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 

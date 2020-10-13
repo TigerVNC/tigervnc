@@ -24,9 +24,9 @@ LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.TXT
 Name: "{sys}\config\systemprofile\Desktop"
 
 [Files]
-Source: "@CMAKE_BINARY_DIR@\win\winvnc\winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
-Source: "@CMAKE_BINARY_DIR@\win\wm_hooks\wm_hooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
-Source: "@CMAKE_BINARY_DIR@\win\vncconfig\vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\bin\winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\bin\wm_hooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_BINARY_DIR@\bin\vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 Source: "@CMAKE_SOURCE_DIR@\README.rst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 
