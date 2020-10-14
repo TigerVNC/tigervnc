@@ -79,9 +79,6 @@ The Unix/Linux version of TigerVNC contains the following programs:
          server with a "virtual" framebuffer.  You should normally use the
          vncserver script to start Xvnc.
 
-* vncserver - a wrapper script which makes starting Xvnc more convenient.
-              vncserver requires Perl.
-
 * vncpasswd - a program which allows you to change the VNC password used to
               access your VNC server sessions (assuming that VNC authentication
               is being used.)  The vncserver script will automatically launch
@@ -95,6 +92,10 @@ The Unix/Linux version of TigerVNC contains the following programs:
                 display, allowing it to be controlled via VNC.  It is intended
                 mainly as a demonstration of a simple VNC server.
 
+It also contains the following systemd service:
+
+* vncserver@.service - a service to start a user session with Xvnc and one of
+                       the desktop environments available on the system.
 
 ACKNOWLEDGEMENTS
 ================
