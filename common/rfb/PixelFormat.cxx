@@ -21,15 +21,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <os/os.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/util.h>
-
-#ifdef _WIN32
-#define strcasecmp _stricmp
-#endif
 
 using namespace rfb;
 

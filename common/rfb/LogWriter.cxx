@@ -20,6 +20,7 @@
 
 #include <string.h>
 
+#include <os/os.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 #include <rfb/util.h>

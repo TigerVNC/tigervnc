@@ -23,8 +23,8 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-#include <sys/time.h>
 
+#include <os/os.h>
 #include <rfb/util.h>
 
 namespace rfb {

@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <math.h>
 
+#include <os/os.h>
 #include <rfb/Rect.h>
 #include <rfb/ScaleFilters.h>
 

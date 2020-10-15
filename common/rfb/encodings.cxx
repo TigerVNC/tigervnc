@@ -16,6 +16,7 @@
  * USA.
  */
 #include <string.h>
+#include <os/os.h>
 #include <rfb/encodings.h>
 #include <rfb/util.h>
 

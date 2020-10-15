@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <os/os.h>
 #include <rfb/Logger.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>

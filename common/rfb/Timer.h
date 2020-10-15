@@ -21,7 +21,7 @@
 #define __RFB_TIMER_H__
 
 #include <list>
-#include <sys/time.h>
+#include <os/os.h>
 
 namespace rfb {
 

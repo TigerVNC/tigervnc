@@ -34,7 +34,7 @@
  */
 
 #include <assert.h>
-#include <sys/time.h>
+#include <os/os.h>
 
 #ifdef __linux__
 #include <sys/ioctl.h>
