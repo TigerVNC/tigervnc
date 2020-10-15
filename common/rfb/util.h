@@ -40,7 +40,11 @@ struct timeval;
 #endif // __GNUC__
 
 #ifndef __unused_attr
-#  define __unused_attr __attribute((__unused__))
+	#ifdef __GNUC__
+	#  define __unused_attr __attribute((__unused__))
+	#else
+	#  define __unused_attr
+	#endif
 #endif
 
 namespace rfb {
