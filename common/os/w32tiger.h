@@ -21,16 +21,17 @@
 
 #ifdef WIN32 
 
+ /* Windows has different names for these */
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+
+#ifdef __GNUC__
+
 #include <windows.h>
 #include <wininet.h>
 #include <shlobj.h>
 #include <shlguid.h>
 #include <wininet.h>
-
-
-/* Windows has different names for these */
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
 
 
 /* MSLLHOOKSTRUCT structure*/
@@ -181,7 +182,9 @@ DECLARE_INTERFACE_(IActiveDesktop, IUnknown)
 	STDMETHOD(SetWallpaperOptions)(THIS_ LPCWALLPAPEROPT,DWORD) PURE;
 };
 #undef INTERFACE
+
 #endif /* HAVE_ACTIVE_DESKTOP_H */
+#endif /*__GNUC__*/
 
 #endif /* WIN32 */
 #endif /* OS_W32TIGER_H */
