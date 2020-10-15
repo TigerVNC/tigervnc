@@ -23,9 +23,6 @@
 #include <tchar.h>
 
 #include <wm_hooks/wm_hooks.h>
-#include <os/os.h>
-
-#define SHARED __attribute__((section ("shared"), shared))
 
 UINT WM_HK_PingThread = RegisterWindowMessage(_T("RFB.WM_Hooks.PingThread"));
 
@@ -87,7 +84,8 @@ BOOL WINAPI DllMain(HANDLE instance, ULONG reason, LPVOID reserved) {
 //
 // -=- Display update hooks
 //
-
+#ifdef __GNUC__
+#define SHARED __attribute__((section ("shared"), shared))
 DWORD hook_owner SHARED = 0;
 DWORD hook_target SHARED = 0;
 HHOOK hook_CallWndProc SHARED = 0;
@@ -100,6 +98,23 @@ HCURSOR cursor SHARED = 0;
 UINT diagnostic_min SHARED =1;
 UINT diagnostic_max SHARED =0;
 #endif
+#else
+// The all compiler is support!!!
+#pragma data_seg(".WM_Hooks_Shared")
+DWORD hook_owner = 0;
+DWORD hook_target = 0;
+HHOOK hook_CallWndProc = 0;
+HHOOK hook_CallWndProcRet = 0;
+HHOOK hook_GetMessage = 0;
+HHOOK hook_DialogMessage = 0;
+BOOL enable_cursor_shape = FALSE;
+HCURSOR cursor = 0;
+#ifdef _DEBUG
+UINT diagnostic_min = 1;
+UINT diagnostic_max = 0;
+#endif
+#pragma data_seg()
+#endif /*__GNUC__*/
 
 #ifdef _DEBUG
 DLLEXPORT void WM_Hooks_SetDiagnosticRange(UINT min, UINT max) {
@@ -373,13 +388,23 @@ BOOL WM_Hooks_Remove(DWORD owner) {
 //
 // -=- User input hooks
 //
-
+#ifdef __GNUC__
 HHOOK hook_keyboard SHARED = 0;
 HHOOK hook_pointer SHARED = 0;
 bool enable_real_ptr SHARED = true;
 bool enable_synth_ptr SHARED = true;
 bool enable_real_kbd SHARED = true;
 bool enable_synth_kbd SHARED = true;
+#else
+#pragma data_seg(".WM_Hooks_Shared")
+HHOOK hook_keyboard = 0;
+HHOOK hook_pointer = 0;
+bool enable_real_ptr = true;
+bool enable_synth_ptr = true;
+bool enable_real_kbd = true;
+bool enable_synth_kbd = true;
+#pragma data_seg()
+#endif /*__GNUC__*/
 
 #ifdef WH_KEYBOARD_LL
 LRESULT CALLBACK HookKeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
