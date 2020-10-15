@@ -23,7 +23,13 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
 #include <os/w32tiger.h>
+#endif
+
+#ifdef __GNUC__
+#include <sys/time.h>
+#endif
 
 /*
  * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).

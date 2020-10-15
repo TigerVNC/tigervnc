@@ -42,6 +42,7 @@
 #include <sys/select.h>
 #endif
 
+#include <os/os.h>
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>
 #include <rfb/util.h>

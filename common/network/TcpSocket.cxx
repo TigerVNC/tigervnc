@@ -21,22 +21,28 @@
 #endif
 
 #ifdef WIN32
-//#include <io.h>
+
+ //#include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+
 #define errorNumber WSAGetLastError()
+
 #else
+
 #define errorNumber errno
 #define closesocket close
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <errno.h>
+#include <unistd.h>
+
 #endif
 
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <network/TcpSocket.h>
 #include <rfb/LogWriter.h>

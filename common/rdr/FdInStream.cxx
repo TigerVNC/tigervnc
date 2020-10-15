@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/time.h>
+#include <os/os.h>
 #ifdef _WIN32
 #include <winsock2.h>
 #define close closesocket

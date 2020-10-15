@@ -33,7 +33,6 @@
 #include <shlguid.h>
 #include <wininet.h>
 
-
 /* MSLLHOOKSTRUCT structure*/
 #ifndef LLMHF_INJECTED
 #define LLMHF_INJECTED          0x00000001
@@ -184,6 +183,25 @@ DECLARE_INTERFACE_(IActiveDesktop, IUnknown)
 #undef INTERFACE
 
 #endif /* HAVE_ACTIVE_DESKTOP_H */
+
+#else /*__GNUC__*/
+
+#include <WinSock2.h>
+
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
+
+struct timezone
+{
+	__int32 tz_minuteswest; /* minutes W of Greenwich */
+	BOOL    tz_dsttime;     /* type of dst correction */
+};
+
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+
 #endif /*__GNUC__*/
 
 #endif /* WIN32 */
