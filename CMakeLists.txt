@@ -306,8 +306,11 @@ if(BUILD_VIEWER)
   add_subdirectory(media)
 endif()
 
-add_subdirectory(tests)
+option(BUILD_TESTS "Build TigerVNC tests" ON)
 
+if(BUILD_TESTS AND BUILD_VIEWER AND FLTK_FOUND)
+    add_subdirectory(tests)    
+endif()
 
 add_subdirectory(release)
 
