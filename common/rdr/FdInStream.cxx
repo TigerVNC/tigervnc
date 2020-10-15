@@ -25,7 +25,6 @@
 #include <errno.h>
 #include <os/os.h>
 #ifdef _WIN32
-#include <winsock2.h>
 #define close closesocket
 #undef errno
 #define errno WSAGetLastError()
