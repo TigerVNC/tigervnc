@@ -18,9 +18,6 @@
 #ifndef WINVNCCONF_AUTHENTICATION
 #define WINVNCCONF_AUTHENTICATION
 
-#include <windows.h>
-#include <commctrl.h>
-
 #include <vncconfig/PasswordDialog.h>
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/SecurityPage.h>
@@ -33,6 +30,7 @@
 #include <rfb/SSecurityTLS.h>
 #endif
 #include <rfb/Password.h>
+#include <commctrl.h>
 
 static rfb::BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
   "Only prompt for a local user to accept incoming connections if there is a user logged on", false);

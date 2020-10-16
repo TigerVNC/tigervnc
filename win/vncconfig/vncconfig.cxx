@@ -16,23 +16,20 @@
  * USA.
  */
 
-#include <winsock2.h>
-#include <windows.h>
-#include <commctrl.h>
-#include <string.h>
-
-#include "resource.h"
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/RegConfig.h>
 #include <rfb_win32/CurrentUser.h>
 
+#include <commctrl.h>
+#include <string.h>
+#include "resource.h"
+
 using namespace rfb;
 using namespace rfb::win32;
 
 static LogWriter vlog("main");
-
 
 #include <vncconfig/Authentication.h>
 #include <vncconfig/Connections.h>
