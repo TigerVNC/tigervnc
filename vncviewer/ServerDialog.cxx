@@ -21,6 +21,14 @@
 #include <config.h>
 #endif
 
+#include "i18n.h"
+#include "parameters.h"
+#include "rfb/Exception.h"
+#include "vncviewer.h"
+#include "ServerDialog.h"
+#include "OptionsDialog.h"
+#include "fltk_layout.h"
+
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Button.H>
@@ -29,14 +37,6 @@
 #include <FL/fl_ask.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_File_Chooser.H>
-
-#include "ServerDialog.h"
-#include "OptionsDialog.h"
-#include "fltk_layout.h"
-#include "i18n.h"
-#include "vncviewer.h"
-#include "parameters.h"
-#include "rfb/Exception.h"
 
 ServerDialog::ServerDialog()
   : Fl_Window(450, 160, _("VNC Viewer: Connection Details"))

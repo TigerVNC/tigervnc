@@ -23,13 +23,13 @@
 #include <sys/shm.h>
 #endif
 
-#include <FL/Fl.H>
-#include <FL/x.H>
+#include "PlatformPixelBuffer.h"
 
 #include <rfb/LogWriter.h>
 #include <rdr/Exception.h>
 
-#include "PlatformPixelBuffer.h"
+#include <FL/Fl.H>
+#include <FL/x.H>
 
 static rfb::LogWriter vlog("PlatformPixelBuffer");
 

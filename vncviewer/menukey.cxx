@@ -18,7 +18,6 @@
  */
 
 #include <string.h>
-#include <FL/Fl.H>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
@@ -28,6 +27,8 @@
 
 #include "menukey.h"
 #include "parameters.h"
+
+#include <FL/Fl.H>
 
 static const MenuKeySymbol menuSymbols[] = {
   {"F1",          FL_F + 1,       0x3b, XK_F1},

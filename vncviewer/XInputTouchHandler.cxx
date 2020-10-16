@@ -28,8 +28,6 @@
 #include <X11/extensions/XI2.h>
 #include <X11/XKBlib.h>
 
-#include <FL/x.H>
-
 #ifndef XK_MISCELLANY
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
@@ -38,6 +36,8 @@
 
 #include "i18n.h"
 #include "XInputTouchHandler.h"
+
+#include <FL/x.H>
 
 static rfb::LogWriter vlog("XInputTouchHandler");
 

@@ -16,9 +16,9 @@
  * USA.
  */
 
-#include <FL/Fl_RGB_Image.H>
-
 #include "Surface.h"
+
+#include <FL/Fl_RGB_Image.H>
 
 Surface::Surface(int width, int height) :
   w(width), h(height)

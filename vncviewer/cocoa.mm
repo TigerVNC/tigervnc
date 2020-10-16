@@ -20,10 +20,6 @@
 #include <config.h>
 #endif
 
-#include <FL/Fl.H>
-#include <FL/Fl_Window.H>
-#include <FL/x.H>
-
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 
@@ -37,6 +33,10 @@
 #include <rfb/XF86keysym.h>
 
 #include "keysym2ucs.h"
+
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/x.H>
 
 #define NoSymbol 0
 

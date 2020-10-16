@@ -30,7 +30,9 @@
 #include <signal.h>
 #include <locale.h>
 #include <fcntl.h>
+#ifdef __GNUC__
 #include <unistd.h>
+#endif
 #include <sys/stat.h>
 
 #ifdef WIN32
@@ -56,13 +58,6 @@
 #include <network/TcpSocket.h>
 #include <os/os.h>
 
-#include <FL/Fl.H>
-#include <FL/Fl_Widget.H>
-#include <FL/Fl_PNG_Image.H>
-#include <FL/Fl_Sys_Menu_Bar.H>
-#include <FL/fl_ask.H>
-#include <FL/x.H>
-
 #include "i18n.h"
 #include "parameters.h"
 #include "CConn.h"
@@ -71,6 +66,13 @@
 #include "touch.h"
 #include "vncviewer.h"
 #include "fltk_layout.h"
+
+#include <FL/Fl.H>
+#include <FL/Fl_Widget.H>
+#include <FL/Fl_PNG_Image.H>
+#include <FL/Fl_Sys_Menu_Bar.H>
+#include <FL/fl_ask.H>
+#include <FL/x.H>
 
 #ifdef WIN32
 #include "resource.h"
@@ -351,8 +353,10 @@ static void usage(const char *programName)
     AllocConsole();
 
     handle = GetStdHandle(STD_ERROR_HANDLE);
+#ifdef __GNUC__
     fd = _open_osfhandle((intptr_t)handle, O_TEXT);
     *stderr = *fdopen(fd, "w");
+#endif
   }
 #endif
 

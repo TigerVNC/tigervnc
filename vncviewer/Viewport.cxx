@@ -1218,7 +1218,7 @@ void Viewport::resolveAltGrDetection(bool isAltGrSequence)
 void Viewport::initContextMenu()
 {
   contextMenu->clear();
-
+  /*
   fltk_menu_add(contextMenu, p_("ContextMenu|", "E&xit viewer"),
                 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
 
@@ -1238,7 +1238,7 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Alt"),
                 0, NULL, (void*)ID_ALT,
                 FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
-
+				
   if (menuKeySym) {
     char sendMenuKey[64];
     snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"), (const char *)menuKey);
@@ -1258,7 +1258,7 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
                 0, NULL, (void*)ID_INFO, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
-                0, NULL, (void*)ID_ABOUT, 0);
+                0, NULL, (void*)ID_ABOUT, 0);//*/
 }
 
 

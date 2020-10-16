@@ -22,8 +22,7 @@
 
 #include <map>
 
-#include <sys/time.h>
-
+#include <os/os.h>
 #include <rfb/Rect.h>
 #include <rfb/Pixel.h>
 

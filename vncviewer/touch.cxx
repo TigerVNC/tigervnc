@@ -25,6 +25,9 @@
 
 #include <map>
 
+#include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
+
 #if defined(WIN32)
 #include <windows.h>
 #include <commctrl.h>
@@ -32,12 +35,6 @@
 #include <X11/extensions/XInput2.h>
 #include <X11/extensions/XI2.h>
 #endif
-
-#include <FL/Fl.H>
-#include <FL/x.H>
-
-#include <rfb/Exception.h>
-#include <rfb/LogWriter.h>
 
 #include "i18n.h"
 #include "vncviewer.h"
@@ -49,6 +46,9 @@
 #endif
 
 #include "touch.h"
+
+#include <FL/Fl.H>
+#include <FL/x.H>
 
 static rfb::LogWriter vlog("Touch");
 

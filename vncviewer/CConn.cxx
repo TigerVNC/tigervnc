@@ -41,9 +41,6 @@
 #include <network/UnixSocket.h>
 #endif
 
-#include <FL/Fl.H>
-#include <FL/fl_ask.H>
-
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
@@ -55,6 +52,9 @@
 #ifdef WIN32
 #include "win32.h"
 #endif
+
+#include <FL/Fl.H>
+#include <FL/fl_ask.H>
 
 using namespace rdr;
 using namespace rfb;

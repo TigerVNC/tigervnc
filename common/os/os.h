@@ -31,6 +31,10 @@
 #include <sys/time.h>
 #endif
 
+#ifndef PATH_MAX
+#define PATH_MAX        4096
+#endif
+
 /*
  * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
  * If HOME environment variable is set then it is used.

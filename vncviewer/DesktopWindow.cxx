@@ -24,10 +24,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
 
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgWriter.h>
+#include <os/os.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
@@ -36,8 +36,8 @@
 #include "vncviewer.h"
 #include "CConn.h"
 #include "Surface.h"
-#include "Viewport.h"
 #include "touch.h"
+#include "Viewport.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Image_Surface.H>
@@ -556,8 +556,14 @@ void DesktopWindow::resize(int x, int y, int w, int h)
     // c) We're not still waiting for a chance to handle DesktopSize
     // d) We're not still waiting for startup fullscreen to kick in
     //
+#ifdef __GNUC__
     if (not firstUpdate and not delayedFullscreen and
         ::remoteResize and cc->server.supportsSetDesktopSize) {
+#else
+	  if (!firstUpdate && !delayedFullscreen &&
+		  ::remoteResize && cc->server.supportsSetDesktopSize) {
+#endif
+
       // We delay updating the remote desktop as we tend to get a flood
       // of resize events as the user is dragging the window.
       Fl::remove_timeout(handleResizeTimeout, this);
@@ -807,7 +813,12 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
 void DesktopWindow::fullscreen_on()
 {
+#ifdef __GNUC__
   if (not fullScreenAllMonitors)
+#else
+  if (!fullScreenAllMonitors)
+#endif
+
     fullscreen_screens(-1, -1, -1, -1);
   else {
     int top, bottom, left, right;

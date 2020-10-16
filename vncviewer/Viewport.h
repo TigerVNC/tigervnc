@@ -24,9 +24,9 @@
 
 #include <rfb/Rect.h>
 
-#include <FL/Fl_Widget.H>
-
 #include "EmulateMB.h"
+
+#include <FL/Fl_Widget.H>
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;

@@ -24,6 +24,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <rfb/util.h>
+#include <rfb/Password.h>
+#include <rfb/Exception.h>
+
+#include "i18n.h"
+#include "fltk_layout.h"
+#include "parameters.h"
+#include "UserDialog.h"
+
 #include <FL/Fl.H>
 #include <FL/fl_ask.H>
 #include <FL/Fl_Window.H>
@@ -33,15 +42,6 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
-
-#include <rfb/util.h>
-#include <rfb/Password.h>
-#include <rfb/Exception.h>
-
-#include "i18n.h"
-#include "fltk_layout.h"
-#include "parameters.h"
-#include "UserDialog.h"
 
 /* xpm:s predate const, so they have invalid definitions */
 #pragma GCC diagnostic push

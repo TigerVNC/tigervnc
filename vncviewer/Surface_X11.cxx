@@ -18,12 +18,12 @@
 
 #include <assert.h>
 
-#include <FL/Fl_RGB_Image.H>
-#include <FL/x.H>
-
 #include <rdr/Exception.h>
 
 #include "Surface.h"
+
+#include <FL/Fl_RGB_Image.H>
+#include <FL/x.H>
 
 void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
