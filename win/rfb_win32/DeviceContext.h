@@ -23,7 +23,6 @@
 #ifndef __RFB_WIN32_DEVICECONTEXT_H__
 #define __RFB_WIN32_DEVICECONTEXT_H__
 
-#include <windows.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb_win32/TCharArray.h>

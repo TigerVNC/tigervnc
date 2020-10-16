@@ -22,7 +22,6 @@
 #ifndef __RFB_WIN32_REGISTRY_H__
 #define __RFB_WIN32_REGISTRY_H__
 
-#include <windows.h>
 #include <rfb_win32/Security.h>
 #include <rfb/util.h>
 

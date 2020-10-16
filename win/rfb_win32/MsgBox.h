@@ -19,7 +19,6 @@
 #ifndef __RFB_WIN32_MSGBOX_H__
 #define __RFB_WIN32_MSGBOX_H__
 
-#include <windows.h>
 #include <rfb_win32/TCharArray.h>
 
 namespace rfb {

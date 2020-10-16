@@ -26,6 +26,9 @@
 // VK_SPACE (note that things like VK_ADD are for the plus key on the keypad,
 // not on the main keyboard).
 
+#ifndef KEYMAP_H
+#define KEYMAP_H
+
 struct keymap_t {
   rdr::U32 keysym;
   rdr::U8 vk;
@@ -149,3 +152,5 @@ static keymap_t keymap[] = {
   { XK_Kana_Shift,       VK_KANA, 0 },
 
 };
+
+#endif /*KEYMAP_H*/

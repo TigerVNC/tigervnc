@@ -19,7 +19,6 @@
 #ifndef __RFB_WIN32_MODULE_FILENAME_H__
 #define __RFB_WIN32_MODULE_FILENAME_H__
 
-#include <windows.h>
 #include <rfb_win32/TCharArray.h>
 
 namespace rfb {

@@ -25,10 +25,9 @@
 #ifndef __RFB_WIN32_DIALOG_H__
 #define __RFB_WIN32_DIALOG_H__
 
-#include <windows.h>
+#include <rfb_win32/TCharArray.h>
 #include <prsht.h>
 #include <list>
-#include <rfb_win32/TCharArray.h>
 
 namespace rfb {
 

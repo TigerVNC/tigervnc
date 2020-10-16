@@ -28,7 +28,6 @@
 #ifndef __RFB_WIN32_WM_POLLER_H__
 #define __RFB_WIN32_WM_POLLER_H__
 
-#include <windows.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/Configuration.h>
 

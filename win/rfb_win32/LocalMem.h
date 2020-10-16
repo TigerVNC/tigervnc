@@ -19,7 +19,7 @@
 #ifndef __RFB_WIN32_LOCALMEM_H__
 #define __RFB_WIN32_LOCALMEM_H__
 
-#include <windows.h>
+#include <os/os.h>
 #include <rdr/Exception.h>
 
 namespace rfb {

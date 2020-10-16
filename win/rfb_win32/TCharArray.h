@@ -40,7 +40,6 @@
 #ifndef __RFB_WIN32_TCHARARRAY_H__
 #define __RFB_WIN32_TCHARARRAY_H__
 
-#include <windows.h>
 #include <tchar.h>
 #include <rfb/util.h>
 #include <rfb/Password.h>

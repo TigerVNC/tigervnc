@@ -26,7 +26,6 @@
 #ifndef __RFB_WIN32_DEVICE_FRAME_BUFFER_H__
 #define __RFB_WIN32_DEVICE_FRAME_BUFFER_H__
 
-#include <windows.h>
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb/Cursor.h>
 #include <rfb/Region.h>

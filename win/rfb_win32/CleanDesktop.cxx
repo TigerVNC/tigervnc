@@ -18,9 +18,6 @@
 
 // -=- CleanDesktop.cxx
 
-#include <windows.h>
-#include <wininet.h>
-#include <shlobj.h>
 #include <rfb_win32/CleanDesktop.h>
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Registry.h>
