@@ -17,8 +17,9 @@
  */
 
 #include <stdio.h>
+#ifdef __GNUC__
 #include <unistd.h>
-
+#endif
 #include <vector>
 
 #include "../../vncviewer/GestureHandler.h"
@@ -110,7 +111,11 @@ void testTwoTapSlowBegin()
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
-  usleep(500000);
+#ifdef __GNUC__
+  usleep(500000); // 0.5s
+#else
+  Sleep(500);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -132,7 +137,11 @@ void testTwoTapSlowEnd()
   test.handleTouchBegin(2, 30.0, 50.0);
   test.handleTouchEnd(1);
 
-  usleep(500000);
+#ifdef __GNUC__
+  usleep(500000); // 0.5s
+#else
+  Sleep(500);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchEnd(2);
@@ -151,7 +160,11 @@ void testTwoTapTimeout()
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
 
-  usleep(1500000);
+#ifdef __GNUC__
+  usleep(11500000); // 1.5s
+#else
+  Sleep(1500);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchEnd(1);
@@ -208,7 +221,11 @@ void testThreeTapSlowBegin()
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
 
-  usleep(500000);
+#ifdef __GNUC__
+  usleep(500000); // 0.5s
+#else
+  Sleep(500);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchBegin(3, 40.0, 40.0);
@@ -233,7 +250,11 @@ void testThreeTapSlowEnd()
   test.handleTouchEnd(1);
   test.handleTouchEnd(2);
 
-  usleep(500000);
+#ifdef __GNUC__
+  usleep(500000); // 0.5s
+#else
+  Sleep(500);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchEnd(3);
@@ -276,7 +297,11 @@ void testThreeTapTimeout()
   test.handleTouchBegin(2, 30.0, 50.0);
   test.handleTouchBegin(3, 40.0, 40.0);
 
-  usleep(1500000);
+#ifdef __GNUC__
+  usleep(1500000); // 1.5s
+#else
+  Sleep(1500);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchEnd(1);
@@ -424,7 +449,11 @@ void testLongPressNormal()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(1500000);
+#ifdef __GNUC__
+  usleep(1500000); // 1.5s
+#else
+  Sleep(1500);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 1);
@@ -458,7 +487,11 @@ void testLongPressDrag()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(1500000);
+#ifdef __GNUC__
+  usleep(1500000); // 1.5s
+#else
+  Sleep(1500);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 1);
@@ -668,7 +701,11 @@ void testTwoDragFastAlmost()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(500000);
+#ifdef __GNUC__
+  usleep(500000); // 0.5s
+#else
+  Sleep(500);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 0);
@@ -689,7 +726,11 @@ void testTwoDragSlowHoriz()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(60000); // 60ms
+#ifdef __GNUC__
+  usleep(600000); // 0.6s
+#else
+  Sleep(600);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
@@ -723,7 +764,11 @@ void testTwoDragSlowVert()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(60000); // 60ms
+#ifdef __GNUC__
+  usleep(600000); // 0.6s
+#else
+  Sleep(600);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
@@ -757,7 +802,11 @@ void testTwoDragSlowDiag()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(60000); // 60ms
+#ifdef __GNUC__
+  usleep(600000); // 0.6s
+#else
+  Sleep(600);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
@@ -786,7 +835,11 @@ void testTwoDragTooSlow()
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
-  usleep(500000);
+#ifdef __GNUC__
+  usleep(500000); // 0.5s
+#else
+  Sleep(500);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchBegin(2, 30.0, 30.0);
@@ -912,7 +965,11 @@ void testPinchFastAlmost()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(500000);
+#ifdef __GNUC__
+  usleep(500000); // 0.5s
+#else
+  Sleep(500);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 0);
@@ -936,7 +993,11 @@ void testPinchSlowIn()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(60000); // 60ms
+#ifdef __GNUC__
+  usleep(600000); // 0.6s
+#else
+  Sleep(600);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
@@ -973,7 +1034,11 @@ void testPinchSlowOut()
 
   ASSERT_EQ(test.events.size(), 0);
 
-  usleep(60000); // 60ms
+#ifdef __GNUC__
+  usleep(600000); // 0.6s
+#else
+  Sleep(600);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
@@ -1003,7 +1068,11 @@ void testPinchTooSlow()
 
   test.handleTouchBegin(1, 0.0, 0.0);
 
-  usleep(60000); // 60ms
+#ifdef __GNUC__
+  usleep(600000); // 0.6s
+#else
+  Sleep(600);
+#endif
   rfb::Timer::checkTimeouts();
 
   test.handleTouchBegin(2, 130.0, 130.0);

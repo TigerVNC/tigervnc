@@ -18,8 +18,9 @@
 
 #include <stdio.h>
 #include <vector>
+#ifdef __GNUC__
 #include <unistd.h>
-
+#endif
 #include <rfb/Rect.h>
 #include <rfb/Configuration.h>
 #include "EmulateMB.h"
@@ -111,7 +112,11 @@ void testNormalLeftPress()
 
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent(rfb::Point(10, 20), left);
+#ifdef __GNUC__
   usleep(100000); // 0.1s
+#else
+  Sleep(100);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.results.size(), 2);
@@ -153,7 +158,11 @@ void testNormalRightPress()
 
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent(rfb::Point(0, 0), right);
+#ifdef __GNUC__
   usleep(100000); // 0.1s
+#else
+  Sleep(100);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.results.size(), 2);
@@ -322,7 +331,11 @@ void testBothPressAfterLeftTimeout()
 
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent(rfb::Point(10, 20), left);
+#ifdef __GNUC__
   usleep(100000); // 0.1s
+#else
+  Sleep(100);
+#endif
   rfb::Timer::checkTimeouts();
   test.filterPointerEvent(rfb::Point(10, 20), both);
 
@@ -351,7 +364,11 @@ void testBothPressAfterRightTimeout()
 
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent(rfb::Point(10, 20), right);
+#ifdef __GNUC__
   usleep(100000); // 0.1s
+#else
+  Sleep(100);
+#endif
   rfb::Timer::checkTimeouts();
   test.filterPointerEvent(rfb::Point(10, 20), both);
 
@@ -380,7 +397,11 @@ void testTimeoutAndDrag()
 
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent(rfb::Point(0, 0), left);
-  usleep(100000); //0.1s
+#ifdef __GNUC__
+  usleep(100000); // 0.1s
+#else
+  Sleep(100);
+#endif
   rfb::Timer::checkTimeouts();
   test.filterPointerEvent(rfb::Point(10, 10), left);
 
@@ -410,7 +431,11 @@ void testDragAndTimeout()
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent(rfb::Point(10, 10), left);
   test.filterPointerEvent(rfb::Point(30, 30), left);
-  usleep(100000); //0.1s
+#ifdef __GNUC__
+  usleep(100000); // 0.1s
+#else
+  Sleep(100);
+#endif
   rfb::Timer::checkTimeouts();
 
   ASSERT_EQ(test.results.size(), 3);

@@ -308,7 +308,7 @@ endif()
 
 option(BUILD_TESTS "Build TigerVNC tests" ON)
 
-if(BUILD_TESTS AND BUILD_VIEWER AND FLTK_FOUND)
+if(BUILD_TESTS)
     add_subdirectory(tests)    
 endif()
 

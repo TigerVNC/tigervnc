@@ -17,11 +17,6 @@
  */
 
 #include <math.h>
-#include <sys/time.h>
-
-#include <FL/Fl.H>
-#include <FL/Fl_Window.H>
-#include <FL/fl_draw.H>
 
 #include <rdr/Exception.h>
 #include <rfb/util.h>
@@ -29,6 +24,10 @@
 #include "../vncviewer/PlatformPixelBuffer.h"
 
 #include "util.h"
+
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/fl_draw.H>
 
 class TestWindow: public Fl_Window {
 public:
