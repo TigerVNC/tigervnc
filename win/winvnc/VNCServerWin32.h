@@ -19,7 +19,6 @@
 #ifndef __VNCSERVER_WIN32_H__
 #define __VNCSERVER_WIN32_H__
 
-#include <winsock2.h>
 #include <network/TcpSocket.h>
 #include <rfb/VNCServerST.h>
 #include <rfb_win32/RegConfig.h>

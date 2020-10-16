@@ -19,7 +19,6 @@
 #ifndef __VNCSERVER_MANAGED_LISTENER_H__
 #define __VNCSERVER_MANAGED_LISTENER_H__
 
-#include <winsock2.h>
 #include <network/TcpSocket.h>
 #include <rfb_win32/SocketManager.h>
 
