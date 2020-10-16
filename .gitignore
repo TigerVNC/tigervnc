@@ -5,6 +5,7 @@
 .deps
 .libs
 .vs
+*.aps
 
 CMakeFiles
 CMakeCache.txt
