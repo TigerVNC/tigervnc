@@ -111,6 +111,10 @@
 /* The separator between msgctxt and msgid in a .mo file.  */
 #define GETTEXT_CONTEXT_GLUE "\004"
 
+#ifndef LC_MESSAGES
+#define LC_MESSAGES  5
+#endif
+
 /* Pseudo function calls, taking a MSGCTXT and a MSGID instead of just a
    MSGID.  MSGCTXT and MSGID must be string literals.  MSGCTXT should be
    short and rarely need to change.
