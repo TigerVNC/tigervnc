@@ -22,8 +22,9 @@
 #include <stdio.h>
 #include <rdr/InStream.h>
 
+#include <os/os.h>
+
 #ifdef WIN32
-#include <windows.h>
 #include <wincrypt.h>
 #ifdef WINCRYPT32API
 #define RFB_HAVE_WINCRYPT

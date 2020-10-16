@@ -44,6 +44,9 @@ SOFTWARE.
 
 ******************************************************************/
 
+#ifndef KEYSYMDEF_H
+#define KEYSYMDEF_H
+
 #define XK_VoidSymbol		0xFFFFFF	/* void symbol */
 
 #ifdef XK_MISCELLANY
@@ -1593,3 +1596,5 @@ SOFTWARE.
 #define XK_DongSign					0x20ab
 #define XK_EuroSign					0x20ac
 #endif
+
+#endif /*KEYSYMDEF_H*/

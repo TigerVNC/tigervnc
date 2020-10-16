@@ -31,7 +31,7 @@
 #include <limits.h>
 #include <string.h>
 
-struct timeval;
+#include <os/os.h>
 
 #ifdef __GNUC__
 #  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))

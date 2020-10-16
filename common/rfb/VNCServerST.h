@@ -24,8 +24,6 @@
 #ifndef __RFB_VNCSERVERST_H__
 #define __RFB_VNCSERVERST_H__
 
-#include <os/os.h>
-
 #include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
 #include <rfb/Blacklist.h>

@@ -25,11 +25,14 @@
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 
-#ifdef __GNUC__
-
-#include <windows.h>
+#include <WinSock2.h>
+#include <ws2tcpip.h>
+#include <Windows.h>
 #include <wininet.h>
 #include <shlobj.h>
+
+#ifdef __GNUC__
+
 #include <shlguid.h>
 #include <wininet.h>
 
@@ -185,8 +188,6 @@ DECLARE_INTERFACE_(IActiveDesktop, IUnknown)
 #endif /* HAVE_ACTIVE_DESKTOP_H */
 
 #else /*__GNUC__*/
-
-#include <WinSock2.h>
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
