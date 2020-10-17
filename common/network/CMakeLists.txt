@@ -1,17 +1,28 @@
-include_directories(${CMAKE_SOURCE_DIR}/common)
-
 set(NETWORK_SOURCES
-  Socket.cxx
-  TcpSocket.cxx)
+  ${CMAKE_CURRENT_SOURCE_DIR}/Socket.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TcpSocket.cxx)
+
+set(NETWORK_HEADS
+	${CMAKE_CURRENT_SOURCE_DIR}/Socket.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TcpSocket.h)
 
 if(NOT WIN32)
-  set(NETWORK_SOURCES ${NETWORK_SOURCES} UnixSocket.cxx)
+  set(NETWORK_SOURCES ${NETWORK_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/UnixSocket.cxx)
+  set(NETWORK_HEADS ${NETWORK_HEADS} ${CMAKE_CURRENT_SOURCE_DIR}/UnixSocket.h)
 endif()
 
-add_library(network STATIC ${NETWORK_SOURCES})
+set(TIGERVNC_SOURCES ${TIGERVNC_SOURCES}
+	${NETWORK_SOURCES}
+	PARENT_SCOPE)
+
+set(TIGERVNC_HEADS ${TIGERVNC_HEADS}
+	${NETWORK_HEADS}
+	PARENT_SCOPE)
 
 if(WIN32)
-	target_link_libraries(network ws2_32)
+	set(TIGERVNC_LIBS ${TIGERVNC_LIBS}
+		ws2_32
+		PARENT_SCOPE)
 endif()
 
 if(UNIX)

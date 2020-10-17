@@ -1,13 +1,22 @@
-include_directories(${CMAKE_SOURCE_DIR}/common)
 
-add_library(os STATIC
-  Mutex.cxx
-  Thread.cxx
-  w32tiger.cxx
-  os.cxx)
+set(TIGERVNC_SOURCES ${TIGERVNC_SOURCES}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Mutex.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Thread.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/w32tiger.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/os.cxx
+  PARENT_SCOPE)
+
+set(TIGERVNC_HEADS ${TIGERVNC_HEADS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Mutex.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Thread.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/w32tiger.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/os.h
+  PARENT_SCOPE)
 
 if(UNIX)
-  target_link_libraries(os pthread)
+  set(TIGERVNC_LIBS ${TIGERVNC_LIBS}
+	pthread
+	PARENT_SCOPE)
 endif()
 
 if(UNIX)

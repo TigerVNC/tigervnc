@@ -1,24 +1,43 @@
 # Check for zlib
 find_package(ZLIB REQUIRED)
 
-include_directories(${CMAKE_SOURCE_DIR}/common ${ZLIB_INCLUDE_DIRS})
+set(TIGERVNC_INCLUDE_DIR ${TIGERVNC_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
+	PARENT_SCOPE)
 
-add_library(rdr STATIC
-  Exception.cxx
-  FdInStream.cxx
-  FdOutStream.cxx
-  FileInStream.cxx
-  HexInStream.cxx
-  HexOutStream.cxx
-  InStream.cxx
-  RandomStream.cxx
-  TLSException.cxx
-  TLSInStream.cxx
-  TLSOutStream.cxx
-  ZlibInStream.cxx
-  ZlibOutStream.cxx)
+set(TIGERVNC_SOURCES ${TIGERVNC_SOURCES}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Exception.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/FdInStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/FdOutStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/FileInStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/HexInStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/HexOutStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/InStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/RandomStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TLSException.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TLSInStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TLSOutStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZlibInStream.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZlibOutStream.cxx
+  PARENT_SCOPE)
 
-set(RDR_LIBRARIES ${ZLIB_LIBRARIES} os)
+set(TIGERVNC_HEADS ${TIGERVNC_HEADS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Exception.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/FdInStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/FdOutStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/FileInStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/HexInStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/HexOutStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/InStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/RandomStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/TLSException.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/TLSInStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/TLSOutStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZlibInStream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZlibOutStream.h
+  PARENT_SCOPE)
+
+set(RDR_LIBRARIES ${ZLIB_LIBRARIES})
 if(GNUTLS_FOUND)
   set(RDR_LIBRARIES ${RDR_LIBRARIES} ${GNUTLS_LIBRARIES})
 endif()
@@ -26,7 +45,9 @@ if(WIN32)
 	set(RDR_LIBRARIES ${RDR_LIBRARIES} ws2_32)
 endif()
 
-target_link_libraries(rdr ${RDR_LIBRARIES})
+set(TIGERVNC_LIBS ${TIGERVNC_LIBS}
+	${RDR_LIBRARIES}
+	PARENT_SCOPE)
 
 if(UNIX)
   libtool_create_control_file(rdr)

@@ -13,6 +13,7 @@ endif()
 # Internal cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
+include(CMakePackageConfigHelpers)
 include(CheckIncludeFiles)
 include(CheckFunctionExists)
 include(CheckLibraryExists)
@@ -67,7 +68,17 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -UNDEBUG")
 # Make sure we get a sane C version
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
-if(NOT MSVC)
+if(MSVC)
+	# This option is to enable the /MP switch for Visual Studio 2005 and above compilers
+    OPTION(WIN32_USE_MP "Set to ON to build with the /MP option (Visual Studio 2005 and above)." ON)
+    MARK_AS_ADVANCED(WIN32_USE_MP)
+    IF(WIN32_USE_MP)
+        #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+        add_compile_options(/MP)
+    ENDIF(WIN32_USE_MP)
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+else()
 	# Tell the compiler to be stringent
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat=2")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wformat=2")

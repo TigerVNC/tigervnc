@@ -1,94 +1,178 @@
 # Check for pixman
 find_package(Pixman REQUIRED)
 
-include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR} ${PIXMAN_INCLUDE_DIRS})
+set(RFB_INCLUDE_DIR ${RFB_INCLUDE_DIR}
+	${JPEG_INCLUDE_DIR}
+	${PIXMAN_INCLUDE_DIRS}
+	)
 
 set(RFB_SOURCES
-  Blacklist.cxx
-  Congestion.cxx
-  CConnection.cxx
-  CMsgHandler.cxx
-  CMsgReader.cxx
-  CMsgWriter.cxx
-  CSecurityPlain.cxx
-  CSecurityStack.cxx
-  CSecurityVeNCrypt.cxx
-  CSecurityVncAuth.cxx
-  ClientParams.cxx
-  ComparingUpdateTracker.cxx
-  Configuration.cxx
-  CopyRectDecoder.cxx
-  Cursor.cxx
-  DecodeManager.cxx
-  Decoder.cxx
-  d3des.c
-  EncodeManager.cxx
-  Encoder.cxx
-  HextileDecoder.cxx
-  HextileEncoder.cxx
-  JpegCompressor.cxx
-  JpegDecompressor.cxx
-  KeyRemapper.cxx
-  LogWriter.cxx
-  Logger.cxx
-  Logger_file.cxx
-  Logger_stdio.cxx
-  Password.cxx
-  PixelBuffer.cxx
-  PixelFormat.cxx
-  RREEncoder.cxx
-  RREDecoder.cxx
-  RawDecoder.cxx
-  RawEncoder.cxx
-  Region.cxx
-  SConnection.cxx
-  SMsgHandler.cxx
-  SMsgReader.cxx
-  SMsgWriter.cxx
-  ServerCore.cxx
-  ServerParams.cxx
-  Security.cxx
-  SecurityServer.cxx
-  SecurityClient.cxx
-  SSecurityPlain.cxx
-  SSecurityStack.cxx
-  SSecurityVncAuth.cxx
-  SSecurityVeNCrypt.cxx
-  ScaleFilters.cxx
-  Timer.cxx
-  TightDecoder.cxx
-  TightEncoder.cxx
-  TightJPEGEncoder.cxx
-  UpdateTracker.cxx
-  VNCSConnectionST.cxx
-  VNCServerST.cxx
-  ZRLEEncoder.cxx
-  ZRLEDecoder.cxx
-  encodings.cxx
-  util.cxx)
+  ${CMAKE_CURRENT_SOURCE_DIR}/Blacklist.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Congestion.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CConnection.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMsgHandler.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMsgReader.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMsgWriter.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityPlain.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityStack.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityVeNCrypt.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityVncAuth.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ClientParams.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ComparingUpdateTracker.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/CopyRectDecoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Cursor.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/DecodeManager.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Decoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/d3des.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/EncodeManager.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Encoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/HextileDecoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/HextileEncoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/JpegCompressor.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/JpegDecompressor.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/KeyRemapper.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/LogWriter.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Logger.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Logger_file.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Logger_stdio.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Password.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/PixelBuffer.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/PixelFormat.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/RREEncoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/RREDecoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/RawDecoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/RawEncoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Region.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SConnection.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SMsgHandler.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SMsgReader.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SMsgWriter.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ServerCore.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ServerParams.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Security.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SecurityServer.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SecurityClient.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityPlain.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityStack.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityVncAuth.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityVeNCrypt.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ScaleFilters.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Timer.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TightDecoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TightEncoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TightJPEGEncoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/UpdateTracker.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/VNCSConnectionST.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/VNCServerST.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZRLEEncoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZRLEDecoder.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/encodings.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/util.cxx)
+
+set(RFB_HEADS ${RFB_HEADS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Blacklist.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Congestion.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CConnection.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMsgHandler.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMsgReader.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMsgWriter.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityPlain.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityStack.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityVeNCrypt.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityVncAuth.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ClientParams.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ComparingUpdateTracker.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/CopyRectDecoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Cursor.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/DecodeManager.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Decoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/d3des.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/EncodeManager.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Encoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/HextileDecoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/HextileEncoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/JpegCompressor.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/JpegDecompressor.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/KeyRemapper.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/LogWriter.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Logger.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Logger_file.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Logger_stdio.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Password.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/PixelBuffer.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/PixelFormat.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/RREEncoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/RREDecoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/RawDecoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/RawEncoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Region.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SConnection.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SMsgHandler.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SMsgReader.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SMsgWriter.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ServerCore.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ServerParams.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Security.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SecurityServer.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SecurityClient.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityPlain.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityStack.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityVncAuth.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityVeNCrypt.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ScaleFilters.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Timer.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/TightDecoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/TightEncoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/TightJPEGEncoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/UpdateTracker.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/VNCSConnectionST.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/VNCServerST.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZRLEEncoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZRLEDecoder.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/encodings.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/util.h
+)
 
 if(UNIX)
-  set(RFB_SOURCES ${RFB_SOURCES} Logger_syslog.cxx)
+  set(RFB_SOURCES ${RFB_SOURCES} 
+	${CMAKE_CURRENT_SOURCE_DIR}/Logger_syslog.cxx)
+  set(RFB_HEADS ${RFB_HEADS}
+	${CMAKE_CURRENT_SOURCE_DIR}/Logger_syslog.h)
 endif()
 
 if(WIN32)
-  include_directories(${CMAKE_SOURCE_DIR}/win)
-  set(RFB_SOURCES ${RFB_SOURCES} WinPasswdValidator.cxx)
+  set(RFB_INCLUDE_DIR ${RFB_INCLUDE_DIR}
+	${CMAKE_SOURCE_DIR}/win
+	)
+  set(RFB_SOURCES ${RFB_SOURCES}
+	${CMAKE_CURRENT_SOURCE_DIR}/WinPasswdValidator.cxx)
+  set(RFB_HEADS ${RFB_HEADS}
+	${CMAKE_CURRENT_SOURCE_DIR}/WinPasswdValidator.h)
 endif(WIN32)
 
-set(RFB_LIBRARIES ${JPEG_LIBRARIES} ${PIXMAN_LIBRARY} os rdr)
+set(RFB_LIBRARIES ${JPEG_LIBRARIES} ${PIXMAN_LIBRARY})
 
 if(UNIX AND NOT APPLE)
-  set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
-    UnixPasswordValidator.h pam.c pam.h)
+  set(RFB_SOURCES ${RFB_SOURCES}
+	${CMAKE_CURRENT_SOURCE_DIR}/UnixPasswordValidator.cxx)
+  set(RFB_HEADS ${RFB_HEADS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/UnixPasswordValidator.h
+	${CMAKE_CURRENT_SOURCE_DIR}/pam.c
+	${CMAKE_CURRENT_SOURCE_DIR}/pam.h)
   set(RFB_LIBRARIES ${RFB_LIBRARIES} ${PAM_LIBS})
 endif()
 
 if(GNUTLS_FOUND)
   set(RFB_SOURCES
     ${RFB_SOURCES}
-    CSecurityTLS.cxx
-    SSecurityTLS.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityTLS.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityTLS.cxx
+  )
+  set(RFB_HEADS ${RFB_HEADS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/CSecurityTLS.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SSecurityTLS.h
   )
   set(RFB_LIBRARIES
     ${RFB_LIBRARIES}
@@ -96,9 +180,21 @@ if(GNUTLS_FOUND)
   )
 endif()
 
-add_library(rfb STATIC ${RFB_SOURCES})
+set(TIGERVNC_INCLUDE_DIR ${TIGERVNC_INCLUDE_DIR}
+	${RFB_INCLUDE_DIR}
+	PARENT_SCOPE)
 
-target_link_libraries(rfb ${RFB_LIBRARIES})
+set(TIGERVNC_SOURCES ${TIGERVNC_SOURCES}
+	${RFB_SOURCES}
+	PARENT_SCOPE)
+
+set(TIGERVNC_HEADS ${TIGERVNC_HEADS}
+	${RFB_HEADS}
+	PARENT_SCOPE)
+
+set(TIGERVNC_LIBS ${TIGERVNC_LIBS}
+	${RFB_LIBRARIES}
+	PARENT_SCOPE)
 
 if(UNIX)
   libtool_create_control_file(rfb)
