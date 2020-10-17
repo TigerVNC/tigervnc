@@ -1,3 +1,6 @@
+# Check for zlib
+find_package(ZLIB REQUIRED)
+
 include_directories(${CMAKE_SOURCE_DIR}/common ${ZLIB_INCLUDE_DIRS})
 
 add_library(rdr STATIC

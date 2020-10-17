@@ -136,9 +136,6 @@ if(UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
 endif()
 
-# Check for zlib
-find_package(ZLIB REQUIRED)
-
 # Check for pixman
 find_package(Pixman REQUIRED)
 
