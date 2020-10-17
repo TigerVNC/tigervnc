@@ -56,7 +56,7 @@ message(STATUS "VERSION = ${VERSION}")
 message(STATUS "BUILD_TIMESTAMP = ${BUILD_TIMESTAMP}")
 add_definitions(-DBUILD_TIMESTAMP="${BUILD_TIMESTAMP}")
 
-# We want to keep our asserts even in release builds so remove NDEBUG
+# We want to keep our asserts even in release builds so add NDEBUG
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -UNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -UNDEBUG")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -UNDEBUG")
