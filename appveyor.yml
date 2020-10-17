@@ -1,0 +1,106 @@
+#TODO: Change version
+version: '1.11.0.{build}'
+
+cache:
+
+environment:
+
+  matrix:
+  ##### msvc 2017 ########
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    GENERATORS: "Visual Studio 15 2017"
+    BUILD_TARGERT: windows_msvc
+    TOOLCHAIN_VERSION: 15
+    BUILD_ARCH: x86
+    DOWNLOAD_THIRDLIBS_URL: https://github.com/KangLin/RabbitThirdLibrary/releases/download/v0.2.9/windows_msvc15_x86_v0.2.9.zip
+
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    GENERATORS: "Visual Studio 15 2017 Win64"
+    BUILD_TARGERT: windows_msvc
+    TOOLCHAIN_VERSION: 15
+    BUILD_ARCH: x64
+    DOWNLOAD_THIRDLIBS_URL: https://github.com/KangLin/RabbitThirdLibrary/releases/download/v0.2.9/windows_msvc15_x64_v0.2.9.zip
+
+  ##### msvc 2015 ########
+  - BUILD_TARGERT: windows_msvc
+    GENERATORS: "Visual Studio 14 2015"
+    TOOLCHAIN_VERSION: 14
+    BUILD_ARCH: x86
+    DOWNLOAD_THIRDLIBS_URL: https://github.com/KangLin/RabbitThirdLibrary/releases/download/v0.2.9/windows_msvc14_x86_v0.2.9.zip
+
+  - BUILD_TARGERT: windows_msvc
+    GENERATORS: "Visual Studio 14 2015 Win64"
+    TOOLCHAIN_VERSION: 14
+    BUILD_ARCH: x64
+    DOWNLOAD_THIRDLIBS_URL: https://github.com/KangLin/RabbitThirdLibrary/releases/download/v0.2.9/windows_msvc14_x64_v0.2.9.zip
+
+matrix:
+  fast_finish: false
+
+init:
+  - set varch=%BUILD_ARCH%
+  - if "%BUILD_ARCH%" == "x64" set varch=amd64
+  # See: https://github.com/mesonbuild/meson/blob/master/docs/markdown/Continuous-Integration.md
+  - cmd: if %BUILD_ARCH%==x86 (set PYTHON_ROOT=C:\python37) else (set PYTHON_ROOT=C:\python37-x64)
+  - cmd: set PATH=%cd%;%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%
+  - cmd: pip install ninja meson
+  - if "%BUILD_TARGERT%" == "windows_msvc" if %TOOLCHAIN_VERSION% LSS 15 (call "C:\Program Files (x86)\Microsoft Visual Studio %TOOLCHAIN_VERSION%.0\VC\vcvarsall.bat" %varch%) else (call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %varch%)  
+  - echo NUMBER_OF_PROCESSORS=%NUMBER_OF_PROCESSORS%
+  - echo PROCESSOR_IDENTIFIER=%PROCESSOR_IDENTIFIER%
+  - echo "PATH:%PATH%"
+
+install:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - set INSTALL_DIR=%APPVEYOR_BUILD_FOLDER%\Thslibs
+  - set SOURCE_DIR=%APPVEYOR_BUILD_FOLDER%\src
+  - mkdir %INSTALL_DIR%
+  - mkdir %SOURCE_DIR%
+
+  - cd %SOURCE_DIR%
+  - if not exist Thslibs.zip (curl -L -o Thslibs.zip %DOWNLOAD_THIRDLIBS_URL%)
+  - unzip -q Thslibs.zip -d %INSTALL_DIR%
+
+before_build:
+  - cd %SOURCE_DIR%
+  - git clone -b pixman-0.40.0 https://gitlab.freedesktop.org/pixman/pixman
+  - cd pixman
+  - meson setup --errorlogs --prefix=%INSTALL_DIR% build
+  - meson compile -C build
+  - meson install -C build
+
+  - cd %SOURCE_DIR%
+  - git clone -b release-1.3.5rc2 https://github.com/fltk/fltk.git
+  - cd fltk
+  - mkdir build
+  - cd build
+  - cmake .. -G"%GENERATORS%" -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR% -DCMAKE_PREFIX_PATH=%INSTALL_DIR%
+  - cmake --build . --target install
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - mkdir build
+  - cd build
+  - cmake .. -G"%GENERATORS%" -DCMAKE_PREFIX_PATH=%INSTALL_DIR% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%
+  - cmake --build . --target install
+
+artifacts:
+  - path: $(APPVEYOR_BUILD_FOLDER)/Thslibs
+    name: TigerVnc_$(BUILD_TARGERT)$(TOOLCHAIN_VERSION)_$(BUILD_ARCH)_$(appveyor_build_version)
+
+test: off
+
+#See: https://www.appveyor.com/docs/deployment/github/
+deploy:
+  - provider: GitHub
+    #token : https://github.com/settings/tokens
+    #password encrypt: https://ci.appveyor.com/tools/encrypt
+    auth_token:
+      secure: Pt1tCRJUtrM3+rntGSjcIWxhC86JvwRrtsqyctmTZ/3aqcSjbOoTJ0CioIXqFu59
+    #draft: true
+    #prerelease: true
+    force_update: true
+    #on:
+    #  BUILD_TARGERT: windows_msvc
+    #  TOOLCHAIN_VERSION: 14
+    #  BUILD_ARCH: x86
+    #  appveyor_repo_tag: true        # deploy on tag push only
