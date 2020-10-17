@@ -1,3 +1,6 @@
+# Check for pixman
+find_package(Pixman REQUIRED)
+
 include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR} ${PIXMAN_INCLUDE_DIRS})
 
 set(RFB_SOURCES

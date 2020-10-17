@@ -136,9 +136,6 @@ if(UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
 endif()
 
-# Check for pixman
-find_package(Pixman REQUIRED)
-
 # Check for gettext
 option(ENABLE_NLS "Enable translation of program messages" ON)
 if(ENABLE_NLS)
