@@ -6,13 +6,13 @@ include_directories(${CMAKE_SOURCE_DIR}/common)
 add_library(test_util STATIC util.cxx)
 
 add_executable(convperf convperf.cxx)
-target_link_libraries(convperf test_util rfb)
+target_link_libraries(convperf test_util tigervnc)
 
 add_executable(decperf decperf.cxx)
-target_link_libraries(decperf test_util rfb)
+target_link_libraries(decperf test_util tigervnc)
 
 add_executable(encperf encperf.cxx)
-target_link_libraries(encperf test_util rfb)
+target_link_libraries(encperf test_util tigervnc)
 
 if(BUILD_VIEWER AND FLTK_FOUND)
 	set(FBPERF_SOURCES
@@ -30,7 +30,7 @@ if(BUILD_VIEWER AND FLTK_FOUND)
 	  set(FBPERF_SOURCES ${FBPERF_SOURCES} ${CMAKE_SOURCE_DIR}/vncviewer/Surface_X11.cxx)
 	endif()
 	add_executable(fbperf ${FBPERF_SOURCES})
-	target_link_libraries(fbperf test_util rfb ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+	target_link_libraries(fbperf test_util tigervnc ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
 	if(WIN32)
 	  target_link_libraries(fbperf msimg32)

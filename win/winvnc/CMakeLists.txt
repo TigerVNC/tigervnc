@@ -11,7 +11,7 @@ add_executable(winvnc4 WIN32
   winvnc.cxx
   winvnc.rc)
 
-target_link_libraries(winvnc4 rfb rfb_win32 network rdr ws2_32.lib)
+target_link_libraries(winvnc4 rfb_win32 tigervnc ws2_32.lib)
 
 install(TARGETS winvnc4
   RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
