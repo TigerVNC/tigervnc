@@ -48,7 +48,3 @@ endif()
 set(TIGERVNC_LIBS ${TIGERVNC_LIBS}
 	${RDR_LIBRARIES}
 	PARENT_SCOPE)
-
-if(UNIX)
-  libtool_create_control_file(rdr)
-endif()

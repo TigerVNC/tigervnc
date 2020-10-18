@@ -18,7 +18,3 @@ if(UNIX)
 	pthread
 	PARENT_SCOPE)
 endif()
-
-if(UNIX)
-  libtool_create_control_file(os)
-endif()

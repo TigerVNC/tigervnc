@@ -158,7 +158,7 @@ export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 # CMAKE_INSTALL_SYSCONFDIR properly
 %{cmake} -G"Unix Makefiles" \
   -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
-  -DBUILD_STATIC=off
+  -DBUILD_STATIC=ON
 make %{?_smp_mflags}
 
 pushd unix/xserver

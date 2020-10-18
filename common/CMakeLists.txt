@@ -68,3 +68,7 @@ write_basic_package_version_file(
     VERSION ${VERSION}
     COMPATIBILITY AnyNewerVersion)
 install(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake")
+
+if(UNIX)
+  libtool_create_control_file(${PROJECT_NAME})
+endif()

@@ -24,7 +24,3 @@ if(WIN32)
 		ws2_32
 		PARENT_SCOPE)
 endif()
-
-if(UNIX)
-  libtool_create_control_file(network)
-endif()

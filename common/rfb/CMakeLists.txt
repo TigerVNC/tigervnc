@@ -195,7 +195,3 @@ set(TIGERVNC_HEADS ${TIGERVNC_HEADS}
 set(TIGERVNC_LIBS ${TIGERVNC_LIBS}
 	${RFB_LIBRARIES}
 	PARENT_SCOPE)
-
-if(UNIX)
-  libtool_create_control_file(rfb)
-endif()
