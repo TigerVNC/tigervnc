@@ -4,10 +4,10 @@ include_directories(${CMAKE_SOURCE_DIR}/common)
 include_directories(${CMAKE_SOURCE_DIR}/unix/tx)
 
 add_executable(vncconfig 
-  buildtime.c
-  vncExt.c
-  vncconfig.cxx
-  QueryConnectDialog.cxx)
+    buildtime.c
+    vncExt.c
+    vncconfig.cxx
+    QueryConnectDialog.cxx)
 
 target_link_libraries(vncconfig tx tigervnc ${X11_LIBRARIES})
 

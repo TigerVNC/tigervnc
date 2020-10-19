@@ -6,6 +6,7 @@
 .libs
 .vs
 *.aps
+*.user
 
 CMakeFiles
 CMakeCache.txt
