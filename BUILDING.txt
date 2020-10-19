@@ -94,7 +94,7 @@ of TigerVNC on 64-bit systems.
 
   cd {build_directory}
   cmake -G "Unix Makefiles" [additional CMake flags] {source_directory}
-  make
+  cmake --build .
 
 
 Building the TigerVNC Server on Unix/Linux Systems
@@ -154,7 +154,7 @@ the following procedure.
 
   cd {build_directory}
   cmake -G "MSYS Makefiles" [additional CMake flags] {source_directory}
-  make
+  cmake --build .
 
 If cross-compiling on a Unix/Linux system, then see the "Build Recipes" section
 below.
@@ -290,9 +290,13 @@ choosing.  To do this, add:
 
   -DCMAKE_INSTALL_PREFIX={install_directory}
 
-to the CMake command line.  Then, you can run 'make install' to build and
-install it.
+to the CMake command line.  Then, you can run 'cmake --build . --target install' to build and
+install it. It is include applications and tigervnc development libraries.
+If you want to only install applications, please use 'cmake --build . --target install-runtime'
 
+  cmake --build . --target install-runtime # Only install applications
+  cmake --build . --target install         # Install applications and tigervnc development libraries.
+  
 If you don't specify CMAKE_INSTALL_PREFIX, then the default is
 c:\Program Files\TigerVNC on Windows and /usr/local on Unix.
 
@@ -400,7 +404,7 @@ to the CMake command line.  The OS X 10.4 SDK must be installed.
     cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows \
     -DCMAKE_AR=/usr/bin/x86_64-w64-mingw32-ar \
     -DCMAKE_RANLIB=/usr/bin/x86_64-w64-mingw32-ranlib {source_directory}
-  make
+  cmake --build .
 
 This produces a 64-bit build of TigerVNC that does not depend on cygwin1.dll or
 other Cygwin DLL's.  The mingw64-x86_64-gcc-core and mingw64-x86_64-gcc-g++
@@ -416,7 +420,7 @@ packages (and their dependencies) must be installed.
     cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows \
     -DDCMAKE_AR=/usr/bin/i686-w64-mingw32-ar \
     -DCMAKE_RANLIB=/usr/bin/i686-w64-mingw32-ranlib {source_directory}
-  make
+  cmake --build .
 
 This produces a 32-bit build of TigerVNC that does not depend on cygwin1.dll or
 other Cygwin DLL's.  The mingw64-i686-gcc-core and mingw64-i686-gcc-g++
@@ -437,7 +441,7 @@ This produces a 64-bit build of TigerVNC using the "native" MinGW-w64 toolchain
     -DCMAKE_AR={mingw-w64_binary_path}/x86_64-w64-mingw32-ar \
     -DCMAKE_RANLIB={mingw-w64_binary_path}/x86_64-w64-mingw32-ranlib \
     {source_directory}
-  make
+  cmake --build .
 
 
 MinGW Build on Linux
@@ -451,7 +455,7 @@ MinGW Build on Linux
     -DCMAKE_AR={mingw_binary_path}/i386-mingw32-ar \
     -DCMAKE_RANLIB={mingw_binary_path}/i386-mingw32-ranlib \
     {source_directory}
-  make
+  cmake --build .
 
 
 ===============================

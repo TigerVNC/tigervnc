@@ -323,6 +323,12 @@ endif()
 
 add_subdirectory(release)
 
+add_custom_target(install-runtime
+  COMMAND
+     "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=Runtime
+     -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_install.cmake"
+)
+
 # uninstall
 configure_file("${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
   "cmake_uninstall.cmake" IMMEDIATE @ONLY)
