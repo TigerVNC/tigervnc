@@ -1,5 +1,15 @@
 project(tigervnc)
 
+# Check for GNUTLS library
+option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
+if(ENABLE_GNUTLS)
+    find_package(GnuTLS)
+    if (GNUTLS_FOUND)
+        set(TIGERVNC_INCLUDE_DIR ${TIGERVNC_INCLUDE_DIR} ${GNUTLS_INCLUDE_DIR})
+        SET(TIGERVNC_DEFINITIONS HAVE_GNUTLS ${GNUTLS_DEFINITIONS})
+    endif()
+endif()
+
 add_subdirectory(os)
 add_subdirectory(rdr)
 add_subdirectory(rfb)
@@ -16,6 +26,7 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/common>)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${TIGERVNC_INCLUDE_DIR})
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${TIGERVNC_DEFINITIONS})
 
 # For any convenience libraries that are linked into libvnc.so, we need to
 # explicitly build their corresponding sources using PIC.  WIN32 is excluded

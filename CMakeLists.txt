@@ -258,17 +258,6 @@ if(UNIX AND NOT APPLE)
     endif()
 endif()
 
-# Check for GNUTLS library
-option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
-if(ENABLE_GNUTLS)
-    find_package(GnuTLS)
-    if (GNUTLS_FOUND)
-        include_directories(${GNUTLS_INCLUDE_DIR})
-        add_definitions("-DHAVE_GNUTLS")
-        add_definitions(${GNUTLS_DEFINITIONS})
-    endif()
-endif()
-
 # Check for PAM library
 if(UNIX AND NOT APPLE)
     check_include_files(security/pam_appl.h HAVE_PAM_H)
@@ -317,7 +306,7 @@ endif()
 option(BUILD_TESTS "Build TigerVNC tests" ON)
 
 if(BUILD_TESTS)
-    add_subdirectory(tests)    
+    add_subdirectory(tests)
 endif()
 
 add_subdirectory(release)
