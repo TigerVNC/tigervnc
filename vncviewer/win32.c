@@ -144,6 +144,8 @@ static const int vkey_map[][3] = {
   { VK_CAPITAL,             XK_Caps_Lock,   NoSymbol },
   /* FIXME: IME keys */
   { VK_ESCAPE,              XK_Escape,      NoSymbol },
+  { VK_CONVERT,             XK_Henkan,      NoSymbol },
+  { VK_NONCONVERT,          XK_Muhenkan,    NoSymbol },
   { VK_PRIOR,               XK_KP_Prior,    XK_Prior },
   { VK_NEXT,                XK_KP_Next,     XK_Next },
   { VK_END,                 XK_KP_End,      XK_End },
@@ -216,6 +218,13 @@ static const int vkey_map[][3] = {
   { VK_MEDIA_PLAY_PAUSE,    NoSymbol,       XF86XK_AudioPlay },
   { VK_LAUNCH_MAIL,         NoSymbol,       XF86XK_Mail },
   { VK_LAUNCH_APP2,         NoSymbol,       XF86XK_Calculator },
+  // Japanese keyboard support
+  { VK_OEM_ATTN,            XK_Eisu_toggle, NoSymbol },
+  { VK_OEM_FINISH,          XK_Katakana,    NoSymbol },
+  { VK_OEM_COPY,            XK_Hiragana,    NoSymbol },
+  { VK_OEM_AUTO,            XK_Zenkaku_Hankaku, NoSymbol },
+  { VK_OEM_ENLW,            XK_Zenkaku_Hankaku, NoSymbol },
+  { VK_OEM_BACKTAB,         XK_Romaji,      NoSymbol },
 };
 
 int win32_vkey_to_keysym(UINT vkey, int extended)
