@@ -120,7 +120,7 @@ void exit_vncviewer(const char *error)
     exitMainloop = true;
   else {
     // We're early in the startup. Assume we can just exit().
-    if (alertOnFatalError)
+    if (alertOnFatalError && (exitError != NULL))
       fl_alert("%s", exitError);
     exit(EXIT_FAILURE);
   }
