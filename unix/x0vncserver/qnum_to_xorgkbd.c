@@ -1,8 +1,8 @@
 /*
- * This file is auto-generated from keymaps.csv on 2017-08-28 13:04
- * Database checksum sha256(f8aeff0c3430077a350e3d7ba2b335b381bd929ac4b193413730a402ff3f0097)
+ * This file is auto-generated from keymaps.csv
+ * Database checksum sha256(76d68c10e97d37fe2ea459e210125ae41796253fb217e900bf2983ade13a7920)
  * To re-generate, run:
- *   keymap-gen --lang=stdc code-map keymaps.csv qnum xorgkbd
+ *   keymap-gen code-map --lang=stdc keymaps.csv qnum xorgkbd
 */
 const unsigned short code_map_qnum_to_xorgkbd[254] = {
   [0x1] = 0x9, /* qnum:1 -> linux:1 (KEY_ESC) -> xorgkbd:9 */
@@ -97,11 +97,15 @@ const unsigned short code_map_qnum_to_xorgkbd[254] = {
   [0x5d] = 0x76, /* qnum:93 -> linux:183 (KEY_F13) -> xorgkbd:118 */
   [0x5e] = 0x77, /* qnum:94 -> linux:184 (KEY_F14) -> xorgkbd:119 */
   [0x5f] = 0x78, /* qnum:95 -> linux:185 (KEY_F15) -> xorgkbd:120 */
+  [0x70] = 0xd0, /* qnum:112 -> linux:93 (KEY_KATAKANAHIRAGANA) -> xorgkbd:208 */
+  [0x71] = 0x7a, /* qnum:113 -> linux:123 (KEY_HANJA) -> xorgkbd:122 */
+  [0x72] = 0x79, /* qnum:114 -> linux:122 (KEY_HANGEUL) -> xorgkbd:121 */
   [0x7d] = 0x85, /* qnum:125 -> linux:124 (KEY_YEN) -> xorgkbd:133 */
   [0x83] = 0x7a, /* qnum:131 -> linux:187 (KEY_F17) -> xorgkbd:122 */
   [0x9c] = 0x6c, /* qnum:156 -> linux:96 (KEY_KPENTER) -> xorgkbd:108 */
   [0x9d] = 0x6d, /* qnum:157 -> linux:97 (KEY_RIGHTCTRL) -> xorgkbd:109 */
   [0xb5] = 0x70, /* qnum:181 -> linux:98 (KEY_KPSLASH) -> xorgkbd:112 */
+  [0xb7] = 0x6f, /* qnum:183 -> linux:99 (KEY_SYSRQ) -> xorgkbd:111 */
   [0xb8] = 0x71, /* qnum:184 -> linux:100 (KEY_RIGHTALT) -> xorgkbd:113 */
   [0xc6] = 0x6e, /* qnum:198 -> linux:119 (KEY_PAUSE) -> xorgkbd:110 */
   [0xc7] = 0x61, /* qnum:199 -> linux:102 (KEY_HOME) -> xorgkbd:97 */
