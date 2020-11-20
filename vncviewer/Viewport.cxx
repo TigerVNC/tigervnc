@@ -1060,6 +1060,16 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
     self->handleKeyPress(keyCode, keySym);
 
+    // We don't get reliable WM_KEYUP for these
+    switch (keySym) {
+    case XK_Zenkaku_Hankaku:
+    case XK_Eisu_toggle:
+    case XK_Katakana:
+    case XK_Hiragana:
+    case XK_Romaji:
+      self->handleKeyRelease(keyCode);
+    }
+
     return 1;
   } else if ((msg->message == WM_KEYUP) || (msg->message == WM_SYSKEYUP)) {
     UINT vKey;
