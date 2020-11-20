@@ -21,6 +21,7 @@
 
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
+#define XK_KOREAN
 #include <rfb/keysymdef.h>
 #include <rfb/XF86keysym.h>
 
@@ -239,6 +240,12 @@ static const int vkey_map_jp[][3] = {
   { VK_ATTN,                XK_Romaji,      NoSymbol },
 };
 
+// Korean
+static const int vkey_map_ko[][3] = {
+  { VK_HANGUL,              XK_Hangul,      NoSymbol },
+  { VK_HANJA,               XK_Hangul_Hanja, NoSymbol },
+};
+
 static int lookup_vkey_map(UINT vkey, int extended, const int map[][3], size_t size)
 {
   size_t i;
@@ -279,6 +286,13 @@ int win32_vkey_to_keysym(UINT vkey, int extended)
   if (primary_lang == LANG_JAPANESE) {
     ret = lookup_vkey_map(vkey, extended,
                           vkey_map_jp, ARRAY_SIZE(vkey_map_jp));
+    if (ret != NoSymbol)
+      return ret;
+  }
+
+  if (primary_lang == LANG_KOREAN) {
+    ret = lookup_vkey_map(vkey, extended,
+                          vkey_map_ko, ARRAY_SIZE(vkey_map_ko));
     if (ret != NoSymbol)
       return ret;
   }
