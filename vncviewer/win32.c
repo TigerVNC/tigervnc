@@ -145,7 +145,6 @@ static const int vkey_map[][3] = {
   { VK_MENU,                XK_Alt_L,       XK_Alt_R },
   { VK_PAUSE,               XK_Pause,       NoSymbol },
   { VK_CAPITAL,             XK_Caps_Lock,   NoSymbol },
-  /* FIXME: IME keys */
   { VK_ESCAPE,              XK_Escape,      NoSymbol },
   { VK_CONVERT,             XK_Henkan,      NoSymbol },
   { VK_NONCONVERT,          XK_Muhenkan,    NoSymbol },
@@ -227,12 +226,17 @@ static const int vkey_map[][3] = {
 
 // Japanese
 static const int vkey_map_jp[][3] = {
+  { VK_KANA,                XK_Hiragana_Katakana, NoSymbol },
+  { VK_KANJI,               XK_Kanji,       NoSymbol },
   { VK_OEM_ATTN,            XK_Eisu_toggle, NoSymbol },
   { VK_OEM_FINISH,          XK_Katakana,    NoSymbol },
   { VK_OEM_COPY,            XK_Hiragana,    NoSymbol },
+  // These are really XK_Zenkaku/XK_Hankaku but we have no way of
+  // keeping the client and server in sync
   { VK_OEM_AUTO,            XK_Zenkaku_Hankaku, NoSymbol },
   { VK_OEM_ENLW,            XK_Zenkaku_Hankaku, NoSymbol },
   { VK_OEM_BACKTAB,         XK_Romaji,      NoSymbol },
+  { VK_ATTN,                XK_Romaji,      NoSymbol },
 };
 
 static int lookup_vkey_map(UINT vkey, int extended, const int map[][3], size_t size)
