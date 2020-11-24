@@ -402,6 +402,8 @@ potentiallyLoadConfigurationFile(char *vncServerName)
   const bool hasPathSeparator = (strchr(vncServerName, '/') != NULL ||
                                  (strchr(vncServerName, '\\')) != NULL);
 
+  vector<string> serverHistory;
+
   if (hasPathSeparator) {
 #ifndef WIN32
     struct stat sb;
@@ -417,7 +419,7 @@ potentiallyLoadConfigurationFile(char *vncServerName)
 
     try {
       const char* newServerName;
-      newServerName = loadViewerParameters(vncServerName);
+      newServerName = loadViewerParameters(vncServerName, serverHistory);
       // This might be empty, but we still need to clear it so we
       // don't try to connect to the filename
       strncpy(vncServerName, newServerName, VNCSERVERNAMELEN-1);
@@ -544,9 +546,10 @@ int main(int argc, char** argv)
 
   /* Load the default parameter settings */
   char defaultServerName[VNCSERVERNAMELEN] = "";
+  vector<string> serverHistory;
   try {
     const char* configServerName;
-    configServerName = loadViewerParameters(NULL);
+    configServerName = loadViewerParameters(NULL, serverHistory);
     if (configServerName != NULL) {
       strncpy(defaultServerName, configServerName, VNCSERVERNAMELEN-1);
       defaultServerName[VNCSERVERNAMELEN-1] = '\0';
@@ -683,7 +686,7 @@ int main(int argc, char** argv)
     }
   } else {
     if (vncServerName[0] == '\0') {
-      ServerDialog::run(defaultServerName, vncServerName);
+      ServerDialog::run(defaultServerName, vncServerName, serverHistory);
       if (vncServerName[0] == '\0')
         return 1;
     }

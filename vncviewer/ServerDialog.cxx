@@ -23,6 +23,7 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
+#include <FL/Fl_Input_Choice.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/fl_draw.H>
@@ -38,6 +39,11 @@
 #include "parameters.h"
 #include "rfb/Exception.h"
 
+using namespace std;
+
+// limit the number of entries to 20 avoid the server list gets too long.
+const int MAX_HISTORY_SIZE = 20;
+
 ServerDialog::ServerDialog()
   : Fl_Window(450, 160, _("VNC Viewer: Connection Details"))
 {
@@ -51,7 +57,7 @@ ServerDialog::ServerDialog()
   x = margin + server_label_width;
   y = margin;
   
-  serverName = new Fl_Input(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
+  serverName = new Fl_Input_Choice(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
 
   int adjust = (w() - 20) / 4;
   int button_width = adjust - margin/2;
@@ -107,11 +113,15 @@ ServerDialog::~ServerDialog()
 }
 
 
-void ServerDialog::run(const char* servername, char *newservername)
+void ServerDialog::run(const char* servername, char *newservername, vector<string>& serverHistory)
 {
   ServerDialog dialog;
 
   dialog.serverName->value(servername);
+  dialog->serverName->clear();
+  for (auto const & server : serverHistory) {
+    dialog.serverName->add(server.c_str());
+  }
   
   dialog.show();
   while (dialog.shown()) Fl::wait();
@@ -153,7 +163,12 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
   const char* filename = file_chooser->value();
 
   try {
-    dialog->serverName->value(loadViewerParameters(filename));
+    vector<string> serverHistory;
+    dialog->serverName->value(loadViewerParameters(filename,serverHistory));
+    dialog->serverName->clear();
+    for (auto const & server: serverHistory) {
+      dialog->serverName->add(server.c_str());
+    }
   } catch (rfb::Exception& e) {
     fl_alert("%s", e.str());
   }
@@ -166,6 +181,15 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 { 
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
+
+  vector<string> serverHistory;
+  for (int t=0; t<dialog->serverName->menubutton()->size() && t<MAX_HISTORY_SIZE; t++) {
+    const Fl_Menu_Item &item = dialog->serverName->menubutton()->menu()[t];
+    if(item.label() != NULL) {
+      serverHistory.push_back(item.label());
+    }
+  }
+
   const char* filename;
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
@@ -208,7 +232,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
   }
   
   try {
-    saveViewerParameters(filename, servername);
+    saveViewerParameters(filename, servername, serverHistory);
   } catch (rfb::Exception& e) {
     fl_alert("%s", e.str());
   }
@@ -227,7 +251,7 @@ void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
 
-  dialog->serverName->value(NULL);
+  dialog->serverName->value("");
   dialog->hide();
 }
 
@@ -237,10 +261,18 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
 
+  vector<string> serverHistory;
+  for (int t=0; t<dialog->serverName->menubutton()->size() && t<MAX_HISTORY_SIZE; t++) {
+    const Fl_Menu_Item &item = dialog->serverName->menubutton()->menu()[t];
+    if(item.label() != NULL) {
+      serverHistory.push_back(item.label());
+    }
+  }
+
   dialog->hide();
   
   try {
-    saveViewerParameters(NULL, servername);
+    saveViewerParameters(NULL, servername, serverHistory);
   } catch (rfb::Exception& e) {
     fl_alert("%s", e.str());
   }

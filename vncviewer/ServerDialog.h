@@ -20,9 +20,11 @@
 #define __SERVERDIALOG_H__
 
 #include <FL/Fl_Window.H>
+#include <string>
+#include <vector>
 
 class Fl_Widget;
-class Fl_Input;
+class Fl_Input_Choice;
 
 class ServerDialog : public Fl_Window {
 protected:
@@ -30,7 +32,7 @@ protected:
   ~ServerDialog();
 
 public:
-  static void run(const char* servername, char *newservername);
+  static void run(const char* servername, char *newservername, std::vector<std::string>& serverHistory);
 
 protected:
   static void handleOptions(Fl_Widget *widget, void *data);
@@ -41,7 +43,7 @@ protected:
   static void handleConnect(Fl_Widget *widget, void *data);
 
 protected:
-  Fl_Input *serverName;
+  Fl_Input_Choice *serverName;
 };
 
 #endif

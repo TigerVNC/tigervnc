@@ -21,6 +21,8 @@
 #define __PARAMETERS_H__
 
 #include <rfb/Configuration.h>
+#include <vector>
+#include <string>
 
 extern rfb::IntParameter pointerEventInterval;
 extern rfb::BoolParameter emulateMiddleButton;
@@ -68,7 +70,7 @@ extern rfb::BoolParameter alertOnFatalError;
 extern rfb::StringParameter via;
 #endif
 
-void saveViewerParameters(const char *filename, const char *servername=NULL);
-char* loadViewerParameters(const char *filename);
+void saveViewerParameters(const char *filename, const char *servername, const std::vector<std::string>& serverHistory);
+char* loadViewerParameters(const char *filename, std::vector<std::string>& serverHistory);
 
 #endif

@@ -48,6 +48,7 @@
 #include "i18n.h"
 
 using namespace rfb;
+using namespace std;
 
 static LogWriter vlog("Parameters");
 
@@ -398,7 +399,30 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
 }
 
 
-static void saveToReg(const char* servername) {
+static void saveHistoryToRegKey(const vector<string>& serverHistory) {
+  HKEY hKey;
+  LONG res = RegCreateKeyExW(HKEY_CURRENT_USER,
+                             L"Software\\TigerVNC\\vncviewer\\history", 0, NULL,
+                             REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,
+                             &hKey, NULL);
+
+  if (res != ERROR_SUCCESS) {
+    vlog.error(_("Failed to create registry key: %ld"), res);
+    return;
+  }
+
+  size_t index = 0;
+  assert(serverHistory.size() <= 100);
+  char indexString[2];
+
+  while(index < serverHistory.size()) {
+    snprintf(indexString, 2, "%d", index);
+    setKeyString(indexString, serverHistory[index].c_str(), &hKey);
+    index++;
+  }
+}
+
+static void saveToReg(const char* servername, const vector<string>& serverHistory) {
   
   HKEY hKey;
     
@@ -430,10 +454,44 @@ static void saveToReg(const char* servername) {
   if (res != ERROR_SUCCESS) {
     vlog.error(_("Failed to close registry key: %ld"), res);
   }
+
+  saveHistoryToRegKey(serverHistory);
 }
 
+static void loadHistoryFromRegKey(vector<string>& serverHistory) {
+  HKEY hKey;
 
-static char* loadFromReg() {
+  LONG res = RegOpenKeyExW(HKEY_CURRENT_USER,
+                           L"Software\\TigerVNC\\vncviewer\\history", 0,
+                           KEY_READ, &hKey);
+  if (res != ERROR_SUCCESS) {
+    if (res == ERROR_FILE_NOT_FOUND) {
+      // The key does not exist, defaults will be used.
+    } else {
+      vlog.error(_("Failed to open registry key: %ld"), res);
+    }
+    return;
+  }
+
+  bool stop = false;
+  size_t index = 0;
+  const DWORD buffersize = 256;
+  char indexString[2];
+
+  while(!stop) {
+    snprintf(indexString, 2, "%d", index);
+    char servernameBuffer[buffersize];
+    if (getKeyString(indexString, servernameBuffer, buffersize, &hKey)) {
+      serverHistory.push_back(servernameBuffer);
+      index++;
+    }
+    else {
+      stop = true;
+    }
+  }
+}
+
+static char* loadFromReg(vector<string>& serverHistory) {
 
   HKEY hKey;
 
@@ -480,12 +538,14 @@ static char* loadFromReg() {
     vlog.error(_("Failed to close registry key: %ld"), res);
   }
   
+  loadHistoryFromRegKey(serverHistory);
+
   return servername;
 }
 #endif // _WIN32
 
 
-void saveViewerParameters(const char *filename, const char *servername) {
+void saveViewerParameters(const char *filename, const char *servername,const vector<string>& serverHistory) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
@@ -495,7 +555,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   if(filename == NULL) {
 
 #ifdef _WIN32
-    saveToReg(servername);
+    saveToReg(servername,serverHistory);
     return;
 #endif
     
@@ -521,9 +581,16 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "%s\r\n", IDENTIFIER_STRING);
   fprintf(f, "\r\n");
 
-  if (encodeValue(servername, encodingBuffer, buffersize))  
+  if (encodeValue(servername, encodingBuffer, buffersize)) {
     fprintf(f, "ServerName=%s\n", encodingBuffer);
-  
+  }
+
+  for(auto const & server : serverHistory) {
+    if (encodeValue(server.c_str(), encodingBuffer, buffersize)) {
+      fprintf(f, "ServerNameHistory=%s\n", encodingBuffer);
+    }
+  }
+
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
@@ -541,7 +608,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
 }
 
 
-char* loadViewerParameters(const char *filename) {
+char* loadViewerParameters(const char *filename, vector<string>& serverHistory) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
@@ -555,7 +622,7 @@ char* loadViewerParameters(const char *filename) {
   if(filename == NULL) {
 
 #ifdef _WIN32
-    return loadFromReg();
+    return loadFromReg(serverHistory);
 #endif
 
     char* homeDir = NULL;
@@ -637,8 +704,19 @@ char* loadViewerParameters(const char *filename) {
       snprintf(servername, sizeof(decodingBuffer), "%s", decodingBuffer);
       invalidParameterName = false;
 
-    } else {
-    
+    }
+    else if (strcasecmp(line,"ServerNameHistory") == 0) {
+      if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
+        vlog.error(_("Failed to read line %d in file %s: %s"),
+                   lineNr, filepath, _("Invalid format or too large value"));
+        continue;
+      }
+      char servernameHistory[sizeof(line)];
+      snprintf(servernameHistory, sizeof(decodingBuffer), "%s", decodingBuffer);
+      serverHistory.push_back(servernameHistory);
+      invalidParameterName = false;
+    }
+    else {
       // Find and set the correct parameter
       for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
 
