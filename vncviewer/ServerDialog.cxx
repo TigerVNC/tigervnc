@@ -118,8 +118,8 @@ void ServerDialog::run(const char* servername, char *newservername, vector<strin
   ServerDialog dialog;
 
   dialog.serverName->value(servername);
-  dialog->serverName->clear();
-  for (auto const & server : serverHistory) {
+  dialog.serverName->clear();
+  for (const string& server : serverHistory) {
     dialog.serverName->add(server.c_str());
   }
   
@@ -166,7 +166,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
     vector<string> serverHistory;
     dialog->serverName->value(loadViewerParameters(filename,serverHistory));
     dialog->serverName->clear();
-    for (auto const & server: serverHistory) {
+    for (const string& server: serverHistory) {
       dialog->serverName->add(server.c_str());
     }
   } catch (rfb::Exception& e) {
