@@ -99,7 +99,7 @@ begin_daemon(void)
         return -1;
     }
 
-    if (pid == 0)
+    if (pid != 0)
         _exit(0);
 
     /* Send all stdio to /dev/null */
