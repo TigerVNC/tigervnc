@@ -44,6 +44,7 @@
 #include <string.h>
 #include <limits.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "i18n.h"
 
@@ -585,8 +586,8 @@ void saveViewerParameters(const char *filename, const char *servername,const vec
     fprintf(f, "ServerName=%s\n", encodingBuffer);
   }
 
-  for(auto const & server : serverHistory) {
-    if (encodeValue(server.c_str(), encodingBuffer, buffersize)) {
+  for (size_t i=0; i < serverHistory.size(); ++i) {
+    if (encodeValue(serverHistory[i].c_str(), encodingBuffer, buffersize)) {
       fprintf(f, "ServerNameHistory=%s\n", encodingBuffer);
     }
   }
