@@ -73,7 +73,7 @@ before_build:
   - cd fltk
   - mkdir build
   - cd build
-  - cmake .. -G"%GENERATORS%" -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR% -DCMAKE_PREFIX_PATH=%INSTALL_DIR%
+  - cmake .. -G"%GENERATORS%" -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR% -DCMAKE_PREFIX_PATH=%INSTALL_DIR% -DBUILD_TEST=OFF -DBUILD_VIEWER=OFF
   - cmake --build . --target install
 
 build_script:
