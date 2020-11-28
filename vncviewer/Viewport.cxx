@@ -104,6 +104,7 @@ static rfb::LogWriter vlog("Viewport");
 // Menu constants
 
 enum { ID_DISCONNECT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
+       ID_VIEWONLY,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT };
 
@@ -1244,6 +1245,9 @@ void Viewport::initContextMenu()
                 (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
                 FL_MENU_DIVIDER);
 
+  fltk_menu_add(contextMenu, p_("ContextMenu|", "&View only"),
+                0, NULL, (void*)ID_VIEWONLY,
+                FL_MENU_TOGGLE | (viewOnly?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Ctrl"),
                 0, NULL, (void*)ID_CTRL,
                 FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
@@ -1322,6 +1326,9 @@ void Viewport::popupContextMenu()
     if (window()->fullscreen_active())
       break;
     window()->size(w(), h());
+    break;
+  case ID_VIEWONLY:
+    viewOnly.setParam(!(bool)viewOnly);
     break;
   case ID_CTRL:
     if (m->value())
