@@ -418,11 +418,11 @@ potentiallyLoadConfigurationFile(char *vncServerName)
 #endif
 
     try {
-      const char* newServerName;
-      newServerName = loadViewerParameters(vncServerName, serverHistory);
+      string newServerName;
+      loadViewerParameters(vncServerName, newServerName, serverHistory);
       // This might be empty, but we still need to clear it so we
       // don't try to connect to the filename
-      strncpy(vncServerName, newServerName, VNCSERVERNAMELEN-1);
+      strncpy(vncServerName, newServerName.c_str(), VNCSERVERNAMELEN-1);
       vncServerName[VNCSERVERNAMELEN-1] = '\0';
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
@@ -548,10 +548,10 @@ int main(int argc, char** argv)
   char defaultServerName[VNCSERVERNAMELEN] = "";
   vector<string> serverHistory;
   try {
-    const char* configServerName;
-    configServerName = loadViewerParameters(NULL, serverHistory);
-    if (configServerName != NULL) {
-      strncpy(defaultServerName, configServerName, VNCSERVERNAMELEN-1);
+    string configServerName;
+    loadViewerParameters(NULL, configServerName, serverHistory);
+    if (!configServerName.empty()) {
+      strncpy(defaultServerName, configServerName.c_str(), VNCSERVERNAMELEN-1);
       defaultServerName[VNCSERVERNAMELEN-1] = '\0';
     }
   } catch (rfb::Exception& e) {

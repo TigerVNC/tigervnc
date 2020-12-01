@@ -71,6 +71,6 @@ extern rfb::StringParameter via;
 #endif
 
 void saveViewerParameters(const char *filename, const char *servername, const std::vector<std::string>& serverHistory);
-char* loadViewerParameters(const char *filename, std::vector<std::string>& serverHistory);
+void loadViewerParameters(const char *filename, std::string& servername, std::vector<std::string>& serverHistory);
 
 #endif

@@ -164,7 +164,10 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 
   try {
     vector<string> serverHistory;
-    dialog->serverName->value(loadViewerParameters(filename,serverHistory));
+    string servername;
+    loadViewerParameters(filename,servername,serverHistory);
+
+    dialog->serverName->value(servername.c_str());
     dialog->serverName->clear();
     for (size_t i = 0; i<serverHistory.size(); ++i) {
       dialog->serverName->add(serverHistory[i].c_str());

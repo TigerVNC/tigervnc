@@ -609,21 +609,22 @@ void saveViewerParameters(const char *filename, const char *servername,const vec
 }
 
 
-char* loadViewerParameters(const char *filename, vector<string>& serverHistory) {
+void loadViewerParameters(const char *filename, string& servername, vector<string>& serverHistory) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
   char line[buffersize];
   char decodingBuffer[buffersize];
-  static char servername[sizeof(line)];
+  static char servernameBuffer[sizeof(line)];
 
-  memset(servername, '\0', sizeof(servername));
+  memset(servernameBuffer, '\0', sizeof(servernameBuffer));
 
   // Load from the registry or a predefined file if no filename was specified.
   if(filename == NULL) {
 
 #ifdef _WIN32
-    return loadFromReg(serverHistory);
+     servername = loadFromReg(serverHistory);
+     return;
 #endif
 
     char* homeDir = NULL;
@@ -641,7 +642,7 @@ char* loadViewerParameters(const char *filename, vector<string>& serverHistory) 
   FILE* f = fopen(filepath, "r");
   if (!f) {
     if (!filename)
-      return NULL; // Use defaults.
+      return; // Use defaults.
     throw Exception(_("Failed to read configuration file, can't open %s: %s"),
                     filepath, strerror(errno));
   }
@@ -702,11 +703,10 @@ char* loadViewerParameters(const char *filename, vector<string>& serverHistory) 
                    lineNr, filepath, _("Invalid format or too large value"));
         continue;
       }
-      snprintf(servername, sizeof(decodingBuffer), "%s", decodingBuffer);
+      snprintf(servernameBuffer, sizeof(decodingBuffer), "%s", decodingBuffer);
       invalidParameterName = false;
 
-    }
-    else if (strcasecmp(line,"ServerNameHistory") == 0) {
+    } else if (strcasecmp(line,"ServerNameHistory") == 0) {
       if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
         vlog.error(_("Failed to read line %d in file %s: %s"),
                    lineNr, filepath, _("Invalid format or too large value"));
@@ -716,8 +716,7 @@ char* loadViewerParameters(const char *filename, vector<string>& serverHistory) 
       snprintf(servernameHistory, sizeof(decodingBuffer), "%s", decodingBuffer);
       serverHistory.push_back(servernameHistory);
       invalidParameterName = false;
-    }
-    else {
+    } else {
       // Find and set the correct parameter
       for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
 
@@ -758,5 +757,5 @@ char* loadViewerParameters(const char *filename, vector<string>& serverHistory) 
   }
   fclose(f); f=0;
   
-  return servername;
+  servername = servernameBuffer;
 }
