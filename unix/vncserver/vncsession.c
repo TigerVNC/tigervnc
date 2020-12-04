@@ -431,6 +431,9 @@ run_script(const char *username, const char *display, char **envp)
 
     switch_user(pwent->pw_name, pwent->pw_uid, pwent->pw_gid);
 
+    if (chdir(pwent->pw_dir) == -1)
+        chdir("/");
+
     close_fds();
 
     redir_stdio(pwent->pw_dir, display);
