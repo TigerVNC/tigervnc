@@ -454,11 +454,9 @@ interpretViaParam(char *remoteHost, int *remotePort, int localPort)
   }
 
   if (*vncServerName != '\0')
-    strncpy(remoteHost, vncServerName, VNCSERVERNAMELEN);
+    strcpy(remoteHost, vncServerName);
   else
-    strncpy(remoteHost, "localhost", VNCSERVERNAMELEN);
-
-  remoteHost[VNCSERVERNAMELEN - 1] = '\0';
+    strcpy(remoteHost, "localhost");
 
   snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
   vncServerName[VNCSERVERNAMELEN - 1] = '\0';
