@@ -358,6 +358,9 @@ static const int kvk_map[][2] = {
   { kVK_ANSI_Keypad7,           XK_KP_7 },
   { kVK_ANSI_Keypad8,           XK_KP_8 },
   { kVK_ANSI_Keypad9,           XK_KP_9 },
+  // Japanese Keyboard Support
+  { kVK_JIS_Eisu,               XK_Muhenkan },
+  { kVK_JIS_Kana,               XK_Hiragana_Katakana },
 };
 
 int cocoa_event_keysym(const void *event)

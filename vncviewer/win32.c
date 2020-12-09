@@ -21,6 +21,7 @@
 
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
+#define XK_KOREAN
 #include <rfb/keysymdef.h>
 #include <rfb/XF86keysym.h>
 
@@ -41,6 +42,8 @@ static DWORD thread_id;
 
 static HHOOK hook = 0;
 static HWND target_wnd = 0;
+
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof(*a))
 
 static int is_system_hotkey(int vkCode) {
   switch (vkCode) {
@@ -131,6 +134,7 @@ void win32_disable_lowlevel_keyboard(HWND hwnd)
   thread = NULL;
 }
 
+// Layout independent keys
 static const int vkey_map[][3] = {
   { VK_CANCEL,              NoSymbol,       XK_Break },
   { VK_BACK,                XK_BackSpace,   NoSymbol },
@@ -142,8 +146,9 @@ static const int vkey_map[][3] = {
   { VK_MENU,                XK_Alt_L,       XK_Alt_R },
   { VK_PAUSE,               XK_Pause,       NoSymbol },
   { VK_CAPITAL,             XK_Caps_Lock,   NoSymbol },
-  /* FIXME: IME keys */
   { VK_ESCAPE,              XK_Escape,      NoSymbol },
+  { VK_CONVERT,             XK_Henkan,      NoSymbol },
+  { VK_NONCONVERT,          XK_Muhenkan,    NoSymbol },
   { VK_PRIOR,               XK_KP_Prior,    XK_Prior },
   { VK_NEXT,                XK_KP_Next,     XK_Next },
   { VK_END,                 XK_KP_End,      XK_End },
@@ -218,9 +223,50 @@ static const int vkey_map[][3] = {
   { VK_LAUNCH_APP2,         NoSymbol,       XF86XK_Calculator },
 };
 
+// Layout dependent keys, but without useful symbols
+
+// Japanese
+static const int vkey_map_jp[][3] = {
+  { VK_KANA,                XK_Hiragana_Katakana, NoSymbol },
+  { VK_KANJI,               XK_Kanji,       NoSymbol },
+  { VK_OEM_ATTN,            XK_Eisu_toggle, NoSymbol },
+  { VK_OEM_FINISH,          XK_Katakana,    NoSymbol },
+  { VK_OEM_COPY,            XK_Hiragana,    NoSymbol },
+  // These are really XK_Zenkaku/XK_Hankaku but we have no way of
+  // keeping the client and server in sync
+  { VK_OEM_AUTO,            XK_Zenkaku_Hankaku, NoSymbol },
+  { VK_OEM_ENLW,            XK_Zenkaku_Hankaku, NoSymbol },
+  { VK_OEM_BACKTAB,         XK_Romaji,      NoSymbol },
+  { VK_ATTN,                XK_Romaji,      NoSymbol },
+};
+
+// Korean
+static const int vkey_map_ko[][3] = {
+  { VK_HANGUL,              XK_Hangul,      NoSymbol },
+  { VK_HANJA,               XK_Hangul_Hanja, NoSymbol },
+};
+
+static int lookup_vkey_map(UINT vkey, int extended, const int map[][3], size_t size)
+{
+  size_t i;
+
+  for (i = 0;i < size;i++) {
+    if (vkey != map[i][0])
+      continue;
+
+    if (extended)
+      return map[i][2];
+    else
+      return map[i][1];
+  }
+
+  return NoSymbol;
+}
+
 int win32_vkey_to_keysym(UINT vkey, int extended)
 {
-  int i;
+  HKL layout;
+  WORD lang, primary_lang;
 
   BYTE state[256];
   int ret;
@@ -228,13 +274,27 @@ int win32_vkey_to_keysym(UINT vkey, int extended)
 
   // Start with keys that either don't generate a symbol, or
   // generate the same symbol as some other key.
-  for (i = 0;i < sizeof(vkey_map)/sizeof(vkey_map[0]);i++) {
-    if (vkey == vkey_map[i][0]) {
-      if (extended)
-        return vkey_map[i][2];
-      else
-        return vkey_map[i][1];
-    }
+
+  ret = lookup_vkey_map(vkey, extended, vkey_map, ARRAY_SIZE(vkey_map));
+  if (ret != NoSymbol)
+    return ret;
+
+  layout = GetKeyboardLayout(0);
+  lang = LOWORD(layout);
+  primary_lang = PRIMARYLANGID(lang);
+
+  if (primary_lang == LANG_JAPANESE) {
+    ret = lookup_vkey_map(vkey, extended,
+                          vkey_map_jp, ARRAY_SIZE(vkey_map_jp));
+    if (ret != NoSymbol)
+      return ret;
+  }
+
+  if (primary_lang == LANG_KOREAN) {
+    ret = lookup_vkey_map(vkey, extended,
+                          vkey_map_ko, ARRAY_SIZE(vkey_map_ko));
+    if (ret != NoSymbol)
+      return ret;
   }
 
   // Windows is not consistent in which virtual key it uses for
