@@ -359,7 +359,7 @@ static const int kvk_map[][2] = {
   { kVK_ANSI_Keypad8,           XK_KP_8 },
   { kVK_ANSI_Keypad9,           XK_KP_9 },
   // Japanese Keyboard Support
-  { kVK_JIS_Eisu,               XK_Muhenkan },
+  { kVK_JIS_Eisu,               XK_Eisu_toggle },
   { kVK_JIS_Kana,               XK_Hiragana_Katakana },
 };
 
