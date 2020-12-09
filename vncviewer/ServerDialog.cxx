@@ -31,18 +31,23 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_File_Chooser.H>
 
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+
+#include <os/os.h>
+#include <rfb/Exception.h>
+
 #include "ServerDialog.h"
 #include "OptionsDialog.h"
 #include "fltk_layout.h"
 #include "i18n.h"
 #include "vncviewer.h"
 #include "parameters.h"
-#include "rfb/Exception.h"
+
 
 using namespace std;
-
-// limit the number of entries to 20 avoid the server list gets too long.
-const int MAX_HISTORY_SIZE = 20;
+using namespace rfb;
 
 ServerDialog::ServerDialog()
   : Fl_Window(450, 160, _("VNC Viewer: Connection Details"))
@@ -58,6 +63,10 @@ ServerDialog::ServerDialog()
   y = margin;
   
   serverName = new Fl_Input_Choice(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
+  loadServerHistory();
+  for(size_t i=0;i<serverHistory.size();++i) {
+    serverName->add(serverHistory[i].c_str());
+  }
 
   int adjust = (w() - 20) / 4;
   int button_width = adjust - margin/2;
@@ -113,16 +122,12 @@ ServerDialog::~ServerDialog()
 }
 
 
-void ServerDialog::run(const char* servername, char *newservername, vector<string>& serverHistory)
+void ServerDialog::run(const char* servername, char *newservername)
 {
   ServerDialog dialog;
 
   dialog.serverName->value(servername);
-  dialog.serverName->clear();
-  for (size_t i =0; i<serverHistory.size(); ++i) {
-    dialog.serverName->add(serverHistory[i].c_str());
-  }
-  
+
   dialog.show();
   while (dialog.shown()) Fl::wait();
 
@@ -133,6 +138,14 @@ void ServerDialog::run(const char* servername, char *newservername, vector<strin
 
   strncpy(newservername, dialog.serverName->value(), VNCSERVERNAMELEN);
   newservername[VNCSERVERNAMELEN - 1] = '\0';
+
+  vector<string>::iterator elem = std::find(dialog.serverHistory.begin(),dialog.serverHistory.end(),newservername);
+  // avoid duplicates in the history
+  if(dialog.serverHistory.end() == elem) {
+    dialog.serverHistory.push_back(newservername);
+    dialog.saveServerHistory();
+  }
+
 }
 
 void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
@@ -163,16 +176,10 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
   const char* filename = file_chooser->value();
 
   try {
-    vector<string> serverHistory;
     string servername;
-    loadViewerParameters(filename,servername,serverHistory);
-
+    loadViewerParameters(filename,servername);
     dialog->serverName->value(servername.c_str());
-    dialog->serverName->clear();
-    for (size_t i = 0; i<serverHistory.size(); ++i) {
-      dialog->serverName->add(serverHistory[i].c_str());
-    }
-  } catch (rfb::Exception& e) {
+  } catch (Exception& e) {
     fl_alert("%s", e.str());
   }
 
@@ -184,14 +191,6 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 { 
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
-
-  vector<string> serverHistory;
-  for (int t=0; t<dialog->serverName->menubutton()->size() && t<MAX_HISTORY_SIZE; t++) {
-    const Fl_Menu_Item &item = dialog->serverName->menubutton()->menu()[t];
-    if(item.label() != NULL) {
-      serverHistory.push_back(item.label());
-    }
-  }
 
   const char* filename;
 
@@ -235,8 +234,8 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
   }
   
   try {
-    saveViewerParameters(filename, servername, serverHistory);
-  } catch (rfb::Exception& e) {
+    saveViewerParameters(filename, servername);
+  } catch (Exception& e) {
     fl_alert("%s", e.str());
   }
   
@@ -264,19 +263,91 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
 
-  vector<string> serverHistory;
-  for (int t=0; t<dialog->serverName->menubutton()->size() && t<MAX_HISTORY_SIZE; t++) {
-    const Fl_Menu_Item &item = dialog->serverName->menubutton()->menu()[t];
-    if(item.label() != NULL) {
-      serverHistory.push_back(item.label());
-    }
-  }
-
   dialog->hide();
-  
+
   try {
-    saveViewerParameters(NULL, servername, serverHistory);
-  } catch (rfb::Exception& e) {
+    saveViewerParameters(NULL, servername);
+
+    vector<string>::iterator elem = std::find(dialog->serverHistory.begin(),dialog->serverHistory.end(),servername);
+    // avoid duplicates in the history
+    if(dialog->serverHistory.end() == elem) {
+      dialog->serverHistory.push_back(servername);
+      dialog->saveServerHistory();
+    }
+  } catch (Exception& e) {
     fl_alert("%s", e.str());
   }
 }
+
+
+void ServerDialog::loadServerHistory()
+{
+#ifdef _WIN32
+  loadHistoryFromRegKey(serverHistory);
+  return;
+#endif
+
+  char* homeDir = NULL;
+  if (getvnchomedir(&homeDir) == -1) {
+    throw Exception(_("Failed to read configuration file, "
+		      "can't obtain home directory path."));
+  }
+
+  char filepath[PATH_MAX];
+  snprintf(filepath, sizeof(filepath), "%stigervnc.history", homeDir);
+  delete[] homeDir;
+
+  /* Read server history from file */
+  ifstream f (filepath);
+  if (!f.is_open()) {
+    // no history file
+    return;
+  }
+
+  string line;
+  while(getline(f, line)) {
+    serverHistory.push_back(line);
+  }
+
+  if (f.bad()) {
+    throw Exception(_("Failed to read server history file, "
+		      "error while reading file."));
+  }
+  f.close();
+}
+
+void ServerDialog::saveServerHistory()
+{
+#ifdef _WIN32
+  saveHistoryToRegKey(serverHistory);
+  return;
+#endif
+
+  char* homeDir = NULL;
+  if (getvnchomedir(&homeDir) == -1) {
+    throw Exception(_("Failed to write configuration file, "
+		      "can't obtain home directory path."));
+  }
+
+  char filepath[PATH_MAX];
+  snprintf(filepath, sizeof(filepath), "%stigervnc.history", homeDir);
+  delete[] homeDir;
+
+  /* Read server history from file */
+  ofstream f (filepath);
+  if (!f.is_open()) {
+    throw Exception(_("Failed to write server history file, "
+		      "can't open file."));
+  }
+
+  for(size_t i=0;i<serverHistory.size();++i) {
+    f << serverHistory[i] << endl; 
+  }
+
+  if (f.bad()) {
+    throw Exception(_("Failed to write server history file, "
+		      "error while writing file."));
+  }
+  f.close();
+}
+

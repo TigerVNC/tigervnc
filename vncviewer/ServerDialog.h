@@ -32,7 +32,7 @@ protected:
   ~ServerDialog();
 
 public:
-  static void run(const char* servername, char *newservername, std::vector<std::string>& serverHistory);
+  static void run(const char* servername, char *newservername);
 
 protected:
   static void handleOptions(Fl_Widget *widget, void *data);
@@ -42,8 +42,13 @@ protected:
   static void handleCancel(Fl_Widget *widget, void *data);
   static void handleConnect(Fl_Widget *widget, void *data);
 
+private:
+  void loadServerHistory();
+  void saveServerHistory();
+
 protected:
   Fl_Input_Choice *serverName;
+  std::vector<std::string> serverHistory;
 };
 
 #endif

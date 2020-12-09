@@ -400,7 +400,7 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
 }
 
 
-static void saveHistoryToRegKey(const vector<string>& serverHistory) {
+void saveHistoryToRegKey(const vector<string>& serverHistory) {
   HKEY hKey;
   LONG res = RegCreateKeyExW(HKEY_CURRENT_USER,
                              L"Software\\TigerVNC\\vncviewer\\history", 0, NULL,
@@ -423,7 +423,7 @@ static void saveHistoryToRegKey(const vector<string>& serverHistory) {
   }
 }
 
-static void saveToReg(const char* servername, const vector<string>& serverHistory) {
+static void saveToReg(const char* servername) {
   
   HKEY hKey;
     
@@ -455,11 +455,9 @@ static void saveToReg(const char* servername, const vector<string>& serverHistor
   if (res != ERROR_SUCCESS) {
     vlog.error(_("Failed to close registry key: %ld"), res);
   }
-
-  saveHistoryToRegKey(serverHistory);
 }
 
-static void loadHistoryFromRegKey(vector<string>& serverHistory) {
+void loadHistoryFromRegKey(vector<string>& serverHistory) {
   HKEY hKey;
 
   LONG res = RegOpenKeyExW(HKEY_CURRENT_USER,
@@ -492,7 +490,7 @@ static void loadHistoryFromRegKey(vector<string>& serverHistory) {
   }
 }
 
-static char* loadFromReg(vector<string>& serverHistory) {
+static char* loadFromReg() {
 
   HKEY hKey;
 
@@ -539,14 +537,12 @@ static char* loadFromReg(vector<string>& serverHistory) {
     vlog.error(_("Failed to close registry key: %ld"), res);
   }
   
-  loadHistoryFromRegKey(serverHistory);
-
   return servername;
 }
 #endif // _WIN32
 
 
-void saveViewerParameters(const char *filename, const char *servername,const vector<string>& serverHistory) {
+void saveViewerParameters(const char *filename, const char *servername) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
@@ -556,7 +552,7 @@ void saveViewerParameters(const char *filename, const char *servername,const vec
   if(filename == NULL) {
 
 #ifdef _WIN32
-    saveToReg(servername,serverHistory);
+    saveToReg(servername);
     return;
 #endif
     
@@ -586,12 +582,6 @@ void saveViewerParameters(const char *filename, const char *servername,const vec
     fprintf(f, "ServerName=%s\n", encodingBuffer);
   }
 
-  for (size_t i=0; i < serverHistory.size(); ++i) {
-    if (encodeValue(serverHistory[i].c_str(), encodingBuffer, buffersize)) {
-      fprintf(f, "ServerNameHistory=%s\n", encodingBuffer);
-    }
-  }
-
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
@@ -609,7 +599,7 @@ void saveViewerParameters(const char *filename, const char *servername,const vec
 }
 
 
-void loadViewerParameters(const char *filename, string& servername, vector<string>& serverHistory) {
+void loadViewerParameters(const char *filename, string& servername) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
@@ -623,7 +613,7 @@ void loadViewerParameters(const char *filename, string& servername, vector<strin
   if(filename == NULL) {
 
 #ifdef _WIN32
-     servername = loadFromReg(serverHistory);
+     servername = loadFromReg();
      return;
 #endif
 
@@ -706,16 +696,6 @@ void loadViewerParameters(const char *filename, string& servername, vector<strin
       snprintf(servernameBuffer, sizeof(decodingBuffer), "%s", decodingBuffer);
       invalidParameterName = false;
 
-    } else if (strcasecmp(line,"ServerNameHistory") == 0) {
-      if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
-        vlog.error(_("Failed to read line %d in file %s: %s"),
-                   lineNr, filepath, _("Invalid format or too large value"));
-        continue;
-      }
-      char servernameHistory[sizeof(line)];
-      snprintf(servernameHistory, sizeof(decodingBuffer), "%s", decodingBuffer);
-      serverHistory.push_back(servernameHistory);
-      invalidParameterName = false;
     } else {
       // Find and set the correct parameter
       for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {

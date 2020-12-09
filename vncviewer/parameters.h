@@ -70,7 +70,12 @@ extern rfb::BoolParameter alertOnFatalError;
 extern rfb::StringParameter via;
 #endif
 
-void saveViewerParameters(const char *filename, const char *servername, const std::vector<std::string>& serverHistory);
-void loadViewerParameters(const char *filename, std::string& servername, std::vector<std::string>& serverHistory);
+void saveViewerParameters(const char *filename, const char *servername);
+void loadViewerParameters(const char *filename, std::string& servername);
+
+#ifdef _WIN32
+void loadHistoryFromRegKey(std::vector<std::string>& serverHistory);
+void saveHistoryToRegKey(const std::vector<std::string>& serverHistory);
+#endif
 
 #endif
