@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+#  Copyright 2019 Pierre Ossman for Cendio AB
+#
+#  This is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This software is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this software; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+#  USA.
+#
+
+USERSFILE="@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver.users"
+
+if [ $# -ne 1 ]; then
+	echo "Syntax:" >&2
+	echo "    $0 <display>" >&2
+	exit 1
+fi
+
+if [ ! -f "${USERSFILE}" ]; then
+	echo "Users file ${USERSFILE} missing" >&2
+	exit 1
+fi
+
+DISPLAY="$1"
+
+USER=`grep "^ *${DISPLAY}=" "${USERSFILE}" 2>/dev/null | head -1 | cut -d = -f 2- | sed 's/ *$//g'`
+
+if [ -z "${USER}" ]; then
+	echo "No user configured for display ${DISPLAY}" >&2
+	exit 1
+fi
+
+exec "@CMAKE_INSTALL_FULL_SBINDIR@/vncsession" "${USER}" "${DISPLAY}"

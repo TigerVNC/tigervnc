@@ -43,9 +43,9 @@ Default location of the VNC password file.
 
 .SH SEE ALSO
 .BR vncviewer (1),
-.BR vncserver (1),
 .BR Xvnc (1)
 .BR vncconfig (1),
+.BR vncsession (8)
 .br
 https://www.tigervnc.org
 

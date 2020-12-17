@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2017 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  * Copyright (C) 2017 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
@@ -34,27 +34,26 @@ import com.tigervnc.rdr.*;
 
 public class CMsgReader {
 
+  static LogWriter vlog = new LogWriter("CMsgReader");
+
   protected CMsgReader(CMsgHandler handler_, InStream is_)
   {
     imageBufIdealSize = 0;
     handler = handler_;
     is = is_;
+    nUpdateRectsLeft = 0;
     imageBuf = null;
     imageBufSize = 0;
-    nUpdateRectsLeft = 0;
   }
 
   public void readServerInit()
   {
     int width = is.readU16();
     int height = is.readU16();
-    handler.setDesktopSize(width, height);
     PixelFormat pf = new PixelFormat();
     pf.read(is);
-    handler.setPixelFormat(pf);
     String name = is.readString();
-    handler.setName(name);
-    handler.serverInit();
+    handler.serverInit(width, height, pf, name);
   }
 
   public void readMsg()
@@ -82,6 +81,7 @@ public class CMsgReader {
         readEndOfContinuousUpdates();
         break;
       default:
+        vlog.error("unknown message type "+type);
         throw new Exception("unknown message type");
       }
     } else {
@@ -103,6 +103,9 @@ public class CMsgReader {
         break;
       case Encodings.pseudoEncodingCursorWithAlpha:
         readSetCursorWithAlpha(w, h, new Point(x,y));
+        break;
+      case Encodings.pseudoEncodingVMwareCursor:
+        readSetVMwareCursor(w, h, new Point(x,y));
         break;
       case Encodings.pseudoEncodingDesktopName:
         readSetDesktopName(x, y, w, h);
@@ -148,11 +151,13 @@ public class CMsgReader {
   {
     is.skip(3);
     int len = is.readU32();
+
     if (len > 256*1024) {
       is.skip(len);
       vlog.error("cut text too long ("+len+" bytes) - ignoring");
       return;
     }
+
     ByteBuffer buf = ByteBuffer.allocate(len);
     is.readBytes(buf, len);
     Charset latin1 = Charset.forName("ISO-8859-1");
@@ -196,10 +201,10 @@ public class CMsgReader {
 
   protected void readRect(Rect r, int encoding)
   {
-    if ((r.br.x > handler.cp.width) || (r.br.y > handler.cp.height)) {
+    if ((r.br.x > handler.server.width()) || (r.br.y > handler.server.height())) {
       vlog.error("Rect too big: "+r.width()+"x"+r.height()+" at "+
-                  r.tl.x+","+r.tl.y+" exceeds "+handler.cp.width+"x"+
-                  handler.cp.height);
+                  r.tl.x+","+r.tl.y+" exceeds "+handler.server.width()+"x"+
+                  handler.server.height());
       throw new Exception("Rect too big");
     }
 
@@ -268,7 +273,7 @@ public class CMsgReader {
 
   protected void readSetCursor(int width, int height, Point hotspot)
   {
-    int data_len = width * height * (handler.cp.pf().bpp/8);
+    int data_len = width * height * (handler.server.pf().bpp/8);
     int mask_len = ((width+7)/8) * height;
     ByteBuffer data = ByteBuffer.allocate(data_len);
     ByteBuffer mask = ByteBuffer.allocate(mask_len);
@@ -295,9 +300,9 @@ public class CMsgReader {
         else
           out.put((byte)0);
 
-        handler.cp.pf().rgbFromBuffer(out.duplicate(), in.duplicate(), 1);
+        handler.server.pf().rgbFromBuffer(out.duplicate(), in.duplicate(), 1);
 
-        in.position(in.position() + handler.cp.pf().bpp/8);
+        in.position(in.position() + handler.server.pf().bpp/8);
         out.position(out.position() + 3);
       }
     }
@@ -320,10 +325,10 @@ public class CMsgReader {
 
     encoding = is.readS32();
 
-    origPF = handler.cp.pf();
-    handler.cp.setPF(rgbaPF);
+    origPF = handler.server.pf();
+    handler.server.setPF(rgbaPF);
     handler.readAndDecodeRect(pb.getRect(), encoding, pb);
-    handler.cp.setPF(origPF);
+    handler.server.setPF(origPF);
 
     // ARGB with pre-multiplied alpha works best for BufferedImage
     if (pb.area() > 0) {
@@ -345,6 +350,103 @@ public class CMsgReader {
     }
 
     handler.setCursor(width, height, hotspot, buf.array());
+  }
+
+  protected void readSetVMwareCursor(int width, int height, Point hotspot)
+  {
+    // VMware cursor sends RGBA, java BufferedImage needs ARGB
+    if (width > maxCursorSize || height > maxCursorSize)
+      throw new Exception("Too big cursor");
+
+    byte type;
+
+    type = (byte)is.readU8();
+    is.skip(1);
+
+    if (type == 0) {
+      int len = width * height * (handler.server.pf().bpp/8);
+      ByteBuffer andMask = ByteBuffer.allocate(len);
+      ByteBuffer xorMask = ByteBuffer.allocate(len);
+
+      ByteBuffer data = ByteBuffer.allocate(width*height*4);
+
+      ByteBuffer andIn;
+      ByteBuffer xorIn;
+      ByteBuffer out;
+      int Bpp;
+
+      is.readBytes(andMask, len);
+      is.readBytes(xorMask, len);
+
+      andIn = ByteBuffer.wrap(andMask.array());
+      xorIn = ByteBuffer.wrap(xorMask.array());
+      out = ByteBuffer.wrap(data.array());
+      Bpp = handler.server.pf().bpp/8;
+      for (int y = 0;y < height;y++) {
+        for (int x = 0;x < width;x++) {
+          int andPixel, xorPixel;
+
+          andPixel = handler.server.pf().pixelFromBuffer(andIn.duplicate());
+          xorPixel = handler.server.pf().pixelFromBuffer(xorIn.duplicate());
+          andIn.position(andIn.position() + Bpp);
+          xorIn.position(xorIn.position() + Bpp);
+
+          if (andPixel == 0) {
+            byte r, g, b;
+
+            // Opaque pixel
+
+            r = (byte)handler.server.pf().getColorModel().getRed(xorPixel);
+            g = (byte)handler.server.pf().getColorModel().getGreen(xorPixel);
+            b = (byte)handler.server.pf().getColorModel().getBlue(xorPixel);
+            out.put((byte)0xff);
+            out.put(r);
+            out.put(g);
+            out.put(b);
+          } else if (xorPixel == 0) {
+            // Fully transparent pixel
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+          } else if (andPixel == xorPixel) {
+            // Inverted pixel
+
+            // We don't really support this, so just turn the pixel black
+            // FIXME: Do an outline like WinVNC does?
+            out.put((byte)0xff);
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+          } else {
+            // Partially transparent/inverted pixel
+
+            // We _really_ can't handle this, just make it black
+            out.put((byte)0xff);
+            out.put((byte)0);
+            out.put((byte)0);
+            out.put((byte)0);
+          }
+        }
+      }
+
+      handler.setCursor(width, height, hotspot, data.array());
+    } else if (type == 1) {
+      ByteBuffer data = ByteBuffer.allocate(width*height*4);
+
+      // FIXME: Is alpha premultiplied?
+      ByteBuffer buf = ByteBuffer.allocate(4);
+      for (int i=0;i < width*height*4;i+=4) {
+        is.readBytes(buf,4);
+        data.put(buf.array(),3,1);
+        data.put(buf.array(),0,3);
+        buf.clear();
+      }
+
+      handler.setCursor(width, height, hotspot, data.array());
+    } else {
+      throw new Exception("Unknown cursor type");
+    }
   }
 
   protected void readSetDesktopName(int x, int y, int w, int h)
@@ -412,7 +514,7 @@ public class CMsgReader {
       imageBuf = new int[imageBufSize];
     }
     if (nPixels != 0)
-      nPixels = imageBufSize / (handler.cp.pf().bpp / 8);
+      nPixels = imageBufSize / (handler.server.pf().bpp / 8);
     return imageBuf;
   }
 
@@ -423,8 +525,7 @@ public class CMsgReader {
   protected CMsgHandler handler;
   protected InStream is;
   protected int nUpdateRectsLeft;
+  protected final int maxCursorSize = 256;
   protected int[] imageBuf;
   protected int imageBufSize;
-
-  static LogWriter vlog = new LogWriter("CMsgReader");
 }

@@ -1,0 +1,15 @@
+## Default settings for VNC servers started by the vncserver service
+#
+# Any settings given here will override the builtin defaults, but can
+# also be overriden by ~/.vnc/config and vncserver-config-mandatory.
+#
+# See the following manpages for more details: vncserver(1) Xvnc(1)
+#
+# Several common settings are shown below. Uncomment and modify to your
+# liking.
+
+# securitytypes=vncauth,tlsvnc
+# desktop=sandbox
+# geometry=2000x1200
+# localhost
+# alwaysshared

@@ -21,10 +21,38 @@ if(BUILD_STATIC)
   set(JPEG_LIBRARIES "-Wl,-Bstatic -ljpeg -Wl,-Bdynamic")
   set(ZLIB_LIBRARIES "-Wl,-Bstatic -lz -Wl,-Bdynamic")
   set(PNG_LIBRARIES "-Wl,-Bstatic -lpng -Wl,-Bdynamic")
+  set(PIXMAN_LIBRARY "-Wl,-Bstatic -lpixman-1 -Wl,-Bdynamic")
 
   # gettext is included in libc on many unix systems
   if(NOT LIBC_HAS_DGETTEXT)
-    set(GETTEXT_LIBRARIES "-Wl,-Bstatic -lintl -liconv -Wl,-Bdynamic")
+    FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring
+      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+    FIND_LIBRARY(INTL_LIBRARY NAMES intl libintl
+      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+    FIND_LIBRARY(ICONV_LIBRARY NAMES iconv libiconv
+      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+
+    set(GETTEXT_LIBRARIES "-Wl,-Bstatic")
+
+    if(INTL_LIBRARY)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lintl")
+    endif()
+    
+    if(ICONV_LIBRARY)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -liconv")
+    endif()
+
+    set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -Wl,-Bdynamic")
+
+    # FIXME: MSYS2 doesn't include a static version of this library, so
+    #        we'll have to link it dynamically for now
+    if(UNISTRING_LIBRARY)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lunistring")
+    endif()
+
+    if(APPLE)
+      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -framework Carbon")
+    endif()
   endif()
 
   if(GNUTLS_FOUND)
@@ -35,6 +63,8 @@ if(BUILD_STATIC)
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
     FIND_LIBRARY(TASN1_LIBRARY NAMES tasn1 libtasn1
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
+    FIND_LIBRARY(IDN2_LIBRARY NAMES idn2 libidn2
+      HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
 
     set(GNUTLS_LIBRARIES "-Wl,-Bstatic -lgnutls")
 
@@ -42,19 +72,35 @@ if(BUILD_STATIC)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -ltasn1")
     endif()
     if(NETTLE_LIBRARY)
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lhogweed -lnettle -lgmp")
     endif()
     if(GCRYPT_LIBRARY)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lgcrypt -lgpg-error")
+    endif()
+    if(IDN2_LIBRARY)
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lidn2")
     endif()
 
     set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -Wl,-Bdynamic")
 
     if (WIN32)
+      FIND_LIBRARY(P11KIT_LIBRARY NAMES p11-kit libp11-kit
+        HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
+      FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring
+        HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
+
       # GnuTLS uses various crypto-api stuff
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32 -lncrypt")
       # And sockets
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lws2_32")
+
+      # p11-kit only available as dynamic library for MSYS2 on Windows and dynamic linking of unistring is required
+      if(P11KIT_LIBRARY)
+        set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lp11-kit")
+      endif()
+      if(UNISTRING_LIBRARY)
+        set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lunistring")
+      endif()
     endif()
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
@@ -110,6 +156,9 @@ if(BUILD_STATIC)
     if(X11_Xrandr_LIB)
       set(X11_Xrandr_LIB "-Wl,-Bstatic -lXrandr -lXrender -Wl,-Bdynamic")
     endif()
+    if(X11_Xi_LIB)
+      set(X11_Xi_LIB "-Wl,-Bstatic -lXi -Wl,-Bdynamic")
+    endif()
   endif()
 endif()
 
@@ -118,7 +167,7 @@ if(BUILD_STATIC_GCC)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nodefaultlibs")
   set(STATIC_BASE_LIBRARIES "-Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic")
   if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lasan -Wl,-Bdynamic -ldl -lm -lpthread")
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lasan -Wl,-Bdynamic -ldl -lpthread")
   endif()
   if(ENABLE_TSAN AND NOT WIN32 AND NOT APPLE AND CMAKE_SIZEOF_VOID_P MATCHES 8)
     # libtsan redefines some C++ symbols which then conflict with a
@@ -129,12 +178,18 @@ if(BUILD_STATIC_GCC)
   endif()
   if(WIN32)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
+    find_package(Threads)
+    if(CMAKE_USE_PTHREADS_INIT)
+      # pthread has to be statically linked after libraries above and before kernel32
+      set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lpthread -Wl,-Bdynamic")
+    endif()
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -luser32 -lkernel32 -ladvapi32 -lshell32")
     # mingw has some fun circular dependencies that requires us to link
     # these things again
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
   else()
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lgcc -lgcc_eh -lc")
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lm -lgcc -lgcc_eh -lc")
   endif()
-  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} ${STATIC_BASE_LIBRARIES}")
+  set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} ${STATIC_BASE_LIBRARIES}")
+  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic ${STATIC_BASE_LIBRARIES}")
 endif()

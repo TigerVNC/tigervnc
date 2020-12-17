@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 2.8.11)
 if(POLICY CMP0022)
   cmake_policy(SET CMP0022 OLD)
 endif()
+if(${CMAKE_VERSION} VERSION_LESS "3.4.0")
+  message(WARNING "CMake 3.4.0 or newer is required to get correct default installation paths")
+endif()
 
 # Internal cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -21,22 +24,21 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tigervnc)
-set(VERSION 1.9.80)
+set(VERSION 1.11.80)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,9,80,0)
+set(RCVERSION 1,11,80,0)
 
 # Installation paths
-set(BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")
-set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share")
-set(MAN_DIR "${DATA_DIR}/man")
-set(LOCALE_DIR "${DATA_DIR}/locale")
-set(DOC_DIR "${CMAKE_INSTALL_PREFIX}/share/doc/${CMAKE_PROJECT_NAME}-${VERSION}")
-
-if(WIN32)
-set(BIN_DIR "${CMAKE_INSTALL_PREFIX}")
-set(DOC_DIR "${CMAKE_INSTALL_PREFIX}")
+include(GNUInstallDirs)
+set(CMAKE_INSTALL_UNITDIR "lib/systemd/system" CACHE PATH "systemd unit files (lib/systemd/system)")
+if(IS_ABSOLUTE "${CMAKE_INSTALL_UNITDIR}")
+  set(CMAKE_INSTALL_FULL_UNITDIR "${CMAKE_INSTALL_UNITDIR}")
+else()
+  set(CMAKE_INSTALL_FULL_UNITDIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_UNITDIR}")
 endif()
+
+option(INSTALL_SYSTEMD_UNITS "Install TigerVNC systemd units" ON)
 
 if(MSVC)
   message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
@@ -100,12 +102,12 @@ if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
 endif()
 
-# Minimum version is Windows Vista/2008 (6.0)
+# Minimum version is Windows 7
 if(WIN32)
-  add_definitions(-D_WIN32_WINNT=0x0600)
   add_definitions(-D_WIN32)
   add_definitions(-DWIN32)
-  endif()
+  add_definitions(-D_WIN32_WINNT=0x0601)
+endif()
 
 if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   message(STATUS "64-bit build")
@@ -142,6 +144,9 @@ endif()
 
 # Check for zlib
 find_package(ZLIB REQUIRED)
+
+# Check for pixman
+find_package(Pixman REQUIRED)
 
 # Check for gettext
 option(ENABLE_NLS "Enable translation of program messages" ON)
@@ -274,8 +279,7 @@ if(ENABLE_GNUTLS)
 endif()
 
 # Check for PAM library
-option(ENABLE_PAM "Enable PAM authentication support" ON)
-if(ENABLE_PAM)
+if(UNIX AND NOT APPLE)
   check_include_files(security/pam_appl.h HAVE_PAM_H)
   set(CMAKE_REQUIRED_LIBRARIES -lpam)
   check_function_exists(pam_start HAVE_PAM_START)
@@ -283,10 +287,9 @@ if(ENABLE_PAM)
   if(HAVE_PAM_H AND HAVE_PAM_START)
     set(PAM_LIBS pam)
   else()
-    set(ENABLE_PAM 0)
+    message(FATAL_ERROR "Could not find PAM development files")
   endif()
 endif()
-set(HAVE_PAM ${ENABLE_PAM})
 
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)
@@ -319,7 +322,7 @@ endif()
 add_subdirectory(tests)
 
 
-include(cmake/BuildPackages.cmake)
+add_subdirectory(release)
 
 # uninstall
 configure_file("${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"

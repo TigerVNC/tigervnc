@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2014 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,7 +105,7 @@ static rfb::LogWriter vlog("Viewport");
 
 enum { ID_EXIT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
-       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
+       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT };
 
 // Used to detect fake input (0xaa is not a real key)
 #ifdef WIN32
@@ -119,7 +119,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
     altGrArmed(false),
 #endif
     firstLEDState(true),
-    pendingServerCutText(NULL), pendingClientCutText(NULL),
+    pendingServerClipboard(false), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -184,6 +184,9 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   setMenuKey();
 
   OptionsDialog::addCallback(handleOptions, this);
+
+  // Make sure we have an initial blank cursor set
+  setCursor(0, 0, rfb::Point(0, 0), NULL);
 }
 
 
@@ -208,8 +211,6 @@ Viewport::~Viewport()
     delete cursor;
   }
 
-  clearPendingClipboard();
-
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
 }
@@ -230,45 +231,6 @@ void Viewport::updateWindow()
 
   r = frameBuffer->getDamage();
   damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
-}
-
-void Viewport::serverCutText(const char* str, rdr::U32 len)
-{
-  char *buffer;
-  int size, ret;
-
-  clearPendingClipboard();
-
-  if (!acceptClipboard)
-    return;
-
-  size = fl_utf8froma(NULL, 0, str, len);
-  if (size <= 0)
-    return;
-
-  size++;
-
-  buffer = new char[size];
-
-  ret = fl_utf8froma(buffer, size, str, len);
-  assert(ret < size);
-
-  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
-
-  if (!hasFocus()) {
-    pendingServerCutText = buffer;
-    return;
-  }
-
-  // RFB doesn't have separate selection and clipboard concepts, so we
-  // dump the data into both variants.
-#if !defined(WIN32) && !defined(__APPLE__)
-  if (setPrimary)
-    Fl::copy(buffer, ret, 0);
-#endif
-  Fl::copy(buffer, ret, 1);
-
-  delete [] buffer;
 }
 
 static const char * dotcursor_xpm[] = {
@@ -319,6 +281,55 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 }
 
+void Viewport::handleClipboardRequest()
+{
+  Fl::paste(*this, clipboardSource);
+}
+
+void Viewport::handleClipboardAnnounce(bool available)
+{
+  if (!acceptClipboard)
+    return;
+
+  if (available)
+    vlog.debug("Got notification of new clipboard on server");
+  else
+    vlog.debug("Clipboard is no longer available on server");
+
+  if (!available) {
+    pendingServerClipboard = false;
+    return;
+  }
+
+  pendingClientClipboard = false;
+
+  if (!hasFocus()) {
+    pendingServerClipboard = true;
+    return;
+  }
+
+  cc->requestClipboard();
+}
+
+void Viewport::handleClipboardData(const char* data)
+{
+  size_t len;
+
+  if (!hasFocus())
+    return;
+
+  len = strlen(data);
+
+  vlog.debug("Got clipboard data (%d bytes)", (int)len);
+
+  // RFB doesn't have separate selection and clipboard concepts, so we
+  // dump the data into both variants.
+#if !defined(WIN32) && !defined(__APPLE__)
+  if (setPrimary)
+    Fl::copy(data, len, 0);
+#endif
+  Fl::copy(data, len, 1);
+}
 
 void Viewport::setLEDState(unsigned int state)
 {
@@ -549,43 +560,29 @@ void Viewport::resize(int x, int y, int w, int h)
 
 int Viewport::handle(int event)
 {
-  char *buffer;
-  int ret;
+  char *filtered;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
 
   switch (event) {
   case FL_PASTE:
-    buffer = new char[Fl::event_length() + 1];
+    filtered = convertLF(Fl::event_text(), Fl::event_length());
 
-    clearPendingClipboard();
-
-    // This is documented as to ASCII, but actually does to 8859-1
-    ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer,
-                     Fl::event_length() + 1);
-    assert(ret < (Fl::event_length() + 1));
-
-    if (!hasFocus()) {
-      pendingClientCutText = buffer;
-      return 1;
-    }
-
-    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(buffer));
+    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(filtered));
 
     try {
-      cc->writer()->writeClientCutText(buffer, ret);
+      cc->sendClipboardData(filtered);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
 
-    delete [] buffer;
+    strFree(filtered);
 
     return 1;
 
   case FL_ENTER:
-    if (cursor)
-      window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
     // Yes, we would like some pointer events please!
     return 1;
 
@@ -663,6 +660,26 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
+void Viewport::sendPointerEvent(const rfb::Point& pos, int buttonMask)
+{
+  if (viewOnly)
+      return;
+
+  if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
+    try {
+      cc->writer()->writePointerEvent(pos, buttonMask);
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+  } else {
+    if (!Fl::has_timeout(handlePointerTimeout, this))
+      Fl::add_timeout((double)pointerEventInterval/1000.0,
+                      handlePointerTimeout, this);
+  }
+  lastPointerPos = pos;
+  lastButtonMask = buttonMask;
+}
 
 bool Viewport::hasFocus()
 {
@@ -737,62 +754,53 @@ void Viewport::handleClipboardChange(int source, void *data)
     return;
 #endif
 
-  Fl::paste(*self, source);
-}
+  self->clipboardSource = source;
 
+  self->pendingServerClipboard = false;
 
-void Viewport::clearPendingClipboard()
-{
-  delete [] pendingServerCutText;
-  pendingServerCutText = NULL;
-  delete [] pendingClientCutText;
-  pendingClientCutText = NULL;
+  if (!self->hasFocus()) {
+    self->pendingClientClipboard = true;
+    // Clear any older client clipboard from the server
+    self->cc->announceClipboard(false);
+    return;
+  }
+
+  try {
+    self->cc->announceClipboard(true);
+  } catch (rdr::Exception& e) {
+    vlog.error("%s", e.str());
+    exit_vncviewer(e.str());
+  }
 }
 
 
 void Viewport::flushPendingClipboard()
 {
-  if (pendingServerCutText) {
-    size_t len = strlen(pendingServerCutText);
-#if !defined(WIN32) && !defined(__APPLE__)
-    if (setPrimary)
-      Fl::copy(pendingServerCutText, len, 0);
-#endif
-    Fl::copy(pendingServerCutText, len, 1);
-  }
-  if (pendingClientCutText) {
-    size_t len = strlen(pendingClientCutText);
-    vlog.debug("Sending pending clipboard data (%d bytes)", (int)len);
+  if (pendingServerClipboard) {
     try {
-      cc->writer()->writeClientCutText(pendingClientCutText, len);
+      cc->requestClipboard();
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+  }
+  if (pendingClientClipboard) {
+    try {
+      cc->announceClipboard(true);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
   }
 
-  clearPendingClipboard();
+  pendingServerClipboard = false;
+  pendingClientClipboard = false;
 }
 
 
 void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
 {
-  if (!viewOnly) {
-    if (pointerEventInterval == 0 || buttonMask != lastButtonMask) {
-      try {
-        cc->writer()->writePointerEvent(pos, buttonMask);
-      } catch (rdr::Exception& e) {
-        vlog.error("%s", e.str());
-        exit_vncviewer(e.str());
-      }
-    } else {
-      if (!Fl::has_timeout(handlePointerTimeout, this))
-        Fl::add_timeout((double)pointerEventInterval/1000.0,
-                        handlePointerTimeout, this);
-    }
-    lastPointerPos = pos;
-    lastButtonMask = buttonMask;
-  }
+  filterPointerEvent(pos, buttonMask);
 }
 
 
@@ -931,7 +939,22 @@ int Viewport::handleSystemEvent(void *event, void *data)
 #if defined(WIN32)
   MSG *msg = (MSG*)event;
 
-  if ((msg->message == WM_KEYDOWN) || (msg->message == WM_SYSKEYDOWN)) {
+  if ((msg->message == WM_MOUSEMOVE) ||
+      (msg->message == WM_LBUTTONDOWN) ||
+      (msg->message == WM_LBUTTONUP) ||
+      (msg->message == WM_RBUTTONDOWN) ||
+      (msg->message == WM_RBUTTONUP) ||
+      (msg->message == WM_MBUTTONDOWN) ||
+      (msg->message == WM_MBUTTONUP) ||
+      (msg->message == WM_MOUSEWHEEL) ||
+      (msg->message == WM_MOUSEHWHEEL)) {
+    // We can't get a mouse event in the middle of an AltGr sequence, so
+    // abort that detection
+    if (self->altGrArmed)
+      self->resolveAltGrDetection(false);
+
+    return 0; // We didn't really consume the mouse event
+  } else if ((msg->message == WM_KEYDOWN) || (msg->message == WM_SYSKEYDOWN)) {
     UINT vKey;
     bool isExtended;
     int keyCode;
@@ -955,16 +978,11 @@ int Viewport::handleSystemEvent(void *event, void *data)
     // by seeing the two key events directly after each other with a very
     // short time between them (<50ms) and supress the Ctrl event.
     if (self->altGrArmed) {
-      self->altGrArmed = false;
-      Fl::remove_timeout(handleAltGrTimeout);
-
-      if (isExtended && (keyCode == 0x38) && (vKey == VK_MENU) &&
-          ((msg->time - self->altGrCtrlTime) < 50)) {
-        // Alt seen, so this is an AltGr sequence
-      } else {
-        // Not Alt, so fire the queued up Ctrl event
-        self->handleKeyPress(0x1d, XK_Control_L);
-      }
+      bool altPressed = isExtended &&
+                        (keyCode == 0x38) &&
+                        (vKey == VK_MENU) &&
+                        ((msg->time - self->altGrCtrlTime) < 50);
+      self->resolveAltGrDetection(altPressed);
     }
 
     if (keyCode == SCAN_FAKE) {
@@ -1042,6 +1060,16 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
     self->handleKeyPress(keyCode, keySym);
 
+    // We don't get reliable WM_KEYUP for these
+    switch (keySym) {
+    case XK_Zenkaku_Hankaku:
+    case XK_Eisu_toggle:
+    case XK_Katakana:
+    case XK_Hiragana:
+    case XK_Romaji:
+      self->handleKeyRelease(keyCode);
+    }
+
     return 1;
   } else if ((msg->message == WM_KEYUP) || (msg->message == WM_SYSKEYUP)) {
     UINT vKey;
@@ -1061,11 +1089,8 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
     // We can't get a release in the middle of an AltGr sequence, so
     // abort that detection
-    if (self->altGrArmed) {
-      self->altGrArmed = false;
-      Fl::remove_timeout(handleAltGrTimeout);
-      self->handleKeyPress(0x1d, XK_Control_L);
-    }
+    if (self->altGrArmed)
+      self->resolveAltGrDetection(false);
 
     if (keyCode == SCAN_FAKE) {
       vlog.debug("Ignoring fake key release (virtual key 0x%02x)", vKey);
@@ -1189,6 +1214,15 @@ void Viewport::handleAltGrTimeout(void *data)
   self->altGrArmed = false;
   self->handleKeyPress(0x1d, XK_Control_L);
 }
+
+void Viewport::resolveAltGrDetection(bool isAltGrSequence)
+{
+  altGrArmed = false;
+  Fl::remove_timeout(handleAltGrTimeout);
+  // when it's not an AltGr sequence we can't supress the Ctrl anymore
+  if (!isAltGrSequence)
+    handleKeyPress(0x1d, XK_Control_L);
+}
 #endif
 
 void Viewport::initContextMenu()
@@ -1234,10 +1268,7 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
                 0, NULL, (void*)ID_INFO, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
-                0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
-
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Dismiss &menu"),
-                0, NULL, (void*)ID_DISMISS, 0);
+                0, NULL, (void*)ID_ABOUT, 0);
 }
 
 
@@ -1266,7 +1297,7 @@ void Viewport::popupContextMenu()
   handle(FL_FOCUS);
 
   // Back to our proper mouse pointer.
-  if ((Fl::belowmouse() == this) && cursor)
+  if (Fl::belowmouse())
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 
   if (m == NULL)
@@ -1332,9 +1363,6 @@ void Viewport::popupContextMenu()
   case ID_ABOUT:
     about_vncviewer();
     break;
-  case ID_DISMISS:
-    // Don't need to do anything
-    break;
   }
 }
 
@@ -1350,4 +1378,5 @@ void Viewport::handleOptions(void *data)
   Viewport *self = (Viewport*)data;
 
   self->setMenuKey();
+  // FIXME: Need to recheck cursor for dotWhenNoCursor
 }

@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright 2014-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,11 @@ ServerParams::ServerParams()
     ledState_(ledUnknown)
 {
   setName("");
+
   cursor_ = new Cursor(0, 0, Point(), NULL);
+
+  clipFlags = 0;
+  memset(clipSizes, 0, sizeof(clipSizes));
 }
 
 ServerParams::~ServerParams()
@@ -81,4 +85,18 @@ void ServerParams::setCursor(const Cursor& other)
 void ServerParams::setLEDState(unsigned int state)
 {
   ledState_ = state;
+}
+
+void ServerParams::setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+{
+  int i, num;
+
+  clipFlags = flags;
+
+  num = 0;
+  for (i = 0;i < 16;i++) {
+    if (!(flags & (1 << i)))
+      continue;
+    clipSizes[i] = lengths[num++];
+  }
 }

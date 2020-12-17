@@ -1,0 +1,5 @@
+tigervnc (1.10.0) bionic; urgency=low
+
+  * Initial release.
+
+ -- Brian P. Hinz <bphinz@users.sourceforge.net>  Mon, 28 Oct 2019 21:25:09 -0400

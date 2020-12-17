@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2017 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * Copyright 2014 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
@@ -75,7 +75,7 @@ XserverDesktop::XserverDesktop(int screenIndex_,
                                void* fbptr, int stride)
   : screenIndex(screenIndex_),
     server(0), listeners(listeners_),
-    directFbptr(true),
+    shadowFramebuffer(NULL),
     queryConnectId(0), queryConnectTimer(this)
 {
   format = pf;
@@ -97,8 +97,8 @@ XserverDesktop::~XserverDesktop()
     delete listeners.back();
     listeners.pop_back();
   }
-  if (!directFbptr)
-    delete [] data;
+  if (shadowFramebuffer)
+    delete [] shadowFramebuffer;
   delete server;
 }
 
@@ -116,22 +116,18 @@ void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride_)
 {
   ScreenSet layout;
 
-  width_ = w;
-  height_ = h;
-
-  if (!directFbptr) {
-    delete [] data;
-    directFbptr = true;
+  if (shadowFramebuffer) {
+    delete [] shadowFramebuffer;
+    shadowFramebuffer = NULL;
   }
 
   if (!fbptr) {
-    fbptr = new rdr::U8[w * h * (format.bpp/8)];
+    shadowFramebuffer = new rdr::U8[w * h * (format.bpp/8)];
+    fbptr = shadowFramebuffer;
     stride_ = w;
-    directFbptr = false;
   }
 
-  data = (rdr::U8*)fbptr;
-  stride = stride_;
+  setBuffer(w, h, (rdr::U8*)fbptr, stride_);
 
   vncSetGlueContext(screenIndex);
   layout = ::computeScreenLayout(&outputIdMap);
@@ -182,6 +178,33 @@ void XserverDesktop::queryConnection(network::Socket* sock,
   queryConnectTimer.start(queryConnectTimeout * 1000);
 }
 
+void XserverDesktop::requestClipboard()
+{
+  try {
+    server->requestClipboard();
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::requestClipboard: %s",e.str());
+  }
+}
+
+void XserverDesktop::announceClipboard(bool available)
+{
+  try {
+    server->announceClipboard(available);
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::announceClipboard: %s",e.str());
+  }
+}
+
+void XserverDesktop::sendClipboardData(const char* data)
+{
+  try {
+    server->sendClipboardData(data);
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::sendClipboardData: %s",e.str());
+  }
+}
+
 void XserverDesktop::bell()
 {
   server->bell();
@@ -190,15 +213,6 @@ void XserverDesktop::bell()
 void XserverDesktop::setLEDState(unsigned int state)
 {
   server->setLEDState(state);
-}
-
-void XserverDesktop::serverCutText(const char* str, int len)
-{
-  try {
-    server->serverCutText(str, len);
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::serverCutText: %s",e.str());
-  }
 }
 
 void XserverDesktop::setDesktopName(const char* name)
@@ -436,11 +450,6 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
   vncPointerButtonAction(buttonMask);
 }
 
-void XserverDesktop::clientCutText(const char* str, int len)
-{
-  vncClientCutText(str, len);
-}
-
 unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
                                              const rfb::ScreenSet& layout)
 {
@@ -462,9 +471,24 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   return result;
 }
 
+void XserverDesktop::handleClipboardRequest()
+{
+  vncHandleClipboardRequest();
+}
+
+void XserverDesktop::handleClipboardAnnounce(bool available)
+{
+  vncHandleClipboardAnnounce(available);
+}
+
+void XserverDesktop::handleClipboardData(const char* data_)
+{
+  vncHandleClipboardData(data_);
+}
+
 void XserverDesktop::grabRegion(const rfb::Region& region)
 {
-  if (directFbptr)
+  if (shadowFramebuffer == NULL)
     return;
 
   std::vector<rfb::Rect> rects;

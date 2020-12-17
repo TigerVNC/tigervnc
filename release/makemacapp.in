@@ -27,12 +27,15 @@ PACKAGE_NAME=TigerVNC
 VERSION=@VERSION@
 BUILD=@BUILD@
 SRCDIR=@CMAKE_SOURCE_DIR@
+BINDIR=@CMAKE_BINARY_DIR@
 BUILDDIR32=@OSX_X86_BUILD@
 if [ $# -gt 0 ]; then
 	if [ "$1" = "universal" ]; then
 		UNIVERSAL=1
 	fi
 fi
+
+cd $BINDIR
 
 if [ -f $PACKAGE_NAME.dmg ]; then
 	rm -f $PACKAGE_NAME.dmg

@@ -1,4 +1,4 @@
-/* Copyright 2016 Pierre Ossman for Cendio AB
+/* Copyright 2016-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,15 +47,34 @@ static Atom xaTARGETS, xaTIMESTAMP, xaSTRING, xaTEXT, xaUTF8_STRING;
 static WindowPtr pWindow;
 static Window wid;
 
-static char* clientCutText;
-static int clientCutTextLen;
+static Bool probing;
+static Atom activeSelection = None;
+
+struct VncDataTarget {
+  ClientPtr client;
+  Atom selection;
+  Atom target;
+  Atom property;
+  Window requestor;
+  CARD32 time;
+  struct VncDataTarget* next;
+};
+
+static struct VncDataTarget* vncDataTargetHead;
 
 static int vncCreateSelectionWindow(void);
 static int vncOwnSelection(Atom selection);
+static int vncConvertSelection(ClientPtr client, Atom selection,
+                               Atom target, Atom property,
+                               Window requestor, CARD32 time,
+                               const char* data);
 static int vncProcConvertSelection(ClientPtr client);
+static void vncSelectionRequest(Atom selection, Atom target);
 static int vncProcSendEvent(ClientPtr client);
 static void vncSelectionCallback(CallbackListPtr *callbacks,
                                  void * data, void * args);
+static void vncClientStateCallback(CallbackListPtr * l,
+                                   void * d, void * p);
 
 static int (*origProcConvertSelection)(ClientPtr);
 static int (*origProcSendEvent)(ClientPtr);
@@ -80,34 +99,99 @@ void vncSelectionInit(void)
 
   if (!AddCallback(&SelectionCallback, vncSelectionCallback, 0))
     FatalError("Add VNC SelectionCallback failed\n");
+  if (!AddCallback(&ClientStateCallback, vncClientStateCallback, 0))
+    FatalError("Add VNC ClientStateCallback failed\n");
 }
 
-void vncClientCutText(const char* str, int len)
+void vncHandleClipboardRequest(void)
 {
-  int rc;
-
-  if (clientCutText != NULL)
-    free(clientCutText);
-
-  clientCutText = malloc(len);
-  if (clientCutText == NULL) {
-    LOG_ERROR("Could not allocate clipboard buffer");
-    DeleteWindowFromAnySelections(pWindow);
+  if (activeSelection == None) {
+    LOG_DEBUG("Got request for local clipboard although no clipboard is active");
     return;
   }
 
-  memcpy(clientCutText, str, len);
-  clientCutTextLen = len;
+  LOG_DEBUG("Got request for local clipboard, re-probing formats");
 
-  if (vncGetSetPrimary()) {
-    rc = vncOwnSelection(xaPRIMARY);
+  probing = FALSE;
+  vncSelectionRequest(activeSelection, xaTARGETS);
+}
+
+void vncHandleClipboardAnnounce(int available)
+{
+  if (available) {
+    int rc;
+
+    LOG_DEBUG("Remote clipboard announced, grabbing local ownership");
+
+    if (vncGetSetPrimary()) {
+      rc = vncOwnSelection(xaPRIMARY);
+      if (rc != Success)
+        LOG_ERROR("Could not set PRIMARY selection");
+    }
+
+    rc = vncOwnSelection(xaCLIPBOARD);
     if (rc != Success)
-      LOG_ERROR("Could not set PRIMARY selection");
-  }
+      LOG_ERROR("Could not set CLIPBOARD selection");
+  } else {
+    struct VncDataTarget* next;
 
-  rc = vncOwnSelection(xaCLIPBOARD);
-  if (rc != Success)
-    LOG_ERROR("Could not set CLIPBOARD selection");
+    if (pWindow == NULL)
+      return;
+
+    LOG_DEBUG("Remote clipboard lost, removing local ownership");
+
+    DeleteWindowFromAnySelections(pWindow);
+
+    /* Abort any pending transfer */
+    while (vncDataTargetHead != NULL) {
+      xEvent event;
+
+      event.u.u.type = SelectionNotify;
+      event.u.selectionNotify.time = vncDataTargetHead->time;
+      event.u.selectionNotify.requestor = vncDataTargetHead->requestor;
+      event.u.selectionNotify.selection = vncDataTargetHead->selection;
+      event.u.selectionNotify.target = vncDataTargetHead->target;
+      event.u.selectionNotify.property = None;
+      WriteEventsToClient(vncDataTargetHead->client, 1, &event);
+
+      next = vncDataTargetHead->next;
+      free(vncDataTargetHead);
+      vncDataTargetHead = next;
+    }
+  }
+}
+
+void vncHandleClipboardData(const char* data)
+{
+  struct VncDataTarget* next;
+
+  LOG_DEBUG("Got remote clipboard data, sending to X11 clients");
+
+  while (vncDataTargetHead != NULL) {
+    int rc;
+    xEvent event;
+
+    rc = vncConvertSelection(vncDataTargetHead->client,
+                             vncDataTargetHead->selection,
+                             vncDataTargetHead->target,
+                             vncDataTargetHead->property,
+                             vncDataTargetHead->requestor,
+                             vncDataTargetHead->time,
+                             data);
+    if (rc != Success) {
+      event.u.u.type = SelectionNotify;
+      event.u.selectionNotify.time = vncDataTargetHead->time;
+      event.u.selectionNotify.requestor = vncDataTargetHead->requestor;
+      event.u.selectionNotify.selection = vncDataTargetHead->selection;
+      event.u.selectionNotify.target = vncDataTargetHead->target;
+      event.u.selectionNotify.property = None;
+      WriteEventsToClient(vncDataTargetHead->client, 1, &event);
+    }
+
+    next = vncDataTargetHead->next;
+    free(vncDataTargetHead);
+    vncDataTargetHead = next;
+  }
 }
 
 static int vncCreateSelectionWindow(void)
@@ -195,7 +279,8 @@ static int vncOwnSelection(Atom selection)
 
 static int vncConvertSelection(ClientPtr client, Atom selection,
                                Atom target, Atom property,
-                               Window requestor, CARD32 time)
+                               Window requestor, CARD32 time,
+                               const char* data)
 {
   Selection *pSel;
   WindowPtr pWin;
@@ -205,8 +290,13 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
 
   xEvent event;
 
-  LOG_DEBUG("Selection request for %s (type %s)",
-            NameForAtom(selection), NameForAtom(target));
+  if (data == NULL) {
+    LOG_DEBUG("Selection request for %s (type %s)",
+              NameForAtom(selection), NameForAtom(target));
+  } else {
+    LOG_DEBUG("Sending data for selection request for %s (type %s)",
+              NameForAtom(selection), NameForAtom(target));
+  }
 
   rc = dixLookupSelection(&pSel, selection, client, DixGetAttrAccess);
   if (rc != Success)
@@ -243,51 +333,59 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
                                  TRUE);
     if (rc != Success)
       return rc;
-  } else if ((target == xaSTRING) || (target == xaTEXT)) {
-    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
-                                 XA_STRING, 8, PropModeReplace,
-                                 clientCutTextLen, clientCutText,
-                                 TRUE);
-    if (rc != Success)
-      return rc;
-  } else if (target == xaUTF8_STRING) {
-    unsigned char* buffer;
-    unsigned char* out;
-    size_t len;
+  } else {
+    if (data == NULL) {
+      struct VncDataTarget* vdt;
 
-    const unsigned char* in;
-    size_t in_len;
+      if ((target != xaSTRING) && (target != xaTEXT) &&
+          (target != xaUTF8_STRING))
+        return BadMatch;
 
-    buffer = malloc(clientCutTextLen*2);
-    if (buffer == NULL)
-      return BadAlloc;
+      vdt = calloc(1, sizeof(struct VncDataTarget));
+      if (vdt == NULL)
+        return BadAlloc;
 
-    out = buffer;
-    len = 0;
-    in = clientCutText;
-    in_len = clientCutTextLen;
-    while (in_len > 0) {
-      if (*in & 0x80) {
-        *out++ = 0xc0 | (*in >> 6);
-        *out++ = 0x80 | (*in & 0x3f);
-        len += 2;
-        in++;
-        in_len--;
+      vdt->client = client;
+      vdt->selection = selection;
+      vdt->target = target;
+      vdt->property = property;
+      vdt->requestor = requestor;
+      vdt->time = time;
+
+      vdt->next = vncDataTargetHead;
+      vncDataTargetHead = vdt;
+
+      LOG_DEBUG("Requesting clipboard data from client");
+
+      vncRequestClipboard();
+
+      return Success;
+    } else {
+      if ((target == xaSTRING) || (target == xaTEXT)) {
+        char* latin1;
+
+        latin1 = vncUTF8ToLatin1(data, (size_t)-1);
+        if (latin1 == NULL)
+          return BadAlloc;
+
+        rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                     XA_STRING, 8, PropModeReplace,
+                                     strlen(latin1), latin1, TRUE);
+
+        vncStrFree(latin1);
+
+        if (rc != Success)
+          return rc;
+      } else if (target == xaUTF8_STRING) {
+        rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                     xaUTF8_STRING, 8, PropModeReplace,
+                                     strlen(data), data, TRUE);
+        if (rc != Success)
+          return rc;
       } else {
-        *out++ = *in++;
-        len++;
-        in_len--;
+        return BadMatch;
       }
     }
-
-    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
-                                 xaUTF8_STRING, 8, PropModeReplace,
-                                 len, buffer, TRUE);
-    free(buffer);
-    if (rc != Success)
-      return rc;
-  } else {
-    return BadMatch;
   }
 
   event.u.u.type = SelectionNotify;
@@ -326,7 +424,7 @@ static int vncProcConvertSelection(ClientPtr client)
       pSel->window == wid) {
     rc = vncConvertSelection(client, stuff->selection,
                              stuff->target, stuff->property,
-                             stuff->requestor, stuff->time);
+                             stuff->requestor, stuff->time, NULL);
     if (rc != Success) {
       xEvent event;
 
@@ -410,69 +508,61 @@ static void vncHandleSelection(Atom selection, Atom target,
     if (prop->type != XA_ATOM)
       return;
 
-    if (vncHasAtom(xaSTRING, (const Atom*)prop->data, prop->size))
-      vncSelectionRequest(selection, xaSTRING);
-    else if (vncHasAtom(xaUTF8_STRING, (const Atom*)prop->data, prop->size))
-      vncSelectionRequest(selection, xaUTF8_STRING);
+    if (probing) {
+      if (vncHasAtom(xaSTRING, (const Atom*)prop->data, prop->size) ||
+          vncHasAtom(xaUTF8_STRING, (const Atom*)prop->data, prop->size)) {
+        LOG_DEBUG("Compatible format found, notifying clients");
+        activeSelection = selection;
+        vncAnnounceClipboard(TRUE);
+      }
+    } else {
+      if (vncHasAtom(xaUTF8_STRING, (const Atom*)prop->data, prop->size))
+        vncSelectionRequest(selection, xaUTF8_STRING);
+      else if (vncHasAtom(xaSTRING, (const Atom*)prop->data, prop->size))
+        vncSelectionRequest(selection, xaSTRING);
+    }
   } else if (target == xaSTRING) {
+    char* filtered;
+    char* utf8;
+
     if (prop->format != 8)
       return;
     if (prop->type != xaSTRING)
       return;
 
-    vncServerCutText(prop->data, prop->size);
-  } else if (target == xaUTF8_STRING) {
-    unsigned char* buffer;
-    unsigned char* out;
-    size_t len;
+    filtered = vncConvertLF(prop->data, prop->size);
+    if (filtered == NULL)
+      return;
 
-    const unsigned char* in;
-    size_t in_len;
+    utf8 = vncLatin1ToUTF8(filtered, (size_t)-1);
+    vncStrFree(filtered);
+    if (utf8 == NULL)
+      return;
+
+    LOG_DEBUG("Sending clipboard to clients (%d bytes)",
+              (int)strlen(utf8));
+
+    vncSendClipboardData(utf8);
+
+    vncStrFree(utf8);
+  } else if (target == xaUTF8_STRING) {
+    char *filtered;
 
     if (prop->format != 8)
       return;
     if (prop->type != xaUTF8_STRING)
       return;
 
-    buffer = malloc(prop->size);
-    if (buffer == NULL)
+    filtered = vncConvertLF(prop->data, prop->size);
+    if (filtered == NULL)
       return;
 
-    out = buffer;
-    len = 0;
-    in = prop->data;
-    in_len = prop->size;
-    while (in_len > 0) {
-      if ((*in & 0x80) == 0x00) {
-        *out++ = *in++;
-        len++;
-        in_len--;
-      } else if ((*in & 0xe0) == 0xc0) {
-        unsigned ucs;
-        ucs = (*in++ & 0x1f) << 6;
-        in_len--;
-        if (in_len > 0) {
-          ucs |= (*in++ & 0x3f);
-          in_len--;
-        }
-        if (ucs <= 0xff)
-          *out++ = ucs;
-        else
-          *out++ = '?';
-        len++;
-      } else {
-        *out++ = '?';
-        len++;
-        do {
-          in++;
-          in_len--;
-        } while ((in_len > 0) && ((*in & 0xc0) == 0x80));
-      }
-    }
+    LOG_DEBUG("Sending clipboard to clients (%d bytes)",
+              (int)strlen(filtered));
 
-    vncServerCutText((const char*)buffer, len);
+    vncSendClipboardData(filtered);
 
-    free(buffer);
+    vncStrFree(filtered);
   }
 }
 
@@ -504,6 +594,12 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
 {
   SelectionInfoRec *info = (SelectionInfoRec *) args;
 
+  if (info->selection->selection == activeSelection) {
+    LOG_DEBUG("Local clipboard lost, notifying clients");
+    activeSelection = None;
+    vncAnnounceClipboard(FALSE);
+  }
+
   if (info->kind != SelectionSetOwner)
     return;
   if (info->client == serverClient)
@@ -520,5 +616,25 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
       !vncGetSendPrimary())
     return;
 
+  LOG_DEBUG("Got clipboard notification, probing for formats");
+
+  probing = TRUE;
   vncSelectionRequest(info->selection->selection, xaTARGETS);
+}
+
+static void vncClientStateCallback(CallbackListPtr * l,
+                                   void * d, void * p)
+{
+  ClientPtr client = ((NewClientInfoRec*)p)->client;
+  if (client->clientState == ClientStateGone) {
+    struct VncDataTarget** nextPtr = &vncDataTargetHead;
+    for (struct VncDataTarget* cur = vncDataTargetHead; cur; cur = *nextPtr) {
+      if (cur->client == client) {
+        *nextPtr = cur->next;
+        free(cur);
+        continue;
+      }
+      nextPtr = &cur->next;
+    }
+  }
 }

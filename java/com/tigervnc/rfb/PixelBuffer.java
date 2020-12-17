@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2016 Brian P. Hinz
+ * Copyright 2016-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,18 @@ import java.util.concurrent.atomic.*;
 
 public abstract class PixelBuffer {
 
+  // We do a lot of byte offset calculations that assume the result fits
+  // inside a signed 32 bit integer. Limit the maximum size of pixel
+  // buffers so that these calculations never overflow.
+
+  static final int maxPixelBufferWidth = 16384;
+  static final int maxPixelBufferHeight = 16384;
+
   public PixelBuffer(PixelFormat pf, int w, int h) {
     format = pf;
     width_ = w;
     height_= h;
+    setSize(w, h);
   }
 
   protected PixelBuffer() { width_ = 0; height_ = 0; }
@@ -71,6 +79,17 @@ public abstract class PixelBuffer {
   //void getImage(const PixelFormat& pf, void* imageBuf,
   //                const Rect& r, int stride=0) const;
   public Image getImage() { return image; }
+
+  public void setSize(int width, int height)
+  {
+    if ((width < 0) || (width > maxPixelBufferWidth))
+      throw new Exception("Invalid PixelBuffer width of "+width+" pixels requested");
+    if ((height < 0) || (height > maxPixelBufferHeight))
+      throw new Exception("Invalid PixelBuffer height of "+height+" pixels requested");
+
+    width_ = width;
+    height_ = height;
+  }
 
   ///////////////////////////////////////////////
   // Framebuffer update methods

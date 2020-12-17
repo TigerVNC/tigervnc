@@ -68,9 +68,9 @@ public class SocketDescriptor implements FileDescriptor {
 
   private static SelectorProvider DefaultSelectorProvider() {
     // kqueue() selector provider on OS X is not working, fall back to select() for now
-    String os = System.getProperty("os.name");
-    if (os.startsWith("Mac OS X"))
-      System.setProperty("java.nio.channels.spi.SelectorProvider","sun.nio.ch.PollSelectorProvider");
+    //String os = System.getProperty("os.name");
+    //if (os.startsWith("Mac OS X"))
+    //  System.setProperty("java.nio.channels.spi.SelectorProvider","sun.nio.ch.PollSelectorProvider");
     return SelectorProvider.provider();
   }
 

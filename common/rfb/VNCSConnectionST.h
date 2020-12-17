@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2016 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@
 namespace rfb {
   class VNCServerST;
 
-  class VNCSConnectionST : public SConnection,
+  class VNCSConnectionST : private SConnection,
                            public Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
@@ -47,6 +47,8 @@ namespace rfb {
 
     virtual bool accessCheck(AccessRights ar) const;
     virtual void close(const char* reason);
+
+    using SConnection::authenticated;
 
     // Methods called from VNCServerST.  None of these methods ever knowingly
     // throw an exception.
@@ -72,10 +74,12 @@ namespace rfb {
     void screenLayoutChangeOrClose(rdr::U16 reason);
     void setCursorOrClose();
     void bellOrClose();
-    void serverCutTextOrClose(const char *str, int len);
     void setDesktopNameOrClose(const char *name);
     void setLEDStateOrClose(unsigned int state);
     void approveConnectionOrClose(bool accept, const char* reason);
+    void requestClipboardOrClose();
+    void announceClipboardOrClose(bool available);
+    void sendClipboardDataOrClose(const char* data);
 
     // The following methods never throw exceptions
 
@@ -115,13 +119,15 @@ namespace rfb {
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void pointerEvent(const Point& pos, int buttonMask);
     virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
-    virtual void clientCutText(const char* str, int len);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout);
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h);
+    virtual void handleClipboardRequest();
+    virtual void handleClipboardAnnounce(bool available);
+    virtual void handleClipboardData(const char* data);
     virtual void supportsLocalCursor();
     virtual void supportsFence();
     virtual void supportsContinuousUpdates();

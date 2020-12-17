@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman for Cendio AB
- * Copyright (C) 2012,2014 Brian P. Hinz
+ * Copyright (C) 2012-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,9 +121,10 @@ public class FdOutStream extends OutStream {
       }
     }
 
-    // Can we fit all the items asked for?
-    if (itemSize * nItems > end - ptr)
-      nItems = (end - ptr) / itemSize;
+    int nAvail;
+    nAvail = (end - ptr) / itemSize;
+    if (nAvail < nItems)
+      return nAvail;
 
     return nItems;
   }

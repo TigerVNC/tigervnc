@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@
 
 #include <FL/Fl_Widget.H>
 
+#include "EmulateMB.h"
+
 class Fl_Menu_Button;
 class Fl_RGB_Image;
 
@@ -33,7 +35,7 @@ class CConn;
 class PlatformPixelBuffer;
 class Surface;
 
-class Viewport : public Fl_Widget {
+class Viewport : public Fl_Widget, public EmulateMB {
 public:
 
   Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_);
@@ -45,9 +47,6 @@ public:
   // Flush updates to screen
   void updateWindow();
 
-  // Incoming clipboard from server
-  void serverCutText(const char* str, rdr::U32 len);
-
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
@@ -57,6 +56,11 @@ public:
 
   void draw(Surface* dst);
 
+  // Clipboard events
+  void handleClipboardRequest();
+  void handleClipboardAnnounce(bool available);
+  void handleClipboardData(const char* data);
+
   // Fl_Widget callback methods
 
   void draw();
@@ -65,6 +69,9 @@ public:
 
   int handle(int event);
 
+protected:
+  virtual void sendPointerEvent(const rfb::Point& pos, int buttonMask);
+
 private:
   bool hasFocus();
 
@@ -72,7 +79,6 @@ private:
 
   static void handleClipboardChange(int source, void *data);
 
-  void clearPendingClipboard();
   void flushPendingClipboard();
 
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
@@ -85,6 +91,7 @@ private:
 
 #ifdef WIN32
   static void handleAltGrTimeout(void *data);
+  void resolveAltGrDetection(bool isAltGrSequence);
 #endif
 
   void pushLEDState();
@@ -114,8 +121,10 @@ private:
 
   bool firstLEDState;
 
-  const char* pendingServerCutText;
-  const char* pendingClientCutText;
+  bool pendingServerClipboard;
+  bool pendingClientClipboard;
+
+  int clipboardSource;
 
   rdr::U32 menuKeySym;
   int menuKeyCode, menuKeyFLTK;

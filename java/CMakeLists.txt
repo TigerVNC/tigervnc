@@ -2,14 +2,12 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(tigervnc-java Java)
 if(NOT VERSION)
-  set(VERSION 1.9.80)
+  set(VERSION 1.11.80)
 endif()
 
 find_package(Java)
 
-set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share")
-
-set(DEFAULT_JAVACFLAGS "-source 7 -target 7 -encoding UTF-8 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation,-rawtypes")
+set(DEFAULT_JAVACFLAGS "-source 8 -target 8 -encoding UTF-8 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation,-rawtypes")
 set(JAVACFLAGS ${DEFAULT_JAVACFLAGS} CACHE STRING
   "Java compiler flags (Default: ${DEFAULT_JAVACFLAGS})")
 message(STATUS "Java compiler flags = ${JAVACFLAGS}")

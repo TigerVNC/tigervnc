@@ -227,6 +227,9 @@ class ServerDialog extends Dialog implements Runnable {
   }
 
   private void handleOptions() {
+    // quirk for mac os x
+    if (VncViewer.os.startsWith("mac os x"))
+      this.setAlwaysOnTop(false);
     OptionsDialog.showDialog(this);
   }
 
@@ -278,6 +281,7 @@ class ServerDialog extends Dialog implements Runnable {
 
   private void handleConnect() {
     String servername = (String)serverName.getSelectedItem();
+    servername.trim();
     vncServerName.put(servername).flip();
     saveViewerParameters(null, servername);
     endDialog();

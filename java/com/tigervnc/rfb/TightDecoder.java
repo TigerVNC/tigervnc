@@ -1,7 +1,7 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2012 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ public class TightDecoder extends Decoder {
   }
 
   public void readRect(Rect r, InStream is,
-                       ConnParams cp, OutStream os)
+                       ServerParams server, OutStream os)
   {
     int comp_ctl;
 
@@ -70,10 +70,10 @@ public class TightDecoder extends Decoder {
 
     // "Fill" compression type.
     if (comp_ctl == tightFill) {
-      if (cp.pf().is888())
+      if (server.pf().is888())
         os.copyBytes(is, 3);
       else
-        os.copyBytes(is, cp.pf().bpp/8);
+        os.copyBytes(is, server.pf().bpp/8);
       return;
     }
 
@@ -110,13 +110,13 @@ public class TightDecoder extends Decoder {
         palSize = is.readU8() + 1;
         os.writeU32(palSize - 1);
 
-        if (cp.pf().is888())
+        if (server.pf().is888())
           os.copyBytes(is, palSize * 3);
         else
-          os.copyBytes(is, palSize * cp.pf().bpp/8);
+          os.copyBytes(is, palSize * server.pf().bpp/8);
         break;
       case tightFilterGradient:
-        if (cp.pf().bpp == 8)
+        if (server.pf().bpp == 8)
           throw new Exception("TightDecoder: invalid BPP for gradient filter");
         break;
       case tightFilterCopy:
@@ -133,10 +133,10 @@ public class TightDecoder extends Decoder {
         rowSize = (r.width() + 7) / 8;
       else
         rowSize = r.width();
-    } else if (cp.pf().is888()) {
+    } else if (server.pf().is888()) {
       rowSize = r.width() * 3;
     } else {
-      rowSize = r.width() * cp.pf().bpp/8;
+      rowSize = r.width() * server.pf().bpp/8;
     }
 
     dataSize = r.height() * rowSize;
@@ -158,7 +158,7 @@ public class TightDecoder extends Decoder {
                                  Rect rectB,
                                  Object bufferB,
                                  int buflenB,
-                                 ConnParams cp)
+                                 ServerParams server)
   {
     byte comp_ctl_a, comp_ctl_b;
 
@@ -181,11 +181,11 @@ public class TightDecoder extends Decoder {
   }
 
   public void decodeRect(Rect r, Object buffer,
-                         int buflen, ConnParams cp,
+                         int buflen, ServerParams server,
                          ModifiablePixelBuffer pb)
   {
     ByteBuffer bufptr;
-    PixelFormat pf = cp.pf();
+    PixelFormat pf = server.pf();
 
     int comp_ctl;
 
@@ -334,7 +334,8 @@ public class TightDecoder extends Decoder {
 
       zis[streamId].readBytes(netbuf, dataSize);
 
-      zis[streamId].removeUnderlying();
+      zis[streamId].flushUnderlying();
+      zis[streamId].setUnderlying(null, 0);
       ms = null;
 
       bufptr = (ByteBuffer)netbuf.flip();
@@ -421,15 +422,17 @@ public class TightDecoder extends Decoder {
     int rectWidth = r.width();
 
     for (y = 0; y < rectHeight; y++) {
-      /* First pixel in a row */
-      for (c = 0; c < 3; c++) {
-        pix.put(c, (byte)(inbuf.get(y*rectWidth*3+c) + prevRow[c]));
-        thisRow[c] = pix.get(c);
-      }
-      pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride), pix, 1);
+      for (x = 0; x < rectWidth; x++) {
+        /* First pixel in a row */
+        if (x == 0) {
+          for (c = 0; c < 3; c++) {
+            pix.put(c, (byte)(inbuf.get(y*rectWidth*3+c) + prevRow[c]));
+            thisRow[c] = pix.get(c);
+          }
+          pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride), pix, 1);
+          continue;
+        }
 
-      /* Remaining pixels of a row */
-      for (x = 1; x < rectWidth; x++) {
         for (c = 0; c < 3; c++) {
           est[c] = prevRow[x*3+c] + pix.get(c) - prevRow[(x-1)*3+c];
           if (est[c] > 0xff) {
@@ -462,17 +465,18 @@ public class TightDecoder extends Decoder {
     int rectWidth = r.width();
 
     for (y = 0; y < rectHeight; y++) {
-      /* First pixel in a row */
-      pf.rgbFromBuffer(pix.duplicate(), (ByteBuffer)inbuf.position(y*rectWidth), 1);
-      for (c = 0; c < 3; c++)
-        pix.put(c, (byte)(pix.get(c) + prevRow[c]));
+      for (x = 0; x < rectWidth; x++) {
+        /* First pixel in a row */
+        if (x == 0) {
+          pf.rgbFromBuffer(pix.duplicate(), (ByteBuffer)inbuf.position(y*rectWidth), 1);
+          for (c = 0; c < 3; c++)
+            pix.put(c, (byte)(pix.get(c) + prevRow[c]));
 
-      System.arraycopy(pix.array(), 0, thisRow, 0, pix.capacity());
+          System.arraycopy(pix.array(), 0, thisRow, 0, pix.capacity());
+          pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride), pix, 1);
+          continue;
+        }
 
-      pf.bufferFromRGB((ByteBuffer)outbuf.duplicate().position(y*stride), pix, 1);
-
-      /* Remaining pixels of a row */
-      for (x = 1; x < rectWidth; x++) {
         for (c = 0; c < 3; c++) {
           est[c] = prevRow[x*3+c] + pix.get(c) - prevRow[(x-1)*3+c];
           if (est[c] > 0xff) {

@@ -1,4 +1,4 @@
-/* Copyright 2016 Pierre Ossman for Cendio AB
+/* Copyright 2016-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,9 @@ extern "C" {
 
 void vncSelectionInit(void);
 
-void vncClientCutText(const char* str, int len);
+void vncHandleClipboardRequest(void);
+void vncHandleClipboardAnnounce(int available);
+void vncHandleClipboardData(const char* data);
 
 #ifdef __cplusplus
 }

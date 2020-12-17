@@ -4,10 +4,10 @@
 #cmakedefine HAVE_ACTIVE_DESKTOP_H
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1
-#cmakedefine HAVE_PAM
 
-#cmakedefine DATA_DIR "@DATA_DIR@"
-#cmakedefine LOCALE_DIR "@LOCALE_DIR@"
+#cmakedefine CMAKE_INSTALL_FULL_LIBEXECDIR "@CMAKE_INSTALL_FULL_LIBEXECDIR@"
+#cmakedefine CMAKE_INSTALL_FULL_DATADIR "@CMAKE_INSTALL_FULL_DATADIR@"
+#cmakedefine CMAKE_INSTALL_FULL_LOCALEDIR "@CMAKE_INSTALL_FULL_LOCALEDIR@"
 
 /* MS Visual Studio 2008 and newer doesn't know ssize_t */
 #if defined(HAVE_GNUTLS) && defined(WIN32) && !defined(__MINGW32__)
@@ -16,4 +16,9 @@
     #else
         typedef long ssize_t;
     #endif
+#endif
+
+/* We know we use deprecated stuff, it's to support older macOS */
+#if defined(__APPLE__) && defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif

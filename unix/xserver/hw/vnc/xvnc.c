@@ -47,15 +47,10 @@ from the X Consortium.
 #include <X11/Xproto.h>
 #include <X11/Xos.h>
 #include "scrnintstr.h"
-#if XORG >= 120
 #include "glx_extinit.h"
-#endif
 #include "servermd.h"
 #include "fb.h"
 #include "mi.h"
-#if XORG < 114
-#include "mibstore.h"
-#endif
 #include "colormapst.h"
 #include "gcstruct.h"
 #include "input.h"
@@ -87,8 +82,8 @@ from the X Consortium.
 #include "version-config.h"
 #include "site.h"
 
-#define XVNCVERSION "TigerVNC 1.9.80"
-#define XVNCCOPYRIGHT ("Copyright (C) 1999-2019 TigerVNC Team and many others (see README.rst)\n" \
+#define XVNCVERSION "TigerVNC 1.11.80"
+#define XVNCCOPYRIGHT ("Copyright (C) 1999-2020 TigerVNC Team and many others (see README.rst)\n" \
                        "See https://www.tigervnc.org for information on TigerVNC.\n")
 
 #define VFB_DEFAULT_WIDTH  1024
@@ -224,11 +219,7 @@ Bool DPMSSupported(void)
 #endif
 #endif
 
-#if XORG < 111
-void ddxGiveUp()
-#else
 void ddxGiveUp(enum ExitCode error)
-#endif
 {
     int i;
 
@@ -238,17 +229,9 @@ void ddxGiveUp(enum ExitCode error)
 }
 
 void
-#if XORG < 111
-AbortDDX()
-#else
 AbortDDX(enum ExitCode error)
-#endif
 {
-#if XORG < 111
-    ddxGiveUp();
-#else
     ddxGiveUp(error);
-#endif
 }
 
 #ifdef __DARWIN__
@@ -280,11 +263,7 @@ OsVendorInit(void)
 }
 
 void
-#if XORG < 113
-OsVendorFatalError()
-#else
 OsVendorFatalError(const char *f, va_list args)
-#endif
 {
 }
 
@@ -596,7 +575,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 		    if (displayNumFree(displayNum)) break;
 		
 		if (displayNum == 100)
-		    FatalError("Xvnc error: no free display number for -inetd");
+		    FatalError("Xvnc error: no free display number for -inetd\n");
 	    }
 	    
 	    display = displayNumStr;
@@ -639,6 +618,20 @@ ddxProcessArgument(int argc, char *argv[], int i)
         exit(0);
     }
 
+    /* We need to resolve an ambiguity for booleans */
+    if (argv[i][0] == '-' && i+1 < argc &&
+        vncIsParamBool(&argv[i][1])) {
+        if ((strcasecmp(argv[i+1], "0") == 0) ||
+            (strcasecmp(argv[i+1], "1") == 0) ||
+            (strcasecmp(argv[i+1], "true") == 0) ||
+            (strcasecmp(argv[i+1], "false") == 0) ||
+            (strcasecmp(argv[i+1], "yes") == 0) ||
+            (strcasecmp(argv[i+1], "no") == 0)) {
+            vncSetParam(&argv[i][1], argv[i+1]);
+            return 2;
+        }
+    }
+
     if (vncSetParamSimple(argv[i]))
 	return 1;
     
@@ -661,25 +654,17 @@ GetTimeInMillis()
 }
 #endif
 
-#if XORG < 113
-static ColormapPtr InstalledMaps[MAXSCREENS];
-#else
 static DevPrivateKeyRec cmapScrPrivateKeyRec;
 #define cmapScrPrivateKey (&cmapScrPrivateKeyRec)
 #define GetInstalledColormap(s) ((ColormapPtr) dixLookupPrivate(&(s)->devPrivates, cmapScrPrivateKey))
 #define SetInstalledColormap(s,c) (dixSetPrivate(&(s)->devPrivates, cmapScrPrivateKey, c))
-#endif
 
 static int 
 vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     /* By the time we are processing requests, we can guarantee that there
      * is always a colormap installed */
-#if XORG < 113
-    *pmaps = InstalledMaps[pScreen->myNum]->mid;
-#else
     *pmaps = GetInstalledColormap(pScreen)->mid;
-#endif
     return (1);
 }
 
@@ -687,16 +672,9 @@ vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 static void 
 vfbInstallColormap(ColormapPtr pmap)
 {
-#if XORG < 113
-    int index = pmap->pScreen->myNum;
-#endif
     ColormapPtr oldpmap;
 
-#if XORG < 113
-    oldpmap = InstalledMaps[index];
-#else
     oldpmap = GetInstalledColormap(pmap->pScreen);
-#endif
 
     if (pmap != oldpmap)
     {
@@ -710,11 +688,7 @@ vfbInstallColormap(ColormapPtr pmap)
 	if(oldpmap != (ColormapPtr)None)
 	    WalkTree(pmap->pScreen, TellLostMap, (char *)&oldpmap->mid);
 	/* Install pmap */
-#if XORG < 113
-	InstalledMaps[index] = pmap;
-#else
 	SetInstalledColormap(pmap->pScreen, pmap);
-#endif
 	WalkTree(pmap->pScreen, TellGainedMap, (char *)&pmap->mid);
 
 	entries = pmap->pVisual->ColormapEntries;
@@ -728,11 +702,7 @@ vfbInstallColormap(ColormapPtr pmap)
 
 	for (i = 0; i < entries; i++)  ppix[i] = i;
 	/* XXX truecolor */
-#if XORG < 19
-	QueryColors(pmap, entries, ppix, prgb);
-#else
 	QueryColors(pmap, entries, ppix, prgb, serverClient);
-#endif
 
 	for (i = 0; i < entries; i++) { /* convert xrgbs to xColorItems */
 	    defs[i].pixel = ppix[i] & 0xff; /* change pixel to index */
@@ -752,26 +722,17 @@ vfbInstallColormap(ColormapPtr pmap)
 static void
 vfbUninstallColormap(ColormapPtr pmap)
 {
-#if XORG < 113
-    ColormapPtr curpmap = InstalledMaps[pmap->pScreen->myNum];
-#else
     ColormapPtr curpmap = GetInstalledColormap(pmap->pScreen);
-#endif
 
     if(pmap == curpmap)
     {
 	if (pmap->mid != pmap->pScreen->defColormap)
 	{
-#if XORG < 111
-	    curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
-						   RT_COLORMAP);
-#else
 	    int rc =  dixLookupResourceByType((void * *) &curpmap, pmap->pScreen->defColormap,
 					      RT_COLORMAP, serverClient, DixUnknownAccess);
 	    if (rc != Success)
 		ErrorF("Failed to uninstall color map\n");
 	    else
-#endif
 		(*pmap->pScreen->InstallColormap)(curpmap);
 	}
     }
@@ -973,20 +934,10 @@ static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 static void
 xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 {
-#if XORG < 19
-    WindowPtr	pWin = WindowTable[pScreen->myNum];
-#else
     WindowPtr	pWin = pScreen->root;
-#endif
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;
-#if XORG < 110
-    RegionPtr	pOldClip = NULL, bsExposed;
-#ifdef DO_SAVE_UNDERS
-    Bool	dosave = FALSE;
-#endif
-#endif
     WindowPtr   pLayerWin;
     BoxRec	box;
 
@@ -1006,8 +957,8 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	    {
 		RegionPtr	borderVisible;
 
-		borderVisible = REGION_CREATE(pScreen, NullBox, 1);
-		REGION_SUBTRACT(pScreen, borderVisible,
+		borderVisible = RegionCreate(NullBox, 1);
+		RegionSubtract(borderVisible,
 				&pWin->borderClip, &pWin->winSize);
 		pWin->valdata->before.borderVisible = borderVisible;
 	    }
@@ -1016,7 +967,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     }
     
     /*
-     * Use REGION_BREAK to avoid optimizations in ValidateTree
+     * Use RegionBreak to avoid optimizations in ValidateTree
      * that assume the root borderClip can't change well, normally
      * it doesn't...)
      */
@@ -1026,31 +977,24 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	box.y1 = 0;
 	box.x2 = pScreen->width;
 	box.y2 = pScreen->height;
-	REGION_INIT (pScreen, &pWin->winSize, &box, 1);
-	REGION_INIT (pScreen, &pWin->borderSize, &box, 1);
+	RegionInit(&pWin->winSize, &box, 1);
+	RegionInit(&pWin->borderSize, &box, 1);
 	if (WasViewable)
-	    REGION_RESET(pScreen, &pWin->borderClip, &box);
+	    RegionReset(&pWin->borderClip, &box);
 	pWin->drawable.width = pScreen->width;
 	pWin->drawable.height = pScreen->height;
-        REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+        RegionBreak(&pWin->clipList);
     }
     else
     {
-	REGION_EMPTY(pScreen, &pWin->borderClip);
-	REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+	RegionEmpty(&pWin->borderClip);
+	RegionBreak(&pWin->clipList);
     }
     
     ResizeChildrenWinSize (pWin, 0, 0, 0, 0);
     
     if (WasViewable)
     {
-#if XORG < 110
-	if (pWin->backStorage)
-	{
-	    pOldClip = REGION_CREATE(pScreen, NullBox, 1);
-	    REGION_COPY(pScreen, pOldClip, &pWin->clipList);
-	}
-#endif
 
 	if (pWin->firstChild)
 	{
@@ -1064,50 +1008,15 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	    anyMarked = TRUE;
 	}
 
-#if XORG < 110 && defined(DO_SAVE_UNDERS)
-	if (DO_SAVE_UNDERS(pWin))
-	{
-	    dosave = (*pScreen->ChangeSaveUnder)(pLayerWin, pLayerWin);
-	}
-#endif /* DO_SAVE_UNDERS */
-
 	if (anyMarked)
 	    (*pScreen->ValidateTree)(pWin, NullWindow, VTOther);
     }
 
-#if XORG < 110
-    if (pWin->backStorage &&
-	((pWin->backingStore == Always) || WasViewable))
-    {
-	if (!WasViewable)
-	    pOldClip = &pWin->clipList; /* a convenient empty region */
-	bsExposed = (*pScreen->TranslateBackingStore)
-			     (pWin, 0, 0, pOldClip,
-			      pWin->drawable.x, pWin->drawable.y);
-	if (WasViewable)
-	    REGION_DESTROY(pScreen, pOldClip);
-	if (bsExposed)
-	{
-	    RegionPtr	valExposed = NullRegion;
-    
-	    if (pWin->valdata)
-		valExposed = &pWin->valdata->after.exposed;
-	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
-	    if (valExposed)
-		REGION_EMPTY(pScreen, valExposed);
-	    REGION_DESTROY(pScreen, bsExposed);
-	}
-    }
-#endif
     if (WasViewable)
     {
 	if (anyMarked)
 	    (*pScreen->HandleExposures)(pWin);
 
-#if XORG < 110 && defined(DO_SAVE_UNDERS)
-	if (dosave)
-	    (*pScreen->PostChangeSaveUnder)(pLayerWin, pLayerWin);
-#endif /* DO_SAVE_UNDERS */
 	if (anyMarked && pScreen->PostValidateTree)
 	    (*pScreen->PostValidateTree)(pWin, NullWindow, VTOther);
     }
@@ -1506,17 +1415,9 @@ static Bool vncRandRInit(ScreenPtr pScreen)
 
 
 static Bool
-#if XORG < 113
-vfbCloseScreen(int index, ScreenPtr pScreen)
-#else
 vfbCloseScreen(ScreenPtr pScreen)
-#endif
 {
-#if XORG < 113
-    vfbScreenInfoPtr pvfb = &vfbScreens[index];
-#else
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-#endif
     int i;
  
     pScreen->CloseScreen = pvfb->closeScreen;
@@ -1525,12 +1426,6 @@ vfbCloseScreen(ScreenPtr pScreen)
      * XXX probably lots of stuff to clean.  For now,
      * clear installed colormaps so that server reset works correctly.
      */
-#if XORG < 113
-    for (i = 0; i < MAXSCREENS; i++)
-	InstalledMaps[i] = NULL;
-
-    return pScreen->CloseScreen(index, pScreen);
-#else
     for (i = 0; i < screenInfo.numScreens; i++)
 	SetInstalledColormap(screenInfo.screens[i], NULL);
 
@@ -1542,19 +1437,12 @@ vfbCloseScreen(ScreenPtr pScreen)
     pScreen->devPrivate = NULL;
 
     return pScreen->CloseScreen(pScreen);
-#endif
 }
 
 static Bool
-#if XORG < 113
-vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
-#else
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
-#endif
 {
-#if XORG >= 113
     int index = pScreen->myNum;
-#endif
     vfbScreenInfoPtr pvfb = &vfbScreens[index];
     int dpi;
     int ret;
@@ -1562,10 +1450,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     rrScrPrivPtr rp;
 
-#if XORG >= 113
     if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
 	return FALSE;
-#endif
 
     /* 96 is the default used by most other systems */
     dpi = 96;
@@ -1580,16 +1466,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     miSetPixmapDepths();
 
     switch (pvfb->fb.depth) {
-    case 8:
-	miSetVisualTypesAndMasks (8,
-				  ((1 << StaticGray) |
-				  (1 << GrayScale) |
-				  (1 << StaticColor) |
-				  (1 << PseudoColor) |
-				  (1 << TrueColor) |
-				  (1 << DirectColor)),
-				  8, PseudoColor, 0, 0, 0);
-	break;
     case 16:
 	miSetVisualTypesAndMasks (16,
 				  ((1 << TrueColor) |
@@ -1627,10 +1503,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 #endif
 
     if (!ret) return FALSE;
-
-#if XORG < 110
-    miInitializeBackingStore(pScreen);
-#endif
 
     /*
      * Circumvent the backing store that was just initialised.  This amounts
@@ -1726,7 +1598,6 @@ static void vfbClientStateChange(CallbackListPtr *a, void *b, void *c) {
     }
 }
  
-#if XORG >= 113
 #ifdef GLXEXT
 extern void GlxExtensionInit(void);
 
@@ -1735,7 +1606,6 @@ static ExtensionModule glxExt = {
     "GLX",
     &noGlxExtension
 };
-#endif
 #endif
 
 void
@@ -1750,15 +1620,9 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
     xorgGlxCreateVendor();
 #else
 
-#if XORG >= 113
 #ifdef GLXEXT
     if (serverGeneration == 1)
-#if XORG >= 116
         LoadExtensionList(&glxExt, 1, TRUE);
-#else
-        LoadExtension(&glxExt, TRUE);
-#endif
-#endif
 #endif
 
 #endif
@@ -1807,7 +1671,7 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
     {
 	if (-1 == AddScreen(vfbScreenInit, argc, argv))
 	{
-	    FatalError("Couldn't add screen %d", i);
+	    FatalError("Couldn't add screen %d\n", i);
 	}
     }
 
@@ -1842,11 +1706,9 @@ void InitInput(int argc, char *argv[])
   mieqInit ();
 }
 
-#if XORG > 17
 void CloseInput(void)
 {
 }
-#endif
 
 void vncClientGone(int fd)
 {

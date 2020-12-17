@@ -29,9 +29,7 @@
 #include "RFBGlue.h"
 
 #include "inputstr.h"
-#if XORG >= 110
 #include "inpututils.h"
-#endif
 #include "mi.h"
 #include "mipointer.h"
 #include "exevents.h"
@@ -50,11 +48,6 @@ extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
 #define BUTTONS 7
-
-/* Event queue is shared between all devices. */
-#if XORG < 111
-static EventList *eventq = NULL;
-#endif
 
 DeviceIntPtr vncKeyboardDev;
 DeviceIntPtr vncPointerDev;
@@ -130,61 +123,21 @@ void vncInitInputDevice(void)
 	    !EnableDevice(vncKeyboardDev, TRUE))
 		FatalError("Failed to activate TigerVNC devices\n");
 
-#if XORG < 111
-	/* eventq is never free()-ed because it exists during server life. */
-	if (eventq == NULL)
-		GetEventList(&eventq);
-#endif
-
 	vncPrepareInputDevices();
 }
-
-#if XORG < 111
-static void enqueueEvents(DeviceIntPtr dev, int n)
-{
-	int i;
-
-	for (i = 0; i < n; i++) {
-		/*
-		 * Passing arguments in global variable eventq is probably not
-		 * good programming practise but in this case it is safe and
-		 * clear.
-		 */
-		mieqEnqueue(dev, (InternalEvent *) (eventq + i)->event);
-	}
-}
-#endif /* XORG < 111 */
 
 void vncPointerButtonAction(int buttonMask)
 {
 	int i;
-#if XORG < 111
-	int n;
-#endif
-#if XORG >= 110
 	ValuatorMask mask;
-#endif
 
 	for (i = 0; i < BUTTONS; i++) {
 		if ((buttonMask ^ oldButtonMask) & (1 << i)) {
 			int action = (buttonMask & (1<<i)) ?
 				     ButtonPress : ButtonRelease;
-#if XORG < 110
-			n = GetPointerEvents(eventq, vncPointerDev,
-			                     action, i + 1,
-					     POINTER_RELATIVE, 0, 0, NULL);
-			enqueueEvents(vncPointerDev, n);
-#elif XORG < 111
-			valuator_mask_set_range(&mask, 0, 0, NULL);
-			n = GetPointerEvents(eventq, vncPointerDev,
-			                     action, i + 1,
-					     POINTER_RELATIVE, &mask);
-			enqueueEvents(vncPointerDev, n);
-#else
 			valuator_mask_set_range(&mask, 0, 0, NULL);
 			QueuePointerEvents(vncPointerDev, action, i + 1,
 					   POINTER_RELATIVE, &mask);
-#endif
 		}
 	}
 
@@ -194,32 +147,16 @@ void vncPointerButtonAction(int buttonMask)
 void vncPointerMove(int x, int y)
 {
 	int valuators[2];
-#if XORG < 111
-	int n;
-#endif
-#if XORG >= 110
 	ValuatorMask mask;
-#endif
 
 	if (cursorPosX == x && cursorPosY == y)
 		return;
 
 	valuators[0] = x;
 	valuators[1] = y;
-#if XORG < 110
-	n = GetPointerEvents(eventq, vncPointerDev, MotionNotify, 0,
-	                     POINTER_ABSOLUTE, 0, 2, valuators);
-	enqueueEvents(vncPointerDev, n);
-#elif XORG < 111
-	valuator_mask_set_range(&mask, 0, 2, valuators);
-	n = GetPointerEvents(eventq, vncPointerDev, MotionNotify, 0,
-	                     POINTER_ABSOLUTE, &mask);
-	enqueueEvents(vncPointerDev, n);
-#else
 	valuator_mask_set_range(&mask, 0, 2, valuators);
 	QueuePointerEvents(vncPointerDev, MotionNotify, 0,
 	                   POINTER_ABSOLUTE, &mask);
-#endif
 
 	cursorPosX = x;
 	cursorPosY = y;
@@ -327,18 +264,12 @@ static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 static inline void pressKey(DeviceIntPtr dev, int kc, Bool down, const char *msg)
 {
 	int action;
-#if XORG < 111
-	unsigned int n;
-#endif
 
 	if (msg != NULL)
 		LOG_DEBUG("%s %d %s", msg, kc, down ? "down" : "up");
 
 	action = down ? KeyPress : KeyRelease;
-#if XORG < 111
-	n = GetKeyboardEvents(eventq, dev, action, kc);
-	enqueueEvents(dev, n);
-#elif XORG < 118
+#if XORG < 118
 	QueueKeyboardEvents(dev, action, kc, NULL);
 #else
 	QueueKeyboardEvents(dev, action, kc);
@@ -711,3 +642,12 @@ static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 	 */
 	mieqProcessInputEvents();
 }
+
+#if INPUTTHREAD
+/** This function is called in Xserver/os/inputthread.c when starting
+    the input thread. */
+void
+ddxInputThreadInit(void)
+{
+}
+#endif

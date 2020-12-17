@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,12 +36,12 @@ public class HextileDecoder extends Decoder {
   public HextileDecoder() { super(DecoderFlags.DecoderPlain); }
 
   public void readRect(Rect r, InStream is,
-                       ConnParams cp, OutStream os)
+                       ServerParams server, OutStream os)
   {
     Rect t = new Rect();
     int bytesPerPixel;
 
-    bytesPerPixel = cp.pf().bpp/8;
+    bytesPerPixel = server.pf().bpp/8;
 
     for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
@@ -81,11 +82,11 @@ public class HextileDecoder extends Decoder {
   }
 
   public void decodeRect(Rect r, Object buffer,
-                         int buflen, ConnParams cp,
+                         int buflen, ServerParams server,
                          ModifiablePixelBuffer pb)
   {
     MemInStream is = new MemInStream((byte[])buffer, 0, buflen);
-    PixelFormat pf = cp.pf();
+    PixelFormat pf = server.pf();
     switch (pf.bpp) {
     case 8:  hextileDecode8(r, is, pf, pb); break;
     case 16: hextileDecode16(r, is, pf, pb); break;

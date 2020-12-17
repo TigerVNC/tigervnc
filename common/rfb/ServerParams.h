@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright 2014-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,6 +69,9 @@ namespace rfb {
     unsigned int ledState() { return ledState_; }
     void setLEDState(unsigned int state);
 
+    rdr::U32 clipboardFlags() const { return clipFlags; }
+    void setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths);
+
     bool supportsQEMUKeyEvent;
     bool supportsSetDesktopSize;
     bool supportsFence;
@@ -84,6 +87,8 @@ namespace rfb {
     char* name_;
     Cursor* cursor_;
     unsigned int ledState_;
+    rdr::U32 clipFlags;
+    rdr::U32 clipSizes[16];
   };
 }
 #endif

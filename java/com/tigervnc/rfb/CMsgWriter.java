@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2011 Pierre Ossman for Cendio AB
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,13 @@ package com.tigervnc.rfb;
 import com.tigervnc.rdr.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Iterator;
+import java.util.*;
 
 public class CMsgWriter {
 
-  protected CMsgWriter(ConnParams cp_, OutStream os_)
+  protected CMsgWriter(ServerParams server_, OutStream os_)
   {
-    cp = cp_;
+    server = server_;
     os = os_;
   }
 
@@ -46,98 +46,20 @@ public class CMsgWriter {
     endMsg();
   }
 
-  synchronized public void writeSetEncodings(int nEncodings, int[] encodings)
+  synchronized public void writeSetEncodings(List<Integer> encodings)
   {
     startMsg(MsgTypes.msgTypeSetEncodings);
     os.skip(1);
-    os.writeU16(nEncodings);
-    for (int i = 0; i < nEncodings; i++)
-      os.writeU32(encodings[i]);
+    os.writeU16(encodings.size());
+    for (Iterator<Integer> i = encodings.iterator(); i.hasNext();)
+      os.writeU32(i.next());
     endMsg();
-  }
-
-  // Ask for encodings based on which decoders are supported.  Assumes higher
-  // encoding numbers are more desirable.
-
-  synchronized public void writeSetEncodings(int preferredEncoding, boolean useCopyRect)
-  {
-    int nEncodings = 0;
-    int[] encodings = new int[Encodings.encodingMax+3];
-
-    if (cp.supportsLocalCursor) {
-      if (cp.supportsLocalCursorWithAlpha)
-        encodings[nEncodings++] = Encodings.pseudoEncodingCursorWithAlpha;
-      encodings[nEncodings++] = Encodings.pseudoEncodingCursor;
-      encodings[nEncodings++] = Encodings.pseudoEncodingXCursor;
-    }
-    if (cp.supportsDesktopResize)
-      encodings[nEncodings++] = Encodings.pseudoEncodingDesktopSize;
-    if (cp.supportsExtendedDesktopSize)
-      encodings[nEncodings++] = Encodings.pseudoEncodingExtendedDesktopSize;
-    if (cp.supportsDesktopRename)
-      encodings[nEncodings++] = Encodings.pseudoEncodingDesktopName;
-    if (cp.supportsClientRedirect)
-      encodings[nEncodings++] = Encodings.pseudoEncodingClientRedirect;
-
-    encodings[nEncodings++] = Encodings.pseudoEncodingLastRect;
-    encodings[nEncodings++] = Encodings.pseudoEncodingContinuousUpdates;
-    encodings[nEncodings++] = Encodings.pseudoEncodingFence;
-
-    if (Decoder.supported(preferredEncoding)) {
-      encodings[nEncodings++] = preferredEncoding;
-    }
-
-    if (useCopyRect) {
-      encodings[nEncodings++] = Encodings.encodingCopyRect;
-    }
-
-    /*
-     * Prefer encodings in this order:
-     *
-     *   Tight, ZRLE, Hextile, *
-     */
-
-    if ((preferredEncoding != Encodings.encodingTight) &&
-        Decoder.supported(Encodings.encodingTight))
-      encodings[nEncodings++] = Encodings.encodingTight;
-
-    if ((preferredEncoding != Encodings.encodingZRLE) &&
-        Decoder.supported(Encodings.encodingZRLE))
-      encodings[nEncodings++] = Encodings.encodingZRLE;
-
-    if ((preferredEncoding != Encodings.encodingHextile) &&
-        Decoder.supported(Encodings.encodingHextile))
-      encodings[nEncodings++] = Encodings.encodingHextile;
-
-    // Remaining encodings
-    for (int i = Encodings.encodingMax; i >= 0; i--) {
-      switch (i) {
-      case Encodings.encodingCopyRect:
-      case Encodings.encodingTight:
-      case Encodings.encodingZRLE:
-      case Encodings.encodingHextile:
-        /* These have already been sent earlier */
-        break;
-      default:
-        if ((i != preferredEncoding) && Decoder.supported(i))
-            encodings[nEncodings++] = i;
-      }
-    }
-
-    if (cp.compressLevel >= 0 && cp.compressLevel <= 9)
-      encodings[nEncodings++] =
-        Encodings.pseudoEncodingCompressLevel0 + cp.compressLevel;
-    if (cp.qualityLevel >= 0 && cp.qualityLevel <= 9)
-      encodings[nEncodings++] =
-        Encodings.pseudoEncodingQualityLevel0 + cp.qualityLevel;
-
-    writeSetEncodings(nEncodings, encodings);
   }
 
   synchronized public void writeSetDesktopSize(int width, int height,
                                                ScreenSet layout)
 	{
-	  if (!cp.supportsSetDesktopSize)
+	  if (!server.supportsSetDesktopSize)
 	    throw new Exception("Server does not support SetDesktopSize");
 
 	  startMsg(MsgTypes.msgTypeSetDesktopSize);
@@ -176,7 +98,7 @@ public class CMsgWriter {
   synchronized public void writeEnableContinuousUpdates(boolean enable,
                                            int x, int y, int w, int h)
   {
-    if (!cp.supportsContinuousUpdates)
+    if (!server.supportsContinuousUpdates)
       throw new Exception("Server does not support continuous updates");
 
     startMsg(MsgTypes.msgTypeEnableContinuousUpdates);
@@ -193,7 +115,7 @@ public class CMsgWriter {
 
   synchronized public void writeFence(int flags, int len, byte[] data)
   {
-    if (!cp.supportsFence)
+    if (!server.supportsFence)
       throw new Exception("Server does not support fences");
     if (len > 64)
       throw new Exception("Too large fence payload");
@@ -211,7 +133,7 @@ public class CMsgWriter {
     endMsg();
   }
 
-  synchronized public void keyEvent(int keysym, boolean down)
+  synchronized public void writeKeyEvent(int keysym, boolean down)
   {
     startMsg(MsgTypes.msgTypeKeyEvent);
     os.writeU8(down?1:0);
@@ -220,13 +142,13 @@ public class CMsgWriter {
     endMsg();
   }
 
-  synchronized public void pointerEvent(Point pos, int buttonMask)
+  synchronized public void writePointerEvent(Point pos, int buttonMask)
   {
     Point p = new Point(pos.x,pos.y);
     if (p.x < 0) p.x = 0;
     if (p.y < 0) p.y = 0;
-    if (p.x >= cp.width) p.x = cp.width - 1;
-    if (p.y >= cp.height) p.y = cp.height - 1;
+    if (p.x >= server.width()) p.x = server.width() - 1;
+    if (p.y >= server.height()) p.y = server.height() - 1;
 
     startMsg(MsgTypes.msgTypePointerEvent);
     os.writeU8(buttonMask);
@@ -246,14 +168,14 @@ public class CMsgWriter {
     endMsg();
   }
 
-  synchronized public void startMsg(int type) {
+  synchronized protected void startMsg(int type) {
     os.writeU8(type);
   }
 
-  synchronized public void endMsg() {
+  synchronized protected void endMsg() {
     os.flush();
   }
 
-  ConnParams cp;
-  OutStream os;
+  protected ServerParams server;
+  protected OutStream os;
 }

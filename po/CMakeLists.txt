@@ -46,7 +46,7 @@ foreach(lang ${po_FILES})
   )
 
   install(FILES ${mo}
-    DESTINATION "${LOCALE_DIR}/${lang}/LC_MESSAGES"
+    DESTINATION "${CMAKE_INSTALL_FULL_LOCALEDIR}/${lang}/LC_MESSAGES"
     RENAME tigervnc.mo
   )
 

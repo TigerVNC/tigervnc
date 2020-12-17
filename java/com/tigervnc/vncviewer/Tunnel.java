@@ -29,6 +29,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
+import java.net.*;
 import java.util.*;
 
 import com.tigervnc.rdr.*;
@@ -52,29 +54,23 @@ public class Tunnel {
   private final static String DEFAULT_VIA_TEMPLATE
     = "-f -L %L:%H:%R %G sleep 20";
 
-  public static void createTunnel(CConn cc, int localPort) throws Exception {
-    int remotePort;
-    String gatewayHost;
-    String remoteHost;
-
-    remotePort = cc.getServerPort();
-    gatewayHost = cc.getServerName();
-    remoteHost = "localhost";
-    if (!via.getValue().isEmpty()) {
-      gatewayHost = getSshHost();
-      remoteHost = cc.getServerName();
-    }
-
-    String pattern = extSSHArgs.getValue();
-    if (pattern == null || pattern.isEmpty()) {
-      if (tunnel.getValue() && via.getValue().isEmpty())
-        pattern = System.getProperty("VNC_TUNNEL_CMD");
-      else
-        pattern = System.getProperty("VNC_VIA_CMD");
-    }
-
-    if (extSSH.getValue() || 
-        (pattern != null && pattern.length() > 0)) {
+  public static void createTunnel(String gatewayHost,
+                                  String remoteHost,
+                                  int remotePort,
+                                  int localPort) throws Exception {
+    if (extSSH.getValue()) {
+      String pattern = extSSHArgs.getValueStr();
+      if (pattern == null || pattern.isEmpty()) {
+        if (tunnel.getValue() && via.getValue().isEmpty()) {
+          pattern = System.getProperty("VNC_TUNNEL_CMD");
+          if (pattern == null || pattern.isEmpty())
+            pattern = DEFAULT_TUNNEL_TEMPLATE;
+        } else {
+          pattern = System.getProperty("VNC_VIA_CMD");
+          if (pattern == null || pattern.isEmpty())
+            pattern = DEFAULT_VIA_TEMPLATE;
+        }
+      }
       createTunnelExt(gatewayHost, remoteHost, remotePort, localPort, pattern);
     } else {
       createTunnelJSch(gatewayHost, remoteHost, remotePort, localPort);
@@ -102,12 +98,12 @@ public class Tunnel {
 
   public static String getSshHost() {
     String sshHost = via.getValue();
-    if (sshHost.isEmpty())
-      return vncServerName.getValue();
-    int end = sshHost.indexOf(":");
-    if (end < 0)
-      end = sshHost.length();
-    sshHost = sshHost.substring(sshHost.indexOf("@")+1, end);
+    if (!sshHost.isEmpty()) {
+      int end = sshHost.indexOf(":");
+      if (end < 0)
+        end = sshHost.length();
+      sshHost = sshHost.substring(sshHost.indexOf("@")+1, end);
+    }
     return sshHost;
   }
 
@@ -132,7 +128,8 @@ public class Tunnel {
       return sshKeyFile.getValue();
     String[] ids = { "id_dsa", "id_rsa" };
     for (String id : ids) {
-      File f = new File(FileUtils.getHomeDir()+".ssh/"+id);
+      File f = new File(FileUtils.getHomeDir()+".ssh"+
+                        FileUtils.getFileSeparator()+id);
       if (f.exists() && f.canRead())
         return(f.getAbsolutePath());
     }
@@ -154,7 +151,8 @@ public class Tunnel {
       // NOTE: jsch does not support all ciphers.  User may be
       //       prompted to accept host key authenticy even if
       //       the key is in the known_hosts file.
-      File knownHosts = new File(FileUtils.getHomeDir()+".ssh/known_hosts");
+      File knownHosts = new File(FileUtils.getHomeDir()+".ssh"+
+                                 FileUtils.getFileSeparator()+"known_hosts");
       if (knownHosts.exists() && knownHosts.canRead())
   	    jsch.setKnownHosts(knownHosts.getAbsolutePath());
       ArrayList<File> privateKeys = new ArrayList<File>();
@@ -196,7 +194,10 @@ public class Tunnel {
       if (session.getConfig("StrictHostKeyChecking") == null)
         session.setConfig("StrictHostKeyChecking", "ask");
       session.connect();
-      session.setPortForwardingL(localPort, remoteHost, remotePort);
+      if (gatewayHost.equals(remoteHost))
+        session.setPortForwardingL(localPort, new String("localhost"), remotePort);
+      else
+        session.setPortForwardingL(localPort, remoteHost, remotePort);
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage()); 
     }
@@ -205,22 +206,42 @@ public class Tunnel {
   private static void createTunnelExt(String gatewayHost, String remoteHost,
                                       int remotePort, int localPort,
                                       String pattern) throws Exception {
-    if (pattern == null || pattern.length() < 1) {
-      if (tunnel.getValue() && via.getValue().isEmpty())
-        pattern = DEFAULT_TUNNEL_TEMPLATE;
-      else
-        pattern = DEFAULT_VIA_TEMPLATE;
-    }
     String cmd = fillCmdPattern(pattern, gatewayHost, remoteHost,
                                 remotePort, localPort);
     try {
       Thread t = new Thread(new ExtProcess(cmd, vlog, true));
       t.start();
-      // wait for the ssh process to start
-      Thread.sleep(1000);
+      // try for up to 5s
+      long start = System.currentTimeMillis();
+      while (System.currentTimeMillis() - start < 5000) {
+        if (isTunnelReady(localPort))
+          return;
+        else
+          Thread.sleep(100);
+      }
+      throw new Exception("SSH Tunnel not ready");
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }
+  }
+
+  private static boolean isTunnelReady(int localPort) throws Exception {
+      // test the local forwarding socket to make
+      // sure the tunnel is up before connecting
+      SocketAddress sockAddr =
+        new InetSocketAddress("localhost", localPort);
+      java.net.Socket socket = new java.net.Socket();
+      boolean ready = false;
+      try {
+        socket.connect(sockAddr, 1000);
+        ready = socket.isConnected();
+        socket.close();
+      } catch (IOException e) {
+        // expected until tunnel is up
+      } catch (java.lang.Exception e) {
+        throw new Exception(e.getMessage());
+      }
+      return ready;
   }
 
   private static String fillCmdPattern(String pattern, String gatewayHost,

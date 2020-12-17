@@ -37,6 +37,7 @@
 #include "CConn.h"
 #include "Surface.h"
 #include "Viewport.h"
+#include "touch.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Image_Surface.H>
@@ -255,13 +256,50 @@ void DesktopWindow::updateWindow()
 
 void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 {
+  bool maximized;
+
   if ((new_w == viewport->w()) && (new_h == viewport->h()))
     return;
+
+  maximized = false;
+
+#ifdef WIN32
+  WINDOWPLACEMENT wndpl;
+  memset(&wndpl, 0, sizeof(WINDOWPLACEMENT));
+  wndpl.length = sizeof(WINDOWPLACEMENT);
+  GetWindowPlacement(fl_xid(this), &wndpl);
+  if (wndpl.showCmd == SW_SHOWMAXIMIZED)
+    maximized = true;
+#elif defined(__APPLE__)
+  if (cocoa_win_is_zoomed(this))
+    maximized = true;
+#else
+  Atom net_wm_state = XInternAtom (fl_display, "_NET_WM_STATE", 0);
+  Atom net_wm_state_maximized_vert = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_VERT", 0);
+  Atom net_wm_state_maximized_horz = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_HORZ", 0);
+
+  Atom type;
+  int format;
+  unsigned long nitems, remain;
+  Atom *atoms;
+
+  XGetWindowProperty(fl_display, fl_xid(this), net_wm_state, 0, 1024, False, XA_ATOM, &type, &format, &nitems, &remain, (unsigned char**)&atoms);
+
+  for (unsigned long i = 0;i < nitems;i++) {
+    if ((atoms[i] == net_wm_state_maximized_vert) ||
+        (atoms[i] == net_wm_state_maximized_horz)) {
+      maximized = true;
+      break;
+    }
+  }
+
+  XFree(atoms);
+#endif
 
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
   // like they are.
-  if (!fullscreen_active()) {
+  if (!fullscreen_active() && !maximized) {
     if ((w() == viewport->w()) && (h() == viewport->h()))
       size(new_w, new_h);
     else {
@@ -279,17 +317,33 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
-void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
-{
-  viewport->serverCutText(str, len);
-}
-
-
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
                               const rdr::U8* data)
 {
   viewport->setCursor(width, height, hotspot, data);
+}
+
+
+void DesktopWindow::show()
+{
+  Fl_Window::show();
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  XEvent e;
+
+  // Request ability to grab keyboard under Xwayland
+  e.xany.type = ClientMessage;
+  e.xany.window = fl_xid(this);
+  e.xclient.message_type = XInternAtom (fl_display, "_XWAYLAND_MAY_GRAB_KEYBOARD", 0);
+  e.xclient.format = 32;
+  e.xclient.data.l[0] = 1;
+  e.xclient.data.l[1] = 0;
+  e.xclient.data.l[2] = 0;
+  e.xclient.data.l[3] = 0;
+  e.xclient.data.l[4] = 0;
+  XSendEvent(fl_display, RootWindow(fl_display, fl_screen), 0, SubstructureNotifyMask | SubstructureRedirectMask, &e);
+#endif
 }
 
 
@@ -439,6 +493,22 @@ void DesktopWindow::setLEDState(unsigned int state)
 }
 
 
+void DesktopWindow::handleClipboardRequest()
+{
+  viewport->handleClipboardRequest();
+}
+
+void DesktopWindow::handleClipboardAnnounce(bool available)
+{
+  viewport->handleClipboardAnnounce(available);
+}
+
+void DesktopWindow::handleClipboardData(const char* data)
+{
+  viewport->handleClipboardData(data);
+}
+
+
 void DesktopWindow::resize(int x, int y, int w, int h)
 {
   bool resizing;
@@ -523,8 +593,11 @@ void DesktopWindow::menuOverlay(void* data)
   DesktopWindow *self;
 
   self = (DesktopWindow*)data;
-  self->setOverlay(_("Press %s to open the context menu"),
-                   (const char*)menuKey);
+
+  if (strcmp((const char*)menuKey, "") != 0) {
+    self->setOverlay(_("Press %s to open the context menu"),
+                     (const char*)menuKey);
+  }
 }
 
 void DesktopWindow::setWatermark(const Fl_RGB_Image *image)
@@ -707,6 +780,12 @@ int DesktopWindow::handle(int event)
 int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 {
   int ret;
+
+  // FLTK keeps spamming bogus FL_MOVE events if _any_ X event is
+  // received with the mouse pointer outside our windows
+  // https://github.com/fltk/fltk/issues/76
+  if ((event == FL_MOVE) && (win == NULL))
+    return 0;
 
   ret = Fl::handle_(event, win);
 
@@ -914,23 +993,13 @@ void DesktopWindow::ungrabKeyboard()
 void DesktopWindow::grabPointer()
 {
 #if !defined(WIN32) && !defined(__APPLE__)
-  int ret;
-
   // We also need to grab the pointer as some WMs like to grab buttons
   // combined with modifies (e.g. Alt+Button0 in metacity).
-  ret = XGrabPointer(fl_display, fl_xid(this), True,
-                     ButtonPressMask|ButtonReleaseMask|
-                     ButtonMotionMask|PointerMotionMask,
-                     GrabModeAsync, GrabModeAsync,
-                     None, None, CurrentTime);
-  if (ret) {
-    // Having a button pressed prevents us from grabbing, we make
-    // a new attempt in fltkHandle()
-    if (ret == AlreadyGrabbed)
-      return;
-    vlog.error(_("Failure grabbing mouse"));
+
+  // Having a button pressed prevents us from grabbing, we make
+  // a new attempt in fltkHandle()
+  if (!x11_grab_pointer(fl_xid(this)))
     return;
-  }
 #endif
 
   mouseGrabbed = true;
@@ -940,8 +1009,9 @@ void DesktopWindow::grabPointer()
 void DesktopWindow::ungrabPointer()
 {
   mouseGrabbed = false;
+
 #if !defined(WIN32) && !defined(__APPLE__)
-  XUngrabPointer(fl_display, CurrentTime);
+  x11_ungrab_pointer(fl_xid(this));
 #endif
 }
 
@@ -976,15 +1046,9 @@ void DesktopWindow::maximizeWindow()
   } else
     ShowWindow(fl_xid(this), SW_MAXIMIZE);
 #elif defined(__APPLE__)
-  // OS X is somewhat strange and does not really have a concept of a
-  // maximized window, so we can simply resize the window to the workarea.
-  // Note that we shouldn't do this whilst in full screen as that will
-  // incorrectly adjust things.
   if (fullscreen_active())
     return;
-  int X, Y, W, H;
-  Fl::screen_work_area(X, Y, W, H, this->x(), this->y());
-  size(W, H);
+  cocoa_win_zoom(this);
 #else
   // X11
   fl_open_display();

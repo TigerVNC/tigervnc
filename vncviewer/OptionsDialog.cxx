@@ -262,6 +262,7 @@ void OptionsDialog::loadOptions(void)
   const char *menuKeyBuf;
 
   viewOnlyCheckbox->value(viewOnly);
+  emulateMBCheckbox->value(emulateMiddleButton);
   acceptClipboardCheckbox->value(acceptClipboard);
 #if !defined(WIN32) && !defined(__APPLE__)
   setPrimaryCheckbox->value(setPrimary);
@@ -375,6 +376,7 @@ void OptionsDialog::storeOptions(void)
 
   /* Input */
   viewOnly.setParam(viewOnlyCheckbox->value());
+  emulateMiddleButton.setParam(emulateMBCheckbox->value());
   acceptClipboard.setParam(acceptClipboardCheckbox->value());
 #if !defined(WIN32) && !defined(__APPLE__)
   setPrimary.setParam(setPrimaryCheckbox->value());
@@ -507,28 +509,28 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
     fullcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                      RADIO_MIN_WIDTH,
                                                      RADIO_HEIGHT,
-                                                     _("Full (all available colors)")));
+                                                     _("Full")));
     fullcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     mediumcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                        RADIO_MIN_WIDTH,
                                                        RADIO_HEIGHT,
-                                                       _("Medium (256 colors)")));
+                                                       _("Medium")));
     mediumcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     lowcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                     RADIO_MIN_WIDTH,
                                                     RADIO_HEIGHT,
-                                                    _("Low (64 colors)")));
+                                                    _("Low")));
     lowcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     verylowcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                         RADIO_MIN_WIDTH,
                                                         RADIO_HEIGHT,
-                                                        _("Very low (8 colors)")));
+                                                        _("Very low")));
     verylowcolorCheckbox->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
   }
@@ -551,7 +553,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   compressionInput = new Fl_Int_Input(tx + INDENT, ty,
                                       INPUT_HEIGHT, INPUT_HEIGHT,
-                                      _("level (1=fast, 6=best [4-6 are rarely useful])"));
+                                      _("level (0=fast, 9=best)"));
   compressionInput->align(FL_ALIGN_RIGHT);
   ty += INPUT_HEIGHT + INNER_MARGIN;
 
@@ -694,6 +696,12 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
                                                   _("View only (ignore mouse and keyboard)")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+  emulateMBCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                   CHECK_MIN_WIDTH,
+                                                   CHECK_HEIGHT,
+                                                   _("Emulate middle mouse button")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   acceptClipboardCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,

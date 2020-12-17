@@ -111,8 +111,8 @@ When run as a "helper" app, make the window iconified at startup.
 .SH SEE ALSO
 .BR vncpasswd (1),
 .BR vncviewer (1),
-.BR vncserver (1),
-.BR Xvnc (1)
+.BR Xvnc (1),
+.BR vncsession (8)
 .br
 https://www.tigervnc.org
 

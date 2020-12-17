@@ -1,4 +1,4 @@
-/* Copyright 2016 Brian P. Hinz
+/* Copyright 2016-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
     if (!drect.enclosed_by(getRect())) {
       String msg = "Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d";
       vlog.error(String.format(msg, drect.width(), drect.height(),
-                               drect.tl.x, drect.tl.y, width_, height_));
+                               drect.tl.x, drect.tl.y, width(), height()));
       drect = drect.intersect(getRect());
     }
 
@@ -126,7 +126,7 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
     if (!srect.enclosed_by(getRect())) {
       String msg = "Source rect %dx%d at %d,%d exceeds framebuffer %dx%d";
       vlog.error(String.format(msg, srect.width(), srect.height(),
-                               srect.tl.x, srect.tl.y, width_, height_));
+                               srect.tl.x, srect.tl.y, width(), height()));
       srect = srect.intersect(getRect());
       // Need to readjust the destination now that the area has changed
       drect = srect.translate(move_by_delta);

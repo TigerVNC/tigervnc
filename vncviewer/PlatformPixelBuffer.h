@@ -53,7 +53,7 @@ protected:
 
 #if !defined(WIN32) && !defined(__APPLE__)
 protected:
-  bool setupShm();
+  bool setupShm(int width, int height);
 
 protected:
   XShmSegmentInfo *shminfo;

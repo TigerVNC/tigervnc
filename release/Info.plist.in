@@ -4,12 +4,14 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<key>CFBundleDisplayName</key>
+	<string>TigerVNC Viewer</string>
 	<key>CFBundleExecutable</key>
 	<string>TigerVNC Viewer</string>
 	<key>NSHighResolutionCapable</key>
 	<string>False</string>
 	<key>CFBundleGetInfoString</key>
-	<string>@VERSION@, Copyright © 1998-2011 [many holders]</string>
+	<string>@VERSION@, Copyright © 1998-2020 [many holders]</string>
 	<key>CFBundleIconFile</key>
 	<string>tigervnc.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -29,6 +31,6 @@
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 1998-2011 [many holders]</string>
+	<string>Copyright © 1998-2020 [many holders]</string>
 </dict>
 </plist>

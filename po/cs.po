@@ -1,14 +1,14 @@
 # Czech translation for TigerVNC.
 # Copyright (C) 2018 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
-# Petr Pisar <petr.pisar@atlas.cz>, 2018.
+# Petr Pisar <petr.pisar@atlas.cz>, 2018, 2019.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.8.90\n"
+"Project-Id-Version: tigervnc 1.9.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2018-06-13 14:22+0000\n"
-"PO-Revision-Date: 2018-07-05 11:07+02:00\n"
+"POT-Creation-Date: 2019-10-18 10:14+0200\n"
+"PO-Revision-Date: 2019-11-01 22:20+01:00\n"
 "Last-Translator: Petr Pisar <petr.pisar@atlas.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "Language: cs\n"
@@ -17,103 +17,91 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 
-#: vncviewer/CConn.cxx:116
+#: vncviewer/CConn.cxx:99
 #, c-format
-msgid "connected to socket %s"
-msgstr "připojeno na socket %s"
+msgid "Connected to socket %s"
+msgstr "Připojeno na socket %s"
 
-#: vncviewer/CConn.cxx:123
+#: vncviewer/CConn.cxx:106
 #, c-format
-msgid "connected to host %s port %d"
-msgstr "připojeno na stroj %s port %d"
+msgid "Connected to host %s port %d"
+msgstr "Připojeno na stroj %s port %d"
 
-#: vncviewer/CConn.cxx:184
+#: vncviewer/CConn.cxx:157
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Název plochy: %.80s"
 
-#: vncviewer/CConn.cxx:189
+#: vncviewer/CConn.cxx:162
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Stroj: %.80s port: %d"
 
-#: vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:167
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Velikost: %d×%d"
 
-#: vncviewer/CConn.cxx:202
+#: vncviewer/CConn.cxx:175
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Formát pixelu: %s"
 
-#: vncviewer/CConn.cxx:209
+#: vncviewer/CConn.cxx:182
 #, c-format
 msgid "(server default %s)"
 msgstr "(výchozí serveru %s)"
 
-#: vncviewer/CConn.cxx:214
+#: vncviewer/CConn.cxx:187
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Požadované kódování: %s"
 
-#: vncviewer/CConn.cxx:219
+#: vncviewer/CConn.cxx:192
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Poslední použité kódování: %s"
 
-#: vncviewer/CConn.cxx:224
+#: vncviewer/CConn.cxx:197
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Odhad rychlosti linky: %d kb/s"
 
-#: vncviewer/CConn.cxx:229
+#: vncviewer/CConn.cxx:202
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Verze protokolu: %d.%d"
 
-#: vncviewer/CConn.cxx:234
+#: vncviewer/CConn.cxx:207
 #, c-format
 msgid "Security method: %s"
 msgstr "Způsob zabezpečení: %s"
 
-#: vncviewer/CConn.cxx:358
+#: vncviewer/CConn.cxx:324
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "Požadavek SetDesktopSize selhal: %d"
 
-#: vncviewer/CConn.cxx:428
+#: vncviewer/CConn.cxx:372
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Neplatná zpráva SetColourMapEntries od serveru!"
 
-#: vncviewer/CConn.cxx:479
-msgid "Enabling continuous updates"
-msgstr "Zapínají se spojité aktualizace"
-
-#: vncviewer/CConn.cxx:556
+#: vncviewer/CConn.cxx:480
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Tok %d kb/S – kvalita se mění na %d"
 
-#: vncviewer/CConn.cxx:578
+#: vncviewer/CConn.cxx:502
 #, c-format
-msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Tok %d kb/s – plný počet barev je nyní %s"
+msgid "Throughput %d kbit/s - full color is now enabled"
+msgstr "Tok %d kb/s – plný počet barev je nyní zapnut"
 
-#: vncviewer/CConn.cxx:580
-msgid "disabled"
-msgstr "vypnut"
-
-#: vncviewer/CConn.cxx:580
-msgid "enabled"
-msgstr "zapnut"
-
-#: vncviewer/CConn.cxx:590
+#: vncviewer/CConn.cxx:505
 #, c-format
-msgid "Using %s encoding"
-msgstr "Používá se kódování %s"
+msgid "Throughput %d kbit/s - full color is now disabled"
+msgstr "Tok %d kb/s – plný počet barev je nyní vypnut"
 
-#: vncviewer/CConn.cxx:637
+#: vncviewer/CConn.cxx:531
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Používá se formát pixelu %s"
@@ -122,25 +110,25 @@ msgstr "Používá se formát pixelu %s"
 msgid "Invalid geometry specified!"
 msgstr "Zadána neplatná geometrie!"
 
-#: vncviewer/DesktopWindow.cxx:451
+#: vncviewer/DesktopWindow.cxx:495
 msgid "Adjusting window size to avoid accidental full screen request"
 msgstr "Upravuje se velikost okna, by se předešlo nechtěnému požadavku na režim celé obrazovky"
 
-#: vncviewer/DesktopWindow.cxx:495
+#: vncviewer/DesktopWindow.cxx:539
 #, c-format
 msgid "Press %s to open the context menu"
 msgstr "Kontextovou nabídku otevřete stisknutím %s"
 
-#: vncviewer/DesktopWindow.cxx:794 vncviewer/DesktopWindow.cxx:802
-#: vncviewer/DesktopWindow.cxx:822
+#: vncviewer/DesktopWindow.cxx:836 vncviewer/DesktopWindow.cxx:844
+#: vncviewer/DesktopWindow.cxx:864
 msgid "Failure grabbing keyboard"
 msgstr "Zabrání klávesnice se nezdařilo"
 
-#: vncviewer/DesktopWindow.cxx:896
+#: vncviewer/DesktopWindow.cxx:938
 msgid "Failure grabbing mouse"
 msgstr "Zabrání myši se nezdařilo"
 
-#: vncviewer/DesktopWindow.cxx:1120
+#: vncviewer/DesktopWindow.cxx:1162
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Pro požadavek na změnu velikosti bylo vypočteno neplatné rozložení obrazovky!"
 
@@ -384,237 +372,237 @@ msgstr "Toto spojení není zabezpečené"
 msgid "Username:"
 msgstr "Jméno:"
 
-#: vncviewer/UserDialog.cxx:140
+#: vncviewer/UserDialog.cxx:146
 msgid "Password:"
 msgstr "Heslo:"
 
-#: vncviewer/UserDialog.cxx:179
+#: vncviewer/UserDialog.cxx:185
 msgid "Authentication cancelled"
 msgstr "Autentizace zrušena"
 
-#: vncviewer/Viewport.cxx:377
+#: vncviewer/Viewport.cxx:389
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
 msgstr "Aktualizace stavu diod klávesnice se nezdařila: %lu"
 
-#: vncviewer/Viewport.cxx:383 vncviewer/Viewport.cxx:389
+#: vncviewer/Viewport.cxx:395 vncviewer/Viewport.cxx:401
 #, c-format
 msgid "Failed to update keyboard LED state: %d"
 msgstr "Aktualizace stavu diod klávesnice se nezdařila: %d"
 
-#: vncviewer/Viewport.cxx:419
+#: vncviewer/Viewport.cxx:431
 msgid "Failed to update keyboard LED state"
 msgstr "Aktualizace stavu diod klávesnice se nezdařila"
 
-#: vncviewer/Viewport.cxx:446 vncviewer/Viewport.cxx:454
-#: vncviewer/Viewport.cxx:471
+#: vncviewer/Viewport.cxx:458 vncviewer/Viewport.cxx:466
+#: vncviewer/Viewport.cxx:483
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
 msgstr "Získaní stavu diod klávesnice se nezdařilo: %d"
 
-#: vncviewer/Viewport.cxx:817
+#: vncviewer/Viewport.cxx:833
 msgid "No key code specified on key press"
 msgstr "Při stisku klávesy nebyl zadán žádný kód klávesy"
 
-#: vncviewer/Viewport.cxx:959
+#: vncviewer/Viewport.cxx:982
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Žádný scan kód pro rozšířenou virtuální klávesu 0x%02x"
 
-#: vncviewer/Viewport.cxx:961
+#: vncviewer/Viewport.cxx:984
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Žádný scan kód pro virtuální klávesu 0x%02x"
 
-#: vncviewer/Viewport.cxx:967
+#: vncviewer/Viewport.cxx:990
 #, c-format
 msgid "Invalid scan code 0x%02x"
 msgstr "Neplatný scan kód 0x%02x"
 
-#: vncviewer/Viewport.cxx:997
+#: vncviewer/Viewport.cxx:1020
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Žádný symbol pro rozšířenou virtuální klávesu 0x%02x"
 
-#: vncviewer/Viewport.cxx:999
+#: vncviewer/Viewport.cxx:1022
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Žádný symbol pro virtuální klávesu 0x%02x"
 
-#: vncviewer/Viewport.cxx:1086
+#: vncviewer/Viewport.cxx:1115
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Žádný symbol pro kód klávesy 0x%02x (v současném stavu)"
 
-#: vncviewer/Viewport.cxx:1119
+#: vncviewer/Viewport.cxx:1148
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Žádný symbol pro kód klávesy %d (v současném stavu)"
 
-#: vncviewer/Viewport.cxx:1170
+#: vncviewer/Viewport.cxx:1199
 msgctxt "ContextMenu|"
 msgid "E&xit viewer"
 msgstr "&Ukončit prohlížeč"
 
-#: vncviewer/Viewport.cxx:1173
+#: vncviewer/Viewport.cxx:1202
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "Přes celou o&brazovku"
 
-#: vncviewer/Viewport.cxx:1176
+#: vncviewer/Viewport.cxx:1205
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "Minimali&zovat"
 
-#: vncviewer/Viewport.cxx:1178
+#: vncviewer/Viewport.cxx:1207
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Přizpůsobit &velikost okna relaci"
 
-#: vncviewer/Viewport.cxx:1183
+#: vncviewer/Viewport.cxx:1212
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:1186
+#: vncviewer/Viewport.cxx:1215
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:1192
+#: vncviewer/Viewport.cxx:1221
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Poslat %s"
 
-#: vncviewer/Viewport.cxx:1198
+#: vncviewer/Viewport.cxx:1227
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Poslat Ctrl-Alt-&Del"
 
-#: vncviewer/Viewport.cxx:1201
+#: vncviewer/Viewport.cxx:1230
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "Obnovit ob&razovku"
 
-#: vncviewer/Viewport.cxx:1204
+#: vncviewer/Viewport.cxx:1233
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "V&olby…"
 
-#: vncviewer/Viewport.cxx:1206
+#: vncviewer/Viewport.cxx:1235
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Úda&je o spojení…"
 
-#: vncviewer/Viewport.cxx:1208
+#: vncviewer/Viewport.cxx:1237
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "O prohlížeči &TigerVNC…"
 
-#: vncviewer/Viewport.cxx:1211
+#: vncviewer/Viewport.cxx:1240
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
 msgstr "Schovat &nabídku"
 
-#: vncviewer/Viewport.cxx:1300
+#: vncviewer/Viewport.cxx:1329
 msgid "VNC connection info"
 msgstr "Údaje o spojení VNC"
 
-#: vncviewer/parameters.cxx:279 vncviewer/parameters.cxx:313
+#: vncviewer/parameters.cxx:278 vncviewer/parameters.cxx:312
 #, c-format
 msgid "The name of the parameter %s was too large to write to the registry"
 msgstr "Název parametru %s je příliš dlouhý pro zápis do registru"
 
-#: vncviewer/parameters.cxx:285 vncviewer/parameters.cxx:292
+#: vncviewer/parameters.cxx:284 vncviewer/parameters.cxx:291
 #, c-format
 msgid "The parameter %s was too large to write to the registry"
 msgstr "Parametr %s byl příliš dlouhý na zápis do registru"
 
-#: vncviewer/parameters.cxx:298 vncviewer/parameters.cxx:319
+#: vncviewer/parameters.cxx:297 vncviewer/parameters.cxx:318
 #, c-format
 msgid "Failed to write parameter %s of type %s to the registry: %ld"
 msgstr "Zápis parametru %s typu %s do registru selhal: %ld"
 
-#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:373
+#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:377
 #, c-format
 msgid "The name of the parameter %s was too large to read from the registry"
 msgstr "Název parametru %s byl příliš dlouhý na přečtení z registru"
 
-#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:382
+#: vncviewer/parameters.cxx:346 vncviewer/parameters.cxx:386
 #, c-format
 msgid "Failed to read parameter %s from the registry: %ld"
 msgstr "Přečtení parametru %s z registru selhalo: %ld"
 
-#: vncviewer/parameters.cxx:352
+#: vncviewer/parameters.cxx:357
 #, c-format
 msgid "The parameter %s was too large to read from the registry"
 msgstr "Parametr %s byl příliš dlouhý na přečtení z registru"
 
-#: vncviewer/parameters.cxx:402
+#: vncviewer/parameters.cxx:406
 #, c-format
 msgid "Failed to create registry key: %ld"
 msgstr "Vytvoření klíče v registru selhalo: %ld"
 
-#: vncviewer/parameters.cxx:416 vncviewer/parameters.cxx:465
-#: vncviewer/parameters.cxx:527 vncviewer/parameters.cxx:660
+#: vncviewer/parameters.cxx:420 vncviewer/parameters.cxx:469
+#: vncviewer/parameters.cxx:532 vncviewer/parameters.cxx:666
 #, c-format
 msgid "Unknown parameter type for parameter %s"
 msgstr "Neznámý typ u parametru %s"
 
-#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
+#: vncviewer/parameters.cxx:427 vncviewer/parameters.cxx:476
 #, c-format
 msgid "Failed to close registry key: %ld"
 msgstr "Uzavření klíče v registru selhalo: %ld"
 
-#: vncviewer/parameters.cxx:439
+#: vncviewer/parameters.cxx:443
 #, c-format
 msgid "Failed to open registry key: %ld"
 msgstr "Otevření klíče v registru selhalo: %ld"
 
-#: vncviewer/parameters.cxx:496
+#: vncviewer/parameters.cxx:500
 msgid "Failed to write configuration file, can't obtain home directory path."
 msgstr "Zapsaní konfiguračního souboru selhalo, nelze získat cestu k domovskému adresáři."
 
-#: vncviewer/parameters.cxx:509
+#: vncviewer/parameters.cxx:514
 #, c-format
 msgid "Failed to write configuration file, can't open %s: %s"
 msgstr "Zapsání konfiguračního souboru selhalo, %s nelze otevřít: %s"
 
-#: vncviewer/parameters.cxx:554
+#: vncviewer/parameters.cxx:559
 msgid "Failed to read configuration file, can't obtain home directory path."
 msgstr "Přečtení konfiguračního souboru selhalo, nelze získat cestu k domovskému adresáři."
 
-#: vncviewer/parameters.cxx:567
+#: vncviewer/parameters.cxx:573
 #, c-format
 msgid "Failed to read configuration file, can't open %s: %s"
 msgstr "Přečtení konfiguračního souboru selhalo, %s nelze otevřít: %s"
 
-#: vncviewer/parameters.cxx:580 vncviewer/parameters.cxx:585
-#: vncviewer/parameters.cxx:610 vncviewer/parameters.cxx:623
-#: vncviewer/parameters.cxx:639
+#: vncviewer/parameters.cxx:586 vncviewer/parameters.cxx:591
+#: vncviewer/parameters.cxx:616 vncviewer/parameters.cxx:629
+#: vncviewer/parameters.cxx:645
 #, c-format
 msgid "Failed to read line %d in file %s: %s"
 msgstr "Přečtení řádku %d v souboru %s selhalo: %s"
 
-#: vncviewer/parameters.cxx:586
+#: vncviewer/parameters.cxx:592
 msgid "Line too long"
 msgstr "Příliš dlouhý řádek"
 
-#: vncviewer/parameters.cxx:593
+#: vncviewer/parameters.cxx:599
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Konfigurační soubor %s je v neplatném formátu"
 
-#: vncviewer/parameters.cxx:611
+#: vncviewer/parameters.cxx:617
 msgid "Invalid format"
 msgstr "Neplatný formát"
 
-#: vncviewer/parameters.cxx:624 vncviewer/parameters.cxx:640
+#: vncviewer/parameters.cxx:630 vncviewer/parameters.cxx:646
 msgid "Invalid format or too large value"
 msgstr "Neplatný formát nebo příliš velká hodnota"
 
-#: vncviewer/parameters.cxx:667
+#: vncviewer/parameters.cxx:673
 #, c-format
 msgid "Unknown parameter %s on line %d in file %s"
 msgstr "Neznámý parametr %s na řádku %d v souboru %s"
@@ -625,12 +613,12 @@ msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
 "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
-"See http://www.tigervnc.org for information on TigerVNC."
+"See https://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "Prohlížeč TigerVNC, %dbitový v%s\n"
 "Sestaven v: %s\n"
 "Copyright © 1999–%d Tým TigerVNC a mnozí další (vizte README.rst)\n"
-"Podrobnosti o TigerVNC naleznete na http://www.tigervnc.org/."
+"Podrobnosti o TigerVNC naleznete na https://www.tigervnc.org/."
 
 #: vncviewer/vncviewer.cxx:127
 msgid "About TigerVNC Viewer"
@@ -707,11 +695,11 @@ msgstr "Nebylo možné vytvořit domovský adresář pro VNC: %s."
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:581 vncviewer/vncviewer.cxx:583
+#: vncviewer/vncviewer.cxx:602 vncviewer/vncviewer.cxx:604
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Parametry -listen a -via se vzájemně vylučují"
 
-#: vncviewer/vncviewer.cxx:598
+#: vncviewer/vncviewer.cxx:619
 #, c-format
 msgid "Listening on port %d"
 msgstr "Poslouchá se na portu %d"
@@ -728,3 +716,15 @@ msgstr "Připojí se k severu VNC a zobrazí vzdálenou plochu"
 #: vncviewer/vncviewer.desktop.in.in:7
 msgid "tigervnc"
 msgstr "tigervnc"
+
+#~ msgid "Enabling continuous updates"
+#~ msgstr "Zapínají se spojité aktualizace"
+
+#~ msgid "disabled"
+#~ msgstr "vypnut"
+
+#~ msgid "enabled"
+#~ msgstr "zapnut"
+
+#~ msgid "Using %s encoding"
+#~ msgstr "Používá se kódování %s"

@@ -56,7 +56,7 @@ using namespace rdr;
 enum { DEFAULT_BUF_SIZE = 8192,
        MIN_BULK_SIZE = 1024 };
 
-FdInStream::FdInStream(int fd_, int timeoutms_, int bufSize_,
+FdInStream::FdInStream(int fd_, int timeoutms_, size_t bufSize_,
                        bool closeWhenDone_)
   : fd(fd_), closeWhenDone(closeWhenDone_),
     timeoutms(timeoutms_), blockCallback(0),
@@ -67,7 +67,7 @@ FdInStream::FdInStream(int fd_, int timeoutms_, int bufSize_,
 }
 
 FdInStream::FdInStream(int fd_, FdInStreamBlockCallback* blockCallback_,
-                       int bufSize_)
+                       size_t bufSize_)
   : fd(fd_), timeoutms(0), blockCallback(blockCallback_),
     timing(false), timeWaitedIn100us(5), timedKbits(0),
     bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
@@ -92,12 +92,12 @@ void FdInStream::setBlockCallback(FdInStreamBlockCallback* blockCallback_)
   timeoutms = 0;
 }
 
-int FdInStream::pos()
+size_t FdInStream::pos()
 {
   return offset + ptr - start;
 }
 
-void FdInStream::readBytes(void* data, int length)
+void FdInStream::readBytes(void* data, size_t length)
 {
   if (length < MIN_BULK_SIZE) {
     InStream::readBytes(data, length);
@@ -106,7 +106,7 @@ void FdInStream::readBytes(void* data, int length)
 
   U8* dataPtr = (U8*)data;
 
-  int n = end - ptr;
+  size_t n = end - ptr;
   if (n > length) n = length;
 
   memcpy(dataPtr, ptr, n);
@@ -123,7 +123,7 @@ void FdInStream::readBytes(void* data, int length)
 }
 
 
-int FdInStream::overrun(int itemSize, int nItems, bool wait)
+size_t FdInStream::overrun(size_t itemSize, size_t nItems, bool wait)
 {
   if (itemSize > bufSize)
     throw Exception("FdInStream overrun: max itemSize exceeded");
@@ -135,8 +135,8 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
   end -= ptr - start;
   ptr = start;
 
-  int bytes_to_read;
-  while (end < start + itemSize) {
+  size_t bytes_to_read;
+  while ((size_t)(end - start) < itemSize) {
     bytes_to_read = start + bufSize - end;
     if (!timing) {
       // When not timing, we must be careful not to read too much
@@ -147,13 +147,15 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
       // bytes is ineffecient.
       bytes_to_read = vncmin(bytes_to_read, vncmax(itemSize*nItems, 8));
     }
-    int n = readWithTimeoutOrCallback((U8*)end, bytes_to_read, wait);
+    size_t n = readWithTimeoutOrCallback((U8*)end, bytes_to_read, wait);
     if (n == 0) return 0;
     end += n;
   }
 
-  if (itemSize * nItems > end - ptr)
-    nItems = (end - ptr) / itemSize;
+  size_t nAvail;
+  nAvail = (end - ptr) / itemSize;
+  if (nAvail < nItems)
+    return nAvail;
 
   return nItems;
 }
@@ -171,7 +173,7 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
 // returning EINTR.
 //
 
-int FdInStream::readWithTimeoutOrCallback(void* buf, int len, bool wait)
+size_t FdInStream::readWithTimeoutOrCallback(void* buf, size_t len, bool wait)
 {
   struct timeval before, after;
   if (timing)

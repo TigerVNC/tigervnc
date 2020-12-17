@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2016 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -260,15 +260,6 @@ class OptionsDialog extends Dialog {
     this.dispose();
   }
 
-  public void setEmbeddedFeatures(boolean s) {
-    fullScreenCheckbox.setEnabled(s);
-    fullScreenAllMonitorsCheckbox.setEnabled(s);
-    scalingFactorInput.setEnabled(s);
-    Enumeration<AbstractButton> e = sizingGroup.getElements();
-    while (e.hasMoreElements())
-      e.nextElement().setEnabled(s);
-  }
-
   private void loadOptions()
   {
     /* Compression */
@@ -489,7 +480,6 @@ class OptionsDialog extends Dialog {
     handleTunnel();
     handleVia();
     handleExtSSH();
-    handleEmbed();
     handleRfbState();
   }
 
@@ -622,9 +612,12 @@ class OptionsDialog extends Dialog {
     extSSH.setParam(extSSHCheckbox.isSelected());
     if (!sshClientInput.getText().isEmpty())
       extSSHClient.setParam(sshClientInput.getText());
-    if (sshArgsDefaultButton.isSelected())
-      if (!sshArgsInput.getText().isEmpty())
+    if (sshArgsCustomButton.isSelected() &&
+        !sshArgsInput.getText().isEmpty()) {
         extSSHArgs.setParam(sshArgsInput.getText());
+    } else {
+      extSSHArgs.setParam(new String());
+    }
     if (!sshConfigInput.getText().isEmpty())
       sshConfig.setParam(sshConfigInput.getText());
     if (!sshKeyFileInput.getText().isEmpty())
@@ -675,14 +668,10 @@ class OptionsDialog extends Dialog {
 
     JPanel colorPanel = new JPanel(new GridLayout(4, 1));
     colorPanel.setBorder(BorderFactory.createTitledBorder("Color level"));
-    fullcolorButton = new GroupedJRadioButton("Full (all available colors)",
-                                              colorlevelGroup, colorPanel);
-    mediumcolorButton = new GroupedJRadioButton("Medium (256 colors)",
-                                                colorlevelGroup, colorPanel);
-    lowcolorButton = new GroupedJRadioButton("Low (64 colors)",
-                                             colorlevelGroup, colorPanel);
-    verylowcolorButton = new GroupedJRadioButton("Very low (8 colors)",
-                                                 colorlevelGroup, colorPanel);
+    fullcolorButton = new GroupedJRadioButton("Full", colorlevelGroup, colorPanel);
+    mediumcolorButton = new GroupedJRadioButton("Medium", colorlevelGroup, colorPanel);
+    lowcolorButton = new GroupedJRadioButton("Low", colorlevelGroup, colorPanel);
+    verylowcolorButton = new GroupedJRadioButton("Very low", colorlevelGroup, colorPanel);
 
     JPanel encodingPane = new JPanel(new GridLayout(1, 2, 5, 0));
     encodingPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
@@ -702,7 +691,7 @@ class OptionsDialog extends Dialog {
     compressionInput.setPrototypeDisplayValue("0.");
     compressionInput.setEditable(true);
     JLabel compressionLabel =
-      new JLabel("Level (1=fast, 6=best [4-6 are rarely useful])");
+      new JLabel("Level (0=fast, 9=best)");
     jpegCheckbox = new JCheckBox("Allow JPEG Compression");
     jpegCheckbox.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -1586,24 +1575,10 @@ class OptionsDialog extends Dialog {
     }
   }
 
-  private void handleEmbed()
-  {
-    if (embed.getValue()) {
-      desktopSizeCheckbox.setEnabled(false);
-      desktopWidthInput.setEnabled(false);
-      desktopHeightInput.setEnabled(false);
-      remoteResizeButton.setEnabled(false);
-      remoteScaleButton.setEnabled(false);
-      fullScreenCheckbox.setEnabled(false);
-      fullScreenAllMonitorsCheckbox.setEnabled(false);
-      scalingFactorInput.setEnabled(false);
-    }
-  }
-
   private void handleRfbState()
   {
     CConn cc = VncViewer.cc;
-    if (cc != null && cc.state() == CConnection.RFBSTATE_NORMAL) {
+    if (cc != null && cc.state() == CConnection.stateEnum.RFBSTATE_NORMAL) {
       JComponent[] components = {
           encNoneCheckbox, encTLSCheckbox, encX509Checkbox, authNoneCheckbox,
           authVncCheckbox, authVncCheckbox, authIdentCheckbox, authPlainCheckbox,

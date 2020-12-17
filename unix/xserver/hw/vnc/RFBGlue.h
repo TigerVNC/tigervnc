@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2015 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ int vncSetParam(const char *name, const char *value);
 int vncSetParamSimple(const char *nameAndValue);
 char* vncGetParam(const char *name);
 const char* vncGetParamDesc(const char *name);
+int vncIsParamBool(const char *name);
 
 int vncGetParamCount(void);
 char *vncGetParamList(void);
@@ -48,6 +49,13 @@ void vncListParams(int width, int nameWidth);
 
 int vncGetSocketPort(int fd);
 int vncIsTCPPortUsed(int port);
+
+char* vncConvertLF(const char* src, size_t bytes);
+
+char* vncLatin1ToUTF8(const char* src, size_t bytes);
+char* vncUTF8ToLatin1(const char* src, size_t bytes);
+
+void vncStrFree(char* str);
 
 #ifdef __cplusplus
 }

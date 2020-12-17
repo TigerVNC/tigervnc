@@ -38,7 +38,7 @@ PlainPasswd::PlainPasswd() {}
 PlainPasswd::PlainPasswd(char* pwd) : CharArray(pwd) {
 }
 
-PlainPasswd::PlainPasswd(int len) : CharArray(len) {
+PlainPasswd::PlainPasswd(size_t len) : CharArray(len) {
 }
 
 PlainPasswd::PlainPasswd(const ObfuscatedPasswd& obfPwd) : CharArray(9) {
@@ -63,11 +63,11 @@ void PlainPasswd::replaceBuf(char* b) {
 ObfuscatedPasswd::ObfuscatedPasswd() : length(0) {
 }
 
-ObfuscatedPasswd::ObfuscatedPasswd(int len) : CharArray(len), length(len) {
+ObfuscatedPasswd::ObfuscatedPasswd(size_t len) : CharArray(len), length(len) {
 }
 
 ObfuscatedPasswd::ObfuscatedPasswd(const PlainPasswd& plainPwd) : CharArray(8), length(8) {
-  int l = strlen(plainPwd.buf), i;
+  size_t l = strlen(plainPwd.buf), i;
   for (i=0; i<8; i++)
     buf[i] = i<l ? plainPwd.buf[i] : 0;
   deskey(d3desObfuscationKey, EN0);

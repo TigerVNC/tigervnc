@@ -1,8 +1,8 @@
 /*
- * This file is auto-generated from keymaps.csv on 2017-08-28 13:04
- * Database checksum sha256(f8aeff0c3430077a350e3d7ba2b335b381bd929ac4b193413730a402ff3f0097)
+ * This file is auto-generated from keymaps.csv
+ * Database checksum sha256(76d68c10e97d37fe2ea459e210125ae41796253fb217e900bf2983ade13a7920)
  * To re-generate, run:
- *   keymap-gen --lang=stdc code-map keymaps.csv osx qnum
+ *   keymap-gen code-map --lang=stdc keymaps.csv osx qnum
 */
 const unsigned short code_map_osx_to_qnum[256] = {
   [0x0] = 0x1e, /* osx:0 (ANSI_A) -> linux:30 (KEY_A) -> qnum:30 */
@@ -15,7 +15,6 @@ const unsigned short code_map_osx_to_qnum[256] = {
   [0x7] = 0x2d, /* osx:7 (ANSI_X) -> linux:45 (KEY_X) -> qnum:45 */
   [0x8] = 0x2e, /* osx:8 (ANSI_C) -> linux:46 (KEY_C) -> qnum:46 */
   [0x9] = 0x2f, /* osx:9 (ANSI_V) -> linux:47 (KEY_V) -> qnum:47 */
-  [0xa] = 0x70, /* osx:10 (ISO_Section) -> linux:170 (KEY_ISO) -> qnum:112 */
   [0xb] = 0x30, /* osx:11 (ANSI_B) -> linux:48 (KEY_B) -> qnum:48 */
   [0xc] = 0x10, /* osx:12 (ANSI_Q) -> linux:16 (KEY_Q) -> qnum:16 */
   [0xd] = 0x11, /* osx:13 (ANSI_W) -> linux:17 (KEY_W) -> qnum:17 */
@@ -93,6 +92,7 @@ const unsigned short code_map_osx_to_qnum[256] = {
   [0x5b] = 0x48, /* osx:91 (ANSI_Keypad8) -> linux:72 (KEY_KP8) -> qnum:72 */
   [0x5c] = 0x49, /* osx:92 (ANSI_Keypad9) -> linux:73 (KEY_KP9) -> qnum:73 */
   [0x5d] = 0x7d, /* osx:93 (JIS_Yen) -> linux:124 (KEY_YEN) -> qnum:125 */
+  [0x5e] = 0x73, /* osx:94 (JIS_Underscore) -> linux:89 (KEY_RO) -> qnum:115 */
   [0x5f] = 0x5c, /* osx:95 (JIS_KeypadComma) -> linux:95 (KEY_KPJPCOMMA) -> qnum:92 */
   [0x60] = 0x3f, /* osx:96 (F5) -> linux:63 (KEY_F5) -> qnum:63 */
   [0x61] = 0x40, /* osx:97 (F6) -> linux:64 (KEY_F6) -> qnum:64 */
@@ -100,8 +100,9 @@ const unsigned short code_map_osx_to_qnum[256] = {
   [0x63] = 0x3d, /* osx:99 (F3) -> linux:61 (KEY_F3) -> qnum:61 */
   [0x64] = 0x42, /* osx:100 (F8) -> linux:66 (KEY_F8) -> qnum:66 */
   [0x65] = 0x43, /* osx:101 (F9) -> linux:67 (KEY_F9) -> qnum:67 */
+  [0x66] = 0x71, /* osx:102 (JIS_Eisu) -> linux:123 (KEY_HANJA) -> qnum:113 */
   [0x67] = 0x57, /* osx:103 (F11) -> linux:87 (KEY_F11) -> qnum:87 */
-  [0x68] = 0x78, /* osx:104 (JIS_Kana) -> linux:90 (KEY_KATAKANA) -> qnum:120 */
+  [0x68] = 0x72, /* osx:104 (JIS_Kana) -> linux:122 (KEY_HANGEUL) -> qnum:114 */
   [0x69] = 0x5d, /* osx:105 (F13) -> linux:183 (KEY_F13) -> qnum:93 */
   [0x6a] = 0x55, /* osx:106 (F16) -> linux:186 (KEY_F16) -> qnum:85 */
   [0x6b] = 0x5e, /* osx:107 (F14) -> linux:184 (KEY_F14) -> qnum:94 */

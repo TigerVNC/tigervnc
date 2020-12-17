@@ -1,8 +1,8 @@
 /*
- * This file is auto-generated from keymaps.csv on 2017-08-28 13:04
- * Database checksum sha256(f8aeff0c3430077a350e3d7ba2b335b381bd929ac4b193413730a402ff3f0097)
+ * This file is auto-generated from keymaps.csv
+ * Database checksum sha256(76d68c10e97d37fe2ea459e210125ae41796253fb217e900bf2983ade13a7920)
  * To re-generate, run:
- *   keymap-gen --lang=stdc code-map keymaps.csv xkb qnum
+ *   keymap-gen code-map --lang=stdc keymaps.csv xkb qnum
 */
 const struct _code_map_xkb_to_qnum {
   const char * from;
@@ -99,8 +99,9 @@ const struct _code_map_xkb_to_qnum {
   {"HELP", 0xf5}, /* xkb:HELP (HELP) -> linux:138 (KEY_HELP) -> qnum:245 */
   {"HENK", 0x79}, /* xkb:HENK (HENK) -> linux:92 (KEY_HENKAN) -> qnum:121 */
   {"HIRA", 0x77}, /* xkb:HIRA (HIRA) -> linux:91 (KEY_HIRAGANA) -> qnum:119 */
-  {"HJCV", 0x8d}, /* xkb:HJCV (HJCV) -> linux:123 (KEY_HANJA) -> qnum:141 */
+  {"HJCV", 0x71}, /* xkb:HJCV (HJCV) -> linux:123 (KEY_HANJA) -> qnum:113 */
   {"HKTG", 0x70}, /* xkb:HKTG (HKTG) -> linux:93 (KEY_KATAKANAHIRAGANA) -> qnum:112 */
+  {"HNGL", 0x72}, /* xkb:HNGL (HNGL) -> linux:122 (KEY_HANGEUL) -> qnum:114 */
   {"HOME", 0xc7}, /* xkb:HOME (HOME) -> linux:102 (KEY_HOME) -> qnum:199 */
   {"HZTG", 0x76}, /* xkb:HZTG (HZTG) -> linux:85 (KEY_ZENKAKUHANKAKU) -> qnum:118 */
   {"I120", 0xef}, /* xkb:I120 (I120) -> linux:112 (KEY_MACRO) -> qnum:239 */
@@ -138,12 +139,9 @@ const struct _code_map_xkb_to_qnum {
   {"I175", 0xb1}, /* xkb:I175 (I175) -> linux:167 (KEY_RECORD) -> qnum:177 */
   {"I176", 0x98}, /* xkb:I176 (I176) -> linux:168 (KEY_REWIND) -> qnum:152 */
   {"I177", 0x63}, /* xkb:I177 (I177) -> linux:169 (KEY_PHONE) -> qnum:99 */
-  {"I178", 0x70}, /* xkb:I178 (I178) -> linux:170 (KEY_ISO) -> qnum:112 */
   {"I179", 0x81}, /* xkb:I179 (I179) -> linux:171 (KEY_CONFIG) -> qnum:129 */
   {"I180", 0xb2}, /* xkb:I180 (I180) -> linux:172 (KEY_HOMEPAGE) -> qnum:178 */
   {"I181", 0xe7}, /* xkb:I181 (I181) -> linux:173 (KEY_REFRESH) -> qnum:231 */
-  {"I182", 0x71}, /* xkb:I182 (I182) -> linux:174 (KEY_EXIT) -> qnum:113 */
-  {"I183", 0x72}, /* xkb:I183 (I183) -> linux:175 (KEY_MOVE) -> qnum:114 */
   {"I184", 0x88}, /* xkb:I184 (I184) -> linux:176 (KEY_EDIT) -> qnum:136 */
   {"I185", 0x75}, /* xkb:I185 (I185) -> linux:177 (KEY_SCROLLUP) -> qnum:117 */
   {"I186", 0x8f}, /* xkb:I186 (I186) -> linux:178 (KEY_SCROLLDOWN) -> qnum:143 */

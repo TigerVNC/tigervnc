@@ -8,5 +8,5 @@ add_library(wm_hooks SHARED
 set_target_properties(wm_hooks PROPERTIES PREFIX "")
 
 install(TARGETS wm_hooks
-  RUNTIME DESTINATION ${BIN_DIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
 )

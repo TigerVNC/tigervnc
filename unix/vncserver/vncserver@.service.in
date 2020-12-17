@@ -1,0 +1,43 @@
+# The vncserver service unit file
+#
+# Quick HowTo:
+# 1. Add a user mapping to @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver.users.
+# 2. Adjust the global or user configuration. See the
+#    vncsession(8) manpage for details. (OPTIONAL)
+# 3. Run `systemctl enable vncserver@:<display>.service`
+# 4. Run `systemctl start vncserver@:<display>.service`
+#
+# DO NOT RUN THIS SERVICE if your local area network is
+# untrusted!  For a secure way of using VNC, you should
+# limit connections to the local host and then tunnel from
+# the machine you want to view VNC on (host A) to the machine
+# whose VNC output you want to view (host B)
+#
+# [user@hostA ~]$ ssh -v -C -L 590N:localhost:590M hostB
+#
+# this will open a connection on port 590N of your hostA to hostB's port 590M
+# (in fact, it ssh-connects to hostB and then connects to localhost (on hostB).
+# See the ssh man page for details on port forwarding)
+#
+# You can then point a VNC client on hostA at vncdisplay N of localhost and with
+# the help of ssh, you end up seeing what hostB makes available on port 590M
+#
+# Use "nolisten=tcp" to prevent X connections to your VNC server via TCP.
+#
+# Use "localhost" to prevent remote VNC clients connecting except when
+# doing so through a secure tunnel.  See the "-via" option in the
+# `man vncviewer' manual page.
+
+
+[Unit]
+Description=Remote desktop service (VNC)
+After=syslog.target network.target
+
+[Service]
+Type=forking
+ExecStart=@CMAKE_INSTALL_FULL_LIBEXECDIR@/vncsession-start %i
+PIDFile=/run/vncsession-%i.pid
+SELinuxContext=system_u:system_r:vnc_session_t:s0
+
+[Install]
+WantedBy=multi-user.target

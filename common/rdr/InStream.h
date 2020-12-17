@@ -39,24 +39,35 @@ namespace rdr {
     // itemSize bytes.  Returns the number of items in the buffer (up to a
     // maximum of nItems).  If wait is false, then instead of blocking to wait
     // for the bytes, zero is returned if the bytes are not immediately
-    // available.
+    // available. If itemSize or nItems is zero, check() will return zero.
 
-    inline int check(int itemSize, int nItems=1, bool wait=true)
+    inline size_t check(size_t itemSize, size_t nItems=1, bool wait=true)
     {
-      if (ptr + itemSize * nItems > end) {
-        if (ptr + itemSize > end)
-          return overrun(itemSize, nItems, wait);
+      size_t nAvail;
 
-        nItems = (end - ptr) / itemSize;
-      }
+      if (itemSize == 0 || nItems == 0)
+        return 0;
+
+      if (itemSize > (size_t)(end - ptr))
+        return overrun(itemSize, nItems, wait);
+
+      // itemSize cannot be zero at this point
+      nAvail = (end - ptr) / itemSize;
+      if (nAvail < nItems)
+        return nAvail;
+
       return nItems;
     }
 
     // checkNoWait() tries to make sure that the given number of bytes can
     // be read without blocking.  It returns true if this is the case, false
     // otherwise.  The length must be "small" (less than the buffer size).
+    // If length is zero, checkNoWait() will return true.
 
-    inline bool checkNoWait(int length) { return check(length, 1, false)!=0; }
+    inline bool checkNoWait(size_t length)
+    {
+      return length == 0 || check(length, 1, false) > 0;
+    }
 
     // readU/SN() methods read unsigned and signed N-bit integers.
 
@@ -82,24 +93,24 @@ namespace rdr {
 
     static U32 maxStringLength;
 
-    inline void skip(int bytes) {
+    inline void skip(size_t bytes) {
       while (bytes > 0) {
-        int n = check(1, bytes);
+        size_t n = check(1, bytes);
         ptr += n;
         bytes -= n;
       }
     }
 
     // readBytes() reads an exact number of bytes.
+    // If length is zero, readBytes() will return immediately.
 
-    void readBytes(void* data, int length) {
-      U8* dataPtr = (U8*)data;
-      U8* dataEnd = dataPtr + length;
-      while (dataPtr < dataEnd) {
-        int n = check(1, dataEnd - dataPtr);
-        memcpy(dataPtr, ptr, n);
+    void readBytes(void* data, size_t length) {
+      while (length > 0) {
+        size_t n = check(1, length);
+        memcpy(data, ptr, n);
         ptr += n;
-        dataPtr += n;
+        data = (U8*)data + n;
+        length -= n;
       }
     }
 
@@ -114,7 +125,7 @@ namespace rdr {
 
     // pos() returns the position in the stream.
 
-    virtual int pos() = 0;
+    virtual size_t pos() = 0;
 
     // getptr(), getend() and setptr() are "dirty" methods which allow you to
     // manipulate the buffer directly.  This is useful for a stream which is a
@@ -133,7 +144,7 @@ namespace rdr {
     // instead of blocking to wait for the bytes, zero is returned if the bytes
     // are not immediately available.
 
-    virtual int overrun(int itemSize, int nItems, bool wait=true) = 0;
+    virtual size_t overrun(size_t itemSize, size_t nItems, bool wait=true) = 0;
 
   protected:
 

@@ -36,14 +36,14 @@ static rfb::LogWriter vlog("PlatformPixelBuffer");
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                         255, 255, 255, 16, 8, 0),
-                       width, height, NULL, 0),
+                       0, 0, NULL, 0),
   Surface(width, height)
 #if !defined(WIN32) && !defined(__APPLE__)
   , shminfo(NULL), xim(NULL)
 #endif
 {
 #if !defined(WIN32) && !defined(__APPLE__)
-  if (!setupShm()) {
+  if (!setupShm(width, height)) {
     xim = XCreateImage(fl_display, CopyFromParent, 32,
                        ZPixmap, 0, 0, width, height, 32, 0);
     if (!xim)
@@ -56,14 +56,13 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
     vlog.debug("Using standard XImage");
   }
 
-  data = (rdr::U8*)xim->data;
-  stride = xim->bytes_per_line / (getPF().bpp/8);
+  setBuffer(width, height, (rdr::U8*)xim->data,
+            xim->bytes_per_line / (getPF().bpp/8));
 
   // On X11, the Pixmap backing this Surface is uninitialized.
   clear(0, 0, 0);
 #else
-  FullFramePixelBuffer::data = (rdr::U8*)Surface::data;
-  stride = width;
+  setBuffer(width, height, (rdr::U8*)Surface::data, width);
 #endif
 }
 
@@ -137,7 +136,7 @@ static int XShmAttachErrorHandler(Display *dpy, XErrorEvent *error)
   return 0;
 }
 
-bool PlatformPixelBuffer::setupShm()
+bool PlatformPixelBuffer::setupShm(int width, int height)
 {
   int major, minor;
   Bool pixmaps;
@@ -154,7 +153,7 @@ bool PlatformPixelBuffer::setupShm()
   shminfo = new XShmSegmentInfo;
 
   xim = XShmCreateImage(fl_display, CopyFromParent, 32,
-                        ZPixmap, 0, shminfo, width(), height());
+                        ZPixmap, 0, shminfo, width, height);
   if (!xim)
     goto free_shminfo;
 

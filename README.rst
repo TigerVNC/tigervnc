@@ -34,7 +34,7 @@ Incomplete and generally out of date copyright list::
         Copyright (C) 2009-2011 D. R. Commander
         Copyright (C) 2009-2011 Pierre Ossman for Cendio AB
         Copyright (C) 2004, 2009-2011 Red Hat, Inc.
-        Copyright (C) 2009-2019 TigerVNC Team
+        Copyright (C) 2009-2020 TigerVNC Team
         All Rights Reserved.
 
 This software is distributed under the GNU General Public Licence as published
@@ -64,6 +64,8 @@ The Windows version of TigerVNC contains the following programs:
 * winvnc - the TigerVNC Server for Windows.  winvnc allows a Windows desktop to
            be accessed remotely using a VNC viewer.
 
+WARNING: winvnc is currently unmaintainted and and may not function correctly.
+
 winvnc may not work if the Fast User Switching or Remote Desktop features are
 in use.
 
@@ -75,16 +77,12 @@ The Unix/Linux version of TigerVNC contains the following programs:
 
 * Xvnc - the TigerVNC Server for Unix.  Xvnc is both a VNC server and an X
          server with a "virtual" framebuffer.  You should normally use the
-         vncserver script to start Xvnc.
-
-* vncserver - a wrapper script which makes starting Xvnc more convenient.
-              vncserver requires Perl.
+         vncserver service to start Xvnc.
 
 * vncpasswd - a program which allows you to change the VNC password used to
               access your VNC server sessions (assuming that VNC authentication
-              is being used.)  The vncserver script will automatically launch
-              this program if it detects that VNC authentication is in use and
-              a VNC password has not yet been configured.
+              is being used.) This command must be run to set a password before
+              using VNC authentication with any of the servers or services.
 
 * vncconfig - a program which is used to configure and control a running
               instance of Xvnc.
@@ -93,6 +91,10 @@ The Unix/Linux version of TigerVNC contains the following programs:
                 display, allowing it to be controlled via VNC.  It is intended
                 mainly as a demonstration of a simple VNC server.
 
+It also contains the following systemd service:
+
+* vncserver@.service - a service to start a user session with Xvnc and one of
+                       the desktop environments available on the system.
 
 ACKNOWLEDGEMENTS
 ================

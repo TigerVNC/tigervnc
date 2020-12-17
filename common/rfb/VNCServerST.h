@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2016 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,7 +85,10 @@ namespace rfb {
     virtual void setPixelBuffer(PixelBuffer* pb);
     virtual void setScreenLayout(const ScreenSet& layout);
     virtual const PixelBuffer* getPixelBuffer() const { return pb; }
-    virtual void serverCutText(const char* str, int len);
+
+    virtual void requestClipboard();
+    virtual void announceClipboard(bool available);
+    virtual void sendClipboardData(const char* data);
 
     virtual void approveConnection(network::Socket* sock, bool accept,
                                    const char* reason);
@@ -115,7 +118,10 @@ namespace rfb {
     // Event handlers
     void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
-    void clientCutText(const char* str, int len);
+
+    void handleClipboardRequest(VNCSConnectionST* client);
+    void handleClipboardAnnounce(VNCSConnectionST* client, bool available);
+    void handleClipboardData(VNCSConnectionST* client, const char* data);
 
     unsigned int setDesktopSize(VNCSConnectionST* requester,
                                 int fb_width, int fb_height,
@@ -181,6 +187,8 @@ namespace rfb {
 
     std::list<VNCSConnectionST*> clients;
     VNCSConnectionST* pointerClient;
+    VNCSConnectionST* clipboardClient;
+    std::list<VNCSConnectionST*> clipboardRequestors;
     std::list<network::Socket*> closingSockets;
 
     ComparingUpdateTracker* comparer;

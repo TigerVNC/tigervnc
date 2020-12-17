@@ -120,7 +120,9 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
   rdr::U8* oldData = oldFb.getBufferRW(r, &oldStride);
   int oldStrideBytes = oldStride * bytesPerPixel;
 
-  std::vector<Rect> changedBlocks;
+  // Used to efficiently crop the left and right of the change rectangle
+  int minCompareWidthInPixels = BLOCK_SIZE / 8;
+  int minCompareWidthInBytes = minCompareWidthInPixels * bytesPerPixel;
 
   for (int blockTop = r.tl.y; blockTop < r.br.y; blockTop += BLOCK_SIZE)
   {
@@ -141,19 +143,91 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
       int blockRight = __rfbmin(blockLeft+BLOCK_SIZE, r.br.x);
       int blockWidthInBytes = (blockRight-blockLeft) * bytesPerPixel;
 
+      // Scan the block top to bottom, to identify the first row of change
       for (int y = blockTop; y < blockBottom; y++)
       {
         if (memcmp(oldPtr, newPtr, blockWidthInBytes) != 0)
         {
-          // A block has changed - copy the remainder to the oldFb
-          changedBlocks.push_back(Rect(blockLeft, blockTop,
-                                       blockRight, blockBottom));
-          for (int y2 = y; y2 < blockBottom; y2++)
+          // Define the change rectangle using pessimistic values to start
+          int changeHeight = blockBottom - y;
+          int changeLeft = blockLeft;
+          int changeRight = blockRight;
+
+          // For every unchanged row at the bottom of the block, decrement change height
+          {
+            const rdr::U8* newRowPtr = newPtr + ((changeHeight - 1) * newStrideBytes);
+            const rdr::U8* oldRowPtr = oldPtr + ((changeHeight - 1) * oldStrideBytes);
+            while (changeHeight > 1 && memcmp(oldRowPtr, newRowPtr, blockWidthInBytes) == 0)
+            {
+              newRowPtr -= newStrideBytes;
+              oldRowPtr -= oldStrideBytes;
+
+              changeHeight--;
+            }
+          }
+
+          // For every unchanged column at the left of the block, increment change left
+          {
+            const rdr::U8* newColumnPtr = newPtr;
+            const rdr::U8* oldColumnPtr = oldPtr;
+            while (changeLeft + minCompareWidthInPixels < changeRight)
+            {
+              const rdr::U8* newRowPtr = newColumnPtr;
+              const rdr::U8* oldRowPtr = oldColumnPtr;
+              for (int row = 0; row < changeHeight; row++)
+              {
+                if (memcmp(oldRowPtr, newRowPtr, minCompareWidthInBytes) != 0)
+                  goto endOfChangeLeft;
+
+                newRowPtr += newStrideBytes;
+                oldRowPtr += oldStrideBytes;
+              }
+
+              newColumnPtr += minCompareWidthInBytes;
+              oldColumnPtr += minCompareWidthInBytes;
+
+              changeLeft += minCompareWidthInPixels;
+            }
+          }
+        endOfChangeLeft:
+
+          // For every unchanged column at the right of the block, decrement change right
+          {
+            const rdr::U8* newColumnPtr = newPtr + blockWidthInBytes;
+            const rdr::U8* oldColumnPtr = oldPtr + blockWidthInBytes;
+            while (changeLeft + minCompareWidthInPixels < changeRight)
+            {
+              newColumnPtr -= minCompareWidthInBytes;
+              oldColumnPtr -= minCompareWidthInBytes;
+
+              const rdr::U8* newRowPtr = newColumnPtr;
+              const rdr::U8* oldRowPtr = oldColumnPtr;
+              for (int row = 0; row < changeHeight; row++)
+              {
+                if (memcmp(oldRowPtr, newRowPtr, minCompareWidthInBytes) != 0)
+                  goto endOfChangeRight;
+
+                newRowPtr += newStrideBytes;
+                oldRowPtr += oldStrideBytes;
+              }
+
+              changeRight -= minCompareWidthInPixels;
+            }
+          }
+        endOfChangeRight:
+
+          // Block change extends from (changeLeft, y) to (changeRight, y + changeHeight)
+          newChanged->assign_union(Region(Rect(changeLeft, y, changeRight, y + changeHeight)));
+
+          // Copy the change from fb to oldFb to allow future changes to be identified
+          for (int row = 0; row < changeHeight; row++)
           {
             memcpy(oldPtr, newPtr, blockWidthInBytes);
             newPtr += newStrideBytes;
             oldPtr += oldStrideBytes;
           }
+
+          // No further processing is required for this block
           break;
         }
 
@@ -169,12 +243,6 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
   }
 
   oldFb.commitBufferRW(r);
-
-  if (!changedBlocks.empty()) {
-    Region temp;
-    temp.setOrderedRects(changedBlocks);
-    newChanged->assign_union(temp);
-  }
 }
 
 void ComparingUpdateTracker::logStats()

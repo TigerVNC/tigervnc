@@ -138,6 +138,20 @@ CGColorSpaceRef cocoa_win_color_space(Fl_Window *win)
   return lut;
 }
 
+bool cocoa_win_is_zoomed(Fl_Window *win)
+{
+  NSWindow *nsw;
+  nsw = (NSWindow*)fl_xid(win);
+  return [nsw isZoomed];
+}
+
+void cocoa_win_zoom(Fl_Window *win)
+{
+  NSWindow *nsw;
+  nsw = (NSWindow*)fl_xid(win);
+  [nsw zoom:nsw];
+}
+
 int cocoa_is_keyboard_event(const void *event)
 {
   NSEvent *nsevent;
@@ -344,6 +358,9 @@ static const int kvk_map[][2] = {
   { kVK_ANSI_Keypad7,           XK_KP_7 },
   { kVK_ANSI_Keypad8,           XK_KP_8 },
   { kVK_ANSI_Keypad9,           XK_KP_9 },
+  // Japanese Keyboard Support
+  { kVK_JIS_Eisu,               XK_Eisu_toggle },
+  { kVK_JIS_Kana,               XK_Hiragana_Katakana },
 };
 
 int cocoa_event_keysym(const void *event)

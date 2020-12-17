@@ -1,8 +1,8 @@
 /*
- * This file is auto-generated from keymaps.csv on 2017-08-28 13:03
- * Database checksum sha256(f8aeff0c3430077a350e3d7ba2b335b381bd929ac4b193413730a402ff3f0097)
+ * This file is auto-generated from keymaps.csv
+ * Database checksum sha256(76d68c10e97d37fe2ea459e210125ae41796253fb217e900bf2983ade13a7920)
  * To re-generate, run:
- *   keymap-gen --lang=stdc code-map keymaps.csv qnum xorgevdev
+ *   keymap-gen code-map --lang=stdc keymaps.csv qnum xorgevdev
 */
 const unsigned short code_map_qnum_to_xorgevdev[254] = {
   [0x1] = 0x9, /* qnum:1 -> linux:1 (KEY_ESC) -> xorgevdev:9 */
@@ -112,9 +112,9 @@ const unsigned short code_map_qnum_to_xorgevdev[254] = {
   [0x6c] = 0xa9, /* qnum:108 -> linux:161 (KEY_EJECTCD) -> xorgevdev:169 */
   [0x6d] = 0xc9, /* qnum:109 -> linux:193 (KEY_F23) -> xorgevdev:201 */
   [0x6f] = 0xca, /* qnum:111 -> linux:194 (KEY_F24) -> xorgevdev:202 */
-  [0x70] = 0xb2, /* qnum:112 -> linux:170 (KEY_ISO) -> xorgevdev:178 */
-  [0x71] = 0xb6, /* qnum:113 -> linux:174 (KEY_EXIT) -> xorgevdev:182 */
-  [0x72] = 0xb7, /* qnum:114 -> linux:175 (KEY_MOVE) -> xorgevdev:183 */
+  [0x70] = 0x65, /* qnum:112 -> linux:93 (KEY_KATAKANAHIRAGANA) -> xorgevdev:101 */
+  [0x71] = 0x83, /* qnum:113 -> linux:123 (KEY_HANJA) -> xorgevdev:131 */
+  [0x72] = 0x82, /* qnum:114 -> linux:122 (KEY_HANGEUL) -> xorgevdev:130 */
   [0x73] = 0x61, /* qnum:115 -> linux:89 (KEY_RO) -> xorgevdev:97 */
   [0x74] = 0xc7, /* qnum:116 -> linux:191 (KEY_F21) -> xorgevdev:199 */
   [0x75] = 0xb9, /* qnum:117 -> linux:177 (KEY_SCROLLUP) -> xorgevdev:185 */
@@ -137,7 +137,6 @@ const unsigned short code_map_qnum_to_xorgevdev[254] = {
   [0x8a] = 0xbe, /* qnum:138 -> linux:182 (KEY_REDO) -> xorgevdev:190 */
   [0x8b] = 0x80, /* qnum:139 -> linux:120 (KEY_SCALE) -> xorgevdev:128 */
   [0x8c] = 0x8c, /* qnum:140 -> linux:132 (KEY_FRONT) -> xorgevdev:140 */
-  [0x8d] = 0x83, /* qnum:141 -> linux:123 (KEY_HANJA) -> xorgevdev:131 */
   [0x8e] = 0xf1, /* qnum:142 -> linux:233 (KEY_FORWARDMAIL) -> xorgevdev:241 */
   [0x8f] = 0xba, /* qnum:143 -> linux:178 (KEY_SCROLLDOWN) -> xorgevdev:186 */
   [0x90] = 0xad, /* qnum:144 -> linux:165 (KEY_PREVIOUSSONG) -> xorgevdev:173 */
@@ -177,6 +176,7 @@ const unsigned short code_map_qnum_to_xorgevdev[254] = {
   [0xb4] = 0xd8, /* qnum:180 -> linux:208 (KEY_FASTFORWARD) -> xorgevdev:216 */
   [0xb5] = 0x6a, /* qnum:181 -> linux:98 (KEY_KPSLASH) -> xorgevdev:106 */
   [0xb6] = 0xd9, /* qnum:182 -> linux:209 (KEY_BASSBOOST) -> xorgevdev:217 */
+  [0xb7] = 0x6b, /* qnum:183 -> linux:99 (KEY_SYSRQ) -> xorgevdev:107 */
   [0xb8] = 0x6c, /* qnum:184 -> linux:100 (KEY_RIGHTALT) -> xorgevdev:108 */
   [0xb9] = 0xda, /* qnum:185 -> linux:210 (KEY_PRINT) -> xorgevdev:218 */
   [0xba] = 0xdb, /* qnum:186 -> linux:211 (KEY_HP) -> xorgevdev:219 */

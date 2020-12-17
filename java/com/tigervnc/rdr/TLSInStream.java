@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,15 +72,17 @@ public class TLSInStream extends InStream {
     end -= ptr - start;
     ptr = start;
 
-    while (end < start + itemSize) {
+    while ((end - start) < itemSize) {
       int n = readTLS(b, end, start + bufSize - end, wait);
       if (!wait && n == 0)
         return 0;
       end += n;
     }
 
-    if (itemSize * nItems > end - ptr)
-      nItems = (end - ptr) / itemSize;
+    int nAvail;
+    nAvail = (end - ptr) / itemSize;
+    if (nAvail < nItems)
+      return nAvail;
 
     return nItems;
   }

@@ -39,14 +39,14 @@ namespace rdr {
     RandomStream();
     virtual ~RandomStream();
 
-    int pos();
+    size_t pos();
 
   protected:
-    int overrun(int itemSize, int nItems, bool wait);
+    size_t overrun(size_t itemSize, size_t nItems, bool wait);
 
   private:
     U8* start;
-    int offset;
+    size_t offset;
 
     static unsigned int seed;
 #ifdef RFB_HAVE_WINCRYPT

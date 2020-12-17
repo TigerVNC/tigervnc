@@ -59,6 +59,9 @@ public class Encodings {
   public static final int pseudoEncodingSubsamp8X = -764;
   public static final int pseudoEncodingSubsamp16X = -763;
 
+  // VMware-specific
+  public static final int pseudoEncodingVMwareCursor = 0x574d5664;
+
   public static int encodingNum(String name) {
     if (name.equalsIgnoreCase("raw"))      return encodingRaw;
     if (name.equalsIgnoreCase("copyRect")) return encodingCopyRect;

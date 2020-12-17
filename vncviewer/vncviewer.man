@@ -52,7 +52,8 @@ given too, but the given configuration file will overwrite any conflicting
 parameters.
 
 If the VNC server is successfully contacted, you will be prompted for a
-password to authenticate you.  If the password is correct, a window will appear
+password to authenticate you. You can also add 'VNC_USERNAME' and 'VNC_PASSWORD'
+to environment variables. If the password is correct, a window will appear
 showing the desktop of the VNC server.
 
 .SH AUTOMATIC PROTOCOL SELECTION
@@ -182,6 +183,11 @@ Set the primary selection as well as the clipboard selection.
 Default is on.
 .
 .TP
+.B \-MaxCutText \fIbytes\fP
+The maximum size of a clipboard update that will be accepted from a server.
+Default is \fB262144\fP.
+.
+.TP
 .B \-SendClipboard
 Send clipboard changes to the server. Default is on.
 .
@@ -254,7 +260,7 @@ JPEG quality level. 0 = Low, 9 = High. May be adjusted automatically if
 .
 .TP
 .B \-CompressLevel \fIlevel\fP
-Use specified lossless compression level. 0 = Low, 6 = High. Default is 2.
+Use specified lossless compression level. 0 = Low, 9 = High. Default is 2.
 .
 .TP
 .B \-CustomCompressLevel
@@ -268,6 +274,11 @@ Show the dot cursor when the server sends an invisible cursor. Default is off.
 .B \-PointerEventInterval \fItime\fP
 Time in milliseconds to rate-limit successive pointer events. Default is
 17 ms (60 Hz).
+.
+.TP
+.B \-EmulateMiddleButton
+Emulate middle mouse button by pressing left and right mouse buttons
+simultaneously. Default is off.
 .
 .TP
 .B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
@@ -322,7 +333,7 @@ Default certificate revocation list.
 .BR Xvnc (1),
 .BR vncpasswd (1),
 .BR vncconfig (1),
-.BR vncserver (1)
+.BR vncsession (8)
 .br
 https://www.tigervnc.org
 

@@ -26,24 +26,24 @@ namespace rdr {
   class HexOutStream : public OutStream {
   public:
 
-    HexOutStream(OutStream& os, int buflen=0);
+    HexOutStream(OutStream& os, size_t buflen=0);
     virtual ~HexOutStream();
 
     void flush();
-    int length();
+    size_t length();
 
     static char intToHex(int i);
-    static char* binToHexStr(const char* data, int length);
+    static char* binToHexStr(const char* data, size_t length);
 
   private:
     void writeBuffer();
-    int overrun(int itemSize, int nItems);
+    size_t overrun(size_t itemSize, size_t nItems);
 
     OutStream& out_stream;
 
     U8* start;
-    int offset;
-    int bufSize;
+    size_t offset;
+    size_t bufSize;
   };
 
 }

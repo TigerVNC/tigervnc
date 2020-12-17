@@ -84,7 +84,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
   supportsLocalCursor = true;
   supportsDesktopResize = true;
-  supportsLEDState = true;
+  supportsLEDState = false;
 
   if (customCompressLevel)
     setCompressLevel(::compressLevel);
@@ -109,9 +109,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      if (alertOnFatalError)
-        fl_alert("%s", e.str());
-      exit_vncviewer();
+      exit_vncviewer(e.str());
       return;
     }
   }
@@ -270,7 +268,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
        // Also check if we need to stop reading and terminate
        if (should_exit())
          break;
-    } while (cc->sock->inStream().checkNoWait(1));
+    } while (cc->getInStream()->checkNoWait(1));
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
     exit_vncviewer();
@@ -410,11 +408,6 @@ void CConn::bell()
   fl_beep();
 }
 
-void CConn::serverCutText(const char* str, rdr::U32 len)
-{
-  desktop->serverCutText(str, len);
-}
-
 void CConn::dataRect(const Rect& r, int encoding)
 {
   sock->inStream().startTiming();
@@ -453,6 +446,21 @@ void CConn::setLEDState(unsigned int state)
   CConnection::setLEDState(state);
 
   desktop->setLEDState(state);
+}
+
+void CConn::handleClipboardRequest()
+{
+  desktop->handleClipboardRequest();
+}
+
+void CConn::handleClipboardAnnounce(bool available)
+{
+  desktop->handleClipboardAnnounce(available);
+}
+
+void CConn::handleClipboardData(const char* data)
+{
+  desktop->handleClipboardData(data);
 }
 
 

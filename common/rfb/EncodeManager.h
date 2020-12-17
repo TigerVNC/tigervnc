@@ -148,6 +148,9 @@ namespace rfb {
 
       void update(const PixelFormat& pf, int width, int height,
                   const rdr::U8* data_, int stride);
+
+    private:
+      virtual rdr::U8* getBufferRW(const Rect& r, int* stride);
     };
 
     OffsetPixelBuffer offsetPixelBuffer;

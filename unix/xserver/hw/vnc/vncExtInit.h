@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2015 Pierre Ossman for Cendio AB
+ * Copyright 2011-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,9 @@ int vncGetSendPrimary(void);
 
 void vncUpdateDesktopName(void);
 
-void vncServerCutText(const char *text, size_t len);
+void vncRequestClipboard(void);
+void vncAnnounceClipboard(int available);
+void vncSendClipboardData(const char* data);
 
 int vncConnectClient(const char *addr);
 
@@ -71,10 +73,10 @@ struct UpdateRect {
   short x1, y1, x2, y2;
 };
 
-void vncAddChanged(int scrIdx, const struct UpdateRect *extents,
-                   int nRects, const struct UpdateRect *rects);
-void vncAddCopied(int scrIdx, const struct UpdateRect *extents,
-                  int nRects, const struct UpdateRect *rects,
+void vncAddChanged(int scrIdx, int nRects,
+                   const struct UpdateRect *rects);
+void vncAddCopied(int scrIdx, int nRects,
+                  const struct UpdateRect *rects,
                   int dx, int dy);
 
 void vncSetCursor(int width, int height, int hotX, int hotY,

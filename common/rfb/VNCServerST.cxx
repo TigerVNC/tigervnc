@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2018 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,8 +77,8 @@ static LogWriter connectionsLog("Connections");
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
     blockCounter(0), pb(0), ledState(ledUnknown),
-    name(strDup(name_)), pointerClient(0), comparer(0),
-    cursor(new Cursor(0, 0, Point(), NULL)),
+    name(strDup(name_)), pointerClient(0), clipboardClient(0),
+    comparer(0), cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
@@ -165,19 +165,17 @@ void VNCServerST::removeSocket(network::Socket* sock) {
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
-      clients.remove(*ci);
-
-      // - Release the cursor if this client owns it
+      // - Remove any references to it
       if (pointerClient == *ci)
         pointerClient = NULL;
-
-      // Adjust the exit timers
-      connectTimer.stop();
-      if (rfb::Server::maxDisconnectionTime && clients.empty())
-        disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
+      if (clipboardClient == *ci)
+        clipboardClient = NULL;
+      clipboardRequestors.remove(*ci);
 
       // - Delete the per-Socket resources
       delete *ci;
+
+      clients.remove(*ci);
 
       CharArray name;
       name.buf = sock->getPeerEndpoint();
@@ -189,6 +187,11 @@ void VNCServerST::removeSocket(network::Socket* sock) {
 
       if (comparer)
         comparer->logStats();
+
+      // Adjust the exit timers
+      connectTimer.stop();
+      if (rfb::Server::maxDisconnectionTime && clients.empty())
+        disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
 
       return;
     }
@@ -310,7 +313,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 
   // Make sure that we have at least one screen
   if (layout.num_screens() == 0)
-    layout.add_screen(Screen(0, 0, 0, pb->width(), pb->height(), 0));
+    layout.add_screen(Screen(0, 0, 0, pb_->width(), pb_->height(), 0));
 
   setPixelBuffer(pb_, layout);
 }
@@ -331,21 +334,51 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
   }
 }
 
+void VNCServerST::requestClipboard()
+{
+  if (clipboardClient == NULL)
+    return;
+
+  clipboardClient->requestClipboardOrClose();
+}
+
+void VNCServerST::announceClipboard(bool available)
+{
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+
+  if (available)
+    clipboardClient = NULL;
+
+  clipboardRequestors.clear();
+
+  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
+    ci_next = ci; ci_next++;
+    (*ci)->announceClipboardOrClose(available);
+  }
+}
+
+void VNCServerST::sendClipboardData(const char* data)
+{
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+
+  if (strchr(data, '\r') != NULL)
+    throw Exception("Invalid carriage return in clipboard data");
+
+  for (ci = clipboardRequestors.begin();
+       ci != clipboardRequestors.end(); ci = ci_next) {
+    ci_next = ci; ci_next++;
+    (*ci)->sendClipboardDataOrClose(data);
+  }
+
+  clipboardRequestors.clear();
+}
+
 void VNCServerST::bell()
 {
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
     (*ci)->bellOrClose();
-  }
-}
-
-void VNCServerST::serverCutText(const char* str, int len)
-{
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
-    (*ci)->serverCutTextOrClose(str, len);
   }
 }
 
@@ -459,9 +492,32 @@ void VNCServerST::pointerEvent(VNCSConnectionST* client,
   desktop->pointerEvent(pos, buttonMask);
 }
 
-void VNCServerST::clientCutText(const char* str, int len)
+void VNCServerST::handleClipboardRequest(VNCSConnectionST* client)
 {
-  desktop->clientCutText(str, len);
+  clipboardRequestors.push_back(client);
+  if (clipboardRequestors.size() == 1)
+    desktop->handleClipboardRequest();
+}
+
+void VNCServerST::handleClipboardAnnounce(VNCSConnectionST* client,
+                                          bool available)
+{
+  if (available)
+    clipboardClient = client;
+  else {
+    if (client != clipboardClient)
+      return;
+    clipboardClient = NULL;
+  }
+  desktop->handleClipboardAnnounce(available);
+}
+
+void VNCServerST::handleClipboardData(VNCSConnectionST* client,
+                                      const char* data)
+{
+  if (client != clipboardClient)
+    return;
+  desktop->handleClipboardData(data);
 }
 
 unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
@@ -470,6 +526,11 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
 {
   unsigned int result;
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
+
+  // We can't handle a framebuffer larger than this, so don't let a
+  // client set one (see PixelBuffer.cxx)
+  if ((fb_width > 16384) || (fb_height > 16384))
+    return resultProhibited;
 
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height))
@@ -538,7 +599,7 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock)
-      return *ci;
+      return (SConnection*)*ci;
   }
   return 0;
 }

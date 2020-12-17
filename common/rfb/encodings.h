@@ -65,6 +65,8 @@ namespace rfb {
 
   //watermark enable
   const int pseudoEncodingWatermarkEnabled = 0xFFFF1212;
+  // UltraVNC-specific
+  const int pseudoEncodingExtendedClipboard = 0xC0A1E5CE;
 
   int encodingNum(const char* name);
   const char* encodingName(int num);

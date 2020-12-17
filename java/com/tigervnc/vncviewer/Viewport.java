@@ -2,7 +2,7 @@
  * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
  * Copyright (C) 2010, 2012-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2017 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,8 +135,8 @@ class Viewport extends JPanel implements ActionListener {
   public void updateWindow() {
     Rect r = frameBuffer.getDamage();
     if (!r.is_empty()) {
-      if (cc.cp.width != scaledWidth ||
-          cc.cp.height != scaledHeight) {
+      if (cc.server.width() != scaledWidth ||
+          cc.server.height() != scaledHeight) {
         AffineTransform t = new AffineTransform(); 
         t.scale((double)scaleRatioX, (double)scaleRatioY);
         Rectangle s = new Rectangle(r.tl.x, r.tl.y, r.width(), r.height());
@@ -240,8 +240,6 @@ class Viewport extends JPanel implements ActionListener {
     case MouseEvent.MOUSE_ENTERED:
       if (cursor != null)
         setCursor(cursor, cursorHotspot.x, cursorHotspot.y);
-      if (embed.getValue())
-        requestFocus();
       return 1;
     case MouseEvent.MOUSE_EXITED:
       setCursor(java.awt.Cursor.getDefaultCursor());
@@ -309,8 +307,8 @@ class Viewport extends JPanel implements ActionListener {
   public void paintComponent(Graphics g) {
     Graphics2D g2 = (Graphics2D)g;
     synchronized(frameBuffer.getImage()) {
-      if (cc.cp.width != scaledWidth ||
-          cc.cp.height != scaledHeight) {
+      if (cc.server.width() != scaledWidth ||
+          cc.server.height() != scaledHeight) {
         g2.setRenderingHint(RenderingHints.KEY_RENDERING,
                             RenderingHints.VALUE_RENDER_QUALITY);
         g2.drawImage(frameBuffer.getImage(), 0, 0,
@@ -342,14 +340,14 @@ class Viewport extends JPanel implements ActionListener {
         scaledWidth = width;
         scaledHeight = height;
       } else {
-        float widthRatio = (float)width / (float)cc.cp.width;
-        float heightRatio = (float)height / (float)cc.cp.height;
+        float widthRatio = (float)width / (float)cc.server.width();
+        float heightRatio = (float)height / (float)cc.server.height();
         float ratio = Math.min(widthRatio, heightRatio);
-        scaledWidth = (int)Math.floor(cc.cp.width * ratio);
-        scaledHeight = (int)Math.floor(cc.cp.height * ratio);
+        scaledWidth = (int)Math.floor(cc.server.width() * ratio);
+        scaledHeight = (int)Math.floor(cc.server.height() * ratio);
       }
-      scaleRatioX = (float)scaledWidth / (float)cc.cp.width;
-      scaleRatioY = (float)scaledHeight / (float)cc.cp.height;
+      scaleRatioX = (float)scaledWidth / (float)cc.server.width();
+      scaleRatioY = (float)scaledHeight / (float)cc.server.height();
     }
     if (scaledWidth != getWidth() || scaledHeight != getHeight())
       setSize(new Dimension(scaledWidth, scaledHeight));
@@ -360,15 +358,15 @@ class Viewport extends JPanel implements ActionListener {
     if (!viewOnly.getValue()) {
       if (buttonMask != lastButtonMask || !pos.equals(lastPointerPos)) {
         try {
-          if (cc.cp.width != scaledWidth ||
-              cc.cp.height != scaledHeight) {
+          if (cc.server.width() != scaledWidth ||
+              cc.server.height() != scaledHeight) {
             int sx = (scaleRatioX == 1.00) ?
               pos.x : (int)Math.floor(pos.x / scaleRatioX);
             int sy = (scaleRatioY == 1.00) ?
               pos.y : (int)Math.floor(pos.y / scaleRatioY);
             pos = pos.translate(new Point(sx - pos.x, sy - pos.y));
           }
-          cc.writer().pointerEvent(pos, buttonMask);
+          cc.writer().writePointerEvent(pos, buttonMask);
         } catch (Exception e) {
           vlog.error("%s", e.getMessage());
           cc.close();
@@ -430,8 +428,8 @@ class Viewport extends JPanel implements ActionListener {
           downKeySym.containsValue(XK_Alt_R)) {
         vlog.debug("Faking release of AltGr (Ctrl_L+Alt_R)");
         try {
-          cc.writer().keyEvent(XK_Control_L, false);
-          cc.writer().keyEvent(XK_Alt_R, false);
+          cc.writer().writeKeyEvent(XK_Control_L, false);
+          cc.writer().writeKeyEvent(XK_Alt_R, false);
         } catch (Exception e) {
           vlog.error("%s", e.getMessage());
           cc.close();
@@ -450,9 +448,9 @@ class Viewport extends JPanel implements ActionListener {
     try {
       // Fake keycode?
       if (keyCode > 0xffff)
-        cc.writer().keyEvent(keySym, true);
+        cc.writer().writeKeyEvent(keySym, true);
       else
-        cc.writer().keyEvent(keySym, true);
+        cc.writer().writeKeyEvent(keySym, true);
     } catch (Exception e) {
       vlog.error("%s", e.getMessage());
       cc.close();
@@ -464,8 +462,8 @@ class Viewport extends JPanel implements ActionListener {
           downKeySym.containsValue(XK_Alt_R)) {
         vlog.debug("Restoring AltGr state");
         try {
-          cc.writer().keyEvent(XK_Control_L, true);
-          cc.writer().keyEvent(XK_Alt_R, true);
+          cc.writer().writeKeyEvent(XK_Control_L, true);
+          cc.writer().writeKeyEvent(XK_Alt_R, true);
         } catch (Exception e) {
           vlog.error("%s", e.getMessage());
           cc.close();
@@ -493,9 +491,9 @@ class Viewport extends JPanel implements ActionListener {
 
     try {
       if (keyCode > 0xffff)
-        cc.writer().keyEvent(iter, false);
+        cc.writer().writeKeyEvent(iter, false);
       else
-        cc.writer().keyEvent(iter, false);
+        cc.writer().writeKeyEvent(iter, false);
     } catch (Exception e) {
       vlog.error("%s", e.getMessage());
       cc.close();
@@ -629,8 +627,7 @@ class Viewport extends JPanel implements ActionListener {
              this, ID.REFRESH, EnumSet.of(MENU.DIVIDER));
 
     menu_add(contextMenu, "New connection...", KeyEvent.VK_N,
-             this, ID.NEWVIEWER,
-             embed.getValue() ? EnumSet.of(MENU.INACTIVE, MENU.DIVIDER) : EnumSet.of(MENU.DIVIDER));
+             this, ID.NEWVIEWER, EnumSet.of(MENU.DIVIDER));
 
     menu_add(contextMenu, "Options...", KeyEvent.VK_O,
              this, ID.OPTIONS, EnumSet.noneOf(MENU.class));
@@ -773,7 +770,7 @@ class Viewport extends JPanel implements ActionListener {
   {
     setMenuKey();
     /*
-    setScaledSize(cc.cp.width, cc.cp.height);
+    setScaledSize(cc.server.width(), cc.server.height());
     if (!oldSize.equals(new Dimension(scaledWidth, scaledHeight))) {
     // Re-layout the DesktopWindow when the scaled size changes.
     // Ideally we'd do this with a ComponentListener, but unfortunately

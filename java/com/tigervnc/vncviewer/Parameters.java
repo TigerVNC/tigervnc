@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Brian P. Hinz
+/* Copyright (C) 2016-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,13 +36,6 @@ public class Parameters {
     "On Mac systems, setting this parameter will force the use of the old "+
     "(pre-Lion) full-screen mode, even if the viewer is running on OS X 10.7 "+
     "Lion or later.",
-    false);
-
-  public static BoolParameter embed
-  = new BoolParameter("Embed",
-    "If the viewer is being run as an applet, display its output to " +
-    "an embedded frame in the browser window rather than to a dedicated " +
-    "window. Embed=1 implies FullScreen=0 and Scale=100.",
     false);
 
   public static BoolParameter dotWhenNoCursor
@@ -85,8 +78,7 @@ public class Parameters {
   public static IntParameter lowColorLevel
   = new IntParameter("LowColorLevel",
     "Color level to use on slow connections. "+
-    "0 = Very Low (8 colors), 1 = Low (64 colors), "+
-    "2 = Medium (256 colors)",
+    "0 = Very Low, 1 = Low, 2 = Medium",
     2);
 
   public static AliasParameter lowColorLevelAlias
@@ -183,11 +175,6 @@ public class Parameters {
     "specified in an applet parameter or on the command line",
     false);
 
-  public static StringParameter vncServerName
-  = new StringParameter("Server",
-    "The VNC server <host>[:<dpyNum>] or <host>::<port>",
-    "");
-
   public static BoolParameter acceptBell
   = new BoolParameter("AcceptBell",
     "Produce a system beep when requested to by the server.",
@@ -275,8 +262,8 @@ public class Parameters {
 
   public static IntParameter compressLevel
   = new IntParameter("CompressLevel",
-    "Use specified compression level. 0 = Low, 6 = High",
-    1);
+    "Use specified lossless compression level. 0 = Low, 9 = High. Default is 2.",
+    2);
 
   public static BoolParameter noJpeg
   = new BoolParameter("NoJPEG",
@@ -579,48 +566,6 @@ public class Parameters {
       } else {
         vlog.error(String.format("Unknown parameter type for parameter %s",
                    parameterArray[i].getName()));
-      }
-    }
-
-    return servername;
-  }
-
-  public static String loadAppletParameters(VncViewer applet) {
-    String servername = applet.getParameter("Server");
-    String serverport = applet.getParameter("Port");
-    String embedParam = applet.getParameter("Embed");
-
-    if (servername == null)
-      servername = applet.getCodeBase().getHost();
-
-    if (serverport != null)
-      servername = servername.concat("::"+serverport);
-    else
-      servername = servername.concat("::5900");
-
-    if (embedParam != null)
-      embed.setParam(embedParam);
-
-    for (int i = 0; i < parameterArray.length; i++) {
-      String value = applet.getParameter(parameterArray[i].getName());
-      if (value == null)
-        continue;
-      if (parameterArray[i] instanceof StringParameter) {
-        if (value.length() > 256) {
-          vlog.error(String.format("Failed to read applet parameter %s: %s",
-                     parameterArray[i].getName(),
-                     "Invalid format or too large value"));
-          continue;
-        }
-        ((StringParameter)parameterArray[i]).setParam(value);
-      } else if (parameterArray[i] instanceof IntParameter) {
-        ((IntParameter)parameterArray[i]).setParam(value);
-      } else if (parameterArray[i] instanceof BoolParameter) {
-        ((BoolParameter)parameterArray[i]).setParam(value);
-      } else {
-        vlog.error(String.format("Unknown parameter type for parameter %s",
-                   parameterArray[i].getName()));
-
       }
     }
 

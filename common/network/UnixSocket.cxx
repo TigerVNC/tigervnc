@@ -69,7 +69,7 @@ UnixSocket::UnixSocket(const char *path)
   }
 
   if (result == -1)
-    throw SocketException("unable connect to socket", err);
+    throw SocketException("unable to connect to socket", err);
 
   setFd(sock);
 }

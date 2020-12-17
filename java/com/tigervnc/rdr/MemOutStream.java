@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +47,9 @@ public class MemOutStream extends OutStream {
     int len = ptr + itemSize * nItems;
     if (len < end * 2)
       len = end * 2;
+
+    if (len < end)
+      throw new Exception("Overflow in MemOutStream::overrun()");
 
     byte[] newBuf = new byte[len];
     System.arraycopy(b, 0, newBuf, 0, ptr);

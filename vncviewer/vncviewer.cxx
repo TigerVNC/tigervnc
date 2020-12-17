@@ -68,6 +68,7 @@
 #include "CConn.h"
 #include "ServerDialog.h"
 #include "UserDialog.h"
+#include "touch.h"
 #include "vncviewer.h"
 #include "fltk_layout.h"
 
@@ -86,6 +87,7 @@ char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
 static const char *argv0 = NULL;
 
+static bool inMainloop = false;
 static bool exitMainloop = false;
 static const char *exitError = NULL;
 
@@ -102,7 +104,7 @@ static const char *about_text()
              "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
              "See https://www.tigervnc.org for information on TigerVNC."),
            (int)sizeof(size_t)*8, PACKAGE_VERSION,
-           BUILD_TIMESTAMP, 2019);
+           BUILD_TIMESTAMP, 2020);
 
   return buffer;
 }
@@ -114,7 +116,14 @@ void exit_vncviewer(const char *error)
   if ((error != NULL) && (exitError == NULL))
     exitError = strdup(error);
 
-  exitMainloop = true;
+  if (inMainloop)
+    exitMainloop = true;
+  else {
+    // We're early in the startup. Assume we can just exit().
+    if (alertOnFatalError && (exitError != NULL))
+      fl_alert("%s", exitError);
+    exit(EXIT_FAILURE);
+  }
 }
 
 bool should_exit()
@@ -227,7 +236,7 @@ static void init_fltk()
       bool exists;
 
       sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tigervnc.png",
-              DATA_DIR, icon_sizes[i], icon_sizes[i]);
+              CMAKE_INSTALL_FULL_DATADIR, icon_sizes[i], icon_sizes[i]);
 
 #ifndef WIN32
       struct stat st;
@@ -415,9 +424,7 @@ potentiallyLoadConfigurationFile(char *vncServerName)
       vncServerName[VNCSERVERNAMELEN-1] = '\0';
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
-      if (alertOnFatalError)
-        fl_alert("%s", e.str());
-      exit(EXIT_FAILURE);
+      exit_vncviewer(e.str());
     }
   }
 }
@@ -447,11 +454,9 @@ interpretViaParam(char *remoteHost, int *remotePort, int localPort)
   }
 
   if (*vncServerName != '\0')
-    strncpy(remoteHost, vncServerName, VNCSERVERNAMELEN);
+    strcpy(remoteHost, vncServerName);
   else
-    strncpy(remoteHost, "localhost", VNCSERVERNAMELEN);
-
-  remoteHost[VNCSERVERNAMELEN - 1] = '\0';
+    strcpy(remoteHost, "localhost");
 
   snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
   vncServerName[VNCSERVERNAMELEN - 1] = '\0';
@@ -505,7 +510,7 @@ int main(int argc, char** argv)
   argv0 = argv[0];
 
   setlocale(LC_ALL, "");
-  bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
+  bindtextdomain(PACKAGE_NAME, CMAKE_INSTALL_FULL_LOCALEDIR);
   textdomain(PACKAGE_NAME);
 
   rfb::SecurityClient::setDefaults();
@@ -533,8 +538,6 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  init_fltk();
-
   Configuration::enableViewerParams();
 
   /* Load the default parameter settings */
@@ -548,11 +551,29 @@ int main(int argc, char** argv)
     }
   } catch (rfb::Exception& e) {
     vlog.error("%s", e.str());
-    if (alertOnFatalError)
-      fl_alert("%s", e.str());
   }
 
   for (int i = 1; i < argc;) {
+    /* We need to resolve an ambiguity for booleans */
+    if (argv[i][0] == '-' && i+1 < argc) {
+        VoidParameter *param;
+
+        param = Configuration::getParam(&argv[i][1]);
+        if ((param != NULL) &&
+            (dynamic_cast<BoolParameter*>(param) != NULL)) {
+          if ((strcasecmp(argv[i+1], "0") == 0) ||
+              (strcasecmp(argv[i+1], "1") == 0) ||
+              (strcasecmp(argv[i+1], "true") == 0) ||
+              (strcasecmp(argv[i+1], "false") == 0) ||
+              (strcasecmp(argv[i+1], "yes") == 0) ||
+              (strcasecmp(argv[i+1], "no") == 0)) {
+              param->setParam(argv[i+1]);
+              i += 2;
+              continue;
+          }
+      }
+    }
+
     if (Configuration::setParam(argv[i])) {
       i++;
       continue;
@@ -574,11 +595,6 @@ int main(int argc, char** argv)
     i++;
   }
 
-  // Check if the server name in reality is a configuration file
-  potentiallyLoadConfigurationFile(vncServerName);
-
-  mkvnchomedir();
-
 #if !defined(WIN32) && !defined(__APPLE__)
   if (strcmp(display, "") != 0) {
     Fl::display(display);
@@ -586,6 +602,14 @@ int main(int argc, char** argv)
   fl_open_display();
   XkbSetDetectableAutoRepeat(fl_display, True, NULL);
 #endif
+
+  init_fltk();
+  enable_touch();
+
+  // Check if the server name in reality is a configuration file
+  potentiallyLoadConfigurationFile(vncServerName);
+
+  mkvnchomedir();
 
   CSecurity::upg = &dlg;
 #ifdef HAVE_GNUTLS
@@ -600,10 +624,8 @@ int main(int argc, char** argv)
     // TRANSLATORS: "Parameters" are command line arguments, or settings
     // from a file or the Windows registry.
     vlog.error(_("Parameters -listen and -via are incompatible"));
-    if (alertOnFatalError)
-      fl_alert(_("Parameters -listen and -via are incompatible"));
-    exit_vncviewer();
-    return 1;
+    exit_vncviewer(_("Parameters -listen and -via are incompatible"));
+    return 1; /* Not reached */
   }
 #endif
 
@@ -649,10 +671,8 @@ int main(int argc, char** argv)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      if (alertOnFatalError)
-        fl_alert("%s", e.str());
-      exit_vncviewer();
-      return 1; 
+      exit_vncviewer(e.str());
+      return 1; /* Not reached */
     }
 
     while (!listeners.empty()) {
@@ -675,8 +695,10 @@ int main(int argc, char** argv)
    //创建连接，并处理event
   CConn *cc = new CConn(vncServerName, sock);
 
+  inMainloop = true;
   while (!exitMainloop)
     run_mainloop();
+  inMainloop = false;
 
   delete cc;
 

@@ -1,0 +1,68 @@
+#
+#  Copyright 2018-2020 Pierre Ossman for Cendio AB
+#
+#  This is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This software is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this software; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+#  USA.
+#
+
+policy_module(vncsession, 1.0.0);
+
+gen_require(`
+    attribute userdomain;
+    type xdm_home_t;
+')
+
+type vnc_session_exec_t;
+corecmd_executable_file(vnc_session_exec_t)
+type vnc_session_t;
+init_daemon_domain(vnc_session_t, vnc_session_exec_t)
+auth_login_pgm_domain(vnc_session_t)
+
+type vnc_session_var_run_t;
+files_pid_file(vnc_session_var_run_t)
+allow vnc_session_t vnc_session_var_run_t:file manage_file_perms;
+files_pid_filetrans(vnc_session_t, vnc_session_var_run_t, file)
+
+auth_write_login_records(vnc_session_t)
+
+can_exec(vnc_session_t, vnc_session_exec_t)
+
+userdom_spec_domtrans_all_users(vnc_session_t)
+userdom_signal_all_users(vnc_session_t)
+
+allow vnc_session_t self:capability { kill chown dac_override dac_read_search fowner setgid setuid sys_resource };
+allow vnc_session_t self:process { getcap setsched setexec setrlimit };
+allow vnc_session_t self:fifo_file rw_fifo_file_perms;
+
+manage_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+manage_fifo_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+manage_sock_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+manage_lnk_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
+userdom_user_home_dir_filetrans(vnc_session_t, xdm_home_t, dir, ".vnc")
+userdom_admin_home_dir_filetrans(vnc_session_t, xdm_home_t, dir, ".vnc")
+
+# This also affects other tools, e.g. vncpasswd
+userdom_admin_home_dir_filetrans(userdomain, xdm_home_t, dir, ".vnc")
+userdom_user_home_dir_filetrans(userdomain, xdm_home_t, dir, ".vnc")
+
+miscfiles_read_localization(vnc_session_t)
+
+kernel_read_kernel_sysctls(vnc_session_t)
+
+logging_append_all_logs(vnc_session_t)
+
+mcs_process_set_categories(vnc_session_t)
+mcs_killall(vnc_session_t)
+

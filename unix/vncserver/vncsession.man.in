@@ -1,0 +1,75 @@
+.TH vncsession 8 "" "TigerVNC" "Virtual Network Computing"
+.SH NAME
+vncsession \- start a VNC server
+.SH SYNOPSIS
+.B vncsession
+.RI < username >
+.RI <: display# >
+.SH DESCRIPTION
+.B vncsession
+is used to start a VNC (Virtual Network Computing) desktop.
+.B vncsession
+performs all the necessary steps to create a new user session, run Xvnc with
+appropriate options and starts a window manager on the VNC desktop.
+
+.B vncsession
+is rarely called directly and is normally started by the system service
+manager.
+
+.SH FILES
+Several VNC-related files are found in the directory $HOME/.vnc:
+.TP
+@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults
+The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
+and defines options to be passed to Xvnc, they will be used as defaults for
+users. The user's $HOME/.vnc/config overrides settings configured in this file.
+The overall configuration file load order is: this file, $HOME/.vnc/config,
+and then @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory. None are required to exist.
+.TP
+@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory
+The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
+and defines options to be passed to Xvnc, they will override any of the same
+options defined in a user's $HOME/.vnc/config. This file offers a mechanism
+to establish some basic form of system-wide policy. WARNING! There is
+nothing stopping users from constructing their own vncsession-like script
+that calls Xvnc directly to bypass any options defined in
+@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory. The overall configuration file load
+order is: @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults, $HOME/.vnc/config, and then
+this file. None are required to exist.
+.TP
+$HOME/.vnc/config
+An optional server config file wherein options to be passed to Xvnc are listed
+to avoid hard-coding them to the physical invocation. List options in this file
+one per line. For those requiring an argument, simply separate the option from
+the argument with an equal sign, for example: "geometry=2000x1200" or
+"securitytypes=vncauth,tlsvnc". Options without an argument are simply listed
+as a single word, for example: "localhost" or "alwaysshared".
+
+The special option
+.B session
+can be used to control which session type will be started. This should match
+one of the files in \fI/usr/share/xsessions\fP. E.g. if there is a file called
+"gnome.desktop", then "session=gnome" would be set to use that session type.
+.TP
+$HOME/.vnc/passwd
+The VNC password file.
+.TP
+$HOME/.vnc/\fIhost\fP:\fIdisplay#\fP.log
+The log file for Xvnc and the session.
+
+.SH SEE ALSO
+.BR vncviewer (1),
+.BR vncpasswd (1),
+.BR vncconfig (1),
+.BR Xvnc (1)
+.br
+https://www.tigervnc.org
+
+.SH AUTHOR
+Tristan Richardson, RealVNC Ltd., D. R. Commander and others.
+
+VNC was originally developed by the RealVNC team while at Olivetti
+Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
+implemented by Constantin Kaplinsky. Many other people have since
+participated in development, testing and support. This manual is part
+of the TigerVNC software suite.

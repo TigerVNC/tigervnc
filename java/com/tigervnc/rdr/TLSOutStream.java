@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2019 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,6 @@ public class TLSOutStream extends OutStream {
     }
 
     ptr = start;
-    //out.flush();
   }
 
   protected int overrun(int itemSize, int nItems)
@@ -66,8 +65,10 @@ public class TLSOutStream extends OutStream {
 
     flush();
 
-    if (itemSize * nItems > end - ptr)
-      nItems = (end - ptr) / itemSize;
+    int nAvail;
+    nAvail = (end - ptr) / itemSize;
+    if (nAvail < nItems)
+      return nAvail;
 
     return nItems;
   }
@@ -81,11 +82,6 @@ public class TLSOutStream extends OutStream {
     } catch (java.io.IOException e) {
       throw new Exception(e.getMessage());
     }
-    //if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
-    //  return 0;
-
-    //if (n < 0)
-    //  throw new TLSException("writeTLS", n);
 
     return n;
   }
