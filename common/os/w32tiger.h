@@ -4,12 +4,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -19,7 +19,7 @@
 #ifndef OS_W32TIGER_H
 #define OS_W32TIGER_H
 
-#ifdef WIN32 
+#ifdef WIN32
 
 #include <windows.h>
 #include <wininet.h>
@@ -86,6 +86,7 @@ extern const GUID IID_IActiveDesktop;
 #define AD_APPLY_BUFFERED_REFRESH 0x00000010
 #define AD_APPLY_DYNAMICREFRESH	0x00000020
 
+#ifdef OLD_MINGW
 /* Structures for IActiveDesktop */
 typedef struct {
 	DWORD dwSize;
@@ -181,6 +182,7 @@ DECLARE_INTERFACE_(IActiveDesktop, IUnknown)
 	STDMETHOD(SetWallpaperOptions)(THIS_ LPCWALLPAPEROPT,DWORD) PURE;
 };
 #undef INTERFACE
+#endif
 #endif /* HAVE_ACTIVE_DESKTOP_H */
 
 #endif /* WIN32 */
