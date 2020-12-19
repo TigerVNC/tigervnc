@@ -139,7 +139,7 @@ void ServerDialog::run(const char* servername, char *newservername)
   strncpy(newservername, dialog.serverName->value(), VNCSERVERNAMELEN);
   newservername[VNCSERVERNAMELEN - 1] = '\0';
 
-  vector<string>::iterator elem = std::find(dialog.serverHistory.begin(),dialog.serverHistory.end(),newservername);
+  vector<string>::iterator elem = std::find(dialog.serverHistory.begin(), dialog.serverHistory.end(), newservername);
   // avoid duplicates in the history
   if(dialog.serverHistory.end() == elem) {
     dialog.serverHistory.push_back(newservername);
@@ -176,9 +176,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
   const char* filename = file_chooser->value();
 
   try {
-    string servername;
-    loadViewerParameters(filename,servername);
-    dialog->serverName->value(servername.c_str());
+    dialog->serverName->value(loadViewerParameters(filename));
   } catch (Exception& e) {
     fl_alert("%s", e.str());
   }
@@ -191,7 +189,6 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 { 
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
-
   const char* filename;
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
@@ -268,7 +265,7 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
   try {
     saveViewerParameters(NULL, servername);
 
-    vector<string>::iterator elem = std::find(dialog->serverHistory.begin(),dialog->serverHistory.end(),servername);
+    vector<string>::iterator elem = std::find(dialog->serverHistory.begin(), dialog->serverHistory.end(), servername);
     // avoid duplicates in the history
     if(dialog->serverHistory.end() == elem) {
       dialog->serverHistory.push_back(servername);
@@ -289,7 +286,7 @@ void ServerDialog::loadServerHistory()
 
   char* homeDir = NULL;
   if (getvnchomedir(&homeDir) == -1) {
-    throw Exception(_("Failed to read configuration file, "
+    throw Exception(_("Failed to read server history file, "
 		      "can't obtain home directory path."));
   }
 
@@ -325,7 +322,7 @@ void ServerDialog::saveServerHistory()
 
   char* homeDir = NULL;
   if (getvnchomedir(&homeDir) == -1) {
-    throw Exception(_("Failed to write configuration file, "
+    throw Exception(_("Failed to write server history file, "
 		      "can't obtain home directory path."));
   }
 
@@ -340,7 +337,7 @@ void ServerDialog::saveServerHistory()
 		      "can't open file."));
   }
 
-  for(size_t i=0;i<serverHistory.size();++i) {
+  for(size_t i=0; i<serverHistory.size(); ++i) {
     f << serverHistory[i] << endl; 
   }
 

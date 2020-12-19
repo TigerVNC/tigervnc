@@ -578,9 +578,8 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "%s\r\n", IDENTIFIER_STRING);
   fprintf(f, "\r\n");
 
-  if (encodeValue(servername, encodingBuffer, buffersize)) {
+  if (encodeValue(servername, encodingBuffer, buffersize)) 
     fprintf(f, "ServerName=%s\n", encodingBuffer);
-  }
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
@@ -599,22 +598,21 @@ void saveViewerParameters(const char *filename, const char *servername) {
 }
 
 
-void loadViewerParameters(const char *filename, string& servername) {
+char* loadViewerParameters(const char *filename) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
   char line[buffersize];
   char decodingBuffer[buffersize];
-  static char servernameBuffer[sizeof(line)];
+  static char servername[sizeof(line)];
 
-  memset(servernameBuffer, '\0', sizeof(servernameBuffer));
+  memset(servername, '\0', sizeof(servername));
 
   // Load from the registry or a predefined file if no filename was specified.
   if(filename == NULL) {
 
 #ifdef _WIN32
-     servername = loadFromReg();
-     return;
+     return loadFromReg();
 #endif
 
     char* homeDir = NULL;
@@ -632,7 +630,7 @@ void loadViewerParameters(const char *filename, string& servername) {
   FILE* f = fopen(filepath, "r");
   if (!f) {
     if (!filename)
-      return; // Use defaults.
+      return NULL; // Use defaults.
     throw Exception(_("Failed to read configuration file, can't open %s: %s"),
                     filepath, strerror(errno));
   }
@@ -693,10 +691,11 @@ void loadViewerParameters(const char *filename, string& servername) {
                    lineNr, filepath, _("Invalid format or too large value"));
         continue;
       }
-      snprintf(servernameBuffer, sizeof(decodingBuffer), "%s", decodingBuffer);
+      snprintf(servername, sizeof(decodingBuffer), "%s", decodingBuffer);
       invalidParameterName = false;
 
     } else {
+
       // Find and set the correct parameter
       for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
 
@@ -737,5 +736,5 @@ void loadViewerParameters(const char *filename, string& servername) {
   }
   fclose(f); f=0;
   
-  servername = servernameBuffer;
+  return servername;
 }
