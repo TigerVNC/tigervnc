@@ -49,6 +49,8 @@
 using namespace std;
 using namespace rfb;
 
+const char* SERVER_HISTORY="tigervnc.history";
+
 ServerDialog::ServerDialog()
   : Fl_Window(450, 160, _("VNC Viewer: Connection Details"))
 {
@@ -291,7 +293,7 @@ void ServerDialog::loadServerHistory()
   }
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%stigervnc.history", homeDir);
+  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
   delete[] homeDir;
 
   /* Read server history from file */
@@ -327,7 +329,7 @@ void ServerDialog::saveServerHistory()
   }
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%stigervnc.history", homeDir);
+  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
   delete[] homeDir;
 
   /* Read server history from file */
