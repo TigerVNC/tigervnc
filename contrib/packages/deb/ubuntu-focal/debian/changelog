@@ -1,0 +1,5 @@
+tigervnc (1.11.80) focal; urgency=low
+
+  * Initial release.
+
+ -- Brian P. Hinz <bphinz@users.sourceforge.net>  Sat, 19 Dec 2020 15:27:35 -0400

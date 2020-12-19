@@ -1,0 +1,87 @@
+Index: a/ltmain.sh
+===================================================================
+--- a/ltmain.sh
++++ b/ltmain.sh
+@@ -7890,19 +7890,19 @@
+ 	    # It is a libtool convenience library, so add in its objects.
+ 	    func_append convenience " $ladir/$objdir/$old_library"
+ 	    func_append old_convenience " $ladir/$objdir/$old_library"
+-	    tmp_libs=
+-	    for deplib in $dependency_libs; do
+-	      deplibs="$deplib $deplibs"
+-	      if $opt_preserve_dup_deps; then
+-		case "$tmp_libs " in
+-		*" $deplib "*) func_append specialdeplibs " $deplib" ;;
+-		esac
+-	      fi
+-	      func_append tmp_libs " $deplib"
+-	    done
+ 	  elif test prog != "$linkmode" && test lib != "$linkmode"; then
+ 	    func_fatal_error "'$lib' is not a convenience library"
+ 	  fi
++	  tmp_libs=
++	  for deplib in $dependency_libs; do
++	    deplibs="$deplib $deplibs"
++	    if $opt_preserve_dup_deps; then
++	      case "$tmp_libs " in
++	      *" $deplib "*) func_append specialdeplibs " $deplib" ;;
++	      esac
++	    fi
++	    func_append tmp_libs " $deplib"
++	  done
+ 	  continue
+ 	fi # $pass = conv
+ 
+## Do not link against deplibs.  This is not needed for shared libs
+## on atleast ELF systems since those already know which libs they
+## need themself.  This seems to break a few things and will be fixed
+## in a better way in a future upstream version.
+
+Index: a/ltmain.sh
+===================================================================
+--- a/ltmain.sh
++++ b/ltmain.sh
+@@ -7568,10 +7568,7 @@
+ 	case $pass in
+ 	dlopen) libs=$dlfiles ;;
+ 	dlpreopen) libs=$dlprefiles ;;
+-	link)
+-	  libs="$deplibs %DEPLIBS%"
+-	  test "X$link_all_deplibs" != Xno && libs="$libs $dependency_libs"
+-	  ;;
++	link) libs="$deplibs %DEPLIBS% $dependency_libs" ;;
+ 	esac
+       fi
+       if test lib,dlpreopen = "$linkmode,$pass"; then
+Index: a/m4/libtool.m4
+===================================================================
+--- a/m4/libtool.m4
++++ b/m4/libtool.m4
+@@ -4936,9 +4936,6 @@
+       ;;
+     esac
+     ;;
+-  linux* | k*bsd*-gnu | gnu*)
+-    _LT_TAGVAR(link_all_deplibs, $1)=no
+-    ;;
+   *)
+     _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
+     ;;
+@@ -4998,9 +5001,6 @@
+   openbsd* | bitrig*)
+     with_gnu_ld=no
+     ;;
+-  linux* | k*bsd*-gnu | gnu*)
+-    _LT_TAGVAR(link_all_deplibs, $1)=no
+-    ;;
+   esac
+ 
+   _LT_TAGVAR(ld_shlibs, $1)=yes
+@@ -5773,7 +5779,6 @@
+ 	if test yes = "$lt_cv_irix_exported_symbol"; then
+           _LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
+ 	fi
+-	_LT_TAGVAR(link_all_deplibs, $1)=no
+       else
+ 	_LT_TAGVAR(archive_cmds, $1)='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
+ 	_LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'

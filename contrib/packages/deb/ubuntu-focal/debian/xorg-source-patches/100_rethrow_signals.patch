@@ -1,0 +1,22 @@
+diff -up tigervnc-1.10.80/unix/xserver/hw/vnc/xvnc.c.orig tigervnc-1.10.80/unix/xserver/hw/vnc/xvnc.c
+--- tigervnc-1.10.80/unix/xserver/hw/vnc/xvnc.c.orig	2020-04-02 11:18:00.000000000 +0200
++++ tigervnc-1.10.80/unix/xserver/hw/vnc/xvnc.c	2020-04-02 12:44:06.365607230 +0200
+@@ -229,11 +229,17 @@ void ddxGiveUp(enum ExitCode error)
+ }
+ 
+ void
+-AbortDDX(enum ExitCode error)
++SigAbortDDX(int signo, enum ExitCode error)
+ {
+     ddxGiveUp(error);
+ }
+ 
++void
++AbortDDX(enum ExitCode error)
++{
++    SigAbortDDX(0, error);
++}
++
+ #ifdef __DARWIN__
+ void
+ DarwinHandleGUI(int argc, char *argv[])

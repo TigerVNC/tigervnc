@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "remove" ] ; then
+    BIN=/usr/bin
+    SBIN=/usr/sbin
+    update-alternatives --remove \
+       vncsession $SBIN/tigervncsession
+    update-alternatives --remove \
+       Xvnc $BIN/Xtigervnc
+    update-alternatives --remove \
+       x0vncserver $BIN/x0tigervncserver
+    update-alternatives --remove \
+       vncpasswd $BIN/tigervncpasswd
+    update-alternatives --remove \
+       tigervncconfig $BIN/tigervncconfig
+fi
+
+#DEBHELPER#
+
+exit 0
