@@ -85,6 +85,7 @@ namespace rfb {
     void setLEDState(unsigned int state);
 
     rdr::U32 clipboardFlags() const { return clipFlags; }
+    rdr::U32 clipboardSize(unsigned int format) const;
     void setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths);
 
     // Wrappers to check for functionality rather than specific

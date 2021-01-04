@@ -54,7 +54,8 @@ SConnection::SConnection()
     is(0), os(0), reader_(0), writer_(0),
     ssecurity(0), state_(RFBSTATE_UNINITIALISED),
     preferredEncoding(encodingRaw),
-    clientClipboard(NULL), hasLocalClipboard(false)
+    clientClipboard(NULL), hasLocalClipboard(false),
+    unsolicitedClipboardAttempt(false)
 {
   defaultMajorVersion = 3;
   defaultMinorVersion = 8;
@@ -503,14 +504,27 @@ void SConnection::requestClipboard()
 void SConnection::announceClipboard(bool available)
 {
   hasLocalClipboard = available;
+  unsolicitedClipboardAttempt = false;
 
-  if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
-      (client.clipboardFlags() & rfb::clipboardNotify))
-    writer()->writeClipboardNotify(available ? rfb::clipboardUTF8 : 0);
-  else {
-    if (available)
+  if (client.supportsEncoding(pseudoEncodingExtendedClipboard)) {
+    // Attempt an unsolicited transfer?
+    if (available &&
+        (client.clipboardSize(rfb::clipboardUTF8) > 0) &&
+        (client.clipboardFlags() & rfb::clipboardProvide)) {
+      vlog.debug("Attempting unsolicited clipboard transfer...");
+      unsolicitedClipboardAttempt = true;
       handleClipboardRequest();
+      return;
+    }
+
+    if (client.clipboardFlags() & rfb::clipboardNotify) {
+      writer()->writeClipboardNotify(available ? rfb::clipboardUTF8 : 0);
+      return;
+    }
   }
+
+  if (available)
+    handleClipboardRequest();
 }
 
 void SConnection::sendClipboardData(const char* data)
@@ -520,6 +534,17 @@ void SConnection::sendClipboardData(const char* data)
     CharArray filtered(convertCRLF(data));
     size_t sizes[1] = { strlen(filtered.buf) + 1 };
     const rdr::U8* data[1] = { (const rdr::U8*)filtered.buf };
+
+    if (unsolicitedClipboardAttempt) {
+      unsolicitedClipboardAttempt = false;
+      if (sizes[0] > client.clipboardSize(rfb::clipboardUTF8)) {
+        vlog.debug("Clipboard was too large for unsolicited clipboard transfer");
+        if (client.clipboardFlags() & rfb::clipboardNotify)
+          writer()->writeClipboardNotify(rfb::clipboardUTF8);
+        return;
+      }
+    }
+
     writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
   } else {
     CharArray latin1(utf8ToLatin1(data));

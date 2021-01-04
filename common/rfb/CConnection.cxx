@@ -578,13 +578,25 @@ void CConnection::requestClipboard()
 void CConnection::announceClipboard(bool available)
 {
   hasLocalClipboard = available;
+  unsolicitedClipboardAttempt = false;
 
-  if (server.clipboardFlags() & rfb::clipboardNotify)
-    writer()->writeClipboardNotify(available ? rfb::clipboardUTF8 : 0);
-  else {
-    if (available)
-      handleClipboardRequest();
+  // Attempt an unsolicited transfer?
+  if (available &&
+      (server.clipboardSize(rfb::clipboardUTF8) > 0) &&
+      (server.clipboardFlags() & rfb::clipboardProvide)) {
+    vlog.debug("Attempting unsolicited clipboard transfer...");
+    unsolicitedClipboardAttempt = true;
+    handleClipboardRequest();
+    return;
   }
+
+  if (server.clipboardFlags() & rfb::clipboardNotify) {
+    writer()->writeClipboardNotify(available ? rfb::clipboardUTF8 : 0);
+    return;
+  }
+
+  if (available)
+    handleClipboardRequest();
 }
 
 void CConnection::sendClipboardData(const char* data)
@@ -593,6 +605,17 @@ void CConnection::sendClipboardData(const char* data)
     CharArray filtered(convertCRLF(data));
     size_t sizes[1] = { strlen(filtered.buf) + 1 };
     const rdr::U8* data[1] = { (const rdr::U8*)filtered.buf };
+
+    if (unsolicitedClipboardAttempt) {
+      unsolicitedClipboardAttempt = false;
+      if (sizes[0] > server.clipboardSize(rfb::clipboardUTF8)) {
+        vlog.debug("Clipboard was too large for unsolicited clipboard transfer");
+        if (server.clipboardFlags() & rfb::clipboardNotify)
+          writer()->writeClipboardNotify(rfb::clipboardUTF8);
+        return;
+      }
+    }
+
     writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
   } else {
     CharArray latin1(utf8ToLatin1(data));
