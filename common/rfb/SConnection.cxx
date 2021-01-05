@@ -334,10 +334,8 @@ void SConnection::handleClipboardRequest(rdr::U32 flags)
 
 void SConnection::handleClipboardPeek(rdr::U32 flags)
 {
-  if (!hasLocalClipboard)
-    return;
   if (client.clipboardFlags() & rfb::clipboardNotify)
-    writer()->writeClipboardNotify(rfb::clipboardUTF8);
+    writer()->writeClipboardNotify(hasLocalClipboard ? rfb::clipboardUTF8 : 0);
 }
 
 void SConnection::handleClipboardNotify(rdr::U32 flags)
