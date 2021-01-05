@@ -327,10 +327,14 @@ void SConnection::clientCutText(const char* str)
 
 void SConnection::handleClipboardRequest(rdr::U32 flags)
 {
-  if (!(flags & rfb::clipboardUTF8))
+  if (!(flags & rfb::clipboardUTF8)) {
+    vlog.debug("Ignoring clipboard request for unsupported formats 0x%x", flags);
     return;
-  if (!hasLocalClipboard)
+  }
+  if (!hasLocalClipboard) {
+    vlog.debug("Ignoring unexpected clipboard request");
     return;
+  }
   handleClipboardRequest();
 }
 
@@ -357,8 +361,10 @@ void SConnection::handleClipboardProvide(rdr::U32 flags,
                                          const size_t* lengths,
                                          const rdr::U8* const* data)
 {
-  if (!(flags & rfb::clipboardUTF8))
+  if (!(flags & rfb::clipboardUTF8)) {
+    vlog.debug("Ignoring clipboard provide with unsupported formats 0x%x", flags);
     return;
+  }
 
   strFree(clientClipboard);
   clientClipboard = NULL;

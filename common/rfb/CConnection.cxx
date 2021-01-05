@@ -495,10 +495,14 @@ void CConnection::handleClipboardCaps(rdr::U32 flags,
 
 void CConnection::handleClipboardRequest(rdr::U32 flags)
 {
-  if (!(flags & rfb::clipboardUTF8))
+  if (!(flags & rfb::clipboardUTF8)) {
+    vlog.debug("Ignoring clipboard request for unsupported formats 0x%x", flags);
     return;
-  if (!hasLocalClipboard)
+  }
+  if (!hasLocalClipboard) {
+    vlog.debug("Ignoring unexpected clipboard request");
     return;
+  }
   handleClipboardRequest();
 }
 
@@ -525,8 +529,10 @@ void CConnection::handleClipboardProvide(rdr::U32 flags,
                                          const size_t* lengths,
                                          const rdr::U8* const* data)
 {
-  if (!(flags & rfb::clipboardUTF8))
+  if (!(flags & rfb::clipboardUTF8)) {
+    vlog.debug("Ignoring clipboard provide with unsupported formats 0x%x", flags);
     return;
+  }
 
   strFree(serverClipboard);
   serverClipboard = NULL;

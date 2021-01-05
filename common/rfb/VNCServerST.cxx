@@ -515,8 +515,10 @@ void VNCServerST::handleClipboardAnnounce(VNCSConnectionST* client,
 void VNCServerST::handleClipboardData(VNCSConnectionST* client,
                                       const char* data)
 {
-  if (client != clipboardClient)
+  if (client != clipboardClient) {
+    slog.debug("Ignoring unexpected clipboard data");
     return;
+  }
   desktop->handleClipboardData(data);
 }
 
