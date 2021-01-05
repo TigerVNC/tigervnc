@@ -169,7 +169,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
       if (pointerClient == *ci)
         pointerClient = NULL;
       if (clipboardClient == *ci)
-        clipboardClient = NULL;
+        handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
 
       // - Delete the per-Socket resources
