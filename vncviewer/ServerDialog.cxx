@@ -23,6 +23,7 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
+#include <FL/Fl_Input_Choice.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/fl_draw.H>
@@ -30,13 +31,25 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_File_Chooser.H>
 
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+
+#include <os/os.h>
+#include <rfb/Exception.h>
+
 #include "ServerDialog.h"
 #include "OptionsDialog.h"
 #include "fltk_layout.h"
 #include "i18n.h"
 #include "vncviewer.h"
 #include "parameters.h"
-#include "rfb/Exception.h"
+
+
+using namespace std;
+using namespace rfb;
+
+const char* SERVER_HISTORY="tigervnc.history";
 
 ServerDialog::ServerDialog()
   : Fl_Window(450, 160, _("VNC Viewer: Connection Details"))
@@ -51,7 +64,11 @@ ServerDialog::ServerDialog()
   x = margin + server_label_width;
   y = margin;
   
-  serverName = new Fl_Input(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
+  serverName = new Fl_Input_Choice(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
+  loadServerHistory();
+  for(size_t i=0;i<serverHistory.size();++i) {
+    serverName->add(serverHistory[i].c_str());
+  }
 
   int adjust = (w() - 20) / 4;
   int button_width = adjust - margin/2;
@@ -112,7 +129,7 @@ void ServerDialog::run(const char* servername, char *newservername)
   ServerDialog dialog;
 
   dialog.serverName->value(servername);
-  
+
   dialog.show();
   while (dialog.shown()) Fl::wait();
 
@@ -154,7 +171,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 
   try {
     dialog->serverName->value(loadViewerParameters(filename));
-  } catch (rfb::Exception& e) {
+  } catch (Exception& e) {
     fl_alert("%s", e.str());
   }
 
@@ -209,7 +226,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
   
   try {
     saveViewerParameters(filename, servername);
-  } catch (rfb::Exception& e) {
+  } catch (Exception& e) {
     fl_alert("%s", e.str());
   }
   
@@ -227,7 +244,7 @@ void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
 
-  dialog->serverName->value(NULL);
+  dialog->serverName->value("");
   dialog->hide();
 }
 
@@ -238,10 +255,90 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
   const char* servername = dialog->serverName->value();
 
   dialog->hide();
-  
+
   try {
     saveViewerParameters(NULL, servername);
-  } catch (rfb::Exception& e) {
+
+    vector<string>::iterator elem = std::find(dialog->serverHistory.begin(), dialog->serverHistory.end(), servername);
+    // avoid duplicates in the history
+    if(dialog->serverHistory.end() == elem) {
+      dialog->serverHistory.insert(dialog->serverHistory.begin(), servername);
+      dialog->saveServerHistory();
+    }
+  } catch (Exception& e) {
     fl_alert("%s", e.str());
   }
+}
+
+
+void ServerDialog::loadServerHistory()
+{
+#ifdef _WIN32
+  loadHistoryFromRegKey(serverHistory);
+  return;
+#endif
+
+  char* homeDir = NULL;
+  if (getvnchomedir(&homeDir) == -1) {
+    throw Exception(_("Failed to read server history file, "
+		      "can't obtain home directory path."));
+  }
+
+  char filepath[PATH_MAX];
+  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
+  delete[] homeDir;
+
+  /* Read server history from file */
+  ifstream f (filepath);
+  if (!f.is_open()) {
+    // no history file
+    return;
+  }
+
+  string line;
+  while(getline(f, line)) {
+    serverHistory.push_back(line);
+  }
+
+  if (f.bad()) {
+    throw Exception(_("Failed to read server history file, "
+		      "error while reading file."));
+  }
+  f.close();
+}
+
+void ServerDialog::saveServerHistory()
+{
+#ifdef _WIN32
+  saveHistoryToRegKey(serverHistory);
+  return;
+#endif
+
+  char* homeDir = NULL;
+  if (getvnchomedir(&homeDir) == -1) {
+    throw Exception(_("Failed to write server history file, "
+		      "can't obtain home directory path."));
+  }
+
+  char filepath[PATH_MAX];
+  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
+  delete[] homeDir;
+
+  /* Write server history to file */
+  ofstream f (filepath);
+  if (!f.is_open()) {
+    throw Exception(_("Failed to write server history file, "
+		      "can't open file."));
+  }
+
+  // Save the last X elements to the config file.
+  for(size_t i=0; i < serverHistory.size() && i <= SERVER_HISTORY_SIZE; i++) {
+    f << serverHistory[i] << endl;
+  }
+
+  if (f.bad()) {
+    throw Exception(_("Failed to write server history file, "
+		      "error while writing file."));
+  }
+  f.close();
 }
