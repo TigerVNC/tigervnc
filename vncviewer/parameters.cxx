@@ -44,10 +44,12 @@
 #include <string.h>
 #include <limits.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "i18n.h"
 
 using namespace rfb;
+using namespace std;
 
 static LogWriter vlog("Parameters");
 
@@ -398,6 +400,34 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
 }
 
 
+void saveHistoryToRegKey(const vector<string>& serverHistory) {
+  HKEY hKey;
+  LONG res = RegCreateKeyExW(HKEY_CURRENT_USER,
+                             L"Software\\TigerVNC\\vncviewer\\history", 0, NULL,
+                             REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,
+                             &hKey, NULL);
+
+  if (res != ERROR_SUCCESS) {
+    vlog.error(_("Failed to create registry key: %ld"), res);
+    return;
+  }
+
+  size_t index = 0;
+  assert(SERVER_HISTORY_SIZE < 100);
+  char indexString[3];
+
+  while(index < serverHistory.size() && index <= SERVER_HISTORY_SIZE) {
+    snprintf(indexString, 3, "%d", index);
+    setKeyString(indexString, serverHistory[index].c_str(), &hKey);
+    index++;
+  }
+
+  res = RegCloseKey(hKey);
+  if (res != ERROR_SUCCESS) {
+    vlog.error(_("Failed to close registry key: %ld"), res);
+  }
+}
+
 static void saveToReg(const char* servername) {
   
   HKEY hKey;
@@ -432,6 +462,43 @@ static void saveToReg(const char* servername) {
   }
 }
 
+void loadHistoryFromRegKey(vector<string>& serverHistory) {
+  HKEY hKey;
+
+  LONG res = RegOpenKeyExW(HKEY_CURRENT_USER,
+                           L"Software\\TigerVNC\\vncviewer\\history", 0,
+                           KEY_READ, &hKey);
+  if (res != ERROR_SUCCESS) {
+    if (res == ERROR_FILE_NOT_FOUND) {
+      // The key does not exist, defaults will be used.
+    } else {
+      vlog.error(_("Failed to open registry key: %ld"), res);
+    }
+    return;
+  }
+
+  bool stop = false;
+  size_t index = 0;
+  const DWORD buffersize = 256;
+  char indexString[3];
+
+  while(!stop) {
+    snprintf(indexString, 3, "%d", index);
+    char servernameBuffer[buffersize];
+    if (getKeyString(indexString, servernameBuffer, buffersize, &hKey)) {
+      serverHistory.push_back(servernameBuffer);
+      index++;
+    }
+    else {
+      stop = true;
+    }
+  }
+
+  res = RegCloseKey(hKey);
+  if (res != ERROR_SUCCESS){
+    vlog.error(_("Failed to close registry key: %ld"), res);
+  }
+}
 
 static char* loadFromReg() {
 
@@ -521,9 +588,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "%s\r\n", IDENTIFIER_STRING);
   fprintf(f, "\r\n");
 
-  if (encodeValue(servername, encodingBuffer, buffersize))  
+  if (encodeValue(servername, encodingBuffer, buffersize))
     fprintf(f, "ServerName=%s\n", encodingBuffer);
-  
+
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
@@ -638,7 +705,7 @@ char* loadViewerParameters(const char *filename) {
       invalidParameterName = false;
 
     } else {
-    
+
       // Find and set the correct parameter
       for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
 
