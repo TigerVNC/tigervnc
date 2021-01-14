@@ -628,7 +628,7 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 
   // Just update the requested region.
   // Framebuffer update will be sent a bit later, see processMessages().
-  Region reqRgn(r);
+  Region reqRgn(safeRect);
   if (!incremental || !continuousUpdates)
     requested.assign_union(reqRgn);
 
