@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Usage question or discussion
+    url: https://groups.google.com/forum/#!forum/tigervnc-users
+    about: Ask a question or start a discussion on how to use TigerVNC
+  - name: Development question or discussion
+    url: https://groups.google.com/forum/#!forum/tigervnc-devel
+    about: Ask a question or start a discussion about TigerVNC's code
