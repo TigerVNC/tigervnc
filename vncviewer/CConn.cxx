@@ -72,6 +72,9 @@ static const PixelFormat lowColourPF(8, 6, false, true,
 static const PixelFormat mediumColourPF(8, 8, false, true,
                                         7, 7, 3, 5, 2, 0);
 
+// Time new bandwidth estimates are weighted against (in ms)
+static const unsigned bpsEstimateWindow = 1000;
+
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
     updateCount(0), pixelCount(0),
@@ -362,7 +365,7 @@ void CConn::framebufferUpdateStart()
 // appropriately, and then request another incremental update.
 void CConn::framebufferUpdateEnd()
 {
-  unsigned long long elapsed, bps;
+  unsigned long long elapsed, bps, weight;
   struct timeval now;
 
   CConnection::framebufferUpdateEnd();
@@ -380,10 +383,11 @@ void CConn::framebufferUpdateEnd()
                             1000000 / elapsed;
   // Allow this update to influence things more the longer it took, to a
   // maximum of 20% of the new value.
-  if (elapsed > 2000000)
-    elapsed = 2000000;
-  bpsEstimate = ((bpsEstimate * (10000000 - elapsed)) +
-                 (bps * elapsed)) / 10000000;
+  weight = elapsed * 1000 / bpsEstimateWindow;
+  if (weight > 200000)
+    weight = 200000;
+  bpsEstimate = ((bpsEstimate * (1000000 - weight)) +
+                 (bps * weight)) / 1000000;
 
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
