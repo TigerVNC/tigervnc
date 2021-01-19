@@ -109,12 +109,19 @@ static const char *about_text()
   return buffer;
 }
 
-void exit_vncviewer(const char *error)
+void exit_vncviewer(const char *error, ...)
 {
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if ((error != NULL) && (exitError == NULL))
-    exitError = strdup(error);
+  if ((error != NULL) && (exitError == NULL)) {
+    va_list ap;
+
+    va_start(ap, error);
+    exitError = (char*)malloc(1024);
+    if (exitError)
+      (void) vsnprintf((char*)exitError, 1024, error, ap);
+    va_end(ap);
+  }
 
   if (inMainloop)
     exitMainloop = true;
@@ -424,7 +431,8 @@ potentiallyLoadConfigurationFile(char *vncServerName)
       vncServerName[VNCSERVERNAMELEN-1] = '\0';
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("Error reading configuration file \"%s\":\n\n%s"),
+                     vncServerName, e.str());
     }
   }
 }
@@ -671,7 +679,7 @@ int main(int argc, char** argv)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("Failure waiting for incoming VNC connection:\n\n%s"), e.str());
       return 1; /* Not reached */
     }
 

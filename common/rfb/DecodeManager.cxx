@@ -22,6 +22,7 @@
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/Decoder.h>
+#include <rfb/Exception.h>
 #include <rfb/Region.h>
 
 #include <rfb/LogWriter.h>
@@ -102,7 +103,7 @@ DecodeManager::~DecodeManager()
     delete decoders[i];
 }
 
-void DecodeManager::decodeRect(const Rect& r, int encoding,
+bool DecodeManager::decodeRect(const Rect& r, int encoding,
                                ModifiablePixelBuffer* pb)
 {
   Decoder *decoder;
@@ -132,15 +133,21 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
   if (threads.empty()) {
     bufferStream = freeBuffers.front();
     bufferStream->clear();
-    decoder->readRect(r, conn->getInStream(), conn->server, bufferStream);
-    decoder->decodeRect(r, bufferStream->data(), bufferStream->length(),
-                        conn->server, pb);
-    return;
+    if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
+      return false;
+    try {
+      decoder->decodeRect(r, bufferStream->data(), bufferStream->length(),
+                          conn->server, pb);
+    } catch (rdr::Exception& e) {
+      throw Exception("Error decoding rect: %s", e.str());
+    }
+    return true;
   }
 
   // Wait for an available memory buffer
   queueMutex->lock();
 
+  // FIXME: Should we return and let other things run here?
   while (freeBuffers.empty())
     producerCond->wait();
 
@@ -155,7 +162,8 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
 
   // Read the rect
   bufferStream->clear();
-  decoder->readRect(r, conn->getInStream(), conn->server, bufferStream);
+  if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
+    return false;
 
   // Then try to put it on the queue
   entry = new QueueEntry;
@@ -185,6 +193,8 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
   consumerCond->signal();
 
   queueMutex->unlock();
+
+  return true;
 }
 
 void DecodeManager::flush()

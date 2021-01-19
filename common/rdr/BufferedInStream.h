@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2020 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +17,43 @@
  * USA.
  */
 
+//
+// Base class for input streams with a buffer
+//
+
+#ifndef __RDR_BUFFEREDINSTREAM_H__
+#define __RDR_BUFFEREDINSTREAM_H__
+
+#include <sys/time.h>
+
 #include <rdr/InStream.h>
-#include <rdr/Exception.h>
 
-using namespace rdr;
+namespace rdr {
 
-U32 InStream::maxStringLength = 65535;
+  class BufferedInStream : public InStream {
 
-char* InStream::readString()
-{
-  U32 len = readU32();
-  if (len > maxStringLength)
-    throw Exception("InStream max string length exceeded");
-  char* str = new char[len+1];
-  readBytes(str, len);
-  str[len] = 0;
-  return str;
-}
+  public:
+    virtual ~BufferedInStream();
+
+    virtual size_t pos();
+
+  private:
+    virtual bool fillBuffer(size_t maxSize) = 0;
+
+    virtual bool overrun(size_t needed);
+
+  private:
+    size_t bufSize;
+    size_t offset;
+    U8* start;
+
+    struct timeval lastSizeCheck;
+    size_t peakUsage;
+
+  protected:
+    BufferedInStream();
+  };
+
+} // end of namespace rdr
+
+#endif

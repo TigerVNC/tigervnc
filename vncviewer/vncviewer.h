@@ -21,7 +21,13 @@
 
 #define VNCSERVERNAMELEN 256
 
-void exit_vncviewer(const char *error = NULL);
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
+
+void exit_vncviewer(const char *error = NULL, ...) __printf_attr(1, 2);
 bool should_exit();
 void about_vncviewer();
 void run_mainloop();

@@ -154,18 +154,11 @@ bool CSecurityTLS::processMsg()
   client = cc;
 
   if (!session) {
-    if (!is->checkNoWait(1))
+    if (!is->hasData(1))
       return false;
 
-    if (is->readU8() == 0) {
-      rdr::U32 result = is->readU32();
-      CharArray reason;
-      if (result == secResultFailed || result == secResultTooMany)
-        reason.buf = is->readString();
-      else
-        reason.buf = strDup("protocol error");
-      throw AuthFailureException(reason.buf);
-    }
+    if (is->readU8() == 0)
+      throw AuthFailureException("Server failed to initialize TLS session");
 
     if (gnutls_init(&session, GNUTLS_CLIENT) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_init failed");
@@ -187,8 +180,10 @@ bool CSecurityTLS::processMsg()
   int err;
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
-    if (!gnutls_error_is_fatal(err))
+    if (!gnutls_error_is_fatal(err)) {
+      vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
       return false;
+    }
 
     vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
     shutdown(false);

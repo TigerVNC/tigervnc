@@ -78,19 +78,21 @@ bool SSecurityVeNCrypt::processMsg()
     os->writeU8(2);
     haveSentVersion = true;
     os->flush();
-
-    return false;
   }
 
   /* Receive back highest version that client can support (up to and including ours) */
   if (!haveRecvdMajorVersion) {
+    if (!is->hasData(1))
+      return false;
+
     majorVersion = is->readU8();
     haveRecvdMajorVersion = true;
-
-    return false;
   }
 
   if (!haveRecvdMinorVersion) {
+    if (!is->hasData(1))
+      return false;
+
     minorVersion = is->readU8();
     haveRecvdMinorVersion = true;
 
@@ -140,14 +142,15 @@ bool SSecurityVeNCrypt::processMsg()
 
       os->flush(); 
       haveSentTypes = true;
-      return false;
     } else
       throw AuthFailureException("There are no VeNCrypt sub-types to send to the client");
   }
 
   /* get type back from client (must be one of the ones we sent) */
   if (!haveChosenType) {
-    is->check(4);
+    if (!is->hasData(4))
+      return false;
+
     chosenType = is->readU32();
 
     for (i = 0; i < numTypes; i++) {

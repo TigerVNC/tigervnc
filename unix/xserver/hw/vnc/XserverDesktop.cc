@@ -311,7 +311,6 @@ bool XserverDesktop::handleListenerEvent(int fd,
     return false;
 
   Socket* sock = (*i)->accept();
-  sock->outStream().setBlocking(false);
   vlog.debug("new client, sock %d", sock->getFd());
   sockserv->addSocket(sock);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
@@ -366,7 +365,7 @@ void XserverDesktop::blockHandler(int* timeout)
         delete (*i);
       } else {
         /* Update existing NotifyFD to listen for write (or not) */
-        vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().bufferUsage() > 0);
+        vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().hasBufferedData());
       }
     }
 
@@ -393,7 +392,6 @@ void XserverDesktop::blockHandler(int* timeout)
 void XserverDesktop::addClient(Socket* sock, bool reverse)
 {
   vlog.debug("new client, sock %d reverse %d",sock->getFd(),reverse);
-  sock->outStream().setBlocking(false);
   server->addSocket(sock, reverse);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 }

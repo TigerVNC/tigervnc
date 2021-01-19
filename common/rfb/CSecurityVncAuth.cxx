@@ -45,6 +45,9 @@ bool CSecurityVncAuth::processMsg()
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();
 
+  if (!is->hasData(vncAuthChallengeSize))
+    return false;
+
   // Read the challenge & obtain the user's password
   rdr::U8 challenge[vncAuthChallengeSize];
   is->readBytes(challenge, vncAuthChallengeSize);

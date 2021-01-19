@@ -27,27 +27,22 @@
 #ifdef HAVE_GNUTLS
 
 #include <gnutls/gnutls.h>
-#include <rdr/InStream.h>
+#include <rdr/BufferedInStream.h>
 
 namespace rdr {
 
-  class TLSInStream : public InStream {
+  class TLSInStream : public BufferedInStream {
   public:
     TLSInStream(InStream* in, gnutls_session_t session);
     virtual ~TLSInStream();
 
-    size_t pos();
-
   private:
-    size_t overrun(size_t itemSize, size_t nItems, bool wait);
-    size_t readTLS(U8* buf, size_t len, bool wait);
+    virtual bool fillBuffer(size_t maxSize);
+    size_t readTLS(U8* buf, size_t len);
     static ssize_t pull(gnutls_transport_ptr_t str, void* data, size_t size);
 
     gnutls_session_t session;
     InStream* in;
-    size_t bufSize;
-    size_t offset;
-    U8* start;
   };
 };
 

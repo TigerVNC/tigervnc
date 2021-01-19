@@ -60,14 +60,7 @@ CConnection::CConnection()
 
 CConnection::~CConnection()
 {
-  setFramebuffer(NULL);
-  if (csecurity)
-    delete csecurity;
-  delete reader_;
-  reader_ = 0;
-  delete writer_;
-  writer_ = 0;
-  strFree(serverClipboard);
+  close();
 }
 
 void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -127,16 +120,19 @@ void CConnection::initialiseProtocol()
   state_ = RFBSTATE_PROTOCOL_VERSION;
 }
 
-void CConnection::processMsg()
+bool CConnection::processMsg()
 {
   switch (state_) {
 
-  case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();       break;
-  case RFBSTATE_SECURITY_TYPES:   processSecurityTypesMsg(); break;
-  case RFBSTATE_SECURITY:         processSecurityMsg();      break;
-  case RFBSTATE_SECURITY_RESULT:  processSecurityResultMsg(); break;
-  case RFBSTATE_INITIALISATION:   processInitMsg();          break;
-  case RFBSTATE_NORMAL:           reader_->readMsg();        break;
+  case RFBSTATE_PROTOCOL_VERSION: return processVersionMsg();        break;
+  case RFBSTATE_SECURITY_TYPES:   return processSecurityTypesMsg();  break;
+  case RFBSTATE_SECURITY:         return processSecurityMsg();       break;
+  case RFBSTATE_SECURITY_RESULT:  return processSecurityResultMsg(); break;
+  case RFBSTATE_SECURITY_REASON:  return processSecurityReasonMsg(); break;
+  case RFBSTATE_INITIALISATION:   return processInitMsg();           break;
+  case RFBSTATE_NORMAL:           return reader_->readMsg();         break;
+  case RFBSTATE_CLOSING:
+    throw Exception("CConnection::processMsg: called while closing");
   case RFBSTATE_UNINITIALISED:
     throw Exception("CConnection::processMsg: not initialised yet?");
   default:
@@ -144,7 +140,7 @@ void CConnection::processMsg()
   }
 }
 
-void CConnection::processVersionMsg()
+bool CConnection::processVersionMsg()
 {
   char verStr[27]; // FIXME: gcc has some bug in format-overflow
   int majorVersion;
@@ -152,8 +148,8 @@ void CConnection::processVersionMsg()
 
   vlog.debug("reading protocol version");
 
-  if (!is->checkNoWait(12))
-    return;
+  if (!is->hasData(12))
+    return false;
 
   is->readBytes(verStr, 12);
   verStr[12] = '\0';
@@ -191,10 +187,12 @@ void CConnection::processVersionMsg()
 
   vlog.info("Using RFB protocol version %d.%d",
             server.majorVersion, server.minorVersion);
+
+  return true;
 }
 
 
-void CConnection::processSecurityTypesMsg()
+bool CConnection::processSecurityTypesMsg()
 {
   vlog.debug("processing security types message");
 
@@ -207,10 +205,13 @@ void CConnection::processSecurityTypesMsg()
 
     // legacy 3.3 server may only offer "vnc authentication" or "none"
 
+    if (!is->hasData(4))
+      return false;
+
     secType = is->readU32();
     if (secType == secTypeInvalid) {
-      throwConnFailedException();
-
+      state_ = RFBSTATE_SECURITY_REASON;
+      return true;
     } else if (secType == secTypeNone || secType == secTypeVncAuth) {
       std::list<rdr::U8>::iterator i;
       for (i = secTypes.begin(); i != secTypes.end(); i++)
@@ -230,9 +231,21 @@ void CConnection::processSecurityTypesMsg()
 
     // >=3.7 server will offer us a list
 
+    if (!is->hasData(1))
+      return false;
+
+    is->setRestorePoint();
+
     int nServerSecTypes = is->readU8();
-    if (nServerSecTypes == 0)
-      throwConnFailedException();
+
+    if (!is->hasDataOrRestore(nServerSecTypes))
+      return false;
+    is->clearRestorePoint();
+
+    if (nServerSecTypes == 0) {
+      state_ = RFBSTATE_SECURITY_REASON;
+      return true;
+    }
 
     std::list<rdr::U8>::iterator j;
 
@@ -270,32 +283,38 @@ void CConnection::processSecurityTypesMsg()
 
   state_ = RFBSTATE_SECURITY;
   csecurity = security.GetCSecurity(this, secType);
-  processSecurityMsg();
+
+  return true;
 }
 
-void CConnection::processSecurityMsg()
+bool CConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
-  if (csecurity->processMsg()) {
-    state_ = RFBSTATE_SECURITY_RESULT;
-    processSecurityResultMsg();
-  }
+  if (!csecurity->processMsg())
+    return false;
+
+  state_ = RFBSTATE_SECURITY_RESULT;
+
+  return true;
 }
 
-void CConnection::processSecurityResultMsg()
+bool CConnection::processSecurityResultMsg()
 {
   vlog.debug("processing security result message");
   int result;
+
   if (server.beforeVersion(3,8) && csecurity->getType() == secTypeNone) {
     result = secResultOK;
   } else {
-    if (!is->checkNoWait(1)) return;
+    if (!is->hasData(4))
+      return false;
     result = is->readU32();
   }
+
   switch (result) {
   case secResultOK:
     securityCompleted();
-    return;
+    return true;
   case secResultFailed:
     vlog.debug("auth failed");
     break;
@@ -305,25 +324,42 @@ void CConnection::processSecurityResultMsg()
   default:
     throw Exception("Unknown security result from server");
   }
-  state_ = RFBSTATE_INVALID;
-  if (server.beforeVersion(3,8))
+
+  if (server.beforeVersion(3,8)) {
+    state_ = RFBSTATE_INVALID;
     throw AuthFailureException();
-  CharArray reason(is->readString());
+  }
+
+  state_ = RFBSTATE_SECURITY_REASON;
+  return true;
+}
+
+bool CConnection::processSecurityReasonMsg()
+{
+  vlog.debug("processing security reason message");
+
+  if (!is->hasData(4))
+    return false;
+
+  is->setRestorePoint();
+
+  rdr::U32 len = is->readU32();
+  if (!is->hasDataOrRestore(len))
+    return false;
+  is->clearRestorePoint();
+
+  CharArray reason(len + 1);
+  is->readBytes(reason.buf, len);
+  reason.buf[len] = '\0';
+
+  state_ = RFBSTATE_INVALID;
   throw AuthFailureException(reason.buf);
 }
 
-void CConnection::processInitMsg()
+bool CConnection::processInitMsg()
 {
   vlog.debug("reading server initialisation");
-  reader_->readServerInit();
-}
-
-void CConnection::throwConnFailedException()
-{
-  state_ = RFBSTATE_INVALID;
-  CharArray reason;
-  reason.buf = is->readString();
-  throw ConnFailedException(reason.buf);
+  return reader_->readServerInit();
 }
 
 void CConnection::securityCompleted()
@@ -334,6 +370,21 @@ void CConnection::securityCompleted()
   vlog.debug("Authentication success!");
   authSuccess();
   writer_->writeClientInit(shared);
+}
+
+void CConnection::close()
+{
+  state_ = RFBSTATE_CLOSING;
+
+  setFramebuffer(NULL);
+  delete csecurity;
+  csecurity = NULL;
+  delete reader_;
+  reader_ = NULL;
+  delete writer_;
+  writer_ = NULL;
+  strFree(serverClipboard);
+  serverClipboard = NULL;
 }
 
 void CConnection::setDesktopSize(int w, int h)
@@ -416,11 +467,13 @@ void CConnection::serverInit(int width, int height,
   }
 }
 
-void CConnection::readAndDecodeRect(const Rect& r, int encoding,
+bool CConnection::readAndDecodeRect(const Rect& r, int encoding,
                                     ModifiablePixelBuffer* pb)
 {
-  decoder.decodeRect(r, encoding, pb);
+  if (!decoder.decodeRect(r, encoding, pb))
+    return false;
   decoder.flush();
+  return true;
 }
 
 void CConnection::framebufferUpdateStart()
@@ -461,9 +514,9 @@ void CConnection::framebufferUpdateEnd()
   }
 }
 
-void CConnection::dataRect(const Rect& r, int encoding)
+bool CConnection::dataRect(const Rect& r, int encoding)
 {
-  decoder.decodeRect(r, encoding, framebuffer);
+  return decoder.decodeRect(r, encoding, framebuffer);
 }
 
 void CConnection::serverCutText(const char* str)

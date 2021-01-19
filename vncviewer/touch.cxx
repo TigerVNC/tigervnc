@@ -181,7 +181,7 @@ static int handleTouchEvent(void *event, void *data)
       handlers[msg->hwnd] = new Win32TouchHandler(msg->hwnd);
     } catch (rfb::Exception& e) {
       vlog.error(_("Failed to create touch handler: %s"), e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("Failed to create touch handler: %s"), e.str());
     }
     // Add a special hook-in for handling events sent directly to WndProc
     if (!SetWindowSubclass(msg->hwnd, &win32WindowProc, 1, 0)) {

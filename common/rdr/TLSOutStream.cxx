@@ -25,10 +25,13 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSOutStream.h>
+#include <rfb/LogWriter.h>
 #include <errno.h>
 
 #ifdef HAVE_GNUTLS
 using namespace rdr;
+
+static rfb::LogWriter vlog("TLSOutStream");
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
@@ -42,6 +45,7 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
     out->writeBytes(data, size);
     out->flush();
   } catch (Exception& e) {
+    vlog.error("Failure sending TLS data: %s", e.str());
     gnutls_transport_set_errno(self->session, EINVAL);
     return -1;
   }
@@ -82,7 +86,13 @@ size_t TLSOutStream::length()
 
 void TLSOutStream::flush()
 {
-  U8* sentUpTo = start;
+  U8* sentUpTo;
+
+  // Only give GnuTLS larger chunks if corked to minimize overhead
+  if (corked && ((ptr - start) < 1024))
+    return;
+
+  sentUpTo = start;
   while (sentUpTo < ptr) {
     size_t n = writeTLS(sentUpTo, ptr - sentUpTo);
     sentUpTo += n;
@@ -93,19 +103,22 @@ void TLSOutStream::flush()
   out->flush();
 }
 
-size_t TLSOutStream::overrun(size_t itemSize, size_t nItems)
+void TLSOutStream::cork(bool enable)
 {
-  if (itemSize > bufSize)
-    throw Exception("TLSOutStream overrun: max itemSize exceeded");
+  OutStream::cork(enable);
 
+  out->cork(enable);
+}
+
+void TLSOutStream::overrun(size_t needed)
+{
+  if (needed > bufSize)
+    throw Exception("TLSOutStream overrun: buffer size exceeded");
+
+  // A cork might prevent the flush, so disable it temporarily
+  corked = false;
   flush();
-
-  size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
+  corked = true;
 }
 
 size_t TLSOutStream::writeTLS(const U8* data, size_t length)

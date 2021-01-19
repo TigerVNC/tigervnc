@@ -39,7 +39,7 @@ using namespace rfb;
 
 CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
   : imageBufIdealSize(0), handler(handler_), is(is_),
-    nUpdateRectsLeft(0)
+    state(MSGSTATE_IDLE), cursorEncoding(-1)
 {
 }
 
@@ -47,146 +47,246 @@ CMsgReader::~CMsgReader()
 {
 }
 
-void CMsgReader::readServerInit()
+bool CMsgReader::readServerInit()
 {
-  int width = is->readU16();
-  int height = is->readU16();
+  int width, height;
+  rdr::U32 len;
+
+  if (!is->hasData(2 + 2 + 16 + 4))
+    return false;
+
+  is->setRestorePoint();
+
+  width = is->readU16();
+  height = is->readU16();
+
   PixelFormat pf;
   pf.read(is);
-  CharArray name(is->readString());
+
+  len = is->readU32();
+  if (!is->hasDataOrRestore(len))
+    return false;
+  is->clearRestorePoint();
+  CharArray name(len + 1);
+  is->readBytes(name.buf, len);
+  name.buf[len] = '\0';
   handler->serverInit(width, height, pf, name.buf);
+
+  return true;
 }
 
-void CMsgReader::readMsg()
+bool CMsgReader::readMsg()
 {
-  if (nUpdateRectsLeft == 0) {
-    int type = is->readU8();
+  if (state == MSGSTATE_IDLE) {
+    if (!is->hasData(1))
+      return false;
 
-    switch (type) {
+    currentMsgType = is->readU8();
+    state = MSGSTATE_MESSAGE;
+  }
+
+  if (currentMsgType != msgTypeFramebufferUpdate) {
+    bool ret;
+
+    switch (currentMsgType) {
     case msgTypeSetColourMapEntries:
-      readSetColourMapEntries();
+      ret = readSetColourMapEntries();
       break;
     case msgTypeBell:
-      readBell();
+      ret = readBell();
       break;
     case msgTypeServerCutText:
-      readServerCutText();
+      ret = readServerCutText();
       break;
     case msgTypeFramebufferUpdate:
-      readFramebufferUpdate();
+      ret = readFramebufferUpdate();
       break;
     case msgTypeServerFence:
-      readFence();
+      ret = readFence();
       break;
     case msgTypeEndOfContinuousUpdates:
-      readEndOfContinuousUpdates();
+      ret = readEndOfContinuousUpdates();
       break;
     default:
-      vlog.error("unknown message type %d", type);
-      throw Exception("unknown message type");
+      throw Exception("Unknown message type %d", currentMsgType);
     }
-  } else {
-    int x = is->readU16();
-    int y = is->readU16();
-    int w = is->readU16();
-    int h = is->readU16();
-    int encoding = is->readS32();
 
-    switch (encoding) {
+    if (ret)
+      state = MSGSTATE_IDLE;
+
+    return ret;
+  } else {
+    if (state == MSGSTATE_MESSAGE) {
+      if (!readFramebufferUpdate())
+        return false;
+
+      // Empty update?
+      if (nUpdateRectsLeft == 0) {
+        state = MSGSTATE_IDLE;
+        handler->framebufferUpdateEnd();
+        return true;
+      }
+
+      state = MSGSTATE_RECT_HEADER;
+    }
+
+    if (state == MSGSTATE_RECT_HEADER) {
+      if (!is->hasData(12))
+        return false;
+
+      int x = is->readU16();
+      int y = is->readU16();
+      int w = is->readU16();
+      int h = is->readU16();
+
+      dataRect.setXYWH(x, y, w, h);
+
+      rectEncoding = is->readS32();
+
+      state = MSGSTATE_RECT_DATA;
+    }
+
+    bool ret;
+
+    switch (rectEncoding) {
     case pseudoEncodingLastRect:
       nUpdateRectsLeft = 1;     // this rectangle is the last one
+      ret = true;
       break;
     case pseudoEncodingXCursor:
-      readSetXCursor(w, h, Point(x,y));
+      ret = readSetXCursor(dataRect.width(), dataRect.height(), dataRect.tl);
       break;
     case pseudoEncodingCursor:
-      readSetCursor(w, h, Point(x,y));
+      ret = readSetCursor(dataRect.width(), dataRect.height(), dataRect.tl);
       break;
     case pseudoEncodingCursorWithAlpha:
-      readSetCursorWithAlpha(w, h, Point(x,y));
+      ret = readSetCursorWithAlpha(dataRect.width(), dataRect.height(), dataRect.tl);
       break;
     case pseudoEncodingVMwareCursor:
-      readSetVMwareCursor(w, h, Point(x,y));
+      ret = readSetVMwareCursor(dataRect.width(), dataRect.height(), dataRect.tl);
       break;
     case pseudoEncodingDesktopName:
-      readSetDesktopName(x, y, w, h);
+      ret = readSetDesktopName(dataRect.tl.x, dataRect.tl.y,
+                               dataRect.width(), dataRect.height());
       break;
     case pseudoEncodingDesktopSize:
-      handler->setDesktopSize(w, h);
+      handler->setDesktopSize(dataRect.width(), dataRect.height());
+      ret = true;
       break;
     case pseudoEncodingExtendedDesktopSize:
-      readExtendedDesktopSize(x, y, w, h);
+      ret = readExtendedDesktopSize(dataRect.tl.x, dataRect.tl.y,
+                                    dataRect.width(), dataRect.height());
       break;
     case pseudoEncodingLEDState:
-      readLEDState();
+      ret = readLEDState();
       break;
     case pseudoEncodingVMwareLEDState:
-      readVMwareLEDState();
+      ret = readVMwareLEDState();
       break;
     case pseudoEncodingQEMUKeyEvent:
       handler->supportsQEMUKeyEvent();
+      ret = true;
       break;
     default:
-      readRect(Rect(x, y, x+w, y+h), encoding);
+      ret = readRect(dataRect, rectEncoding);
       break;
     };
 
-    nUpdateRectsLeft--;
-    if (nUpdateRectsLeft == 0)
-      handler->framebufferUpdateEnd();
+    if (ret) {
+      state = MSGSTATE_RECT_HEADER;
+      nUpdateRectsLeft--;
+      if (nUpdateRectsLeft == 0) {
+        state = MSGSTATE_IDLE;
+        handler->framebufferUpdateEnd();
+      }
+    }
+
+    return ret;
   }
 }
 
-void CMsgReader::readSetColourMapEntries()
+bool CMsgReader::readSetColourMapEntries()
 {
+  if (!is->hasData(5))
+    return false;
+
+  is->setRestorePoint();
+
   is->skip(1);
   int firstColour = is->readU16();
   int nColours = is->readU16();
+
+  if (!is->hasDataOrRestore(nColours * 3 * 2))
+    return false;
+  is->clearRestorePoint();
+
   rdr::U16Array rgbs(nColours * 3);
   for (int i = 0; i < nColours * 3; i++)
     rgbs.buf[i] = is->readU16();
   handler->setColourMapEntries(firstColour, nColours, rgbs.buf);
+
+  return true;
 }
 
-void CMsgReader::readBell()
+bool CMsgReader::readBell()
 {
   handler->bell();
+  return true;
 }
 
-void CMsgReader::readServerCutText()
+bool CMsgReader::readServerCutText()
 {
+  if (!is->hasData(7))
+    return false;
+
+  is->setRestorePoint();
+
   is->skip(3);
   rdr::U32 len = is->readU32();
 
   if (len & 0x80000000) {
     rdr::S32 slen = len;
     slen = -slen;
-    readExtendedClipboard(slen);
-    return;
+    if (readExtendedClipboard(slen)) {
+      is->clearRestorePoint();
+      return true;
+    } else {
+      is->gotoRestorePoint();
+      return false;
+    }
   }
+
+  if (!is->hasDataOrRestore(len))
+    return false;
+  is->clearRestorePoint();
 
   if (len > (size_t)maxCutText) {
     is->skip(len);
     vlog.error("cut text too long (%d bytes) - ignoring",len);
-    return;
+    return true;
   }
   CharArray ca(len);
   is->readBytes(ca.buf, len);
   CharArray filtered(convertLF(ca.buf, len));
   handler->serverCutText(filtered.buf);
+
+  return true;
 }
 
-void CMsgReader::readExtendedClipboard(rdr::S32 len)
+bool CMsgReader::readExtendedClipboard(rdr::S32 len)
 {
   rdr::U32 flags;
   rdr::U32 action;
+
+  if (!is->hasData(len))
+    return false;
 
   if (len < 4)
     throw Exception("Invalid extended clipboard message");
   if (len > maxCutText) {
     vlog.error("Extended clipboard message too long (%d bytes) - ignoring", len);
     is->skip(len);
-    return;
+    return true;
   }
 
   flags = is->readU32();
@@ -228,7 +328,14 @@ void CMsgReader::readExtendedClipboard(rdr::S32 len)
       if (!(flags & 1 << i))
         continue;
 
+      if (!zis.hasData(4))
+        throw Exception("Extended clipboard decode error");
+
       lengths[num] = zis.readU32();
+
+      if (!zis.hasData(lengths[num]))
+        throw Exception("Extended clipboard decode error");
+
       if (lengths[num] > (size_t)maxCutText) {
         vlog.error("Extended clipboard data too long (%d bytes) - ignoring",
                    (unsigned)lengths[num]);
@@ -268,43 +375,63 @@ void CMsgReader::readExtendedClipboard(rdr::S32 len)
       throw Exception("Invalid extended clipboard action");
     }
   }
+
+  return true;
 }
 
-void CMsgReader::readFence()
+bool CMsgReader::readFence()
 {
   rdr::U32 flags;
   rdr::U8 len;
   char data[64];
+
+  if (!is->hasData(8))
+    return false;
+
+  is->setRestorePoint();
 
   is->skip(3);
 
   flags = is->readU32();
 
   len = is->readU8();
+
+  if (!is->hasDataOrRestore(len))
+    return false;
+  is->clearRestorePoint();
+
   if (len > sizeof(data)) {
     vlog.error("Ignoring fence with too large payload");
     is->skip(len);
-    return;
+    return true;
   }
 
   is->readBytes(data, len);
 
   handler->fence(flags, len, data);
+
+  return true;
 }
 
-void CMsgReader::readEndOfContinuousUpdates()
+bool CMsgReader::readEndOfContinuousUpdates()
 {
   handler->endOfContinuousUpdates();
+  return true;
 }
 
-void CMsgReader::readFramebufferUpdate()
+bool CMsgReader::readFramebufferUpdate()
 {
+  if (!is->hasData(3))
+    return false;
+
   is->skip(1);
   nUpdateRectsLeft = is->readU16();
   handler->framebufferUpdateStart();
+
+  return true;
 }
 
-void CMsgReader::readRect(const Rect& r, int encoding)
+bool CMsgReader::readRect(const Rect& r, int encoding)
 {
   if ((r.br.x > handler->server.width()) ||
       (r.br.y > handler->server.height())) {
@@ -317,10 +444,10 @@ void CMsgReader::readRect(const Rect& r, int encoding)
   if (r.is_empty())
     vlog.error("zero size rect");
 
-  handler->dataRect(r, encoding);
+  return handler->dataRect(r, encoding);
 }
 
-void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
@@ -337,6 +464,9 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
 
     int x, y;
     rdr::U8* out;
+
+    if (!is->hasData(3 + 3 + data_len + mask_len))
+      return false;
 
     pr = is->readU8();
     pg = is->readU8();
@@ -377,9 +507,11 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
   }
 
   handler->setCursor(width, height, hotspot, rgba.buf);
+
+  return true;
 }
 
-void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
@@ -393,6 +525,9 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   rdr::U8Array rgba(width*height*4);
   rdr::U8* in;
   rdr::U8* out;
+
+  if (!is->hasData(data_len + mask_len))
+    return false;
 
   is->readBytes(data.buf, data_len);
   is->readBytes(mask.buf, mask_len);
@@ -418,28 +553,43 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   }
 
   handler->setCursor(width, height, hotspot, rgba.buf);
+
+  return true;
 }
 
-void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
-
-  int encoding;
 
   const PixelFormat rgbaPF(32, 32, false, true, 255, 255, 255, 16, 8, 0);
   ManagedPixelBuffer pb(rgbaPF, width, height);
   PixelFormat origPF;
 
+  bool ret;
+
   rdr::U8* buf;
   int stride;
 
-  encoding = is->readS32();
+  // We can't use restore points as the decoder likely wants to as well, so
+  // we need to keep track of the read encoding
+
+  if (cursorEncoding == -1) {
+    if (!is->hasData(4))
+      return false;
+
+    cursorEncoding = is->readS32();
+  }
 
   origPF = handler->server.pf();
   handler->server.setPF(rgbaPF);
-  handler->readAndDecodeRect(pb.getRect(), encoding, &pb);
+  ret = handler->readAndDecodeRect(pb.getRect(), cursorEncoding, &pb);
   handler->server.setPF(origPF);
+
+  if (!ret)
+    return false;
+
+  cursorEncoding = -1;
 
   // On-wire data has pre-multiplied alpha, but we store it
   // non-pre-multiplied
@@ -464,17 +614,24 @@ void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hots
 
   handler->setCursor(width, height, hotspot,
                      pb.getBuffer(pb.getRect(), &stride));
+
+  return true;
 }
 
-void CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
 
   rdr::U8 type;
 
+  if (!is->hasData(2))
+    return false;
+
   type = is->readU8();
   is->skip(1);
+
+  is->setRestorePoint();
 
   if (type == 0) {
     int len = width * height * (handler->server.pf().bpp/8);
@@ -487,6 +644,10 @@ void CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
     rdr::U8* xorIn;
     rdr::U8* out;
     int Bpp;
+
+    if (!is->hasDataOrRestore(len + len))
+      return false;
+    is->clearRestorePoint();
 
     is->readBytes(andMask.buf, len);
     is->readBytes(xorMask.buf, len);
@@ -545,6 +706,10 @@ void CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
   } else if (type == 1) {
     rdr::U8Array data(width*height*4);
 
+    if (!is->hasDataOrRestore(width*height*4))
+      return false;
+    is->clearRestorePoint();
+
     // FIXME: Is alpha premultiplied?
     is->readBytes(data.buf, width*height*4);
 
@@ -552,30 +717,56 @@ void CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
   } else {
     throw Exception("Unknown cursor type");
   }
+
+  return true;
 }
 
-void CMsgReader::readSetDesktopName(int x, int y, int w, int h)
+bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
 {
-  char* name = is->readString();
+  rdr::U32 len;
+
+  if (!is->hasData(4))
+    return false;
+
+  is->setRestorePoint();
+
+  len = is->readU32();
+
+  if (!is->hasDataOrRestore(len))
+    return false;
+  is->clearRestorePoint();
+
+  CharArray name(len + 1);
+  is->readBytes(name.buf, len);
+  name.buf[len] = '\0';
 
   if (x || y || w || h) {
     vlog.error("Ignoring DesktopName rect with non-zero position/size");
   } else {
-    handler->setName(name);
+    handler->setName(name.buf);
   }
 
-  delete [] name;
+  return true;
 }
 
-void CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
+bool CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
 {
   unsigned int screens, i;
   rdr::U32 id, flags;
   int sx, sy, sw, sh;
   ScreenSet layout;
 
+  if (!is->hasData(4))
+    return false;
+
+  is->setRestorePoint();
+
   screens = is->readU8();
   is->skip(3);
+
+  if (!is->hasDataOrRestore(16 * screens))
+    return false;
+  is->clearRestorePoint();
 
   for (i = 0;i < screens;i++) {
     id = is->readU32();
@@ -589,20 +780,30 @@ void CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
   }
 
   handler->setExtendedDesktopSize(x, y, w, h, layout);
+
+  return true;
 }
 
-void CMsgReader::readLEDState()
+bool CMsgReader::readLEDState()
 {
   rdr::U8 state;
+
+  if (!is->hasData(1))
+    return false;
 
   state = is->readU8();
 
   handler->setLEDState(state);
+
+  return true;
 }
 
-void CMsgReader::readVMwareLEDState()
+bool CMsgReader::readVMwareLEDState()
 {
   rdr::U32 state;
+
+  if (!is->hasData(4))
+    return false;
 
   state = is->readU32();
 
@@ -610,4 +811,6 @@ void CMsgReader::readVMwareLEDState()
   // so no conversion required
 
   handler->setLEDState(state);
+
+  return true;
 }

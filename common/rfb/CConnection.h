@@ -84,7 +84,12 @@ namespace rfb {
     //   In this case, processMsg should always process the available RFB
     //   message before returning.
     // NB: In either case, you must have called initialiseProtocol() first.
-    void processMsg();
+    bool processMsg();
+
+    // close() gracefully shuts down the connection to the server and
+    // should be called before terminating the underlying network
+    // connection
+    void close();
 
 
     // Methods overridden from CMsgHandler
@@ -102,12 +107,12 @@ namespace rfb {
                             const PixelFormat& pf,
                             const char* name);
 
-    virtual void readAndDecodeRect(const Rect& r, int encoding,
+    virtual bool readAndDecodeRect(const Rect& r, int encoding,
                                    ModifiablePixelBuffer* pb);
 
     virtual void framebufferUpdateStart();
     virtual void framebufferUpdateEnd();
-    virtual void dataRect(const Rect& r, int encoding);
+    virtual bool dataRect(const Rect& r, int encoding);
 
     virtual void serverCutText(const char* str);
 
@@ -211,8 +216,10 @@ namespace rfb {
       RFBSTATE_SECURITY_TYPES,
       RFBSTATE_SECURITY,
       RFBSTATE_SECURITY_RESULT,
+      RFBSTATE_SECURITY_REASON,
       RFBSTATE_INITIALISATION,
       RFBSTATE_NORMAL,
+      RFBSTATE_CLOSING,
       RFBSTATE_INVALID
     };
 
@@ -243,13 +250,13 @@ namespace rfb {
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
 
   private:
-    void processVersionMsg();
-    void processSecurityTypesMsg();
-    void processSecurityMsg();
-    void processSecurityResultMsg();
-    void processInitMsg();
+    bool processVersionMsg();
+    bool processSecurityTypesMsg();
+    bool processSecurityMsg();
+    bool processSecurityResultMsg();
+    bool processSecurityReasonMsg();
+    bool processInitMsg();
     void throwAuthFailureException();
-    void throwConnFailedException();
     void securityCompleted();
 
     void requestNewUpdate();

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2011-2020 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,47 +18,54 @@
  */
 
 //
-// ZlibOutStream streams to a compressed data stream (underlying), compressing
-// with zlib on the fly.
+// Base class for output streams with a buffer
 //
 
-#ifndef __RDR_ZLIBOUTSTREAM_H__
-#define __RDR_ZLIBOUTSTREAM_H__
+#ifndef __RDR_BUFFEREDOUTSTREAM_H__
+#define __RDR_BUFFEREDOUTSTREAM_H__
+
+#include <sys/time.h>
 
 #include <rdr/OutStream.h>
 
-struct z_stream_s;
-
 namespace rdr {
 
-  class ZlibOutStream : public OutStream {
+  class BufferedOutStream : public OutStream {
 
   public:
+    virtual ~BufferedOutStream();
 
-    ZlibOutStream(OutStream* os=0, int compressionLevel=-1);
-    virtual ~ZlibOutStream();
+    virtual size_t length();
+    virtual void flush();
 
-    void setUnderlying(OutStream* os);
-    void setCompressionLevel(int level=-1);
-    void flush();
-    size_t length();
-    virtual void cork(bool enable);
+    // hasBufferedData() checks if there is any data yet to be flushed
+
+    bool hasBufferedData();
 
   private:
+    // flushBuffer() requests that the stream be flushed. Returns true if it is
+    // able to progress the output (which might still not mean any bytes
+    // actually moved) and can be called again.
+
+    virtual bool flushBuffer() = 0;
 
     virtual void overrun(size_t needed);
-    void deflate(int flush);
-    void checkCompressionLevel();
 
-    OutStream* underlying;
-    int compressionLevel;
-    int newLevel;
+  private:
     size_t bufSize;
     size_t offset;
-    z_stream_s* zs;
     U8* start;
+
+    struct timeval lastSizeCheck;
+    size_t peakUsage;
+
+  protected:
+    U8* sentUpTo;
+
+  protected:
+    BufferedOutStream();
   };
 
-} // end of namespace rdr
+}
 
 #endif

@@ -78,7 +78,7 @@ public:
   virtual void flush();
 
 private:
-  virtual size_t overrun(size_t itemSize, size_t nItems);
+  virtual void overrun(size_t needed);
 
   int offset;
   rdr::U8 buf[131072];
@@ -97,7 +97,7 @@ public:
   virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
-  virtual void dataRect(const rfb::Rect&, int);
+  virtual bool dataRect(const rfb::Rect&, int);
   virtual void setColourMapEntries(int, int, rdr::U16*);
   virtual void bell();
   virtual void serverCutText(const char*);
@@ -158,12 +158,11 @@ void DummyOutStream::flush()
   ptr = buf;
 }
 
-size_t DummyOutStream::overrun(size_t itemSize, size_t nItems)
+void DummyOutStream::overrun(size_t needed)
 {
   flush();
-  if (itemSize * nItems > (size_t)(end - ptr))
-    nItems = (end - ptr) / itemSize;
-  return nItems;
+  if (avail() < needed)
+    throw rdr::Exception("Insufficient dummy output buffer");
 }
 
 CConn::CConn(const char *filename)
@@ -246,12 +245,15 @@ void CConn::framebufferUpdateEnd()
   encodeTime += getCpuCounter();
 }
 
-void CConn::dataRect(const rfb::Rect &r, int encoding)
+bool CConn::dataRect(const rfb::Rect &r, int encoding)
 {
-  CConnection::dataRect(r, encoding);
+  if (!CConnection::dataRect(r, encoding))
+    return false;
 
   if (encoding != rfb::encodingCopyRect) // FIXME
     updates.add_changed(rfb::Region(r));
+
+  return true;
 }
 
 void CConn::setColourMapEntries(int, int, rdr::U16*)

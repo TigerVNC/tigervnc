@@ -46,7 +46,7 @@ namespace network {
     void shutdown();
     bool isShutdown() const;
 
-    virtual bool cork(bool enable) = 0;
+    void cork(bool enable) { outstream->cork(enable); }
 
     // information about the remote end of the socket
     virtual char* getPeerAddress() = 0; // a string e.g. "192.168.0.1"

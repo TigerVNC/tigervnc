@@ -41,12 +41,6 @@ namespace rdr {
       delete [] start;
     }
 
-    void writeBytes(const void* data, size_t length) {
-      check(length);
-      memcpy(ptr, data, length);
-      ptr += length;
-    }
-
     size_t length() { return ptr - start; }
     void clear() { ptr = start; };
     void clearAndZero() { memset(start, 0, ptr-start); clear(); }
@@ -58,11 +52,11 @@ namespace rdr {
 
   protected:
 
-    // overrun() either doubles the buffer or adds enough space for nItems of
-    // size itemSize bytes.
+    // overrun() either doubles the buffer or adds enough space for
+    // needed bytes.
 
-    size_t overrun(size_t itemSize, size_t nItems) {
-      size_t len = ptr - start + itemSize * nItems;
+    virtual void overrun(size_t needed) {
+      size_t len = ptr - start + needed;
       if (len < (size_t)(end - start) * 2)
         len = (end - start) * 2;
 
@@ -75,8 +69,6 @@ namespace rdr {
       delete [] start;
       start = newStart;
       end = newStart + len;
-
-      return nItems;
     }
 
     U8* start;

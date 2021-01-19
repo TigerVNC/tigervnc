@@ -84,7 +84,7 @@ bool SSecurityPlain::processMsg()
     throw AuthFailureException("No password validator configured");
 
   if (state == 0) {
-    if (!is->checkNoWait(8))
+    if (!is->hasData(8))
       return false;
 
     ulen = is->readU32();
@@ -99,7 +99,7 @@ bool SSecurityPlain::processMsg()
   }
 
   if (state == 1) {
-    if (!is->checkNoWait(ulen + plen))
+    if (!is->hasData(ulen + plen))
       return false;
     state = 2;
     pw = new char[plen + 1];

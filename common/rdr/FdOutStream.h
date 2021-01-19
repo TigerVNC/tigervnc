@@ -26,38 +26,27 @@
 
 #include <sys/time.h>
 
-#include <rdr/OutStream.h>
+#include <rdr/BufferedOutStream.h>
 
 namespace rdr {
 
-  class FdOutStream : public OutStream {
+  class FdOutStream : public BufferedOutStream {
 
   public:
 
-    FdOutStream(int fd, bool blocking=true, int timeoutms=-1, size_t bufSize=0);
+    FdOutStream(int fd);
     virtual ~FdOutStream();
 
-    void setTimeout(int timeoutms);
-    void setBlocking(bool blocking);
     int getFd() { return fd; }
-
-    void flush();
-    size_t length();
-
-    int bufferUsage();
 
     unsigned getIdleTime();
 
+    virtual void cork(bool enable);
+
   private:
-    size_t overrun(size_t itemSize, size_t nItems);
-    size_t writeWithTimeout(const void* data, size_t length, int timeoutms);
+    virtual bool flushBuffer();
+    size_t writeFd(const void* data, size_t length);
     int fd;
-    bool blocking;
-    int timeoutms;
-    size_t bufSize;
-    size_t offset;
-    U8* start;
-    U8* sentUpTo;
     struct timeval lastWrite;
   };
 

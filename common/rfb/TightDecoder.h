@@ -31,7 +31,7 @@ namespace rfb {
   public:
     TightDecoder();
     virtual ~TightDecoder();
-    virtual void readRect(const Rect& r, rdr::InStream* is,
+    virtual bool readRect(const Rect& r, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os);
     virtual bool doRectsConflict(const Rect& rectA,
                                  const void* bufferA,

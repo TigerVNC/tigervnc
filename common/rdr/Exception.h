@@ -47,10 +47,6 @@ namespace rdr {
     GAIException(const char* s, int err_);
   };
 
-  struct TimedOut : public Exception {
-    TimedOut() : Exception("Timed out") {}
-  };
-
   struct EndOfStream : public Exception {
     EndOfStream() : Exception("End of stream") {}
   };

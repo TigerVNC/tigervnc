@@ -244,6 +244,7 @@ rdr::OutStream* TightEncoder::getZlibOutStream(int streamId, int level, size_t l
 
   zlibStreams[streamId].setUnderlying(&memStream);
   zlibStreams[streamId].setCompressionLevel(level);
+  zlibStreams[streamId].cork(true);
 
   return &zlibStreams[streamId];
 }
@@ -257,6 +258,7 @@ void TightEncoder::flushZlibOutStream(rdr::OutStream* os_)
   if (zos == NULL)
     return;
 
+  zos->cork(false);
   zos->flush();
   zos->setUnderlying(NULL);
 

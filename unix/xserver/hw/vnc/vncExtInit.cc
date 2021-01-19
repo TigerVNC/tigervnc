@@ -73,8 +73,6 @@ struct CaseInsensitiveCompare {
 typedef std::set<std::string, CaseInsensitiveCompare> ParamSet;
 static ParamSet allowOverrideSet;
 
-rfb::AliasParameter rfbwait("rfbwait", "Alias for ClientWaitTimeMillis",
-                            &rfb::Server::clientWaitTimeMillis);
 rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
 rfb::StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
 rfb::IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);

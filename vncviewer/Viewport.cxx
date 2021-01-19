@@ -574,7 +574,8 @@ int Viewport::handle(int event)
       cc->sendClipboardData(filtered);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("An unexpected error occurred when communicating "
+                       "with the server:\n\n%s"), e.str());
     }
 
     strFree(filtered);
@@ -670,7 +671,8 @@ void Viewport::sendPointerEvent(const rfb::Point& pos, int buttonMask)
       cc->writer()->writePointerEvent(pos, buttonMask);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("An unexpected error occurred when communicating "
+                       "with the server:\n\n%s"), e.str());
     }
   } else {
     if (!Fl::has_timeout(handlePointerTimeout, this))
@@ -769,7 +771,8 @@ void Viewport::handleClipboardChange(int source, void *data)
     self->cc->announceClipboard(true);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    exit_vncviewer(e.str());
+    exit_vncviewer(_("An unexpected error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
   }
 }
 
@@ -781,7 +784,8 @@ void Viewport::flushPendingClipboard()
       cc->requestClipboard();
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("An unexpected error occurred when communicating "
+                       "with the server:\n\n%s"), e.str());
     }
   }
   if (pendingClientClipboard) {
@@ -789,7 +793,8 @@ void Viewport::flushPendingClipboard()
       cc->announceClipboard(true);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("An unexpected error occurred when communicating "
+                       "with the server:\n\n%s"), e.str());
     }
   }
 
@@ -815,7 +820,8 @@ void Viewport::handlePointerTimeout(void *data)
                                           self->lastButtonMask);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    exit_vncviewer(e.str());
+    exit_vncviewer(_("An unexpected error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
   }
 }
 
@@ -884,7 +890,8 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
       cc->writer()->writeKeyEvent(keySym, keyCode, true);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    exit_vncviewer(e.str());
+    exit_vncviewer(_("An unexpected error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
   }
 }
 
@@ -918,7 +925,8 @@ void Viewport::handleKeyRelease(int keyCode)
       cc->writer()->writeKeyEvent(iter->second, keyCode, false);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    exit_vncviewer(e.str());
+    exit_vncviewer(_("An unexpected error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
   }
 
   downKeySym.erase(iter);

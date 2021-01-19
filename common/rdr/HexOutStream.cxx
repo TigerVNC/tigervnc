@@ -25,8 +25,8 @@ const int DEFAULT_BUF_LEN = 16384;
 
 static inline size_t min(size_t a, size_t b) {return a<b ? a : b;}
 
-HexOutStream::HexOutStream(OutStream& os, size_t buflen)
-: out_stream(os), offset(0), bufSize(buflen ? buflen : DEFAULT_BUF_LEN)
+HexOutStream::HexOutStream(OutStream& os)
+  : out_stream(os), offset(0), bufSize(DEFAULT_BUF_LEN)
 {
   if (bufSize % 2)
     bufSize--;
@@ -37,7 +37,6 @@ HexOutStream::HexOutStream(OutStream& os, size_t buflen)
 HexOutStream::~HexOutStream() {
   delete [] start;
 }
-
 
 char HexOutStream::intToHex(int i) {
   if ((i>=0) && (i<=9))
@@ -67,17 +66,15 @@ void
 HexOutStream::writeBuffer() {
   U8* pos = start;
   while (pos != ptr) {
-    out_stream.check(2);
-    U8* optr = out_stream.getptr();
-    U8* oend = out_stream.getend();
-    size_t length = min(ptr-pos, (oend-optr)/2);
+    U8* optr = out_stream.getptr(2);
+    size_t length = min(ptr-pos, out_stream.avail()/2);
 
     for (size_t i=0; i<length; i++) {
       optr[i*2] = intToHex((pos[i] >> 4) & 0xf);
       optr[i*2+1] = intToHex(pos[i] & 0xf);
     }
 
-    out_stream.setptr(optr + length*2);
+    out_stream.setptr(length*2);
     pos += length;
   }
   offset += ptr - start;
@@ -95,18 +92,17 @@ HexOutStream::flush() {
   out_stream.flush();
 }
 
-size_t
-HexOutStream::overrun(size_t itemSize, size_t nItems) {
-  if (itemSize > bufSize)
-    throw Exception("HexOutStream overrun: max itemSize exceeded");
+void HexOutStream::cork(bool enable)
+{
+  OutStream::cork(enable);
+
+  out_stream.cork(enable);
+}
+
+void HexOutStream::overrun(size_t needed) {
+  if (needed > bufSize)
+    throw Exception("HexOutStream overrun: buffer size exceeded");
 
   writeBuffer();
-
-  size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
 }
 

@@ -26,8 +26,10 @@
 
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
+
 #include <rfb/SMsgHandler.h>
 #include <rfb/SecurityServer.h>
+#include <rfb/Timer.h>
 
 namespace rfb {
 
@@ -58,7 +60,7 @@ namespace rfb {
 
     // processMsg() should be called whenever there is data to read on the
     // InStream.  You must have called initialiseProtocol() first.
-    void processMsg();
+    bool processMsg();
 
     // approveConnection() is called to either accept or reject the connection.
     // If accept is false, the reason string gives the reason for the
@@ -101,10 +103,6 @@ namespace rfb {
 
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
-
-    // authFailure() is called when authentication has failed. The default
-    // implementation will inform the client and throw a AuthFailureException.
-    virtual void authFailure(const char* reason);
 
     // queryConnection() is called when authentication has succeeded, but
     // before informing the client.  It can be overridden to query a local user
@@ -232,23 +230,34 @@ namespace rfb {
     void setWriter(SMsgWriter *w) { writer_ = w; }
 
   private:
+    void cleanup();
     void writeFakeColourMap(void);
 
     bool readyForSetColourMapEntries;
 
-    void processVersionMsg();
-    void processSecurityTypeMsg();
+    bool processVersionMsg();
+    bool processSecurityTypeMsg();
     void processSecurityType(int secType);
-    void processSecurityMsg();
-    void processInitMsg();
+    bool processSecurityMsg();
+    bool processSecurityFailure();
+    bool processInitMsg();
+
+    bool handleAuthFailureTimeout(Timer* t);
 
     int defaultMajorVersion, defaultMinorVersion;
+
     rdr::InStream* is;
     rdr::OutStream* os;
+
     SMsgReader* reader_;
     SMsgWriter* writer_;
+
     SecurityServer security;
     SSecurity* ssecurity;
+
+    MethodTimer<SConnection> authFailureTimer;
+    CharArray authFailureMsg;
+
     stateEnum state_;
     rdr::S32 preferredEncoding;
     AccessRights accessRights;

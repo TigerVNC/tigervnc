@@ -41,6 +41,12 @@ namespace rdr {
     {
       ptr = start;
       end = start + len;
+
+#ifdef RFB_INSTREAM_CHECK
+      // MemInStream cannot add more data, so callers are assumed to already
+      // new the total size
+      avail();
+#endif
     }
 
     virtual ~MemInStream() {
@@ -53,7 +59,7 @@ namespace rdr {
 
   private:
 
-    size_t overrun(size_t itemSize, size_t nItems, bool wait) { throw EndOfStream(); }
+    bool overrun(size_t needed) { throw EndOfStream(); }
     const U8* start;
     bool deleteWhenDone;
   };

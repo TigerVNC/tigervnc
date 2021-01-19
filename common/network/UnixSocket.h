@@ -40,8 +40,6 @@ namespace network {
 
     virtual char* getPeerAddress();
     virtual char* getPeerEndpoint();
-
-    virtual bool cork(bool enable);
   };
 
   class UnixListener : public SocketListener {

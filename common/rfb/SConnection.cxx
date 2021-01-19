@@ -51,9 +51,9 @@ const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 
 SConnection::SConnection()
   : readyForSetColourMapEntries(false),
-    is(0), os(0), reader_(0), writer_(0),
-    ssecurity(0), state_(RFBSTATE_UNINITIALISED),
-    preferredEncoding(encodingRaw),
+    is(0), os(0), reader_(0), writer_(0), ssecurity(0),
+    authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
+    state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
     clientClipboard(NULL), hasLocalClipboard(false)
 {
   defaultMajorVersion = 3;
@@ -66,13 +66,7 @@ SConnection::SConnection()
 
 SConnection::~SConnection()
 {
-  if (ssecurity)
-    delete ssecurity;
-  delete reader_;
-  reader_ = 0;
-  delete writer_;
-  writer_ = 0;
-  strFree(clientClipboard);
+  cleanup();
 }
 
 void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
@@ -92,17 +86,20 @@ void SConnection::initialiseProtocol()
   state_ = RFBSTATE_PROTOCOL_VERSION;
 }
 
-void SConnection::processMsg()
+bool SConnection::processMsg()
 {
   switch (state_) {
-  case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();      break;
-  case RFBSTATE_SECURITY_TYPE:    processSecurityTypeMsg(); break;
-  case RFBSTATE_SECURITY:         processSecurityMsg();     break;
-  case RFBSTATE_INITIALISATION:   processInitMsg();         break;
-  case RFBSTATE_NORMAL:           reader_->readMsg();       break;
+  case RFBSTATE_PROTOCOL_VERSION: return processVersionMsg();      break;
+  case RFBSTATE_SECURITY_TYPE:    return processSecurityTypeMsg(); break;
+  case RFBSTATE_SECURITY:         return processSecurityMsg();     break;
+  case RFBSTATE_SECURITY_FAILURE: return processSecurityFailure(); break;
+  case RFBSTATE_INITIALISATION:   return processInitMsg();         break;
+  case RFBSTATE_NORMAL:           return reader_->readMsg();       break;
   case RFBSTATE_QUERYING:
     throw Exception("SConnection::processMsg: bogus data from client while "
                     "querying");
+  case RFBSTATE_CLOSING:
+    throw Exception("SConnection::processMsg: called while closing");
   case RFBSTATE_UNINITIALISED:
     throw Exception("SConnection::processMsg: not initialised yet?");
   default:
@@ -110,7 +107,7 @@ void SConnection::processMsg()
   }
 }
 
-void SConnection::processVersionMsg()
+bool SConnection::processVersionMsg()
 {
   char verStr[13];
   int majorVersion;
@@ -118,8 +115,8 @@ void SConnection::processVersionMsg()
 
   vlog.debug("reading protocol version");
 
-  if (!is->checkNoWait(12))
-    return;
+  if (!is->hasData(12))
+    return false;
 
   is->readBytes(verStr, 12);
   verStr[12] = '\0';
@@ -177,8 +174,7 @@ void SConnection::processVersionMsg()
     if (*i == secTypeNone) os->flush();
     state_ = RFBSTATE_SECURITY;
     ssecurity = security.GetSSecurity(this, *i);
-    processSecurityMsg();
-    return;
+    return true;
   }
 
   // list supported security types for >=3.7 clients
@@ -191,15 +187,23 @@ void SConnection::processVersionMsg()
     os->writeU8(*i);
   os->flush();
   state_ = RFBSTATE_SECURITY_TYPE;
+
+  return true;
 }
 
 
-void SConnection::processSecurityTypeMsg()
+bool SConnection::processSecurityTypeMsg()
 {
   vlog.debug("processing security type message");
+
+  if (!is->hasData(1))
+    return false;
+
   int secType = is->readU8();
 
   processSecurityType(secType);
+
+  return true;
 }
 
 void SConnection::processSecurityType(int secType)
@@ -223,31 +227,81 @@ void SConnection::processSecurityType(int secType)
   } catch (rdr::Exception& e) {
     throwConnFailedException("%s", e.str());
   }
-
-  processSecurityMsg();
 }
 
-void SConnection::processSecurityMsg()
+bool SConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
   try {
-    bool done = ssecurity->processMsg();
-    if (done) {
-      state_ = RFBSTATE_QUERYING;
-      setAccessRights(ssecurity->getAccessRights());
-      queryConnection(ssecurity->getUserName());
-    }
+    if (!ssecurity->processMsg())
+      return false;
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
     state_ = RFBSTATE_SECURITY_FAILURE;
-    authFailure(e.str());
+    // Introduce a slight delay of the authentication failure response
+    // to make it difficult to brute force a password
+    authFailureMsg.replaceBuf(strDup(e.str()));
+    authFailureTimer.start(100);
+    return true;
   }
+
+  state_ = RFBSTATE_QUERYING;
+  setAccessRights(ssecurity->getAccessRights());
+  queryConnection(ssecurity->getUserName());
+
+  // If the connection got approved right away then we can continue
+  if (state_ == RFBSTATE_INITIALISATION)
+    return true;
+
+  // Otherwise we need to wait for the result
+  // (or give up if if was rejected)
+  return false;
 }
 
-void SConnection::processInitMsg()
+bool SConnection::processSecurityFailure()
+{
+  // Silently drop any data if we are currently delaying an
+  // authentication failure response as otherwise we would close
+  // the connection on unexpected data, and an attacker could use
+  // that to detect our delayed state.
+
+  if (!is->hasData(1))
+    return false;
+
+  is->skip(is->avail());
+
+  return true;
+}
+
+bool SConnection::processInitMsg()
 {
   vlog.debug("reading client initialisation");
-  reader_->readClientInit();
+  return reader_->readClientInit();
+}
+
+bool SConnection::handleAuthFailureTimeout(Timer* t)
+{
+  if (state_ != RFBSTATE_SECURITY_FAILURE) {
+    close("SConnection::handleAuthFailureTimeout: invalid state");
+    return false;
+  }
+
+  try {
+    os->writeU32(secResultFailed);
+    if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
+      const char* reason = authFailureMsg.buf;
+      os->writeU32(strlen(reason));
+      os->writeBytes(reason, strlen(reason));
+    }
+    os->flush();
+  } catch (rdr::Exception& e) {
+    close(e.str());
+    return false;
+  }
+
+  close(authFailureMsg.buf);
+
+  return false;
 }
 
 void SConnection::throwConnFailedException(const char* format, ...)
@@ -264,11 +318,13 @@ void SConnection::throwConnFailedException(const char* format, ...)
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (client.majorVersion == 3 && client.minorVersion == 3) {
       os->writeU32(0);
-      os->writeString(str);
+      os->writeU32(strlen(str));
+      os->writeBytes(str, strlen(str));
       os->flush();
     } else {
       os->writeU8(0);
-      os->writeString(str);
+      os->writeU32(strlen(str));
+      os->writeBytes(str, strlen(str));
       os->flush();
     }
   }
@@ -378,19 +434,6 @@ void SConnection::authSuccess()
 {
 }
 
-void SConnection::authFailure(const char* reason)
-{
-  if (state_ != RFBSTATE_SECURITY_FAILURE)
-    throw Exception("SConnection::authFailure: invalid state");
-
-  os->writeU32(secResultFailed);
-  if (!client.beforeVersion(3,8)) // 3.8 onwards have failure message
-    os->writeString(reason);
-  os->flush();
-
-  throw AuthFailureException(reason);
-}
-
 void SConnection::queryConnection(const char* userName)
 {
   approveConnection(true);
@@ -407,10 +450,10 @@ void SConnection::approveConnection(bool accept, const char* reason)
     } else {
       os->writeU32(secResultFailed);
       if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
-        if (reason)
-          os->writeString(reason);
-        else
-          os->writeString("Authentication failure");
+        if (!reason)
+          reason = "Authentication failure";
+        os->writeU32(strlen(reason));
+        os->writeBytes(reason, strlen(reason));
       }
     }
     os->flush();
@@ -440,6 +483,7 @@ void SConnection::clientInit(bool shared)
 void SConnection::close(const char* reason)
 {
   state_ = RFBSTATE_CLOSING;
+  cleanup();
 }
 
 void SConnection::setPixelFormat(const PixelFormat& pf)
@@ -526,6 +570,18 @@ void SConnection::sendClipboardData(const char* data)
 
     writer()->writeServerCutText(latin1.buf);
   }
+}
+
+void SConnection::cleanup()
+{
+  delete ssecurity;
+  ssecurity = NULL;
+  delete reader_;
+  reader_ = NULL;
+  delete writer_;
+  writer_ = NULL;
+  strFree(clientClipboard);
+  clientClipboard = NULL;
 }
 
 void SConnection::writeFakeColourMap(void)

@@ -107,13 +107,14 @@ namespace rfb {
       updates.add_copied(dest, delta);
     }
 
+    const char* getPeerEndpoint() const {return peerEndpoint.buf;}
+
   private:
     // SConnection callbacks
 
     // These methods are invoked as callbacks from processMsg()
 
     virtual void authSuccess();
-    virtual void authFailure(const char* reason);
     virtual void queryConnection(const char* userName);
     virtual void clientInit(bool shared);
     virtual void setPixelFormat(const PixelFormat& pf);
@@ -156,7 +157,6 @@ namespace rfb {
     void setCursor();
     void setDesktopName(const char *name);
     void setLEDState(unsigned int state);
-    void setSocketTimeouts();
 
   private:
     network::Socket* sock;
@@ -190,9 +190,6 @@ namespace rfb {
     time_t pointerEventTime;
     Point pointerEventPos;
     bool clientHasCursor;
-
-    Timer authFailureTimer;
-    CharArray authFailureMsg;
 
     CharArray closeReason;
   };

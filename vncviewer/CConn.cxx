@@ -75,7 +75,7 @@ static const PixelFormat mediumColourPF(8, 8, false, true,
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
     updateCount(0), pixelCount(0),
-    lastServerEncoding((unsigned int)-1)
+    lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
   setShared(::shared);
   sock = socket;
@@ -107,15 +107,13 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
+      exit_vncviewer(_("Failed to connect to \"%s\":\n\n%s"),
+                     vncServerName, e.str());
       return;
     }
   }
 
   Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
-
-  // See callback below
-  sock->inStream().setBlockCallback(this);
 
   setServerName(serverHost);
   setStreams(&sock->inStream(), &sock->outStream());
@@ -127,6 +125,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
 CConn::~CConn()
 {
+  close();
+
   OptionsDialog::removeCallback(handleOptions);
   Fl::remove_timeout(handleUpdateTimeout, this);
 
@@ -192,7 +192,7 @@ const char *CConn::connectionInfo()
   strcat(infoText, "\n");
 
   snprintf(scratch, sizeof(scratch),
-           _("Line speed estimate: %d kbit/s"), sock->inStream().kbitsPerSecond());
+           _("Line speed estimate: %d kbit/s"), (int)(bpsEstimate/1000));
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
@@ -224,22 +224,11 @@ unsigned CConn::getPosition()
   return sock->inStream().pos();
 }
 
-// The RFB core is not properly asynchronous, so it calls this callback
-// whenever it needs to block to wait for more data. Since FLTK is
-// monitoring the socket, we just make sure FLTK gets to run.
-
-void CConn::blockCallback()
-{
-  run_mainloop();
-
-  if (should_exit())
-    throw rdr::Exception("Termination requested");
-}
-
 void CConn::socketEvent(FL_SOCKET fd, void *data)
 {
   CConn *cc;
   static bool recursing = false;
+  int when;
 
   assert(data);
   cc = (CConn*)data;
@@ -251,10 +240,14 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
   recursing = true;
 
   try {
+    // We might have been called to flush unwritten socket data
+    cc->sock->outStream().flush();
+
+    cc->sock->outStream().cork(true);
+
     // processMsg() only processes one message, so we need to loop
     // until the buffers are empty or things will stall.
-    do {
-      cc->processMsg();
+    while (cc->processMsg()) {
 
       // Make sure that the FLTK handling and the timers gets some CPU
       // time in case of back to back messages
@@ -264,17 +257,31 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
        // Also check if we need to stop reading and terminate
        if (should_exit())
          break;
-    } while (cc->getInStream()->checkNoWait(1));
+    }
+
+    cc->sock->outStream().cork(false);
+    cc->sock->outStream().flush();
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
-    exit_vncviewer();
+    if (!cc->desktop) {
+      vlog.error(_("The connection was dropped by the server before "
+                   "the session could be established."));
+      exit_vncviewer(_("The connection was dropped by the server "
+                       "before the session could be established."));
+    } else {
+      exit_vncviewer();
+    }
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    // Somebody might already have requested us to terminate, and
-    // might have already provided an error message.
-    if (!should_exit())
-      exit_vncviewer(e.str());
+    exit_vncviewer(_("An unexpected error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
   }
+
+  when = FL_READ | FL_EXCEPT;
+  if (cc->sock->outStream().hasBufferedData())
+    when |= FL_WRITE;
+
+  Fl::add_fd(fd, when, socketEvent, data);
 
   recursing = false;
 }
@@ -341,6 +348,10 @@ void CConn::framebufferUpdateStart()
 {
   CConnection::framebufferUpdateStart();
 
+  // For bandwidth estimate
+  gettimeofday(&updateStartTime, NULL);
+  updateStartPos = sock->inStream().pos();
+
   // Update the screen prematurely for very slow updates
   Fl::add_timeout(1.0, handleUpdateTimeout, this);
 }
@@ -351,9 +362,28 @@ void CConn::framebufferUpdateStart()
 // appropriately, and then request another incremental update.
 void CConn::framebufferUpdateEnd()
 {
+  unsigned long long elapsed, bps;
+  struct timeval now;
+
   CConnection::framebufferUpdateEnd();
 
   updateCount++;
+
+  // Calculate bandwidth everything managed to maintain during this update
+  gettimeofday(&now, NULL);
+  elapsed = (now.tv_sec - updateStartTime.tv_sec) * 1000000;
+  elapsed += now.tv_usec - updateStartTime.tv_usec;
+  if (elapsed == 0)
+    elapsed = 1;
+  bps = (unsigned long long)(sock->inStream().pos() -
+                             updateStartPos) * 8 *
+                            1000000 / elapsed;
+  // Allow this update to influence things more the longer it took, to a
+  // maximum of 20% of the new value.
+  if (elapsed > 2000000)
+    elapsed = 2000000;
+  bpsEstimate = ((bpsEstimate * (10000000 - elapsed)) +
+                 (bps * elapsed)) / 10000000;
 
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
@@ -375,18 +405,19 @@ void CConn::bell()
   fl_beep();
 }
 
-void CConn::dataRect(const Rect& r, int encoding)
+bool CConn::dataRect(const Rect& r, int encoding)
 {
-  sock->inStream().startTiming();
+  bool ret;
 
   if (encoding != encodingCopyRect)
     lastServerEncoding = encoding;
 
-  CConnection::dataRect(r, encoding);
+  ret = CConnection::dataRect(r, encoding);
 
-  sock->inStream().stopTiming();
+  if (ret)
+    pixelCount += r.area();
 
-  pixelCount += r.area();
+  return ret;
 }
 
 void CConn::setCursor(int width, int height, const Point& hotspot,
@@ -455,28 +486,22 @@ void CConn::resizeFramebuffer()
 //
 void CConn::autoSelectFormatAndEncoding()
 {
-  int kbitsPerSecond = sock->inStream().kbitsPerSecond();
-  unsigned int timeWaited = sock->inStream().timeWaited();
   bool newFullColour = fullColour;
   int newQualityLevel = ::qualityLevel;
 
   // Always use Tight
   setPreferredEncoding(encodingTight);
 
-  // Check that we have a decent bandwidth measurement
-  if ((kbitsPerSecond == 0) || (timeWaited < 10000))
-    return;
-
   // Select appropriate quality level
   if (!noJpeg) {
-    if (kbitsPerSecond > 16000)
+    if (bpsEstimate > 16000000)
       newQualityLevel = 8;
     else
       newQualityLevel = 6;
 
     if (newQualityLevel != ::qualityLevel) {
       vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
-                kbitsPerSecond, newQualityLevel);
+                (int)(bpsEstimate/1000), newQualityLevel);
       ::qualityLevel.setParam(newQualityLevel);
       setQualityLevel(newQualityLevel);
     }
@@ -494,14 +519,14 @@ void CConn::autoSelectFormatAndEncoding()
   }
   
   // Select best color level
-  newFullColour = (kbitsPerSecond > 256);
+  newFullColour = (bpsEstimate > 256000);
   if (newFullColour != fullColour) {
     if (newFullColour)
       vlog.info(_("Throughput %d kbit/s - full color is now enabled"),
-                kbitsPerSecond);
+                (int)(bpsEstimate/1000));
     else
       vlog.info(_("Throughput %d kbit/s - full color is now disabled"),
-                kbitsPerSecond);
+                (int)(bpsEstimate/1000));
     fullColour.setParam(newFullColour);
     updatePixelFormat();
   } 

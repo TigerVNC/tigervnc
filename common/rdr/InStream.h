@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014-2020 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +26,12 @@
 #define __RDR_INSTREAM_H__
 
 #include <rdr/types.h>
+#include <rdr/Exception.h>
 #include <string.h> // for memcpy
+
+// Check that callers are using InStream properly,
+// useful when writing new protocol handling
+#undef RFB_INSTREAM_CHECK
 
 namespace rdr {
 
@@ -35,38 +41,81 @@ namespace rdr {
 
     virtual ~InStream() {}
 
-    // check() ensures there is buffer data for at least one item of size
-    // itemSize bytes.  Returns the number of items in the buffer (up to a
-    // maximum of nItems).  If wait is false, then instead of blocking to wait
-    // for the bytes, zero is returned if the bytes are not immediately
-    // available. If itemSize or nItems is zero, check() will return zero.
+    // avail() returns the number of bytes that are currenctly directly
+    // available from the stream.
 
-    inline size_t check(size_t itemSize, size_t nItems=1, bool wait=true)
-    {
-      size_t nAvail;
+    inline size_t avail() {
+#ifdef RFB_INSTREAM_CHECK
+      checkedBytes = end - ptr;
+#endif
 
-      if (itemSize == 0 || nItems == 0)
-        return 0;
-
-      if (itemSize > (size_t)(end - ptr))
-        return overrun(itemSize, nItems, wait);
-
-      // itemSize cannot be zero at this point
-      nAvail = (end - ptr) / itemSize;
-      if (nAvail < nItems)
-        return nAvail;
-
-      return nItems;
+      return end - ptr;
     }
 
-    // checkNoWait() tries to make sure that the given number of bytes can
-    // be read without blocking.  It returns true if this is the case, false
-    // otherwise.  The length must be "small" (less than the buffer size).
-    // If length is zero, checkNoWait() will return true.
+    // hasData() ensures there is at least "length" bytes of buffer data,
+    // possibly trying to fetch more data if there isn't enough right away
 
-    inline bool checkNoWait(size_t length)
-    {
-      return length == 0 || check(length, 1, false) > 0;
+    inline bool hasData(size_t length) {
+#ifdef RFB_INSTREAM_CHECK
+      checkedBytes = 0;
+#endif
+
+      if (length > (size_t)(end - ptr)) {
+        if (restorePoint != NULL) {
+          bool ret;
+          size_t restoreDiff;
+
+          restoreDiff = ptr - restorePoint;
+          ptr = restorePoint;
+
+          ret = overrun(length + restoreDiff);
+
+          restorePoint = ptr;
+          ptr += restoreDiff;
+
+          if (!ret)
+            return false;
+        } else {
+          if (!overrun(length))
+            return false;
+        }
+      }
+
+#ifdef RFB_INSTREAM_CHECK
+      checkedBytes = length;
+#endif
+
+      return true;
+    }
+
+    inline bool hasDataOrRestore(size_t length) {
+      if (hasData(length))
+        return true;
+      gotoRestorePoint();
+      return false;
+    }
+
+    inline void setRestorePoint() {
+#ifdef RFB_INSTREAM_CHECK
+      if (restorePoint != NULL)
+        throw Exception("Nested use of input stream restore point");
+#endif
+      restorePoint = ptr;
+    }
+    inline void clearRestorePoint() {
+#ifdef RFB_INSTREAM_CHECK
+      if (restorePoint == NULL)
+        throw Exception("Incorrect clearing of input stream restore point");
+#endif
+      restorePoint = NULL;
+    }
+    inline void gotoRestorePoint() {
+#ifdef RFB_INSTREAM_CHECK
+      if (restorePoint == NULL)
+        throw Exception("Incorrect activation of input stream restore point");
+#endif
+      ptr = restorePoint;
+      clearRestorePoint();
     }
 
     // readU/SN() methods read unsigned and signed N-bit integers.
@@ -82,36 +131,19 @@ namespace rdr {
     inline S16 readS16() { return (S16)readU16(); }
     inline S32 readS32() { return (S32)readU32(); }
 
-    // readString() reads a string - a U32 length followed by the data.
-    // Returns a null-terminated string - the caller should delete[] it
-    // afterwards.
-
-    char* readString();
-
-    // maxStringLength protects against allocating a huge buffer.  Set it
-    // higher if you need longer strings.
-
-    static U32 maxStringLength;
+    // skip() ignores a number of bytes on the stream
 
     inline void skip(size_t bytes) {
-      while (bytes > 0) {
-        size_t n = check(1, bytes);
-        ptr += n;
-        bytes -= n;
-      }
+      check(bytes);
+      ptr += bytes;
     }
 
     // readBytes() reads an exact number of bytes.
-    // If length is zero, readBytes() will return immediately.
 
     void readBytes(void* data, size_t length) {
-      while (length > 0) {
-        size_t n = check(1, length);
-        memcpy(data, ptr, n);
-        ptr += n;
-        data = (U8*)data + n;
-        length -= n;
-      }
+      check(length);
+      memcpy(data, ptr, length);
+      ptr += length;
     }
 
     // readOpaqueN() reads a quantity without byte-swapping.
@@ -127,28 +159,49 @@ namespace rdr {
 
     virtual size_t pos() = 0;
 
-    // getptr(), getend() and setptr() are "dirty" methods which allow you to
-    // manipulate the buffer directly.  This is useful for a stream which is a
-    // wrapper around an underlying stream.
+    // getptr() and setptr() are "dirty" methods which allow you direct access
+    // to the buffer. This is useful for a stream which is a wrapper around an
+    // some other stream API.
 
-    inline const U8* getptr() const { return ptr; }
-    inline const U8* getend() const { return end; }
-    inline void setptr(const U8* p) { ptr = p; }
+    inline const U8* getptr(size_t length) { check(length);
+#ifdef RFB_INSTREAM_CHECK
+                                             checkedBytes += length;
+#endif
+                                             return ptr; }
+    inline void setptr(size_t length) { if (length > avail())
+                                          throw Exception("Input stream overflow");
+                                        skip(length); }
 
   private:
 
-    // overrun() is implemented by a derived class to cope with buffer overrun.
-    // It ensures there are at least itemSize bytes of buffer data.  Returns
-    // the number of items in the buffer (up to a maximum of nItems).  itemSize
-    // is supposed to be "small" (a few bytes).  If wait is false, then
-    // instead of blocking to wait for the bytes, zero is returned if the bytes
-    // are not immediately available.
+    const U8* restorePoint;
+#ifdef RFB_INSTREAM_CHECK
+    size_t checkedBytes;
+#endif
 
-    virtual size_t overrun(size_t itemSize, size_t nItems, bool wait=true) = 0;
+    inline void check(size_t bytes) {
+#ifdef RFB_INSTREAM_CHECK
+      if (bytes > checkedBytes)
+        throw Exception("Input stream used without underrun check");
+      checkedBytes -= bytes;
+#endif
+      if (bytes > (size_t)(end - ptr))
+        throw Exception("InStream buffer underrun");
+    }
+
+    // overrun() is implemented by a derived class to cope with buffer overrun.
+    // It tries to ensure there are at least needed bytes of buffer data.
+    // Returns true if it managed to satisfy the request, or false otherwise.
+
+    virtual bool overrun(size_t needed) = 0;
 
   protected:
 
-    InStream() {}
+    InStream() : restorePoint(NULL)
+#ifdef RFB_INSTREAM_CHECK
+      ,checkedBytes(0)
+#endif
+     {}
     const U8* ptr;
     const U8* end;
   };

@@ -30,7 +30,6 @@ FileInStream::FileInStream(const char *fileName)
   file = fopen(fileName, "rb");
   if (!file)
     throw SystemException("fopen", errno);
-  ptr = end = b;
 }
 
 FileInStream::~FileInStream(void) {
@@ -40,50 +39,17 @@ FileInStream::~FileInStream(void) {
   }
 }
 
-void FileInStream::reset(void) {
-  if (!file)
-    throw Exception("File is not open");
-  if (fseek(file, 0, SEEK_SET) != 0)
-    throw SystemException("fseek", errno);
-  ptr = end = b;
-}
-
-size_t FileInStream::pos()
+bool FileInStream::fillBuffer(size_t maxSize)
 {
-  if (!file)
-    throw Exception("File is not open");
-
-  return ftell(file) + ptr - b;
-}
-
-size_t FileInStream::overrun(size_t itemSize, size_t nItems, bool wait)
-{
-  if (itemSize > sizeof(b))
-    throw Exception("FileInStream overrun: max itemSize exceeded");
-
-  if (end - ptr != 0)
-    memmove(b, ptr, end - ptr);
-
-  end -= ptr - b;
-  ptr = b;
-
-
-  while ((size_t)(end - b) < itemSize) {
-    size_t n = fread((U8 *)end, b + sizeof(b) - end, 1, file);
-    if (n == 0) {
-      if (ferror(file))
-        throw SystemException("fread", errno);
-      if (feof(file))
-        throw EndOfStream();
-      return 0;
-    }
-    end += b + sizeof(b) - end;
+  size_t n = fread((U8 *)end, 1, maxSize, file);
+  if (n == 0) {
+    if (ferror(file))
+      throw SystemException("fread", errno);
+    if (feof(file))
+      throw EndOfStream();
+    return false;
   }
+  end += n;
 
-  size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
+  return true;
 }

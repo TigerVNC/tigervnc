@@ -26,7 +26,7 @@ namespace rfb {
   public:
     HextileDecoder();
     virtual ~HextileDecoder();
-    virtual void readRect(const Rect& r, rdr::InStream* is,
+    virtual bool readRect(const Rect& r, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os);
     virtual void decodeRect(const Rect& r, const void* buffer,
                             size_t buflen, const ServerParams& server,

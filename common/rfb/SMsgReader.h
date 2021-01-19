@@ -34,33 +34,43 @@ namespace rfb {
     SMsgReader(SMsgHandler* handler, rdr::InStream* is);
     virtual ~SMsgReader();
 
-    void readClientInit();
+    bool readClientInit();
 
     // readMsg() reads a message, calling the handler as appropriate.
-    void readMsg();
+    bool readMsg();
 
     rdr::InStream* getInStream() { return is; }
 
   protected:
-    void readSetPixelFormat();
-    void readSetEncodings();
-    void readSetDesktopSize();
+    bool readSetPixelFormat();
+    bool readSetEncodings();
+    bool readSetDesktopSize();
 
-    void readFramebufferUpdateRequest();
-    void readEnableContinuousUpdates();
+    bool readFramebufferUpdateRequest();
+    bool readEnableContinuousUpdates();
 
-    void readFence();
+    bool readFence();
 
-    void readKeyEvent();
-    void readPointerEvent();
-    void readClientCutText();
-    void readExtendedClipboard(rdr::S32 len);
+    bool readKeyEvent();
+    bool readPointerEvent();
+    bool readClientCutText();
+    bool readExtendedClipboard(rdr::S32 len);
 
-    void readQEMUMessage();
-    void readQEMUKeyEvent();
+    bool readQEMUMessage();
+    bool readQEMUKeyEvent();
 
+  private:
     SMsgHandler* handler;
     rdr::InStream* is;
+
+    enum stateEnum {
+      MSGSTATE_IDLE,
+      MSGSTATE_MESSAGE,
+    };
+
+    stateEnum state;
+
+    rdr::U8 currentMsgType;
   };
 }
 #endif

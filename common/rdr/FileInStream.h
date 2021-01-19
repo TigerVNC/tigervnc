@@ -22,26 +22,21 @@
 
 #include <stdio.h>
 
-#include <rdr/InStream.h>
+#include <rdr/BufferedInStream.h>
 
 namespace rdr {
 
-  class FileInStream : public InStream {
+  class FileInStream : public BufferedInStream {
 
   public:
 
     FileInStream(const char *fileName);
     ~FileInStream(void);
 
-    void reset(void);
-
-    size_t pos();
-
-  protected:
-    size_t overrun(size_t itemSize, size_t nItems, bool wait = true);
+  private:
+    virtual bool fillBuffer(size_t maxSize);
 
   private:
-    U8 b[131072];
     FILE *file;
   };
 

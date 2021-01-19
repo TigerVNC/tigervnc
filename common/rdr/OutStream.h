@@ -25,6 +25,7 @@
 #define __RDR_OUTSTREAM_H__
 
 #include <rdr/types.h>
+#include <rdr/Exception.h>
 #include <rdr/InStream.h>
 #include <string.h> // for memcpy
 
@@ -34,28 +35,18 @@ namespace rdr {
 
   protected:
 
-    OutStream() {}
+    OutStream() : ptr(NULL), end(NULL), corked(false) {}
 
   public:
 
     virtual ~OutStream() {}
 
-    // check() ensures there is buffer space for at least one item of size
-    // itemSize bytes.  Returns the number of items which fit (up to a maximum
-    // of nItems).
+    // avail() returns the number of bytes that currently be written to the
+    // stream without any risk of blocking.
 
-    inline size_t check(size_t itemSize, size_t nItems=1)
+    inline size_t avail()
     {
-      size_t nAvail;
-
-      if (itemSize > (size_t)(end - ptr))
-        return overrun(itemSize, nItems);
-
-      nAvail = (end - ptr) / itemSize;
-      if (nAvail < nItems)
-        return nAvail;
-
-      return nItems;
+      return end - ptr;
     }
 
     // writeU/SN() methods write unsigned and signed N-bit integers.
@@ -69,33 +60,18 @@ namespace rdr {
     inline void writeS16(S16 s) { writeU16((U16)s); }
     inline void writeS32(S32 s) { writeU32((U32)s); }
 
-    // writeString() writes a string - a U32 length followed by the data.  The
-    // given string should be null-terminated (but the terminating null is not
-    // written to the stream).
-
-    inline void writeString(const char* str) {
-      U32 len = strlen(str);
-      writeU32(len);
-      writeBytes(str, len);
-    }
-
     inline void pad(size_t bytes) {
       while (bytes-- > 0) writeU8(0);
-    }
-
-    inline void skip(size_t bytes) {
-      while (bytes > 0) {
-        size_t n = check(1, bytes);
-        ptr += n;
-        bytes -= n;
-      }
     }
 
     // writeBytes() writes an exact number of bytes.
 
     void writeBytes(const void* data, size_t length) {
       while (length > 0) {
-        size_t n = check(1, length);
+        check(1);
+        size_t n = length;
+        if (length > avail())
+          n = avail();
         memcpy(ptr, data, n);
         ptr += n;
         data = (U8*)data + n;
@@ -107,7 +83,10 @@ namespace rdr {
 
     void copyBytes(InStream* is, size_t length) {
       while (length > 0) {
-        size_t n = check(1, length);
+        check(1);
+        size_t n = length;
+        if (length > avail())
+          n = avail();
         is->readBytes(ptr, n);
         ptr += n;
         length -= n;
@@ -132,27 +111,40 @@ namespace rdr {
 
     virtual void flush() {}
 
-    // getptr(), getend() and setptr() are "dirty" methods which allow you to
-    // manipulate the buffer directly.  This is useful for a stream which is a
-    // wrapper around an underlying stream.
+    // cork() requests that the stream coalesces flushes in an efficient way
 
-    inline U8* getptr() { return ptr; }
-    inline U8* getend() { return end; }
-    inline void setptr(U8* p) { ptr = p; }
+    virtual void cork(bool enable) { corked = enable; flush(); }
+
+    // getptr() and setptr() are "dirty" methods which allow you direct access
+    // to the buffer. This is useful for a stream which is a wrapper around an
+    // some other stream API. Note that setptr() should not called with a value
+    // larger than the bytes actually written as doing so can result in
+    // security issues. Use pad() in such cases instead.
+
+    inline U8* getptr(size_t length) { check(length); return ptr; }
+    inline void setptr(size_t length) { if (length > avail())
+                                          throw Exception("Output stream overflow");
+                                        ptr += length; }
 
   private:
 
-    // overrun() is implemented by a derived class to cope with buffer overrun.
-    // It ensures there are at least itemSize bytes of buffer space.  Returns
-    // the number of items which fit (up to a maximum of nItems).  itemSize is
-    // supposed to be "small" (a few bytes).
+    inline void check(size_t length)
+    {
+      if (length > avail())
+        overrun(length);
+    }
 
-    virtual size_t overrun(size_t itemSize, size_t nItems) = 0;
+    // overrun() is implemented by a derived class to cope with buffer overrun.
+    // It ensures there are at least needed bytes of buffer space.
+
+    virtual void overrun(size_t needed) = 0;
 
   protected:
 
     U8* ptr;
     U8* end;
+
+    bool corked;
   };
 
 }

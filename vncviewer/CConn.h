@@ -29,8 +29,7 @@ namespace network { class Socket; }
 
 class DesktopWindow;
 
-class CConn : public rfb::CConnection,
-              public rdr::FdInStreamBlockCallback
+class CConn : public rfb::CConnection
 {
 public:
   CConn(const char* vncServerName, network::Socket* sock);
@@ -41,9 +40,6 @@ public:
   unsigned getUpdateCount();
   unsigned getPixelCount();
   unsigned getPosition();
-
-  // FdInStreamBlockCallback methods
-  void blockCallback();
 
   // Callback when socket is ready (or broken)
   static void socketEvent(FL_SOCKET fd, void *data);
@@ -63,7 +59,7 @@ public:
 
   void framebufferUpdateStart();
   void framebufferUpdateEnd();
-  void dataRect(const rfb::Rect& r, int encoding);
+  bool dataRect(const rfb::Rect& r, int encoding);
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
@@ -101,6 +97,10 @@ private:
   rfb::PixelFormat fullColourPF;
 
   int lastServerEncoding;
+
+  struct timeval updateStartTime;
+  size_t updateStartPos;
+  unsigned long long bpsEstimate;
 };
 
 #endif

@@ -25,6 +25,9 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #define errorNumber WSAGetLastError()
+#define SHUT_RD SD_RECEIVE
+#define SHUT_WR SD_SEND
+#define SHUT_RDWR SD_BOTH
 #else
 #define errorNumber errno
 #define closesocket close
@@ -94,7 +97,7 @@ Socket::~Socket()
 void Socket::shutdown()
 {
   isShutdown_ = true;
-  ::shutdown(getFd(), 2);
+  ::shutdown(getFd(), SHUT_RDWR);
 }
 
 bool Socket::isShutdown() const
@@ -149,7 +152,7 @@ void SocketListener::shutdown()
   closesocket(fd);
   fd = -1;
 #else
-  ::shutdown(fd, 2);
+  ::shutdown(fd, SHUT_RDWR);
 #endif
 }
 

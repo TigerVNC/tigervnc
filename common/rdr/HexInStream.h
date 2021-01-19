@@ -19,29 +19,23 @@
 #ifndef __RDR_HEX_INSTREAM_H__
 #define __RDR_HEX_INSTREAM_H__
 
-#include <rdr/InStream.h>
+#include <rdr/BufferedInStream.h>
 
 namespace rdr {
 
-  class HexInStream : public InStream {
+  class HexInStream : public BufferedInStream {
   public:
 
-    HexInStream(InStream& is, size_t bufSize=0);
+    HexInStream(InStream& is);
     virtual ~HexInStream();
-
-    size_t pos();
 
     static bool readHexAndShift(char c, int* v);
     static bool hexStrToBin(const char* s, char** data, size_t* length);
 
-  protected:
-    size_t overrun(size_t itemSize, size_t nItems, bool wait);
+  private:
+    virtual bool fillBuffer(size_t maxSize, bool wait);
 
   private:
-    size_t bufSize;
-    U8* start;
-    size_t offset;
-
     InStream& in_stream;
   };
 

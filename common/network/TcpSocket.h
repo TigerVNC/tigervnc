@@ -58,8 +58,6 @@ namespace network {
     virtual char* getPeerAddress();
     virtual char* getPeerEndpoint();
 
-    virtual bool cork(bool enable);
-
   protected:
     bool enableNagles(bool enable);
   };

@@ -137,7 +137,9 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
       // Shortest possible way to tell a client it is not welcome
       os.writeBytes("RFB 003.003\n", 12);
       os.writeU32(0);
-      os.writeString("Too many security failures");
+      const char* reason = "Too many security failures";
+      os.writeU32(strlen(reason));
+      os.writeBytes(reason, strlen(reason));
       os.flush();
     } catch (rdr::Exception&) {
     }
@@ -172,13 +174,13 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         clipboardClient = NULL;
       clipboardRequestors.remove(*ci);
 
+      CharArray name(strDup((*ci)->getPeerEndpoint()));
+
       // - Delete the per-Socket resources
       delete *ci;
 
       clients.remove(*ci);
 
-      CharArray name;
-      name.buf = sock->getPeerEndpoint();
       connectionsLog.status("closed: %s", name.buf);
 
       // - Check that the desktop object is still required

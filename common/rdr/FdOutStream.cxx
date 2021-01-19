@@ -49,44 +49,14 @@
 
 using namespace rdr;
 
-enum { DEFAULT_BUF_SIZE = 16384 };
-
-FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_, size_t bufSize_)
-  : fd(fd_), blocking(blocking_), timeoutms(timeoutms_),
-    bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
+FdOutStream::FdOutStream(int fd_)
+  : fd(fd_)
 {
-  ptr = start = sentUpTo = new U8[bufSize];
-  end = start + bufSize;
-
   gettimeofday(&lastWrite, NULL);
 }
 
 FdOutStream::~FdOutStream()
 {
-  try {
-    blocking = true;
-    flush();
-  } catch (Exception&) {
-  }
-  delete [] start;
-}
-
-void FdOutStream::setTimeout(int timeoutms_) {
-  timeoutms = timeoutms_;
-}
-
-void FdOutStream::setBlocking(bool blocking_) {
-  blocking = blocking_;
-}
-
-size_t FdOutStream::length()
-{
-  return offset + ptr - sentUpTo;
-}
-
-int FdOutStream::bufferUsage()
-{
-  return ptr - sentUpTo;
 }
 
 unsigned FdOutStream::getIdleTime()
@@ -94,98 +64,49 @@ unsigned FdOutStream::getIdleTime()
   return rfb::msSince(&lastWrite);
 }
 
-void FdOutStream::flush()
+void FdOutStream::cork(bool enable)
 {
-  while (sentUpTo < ptr) {
-    size_t n = writeWithTimeout((const void*) sentUpTo,
-                                ptr - sentUpTo,
-                                blocking? timeoutms : 0);
+  BufferedOutStream::cork(enable);
 
-    // Timeout?
-    if (n == 0) {
-      // If non-blocking then we're done here
-      if (!blocking)
-        break;
-
-      throw TimedOut();
-    }
-
-    sentUpTo += n;
-    offset += n;
-  }
-
-   // Managed to flush everything?
-  if (sentUpTo == ptr)
-    ptr = sentUpTo = start;
+#ifdef TCP_CORK
+  int one = enable ? 1 : 0;
+  setsockopt(fd, IPPROTO_TCP, TCP_CORK, (char *)&one, sizeof(one));
+#endif
 }
 
-
-size_t FdOutStream::overrun(size_t itemSize, size_t nItems)
+bool FdOutStream::flushBuffer()
 {
-  if (itemSize > bufSize)
-    throw Exception("FdOutStream overrun: max itemSize exceeded");
+  size_t n = writeFd((const void*) sentUpTo, ptr - sentUpTo);
+  if (n == 0)
+    return false;
 
-  // First try to get rid of the data we have
-  flush();
+  sentUpTo += n;
 
-  // Still not enough space?
-  if (itemSize > (size_t)(end - ptr)) {
-    // Can we shuffle things around?
-    // (don't do this if it gains us less than 25%)
-    if (((size_t)(sentUpTo - start) > bufSize / 4) &&
-        (itemSize < bufSize - (ptr - sentUpTo))) {
-      memmove(start, sentUpTo, ptr - sentUpTo);
-      ptr = start + (ptr - sentUpTo);
-      sentUpTo = start;
-    } else {
-      // Have to get rid of more data, so turn off non-blocking
-      // for a bit...
-      bool realBlocking;
-
-      realBlocking = blocking;
-      blocking = true;
-      flush();
-      blocking = realBlocking;
-    }
-  }
-
-  size_t nAvail;
-  nAvail = (end - ptr) / itemSize;
-  if (nAvail < nItems)
-    return nAvail;
-
-  return nItems;
+  return true;
 }
 
 //
-// writeWithTimeout() writes up to the given length in bytes from the given
-// buffer to the file descriptor.  If there is a timeout set and that timeout
-// expires, it throws a TimedOut exception.  Otherwise it returns the number of
-// bytes written.  It never attempts to send() unless select() indicates that
-// the fd is writable - this means it can be used on an fd which has been set
-// non-blocking.  It also has to cope with the annoying possibility of both
-// select() and send() returning EINTR.
+// writeFd() writes up to the given length in bytes from the given
+// buffer to the file descriptor. It returns the number of bytes written.  It
+// never attempts to send() unless select() indicates that the fd is writable
+// - this means it can be used on an fd which has been set non-blocking.  It
+// also has to cope with the annoying possibility of both select() and send()
+// returning EINTR.
 //
 
-size_t FdOutStream::writeWithTimeout(const void* data, size_t length, int timeoutms)
+size_t FdOutStream::writeFd(const void* data, size_t length)
 {
   int n;
 
   do {
     fd_set fds;
     struct timeval tv;
-    struct timeval* tvp = &tv;
 
-    if (timeoutms != -1) {
-      tv.tv_sec = timeoutms / 1000;
-      tv.tv_usec = (timeoutms % 1000) * 1000;
-    } else {
-      tvp = NULL;
-    }
+    tv.tv_sec = tv.tv_usec = 0;
 
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
-    n = select(fd+1, 0, &fds, 0, tvp);
+    n = select(fd+1, 0, &fds, 0, &tv);
   } while (n < 0 && errno == EINTR);
 
   if (n < 0)

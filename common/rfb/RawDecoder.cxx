@@ -33,10 +33,13 @@ RawDecoder::~RawDecoder()
 {
 }
 
-void RawDecoder::readRect(const Rect& r, rdr::InStream* is,
+bool RawDecoder::readRect(const Rect& r, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os)
 {
+  if (!is->hasData(r.area() * (server.pf().bpp/8)))
+    return false;
   os->copyBytes(is, r.area() * (server.pf().bpp/8));
+  return true;
 }
 
 void RawDecoder::decodeRect(const Rect& r, const void* buffer,

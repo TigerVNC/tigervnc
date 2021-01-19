@@ -61,12 +61,12 @@ namespace rfb {
                             const PixelFormat& pf,
                             const char* name) = 0;
 
-    virtual void readAndDecodeRect(const Rect& r, int encoding,
+    virtual bool readAndDecodeRect(const Rect& r, int encoding,
                                    ModifiablePixelBuffer* pb) = 0;
 
     virtual void framebufferUpdateStart();
     virtual void framebufferUpdateEnd();
-    virtual void dataRect(const Rect& r, int encoding) = 0;
+    virtual bool dataRect(const Rect& r, int encoding) = 0;
 
     virtual void setColourMapEntries(int firstColour, int nColours,
 				     rdr::U16* rgbs) = 0;
