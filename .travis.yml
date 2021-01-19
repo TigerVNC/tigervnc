@@ -77,7 +77,7 @@ matrix:
     - cd java && cmake . && make
 
 before_install:
-  - echo 'DOCKER_OPTS="$DOCKER_OPTS --debug --registry-mirror=https://mirror.gcr.io"'
+  - export DOCKER_OPTS="$DOCKER_OPTS --debug --registry-mirror=https://mirror.gcr.io"
   - sudo service docker restart
   - docker system info
   - docker build -t tigervnc/$DOCKER .travis/$DOCKER
