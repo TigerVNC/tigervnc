@@ -261,7 +261,9 @@ int main(int argc, char** argv)
     if (rfbunixpath.getValueStr()[0] != '\0') {
       listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
       vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
-    } else {
+    }
+
+    if ((int)rfbport != -1) {
       if (localhostOnly)
         createLocalTcpListeners(&listeners, (int)rfbport);
       else

@@ -168,13 +168,17 @@ void vncExtensionInit(void)
 
       if (!desktop[scr]) {
         std::list<network::SocketListener*> listeners;
+        bool inetd = false;
         if (scr == 0 && vncInetdSock != -1) {
+          inetd = true;
           if (network::isSocketListening(vncInetdSock))
           {
             listeners.push_back(new network::TcpListener(vncInetdSock));
             vlog.info("inetd wait");
           }
-        } else if (((const char*)rfbunixpath)[0] != '\0') {
+        }
+
+        if (!inetd && ((const char*)rfbunixpath)[0] != '\0') {
           char path[PATH_MAX];
           int mode = (int)rfbunixmode;
 
@@ -189,7 +193,9 @@ void vncExtensionInit(void)
 
           vlog.info("Listening for VNC connections on %s (mode %04o)",
                     path, mode);
-        } else {
+        }
+
+        if (!inetd && rfbport != -1) {
           const char *addr = interface;
           int port = rfbport;
           if (port == 0) port = 5900 + atoi(vncGetDisplay());
