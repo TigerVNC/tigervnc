@@ -83,7 +83,7 @@ from the X Consortium.
 #include "site.h"
 
 #define XVNCVERSION "TigerVNC 1.11.80"
-#define XVNCCOPYRIGHT ("Copyright (C) 1999-2020 TigerVNC Team and many others (see README.rst)\n" \
+#define XVNCCOPYRIGHT ("Copyright (C) 1999-2021 TigerVNC Team and many others (see README.rst)\n" \
                        "See https://www.tigervnc.org for information on TigerVNC.\n")
 
 #define VFB_DEFAULT_WIDTH  1024

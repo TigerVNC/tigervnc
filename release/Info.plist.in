@@ -11,7 +11,7 @@
 	<key>NSHighResolutionCapable</key>
 	<string>False</string>
 	<key>CFBundleGetInfoString</key>
-	<string>@VERSION@, Copyright © 1998-2020 [many holders]</string>
+	<string>@VERSION@, Copyright © 1998-2021 [many holders]</string>
 	<key>CFBundleIconFile</key>
 	<string>tigervnc.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -31,6 +31,6 @@
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 1998-2020 [many holders]</string>
+	<string>Copyright © 1998-2021 [many holders]</string>
 </dict>
 </plist>
