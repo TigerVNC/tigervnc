@@ -43,9 +43,6 @@ namespace rdr {
 
     int fd;
     bool closeWhenDone;
-
-    size_t offset;
-    U8* start;
   };
 
 } // end of namespace rdr
