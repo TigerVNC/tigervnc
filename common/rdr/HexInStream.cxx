@@ -72,7 +72,7 @@ decodeError:
 }
 
 
-bool HexInStream::fillBuffer(size_t maxSize, bool wait) {
+bool HexInStream::fillBuffer(size_t maxSize) {
   if (!in_stream.hasData(2))
     return false;
 
