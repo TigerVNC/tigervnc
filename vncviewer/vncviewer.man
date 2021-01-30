@@ -314,6 +314,12 @@ respectively.
 .TP
 .B \-AlertOnFatalError
 Display a dialog with any fatal error before exiting. Default is on.
+.
+.TP
+.B \-RetryOnError
+Display a dialog with any error and offer the possibility to retry 
+establishing the connection. In case this is off no dialog to 
+re-connect will be offered. Default is on.
 
 .SH FILES
 .TP

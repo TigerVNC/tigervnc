@@ -87,9 +87,9 @@ char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
 static const char *argv0 = NULL;
 
-static bool inMainloop = false;
+static bool terminateMainloop = false;
 static bool exitMainloop = false;
-static const char *exitError = NULL;
+static string exitError = "";
 
 static const char *about_text()
 {
@@ -109,28 +109,51 @@ static const char *about_text()
   return buffer;
 }
 
+
 void exit_vncviewer(const char *error, ...)
 {
+  if (alertOnFatalError) {
+    char* errorString = NULL;
+    if (error != NULL) {
+      va_list ap;
+
+      va_start(ap, error);
+      errorString = (char*)malloc(1024);
+      if (errorString) {
+	(void) vsnprintf((char*)errorString, 1024, error, ap);
+	fl_alert("%s", errorString);
+	free(errorString);
+      }
+      va_end(ap);
+    }
+  }
+
+  terminateMainloop = true;
+}
+
+
+void abort_vncviewer(const char *error, ...)
+{
+  exitMainloop = true;
+
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if ((error != NULL) && (exitError == NULL)) {
+  if(!exitError.empty())
+    return;
+
+  char* errorString = NULL;
+  if (error != NULL) {
     va_list ap;
 
     va_start(ap, error);
-    exitError = (char*)malloc(1024);
-    if (exitError)
-      (void) vsnprintf((char*)exitError, 1024, error, ap);
+    errorString = (char*)malloc(1024);
+    if (errorString)
+      (void) vsnprintf((char*)errorString, 1024, error, ap);
     va_end(ap);
   }
-
-  if (inMainloop)
-    exitMainloop = true;
-  else {
-    // We're early in the startup. Assume we can just exit().
-    if (alertOnFatalError && (exitError != NULL))
-      fl_alert("%s", exitError);
-    exit(EXIT_FAILURE);
-  }
+  
+  if(errorString != NULL) 
+    exitError = errorString;
 }
 
 bool should_exit()
@@ -144,18 +167,38 @@ void about_vncviewer()
   fl_message("%s", about_text());
 }
 
-void run_mainloop()
+static void mainloop(const char* vncserver, network::Socket* sock)
 {
-  int next_timer;
+  bool stop = false;
+  do {
+    exitMainloop = false;
 
-  next_timer = Timer::checkTimeouts();
-  if (next_timer == 0)
-    next_timer = INT_MAX;
+    {
+      CConn cc(vncServerName, sock);
 
-  if (Fl::wait((double)next_timer / 1000.0) < 0.0) {
-    vlog.error(_("Internal FLTK error. Exiting."));
-    exit(-1);
-  }
+      while (!exitMainloop && !terminateMainloop) {
+	int next_timer = Timer::checkTimeouts();
+	if (next_timer == 0)
+	  next_timer = INT_MAX;
+
+	if (Fl::wait((double)next_timer / 1000.0) < 0.0) {
+	  vlog.error(_("Internal FLTK error. Exiting."));
+	  exit(-1);
+	}
+      }
+    }
+
+    if (exitError.empty() || terminateMainloop)
+      stop = true;
+    else if(reconnectOnError)
+      stop = (fl_choice("%s.\nTry reconnect?", "No", "Yes", 0, exitError.c_str()) == 0);
+    else if (alertOnFatalError) {
+      fl_alert("%s", exitError.c_str());
+      stop = true;
+    }
+    
+    exitError.clear();
+  } while (!stop);
 }
 
 #ifdef __APPLE__
@@ -633,7 +676,7 @@ int main(int argc, char** argv)
     // from a file or the Windows registry.
     vlog.error(_("Parameters -listen and -via are incompatible"));
     exit_vncviewer(_("Parameters -listen and -via are incompatible"));
-    return 1; /* Not reached */
+    return 1;
   }
 #endif
 
@@ -680,7 +723,7 @@ int main(int argc, char** argv)
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(_("Failure waiting for incoming VNC connection:\n\n%s"), e.str());
-      return 1; /* Not reached */
+      return 1;
     }
 
     while (!listeners.empty()) {
@@ -700,17 +743,7 @@ int main(int argc, char** argv)
 #endif
   }
 
-  CConn *cc = new CConn(vncServerName, sock);
-
-  inMainloop = true;
-  while (!exitMainloop)
-    run_mainloop();
-  inMainloop = false;
-
-  delete cc;
-
-  if (exitError != NULL && alertOnFatalError)
-    fl_alert("%s", exitError);
+  mainloop(vncServerName, sock);
 
   return 0;
 }
