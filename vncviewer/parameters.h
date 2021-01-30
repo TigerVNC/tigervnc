@@ -71,6 +71,7 @@ extern rfb::StringParameter menuKey;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
 extern rfb::BoolParameter alertOnFatalError;
+extern rfb::BoolParameter reconnectOnError;
 
 #ifndef WIN32
 extern rfb::StringParameter via;

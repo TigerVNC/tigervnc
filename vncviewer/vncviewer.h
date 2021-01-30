@@ -27,9 +27,9 @@
 #  define __printf_attr(a, b)
 #endif // __GNUC__
 
+void abort_vncviewer(const char *error = NULL, ...) __printf_attr(1, 2);
 void exit_vncviewer(const char *error = NULL, ...) __printf_attr(1, 2);
 bool should_exit();
 void about_vncviewer();
-void run_mainloop();
 
 #endif
