@@ -113,7 +113,7 @@ static const WORD SCAN_FAKE = 0xaa;
 #endif
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
-  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
+  : Fl_Widget(0, 0, w, h), EmulateMB(XK_Alt_L), cc(cc_), frameBuffer(NULL),
     lastPointerPos(0, 0), lastButtonMask(0),
 #ifdef WIN32
     altGrArmed(false),
@@ -833,6 +833,48 @@ void Viewport::handlePointerTimeout(void *data)
   }
 }
 
+void Viewport::writeKeyEvent(rdr::U32 keySym, rdr::U32 keyCode, bool down)
+{
+  if (down) {
+    // Because of the way keyboards work, we cannot expect to have the same
+    // symbol on release as when pressed. This breaks the VNC protocol however,
+    // so we need to keep track of what keysym a key _code_ generated on press
+    // and send the same on release.
+    downKeySym[keyCode] = keySym;
+  }
+  else {
+    DownMap::iterator iter = downKeySym.find(keyCode);
+    if (iter == downKeySym.end()) {
+      // These occur somewhat frequently so let's not spam them unless
+      // logging is turned up.
+      vlog.debug("Unexpected release of key code %d", keyCode);
+      return;
+    }
+    keySym = iter->second;
+    downKeySym.erase(iter);
+  }
+
+#if defined(WIN32) || defined(__APPLE__)
+  vlog.debug("Key %s: 0x%04x => 0x%04x", down ? "pressed" : "released", keyCode, keySym);
+#else
+  vlog.debug("Key %s: 0x%04x => XK_%s (0x%04x)",
+             down ? "pressed" : "released", keyCode, XKeysymToString(keySym), keySym);
+#endif
+
+  try {
+    // Fake keycode?
+    if (keyCode > 0xff)
+      cc->writer()->writeKeyEvent(keySym, 0, down);
+    else
+      cc->writer()->writeKeyEvent(keySym, keyCode, down);
+  } catch (rdr::Exception& e) {
+    vlog.error("%s", e.str());
+    abort_connection(_("An unexpected error occurred when "
+		       "communicating with the server:\n\n%s"),
+	             e.str());
+  }
+}
+
 
 void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
 {
@@ -877,69 +919,22 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
   }
 #endif
 
-  // Because of the way keyboards work, we cannot expect to have the same
-  // symbol on release as when pressed. This breaks the VNC protocol however,
-  // so we need to keep track of what keysym a key _code_ generated on press
-  // and send the same on release.
-  downKeySym[keyCode] = keySym;
+  if (filterKeyPress(keyCode, keySym))
+    return;
 
-#if defined(WIN32) || defined(__APPLE__)
-  vlog.debug("Key pressed: 0x%04x => 0x%04x", keyCode, keySym);
-#else
-  vlog.debug("Key pressed: 0x%04x => XK_%s (0x%04x)",
-             keyCode, XKeysymToString(keySym), keySym);
-#endif
-
-  try {
-    // Fake keycode?
-    if (keyCode > 0xff)
-      cc->writer()->writeKeyEvent(keySym, 0, true);
-    else
-      cc->writer()->writeKeyEvent(keySym, keyCode, true);
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
-    abort_connection(_("An unexpected error occurred when "
-                       "communicating with the server:\n\n%s"),
-                     e.str());
-  }
+  writeKeyEvent(keySym, keyCode, true);
 }
-
 
 void Viewport::handleKeyRelease(int keyCode)
 {
-  DownMap::iterator iter;
 
   if (viewOnly)
     return;
 
-  iter = downKeySym.find(keyCode);
-  if (iter == downKeySym.end()) {
-    // These occur somewhat frequently so let's not spam them unless
-    // logging is turned up.
-    vlog.debug("Unexpected release of key code %d", keyCode);
+  if (filterKeyRelease(keyCode))
     return;
-  }
 
-#if defined(WIN32) || defined(__APPLE__)
-  vlog.debug("Key released: 0x%04x => 0x%04x", keyCode, iter->second);
-#else
-  vlog.debug("Key released: 0x%04x => XK_%s (0x%04x)",
-             keyCode, XKeysymToString(iter->second), iter->second);
-#endif
-
-  try {
-    if (keyCode > 0xff)
-      cc->writer()->writeKeyEvent(iter->second, 0, false);
-    else
-      cc->writer()->writeKeyEvent(iter->second, keyCode, false);
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
-    abort_connection(_("An unexpected error occurred when "
-                       "communicating with the server:\n\n%s"),
-                     e.str());
-  }
-
-  downKeySym.erase(iter);
+  writeKeyEvent(0, keyCode, false); // keySym will be populated by writeKeyEvent based on the keyCode.
 }
 
 

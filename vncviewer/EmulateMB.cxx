@@ -55,12 +55,22 @@
 #include <assert.h>
 
 #include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
 
 #include "parameters.h"
 #include "i18n.h"
 #include "EmulateMB.h"
 
+static rfb::LogWriter vlog("EmulateMB");
 /*
+ * There are two different middle button emulation mechanism:
+ *   1) Pressing the left + right buttons to emulate middle button (enabled by the setting emulateMiddleButton)
+ *   2) Pressing a modifier + left button to emulate middle button (ebabled by the setting emulateMiddleButtonMod)
+ */
+
+/*
+ * 1) Pressing the left + right buttons to emulate middle button:
+ *
  * Lets create a simple finite-state machine for 3 button emulation:
  *
  * We track buttons 1 and 3 (left and right).  There are 11 states:
@@ -103,6 +113,7 @@
  *      If the buttons are in <button state>, generate <events> then go to
  *      <new emulation state>.
  */
+
 static const signed char stateTab[11][5][3] = {
 /* 0 ground */
   {
@@ -194,22 +205,197 @@ static const signed char stateTab[11][5][3] = {
   },
 };
 
-EmulateMB::EmulateMB()
-  : state(0), emulatedButtonMask(0), timer(this)
+/*
+ * 2) Pressing a modifier + left button to emulate middle button:
+ *
+ * At each state, we need handlers for the following events
+ *   0: Modifier pressed
+ *   1: Modifier released
+ *   2: Left button pressed / released
+ *   3: Other button pressed / released
+ *   4: A key is pressed/released (not the modifier)
+ *
+ * a handler consists of three values:
+ *   0: action1 - Modifler to send
+ *   1: action2 - Button emulation mode
+ *   2: Next emulation state
+ *
+ * action1:
+ * action = 2: Send modifier down followed by modifier up
+ * action = 1: Send modifier down
+ * action = 0: nothing
+ * action = -1: Send modifier up
+ * action = 10: print error, nothing
+ *
+ * action2:
+ * action = 0: Dont Emulate
+ * action < 0: Emulate
+ *
+ * Note that a key pressed event (where the key is not the emulation modifier) always sends the key.
+ */
+
+EmulateMB::Action EmulateMB::mbStateTab[8][5] = {
+/* 0 ground */
+  {
+    {  0,  0,  1 },   /* mod down -> mod down */
+    { 10,  0,  0 },   /* mod up -> error, self */
+    {  0,  0,  2 },   /* left button -> button down */
+    {  0,  0,  0 },   /* other button -> error, self*/
+    {  0,  0,  0 }    /* key pressed -> self */
+  },
+/* 1 mod down */
+  {
+    {  0,  0,  1 },   /* mod down -> self */
+    {  2,  0,  0 },   /* mod up -> ground */
+    {  0,  1,  3 },   /* left button -> emulating both down */
+    {  1,  0,  6 },   /* other button -> non emulated, mod down */
+    {  1,  0,  6 }    /* key pressed -> non emulated, mod down */
+  },
+/* 2 button down */
+  {
+    {  1,  0,  5 },   /* mod down -> non emulated, both down */
+    { 10,  0,  0 },   /* mod up -> error, ground */
+    {  0,  0,  0 },   /* left button -> ground */
+    {  0,  0,  2 },   /* other button -> self */
+    {  0,  0,  2 }    /* key pressed -> self */
+  },
+/* 3 emulating both down */
+  {
+    { 10,  0,  0 },   /* mod down -> error, ground */
+    {  0,  0,  4 },   /* mod up -> after emulation, button down, mod up */
+    {  0,  1,  7 },   /* left button -> after emulation, button up, mod down */
+    {  0,  1,  3 },   /* other button -> self */
+    {  0,  0,  3 }    /* key pressed -> self */
+  },
+/* 4 after emulation, button down, mod up */
+  {
+    {  0,  0,  3 },   /* mod down -> emulating both down */
+    { 10,  0,  0 },   /* mod up -> error, ground */
+    {  0,  1,  0 },   /* left button -> error, ground */
+    {  0,  1,  4 },   /* other button -> self */
+    {  0,  0,  4 }    /* key pressed -> self */
+  },
+/* 5 non emulated, both down, mod sent to server */
+  {
+    { 10,  0,  0 },   /* mod down -> error, ground */
+    { -1,  0,  2 },   /* mod up -> button down */
+    {  0,  0,  6 },   /* left button -> non emulated, mod physicall down. button up */
+    {  0,  0,  5 },   /* other button -> self */
+    {  0,  0,  5 }    /* key pressed -> self */
+  },
+/* 6 non emulated, mod physicall down. button up. mod down sent to server */
+  {
+    { 10,  0,  0 },   /* mod down -> error, ground */
+    { -1,  0,  0 },   /* mod up -> ground */
+    { -1,  1,  3 },   /* left button -> emulating both down */
+    {  0,  0,  6 },   /* other button -> self */
+    {  0,  0,  6 }    /* key pressed -> self */
+  },
+/* 7 after emulation, button up, mod down. mod not sent to server */
+  {
+    { 10,  0,  0 },   /* mod down -> error, ground */
+    {  0,  0,  0 },   /* mod up -> ground */
+    {  0,  1,  3 },   /* left button -> emulating both down */
+    {  1,  0,  6 },   /* other button -> non emulated, mod physicall down. button up */
+    {  1,  0,  6 }    /* key pressed -> non emulated, mod physicall down. button up */
+  }
+};
+
+EmulateMB::EmulateMB(rdr::U32 emulateMBModKey)
+  : state(0), emulatedButtonMask(0), timer(this), emulateMiddleButtonModifierKey(emulateMBModKey),
+    mbState(0), mbLastButtonMask(0)
 {
+}
+
+void EmulateMB::mbFsmDoMod(int modAction)
+{
+  if (modAction == 1 || modAction == 2)
+    writeKeyEvent(emulateMiddleButtonModifierKey, modKeyCode, true);
+  if (modAction == -1 || modAction == 2)
+    writeKeyEvent(emulateMiddleButtonModifierKey, modKeyCode, false);
+}
+
+bool EmulateMB::filterKeyPressRelease(bool is_press, int keyCode, rdr::U32 keySym)
+{
+  if (!emulateMiddleButtonMod)
+    return false;
+
+  Action *action;
+  if (keySym == emulateMiddleButtonModifierKey || keyCode == modKeyCode) {
+    if (is_press) {
+      action = &mbStateTab[mbState][0];
+      modKeyCode = keyCode;
+    }
+    else
+      action = &mbStateTab[mbState][1];
+  }
+  else {
+    action = &mbStateTab[mbState][4];
+  }
+
+  mbFSM(*action);
+  // If another key was pressed then signal the caller to send it also.
+  return keyCode == modKeyCode;
+}
+
+bool EmulateMB::filterKeyPress(int keyCode, rdr::U32 keySym) {
+  return filterKeyPressRelease(true, keyCode, keySym);
+}
+
+bool EmulateMB::filterKeyRelease(int keyCode)
+{
+  return filterKeyPressRelease(false, keyCode, -1);
+}
+
+void EmulateMB::mbFSM(Action action)
+{
+  if (action[0] == 10) {
+    vlog.error(_("Bad state transition. In state %d\n"), mbState);
+    mbState = 0;
+    return;
+  }
+  mbFsmDoMod(action[0]);
+  mbState = action[2];
+}
+
+void EmulateMB::filterPointerEventMod(const rfb::Point& pos, int buttonMask)
+{
+  Action *action;
+
+  if (buttonMask != mbLastButtonMask) {
+    // Button 1 changed.
+    if ((buttonMask & 1) != (mbLastButtonMask & 1))
+      action = &mbStateTab[mbState][2]; // Left button
+    else
+      action = &mbStateTab[mbState][3]; // Other button
+
+    mbLastButtonMask = buttonMask;
+    if ((*action)[1]) {
+      // Emulate. Set button 2 to equal button 1 and turn off button 1.
+      int button1 = buttonMask & 0x1;
+      buttonMask = (buttonMask & ~0x3) | button1 << 1;
+    }
+
+    mbFSM(*action);
+  }
+  sendPointerEvent(pos, buttonMask);
 }
 
 void EmulateMB::filterPointerEvent(const rfb::Point& pos, int buttonMask)
 {
+  if (emulateMiddleButton)
+    filterPointerEventLR(pos, buttonMask);
+  else if (emulateMiddleButtonMod)
+    filterPointerEventMod(pos, buttonMask);
+  else
+    sendPointerEvent(pos, buttonMask);
+}
+
+void EmulateMB::filterPointerEventLR(const rfb::Point& pos, int buttonMask)
+{
   int btstate;
   int action1, action2;
   int lastState;
-
-  // Just pass through events if the emulate setting is disabled
-  if (!emulateMiddleButton) {
-     sendPointerEvent(pos, buttonMask);
-     return;
-  }
 
   lastButtonMask = buttonMask;
   lastPos = pos;

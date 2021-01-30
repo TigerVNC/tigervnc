@@ -89,6 +89,8 @@ private:
 
   static int handleSystemEvent(void *event, void *data);
 
+  void writeKeyEvent(rdr::U32 keySym, rdr::U32 keyCode, bool down);
+
 #ifdef WIN32
   static void handleAltGrTimeout(void *data);
   void resolveAltGrDetection(bool isAltGrSequence);

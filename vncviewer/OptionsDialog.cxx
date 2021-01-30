@@ -264,6 +264,7 @@ void OptionsDialog::loadOptions(void)
 
   viewOnlyCheckbox->value(viewOnly);
   emulateMBCheckbox->value(emulateMiddleButton);
+  emulateMBModCheckbox->value(emulateMiddleButtonMod);
   acceptClipboardCheckbox->value(acceptClipboard);
 #if !defined(WIN32) && !defined(__APPLE__)
   setPrimaryCheckbox->value(setPrimary);
@@ -389,6 +390,7 @@ void OptionsDialog::storeOptions(void)
   /* Input */
   viewOnly.setParam(viewOnlyCheckbox->value());
   emulateMiddleButton.setParam(emulateMBCheckbox->value());
+  emulateMiddleButtonMod.setParam(emulateMBModCheckbox->value());
   acceptClipboard.setParam(acceptClipboardCheckbox->value());
 #if !defined(WIN32) && !defined(__APPLE__)
   setPrimary.setParam(setPrimaryCheckbox->value());
@@ -723,7 +725,12 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   emulateMBCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                    CHECK_MIN_WIDTH,
                                                    CHECK_HEIGHT,
-                                                   _("Emulate middle mouse button")));
+                                                   _("Emulate middle mouse button left+right")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  emulateMBModCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                   CHECK_MIN_WIDTH,
+                                                   CHECK_HEIGHT,
+                                                   _("Emulate middle mouse button ALT+left")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   acceptClipboardCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,

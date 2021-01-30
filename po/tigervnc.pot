@@ -310,7 +310,11 @@ msgid "View only (ignore mouse and keyboard)"
 msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:726
-msgid "Emulate middle mouse button"
+msgid "Emulate middle mouse button left+right"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:731
+msgid "Emulate middle mouse button ALT+left"
 msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:732
