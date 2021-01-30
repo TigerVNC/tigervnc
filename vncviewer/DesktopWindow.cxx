@@ -1287,7 +1287,7 @@ void DesktopWindow::repositionWidgets()
 
 void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
 {
-  exit_vncviewer();
+  exit_vncviewer("");
 }
 
 

@@ -87,9 +87,8 @@ char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
 static const char *argv0 = NULL;
 
-static bool inMainloop = false;
 static bool exitMainloop = false;
-static const char *exitError = NULL;
+string exitError;
 
 static const char *about_text()
 {
@@ -109,28 +108,10 @@ static const char *about_text()
   return buffer;
 }
 
-void exit_vncviewer(const char *error, ...)
+void exit_vncviewer(const std::string& error)
 {
-  // Prioritise the first error we get as that is probably the most
-  // relevant one.
-  if ((error != NULL) && (exitError == NULL)) {
-    va_list ap;
-
-    va_start(ap, error);
-    exitError = (char*)malloc(1024);
-    if (exitError)
-      (void) vsnprintf((char*)exitError, 1024, error, ap);
-    va_end(ap);
-  }
-
-  if (inMainloop)
-    exitMainloop = true;
-  else {
-    // We're early in the startup. Assume we can just exit().
-    if (alertOnFatalError && (exitError != NULL))
-      fl_alert("%s", exitError);
-    exit(EXIT_FAILURE);
-  }
+  exitError = error;
+  exitMainloop = true;
 }
 
 bool should_exit()
@@ -144,18 +125,30 @@ void about_vncviewer()
   fl_message("%s", about_text());
 }
 
-void run_mainloop()
+static int run_mainloop(const char* vncserver, network::Socket* sock)
 {
+  exitMainloop = false;
+
+  CConn cc(vncServerName, sock);
   int next_timer;
 
-  next_timer = Timer::checkTimeouts();
-  if (next_timer == 0)
-    next_timer = INT_MAX;
+  while (!exitMainloop) {
+    next_timer = Timer::checkTimeouts();
+    if (next_timer == 0)
+      next_timer = INT_MAX;
 
-  if (Fl::wait((double)next_timer / 1000.0) < 0.0) {
-    vlog.error(_("Internal FLTK error. Exiting."));
-    exit(-1);
+    if (Fl::wait((double)next_timer / 1000.0) < 0.0) {
+      vlog.error(_("Internal FLTK error. Exiting."));
+      exit(-1);
+    }
   }
+
+  int ret = 0;
+  if (!exitError.empty() && alertOnFatalError)
+    ret = fl_choice("%s.\nTry reconnect?", "No", "Yes", 0, exitError.c_str());
+  exitError.clear();
+
+  return ret;
 }
 
 #ifdef __APPLE__
@@ -431,8 +424,8 @@ potentiallyLoadConfigurationFile(char *vncServerName)
       vncServerName[VNCSERVERNAMELEN-1] = '\0';
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(_("Error reading configuration file \"%s\":\n\n%s"),
-                     vncServerName, e.str());
+      exit_vncviewer(std::string("Error reading configuration file \"")
+                     +vncServerName +"\":\n\n" +e.str());
     }
   }
 }
@@ -632,8 +625,8 @@ int main(int argc, char** argv)
     // TRANSLATORS: "Parameters" are command line arguments, or settings
     // from a file or the Windows registry.
     vlog.error(_("Parameters -listen and -via are incompatible"));
-    exit_vncviewer(_("Parameters -listen and -via are incompatible"));
-    return 1; /* Not reached */
+    exit_vncviewer("Parameters -listen and -via are incompatible");
+    return 1;
   }
 #endif
 
@@ -679,8 +672,9 @@ int main(int argc, char** argv)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      exit_vncviewer(_("Failure waiting for incoming VNC connection:\n\n%s"), e.str());
-      return 1; /* Not reached */
+      exit_vncviewer(std::string("Failure waiting for incoming VNC connection:\n\n")
+                     +e.str());
+      return 1;
     }
 
     while (!listeners.empty()) {
@@ -700,17 +694,7 @@ int main(int argc, char** argv)
 #endif
   }
 
-  CConn *cc = new CConn(vncServerName, sock);
-
-  inMainloop = true;
-  while (!exitMainloop)
-    run_mainloop();
-  inMainloop = false;
-
-  delete cc;
-
-  if (exitError != NULL && alertOnFatalError)
-    fl_alert("%s", exitError);
+  while(run_mainloop(vncServerName, sock) != 0);
 
   return 0;
 }

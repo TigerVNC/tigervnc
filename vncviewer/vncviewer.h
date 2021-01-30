@@ -19,6 +19,8 @@
 #ifndef __VNCVIEWER_H__
 #define __VNCVIEWER_H__
 
+#include <string>
+
 #define VNCSERVERNAMELEN 256
 
 #ifdef __GNUC__
@@ -27,9 +29,8 @@
 #  define __printf_attr(a, b)
 #endif // __GNUC__
 
-void exit_vncviewer(const char *error = NULL, ...) __printf_attr(1, 2);
+void exit_vncviewer(const std::string& error);
 bool should_exit();
 void about_vncviewer();
-void run_mainloop();
 
 #endif
