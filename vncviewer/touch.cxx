@@ -181,7 +181,7 @@ static int handleTouchEvent(void *event, void *data)
       handlers[msg->hwnd] = new Win32TouchHandler(msg->hwnd);
     } catch (rfb::Exception& e) {
       vlog.error(_("Failed to create touch handler: %s"), e.str());
-      exit_vncviewer(_("Failed to create touch handler: %s"), e.str());
+      abort_vncviewer(_("Failed to create touch handler: %s"), e.str());
     }
     // Add a special hook-in for handling events sent directly to WndProc
     if (!SetWindowSubclass(msg->hwnd, &win32WindowProc, 1, 0)) {
@@ -248,14 +248,14 @@ void enable_touch()
   fl_open_display();
 
   if (!XQueryExtension(fl_display, "XInputExtension", &xi_major, &ev, &err)) {
-    exit_vncviewer(_("X Input extension not available."));
+    abort_vncviewer(_("X Input extension not available."));
     return; // Not reached
   }
 
   major_ver = 2;
   minor_ver = 2;
   if (XIQueryVersion(fl_display, &major_ver, &minor_ver) != Success) {
-    exit_vncviewer(_("X Input 2 (or newer) is not available."));
+    abort_vncviewer(_("X Input 2 (or newer) is not available."));
     return; // Not reached
   }
 
