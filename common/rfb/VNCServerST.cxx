@@ -171,7 +171,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
       if (pointerClient == *ci)
         pointerClient = NULL;
       if (clipboardClient == *ci)
-        clipboardClient = NULL;
+        handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
 
       CharArray name(strDup((*ci)->getPeerEndpoint()));
@@ -517,8 +517,10 @@ void VNCServerST::handleClipboardAnnounce(VNCSConnectionST* client,
 void VNCServerST::handleClipboardData(VNCSConnectionST* client,
                                       const char* data)
 {
-  if (client != clipboardClient)
+  if (client != clipboardClient) {
+    slog.debug("Ignoring unexpected clipboard data");
     return;
+  }
   desktop->handleClipboardData(data);
 }
 

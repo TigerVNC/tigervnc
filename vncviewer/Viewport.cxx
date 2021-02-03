@@ -291,12 +291,8 @@ void Viewport::handleClipboardAnnounce(bool available)
   if (!acceptClipboard)
     return;
 
-  if (available)
-    vlog.debug("Got notification of new clipboard on server");
-  else
-    vlog.debug("Clipboard is no longer available on server");
-
   if (!available) {
+    vlog.debug("Clipboard is no longer available on server");
     pendingServerClipboard = false;
     return;
   }
@@ -304,10 +300,12 @@ void Viewport::handleClipboardAnnounce(bool available)
   pendingClientClipboard = false;
 
   if (!hasFocus()) {
+    vlog.debug("Got notification of new clipboard on server whilst not focused, will request data later");
     pendingServerClipboard = true;
     return;
   }
 
+  vlog.debug("Got notification of new clipboard on server, requesting data");
   cc->requestClipboard();
 }
 
@@ -761,12 +759,14 @@ void Viewport::handleClipboardChange(int source, void *data)
   self->pendingServerClipboard = false;
 
   if (!self->hasFocus()) {
+    vlog.debug("Local clipboard changed whilst not focused, will notify server later");
     self->pendingClientClipboard = true;
     // Clear any older client clipboard from the server
     self->cc->announceClipboard(false);
     return;
   }
 
+  vlog.debug("Local clipboard changed, notifying server");
   try {
     self->cc->announceClipboard(true);
   } catch (rdr::Exception& e) {
@@ -780,6 +780,7 @@ void Viewport::handleClipboardChange(int source, void *data)
 void Viewport::flushPendingClipboard()
 {
   if (pendingServerClipboard) {
+    vlog.debug("Focus regained after remote clipboard change, requesting data");
     try {
       cc->requestClipboard();
     } catch (rdr::Exception& e) {
@@ -789,6 +790,7 @@ void Viewport::flushPendingClipboard()
     }
   }
   if (pendingClientClipboard) {
+    vlog.debug("Focus regained after local clipboard change, notifying server");
     try {
       cc->announceClipboard(true);
     } catch (rdr::Exception& e) {

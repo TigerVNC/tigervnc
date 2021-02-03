@@ -264,6 +264,7 @@ namespace rfb {
 
     char* clientClipboard;
     bool hasLocalClipboard;
+    bool unsolicitedClipboardAttempt;
   };
 }
 #endif
