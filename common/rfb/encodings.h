@@ -61,6 +61,7 @@ namespace rfb {
 
   // VMware-specific
   const int pseudoEncodingVMwareCursor = 0x574d5664;
+  const int pseudoEncodingVMwareCursorPosition = 0x574d5666;
   const int pseudoEncodingVMwareLEDState = 0x574d5668;
 
   // UltraVNC-specific

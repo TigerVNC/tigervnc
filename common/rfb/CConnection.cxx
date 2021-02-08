@@ -43,8 +43,8 @@ static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
   : csecurity(0),
-    supportsLocalCursor(false), supportsDesktopResize(false),
-    supportsLEDState(false),
+    supportsLocalCursor(false), supportsCursorPosition(false),
+    supportsDesktopResize(false), supportsLEDState(false),
     is(0), os(0), reader_(0), writer_(0),
     shared(false),
     state_(RFBSTATE_UNINITIALISED),
@@ -804,6 +804,9 @@ void CConnection::updateEncodings()
     encodings.push_back(pseudoEncodingVMwareCursor);
     encodings.push_back(pseudoEncodingCursor);
     encodings.push_back(pseudoEncodingXCursor);
+  }
+  if (supportsCursorPosition) {
+    encodings.push_back(pseudoEncodingVMwareCursorPosition);
   }
   if (supportsDesktopResize) {
     encodings.push_back(pseudoEncodingDesktopSize);

@@ -66,6 +66,9 @@ public:
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
 
+  // Server-provided cursor position
+  void setCursorPos(const rfb::Point& pos);
+
   // Change client LED state
   void setLEDState(unsigned int state);
 

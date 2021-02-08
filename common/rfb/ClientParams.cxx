@@ -30,7 +30,7 @@ ClientParams::ClientParams()
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
     subsampling(subsampleUndefined),
     width_(0), height_(0), name_(0),
-    ledState_(ledUnknown)
+    cursorPos_(0, 0), ledState_(ledUnknown)
 {
   setName("");
 
@@ -83,6 +83,11 @@ void ClientParams::setCursor(const Cursor& other)
 {
   delete cursor_;
   cursor_ = new Cursor(other);
+}
+
+void ClientParams::setCursorPos(const Point& pos)
+{
+  cursorPos_ = pos;
 }
 
 bool ClientParams::supportsEncoding(rdr::S32 encoding) const
@@ -178,6 +183,13 @@ bool ClientParams::supportsLocalCursor() const
   if (supportsEncoding(pseudoEncodingCursor))
     return true;
   if (supportsEncoding(pseudoEncodingXCursor))
+    return true;
+  return false;
+}
+
+bool ClientParams::supportsCursorPosition() const
+{
+  if (supportsEncoding(pseudoEncodingVMwareCursorPosition))
     return true;
   return false;
 }
