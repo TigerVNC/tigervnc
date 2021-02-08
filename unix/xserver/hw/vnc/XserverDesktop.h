@@ -67,6 +67,7 @@ public:
   void setDesktopName(const char* name);
   void setCursor(int width, int height, int hotX, int hotY,
                  const unsigned char *rgbaData);
+  void setCursorPos(int x, int y, bool warped);
   void add_changed(const rfb::Region &region);
   void add_copied(const rfb::Region &dest, const rfb::Point &delta);
   void handleSocketEvent(int fd, bool read, bool write);

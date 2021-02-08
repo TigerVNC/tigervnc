@@ -217,7 +217,7 @@ void XDesktop::poll() {
                   &x, &y, &wx, &wy, &mask);
     x -= geometry->offsetLeft();
     y -= geometry->offsetTop();
-    server->setCursorPos(rfb::Point(x, y));
+    server->setCursorPos(rfb::Point(x, y), false);
   }
 }
 

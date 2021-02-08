@@ -93,6 +93,11 @@ namespace rfb {
     // cursor.
     void renderedCursorChange();
 
+    // cursorPositionChange() is called whenever the cursor has changed position by
+    // the server.  If the client supports being informed about these changes then
+    // it will arrange for the new cursor position to be sent to the client.
+    void cursorPositionChange();
+
     // needRenderedCursor() returns true if this client needs the server-side
     // rendered cursor.  This may be because it does not support local cursor
     // or because the current cursor position has not been set by this client.
@@ -155,6 +160,7 @@ namespace rfb {
 
     void screenLayoutChange(rdr::U16 reason);
     void setCursor();
+    void setCursorPos();
     void setDesktopName(const char *name);
     void setLEDState(unsigned int state);
 

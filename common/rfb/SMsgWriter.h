@@ -83,6 +83,9 @@ namespace rfb {
     // immediately. 
     void writeCursor();
 
+    // Notifies the client that the cursor pointer was moved by the server.
+    void writeCursorPos();
+
     // Same for LED state message
     void writeLEDState();
 
@@ -141,6 +144,7 @@ namespace rfb {
     void writeSetVMwareCursorRect(int width, int height,
                                   int hotspotX, int hotspotY,
                                   const rdr::U8* data);
+    void writeSetVMwareCursorPositionRect(int hotspotX, int hotspotY);
     void writeLEDStateRect(rdr::U8 state);
     void writeQEMUKeyEventRect();
 
@@ -152,6 +156,7 @@ namespace rfb {
 
     bool needSetDesktopName;
     bool needCursor;
+    bool needCursorPos;
     bool needLEDState;
     bool needQEMUKeyEvent;
 
