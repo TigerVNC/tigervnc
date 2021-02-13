@@ -87,10 +87,13 @@ static void render(CGContextRef gc, CGColorSpaceRef lut,
   CGContextSetBlendMode(gc, mode);
   CGContextSetAlpha(gc, alpha);
 
-  rect.origin.x = x;
-  rect.origin.y = y;
-  rect.size.width = w;
-  rect.size.height = h;
+  // adjust rect with cocoa scale factor to support HiDPI
+  const double scale_factor = cocoa_get_scale_factor();
+
+  rect.origin.x = x * scale_factor;
+  rect.origin.y = y * scale_factor;
+  rect.size.width = w * scale_factor;
+  rect.size.height = h * scale_factor;
 
   CGContextDrawImage(gc, rect, subimage);
 

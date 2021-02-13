@@ -42,4 +42,6 @@ int cocoa_set_num_lock_state(bool on);
 int cocoa_get_caps_lock_state(bool *on);
 int cocoa_get_num_lock_state(bool *on);
 
+double cocoa_get_scale_factor();
+
 #endif

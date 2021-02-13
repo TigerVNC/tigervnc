@@ -500,3 +500,7 @@ int cocoa_get_num_lock_state(bool *on)
 {
   return cocoa_get_modifier_lock_state(kIOHIDNumLockState, on);
 }
+
+double cocoa_get_scale_factor(){
+    return [[NSScreen mainScreen] backingScaleFactor];
+}
