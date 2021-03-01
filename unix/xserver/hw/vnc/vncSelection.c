@@ -608,6 +608,13 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
   LOG_DEBUG("Selection owner change for %s",
             NameForAtom(info->selection->selection));
 
+  /*
+   * If we're the previous owner of this selection, then we're also the
+   * owner of _the other_ selection. Make sure we drop all ownerships so
+   * we either own both selections or nonw.
+   */
+  DeleteWindowFromAnySelections(pWindow);
+
   if ((info->selection->selection != xaPRIMARY) &&
       (info->selection->selection != xaCLIPBOARD))
     return;
