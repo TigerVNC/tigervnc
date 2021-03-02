@@ -74,10 +74,6 @@ void FdOutStream::cork(bool enable)
   int one = enable ? 1 : 0;
   setsockopt(fd, IPPROTO_TCP, TCP_CORK, (char *)&one, sizeof(one));
 #endif
-#ifdef TCP_NOPUSH
-  int one = enable ? 1 : 0;
-  setsockopt(fd, IPPROTO_TCP, TCP_NOPUSH, (char *)&one, sizeof(one));
-#endif
 }
 
 bool FdOutStream::flushBuffer()
