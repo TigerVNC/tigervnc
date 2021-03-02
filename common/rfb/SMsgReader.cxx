@@ -122,7 +122,7 @@ bool SMsgReader::readSetPixelFormat()
 
 bool SMsgReader::readSetEncodings()
 {
-  if (!is->hasData(3))
+  if (!is->hasData(1 + 2))
     return false;
 
   is->setRestorePoint();
@@ -152,7 +152,7 @@ bool SMsgReader::readSetDesktopSize()
   int sx, sy, sw, sh;
   ScreenSet layout;
 
-  if (!is->hasData(7))
+  if (!is->hasData(1 + 2 + 2 + 1 + 1))
     return true;
 
   is->setRestorePoint();
@@ -165,7 +165,7 @@ bool SMsgReader::readSetDesktopSize()
   screens = is->readU8();
   is->skip(1);
 
-  if (!is->hasDataOrRestore(screens * 24))
+  if (!is->hasDataOrRestore(screens * (4 + 2 + 2 + 2 + 2 + 4)))
     return false;
   is->clearRestorePoint();
 
@@ -187,7 +187,7 @@ bool SMsgReader::readSetDesktopSize()
 
 bool SMsgReader::readFramebufferUpdateRequest()
 {
-  if (!is->hasData(17))
+  if (!is->hasData(1 + 2 + 2 + 2 + 2))
     return false;
   bool inc = is->readU8();
   int x = is->readU16();
@@ -203,7 +203,7 @@ bool SMsgReader::readEnableContinuousUpdates()
   bool enable;
   int x, y, w, h;
 
-  if (!is->hasData(17))
+  if (!is->hasData(1 + 2 + 2 + 2 + 2))
     return false;
 
   enable = is->readU8();
@@ -224,7 +224,7 @@ bool SMsgReader::readFence()
   rdr::U8 len;
   char data[64];
 
-  if (!is->hasData(8))
+  if (!is->hasData(3 + 4 + 1))
     return false;
 
   is->setRestorePoint();
@@ -254,7 +254,7 @@ bool SMsgReader::readFence()
 
 bool SMsgReader::readKeyEvent()
 {
-  if (!is->hasData(7))
+  if (!is->hasData(1 + 2 + 4))
     return false;
   bool down = is->readU8();
   is->skip(2);
@@ -265,7 +265,7 @@ bool SMsgReader::readKeyEvent()
 
 bool SMsgReader::readPointerEvent()
 {
-  if (!is->hasData(5))
+  if (!is->hasData(1 + 2 + 2))
     return false;
   int mask = is->readU8();
   int x = is->readU16();
@@ -277,7 +277,7 @@ bool SMsgReader::readPointerEvent()
 
 bool SMsgReader::readClientCutText()
 {
-  if (!is->hasData(7))
+  if (!is->hasData(3 + 4))
     return false;
 
   is->setRestorePoint();
@@ -452,7 +452,7 @@ bool SMsgReader::readQEMUMessage()
 
 bool SMsgReader::readQEMUKeyEvent()
 {
-  if (!is->hasData(10))
+  if (!is->hasData(2 + 4 + 4))
     return false;
   bool down = is->readU16();
   rdr::U32 keysym = is->readU32();
