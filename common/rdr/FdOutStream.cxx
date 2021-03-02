@@ -35,6 +35,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #endif
 
 /* Old systems have select() in sys/time.h */
