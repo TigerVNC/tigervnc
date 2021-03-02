@@ -271,6 +271,7 @@ fi
 %{_mandir}/man1/x0vncserver.1*
 %{_mandir}/man8/vncserver.8*
 %{_mandir}/man8/vncsession.8*
+%doc %{_docdir}/%{name}/HOWTO.md
 
 %files server-minimal
 %defattr(-,root,root,-)
