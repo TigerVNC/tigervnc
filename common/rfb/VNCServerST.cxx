@@ -429,14 +429,17 @@ void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
   }
 }
 
-void VNCServerST::setCursorPos(const Point& pos)
+void VNCServerST::setCursorPos(const Point& pos, bool warped)
 {
   if (!cursorPos.equals(pos)) {
     cursorPos = pos;
     renderedCursorInvalid = true;
     std::list<VNCSConnectionST*>::iterator ci;
-    for (ci = clients.begin(); ci != clients.end(); ci++)
+    for (ci = clients.begin(); ci != clients.end(); ci++) {
       (*ci)->renderedCursorChange();
+      if (warped)
+        (*ci)->cursorPositionChange();
+    }
   }
 }
 

@@ -51,6 +51,7 @@
 
 #ifdef __APPLE__
 #include "cocoa.h"
+#include <Carbon/Carbon.h>
 #endif
 
 #define EDGE_SCROLL_SIZE 32
@@ -186,6 +187,14 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   // Show hint about menu key
   Fl::add_timeout(0.5, menuOverlay, this);
+
+  // By default we get a slight delay when we warp the pointer, something
+  // we don't want or we'll get jerky movement
+#ifdef __APPLE__
+  CGEventSourceRef event = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
+  CGEventSourceSetLocalEventsSuppressionInterval(event, 0);
+  CFRelease(event);
+#endif
 }
 
 
@@ -319,6 +328,29 @@ void DesktopWindow::setCursor(int width, int height,
                               const rdr::U8* data)
 {
   viewport->setCursor(width, height, hotspot, data);
+}
+
+
+void DesktopWindow::setCursorPos(const rfb::Point& pos)
+{
+  if (!mouseGrabbed) {
+    // Do nothing if we do not have the mouse captured.
+    return;
+  }
+#if defined(WIN32)
+  SetCursorPos(pos.x + x_root() + viewport->x(),
+               pos.y + y_root() + viewport->y());
+#elif defined(__APPLE__)
+  CGPoint new_pos;
+  new_pos.x = pos.x + x_root() + viewport->x();
+  new_pos.y = pos.y + y_root() + viewport->y();
+  CGWarpMouseCursorPosition(new_pos);
+#else // Assume this is Xlib
+  Window rootwindow = DefaultRootWindow(fl_display);
+  XWarpPointer(fl_display, rootwindow, rootwindow, 0, 0, 0, 0,
+               pos.x + x_root() + viewport->x(),
+               pos.y + y_root() + viewport->y());
+#endif
 }
 
 

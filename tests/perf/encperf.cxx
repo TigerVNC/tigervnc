@@ -95,6 +95,7 @@ public:
   virtual void initDone() {};
   virtual void resizeFramebuffer();
   virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
+  virtual void setCursorPos(const rfb::Point&);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
   virtual bool dataRect(const rfb::Rect&, int);
@@ -213,6 +214,10 @@ void CConn::resizeFramebuffer()
 }
 
 void CConn::setCursor(int, int, const rfb::Point&, const rdr::U8*)
+{
+}
+
+void CConn::setCursorPos(const rfb::Point&)
 {
 }
 

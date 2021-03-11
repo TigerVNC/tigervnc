@@ -84,6 +84,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   sock = socket;
 
   supportsLocalCursor = true;
+  supportsCursorPosition = true;
   supportsDesktopResize = true;
   supportsLEDState = false;
 
@@ -428,6 +429,11 @@ void CConn::setCursor(int width, int height, const Point& hotspot,
                       const rdr::U8* data)
 {
   desktop->setCursor(width, height, hotspot, data);
+}
+
+void CConn::setCursorPos(const Point& pos)
+{
+  desktop->setCursorPos(pos);
 }
 
 void CConn::fence(rdr::U32 flags, unsigned len, const char data[])

@@ -165,6 +165,10 @@ bool CMsgReader::readMsg()
     case pseudoEncodingVMwareCursor:
       ret = readSetVMwareCursor(dataRect.width(), dataRect.height(), dataRect.tl);
       break;
+    case pseudoEncodingVMwareCursorPosition:
+      handler->setCursorPos(dataRect.tl);
+      ret = true;
+      break;
     case pseudoEncodingDesktopName:
       ret = readSetDesktopName(dataRect.tl.x, dataRect.tl.y,
                                dataRect.width(), dataRect.height());

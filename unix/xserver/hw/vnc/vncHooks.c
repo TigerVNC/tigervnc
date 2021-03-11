@@ -62,6 +62,9 @@ typedef struct _vncHooksScreenRec {
   CopyWindowProcPtr            CopyWindow;
   ClearToBackgroundProcPtr     ClearToBackground;
   DisplayCursorProcPtr         DisplayCursor;
+#if XORG >= 119
+  CursorWarpedToProcPtr        CursorWarpedTo;
+#endif
   ScreenBlockHandlerProcPtr    BlockHandler;
 #ifdef RENDER
   CompositeProcPtr             Composite;
@@ -113,6 +116,12 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
                                       int h, Bool generateExposures);
 static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
                                   ScreenPtr pScreen, CursorPtr cursor);
+#if XORG >= 119
+static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
+                                   ScreenPtr pScreen_, ClientPtr pClient,
+                                   WindowPtr pWindow, SpritePtr pSprite,
+                                   int x, int y);
+#endif
 #if XORG <= 118
 static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout,
                                  void * pReadmask);
@@ -271,6 +280,9 @@ int vncHooksInit(int scrIdx)
   wrap(vncHooksScreen, pScreen, CopyWindow, vncHooksCopyWindow);
   wrap(vncHooksScreen, pScreen, ClearToBackground, vncHooksClearToBackground);
   wrap(vncHooksScreen, pScreen, DisplayCursor, vncHooksDisplayCursor);
+#if XORG >= 119
+  wrap(vncHooksScreen, pScreen, CursorWarpedTo, vncHooksCursorWarpedTo);
+#endif
   wrap(vncHooksScreen, pScreen, BlockHandler, vncHooksBlockHandler);
 #ifdef RENDER
   ps = GetPictureScreenIfSet(pScreen);
@@ -630,6 +642,20 @@ out:
 
   return ret;
 }
+
+// CursorWarpedTo - notify that the cursor was warped
+
+#if XORG >= 119
+static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
+                                   ScreenPtr pScreen_, ClientPtr pClient,
+                                   WindowPtr pWindow, SpritePtr pSprite,
+                                   int x, int y)
+{
+  SCREEN_PROLOGUE(pScreen_, CursorWarpedTo);
+  vncSetCursorPos(pScreen->myNum, x, y);
+  SCREEN_EPILOGUE(CursorWarpedTo);
+}
+#endif
 
 // BlockHandler - ignore any changes during the block handler - it's likely
 // these are just drawing the cursor.

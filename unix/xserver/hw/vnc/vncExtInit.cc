@@ -400,6 +400,11 @@ void vncSetCursor(int width, int height, int hotX, int hotY,
     desktop[scr]->setCursor(width, height, hotX, hotY, rgbaData);
 }
 
+void vncSetCursorPos(int scrIdx, int x, int y)
+{
+  desktop[scrIdx]->setCursorPos(x, y, true);
+}
+
 void vncPreScreenResize(int scrIdx)
 {
   // We need to prevent the RFB core from accessing the framebuffer

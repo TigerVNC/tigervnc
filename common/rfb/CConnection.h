@@ -239,6 +239,7 @@ namespace rfb {
     // Optional capabilities that a subclass is expected to set to true
     // if supported
     bool supportsLocalCursor;
+    bool supportsCursorPosition;
     bool supportsDesktopResize;
     bool supportsLEDState;
 

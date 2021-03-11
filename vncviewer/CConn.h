@@ -63,6 +63,7 @@ public:
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
+  void setCursorPos(const rfb::Point& pos);
 
   void fence(rdr::U32 flags, unsigned len, const char data[]);
 

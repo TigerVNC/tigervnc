@@ -261,6 +261,15 @@ void XserverDesktop::setCursor(int width, int height, int hotX, int hotY,
   delete [] cursorData;
 }
 
+void XserverDesktop::setCursorPos(int x, int y, bool warped)
+{
+  try {
+    server->setCursorPos(Point(x, y), warped);
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::setCursorPos: %s",e.str());
+  }
+}
+
 void XserverDesktop::add_changed(const rfb::Region &region)
 {
   try {
@@ -377,7 +386,7 @@ void XserverDesktop::blockHandler(int* timeout)
     if (oldCursorPos.x != cursorX || oldCursorPos.y != cursorY) {
       oldCursorPos.x = cursorX;
       oldCursorPos.y = cursorY;
-      server->setCursorPos(oldCursorPos);
+      server->setCursorPos(oldCursorPos, false);
     }
 
     // Trigger timers and check when the next will expire

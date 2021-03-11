@@ -97,8 +97,10 @@ namespace rfb {
     virtual void setCursor(int width, int height, const Point& hotspot,
                            const rdr::U8* cursorData) = 0;
 
-    // setCursorPos() tells the server the current position of the cursor.
-    virtual void setCursorPos(const Point& p) = 0;
+    // setCursorPos() tells the server the current position of the cursor, and
+    // whether the server initiated that change (e.g. through another X11
+    // client calling XWarpPointer()).
+    virtual void setCursorPos(const Point& p, bool warped) = 0;
 
     // setName() tells the server what desktop title to supply to clients
     virtual void setName(const char* name) = 0;
