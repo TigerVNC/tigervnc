@@ -664,10 +664,11 @@ abstract public class CConnection extends CMsgHandler {
     List<Integer> encodings = new ArrayList<Integer>();
 
     if (server.supportsLocalCursor) {
-      // JRE on Windows does not support alpha cursor
-      if (!osName.contains("windows"))
+      // JRE on Windows does not support cursors with alpha
+      if (!osName.contains("windows")) {
         encodings.add(Encodings.pseudoEncodingCursorWithAlpha);
-      encodings.add(Encodings.pseudoEncodingVMwareCursor);
+        encodings.add(Encodings.pseudoEncodingVMwareCursor);
+      }
       encodings.add(Encodings.pseudoEncodingCursor);
       encodings.add(Encodings.pseudoEncodingXCursor);
     }
