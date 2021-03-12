@@ -279,9 +279,14 @@ public class CSecurityTLS extends CSecurity {
           throw new AuthFailureException("server certificate has expired");
       }
       File vncDir = new File(FileUtils.getVncHomeDir());
-      if (!vncDir.exists())
-        throw new AuthFailureException("Could not obtain VNC home directory "+
-                                       "path for known hosts storage");
+      if (!vncDir.exists()) {
+        try {
+          vncDir.mkdir();
+        } catch(SecurityException e) {
+          throw new AuthFailureException("Could not obtain VNC home directory "+
+                                         "path for known hosts storage");
+        }
+      }
       File dbPath = new File(vncDir, "x509_known_hosts");
       String info =
         "  Subject: "+cert.getSubjectX500Principal().getName()+"\n"+
