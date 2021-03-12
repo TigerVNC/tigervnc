@@ -41,22 +41,24 @@ class ClipboardDialog extends Dialog {
 	    // Custom TransferHandler designed to limit the size of outbound
 	    // clipboard transfers to VncViewer.maxCutText.getValue() bytes.
 	    private LogWriter vlog = new LogWriter("VncTransferHandler");
+      private long start;
 
-	    public void exportToClipboard(JComponent c, Clipboard clip, int a)
+	    public void exportToClipboard(JComponent comp, Clipboard clip, int action)
 	        throws IllegalStateException {
-	      if (!(c instanceof JTextComponent)) return;
-        String text = ((JTextComponent)c).getText();
+        if (action != TransferHandler.COPY) return;
+        if (start == 0)
+          start = System.currentTimeMillis();
+	      StringSelection selection = new StringSelection(((JTextArea)comp).getText());
         try {
-          if (text.equals((String)clip.getData(DataFlavor.stringFlavor))) return;
-        } catch (IOException e) {
-          // worst case we set the clipboard contents unnecessarily
-	        vlog.info(e.toString());
-        } catch (UnsupportedFlavorException e) {
-          // worst case we set the clipboard contents unnecessarily
-	        vlog.info(e.toString());
+	        clip.setContents(selection, selection);
+        } catch(IllegalStateException e) {
+          // something else has the clipboard, keep trying for at most 50ms
+          if ((System.currentTimeMillis() - start) < 50)
+            exportToClipboard(comp, clip, action);
+          else
+            vlog.info("Couldn't access system clipboard for > 50ms");
         }
-	      StringSelection selection = new StringSelection(text);
-	      clip.setContents(selection, null);
+        start = 0;
 	    }
 
 	    public boolean importData(JComponent c, Transferable t) {
@@ -217,6 +219,5 @@ class ClipboardDialog extends Dialog {
   private static boolean listen = true;
   static ClipboardDialog dialog;
   static MyJTextArea textArea = new MyJTextArea();
-  static Toolkit tk = Toolkit.getDefaultToolkit();
   static LogWriter vlog = new LogWriter("ClipboardDialog");
 }
