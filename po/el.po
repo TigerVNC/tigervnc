@@ -2,763 +2,892 @@
 # Copyright (C) 2014 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
 # First translator: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015.
-# Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015.
+# Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015, 2021.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.3.90\n"
+"Project-Id-Version: tigervnc 1.9.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-11-19 12:46+0000\n"
-"PO-Revision-Date: 2015-06-17 18:48+0300\n"
+"POT-Creation-Date: 2019-10-18 10:14+0200\n"
+"PO-Revision-Date: 2021-04-23 18:00+0300\n"
 "Last-Translator: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>\n"
 "Language-Team: Greek <team@lists.gnome.gr>\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Gtranslator 2.91.7\n"
+"X-Generator: Poedit 2.4.2\n"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:194
-#, c-format
-msgid "(server default %s)"
-msgstr "(προκαθορισμένο εξυπηρετητή %s)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:227
-msgid "About"
-msgstr "Σχετικά"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:103
-msgid "About TigerVNC Viewer"
-msgstr "Σχετικά με τον Θεατή TigerVNC"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1097
-msgid "About TigerVNC viewer..."
-msgstr "Σχετικά με τον θεατή TigerVNC..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:86
-msgid "About..."
-msgstr "Σχετικά..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:704
-msgid "Accept clipboard from server"
-msgstr "Αποδοχή πρόχειρου από τον εξηπηρετητή"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:327
-msgid "Adjusting window size to avoid accidental full screen request"
-msgstr "Προσαρμογή του μεγέθους παραθύρου για αποφυγή τυχαίου αιτήματος πλήρους οθόνης"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:563
-msgid "Allow JPEG compression:"
-msgstr "Να επιτρέπεται η συμπίεση JPEG"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1081
-msgid "Alt"
-msgstr "Alt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:648
-msgid "Authentication"
-msgstr "Πιστοποίηση"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:89
-msgid "Authentication cancelled"
-msgstr "Ακυρώθηκε η πιστοποίηση"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:437
-msgid "Auto select"
-msgstr "Αυτόματη επιλογή"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:651
-#, c-format
-msgid "Bad Name/Value pair on line: %d in file: %s"
-msgstr "Λανθασμένο ζευγάρι ονόματος/τιμής στην γραμμή: %d στο αρχείο: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:91
-#, fuzzy
-msgid "BitBlt failed"
-msgstr "BitBlt απέτυχε"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:91
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:221
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:83
-msgid "Cancel"
-msgstr "Άκυρο"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:116
-msgid "CleanupSignalHandler called"
-msgstr "Κλήθηκε το CleanupSignalHandler"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:222
-msgid "Close"
-msgstr "Κλείσιμο"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:499
-#, fuzzy
-msgid "Color level"
-msgstr "Επίπεδο χρώματος"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:421
-msgid "Compression"
-msgstr "Συμπίεση"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:96
-msgid "Connect"
-msgstr "Σύνδεση"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1096
-msgid "Connection info..."
-msgstr "Πληροφορίες σύνδεσης..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:362
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:404
+#: vncviewer/CConn.cxx:99
 #, fuzzy, c-format
-msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is to small."
-msgstr "Δεν μπορούσε να μετατραπεί το όνομα παραμέτου %s σε wchar_t* κατά την ανάγνωση από την registry, το buffersize είναι πολύ μικρό."
+#| msgid "connected to host %s port %d"
+msgid "Connected to socket %s"
+msgstr "σε σύνδεση με ξενιστή %s θύρα %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:302
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:340
-#, c-format
-msgid "Could not convert the parameter-name %s to wchar_t* when writing to the Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:318
-#, c-format
-msgid "Could not convert the parameter-value %s to wchar_t* when writing to the Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:381
-#, c-format
-msgid "Could not convert the parameter-value for %s to utf8 char* when reading from the Registry, the buffer dest is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:256
-#, c-format
-msgid "Could not create VNC home directory: %s."
-msgstr "Αδυναμία δημιουργίας αρχικού καταλόγου VNC: %s."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:251
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "Αδυναμία δημιουργίας αρχικού καταλόγου VNC: δεν μπορεί να ληφθεί το μονοπάτι του αρχικού καταλόγου."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:58
-#, fuzzy
-msgid "Could not create framebuffer bitmap"
-msgstr "Αδυναμία δημιουργίας framebuffer bitmap"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Αδυναμία δημιουργίας συσκευής framebuffer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:107
-msgid "Could not create framebuffer image"
-msgstr "Αδυναμία δημιουργίας εικόνας framebuffer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:310
-#, c-format
-msgid "Could not encode the parameter-value %s when writing to the Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:613
+#: vncviewer/CConn.cxx:106
 #, fuzzy, c-format
-msgid "Could not read the line(%d) in the configuration file,the buffersize is to small."
-msgstr "Αδυναμία ανάγνωσης της γραμμής(%d) στο αρχείο διαμόρφωσης, το buffersize είναι πολύ μικρό."
+#| msgid "connected to host %s port %d"
+msgid "Connected to host %s port %d"
+msgstr "σε σύνδεση με ξενιστή %s θύρα %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:68
-#, fuzzy
-msgid "Couldn't find suitable pixmap format"
-msgstr "Αδυναμία εύρεσης κατάλληλης μορφής pixmap"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "Απέτυχε το CreateCompatibleDC"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1079
-msgid "Ctrl"
-msgstr "Ctrl"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:550
-msgid "Custom compression level:"
-msgstr "Προσαρμοσμένο επίπεδο συμπίεσης:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:283
-msgid "Decoding: The size of the buffer dest is to small, it needs to be 1 byte bigger."
-msgstr "Αποκωδικοποίηση: Το μέγεθος του buffer είναι πολύ μικρό, χρειάζεται να είναι 1 byte μεγαλύτερο."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:172
+#: vncviewer/CConn.cxx:157
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Όνομα επιφάνειας εργασίας: %.80s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1099
-#, fuzzy
-msgid "Dismiss menu"
-msgstr "Μενού απόρριψης"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:59
-msgid "Display lacks pixmap format for default depth"
-msgstr "Η οθόνη στερείται τύπου pixmap για το προκαθορισμένο βάθος"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:778
-msgid "Enable full-screen mode over all monitors"
-msgstr "Ενεργοποίηση κατάστασης πλήρους-οθόνης σε όλες τις οθόνες"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:469
-msgid "Enabling continuous updates"
-msgstr "Ενεργοποίηση συνεχών ενημερώσεων"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:200
-#, c-format
-msgid "Encoding backslash: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr "Κωδικοποίηση ανάποδης καθέτου: Το μέγεθος του buffer προορισμού είναι πολύ μικρό, χρειάζεται είναι περισσότερο από %d byte μεγαλύτερο."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:214
-#, c-format
-msgid "Encoding escape sequence: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr "Κωδικοποίηση ακολουθίας escape: Το μέγεθος του buffer προορισμού είναι πολύ μικρό, χρειάζεται είναι περισσότερο από %d byte μεγαλύτερο."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:234
-#, c-format
-msgid "Encoding normal character: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr "Κωδικοποίηση κανονικού χαρακτήρα: Το μέγεθος του buffer προορισμού είναι πολύ μικρό, χρειάζεται είναι περισσότερο από %d byte μεγαλύτερο."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:595
-msgid "Encryption"
-msgstr "Κρυπτογράφηση"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:503
-#, c-format
-msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
-msgstr "Σφάλμα(%d) closing key:  Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:455
-#, c-format
-msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
-msgstr "Σφάλμα(%d) closing key: Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:434
-#, c-format
-msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
-msgstr "Σφάλμα(%d) creating key: Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:471
-#, c-format
-msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
-msgstr "Σφάλμα(%d) opening key: Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:373
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:415
-#, c-format
-msgid "Error(%d) reading %s from Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:348
-#, c-format
-msgid "Error(%d) writing %d(REG_DWORD) to Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:326
-#, c-format
-msgid "Error(%d) writing %s(REG_SZ) to Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1067
-msgid "Exit viewer"
-msgstr "Έξοδος από τον θεατή"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:588
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr "Αποτυχία ανάγνωσης αρχείου διαμόρφωσης, δεν βρέθηκε το μονοπάτι αρχικού καταλόγου."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:602
-#, c-format
-msgid "Failed to read configuration file, can't open %s"
-msgstr "Αποτυχία ανάγωνσης αρχείου διαμόρφωσης, δεν μπορεί να ανοίξει το %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:621
-#, c-format
-msgid "Failed to read line %d in file %s"
-msgstr "Αποτυχία ανάγνωσης της γραμμής %d από το αρχείο %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:528
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr "Αποτυχία εγγραφής του αρχείου διαμόρφωσης, δεν μπορεί να ληφθεί το μονοπάτι του αρχικού καταλόγου."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:542
-#, c-format
-msgid "Failed to write configuration file, can't open %s"
-msgstr "Αποτυχία εγγραφής τους αρχείου διαμόρφωσης, δεν μπορεί να ανοίξει το %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:526
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:538
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:551
-msgid "Failure grabbing keyboard"
-msgstr "Αποτυχία σύλληψης πληκτρολογίου"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:563
-msgid "Failure grabbing mouse"
-msgstr "Αποτυχία σύλληψης ποντικιού"
-
-# Color level. Επίπεδο χρώματος.
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:512
-msgid "Full (all available colors)"
-msgstr "Πλήρες (όλα τα διαθέσιμα χρώματα)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1070
-msgid "Full screen"
-msgstr "Πλήρης οθόνη"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:770
-msgid "Full-screen mode"
-msgstr "Κατάσταση πλήρους οθόνης"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:230
-msgid "Hide"
-msgstr "Απόκρυψη"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:238
-msgid "Hide Others"
-msgstr "Απόκρυψη άλλων"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:177
+#: vncviewer/CConn.cxx:162
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Ξενιστής: %.80s θύρα: %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:690
-msgid "Input"
-msgstr "Είσοδος"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:510
-msgid "Internal FLTK error. Exiting."
-msgstr "Εσωτερικό σφάλμα του FLTK. Γίνεται έξοδος."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:384
-msgid "Invalid SetColourMapEntries from server!"
-msgstr "Άκυρο SetColourMapEntries από τον εξυπηρετητή!"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:106
-msgid "Invalid geometry specified!"
-msgstr "Καθορίστηκε άκυρη γεωμετρία!"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:708
-#, c-format
-msgid "Invalid parameter name on line: %d in file: %s"
-msgstr "Άκυρο όνομα παραμέτρου στην γραμμή %d στο αρχείο: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:805
-msgid "Invalid screen layout computed for resize request!"
-msgstr "Άκυρη διάταξη οθόνης υπολογισμένη από αίτημα αλλαγής μεγέθους!"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:204
-#, c-format
-msgid "Last used encoding: %s"
-msgstr "Τελευταία χρησιμοποιημένη κωδικοποίηση: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:631
-#, c-format
-msgid ""
-"Line 1 in file %s\n"
-"must contain the TigerVNC configuration file identifier string:\n"
-"\"%s\""
-msgstr ""
-"Η γραμμή 1 στο αρχείο %s\n"
-"πρέπει να περιέχει τη συμβολοσειρά αναγνώρισης αρχείου διαμόρφωσης του TigerVNC:\n"
-"\"%s\""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:209
-#, c-format
-msgid "Line speed estimate: %d kbit/s"
-msgstr "Τελευταία εκτίμηση ταχύτητας: %d kbit/s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:478
-#, c-format
-msgid "Listening on port %d\n"
-msgstr "Ακρόαση στην θύρα %d\n"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:69
-msgid "Load..."
-msgstr "Φόρτωση..."
-
-# Color level. Επίπεδο χρώματος.
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:526
-msgid "Low (64 colors)"
-msgstr "Χαμηλό (64 χρώματα)"
-
-# Color level. Επίπεδο χρώματος.
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:519
-msgid "Medium (256 colors)"
-msgstr "Ενδιάμεσο (256 χρώματα)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:725
-msgid "Menu key"
-msgstr "Πλήκτρο μενού"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:791
-msgid "Misc."
-msgstr "Διάφορα"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1037
-#, c-format
-msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr "Πολλαπλοί χαρακτήρες δόθηκαν για τον κώδικα πλήκτρου %d (0x%04x): '%s'"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:218
-msgid "No"
-msgstr "Όχι"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:691
-#, c-format
-msgid "No scan code for extended virtual key 0x%02x"
-msgstr "Χωρίς κώδικα σάρωσης για το εκτεταμένο εικονικό πλήκτρο 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:693
-#, c-format
-msgid "No scan code for virtual key 0x%02x"
-msgstr "Χωρίς κώδικα σάρωσης για το εικονικό πλήκτρο 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:710
-#, c-format
-msgid "No symbol for extended virtual key 0x%02x"
-msgstr "Χωρίς σύμβολο για το εκτεταμένο εικονικό πλήκτρο 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:776
-#, c-format
-msgid "No symbol for key code %d (in the current state)"
-msgstr "Χωρίς σύμβολο για τον κώδικα πλήκτρου %d (στην τρέχουσα κατάσταση)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:750
-#, c-format
-msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr "Χωρίς σύμβολο για τον κώδικα πλήκτρου 0x%02x (στην τρέχουσα κατάσταση)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:712
-#, c-format
-msgid "No symbol for virtual key 0x%02x"
-msgstr "Χωρίς σύμβολο για το εικονικό πλήκτρο 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:606
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:659
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:727
-msgid "None"
-msgstr "Κανένα"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:48
-#: /home/ossman/devel/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:111
-msgid "Not enough memory for framebuffer"
-msgstr "Ανεπάρκεια μνήμης για τον framebuffer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:220
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:88
-msgid "OK"
-msgstr "Εντάξει"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:77
-msgid "Only true colour displays supported"
-msgstr "Υποστηρίζονται μόνο οθόνες πραγματικού χρώματος"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:74
-msgid "Opening password file failed"
-msgstr "Απέτυχε το άνοιγμα του αρχείου κωδικού"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1095
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:64
-msgid "Options..."
-msgstr "Επιλογές..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:463
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:464
-msgid "Parameters -listen and -via are incompatible"
-msgstr "Οι παράμετροι -listen και -via δεν είναι συμβατές"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:722
-msgid "Pass system keys directly to server (full screen)"
-msgstr "Πέρασμα των πλήκτρων συστήματος κατ' ευθείαν στον εξυπηρετητή (πλήρης οθόνη)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:87
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:102
-msgid "Password:"
-msgstr "Συνθηματικό:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:625
-msgid "Path to X509 CA certificate"
-msgstr "Μονοπάτι στο πιστοποιητικό X509 CA"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:632
-msgid "Path to X509 CRL file"
-msgstr "Μονοπάτι στο αρχείο X509 CRL"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:188
-#, c-format
-msgid "Pixel format: %s"
-msgstr "Μορφοποίηση pixel: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:449
-msgid "Preferred encoding"
-msgstr "Προτιμώμενη κωδικοποίηση"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:214
-#, c-format
-msgid "Protocol version: %d.%d"
-msgstr "Έκδοση πρωτοκόλλου:  %d.%d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:233
-msgid "Quit"
-msgstr "Εγκατάλειψη"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1093
-msgid "Refresh screen"
-msgstr "Ανανέωση οθόνης"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:199
-#, c-format
-msgid "Requested encoding: %s"
-msgstr "Αιτούμενη κωδικοποίηση: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:749
-msgid "Resize remote session on connect"
-msgstr "Αλλαγή μεγέθους απομακρυσμένης συνεδρίας κατά την σύνδεση"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:762
-msgid "Resize remote session to the local window"
-msgstr "Αλλαγή μεγέθους απομακρυσμένης συνεδρίας στο τοπικό παράθυρο"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1073
-msgid "Resize window to session"
-msgstr "Αλλαγή μεγέθους παραθύρου στην συνεδρία"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:74
-msgid "Save As..."
-msgstr "Αποθήκευση ως..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:741
-msgid "Screen"
-msgstr "Οθόνη"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:580
-msgid "Security"
-msgstr "Ασφάλεια"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:219
-#, c-format
-msgid "Security method: %s"
-msgstr "Μέθοδος ασφάλειας: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "Απέτυχε το SelectObject"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1086
-#, c-format
-msgid "Send %s"
-msgstr "Αποστολή %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1091
-msgid "Send Ctrl-Alt-Del"
-msgstr "Αποστολή Ctrl-Alt-Del"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:710
-msgid "Send clipboard to server"
-msgstr "Αποστολή του πρόχειρου στον εξηπηρετητή"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:716
-#, fuzzy
-msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Αποστολή της κύριας επιλογής και αποκοπή της ενδιάμεσης μνήμης ως πρόχειρο"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:237
-msgid "Services"
-msgstr "Υπηρεσίες"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:319
-#, c-format
-msgid "SetDesktopSize failed: %d"
-msgstr "Απέτυχε το SetDesktopSize: %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:799
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Κοινόχρηστο (να μην αποσυνδεθούν άλλοι θεατές)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:239
-msgid "Show All"
-msgstr "Εμφάνιση όλων"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:805
-msgid "Show dot when no cursor"
-msgstr "Εμφάνιση κουκίδας όταν δεν υπάρχει δρομέας"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:182
+#: vncviewer/CConn.cxx:167
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Μέγεθος: %d x %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:665
-msgid "Standard VNC (insecure without encryption)"
-msgstr "Τυπικό VNC (μη ασφαλές χωρίς κρυπτογράφηση)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:618
-msgid "TLS with X509 certificates"
-msgstr "TLS με πιστοποιητικά X509"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:612
-msgid "TLS with anonymous certificates"
-msgstr "TLS με ανώνυμα πιστοποιητικά"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:448
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:497
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:561
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:701
+#: vncviewer/CConn.cxx:175
 #, c-format
-msgid "The parameterArray contains a object of a invalid type at line %d."
-msgstr "Το parameterArray περιέχει ένα αντικείμενο άκυρου τύπου στην γραμμή %d."
+msgid "Pixel format: %s"
+msgstr "Μορφοποίηση pixel: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:664
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:680
+#: vncviewer/CConn.cxx:182
 #, c-format
-msgid "The value of the parameter %s on line %d in file %s is invalid."
-msgstr "Η τιμή της παραμέτρου %s στην γραμμή %d του αρχείου %s είναι άκυρη."
+msgid "(server default %s)"
+msgstr "(προκαθορισμένο εξυπηρετητή %s)"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:539
+#: vncviewer/CConn.cxx:187
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Αιτούμενη κωδικοποίηση: %s"
+
+#: vncviewer/CConn.cxx:192
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "Τελευταία χρησιμοποιημένη κωδικοποίηση: %s"
+
+#: vncviewer/CConn.cxx:197
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "Τελευταία εκτίμηση ταχύτητας: %d kbit/s"
+
+#: vncviewer/CConn.cxx:202
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "Έκδοση πρωτοκόλλου:  %d.%d"
+
+#: vncviewer/CConn.cxx:207
+#, c-format
+msgid "Security method: %s"
+msgstr "Μέθοδος ασφάλειας: %s"
+
+#: vncviewer/CConn.cxx:324
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "Απέτυχε το SetDesktopSize: %d"
+
+#: vncviewer/CConn.cxx:372
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "Άκυρο SetColourMapEntries από τον εξυπηρετητή!"
+
+#: vncviewer/CConn.cxx:480
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Διαμεταγωγή %d kbit/s - αλλαγή στην ποιότητα %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:561
-#, c-format
-msgid "Throughput %d kbit/s - full color is now %s"
+#: vncviewer/CConn.cxx:502
+#, fuzzy, c-format
+#| msgid "Throughput %d kbit/s - full color is now %s"
+msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "Διαμεταγωγή %d kbit/s - το πλήρες χρώμα είναι τώρα %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:210
-msgid "TigerVNC Viewer"
-msgstr "Θεατής TigerVNC"
+#: vncviewer/CConn.cxx:505
+#, fuzzy, c-format
+#| msgid "Throughput %d kbit/s - full color is now %s"
+msgid "Throughput %d kbit/s - full color is now disabled"
+msgstr "Διαμεταγωγή %d kbit/s - το πλήρες χρώμα είναι τώρα %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:80
+#: vncviewer/CConn.cxx:531
 #, c-format
+msgid "Using pixel format %s"
+msgstr "Χρήση μορφής pixel %s"
+
+#: vncviewer/DesktopWindow.cxx:122
+msgid "Invalid geometry specified!"
+msgstr "Καθορίστηκε άκυρη γεωμετρία!"
+
+#: vncviewer/DesktopWindow.cxx:495
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "Προσαρμογή του μεγέθους παραθύρου για αποφυγή τυχαίου αιτήματος πλήρους οθόνης"
+
+#: vncviewer/DesktopWindow.cxx:539
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "Πατήστε %s για να ανοίξετε το αναδυόμενο μενού"
+
+#: vncviewer/DesktopWindow.cxx:836 vncviewer/DesktopWindow.cxx:844
+#: vncviewer/DesktopWindow.cxx:864
+msgid "Failure grabbing keyboard"
+msgstr "Αποτυχία σύλληψης πληκτρολογίου"
+
+#: vncviewer/DesktopWindow.cxx:938
+msgid "Failure grabbing mouse"
+msgstr "Αποτυχία σύλληψης ποντικιού"
+
+#: vncviewer/DesktopWindow.cxx:1162
+msgid "Invalid screen layout computed for resize request!"
+msgstr "Άκυρη διάταξη οθόνης υπολογισμένη από αίτημα αλλαγής μεγέθους!"
+
+#: vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "Θεατής VNC: Επιλογές σύνδεσης"
+
+#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
+#: vncviewer/vncviewer.cxx:282
+msgid "Cancel"
+msgstr "Άκυρο"
+
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:281
+msgid "OK"
+msgstr "Εντάξει"
+
+#: vncviewer/OptionsDialog.cxx:423
+msgid "Compression"
+msgstr "Συμπίεση"
+
+#: vncviewer/OptionsDialog.cxx:439
+msgid "Auto select"
+msgstr "Αυτόματη επιλογή"
+
+#: vncviewer/OptionsDialog.cxx:451
+msgid "Preferred encoding"
+msgstr "Προτιμώμενη κωδικοποίηση"
+
+#: vncviewer/OptionsDialog.cxx:499
+#, fuzzy
+msgid "Color level"
+msgstr "Επίπεδο χρώματος"
+
+# Color level. Επίπεδο χρώματος.
+#: vncviewer/OptionsDialog.cxx:510
+msgid "Full (all available colors)"
+msgstr "Πλήρες (όλα τα διαθέσιμα χρώματα)"
+
+# Color level. Επίπεδο χρώματος.
+#: vncviewer/OptionsDialog.cxx:517
+msgid "Medium (256 colors)"
+msgstr "Ενδιάμεσο (256 χρώματα)"
+
+# Color level. Επίπεδο χρώματος.
+#: vncviewer/OptionsDialog.cxx:524
+msgid "Low (64 colors)"
+msgstr "Χαμηλό (64 χρώματα)"
+
+# Color level. Επίπεδο χρώματος.
+#: vncviewer/OptionsDialog.cxx:531
+msgid "Very low (8 colors)"
+msgstr "Πολύ χαμηλό (8 χρώματα)"
+
+#: vncviewer/OptionsDialog.cxx:548
+msgid "Custom compression level:"
+msgstr "Προσαρμοσμένο επίπεδο συμπίεσης:"
+
+#: vncviewer/OptionsDialog.cxx:554
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "επίπεδο (1=γρήγορο, 6=καλύτερο [4-6 είναι σπάνια χρήσιμα])"
+
+#: vncviewer/OptionsDialog.cxx:561
+msgid "Allow JPEG compression:"
+msgstr "Να επιτρέπεται η συμπίεση JPEG"
+
+#: vncviewer/OptionsDialog.cxx:567
+msgid "quality (0=poor, 9=best)"
+msgstr "ποιότητα (0=φτωχή, 9=καλύτερη)"
+
+#: vncviewer/OptionsDialog.cxx:578
+msgid "Security"
+msgstr "Ασφάλεια"
+
+#: vncviewer/OptionsDialog.cxx:593
+msgid "Encryption"
+msgstr "Κρυπτογράφηση"
+
+#: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
+#: vncviewer/OptionsDialog.cxx:737
+msgid "None"
+msgstr "Κανένα"
+
+#: vncviewer/OptionsDialog.cxx:610
+msgid "TLS with anonymous certificates"
+msgstr "TLS με ανώνυμα πιστοποιητικά"
+
+#: vncviewer/OptionsDialog.cxx:616
+msgid "TLS with X509 certificates"
+msgstr "TLS με πιστοποιητικά X509"
+
+#: vncviewer/OptionsDialog.cxx:623
+msgid "Path to X509 CA certificate"
+msgstr "Μονοπάτι στο πιστοποιητικό X509 CA"
+
+#: vncviewer/OptionsDialog.cxx:630
+msgid "Path to X509 CRL file"
+msgstr "Μονοπάτι στο αρχείο X509 CRL"
+
+#: vncviewer/OptionsDialog.cxx:646
+msgid "Authentication"
+msgstr "Πιστοποίηση"
+
+#: vncviewer/OptionsDialog.cxx:663
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Τυπικό VNC (μη ασφαλές χωρίς κρυπτογράφηση)"
+
+#: vncviewer/OptionsDialog.cxx:669
+msgid "Username and password (insecure without encryption)"
+msgstr "Όνομα χρήστη και συνθηματικό"
+
+#: vncviewer/OptionsDialog.cxx:688
+msgid "Input"
+msgstr "Είσοδος"
+
+#: vncviewer/OptionsDialog.cxx:696
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Μόνο προβολή (αγνόηση ποντικιού και πληκτρολογίου)"
+
+#: vncviewer/OptionsDialog.cxx:702
+msgid "Accept clipboard from server"
+msgstr "Αποδοχή πρόχειρου από τον εξηπηρετητή"
+
+#: vncviewer/OptionsDialog.cxx:710
+msgid "Also set primary selection"
+msgstr "Επίσης ορίζει την κύρια επιλογή"
+
+#: vncviewer/OptionsDialog.cxx:717
+msgid "Send clipboard to server"
+msgstr "Αποστολή του πρόχειρου στον εξηπηρετητή"
+
+#: vncviewer/OptionsDialog.cxx:725
+#, fuzzy
+msgid "Send primary selection as clipboard"
+msgstr "Αποστολή της κύριας επιλογής και αποκοπή της ενδιάμεσης μνήμης ως πρόχειρο"
+
+#: vncviewer/OptionsDialog.cxx:732
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Πέρασμα των πλήκτρων συστήματος κατ' ευθείαν στον εξυπηρετητή (πλήρης οθόνη)"
+
+#: vncviewer/OptionsDialog.cxx:735
+msgid "Menu key"
+msgstr "Πλήκτρο μενού"
+
+#: vncviewer/OptionsDialog.cxx:751
+msgid "Screen"
+msgstr "Οθόνη"
+
+#: vncviewer/OptionsDialog.cxx:759
+msgid "Resize remote session on connect"
+msgstr "Αλλαγή μεγέθους απομακρυσμένης συνεδρίας κατά την σύνδεση"
+
+#: vncviewer/OptionsDialog.cxx:772
+msgid "Resize remote session to the local window"
+msgstr "Αλλαγή μεγέθους απομακρυσμένης συνεδρίας στο τοπικό παράθυρο"
+
+#: vncviewer/OptionsDialog.cxx:778
+msgid "Full-screen mode"
+msgstr "Κατάσταση πλήρους οθόνης"
+
+#: vncviewer/OptionsDialog.cxx:784
+msgid "Enable full-screen mode over all monitors"
+msgstr "Ενεργοποίηση κατάστασης πλήρους-οθόνης σε όλες τις οθόνες"
+
+#: vncviewer/OptionsDialog.cxx:793
+msgid "Misc."
+msgstr "Διάφορα"
+
+#: vncviewer/OptionsDialog.cxx:801
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Κοινόχρηστο (να μην αποσυνδεθούν άλλοι θεατές)"
+
+#: vncviewer/OptionsDialog.cxx:807
+msgid "Show dot when no cursor"
+msgstr "Εμφάνιση κουκίδας όταν δεν υπάρχει δρομέας"
+
+#: vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "Θεατής VNC: Λεπτομέρειες σύνδεσης"
+
+#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "Εξυπηρετητής VNC:"
+
+#: vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Επιλογές..."
+
+#: vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Φόρτωση..."
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Αποθήκευση ως..."
+
+#: vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "Σχετικά..."
+
+#: vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "Σύνδεση"
+
+#: vncviewer/ServerDialog.cxx:137 vncviewer/ServerDialog.cxx:171
+msgid "TigerVNC configuration (*.tigervnc)"
+msgstr "Ρυθμίσεις TigerVNC (*.tigervnc)"
+
+#: vncviewer/ServerDialog.cxx:138
+msgid "Select a TigerVNC configuration file"
+msgstr "Επιλογή αρχείου ρυθμίσεων του TigerVNC"
+
+#: vncviewer/ServerDialog.cxx:172
+msgid "Save the TigerVNC configuration to file"
+msgstr "Αποθήκευση ρυθμίσεων του TigerVNC σε αρχείο"
+
+#: vncviewer/ServerDialog.cxx:197
+#, c-format
+msgid "%s already exists. Do you want to overwrite?"
+msgstr "%s ήδη υπάρχει. Θέλετε να το αντικαταστήσετε;"
+
+#: vncviewer/ServerDialog.cxx:198 vncviewer/vncviewer.cxx:279
+msgid "No"
+msgstr "Όχι"
+
+#: vncviewer/ServerDialog.cxx:198
+msgid "Overwrite"
+msgstr "Αντικατάσταση"
+
+#: vncviewer/UserDialog.cxx:85
+msgid "Opening password file failed"
+msgstr "Απέτυχε το άνοιγμα του αρχείου κωδικού"
+
+#: vncviewer/UserDialog.cxx:105
+msgid "VNC authentication"
+msgstr "Πιστοποίηση VNC"
+
+#: vncviewer/UserDialog.cxx:112
+msgid "This connection is secure"
+msgstr "Η σύνδεση είναι ασφαλής"
+
+#: vncviewer/UserDialog.cxx:116
+#, fuzzy
+#| msgid "VNC connection info"
+msgid "This connection is not secure"
+msgstr "Πληροφορίες σύνδεσης VNC"
+
+#: vncviewer/UserDialog.cxx:133
+msgid "Username:"
+msgstr "Όνομα χρήστη:"
+
+#: vncviewer/UserDialog.cxx:146
+msgid "Password:"
+msgstr "Συνθηματικό:"
+
+#: vncviewer/UserDialog.cxx:185
+msgid "Authentication cancelled"
+msgstr "Ακυρώθηκε η πιστοποίηση"
+
+#: vncviewer/Viewport.cxx:389
+#, c-format
+msgid "Failed to update keyboard LED state: %lu"
+msgstr "Αποτυχία ενημέρωσης κατάστασης LED πληκτρολογίου: %lu"
+
+#: vncviewer/Viewport.cxx:395 vncviewer/Viewport.cxx:401
+#, c-format
+msgid "Failed to update keyboard LED state: %d"
+msgstr "Αποτυχία ενημέρωσης κατάστασης LED πληκτρολογίου: %d"
+
+#: vncviewer/Viewport.cxx:431
+msgid "Failed to update keyboard LED state"
+msgstr "Αποτυχία ενημέρωσης κατάστασης LED πληκτρολογίου"
+
+#: vncviewer/Viewport.cxx:458 vncviewer/Viewport.cxx:466
+#: vncviewer/Viewport.cxx:483
+#, c-format
+msgid "Failed to get keyboard LED state: %d"
+msgstr "Αποτυχία λήψης κατάστασης LED πληκτρολογίου: %d"
+
+#: vncviewer/Viewport.cxx:833
+msgid "No key code specified on key press"
+msgstr "Δεν καθορίστηκε κώδικας πλήκτρου στο πάτημα πλήκτρου"
+
+#: vncviewer/Viewport.cxx:982
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Χωρίς κώδικα σάρωσης για το εκτεταμένο εικονικό πλήκτρο 0x%02x"
+
+#: vncviewer/Viewport.cxx:984
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Χωρίς κώδικα σάρωσης για το εικονικό πλήκτρο 0x%02x"
+
+#: vncviewer/Viewport.cxx:990
+#, c-format
+msgid "Invalid scan code 0x%02x"
+msgstr "Μη έγκυρος κωδικός σάρωσης 0x%02x"
+
+#: vncviewer/Viewport.cxx:1020
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Χωρίς σύμβολο για το εκτεταμένο εικονικό πλήκτρο 0x%02x"
+
+#: vncviewer/Viewport.cxx:1022
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Χωρίς σύμβολο για το εικονικό πλήκτρο 0x%02x"
+
+#: vncviewer/Viewport.cxx:1115
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "Χωρίς σύμβολο για τον κώδικα πλήκτρου 0x%02x (στην τρέχουσα κατάσταση)"
+
+#: vncviewer/Viewport.cxx:1148
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "Χωρίς σύμβολο για τον κώδικα πλήκτρου %d (στην τρέχουσα κατάσταση)"
+
+#: vncviewer/Viewport.cxx:1199
+#, fuzzy
+#| msgid "Exit viewer"
+msgctxt "ContextMenu|"
+msgid "E&xit viewer"
+msgstr "Έξοδος από τον θεατή"
+
+#: vncviewer/Viewport.cxx:1202
+#, fuzzy
+#| msgid "Full screen"
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "Πλήρης οθόνη"
+
+#: vncviewer/Viewport.cxx:1205
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "Ελαχιστοποίηση"
+
+#: vncviewer/Viewport.cxx:1207
+#, fuzzy
+#| msgid "Resize window to session"
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "Αλλαγή μεγέθους παραθύρου στην συνεδρία"
+
+#: vncviewer/Viewport.cxx:1212
+#, fuzzy
+#| msgid "Ctrl"
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "Ctrl"
+
+#: vncviewer/Viewport.cxx:1215
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&Alt"
+
+#: vncviewer/Viewport.cxx:1221
+#, fuzzy, c-format
+#| msgid "Send %s"
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "Αποστολή %s"
+
+#: vncviewer/Viewport.cxx:1227
+#, fuzzy
+#| msgid "Send Ctrl-Alt-Del"
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Αποστολή Ctrl-Alt-Del"
+
+#: vncviewer/Viewport.cxx:1230
+#, fuzzy
+#| msgid "Refresh screen"
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "Ανανέωση οθόνης"
+
+#: vncviewer/Viewport.cxx:1233
+#, fuzzy
+#| msgid "Options..."
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "Επιλογές..."
+
+#: vncviewer/Viewport.cxx:1235
+#, fuzzy
+#| msgid "Connection info..."
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "Πληροφορίες σύνδεσης..."
+
+#: vncviewer/Viewport.cxx:1237
+#, fuzzy
+#| msgid "About TigerVNC viewer..."
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "Σχετικά με τον θεατή TigerVNC..."
+
+#: vncviewer/Viewport.cxx:1240
+#, fuzzy
+msgctxt "ContextMenu|"
+msgid "Dismiss &menu"
+msgstr "Μενού απόρριψης"
+
+#: vncviewer/Viewport.cxx:1329
+msgid "VNC connection info"
+msgstr "Πληροφορίες σύνδεσης VNC"
+
+#: vncviewer/parameters.cxx:278 vncviewer/parameters.cxx:312
+#, fuzzy, c-format
+#| msgid "The value of the parameter %s on line %d in file %s is invalid."
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr "Η τιμή της παραμέτρου %s στην γραμμή %d του αρχείου %s είναι άκυρη."
+
+#: vncviewer/parameters.cxx:284 vncviewer/parameters.cxx:291
+#, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr "Η παράμετρος %s ήταν πολύ μεγάλη για να εγγραφεί στην registry"
+
+#: vncviewer/parameters.cxx:297 vncviewer/parameters.cxx:318
+#, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr "Αποτυχία εγγραφής παραμέτρου %s τύπου %s στην registry: %ld"
+
+#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:377
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr "Το όνομα της παραμέτρου %s ήταν πολύ μεγάλο για να διαβαστεί από την registry"
+
+#: vncviewer/parameters.cxx:346 vncviewer/parameters.cxx:386
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr "Αποτυχία ανάγνωσης παραμέτρου %s από registry: %ld"
+
+#: vncviewer/parameters.cxx:357
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr "Η παράμετρος %s ήταν πολύ μεγάλη για να διαβαστεί από την registry"
+
+#: vncviewer/parameters.cxx:406
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr "Αποτυχία δημιουργίας κλειδιού registry: %ld"
+
+#: vncviewer/parameters.cxx:420 vncviewer/parameters.cxx:469
+#: vncviewer/parameters.cxx:532 vncviewer/parameters.cxx:666
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr "Άγνωστος τύπος παραμέτρου για την παράμετρο %s"
+
+#: vncviewer/parameters.cxx:427 vncviewer/parameters.cxx:476
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr "Αποτυχία κλεισίματος του κλειδιού registry: %ld"
+
+#: vncviewer/parameters.cxx:443
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr "Αποτυχία ανοίγματος του κλειδιού registry: %ld"
+
+#: vncviewer/parameters.cxx:500
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "Αποτυχία εγγραφής του αρχείου διαμόρφωσης, δεν μπορεί να ληφθεί το μονοπάτι του αρχικού καταλόγου."
+
+#: vncviewer/parameters.cxx:514
+#, fuzzy, c-format
+#| msgid "Failed to write configuration file, can't open %s"
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "Αποτυχία εγγραφής τους αρχείου διαμόρφωσης, δεν μπορεί να ανοίξει το %s"
+
+#: vncviewer/parameters.cxx:559
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "Αποτυχία ανάγνωσης αρχείου διαμόρφωσης, δεν βρέθηκε το μονοπάτι αρχικού καταλόγου."
+
+#: vncviewer/parameters.cxx:573
+#, fuzzy, c-format
+#| msgid "Failed to read configuration file, can't open %s"
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "Αποτυχία ανάγωνσης αρχείου διαμόρφωσης, δεν μπορεί να ανοίξει το %s"
+
+#: vncviewer/parameters.cxx:586 vncviewer/parameters.cxx:591
+#: vncviewer/parameters.cxx:616 vncviewer/parameters.cxx:629
+#: vncviewer/parameters.cxx:645
+#, fuzzy, c-format
+#| msgid "Failed to read line %d in file %s"
+msgid "Failed to read line %d in file %s: %s"
+msgstr "Αποτυχία ανάγνωσης της γραμμής %d από το αρχείο %s"
+
+#: vncviewer/parameters.cxx:592
+msgid "Line too long"
+msgstr "Πολύ μεγάλη γραμμή"
+
+#: vncviewer/parameters.cxx:599
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "Το αρχείο ρυθμίσεων %s δεν έχει έγκυρη μορφή"
+
+#: vncviewer/parameters.cxx:617
+msgid "Invalid format"
+msgstr "Μη έγκυρη μορφή"
+
+#: vncviewer/parameters.cxx:630 vncviewer/parameters.cxx:646
+msgid "Invalid format or too large value"
+msgstr "Μη έγκυρη μορφή ή πολύ μεγάλη τιμή"
+
+#: vncviewer/parameters.cxx:673
+#, fuzzy, c-format
+#| msgid "Invalid parameter name on line: %d in file: %s"
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "Άκυρο όνομα παραμέτρου στην γραμμή %d στο αρχείο: %s"
+
+#: vncviewer/vncviewer.cxx:100
+#, fuzzy, c-format
+#| msgid ""
+#| "TigerVNC Viewer %d-bit v%s\n"
+#| "Built on: %s\n"
+#| "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+#| "See http://www.tigervnc.org for information on TigerVNC."
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
-"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
-"See http://www.tigervnc.org for information on TigerVNC."
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
+"See https://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "Θεατής TigerVNC %d-bit v%s\n"
 "Built on: %s\n"
 "Πνευματικά δικαιώματα (C) 1999-%d Ομάδα TigerVNC και πολλοί άλλοι (δείτε το README.txt)\n"
 "Δείτε στο http://www.tigervnc.org για πληροφορίες σχετικά με το TigerVNC."
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:456
+#: vncviewer/vncviewer.cxx:127
+msgid "About TigerVNC Viewer"
+msgstr "Σχετικά με τον Θεατή TigerVNC"
+
+#: vncviewer/vncviewer.cxx:140
+msgid "Internal FLTK error. Exiting."
+msgstr "Εσωτερικό σφάλμα του FLTK. Γίνεται έξοδος."
+
+#: vncviewer/vncviewer.cxx:158 vncviewer/vncviewer.cxx:170
+#, fuzzy, c-format
+#| msgid "About TigerVNC Viewer"
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "Σχετικά με τον Θεατή TigerVNC"
+
+#: vncviewer/vncviewer.cxx:179
 #, c-format
-msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Αδυναμία δημιουργίας framebuffer στη συγκεκριμένη πλατφόρμα: %s"
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr "Λήφθηκε σήμα τερματισμού %d. Το TigerVNC θα τερματιστεί."
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1015
-#, c-format
-msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr "Άγνωστος FLTK κώδικας πλήκτρου %d (0x%04x)"
+#: vncviewer/vncviewer.cxx:271 vncviewer/vncviewer.desktop.in.in:3
+msgid "TigerVNC Viewer"
+msgstr "Θεατής TigerVNC"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:889
-#, c-format
-msgid "Unknown decimal separator: '%s'"
-msgstr "Άγνωστο διαχωριστικό δεκαδικών: '%s'"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:271
-#, c-format
-msgid "Unknown escape sequence at character %d"
-msgstr "Άγνωστη ακολουθία escape στον χαρακτήρα %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:430
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:437
-msgid "Unknown rect encoding"
-msgstr "Άγνωστη κωδικοποίηση rect"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:429
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:436
-#, c-format
-msgid "Unknown rect encoding %d"
-msgstr "Άγνωστη κωδικοποίηση rect %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:671
-msgid "Username and password (insecure without encryption)"
-msgstr "Όνομα χρήστη και συνθηματικό"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:99
-msgid "Username:"
-msgstr "Όνομα χρήστη:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:573
-#, c-format
-msgid "Using %s encoding"
-msgstr "Χρήση κωδικοποίησης %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:79
-#, c-format
-msgid "Using default colormap and visual, %sdepth %d."
-msgstr "Χρήση προκαθορισμένου χρωματικού χάρτη και οπτικών, %sβάθος %d."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:620
-#, c-format
-msgid "Using pixel format %s"
-msgstr "Χρήση μορφής pixel %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:457
-msgid "Using platform independent framebuffer"
-msgstr "Χρήση ανεξάρτητης πλατφόρμας framebuffer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:42
-msgid "VNC Viewer: Connection Details"
-msgstr "Θεατής VNC: Λεπτομέρειες σύνδεσης"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:57
-msgid "VNC Viewer: Connection Options"
-msgstr "Θεατής VNC: Επιλογές σύνδεσης"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:86
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:96
-msgid "VNC authentication"
-msgstr "Πιστοποίηση VNC"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1187
-msgid "VNC connection info"
-msgstr "Πληροφορίες σύνδεσης VNC"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:49
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:54
-msgid "VNC server:"
-msgstr "Εξυπηρετητής VNC:"
-
-# Color level. Επίπεδο χρώματος.
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:533
-msgid "Very low (8 colors)"
-msgstr "Πολύ χαμηλό (8 χρώματα)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:698
-msgid "View only (ignore mouse and keyboard)"
-msgstr "Μόνο προβολή (αγνόηση ποντικιού και πληκτρολογίου)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:219
+#: vncviewer/vncviewer.cxx:280
 msgid "Yes"
 msgstr "Ναι"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:111
+#: vncviewer/vncviewer.cxx:283
+msgid "Close"
+msgstr "Κλείσιμο"
+
+#: vncviewer/vncviewer.cxx:288
+msgid "About"
+msgstr "Σχετικά"
+
+#: vncviewer/vncviewer.cxx:291
+msgid "Hide"
+msgstr "Απόκρυψη"
+
+#: vncviewer/vncviewer.cxx:294
+msgid "Quit"
+msgstr "Εγκατάλειψη"
+
+#: vncviewer/vncviewer.cxx:298
+msgid "Services"
+msgstr "Υπηρεσίες"
+
+#: vncviewer/vncviewer.cxx:299
+msgid "Hide Others"
+msgstr "Απόκρυψη άλλων"
+
+#: vncviewer/vncviewer.cxx:300
+msgid "Show All"
+msgstr "Εμφάνιση όλων"
+
+#: vncviewer/vncviewer.cxx:309
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "&Αρχείο"
+
+#: vncviewer/vncviewer.cxx:312
+#, fuzzy
+#| msgid "VNC connection info"
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "Πληροφορίες σύνδεσης VNC"
+
+#: vncviewer/vncviewer.cxx:324
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "Αδυναμία δημιουργίας αρχικού καταλόγου VNC: δεν μπορεί να ληφθεί το μονοπάτι του αρχικού καταλόγου."
+
+#: vncviewer/vncviewer.cxx:329
 #, c-format
-msgid "connected to host %s port %d"
-msgstr "σε σύνδεση με ξενιστή %s θύρα %d"
+msgid "Could not create VNC home directory: %s."
+msgstr "Αδυναμία δημιουργίας αρχικού καταλόγου VNC: %s."
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "disabled"
-msgstr "απενεργοποιημένο"
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:602 vncviewer/vncviewer.cxx:604
+msgid "Parameters -listen and -via are incompatible"
+msgstr "Οι παράμετροι -listen και -via δεν είναι συμβατές"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "enabled"
-msgstr "ενεργοποιημένο"
+#: vncviewer/vncviewer.cxx:619
+#, fuzzy, c-format
+#| msgid "Listening on port %d\n"
+msgid "Listening on port %d"
+msgstr "Ακρόαση στην θύρα %d\n"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:556
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "επίπεδο (1=γρήγορο, 6=καλύτερο [4-6 είναι σπάνια χρήσιμα])"
+#: vncviewer/vncviewer.desktop.in.in:4
+msgid "Remote Desktop Viewer"
+msgstr "Θεατής απομακρυσμένης επιφάνειας εργασίας"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:569
-msgid "quality (0=poor, 9=best)"
-msgstr "ποιότητα (0=φτωχή, 9=καλύτερη)"
+#: vncviewer/vncviewer.desktop.in.in:5
+msgid "Connect to VNC server and display remote desktop"
+msgstr "Σύνδεση σε ένα εξυπηρετητή VNC και εμφάνιση του απομακρυσμένου επιφάνειας εργασίας"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "αδύνατη η δημιουργία τομέα DIB"
+#: vncviewer/vncviewer.desktop.in.in:7
+msgid "tigervnc"
+msgstr "tigervnc"
+
+#~ msgid "Alt"
+#~ msgstr "Alt"
+
+#~ msgid "Bad Name/Value pair on line: %d in file: %s"
+#~ msgstr "Λανθασμένο ζευγάρι ονόματος/τιμής στην γραμμή: %d στο αρχείο: %s"
+
+#, fuzzy
+#~ msgid "BitBlt failed"
+#~ msgstr "BitBlt απέτυχε"
+
+#~ msgid "CleanupSignalHandler called"
+#~ msgstr "Κλήθηκε το CleanupSignalHandler"
+
+#, fuzzy
+#~ msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is to small."
+#~ msgstr "Δεν μπορούσε να μετατραπεί το όνομα παραμέτου %s σε wchar_t* κατά την ανάγνωση από την registry, το buffersize είναι πολύ μικρό."
+
+#, fuzzy
+#~ msgid "Could not create framebuffer bitmap"
+#~ msgstr "Αδυναμία δημιουργίας framebuffer bitmap"
+
+#~ msgid "Could not create framebuffer device"
+#~ msgstr "Αδυναμία δημιουργίας συσκευής framebuffer"
+
+#~ msgid "Could not create framebuffer image"
+#~ msgstr "Αδυναμία δημιουργίας εικόνας framebuffer"
+
+#, fuzzy
+#~ msgid "Could not read the line(%d) in the configuration file,the buffersize is to small."
+#~ msgstr "Αδυναμία ανάγνωσης της γραμμής(%d) στο αρχείο διαμόρφωσης, το buffersize είναι πολύ μικρό."
+
+#, fuzzy
+#~ msgid "Couldn't find suitable pixmap format"
+#~ msgstr "Αδυναμία εύρεσης κατάλληλης μορφής pixmap"
+
+#~ msgid "CreateCompatibleDC failed"
+#~ msgstr "Απέτυχε το CreateCompatibleDC"
+
+#~ msgid "Decoding: The size of the buffer dest is to small, it needs to be 1 byte bigger."
+#~ msgstr "Αποκωδικοποίηση: Το μέγεθος του buffer είναι πολύ μικρό, χρειάζεται να είναι 1 byte μεγαλύτερο."
+
+#~ msgid "Display lacks pixmap format for default depth"
+#~ msgstr "Η οθόνη στερείται τύπου pixmap για το προκαθορισμένο βάθος"
+
+#~ msgid "Enabling continuous updates"
+#~ msgstr "Ενεργοποίηση συνεχών ενημερώσεων"
+
+#~ msgid "Encoding backslash: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+#~ msgstr "Κωδικοποίηση ανάποδης καθέτου: Το μέγεθος του buffer προορισμού είναι πολύ μικρό, χρειάζεται είναι περισσότερο από %d byte μεγαλύτερο."
+
+#~ msgid "Encoding escape sequence: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+#~ msgstr "Κωδικοποίηση ακολουθίας escape: Το μέγεθος του buffer προορισμού είναι πολύ μικρό, χρειάζεται είναι περισσότερο από %d byte μεγαλύτερο."
+
+#~ msgid "Encoding normal character: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+#~ msgstr "Κωδικοποίηση κανονικού χαρακτήρα: Το μέγεθος του buffer προορισμού είναι πολύ μικρό, χρειάζεται είναι περισσότερο από %d byte μεγαλύτερο."
+
+#~ msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
+#~ msgstr "Σφάλμα(%d) closing key:  Software\\TigerVNC\\vncviewer"
+
+#~ msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
+#~ msgstr "Σφάλμα(%d) closing key: Software\\TigerVNC\\vncviewer"
+
+#~ msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
+#~ msgstr "Σφάλμα(%d) creating key: Software\\TigerVNC\\vncviewer"
+
+#~ msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
+#~ msgstr "Σφάλμα(%d) opening key: Software\\TigerVNC\\vncviewer"
+
+#~ msgid ""
+#~ "Line 1 in file %s\n"
+#~ "must contain the TigerVNC configuration file identifier string:\n"
+#~ "\"%s\""
+#~ msgstr ""
+#~ "Η γραμμή 1 στο αρχείο %s\n"
+#~ "πρέπει να περιέχει τη συμβολοσειρά αναγνώρισης αρχείου διαμόρφωσης του TigerVNC:\n"
+#~ "\"%s\""
+
+#~ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
+#~ msgstr "Πολλαπλοί χαρακτήρες δόθηκαν για τον κώδικα πλήκτρου %d (0x%04x): '%s'"
+
+#~ msgid "Not enough memory for framebuffer"
+#~ msgstr "Ανεπάρκεια μνήμης για τον framebuffer"
+
+#~ msgid "Only true colour displays supported"
+#~ msgstr "Υποστηρίζονται μόνο οθόνες πραγματικού χρώματος"
+
+#~ msgid "SelectObject failed"
+#~ msgstr "Απέτυχε το SelectObject"
+
+#~ msgid "The parameterArray contains a object of a invalid type at line %d."
+#~ msgstr "Το parameterArray περιέχει ένα αντικείμενο άκυρου τύπου στην γραμμή %d."
+
+#~ msgid "Unable to create platform specific framebuffer: %s"
+#~ msgstr "Αδυναμία δημιουργίας framebuffer στη συγκεκριμένη πλατφόρμα: %s"
+
+#~ msgid "Unknown FLTK key code %d (0x%04x)"
+#~ msgstr "Άγνωστος FLTK κώδικας πλήκτρου %d (0x%04x)"
+
+#~ msgid "Unknown decimal separator: '%s'"
+#~ msgstr "Άγνωστο διαχωριστικό δεκαδικών: '%s'"
+
+#~ msgid "Unknown escape sequence at character %d"
+#~ msgstr "Άγνωστη ακολουθία escape στον χαρακτήρα %d"
+
+#~ msgid "Unknown rect encoding"
+#~ msgstr "Άγνωστη κωδικοποίηση rect"
+
+#~ msgid "Unknown rect encoding %d"
+#~ msgstr "Άγνωστη κωδικοποίηση rect %d"
+
+#~ msgid "Using %s encoding"
+#~ msgstr "Χρήση κωδικοποίησης %s"
+
+#~ msgid "Using default colormap and visual, %sdepth %d."
+#~ msgstr "Χρήση προκαθορισμένου χρωματικού χάρτη και οπτικών, %sβάθος %d."
+
+#~ msgid "Using platform independent framebuffer"
+#~ msgstr "Χρήση ανεξάρτητης πλατφόρμας framebuffer"
+
+#~ msgid "disabled"
+#~ msgstr "απενεργοποιημένο"
+
+#~ msgid "enabled"
+#~ msgstr "ενεργοποιημένο"
+
+#~ msgid "unable to create DIB section"
+#~ msgstr "αδύνατη η δημιουργία τομέα DIB"
