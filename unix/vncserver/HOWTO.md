@@ -13,9 +13,9 @@ and *systemd* rules.
 # How to start TigerVNC server
 ## Add a user mapping
 With this you can map a user to a particular port. The mapping should be
-done in `/etc/tigervnc/vncserver.users` configuration file. It should be
-pretty straightforward. Once you open the file you will see there are
-some examples, but basically the mapping is in form:
+done in `vncserver.users` configuration file. It should be pretty
+straightforward. Once you open the file you will see there are some
+examples, but basically the mapping is in form:
 ```
 :x=user
 ```
