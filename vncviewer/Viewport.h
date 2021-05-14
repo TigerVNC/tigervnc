@@ -20,8 +20,6 @@
 #ifndef __VIEWPORT_H__
 #define __VIEWPORT_H__
 
-#include <map>
-
 #include <rfb/Rect.h>
 
 #include <FL/Fl_Widget.H>
@@ -114,16 +112,12 @@ private:
   rfb::Point lastPointerPos;
   uint8_t lastButtonMask;
 
-  struct DownKey {
-    uint32_t keyCode;
-    uint32_t keySym;
-  };
-  typedef std::map<int, DownKey> DownMap;
-  DownMap downKeys;
-
 #ifdef WIN32
   bool altGrArmed;
   unsigned int altGrCtrlTime;
+
+  bool leftShiftDown;
+  bool rightShiftDown;
 #endif
 
   bool firstLEDState;
