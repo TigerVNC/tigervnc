@@ -28,7 +28,6 @@
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-#include <rfb/KeysymStr.h>
 #include <rfb/ledStates.h>
 #include <rfb/util.h>
 
@@ -127,7 +126,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
     lastPointerPos(0, 0), lastButtonMask(0),
 #ifdef WIN32
-    altGrArmed(false),
+    altGrArmed(false), leftShiftDown(false), rightShiftDown(false),
 #endif
     firstLEDState(true), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(nullptr)
@@ -568,7 +567,6 @@ int Viewport::handle(int event)
 {
   std::string filtered;
   int buttonMask, wheelMask;
-  DownMap::const_iterator iter;
 
   switch (event) {
   case FL_PASTE:
@@ -830,8 +828,17 @@ void Viewport::handlePointerTimeout(void *data)
 
 void Viewport::resetKeyboard()
 {
-  while (!downKeys.empty())
-    handleKeyRelease(downKeys.begin()->first);
+  try {
+    cc->releaseAllKeys();
+  } catch (rdr::Exception& e) {
+    vlog.error("%s", e.str());
+    abort_connection_with_unexpected_error(e);
+  }
+
+#ifdef WIN32
+  leftShiftDown = false;
+  rightShiftDown = false;
+#endif
 }
 
 
@@ -852,40 +859,8 @@ void Viewport::handleKeyPress(int systemKeyCode,
   if (viewOnly)
     return;
 
-#ifdef __APPLE__
-  // Alt on OS X behaves more like AltGr on other systems, and to get
-  // sane behaviour we should translate things in that manner for the
-  // remote VNC server. However that means we lose the ability to use
-  // Alt as a shortcut modifier. Do what RealVNC does and hijack the
-  // left command key as an Alt replacement.
-  switch (keySym) {
-  case XK_Super_L:
-    keySym = XK_Alt_L;
-    break;
-  case XK_Super_R:
-    keySym = XK_Super_L;
-    break;
-  case XK_Alt_L:
-    keySym = XK_Mode_switch;
-    break;
-  case XK_Alt_R:
-    keySym = XK_ISO_Level3_Shift;
-    break;
-  }
-#endif
-
-  // Because of the way keyboards work, we cannot expect to have the same
-  // symbol on release as when pressed. This breaks the VNC protocol however,
-  // so we need to keep track of what keysym a key _code_ generated on press
-  // and send the same on release.
-  downKeys[systemKeyCode].keyCode = keyCode;
-  downKeys[systemKeyCode].keySym = keySym;
-
-  vlog.debug("Key pressed: %d => 0x%02x / XK_%s (0x%04x)",
-             systemKeyCode, keyCode, KeySymName(keySym), keySym);
-
   try {
-    cc->writer()->writeKeyEvent(keySym, keyCode, true);
+    cc->sendKeyPress(systemKeyCode, keyCode, keySym);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     abort_connection_with_unexpected_error(e);
@@ -895,32 +870,15 @@ void Viewport::handleKeyPress(int systemKeyCode,
 
 void Viewport::handleKeyRelease(int systemKeyCode)
 {
-  DownMap::iterator iter;
-
   if (viewOnly)
     return;
 
-  iter = downKeys.find(systemKeyCode);
-  if (iter == downKeys.end()) {
-    // These occur somewhat frequently so let's not spam them unless
-    // logging is turned up.
-    vlog.debug("Unexpected release of key code %d", systemKeyCode);
-    return;
-  }
-
-  vlog.debug("Key released: %d => 0x%02x / XK_%s (0x%04x)",
-             systemKeyCode, iter->second.keyCode,
-             KeySymName(iter->second.keySym), iter->second.keySym);
-
   try {
-    cc->writer()->writeKeyEvent(iter->second.keySym,
-                                iter->second.keyCode, false);
+    cc->sendKeyRelease(systemKeyCode);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     abort_connection_with_unexpected_error(e);
   }
-
-  downKeys.erase(iter);
 }
 
 
@@ -1069,6 +1027,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
       self->handleKeyRelease(keyCode);
     }
 
+    // Shift key tracking, see below
+    if (keyCode == 0x2a)
+        self->leftShiftDown = true;
+    if (keyCode == 0x36)
+        self->rightShiftDown = true;
+
     return 1;
   } else if ((msg->message == WM_KEYUP) || (msg->message == WM_SYSKEYUP)) {
     UINT vKey;
@@ -1112,10 +1076,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
     // Windows has a rather nasty bug where it won't send key release
     // events for a Shift button if the other Shift is still pressed
     if ((keyCode == 0x2a) || (keyCode == 0x36)) {
-      if (self->downKeys.count(0x2a))
+      if (self->leftShiftDown)
         self->handleKeyRelease(0x2a);
-      if (self->downKeys.count(0x36))
+      if (self->rightShiftDown)
         self->handleKeyRelease(0x36);
+      self->leftShiftDown = false;
+      self->rightShiftDown = false;
     }
 
     return 1;
@@ -1173,23 +1139,6 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (keysym == NoSymbol) {
       vlog.error(_("No symbol for key code %d (in the current state)"),
                  (int)xevent->xkey.keycode);
-    }
-
-    switch (keysym) {
-    // For the first few years, there wasn't a good consensus on what the
-    // Windows keys should be mapped to for X11. So we need to help out a
-    // bit and map all variants to the same key...
-    case XK_Hyper_L:
-      keysym = XK_Super_L;
-      break;
-    case XK_Hyper_R:
-      keysym = XK_Super_R;
-      break;
-    // There has been several variants for Shift-Tab over the years.
-    // RFB states that we should always send a normal tab.
-    case XK_ISO_Left_Tab:
-      keysym = XK_Tab;
-      break;
     }
 
     self->handleKeyPress(xevent->xkey.keycode, keycode, keysym);
