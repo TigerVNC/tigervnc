@@ -10,15 +10,18 @@
 PREFIX=/usr
 DATADIR=$(PREFIX)/share
 
-all: vncsession.pp
+all: vncsession.pp.bz2
+
+%.pp.bz2: %.pp
+	bzip2 -9 $^
 
 %.pp: %.te
 	make -f $(DATADIR)/selinux/devel/Makefile $@
 
 clean:
-	rm -f *.pp
+	rm -f *.pp *.pp.bz2
 	rm -rf tmp
 
-install: vncsession.pp
-	mkdir -p $(DESTDIR)$(DATADIR)/selinux/packages
-	install vncsession.pp $(DESTDIR)$(DATADIR)/selinux/packages/vncsession.pp
+install: vncsession.pp.bz2
+	mkdir -p $(DESTDIR)$(DATADIR)/selinux/packages/targeted/
+	install vncsession.pp.bz2 $(DESTDIR)$(DATADIR)/selinux/packages/targeted/vncsession.pp.bz2
