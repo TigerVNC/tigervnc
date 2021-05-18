@@ -161,7 +161,7 @@ public class KeyMap {
 
   public static int vkey_to_keysym(KeyEvent ev)
   {
-    int keyCode = ev.getKeyCode();
+    int keyCode = ev.getExtendedKeyCode();
 
     // Start with keys that either don't generate a symbol, or
     // generate the same symbol as some other key.
