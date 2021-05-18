@@ -17,7 +17,7 @@
 #  USA.
 #
 
-policy_module(vncsession, 1.0.0);
+policy_module(vncsession, 1.0.0)
 
 gen_require(`
     attribute userdomain;
@@ -42,8 +42,8 @@ can_exec(vnc_session_t, vnc_session_exec_t)
 userdom_spec_domtrans_all_users(vnc_session_t)
 userdom_signal_all_users(vnc_session_t)
 
-allow vnc_session_t self:capability { kill chown dac_override dac_read_search fowner setgid setuid sys_resource };
-allow vnc_session_t self:process { getcap setsched setexec setrlimit };
+allow vnc_session_t self:capability { chown dac_override dac_read_search fowner kill setgid setuid sys_resource };
+allow vnc_session_t self:process { getcap setexec setrlimit setsched };
 allow vnc_session_t self:fifo_file rw_fifo_file_perms;
 
 manage_files_pattern(vnc_session_t, xdm_home_t, xdm_home_t)
@@ -65,4 +65,3 @@ logging_append_all_logs(vnc_session_t)
 
 mcs_process_set_categories(vnc_session_t)
 mcs_killall(vnc_session_t)
-
