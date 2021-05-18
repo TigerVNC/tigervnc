@@ -1,3 +1,8 @@
+
+#defining macros needed by SELinux
+%global selinuxtype targeted
+%global modulename vncsession
+
 Name:           tigervnc
 Version:        @VERSION@
 Release:        1%{?snap:.%{snap}}%{?dist}
@@ -55,7 +60,7 @@ Provides:       tightvnc-server = 1.5.0-0.15.20090204svn3586
 Obsoletes:      tightvnc-server < 1.5.0-0.15.20090204svn3586
 Requires:       perl-interpreter
 Requires:       tigervnc-server-minimal = %{version}-%{release}
-Requires:       tigervnc-selinux = %{version}-%{release}
+Requires:       (%{name}-selinux if selinux-policy-%{selinuxtype})
 Requires:       xorg-x11-xauth
 Requires:       xorg-x11-xinit
 Requires(post):   systemd
@@ -122,10 +127,11 @@ This package contains icons for TigerVNC viewer
 %package selinux
 Summary:        SELinux module for TigerVNC
 BuildArch:      noarch
-Requires(pre):  libselinux-utils
-Requires(post): selinux-policy-base >= %{_selinux_policy_version}
-Requires(post): policycoreutils policycoreutils-python
-Requires(post): libselinux-utils
+BuildRequires:  selinux-policy-devel
+Requires:       selinux-policy-%{selinuxtype}
+Requires(post): selinux-policy-%{selinuxtype}
+BuildRequires:  selinux-policy-devel
+%{?selinux_requires}
 
 %description selinux
 This package provides the SELinux policy module to ensure TigerVNC
@@ -235,20 +241,18 @@ if [ -x %{_bindir}/gtk-update-icon-cache ]; then
         %{_bindir}/gtk-update-icon-cache -q %{_datadir}/icons/hicolor || :
 fi
 
+
 %pre selinux
-%selinux_relabel_pre
+%selinux_relabel_pre -s %{selinuxtype}
 
 %post selinux
-%selinux_modules_install %{_datadir}/selinux/packages/vncsession.pp
-%selinux_relabel_post
-
-%posttrans selinux
-%selinux_relabel_post
+%selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
+%selinux_relabel_post -s %{selinuxtype}
 
 %postun selinux
-%selinux_modules_uninstall vncsession
 if [ $1 -eq 0 ]; then
-    %selinux_relabel_post
+    %selinux_modules_uninstall -s %{selinuxtype} %{modulename}
+    %selinux_relabel_post -s %{selinuxtype}
 fi
 
 %files -f %{name}.lang
@@ -298,9 +302,13 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %files selinux
-%{_datadir}/selinux/packages/vncsession.pp
+%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.*
+%ghost %verify(not md5 size mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Tue May 18 2021 Jan Grulich <jgrulich@redhat.com> 1.11.0-1
+- SELinux package improvements
+
 * Mon Jul 27 2020 Mark Mielke <mmielke@ciena.com> 1.10.1-1
 - Update build requirements and fix unexpected rpm macro expansion.
 
