@@ -51,6 +51,11 @@ corecmd_executable_file(vnc_session_exec_t)
 mcs_process_set_categories(vnc_session_t)
 mcs_killall(vnc_session_t)
 
+tunable_policy(`use_nfs_home_dirs',`
+	fs_manage_nfs_dirs(vnc_session_t)
+	fs_manage_nfs_files(vnc_session_t)
+')
+
 optional_policy(`
 	auth_login_pgm_domain(vnc_session_t)
 	auth_write_login_records(vnc_session_t)
