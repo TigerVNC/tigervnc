@@ -49,6 +49,15 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
     if (!xim)
       throw rdr::Exception("XCreateImage");
 
+    if (xim->bytes_per_line <= 0 ||
+       xim->height <= 0 ||
+       xim->height >= INT_MAX / xim->bytes_per_line) {
+      if (xim)
+       XDestroyImage(xim);
+      xim = NULL;
+      throw rdr::Exception("Invalid display size");
+    }
+
     xim->data = (char*)malloc(xim->bytes_per_line * xim->height);
     if (!xim->data)
       throw rdr::Exception("malloc");
@@ -156,6 +165,16 @@ bool PlatformPixelBuffer::setupShm(int width, int height)
                         ZPixmap, 0, shminfo, width, height);
   if (!xim)
     goto free_shminfo;
+
+  if (xim->bytes_per_line <= 0 ||
+      xim->height <= 0 ||
+      xim->height >= INT_MAX / xim->bytes_per_line) {
+    XDestroyImage(xim);
+    xim = NULL;
+    delete shminfo;
+    shminfo = NULL;
+    throw rdr::Exception("Invalid display size");
+  }
 
   shminfo->shmid = shmget(IPC_PRIVATE,
                           xim->bytes_per_line * xim->height,

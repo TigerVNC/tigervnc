@@ -82,6 +82,14 @@ void Image::Init(int width, int height)
   xim = XCreateImage(dpy, vis, DefaultDepth(dpy, DefaultScreen(dpy)),
                      ZPixmap, 0, 0, width, height, BitmapPad(dpy), 0);
 
+  if (xim->bytes_per_line <= 0 ||
+      xim->height <= 0 ||
+      xim->height >= INT_MAX / xim->bytes_per_line) {
+    vlog.error("Invalid display size");
+    XDestroyImage(xim);
+    exit(1);
+  }
+
   xim->data = (char *)malloc(xim->bytes_per_line * xim->height);
   if (xim->data == NULL) {
     vlog.error("malloc() failed");
@@ -254,6 +262,17 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
 			width, height);
   if (xim == NULL) {
     vlog.error("XShmCreateImage() failed");
+    delete shminfo;
+    shminfo = NULL;
+    return;
+  }
+
+  if (xim->bytes_per_line <= 0 ||
+      xim->height <= 0 ||
+      xim->height >= INT_MAX / xim->bytes_per_line) {
+    vlog.error("Invalid display size");
+    XDestroyImage(xim);
+    xim = NULL;
     delete shminfo;
     shminfo = NULL;
     return;
