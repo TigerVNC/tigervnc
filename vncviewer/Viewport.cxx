@@ -277,7 +277,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     }
   }
 
-  if (Fl::belowmouse() == this)
+  if (Fl::belowmouse() == this && cursor)
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 }
 
