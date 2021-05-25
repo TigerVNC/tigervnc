@@ -507,7 +507,7 @@ class Viewport extends JPanel implements ActionListener {
 
     if (event instanceof KeyEvent) {
       KeyEvent ev = (KeyEvent)event;
-      if (ev.getExtendedKeyCode() == 0) {
+      if (KeyMap.get_keycode_fallback_extended(ev) == 0) {
         // Not much we can do with this...
         vlog.debug("Ignoring KeyEvent with unknown Java keycode");
         return 0;
@@ -518,7 +518,7 @@ class Viewport extends JPanel implements ActionListener {
         // out the proper one.  Java virtual key codes aren't unique 
         // between left/right versions of keys, so we can't use them as
         // indexes to the downKeySym map.
-        long keyCode = ev.getExtendedKeyCode() | ((long)ev.getKeyLocation()<<32);
+        long keyCode = KeyMap.get_keycode_fallback_extended(ev) | ((long)ev.getKeyLocation()<<32);
 
         // Pressing Ctrl wreaks havoc with the symbol lookup, so turn
         // that off. But AltGr shows up as Ctrl_L+Alt_R in Windows, so
@@ -532,9 +532,9 @@ class Viewport extends JPanel implements ActionListener {
             mask &= ~ALT_MASK;
             mask |= ALT_GRAPH_MASK;
             AWTKeyStroke ks =
-              AWTKeyStroke.getAWTKeyStroke(ev.getExtendedKeyCode(), mask);
+              AWTKeyStroke.getAWTKeyStroke(KeyMap.get_keycode_fallback_extended(ev), mask);
             ev = new KeyEvent((JComponent)ev.getSource(), ev.getID(),
-                              ev.getWhen(), mask, ev.getExtendedKeyCode(),
+                              ev.getWhen(), mask, KeyMap.get_keycode_fallback_extended(ev),
                               ks.getKeyChar(), ev.getKeyLocation());
           }
         }
@@ -574,7 +574,7 @@ class Viewport extends JPanel implements ActionListener {
 
         return 1;
       } else if (ev.getID() == KeyEvent.KEY_RELEASED) {
-        long keyCode = ev.getExtendedKeyCode() | ((long)ev.getKeyLocation()<<32);
+        long keyCode = KeyMap.get_keycode_fallback_extended(ev) | ((long)ev.getKeyLocation()<<32);
         handleKeyRelease(keyCode);
         return 1;
       }
