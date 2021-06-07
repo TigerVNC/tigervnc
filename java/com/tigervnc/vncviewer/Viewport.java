@@ -524,22 +524,31 @@ class Viewport extends JPanel implements ActionListener {
         // that off. But AltGr shows up as Ctrl_L+Alt_R in Windows, so
         // construct a new KeyEvent that uses a proper AltGraph for the
         // symbol lookup.
-        if (VncViewer.os.startsWith("windows")) {
-          if (downKeySym.containsValue(XK_Control_L) &&
-              downKeySym.containsValue(XK_Alt_R)) {
-            int mask = ev.getModifiers();
-            mask &= ~CTRL_MASK;
-            mask &= ~ALT_MASK;
-            mask |= ALT_GRAPH_MASK;
-            AWTKeyStroke ks =
-              AWTKeyStroke.getAWTKeyStroke(KeyMap.get_keycode_fallback_extended(ev), mask);
-            ev = new KeyEvent((JComponent)ev.getSource(), ev.getID(),
-                              ev.getWhen(), mask, KeyMap.get_keycode_fallback_extended(ev),
-                              ks.getKeyChar(), ev.getKeyLocation());
-          }
+        int keySym;
+        if (VncViewer.os.startsWith("windows") &&
+            downKeySym.containsValue(XK_Control_L) &&
+            downKeySym.containsValue(XK_Alt_R)) {
+          int mask = ev.getModifiers();
+          mask &= ~CTRL_MASK;
+          mask &= ~ALT_MASK;
+          mask |= ALT_GRAPH_MASK;
+          AWTKeyStroke ks =
+            AWTKeyStroke.getAWTKeyStroke(KeyMap.get_keycode_fallback_extended(ev), mask);
+          // The mask manipulations above break key combinations involving AltGr
+          // and a key with an accented letter on some keyboard layouts (i.e. IT).
+          // So the code should first try the modified event, but if it returns no
+          // symbol, the original event should be used.
+          final KeyEvent winev = new KeyEvent((JComponent)ev.getSource(), ev.getID(),
+                            ev.getWhen(), mask, KeyMap.get_keycode_fallback_extended(ev),
+                            ks.getKeyChar(), ev.getKeyLocation());
+          keySym = KeyMap.vkey_to_keysym(winev);
+          if (keySym == KeyMap.NoSymbol)
+            keySym = KeyMap.vkey_to_keysym(ev);
+          else
+            ev = winev;
+        } else {
+          keySym = KeyMap.vkey_to_keysym(ev);
         }
-
-        int keySym = KeyMap.vkey_to_keysym(ev);
 
         if (keySym == KeyMap.NoSymbol)
           vlog.error("No symbol for virtual key 0x%016x", keyCode);
