@@ -43,7 +43,7 @@ cat ${DEBDIR}/debian/changelog >> ${CURDIR}/build/debian/changelog
 
 ## Start the build
 
-docker run --volume ${CURDIR}/build:/home/deb/build --interactive --tty --rm tigervnc/${DOCKER} \
+docker run --volume ${CURDIR}/build:/home/deb/build --interactive --rm tigervnc/${DOCKER} \
 	bash -c "
 	tar -C ~/build -axf ~/build/tigervnc_${VERSION}.orig.tar.xz &&
 	cp -a ~/build/debian ~/build/tigervnc-${VERSION}/debian &&
