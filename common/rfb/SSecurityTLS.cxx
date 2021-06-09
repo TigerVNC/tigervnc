@@ -37,7 +37,21 @@
 #include <rdr/TLSOutStream.h>
 #include <gnutls/x509.h>
 
-#define DH_BITS 1024 /* XXX This should be configurable! */
+/* FFDHE (RFC-7919) 2048-bit parameters, PEM-encoded */
+static unsigned char ffdhe2048[] =
+  "-----BEGIN DH PARAMETERS-----\n"
+  "MIIBDAKCAQEA//////////+t+FRYortKmq/cViAnPTzx2LnFg84tNpWp4TZBFGQz\n"
+  "+8yTnc4kmz75fS/jY2MMddj2gbICrsRhetPfHtXV/WVhJDP1H18GbtCFY2VVPe0a\n"
+  "87VXE15/V8k1mE8McODmi3fipona8+/och3xWKE2rec1MKzKT0g6eXq8CrGCsyT7\n"
+  "YdEIqUuyyOP7uWrat2DX9GgdT0Kj3jlN9K5W7edjcrsZCwenyO4KbXCeAvzhzffi\n"
+  "7MA0BM0oNC9hkXL+nOmFg/+OTxIy7vKBg8P+OxtMb61zO7X8vC7CIAXFjvGDfRaD\n"
+  "ssbzSibBsu/6iGtCOGEoXJf//////////wIBAgICAOE=\n"
+  "-----END DH PARAMETERS-----\n";
+
+static const gnutls_datum_t pkcs3_param = {
+  ffdhe2048,
+  sizeof(ffdhe2048)
+};
 
 using namespace rfb;
 
@@ -201,8 +215,8 @@ void SSecurityTLS::setParams(gnutls_session_t session)
   if (gnutls_dh_params_init(&dh_params) != GNUTLS_E_SUCCESS)
     throw AuthFailureException("gnutls_dh_params_init failed");
 
-  if (gnutls_dh_params_generate2(dh_params, DH_BITS) != GNUTLS_E_SUCCESS)
-    throw AuthFailureException("gnutls_dh_params_generate2 failed");
+  if (gnutls_dh_params_import_pkcs3(dh_params, &pkcs3_param, GNUTLS_X509_FMT_PEM) != GNUTLS_E_SUCCESS)
+    throw AuthFailureException("gnutls_dh_params_import_pkcs3 failed");
 
   if (anon) {
     if (gnutls_anon_allocate_server_credentials(&anon_cred) != GNUTLS_E_SUCCESS)
