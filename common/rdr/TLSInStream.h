@@ -43,6 +43,8 @@ namespace rdr {
 
     gnutls_session_t session;
     InStream* in;
+
+    Exception* saved_exception;
   };
 };
 

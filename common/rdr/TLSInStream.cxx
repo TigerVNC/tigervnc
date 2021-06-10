@@ -39,6 +39,9 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
   TLSInStream* self= (TLSInStream*) str;
   InStream *in = self->in;
 
+  delete self->saved_exception;
+  self->saved_exception = NULL;
+
   try {
     if (!in->hasData(1)) {
       gnutls_transport_set_errno(self->session, EAGAIN);
@@ -54,10 +57,12 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
   } catch (SystemException &e) {
     vlog.error("Failure reading TLS data: %s", e.str());
     gnutls_transport_set_errno(self->session, e.err);
+    self->saved_exception = new SystemException(e);
     return -1;
   } catch (Exception& e) {
     vlog.error("Failure reading TLS data: %s", e.str());
     gnutls_transport_set_errno(self->session, EINVAL);
+    self->saved_exception = new Exception(e);
     return -1;
   }
 
@@ -65,7 +70,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 }
 
 TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
-  : session(_session), in(_in)
+  : session(_session), in(_in), saved_exception(NULL)
 {
   gnutls_transport_ptr_t recv, send;
 
@@ -77,6 +82,8 @@ TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
 TLSInStream::~TLSInStream()
 {
   gnutls_transport_set_pull_function(session, NULL);
+
+  delete saved_exception;
 }
 
 bool TLSInStream::fillBuffer(size_t maxSize)
@@ -97,7 +104,11 @@ size_t TLSInStream::readTLS(U8* buf, size_t len)
   if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
     return 0;
 
-  if (n < 0) throw TLSException("readTLS", n);
+  if (n == GNUTLS_E_PULL_ERROR)
+    throw *saved_exception;
+
+  if (n < 0)
+    throw TLSException("readTLS", n);
 
   if (n == 0)
     throw EndOfStream();
