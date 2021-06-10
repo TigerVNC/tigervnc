@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright (C) 2012-2021 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +45,10 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
   try {
     out->writeBytes(data, size);
     out->flush();
+  } catch (SystemException &e) {
+    vlog.error("Failure sending TLS data: %s", e.str());
+    gnutls_transport_set_errno(self->session, e.err);
+    return -1;
   } catch (Exception& e) {
     vlog.error("Failure sending TLS data: %s", e.str());
     gnutls_transport_set_errno(self->session, EINVAL);
