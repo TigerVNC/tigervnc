@@ -79,6 +79,11 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror -Werror=vla")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Werror=vla")
 ENDIF()
+# clang doesn't support format_arg, which breaks this warning
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-nonliteral -Wno-format-security")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-nonliteral -Wno-format-security")
+endif()
 
 option(ENABLE_ASAN "Enable address sanitizer support" OFF)
 if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)

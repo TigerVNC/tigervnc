@@ -47,7 +47,6 @@ for example:
 ```
 session=gnome
 securitytypes=vncauth,tlsvnc
-desktop=sandbox
 geometry=2000x1200
 localhost
 alwaysshared

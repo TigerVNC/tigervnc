@@ -1,0 +1,81 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgnutls28-dev libfltk1.3-dev fluid gettext
+          sudo apt-get install -y libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev libpam-dev
+      - name: Configure
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+      - name: Build
+        working-directory: build
+        run: make
+      - name: Install
+        working-directory: build
+        run: make tarball
+
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+      - name: Install dependencies
+        run: |
+          pacman --sync --noconfirm --needed make mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
+          pacman --sync --noconfirm --needed mingw-w64-x86_64-fltk mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-gnutls mingw-w64-x86_64-pixman
+      - name: Configure
+        run: cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -S . -B build
+      - name: Build
+        working-directory: build
+        run: make
+      - name: Install
+        working-directory: build
+        env:
+          MSYS2_PATH_TYPE: inherit
+        run: make installer winvnc_installer
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          brew install fltk pixman
+      - name: Configure
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+      - name: Build
+        working-directory: build
+        run: make
+      - name: Install
+        working-directory: build
+        run: make dmg
+
+  build-packages:
+    strategy:
+      matrix:
+        target:
+          - centos8
+          - centos7
+          - xenial
+          - bionic
+          - focal
+      fail-fast: false
+    runs-on: ubuntu-latest
+    env:
+      DOCKER: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image
+        run: docker build -t tigervnc/$DOCKER .github/containers/$DOCKER
+      - name: Build packages
+        run: .github/containers/$DOCKER/build.sh

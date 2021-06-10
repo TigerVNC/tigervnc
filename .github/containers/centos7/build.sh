@@ -31,7 +31,7 @@ sed -i "s/@VERSION@/${VERSION}/" ${CURDIR}/rpmbuild/SPECS/tigervnc.spec
 
 ## Start the build
 
-docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --interactive --tty --rm tigervnc/${DOCKER} \
+docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --interactive --rm tigervnc/${DOCKER} \
 	bash -c "
 	sudo yum-builddep -y ~/rpmbuild/SPECS/tigervnc.spec &&
         sudo chown 0.0 ~/rpmbuild/SOURCES/* &&
