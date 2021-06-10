@@ -93,16 +93,14 @@ size_t TLSInStream::readTLS(U8* buf, size_t len)
 {
   int n;
 
-  if (gnutls_record_check_pending(session) == 0) {
-    if (!in->hasData(1))
-      return 0;
-  }
-
   n = gnutls_record_recv(session, (void *) buf, len);
   if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
     return 0;
 
   if (n < 0) throw TLSException("readTLS", n);
+
+  if (n == 0)
+    throw EndOfStream();
 
   return n;
 }
