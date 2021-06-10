@@ -55,8 +55,7 @@ CSecurityVeNCrypt::CSecurityVeNCrypt(CConnection* cc, SecurityClient* sec)
 
 CSecurityVeNCrypt::~CSecurityVeNCrypt()
 {
-  if (availableTypes)
-	delete[] availableTypes;
+  delete[] availableTypes;
 }
 
 bool CSecurityVeNCrypt::processMsg()

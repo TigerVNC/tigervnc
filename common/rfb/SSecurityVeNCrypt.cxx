@@ -57,11 +57,7 @@ SSecurityVeNCrypt::SSecurityVeNCrypt(SConnection* sc, SecurityServer *sec)
 SSecurityVeNCrypt::~SSecurityVeNCrypt()
 {
   delete ssecurity;
-
-  if (subTypes) {
-    delete [] subTypes;
-    subTypes = NULL;
-  }
+  delete [] subTypes;
 }
 
 bool SSecurityVeNCrypt::processMsg()
