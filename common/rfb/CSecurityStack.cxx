@@ -32,10 +32,8 @@ CSecurityStack::CSecurityStack(CConnection* cc, int Type, const char* Name,
 
 CSecurityStack::~CSecurityStack()
 {
-  if (state0)
-    delete state0;
-  if (state1)
-    delete state1;
+  delete state0;
+  delete state1;
 }
 
 bool CSecurityStack::processMsg()

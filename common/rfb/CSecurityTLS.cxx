@@ -3,6 +3,7 @@
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
  * Copyright (C) 2010 m-privacy GmbH
+ * Copyright (C) 2012-2021 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,11 +100,16 @@ void CSecurityTLS::setDefaults()
    X509CRL.setDefaultStr(crlDefault.buf);
 }
 
-void CSecurityTLS::shutdown(bool needbye)
+void CSecurityTLS::shutdown()
 {
-  if (session && needbye)
-    if (gnutls_bye(session, GNUTLS_SHUT_RDWR) != GNUTLS_E_SUCCESS)
-      vlog.error("gnutls_bye failed");
+  if (session) {
+    int ret;
+    // FIXME: We can't currently wait for the response, so we only send
+    //        our close and hope for the best
+    ret = gnutls_bye(session, GNUTLS_SHUT_WR);
+    if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION))
+      vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
+  }
 
   if (anon_cred) {
     gnutls_anon_free_client_credentials(anon_cred);
@@ -139,7 +145,7 @@ void CSecurityTLS::shutdown(bool needbye)
 
 CSecurityTLS::~CSecurityTLS()
 {
-  shutdown(true);
+  shutdown();
 
   delete[] cafile;
   delete[] crlfile;
@@ -186,7 +192,7 @@ bool CSecurityTLS::processMsg()
     }
 
     vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
-    shutdown(false);
+    shutdown();
     throw AuthFailureException("TLS Handshake failed");
   }
 

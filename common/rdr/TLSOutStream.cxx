@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright (C) 2012-2021 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,12 +42,21 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
   TLSOutStream* self= (TLSOutStream*) str;
   OutStream *out = self->out;
 
+  delete self->saved_exception;
+  self->saved_exception = NULL;
+
   try {
     out->writeBytes(data, size);
     out->flush();
+  } catch (SystemException &e) {
+    vlog.error("Failure sending TLS data: %s", e.str());
+    gnutls_transport_set_errno(self->session, e.err);
+    self->saved_exception = new SystemException(e);
+    return -1;
   } catch (Exception& e) {
     vlog.error("Failure sending TLS data: %s", e.str());
     gnutls_transport_set_errno(self->session, EINVAL);
+    self->saved_exception = new Exception(e);
     return -1;
   }
 
@@ -54,7 +64,8 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
 }
 
 TLSOutStream::TLSOutStream(OutStream* _out, gnutls_session_t _session)
-  : session(_session), out(_out), bufSize(DEFAULT_BUF_SIZE), offset(0)
+  : session(_session), out(_out), bufSize(DEFAULT_BUF_SIZE), offset(0),
+    saved_exception(NULL)
 {
   gnutls_transport_ptr_t recv, send;
 
@@ -77,6 +88,7 @@ TLSOutStream::~TLSOutStream()
   gnutls_transport_set_push_function(session, NULL);
 
   delete [] start;
+  delete saved_exception;
 }
 
 size_t TLSOutStream::length()
@@ -128,6 +140,9 @@ size_t TLSOutStream::writeTLS(const U8* data, size_t length)
   n = gnutls_record_send(session, data, length);
   if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
     return 0;
+
+  if (n == GNUTLS_E_PUSH_ERROR)
+    throw *saved_exception;
 
   if (n < 0)
     throw TLSException("writeTLS", n);

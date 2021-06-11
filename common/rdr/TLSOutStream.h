@@ -51,6 +51,8 @@ namespace rdr {
     size_t bufSize;
     U8* start;
     size_t offset;
+
+    Exception* saved_exception;
   };
 };
 
