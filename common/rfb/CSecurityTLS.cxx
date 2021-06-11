@@ -104,7 +104,9 @@ void CSecurityTLS::shutdown()
 {
   if (session) {
     int ret;
-    ret = gnutls_bye(session, GNUTLS_SHUT_RDWR);
+    // FIXME: We can't currently wait for the response, so we only send
+    //        our close and hope for the best
+    ret = gnutls_bye(session, GNUTLS_SHUT_WR);
     if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION))
       vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
   }
