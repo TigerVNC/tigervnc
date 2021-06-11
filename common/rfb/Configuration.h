@@ -251,7 +251,7 @@ namespace rfb {
     char* getData() const { return getValueStr(); }
   protected:
     char* value;
-    const char* def_value;
+    char* def_value;
   };
 
   class BinaryParameter : public VoidParameter {

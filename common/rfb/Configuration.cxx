@@ -376,7 +376,7 @@ IntParameter::operator int() const {
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
                                  const char* v, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), value(strDup(v)), def_value(v)
+  : VoidParameter(name_, desc_, co), value(strDup(v)), def_value(strDup(v))
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
@@ -386,10 +386,12 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
 
 StringParameter::~StringParameter() {
   strFree(value);
+  strFree(def_value);
 }
 
 void StringParameter::setDefaultStr(const char* v) {
-  def_value = v;
+  strFree(def_value);
+  def_value = strDup(v);
   strFree(value);
   value = strDup(v);
 }
@@ -422,16 +424,19 @@ StringParameter::operator const char *() const {
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
 				 const void* v, size_t l, ConfigurationObject co)
-: VoidParameter(name_, desc_, co), value(0), length(0), def_value((char*)v), def_length(l) {
+: VoidParameter(name_, desc_, co), value(0), length(0), def_value(0), def_length(0) {
   if (l) {
     value = new char[l];
     length = l;
     memcpy(value, v, l);
+    def_value = new char[l];
+    def_length = l;
+    memcpy(def_value, v, l);
   }
 }
 BinaryParameter::~BinaryParameter() {
-  if (value)
-    delete [] value;
+  delete [] value;
+  delete [] def_value;
 }
 
 bool BinaryParameter::setParam(const char* v) {
