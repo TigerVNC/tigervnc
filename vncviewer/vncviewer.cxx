@@ -45,8 +45,6 @@
 #endif
 
 #include <rfb/Logger_stdio.h>
-#include <rfb/SecurityClient.h>
-#include <rfb/Security.h>
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
@@ -520,8 +518,6 @@ int main(int argc, char** argv)
   setlocale(LC_ALL, "");
   bindtextdomain(PACKAGE_NAME, CMAKE_INSTALL_FULL_LOCALEDIR);
   textdomain(PACKAGE_NAME);
-
-  rfb::SecurityClient::setDefaults();
 
   // Write about text to console, still using normal locale codeset
   fprintf(stderr,"\n%s\n", about_text());

@@ -84,14 +84,3 @@ int getvnchomedir(char **dirp)
 	*dirp = dir;
 	return 0;
 }
-
-int fileexists(char *file)
-{
-#ifdef WIN32
-  return (GetFileAttributes(file) == INVALID_FILE_ATTRIBUTES) ? -1 : 0;
-#else
-  return access(file, R_OK);
-#endif
-}
-
-

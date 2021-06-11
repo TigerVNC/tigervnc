@@ -39,13 +39,4 @@
  */
 int getvnchomedir(char **dirp);
 
-/*
- * Check if the file exists
- *
- * Returns:
- * 0 - Success
- * -1 - Failure
- */
-int fileexists(char *file);
-
 #endif /* OS_OS_H */

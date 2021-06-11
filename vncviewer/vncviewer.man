@@ -152,13 +152,13 @@ the server, you can specify it here to avoid typing it in.  It will usually be
 .B \-X509CA \fIpath\fP
 Path to CA certificate to use when authenticating remote servers using any
 of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
-format. Default is \fB$HOME/.vnc/x509_ca.pem\fP, if it exists.
+format. Default is \fB$HOME/.vnc/x509_ca.pem\fP.
 .
 .TP
 .B \-X509CRL \fIpath\fP
 Path to certificate revocation list to use in conjunction with
 \fB-X509CA\fP. Must also be in PEM format. Default is
-\fB$HOME/.vnc/x509_crl.pem\fP, if it exists.
+\fB$HOME/.vnc/x509_crl.pem\fP.
 .
 .TP
 .B \-Shared

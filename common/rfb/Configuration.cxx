@@ -389,13 +389,6 @@ StringParameter::~StringParameter() {
   strFree(def_value);
 }
 
-void StringParameter::setDefaultStr(const char* v) {
-  strFree(def_value);
-  def_value = strDup(v);
-  strFree(value);
-  value = strDup(v);
-}
-
 bool StringParameter::setParam(const char* v) {
   LOCK_CONFIG;
   if (immutable) return true;

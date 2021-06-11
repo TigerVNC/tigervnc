@@ -105,10 +105,3 @@ CSecurity* SecurityClient::GetCSecurity(CConnection* cc, U32 secType)
 bail:
   throw Exception("Security type not supported");
 }
-
-void SecurityClient::setDefaults()
-{
-#ifdef HAVE_GNUTLS
-    CSecurityTLS::setDefaults();
-#endif
-}

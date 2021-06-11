@@ -62,10 +62,31 @@
 
 using namespace rfb;
 
-StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate", "", ConfViewer);
-StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer);
+static const char* homedirfn(const char* fn);
+
+StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
+                                     homedirfn("x509_ca.pem"),
+                                     ConfViewer);
+StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
+                                     homedirfn("x509_crl.pem"),
+                                     ConfViewer);
 
 static LogWriter vlog("TLS");
+
+static const char* homedirfn(const char* fn)
+{
+  static char full_path[PATH_MAX];
+  char* homedir = NULL;
+
+  if (getvnchomedir(&homedir) == -1)
+    return "";
+
+  snprintf(full_path, sizeof(full_path), "%s%s", homedir, fn);
+
+  delete [] homedir;
+
+  return full_path;
+}
 
 CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
   : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
@@ -76,28 +97,6 @@ CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
 
   if (gnutls_global_init() != GNUTLS_E_SUCCESS)
     throw AuthFailureException("gnutls_global_init failed");
-}
-
-void CSecurityTLS::setDefaults()
-{
-  char* homeDir = NULL;
-
-  if (getvnchomedir(&homeDir) == -1) {
-    vlog.error("Could not obtain VNC home directory path");
-    return;
-  }
-
-  int len = strlen(homeDir) + 1;
-  CharArray caDefault(len + 11);
-  CharArray crlDefault(len + 12);
-  sprintf(caDefault.buf, "%sx509_ca.pem", homeDir);
-  sprintf(crlDefault.buf, "%s509_crl.pem", homeDir);
-  delete [] homeDir;
-
- if (!fileexists(caDefault.buf))
-   X509CA.setDefaultStr(caDefault.buf);
- if (!fileexists(crlDefault.buf))
-   X509CRL.setDefaultStr(crlDefault.buf);
 }
 
 void CSecurityTLS::shutdown()
