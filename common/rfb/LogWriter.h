@@ -105,15 +105,6 @@ namespace rfb {
   public:
     LogParameter();
     virtual bool setParam(const char* v);
-
-    // Call this to set a suitable default value.
-    // Can't use the normal default mechanism for
-    // this because there is no guarantee on C++
-    // constructor ordering - some LogWriters may
-    // not exist when LogParameter gets constructed.
-    // NB: The default value must exist for the
-    //     lifetime of the process!
-    void setDefault(const char* v);
   };
   extern LogParameter logParams;
 

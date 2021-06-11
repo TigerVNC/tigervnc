@@ -127,8 +127,3 @@ bool LogParameter::setParam(const char* v) {
   }
   return true;
 }
-
-void LogParameter::setDefault(const char* d) {
-  def_value = d;
-  setParam(def_value);
-}
