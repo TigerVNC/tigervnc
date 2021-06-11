@@ -209,6 +209,11 @@ int main(int argc, char** argv)
 
   Configuration::enableServerParams();
 
+  // FIXME: We don't support clipboard yet
+  Configuration::removeParam("AcceptCutText");
+  Configuration::removeParam("SendCutText");
+  Configuration::removeParam("MaxCutText");
+
   for (int i = 1; i < argc; i++) {
     if (Configuration::setParam(argv[i]))
       continue;

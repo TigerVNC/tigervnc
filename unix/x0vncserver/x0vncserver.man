@@ -297,14 +297,6 @@ Terminate when a client has been connected for \fIN\fP seconds.  Default is
 .TP
 .B \-MaxIdleTime \fIseconds\fP
 Terminate after \fIN\fP seconds of user inactivity.  Default is 0.
-.
-.TP
-.B \-AcceptCutText
-.TQ
-.B \-SendCutText
-.TQ
-.B \-MaxCutText
-Currently unused.
 
 .SH SEE ALSO
 .BR Xvnc (1),
