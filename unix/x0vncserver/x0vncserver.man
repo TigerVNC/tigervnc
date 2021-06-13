@@ -47,6 +47,11 @@ arbitrary.
 .SH PARAMETERS
 
 .TP
+.B \-desktop \fIdesktop-name\fP
+Each desktop has a name which may be displayed by the viewer. It defaults to
+"<user>@<hostname>".
+.
+.TP
 .B \-display \fIdisplay\fP
 The X display name.  If not specified, it defaults to the value of the
 DISPLAY environment variable.

@@ -19,6 +19,9 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include <set>
 #include <string>
@@ -73,10 +76,12 @@ struct CaseInsensitiveCompare {
 typedef std::set<std::string, CaseInsensitiveCompare> ParamSet;
 static ParamSet allowOverrideSet;
 
+static const char* defaultDesktopName();
+
 rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
 rfb::StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
 rfb::IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
-rfb::StringParameter desktopName("desktop", "Name of VNC desktop","x11");
+rfb::StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
 rfb::BoolParameter localhostOnly("localhost",
                                  "Only allow connections from localhost",
                                  false);
@@ -94,6 +99,35 @@ rfb::BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
 rfb::BoolParameter sendPrimary("SendPrimary",
                                "Send the PRIMARY as well as the CLIPBOARD selection",
                                true);
+
+static const char* defaultDesktopName()
+{
+  static char* name = NULL;
+
+  char hostname[HOST_NAME_MAX + 1];
+  struct passwd* pwent;
+
+  size_t len;
+
+  delete [] name;
+
+  if (gethostname(hostname, sizeof(hostname)) == -1)
+    return "";
+
+  pwent = getpwuid(getuid());
+  if (pwent == NULL)
+    return "";
+
+  len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname);
+  if (len < 0)
+    return "";
+
+  name = new char[len + 1];
+
+  snprintf(name, len + 1, "%s@%s", pwent->pw_name, hostname);
+
+  return name;
+}
 
 static PixelFormat vncGetPixelFormat(int scrIdx)
 {

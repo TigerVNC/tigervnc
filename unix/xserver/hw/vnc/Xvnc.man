@@ -72,7 +72,7 @@ case-insensitive.
 .TP
 .B \-desktop \fIdesktop-name\fP
 Each desktop has a name which may be displayed by the viewer. It defaults to
-"x11".
+"<user>@<hostname>".
 .
 .TP
 .B \-rfbport \fIport\fP

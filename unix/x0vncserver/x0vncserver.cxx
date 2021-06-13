@@ -25,6 +25,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pwd.h>
+
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 #include <rfb/VNCServerST.h>
@@ -50,11 +52,14 @@ using namespace network;
 
 static LogWriter vlog("Main");
 
+static const char* defaultDesktopName();
+
 IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
                           "cycle; actual interval may be dynamically "
                           "adjusted to satisfy MaxProcessorUsage setting", 30);
 IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
                                "CPU time to be consumed", 35);
+StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
 StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
@@ -63,6 +68,36 @@ StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
 BoolParameter localhostOnly("localhost",
                             "Only allow connections from localhost",
                             false);
+
+static const char* defaultDesktopName()
+{
+  static char* name = NULL;
+
+  char hostname[HOST_NAME_MAX + 1];
+  struct passwd* pwent;
+
+  size_t len;
+
+  delete [] name;
+
+  if (gethostname(hostname, sizeof(hostname)) == -1)
+    return "";
+
+  pwent = getpwuid(getuid());
+  if (pwent == NULL)
+    return "";
+
+  len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname);
+  if (len < 0)
+    return "";
+
+  name = new char[len + 1];
+
+  snprintf(name, len + 1, "%s@%s", pwent->pw_name, hostname);
+
+  return name;
+}
+
 
 //
 // Allow the main loop terminate itself gracefully on receiving a signal.
@@ -261,7 +296,7 @@ int main(int argc, char** argv)
     }
     XDesktop desktop(dpy, &geo);
 
-    VNCServerST server("x0vncserver", &desktop);
+    VNCServerST server(desktopName, &desktop);
 
     if (rfbunixpath.getValueStr()[0] != '\0') {
       listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
