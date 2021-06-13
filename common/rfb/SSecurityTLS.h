@@ -36,6 +36,13 @@
 #include <rdr/OutStream.h>
 #include <gnutls/gnutls.h>
 
+/* In GnuTLS 3.6.0 DH parameter generation was deprecated. RFC7919 is used instead.
+ * GnuTLS before 3.6.0 doesn't know about RFC7919 so we will have to import it.
+ */
+#if GNUTLS_VERSION_NUMBER < 0x030600
+#define SSECURITYTLS__USE_DEPRECATED_DH
+#endif
+
 namespace rfb {
 
   class SSecurityTLS : public SSecurity {
@@ -55,7 +62,9 @@ namespace rfb {
 
   private:
     gnutls_session_t session;
+#if defined (SSECURITYTLS__USE_DEPRECATED_DH)
     gnutls_dh_params_t dh_params;
+#endif
     gnutls_anon_server_credentials_t anon_cred;
     gnutls_certificate_credentials_t cert_cred;
     char *keyfile, *certfile;
