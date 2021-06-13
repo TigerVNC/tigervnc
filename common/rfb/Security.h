@@ -24,7 +24,6 @@
 
 #include <rdr/types.h>
 #include <rfb/Configuration.h>
-#include <rfb/CSecurity.h>
 
 #include <list>
 
