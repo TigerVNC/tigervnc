@@ -44,7 +44,7 @@ namespace rfb {
   class CConnection;
   class CSecurity {
   public:
-    CSecurity(CConnection* cc) { this->cc = cc; }
+    CSecurity(CConnection* cc_) : cc(cc_) {}
     virtual ~CSecurity() {}
     virtual bool processMsg() = 0;
     virtual int getType() const = 0;

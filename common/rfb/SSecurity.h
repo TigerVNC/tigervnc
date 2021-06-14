@@ -52,7 +52,7 @@ namespace rfb {
 
   class SSecurity {
   public:
-    SSecurity(SConnection* sc) { this->sc = sc; }
+    SSecurity(SConnection* sc_) : sc(sc_) {}
     virtual ~SSecurity() {}
     virtual bool processMsg() = 0;
     virtual int getType() const = 0;
