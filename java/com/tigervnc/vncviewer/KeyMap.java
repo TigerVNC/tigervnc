@@ -161,7 +161,7 @@ public class KeyMap {
 
   public static int vkey_to_keysym(KeyEvent ev)
   {
-    int keyCode = ev.getKeyCode();
+    int keyCode = get_keycode_fallback_extended(ev);
 
     // Start with keys that either don't generate a symbol, or
     // generate the same symbol as some other key.
@@ -215,6 +215,11 @@ public class KeyMap {
       return Keysym2ucs.ucs2keysym(ucs);
 
     return NoSymbol;
+  }
+
+  public static int get_keycode_fallback_extended(final KeyEvent ev) {
+    final int keyCode = ev.getKeyCode();
+    return (keyCode == 0) ? ev.getExtendedKeyCode() : keyCode;
   }
 
   private static int vk_to_ascii(int vk, boolean shift) {
