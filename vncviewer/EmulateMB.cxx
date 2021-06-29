@@ -61,6 +61,14 @@
 #include "EmulateMB.h"
 
 /*
+ * There are two different middle button emulation mechanism:
+ *   1) Pressing the left + right buttons to emulate middle button (enabled by the setting emulateMiddleButton)
+ *   2) Pressing a modifier + left button to emulate middle button (ebabled by the setting emulateMiddleButtonMod)
+ */
+
+/*
+ * 1) Pressing the left + right buttons to emulate middle button:
+ *
  * Lets create a simple finite-state machine for 3 button emulation:
  *
  * We track buttons 1 and 3 (left and right).  There are 11 states:
@@ -103,6 +111,16 @@
  *      If the buttons are in <button state>, generate <events> then go to
  *      <new emulation state>.
  */
+
+/*
+ * 2) Pressing a modifier + left button to emulate middle button:
+ *
+ * When the modifier is pressed we buffer it locally and do not immediately send it to the server.
+ * If any key or button other than the left button is pressed while the modifier is buffered then send
+ * the modifier to the server and then the key or button that was pressed.
+ * If only the left button was pressed then we send a middle button and keep the modifier buffered locally.
+ */
+
 static const signed char stateTab[11][5][3] = {
 /* 0 ground */
   {
@@ -194,9 +212,63 @@ static const signed char stateTab[11][5][3] = {
   },
 };
 
-EmulateMB::EmulateMB()
-  : state(0), emulatedButtonMask(0), timer(this)
+EmulateMB::EmulateMB(rdr::U32 emulateMBModKey)
+  : state(0), emulatedButtonMask(0), timer(this), emulateMiddleButtonModifierKey(emulateMBModKey),
+    modifierPressed(false), modifierBuffered(false), sentMiddleClick(false)
 {
+}
+
+bool EmulateMB::filterKeyPress(int keyCode, rdr::U32 keySym)
+{
+  if (!emulateMiddleButtonMod)
+    return false;
+
+  if (keySym == emulateMiddleButtonModifierKey) {
+    // If modifier is pressed then just buffer it and do nothing.
+    modifierPressed = true;
+    modifierBuffered = true;
+    modKeyCode = keyCode;
+    return true;
+  }
+  else if (modifierPressed && modifierBuffered) {
+    // if any other key is pressed, and we have a buffered modifier then send the modifier.
+    // The key will be send from the caller of this function.
+    writeKeyEvent(emulateMiddleButtonModifierKey, modKeyCode, true);
+    modifierBuffered = false;
+  }
+
+  return false;
+}
+
+bool EmulateMB::filterKeyRelease(int keyCode)
+{
+  if (!emulateMiddleButtonMod)
+    return false;
+
+  if (!modifierPressed || keyCode != modKeyCode)
+    return false;
+
+  // Modifier was released.
+  modifierPressed = false;
+
+  bool sentMiddleClickTmp = sentMiddleClick;
+  sentMiddleClick = false;
+
+  if (!modifierBuffered)
+    return false; // Will send the release.
+
+  modifierBuffered = false;
+
+  // Modifier was buffered and we emulated middle click, so we can ignore the modifier as if it wasnt pressed.
+  if (sentMiddleClickTmp)
+    return true;
+
+  // Modifier was buffered and we didnt emulate middle click, meaning this event is the release of
+  // a modifier click (press and release).
+  // Send a modifier-press and the caller of this function will send the release.
+  writeKeyEvent(emulateMiddleButtonModifierKey, modKeyCode, true);
+
+  return false;
 }
 
 void EmulateMB::filterPointerEvent(const rfb::Point& pos, int buttonMask)
@@ -204,6 +276,20 @@ void EmulateMB::filterPointerEvent(const rfb::Point& pos, int buttonMask)
   int btstate;
   int action1, action2;
   int lastState;
+
+  if (emulateMiddleButtonMod && modifierPressed) {
+    if (buttonMask & 0x1) {
+      // If mod-button1 was pressed then translate it to button2. There may be other buttons pressed simultaneously.
+      sendPointerEvent(pos, (buttonMask & ~0x1) | 0x2);
+      sentMiddleClick = true;
+      return;
+    }
+    else if(buttonMask && modifierBuffered) { // Some other button was pressed.
+      writeKeyEvent(emulateMiddleButtonModifierKey, modKeyCode, true);
+      modifierBuffered = false;
+      // Fallthrough to the sendPointerEvent() below.
+    }
+  }
 
   // Just pass through events if the emulate setting is disabled
   if (!emulateMiddleButton) {

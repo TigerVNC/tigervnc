@@ -21,17 +21,24 @@
 
 #include <rfb/Timer.h>
 #include <rfb/Rect.h>
+#include <rdr/types.h>
 
 class EmulateMB : public rfb::Timer::Callback {
 public:
-  EmulateMB();
+  EmulateMB(rdr::U32 emulateMBModKey);
 
   void filterPointerEvent(const rfb::Point& pos, int buttonMask);
+
+  // Middle button emulation by pressing ALT+button1. (or actually the modifier configued in emulateMiddleButtonModifierKey)
+  bool filterKeyPress(int keyCode, rdr::U32 keySym);
+  bool filterKeyRelease(int keyCode);
 
 protected:
   virtual void sendPointerEvent(const rfb::Point& pos, int buttonMask)=0;
 
   virtual bool handleTimeout(rfb::Timer *t);
+
+  virtual void writeKeyEvent(rdr::U32 keySym, rdr::U32 keyCode, bool down)=0;
 
 private:
   void sendAction(const rfb::Point& pos, int buttonMask, int action);
@@ -44,6 +51,13 @@ private:
   int lastButtonMask;
   rfb::Point lastPos, origPos;
   rfb::Timer timer;
+
+  // Variables for mod-button1 emulation
+  rdr::U32 emulateMiddleButtonModifierKey;	// The key sym used for emulation
+  bool modifierPressed;				// Is the modifier currently pressed
+  bool modifierBuffered;			// Is a modifier pressed but not sent to the server
+  bool sentMiddleClick;				// Did the user clicked button1 while modifier was pressed
+  int modKeyCode;				// buffer the modifier keycode
 };
 
 #endif

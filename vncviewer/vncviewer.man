@@ -281,6 +281,11 @@ Emulate middle mouse button by pressing left and right mouse buttons
 simultaneously. Default is off.
 .
 .TP
+.B \-EmulateMiddleButtonMod
+Emulate middle mouse button by pressing ALT (Command on MAC) and left mouse button
+simultaneously. Default is off.
+.
+.TP
 .B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
 Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
 \fBstdout\fP, and \fIlevel\fP is between 0 and 100, 100 meaning most verbose

@@ -108,6 +108,7 @@ protected:
   /* Input */
   Fl_Check_Button *viewOnlyCheckbox;
   Fl_Check_Button *emulateMBCheckbox;
+  Fl_Check_Button *emulateMBModCheckbox;
   Fl_Check_Button *acceptClipboardCheckbox;
 #if !defined(WIN32) && !defined(__APPLE__)
   Fl_Check_Button *setPrimaryCheckbox;

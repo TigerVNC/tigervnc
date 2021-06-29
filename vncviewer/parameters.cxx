@@ -61,6 +61,10 @@ BoolParameter emulateMiddleButton("EmulateMiddleButton",
                                   "Emulate middle mouse button by pressing "
                                   "left and right mouse buttons simultaneously",
                                   false);
+BoolParameter emulateMiddleButtonMod("EmulateMiddleButtonMod",
+                                  "Emulate middle mouse button by pressing "
+                                  "ALT (command on MAC) and left mouse buttons simultaneously",
+                                  false);
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
@@ -165,6 +169,7 @@ static VoidParameter* parameterArray[] = {
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   &emulateMiddleButton,
+  &emulateMiddleButtonMod,
   &dotWhenNoCursor,
   &autoSelect,
   &fullColour,
