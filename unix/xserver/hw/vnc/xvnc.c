@@ -62,10 +62,6 @@ from the X Consortium.
 #include <sys/param.h>
 #endif
 #include <X11/XWDFile.h>
-#ifdef HAS_SHM
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#endif                          /* HAS_SHM */
 #include "dix.h"
 #include "os.h"
 #include "miline.h"
@@ -110,10 +106,6 @@ typedef struct {
     int sizeInBytes;
 
     void *pfbMemory;
-
-#ifdef HAS_SHM
-    int shmid;
-#endif
 } vfbFramebufferInfo, *vfbFramebufferInfoPtr;
 
 typedef struct {
@@ -133,8 +125,6 @@ typedef struct {
 static int vfbNumScreens;
 static vfbScreenInfo vfbScreens[MAXSCREENS];
 static Bool vfbPixmapDepths[33];
-typedef enum { NORMAL_MEMORY_FB, SHARED_MEMORY_FB } fbMemType;
-static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static int lastScreen = -1;
 static Bool Render = TRUE;
 
@@ -291,10 +281,6 @@ ddxUseMsg(void)
            "(default on)\n");
     ErrorF("-linebias n            adjust thin line pixelization\n");
 
-#ifdef HAS_SHM
-    ErrorF("-shmem                 put framebuffers in shared memory\n");
-#endif
-
     ErrorF("-geometry WxH          set screen 0's width, height\n");
     ErrorF("-depth D               set screen 0's depth\n");
     ErrorF("-pixelformat fmt       set pixel format (rgbNNN or bgrNNN)\n");
@@ -433,13 +419,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         }
         return 2;
     }
-
-#ifdef HAS_SHM
-    if (strcmp(argv[i], "-shmem") == 0) {       /* -shmem */
-        fbmemtype = SHARED_MEMORY_FB;
-        return 1;
-    }
-#endif
 
     if (strcmp(argv[i], "-geometry") == 0) {
         CHECK_FOR_REQUIRED_ARGUMENTS(1);
@@ -605,31 +584,6 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
     return TRUE;
 }
 
-#ifdef HAS_SHM
-static void
-vfbAllocateSharedMemoryFramebuffer(vfbFramebufferInfoPtr pfb)
-{
-    /* create the shared memory segment */
-
-    pfb->shmid = shmget(IPC_PRIVATE, pfb->sizeInBytes, IPC_CREAT | 0777);
-    if (pfb->shmid < 0) {
-        perror("shmget");
-        ErrorF("shmget %d bytes failed, errno %d", pfb->sizeInBytes, errno);
-        return;
-    }
-
-    /* try to attach it */
-
-    pfb->pfbMemory = shmat(pfb->shmid, 0, 0);
-    if (-1 == (long) pfb->pfbMemory) {
-        perror("shmat");
-        ErrorF("shmat failed, errno %d", errno);
-        pfb->pfbMemory = NULL;
-        return;
-    }
-}
-#endif                          /* HAS_SHM */
-
 static void *
 vfbAllocateFramebufferMemory(vfbFramebufferInfoPtr pfb)
 {
@@ -643,21 +597,9 @@ vfbAllocateFramebufferMemory(vfbFramebufferInfoPtr pfb)
     pfb->sizeInBytes = pfb->paddedBytesWidth * pfb->height;
 
     /* And allocate buffer */
-    switch (fbmemtype) {
-#ifdef HAS_SHM
-    case SHARED_MEMORY_FB:
-        vfbAllocateSharedMemoryFramebuffer(pfb);
-        break;
-#else
-    case SHARED_MEMORY_FB:
-        break;
-#endif
-    case NORMAL_MEMORY_FB:
-        pfb->pfbMemory = malloc(pfb->sizeInBytes);
-        break;
-    }
+    pfb->pfbMemory = malloc(pfb->sizeInBytes);
 
-    /* This will be NULL if any of the above failed */
+    /* This will be NULL if the above failed */
     return pfb->pfbMemory;
 }
 
@@ -667,23 +609,7 @@ vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb)
     if ((pfb == NULL) || (pfb->pfbMemory == NULL))
         return;
 
-    switch (fbmemtype) {
-#ifdef HAS_SHM
-    case SHARED_MEMORY_FB:
-        if (-1 == shmdt(pfb->pfbMemory)) {
-            perror("shmdt");
-            ErrorF("shmdt failed, errno %d", errno);
-        }
-        break;
-#else                           /* HAS_SHM */
-    case SHARED_MEMORY_FB:
-        break;
-#endif                          /* HAS_SHM */
-    case NORMAL_MEMORY_FB:
-        free(pfb->pfbMemory);
-        break;
-    }
-
+    free(pfb->pfbMemory);
     pfb->pfbMemory = NULL;
 }
 
