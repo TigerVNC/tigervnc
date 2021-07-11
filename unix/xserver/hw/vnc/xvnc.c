@@ -184,7 +184,7 @@ vfbBitsPerPixel(int depth)
 static void vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb);
 
 #ifdef DPMSExtension
-#if XORG < 120
+#if XORG_OLDER_THAN(1, 20, 0)
     /* Why support DPMS? Because stupid modern desktop environments
        such as Unity 2D on Ubuntu 11.10 crashes if DPMS is not
        available. (DPMSSet is called by dpms.c, but the return value
@@ -262,12 +262,14 @@ ddxBeforeReset(void)
 #endif
 
 #if INPUTTHREAD
+#if XORG_AT_LEAST(1, 20, 7)
 /** This function is called in Xserver/os/inputthread.c when starting
     the input thread. */
 void
 ddxInputThreadInit(void)
 {
 }
+#endif
 #endif
 
 void
@@ -1380,6 +1382,7 @@ vfbClientStateChange(CallbackListPtr *a, void *b, void *c)
 }
 
 #ifdef GLXEXT
+#if XORG_OLDER_THAN(1, 20, 0)
 extern void GlxExtensionInit(void);
 
 static ExtensionModule glxExt = {
@@ -1387,6 +1390,7 @@ static ExtensionModule glxExt = {
     "GLX",
     &noGlxExtension
 };
+#endif
 #endif
 
 void
@@ -1397,7 +1401,7 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
 
     vncPrintBanner();
 
-#if XORG >= 120
+#if XORG_AT_LEAST(1, 20, 0)
     xorgGlxCreateVendor();
 #else
 

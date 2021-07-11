@@ -269,7 +269,7 @@ static inline void pressKey(DeviceIntPtr dev, int kc, Bool down, const char *msg
 		LOG_DEBUG("%s %d %s", msg, kc, down ? "down" : "up");
 
 	action = down ? KeyPress : KeyRelease;
-#if XORG < 118
+#if XORG_OLDER_THAN(1, 18, 0)
 	QueueKeyboardEvents(dev, action, kc, NULL);
 #else
 	QueueKeyboardEvents(dev, action, kc);

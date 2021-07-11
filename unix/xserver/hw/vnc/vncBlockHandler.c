@@ -33,7 +33,7 @@
 #include "vncBlockHandler.h"
 #include "xorg-version.h"
 
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
 static void vncBlockHandler(void* data, void* timeout);
 static void vncSocketNotify(int fd, int xevents, void *data);
 #else
@@ -53,7 +53,7 @@ static struct vncFdEntry* fdsHead = NULL;
 void vncRegisterBlockHandlers(void)
 {
   if (!RegisterBlockAndWakeupHandlers(vncBlockHandler,
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
                                       (ServerWakeupHandlerProcPtr)NoopDDA,
 #else
                                       vncWakeupHandler,
@@ -64,7 +64,7 @@ void vncRegisterBlockHandlers(void)
 
 void vncSetNotifyFd(int fd, int scrIdx, int read, int write)
 {
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
   int mask = (read ? X_NOTIFY_READ : 0) | (write ? X_NOTIFY_WRITE : 0);
   SetNotifyFd(fd, vncSocketNotify, mask, (void*)(intptr_t)scrIdx);
 #else
@@ -96,7 +96,7 @@ void vncSetNotifyFd(int fd, int scrIdx, int read, int write)
 
 void vncRemoveNotifyFd(int fd)
 {
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
   RemoveNotifyFd(fd);
 #else
   struct vncFdEntry** prev;
@@ -117,7 +117,7 @@ void vncRemoveNotifyFd(int fd)
 #endif
 }
 
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
 static void vncSocketNotify(int fd, int xevents, void *data)
 {
   int scrIdx;
@@ -129,7 +129,7 @@ static void vncSocketNotify(int fd, int xevents, void *data)
 }
 #endif
 
-#if XORG < 119
+#if XORG_OLDER_THAN(1, 19, 0)
 static void vncWriteBlockHandlerFallback(OSTimePtr timeout);
 static void vncWriteWakeupHandlerFallback(void);
 void vncWriteBlockHandler(fd_set *fds);
@@ -143,13 +143,13 @@ void vncWriteWakeupHandler(int nfds, fd_set *fds);
 // descriptors that we want read events on.
 //
 
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
 static void vncBlockHandler(void* data, void* timeout)
 #else
 static void vncBlockHandler(void * data, OSTimePtr t, void * readmask)
 #endif
 {
-#if XORG < 119
+#if XORG_OLDER_THAN(1, 19, 0)
   int _timeout;
   int* timeout = &_timeout;
   static struct timeval tv;
@@ -165,7 +165,7 @@ static void vncBlockHandler(void * data, OSTimePtr t, void * readmask)
 
   vncCallBlockHandlers(timeout);
 
-#if XORG < 119
+#if XORG_OLDER_THAN(1, 19, 0)
   if (_timeout != -1) {
     tv.tv_sec= _timeout / 1000;
     tv.tv_usec = (_timeout % 1000) * 1000;
@@ -184,7 +184,7 @@ static void vncBlockHandler(void * data, OSTimePtr t, void * readmask)
 #endif
 }
 
-#if XORG < 119
+#if XORG_OLDER_THAN(1, 19, 0)
 static void vncWakeupHandler(void * data, int nfds, void * readmask)
 {
   fd_set* fds = (fd_set*)readmask;
@@ -211,7 +211,7 @@ static void vncWakeupHandler(void * data, int nfds, void * readmask)
 // modified Xorg and might therefore not be called.
 //
 
-#if XORG < 119
+#if XORG_OLDER_THAN(1, 19, 0)
 static Bool needFallback = TRUE;
 static fd_set fallbackFds;
 static struct timeval tw;
