@@ -345,13 +345,6 @@ displayNumFree(int num)
     return TRUE;
 }
 
-#define fail_unless_args(_argc,_i,_n)		\
-    if (_i + _n >= _argc)			\
-    {						\
-        UseMsg();				\
-        return 0;				\
-    }
-
 int
 ddxProcessArgument(int argc, char *argv[], int i)
 {
@@ -370,10 +363,17 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (argv[i][0] == ':')
         displaySpecified = TRUE;
 
+#define CHECK_FOR_REQUIRED_ARGUMENTS(num) \
+    if (((i + num) >= argc) || (!argv[i + num])) {                      \
+      ErrorF("Required argument to %s not specified\n", argv[i]);       \
+      UseMsg();                                                         \
+      FatalError("Required argument to %s not specified\n", argv[i]);   \
+    }
+
     if (strcmp(argv[i], "-screen") == 0) {      /* -screen n WxHxD */
         int screenNum;
 
-        fail_unless_args(argc, i, 2);
+        CHECK_FOR_REQUIRED_ARGUMENTS(2);
         screenNum = atoi(argv[i + 1]);
         if (screenNum < 0 || screenNum >= MAXSCREENS) {
             ErrorF("Invalid screen number %d\n", screenNum);
@@ -398,7 +398,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-pixdepths") == 0) {   /* -pixdepths list-of-depth */
         int depth, ret = 1;
 
-        fail_unless_args(argc, i, 1);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         while ((i < argc) && (depth = atoi(argv[i++])) != 0) {
             if (depth < 0 || depth > 32) {
@@ -425,7 +425,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-blackpixel") == 0) {  /* -blackpixel n */
         Pixel pix;
 
-        fail_unless_args(argc, i, 1);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         pix = atoi(argv[i]);
         if (-1 == lastScreen) {
@@ -444,7 +444,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-whitepixel") == 0) {  /* -whitepixel n */
         Pixel pix;
 
-        fail_unless_args(argc, i, 1);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         pix = atoi(argv[i]);
         if (-1 == lastScreen) {
@@ -463,7 +463,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-linebias") == 0) {    /* -linebias n */
         unsigned int linebias;
 
-        fail_unless_args(argc, i, 1);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         linebias = atoi(argv[i]);
         if (-1 == lastScreen) {
@@ -487,7 +487,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 #endif
 
     if (strcmp(argv[i], "-geometry") == 0) {
-        fail_unless_args(argc, i, 1);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         if (sscanf(argv[i], "%dx%d", &vfbScreens[0].fb.width,
                    &vfbScreens[0].fb.height) != 2) {
@@ -499,7 +499,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     }
 
     if (strcmp(argv[i], "-depth") == 0) {
-        fail_unless_args(argc, i, 1);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         vfbScreens[0].fb.depth = atoi(argv[i]);
         return 2;
@@ -509,7 +509,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
         char rgbbgr[4];
         int bits1, bits2, bits3;
 
-        fail_unless_args(argc, i, 1);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         if (sscanf(argv[i], "%3s%1d%1d%1d", rgbbgr, &bits1, &bits2, &bits3) < 4) {
             ErrorF("Invalid pixel format %s\n", argv[i]);
