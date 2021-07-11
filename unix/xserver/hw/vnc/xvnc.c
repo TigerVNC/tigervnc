@@ -51,7 +51,6 @@ from the X Consortium.
 #include "servermd.h"
 #include "fb.h"
 #include "mi.h"
-#include "colormapst.h"
 #include "gcstruct.h"
 #include "input.h"
 #include "mipointer.h"
@@ -90,8 +89,6 @@ extern char buildtime[];
 #define VFB_DEFAULT_WIDTH  1024
 #define VFB_DEFAULT_HEIGHT 768
 #define VFB_DEFAULT_DEPTH  24
-#define VFB_DEFAULT_WHITEPIXEL 0xffffffff
-#define VFB_DEFAULT_BLACKPIXEL 0
 #define VFB_DEFAULT_LINEBIAS 0
 #define XWD_WINDOW_NAME_LEN 60
 
@@ -121,9 +118,6 @@ typedef struct {
 
 typedef struct {
     int scrnum;
-
-    Pixel blackPixel;
-    Pixel whitePixel;
 
     unsigned int lineBias;
 
@@ -174,8 +168,6 @@ vfbInitializeDefaultScreens(void)
 
     for (i = 0; i < MAXSCREENS; i++) {
         vfbScreens[i].scrnum = i;
-        vfbScreens[i].blackPixel = VFB_DEFAULT_BLACKPIXEL;
-        vfbScreens[i].whitePixel = VFB_DEFAULT_WHITEPIXEL;
         vfbScreens[i].lineBias = VFB_DEFAULT_LINEBIAS;
         vfbScreens[i].fb.width = VFB_DEFAULT_WIDTH;
         vfbScreens[i].fb.height = VFB_DEFAULT_HEIGHT;
@@ -298,8 +290,6 @@ ddxUseMsg(void)
     ErrorF("+/-render		   turn on/off RENDER extension support"
            "(default on)\n");
     ErrorF("-linebias n            adjust thin line pixelization\n");
-    ErrorF("-blackpixel n          pixel value for black\n");
-    ErrorF("-whitepixel n          pixel value for white\n");
 
 #ifdef HAS_SHM
     ErrorF("-shmem                 put framebuffers in shared memory\n");
@@ -423,44 +413,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-render") == 0) {      /* -render */
         Render = FALSE;
         return 1;
-    }
-
-    if (strcmp(argv[i], "-blackpixel") == 0) {  /* -blackpixel n */
-        Pixel pix;
-
-        CHECK_FOR_REQUIRED_ARGUMENTS(1);
-        ++i;
-        pix = atoi(argv[i]);
-        if (-1 == lastScreen) {
-            int j;
-
-            for (j = 0; j < MAXSCREENS; j++) {
-                vfbScreens[j].blackPixel = pix;
-            }
-        }
-        else {
-            vfbScreens[lastScreen].blackPixel = pix;
-        }
-        return 2;
-    }
-
-    if (strcmp(argv[i], "-whitepixel") == 0) {  /* -whitepixel n */
-        Pixel pix;
-
-        CHECK_FOR_REQUIRED_ARGUMENTS(1);
-        ++i;
-        pix = atoi(argv[i]);
-        if (-1 == lastScreen) {
-            int j;
-
-            for (j = 0; j < MAXSCREENS; j++) {
-                vfbScreens[j].whitePixel = pix;
-            }
-        }
-        else {
-            vfbScreens[lastScreen].whitePixel = pix;
-        }
-        return 2;
     }
 
     if (strcmp(argv[i], "-linebias") == 0) {    /* -linebias n */
@@ -645,91 +597,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
     }
 
     return 0;
-}
-
-static DevPrivateKeyRec cmapScrPrivateKeyRec;
-
-#define cmapScrPrivateKey (&cmapScrPrivateKeyRec)
-#define GetInstalledColormap(s) ((ColormapPtr) dixLookupPrivate(&(s)->devPrivates, cmapScrPrivateKey))
-#define SetInstalledColormap(s,c) (dixSetPrivate(&(s)->devPrivates, cmapScrPrivateKey, c))
-
-static int
-vfbListInstalledColormaps(ScreenPtr pScreen, Colormap * pmaps)
-{
-    /* By the time we are processing requests, we can guarantee that there
-     * is always a colormap installed */
-    *pmaps = GetInstalledColormap(pScreen)->mid;
-    return (1);
-}
-
-static void
-vfbInstallColormap(ColormapPtr pmap)
-{
-    ColormapPtr oldpmap;
-
-    oldpmap = GetInstalledColormap(pmap->pScreen);
-
-    if (pmap != oldpmap) {
-        int entries;
-        VisualPtr pVisual;
-        Pixel *ppix;
-        xrgb *prgb;
-        xColorItem *defs;
-        int i;
-
-        if (oldpmap != (ColormapPtr) None)
-            WalkTree(pmap->pScreen, TellLostMap, (char *) &oldpmap->mid);
-        /* Install pmap */
-        SetInstalledColormap(pmap->pScreen, pmap);
-        WalkTree(pmap->pScreen, TellGainedMap, (char *) &pmap->mid);
-
-        entries = pmap->pVisual->ColormapEntries;
-        pVisual = pmap->pVisual;
-
-        ppix = (Pixel *) calloc(entries, sizeof(Pixel));
-        prgb = (xrgb *) calloc(entries, sizeof(xrgb));
-        defs = (xColorItem *) calloc(entries, sizeof(xColorItem));
-        if (!ppix || !prgb || !defs)
-            FatalError("Not enough memory for color map\n");
-
-        for (i = 0; i < entries; i++)
-            ppix[i] = i;
-        /* XXX truecolor */
-        QueryColors(pmap, entries, ppix, prgb, serverClient);
-
-        for (i = 0; i < entries; i++) { /* convert xrgbs to xColorItems */
-            defs[i].pixel = ppix[i] & 0xff;     /* change pixel to index */
-            defs[i].red = prgb[i].red;
-            defs[i].green = prgb[i].green;
-            defs[i].blue = prgb[i].blue;
-            defs[i].flags = DoRed | DoGreen | DoBlue;
-        }
-        (*pmap->pScreen->StoreColors) (pmap, entries, defs);
-
-        free(ppix);
-        free(prgb);
-        free(defs);
-    }
-}
-
-static void
-vfbUninstallColormap(ColormapPtr pmap)
-{
-    ColormapPtr curpmap = GetInstalledColormap(pmap->pScreen);
-
-    if (pmap == curpmap) {
-        if (pmap->mid != pmap->pScreen->defColormap) {
-            int rc =
-                dixLookupResourceByType((void * *) &curpmap,
-                                        pmap->pScreen->defColormap,
-                                        RT_COLORMAP, serverClient,
-                                        DixUnknownAccess);
-            if (rc != Success)
-                ErrorF("Failed to uninstall color map\n");
-            else
-                (*pmap->pScreen->InstallColormap) (curpmap);
-        }
-    }
 }
 
 static Bool
@@ -1415,16 +1282,8 @@ static Bool
 vfbCloseScreen(ScreenPtr pScreen)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-    int i;
 
     pScreen->CloseScreen = pvfb->closeScreen;
-
-    /*
-     * XXX probably lots of stuff to clean.  For now,
-     * clear installed colormaps so that server reset works correctly.
-     */
-    for (i = 0; i < screenInfo.numScreens; i++)
-        SetInstalledColormap(screenInfo.screens[i], NULL);
 
     /*
      * fb overwrites miCloseScreen, so do this here
@@ -1446,9 +1305,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     void *pbits;
 
     rrScrPrivPtr rp;
-
-    if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
-        return FALSE;
 
     /* 96 is the default used by most other systems */
     dpi = 96;
@@ -1508,17 +1364,10 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
      * to a truely bizarre way of initialising SaveDoomedAreas and friends.
      */
 
-    pScreen->InstallColormap = vfbInstallColormap;
-    pScreen->UninstallColormap = vfbUninstallColormap;
-    pScreen->ListInstalledColormaps = vfbListInstalledColormaps;
-
     pScreen->SaveScreen = vfbSaveScreen;
 
     miPointerInitialize(pScreen, &vfbPointerSpriteFuncs, &vfbPointerCursorFuncs,
                         FALSE);
-
-    pScreen->blackPixel = pvfb->blackPixel;
-    pScreen->whitePixel = pvfb->whitePixel;
 
     if (!pvfb->pixelFormatDefined) {
         switch (pvfb->fb.depth) {
