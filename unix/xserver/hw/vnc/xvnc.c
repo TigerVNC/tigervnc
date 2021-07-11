@@ -378,7 +378,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
         if (screenNum < 0 || screenNum >= MAXSCREENS) {
             ErrorF("Invalid screen number %d\n", screenNum);
             UseMsg();
-            return 0;
+            FatalError("Invalid screen number %d passed to -screen\n",
+                       screenNum);
         }
         if (3 != sscanf(argv[i + 2], "%dx%dx%d",
                         &vfbScreens[screenNum].fb.width,
@@ -386,7 +387,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
                         &vfbScreens[screenNum].fb.depth)) {
             ErrorF("Invalid screen configuration %s\n", argv[i + 2]);
             UseMsg();
-            return 0;
+            FatalError("Invalid screen configuration %s for -screen %d\n",
+                       argv[i + 2], screenNum);
         }
 
         if (screenNum >= vfbNumScreens)
@@ -404,7 +406,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
             if (depth < 0 || depth > 32) {
                 ErrorF("Invalid pixmap depth %d\n", depth);
                 UseMsg();
-                return 0;
+                FatalError("Invalid pixmap depth %d passed to -pixdepths\n",
+                           depth);
             }
             vfbPixmapDepths[depth] = TRUE;
             ret++;
@@ -493,7 +496,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
                    &vfbScreens[0].fb.height) != 2) {
             ErrorF("Invalid geometry %s\n", argv[i]);
             UseMsg();
-            return 0;
+            FatalError("Invalid geometry %s passed to -geometry\n",
+                       argv[i]);
         }
         return 2;
     }
@@ -514,7 +518,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
         if (sscanf(argv[i], "%3s%1d%1d%1d", rgbbgr, &bits1, &bits2, &bits3) < 4) {
             ErrorF("Invalid pixel format %s\n", argv[i]);
             UseMsg();
-            return 0;
+            FatalError("Invalid pixel format %s passed to -pixelformat\n",
+                       argv[i]);
         }
 
 #define SET_PIXEL_FORMAT(vfbScreen)                     \
@@ -532,7 +537,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     } else {                                            \
         ErrorF("Invalid pixel format %s\n", argv[i]);   \
         UseMsg();                                       \
-        return 0;					\
+        FatalError("Invalid pixel format %s passed to -pixelformat\n", \
+                   argv[i]);                            \
     }
 
         if (-1 == lastScreen) {
