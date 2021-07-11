@@ -289,10 +289,8 @@ void ddxUseMsg(void)
 
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
-#ifdef RENDER
     ErrorF("+/-render		   turn on/off RENDER extension support"
 	   "(default on)\n");
-#endif
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
     ErrorF("-whitepixel n          pixel value for white\n");
@@ -1506,10 +1504,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     ret = fbScreenInit(pScreen, pbits, pvfb->fb.width, pvfb->fb.height,
 		       dpi, dpi, pvfb->fb.paddedWidth, pvfb->fb.bitsPerPixel);
   
-#ifdef RENDER
     if (ret && Render) 
 	ret = fbPictureInit (pScreen, 0, 0);
-#endif
 
     if (!ret) return FALSE;
 

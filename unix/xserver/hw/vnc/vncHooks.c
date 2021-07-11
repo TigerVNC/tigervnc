@@ -35,9 +35,7 @@
 #include "regionstr.h"
 #include "dixfontstr.h"
 #include "colormapst.h"
-#ifdef RENDER
 #include "picturestr.h"
-#endif
 #include "randrstr.h"
 
 #define DBGPRINT(x) //(fprintf x)
@@ -66,7 +64,6 @@ typedef struct _vncHooksScreenRec {
   CursorWarpedToProcPtr        CursorWarpedTo;
 #endif
   ScreenBlockHandlerProcPtr    BlockHandler;
-#ifdef RENDER
   CompositeProcPtr             Composite;
   GlyphsProcPtr                Glyphs;
   CompositeRectsProcPtr        CompositeRects;
@@ -74,7 +71,6 @@ typedef struct _vncHooksScreenRec {
   TrianglesProcPtr             Triangles;
   TriStripProcPtr              TriStrip;
   TriFanProcPtr                TriFan;
-#endif
   RRSetConfigProcPtr           rrSetConfig;
   RRScreenSetSizeProcPtr       rrScreenSetSize;
   RRCrtcSetProcPtr             rrCrtcSet;
@@ -128,7 +124,6 @@ static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout,
 #else
 static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout);
 #endif
-#ifdef RENDER
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
 			      PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
 			      INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
@@ -149,7 +144,6 @@ static void vncHooksTriStrip(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
             PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
             int npoint, xPointFixed * points);
-#endif
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
                                    int rate, RRScreenSizePtr pSize);
 static Bool vncHooksRandRScreenSetSize(ScreenPtr pScreen,
@@ -248,9 +242,7 @@ int vncHooksInit(int scrIdx)
   ScreenPtr pScreen;
   vncHooksScreenPtr vncHooksScreen;
 
-#ifdef RENDER
   PictureScreenPtr ps;
-#endif
   rrScrPrivPtr rp;
 
   pScreen = screenInfo.screens[scrIdx];
@@ -284,7 +276,6 @@ int vncHooksInit(int scrIdx)
   wrap(vncHooksScreen, pScreen, CursorWarpedTo, vncHooksCursorWarpedTo);
 #endif
   wrap(vncHooksScreen, pScreen, BlockHandler, vncHooksBlockHandler);
-#ifdef RENDER
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     wrap(vncHooksScreen, ps, Composite, vncHooksComposite);
@@ -295,7 +286,6 @@ int vncHooksInit(int scrIdx)
     wrap(vncHooksScreen, ps, TriStrip, vncHooksTriStrip);
     wrap(vncHooksScreen, ps, TriFan, vncHooksTriFan);
   }
-#endif
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     /* Some RandR callbacks are optional */
@@ -419,9 +409,7 @@ static inline Bool is_visible(DrawablePtr drawable)
 
 static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 {
-#ifdef RENDER
   PictureScreenPtr ps;
-#endif
   rrScrPrivPtr rp;
 
   SCREEN_PROLOGUE(pScreen_, CloseScreen);
@@ -431,7 +419,6 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
   unwrap(vncHooksScreen, pScreen, ClearToBackground);
   unwrap(vncHooksScreen, pScreen, DisplayCursor);
   unwrap(vncHooksScreen, pScreen, BlockHandler);
-#ifdef RENDER
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     unwrap(vncHooksScreen, ps, Composite);
@@ -442,7 +429,6 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
     unwrap(vncHooksScreen, ps, TriStrip);
     unwrap(vncHooksScreen, ps, TriFan);
   }
-#endif
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     unwrap(vncHooksScreen, rp, rrSetConfig);
@@ -681,8 +667,6 @@ static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout)
 
   SCREEN_EPILOGUE(BlockHandler);
 }
-
-#ifdef RENDER
 
 // Unwrap and rewrap helpers
 
@@ -1111,8 +1095,6 @@ static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   RENDER_EPILOGUE(TriFan);
 }
-
-#endif /* RENDER */
 
 // Unwrap and rewrap helpers
 
