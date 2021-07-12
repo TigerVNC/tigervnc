@@ -1065,12 +1065,22 @@ vncRandRSetPreferredMode(void *out, void *m)
 static Bool
 vncRandRInit(ScreenPtr pScreen)
 {
+    rrScrPrivPtr pScrPriv;
     RRCrtcPtr crtc;
     RRModePtr mode;
     Bool ret;
 
-    if (!RRInit())
+    if (!RRScreenInit(pScreen))
         return FALSE;
+
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    pScrPriv->rrGetInfo = vncRandRGetInfo;
+    pScrPriv->rrSetConfig = NULL;
+    pScrPriv->rrScreenSetSize = vncRandRScreenSetSize;
+    pScrPriv->rrCrtcSet = vncRandRCrtcSet;
+    pScrPriv->rrOutputValidateMode = vncRandROutputValidateMode;
+    pScrPriv->rrModeDestroy = vncRandRModeDestroy;
 
     /* These are completely arbitrary */
     RRScreenSetSizeRange(pScreen, 32, 32, 32768, 32768);
@@ -1124,8 +1134,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     int ret;
     void *pbits;
 
-    rrScrPrivPtr rp;
-
     /* 96 is the default used by most other systems */
     dpi = 96;
     if (monitorResolution)
@@ -1176,6 +1184,10 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     if (ret && Render)
         ret = fbPictureInit(pScreen, 0, 0);
 
+    if (!ret)
+        return FALSE;
+
+    ret = vncRandRInit(pScreen);
     if (!ret)
         return FALSE;
 
@@ -1240,23 +1252,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
-
-    ret = RRScreenInit(pScreen);
-    if (!ret)
-        return FALSE;
-
-    rp = rrGetScrPriv(pScreen);
-
-    rp->rrGetInfo = vncRandRGetInfo;
-    rp->rrSetConfig = NULL;
-    rp->rrScreenSetSize = vncRandRScreenSetSize;
-    rp->rrCrtcSet = vncRandRCrtcSet;
-    rp->rrOutputValidateMode = vncRandROutputValidateMode;
-    rp->rrModeDestroy = vncRandRModeDestroy;
-
-    ret = vncRandRInit(pScreen);
-    if (!ret)
-        return FALSE;
 
     return TRUE;
 
