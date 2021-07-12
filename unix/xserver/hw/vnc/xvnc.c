@@ -1320,11 +1320,6 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
     }
 }                               /* end InitOutput */
 
-/* this is just to get the server to link on AIX */
-#ifdef AIXV3
-int SelectWaitTime = 10000;     /* usec */
-#endif
-
 void
 DDXRingBell(int percent, int pitch, int duration)
 {
