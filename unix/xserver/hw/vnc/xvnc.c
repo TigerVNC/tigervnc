@@ -1172,11 +1172,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     if (!ret)
         return FALSE;
 
-    /*
-     * Circumvent the backing store that was just initialised.  This amounts
-     * to a truely bizarre way of initialising SaveDoomedAreas and friends.
-     */
-
     pScreen->SaveScreen = vfbSaveScreen;
 
     miPointerInitialize(pScreen, &vfbPointerSpriteFuncs, &vfbPointerCursorFuncs,
