@@ -113,8 +113,6 @@ typedef struct {
 
     unsigned int lineBias;
 
-    CloseScreenProcPtr closeScreen;
-
     vfbFramebufferInfo fb;
 
     Bool pixelFormatDefined;
@@ -1109,23 +1107,6 @@ vncRandRInit(ScreenPtr pScreen)
 }
 
 static Bool
-vfbCloseScreen(ScreenPtr pScreen)
-{
-    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-
-    pScreen->CloseScreen = pvfb->closeScreen;
-
-    /*
-     * fb overwrites miCloseScreen, so do this here
-     */
-    if (pScreen->devPrivate)
-        (*pScreen->DestroyPixmap) ((PixmapPtr) pScreen->devPrivate);
-    pScreen->devPrivate = NULL;
-
-    return pScreen->CloseScreen(pScreen);
-}
-
-static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
     int index = pScreen->myNum;
@@ -1249,9 +1230,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
         return FALSE;
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
-
-    pvfb->closeScreen = pScreen->CloseScreen;
-    pScreen->CloseScreen = vfbCloseScreen;
 
     return TRUE;
 
