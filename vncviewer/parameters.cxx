@@ -639,8 +639,8 @@ void saveViewerParameters(const char *filename, const char *servername) {
     throw Exception(_("Failed to write configuration file, can't open %s: %s"),
                     filepath, strerror(errno));
   
-  fprintf(f, "%s\r\n", IDENTIFIER_STRING);
-  fprintf(f, "\r\n");
+  fprintf(f, "%s\n", IDENTIFIER_STRING);
+  fprintf(f, "\n");
 
   if (encodeValue(servername, encodingBuffer, buffersize))
     fprintf(f, "ServerName=%s\n", encodingBuffer);
