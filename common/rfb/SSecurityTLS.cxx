@@ -176,26 +176,64 @@ void SSecurityTLS::setParams(gnutls_session_t session)
   static const char kx_anon_priority[] = ":+ANON-ECDH:+ANON-DH";
 
   int ret;
-  char *prio;
-  const char *err;
 
-  prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
-                       strlen(kx_anon_priority) + 1);
-  if (prio == NULL)
-    throw AuthFailureException("Not enough memory for GnuTLS priority string");
+  // Custom priority string specified?
+  if (strcmp(Security::GnuTLSPriority, "") != 0) {
+    char *prio;
+    const char *err;
 
-  strcpy(prio, Security::GnuTLSPriority);
-  if (anon)
+    prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
+                         strlen(kx_anon_priority) + 1);
+    if (prio == NULL)
+      throw AuthFailureException("Not enough memory for GnuTLS priority string");
+
+    strcpy(prio, Security::GnuTLSPriority);
+    if (anon)
+      strcat(prio, kx_anon_priority);
+
+    ret = gnutls_priority_set_direct(session, prio, &err);
+
+    free(prio);
+
+    if (ret != GNUTLS_E_SUCCESS) {
+      if (ret == GNUTLS_E_INVALID_REQUEST)
+        vlog.error("GnuTLS priority syntax error at: %s", err);
+      throw AuthFailureException("gnutls_set_priority_direct failed");
+    }
+  } else if (anon) {
+    const char *err;
+
+#if GNUTLS_VERSION_NUMBER >= 0x030603
+    ret = gnutls_set_default_priority_append(session, kx_anon_priority, &err, 0);
+    if (ret != GNUTLS_E_SUCCESS) {
+      if (ret == GNUTLS_E_INVALID_REQUEST)
+        vlog.error("GnuTLS priority syntax error at: %s", err);
+      throw AuthFailureException("gnutls_set_default_priority_append failed");
+    }
+#else
+    // We don't know what the system default priority is, so we guess
+    // it's what upstream GnuTLS has
+    static const char gnutls_default_priority[] = "NORMAL";
+    char *prio;
+
+    prio = (char*)malloc(strlen(gnutls_default_priority) +
+                         strlen(kx_anon_priority) + 1);
+    if (prio == NULL)
+      throw AuthFailureException("Not enough memory for GnuTLS priority string");
+
+    strcpy(prio, gnutls_default_priority);
     strcat(prio, kx_anon_priority);
 
-  ret = gnutls_priority_set_direct(session, prio, &err);
+    ret = gnutls_priority_set_direct(session, prio, &err);
 
-  free(prio);
+    free(prio);
 
-  if (ret != GNUTLS_E_SUCCESS) {
-    if (ret == GNUTLS_E_INVALID_REQUEST)
-      vlog.error("GnuTLS priority syntax error at: %s", err);
-    throw AuthFailureException("gnutls_set_priority_direct failed");
+    if (ret != GNUTLS_E_SUCCESS) {
+      if (ret == GNUTLS_E_INVALID_REQUEST)
+        vlog.error("GnuTLS priority syntax error at: %s", err);
+      throw AuthFailureException("gnutls_set_priority_direct failed");
+    }
+#endif
   }
 
   if (gnutls_dh_params_init(&dh_params) != GNUTLS_E_SUCCESS)
