@@ -618,7 +618,7 @@ static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
       }
     }
 
-    vncSetCursor(width, height, hotX, hotY, rgbaData);
+    vncSetCursorSprite(width, height, hotX, hotY, rgbaData);
 
     free(rgbaData);
   }

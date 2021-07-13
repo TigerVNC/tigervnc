@@ -79,8 +79,8 @@ void vncAddCopied(int scrIdx, int nRects,
                   const struct UpdateRect *rects,
                   int dx, int dy);
 
-void vncSetCursor(int width, int height, int hotX, int hotY,
-                  const unsigned char *rgbaData);
+void vncSetCursorSprite(int width, int height, int hotX, int hotY,
+                        const unsigned char *rgbaData);
 void vncSetCursorPos(int scrIdx, int x, int y);
 
 void vncPreScreenResize(int scrIdx);
