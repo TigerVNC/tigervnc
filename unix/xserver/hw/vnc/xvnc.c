@@ -78,7 +78,6 @@ extern char buildtime[];
 #define VFB_DEFAULT_WIDTH  1024
 #define VFB_DEFAULT_HEIGHT 768
 #define VFB_DEFAULT_DEPTH  24
-#define VFB_DEFAULT_LINEBIAS 0
 
 typedef struct {
     int width;
@@ -91,8 +90,6 @@ typedef struct {
 } vfbFramebufferInfo, *vfbFramebufferInfoPtr;
 
 typedef struct {
-    unsigned int lineBias;
-
     vfbFramebufferInfo fb;
 
     Bool pixelFormatDefined;
@@ -135,7 +132,6 @@ vfbInitializeDefaultScreens(void)
     int i;
 
     for (i = 0; i < MAXSCREENS; i++) {
-        vfbScreens[i].lineBias = VFB_DEFAULT_LINEBIAS;
         vfbScreens[i].fb.width = VFB_DEFAULT_WIDTH;
         vfbScreens[i].fb.height = VFB_DEFAULT_HEIGHT;
         vfbScreens[i].fb.pfbMemory = NULL;
@@ -236,7 +232,6 @@ ddxUseMsg(void)
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
     ErrorF("+/-render		   turn on/off RENDER extension support"
            "(default on)\n");
-    ErrorF("-linebias n            adjust thin line pixelization\n");
 
     ErrorF("-geometry WxH          set screen 0's width, height\n");
     ErrorF("-depth D               set screen 0's depth\n");
@@ -356,25 +351,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-render") == 0) {      /* -render */
         Render = FALSE;
         return 1;
-    }
-
-    if (strcmp(argv[i], "-linebias") == 0) {    /* -linebias n */
-        unsigned int linebias;
-
-        CHECK_FOR_REQUIRED_ARGUMENTS(1);
-        ++i;
-        linebias = atoi(argv[i]);
-        if (-1 == lastScreen) {
-            int j;
-
-            for (j = 0; j < MAXSCREENS; j++) {
-                vfbScreens[j].lineBias = linebias;
-            }
-        }
-        else {
-            vfbScreens[lastScreen].lineBias = linebias;
-        }
-        return 2;
     }
 
     if (strcmp(argv[i], "-geometry") == 0) {
@@ -1204,8 +1180,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     ret = fbCreateDefColormap(pScreen);
     if (!ret)
         return FALSE;
-
-    miSetZeroLineBias(pScreen, pvfb->lineBias);
 
     return TRUE;
 
