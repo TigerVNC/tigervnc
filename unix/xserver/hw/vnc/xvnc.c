@@ -79,31 +79,18 @@ extern char buildtime[];
 #define VFB_DEFAULT_HEIGHT 768
 #define VFB_DEFAULT_DEPTH  24
 #define VFB_DEFAULT_LINEBIAS 0
-#define XWD_WINDOW_NAME_LEN 60
 
 typedef struct {
     int width;
-    int height;
-
-    int depth;
-
-    /* Computed when allocated */
-
     int paddedBytesWidth;
     int paddedWidth;
-
+    int height;
+    int depth;
     int bitsPerPixel;
-
-    /* Private */
-
-    int sizeInBytes;
-
     void *pfbMemory;
 } vfbFramebufferInfo, *vfbFramebufferInfoPtr;
 
 typedef struct {
-    int scrnum;
-
     unsigned int lineBias;
 
     vfbFramebufferInfo fb;
@@ -148,7 +135,6 @@ vfbInitializeDefaultScreens(void)
     int i;
 
     for (i = 0; i < MAXSCREENS; i++) {
-        vfbScreens[i].scrnum = i;
         vfbScreens[i].lineBias = VFB_DEFAULT_LINEBIAS;
         vfbScreens[i].fb.width = VFB_DEFAULT_WIDTH;
         vfbScreens[i].fb.height = VFB_DEFAULT_HEIGHT;
@@ -558,6 +544,8 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
 static void *
 vfbAllocateFramebufferMemory(vfbFramebufferInfoPtr pfb)
 {
+    size_t sizeInBytes;
+
     if (pfb->pfbMemory != NULL)
         return pfb->pfbMemory;  /* already done */
 
@@ -565,10 +553,10 @@ vfbAllocateFramebufferMemory(vfbFramebufferInfoPtr pfb)
     pfb->paddedBytesWidth = PixmapBytePad(pfb->width, pfb->depth);
     pfb->bitsPerPixel = vfbBitsPerPixel(pfb->depth);
     pfb->paddedWidth = pfb->paddedBytesWidth * 8 / pfb->bitsPerPixel;
-    pfb->sizeInBytes = pfb->paddedBytesWidth * pfb->height;
 
     /* And allocate buffer */
-    pfb->pfbMemory = malloc(pfb->sizeInBytes);
+    sizeInBytes = pfb->paddedBytesWidth * pfb->height;
+    pfb->pfbMemory = malloc(sizeInBytes);
 
     /* This will be NULL if the above failed */
     return pfb->pfbMemory;
