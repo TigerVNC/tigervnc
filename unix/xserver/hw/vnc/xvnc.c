@@ -97,10 +97,15 @@ typedef struct {
     int redBits, greenBits, blueBits;
 } vfbScreenInfo, *vfbScreenInfoPtr;
 
-static int vfbNumScreens;
-static vfbScreenInfo vfbScreens[MAXSCREENS];
+static vfbScreenInfo vncScreenInfo = {
+    .fb.width = VFB_DEFAULT_WIDTH,
+    .fb.height = VFB_DEFAULT_HEIGHT,
+    .fb.depth = VFB_DEFAULT_DEPTH,
+    .fb.pfbMemory = NULL,
+    .pixelFormatDefined = FALSE,
+};
+
 static Bool vfbPixmapDepths[33];
-static int lastScreen = -1;
 static Bool Render = TRUE;
 
 static Bool displaySpecified = FALSE;
@@ -124,21 +129,6 @@ vfbInitializePixmapDepths(void)
     vfbPixmapDepths[1] = TRUE;  /* always need bitmaps */
     for (i = 2; i <= 32; i++)
         vfbPixmapDepths[i] = FALSE;
-}
-
-static void
-vfbInitializeDefaultScreens(void)
-{
-    int i;
-
-    for (i = 0; i < MAXSCREENS; i++) {
-        vfbScreens[i].fb.width = VFB_DEFAULT_WIDTH;
-        vfbScreens[i].fb.height = VFB_DEFAULT_HEIGHT;
-        vfbScreens[i].fb.pfbMemory = NULL;
-        vfbScreens[i].fb.depth = VFB_DEFAULT_DEPTH;
-        vfbScreens[i].pixelFormatDefined = FALSE;
-    }
-    vfbNumScreens = 1;
 }
 
 static int
@@ -181,11 +171,8 @@ DPMSSupported(void)
 void
 ddxGiveUp(enum ExitCode error)
 {
-    int i;
-
     /* clean up the framebuffers */
-    for (i = 0; i < vfbNumScreens; i++)
-        vfbFreeFramebufferMemory(&vfbScreens[i].fb);
+    vfbFreeFramebufferMemory(&vncScreenInfo.fb);
 }
 
 void
@@ -228,7 +215,6 @@ ddxUseMsg(void)
 {
     vncPrintBanner();
 
-    ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
     ErrorF("+/-render		   turn on/off RENDER extension support"
            "(default on)\n");
@@ -282,7 +268,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         /* Force -noreset as default until we properly handle resets */
         dispatchExceptionAtReset = 0;
 
-        vfbInitializeDefaultScreens();
         vfbInitializePixmapDepths();
         firstTime = FALSE;
         vncInitRFB();
@@ -296,33 +281,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
       ErrorF("Required argument to %s not specified\n", argv[i]);       \
       UseMsg();                                                         \
       FatalError("Required argument to %s not specified\n", argv[i]);   \
-    }
-
-    if (strcmp(argv[i], "-screen") == 0) {      /* -screen n WxHxD */
-        int screenNum;
-
-        CHECK_FOR_REQUIRED_ARGUMENTS(2);
-        screenNum = atoi(argv[i + 1]);
-        if (screenNum < 0 || screenNum >= MAXSCREENS) {
-            ErrorF("Invalid screen number %d\n", screenNum);
-            UseMsg();
-            FatalError("Invalid screen number %d passed to -screen\n",
-                       screenNum);
-        }
-        if (3 != sscanf(argv[i + 2], "%dx%dx%d",
-                        &vfbScreens[screenNum].fb.width,
-                        &vfbScreens[screenNum].fb.height,
-                        &vfbScreens[screenNum].fb.depth)) {
-            ErrorF("Invalid screen configuration %s\n", argv[i + 2]);
-            UseMsg();
-            FatalError("Invalid screen configuration %s for -screen %d\n",
-                       argv[i + 2], screenNum);
-        }
-
-        if (screenNum >= vfbNumScreens)
-            vfbNumScreens = screenNum + 1;
-        lastScreen = screenNum;
-        return 3;
     }
 
     if (strcmp(argv[i], "-pixdepths") == 0) {   /* -pixdepths list-of-depth */
@@ -356,8 +314,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-geometry") == 0) {
         CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
-        if (sscanf(argv[i], "%dx%d", &vfbScreens[0].fb.width,
-                   &vfbScreens[0].fb.height) != 2) {
+        if (sscanf(argv[i], "%dx%d", &vncScreenInfo.fb.width,
+                   &vncScreenInfo.fb.height) != 2) {
             ErrorF("Invalid geometry %s\n", argv[i]);
             UseMsg();
             FatalError("Invalid geometry %s passed to -geometry\n",
@@ -369,7 +327,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-depth") == 0) {
         CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
-        vfbScreens[0].fb.depth = atoi(argv[i]);
+        vncScreenInfo.fb.depth = atoi(argv[i]);
         return 2;
     }
 
@@ -386,34 +344,22 @@ ddxProcessArgument(int argc, char *argv[], int i)
                        argv[i]);
         }
 
-#define SET_PIXEL_FORMAT(vfbScreen)                     \
-    (vfbScreen).pixelFormatDefined = TRUE;              \
-    (vfbScreen).fb.depth = bits1 + bits2 + bits3;          \
-    (vfbScreen).greenBits = bits2;                      \
-    if (strcasecmp(rgbbgr, "bgr") == 0) {               \
-        (vfbScreen).rgbNotBgr = FALSE;                  \
-        (vfbScreen).redBits = bits3;                    \
-        (vfbScreen).blueBits = bits1;                   \
-    } else if (strcasecmp(rgbbgr, "rgb") == 0) {        \
-        (vfbScreen).rgbNotBgr = TRUE;                   \
-        (vfbScreen).redBits = bits1;                    \
-        (vfbScreen).blueBits = bits3;                   \
-    } else {                                            \
-        ErrorF("Invalid pixel format %s\n", argv[i]);   \
-        UseMsg();                                       \
-        FatalError("Invalid pixel format %s passed to -pixelformat\n", \
-                   argv[i]);                            \
-    }
-
-        if (-1 == lastScreen) {
-            int j;
-
-            for (j = 0; j < MAXSCREENS; j++) {
-                SET_PIXEL_FORMAT(vfbScreens[j]);
-            }
-        }
-        else {
-            SET_PIXEL_FORMAT(vfbScreens[lastScreen]);
+        vncScreenInfo.pixelFormatDefined = TRUE;
+        vncScreenInfo.fb.depth = bits1 + bits2 + bits3;
+        vncScreenInfo.greenBits = bits2;
+        if (strcasecmp(rgbbgr, "bgr") == 0) {
+            vncScreenInfo.rgbNotBgr = FALSE;
+            vncScreenInfo.redBits = bits3;
+            vncScreenInfo.blueBits = bits1;
+        } else if (strcasecmp(rgbbgr, "rgb") == 0) {
+            vncScreenInfo.rgbNotBgr = TRUE;
+            vncScreenInfo.redBits = bits1;
+            vncScreenInfo.blueBits = bits3;
+        } else {
+            ErrorF("Invalid pixel format %s\n", argv[i]);
+            UseMsg();
+            FatalError("Invalid pixel format %s passed to -pixelformat\n",
+                       argv[i]);
         }
 
         return 2;
@@ -551,40 +497,6 @@ vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb)
 static Bool
 vfbCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 {
-    int absX, absY;
-    int i;
-
-    if (screenInfo.numScreens == 1)
-        return FALSE;
-
-    if ((*x >= 0) && (*x < (*ppScreen)->width) &&
-        (*y >= 0) && (*y < (*ppScreen)->height))
-        return FALSE;
-
-    absX = *x + (*ppScreen)->x;
-    absY = *y + (*ppScreen)->y;
-
-    for (i = 0; i < screenInfo.numScreens; i++) {
-        ScreenPtr newScreen;
-
-        newScreen = screenInfo.screens[i];
-
-        if (absX < newScreen->x)
-            continue;
-        if (absY < newScreen->y)
-            continue;
-        if (absX >= (newScreen->x + newScreen->width))
-            continue;
-        if (absY >= (newScreen->y + newScreen->height))
-            continue;
-
-        *ppScreen = newScreen;
-        *x = absX - newScreen->x;
-        *y = absY - newScreen->y;
-
-        return TRUE;
-    }
-
     return FALSE;
 }
 
@@ -660,7 +572,6 @@ vncRandRScreenSetSize(ScreenPtr pScreen,
                       CARD16 width, CARD16 height,
                       CARD32 mmWidth, CARD32 mmHeight)
 {
-    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
     vfbFramebufferInfo fb;
     rrScrPrivPtr rp = rrGetScrPriv(pScreen);
     PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
@@ -688,7 +599,7 @@ vncRandRScreenSetSize(ScreenPtr pScreen,
 
     fb.width = pScreen->width;
     fb.height = pScreen->height;
-    fb.depth = pvfb->fb.depth;
+    fb.depth = vncScreenInfo.fb.depth;
 
     pbits = vfbAllocateFramebufferMemory(&fb);
     if (!pbits) {
@@ -721,8 +632,8 @@ vncRandRScreenSetSize(ScreenPtr pScreen,
     }
 
     /* Free the old framebuffer and keep the info about the new one */
-    vfbFreeFramebufferMemory(&pvfb->fb);
-    memcpy(&pvfb->fb, &fb, sizeof(vfbFramebufferInfo));
+    vfbFreeFramebufferMemory(&vncScreenInfo.fb);
+    vncScreenInfo.fb = fb;
 
     /* Let VNC get the new framebuffer (actual update is in vncHooks.cc) */
     vncFbptr[pScreen->myNum] = pbits;
@@ -1066,8 +977,6 @@ vncRandRInit(ScreenPtr pScreen)
 static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
-    int index = pScreen->myNum;
-    vfbScreenInfoPtr pvfb = &vfbScreens[index];
     int dpi;
     int ret;
     void *pbits;
@@ -1077,15 +986,15 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     if (monitorResolution)
         dpi = monitorResolution;
 
-    pbits = vfbAllocateFramebufferMemory(&pvfb->fb);
+    pbits = vfbAllocateFramebufferMemory(&vncScreenInfo.fb);
     if (!pbits)
         return FALSE;
-    vncFbptr[index] = pbits;
-    vncFbstride[index] = pvfb->fb.paddedWidth;
+    vncFbptr[0] = pbits;
+    vncFbstride[0] = vncScreenInfo.fb.paddedWidth;
 
     miSetPixmapDepths();
 
-    switch (pvfb->fb.depth) {
+    switch (vncScreenInfo.fb.depth) {
     case 16:
         miSetVisualTypesAndMasks(16,
                                  ((1 << TrueColor) |
@@ -1109,15 +1018,10 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
         return FALSE;
     }
 
-    if (index > 0) {
-        ScreenPtr prevScreen = screenInfo.screens[index - 1];
-
-        pScreen->x = prevScreen->x + prevScreen->width;
-        pScreen->y = 0;
-    }
-
-    ret = fbScreenInit(pScreen, pbits, pvfb->fb.width, pvfb->fb.height,
-                       dpi, dpi, pvfb->fb.paddedWidth, pvfb->fb.bitsPerPixel);
+    ret = fbScreenInit(pScreen, pbits,
+                       vncScreenInfo.fb.width, vncScreenInfo.fb.height,
+                       dpi, dpi, vncScreenInfo.fb.paddedWidth,
+                       vncScreenInfo.fb.bitsPerPixel);
 
     if (ret && Render)
         ret = fbPictureInit(pScreen, 0, 0);
@@ -1134,44 +1038,44 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     miPointerInitialize(pScreen, &vfbPointerSpriteFuncs, &vfbPointerCursorFuncs,
                         FALSE);
 
-    if (!pvfb->pixelFormatDefined) {
-        switch (pvfb->fb.depth) {
+    if (!vncScreenInfo.pixelFormatDefined) {
+        switch (vncScreenInfo.fb.depth) {
         case 16:
-            pvfb->pixelFormatDefined = TRUE;
-            pvfb->rgbNotBgr = TRUE;
-            pvfb->blueBits = pvfb->redBits = 5;
-            pvfb->greenBits = 6;
+            vncScreenInfo.pixelFormatDefined = TRUE;
+            vncScreenInfo.rgbNotBgr = TRUE;
+            vncScreenInfo.blueBits = vncScreenInfo.redBits = 5;
+            vncScreenInfo.greenBits = 6;
             break;
         case 24:
         case 32:
-            pvfb->pixelFormatDefined = TRUE;
-            pvfb->rgbNotBgr = TRUE;
-            pvfb->blueBits = pvfb->redBits = pvfb->greenBits = 8;
+            vncScreenInfo.pixelFormatDefined = TRUE;
+            vncScreenInfo.rgbNotBgr = TRUE;
+            vncScreenInfo.blueBits = vncScreenInfo.redBits = vncScreenInfo.greenBits = 8;
             break;
         }
     }
 
-    if (pvfb->pixelFormatDefined) {
+    if (vncScreenInfo.pixelFormatDefined) {
         VisualPtr vis = pScreen->visuals;
 
         for (int i = 0; i < pScreen->numVisuals; i++) {
-            if (pvfb->rgbNotBgr) {
+            if (vncScreenInfo.rgbNotBgr) {
                 vis->offsetBlue = 0;
-                vis->blueMask = (1 << pvfb->blueBits) - 1;
-                vis->offsetGreen = pvfb->blueBits;
+                vis->blueMask = (1 << vncScreenInfo.blueBits) - 1;
+                vis->offsetGreen = vncScreenInfo.blueBits;
                 vis->greenMask =
-                    ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
-                vis->offsetRed = vis->offsetGreen + pvfb->greenBits;
-                vis->redMask = ((1 << pvfb->redBits) - 1) << vis->offsetRed;
+                    ((1 << vncScreenInfo.greenBits) - 1) << vis->offsetGreen;
+                vis->offsetRed = vis->offsetGreen + vncScreenInfo.greenBits;
+                vis->redMask = ((1 << vncScreenInfo.redBits) - 1) << vis->offsetRed;
             }
             else {
                 vis->offsetRed = 0;
-                vis->redMask = (1 << pvfb->redBits) - 1;
-                vis->offsetGreen = pvfb->redBits;
+                vis->redMask = (1 << vncScreenInfo.redBits) - 1;
+                vis->offsetGreen = vncScreenInfo.redBits;
                 vis->greenMask =
-                    ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
-                vis->offsetBlue = vis->offsetGreen + pvfb->greenBits;
-                vis->blueMask = ((1 << pvfb->blueBits) - 1) << vis->offsetBlue;
+                    ((1 << vncScreenInfo.greenBits) - 1) << vis->offsetGreen;
+                vis->offsetBlue = vis->offsetGreen + vncScreenInfo.greenBits;
+                vis->blueMask = ((1 << vncScreenInfo.blueBits) - 1) << vis->offsetBlue;
             }
             vis++;
         }
@@ -1230,9 +1134,7 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
     /* initialize pixmap formats */
 
     /* must have a pixmap depth to match every screen depth */
-    for (i = 0; i < vfbNumScreens; i++) {
-        vfbPixmapDepths[vfbScreens[i].fb.depth] = TRUE;
-    }
+    vfbPixmapDepths[vncScreenInfo.fb.depth] = TRUE;
 
     /* RENDER needs a good set of pixmaps. */
     if (Render) {
@@ -1262,12 +1164,10 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
     scrInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
     scrInfo->numPixmapFormats = NumFormats;
 
-    /* initialize screens */
+    /* initialize screen */
 
-    for (i = 0; i < vfbNumScreens; i++) {
-        if (-1 == AddScreen(vfbScreenInit, argc, argv)) {
-            FatalError("Couldn't add screen %d\n", i);
-        }
+    if (AddScreen(vfbScreenInit, argc, argv) == -1) {
+        FatalError("Couldn't add screen\n");
     }
 
     if (!AddCallback(&ClientStateCallback, vfbClientStateChange, 0)) {
