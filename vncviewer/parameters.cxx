@@ -103,11 +103,15 @@ IntParameter qualityLevel("QualityLevel",
 BoolParameter maximize("Maximize", "Maximize viewer window", false);
 BoolParameter fullScreen("FullScreen", "Enable full screen", false);
 StringParameter fullScreenMode("FullScreenMode", "Specify which monitors to use when in full screen. "
-                                                 "Should be either Current or All",
+                                                 "Should be either Current, Selected or All",
                                                  "Current");
 BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
                                     "[DEPRECATED] Enable full screen over all monitors",
                                     false);
+MonitorIndicesParameter fullScreenSelectedMonitors("FullScreenSelectedMonitors",
+                                         "Use the given list of monitors in full screen"
+                                         " when -FullScreenMode=Selected.",
+                                         "1");
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
@@ -179,6 +183,7 @@ static VoidParameter* parameterArray[] = {
   &qualityLevel,
   &fullScreen,
   &fullScreenMode,
+  &fullScreenSelectedMonitors,
   &desktopSize,
   &remoteResize,
   &viewOnly,

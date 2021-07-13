@@ -883,8 +883,9 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 void DesktopWindow::fullscreen_on()
 {
   bool all_monitors = !strcasecmp(fullScreenMode, "all");
+  bool selected_monitors = !strcasecmp(fullScreenMode, "selected");
 
-  if (not all_monitors)
+  if (not selected_monitors and not all_monitors)
     fullscreen_screens(-1, -1, -1, -1);
   else {
     int top, bottom, left, right;
@@ -892,30 +893,57 @@ void DesktopWindow::fullscreen_on()
 
     int sx, sy, sw, sh;
 
-    top = bottom = left = right = 0;
+    std::set<int> monitors;
 
-    Fl::screen_xywh(sx, sy, sw, sh, 0);
+    if (selected_monitors and not all_monitors) {
+      std::set<int> selected = fullScreenSelectedMonitors.getParam();
+      monitors.insert(selected.begin(), selected.end());
+    } else {
+      for (int i = 0; i < Fl::screen_count(); i++) {
+        monitors.insert(i);
+      }
+    }
+
+    // If no monitors were found in the selected monitors case, we want
+    // to explicitly use the window's current monitor.
+    if (monitors.size() == 0) {
+      monitors.insert(Fl::screen_num(x(), y(), w(), h()));
+    }
+
+    // If there are monitors selected, calculate the dimensions
+    // of the frame buffer, expressed in the monitor indices that
+    // limits it.
+    std::set<int>::iterator it = monitors.begin();
+
+    // Get first monitor dimensions.
+    Fl::screen_xywh(sx, sy, sw, sh, *it);
+    top = bottom = left = right = *it;
     top_y = sy;
     bottom_y = sy + sh;
     left_x = sx;
     right_x = sx + sw;
 
-    for (int i = 1;i < Fl::screen_count();i++) {
-      Fl::screen_xywh(sx, sy, sw, sh, i);
+    // Keep going through the rest of the monitors.
+    for (; it != monitors.end(); it++) {
+      Fl::screen_xywh(sx, sy, sw, sh, *it);
+
       if (sy < top_y) {
-        top = i;
+        top = *it;
         top_y = sy;
       }
+
       if ((sy + sh) > bottom_y) {
-        bottom = i;
+        bottom = *it;
         bottom_y = sy + sh;
       }
+
       if (sx < left_x) {
-        left = i;
+        left = *it;
         left_x = sx;
       }
+
       if ((sx + sw) > right_x) {
-        right = i;
+        right = *it;
         right_x = sx + sw;
       }
     }
