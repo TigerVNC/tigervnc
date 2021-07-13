@@ -35,6 +35,7 @@
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
 #include <rfb/XF86keysym.h>
+#include <rfb/Rect.h>
 
 #include "keysym2ucs.h"
 
@@ -49,31 +50,35 @@ const int kVK_Menu = 0x6E;
 
 static bool captured = false;
 
-int cocoa_capture_display(Fl_Window *win, bool all_displays)
+int cocoa_capture_displays(Fl_Window *win)
 {
   NSWindow *nsw;
 
   nsw = (NSWindow*)fl_xid(win);
 
   if (!captured) {
-    if (all_displays) {
-      if (CGCaptureAllDisplays() != kCGErrorSuccess)
-        return 1;
-    } else {
-      CGDirectDisplayID displays[16];
-      CGDisplayCount count;
-      int index;
+    CGDisplayCount count;
+    CGDirectDisplayID displays[16];
 
-      if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
-        return 1;
+    int sx, sy, sw, sh;
+    rfb::Rect windows_rect, screen_rect;
 
-      if (count != (unsigned)Fl::screen_count())
-        return 1;
+    windows_rect.setXYWH(win->x(), win->y(), win->w(), win->h());
 
-      index = Fl::screen_num(win->x(), win->y(), win->w(), win->h());
+    if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
+      return 1;
 
-      if (CGDisplayCapture(displays[index]) != kCGErrorSuccess)
-        return 1;
+    if (count != (unsigned)Fl::screen_count())
+      return 1;
+
+    for (int i = 0; i < Fl::screen_count(); i++) {
+      Fl::screen_xywh(sx, sy, sw, sh, i);
+
+      screen_rect.setXYWH(sx, sy, sw, sh);
+      if (screen_rect.enclosed_by(windows_rect)) {
+        if (CGDisplayCapture(displays[i]) != kCGErrorSuccess)
+          return 1;
+      }
     }
 
     captured = true;
@@ -87,7 +92,7 @@ int cocoa_capture_display(Fl_Window *win, bool all_displays)
   return 0;
 }
 
-void cocoa_release_display(Fl_Window *win)
+void cocoa_release_displays(Fl_Window *win)
 {
   NSWindow *nsw;
   int newlevel;
