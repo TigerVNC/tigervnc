@@ -38,16 +38,11 @@ from the X Consortium.
 #include "RandrGlue.h"
 #include "xorg-version.h"
 
-#ifdef WIN32
-#include <X11/Xwinsock.h>
-#endif
 #include <stdio.h>
 #include <X11/X.h>
-#define NEED_EVENTS
 #include <X11/Xproto.h>
 #include <X11/Xos.h>
 #include "scrnintstr.h"
-#include "glx_extinit.h"
 #include "servermd.h"
 #include "fb.h"
 #include "mi.h"
@@ -58,13 +53,11 @@ from the X Consortium.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#ifndef WIN32
 #include <sys/param.h>
-#endif
-#include <X11/XWDFile.h>
 #include "dix.h"
 #include "os.h"
 #include "miline.h"
+#include "glx_extinit.h"
 #include "inputstr.h"
 #include "randrstr.h"
 #ifdef DPMSExtension
