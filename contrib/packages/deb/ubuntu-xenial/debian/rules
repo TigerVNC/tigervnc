@@ -47,7 +47,6 @@ xorg-source-stamp: $(XORG_SOURCE_ARCHIVE)
 	tar -C unix/xserver -axf $(XORG_SOURCE_ARCHIVE) --strip-components=1
 	patch -p1 < debian/xorg-source-patches/xserver118-patch.patch
 	cd unix/xserver && patch -p1 < ../xserver118.patch
-	patch -p1 < debian/xorg-source-patches/100_rethrow_signals.patch
 	patch -p1 < debian/xorg-source-patches/516_tigervnc-xorg-manpages.patch
 	touch xorg-source-stamp
 
