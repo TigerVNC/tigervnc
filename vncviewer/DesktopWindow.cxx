@@ -463,7 +463,8 @@ void DesktopWindow::draw()
     int ox, oy, ow, oh;
     int sx, sy, sw, sh;
 
-    bool multiple_monitors = !strcasecmp(fullScreenMode, "all");
+    bool multiple_monitors = !strcasecmp(fullScreenMode, "selected")
+                          || !strcasecmp(fullScreenMode, "all");
 
     if (fullscreen_active() && multiple_monitors) {
       rfb::Rect viewport_rect, screen_rect;
@@ -878,48 +879,60 @@ void DesktopWindow::fullscreen_on()
   int top, bottom, left, right;
   top = bottom = left = right = -1;
   bool all_monitors = !strcasecmp(fullScreenMode, "all");
+  bool selected_monitors = !strcasecmp(fullScreenMode, "selected");
 
-  if (all_monitors) {
+  if (selected_monitors || all_monitors) {
       std::set<int> monitors;
 
-      for (int i = 0; i < Fl::screen_count(); i++) {
-        monitors.insert(i);
+      if (selected_monitors && !all_monitors) {
+        std::set<int> selected = fullScreenSelectedMonitors.getParam();
+        monitors.insert(selected.begin(), selected.end());
+      } else {
+        for (int i = 0; i < Fl::screen_count(); i++) {
+          monitors.insert(i);
+        }
       }
 
-      int x, y, w, h;
-      int top_y, bottom_y, left_x, right_x;
-      std::set<int>::iterator it = monitors.begin();
+      // If there are monitors selected, calculate the dimensions
+      // of the frame buffer, expressed in the monitor indices that
+      // limits it. 
+      if (monitors.size() > 0) {
+        
+        int x, y, w, h;
+        int top_y, bottom_y, left_x, right_x;
+        std::set<int>::iterator it = monitors.begin();
 
-      // Get first monitor dimensions.
-      Fl::screen_xywh(x, y, w, h, *it);
-      top = bottom = left = right = *it;
-      top_y = y;
-      bottom_y = y + h;
-      left_x = x;
-      right_x = x + w;
-
-      // Keep going through the rest of the monitors.
-      for (; it != monitors.end(); it++) {
+        // Get first monitor dimensions.
         Fl::screen_xywh(x, y, w, h, *it);
+        top = bottom = left = right = *it;
+        top_y = y;
+        bottom_y = y + h;
+        left_x = x;
+        right_x = x + w;
 
-        if (y < top_y) {
-          top = *it;
-          top_y = y;
-        }
+        // Keep going through the rest of the monitors.
+        for (; it != monitors.end(); it++) {
+          Fl::screen_xywh(x, y, w, h, *it);
 
-        if ((y + h) > bottom_y) {
-          bottom = *it;
-          bottom_y = y + h;
-        }
+          if (y < top_y) {
+            top = *it;
+            top_y = y;
+          }
 
-        if (x < left_x) {
-          left = *it;
-          left_x = x;
-        }
+          if ((y + h) > bottom_y) {
+            bottom = *it;
+            bottom_y = y + h;
+          }
 
-        if ((x + w) > right_x) {
-          right = *it;
-          right_x = x + w;
+          if (x < left_x) {
+            left = *it;
+            left_x = x;
+          }
+
+          if ((x + w) > right_x) {
+            right = *it;
+            right_x = x + w;
+          }
         }
       }
   }
