@@ -28,10 +28,31 @@
 #include <FL/fl_draw.H>
 #include <FL/Fl_Button.H>
 
-#include <rfb/Rect.h>
+#if defined(HAVE_XRANDR) && !defined(__APPLE__)
+#include <X11/extensions/Xrandr.h>
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#endif
 
+#ifdef __APPLE__
+#include <Carbon/Carbon.h>
+#include <IOKit/graphics/IOGraphicsLib.h>
+#include <IOKit/hidsystem/IOHIDLib.h>
+#include <IOKit/hidsystem/IOHIDParameter.h>
+#endif
+
+#include <rfb/Rect.h>
+#include <rfb/LogWriter.h>
+
+#ifdef WIN32
+#include "win32.h"
+#endif
+
+#include "i18n.h"
 #include "MonitorArrangement.h"
 
+static rfb::LogWriter vlog("MonitorArrangement");
 static const Fl_Boxtype FL_CHECKERED_BOX = FL_FREE_BOXTYPE;
 
 MonitorArrangement::MonitorArrangement(
@@ -116,6 +137,9 @@ void MonitorArrangement::layout()
     monitor->when(FL_WHEN_CHANGED);
     m_monitors.push_back(monitor);
   }
+
+  for (int i = 0; i < (int) m_monitors.size(); i++)
+    m_monitors[i]->copy_tooltip(description(i).c_str());
 }
 
 bool MonitorArrangement::is_required(int m)
@@ -253,6 +277,146 @@ std::pair<int, int> MonitorArrangement::origin()
   }
 
   return std::make_pair(ox, oy);
+}
+
+std::string MonitorArrangement::description(int m)
+{
+  assert(m < (int) m_monitors.size());
+  const size_t name_len = 1024;
+  char name[name_len] = {};
+  int bytes_written = get_monitor_name(m, name, name_len);
+
+  int x, y, w, h;
+  Fl::screen_xywh(x, y, w, h, m);
+  std::stringstream ss;
+
+  if (bytes_written > 0)
+    ss << name << " (" << w << "x" << h << ")";
+  else
+    ss << w << "x" << h;
+
+  return ss.str();
+}
+
+int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
+{
+#if defined(WIN32)
+  int x, y, w, h;
+  Fl::screen_xywh(x, y, w, h, m);
+  return win32_get_monitor_name(x, y, w, h, name, name_len);
+
+#elif defined(__APPLE__)
+  CGDisplayCount count;
+  int bytes_written = 0;
+  CGDirectDisplayID displays[16];
+
+  if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
+    return -1;
+
+  if (count != (unsigned)Fl::screen_count())
+    return -1;
+
+  if (m >= (int)count)
+    return -1;
+
+  // Notice: Here we assume indices to be ordered the same as in FLTK (we rely on that in cocoa.mm as well).
+  CGDirectDisplayID displayID = displays[m];
+
+  CFDictionaryRef info = IODisplayCreateInfoDictionary(
+    /* display = */ CGDisplayIOServicePort(displayID),
+    /* options = */ kIODisplayOnlyPreferredName);
+
+  CFDictionaryRef dict = (CFDictionaryRef) CFDictionaryGetValue(info, CFSTR(kDisplayProductName));
+  CFIndex dict_len = CFDictionaryGetCount(dict);
+
+  if (dict_len > 0) {
+    CFTypeRef * names = new CFTypeRef[dict_len];
+    CFDictionaryGetKeysAndValues(dict, NULL, (const void **) names);
+
+    if (names[0]) {
+
+      // Because of `kIODisplayOnlyPreferredName` names *should* only contain the name with
+      // the current system localization.
+      CFStringRef localized_name = (CFStringRef) names[0];
+      CFIndex localized_name_len = CFStringGetLength(localized_name);
+
+      // Even though we already have the length of `localized_name` above, we know that we will format it
+      // as UTF-8 when we put it in the destination buffer. Therefore we need to check whether the name
+      // with that encoding will fit.
+      CFIndex localized_name_max_size = CFStringGetMaximumSizeForEncoding(localized_name_len, kCFStringEncodingUTF8) + 1;
+
+      if (name_len > (size_t)localized_name_max_size) {
+        if (CFStringGetCString(
+          /* ref = */ localized_name,
+          /* dest = */ name,
+          /* dest_len = */ name_len,
+          /* encoding = */ kCFStringEncodingUTF8))
+        {
+          bytes_written = strlen(name);
+        }
+      }
+    }
+
+    delete[] names;
+  }
+
+  CFRelease(info);
+  return bytes_written;
+
+#else
+#if defined (HAVE_XRANDR)
+  int x, y, w, h;
+  int ev, err, xi_major;
+
+  fl_open_display();
+  assert(fl_display != NULL);
+  Fl::screen_xywh(x, y, w, h, m);
+
+  if (!XQueryExtension(fl_display, "RANDR", &xi_major, &ev, &err)) {
+    vlog.info(_("Failed to get monitor name because X11 RandR could not be found."));
+    return -1;
+  }
+
+  XRRScreenResources *res = XRRGetScreenResources(fl_display, DefaultRootWindow(fl_display));
+  if (!res) {
+    vlog.error(_("Failed to get XRRScreenResources for root window."));
+    return -1;
+  }
+
+  for (int i = 0; i < res->ncrtc; i++) {
+    XRRCrtcInfo *crtc = XRRGetCrtcInfo(fl_display, res, res->crtcs[i]);
+
+    if (!crtc) {
+      vlog.error(_("Failed to get XRRCrtcInfo for crtc %d"), i);
+      continue;
+    }
+
+    for (int j = 0; j < crtc->noutput; j++) {
+      bool monitor_found = (crtc->x == x) &&
+          (crtc->y == y) &&
+          (crtc->width == ((unsigned int) w)) &&
+          (crtc->height == ((unsigned int) h));
+
+      if (monitor_found) {
+        XRROutputInfo *output = XRRGetOutputInfo(fl_display, res, crtc->outputs[j]);
+        if (!output) {
+          vlog.error(_("Failed to get XRROutputInfo for crtc %d, output %d."), i, j);
+          continue;
+        }
+
+        if (strlen(output->name) >= name_len)
+          return -1;
+
+        return snprintf(name, name_len, "%.*s", (int)name_len, output->name);
+      }
+    }
+  }
+
+  return -1;
+
+#endif // !HAVE_XRANDR
+  return 0;
+#endif
 }
 
 void MonitorArrangement::monitor_pressed(Fl_Widget *widget, void *user_data)
