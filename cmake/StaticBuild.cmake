@@ -119,7 +119,7 @@ if(BUILD_STATIC)
     string(STRIP ${GNUTLS_LIBRARIES} GNUTLS_LIBRARIES)
   endif()
 
-  if(FLTK_FOUND)
+  if(DEFINED FLTK_LIBRARIES)
     set(FLTK_LIBRARIES "-Wl,-Bstatic -lfltk_images -lpng -ljpeg -lfltk -Wl,-Bdynamic")
 
     if(WIN32)
