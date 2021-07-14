@@ -339,7 +339,11 @@ static void
 redir_stdio(const char *homedir, const char *display)
 {
     int fd;
-    char hostname[HOST_NAME_MAX+1];
+#ifdef _POSIX_HOST_NAME_MAX
+    char hostname[_POSIX_HOST_NAME_MAX + 1];
+#else
+    char hostname[HOST_NAME_MAX + 1];
+#endif
     char logfile[PATH_MAX];
 
     fd = open("/dev/null", O_RDONLY);
