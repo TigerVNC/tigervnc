@@ -15,10 +15,12 @@ endif()
 
 configure_file(tigervnc.iss.in tigervnc.iss)
 
-add_custom_target(installer
-  iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION} tigervnc.iss
-  DEPENDS vncviewer
-  SOURCES tigervnc.iss)
+if(BUILD_VIEWER)
+  add_custom_target(installer
+    iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION} tigervnc.iss
+    DEPENDS vncviewer
+    SOURCES tigervnc.iss)
+endif()
 
 if(BUILD_WINVNC)
   configure_file(winvnc.iss.in winvnc.iss)
@@ -60,7 +62,7 @@ endif() # APPLE
 # Binary tarball
 #
 
-if(UNIX)
+if(UNIX AND BUILD_VIEWER)
 
 configure_file(maketarball.in maketarball)
 

@@ -229,13 +229,18 @@ if(BUILD_JAVA)
   add_subdirectory(java)
 endif()
 
-# Check for FLTK
-set(FLTK_SKIP_FLUID TRUE)
-set(FLTK_SKIP_OPENGL TRUE)
-set(FLTK_SKIP_FORMS TRUE)
-find_package(FLTK)
+option(BUILD_VIEWER "Build TigerVNC viewer" ON)
+if(BUILD_VIEWER)
+  # Check for FLTK
+  set(FLTK_SKIP_FLUID TRUE)
+  set(FLTK_SKIP_OPENGL TRUE)
+  set(FLTK_SKIP_FORMS TRUE)
+  find_package(FLTK REQUIRED)
+else()
+  set(FLTK_FOUND FALSE)
+endif()
 
-if(UNIX AND NOT APPLE)
+if(FLTK_FOUND AND UNIX AND NOT APPLE)
   # No proper handling for extra X11 libs that FLTK might need...
   if(X11_Xft_FOUND)
     # Xft headers include references to fontconfig, so we need
@@ -303,7 +308,6 @@ if(ENABLE_NLS)
   add_subdirectory(po)
 endif()
 
-option(BUILD_VIEWER "Build TigerVNC viewer" ON)
 if(BUILD_VIEWER)
   add_subdirectory(vncviewer)
   add_subdirectory(media)
