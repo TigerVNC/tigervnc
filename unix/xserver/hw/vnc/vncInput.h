@@ -20,8 +20,8 @@
  */
 
 /* Make sure macro doesn't conflict with macro in include/input.h. */
-#ifndef INPUT_H_
-#define INPUT_H_
+#ifndef __VNCINPUT_H__
+#define __VNCINPUT_H__
 
 #include <stdlib.h>
 #include <X11/X.h>
