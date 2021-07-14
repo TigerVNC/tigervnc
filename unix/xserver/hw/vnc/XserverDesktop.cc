@@ -46,7 +46,7 @@
 #include "vncHooks.h"
 #include "vncSelection.h"
 #include "XorgGlue.h"
-#include "Input.h"
+#include "vncInput.h"
 
 extern "C" {
 void vncSetGlueContext(int screenIndex);

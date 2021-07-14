@@ -36,7 +36,7 @@
 #include "scrnintstr.h"
 #include "mi.h"
 
-#include "Input.h"
+#include "vncInput.h"
 
 #ifndef KEYBOARD_OR_FLOAT
 #define KEYBOARD_OR_FLOAT MASTER_KEYBOARD
