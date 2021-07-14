@@ -102,29 +102,25 @@ rfb::BoolParameter sendPrimary("SendPrimary",
 
 static const char* defaultDesktopName()
 {
-  static char* name = NULL;
-
-  char hostname[HOST_NAME_MAX + 1];
-  struct passwd* pwent;
-
-  size_t len;
-
-  delete [] name;
-
-  if (gethostname(hostname, sizeof(hostname)) == -1)
+  size_t host_max = sysconf(_SC_HOST_NAME_MAX);
+  if (host_max < 0)
     return "";
 
-  pwent = getpwuid(getuid());
+  std::vector<char> hostname(host_max + 1);
+  if (gethostname(hostname.data(), hostname.size()) == -1)
+    return "";
+
+  struct passwd* pwent = getpwuid(getuid());
   if (pwent == NULL)
     return "";
 
-  len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname);
+  size_t len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname.data());
   if (len < 0)
     return "";
 
-  name = new char[len + 1];
+  char* name = new char[len + 1];
 
-  snprintf(name, len + 1, "%s@%s", pwent->pw_name, hostname);
+  snprintf(name, len + 1, "%s@%s", pwent->pw_name, hostname.data());
 
   return name;
 }
