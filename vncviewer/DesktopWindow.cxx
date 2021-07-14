@@ -463,11 +463,35 @@ void DesktopWindow::draw()
     int ox, oy, ow, oh;
     int sx, sy, sw, sh;
 
-    // Make sure it's properly seen by adjusting it relative to the
-    // primary screen rather than the entire window
-    if (fullscreen_active() && fullScreenAllMonitors) {
-      assert(Fl::screen_count() >= 1);
-      Fl::screen_xywh(sx, sy, sw, sh, 0);
+    bool multiple_monitors = !strcasecmp(fullScreenMode, "selected")
+                          || !strcasecmp(fullScreenMode, "all");
+
+    if (fullscreen_active() && multiple_monitors) {
+      rfb::Rect viewport_rect, screen_rect;
+      viewport_rect.setXYWH(x(), y(), w(), h());
+
+      bool found_enclosed_screen = false;
+      for (int i = 0; i < Fl::screen_count(); i++) {
+        Fl::screen_xywh(sx, sy, sw, sh, i);
+
+        // The screen with the smallest index that are enclosed by
+        // the viewport will be used for showing the overlay.
+        screen_rect.setXYWH(sx, sy, sw, sh);
+        if (screen_rect.enclosed_by(viewport_rect)) {
+          found_enclosed_screen = true;
+          break;
+        }
+      }
+
+      // If no monitor inside the viewport was found,
+      // use the one primary instead.
+      if (!found_enclosed_screen)
+        Fl::screen_xywh(sx, sy, sw, sh, 0);
+
+      // Adjust the coordinates so they are relative to the viewport. 
+      sx -= x();
+      sy -= y();
+
     } else {
       sx = 0;
       sy = 0;
@@ -850,50 +874,74 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
   return ret;
 }
 
-
 void DesktopWindow::fullscreen_on()
 {
-  if (not fullScreenAllMonitors)
-    fullscreen_screens(-1, -1, -1, -1);
-  else {
-    int top, bottom, left, right;
-    int top_y, bottom_y, left_x, right_x;
+  int top, bottom, left, right;
+  top = bottom = left = right = -1;
+  bool all_monitors = !strcasecmp(fullScreenMode, "all");
+  bool selected_monitors = !strcasecmp(fullScreenMode, "selected");
 
-    int sx, sy, sw, sh;
+  if (selected_monitors || all_monitors) {
+      std::set<int> monitors;
 
-    top = bottom = left = right = 0;
-
-    Fl::screen_xywh(sx, sy, sw, sh, 0);
-    top_y = sy;
-    bottom_y = sy + sh;
-    left_x = sx;
-    right_x = sx + sw;
-
-    for (int i = 1;i < Fl::screen_count();i++) {
-      Fl::screen_xywh(sx, sy, sw, sh, i);
-      if (sy < top_y) {
-        top = i;
-        top_y = sy;
+      if (selected_monitors && !all_monitors) {
+        std::set<int> selected = fullScreenSelectedMonitors.getParam();
+        monitors.insert(selected.begin(), selected.end());
+      } else {
+        for (int i = 0; i < Fl::screen_count(); i++) {
+          monitors.insert(i);
+        }
       }
-      if ((sy + sh) > bottom_y) {
-        bottom = i;
-        bottom_y = sy + sh;
-      }
-      if (sx < left_x) {
-        left = i;
-        left_x = sx;
-      }
-      if ((sx + sw) > right_x) {
-        right = i;
-        right_x = sx + sw;
-      }
-    }
 
-    fullscreen_screens(top, bottom, left, right);
+      // If there are monitors selected, calculate the dimensions
+      // of the frame buffer, expressed in the monitor indices that
+      // limits it. 
+      if (monitors.size() > 0) {
+        
+        int x, y, w, h;
+        int top_y, bottom_y, left_x, right_x;
+        std::set<int>::iterator it = monitors.begin();
+
+        // Get first monitor dimensions.
+        Fl::screen_xywh(x, y, w, h, *it);
+        top = bottom = left = right = *it;
+        top_y = y;
+        bottom_y = y + h;
+        left_x = x;
+        right_x = x + w;
+
+        // Keep going through the rest of the monitors.
+        for (; it != monitors.end(); it++) {
+          Fl::screen_xywh(x, y, w, h, *it);
+
+          if (y < top_y) {
+            top = *it;
+            top_y = y;
+          }
+
+          if ((y + h) > bottom_y) {
+            bottom = *it;
+            bottom_y = y + h;
+          }
+
+          if (x < left_x) {
+            left = *it;
+            left_x = x;
+          }
+
+          if ((x + w) > right_x) {
+            right = *it;
+            right_x = x + w;
+          }
+        }
+      }
   }
 
-  if (!fullscreen_active())
+  fullscreen_screens(top, bottom, left, right);
+
+  if (!fullscreen_active()) {
     fullscreen();
+  }
 }
 
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -932,7 +980,7 @@ void DesktopWindow::grabKeyboard()
 #elif defined(__APPLE__)
   int ret;
   
-  ret = cocoa_capture_display(this, fullScreenAllMonitors);
+  ret = cocoa_capture_displays(this);
   if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
     return;
@@ -988,7 +1036,7 @@ void DesktopWindow::ungrabKeyboard()
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
 #elif defined(__APPLE__)
-  cocoa_release_display(this);
+  cocoa_release_displays(this);
 #else
   // FLTK has a grab so lets not mess with it
   if (Fl::grab())
@@ -1347,7 +1395,7 @@ void DesktopWindow::handleOptions(void *data)
     self->ungrabKeyboard();
 
   // Call fullscreen_on even if active since it handles
-  // fullScreenAllMonitors
+  // fullScreenMode
   if (fullScreen)
     self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())

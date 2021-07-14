@@ -34,6 +34,7 @@ int win32_vkey_to_keysym(UINT vkey, int extended);
 
 int win32_has_altgr(void);
 
+int win32_get_monitor_name(int x, int y, int w, int h, char name[], size_t name_len);
 };
 
 #endif
