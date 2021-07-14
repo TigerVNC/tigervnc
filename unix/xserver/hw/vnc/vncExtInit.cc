@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <limits.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
@@ -104,7 +105,11 @@ static const char* defaultDesktopName()
 {
   static char* name = NULL;
 
+#ifdef _POSIX_HOST_NAME_MAX
+  char hostname[_POSIX_HOST_NAME_MAX + 1];
+#else
   char hostname[HOST_NAME_MAX + 1];
+#endif
   struct passwd* pwent;
 
   size_t len;
