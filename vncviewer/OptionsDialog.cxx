@@ -297,7 +297,12 @@ void OptionsDialog::loadOptions(void)
   }
   remoteResizeCheckbox->value(remoteResize);
   fullScreenCheckbox->value(fullScreen);
-  fullScreenAllMonitorsCheckbox->value(fullScreenAllMonitors);
+
+  if (!strcasecmp(fullScreenMode, "all")) {
+    allMonitorsButton->setonly();
+  } else {
+    currentMonitorButton->setonly();
+  }
 
   handleDesktopSize(desktopSizeCheckbox, this);
 
@@ -407,8 +412,13 @@ void OptionsDialog::storeOptions(void)
   }
   remoteResize.setParam(remoteResizeCheckbox->value());
   fullScreen.setParam(fullScreenCheckbox->value());
-  fullScreenAllMonitors.setParam(fullScreenAllMonitorsCheckbox->value());
 
+  if (allMonitorsButton->value()) {
+    fullScreenMode.setParam("All");
+  } else {
+    fullScreenMode.setParam("Current");
+  }
+  
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
@@ -755,6 +765,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
 {
   int x;
+  int width, height;
 
   Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Screen"));
 
@@ -780,18 +791,38 @@ void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
                                                       _("Resize remote session to the local window")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
-  fullScreenCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                  CHECK_MIN_WIDTH,
-                                                  CHECK_HEIGHT,
-                                                  _("Full-screen mode")));
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  fullScreenCheckbox = new Fl_Check_Button(LBLRIGHT(tx,ty,
+                                                   CHECK_MIN_WIDTH,
+                                                   CHECK_HEIGHT,
+                                                   _("Enable full-screen")));
+  ty += CHECK_HEIGHT + INNER_MARGIN;
 
-  fullScreenAllMonitorsCheckbox = new Fl_Check_Button(LBLRIGHT(tx + INDENT, ty,
-                                                      CHECK_MIN_WIDTH,
-                                                      CHECK_HEIGHT,
-                                                      _("Enable full-screen mode over all monitors")));
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  width = tw - OUTER_MARGIN * 2;
+  height = th - ty + OUTER_MARGIN * 3;
+    Fl_Group *fullScreenModeGroup = new Fl_Group(tx,
+                                     ty,
+                                     width,
+                                     height);
 
+  {
+    tx += INDENT;
+
+    currentMonitorButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                        RADIO_MIN_WIDTH,
+                                                        RADIO_HEIGHT,
+                                                        _("Use current monitor")));
+    currentMonitorButton->type(FL_RADIO_BUTTON);
+    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+
+    allMonitorsButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                            RADIO_MIN_WIDTH,
+                                            RADIO_HEIGHT,
+                                            _("Use all monitors")));
+    allMonitorsButton->type(FL_RADIO_BUTTON);
+    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+  }
+
+  fullScreenModeGroup->end();
   group->end();
 }
 
