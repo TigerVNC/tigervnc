@@ -427,8 +427,8 @@ void vncAddCopied(int scrIdx, int nRects,
   }
 }
 
-void vncSetCursor(int width, int height, int hotX, int hotY,
-                  const unsigned char *rgbaData)
+void vncSetCursorSprite(int width, int height, int hotX, int hotY,
+                        const unsigned char *rgbaData)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->setCursor(width, height, hotX, hotY, rgbaData);

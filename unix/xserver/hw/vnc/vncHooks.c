@@ -35,9 +35,7 @@
 #include "regionstr.h"
 #include "dixfontstr.h"
 #include "colormapst.h"
-#ifdef RENDER
 #include "picturestr.h"
-#endif
 #include "randrstr.h"
 
 #define DBGPRINT(x) //(fprintf x)
@@ -62,11 +60,10 @@ typedef struct _vncHooksScreenRec {
   CopyWindowProcPtr            CopyWindow;
   ClearToBackgroundProcPtr     ClearToBackground;
   DisplayCursorProcPtr         DisplayCursor;
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
   CursorWarpedToProcPtr        CursorWarpedTo;
 #endif
   ScreenBlockHandlerProcPtr    BlockHandler;
-#ifdef RENDER
   CompositeProcPtr             Composite;
   GlyphsProcPtr                Glyphs;
   CompositeRectsProcPtr        CompositeRects;
@@ -74,7 +71,6 @@ typedef struct _vncHooksScreenRec {
   TrianglesProcPtr             Triangles;
   TriStripProcPtr              TriStrip;
   TriFanProcPtr                TriFan;
-#endif
   RRSetConfigProcPtr           rrSetConfig;
   RRScreenSetSizeProcPtr       rrScreenSetSize;
   RRCrtcSetProcPtr             rrCrtcSet;
@@ -116,19 +112,18 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
                                       int h, Bool generateExposures);
 static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
                                   ScreenPtr pScreen, CursorPtr cursor);
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
 static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
                                    ScreenPtr pScreen_, ClientPtr pClient,
                                    WindowPtr pWindow, SpritePtr pSprite,
                                    int x, int y);
 #endif
-#if XORG <= 118
+#if XORG_AT_LEAST(1, 19, 0)
+static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout);
+#else
 static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout,
                                  void * pReadmask);
-#else
-static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout);
 #endif
-#ifdef RENDER
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
 			      PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
 			      INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
@@ -149,7 +144,6 @@ static void vncHooksTriStrip(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
             PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
             int npoint, xPointFixed * points);
-#endif
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
                                    int rate, RRScreenSizePtr pSize);
 static Bool vncHooksRandRScreenSetSize(ScreenPtr pScreen,
@@ -248,9 +242,7 @@ int vncHooksInit(int scrIdx)
   ScreenPtr pScreen;
   vncHooksScreenPtr vncHooksScreen;
 
-#ifdef RENDER
   PictureScreenPtr ps;
-#endif
   rrScrPrivPtr rp;
 
   pScreen = screenInfo.screens[scrIdx];
@@ -280,11 +272,10 @@ int vncHooksInit(int scrIdx)
   wrap(vncHooksScreen, pScreen, CopyWindow, vncHooksCopyWindow);
   wrap(vncHooksScreen, pScreen, ClearToBackground, vncHooksClearToBackground);
   wrap(vncHooksScreen, pScreen, DisplayCursor, vncHooksDisplayCursor);
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
   wrap(vncHooksScreen, pScreen, CursorWarpedTo, vncHooksCursorWarpedTo);
 #endif
   wrap(vncHooksScreen, pScreen, BlockHandler, vncHooksBlockHandler);
-#ifdef RENDER
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     wrap(vncHooksScreen, ps, Composite, vncHooksComposite);
@@ -295,7 +286,6 @@ int vncHooksInit(int scrIdx)
     wrap(vncHooksScreen, ps, TriStrip, vncHooksTriStrip);
     wrap(vncHooksScreen, ps, TriFan, vncHooksTriFan);
   }
-#endif
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     /* Some RandR callbacks are optional */
@@ -419,9 +409,7 @@ static inline Bool is_visible(DrawablePtr drawable)
 
 static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 {
-#ifdef RENDER
   PictureScreenPtr ps;
-#endif
   rrScrPrivPtr rp;
 
   SCREEN_PROLOGUE(pScreen_, CloseScreen);
@@ -431,7 +419,6 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
   unwrap(vncHooksScreen, pScreen, ClearToBackground);
   unwrap(vncHooksScreen, pScreen, DisplayCursor);
   unwrap(vncHooksScreen, pScreen, BlockHandler);
-#ifdef RENDER
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     unwrap(vncHooksScreen, ps, Composite);
@@ -442,7 +429,6 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
     unwrap(vncHooksScreen, ps, TriStrip);
     unwrap(vncHooksScreen, ps, TriFan);
   }
-#endif
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     unwrap(vncHooksScreen, rp, rrSetConfig);
@@ -632,7 +618,7 @@ static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
       }
     }
 
-    vncSetCursor(width, height, hotX, hotY, rgbaData);
+    vncSetCursorSprite(width, height, hotX, hotY, rgbaData);
 
     free(rgbaData);
   }
@@ -645,7 +631,7 @@ out:
 
 // CursorWarpedTo - notify that the cursor was warped
 
-#if XORG >= 119
+#if XORG_AT_LEAST(1, 19, 0)
 static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
                                    ScreenPtr pScreen_, ClientPtr pClient,
                                    WindowPtr pWindow, SpritePtr pSprite,
@@ -660,29 +646,27 @@ static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
 // BlockHandler - ignore any changes during the block handler - it's likely
 // these are just drawing the cursor.
 
-#if XORG <= 118
+#if XORG_AT_LEAST(1, 19, 0)
+static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout)
+#else
 static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
                                  void * pReadmask)
-#else
-static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout)
 #endif
 {
   SCREEN_PROLOGUE(pScreen_, BlockHandler);
 
   vncHooksScreen->ignoreHooks++;
 
-#if XORG <= 118
-  (*pScreen->BlockHandler) (pScreen, pTimeout, pReadmask);
-#else
+#if XORG_AT_LEAST(1, 19, 0)
   (*pScreen->BlockHandler) (pScreen, pTimeout);
+#else
+  (*pScreen->BlockHandler) (pScreen, pTimeout, pReadmask);
 #endif
 
   vncHooksScreen->ignoreHooks--;
 
   SCREEN_EPILOGUE(BlockHandler);
 }
-
-#ifdef RENDER
 
 // Unwrap and rewrap helpers
 
@@ -1111,8 +1095,6 @@ static void vncHooksTriFan(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   RENDER_EPILOGUE(TriFan);
 }
-
-#endif /* RENDER */
 
 // Unwrap and rewrap helpers
 
