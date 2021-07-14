@@ -67,6 +67,15 @@ void Mutex::lock()
 #endif
 }
 
+bool Mutex::try_lock()
+{
+#ifdef WIN32
+  return TryEnterCriticalSection((CRITICAL_SECTION*)systemMutex);
+#else
+  return 0 == pthread_mutex_trylock((pthread_mutex_t*)systemMutex);
+#endif
+}
+
 void Mutex::unlock()
 {
 #ifdef WIN32

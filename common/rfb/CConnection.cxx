@@ -45,6 +45,9 @@ CConnection::CConnection()
   : csecurity(0),
     supportsLocalCursor(false), supportsCursorPosition(false),
     supportsDesktopResize(false), supportsLEDState(false),
+#ifdef HAVE_H264
+    useH264Encoding(false),
+#endif
     is(0), os(0), reader_(0), writer_(0),
     shared(false),
     state_(RFBSTATE_UNINITIALISED),
@@ -832,7 +835,13 @@ void CConnection::updateEncodings()
 
   for (int i = encodingMax; i >= 0; i--) {
     if ((i != preferredEncoding) && Decoder::supported(i))
+    {
+#ifdef HAVE_H264
+      if (i == encodingH264 && !useH264Encoding)
+        continue;
+#endif
       encodings.push_back(i);
+    }
   }
 
   if (compressLevel >= 0 && compressLevel <= 9)

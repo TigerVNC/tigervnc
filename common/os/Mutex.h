@@ -28,6 +28,7 @@ namespace os {
     ~Mutex();
 
     void lock();
+    bool try_lock();
     void unlock();
 
   private:
@@ -38,7 +39,7 @@ namespace os {
 
   class AutoMutex {
   public:
-    AutoMutex(Mutex* mutex) { m = mutex; m->lock(); }
+    AutoMutex(Mutex* mutex, bool already_locked = false) { m = mutex; if (!already_locked) m->lock(); }
     ~AutoMutex() { m->unlock(); }
   private:
     Mutex* m;

@@ -242,6 +242,9 @@ namespace rfb {
     bool supportsCursorPosition;
     bool supportsDesktopResize;
     bool supportsLEDState;
+#ifdef HAVE_H264
+    bool useH264Encoding;
+#endif
 
   private:
     // This is a default implementation of fences that automatically

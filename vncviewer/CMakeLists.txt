@@ -51,7 +51,7 @@ else()
   add_executable(vncviewer ${VNCVIEWER_SOURCES})
 endif()
 
-target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES} ${FFMPEG_LIBRARIES})
 
 if(WIN32)
   target_link_libraries(vncviewer msimg32)
