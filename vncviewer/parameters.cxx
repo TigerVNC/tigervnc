@@ -101,10 +101,13 @@ IntParameter qualityLevel("QualityLevel",
                           8);
 
 BoolParameter maximize("Maximize", "Maximize viewer window", false);
-BoolParameter fullScreen("FullScreen", "Full screen mode", false);
+BoolParameter fullScreen("FullScreen", "Enable full screen", false);
+StringParameter fullScreenMode("FullScreenMode", "Specify which monitors to use when in full screen. "
+                                                 "Should be either Current or All",
+                                                 "Current");
 BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
-                                    "Enable full screen over all monitors",
-                                    true);
+                                    "[DEPRECATED] Enable full screen over all monitors",
+                                    false);
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
@@ -175,7 +178,7 @@ static VoidParameter* parameterArray[] = {
   &noJpeg,
   &qualityLevel,
   &fullScreen,
-  &fullScreenAllMonitors,
+  &fullScreenMode,
   &desktopSize,
   &remoteResize,
   &viewOnly,
@@ -188,6 +191,10 @@ static VoidParameter* parameterArray[] = {
 #endif
   &menuKey,
   &fullscreenSystemKeys
+};
+
+static VoidParameter* readOnlyParameterArray[] = {
+  &fullScreenAllMonitors
 };
 
 // Encoding Table
@@ -399,6 +406,30 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
   return true;
 }
 
+static bool removeValue(const char* _name, HKEY* hKey) {
+  const DWORD buffersize = 256;
+  wchar_t name[buffersize];
+
+  unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
+  if (size >= buffersize) {
+    vlog.error(_("The name of the parameter %s was too large to remove from the registry"), _name);
+    return false;
+  }
+
+  LONG res = RegDeleteValueW(*hKey, name);
+  if (res != ERROR_SUCCESS) {
+    if (res == ERROR_FILE_NOT_FOUND) {
+      // The value does not exist, no need to remove it.
+      return true;
+    } else {
+      vlog.error(_("Failed to remove parameter %s from the registry: %ld"),
+                 _name, res);
+      return false;
+    }
+  }
+
+  return true;
+}
 
 void saveHistoryToRegKey(const vector<string>& serverHistory) {
   HKEY hKey;
@@ -456,6 +487,12 @@ static void saveToReg(const char* servername) {
     }
   }
 
+  // Remove read-only parameters to replicate the behaviour of Linux/macOS when they
+  // store a config to disk. If the parameter hasn't been migrated at this point it
+  // will be lost.
+  for (size_t i = 0; i < sizeof(readOnlyParameterArray)/sizeof(VoidParameter*); i++)
+    removeValue(readOnlyParameterArray[i]->getName(), &hKey);
+
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS) {
     vlog.error(_("Failed to close registry key: %ld"), res);
@@ -500,6 +537,29 @@ void loadHistoryFromRegKey(vector<string>& serverHistory) {
   }
 }
 
+static void findAndSetViewerParametersFromReg(VoidParameter* parameters[], size_t parameters_len, HKEY* hKey) {
+
+  const size_t buffersize = 256;
+  int intValue = 0;
+  char stringValue[buffersize];
+
+  for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
+    if (dynamic_cast<StringParameter*>(parameters[i]) != NULL) {
+      if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
+        parameters[i]->setParam(stringValue);
+    } else if (dynamic_cast<IntParameter*>(parameters[i]) != NULL) {
+      if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
+        ((IntParameter*)parameters[i])->setParam(intValue);
+    } else if (dynamic_cast<BoolParameter*>(parameters[i]) != NULL) {
+      if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
+        ((BoolParameter*)parameters[i])->setParam(intValue);
+    } else {
+      vlog.error(_("Unknown parameter type for parameter %s"),
+                 parameters[i]->getName());
+    }
+  }
+}
+
 static char* loadFromReg() {
 
   HKEY hKey;
@@ -523,24 +583,8 @@ static char* loadFromReg() {
   if (getKeyString("ServerName", servernameBuffer, buffersize, &hKey))
     snprintf(servername, buffersize, "%s", servernameBuffer);
   
-  int intValue = 0;
-  char stringValue[buffersize];
-  
-  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
-    if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
-      if (getKeyString(parameterArray[i]->getName(), stringValue, buffersize, &hKey))
-        parameterArray[i]->setParam(stringValue);
-    } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
-      if (getKeyInt(parameterArray[i]->getName(), &intValue, &hKey))
-        ((IntParameter*)parameterArray[i])->setParam(intValue);
-    } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
-      if (getKeyInt(parameterArray[i]->getName(), &intValue, &hKey))
-        ((BoolParameter*)parameterArray[i])->setParam(intValue);
-    } else {      
-      vlog.error(_("Unknown parameter type for parameter %s"),
-                 parameterArray[i]->getName());
-    }
-  }
+  findAndSetViewerParametersFromReg(parameterArray, sizeof(parameterArray), &hKey);
+  findAndSetViewerParametersFromReg(readOnlyParameterArray, sizeof(readOnlyParameterArray), &hKey);
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS){
@@ -607,6 +651,48 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fclose(f);
 }
 
+static bool findAndSetViewerParameterFromValue(
+  VoidParameter* parameters[], size_t parameters_len,
+  char* value, char* line, int lineNr, char* filepath)
+{
+  const size_t buffersize = 256;
+  char decodingBuffer[buffersize];
+
+  // Find and set the correct parameter
+  for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
+
+    if (dynamic_cast<StringParameter*>(parameters[i]) != NULL) {
+      if (strcasecmp(line, ((StringParameter*)parameters[i])->getName()) == 0) {
+
+        if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
+          vlog.error(_("Failed to read line %d in file %s: %s"),
+                      lineNr, filepath, _("Invalid format or too large value"));
+          continue;
+        }
+        ((StringParameter*)parameters[i])->setParam(decodingBuffer);
+        return false;
+      }
+
+    } else if (dynamic_cast<IntParameter*>(parameters[i]) != NULL) {
+      if (strcasecmp(line, ((IntParameter*)parameters[i])->getName()) == 0) {
+        ((IntParameter*)parameters[i])->setParam(atoi(value));
+        return false;
+      }
+
+    } else if (dynamic_cast<BoolParameter*>(parameters[i]) != NULL) {
+      if (strcasecmp(line, ((BoolParameter*)parameters[i])->getName()) == 0) {
+        ((BoolParameter*)parameters[i])->setParam(atoi(value));
+        return false;
+      }
+
+    } else {
+      vlog.error(_("Unknown parameter type for parameter %s"),
+                  parameters[i]->getName());
+    }
+  }
+
+  return true;
+}
 
 char* loadViewerParameters(const char *filename) {
 
@@ -705,38 +791,12 @@ char* loadViewerParameters(const char *filename) {
       invalidParameterName = false;
 
     } else {
+      invalidParameterName = findAndSetViewerParameterFromValue(parameterArray, sizeof(parameterArray),
+                                                                value, line, lineNr, filepath);
 
-      // Find and set the correct parameter
-      for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
-
-        if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((StringParameter*)parameterArray[i])->getName()) == 0) {
-
-            if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
-              vlog.error(_("Failed to read line %d in file %s: %s"),
-                         lineNr, filepath, _("Invalid format or too large value"));
-              continue;
-            }
-            ((StringParameter*)parameterArray[i])->setParam(decodingBuffer);
-            invalidParameterName = false;
-          }
-
-        } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((IntParameter*)parameterArray[i])->getName()) == 0) {
-            ((IntParameter*)parameterArray[i])->setParam(atoi(value));
-            invalidParameterName = false;
-          }
-
-        } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
-          if (strcasecmp(line, ((BoolParameter*)parameterArray[i])->getName()) == 0) {
-            ((BoolParameter*)parameterArray[i])->setParam(atoi(value));
-            invalidParameterName = false;
-          }
-
-        } else {
-          vlog.error(_("Unknown parameter type for parameter %s"),
-                     parameterArray[i]->getName());
-        }
+      if (invalidParameterName) {
+        invalidParameterName = findAndSetViewerParameterFromValue(readOnlyParameterArray, sizeof(readOnlyParameterArray),
+                                                                  value, line, lineNr, filepath);
       }
     }
 

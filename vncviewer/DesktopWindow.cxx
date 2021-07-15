@@ -880,10 +880,11 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
   return ret;
 }
 
-
 void DesktopWindow::fullscreen_on()
 {
-  if (not fullScreenAllMonitors)
+  bool all_monitors = !strcasecmp(fullScreenMode, "all");
+
+  if (not all_monitors)
     fullscreen_screens(-1, -1, -1, -1);
   else {
     int top, bottom, left, right;
@@ -1377,7 +1378,7 @@ void DesktopWindow::handleOptions(void *data)
     self->ungrabKeyboard();
 
   // Call fullscreen_on even if active since it handles
-  // fullScreenAllMonitors
+  // fullScreenMode
   if (fullScreen)
     self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())
