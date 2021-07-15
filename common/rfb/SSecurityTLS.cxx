@@ -229,7 +229,9 @@ void SSecurityTLS::setParams(gnutls_session_t session)
     const char *err;
 
 #if GNUTLS_VERSION_NUMBER >= 0x030603
-    ret = gnutls_set_default_priority_append(session, kx_anon_priority, &err, 0);
+    // gnutls_set_default_priority_appends() expects a normal priority string that
+    // doesn't start with ":".
+    ret = gnutls_set_default_priority_append(session, kx_anon_priority + 1, &err, 0);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error("GnuTLS priority syntax error at: %s", err);
