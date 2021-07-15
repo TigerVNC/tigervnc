@@ -885,9 +885,10 @@ void DesktopWindow::fullscreen_on()
   bool all_monitors = !strcasecmp(fullScreenMode, "all");
   bool selected_monitors = !strcasecmp(fullScreenMode, "selected");
 
-  if (not selected_monitors and not all_monitors)
-    fullscreen_screens(-1, -1, -1, -1);
-  else {
+  if (not selected_monitors and not all_monitors) {
+    int n = Fl::screen_num(x(), y(), w(), h());
+    fullscreen_screens(n, n, n, n);
+  } else {
     int top, bottom, left, right;
     int top_y, bottom_y, left_x, right_x;
 
