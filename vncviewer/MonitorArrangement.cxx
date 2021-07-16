@@ -52,6 +52,7 @@
 #include "i18n.h"
 #include "MonitorArrangement.h"
 
+static std::set<MonitorArrangement *> instances;
 static rfb::LogWriter vlog("MonitorArrangement");
 static const Fl_Boxtype FL_CHECKERED_BOX = FL_FREE_BOXTYPE;
 
@@ -65,6 +66,10 @@ MonitorArrangement::MonitorArrangement(
   // Used for required monitors.
   Fl::set_boxtype(FL_CHECKERED_BOX, checkered_pattern_draw, 0, 0, 0, 0);
 
+  if (instances.size() == 0)
+    Fl::add_handler(fltk_event_handler);
+  instances.insert(this);
+
   box(FL_DOWN_BOX);
   color(fl_lighter(FL_BACKGROUND_COLOR));
   layout();
@@ -73,7 +78,10 @@ MonitorArrangement::MonitorArrangement(
 
 MonitorArrangement::~MonitorArrangement()
 {
+  instances.erase(this);
 
+  if (instances.size() == 0)
+    Fl::remove_handler(fltk_event_handler);
 }
 
 std::set<int> MonitorArrangement::get()
@@ -140,6 +148,25 @@ void MonitorArrangement::layout()
 
   for (int i = 0; i < (int) m_monitors.size(); i++)
     m_monitors[i]->copy_tooltip(description(i).c_str());
+}
+
+void MonitorArrangement::refresh()
+{
+  // The selection state is only saved persistently when "OK" is
+  // pressed. We need to manually restore the current selection
+  // when the widget is refreshed.
+  std::set<int> indices = get();
+  m_monitors.clear();
+
+  // FLTK recursively deletes all children for us.
+  clear();
+  begin();
+  layout();
+  end();
+
+  // Restore the current selection state.
+  set(indices);
+  redraw();
 }
 
 bool MonitorArrangement::is_required(int m)
@@ -417,6 +444,24 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
 #endif // !HAVE_XRANDR
   return 0;
 #endif
+}
+
+int MonitorArrangement::fltk_event_handler(int event)
+{
+  MonitorArrangement *self;
+  std::set<MonitorArrangement *>::iterator it;
+
+  for (it = instances.begin(); it != instances.end(); it++) {
+    self = *it;
+
+    switch (event) {
+    case FL_SCREEN_CONFIGURATION_CHANGED:
+      self->refresh();
+      break;
+    }
+  }
+
+  return 0;
 }
 
 void MonitorArrangement::monitor_pressed(Fl_Widget *widget, void *user_data)

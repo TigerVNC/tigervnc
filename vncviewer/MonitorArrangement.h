@@ -46,6 +46,9 @@ private:
   // Layout the monitor arrangement.
   void layout();
 
+  // Refresh the monitor arrangement.
+  void refresh();
+
   // Return true if the given monitor is required to be part of the configuration
   // for it to be valid. A configuration is only valid if the framebuffer created
   // from is rectangular.
@@ -68,6 +71,7 @@ private:
   std::string description(int m);
   int get_monitor_name(int m, char name[], size_t name_len);
 
+  static int fltk_event_handler(int event);
   static void monitor_pressed(Fl_Widget *widget, void *user_data);
   static void checkered_pattern_draw(
     int x, int y, int width, int height, Fl_Color color);
