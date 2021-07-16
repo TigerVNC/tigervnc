@@ -56,33 +56,37 @@ int cocoa_capture_displays(Fl_Window *win)
 
   nsw = (NSWindow*)fl_xid(win);
 
-  if (!captured) {
-    CGDisplayCount count;
-    CGDirectDisplayID displays[16];
+  CGDisplayCount count;
+  CGDirectDisplayID displays[16];
 
-    int sx, sy, sw, sh;
-    rfb::Rect windows_rect, screen_rect;
+  int sx, sy, sw, sh;
+  rfb::Rect windows_rect, screen_rect;
 
-    windows_rect.setXYWH(win->x(), win->y(), win->w(), win->h());
+  windows_rect.setXYWH(win->x(), win->y(), win->w(), win->h());
 
-    if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
-      return 1;
+  if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
+    return 1;
 
-    if (count != (unsigned)Fl::screen_count())
-      return 1;
+  if (count != (unsigned)Fl::screen_count())
+    return 1;
 
-    for (int i = 0; i < Fl::screen_count(); i++) {
-      Fl::screen_xywh(sx, sy, sw, sh, i);
+  for (int i = 0; i < Fl::screen_count(); i++) {
+    Fl::screen_xywh(sx, sy, sw, sh, i);
 
-      screen_rect.setXYWH(sx, sy, sw, sh);
-      if (screen_rect.enclosed_by(windows_rect)) {
-        if (CGDisplayCapture(displays[i]) != kCGErrorSuccess)
-          return 1;
-      }
+    screen_rect.setXYWH(sx, sy, sw, sh);
+    if (screen_rect.enclosed_by(windows_rect)) {
+      if (CGDisplayCapture(displays[i]) != kCGErrorSuccess)
+        return 1;
+
+    } else {
+      // A display might have been captured with the previous
+      // monitor selection. In that case we don't want to keep
+      // it when its no longer inside the window_rect.
+      CGDisplayRelease(displays[i]);
     }
-
-    captured = true;
   }
+
+  captured = true;
 
   if ([nsw level] == CGShieldingWindowLevel())
     return 0;

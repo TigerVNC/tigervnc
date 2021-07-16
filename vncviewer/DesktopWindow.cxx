@@ -608,6 +608,11 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 
     repositionWidgets();
   }
+
+  // Some systems require a grab after the window size has been changed.
+  // Otherwise they might hold on to displays, resulting in them being unusable.
+  if (fullscreen_active() && fullscreenSystemKeys)
+    grabKeyboard();
 }
 
 
