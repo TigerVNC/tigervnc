@@ -205,9 +205,23 @@ Maximize viewer window.
 Start in full-screen mode.
 .
 .TP
-.B \-FullScreenAllMonitors
+.B \-FullScreenAllMonitors (DEPRECATED)
 Use all local monitors and not just the current one when switching to
-full-screen mode.
+full-screen mode. Replaced by \fB-FullScreenMode=all\fP
+.
+.TP
+.B \-FullScreenMode \fImode\fP
+Specify which monitors to use when in full screen. It should be either "Current",
+"Selected" (specified by \fB-FullScreenSelectedMonitors\fP) or "All". 
+The default is "Current".
+.
+.TP
+.B \-FullScreenSelectedMonitors \fImonitors\fP
+This option specifies the monitors to use with \fB-FullScreenMode=selected\fP.
+Monitors are ordered according to the system configuration from left to right,
+and in case of a conflict, from top to bottom. So, for example, "1,2,3" means
+that the first, second and third monitor counting from the left should be used.
+The default is "1".
 .
 .TP
 .B \-FullscreenSystemKeys

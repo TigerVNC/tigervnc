@@ -435,6 +435,16 @@ potentiallyLoadConfigurationFile(char *vncServerName)
   }
 }
 
+static void
+migrateDeprecatedOptions()
+{
+  if (fullScreenAllMonitors) {
+    vlog.info(_("FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead."));
+
+    fullScreenMode.setParam("all");
+  }
+}
+
 #ifndef WIN32
 static int
 interpretViaParam(char *remoteHost, int *remotePort, int localPort)
@@ -612,6 +622,8 @@ int main(int argc, char** argv)
 
   // Check if the server name in reality is a configuration file
   potentiallyLoadConfigurationFile(vncServerName);
+
+  migrateDeprecatedOptions();
 
   mkvnchomedir();
 

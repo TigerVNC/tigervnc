@@ -21,6 +21,7 @@
 #define __PARAMETERS_H__
 
 #include <rfb/Configuration.h>
+#include "MonitorIndicesParameter.h"
 
 #ifdef _WIN32
 #include <vector>
@@ -49,7 +50,9 @@ extern rfb::IntParameter qualityLevel;
 
 extern rfb::BoolParameter maximize;
 extern rfb::BoolParameter fullScreen;
-extern rfb::BoolParameter fullScreenAllMonitors;
+extern rfb::StringParameter fullScreenMode;
+extern rfb::BoolParameter fullScreenAllMonitors; // deprecated
+extern MonitorIndicesParameter fullScreenSelectedMonitors;
 extern rfb::StringParameter desktopSize;
 extern rfb::StringParameter geometry;
 extern rfb::BoolParameter remoteResize;

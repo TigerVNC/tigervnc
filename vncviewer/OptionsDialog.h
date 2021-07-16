@@ -30,6 +30,7 @@ class Fl_Round_Button;
 class Fl_Input;
 class Fl_Int_Input;
 class Fl_Choice;
+class MonitorArrangement;
 
 typedef void (OptionsCallback)(void*);
 
@@ -65,6 +66,8 @@ protected:
   static void handleDesktopSize(Fl_Widget *widget, void *data);
 
   static void handleClipboard(Fl_Widget *widget, void *data);
+
+  static void handleFullScreenMode(Fl_Widget *widget, void *data);
 
   static void handleCancel(Fl_Widget *widget, void *data);
   static void handleOK(Fl_Widget *widget, void *data);
@@ -125,7 +128,11 @@ protected:
   Fl_Int_Input *desktopHeightInput;
   Fl_Check_Button *remoteResizeCheckbox;
   Fl_Check_Button *fullScreenCheckbox;
-  Fl_Check_Button *fullScreenAllMonitorsCheckbox;
+
+  Fl_Round_Button *currentMonitorButton;
+  Fl_Round_Button *allMonitorsButton;
+  Fl_Round_Button *selectedMonitorsButton;
+  MonitorArrangement *monitorArrangement;
 
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
