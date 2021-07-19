@@ -41,7 +41,7 @@ protected:
 private:
   const Fl_Color SELECTION_COLOR;
   const Fl_Color AVAILABLE_COLOR;
-  std::vector<Fl_Button *> m_monitors;
+  std::vector<Fl_Button *> monitors;
 
   // Layout the monitor arrangement.
   void layout();

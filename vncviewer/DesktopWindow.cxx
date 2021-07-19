@@ -468,25 +468,25 @@ void DesktopWindow::draw()
     if (fullscreen_active()) {
       assert(Fl::screen_count() >= 1);
 
-      rfb::Rect window_rect, screen_rect;
-      window_rect.setXYWH(x(), y(), w(), h());
+      rfb::Rect windowRect, screenRect;
+      windowRect.setXYWH(x(), y(), w(), h());
 
-      bool found_enclosed_screen = false;
+      bool foundEnclosedScreen = false;
       for (int i = 0; i < Fl::screen_count(); i++) {
         Fl::screen_xywh(sx, sy, sw, sh, i);
 
         // The screen with the smallest index that are enclosed by
         // the viewport will be used for showing the overlay.
-        screen_rect.setXYWH(sx, sy, sw, sh);
-        if (screen_rect.enclosed_by(window_rect)) {
-          found_enclosed_screen = true;
+        screenRect.setXYWH(sx, sy, sw, sh);
+        if (screenRect.enclosed_by(windowRect)) {
+          foundEnclosedScreen = true;
           break;
         }
       }
 
       // If no monitor inside the viewport was found,
       // use the one primary instead.
-      if (!found_enclosed_screen)
+      if (!foundEnclosedScreen)
         Fl::screen_xywh(sx, sy, sw, sh, 0);
 
       // Adjust the coordinates so they are relative to the viewport.
@@ -882,10 +882,10 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
 void DesktopWindow::fullscreen_on()
 {
-  bool all_monitors = !strcasecmp(fullScreenMode, "all");
-  bool selected_monitors = !strcasecmp(fullScreenMode, "selected");
+  bool allMonitors = !strcasecmp(fullScreenMode, "all");
+  bool selectedMonitors = !strcasecmp(fullScreenMode, "selected");
 
-  if (not selected_monitors and not all_monitors) {
+  if (not selectedMonitors and not allMonitors) {
     int n = Fl::screen_num(x(), y(), w(), h());
     fullscreen_screens(n, n, n, n);
   } else {
@@ -896,7 +896,7 @@ void DesktopWindow::fullscreen_on()
 
     std::set<int> monitors;
 
-    if (selected_monitors and not all_monitors) {
+    if (selectedMonitors and not allMonitors) {
       std::set<int> selected = fullScreenSelectedMonitors.getParam();
       monitors.insert(selected.begin(), selected.end());
     } else {

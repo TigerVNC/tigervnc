@@ -421,52 +421,52 @@ int win32_has_altgr(void)
 }
 
 typedef struct {
-	int x, y, w, h;
-    char* name;
-	size_t name_len;
-	int bytes_written;
+  int x, y, w, h;
+  char* name;
+  size_t name_len;
+  int bytes_written;
 } EnumCallbackData;
 
 static BOOL CALLBACK EnumDisplayMonitorsCallback(
-	HMONITOR monitor, HDC deviceContext, LPRECT rect, LPARAM userData)
+  HMONITOR monitor, HDC deviceContext, LPRECT rect, LPARAM userData)
 {
-	EnumCallbackData *data = (EnumCallbackData *)userData;
-	MONITORINFOEX info;
-	info.cbSize = sizeof(info);
-	GetMonitorInfo(monitor, (LPMONITORINFO)&info);
+  EnumCallbackData *data = (EnumCallbackData *)userData;
+  MONITORINFOEX info;
+  info.cbSize = sizeof(info);
+  GetMonitorInfo(monitor, (LPMONITORINFO)&info);
 
-	int x = info.rcMonitor.left;
-	int y = info.rcMonitor.top;
-	int w = info.rcMonitor.right - info.rcMonitor.left;
-	int h = info.rcMonitor.bottom - info.rcMonitor.top;
+  int x = info.rcMonitor.left;
+  int y = info.rcMonitor.top;
+  int w = info.rcMonitor.right - info.rcMonitor.left;
+  int h = info.rcMonitor.bottom - info.rcMonitor.top;
 
-	if ((data->x == x) && (data->y == y) && (data->w == w) && (data->h == h)) {
-		data->bytes_written = snprintf(data->name, data->name_len,
-			"%.*s", (int)(data->name_len - 1), info.szDevice);
+  if ((data->x == x) && (data->y == y) && (data->w == w) && (data->h == h)) {
+    data->bytes_written = snprintf(data->name, data->name_len,
+      "%.*s", (int)(data->name_len - 1), info.szDevice);
 
-		if (data->bytes_written < 0)
-			return FALSE;
+    if (data->bytes_written < 0)
+      return FALSE;
 
-		// Stop the iteration.
-		return FALSE;
-	}
+    // Stop the iteration.
+    return FALSE;
+  }
 
-	// Keep iterating.
-	return TRUE;
+  // Keep iterating.
+  return TRUE;
 }
 
 int win32_get_monitor_name(int x, int y, int w, int h, char name[], size_t name_len)
 {
-	EnumCallbackData data = {
-		.x = x,
-		.y = y,
-		.w = w,
-		.h = h,
-		.name = name,
-		.name_len = name_len,
-		.bytes_written = -1
-	};
+  EnumCallbackData data = {
+    .x = x,
+    .y = y,
+    .w = w,
+    .h = h,
+    .name = name,
+    .name_len = name_len,
+    .bytes_written = -1
+  };
 
-	EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallback, (LPARAM) &data);
-	return data.bytes_written;
+  EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallback, (LPARAM) &data);
+  return data.bytes_written;
 }

@@ -40,27 +40,27 @@ std::set<int> MonitorIndicesParameter::getParam()
 {
     bool valid = false;
     std::set<int> indices;
-    std::set<int> config_indices;
-    std::vector<MonitorIndicesParameter::Monitor> monitors = this->monitors();
+    std::set<int> configIndices;
+    std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <= 0) {
         vlog.error(_("Failed to get monitors."));
         return indices;
     }
 
-    valid = parse_indices(value, &config_indices);
+    valid = parseIndices(value, &configIndices);
     if (!valid) {
         return indices;
     }
 
-    if (config_indices.size() <= 0) {
+    if (configIndices.size() <= 0) {
         return indices;
     }
 
     // Go through the monitors and see what indices are present in the config.
     for (int i = 0; i < ((int) monitors.size()); i++) {
-        if (std::find(config_indices.begin(), config_indices.end(), i) != config_indices.end())
-            indices.insert(monitors[i].fltk_index);
+        if (std::find(configIndices.begin(), configIndices.end(), i) != configIndices.end())
+            indices.insert(monitors[i].fltkIndex);
     }
 
     return indices;
@@ -74,7 +74,7 @@ bool MonitorIndicesParameter::setParam(const char* value)
     if (strlen(value) < 0)
         return false;
 
-    if (!parse_indices(value, &indices)) {
+    if (!parseIndices(value, &indices)) {
         vlog.error(_("Invalid FullScreenSelectedMonitors configuration."));
         return false;
     }
@@ -93,8 +93,8 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
 {
     static const int BUF_MAX_LEN = 1024;
     char buf[BUF_MAX_LEN] = {0};
-    std::set<int> config_indices;
-    std::vector<MonitorIndicesParameter::Monitor> monitors = this->monitors();
+    std::set<int> configIndices;
+    std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <=  0) {
         vlog.error(_("Failed to get monitors."));
@@ -102,20 +102,20 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
     }
 
     for (int i = 0; i < ((int) monitors.size()); i++) {
-        if (std::find(indices.begin(), indices.end(), monitors[i].fltk_index) != indices.end())
-            config_indices.insert(i);
+        if (std::find(indices.begin(), indices.end(), monitors[i].fltkIndex) != indices.end())
+            configIndices.insert(i);
     }
 
-    int bytes_written = 0;
+    int bytesWritten = 0;
     char const * separator = "";
 
-    for (std::set<int>::iterator index = config_indices.begin();
-         index != config_indices.end();
+    for (std::set<int>::iterator index = configIndices.begin();
+         index != configIndices.end();
          index++)
     {
-        bytes_written += snprintf(
-            buf+bytes_written,
-            BUF_MAX_LEN-bytes_written,
+        bytesWritten += snprintf(
+            buf+bytesWritten,
+            BUF_MAX_LEN-bytesWritten,
             "%s%u",
             separator,
             (*index)+1
@@ -127,7 +127,7 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
     return setParam(buf);
 }
 
-static bool parse_number(std::string number, std::set<int> *indices)
+static bool parseNumber(std::string number, std::set<int> *indices)
 {
     if (number.size() <= 0)
         return false;
@@ -148,7 +148,7 @@ static bool parse_number(std::string number, std::set<int> *indices)
     return true;
 }
 
-bool MonitorIndicesParameter::parse_indices(const char* value, std::set<int> *indices)
+bool MonitorIndicesParameter::parseIndices(const char* value, std::set<int> *indices)
 {
     char d;
     std::string current;
@@ -161,7 +161,7 @@ bool MonitorIndicesParameter::parse_indices(const char* value, std::set<int> *in
         else if (d >= '0' && d <= '9')
             current.push_back(d);
         else if (d == ',') {
-            if (!parse_number(current, indices)) {
+            if (!parseNumber(current, indices)) {
                 vlog.error(_("Invalid monitor index '%s' in FullScreenSelectedMonitors"), current.c_str());
                 return false;
             }
@@ -178,13 +178,13 @@ bool MonitorIndicesParameter::parse_indices(const char* value, std::set<int> *in
         return true;
 
     // Parsing anything we have left.
-    if (!parse_number(current, indices))
+    if (!parseNumber(current, indices))
         return false;
 
     return true;
 }
 
-std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::monitors()
+std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::fetchMonitors()
 {
     std::vector<Monitor> monitors;
 
@@ -201,16 +201,16 @@ std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::monitors(
             i
         );
 
-        monitor.fltk_index = i;
+        monitor.fltkIndex = i;
         monitors.push_back(monitor);
     }
 
     // Sort the monitors according to the specification in the vncviewer manual.
-    qsort(&monitors[0], monitors.size(), sizeof(*(&monitors[0])), sort_cb);
+    qsort(&monitors[0], monitors.size(), sizeof(*(&monitors[0])), compare);
     return monitors;
 }
 
-int MonitorIndicesParameter::sort_cb(const void *a, const void *b)
+int MonitorIndicesParameter::compare(const void *a, const void *b)
 {
     MonitorIndicesParameter::Monitor * monitor1 = (MonitorIndicesParameter::Monitor *) a;
     MonitorIndicesParameter::Monitor * monitor2 = (MonitorIndicesParameter::Monitor *) b;

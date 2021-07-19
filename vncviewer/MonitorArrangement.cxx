@@ -61,7 +61,7 @@ MonitorArrangement::MonitorArrangement(
 :  Fl_Group(x, y, w, h),
    SELECTION_COLOR(fl_lighter(FL_BLUE)),
    AVAILABLE_COLOR(fl_lighter(fl_lighter(fl_lighter(FL_BACKGROUND_COLOR)))),
-   m_monitors()
+   monitors()
 {
   // Used for required monitors.
   Fl::set_boxtype(FL_CHECKERED_BOX, checkered_pattern_draw, 0, 0, 0, 0);
@@ -88,8 +88,8 @@ std::set<int> MonitorArrangement::get()
 {
   std::set<int> indices;
 
-  for (int i = 0; i < (int) m_monitors.size(); i++) {
-    if (m_monitors[i]->value() == 1)
+  for (int i = 0; i < (int) monitors.size(); i++) {
+    if (monitors[i]->value() == 1)
       indices.insert(i);
   }
 
@@ -98,16 +98,16 @@ std::set<int> MonitorArrangement::get()
 
 void MonitorArrangement::set(std::set<int> indices)
 {
-  for (int i = 0; i < (int) m_monitors.size(); i++) {
+  for (int i = 0; i < (int) monitors.size(); i++) {
     bool selected = std::find(indices.begin(), indices.end(), i) != indices.end();
-    m_monitors[i]->value(selected ? 1 : 0);
+    monitors[i]->value(selected ? 1 : 0);
   }
 }
 
 void MonitorArrangement::draw()
 {
-  for (int i = 0; i < (int) m_monitors.size(); i++) {
-    Fl_Button * monitor = m_monitors[i];
+  for (int i = 0; i < (int) monitors.size(); i++) {
+    Fl_Button * monitor = monitors[i];
 
     if (is_required(i)) {
       monitor->box(FL_CHECKERED_BOX);
@@ -143,11 +143,11 @@ void MonitorArrangement::layout()
     monitor->callback(monitor_pressed, this);
     monitor->type(FL_TOGGLE_BUTTON);
     monitor->when(FL_WHEN_CHANGED);
-    m_monitors.push_back(monitor);
+    monitors.push_back(monitor);
   }
 
-  for (int i = 0; i < (int) m_monitors.size(); i++)
-    m_monitors[i]->copy_tooltip(description(i).c_str());
+  for (int i = 0; i < (int) monitors.size(); i++)
+    monitors[i]->copy_tooltip(description(i).c_str());
 }
 
 void MonitorArrangement::refresh()
@@ -156,7 +156,7 @@ void MonitorArrangement::refresh()
   // pressed. We need to manually restore the current selection
   // when the widget is refreshed.
   std::set<int> indices = get();
-  m_monitors.clear();
+  monitors.clear();
 
   // FLTK recursively deletes all children for us.
   clear();
@@ -172,7 +172,7 @@ void MonitorArrangement::refresh()
 bool MonitorArrangement::is_required(int m)
 {
   // A selected monitor is never required.
-  if (m_monitors[m]->value() == 1)
+  if (monitors[m]->value() == 1)
     return false;
 
   // If no monitors are selected, none are required.
@@ -308,7 +308,7 @@ std::pair<int, int> MonitorArrangement::origin()
 
 std::string MonitorArrangement::description(int m)
 {
-  assert(m < (int) m_monitors.size());
+  assert(m < (int) monitors.size());
   const size_t name_len = 1024;
   char name[name_len] = {};
   int bytes_written = get_monitor_name(m, name, name_len);

@@ -33,12 +33,12 @@ public:
 private:
     typedef struct {
         int x, y, w, h;
-        int fltk_index;
+        int fltkIndex;
     } Monitor;
 
-    bool parse_indices(const char* value, std::set<int> *indices);
-    std::vector<MonitorIndicesParameter::Monitor> monitors();
-    static int sort_cb(const void*, const void*);
+    bool parseIndices(const char* value, std::set<int> *indices);
+    std::vector<MonitorIndicesParameter::Monitor> fetchMonitors();
+    static int compare(const void*, const void*);
 };
 
 #endif // __MONITOR_INDEX_PARAMETER_H
