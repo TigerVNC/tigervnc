@@ -400,13 +400,13 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
   Fl::screen_xywh(x, y, w, h, m);
 
   if (!XQueryExtension(fl_display, "RANDR", &xi_major, &ev, &err)) {
-    vlog.info(_("Failed to get monitor name because X11 RandR could not be found."));
+    vlog.info(_("Failed to get monitor name because X11 RandR could not be found"));
     return -1;
   }
 
   XRRScreenResources *res = XRRGetScreenResources(fl_display, DefaultRootWindow(fl_display));
   if (!res) {
-    vlog.error(_("Failed to get XRRScreenResources for root window."));
+    vlog.error(_("Failed to get XRRScreenResources for root window"));
     return -1;
   }
 
@@ -427,7 +427,7 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
       if (monitor_found) {
         XRROutputInfo *output = XRRGetOutputInfo(fl_display, res, crtc->outputs[j]);
         if (!output) {
-          vlog.error(_("Failed to get XRROutputInfo for crtc %d, output %d."), i, j);
+          vlog.error(_("Failed to get XRROutputInfo for crtc %d, output %d"), i, j);
           continue;
         }
 

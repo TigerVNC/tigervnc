@@ -439,7 +439,7 @@ static void
 migrateDeprecatedOptions()
 {
   if (fullScreenAllMonitors) {
-    vlog.info(_("FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead."));
+    vlog.info(_("FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"));
 
     fullScreenMode.setParam("all");
   }

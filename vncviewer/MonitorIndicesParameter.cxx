@@ -44,7 +44,7 @@ std::set<int> MonitorIndicesParameter::getParam()
     std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <= 0) {
-        vlog.error(_("Failed to get monitors."));
+        vlog.error(_("Failed to get monitors"));
         return indices;
     }
 
@@ -75,7 +75,7 @@ bool MonitorIndicesParameter::setParam(const char* value)
         return false;
 
     if (!parseIndices(value, &indices)) {
-        vlog.error(_("Invalid FullScreenSelectedMonitors configuration."));
+        vlog.error(_("Invalid FullScreenSelectedMonitors configuration"));
         return false;
     }
 
@@ -83,7 +83,7 @@ bool MonitorIndicesParameter::setParam(const char* value)
         index = *it + 1;
 
         if (index <= 0 || index > Fl::screen_count())
-            vlog.error(_("Monitor index %d does not exist."), index);
+            vlog.error(_("Monitor index %d does not exist"), index);
     }
 
     return StringParameter::setParam(value);
@@ -97,7 +97,7 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
     std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <=  0) {
-        vlog.error(_("Failed to get monitors."));
+        vlog.error(_("Failed to get monitors"));
         // Don't return, store the configuration anyways.
     }
 
@@ -135,12 +135,12 @@ static bool parseNumber(std::string number, std::set<int> *indices)
     int v = strtol(number.c_str(), NULL, 0);
 
     if (v <= 0) {
-        vlog.error(_("The given monitor index(%s) is too small to be valid."), number.c_str());
+        vlog.error(_("The given monitor index(%s) is too small to be valid"), number.c_str());
         return false;
     }
 
     if (v > INT_MAX) {
-        vlog.error(_("The given monitor index (%s) is too large to be valid."), number.c_str());
+        vlog.error(_("The given monitor index (%s) is too large to be valid"), number.c_str());
         return false;
     }
 
