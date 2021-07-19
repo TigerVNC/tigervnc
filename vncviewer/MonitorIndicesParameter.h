@@ -36,7 +36,8 @@ private:
         int fltkIndex;
     } Monitor;
 
-    bool parseIndices(const char* value, std::set<int> *indices);
+    bool parseIndices(const char* value, std::set<int> *indices,
+                      bool complain=false);
     std::vector<MonitorIndicesParameter::Monitor> fetchMonitors();
     static int compare(const void*, const void*);
 };

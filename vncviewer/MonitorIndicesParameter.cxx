@@ -74,7 +74,7 @@ bool MonitorIndicesParameter::setParam(const char* value)
     if (strlen(value) < 0)
         return false;
 
-    if (!parseIndices(value, &indices)) {
+    if (!parseIndices(value, &indices, true)) {
         vlog.error(_("Invalid configuration specified for %s"), name);
         return false;
     }
@@ -134,21 +134,19 @@ static bool parseNumber(std::string number, std::set<int> *indices)
 
     int v = strtol(number.c_str(), NULL, 0);
 
-    if (v <= 0) {
-        vlog.error(_("The given monitor index(%s) is too small to be valid"), number.c_str());
+    if (v <= 0)
         return false;
-    }
 
-    if (v > INT_MAX) {
-        vlog.error(_("The given monitor index (%s) is too large to be valid"), number.c_str());
+    if (v > INT_MAX)
         return false;
-    }
 
     indices->insert(v-1);
     return true;
 }
 
-bool MonitorIndicesParameter::parseIndices(const char* value, std::set<int> *indices)
+bool MonitorIndicesParameter::parseIndices(const char* value,
+                                           std::set<int> *indices,
+                                           bool complain)
 {
     char d;
     std::string current;
@@ -162,13 +160,16 @@ bool MonitorIndicesParameter::parseIndices(const char* value, std::set<int> *ind
             current.push_back(d);
         else if (d == ',') {
             if (!parseNumber(current, indices)) {
-                vlog.error(_("Invalid monitor index '%s'"), current.c_str());
+                if (complain)
+                    vlog.error(_("Invalid monitor index '%s'"),
+                               current.c_str());
                 return false;
             }
 
             current.clear();
         } else {
-            vlog.error(_("Unexpected character '%c'"), d);
+            if (complain)
+                vlog.error(_("Unexpected character '%c'"), d);
             return false;
         }
     }
@@ -178,8 +179,12 @@ bool MonitorIndicesParameter::parseIndices(const char* value, std::set<int> *ind
         return true;
 
     // Parsing anything we have left.
-    if (!parseNumber(current, indices))
+    if (!parseNumber(current, indices)) {
+        if (complain)
+            vlog.error(_("Invalid monitor index '%s'"),
+                       current.c_str());
         return false;
+    }
 
     return true;
 }
