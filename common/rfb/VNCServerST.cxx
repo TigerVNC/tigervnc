@@ -338,8 +338,10 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
 
 void VNCServerST::requestClipboard()
 {
-  if (clipboardClient == NULL)
+  if (clipboardClient == NULL) {
+    slog.debug("Got request for client clipboard but no client currently owns the clipboard");
     return;
+  }
 
   clipboardClient->requestClipboardOrClose();
 }
@@ -347,9 +349,6 @@ void VNCServerST::requestClipboard()
 void VNCServerST::announceClipboard(bool available)
 {
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
-
-  if (available)
-    clipboardClient = NULL;
 
   clipboardRequestors.clear();
 

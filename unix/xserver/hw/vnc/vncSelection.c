@@ -50,6 +50,8 @@ static Window wid;
 static Bool probing;
 static Atom activeSelection = None;
 
+static char* cachedData = NULL;
+
 struct VncDataTarget {
   ClientPtr client;
   Atom selection;
@@ -118,6 +120,11 @@ void vncHandleClipboardRequest(void)
 
 void vncHandleClipboardAnnounce(int available)
 {
+  /* The data has changed in some way, so whatever is in our cache is
+   * now stale */
+  free(cachedData);
+  cachedData = NULL;
+
   if (available) {
     int rc;
 
@@ -167,6 +174,9 @@ void vncHandleClipboardData(const char* data)
 
   LOG_DEBUG("Got remote clipboard data, sending to X11 clients");
 
+  free(cachedData);
+  cachedData = strdup(data);
+
   while (vncDataTargetHead != NULL) {
     int rc;
     xEvent event;
@@ -177,7 +187,7 @@ void vncHandleClipboardData(const char* data)
                              vncDataTargetHead->property,
                              vncDataTargetHead->requestor,
                              vncDataTargetHead->time,
-                             data);
+                             cachedData);
     if (rc != Success) {
       event.u.u.type = SelectionNotify;
       event.u.selectionNotify.time = vncDataTargetHead->time;
@@ -275,6 +285,49 @@ static int vncOwnSelection(Atom selection)
   CallCallbacks(&SelectionCallback, &info);
 
   return Success;
+}
+
+static Bool vncWeAreOwner(Atom selection)
+{
+  Selection *pSel;
+  int rc;
+
+  rc = dixLookupSelection(&pSel, selection, serverClient, DixReadAccess);
+  if (rc != Success)
+    return FALSE;
+
+  if (pSel->client != serverClient)
+    return FALSE;
+
+  if (pSel->window != wid)
+    return FALSE;
+
+  return TRUE;
+}
+
+static void vncMaybeRequestCache(void)
+{
+  /* Telling a client that we have clipboard data will likely mean that
+   * we can no longer request its clipboard data. This is a problem as
+   * we might initially own multiple selections and we now just lost
+   * one, and we still want to be able to service the other one. Solve
+   * this by requesting the data from the client when we can't affort to
+   * lose it and cache it. */
+
+  /* Already cached? */
+  if (cachedData != NULL)
+    return;
+
+  if (!vncWeAreOwner(xaCLIPBOARD)) {
+    if (!vncGetSetPrimary())
+      return;
+    if (!vncWeAreOwner(xaPRIMARY))
+      return;
+  }
+
+  LOG_DEBUG("Requesting clipboard data from client for caching");
+
+  vncRequestClipboard();
 }
 
 static int vncConvertSelection(ClientPtr client, Atom selection,
@@ -419,12 +472,16 @@ static int vncProcConvertSelection(ClientPtr client)
     return BadAtom;
   }
 
+  /* Do we own this selection? */
   rc = dixLookupSelection(&pSel, stuff->selection, client, DixReadAccess);
   if (rc == Success && pSel->client == serverClient &&
       pSel->window == wid) {
+    /* cachedData will be NULL for the first request, but can then be
+     * reused once we've gotten the data once from the client */
     rc = vncConvertSelection(client, stuff->selection,
                              stuff->target, stuff->property,
-                             stuff->requestor, stuff->time, NULL);
+                             stuff->requestor, stuff->time,
+                             cachedData);
     if (rc != Success) {
       xEvent event;
 
@@ -511,6 +568,7 @@ static void vncHandleSelection(Atom selection, Atom target,
     if (probing) {
       if (vncHasAtom(xaSTRING, (const Atom*)prop->data, prop->size) ||
           vncHasAtom(xaUTF8_STRING, (const Atom*)prop->data, prop->size)) {
+        vncMaybeRequestCache();
         LOG_DEBUG("Compatible format found, notifying clients");
         activeSelection = selection;
         vncAnnounceClipboard(TRUE);
@@ -595,6 +653,7 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
   SelectionInfoRec *info = (SelectionInfoRec *) args;
 
   if (info->selection->selection == activeSelection) {
+    vncMaybeRequestCache();
     LOG_DEBUG("Local clipboard lost, notifying clients");
     activeSelection = None;
     vncAnnounceClipboard(FALSE);
@@ -607,13 +666,6 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
 
   LOG_DEBUG("Selection owner change for %s",
             NameForAtom(info->selection->selection));
-
-  /*
-   * If we're the previous owner of this selection, then we're also the
-   * owner of _the other_ selection. Make sure we drop all ownerships so
-   * we either own both selections or nonw.
-   */
-  DeleteWindowFromAnySelections(pWindow);
 
   if ((info->selection->selection != xaPRIMARY) &&
       (info->selection->selection != xaCLIPBOARD))
