@@ -448,18 +448,13 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
 
 int MonitorArrangement::fltk_event_handler(int event)
 {
-  MonitorArrangement *self;
   std::set<MonitorArrangement *>::iterator it;
 
-  for (it = instances.begin(); it != instances.end(); it++) {
-    self = *it;
+  if (event != FL_SCREEN_CONFIGURATION_CHANGED)
+    return 0;
 
-    switch (event) {
-    case FL_SCREEN_CONFIGURATION_CHANGED:
-      self->refresh();
-      break;
-    }
-  }
+  for (it = instances.begin(); it != instances.end(); it++)
+    (*it)->refresh();
 
   return 0;
 }
