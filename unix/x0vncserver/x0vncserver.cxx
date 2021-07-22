@@ -68,6 +68,9 @@ StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
 BoolParameter localhostOnly("localhost",
                             "Only allow connections from localhost",
                             false);
+StringParameter interface("interface",
+                          "listen on the specified network address",
+                          "all");
 
 static const char* defaultDesktopName()
 {
@@ -304,11 +307,16 @@ int main(int argc, char** argv)
     }
 
     if ((int)rfbport != -1) {
+      const char *addr = interface;
+      if (strcasecmp(addr, "all") == 0)
+        addr = 0;
       if (localhostOnly)
         createLocalTcpListeners(&listeners, (int)rfbport);
       else
-        createTcpListeners(&listeners, 0, (int)rfbport);
-      vlog.info("Listening on port %d", (int)rfbport);
+        createTcpListeners(&listeners, addr, (int)rfbport);
+      vlog.info("Listening for VNC connections on %s interface(s), port %d",
+                localhostOnly ? "local" : (const char*)interface,
+                (int)rfbport);
     }
 
     const char *hostsData = hostsFile.getData();

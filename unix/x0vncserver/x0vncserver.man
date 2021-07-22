@@ -178,6 +178,10 @@ Only allow connections from the same machine. Useful if you use SSH and want to
 stop non-SSH connections from any other hosts.
 .
 .TP
+.B \-interface \fIIP address\fP
+Listen on interface. By default x0vncserver listens on all available interfaces.
+.
+.TP
 .B \-AlwaysShared
 Always treat incoming connections as shared, regardless of the client-specified
 setting. Default is off.
