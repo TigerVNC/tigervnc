@@ -314,6 +314,7 @@ void OptionsDialog::loadOptions(void)
 
   /* Misc. */
   sharedCheckbox->value(shared);
+  reconnectCheckbox->value(reconnectOnError);
   dotCursorCheckbox->value(dotWhenNoCursor);
 }
 
@@ -431,6 +432,7 @@ void OptionsDialog::storeOptions(void)
 
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
+  reconnectOnError.setParam(reconnectCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
 
   std::map<OptionsCallback*, void*>::const_iterator iter;
@@ -871,6 +873,12 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
                                                   _("Shared (don't disconnect other viewers)")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+  reconnectCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                  CHECK_MIN_WIDTH,
+                                                  CHECK_HEIGHT,
+                                                  _("Ask to reconnect on connection errors")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   dotCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,

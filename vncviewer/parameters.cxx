@@ -177,6 +177,7 @@ static VoidParameter* parameterArray[] = {
   &SecurityClient::secTypes,
   &emulateMiddleButton,
   &dotWhenNoCursor,
+  &reconnectOnError,
   &autoSelect,
   &fullColour,
   &lowColourLevel,
