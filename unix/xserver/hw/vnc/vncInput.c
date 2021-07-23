@@ -24,7 +24,7 @@
 
 #include "xorg-version.h"
 
-#include "Input.h"
+#include "vncInput.h"
 #include "vncExtInit.h"
 #include "RFBGlue.h"
 

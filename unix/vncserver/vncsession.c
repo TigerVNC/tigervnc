@@ -339,7 +339,8 @@ static void
 redir_stdio(const char *homedir, const char *display)
 {
     int fd;
-    char hostname[HOST_NAME_MAX+1];
+    size_t hostlen;
+    char* hostname = NULL;
     char logfile[PATH_MAX];
 
     fd = open("/dev/null", O_RDONLY);
@@ -361,13 +362,21 @@ redir_stdio(const char *homedir, const char *display)
         }
     }
 
-    if (gethostname(hostname, sizeof(hostname)) == -1) {
+    hostlen = sysconf(_SC_HOST_NAME_MAX);
+    if (hostlen < 0) {
+      syslog(LOG_CRIT, "sysconf(_SC_HOST_NAME_MAX): %s", strerror(errno));
+      _exit(EX_OSERR);
+    }
+    hostname = malloc(hostlen + 1);
+    if (gethostname(hostname, hostlen + 1) == -1) {
         syslog(LOG_CRIT, "gethostname: %s", strerror(errno));
+        free(hostname);
         _exit(EX_OSERR);
     }
 
     snprintf(logfile, sizeof(logfile), "%s/.vnc/%s%s.log",
              homedir, hostname, display);
+    free(hostname);
     fd = open(logfile, O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (fd == -1) {
         syslog(LOG_CRIT, "Failure creating log file \"%s\": %s", logfile, strerror(errno));

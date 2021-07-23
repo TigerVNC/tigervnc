@@ -36,7 +36,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/Timer.h>
 #include <unixcommon.h>
-#include "Input.h"
+#include "vncInput.h"
 
 namespace rfb {
   class VNCServerST;

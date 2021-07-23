@@ -229,31 +229,33 @@ if(BUILD_JAVA)
   add_subdirectory(java)
 endif()
 
-# Check for FLTK
-set(FLTK_SKIP_FLUID TRUE)
-set(FLTK_SKIP_OPENGL TRUE)
-set(FLTK_SKIP_FORMS TRUE)
-find_package(FLTK)
-
-if(UNIX AND NOT APPLE)
-  # No proper handling for extra X11 libs that FLTK might need...
-  if(X11_Xft_FOUND)
-    # Xft headers include references to fontconfig, so we need
-    # to link to that as well
-    find_library(FONTCONFIG_LIB fontconfig)
-    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB} ${FONTCONFIG_LIB})
-  endif()
-  if(X11_Xinerama_FOUND)
-    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xinerama_LIB})
-  endif()
-  if(X11_Xfixes_FOUND)
-    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
-  endif()
-  if(X11_Xcursor_FOUND)
-    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xcursor_LIB})
-  endif()
-  if(X11_Xrender_FOUND)
-    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xrender_LIB})
+option(BUILD_VIEWER "Build TigerVNC viewer" ON)
+if(BUILD_VIEWER)
+  # Check for FLTK
+  set(FLTK_SKIP_FLUID TRUE)
+  set(FLTK_SKIP_OPENGL TRUE)
+  set(FLTK_SKIP_FORMS TRUE)
+  find_package(FLTK REQUIRED)
+  if(UNIX AND NOT APPLE)
+    # No proper handling for extra X11 libs that FLTK might need...
+    if(X11_Xft_FOUND)
+      # Xft headers include references to fontconfig, so we need
+      # to link to that as well
+      find_library(FONTCONFIG_LIB fontconfig)
+      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB} ${FONTCONFIG_LIB})
+    endif()
+    if(X11_Xinerama_FOUND)
+      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xinerama_LIB})
+    endif()
+    if(X11_Xfixes_FOUND)
+      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
+    endif()
+    if(X11_Xcursor_FOUND)
+      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xcursor_LIB})
+    endif()
+    if(X11_Xrender_FOUND)
+      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xrender_LIB})
+    endif()
   endif()
 endif()
 
@@ -303,7 +305,6 @@ if(ENABLE_NLS)
   add_subdirectory(po)
 endif()
 
-option(BUILD_VIEWER "Build TigerVNC viewer" ON)
 if(BUILD_VIEWER)
   add_subdirectory(vncviewer)
   add_subdirectory(media)
@@ -312,7 +313,9 @@ endif()
 add_subdirectory(tests)
 
 
-add_subdirectory(release)
+if(BUILD_VIEWER)
+  add_subdirectory(release)
+endif()
 
 # uninstall
 configure_file("${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"

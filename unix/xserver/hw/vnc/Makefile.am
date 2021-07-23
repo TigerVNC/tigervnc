@@ -13,12 +13,12 @@ noinst_LTLIBRARIES = libvnccommon.la
 HDRS = vncExtInit.h vncHooks.h \
 	vncBlockHandler.h vncSelection.h \
 	XorgGlue.h XserverDesktop.h xorg-version.h \
-	Input.h RFBGlue.h
+	vncInput.h RFBGlue.h
 
 libvnccommon_la_SOURCES = $(HDRS) \
 	vncExt.c vncExtInit.cc vncHooks.c vncSelection.c \
 	vncBlockHandler.c XorgGlue.c RandrGlue.c RFBGlue.cc XserverDesktop.cc \
-	Input.c InputXKB.c qnum_to_xorgevdev.c qnum_to_xorgkbd.c
+	vncInput.c vncInputXKB.c qnum_to_xorgevdev.c qnum_to_xorgkbd.c
 
 libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" -I$(TIGERVNC_SRCDIR)/unix/common \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
