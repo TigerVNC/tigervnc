@@ -31,6 +31,7 @@
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Secret_Input.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
 
@@ -70,6 +71,12 @@ UserDialog::~UserDialog()
 {
 }
 
+void UserDialog::resetPassword()
+{
+  savedUsername.clear();
+  savedPassword.clear();
+}
+
 void UserDialog::getUserPasswd(bool secure_, std::string* user,
                                std::string* password)
 {
@@ -87,6 +94,17 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
 
   if (!user && envPassword) {
     *password = envPassword;
+    return;
+  }
+
+  if (user && !savedUsername.empty() && !savedPassword.empty()) {
+    *user = savedUsername;
+    *password = savedPassword;
+    return;
+  }
+
+  if (!user && !savedPassword.empty()) {
+    *password = savedPassword;
     return;
   }
 
@@ -112,6 +130,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
   Fl_Secret_Input *passwd;
   Fl_Box *icon;
   Fl_Button *button;
+  Fl_Check_Button *keepPasswdCheckbox;
 
   int x, y;
 
@@ -165,6 +184,16 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
   passwd->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
   y += INPUT_HEIGHT + INNER_MARGIN;
 
+  if (reconnectOnError) {
+    keepPasswdCheckbox = new Fl_Check_Button(LBLRIGHT(x, y,
+                                                      CHECK_MIN_WIDTH,
+                                                      CHECK_HEIGHT,
+                                                      _("Keep password for reconnect")));
+    y += CHECK_HEIGHT + INNER_MARGIN;
+  } else {
+    keepPasswdCheckbox = nullptr;
+  }
+
   x = win->w() - OUTER_MARGIN;
   y += OUTER_MARGIN - INNER_MARGIN;
 
@@ -196,9 +225,21 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
   while (win->shown()) Fl::wait();
 
   if (ret_val == 0) {
-    if (user)
+    bool keepPasswd;
+
+    if (reconnectOnError)
+      keepPasswd = keepPasswdCheckbox->value();
+    else
+      keepPasswd = false;
+
+    if (user) {
       *user = username->value();
+      if (keepPasswd)
+        savedUsername = username->value();
+    }
     *password = passwd->value();
+    if (keepPasswd)
+      savedPassword = passwd->value();
   }
 
   delete win;

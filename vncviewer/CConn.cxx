@@ -275,6 +275,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     vlog.info("%s", e.str());
     disconnect();
   } catch (rfb::AuthFailureException& e) {
+    reset_password_data();
     vlog.error(_("Authentication failed: %s"), e.str());
     abort_connection(_("Failed to authenticate with the server. Reason "
                        "given by the server:\n\n%s"), e.str());

@@ -33,6 +33,7 @@ void abort_connection_with_unexpected_error(const rdr::Exception &);
 
 void disconnect();
 bool should_disconnect();
+void reset_password_data();
 
 void about_vncviewer();
 

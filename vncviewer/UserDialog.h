@@ -37,6 +37,12 @@ public:
   // UserMsgBox callbacks
 
   bool showMsgBox(int flags, const char* title, const char* text) override;
+
+  void resetPassword();
+
+ private:
+  std::string savedUsername;
+  std::string savedPassword;
 };
 
 #endif
