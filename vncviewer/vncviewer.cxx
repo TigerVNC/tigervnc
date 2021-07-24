@@ -94,7 +94,7 @@ static bool inMainloop = false;
 static bool exitMainloop = false;
 static char *exitError = NULL;
 static bool fatalError = false;
-
+static UserDialog dlg;
 static const char *about_text()
 {
   static char buffer[1024];
@@ -165,6 +165,11 @@ void disconnect()
 bool should_disconnect()
 {
   return exitMainloop;
+}
+
+void reset_password_data()
+{
+  dlg.resetPassword();
 }
 
 void about_vncviewer()
@@ -643,7 +648,6 @@ static int mktunnel()
 int main(int argc, char** argv)
 {
   const char *localedir;
-  UserDialog dlg;
 
   argv0 = argv[0];
 
