@@ -1,5 +1,4 @@
-About TigerVNC
-==============
+## About TigerVNC
 
 Virtual Network Computing (VNC) is a remote display system which allows you to
 view and interact with a virtual desktop environment that is running on another
@@ -16,10 +15,9 @@ of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo
 JPEG codec.
 
 
-Legal
-=====
+## Legal
 
-Incomplete and generally out of date copyright list::
+Incomplete and generally out of date copyright list:
 
         Copyright (C) 1999 AT&T Laboratories Cambridge
         Copyright (C) 2002-2005 RealVNC Ltd.
@@ -38,15 +36,14 @@ Incomplete and generally out of date copyright list::
         All Rights Reserved.
 
 This software is distributed under the GNU General Public Licence as published
-by the Free Software Foundation.  See the file LICENCE.TXT for the conditions
-under which this software is made available.  TigerVNC also contains code from
-other sources.  See the Acknowledgements section below, and the individual
-source files, for details of the conditions under which they are made
+by the Free Software Foundation.  See the [license](https://github.com/TigerVNC/tigervnc/blob/master/LICENCE.TXT) for the conditions
+under which this software is made available. TigerVNC also contains code from
+other sources.  See the [acknowledgements section](https://github.com/TigerVNC/tigervnc#acknowledgements) and the individual
+source files for details of the conditions under which they are made.
 available.
 
 
-All Platforms
-=============
+## All Platforms
 
 All versions of TigerVNC contain the following programs:
 
@@ -56,8 +53,7 @@ All versions of TigerVNC contain the following programs:
               VNC server can be running on a Windows or a Unix/Linux machine.
 
 
-Windows-Specific
-================
+## Windows-Specific
 
 The Windows version of TigerVNC contains the following programs:
 
@@ -70,8 +66,7 @@ winvnc may not work if the Fast User Switching or Remote Desktop features are
 in use.
 
 
-Unix/Linux-Specific (not Mac)
-=============================
+## Unix/Linux-Specific (not Mac)
 
 The Unix/Linux version of TigerVNC contains the following programs:
 
@@ -96,8 +91,7 @@ It also contains the following systemd service:
 * vncserver@.service - a service to start a user session with Xvnc and one of
                        the desktop environments available on the system.
 
-ACKNOWLEDGEMENTS
-================
+## ACKNOWLEDGEMENTS
 
 This distribution contains zlib compression software.  This is:
 
