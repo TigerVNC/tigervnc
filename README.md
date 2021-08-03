@@ -36,7 +36,7 @@ Incomplete and generally out of date copyright list:
         All Rights Reserved.
 
 This software is distributed under the GNU General Public Licence as published
-by the Free Software Foundation.  See the [license](https://github.com/TigerVNC/tigervnc/blob/master/LICENCE.TXT) for the conditions
+by the Free Software Foundation.  See the [licence](https://github.com/TigerVNC/tigervnc/blob/master/LICENCE.TXT) for the conditions
 under which this software is made available. TigerVNC also contains code from
 other sources.  See the [acknowledgements section](https://github.com/TigerVNC/tigervnc#acknowledgements) and the individual
 source files for details of the conditions under which they are made.
