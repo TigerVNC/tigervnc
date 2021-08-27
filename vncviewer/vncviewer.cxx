@@ -40,6 +40,10 @@
 #define mkdir(path, mode) _mkdir(path)
 #endif
 
+#ifdef __APPLE__
+#include <Carbon/Carbon.h>
+#endif
+
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
@@ -261,6 +265,57 @@ static void CleanupSignalHandler(int sig)
   exit(1);
 }
 
+static const char* getlocaledir()
+{
+#if defined(WIN32)
+  static char localebuf[PATH_MAX];
+  char *slash;
+
+  GetModuleFileName(NULL, localebuf, sizeof(localebuf));
+
+  slash = strrchr(localebuf, '\\');
+  if (slash == NULL)
+    return NULL;
+
+  *slash = '\0';
+
+  if ((strlen(localebuf) + strlen("\\locale")) >= sizeof(localebuf))
+    return NULL;
+
+  strcat(localebuf, "\\locale");
+
+  return localebuf;
+#elif defined(__APPLE__)
+  CFBundleRef bundle;
+  CFURLRef localeurl;
+  CFStringRef localestr;
+  Boolean ret;
+
+  static char localebuf[PATH_MAX];
+
+  bundle = CFBundleGetMainBundle();
+  if (bundle == NULL)
+    return NULL;
+
+  localeurl = CFBundleCopyResourceURL(bundle, CFSTR("locale"),
+                                      NULL, NULL);
+  if (localeurl == NULL)
+    return NULL;
+
+  localestr = CFURLCopyFileSystemPath(localeurl, kCFURLPOSIXPathStyle);
+
+  CFRelease(localeurl);
+
+  ret = CFStringGetCString(localestr, localebuf, sizeof(localebuf),
+                           kCFStringEncodingUTF8);
+  if (!ret)
+    return NULL;
+
+  return localebuf;
+#else
+  return CMAKE_INSTALL_FULL_LOCALEDIR;
+#endif
+}
 static void init_fltk()
 {
   // Basic text size (10pt @ 96 dpi => 13px)
@@ -588,12 +643,18 @@ static int mktunnel()
 
 int main(int argc, char** argv)
 {
+  const char *localedir;
   UserDialog dlg;
 
   argv0 = argv[0];
 
   setlocale(LC_ALL, "");
-  bindtextdomain(PACKAGE_NAME, CMAKE_INSTALL_FULL_LOCALEDIR);
+
+  localedir = getlocaledir();
+  if (localedir == NULL)
+    fprintf(stderr, "Failed to determine locale directory\n");
+  else
+    bindtextdomain(PACKAGE_NAME, localedir);
   textdomain(PACKAGE_NAME);
 
   // Write about text to console, still using normal locale codeset

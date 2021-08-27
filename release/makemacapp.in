@@ -67,6 +67,12 @@ fi
 install -m 644 $SRCDIR/release/tigervnc.icns "$APPROOT/Contents/Resources/"
 install -m 644 release/Info.plist "$APPROOT/Contents/"
 
+for lang in `cat "$SRCDIR/po/LINGUAS"`; do
+	mkdir -p "$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES"
+	install -m 644 po/$lang.mo \
+		"$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES/tigervnc.mo"
+done
+
 install -m 644 $SRCDIR/LICENCE.TXT $TMPDIR/dmg/
 install -m 644 $SRCDIR/README.rst $TMPDIR/dmg/
 
