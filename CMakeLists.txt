@@ -106,6 +106,11 @@ if(WIN32)
   add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
 
+# Legacy macros (macOS 10.12 and older) conflict with our code
+if(APPLE)
+  add_definitions(-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0)
+endif()
+
 if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   message(STATUS "64-bit build")
 else()
