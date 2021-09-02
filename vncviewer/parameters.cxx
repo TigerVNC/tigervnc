@@ -776,6 +776,10 @@ char* loadViewerParameters(const char *filename) {
       line[len-1] = '\0';
       len--;
     }
+    if (line[len-1] == '\r') {
+      line[len-1] = '\0';
+      len--;
+    }
 
     // Find the parameter value
     char *value = strchr(line, '=');
