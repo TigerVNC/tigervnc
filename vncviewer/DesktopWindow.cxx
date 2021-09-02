@@ -71,6 +71,10 @@ using namespace rfb;
 
 static rfb::LogWriter vlog("DesktopWindow");
 
+// Global due to http://www.fltk.org/str.php?L2177 and the similar
+// issue for Fl::event_dispatch.
+static DesktopWindow *staticSelf = NULL;
+
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
@@ -104,6 +108,8 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   setName(name);
 
   OptionsDialog::addCallback(handleOptions, this);
+
+  staticSelf = this;
 
   // Hack. See below...
   Fl::event_dispatch(&fltkHandle);
@@ -226,6 +232,8 @@ DesktopWindow::~DesktopWindow()
   delete offscreen;
 
   delete statsGraph;
+
+  staticSelf = NULL;
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -828,6 +836,15 @@ int DesktopWindow::handle(int event)
 }
 
 
+void DesktopWindow::reconfigureFullscreen(void *data)
+{
+  DesktopWindow *self = (DesktopWindow *)data;
+
+  assert(self);
+  self->fullscreen_on();
+}
+
+
 int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 {
   int ret;
@@ -839,6 +856,28 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
     return 0;
 
   ret = Fl::handle_(event, win);
+
+  switch (event) {
+  case FL_SCREEN_CONFIGURATION_CHANGED:
+    // Screens removed or added. Recreate fullscreen window if
+    // necessary. On Windows, adding a second screen only works
+    // reliable if we are using a timer. Otherwise, the window will
+    // not be resized to cover the new screen. A timer makes sense
+    // also on other systems, to make sure that whatever desktop
+    // environment has a chance to deal with things before we do.
+    // Please note that when using FullscreenSystemKeys on macOS, the
+    // display configuration cannot be changed: macOS will not detect
+    // added or removed screens and there will be no
+    // FL_SCREEN_CONFIGURATION_CHANGED event. This is by design:
+    // "When you capture a display, you have exclusive use of the
+    // display. Other applications and system services are not allowed
+    // to use the display or change its configuration. In addition,
+    // they are not notified of display changes"
+    if (staticSelf->fullscreen_active()) {
+      Fl::remove_timeout(reconfigureFullscreen, staticSelf);
+      Fl::add_timeout(0.5, reconfigureFullscreen, staticSelf);
+    }
+  }
 
   // This is hackish and the result of the dodgy focus handling in FLTK.
   // The basic problem is that FLTK's view of focus and the system's tend
