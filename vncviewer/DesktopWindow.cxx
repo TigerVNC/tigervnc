@@ -235,6 +235,8 @@ DesktopWindow::~DesktopWindow()
 
   staticSelf = NULL;
 
+  Fl::event_dispatch(Fl::handle_);
+
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
 }
