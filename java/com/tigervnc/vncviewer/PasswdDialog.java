@@ -96,12 +96,12 @@ class PasswdDialog extends Dialog implements UserInfo,
   public void keyPressed(KeyEvent event) {
     Object s = event.getSource();
     if (s instanceof JTextField && (JTextField)s == userEntry) {
-       if (event.getKeyCode() == KeyEvent.VK_ENTER) {
+       if (KeyMap.get_keycode_fallback_extended(event) == KeyEvent.VK_ENTER) {
          endDialog();
         }
     } else if (s instanceof JPasswordField
               && (JPasswordField)s == passwdEntry) {
-        if (event.getKeyCode() == KeyEvent.VK_ENTER) {
+        if (KeyMap.get_keycode_fallback_extended(event) == KeyEvent.VK_ENTER) {
          endDialog();
         }
     }

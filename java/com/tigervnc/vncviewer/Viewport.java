@@ -377,7 +377,7 @@ class Viewport extends JPanel implements ActionListener {
     }
   }
 
-  public void handleKeyPress(int keyCode, int keySym)
+  public void handleKeyPress(long keyCode, int keySym)
   {
     // Prevent recursion if the menu wants to send it's own
     // activation key.
@@ -443,11 +443,11 @@ class Viewport extends JPanel implements ActionListener {
     // and send the same on release.
     downKeySym.put(keyCode, keySym);
 
-    vlog.debug("Key pressed: 0x%04x => 0x%04x", keyCode, keySym);
+    vlog.debug("Key pressed: 0x%016x => 0x%04x", keyCode, keySym);
 
     try {
       // Fake keycode?
-      if (keyCode > 0xffff)
+      if (keyCode > 0xffffffffL)
         cc.writer().writeKeyEvent(keySym, true);
       else
         cc.writer().writeKeyEvent(keySym, true);
@@ -472,7 +472,7 @@ class Viewport extends JPanel implements ActionListener {
     }
   }
 
-  public void handleKeyRelease(int keyCode)
+  public void handleKeyRelease(long keyCode)
   {
     Integer iter;
 
@@ -487,10 +487,10 @@ class Viewport extends JPanel implements ActionListener {
       return;
     }
 
-    vlog.debug("Key released: 0x%04x => 0x%04x", keyCode, iter);
+    vlog.debug("Key released: 0x%016x => 0x%04x", keyCode, iter);
 
     try {
-      if (keyCode > 0xffff)
+      if (keyCode > 0xffffffffL)
         cc.writer().writeKeyEvent(iter, false);
       else
         cc.writer().writeKeyEvent(iter, false);
@@ -507,7 +507,7 @@ class Viewport extends JPanel implements ActionListener {
 
     if (event instanceof KeyEvent) {
       KeyEvent ev = (KeyEvent)event;
-      if (ev.getKeyCode() == 0) {
+      if (KeyMap.get_keycode_fallback_extended(ev) == 0) {
         // Not much we can do with this...
         vlog.debug("Ignoring KeyEvent with unknown Java keycode");
         return 0;
@@ -517,34 +517,41 @@ class Viewport extends JPanel implements ActionListener {
         // Generate a fake keycode just for tracking if we can't figure
         // out the proper one.  Java virtual key codes aren't unique 
         // between left/right versions of keys, so we can't use them as
-        // indexes to the downKeySym map. There should not be any key 
-        // codes > 0xFFFF so we can use the high nibble to make a unique
-        // pseudo-key code.
-        int keyCode = ev.getKeyCode() | ev.getKeyLocation()<<16;
+        // indexes to the downKeySym map.
+        long keyCode = KeyMap.get_keycode_fallback_extended(ev) | ((long)ev.getKeyLocation()<<32);
 
         // Pressing Ctrl wreaks havoc with the symbol lookup, so turn
         // that off. But AltGr shows up as Ctrl_L+Alt_R in Windows, so
         // construct a new KeyEvent that uses a proper AltGraph for the
         // symbol lookup.
-        if (VncViewer.os.startsWith("windows")) {
-          if (downKeySym.containsValue(XK_Control_L) &&
-              downKeySym.containsValue(XK_Alt_R)) {
-            int mask = ev.getModifiers();
-            mask &= ~CTRL_MASK;
-            mask &= ~ALT_MASK;
-            mask |= ALT_GRAPH_MASK;
-            AWTKeyStroke ks =
-              AWTKeyStroke.getAWTKeyStroke(ev.getKeyCode(), mask);
-            ev = new KeyEvent((JComponent)ev.getSource(), ev.getID(),
-                              ev.getWhen(), mask, ev.getKeyCode(),
-                              ks.getKeyChar(), ev.getKeyLocation());
-          }
+        int keySym;
+        if (VncViewer.os.startsWith("windows") &&
+            downKeySym.containsValue(XK_Control_L) &&
+            downKeySym.containsValue(XK_Alt_R)) {
+          int mask = ev.getModifiers();
+          mask &= ~CTRL_MASK;
+          mask &= ~ALT_MASK;
+          mask |= ALT_GRAPH_MASK;
+          AWTKeyStroke ks =
+            AWTKeyStroke.getAWTKeyStroke(KeyMap.get_keycode_fallback_extended(ev), mask);
+          // The mask manipulations above break key combinations involving AltGr
+          // and a key with an accented letter on some keyboard layouts (i.e. IT).
+          // So the code should first try the modified event, but if it returns no
+          // symbol, the original event should be used.
+          final KeyEvent winev = new KeyEvent((JComponent)ev.getSource(), ev.getID(),
+                            ev.getWhen(), mask, KeyMap.get_keycode_fallback_extended(ev),
+                            ks.getKeyChar(), ev.getKeyLocation());
+          keySym = KeyMap.vkey_to_keysym(winev);
+          if (keySym == KeyMap.NoSymbol)
+            keySym = KeyMap.vkey_to_keysym(ev);
+          else
+            ev = winev;
+        } else {
+          keySym = KeyMap.vkey_to_keysym(ev);
         }
 
-        int keySym = KeyMap.vkey_to_keysym(ev);
-
         if (keySym == KeyMap.NoSymbol)
-          vlog.error("No symbol for virtual key 0x%02x", keyCode);
+          vlog.error("No symbol for virtual key 0x%016x", keyCode);
 
         if (VncViewer.os.startsWith("linux")) {
           switch (keySym) {
@@ -576,7 +583,7 @@ class Viewport extends JPanel implements ActionListener {
 
         return 1;
       } else if (ev.getID() == KeyEvent.KEY_RELEASED) {
-        int keyCode = keyCode = ev.getKeyCode() | ev.getKeyLocation()<<16;
+        long keyCode = KeyMap.get_keycode_fallback_extended(ev) | ((long)ev.getKeyLocation()<<32);
         handleKeyRelease(keyCode);
         return 1;
       }
@@ -805,7 +812,7 @@ class Viewport extends JPanel implements ActionListener {
   Point lastPointerPos = new Point(0, 0);
   int lastButtonMask = 0;
 
-  private class DownMap extends HashMap<Integer, Integer> {
+  private class DownMap extends HashMap<Long, Integer> {
     public DownMap(int capacity) {
       super(capacity);
     }
