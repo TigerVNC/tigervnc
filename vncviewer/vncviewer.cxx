@@ -457,8 +457,7 @@ static void mkvnchomedir()
   char* homeDir = NULL;
 
   if (getvnchomedir(&homeDir) == -1) {
-    vlog.error(_("Could not create VNC home directory: can't obtain home "
-                 "directory path."));
+    vlog.error(_("Could not obtain the home directory path"));
   } else {
     int result = mkdir(homeDir, 0755);
     if (result == -1 && errno != EEXIST)
@@ -551,8 +550,8 @@ potentiallyLoadConfigurationFile(char *vncServerName)
       vncServerName[VNCSERVERNAMELEN-1] = '\0';
     } catch (rfb::Exception& e) {
       vlog.error("%s", e.str());
-      abort_vncviewer(_("Error reading configuration file \"%s\":\n\n%s"),
-                      vncServerName, e.str());
+      abort_vncviewer(_("Unable to load the specified configuration "
+                        "file:\n\n%s"), e.str());
     }
   }
 }

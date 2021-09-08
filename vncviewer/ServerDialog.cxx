@@ -306,10 +306,8 @@ void ServerDialog::loadServerHistory()
 #endif
 
   char* homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1) {
-    throw Exception(_("Failed to read server history file, "
-		      "can't obtain home directory path."));
-  }
+  if (getvnchomedir(&homeDir) == -1)
+    throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
@@ -371,10 +369,8 @@ void ServerDialog::saveServerHistory()
 #endif
 
   char* homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1) {
-    throw Exception(_("Failed to write server history file, "
-		      "can't obtain home directory path."));
-  }
+  if (getvnchomedir(&homeDir) == -1)
+    throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);

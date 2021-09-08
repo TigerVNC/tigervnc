@@ -406,7 +406,7 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
 
   XRRScreenResources *res = XRRGetScreenResources(fl_display, DefaultRootWindow(fl_display));
   if (!res) {
-    vlog.error(_("Failed to get XRRScreenResources for root window"));
+    vlog.error(_("Failed to get system monitor configuration"));
     return -1;
   }
 
@@ -414,7 +414,7 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
     XRRCrtcInfo *crtc = XRRGetCrtcInfo(fl_display, res, res->crtcs[i]);
 
     if (!crtc) {
-      vlog.error(_("Failed to get XRRCrtcInfo for crtc %d"), i);
+      vlog.error(_("Failed to get information about CRTC %d"), i);
       continue;
     }
 
@@ -427,7 +427,7 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
       if (monitor_found) {
         XRROutputInfo *output = XRRGetOutputInfo(fl_display, res, crtc->outputs[j]);
         if (!output) {
-          vlog.error(_("Failed to get XRROutputInfo for crtc %d, output %d"), i, j);
+          vlog.error(_("Failed to get information about output %d for CRTC %d"), j, i);
           continue;
         }
 

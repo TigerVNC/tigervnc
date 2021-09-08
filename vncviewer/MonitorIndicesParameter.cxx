@@ -44,7 +44,7 @@ std::set<int> MonitorIndicesParameter::getParam()
     std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <= 0) {
-        vlog.error(_("Failed to get monitors"));
+        vlog.error(_("Failed to get system monitor configuration"));
         return indices;
     }
 
@@ -97,7 +97,7 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
     std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <=  0) {
-        vlog.error(_("Failed to get monitors"));
+        vlog.error(_("Failed to get system monitor configuration"));
         // Don't return, store the configuration anyways.
     }
 

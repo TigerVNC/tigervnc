@@ -636,9 +636,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
   /* Write parameters to file */
   FILE* f = fopen(filepath, "w+");
   if (!f)
-    throw Exception(_("Failed to write configuration file, can't open %s: %s"),
+    throw Exception(_("Could not open \"%s\": %s"),
                     filepath, strerror(errno));
-  
+
   fprintf(f, "%s\n", IDENTIFIER_STRING);
   fprintf(f, "\n");
 
@@ -730,8 +730,7 @@ char* loadViewerParameters(const char *filename) {
 
     char* homeDir = NULL;
     if (getvnchomedir(&homeDir) == -1)
-      throw Exception(_("Failed to read configuration file, "
-                        "can't obtain home directory path."));
+      throw Exception(_("Could not obtain the home directory path"));
 
     snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir);
     delete[] homeDir;
@@ -744,7 +743,7 @@ char* loadViewerParameters(const char *filename) {
   if (!f) {
     if (!filename)
       return NULL; // Use defaults.
-    throw Exception(_("Failed to read configuration file, can't open %s: %s"),
+    throw Exception(_("Could not open \"%s\": %s"),
                     filepath, strerror(errno));
   }
   
@@ -830,8 +829,8 @@ char* loadViewerParameters(const char *filename) {
     }
 
     if (invalidParameterName)
-      vlog.info(_("Unknown parameter %s on line %d in file %s"),
-                line, lineNr, filepath);
+      vlog.error(_("Failed to read line %d in file %s: %s"),
+                 lineNr, filepath, _("Unknown parameter"));
   }
   fclose(f); f=0;
   
