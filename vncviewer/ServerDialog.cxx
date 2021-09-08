@@ -36,6 +36,7 @@
 
 #include <os/os.h>
 #include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
 
 #include "ServerDialog.h"
 #include "OptionsDialog.h"
@@ -47,6 +48,8 @@
 
 using namespace std;
 using namespace rfb;
+
+static LogWriter vlog("ServerDialog");
 
 const char* SERVER_HISTORY="tigervnc.history";
 
@@ -64,10 +67,6 @@ ServerDialog::ServerDialog()
   y = margin;
   
   serverName = new Fl_Input_Choice(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
-  loadServerHistory();
-  for(size_t i=0;i<serverHistory.size();++i) {
-    serverName->add(serverHistory[i].c_str());
-  }
 
   int adjust = (w() - 20) / 4;
   int button_width = adjust - margin/2;
@@ -130,6 +129,21 @@ void ServerDialog::run(const char* servername, char *newservername)
   dialog.serverName->value(servername);
 
   dialog.show();
+
+  try {
+    size_t i;
+
+    dialog.loadServerHistory();
+
+    dialog.serverName->clear();
+    for(i = 0; i < dialog.serverHistory.size(); ++i)
+      dialog.serverName->add(dialog.serverHistory[i].c_str());
+  } catch (Exception& e) {
+    vlog.error("%s", e.str());
+    fl_alert(_("Unable to load the server history:\n\n%s"),
+             e.str());
+  }
+
   while (dialog.shown()) Fl::wait();
 
   if (dialog.serverName->value() == NULL) {
@@ -171,7 +185,9 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
   try {
     dialog->serverName->value(loadViewerParameters(filename));
   } catch (Exception& e) {
-    fl_alert("%s", e.str());
+    vlog.error("%s", e.str());
+    fl_alert(_("Unable to load the specified configuration file:\n\n%s"),
+             e.str());
   }
 
   delete(file_chooser);
@@ -226,7 +242,9 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
   try {
     saveViewerParameters(filename, servername);
   } catch (Exception& e) {
-    fl_alert("%s", e.str());
+    vlog.error("%s", e.str());
+    fl_alert(_("Unable to save the specified configuration "
+               "file:\n\n%s"), e.str());
   }
   
   delete(file_chooser);
@@ -257,7 +275,13 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
 
   try {
     saveViewerParameters(NULL, servername);
+  } catch (Exception& e) {
+    vlog.error("%s", e.str());
+    fl_alert(_("Unable to save the default configuration:\n\n%s"),
+             e.str());
+  }
 
+  try {
     vector<string>::iterator elem = std::find(dialog->serverHistory.begin(), dialog->serverHistory.end(), servername);
     // avoid duplicates in the history
     if(dialog->serverHistory.end() == elem) {
@@ -265,13 +289,17 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
       dialog->saveServerHistory();
     }
   } catch (Exception& e) {
-    fl_alert("%s", e.str());
+    vlog.error("%s", e.str());
+    fl_alert(_("Unable to save the server history:\n\n%s"),
+             e.str());
   }
 }
 
 
 void ServerDialog::loadServerHistory()
 {
+  serverHistory.clear();
+
 #ifdef _WIN32
   loadHistoryFromRegKey(serverHistory);
   return;
