@@ -21,6 +21,9 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
+#include <algorithm>
+
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Input_Choice.H>
@@ -30,10 +33,6 @@
 #include <FL/fl_ask.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_File_Chooser.H>
-
-#include <algorithm>
-#include <iostream>
-#include <fstream>
 
 #include <os/os.h>
 #include <rfb/Exception.h>
@@ -289,22 +288,51 @@ void ServerDialog::loadServerHistory()
   delete[] homeDir;
 
   /* Read server history from file */
-  ifstream f (filepath);
-  if (!f.is_open()) {
-    // no history file
-    return;
+  FILE* f = fopen(filepath, "r");
+  if (!f) {
+    if (errno == ENOENT) {
+      // no history file
+      return;
+    }
+    throw Exception(_("Could not open \"%s\": %s"),
+                    filepath, strerror(errno));
   }
 
-  string line;
-  while(getline(f, line)) {
+  int lineNr = 0;
+  while (!feof(f)) {
+    char line[256];
+
+    // Read the next line
+    lineNr++;
+    if (!fgets(line, sizeof(line), f)) {
+      if (feof(f))
+        break;
+
+      fclose(f);
+      throw Exception(_("Failed to read line %d in file %s: %s"),
+                      lineNr, filepath, strerror(errno));
+    }
+
+    if (strlen(line) == (sizeof(line) - 1)) {
+      fclose(f);
+      throw Exception(_("Failed to read line %d in file %s: %s"),
+                      lineNr, filepath, _("Line too long"));
+    }
+
+    int len = strlen(line);
+    if (line[len-1] == '\n') {
+      line[len-1] = '\0';
+      len--;
+    }
+    if (line[len-1] == '\r') {
+      line[len-1] = '\0';
+      len--;
+    }
+
     serverHistory.push_back(line);
   }
 
-  if (f.bad()) {
-    throw Exception(_("Failed to read server history file, "
-		      "error while reading file."));
-  }
-  f.close();
+  fclose(f);
 }
 
 void ServerDialog::saveServerHistory()
@@ -325,20 +353,14 @@ void ServerDialog::saveServerHistory()
   delete[] homeDir;
 
   /* Write server history to file */
-  ofstream f (filepath);
-  if (!f.is_open()) {
-    throw Exception(_("Failed to write server history file, "
-		      "can't open file."));
-  }
+  FILE* f = fopen(filepath, "w+");
+  if (!f)
+    throw Exception(_("Could not open \"%s\": %s"),
+                    filepath, strerror(errno));
 
   // Save the last X elements to the config file.
-  for(size_t i=0; i < serverHistory.size() && i <= SERVER_HISTORY_SIZE; i++) {
-    f << serverHistory[i] << endl;
-  }
+  for(size_t i=0; i < serverHistory.size() && i <= SERVER_HISTORY_SIZE; i++)
+    fprintf(f, "%s\n", serverHistory[i].c_str());
 
-  if (f.bad()) {
-    throw Exception(_("Failed to write server history file, "
-		      "error while writing file."));
-  }
-  f.close();
+  fclose(f);
 }
