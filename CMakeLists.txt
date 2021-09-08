@@ -24,10 +24,10 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tigervnc)
-set(VERSION 1.11.80)
+set(VERSION 1.11.90)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,11,80,0)
+set(RCVERSION 1,11,90,0)
 
 # Installation paths
 include(GNUInstallDirs)
