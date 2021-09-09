@@ -1,4 +1,5 @@
 /* Copyright 2021 Hugo Lundin <huglu@cendio.se> for Cendio AB.
+ * Copyright 2021 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,8 +61,7 @@ MonitorArrangement::MonitorArrangement(
    int x, int y, int w, int h)
 :  Fl_Group(x, y, w, h),
    SELECTION_COLOR(fl_lighter(FL_BLUE)),
-   AVAILABLE_COLOR(fl_lighter(fl_lighter(fl_lighter(FL_BACKGROUND_COLOR)))),
-   monitors()
+   AVAILABLE_COLOR(fl_lighter(fl_lighter(fl_lighter(FL_BACKGROUND_COLOR))))
 {
   // Used for required monitors.
   Fl::set_boxtype(FL_CHECKERED_BOX, checkered_pattern_draw, 0, 0, 0, 0);
@@ -87,10 +87,11 @@ MonitorArrangement::~MonitorArrangement()
 std::set<int> MonitorArrangement::get()
 {
   std::set<int> indices;
+  MonitorMap::const_iterator iter;
 
-  for (int i = 0; i < (int) monitors.size(); i++) {
-    if (monitors[i]->value() == 1)
-      indices.insert(i);
+  for (iter = monitors.begin(); iter != monitors.end(); ++iter) {
+    if (iter->second->value() == 1)
+      indices.insert(iter->first);
   }
 
   return indices;
@@ -98,18 +99,23 @@ std::set<int> MonitorArrangement::get()
 
 void MonitorArrangement::set(std::set<int> indices)
 {
-  for (int i = 0; i < (int) monitors.size(); i++) {
-    bool selected = std::find(indices.begin(), indices.end(), i) != indices.end();
-    monitors[i]->value(selected ? 1 : 0);
+  MonitorMap::const_iterator iter;
+
+  for (iter = monitors.begin(); iter != monitors.end(); ++iter) {
+    bool selected = std::find(indices.begin(), indices.end(),
+                              iter->first) != indices.end();
+    iter->second->value(selected ? 1 : 0);
   }
 }
 
 void MonitorArrangement::draw()
 {
-  for (int i = 0; i < (int) monitors.size(); i++) {
-    Fl_Button * monitor = monitors[i];
+  MonitorMap::const_iterator iter;
 
-    if (is_required(i)) {
+  for (iter = monitors.begin(); iter != monitors.end(); ++iter) {
+    Fl_Button * monitor = iter->second;
+
+    if (is_required(iter->first)) {
       monitor->box(FL_CHECKERED_BOX);
       monitor->color(SELECTION_COLOR);
     } else {
@@ -130,7 +136,25 @@ void MonitorArrangement::layout()
   std::pair<int, int> offset = this->offset();
 
   for (int i = 0; i < Fl::screen_count(); i++) {
+    bool match;
+
     Fl::screen_xywh(x, y, w, h, i);
+
+    // Only keep a single entry for mirrored screens
+    match = false;
+    for (int j = 0; j < i; j++) {
+        int x2, y2, w2, h2;
+
+        Fl::screen_xywh(x2, y2, w2, h2, j);
+
+        if ((x != x2) || (y != y2) || (w != w2) || (h != h2))
+            continue;
+
+        match = true;
+        break;
+    }
+    if (match)
+        continue;
 
     Fl_Button *monitor = new Fl_Button(
       /* x = */ this->x() + offset.first + x*scale + (1 - MARGIN_SCALE_FACTOR)*x*scale,
@@ -143,11 +167,9 @@ void MonitorArrangement::layout()
     monitor->callback(monitor_pressed, this);
     monitor->type(FL_TOGGLE_BUTTON);
     monitor->when(FL_WHEN_CHANGED);
-    monitors.push_back(monitor);
+    monitor->copy_tooltip(description(i).c_str());
+    monitors[i] = monitor;
   }
-
-  for (int i = 0; i < (int) monitors.size(); i++)
-    monitors[i]->copy_tooltip(description(i).c_str());
 }
 
 void MonitorArrangement::refresh()
@@ -308,7 +330,7 @@ std::pair<int, int> MonitorArrangement::origin()
 
 std::string MonitorArrangement::description(int m)
 {
-  assert(m < (int) monitors.size());
+  assert(m < Fl::screen_count());
   const size_t name_len = 1024;
   char name[name_len] = {};
   int bytes_written = get_monitor_name(m, name, name_len);

@@ -1,4 +1,5 @@
 /* Copyright 2021 Hugo Lundin <huglu@cendio.se> for Cendio AB.
+ * Copyright 2021 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,8 @@
 #define __MONITOR_ARRANGEMENT_H__
 
 #include <string>
+#include <map>
+#include <set>
 
 class Fl_Group;
 class Fl_Button;
@@ -41,7 +44,8 @@ protected:
 private:
   const Fl_Color SELECTION_COLOR;
   const Fl_Color AVAILABLE_COLOR;
-  std::vector<Fl_Button *> monitors;
+  typedef std::map<int, Fl_Button *> MonitorMap;
+  MonitorMap monitors;
 
   // Layout the monitor arrangement.
   void layout();

@@ -1,4 +1,5 @@
 /* Copyright 2021 Hugo Lundin <huglu@cendio.se> for Cendio AB.
+ * Copyright 2021 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -196,6 +197,7 @@ std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::fetchMoni
     // Start by creating a struct for every monitor.
     for (int i = 0; i < Fl::screen_count(); i++) {
         Monitor monitor = {0};
+        bool match;
 
         // Get the properties of the monitor at the current index;
         Fl::screen_xywh(
@@ -205,6 +207,24 @@ std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::fetchMoni
             monitor.h,
             i
         );
+
+        // Only keep a single entry for mirrored screens
+        match = false;
+        for (int j = 0; j < ((int) monitors.size()); j++) {
+            if (monitors[i].x != monitor.x)
+                continue;
+            if (monitors[i].y != monitor.y)
+                continue;
+            if (monitors[i].w != monitor.w)
+                continue;
+            if (monitors[i].h != monitor.h)
+                continue;
+
+            match = true;
+            break;
+        }
+        if (match)
+            continue;
 
         monitor.fltkIndex = i;
         monitors.push_back(monitor);
