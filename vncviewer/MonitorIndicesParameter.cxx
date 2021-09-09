@@ -243,12 +243,14 @@ int MonitorIndicesParameter::compare(const void *a, const void *b)
     if (monitor1->x < monitor2->x)
         return -1;
 
+    if (monitor1->x > monitor2->x)
+        return 1;
+
     if (monitor1->y < monitor2->y)
         return -1;
 
-    if (monitor1->x == monitor2->x)
-        if (monitor1->y == monitor2->y)
-            return 0;
+    if (monitor1->y > monitor2->y)
+        return 1;
 
-    return 1;
+    return 0;
 }
