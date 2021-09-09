@@ -330,16 +330,16 @@ std::pair<int, int> MonitorArrangement::origin()
 
 std::string MonitorArrangement::description(int m)
 {
-  assert(m < Fl::screen_count());
-  const size_t name_len = 1024;
-  char name[name_len] = {};
-  int bytes_written = get_monitor_name(m, name, name_len);
-
+  std::string name;
   int x, y, w, h;
-  Fl::screen_xywh(x, y, w, h, m);
   std::stringstream ss;
 
-  if (bytes_written > 0)
+  assert(m < Fl::screen_count());
+
+  name = get_monitor_name(m);
+  Fl::screen_xywh(x, y, w, h, m);
+
+  if (!name.empty())
     ss << name << " (" << w << "x" << h << ")";
   else
     ss << w << "x" << h;
@@ -357,7 +357,7 @@ static BOOL CALLBACK EnumDisplayMonitorsCallback(
 }
 #endif
 
-int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
+std::string MonitorArrangement::get_monitor_name(int m)
 {
 #if defined(WIN32)
   std::set<HMONITOR> sys_monitors;
@@ -384,23 +384,23 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
     if ((info.rcMonitor.bottom - info.rcMonitor.top) != h)
       continue;
 
-    return snprintf(name, name_len, "%.*s", (int)(name_len - 1), info.szDevice);
+    return info.szDevice;
   }
 
-  return -1;
+  return "";
 #elif defined(__APPLE__)
   CGDisplayCount count;
-  int bytes_written = 0;
   CGDirectDisplayID displays[16];
+  std::string name;
 
   if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
-    return -1;
+    return "";
 
   if (count != (unsigned)Fl::screen_count())
-    return -1;
+    return "";
 
   if (m >= (int)count)
-    return -1;
+    return "";
 
   // Notice: Here we assume indices to be ordered the same as in FLTK (we rely on that in cocoa.mm as well).
   CGDirectDisplayID displayID = displays[m];
@@ -428,15 +428,17 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
       // with that encoding will fit.
       CFIndex localized_name_max_size = CFStringGetMaximumSizeForEncoding(localized_name_len, kCFStringEncodingUTF8) + 1;
 
-      if (name_len > (size_t)localized_name_max_size) {
+      if (localized_name_max_size != kCFNotFound) {
+        char *utf8_name = new char[localized_name_max_size];
         if (CFStringGetCString(
           /* ref = */ localized_name,
-          /* dest = */ name,
-          /* dest_len = */ name_len,
+          /* dest = */ utf8_name,
+          /* dest_len = */ localized_name_max_size,
           /* encoding = */ kCFStringEncodingUTF8))
         {
-          bytes_written = strlen(name);
+          name = utf8_name;
         }
+        delete [] utf8_name;
       }
     }
 
@@ -444,7 +446,8 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
   }
 
   CFRelease(info);
-  return bytes_written;
+
+  return name;
 
 #else
 #if defined (HAVE_XRANDR)
@@ -457,13 +460,13 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
 
   if (!XQueryExtension(fl_display, "RANDR", &xi_major, &ev, &err)) {
     vlog.info(_("Failed to get monitor name because X11 RandR could not be found"));
-    return -1;
+    return "";
   }
 
   XRRScreenResources *res = XRRGetScreenResources(fl_display, DefaultRootWindow(fl_display));
   if (!res) {
     vlog.error(_("Failed to get system monitor configuration"));
-    return -1;
+    return "";
   }
 
   for (int i = 0; i < res->ncrtc; i++) {
@@ -487,18 +490,15 @@ int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
           continue;
         }
 
-        if (strlen(output->name) >= name_len)
-          return -1;
-
-        return snprintf(name, name_len, "%.*s", (int)name_len, output->name);
+        return output->name;
       }
     }
   }
 
-  return -1;
+  return "";
 
 #endif // !HAVE_XRANDR
-  return 0;
+  return "";
 #endif
 }
 

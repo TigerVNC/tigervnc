@@ -73,7 +73,7 @@ private:
 
   // Get a textual description of the given monitor.
   std::string description(int m);
-  int get_monitor_name(int m, char name[], size_t name_len);
+  std::string get_monitor_name(int m);
 
   static int fltk_event_handler(int event);
   static void monitor_pressed(Fl_Widget *widget, void *user_data);
