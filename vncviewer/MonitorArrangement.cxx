@@ -372,6 +372,7 @@ std::string MonitorArrangement::get_monitor_name(int m)
   for (iter = sys_monitors.begin(); iter != sys_monitors.end(); ++iter) {
     MONITORINFOEX info;
     DISPLAY_DEVICE dev;
+    std::string name;
 
     info.cbSize = sizeof(info);
     GetMonitorInfo(*iter, (LPMONITORINFO)&info);
@@ -385,10 +386,20 @@ std::string MonitorArrangement::get_monitor_name(int m)
     if ((info.rcMonitor.bottom - info.rcMonitor.top) != h)
       continue;
 
-    dev.cb = sizeof(dev);
-    EnumDisplayDevices(info.szDevice, 0, &dev, 0);
+    for (int i = 0; ; i++) {
+      dev.cb = sizeof(dev);
+      if (!EnumDisplayDevices(info.szDevice, i, &dev, 0))
+        break;
 
-    return dev.DeviceString;
+      if (!(dev.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP))
+        continue;
+
+      if (!name.empty())
+        name += " / ";
+      name += dev.DeviceString;
+    }
+
+    return name;
   }
 
   return "";
@@ -457,6 +468,7 @@ std::string MonitorArrangement::get_monitor_name(int m)
 #if defined (HAVE_XRANDR)
   int x, y, w, h;
   int ev, err, xi_major;
+  std::string name;
 
   fl_open_display();
   assert(fl_display != NULL);
@@ -481,25 +493,26 @@ std::string MonitorArrangement::get_monitor_name(int m)
       continue;
     }
 
+    if ((crtc->x != x) || (crtc->y != y) ||
+        ((int)crtc->width != w) || ((int)crtc->height != h))
+      continue;
+
     for (int j = 0; j < crtc->noutput; j++) {
-      bool monitor_found = (crtc->x == x) &&
-          (crtc->y == y) &&
-          (crtc->width == ((unsigned int) w)) &&
-          (crtc->height == ((unsigned int) h));
+      XRROutputInfo *output;
 
-      if (monitor_found) {
-        XRROutputInfo *output = XRRGetOutputInfo(fl_display, res, crtc->outputs[j]);
-        if (!output) {
-          vlog.error(_("Failed to get information about output %d for CRTC %d"), j, i);
-          continue;
-        }
-
-        return output->name;
+      output = XRRGetOutputInfo(fl_display, res, crtc->outputs[j]);
+      if (!output) {
+        vlog.error(_("Failed to get information about output %d for CRTC %d"), j, i);
+        continue;
       }
+
+      if (!name.empty())
+        name += " / ";
+      name += output->name;
     }
   }
 
-  return "";
+  return name;
 
 #endif // !HAVE_XRANDR
   return "";
