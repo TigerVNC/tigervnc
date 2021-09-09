@@ -347,13 +347,47 @@ std::string MonitorArrangement::description(int m)
   return ss.str();
 }
 
+#if defined(WIN32)
+static BOOL CALLBACK EnumDisplayMonitorsCallback(
+  HMONITOR monitor, HDC deviceContext, LPRECT rect, LPARAM userData)
+{
+  std::set<HMONITOR>* sys_monitors = (std::set<HMONITOR>*)userData;
+  sys_monitors->insert(monitor);
+  return TRUE;
+}
+#endif
+
 int MonitorArrangement::get_monitor_name(int m, char name[], size_t name_len)
 {
 #if defined(WIN32)
+  std::set<HMONITOR> sys_monitors;
+  std::set<HMONITOR>::const_iterator iter;
   int x, y, w, h;
-  Fl::screen_xywh(x, y, w, h, m);
-  return win32_get_monitor_name(x, y, w, h, name, name_len);
 
+  Fl::screen_xywh(x, y, w, h, m);
+
+  EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallback,
+                      (LPARAM)&sys_monitors);
+
+  for (iter = sys_monitors.begin(); iter != sys_monitors.end(); ++iter) {
+    MONITORINFOEX info;
+
+    info.cbSize = sizeof(info);
+    GetMonitorInfo(*iter, (LPMONITORINFO)&info);
+
+    if (info.rcMonitor.left != x)
+      continue;
+    if (info.rcMonitor.top != y)
+      continue;
+    if ((info.rcMonitor.right - info.rcMonitor.left) != w)
+      continue;
+    if ((info.rcMonitor.bottom - info.rcMonitor.top) != h)
+      continue;
+
+    return snprintf(name, name_len, "%.*s", (int)(name_len - 1), info.szDevice);
+  }
+
+  return -1;
 #elif defined(__APPLE__)
   CGDisplayCount count;
   int bytes_written = 0;
