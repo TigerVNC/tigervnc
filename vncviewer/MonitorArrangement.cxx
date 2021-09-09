@@ -371,6 +371,7 @@ std::string MonitorArrangement::get_monitor_name(int m)
 
   for (iter = sys_monitors.begin(); iter != sys_monitors.end(); ++iter) {
     MONITORINFOEX info;
+    DISPLAY_DEVICE dev;
 
     info.cbSize = sizeof(info);
     GetMonitorInfo(*iter, (LPMONITORINFO)&info);
@@ -384,7 +385,10 @@ std::string MonitorArrangement::get_monitor_name(int m)
     if ((info.rcMonitor.bottom - info.rcMonitor.top) != h)
       continue;
 
-    return info.szDevice;
+    dev.cb = sizeof(dev);
+    EnumDisplayDevices(info.szDevice, 0, &dev, 0);
+
+    return dev.DeviceString;
   }
 
   return "";
