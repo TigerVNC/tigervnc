@@ -60,6 +60,25 @@ jobs:
         working-directory: build
         run: make dmg
 
+  build-java:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '11', '16' ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+      - name: Configure
+        working-directory: java
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+      - name: Build
+        working-directory: java/build
+        run: make
+
   build-packages:
     strategy:
       matrix:
