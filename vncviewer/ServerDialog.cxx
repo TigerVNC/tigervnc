@@ -23,6 +23,7 @@
 
 #include <errno.h>
 #include <algorithm>
+#include <libgen.h>
 
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
@@ -67,6 +68,7 @@ ServerDialog::ServerDialog()
   y = margin;
   
   serverName = new Fl_Input_Choice(x, y, w() - margin*2 - server_label_width, INPUT_HEIGHT, _("VNC server:"));
+  usedDir = NULL;
 
   int adjust = (w() - 20) / 4;
   int button_width = adjust - margin/2;
@@ -119,6 +121,8 @@ ServerDialog::ServerDialog()
 
 ServerDialog::~ServerDialog()
 {
+  if (usedDir) 
+    free(usedDir);
 }
 
 
@@ -164,8 +168,12 @@ void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
 void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
-						      0, _("Select a TigerVNC configuration file"));
+
+  if (!dialog->usedDir)
+    getuserhomedir(&(dialog->usedDir));
+
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
+                                                      0, _("Select a TigerVNC configuration file"));
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
   file_chooser->show();
@@ -181,6 +189,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
   }
   
   const char* filename = file_chooser->value();
+  dialog->updateUsedDir(filename);
 
   try {
     dialog->serverName->value(loadViewerParameters(filename));
@@ -199,9 +208,11 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
   const char* filename;
-
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser("", _("TigerVNC configuration (*.tigervnc)"), 
-						      2, _("Save the TigerVNC configuration to file"));
+  if (!dialog->usedDir)
+    getuserhomedir(&dialog->usedDir);
+  
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
+                                                      2, _("Save the TigerVNC configuration to file"));
   
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
@@ -220,6 +231,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
     }
     
     filename = file_chooser->value();
+    dialog->updateUsedDir(filename);
     
     FILE* f = fopen(filename, "r");
     if (f) {
@@ -227,12 +239,12 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
       // The file already exists.
       fclose(f);
       int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"), 
-				       _("Overwrite"), _("No"), NULL, filename);
+                                       _("Overwrite"), _("No"), NULL, filename);
       if (overwrite_choice == 1) {
 
-	// If the user doesn't want to overwrite:
-	file_chooser->show();
-	continue;
+        // If the user doesn't want to overwrite:
+        file_chooser->show();
+        continue;
       }
     }
 
@@ -387,4 +399,11 @@ void ServerDialog::saveServerHistory()
     fprintf(f, "%s\n", serverHistory[i].c_str());
 
   fclose(f);
+}
+
+void ServerDialog::updateUsedDir(const char* filename)
+{
+  char * name = strdup(filename);
+  usedDir = strdup(dirname(name));
+  free(name);
 }
