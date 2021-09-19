@@ -1,624 +1,838 @@
 # Korean Translation for TigerVNC.
-# Copyright (C) 2009-2019 TigerVNC Team and many others (see README.rst)
+# Copyright (C) 2009-2021 TigerVNC Team and many others (see README.rst)
 # This file is distributed under the same license as the tigervnc package.
-# JiYoon Kwon <bbkjo0123@gmail.com>, 2019.
+# JiYoon Kwon <bbkjo0123@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.9.90\n"
+"Project-Id-Version: tigervnc 1.11.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2019-10-18 10:14+0200\n"
-"PO-Revision-Date: 2019-11-23 12:41+0900\n"
+"POT-Creation-Date: 2021-09-08 09:19+0200\n"
+"PO-Revision-Date: 2021-09-19 23:07+0900\n"
 "Last-Translator: JiYoon Kwon <bbkjo0123@gmail.com>\n"
 "Language-Team: Korean <translation-team-ko@googlegroups.com>\n"
 "Language: ko\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.0\n"
 
-#: vncviewer/CConn.cxx:99
+#: vncviewer/CConn.cxx:103
 #, c-format
 msgid "Connected to socket %s"
 msgstr "소켓 %s에 연결됨"
 
-#: vncviewer/CConn.cxx:106
+#: vncviewer/CConn.cxx:110
 #, c-format
 msgid "Connected to host %s port %d"
 msgstr "호스트 %s의 포트 %d와 연결됨"
 
-#: vncviewer/CConn.cxx:157
+#: vncviewer/CConn.cxx:114
+#, c-format
+msgid ""
+"Failed to connect to \"%s\":\n"
+"\n"
+"%s"
+msgstr ""
+"\"%s\"와 연결 실패: \n"
+"\n"
+"%s"
+
+#: vncviewer/CConn.cxx:159
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "데스크톱 이름: %.80s"
 
-#: vncviewer/CConn.cxx:162
+#: vncviewer/CConn.cxx:164
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "호스트: %.80s 포트: %d"
 
-#: vncviewer/CConn.cxx:167
+#: vncviewer/CConn.cxx:169
 #, c-format
 msgid "Size: %d x %d"
 msgstr "크기: %d x %d"
 
-#: vncviewer/CConn.cxx:175
+#: vncviewer/CConn.cxx:177
 #, c-format
 msgid "Pixel format: %s"
 msgstr "픽셀 형식: %s"
 
-#: vncviewer/CConn.cxx:182
+#: vncviewer/CConn.cxx:184
 #, c-format
 msgid "(server default %s)"
 msgstr "(서버 기본값 %s)"
 
-#: vncviewer/CConn.cxx:187
+#: vncviewer/CConn.cxx:189
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "요청된 인코딩: %s"
 
-#: vncviewer/CConn.cxx:192
+#: vncviewer/CConn.cxx:194
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "최근 사용된 인코딩: %s"
 
-#: vncviewer/CConn.cxx:197
+#: vncviewer/CConn.cxx:199
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "회선 속도 측정: %d kbit/s"
 
-#: vncviewer/CConn.cxx:202
+#: vncviewer/CConn.cxx:204
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "프로토콜 버전: %d.%d"
 
-#: vncviewer/CConn.cxx:207
+#: vncviewer/CConn.cxx:209
 #, c-format
 msgid "Security method: %s"
 msgstr "보안 방식: %s"
 
-#: vncviewer/CConn.cxx:324
+#: vncviewer/CConn.cxx:271 vncviewer/CConn.cxx:273
+msgid "The connection was dropped by the server before the session could be established."
+msgstr "세션이 생성되기 전 서버에서 연결을 끊었습니다."
+
+#: vncviewer/CConn.cxx:280 vncviewer/Viewport.cxx:575
+#: vncviewer/Viewport.cxx:673 vncviewer/Viewport.cxx:776
+#: vncviewer/Viewport.cxx:791 vncviewer/Viewport.cxx:802
+#: vncviewer/Viewport.cxx:830 vncviewer/Viewport.cxx:901
+#: vncviewer/Viewport.cxx:937
+#, c-format
+msgid ""
+"An unexpected error occurred when communicating with the server:\n"
+"\n"
+"%s"
+msgstr "서버 통신 중 예상치 못한 오류 발생: %s"
+
+#: vncviewer/CConn.cxx:333
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "데스크톱 사이즈 설정 실패: %d"
 
-#: vncviewer/CConn.cxx:372
+#: vncviewer/CConn.cxx:405
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "서버에서 잘못된 SetColourMapEntries를 설정했습니다!"
 
-#: vncviewer/CConn.cxx:480
+#: vncviewer/CConn.cxx:513
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "처리량 %d kbit/s - 품질을 %d로 변경 중"
 
-#: vncviewer/CConn.cxx:502
+#: vncviewer/CConn.cxx:535
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "처리량 %d kbit/s - 높은 색상 수준으로 변경 가능"
 
-#: vncviewer/CConn.cxx:505
+#: vncviewer/CConn.cxx:538
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
 msgstr "처리량 %d kbit/s - 높은 색상 수준으로 변경 불가"
 
 # 사용 중..? 사용?
-#: vncviewer/CConn.cxx:531
+#: vncviewer/CConn.cxx:564
 #, c-format
 msgid "Using pixel format %s"
 msgstr "%s 픽셀 형식을 사용"
 
 # geometry를 해상도라고 번역
-#: vncviewer/DesktopWindow.cxx:122
+#: vncviewer/DesktopWindow.cxx:143
 msgid "Invalid geometry specified!"
 msgstr "잘못된 해상도가 지정되었습니다!"
 
-#: vncviewer/DesktopWindow.cxx:495
+#: vncviewer/DesktopWindow.cxx:616
 msgid "Adjusting window size to avoid accidental full screen request"
-msgstr "잘못된 최대화 요청을 피하기 위해 창 사이즈를 조정합니다"
+msgstr "잘못된 최대화 요청을 피하기 위해 창 사이즈를 조정"
 
-#: vncviewer/DesktopWindow.cxx:539
+#: vncviewer/DesktopWindow.cxx:667
 #, c-format
 msgid "Press %s to open the context menu"
 msgstr "콘텍스트 메뉴를 열려면 %s를 누르십시오"
 
-#: vncviewer/DesktopWindow.cxx:836 vncviewer/DesktopWindow.cxx:844
-#: vncviewer/DesktopWindow.cxx:864
+#: vncviewer/DesktopWindow.cxx:1030 vncviewer/DesktopWindow.cxx:1038
+#: vncviewer/DesktopWindow.cxx:1058
 msgid "Failure grabbing keyboard"
 msgstr "키보드 점유 실패"
 
-#: vncviewer/DesktopWindow.cxx:938
-msgid "Failure grabbing mouse"
-msgstr "마우스 점유 실패"
-
-#: vncviewer/DesktopWindow.cxx:1162
+#: vncviewer/DesktopWindow.cxx:1352
 msgid "Invalid screen layout computed for resize request!"
 msgstr "크기 재조정 요청에 대해 잘못된 화면 레이아웃이 계산되었습니다!"
 
-#: vncviewer/OptionsDialog.cxx:57
+#: vncviewer/EmulateMB.cxx:226 vncviewer/EmulateMB.cxx:289
+msgid "Invalid state for 3 button emulation"
+msgstr "유효하지 않은 3 버튼 에뮬레이션 상태"
+
+#: vncviewer/MonitorArrangement.cxx:403
+msgid "Failed to get monitor name because X11 RandR could not be found"
+msgstr "X11 RandR을 찾을 수 없어 모니터 이름을 가져오지 못함"
+
+#: vncviewer/MonitorArrangement.cxx:409
+#: vncviewer/MonitorIndicesParameter.cxx:47
+#: vncviewer/MonitorIndicesParameter.cxx:100
+msgid "Failed to get system monitor configuration"
+msgstr "시스템 모니터 환경 설정을 가져오는 데 실패함"
+
+#: vncviewer/MonitorArrangement.cxx:417
+#, c-format
+msgid "Failed to get information about CRTC %d"
+msgstr "CRTC %d에 대한 정보를 가져오는 데 실패함"
+
+#: vncviewer/MonitorArrangement.cxx:430
+#, c-format
+msgid "Failed to get information about output %d for CRTC %d"
+msgstr "CRTC %d의 출력 %d에 대한 정보를 가져오는 데 실패함"
+
+# geometry를 해상도라고 번역
+#: vncviewer/MonitorIndicesParameter.cxx:78
+#, c-format
+msgid "Invalid configuration specified for %s"
+msgstr "%s에 대해 유효하지 않은 환경 설정"
+
+#: vncviewer/MonitorIndicesParameter.cxx:86
+#, c-format
+msgid "Monitor index %d does not exist"
+msgstr "모니터 인덱스 %d가 존재하지 않음"
+
+#: vncviewer/MonitorIndicesParameter.cxx:164
+#: vncviewer/MonitorIndicesParameter.cxx:184
+#, c-format
+msgid "Invalid monitor index '%s'"
+msgstr "유효하지 않은 모니터 인덱스 '%s'"
+
+#: vncviewer/MonitorIndicesParameter.cxx:172
+#, c-format
+msgid "Unexpected character '%c'"
+msgstr "예상치 못한 문자 '%c'"
+
+#: vncviewer/OptionsDialog.cxx:58
 msgid "VNC Viewer: Connection Options"
 msgstr "VNC 뷰어: 연결 설정"
 
-#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
-#: vncviewer/vncviewer.cxx:282
+#: vncviewer/OptionsDialog.cxx:84 vncviewer/ServerDialog.cxx:109
+#: vncviewer/vncviewer.cxx:418
 msgid "Cancel"
 msgstr "취소"
 
-#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:281
+#: vncviewer/OptionsDialog.cxx:89 vncviewer/vncviewer.cxx:417
 msgid "OK"
 msgstr "확인"
 
-#: vncviewer/OptionsDialog.cxx:423
+#: vncviewer/OptionsDialog.cxx:447
 msgid "Compression"
 msgstr "압축"
 
-#: vncviewer/OptionsDialog.cxx:439
+#: vncviewer/OptionsDialog.cxx:463
 msgid "Auto select"
 msgstr "자동 선택"
 
-#: vncviewer/OptionsDialog.cxx:451
+#: vncviewer/OptionsDialog.cxx:475
 msgid "Preferred encoding"
 msgstr "선호되는 인코딩"
 
-#: vncviewer/OptionsDialog.cxx:499
+#: vncviewer/OptionsDialog.cxx:523
 msgid "Color level"
 msgstr "색상 수준"
 
-#: vncviewer/OptionsDialog.cxx:510
-msgid "Full (all available colors)"
-msgstr "높음 (이용 가능한 모든 색상)"
+#: vncviewer/OptionsDialog.cxx:534
+msgid "Full"
+msgstr "높음"
 
-#: vncviewer/OptionsDialog.cxx:517
-msgid "Medium (256 colors)"
-msgstr "중간 (256 색상)"
-
-#: vncviewer/OptionsDialog.cxx:524
-msgid "Low (64 colors)"
-msgstr "낮음 (64 색상)"
-
-#: vncviewer/OptionsDialog.cxx:531
-msgid "Very low (8 colors)"
-msgstr "매우 낮음 (8 색상)"
+#: vncviewer/OptionsDialog.cxx:541
+msgid "Medium"
+msgstr "중간"
 
 #: vncviewer/OptionsDialog.cxx:548
+msgid "Low"
+msgstr "낮음"
+
+#: vncviewer/OptionsDialog.cxx:555
+msgid "Very low"
+msgstr "매우 낮음"
+
+#: vncviewer/OptionsDialog.cxx:572
 msgid "Custom compression level:"
 msgstr "사용자 정의 압축 수준:"
 
-#: vncviewer/OptionsDialog.cxx:554
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "레벨(1=빠름, 6=품질[4-6은 잘 사용되지 않습니다])"
+#: vncviewer/OptionsDialog.cxx:578
+msgid "level (0=fast, 9=best)"
+msgstr "품질(0=나쁨, 9=좋음)"
 
-#: vncviewer/OptionsDialog.cxx:561
+#: vncviewer/OptionsDialog.cxx:585
 msgid "Allow JPEG compression:"
 msgstr "JPEG 압축 허용:"
 
-#: vncviewer/OptionsDialog.cxx:567
+#: vncviewer/OptionsDialog.cxx:591
 msgid "quality (0=poor, 9=best)"
-msgstr "품질(0=나쁨,9=좋음)"
+msgstr "품질(0=나쁨, 9=좋음)"
 
-#: vncviewer/OptionsDialog.cxx:578
+#: vncviewer/OptionsDialog.cxx:602
 msgid "Security"
 msgstr "보안"
 
-#: vncviewer/OptionsDialog.cxx:593
+#: vncviewer/OptionsDialog.cxx:617
 msgid "Encryption"
 msgstr "암호화"
 
-#: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
-#: vncviewer/OptionsDialog.cxx:737
+#: vncviewer/OptionsDialog.cxx:628 vncviewer/OptionsDialog.cxx:681
+#: vncviewer/OptionsDialog.cxx:767
 msgid "None"
 msgstr "없음"
 
-#: vncviewer/OptionsDialog.cxx:610
+#: vncviewer/OptionsDialog.cxx:634
 msgid "TLS with anonymous certificates"
 msgstr "익명 인증서가 있는 TLS"
 
-#: vncviewer/OptionsDialog.cxx:616
+#: vncviewer/OptionsDialog.cxx:640
 msgid "TLS with X509 certificates"
 msgstr "X509 인증서가 있는 TLS"
 
-#: vncviewer/OptionsDialog.cxx:623
+#: vncviewer/OptionsDialog.cxx:647
 msgid "Path to X509 CA certificate"
 msgstr "X509 CA 인증서의 경로"
 
-#: vncviewer/OptionsDialog.cxx:630
+#: vncviewer/OptionsDialog.cxx:654
 msgid "Path to X509 CRL file"
 msgstr "X509 CRL 파일의 경로"
 
-#: vncviewer/OptionsDialog.cxx:646
+#: vncviewer/OptionsDialog.cxx:670
 msgid "Authentication"
 msgstr "인증"
 
-#: vncviewer/OptionsDialog.cxx:663
+#: vncviewer/OptionsDialog.cxx:687
 msgid "Standard VNC (insecure without encryption)"
 msgstr "표준 VNC (암호화하지 않아 취약함)"
 
 # 사용자라고 표시하기 괜찮은가?
 # 사용자 명?
 # 사용자 이름
-#: vncviewer/OptionsDialog.cxx:669
+#: vncviewer/OptionsDialog.cxx:693
 msgid "Username and password (insecure without encryption)"
 msgstr "사용자와 암호(암호화하지 않아 취약함)"
 
-#: vncviewer/OptionsDialog.cxx:688
+#: vncviewer/OptionsDialog.cxx:712
 msgid "Input"
 msgstr "입력"
 
-#: vncviewer/OptionsDialog.cxx:696
+#: vncviewer/OptionsDialog.cxx:720
 msgid "View only (ignore mouse and keyboard)"
 msgstr "보기 전용(마우스와 키보드 무시)"
 
+#: vncviewer/OptionsDialog.cxx:726
+msgid "Emulate middle mouse button"
+msgstr "마우스 가운데 버튼 에뮬레이트"
+
 # 승인 vs 허용
-#: vncviewer/OptionsDialog.cxx:702
+#: vncviewer/OptionsDialog.cxx:732
 msgid "Accept clipboard from server"
 msgstr "서버에서 받은 클립보드를 허용"
 
 # 왜 also가 붙을까?
-#: vncviewer/OptionsDialog.cxx:710
+#: vncviewer/OptionsDialog.cxx:740
 msgid "Also set primary selection"
 msgstr "주 선택으로도 설정"
 
-#: vncviewer/OptionsDialog.cxx:717
+#: vncviewer/OptionsDialog.cxx:747
 msgid "Send clipboard to server"
 msgstr "클립보드를 서버에 전송"
 
-#: vncviewer/OptionsDialog.cxx:725
+#: vncviewer/OptionsDialog.cxx:755
 msgid "Send primary selection as clipboard"
 msgstr "기본 선택을 클립보드로 전송"
 
-#: vncviewer/OptionsDialog.cxx:732
+#: vncviewer/OptionsDialog.cxx:762
 msgid "Pass system keys directly to server (full screen)"
 msgstr "시스템 키를 서버에 직접 전달 (전체 화면)"
 
-#: vncviewer/OptionsDialog.cxx:735
+#: vncviewer/OptionsDialog.cxx:765
 msgid "Menu key"
 msgstr "메뉴 키"
 
-#: vncviewer/OptionsDialog.cxx:751
+#: vncviewer/OptionsDialog.cxx:782
 msgid "Screen"
 msgstr "화면"
 
-#: vncviewer/OptionsDialog.cxx:759
+#: vncviewer/OptionsDialog.cxx:790
 msgid "Resize remote session on connect"
 msgstr "연결 시 원격 세션의 크기를 조정"
 
-#: vncviewer/OptionsDialog.cxx:772
+#: vncviewer/OptionsDialog.cxx:803
 msgid "Resize remote session to the local window"
 msgstr "원격 세션의 크기를 로컬 창으로 조정"
 
-#: vncviewer/OptionsDialog.cxx:778
-msgid "Full-screen mode"
-msgstr "전체 화면 모드"
+#: vncviewer/OptionsDialog.cxx:809
+msgid "Enable full-screen"
+msgstr "전체 화면 모드 사용"
 
-#: vncviewer/OptionsDialog.cxx:784
-msgid "Enable full-screen mode over all monitors"
-msgstr "모든 모니터에서 전체 화면 모드 사용"
+#: vncviewer/OptionsDialog.cxx:825
+msgid "Use current monitor"
+msgstr "현재 모니터 사용"
 
-#: vncviewer/OptionsDialog.cxx:793
+#: vncviewer/OptionsDialog.cxx:833
+msgid "Use all monitors"
+msgstr "모든 모니터 사용"
+
+#: vncviewer/OptionsDialog.cxx:841
+msgid "Use selected monitor(s)"
+msgstr "선택한 모니터만 사용"
+
+#: vncviewer/OptionsDialog.cxx:867
 msgid "Misc."
 msgstr "기타."
 
-#: vncviewer/OptionsDialog.cxx:801
+#: vncviewer/OptionsDialog.cxx:875
 msgid "Shared (don't disconnect other viewers)"
 msgstr "공유 (다른 뷰어와의 연결을 끊지 않음)"
 
-#: vncviewer/OptionsDialog.cxx:807
+#: vncviewer/OptionsDialog.cxx:881
+msgid "Ask to reconnect on connection errors"
+msgstr "연결 오류 시 다시 연결을 요청"
+
+#: vncviewer/OptionsDialog.cxx:887
 msgid "Show dot when no cursor"
 msgstr "커서가 없을 때 점 표시"
 
-#: vncviewer/ServerDialog.cxx:42
+#: vncviewer/ServerDialog.cxx:57
 msgid "VNC Viewer: Connection Details"
 msgstr "VNC 뷰어: 연결 세부 사항"
 
-#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+#: vncviewer/ServerDialog.cxx:64 vncviewer/ServerDialog.cxx:69
 msgid "VNC server:"
 msgstr "VNC 서버:"
 
-#: vncviewer/ServerDialog.cxx:64
+#: vncviewer/ServerDialog.cxx:82
 msgid "Options..."
 msgstr "설정..."
 
-#: vncviewer/ServerDialog.cxx:69
+#: vncviewer/ServerDialog.cxx:87
 msgid "Load..."
 msgstr "불러오기..."
 
-#: vncviewer/ServerDialog.cxx:74
+#: vncviewer/ServerDialog.cxx:92
 msgid "Save As..."
 msgstr "다른 이름으로 저장..."
 
-#: vncviewer/ServerDialog.cxx:86
+#: vncviewer/ServerDialog.cxx:104
 msgid "About..."
 msgstr "정보..."
 
-#: vncviewer/ServerDialog.cxx:96
+#: vncviewer/ServerDialog.cxx:114
 msgid "Connect"
 msgstr "연결"
 
-#: vncviewer/ServerDialog.cxx:137 vncviewer/ServerDialog.cxx:171
+#: vncviewer/ServerDialog.cxx:140
+#, c-format
+msgid ""
+"Unable to load the server history:\n"
+"\n"
+"%s"
+msgstr ""
+"서버 히스토리를 불러올 수 없음:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:164 vncviewer/ServerDialog.cxx:200
 msgid "TigerVNC configuration (*.tigervnc)"
 msgstr "TigerVNC 환경 설정(*.tigervnc)"
 
 # 구성 vs 환경설정
-#: vncviewer/ServerDialog.cxx:138
+#: vncviewer/ServerDialog.cxx:165
 msgid "Select a TigerVNC configuration file"
 msgstr "TigerVNC 환경 설정 파일 선택"
 
-#: vncviewer/ServerDialog.cxx:172
+#: vncviewer/ServerDialog.cxx:186 vncviewer/vncviewer.cxx:553
+#, c-format
+msgid ""
+"Unable to load the specified configuration file:\n"
+"\n"
+"%s"
+msgstr ""
+"지정한 환경 설정 파일을 불러올 수 없음:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:201
 msgid "Save the TigerVNC configuration to file"
 msgstr "TigerVNC 환경 설정을 파일로 저장"
 
-#: vncviewer/ServerDialog.cxx:197
+#: vncviewer/ServerDialog.cxx:226
 #, c-format
 msgid "%s already exists. Do you want to overwrite?"
 msgstr "%s이(가) 이미 존재합니다. 덮어쓰시겠습니까?"
 
-#: vncviewer/ServerDialog.cxx:198 vncviewer/vncviewer.cxx:279
+#: vncviewer/ServerDialog.cxx:227 vncviewer/vncviewer.cxx:415
 msgid "No"
 msgstr "아니오"
 
-#: vncviewer/ServerDialog.cxx:198
+#: vncviewer/ServerDialog.cxx:227
 msgid "Overwrite"
 msgstr "덮어쓰기"
 
-#: vncviewer/UserDialog.cxx:85
-msgid "Opening password file failed"
-msgstr "암호 파일을 열지 못했습니다"
+#: vncviewer/ServerDialog.cxx:243
+#, c-format
+msgid ""
+"Unable to save the specified configuration file:\n"
+"\n"
+"%s"
+msgstr ""
+"지정한 환경 설정 파일을 저장할 수 없음:\n"
+"\n"
+"%s"
 
-#: vncviewer/UserDialog.cxx:105
+#: vncviewer/ServerDialog.cxx:277
+#, c-format
+msgid ""
+"Unable to save the default configuration:\n"
+"\n"
+"%s"
+msgstr ""
+"기본 환경 설정을 저장할 수 없음:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:290
+#, c-format
+msgid ""
+"Unable to save the server history:\n"
+"\n"
+"%s"
+msgstr ""
+"서버 히스토리를 저장할 수 없음:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:305 vncviewer/ServerDialog.cxx:368
+#: vncviewer/parameters.cxx:628 vncviewer/parameters.cxx:733
+#: vncviewer/vncviewer.cxx:460
+msgid "Could not obtain the home directory path"
+msgstr "VNC 홈 디렉토리 생성 불가: %s"
+
+#: vncviewer/ServerDialog.cxx:318 vncviewer/ServerDialog.cxx:377
+#: vncviewer/parameters.cxx:639 vncviewer/parameters.cxx:746
+#, c-format
+msgid "Could not open \"%s\": %s"
+msgstr "\"%s\"를 열 수 없습니다: %s"
+
+#: vncviewer/ServerDialog.cxx:333 vncviewer/ServerDialog.cxx:339
+#: vncviewer/parameters.cxx:760 vncviewer/parameters.cxx:766
+#: vncviewer/parameters.cxx:797 vncviewer/parameters.cxx:826
+#: vncviewer/parameters.cxx:832
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "파일의 %d줄을 읽지 못함 %s: %s"
+
+#: vncviewer/ServerDialog.cxx:340 vncviewer/parameters.cxx:767
+msgid "Line too long"
+msgstr "행 길이 초과"
+
+#: vncviewer/UserDialog.cxx:98
+msgid "Opening password file failed"
+msgstr "암호 파일을 열기 실패"
+
+#: vncviewer/UserDialog.cxx:118
 msgid "VNC authentication"
 msgstr "VNC 인증"
 
-#: vncviewer/UserDialog.cxx:112
+#: vncviewer/UserDialog.cxx:125
 msgid "This connection is secure"
 msgstr "이 연결은 안전합니다"
 
-#: vncviewer/UserDialog.cxx:116
+#: vncviewer/UserDialog.cxx:129
 msgid "This connection is not secure"
 msgstr "이 연결은 취약합니다"
 
-#: vncviewer/UserDialog.cxx:133
+#: vncviewer/UserDialog.cxx:146
 msgid "Username:"
 msgstr "사용자:"
 
-#: vncviewer/UserDialog.cxx:146
+#: vncviewer/UserDialog.cxx:159
 msgid "Password:"
 msgstr "비밀번호:"
 
-#: vncviewer/UserDialog.cxx:185
+#: vncviewer/UserDialog.cxx:198
 msgid "Authentication cancelled"
 msgstr "인증이 취소됨"
 
-#: vncviewer/Viewport.cxx:389
+#: vncviewer/Viewport.cxx:390
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
 msgstr "키보드 LED 상태 업데이트 실패: %lu"
 
-#: vncviewer/Viewport.cxx:395 vncviewer/Viewport.cxx:401
+#: vncviewer/Viewport.cxx:396 vncviewer/Viewport.cxx:402
 #, c-format
 msgid "Failed to update keyboard LED state: %d"
 msgstr "키보드 LED 상태 업데이트 실패: %d"
 
-#: vncviewer/Viewport.cxx:431
+#: vncviewer/Viewport.cxx:432
 msgid "Failed to update keyboard LED state"
 msgstr "키보드 LED 상태 업데이트 실패"
 
-#: vncviewer/Viewport.cxx:458 vncviewer/Viewport.cxx:466
-#: vncviewer/Viewport.cxx:483
+#: vncviewer/Viewport.cxx:459 vncviewer/Viewport.cxx:467
+#: vncviewer/Viewport.cxx:484
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
 msgstr "키보드 LED 상태 불러오기 실패: %d"
 
-#: vncviewer/Viewport.cxx:833
+#: vncviewer/Viewport.cxx:854
 msgid "No key code specified on key press"
 msgstr "입력된 키 코드가 지정되지 않음"
 
-#: vncviewer/Viewport.cxx:982
+#: vncviewer/Viewport.cxx:1017
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
-msgstr "확장된 가상 키 0x%02x의 스캔 코드가 없습니다"
+msgstr "확장된 가상 키 0x%02x의 스캔 코드가 없음"
 
-#: vncviewer/Viewport.cxx:984
+#: vncviewer/Viewport.cxx:1019
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
-msgstr "가상 키 0x%02x의 스캔 코드가 없습니다"
+msgstr "가상 키 0x%02x의 스캔 코드가 없음"
 
-#: vncviewer/Viewport.cxx:990
+#: vncviewer/Viewport.cxx:1025
 #, c-format
 msgid "Invalid scan code 0x%02x"
 msgstr "잘못된 스캔 코드 0x%02x"
 
-#: vncviewer/Viewport.cxx:1020
+#: vncviewer/Viewport.cxx:1055
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
-msgstr "확장된 가상 키 0x%02x의 심볼이 없습니다"
+msgstr "확장된 가상 키 0x%02x의 심볼이 없음"
 
-#: vncviewer/Viewport.cxx:1022
+#: vncviewer/Viewport.cxx:1057
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
-msgstr "가상 키 0x%02x의 심볼이 없습니다"
+msgstr "가상 키 0x%02x의 심볼이 없음"
 
-#: vncviewer/Viewport.cxx:1115
+#: vncviewer/Viewport.cxx:1157
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr "키 0x%02x의 심볼이 없습니다 (현재 상태에서)"
+msgstr "키 0x%02x의 심볼이 없음 (현재 상태)"
 
 # (in the current state)를 굳이 괄호에 넣어서 번역해도 어색함 ㅠㅠ
-#: vncviewer/Viewport.cxx:1148
+#: vncviewer/Viewport.cxx:1190
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
-msgstr "키 %d의 심볼이 없습니다 (현재 상태에서)"
+msgstr "키 %d의 심볼이 없음 (현재 상태)"
 
-#: vncviewer/Viewport.cxx:1199
+#: vncviewer/Viewport.cxx:1250
 msgctxt "ContextMenu|"
-msgid "E&xit viewer"
-msgstr "뷰어 나가기(&X)"
+msgid "Dis&connect"
+msgstr "연결끊기&연결하기"
 
-#: vncviewer/Viewport.cxx:1202
+#: vncviewer/Viewport.cxx:1253
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "최대화(&F)"
 
-#: vncviewer/Viewport.cxx:1205
+#: vncviewer/Viewport.cxx:1256
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "최소화(&Z)"
 
-#: vncviewer/Viewport.cxx:1207
+#: vncviewer/Viewport.cxx:1258
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "세션에 맞춰 화면 크기를 재설정"
 
-#: vncviewer/Viewport.cxx:1212
+#: vncviewer/Viewport.cxx:1263
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:1215
+#: vncviewer/Viewport.cxx:1266
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:1221
+#: vncviewer/Viewport.cxx:1272
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "%s 전송"
 
-#: vncviewer/Viewport.cxx:1227
+#: vncviewer/Viewport.cxx:1278
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Ctrl-Alt-Del 전송(&D)"
 
-#: vncviewer/Viewport.cxx:1230
+#: vncviewer/Viewport.cxx:1281
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "화면을 다시 불러오기(&R)"
 
-#: vncviewer/Viewport.cxx:1233
+#: vncviewer/Viewport.cxx:1284
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "설정(&O)"
 
-#: vncviewer/Viewport.cxx:1235
+#: vncviewer/Viewport.cxx:1286
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "연결 정보(&I)"
 
-#: vncviewer/Viewport.cxx:1237
+#: vncviewer/Viewport.cxx:1288
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "TigerVNC 뷰어 정보(&T)"
 
-#: vncviewer/Viewport.cxx:1240
-msgctxt "ContextMenu|"
-msgid "Dismiss &menu"
-msgstr "메뉴 해제(&D)"
-
-#: vncviewer/Viewport.cxx:1329
+#: vncviewer/Viewport.cxx:1377
 msgid "VNC connection info"
 msgstr "VNC 연결 정보"
 
-#: vncviewer/parameters.cxx:278 vncviewer/parameters.cxx:312
-#, c-format
-msgid "The name of the parameter %s was too large to write to the registry"
-msgstr "변수명 %s이(가) 너무 길어 레지스트리에 쓸 수 없습니다"
+#: vncviewer/Win32TouchHandler.cxx:47
+msgid "Window is registered for touch instead of gestures"
+msgstr "제스처 대신 터치로 창이 등록됨"
 
-#: vncviewer/parameters.cxx:284 vncviewer/parameters.cxx:291
+#: vncviewer/Win32TouchHandler.cxx:81
 #, c-format
-msgid "The parameter %s was too large to write to the registry"
-msgstr "변수 %s의 값이 너무 커 레지스트리에 쓸 수 없습니다"
+msgid "Failed to set gesture configuration (error 0x%x)"
+msgstr "제스처 구성 설정 실패 (오류: 0x%x)"
 
-#: vncviewer/parameters.cxx:297 vncviewer/parameters.cxx:318
+#: vncviewer/Win32TouchHandler.cxx:93
 #, c-format
-msgid "Failed to write parameter %s of type %s to the registry: %ld"
-msgstr "%s 타입의 변수 %s를 레지스트리에 쓸 수 없습니다: %ld"
+msgid "Failed to get gesture information (error 0x%x)"
+msgstr "제스처 정보를 불러오기 실패 (오류 0x%x)"
 
-#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:377
+#: vncviewer/Win32TouchHandler.cxx:358
 #, c-format
-msgid "The name of the parameter %s was too large to read from the registry"
-msgstr "변수명 %s이(가) 너무 길어 레지스트리에서 읽을 수 없습니다"
+msgid "Invalid mouse button %d, must be a number between 1 and 7."
+msgstr "잘못된 마우스 버튼 %d, 1에서 7 사이의 값을 가져야 합니다."
 
-#: vncviewer/parameters.cxx:346 vncviewer/parameters.cxx:386
+#: vncviewer/Win32TouchHandler.cxx:423
 #, c-format
-msgid "Failed to read parameter %s from the registry: %ld"
-msgstr "변수 %s를 레지스트리에서 읽을 수 없습니다: %ld"
+msgid "Unhandled key 0x%x - can't generate keyboard event."
+msgstr "처리되지 않은 키 0x%x - 키보드 이벤트를 생성할 수 없음."
 
-#: vncviewer/parameters.cxx:357
+#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:107
 #, c-format
-msgid "The parameter %s was too large to read from the registry"
-msgstr "변수 %s가 너무 커 레지스트리에서 읽을 수 없습니다"
+msgid "Unable to get X Input 2 event mask for window 0x%08lx"
+msgstr "창 0x%08lx에 대한 X Input 2 이벤트 마스크를 가져올 수 없음"
 
-#: vncviewer/parameters.cxx:406
+#: vncviewer/XInputTouchHandler.cxx:104
 #, c-format
-msgid "Failed to create registry key: %ld"
-msgstr "레지스트리 키 생성 실패: %ld"
+msgid "Window 0x%08lx has no X Input 2 event mask"
+msgstr "0x%08lx 창에 X Input 2 이벤트 마스트가 없음"
 
-#: vncviewer/parameters.cxx:420 vncviewer/parameters.cxx:469
-#: vncviewer/parameters.cxx:532 vncviewer/parameters.cxx:666
+#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:114
 #, c-format
-msgid "Unknown parameter type for parameter %s"
-msgstr "알 수 없는 타입의 변수 %s"
+msgid "Window 0x%08lx has more than one X Input 2 event mask"
+msgstr "창 0x%08lx에 X Input 2 이벤트 마스크가 두 개 이상 존재함"
 
-#: vncviewer/parameters.cxx:427 vncviewer/parameters.cxx:476
+#: vncviewer/XInputTouchHandler.cxx:143
 #, c-format
-msgid "Failed to close registry key: %ld"
-msgstr "레지스트리 키를 닫지 못함: %ld"
+msgid "Failure grabbing device %i"
+msgstr "장치 %i을(를) 가져오지 못함"
+
+#: vncviewer/parameters.cxx:301 vncviewer/parameters.cxx:326
+#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:383
+#: vncviewer/parameters.cxx:403
+msgid "The name of the parameter is too large"
+msgstr "변수명 길이 초과"
+
+#: vncviewer/parameters.cxx:305 vncviewer/parameters.cxx:310
+#: vncviewer/parameters.cxx:361
+msgid "The parameter is too large"
+msgstr "변수 크기 초과"
+
+#: vncviewer/parameters.cxx:368 vncviewer/parameters.cxx:689
+#: vncviewer/parameters.cxx:811
+msgid "Invalid format or too large value"
+msgstr "잘못된 형식 또는 변수 크기 초과"
+
+#: vncviewer/parameters.cxx:422 vncviewer/parameters.cxx:453
+msgid "Failed to create registry key"
+msgstr "레지스트리 키 생성 실패"
+
+#: vncviewer/parameters.cxx:441 vncviewer/parameters.cxx:496
+#: vncviewer/parameters.cxx:538 vncviewer/parameters.cxx:605
+msgid "Failed to close registry key"
+msgstr "레지스트리 키를 닫지 못함"
+
+#: vncviewer/parameters.cxx:459 vncviewer/parameters.cxx:476
+#: vncviewer/parameters.cxx:489 vncviewer/parameters.cxx:647
+#: vncviewer/parameters.cxx:657 vncviewer/parameters.cxx:668
+#, c-format
+msgid "Failed to save \"%s\": %s"
+msgstr "\"%s\" 저장 실패: %s"
+
+#: vncviewer/parameters.cxx:472 vncviewer/parameters.cxx:560
+#: vncviewer/parameters.cxx:670 vncviewer/parameters.cxx:707
+msgid "Unknown parameter type"
+msgstr "알 수 없는 타입의 변수"
 
 # 레지스터 vs 등록
-#: vncviewer/parameters.cxx:443
+#: vncviewer/parameters.cxx:511 vncviewer/parameters.cxx:583
+msgid "Failed to open registry key"
+msgstr "레지스트리 키를 열지 못함"
+
+#: vncviewer/parameters.cxx:528
 #, c-format
-msgid "Failed to open registry key: %ld"
-msgstr "레지스트리 키를 열지 못함: %ld"
+msgid "Failed to read server history entry %d: %s"
+msgstr "서버 히스토리 항목 %d를 읽지 못함: %s"
 
-#: vncviewer/parameters.cxx:500
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr "환경설정 파일 저장 실패, 홈 디렉토리 경로를 얻지 못하였습니다."
-
-#: vncviewer/parameters.cxx:514
+#: vncviewer/parameters.cxx:564 vncviewer/parameters.cxx:594
 #, c-format
-msgid "Failed to write configuration file, can't open %s: %s"
-msgstr "환경설정 파일 저장 실패, %s를 열 수 없습니다: %s"
+msgid "Failed to read parameter \"%s\": %s"
+msgstr "변수 %s 읽기 실패: %s"
 
-#: vncviewer/parameters.cxx:559
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr "환경설정 파일 불러오기 실패, 홈 디렉토리 경로를 얻지 못하였습니다."
+#: vncviewer/parameters.cxx:648 vncviewer/parameters.cxx:659
+msgid "Could not encode parameter"
+msgstr "파라미터를 인코딩할 수 없음"
 
-#: vncviewer/parameters.cxx:573
-#, c-format
-msgid "Failed to read configuration file, can't open %s: %s"
-msgstr "환경설정 파일 불러오기 실패, %s를 열 수 없습니다: %s"
-
-#: vncviewer/parameters.cxx:586 vncviewer/parameters.cxx:591
-#: vncviewer/parameters.cxx:616 vncviewer/parameters.cxx:629
-#: vncviewer/parameters.cxx:645
-#, c-format
-msgid "Failed to read line %d in file %s: %s"
-msgstr "%2$s 파일의 %1$d 줄을 읽지 못함: %3$s"
-
-#: vncviewer/parameters.cxx:592
-msgid "Line too long"
-msgstr "행 길이 초과"
-
-#: vncviewer/parameters.cxx:599
+#: vncviewer/parameters.cxx:776
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "환경 설정 파일 %s의 형식이 잘못됨"
 
-#: vncviewer/parameters.cxx:617
+#: vncviewer/parameters.cxx:798
 msgid "Invalid format"
 msgstr "잘못된 형식"
 
-#: vncviewer/parameters.cxx:630 vncviewer/parameters.cxx:646
-msgid "Invalid format or too large value"
-msgstr "잘못된 형식 또는 변수 길이 초과"
+#: vncviewer/parameters.cxx:833
+msgid "Unknown parameter"
+msgstr "알 수 없는 타입의 파라미터"
 
-#: vncviewer/parameters.cxx:673
+#: vncviewer/touch.cxx:75
 #, c-format
-msgid "Unknown parameter %s on line %d in file %s"
-msgstr "알 수 없는 매개변수 %1$s가 파일 %3$s의 %2$d줄에 존재"
+msgid "Got message (0x%x) for an unhandled window"
+msgstr "처리되지 않은 창에 대한 메시지(0x%x)를 받았습니다"
+
+#: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
+#, c-format
+msgid "Invalid window 0x%08lx specified for pointer grab"
+msgstr "포인터 그랩에 잘못된 창 0x%08lx가 지정됨"
+
+#: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
+#, c-format
+msgid "Failed to create touch handler: %s"
+msgstr "터치 핸들러 생성 실패: %s"
+
+#: vncviewer/touch.cxx:188
+#, c-format
+msgid "Couldn't attach event handler to window (error 0x%x)"
+msgstr "이벤트 핸들러를 창에 연결할 수 없음 (오류 0x%x)"
+
+#: vncviewer/touch.cxx:212
+msgid "Failed to get event data for X Input event"
+msgstr "X Input 이벤트에 대한 이벤트 데이터를 가져오지 못함"
+
+#: vncviewer/touch.cxx:225
+msgid "X Input event for unknown window"
+msgstr "알 수 없는 창에 대한 X Input 이벤트"
+
+#: vncviewer/touch.cxx:251
+msgid "X Input extension not available."
+msgstr "X Input 확장자를 사용할 수 없습니다."
+
+#: vncviewer/touch.cxx:258
+msgid "X Input 2 (or newer) is not available."
+msgstr "X Input 2(또는 그 이상)을 사용할 수 없습니다."
+
+#: vncviewer/touch.cxx:263
+msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
+msgstr "X Input 2.2(또는 그 이상)을 사용할 수 없습니다. 터치 제스처는 지원하지 않습니다."
 
 # built on을 번역을 할까 그대로 할까
-#: vncviewer/vncviewer.cxx:100
+#: vncviewer/vncviewer.cxx:106
 #, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
@@ -631,89 +845,111 @@ msgstr ""
 "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
 "TigerVNC에 대한 자세한 정보는 https://www.tigervnc.org를 참조하십시오."
 
-#: vncviewer/vncviewer.cxx:127
+#: vncviewer/vncviewer.cxx:172
 msgid "About TigerVNC Viewer"
 msgstr "TigerVNC 뷰어 정보"
 
-#: vncviewer/vncviewer.cxx:140
+#: vncviewer/vncviewer.cxx:193
 msgid "Internal FLTK error. Exiting."
 msgstr "내부 FLTK 오류. 종료합니다."
 
-#: vncviewer/vncviewer.cxx:158 vncviewer/vncviewer.cxx:170
+#: vncviewer/vncviewer.cxx:212
+#, c-format
+msgid ""
+"%s\n"
+"\n"
+"Attempt to reconnect?"
+msgstr ""
+"%s\n"
+"\n"
+"다시 연결을 시도하시겠습니까?"
+
+#: vncviewer/vncviewer.cxx:243 vncviewer/vncviewer.cxx:255
 #, c-format
 msgid "Error starting new TigerVNC Viewer: %s"
 msgstr "새 TigerVNC 뷰어를 시작하는 중 오류 발생: %s"
 
-#: vncviewer/vncviewer.cxx:179
+#: vncviewer/vncviewer.cxx:264
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr "종료 신호 %d가 수신되었습니다. TigerVNC 뷰어를 종료합니다."
 
-#: vncviewer/vncviewer.cxx:271 vncviewer/vncviewer.desktop.in.in:3
+#: vncviewer/vncviewer.cxx:407 vncviewer/vncviewer.desktop.in.in:3
 msgid "TigerVNC Viewer"
 msgstr "TigerVNC 뷰어"
 
-#: vncviewer/vncviewer.cxx:280
+#: vncviewer/vncviewer.cxx:416
 msgid "Yes"
 msgstr "예"
 
-#: vncviewer/vncviewer.cxx:283
+#: vncviewer/vncviewer.cxx:419
 msgid "Close"
 msgstr "닫기"
 
-#: vncviewer/vncviewer.cxx:288
+#: vncviewer/vncviewer.cxx:424
 msgid "About"
 msgstr "정보"
 
-#: vncviewer/vncviewer.cxx:291
+#: vncviewer/vncviewer.cxx:427
 msgid "Hide"
 msgstr "숨기기"
 
-#: vncviewer/vncviewer.cxx:294
+#: vncviewer/vncviewer.cxx:430
 msgid "Quit"
 msgstr "나가기"
 
-#: vncviewer/vncviewer.cxx:298
+#: vncviewer/vncviewer.cxx:434
 msgid "Services"
 msgstr "서비스"
 
-#: vncviewer/vncviewer.cxx:299
+#: vncviewer/vncviewer.cxx:435
 msgid "Hide Others"
 msgstr "다른 것 숨기기"
 
-#: vncviewer/vncviewer.cxx:300
+#: vncviewer/vncviewer.cxx:436
 msgid "Show All"
 msgstr "모두 보이기"
 
-#: vncviewer/vncviewer.cxx:309
+#: vncviewer/vncviewer.cxx:445
 msgctxt "SysMenu|"
 msgid "&File"
 msgstr "파일(&F)"
 
-#: vncviewer/vncviewer.cxx:312
+#: vncviewer/vncviewer.cxx:448
 msgctxt "SysMenu|File|"
 msgid "&New Connection"
 msgstr "새 연결(&N)"
 
-#: vncviewer/vncviewer.cxx:324
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "VNC 홈 디렉토리 생성 불가: 홈 디렉토리 경로를 찾을 수 없습니다."
-
-#: vncviewer/vncviewer.cxx:329
+#: vncviewer/vncviewer.cxx:464
 #, c-format
 msgid "Could not create VNC home directory: %s."
 msgstr "VNC 홈 디렉토리 생성 불가: %s."
 
+#: vncviewer/vncviewer.cxx:563
+msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
+msgstr "FullScreenAllMonitors는 더 이상 사용되지 않으며 대신 FullScreenMode를 'all'로 설정합니다"
+
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:602 vncviewer/vncviewer.cxx:604
+#: vncviewer/vncviewer.cxx:769 vncviewer/vncviewer.cxx:770
 msgid "Parameters -listen and -via are incompatible"
 msgstr "-listen과 -via를 통한 인자들은 호환되지 않음"
 
-#: vncviewer/vncviewer.cxx:619
+#: vncviewer/vncviewer.cxx:784
 #, c-format
 msgid "Listening on port %d"
 msgstr "포트 %d에 접속 대기중"
+
+#: vncviewer/vncviewer.cxx:817
+#, c-format
+msgid ""
+"Failure waiting for incoming VNC connection:\n"
+"\n"
+"%s"
+msgstr ""
+"들어오는 VNC 연결을 기다리는 중 오류가 발생함:\n"
+"\n"
+"%s"
 
 #: vncviewer/vncviewer.desktop.in.in:4
 msgid "Remote Desktop Viewer"
@@ -723,6 +959,55 @@ msgstr "원격 데스크톱 뷰어"
 msgid "Connect to VNC server and display remote desktop"
 msgstr "VNC 서버와 연결하고 원격 데스크톱을 보입니다"
 
-#: vncviewer/vncviewer.desktop.in.in:7
-msgid "tigervnc"
-msgstr "tigervnc"
+#~ msgid "Full (all available colors)"
+#~ msgstr "높음 (이용 가능한 모든 색상)"
+
+#~ msgid "Medium (256 colors)"
+#~ msgstr "중간 (256 색상)"
+
+#~ msgid "Low (64 colors)"
+#~ msgstr "낮음 (64 색상)"
+
+#~ msgid "Very low (8 colors)"
+#~ msgstr "매우 낮음 (8 색상)"
+
+#~ msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+#~ msgstr "레벨(1=빠름, 6=품질[4-6은 잘 사용되지 않습니다])"
+
+#~ msgid "Full-screen mode"
+#~ msgstr "전체 화면 모드"
+
+#~ msgctxt "ContextMenu|"
+#~ msgid "E&xit viewer"
+#~ msgstr "뷰어 나가기(&X)"
+
+#~ msgctxt "ContextMenu|"
+#~ msgid "Dismiss &menu"
+#~ msgstr "메뉴 해제(&D)"
+
+#~ msgid "Failed to write parameter %s of type %s to the registry: %ld"
+#~ msgstr "%s 타입의 변수 %s를 레지스트리에 쓸 수 없습니다: %ld"
+
+#~ msgid "The name of the parameter %s was too large to read from the registry"
+#~ msgstr "변수명 %s이(가) 너무 길어 레지스트리에서 읽을 수 없습니다"
+
+#~ msgid "The parameter %s was too large to read from the registry"
+#~ msgstr "변수 %s가 너무 커 레지스트리에서 읽을 수 없습니다"
+
+#~ msgid "Failed to write configuration file, can't obtain home directory path."
+#~ msgstr "환경설정 파일 저장 실패, 홈 디렉토리 경로를 얻지 못하였습니다."
+
+#~ msgid "Failed to write configuration file, can't open %s: %s"
+#~ msgstr "환경설정 파일 저장 실패, %s를 열 수 없습니다: %s"
+
+#~ msgid "Failed to read configuration file, can't obtain home directory path."
+#~ msgstr "환경설정 파일 불러오기 실패, 홈 디렉토리 경로를 얻지 못하였습니다."
+
+#~ msgid "Unknown parameter %s on line %d in file %s"
+#~ msgstr "알 수 없는 매개변수 %1$s가 파일 %3$s의 %2$d줄에 존재"
+
+#~ msgid "Could not create VNC home directory: can't obtain home directory path."
+#~ msgstr "VNC 홈 디렉토리 생성 불가: 홈 디렉토리 경로를 찾을 수 없습니다."
+
+#~ msgid "tigervnc"
+#~ msgstr "tigervnc"
