@@ -64,6 +64,8 @@ BoolParameter emulateMiddleButton("EmulateMiddleButton",
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
+BoolParameter useLocalCursor("UseLocalCursor",
+                              "Force a local cursor", false);
 
 BoolParameter alertOnFatalError("AlertOnFatalError",
                                 "Give a dialog on connection problems rather "
@@ -177,6 +179,7 @@ static VoidParameter* parameterArray[] = {
   &SecurityClient::secTypes,
   &emulateMiddleButton,
   &dotWhenNoCursor,
+  &useLocalCursor,
   &reconnectOnError,
   &autoSelect,
   &fullColour,

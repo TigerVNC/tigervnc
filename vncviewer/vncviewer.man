@@ -285,6 +285,10 @@ Use custom compression level. Default if \fBCompressLevel\fP is specified.
 Show the dot cursor when the server sends an invisible cursor. Default is off.
 .
 .TP
+.B \-UseLocalCursor
+Force a local cursor; needed to work around an UltraVNC interoperability problem. Default is off.
+.
+.TP
 .B \-PointerEventInterval \fItime\fP
 Time in milliseconds to rate-limit successive pointer events. Default is
 17 ms (60 Hz).
