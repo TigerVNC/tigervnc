@@ -95,6 +95,8 @@ private:
   static int fltkDispatch(int event, Fl_Window *win);
   static int fltkHandle(int event);
 
+  bool hasFocus();
+
   void maybeGrabKeyboard();
   void grabKeyboard();
   void ungrabKeyboard();

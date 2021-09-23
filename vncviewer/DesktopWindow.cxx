@@ -1007,9 +1007,23 @@ Bool eventIsFocusWithSerial(Display *display, XEvent *event, XPointer arg)
 }
 #endif
 
+bool DesktopWindow::hasFocus()
+{
+  Fl_Widget* focus;
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+
+  if (!focus)
+    return false;
+
+  return focus->window() == this;
+}
+
 void DesktopWindow::maybeGrabKeyboard()
 {
-  if (fullscreenSystemKeys && fullscreen_active())
+  if (fullscreenSystemKeys && fullscreen_active() && hasFocus())
     grabKeyboard();
 }
 
