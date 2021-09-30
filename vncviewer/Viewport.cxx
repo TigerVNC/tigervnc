@@ -95,7 +95,7 @@ static const int FAKE_KEY_CODE = 0xffff;
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
     lastPointerPos(0, 0), lastButtonMask(0),
-    keyboard(nullptr),
+    keyboard(nullptr), hotKeyBypass(false), hotKeyActive(false),
     firstLEDState(true), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(nullptr),
     cursorIsBlank(false)
@@ -670,90 +670,112 @@ void Viewport::resetKeyboard()
   }
 
   keyboard->reset();
+
   hotKeyHandler.reset();
+  hotKeyBypass = false;
+  hotKeyActive = false;
+  pressedKeys.clear();
 }
 
 
 void Viewport::handleKeyPress(int systemKeyCode,
                               uint32_t keyCode, uint32_t keySym)
 {
-  HotKeyHandler::KeyAction action;
+  pressedKeys.insert(systemKeyCode);
 
   // Possible hot key combo?
 
-  action = hotKeyHandler.handleKeyPress(systemKeyCode, keySym);
+  if (!hotKeyBypass) {
+    HotKeyHandler::KeyAction action;
 
-  if (action == HotKeyHandler::KeyIgnore) {
-    vlog.debug("Ignoring key press %d / 0x%04x / %s (0x%04x)",
-               systemKeyCode, keyCode, KeySymName(keySym), keySym);
-    return;
-  }
+    action = hotKeyHandler.handleKeyPress(systemKeyCode, keySym);
 
-  if (action == HotKeyHandler::KeyHotKey) {
-    std::list<uint32_t> keySyms;
-    std::list<uint32_t>::const_iterator iter;
+    if (action == HotKeyHandler::KeyIgnore) {
+      vlog.debug("Ignoring key press %d / 0x%04x / %s (0x%04x)",
+                 systemKeyCode, keyCode, KeySymName(keySym), keySym);
+      return;
+    }
 
-    // Modifiers can change the KeySym that's been resolved, so we need
-    // to check all possible KeySyms for this physical key, not just the
-    // current one
-    keySyms = keyboard->translateToKeySyms(systemKeyCode);
+    if (action == HotKeyHandler::KeyHotKey) {
+      std::list<uint32_t> keySyms;
+      std::list<uint32_t>::const_iterator iter;
 
-    // Then we pick the one that matches first
-    keySym = NoSymbol;
-    for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
-      bool found;
+      // Modifiers can change the KeySym that's been resolved, so we
+      // need to check all possible KeySyms for this physical key, not
+      // just the current one
+      keySyms = keyboard->translateToKeySyms(systemKeyCode);
 
-      switch (*iter) {
+      // Then we pick the one that matches first
+      keySym = NoSymbol;
+      for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
+        bool found;
+
+        switch (*iter) {
+        case XK_space:
+        case XK_M:
+        case XK_m:
+        case XK_KP_Enter:
+        case XK_Return:
+          keySym = *iter;
+          found = true;
+          break;
+        default:
+          found = false;
+          break;
+        }
+
+        if (found)
+          break;
+      }
+
+      vlog.debug("Detected hot key %d / 0x%04x / %s (0x%04x)",
+                 systemKeyCode, keyCode, KeySymName(keySym), keySym);
+
+      // Special case which we need to handle first
+      if (keySym == XK_space) {
+        // If another hot key has already fired, then we're too late as
+        // we've already released the modifier keys
+        if (!hotKeyActive) {
+          hotKeyBypass = true;
+          hotKeyHandler.reset();
+        }
+        return;
+      }
+
+      hotKeyActive = true;
+
+      // The remote session won't see any more keys, so release the ones
+      // currently down
+      try {
+        cc->releaseAllKeys();
+      } catch (std::exception& e) {
+        vlog.error("%s", e.what());
+        abort_connection(_("An unexpected error occurred when communicating "
+                           "with the server:\n\n%s"), e.what());
+      }
+
+      switch (keySym) {
       case XK_M:
       case XK_m:
+        popupContextMenu();
+        break;
       case XK_KP_Enter:
       case XK_Return:
-        keySym = *iter;
-        found = true;
+        if (window()->fullscreen_active()) {
+          fullScreen.setParam(false);
+          window()->fullscreen_off();
+        } else {
+          fullScreen.setParam(true);
+          ((DesktopWindow*)window())->fullscreen_on();
+        }
         break;
       default:
-        found = false;
+        // Unknown/Unused hot key combo
         break;
       }
 
-      if (found)
-        break;
+      return;
     }
-
-    vlog.debug("Detected hot key %d / 0x%04x / %s (0x%04x)",
-               systemKeyCode, keyCode, KeySymName(keySym), keySym);
-
-    // The remote session won't see any more keys, so release the ones
-    // currently down
-    try {
-      cc->releaseAllKeys();
-    } catch (std::exception& e) {
-      vlog.error("%s", e.what());
-      abort_connection(_("An unexpected error occurred when communicating "
-                       "with the server:\n\n%s"), e.what());
-    }
-
-    switch (keySym) {
-    case XK_M:
-    case XK_m:
-      popupContextMenu();
-      break;
-    case XK_KP_Enter:
-    case XK_Return:
-      if (window()->fullscreen_active()) {
-        fullScreen.setParam(false);
-        window()->fullscreen_off();
-      } else {
-        fullScreen.setParam(true);
-        ((DesktopWindow*)window())->fullscreen_on();
-      }
-      break;
-    default:
-      // Unknown/Unused hot key combo
-      break;
-    }
-
-    return;
   }
 
   // Normal key, so send to server...
@@ -772,21 +794,31 @@ void Viewport::handleKeyPress(int systemKeyCode,
 
 void Viewport::handleKeyRelease(int systemKeyCode)
 {
-  HotKeyHandler::KeyAction action;
+  pressedKeys.erase(systemKeyCode);
+
+  if (pressedKeys.empty())
+    hotKeyActive = false;
 
   // Possible hot key combo?
 
-  action = hotKeyHandler.handleKeyRelease(systemKeyCode);
+  if (!hotKeyBypass) {
+    HotKeyHandler::KeyAction action;
 
-  if (action == HotKeyHandler::KeyIgnore) {
-    vlog.debug("Ignoring key release %d", systemKeyCode);
-    return;
+    action = hotKeyHandler.handleKeyRelease(systemKeyCode);
+
+    if (action == HotKeyHandler::KeyIgnore) {
+      vlog.debug("Ignoring key release %d", systemKeyCode);
+      return;
+    }
+
+    if (action == HotKeyHandler::KeyHotKey) {
+      vlog.debug("Hot key release %d", systemKeyCode);
+      return;
+    }
   }
 
-  if (action == HotKeyHandler::KeyHotKey) {
-    vlog.debug("Hot key release %d", systemKeyCode);
-    return;
-  }
+  if (pressedKeys.empty())
+    hotKeyBypass = false;
 
   // Normal key, so send to server...
 
