@@ -1283,8 +1283,12 @@ void OptionsDialog::handleHotKey(Fl_Widget* /*widget*/, void *data)
              sizeof(dialog->hotKeyTextBuffer),
              _("To toggle full-screen mode, press %sEnter.\n"
                "\n"
-               "To open session context menu, press %sM."),
-             combo, combo);
+               "To open session context menu, press %sM.\n"
+               "\n"
+               "To send a key combination that includes %s directly to the session, "
+               "press %sSpace, release the space bar without releasing %s, and "
+               "press the desired key."),
+             combo, combo, combo_noplus, combo, combo_noplus);
   }
 
   /* FLTK can't reflow labels, so we'll have to do it manually */
