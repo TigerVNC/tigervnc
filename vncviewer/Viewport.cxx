@@ -96,7 +96,7 @@ static const int FAKE_KEY_CODE = 0xffff;
 Viewport::Viewport(int w, int h, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
     lastPointerPos(0, 0), lastButtonMask(0),
-    keyboard(nullptr),
+    keyboard(nullptr), shortcutBypass(false), shortcutActive(false),
     firstLEDState(true), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(nullptr),
     cursorIsBlank(false)
@@ -682,78 +682,100 @@ void Viewport::resetKeyboard()
   }
 
   keyboard->reset();
+
   shortcutHandler.reset();
+  shortcutBypass = false;
+  shortcutActive = false;
+  pressedKeys.clear();
 }
 
 
 void Viewport::handleKeyPress(int systemKeyCode,
                               uint32_t keyCode, uint32_t keySym)
 {
-  ShortcutHandler::KeyAction action;
+  pressedKeys.insert(systemKeyCode);
 
   // Possible keyboard shortcut?
 
-  action = shortcutHandler.handleKeyPress(systemKeyCode, keySym);
+  if (!shortcutBypass) {
+    ShortcutHandler::KeyAction action;
 
-  if (action == ShortcutHandler::KeyIgnore) {
-    vlog.debug("Ignoring key press %d => 0x%02x / XK_%s (0x%04x)",
-               systemKeyCode, keyCode, KeySymName(keySym), keySym);
-    return;
-  }
+    action = shortcutHandler.handleKeyPress(systemKeyCode, keySym);
 
-  if (action == ShortcutHandler::KeyShortcut) {
-    std::list<uint32_t> keySyms;
-    std::list<uint32_t>::const_iterator iter;
+    if (action == ShortcutHandler::KeyIgnore) {
+      vlog.debug("Ignoring key press %d => 0x%02x / XK_%s (0x%04x)",
+                 systemKeyCode, keyCode, KeySymName(keySym), keySym);
+      return;
+    }
 
-    // Modifiers can change the KeySym that's been resolved, so we need
-    // to check all possible KeySyms for this physical key, not just the
-    // current one
-    keySyms = keyboard->translateToKeySyms(systemKeyCode);
+    if (action == ShortcutHandler::KeyShortcut) {
+      std::list<uint32_t> keySyms;
+      std::list<uint32_t>::const_iterator iter;
 
-    // Then we pick the one that matches first
-    keySym = NoSymbol;
-    for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
-      bool found;
+      // Modifiers can change the KeySym that's been resolved, so we
+      // need to check all possible KeySyms for this physical key, not
+      // just the current one
+      keySyms = keyboard->translateToKeySyms(systemKeyCode);
 
-      switch (*iter) {
+      // Then we pick the one that matches first
+      keySym = NoSymbol;
+      for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
+        bool found;
+
+        switch (*iter) {
+        case XK_space:
+        case XK_M:
+        case XK_m:
+          keySym = *iter;
+          found = true;
+          break;
+        default:
+          found = false;
+          break;
+        }
+
+        if (found)
+          break;
+      }
+
+      vlog.debug("Detected shortcut %d => 0x%02x / XK_%s (0x%04x)",
+                 systemKeyCode, keyCode, KeySymName(keySym), keySym);
+
+      // Special case which we need to handle first
+      if (keySym == XK_space) {
+        // If another shortcut has already fired, then we're too late as
+        // we've already released the modifier keys
+        if (!shortcutActive) {
+          shortcutBypass = true;
+          shortcutHandler.reset();
+        }
+        return;
+      }
+
+      shortcutActive = true;
+
+      // The remote session won't see any more keys, so release the ones
+      // currently down
+      try {
+        cc->releaseAllKeys();
+      } catch (std::exception& e) {
+        vlog.error("%s", e.what());
+        abort_connection(_("An unexpected error occurred when communicating "
+                           "with the server:\n\n%s"), e.what());
+      }
+
+      switch (keySym) {
       case XK_M:
       case XK_m:
-        keySym = *iter;
-        found = true;
+        popupContextMenu();
         break;
       default:
-        found = false;
+        // Unknown/Unused keyboard shortcut
         break;
       }
 
-      if (found)
-        break;
+      return;
     }
-
-    vlog.debug("Detected shortcut %d => 0x%02x / XK_%s (0x%04x)",
-               systemKeyCode, keyCode, KeySymName(keySym), keySym);
-
-    // The remote session won't see any more keys, so release the ones
-    // currently down
-    try {
-      cc->releaseAllKeys();
-    } catch (std::exception& e) {
-      vlog.error("%s", e.what());
-      abort_connection(_("An unexpected error occurred when communicating "
-                       "with the server:\n\n%s"), e.what());
-    }
-
-    switch (keySym) {
-    case XK_M:
-    case XK_m:
-      popupContextMenu();
-      break;
-    default:
-      // Unknown/Unused keyboard shortcut
-      break;
-    }
-
-    return;
   }
 
   // Normal key, so send to server...
@@ -772,21 +794,31 @@ void Viewport::handleKeyPress(int systemKeyCode,
 
 void Viewport::handleKeyRelease(int systemKeyCode)
 {
-  ShortcutHandler::KeyAction action;
+  pressedKeys.erase(systemKeyCode);
+
+  if (pressedKeys.empty())
+    shortcutActive = false;
 
   // Possible keyboard shortcut?
 
-  action = shortcutHandler.handleKeyRelease(systemKeyCode);
+  if (!shortcutBypass) {
+    ShortcutHandler::KeyAction action;
 
-  if (action == ShortcutHandler::KeyIgnore) {
-    vlog.debug("Ignoring key release %d", systemKeyCode);
-    return;
+    action = shortcutHandler.handleKeyRelease(systemKeyCode);
+
+    if (action == ShortcutHandler::KeyIgnore) {
+      vlog.debug("Ignoring key release %d", systemKeyCode);
+      return;
+    }
+
+    if (action == ShortcutHandler::KeyShortcut) {
+      vlog.debug("Shortcut release %d", systemKeyCode);
+      return;
+    }
   }
 
-  if (action == ShortcutHandler::KeyShortcut) {
-    vlog.debug("Shortcut release %d", systemKeyCode);
-    return;
-  }
+  if (pressedKeys.empty())
+    shortcutBypass = false;
 
   // Normal key, so send to server...
 

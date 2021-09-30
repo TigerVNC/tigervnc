@@ -112,6 +112,9 @@ private:
 
   Keyboard* keyboard;
   ShortcutHandler shortcutHandler;
+  bool shortcutBypass;
+  bool shortcutActive;
+  std::set<int> pressedKeys;
 
   bool firstLEDState;
 

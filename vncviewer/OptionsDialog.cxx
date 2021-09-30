@@ -1271,13 +1271,22 @@ void OptionsDialog::handleModifier(Fl_Widget* /*widget*/, void *data)
       _("All keyboard shortcuts are disabled."));
   } else {
     char prefix[256];
+    char prefix_noplus[256];
 
     std::string label;
 
     strcpy(prefix, ShortcutHandler::modifierPrefix(mask));
+    strcpy(prefix_noplus, ShortcutHandler::modifierPrefix(mask, true));
 
-    label = core::format(
+    label += core::format(
       _("To open the session context menu, press %sM."), prefix);
+    label += "\n\n";
+
+    label += core::format(
+      _("To send a key combination that includes %s directly to the "
+        "session, press %sSpace, release the space bar without "
+        "releasing %s, and press the desired key."),
+      prefix_noplus, prefix, prefix_noplus);
 
     dialog->shortcutsText->copy_label(label.c_str());
   }

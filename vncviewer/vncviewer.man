@@ -92,6 +92,11 @@ Ctrl+Alt+M
 Opens a popup menu that can perform various extra actions, such as
 quitting the viewer or opening the options dialog.
 .
+.TP
+Ctrl+Alt+Space
+Temporarily bypasses the keyboard shortcuts, allowing the same key
+combinations to be sent to the remote session.
+.
 
 .SH FULL-SCREEN MODE
 A full-screen mode is supported.  This is particularly useful when connecting
