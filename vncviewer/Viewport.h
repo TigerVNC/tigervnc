@@ -109,6 +109,9 @@ private:
 
   Keyboard* keyboard;
   HotKeyHandler hotKeyHandler;
+  bool hotKeyBypass;
+  bool hotKeyActive;
+  std::set<int> pressedKeys;
 
   bool firstLEDState;
 
