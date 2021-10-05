@@ -652,8 +652,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 
   // Some systems require a grab after the window size has been changed.
   // Otherwise they might hold on to displays, resulting in them being unusable.
-  if (fullscreen_active() && fullscreenSystemKeys)
-    grabKeyboard();
+  maybeGrabKeyboard();
 }
 
 
@@ -800,11 +799,8 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
-    if (!fullscreenSystemKeys)
-      break;
-
     if (fullscreen_active())
-      grabKeyboard();
+      maybeGrabKeyboard();
     else
       ungrabKeyboard();
 
@@ -870,10 +866,7 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
     // all monitors and the user clicked on another application.
     // Make sure we update our grabs with the focus changes.
     case FL_FOCUS:
-      if (fullscreenSystemKeys) {
-        if (dw->fullscreen_active())
-          dw->grabKeyboard();
-      }
+      dw->maybeGrabKeyboard();
       break;
     case FL_UNFOCUS:
       if (fullscreenSystemKeys) {
@@ -1014,6 +1007,26 @@ Bool eventIsFocusWithSerial(Display *display, XEvent *event, XPointer arg)
 }
 #endif
 
+bool DesktopWindow::hasFocus()
+{
+  Fl_Widget* focus;
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+
+  if (!focus)
+    return false;
+
+  return focus->window() == this;
+}
+
+void DesktopWindow::maybeGrabKeyboard()
+{
+  if (fullscreenSystemKeys && fullscreen_active() && hasFocus())
+    grabKeyboard();
+}
+
 void DesktopWindow::grabKeyboard()
 {
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
@@ -1144,12 +1157,7 @@ void DesktopWindow::handleGrab(void *data)
 
   assert(self);
 
-  if (!fullscreenSystemKeys)
-    return;
-  if (!self->fullscreen_active())
-    return;
-
-  self->grabKeyboard();
+  self->maybeGrabKeyboard();
 }
 
 
@@ -1453,8 +1461,8 @@ void DesktopWindow::handleOptions(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
 
-  if (self->fullscreen_active() && fullscreenSystemKeys)
-    self->grabKeyboard();
+  if (fullscreenSystemKeys)
+    self->maybeGrabKeyboard();
   else
     self->ungrabKeyboard();
 
