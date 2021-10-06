@@ -114,8 +114,6 @@ ServerDialog::ServerDialog()
   button->callback(this->handleConnect, this);
 
   callback(this->handleCancel, this);
-
-  set_modal();
 }
 
 
