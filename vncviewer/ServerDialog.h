@@ -45,10 +45,12 @@ protected:
 private:
   void loadServerHistory();
   void saveServerHistory();
+  void updateUsedDir(const char* filename);
 
 protected:
   Fl_Input_Choice *serverName;
   std::vector<std::string> serverHistory;
+  char *usedDir;
 };
 
 #endif

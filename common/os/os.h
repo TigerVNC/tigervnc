@@ -39,4 +39,18 @@
  */
 int getvnchomedir(char **dirp);
 
+/*
+ * Get user home directory.
+ * If HOME environment variable is set then it is used.
+ * Otherwise home directory is obtained via getpwuid function.
+ *
+ * Note for Windows:
+ * This functions returns array of TCHARs, not array of chars.
+ *
+ * Returns:
+ * 0 - Success
+ * -1 - Failure
+ */
+int getuserhomedir(char **dirp);
+
 #endif /* OS_OS_H */
