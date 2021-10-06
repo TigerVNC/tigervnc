@@ -918,12 +918,11 @@ void DesktopWindow::fullscreen_on()
 {
   bool allMonitors = !strcasecmp(fullScreenMode, "all");
   bool selectedMonitors = !strcasecmp(fullScreenMode, "selected");
+  int top, bottom, left, right;
 
   if (not selectedMonitors and not allMonitors) {
-    int n = Fl::screen_num(x(), y(), w(), h());
-    fullscreen_screens(n, n, n, n);
+    top = bottom = left = right = Fl::screen_num(x(), y(), w(), h());
   } else {
-    int top, bottom, left, right;
     int top_y, bottom_y, left_x, right_x;
 
     int sx, sy, sw, sh;
@@ -983,8 +982,17 @@ void DesktopWindow::fullscreen_on()
       }
     }
 
-    fullscreen_screens(top, bottom, left, right);
   }
+#ifdef __APPLE__
+  // This is a workaround for a bug in FLTK, see: https://github.com/fltk/fltk/pull/277
+  int savedLevel;
+  savedLevel = cocoa_get_level(this);
+#endif
+  fullscreen_screens(top, bottom, left, right);
+#ifdef __APPLE__
+  // This is a workaround for a bug in FLTK, see: https://github.com/fltk/fltk/pull/277
+  cocoa_set_level(this, savedLevel);
+#endif
 
   if (!fullscreen_active())
     fullscreen();
