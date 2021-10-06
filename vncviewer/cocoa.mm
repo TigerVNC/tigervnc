@@ -50,6 +50,20 @@ const int kVK_Menu = 0x6E;
 
 static bool captured = false;
 
+int cocoa_get_level(Fl_Window *win)
+{
+  NSWindow *nsw;
+  nsw = (NSWindow*)fl_xid(win);
+  return [nsw level];
+}
+
+void cocoa_set_level(Fl_Window *win, int level)
+{
+  NSWindow *nsw;
+  nsw = (NSWindow*)fl_xid(win);
+  [nsw setLevel:level];
+}
+
 int cocoa_capture_displays(Fl_Window *win)
 {
   NSWindow *nsw;
