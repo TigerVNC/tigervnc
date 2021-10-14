@@ -211,10 +211,10 @@ static void mainloop(const char* vncserver, network::Socket* sock)
       int ret;
       ret = fl_choice(_("%s\n\n"
                         "Attempt to reconnect?"),
-                      fl_yes, fl_no, 0, exitError);
+                      NULL, fl_yes, fl_no, exitError);
       free(exitError);
       exitError = NULL;
-      if (ret == 0)
+      if (ret == 1)
         continue;
       else
         break;
