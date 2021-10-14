@@ -284,7 +284,7 @@ void CSecurityTLS::setParam()
     if (gnutls_certificate_allocate_credentials(&cert_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_certificate_allocate_credentials failed");
 
-    if (gnutls_certificate_set_x509_system_trust(cert_cred) != GNUTLS_E_SUCCESS)
+    if (gnutls_certificate_set_x509_system_trust(cert_cred) < 1)
       vlog.error("Could not load system certificate trust store");
 
     if (*cafile && gnutls_certificate_set_x509_trust_file(cert_cred,cafile,GNUTLS_X509_FMT_PEM) < 0)
