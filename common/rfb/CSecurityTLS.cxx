@@ -288,10 +288,10 @@ void CSecurityTLS::setParam()
       vlog.error("Could not load system certificate trust store");
 
     if (*cafile && gnutls_certificate_set_x509_trust_file(cert_cred,cafile,GNUTLS_X509_FMT_PEM) < 0)
-      throw AuthFailureException("load of CA cert failed");
+      vlog.error("Could not load user specified certificate authority");
 
     if (*crlfile && gnutls_certificate_set_x509_crl_file(cert_cred,crlfile,GNUTLS_X509_FMT_PEM) < 0)
-      throw AuthFailureException("load of CRL failed");
+      vlog.error("Could not load user specified certificate revocation list");
 
     if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_credentials_set failed");
