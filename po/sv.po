@@ -5,13 +5,13 @@
 # Peter Åstrand <astrand@cendio.se>, 2011.
 # Göran Uddeborg <goeran@uddeborg.se>, 2015, 2016, 2017, 2018, 2019, 2021.
 #
-# $Revision: 1.22 $
+# $Revision: 1.23 $
 msgid ""
 msgstr ""
 "Project-Id-Version: tigervnc 1.11.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2021-09-08 09:19+0200\n"
-"PO-Revision-Date: 2021-09-15 22:39+0200\n"
+"PO-Revision-Date: 2021-10-19 14:58+0200\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -94,7 +94,7 @@ msgstr "Säkerhetsmetod: %s"
 
 #: vncviewer/CConn.cxx:271 vncviewer/CConn.cxx:273
 msgid "The connection was dropped by the server before the session could be established."
-msgstr "Anslutningen släpptes av servern före sessionen kunde etableras."
+msgstr "Anslutningen släpptes av servern innanc sessionen kunde etableras."
 
 #: vncviewer/CConn.cxx:280 vncviewer/Viewport.cxx:575
 #: vncviewer/Viewport.cxx:673 vncviewer/Viewport.cxx:776
@@ -168,13 +168,13 @@ msgstr "Felaktigt tillstånd för 3-knappsemulering"
 
 #: vncviewer/MonitorArrangement.cxx:403
 msgid "Failed to get monitor name because X11 RandR could not be found"
-msgstr "Misslyckades med att hämta monitornamnet eftersom X11 RandR inte hittades"
+msgstr "Misslyckades med att hämta skärmnamnet eftersom X11 RandR inte hittades"
 
 #: vncviewer/MonitorArrangement.cxx:409
 #: vncviewer/MonitorIndicesParameter.cxx:47
 #: vncviewer/MonitorIndicesParameter.cxx:100
 msgid "Failed to get system monitor configuration"
-msgstr "Misslyckades att hämta systemmonitorkonfigurationen"
+msgstr "Misslyckades att hämta systemets bildskärmskonfiguration"
 
 #: vncviewer/MonitorArrangement.cxx:417
 #, c-format
@@ -194,13 +194,13 @@ msgstr "Ogiltig konfiguration angiven för %s"
 #: vncviewer/MonitorIndicesParameter.cxx:86
 #, c-format
 msgid "Monitor index %d does not exist"
-msgstr "Monitorindex %d finns inte"
+msgstr "Bildskärmsindex %d finns inte"
 
 #: vncviewer/MonitorIndicesParameter.cxx:164
 #: vncviewer/MonitorIndicesParameter.cxx:184
 #, c-format
 msgid "Invalid monitor index '%s'"
-msgstr "Felaktigt monitorindex ”%s”"
+msgstr "Felaktigt skärmindex ”%s”"
 
 #: vncviewer/MonitorIndicesParameter.cxx:172
 #, c-format
@@ -363,15 +363,15 @@ msgstr "Aktivera fullskärmsläge"
 
 #: vncviewer/OptionsDialog.cxx:825
 msgid "Use current monitor"
-msgstr "Använd nuvarande monitor"
+msgstr "Använd nuvarande bildskärm"
 
 #: vncviewer/OptionsDialog.cxx:833
 msgid "Use all monitors"
-msgstr "Använd alla monitorer"
+msgstr "Använd alla bildskärmar"
 
 #: vncviewer/OptionsDialog.cxx:841
 msgid "Use selected monitor(s)"
-msgstr "Använd de valda monitorerna"
+msgstr "Använd de valda bildskärmarna"
 
 #: vncviewer/OptionsDialog.cxx:867
 msgid "Misc."
@@ -675,7 +675,7 @@ msgstr "VNC anslutningsinformation"
 
 #: vncviewer/Win32TouchHandler.cxx:47
 msgid "Window is registered for touch instead of gestures"
-msgstr "Fönstret har registrerat för beröring istället för gester"
+msgstr "Fönstret har registrerats för beröring istället för gester"
 
 #: vncviewer/Win32TouchHandler.cxx:81
 #, c-format
@@ -690,7 +690,7 @@ msgstr "Misslyckades att få gestinformation (fel 0x%x)"
 #: vncviewer/Win32TouchHandler.cxx:358
 #, c-format
 msgid "Invalid mouse button %d, must be a number between 1 and 7."
-msgstr "Felaktig mysknapp %d, måste vara ett tal mellan 1 och 7."
+msgstr "Felaktig musknapp %d, måste vara ett nummer mellan 1 och 7."
 
 #: vncviewer/Win32TouchHandler.cxx:423
 #, c-format
@@ -705,7 +705,7 @@ msgstr "Kan inte få X inmatning 2 händelsemask för fönster 0x%08lx"
 #: vncviewer/XInputTouchHandler.cxx:104
 #, c-format
 msgid "Window 0x%08lx has no X Input 2 event mask"
-msgstr "Fönster 0x%08lx har inge X inmatning 2 händelsemask"
+msgstr "Fönster 0x%08lx har ingen X inmatning 2 händelsemask"
 
 #: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:114
 #, c-format
@@ -761,7 +761,7 @@ msgstr "Misslyckades med att öppna registernyckel"
 #: vncviewer/parameters.cxx:528
 #, c-format
 msgid "Failed to read server history entry %d: %s"
-msgstr "Misslyckades med att läsa historiepost %d: %s"
+msgstr "Misslyckades med att läsa serverhistorikpost %d: %s"
 
 #: vncviewer/parameters.cxx:564 vncviewer/parameters.cxx:594
 #, c-format
@@ -803,7 +803,7 @@ msgstr "Misslyckades med att skapa en beröringshanterare: %s"
 #: vncviewer/touch.cxx:188
 #, c-format
 msgid "Couldn't attach event handler to window (error 0x%x)"
-msgstr "Kunde inte koppla en händelsehanterar till fönstret (fel 0x%x)"
+msgstr "Kunde inte koppla en händelsehanterare till fönstret (fel 0x%x)"
 
 #: vncviewer/touch.cxx:212
 msgid "Failed to get event data for X Input event"
@@ -823,7 +823,7 @@ msgstr "X inmatning 2 (eller nyare) är inte tillgänglig."
 
 #: vncviewer/touch.cxx:263
 msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
-msgstr "X inmatning 2.2 (eller nyare) är inte tillgänglig. Beröringsgester kommer inte stöjdas."
+msgstr "X inmatning 2.2 (eller nyare) är inte tillgänglig. Beröringsgester kommer inte stödjas."
 
 #: vncviewer/vncviewer.cxx:106
 #, c-format
