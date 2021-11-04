@@ -136,8 +136,12 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
 
   // Read the rect
   bufferStream->clear();
-  if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
-    return false;
+  try {
+    if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
+      return false;
+  } catch (rdr::Exception& e) {
+    throw Exception("Error reading rect: %s", e.str());
+  }
 
   // Then try to put it on the queue
   entry = new QueueEntry;
