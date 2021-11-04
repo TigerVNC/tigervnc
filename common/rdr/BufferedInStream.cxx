@@ -27,7 +27,7 @@
 using namespace rdr;
 
 static const size_t DEFAULT_BUF_SIZE = 8192;
-static const size_t MAX_BUF_SIZE = 4 * 1024 * 1024;
+static const size_t MAX_BUF_SIZE = 32 * 1024 * 1024;
 
 BufferedInStream::BufferedInStream()
   : bufSize(DEFAULT_BUF_SIZE), offset(0)
