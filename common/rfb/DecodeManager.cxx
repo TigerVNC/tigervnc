@@ -43,6 +43,8 @@ DecodeManager::DecodeManager(CConnection *conn) :
 
   memset(decoders, 0, sizeof(decoders));
 
+  memset(stats, 0, sizeof(stats));
+
   queueMutex = new os::Mutex();
   producerCond = new os::Condition(queueMutex);
   consumerCond = new os::Condition(queueMutex);
@@ -73,6 +75,8 @@ DecodeManager::DecodeManager(CConnection *conn) :
 
 DecodeManager::~DecodeManager()
 {
+  logStats();
+
   while (!threads.empty()) {
     delete threads.back();
     threads.pop_back();
@@ -98,6 +102,7 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
 {
   Decoder *decoder;
   rdr::MemOutStream *bufferStream;
+  int equiv;
 
   QueueEntry *entry;
 
@@ -143,6 +148,12 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
     throw Exception("Error reading rect: %s", e.str());
   }
 
+  stats[encoding].rects++;
+  stats[encoding].bytes += 12 + bufferStream->length();
+  stats[encoding].pixels += r.area();
+  equiv = 12 + r.area() * (conn->server.pf().bpp/8);
+  stats[encoding].equivalent += equiv;
+
   // Then try to put it on the queue
   entry = new QueueEntry;
 
@@ -185,6 +196,50 @@ void DecodeManager::flush()
   queueMutex->unlock();
 
   throwThreadException();
+}
+
+void DecodeManager::logStats()
+{
+  size_t i;
+
+  unsigned rects;
+  unsigned long long pixels, bytes, equivalent;
+
+  double ratio;
+
+  char a[1024], b[1024];
+
+  rects = 0;
+  pixels = bytes = equivalent = 0;
+
+  for (i = 0;i < (sizeof(stats)/sizeof(stats[0]));i++) {
+    // Did this class do anything at all?
+    if (stats[i].rects == 0)
+      continue;
+
+    rects += stats[i].rects;
+    pixels += stats[i].pixels;
+    bytes += stats[i].bytes;
+    equivalent += stats[i].equivalent;
+
+    ratio = (double)stats[i].equivalent / stats[i].bytes;
+
+    siPrefix(stats[i].rects, "rects", a, sizeof(a));
+    siPrefix(stats[i].pixels, "pixels", b, sizeof(b));
+    vlog.info("    %s: %s, %s", encodingName(i), a, b);
+    iecPrefix(stats[i].bytes, "B", a, sizeof(a));
+    vlog.info("    %*s  %s (1:%g ratio)",
+              (int)strlen(encodingName(i)), "",
+              a, ratio);
+  }
+
+  ratio = (double)equivalent / bytes;
+
+  siPrefix(rects, "rects", a, sizeof(a));
+  siPrefix(pixels, "pixels", b, sizeof(b));
+  vlog.info("  Total: %s, %s", a, b);
+  iecPrefix(bytes, "B", a, sizeof(a));
+  vlog.info("         %s (1:%g ratio)", a, ratio);
 }
 
 void DecodeManager::setThreadException(const rdr::Exception& e)
