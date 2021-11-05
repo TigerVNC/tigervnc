@@ -26,7 +26,7 @@ BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
 BuildRequires:  libXrandr-devel, fltk-devel >= 1.3.3
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
-BuildRequires:  systemd, cmake, selinux-policy-devel
+BuildRequires:  systemd, cmake3, selinux-policy-devel
 BuildRequires:  libpng-devel
 BuildRequires:  zlib-devel
 
@@ -160,11 +160,7 @@ export CPPFLAGS="$CXXFLAGS"
 
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 
-# The cmake in RHEL is too old and doesn't set up
-# CMAKE_INSTALL_SYSCONFDIR properly
-%{cmake} -G"Unix Makefiles" \
-  -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
-  -DBUILD_STATIC=off
+%{cmake3} -G"Unix Makefiles" -DBUILD_STATIC=off
 make %{?_smp_mflags}
 
 pushd unix/xserver
