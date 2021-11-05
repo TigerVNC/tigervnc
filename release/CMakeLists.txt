@@ -70,12 +70,10 @@ if(BUILD_JAVA)
 endif()
 
 add_custom_target(tarball bash maketarball
-  DEPENDS ${TARBALL_DEPENDS}
-  SOURCES maketarball)
+  DEPENDS ${TARBALL_DEPENDS})
 
 add_custom_target(servertarball bash maketarball server
-  DEPENDS ${TARBALL_DEPENDS}
-  SOURCES maketarball)
+  DEPENDS ${TARBALL_DEPENDS})
 
 endif() #UNIX
 
