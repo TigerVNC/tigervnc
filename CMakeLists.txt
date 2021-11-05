@@ -2,13 +2,7 @@
 # Setup
 #
 
-cmake_minimum_required(VERSION 2.8.11)
-if(POLICY CMP0022)
-  cmake_policy(SET CMP0022 OLD)
-endif()
-if(${CMAKE_VERSION} VERSION_LESS "3.4.0")
-  message(WARNING "CMake 3.4.0 or newer is required to get correct default installation paths")
-endif()
+cmake_minimum_required(VERSION 3.10.0)
 
 # Internal cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -115,20 +109,6 @@ if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   message(STATUS "64-bit build")
 else()
   message(STATUS "32-bit build")
-endif()
-
-# Versions of CMake before 2.8.7 do not properly support resource compilation
-# with MinGW.  Boo!
-if(MINGW AND "${CMAKE_VERSION}" VERSION_LESS "2.8.7")
-  if(NOT DEFINED RC)
-    set(CMAKE_RC_COMPILER_INIT windres)
-  else()
-    set(CMAKE_RC_COMPILER_INIT ${RC})
-  endif()
-  enable_language(RC)
-  message(STATUS "Resource compiler: ${CMAKE_RC_COMPILER}")
-  set(CMAKE_RC_COMPILE_OBJECT
-    "<CMAKE_RC_COMPILER> <FLAGS> <DEFINES> -o <OBJECT> --output-format=coff <SOURCE>")
 endif()
 
 # MinGW64 has header support but no library support for IActiveDesktop, so we

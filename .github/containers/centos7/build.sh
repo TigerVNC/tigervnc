@@ -33,6 +33,7 @@ sed -i "s/@VERSION@/${VERSION}/" ${CURDIR}/rpmbuild/SPECS/tigervnc.spec
 
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --interactive --rm tigervnc/${DOCKER} \
 	bash -c "
+	sudo yum install -y epel-release &&
 	sudo yum-builddep -y ~/rpmbuild/SPECS/tigervnc.spec &&
         sudo chown 0.0 ~/rpmbuild/SOURCES/* &&
         sudo chown 0.0 ~/rpmbuild/SPECS/* &&
