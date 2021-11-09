@@ -78,8 +78,8 @@ Each desktop has a name which may be displayed by the viewer. It defaults to
 .B \-rfbport \fIport\fP
 Specifies the TCP port on which Xvnc listens for connections from viewers (the
 protocol used in VNC is called RFB - "remote framebuffer").  The default is
-5900 plus the display number. Listening on TCP port can be disabled with
--\frfbport\fP=-1.
+5900 plus the display number. Specify \fB-1\fP to disable listening on a TCP
+port.
 .
 .TP
 .B \-UseIPv4
