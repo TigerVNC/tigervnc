@@ -913,7 +913,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
     systemKeysCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                       CHECK_MIN_WIDTH,
                                                       CHECK_HEIGHT,
-                                                      _("Pass system keys directly to server (full screen)")));
+                                                      _("Always grab control in full screen")));
     systemKeysCheckbox->callback(handleSystemKeys, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
   }
@@ -1283,6 +1283,8 @@ void OptionsDialog::handleHotKey(Fl_Widget* /*widget*/, void *data)
              sizeof(dialog->hotKeyTextBuffer),
              _("To release control from the session, press %s.\n"
                "\n"
+               "To grab control to the session, press %sG.\n"
+               "\n"
                "To toggle full-screen mode, press %sEnter.\n"
                "\n"
                "To open session context menu, press %sM.\n"
@@ -1290,7 +1292,8 @@ void OptionsDialog::handleHotKey(Fl_Widget* /*widget*/, void *data)
                "To send a key combination that includes %s directly to the session, "
                "press %sSpace, release the space bar without releasing %s, and "
                "press the desired key."),
-             combo_noplus, combo, combo, combo_noplus, combo, combo_noplus);
+             combo_noplus, combo, combo, combo,
+             combo_noplus, combo, combo_noplus);
   }
 
   /* FLTK can't reflow labels, so we'll have to do it manually */
