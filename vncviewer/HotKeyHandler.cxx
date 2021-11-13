@@ -63,22 +63,19 @@ HotKeyHandler::KeyAction HotKeyHandler::handleKeyPress(int keyCode,
     if (pressedMask == comboMask) {
       // All combo keys are pressed
       state = Armed;
-      return KeyArm;
     } if (mask && ((mask & comboMask) == mask)) {
       // The new key is part of the combo
       if (state == Idle)
         state = Arming;
-      return KeyArming;
     } else {
       // The new key was something else
       state = Wedged;
-      return KeyNormal;
     }
-    break;
+    return KeyNormal;
   case Armed:
     if (mask && ((mask & comboMask) == mask)) {
       // The new key is part of the combo
-      return KeyArm;
+      return KeyNormal;
     } else if (mask) {
       // The new key is some other modifier
       state = Wedged;
@@ -124,18 +121,15 @@ HotKeyHandler::KeyAction HotKeyHandler::handleKeyRelease(int keyCode)
 
   switch (state) {
   case Arming:
-    if (pressedKeys.empty())
-      action = KeyNormal;
-    else
-      action = KeyArming;
+    action = KeyNormal;
     break;
   case Armed:
     if (pressedKeys.empty())
       action = KeyUnarm;
     else if (pressedMask == comboMask)
-      action = KeyArm;
+      action = KeyNormal;
     else {
-      action = KeyArming;
+      action = KeyNormal;
       state = Rearming;
     }
     break;
@@ -143,7 +137,7 @@ HotKeyHandler::KeyAction HotKeyHandler::handleKeyRelease(int keyCode)
     if (pressedKeys.empty())
       action = KeyUnarm;
     else
-      action = KeyArming;
+      action = KeyNormal;
     break;
   case Firing:
     if (firedKey)
