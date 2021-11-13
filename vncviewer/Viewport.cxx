@@ -649,6 +649,8 @@ void Viewport::handleKeyPress(int systemKeyCode,
 
         switch (*iter) {
         case XK_space:
+        case XK_G:
+        case XK_g:
         case XK_M:
         case XK_m:
         case XK_KP_Enter:
@@ -692,6 +694,10 @@ void Viewport::handleKeyPress(int systemKeyCode,
       }
 
       switch (keySym) {
+      case XK_G:
+      case XK_g:
+        ((DesktopWindow*)window())->grabKeyboard();
+        break;
       case XK_M:
       case XK_m:
         popupContextMenu();
@@ -871,6 +877,8 @@ void Viewport::popupContextMenu()
 
   // FLTK also doesn't switch focus properly for menus
   handle(FL_UNFOCUS);
+  // Similarly DesktopWindow isn't notified the grab is stolen
+  ((DesktopWindow*)window())->ungrabKeyboard();
 
   m = contextMenu->popup();
 

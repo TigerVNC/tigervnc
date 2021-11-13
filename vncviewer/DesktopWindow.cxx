@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -828,10 +828,13 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
-    if (fullscreen_active())
-      maybeGrabKeyboard();
-    else
-      ungrabKeyboard();
+    // Automatically toggle keyboard grab?
+    if (fullscreenSystemKeys) {
+      if (fullscreen_active())
+        grabKeyboard();
+      else
+        ungrabKeyboard();
+    }
 
     break;
 
@@ -915,18 +918,17 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
   if (dw) {
     switch (event) {
     // Focus might not stay with us just because we have grabbed the
-    // keyboard. E.g. we might have sub windows, or we're not using
-    // all monitors and the user clicked on another application.
-    // Make sure we update our grabs with the focus changes.
+    // keyboard. E.g. we might have sub windows, or the user clicked on
+    // another application. Make sure we update our grabs with the focus
+    // changes.
     case FL_FOCUS:
       vlog.error("FL_FOCUS");
-      dw->maybeGrabKeyboard();
+      if (fullscreenSystemKeys && dw->fullscreen_active())
+        dw->grabKeyboard();
       break;
     case FL_UNFOCUS:
       vlog.error("FL_UNFOCUS");
-      if (fullscreenSystemKeys) {
-        dw->ungrabKeyboard();
-      }
+      dw->ungrabKeyboard();
       break;
 
     case FL_RELEASE:
@@ -1060,12 +1062,6 @@ bool DesktopWindow::hasFocus()
   return focus->window() == this;
 }
 
-void DesktopWindow::maybeGrabKeyboard()
-{
-  if (fullscreenSystemKeys && fullscreen_active() && hasFocus())
-    grabKeyboard();
-}
-
 void DesktopWindow::grabKeyboard()
 {
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
@@ -1073,6 +1069,9 @@ void DesktopWindow::grabKeyboard()
   // event.
 
   // FIXME: Push this stuff into FLTK.
+
+  if (!hasFocus())
+    return;
 
 #if defined(WIN32)
   int ret;
@@ -1169,7 +1168,7 @@ void DesktopWindow::handleGrab(void *data)
 
   assert(self);
 
-  self->maybeGrabKeyboard();
+  self->grabKeyboard();
 }
 
 
@@ -1475,11 +1474,6 @@ void DesktopWindow::handleClose(Fl_Widget* /*wnd*/, void* /*data*/)
 void DesktopWindow::handleOptions(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
-
-  if (fullscreenSystemKeys)
-    self->maybeGrabKeyboard();
-  else
-    self->ungrabKeyboard();
 
   // Call fullscreen_on even if active since it handles
   // fullScreenMode
