@@ -32,8 +32,6 @@ public:
 
   enum KeyAction {
     KeyNormal,
-    KeyArming,
-    KeyArm,
     KeyUnarm,
     KeyHotKey,
     KeyIgnore,

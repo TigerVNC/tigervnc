@@ -67,7 +67,7 @@ static void testSingleArmed()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 
   printf("OK\n");
@@ -81,9 +81,9 @@ static void testSingleDualArmed()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 
   printf("OK\n");
@@ -97,7 +97,7 @@ static void testSingleCombo()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -113,7 +113,7 @@ static void testSingleRightCombo()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -129,8 +129,8 @@ static void testSingleDualCombo()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
@@ -147,7 +147,7 @@ static void testSingleComboReordered()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
@@ -163,7 +163,7 @@ static void testSingleDualComboReordered()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -181,12 +181,12 @@ static void testSingleComboRepeated()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -202,7 +202,7 @@ static void testSingleComboMultipleKeys()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyPress(3, XK_b), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
@@ -258,7 +258,7 @@ static void testSingleWedgeModifierArmed()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyNormal);
@@ -276,7 +276,7 @@ static void testSingleWedgeModifierFiring()
 
   handler.setHotKeyCombo("Ctrl");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -299,7 +299,7 @@ static void testSingleUnwedge()
   handler.handleKeyRelease(1);
   handler.handleKeyRelease(2);
 
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
@@ -315,11 +315,11 @@ static void testMultiArmed()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 
   printf("OK\n");
@@ -333,17 +333,17 @@ static void testMultiRearmed()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 
   printf("OK\n");
@@ -357,9 +357,9 @@ static void testMultiFailedArm()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyNormal);
 
   printf("OK\n");
@@ -373,13 +373,13 @@ static void testMultiDualArmed()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_R), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_R), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 
   printf("OK\n");
@@ -393,9 +393,9 @@ static void testMultiCombo()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -413,9 +413,9 @@ static void testMultiRightCombo()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_R), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_R), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_R), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_R), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -433,12 +433,12 @@ static void testMultiDualCombo()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(4, XK_Alt_R), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyArm);
-  ASSERT_EQ(handler.handleKeyPress(6, XK_Shift_R), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(4, XK_Alt_R), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(6, XK_Shift_R), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(7, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(7), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(6), HotKeyHandler::KeyIgnore);
@@ -459,9 +459,9 @@ static void testMultiComboReordered()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
@@ -479,9 +479,9 @@ static void testMultiDualComboReordered()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(7, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyPress(4, XK_Alt_R), HotKeyHandler::KeyIgnore);
@@ -505,18 +505,18 @@ static void testMultiComboRepeated()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -534,9 +534,9 @@ static void testMultiComboMultipleKeys()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyPress(5, XK_b), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
@@ -602,8 +602,8 @@ static void testMultiWedgeArming()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(1, XK_b), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyNormal);
@@ -624,8 +624,8 @@ static void testMultiWedgeModifierArming()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_Super_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
@@ -642,9 +642,9 @@ static void testMultiWedgeModifierArmed()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_Super_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
@@ -662,9 +662,9 @@ static void testMultiWedgeModifierFiring()
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyPress(5, XK_Super_L), HotKeyHandler::KeyIgnore);
   ASSERT_EQ(handler.handleKeyRelease(5), HotKeyHandler::KeyIgnore);
@@ -693,9 +693,9 @@ static void testMultiUnwedge()
   handler.handleKeyRelease(3);
   handler.handleKeyRelease(4);
 
-  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
-  ASSERT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyArm);
+  ASSERT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
+  ASSERT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyNormal);
   ASSERT_EQ(handler.handleKeyPress(5, XK_a), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(5), HotKeyHandler::KeyHotKey);
   ASSERT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyIgnore);
