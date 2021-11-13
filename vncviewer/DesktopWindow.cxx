@@ -859,10 +859,13 @@ int DesktopWindow::handle(int event)
     }
 #endif
 
-    if (fullscreen_active())
-      maybeGrabKeyboard();
-    else
-      ungrabKeyboard();
+    // Automatically toggle keyboard grab?
+    if (fullscreenSystemKeys) {
+      if (fullscreen_active())
+        grabKeyboard();
+      else
+        ungrabKeyboard();
+    }
 
     // The window manager respected our full screen request, so stop
     // waiting and delaying the session resize
@@ -954,16 +957,15 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
   if (dw) {
     switch (event) {
     // Focus might not stay with us just because we have grabbed the
-    // keyboard. E.g. we might have sub windows, or we're not using
-    // all monitors and the user clicked on another application.
-    // Make sure we update our grabs with the focus changes.
+    // keyboard. E.g. we might have sub windows, or the user clicked on
+    // another application. Make sure we update our grabs with the focus
+    // changes.
     case FL_FOCUS:
-      dw->maybeGrabKeyboard();
+      if (fullscreenSystemKeys && dw->fullscreen_active())
+        dw->grabKeyboard();
       break;
     case FL_UNFOCUS:
-      if (fullscreenSystemKeys) {
-        dw->ungrabKeyboard();
-      }
+      dw->ungrabKeyboard();
       break;
 
     case FL_SHOW:
@@ -1100,12 +1102,6 @@ bool DesktopWindow::hasFocus()
   return focus->window() == this;
 }
 
-void DesktopWindow::maybeGrabKeyboard()
-{
-  if (fullscreenSystemKeys && fullscreen_active() && hasFocus())
-    grabKeyboard();
-}
-
 void DesktopWindow::grabKeyboard()
 {
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
@@ -1113,6 +1109,9 @@ void DesktopWindow::grabKeyboard()
   // event.
 
   // FIXME: Push this stuff into FLTK.
+
+  if (!hasFocus())
+    return;
 
 #if defined(WIN32)
   int ret;
@@ -1209,7 +1208,7 @@ void DesktopWindow::handleGrab(void *data)
 
   assert(self);
 
-  self->maybeGrabKeyboard();
+  self->grabKeyboard();
 }
 
 
@@ -1535,11 +1534,6 @@ void DesktopWindow::handleClose(Fl_Widget* /*wnd*/, void* /*data*/)
 void DesktopWindow::handleOptions(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
-
-  if (fullscreenSystemKeys)
-    self->maybeGrabKeyboard();
-  else
-    self->ungrabKeyboard();
 
   // Call fullscreen_on even if active since it handles
   // fullScreenMode
