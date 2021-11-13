@@ -908,10 +908,9 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
     tx += INDENT;
     ty += TIGHT_MARGIN;
 
-    systemKeysCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                      CHECK_MIN_WIDTH,
-                                                      CHECK_HEIGHT,
-                                                      _("Pass system keys directly to server (full screen)")));
+    systemKeysCheckbox = new Fl_Check_Button(
+      LBLRIGHT(tx, ty, CHECK_MIN_WIDTH, CHECK_HEIGHT,
+               _("Always send all keyboard input in full screen")));
     systemKeysCheckbox->callback(handleSystemKeys, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
   }
@@ -1281,6 +1280,11 @@ void OptionsDialog::handleModifier(Fl_Widget* /*widget*/, void *data)
     label += core::format(
       _("To release keyboard control from the session, press %s."),
       prefix_noplus);
+    label += "\n\n";
+
+    label += core::format(
+      _("To pass all keyboard input to the session, press %sG."),
+      prefix);
     label += "\n\n";
 
     label += core::format(

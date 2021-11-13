@@ -93,6 +93,11 @@ Releases control of the keyboard and allows system keys to be used
 locally.
 .
 .TP
+Ctrl+Alt+G
+Grabs control of the keyboard and allows system keys (like Alt+Tab) to
+be sent to the remote session.
+.
+.TP
 Ctrl+Alt+Enter
 Toggles full-screen mode.
 .
@@ -207,8 +212,8 @@ The default is "1".
 .
 .TP
 .B \-FullscreenSystemKeys
-Pass special keys (like Alt+Tab) directly to the server when in full-screen
-mode.
+Automatically grab all input from the keyboard when entering full-screen
+and pass special keys (like Alt+Tab) directly to the server.
 .
 .TP
 .B \-geometry \fIgeometry\fP
