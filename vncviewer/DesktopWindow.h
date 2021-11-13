@@ -78,6 +78,10 @@ public:
 
   void fullscreen_on();
 
+  // Grab keyboard events from desktop environment
+  void grabKeyboard();
+  void ungrabKeyboard();
+
 private:
   static void menuOverlay(void *data);
 
@@ -89,12 +93,6 @@ private:
   static int fltkHandle(int event);
 
   bool hasFocus();
-
-  void maybeGrabKeyboard();
-  void grabKeyboard();
-public:
-  void ungrabKeyboard();
-private:
 
   void grabPointer();
   void ungrabPointer();
