@@ -52,7 +52,7 @@ TEST(HotKeyHandler, singleArmed)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 }
 
@@ -62,9 +62,9 @@ TEST(HotKeyHandler, singleDualArmed)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 }
 
@@ -74,7 +74,7 @@ TEST(HotKeyHandler, singleCombo)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -86,7 +86,7 @@ TEST(HotKeyHandler, singleRightCombo)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -98,8 +98,8 @@ TEST(HotKeyHandler, singleDualCombo)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
@@ -112,7 +112,7 @@ TEST(HotKeyHandler, singleComboReordered)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
@@ -124,7 +124,7 @@ TEST(HotKeyHandler, singleDualComboReordered)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -138,12 +138,12 @@ TEST(HotKeyHandler, singleComboRepeated)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
@@ -155,7 +155,7 @@ TEST(HotKeyHandler, singleComboMultipleKeys)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyPress(3, XK_b), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyHotKey);
@@ -199,7 +199,7 @@ TEST(HotKeyHandler, singleWedgeModifierArmed)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyNormal);
@@ -213,7 +213,7 @@ TEST(HotKeyHandler, singleWedgeModifierFiring)
 
   handler.setHotKeyCombo("Ctrl");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(2, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -232,7 +232,7 @@ TEST(HotKeyHandler, singleUnwedge)
   handler.handleKeyRelease(1);
   handler.handleKeyRelease(2);
 
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(3, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
@@ -244,11 +244,11 @@ TEST(HotKeyHandler, multiArmed)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 }
 
@@ -258,17 +258,17 @@ TEST(HotKeyHandler, multiRearmed)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 }
 
@@ -278,9 +278,9 @@ TEST(HotKeyHandler, multiFailedArm)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyNormal);
 }
 
@@ -290,13 +290,13 @@ TEST(HotKeyHandler, multiDualArmed)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_R), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyArming);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_R), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyUnarm);
 }
 
@@ -306,9 +306,9 @@ TEST(HotKeyHandler, multiCombo)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -322,9 +322,9 @@ TEST(HotKeyHandler, multiRightCombo)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_R), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_R), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_R), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_R), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_R), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -338,12 +338,12 @@ TEST(HotKeyHandler, multiDualCombo)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(4, XK_Alt_R), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyArm);
-  EXPECT_EQ(handler.handleKeyPress(6, XK_Shift_R), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(4, XK_Alt_R), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(6, XK_Shift_R), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(7, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(7), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(6), HotKeyHandler::KeyIgnore);
@@ -360,9 +360,9 @@ TEST(HotKeyHandler, multiComboReordered)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
@@ -376,9 +376,9 @@ TEST(HotKeyHandler, multiDualComboReordered)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(5, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(7, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyPress(2, XK_Control_R), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyPress(4, XK_Alt_R), HotKeyHandler::KeyIgnore);
@@ -398,18 +398,18 @@ TEST(HotKeyHandler, multiComboRepeated)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyIgnore);
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyIgnore);
@@ -423,9 +423,9 @@ TEST(HotKeyHandler, multiComboMultipleKeys)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyPress(5, XK_b), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyHotKey);
@@ -479,8 +479,8 @@ TEST(HotKeyHandler, multiWedgeArming)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(1, XK_b), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(1), HotKeyHandler::KeyNormal);
@@ -497,8 +497,8 @@ TEST(HotKeyHandler, multiWedgeModifierArming)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_Super_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(2), HotKeyHandler::KeyNormal);
@@ -511,9 +511,9 @@ TEST(HotKeyHandler, multiWedgeModifierArmed)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_Super_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyRelease(3), HotKeyHandler::KeyNormal);
@@ -527,9 +527,9 @@ TEST(HotKeyHandler, multiWedgeModifierFiring)
 
   handler.setHotKeyCombo("Ctrl,Shift,Alt");
 
-  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(1, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(4, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyPress(5, XK_Super_L), HotKeyHandler::KeyIgnore);
   EXPECT_EQ(handler.handleKeyRelease(5), HotKeyHandler::KeyIgnore);
@@ -554,9 +554,9 @@ TEST(HotKeyHandler, multiUnwedge)
   handler.handleKeyRelease(3);
   handler.handleKeyRelease(4);
 
-  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyArming);
-  EXPECT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyArm);
+  EXPECT_EQ(handler.handleKeyPress(2, XK_Control_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(3, XK_Alt_L), HotKeyHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyPress(4, XK_Shift_L), HotKeyHandler::KeyNormal);
   EXPECT_EQ(handler.handleKeyPress(5, XK_a), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(5), HotKeyHandler::KeyHotKey);
   EXPECT_EQ(handler.handleKeyRelease(4), HotKeyHandler::KeyIgnore);
