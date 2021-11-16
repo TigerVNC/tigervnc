@@ -815,6 +815,20 @@ void Viewport::handleKeyRelease(int systemKeyCode)
       vlog.debug("Hot key release %d", systemKeyCode);
       return;
     }
+
+    if (action == HotKeyHandler::KeyUnarm) {
+      DesktopWindow *win;
+
+      vlog.debug("Detected hot key grab release");
+
+      cc->releaseAllKeys();
+
+      win = dynamic_cast<DesktopWindow*>(window());
+      assert(win);
+      win->ungrabKeyboard();
+
+      return;
+    }
   }
 
   if (pressedKeys.empty())
