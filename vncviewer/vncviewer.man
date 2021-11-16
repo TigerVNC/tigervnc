@@ -88,6 +88,11 @@ changed witht the \fBShortcutModifiers\fP parameter.
 The possible keyboard shortcuts are:
 
 .TP
+Ctrl+Alt
+Releases control of the keyboard and allows system keys to be used
+locally.
+.
+.TP
 Ctrl+Alt+Enter
 Toggles full-screen mode.
 .

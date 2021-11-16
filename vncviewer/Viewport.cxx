@@ -827,6 +827,26 @@ void Viewport::handleKeyRelease(int systemKeyCode)
       vlog.debug("Shortcut release %d", systemKeyCode);
       return;
     }
+
+    if (action == ShortcutHandler::KeyUnarm) {
+      DesktopWindow *win;
+
+      vlog.debug("Detected shortcut to release grab");
+
+      try {
+        cc->releaseAllKeys();
+      } catch (std::exception& e) {
+        vlog.error("%s", e.what());
+        abort_connection(_("An unexpected error occurred when communicating "
+                           "with the server:\n\n%s"), e.what());
+      }
+
+      win = dynamic_cast<DesktopWindow*>(window());
+      assert(win);
+      win->ungrabKeyboard();
+
+      return;
+    }
   }
 
   if (pressedKeys.empty())

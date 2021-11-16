@@ -1279,6 +1279,11 @@ void OptionsDialog::handleModifier(Fl_Widget* /*widget*/, void *data)
     strcpy(prefix_noplus, ShortcutHandler::modifierPrefix(mask, true));
 
     label += core::format(
+      _("To release keyboard control from the session, press %s."),
+      prefix_noplus);
+    label += "\n\n";
+
+    label += core::format(
       _("To toggle full-screen mode, press %sEnter."), prefix);
     label += "\n\n";
 
