@@ -87,6 +87,10 @@ hot key, but this can be changed witht the \fBHotKeyCombo\fP parameter.
 The possible hot key combinations are:
 
 .TP
+Ctrl+Alt
+Releases control of the keyboard and allows system keys to be used locally.
+.
+.TP
 Ctrl+Alt+Enter
 Toggles full-screen mode.
 .
