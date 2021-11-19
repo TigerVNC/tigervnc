@@ -80,7 +80,7 @@ static core::LogWriter vlog("DesktopWindow");
 static std::set<DesktopWindow *> instances;
 
 DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
+  : Fl_Window(w, h), cc(cc_), offscreen(nullptr),
     firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
@@ -228,7 +228,15 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   }
 
   // Show hint about menu shortcut
-  Fl::add_timeout(0.5, menuOverlay, this);
+  unsigned modifierMask;
+
+  modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+  if (modifierMask)
+    addOverlay(_("Press %sM to open the context menu"),
+               ShortcutHandler::modifierPrefix(modifierMask));
 
   // By default we get a slight delay when we warp the pointer, something
   // we don't want or we'll get jerky movement
@@ -254,12 +262,14 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleFullscreenTimeout, this);
   Fl::remove_timeout(handleEdgeScroll, this);
   Fl::remove_timeout(handleStatsTimeout, this);
-  Fl::remove_timeout(menuOverlay, this);
   Fl::remove_timeout(updateOverlay, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
-  delete overlay;
+  while (!overlays.empty()) {
+    delete overlays.front().surface;
+    overlays.pop_front();
+  }
   delete offscreen;
 
   delete statsGraph;
@@ -533,9 +543,12 @@ void DesktopWindow::draw()
   }
 
   // Overlay (if active)
-  if (overlay) {
+  if (!overlays.empty()) {
     int ox, oy, ow, oh;
     int sx, sy, sw, sh;
+    struct Overlay overlay;
+
+    overlay = overlays.front();
 
     // Make sure it's properly seen by adjusting it relative to the
     // primary screen rather than the entire window
@@ -573,18 +586,20 @@ void DesktopWindow::draw()
       sw = w();
     }
 
-    ox = X = sx + (sw - overlay->width()) / 2;
+    ox = X = sx + (sw - overlay.surface->width()) / 2;
     oy = Y = sy + 50;
-    ow = overlay->width();
-    oh = overlay->height();
+    ow = overlay.surface->width();
+    oh = overlay.surface->height();
 
     fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
 
     if ((ow != 0) && (oh != 0)) {
       if (offscreen)
-        overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+        overlay.surface->blend(offscreen, ox - X, oy - Y,
+                               ox, oy, ow, oh, overlay.alpha);
       else
-        overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+        overlay.surface->blend(ox - X, oy - Y,
+                               ox, oy, ow, oh, overlay.alpha);
     }
   }
 
@@ -700,24 +715,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   }
 }
 
-
-void DesktopWindow::menuOverlay(void* data)
-{
-  DesktopWindow *self;
-  unsigned modifierMask;
-
-  modifierMask = 0;
-  for (core::EnumListEntry key : shortcutModifiers)
-    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
-  if (!modifierMask)
-    return;
-
-  self = (DesktopWindow*)data;
-  self->setOverlay(_("Press %sM to open the context menu"),
-                   ShortcutHandler::modifierPrefix(modifierMask));
-}
-
-void DesktopWindow::setOverlay(const char* text, ...)
+void DesktopWindow::addOverlay(const char* text, ...)
 {
   const Fl_Fontsize fontsize = 16;
   const int margin = 10;
@@ -738,8 +736,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
   unsigned char* a;
   const unsigned char* b;
 
-  delete overlay;
-  Fl::remove_timeout(updateOverlay, this);
+  struct Overlay overlay;
 
   va_start(ap, text);
   vsnprintf(textbuf, sizeof(textbuf), text, ap);
@@ -803,39 +800,53 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   delete imageText;
 
-  overlay = new Surface(image);
-  overlayAlpha = 0;
-  gettimeofday(&overlayStart, nullptr);
+  overlay.surface = new Surface(image);
+  overlay.alpha = 0;
+  memset(&overlay.start, 0, sizeof(overlay.start));
+  overlays.push_back(overlay);
 
   delete image;
   delete [] buffer;
 
-  Fl::add_timeout(1.0/60, updateOverlay, this);
+  if (overlays.size() == 1)
+    Fl::add_timeout(0.5, updateOverlay, this);
 }
 
 void DesktopWindow::updateOverlay(void *data)
 {
   DesktopWindow *self;
+  struct Overlay* overlay;
   unsigned elapsed;
 
   self = (DesktopWindow*)data;
 
-  elapsed = core::msSince(&self->overlayStart);
+  if (self->overlays.empty())
+    return;
+
+  overlay = &self->overlays.front();
+
+  if (overlay->start.tv_sec == 0)
+    gettimeofday(&overlay->start, nullptr);
+
+  elapsed = core::msSince(&overlay->start);
 
   if (elapsed < 500) {
-    self->overlayAlpha = (unsigned)255 * elapsed / 500;
+    overlay->alpha = (unsigned)255 * elapsed / 500;
     Fl::add_timeout(1.0/60, updateOverlay, self);
   } else if (elapsed < 3500) {
-    self->overlayAlpha = 255;
+    overlay->alpha = 255;
     Fl::add_timeout(3.0, updateOverlay, self);
   } else if (elapsed < 4000) {
-    self->overlayAlpha = (unsigned)255 * (4000 - elapsed) / 500;
+    overlay->alpha = (unsigned)255 * (4000 - elapsed) / 500;
     Fl::add_timeout(1.0/60, updateOverlay, self);
   } else {
-    delete self->overlay;
-    self->overlay = nullptr;
+    delete overlay->surface;
+    self->overlays.pop_front();
+    if (!self->overlays.empty())
+      Fl::add_timeout(0.5, updateOverlay, self);
   }
 
+  // FIXME: Only damage relevant area
   self->damage(FL_DAMAGE_USER1);
 }
 
