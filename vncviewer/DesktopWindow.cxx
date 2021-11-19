@@ -862,6 +862,15 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
+    // Show how to get out of full screen
+    if (fullscreen_active()) {
+      const char *combo;
+
+      combo = HotKeyHandler::comboPrefix(hotKeyCombo);
+      if (combo[0] != '\0')
+        addOverlay(_("Press %sEnter to leave full-screen mode"), combo);
+    }
+
     // Automatically toggle keyboard grab?
     if (fullscreenSystemKeys) {
       if (fullscreen_active())
@@ -1122,6 +1131,8 @@ bool DesktopWindow::hasFocus()
 
 void DesktopWindow::grabKeyboard()
 {
+  const char *combo;
+
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
   // correct widget regardless of which low level window got the system
   // event.
@@ -1169,6 +1180,10 @@ void DesktopWindow::grabKeyboard()
 
   if (contains(Fl::belowmouse()))
     grabPointer();
+
+  combo = (char*)HotKeyHandler::comboPrefix(hotKeyCombo, true);
+  if (combo[0] != '\0')
+    addOverlay(_("Press %s to release control from the session"), combo);
 }
 
 
