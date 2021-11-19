@@ -860,6 +860,19 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
+    // Show how to get out of full screen
+    if (fullscreen_active()) {
+      unsigned modifierMask;
+
+      modifierMask = 0;
+      for (core::EnumListEntry key : shortcutModifiers)
+        modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+      if (modifierMask)
+        addOverlay(_("Press %sEnter to leave full-screen mode"),
+                   ShortcutHandler::modifierPrefix(modifierMask));
+    }
+
 #ifdef __APPLE__
     // Complain to the user if we won't have permission to grab keyboard
     if (fullscreenSystemKeys && fullscreen_active()) {
@@ -1121,6 +1134,8 @@ bool DesktopWindow::hasFocus()
 
 void DesktopWindow::grabKeyboard()
 {
+  unsigned modifierMask;
+
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
   // correct widget regardless of which low level window got the system
   // event.
@@ -1171,6 +1186,14 @@ void DesktopWindow::grabKeyboard()
 
   if (contains(Fl::belowmouse()))
     grabPointer();
+
+  modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+  if (modifierMask)
+    addOverlay(_("Press %s to release keyboard control from the session"),
+               ShortcutHandler::modifierPrefix(modifierMask, true));
 }
 
 
