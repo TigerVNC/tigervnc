@@ -20,6 +20,7 @@
 #ifndef __DESKTOPWINDOW_H__
 #define __DESKTOPWINDOW_H__
 
+#include <list>
 #include <map>
 
 #include <sys/time.h>
@@ -85,9 +86,7 @@ public:
   void ungrabKeyboard();
 
 private:
-  static void menuOverlay(void *data);
-
-  void setOverlay(const char *text, ...)
+  void addOverlay(const char *text, ...)
     __attribute__((__format__ (__printf__, 2, 3)));
   static void updateOverlay(void *data);
 
@@ -126,9 +125,14 @@ private:
   Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
   Surface *offscreen;
-  Surface *overlay;
-  unsigned char overlayAlpha;
-  struct timeval overlayStart;
+
+  struct Overlay {
+    Surface *surface;
+    unsigned char alpha;
+    struct timeval start;
+  };
+
+  std::list<Overlay> overlays;
 
   bool firstUpdate;
   bool delayedFullscreen;
