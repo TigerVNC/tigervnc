@@ -718,13 +718,11 @@ int Viewport::handleSystemEvent(void *event, void *data)
   if (!self->hasFocus())
     return 0;
 
-#ifdef __APPLE__
   // Special event that means we temporarily lost some input
-  if (KeyboardMacOS::isKeyboardSync(event)) {
+  if (self->keyboard->isKeyboardReset(event)) {
     self->resetKeyboard();
     return 1;
   }
-#endif
 
   consumed = self->keyboard->handleEvent(event);
   if (consumed)

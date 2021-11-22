@@ -35,13 +35,12 @@ public:
   KeyboardMacOS(KeyboardHandler* handler);
   virtual ~KeyboardMacOS();
 
+  bool isKeyboardReset(const void* event) override;
+
   bool handleEvent(const void* event) override;
 
   unsigned getLEDState() override;
   void setLEDState(unsigned state) override;
-
-  // Special helper on macOS
-  static bool isKeyboardSync(const void* event);
 
 protected:
   bool isKeyboardEvent(const NSEvent* nsevent);

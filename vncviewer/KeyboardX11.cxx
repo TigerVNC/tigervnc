@@ -87,6 +87,24 @@ KeyboardX11::~KeyboardX11()
 {
 }
 
+bool KeyboardX11::isKeyboardReset(const void* event)
+{
+  const XEvent* xevent = (const XEvent*)event;
+
+  assert(event);
+
+  if (xevent->type == FocusOut) {
+    if (xevent->xfocus.mode == NotifyGrab) {
+      // Something grabbed the keyboard, but we don't know who. Might be
+      // us, but might be the window manager. Be cautious and assume the
+      // latter and report that the keyboard state was reset.
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool KeyboardX11::handleEvent(const void* event)
 {
   const XEvent *xevent = (const XEvent*)event;

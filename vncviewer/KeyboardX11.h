@@ -27,6 +27,8 @@ public:
   KeyboardX11(KeyboardHandler* handler);
   virtual ~KeyboardX11();
 
+  bool isKeyboardReset(const void* event) override;
+
   bool handleEvent(const void* event) override;
 
   unsigned getLEDState() override;
