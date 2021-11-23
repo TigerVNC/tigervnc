@@ -277,8 +277,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     }
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    abort_connection(_("An unexpected error occurred when communicating "
-                     "with the server:\n\n%s"), e.str());
+    abort_connection_with_unexpected_error(e);
   }
 
   when = FL_READ | FL_EXCEPT;

@@ -56,6 +56,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
 #include <rfb/Exception.h>
+#include <rdr/Exception.h>
 #include <network/TcpSocket.h>
 #include <os/os.h>
 
@@ -155,6 +156,11 @@ void abort_connection(const char *error, ...)
   }
 
   exitMainloop = true;
+}
+
+void abort_connection_with_unexpected_error(const rdr::Exception &e) {
+  abort_connection(_("An unexpected error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
 }
 
 void disconnect()
