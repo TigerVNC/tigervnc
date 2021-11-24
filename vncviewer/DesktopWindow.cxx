@@ -613,7 +613,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
         Fl::screen_xywh(sx, sy, sw, sh, i);
 
         if ((sx == x) && (sy == y) && (sw == w) && (sh == h)) {
-          vlog.info(_("Adjusting window size to avoid accidental full screen request"));
+          vlog.info(_("Adjusting window size to avoid accidental full-screen request"));
           // Assume a panel of some form and adjust the height
           y += 20;
           h -= 40;

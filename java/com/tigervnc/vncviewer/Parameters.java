@@ -117,7 +117,7 @@ public class Parameters {
 
   public static BoolParameter fullScreen
   = new BoolParameter("FullScreen",
-    "Full Screen Mode",
+    "Enable full screen",
     false);
 
   public static BoolParameter fullScreenAllMonitors
