@@ -33,8 +33,8 @@
 #error "X.Org older than 1.16 is not supported"
 #endif
 
-#if XORG_AT_LEAST(1, 21, 0)
-#error "X.Org newer than 1.20 is not supported"
+#if XORG_AT_LEAST(1, 22, 0)
+#error "X.Org newer than 1.21 is not supported"
 #endif
 
 #endif
