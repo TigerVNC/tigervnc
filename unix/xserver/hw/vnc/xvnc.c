@@ -69,7 +69,6 @@ extern char buildtime[];
 #undef VENDOR_RELEASE
 #undef VENDOR_STRING
 #include "version-config.h"
-#include "site.h"
 
 #define XVNCVERSION "TigerVNC 1.12.80"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2021 TigerVNC Team and many others (see README.rst)\n" \
@@ -111,14 +110,13 @@ static Bool Render = TRUE;
 static Bool displaySpecified = FALSE;
 static char displayNumStr[16];
 
-static int vncVerbose = DEFAULT_LOG_VERBOSITY;
+static int vncVerbose = 0;
 
 static void
 vncPrintBanner(void)
 {
     ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
-    ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
-           VENDOR_STRING);
+    ErrorF("Underlying X server release %d\n\n", VENDOR_RELEASE);
 }
 
 static void
