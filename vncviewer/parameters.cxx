@@ -160,7 +160,7 @@ StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
 
 BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
                                    "Pass special keys (like Alt+Tab) directly "
-                                   "to the server when in full screen mode.",
+                                   "to the server when in full-screen mode.",
                                    true);
 
 #ifndef WIN32

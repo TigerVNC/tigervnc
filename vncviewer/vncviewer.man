@@ -96,7 +96,7 @@ By default, key presses in the popup menu get sent to the VNC server and
 dismiss the popup.  So to get an F8 through to the VNC server simply press it
 twice.
 
-.SH FULL SCREEN MODE
+.SH FULL-SCREEN MODE
 A full-screen mode is supported.  This is particularly useful when connecting
 to a remote screen which is the same size as your local one. If the remote
 screen is bigger, you can scroll by bumping the mouse against the edge of the

@@ -806,7 +806,7 @@ void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
   fullScreenCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
-                                                  _("Enable full-screen")));
+                                                  _("Enable full screen")));
   ty += CHECK_HEIGHT + INNER_MARGIN;
 
   width = tw - OUTER_MARGIN * 2;
