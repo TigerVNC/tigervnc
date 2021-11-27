@@ -7,7 +7,7 @@
 Build Requirements (All Systems)
 ================================
 
--- CMake (http://www.cmake.org) v2.8 or later
+-- CMake (http://www.cmake.org) v3.10 or later
 
 -- zlib
 
