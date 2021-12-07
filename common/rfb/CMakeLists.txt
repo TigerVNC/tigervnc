@@ -24,6 +24,7 @@ add_library(rfb STATIC
   JpegCompressor.cxx
   JpegDecompressor.cxx
   KeyRemapper.cxx
+  KeysymStr.c
   LogWriter.cxx
   Logger.cxx
   Logger_file.cxx
