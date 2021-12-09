@@ -279,5 +279,8 @@ void KeyboardX11::translateToKeySyms(int systemKeyCode,
   if (iter != keySyms->end())
     return;
 
+  vlog.debug("%d / %d / 0x%02x => 0x%04x", systemKeyCode,
+             (int)group, (int)mods, (int)ks);
+
   keySyms->push_back(ks);
 }
