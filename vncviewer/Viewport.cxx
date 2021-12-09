@@ -713,6 +713,10 @@ void Viewport::handleKeyPress(int systemKeyCode,
       // just the current one
       keySyms = keyboard->translateToKeySyms(systemKeyCode);
 
+      vlog.debug("Hot key %d / 0x%04x:", systemKeyCode, keyCode);
+      for (iter = keySyms.begin(); iter != keySyms.end(); iter++)
+        vlog.debug("%s (0x%04x)", KeySymName(*iter), *iter);
+
       // Then we pick the one that matches first
       keySym = NoSymbol;
       for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
