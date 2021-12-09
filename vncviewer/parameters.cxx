@@ -169,15 +169,22 @@ StringParameter via("via", "Gateway to tunnel via", "");
 
 static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
 
+/*
+ * We only save the sub set of parameters that can be modified from
+ * the graphical user interface
+ */
 static VoidParameter* parameterArray[] = {
+  /* Security */
 #ifdef HAVE_GNUTLS
   &CSecurityTLS::X509CA,
   &CSecurityTLS::X509CRL,
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
-  &emulateMiddleButton,
+  /* Misc. */
   &dotWhenNoCursor,
   &reconnectOnError,
+  &shared,
+  /* Compression */
   &autoSelect,
   &fullColour,
   &lowColourLevel,
@@ -186,13 +193,15 @@ static VoidParameter* parameterArray[] = {
   &compressLevel,
   &noJpeg,
   &qualityLevel,
+  /* Screen */
   &fullScreen,
   &fullScreenMode,
   &fullScreenSelectedMonitors,
   &desktopSize,
   &remoteResize,
+  /* Input */
   &viewOnly,
-  &shared,
+  &emulateMiddleButton,
   &acceptClipboard,
   &sendClipboard,
 #if !defined(WIN32) && !defined(__APPLE__)
