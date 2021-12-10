@@ -72,7 +72,7 @@ OptionsDialog::OptionsDialog()
     createCompressionPage(tx, ty, tw, th);
     createSecurityPage(tx, ty, tw, th);
     createInputPage(tx, ty, tw, th);
-    createScreenPage(tx, ty, tw, th);
+    createDisplayPage(tx, ty, tw, th);
     createMiscPage(tx, ty, tw, th);
   }
 
@@ -281,7 +281,7 @@ void OptionsDialog::loadOptions(void)
     if (!strcmp(getMenuKeySymbols()[i].name, menuKeyBuf))
       menuKeyChoice->value(i + 1);
 
-  /* Screen */
+  /* Display */
   if (!fullScreen) {
     windowedButton->setonly();
   } else {
@@ -391,7 +391,7 @@ void OptionsDialog::storeOptions(void)
     menuKey.setParam(menuKeyChoice->text());
   }
 
-  /* Screen */
+  /* Display */
   if (windowedButton->value()) {
     fullScreen.setParam(false);
   } else {
@@ -752,9 +752,9 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 }
 
 
-void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
+void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
 {
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Screen"));
+  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Display"));
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;

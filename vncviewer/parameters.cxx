@@ -193,7 +193,7 @@ static VoidParameter* parameterArray[] = {
   &compressLevel,
   &noJpeg,
   &qualityLevel,
-  /* Screen */
+  /* Display */
   &fullScreen,
   &fullScreenMode,
   &fullScreenSelectedMonitors,

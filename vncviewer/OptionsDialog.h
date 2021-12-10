@@ -54,7 +54,7 @@ protected:
   void createCompressionPage(int tx, int ty, int tw, int th);
   void createSecurityPage(int tx, int ty, int tw, int th);
   void createInputPage(int tx, int ty, int tw, int th);
-  void createScreenPage(int tx, int ty, int tw, int th);
+  void createDisplayPage(int tx, int ty, int tw, int th);
   void createMiscPage(int tx, int ty, int tw, int th);
 
   static void handleAutoselect(Fl_Widget *widget, void *data);
@@ -120,7 +120,7 @@ protected:
   Fl_Check_Button *systemKeysCheckbox;
   Fl_Choice *menuKeyChoice;
 
-  /* Screen */
+  /* Display */
   Fl_Round_Button *windowedButton;
   Fl_Round_Button *currentMonitorButton;
   Fl_Round_Button *allMonitorsButton;
