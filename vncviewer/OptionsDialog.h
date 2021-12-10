@@ -108,7 +108,13 @@ protected:
 
   /* Input */
   Fl_Check_Button *viewOnlyCheckbox;
+  Fl_Group *mouseGroup;
   Fl_Check_Button *emulateMBCheckbox;
+  Fl_Check_Button *dotCursorCheckbox;
+  Fl_Group *keyboardGroup;
+  Fl_Check_Button *systemKeysCheckbox;
+  Fl_Choice *menuKeyChoice;
+  Fl_Group *clipboardGroup;
   Fl_Check_Button *acceptClipboardCheckbox;
 #if !defined(WIN32) && !defined(__APPLE__)
   Fl_Check_Button *setPrimaryCheckbox;
@@ -117,10 +123,9 @@ protected:
 #if !defined(WIN32) && !defined(__APPLE__)
   Fl_Check_Button *sendPrimaryCheckbox;
 #endif
-  Fl_Check_Button *systemKeysCheckbox;
-  Fl_Choice *menuKeyChoice;
 
   /* Display */
+  Fl_Group *displayModeGroup;
   Fl_Round_Button *windowedButton;
   Fl_Round_Button *currentMonitorButton;
   Fl_Round_Button *allMonitorsButton;
@@ -130,7 +135,6 @@ protected:
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
   Fl_Check_Button *reconnectCheckbox;
-  Fl_Check_Button *dotCursorCheckbox;
 };
 
 #endif

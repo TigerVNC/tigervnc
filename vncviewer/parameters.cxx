@@ -181,7 +181,6 @@ static VoidParameter* parameterArray[] = {
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   /* Misc. */
-  &dotWhenNoCursor,
   &reconnectOnError,
   &shared,
   /* Compression */
@@ -200,6 +199,7 @@ static VoidParameter* parameterArray[] = {
   /* Input */
   &viewOnly,
   &emulateMiddleButton,
+  &dotWhenNoCursor,
   &acceptClipboard,
   &sendClipboard,
 #if !defined(WIN32) && !defined(__APPLE__)
