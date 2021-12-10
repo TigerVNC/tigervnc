@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,8 +63,6 @@ protected:
 
   static void handleX509(Fl_Widget *widget, void *data);
 
-  static void handleDesktopSize(Fl_Widget *widget, void *data);
-
   static void handleClipboard(Fl_Widget *widget, void *data);
 
   static void handleFullScreenMode(Fl_Widget *widget, void *data);
@@ -123,12 +121,7 @@ protected:
   Fl_Choice *menuKeyChoice;
 
   /* Screen */
-  Fl_Check_Button *desktopSizeCheckbox;
-  Fl_Int_Input *desktopWidthInput;
-  Fl_Int_Input *desktopHeightInput;
-  Fl_Check_Button *remoteResizeCheckbox;
-  Fl_Check_Button *fullScreenCheckbox;
-
+  Fl_Round_Button *windowedButton;
   Fl_Round_Button *currentMonitorButton;
   Fl_Round_Button *allMonitorsButton;
   Fl_Round_Button *selectedMonitorsButton;

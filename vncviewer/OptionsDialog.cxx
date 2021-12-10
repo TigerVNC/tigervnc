@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -282,34 +282,20 @@ void OptionsDialog::loadOptions(void)
       menuKeyChoice->value(i + 1);
 
   /* Screen */
-  int width, height;
-
-  if (sscanf((const char*)desktopSize, "%dx%d", &width, &height) != 2) {
-    desktopSizeCheckbox->value(false);
-    desktopWidthInput->value("1024");
-    desktopHeightInput->value("768");
+  if (!fullScreen) {
+    windowedButton->setonly();
   } else {
-    char buf[32];
-    desktopSizeCheckbox->value(true);
-    snprintf(buf, sizeof(buf), "%d", width);
-    desktopWidthInput->value(buf);
-    snprintf(buf, sizeof(buf), "%d", height);
-    desktopHeightInput->value(buf);
-  }
-  remoteResizeCheckbox->value(remoteResize);
-  fullScreenCheckbox->value(fullScreen);
-
-  if (!strcasecmp(fullScreenMode, "all")) {
-    allMonitorsButton->setonly();
-  } else if (!strcasecmp(fullScreenMode, "selected")) {
-    selectedMonitorsButton->setonly();
-  } else {
-    currentMonitorButton->setonly();
+    if (!strcasecmp(fullScreenMode, "all")) {
+      allMonitorsButton->setonly();
+    } else if (!strcasecmp(fullScreenMode, "selected")) {
+      selectedMonitorsButton->setonly();
+    } else {
+      currentMonitorButton->setonly();
+    }
   }
 
   monitorArrangement->set(fullScreenSelectedMonitors.getParam());
 
-  handleDesktopSize(desktopSizeCheckbox, this);
   handleFullScreenMode(selectedMonitorsButton, this);
 
   /* Misc. */
@@ -406,26 +392,18 @@ void OptionsDialog::storeOptions(void)
   }
 
   /* Screen */
-  int width, height;
-
-  if (desktopSizeCheckbox->value() &&
-      (sscanf(desktopWidthInput->value(), "%d", &width) == 1) &&
-      (sscanf(desktopHeightInput->value(), "%d", &height) == 1)) {
-    char buf[64];
-    snprintf(buf, sizeof(buf), "%dx%d", width, height);
-    desktopSize.setParam(buf);
+  if (windowedButton->value()) {
+    fullScreen.setParam(false);
   } else {
-    desktopSize.setParam("");
-  }
-  remoteResize.setParam(remoteResizeCheckbox->value());
-  fullScreen.setParam(fullScreenCheckbox->value());
+    fullScreen.setParam(true);
 
-  if (allMonitorsButton->value()) {
-    fullScreenMode.setParam("All");
-  } else if (selectedMonitorsButton->value()) {
-    fullScreenMode.setParam("Selected");
-  } else {
-    fullScreenMode.setParam("Current");
+    if (allMonitorsButton->value()) {
+      fullScreenMode.setParam("All");
+    } else if (selectedMonitorsButton->value()) {
+      fullScreenMode.setParam("Selected");
+    } else {
+      fullScreenMode.setParam("Current");
+    }
   }
 
   fullScreenSelectedMonitors.setParam(monitorArrangement->get());
@@ -776,88 +754,60 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 
 void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
 {
-  int x;
-  int width, height;
-
   Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Screen"));
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
 
-  desktopSizeCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                     CHECK_MIN_WIDTH,
-                                                     CHECK_HEIGHT,
-                                                     _("Resize remote session on connect")));
-  desktopSizeCheckbox->callback(handleDesktopSize, this);
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  windowedButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                RADIO_MIN_WIDTH,
+                                                RADIO_HEIGHT,
+                                                _("Windowed")));
+  windowedButton->type(FL_RADIO_BUTTON);
+  windowedButton->callback(handleFullScreenMode, this);
+  ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
-  desktopWidthInput = new Fl_Int_Input(tx + INDENT, ty, 50, INPUT_HEIGHT);
-  x = desktopWidthInput->x() + desktopWidthInput->w() + \
-      gui_str_len("x") + 3 * 2;
-  desktopHeightInput = new Fl_Int_Input(x, ty, 50, INPUT_HEIGHT, "x");
-  ty += INPUT_HEIGHT + TIGHT_MARGIN;
+  currentMonitorButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                      RADIO_MIN_WIDTH,
+                                                      RADIO_HEIGHT,
+                                                      _("Full screen on current monitor")));
+  currentMonitorButton->type(FL_RADIO_BUTTON);
+  currentMonitorButton->callback(handleFullScreenMode, this);
+  ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
-  remoteResizeCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                      CHECK_MIN_WIDTH,
-                                                      CHECK_HEIGHT,
-                                                      _("Resize remote session to the local window")));
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  allMonitorsButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                          RADIO_MIN_WIDTH,
+                                          RADIO_HEIGHT,
+                                          _("Full screen on all monitors")));
+  allMonitorsButton->type(FL_RADIO_BUTTON);
+  allMonitorsButton->callback(handleFullScreenMode, this);
+  ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
-  fullScreenCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                  CHECK_MIN_WIDTH,
-                                                  CHECK_HEIGHT,
-                                                  _("Enable full screen")));
-  ty += CHECK_HEIGHT + INNER_MARGIN;
+  selectedMonitorsButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                               RADIO_MIN_WIDTH,
+                                               RADIO_HEIGHT,
+                                               _("Full screen on selected monitor(s)")));
+  selectedMonitorsButton->type(FL_RADIO_BUTTON);
+  selectedMonitorsButton->callback(handleFullScreenMode, this);
+  ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
-  width = tw - OUTER_MARGIN * 2;
-  height = th - ty + OUTER_MARGIN * 3;
-    Fl_Group *fullScreenModeGroup = new Fl_Group(tx,
-                                     ty,
-                                     width,
-                                     height);
+  /*
+   * Right now these occupy all remaining space, but that can probably
+   * be reduced if we add more stuff to this page.
+   */
+  int full_width = tw - OUTER_MARGIN * 2;
+  int margin_width = full_width - INDENT;
+  int full_height = th;
+  int margin_height = full_height - ty + INNER_MARGIN;
 
-  {
-    tx += INDENT;
+  monitorArrangement = new MonitorArrangement(
+                            tx + INDENT,
+                            ty,
+                            margin_width,
+                            margin_height);
 
-    currentMonitorButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
-                                                        RADIO_MIN_WIDTH,
-                                                        RADIO_HEIGHT,
-                                                        _("Use current monitor")));
-    currentMonitorButton->type(FL_RADIO_BUTTON);
-    currentMonitorButton->callback(handleFullScreenMode, this);
-    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+  ty += CHECK_HEIGHT + margin_height;
 
-    allMonitorsButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
-                                            RADIO_MIN_WIDTH,
-                                            RADIO_HEIGHT,
-                                            _("Use all monitors")));
-    allMonitorsButton->type(FL_RADIO_BUTTON);
-    allMonitorsButton->callback(handleFullScreenMode, this);
-    ty += RADIO_HEIGHT + TIGHT_MARGIN;
-
-    selectedMonitorsButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
-                                                 RADIO_MIN_WIDTH,
-                                                 RADIO_HEIGHT,
-                                                 _("Use selected monitor(s)")));
-    selectedMonitorsButton->type(FL_RADIO_BUTTON);
-    selectedMonitorsButton->callback(handleFullScreenMode, this);
-    ty += RADIO_HEIGHT + TIGHT_MARGIN;
-
-    int full_width = tw - OUTER_MARGIN * 2;
-    int margin_width = full_width - INDENT - INNER_MARGIN*2;
-    int full_height = th;
-    int margin_height = full_height - ty + INNER_MARGIN*3;
-
-    monitorArrangement = new MonitorArrangement(
-                              tx + INDENT,
-                              ty,
-                              margin_width,
-                              margin_height);
-
-    ty += CHECK_HEIGHT + margin_height;
-  }
-
-  fullScreenModeGroup->end();
   group->end();
 }
 
@@ -944,19 +894,6 @@ void OptionsDialog::handleX509(Fl_Widget *widget, void *data)
   }
 }
 
-
-void OptionsDialog::handleDesktopSize(Fl_Widget *widget, void *data)
-{
-  OptionsDialog *dialog = (OptionsDialog*)data;
-
-  if (dialog->desktopSizeCheckbox->value()) {
-    dialog->desktopWidthInput->activate();
-    dialog->desktopHeightInput->activate();
-  } else {
-    dialog->desktopWidthInput->deactivate();
-    dialog->desktopHeightInput->deactivate();
-  }
-}
 
 void OptionsDialog::handleClipboard(Fl_Widget *widget, void *data)
 {

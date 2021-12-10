@@ -197,8 +197,6 @@ static VoidParameter* parameterArray[] = {
   &fullScreen,
   &fullScreenMode,
   &fullScreenSelectedMonitors,
-  &desktopSize,
-  &remoteResize,
   /* Input */
   &viewOnly,
   &emulateMiddleButton,
