@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ protected:
   void createCompressionPage(int tx, int ty, int tw, int th);
   void createSecurityPage(int tx, int ty, int tw, int th);
   void createInputPage(int tx, int ty, int tw, int th);
-  void createScreenPage(int tx, int ty, int tw, int th);
+  void createDisplayPage(int tx, int ty, int tw, int th);
   void createMiscPage(int tx, int ty, int tw, int th);
 
   static void handleAutoselect(Fl_Widget *widget, void *data);
@@ -62,8 +62,6 @@ protected:
   static void handleJpeg(Fl_Widget *widget, void *data);
 
   static void handleX509(Fl_Widget *widget, void *data);
-
-  static void handleDesktopSize(Fl_Widget *widget, void *data);
 
   static void handleClipboard(Fl_Widget *widget, void *data);
 
@@ -110,7 +108,13 @@ protected:
 
   /* Input */
   Fl_Check_Button *viewOnlyCheckbox;
+  Fl_Group *mouseGroup;
   Fl_Check_Button *emulateMBCheckbox;
+  Fl_Check_Button *dotCursorCheckbox;
+  Fl_Group *keyboardGroup;
+  Fl_Check_Button *systemKeysCheckbox;
+  Fl_Choice *menuKeyChoice;
+  Fl_Group *clipboardGroup;
   Fl_Check_Button *acceptClipboardCheckbox;
 #if !defined(WIN32) && !defined(__APPLE__)
   Fl_Check_Button *setPrimaryCheckbox;
@@ -119,16 +123,10 @@ protected:
 #if !defined(WIN32) && !defined(__APPLE__)
   Fl_Check_Button *sendPrimaryCheckbox;
 #endif
-  Fl_Check_Button *systemKeysCheckbox;
-  Fl_Choice *menuKeyChoice;
 
-  /* Screen */
-  Fl_Check_Button *desktopSizeCheckbox;
-  Fl_Int_Input *desktopWidthInput;
-  Fl_Int_Input *desktopHeightInput;
-  Fl_Check_Button *remoteResizeCheckbox;
-  Fl_Check_Button *fullScreenCheckbox;
-
+  /* Display */
+  Fl_Group *displayModeGroup;
+  Fl_Round_Button *windowedButton;
   Fl_Round_Button *currentMonitorButton;
   Fl_Round_Button *allMonitorsButton;
   Fl_Round_Button *selectedMonitorsButton;
@@ -137,7 +135,6 @@ protected:
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
   Fl_Check_Button *reconnectCheckbox;
-  Fl_Check_Button *dotCursorCheckbox;
 };
 
 #endif
