@@ -88,6 +88,10 @@ changed witht the \fBShortcutModifiers\fP parameter.
 The possible keyboard shortcuts are:
 
 .TP
+Ctrl+Alt+Enter
+Toggles full-screen mode.
+.
+.TP
 Ctrl+Alt+M
 Opens a popup menu that can perform various extra actions, such as
 quitting the viewer or opening the options dialog.

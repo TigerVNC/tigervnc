@@ -1279,6 +1279,10 @@ void OptionsDialog::handleModifier(Fl_Widget* /*widget*/, void *data)
     strcpy(prefix_noplus, ShortcutHandler::modifierPrefix(mask, true));
 
     label += core::format(
+      _("To toggle full-screen mode, press %sEnter."), prefix);
+    label += "\n\n";
+
+    label += core::format(
       _("To open the session context menu, press %sM."), prefix);
     label += "\n\n";
 
