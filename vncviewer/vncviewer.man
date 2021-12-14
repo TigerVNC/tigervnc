@@ -87,6 +87,10 @@ hot key, but this can be changed witht the \fBHotKeyCombo\fP parameter.
 The possible hot key combinations are:
 
 .TP
+Ctrl+Alt+Enter
+Toggles full-screen mode.
+.
+.TP
 Ctrl+Alt+M
 Opens a popup menu that can perform various extra actions, such as quitting the
 viewer or opening the options dialog.
