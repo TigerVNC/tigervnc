@@ -84,6 +84,8 @@ private:
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 
+  void resetKeyboard();
+
   void handleKeyPress(int keyCode, rdr::U32 keySym);
   void handleKeyRelease(int keyCode);
 

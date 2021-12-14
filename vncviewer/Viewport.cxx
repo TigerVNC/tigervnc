@@ -643,10 +643,9 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_UNFOCUS:
-    // Release all keys that were pressed as that generally makes most
-    // sense (e.g. Alt+Tab where we only see the Alt press)
-    while (!downKeySym.empty())
-      handleKeyRelease(downKeySym.begin()->first);
+    // We won't get more key events, so reset our knowledge about keys
+    resetKeyboard();
+
     Fl::enable_im();
     return 1;
 
@@ -820,6 +819,13 @@ void Viewport::handlePointerTimeout(void *data)
     vlog.error("%s", e.str());
     abort_connection_with_unexpected_error(e);
   }
+}
+
+
+void Viewport::resetKeyboard()
+{
+  while (!downKeySym.empty())
+    handleKeyRelease(downKeySym.begin()->first);
 }
 
 
@@ -1125,6 +1131,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
     return 1;
   }
 #elif defined(__APPLE__)
+  // Special event that means we temporarily lost some input
+  if (cocoa_is_keyboard_sync(event)) {
+    self->resetKeyboard();
+    return 1;
+  }
+
   if (cocoa_is_keyboard_event(event)) {
     int keyCode;
 

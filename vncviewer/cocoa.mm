@@ -175,6 +175,25 @@ void cocoa_win_zoom(Fl_Window *win)
   [nsw zoom:nsw];
 }
 
+int cocoa_is_keyboard_sync(const void *event)
+{
+  const NSEvent* nsevent = (const NSEvent*)event;
+
+  assert(event);
+
+  // If we get a NSFlagsChanged event with key code 0 then this isn't
+  // an actual keyboard event but rather the system trying to sync up
+  // modifier state after it has stolen input for some reason (e.g.
+  // Cmd+Tab)
+
+  if ([nsevent type] != NSFlagsChanged)
+    return 0;
+  if ([nsevent keyCode] != 0)
+    return 0;
+
+  return 1;
+}
+
 int cocoa_is_keyboard_event(const void *event)
 {
   NSEvent *nsevent;
@@ -185,6 +204,8 @@ int cocoa_is_keyboard_event(const void *event)
   case NSKeyDown:
   case NSKeyUp:
   case NSFlagsChanged:
+    if (cocoa_is_keyboard_sync(event))
+      return 0;
     return 1;
   default:
     return 0;
