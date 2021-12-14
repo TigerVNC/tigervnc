@@ -706,6 +706,8 @@ void Viewport::handleKeyPress(int systemKeyCode,
       switch (*iter) {
       case XK_M:
       case XK_m:
+      case XK_KP_Enter:
+      case XK_Return:
         keySym = *iter;
         found = true;
         break;
@@ -735,6 +737,16 @@ void Viewport::handleKeyPress(int systemKeyCode,
     case XK_M:
     case XK_m:
       popupContextMenu();
+      break;
+    case XK_KP_Enter:
+    case XK_Return:
+      if (window()->fullscreen_active()) {
+        fullScreen.setParam(false);
+        window()->fullscreen_off();
+      } else {
+        fullScreen.setParam(true);
+        ((DesktopWindow*)window())->fullscreen_on();
+      }
       break;
     default:
       // Unknown/Unused hot key combo
