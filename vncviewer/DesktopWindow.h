@@ -22,6 +22,7 @@
 
 #include <list>
 #include <map>
+#include <string>
 
 #include <sys/time.h>
 
@@ -131,6 +132,7 @@ private:
   };
 
   std::list<Overlay> overlays;
+  std::map<std::string, time_t> overlayTimes;
 
   bool firstUpdate;
   bool delayedFullscreen;

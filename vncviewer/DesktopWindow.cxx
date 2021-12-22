@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <sys/time.h>
 
 #include <core/LogWriter.h>
@@ -72,6 +73,9 @@ static int edge_scroll_size_y = 96;
 // how long to wait between viewport scroll position changes
 // default: roughly 60 fps for smooth motion
 #define EDGE_SCROLL_SECONDS_PER_FRAME 0.016666
+
+// Time before we show an overlay tip again
+const time_t OVERLAY_REPEAT_TIMEOUT = 600;
 
 static core::LogWriter vlog("DesktopWindow");
 
@@ -723,6 +727,8 @@ void DesktopWindow::addOverlay(const char* text, ...)
   va_list ap;
   char textbuf[1024];
 
+  std::map<std::string, time_t>::iterator iter;
+
   Fl_Image_Surface *surface;
 
   Fl_RGB_Image* imageText;
@@ -742,6 +748,20 @@ void DesktopWindow::addOverlay(const char* text, ...)
   vsnprintf(textbuf, sizeof(textbuf), text, ap);
   textbuf[sizeof(textbuf)-1] = '\0';
   va_end(ap);
+
+  // Purge all old entries
+  for (iter = overlayTimes.begin(); iter != overlayTimes.end(); ) {
+    if ((time(nullptr) - iter->second) >= OVERLAY_REPEAT_TIMEOUT)
+      overlayTimes.erase(iter++);
+    else
+      iter++;
+  }
+
+  // Recently shown?
+  if (overlayTimes.count(textbuf) > 0)
+    return;
+
+  overlayTimes[textbuf] = time(nullptr);
 
 #if !defined(WIN32) && !defined(__APPLE__)
   // FLTK < 1.3.5 crashes if fl_gc is unset
