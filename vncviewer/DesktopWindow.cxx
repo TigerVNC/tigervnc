@@ -759,6 +759,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
   gettimeofday(&overlayStart, NULL);
 
   delete image;
+  delete [] buffer;
 
   Fl::add_timeout(1.0/60, updateOverlay, this);
 }
