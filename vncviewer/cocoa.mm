@@ -20,15 +20,17 @@
 #include <config.h>
 #endif
 
-#include <FL/Fl.H>
+#include <assert.h>
+#include <dlfcn.h>
+
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
 
 #import <Cocoa/Cocoa.h>
+#import <ApplicationServices/ApplicationServices.h>
 
-#include <core/Rect.h>
-
-static bool captured = false;
+static CFMachPortRef event_tap;
+static CFRunLoopSourceRef tap_source;
 
 void cocoa_prevent_native_fullscreen(Fl_Window *win)
 {
@@ -56,86 +58,125 @@ void cocoa_set_level(Fl_Window *win, int level)
   [nsw setLevel:level];
 }
 
-int cocoa_capture_displays(Fl_Window *win)
+static bool cocoa_is_trusted()
 {
-  NSWindow *nsw;
+  CFStringRef keys[1];
+  CFBooleanRef values[1];
+  CFDictionaryRef options;
 
-  nsw = (NSWindow*)fl_xid(win);
-  assert(nsw);
+  Boolean trusted;
 
-  CGDisplayCount count;
-  CGDirectDisplayID displays[16];
+#if !defined(MAC_OS_X_VERSION_10_9) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_9
+  // FIXME: Raise system requirements so this isn't needed
+  void *lib;
+  typedef Boolean (*AXIsProcessTrustedWithOptionsRef)(CFDictionaryRef);
+  AXIsProcessTrustedWithOptionsRef AXIsProcessTrustedWithOptions;
+  CFStringRef kAXTrustedCheckOptionPrompt;
 
-  int sx, sy, sw, sh;
-  core::Rect windows_rect, screen_rect;
+  lib = dlopen(nullptr, 0);
+  if (lib == nullptr)
+    return false;
 
-  windows_rect.setXYWH(win->x(), win->y(), win->w(), win->h());
+  AXIsProcessTrustedWithOptions =
+    (AXIsProcessTrustedWithOptionsRef)dlsym(lib, "AXIsProcessTrustedWithOptions");
 
-  if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
-    return 1;
+  dlclose(lib);
 
-  if (count != (unsigned)Fl::screen_count())
-    return 1;
+  if (AXIsProcessTrustedWithOptions == nullptr)
+    return false;
 
-  for (int i = 0; i < Fl::screen_count(); i++) {
-    Fl::screen_xywh(sx, sy, sw, sh, i);
+  kAXTrustedCheckOptionPrompt = CFSTR("AXTrustedCheckOptionPrompt");
+#endif
 
-    screen_rect.setXYWH(sx, sy, sw, sh);
-    if (screen_rect.enclosed_by(windows_rect)) {
-      if (CGDisplayCapture(displays[i]) != kCGErrorSuccess)
-        return 1;
+  keys[0] = kAXTrustedCheckOptionPrompt;
+  values[0] = kCFBooleanTrue;
+  options = CFDictionaryCreate(kCFAllocatorDefault,
+                               (const void**)keys,
+                               (const void**)values, 1,
+                               &kCFCopyStringDictionaryKeyCallBacks,
+                               &kCFTypeDictionaryValueCallBacks);
+  if (options == nullptr)
+    return false;
 
-    } else {
-      // A display might have been captured with the previous
-      // monitor selection. In that case we don't want to keep
-      // it when its no longer inside the window_rect.
-      CGDisplayRelease(displays[i]);
-    }
-  }
+  trusted = AXIsProcessTrustedWithOptions(options);
+  CFRelease(options);
 
-  captured = true;
-
-  if ([nsw level] == CGShieldingWindowLevel())
-    return 0;
-
-  [nsw setLevel:CGShieldingWindowLevel()];
-
-  // We're not getting put in front of the shielding window in many
-  // cases on macOS 13, despite setLevel: being documented as also
-  // pushing the window to the front. So let's explicitly move it.
-  [nsw orderFront:nsw];
-
-  return 0;
+  return trusted;
 }
 
-void cocoa_release_displays(Fl_Window *win)
+static CGEventRef cocoa_event_tap(CGEventTapProxy /*proxy*/,
+                                  CGEventType type, CGEventRef event,
+                                  void* /*refcon*/)
 {
-  NSWindow *nsw;
-  int newlevel;
+  ProcessSerialNumber psn;
+  OSErr err;
 
-  if (captured)
-    CGReleaseAllDisplays();
+  // We should just be getting these events, but just in case
+  if ((type != kCGEventKeyDown) &&
+      (type != kCGEventKeyUp) &&
+      (type != kCGEventFlagsChanged))
+    return event;
 
-  captured = false;
+  // Redirect the event to us, no matter the original target
+  // (note that this will loop if kCGAnnotatedSessionEventTap is used)
+  err = GetCurrentProcess(&psn);
+  if (err != noErr)
+    return event;
 
-  nsw = (NSWindow*)fl_xid(win);
-  assert(nsw);
+  // FIXME: CGEventPostToPid() in macOS 10.11+
+  CGEventPostToPSN(&psn, event);
 
-  // Someone else has already changed the level of this window
-  if ([nsw level] != CGShieldingWindowLevel())
+  // Stop delivery to original target
+  return nullptr;
+}
+
+bool cocoa_tap_keyboard()
+{
+  CGEventMask mask;
+
+  if (event_tap != nullptr)
+    return true;
+
+  if (!cocoa_is_trusted())
+    return false;
+
+  mask = CGEventMaskBit(kCGEventKeyDown) |
+         CGEventMaskBit(kCGEventKeyUp) |
+         CGEventMaskBit(kCGEventFlagsChanged);
+
+  // Cannot be kCGAnnotatedSessionEventTap as window manager intercepts
+  // before that (e.g. Ctrl+Up)
+  event_tap = CGEventTapCreate(kCGSessionEventTap,
+                               kCGHeadInsertEventTap,
+                               kCGEventTapOptionDefault,
+                               mask, cocoa_event_tap, nullptr);
+  if (event_tap == nullptr)
+    return false;
+
+  tap_source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault,
+                                             event_tap, 0);
+  CFRunLoopAddSource(CFRunLoopGetCurrent(), tap_source,
+                     kCFRunLoopCommonModes);
+
+  return true;
+}
+
+void cocoa_untap_keyboard()
+{
+  if (event_tap == nullptr)
     return;
 
-  // FIXME: Store the previous level somewhere so we don't have to hard
-  //        code a level here.
-  if (win->fullscreen_active() && win->contains(Fl::focus()))
-    newlevel = NSStatusWindowLevel;
-  else
-    newlevel = NSNormalWindowLevel;
+  // Need to explicitly disable the tap first, or we get a short delay
+  // where all events are dropped
+  CGEventTapEnable(event_tap, false);
 
-  // Only change if different as the level change also moves the window
-  // to the top of that level.
-  if ([nsw level] != newlevel)
-    [nsw setLevel:newlevel];
+  CFRunLoopRemoveSource(CFRunLoopGetCurrent(), tap_source,
+                        kCFRunLoopCommonModes);
+  CFRelease(tap_source);
+  tap_source = nullptr;
+
+  CFRelease(event_tap);
+  event_tap = nullptr;
 }
 
 CGColorSpaceRef cocoa_win_color_space(Fl_Window *win)
