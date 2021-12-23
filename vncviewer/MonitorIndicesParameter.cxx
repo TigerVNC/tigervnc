@@ -211,13 +211,13 @@ std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::fetchMoni
         // Only keep a single entry for mirrored screens
         match = false;
         for (int j = 0; j < ((int) monitors.size()); j++) {
-            if (monitors[i].x != monitor.x)
+            if (monitors[j].x != monitor.x)
                 continue;
-            if (monitors[i].y != monitor.y)
+            if (monitors[j].y != monitor.y)
                 continue;
-            if (monitors[i].w != monitor.w)
+            if (monitors[j].w != monitor.w)
                 continue;
-            if (monitors[i].h != monitor.h)
+            if (monitors[j].h != monitor.h)
                 continue;
 
             match = true;
