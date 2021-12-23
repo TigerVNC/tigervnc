@@ -406,6 +406,12 @@ std::string MonitorArrangement::get_monitor_name(int m)
 #elif defined(__APPLE__)
   CGDisplayCount count;
   CGDirectDisplayID displays[16];
+
+  CGDirectDisplayID displayID;
+  CFDictionaryRef info;
+  CFDictionaryRef dict;
+  CFIndex dict_len;
+
   std::string name;
 
   if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
@@ -418,14 +424,20 @@ std::string MonitorArrangement::get_monitor_name(int m)
     return "";
 
   // Notice: Here we assume indices to be ordered the same as in FLTK (we rely on that in cocoa.mm as well).
-  CGDirectDisplayID displayID = displays[m];
+  displayID = displays[m];
 
-  CFDictionaryRef info = IODisplayCreateInfoDictionary(
-    /* display = */ CGDisplayIOServicePort(displayID),
-    /* options = */ kIODisplayOnlyPreferredName);
+  info = IODisplayCreateInfoDictionary(CGDisplayIOServicePort(displayID),
+                                       kIODisplayOnlyPreferredName);
+  if (info == NULL)
+    return "";
 
-  CFDictionaryRef dict = (CFDictionaryRef) CFDictionaryGetValue(info, CFSTR(kDisplayProductName));
-  CFIndex dict_len = CFDictionaryGetCount(dict);
+  dict = (CFDictionaryRef) CFDictionaryGetValue(info, CFSTR(kDisplayProductName));
+  if (dict == NULL) {
+    CFRelease(info);
+    return "";
+  }
+
+  dict_len = CFDictionaryGetCount(dict);
 
   if (dict_len > 0) {
     CFTypeRef * names = new CFTypeRef[dict_len];
