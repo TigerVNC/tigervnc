@@ -349,21 +349,25 @@ void ServerDialog::loadServerHistory()
                       lineNr, filepath, strerror(errno));
     }
 
-    if (strlen(line) == (sizeof(line) - 1)) {
+    int len = strlen(line);
+
+    if (len == (sizeof(line) - 1)) {
       fclose(f);
       throw Exception(_("Failed to read line %d in file %s: %s"),
                       lineNr, filepath, _("Line too long"));
     }
 
-    int len = strlen(line);
-    if (line[len-1] == '\n') {
+    if ((len > 0) && (line[len-1] == '\n')) {
       line[len-1] = '\0';
       len--;
     }
-    if (line[len-1] == '\r') {
+    if ((len > 0) && (line[len-1] == '\r')) {
       line[len-1] = '\0';
       len--;
     }
+
+    if (len == 0)
+      continue;
 
     serverHistory.push_back(line);
   }
