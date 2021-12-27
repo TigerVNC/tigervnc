@@ -24,6 +24,7 @@
 
 #include <stdexcept>
 
+#include <core/LogWriter.h>
 #include <core/string.h>
 
 #include <rfb/encodings.h>
@@ -34,6 +35,8 @@
 #include <rfb/ScreenSet.h>
 
 using namespace rfb;
+
+static core::LogWriter vlog("ClientParams");
 
 ClientParams::ClientParams()
   : majorVersion(0), minorVersion(0),
@@ -72,8 +75,14 @@ void ClientParams::setDimensions(int width, int height)
 
 void ClientParams::setDimensions(int width, int height, const ScreenSet& layout)
 {
-  if (!layout.validate(width, height))
+  if (!layout.validate(width, height)) {
+    char buffer[2048];
+    vlog.debug("Invalid screen layout for %dx%d:", width, height);
+    layout.print(buffer, sizeof(buffer));
+    vlog.debug("%s", buffer);
+
     throw std::invalid_argument("Attempted to configure an invalid screen layout");
+  }
 
   width_ = width;
   height_ = height;
