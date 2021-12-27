@@ -105,6 +105,7 @@ protected:
   Fl_Check_Button *authNoneCheckbox;
   Fl_Check_Button *authVncCheckbox;
   Fl_Check_Button *authPlainCheckbox;
+  Fl_Input *passwordFileInput;
 
   /* Input */
   Fl_Check_Button *viewOnlyCheckbox;

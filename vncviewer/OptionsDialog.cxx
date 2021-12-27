@@ -257,6 +257,8 @@ void OptionsDialog::loadOptions(void)
   crlInput->value(CSecurityTLS::X509CRL);
 
   handleX509(encX509Checkbox, this);
+
+  passwordFileInput->value(passwordFile);
 #endif
 
   /* Input */
@@ -371,6 +373,8 @@ void OptionsDialog::storeOptions(void)
   CSecurityTLS::X509CA.setParam(caInput->value());
   CSecurityTLS::X509CRL.setParam(crlInput->value());
 #endif
+
+  passwordFile.setParam(passwordFileInput->value());
 
   /* Input */
   viewOnly.setParam(viewOnlyCheckbox->value());
@@ -644,7 +648,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
   /* Authentication */
   ty += GROUP_LABEL_OFFSET;
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 2 + CHECK_HEIGHT * 3;
+  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 3 + CHECK_HEIGHT * 3 + INPUT_LABEL_OFFSET + INPUT_HEIGHT;
   authenticationGroup = new Fl_Group(tx, ty, width, height, _("Authentication"));
   authenticationGroup->box(FL_ENGRAVED_BOX);
   authenticationGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
@@ -669,6 +673,13 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
                                                      _("Username and password (insecure without encryption)")));
+    ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+    ty += INPUT_LABEL_OFFSET;
+    passwordFileInput = new Fl_Input(tx + INDENT, ty,
+                            width - GROUP_MARGIN*2 - INDENT, INPUT_HEIGHT,
+                            _("Path to password file"));
+    passwordFileInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
   }
 
