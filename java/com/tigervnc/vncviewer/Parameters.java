@@ -282,6 +282,7 @@ public class Parameters {
     CSecurityTLS.X509CA,
     CSecurityTLS.X509CRL,
     SecurityClient.secTypes,
+    passwordFile,
     dotWhenNoCursor,
     autoSelect,
     fullColor,

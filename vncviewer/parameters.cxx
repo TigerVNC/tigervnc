@@ -181,6 +181,7 @@ static VoidParameter* parameterArray[] = {
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   /* Misc. */
+  &passwordFile,
   &reconnectOnError,
   &shared,
   /* Compression */
