@@ -82,7 +82,7 @@ static rfb::LogWriter vlog("DesktopWindow");
 // issue for Fl::event_dispatch.
 static std::set<DesktopWindow *> instances;
 
-DesktopWindow::DesktopWindow(int w, int h, const char *name,
+DesktopWindow::DesktopWindow(int w, int h,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr),
@@ -112,7 +112,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   callback(handleClose, this);
 
-  setName(name);
+  updateCaption();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -297,7 +297,7 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 }
 
 
-void DesktopWindow::setName(const char *name)
+void DesktopWindow::updateCaption()
 {
   char label[100];
   const char *format;
@@ -305,13 +305,16 @@ void DesktopWindow::setName(const char *name)
   const char *ellipsis;
 
   // FIXME: Another copy below
-  format = "%*s%s - TigerVNC";
+  if (keyboardGrabbed)
+    format = _("%*s%s - TigerVNC (grabbed)");
+  else
+    format = _("%*s%s - TigerVNC");
 
   // Ignore the length of '%*s' since it is
   // a format marker which won't take up space
   name_len = sizeof(label)-1 - (strlen(format) - 2);
 
-  if (name_len > strlen(name)) {
+  if (name_len > strlen(cc->server.name())) {
     // Guaranteed to fit, no need to truncate
     ellipsis = "";
   } else if (name_len <= strlen("...")) {
@@ -324,8 +327,12 @@ void DesktopWindow::setName(const char *name)
   }
 
   // FIXME: Copy of literal above to avoid format-nonliteral warning
-  snprintf(label, sizeof(label), "%*s%s - TigerVNC",
-           (int)name_len, name, ellipsis);
+  if (keyboardGrabbed)
+    snprintf(label, sizeof(label), _("%*s%s - TigerVNC (grabbed)"),
+             (int)name_len, cc->server.name(), ellipsis);
+  else
+    snprintf(label, sizeof(label), _("%*s%s - TigerVNC"),
+             (int)name_len, cc->server.name(), ellipsis);
 
   copy_label(label);
 }
@@ -1177,6 +1184,8 @@ void DesktopWindow::grabKeyboard()
   if (contains(Fl::belowmouse()))
     grabPointer();
 
+  updateCaption();
+
   combo = (char*)HotKeyHandler::comboPrefix(hotKeyCombo, true);
   if (combo[0] != '\0')
     addOverlay(_("Press %s to release control from the session"), combo);
@@ -1190,6 +1199,8 @@ void DesktopWindow::ungrabKeyboard()
   keyboardGrabbed = false;
 
   ungrabPointer();
+
+  updateCaption();
 
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
