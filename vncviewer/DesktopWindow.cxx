@@ -83,7 +83,7 @@ static core::LogWriter vlog("DesktopWindow");
 // issue for Fl::event_dispatch.
 static std::set<DesktopWindow *> instances;
 
-DesktopWindow::DesktopWindow(int w, int h, const char *name,
+DesktopWindow::DesktopWindow(int w, int h,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr),
@@ -114,7 +114,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   callback(handleClose, this);
 
-  setName(name);
+  updateCaption();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -294,22 +294,25 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 }
 
 
-void DesktopWindow::setName(const char *name)
+void DesktopWindow::updateCaption()
 {
   char windowNameStr[100];
   const char *labelFormat;
   size_t maxNameSize;
   char truncatedName[sizeof(windowNameStr)];
 
-  labelFormat = "%s - TigerVNC";
+  if (keyboardGrabbed)
+    labelFormat = _("%s - TigerVNC (grabbed)");
+  else
+    labelFormat = _("%s - TigerVNC");
 
   // Ignore the length of '%s' since it is
   // a format marker which won't take up space
   maxNameSize = sizeof(windowNameStr) - 1 - strlen(labelFormat) + 2;
 
-  if (maxNameSize > strlen(name)) {
+  if (maxNameSize > strlen(cc->server.name())) {
     // Guaranteed to fit, no need to truncate
-    strcpy(truncatedName, name);
+    strcpy(truncatedName, cc->server.name());
   } else if (maxNameSize <= strlen("...")) {
     // Even an ellipsis won't fit
     truncatedName[0] = '\0';
@@ -318,7 +321,7 @@ void DesktopWindow::setName(const char *name)
 
     // We need to truncate, add an ellipsis
     offset = maxNameSize - strlen("...");
-    strncpy(truncatedName, name, sizeof(truncatedName));
+    strncpy(truncatedName, cc->server.name(), sizeof(truncatedName));
     strcpy(truncatedName + offset, "...");
   }
 
@@ -1193,6 +1196,8 @@ void DesktopWindow::grabKeyboard()
   if (contains(Fl::belowmouse()))
     grabPointer();
 
+  updateCaption();
+
   combo = (char*)HotKeyHandler::comboPrefix(hotKeyCombo, true);
   if (combo[0] != '\0')
     addOverlay(_("Press %s to release control from the session"), combo);
@@ -1206,6 +1211,8 @@ void DesktopWindow::ungrabKeyboard()
   keyboardGrabbed = false;
 
   ungrabPointer();
+
+  updateCaption();
 
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
