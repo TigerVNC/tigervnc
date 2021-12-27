@@ -1014,14 +1014,15 @@ void DesktopWindow::fullscreen_on()
   }
 #ifdef __APPLE__
   // This is a workaround for a bug in FLTK, see: https://github.com/fltk/fltk/pull/277
-  int savedLevel;
-  savedLevel = cocoa_get_level(this);
+  // FIXME: Does this still happen? Maybe side effect of releasing displays
+  //int savedLevel;
+  //savedLevel = cocoa_get_level(this);
 #endif
   fullscreen_screens(top, bottom, left, right);
 #ifdef __APPLE__
   // This is a workaround for a bug in FLTK, see: https://github.com/fltk/fltk/pull/277
-  if (cocoa_get_level(this) != savedLevel)
-    cocoa_set_level(this, savedLevel);
+  //if (cocoa_get_level(this) != savedLevel)
+  //  cocoa_set_level(this, savedLevel);
 #endif
 
   if (!fullscreen_active())

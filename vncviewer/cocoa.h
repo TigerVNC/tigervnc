@@ -21,9 +21,6 @@
 
 class Fl_Window;
 
-int cocoa_get_level(Fl_Window *win);
-void cocoa_set_level(Fl_Window *win, int level);
-
 bool cocoa_tap_keyboard();
 void cocoa_untap_keyboard();
 

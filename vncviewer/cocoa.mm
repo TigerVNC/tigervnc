@@ -29,20 +29,6 @@
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
 
-int cocoa_get_level(Fl_Window *win)
-{
-  NSWindow *nsw;
-  nsw = (NSWindow*)fl_xid(win);
-  return [nsw level];
-}
-
-void cocoa_set_level(Fl_Window *win, int level)
-{
-  NSWindow *nsw;
-  nsw = (NSWindow*)fl_xid(win);
-  [nsw setLevel:level];
-}
-
 static CFMachPortRef event_tap;
 static CFRunLoopSourceRef tap_source;
 
