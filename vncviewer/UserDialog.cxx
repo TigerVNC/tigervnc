@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <wordexp.h>
 
 #include <FL/Fl.H>
 #include <FL/fl_ask.H>
@@ -93,7 +94,12 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
     ObfuscatedPasswd obfPwd(256);
     FILE* fp;
 
-    fp = fopen(passwordFileStr.buf, "rb");
+    wordexp_t expandedPath;
+    wordexp(passwordFileStr.buf, &expandedPath, 0);
+    char *passwordFilePath = strdup(expandedPath.we_wordv[0]);
+    wordfree(&expandedPath);
+
+    fp = fopen(passwordFilePath, "rb");
     if (!fp)
       throw rfb::Exception(_("Opening password file failed"));
 
