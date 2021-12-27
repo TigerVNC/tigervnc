@@ -39,22 +39,6 @@ void cocoa_prevent_native_fullscreen(Fl_Window *win)
 #endif
 }
 
-int cocoa_get_level(Fl_Window *win)
-{
-  NSWindow *nsw;
-  nsw = (NSWindow*)fl_xid(win);
-  assert(nsw);
-  return [nsw level];
-}
-
-void cocoa_set_level(Fl_Window *win, int level)
-{
-  NSWindow *nsw;
-  nsw = (NSWindow*)fl_xid(win);
-  assert(nsw);
-  [nsw setLevel:level];
-}
-
 static CFMachPortRef event_tap;
 static CFRunLoopSourceRef tap_source;
 
