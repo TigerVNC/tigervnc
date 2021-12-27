@@ -185,9 +185,6 @@ static VoidParameter* parameterArray[] = {
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   /* Misc. */
-  &emulateMiddleButton,
-  &emulateMiddleButton2,
-  &dotWhenNoCursor,
   &reconnectOnError,
   &shared,
   /* Compression */
@@ -206,6 +203,7 @@ static VoidParameter* parameterArray[] = {
   /* Input */
   &viewOnly,
   &emulateMiddleButton,
+  &emulateMiddleButton2,
   &dotWhenNoCursor,
   &acceptClipboard,
   &sendClipboard,
