@@ -39,7 +39,7 @@ class Fl_Scrollbar;
 class DesktopWindow : public Fl_Window {
 public:
 
-  DesktopWindow(int w, int h, const char *name,
+  DesktopWindow(int w, int h,
                 const rfb::PixelFormat& serverPF, CConn* cc_);
   ~DesktopWindow();
 
@@ -50,7 +50,7 @@ public:
   void updateWindow();
 
   // Updated session title
-  void setName(const char *name);
+  void updateCaption();
 
   // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
