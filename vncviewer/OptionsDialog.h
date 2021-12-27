@@ -110,6 +110,7 @@ protected:
   Fl_Check_Button *viewOnlyCheckbox;
   Fl_Group *mouseGroup;
   Fl_Check_Button *emulateMBCheckbox;
+  Fl_Check_Button *emulateMBCheckbox2;
   Fl_Check_Button *dotCursorCheckbox;
   Fl_Group *keyboardGroup;
   Fl_Check_Button *systemKeysCheckbox;

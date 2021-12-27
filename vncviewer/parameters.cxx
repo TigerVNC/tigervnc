@@ -57,10 +57,14 @@ static LogWriter vlog("Parameters");
 IntParameter pointerEventInterval("PointerEventInterval",
                                   "Time in milliseconds to rate-limit"
                                   " successive pointer events", 17);
-BoolParameter emulateMiddleButton("EmulateMiddleButton",
+BoolParameter emulateMiddleButton("EmulateMiddleButton (L&R)",
                                   "Emulate middle mouse button by pressing "
                                   "left and right mouse buttons simultaneously",
                                   false);
+BoolParameter emulateMiddleButton2("EmulateMiddleButton (L_Shift+L_Click)",
+                                   "Emulate middle mouse button by pressing "
+                                   "left mouse button while holding left shift key",
+                                   false);
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
@@ -181,6 +185,9 @@ static VoidParameter* parameterArray[] = {
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   /* Misc. */
+  &emulateMiddleButton,
+  &emulateMiddleButton2,
+  &dotWhenNoCursor,
   &reconnectOnError,
   &shared,
   /* Compression */

@@ -802,6 +802,16 @@ void Viewport::flushPendingClipboard()
 
 void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
 {
+  DownMap::iterator iter;
+
+  if (emulateMiddleButton2 && buttonMask == 0x1) {
+     iter = downKeySym.find(0x2a);
+     if (iter != downKeySym.end()) {
+        vlog.debug("pointer event 0x%x, 0x2a => 0x%x pressed\n", buttonMask, iter->second);
+        buttonMask = 0x2;
+     }
+  }
+
   filterPointerEvent(pos, buttonMask);
 }
 
