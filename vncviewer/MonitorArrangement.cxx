@@ -1,20 +1,25 @@
 /* Copyright 2021 Hugo Lundin <huglu@cendio.se> for Cendio AB.
  * Copyright 2021 Pierre Ossman for Cendio AB
  * 
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  * 
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  * 
- * You should have received a copy of the GNU General Public License
- * along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
- * USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <set>
@@ -43,18 +48,9 @@
 #include <IOKit/hidsystem/IOHIDParameter.h>
 #endif
 
-#include <rfb/Rect.h>
-#include <rfb/LogWriter.h>
-
-#ifdef WIN32
-#include "win32.h"
-#endif
-
-#include "i18n.h"
 #include "MonitorArrangement.h"
 
 static std::set<MonitorArrangement *> instances;
-static rfb::LogWriter vlog("MonitorArrangement");
 static const Fl_Boxtype FL_CHECKERED_BOX = FL_FREE_BOXTYPE;
 
 MonitorArrangement::MonitorArrangement(
@@ -242,13 +238,19 @@ bool MonitorArrangement::is_required(int m)
     }
   }
 
-  rfb::Rect viewport, monitor;
-  viewport.setXYWH(left_x, top_y, right_x - left_x, bottom_y - top_y);
 
   Fl::screen_xywh(x, y, w, h, m);
-  monitor.setXYWH(x, y, w, h);
 
-  return monitor.enclosed_by(viewport);
+  if (x < left_x)
+    return false;
+  if ((x + w) > right_x)
+    return false;
+  if (y < top_y)
+    return false;
+  if ((y + h) > bottom_y)
+    return false;
+
+  return true;
 }
 
 double MonitorArrangement::scale()
@@ -486,24 +488,18 @@ std::string MonitorArrangement::get_monitor_name(int m)
   assert(fl_display != NULL);
   Fl::screen_xywh(x, y, w, h, m);
 
-  if (!XQueryExtension(fl_display, "RANDR", &xi_major, &ev, &err)) {
-    vlog.info(_("Failed to get monitor name because X11 RandR could not be found"));
+  if (!XQueryExtension(fl_display, "RANDR", &xi_major, &ev, &err))
     return "";
-  }
 
   XRRScreenResources *res = XRRGetScreenResources(fl_display, DefaultRootWindow(fl_display));
-  if (!res) {
-    vlog.error(_("Failed to get system monitor configuration"));
+  if (!res)
     return "";
-  }
 
   for (int i = 0; i < res->ncrtc; i++) {
     XRRCrtcInfo *crtc = XRRGetCrtcInfo(fl_display, res, res->crtcs[i]);
 
-    if (!crtc) {
-      vlog.error(_("Failed to get information about CRTC %d"), i);
+    if (!crtc)
       continue;
-    }
 
     if ((crtc->x != x) || (crtc->y != y) ||
         ((int)crtc->width != w) || ((int)crtc->height != h))
@@ -513,10 +509,8 @@ std::string MonitorArrangement::get_monitor_name(int m)
       XRROutputInfo *output;
 
       output = XRRGetOutputInfo(fl_display, res, crtc->outputs[j]);
-      if (!output) {
-        vlog.error(_("Failed to get information about output %d for CRTC %d"), j, i);
+      if (!output)
         continue;
-      }
 
       if (!name.empty())
         name += " / ";
