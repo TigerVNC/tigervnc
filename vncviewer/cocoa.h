@@ -23,9 +23,6 @@ class Fl_Window;
 
 void cocoa_prevent_native_fullscreen(Fl_Window *win);
 
-int cocoa_get_level(Fl_Window *win);
-void cocoa_set_level(Fl_Window *win, int level);
-
 bool cocoa_tap_keyboard();
 void cocoa_untap_keyboard();
 
