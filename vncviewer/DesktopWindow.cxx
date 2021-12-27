@@ -112,7 +112,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
 
   callback(handleClose, this);
 
-  setName();
+  updateCaption();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -296,7 +296,7 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 }
 
 
-void DesktopWindow::setName()
+void DesktopWindow::updateCaption()
 {
   const size_t maxLen = 100;
   std::string windowName;
@@ -306,7 +306,10 @@ void DesktopWindow::setName()
 
   // FIXME: All of this consideres bytes, not characters
 
-  labelFormat = "%s - TigerVNC";
+  if (keyboardGrabbed)
+    labelFormat = _("%s - TigerVNC (keyboard grabbed)");
+  else
+    labelFormat = _("%s - TigerVNC");
 
   // Ignore the length of '%s' since it is
   // a format marker which won't take up space
@@ -1207,6 +1210,8 @@ void DesktopWindow::grabKeyboard()
   if (contains(Fl::belowmouse()))
     grabPointer();
 
+  updateCaption();
+
   modifierMask = 0;
   for (core::EnumListEntry key : shortcutModifiers)
     modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
@@ -1224,6 +1229,8 @@ void DesktopWindow::ungrabKeyboard()
   keyboardGrabbed = false;
 
   ungrabPointer();
+
+  updateCaption();
 
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
