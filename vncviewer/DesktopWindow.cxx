@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include <sys/time.h>
 
 #include <rfb/LogWriter.h>
@@ -260,7 +261,6 @@ DesktopWindow::~DesktopWindow()
 
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
-  Fl::remove_timeout(handleGrab, this);
   Fl::remove_timeout(handleResizeTimeout, this);
   Fl::remove_timeout(handleFullscreenTimeout, this);
   Fl::remove_timeout(handleEdgeScroll, this);
@@ -1168,14 +1168,24 @@ void DesktopWindow::grabKeyboard()
                       GrabModeAsync, GrabModeAsync, CurrentTime);
   if (ret) {
     if (ret == AlreadyGrabbed) {
-      // It seems like we can race with the WM in some cases.
-      // Try again in a bit.
-      if (!Fl::has_timeout(handleGrab, this))
-        Fl::add_timeout(0.500, handleGrab, this);
-    } else {
-      vlog.error(_("Failure grabbing keyboard"));
+      // It seems like we can race with the WM in some cases, e.g. when
+      // the WM holds the keyboard as part of handling Alt+Tab.
+      // Repeat the request a few times and see if we get it...
+      for (int attempt = 0; attempt < 5; attempt++) {
+        usleep(100000);
+        // Also throttle based on how busy the X server is
+        XSync(fl_display, False);
+        ret = XGrabKeyboard(fl_display, fl_xid(this), True,
+                            GrabModeAsync, GrabModeAsync, CurrentTime);
+        if (ret != AlreadyGrabbed)
+          break;
+      }
     }
-    return;
+
+    if (ret) {
+      vlog.error(_("Failure grabbing keyboard"));
+      return;
+    }
   }
 #endif
 
@@ -1194,8 +1204,6 @@ void DesktopWindow::grabKeyboard()
 
 void DesktopWindow::ungrabKeyboard()
 {
-  Fl::remove_timeout(handleGrab, this);
-
   keyboardGrabbed = false;
 
   ungrabPointer();
@@ -1239,16 +1247,6 @@ void DesktopWindow::ungrabPointer()
 #if !defined(WIN32) && !defined(__APPLE__)
   x11_ungrab_pointer(fl_xid(this));
 #endif
-}
-
-
-void DesktopWindow::handleGrab(void *data)
-{
-  DesktopWindow *self = (DesktopWindow*)data;
-
-  assert(self);
-
-  self->grabKeyboard();
 }
 
 

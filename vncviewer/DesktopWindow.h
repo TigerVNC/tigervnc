@@ -98,8 +98,6 @@ private:
   void grabPointer();
   void ungrabPointer();
 
-  static void handleGrab(void *data);
-
   void maximizeWindow();
 
   void handleDesktopSize();
