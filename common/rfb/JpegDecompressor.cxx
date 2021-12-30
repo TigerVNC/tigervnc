@@ -19,6 +19,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb/JpegDecompressor.h>
 #include <rdr/Exception.h>
 #include <rfb/Rect.h>

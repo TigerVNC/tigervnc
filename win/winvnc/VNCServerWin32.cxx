@@ -18,6 +18,10 @@
 
 // -=- WinVNC Version 4.0 Main Routine
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/resource.h>
 #include <winvnc/ListConnInfo.h>

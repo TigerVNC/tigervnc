@@ -21,6 +21,10 @@
 
 // Base-class for any Dialog classes we might require
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/TCharArray.h>
 #include <rfb/LogWriter.h>

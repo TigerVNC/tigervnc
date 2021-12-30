@@ -21,6 +21,10 @@
 //
 // The SDisplay class encapsulates a particular system display.
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 
 #include <rfb_win32/SDisplay.h>

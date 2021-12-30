@@ -19,6 +19,10 @@
 
 // -=- Clipboard.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/Clipboard.h>
 #include <rfb_win32/WMShatter.h>
 #include <rfb/util.h>

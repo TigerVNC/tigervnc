@@ -20,6 +20,10 @@
 //
 // Window Message Hooks Dynamic Link library
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <tchar.h>
 
 #include <wm_hooks/wm_hooks.h>

@@ -17,6 +17,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb/Encoder.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Palette.h>

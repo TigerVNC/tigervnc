@@ -18,6 +18,10 @@
 
 // Win32Util.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/MonitorInfo.h>

@@ -1,6 +1,9 @@
 // ListViewControl.cxx: implementation of the ListViewControl class.
 //
 //////////////////////////////////////////////////////////////////////
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <tchar.h>
 #include "ListViewControl.h"
 #include "commctrl.h"

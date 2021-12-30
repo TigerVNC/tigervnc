@@ -18,6 +18,10 @@
 
 // -=- WinVNC Version 4.0 Service-Mode implementation
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <winvnc/VNCServerService.h>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/TsSessions.h>

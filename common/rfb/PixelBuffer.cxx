@@ -22,6 +22,10 @@
 // The PixelBuffer class encapsulates the PixelFormat and dimensions
 // of a block of pixel data.
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/PixelBuffer.h>

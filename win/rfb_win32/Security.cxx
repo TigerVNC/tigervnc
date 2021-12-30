@@ -18,6 +18,10 @@
 
 // -=- Security.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/Security.h>
 #include <rfb/LogWriter.h>
 

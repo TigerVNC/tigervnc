@@ -18,6 +18,10 @@
 
 // -=- CleanDesktop.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <windows.h>
 #include <wininet.h>
 #include <shlobj.h>

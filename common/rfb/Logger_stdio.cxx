@@ -18,6 +18,10 @@
 
 // -=- Logger_stdio.cxx - Logger instances for stderr and stdout
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb/Logger_stdio.h>
 
 using namespace rfb;

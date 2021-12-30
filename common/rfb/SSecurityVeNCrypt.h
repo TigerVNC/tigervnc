@@ -25,10 +25,6 @@
 #ifndef __SSECURITYVENCRYPT_H__
 #define __SSECURITYVENCRYPT_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <rfb/SSecurityStack.h>
 #include <rfb/SConnection.h>
 

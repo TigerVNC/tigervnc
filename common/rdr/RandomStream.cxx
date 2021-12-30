@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rdr/RandomStream.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>

@@ -18,6 +18,10 @@
 
 // -=- LaunchProcess.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/LaunchProcess.h>
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Win32Util.h>

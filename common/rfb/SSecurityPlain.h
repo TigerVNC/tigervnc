@@ -20,10 +20,6 @@
 #ifndef __RFB_SSECURITYPLAIN_H__
 #define __RFB_SSECURITYPLAIN_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <rfb/SConnection.h>
 #include <rfb/SSecurity.h>
 #include <rfb/SSecurityVeNCrypt.h>

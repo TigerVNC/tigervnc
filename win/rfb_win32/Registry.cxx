@@ -18,6 +18,10 @@
 
 // -=- Registry.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Security.h>
 #include <rdr/MemOutStream.h>

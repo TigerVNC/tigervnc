@@ -19,6 +19,10 @@
 // TXWindow.cxx
 //
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <X11/Xatom.h>
 #include "TXWindow.h"
 #include <list>

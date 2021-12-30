@@ -18,6 +18,10 @@
 
 // -=- SDisplayCorePolling.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>

@@ -18,6 +18,10 @@
 
 // -=- WMNotifier.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/WMNotifier.h>
 #include <rfb_win32/WMShatter.h>
 #include <rfb_win32/MsgWindow.h>

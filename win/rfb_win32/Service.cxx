@@ -18,6 +18,10 @@
 
 // -=- Service.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/ModuleFileName.h>

@@ -21,6 +21,10 @@
 // Tracks updated regions and a region-copy event, too
 //
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
 

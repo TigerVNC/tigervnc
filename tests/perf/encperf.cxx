@@ -26,6 +26,10 @@
  * are not encoded in the file and must be specified by the user.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define __USE_MINGW_ANSI_STDIO 1
 
 #include <stdio.h>

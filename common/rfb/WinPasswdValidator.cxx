@@ -18,6 +18,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb/WinPasswdValidator.h>
 #include <windows.h>
 #include <tchar.h>

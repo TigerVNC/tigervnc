@@ -18,6 +18,10 @@
 
 // -=- Currentuser.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/CurrentUser.h>

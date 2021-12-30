@@ -18,6 +18,10 @@
 
 // -=- WMHooks.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <os/Mutex.h>
 #include <os/Thread.h>
 

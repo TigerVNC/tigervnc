@@ -18,6 +18,10 @@
 
 // -=- WinVNC Version 4.0 Tray Icon implementation
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <winvnc/STrayIcon.h>
 #include <winvnc/VNCServerService.h>
 #include <winvnc/resource.h>

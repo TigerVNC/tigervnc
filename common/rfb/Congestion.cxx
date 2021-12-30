@@ -33,6 +33,10 @@
  * as we have too much noise for it to be reliable.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <sys/time.h>
 

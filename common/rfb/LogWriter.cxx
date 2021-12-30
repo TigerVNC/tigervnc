@@ -18,6 +18,10 @@
 
 // -=- LogWriter.cxx - client-side logging interface
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string.h>
 
 #include <rfb/LogWriter.h>

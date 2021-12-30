@@ -22,10 +22,6 @@
 #ifndef __S_SECURITY_TLS_H__
 #define __S_SECURITY_TLS_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef HAVE_GNUTLS
 #error "This header should not be included without HAVE_GNUTLS defined"
 #endif

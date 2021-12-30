@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <FL/Fl_RGB_Image.H>
 
 #include "Surface.h"

@@ -21,6 +21,10 @@
 // A number of routines that accept VNC input event data and perform
 // the appropriate actions under Win32
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define XK_MISCELLANY
 #define XK_LATIN1
 #define XK_CURRENCY

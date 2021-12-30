@@ -20,10 +20,6 @@
 #ifndef UNIXCOMMON_H
 #define UNIXCOMMON_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <map>
 
 #include <rfb/ScreenSet.h>

@@ -19,10 +19,6 @@
 #ifndef OS_OS_H
 #define OS_OS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <os/w32tiger.h>
 
 /*

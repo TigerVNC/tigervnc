@@ -20,6 +20,10 @@
 // XXX not thread-safe, because d3des isn't - do we need to worry about this?
 //
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string.h>
 extern "C" {
 #include <rfb/d3des.h>

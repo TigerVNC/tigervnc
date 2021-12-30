@@ -17,6 +17,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/BitmapInfo.h>

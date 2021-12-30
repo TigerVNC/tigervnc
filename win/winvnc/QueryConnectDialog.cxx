@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/resource.h>

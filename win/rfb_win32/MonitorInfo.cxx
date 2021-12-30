@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <tchar.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Win32Util.h>

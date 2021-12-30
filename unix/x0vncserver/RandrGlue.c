@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef HAVE_XRANDR
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrandr.h>

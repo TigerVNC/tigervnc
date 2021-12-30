@@ -18,6 +18,10 @@
 
 // -=- WMPoller.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb_win32/WMPoller.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>

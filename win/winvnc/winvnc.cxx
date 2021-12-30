@@ -18,6 +18,10 @@
 
 // -=- VNC Server 4.0 for Windows (WinVNC4)
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string.h>
 
 #include <winvnc/VNCServerWin32.h>

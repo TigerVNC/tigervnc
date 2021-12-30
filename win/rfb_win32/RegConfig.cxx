@@ -18,6 +18,10 @@
 
 // -=- RegConfig.cxx
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <malloc.h>
 
 #include <rfb_win32/RegConfig.h>

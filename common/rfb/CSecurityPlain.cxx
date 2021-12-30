@@ -17,6 +17,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rfb/CConnection.h>
 #include <rfb/CSecurityPlain.h>
 #include <rfb/UserPasswdGetter.h>

@@ -18,6 +18,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <network/TcpSocket.h>
 
 #include <rfb/ComparingUpdateTracker.h>
