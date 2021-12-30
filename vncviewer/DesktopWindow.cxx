@@ -992,7 +992,8 @@ void DesktopWindow::fullscreen_on()
   fullscreen_screens(top, bottom, left, right);
 #ifdef __APPLE__
   // This is a workaround for a bug in FLTK, see: https://github.com/fltk/fltk/pull/277
-  cocoa_set_level(this, savedLevel);
+  if (cocoa_get_level(this) != savedLevel)
+    cocoa_set_level(this, savedLevel);
 #endif
 
   if (!fullscreen_active())
