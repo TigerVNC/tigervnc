@@ -97,16 +97,14 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
     ObfuscatedPasswd obfPwd(256);
     FILE* fp;
 
-#ifdef WIN32
-    char *passwordFilePath = passwordFileStr.buf;
-#else
+#ifndef WIN32
     wordexp_t expandedPath;
     wordexp(passwordFileStr.buf, &expandedPath, 0);
-    char *passwordFilePath = strdup(expandedPath.we_wordv[0]);
+	passwordFileStr.buf = strdup(expandedPath.we_wordv[0]);
     wordfree(&expandedPath);
 #endif
 
-    fp = fopen(passwordFilePath, "rb");
+    fp = fopen(passwordFileStr.buf, "rb");
     if (!fp)
       throw rfb::Exception(_("Opening password file failed"));
 
