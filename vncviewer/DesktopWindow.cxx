@@ -145,6 +145,29 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     }
   }
 
+  // Many window managers don't properly resize overly large windows,
+  // so we'll have to do some sanity checks ourselves here
+  int sx, sy, sw, sh;
+  if (force_position()) {
+    Fl::screen_work_area(sx, sy, sw, sh, geom_x, geom_y);
+  } else {
+    int mx, my;
+
+    // If we don't explicitly request a position then we don't know which
+    // monitor the window manager might place us on. Assume the popular
+    // behaviour of following the cursor.
+
+    Fl::get_mouse(mx, my);
+    Fl::screen_work_area(sx, sy, sw, sh, mx, my);
+  }
+  if ((w > sw) || (h > sh)) {
+    vlog.info(_("Reducing window size to fit on current monitor"));
+    if (w > sw)
+      w = sw;
+    if (h > sh)
+      h = sh;
+  }
+
 #ifdef __APPLE__
   // On OS X we can do the maximize thing properly before the
   // window is showned. Other platforms handled further down...
