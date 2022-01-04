@@ -63,17 +63,8 @@ static void button_cb(Fl_Widget *widget, void *val) {
   widget->window()->hide();
 }
 
-static void keepPassword(Fl_Widget *widget, void *data) {
-  UserDialog *dialog = (UserDialog*) data;
-  Fl_Check_Button* flcb = (Fl_Check_Button*)widget;
-  dialog->setKeepPassword(flcb->value());
-}
-
-UserDialog::UserDialog()
+UserDialog::UserDialog() : user_(NULL), password_(NULL), keepPasswd_(true)
 {
-  user_ = NULL;
-  password_ = NULL;
-  keepPasswd_ = true;
 }
 
 UserDialog::~UserDialog()
@@ -83,8 +74,14 @@ UserDialog::~UserDialog()
 
 void UserDialog::resetPassword()
 {
-  if(user_) { free(user_); user_ = NULL; }
-  if(password_) { free(password_); password_ = NULL; }
+  if(user_) {
+    delete [] user_;
+    user_ = NULL;
+  }
+  if(password_) {
+    delete [] password_;
+    password_ = NULL;
+  }
 }
 
 void UserDialog::getUserPasswd(bool secure, char** user, char** password)
@@ -94,19 +91,17 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
   assert(password);
 
   if(password_) {
-    if(user_) *user = strdup(user_);
-    *password = strdup(password_);
+    if(user_ && user) *user = strDup(user_);
+    *password = strDup(password_);
     return;
   }
 
-  user_ = getenv("VNC_USERNAME");
+  if(user) *user = getenv("VNC_USERNAME");
   *password = getenv("VNC_PASSWORD");
 
   if(*password) {
     setPassword(*password);
-    if (user_) {
-      *user = strdup(user_);
-    }
+    if (user) user_ = strDup(*user);
     return;
   }
 
@@ -187,12 +182,13 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 
   y += 5;
 
-  keepPasswdCheckbox = new Fl_Check_Button(70, y, win->w()-70-10, 20,
-					   _("Keep password for reconnect"));
-  keepPasswdCheckbox->callback(keepPassword, this);
-  keepPasswdCheckbox->value(keepPasswd_);
+  if (reconnectOnError) {
+    keepPasswdCheckbox = new Fl_Check_Button(70, y, win->w()-70-10, 20,
+                                             _("Keep password for reconnect"));
+    keepPasswdCheckbox->value(keepPasswd_);
 
-  y += 25 + 5;
+    y += 25 + 5;
+  }
 
   button = new Fl_Return_Button(310, y, 90, 25, fl_ok);
   button->align(FL_ALIGN_INSIDE|FL_ALIGN_WRAP);
@@ -217,9 +213,10 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
   while (win->shown()) Fl::wait();
 
   if (ret_val == 0) {
+    keepPasswd_ = keepPasswdCheckbox->value();
     if (user) {
       *user = strDup(username->value());
-      user_ = strDup(username->value());
+      if(keepPasswd_) user_ = strDup(username->value());
     }
     *password = strDup(passwd->value());
     setPassword(passwd->value());
@@ -262,14 +259,8 @@ bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
   return false;
 }
 
-
-void UserDialog::setKeepPassword(bool keep)
-{
-  keepPasswd_ = keep;
-}
-
 void UserDialog::setPassword(const char* password)
 {
   if (keepPasswd_)
-    password_ = strdup(password);
+    password_ = strDup(password);
 }

@@ -39,8 +39,6 @@ public:
 
   void resetPassword();
 
-  void setKeepPassword(bool keep);
-
  private:
   void setPassword(const char* password);
 
