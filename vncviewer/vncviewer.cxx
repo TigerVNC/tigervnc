@@ -467,7 +467,7 @@ static void mkvnchomedir()
   } else {
     int result = mkdir(homeDir, 0755);
     if (result == -1 && errno != EEXIST)
-      vlog.error(_("Could not create VNC home directory: %s."), strerror(errno));
+      vlog.error(_("Could not create VNC home directory: %s"), strerror(errno));
     delete [] homeDir;
   }
 }
