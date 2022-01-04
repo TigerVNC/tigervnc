@@ -195,14 +195,14 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 #else
     delayedFullscreen = true;
 #endif
+
+    // Full screen events are not sent out for a hidden window,
+    // so send a fake one here to set up things properly.
+    if (fullscreen_active())
+      handle(FL_FULLSCREEN);
   }
 
   show();
-
-  // Full screen events are not sent out for a hidden window,
-  // so send a fake one here to set up things properly.
-  if (fullscreen_active())
-    handle(FL_FULLSCREEN);
 
   // Unfortunately, current FLTK does not allow us to set the
   // maximized property on Windows and X11 before showing the window.
@@ -821,6 +821,7 @@ int DesktopWindow::handle(int event)
 {
   switch (event) {
   case FL_FULLSCREEN:
+    vlog.error("FL_FULLSCREEN");
     fullScreen.setParam(fullscreen_active());
 
     // Update scroll bars
@@ -906,9 +907,11 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
     // all monitors and the user clicked on another application.
     // Make sure we update our grabs with the focus changes.
     case FL_FOCUS:
+      vlog.error("FL_FOCUS");
       dw->maybeGrabKeyboard();
       break;
     case FL_UNFOCUS:
+      vlog.error("FL_UNFOCUS");
       if (fullscreenSystemKeys) {
         dw->ungrabKeyboard();
       }
@@ -1088,7 +1091,7 @@ void DesktopWindow::grabKeyboard()
 #elif defined(__APPLE__)
   bool ret;
 
-  ret = cocoa_tap_keyboard();
+  ret = cocoa_tap_keyboard(this);
   if (!ret) {
     vlog.error(_("Failure grabbing keyboard"));
     return;
