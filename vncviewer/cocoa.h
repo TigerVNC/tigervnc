@@ -25,7 +25,7 @@ void cocoa_prevent_native_fullscreen(Fl_Window *win);
 
 bool cocoa_is_trusted(bool prompt=false);
 
-bool cocoa_tap_keyboard();
+bool cocoa_tap_keyboard(Fl_Window* win);
 void cocoa_untap_keyboard();
 
 typedef struct CGColorSpace *CGColorSpaceRef;

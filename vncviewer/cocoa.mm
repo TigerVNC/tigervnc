@@ -169,15 +169,21 @@ static CGEventRef cocoa_event_tap(CGEventTapProxy /*proxy*/,
 #endif
 }
 
-bool cocoa_tap_keyboard()
+bool cocoa_tap_keyboard(Fl_Window* win)
 {
   CGEventMask mask;
 
   if (event_tap != nullptr)
     return true;
 
-  if (!cocoa_is_trusted())
+  if (!cocoa_is_trusted()) {
+    NSWindow *nsw;
+    nsw = (NSWindow*)fl_xid(win);
+    [nsw setLevel:NSNormalWindowLevel];
+    [nsw orderBack:nullptr];
+    [NSApp deactivate];
     return false;
+  }
 
   mask = CGEventMaskBit(kCGEventKeyDown) |
          CGEventMaskBit(kCGEventKeyUp) |
