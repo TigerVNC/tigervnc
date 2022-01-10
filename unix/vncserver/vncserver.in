@@ -198,7 +198,7 @@ $ENV{DESKTOP_SESSION} = $sessionname;
 $ENV{XDG_SESSION_DESKTOP} = $sessionname;
 
 if ($session{'DesktopNames'}) {
-    $ENV{XDG_DESKTOP_NAMES} = $session{'DesktopNames'} =~ s/;/:/gr;
+    $ENV{XDG_CURRENT_DESKTOP} = $session{'DesktopNames'} =~ s/;/:/gr;
 }
 
 # Make an X server cookie and set up the Xauthority file
