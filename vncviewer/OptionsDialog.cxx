@@ -20,8 +20,8 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
-
 #include <list>
 
 #include <rdr/types.h>
@@ -40,6 +40,7 @@
 #include "parameters.h"
 #include "MonitorArrangement.h"
 
+#include <FL/Fl.H>
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Check_Button.H>
@@ -53,6 +54,8 @@ using namespace rdr;
 using namespace rfb;
 
 std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
+
+static std::set<OptionsDialog *> instances;
 
 OptionsDialog::OptionsDialog()
   : Fl_Window(450, 460, _("VNC Viewer: Connection Options"))
@@ -92,11 +95,19 @@ OptionsDialog::OptionsDialog()
   callback(this->handleCancel, this);
 
   set_modal();
+
+  if (instances.size() == 0)
+    Fl::add_handler(fltk_event_handler);
+  instances.insert(this);
 }
 
 
 OptionsDialog::~OptionsDialog()
 {
+  instances.erase(this);
+
+  if (instances.size() == 0)
+    Fl::remove_handler(fltk_event_handler);
 }
 
 
@@ -1030,4 +1041,29 @@ void OptionsDialog::handleOK(Fl_Widget *widget, void *data)
   dialog->hide();
 
   dialog->storeOptions();
+}
+
+int OptionsDialog::fltk_event_handler(int event)
+{
+  std::set<OptionsDialog *>::iterator iter;
+
+  if (event != FL_SCREEN_CONFIGURATION_CHANGED)
+    return 0;
+
+  // Refresh monitor arrangement widget to match the parameter settings after
+  // screen configuration has changed. The MonitorArrangement index doesn't work
+  // the same way as the FLTK screen index.
+  for (iter = instances.begin(); iter != instances.end(); iter++)
+      Fl::add_timeout(0, handleScreenConfigTimeout, (*iter));
+
+  return 0;
+}
+
+void OptionsDialog::handleScreenConfigTimeout(void *data)
+{
+    OptionsDialog *self = (OptionsDialog *)data;
+
+    assert(self);
+
+    self->monitorArrangement->set(fullScreenSelectedMonitors.getParam());
 }

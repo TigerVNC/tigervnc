@@ -135,6 +135,10 @@ protected:
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
   Fl_Check_Button *reconnectCheckbox;
+
+private:
+  static int fltk_event_handler(int event);
+  static void handleScreenConfigTimeout(void *data);
 };
 
 #endif
