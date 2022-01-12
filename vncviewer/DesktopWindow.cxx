@@ -635,11 +635,17 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 
         Fl::screen_xywh(sx, sy, sw, sh, i);
 
-        if ((sx == x) && (sy == y) && (sw == w) && (sh == h)) {
-          vlog.info(_("Adjusting window size to avoid accidental full-screen request"));
-          // Assume a panel of some form and adjust the height
-          h -= 40;
-        }
+        // We can't trust x and y if the window isn't mapped as the
+        // window manager might adjust those numbers
+        if (shown() && ((sx != x) || (sy != y)))
+            continue;
+
+        if ((sw != w) || (sh != h))
+            continue;
+
+        vlog.info(_("Adjusting window size to avoid accidental full-screen request"));
+        // Assume a panel of some form and adjust the height
+        h -= 40;
       }
     }
   }
