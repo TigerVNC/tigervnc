@@ -37,6 +37,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifdef HAVE_SELINUX
+#include <selinux/selinux.h>
+#include <selinux/restorecon.h>
+#endif
+
 extern char **environ;
 
 // PAM service name
@@ -360,6 +365,17 @@ redir_stdio(const char *homedir, const char *display)
             syslog(LOG_CRIT, "Failure creating \"%s\": %s", logfile, strerror(errno));
             _exit(EX_OSERR);
         }
+
+#ifdef HAVE_SELINUX
+        int result;
+        if (selinux_file_context_verify(logfile, 0) == 0) {
+            result = selinux_restorecon(logfile, SELINUX_RESTORECON_RECURSE);
+
+            if (result < 0) {
+                syslog(LOG_WARNING, "Failure restoring SELinux context for \"%s\": %s", logfile, strerror(errno));
+            }
+        }
+#endif
     }
 
     hostlen = sysconf(_SC_HOST_NAME_MAX);
