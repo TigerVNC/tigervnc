@@ -42,17 +42,27 @@
 void init_theme()
 {
   // Basic text size (10pt @ 96 dpi => 13px)
+  // FIXME: This is small by modern standards, but:
+  //        https://github.com/fltk/fltk/issues/371
   FL_NORMAL_SIZE = 13;
 
   // Select a FLTK scheme and background color that looks somewhat
   // close to modern systems
   Fl::scheme("gtk+");
-  Fl::background(220, 220, 220);
 
-  // macOS has a slightly brighter default background though
-#ifdef __APPLE__
-  Fl::background(240, 240, 240);
-#endif
+  // FIXME: Should get these from the system,
+  //        Fl::get_system_colors() is unfortunately not very capable
+  // FIXME: Should also handle dark mode
+  // FIXME: fl_contrast() also sucks since its calculations are utterly
+  //        wrong as they fail to account for sRGB curves. And even with
+  //        that fixed we get odd results with dark backgrounds, so
+  //        APCA should probably be used.
+  //        https://github.com/fltk/fltk/issues/370
+  Fl::foreground(46, 52, 54);
+  Fl::background(246, 245, 244);
+  // GNOME uses (53,132,228), macOS (0, 122, 255), this is the lightest
+  // version of GNOME's that fl_contrast() won't screw up
+  Fl::set_color(FL_SELECTION_COLOR, 29, 113, 215);
 
   // This makes the "icon" in dialogs rounded, which fits better
   // with the above schemes.

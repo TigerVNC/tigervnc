@@ -320,6 +320,7 @@ static const char* getlocaledir()
   return CMAKE_INSTALL_FULL_LOCALEDIR;
 #endif
 }
+
 static void init_fltk()
 {
   // Adjust look of FLTK
