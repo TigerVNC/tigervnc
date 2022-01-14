@@ -46,74 +46,84 @@
 #include "vncviewer.h"
 #include "parameters.h"
 
+/* xpm:s predate const, so they have invalid definitions */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#include "../media/tigervnc_logo.xpm"
+#pragma GCC diagnostic pop
 
 using namespace std;
 using namespace rfb;
+
+static Fl_Pixmap logo(tigervnc_logo);
 
 static LogWriter vlog("ServerDialog");
 
 const char* SERVER_HISTORY="tigervnc.history";
 
 ServerDialog::ServerDialog()
-  : Fl_Window(520, 0, _("VNC Viewer: Connection Details"))
+  : Fl_Window(450, 0, "TigerVNC"),
+    usedDir(NULL)
 {
-  int x, y, x2;
-  Fl_Button *button;
-  Fl_Box *divider;
+  int y;
+  Fl_Box *box;
+  Fl_Widget *button;
+  //Fl_Menu_Button *menu;
 
-  usedDir = NULL;
+  y = 32;
 
-  x = OUTER_MARGIN;
-  y = OUTER_MARGIN;
+  box = new Fl_Box(32*2, y, w() - 32*4, 32);
+  box->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+  box->box(FL_NO_BOX);
+  box->image(logo);
 
-  serverName = new Fl_Input_Choice(LBLLEFT(x, y, w() - OUTER_MARGIN*2,
-                                   INPUT_HEIGHT, _("VNC server:")));
-  y += INPUT_HEIGHT + INNER_MARGIN;
+  y += box->h() + 32;
 
-  x2 = x;
+  y += INPUT_LABEL_OFFSET;
+  serverName = new Fl_Input_Choice(32*2, y, w() - 32*4,
+                                   INPUT_HEIGHT, _("Server name:"));
+  serverName->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+  // Bug fix for wrong background
+  serverName->color(FL_BACKGROUND2_COLOR);
+  y += serverName->h() + 16;
+/*
+  menu = new Fl_Menu_Button(24, y, 25, BUTTON_HEIGHT, "");
+  menu->add(_("Options..."), 0, handleOptions, this, FL_MENU_DIVIDER);
+  menu->add(_("Load..."), 0, handleLoad, this, 0);
+  menu->add(_("Save As..."), 0, handleSaveAs, this, FL_MENU_DIVIDER);
+  menu->add(_("About..."), 0, handleAbout, this, 0);
+*/
+  button = new Fl_Button(32*2, y, BUTTON_WIDTH, BUTTON_HEIGHT,
+                         _("Options"));
+  button->callback(handleOptions, this);
 
-  button = new Fl_Button(x2, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("Options..."));
-  button->callback(this->handleOptions, this);
-  x2 += BUTTON_WIDTH + INNER_MARGIN;
+  button = new Fl_Return_Button(w() - 32*2 - BUTTON_WIDTH, y,
+                                BUTTON_WIDTH, BUTTON_HEIGHT,
+                                _("Connect"));
+  button->callback(handleConnect, this);
+  y += button->h() + 16;
 
-  button = new Fl_Button(x2, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("Load..."));
-  button->callback(this->handleLoad, this);
-  x2 += BUTTON_WIDTH + INNER_MARGIN;
+  box = new Fl_Box(32*2, y, w() - 32*4, 2);
+  box->box(FL_FLAT_BOX);
+  box->color(fl_gray_ramp(3));
+  y += box->h();
 
-  button = new Fl_Button(x2, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("Save As..."));
-  button->callback(this->handleSaveAs, this);
-  x2 += BUTTON_WIDTH + INNER_MARGIN;
+  static char ver[1024];
 
-  y += BUTTON_HEIGHT + INNER_MARGIN;
+  box = new Fl_Box(32*2, y, w() - 32*4, 32);
+  box->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+  box->box(FL_NO_BOX);
+  snprintf(ver, sizeof(ver), _("Version %s"), PACKAGE_VERSION);
+  box->label(ver);
+  box->labelsize(10);
+  //box->labelcolor(fl_gray_ramp(3));
+  box->labelfont(FL_BOLD);
+  y += box->h() + 16;
 
-  divider = new Fl_Box(0, y, w(), 2);
-  divider->box(FL_THIN_DOWN_FRAME);
-
-  y += divider->h() + INNER_MARGIN;
-
-  // Symmetric margin around bottom button bar
-  y += OUTER_MARGIN - INNER_MARGIN;
-
-  button = new Fl_Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("About..."));
-  button->callback(this->handleAbout, this);
-
-  x2 = w() - OUTER_MARGIN - BUTTON_WIDTH*2 - INNER_MARGIN*1;
-
-  button = new Fl_Button(x2, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("Cancel"));
-  button->callback(this->handleCancel, this);
-  x2 += BUTTON_WIDTH + INNER_MARGIN;
-
-  button = new Fl_Return_Button(x2, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("Connect"));
-  button->callback(this->handleConnect, this);
-  x2 += BUTTON_WIDTH + INNER_MARGIN;
-
-  y += BUTTON_HEIGHT + INNER_MARGIN;
-
-  /* Needed for resize to work sanely */
   resizable(NULL);
-  h(y-INNER_MARGIN+OUTER_MARGIN);
+  size(w(), y);
 
-  callback(this->handleCancel, this);
+  callback(handleClose, this);
 }
 
 
@@ -267,7 +277,7 @@ void ServerDialog::handleAbout(Fl_Widget *widget, void *data)
 }
 
 
-void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
+void ServerDialog::handleClose(Fl_Widget *widget, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
 

@@ -39,7 +39,7 @@ protected:
   static void handleLoad(Fl_Widget *widget, void *data);
   static void handleSaveAs(Fl_Widget *widget, void *data);
   static void handleAbout(Fl_Widget *widget, void *data);
-  static void handleCancel(Fl_Widget *widget, void *data);
+  static void handleClose(Fl_Widget *widget, void *data);
   static void handleConnect(Fl_Widget *widget, void *data);
 
 private:
