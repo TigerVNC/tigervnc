@@ -73,7 +73,6 @@ static inline int gui_str_len(const char *str)
 
 /* Fl_Group */
 #define GROUP_LABEL_OFFSET      FL_NORMAL_SIZE
-#define GROUP_MARGIN            12
 
 /**** HELPERS FOR DYNAMIC TEXT ****/
 

@@ -518,18 +518,19 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   /* VNC encoding box */
   ty += GROUP_LABEL_OFFSET;
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 3 + RADIO_HEIGHT * 4;
+  height = TIGHT_MARGIN * 5 + RADIO_HEIGHT * 4;
 #ifdef HAVE_H264
   height += TIGHT_MARGIN + RADIO_HEIGHT;
 #endif
   encodingGroup = new Fl_Group(tx, ty, half_width, height,
                                 _("Preferred encoding"));
-  encodingGroup->box(FL_ENGRAVED_BOX);
+  encodingGroup->box(FL_FLAT_BOX);
+  encodingGroup->labelfont(FL_BOLD);
   encodingGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
     tightButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                RADIO_MIN_WIDTH,
@@ -569,7 +570,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
   }
 
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   encodingGroup->end();
   col1_ty = ty;
@@ -580,14 +581,15 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   /* Color box */
   ty += GROUP_LABEL_OFFSET;
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 3 + RADIO_HEIGHT * 4;
+  height = TIGHT_MARGIN * 5 + RADIO_HEIGHT * 4;
   colorlevelGroup = new Fl_Group(tx, ty, half_width, height, _("Color level"));
-  colorlevelGroup->box(FL_ENGRAVED_BOX);
+  colorlevelGroup->labelfont(FL_BOLD);
+  colorlevelGroup->box(FL_FLAT_BOX);
   colorlevelGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
     fullcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                      RADIO_MIN_WIDTH,
@@ -618,7 +620,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
   }
 
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   colorlevelGroup->end();
   col2_ty = ty;
@@ -632,6 +634,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
                                                      _("Custom compression level:")));
+  compressionCheckbox->labelfont(FL_BOLD);
   compressionCheckbox->callback(handleCompression, this);
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
@@ -645,6 +648,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
                                               CHECK_MIN_WIDTH,
                                               CHECK_HEIGHT,
                                               _("Allow JPEG compression:")));
+  jpegCheckbox->labelfont(FL_BOLD);
   jpegCheckbox->callback(handleJpeg, this);
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
@@ -677,19 +681,20 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   ty += GROUP_LABEL_OFFSET;
 
 #if defined(HAVE_GNUTLS) && defined(HAVE_NETTLE)
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 5 + CHECK_HEIGHT * 4 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
+  height = TIGHT_MARGIN * 7 + CHECK_HEIGHT * 4 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
 #elif defined(HAVE_GNUTLS)
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 4 + CHECK_HEIGHT * 3 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
+  height = TIGHT_MARGIN * 6 + CHECK_HEIGHT * 3 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
 #elif defined(HAVE_NETTLE)
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 1 + CHECK_HEIGHT * 2;
+  height = TIGHT_MARGIN * 3 + CHECK_HEIGHT * 2;
 #endif
   encryptionGroup = new Fl_Group(tx, ty, width, height, _("Encryption"));
-  encryptionGroup->box(FL_ENGRAVED_BOX);
+  encryptionGroup->labelfont(FL_BOLD);
+  encryptionGroup->box(FL_FLAT_BOX);
   encryptionGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
     encNoneCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                    CHECK_MIN_WIDTH,
@@ -713,14 +718,14 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
     ty += INPUT_LABEL_OFFSET;
     caInput = new Fl_Input(tx + INDENT, ty, 
-                           width - GROUP_MARGIN*2 - INDENT, INPUT_HEIGHT,
+                           width - INDENT * 2, INPUT_HEIGHT,
                            _("Path to X509 CA certificate"));
     caInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
     ty += INPUT_HEIGHT + TIGHT_MARGIN;
 
     ty += INPUT_LABEL_OFFSET;
     crlInput = new Fl_Input(tx + INDENT, ty,
-                            width - GROUP_MARGIN*2 - INDENT, INPUT_HEIGHT,
+                            width - INDENT * 2, INPUT_HEIGHT,
                             _("Path to X509 CRL file"));
     crlInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
     ty += INPUT_HEIGHT + TIGHT_MARGIN;
@@ -735,7 +740,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 #endif
   }
 
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   encryptionGroup->end();
 
@@ -745,14 +750,15 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
   /* Authentication */
   ty += GROUP_LABEL_OFFSET;
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 2 + CHECK_HEIGHT * 3;
+  height = TIGHT_MARGIN * 4 + CHECK_HEIGHT * 3;
   authenticationGroup = new Fl_Group(tx, ty, width, height, _("Authentication"));
-  authenticationGroup->box(FL_ENGRAVED_BOX);
+  authenticationGroup->labelfont(FL_BOLD);
+  authenticationGroup->box(FL_FLAT_BOX);
   authenticationGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
     authNoneCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                     CHECK_MIN_WIDTH,
@@ -773,7 +779,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
   }
 
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   authenticationGroup->end();
 
@@ -802,22 +808,23 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
                                                   _("View only (ignore mouse and keyboard)")));
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  ty += CHECK_HEIGHT + INNER_MARGIN;
 
   orig_tx = tx;
 
   /* Mouse */
   ty += GROUP_LABEL_OFFSET;
   mouseGroup = new Fl_Group(tx, ty, width, 0, _("Mouse"));
-  mouseGroup->box(FL_ENGRAVED_BOX);
+  mouseGroup->labelfont(FL_BOLD);
+  mouseGroup->box(FL_FLAT_BOX);
   mouseGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   /* Needed for final resize to work sanely */
   mouseGroup->resizable(NULL);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
     emulateMBCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                      CHECK_MIN_WIDTH,
@@ -831,7 +838,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                     _("Show dot when no cursor")));
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
   }
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   mouseGroup->end();
   mouseGroup->size(mouseGroup->w(), ty - mouseGroup->y());
@@ -843,15 +850,16 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   /* Keyboard */
   ty += GROUP_LABEL_OFFSET;
   keyboardGroup = new Fl_Group(tx, ty, width, 0, _("Keyboard"));
-  keyboardGroup->box(FL_ENGRAVED_BOX);
+  keyboardGroup->labelfont(FL_BOLD);
+  keyboardGroup->box(FL_FLAT_BOX);
   keyboardGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   /* Needed for final resize to work sanely */
   keyboardGroup->resizable(NULL);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
     systemKeysCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                       CHECK_MIN_WIDTH,
@@ -867,7 +875,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 
     ty += CHOICE_HEIGHT + TIGHT_MARGIN;
   }
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   keyboardGroup->end();
   keyboardGroup->size(keyboardGroup->w(), ty - keyboardGroup->y());
@@ -879,15 +887,16 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   /* Clipboard */
   ty += GROUP_LABEL_OFFSET;
   clipboardGroup = new Fl_Group(tx, ty, width, 0, _("Clipboard"));
-  clipboardGroup->box(FL_ENGRAVED_BOX);
+  clipboardGroup->labelfont(FL_BOLD);
+  clipboardGroup->box(FL_FLAT_BOX);
   clipboardGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   /* Needed for final resize to work sanely */
   clipboardGroup->resizable(NULL);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
     acceptClipboardCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                            CHECK_MIN_WIDTH,
@@ -919,7 +928,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
 #endif
   }
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   clipboardGroup->end();
   clipboardGroup->size(clipboardGroup->w(), ty - clipboardGroup->y());
@@ -949,16 +958,17 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
   /* Display mode */
   ty += GROUP_LABEL_OFFSET;
   displayModeGroup = new Fl_Group(tx, ty, width, 0, _("Display mode"));
-  displayModeGroup->box(FL_ENGRAVED_BOX);
+  displayModeGroup->labelfont(FL_BOLD);
+  displayModeGroup->box(FL_FLAT_BOX);
   displayModeGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   /* Needed for final resize to work sanely */
   displayModeGroup->resizable(NULL);
 
   {
-    tx += GROUP_MARGIN;
-    ty += GROUP_MARGIN;
-    width -= GROUP_MARGIN * 2;
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
+    width -= INDENT;
 
     windowedButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                   RADIO_MIN_WIDTH,
@@ -997,7 +1007,7 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
                               width - INDENT, 150);
     ty += 150 + TIGHT_MARGIN;
   }
-  ty += GROUP_MARGIN - TIGHT_MARGIN;
+  ty -= TIGHT_MARGIN;
 
   displayModeGroup->end();
   displayModeGroup->size(displayModeGroup->w(),
