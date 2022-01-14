@@ -225,14 +225,42 @@ void init_theme()
   // Basic text size (10pt @ 96 dpi => 13px)
   FL_NORMAL_SIZE = 13;
 
-  // Select a background color that looks somewhat close to modern
-  // systems
-  Fl::background(220, 220, 220);
+  // Modern colors based on the default appearance of Windows 11,
+  // macOS 12 and GNOME 41
 
-  // macOS has a slightly brighter default background though
-#ifdef __APPLE__
-  Fl::background(240, 240, 240);
+  // FIXME: Should get these from the system,
+  //        Fl::get_system_colors() is unfortunately not very capable
+  // FIXME: Should also handle dark mode
+
+#if defined(WIN32)
+  // Windows 11
+  Fl::foreground(26, 26, 26);
+  Fl::background(243, 243, 243);
+#elif defined(__APPLE__)
+  // FIXME: Text is rendered slightly lighter than what we specify here
+  //        for some odd reason. The target is (38, 38, 38).
+  Fl::foreground(28, 28, 28);
+  Fl::background(246, 246, 246);
+#else
+  // GNOME
+  Fl::foreground(46, 52, 54);
+  Fl::background(246, 245, 244);
 #endif
+
+#if defined(WIN32)
+  // Windows 11 default accent color
+  Fl::set_color(FL_SELECTION_COLOR, 0, 103, 192);
+#elif defined(__APPLE__)
+  Fl::set_color(FL_SELECTION_COLOR, 0, 122, 255);
+#else
+  // GNOME
+  Fl::set_color(FL_SELECTION_COLOR, 53, 132, 228);
+#endif
+
+  // The arrow on Fl_Return_Button gets a invisible, so let's adjust it
+  // to compensate for our lighter buttons
+  Fl::set_color(FL_LIGHT3, light_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.5)));
+  Fl::set_color(FL_DARK3, dark_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.5)));
 
   // We will override the box types later, but changing scheme affects
   // more things than just those, so we still want to switch from the
