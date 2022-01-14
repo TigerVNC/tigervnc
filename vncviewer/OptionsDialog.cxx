@@ -43,6 +43,7 @@
 #include "fltk/layout.h"
 #include "fltk/util.h"
 #include "fltk/Fl_Monitor_Arrangement.h"
+#include "fltk/Fl_Navigation.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Tabs.H>
@@ -62,19 +63,26 @@ std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
 static std::set<OptionsDialog *> instances;
 
 OptionsDialog::OptionsDialog()
-  : Fl_Window(450, 460, _("VNC Viewer: Connection Options"))
+  : Fl_Window(580, 420, _("TigerVNC Options"))
 {
   int x, y;
+  Fl_Navigation *navigation;
   Fl_Button *button;
 
-  Fl_Tabs *tabs = new Fl_Tabs(OUTER_MARGIN, OUTER_MARGIN,
-                             w() - OUTER_MARGIN*2,
-                             h() - OUTER_MARGIN*2 - INNER_MARGIN - BUTTON_HEIGHT);
-
+  // Odd dimensions to get rid of extra borders
+  // FIXME: We need to retain the top border on Windows as they don't
+  //        have any separator for the caption, which looks odd
+#ifdef WIN32
+  navigation = new Fl_Navigation(-1, 0, w()+2,
+                                 h() - INNER_MARGIN - BUTTON_HEIGHT - OUTER_MARGIN);
+#else
+  navigation = new Fl_Navigation(-1, -1, w()+2,
+                                 h()+1 - INNER_MARGIN - BUTTON_HEIGHT - OUTER_MARGIN);
+#endif
   {
     int tx, ty, tw, th;
 
-    tabs->client_area(tx, ty, tw, th, TABS_HEIGHT);
+    navigation->client_area(tx, ty, tw, th, 150);
 
     createCompressionPage(tx, ty, tw, th);
     createSecurityPage(tx, ty, tw, th);
@@ -83,7 +91,7 @@ OptionsDialog::OptionsDialog()
     createMiscPage(tx, ty, tw, th);
   }
 
-  tabs->end();
+  navigation->end();
 
   x = w() - BUTTON_WIDTH * 2 - INNER_MARGIN - OUTER_MARGIN;
   y = h() - BUTTON_HEIGHT - OUTER_MARGIN;
@@ -1006,7 +1014,7 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
 
 void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
 {
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Misc."));
+  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Miscellaneous"));
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;

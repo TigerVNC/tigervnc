@@ -51,9 +51,6 @@ static inline int gui_str_len(const char *str)
 
 /**** FLTK WIDGETS ****/
 
-/* Fl_Tabs */
-#define TABS_HEIGHT             30
-
 /* Fl_Input */
 #define INPUT_LABEL_OFFSET      FL_NORMAL_SIZE
 #define INPUT_HEIGHT            25
