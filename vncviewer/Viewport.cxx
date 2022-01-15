@@ -105,6 +105,7 @@ static rfb::LogWriter vlog("Viewport");
 
 enum { ID_DISCONNECT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
+       ID_PRINTSCREEN,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT };
 
 // Used to detect fake input (0xaa is not a real key)
@@ -1259,6 +1260,8 @@ void Viewport::initContextMenu()
                   (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
   }
 
+  fltk_menu_add(contextMenu, p_("ContextMenu|", "Send &Print screen"),
+                0, NULL, (void*)ID_PRINTSCREEN, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Send Ctrl-Alt-&Del"),
                 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
@@ -1340,6 +1343,10 @@ void Viewport::popupContextMenu()
   case ID_MENUKEY:
     handleKeyPress(menuKeyCode, menuKeySym);
     handleKeyRelease(menuKeyCode);
+    break;
+  case ID_PRINTSCREEN:
+    handleKeyPress(0x2c, XK_Print);
+    handleKeyRelease(0x2c);
     break;
   case ID_CTRLALTDEL:
     handleKeyPress(0x1d, XK_Control_L);
