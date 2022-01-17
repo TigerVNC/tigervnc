@@ -41,10 +41,11 @@
 
 void init_theme()
 {
-  // Basic text size (10pt @ 96 dpi => 13px)
-  // FIXME: This is small by modern standards, but:
+  // Basic text size (11pt @ 96 dpi => 14.666...px)
+  // FIXME: This is rounded down since there are some issues scaling
+  //        fonts up in FLTK:
   //        https://github.com/fltk/fltk/issues/371
-  FL_NORMAL_SIZE = 13;
+  FL_NORMAL_SIZE = 14;
 
   // Select a FLTK scheme and background color that looks somewhat
   // close to modern systems
