@@ -636,10 +636,10 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
   if (!is->hasData(1 + 1))
     return false;
 
+  is->setRestorePoint();
+
   type = is->readU8();
   is->skip(1);
-
-  is->setRestorePoint();
 
   if (type == 0) {
     int len = width * height * (handler->server.pf().bpp/8);
