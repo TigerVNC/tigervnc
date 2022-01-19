@@ -465,7 +465,7 @@ void DesktopWindow::draw()
   // Redraw background only on full redraws
   if (redraw) {
     if (offscreen)
-      offscreen->clear(40, 40, 40);
+      offscreen->clear(0, 0, 0);
     else
       fl_rectf(0, 0, W, H, 40, 40, 40);
   }
