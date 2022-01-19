@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -1344,13 +1346,15 @@ void DesktopWindow::remoteResize(int width, int height)
       sx -= viewport_rect.tl.x;
       sy -= viewport_rect.tl.y;
 
-      // Look for perfectly matching existing screen...
+      // Look for perfectly matching existing screen that is not yet present in
+      // in the screen layout...
       for (iter = cc->server.screenLayout().begin();
            iter != cc->server.screenLayout().end(); ++iter) {
         if ((iter->dimensions.tl.x == sx) &&
             (iter->dimensions.tl.y == sy) &&
             (iter->dimensions.width() == sw) &&
-            (iter->dimensions.height() == sh))
+            (iter->dimensions.height() == sh) &&
+            (std::find(layout.begin(), layout.end(), *iter) == layout.end()))
           break;
       }
 
