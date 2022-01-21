@@ -21,6 +21,8 @@
 
 class Fl_Window;
 
+bool cocoa_is_trusted(bool prompt=false);
+
 bool cocoa_tap_keyboard();
 void cocoa_untap_keyboard();
 
