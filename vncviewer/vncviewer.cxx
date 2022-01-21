@@ -81,7 +81,7 @@
 #include "win32.h"
 #endif
 
-rfb::LogWriter vlog("main");
+static rfb::LogWriter vlog("main");
 
 using namespace network;
 using namespace rfb;
