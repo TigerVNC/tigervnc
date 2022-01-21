@@ -90,9 +90,7 @@ Building the TigerVNC Viewer on Unix/Mac Systems
 ------------------------------------------------
 
 The following procedure will build the TigerVNC Viewer on Linux and Unix
-systems.  On 64-bit systems, this will build a 64-bit version of TigerVNC.  See
-"Build Recipes" for specific build instructions for building a 32-bit version
-of TigerVNC on 64-bit systems.
+systems.
 
   cd {build_directory}
   cmake -G "Unix Makefiles" [additional CMake flags] {source_directory}
@@ -322,18 +320,6 @@ make dmg
   Create Macintosh disk image file that contains an application bundle of the
   TigerVNC Viewer
 
-make udmg
-
-  On 64-bit OS X systems, this creates a version of the Macintosh package and
-  disk image which contains universal i386/x86-64 binaries.  You should first
-  configure a 32-bit out-of-tree build of TigerVNC, then configure a 64-bit
-  out-of-tree build, then run 'make udmg' from the 64-bit build directory.  The
-  build system will look for the 32-bit build under {source_directory}/osxx86
-  by default, but you can override this by setting the OSX_X86_BUILD CMake
-  variable to the directory containing your configured 32-bit build.  Either
-  the 64-bit or 32-bit build can be configured to be backward compatible by
-  using the instructions in the "Build Recipes" section.
-
 
 Windows
 -------
@@ -349,52 +335,8 @@ Build Recipes
 =============
 
 
-32-bit Build on 64-bit Linux/Unix (including OS X)
---------------------------------------------------
-
-Set the following environment variables before building TigerVNC.
-
-  CFLAGS='-O3 -m32'
-  CXXFLAGS='-O3 -m32'
-  LDFLAGS=-m32
-
-If you are building the TigerVNC Server on a modern Unix/Linux system, then
-you will also need to pass the appropriate --host argument when configuring the
-X server source (for instance, --host=i686-pc-linux-gnu).
-
-
-64-bit Backward-Compatible Build on 64-bit OS X
------------------------------------------------
-
-Add
-
-  -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.5.sdk \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.5 
-
-to the CMake command line.  The OS X 10.5 SDK must be installed.
-
-
-32-bit Backward-Compatible Build on 64-bit OS X
------------------------------------------------
-
-Set the following environment variables:
-
-  CC=gcc-4.0
-  CXX=g++-4.0
-  CFLAGS='-O3 -m32'
-  CXXFLAGS='-O3 -m32'
-  LDFLAGS=-m32
-
-and add
-
-  -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.4u.sdk \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.4
-
-to the CMake command line.  The OS X 10.4 SDK must be installed.
-
-
-64-bit MinGW Build on Cygwin
-----------------------------
+MinGW Build on Cygwin
+---------------------
 
   cd {build_directory}
   CC=/usr/bin/x86_64-w64-mingw32-gcc CXX=/usr/bin/x86_64-w64-mingw32-g++ \
@@ -404,31 +346,15 @@ to the CMake command line.  The OS X 10.4 SDK must be installed.
     -DCMAKE_RANLIB=/usr/bin/x86_64-w64-mingw32-ranlib {source_directory}
   make
 
-This produces a 64-bit build of TigerVNC that does not depend on cygwin1.dll or
+This produces a build of TigerVNC that does not depend on cygwin1.dll or
 other Cygwin DLL's.  The mingw64-x86_64-gcc-core and mingw64-x86_64-gcc-g++
-packages (and their dependencies) must be installed.
-
-
-32-bit MinGW Build on Cygwin
-----------------------------
-
-  cd {build_directory}
-  CC=/usr/bin/i686-w64-mingw32-gcc CXX=/usr/bin/i686-w64-mingw32-g++ \
-    RC=/usr/bin/i686-w64-mingw32-windres \
-    cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows \
-    -DDCMAKE_AR=/usr/bin/i686-w64-mingw32-ar \
-    -DCMAKE_RANLIB=/usr/bin/i686-w64-mingw32-ranlib {source_directory}
-  make
-
-This produces a 32-bit build of TigerVNC that does not depend on cygwin1.dll or
-other Cygwin DLL's.  The mingw64-i686-gcc-core and mingw64-i686-gcc-g++
 packages (and their dependencies) must be installed.
 
 
 MinGW-w64 Build on Windows
 --------------------------
 
-This produces a 64-bit build of TigerVNC using the "native" MinGW-w64 toolchain
+This produces a build of TigerVNC using the "native" MinGW-w64 toolchain
 (which is faster than the Cygwin version):
 
   cd {build_directory}
@@ -446,12 +372,12 @@ MinGW Build on Linux
 --------------------
 
   cd {build_directory}
-  CC={mingw_binary_path}/i386-mingw32-gcc \
-    CXX={mingw_binary_path}/i386-mingw32-g++ \
-    RC={mingw_binary_path}/i386-mingw32-windres \
+  CC={mingw_binary_path}/x86_64-w64-mingw32-gcc \
+    CXX={mingw_binary_path}/x86_64-w64-mingw32-g++ \
+    RC={mingw_binary_path}/x86_64-w64-mingw32-windres \
     cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows \
-    -DCMAKE_AR={mingw_binary_path}/i386-mingw32-ar \
-    -DCMAKE_RANLIB={mingw_binary_path}/i386-mingw32-ranlib \
+    -DCMAKE_AR={mingw_binary_path}/x86_64-w64-mingw32-ar \
+    -DCMAKE_RANLIB={mingw_binary_path}/x86_64-w64-mingw32-ranlib \
     {source_directory}
   make
 

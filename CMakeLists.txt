@@ -105,12 +105,6 @@ if(APPLE)
   add_definitions(-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0)
 endif()
 
-if(CMAKE_SIZEOF_VOID_P MATCHES 8)
-  message(STATUS "64-bit build")
-else()
-  message(STATUS "32-bit build")
-endif()
-
 # MinGW64 has header support but no library support for IActiveDesktop, so we
 # need to check for both the header and library and use our own implementation
 # in common/os if either doesn't exist.

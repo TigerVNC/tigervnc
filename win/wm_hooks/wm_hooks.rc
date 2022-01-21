@@ -73,13 +73,8 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "TigerVNC Project\0"
-            #ifdef WIN64
-            VALUE "FileDescription", "TigerVNC Server Hooking DLL for Win64\0"
-            VALUE "ProductName", "TigerVNC Server Hooking DLL for Win64\0"
-            #else
-            VALUE "FileDescription", "TigerVNC Server Hooking DLL for Win32\0"
-            VALUE "ProductName", "TigerVNC Server Hooking DLL for Win32\0"
-            #endif
+            VALUE "FileDescription", "TigerVNC Server Hooking DLL\0"
+            VALUE "ProductName", "TigerVNC Server Hooking DLL\0"
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "\0"
             VALUE "LegalCopyright", "Copyright (C) 1999-2005 [many holders]\0"

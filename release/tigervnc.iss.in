@@ -1,21 +1,14 @@
 [Setup]
 #ifdef WIN64
 ArchitecturesInstallIn64BitMode=x64
-AppName=TigerVNC 64-bit
-AppVerName=TigerVNC 64-bit @VERSION@ (@BUILD@)
-#else
-AppName=TigerVNC
-AppVerName=TigerVNC v@VERSION@ (@BUILD@)
 #endif
+AppName=TigerVNC
+AppVerName=TigerVNC @VERSION@ (@BUILD@)
 AppVersion=@VERSION@
 AppPublisher=TigerVNC project
 AppPublisherURL=https://tigervnc.org
 DefaultDirName={pf}\TigerVNC
-#ifdef WIN64
-DefaultGroupName=TigerVNC 64-bit
-#else
 DefaultGroupName=TigerVNC
-#endif
 LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.TXT
 
 [Files]

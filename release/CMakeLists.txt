@@ -38,18 +38,10 @@ endif() # WIN32
 
 if(APPLE)
 
-set(DEFAULT_OSX_X86_BUILD ${CMAKE_SOURCE_DIR}/osxx86)
-set(OSX_X86_BUILD ${DEFAULT_OSX_X86_BUILD} CACHE PATH
-  "Directory containing 32-bit OS X build to include in universal binaries (default: ${DEFAULT_OSX_X86_BUILD})")
-
 configure_file(makemacapp.in makemacapp)
 configure_file(Info.plist.in Info.plist)
 
 add_custom_target(dmg sh makemacapp
-  DEPENDS vncviewer
-  SOURCES makemacapp)
-
-add_custom_target(udmg sh makemacapp universal
   DEPENDS vncviewer
   SOURCES makemacapp)
 

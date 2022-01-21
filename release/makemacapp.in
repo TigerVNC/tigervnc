@@ -17,7 +17,7 @@ onexit()
 
 usage()
 {
-	echo "$0 [universal]"
+	echo "$0"
 	exit 1
 }
 
@@ -28,12 +28,6 @@ VERSION=@VERSION@
 BUILD=@BUILD@
 SRCDIR=@CMAKE_SOURCE_DIR@
 BINDIR=@CMAKE_BINARY_DIR@
-BUILDDIR32=@OSX_X86_BUILD@
-if [ $# -gt 0 ]; then
-	if [ "$1" = "universal" ]; then
-		UNIVERSAL=1
-	fi
-fi
 
 cd $BINDIR
 
@@ -48,22 +42,6 @@ mkdir -p "$APPROOT/Contents/MacOS"
 mkdir -p "$APPROOT/Contents/Resources"
 
 install -m 755 vncviewer/vncviewer "$APPROOT/Contents/MacOS/TigerVNC Viewer"
-if [ $UNIVERSAL = 1 ]; then
-	if [ ! -d $BUILDDIR32 ]; then
-		echo ERROR: 32-bit build directory $BUILDDIR32 does not exist
-		exit 1
-	fi
-	if [ ! -f $BUILDDIR32/Makefile ]; then
-		echo ERROR: 32-bit build directory $BUILDDIR32 is not configured
-		exit 1
-	fi
-	pushd $BUILDDIR32
-	make
-	popd
-	lipo -create -arch i386 $BUILDDIR32/vncviewer/vncviewer -arch x86_64 \
-		"$APPROOT/Contents/MacOS/TigerVNC Viewer" \
-		-output "$APPROOT/Contents/MacOS/TigerVNC Viewer"
-fi
 install -m 644 $SRCDIR/release/tigervnc.icns "$APPROOT/Contents/Resources/"
 install -m 644 release/Info.plist "$APPROOT/Contents/"
 

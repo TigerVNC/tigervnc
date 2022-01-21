@@ -77,13 +77,8 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "TigerVNC Project\0"
-            #ifdef WIN64
-            VALUE "FileDescription", "TigerVNC Server for Win64\0"
-            VALUE "ProductName", "TigerVNC Server for Win64\0"
-            #else
-            VALUE "FileDescription", "TigerVNC Server for Win32\0"
-            VALUE "ProductName", "TigerVNC Server for Win32\0"
-            #endif
+            VALUE "FileDescription", "TigerVNC Server\0"
+            VALUE "ProductName", "TigerVNC Server\0"
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "winvnc\0"
             VALUE "LegalCopyright", "Copyright (C) 1999-2022 TigerVNC Team and many others (see README.rst)\0"
