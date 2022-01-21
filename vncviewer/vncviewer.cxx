@@ -76,6 +76,10 @@
 #include "touch.h"
 #include "vncviewer.h"
 
+#ifdef __APPLE__
+#include "cocoa.h"
+#endif
+
 #ifdef WIN32
 #include "resource.h"
 #include "win32.h"
@@ -748,6 +752,15 @@ int main(int argc, char** argv)
     abort_vncviewer(_("Parameters -listen and -via are incompatible"));
     return 1; /* Not reached */
   }
+#endif
+
+
+#ifdef __APPLE__
+  // FIXME: Should we disable full screen if keyboard grab is active but
+  //        we don't have permissions? Otherwise the permissions dialog
+  //        can be hidden behind our full-screen window.
+  if (fullscreenSystemKeys)
+    cocoa_is_trusted(true);
 #endif
 
   if (listenMode) {

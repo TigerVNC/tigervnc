@@ -65,6 +65,8 @@ protected:
   static void handleX509(Fl_Widget *widget, void *data);
   static void handleRSAAES(Fl_Widget *widget, void *data);
 
+  static void handleSystemKeys(Fl_Widget *widget, void *data);
+
   static void handleClipboard(Fl_Widget *widget, void *data);
 
   static void handleFullScreenMode(Fl_Widget *widget, void *data);

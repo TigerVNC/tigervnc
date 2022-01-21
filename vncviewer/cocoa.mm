@@ -29,6 +29,11 @@
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
 
+#include "cocoa.h"
+
+static CFMachPortRef event_tap;
+static CFRunLoopSourceRef tap_source;
+
 void cocoa_prevent_native_fullscreen(Fl_Window *win)
 {
   NSWindow *nsw;
@@ -39,10 +44,7 @@ void cocoa_prevent_native_fullscreen(Fl_Window *win)
 #endif
 }
 
-static CFMachPortRef event_tap;
-static CFRunLoopSourceRef tap_source;
-
-static bool cocoa_is_trusted()
+bool cocoa_is_trusted(bool prompt)
 {
   CFStringRef keys[1];
   CFBooleanRef values[1];
@@ -72,7 +74,7 @@ static bool cocoa_is_trusted()
 #endif
 
   keys[0] = kAXTrustedCheckOptionPrompt;
-  values[0] = kCFBooleanTrue;
+  values[0] = prompt ? kCFBooleanTrue : kCFBooleanFalse;
   options = CFDictionaryCreate(kCFAllocatorDefault,
                                (const void**)keys,
                                (const void**)values, 1,
