@@ -28,6 +28,9 @@ namespace rfb {
   const int encodingHextile = 5;
   const int encodingTight = 7;
   const int encodingZRLE = 16;
+#ifdef HAVE_H264
+  const int encodingH264 = 50;
+#endif
 
   const int encodingMax = 255;
 

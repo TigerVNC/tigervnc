@@ -40,6 +40,8 @@ Build Requirements (Unix)
    * Xorg server source code, 1.16 or never
    * All build requirements Xorg imposes (see its documentation)
 
+-- Optional ffmpeg support (libav)
+
 ============================
 Build Requirements (Windows)
 ============================
