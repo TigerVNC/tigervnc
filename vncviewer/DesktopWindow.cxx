@@ -846,6 +846,12 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
+#ifdef __APPLE__
+    // Complain to the user if we won't have permission to grab keyboard
+    if (fullscreenSystemKeys && fullscreen_active())
+      cocoa_is_trusted(true);
+#endif
+
     if (fullscreen_active())
       maybeGrabKeyboard();
     else
