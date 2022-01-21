@@ -23,6 +23,8 @@ class Fl_Window;
 
 void cocoa_prevent_native_fullscreen(Fl_Window *win);
 
+bool cocoa_is_trusted(bool prompt=false);
+
 bool cocoa_tap_keyboard();
 void cocoa_untap_keyboard();
 
