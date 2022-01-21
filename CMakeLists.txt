@@ -175,8 +175,8 @@ option(ENABLE_H264 "Enable H.264 RFB encoding" ON)
 if(ENABLE_H264)
   if(WIN32)
     add_definitions("-DHAVE_H264")
-    set(H264_LIBS "NONE")  # may be LIBAV in the future
-    message(WARNING "NO H264 LIBs are supported on Windows")
+    set(H264_LIBS "WIN")  # may be LIBAV in the future
+    set(H264_LIBRARIES ole32 mfplat mfuuid wmcodecdspuuid)
   else()
     check_include_files(libavcodec/avcodec.h HAVE_AVCODEC_H)
     check_include_files(libavutil/avutil.h HAVE_AVUTIL_H)
