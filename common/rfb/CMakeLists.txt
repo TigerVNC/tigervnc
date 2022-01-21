@@ -64,6 +64,13 @@ set(RFB_SOURCES
   encodings.cxx
   util.cxx)
 
+if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
+  set(RFB_SOURCES ${RFB_SOURCES} H264Decoder.cxx H264DecoderContext.cxx)
+  if(H264_LIBS STREQUAL "LIBAV")
+    set(RFB_SOURCES ${RFB_SOURCES} H264LibavDecoderContext.cxx)
+  endif()
+endif()
+
 if(UNIX)
   set(RFB_SOURCES ${RFB_SOURCES} Logger_syslog.cxx)
 endif()

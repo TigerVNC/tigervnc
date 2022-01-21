@@ -33,6 +33,9 @@ int rfb::encodingNum(const char* name)
   if (strcasecmp(name, "hextile") == 0)  return encodingHextile;
   if (strcasecmp(name, "ZRLE") == 0)     return encodingZRLE;
   if (strcasecmp(name, "Tight") == 0)    return encodingTight;
+#ifdef HAVE_H264
+  if (strcasecmp(name, "H.264") == 0)    return encodingH264;
+#endif
   return -1;
 }
 
@@ -46,6 +49,9 @@ const char* rfb::encodingName(int num)
   case encodingHextile:  return "hextile";
   case encodingZRLE:     return "ZRLE";
   case encodingTight:    return "Tight";
+#ifdef HAVE_H264
+  case encodingH264:     return "H.264";
+#endif
   default:               return "[unknown encoding]";
   }
 }

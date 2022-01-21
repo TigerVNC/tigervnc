@@ -80,6 +80,9 @@ protected:
   Fl_Round_Button *tightButton;
   Fl_Round_Button *zrleButton;
   Fl_Round_Button *hextileButton;
+#ifdef HAVE_H264
+  Fl_Round_Button *h264Button;
+#endif
   Fl_Round_Button *rawButton;
 
   Fl_Group *colorlevelGroup;

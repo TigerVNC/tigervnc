@@ -160,7 +160,7 @@ export CPPFLAGS="$CXXFLAGS"
 
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 
-%{cmake3} -G"Unix Makefiles" -DBUILD_STATIC=off
+%{cmake3} -G"Unix Makefiles" -DBUILD_STATIC=off -DENABLE_H264=off
 make %{?_smp_mflags}
 
 pushd unix/xserver

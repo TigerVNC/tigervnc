@@ -3,6 +3,7 @@ include_directories(${GETTEXT_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/common)
 
 add_library(test_util STATIC util.cxx)
+target_link_libraries(test_util ${H264_LIBRARIES})
 
 add_executable(convperf convperf.cxx)
 target_link_libraries(convperf test_util rfb)
