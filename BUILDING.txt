@@ -460,29 +460,5 @@ MinGW Build on Linux
 Distribution-Specific Packaging
 ===============================
 
-
-RPM Packages for RHEL / CentOS
-------------------------------
-
-The RPM spec files and patches used to create the nightly builds
-and releases can be found in the "contrib/rpm/el{5,6}" directories
-of the TigerVNC subversion trunk.  All external source tarballs
-must be fetched manually and placed into the 'SOURCES' directory
-under the rpmbuild root.  Additionally, the following macros need
-to be defined:
-
-  EL6:
-    %debug_package %{nil}
-
-  EL5:
-    %dist .el5
-    %_smp_mflags  -j3
-    %debug_package %{nil}
-    %__arch_install_post   /usr/lib/rpm/check-rpaths   /usr/lib/rpm/check-buildroot
-
-
-Debian packages for Ubuntu 12.04LTS
------------------------------------
-The debian folder used to create the nightly builds and releases
-can be found in the "contrib/deb/ubuntu-precise" directory of the
-TigerVNC subversion trunk.
+Configuration for building packages for current versions of RHEL/CentOS
+and Ubuntu LTS can be found under contrib/packages.
