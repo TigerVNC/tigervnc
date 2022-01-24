@@ -203,7 +203,6 @@ bool cocoa_tap_keyboard()
   return true;
 }
 
-// FIXME: Called in destructor?
 void cocoa_untap_keyboard()
 {
   if (event_tap == nullptr)
