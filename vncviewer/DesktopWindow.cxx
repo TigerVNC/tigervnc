@@ -259,6 +259,8 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(menuOverlay, this);
   Fl::remove_timeout(updateOverlay, this);
 
+  ungrabKeyboard();
+
   OptionsDialog::removeCallback(handleOptions);
 
   delete overlay;
