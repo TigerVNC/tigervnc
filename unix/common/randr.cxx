@@ -326,8 +326,11 @@ static unsigned int _setScreenLayout(bool dryrun,
     i = getPreferredScreenOutput(outputIdMap, disabledOutputs);
 
     /* Shouldn't happen */
-    if (i == -1)
+    if (i == -1) {
+      if (logErrors)
+        vlog.error("Cannot find an available output for new screen layout");
       return rfb::resultInvalid;
+    }
     output = vncRandRGetOutputId(i);
 
     /*

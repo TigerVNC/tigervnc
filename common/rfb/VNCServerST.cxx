@@ -539,12 +539,16 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
 
   // We can't handle a framebuffer larger than this, so don't let a
   // client set one (see PixelBuffer.cxx)
-  if ((fb_width > 16384) || (fb_height > 16384))
+  if ((fb_width > 16384) || (fb_height > 16384)) {
+    slog.error("Rejecting too large framebuffer resize request");
     return resultProhibited;
+  }
 
   // Don't bother the desktop with an invalid configuration
-  if (!layout.validate(fb_width, fb_height))
+  if (!layout.validate(fb_width, fb_height)) {
+    slog.error("Invalid screen layout requested by client");
     return resultInvalid;
+  }
 
   // FIXME: the desktop will call back to VNCServerST and an extra set
   // of ExtendedDesktopSize messages will be sent. This is okay

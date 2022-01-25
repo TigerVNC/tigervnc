@@ -466,12 +466,6 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
 {
   unsigned int result;
 
-  char buffer[2048];
-  vlog.debug("Got request for framebuffer resize to %dx%d",
-             fb_width, fb_height);
-  layout.print(buffer, sizeof(buffer));
-  vlog.debug("%s", buffer);
-
   vncSetGlueContext(screenIndex);
   result = ::setScreenLayout(fb_width, fb_height, layout, &outputIdMap);
 

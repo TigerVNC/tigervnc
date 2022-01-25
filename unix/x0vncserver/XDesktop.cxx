@@ -503,12 +503,6 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
                                        const rfb::ScreenSet& layout)
 {
 #ifdef HAVE_XRANDR
-  char buffer[2048];
-  vlog.debug("Got request for framebuffer resize to %dx%d",
-             fb_width, fb_height);
-  layout.print(buffer, sizeof(buffer));
-  vlog.debug("%s", buffer);
-
   XRRScreenResources *res = XRRGetScreenResources(dpy, DefaultRootWindow(dpy));
   if (!res) {
     vlog.error("XRRGetScreenResources failed");
