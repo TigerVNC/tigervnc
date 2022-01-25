@@ -42,7 +42,7 @@ namespace rfb {
     protected:
       os::Mutex mutex;
       rfb::Rect rect;
-      bool initialized = false;
+      bool initialized;
 
       H264DecoderContext(const Rect &r) : rect(r) { initialized = false; }
 

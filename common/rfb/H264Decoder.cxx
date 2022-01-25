@@ -115,8 +115,8 @@ void H264Decoder::decodeRect(const Rect& r, const void* buffer,
     os::AutoMutex lock(&mutex);
     if (contexts.size() >= MAX_H264_INSTANCES)
     {
-      auto excecc_ctx = contexts.front();
-      delete excecc_ctx;
+      H264DecoderContext* excess_ctx = contexts.front();
+      delete excess_ctx;
       contexts.pop_front();
     }
     ctx = H264DecoderContext::createContext(r);
