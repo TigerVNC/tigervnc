@@ -88,14 +88,24 @@ public class VncViewer implements Runnable {
   public static void setLookAndFeel() {
     try {
       if (os.startsWith("mac os x")) {
-        Class appClass = Class.forName("com.apple.eawt.Application");
+        String appClassName = new String("com.apple.eawt.Application");
+        String appMethodName = new String("getApplication");
+        String setIconMethodName = new String("setDockIconImage");
+        // JEP-272. Platform-specific Desktop Features are strongly encapsulated
+        // in JRE 9 & above, but the API features needed aren't in JRE 8.
+        if (Float.parseFloat(System.getProperty("java.specification.version")) > 1.8) {
+          appClassName = new String("java.awt.Taskbar");
+          appMethodName = new String("getTaskbar");
+          setIconMethodName = new String("setIconImage");
+        }
+        Class appClass = Class.forName(appClassName);
         Method getApplication = 
-          appClass.getMethod("getApplication", (Class[])null);
+          appClass.getMethod(appMethodName, (Class[])null);
         Object app = getApplication.invoke(appClass);
         Class paramTypes[] = new Class[1];
         paramTypes[0] = Image.class;
-        Method setDockIconImage = 
-          appClass.getMethod("setDockIconImage", paramTypes);
+        Method setDockIconImage =
+          appClass.getMethod(setIconMethodName, paramTypes);
         setDockIconImage.invoke(app, VncViewer.logoImage);
       }
       // Use Nimbus LookAndFeel if it's available, otherwise fallback
