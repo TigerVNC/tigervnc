@@ -24,6 +24,22 @@
 #ifndef __FLTK_THEME_H__
 #define __FLTK_THEME_H__
 
+#include <FL/Enumerations.H>
+
+#define _THEME_BOX_BASE         (FL_FREE_BOXTYPE+1000)
+
+#define THEME_UP_FRAME          (Fl_Boxtype)(_THEME_BOX_BASE+0)
+#define THEME_DOWN_FRAME        (Fl_Boxtype)(_THEME_BOX_BASE+1)
+#define THEME_THIN_UP_FRAME     (Fl_Boxtype)(_THEME_BOX_BASE+2)
+#define THEME_THIN_DOWN_FRAME   (Fl_Boxtype)(_THEME_BOX_BASE+3)
+
+#define THEME_UP_BOX            (Fl_Boxtype)(_THEME_BOX_BASE+4)
+#define THEME_DOWN_BOX          (Fl_Boxtype)(_THEME_BOX_BASE+5)
+#define THEME_THIN_UP_BOX       (Fl_Boxtype)(_THEME_BOX_BASE+6)
+#define THEME_THIN_DOWN_BOX     (Fl_Boxtype)(_THEME_BOX_BASE+7)
+#define THEME_ROUND_UP_BOX      (Fl_Boxtype)(_THEME_BOX_BASE+8)
+#define THEME_ROUND_DOWN_BOX    (Fl_Boxtype)(_THEME_BOX_BASE+9)
+
 void init_theme();
 
 #endif
