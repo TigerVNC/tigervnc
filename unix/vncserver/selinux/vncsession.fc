@@ -18,7 +18,7 @@
 #
 
 HOME_DIR/\.vnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
-HOME_ROOT/\.vnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
+/root/\.vnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
 
 /usr/sbin/vncsession			--	gen_context(system_u:object_r:vnc_session_exec_t,s0)
 /usr/libexec/vncsession-start		--	gen_context(system_u:object_r:vnc_session_exec_t,s0)
