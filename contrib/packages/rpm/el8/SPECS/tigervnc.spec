@@ -17,7 +17,8 @@ Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source3:        10-libvnc.conf
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  libX11-devel, automake, autoconf, libtool, gettext, gettext-autopoint
+BuildRequires:  libX11-devel, automake, autoconf, libtool
+BuildRequires:  gettext, gettext-autopoint, appstream
 BuildRequires:  libXext-devel, xorg-x11-server-source, libXi-devel
 BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires:  libdrm-devel, libXt-devel, pixman-devel
@@ -256,6 +257,7 @@ fi
 %doc %{_docdir}/%{name}/README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
+%{_datadir}/metainfo/*
 %{_mandir}/man1/vncviewer.1*
 
 %files server

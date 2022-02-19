@@ -10,7 +10,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgnutls28-dev libfltk1.3-dev fluid gettext
+          sudo apt-get install -y libgnutls28-dev libfltk1.3-dev fluid gettext appstream
           sudo apt-get install -y libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev libpam-dev
           sudo apt-get install -y libavcodec-dev libavutil-dev libswscale-dev
       - name: Configure

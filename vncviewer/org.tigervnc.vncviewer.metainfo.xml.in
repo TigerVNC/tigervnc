@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  (c) 2021-2022 Joachim Falk <joachim.falk@gmx.de>
+
+  Copying and distribution of this file, with or without modification, are
+  permitted in any medium without royalty provided the copyright notice and this
+  notice are preserved. This file is offered as-is, without any warranty.
+-->
+<component type="desktop-application">
+  <id>org.tigervnc.vncviewer</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <name>TigerVNC Viewer</name>
+  <summary>Connect to VNC server and display remote desktop</summary>
+  <content_rating type="oars-1.1"/>
+  <description>
+    <p>
+      Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network.
+      Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device.
+      This package contains a client which will enable you to connect to other desktops running a VNC server.
+      VNC is platform-independent and supports various operating systems and architectures as both servers and clients.
+    </p>
+    <p>
+      TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code bases.
+      TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project in early 2009 so that TightVNC could focus on Windows platforms.
+      TigerVNC supports a variant of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo JPEG codec.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">vncviewer.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <caption>TigerVNC Viewer connection to a CentOS machine</caption>
+      <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-linux.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>TigerVNC Viewer connection to a macOS machine</caption>
+      <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-macos.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>TigerVNC Viewer connection to a Windows machine</caption>
+      <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-windows.jpg</image>
+    </screenshot>
+  </screenshots>
+</component>

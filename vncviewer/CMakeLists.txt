@@ -103,6 +103,34 @@ if(UNIX)
   add_custom_target(desktop ALL DEPENDS vncviewer.desktop)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.desktop DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/applications)
 
+  if("${GETTEXT_VERSION_STRING}" VERSION_GREATER 0.19.6)
+    add_custom_command(OUTPUT org.tigervnc.vncviewer.metainfo.xml
+      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE}
+                --xml --template ${CMAKE_CURRENT_SOURCE_DIR}/org.tigervnc.vncviewer.metainfo.xml.in
+                -d ${CMAKE_SOURCE_DIR}/po -o org.tigervnc.vncviewer.metainfo.xml
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/org.tigervnc.vncviewer.metainfo.xml.in
+    )
+  elseif(INTLTOOL_MERGE_EXECUTABLE)
+    add_custom_command(OUTPUT org.tigervnc.vncviewer.metainfo.xml
+      COMMAND sed -e 's@<name>@<_name>@\;s@</name>@</_name>@'
+                  -e 's@<summary>@<_summary>@\;s@</summary>@</_summary>@'
+                  -e 's@<caption>@<_caption>@\;s@</caption>@</_caption>@'
+                  -e 's@<p>@<_p>@g\;s@</p>@</_p>@g'
+                ${CMAKE_CURRENT_SOURCE_DIR}/org.tigervnc.vncviewer.metainfo.xml.in > org.tigervnc.vncviewer.metainfo.xml.intl
+      COMMAND ${INTLTOOL_MERGE_EXECUTABLE}
+                -x ${CMAKE_SOURCE_DIR}/po
+                org.tigervnc.vncviewer.metainfo.xml.intl org.tigervnc.vncviewer.metainfo.xml
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/org.tigervnc.vncviewer.metainfo.xml.in
+    )
+  else()
+    add_custom_command(OUTPUT org.tigervnc.vncviewer.metainfo.xml
+      COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/org.tigervnc.vncviewer.metainfo.xml.in org.tigervnc.vncviewer.metainfo.xml
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/org.tigervnc.vncviewer.metainfo.xml.in
+    )
+  endif()
+  add_custom_target(appstream ALL DEPENDS org.tigervnc.vncviewer.metainfo.xml)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.tigervnc.vncviewer.metainfo.xml DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/metainfo)
+
   foreach(res 16 22 24 32 48)
     install(FILES ../media/icons/tigervnc_${res}.png DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/${res}x${res}/apps RENAME tigervnc.png)
   endforeach()
