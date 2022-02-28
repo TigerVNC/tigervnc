@@ -47,7 +47,7 @@ bool H264LibavDecoderContext::initCodec() {
   h264WorkBuffer = NULL;
   h264WorkBufferLength = 0;
 
-  AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+  const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
   if (!codec)
   {
     vlog.error("Codec not found");
