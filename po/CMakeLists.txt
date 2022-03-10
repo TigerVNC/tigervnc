@@ -14,6 +14,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
     ${PROJECT_SOURCE_DIR}/vncviewer/*.h
     ${PROJECT_SOURCE_DIR}/vncviewer/*.cxx
     ${PROJECT_SOURCE_DIR}/vncviewer/*.desktop.in.in
+    ${PROJECT_SOURCE_DIR}/vncviewer/*.metainfo.xml.in
   )
 
   add_custom_target(translations_update

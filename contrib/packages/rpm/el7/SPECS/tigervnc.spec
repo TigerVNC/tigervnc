@@ -17,7 +17,8 @@ Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source3:        10-libvnc.conf
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  libX11-devel, automake, autoconf, libtool, gettext, gettext-autopoint
+BuildRequires:  libX11-devel, automake, autoconf, libtool
+BuildRequires:  gettext, gettext-autopoint
 BuildRequires:  libXext-devel, xorg-x11-server-source, libXi-devel
 BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires:  libdrm-devel, libXt-devel, pixman-devel
@@ -139,6 +140,11 @@ runs properly under an environment with SELinux enabled.
 %prep
 rm -rf $RPM_BUILD_ROOT
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
+
+# There is no appstream package on CentOS 7, and hence no metainfo.its
+# that msgfmt needs to generate the metainfo XML file
+sed -i 's@add_custom_target(appstream@#\0@' vncviewer/CMakeLists.txt
+sed -i 's@install(.*metainfo.xml@#\0@' vncviewer/CMakeLists.txt
 
 cp -r /usr/share/xorg-x11-server-source/* unix/xserver
 pushd unix/xserver
