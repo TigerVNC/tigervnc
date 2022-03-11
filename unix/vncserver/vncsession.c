@@ -81,7 +81,7 @@ begin_daemon(void)
         /* Wait for child to finish startup */
         len = read(fds[0], buf, 1);
         if (len != 1) {
-            fprintf(stderr, "Failure daemonizing\n");
+            fprintf(stderr, "Failed to start session\n");
             _exit(EX_OSERR);
         }
 
