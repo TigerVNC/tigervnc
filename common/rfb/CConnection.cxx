@@ -52,7 +52,7 @@ CConnection::CConnection()
     supportsDesktopResize(false), supportsLEDState(false),
     is(0), os(0), reader_(0), writer_(0),
     shared(false),
-    state_(RFBSTATE_UNINITIALISED),
+    state_(RFBSTATE_UNINITIALISED), serverName(strDup("")),
     pendingPFChange(false), preferredEncoding(encodingTight),
     compressLevel(2), qualityLevel(-1),
     formatChange(false), encodingChange(false),
@@ -66,6 +66,13 @@ CConnection::CConnection()
 CConnection::~CConnection()
 {
   close();
+}
+
+void CConnection::setServerName(const char* name_)
+{
+  if (name_ == NULL)
+    name_ = "";
+  serverName.replaceBuf(strDup(name_));
 }
 
 void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
