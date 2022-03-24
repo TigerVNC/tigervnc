@@ -390,7 +390,7 @@ void CSecurityTLS::checkSession()
 
   if ((status & (~allowed_errors)) != 0) {
     /* No other errors are allowed */
-    vlog.debug("GNUTLS status of certificate verification: %u", status);
+    vlog.debug("GNUTLS status of certificate verification: 0x%x", status);
     throw AuthFailureException("Invalid status of server certificate verification");
   }
 
