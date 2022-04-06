@@ -31,7 +31,9 @@
 
 // Check that callers are using InStream properly,
 // useful when writing new protocol handling
-#undef RFB_INSTREAM_CHECK
+#ifdef _DEBUG
+#define RFB_INSTREAM_CHECK
+#endif
 
 namespace rdr {
 
