@@ -255,12 +255,12 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
 
       // Make sure that the FLTK handling and the timers gets some CPU
       // time in case of back to back messages
-       Fl::check();
-       Timer::checkTimeouts();
+      Fl::check();
+      Timer::checkTimeouts();
 
-       // Also check if we need to stop reading and terminate
-       if (should_disconnect())
-         break;
+      // Also check if we need to stop reading and terminate
+      if (should_disconnect())
+        break;
     }
 
     cc->sock->outStream().cork(false);
