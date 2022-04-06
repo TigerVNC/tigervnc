@@ -40,6 +40,7 @@ namespace rdr {
     gnutls_session_t session;
     InStream* in;
 
+    bool streamEmpty;
     Exception* saved_exception;
   };
 };

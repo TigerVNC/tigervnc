@@ -39,11 +39,13 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
   TLSInStream* self= (TLSInStream*) str;
   InStream *in = self->in;
 
+  self->streamEmpty = false;
   delete self->saved_exception;
   self->saved_exception = NULL;
 
   try {
     if (!in->hasData(1)) {
+      self->streamEmpty = true;
       gnutls_transport_set_errno(self->session, EAGAIN);
       return -1;
     }
@@ -100,9 +102,20 @@ size_t TLSInStream::readTLS(U8* buf, size_t len)
 {
   int n;
 
-  n = gnutls_record_recv(session, (void *) buf, len);
-  if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
-    return 0;
+  while (true) {
+    streamEmpty = false;
+    n = gnutls_record_recv(session, (void *) buf, len);
+    if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN) {
+      // GnuTLS returns GNUTLS_E_AGAIN for a bunch of other scenarios
+      // other than the pull function returning EAGAIN, so we have to
+      // double check that the underlying stream really is empty
+      if (!streamEmpty)
+        continue;
+      else
+        return 0;
+    }
+    break;
+  };
 
   if (n == GNUTLS_E_PULL_ERROR)
     throw *saved_exception;
