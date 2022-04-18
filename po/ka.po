@@ -1,0 +1,947 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2022 the TigerVNC Team (msgids)
+# This file is distributed under the same license as the tigervnc package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: tigervnc 1.11.90\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2021-09-08 09:19+0200\n"
+"PO-Revision-Date: 2022-04-18 06:01+0200\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: vncviewer/CConn.cxx:103
+#, c-format
+msgid "Connected to socket %s"
+msgstr "მიერთება სოკეტთან %s"
+
+#: vncviewer/CConn.cxx:110
+#, c-format
+msgid "Connected to host %s port %d"
+msgstr "მიერთებულია ჰოსტთან %s პორტი %d"
+
+#: vncviewer/CConn.cxx:114
+#, c-format
+msgid ""
+"Failed to connect to \"%s\":\n"
+"\n"
+"%s"
+msgstr ""
+"%s-თან მიერთების შეცდომა:\n"
+"\n"
+"%s"
+
+#: vncviewer/CConn.cxx:159
+#, c-format
+msgid "Desktop name: %.80s"
+msgstr "სამუშაო მაგიდის სახელი: %.80s"
+
+#: vncviewer/CConn.cxx:164
+#, c-format
+msgid "Host: %.80s port: %d"
+msgstr "პოსტი: %.80s პორტი: %d"
+
+#: vncviewer/CConn.cxx:169
+#, c-format
+msgid "Size: %d x %d"
+msgstr "ზომა: %d x %d"
+
+#: vncviewer/CConn.cxx:177
+#, c-format
+msgid "Pixel format: %s"
+msgstr "პიქსელის ფორმატი: %s"
+
+#: vncviewer/CConn.cxx:184
+#, c-format
+msgid "(server default %s)"
+msgstr "(სერვერის ნაგულისხმები %s)"
+
+#: vncviewer/CConn.cxx:189
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "მოთხოვნილი კოდირება: %s"
+
+#: vncviewer/CConn.cxx:194
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "ბოლოს გამოყენებული კოდირება: %s"
+
+#: vncviewer/CConn.cxx:199
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "კავშირის დაახლოებითი სიჩქარე: %d kbit/s"
+
+#: vncviewer/CConn.cxx:204
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "პროტოკოლის ვერსია: %d.%d"
+
+#: vncviewer/CConn.cxx:209
+#, c-format
+msgid "Security method: %s"
+msgstr "უსაფრთხოების მეთოდი: %s"
+
+#: vncviewer/CConn.cxx:271 vncviewer/CConn.cxx:273
+msgid "The connection was dropped by the server before the session could be established."
+msgstr "კავშირი გაითიშა სერვერის მიერ სანამ სესია დადგებოდა."
+
+#: vncviewer/CConn.cxx:280 vncviewer/Viewport.cxx:575
+#: vncviewer/Viewport.cxx:673 vncviewer/Viewport.cxx:776
+#: vncviewer/Viewport.cxx:791 vncviewer/Viewport.cxx:802
+#: vncviewer/Viewport.cxx:830 vncviewer/Viewport.cxx:901
+#: vncviewer/Viewport.cxx:937
+#, c-format
+msgid ""
+"An unexpected error occurred when communicating with the server:\n"
+"\n"
+"%s"
+msgstr ""
+"გაუთვალისწინებელი შეცდომა სერვერთან დაკავშირებისას:\n"
+"\n"
+"%s"
+
+#: vncviewer/CConn.cxx:333
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "SetDesktopSize-ის შეცდომა: %d"
+
+#: vncviewer/CConn.cxx:405
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "არასწორი SetColourMapEntries სერვერიდან!"
+
+#: vncviewer/CConn.cxx:513
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr "გამტარობა %d კბიტ/წმ - ხარისხი შეიცვლება: %d"
+
+#: vncviewer/CConn.cxx:535
+#, c-format
+msgid "Throughput %d kbit/s - full color is now enabled"
+msgstr "გამტარობა %d კბიტ/წმ - ფერთა სრული გამა ჩართულია"
+
+#: vncviewer/CConn.cxx:538
+#, c-format
+msgid "Throughput %d kbit/s - full color is now disabled"
+msgstr "გამტარობა %d კბიტ/წმ - ფერთა სრული გამა გამორთულია"
+
+#: vncviewer/CConn.cxx:564
+#, c-format
+msgid "Using pixel format %s"
+msgstr "პიქსელის ფორმატი: %s"
+
+#: vncviewer/DesktopWindow.cxx:143
+msgid "Invalid geometry specified!"
+msgstr "მითითებული გეომეტრია არასწორია!"
+
+#: vncviewer/DesktopWindow.cxx:616
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "ეკრანის ზომის მორგება შემთხვევით მთელ ეკრანზე გაშლის თავიდან ასარიდებლად"
+
+#: vncviewer/DesktopWindow.cxx:667
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "კონტექსტური მენიუს გასახსნელად დააწექით: %s"
+
+#: vncviewer/DesktopWindow.cxx:1030 vncviewer/DesktopWindow.cxx:1038
+#: vncviewer/DesktopWindow.cxx:1058
+msgid "Failure grabbing keyboard"
+msgstr "კლავიატურის ჩაჭერის შეცდომა"
+
+#: vncviewer/DesktopWindow.cxx:1352
+msgid "Invalid screen layout computed for resize request!"
+msgstr "ზომის შესაცვლელად გამოთვლილი ფანჯრების განლაგება არასწორია!"
+
+#: vncviewer/EmulateMB.cxx:226 vncviewer/EmulateMB.cxx:289
+msgid "Invalid state for 3 button emulation"
+msgstr "არასწორი მდგომარეობა 3 ღილაკის ემულაციისთვის"
+
+#: vncviewer/MonitorArrangement.cxx:403
+msgid "Failed to get monitor name because X11 RandR could not be found"
+msgstr "მონიტორის სახელის მიღება შეუძლებელია X11 Randr-ის არარსებობის გამო"
+
+#: vncviewer/MonitorArrangement.cxx:409
+#: vncviewer/MonitorIndicesParameter.cxx:47
+#: vncviewer/MonitorIndicesParameter.cxx:100
+msgid "Failed to get system monitor configuration"
+msgstr "სისტემური მონიტორის ინფორმაციის მიღება შეუძლებელია"
+
+#: vncviewer/MonitorArrangement.cxx:417
+#, c-format
+msgid "Failed to get information about CRTC %d"
+msgstr "CRTC %d-ის შესახებ ინფორმაციის მიღება შეუძლებელია"
+
+#: vncviewer/MonitorArrangement.cxx:430
+#, c-format
+msgid "Failed to get information about output %d for CRTC %d"
+msgstr "CRTC %d-ის %d გამოტანის შესახებ ინფორმაციის მიღება შეუძლებელია"
+
+#: vncviewer/MonitorIndicesParameter.cxx:78
+#, c-format
+msgid "Invalid configuration specified for %s"
+msgstr "%s-ის მითითებული კონფიგურაცია არასწორია"
+
+#: vncviewer/MonitorIndicesParameter.cxx:86
+#, c-format
+msgid "Monitor index %d does not exist"
+msgstr "ეკრანის ინდექსი %d არ არსებობს"
+
+#: vncviewer/MonitorIndicesParameter.cxx:164
+#: vncviewer/MonitorIndicesParameter.cxx:184
+#, c-format
+msgid "Invalid monitor index '%s'"
+msgstr "ეკრანის არასწორი ინდექსი: '%s'"
+
+#: vncviewer/MonitorIndicesParameter.cxx:172
+#, c-format
+msgid "Unexpected character '%c'"
+msgstr "მოულოდნელი სიმბოლო '%c'"
+
+#: vncviewer/OptionsDialog.cxx:58
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC თვალიერება: შეერთების დეტალები"
+
+#: vncviewer/OptionsDialog.cxx:84 vncviewer/ServerDialog.cxx:109
+#: vncviewer/vncviewer.cxx:418
+msgid "Cancel"
+msgstr "გაუქმება"
+
+#: vncviewer/OptionsDialog.cxx:89 vncviewer/vncviewer.cxx:417
+msgid "OK"
+msgstr "დიახ"
+
+#: vncviewer/OptionsDialog.cxx:447
+msgid "Compression"
+msgstr "შეკუმშვა"
+
+#: vncviewer/OptionsDialog.cxx:463
+msgid "Auto select"
+msgstr "ავტომატური არჩევა"
+
+#: vncviewer/OptionsDialog.cxx:475
+msgid "Preferred encoding"
+msgstr "სასურველი კოდირებ"
+
+#: vncviewer/OptionsDialog.cxx:523
+msgid "Color level"
+msgstr "ფერის დონე"
+
+#: vncviewer/OptionsDialog.cxx:534
+msgid "Full"
+msgstr "მთლიანი"
+
+#: vncviewer/OptionsDialog.cxx:541
+msgid "Medium"
+msgstr "საშუალო"
+
+#: vncviewer/OptionsDialog.cxx:548
+msgid "Low"
+msgstr "დაბალი"
+
+#: vncviewer/OptionsDialog.cxx:555
+msgid "Very low"
+msgstr "ძალიან დაბალი"
+
+#: vncviewer/OptionsDialog.cxx:572
+msgid "Custom compression level:"
+msgstr "შეკუმშვის დონის ხელით მითითება:"
+
+#: vncviewer/OptionsDialog.cxx:578
+msgid "level (0=fast, 9=best)"
+msgstr "დონე (0=სწრაფი, 9=საუკეთესო)"
+
+#: vncviewer/OptionsDialog.cxx:585
+msgid "Allow JPEG compression:"
+msgstr "JPEG შეკუმშვის ჩართვა:"
+
+#: vncviewer/OptionsDialog.cxx:591
+msgid "quality (0=poor, 9=best)"
+msgstr "ხარისხი (0=ცუდი, 9=საუკეთესო)"
+
+#: vncviewer/OptionsDialog.cxx:602
+msgid "Security"
+msgstr "უსაფრთხოება"
+
+#: vncviewer/OptionsDialog.cxx:617
+msgid "Encryption"
+msgstr "დაშიფრვა"
+
+#: vncviewer/OptionsDialog.cxx:628 vncviewer/OptionsDialog.cxx:681
+#: vncviewer/OptionsDialog.cxx:767
+msgid "None"
+msgstr "არაფერი"
+
+#: vncviewer/OptionsDialog.cxx:634
+msgid "TLS with anonymous certificates"
+msgstr "TLS ანონიმური სერტიფიკატებით"
+
+#: vncviewer/OptionsDialog.cxx:640
+msgid "TLS with X509 certificates"
+msgstr "TLS X509 სერტიფიკატებით"
+
+#: vncviewer/OptionsDialog.cxx:647
+msgid "Path to X509 CA certificate"
+msgstr "X509 CA სერტიფიკატის ბილიკი"
+
+#: vncviewer/OptionsDialog.cxx:654
+msgid "Path to X509 CRL file"
+msgstr "X509 CRL ფაილის ბილიკი"
+
+#: vncviewer/OptionsDialog.cxx:670
+msgid "Authentication"
+msgstr "ავთენტიფიკაცია"
+
+#: vncviewer/OptionsDialog.cxx:687
+msgid "Standard VNC (insecure without encryption)"
+msgstr "VNC-ის სტანდარტი (დაუცველი, დაშიფვრის გარეშე)"
+
+#: vncviewer/OptionsDialog.cxx:693
+msgid "Username and password (insecure without encryption)"
+msgstr "მომხმარებელი და პაროლი (დაუცველი, დაშიფვრის გარეშე)"
+
+#: vncviewer/OptionsDialog.cxx:712
+msgid "Input"
+msgstr "შეყვანა"
+
+#: vncviewer/OptionsDialog.cxx:720
+msgid "View only (ignore mouse and keyboard)"
+msgstr "მხოლოდ ნახვა (თაგუნას და კლავიატურის იგნორირება)"
+
+#: vncviewer/OptionsDialog.cxx:726
+msgid "Emulate middle mouse button"
+msgstr "თაგუნას შუა ღილიკის ემულაცია"
+
+#: vncviewer/OptionsDialog.cxx:732
+msgid "Accept clipboard from server"
+msgstr "სერვერიდან გაცვლის ბუფერის მიღება"
+
+#: vncviewer/OptionsDialog.cxx:740
+msgid "Also set primary selection"
+msgstr "ძირითადი არჩევანის დაყენება"
+
+#: vncviewer/OptionsDialog.cxx:747
+msgid "Send clipboard to server"
+msgstr "გაცვლის ბაფერის სერვერზე გაგზავნა"
+
+#: vncviewer/OptionsDialog.cxx:755
+msgid "Send primary selection as clipboard"
+msgstr "ძირითადი არჩევანის გაცვლის ბუფერით გაგზავნა"
+
+#: vncviewer/OptionsDialog.cxx:762
+msgid "Pass system keys directly to server (full screen)"
+msgstr "სისტემური ღილაკების პირდაპირ სერვერზე გაგზავნა (სრულ ეკრანზე)"
+
+#: vncviewer/OptionsDialog.cxx:765
+msgid "Menu key"
+msgstr "მენიუს ღილაკი"
+
+#: vncviewer/OptionsDialog.cxx:782
+msgid "Screen"
+msgstr "ეკრანი"
+
+#: vncviewer/OptionsDialog.cxx:790
+msgid "Resize remote session on connect"
+msgstr "შეერთებისას დაშორებული ეკრანის ზომის შეცვლა"
+
+#: vncviewer/OptionsDialog.cxx:803
+msgid "Resize remote session to the local window"
+msgstr "დაშორებული ეკრანის ადგილობრივ ფანჯრის ზომამდე შეცვლა"
+
+#: vncviewer/OptionsDialog.cxx:809
+msgid "Enable full-screen"
+msgstr "სრული ეკრანის ჩართვა"
+
+#: vncviewer/OptionsDialog.cxx:825
+msgid "Use current monitor"
+msgstr "მიმდინარე ეკრანის გამოყენება"
+
+#: vncviewer/OptionsDialog.cxx:833
+msgid "Use all monitors"
+msgstr "ყველა ეკრანის გამოყენება"
+
+#: vncviewer/OptionsDialog.cxx:841
+msgid "Use selected monitor(s)"
+msgstr "მონიშნული ეკრან(ებ)-ის გამოყენება"
+
+#: vncviewer/OptionsDialog.cxx:867
+msgid "Misc."
+msgstr "სხვ."
+
+#: vncviewer/OptionsDialog.cxx:875
+msgid "Shared (don't disconnect other viewers)"
+msgstr "გაზიარებული (სხვა მაყურებლები არ გამოიყრებიან)"
+
+#: vncviewer/OptionsDialog.cxx:881
+msgid "Ask to reconnect on connection errors"
+msgstr "კავშირის დაკარგვისას თავიდან შეერთების შესახებ კითხვა"
+
+#: vncviewer/OptionsDialog.cxx:887
+msgid "Show dot when no cursor"
+msgstr "კურსორის არქონის შემთხვევაში წერტილის ჩვენება"
+
+#: vncviewer/ServerDialog.cxx:57
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC თვალიერება: შეერთების დეტალები"
+
+#: vncviewer/ServerDialog.cxx:64 vncviewer/ServerDialog.cxx:69
+msgid "VNC server:"
+msgstr "VNC სერვერი:"
+
+#: vncviewer/ServerDialog.cxx:82
+msgid "Options..."
+msgstr "პარამეტრები..."
+
+#: vncviewer/ServerDialog.cxx:87
+msgid "Load..."
+msgstr "ჩატვირთვა..."
+
+#: vncviewer/ServerDialog.cxx:92
+msgid "Save As..."
+msgstr "შენახვა, როგორც..."
+
+#: vncviewer/ServerDialog.cxx:104
+msgid "About..."
+msgstr "შესახებ..."
+
+#: vncviewer/ServerDialog.cxx:114
+msgid "Connect"
+msgstr "დაკავშირება"
+
+#: vncviewer/ServerDialog.cxx:140
+#, c-format
+msgid ""
+"Unable to load the server history:\n"
+"\n"
+"%s"
+msgstr ""
+"სერვერის ისტორიის ჩატვირთვის შეცდომა:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:164 vncviewer/ServerDialog.cxx:200
+msgid "TigerVNC configuration (*.tigervnc)"
+msgstr "TigerVNC-ის კონფიგურაცია (*.tigervnc)"
+
+#: vncviewer/ServerDialog.cxx:165
+msgid "Select a TigerVNC configuration file"
+msgstr "აირჩიეთ TigerVNC-ის კონფიგურაციის ფაილი"
+
+#: vncviewer/ServerDialog.cxx:186 vncviewer/vncviewer.cxx:553
+#, c-format
+msgid ""
+"Unable to load the specified configuration file:\n"
+"\n"
+"%s"
+msgstr ""
+"კონფიგურაციის მითითებული ფაილის ჩატვირთვა შეუძლებელია:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:201
+msgid "Save the TigerVNC configuration to file"
+msgstr "TigerVNC-ის კონფიგურაციის ფაილის შენახვა"
+
+#: vncviewer/ServerDialog.cxx:226
+#, c-format
+msgid "%s already exists. Do you want to overwrite?"
+msgstr "'%s' უკვე არსებობს. გნებავთ გადააწეროთ?"
+
+#: vncviewer/ServerDialog.cxx:227 vncviewer/vncviewer.cxx:415
+msgid "No"
+msgstr "არა"
+
+#: vncviewer/ServerDialog.cxx:227
+msgid "Overwrite"
+msgstr "თავზე გადაწერა"
+
+#: vncviewer/ServerDialog.cxx:243
+#, c-format
+msgid ""
+"Unable to save the specified configuration file:\n"
+"\n"
+"%s"
+msgstr ""
+"კონფიგურაციის მითითებული ფაილის შენახვა შეუძლებელია:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:277
+#, c-format
+msgid ""
+"Unable to save the default configuration:\n"
+"\n"
+"%s"
+msgstr ""
+"ნაგულისხმები კონფიგურაციის შენახვა შეუძლებელია:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:290
+#, c-format
+msgid ""
+"Unable to save the server history:\n"
+"\n"
+"%s"
+msgstr ""
+"სერვერის ისტორიის შენახვა შეუძლებელია:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:305 vncviewer/ServerDialog.cxx:368
+#: vncviewer/parameters.cxx:628 vncviewer/parameters.cxx:733
+#: vncviewer/vncviewer.cxx:460
+msgid "Could not obtain the home directory path"
+msgstr "საწყისი საქაღალდის ბილიკის მიღების შეცდომა"
+
+#: vncviewer/ServerDialog.cxx:318 vncviewer/ServerDialog.cxx:377
+#: vncviewer/parameters.cxx:639 vncviewer/parameters.cxx:746
+#, c-format
+msgid "Could not open \"%s\": %s"
+msgstr "\"%s\"-ის გახსნის შეცდომა: %s"
+
+#: vncviewer/ServerDialog.cxx:333 vncviewer/ServerDialog.cxx:339
+#: vncviewer/parameters.cxx:760 vncviewer/parameters.cxx:766
+#: vncviewer/parameters.cxx:797 vncviewer/parameters.cxx:826
+#: vncviewer/parameters.cxx:832
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "%d-ე ხაზის წაკითხვა ფაილში \"%s\" შეუძლებელია: %s"
+
+#: vncviewer/ServerDialog.cxx:340 vncviewer/parameters.cxx:767
+msgid "Line too long"
+msgstr "ხაზი ძალიან გრძელია"
+
+#: vncviewer/UserDialog.cxx:98
+msgid "Opening password file failed"
+msgstr "ფაილის გახსნის შეცდომა"
+
+#: vncviewer/UserDialog.cxx:118
+msgid "VNC authentication"
+msgstr "VNC ავთენტიფიკაცია"
+
+#: vncviewer/UserDialog.cxx:125
+msgid "This connection is secure"
+msgstr "შეერთება დაცულია"
+
+#: vncviewer/UserDialog.cxx:129
+msgid "This connection is not secure"
+msgstr "შეერთება დაუცველია"
+
+#: vncviewer/UserDialog.cxx:146
+msgid "Username:"
+msgstr "მომხმარებელი:"
+
+#: vncviewer/UserDialog.cxx:159
+msgid "Password:"
+msgstr "პაროლი:"
+
+#: vncviewer/UserDialog.cxx:198
+msgid "Authentication cancelled"
+msgstr "ავთენტიკაცია გაუქმდა"
+
+#: vncviewer/Viewport.cxx:390
+#, c-format
+msgid "Failed to update keyboard LED state: %lu"
+msgstr "კლავიატურის LED-ის მდგომარეობის განახლების შეცდომა: %lu"
+
+#: vncviewer/Viewport.cxx:396 vncviewer/Viewport.cxx:402
+#, c-format
+msgid "Failed to update keyboard LED state: %d"
+msgstr "კლავიატურის LED-ის მდგომარეობის განახლების შეცდომა: %d"
+
+#: vncviewer/Viewport.cxx:432
+msgid "Failed to update keyboard LED state"
+msgstr "კლავიატურის LED-ის მდგომარეობის განახლების შეცდომა"
+
+#: vncviewer/Viewport.cxx:459 vncviewer/Viewport.cxx:467
+#: vncviewer/Viewport.cxx:484
+#, c-format
+msgid "Failed to get keyboard LED state: %d"
+msgstr "კლავიატურის LED-ის მდგომარეობის მიღების შეცდომა: %d"
+
+#: vncviewer/Viewport.cxx:854
+msgid "No key code specified on key press"
+msgstr "ღილაკის დაწოლის კოდი მითითებული არაა"
+
+#: vncviewer/Viewport.cxx:1017
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "გაფართოებული ვირტუალური ღილაკისთვის სკანირების კოდი არ არსებობს: 0x%02x"
+
+#: vncviewer/Viewport.cxx:1019
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "სკანირების კოდი ვირტუალური ღილაკისთვის არსებობს: 0x%02x"
+
+#: vncviewer/Viewport.cxx:1025
+#, c-format
+msgid "Invalid scan code 0x%02x"
+msgstr "სკანირების არასწორი კოდი: 0x%02x"
+
+#: vncviewer/Viewport.cxx:1055
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "გაფართოებული ვირტუალური ღილაკის სიმბოლო ნაპოვნი არაა:0x%02x"
+
+#: vncviewer/Viewport.cxx:1057
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "ვირტუალური ღილაკის სიმბოლო ნაპოვნი არაა: 0x%02x"
+
+#: vncviewer/Viewport.cxx:1157
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:1190
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:1250
+msgctxt "ContextMenu|"
+msgid "Dis&connect"
+msgstr "&გათიშვა"
+
+#: vncviewer/Viewport.cxx:1253
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "&მთელს ეკრანზე"
+
+#: vncviewer/Viewport.cxx:1256
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "&მინიმიზაცია"
+
+#: vncviewer/Viewport.cxx:1258
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "&ფანჯრის ზომის სესიის ზომამდე შეცვლა"
+
+#: vncviewer/Viewport.cxx:1263
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "&Ctrl"
+
+#: vncviewer/Viewport.cxx:1266
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&Alt"
+
+#: vncviewer/Viewport.cxx:1272
+#, c-format
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "%s-ის გაგზავნა"
+
+#: vncviewer/Viewport.cxx:1278
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Ctrl-Alt-&Del-ის გაგზავნა"
+
+#: vncviewer/Viewport.cxx:1281
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "&ეკრანის განახლება"
+
+#: vncviewer/Viewport.cxx:1284
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "&მორგება..."
+
+#: vncviewer/Viewport.cxx:1286
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "&შეერთების ინფორმაცია..."
+
+#: vncviewer/Viewport.cxx:1288
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "&TigerVNC-ის კლიენტის შესახებ..."
+
+#: vncviewer/Viewport.cxx:1377
+msgid "VNC connection info"
+msgstr "VNC-ის შეერთების ინფორმაცია"
+
+#: vncviewer/Win32TouchHandler.cxx:47
+msgid "Window is registered for touch instead of gestures"
+msgstr ""
+
+#: vncviewer/Win32TouchHandler.cxx:81
+#, c-format
+msgid "Failed to set gesture configuration (error 0x%x)"
+msgstr ""
+
+#: vncviewer/Win32TouchHandler.cxx:93
+#, c-format
+msgid "Failed to get gesture information (error 0x%x)"
+msgstr ""
+
+#: vncviewer/Win32TouchHandler.cxx:358
+#, c-format
+msgid "Invalid mouse button %d, must be a number between 1 and 7."
+msgstr ""
+
+#: vncviewer/Win32TouchHandler.cxx:423
+#, c-format
+msgid "Unhandled key 0x%x - can't generate keyboard event."
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:107
+#, c-format
+msgid "Unable to get X Input 2 event mask for window 0x%08lx"
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:104
+#, c-format
+msgid "Window 0x%08lx has no X Input 2 event mask"
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:114
+#, c-format
+msgid "Window 0x%08lx has more than one X Input 2 event mask"
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:143
+#, c-format
+msgid "Failure grabbing device %i"
+msgstr "მოწყობილობის ჩაჭერის შეცდომა: %i"
+
+#: vncviewer/parameters.cxx:301 vncviewer/parameters.cxx:326
+#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:383
+#: vncviewer/parameters.cxx:403
+msgid "The name of the parameter is too large"
+msgstr "პარამეტრის სახელი ძალიან დიდია"
+
+#: vncviewer/parameters.cxx:305 vncviewer/parameters.cxx:310
+#: vncviewer/parameters.cxx:361
+msgid "The parameter is too large"
+msgstr "პარამეტრი ძალიან დიდია"
+
+#: vncviewer/parameters.cxx:368 vncviewer/parameters.cxx:689
+#: vncviewer/parameters.cxx:811
+msgid "Invalid format or too large value"
+msgstr "არასწორი ფორმატი ან ძალიან დიდი მნიშვნელობა"
+
+#: vncviewer/parameters.cxx:422 vncviewer/parameters.cxx:453
+msgid "Failed to create registry key"
+msgstr "რეესრის გასაღების შექმნის შეცდომა"
+
+#: vncviewer/parameters.cxx:441 vncviewer/parameters.cxx:496
+#: vncviewer/parameters.cxx:538 vncviewer/parameters.cxx:605
+msgid "Failed to close registry key"
+msgstr "რეესტრის გასაღების დახურვის შეცდომა"
+
+#: vncviewer/parameters.cxx:459 vncviewer/parameters.cxx:476
+#: vncviewer/parameters.cxx:489 vncviewer/parameters.cxx:647
+#: vncviewer/parameters.cxx:657 vncviewer/parameters.cxx:668
+#, c-format
+msgid "Failed to save \"%s\": %s"
+msgstr "\"%s'-ის შენახვის შეცდომა: %s"
+
+#: vncviewer/parameters.cxx:472 vncviewer/parameters.cxx:560
+#: vncviewer/parameters.cxx:670 vncviewer/parameters.cxx:707
+msgid "Unknown parameter type"
+msgstr "პარამეტრის უცნობ ტიპი"
+
+#: vncviewer/parameters.cxx:511 vncviewer/parameters.cxx:583
+msgid "Failed to open registry key"
+msgstr "რეესტრის გასაღების გახსნის შეცდომა"
+
+#: vncviewer/parameters.cxx:528
+#, c-format
+msgid "Failed to read server history entry %d: %s"
+msgstr "სერვერის ისტორიის ჩანაწერის (%d) წაკითხვა შეუძლებელია: %s"
+
+#: vncviewer/parameters.cxx:564 vncviewer/parameters.cxx:594
+#, c-format
+msgid "Failed to read parameter \"%s\": %s"
+msgstr "\"%s\"-ის წაკითხვის შეცდომა: %s"
+
+#: vncviewer/parameters.cxx:648 vncviewer/parameters.cxx:659
+msgid "Could not encode parameter"
+msgstr "პარამეტრის კოდირების შეცდომა"
+
+#: vncviewer/parameters.cxx:776
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "კონფიგურაციის არასწორი ფორმატი ფაილისთვის : %s"
+
+#: vncviewer/parameters.cxx:798
+msgid "Invalid format"
+msgstr "არასწორი ფორმატი"
+
+#: vncviewer/parameters.cxx:833
+msgid "Unknown parameter"
+msgstr "უცნობი პარამეტრი"
+
+#: vncviewer/touch.cxx:75
+#, c-format
+msgid "Got message (0x%x) for an unhandled window"
+msgstr ""
+
+#: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
+#, c-format
+msgid "Invalid window 0x%08lx specified for pointer grab"
+msgstr ""
+
+#: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
+#, c-format
+msgid "Failed to create touch handler: %s"
+msgstr ""
+
+#: vncviewer/touch.cxx:188
+#, c-format
+msgid "Couldn't attach event handler to window (error 0x%x)"
+msgstr ""
+
+#: vncviewer/touch.cxx:212
+msgid "Failed to get event data for X Input event"
+msgstr ""
+
+#: vncviewer/touch.cxx:225
+msgid "X Input event for unknown window"
+msgstr "X Input-ის მოვლენა უცნობი ფანჯრისთვის"
+
+#: vncviewer/touch.cxx:251
+msgid "X Input extension not available."
+msgstr "X Input-ის გაფართოება მიუწვდომელია."
+
+#: vncviewer/touch.cxx:258
+msgid "X Input 2 (or newer) is not available."
+msgstr "X Input 2 (ან უფრო ახალი) მიუწვდომელია."
+
+#: vncviewer/touch.cxx:263
+msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
+msgstr "X Input 2.2 (ან უფრო ახალი) მიუწვდომელია. შეხების ჟესტები მხარდაუჭერელია."
+
+#: vncviewer/vncviewer.cxx:106
+#, c-format
+msgid ""
+"TigerVNC Viewer %d-bit v%s\n"
+"Built on: %s\n"
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
+"See https://www.tigervnc.org for information on TigerVNC."
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:172
+msgid "About TigerVNC Viewer"
+msgstr "TigerVNC-ის კლიენტის შესახებ"
+
+#: vncviewer/vncviewer.cxx:193
+msgid "Internal FLTK error. Exiting."
+msgstr "FLTK-ის შიდა შეცდომა. პროგრამა ასრულებს მუშაობას."
+
+#: vncviewer/vncviewer.cxx:212
+#, c-format
+msgid ""
+"%s\n"
+"\n"
+"Attempt to reconnect?"
+msgstr ""
+"%s\n"
+"\n"
+"ვცადო თავიდან დაკავშირება?"
+
+#: vncviewer/vncviewer.cxx:243 vncviewer/vncviewer.cxx:255
+#, c-format
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "TigerVNC-ის ახალი დამთვალიერებლის გაშვების შეცდომა: %s"
+
+#: vncviewer/vncviewer.cxx:264
+#, c-format
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:407 vncviewer/vncviewer.desktop.in.in:3
+msgid "TigerVNC Viewer"
+msgstr "TigerVNC-ის კლიენტი"
+
+#: vncviewer/vncviewer.cxx:416
+msgid "Yes"
+msgstr "დიახ"
+
+#: vncviewer/vncviewer.cxx:419
+msgid "Close"
+msgstr "დახურვა"
+
+#: vncviewer/vncviewer.cxx:424
+msgid "About"
+msgstr "შესახებ"
+
+#: vncviewer/vncviewer.cxx:427
+msgid "Hide"
+msgstr "დამალვა"
+
+#: vncviewer/vncviewer.cxx:430
+msgid "Quit"
+msgstr "გასვლა"
+
+#: vncviewer/vncviewer.cxx:434
+msgid "Services"
+msgstr "სერვისები"
+
+#: vncviewer/vncviewer.cxx:435
+msgid "Hide Others"
+msgstr "სხვების დამალვა"
+
+#: vncviewer/vncviewer.cxx:436
+msgid "Show All"
+msgstr "ყველას ჩვენება"
+
+#: vncviewer/vncviewer.cxx:445
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "&ფაილი"
+
+#: vncviewer/vncviewer.cxx:448
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "&ახალი შეერთება"
+
+#: vncviewer/vncviewer.cxx:464
+#, c-format
+msgid "Could not create VNC home directory: %s."
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:563
+msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
+msgstr ""
+
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:769 vncviewer/vncviewer.cxx:770
+msgid "Parameters -listen and -via are incompatible"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:784
+#, c-format
+msgid "Listening on port %d"
+msgstr "ვუსმენ პორტზე %d"
+
+#: vncviewer/vncviewer.cxx:817
+#, c-format
+msgid ""
+"Failure waiting for incoming VNC connection:\n"
+"\n"
+"%s"
+msgstr ""
+"VNC-ის შემომავალი შეერთების ლოდინის შეცდომა:\n"
+"\n"
+"%s"
+
+#: vncviewer/vncviewer.desktop.in.in:4
+msgid "Remote Desktop Viewer"
+msgstr "დაშორებული სამუშაო მაგიდის სერვერის კლიენტი"
+
+#: vncviewer/vncviewer.desktop.in.in:5
+msgid "Connect to VNC server and display remote desktop"
+msgstr ""
