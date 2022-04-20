@@ -207,7 +207,15 @@ class Viewport extends JPanel implements ActionListener {
       g2.dispose();
       cursor = tmp;
     }
+    
+	if (x >= cursor.getWidth()) {
+		x = cursor.getWidth() - 1;
+	}
 
+	if (y >= cursor.getHeight()) {
+		y = cursor.getHeight() -1;
+	}
+    
     setCursor(cursor, x, y);
   }
 
