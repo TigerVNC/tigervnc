@@ -59,7 +59,7 @@ SConnection::SConnection()
     is(0), os(0), reader_(0), writer_(0), ssecurity(0),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-    clientClipboard(NULL), hasLocalClipboard(false),
+    accessRights(0x0000), clientClipboard(NULL), hasLocalClipboard(false),
     unsolicitedClipboardAttempt(false)
 {
   defaultMajorVersion = 3;
