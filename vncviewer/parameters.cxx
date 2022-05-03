@@ -207,7 +207,8 @@ static VoidParameter* parameterArray[] = {
   &setPrimary,
 #endif
   &menuKey,
-  &fullscreenSystemKeys
+  &fullscreenSystemKeys,
+  &pointerEventInterval,
 };
 
 static VoidParameter* readOnlyParameterArray[] = {
