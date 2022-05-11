@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="16"
    height="16"
    id="svg3378"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    version="1.0"
    sodipodi:docname="tigervnc_16.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs3380">
     <linearGradient
@@ -30,24 +31,6 @@
          offset="1"
          id="stop3254" />
     </linearGradient>
-    <linearGradient
-       id="linearGradient4670">
-      <stop
-         style="stop-color:#ffffff;stop-opacity:1;"
-         offset="0"
-         id="stop4672" />
-      <stop
-         style="stop-color:#ffffff;stop-opacity:0;"
-         offset="1"
-         id="stop4674" />
-    </linearGradient>
-    <inkscape:perspective
-       sodipodi:type="inkscape:persp3d"
-       inkscape:vp_x="0 : 526.18109 : 1"
-       inkscape:vp_y="0 : 1000 : 0"
-       inkscape:vp_z="744.09448 : 526.18109 : 1"
-       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
-       id="perspective3386" />
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient3250"
@@ -60,16 +43,15 @@
        r="40" />
     <clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath3983">
+       id="clipPath1053">
       <rect
-         ry="55.07478"
-         rx="55.07478"
+         ry="41.456684"
          y="3495.7788"
          x="1022.8928"
          height="193.46452"
          width="193.46452"
-         id="rect3985"
-         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26618451;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+         id="rect1055"
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.266185;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     </clipPath>
   </defs>
   <sodipodi:namedview
@@ -83,16 +65,18 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="31.678384"
-     inkscape:cx="7.2537127"
-     inkscape:cy="6.8304232"
+     inkscape:cx="5.555839"
+     inkscape:cy="9.5175309"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:snap-bbox="true"
-     inkscape:window-width="1600"
-     inkscape:window-height="1125"
+     inkscape:window-width="1920"
+     inkscape:window-height="1163"
      inkscape:window-x="0"
-     inkscape:window-y="25">
+     inkscape:window-y="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
        id="grid3444"
@@ -115,17 +99,16 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26618451;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.266185;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect3977"
        width="16"
        height="16"
        x="1.7371087e-15"
        y="-5.4413344e-16"
-       rx="5.1030059"
-       ry="5.1030059" />
+       ry="4" />
     <g
        id="g4636"
-       clip-path="url(#clipPath3983)"
+       clip-path="url(#clipPath1053)"
        transform="matrix(7.2364688e-2,0,0,7.2364688e-2,-73.02132,-251.97095)"
        inkscape:export-filename="/home/ossman/Desktop/text4698.png"
        inkscape:export-xdpi="90.110069"
