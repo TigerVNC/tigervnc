@@ -355,7 +355,7 @@ static void init_fltk()
 
   Fl_Window::default_icons(lg, sm);
 #elif ! defined(__APPLE__)
-  const int icon_sizes[] = {48, 32, 24, 16};
+  const int icon_sizes[] = {128, 64, 48, 32, 24, 22, 16};
 
   Fl_PNG_Image *icons[sizeof(icon_sizes)/sizeof(icon_sizes[0])];
   int count;
