@@ -357,7 +357,7 @@ static void init_fltk()
 #elif ! defined(__APPLE__)
   const int icon_sizes[] = {48, 32, 24, 16};
 
-  Fl_PNG_Image *icons[4];
+  Fl_PNG_Image *icons[sizeof(icon_sizes)/sizeof(icon_sizes[0])];
   int count;
 
   count = 0;
