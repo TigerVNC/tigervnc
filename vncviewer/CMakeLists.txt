@@ -131,7 +131,7 @@ if(UNIX)
   add_custom_target(appstream ALL DEPENDS org.tigervnc.vncviewer.metainfo.xml)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.tigervnc.vncviewer.metainfo.xml DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/metainfo)
 
-  foreach(res 16 22 24 32 48)
+  foreach(res 16 22 24 32 48 64 128)
     install(FILES ../media/icons/tigervnc_${res}.png DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/${res}x${res}/apps RENAME tigervnc.png)
   endforeach()
   install(FILES ../media/icons/tigervnc.svg DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/scalable/apps)

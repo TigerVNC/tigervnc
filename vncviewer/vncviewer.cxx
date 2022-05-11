@@ -355,9 +355,9 @@ static void init_fltk()
 
   Fl_Window::default_icons(lg, sm);
 #elif ! defined(__APPLE__)
-  const int icon_sizes[] = {48, 32, 24, 16};
+  const int icon_sizes[] = {128, 64, 48, 32, 24, 22, 16};
 
-  Fl_PNG_Image *icons[4];
+  Fl_PNG_Image *icons[sizeof(icon_sizes)/sizeof(icon_sizes[0])];
   int count;
 
   count = 0;
@@ -370,14 +370,8 @@ static void init_fltk()
       sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tigervnc.png",
               CMAKE_INSTALL_FULL_DATADIR, icon_sizes[i], icon_sizes[i]);
 
-#ifndef WIN32
       struct stat st;
       if (stat(icon_path, &st) != 0)
-#else
-      struct _stat st;
-      if (_stat(icon_path, &st) != 0)
-          return(false);
-#endif
         exists = false;
       else
         exists = true;

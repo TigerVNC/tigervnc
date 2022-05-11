@@ -2,13 +2,13 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="48"
-   height="48"
+   width="24"
+   height="24"
    id="svg2475"
    sodipodi:version="0.32"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    version="1.0"
-   sodipodi:docname="tigervnc_48.svg"
+   sodipodi:docname="tigervnc_24.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -57,9 +57,9 @@
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4670"
-       id="radialGradient3519"
+       id="radialGradient4678"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.14595123,0,0,0.14595179,3.7503517,3.7503367)"
+       gradientTransform="matrix(0.07297561,0,0,0.07297561,1.8751754,1.8751754)"
        cx="35.32584"
        cy="35.32584"
        fx="35.32584"
@@ -68,7 +68,7 @@
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient3250"
-       id="radialGradient3543"
+       id="radialGradient4696"
        gradientUnits="userSpaceOnUse"
        cx="412"
        cy="741.36218"
@@ -78,9 +78,9 @@
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4680"
-       id="radialGradient6774"
+       id="radialGradient4748"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.14595123,0,0,0.1459518,-44.249649,-44.249815)"
+       gradientTransform="matrix(0.07297561,0,0,0.07297561,-22.124825,-22.124825)"
        cx="35.32584"
        cy="35.32584"
        fx="35.32584"
@@ -88,15 +88,15 @@
        r="112" />
     <clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath1881">
+       id="clipPath3155">
       <rect
-         ry="51.669033"
-         y="3453.032"
-         x="958.65619"
-         height="310.01422"
-         width="310.01422"
-         id="rect1883"
-         style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect3157"
+         width="238.86986"
+         height="238.86986"
+         x="996.23511"
+         y="3476.3127"
+         ry="39.811638" />
     </clipPath>
   </defs>
   <sodipodi:namedview
@@ -109,9 +109,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="14.931559"
-     inkscape:cx="16.341227"
-     inkscape:cy="30.6398"
+     inkscape:zoom="22.627417"
+     inkscape:cx="8.1759222"
+     inkscape:cy="14.56198"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -120,16 +120,13 @@
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:snap-bbox="true"
-     showguides="true"
-     inkscape:guide-bbox="true"
      inkscape:pagecheckerboard="0"
      inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
-       id="grid3536"
+       id="grid4086"
        visible="true"
-       enabled="true"
-       empspacing="4" />
+       enabled="true" />
   </sodipodi:namedview>
   <metadata
      id="metadata2480">
@@ -147,22 +144,22 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:4.762;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect3404"
-       width="40"
-       height="40"
-       x="4"
-       y="4"
-       ry="8" />
+       width="20"
+       height="20"
+       x="2"
+       y="2"
+       ry="4" />
     <g
        id="g4636"
-       clip-path="url(#clipPath1881)"
-       transform="matrix(0.11612371,0,0,0.11612371,-105.32271,-394.97889)"
+       clip-path="url(#clipPath3155)"
+       transform="matrix(0.07535485,0,0,0.07535485,-72.071142,-258.95701)"
        inkscape:export-filename="/home/ossman/Desktop/text4698.png"
        inkscape:export-xdpi="90.110069"
        inkscape:export-ydpi="90.110069">
       <rect
-         style="fill:#ff7f2a;fill-opacity:1;stroke:#000000;stroke-width:0.99893467;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         style="fill:#ff7f2a;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          id="rect4598"
          width="373"
          height="340"
@@ -188,7 +185,7 @@
         <circle
            transform="translate(12,12)"
            id="path4608"
-           style="opacity:1;fill:url(#radialGradient3543);fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           style="opacity:1;fill:url(#radialGradient4696);fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
            cx="412"
            cy="741.36218"
            r="40" />
@@ -231,21 +228,21 @@
          style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
     </g>
     <rect
-       ry="5"
-       y="7"
-       x="7"
-       height="34.000153"
-       width="34"
+       y="3.5"
+       x="3.5"
+       height="17"
+       width="17"
        id="rect3419"
-       style="fill:none;fill-opacity:1;stroke:url(#radialGradient3519);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+       style="fill:none;fill-opacity:1;stroke:url(#radialGradient4678);stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       ry="2.5" />
     <rect
-       style="fill:none;fill-opacity:1;stroke:url(#radialGradient6774);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="rect6772"
-       width="34"
-       height="34.000153"
-       x="-41"
-       y="-41.000153"
-       ry="5"
+       ry="2.5"
+       style="fill:none;fill-opacity:1;stroke:url(#radialGradient4748);stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4746"
+       width="17"
+       height="17"
+       x="-20.5"
+       y="-20.5"
        transform="scale(-1)" />
   </g>
 </svg>
