@@ -370,14 +370,8 @@ static void init_fltk()
       sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tigervnc.png",
               CMAKE_INSTALL_FULL_DATADIR, icon_sizes[i], icon_sizes[i]);
 
-#ifndef WIN32
       struct stat st;
       if (stat(icon_path, &st) != 0)
-#else
-      struct _stat st;
-      if (_stat(icon_path, &st) != 0)
-          return(false);
-#endif
         exists = false;
       else
         exists = true;
