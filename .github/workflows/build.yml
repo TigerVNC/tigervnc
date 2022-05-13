@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
-          brew install fltk pixman ffmpeg
+          brew install fltk pixman ffmpeg libice
       - name: Configure
         run: |
           CFLAGS="-I/usr/local/opt/ffmpeg/include $CFLAGS" \
