@@ -53,7 +53,10 @@ jobs:
         run: |
           brew install fltk pixman ffmpeg
       - name: Configure
-        run: cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+        run: |
+          CFLAGS="-I/usr/local/opt/ffmpeg/include $CFLAGS" \
+          CXXFLAGS="-I/usr/local/opt/ffmpeg/include $CXXFLAGS" \
+          cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
       - name: Build
         working-directory: build
         run: make
