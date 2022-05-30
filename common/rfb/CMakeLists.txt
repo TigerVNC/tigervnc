@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR} ${PIXMAN_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR} ${PIXMAN_INCLUDE_DIRS} ${H264_INCLUDE_DIRS})
 
 add_library(rfb STATIC
   Blacklist.cxx
@@ -75,6 +75,7 @@ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   elseif(H264_LIBS STREQUAL "WIN")
     target_sources(rfb PRIVATE H264WinDecoderContext.cxx)
   endif()
+  target_link_libraries(rfb ${H264_LIBRARIES})
 endif()
 
 if(UNIX)
