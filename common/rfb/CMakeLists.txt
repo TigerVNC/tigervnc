@@ -76,6 +76,7 @@ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
     target_sources(rfb PRIVATE H264WinDecoderContext.cxx)
   endif()
   target_link_libraries(rfb ${H264_LIBRARIES})
+  target_link_directories(rfb PUBLIC ${H264_LIBRARY_DIRS})
 endif()
 
 if(UNIX)
