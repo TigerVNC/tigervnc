@@ -2,7 +2,8 @@ include_directories(${FLTK_INCLUDE_DIR})
 include_directories(${GETTEXT_INCLUDE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/common)
-set(VNCVIEWER_SOURCES
+
+add_executable(vncviewer
   menukey.cxx
   BaseTouchHandler.cxx
   CConn.cxx
@@ -21,36 +22,32 @@ set(VNCVIEWER_SOURCES
   MonitorIndicesParameter.cxx
   vncviewer.cxx)
 
+if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set_target_properties(vncviewer PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
+
 if(WIN32)
   # Since vncviewer.rc is generated, local includes will be looking
   # in the wrong directory. We need to help it out.
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
   configure_file(vncviewer.rc.in vncviewer.rc)
-  set(VNCVIEWER_SOURCES
-    ${VNCVIEWER_SOURCES}
-    ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.rc)
+  target_sources(vncviewer PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.rc)
 endif()
 
 if(WIN32)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Win32TouchHandler.cxx win32.c)
+  target_sources(vncviewer PRIVATE Win32TouchHandler.cxx win32.c)
 elseif(APPLE)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm osx_to_qnum.c)
+  target_sources(vncviewer PRIVATE cocoa.mm osx_to_qnum.c)
 else()
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} GestureHandler.cxx XInputTouchHandler.cxx xkb_to_qnum.c)
+  target_sources(vncviewer PRIVATE GestureHandler.cxx XInputTouchHandler.cxx xkb_to_qnum.c)
 endif()
 
 if(WIN32)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Surface_Win32.cxx)
+  target_sources(vncviewer PRIVATE Surface_Win32.cxx)
 elseif(APPLE)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Surface_OSX.cxx)
+  target_sources(vncviewer PRIVATE Surface_OSX.cxx)
 else()
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Surface_X11.cxx)
-endif()
-
-if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_executable(vncviewer WIN32 ${VNCVIEWER_SOURCES})
-else()
-  add_executable(vncviewer ${VNCVIEWER_SOURCES})
+  target_sources(vncviewer PRIVATE Surface_X11.cxx)
 endif()
 
 target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES} ${H264_LIBRARIES})

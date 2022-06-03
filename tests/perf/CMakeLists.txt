@@ -16,21 +16,20 @@ target_link_libraries(encperf test_util rfb)
 
 if (BUILD_VIEWER)
   include_directories(${FLTK_INCLUDE_DIR})
-  set(FBPERF_SOURCES
+  add_executable(fbperf
     fbperf.cxx
     ${CMAKE_SOURCE_DIR}/vncviewer/PlatformPixelBuffer.cxx
     ${CMAKE_SOURCE_DIR}/vncviewer/Surface.cxx)
   if(WIN32)
-    set(FBPERF_SOURCES ${FBPERF_SOURCES} ${CMAKE_SOURCE_DIR}/vncviewer/Surface_Win32.cxx)
+    target_sources(fbperf PRIVATE ${CMAKE_SOURCE_DIR}/vncviewer/Surface_Win32.cxx)
   elseif(APPLE)
-    set(FBPERF_SOURCES
-        ${FBPERF_SOURCES} ${CMAKE_SOURCE_DIR}/vncviewer/Surface_OSX.cxx
-        ${FBPERF_SOURCES} ${CMAKE_SOURCE_DIR}/vncviewer/keysym2ucs.c
-        ${FBPERF_SOURCES} ${CMAKE_SOURCE_DIR}/vncviewer/cocoa.mm)
+    target_sources(fbperf PRIVATE
+      ${CMAKE_SOURCE_DIR}/vncviewer/Surface_OSX.cxx
+      ${CMAKE_SOURCE_DIR}/vncviewer/keysym2ucs.c
+      ${CMAKE_SOURCE_DIR}/vncviewer/cocoa.mm)
   else()
-    set(FBPERF_SOURCES ${FBPERF_SOURCES} ${CMAKE_SOURCE_DIR}/vncviewer/Surface_X11.cxx)
+    target_sources(fbperf PRIVATE ${CMAKE_SOURCE_DIR}/vncviewer/Surface_X11.cxx)
   endif()
-  add_executable(fbperf ${FBPERF_SOURCES})
   target_link_libraries(fbperf test_util rfb ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
   if(WIN32)
     target_link_libraries(fbperf msimg32)
