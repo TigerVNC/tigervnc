@@ -17,6 +17,8 @@ include(CheckCSourceRuns)
 
 include(CMakeMacroLibtoolFile)
 
+include(cmake/TargetLinkDirectories.cmake)
+
 project(tigervnc)
 set(VERSION 1.12.80)
 
