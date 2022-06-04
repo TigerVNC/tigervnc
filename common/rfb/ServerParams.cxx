@@ -30,7 +30,7 @@ using namespace rfb;
 
 ServerParams::ServerParams()
   : majorVersion(0), minorVersion(0),
-    supportsQEMUKeyEvent(false),
+    supportsQEMUKeyEvent(false), supportsQEMUAudio(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     width_(0), height_(0), name_(0),

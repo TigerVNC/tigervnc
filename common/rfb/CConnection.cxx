@@ -49,7 +49,7 @@ static LogWriter vlog("CConnection");
 CConnection::CConnection()
   : csecurity(0),
     supportsLocalCursor(false), supportsCursorPosition(false),
-    supportsDesktopResize(false), supportsLEDState(false),
+    supportsDesktopResize(false), supportsLEDState(false), supportsQEMUAudio(false),
     is(0), os(0), reader_(0), writer_(0),
     shared(false),
     state_(RFBSTATE_UNINITIALISED), serverName(strDup("")),
@@ -827,6 +827,9 @@ void CConnection::updateEncodings()
   if (supportsLEDState) {
     encodings.push_back(pseudoEncodingLEDState);
     encodings.push_back(pseudoEncodingVMwareLEDState);
+  }
+  if (supportsQEMUAudio) {
+    encodings.push_back(pseudoEncodingQEMUAudio);
   }
 
   encodings.push_back(pseudoEncodingDesktopName);
