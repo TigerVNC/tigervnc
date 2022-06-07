@@ -1,4 +1,4 @@
-set(RFB_WIN32_SOURCES
+add_library(rfb_win32 STATIC
   AboutDialog.cxx
   Clipboard.cxx
   CurrentUser.cxx
@@ -32,9 +32,7 @@ set(RFB_WIN32_SOURCES
   WMWindowCopyRect.cxx)
 
 if(BUILD_WINVNC)
-  set(RFB_WIN32_SOURCES ${RFB_WIN32_SOURCES} CleanDesktop.cxx)
+  target_sources(rfb_win32 PRIVATE ${RFB_WIN32_SOURCES} CleanDesktop.cxx)
 endif()
-
-add_library(rfb_win32 STATIC ${RFB_WIN32_SOURCES})
 
 target_link_libraries(rfb_win32 user32.lib comctl32.lib wtsapi32.lib version.lib)
