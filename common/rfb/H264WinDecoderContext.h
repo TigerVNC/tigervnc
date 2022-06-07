@@ -41,6 +41,12 @@ namespace rfb {
 
     private:
       LONG stride;
+      rdr::U32 full_width = 0;
+      rdr::U32 full_height = 0;
+      rdr::U32 crop_width = 0;
+      rdr::U32 crop_height = 0;
+      rdr::U32 offset_x = 0;
+      rdr::U32 offset_y = 0;
       IMFTransform *decoder = NULL;
       IMFTransform *converter = NULL;
       IMFSample *input_sample = NULL;
@@ -49,6 +55,8 @@ namespace rfb {
       IMFMediaBuffer *input_buffer = NULL;
       IMFMediaBuffer *decoded_buffer = NULL;
       IMFMediaBuffer *converted_buffer = NULL;
+
+      void ParseSPS(const rdr::U8* buffer, int length);
   };
 }
 
