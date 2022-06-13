@@ -179,6 +179,9 @@ void H264WinDecoderContext::decode(const rdr::U8* h264_buffer, rdr::U32 len, rdr
 
   vlog.debug("Received %u bytes, decoding", len);
 
+  // extract actual size, including possible cropping
+  ParseSPS(h264_buffer, len);
+
   if (FAILED(decoder->ProcessInput(0, input_sample, 0)))
   {
     vlog.error("Error sending a packet to decoding");
@@ -243,10 +246,30 @@ void H264WinDecoderContext::decode(const rdr::U8* h264_buffer, rdr::U32 len, rdr
       // reinitialize output type (NV12) that now has correct properties (width/height/framerate)
       decoder->SetOutputType(0, output_type, 0);
 
-      UINT32 width = 0;
-      UINT32 height = 0;
-      MFGetAttributeSize(output_type, MF_MT_FRAME_SIZE, &width, &height);
-      vlog.debug("Setting up decoded output with %ux%u size", width, height);
+      UINT32 width, height;
+      if FAILED(MFGetAttributeSize(output_type, MF_MT_FRAME_SIZE, &width, &height))
+      {
+          vlog.error("Error getting output type size");
+          output_type->Release();
+          break;
+      }
+
+      // if MFT reports different width or height than calculated cropped width/height
+      if (crop_width != 0 && crop_height != 0 && (width != crop_width || height != crop_height))
+      {
+          // create NV12/RGB image with full size as we'll do manual cropping
+          width = full_width;
+          height = full_height;
+      }
+      else
+      {
+          // no manual cropping necessary
+          offset_x = offset_y = 0;
+          crop_width = width;
+          crop_height = height;
+      }
+
+      vlog.debug("Setting up decoded output with %ux%u size", crop_width, crop_height);
 
       // input type to converter, BGRX pixel format
       IMFMediaType* converted_type;
@@ -259,8 +282,8 @@ void H264WinDecoderContext::decode(const rdr::U8* h264_buffer, rdr::U32 len, rdr
         converted_type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
         converted_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
         converted_type->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
-        MFSetAttributeSize(converted_type, MF_MT_FRAME_SIZE, width, height);
-        MFGetStrideForBitmapInfoHeader(MFVideoFormat_RGB32.Data1, width, &stride);
+        MFSetAttributeSize(converted_type, MF_MT_FRAME_SIZE, full_width, full_height);
+        MFGetStrideForBitmapInfoHeader(MFVideoFormat_RGB32.Data1, full_width, &stride);
         // bottom-up
         stride = -stride;
         converted_type->SetUINT32(MF_MT_DEFAULT_STRIDE, (UINT32)stride);
@@ -317,9 +340,190 @@ void H264WinDecoderContext::decode(const rdr::U8* h264_buffer, rdr::U32 len, rdr
       vlog.debug("Frame converted to RGB");
 
       BYTE* out;
-      converted_buffer->Lock(&out, NULL, NULL);
-      pb->imageRect(rect, out, (int)stride / 4);
+      DWORD len;
+      converted_buffer->Lock(&out, NULL, &len);
+      pb->imageRect(rect, out + offset_y * stride + offset_x * 4, (int)stride / 4);
       converted_buffer->Unlock();
     }
   }
+}
+
+// "7.3.2.1.1 Sequence parameter set data syntax" on page 66 of https://www.itu.int/rec/T-REC-H.264-202108-I/en
+void H264WinDecoderContext::ParseSPS(const rdr::U8* buffer, int length)
+{
+#define EXPECT(cond) if (!(cond)) return;
+
+#define GET_BIT(bit) do {            \
+    if (available == 0)              \
+    {                                \
+        if (length == 0) return;     \
+        byte = *buffer++;            \
+        length--;                    \
+        available = 8;               \
+    }                                \
+    bit = (byte >> --available) & 1; \
+} while (0)
+
+#define GET_BITS(n, var) do {      \
+    var = 0;                       \
+    for (int i = n-1; i >= 0; i--) \
+    {                              \
+        unsigned bit;              \
+        GET_BIT(bit);              \
+        var |= bit << i;           \
+    }                              \
+} while (0)
+
+// "9.1 Parsing process for Exp-Golomb codes" on page 231
+
+#define GET_UE(var) do {                   \
+    int zeroes = -1;                       \
+    for (unsigned bit = 0; !bit; zeroes++) \
+        GET_BIT(bit);                      \
+    GET_BITS(zeroes, var);                 \
+    var += (1U << zeroes) - 1;             \
+} while(0)
+
+#define SKIP_UE() do { \
+    unsigned var;      \
+    GET_UE(var);       \
+} while (0)
+
+#define SKIP_BITS(bits) do { \
+    unsigned var;            \
+    GET_BITS(bits, var);     \
+} while (0)
+
+    // check for NAL header
+    EXPECT((length >= 3 && buffer[0] == 0 && buffer[1] == 0 && buffer[2] == 1) ||
+           (length >= 4 && buffer[0] == 0 && buffer[1] == 0 && buffer[2] == 0 && buffer[3] == 1));
+    length -= 4 - buffer[2];
+    buffer += 4 - buffer[2];
+
+    // NAL unit type
+    EXPECT(length > 1);
+    rdr::U8 type = buffer[0];
+    EXPECT((type & 0x80) == 0); // forbidden zero bit
+    EXPECT((type & 0x1f) == 7); // SPS NAL unit type
+    buffer++;
+    length--;
+
+    int available = 0;
+    rdr::U8 byte = 0;
+
+    unsigned profile_idc;
+    unsigned seq_parameter_set_id;
+
+    GET_BITS(8, profile_idc);
+    SKIP_BITS(6); // constraint_set0..5_flag
+    SKIP_BITS(2); // reserved_zero_2bits
+    SKIP_BITS(8); // level_idc
+    GET_UE(seq_parameter_set_id);
+
+    unsigned chroma_format_idc = 1;
+    if (profile_idc == 100 || profile_idc == 110 ||
+        profile_idc == 122 || profile_idc == 244 ||
+        profile_idc == 44 || profile_idc == 83 ||
+        profile_idc == 86 || profile_idc == 118 ||
+        profile_idc == 128 || profile_idc == 138 ||
+        profile_idc == 139 || profile_idc == 134 ||
+        profile_idc == 135)
+    {
+        GET_UE(chroma_format_idc);
+        if (chroma_format_idc == 3)
+        {
+            SKIP_BITS(1); // separate_colour_plane_flag
+        }
+        SKIP_UE(); // bit_depth_luma_minus8
+        SKIP_UE(); // bit_depth_chroma_minus8;
+        SKIP_BITS(1); // qpprime_y_zero_transform_bypass_flag
+        unsigned seq_scaling_matrix_present_flag;
+        GET_BITS(1, seq_scaling_matrix_present_flag);
+        if (seq_scaling_matrix_present_flag)
+        {
+            for (int i = 0; i < (chroma_format_idc != 3 ? 8 : 12); i++)
+            {
+                int seq_scaling_list_present_flag;
+                GET_BITS(1, seq_scaling_list_present_flag);
+                for (int j = 0; j < (seq_scaling_list_present_flag ? 16 : 64); j++)
+                {
+                    SKIP_UE(); // delta_scale;
+                }
+            }
+        }
+    }
+
+    unsigned log2_max_frame_num_minus4;
+    GET_UE(log2_max_frame_num_minus4); // log2_max_frame_num_minus4
+    unsigned pic_order_cnt_type;
+    GET_UE(pic_order_cnt_type);
+    if (pic_order_cnt_type == 0)
+    {
+        SKIP_UE(); // log2_max_pic_order_cnt_lsb_minus4
+    }
+    else if (pic_order_cnt_type == 1)
+    {
+        SKIP_BITS(1); // delta_pic_order_always_zero_flag
+        SKIP_UE(); // offset_for_non_ref_pic
+        SKIP_UE(); // offset_for_top_to_bottom_field
+        unsigned num_ref_frames_in_pic_order_cnt_cycle;
+        GET_UE(num_ref_frames_in_pic_order_cnt_cycle);
+        for (unsigned i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++)
+        {
+            SKIP_UE(); // offset_for_ref_frame
+        }
+    }
+    SKIP_UE(); // max_num_ref_frames
+    SKIP_BITS(1); // gaps_in_frame_num_value_allowed_flag
+    unsigned pic_width_in_mbs_minus1;
+    GET_UE(pic_width_in_mbs_minus1);
+    unsigned pic_height_in_map_units_minus1;
+    GET_UE(pic_height_in_map_units_minus1);
+    unsigned frame_mbs_only_flag;
+    GET_BITS(1, frame_mbs_only_flag);
+    if (!frame_mbs_only_flag)
+    {
+        SKIP_BITS(1); // mb_adaptive_frame_field_flag
+    }
+    SKIP_BITS(1); // direct_8x8_inference_flag
+    unsigned frame_cropping_flag;
+    GET_BITS(1, frame_cropping_flag);
+
+    unsigned frame_crop_left_offset = 0;
+    unsigned frame_crop_right_offset = 0;
+    unsigned frame_crop_top_offset = 0;
+    unsigned frame_crop_bottom_offset = 0;
+    if (frame_cropping_flag)
+    {
+        GET_UE(frame_crop_left_offset);
+        GET_UE(frame_crop_right_offset);
+        GET_UE(frame_crop_top_offset);
+        GET_UE(frame_crop_bottom_offset);
+    }
+    // ignore rest of bits
+
+    full_width = 16 * (pic_width_in_mbs_minus1 + 1);
+    full_height = 16 * (pic_height_in_map_units_minus1 + 1) * (2 - frame_mbs_only_flag);
+
+    // "6.2 Source, decoded, and output picture formats" on page 44
+    unsigned sub_width_c = (chroma_format_idc  == 1 || chroma_format_idc == 2) ? 2 : 1;
+    unsigned sub_height_c = (chroma_format_idc == 1) ? 2 : 1;
+
+    // page 101
+    unsigned crop_unit_x = chroma_format_idc == 0 ? 1 : sub_width_c;
+    unsigned crop_unit_y = chroma_format_idc == 0 ? 2 - frame_mbs_only_flag : sub_height_c * (2 - frame_mbs_only_flag);
+    crop_width = full_width - crop_unit_x * (frame_crop_right_offset + frame_crop_left_offset);
+    crop_height = full_height - crop_unit_y * (frame_crop_top_offset + frame_crop_bottom_offset);
+
+    offset_x = frame_crop_left_offset;
+    offset_y = frame_crop_bottom_offset;
+
+    vlog.debug("SPS parsing - full=%dx%d, cropped=%dx%d, offset=%d,%d", full_width, full_height, crop_width, crop_height, offset_x, offset_y);
+
+#undef SKIP_BITS
+#undef SKIP_UE
+#undef GET_BITS
+#undef GET_BIT
+#undef GET_UE
+#undef EXPECT
 }
