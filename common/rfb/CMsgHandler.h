@@ -58,6 +58,7 @@ namespace rfb {
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void endOfContinuousUpdates();
     virtual void supportsQEMUKeyEvent();
+    virtual void supportsQEMUAudioAndAwaitsFormatMsgOnce();
     virtual void serverInit(int width, int height,
                             const PixelFormat& pf,
                             const char* name) = 0;
@@ -84,6 +85,11 @@ namespace rfb {
     virtual void handleClipboardProvide(rdr::U32 flags,
                                         const size_t* lengths,
                                         const rdr::U8* const* data);
+
+    virtual size_t audioSampleSize();
+    virtual void   audioNotifyStreamingStartStop(bool isStart);
+    virtual size_t audioAddSamples(const rdr::U8* data, size_t size);
+    virtual bool   audioSubmitSamples();
 
     ServerParams server;
   };

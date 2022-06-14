@@ -56,6 +56,7 @@ namespace rfb {
     bool readExtendedClipboard(rdr::S32 len);
     bool readFence();
     bool readEndOfContinuousUpdates();
+    bool readQemuServerMessage();
 
     bool readFramebufferUpdate();
 
@@ -79,6 +80,7 @@ namespace rfb {
       MSGSTATE_MESSAGE,
       MSGSTATE_RECT_HEADER,
       MSGSTATE_RECT_DATA,
+      MSGSTATE_AUDIO_DATA,
     };
 
     stateEnum state;
@@ -90,7 +92,10 @@ namespace rfb {
 
     int cursorEncoding;
 
+    size_t nAudioBytesLeft;
+
     static const int maxCursorSize = 256;
+    static const size_t maxBufferedAudioBytes = 32768;
   };
 }
 #endif

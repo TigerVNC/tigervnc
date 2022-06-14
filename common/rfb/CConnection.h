@@ -125,6 +125,9 @@ namespace rfb {
                                         const size_t* lengths,
                                         const rdr::U8* const* data);
 
+    virtual bool audioInitAndGetFormat(rdr::U8* sampleFormat,
+                                       rdr::U8* channels,
+                                       rdr::U32* samplingFreq);
 
     // Methods to be overridden in a derived class
 
@@ -242,6 +245,7 @@ namespace rfb {
     bool supportsCursorPosition;
     bool supportsDesktopResize;
     bool supportsLEDState;
+    bool supportsAudio;
 
   private:
     // This is a default implementation of fences that automatically
