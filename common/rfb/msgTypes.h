@@ -30,8 +30,6 @@ namespace rfb {
 
   const int msgTypeServerFence = 248;
 
-  const int msgTypeQEMUServerMessage = 255;
-
   // client to server
 
   const int msgTypeSetPixelFormat = 0;

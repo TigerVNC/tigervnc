@@ -74,7 +74,6 @@ namespace rfb {
     void setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths);
 
     bool supportsQEMUKeyEvent;
-    bool supportsQEMUAudio;
     bool supportsSetDesktopSize;
     bool supportsFence;
     bool supportsContinuousUpdates;

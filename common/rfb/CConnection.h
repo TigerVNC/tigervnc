@@ -242,7 +242,6 @@ namespace rfb {
     bool supportsCursorPosition;
     bool supportsDesktopResize;
     bool supportsLEDState;
-    bool supportsQEMUAudio;
 
   private:
     // This is a default implementation of fences that automatically

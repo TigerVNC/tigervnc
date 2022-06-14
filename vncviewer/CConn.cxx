@@ -54,7 +54,6 @@
 
 #ifdef WIN32
 #include "win32.h"
-#include "Win32AudioOutput.h"
 #endif
 
 using namespace rdr;
@@ -78,9 +77,6 @@ static const unsigned bpsEstimateWindow = 1000;
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
-#ifdef WIN32
-    win32AudioOutput(NULL),
-#endif
     updateCount(0), pixelCount(0),
     lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
@@ -126,17 +122,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   setServerName(serverHost);
   setStreams(&sock->inStream(), &sock->outStream());
 
-#ifndef WIN32
-  supportsQEMUAudio = false;
-#else
-  win32AudioOutput = new Win32AudioOutput();
-  supportsQEMUAudio = win32AudioOutput->isAvailable();
-  if (!supportsQEMUAudio) {
-    delete win32AudioOutput;
-    win32AudioOutput = NULL;
-  }
-#endif
-
   initialiseProtocol();
 
   OptionsDialog::addCallback(handleOptions, this);
@@ -148,11 +133,6 @@ CConn::~CConn()
 
   OptionsDialog::removeCallback(handleOptions);
   Fl::remove_timeout(handleUpdateTimeout, this);
-
-#ifdef WIN32
-  if (win32AudioOutput)
-    delete win32AudioOutput;
-#endif
 
   if (desktop)
     delete desktop;
@@ -393,22 +373,6 @@ void CConn::framebufferUpdateEnd()
 
   updateCount++;
 
-#ifdef WIN32
-  // If Win32 audio output is available, and server has indicated QEMU audio support, and Win32 audio
-  // output is not open yet, then try to open it, set audio format and enable audio streaming on server
-  if (win32AudioOutput && server.supportsQEMUAudio && (!(win32AudioOutput->isOpened()))) {
-    if (win32AudioOutput->openAndAllocateBuffer()) {
-      writer()->writeQemuAudioSetFormat(win32AudioOutput->getSampleFormat(), 
-                                        win32AudioOutput->getNumberOfChannels(),
-                                        win32AudioOutput->getSamplingFreq());
-      writer()->writeQemuAudioEnableOrDisable(true /* enable */);
-    } else {
-      delete win32AudioOutput;
-      win32AudioOutput = NULL;
-    }
-  }
-#endif
-
   // Calculate bandwidth everything managed to maintain during this update
   gettimeofday(&now, NULL);
   elapsed = (now.tv_sec - updateStartTime.tv_sec) * 1000000;
@@ -507,40 +471,6 @@ void CConn::handleClipboardData(const char* data)
   desktop->handleClipboardData(data);
 }
 
-size_t CConn::audioSampleSize()
-{
-#ifdef WIN32
-  if (win32AudioOutput)
-    return win32AudioOutput->getSampleSize();
-#endif
-  return 1;
-}
-
-void CConn::audioNotifyStreamingStartStop(bool isStart)
-{
-#ifdef WIN32
-  if (win32AudioOutput)
-    return win32AudioOutput->notifyStreamingStartStop(isStart);
-#endif
-}
-
-size_t CConn::audioAddSamples(const rdr::U8* data, size_t size)
-{
-#ifdef WIN32
-  if (win32AudioOutput)
-    return win32AudioOutput->addSamples(data, size);
-#endif
-  return size;
-}
-
-bool CConn::audioSubmitSamples()
-{
-#ifdef WIN32
-  if (win32AudioOutput)
-    return win32AudioOutput->submitSamples();
-#endif
-  return false;
-}
 
 ////////////////////// Internal methods //////////////////////
 
