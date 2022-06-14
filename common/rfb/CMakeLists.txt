@@ -1,6 +1,6 @@
-include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR} ${PIXMAN_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR} ${PIXMAN_INCLUDE_DIRS} ${H264_INCLUDE_DIRS})
 
-set(RFB_SOURCES
+add_library(rfb STATIC
   Blacklist.cxx
   Congestion.cxx
   CConnection.cxx
@@ -64,47 +64,39 @@ set(RFB_SOURCES
   encodings.cxx
   util.cxx)
 
+target_link_libraries(rfb os rdr)
+target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
+target_link_directories(rfb PUBLIC ${PIXMAN_LIBRARY_DIRS})
+
 if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
-  set(RFB_SOURCES ${RFB_SOURCES} H264Decoder.cxx H264DecoderContext.cxx)
+  target_sources(rfb PRIVATE H264Decoder.cxx H264DecoderContext.cxx)
   if(H264_LIBS STREQUAL "LIBAV")
-    set(RFB_SOURCES ${RFB_SOURCES} H264LibavDecoderContext.cxx)
+    target_sources(rfb PRIVATE H264LibavDecoderContext.cxx)
   elseif(H264_LIBS STREQUAL "WIN")
-    set(RFB_SOURCES ${RFB_SOURCES} H264WinDecoderContext.cxx)
+    target_sources(rfb PRIVATE H264WinDecoderContext.cxx)
   endif()
+  target_link_libraries(rfb ${H264_LIBRARIES})
+  target_link_directories(rfb PUBLIC ${H264_LIBRARY_DIRS})
 endif()
 
 if(UNIX)
-  set(RFB_SOURCES ${RFB_SOURCES} Logger_syslog.cxx)
+  target_sources(rfb PRIVATE Logger_syslog.cxx)
 endif()
 
 if(WIN32)
   include_directories(${CMAKE_SOURCE_DIR}/win)
-  set(RFB_SOURCES ${RFB_SOURCES} WinPasswdValidator.cxx)
+  target_sources(rfb PRIVATE WinPasswdValidator.cxx)
 endif(WIN32)
 
-set(RFB_LIBRARIES ${JPEG_LIBRARIES} ${PIXMAN_LIBRARY} os rdr)
-
 if(UNIX AND NOT APPLE)
-  set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
-    UnixPasswordValidator.h pam.c pam.h)
-  set(RFB_LIBRARIES ${RFB_LIBRARIES} ${PAM_LIBS})
+  target_sources(rfb PRIVATE UnixPasswordValidator.cxx pam.c)
+  target_link_libraries(rfb ${PAM_LIBS})
 endif()
 
 if(GNUTLS_FOUND)
-  set(RFB_SOURCES
-    ${RFB_SOURCES}
-    CSecurityTLS.cxx
-    SSecurityTLS.cxx
-  )
-  set(RFB_LIBRARIES
-    ${RFB_LIBRARIES}
-    ${GNUTLS_LIBRARIES}
-  )
+  target_sources(rfb PRIVATE CSecurityTLS.cxx SSecurityTLS.cxx)
+  target_link_libraries(rfb ${GNUTLS_LIBRARIES})
 endif()
-
-add_library(rfb STATIC ${RFB_SOURCES})
-
-target_link_libraries(rfb ${RFB_LIBRARIES})
 
 if(UNIX)
   libtool_create_control_file(rfb)
