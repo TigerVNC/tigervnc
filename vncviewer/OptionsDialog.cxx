@@ -496,7 +496,6 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   int orig_tx, orig_ty;
   int col1_ty, col2_ty;
   int half_width, full_width;
-  int height;
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
@@ -518,11 +517,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   /* VNC encoding box */
   ty += GROUP_LABEL_OFFSET;
-  height = TIGHT_MARGIN * 5 + RADIO_HEIGHT * 4;
-#ifdef HAVE_H264
-  height += TIGHT_MARGIN + RADIO_HEIGHT;
-#endif
-  encodingGroup = new Fl_Group(tx, ty, half_width, height,
+  encodingGroup = new Fl_Group(tx, ty, half_width, 0,
                                 _("Preferred encoding"));
   encodingGroup->box(FL_FLAT_BOX);
   encodingGroup->labelfont(FL_BOLD);
@@ -573,6 +568,9 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   encodingGroup->end();
+  /* Needed for resize to work sanely */
+  encodingGroup->resizable(NULL);
+  encodingGroup->size(encodingGroup->w(), ty - encodingGroup->y());
   col1_ty = ty;
 
   /* Second column */
@@ -581,8 +579,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   /* Color box */
   ty += GROUP_LABEL_OFFSET;
-  height = TIGHT_MARGIN * 5 + RADIO_HEIGHT * 4;
-  colorlevelGroup = new Fl_Group(tx, ty, half_width, height, _("Color level"));
+  colorlevelGroup = new Fl_Group(tx, ty, half_width, 0, _("Color level"));
   colorlevelGroup->labelfont(FL_BOLD);
   colorlevelGroup->box(FL_FLAT_BOX);
   colorlevelGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
@@ -623,6 +620,10 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   colorlevelGroup->end();
+  /* Needed for resize to work sanely */
+  colorlevelGroup->resizable(NULL);
+  colorlevelGroup->size(colorlevelGroup->w(),
+                        ty - colorlevelGroup->y());
   col2_ty = ty;
 
   /* Back to normal */
@@ -668,7 +669,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Security"));
 
   int orig_tx;
-  int width, height;
+  int width;
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
@@ -679,15 +680,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
   /* Encryption */
   ty += GROUP_LABEL_OFFSET;
-
-#if defined(HAVE_GNUTLS) && defined(HAVE_NETTLE)
-  height = TIGHT_MARGIN * 7 + CHECK_HEIGHT * 4 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
-#elif defined(HAVE_GNUTLS)
-  height = TIGHT_MARGIN * 6 + CHECK_HEIGHT * 3 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
-#elif defined(HAVE_NETTLE)
-  height = TIGHT_MARGIN * 3 + CHECK_HEIGHT * 2;
-#endif
-  encryptionGroup = new Fl_Group(tx, ty, width, height, _("Encryption"));
+  encryptionGroup = new Fl_Group(tx, ty, width, 0, _("Encryption"));
   encryptionGroup->labelfont(FL_BOLD);
   encryptionGroup->box(FL_FLAT_BOX);
   encryptionGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
@@ -743,6 +736,10 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   encryptionGroup->end();
+  /* Needed for resize to work sanely */
+  encryptionGroup->resizable(NULL);
+  encryptionGroup->size(encryptionGroup->w(),
+                        ty - encryptionGroup->y());
 
   /* Back to normal */
   tx = orig_tx;
@@ -750,8 +747,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
   /* Authentication */
   ty += GROUP_LABEL_OFFSET;
-  height = TIGHT_MARGIN * 4 + CHECK_HEIGHT * 3;
-  authenticationGroup = new Fl_Group(tx, ty, width, height, _("Authentication"));
+  authenticationGroup = new Fl_Group(tx, ty, width, 0, _("Authentication"));
   authenticationGroup->labelfont(FL_BOLD);
   authenticationGroup->box(FL_FLAT_BOX);
   authenticationGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
@@ -782,6 +778,10 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   authenticationGroup->end();
+  /* Needed for resize to work sanely */
+  authenticationGroup->resizable(NULL);
+  authenticationGroup->size(authenticationGroup->w(),
+                            ty - authenticationGroup->y());
 
   /* Back to normal */
   tx = orig_tx;
@@ -819,9 +819,6 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   mouseGroup->box(FL_FLAT_BOX);
   mouseGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
-  /* Needed for final resize to work sanely */
-  mouseGroup->resizable(NULL);
-
   {
     tx += INDENT;
     ty += TIGHT_MARGIN;
@@ -841,6 +838,8 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   mouseGroup->end();
+  /* Needed for resize to work sanely */
+  mouseGroup->resizable(NULL);
   mouseGroup->size(mouseGroup->w(), ty - mouseGroup->y());
 
   /* Back to normal */
@@ -853,9 +852,6 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   keyboardGroup->labelfont(FL_BOLD);
   keyboardGroup->box(FL_FLAT_BOX);
   keyboardGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
-
-  /* Needed for final resize to work sanely */
-  keyboardGroup->resizable(NULL);
 
   {
     tx += INDENT;
@@ -878,6 +874,8 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   keyboardGroup->end();
+  /* Needed for resize to work sanely */
+  keyboardGroup->resizable(NULL);
   keyboardGroup->size(keyboardGroup->w(), ty - keyboardGroup->y());
 
   /* Back to normal */
@@ -890,9 +888,6 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   clipboardGroup->labelfont(FL_BOLD);
   clipboardGroup->box(FL_FLAT_BOX);
   clipboardGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
-
-  /* Needed for final resize to work sanely */
-  clipboardGroup->resizable(NULL);
 
   {
     tx += INDENT;
@@ -931,6 +926,8 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   clipboardGroup->end();
+  /* Needed for resize to work sanely */
+  clipboardGroup->resizable(NULL);
   clipboardGroup->size(clipboardGroup->w(), ty - clipboardGroup->y());
 
   /* Back to normal */
@@ -961,9 +958,6 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
   displayModeGroup->labelfont(FL_BOLD);
   displayModeGroup->box(FL_FLAT_BOX);
   displayModeGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
-
-  /* Needed for final resize to work sanely */
-  displayModeGroup->resizable(NULL);
 
   {
     tx += INDENT;
@@ -1010,6 +1004,8 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
   ty -= TIGHT_MARGIN;
 
   displayModeGroup->end();
+  /* Needed for resize to work sanely */
+  displayModeGroup->resizable(NULL);
   displayModeGroup->size(displayModeGroup->w(),
                          ty - displayModeGroup->y());
 
