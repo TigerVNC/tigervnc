@@ -74,10 +74,10 @@ OptionsDialog::OptionsDialog()
   //        have any separator for the caption, which looks odd
 #ifdef WIN32
   navigation = new Fl_Navigation(-1, 0, w()+2,
-                                 h() - INNER_MARGIN - BUTTON_HEIGHT - OUTER_MARGIN);
+                                 h() - OUTER_MARGIN - BUTTON_HEIGHT - OUTER_MARGIN);
 #else
   navigation = new Fl_Navigation(-1, -1, w()+2,
-                                 h()+1 - INNER_MARGIN - BUTTON_HEIGHT - OUTER_MARGIN);
+                                 h()+1 - OUTER_MARGIN - BUTTON_HEIGHT - OUTER_MARGIN);
 #endif
   {
     int tx, ty, tw, th;

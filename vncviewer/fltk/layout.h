@@ -40,7 +40,7 @@ static inline int gui_str_len(const char *str)
 
 /**** MARGINS ****/
 
-#define OUTER_MARGIN            10
+#define OUTER_MARGIN            15
 #define INNER_MARGIN            10
 
 /* Tighter grouping of related fields */
