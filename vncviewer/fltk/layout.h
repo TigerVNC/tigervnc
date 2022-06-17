@@ -47,7 +47,7 @@ static inline int gui_str_len(const char *str)
 #define TIGHT_MARGIN            5
 
 /**** ADJUSTMENTS ****/
-#define INDENT                  20
+#define INDENT                  10
 
 /**** FLTK WIDGETS ****/
 
