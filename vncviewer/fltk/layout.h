@@ -59,9 +59,9 @@ static inline int gui_str_len(const char *str)
 #define BUTTON_WIDTH            115
 #define BUTTON_HEIGHT           27
 
-/* Fl_Round_Button */
-#define RADIO_MIN_WIDTH         (FL_NORMAL_SIZE + 5)
-#define RADIO_HEIGHT            (FL_NORMAL_SIZE + 7)
+/* Fl_Round_Button (padding + focus draw bug) */
+#define RADIO_MIN_WIDTH         (FL_NORMAL_SIZE + 4 + 1)
+#define RADIO_HEIGHT            (FL_NORMAL_SIZE + 4 + 1)
 
 /* Fl_Check_Button */
 #define CHECK_MIN_WIDTH         RADIO_MIN_WIDTH
