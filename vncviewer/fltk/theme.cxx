@@ -42,8 +42,11 @@
 
 // FIXME: Antialiased pie/arc
 
-// 4px on Windows, 5px in GNOME
-const int RADIUS = 5;
+#ifdef WIN32
+const int RADIUS = 4; // Windows 11
+#else
+const int RADIUS = 5; // GNOME / macOS
+#endif
 
 static Fl_Color border_color(Fl_Color c)
 {
