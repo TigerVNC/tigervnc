@@ -48,27 +48,66 @@ const int RADIUS = 4; // Windows 11
 const int RADIUS = 5; // GNOME / macOS
 #endif
 
-static Fl_Color border_color(Fl_Color c)
+static Fl_Color light_border(Fl_Color c)
 {
+#if defined(WIN32) || defined(__APPLE__)
+  return fl_color_average(FL_BLACK, c, 0.12);
+#else
   return fl_color_average(FL_BLACK, c, 0.17);
+#endif
+}
+
+static Fl_Color dark_border(Fl_Color c)
+{
+#if defined(WIN32) || defined(__APPLE__)
+  return fl_color_average(FL_BLACK, c, 0.33);
+#else
+  return light_border(c);
+#endif
+}
+
+static void theme_frame(bool up, int x, int y, int w, int h, Fl_Color c)
+{
+  if (up)
+    Fl::set_box_color(light_border(c));
+  else
+    Fl::set_box_color(dark_border(c));
+
+  fl_xyline(x+RADIUS, y, x+w-RADIUS-1);
+
+  if (!up)
+    Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+
+  fl_arc(x, y, RADIUS*2, RADIUS*2, 90.0, 180.0);
+  fl_arc(x+w-(RADIUS*2), y, RADIUS*2, RADIUS*2, 0, 90.0);
+
+  Fl::set_box_color(light_border(c));
+
+  fl_yxline(x, y+RADIUS, y+h-RADIUS-1);
+  fl_yxline(x+w-1, y+RADIUS, y+h-RADIUS-1);
+
+  if (up)
+    Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+
+  fl_arc(x, y+h-(RADIUS*2), RADIUS*2, RADIUS*2, 180, 270.0);
+  fl_arc(x+w-(RADIUS*2), y+h-(RADIUS*2), RADIUS*2, RADIUS*2, 270, 360.0);
+
+  if (up)
+    Fl::set_box_color(dark_border(c));
+  else
+    Fl::set_box_color(light_border(c));
+
+  fl_xyline(x+RADIUS, y+h-1, x+w-RADIUS-1);
 }
 
 static void theme_up_frame(int x, int y, int w, int h, Fl_Color c)
 {
-  Fl::set_box_color(border_color(c));
-  fl_arc(x, y, RADIUS*2, RADIUS*2, 90.0, 180.0);
-  fl_xyline(x+RADIUS, y, x+w-RADIUS-1);
-  fl_arc(x+w-(RADIUS*2), y, RADIUS*2, RADIUS*2, 0, 90.0);
-  fl_yxline(x, y+RADIUS, y+h-RADIUS-1);
-  fl_yxline(x+w-1, y+RADIUS, y+h-RADIUS-1);
-  fl_arc(x, y+h-(RADIUS*2), RADIUS*2, RADIUS*2, 180, 270.0);
-  fl_xyline(x+RADIUS, y+h-1, x+w-RADIUS-1);
-  fl_arc(x+w-(RADIUS*2), y+h-(RADIUS*2), RADIUS*2, RADIUS*2, 270, 360.0);
+  theme_frame(true, x, y, w, h, c);
 }
 
 static void theme_down_frame(int x, int y, int w, int h, Fl_Color c)
 {
-  theme_up_frame(x, y, w, h, c);
+  theme_frame(false, x, y, w, h, c);
 }
 
 static void theme_round_rect(int x, int y, int w, int h, int r,
@@ -116,13 +155,25 @@ static void theme_round_up_box(int x, int y, int w, int h, Fl_Color c)
   Fl::set_box_color(c);
   fl_pie(x, y, w, h, 0.0, 360.0);
 
-  Fl::set_box_color(border_color(c));
-  fl_arc(x, y, w, h, 0.0, 360.0);
+  Fl::set_box_color(light_border(c));
+  fl_arc(x, y, w, h, 0.0, 180.0);
+  Fl::set_box_color(dark_border(c));
+  fl_arc(x, y, w, h, 180.0, 360.0);
+  Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+  fl_arc(x, y, w, h, 225.0, 315.0);
 }
 
 static void theme_round_down_box(int x, int y, int w, int h, Fl_Color c)
 {
-  theme_round_up_box(x, y, w, h, c);
+  Fl::set_box_color(c);
+  fl_pie(x, y, w, h, 0.0, 360.0);
+
+  Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+  fl_arc(x, y, w, h, 0.0, 180.0);
+  Fl::set_box_color(dark_border(c));
+  fl_arc(x, y, w, h, 45.0, 135.0);
+  Fl::set_box_color(light_border(c));
+  fl_arc(x, y, w, h, 180.0, 360.0);
 }
 
 void init_theme()
