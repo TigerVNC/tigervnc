@@ -137,8 +137,12 @@ static void theme_round_rect(int x, int y, int w, int h, int r,
 
 static void theme_up_box(int x, int y, int w, int h, Fl_Color c)
 {
+#if defined(WIN32) || defined(__APPLE__)
+  theme_round_rect(x, y, w, h, RADIUS, fl_lighter(fl_lighter(c)));
+#else
   theme_round_rect(x, y, w, h, RADIUS,
                    c, fl_color_average(FL_BLACK, c, 0.04));
+#endif
 
   theme_up_frame(x, y, w, h, c);
 }
