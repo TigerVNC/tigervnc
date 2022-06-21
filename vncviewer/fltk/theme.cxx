@@ -48,6 +48,11 @@ const int RADIUS = 4; // Windows 11
 const int RADIUS = 5; // GNOME / macOS
 #endif
 
+static Fl_Color shadow_color(Fl_Color c)
+{
+  return fl_color_average(FL_BLACK, c, 0.03);
+}
+
 static Fl_Color light_border(Fl_Color c)
 {
 #if defined(WIN32) || defined(__APPLE__)
@@ -137,6 +142,9 @@ static void theme_round_rect(int x, int y, int w, int h, int r,
 
 static void theme_up_box(int x, int y, int w, int h, Fl_Color c)
 {
+  theme_round_rect(x-1, y-1, w+2, h+2, RADIUS+1,
+                   shadow_color(FL_BACKGROUND_COLOR));
+
 #if defined(WIN32) || defined(__APPLE__)
   theme_round_rect(x, y, w, h, RADIUS, fl_lighter(fl_lighter(c)));
 #else
@@ -149,13 +157,18 @@ static void theme_up_box(int x, int y, int w, int h, Fl_Color c)
 
 static void theme_down_box(int x, int y, int w, int h, Fl_Color c)
 {
-  theme_round_rect(x, y, w, h, RADIUS, c);
+  theme_round_rect(x, y, w, h, RADIUS, shadow_color(c));
+
+  theme_round_rect(x+2, y+2, w-4, h-4, RADIUS-2, c);
 
   theme_down_frame(x, y, w, h, c);
 }
 
 static void theme_round_up_box(int x, int y, int w, int h, Fl_Color c)
 {
+  Fl::set_box_color(shadow_color(FL_BACKGROUND_COLOR));
+  fl_pie(x-1, y-1, w+2, h+2, 0.0, 360.0);
+
   Fl::set_box_color(c);
   fl_pie(x, y, w, h, 0.0, 360.0);
 
@@ -169,8 +182,11 @@ static void theme_round_up_box(int x, int y, int w, int h, Fl_Color c)
 
 static void theme_round_down_box(int x, int y, int w, int h, Fl_Color c)
 {
-  Fl::set_box_color(c);
+  Fl::set_box_color(shadow_color(c));
   fl_pie(x, y, w, h, 0.0, 360.0);
+
+  Fl::set_box_color(c);
+  fl_pie(x+2, y+2, w-4, h-4, 0.0, 360.0);
 
   Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
   fl_arc(x, y, w, h, 0.0, 180.0);
