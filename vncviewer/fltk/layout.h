@@ -55,9 +55,15 @@ static inline int gui_str_len(const char *str)
 #define INPUT_LABEL_OFFSET      FL_NORMAL_SIZE
 #define INPUT_HEIGHT            30
 
+//#define INPUT_HEIGHT            32 // Windows 11, GNOME?
+//#define INPUT_HEIGHT            21 // macOS?
+
+
 /* Fl_Button */
 #define BUTTON_WIDTH            132
 #define BUTTON_HEIGHT           32
+
+//#define BUTTON_HEIGHT           21 // macOS
 
 /* Fl_Round_Button (padding + focus draw bug) */
 #define RADIO_MIN_WIDTH         (FL_NORMAL_SIZE + 4 + 1)
