@@ -101,8 +101,10 @@ OptionsDialog::OptionsDialog()
 
   x += BUTTON_WIDTH + INNER_MARGIN;
 
-  button = new Fl_Return_Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("OK"));
+  button = new Fl_Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("OK"));
   button->callback(this->handleOK, this);
+  //button->color(FL_SELECTION_COLOR);
+  //button->selection_color(FL_SELECTION_COLOR);
 
   callback(this->handleCancel, this);
 
