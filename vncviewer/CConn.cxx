@@ -264,7 +264,6 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     }
 
     cc->sock->outStream().cork(false);
-    cc->sock->outStream().flush();
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
     if (!cc->desktop) {
