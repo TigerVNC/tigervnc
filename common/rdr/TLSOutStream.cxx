@@ -124,13 +124,18 @@ void TLSOutStream::cork(bool enable)
 
 void TLSOutStream::overrun(size_t needed)
 {
+  bool oldCorked;
+
   if (needed > bufSize)
     throw Exception("TLSOutStream overrun: buffer size exceeded");
 
   // A cork might prevent the flush, so disable it temporarily
+  oldCorked = corked;
   corked = false;
+
   flush();
-  corked = true;
+
+  corked = oldCorked;
 }
 
 size_t TLSOutStream::writeTLS(const U8* data, size_t length)
