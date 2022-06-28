@@ -247,7 +247,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     // We might have been called to flush unwritten socket data
     cc->sock->outStream().flush();
 
-    cc->sock->outStream().cork(true);
+    cc->getOutStream()->cork(true);
 
     // processMsg() only processes one message, so we need to loop
     // until the buffers are empty or things will stall.
@@ -263,7 +263,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
         break;
     }
 
-    cc->sock->outStream().cork(false);
+    cc->getOutStream()->cork(false);
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
     if (!cc->desktop) {
