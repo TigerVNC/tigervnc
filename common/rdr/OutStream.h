@@ -113,7 +113,7 @@ namespace rdr {
 
     // cork() requests that the stream coalesces flushes in an efficient way
 
-    virtual void cork(bool enable) { corked = enable; flush(); }
+    virtual void cork(bool enable) { corked = enable; if (!enable) flush(); }
 
     // getptr() and setptr() are "dirty" methods which allow you direct access
     // to the buffer. This is useful for a stream which is a wrapper around an
