@@ -37,6 +37,7 @@
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 #include <FL/Fl_Button.H>
+#include <FL/x.H>
 
 #if defined(HAVE_XRANDR) && !defined(__APPLE__)
 #include <X11/extensions/Xrandr.h>

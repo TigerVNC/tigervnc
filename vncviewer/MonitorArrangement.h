@@ -29,7 +29,8 @@
 #include <map>
 #include <set>
 
-class Fl_Group;
+#include <FL/Fl_Group.H>
+
 class Fl_Button;
 
 class MonitorArrangement: public Fl_Group {
