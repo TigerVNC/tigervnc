@@ -21,6 +21,10 @@ jobs:
       - name: Install
         working-directory: build
         run: make tarball
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Linux (Ubuntu)
+          path: build/tigervnc-*.tar.gz
 
   build-windows:
     runs-on: windows-latest
@@ -44,6 +48,10 @@ jobs:
         env:
           MSYS2_PATH_TYPE: inherit
         run: make installer winvnc_installer
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Windows
+          path: build/release/tigervnc*.exe
 
   build-macos:
     runs-on: macos-latest
@@ -60,6 +68,10 @@ jobs:
       - name: Install
         working-directory: build
         run: make dmg
+      - uses: actions/upload-artifact@v3
+        with:
+          name: macOS
+          path: build/TigerVNC-*.dmg
 
   build-java:
     runs-on: ubuntu-latest
@@ -79,6 +91,10 @@ jobs:
       - name: Build
         working-directory: java/build
         run: make
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Java (${{ matrix.java }})
+          path: java/build/VncViewer.jar
 
   build-packages:
     strategy:
@@ -98,3 +114,7 @@ jobs:
         run: docker build -t tigervnc/$DOCKER .github/containers/$DOCKER
       - name: Build packages
         run: .github/containers/$DOCKER/build.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Packages (${{ matrix.target }})
+          path: .github/containers/${{ matrix.target }}/result
