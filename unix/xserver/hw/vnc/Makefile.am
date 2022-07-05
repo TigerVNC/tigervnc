@@ -45,7 +45,7 @@ Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_MODULE_EXTS \
 	-I$(top_srcdir)/include ${XSERVERLIBS_CFLAGS}
 
 LOCAL_LIBS = \
-	$(XVNC_LIBS) \ \
+	$(XVNC_LIBS) \
 	$(XSERVER_LIBS) \
 	libvnccommon.la \
 	$(COMMON_LIBS)
