@@ -53,3 +53,6 @@ docker run --volume ${CURDIR}/build:/home/deb/build --interactive --rm tigervnc/
 	sudo apt-get -f install -y &&
 	cd ~/build/tigervnc-${VERSION} && dpkg-buildpackage
 	"
+
+mkdir -p ${CURDIR}/result
+cp -av ${CURDIR}/build/*.deb ${CURDIR}/result

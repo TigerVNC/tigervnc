@@ -39,3 +39,7 @@ docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --interactive --rm tig
         sudo chown 0.0 ~/rpmbuild/SPECS/* &&
 	rpmbuild -ba ~/rpmbuild/SPECS/tigervnc.spec
 	"
+
+mkdir -p ${CURDIR}/result
+cp -av ${CURDIR}/rpmbuild/RPMS ${CURDIR}/result
+cp -av ${CURDIR}/rpmbuild/SRPMS ${CURDIR}/result
