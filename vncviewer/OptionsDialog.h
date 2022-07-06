@@ -114,6 +114,7 @@ protected:
   Fl_Group *mouseGroup;
   Fl_Check_Button *emulateMBCheckbox;
   Fl_Check_Button *dotCursorCheckbox;
+  Fl_Check_Button *largeCursorInsteadOfDotCheckbox;
   Fl_Group *keyboardGroup;
   Fl_Check_Button *systemKeysCheckbox;
   Fl_Choice *menuKeyChoice;

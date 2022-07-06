@@ -318,6 +318,7 @@ void OptionsDialog::loadOptions(void)
   sharedCheckbox->value(shared);
   reconnectCheckbox->value(reconnectOnError);
   dotCursorCheckbox->value(dotWhenNoCursor);
+  largeCursorInsteadOfDotCheckbox->value(largeCursorInsteadOfDot);
 }
 
 
@@ -432,6 +433,7 @@ void OptionsDialog::storeOptions(void)
   shared.setParam(sharedCheckbox->value());
   reconnectOnError.setParam(reconnectCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
+  largeCursorInsteadOfDot.setParam(largeCursorInsteadOfDotCheckbox->value());
 
   std::map<OptionsCallback*, void*>::const_iterator iter;
 
@@ -760,6 +762,13 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                     CHECK_MIN_WIDTH,
                                                     CHECK_HEIGHT,
                                                     _("Show dot when no cursor")));
+
+    ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+    largeCursorInsteadOfDotCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                     CHECK_MIN_WIDTH,
+                                                     CHECK_HEIGHT,
+                                                     _("Use large cursor instead of dot")));
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
   }
   ty += GROUP_MARGIN - TIGHT_MARGIN;

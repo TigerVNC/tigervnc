@@ -243,6 +243,44 @@ static const char * dotcursor_xpm[] = {
   " ... ",
   "     "};
 
+static const char * largecursor_xpm[] = {
+  "18 32 3 1",
+  ".      c #000000",
+  "       c #FFFFFF",
+  ",      c None",
+  "  ,,,,,,,,,,,,,,,,",
+  "   ,,,,,,,,,,,,,,,",
+  "    ,,,,,,,,,,,,,,",
+  "     ,,,,,,,,,,,,,",
+  "  .   ,,,,,,,,,,,,",
+  "  ..   ,,,,,,,,,,,",
+  "  ...   ,,,,,,,,,,",
+  "  ....   ,,,,,,,,,",
+  "  .....   ,,,,,,,,",
+  "  ......   ,,,,,,,",
+  "  .......   ,,,,,,",
+  "  ........   ,,,,,",
+  "  .........   ,,,,",
+  "  ..........   ,,,",
+  "  ...........   ,,",
+  "  ............   ,",
+  "  ............   ,",
+  "  .........     ,,",
+  "  ....  ...   ,,,,",
+  "  ...   ...   ,,,,",
+  "  ..     ...   ,,,",
+  "  .  ,,  ...   ,,,",
+  "    ,,,  ...   ,,,",
+  ",,,,,,,   ...  ,,,",
+  ",,,,,,,,  ...  ,,,",
+  ",,,,,,,,, ...  ,,,",
+  ",,,,,,,,,     ,,,,",
+  ",,,,,,,,,,   ,,,,,",
+  ",,,,,,,,,,,,,,,,,,",
+  ",,,,,,,,,,,,,,,,,,",
+  ",,,,,,,,,,,,,,,,,,",
+  ",,,,,,,,,,,,,,,,,,"};
+
 void Viewport::setCursor(int width, int height, const Point& hotspot,
                          const rdr::U8* data)
 {
@@ -260,8 +298,13 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
   if ((i == width*height) && dotWhenNoCursor) {
     vlog.debug("cursor is empty - using dot");
 
-    Fl_Pixmap pxm(dotcursor_xpm);
-    cursor = new Fl_RGB_Image(&pxm);
+    Fl_Pixmap dotCursor(dotcursor_xpm);
+    Fl_Pixmap largeCursor(largecursor_xpm);
+    if (largeCursorInsteadOfDot) {
+      cursor = new Fl_RGB_Image(&largeCursor);
+    } else {
+      cursor = new Fl_RGB_Image(&dotCursor);
+    }
     cursorHotspot.x = cursorHotspot.y = 2;
   } else {
     if ((width == 0) || (height == 0)) {
