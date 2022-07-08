@@ -73,6 +73,7 @@
 
 #include <FL/Fl_Menu.H>
 #include <FL/Fl_Menu_Button.H>
+#include <FL/x.H>
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/XKBlib.h>

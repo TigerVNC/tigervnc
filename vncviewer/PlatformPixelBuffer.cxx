@@ -21,6 +21,7 @@
 #endif
 
 #include <assert.h>
+#include <stdlib.h>
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <sys/ipc.h>

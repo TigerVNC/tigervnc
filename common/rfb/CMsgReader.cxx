@@ -366,16 +366,32 @@ bool CMsgReader::readExtendedClipboard(rdr::S32 len)
 
       lengths[num] = zis.readU32();
 
-      if (!zis.hasData(lengths[num]))
-        throw Exception("Extended clipboard decode error");
-
       if (lengths[num] > (size_t)maxCutText) {
         vlog.error("Extended clipboard data too long (%d bytes) - ignoring",
                    (unsigned)lengths[num]);
-        zis.skip(lengths[num]);
+
+        // Slowly (safely) drain away the data
+        while (lengths[num] > 0) {
+          size_t chunk;
+
+          if (!zis.hasData(1))
+            throw Exception("Extended clipboard decode error");
+
+          chunk = zis.avail();
+          if (chunk > lengths[num])
+            chunk = lengths[num];
+
+          zis.skip(chunk);
+          lengths[num] -= chunk;
+        }
+
         flags &= ~(1 << i);
+
         continue;
       }
+
+      if (!zis.hasData(lengths[num]))
+        throw Exception("Extended clipboard decode error");
 
       buffers[num] = new rdr::U8[lengths[num]];
       zis.readBytes(buffers[num], lengths[num]);

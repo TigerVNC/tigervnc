@@ -129,11 +129,17 @@ void ZlibOutStream::overrun(size_t needed)
   checkCompressionLevel();
 
   while (avail() < needed) {
+    bool oldCorked;
+
     // use corked to make zlib a bit more efficient since we're not trying
     // to end the stream here, just make some room
+
+    oldCorked = corked;
     corked = true;
+
     flush();
-    corked = false;
+
+    corked = oldCorked;
   }
 }
 
