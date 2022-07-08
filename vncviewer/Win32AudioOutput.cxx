@@ -54,9 +54,9 @@ Win32AudioOutput::Win32AudioOutput()
     bufFreeSize(0), bufUnsubmittedSize(0), bufSubmittedHead(0), bufUnsubmittedHead(0),
     doneHdrsSlist(NULL), hdrsInFlight(0), extraDelayInMillisec(0)
 {
-  static const rdr::U32 freqTable[4] = {44100, 48000, 22050, 11025};
+  static const rdr::U32 freqTable[4] = {48000, 44100, 22050, 11025};
 
-  // Default format (16-bit stereo, 44100 Hz) is tried first and usually succeeds,
+  // Default format (16-bit stereo, 48000 Hz) is tried first and usually succeeds,
   // but we also try other formats before giving up
   for (rdr::U8 bits_per_sample = 16; bits_per_sample != 0; bits_per_sample -= 8) {
     for (rdr::U8 n_channels = 2; n_channels != 0; n_channels--) {

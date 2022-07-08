@@ -57,6 +57,7 @@ namespace rfb {
     bool readFence();
     bool readEndOfContinuousUpdates();
     bool readQemuServerMessage();
+    bool readAudioData();
 
     bool readFramebufferUpdate();
 

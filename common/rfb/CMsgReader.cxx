@@ -83,20 +83,10 @@ bool CMsgReader::readServerInit()
 bool CMsgReader::readMsg()
 {
   if (state == MSGSTATE_AUDIO_DATA) {
-    while (nAudioBytesLeft != 0) {
-      is->hasData(__rfbmin(maxBufferedAudioBytes, nAudioBytesLeft));  // request as much as possible
-      size_t available = __rfbmin(is->avail(), nAudioBytesLeft);      // see how many we've got
-      size_t consumed = available ? handler->audioAddSamples(is->getptr(available), available) : 0;
-      if (consumed == 0)
-        break;
-      is->skip(consumed);
-      nAudioBytesLeft -= consumed;
-    }
-    if (nAudioBytesLeft != 0)
+    if (readAudioData())
+      state = MSGSTATE_IDLE;
+    else
       return false;
-
-    handler->audioSubmitSamples();
-    state = MSGSTATE_IDLE;
   }
 
   if (state == MSGSTATE_IDLE) {
@@ -502,28 +492,32 @@ bool CMsgReader::readQemuServerMessage()
         return true;
       if ((nAudioBytesLeft % handler->audioSampleSize()) != 0)
         throw Exception("QEMU audio protocol error: sample torn apart");
-
-      while (nAudioBytesLeft != 0) {
-        is->hasData(__rfbmin(maxBufferedAudioBytes, nAudioBytesLeft));  // request as much as possible
-        size_t available = __rfbmin(is->avail(), nAudioBytesLeft);      // see how many we've got
-        size_t consumed = available ? handler->audioAddSamples(is->getptr(available), available) : 0;
-        if (consumed == 0)
-          break;
-        is->skip(consumed);
-        nAudioBytesLeft -= consumed;
-      }
-      if (nAudioBytesLeft != 0) {
-        state = MSGSTATE_AUDIO_DATA;
-        return false;
-      }
-
-      handler->audioSubmitSamples();
-      return true;
+      if (readAudioData())
+        return true;
+      state = MSGSTATE_AUDIO_DATA;
+      return false;
 
     default:
       is->clearRestorePoint();
       throw Exception("Invalid QEMU audio operation");
   }
+}
+
+bool CMsgReader::readAudioData()
+{
+  while (nAudioBytesLeft != 0) {
+    is->hasData(__rfbmin(maxBufferedAudioBytes, nAudioBytesLeft));  // request as much as possible
+    size_t available = __rfbmin(is->avail(), nAudioBytesLeft);      // see how many we've got
+    if (available == 0)
+      return false;
+    size_t consumed = handler->audioAddSamples(is->getptr(available), available);
+    if (consumed == 0)
+      return false;
+    is->skip(consumed);
+    nAudioBytesLeft -= consumed;
+  }
+  handler->audioSubmitSamples();
+  return true;
 }
 
 bool CMsgReader::readFramebufferUpdate()
