@@ -237,16 +237,37 @@ void init_theme()
   // FIXME: Should get these from the system,
   //        Fl::get_system_colors() is unfortunately not very capable
   // FIXME: Should also handle dark mode
+
+#if defined(WIN32)
+  // Windows 11
+  Fl::foreground(26, 26, 26);
+  Fl::background(243, 243, 243);
+#elif defined(__APPLE__)
+  // FIXME: Text is rendered slightly lighter than what we specify here
+  //        for some odd reason. The target is (38, 38, 38).
+  Fl::foreground(28, 28, 28);
+  Fl::background(246, 246, 246);
+#else
+  // GNOME
+  Fl::foreground(46, 52, 54);
+  Fl::background(246, 245, 244);
+#endif
+
   // FIXME: fl_contrast() also sucks since its calculations are utterly
   //        wrong as they fail to account for sRGB curves. And even with
   //        that fixed we get odd results with dark backgrounds, so
   //        APCA should probably be used.
   //        https://github.com/fltk/fltk/issues/370
-  Fl::foreground(46, 52, 54);
-  Fl::background(246, 245, 244);
-  // GNOME uses (53,132,228), macOS (0, 122, 255), this is the lightest
-  // version of GNOME's that fl_contrast() won't screw up
-  Fl::set_color(FL_SELECTION_COLOR, 29, 113, 215);
+
+#if defined(WIN32)
+  // Windows 11 default accent color
+  Fl::set_color(FL_SELECTION_COLOR, 0, 103, 192);
+#elif defined(__APPLE__)
+  Fl::set_color(FL_SELECTION_COLOR, 0, 122, 255);
+#else
+  // GNOME
+  Fl::set_color(FL_SELECTION_COLOR, 53, 132, 228);
+#endif
 
 #if defined(WIN32)
   NONCLIENTMETRICS metrics;
