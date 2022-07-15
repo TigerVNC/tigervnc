@@ -42,10 +42,12 @@
 
 // FIXME: Antialiased pie/arc
 
-#ifdef WIN32
+#if defined(WIN32)
 const int RADIUS = 4; // Windows 11
+#elif defined(__APPLE__)
+const int RADIUS = 6; // macOS
 #else
-const int RADIUS = 5; // GNOME / macOS
+const int RADIUS = 5; // GNOME
 #endif
 
 static Fl_Color shadow_color(Fl_Color c)
@@ -202,8 +204,12 @@ void init_theme()
   // FIXME: This is rounded down since there are some issues scaling
   //        fonts up in FLTK:
   //        https://github.com/fltk/fltk/issues/371
-  // FIXME: macOS/Windows
+#ifdef __APPLE__
+  // macOS still has slightly lower though
+  FL_NORMAL_SIZE = 13;
+#else
   FL_NORMAL_SIZE = 14;
+#endif
 
   // FIXME: Base theme
   Fl::scheme("gtk+");
