@@ -25,6 +25,14 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#ifdef __APPLE__
+#include <ApplicationServices/ApplicationServices.h>
+#endif
+
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/fl_ask.H>
@@ -50,8 +58,31 @@ void init_theme()
   // with the above schemes.
   fl_message_icon()->box(FL_UP_BOX);
 
-#ifdef WIN32
-  // Most "normal" Windows apps use this font for UI elements.
-  Fl::set_font(FL_HELVETICA, "Tahoma");
+#if defined(WIN32)
+  NONCLIENTMETRICS metrics;
+  metrics.cbSize = sizeof(metrics);
+  if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS,
+                           sizeof(metrics), &metrics, 0))
+    Fl::set_font(FL_HELVETICA, metrics.lfMessageFont.lfFaceName);
+#elif defined(__APPLE__)
+  CTFontRef font;
+  CFStringRef name;
+  char cname[256];
+
+  font = CTFontCreateUIFontForLanguage(kCTFontSystemFontType, 0.0, NULL);
+  if (font != NULL) {
+    name = CTFontCopyFullName(font);
+    if (name != NULL) {
+      CFStringGetCString(name, cname, sizeof(cname),
+                         kCFStringEncodingUTF8);
+
+      Fl::set_font(FL_HELVETICA, cname);
+
+      CFRelease(name);
+    }
+    CFRelease(font);
+  }
+#else
+  // FIXME: Get font from GTK or QT
 #endif
 }
