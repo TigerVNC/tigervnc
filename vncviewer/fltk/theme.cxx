@@ -215,15 +215,23 @@ void init_theme()
   Fl::scheme("gtk+");
 
   // Define our box types
-  Fl::set_boxtype(THEME_UP_FRAME, theme_up_frame, 3, 3, 6, 6);
-  Fl::set_boxtype(THEME_DOWN_FRAME, theme_down_frame, 3, 3, 6, 6);
-  Fl::set_boxtype(THEME_THIN_UP_FRAME, theme_up_frame, 3, 3, 6, 6);
-  Fl::set_boxtype(THEME_THIN_DOWN_FRAME, theme_down_frame, 3, 3, 6, 6);
+#ifdef __APPLE__
+  const int PX = 6;
+  const int PY = 4;
+#else
+  const int PX = 6;
+  const int PY = 6;
+#endif
 
-  Fl::set_boxtype(THEME_UP_BOX, theme_up_box, 3, 3, 6, 6);
-  Fl::set_boxtype(THEME_DOWN_BOX, theme_down_box, 3, 3, 6, 6);
-  Fl::set_boxtype(THEME_THIN_UP_BOX, theme_up_box, 3, 3, 6, 6);
-  Fl::set_boxtype(THEME_THIN_DOWN_BOX, theme_down_box, 3, 3, 6, 6);
+  Fl::set_boxtype(THEME_UP_FRAME, theme_up_frame, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_DOWN_FRAME, theme_down_frame, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_UP_FRAME, theme_up_frame, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_DOWN_FRAME, theme_down_frame, PX, PY, PX*2, PY*2);
+
+  Fl::set_boxtype(THEME_UP_BOX, theme_up_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_DOWN_BOX, theme_down_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_UP_BOX, theme_up_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_DOWN_BOX, theme_down_box, PX, PY, PX*2, PY*2);
   Fl::set_boxtype(THEME_ROUND_UP_BOX, theme_round_up_box, 3, 3, 6, 6);
   Fl::set_boxtype(THEME_ROUND_DOWN_BOX, theme_round_down_box, 3, 3, 6, 6);
 
