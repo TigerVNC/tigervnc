@@ -15,6 +15,7 @@ const unsigned short code_map_osx_to_qnum[256] = {
   [0x7] = 0x2d, /* osx:7 (ANSI_X) -> linux:45 (KEY_X) -> qnum:45 */
   [0x8] = 0x2e, /* osx:8 (ANSI_C) -> linux:46 (KEY_C) -> qnum:46 */
   [0x9] = 0x2f, /* osx:9 (ANSI_V) -> linux:47 (KEY_V) -> qnum:47 */
+  [0xa] = 0xAA, /* osx:10 (ISO_Section) -> linux:170 (KEY_ISO) -> qnum:170 */
   [0xb] = 0x30, /* osx:11 (ANSI_B) -> linux:48 (KEY_B) -> qnum:48 */
   [0xc] = 0x10, /* osx:12 (ANSI_Q) -> linux:16 (KEY_Q) -> qnum:16 */
   [0xd] = 0x11, /* osx:13 (ANSI_W) -> linux:17 (KEY_W) -> qnum:17 */
