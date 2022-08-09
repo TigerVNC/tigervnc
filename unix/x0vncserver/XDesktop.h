@@ -55,6 +55,9 @@ public:
                                const char* userName);
   virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
   KeyCode XkbKeysymToKeycode(Display* dpy, KeySym keysym);
+  KeyCode addKeysym(Display* dpy, KeySym keysym);
+  void deleteAddedKeysyms(Display* dpy);
+  KeyCode keysymToKeycode(Display* dpy, KeySym keysym);
   virtual void keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down);
   virtual void clientCutText(const char* str);
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
@@ -78,6 +81,7 @@ protected:
   bool haveXtest;
   bool haveDamage;
   int maxButtons;
+  std::map<KeySym, KeyCode> addedKeysyms;
   std::map<KeySym, KeyCode> pressedKeys;
   bool running;
 #ifdef HAVE_XDAMAGE
