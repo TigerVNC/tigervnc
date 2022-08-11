@@ -192,7 +192,8 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
                    RRScreenChangeNotifyMask | RRCrtcChangeNotifyMask);
     /* Override TXWindow::init input mask */
     XSelectInput(dpy, DefaultRootWindow(dpy),
-                 PropertyChangeMask | StructureNotifyMask | ExposureMask);
+                 PropertyChangeMask | StructureNotifyMask |
+                 ExposureMask | EnterWindowMask | LeaveWindowMask);
   } else {
 #endif
     vlog.info("RANDR extension not present");
@@ -217,11 +218,13 @@ void XDesktop::poll() {
     Window root, child;
     int x, y, wx, wy;
     unsigned int mask;
-    XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
-                  &x, &y, &wx, &wy, &mask);
-    x -= geometry->offsetLeft();
-    y -= geometry->offsetTop();
-    server->setCursorPos(rfb::Point(x, y), false);
+
+    if (XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
+                      &x, &y, &wx, &wy, &mask)) {
+      x -= geometry->offsetLeft();
+      y -= geometry->offsetTop();
+      server->setCursorPos(rfb::Point(x, y), false);
+    }
   }
 }
 
@@ -253,7 +256,14 @@ void XDesktop::start(VNCServer* vs) {
 #endif
 
 #ifdef HAVE_XFIXES
-  setCursor();
+  Window root, child;
+  int x, y, wx, wy;
+  unsigned int mask;
+  // Check whether the cursor is initially on our screen
+  if (XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
+                    &x, &y, &wx, &wy, &mask))
+    setCursor();
+
 #endif
 
   server->setLEDState(ledState);
@@ -701,6 +711,15 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
     if (cev->subtype != XFixesDisplayCursorNotify)
       return false;
 
+    Window root, child;
+    int x, y, wx, wy;
+    unsigned int mask;
+
+    // Check whether the cursor is initially on our screen
+    if (!XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
+                      &x, &y, &wx, &wy, &mask))
+      return false;
+
     return setCursor();
 #endif
 #ifdef HAVE_XRANDR
@@ -751,6 +770,33 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
       server->setScreenLayout(computeScreenLayout());
     }
 
+    return true;
+#endif
+#ifdef HAVE_XFIXES
+  } else if (ev->type == EnterNotify) {
+    XCrossingEvent* cev;
+
+    if (!running)
+      return true;
+
+    cev = (XCrossingEvent*)ev;
+
+    if (cev->window != cev->root)
+      return false;
+
+    return setCursor();
+  } else if (ev->type == LeaveNotify) {
+    XCrossingEvent* cev;
+
+    if (!running)
+      return true;
+
+    cev = (XCrossingEvent*)ev;
+
+    if (cev->window == cev->root)
+      return false;
+
+    server->setCursor(0, 0, Point(), NULL);
     return true;
 #endif
   }
