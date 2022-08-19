@@ -110,6 +110,7 @@ jobs:
           - centos7
           - bionic
           - focal
+          - jammy
       fail-fast: false
     runs-on: ubuntu-latest
     env:

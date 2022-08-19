@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ]; then
+    MAN=/usr/share/man
+    BIN=/usr/bin
+    SBIN=/usr/sbin
+    LIB=/usr/lib/@DEB_HOST_MULTIARCH@
+    update-alternatives --install \
+       $SBIN/vncsession          vncsession      $SBIN/tigervncsession 64 \
+       --slave \
+       $LIB/vncserver            vncserver       $LIB/tigervncserver \
+       --slave \
+       $MAN/man8/vncsession.8.gz vncsession.8.gz $MAN/man8/tigervncsession.8.gz \
+       --slave \
+       $MAN/man8/vncserver.8.gz  vncserver.8.gz  $MAN/man8/tigervncserver.8.gz
+    update-alternatives --install \
+       $BIN/Xvnc            Xvnc            $BIN/Xtigervnc 74 \
+       --slave \
+       $MAN/man1/Xvnc.1.gz  Xvnc.1.gz       $MAN/man1/Xtigervnc.1.gz
+    update-alternatives --install \
+       $BIN/x0vncserver           x0vncserver     $BIN/x0tigervncserver 74 \
+       --slave \
+       $MAN/man1/x0vncserver.1.gz x0vncserver.1.gz $MAN/man1/x0tigervncserver.1.gz
+    update-alternatives --install \
+       $BIN/vncpasswd           vncpasswd            $BIN/tigervncpasswd 74 \
+       --slave \
+       $MAN/man1/vncpasswd.1.gz vncpasswd.1.gz       $MAN/man1/tigervncpasswd.1.gz
+    update-alternatives --install \
+       $BIN/vncconfig           vncconfig       $BIN/tigervncconfig 64 \
+       --slave \
+       $MAN/man1/vncconfig.1.gz vncconfig.1.gz  $MAN/man1/tigervncconfig.1.gz
+fi
+
+#DEBHELPER#
+
+exit 0
