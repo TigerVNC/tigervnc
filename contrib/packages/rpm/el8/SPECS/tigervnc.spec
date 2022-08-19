@@ -1,4 +1,3 @@
-
 #defining macros needed by SELinux
 %global selinuxtype targeted
 %global modulename vncsession
@@ -8,41 +7,41 @@ Version:        @VERSION@
 Release:        1%{?snap:.%{snap}}%{?dist}
 Summary:        A TigerVNC remote display system
 
-Group:          User Interface/Desktops
+%global _hardened_build 1
+
 License:        GPLv2+
-Packager:       Brian P. Hinz <bphinz@users.sourceforge.net>
 URL:            http://www.tigervnc.com
 
 Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source3:        10-libvnc.conf
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  libX11-devel, automake, autoconf, libtool
-BuildRequires:  gettext, gettext-autopoint, appstream
-BuildRequires:  libXext-devel, xorg-x11-server-source, libXi-devel
-BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
-BuildRequires:  libdrm-devel, libXt-devel, pixman-devel
+BuildRequires:  make
+BuildRequires:  gcc-c++
+BuildRequires:  automake, autoconf, libtool, gettext, gettext-autopoint
+BuildRequires:  cmake, desktop-file-utils, appstream
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
-BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
-BuildRequires:  freetype-devel, libXdmcp-devel, libXfont2-devel
-BuildRequires:  libXrandr-devel, fltk-devel >= 1.3.3
-BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
-BuildRequires:  systemd, cmake, selinux-policy-devel
-BuildRequires:  libpng-devel
+BuildRequires:  freetype-devel, libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  zlib-devel
-BuildRequires:  gcc-c++, libxshmfence-devel
+# X11/graphics dependencies
+BuildRequires: xorg-x11-server-source
+BuildRequires: libXext-devel, libX11-devel, libXi-devel, libXfixes-devel
+BuildRequires: libXdamage-devel, libXrandr-devel, libXt-devel, libXdmcp-devel
+BuildRequires: libXinerama-devel, mesa-libGL-devel, libxshmfence-devel
+BuildRequires: pixman-devel, libdrm-devel,
+BuildRequires: xorg-x11-util-macros, xorg-x11-xtrans-devel, libXtst-devel
+BuildRequires: xorg-x11-font-utils
+BuildRequires:  libXfont2-devel
+# SELinux
+BuildRequires:  libselinux-devel, selinux-policy-devel, systemd
 
-Requires(post):   coreutils
-Requires(postun): coreutils
+# TigerVNC 1.4.x requires fltk 1.3.3 for keyboard handling support
+# See https://github.com/TigerVNC/tigervnc/issues/8, also bug #1208814
+BuildRequires:  fltk-devel >= 1.3.3
+BuildRequires:  xorg-x11-server-devel
 
 Requires:       hicolor-icon-theme
-Requires:       tigervnc-license = %{version}-%{release}
-Requires:       tigervnc-icons = %{version}-%{release}
-
-Provides:       vnc = 4.1.3-2, vnc-libs = 4.1.3-2
-Obsoletes:      vnc < 4.1.3-2, vnc-libs < 4.1.3-2
-Provides:       tightvnc = 1.5.0-0.15.20090204svn3586
-Obsoletes:      tightvnc < 1.5.0-0.15.20090204svn3586
+Requires:       tigervnc-license
+Requires:       tigervnc-icons
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -54,20 +53,11 @@ server.
 
 %package server
 Summary:        A TigerVNC server
-Group:          User Interface/X
-Provides:       vnc-server = 4.1.3-2, vnc-libs = 4.1.3-2
-Obsoletes:      vnc-server < 4.1.3-2, vnc-libs < 4.1.3-2
-Provides:       tightvnc-server = 1.5.0-0.15.20090204svn3586
-Obsoletes:      tightvnc-server < 1.5.0-0.15.20090204svn3586
 Requires:       perl-interpreter
 Requires:       tigervnc-server-minimal = %{version}-%{release}
 Requires:       (%{name}-selinux if selinux-policy-%{selinuxtype})
 Requires:       xorg-x11-xauth
 Requires:       xorg-x11-xinit
-Requires(post):   systemd
-Requires(preun):  systemd
-Requires(postun): systemd
-Requires(post):   systemd-sysv chkconfig
 
 %description server
 The VNC system allows you to access the same desktop from a wide
@@ -78,14 +68,13 @@ X session.
 
 %package server-minimal
 Summary:        A minimal installation of TigerVNC server
-Group:          User Interface/X
-Requires(post):   chkconfig
-Requires(preun):  chkconfig
-Requires(preun):  initscripts
-Requires(postun): initscripts
+Requires(post): systemd
+Requires(preun): systemd
+Requires(postun): systemd
+Requires(post): systemd
 
-Requires:         mesa-dri-drivers, xkeyboard-config, xorg-x11-xkb-utils
-Requires:         tigervnc-license = %{version}-%{release}
+Requires:       mesa-dri-drivers, xkeyboard-config, xkbcomp
+Requires:       tigervnc-license, dbus-x11
 
 %description server-minimal
 The VNC system allows you to access the same desktop from a wide
@@ -93,25 +82,17 @@ variety of platforms. This package contains minimal installation
 of TigerVNC server, allowing others to access the desktop on your
 machine.
 
-%ifnarch s390 s390x
 %package server-module
 Summary:        TigerVNC module to Xorg
-Group:          User Interface/X
-Provides:       vnc-server = 4.1.3-2, vnc-libs = 4.1.3-2
-Obsoletes:      vnc-server < 4.1.3-2, vnc-libs < 4.1.3-2
-Provides:       tightvnc-server-module = 1.5.0-0.15.20090204svn3586
-Obsoletes:      tightvnc-server-module < 1.5.0-0.15.20090204svn3586
-Requires:       xorg-x11-server-Xorg
-Requires:       tigervnc-license = %{version}-%{release}
+Requires:       xorg-x11-server-Xorg %(xserver-sdk-abi-requires ansic) %(xserver-sdk-abi-requires videodrv)
+Requires:       tigervnc-license
 
 %description server-module
 This package contains libvnc.so module to X server, allowing others
 to access the desktop on your machine.
-%endif
 
 %package license
 Summary:        License of TigerVNC suite
-Group:          User Interface/X
 BuildArch:      noarch
 
 %description license
@@ -119,7 +100,6 @@ This package contains license of the TigerVNC suite
 
 %package icons
 Summary:        Icons for TigerVNC viewer
-Group:          User Interface/X
 BuildArch:      noarch
 
 %description icons
@@ -139,7 +119,6 @@ This package provides the SELinux policy module to ensure TigerVNC
 runs properly under an environment with SELinux enabled.
 
 %prep
-rm -rf $RPM_BUILD_ROOT
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
 
 cp -r /usr/share/xorg-x11-server-source/* unix/xserver
@@ -157,33 +136,29 @@ export CFLAGS="$RPM_OPT_FLAGS -fPIC"
 %else
 export CFLAGS="$RPM_OPT_FLAGS -fpic"
 %endif
-export CXXFLAGS="$CFLAGS"
-export CPPFLAGS="$CXXFLAGS"
+export CXXFLAGS="$CFLAGS -std=c++11"
 
-export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
+%cmake
 
-%{cmake} -G"Unix Makefiles" -DBUILD_STATIC=off -DENABLE_H264=off
-make %{?_smp_mflags}
+%cmake_build
 
 pushd unix/xserver
+
 autoreconf -fiv
 %configure \
         --disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
-        --disable-xwin --disable-xephyr --disable-kdrive --with-pic \
-        --disable-static --disable-xwayland \
+        --disable-xwin --disable-xephyr --disable-kdrive --disable-xwayland \
+        --with-pic --disable-static \
         --with-default-font-path="catalogue:%{_sysconfdir}/X11/fontpath.d,built-ins" \
         --with-fontdir=%{_datadir}/X11/fonts \
         --with-xkb-output=%{_localstatedir}/lib/xkb \
         --enable-install-libxf86config \
         --enable-glx --disable-dri --enable-dri2 --disable-dri3 \
-        --disable-wayland \
-        --disable-present \
-        --disable-config-dbus \
+        --disable-unit-tests \
         --disable-config-hal \
         --disable-config-udev \
         --with-dri-driver-path=%{_libdir}/dri \
         --without-dtrace \
-        --disable-unit-tests \
         --disable-devel-docs \
         --disable-selective-werror
 
@@ -201,43 +176,24 @@ make
 popd
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT
+%cmake_install
 
 pushd unix/xserver/hw/vnc
-make install DESTDIR=$RPM_BUILD_ROOT
+%make_install
 popd
 
+# Install systemd unit file
 pushd unix/vncserver/selinux
-make install DESTDIR=$RPM_BUILD_ROOT
+make install DESTDIR=%{buildroot}
 popd
 
 %find_lang %{name} %{name}.lang
 
 # remove unwanted files
-rm -f  $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/libvnc.la
+rm -f  %{buildroot}%{_libdir}/xorg/modules/extensions/libvnc.la
 
-%ifarch s390 s390x
-rm -f $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/libvnc.so
-%else
 mkdir -p %{buildroot}%{_sysconfdir}/X11/xorg.conf.d/
 install -m 644 %{SOURCE3} %{buildroot}%{_sysconfdir}/X11/xorg.conf.d/10-libvnc.conf
-%endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-%post
-touch -c %{_datadir}/icons/hicolor
-if [ -x %{_bindir}/gtk-update-icon-cache ]; then
-        %{_bindir}/gtk-update-icon-cache -q %{_datadir}/icons/hicolor || :
-fi
-
-%postun
-touch -c %{_datadir}/icons/hicolor
-if [ -x %{_bindir}/gtk-update-icon-cache ]; then
-        %{_bindir}/gtk-update-icon-cache -q %{_datadir}/icons/hicolor || :
-fi
-
 
 %pre selinux
 %selinux_relabel_pre -s %{selinuxtype}
@@ -252,8 +208,8 @@ if [ $1 -eq 0 ]; then
     %selinux_relabel_post -s %{selinuxtype}
 fi
 
+
 %files -f %{name}.lang
-%defattr(-,root,root,-)
 %doc %{_docdir}/%{name}/README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
@@ -261,7 +217,6 @@ fi
 %{_mandir}/man1/vncviewer.1*
 
 %files server
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/pam.d/tigervnc
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-defaults
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver-config-mandatory
@@ -277,7 +232,6 @@ fi
 %doc %{_docdir}/%{name}/HOWTO.md
 
 %files server-minimal
-%defattr(-,root,root,-)
 %{_bindir}/vncconfig
 %{_bindir}/vncpasswd
 %{_bindir}/Xvnc
@@ -285,18 +239,14 @@ fi
 %{_mandir}/man1/vncpasswd.1*
 %{_mandir}/man1/vncconfig.1*
 
-%ifnarch s390 s390x
 %files server-module
-%defattr(-,root,root,-)
 %{_libdir}/xorg/modules/extensions/libvnc.so
-%config %{_sysconfdir}/X11/xorg.conf.d/10-libvnc.conf
-%endif
+%config(noreplace) %{_sysconfdir}/X11/xorg.conf.d/10-libvnc.conf
 
 %files license
 %doc %{_docdir}/%{name}/LICENCE.TXT
 
 %files icons
-%defattr(-,root,root,-)
 %{_datadir}/icons/hicolor/*/apps/*
 
 %files selinux
@@ -304,6 +254,9 @@ fi
 %ghost %verify(not md5 size mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Fri Aug 19 2022 Pierre Ossman <ossman@cendio.se> 1.12.80-1
+- Synced with current Fedora packaging
+
 * Tue May 18 2021 Jan Grulich <jgrulich@redhat.com> 1.11.0-1
 - SELinux package improvements
 
