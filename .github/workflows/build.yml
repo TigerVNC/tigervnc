@@ -106,8 +106,9 @@ jobs:
     strategy:
       matrix:
         target:
-          - centos8
           - centos7
+          - centos8
+          - centos9
           - bionic
           - focal
           - jammy
