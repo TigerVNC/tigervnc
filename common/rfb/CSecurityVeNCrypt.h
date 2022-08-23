@@ -38,7 +38,6 @@ namespace rfb {
     ~CSecurityVeNCrypt();
     virtual bool processMsg();
     int getType() const {return chosenType;}
-    virtual const char* description() const;
     virtual bool isSecure() const;
 
   protected:

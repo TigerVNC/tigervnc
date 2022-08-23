@@ -29,7 +29,6 @@ namespace rfb {
     virtual ~CSecurityVncAuth() {}
     virtual bool processMsg();
     virtual int getType() const {return secTypeVncAuth;};
-    virtual const char* description() const {return "No Encryption";}
   };
 }
 #endif

@@ -200,13 +200,6 @@ bool CSecurityVeNCrypt::processMsg()
   return csecurity->processMsg();
 }
 
-const char* CSecurityVeNCrypt::description() const
-{
-  if (csecurity)
-    return csecurity->description();
-  return "VeNCrypt";
-}
-
 bool CSecurityVeNCrypt::isSecure() const
 {
   if (csecurity && csecurity->isSecure())

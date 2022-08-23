@@ -27,18 +27,16 @@ namespace rfb {
 
   class CSecurityStack : public CSecurity {
   public:
-    CSecurityStack(CConnection* cc, int Type, const char *Name,
+    CSecurityStack(CConnection* cc, int Type,
                    CSecurity* s0 = NULL, CSecurity* s1 = NULL);
     ~CSecurityStack();
     virtual bool processMsg();
     virtual int getType() const {return type;};
-    virtual const char* description() const {return name;}
     virtual bool isSecure() const;
   protected:
     int state;
     CSecurity* state0;
     CSecurity* state1;
-    const char* name;
     int type;
   };
 }
