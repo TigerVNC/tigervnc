@@ -57,9 +57,9 @@ FdInStream::~FdInStream()
 }
 
 
-bool FdInStream::fillBuffer(size_t maxSize)
+bool FdInStream::fillBuffer()
 {
-  size_t n = readFd((U8*)end, maxSize);
+  size_t n = readFd((U8*)end, availSpace());
   if (n == 0)
     return false;
   end += n;

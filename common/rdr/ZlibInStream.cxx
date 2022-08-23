@@ -89,13 +89,13 @@ void ZlibInStream::deinit()
   zs = NULL;
 }
 
-bool ZlibInStream::fillBuffer(size_t maxSize)
+bool ZlibInStream::fillBuffer()
 {
   if (!underlying)
     throw Exception("ZlibInStream overrun: no underlying stream");
 
   zs->next_out = (U8*)end;
-  zs->avail_out = maxSize;
+  zs->avail_out = availSpace();
 
   if (!underlying->hasData(1))
     return false;

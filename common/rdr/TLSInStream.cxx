@@ -88,9 +88,9 @@ TLSInStream::~TLSInStream()
   delete saved_exception;
 }
 
-bool TLSInStream::fillBuffer(size_t maxSize)
+bool TLSInStream::fillBuffer()
 {
-  size_t n = readTLS((U8*) end, maxSize);
+  size_t n = readTLS((U8*) end, availSpace());
   if (n == 0)
     return false;
   end += n;

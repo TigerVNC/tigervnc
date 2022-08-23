@@ -37,8 +37,13 @@ namespace rdr {
 
     virtual size_t pos();
 
+  protected:
+    size_t availSpace() { return start + bufSize - end; }
+
+    void ensureSpace(size_t needed);
+
   private:
-    virtual bool fillBuffer(size_t maxSize) = 0;
+    virtual bool fillBuffer() = 0;
 
     virtual bool overrun(size_t needed);
 

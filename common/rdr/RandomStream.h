@@ -40,7 +40,7 @@ namespace rdr {
     virtual ~RandomStream();
 
   private:
-    virtual bool fillBuffer(size_t maxSize);
+    virtual bool fillBuffer();
 
   private:
     static unsigned int seed;

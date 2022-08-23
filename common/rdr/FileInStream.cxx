@@ -43,9 +43,9 @@ FileInStream::~FileInStream(void) {
   }
 }
 
-bool FileInStream::fillBuffer(size_t maxSize)
+bool FileInStream::fillBuffer()
 {
-  size_t n = fread((U8 *)end, 1, maxSize, file);
+  size_t n = fread((U8 *)end, 1, availSpace(), file);
   if (n == 0) {
     if (ferror(file))
       throw SystemException("fread", errno);

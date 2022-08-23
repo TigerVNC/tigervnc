@@ -33,7 +33,7 @@ namespace rdr {
     static bool hexStrToBin(const char* s, char** data, size_t* length);
 
   private:
-    virtual bool fillBuffer(size_t maxSize);
+    virtual bool fillBuffer();
 
   private:
     InStream& in_stream;

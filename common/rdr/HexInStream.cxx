@@ -76,11 +76,11 @@ decodeError:
 }
 
 
-bool HexInStream::fillBuffer(size_t maxSize) {
+bool HexInStream::fillBuffer() {
   if (!in_stream.hasData(2))
     return false;
 
-  size_t length = min(in_stream.avail()/2, maxSize);
+  size_t length = min(in_stream.avail()/2, availSpace());
   const U8* iptr = in_stream.getptr(length*2);
 
   U8* optr = (U8*) end;

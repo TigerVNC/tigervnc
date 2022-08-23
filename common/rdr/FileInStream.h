@@ -34,7 +34,7 @@ namespace rdr {
     ~FileInStream(void);
 
   private:
-    virtual bool fillBuffer(size_t maxSize);
+    virtual bool fillBuffer();
 
   private:
     FILE *file;
