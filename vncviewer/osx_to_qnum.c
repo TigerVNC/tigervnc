@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated from keymaps.csv
- * Database checksum sha256(76d68c10e97d37fe2ea459e210125ae41796253fb217e900bf2983ade13a7920)
+ * Database checksum sha256(277b04f9dd721dd7942235d6ff107f992d95a083b651e73814ac3bb12f9c56d5)
  * To re-generate, run:
  *   keymap-gen code-map --lang=stdc keymaps.csv osx qnum
 */
@@ -15,6 +15,7 @@ const unsigned short code_map_osx_to_qnum[256] = {
   [0x7] = 0x2d, /* osx:7 (ANSI_X) -> linux:45 (KEY_X) -> qnum:45 */
   [0x8] = 0x2e, /* osx:8 (ANSI_C) -> linux:46 (KEY_C) -> qnum:46 */
   [0x9] = 0x2f, /* osx:9 (ANSI_V) -> linux:47 (KEY_V) -> qnum:47 */
+  [0xa] = 0x56, /* osx:10 (ISO_Section) -> linux:86 (KEY_102ND) -> qnum:86 */
   [0xb] = 0x30, /* osx:11 (ANSI_B) -> linux:48 (KEY_B) -> qnum:48 */
   [0xc] = 0x10, /* osx:12 (ANSI_Q) -> linux:16 (KEY_Q) -> qnum:16 */
   [0xd] = 0x11, /* osx:13 (ANSI_W) -> linux:17 (KEY_W) -> qnum:17 */

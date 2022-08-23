@@ -253,10 +253,21 @@ int cocoa_is_key_press(const void *event)
 int cocoa_event_keycode(const void *event)
 {
   NSEvent *nsevent;
+  int keycode;
 
   nsevent = (NSEvent*)event;
 
-  return [nsevent keyCode];
+  keycode = [nsevent keyCode];
+
+  // macOS swaps these two keys for unknown reasons for ISO layouts
+  if (KBGetLayoutType(LMGetKbdType()) == kKeyboardISO) {
+    if (keycode == kVK_ANSI_Grave)
+      return kVK_ISO_Section;
+    if (keycode == kVK_ISO_Section)
+      return kVK_ANSI_Grave;
+  }
+
+  return keycode;
 }
 
 static NSString *key_translate(UInt16 keyCode, UInt32 modifierFlags)
