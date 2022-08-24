@@ -52,7 +52,7 @@
 using namespace rdr;
 
 FdOutStream::FdOutStream(int fd_)
-  : fd(fd_)
+  : BufferedOutStream(false), fd(fd_)
 {
   gettimeofday(&lastWrite, NULL);
 }

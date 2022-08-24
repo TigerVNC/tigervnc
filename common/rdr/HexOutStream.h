@@ -19,32 +19,27 @@
 #ifndef __RDR_HEX_OUTSTREAM_H__
 #define __RDR_HEX_OUTSTREAM_H__
 
-#include <rdr/OutStream.h>
+#include <rdr/BufferedOutStream.h>
 
 namespace rdr {
 
-  class HexOutStream : public OutStream {
+  class HexOutStream : public BufferedOutStream {
   public:
 
     HexOutStream(OutStream& os);
     virtual ~HexOutStream();
 
-    void flush();
-    size_t length();
+    virtual void flush();
     virtual void cork(bool enable);
 
     static char intToHex(int i);
     static char* binToHexStr(const char* data, size_t length);
 
   private:
+    virtual bool flushBuffer();
     void writeBuffer();
-    virtual void overrun(size_t needed);
 
     OutStream& out_stream;
-
-    U8* start;
-    size_t offset;
-    size_t bufSize;
   };
 
 }

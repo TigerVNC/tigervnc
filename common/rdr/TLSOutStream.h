@@ -22,31 +22,25 @@
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
-#include <rdr/OutStream.h>
+#include <rdr/BufferedOutStream.h>
 
 namespace rdr {
 
-  class TLSOutStream : public OutStream {
+  class TLSOutStream : public BufferedOutStream {
   public:
     TLSOutStream(OutStream* out, gnutls_session_t session);
     virtual ~TLSOutStream();
 
-    void flush();
-    size_t length();
+    virtual void flush();
     virtual void cork(bool enable);
 
-  protected:
-    virtual void overrun(size_t needed);
-
   private:
+    virtual bool flushBuffer();
     size_t writeTLS(const U8* data, size_t length);
     static ssize_t push(gnutls_transport_ptr_t str, const void* data, size_t size);
 
     gnutls_session_t session;
     OutStream* out;
-    size_t bufSize;
-    U8* start;
-    size_t offset;
 
     Exception* saved_exception;
   };

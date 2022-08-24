@@ -59,11 +59,13 @@ namespace rdr {
     struct timeval lastSizeCheck;
     size_t peakUsage;
 
+    bool emulateCork;
+
   protected:
     U8* sentUpTo;
 
   protected:
-    BufferedOutStream();
+    BufferedOutStream(bool emulateCork=true);
   };
 
 }
