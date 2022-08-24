@@ -469,7 +469,10 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   /* VNC encoding box */
   ty += GROUP_LABEL_OFFSET;
-  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 4 + RADIO_HEIGHT * 5;
+  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 3 + RADIO_HEIGHT * 4;
+#ifdef HAVE_H264
+  height += TIGHT_MARGIN + RADIO_HEIGHT;
+#endif
   encodingGroup = new Fl_Group(tx, ty, half_width, height,
                                 _("Preferred encoding"));
   encodingGroup->box(FL_ENGRAVED_BOX);
