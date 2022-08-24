@@ -166,9 +166,6 @@ namespace rdr {
     // some other stream API.
 
     inline const U8* getptr(size_t length) { check(length);
-#ifdef RFB_INSTREAM_CHECK
-                                             checkedBytes += length;
-#endif
                                              return ptr; }
     inline void setptr(size_t length) { if (length > avail())
                                           throw Exception("Input stream overflow");
