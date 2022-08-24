@@ -20,11 +20,23 @@
 #define __RFB_HOSTNAME_H__
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <rdr/Exception.h>
 #include <rfb/util.h>
 
 namespace rfb {
+
+  static bool isAllSpace(const char *string) {
+    if (string == NULL)
+      return false;
+    while(*string != '\0') {
+      if (! isspace(*string))
+        return false;
+      string++;
+    }
+    return true;
+  }
 
   static void getHostAndPort(const char* hi, char** host, int* port, int basePort=5900) {
     const char* hostStart;
@@ -33,6 +45,10 @@ namespace rfb {
 
     if (hi == NULL)
       throw rdr::Exception("NULL host specified");
+
+    // Trim leading whitespace
+    while(isspace(*hi))
+      hi++;
 
     assert(host);
     assert(port);
@@ -44,7 +60,7 @@ namespace rfb {
         throw rdr::Exception("unmatched [ in host");
 
       portStart = hostEnd + 1;
-      if (*portStart == '\0')
+      if (isAllSpace(portStart))
         portStart = NULL;
     } else {
       hostStart = &hi[0];
@@ -64,6 +80,10 @@ namespace rfb {
         }
       }
     }
+
+    // Back up past trailing space
+    while(isspace(*(hostEnd - 1)) && hostEnd > hostStart)
+      hostEnd--;
 
     if (hostStart == hostEnd)
       *host = strDup("localhost");
@@ -87,7 +107,7 @@ namespace rfb {
         *port = strtol(portStart + 1, &end, 10);
       else
         *port = strtol(portStart + 2, &end, 10);
-      if (*end != '\0')
+      if (*end != '\0' && ! isAllSpace(end))
         throw rdr::Exception("invalid port specified");
 
       if ((portStart[1] != ':') && (*port < 100))
