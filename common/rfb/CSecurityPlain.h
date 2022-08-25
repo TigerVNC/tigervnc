@@ -29,7 +29,6 @@ namespace rfb {
     CSecurityPlain(CConnection* cc) : CSecurity(cc) {}
     virtual bool processMsg();
     virtual int getType() const { return secTypePlain; }
-    virtual const char* description() const { return "ask for username and password"; }
   };
 }
 #endif

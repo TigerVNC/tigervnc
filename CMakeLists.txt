@@ -231,8 +231,6 @@ if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
-include_directories(${JPEG_INCLUDE_DIR})
-
 option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
 if(BUILD_JAVA)
   add_subdirectory(java)
@@ -273,9 +271,7 @@ option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON
 if(ENABLE_GNUTLS)
   find_package(GnuTLS)
   if (GNUTLS_FOUND)
-    include_directories(${GNUTLS_INCLUDE_DIR})
     add_definitions("-DHAVE_GNUTLS")
-    add_definitions(${GNUTLS_DEFINITIONS})
   endif()
 endif()
 

@@ -73,30 +73,24 @@ CSecurity* SecurityClient::GetCSecurity(CConnection* cc, U32 secType)
 #ifdef HAVE_GNUTLS
   case secTypeTLSNone:
     return new CSecurityStack(cc, secTypeTLSNone,
-                              "TLS with no password",
                               new CSecurityTLS(cc, true));
   case secTypeTLSVnc:
     return new CSecurityStack(cc, secTypeTLSVnc,
-                              "TLS with VNCAuth",
                               new CSecurityTLS(cc, true),
                               new CSecurityVncAuth(cc));
   case secTypeTLSPlain:
     return new CSecurityStack(cc, secTypeTLSPlain,
-                              "TLS with Username/Password",
                               new CSecurityTLS(cc, true),
                               new CSecurityPlain(cc));
   case secTypeX509None:
     return new CSecurityStack(cc, secTypeX509None,
-                              "X509 with no password",
                               new CSecurityTLS(cc, false));
   case secTypeX509Vnc:
     return new CSecurityStack(cc, secTypeX509Vnc,
-                              "X509 with VNCAuth",
                               new CSecurityTLS(cc, false),
                               new CSecurityVncAuth(cc));
   case secTypeX509Plain:
     return new CSecurityStack(cc, secTypeX509Plain,
-                              "X509 with Username/Password",
                               new CSecurityTLS(cc, false),
                               new CSecurityPlain(cc));
 #endif

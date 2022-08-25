@@ -1,6 +1,5 @@
-include_directories(${GETTEXT_INCLUDE_DIR})
-
 include_directories(${CMAKE_SOURCE_DIR}/common)
+include_directories(${GETTEXT_INCLUDE_DIR})
 
 add_library(test_util STATIC util.cxx)
 

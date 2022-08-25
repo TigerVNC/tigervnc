@@ -1,5 +1,6 @@
 include_directories(${CMAKE_SOURCE_DIR}/common)
 include_directories(${CMAKE_SOURCE_DIR}/vncviewer)
+include_directories(${GETTEXT_INCLUDE_DIR})
 
 add_executable(conv conv.cxx)
 target_link_libraries(conv rfb)

@@ -32,7 +32,6 @@ namespace rfb {
     CSecurityNone(CConnection* cc) : CSecurity(cc) {}
     virtual bool processMsg() { return true; }
     virtual int getType() const {return secTypeNone;}
-    virtual const char* description() const {return "No Encryption";}
   };
 }
 #endif

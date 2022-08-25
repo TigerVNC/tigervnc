@@ -31,8 +31,8 @@ using namespace rdr;
 static const size_t DEFAULT_BUF_SIZE = 16384;
 static const size_t MAX_BUF_SIZE = 32 * 1024 * 1024;
 
-BufferedOutStream::BufferedOutStream()
-  : bufSize(DEFAULT_BUF_SIZE), offset(0)
+BufferedOutStream::BufferedOutStream(bool emulateCork)
+  : bufSize(DEFAULT_BUF_SIZE), offset(0), emulateCork(emulateCork)
 {
   ptr = start = sentUpTo = new U8[bufSize];
   end = start + bufSize;
@@ -54,6 +54,10 @@ size_t BufferedOutStream::length()
 void BufferedOutStream::flush()
 {
   struct timeval now;
+
+  // Only give larger chunks if corked to minimize overhead
+  if (corked && emulateCork && ((ptr - sentUpTo) < 1024))
+    return;
 
   while (sentUpTo < ptr) {
     size_t len;
@@ -101,11 +105,17 @@ bool BufferedOutStream::hasBufferedData()
 
 void BufferedOutStream::overrun(size_t needed)
 {
+  bool oldCorked;
   size_t totalNeeded, newSize;
   U8* newBuffer;
 
   // First try to get rid of the data we have
+  // (use corked to make things a bit more efficient since we're not
+  // trying to flush out everything, just make some room)
+  oldCorked = corked;
+  cork(true);
   flush();
+  cork(oldCorked);
 
   // Make note of the total needed space
   totalNeeded = needed + (ptr - sentUpTo);
