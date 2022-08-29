@@ -488,7 +488,8 @@ public class DesktopWindow extends JFrame
         version = version.substring(0, version.indexOf('.', firstDot + 1));
       }
       double v = Double.parseDouble(version);
-      if (v < 10.7)
+
+      if (firstDot >= 10 && lastDot < 7)
         throw new Exception("Operating system version is " + v);
 
       Class fsuClass = Class.forName("com.apple.eawt.FullScreenUtilities");
@@ -496,6 +497,19 @@ public class DesktopWindow extends JFrame
       Method setWindowCanFullScreen =
         fsuClass.getMethod("setWindowCanFullScreen", argClasses);
       setWindowCanFullScreen.invoke(fsuClass, this, true);
+      Class fullScreenListener = Class.forName("com.apple.eawt.FullScreenListener");
+      Object listenerObject = Proxy.newProxyInstance(fullScreenListener.getClassLoader(),
+          new Class[] { fullScreenListener }, (proxy, method, args) -> {
+            if (method.getName().equals("windowEnteredFullScreen")) {
+              Dimension maxSize = getScreenSize();
+              setSize(maxSize.width, maxSize.height);
+              repositionViewport();
+            }
+            return null;
+          });
+      Method addFullScreenListener = fsuClass.getMethod("addFullScreenListenerTo", Window.class,
+          fullScreenListener);
+      addFullScreenListener.invoke(fsuClass, this, listenerObject);
 
       canDoLionFS = true;
     } catch (Exception e) {
