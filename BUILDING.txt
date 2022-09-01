@@ -19,6 +19,9 @@ Build Requirements (All Systems)
    * GnuTLS 3.x
    * See "Building TLS Support" below.
 
+-- If building RSA-AES support:
+   * Nettle 3.0 or later
+
 -- If building native language support (NLS):
    * Gnu gettext 0.14.4 or later
    * See "Building Native Language Support" below.

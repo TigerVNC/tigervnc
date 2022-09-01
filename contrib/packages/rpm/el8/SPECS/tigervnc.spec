@@ -20,7 +20,8 @@ BuildRequires:  gcc-c++
 BuildRequires:  automake, autoconf, libtool, gettext, gettext-autopoint
 BuildRequires:  cmake, desktop-file-utils, appstream
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
-BuildRequires:  freetype-devel, libjpeg-turbo-devel, gnutls-devel, pam-devel
+BuildRequires:  freetype-devel, libjpeg-turbo-devel, pam-devel
+BuildRequires:  gnutls-devel, nettle-devel, gmp-devel
 BuildRequires:  zlib-devel
 # X11/graphics dependencies
 BuildRequires: xorg-x11-server-source
