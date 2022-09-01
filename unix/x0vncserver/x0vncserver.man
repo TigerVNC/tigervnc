@@ -104,8 +104,9 @@ Default is to accept connections from any IP address.
 .B \-SecurityTypes \fIsec-types\fP
 Specify which security scheme to use for incoming connections.  Valid values
 are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
-\fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP
-and \fBX509Plain\fP. Default is \fBVncAuth,TLSVnc\fP.
+\fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP,
+\fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP, \fBRA2_256\fP and \fBRA2ne_256\fP.
+Default is \fBVncAuth,RA2_256,RA2,RA2ne_256,RA2ne,TLSVnc\fP.
 .
 .TP
 .B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
@@ -146,6 +147,15 @@ also be in PEM format.
 .B \-GnuTLSPriority \fIpriority\fP
 GnuTLS priority string that controls the TLS session’s handshake algorithms.
 See the GnuTLS manual for possible values. Default is \fBNORMAL\fP.
+.
+.TP
+.B \-RSAKey \fIpath\fP
+Path to the RSA key for the RSA-AES security types (\fBRA2\fP, \fBRA2ne\fP,
+\fBRA2_256\fP and \fBRA2ne_256\fP) in PEM format.
+.
+.TP
+.B \-RequireUsername
+Require username for the RSA-AES security types. Default is off.
 .
 .TP
 .B \-UseBlacklist

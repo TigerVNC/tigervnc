@@ -275,6 +275,14 @@ if(ENABLE_GNUTLS)
   endif()
 endif()
 
+option(ENABLE_NETTLE "Enable RSA-AES security types" ON)
+if (ENABLE_NETTLE)
+  find_package(Nettle)
+  if (NETTLE_FOUND)
+    add_definitions("-DHAVE_NETTLE")
+  endif()
+endif()
+
 # Check for PAM library
 if(UNIX AND NOT APPLE)
   check_include_files(security/pam_appl.h HAVE_PAM_H)

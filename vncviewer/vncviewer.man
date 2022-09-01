@@ -139,7 +139,8 @@ Xvnc supports reverse connections with a helper program called
 Specify which security schemes to attempt to use when authenticating with
 the server.  Valid values are a comma separated list of \fBNone\fP,
 \fBVncAuth\fP, \fBPlain\fP, \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP,
-\fBX509None\fP, \fBX509Vnc\fP and \fBX509Plain\fP. Default is to attempt
+\fBX509None\fP, \fBX509Vnc\fP, \fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP,
+\fBRA2_256\fP and \fBRA2ne_256\fP. Default is to attempt
 every supported scheme. 
 .
 .TP

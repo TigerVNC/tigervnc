@@ -27,10 +27,12 @@
 #include <rdr/types.h>
 #include <rfb/encodings.h>
 
-#ifdef HAVE_GNUTLS
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
+#ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
+#endif
 #endif
 
 #include "OptionsDialog.h"
@@ -203,7 +205,7 @@ void OptionsDialog::loadOptions(void)
   handleCompression(compressionCheckbox, this);
   handleJpeg(jpegCheckbox, this);
 
-#ifdef HAVE_GNUTLS
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   /* Security */
   Security security(SecurityClient::secTypes);
 
@@ -214,8 +216,13 @@ void OptionsDialog::loadOptions(void)
    list<U32>::iterator iterExt;
 
   encNoneCheckbox->value(false);
+#ifdef HAVE_GNUTLS
   encTLSCheckbox->value(false);
   encX509Checkbox->value(false);
+#endif
+#ifdef HAVE_NETTLE
+  encRSAAESCheckbox->value(false);
+#endif
 
   authNoneCheckbox->value(false);
   authVncCheckbox->value(false);
@@ -242,6 +249,7 @@ void OptionsDialog::loadOptions(void)
       encNoneCheckbox->value(true);
       authPlainCheckbox->value(true);
       break;
+#ifdef HAVE_GNUTLS
     case secTypeTLSNone:
       encTLSCheckbox->value(true);
       authNoneCheckbox->value(true);
@@ -266,13 +274,27 @@ void OptionsDialog::loadOptions(void)
       encX509Checkbox->value(true);
       authPlainCheckbox->value(true);
       break;
+#endif
+#ifdef HAVE_NETTLE
+    case secTypeRA2:
+    case secTypeRA256:
+      encRSAAESCheckbox->value(true);
+    case secTypeRA2ne:
+    case secTypeRAne256:
+      authVncCheckbox->value(true);
+      authPlainCheckbox->value(true);
+      break;
+#endif
+    
     }
   }
 
+#ifdef HAVE_GNUTLS
   caInput->value(CSecurityTLS::X509CA);
   crlInput->value(CSecurityTLS::X509CRL);
 
   handleX509(encX509Checkbox, this);
+#endif
 #endif
 
   /* Input */
@@ -352,7 +374,7 @@ void OptionsDialog::storeOptions(void)
   compressLevel.setParam(atoi(compressionInput->value()));
   qualityLevel.setParam(atoi(jpegInput->value()));
 
-#ifdef HAVE_GNUTLS
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   /* Security */
   Security security;
 
@@ -360,12 +382,22 @@ void OptionsDialog::storeOptions(void)
   if (encNoneCheckbox->value()) {
     if (authNoneCheckbox->value())
       security.EnableSecType(secTypeNone);
-    if (authVncCheckbox->value())
+    if (authVncCheckbox->value()) {
       security.EnableSecType(secTypeVncAuth);
-    if (authPlainCheckbox->value())
+#ifdef HAVE_NETTLE
+      security.EnableSecType(secTypeRAne256);
+#endif
+    }
+    if (authPlainCheckbox->value()) {
       security.EnableSecType(secTypePlain);
+#ifdef HAVE_NETTLE
+      security.EnableSecType(secTypeRA2ne);
+      security.EnableSecType(secTypeRAne256);
+#endif
+    }
   }
 
+#ifdef HAVE_GNUTLS
   /* Process security types which use TLS encryption */
   if (encTLSCheckbox->value()) {
     if (authNoneCheckbox->value())
@@ -386,10 +418,17 @@ void OptionsDialog::storeOptions(void)
       security.EnableSecType(secTypeX509Plain);
   }
 
-  SecurityClient::secTypes.setParam(security.ToString());
-
   CSecurityTLS::X509CA.setParam(caInput->value());
   CSecurityTLS::X509CRL.setParam(crlInput->value());
+#endif
+
+#ifdef HAVE_NETTLE
+  if (encRSAAESCheckbox->value()) {
+    security.EnableSecType(secTypeRA2);
+    security.EnableSecType(secTypeRA256);
+  }
+#endif
+  SecurityClient::secTypes.setParam(security.ToString());
 #endif
 
   /* Input */
@@ -611,7 +650,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
 void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 {
-#ifdef HAVE_GNUTLS
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Security"));
 
   int orig_tx;
@@ -626,7 +665,14 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
   /* Encryption */
   ty += GROUP_LABEL_OFFSET;
+
+#if defined(HAVE_GNUTLS) && defined(HAVE_NETTLE)
+  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 5 + CHECK_HEIGHT * 4 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
+#elif defined(HAVE_GNUTLS)
   height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 4 + CHECK_HEIGHT * 3 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
+#elif defined(HAVE_NETTLE)
+  height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 1 + CHECK_HEIGHT * 2;
+#endif
   encryptionGroup = new Fl_Group(tx, ty, width, height, _("Encryption"));
   encryptionGroup->box(FL_ENGRAVED_BOX);
   encryptionGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
@@ -641,6 +687,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
                                                    _("None")));
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
+#ifdef HAVE_GNUTLS
     encTLSCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
@@ -667,6 +714,15 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
                             _("Path to X509 CRL file"));
     crlInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
     ty += INPUT_HEIGHT + TIGHT_MARGIN;
+#endif
+#ifdef HAVE_NETTLE
+    encRSAAESCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                     CHECK_MIN_WIDTH,
+                                                     CHECK_HEIGHT,
+                                                     _("RSA-AES")));
+    encRSAAESCheckbox->callback(handleRSAAES, this);
+    ty += CHECK_HEIGHT + TIGHT_MARGIN;
+#endif
   }
 
   ty += GROUP_MARGIN - TIGHT_MARGIN;
@@ -1019,6 +1075,17 @@ void OptionsDialog::handleX509(Fl_Widget *widget, void *data)
   } else {
     dialog->caInput->deactivate();
     dialog->crlInput->deactivate();
+  }
+}
+
+
+void OptionsDialog::handleRSAAES(Fl_Widget *widget, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  if (dialog->encRSAAESCheckbox->value()) {
+    dialog->authVncCheckbox->value(true);
+    dialog->authPlainCheckbox->value(true);
   }
 }
 

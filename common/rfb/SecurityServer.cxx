@@ -31,6 +31,9 @@
 #ifdef HAVE_GNUTLS
 #include <rfb/SSecurityTLS.h>
 #endif
+#ifdef HAVE_NETTLE
+#include <rfb/SSecurityRSAAES.h>
+#endif
 
 using namespace rdr;
 using namespace rfb;
@@ -41,12 +44,17 @@ StringParameter SecurityServer::secTypes
 #ifdef HAVE_GNUTLS
  ", TLSNone, TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain"
 #endif
+#ifdef HAVE_NETTLE
+ ", RA2, RA2ne, RA2_256, RA2ne_256"
+#endif
  ")",
 #ifdef HAVE_GNUTLS
- "TLSVnc,VncAuth",
-#else
- "VncAuth",
+ "TLSVnc,"
 #endif
+#ifdef HAVE_NETTLE
+ "RA2_256,RA2,RA2ne_256,RA2ne,"
+#endif
+ "VncAuth",
 ConfServer);
 
 SSecurity* SecurityServer::GetSSecurity(SConnection* sc, U32 secType)
@@ -72,6 +80,16 @@ SSecurity* SecurityServer::GetSSecurity(SConnection* sc, U32 secType)
     return new SSecurityStack(sc, secTypeX509None, new SSecurityTLS(sc, false), new SSecurityVncAuth(sc));
   case secTypeX509Plain:
     return new SSecurityStack(sc, secTypeX509Plain, new SSecurityTLS(sc, false), new SSecurityPlain(sc));
+#endif
+#ifdef HAVE_NETTLE
+  case secTypeRA2:
+    return new SSecurityRSAAES(sc, secTypeRA2, 128, true);
+  case secTypeRA2ne:
+    return new SSecurityRSAAES(sc, secTypeRA2ne, 128, false);
+  case secTypeRA256:
+    return new SSecurityRSAAES(sc, secTypeRA256, 256, true);
+  case secTypeRAne256:
+    return new SSecurityRSAAES(sc, secTypeRAne256, 256, false);
 #endif
   }
 

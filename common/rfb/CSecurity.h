@@ -39,6 +39,7 @@
 #define __RFB_CSECURITY_H__
 
 #include <rfb/UserPasswdGetter.h>
+#include <rfb/UserMsgBox.h>
 
 namespace rfb {
   class CConnection;
@@ -55,6 +56,7 @@ namespace rfb {
      * It MUST be set by viewer.
      */
     static UserPasswdGetter *upg;
+    static UserMsgBox *msg;
 
   protected:
     CConnection* cc;

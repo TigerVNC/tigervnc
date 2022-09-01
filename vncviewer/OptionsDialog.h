@@ -62,6 +62,7 @@ protected:
   static void handleJpeg(Fl_Widget *widget, void *data);
 
   static void handleX509(Fl_Widget *widget, void *data);
+  static void handleRSAAES(Fl_Widget *widget, void *data);
 
   static void handleClipboard(Fl_Widget *widget, void *data);
 
@@ -101,6 +102,7 @@ protected:
   Fl_Check_Button *encNoneCheckbox;
   Fl_Check_Button *encTLSCheckbox;
   Fl_Check_Button *encX509Checkbox;
+  Fl_Check_Button *encRSAAESCheckbox;
   Fl_Input *caInput;
   Fl_Input *crlInput;
 

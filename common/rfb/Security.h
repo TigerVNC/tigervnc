@@ -43,6 +43,9 @@ namespace rfb {
   const rdr::U8 secTypeTLS     = 18;
   const rdr::U8 secTypeVeNCrypt= 19;
 
+  const rdr::U8 secTypeRA256   = 129;
+  const rdr::U8 secTypeRAne256 = 130;
+
   /* VeNCrypt subtypes */
   const int secTypePlain       = 256;
   const int secTypeTLSNone     = 257;
@@ -51,6 +54,10 @@ namespace rfb {
   const int secTypeX509None    = 260;
   const int secTypeX509Vnc     = 261;
   const int secTypeX509Plain   = 262;
+
+  /* RSA-AES subtypes */
+  const int secTypeRA2UserPass = 1;
+  const int secTypeRA2Pass     = 2;
 
   // result types
 

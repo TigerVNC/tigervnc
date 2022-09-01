@@ -754,8 +754,8 @@ int main(int argc, char** argv)
   mkvnchomedir();
 
   CSecurity::upg = &dlg;
-#ifdef HAVE_GNUTLS
-  CSecurityTLS::msg = &dlg;
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
+  CSecurity::msg = &dlg;
 #endif
 
   Socket *sock = NULL;

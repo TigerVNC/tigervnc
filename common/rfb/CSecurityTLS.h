@@ -34,7 +34,6 @@
 #include <gnutls/gnutls.h>
 
 namespace rfb {
-  class UserMsgBox;
   class CSecurityTLS : public CSecurity {
   public:
     CSecurityTLS(CConnection* cc, bool _anon);
@@ -45,7 +44,6 @@ namespace rfb {
 
     static StringParameter X509CA;
     static StringParameter X509CRL;
-    static UserMsgBox *msg;
 
   protected:
     void shutdown();

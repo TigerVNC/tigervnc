@@ -160,6 +160,8 @@ rdr::U32 rfb::secTypeNum(const char* name)
   if (strcasecmp(name, "Tight") == 0)      return secTypeTight;
   if (strcasecmp(name, "RA2") == 0)        return secTypeRA2;
   if (strcasecmp(name, "RA2ne") == 0)      return secTypeRA2ne;
+  if (strcasecmp(name, "RA2_256") == 0)    return secTypeRA256;
+  if (strcasecmp(name, "RA2ne_256") == 0)  return secTypeRAne256;
   if (strcasecmp(name, "SSPI") == 0)       return secTypeSSPI;
   if (strcasecmp(name, "SSPIne") == 0)     return secTypeSSPIne;
   if (strcasecmp(name, "VeNCrypt") == 0)   return secTypeVeNCrypt;
@@ -184,6 +186,8 @@ const char* rfb::secTypeName(rdr::U32 num)
   case secTypeTight:      return "Tight";
   case secTypeRA2:        return "RA2";
   case secTypeRA2ne:      return "RA2ne";
+  case secTypeRA256:      return "RA2_256";
+  case secTypeRAne256:    return "RA2ne_256";
   case secTypeSSPI:       return "SSPI";
   case secTypeSSPIne:     return "SSPIne";
   case secTypeVeNCrypt:   return "VeNCrypt";

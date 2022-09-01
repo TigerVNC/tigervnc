@@ -119,6 +119,12 @@ if(BUILD_STATIC)
     string(STRIP ${GNUTLS_LIBRARIES} GNUTLS_LIBRARIES)
   endif()
 
+  if(NETTLE_FOUND)
+    set(NETTLE_LIBRARIES "-Wl,-Bstatic -lnettle -Wl,-Bdynamic")
+    set(HOGWEED_LIBRARIES "-Wl,-Bstatic -lhogweed -Wl,-Bdynamic")
+    set(GMP_LIBRARIES "-Wl,-Bstatic -lgmp -Wl,-Bdynamic")
+  endif()
+
   if(DEFINED FLTK_LIBRARIES)
     set(FLTK_LIBRARIES "-Wl,-Bstatic -lfltk_images -lpng -ljpeg -lfltk -Wl,-Bdynamic")
 

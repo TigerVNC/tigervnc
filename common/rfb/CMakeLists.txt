@@ -102,6 +102,12 @@ if(GNUTLS_FOUND)
   target_link_libraries(rfb ${GNUTLS_LIBRARIES})
 endif()
 
+if (NETTLE_FOUND)
+  target_sources(rfb PRIVATE CSecurityRSAAES.cxx SSecurityRSAAES.cxx)
+  include_directories(${NETTLE_INCLUDE_DIRS} ${GMP_INCLUDE_DIRS})
+  target_link_libraries(rfb ${HOGWEED_LINK_LIBRARIES} ${NETTLE_LINK_LIBRARIES} ${GMP_LINK_LIBRARIES})
+endif()
+
 if(UNIX)
   libtool_create_control_file(rfb)
 endif()
