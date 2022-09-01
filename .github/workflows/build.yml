@@ -10,7 +10,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgnutls28-dev libfltk1.3-dev fluid gettext appstream
+          sudo apt-get install -y libfltk1.3-dev fluid gettext appstream
+          sudo apt-get install -y libgnutls28-dev nettle-dev libgmp-dev
           sudo apt-get install -y libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev libpam-dev
           sudo apt-get install -y libavcodec-dev libavutil-dev libswscale-dev
       - name: Configure
@@ -36,8 +37,12 @@ jobs:
       - uses: msys2/setup-msys2@v2
       - name: Install dependencies
         run: |
-          pacman --sync --noconfirm --needed make mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
-          pacman --sync --noconfirm --needed mingw-w64-x86_64-fltk mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-gnutls mingw-w64-x86_64-pixman
+          pacman --sync --noconfirm --needed \
+            make mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
+          pacman --sync --noconfirm --needed \
+            mingw-w64-x86_64-fltk mingw-w64-x86_64-libjpeg-turbo \
+            mingw-w64-x86_64-gnutls mingw-w64-x86_64-pixman \
+            mingw-w64-x86_64-nettle mingw-w64-x86_64-gmp
       - name: Configure
         run: cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -S . -B build
       - name: Build
@@ -60,6 +65,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install fltk pixman ffmpeg
+          brew install gnutls nettle gmp
       - name: Configure
         run: cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
       - name: Build
