@@ -105,7 +105,10 @@ endif()
 if (NETTLE_FOUND)
   target_sources(rfb PRIVATE CSecurityRSAAES.cxx SSecurityRSAAES.cxx)
   include_directories(${NETTLE_INCLUDE_DIRS} ${GMP_INCLUDE_DIRS})
-  target_link_libraries(rfb ${HOGWEED_LINK_LIBRARIES} ${NETTLE_LINK_LIBRARIES} ${GMP_LINK_LIBRARIES})
+  target_link_libraries(rfb ${HOGWEED_LIBRARIES}
+                        ${NETTLE_LIBRARIES} ${GMP_LIBRARIES})
+  target_link_directories(rfb PUBLIC ${HOGWEED_LIBRARY_DIRS}
+                          ${NETTLE_LIBRARY_DIRS} ${GMP_LIBRARY_DIRS})
 endif()
 
 if(UNIX)
