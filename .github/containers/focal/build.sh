@@ -47,10 +47,9 @@ docker run --volume ${CURDIR}/build:/home/deb/build --interactive --rm tigervnc/
 	bash -e -x -c "
 	tar -C ~/build -axf ~/build/tigervnc_${VERSION}.orig.tar.xz;
 	cp -a ~/build/debian ~/build/tigervnc-${VERSION}/debian;
-	mk-build-deps ~/build/tigervnc-${VERSION}/debian/control;
-	sudo dpkg --unpack ~/tigervnc-build-deps_*.deb;
 	sudo apt-get update;
-	sudo apt-get -f install -y;
+	mk-build-deps ~/build/tigervnc-${VERSION}/debian/control;
+	sudo apt-get install -y ~/tigervnc-build-deps_*.deb;
 	cd ~/build/tigervnc-${VERSION} && dpkg-buildpackage;
 	"
 
