@@ -146,7 +146,8 @@ Depends:
  x11-utils,
  xauth,
  x11-xkb-utils,
- ${shlibs:Depends}
+ ${shlibs:Depends},
+ ${perl:Depends}
 Recommends:
  xfonts-base,
  x11-xserver-utils
