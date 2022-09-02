@@ -147,7 +147,8 @@ Depends:
  xauth,
  x11-xkb-utils,
  ${shlibs:Depends},
- ${perl:Depends}
+ ${perl:Depends},
+ ${misc:Depends}
 Recommends:
  xfonts-base,
  x11-xserver-utils
@@ -175,7 +176,8 @@ Provides:
  vncviewer,
  vnc-viewer
 Depends:
- ${shlibs:Depends}
+ ${shlibs:Depends},
+ ${misc:Depends}
 Recommends:
  xfonts-base
 Suggests:
