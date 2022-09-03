@@ -66,7 +66,6 @@ public class CSecurityTLS extends CSecurity {
   public static StringParameter X509CRL
   = new StringParameter("X509CRL",
                         "X509 CRL file", "", Configuration.ConfigurationObject.ConfViewer);
-  public static UserMsgBox msg;
 
   private void initGlobal()
   {

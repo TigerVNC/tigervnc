@@ -119,6 +119,7 @@ class OptionsDialog extends Dialog {
   JCheckBox encNoneCheckbox;
   JCheckBox encTLSCheckbox;
   JCheckBox encX509Checkbox;
+  JCheckBox encRSAAESCheckbox;
   JTextField caInput;
   JTextField crlInput;
   JButton caChooser;
@@ -323,6 +324,7 @@ class OptionsDialog extends Dialog {
     encNoneCheckbox.setSelected(false);
     encTLSCheckbox.setSelected(false);
     encX509Checkbox.setSelected(false);
+    encRSAAESCheckbox.setSelected(false);
 
     authNoneCheckbox.setSelected(false);
     authVncCheckbox.setSelected(false);
@@ -386,6 +388,14 @@ class OptionsDialog extends Dialog {
       case Security.secTypeX509Ident:
         encX509Checkbox.setSelected(true);
         authIdentCheckbox.setSelected(true);
+        break;
+      case Security.secTypeRA2:
+      case Security.secTypeRA256:
+        encRSAAESCheckbox.setSelected(true);
+      case Security.secTypeRA2ne:
+      case Security.secTypeRAne256:
+        authVncCheckbox.setSelected(true);
+        authPlainCheckbox.setSelected(true);
         break;
       }
     }
@@ -516,10 +526,16 @@ class OptionsDialog extends Dialog {
     if (encNoneCheckbox.isSelected()) {
       if (authNoneCheckbox.isSelected())
         security.EnableSecType(Security.secTypeNone);
-      if (authVncCheckbox.isSelected())
+      if (authVncCheckbox.isSelected()) {
         security.EnableSecType(Security.secTypeVncAuth);
-      if (authPlainCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeRA2ne);
+        security.EnableSecType(Security.secTypeRAne256);
+      }
+      if (authPlainCheckbox.isSelected()) {
         security.EnableSecType(Security.secTypePlain);
+        security.EnableSecType(Security.secTypeRA2ne);
+        security.EnableSecType(Security.secTypeRAne256);
+      }
       if (authIdentCheckbox.isSelected())
         security.EnableSecType(Security.secTypeIdent);
     }
@@ -546,6 +562,11 @@ class OptionsDialog extends Dialog {
         security.EnableSecType(Security.secTypeX509Plain);
       if (authIdentCheckbox.isSelected())
         security.EnableSecType(Security.secTypeX509Ident);
+    }
+
+    if (encRSAAESCheckbox.isSelected()) {
+      security.EnableSecType(Security.secTypeRA2);
+      security.EnableSecType(Security.secTypeRA256);
     }
 
     if (authIdentCheckbox.isSelected() ||
@@ -809,6 +830,12 @@ class OptionsDialog extends Dialog {
           crlInput.setText(f.getAbsolutePath());
       }
     });
+    encRSAAESCheckbox = new JCheckBox("RSA-AES");
+    encRSAAESCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleRSAAES();
+      }
+    });
     encrPanel.add(encNoneCheckbox,
                   new GridBagConstraints(0, 0,
                                          REMAINDER, 1,
@@ -873,6 +900,13 @@ class OptionsDialog extends Dialog {
                                          LINE_START, VERTICAL,
                                          new Insets(0, 5, 0, 0),
                                          0, 0));
+    encrPanel.add(encRSAAESCheckbox,
+                  new GridBagConstraints(0, 5,
+                                         REMAINDER, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
 
     JPanel authPanel = new JPanel(new GridBagLayout());
     authPanel.setBorder(BorderFactory.createTitledBorder("Authentication"));
@@ -1500,6 +1534,12 @@ class OptionsDialog extends Dialog {
     caChooser.setEnabled(encX509Checkbox.isSelected());
     crlInput.setEnabled(encX509Checkbox.isSelected());
     crlChooser.setEnabled(encX509Checkbox.isSelected());
+  }
+
+  private void handleRSAAES()
+  {
+    authVncCheckbox.setSelected(true);
+    authPlainCheckbox.setSelected(true);
   }
 
   private void handleSendLocalUsername()

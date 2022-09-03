@@ -387,7 +387,7 @@ public class VncViewer implements Runnable {
     cc = null;
     UserDialog dlg = new UserDialog();
     CSecurity.upg = dlg;
-    CSecurityTLS.msg = dlg;
+    CSecurity.msg = dlg;
     Socket sock = null;
 
     /* Specifying -via and -listen together is nonsense */

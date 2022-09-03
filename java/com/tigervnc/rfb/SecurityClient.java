@@ -62,6 +62,14 @@ public class SecurityClient extends Security {
     case Security.secTypeX509Ident:
       return (new CSecurityStack(secTypeX509Ident, "X509 with username only",
   			      new CSecurityTLS(false), new CSecurityIdent()));
+    case Security.secTypeRA2:
+      return (new CSecurityRSAAES(secType, 128, true));
+    case Security.secTypeRA2ne:
+      return (new CSecurityRSAAES(secType, 128, false));
+    case Security.secTypeRA256:
+      return (new CSecurityRSAAES(secType, 256, true));
+    case Security.secTypeRAne256:
+      return (new CSecurityRSAAES(secType, 256, false));
     default:
       throw new Exception("Security type not supported");
     }
@@ -75,7 +83,7 @@ public class SecurityClient extends Security {
 
   public static StringParameter secTypes
   = new StringParameter("SecurityTypes",
-                        "Specify which security scheme to use (None, VncAuth, Plain, Ident, TLSNone, TLSVnc, TLSPlain, TLSIdent, X509None, X509Vnc, X509Plain, X509Ident)",
-                        "X509Ident,X509Plain,TLSIdent,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,Ident,VncAuth,None", Configuration.ConfigurationObject.ConfViewer);
+                        "Specify which security scheme to use (None, VncAuth, Plain, Ident, TLSNone, TLSVnc, TLSPlain, TLSIdent, X509None, X509Vnc, X509Plain, X509Ident, RA2, RA2ne, RA2_256, RA2ne_256)",
+                        "X509Ident,X509Plain,TLSIdent,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,Ident,RA2_256,RA2,RA2ne_256,RA2ne,VncAuth,None", Configuration.ConfigurationObject.ConfViewer);
 
 }
