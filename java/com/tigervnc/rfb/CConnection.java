@@ -197,7 +197,7 @@ abstract public class CConnection extends CMsgHandler {
 
     verStr.clear();
     verStr.put(String.format("RFB %03d.%03d\n",
-               majorVersion, minorVersion).getBytes()).flip();
+               server.majorVersion, server.minorVersion).getBytes()).flip();
     os.writeBytes(verStr.array(), 0, 12);
     os.flush();
 
