@@ -385,6 +385,7 @@ void OptionsDialog::storeOptions(void)
     if (authVncCheckbox->value()) {
       security.EnableSecType(secTypeVncAuth);
 #ifdef HAVE_NETTLE
+      security.EnableSecType(secTypeRA2ne);
       security.EnableSecType(secTypeRAne256);
 #endif
     }
