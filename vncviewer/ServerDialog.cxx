@@ -39,9 +39,9 @@
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
+#include "fltk/layout.h"
 #include "ServerDialog.h"
 #include "OptionsDialog.h"
-#include "fltk_layout.h"
 #include "i18n.h"
 #include "vncviewer.h"
 #include "parameters.h"

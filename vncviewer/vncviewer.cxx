@@ -67,6 +67,7 @@
 #include <FL/fl_ask.H>
 #include <FL/x.H>
 
+#include "fltk/layout.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "CConn.h"
@@ -74,7 +75,6 @@
 #include "UserDialog.h"
 #include "touch.h"
 #include "vncviewer.h"
-#include "fltk_layout.h"
 
 #ifdef WIN32
 #include "resource.h"

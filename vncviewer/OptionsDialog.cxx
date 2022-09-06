@@ -36,11 +36,12 @@
 #endif
 
 #include "OptionsDialog.h"
-#include "fltk_layout.h"
 #include "i18n.h"
 #include "menukey.h"
 #include "parameters.h"
-#include "MonitorArrangement.h"
+
+#include "fltk/layout.h"
+#include "fltk/MonitorArrangement.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Tabs.H>

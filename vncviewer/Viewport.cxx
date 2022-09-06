@@ -55,12 +55,12 @@
 #define MAPVK_VK_TO_VSC 0
 #endif
 
+#include "fltk/layout.h"
 #include "Viewport.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
 #include "i18n.h"
-#include "fltk_layout.h"
 #include "parameters.h"
 #include "keysym2ucs.h"
 #include "menukey.h"

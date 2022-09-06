@@ -38,8 +38,8 @@
 #include <rfb/Password.h>
 #include <rfb/Exception.h>
 
+#include "fltk/layout.h"
 #include "i18n.h"
-#include "fltk_layout.h"
 #include "parameters.h"
 #include "UserDialog.h"
 
