@@ -39,6 +39,7 @@
 #include <rfb/Exception.h>
 
 #include "fltk/layout.h"
+#include "fltk/util.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "UserDialog.h"

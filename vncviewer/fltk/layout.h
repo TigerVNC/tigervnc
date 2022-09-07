@@ -25,7 +25,6 @@
 #define __FLTK_LAYOUT_H__
 
 #include <FL/fl_draw.H>
-#include <FL/Fl_Menu_.H>
 
 /* Calculates the width of a string as printed by FLTK (pixels) */
 static inline int gui_str_len(const char *str)
@@ -37,87 +36,6 @@ static inline int gui_str_len(const char *str)
     len = fl_width(str);
 
     return (int)(len + 0.5f);
-}
-
-/* Escapes all @ in text as those have special meaning in labels */
-static inline size_t fltk_escape(const char *in, char *out, size_t maxlen)
-{
-    size_t len;
-
-    len = 0;
-
-    while (*in != '\0') {
-        if (*in == '@') {
-            if (maxlen >= 3) {
-                *out++ = '@';
-                *out++ = '@';
-                maxlen -= 2;
-            }
-
-            len += 2;
-        } else {
-            if (maxlen >= 2) {
-                *out++ = *in;
-                maxlen--;
-            }
-
-            len += 1;
-        }
-
-        in++;
-    }
-
-    if (maxlen)
-        *out = '\0';
-
-    return len;
-}
-
-/* Filter out unsafe characters for menu entries */
-static inline size_t fltk_menu_escape(const char *in, char *out, size_t maxlen)
-{
-    size_t len;
-
-    len = 0;
-
-    while (*in != '\0') {
-        if (*in == '/') {
-            if (maxlen >= 3) {
-                *out++ = '\\';
-                *out++ = '/';
-                maxlen -= 2;
-            }
-
-            len += 2;
-        } else {
-            if (maxlen >= 2) {
-                *out++ = *in;
-                maxlen--;
-            }
-
-            len += 1;
-        }
-
-        in++;
-    }
-
-    if (maxlen)
-        *out = '\0';
-
-    return len;
-}
-
-/* Helper to add menu entries safely */
-static inline void fltk_menu_add(Fl_Menu_ *menu, const char *text,
-                                 int shortcut, Fl_Callback *cb,
-                                 void *data = 0, int flags = 0)
-{
-    char buffer[1024];
-
-    if (fltk_menu_escape(text, buffer, sizeof(buffer)) >= sizeof(buffer))
-        return;
-
-    menu->add(buffer, shortcut, cb, data, flags);
 }
 
 /**** MARGINS ****/

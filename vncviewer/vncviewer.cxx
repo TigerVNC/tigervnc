@@ -67,7 +67,7 @@
 #include <FL/fl_ask.H>
 #include <FL/x.H>
 
-#include "fltk/layout.h"
+#include "fltk/util.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "CConn.h"

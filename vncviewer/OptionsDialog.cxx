@@ -41,6 +41,7 @@
 #include "parameters.h"
 
 #include "fltk/layout.h"
+#include "fltk/util.h"
 #include "fltk/MonitorArrangement.h"
 
 #include <FL/Fl.H>

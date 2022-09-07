@@ -56,6 +56,7 @@
 #endif
 
 #include "fltk/layout.h"
+#include "fltk/util.h"
 #include "Viewport.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
