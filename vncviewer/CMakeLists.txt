@@ -5,6 +5,7 @@ include_directories(${CMAKE_SOURCE_DIR}/common)
 
 add_executable(vncviewer
   fltk/MonitorArrangement.cxx
+  fltk/theme.cxx
   menukey.cxx
   BaseTouchHandler.cxx
   CConn.cxx
