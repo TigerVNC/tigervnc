@@ -42,7 +42,7 @@
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
-#include "fltk/MonitorArrangement.h"
+#include "fltk/Fl_Monitor_Arrangement.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Tabs.H>
@@ -984,7 +984,7 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
     selectedMonitorsButton->callback(handleFullScreenMode, this);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
-    monitorArrangement = new MonitorArrangement(
+    monitorArrangement = new Fl_Monitor_Arrangement(
                               tx + INDENT, ty,
                               width - INDENT, 150);
     ty += 150 + TIGHT_MARGIN;

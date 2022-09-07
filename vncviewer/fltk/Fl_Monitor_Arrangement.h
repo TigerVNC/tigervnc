@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef __MONITOR_ARRANGEMENT_H__
-#define __MONITOR_ARRANGEMENT_H__
+#ifndef __FL_MONITOR_ARRANGEMENT_H__
+#define __FL_MONITOR_ARRANGEMENT_H__
 
 #include <string>
 #include <map>
@@ -33,10 +33,10 @@
 
 class Fl_Button;
 
-class MonitorArrangement: public Fl_Group {
+class Fl_Monitor_Arrangement: public Fl_Group {
 public:
-  MonitorArrangement(int x, int y, int w, int h);
-  ~MonitorArrangement();
+  Fl_Monitor_Arrangement(int x, int y, int w, int h);
+  ~Fl_Monitor_Arrangement();
 
   // Get selected indices.
   std::set<int> get();
