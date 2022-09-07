@@ -85,7 +85,7 @@ Fl_Monitor_Arrangement::~Fl_Monitor_Arrangement()
     Fl::remove_handler(fltk_event_handler);
 }
 
-std::set<int> Fl_Monitor_Arrangement::get()
+std::set<int> Fl_Monitor_Arrangement::value() const
 {
   std::set<int> indices;
   MonitorMap::const_iterator iter;
@@ -98,15 +98,21 @@ std::set<int> Fl_Monitor_Arrangement::get()
   return indices;
 }
 
-void Fl_Monitor_Arrangement::set(std::set<int> indices)
+int Fl_Monitor_Arrangement::value(std::set<int> indices)
 {
   MonitorMap::const_iterator iter;
+  bool changed;
 
+  changed = false;
   for (iter = monitors.begin(); iter != monitors.end(); ++iter) {
     bool selected = std::find(indices.begin(), indices.end(),
                               iter->first) != indices.end();
-    iter->second->value(selected ? 1 : 0);
+    if (iter->second->value() != selected)
+      changed = true;
+    iter->second->value(selected);
   }
+
+  return changed;
 }
 
 void Fl_Monitor_Arrangement::draw()
@@ -178,7 +184,7 @@ void Fl_Monitor_Arrangement::refresh()
   // The selection state is only saved persistently when "OK" is
   // pressed. We need to manually restore the current selection
   // when the widget is refreshed.
-  std::set<int> indices = get();
+  std::set<int> indices = value();
   monitors.clear();
 
   // FLTK recursively deletes all children for us.
@@ -188,7 +194,7 @@ void Fl_Monitor_Arrangement::refresh()
   end();
 
   // Restore the current selection state.
-  set(indices);
+  value(indices);
   redraw();
 }
 
@@ -199,7 +205,7 @@ bool Fl_Monitor_Arrangement::is_required(int m)
     return false;
 
   // If no monitors are selected, none are required.
-  std::set<int> selected = get();
+  std::set<int> selected = value();
   if (selected.size() <= 0)
     return false;
 

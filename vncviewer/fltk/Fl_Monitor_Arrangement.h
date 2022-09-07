@@ -39,10 +39,10 @@ public:
   ~Fl_Monitor_Arrangement();
 
   // Get selected indices.
-  std::set<int> get();
+  std::set<int> value() const;
 
   // Set selected indices.
-  void set(std::set<int> indices);
+  int value(std::set<int> indices);
 
 protected:
   virtual void draw();
