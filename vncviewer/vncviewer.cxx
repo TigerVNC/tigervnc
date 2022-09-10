@@ -52,7 +52,6 @@
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
-#include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
 #include <rdr/Exception.h>
