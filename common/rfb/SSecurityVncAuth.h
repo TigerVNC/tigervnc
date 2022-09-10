@@ -24,11 +24,12 @@
 #ifndef __RFB_SSECURITYVNCAUTH_H__
 #define __RFB_SSECURITYVNCAUTH_H__
 
+#include <stdint.h>
+
 #include <rfb/Configuration.h>
 #include <rfb/Password.h>
 #include <rfb/SSecurity.h>
 #include <rfb/Security.h>
-#include <rdr/types.h>
 
 namespace rfb {
 
@@ -61,8 +62,8 @@ namespace rfb {
   private:
     bool verifyResponse(const PlainPasswd &password);
     enum {vncAuthChallengeSize = 16};
-    rdr::U8 challenge[vncAuthChallengeSize];
-    rdr::U8 response[vncAuthChallengeSize];
+    uint8_t challenge[vncAuthChallengeSize];
+    uint8_t response[vncAuthChallengeSize];
     bool sentChallenge;
     VncAuthPasswdGetter* pg;
     SConnection::AccessRights accessRights;

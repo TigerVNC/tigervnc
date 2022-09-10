@@ -19,57 +19,51 @@
 #ifndef __RDR_TYPES_H__
 #define __RDR_TYPES_H__
 
-namespace rdr {
+#include <stdint.h>
 
-  typedef unsigned char U8;
-  typedef unsigned short U16;
-  typedef unsigned int U32;
-  typedef unsigned long long U64;
-  typedef signed char S8;
-  typedef signed short S16;
-  typedef signed int S32;
+namespace rdr {
 
   class U8Array {
   public:
     U8Array() : buf(0) {}
-    U8Array(U8* a) : buf(a) {} // note: assumes ownership
-    U8Array(int len) : buf(new U8[len]) {}
+    U8Array(uint8_t* a) : buf(a) {} // note: assumes ownership
+    U8Array(int len) : buf(new uint8_t[len]) {}
     ~U8Array() { delete [] buf; }
 
     // Get the buffer pointer & clear it (i.e. caller takes ownership)
-    U8* takeBuf() { U8* tmp = buf; buf = 0; return tmp; }
+    uint8_t* takeBuf() { uint8_t* tmp = buf; buf = 0; return tmp; }
 
-    U8* buf;
+    uint8_t* buf;
   };
 
   class U16Array {
   public:
     U16Array() : buf(0) {}
-    U16Array(U16* a) : buf(a) {} // note: assumes ownership
-    U16Array(int len) : buf(new U16[len]) {}
+    U16Array(uint16_t* a) : buf(a) {} // note: assumes ownership
+    U16Array(int len) : buf(new uint16_t[len]) {}
     ~U16Array() { delete [] buf; }
-    U16* takeBuf() { U16* tmp = buf; buf = 0; return tmp; }
-    U16* buf;
+    uint16_t* takeBuf() { uint16_t* tmp = buf; buf = 0; return tmp; }
+    uint16_t* buf;
   };
 
   class U32Array {
   public:
     U32Array() : buf(0) {}
-    U32Array(U32* a) : buf(a) {} // note: assumes ownership
-    U32Array(int len) : buf(new U32[len]) {}
+    U32Array(uint32_t* a) : buf(a) {} // note: assumes ownership
+    U32Array(int len) : buf(new uint32_t[len]) {}
     ~U32Array() { delete [] buf; }
-    U32* takeBuf() { U32* tmp = buf; buf = 0; return tmp; }
-    U32* buf;
+    uint32_t* takeBuf() { uint32_t* tmp = buf; buf = 0; return tmp; }
+    uint32_t* buf;
   };
 
   class S32Array {
   public:
     S32Array() : buf(0) {}
-    S32Array(S32* a) : buf(a) {} // note: assumes ownership
-    S32Array(int len) : buf(new S32[len]) {}
+    S32Array(int32_t* a) : buf(a) {} // note: assumes ownership
+    S32Array(int len) : buf(new int32_t[len]) {}
     ~S32Array() { delete [] buf; }
-    S32* takeBuf() { S32* tmp = buf; buf = 0; return tmp; }
-    S32* buf;
+    int32_t* takeBuf() { int32_t* tmp = buf; buf = 0; return tmp; }
+    int32_t* buf;
   };
 
 } // end of namespace rdr

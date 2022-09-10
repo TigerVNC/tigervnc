@@ -47,8 +47,8 @@ SecurityPage::SecurityPage(Security *security_)
 void
 SecurityPage::initDialog()
 {
-  list<U8> secTypes;
-  list<U8>::iterator i;
+  list<uint8_t> secTypes;
+  list<uint8_t>::iterator i;
 
   if (isItemChecked(IDC_ENC_X509))
     enableX509Dialogs();
@@ -69,8 +69,8 @@ SecurityPage::initDialog()
     }
   }
 
-  list<U32> secTypesExt;
-  list<U32>::iterator iext;
+  list<uint32_t> secTypesExt;
+  list<uint32_t>::iterator iext;
 
   secTypesExt = security->GetEnabledExtSecTypes();
 
@@ -124,7 +124,7 @@ SecurityPage::onOk() {
   bool x509_loaded = false;
 #endif
   bool vnc_loaded = false;
-  list<U32> secTypes;
+  list<uint32_t> secTypes;
 
   /* Keep same priorities as in common/rfb/SecurityClient::secTypes */
   secTypes.push_back(secTypeVeNCrypt);

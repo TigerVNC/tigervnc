@@ -510,7 +510,7 @@ KeyCode XDesktop::keysymToKeycode(Display* dpy, KeySym keysym) {
 }
 
 
-void XDesktop::keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
+void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
 #ifdef HAVE_XTEST
   int keycode = 0;
 
@@ -944,20 +944,20 @@ bool XDesktop::setCursor()
 
   // Copied from XserverDesktop::setCursor() in
   // unix/xserver/hw/vnc/XserverDesktop.cc and adapted to
-  // handle long -> U32 conversion for 64-bit Xlib
-  rdr::U8* cursorData;
-  rdr::U8 *out;
+  // handle long -> uint32_t conversion for 64-bit Xlib
+  uint8_t* cursorData;
+  uint8_t *out;
   const unsigned long *pixels;
 
-  cursorData = new rdr::U8[cim->width * cim->height * 4];
+  cursorData = new uint8_t[cim->width * cim->height * 4];
 
   // Un-premultiply alpha
   pixels = cim->pixels;
   out = cursorData;
   for (int y = 0; y < cim->height; y++) {
     for (int x = 0; x < cim->width; x++) {
-      rdr::U8 alpha;
-      rdr::U32 pixel = *pixels++;
+      uint8_t alpha;
+      uint32_t pixel = *pixels++;
 
       alpha = (pixel >> 24) & 0xff;
       if (alpha == 0)

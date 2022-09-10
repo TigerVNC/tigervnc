@@ -54,7 +54,7 @@ namespace rfb {
     bool readKeyEvent();
     bool readPointerEvent();
     bool readClientCutText();
-    bool readExtendedClipboard(rdr::S32 len);
+    bool readExtendedClipboard(int32_t len);
 
     bool readQEMUMessage();
     bool readQEMUKeyEvent();
@@ -70,7 +70,7 @@ namespace rfb {
 
     stateEnum state;
 
-    rdr::U8 currentMsgType;
+    uint8_t currentMsgType;
   };
 }
 #endif

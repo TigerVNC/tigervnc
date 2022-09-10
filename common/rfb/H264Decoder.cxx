@@ -70,7 +70,7 @@ bool H264Decoder::readRect(const Rect& /*r*/,
                            const ServerParams& /*server*/,
                            rdr::OutStream* os)
 {
-  rdr::U32 len;
+  uint32_t len;
 
   if (!is->hasData(8))
     return false;
@@ -79,7 +79,7 @@ bool H264Decoder::readRect(const Rect& /*r*/,
 
   len = is->readU32();
   os->writeU32(len);
-  rdr::U32 flags = is->readU32();
+  uint32_t flags = is->readU32();
 
   os->writeU32(flags);
 
@@ -99,8 +99,8 @@ void H264Decoder::decodeRect(const Rect& r, const void* buffer,
                              ModifiablePixelBuffer* pb)
 {
   rdr::MemInStream is(buffer, buflen);
-  rdr::U32 len = is.readU32();
-  rdr::U32 flags = is.readU32();
+  uint32_t len = is.readU32();
+  uint32_t flags = is.readU32();
 
   H264DecoderContext* ctx = NULL;
   if (flags & resetAllContexts)

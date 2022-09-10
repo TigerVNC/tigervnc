@@ -98,7 +98,7 @@ namespace rfb {
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           const rdr::U8* data);
+                           const uint8_t* data);
     virtual void setCursorPos(const Point& p, bool warped);
     virtual void setName(const char* name_);
     virtual void setLEDState(unsigned state);
@@ -116,7 +116,7 @@ namespace rfb {
     unsigned getLEDState() const { return ledState; }
 
     // Event handlers
-    void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+    void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
     void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
 
     void handleClipboardRequest(VNCSConnectionST* client);

@@ -65,7 +65,6 @@
 #include <rfb/util.h>
 #include <rfb/ledStates.h>
 
-#include <rdr/types.h>
 
 using namespace rfb;
 
@@ -416,7 +415,7 @@ void VNCServerST::add_copied(const Region& dest, const Point& delta)
 }
 
 void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
-                            const rdr::U8* data)
+                            const uint8_t* data)
 {
   delete cursor;
   cursor = new Cursor(width, height, newHotspot, data);
@@ -463,14 +462,14 @@ void VNCServerST::setLEDState(unsigned int state)
 
 // Event handlers
 
-void VNCServerST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
+void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
   if (rfb::Server::maxIdleTime)
     idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Remap the key if required
   if (keyRemapper) {
-    rdr::U32 newkey;
+    uint32_t newkey;
     newkey = keyRemapper->remapKey(keysym);
     if (newkey != keysym) {
       slog.debug("Key remapped to 0x%x", newkey);

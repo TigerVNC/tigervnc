@@ -62,7 +62,7 @@ char* HexOutStream::binToHexStr(const char* data, size_t length) {
 bool HexOutStream::flushBuffer()
 {
   while (sentUpTo != ptr) {
-    U8* optr = out_stream.getptr(2);
+    uint8_t* optr = out_stream.getptr(2);
     size_t length = min(ptr-sentUpTo, out_stream.avail()/2);
 
     for (size_t i=0; i<length; i++) {

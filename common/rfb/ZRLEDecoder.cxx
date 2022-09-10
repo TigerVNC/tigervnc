@@ -32,21 +32,21 @@
 
 using namespace rfb;
 
-static inline rdr::U32 readOpaque24A(rdr::InStream* is)
+static inline uint32_t readOpaque24A(rdr::InStream* is)
 {
-  rdr::U32 r=0;
-  ((rdr::U8*)&r)[0] = is->readU8();
-  ((rdr::U8*)&r)[1] = is->readU8();
-  ((rdr::U8*)&r)[2] = is->readU8();
+  uint32_t r=0;
+  ((uint8_t*)&r)[0] = is->readU8();
+  ((uint8_t*)&r)[1] = is->readU8();
+  ((uint8_t*)&r)[2] = is->readU8();
   return r;
 
 }
-static inline rdr::U32 readOpaque24B(rdr::InStream* is)
+static inline uint32_t readOpaque24B(rdr::InStream* is)
 {
-  rdr::U32 r=0;
-  ((rdr::U8*)&r)[1] = is->readU8();
-  ((rdr::U8*)&r)[2] = is->readU8();
-  ((rdr::U8*)&r)[3] = is->readU8();
+  uint32_t r=0;
+  ((uint8_t*)&r)[1] = is->readU8();
+  ((uint8_t*)&r)[2] = is->readU8();
+  ((uint8_t*)&r)[3] = is->readU8();
   return r;
 }
 
@@ -79,7 +79,7 @@ bool ZRLEDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
                            const ServerParams& /*server*/,
                            rdr::OutStream* os)
 {
-  rdr::U32 len;
+  uint32_t len;
 
   if (!is->hasData(4))
     return false;
@@ -106,9 +106,9 @@ void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
   rdr::MemInStream is(buffer, buflen);
   const rfb::PixelFormat& pf = server.pf();
   switch (pf.bpp) {
-  case 8:  zrleDecode<rdr::U8>(r, &is, &zis, pf, pb); break;
-  case 16: zrleDecode<rdr::U16>(r, &is, &zis, pf, pb); break;
-  case 32: zrleDecode<rdr::U32>(r, &is, &zis, pf, pb); break;
+  case 8:  zrleDecode<uint8_t>(r, &is, &zis, pf, pb); break;
+  case 16: zrleDecode<uint16_t>(r, &is, &zis, pf, pb); break;
+  case 32: zrleDecode<uint32_t>(r, &is, &zis, pf, pb); break;
   }
 }
 
@@ -123,7 +123,7 @@ void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
   Rect t;
   T buf[64 * 64];
 
-  Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
+  Pixel maxPixel = pf.pixelFromRGB((uint16_t)-1, (uint16_t)-1, (uint16_t)-1);
   bool fitsInLS3Bytes = maxPixel < (1<<24);
   bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
   bool isLowCPixel = (sizeof(T) == 4) &&
@@ -198,8 +198,8 @@ void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
 
           for (int i = 0; i < t.height(); i++) {
             T* eol = ptr + t.width();
-            rdr::U8 byte = 0;
-            rdr::U8 nbits = 0;
+            uint8_t byte = 0;
+            uint8_t nbits = 0;
 
             while (ptr < eol) {
               if (nbits == 0) {
@@ -208,7 +208,7 @@ void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
                 nbits = 8;
               }
               nbits -= bppp;
-              rdr::U8 index = (byte >> nbits) & ((1 << bppp) - 1) & 127;
+              uint8_t index = (byte >> nbits) & ((1 << bppp) - 1) & 127;
               *ptr++ = palette[index];
             }
           }

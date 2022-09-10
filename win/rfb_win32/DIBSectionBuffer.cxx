@@ -48,12 +48,12 @@ DIBSectionBuffer::~DIBSectionBuffer() {
 
 inline void initMaxAndShift(DWORD mask, int* max, int* shift) {
   for ((*shift) = 0; (mask & 1) == 0; (*shift)++) mask >>= 1;
-  (*max) = (rdr::U16)mask;
+  (*max) = (uint16_t)mask;
 }
 
 void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
   HBITMAP new_bitmap = 0;
-  rdr::U8* new_data = 0;
+  uint8_t* new_data = 0;
 
   if (!pf.trueColour)
     throw rfb::Exception("palette format not supported");
@@ -71,9 +71,9 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
     bi.bmiHeader.biWidth = w;
     bi.bmiHeader.biHeight = -h;
     bi.bmiHeader.biCompression = (format.bpp > 8) ? BI_BITFIELDS : BI_RGB;
-    bi.mask.red = format.pixelFromRGB((rdr::U16)~0, 0, 0);
-    bi.mask.green = format.pixelFromRGB(0, (rdr::U16)~0, 0);
-    bi.mask.blue = format.pixelFromRGB(0, 0, (rdr::U16)~0);
+    bi.mask.red = format.pixelFromRGB((uint16_t)~0, 0, 0);
+    bi.mask.green = format.pixelFromRGB(0, (uint16_t)~0, 0);
+    bi.mask.blue = format.pixelFromRGB(0, 0, (uint16_t)~0);
 
     // Create a DIBSection to draw into
     if (device)

@@ -376,7 +376,7 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
-                              const rdr::U8* data)
+                              const uint8_t* data)
 {
   viewport->setCursor(width, height, hotspot, data);
 }
@@ -1321,7 +1321,7 @@ void DesktopWindow::remoteResize(int width, int height)
     layout.begin()->dimensions.br.y = height;
   } else {
     int i;
-    rdr::U32 id;
+    uint32_t id;
     int sx, sy, sw, sh;
     rfb::Rect viewport_rect, screen_rect;
 

@@ -246,7 +246,7 @@ static const char * dotcursor_xpm[] = {
   "     "};
 
 void Viewport::setCursor(int width, int height, const Point& hotspot,
-                         const rdr::U8* data)
+                         const uint8_t* data)
 {
   int i;
 
@@ -267,12 +267,12 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     cursorHotspot.x = cursorHotspot.y = 2;
   } else {
     if ((width == 0) || (height == 0)) {
-      U8 *buffer = new U8[4];
+      uint8_t *buffer = new uint8_t[4];
       memset(buffer, 0, 4);
       cursor = new Fl_RGB_Image(buffer, 1, 1, 4);
       cursorHotspot.x = cursorHotspot.y = 0;
     } else {
-      U8 *buffer = new U8[width * height * 4];
+      uint8_t *buffer = new uint8_t[width * height * 4];
       memcpy(buffer, data, width * height * 4);
       cursor = new Fl_RGB_Image(buffer, width, height, 4);
       cursorHotspot = hotspot;
@@ -830,7 +830,7 @@ void Viewport::resetKeyboard()
 }
 
 
-void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
+void Viewport::handleKeyPress(int keyCode, uint32_t keySym)
 {
   static bool menuRecursion = false;
 
@@ -968,7 +968,7 @@ int Viewport::handleSystemEvent(void *event, void *data)
     UINT vKey;
     bool isExtended;
     int keyCode;
-    rdr::U32 keySym;
+    uint32_t keySym;
 
     vKey = msg->wParam;
     isExtended = (msg->lParam & (1 << 24)) != 0;
@@ -1148,7 +1148,7 @@ int Viewport::handleSystemEvent(void *event, void *data)
       keyCode = code_map_osx_to_qnum[keyCode];
 
     if (cocoa_is_key_press(event)) {
-      rdr::U32 keySym;
+      uint32_t keySym;
 
       keySym = cocoa_event_keysym(event);
       if (keySym == NoSymbol) {

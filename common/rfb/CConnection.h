@@ -116,14 +116,14 @@ namespace rfb {
 
     virtual void serverCutText(const char* str);
 
-    virtual void handleClipboardCaps(rdr::U32 flags,
-                                     const rdr::U32* lengths);
-    virtual void handleClipboardRequest(rdr::U32 flags);
+    virtual void handleClipboardCaps(uint32_t flags,
+                                     const uint32_t* lengths);
+    virtual void handleClipboardRequest(uint32_t flags);
     virtual void handleClipboardPeek();
-    virtual void handleClipboardNotify(rdr::U32 flags);
-    virtual void handleClipboardProvide(rdr::U32 flags,
+    virtual void handleClipboardNotify(uint32_t flags);
+    virtual void handleClipboardProvide(uint32_t flags,
                                         const size_t* lengths,
-                                        const rdr::U8* const* data);
+                                        const uint8_t* const* data);
 
 
     // Methods to be overridden in a derived class
@@ -248,7 +248,7 @@ namespace rfb {
     // responds to requests, stating no support for synchronisation.
     // When overriding, call CMsgHandler::fence() directly in order to
     // state correct support for fence flags.
-    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
+    virtual void fence(uint32_t flags, unsigned len, const char data[]);
 
   private:
     bool processVersionMsg();

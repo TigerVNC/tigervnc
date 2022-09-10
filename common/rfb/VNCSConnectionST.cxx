@@ -80,7 +80,7 @@ VNCSConnectionST::~VNCSConnectionST()
 
   // Release any keys the client still had pressed
   while (!pressedKeys.empty()) {
-    rdr::U32 keysym, keycode;
+    uint32_t keysym, keycode;
 
     keysym = pressedKeys.begin()->second;
     keycode = pressedKeys.begin()->first;
@@ -261,7 +261,7 @@ void VNCSConnectionST::writeFramebufferUpdateOrClose()
   }
 }
 
-void VNCSConnectionST::screenLayoutChangeOrClose(rdr::U16 reason)
+void VNCSConnectionST::screenLayoutChangeOrClose(uint16_t reason)
 {
   try {
     screenLayoutChange(reason);
@@ -502,8 +502,8 @@ public:
 
 // keyEvent() - record in the pressedKeys which keys were pressed.  Allow
 // multiple down events (for autorepeat), but only allow a single up event.
-void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
-  rdr::U32 lookup;
+void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
+  uint32_t lookup;
 
   if (rfb::Server::idleTimeout)
     idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
@@ -669,9 +669,9 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   writer()->writeDesktopSize(reasonClient, result);
 }
 
-void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
+void VNCSConnectionST::fence(uint32_t flags, unsigned len, const char data[])
 {
-  rdr::U8 type;
+  uint8_t type;
 
   if (flags & fenceFlagRequest) {
     if (flags & fenceFlagSyncNext) {
@@ -808,7 +808,7 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
 
 bool VNCSConnectionST::isShiftPressed()
 {
-    std::map<rdr::U32, rdr::U32>::const_iterator iter;
+    std::map<uint32_t, uint32_t>::const_iterator iter;
 
     for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
       if (iter->second == XK_Shift_L)
@@ -1108,7 +1108,7 @@ void VNCSConnectionST::writeLosslessRefresh()
 }
 
 
-void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
+void VNCSConnectionST::screenLayoutChange(uint16_t reason)
 {
   if (!authenticated())
     return;

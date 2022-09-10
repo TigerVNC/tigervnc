@@ -97,7 +97,7 @@ void AccessEntries::addEntry(const PSID sid,
 PSID Sid::copySID(const PSID sid) {
   if (!IsValidSid(sid))
     throw rdr::Exception("invalid SID in copyPSID");
-  PSID buf = (PSID)new rdr::U8[GetLengthSid(sid)];
+  PSID buf = (PSID)new uint8_t[GetLengthSid(sid)];
   if (!CopySid(GetLengthSid(sid), buf, sid))
     throw rdr::SystemException("CopySid failed", GetLastError());
   return buf;
@@ -105,7 +105,7 @@ PSID Sid::copySID(const PSID sid) {
 
 void Sid::setSID(const PSID sid) {
   delete [] buf;
-  buf = (rdr::U8*)copySID(sid);
+  buf = (uint8_t*)copySID(sid);
 }
 
 void Sid::getUserNameAndDomain(TCHAR** name, TCHAR** domain) {

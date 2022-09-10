@@ -49,7 +49,7 @@ public:
 
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 const rdr::U8* data);
+                 const uint8_t* data);
 
   // Change client LED state
   void setLEDState(unsigned int state);
@@ -86,7 +86,7 @@ private:
 
   void resetKeyboard();
 
-  void handleKeyPress(int keyCode, rdr::U32 keySym);
+  void handleKeyPress(int keyCode, uint32_t keySym);
   void handleKeyRelease(int keyCode);
 
   static int handleSystemEvent(void *event, void *data);
@@ -113,7 +113,7 @@ private:
   rfb::Point lastPointerPos;
   int lastButtonMask;
 
-  typedef std::map<int, rdr::U32> DownMap;
+  typedef std::map<int, uint32_t> DownMap;
   DownMap downKeySym;
 
 #ifdef WIN32
@@ -128,7 +128,7 @@ private:
 
   int clipboardSource;
 
-  rdr::U32 menuKeySym;
+  uint32_t menuKeySym;
   int menuKeyCode, menuKeyFLTK;
   Fl_Menu_Button *contextMenu;
 

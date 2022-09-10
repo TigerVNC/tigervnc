@@ -18,9 +18,9 @@
 #ifndef __RFB_PIXEL_H__
 #define __RFB_PIXEL_H__
 
-#include <rdr/types.h>
+#include <stdint.h>
 
 namespace rfb {
-  typedef rdr::U32 Pixel; // must be big enough to hold any pixel value
+  typedef uint32_t Pixel; // must be big enough to hold any pixel value
 }
 #endif

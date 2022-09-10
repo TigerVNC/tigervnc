@@ -27,6 +27,7 @@
 #endif
 
 #include <vector>
+#include <rdr/types.h>
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/IconInfo.h>
@@ -149,7 +150,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     if (!iconInfo.hbmColor)
       height /= 2;
 
-    buffer.buf = new rdr::U8[width * height * 4];
+    buffer.buf = new uint8_t[width * height * 4];
 
     Point hotspot = Point(iconInfo.xHotspot, iconInfo.yHotspot);
 
@@ -190,10 +191,10 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
           (bi.bV5BlueMask != ((unsigned)0xff << bidx*8)))
         throw rdr::Exception("unsupported cursor colour format");
 
-      rdr::U8* rwbuffer = buffer.buf;
+      uint8_t* rwbuffer = buffer.buf;
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-          rdr::U8 r, g, b, a;
+          uint8_t r, g, b, a;
 
           r = rwbuffer[ridx];
           g = rwbuffer[gidx];
@@ -212,15 +213,15 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
       // B/W cursor
 
       rdr::U8Array mask(maskInfo.bmWidthBytes * maskInfo.bmHeight);
-      rdr::U8* andMask = mask.buf;
-      rdr::U8* xorMask = mask.buf + height * maskInfo.bmWidthBytes;
+      uint8_t* andMask = mask.buf;
+      uint8_t* xorMask = mask.buf + height * maskInfo.bmWidthBytes;
 
       if (!GetBitmapBits(iconInfo.hbmMask,
                          maskInfo.bmWidthBytes * maskInfo.bmHeight, mask.buf))
         throw rdr::SystemException("GetBitmapBits", GetLastError());
 
       bool doOutline = false;
-      rdr::U8* rwbuffer = buffer.buf;
+      uint8_t* rwbuffer = buffer.buf;
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           int byte = y * maskInfo.bmWidthBytes + x / 8;
@@ -264,8 +265,8 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
         memset(outline.buf, 0, (width + 2)*(height + 2)*4);
 
         // Pass 1, outline everything
-        rdr::U8* in = buffer.buf;
-        rdr::U8* out = outline.buf + width*4 + 4;
+        uint8_t* in = buffer.buf;
+        uint8_t* out = outline.buf + width*4 + 4;
         for (int y = 0; y < height; y++) {
           for (int x = 0; x < width; x++) {
             // Visible pixel?

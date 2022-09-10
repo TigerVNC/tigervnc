@@ -39,6 +39,7 @@
 #include <rfb/Exception.h>
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
+#include <rdr/types.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <rfb/UnixPasswordValidator.h>
 #endif
@@ -68,7 +69,7 @@ BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
  false, ConfServer);
 
-SSecurityRSAAES::SSecurityRSAAES(SConnection* sc, rdr::U32 _secType,
+SSecurityRSAAES::SSecurityRSAAES(SConnection* sc, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
   : SSecurity(sc), state(SendPublicKey),
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
@@ -107,7 +108,7 @@ void SSecurityRSAAES::cleanup()
     delete raos;
 }
 
-static inline ssize_t findSubstr(rdr::U8* data, size_t size, const char *pattern)
+static inline ssize_t findSubstr(uint8_t* data, size_t size, const char *pattern)
 {
   size_t patternLength = strlen(pattern);
   for (size_t i = 0; i + patternLength < size; ++i) {
@@ -121,8 +122,8 @@ next:
   return -1;
 }
 
-static bool loadPEM(rdr::U8* data, size_t size, const char *begin,
-                    const char *end, rdr::U8** der, size_t *derSize)
+static bool loadPEM(uint8_t* data, size_t size, const char *begin,
+                    const char *end, uint8_t** der, size_t *derSize)
 {
   ssize_t pos1 = findSubstr(data, size, begin);
   if (pos1 == -1)
@@ -134,7 +135,7 @@ static bool loadPEM(rdr::U8* data, size_t size, const char *begin,
   char *derBase64 = (char *)data + pos1;
   if (!base64Size)
     return false;
-  *der = new rdr::U8[BASE64_DECODE_LENGTH(base64Size)];
+  *der = new uint8_t[BASE64_DECODE_LENGTH(base64Size)];
   struct base64_decode_ctx ctx;
   base64_decode_init(&ctx);
   if (!base64_decode_update(&ctx, derSize, *der, base64Size, derBase64))
@@ -180,7 +181,7 @@ void SSecurityRSAAES::loadPrivateKey()
   throw ConnFailedException("failed to import key");
 }
 
-void SSecurityRSAAES::loadPKCS1Key(const rdr::U8* data, size_t size)
+void SSecurityRSAAES::loadPKCS1Key(const uint8_t* data, size_t size)
 {
   struct rsa_public_key pub;
   rsa_private_key_init(&serverKey);
@@ -191,14 +192,14 @@ void SSecurityRSAAES::loadPKCS1Key(const rdr::U8* data, size_t size)
     throw ConnFailedException("failed to import key");
   }
   serverKeyLength = serverKey.size * 8;
-  serverKeyN = new rdr::U8[serverKey.size];
-  serverKeyE = new rdr::U8[serverKey.size];
+  serverKeyN = new uint8_t[serverKey.size];
+  serverKeyE = new uint8_t[serverKey.size];
   nettle_mpz_get_str_256(serverKey.size, serverKeyN, pub.n);
   nettle_mpz_get_str_256(serverKey.size, serverKeyE, pub.e);
   rsa_public_key_clear(&pub);
 }
 
-void SSecurityRSAAES::loadPKCS8Key(const rdr::U8* data, size_t size)
+void SSecurityRSAAES::loadPKCS8Key(const uint8_t* data, size_t size)
 {
   struct asn1_der_iterator i, j;
   uint32_t version;
@@ -296,8 +297,8 @@ bool SSecurityRSAAES::readPublicKey()
   if (!is->hasDataOrRestore(size * 2))
     return false;
   is->clearRestorePoint();
-  clientKeyE = new rdr::U8[size];
-  clientKeyN = new rdr::U8[size];
+  clientKeyE = new uint8_t[size];
+  clientKeyN = new uint8_t[size];
   is->readBytes(clientKeyN, size);
   is->readBytes(clientKeyE, size);
   rsa_public_key_init(&clientKey);
@@ -336,7 +337,7 @@ void SSecurityRSAAES::writeRandom()
     mpz_clear(x);
     throw ConnFailedException("failed to encrypt random");
   }
-  rdr::U8* buffer = new rdr::U8[clientKey.size];
+  uint8_t* buffer = new uint8_t[clientKey.size];
   nettle_mpz_get_str_256(clientKey.size, buffer, x);
   mpz_clear(x);
   os->writeU16(clientKey.size);
@@ -357,7 +358,7 @@ bool SSecurityRSAAES::readRandom()
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
-  rdr::U8* buffer = new rdr::U8[size];
+  uint8_t* buffer = new uint8_t[size];
   is->readBytes(buffer, size);
   size_t randomSize = keySize / 8;
   mpz_t x;
@@ -376,7 +377,7 @@ void SSecurityRSAAES::setCipher()
 {
   rawis = sc->getInStream();
   rawos = sc->getOutStream();
-  rdr::U8 key[32];
+  uint8_t key[32];
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
@@ -408,20 +409,20 @@ void SSecurityRSAAES::setCipher()
 
 void SSecurityRSAAES::writeHash()
 {
-  rdr::U8 hash[32];
+  uint8_t hash[32];
   size_t len = serverKeyLength;
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   len = clientKeyLength;
-  rdr::U8 lenClientKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenClientKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   int hashSize;
   if (keySize == 128) {
@@ -453,25 +454,25 @@ void SSecurityRSAAES::writeHash()
 
 bool SSecurityRSAAES::readHash()
 {
-  rdr::U8 hash[32];
-  rdr::U8 realHash[32];
+  uint8_t hash[32];
+  uint8_t realHash[32];
   int hashSize = keySize == 128 ? 20 : 32;
   if (!rais->hasData(hashSize))
     return false;
   rais->readBytes(hash, hashSize);
   size_t len = serverKeyLength;
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   len = clientKeyLength;
-  rdr::U8 lenClientKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenClientKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   if (keySize == 128) {
     struct sha1_ctx ctx;
@@ -531,7 +532,7 @@ bool SSecurityRSAAES::readCredentials()
   rais->setRestorePoint();
   if (!rais->hasData(1))
     return false;
-  rdr::U8 lenUsername = rais->readU8();
+  uint8_t lenUsername = rais->readU8();
   if (!rais->hasDataOrRestore(lenUsername + 1))
     return false;
   if (!username.buf) {
@@ -541,7 +542,7 @@ bool SSecurityRSAAES::readCredentials()
   } else {
     rais->skip(lenUsername);
   }
-  rdr::U8 lenPassword = rais->readU8();
+  uint8_t lenPassword = rais->readU8();
   if (!rais->hasDataOrRestore(lenPassword))
     return false;
   password.replaceBuf(new char[lenPassword + 1]);

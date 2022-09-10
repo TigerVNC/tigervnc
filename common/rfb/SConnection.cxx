@@ -161,8 +161,8 @@ bool SConnection::processVersionMsg()
 
   versionReceived();
 
-  std::list<rdr::U8> secTypes;
-  std::list<rdr::U8>::iterator i;
+  std::list<uint8_t> secTypes;
+  std::list<uint8_t>::iterator i;
   secTypes = security.GetEnabledSecTypes();
 
   if (client.isVersion(3,3)) {
@@ -216,8 +216,8 @@ bool SConnection::processSecurityTypeMsg()
 void SConnection::processSecurityType(int secType)
 {
   // Verify that the requested security type should be offered
-  std::list<rdr::U8> secTypes;
-  std::list<rdr::U8>::iterator i;
+  std::list<uint8_t> secTypes;
+  std::list<uint8_t>::iterator i;
 
   secTypes = security.GetEnabledSecTypes();
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
@@ -352,7 +352,7 @@ bool SConnection::accessCheck(AccessRights ar) const
   return (accessRights & ar) == ar;
 }
 
-void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
+void SConnection::setEncodings(int nEncodings, const int32_t* encodings)
 {
   int i;
 
@@ -367,7 +367,7 @@ void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
   SMsgHandler::setEncodings(nEncodings, encodings);
 
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard)) {
-    rdr::U32 sizes[] = { 0 };
+    uint32_t sizes[] = { 0 };
     writer()->writeClipboardCaps(rfb::clipboardUTF8 |
                                  rfb::clipboardRequest |
                                  rfb::clipboardPeek |
@@ -389,7 +389,7 @@ void SConnection::clientCutText(const char* str)
   handleClipboardAnnounce(true);
 }
 
-void SConnection::handleClipboardRequest(rdr::U32 flags)
+void SConnection::handleClipboardRequest(uint32_t flags)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard request for unsupported formats 0x%x", flags);
@@ -408,7 +408,7 @@ void SConnection::handleClipboardPeek()
     writer()->writeClipboardNotify(hasLocalClipboard ? rfb::clipboardUTF8 : 0);
 }
 
-void SConnection::handleClipboardNotify(rdr::U32 flags)
+void SConnection::handleClipboardNotify(uint32_t flags)
 {
   strFree(clientClipboard);
   clientClipboard = NULL;
@@ -421,9 +421,9 @@ void SConnection::handleClipboardNotify(rdr::U32 flags)
   }
 }
 
-void SConnection::handleClipboardProvide(rdr::U32 flags,
+void SConnection::handleClipboardProvide(uint32_t flags,
                                          const size_t* lengths,
-                                         const rdr::U8* const* data)
+                                         const uint8_t* const* data)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard provide with unsupported formats 0x%x", flags);
@@ -523,7 +523,7 @@ void SConnection::framebufferUpdateRequest(const Rect& /*r*/,
   }
 }
 
-void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
+void SConnection::fence(uint32_t flags, unsigned len, const char data[])
 {
   if (!(flags & fenceFlagRequest))
     return;
@@ -596,7 +596,7 @@ void SConnection::sendClipboardData(const char* data)
       (client.clipboardFlags() & rfb::clipboardProvide)) {
     CharArray filtered(convertCRLF(data));
     size_t sizes[1] = { strlen(filtered.buf) + 1 };
-    const rdr::U8* data[1] = { (const rdr::U8*)filtered.buf };
+    const uint8_t* data[1] = { (const uint8_t*)filtered.buf };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -631,7 +631,7 @@ void SConnection::cleanup()
 void SConnection::writeFakeColourMap(void)
 {
   int i;
-  rdr::U16 red[256], green[256], blue[256];
+  uint16_t red[256], green[256], blue[256];
 
   for (i = 0;i < 256;i++)
     client.pf().rgbFromPixel(i, &red[i], &green[i], &blue[i]);

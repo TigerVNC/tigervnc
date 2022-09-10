@@ -40,10 +40,10 @@ namespace rfb {
     virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
     virtual void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const uint8_t* colour);
 
   protected:
-    void writeCompact(rdr::U32 value, rdr::OutStream* os);
+    void writeCompact(uint32_t value, rdr::OutStream* os);
 
   protected:
     JpegCompressor jc;

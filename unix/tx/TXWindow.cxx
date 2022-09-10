@@ -467,7 +467,7 @@ void TXWindow::handleXEvent(XEvent* ev)
           XChangeProperty(dpy, se.requestor, se.property, XA_ATOM, 32,
                           PropModeReplace, (unsigned char*)targets, 2);
         } else if (se.target == xaTIMESTAMP) {
-          rdr::U32 t = selectionOwnTime[se.selection];
+          Time t = selectionOwnTime[se.selection];
           XChangeProperty(dpy, se.requestor, se.property, XA_INTEGER, 32,
                           PropModeReplace, (unsigned char*)&t, 1);
         } else if (se.target == XA_STRING) {

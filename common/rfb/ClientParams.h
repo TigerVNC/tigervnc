@@ -25,7 +25,8 @@
 
 #include <set>
 
-#include <rdr/types.h>
+#include <stdint.h>
+
 #include <rfb/Cursor.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ScreenSet.h>
@@ -80,16 +81,16 @@ namespace rfb {
     const Point& cursorPos() const { return cursorPos_; }
     void setCursorPos(const Point& pos);
 
-    bool supportsEncoding(rdr::S32 encoding) const;
+    bool supportsEncoding(int32_t encoding) const;
 
-    void setEncodings(int nEncodings, const rdr::S32* encodings);
+    void setEncodings(int nEncodings, const int32_t* encodings);
 
     unsigned int ledState() { return ledState_; }
     void setLEDState(unsigned int state);
 
-    rdr::U32 clipboardFlags() const { return clipFlags; }
-    rdr::U32 clipboardSize(unsigned int format) const;
-    void setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths);
+    uint32_t clipboardFlags() const { return clipFlags; }
+    uint32_t clipboardSize(unsigned int format) const;
+    void setClipboardCaps(uint32_t flags, const uint32_t* lengths);
 
     // Wrappers to check for functionality rather than specific
     // encodings
@@ -115,10 +116,10 @@ namespace rfb {
     char* name_;
     Cursor* cursor_;
     Point cursorPos_;
-    std::set<rdr::S32> encodings_;
+    std::set<int32_t> encodings_;
     unsigned int ledState_;
-    rdr::U32 clipFlags;
-    rdr::U32 clipSizes[16];
+    uint32_t clipFlags;
+    uint32_t clipSizes[16];
   };
 }
 #endif

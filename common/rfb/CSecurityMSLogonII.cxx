@@ -39,6 +39,7 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rdr/RandomStream.h>
+#include <rdr/types.h>
 #include <rfb/Exception.h>
 #include <os/os.h>
 
@@ -79,9 +80,9 @@ bool CSecurityMSLogonII::readKey()
   rdr::InStream* is = cc->getInStream();
   if (!is->hasData(24))
     return false;
-  rdr::U8 gBytes[8];
-  rdr::U8 pBytes[8];
-  rdr::U8 ABytes[8];
+  uint8_t gBytes[8];
+  uint8_t pBytes[8];
+  uint8_t ABytes[8];
   is->readBytes(gBytes, 8);
   is->readBytes(pBytes, 8);
   is->readBytes(ABytes, 8);
@@ -106,15 +107,15 @@ void CSecurityMSLogonII::writeCredentials()
   mpz_powm(k, A, b, p);
   mpz_powm(B, g, b, p);
 
-  rdr::U8 key[8];
-  rdr::U8 reversedKey[8];
-  rdr::U8 BBytes[8];
-  rdr::U8 user[256];
-  rdr::U8 pass[64];
+  uint8_t key[8];
+  uint8_t reversedKey[8];
+  uint8_t BBytes[8];
+  uint8_t user[256];
+  uint8_t pass[64];
   nettle_mpz_get_str_256(8, key, k);
   nettle_mpz_get_str_256(8, BBytes, B);
   for (int i = 0; i < 8; ++i) {
-    rdr::U8 x = 0;
+    uint8_t x = 0;
     for (int j = 0; j < 8; ++j) {
       x |= ((key[i] >> j) & 1) << (7 - j);
     }

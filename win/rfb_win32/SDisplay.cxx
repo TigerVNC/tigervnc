@@ -323,7 +323,7 @@ void SDisplay::pointerEvent(const Point& pos, int buttonmask) {
   }
 }
 
-void SDisplay::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
+void SDisplay::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
   // - Check that the SDesktop doesn't need restarting
   if (isRestartRequired())
     restartCore();

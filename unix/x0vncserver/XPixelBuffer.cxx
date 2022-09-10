@@ -54,7 +54,7 @@ XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
                        ffs(m_image->xim->blue_mask) - 1);
 
   // Set up the remaining data of the parent class.
-  setBuffer(rect.width(), rect.height(), (rdr::U8 *)m_image->xim->data,
+  setBuffer(rect.width(), rect.height(), (uint8_t *)m_image->xim->data,
             m_image->xim->bytes_per_line * 8 / m_image->xim->bits_per_pixel);
 
   // Get initial screen image from the X display.

@@ -104,7 +104,7 @@ void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 
 void TightEncoder::writeSolidRect(int /*width*/, int /*height*/,
                                   const PixelFormat& pf,
-                                  const rdr::U8* colour)
+                                  const uint8_t* colour)
 {
   rdr::OutStream* os;
 
@@ -116,40 +116,40 @@ void TightEncoder::writeSolidRect(int /*width*/, int /*height*/,
 
 void TightEncoder::writeMonoRect(const PixelBuffer* pb, const Palette& palette)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(pb->getRect(), &stride);
 
   switch (pb->getPF().bpp) {
   case 32:
-    writeMonoRect(pb->width(), pb->height(), (rdr::U32*)buffer, stride,
+    writeMonoRect(pb->width(), pb->height(), (uint32_t*)buffer, stride,
                   pb->getPF(), palette);
     break;
   case 16:
-    writeMonoRect(pb->width(), pb->height(), (rdr::U16*)buffer, stride,
+    writeMonoRect(pb->width(), pb->height(), (uint16_t*)buffer, stride,
                   pb->getPF(), palette);
     break;
   default:
-    writeMonoRect(pb->width(), pb->height(), (rdr::U8*)buffer, stride,
+    writeMonoRect(pb->width(), pb->height(), (uint8_t*)buffer, stride,
                   pb->getPF(), palette);
   }
 }
 
 void TightEncoder::writeIndexedRect(const PixelBuffer* pb, const Palette& palette)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(pb->getRect(), &stride);
 
   switch (pb->getPF().bpp) {
   case 32:
-    writeIndexedRect(pb->width(), pb->height(), (rdr::U32*)buffer, stride,
+    writeIndexedRect(pb->width(), pb->height(), (uint32_t*)buffer, stride,
                      pb->getPF(), palette);
     break;
   case 16:
-    writeIndexedRect(pb->width(), pb->height(), (rdr::U16*)buffer, stride,
+    writeIndexedRect(pb->width(), pb->height(), (uint16_t*)buffer, stride,
                      pb->getPF(), palette);
     break;
   default:
@@ -166,7 +166,7 @@ void TightEncoder::writeFullColourRect(const PixelBuffer* pb)
   rdr::OutStream* zos;
   int length;
 
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride, h;
 
   os = conn->getOutStream();
@@ -194,10 +194,10 @@ void TightEncoder::writeFullColourRect(const PixelBuffer* pb)
   flushZlibOutStream(zos);
 }
 
-void TightEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+void TightEncoder::writePixels(const uint8_t* buffer, const PixelFormat& pf,
                                unsigned int count, rdr::OutStream* os)
 {
-  rdr::U8 rgb[2048];
+  uint8_t rgb[2048];
 
   if ((pf.bpp != 32) || !pf.is888()) {
     os->writeBytes(buffer, count * pf.bpp/8);
@@ -219,9 +219,9 @@ void TightEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
   }
 }
 
-void TightEncoder::writeCompact(rdr::OutStream* os, rdr::U32 value)
+void TightEncoder::writeCompact(rdr::OutStream* os, uint32_t value)
 {
-  rdr::U8 b;
+  uint8_t b;
   b = value & 0x7F;
   if (value <= 0x7F) {
     os->writeU8(b);
@@ -300,7 +300,7 @@ void TightEncoder::writeMonoRect(int width, int height,
   pal[1] = (T)palette.getColour(1);
 
   os->writeU8(1);
-  writePixels((rdr::U8*)pal, pf, 2, os);
+  writePixels((uint8_t*)pal, pf, 2, os);
 
   // Set up compression
   length = (width + 7)/8 * height;
@@ -387,7 +387,7 @@ void TightEncoder::writeIndexedRect(int width, int height,
     pal[i] = (T)palette.getColour(i);
 
   os->writeU8(palette.size() - 1);
-  writePixels((rdr::U8*)pal, pf, palette.size(), os);
+  writePixels((uint8_t*)pal, pf, palette.size(), os);
 
   // Set up compression
   zos = getZlibOutStream(streamId, idxZlibLevel, width * height);

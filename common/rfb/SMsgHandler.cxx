@@ -49,7 +49,7 @@ void SMsgHandler::setPixelFormat(const PixelFormat& pf)
   client.setPF(pf);
 }
 
-void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
+void SMsgHandler::setEncodings(int nEncodings, const int32_t* encodings)
 {
   bool firstFence, firstContinuousUpdates, firstLEDState,
        firstQEMUKeyEvent;
@@ -73,7 +73,7 @@ void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
     supportsQEMUKeyEvent();
 }
 
-void SMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+void SMsgHandler::handleClipboardCaps(uint32_t flags, const uint32_t* lengths)
 {
   int i;
 
@@ -118,7 +118,7 @@ void SMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
   client.setClipboardCaps(flags, lengths);
 }
 
-void SMsgHandler::handleClipboardRequest(rdr::U32 /*flags*/)
+void SMsgHandler::handleClipboardRequest(uint32_t /*flags*/)
 {
 }
 
@@ -126,13 +126,13 @@ void SMsgHandler::handleClipboardPeek()
 {
 }
 
-void SMsgHandler::handleClipboardNotify(rdr::U32 /*flags*/)
+void SMsgHandler::handleClipboardNotify(uint32_t /*flags*/)
 {
 }
 
-void SMsgHandler::handleClipboardProvide(rdr::U32 /*flags*/,
+void SMsgHandler::handleClipboardProvide(uint32_t /*flags*/,
                                          const size_t* /*lengths*/,
-                                         const rdr::U8* const* /*data*/)
+                                         const uint8_t* const* /*data*/)
 {
 }
 

@@ -125,13 +125,13 @@ namespace rfb {
   public:
     SStaticDesktop(const Point& size) : server(0), buffer(0) {
       PixelFormat pf;
-      const rdr::U8 black[4] = { 0, 0, 0, 0 };
+      const uint8_t black[4] = { 0, 0, 0, 0 };
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
       if (buffer)
         buffer->fillRect(buffer->getRect(), black);
     }
     SStaticDesktop(const Point& size, const PixelFormat& pf) : buffer(0) {
-      const rdr::U8 black[4] = { 0, 0, 0, 0 };
+      const uint8_t black[4] = { 0, 0, 0, 0 };
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
       if (buffer)
         buffer->fillRect(buffer->getRect(), black);

@@ -38,8 +38,8 @@
 
 using namespace rfb;
 
-rdr::U8 PixelFormat::upconvTable[256*8];
-rdr::U8 PixelFormat::downconvTable[256*8];
+uint8_t PixelFormat::upconvTable[256*8];
+uint8_t PixelFormat::downconvTable[256*8];
 
 class PixelFormat::Init {
 public:
@@ -59,8 +59,8 @@ PixelFormat::Init::Init()
 
   for (bits = 1;bits <= 8;bits++) {
     int i, maxVal;
-    rdr::U8 *subUpTable;
-    rdr::U8 *subDownTable;
+    uint8_t *subUpTable;
+    uint8_t *subDownTable;
 
     maxVal = (1 << bits) - 1;
     subUpTable = &upconvTable[(bits-1)*256];
@@ -234,17 +234,17 @@ bool PixelFormat::isLittleEndian(void) const
 }
 
 
-void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int pixels) const
+void PixelFormat::bufferFromRGB(uint8_t *dst, const uint8_t* src, int pixels) const
 {
   bufferFromRGB(dst, src, pixels, pixels, 1);
 }
 
-void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
+void PixelFormat::bufferFromRGB(uint8_t *dst, const uint8_t* src,
                                 int w, int stride, int h) const
 {
   if (is888()) {
     // Optimised common case
-    rdr::U8 *r, *g, *b, *x;
+    uint8_t *r, *g, *b, *x;
 
     if (bigEndian) {
       r = dst + (24 - redShift)/8;
@@ -283,7 +283,7 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
       int w_ = w;
       while (w_--) {
         Pixel p;
-        rdr::U8 r, g, b;
+        uint8_t r, g, b;
 
         r = *(src++);
         g = *(src++);
@@ -300,18 +300,18 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
 }
 
 
-void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels) const
+void PixelFormat::rgbFromBuffer(uint8_t* dst, const uint8_t* src, int pixels) const
 {
   rgbFromBuffer(dst, src, pixels, pixels, 1);
 }
 
 
-void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
+void PixelFormat::rgbFromBuffer(uint8_t* dst, const uint8_t* src,
                                 int w, int stride, int h) const
 {
   if (is888()) {
     // Optimised common case
-    const rdr::U8 *r, *g, *b;
+    const uint8_t *r, *g, *b;
 
     if (bigEndian) {
       r = src + (24 - redShift)/8;
@@ -345,7 +345,7 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
       int w_ = w;
       while (w_--) {
         Pixel p;
-        rdr::U8 r, g, b;
+        uint8_t r, g, b;
 
         p = pixelFromBuffer(src);
 
@@ -364,22 +364,22 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
 
 Pixel PixelFormat::pixelFromPixel(const PixelFormat &srcPF, Pixel src) const
 {
-  rdr::U16 r, g, b;
+  uint16_t r, g, b;
   srcPF.rgbFromPixel(src, &r, &g, &b);
   return pixelFromRGB(r, g, b);
 }
 
 
-void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
-                                   const rdr::U8* src, int pixels) const
+void PixelFormat::bufferFromBuffer(uint8_t* dst, const PixelFormat &srcPF,
+                                   const uint8_t* src, int pixels) const
 {
   bufferFromBuffer(dst, srcPF, src, pixels, 1, pixels, pixels);
 }
 
 #define IS_ALIGNED(v, a) (((intptr_t)v & (a-1)) == 0)
 
-void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
-                                   const rdr::U8* src, int w, int h,
+void PixelFormat::bufferFromBuffer(uint8_t* dst, const PixelFormat &srcPF,
+                                   const uint8_t* src, int w, int h,
                                    int dstStride, int srcStride) const
 {
   if (equal(srcPF)) {
@@ -391,7 +391,7 @@ void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
     }
   } else if (is888() && srcPF.is888()) {
     // Optimised common case A: byte shuffling (e.g. endian conversion)
-    rdr::U8 *d[4], *s[4];
+    uint8_t *d[4], *s[4];
     int dstPad, srcPad;
 
     if (bigEndian) {
@@ -442,15 +442,15 @@ void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
     // Optimised common case B: 888 source
     switch (bpp) {
     case 8:
-      directBufferFromBufferFrom888((rdr::U8*)dst, srcPF, src,
+      directBufferFromBufferFrom888((uint8_t*)dst, srcPF, src,
                                     w, h, dstStride, srcStride);
       break;
     case 16:
-      directBufferFromBufferFrom888((rdr::U16*)dst, srcPF, src,
+      directBufferFromBufferFrom888((uint16_t*)dst, srcPF, src,
                                     w, h, dstStride, srcStride);
       break;
     case 32:
-      directBufferFromBufferFrom888((rdr::U32*)dst, srcPF, src,
+      directBufferFromBufferFrom888((uint32_t*)dst, srcPF, src,
                                     w, h, dstStride, srcStride);
       break;
     }
@@ -458,15 +458,15 @@ void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
     // Optimised common case C: 888 destination
     switch (srcPF.bpp) {
     case 8:
-      directBufferFromBufferTo888(dst, srcPF, (rdr::U8*)src,
+      directBufferFromBufferTo888(dst, srcPF, (uint8_t*)src,
                                   w, h, dstStride, srcStride);
       break;
     case 16:
-      directBufferFromBufferTo888(dst, srcPF, (rdr::U16*)src,
+      directBufferFromBufferTo888(dst, srcPF, (uint16_t*)src,
                                   w, h, dstStride, srcStride);
       break;
     case 32:
-      directBufferFromBufferTo888(dst, srcPF, (rdr::U32*)src,
+      directBufferFromBufferTo888(dst, srcPF, (uint32_t*)src,
                                   w, h, dstStride, srcStride);
       break;
     }
@@ -478,7 +478,7 @@ void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
       int w_ = w;
       while (w_--) {
         Pixel p;
-        rdr::U8 r, g, b;
+        uint8_t r, g, b;
 
         p = srcPF.pixelFromBuffer(src);
         srcPF.rgbFromPixel(p, &r, &g, &b);
@@ -579,8 +579,8 @@ bool PixelFormat::parse(const char* str)
   depth = bits1 + bits2 + bits3;
   bpp = depth <= 8 ? 8 : ((depth <= 16) ? 16 : 32);
   trueColour = true;
-  rdr::U32 endianTest = 1;
-  bigEndian = (*(rdr::U8*)&endianTest == 0);
+  uint32_t endianTest = 1;
+  bigEndian = (*(uint8_t*)&endianTest == 0);
 
   greenShift = bits3;
   greenMax = (1 << bits2) - 1;
@@ -607,7 +607,7 @@ bool PixelFormat::parse(const char* str)
 }
 
 
-static int bits(rdr::U16 value)
+static int bits(uint16_t value)
 {
   int bits;
 

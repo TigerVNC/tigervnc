@@ -36,7 +36,7 @@ namespace rfb {
   class UserMsgBox;
   class CSecurityRSAAES : public CSecurity {
   public:
-    CSecurityRSAAES(CConnection* cc, rdr::U32 secType,
+    CSecurityRSAAES(CConnection* cc, uint32_t secType,
                     int keySize, bool isAllEncrypted);
     virtual ~CSecurityRSAAES();
     virtual bool processMsg();
@@ -62,19 +62,19 @@ namespace rfb {
     int state;
     int keySize;
     bool isAllEncrypted;
-    rdr::U32 secType;
-    rdr::U8 subtype;
+    uint32_t secType;
+    uint8_t subtype;
     struct rsa_private_key clientKey;
     struct rsa_public_key clientPublicKey;
     struct rsa_public_key serverKey;
-    rdr::U32 serverKeyLength;
-    rdr::U8* serverKeyN;
-    rdr::U8* serverKeyE;
-    rdr::U32 clientKeyLength;
-    rdr::U8* clientKeyN;
-    rdr::U8* clientKeyE;
-    rdr::U8 serverRandom[32];
-    rdr::U8 clientRandom[32];
+    uint32_t serverKeyLength;
+    uint8_t* serverKeyN;
+    uint8_t* serverKeyE;
+    uint32_t clientKeyLength;
+    uint8_t* clientKeyN;
+    uint8_t* clientKeyE;
+    uint8_t serverRandom[32];
+    uint8_t clientRandom[32];
 
     rdr::InStream* rais;
     rdr::OutStream* raos;

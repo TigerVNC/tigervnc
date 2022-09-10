@@ -92,7 +92,7 @@ void ServerParams::setLEDState(unsigned int state)
   ledState_ = state;
 }
 
-rdr::U32 ServerParams::clipboardSize(unsigned int format) const
+uint32_t ServerParams::clipboardSize(unsigned int format) const
 {
   int i;
 
@@ -104,7 +104,7 @@ rdr::U32 ServerParams::clipboardSize(unsigned int format) const
   throw Exception("Invalid clipboard format 0x%x", format);
 }
 
-void ServerParams::setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+void ServerParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)
 {
   int i, num;
 

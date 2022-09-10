@@ -93,7 +93,7 @@ TestWindow::~TestWindow()
 
 void TestWindow::start(int width, int height)
 {
-  rdr::U32 pixel;
+  uint32_t pixel;
 
   stop();
 
@@ -176,7 +176,7 @@ void TestWindow::update()
 
 void TestWindow::changefb()
 {
-  rdr::U32 pixel;
+  uint32_t pixel;
 
   pixel = rand();
   fb->fillRect(fb->getRect(), &pixel);
@@ -195,7 +195,7 @@ void TestWindow::timer(void* data)
 void PartialTestWindow::changefb()
 {
   rfb::Rect r;
-  rdr::U32 pixel;
+  uint32_t pixel;
 
   r = fb->getRect();
   r.tl.x += w() / 4;

@@ -110,13 +110,13 @@ void H264LibavDecoderContext::freeCodec() {
 // We need to reallocate buffer because AVPacket uses non-const pointer.
 // We don't want to const_cast our buffer somewhere. So we would rather to maintain context's own buffer
 // Also avcodec requires a right padded buffer
-rdr::U8* H264LibavDecoderContext::makeH264WorkBuffer(const rdr::U8* buffer, rdr::U32 len)
+uint8_t* H264LibavDecoderContext::makeH264WorkBuffer(const uint8_t* buffer, uint32_t len)
 {
-  rdr::U32 reserve_len = len + len % AV_INPUT_BUFFER_PADDING_SIZE;
+  uint32_t reserve_len = len + len % AV_INPUT_BUFFER_PADDING_SIZE;
 
   if (!h264WorkBuffer || reserve_len > h264WorkBufferLength)
   {
-    h264WorkBuffer = (rdr::U8*)realloc(h264WorkBuffer, reserve_len);
+    h264WorkBuffer = (uint8_t*)realloc(h264WorkBuffer, reserve_len);
     if (h264WorkBuffer == NULL) {
       throw Exception("H264LibavDecoderContext: Unable to allocate memory");
     }
@@ -128,13 +128,13 @@ rdr::U8* H264LibavDecoderContext::makeH264WorkBuffer(const rdr::U8* buffer, rdr:
   return h264WorkBuffer;
 }
 
-void H264LibavDecoderContext::decode(const rdr::U8* h264_in_buffer,
-                                     rdr::U32 len,
+void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
+                                     uint32_t len,
                                      ModifiablePixelBuffer* pb) {
   os::AutoMutex lock(&mutex);
   if (!initialized)
     return;
-  rdr::U8* h264_work_buffer = makeH264WorkBuffer(h264_in_buffer, len);
+  uint8_t* h264_work_buffer = makeH264WorkBuffer(h264_in_buffer, len);
 
 #ifdef FFMPEG_INIT_PACKET_DEPRECATED
   AVPacket *packet = av_packet_alloc();
@@ -154,7 +154,7 @@ void H264LibavDecoderContext::decode(const rdr::U8* h264_in_buffer,
       break;
     }
     // We need to slap on tv to make it work here (don't ask me why)
-    if (!packet->size && len == static_cast<rdr::U32>(ret))
+    if (!packet->size && len == static_cast<uint32_t>(ret))
       ret = av_parser_parse2(parser, avctx, &packet->data, &packet->size, h264_work_buffer, len, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
     if (ret < 0)
     {

@@ -38,17 +38,17 @@ namespace rfb {
     virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
     virtual void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const uint8_t* colour);
 
   protected:
     void writeMonoRect(const PixelBuffer* pb, const Palette& palette);
     void writeIndexedRect(const PixelBuffer* pb, const Palette& palette);
     void writeFullColourRect(const PixelBuffer* pb);
 
-    void writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+    void writePixels(const uint8_t* buffer, const PixelFormat& pf,
                      unsigned int count, rdr::OutStream* os);
 
-    void writeCompact(rdr::OutStream* os, rdr::U32 value);
+    void writeCompact(rdr::OutStream* os, uint32_t value);
 
     rdr::OutStream* getZlibOutStream(int streamId, int level, size_t length);
     void flushZlibOutStream(rdr::OutStream* os);

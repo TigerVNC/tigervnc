@@ -29,7 +29,7 @@ namespace rdr {
 
   class AESInStream : public BufferedInStream {
   public:
-    AESInStream(InStream* in, const U8* key, int keySize);
+    AESInStream(InStream* in, const uint8_t* key, int keySize);
     virtual ~AESInStream();
 
   private:
@@ -41,7 +41,7 @@ namespace rdr {
       struct EAX_CTX(aes128_ctx) eaxCtx128;
       struct EAX_CTX(aes256_ctx) eaxCtx256;
     };
-    U8 counter[16];
+    uint8_t counter[16];
   };
 }
 

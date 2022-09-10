@@ -95,12 +95,12 @@ void ClientParams::setCursorPos(const Point& pos)
   cursorPos_ = pos;
 }
 
-bool ClientParams::supportsEncoding(rdr::S32 encoding) const
+bool ClientParams::supportsEncoding(int32_t encoding) const
 {
   return encodings_.count(encoding) != 0;
 }
 
-void ClientParams::setEncodings(int nEncodings, const rdr::S32* encodings)
+void ClientParams::setEncodings(int nEncodings, const int32_t* encodings)
 {
   compressLevel = -1;
   qualityLevel = -1;
@@ -153,7 +153,7 @@ void ClientParams::setLEDState(unsigned int state)
   ledState_ = state;
 }
 
-rdr::U32 ClientParams::clipboardSize(unsigned int format) const
+uint32_t ClientParams::clipboardSize(unsigned int format) const
 {
   int i;
 
@@ -165,7 +165,7 @@ rdr::U32 ClientParams::clipboardSize(unsigned int format) const
   throw Exception("Invalid clipboard format 0x%x", format);
 }
 
-void ClientParams::setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+void ClientParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)
 {
   int i, num;
 

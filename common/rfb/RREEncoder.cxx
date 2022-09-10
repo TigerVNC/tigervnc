@@ -47,9 +47,9 @@ bool RREEncoder::isSupported()
 
 void RREEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 {
-  rdr::U8* imageBuf;
+  uint8_t* imageBuf;
   int stride;
-  rdr::U32 bg;
+  uint32_t bg;
 
   int w = pb->width();
   int h = pb->height();
@@ -79,13 +79,13 @@ void RREEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
   int nSubrects = -1;
   switch (pb->getPF().bpp) {
   case 8:
-    nSubrects = rreEncode<rdr::U8>((rdr::U8*)imageBuf, w, h, &mos, bg);
+    nSubrects = rreEncode<uint8_t>((uint8_t*)imageBuf, w, h, &mos, bg);
     break;
   case 16:
-    nSubrects = rreEncode<rdr::U16>((rdr::U16*)imageBuf, w, h, &mos, bg);
+    nSubrects = rreEncode<uint16_t>((uint16_t*)imageBuf, w, h, &mos, bg);
     break;
   case 32:
-    nSubrects = rreEncode<rdr::U32>((rdr::U32*)imageBuf, w, h, &mos, bg);
+    nSubrects = rreEncode<uint32_t>((uint32_t*)imageBuf, w, h, &mos, bg);
     break;
   }
 
@@ -99,7 +99,7 @@ void RREEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 
 void RREEncoder::writeSolidRect(int /*width*/, int /*height*/,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour)
+                                const uint8_t* colour)
 {
   rdr::OutStream* os;
 

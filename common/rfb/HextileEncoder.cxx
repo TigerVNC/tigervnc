@@ -59,23 +59,23 @@ void HextileEncoder::writeRect(const PixelBuffer* pb,
   switch (pb->getPF().bpp) {
   case 8:
     if (improvedHextile) {
-      hextileEncodeBetter<rdr::U8>(os, pb);
+      hextileEncodeBetter<uint8_t>(os, pb);
     } else {
-      hextileEncode<rdr::U8>(os, pb);
+      hextileEncode<uint8_t>(os, pb);
     }
     break;
   case 16:
     if (improvedHextile) {
-      hextileEncodeBetter<rdr::U16>(os, pb);
+      hextileEncodeBetter<uint16_t>(os, pb);
     } else {
-      hextileEncode<rdr::U16>(os, pb);
+      hextileEncode<uint16_t>(os, pb);
     }
     break;
   case 32:
     if (improvedHextile) {
-      hextileEncodeBetter<rdr::U32>(os, pb);
+      hextileEncodeBetter<uint32_t>(os, pb);
     } else {
-      hextileEncode<rdr::U32>(os, pb);
+      hextileEncode<uint32_t>(os, pb);
     }
     break;
   }
@@ -83,7 +83,7 @@ void HextileEncoder::writeRect(const PixelBuffer* pb,
 
 void HextileEncoder::writeSolidRect(int width, int height,
                                     const PixelFormat& pf,
-                                    const rdr::U8* colour)
+                                    const uint8_t* colour)
 {
   rdr::OutStream* os;
   int tiles;
@@ -120,7 +120,7 @@ void HextileEncoder::hextileEncode(rdr::OutStream* os,
   T oldBg = 0, oldFg = 0;
   bool oldBgValid = false;
   bool oldFgValid = false;
-  rdr::U8 encoded[256*sizeof(T)];
+  uint8_t encoded[256*sizeof(T)];
 
   for (t.tl.y = 0; t.tl.y < pb->height(); t.tl.y += 16) {
 
@@ -177,10 +177,10 @@ void HextileEncoder::hextileEncode(rdr::OutStream* os,
 
 template<class T>
 int HextileEncoder::hextileEncodeTile(T* data, int w, int h,
-                                      int tileType, rdr::U8* encoded,
+                                      int tileType, uint8_t* encoded,
                                       T bg)
 {
-  rdr::U8* nSubrectsPtr = encoded;
+  uint8_t* nSubrectsPtr = encoded;
   *nSubrectsPtr = 0;
   encoded++;
 
@@ -220,13 +220,13 @@ int HextileEncoder::hextileEncodeTile(T* data, int w, int h,
         if (sizeof(T) == 1) {
           *encoded++ = *data;
         } else if (sizeof(T) == 2) {
-          *encoded++ = ((rdr::U8*)data)[0];
-          *encoded++ = ((rdr::U8*)data)[1];
+          *encoded++ = ((uint8_t*)data)[0];
+          *encoded++ = ((uint8_t*)data)[1];
         } else if (sizeof(T) == 4) {
-          *encoded++ = ((rdr::U8*)data)[0];
-          *encoded++ = ((rdr::U8*)data)[1];
-          *encoded++ = ((rdr::U8*)data)[2];
-          *encoded++ = ((rdr::U8*)data)[3];
+          *encoded++ = ((uint8_t*)data)[0];
+          *encoded++ = ((uint8_t*)data)[1];
+          *encoded++ = ((uint8_t*)data)[2];
+          *encoded++ = ((uint8_t*)data)[3];
         }
       }
 
@@ -334,7 +334,7 @@ class HextileTile {
   // big enough to store at least the number of bytes returned by the
   // getSize() method.
   //
-  void encode(rdr::U8* dst) const;
+  void encode(uint8_t* dst) const;
 
  protected:
 
@@ -353,7 +353,7 @@ class HextileTile {
   T m_foreground;
 
   int m_numSubrects;
-  rdr::U8 m_coords[256 * 2];
+  uint8_t m_coords[256 * 2];
   T m_colors[256];
 
  private:
@@ -403,7 +403,7 @@ void HextileTile<T>::analyze()
   int y = (ptr - m_tile) / m_width;
 
   T *colorsPtr = m_colors;
-  rdr::U8 *coordsPtr = m_coords;
+  uint8_t *coordsPtr = m_coords;
   m_pal.clear();
   m_numSubrects = 0;
 
@@ -411,7 +411,7 @@ void HextileTile<T>::analyze()
   if (y > 0) {
     *colorsPtr++ = color;
     *coordsPtr++ = 0;
-    *coordsPtr++ = (rdr::U8)(((m_width - 1) << 4) | ((y - 1) & 0x0F));
+    *coordsPtr++ = (uint8_t)(((m_width - 1) << 4) | ((y - 1) & 0x0F));
     m_pal.insert(color, 1);
     m_numSubrects++;
   }
@@ -445,8 +445,8 @@ void HextileTile<T>::analyze()
 
       // Save properties of this subrect
       *colorsPtr++ = color;
-      *coordsPtr++ = (rdr::U8)((x << 4) | (y & 0x0F));
-      *coordsPtr++ = (rdr::U8)(((sw - 1) << 4) | ((sh - 1) & 0x0F));
+      *coordsPtr++ = (uint8_t)((x << 4) | (y & 0x0F));
+      *coordsPtr++ = (uint8_t)(((sw - 1) << 4) | ((sh - 1) & 0x0F));
 
       if (!m_pal.insert(color, 1) ||
           ((size_t)m_pal.size() > (48 + 2 * sizeof(T)*8))) {
@@ -489,12 +489,12 @@ void HextileTile<T>::analyze()
 }
 
 template<class T>
-void HextileTile<T>::encode(rdr::U8 *dst) const
+void HextileTile<T>::encode(uint8_t *dst) const
 {
   assert(m_numSubrects && (m_flags & hextileAnySubrects));
 
   // Zero subrects counter
-  rdr::U8 *numSubrectsPtr = dst;
+  uint8_t *numSubrectsPtr = dst;
   *dst++ = 0;
 
   for (int i = 0; i < m_numSubrects; i++) {
@@ -505,13 +505,13 @@ void HextileTile<T>::encode(rdr::U8 *dst) const
       if (sizeof(T) == 1) {
         *dst++ = m_colors[i];
       } else if (sizeof(T) == 2) {
-        *dst++ = ((rdr::U8*)&m_colors[i])[0];
-        *dst++ = ((rdr::U8*)&m_colors[i])[1];
+        *dst++ = ((uint8_t*)&m_colors[i])[0];
+        *dst++ = ((uint8_t*)&m_colors[i])[1];
       } else if (sizeof(T) == 4) {
-        *dst++ = ((rdr::U8*)&m_colors[i])[0];
-        *dst++ = ((rdr::U8*)&m_colors[i])[1];
-        *dst++ = ((rdr::U8*)&m_colors[i])[2];
-        *dst++ = ((rdr::U8*)&m_colors[i])[3];
+        *dst++ = ((uint8_t*)&m_colors[i])[0];
+        *dst++ = ((uint8_t*)&m_colors[i])[1];
+        *dst++ = ((uint8_t*)&m_colors[i])[2];
+        *dst++ = ((uint8_t*)&m_colors[i])[3];
       }
     }
     *dst++ = m_coords[i * 2];
@@ -536,7 +536,7 @@ void HextileEncoder::hextileEncodeBetter(rdr::OutStream* os,
   T oldBg = 0, oldFg = 0;
   bool oldBgValid = false;
   bool oldFgValid = false;
-  rdr::U8 encoded[256*sizeof(T)];
+  uint8_t encoded[256*sizeof(T)];
 
   HextileTile<T> tile;
 

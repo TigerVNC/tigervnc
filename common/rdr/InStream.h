@@ -25,9 +25,10 @@
 #ifndef __RDR_INSTREAM_H__
 #define __RDR_INSTREAM_H__
 
-#include <rdr/types.h>
-#include <rdr/Exception.h>
+#include <stdint.h>
 #include <string.h> // for memcpy
+
+#include <rdr/Exception.h>
 
 // Check that callers are using InStream properly,
 // useful when writing new protocol handling
@@ -122,16 +123,18 @@ namespace rdr {
 
     // readU/SN() methods read unsigned and signed N-bit integers.
 
-    inline U8  readU8()  { check(1); return *ptr++; }
-    inline U16 readU16() { check(2); int b0 = *ptr++; int b1 = *ptr++;
-                           return b0 << 8 | b1; }
-    inline U32 readU32() { check(4); int b0 = *ptr++; int b1 = *ptr++;
-                                     int b2 = *ptr++; int b3 = *ptr++;
-                           return b0 << 24 | b1 << 16 | b2 << 8 | b3; }
+    inline uint8_t  readU8()  { check(1); return *ptr++; }
+    inline uint16_t readU16() { check(2);
+                                int b0 = *ptr++; int b1 = *ptr++;
+                                return b0 << 8 | b1; }
+    inline uint32_t readU32() { check(4);
+                                int b0 = *ptr++; int b1 = *ptr++;
+                                int b2 = *ptr++; int b3 = *ptr++;
+                                return b0 << 24 | b1 << 16 | b2 << 8 | b3; }
 
-    inline S8  readS8()  { return (S8) readU8();  }
-    inline S16 readS16() { return (S16)readU16(); }
-    inline S32 readS32() { return (S32)readU32(); }
+    inline int8_t  readS8()  { return (int8_t) readU8();  }
+    inline int16_t readS16() { return (int16_t)readU16(); }
+    inline int32_t readS32() { return (int32_t)readU32(); }
 
     // skip() ignores a number of bytes on the stream
 
@@ -150,12 +153,17 @@ namespace rdr {
 
     // readOpaqueN() reads a quantity without byte-swapping.
 
-    inline U8  readOpaque8()  { return readU8(); }
-    inline U16 readOpaque16() { check(2); U16 r; ((U8*)&r)[0] = *ptr++;
-                                ((U8*)&r)[1] = *ptr++; return r; }
-    inline U32 readOpaque32() { check(4); U32 r; ((U8*)&r)[0] = *ptr++;
-                                ((U8*)&r)[1] = *ptr++; ((U8*)&r)[2] = *ptr++;
-                                ((U8*)&r)[3] = *ptr++; return r; }
+    inline uint8_t  readOpaque8()  { return readU8(); }
+    inline uint16_t readOpaque16() { check(2); uint16_t r;
+                                     ((uint8_t*)&r)[0] = *ptr++;
+                                     ((uint8_t*)&r)[1] = *ptr++;
+                                     return r; }
+    inline uint32_t readOpaque32() { check(4); uint32_t r;
+                                     ((uint8_t*)&r)[0] = *ptr++;
+                                     ((uint8_t*)&r)[1] = *ptr++;
+                                     ((uint8_t*)&r)[2] = *ptr++;
+                                     ((uint8_t*)&r)[3] = *ptr++;
+                                     return r; }
 
     // pos() returns the position in the stream.
 
@@ -165,15 +173,15 @@ namespace rdr {
     // to the buffer. This is useful for a stream which is a wrapper around an
     // some other stream API.
 
-    inline const U8* getptr(size_t length) { check(length);
-                                             return ptr; }
+    inline const uint8_t* getptr(size_t length) { check(length);
+                                                  return ptr; }
     inline void setptr(size_t length) { if (length > avail())
                                           throw Exception("Input stream overflow");
                                         skip(length); }
 
   private:
 
-    const U8* restorePoint;
+    const uint8_t* restorePoint;
 #ifdef RFB_INSTREAM_CHECK
     size_t checkedBytes;
 #endif
@@ -201,8 +209,8 @@ namespace rdr {
       ,checkedBytes(0)
 #endif
      {}
-    const U8* ptr;
-    const U8* end;
+    const uint8_t* ptr;
+    const uint8_t* end;
   };
 
 }

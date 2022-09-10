@@ -60,10 +60,10 @@ SSecurityVncAuth::SSecurityVncAuth(SConnection* sc)
 
 bool SSecurityVncAuth::verifyResponse(const PlainPasswd &password)
 {
-  rdr::U8 expectedResponse[vncAuthChallengeSize];
+  uint8_t expectedResponse[vncAuthChallengeSize];
 
   // Calculate the expected response
-  rdr::U8 key[8];
+  uint8_t key[8];
   int pwdLen = strlen(password.buf);
   for (int i=0; i<8; i++)
     key[i] = i<pwdLen ? password.buf[i] : 0;

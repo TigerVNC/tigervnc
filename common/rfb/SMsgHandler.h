@@ -23,7 +23,8 @@
 #ifndef __RFB_SMSGHANDLER_H__
 #define __RFB_SMSGHANDLER_H__
 
-#include <rdr/types.h>
+#include <stdint.h>
+
 #include <rfb/PixelFormat.h>
 #include <rfb/ClientParams.h>
 #include <rfb/InputHandler.h>
@@ -46,22 +47,22 @@ namespace rfb {
     virtual void clientInit(bool shared);
 
     virtual void setPixelFormat(const PixelFormat& pf);
-    virtual void setEncodings(int nEncodings, const rdr::S32* encodings);
+    virtual void setEncodings(int nEncodings, const int32_t* encodings);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental) = 0;
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout) = 0;
-    virtual void fence(rdr::U32 flags, unsigned len, const char data[]) = 0;
+    virtual void fence(uint32_t flags, unsigned len, const char data[]) = 0;
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h) = 0;
 
-    virtual void handleClipboardCaps(rdr::U32 flags,
-                                     const rdr::U32* lengths);
-    virtual void handleClipboardRequest(rdr::U32 flags);
+    virtual void handleClipboardCaps(uint32_t flags,
+                                     const uint32_t* lengths);
+    virtual void handleClipboardRequest(uint32_t flags);
     virtual void handleClipboardPeek();
-    virtual void handleClipboardNotify(rdr::U32 flags);
-    virtual void handleClipboardProvide(rdr::U32 flags,
+    virtual void handleClipboardNotify(uint32_t flags);
+    virtual void handleClipboardProvide(uint32_t flags,
                                         const size_t* lengths,
-                                        const rdr::U8* const* data);
+                                        const uint8_t* const* data);
 
     // InputHandler interface
     // The InputHandler methods will be called for the corresponding messages.

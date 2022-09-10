@@ -29,10 +29,11 @@ using namespace rdr;
 
 const int MaxMessageSize = 8192;
 
-AESOutStream::AESOutStream(OutStream* _out, const U8* key, int _keySize)
+AESOutStream::AESOutStream(OutStream* _out, const uint8_t* key,
+                           int _keySize)
   : keySize(_keySize), out(_out), counter()
 {
-  msg = new U8[MaxMessageSize + 16 + 2];
+  msg = new uint8_t[MaxMessageSize + 16 + 2];
   if (keySize == 128)
     EAX_SET_KEY(&eaxCtx128, aes128_set_encrypt_key, aes128_encrypt, key);
   else if (keySize == 256)
@@ -71,7 +72,7 @@ bool AESOutStream::flushBuffer()
 }
 
 
-void AESOutStream::writeMessage(const U8* data, size_t length)
+void AESOutStream::writeMessage(const uint8_t* data, size_t length)
 {
   msg[0] = (length & 0xff00) >> 8;
   msg[1] = length & 0xff;

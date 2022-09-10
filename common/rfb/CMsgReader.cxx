@@ -26,6 +26,7 @@
 
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
+#include <rdr/types.h>
 
 #include <rfb/msgTypes.h>
 #include <rfb/clipboardTypes.h>
@@ -54,7 +55,7 @@ CMsgReader::~CMsgReader()
 bool CMsgReader::readServerInit()
 {
   int width, height;
-  rdr::U32 len;
+  uint32_t len;
 
   if (!is->hasData(2 + 2 + 16 + 4))
     return false;
@@ -250,10 +251,10 @@ bool CMsgReader::readServerCutText()
   is->setRestorePoint();
 
   is->skip(3);
-  rdr::U32 len = is->readU32();
+  uint32_t len = is->readU32();
 
   if (len & 0x80000000) {
-    rdr::S32 slen = len;
+    int32_t slen = len;
     slen = -slen;
     if (readExtendedClipboard(slen)) {
       is->clearRestorePoint();
@@ -281,10 +282,10 @@ bool CMsgReader::readServerCutText()
   return true;
 }
 
-bool CMsgReader::readExtendedClipboard(rdr::S32 len)
+bool CMsgReader::readExtendedClipboard(int32_t len)
 {
-  rdr::U32 flags;
-  rdr::U32 action;
+  uint32_t flags;
+  uint32_t action;
 
   if (!is->hasData(len))
     return false;
@@ -303,7 +304,7 @@ bool CMsgReader::readExtendedClipboard(rdr::S32 len)
   if (action & clipboardCaps) {
     int i;
     size_t num;
-    rdr::U32 lengths[16];
+    uint32_t lengths[16];
 
     num = 0;
     for (i = 0;i < 16;i++) {
@@ -311,7 +312,7 @@ bool CMsgReader::readExtendedClipboard(rdr::S32 len)
         num++;
     }
 
-    if (len < (rdr::S32)(4 + 4*num))
+    if (len < (int32_t)(4 + 4*num))
       throw Exception("Invalid extended clipboard message");
 
     num = 0;
@@ -327,7 +328,7 @@ bool CMsgReader::readExtendedClipboard(rdr::S32 len)
     int i;
     size_t num;
     size_t lengths[16];
-    rdr::U8* buffers[16];
+    uint8_t* buffers[16];
 
     zis.setUnderlying(is, len - 4);
 
@@ -368,7 +369,7 @@ bool CMsgReader::readExtendedClipboard(rdr::S32 len)
       if (!zis.hasData(lengths[num]))
         throw Exception("Extended clipboard decode error");
 
-      buffers[num] = new rdr::U8[lengths[num]];
+      buffers[num] = new uint8_t[lengths[num]];
       zis.readBytes(buffers[num], lengths[num]);
       num++;
     }
@@ -405,8 +406,8 @@ bool CMsgReader::readExtendedClipboard(rdr::S32 len)
 
 bool CMsgReader::readFence()
 {
-  rdr::U32 flags;
-  rdr::U8 len;
+  uint32_t flags;
+  uint8_t len;
   char data[64];
 
   if (!is->hasData(3 + 4 + 1))
@@ -479,15 +480,15 @@ bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
   rdr::U8Array rgba(width*height*4);
 
   if (width * height > 0) {
-    rdr::U8 pr, pg, pb;
-    rdr::U8 sr, sg, sb;
+    uint8_t pr, pg, pb;
+    uint8_t sr, sg, sb;
     int data_len = ((width+7)/8) * height;
     int mask_len = ((width+7)/8) * height;
     rdr::U8Array data(data_len);
     rdr::U8Array mask(mask_len);
 
     int x, y;
-    rdr::U8* out;
+    uint8_t* out;
 
     if (!is->hasData(3 + 3 + data_len + mask_len))
       return false;
@@ -547,8 +548,8 @@ bool CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 
   int x, y;
   rdr::U8Array rgba(width*height*4);
-  rdr::U8* in;
-  rdr::U8* out;
+  uint8_t* in;
+  uint8_t* out;
 
   if (!is->hasData(data_len + mask_len))
     return false;
@@ -592,7 +593,7 @@ bool CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hots
 
   bool ret;
 
-  rdr::U8* buf;
+  uint8_t* buf;
   int stride;
 
   // We can't use restore points as the decoder likely wants to as well, so
@@ -621,7 +622,7 @@ bool CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hots
   assert(stride == width);
 
   for (int i = 0;i < pb.area();i++) {
-    rdr::U8 alpha;
+    uint8_t alpha;
 
     alpha = buf[3];
     if (alpha == 0)
@@ -647,7 +648,7 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
 
-  rdr::U8 type;
+  uint8_t type;
 
   if (!is->hasData(1 + 1))
     return false;
@@ -664,9 +665,9 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
 
     rdr::U8Array data(width*height*4);
 
-    rdr::U8* andIn;
-    rdr::U8* xorIn;
-    rdr::U8* out;
+    uint8_t* andIn;
+    uint8_t* xorIn;
+    uint8_t* out;
     int Bpp;
 
     if (!is->hasDataOrRestore(len + len))
@@ -690,7 +691,7 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
         xorIn += Bpp;
 
         if (andPixel == 0) {
-          rdr::U8 r, g, b;
+          uint8_t r, g, b;
 
           // Opaque pixel
 
@@ -747,7 +748,7 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
 
 bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
 {
-  rdr::U32 len;
+  uint32_t len;
 
   if (!is->hasData(4))
     return false;
@@ -776,7 +777,7 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
 bool CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
 {
   unsigned int screens, i;
-  rdr::U32 id, flags;
+  uint32_t id, flags;
   int sx, sy, sw, sh;
   ScreenSet layout;
 
@@ -810,7 +811,7 @@ bool CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
 
 bool CMsgReader::readLEDState()
 {
-  rdr::U8 state;
+  uint8_t state;
 
   if (!is->hasData(1))
     return false;
@@ -824,7 +825,7 @@ bool CMsgReader::readLEDState()
 
 bool CMsgReader::readVMwareLEDState()
 {
-  rdr::U32 state;
+  uint32_t state;
 
   if (!is->hasData(4))
     return false;

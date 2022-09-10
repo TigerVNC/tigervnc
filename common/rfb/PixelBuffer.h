@@ -66,7 +66,7 @@ namespace rfb {
     // Get a pointer into the buffer
     //   The pointer is to the top-left pixel of the specified Rect.
     //   The buffer stride (in pixels) is returned.
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const = 0;
+    virtual const uint8_t* getBuffer(const Rect& r, int* stride) const = 0;
 
     // Get pixel data for a given part of the buffer
     //   Data is copied into the supplied buffer, with the specified
@@ -112,7 +112,7 @@ namespace rfb {
     // Get a writeable pointer into the buffer
     //   Like getBuffer(), the pointer is to the top-left pixel of the
     //   specified Rect and the stride in pixels is returned.
-    virtual rdr::U8* getBufferRW(const Rect& r, int* stride) = 0;
+    virtual uint8_t* getBufferRW(const Rect& r, int* stride) = 0;
     // Commit the modified contents
     //   Ensures that the changes to the specified Rect is properly
     //   stored away and any temporary buffers are freed. The Rect given
@@ -149,23 +149,23 @@ namespace rfb {
   class FullFramePixelBuffer : public ModifiablePixelBuffer {
   public:
     FullFramePixelBuffer(const PixelFormat& pf, int width, int height,
-                         rdr::U8* data_, int stride);
+                         uint8_t* data_, int stride);
     virtual ~FullFramePixelBuffer();
 
   public:
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const;
-    virtual rdr::U8* getBufferRW(const Rect& r, int* stride);
+    virtual const uint8_t* getBuffer(const Rect& r, int* stride) const;
+    virtual uint8_t* getBufferRW(const Rect& r, int* stride);
     virtual void commitBufferRW(const Rect& r);
 
   protected:
     FullFramePixelBuffer();
-    virtual void setBuffer(int width, int height, rdr::U8* data, int stride);
+    virtual void setBuffer(int width, int height, uint8_t* data, int stride);
 
   private:
     virtual void setSize(int w, int h);
 
   private:
-    rdr::U8* data;
+    uint8_t* data;
     int stride;
   };
 
@@ -183,7 +183,7 @@ namespace rfb {
     virtual void setSize(int w, int h);
 
   private:
-    rdr::U8* data_; // Mirrors FullFramePixelBuffer::data
+    uint8_t* data_; // Mirrors FullFramePixelBuffer::data
     unsigned long datasize;
   };
 

@@ -39,6 +39,7 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rdr/RandomStream.h>
+#include <rdr/types.h>
 #include <rfb/Exception.h>
 #include <os/os.h>
 
@@ -83,7 +84,7 @@ bool CSecurityDH::readKey()
   if (!is->hasData(4))
     return false;
   is->setRestorePoint();
-  rdr::U16 gen = is->readU16();
+  uint16_t gen = is->readU16();
   keyLength = is->readU16();
   if (keyLength < MinKeyLength)
     throw AuthFailureException("DH key is too short");
@@ -121,7 +122,7 @@ void CSecurityDH::writeCredentials()
   rdr::U8Array BBytes(keyLength);
   nettle_mpz_get_str_256(keyLength, sharedSecret.buf, k);
   nettle_mpz_get_str_256(keyLength, BBytes.buf, B);
-  rdr::U8 key[16];
+  uint8_t key[16];
   struct md5_ctx md5Ctx;
   md5_init(&md5Ctx);
   md5_update(&md5Ctx, keyLength, sharedSecret.buf);
@@ -141,7 +142,7 @@ void CSecurityDH::writeCredentials()
   if (len >= 64)
     throw AuthFailureException("password is too long");
   memcpy(buf + 64, password.buf, len + 1);
-  aes128_encrypt(&aesCtx, 128, (rdr::U8 *)buf, (rdr::U8 *)buf);
+  aes128_encrypt(&aesCtx, 128, (uint8_t *)buf, (uint8_t *)buf);
 
   rdr::OutStream* os = cc->getOutStream();
   os->writeBytes(buf, 128);

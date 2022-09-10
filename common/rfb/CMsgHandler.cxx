@@ -68,7 +68,7 @@ void CMsgHandler::setName(const char* name)
   server.setName(name);
 }
 
-void CMsgHandler::fence(rdr::U32 /*flags*/, unsigned /*len*/,
+void CMsgHandler::fence(uint32_t /*flags*/, unsigned /*len*/,
                         const char /*data*/ [])
 {
   server.supportsFence = true;
@@ -106,7 +106,7 @@ void CMsgHandler::setLEDState(unsigned int state)
   server.setLEDState(state);
 }
 
-void CMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+void CMsgHandler::handleClipboardCaps(uint32_t flags, const uint32_t* lengths)
 {
   int i;
 
@@ -151,7 +151,7 @@ void CMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
   server.setClipboardCaps(flags, lengths);
 }
 
-void CMsgHandler::handleClipboardRequest(rdr::U32 /*flags*/)
+void CMsgHandler::handleClipboardRequest(uint32_t /*flags*/)
 {
 }
 
@@ -159,12 +159,12 @@ void CMsgHandler::handleClipboardPeek()
 {
 }
 
-void CMsgHandler::handleClipboardNotify(rdr::U32 /*flags*/)
+void CMsgHandler::handleClipboardNotify(uint32_t /*flags*/)
 {
 }
 
-void CMsgHandler::handleClipboardProvide(rdr::U32 /*flags*/,
+void CMsgHandler::handleClipboardProvide(uint32_t /*flags*/,
                                          const size_t* /*lengths*/,
-                                         const rdr::U8* const* /*data*/)
+                                         const uint8_t* const* /*data*/)
 {
 }

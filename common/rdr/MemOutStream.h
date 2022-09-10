@@ -33,7 +33,7 @@ namespace rdr {
   public:
 
     MemOutStream(int len=1024) {
-      start = ptr = new U8[len];
+      start = ptr = new uint8_t[len];
       end = start + len;
     }
 
@@ -63,7 +63,7 @@ namespace rdr {
       if (len < (size_t)(end - start))
         throw Exception("Overflow in MemOutStream::overrun()");
 
-      U8* newStart = new U8[len];
+      uint8_t* newStart = new uint8_t[len];
       memcpy(newStart, start, ptr - start);
       ptr = newStart + (ptr - start);
       delete [] start;
@@ -71,7 +71,7 @@ namespace rdr {
       end = newStart + len;
     }
 
-    U8* start;
+    uint8_t* start;
   };
 
 }

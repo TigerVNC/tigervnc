@@ -35,7 +35,7 @@ namespace rfb {
     virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
     virtual void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const uint8_t* colour);
 
   protected:
     void writePaletteTile(const Rect& tile, const PixelBuffer* pb,
@@ -46,7 +46,7 @@ namespace rfb {
 
     void writePalette(const PixelFormat& pf, const Palette& palette);
 
-    void writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+    void writePixels(const uint8_t* buffer, const PixelFormat& pf,
                      unsigned int count);
 
   protected:

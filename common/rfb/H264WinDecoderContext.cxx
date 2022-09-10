@@ -154,8 +154,8 @@ void H264WinDecoderContext::freeCodec() {
   initialized = false;
 }
 
-void H264WinDecoderContext::decode(const rdr::U8* h264_buffer,
-                                   rdr::U32 len,
+void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
+                                   uint32_t len,
                                    ModifiablePixelBuffer* pb) {
   os::AutoMutex lock(&mutex);
   if (!initialized)
@@ -351,7 +351,7 @@ void H264WinDecoderContext::decode(const rdr::U8* h264_buffer,
 }
 
 // "7.3.2.1.1 Sequence parameter set data syntax" on page 66 of https://www.itu.int/rec/T-REC-H.264-202108-I/en
-void H264WinDecoderContext::ParseSPS(const rdr::U8* buffer, int length)
+void H264WinDecoderContext::ParseSPS(const uint8_t* buffer, int length)
 {
 #define EXPECT(cond) if (!(cond)) return;
 
@@ -404,14 +404,14 @@ void H264WinDecoderContext::ParseSPS(const rdr::U8* buffer, int length)
 
     // NAL unit type
     EXPECT(length > 1);
-    rdr::U8 type = buffer[0];
+    uint8_t type = buffer[0];
     EXPECT((type & 0x80) == 0); // forbidden zero bit
     EXPECT((type & 0x1f) == 7); // SPS NAL unit type
     buffer++;
     length--;
 
     int available = 0;
-    rdr::U8 byte = 0;
+    uint8_t byte = 0;
 
     unsigned profile_idc;
     unsigned seq_parameter_set_id;

@@ -20,7 +20,6 @@
 #ifndef __RFB_WIN32_SECURITYPAGE_H__
 #define __RFB_WIN32_SECURITYPAGE_H__
 
-#include <rdr/types.h>
 
 #include <rfb/Security.h>
 #include <rfb_win32/Dialog.h>

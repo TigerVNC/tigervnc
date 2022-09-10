@@ -20,7 +20,6 @@
 #define __RFB_WIN32_BITMAP_INFO_H__
 
 #include <windows.h>
-#include <rdr/types.h>
 
 namespace rfb {
   namespace win32 {
@@ -39,7 +38,7 @@ namespace rfb {
 
     inline void initMaxAndShift(DWORD mask, int* max, int* shift) {
       for ((*shift) = 0; (mask & 1) == 0; (*shift)++) mask >>= 1;
-        (*max) = (rdr::U16)mask;
+        (*max) = (uint16_t)mask;
     }
 
   };

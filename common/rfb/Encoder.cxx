@@ -41,12 +41,12 @@ Encoder::~Encoder()
 }
 
 void Encoder::writeSolidRect(int width, int height,
-                             const PixelFormat& pf, const rdr::U8* colour)
+                             const PixelFormat& pf, const uint8_t* colour)
 {
   ManagedPixelBuffer buffer(pf, width, height);
 
   Palette palette;
-  rdr::U32 palcol;
+  uint32_t palcol;
 
   buffer.fillRect(buffer.getRect(), colour);
 
@@ -59,27 +59,27 @@ void Encoder::writeSolidRect(int width, int height,
 
 void Encoder::writeSolidRect(const PixelBuffer* pb, const Palette& palette)
 {
-  rdr::U32 col32;
-  rdr::U16 col16;
-  rdr::U8 col8;
+  uint32_t col32;
+  uint16_t col16;
+  uint8_t col8;
 
-  rdr::U8* buffer;
+  uint8_t* buffer;
 
   assert(palette.size() == 1);
 
   // The Palette relies on implicit up and down conversion
   switch (pb->getPF().bpp) {
   case 32:
-    col32 = (rdr::U32)palette.getColour(0);
-    buffer = (rdr::U8*)&col32;
+    col32 = (uint32_t)palette.getColour(0);
+    buffer = (uint8_t*)&col32;
     break;
   case 16:
-    col16 = (rdr::U16)palette.getColour(0);
-    buffer = (rdr::U8*)&col16;
+    col16 = (uint16_t)palette.getColour(0);
+    buffer = (uint8_t*)&col16;
     break;
   default:
-    col8 = (rdr::U8)palette.getColour(0);
-    buffer = (rdr::U8*)&col8;
+    col8 = (uint8_t)palette.getColour(0);
+    buffer = (uint8_t*)&col8;
     break;
   }
 

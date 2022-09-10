@@ -94,7 +94,7 @@ public:
   virtual void queryConnection(network::Socket* sock,
                                const char* userName);
   virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
-  virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+  virtual void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
                                        const rfb::ScreenSet& layout);
   virtual void handleClipboardRequest();
@@ -119,7 +119,7 @@ private:
   int screenIndex;
   rfb::VNCServer* server;
   std::list<network::SocketListener*> listeners;
-  rdr::U8* shadowFramebuffer;
+  uint8_t* shadowFramebuffer;
 
   uint32_t queryConnectId;
   network::Socket* queryConnectSocket;

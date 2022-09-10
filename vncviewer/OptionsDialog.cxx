@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <list>
 
-#include <rdr/types.h>
 #include <rfb/encodings.h>
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
@@ -219,11 +218,11 @@ void OptionsDialog::loadOptions(void)
   /* Security */
   Security security(SecurityClient::secTypes);
 
-  list<U8> secTypes;
-  list<U8>::iterator iter;
+  list<uint8_t> secTypes;
+  list<uint8_t>::iterator iter;
 
-   list<U32> secTypesExt;
-   list<U32>::iterator iterExt;
+   list<uint32_t> secTypesExt;
+   list<uint32_t>::iterator iterExt;
 
   encNoneCheckbox->value(false);
 #ifdef HAVE_GNUTLS

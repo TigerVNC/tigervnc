@@ -28,7 +28,6 @@
 #ifndef __TXWINDOW_H__
 #define __TXWINDOW_H__
 
-#include <rdr/types.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

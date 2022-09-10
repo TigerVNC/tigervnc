@@ -45,18 +45,18 @@ namespace rfb {
                             ModifiablePixelBuffer* pb);
 
   private:
-    rdr::U32 readCompact(rdr::InStream* is);
+    uint32_t readCompact(rdr::InStream* is);
 
-    void FilterGradient24(const rdr::U8* inbuf, const PixelFormat& pf,
-                          rdr::U32* outbuf, int stride, const Rect& r);
+    void FilterGradient24(const uint8_t* inbuf, const PixelFormat& pf,
+                          uint32_t* outbuf, int stride, const Rect& r);
 
     template<class T>
-    void FilterGradient(const rdr::U8* inbuf, const PixelFormat& pf,
+    void FilterGradient(const uint8_t* inbuf, const PixelFormat& pf,
                         T* outbuf, int stride, const Rect& r);
 
     template<class T>
     void FilterPalette(const T* palette, int palSize,
-                       const rdr::U8* inbuf, T* outbuf,
+                       const uint8_t* inbuf, T* outbuf,
                        int stride, const Rect& r);
 
   private:

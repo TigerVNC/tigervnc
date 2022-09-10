@@ -18,16 +18,16 @@
 #ifndef __RFB_FENCETYPES_H__
 #define __RFB_FENCETYPES_H__
 
-#include <rdr/types.h>
+#include <stdint.h>
 
 namespace rfb {
-  const rdr::U32 fenceFlagBlockBefore = 1<<0;
-  const rdr::U32 fenceFlagBlockAfter  = 1<<1;
-  const rdr::U32 fenceFlagSyncNext    = 1<<2;
+  const uint32_t fenceFlagBlockBefore = 1<<0;
+  const uint32_t fenceFlagBlockAfter  = 1<<1;
+  const uint32_t fenceFlagSyncNext    = 1<<2;
 
-  const rdr::U32 fenceFlagRequest     = 1<<31;
+  const uint32_t fenceFlagRequest     = 1<<31;
 
-  const rdr::U32 fenceFlagsSupported  = (fenceFlagBlockBefore |
+  const uint32_t fenceFlagsSupported  = (fenceFlagBlockBefore |
                                          fenceFlagBlockAfter |
                                          fenceFlagSyncNext |
                                          fenceFlagRequest);

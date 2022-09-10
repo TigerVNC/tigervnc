@@ -44,8 +44,8 @@ namespace rfb {
     SecurityServer *security;
     bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;
     bool haveSentTypes, haveChosenType;
-    rdr::U8 majorVersion, minorVersion, numTypes;
-    rdr::U32 *subTypes, chosenType;
+    uint8_t majorVersion, minorVersion, numTypes;
+    uint32_t *subTypes, chosenType;
   };
 }
 #endif

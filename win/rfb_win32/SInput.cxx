@@ -145,8 +145,8 @@ BoolParameter rfb::win32::SKeyboard::rawKeyboard("RawKeyboard",
 // The keysymToAscii table transforms a couple of awkward keysyms into their
 // ASCII equivalents.
 struct  keysymToAscii_t {
-  rdr::U32 keysym;
-  rdr::U8 ascii;
+  uint32_t keysym;
+  uint8_t ascii;
 };
 
 keysymToAscii_t keysymToAscii[] = {
@@ -154,15 +154,15 @@ keysymToAscii_t keysymToAscii[] = {
   { XK_KP_Equal, '=' },
 };
 
-rdr::U8 latin1DeadChars[] = {
+uint8_t latin1DeadChars[] = {
   XK_grave, XK_acute, XK_asciicircum, XK_diaeresis, XK_degree, XK_cedilla,
   XK_asciitilde
 };
 
 struct latin1ToDeadChars_t {
-  rdr::U8 latin1Char;
-  rdr::U8 deadChar;
-  rdr::U8 baseChar;
+  uint8_t latin1Char;
+  uint8_t deadChar;
+  uint8_t baseChar;
 };
 
 latin1ToDeadChars_t latin1ToDeadChars[] = {
@@ -350,7 +350,7 @@ win32::SKeyboard::SKeyboard()
       keystate[VK_SHIFT] = (modifierState & 1) ? 0x80 : 0;
       keystate[VK_CONTROL] = (modifierState & 2) ? 0x80 : 0;
       keystate[VK_MENU] = (modifierState & 4) ? 0x80 : 0;
-      rdr::U8 chars[2];
+      uint8_t chars[2];
       int nchars = ToAscii(vkCode, 0, keystate, (WORD*)&chars, 0);
       if (nchars < 0) {
         vlog.debug("Found dead key 0x%x '%c'",
@@ -363,7 +363,7 @@ win32::SKeyboard::SKeyboard()
 }
 
 
-void win32::SKeyboard::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
+void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
   // If scan code is available use that directly as windows uses
   // compatible scancodes

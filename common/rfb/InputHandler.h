@@ -23,7 +23,8 @@
 #ifndef __RFB_INPUTHANDLER_H__
 #define __RFB_INPUTHANDLER_H__
 
-#include <rdr/types.h>
+#include <stdint.h>
+
 #include <rfb/Rect.h>
 #include <rfb/util.h>
 
@@ -32,7 +33,7 @@ namespace rfb {
   class InputHandler {
   public:
     virtual ~InputHandler() {}
-    virtual void keyEvent(rdr::U32 /*keysym*/, rdr::U32 /*keycode*/,
+    virtual void keyEvent(uint32_t /*keysym*/, uint32_t /*keycode*/,
                           bool /*down*/) { }
     virtual void pointerEvent(const Point& /*pos*/,
                               int /*buttonMask*/) { }

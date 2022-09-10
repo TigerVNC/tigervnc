@@ -81,9 +81,9 @@ bool HexInStream::fillBuffer() {
     return false;
 
   size_t length = min(in_stream.avail()/2, availSpace());
-  const U8* iptr = in_stream.getptr(length*2);
+  const uint8_t* iptr = in_stream.getptr(length*2);
 
-  U8* optr = (U8*) end;
+  uint8_t* optr = (uint8_t*) end;
   for (size_t i=0; i<length; i++) {
     int v = 0;
     readHexAndShift(iptr[i*2], &v);

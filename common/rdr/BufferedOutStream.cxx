@@ -34,7 +34,7 @@ static const size_t MAX_BUF_SIZE = 32 * 1024 * 1024;
 BufferedOutStream::BufferedOutStream(bool emulateCork)
   : bufSize(DEFAULT_BUF_SIZE), offset(0), emulateCork(emulateCork)
 {
-  ptr = start = sentUpTo = new U8[bufSize];
+  ptr = start = sentUpTo = new uint8_t[bufSize];
   end = start + bufSize;
   gettimeofday(&lastSizeCheck, NULL);
   peakUsage = 0;
@@ -88,7 +88,7 @@ void BufferedOutStream::flush()
 
       // We know the buffer is empty, so just reset everything
       delete [] start;
-      ptr = start = sentUpTo = new U8[newSize];
+      ptr = start = sentUpTo = new uint8_t[newSize];
       end = start + newSize;
       bufSize = newSize;
     }
@@ -107,7 +107,7 @@ void BufferedOutStream::overrun(size_t needed)
 {
   bool oldCorked;
   size_t totalNeeded, newSize;
-  U8* newBuffer;
+  uint8_t* newBuffer;
 
   // First try to get rid of the data we have
   // (use corked to make things a bit more efficient since we're not
@@ -147,7 +147,7 @@ void BufferedOutStream::overrun(size_t needed)
   while (newSize < totalNeeded)
     newSize *= 2;
 
-  newBuffer = new U8[newSize];
+  newBuffer = new uint8_t[newSize];
   memcpy(newBuffer, sentUpTo, ptr - sentUpTo);
   delete [] start;
   bufSize = newSize;

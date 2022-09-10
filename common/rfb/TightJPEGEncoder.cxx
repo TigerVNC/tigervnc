@@ -115,7 +115,7 @@ int TightJPEGEncoder::getQualityLevel()
 void TightJPEGEncoder::writeRect(const PixelBuffer* pb,
                                  const Palette& /*palette*/)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   int quality, subsampling;
@@ -152,17 +152,17 @@ void TightJPEGEncoder::writeRect(const PixelBuffer* pb,
 
 void TightJPEGEncoder::writeSolidRect(int width, int height,
                                       const PixelFormat& pf,
-                                      const rdr::U8* colour)
+                                      const uint8_t* colour)
 {
   // FIXME: Add a shortcut in the JPEG compressor to handle this case
   //        without having to use the default fallback which is very slow.
   Encoder::writeSolidRect(width, height, pf, colour);
 }
 
-void TightJPEGEncoder::writeCompact(rdr::U32 value, rdr::OutStream* os)
+void TightJPEGEncoder::writeCompact(uint32_t value, rdr::OutStream* os)
 {
   // Copied from TightEncoder as it's overkill to inherit just for this
-  rdr::U8 b;
+  uint8_t b;
 
   b = value & 0x7F;
   if (value <= 0x7F) {

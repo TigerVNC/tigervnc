@@ -58,7 +58,7 @@ public:
 
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 const rdr::U8* data);
+                 const uint8_t* data);
 
   // Server-provided cursor position
   void setCursorPos(const rfb::Point& pos);

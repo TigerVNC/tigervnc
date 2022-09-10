@@ -106,7 +106,7 @@ bool TLSOutStream::flushBuffer()
   return true;
 }
 
-size_t TLSOutStream::writeTLS(const U8* data, size_t length)
+size_t TLSOutStream::writeTLS(const uint8_t* data, size_t length)
 {
   int n;
 

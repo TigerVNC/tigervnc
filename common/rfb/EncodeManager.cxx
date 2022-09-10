@@ -377,7 +377,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
 
   bool allowJPEG;
 
-  rdr::S32 preferred;
+  int32_t preferred;
 
   std::vector<int>::iterator iter;
 
@@ -678,8 +678,8 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
 
     for (dx = rect.tl.x; dx < rect.br.x; dx += SolidSearchBlock) {
       // We define it like this to guarantee alignment
-      rdr::U32 _buffer;
-      rdr::U8* colourValue = (rdr::U8*)&_buffer;
+      uint32_t _buffer;
+      uint8_t* colourValue = (uint8_t*)&_buffer;
 
       dw = SolidSearchBlock;
       if (dx + dw > rect.br.x)
@@ -718,8 +718,8 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
           encoder->writeSolidRect(erp.width(), erp.height(),
                                   pb->getPF(), colourValue);
         } else {
-          rdr::U32 _buffer2;
-          rdr::U8* converted = (rdr::U8*)&_buffer2;
+          uint32_t _buffer2;
+          uint8_t* converted = (uint8_t*)&_buffer2;
 
           conn->client.pf().bufferFromBuffer(converted, pb->getPF(),
                                          colourValue, 1);
@@ -886,21 +886,21 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
   endRect();
 }
 
-bool EncodeManager::checkSolidTile(const Rect& r, const rdr::U8* colourValue,
+bool EncodeManager::checkSolidTile(const Rect& r, const uint8_t* colourValue,
                                    const PixelBuffer *pb)
 {
   switch (pb->getPF().bpp) {
   case 32:
-    return checkSolidTile(r, *(const rdr::U32*)colourValue, pb);
+    return checkSolidTile(r, *(const uint32_t*)colourValue, pb);
   case 16:
-    return checkSolidTile(r, *(const rdr::U16*)colourValue, pb);
+    return checkSolidTile(r, *(const uint16_t*)colourValue, pb);
   default:
-    return checkSolidTile(r, *(const rdr::U8*)colourValue, pb);
+    return checkSolidTile(r, *(const uint8_t*)colourValue, pb);
   }
 }
 
 void EncodeManager::extendSolidAreaByBlock(const Rect& r,
-                                           const rdr::U8* colourValue,
+                                           const uint8_t* colourValue,
                                            const PixelBuffer *pb, Rect* er)
 {
   int dx, dy, dw, dh;
@@ -956,7 +956,7 @@ void EncodeManager::extendSolidAreaByBlock(const Rect& r,
 }
 
 void EncodeManager::extendSolidAreaByPixel(const Rect& r, const Rect& sr,
-                                           const rdr::U8* colourValue,
+                                           const uint8_t* colourValue,
                                            const PixelBuffer *pb, Rect* er)
 {
   int cx, cy;
@@ -999,7 +999,7 @@ PixelBuffer* EncodeManager::preparePixelBuffer(const Rect& rect,
                                                const PixelBuffer *pb,
                                                bool convert)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   // Do wo need to convert the data?
@@ -1029,7 +1029,7 @@ PixelBuffer* EncodeManager::preparePixelBuffer(const Rect& rect,
 bool EncodeManager::analyseRect(const PixelBuffer *pb,
                                 struct RectInfo *info, int maxColours)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(pb->getRect(), &stride);
@@ -1037,30 +1037,30 @@ bool EncodeManager::analyseRect(const PixelBuffer *pb,
   switch (pb->getPF().bpp) {
   case 32:
     return analyseRect(pb->width(), pb->height(),
-                       (const rdr::U32*)buffer, stride,
+                       (const uint32_t*)buffer, stride,
                        info, maxColours);
   case 16:
     return analyseRect(pb->width(), pb->height(),
-                       (const rdr::U16*)buffer, stride,
+                       (const uint16_t*)buffer, stride,
                        info, maxColours);
   default:
     return analyseRect(pb->width(), pb->height(),
-                       (const rdr::U8*)buffer, stride,
+                       (const uint8_t*)buffer, stride,
                        info, maxColours);
   }
 }
 
 void EncodeManager::OffsetPixelBuffer::update(const PixelFormat& pf,
                                               int width, int height,
-                                              const rdr::U8* data_,
+                                              const uint8_t* data_,
                                               int stride_)
 {
   format = pf;
   // Forced cast. We never write anything though, so it should be safe.
-  setBuffer(width, height, (rdr::U8*)data_, stride_);
+  setBuffer(width, height, (uint8_t*)data_, stride_);
 }
 
-rdr::U8* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /*stride*/)
+uint8_t* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /*stride*/)
 {
   throw rfb::Exception("Invalid write attempt to OffsetPixelBuffer");
 }

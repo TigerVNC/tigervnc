@@ -400,7 +400,7 @@ void CConn::framebufferUpdateEnd()
 // The rest of the callbacks are fairly self-explanatory...
 
 void CConn::setColourMapEntries(int /*firstColour*/, int /*nColours*/,
-                                rdr::U16* /*rgbs*/)
+                                uint16_t* /*rgbs*/)
 {
   vlog.error(_("Invalid SetColourMapEntries from server!"));
 }
@@ -426,7 +426,7 @@ bool CConn::dataRect(const Rect& r, int encoding)
 }
 
 void CConn::setCursor(int width, int height, const Point& hotspot,
-                      const rdr::U8* data)
+                      const uint8_t* data)
 {
   desktop->setCursor(width, height, hotspot, data);
 }
@@ -436,7 +436,7 @@ void CConn::setCursorPos(const Point& pos)
   desktop->setCursorPos(pos);
 }
 
-void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
+void CConn::fence(uint32_t flags, unsigned len, const char data[])
 {
   CMsgHandler::fence(flags, len, data);
 

@@ -43,7 +43,7 @@ RREDecoder::~RREDecoder()
 bool RREDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os)
 {
-  rdr::U32 numRects;
+  uint32_t numRects;
   size_t len;
 
   if (!is->hasData(4))
@@ -73,9 +73,9 @@ void RREDecoder::decodeRect(const Rect& r, const void* buffer,
   rdr::MemInStream is(buffer, buflen);
   const PixelFormat& pf = server.pf();
   switch (pf.bpp) {
-  case 8:  rreDecode<rdr::U8 >(r, &is, pf, pb); break;
-  case 16: rreDecode<rdr::U16>(r, &is, pf, pb); break;
-  case 32: rreDecode<rdr::U32>(r, &is, pf, pb); break;
+  case 8:  rreDecode<uint8_t >(r, &is, pf, pb); break;
+  case 16: rreDecode<uint16_t>(r, &is, pf, pb); break;
+  case 32: rreDecode<uint32_t>(r, &is, pf, pb); break;
   }
 }
 

@@ -56,7 +56,7 @@ bool HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
     t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
-      rdr::U8 tileType;
+      uint8_t tileType;
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
 
@@ -87,7 +87,7 @@ bool HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
       }
 
       if (tileType & hextileAnySubrects) {
-        rdr::U8 nSubrects;
+        uint8_t nSubrects;
 
         if (!is->hasDataOrRestore(1))
           return false;
@@ -120,9 +120,9 @@ void HextileDecoder::decodeRect(const Rect& r, const void* buffer,
   rdr::MemInStream is(buffer, buflen);
   const PixelFormat& pf = server.pf();
   switch (pf.bpp) {
-  case 8:  hextileDecode<rdr::U8 >(r, &is, pf, pb); break;
-  case 16: hextileDecode<rdr::U16>(r, &is, pf, pb); break;
-  case 32: hextileDecode<rdr::U32>(r, &is, pf, pb); break;
+  case 8:  hextileDecode<uint8_t >(r, &is, pf, pb); break;
+  case 16: hextileDecode<uint16_t>(r, &is, pf, pb); break;
+  case 32: hextileDecode<uint32_t>(r, &is, pf, pb); break;
   }
 }
 

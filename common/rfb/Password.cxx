@@ -25,10 +25,11 @@
 #endif
 
 #include <string.h>
+#include <stdint.h>
 extern "C" {
 #include <rfb/d3des.h>
 }
-#include <rdr/types.h>
+
 #include <rdr/Exception.h>
 #include <rfb/Password.h>
 
@@ -49,7 +50,7 @@ PlainPasswd::PlainPasswd(const ObfuscatedPasswd& obfPwd) : CharArray(9) {
   if (obfPwd.length < 8)
     throw rdr::Exception("bad obfuscated password length");
   deskey(d3desObfuscationKey, DE1);
-  des((rdr::U8*)obfPwd.buf, (rdr::U8*)buf);
+  des((uint8_t*)obfPwd.buf, (uint8_t*)buf);
   buf[8] = 0;
 }
 
@@ -75,7 +76,7 @@ ObfuscatedPasswd::ObfuscatedPasswd(const PlainPasswd& plainPwd) : CharArray(8), 
   for (i=0; i<8; i++)
     buf[i] = i<l ? plainPwd.buf[i] : 0;
   deskey(d3desObfuscationKey, EN0);
-  des((rdr::U8*)buf, (rdr::U8*)buf);
+  des((uint8_t*)buf, (uint8_t*)buf);
 }
 
 ObfuscatedPasswd::~ObfuscatedPasswd() {

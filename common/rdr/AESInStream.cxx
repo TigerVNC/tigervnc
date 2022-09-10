@@ -27,7 +27,8 @@
 #ifdef HAVE_NETTLE
 using namespace rdr;
 
-AESInStream::AESInStream(InStream* _in, const U8* key, int _keySize)
+AESInStream::AESInStream(InStream* _in, const uint8_t* key,
+                         int _keySize)
   : keySize(_keySize), in(_in), counter()
 {
   if (keySize == 128)
@@ -44,26 +45,26 @@ bool AESInStream::fillBuffer()
 {
   if (!in->hasData(2))
     return false;
-  const U8* ptr = in->getptr(2);
+  const uint8_t* ptr = in->getptr(2);
   size_t length = ((int)ptr[0] << 8) | (int)ptr[1];
   if (!in->hasData(2 + length + 16))
     return false;
   ensureSpace(length);
   ptr = in->getptr(2 + length + 16);
-  const U8* ad = ptr;
-  const U8* data = ptr + 2;
-  const U8* mac = ptr + 2 + length;
-  U8 macComputed[16];
+  const uint8_t* ad = ptr;
+  const uint8_t* data = ptr + 2;
+  const uint8_t* mac = ptr + 2 + length;
+  uint8_t macComputed[16];
 
   if (keySize == 128) {
     EAX_SET_NONCE(&eaxCtx128, aes128_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx128, aes128_encrypt, 2, ad);
-    EAX_DECRYPT(&eaxCtx128, aes128_encrypt, length, (rdr::U8*)end, data);
+    EAX_DECRYPT(&eaxCtx128, aes128_encrypt, length, (uint8_t*)end, data);
     EAX_DIGEST(&eaxCtx128, aes128_encrypt, 16, macComputed);
   } else {
     EAX_SET_NONCE(&eaxCtx256, aes256_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx256, aes256_encrypt, 2, ad);
-    EAX_DECRYPT(&eaxCtx256, aes256_encrypt, length, (rdr::U8*)end, data);
+    EAX_DECRYPT(&eaxCtx256, aes256_encrypt, length, (uint8_t*)end, data);
     EAX_DIGEST(&eaxCtx256, aes256_encrypt, 16, macComputed);
   }
   if (memcmp(mac, macComputed, 16) != 0)

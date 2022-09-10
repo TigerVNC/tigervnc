@@ -21,8 +21,9 @@
 #ifndef __RFB_H264DECODERCONTEXT_H__
 #define __RFB_H264DECODERCONTEXT_H__
 
+#include <stdint.h>
+
 #include <os/Mutex.h>
-#include <rdr/types.h>
 #include <rfb/Rect.h>
 #include <rfb/Decoder.h>
 
@@ -33,8 +34,8 @@ namespace rfb {
 
       virtual ~H264DecoderContext() = 0;
 
-      virtual void decode(const rdr::U8* /*h264_buffer*/,
-                          rdr::U32 /*len*/,
+      virtual void decode(const uint8_t* /*h264_buffer*/,
+                          uint32_t /*len*/,
                           ModifiablePixelBuffer* /*pb*/) {}
       void reset();
 

@@ -55,7 +55,7 @@ const int MaxKeyLength = 8192;
 
 using namespace rfb;
 
-CSecurityRSAAES::CSecurityRSAAES(CConnection* cc, rdr::U32 _secType,
+CSecurityRSAAES::CSecurityRSAAES(CConnection* cc, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
   : CSecurity(cc), state(ReadPublicKey),
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
@@ -155,8 +155,8 @@ void CSecurityRSAAES::writePublicKey()
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
                             &rs, random_func, NULL, NULL, clientKeyLength, 0))
     throw AuthFailureException("failed to generate key");
-  clientKeyN = new rdr::U8[rsaKeySize];
-  clientKeyE = new rdr::U8[rsaKeySize];
+  clientKeyN = new uint8_t[rsaKeySize];
+  clientKeyE = new uint8_t[rsaKeySize];
   nettle_mpz_get_str_256(rsaKeySize, clientKeyN, clientPublicKey.n);
   nettle_mpz_get_str_256(rsaKeySize, clientKeyE, clientPublicKey.e);
   os->writeU32(clientKeyLength);
@@ -180,8 +180,8 @@ bool CSecurityRSAAES::readPublicKey()
   if (!is->hasDataOrRestore(size * 2))
     return false;
   is->clearRestorePoint();
-  serverKeyE = new rdr::U8[size];
-  serverKeyN = new rdr::U8[size];
+  serverKeyE = new uint8_t[size];
+  serverKeyN = new uint8_t[size];
   is->readBytes(serverKeyN, size);
   is->readBytes(serverKeyE, size);
   rsa_public_key_init(&serverKey);
@@ -194,13 +194,13 @@ bool CSecurityRSAAES::readPublicKey()
 
 void CSecurityRSAAES::verifyServer()
 {
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((serverKeyLength & 0xff000000) >> 24),
-    (rdr::U8)((serverKeyLength & 0xff0000) >> 16),
-    (rdr::U8)((serverKeyLength & 0xff00) >> 8),
-    (rdr::U8)(serverKeyLength & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((serverKeyLength & 0xff000000) >> 24),
+    (uint8_t)((serverKeyLength & 0xff0000) >> 16),
+    (uint8_t)((serverKeyLength & 0xff00) >> 8),
+    (uint8_t)(serverKeyLength & 0xff)
   };
-  rdr::U8 f[8];
+  uint8_t f[8];
   struct sha1_ctx ctx;
   sha1_init(&ctx);
   sha1_update(&ctx, 4, lenServerKey);
@@ -238,7 +238,7 @@ void CSecurityRSAAES::writeRandom()
     mpz_clear(x);
     throw AuthFailureException("failed to encrypt random");
   }
-  rdr::U8* buffer = new rdr::U8[serverKey.size];
+  uint8_t* buffer = new uint8_t[serverKey.size];
   nettle_mpz_get_str_256(serverKey.size, buffer, x);
   mpz_clear(x);
   os->writeU16(serverKey.size);
@@ -259,7 +259,7 @@ bool CSecurityRSAAES::readRandom()
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
-  rdr::U8* buffer = new rdr::U8[size];
+  uint8_t* buffer = new uint8_t[size];
   is->readBytes(buffer, size);
   size_t randomSize = keySize / 8;
   mpz_t x;
@@ -278,7 +278,7 @@ void CSecurityRSAAES::setCipher()
 {
   rawis = cc->getInStream();
   rawos = cc->getOutStream();
-  rdr::U8 key[32];
+  uint8_t key[32];
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
@@ -310,20 +310,20 @@ void CSecurityRSAAES::setCipher()
 
 void CSecurityRSAAES::writeHash()
 {
-  rdr::U8 hash[32];
+  uint8_t hash[32];
   size_t len = serverKeyLength;
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   len = clientKeyLength;
-  rdr::U8 lenClientKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenClientKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   int hashSize;
   if (keySize == 128) {
@@ -355,25 +355,25 @@ void CSecurityRSAAES::writeHash()
 
 bool CSecurityRSAAES::readHash()
 {
-  rdr::U8 hash[32];
-  rdr::U8 realHash[32];
+  uint8_t hash[32];
+  uint8_t realHash[32];
   int hashSize = keySize == 128 ? 20 : 32;
   if (!rais->hasData(hashSize))
     return false;
   rais->readBytes(hash, hashSize);
   size_t len = serverKeyLength;
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   len = clientKeyLength;
-  rdr::U8 lenClientKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenClientKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   if (keySize == 128) {
     struct sha1_ctx ctx;

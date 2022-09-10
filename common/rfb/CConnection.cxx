@@ -93,10 +93,10 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
   if ((framebuffer != NULL) && (fb != NULL)) {
     Rect rect;
 
-    const rdr::U8* data;
+    const uint8_t* data;
     int stride;
 
-    const rdr::U8 black[4] = { 0, 0, 0, 0 };
+    const uint8_t black[4] = { 0, 0, 0, 0 };
 
     // Copy still valid area
 
@@ -210,7 +210,7 @@ bool CConnection::processSecurityTypesMsg()
 
   int secType = secTypeInvalid;
 
-  std::list<rdr::U8> secTypes;
+  std::list<uint8_t> secTypes;
   secTypes = security.GetEnabledSecTypes();
 
   if (server.isVersion(3,3)) {
@@ -225,7 +225,7 @@ bool CConnection::processSecurityTypesMsg()
       state_ = RFBSTATE_SECURITY_REASON;
       return true;
     } else if (secType == secTypeNone || secType == secTypeVncAuth) {
-      std::list<rdr::U8>::iterator i;
+      std::list<uint8_t>::iterator i;
       for (i = secTypes.begin(); i != secTypes.end(); i++)
         if (*i == secType) {
           secType = *i;
@@ -259,10 +259,10 @@ bool CConnection::processSecurityTypesMsg()
       return true;
     }
 
-    std::list<rdr::U8>::iterator j;
+    std::list<uint8_t>::iterator j;
 
     for (int i = 0; i < nServerSecTypes; i++) {
-      rdr::U8 serverSecType = is->readU8();
+      uint8_t serverSecType = is->readU8();
       vlog.debug("Server offers security type %s(%d)",
                  secTypeName(serverSecType), serverSecType);
 
@@ -355,7 +355,7 @@ bool CConnection::processSecurityReasonMsg()
 
   is->setRestorePoint();
 
-  rdr::U32 len = is->readU32();
+  uint32_t len = is->readU32();
   if (!is->hasDataOrRestore(len))
     return false;
   is->clearRestorePoint();
@@ -553,10 +553,10 @@ void CConnection::serverCutText(const char* str)
   handleClipboardAnnounce(true);
 }
 
-void CConnection::handleClipboardCaps(rdr::U32 flags,
-                                      const rdr::U32* lengths)
+void CConnection::handleClipboardCaps(uint32_t flags,
+                                      const uint32_t* lengths)
 {
-  rdr::U32 sizes[] = { 0 };
+  uint32_t sizes[] = { 0 };
 
   CMsgHandler::handleClipboardCaps(flags, lengths);
 
@@ -568,7 +568,7 @@ void CConnection::handleClipboardCaps(rdr::U32 flags,
                                sizes);
 }
 
-void CConnection::handleClipboardRequest(rdr::U32 flags)
+void CConnection::handleClipboardRequest(uint32_t flags)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard request for unsupported formats 0x%x", flags);
@@ -587,7 +587,7 @@ void CConnection::handleClipboardPeek()
     writer()->writeClipboardNotify(hasLocalClipboard ? rfb::clipboardUTF8 : 0);
 }
 
-void CConnection::handleClipboardNotify(rdr::U32 flags)
+void CConnection::handleClipboardNotify(uint32_t flags)
 {
   strFree(serverClipboard);
   serverClipboard = NULL;
@@ -600,9 +600,9 @@ void CConnection::handleClipboardNotify(rdr::U32 flags)
   }
 }
 
-void CConnection::handleClipboardProvide(rdr::U32 flags,
+void CConnection::handleClipboardProvide(uint32_t flags,
                                          const size_t* lengths,
-                                         const rdr::U8* const* data)
+                                         const uint8_t* const* data)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard provide with unsupported formats 0x%x", flags);
@@ -683,7 +683,7 @@ void CConnection::sendClipboardData(const char* data)
   if (server.clipboardFlags() & rfb::clipboardProvide) {
     CharArray filtered(convertCRLF(data));
     size_t sizes[1] = { strlen(filtered.buf) + 1 };
-    const rdr::U8* data[1] = { (const rdr::U8*)filtered.buf };
+    const uint8_t* data[1] = { (const uint8_t*)filtered.buf };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -754,7 +754,7 @@ void CConnection::setPF(const PixelFormat& pf)
   formatChange = true;
 }
 
-void CConnection::fence(rdr::U32 flags, unsigned len, const char data[])
+void CConnection::fence(uint32_t flags, unsigned len, const char data[])
 {
   CMsgHandler::fence(flags, len, data);
 
@@ -819,7 +819,7 @@ void CConnection::requestNewUpdate()
 
 void CConnection::updateEncodings()
 {
-  std::list<rdr::U32> encodings;
+  std::list<uint32_t> encodings;
 
   if (supportsLocalCursor) {
     encodings.push_back(pseudoEncodingCursorWithAlpha);
