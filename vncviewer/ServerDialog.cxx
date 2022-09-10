@@ -25,6 +25,11 @@
 #include <algorithm>
 #include <libgen.h>
 
+// FIXME: Workaround for FLTK including windows.h
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Input_Choice.H>
@@ -39,7 +44,8 @@
 
 #include <rdr/Exception.h>
 
-#include <rfb/Hostname.h>
+#include <network/TcpSocket.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 
@@ -320,8 +326,8 @@ static bool same_server(const string& a, const string& b)
 #endif
 
   try {
-    getHostAndPort(a.c_str(), &hostA, &portA);
-    getHostAndPort(b.c_str(), &hostB, &portB);
+    network::getHostAndPort(a.c_str(), &hostA, &portA);
+    network::getHostAndPort(b.c_str(), &hostB, &portB);
   } catch (std::exception& e) {
     return false;
   }
