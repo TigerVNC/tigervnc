@@ -36,7 +36,6 @@
 #include <rfb/ServerCore.h>
 #include <rdr/HexOutStream.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Hostname.h>
 #include <rfb/Region.h>
 #include <rfb/ledStates.h>
 #include <network/TcpSocket.h>
@@ -358,7 +357,7 @@ int vncConnectClient(const char *addr, int viewOnly)
   std::string host;
   int port;
 
-  getHostAndPort(addr, &host, &port, 5500);
+  network::getHostAndPort(addr, &host, &port, 5500);
 
   try {
     network::Socket* sock = new network::TcpSocket(host.c_str(), port);

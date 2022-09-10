@@ -49,6 +49,9 @@ namespace network {
   /* Tunnelling support. */
   int findFreeTcpPort (void);
 
+  void getHostAndPort(const char* hi, std::string* host,
+                      int* port, int basePort=5900);
+
   int getSockPort(int sock);
 
   class TcpSocket : public Socket {

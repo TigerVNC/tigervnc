@@ -34,12 +34,13 @@
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Exception.h>
-#include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/Timer.h>
 #include <rfb/screenTypes.h>
+#include <rfb/util.h>
+
 #include <network/TcpSocket.h>
 #ifndef WIN32
 #include <network/UnixSocket.h>
@@ -105,7 +106,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
       } else
 #endif
       {
-        getHostAndPort(vncServerName, &serverHost, &serverPort);
+        network::getHostAndPort(vncServerName, &serverHost, &serverPort);
 
         sock = new network::TcpSocket(serverHost.c_str(), serverPort);
         vlog.info(_("Connected to host %s port %d"),
