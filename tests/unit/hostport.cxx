@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 
-#include <rfb/Hostname.h>
+#include <network/TcpSocket.h>
 
 static void doTest(const char* hostAndPort,
                    const char* expectedHost, int expectedPort)
@@ -32,7 +32,7 @@ static void doTest(const char* hostAndPort,
 
     printf("\"%s\": ", hostAndPort);
 
-    rfb::getHostAndPort(hostAndPort, &host, &port);
+    network::getHostAndPort(hostAndPort, &host, &port);
 
     if (host != expectedHost)
         printf("FAILED (\"%s\" != \"%s\")", host.c_str(), expectedHost);
