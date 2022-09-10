@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,22 +54,14 @@ namespace rfb {
     void flushZlibOutStream(rdr::OutStream* os);
 
   protected:
-    // Preprocessor generated, optimised methods
+    // Templated, optimised methods
+    template<class T>
     void writeMonoRect(int width, int height,
-                       const rdr::U8* buffer, int stride,
+                       const T* buffer, int stride,
                        const PixelFormat& pf, const Palette& palette);
-    void writeMonoRect(int width, int height,
-                       const rdr::U16* buffer, int stride,
-                       const PixelFormat& pf, const Palette& palette);
-    void writeMonoRect(int width, int height,
-                       const rdr::U32* buffer, int stride,
-                       const PixelFormat& pf, const Palette& palette);
-
+    template<class T>
     void writeIndexedRect(int width, int height,
-                          const rdr::U16* buffer, int stride,
-                          const PixelFormat& pf, const Palette& palette);
-    void writeIndexedRect(int width, int height,
-                          const rdr::U32* buffer, int stride,
+                          const T* buffer, int stride,
                           const PixelFormat& pf, const Palette& palette);
 
     rdr::ZlibOutStream zlibStreams[4];

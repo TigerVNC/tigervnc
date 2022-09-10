@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2017 Pierre Ossman for Cendio AB
+ * Copyright 2009-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,27 +50,22 @@ static inline rdr::U32 readOpaque24B(rdr::InStream* is)
   return r;
 }
 
+template<class T>
+static inline T readPixel(rdr::ZlibInStream* zis)
+{
+  if (sizeof(T) == 1)
+    return zis->readOpaque8();
+  if (sizeof(T) == 2)
+    return zis->readOpaque16();
+  if (sizeof(T) == 4)
+    return zis->readOpaque32();
+}
+
 static inline void zlibHasData(rdr::ZlibInStream* zis, size_t length)
 {
   if (!zis->hasData(length))
     throw Exception("ZRLE decode error");
 }
-
-#define BPP 8
-#include <rfb/zrleDecode.h>
-#undef BPP
-#define BPP 16
-#include <rfb/zrleDecode.h>
-#undef BPP
-#define BPP 32
-#include <rfb/zrleDecode.h>
-#define CPIXEL 24A
-#include <rfb/zrleDecode.h>
-#undef CPIXEL
-#define CPIXEL 24B
-#include <rfb/zrleDecode.h>
-#undef CPIXEL
-#undef BPP
 
 ZRLEDecoder::ZRLEDecoder() : Decoder(DecoderOrdered)
 {
@@ -111,32 +106,185 @@ void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
   rdr::MemInStream is(buffer, buflen);
   const rfb::PixelFormat& pf = server.pf();
   switch (pf.bpp) {
-  case 8:  zrleDecode8 (r, &is, &zis, pf, pb); break;
-  case 16: zrleDecode16(r, &is, &zis, pf, pb); break;
-  case 32:
-    {
-      if (pf.depth <= 24) {
-        Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
-        bool fitsInLS3Bytes = maxPixel < (1<<24);
-        bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
+  case 8:  zrleDecode<rdr::U8>(r, &is, &zis, pf, pb); break;
+  case 16: zrleDecode<rdr::U16>(r, &is, &zis, pf, pb); break;
+  case 32: zrleDecode<rdr::U32>(r, &is, &zis, pf, pb); break;
+  }
+}
 
-        if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
-            (fitsInMS3Bytes && pf.isBigEndian()))
-        {
-          zrleDecode24A(r, &is, &zis, pf, pb);
-          break;
+template<class T>
+void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
+                             rdr::ZlibInStream* zis,
+                             const PixelFormat& pf,
+                             ModifiablePixelBuffer* pb)
+{
+  int length = is->readU32();
+  zis->setUnderlying(is, length);
+  Rect t;
+  T buf[64 * 64];
+
+  Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
+  bool fitsInLS3Bytes = maxPixel < (1<<24);
+  bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
+  bool isLowCPixel = (sizeof(T) == 4) &&
+                     ((fitsInLS3Bytes && pf.isLittleEndian()) ||
+                      (fitsInMS3Bytes && pf.isBigEndian()));
+  bool isHighCPixel = (sizeof(T) == 4) &&
+                      ((fitsInLS3Bytes && pf.isBigEndian()) ||
+                       (fitsInMS3Bytes && pf.isLittleEndian()));
+
+  for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 64) {
+
+    t.br.y = __rfbmin(r.br.y, t.tl.y + 64);
+
+    for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 64) {
+
+      t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
+
+      zlibHasData(zis, 1);
+      int mode = zis->readU8();
+      bool rle = mode & 128;
+      int palSize = mode & 127;
+      T palette[128];
+
+      if (isLowCPixel || isHighCPixel)
+        zlibHasData(zis, 3 * palSize);
+      else
+        zlibHasData(zis, sizeof(T) * palSize);
+
+      for (int i = 0; i < palSize; i++) {
+        if (isLowCPixel)
+          palette[i] = readOpaque24A(zis);
+        else if (isHighCPixel)
+          palette[i] = readOpaque24B(zis);
+        else
+          palette[i] = readPixel<T>(zis);
+      }
+
+      if (palSize == 1) {
+        T pix = palette[0];
+        pb->fillRect(pf, t, &pix);
+        continue;
+      }
+
+      if (!rle) {
+        if (palSize == 0) {
+
+          // raw
+
+          if (isLowCPixel || isHighCPixel)
+            zlibHasData(zis, 3 * t.area());
+          else
+            zlibHasData(zis, sizeof(T) * t.area());
+
+          if (isLowCPixel || isHighCPixel) {
+            for (T* ptr = buf; ptr < buf+t.area(); ptr++) {
+              if (isLowCPixel)
+                *ptr = readOpaque24A(zis);
+              else
+                *ptr = readOpaque24B(zis);
+            }
+          } else {
+            zis->readBytes(buf, t.area() * sizeof(T));
+          }
+
+        } else {
+
+          // packed pixels
+          int bppp = ((palSize > 16) ? 8 :
+                      ((palSize > 4) ? 4 : ((palSize > 2) ? 2 : 1)));
+
+          T* ptr = buf;
+
+          for (int i = 0; i < t.height(); i++) {
+            T* eol = ptr + t.width();
+            rdr::U8 byte = 0;
+            rdr::U8 nbits = 0;
+
+            while (ptr < eol) {
+              if (nbits == 0) {
+                zlibHasData(zis, 1);
+                byte = zis->readU8();
+                nbits = 8;
+              }
+              nbits -= bppp;
+              rdr::U8 index = (byte >> nbits) & ((1 << bppp) - 1) & 127;
+              *ptr++ = palette[index];
+            }
+          }
         }
 
-        if ((fitsInLS3Bytes && pf.isBigEndian()) ||
-            (fitsInMS3Bytes && pf.isLittleEndian()))
-        {
-          zrleDecode24B(r, &is, &zis, pf, pb);
-          break;
+      } else {
+
+        if (palSize == 0) {
+
+          // plain RLE
+
+          T* ptr = buf;
+          T* end = ptr + t.area();
+          while (ptr < end) {
+            T pix;
+            if (isLowCPixel || isHighCPixel)
+              zlibHasData(zis, 3);
+            else
+              zlibHasData(zis, sizeof(T));
+            if (isLowCPixel)
+              pix = readOpaque24A(zis);
+            else if (isHighCPixel)
+              pix = readOpaque24B(zis);
+            else
+              pix = readPixel<T>(zis);
+            int len = 1;
+            int b;
+            do {
+              zlibHasData(zis, 1);
+              b = zis->readU8();
+              len += b;
+            } while (b == 255);
+
+            if (end - ptr < len) {
+              throw Exception ("ZRLE decode error");
+            }
+
+            while (len-- > 0) *ptr++ = pix;
+
+          }
+        } else {
+
+          // palette RLE
+
+          T* ptr = buf;
+          T* end = ptr + t.area();
+          while (ptr < end) {
+            zlibHasData(zis, 1);
+            int index = zis->readU8();
+            int len = 1;
+            if (index & 128) {
+              int b;
+              do {
+                zlibHasData(zis, 1);
+                b = zis->readU8();
+                len += b;
+              } while (b == 255);
+
+              if (end - ptr < len) {
+                throw Exception ("ZRLE decode error");
+              }
+            }
+
+            index &= 127;
+
+            T pix = palette[index];
+
+            while (len-- > 0) *ptr++ = pix;
+          }
         }
       }
 
-      zrleDecode32(r, &is, &zis, pf, pb);
-      break;
+      pb->imageRect(pf, t, buf);
     }
   }
+
+  zis->flushUnderlying();
+  zis->setUnderlying(NULL, 0);
 }

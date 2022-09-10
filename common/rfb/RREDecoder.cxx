@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,21 +25,12 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
+#include <rfb/Exception.h>
 #include <rfb/ServerParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/RREDecoder.h>
 
 using namespace rfb;
-
-#define BPP 8
-#include <rfb/rreDecode.h>
-#undef BPP
-#define BPP 16
-#include <rfb/rreDecode.h>
-#undef BPP
-#define BPP 32
-#include <rfb/rreDecode.h>
-#undef BPP
 
 RREDecoder::RREDecoder() : Decoder(DecoderPlain)
 {
@@ -81,8 +73,42 @@ void RREDecoder::decodeRect(const Rect& r, const void* buffer,
   rdr::MemInStream is(buffer, buflen);
   const PixelFormat& pf = server.pf();
   switch (pf.bpp) {
-  case 8:  rreDecode8 (r, &is, pf, pb); break;
-  case 16: rreDecode16(r, &is, pf, pb); break;
-  case 32: rreDecode32(r, &is, pf, pb); break;
+  case 8:  rreDecode<rdr::U8 >(r, &is, pf, pb); break;
+  case 16: rreDecode<rdr::U16>(r, &is, pf, pb); break;
+  case 32: rreDecode<rdr::U32>(r, &is, pf, pb); break;
+  }
+}
+
+template<class T>
+inline T RREDecoder::readPixel(rdr::InStream* is)
+{
+  if (sizeof(T) == 1)
+    return is->readOpaque8();
+  if (sizeof(T) == 2)
+    return is->readOpaque16();
+  if (sizeof(T) == 4)
+    return is->readOpaque32();
+}
+
+template<class T>
+void RREDecoder::rreDecode(const Rect& r, rdr::InStream* is,
+                           const PixelFormat& pf,
+                           ModifiablePixelBuffer* pb)
+{
+  int nSubrects = is->readU32();
+  T bg = readPixel<T>(is);
+  pb->fillRect(pf, r, &bg);
+
+  for (int i = 0; i < nSubrects; i++) {
+    T pix = readPixel<T>(is);
+    int x = is->readU16();
+    int y = is->readU16();
+    int w = is->readU16();
+    int h = is->readU16();
+
+    if (((x+w) > r.width()) || ((y+h) > r.height()))
+      throw Exception ("RRE decode error");
+
+    pb->fillRect(pf, Rect(r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h), &pix);
   }
 }

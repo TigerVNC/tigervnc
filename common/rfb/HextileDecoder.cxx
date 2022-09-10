@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,21 +25,13 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
+#include <rfb/Exception.h>
 #include <rfb/ServerParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/HextileDecoder.h>
+#include <rfb/hextileConstants.h>
 
 using namespace rfb;
-
-#define BPP 8
-#include <rfb/hextileDecode.h>
-#undef BPP
-#define BPP 16
-#include <rfb/hextileDecode.h>
-#undef BPP
-#define BPP 32
-#include <rfb/hextileDecode.h>
-#undef BPP
 
 HextileDecoder::HextileDecoder() : Decoder(DecoderPlain)
 {
@@ -127,8 +120,87 @@ void HextileDecoder::decodeRect(const Rect& r, const void* buffer,
   rdr::MemInStream is(buffer, buflen);
   const PixelFormat& pf = server.pf();
   switch (pf.bpp) {
-  case 8:  hextileDecode8 (r, &is, pf, pb); break;
-  case 16: hextileDecode16(r, &is, pf, pb); break;
-  case 32: hextileDecode32(r, &is, pf, pb); break;
+  case 8:  hextileDecode<rdr::U8 >(r, &is, pf, pb); break;
+  case 16: hextileDecode<rdr::U16>(r, &is, pf, pb); break;
+  case 32: hextileDecode<rdr::U32>(r, &is, pf, pb); break;
+  }
+}
+
+template<class T>
+inline T HextileDecoder::readPixel(rdr::InStream* is)
+{
+  if (sizeof(T) == 1)
+    return is->readOpaque8();
+  if (sizeof(T) == 2)
+    return is->readOpaque16();
+  if (sizeof(T) == 4)
+    return is->readOpaque32();
+}
+
+template<class T>
+void HextileDecoder::hextileDecode(const Rect& r, rdr::InStream* is,
+                                   const PixelFormat& pf,
+                                   ModifiablePixelBuffer* pb)
+{
+  Rect t;
+  T bg = 0;
+  T fg = 0;
+  T buf[16 * 16];
+
+  for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
+
+    t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
+
+    for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
+
+      t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
+
+      int tileType = is->readU8();
+
+      if (tileType & hextileRaw) {
+        is->readBytes(buf, t.area() * sizeof(T));
+        pb->imageRect(pf, t, buf);
+        continue;
+      }
+
+      if (tileType & hextileBgSpecified)
+        bg = readPixel<T>(is);
+
+      int len = t.area();
+      T* ptr = buf;
+      while (len-- > 0) *ptr++ = bg;
+
+      if (tileType & hextileFgSpecified)
+        fg = readPixel<T>(is);
+
+      if (tileType & hextileAnySubrects) {
+        int nSubrects = is->readU8();
+
+        for (int i = 0; i < nSubrects; i++) {
+
+          if (tileType & hextileSubrectsColoured)
+            fg = readPixel<T>(is);
+
+          int xy = is->readU8();
+          int wh = is->readU8();
+
+          int x = ((xy >> 4) & 15);
+          int y = (xy & 15);
+          int w = ((wh >> 4) & 15) + 1;
+          int h = (wh & 15) + 1;
+          if (x + w > 16 || y + h > 16) {
+            throw rfb::Exception("HEXTILE_DECODE: Hextile out of bounds");
+          }
+          T* ptr = buf + y * t.width() + x;
+          int rowAdd = t.width() - w;
+          while (h-- > 0) {
+            int len = w;
+            while (len-- > 0) *ptr++ = fg;
+            ptr += rowAdd;
+          }
+        }
+      }
+      pb->imageRect(pf, t, buf);
+    }
   }
 }

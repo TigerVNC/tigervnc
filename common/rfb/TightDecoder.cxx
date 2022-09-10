@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
- * Copyright 2009-2015 Pierre Ossman for Cendio AB
+ * Copyright 2009-2022 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
@@ -39,16 +39,6 @@ using namespace rfb;
 
 static const int TIGHT_MAX_WIDTH = 2048;
 static const int TIGHT_MIN_TO_COMPRESS = 12;
-
-#define BPP 8
-#include <rfb/tightDecode.h>
-#undef BPP
-#define BPP 16
-#include <rfb/tightDecode.h>
-#undef BPP
-#define BPP 32
-#include <rfb/tightDecode.h>
-#undef BPP
 
 TightDecoder::TightDecoder() : Decoder(DecoderPartiallyOrdered)
 {
@@ -508,4 +498,145 @@ rdr::U32 TightDecoder::readCompact(rdr::InStream* is)
   }
 
   return result;
+}
+
+void
+TightDecoder::FilterGradient24(const rdr::U8 *inbuf,
+                               const PixelFormat& pf, rdr::U32* outbuf,
+                               int stride, const Rect& r)
+{
+  int x, y, c;
+  rdr::U8 prevRow[TIGHT_MAX_WIDTH*3];
+  rdr::U8 thisRow[TIGHT_MAX_WIDTH*3];
+  rdr::U8 pix[3]; 
+  int est[3]; 
+
+  memset(prevRow, 0, sizeof(prevRow));
+
+  // Set up shortcut variables
+  int rectHeight = r.height();
+  int rectWidth = r.width();
+
+  for (y = 0; y < rectHeight; y++) {
+    for (x = 0; x < rectWidth; x++) {
+      /* First pixel in a row */
+      if (x == 0) {
+        for (c = 0; c < 3; c++) {
+          pix[c] = inbuf[y*rectWidth*3+c] + prevRow[c];
+          thisRow[c] = pix[c];
+        }
+        pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
+        continue;
+      }
+
+      for (c = 0; c < 3; c++) {
+        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+        if (est[c] > 0xff) {
+          est[c] = 0xff;
+        } else if (est[c] < 0) {
+          est[c] = 0;
+        }
+        pix[c] = inbuf[(y*rectWidth+x)*3+c] + est[c];
+        thisRow[x*3+c] = pix[c];
+      }
+      pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride+x], pix, 1);
+    }
+
+    memcpy(prevRow, thisRow, sizeof(prevRow));
+  }
+}
+
+template<class T>
+void TightDecoder::FilterGradient(const rdr::U8* inbuf,
+                                  const PixelFormat& pf, T* outbuf,
+                                  int stride, const Rect& r)
+{
+  int x, y, c;
+  static rdr::U8 prevRow[TIGHT_MAX_WIDTH*3];
+  static rdr::U8 thisRow[TIGHT_MAX_WIDTH*3];
+  rdr::U8 pix[3]; 
+  int est[3]; 
+
+  memset(prevRow, 0, sizeof(prevRow));
+
+  // Set up shortcut variables
+  int rectHeight = r.height();
+  int rectWidth = r.width();
+
+  for (y = 0; y < rectHeight; y++) {
+    for (x = 0; x < rectWidth; x++) {
+      /* First pixel in a row */
+      if (x == 0) {
+        pf.rgbFromBuffer(pix, &inbuf[y*rectWidth], 1);
+        for (c = 0; c < 3; c++)
+          pix[c] += prevRow[c];
+
+        memcpy(thisRow, pix, sizeof(pix));
+
+        pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
+
+        continue;
+      }
+
+      for (c = 0; c < 3; c++) {
+        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+        if (est[c] > 255) {
+          est[c] = 255;
+        } else if (est[c] < 0) {
+          est[c] = 0;
+        }
+      }
+
+      pf.rgbFromBuffer(pix, &inbuf[y*rectWidth+x], 1);
+      for (c = 0; c < 3; c++)
+        pix[c] += est[c];
+
+      memcpy(&thisRow[x*3], pix, sizeof(pix));
+
+      pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride+x], pix, 1);
+    }
+
+    memcpy(prevRow, thisRow, sizeof(prevRow));
+  }
+}
+
+template<class T>
+void TightDecoder::FilterPalette(const T* palette, int palSize,
+                                 const rdr::U8* inbuf, T* outbuf,
+                                 int stride, const Rect& r)
+{
+  // Indexed color
+  int x, h = r.height(), w = r.width(), b, pad = stride - w;
+  T* ptr = outbuf;
+  rdr::U8 bits;
+  const rdr::U8* srcPtr = inbuf;
+  if (palSize <= 2) {
+    // 2-color palette
+    while (h > 0) {
+      for (x = 0; x < w / 8; x++) {
+        bits = *srcPtr++;
+        for (b = 7; b >= 0; b--) {
+          *ptr++ = palette[bits >> b & 1];
+        }
+      }
+      if (w % 8 != 0) {
+        bits = *srcPtr++;
+        for (b = 7; b >= 8 - w % 8; b--) {
+          *ptr++ = palette[bits >> b & 1];
+        }
+      }
+      ptr += pad;
+      h--;
+    }
+  } else {
+    // 256-color palette
+    while (h > 0) {
+      T *endOfRow = ptr + w;
+      while (ptr < endOfRow) {
+        *ptr++ = palette[*srcPtr++];
+      }
+      ptr += pad;
+      h--;
+    }
+  }
 }

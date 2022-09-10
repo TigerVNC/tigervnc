@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -710,41 +710,133 @@ bool PixelFormat::isSane(void)
   return true;
 }
 
-// Preprocessor generated, optimised methods
+static inline uint8_t swap(uint8_t n)
+{
+  return n;
+}
 
-#define INBPP 8
-#define OUTBPP 8
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#define OUTBPP 16
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#define OUTBPP 32
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#undef INBPP
+static inline uint16_t swap(uint16_t n)
+{
+  return (((n) & 0xff) << 8) | (((n) >> 8) & 0xff);
+}
 
-#define INBPP 16
-#define OUTBPP 8
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#define OUTBPP 16
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#define OUTBPP 32
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#undef INBPP
+static inline uint32_t swap(uint32_t n)
+{
+  return ((n) >> 24) | (((n) & 0x00ff0000) >> 8) |
+         (((n) & 0x0000ff00) << 8) | ((n) << 24);
+}
 
-#define INBPP 32
-#define OUTBPP 8
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#define OUTBPP 16
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#define OUTBPP 32
-#include "PixelFormatBPP.cxx"
-#undef OUTBPP
-#undef INBPP
+template<class T>
+void PixelFormat::directBufferFromBufferFrom888(T* dst,
+                                                const PixelFormat &srcPF,
+                                                const uint8_t* src,
+                                                int w, int h,
+                                                int dstStride,
+                                                int srcStride) const
+{
+  const uint8_t *r, *g, *b;
+  int dstPad, srcPad;
 
+  const uint8_t *redDownTable, *greenDownTable, *blueDownTable;
+
+  redDownTable = &downconvTable[(redBits-1)*256];
+  greenDownTable = &downconvTable[(greenBits-1)*256];
+  blueDownTable = &downconvTable[(blueBits-1)*256];
+
+  if (srcPF.bigEndian) {
+    r = src + (24 - srcPF.redShift)/8;
+    g = src + (24 - srcPF.greenShift)/8;
+    b = src + (24 - srcPF.blueShift)/8;
+  } else {
+    r = src + srcPF.redShift/8;
+    g = src + srcPF.greenShift/8;
+    b = src + srcPF.blueShift/8;
+  }
+
+  dstPad = (dstStride - w);
+  srcPad = (srcStride - w) * 4;
+  while (h--) {
+    int w_ = w;
+    while (w_--) {
+      T d;
+
+      d = redDownTable[*r] << redShift;
+      d |= greenDownTable[*g] << greenShift;
+      d |= blueDownTable[*b] << blueShift;
+
+      if (endianMismatch)
+        d = swap(d);
+
+      *dst = d;
+
+      dst++;
+      r += 4;
+      g += 4;
+      b += 4;
+    }
+    dst += dstPad;
+    r += srcPad;
+    g += srcPad;
+    b += srcPad;
+  }
+}
+
+template<class T>
+void PixelFormat::directBufferFromBufferTo888(uint8_t* dst,
+                                              const PixelFormat &srcPF,
+                                              const T* src,
+                                              int w, int h,
+                                              int dstStride,
+                                              int srcStride) const
+{
+  uint8_t *r, *g, *b, *x;
+  int dstPad, srcPad;
+
+  const uint8_t *redUpTable, *greenUpTable, *blueUpTable;
+
+  redUpTable = &upconvTable[(srcPF.redBits-1)*256];
+  greenUpTable = &upconvTable[(srcPF.greenBits-1)*256];
+  blueUpTable = &upconvTable[(srcPF.blueBits-1)*256];
+
+  if (bigEndian) {
+    r = dst + (24 - redShift)/8;
+    g = dst + (24 - greenShift)/8;
+    b = dst + (24 - blueShift)/8;
+    x = dst + (24 - (48 - redShift - greenShift - blueShift))/8;
+  } else {
+    r = dst + redShift/8;
+    g = dst + greenShift/8;
+    b = dst + blueShift/8;
+    x = dst + (48 - redShift - greenShift - blueShift)/8;
+  }
+
+  dstPad = (dstStride - w) * 4;
+  srcPad = (srcStride - w);
+  while (h--) {
+    int w_ = w;
+    while (w_--) {
+      T s;
+
+      s = *src;
+
+      if (srcPF.endianMismatch)
+        s = swap(s);
+
+      *r = redUpTable[(s >> srcPF.redShift) & 0xff];
+      *g = greenUpTable[(s >> srcPF.greenShift) & 0xff];
+      *b = blueUpTable[(s >> srcPF.blueShift) & 0xff];
+      *x = 0;
+
+      r += 4;
+      g += 4;
+      b += 4;
+      x += 4;
+      src++;
+    }
+    r += dstPad;
+    g += dstPad;
+    b += dstPad;
+    x += dstPad;
+    src += srcPad;
+  }
+}

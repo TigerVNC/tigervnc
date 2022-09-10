@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,22 +97,13 @@ namespace rfb {
                      struct RectInfo *info, int maxColours);
 
   protected:
-    // Preprocessor generated, optimised methods
-    inline bool checkSolidTile(const Rect& r, rdr::U8 colourValue,
+    // Templated, optimised methods
+    template<class T>
+    inline bool checkSolidTile(const Rect& r, const T,
                                const PixelBuffer *pb);
-    inline bool checkSolidTile(const Rect& r, rdr::U16 colourValue,
-                               const PixelBuffer *pb);
-    inline bool checkSolidTile(const Rect& r, rdr::U32 colourValue,
-                               const PixelBuffer *pb);
-
+    template<class T>
     inline bool analyseRect(int width, int height,
-                            const rdr::U8* buffer, int stride,
-                            struct RectInfo *info, int maxColours);
-    inline bool analyseRect(int width, int height,
-                            const rdr::U16* buffer, int stride,
-                            struct RectInfo *info, int maxColours);
-    inline bool analyseRect(int width, int height,
-                            const rdr::U32* buffer, int stride,
+                            const T* buffer, int stride,
                             struct RectInfo *info, int maxColours);
 
   protected:

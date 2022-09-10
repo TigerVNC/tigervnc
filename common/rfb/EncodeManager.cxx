@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
@@ -1065,14 +1065,78 @@ rdr::U8* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /
   throw rfb::Exception("Invalid write attempt to OffsetPixelBuffer");
 }
 
-// Preprocessor generated, optimised methods
+template<class T>
+inline bool EncodeManager::checkSolidTile(const Rect& r,
+                                          const T colourValue,
+                                          const PixelBuffer *pb)
+{
+  int w, h;
+  const T* buffer;
+  int stride, pad;
 
-#define BPP 8
-#include "EncodeManagerBPP.cxx"
-#undef BPP
-#define BPP 16
-#include "EncodeManagerBPP.cxx"
-#undef BPP
-#define BPP 32
-#include "EncodeManagerBPP.cxx"
-#undef BPP
+  w = r.width();
+  h = r.height();
+
+  buffer = (const T*)pb->getBuffer(r, &stride);
+  pad = stride - w;
+
+  while (h--) {
+    int w_ = w;
+    while (w_--) {
+      if (*buffer != colourValue)
+        return false;
+      buffer++;
+    }
+    buffer += pad;
+  }
+
+  return true;
+}
+
+template<class T>
+inline bool EncodeManager::analyseRect(int width, int height,
+                                       const T* buffer, int stride,
+                                       struct RectInfo *info, int maxColours)
+{
+  int pad;
+
+  T colour;
+  int count;
+
+  info->rleRuns = 0;
+  info->palette.clear();
+
+  pad = stride - width;
+
+  // For efficiency, we only update the palette on changes in colour
+  colour = buffer[0];
+  count = 0;
+  while (height--) {
+    int w_ = width;
+    while (w_--) {
+      if (*buffer != colour) {
+        if (!info->palette.insert(colour, count))
+          return false;
+        if (info->palette.size() > maxColours)
+          return false;
+
+        // FIXME: This doesn't account for switching lines
+        info->rleRuns++;
+
+        colour = *buffer;
+        count = 0;
+      }
+      buffer++;
+      count++;
+    }
+    buffer += pad;
+  }
+
+  // Make sure the final pixels also get counted
+  if (!info->palette.insert(colour, count))
+    return false;
+  if (info->palette.size() > maxColours)
+    return false;
+
+  return true;
+}

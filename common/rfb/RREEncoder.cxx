@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,16 +30,6 @@
 #include <rfb/RREEncoder.h>
 
 using namespace rfb;
-
-#define BPP 8
-#include <rfb/rreEncode.h>
-#undef BPP
-#define BPP 16
-#include <rfb/rreEncode.h>
-#undef BPP
-#define BPP 32
-#include <rfb/rreEncode.h>
-#undef BPP
 
 RREEncoder::RREEncoder(SConnection* conn) :
   Encoder(conn, encodingRRE, EncoderPlain)
@@ -89,13 +79,13 @@ void RREEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
   int nSubrects = -1;
   switch (pb->getPF().bpp) {
   case 8:
-    nSubrects = rreEncode8((rdr::U8*)imageBuf, w, h, &mos, bg);
+    nSubrects = rreEncode<rdr::U8>((rdr::U8*)imageBuf, w, h, &mos, bg);
     break;
   case 16:
-    nSubrects = rreEncode16((rdr::U16*)imageBuf, w, h, &mos, bg);
+    nSubrects = rreEncode<rdr::U16>((rdr::U16*)imageBuf, w, h, &mos, bg);
     break;
   case 32:
-    nSubrects = rreEncode32((rdr::U32*)imageBuf, w, h, &mos, bg);
+    nSubrects = rreEncode<rdr::U32>((rdr::U32*)imageBuf, w, h, &mos, bg);
     break;
   }
 
@@ -117,4 +107,94 @@ void RREEncoder::writeSolidRect(int /*width*/, int /*height*/,
 
   os->writeU32(0);
   os->writeBytes(colour, pf.bpp/8);
+}
+
+template<class T>
+inline void RREEncoder::writePixel(rdr::OutStream* os, T pixel)
+{
+  if (sizeof(T) == 1)
+    os->writeOpaque8(pixel);
+  else if (sizeof(T) == 2)
+    os->writeOpaque16(pixel);
+  else if (sizeof(T) == 4)
+    os->writeOpaque32(pixel);
+}
+
+template<class T>
+int RREEncoder::rreEncode(T* data, int w, int h,
+                          rdr::OutStream* os, T bg)
+{
+  writePixel(os, bg);
+
+  int nSubrects = 0;
+
+  for (int y = 0; y < h; y++)
+  {
+    int x = 0;
+    while (x < w) {
+      if (*data == bg) {
+        x++;
+        data++;
+        continue;
+      }
+
+      // Find horizontal subrect first
+      T* ptr = data+1;
+      T* eol = data+w-x;
+      while (ptr < eol && *ptr == *data) ptr++;
+      int sw = ptr - data;
+
+      ptr = data + w;
+      int sh = 1;
+      while (sh < h-y) {
+        eol = ptr + sw;
+        while (ptr < eol)
+          if (*ptr++ != *data) goto endOfHorizSubrect;
+        ptr += w - sw;
+        sh++;
+      }
+    endOfHorizSubrect:
+
+      // Find vertical subrect
+      int vh;
+      for (vh = sh; vh < h-y; vh++)
+        if (data[vh*w] != *data) break;
+
+      if (vh != sh) {
+        ptr = data+1;
+        int vw;
+        for (vw = 1; vw < sw; vw++) {
+          for (int i = 0; i < vh; i++)
+            if (ptr[i*w] != *data) goto endOfVertSubrect;
+          ptr++;
+        }
+      endOfVertSubrect:
+
+        // If vertical subrect bigger than horizontal then use that.
+        if (sw*sh < vw*vh) {
+          sw = vw;
+          sh = vh;
+        }
+      }
+
+      nSubrects++;
+      writePixel(os, *data);
+      os->writeU16(x);
+      os->writeU16(y);
+      os->writeU16(sw);
+      os->writeU16(sh);
+
+      ptr = data+w;
+      T* eor = data+w*sh;
+      while (ptr < eor) {
+        eol = ptr + sw;
+        while (ptr < eol) *ptr++ = bg;
+        ptr += w - sw;
+      }
+      x += sw;
+      data += sw;
+    }
+  }
+
+  return nSubrects;
 }
