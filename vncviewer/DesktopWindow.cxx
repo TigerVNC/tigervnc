@@ -299,11 +299,35 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 
 void DesktopWindow::setName(const char *name)
 {
-  char windowNameStr[256];
+  char label[100];
+  const char *format;
+  size_t name_len;
+  const char *ellipsis;
 
-  snprintf(windowNameStr, 256, "%.240s - TigerVNC", name);
+  // FIXME: Another copy below
+  format = "%*s%s - TigerVNC";
 
-  copy_label(windowNameStr);
+  // Ignore the length of '%*s' since it is
+  // a format marker which won't take up space
+  name_len = sizeof(label)-1 - (strlen(format) - 2);
+
+  if (name_len > strlen(name)) {
+    // Guaranteed to fit, no need to truncate
+    ellipsis = "";
+  } else if (name_len <= strlen("...")) {
+    // Even an ellipsis won't fit
+    ellipsis = "";
+  } else {
+    // We need to truncate, add an ellipsis
+    name_len -= strlen("...");
+    ellipsis = "...";
+  }
+
+  // FIXME: Copy of literal above to avoid format-nonliteral warning
+  snprintf(label, sizeof(label), "%*s%s - TigerVNC",
+           (int)name_len, name, ellipsis);
+
+  copy_label(label);
 }
 
 
