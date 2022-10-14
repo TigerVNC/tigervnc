@@ -188,7 +188,7 @@ Specify which security scheme to use for incoming connections.  Valid values
 are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
 \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP,
 \fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP, \fBRA2_256\fP and \fBRA2ne_256\fP.
-Default is \fBTLSVnc,RA2_256,RA2,RA2ne_256,RA2ne,VncAuth\fP.
+Default is \fBTLSVnc,VncAuth\fP.
 .
 .TP
 .B \-Password \fIpassword\fP

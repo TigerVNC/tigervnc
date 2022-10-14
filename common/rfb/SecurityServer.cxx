@@ -51,9 +51,6 @@ StringParameter SecurityServer::secTypes
 #ifdef HAVE_GNUTLS
  "TLSVnc,"
 #endif
-#ifdef HAVE_NETTLE
- "RA2_256,RA2,RA2ne_256,RA2ne,"
-#endif
  "VncAuth",
 ConfServer);
 
