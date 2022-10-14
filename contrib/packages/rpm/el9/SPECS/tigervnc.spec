@@ -163,7 +163,7 @@ autoreconf -fiv
         --disable-devel-docs \
         --disable-selective-werror
 
-make %{?_smp_mflags}
+make TIGERVNC_BUILDDIR="`pwd`/../../%{__cmake_builddir}" %{?_smp_mflags}
 popd
 
 # SELinux
@@ -175,7 +175,7 @@ popd
 %cmake_install
 
 pushd unix/xserver/hw/vnc
-%make_install
+%make_install TIGERVNC_BUILDDIR="`pwd`/../../../../%{__cmake_builddir}"
 popd
 
 # Install systemd unit file

@@ -8,7 +8,7 @@ set -x
 CURDIR=$(dirname $(readlink -f $0))
 TOPDIR=$(git rev-parse --show-toplevel 2>/dev/null)
 
-RPMDIR=${TOPDIR}/contrib/packages/rpm/el7
+RPMDIR=${TOPDIR}/contrib/packages/rpm/el9
 
 VERSION=$(grep '^set(VERSION ' ${TOPDIR}/CMakeLists.txt | sed 's@^set(VERSION \(.*\))@\1@')
 
@@ -33,8 +33,9 @@ sed -i "s/@VERSION@/${VERSION}/" ${CURDIR}/rpmbuild/SPECS/tigervnc.spec
 
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --interactive --rm tigervnc/${DOCKER} \
 	bash -e -x -c "
-	sudo yum install -y xorg-x11-server-devel;
-	sudo yum-builddep -y ~/rpmbuild/SPECS/tigervnc.spec;
+	sudo dnf install -y xorg-x11-server-devel;
+	sudo dnf install -y https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm;
+	sudo dnf builddep -y ~/rpmbuild/SPECS/tigervnc.spec;
 	sudo chown 0.0 ~/rpmbuild/SOURCES/*;
 	sudo chown 0.0 ~/rpmbuild/SPECS/*;
 	rpmbuild -ba ~/rpmbuild/SPECS/tigervnc.spec;
