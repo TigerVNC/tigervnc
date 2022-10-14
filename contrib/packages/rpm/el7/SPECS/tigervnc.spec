@@ -173,11 +173,6 @@ autoreconf -fiv
 make %{?_smp_mflags}
 popd
 
-# Build icons
-pushd media
-make
-popd
-
 # SELinux
 pushd unix/vncserver/selinux
 make
