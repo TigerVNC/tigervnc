@@ -53,6 +53,7 @@
 #include <FL/Fl_Round_Button.H>
 #include <FL/Fl_Int_Input.H>
 #include <FL/Fl_Choice.H>
+#include <FL/Fl_Scroll.H>
 
 using namespace std;
 using namespace rdr;
@@ -63,7 +64,7 @@ std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
 static std::set<OptionsDialog *> instances;
 
 OptionsDialog::OptionsDialog()
-  : Fl_Window(580, 480, _("TigerVNC Options"))
+  : Fl_Window(580, 420, _("TigerVNC Options"))
 {
   int x, y;
   Fl_Navigation *navigation;
@@ -676,7 +677,9 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 {
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE) || !defined(WIN32)
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Security"));
+  Fl_Scroll *scroll = new Fl_Scroll(tx, ty, tw, th, _("Security"));
+  tw -= Fl::scrollbar_size();
+  Fl_Group *group = new Fl_Group(tx, ty, tw, 0);
 
   int orig_tx;
   int width;
@@ -836,10 +839,15 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   tx = orig_tx;
   ty += INNER_MARGIN;
 
-
 #endif // !WIN32
 
+  /* Needed for resize to work sanely */
+  group->resizable(NULL);
+  ty += OUTER_MARGIN - INNER_MARGIN;
+  group->size(group->w(), ty - group->y());
+
   group->end();
+  scroll->end();
 
 #endif // defined(HAVE_GNUTLS) || defined(HAVE_NETTLE) || !defined(WIN32)
 }
