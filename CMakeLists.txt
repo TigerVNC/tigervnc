@@ -23,7 +23,7 @@ project(tigervnc)
 set(VERSION 1.12.80)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,12,80,0)
+string(REPLACE . , RCVERSION "${VERSION}.0")
 
 # Installation paths
 include(GNUInstallDirs)
