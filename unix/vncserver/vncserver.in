@@ -633,8 +633,7 @@ sub Kill
     chop($pid = `cat $pidFile`);
     warn "Killing Xvnc process ID $pid\n";
 
-    if (kill 0, $pid) {
-        system("kill $pid");
+    if (kill 3, $pid) {
         sleep(1);
         if (kill 0, $pid) {
             print "Xvnc seems to be deadlocked.  Kill the process manually and then re-run\n";
