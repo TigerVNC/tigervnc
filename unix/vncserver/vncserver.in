@@ -270,7 +270,7 @@ if ($cookie eq "" && open(URANDOM, '<', '/dev/urandom')) {
   close(URANDOM);
 }
 if ($cookie eq "") {
-  srand(time+$$+unpack("L",&readFile("$vncUserDir/passwd"));
+  srand(time+$$+unpack("L",&readFile("$vncUserDir/passwd")));
   for (1..16) {
     $cookie .= sprintf("%02x", int(rand(256)) % 256);
   }
