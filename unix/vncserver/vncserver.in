@@ -27,13 +27,12 @@
 # vncserver - wrapper script to start an X VNC server.
 #
 
-# First make sure we're operating in a sane environment.
-&SanityCheck();
-
 #
 # Global variables.  You may want to configure some of these for
 # your site
 #
+
+use File::Spec;
 
 $vncUserDir = "$ENV{HOME}/.vnc";
 $vncUserConfig = "$vncUserDir/config";
@@ -43,6 +42,36 @@ $vncSystemConfigDefaultsFile = "$vncSystemConfigDir/vncserver-config-defaults";
 $vncSystemConfigMandatoryFile = "$vncSystemConfigDir/vncserver-config-mandatory";
 
 $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
+
+$bg = 0;
+$useXStartup = 0;
+
+$xstartupFile = $vncUserDir . "/xstartup";
+$defaultXStartup
+    = ("#!/bin/sh\n\n".
+       "OS=`uname -s`\n".
+       "if [ \$OS = 'Linux' ]; then\n".
+       "  case \"\$WINDOWMANAGER\" in\n".
+       "    \*gnome\*)\n".
+       "      if [ -e /etc/SuSE-release ]; then\n".
+       "        PATH=\$PATH:/opt/gnome/bin\n".
+       "        export PATH\n".
+       "      fi\n".
+       "      ;;\n".
+       "  esac\n".
+       "fi\n".
+       "if [ -x /etc/X11/xinit/xinitrc ]; then\n".
+       "  exec /etc/X11/xinit/xinitrc\n".
+       "fi\n".
+       "if [ -f /etc/X11/xinit/xinitrc ]; then\n".
+       "  exec sh /etc/X11/xinit/xinitrc\n".
+       "fi\n".
+       "[ -r \$HOME/.Xresources ] && xrdb \$HOME/.Xresources\n".
+       "xsetroot -solid grey\n".
+       "xterm -geometry 80x24+10+10 -ls -title \"\$VNCDESKTOP Desktop\" &\n".
+       "twm\n");
+
+$desktopLog = File::Spec->devnull();
 
 chop($host = `uname -n`);
 
@@ -82,14 +111,42 @@ if ($fontPath eq "") {
     $fontPath = $defFontPath;
 }
 
+&ParseOptions("-kill",1,"-help",0,"-h",0,"--help",0,"-list",0,
+  "-bg",0,"-autokill",0,"-use-xstartup",0,"-xstartup",1);
+
+&Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
+
+&Kill() if ($opt{'-kill'});
+
+&List() if ($opt{'-list'});
+
+if ($opt{'-xstartup'}) {
+    $xstartupFile = $opt{'-xstartup'};
+    $useXStartup = 1
+}
+
+if ($opt{'-use-xstartup'}) {
+    $useXStartup = 1
+}
+
+if ($opt{'-bg'}) {
+  $bg = 1;
+}
+
+# Make sure we're operating in a sane environment.
+&SanityCheck();
+
 # Find display number.
-if ((@ARGV == 1) && ($ARGV[0] =~ /^:(\d+)$/)) {
+if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
     $displayNumber = $1;
+    shift(@ARGV);
     if (!&CheckDisplayNumber($displayNumber)) {
-	die "A VNC server is already running as :$displayNumber\n";
+        die "A VNC server is already running as :$displayNumber\n";
     }
-} else {
+} elsif ((@ARGV > 0) && ($ARGV[0] !~ /^-/) && ($ARGV[0] !~ /^\+/)) {
     &Usage();
+} else {
+    $displayNumber = &GetDisplayNumber();
 }
 
 $vncPort = 5900 + $displayNumber;
@@ -155,50 +212,48 @@ if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
     }
 }
 
-#
-# Find a desktop session to run
-#
+if (!$useXStartup) {
+  #
+  # Find a desktop session to run
+  #
 
-my $sessionname;
-my %session;
+  my $sessionname;
+  my %session;
 
-$sessionname = delete $config{'session'};
+  $sessionname = delete $config{'session'};
 
-if ($sessionname) {
-  %session = LoadXSession($sessionname);
-  if (!%session) {
-    warn "Could not load configured desktop session $sessionname\n";
-    $sessionname = undef;
-  }
-}
-
-if (!$sessionname) {
-  foreach $file (glob("/usr/share/xsessions/*.desktop")) {
-    ($name) = $file =~ /^.*\/(.*)[.]desktop$/;
-    %session = LoadXSession($name);
-    if (%session) {
-      $sessionname = $name;
-      last;
+  if ($sessionname) {
+    %session = LoadXSession($sessionname);
+    if (!%session) {
+      warn "Could not load configured desktop session $sessionname\n";
+      $sessionname = undef;
     }
   }
-}
 
-if (!$sessionname) {
-  die "Could not find a desktop session to run\n";
-}
+  if (!$sessionname) {
+    foreach $file (glob("/usr/share/xsessions/*.desktop")) {
+      ($name) = $file =~ /^.*\/(.*)[.]desktop$/;
+      %session = LoadXSession($name);
+      if (%session) {
+        $sessionname = $name;
+        last;
+      }
+    }
+  }
 
-warn "Using desktop session $sessionname\n";
+  if (!$sessionname) {
+    die "Could not find a desktop session to run\n";
+  }
 
-if (!$session{'Exec'}) {
-  die "No command specified for desktop session\n";
-}
+  warn "Using desktop session $sessionname\n";
 
-$ENV{GDMSESSION} = $sessionname;
-$ENV{DESKTOP_SESSION} = $sessionname;
-$ENV{XDG_SESSION_DESKTOP} = $sessionname;
+  if (!$session{'Exec'}) {
+    die "No command specified for desktop session\n";
+  }
 
-if ($session{'DesktopNames'}) {
+  if ($session{'DesktopNames'}) {
     $ENV{XDG_CURRENT_DESKTOP} = $session{'DesktopNames'} =~ s/;/:/gr;
+  }
 }
 
 # Make an X server cookie and set up the Xauthority file
@@ -231,8 +286,11 @@ $ENV{XAUTHORITY} = $xauthorityFile;
 # Now start the X VNC Server
 
 @cmd = ("xinit");
-
-push(@cmd, $Xsession, $session{'Exec'});
+if ($useXStartup) {
+  push(@cmd, $xstartupFile);
+} else {
+  push(@cmd, $Xsession, $session{'Exec'});
+}
 
 push(@cmd, '--');
 
@@ -252,10 +310,21 @@ foreach my $k (sort keys %default_opts) {
 
 warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
 
-warn "Starting desktop session $sessionname\n";
+# Create the user's xstartup script if necessary.
+if ($useXStartup) {
+    if (!(-e "$xstartupFile")) {
+        warn "Creating default startup script $xstartupFile\n";
+        open(XSTARTUP, ">$xstartupFile");
+        print XSTARTUP $defaultXStartup;
+        close(XSTARTUP);
+        chmod 0755, "$xstartupFile";
+    }
+} else {
+  warn "Starting desktop session $sessionname\n";
+}
 
-exec(@cmd);
-
+$pidFile = "$vncUserDir/$host:$displayNumber.pid";
+&StartCommand($bg, $pidFile, @cmd);
 die "Failed to start session.\n";
 
 ###############################################################################
@@ -406,48 +475,230 @@ sub CheckDisplayNumber
 }
 
 #
+# GetDisplayNumber gets the lowest available display number.  A display number
+# n is taken if something is listening on the VNC server port (5900+n) or the
+# X server port (6000+n).
+#
+
+sub GetDisplayNumber
+{
+    foreach $n (1..99) {
+        if (&CheckDisplayNumber($n)) {
+            return $n+0; # Bruce Mah's workaround for bug in perl 5.005_02
+        }
+    }
+
+    die "$prog: no free display number on $host.\n";
+}
+
+#
 # Usage
 #
 
 sub Usage
 {
-    die("\nusage: $prog <display>\n\n");
+    die("\nusage: $prog [:<display>]\n".
+        "        [-bg]\n".
+        "        [-autokill]\n".
+        "        [-use-xstartup]\n".
+        "        [-xstartup <file>]\n".
+        "\n".
+        "       $prog -kill <X-display>\n\n".
+        "       $prog -list\n\n");
+}
+
+#
+# ParseOptions takes a list of possible options and a boolean indicating
+# whether the option has a value following, and sets up an associative array
+# %opt of the values of the options given on the command line. It removes all
+# the arguments it uses from @ARGV and returns them in @optArgs.
+#
+
+sub ParseOptions
+{
+    local (@optval) = @_;
+    local ($opt, @opts, %valFollows, @newargs);
+
+    while (@optval) {
+        $opt = shift(@optval);
+        push(@opts,$opt);
+        $valFollows{$opt} = shift(@optval);
+    }
+
+    @optArgs = ();
+    %opt = ();
+
+    arg: while (defined($arg = shift(@ARGV))) {
+        foreach $opt (@opts) {
+            if ($arg eq $opt) {
+                push(@optArgs, $arg);
+                if ($valFollows{$opt}) {
+                    if (@ARGV == 0) {
+                        &Usage();
+                    }
+                    $opt{$opt} = shift(@ARGV);
+                    push(@optArgs, $opt{$opt});
+                } else {
+                    $opt{$opt} = 1;
+                }
+                next arg;
+            }
+        }
+        push(@newargs,$arg);
+    }
+
+    @ARGV = @newargs;
+}
+
+sub StartCommand
+{
+  my ($bg, $fn, @cmd) = @_;
+
+  my $x11_lock_file = '/tmp/.X'.$displayNumber.'-lock';
+  if ($bg) {
+    unless ($pid == fork()) {
+      unless (fork) {
+        open(STDOUT, $desktopLog);
+        open(STDERR, $desktopLog);
+
+        symlink($x11_lock_file, $fn);
+        exec @cmd;
+        unlink($x11_lock_file);
+      }
+    }
+    exit;
+  } else {
+    symlink($x11_lock_file, $fn);
+    exec @cmd;
+    unlink($x11_lock_file);
+  }
+}
+
+sub WritePid
+{
+  my ($pidfile, $pid) = @_;
+  open PIDFILE, ">$pidfile";
+  print PIDFILE $$;
+  close PIDFILE;
+}
+
+#
+# List
+#
+
+sub List
+{
+  opendir(dir, $vncUserDir);
+  my @filelist = readdir(dir);
+  closedir(dir);
+  print "\nTigerVNC server sessions:\n\n";
+  print "X DISPLAY #\tPROCESS ID\n";
+  foreach my $file (@filelist) {
+      if ($file =~ /$host:(\d+)$\.pid/) {
+          chop($tmp_pid = `cat $vncUserDir/$file`);
+          if (kill 0, $tmp_pid) {
+              print ":".$1."\t\t".`cat $vncUserDir/$file`;
+          } else {
+              unlink ($vncUserDir . "/" . $file);
+          }
+      }
+  }
+  exit;
+}
+
+#
+# Kill
+#
+
+sub Kill
+{
+    $opt{'-kill'} =~ s/(:\d+)\.\d+$/$1/; # e.g. turn :1.0 into :1
+
+    if ($opt{'-kill'} =~ /^:\d+$/) {
+        $pidFile = "$vncUserDir/$host$opt{'-kill'}.pid";
+    } else {
+        if ($opt{'-kill'} !~ /^$host:/) {
+            die "\nCan't tell if $opt{'-kill'} is on $host\n".
+                "Use -kill :<number> instead\n\n";
+        }
+        $pidFile = "$vncUserDir/$opt{'-kill'}.pid";
+    }
+
+    if (! -r $pidFile) {
+        die "\nCan't find file $pidFile\n".
+            "You'll have to kill the Xvnc process manually\n\n";
+    }
+
+    $SIG{'HUP'} = 'IGNORE';
+    chop($pid = `cat $pidFile`);
+    warn "Killing Xvnc process ID $pid\n";
+
+    if (kill 0, $pid) {
+        system("kill $pid");
+        sleep(1);
+        if (kill 0, $pid) {
+            print "Xvnc seems to be deadlocked.  Kill the process manually and then re-run\n";
+            print "    ".$0." -kill ".$opt{'-kill'}."\n";
+            print "to clean up the socket files.\n";
+            exit
+        }
+
+    } else {
+        warn "Xvnc process ID $pid already killed\n";
+        $opt{'-kill'} =~ s/://;
+
+        if (-e "/tmp/.X11-unix/X$opt{'-kill'}") {
+            print "Xvnc did not appear to shut down cleanly.";
+            print " Removing /tmp/.X11-unix/X$opt{'-kill'}\n";
+            unlink "/tmp/.X11-unix/X$opt{'-kill'}";
+        }
+        if (-e "/tmp/.X$opt{'-kill'}-lock") {
+            print "Xvnc did not appear to shut down cleanly.";
+            print " Removing /tmp/.X$opt{'-kill'}-lock\n";
+            unlink "/tmp/.X$opt{'-kill'}-lock";
+        }
+    }
+
+    unlink $pidFile;
+    exit;
 }
 
 
 # Routine to make sure we're operating in a sane environment.
 sub SanityCheck
 {
-    local ($cmd);
+  local ($cmd);
 
-    # Get the program name
-    ($prog) = ($0 =~ m|([^/]+)$|);
+  # Get the program name
+  ($prog) = ($0 =~ m|([^/]+)$|);
 
-    #
-    # Check we have all the commands we'll need on the path.
-    #
+  #
+  # Check we have all the commands we'll need on the path.
+  #
 
- cmd:
-    foreach $cmd ("uname","xauth","xinit") {
-	for (split(/:/,$ENV{PATH})) {
-	    if (-x "$_/$cmd") {
-		next cmd;
-	    }
-	}
-	die "$prog: couldn't find \"$cmd\" on your PATH.\n";
+  cmd:
+  foreach $cmd ("uname","xauth","xinit") {
+    for (split(/:/,$ENV{PATH})) {
+      if (-x "$_/$cmd") {
+        next cmd;
+      }
     }
+    die "$prog: couldn't find \"$cmd\" on your PATH.\n";
+  }
 
+  if (!$useXStartup) {
     foreach $cmd ("/etc/X11/xinit/Xsession", "/etc/X11/Xsession") {
-        if (-x "$cmd") {
-            $Xsession = $cmd;
-            last;
-        }
+      if (-x "$cmd") {
+        $Xsession = $cmd;
+        last;
+      }
     }
     if (not defined $Xsession) {
-        die "$prog: Couldn't find suitable Xsession.\n";
+      die "$prog: Couldn't find suitable Xsession.\n";
     }
+  }
 
-    if (!defined($ENV{HOME})) {
-	die "$prog: The HOME environment variable is not set.\n";
-    }
+  if (!defined($ENV{HOME})) {
+    die "$prog: The HOME environment variable is not set.\n";
+  }
 }
