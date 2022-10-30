@@ -270,7 +270,7 @@ if ($cookie eq "" && open(URANDOM, '<', '/dev/urandom')) {
   close(URANDOM);
 }
 if ($cookie eq "") {
-  srand(time+$$+unpack("L",`cat $vncUserDir/passwd`));
+  srand(time+$$+unpack("L",&readFile("$vncUserDir/passwd"));
   for (1..16) {
     $cookie .= sprintf("%02x", int(rand(256)) % 256);
   }
@@ -330,6 +330,22 @@ die "Failed to start session.\n";
 ###############################################################################
 # Functions
 ###############################################################################
+
+#
+# Read the content of a file
+#
+# Args: 1. file path
+#
+sub readFile
+{
+  my ($filename) = @_;
+
+  open my $fh, '<', $filename or die "error opening $filename: $!";
+  my $content = do { local $/; <$fh> };
+  close $fh;
+
+  return $content;
+}
 
 #
 # Populate the global %config hash with settings from a specified
@@ -436,7 +452,7 @@ sub CheckDisplayNumber
     my $x11_lock_path = "/tmp/.X$n-lock";
 
     if (-e $x11_lock_path) {
-        my($pid) = `cat "$x11_lock_path"` =~ /^\s*(\d+)\s*$/;
+        my($pid) = &readFile("$x11_lock_path") =~ /^\s*(\d+)\s*$/;
         if (defined($pid) && kill(0, $pid)) {
             # Lock is associated with valid PID.
             return 0;
@@ -595,9 +611,9 @@ sub List
   print "X DISPLAY #\tPROCESS ID\n";
   foreach my $file (@filelist) {
       if ($file =~ /$host:(\d+)$\.pid/) {
-          chop($tmp_pid = `cat $vncUserDir/$file`);
+          chop($tmp_pid = &readFile("$vncUserDir/$file"));
           if (kill 0, $tmp_pid) {
-              print ":".$1."\t\t".`cat $vncUserDir/$file`;
+              print ":".$1."\t\t".$tmp_pid."\n";
           } else {
               unlink ($vncUserDir . "/" . $file);
           }
@@ -630,7 +646,7 @@ sub Kill
     }
 
     $SIG{'HUP'} = 'IGNORE';
-    chop($pid = `cat $pidFile`);
+    chop($pid = &readFile("$pidFile"));
     warn "Killing Xvnc process ID $pid\n";
 
     if (kill 3, $pid) {
