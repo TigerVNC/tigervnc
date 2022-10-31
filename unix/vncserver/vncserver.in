@@ -112,7 +112,7 @@ if ($fontPath eq "") {
 }
 
 &ParseOptions("-kill",1,"-help",0,"-h",0,"--help",0,"-list",0,
-  "-bg",0,"-autokill",0,"-use-xstartup",0,"-xstartup",1);
+  "-bg",0,"-use-xstartup",0,"-xstartup",1);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
@@ -515,7 +515,6 @@ sub Usage
 {
     die("\nusage: $prog [:<display>]\n".
         "        [-bg]\n".
-        "        [-autokill]\n".
         "        [-use-xstartup]\n".
         "        [-xstartup <file>]\n".
         "\n".
