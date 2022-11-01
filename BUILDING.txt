@@ -40,7 +40,7 @@ Build Requirements (Unix)
    * PAM
 
 -- If building Xvnc/libvnc.so:
-   * Xorg server source code, 1.16 or never
+   * Xorg server source code, 1.16 or later
    * All build requirements Xorg imposes (see its documentation)
 
 -- Optional ffmpeg support (libav)
