@@ -388,6 +388,16 @@ void CConnection::close()
 {
   state_ = RFBSTATE_CLOSING;
 
+  /*
+   * We're already shutting down, so just log any pending decoder
+   * problems
+   */
+  try {
+    decoder.flush();
+  } catch (rdr::Exception& e) {
+    vlog.error("%s", e.str());
+  }
+
   setFramebuffer(NULL);
   delete csecurity;
   csecurity = NULL;
