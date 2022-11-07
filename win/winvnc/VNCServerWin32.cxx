@@ -364,9 +364,11 @@ void VNCServerWin32::getConnInfo(ListConnInfo * listConn)
     if (!conn)
       continue;
 
-    if (conn->accessCheck(rfb::SConnection::AccessPtrEvents |
-                          rfb::SConnection::AccessKeyEvents |
-                          rfb::SConnection::AccessView))
+    if (!conn->authenticated())
+      status = 3;
+    else if (conn->accessCheck(rfb::SConnection::AccessPtrEvents |
+                               rfb::SConnection::AccessKeyEvents |
+                               rfb::SConnection::AccessView))
       status = 0;
     else if (conn->accessCheck(rfb::SConnection::AccessView))
       status = 1;
