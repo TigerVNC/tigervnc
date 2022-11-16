@@ -24,4 +24,4 @@ target_link_libraries(unicode rfb)
 
 add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
 target_include_directories(emulatemb SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
-target_link_libraries(emulatemb rfb  ${GETTEXT_LIBRARIES})
+target_link_libraries(emulatemb core rfb ${GETTEXT_LIBRARIES})

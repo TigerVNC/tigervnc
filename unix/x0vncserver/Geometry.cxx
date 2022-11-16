@@ -67,9 +67,9 @@ void Geometry::recalc(int fullWidth, int fullHeight)
             width(), height(), offsetLeft(), offsetTop());
 }
 
-Rect Geometry::parseString(const char *arg) const
+core::Rect Geometry::parseString(const char* arg) const
 {
-  Rect result;                  // empty by default
+  core::Rect result;                  // empty by default
 
   if (arg != nullptr && strlen(arg) > 0) {
     int w, h;
@@ -83,7 +83,7 @@ Rect Geometry::parseString(const char *arg) const
         x = m_fullWidth - w - x;
       if (sign_y[0] == '-')
         y = m_fullHeight - h - y;
-      Rect partRect(x, y, x + w, y + h);
+      core::Rect partRect(x, y, x + w, y + h);
       result = partRect.intersect(m_rect);
       if (result.area() <= 0) {
         vlog.error("Requested area is out of the desktop boundaries");

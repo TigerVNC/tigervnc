@@ -264,7 +264,7 @@ int PollingManager::sendChanges(VNCServer *server) const
   const bool *pChangeFlags = m_changeFlags;
   int nTilesChanged = 0;
 
-  Rect rect;
+  core::Rect rect;
   for (int y = 0; y < m_heightTiles; y++) {
     for (int x = 0; x < m_widthTiles; x++) {
       if (*pChangeFlags++) {

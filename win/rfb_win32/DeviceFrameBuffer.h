@@ -27,9 +27,12 @@
 #define __RFB_WIN32_DEVICE_FRAME_BUFFER_H__
 
 #include <windows.h>
+
+#include <core/Region.h>
+
 #include <rfb_win32/DIBSectionBuffer.h>
+
 #include <rfb/Cursor.h>
-#include <rfb/Region.h>
 #include <rfb/Exception.h>
 #include <rfb/Configuration.h>
 
@@ -63,13 +66,13 @@ namespace rfb {
 
     class DeviceFrameBuffer : public DIBSectionBuffer {
     public:
-      DeviceFrameBuffer(HDC deviceContext, const Rect& area_={});
+      DeviceFrameBuffer(HDC deviceContext, const core::Rect& area_={});
       virtual ~DeviceFrameBuffer();
 
       // - FrameBuffer overrides
 
-      virtual void grabRect(const Rect &rect);
-      void grabRegion(const Region &region) override;
+      virtual void grabRect(const core::Rect& rect);
+      void grabRegion(const core::Region& region) override;
 
       // - DeviceFrameBuffer specific methods
 
@@ -84,10 +87,10 @@ namespace rfb {
     protected:
       // Translate supplied Desktop coordinates into Device-relative coordinates
       // This translation may have been affected at start-time by the supplied sub-rect.
-      Point desktopToDevice(const Point p) const {return p.translate(deviceCoords.tl);}
+      core::Point desktopToDevice(const core::Point p) const {return p.translate(deviceCoords.tl);}
 
       HDC device;
-      Rect deviceCoords;
+      core::Rect deviceCoords;
       bool ignoreGrabErrors;
     };
 

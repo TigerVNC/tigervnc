@@ -75,7 +75,7 @@ ZRLEDecoder::~ZRLEDecoder()
 {
 }
 
-bool ZRLEDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
+bool ZRLEDecoder::readRect(const core::Rect& /*r*/, rdr::InStream* is,
                            const ServerParams& /*server*/,
                            rdr::OutStream* os)
 {
@@ -99,7 +99,7 @@ bool ZRLEDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
   return true;
 }
 
-void ZRLEDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
+void ZRLEDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
                              size_t buflen, const ServerParams& server,
                              ModifiablePixelBuffer* pb)
 {
@@ -113,13 +113,13 @@ void ZRLEDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
 }
 
 template<class T>
-void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
+void ZRLEDecoder::zrleDecode(const core::Rect& r, rdr::InStream* is,
                              const PixelFormat& pf,
                              ModifiablePixelBuffer* pb)
 {
   int length = is->readU32();
   zis.setUnderlying(is, length);
-  Rect t;
+  core::Rect t;
   T buf[64 * 64];
 
   Pixel maxPixel = pf.pixelFromRGB((uint16_t)-1, (uint16_t)-1, (uint16_t)-1);

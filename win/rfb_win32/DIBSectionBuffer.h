@@ -26,8 +26,10 @@
 #define __RFB_WIN32_DIB_SECTION_BUFFER_H__
 
 #include <windows.h>
+
+#include <core/Region.h>
+
 #include <rfb/PixelBuffer.h>
-#include <rfb/Region.h>
 #include <rfb/Exception.h>
 
 namespace rfb {

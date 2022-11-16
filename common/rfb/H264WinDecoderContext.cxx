@@ -39,7 +39,7 @@ using namespace rfb;
 static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
 #endif
 
-H264WinDecoderContext::H264WinDecoderContext(const Rect &r)
+H264WinDecoderContext::H264WinDecoderContext(const core::Rect &r)
   : H264DecoderContext(r)
 {
   if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE)))

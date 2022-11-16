@@ -70,11 +70,11 @@ public:
 
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
-  bool dataRect(const rfb::Rect& r, int encoding) override;
+  bool dataRect(const core::Rect& r, int encoding) override;
 
-  void setCursor(int width, int height, const rfb::Point& hotspot,
+  void setCursor(int width, int height, const core::Point& hotspot,
                  const uint8_t* data) override;
-  void setCursorPos(const rfb::Point& pos) override;
+  void setCursorPos(const core::Point& pos) override;
 
   void fence(uint32_t flags, unsigned len,
              const uint8_t data[]) override;

@@ -37,6 +37,7 @@
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 
+using namespace core;
 using namespace rfb;
 
 static LogWriter vlog("SInput");

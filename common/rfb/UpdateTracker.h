@@ -19,16 +19,16 @@
 #ifndef __RFB_UPDATETRACKER_INCLUDED__
 #define __RFB_UPDATETRACKER_INCLUDED__
 
-#include <rfb/Rect.h>
-#include <rfb/Region.h>
+#include <core/Rect.h>
+#include <core/Region.h>
 
 namespace rfb {
 
   class UpdateInfo {
   public:
-    Region changed;
-    Region copied;
-    Point copy_delta;
+    core::Region changed;
+    core::Region copied;
+    core::Point copy_delta;
     bool is_empty() const {
       return copied.is_empty() && changed.is_empty();
     }
@@ -46,23 +46,25 @@ namespace rfb {
     UpdateTracker() {};
     virtual ~UpdateTracker() {};
 
-    virtual void add_changed(const Region &region) = 0;
-    virtual void add_copied(const Region &dest, const Point &delta) = 0;
+    virtual void add_changed(const core::Region& region) = 0;
+    virtual void add_copied(const core::Region& dest,
+                            const core::Point& delta) = 0;
   };
 
   class ClippingUpdateTracker : public UpdateTracker {
   public:
     ClippingUpdateTracker() : ut(nullptr) {}
-    ClippingUpdateTracker(UpdateTracker* ut_, const Rect& r={}) : ut(ut_), clipRect(r) {}
+    ClippingUpdateTracker(UpdateTracker* ut_, const core::Rect& r={}) : ut(ut_), clipRect(r) {}
     
     void setUpdateTracker(UpdateTracker* ut_) {ut = ut_;}
-    void setClipRect(const Rect& cr) {clipRect = cr;}
+    void setClipRect(const core::Rect& cr) {clipRect = cr;}
 
-    void add_changed(const Region &region) override;
-    void add_copied(const Region &dest, const Point &delta) override;
+    void add_changed(const core::Region& region) override;
+    void add_copied(const core::Region& dest,
+                    const core::Point& delta) override;
   protected:
     UpdateTracker* ut;
-    Rect clipRect;
+    core::Rect clipRect;
   };
 
   class SimpleUpdateTracker : public UpdateTracker {
@@ -70,27 +72,29 @@ namespace rfb {
     SimpleUpdateTracker();
     virtual ~SimpleUpdateTracker();
 
-    void add_changed(const Region &region) override;
-    void add_copied(const Region &dest, const Point &delta) override;
-    virtual void subtract(const Region& region);
+    void add_changed(const core::Region& region) override;
+    void add_copied(const core::Region& dest,
+                    const core::Point& delta) override;
+    virtual void subtract(const core::Region& region);
 
     // Fill the supplied UpdateInfo structure with update information
     // FIXME: Provide getUpdateInfo() with no clipping, for better efficiency.
-    virtual void getUpdateInfo(UpdateInfo* info, const Region& cliprgn);
+    virtual void getUpdateInfo(UpdateInfo* info,
+                               const core::Region& cliprgn);
 
     // Copy the contained updates to another tracker
     virtual void copyTo(UpdateTracker* to) const;
 
     // Move the entire update region by an offset
-    void translate(const Point& p) {changed.translate(p); copied.translate(p);}
+    void translate(const core::Point& p) {changed.translate(p); copied.translate(p);}
 
     virtual bool is_empty() const {return changed.is_empty() && copied.is_empty();}
 
     virtual void clear() {changed.clear(); copied.clear();};
   protected:
-    Region changed;
-    Region copied;
-    Point copy_delta;
+    core::Region changed;
+    core::Region copied;
+    core::Point copy_delta;
   };
 
 }

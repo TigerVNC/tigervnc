@@ -408,7 +408,7 @@ void SMsgWriter::writeFramebufferUpdateEnd()
   endMsg();
 }
 
-void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)
+void SMsgWriter::writeCopyRect(const core::Rect& r, int srcX, int srcY)
 {
   startRect(r,encodingCopyRect);
   os->writeU16(srcX);
@@ -416,7 +416,7 @@ void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)
   endRect();
 }
 
-void SMsgWriter::startRect(const Rect& r, int encoding)
+void SMsgWriter::startRect(const core::Rect& r, int encoding)
 {
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw std::logic_error("SMsgWriter::startRect: nRects out of sync");
@@ -491,7 +491,7 @@ void SMsgWriter::writePseudoRects()
   }
 
   if (needCursorPos) {
-    const Point& cursorPos = client->cursorPos();
+    const core::Point& cursorPos = client->cursorPos();
 
     if (client->supportsEncoding(pseudoEncodingVMwareCursorPosition)) {
       writeSetVMwareCursorPositionRect(cursorPos.x, cursorPos.y);

@@ -53,7 +53,7 @@ namespace rfb {
 #endif
 
       // * INTERNAL NOTIFICATION FUNCTION * 
-      void NotifyHooksRegion(const Region& r);
+      void NotifyHooksRegion(const core::Region& r);
     protected:
       HANDLE updateEvent;
       bool updatesReady;
