@@ -22,8 +22,10 @@
 #endif
 
 #include <algorithm>
+
+#include <core/util.h>
+
 #include <rdr/HexInStream.h>
-#include <rfb/util.h>
 
 using namespace rdr;
 
@@ -44,7 +46,7 @@ bool HexInStream::fillBuffer() {
 
   uint8_t* optr = (uint8_t*) end;
   for (size_t i=0; i<length; i++) {
-    if (!rfb::hexToBin((const char*)&iptr[i*2], 2, &optr[i], 1))
+    if (!core::hexToBin((const char*)&iptr[i*2], 2, &optr[i], 1))
       throw std::runtime_error("HexInStream: Invalid input data");
   }
 

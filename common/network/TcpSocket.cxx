@@ -41,13 +41,14 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <core/util.h>
+
 #include <rdr/Exception.h>
 
 #include <network/TcpSocket.h>
 
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
-#include <rfb/util.h>
 
 #ifdef WIN32
 #include <os/winerrno.h>
@@ -594,7 +595,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
 TcpFilter::TcpFilter(const char* spec) {
   std::vector<std::string> patterns;
 
-  patterns = rfb::split(spec, ',');
+  patterns = core::split(spec, ',');
 
   for (size_t i = 0; i < patterns.size(); i++) {
     if (!patterns[i].empty())
@@ -696,7 +697,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
   initSockets();
 
-  parts = rfb::split(&p[1], '/');
+  parts = core::split(&p[1], '/');
   if (parts.size() > 2)
     throw std::invalid_argument("Invalid filter specified");
 
@@ -754,9 +755,9 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   family = pattern.address.u.sa.sa_family;
 
   if (pattern.prefixlen > (family == AF_INET ? 32: 128))
-    throw std::invalid_argument(rfb::format("Invalid prefix length for "
-                                            "filter address: %u",
-                                            pattern.prefixlen));
+    throw std::invalid_argument(
+      core::format("Invalid prefix length for filter address: %u",
+                   pattern.prefixlen));
 
   // Compute mask from address and prefix length
   memset (&pattern.mask, 0, sizeof (pattern.mask));

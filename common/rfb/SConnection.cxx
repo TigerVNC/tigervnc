@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include <core/util.h>
+
 #include <rdr/OutStream.h>
 
 #include <rfb/Exception.h>
@@ -40,7 +42,6 @@
 #include <rfb/encodings.h>
 #include <rfb/EncodeManager.h>
 #include <rfb/SSecurity.h>
-#include <rfb/util.h>
 
 #include <rfb/LogWriter.h>
 
@@ -135,10 +136,10 @@ bool SConnection::processVersionMsg()
 
   if (client.majorVersion != 3) {
     // unknown protocol version
-    failConnection(format("Client needs protocol version %d.%d, "
-                          "server has %d.%d",
-                          client.majorVersion, client.minorVersion,
-                          defaultMajorVersion, defaultMinorVersion));
+    failConnection(core::format(
+      "Client needs protocol version %d.%d, server has %d.%d",
+      client.majorVersion, client.minorVersion,
+      defaultMajorVersion, defaultMinorVersion));
   }
 
   if (client.minorVersion != 3 && client.minorVersion != 7 && client.minorVersion != 8) {
@@ -168,9 +169,9 @@ bool SConnection::processVersionMsg()
       if (*i == secTypeNone || *i == secTypeVncAuth) break;
     }
     if (i == secTypes.end()) {
-      failConnection(format("No supported security type for "
-                            "%d.%d client",
-                            client.majorVersion, client.minorVersion));
+      failConnection(
+        core::format("No supported security type for %d.%d client",
+                     client.majorVersion, client.minorVersion));
     }
 
     os->writeU32(*i);
@@ -419,11 +420,11 @@ void SConnection::handleClipboardProvide(uint32_t flags,
   }
 
   // FIXME: This conversion magic should be in SMsgReader
-  if (!isValidUTF8((const char*)data[0], lengths[0])) {
+  if (!core::isValidUTF8((const char*)data[0], lengths[0])) {
     vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
     return;
   }
-  clientClipboard = convertLF((const char*)data[0], lengths[0]);
+  clientClipboard = core::convertLF((const char*)data[0], lengths[0]);
   hasRemoteClipboard = true;
 
   // FIXME: Should probably verify that this data was actually requested
@@ -592,7 +593,7 @@ void SConnection::sendClipboardData(const char* data)
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
       (client.clipboardFlags() & rfb::clipboardProvide)) {
     // FIXME: This conversion magic should be in SMsgWriter
-    std::string filtered(convertCRLF(data));
+    std::string filtered(core::convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
     const uint8_t* datas[1] = { (const uint8_t*)filtered.c_str() };
 

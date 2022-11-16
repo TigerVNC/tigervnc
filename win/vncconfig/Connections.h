@@ -20,12 +20,14 @@
 
 #include <vector>
 
+#include <core/util.h>
+
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb/Configuration.h>
 #include <rfb/Blacklist.h>
-#include <rfb/util.h>
+
 #include <network/TcpSocket.h>
 
 static rfb::IntParameter port_number("PortNumber",
@@ -100,7 +102,7 @@ namespace rfb {
           SendMessage(listBox, LB_DELETESTRING, 0, 0);
 
         std::vector<std::string> hostv;
-        hostv = split(hosts, ',');
+        hostv = core::split(hosts, ',');
         for (size_t i = 0; i < hostv.size(); i++) {
           if (!hostv[i].empty())
             SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)hostv[i].c_str());

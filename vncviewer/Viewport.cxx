@@ -27,10 +27,11 @@
 
 #include <stdexcept>
 
+#include <core/util.h>
+
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
-#include <rfb/util.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
@@ -412,7 +413,7 @@ int Viewport::handle(int event)
 
   switch (event) {
   case FL_PASTE:
-    if (!isValidUTF8(Fl::event_text(), Fl::event_length())) {
+    if (!core::isValidUTF8(Fl::event_text(), Fl::event_length())) {
       vlog.error("Invalid UTF-8 sequence in system clipboard");
       // Reset the state as if we don't have any clipboard data at all
       this->pendingClientClipboard = false;
@@ -425,7 +426,7 @@ int Viewport::handle(int event)
       return 1;
     }
 
-    filtered = convertLF(Fl::event_text(), Fl::event_length());
+    filtered = core::convertLF(Fl::event_text(), Fl::event_length());
 
     vlog.debug("Sending clipboard data (%d bytes)", (int)filtered.size());
 

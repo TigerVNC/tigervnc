@@ -27,6 +27,8 @@
 
 #include <algorithm>
 
+#include <core/util.h>
+
 #include <rfb/Exception.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/fenceTypes.h>
@@ -40,7 +42,6 @@
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
-#include <rfb/util.h>
 
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
@@ -191,10 +192,9 @@ bool CConnection::processVersionMsg()
     vlog.error("Server gave unsupported RFB protocol version %d.%d",
                server.majorVersion, server.minorVersion);
     state_ = RFBSTATE_INVALID;
-    throw protocol_error(format("Server gave unsupported RFB protocol "
-                                "version %d.%d",
-                                server.majorVersion,
-                                server.minorVersion));
+    throw protocol_error(
+      core::format("Server gave unsupported RFB protocol version %d.%d",
+                   server.majorVersion, server.minorVersion));
   } else if (server.beforeVersion(3,7)) {
     server.setVersion(3,3);
   } else if (server.afterVersion(3,8)) {
@@ -611,11 +611,11 @@ void CConnection::handleClipboardProvide(uint32_t flags,
   }
 
   // FIXME: This conversion magic should be in CMsgReader
-  if (!isValidUTF8((const char*)data[0], lengths[0])) {
+  if (!core::isValidUTF8((const char*)data[0], lengths[0])) {
     vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
     return;
   }
-  serverClipboard = convertLF((const char*)data[0], lengths[0]);
+  serverClipboard = core::convertLF((const char*)data[0], lengths[0]);
   hasRemoteClipboard = true;
 
   // FIXME: Should probably verify that this data was actually requested
@@ -686,7 +686,7 @@ void CConnection::sendClipboardData(const char* data)
 {
   if (server.clipboardFlags() & rfb::clipboardProvide) {
     // FIXME: This conversion magic should be in CMsgWriter
-    std::string filtered(convertCRLF(data));
+    std::string filtered(core::convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
     const uint8_t* datas[1] = { (const uint8_t*)filtered.c_str() };
 

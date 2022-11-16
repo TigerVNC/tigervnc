@@ -24,6 +24,8 @@
 
 #include <stdio.h>
 
+#include <core/util.h>
+
 #include <rdr/OutStream.h>
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
@@ -40,7 +42,6 @@
 #include <rfb/LogWriter.h>
 #include <rfb/encodings.h>
 #include <rfb/ledStates.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -98,7 +99,7 @@ void SMsgWriter::writeServerCutText(const char* str)
   if (strchr(str, '\r') != nullptr)
     throw std::invalid_argument("Invalid carriage return in clipboard data");
 
-  std::string latin1(utf8ToLatin1(str));
+  std::string latin1(core::utf8ToLatin1(str));
 
   startMsg(msgTypeServerCutText);
   os->pad(3);

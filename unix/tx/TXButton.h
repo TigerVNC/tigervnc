@@ -27,7 +27,7 @@
 #define __TXBUTTON_H__
 
 #include "TXWindow.h"
-#include <rfb/util.h>
+#include <core/util.h>
 
 // TXButtonCallback's buttonActivate() method is called when a button is
 // activated.

@@ -24,13 +24,14 @@
 
 #include <stdexcept>
 
+#include <core/util.h>
+
 #include <rfb/encodings.h>
 #include <rfb/ledStates.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/ClientParams.h>
 #include <rfb/Cursor.h>
 #include <rfb/ScreenSet.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -172,7 +173,7 @@ uint32_t ClientParams::clipboardSize(unsigned int format) const
       return clipSizes[i];
   }
 
-  throw std::invalid_argument(rfb::format("Invalid clipboard format 0x%x", format));
+  throw std::invalid_argument(core::format("Invalid clipboard format 0x%x", format));
 }
 
 void ClientParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)

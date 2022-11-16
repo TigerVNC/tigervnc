@@ -22,9 +22,9 @@
 #include <config.h>
 #endif
 
-#include <rdr/TLSException.h>
+#include <core/util.h>
 
-#include <rfb/util.h>
+#include <rdr/TLSException.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -36,8 +36,8 @@ using namespace rdr;
 
 #ifdef HAVE_GNUTLS
 tls_error::tls_error(const char* s, int err_) noexcept
-  : std::runtime_error(rfb::format("%s: %s (%d)", s,
-                                   gnutls_strerror(err_), err_)),
+  : std::runtime_error(core::format("%s: %s (%d)", s,
+                                    gnutls_strerror(err_), err_)),
     err(err_)
 {
 }

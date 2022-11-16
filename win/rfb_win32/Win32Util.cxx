@@ -22,14 +22,19 @@
 #include <config.h>
 #endif
 
+#include <core/util.h>
+
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Handle.h>
+
 #include <rdr/HexOutStream.h>
 #include <rdr/Exception.h>
-#include <rfb/util.h>
+
 #include <stdio.h>
+
+using namespace core;
 
 namespace rfb {
 namespace win32 {

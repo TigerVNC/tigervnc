@@ -28,10 +28,13 @@
 
 #include <algorithm>
 
+#include <core/util.h>
+
 #include <rfb/Timer.h>
-#include <rfb/util.h>
 #include <rfb/LogWriter.h>
 
+// Temporary during transition to new structure:
+using namespace core;
 using namespace rfb;
 
 #ifndef __NO_DEFINE_VLOG__

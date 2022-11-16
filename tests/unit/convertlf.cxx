@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 
-#include <rfb/util.h>
+#include <core/util.h>
 
 static const char* escape(const char* input)
 {
@@ -54,7 +54,7 @@ static void testLF(const char* input, const char* expected)
 
     printf("convertLF(\"%s\"): ", escape(input));
 
-    output = rfb::convertLF(input);
+    output = core::convertLF(input);
 
     if (output != expected)
         printf("FAILED: got \"%s\"", escape(output.c_str()));
@@ -70,7 +70,7 @@ static void testCRLF(const char* input, const char* expected)
 
     printf("convertCRLF(\"%s\"): ", escape(input));
 
-    output = rfb::convertCRLF(input);
+    output = core::convertCRLF(input);
 
     if (output != expected)
         printf("FAILED: got \"%s\"", escape(output.c_str()));
