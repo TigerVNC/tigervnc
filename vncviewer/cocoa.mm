@@ -26,7 +26,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#include <rfb/Rect.h>
+#include <core/Rect.h>
 
 static bool captured = false;
 
@@ -67,7 +67,7 @@ int cocoa_capture_displays(Fl_Window *win)
   CGDirectDisplayID displays[16];
 
   int sx, sy, sw, sh;
-  rfb::Rect windows_rect, screen_rect;
+  core::Rect windows_rect, screen_rect;
 
   windows_rect.setXYWH(win->x(), win->y(), win->w(), win->h());
 

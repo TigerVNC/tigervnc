@@ -98,11 +98,11 @@ public:
 
   void initDone() override {};
   void resizeFramebuffer() override;
-  void setCursor(int, int, const rfb::Point&, const uint8_t*) override;
-  void setCursorPos(const rfb::Point&) override;
+  void setCursor(int, int, const core::Point&, const uint8_t*) override;
+  void setCursorPos(const core::Point&) override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
-  bool dataRect(const rfb::Rect&, int) override;
+  bool dataRect(const core::Rect&, int) override;
   void setColourMapEntries(int, int, uint16_t*) override;
   void bell() override;
   void serverCutText(const char*) override;
@@ -219,11 +219,11 @@ void CConn::resizeFramebuffer()
   setFramebuffer(pb);
 }
 
-void CConn::setCursor(int, int, const rfb::Point&, const uint8_t*)
+void CConn::setCursor(int, int, const core::Point&, const uint8_t*)
 {
 }
 
-void CConn::setCursorPos(const rfb::Point&)
+void CConn::setCursorPos(const core::Point&)
 {
 }
 
@@ -239,7 +239,7 @@ void CConn::framebufferUpdateEnd()
 {
   rfb::UpdateInfo ui;
   rfb::PixelBuffer* pb = getFramebuffer();
-  rfb::Region clip(pb->getRect());
+  core::Region clip(pb->getRect());
 
   CConnection::framebufferUpdateEnd();
 
@@ -256,7 +256,7 @@ void CConn::framebufferUpdateEnd()
   encodeTime += getCpuCounter();
 }
 
-bool CConn::dataRect(const rfb::Rect &r, int encoding)
+bool CConn::dataRect(const core::Rect& r, int encoding)
 {
   if (!CConnection::dataRect(r, encoding))
     return false;

@@ -27,6 +27,11 @@
 
 #include <stdint.h>
 
+namespace core {
+  struct Point;
+  struct Rect;
+}
+
 namespace rdr { class OutStream; }
 
 namespace rfb {
@@ -34,8 +39,6 @@ namespace rfb {
   class PixelFormat;
   class ServerParams;
   struct ScreenSet;
-  struct Point;
-  struct Rect;
 
   class CMsgWriter {
   public:
@@ -48,13 +51,14 @@ namespace rfb {
     void writeSetEncodings(const std::list<uint32_t> encodings);
     void writeSetDesktopSize(int width, int height, const ScreenSet& layout);
 
-    void writeFramebufferUpdateRequest(const Rect& r,bool incremental);
+    void writeFramebufferUpdateRequest(const core::Rect& r,
+                                       bool incremental);
     void writeEnableContinuousUpdates(bool enable, int x, int y, int w, int h);
 
     void writeFence(uint32_t flags, unsigned len, const uint8_t data[]);
 
     void writeKeyEvent(uint32_t keysym, uint32_t keycode, bool down);
-    void writePointerEvent(const Point& pos, uint16_t buttonMask);
+    void writePointerEvent(const core::Point& pos, uint16_t buttonMask);
 
     void writeClientCutText(const char* str);
 

@@ -46,8 +46,8 @@ namespace rfb {
       static BoolParameter poll_console_windows;
     protected:
       struct PollInfo {
-        Region poll_include;
-        Region poll_exclude;
+        core::Region poll_include;
+        core::Region poll_exclude;
       };
       static bool checkPollWindow(HWND w);
       static void pollWindow(HWND w, PollInfo* info);

@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 
-#include <rfb/Rect.h>
+#include <core/Rect.h>
 
 namespace rfb {
 
@@ -31,7 +31,7 @@ namespace rfb {
 
   class H264DecoderContext {
     public:
-      static H264DecoderContext *createContext(const Rect &r);
+      static H264DecoderContext* createContext(const core::Rect& r);
 
       virtual ~H264DecoderContext() = 0;
 
@@ -39,12 +39,12 @@ namespace rfb {
                           uint32_t /*len*/,
                           ModifiablePixelBuffer* /*pb*/) {}
 
-      inline bool isEqualRect(const Rect &r) const { return r == rect; }
+      inline bool isEqualRect(const core::Rect &r) const { return r == rect; }
 
     protected:
-      rfb::Rect rect;
+      core::Rect rect;
 
-      H264DecoderContext(const Rect &r) : rect(r) {}
+      H264DecoderContext(const core::Rect &r) : rect(r) {}
   };
 
 }

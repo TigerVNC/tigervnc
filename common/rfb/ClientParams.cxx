@@ -100,7 +100,7 @@ void ClientParams::setCursor(const Cursor& other)
   cursor_ = new Cursor(other);
 }
 
-void ClientParams::setCursorPos(const Point& pos)
+void ClientParams::setCursorPos(const core::Point& pos)
 {
   cursorPos_ = pos;
 }

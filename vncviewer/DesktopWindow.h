@@ -54,11 +54,11 @@ public:
   void resizeFramebuffer(int new_w, int new_h);
 
   // New image for the locally rendered cursor
-  void setCursor(int width, int height, const rfb::Point& hotspot,
+  void setCursor(int width, int height, const core::Point& hotspot,
                  const uint8_t* data);
 
   // Server-provided cursor position
-  void setCursorPos(const rfb::Point& pos);
+  void setCursorPos(const core::Point& pos);
 
   // Change client LED state
   void setLEDState(unsigned int state);

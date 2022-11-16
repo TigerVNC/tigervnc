@@ -20,7 +20,7 @@ target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix/common)
 target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix/tx)
 target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix)
 target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(x0vncserver tx rfb network rdr unixcommon)
+target_link_libraries(x0vncserver core tx rfb network rdr unixcommon)
 
 # systemd support (socket activation)
 if (LIBSYSTEMD_FOUND)

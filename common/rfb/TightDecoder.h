@@ -30,15 +30,15 @@ namespace rfb {
   public:
     TightDecoder();
     virtual ~TightDecoder();
-    bool readRect(const Rect& r, rdr::InStream* is,
+    bool readRect(const core::Rect& r, rdr::InStream* is,
                   const ServerParams& server,
                   rdr::OutStream* os) override;
-    bool doRectsConflict(const Rect& rectA,
+    bool doRectsConflict(const core::Rect& rectA,
                          const uint8_t* bufferA, size_t buflenA,
-                         const Rect& rectB,
+                         const core::Rect& rectB,
                          const uint8_t* bufferB, size_t buflenB,
                          const ServerParams& server) override;
-    void decodeRect(const Rect& r, const uint8_t* buffer,
+    void decodeRect(const core::Rect& r, const uint8_t* buffer,
                     size_t buflen, const ServerParams& server,
                     ModifiablePixelBuffer* pb) override;
 
@@ -46,16 +46,16 @@ namespace rfb {
     uint32_t readCompact(rdr::InStream* is);
 
     void FilterGradient24(const uint8_t* inbuf, const PixelFormat& pf,
-                          uint32_t* outbuf, int stride, const Rect& r);
+                          uint32_t* outbuf, int stride, const core::Rect& r);
 
     template<class T>
     void FilterGradient(const uint8_t* inbuf, const PixelFormat& pf,
-                        T* outbuf, int stride, const Rect& r);
+                        T* outbuf, int stride, const core::Rect& r);
 
     template<class T>
     void FilterPalette(const T* palette, int palSize,
                        const uint8_t* inbuf, T* outbuf,
-                       int stride, const Rect& r);
+                       int stride, const core::Rect& r);
 
   private:
     rdr::ZlibInStream zis[4];
