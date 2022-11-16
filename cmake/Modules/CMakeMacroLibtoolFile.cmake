@@ -29,6 +29,8 @@ macro(libtool_create_control_file _target)
 
   set(STATIC_MODE OFF)
   set(FRAMEWORK OFF)
+  get_property(LIBRARY_PATHS TARGET ${_target}
+               PROPERTY INTERFACE_LINK_DIRECTORIES)
 
   foreach(library ${target_libs})
     if(FRAMEWORK)
@@ -73,6 +75,10 @@ macro(libtool_create_control_file _target)
         elseif(${library} STREQUAL "-Wl,-Bdynamic")
           # All following libraries should be dynamic
           set(STATIC_MODE OFF)
+        elseif(${library} MATCHES "^${CMAKE_LIBRARY_PATH_FLAG}")
+          # Library search path
+          string(REPLACE ${CMAKE_LIBRARY_PATH_FLAG} "" library ${library})
+          list(APPEND LIBRARY_PATHS ${library})
         else()
           # Normal library, so use find_library() to attempt to locate the
           # library in a system directory.
@@ -86,7 +92,7 @@ macro(libtool_create_control_file _target)
             set(library ${CMAKE_STATIC_LIBRARY_PREFIX}${library}${CMAKE_STATIC_LIBRARY_SUFFIX})
           endif()
 
-          find_library(FL ${library})
+          find_library(FL ${library} PATHS ${LIBRARY_PATHS})
           if(FL)
             # Found library. Depending on if it's static or not we might
             # extract the path and library name, then add the
