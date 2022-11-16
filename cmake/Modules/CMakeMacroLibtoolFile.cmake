@@ -28,11 +28,19 @@ macro(libtool_create_control_file _target)
   endforeach()
 
   set(STATIC_MODE OFF)
+  set(FRAMEWORK OFF)
 
   foreach(library ${target_libs})
+    if(FRAMEWORK)
+      set(_target_dependency_libs "${_target_dependency_libs} -framework ${library}")
+      set(FRAMEWORK OFF)
+      continue()
+    elseif(${library} STREQUAL "-framework")
+      set(FRAMEWORK ON)
+      continue()
     # Assume all entries are shared libs if platform-specific static library
     # extension is not matched.
-    if(NOT "${library}" MATCHES ".+${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+    elseif(NOT "${library}" MATCHES ".+${CMAKE_STATIC_LIBRARY_SUFFIX}$")
       if("${library}" MATCHES ".+${CMAKE_SHARED_LIBRARY_SUFFIX}$")
         # Shared library extension matched, so extract the path and library
         # name, then add the result to the libtool dependency libs.  This
