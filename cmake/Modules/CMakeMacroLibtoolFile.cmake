@@ -110,7 +110,7 @@ macro(libtool_create_control_file _target)
               set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
             endif()
           else()
-            # No library found, so ignore target.
+            message(FATAL_ERROR " - could not find library ${library}")
           endif()
           # Need to clear FL to get new results next loop
           unset(FL CACHE)
@@ -133,7 +133,7 @@ macro(libtool_create_control_file _target)
           # Absolute pathname found.  Add it.
           set(_target_dependency_libs "${_target_dependency_libs} ${FL}")
         else()
-          # No absolute pathname found.  Ignore it.
+          message(FATAL_ERROR " - could not find library ${library}")
         endif()
         # Need to clear FL to get new results next loop
         unset(FL CACHE)
