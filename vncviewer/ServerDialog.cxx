@@ -40,11 +40,10 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_File_Chooser.H>
 
+#include <core/Exception.h>
 #include <core/util.h>
 
 #include <os/os.h>
-
-#include <rdr/Exception.h>
 
 #include <network/TcpSocket.h>
 
@@ -367,7 +366,7 @@ void ServerDialog::loadServerHistory()
       // no history file
       return;
     }
-    throw rdr::posix_error(
+    throw core::posix_error(
       core::format(_("Could not open \"%s\""), filepath), errno);
   }
 
@@ -382,7 +381,7 @@ void ServerDialog::loadServerHistory()
         break;
 
       fclose(f);
-      throw rdr::posix_error(
+      throw core::posix_error(
         core::format(_("Failed to read line %d in file \"%s\""),
                      lineNr, filepath),
         errno);
@@ -444,7 +443,7 @@ void ServerDialog::saveServerHistory()
   FILE* f = fopen(filepath, "w+");
   if (!f) {
     std::string msg = core::format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
+    throw core::posix_error(msg.c_str(), errno);
   }
 
   // Save the last X elements to the config file.

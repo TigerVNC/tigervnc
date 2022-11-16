@@ -48,14 +48,17 @@
 #include <X11/XKBlib.h>
 #endif
 
+#include <core/Exception.h>
+
 #include <rfb/Logger_stdio.h>
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
-#include <rdr/Exception.h>
+
 #include <network/TcpSocket.h>
+
 #include <os/os.h>
 
 #include <FL/Fl_PNG_Image.H>
@@ -776,7 +779,7 @@ int main(int argc, char** argv)
             vlog.debug("Interrupted select() system call");
             continue;
           } else {
-            throw rdr::socket_error("select", errno);
+            throw core::socket_error("select", errno);
           }
         }
 

@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb_win32/DeviceContext.h>
@@ -87,7 +87,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
 
     if (!new_bitmap) {
       int err = GetLastError();
-      throw rdr::win32_error("Unable to create DIB section", err);
+      throw core::win32_error("Unable to create DIB section", err);
     }
 
     vlog.debug("recreateBuffer()");
@@ -130,7 +130,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
     // Determine the *actual* DIBSection format
     DIBSECTION ds;
     if (!GetObject(bitmap, sizeof(ds), &ds))
-      throw rdr::win32_error("GetObject", GetLastError());
+      throw core::win32_error("GetObject", GetLastError());
 
     // Correct the "stride" of the DIB
     // *** This code DWORD aligns each row - is that right???

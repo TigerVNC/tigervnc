@@ -20,7 +20,7 @@
 #define __RFB_WIN32_ICONINFO_H__
 
 #include <windows.h>
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
 namespace rfb {
   namespace win32 {
@@ -28,7 +28,7 @@ namespace rfb {
     struct IconInfo : public ICONINFO {
       IconInfo(HICON icon) {
         if (!GetIconInfo(icon, this))
-          throw rdr::win32_error("GetIconInfo() failed", GetLastError());
+          throw core::win32_error("GetIconInfo() failed", GetLastError());
       }
       ~IconInfo() {
         if (hbmColor)

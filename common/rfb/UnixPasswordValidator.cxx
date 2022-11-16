@@ -23,7 +23,6 @@
 #endif
 
 #include <rfb/Configuration.h>
-#include <rfb/Exception.h>
 #include <rfb/UnixPasswordValidator.h>
 #include <rfb/pam.h>
 

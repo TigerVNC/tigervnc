@@ -4,7 +4,7 @@ add_library(os STATIC
   os.cxx)
 
 target_include_directories(os PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(os rdr)
+target_link_libraries(os core)
 
 if(UNIX)
   target_link_libraries(os pthread)

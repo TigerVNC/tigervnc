@@ -36,7 +36,7 @@
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
 #include <rfb/CConnection.h>
 #include <rfb/Exception.h>
@@ -129,7 +129,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
 
     fp = fopen(passwordFileName, "rb");
     if (!fp)
-      throw rdr::posix_error(_("Opening password file failed"), errno);
+      throw core::posix_error(_("Opening password file failed"), errno);
 
     obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
     fclose(fp);
