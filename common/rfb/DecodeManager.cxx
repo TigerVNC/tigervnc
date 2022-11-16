@@ -32,7 +32,6 @@
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
-#include <rdr/Exception.h>
 #include <rdr/MemOutStream.h>
 
 #include <os/Mutex.h>

@@ -25,9 +25,10 @@
 #include <config.h>
 #endif
 
+#include <core/Exception.h>
+
 #include <rfb_win32/Dialog.h>
 #include <rfb/LogWriter.h>
-#include <rdr/Exception.h>
 #include <rfb_win32/Win32Util.h>
 
 #ifdef _DIALOG_CAPTURE
@@ -65,7 +66,7 @@ bool Dialog::showDialog(const char* resource, HWND owner)
   INT_PTR result = DialogBoxParam(inst, resource, owner,
                                   staticDialogProc, (LPARAM)this);
   if (result<0)
-    throw rdr::win32_error("DialogBoxParam failed", GetLastError());
+    throw core::win32_error("DialogBoxParam failed", GetLastError());
   alreadyShowing = false;
   return (result == 1);
 }
@@ -275,7 +276,7 @@ bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bo
 
     handle = (HWND)PropertySheet(&header);
     if ((handle == nullptr) || (handle == (HWND)-1))
-      throw rdr::win32_error("PropertySheet failed", GetLastError());
+      throw core::win32_error("PropertySheet failed", GetLastError());
     centerWindow(handle, owner_);
     plog.info("Created %p", handle);
 

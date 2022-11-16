@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
 #include <rfb_win32/WMPoller.h>
 #include <rfb/LogWriter.h>
@@ -59,7 +59,7 @@ bool
 rfb::win32::WMPoller::checkPollWindow(HWND w) {
   char buffer[128];
   if (!GetClassName(w, buffer, 128))
-    throw rdr::win32_error("Unable to get window class:%u", GetLastError());
+    throw core::win32_error("Unable to get window class:%u", GetLastError());
   if ((strcmp(buffer, "tty") != 0) &&
     (strcmp(buffer, "ConsoleWindowClass") != 0)) {
     return false;

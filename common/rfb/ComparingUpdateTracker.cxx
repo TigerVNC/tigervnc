@@ -27,7 +27,6 @@
 
 #include <core/util.h>
 
-#include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
 #include <rfb/ComparingUpdateTracker.h>

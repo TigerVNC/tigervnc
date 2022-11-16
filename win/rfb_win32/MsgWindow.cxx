@@ -23,10 +23,13 @@
 #include <config.h>
 #endif
 
+#include <core/Exception.h>
+
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/WMShatter.h>
+
 #include <rfb/LogWriter.h>
-#include <rdr/Exception.h>
+
 #include <malloc.h>
 
 using namespace rfb;
@@ -82,7 +85,7 @@ MsgWindowClass::MsgWindowClass() : classAtom(0) {
   wndClass.lpszClassName = "rfb::win32::MsgWindowClass";
   classAtom = RegisterClass(&wndClass);
   if (!classAtom) {
-    throw rdr::win32_error("Unable to register MsgWindow window class", GetLastError());
+    throw core::win32_error("Unable to register MsgWindow window class", GetLastError());
   }
 }
 
@@ -104,7 +107,7 @@ MsgWindow::MsgWindow(const char* name_) : name(name_), handle(nullptr) {
                         name.c_str(), WS_OVERLAPPED, 0, 0, 10, 10,
                         nullptr, nullptr, baseClass.instance, this);
   if (!handle) {
-    throw rdr::win32_error("Unable to create WMNotifier window instance", GetLastError());
+    throw core::win32_error("Unable to create WMNotifier window instance", GetLastError());
   }
   vlog.debug("Created window \"%s\" (%p)", name.c_str(), handle);
 }

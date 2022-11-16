@@ -75,7 +75,7 @@ void QueryConnectDialog::worker() {
 
 void QueryConnectDialog::initDialog() {
   if (!SetTimer(handle, 1, 1000, nullptr))
-    throw rdr::win32_error("SetTimer", GetLastError());
+    throw core::win32_error("SetTimer", GetLastError());
   setItemString(IDC_QUERY_HOST, peerIp.c_str());
   if (userName.empty())
     userName = "(anonymous)";
