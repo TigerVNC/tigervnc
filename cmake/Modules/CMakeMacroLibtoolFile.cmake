@@ -32,8 +32,8 @@ macro(libtool_create_control_file _target)
   foreach(library ${target_libs})
     # Assume all entries are shared libs if platform-specific static library
     # extension is not matched.
-    if(NOT "${library}" MATCHES ".+\\${CMAKE_STATIC_LIBRARY_SUFFIX}$")
-      if("${library}" MATCHES ".+\\${CMAKE_SHARED_LIBRARY_SUFFIX}$")
+    if(NOT "${library}" MATCHES ".+${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+      if("${library}" MATCHES ".+${CMAKE_SHARED_LIBRARY_SUFFIX}$")
         # Shared library extension matched, so extract the path and library
         # name, then add the result to the libtool dependency libs.  This
         # will always be an absolute path, because that's what CMake uses
@@ -59,7 +59,7 @@ macro(libtool_create_control_file _target)
           # library in a system directory.
 
           # Need to remove -l prefix
-          if (${library} MATCHES "^\\${CMAKE_LINK_LIBRARY_FLAG}")
+          if(${library} MATCHES "^${CMAKE_LINK_LIBRARY_FLAG}")
             string(REPLACE ${CMAKE_LINK_LIBRARY_FLAG} "" library ${library})
           endif()
 
