@@ -21,8 +21,8 @@
 // util.h - miscellaneous useful bits
 //
 
-#ifndef __RFB_UTIL_H__
-#define __RFB_UTIL_H__
+#ifndef __CORE_UTIL_H__
+#define __CORE_UTIL_H__
 
 #include <limits.h>
 #include <stdint.h>
@@ -32,7 +32,7 @@
 
 struct timeval;
 
-namespace rfb {
+namespace core {
 
   // Formats according to printf(), with a dynamic allocation
   std::string format(const char *fmt, ...)

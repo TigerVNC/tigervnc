@@ -40,6 +40,8 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_File_Chooser.H>
 
+#include <core/util.h>
+
 #include <os/os.h>
 
 #include <rdr/Exception.h>
@@ -47,7 +49,6 @@
 #include <network/TcpSocket.h>
 
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
@@ -366,8 +367,8 @@ void ServerDialog::loadServerHistory()
       // no history file
       return;
     }
-    std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
+    throw rdr::posix_error(
+      core::format(_("Could not open \"%s\""), filepath), errno);
   }
 
   int lineNr = 0;
@@ -381,19 +382,21 @@ void ServerDialog::loadServerHistory()
         break;
 
       fclose(f);
-      std::string msg = format(_("Failed to read line %d in "
-                                 "file \"%s\""), lineNr, filepath);
-      throw rdr::posix_error(msg.c_str(), errno);
+      throw rdr::posix_error(
+        core::format(_("Failed to read line %d in file \"%s\""),
+                     lineNr, filepath),
+        errno);
     }
 
     int len = strlen(line);
 
     if (len == (sizeof(line) - 1)) {
       fclose(f);
-      std::string msg = format(_("Failed to read line %d in "
-                                 "file \"%s\""), lineNr, filepath);
-      throw std::runtime_error(format("%s: %s", msg.c_str(),
-                                      _("Line too long")));
+      std::string msg = core::format(_("Failed to read line %d in "
+                                       "file \"%s\""),
+                                     lineNr, filepath);
+      throw std::runtime_error(
+        core::format("%s: %s", msg.c_str(), _("Line too long")));
     }
 
     if ((len > 0) && (line[len-1] == '\n')) {
@@ -440,7 +443,7 @@ void ServerDialog::saveServerHistory()
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");
   if (!f) {
-    std::string msg = format(_("Could not open \"%s\""), filepath);
+    std::string msg = core::format(_("Could not open \"%s\""), filepath);
     throw rdr::posix_error(msg.c_str(), errno);
   }
 

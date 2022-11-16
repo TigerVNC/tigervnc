@@ -24,9 +24,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <core/util.h>
+
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
-#include <rfb/util.h>
 
 #include "GestureHandler.h"
 #include "BaseTouchHandler.h"
@@ -172,7 +173,7 @@ void BaseTouchHandler::handleTapEvent(const GestureEvent& ev,
 
   // If the user quickly taps multiple times we assume they meant to
   // hit the same spot, so slightly adjust coordinates
-  if ((rfb::msSince(&lastTapTime) < DOUBLE_TAP_TIMEOUT) &&
+  if ((core::msSince(&lastTapTime) < DOUBLE_TAP_TIMEOUT) &&
       (firstDoubleTapEvent.type == ev.type)) {
 
     double dx = firstDoubleTapEvent.eventX - ev.eventX;

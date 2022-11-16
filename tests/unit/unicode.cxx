@@ -24,7 +24,7 @@
 #include <string.h>
 #include <wchar.h>
 
-#include <rfb/util.h>
+#include <core/util.h>
 
 struct _ucs4utf8 {
     unsigned ucs4;
@@ -131,7 +131,7 @@ int main(int /*argc*/, char** /*argv*/)
         if (ucs4utf8[i].ucs4 == 0xfffd)
             continue;
 
-        len = rfb::ucs4ToUTF8(ucs4utf8[i].ucs4, utf8);
+        len = core::ucs4ToUTF8(ucs4utf8[i].ucs4, utf8);
         if ((len != strlen(utf8)) ||
             (strcmp(utf8, ucs4utf8[i].utf8) != 0)) {
             printf("FAILED: ucs4ToUTF8() #%d\n", (int)i+1);
@@ -144,7 +144,7 @@ int main(int /*argc*/, char** /*argv*/)
         if (strcmp(ucs4utf8[i].utf8, "\xef\xbf\xbd") == 0)
             continue;
 
-        len = rfb::utf8ToUCS4(ucs4utf8[i].utf8, strlen(ucs4utf8[i].utf8), &ucs4);
+        len = core::utf8ToUCS4(ucs4utf8[i].utf8, strlen(ucs4utf8[i].utf8), &ucs4);
         if ((len != strlen(ucs4utf8[i].utf8)) ||
             (ucs4 != ucs4utf8[i].ucs4)) {
             printf("FAILED: utf8ToUCS4() #%d\n", (int)i+1);
@@ -157,7 +157,7 @@ int main(int /*argc*/, char** /*argv*/)
         if (ucs4utf16[i].ucs4 == 0xfffd)
             continue;
 
-        len = rfb::ucs4ToUTF16(ucs4utf16[i].ucs4, utf16);
+        len = core::ucs4ToUTF16(ucs4utf16[i].ucs4, utf16);
         if ((len != wcslen(utf16)) ||
             (wcscmp(utf16, ucs4utf16[i].utf16) != 0)) {
             printf("FAILED: ucs4ToUTF16() #%d\n", (int)i+1);
@@ -170,7 +170,7 @@ int main(int /*argc*/, char** /*argv*/)
         if (wcscmp(ucs4utf16[i].utf16, L"\xfffd") == 0)
             continue;
 
-        len = rfb::utf16ToUCS4(ucs4utf16[i].utf16, wcslen(ucs4utf16[i].utf16), &ucs4);
+        len = core::utf16ToUCS4(ucs4utf16[i].utf16, wcslen(ucs4utf16[i].utf16), &ucs4);
         if ((len != wcslen(ucs4utf16[i].utf16)) ||
             (ucs4 != ucs4utf16[i].ucs4)) {
             printf("FAILED: utf16ToUCS4() #%d\n", (int)i+1);
@@ -183,7 +183,7 @@ int main(int /*argc*/, char** /*argv*/)
         if (strchr(latin1utf8[i].latin1, '?') != nullptr)
             continue;
 
-        out = rfb::latin1ToUTF8(latin1utf8[i].latin1);
+        out = core::latin1ToUTF8(latin1utf8[i].latin1);
         if (out != latin1utf8[i].utf8) {
             printf("FAILED: latin1ToUTF8() #%d\n", (int)i+1);
             failures++;
@@ -191,7 +191,7 @@ int main(int /*argc*/, char** /*argv*/)
     }
 
     for (i = 0;i < ARRAY_SIZE(latin1utf8);i++) {
-        out = rfb::utf8ToLatin1(latin1utf8[i].utf8);
+        out = core::utf8ToLatin1(latin1utf8[i].utf8);
         if (out != latin1utf8[i].latin1) {
             printf("FAILED: utf8ToLatin1() #%d\n", (int)i+1);
             failures++;
@@ -203,7 +203,7 @@ int main(int /*argc*/, char** /*argv*/)
         if (wcscmp(utf8utf16[i].utf16, L"\xfffd") == 0)
             continue;
 
-        out = rfb::utf16ToUTF8(utf8utf16[i].utf16);
+        out = core::utf16ToUTF8(utf8utf16[i].utf16);
         if (out != utf8utf16[i].utf8) {
             printf("FAILED: utf16ToUTF8() #%d\n", (int)i+1);
             failures++;
@@ -215,7 +215,7 @@ int main(int /*argc*/, char** /*argv*/)
         if (strstr(utf8utf16[i].utf8, "\xef\xbf\xbd") != nullptr)
             continue;
 
-        wout = rfb::utf8ToUTF16(utf8utf16[i].utf8);
+        wout = core::utf8ToUTF16(utf8utf16[i].utf8);
         if (wout != utf8utf16[i].utf16) {
             printf("FAILED: utf8ToUTF16() #%d\n", (int)i+1);
             failures++;
@@ -223,28 +223,28 @@ int main(int /*argc*/, char** /*argv*/)
     }
 
     for (i = 0;i < ARRAY_SIZE(validutf8);i++) {
-        if (!rfb::isValidUTF8(validutf8[i])) {
+        if (!core::isValidUTF8(validutf8[i])) {
             printf("FAILED: isValidUTF8() #%d\n", (int)i+1);
             failures++;
         }
     }
 
     for (i = 0;i < ARRAY_SIZE(invalidutf8);i++) {
-        if (rfb::isValidUTF8(invalidutf8[i])) {
+        if (core::isValidUTF8(invalidutf8[i])) {
             printf("FAILED: ! isValidUTF8() #%d\n", (int)i+1);
             failures++;
         }
     }
 
     for (i = 0;i < ARRAY_SIZE(validutf16);i++) {
-        if (!rfb::isValidUTF16(validutf16[i])) {
+        if (!core::isValidUTF16(validutf16[i])) {
             printf("FAILED: isValidUTF16() #%d\n", (int)i+1);
             failures++;
         }
     }
 
     for (i = 0;i < ARRAY_SIZE(invalidutf16);i++) {
-        if (rfb::isValidUTF16(invalidutf16[i])) {
+        if (core::isValidUTF16(invalidutf16[i])) {
             printf("FAILED: ! isValidUTF16() #%d\n", (int)i+1);
             failures++;
         }

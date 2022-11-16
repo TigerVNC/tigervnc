@@ -25,6 +25,8 @@
 #include <winsock2.h>
 #include <list>
 
+#include <core/util.h>
+
 #include <rdr/Exception.h>
 
 #include <rdr/FdOutStream.h>
@@ -34,9 +36,9 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
 #include <rfb/VNCServer.h>
-#include <rfb/util.h>
 #include <rfb_win32/SocketManager.h>
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 

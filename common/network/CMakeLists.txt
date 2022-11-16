@@ -7,7 +7,7 @@ if(NOT WIN32)
 endif()
 
 target_include_directories(network PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(network os rdr rfb)
+target_link_libraries(network core os rdr rfb)
 
 if(WIN32)
 	target_link_libraries(network ws2_32)

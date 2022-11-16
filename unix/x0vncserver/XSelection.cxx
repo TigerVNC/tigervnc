@@ -17,9 +17,12 @@
  */
 
 #include <X11/Xatom.h>
+
+#include <core/util.h>
+
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
+
 #include <x0vncserver/XSelection.h>
 
 rfb::BoolParameter setPrimary("SetPrimary",
@@ -89,7 +92,7 @@ bool XSelection::selectionRequest(Window requestor, Atom selection, Atom target,
     return false;
 
   if (target == XA_STRING) {
-    std::string latin1 = rfb::utf8ToLatin1(clientData.data(), clientData.length());
+    std::string latin1 = core::utf8ToLatin1(clientData.data(), clientData.length());
     XChangeProperty(dpy, requestor, property, XA_STRING, 8, PropModeReplace,
                     (unsigned char*)latin1.data(), latin1.length());
     return true;
@@ -184,11 +187,11 @@ void XSelection::selectionNotify(XSelectionEvent* ev, Atom type, int format,
       return;
 
     if (type == xaUTF8_STRING) {
-      std::string result = rfb::convertLF((char*)data, nitems);
+      std::string result = core::convertLF((char*)data, nitems);
       handler->handleXSelectionData(result.c_str());
     } else if (type == XA_STRING) {
-      std::string result = rfb::convertLF((char*)data, nitems);
-      result = rfb::latin1ToUTF8(result.data(), result.length());
+      std::string result = core::convertLF((char*)data, nitems);
+      result = core::latin1ToUTF8(result.data(), result.length());
       handler->handleXSelectionData(result.c_str());
     }
   }

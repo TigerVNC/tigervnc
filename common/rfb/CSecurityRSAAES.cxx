@@ -34,14 +34,18 @@
 #include <nettle/bignum.h>
 #include <nettle/sha1.h>
 #include <nettle/sha2.h>
+
+#include <core/util.h>
+
 #include <rfb/CSecurityRSAAES.h>
 #include <rfb/CConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-#include <rfb/util.h>
+
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
 #include <rdr/RandomStream.h>
+
 #include <os/os.h>
 
 enum {
@@ -227,7 +231,7 @@ void CSecurityRSAAES::verifyServer()
   sha1_update(&ctx, serverKey.size, serverKeyE);
   sha1_digest(&ctx, sizeof(f), f);
   const char *title = "Server key fingerprint";
-  std::string text = format(
+  std::string text = core::format(
     "The server has provided the following identifying information:\n"
     "Fingerprint: %02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n"
     "Please verify that the information is correct and press \"Yes\". "

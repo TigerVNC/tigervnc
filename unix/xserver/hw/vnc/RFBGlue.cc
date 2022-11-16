@@ -24,12 +24,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <core/util.h>
+
 #include <network/TcpSocket.h>
+
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/Logger_syslog.h>
-#include <rfb/util.h>
 
 #include "RFBGlue.h"
 
@@ -225,7 +227,7 @@ int vncIsTCPPortUsed(int port)
 char* vncConvertLF(const char* src, size_t bytes)
 {
   try {
-    return strdup(convertLF(src, bytes).c_str());
+    return strdup(core::convertLF(src, bytes).c_str());
   } catch (...) {
     return nullptr;
   }
@@ -234,7 +236,7 @@ char* vncConvertLF(const char* src, size_t bytes)
 char* vncLatin1ToUTF8(const char* src, size_t bytes)
 {
   try {
-    return strdup(latin1ToUTF8(src, bytes).c_str());
+    return strdup(core::latin1ToUTF8(src, bytes).c_str());
   } catch (...) {
     return nullptr;
   }
@@ -243,7 +245,7 @@ char* vncLatin1ToUTF8(const char* src, size_t bytes)
 char* vncUTF8ToLatin1(const char* src, size_t bytes)
 {
   try {
-    return strdup(utf8ToLatin1(src, bytes).c_str());
+    return strdup(core::utf8ToLatin1(src, bytes).c_str());
   } catch (...) {
     return nullptr;
   }
@@ -252,7 +254,7 @@ char* vncUTF8ToLatin1(const char* src, size_t bytes)
 int vncIsValidUTF8(const char* str, size_t bytes)
 {
   try {
-    return isValidUTF8(str, bytes);
+    return core::isValidUTF8(str, bytes);
   } catch (...) {
     return 0;
   }

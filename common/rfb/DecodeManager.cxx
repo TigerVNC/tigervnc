@@ -24,13 +24,13 @@
 #include <string.h>
 
 #include <core/Region.h>
+#include <core/util.h>
 
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/Decoder.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 #include <rdr/Exception.h>
 #include <rdr/MemOutStream.h>
@@ -150,7 +150,7 @@ bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
     if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
       return false;
   } catch (std::exception& e) {
-    throw std::runtime_error(format("Error reading rect: %s", e.what()));
+    throw std::runtime_error(core::format("Error reading rect: %s", e.what()));
   }
 
   stats[encoding].rects++;
@@ -228,20 +228,20 @@ void DecodeManager::logStats()
     ratio = (double)stats[i].equivalent / stats[i].bytes;
 
     vlog.info("    %s: %s, %s", encodingName(i),
-              siPrefix(stats[i].rects, "rects").c_str(),
-              siPrefix(stats[i].pixels, "pixels").c_str());
+              core::siPrefix(stats[i].rects, "rects").c_str(),
+              core::siPrefix(stats[i].pixels, "pixels").c_str());
     vlog.info("    %*s  %s (1:%g ratio)",
               (int)strlen(encodingName(i)), "",
-              iecPrefix(stats[i].bytes, "B").c_str(), ratio);
+              core::iecPrefix(stats[i].bytes, "B").c_str(), ratio);
   }
 
   ratio = (double)equivalent / bytes;
 
   vlog.info("  Total: %s, %s",
-            siPrefix(rects, "rects").c_str(),
-            siPrefix(pixels, "pixels").c_str());
+            core::siPrefix(rects, "rects").c_str(),
+            core::siPrefix(pixels, "pixels").c_str());
   vlog.info("         %s (1:%g ratio)",
-            iecPrefix(bytes, "B").c_str(), ratio);
+            core::iecPrefix(bytes, "B").c_str(), ratio);
 }
 
 void DecodeManager::setThreadException(const std::exception& e)
@@ -251,7 +251,8 @@ void DecodeManager::setThreadException(const std::exception& e)
   if (threadException != nullptr)
     return;
 
-  threadException = new std::runtime_error(format("Exception on worker thread: %s", e.what()));
+  threadException = new std::runtime_error(
+    core::format("Exception on worker thread: %s", e.what()));
 }
 
 void DecodeManager::throwThreadException()
