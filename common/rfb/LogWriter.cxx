@@ -22,15 +22,18 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <string.h>
+
+#include <core/util.h>
 
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
-#include <rfb/util.h>
-#include <stdlib.h>
 
 rfb::LogParameter rfb::logParams;
 
+// Temporary during transition to new structure:
+using namespace core;
 using namespace rfb;
 
 

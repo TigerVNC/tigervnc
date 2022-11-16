@@ -34,7 +34,7 @@
 #define __TXCHECKBOX_H__
 
 #include "TXWindow.h"
-#include <rfb/util.h>
+#include <core/util.h>
 
 // TXCheckboxCallback's checkboxSelect() method is called when the state of a
 // checkbox changes.

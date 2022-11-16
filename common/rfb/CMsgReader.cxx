@@ -26,12 +26,13 @@
 
 #include <vector>
 
+#include <core/util.h>
+
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
 
 #include <rfb/msgTypes.h>
 #include <rfb/clipboardTypes.h>
-#include <rfb/util.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgHandler.h>
@@ -80,11 +81,11 @@ bool CMsgReader::readServerInit()
   is->readBytes((uint8_t*)name.data(), len);
   name[len] = '\0';
 
-  if (isValidUTF8(name.data()))
+  if (core::isValidUTF8(name.data()))
     handler->serverInit(width, height, pf, name.data());
   else
     handler->serverInit(width, height, pf,
-                        latin1ToUTF8(name.data()).c_str());
+                        core::latin1ToUTF8(name.data()).c_str());
 
   return true;
 }
@@ -122,7 +123,7 @@ bool CMsgReader::readMsg()
       ret = readEndOfContinuousUpdates();
       break;
     default:
-      throw protocol_error(format("Unknown message type %d", currentMsgType));
+      throw protocol_error(core::format("Unknown message type %d", currentMsgType));
     }
 
     if (ret)
@@ -291,8 +292,8 @@ bool CMsgReader::readServerCutText()
   std::vector<char> ca(len);
   is->readBytes((uint8_t*)ca.data(), len);
 
-  std::string utf8(latin1ToUTF8(ca.data(), ca.size()));
-  std::string filtered(convertLF(utf8.data(), utf8.size()));
+  std::string utf8(core::latin1ToUTF8(ca.data(), ca.size()));
+  std::string filtered(core::convertLF(utf8.data(), utf8.size()));
 
   handler->serverCutText(filtered.c_str());
 
@@ -791,7 +792,7 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
     return true;
   }
 
-  if (!isValidUTF8(name.data())) {
+  if (!core::isValidUTF8(name.data())) {
     vlog.error("Ignoring DesktopName rect with invalid UTF-8 sequence");
     return true;
   }

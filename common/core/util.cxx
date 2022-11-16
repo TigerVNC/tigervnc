@@ -28,9 +28,9 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <rfb/util.h>
+#include <core/util.h>
 
-namespace rfb {
+namespace core {
 
   std::string format(const char *fmt, ...)
   {

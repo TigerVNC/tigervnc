@@ -28,10 +28,11 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <core/util.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/ScreenSet.h>
-#include <rfb/util.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
@@ -800,7 +801,7 @@ void DesktopWindow::updateOverlay(void *data)
 
   self = (DesktopWindow*)data;
 
-  elapsed = msSince(&self->overlayStart);
+  elapsed = core::msSince(&self->overlayStart);
 
   if (elapsed < 500) {
     self->overlayAlpha = (unsigned)255 * elapsed / 500;
@@ -1645,7 +1646,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
   updates = self->cc->getUpdateCount();
   pixels = self->cc->getPixelCount();
   pos = self->cc->getPosition();
-  elapsed = msSince(&self->statsLastTime);
+  elapsed = core::msSince(&self->statsLastTime);
   if (elapsed < 1)
     elapsed = 1;
 
@@ -1720,11 +1721,11 @@ void DesktopWindow::handleStatsTimeout(void *data)
   fl_draw(buffer, 5, statsHeight - 5);
 
   fl_color(FL_YELLOW);
-  fl_draw(siPrefix(self->stats[statsCount-1].pps, "pix/s").c_str(),
+  fl_draw(core::siPrefix(self->stats[statsCount-1].pps, "pix/s").c_str(),
           5 + (statsWidth-10)/3, statsHeight - 5);
 
   fl_color(FL_RED);
-  fl_draw(siPrefix(self->stats[statsCount-1].bps * 8, "bps").c_str(),
+  fl_draw(core::siPrefix(self->stats[statsCount-1].bps * 8, "bps").c_str(),
           5 + (statsWidth-10)*2/3, statsHeight - 5);
 
   image = surface->image();

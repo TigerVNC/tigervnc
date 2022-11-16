@@ -22,11 +22,13 @@
 
 #include <stdio.h>
 #include <string.h>
+
 #include <vector>
+
+#include <core/util.h>
 
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 #include <rfb/ComparingUpdateTracker.h>
 
@@ -262,8 +264,8 @@ void ComparingUpdateTracker::logStats()
   ratio = (double)totalPixels / missedPixels;
 
   vlog.info("%s in / %s out",
-            siPrefix(totalPixels, "pixels").c_str(),
-            siPrefix(missedPixels, "pixels").c_str());
+            core::siPrefix(totalPixels, "pixels").c_str(),
+            core::siPrefix(missedPixels, "pixels").c_str());
   vlog.info("(1:%g ratio)", ratio);
 
   totalPixels = missedPixels = 0;
