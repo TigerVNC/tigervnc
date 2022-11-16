@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include <core/Rect.h>
+
 #include <rdr/OutStream.h>
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
@@ -33,7 +35,6 @@
 #include <rfb/qemuTypes.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/PixelFormat.h>
-#include <rfb/Rect.h>
 #include <rfb/ScreenSet.h>
 #include <rfb/ServerParams.h>
 #include <rfb/CMsgWriter.h>
@@ -102,7 +103,8 @@ void CMsgWriter::writeSetDesktopSize(int width, int height,
   endMsg();
 }
 
-void CMsgWriter::writeFramebufferUpdateRequest(const Rect& r, bool incremental)
+void CMsgWriter::writeFramebufferUpdateRequest(const core::Rect& r,
+                                               bool incremental)
 {
   startMsg(msgTypeFramebufferUpdateRequest);
   os->writeU8(incremental);
@@ -174,9 +176,10 @@ void CMsgWriter::writeKeyEvent(uint32_t keysym, uint32_t keycode, bool down)
 }
 
 
-void CMsgWriter::writePointerEvent(const Point& pos, uint16_t buttonMask)
+void CMsgWriter::writePointerEvent(const core::Point& pos,
+                                   uint16_t buttonMask)
 {
-  Point p(pos);
+  core::Point p(pos);
   bool extendedMouseButtons;
 
   if (p.x < 0) p.x = 0;

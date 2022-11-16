@@ -68,8 +68,8 @@ public:
   ~CConn();
 
   void initDone() override;
-  void setCursor(int, int, const rfb::Point&, const uint8_t*) override;
-  void setCursorPos(const rfb::Point&) override;
+  void setCursor(int, int, const core::Point&, const uint8_t*) override;
+  void setCursorPos(const core::Point&) override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
   void setColourMapEntries(int, int, uint16_t*) override;
@@ -141,11 +141,11 @@ void CConn::initDone()
                                              server.height()));
 }
 
-void CConn::setCursor(int, int, const rfb::Point&, const uint8_t*)
+void CConn::setCursor(int, int, const core::Point&, const uint8_t*)
 {
 }
 
-void CConn::setCursorPos(const rfb::Point&)
+void CConn::setCursorPos(const core::Point&)
 {
 }
 

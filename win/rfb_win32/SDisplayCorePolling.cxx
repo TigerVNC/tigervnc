@@ -25,6 +25,7 @@
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb/LogWriter.h>
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 

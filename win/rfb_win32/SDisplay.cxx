@@ -40,6 +40,7 @@
 #include <rfb/ledStates.h>
 
 
+using namespace core;
 using namespace rdr;
 using namespace rfb;
 using namespace rfb::win32;

@@ -28,10 +28,11 @@
 
 #include <list>
 
+#include <core/Region.h>
+
 #include <os/Mutex.h>
 
 #include <rfb/PixelBuffer.h>
-#include <rfb/Region.h>
 
 #include "Surface.h"
 
@@ -40,16 +41,16 @@ public:
   PlatformPixelBuffer(int width, int height);
   ~PlatformPixelBuffer();
 
-  void commitBufferRW(const rfb::Rect& r) override;
+  void commitBufferRW(const core::Rect& r) override;
 
-  rfb::Rect getDamage(void);
+  core::Rect getDamage(void);
 
   using rfb::FullFramePixelBuffer::width;
   using rfb::FullFramePixelBuffer::height;
 
 protected:
   os::Mutex mutex;
-  rfb::Region damage;
+  core::Region damage;
 
 #if !defined(WIN32) && !defined(__APPLE__)
 protected:

@@ -91,7 +91,7 @@ PlatformPixelBuffer::~PlatformPixelBuffer()
 #endif
 }
 
-void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
+void PlatformPixelBuffer::commitBufferRW(const core::Rect& r)
 {
   FullFramePixelBuffer::commitBufferRW(r);
   mutex.lock();
@@ -99,9 +99,9 @@ void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
   mutex.unlock();
 }
 
-rfb::Rect PlatformPixelBuffer::getDamage(void)
+core::Rect PlatformPixelBuffer::getDamage(void)
 {
-  rfb::Rect r;
+  core::Rect r;
 
   mutex.lock();
   r = damage.get_bounding_rect();

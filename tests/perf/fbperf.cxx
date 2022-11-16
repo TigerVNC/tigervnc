@@ -155,7 +155,7 @@ void TestWindow::flush()
 
 void TestWindow::update()
 {
-  rfb::Rect r;
+  core::Rect r;
 
   startTimeCounter();
 
@@ -194,7 +194,7 @@ void TestWindow::timer(void* data)
 
 void PartialTestWindow::changefb()
 {
-  rfb::Rect r;
+  core::Rect r;
   uint32_t pixel;
 
   r = fb->getRect();

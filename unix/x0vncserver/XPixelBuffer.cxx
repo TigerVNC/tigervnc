@@ -27,14 +27,17 @@
 
 #include <string.h>
 #include <vector>
-#include <rfb/Region.h>
+
 #include <X11/Xlib.h>
+
+#include <core/Region.h>
+
 #include <x0vncserver/XPixelBuffer.h>
 
 using namespace rfb;
 
 XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
-                           const Rect &rect)
+                           const core::Rect& rect)
   : FullFramePixelBuffer(),
     m_poller(nullptr),
     m_dpy(dpy),
@@ -73,10 +76,10 @@ XPixelBuffer::~XPixelBuffer()
 }
 
 void
-XPixelBuffer::grabRegion(const rfb::Region& region)
+XPixelBuffer::grabRegion(const core::Region& region)
 {
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator i;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::const_iterator i;
   region.get_rects(&rects);
   for (i = rects.begin(); i != rects.end(); i++) {
     grabRect(*i);

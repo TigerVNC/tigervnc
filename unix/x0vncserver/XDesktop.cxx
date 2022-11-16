@@ -348,7 +348,9 @@ void XDesktop::queryConnection(network::Socket* sock,
   queryConnectDialog->map();
 }
 
-void XDesktop::pointerEvent(const Point& pos, uint16_t buttonMask) {
+void XDesktop::pointerEvent(const core::Point& pos,
+                            uint16_t buttonMask)
+{
 #ifdef HAVE_XTEST
   if (!haveXtest) return;
   XTestFakeMotionEvent(dpy, DefaultScreen(dpy),
@@ -624,7 +626,7 @@ ScreenSet XDesktop::computeScreenLayout()
 
   // Adjust the layout relative to the geometry
   ScreenSet::iterator iter, iter_next;
-  Point offset(-geometry->offsetLeft(), -geometry->offsetTop());
+  core::Point offset(-geometry->offsetLeft(), -geometry->offsetTop());
   for (iter = layout.begin();iter != layout.end();iter = iter_next) {
     iter_next = iter; ++iter_next;
     iter->dimensions = iter->dimensions.intersect(geometry->getRect());
@@ -862,7 +864,7 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 #ifdef HAVE_XDAMAGE
   } else if (ev->type == xdamageEventBase) {
     XDamageNotifyEvent* dev;
-    Rect rect;
+    core::Rect rect;
 
     if (!running)
       return true;

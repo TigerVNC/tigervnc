@@ -24,7 +24,8 @@
 #ifndef __RFB_WIN32_INPUT_H__
 #define __RFB_WIN32_INPUT_H__
 
-#include <rfb/Rect.h>
+#include <core/Rect.h>
+
 #include <rfb/Configuration.h>
 
 #include <map>
@@ -44,9 +45,9 @@ namespace rfb {
       // - Create a pointer event at a the given coordinates, with the
       //   specified button state.  The event must be specified using
       //   Screen coordinates.
-      void pointerEvent(const Point& pos, uint16_t buttonmask);
+      void pointerEvent(const core::Point& pos, uint16_t buttonmask);
     protected:
-      Point last_position;
+      core::Point last_position;
       uint16_t last_buttonmask;
     };
 
