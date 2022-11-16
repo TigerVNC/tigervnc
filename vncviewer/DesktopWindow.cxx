@@ -374,14 +374,14 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
 
 void DesktopWindow::setCursor(int width, int height,
-                              const rfb::Point& hotspot,
+                              const core::Point& hotspot,
                               const uint8_t* data)
 {
   viewport->setCursor(width, height, hotspot, data);
 }
 
 
-void DesktopWindow::setCursorPos(const rfb::Point& pos)
+void DesktopWindow::setCursorPos(const core::Point& pos)
 {
   if (!mouseGrabbed) {
     // Do nothing if we do not have the mouse captured.
@@ -508,7 +508,7 @@ void DesktopWindow::draw()
     if (fullscreen_active()) {
       assert(Fl::screen_count() >= 1);
 
-      rfb::Rect windowRect, screenRect;
+      core::Rect windowRect, screenRect;
       windowRect.setXYWH(x(), y(), w(), h());
 
       bool foundEnclosedScreen = false;
@@ -1332,7 +1332,7 @@ void DesktopWindow::remoteResize(int width, int height)
   } else {
     uint32_t id;
     int sx, sy, sw, sh;
-    rfb::Rect viewport_rect, screen_rect;
+    core::Rect viewport_rect, screen_rect;
 
     // In full screen we report all screens that are fully covered.
 

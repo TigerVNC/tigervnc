@@ -117,7 +117,7 @@ template<class T>
 void HextileEncoder::hextileEncode(rdr::OutStream* os,
                                    const PixelBuffer* pb)
 {
-  Rect t;
+  core::Rect t;
   T buf[256];
   T oldBg = 0, oldFg = 0;
   bool oldBgValid = false;
@@ -534,7 +534,7 @@ template<class T>
 void HextileEncoder::hextileEncodeBetter(rdr::OutStream* os,
                                          const PixelBuffer* pb)
 {
-  Rect t;
+  core::Rect t;
   T buf[256];
   T oldBg = 0, oldFg = 0;
   bool oldBgValid = false;

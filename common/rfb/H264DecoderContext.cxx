@@ -41,7 +41,7 @@ using namespace rfb;
 
 static LogWriter vlog("H264DecoderContext");
 
-H264DecoderContext *H264DecoderContext::createContext(const Rect &r)
+H264DecoderContext* H264DecoderContext::createContext(const core::Rect& r)
 {
   H264DecoderContext *ret = new H264DecoderContextType(r);
   if (!ret->initCodec())

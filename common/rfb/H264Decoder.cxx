@@ -59,7 +59,7 @@ void H264Decoder::resetContexts()
   contexts.clear();
 }
 
-H264DecoderContext* H264Decoder::findContext(const Rect& r)
+H264DecoderContext* H264Decoder::findContext(const core::Rect& r)
 {
   os::AutoMutex m(&mutex);
   for (H264DecoderContext* context : contexts)
@@ -68,7 +68,7 @@ H264DecoderContext* H264Decoder::findContext(const Rect& r)
   return nullptr;
 }
 
-bool H264Decoder::readRect(const Rect& /*r*/,
+bool H264Decoder::readRect(const core::Rect& /*r*/,
                            rdr::InStream* is,
                            const ServerParams& /*server*/,
                            rdr::OutStream* os)
@@ -96,7 +96,7 @@ bool H264Decoder::readRect(const Rect& /*r*/,
   return true;
 }
 
-void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
+void H264Decoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
                              size_t buflen,
                              const ServerParams& /*server*/,
                              ModifiablePixelBuffer* pb)

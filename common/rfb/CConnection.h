@@ -120,12 +120,12 @@ namespace rfb {
     void serverInit(int width, int height, const PixelFormat& pf,
                     const char* name) override;
 
-    bool readAndDecodeRect(const Rect& r, int encoding,
+    bool readAndDecodeRect(const core::Rect& r, int encoding,
                            ModifiablePixelBuffer* pb) override;
 
     void framebufferUpdateStart() override;
     void framebufferUpdateEnd() override;
-    bool dataRect(const Rect& r, int encoding) override;
+    bool dataRect(const core::Rect& r, int encoding) override;
 
     void serverCutText(const char* str) override;
 

@@ -42,11 +42,12 @@
 
 #include <rfb/screenTypes.h>
 
+namespace core { struct Point; }
+
 namespace network { class Socket; }
 
 namespace rfb {
 
-  struct Point;
   struct ScreenSet;
   class VNCServer;
 
@@ -101,7 +102,7 @@ namespace rfb {
 
     // pointerEvent() is called whenever a client sends an event that
     // the pointer moved, or a button was pressed or released.
-    virtual void pointerEvent(const Point& /*pos*/,
+    virtual void pointerEvent(const core::Point& /*pos*/,
                               uint16_t /*buttonMask*/) {};
 
     // handleClipboardRequest() is called whenever a client requests

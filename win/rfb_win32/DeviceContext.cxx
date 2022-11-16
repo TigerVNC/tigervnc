@@ -27,6 +27,7 @@
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 
+using namespace core;
 using namespace rfb;
 using namespace win32;
 

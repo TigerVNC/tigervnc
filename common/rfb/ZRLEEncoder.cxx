@@ -67,7 +67,7 @@ void ZRLEEncoder::setCompressLevel(int level)
 void ZRLEEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 {
   int x, y;
-  Rect tile;
+  core::Rect tile;
 
   rdr::OutStream* os;
 
@@ -133,7 +133,8 @@ void ZRLEEncoder::writeSolidRect(int width, int height,
   mos.clear();
 }
 
-void ZRLEEncoder::writePaletteTile(const Rect& tile, const PixelBuffer* pb,
+void ZRLEEncoder::writePaletteTile(const core::Rect& tile,
+                                   const PixelBuffer* pb,
                                    const Palette& palette)
 {
   const uint8_t* buffer;
@@ -159,7 +160,8 @@ void ZRLEEncoder::writePaletteTile(const Rect& tile, const PixelBuffer* pb,
   }
 }
 
-void ZRLEEncoder::writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
+void ZRLEEncoder::writePaletteRLETile(const core::Rect& tile,
+                                      const PixelBuffer* pb,
                                       const Palette& palette)
 {
   const uint8_t* buffer;
@@ -185,7 +187,8 @@ void ZRLEEncoder::writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
   }
 }
 
-void ZRLEEncoder::writeRawTile(const Rect& tile, const PixelBuffer* pb)
+void ZRLEEncoder::writeRawTile(const core::Rect& tile,
+                               const PixelBuffer* pb)
 {
   const uint8_t* buffer;
   int stride;

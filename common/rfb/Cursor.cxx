@@ -33,7 +33,7 @@ using namespace rfb;
 
 static LogWriter vlog("Cursor");
 
-Cursor::Cursor(int width, int height, const Point& hotspot,
+Cursor::Cursor(int width, int height, const core::Point& hotspot,
                const uint8_t* data_) :
   width_(width), height_(height), hotspot_(hotspot)
 {
@@ -215,7 +215,7 @@ std::vector<uint8_t> Cursor::getMask() const
 
 void Cursor::crop()
 {
-  Rect busy(0, 0, width_, height_);
+  core::Rect busy(0, 0, width_, height_);
   busy = busy.intersect({hotspot_.x, hotspot_.y,
                          hotspot_.x+1, hotspot_.y+1});
   int x, y;
@@ -255,9 +255,10 @@ RenderedCursor::RenderedCursor()
 {
 }
 
-const uint8_t* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
+const uint8_t* RenderedCursor::getBuffer(const core::Rect& _r,
+                                         int* stride) const
 {
-  Rect r;
+  core::Rect r;
 
   r = _r.translate(offset.negate());
   if (!r.enclosed_by(buffer.getRect()))
@@ -267,10 +268,10 @@ const uint8_t* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
 }
 
 void RenderedCursor::update(PixelBuffer* framebuffer,
-                            Cursor* cursor, const Point& pos)
+                            Cursor* cursor, const core::Point& pos)
 {
-  Point rawOffset, diff;
-  Rect clippedRect;
+  core::Point rawOffset, diff;
+  core::Rect clippedRect;
 
   const uint8_t* data;
   int stride;
@@ -282,7 +283,7 @@ void RenderedCursor::update(PixelBuffer* framebuffer,
   setSize(framebuffer->width(), framebuffer->height());
 
   rawOffset = pos.subtract(cursor->hotspot());
-  clippedRect = Rect(0, 0, cursor->width(), cursor->height())
+  clippedRect = core::Rect(0, 0, cursor->width(), cursor->height())
                 .translate(rawOffset)
                 .intersect(framebuffer->getRect());
   offset = clippedRect.tl;

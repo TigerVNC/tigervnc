@@ -168,7 +168,7 @@ const rfb::PixelFormat &Viewport::getPreferredPF()
 
 void Viewport::updateWindow()
 {
-  Rect r;
+  core::Rect r;
 
   r = frameBuffer->getDamage();
   damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
@@ -184,7 +184,8 @@ static const char * dotcursor_xpm[] = {
   " ... ",
   "     "};
 
-void Viewport::setCursor(int width, int height, const Point& hotspot,
+void Viewport::setCursor(int width, int height,
+                         const core::Point& hotspot,
                          const uint8_t* data)
 {
   int i;
@@ -482,7 +483,8 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
-void Viewport::sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask)
+void Viewport::sendPointerEvent(const core::Point& pos,
+                                uint16_t buttonMask)
 {
   if (viewOnly)
       return;
@@ -572,7 +574,8 @@ void Viewport::flushPendingClipboard()
 }
 
 
-void Viewport::handlePointerEvent(const rfb::Point& pos, uint16_t buttonMask)
+void Viewport::handlePointerEvent(const core::Point& pos,
+                                  uint16_t buttonMask)
 {
   filterPointerEvent(pos, buttonMask);
 }

@@ -24,8 +24,9 @@
 
 #include <stdexcept>
 
+#include <core/Rect.h>
+
 #include <rfb/JpegCompressor.h>
-#include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ClientParams.h>
 
@@ -157,7 +158,8 @@ JpegCompressor::~JpegCompressor(void)
 }
 
 void JpegCompressor::compress(const uint8_t *buf, volatile int stride,
-                              const Rect& r, const PixelFormat& pf,
+                              const core::Rect& r,
+                              const PixelFormat& pf,
                               int quality, int subsamp)
 {
   int w = r.width();

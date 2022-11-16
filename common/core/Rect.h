@@ -16,10 +16,10 @@
  * USA.
  */
 
-// rfb::Rect and rfb::Point structures
+// core::Rect and core::Point structures
 
-#ifndef __RFB_RECT_INCLUDED__
-#define __RFB_RECT_INCLUDED__
+#ifndef __CORE_RECT_INCLUDED__
+#define __CORE_RECT_INCLUDED__
 
 // Some platforms (e.g. Windows) include max() and min() macros in their
 // standard headers, but they are also standard C++ template functions, so some
@@ -33,9 +33,9 @@
 #define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
-namespace rfb {
+namespace core {
 
-  // rfb::Point
+  // core::Point
   //
   // Represents a point in 2D space, by X and Y coordinates.
   // Can also be used to represent a delta, or offset, between
@@ -61,7 +61,7 @@ namespace rfb {
     int x, y;
   };
 
-  // rfb::Rect
+  // core::Rect
   //
   // Represents a rectangular region defined by its top-left (tl)
   // and bottom-right (br) Points.
@@ -127,4 +127,4 @@ namespace rfb {
     Point br;
   };
 }
-#endif // __RFB_RECT_INCLUDED__
+#endif // __CORE_RECT_INCLUDED__
