@@ -9,14 +9,16 @@ macro(libtool_create_control_file _target)
   endif()
 
   #
-  # Parse the target_LIB_DEPENDS variable to determine which libraries to put
-  # into libtool control file as library dependencies, and handle a few corner
-  # cases.
+  # Parse the INTERFACE_LINK_LIBRARIES property to determine which
+  # libraries to put into libtool control file as library dependencies,
+  # and handle a few corner cases.
   #
 
   # First we need to split up any internal entries
   set(target_libs "")
-  foreach(library ${${_target}_LIB_DEPENDS})
+  get_property(_target_libs TARGET ${_target}
+               PROPERTY INTERFACE_LINK_LIBRARIES)
+  foreach(library ${_target_libs})
     if("${library}" MATCHES " ")
       string(REPLACE " " ";" lib_list "${library}")
       list(APPEND target_libs ${lib_list})
