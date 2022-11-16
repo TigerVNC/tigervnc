@@ -29,17 +29,17 @@ namespace rfb {
   public:
     HextileDecoder();
     virtual ~HextileDecoder();
-    bool readRect(const Rect& r, rdr::InStream* is,
+    bool readRect(const core::Rect& r, rdr::InStream* is,
                   const ServerParams& server,
                   rdr::OutStream* os) override;
-    void decodeRect(const Rect& r, const uint8_t* buffer,
+    void decodeRect(const core::Rect& r, const uint8_t* buffer,
                     size_t buflen, const ServerParams& server,
                     ModifiablePixelBuffer* pb) override;
   private:
     template<class T>
     inline T readPixel(rdr::InStream* is);
     template<class T>
-    void hextileDecode(const Rect& r, rdr::InStream* is,
+    void hextileDecode(const core::Rect& r, rdr::InStream* is,
                        const PixelFormat& pf,
                        ModifiablePixelBuffer* pb);
   };

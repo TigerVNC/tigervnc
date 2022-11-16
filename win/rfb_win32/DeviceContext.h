@@ -24,8 +24,10 @@
 #define __RFB_WIN32_DEVICECONTEXT_H__
 
 #include <windows.h>
+
+#include <core/Rect.h>
+
 #include <rfb/PixelFormat.h>
-#include <rfb/Rect.h>
 
 namespace rfb {
 
@@ -40,8 +42,8 @@ namespace rfb {
       operator HDC() const {return dc;}
       PixelFormat getPF() const;
       static PixelFormat getPF(HDC dc);
-      Rect getClipBox() const;
-      static Rect getClipBox(HDC dc);
+      core::Rect getClipBox() const;
+      static core::Rect getClipBox(HDC dc);
     protected:
       HDC dc;
     };

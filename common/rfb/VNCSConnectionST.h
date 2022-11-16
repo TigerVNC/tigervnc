@@ -108,8 +108,8 @@ namespace rfb {
 
     // Change tracking
 
-    void add_changed(const Region& region) { updates.add_changed(region); }
-    void add_copied(const Region& dest, const Point& delta) {
+    void add_changed(const core::Region& region) { updates.add_changed(region); }
+    void add_copied(const core::Region& dest, const core::Point& delta) {
       updates.add_copied(dest, delta);
     }
 
@@ -123,10 +123,11 @@ namespace rfb {
     void queryConnection(const char* userName) override;
     void clientInit(bool shared) override;
     void setPixelFormat(const PixelFormat& pf) override;
-    void pointerEvent(const Point& pos, uint16_t buttonMask) override;
+    void pointerEvent(const core::Point& pos,
+                      uint16_t buttonMask) override;
     void keyEvent(uint32_t keysym, uint32_t keycode,
                   bool down) override;
-    void framebufferUpdateRequest(const Rect& r,
+    void framebufferUpdateRequest(const core::Rect& r,
                                   bool incremental) override;
     void setDesktopSize(int fb_width, int fb_height,
                         const ScreenSet& layout) override;
@@ -185,11 +186,11 @@ namespace rfb {
 
     VNCServerST* server;
     SimpleUpdateTracker updates;
-    Region requested;
+    core::Region requested;
     bool updateRenderedCursor, removeRenderedCursor;
-    Region damagedCursorRegion;
+    core::Region damagedCursorRegion;
     bool continuousUpdates;
-    Region cuRegion;
+    core::Region cuRegion;
     EncodeManager encodeManager;
 
     std::map<uint32_t, uint32_t> pressedKeys;
@@ -197,7 +198,7 @@ namespace rfb {
     Timer idleTimer;
 
     time_t pointerEventTime;
-    Point pointerEventPos;
+    core::Point pointerEventPos;
     bool clientHasCursor;
 
     std::string closeReason;

@@ -72,8 +72,8 @@ public:
   void setCursor(int width, int height, int hotX, int hotY,
                  const unsigned char *rgbaData);
   void setCursorPos(int x, int y, bool warped);
-  void add_changed(const rfb::Region &region);
-  void add_copied(const rfb::Region &dest, const rfb::Point &delta);
+  void add_changed(const core::Region& region);
+  void add_copied(const core::Region& dest, const core::Point& delta);
   void handleSocketEvent(int fd, bool read, bool write);
   void blockHandler(int* timeout);
   void addClient(network::Socket* sock, bool reverse, bool viewOnly);
@@ -96,7 +96,8 @@ public:
   void terminate() override;
   void queryConnection(network::Socket* sock,
                        const char* userName) override;
-  void pointerEvent(const rfb::Point& pos, uint16_t buttonMask) override;
+  void pointerEvent(const core::Point& pos,
+                    uint16_t buttonMask) override;
   void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
   unsigned int setScreenLayout(int fb_width, int fb_height,
                                const rfb::ScreenSet& layout) override;
@@ -106,7 +107,7 @@ public:
   void handleClipboardData(const char* data) override;
 
   // rfb::PixelBuffer callbacks
-  void grabRegion(const rfb::Region& r) override;
+  void grabRegion(const core::Region& r) override;
 
 protected:
   bool handleListenerEvent(int fd,
@@ -135,6 +136,6 @@ private:
 
   std::map<uint64_t, uint64_t> pendingMsc;
 
-  rfb::Point oldCursorPos;
+  core::Point oldCursorPos;
 };
 #endif

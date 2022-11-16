@@ -26,6 +26,7 @@
 #include <rfb/LogWriter.h>
 #include <windows.h>
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 

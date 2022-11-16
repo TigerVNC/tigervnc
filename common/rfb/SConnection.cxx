@@ -508,7 +508,7 @@ void SConnection::setPixelFormat(const PixelFormat& pf)
     writeFakeColourMap();
 }
 
-void SConnection::framebufferUpdateRequest(const Rect& /*r*/,
+void SConnection::framebufferUpdateRequest(const core::Rect& /*r*/,
                                            bool /*incremental*/)
 {
   if (!readyForSetColourMapEntries) {

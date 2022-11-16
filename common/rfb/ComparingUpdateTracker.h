@@ -45,7 +45,7 @@ namespace rfb {
     void logStats();
 
   private:
-    void compareRect(const Rect& r, Region* newchanged);
+    void compareRect(const core::Rect& r, core::Region* newchanged);
     PixelBuffer* fb;
     ManagedPixelBuffer oldFb;
     bool firstCompare;

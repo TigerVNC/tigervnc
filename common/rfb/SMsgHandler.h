@@ -45,7 +45,8 @@ namespace rfb {
 
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setEncodings(int nEncodings, const int32_t* encodings);
-    virtual void framebufferUpdateRequest(const Rect& r, bool incremental) = 0;
+    virtual void framebufferUpdateRequest(const core::Rect& r,
+                                          bool incremental) = 0;
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout) = 0;
     virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]) = 0;
@@ -54,7 +55,7 @@ namespace rfb {
 
     virtual void keyEvent(uint32_t keysym, uint32_t keycode,
                           bool down);
-    virtual void pointerEvent(const Point& pos,
+    virtual void pointerEvent(const core::Point& pos,
                               uint16_t buttonMask);
 
     virtual void clientCutText(const char* str);

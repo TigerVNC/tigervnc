@@ -404,7 +404,7 @@ void CConn::bell()
   fl_beep();
 }
 
-bool CConn::dataRect(const Rect& r, int encoding)
+bool CConn::dataRect(const core::Rect& r, int encoding)
 {
   bool ret;
 
@@ -419,13 +419,13 @@ bool CConn::dataRect(const Rect& r, int encoding)
   return ret;
 }
 
-void CConn::setCursor(int width, int height, const Point& hotspot,
+void CConn::setCursor(int width, int height, const core::Point& hotspot,
                       const uint8_t* data)
 {
   desktop->setCursor(width, height, hotspot, data);
 }
 
-void CConn::setCursorPos(const Point& pos)
+void CConn::setCursorPos(const core::Point& pos)
 {
   desktop->setCursorPos(pos);
 }

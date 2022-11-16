@@ -26,13 +26,13 @@ namespace rfb {
   public:
     CopyRectDecoder();
     virtual ~CopyRectDecoder();
-    bool readRect(const Rect& r, rdr::InStream* is,
+    bool readRect(const core::Rect& r, rdr::InStream* is,
                   const ServerParams& server,
                   rdr::OutStream* os) override;
-    void getAffectedRegion(const Rect& rect, const uint8_t* buffer,
+    void getAffectedRegion(const core::Rect& rect, const uint8_t* buffer,
                            size_t buflen, const ServerParams& server,
-                           Region* region) override;
-    void decodeRect(const Rect& r, const uint8_t* buffer,
+                           core::Region* region) override;
+    void decodeRect(const core::Rect& r, const uint8_t* buffer,
                     size_t buflen, const ServerParams& server,
                     ModifiablePixelBuffer* pb) override;
   };

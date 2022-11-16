@@ -33,6 +33,7 @@
 #include <rfb/VNCServer.h>
 #include <rfb/LogWriter.h>
 
+using namespace core;
 using namespace rfb;
 using namespace win32;
 

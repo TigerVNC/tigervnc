@@ -100,7 +100,7 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
   }
 
   if ((framebuffer != nullptr) && (fb != nullptr)) {
-    Rect rect;
+    core::Rect rect;
 
     const uint8_t* data;
     int stride;
@@ -493,7 +493,7 @@ void CConnection::serverInit(int width, int height,
   }
 }
 
-bool CConnection::readAndDecodeRect(const Rect& r, int encoding,
+bool CConnection::readAndDecodeRect(const core::Rect& r, int encoding,
                                     ModifiablePixelBuffer* pb)
 {
   if (!decoder.decodeRect(r, encoding, pb))
@@ -540,7 +540,7 @@ void CConnection::framebufferUpdateEnd()
   }
 }
 
-bool CConnection::dataRect(const Rect& r, int encoding)
+bool CConnection::dataRect(const core::Rect& r, int encoding)
 {
   return decoder.decodeRect(r, encoding, framebuffer);
 }

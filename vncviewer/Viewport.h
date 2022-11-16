@@ -20,7 +20,7 @@
 #ifndef __VIEWPORT_H__
 #define __VIEWPORT_H__
 
-#include <rfb/Rect.h>
+#include <core/Rect.h>
 
 #include <FL/Fl_Widget.H>
 
@@ -49,7 +49,7 @@ public:
   void updateWindow();
 
   // New image for the locally rendered cursor
-  void setCursor(int width, int height, const rfb::Point& hotspot,
+  void setCursor(int width, int height, const core::Point& hotspot,
                  const uint8_t* data);
 
   // Change client LED state
@@ -71,7 +71,8 @@ public:
   int handle(int event) override;
 
 protected:
-  void sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask) override;
+  void sendPointerEvent(const core::Point& pos,
+                        uint16_t buttonMask) override;
 
 private:
   bool hasFocus();
@@ -83,7 +84,7 @@ private:
 
   void flushPendingClipboard();
 
-  void handlePointerEvent(const rfb::Point& pos, uint16_t buttonMask);
+  void handlePointerEvent(const core::Point& pos, uint16_t buttonMask);
   static void handlePointerTimeout(void *data);
 
   void resetKeyboard();
@@ -108,7 +109,7 @@ private:
 
   PlatformPixelBuffer* frameBuffer;
 
-  rfb::Point lastPointerPos;
+  core::Point lastPointerPos;
   uint16_t lastButtonMask;
 
   Keyboard* keyboard;
@@ -127,7 +128,7 @@ private:
   bool menuAltKey;
 
   Fl_RGB_Image *cursor;
-  rfb::Point cursorHotspot;
+  core::Point cursorHotspot;
   bool cursorIsBlank;
 };
 

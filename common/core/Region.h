@@ -19,15 +19,16 @@
 
 // Region class wrapper around pixman's region operations
 
-#ifndef __RFB_REGION_INCLUDED__
-#define __RFB_REGION_INCLUDED__
+#ifndef __CORE_REGION_INCLUDED__
+#define __CORE_REGION_INCLUDED__
 
-#include <rfb/Rect.h>
 #include <vector>
+
+#include <core/Rect.h>
 
 struct pixman_region16;
 
-namespace rfb {
+namespace core {
 
   struct Point;
   struct Rect;
@@ -48,7 +49,7 @@ namespace rfb {
 
     void clear();
     void reset(const Rect& r);
-    void translate(const rfb::Point& delta);
+    void translate(const Point& delta);
 
     void assign_intersect(const Region& r);
     void assign_union(const Region& r);
@@ -81,4 +82,4 @@ namespace rfb {
 
 };
 
-#endif // __RFB_REGION_INCLUDED__
+#endif // __CORE_REGION_INCLUDED__
