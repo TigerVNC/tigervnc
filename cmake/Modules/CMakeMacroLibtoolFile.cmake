@@ -5,7 +5,7 @@ macro(libtool_create_control_file _target)
   # No support for shared libraries, as TigerVNC only needs libtool config
   # files for static libraries.
   if("${_target_type}" MATCHES "^[^STATIC_LIBRARY]$")
-    message(ERROR " -  trying to use libtool_create_control_file for non-static library target.")
+    message(FATAL_ERROR " -  trying to use libtool_create_control_file for non-static library target.")
   endif()
 
   #
