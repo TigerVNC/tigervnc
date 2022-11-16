@@ -32,13 +32,14 @@
 
 #include "parameters.h"
 
+#include <core/util.h>
+
 #include <os/os.h>
 
 #include <rdr/Exception.h>
 
 #include <rfb/LogWriter.h>
 #include <rfb/SecurityClient.h>
-#include <rfb/util.h>
 
 #include <FL/fl_utf8.h>
 
@@ -467,8 +468,8 @@ static void saveToReg(const char* servername) {
     setKeyString("ServerName", servername, &hKey);
   } catch (std::exception& e) {
     RegCloseKey(hKey);
-    throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                    "ServerName", e.what()));
+    throw std::runtime_error(core::format(
+      _("Failed to save \"%s\": %s"), "ServerName", e.what()));
   }
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
@@ -484,9 +485,9 @@ static void saveToReg(const char* servername) {
       }
     } catch (std::exception& e) {
       RegCloseKey(hKey);
-      throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                      parameterArray[i]->getName(),
-                                      e.what()));
+      throw std::runtime_error(
+        core::format(_("Failed to save \"%s\": %s"),
+                     parameterArray[i]->getName(), e.what()));
     }
   }
 
@@ -498,9 +499,9 @@ static void saveToReg(const char* servername) {
       removeValue(readOnlyParameterArray[i]->getName(), &hKey);
     } catch (std::exception& e) {
       RegCloseKey(hKey);
-      throw std::runtime_error(format(_("Failed to remove \"%s\": %s"),
-                                      readOnlyParameterArray[i]->getName(),
-                                      e.what()));
+      throw std::runtime_error(
+        core::format(_("Failed to remove \"%s\": %s"),
+                     readOnlyParameterArray[i]->getName(), e.what()));
     }
   }
 
@@ -650,19 +651,18 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   /* Write parameters to file */
   FILE* f = fopen(filepath, "w+");
-  if (!f) {
-    std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
-  }
+  if (!f)
+    throw rdr::posix_error(
+      core::format(_("Could not open \"%s\""), filepath), errno);
 
   fprintf(f, "%s\n", IDENTIFIER_STRING);
   fprintf(f, "\n");
 
   if (!encodeValue(servername, encodingBuffer, buffersize)) {
     fclose(f);
-    throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                    "ServerName",
-                                    _("Could not encode parameter")));
+    throw std::runtime_error(
+      core::format(_("Failed to save \"%s\": %s"), "ServerName",
+                   _("Could not encode parameter")));
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
@@ -671,9 +671,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
       if (!encodeValue(*(StringParameter*)param,
           encodingBuffer, buffersize)) {
         fclose(f);
-        throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                        param->getName(),
-                                        _("Could not encode parameter")));
+        throw std::runtime_error(
+          core::format(_("Failed to save \"%s\": %s"), param->getName(),
+                       _("Could not encode parameter")));
       }
       fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
     } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
@@ -682,9 +682,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
       fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
     } else {      
       fclose(f);
-      throw std::logic_error(format(_("Failed to save \"%s\": %s"),
-                                    param->getName(),
-                                    _("Unknown parameter type")));
+      throw std::logic_error(
+        core::format(_("Failed to save \"%s\": %s"), param->getName(),
+                     _("Unknown parameter type")));
     }
   }
   fclose(f);
@@ -759,10 +759,10 @@ char* loadViewerParameters(const char *filename) {
   if (!f) {
     if (!filename)
       return nullptr; // Use defaults.
-    std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
+    throw rdr::posix_error(
+      core::format(_("Could not open \"%s\""), filepath), errno);
   }
-  
+
   int lineNr = 0;
   while (!feof(f)) {
 
@@ -773,18 +773,19 @@ char* loadViewerParameters(const char *filename) {
         break;
 
       fclose(f);
-      std::string msg = format(_("Failed to read line %d in "
-                                 "file \"%s\""), lineNr, filepath);
-      throw rdr::posix_error(msg.c_str(), errno);
+      throw rdr::posix_error(
+        core::format(_("Failed to read line %d in file \"%s\""),
+                     lineNr, filepath),
+        errno);
     }
 
     if (strlen(line) == (sizeof(line) - 1)) {
       fclose(f);
-      throw std::runtime_error(format("%s: %s",
-                                      format(_("Failed to read line %d "
-                                               "in file \"%s\""),
-                                             lineNr, filepath).c_str(),
-                                      _("Line too long")));
+      throw std::runtime_error(core::format(
+        "%s: %s",
+        core::format(_("Failed to read line %d in file \"%s\""),
+                     lineNr, filepath).c_str(),
+        _("Line too long")));
     }
 
     // Make sure that the first line of the file has the file identifier string
@@ -793,11 +794,10 @@ char* loadViewerParameters(const char *filename) {
         continue;
 
       fclose(f);
-      throw std::runtime_error(format(_("Configuration file %s is in "
-                                        "an invalid format"),
-                                      filepath));
+      throw std::runtime_error(core::format(
+        _("Configuration file %s is in an invalid format"), filepath));
     }
-    
+
     // Skip empty lines and comments
     if ((line[0] == '\n') || (line[0] == '#') || (line[0] == '\r'))
       continue;

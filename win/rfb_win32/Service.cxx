@@ -22,17 +22,22 @@
 #include <config.h>
 #endif
 
+#include <core/util.h>
+
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Handle.h>
+
 #include <logmessages/messages.h>
+
 #include <rdr/Exception.h>
+
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 
+using namespace core;
 using namespace rdr;
 using namespace rfb;
 using namespace win32;

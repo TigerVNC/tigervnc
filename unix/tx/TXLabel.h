@@ -28,7 +28,7 @@
 
 #include <stdlib.h>
 #include "TXWindow.h"
-#include <rfb/util.h>
+#include <core/util.h>
 
 class TXLabel : public TXWindow, public TXEventHandler {
 public:

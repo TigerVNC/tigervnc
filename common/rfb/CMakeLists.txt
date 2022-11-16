@@ -59,8 +59,7 @@ add_library(rfb STATIC
   ZRLEEncoder.cxx
   ZRLEDecoder.cxx
   encodings.cxx
-  obfuscate.cxx
-  util.cxx)
+  obfuscate.cxx)
 
 target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})

@@ -22,14 +22,18 @@
 #include <config.h>
 #endif
 
+#include <core/util.h>
+
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Security.h>
+
 #include <rdr/MemOutStream.h>
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
+
 #include <stdlib.h>
+
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 // These flags are required to control access control inheritance,
 // but are not defined by VC6's headers.  These definitions comes
@@ -42,6 +46,7 @@
 #endif
 
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 
