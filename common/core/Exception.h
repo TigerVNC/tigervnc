@@ -19,13 +19,13 @@
  * USA.
  */
 
-#ifndef __RDR_EXCEPTION_H__
-#define __RDR_EXCEPTION_H__
+#ifndef __CORE_EXCEPTION_H__
+#define __CORE_EXCEPTION_H__
 
 #include <stdexcept>
 #include <string>
 
-namespace rdr {
+namespace core {
 
   class posix_error : public std::runtime_error {
   public:
@@ -68,11 +68,6 @@ namespace rdr {
     getaddrinfo_error(const std::string& s, int err_) noexcept;
   private:
     std::string strerror(int err_) const noexcept;
-  };
-
-  class end_of_stream : public std::runtime_error {
-  public:
-    end_of_stream() noexcept : std::runtime_error("End of stream") {}
   };
 
 }

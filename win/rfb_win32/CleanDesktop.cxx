@@ -25,12 +25,17 @@
 #include <windows.h>
 #include <wininet.h>
 #include <shlobj.h>
+
+#include <core/Exception.h>
+
 #include <rfb_win32/CleanDesktop.h>
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Registry.h>
+
 #include <rfb/LogWriter.h>
-#include <rdr/Exception.h>
+
 #include <os/os.h>
+
 #include <set>
 
 using namespace rfb;
@@ -45,7 +50,7 @@ struct ActiveDesktop {
     HRESULT result = CoCreateInstance(CLSID_ActiveDesktop, nullptr, CLSCTX_INPROC_SERVER,
                                       IID_IActiveDesktop, (PVOID*)&handle);
     if (result != S_OK)
-      throw rdr::win32_error("Failed to contact Active Desktop", HRESULT_CODE(result));
+      throw core::win32_error("Failed to contact Active Desktop", HRESULT_CODE(result));
   }
   ~ActiveDesktop() {
     if (handle)

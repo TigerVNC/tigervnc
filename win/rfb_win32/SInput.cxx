@@ -30,11 +30,13 @@
 #define XK_CURRENCY
 #include <rfb/keysymdef.h>
 
+#include <core/Exception.h>
+
 #include <rfb_win32/SInput.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/keymap.h>
-#include <rdr/Exception.h>
+
 #include <rfb/LogWriter.h>
 
 using namespace core;
@@ -127,7 +129,7 @@ win32::SPointer::pointerEvent(const Point& pos, uint16_t buttonmask)
     evt.mi.mouseData = data;
     evt.mi.time = 0;
     if (SendInput(1, &evt, sizeof(evt)) != 1)
-      throw rdr::win32_error("SendInput", GetLastError());
+      throw core::win32_error("SendInput", GetLastError());
   }
 }
 

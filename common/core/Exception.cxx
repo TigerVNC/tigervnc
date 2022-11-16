@@ -26,10 +26,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <core/Exception.h>
 #include <core/util.h>
-
-#include <rdr/Exception.h>
-#include <rdr/TLSException.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -41,7 +39,7 @@
 
 #include <string.h>
 
-using namespace rdr;
+using namespace core;
 
 
 getaddrinfo_error::getaddrinfo_error(const char* s, int err_) noexcept

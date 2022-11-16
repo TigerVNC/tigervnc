@@ -3,7 +3,6 @@ add_library(rdr STATIC
   AESOutStream.cxx
   BufferedInStream.cxx
   BufferedOutStream.cxx
-  Exception.cxx
   FdInStream.cxx
   FdOutStream.cxx
   FileInStream.cxx
