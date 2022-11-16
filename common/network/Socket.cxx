@@ -39,7 +39,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -62,7 +62,7 @@ void network::initSockets() {
   WSADATA initResult;
   
   if (WSAStartup(requiredVersion, &initResult) != 0)
-    throw rdr::socket_error("Unable to initialise Winsock2", errorNumber);
+    throw core::socket_error("Unable to initialise Winsock2", errorNumber);
 #else
   signal(SIGPIPE, SIG_IGN);
 #endif
@@ -191,7 +191,7 @@ Socket* SocketListener::accept() {
 
   // Accept an incoming connection
   if ((new_sock = ::accept(fd, nullptr, nullptr)) < 0)
-    throw rdr::socket_error("Unable to accept new connection", errorNumber);
+    throw core::socket_error("Unable to accept new connection", errorNumber);
 
   // Create the socket object & check connection is allowed
   Socket* s = createSocket(new_sock);
@@ -209,7 +209,7 @@ void SocketListener::listen(int sock)
   if (::listen(sock, 5) < 0) {
     int e = errorNumber;
     closesocket(sock);
-    throw rdr::socket_error("Unable to set socket to listening mode", e);
+    throw core::socket_error("Unable to set socket to listening mode", e);
   }
 
   fd = sock;

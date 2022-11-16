@@ -37,9 +37,10 @@
 #include <nettle/base64.h>
 #include <nettle/asn1.h>
 
+#include <core/Exception.h>
+
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
-#include <rdr/Exception.h>
 #include <rdr/RandomStream.h>
 
 #include <rfb/SSecurityRSAAES.h>
@@ -175,7 +176,7 @@ void SSecurityRSAAES::loadPrivateKey()
 {
   FILE* file = fopen(keyFile, "rb");
   if (!file)
-    throw rdr::posix_error("Failed to open key file", errno);
+    throw core::posix_error("Failed to open key file", errno);
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
@@ -186,7 +187,7 @@ void SSecurityRSAAES::loadPrivateKey()
   std::vector<uint8_t> data(size);
   if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
-    throw rdr::posix_error("Failed to read key", errno);
+    throw core::posix_error("Failed to read key", errno);
   }
   fclose(file);
 

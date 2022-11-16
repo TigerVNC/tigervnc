@@ -33,6 +33,8 @@
 #include <FL/Fl.H>
 #include <FL/x.H>
 
+#include <core/Exception.h>
+
 #include <rfb/LogWriter.h>
 
 #include "PlatformPixelBuffer.h"

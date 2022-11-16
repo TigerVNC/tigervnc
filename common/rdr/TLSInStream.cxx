@@ -23,10 +23,13 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
+
 #include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
+
 #include <rfb/LogWriter.h>
+
 #include <errno.h>
 
 #ifdef HAVE_GNUTLS 
@@ -56,10 +59,10 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
     in->readBytes((uint8_t*)data, size);
   } catch (end_of_stream&) {
     return 0;
-  } catch (socket_error& e) {
+  } catch (core::socket_error& e) {
     vlog.error("Failure reading TLS data: %s", e.what());
     gnutls_transport_set_errno(self->session, e.err);
-    self->saved_exception = new socket_error(e);
+    self->saved_exception = new core::socket_error(e);
     return -1;
   } catch (std::exception& e) {
     vlog.error("Failure reading TLS data: %s", e.what());
@@ -118,8 +121,8 @@ size_t TLSInStream::readTLS(uint8_t* buf, size_t len)
   };
 
   if (n == GNUTLS_E_PULL_ERROR) {
-    if (dynamic_cast<socket_error*>(saved_exception))
-      throw *dynamic_cast<socket_error*>(saved_exception);
+    if (dynamic_cast<core::socket_error*>(saved_exception))
+      throw *dynamic_cast<core::socket_error*>(saved_exception);
     else
       throw std::runtime_error(saved_exception->what());
   }

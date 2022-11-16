@@ -41,9 +41,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <core/Exception.h>
 #include <core/util.h>
-
-#include <rdr/Exception.h>
 
 #include <network/TcpSocket.h>
 
@@ -72,7 +71,6 @@
 #endif
 
 using namespace network;
-using namespace rdr;
 
 static rfb::LogWriter vlog("TcpSocket");
 
@@ -89,15 +87,15 @@ int network::findFreeTcpPort (void)
   addr.sin_addr.s_addr = INADDR_ANY;
 
   if ((sock = socket (AF_INET, SOCK_STREAM, 0)) < 0)
-    throw socket_error("Unable to create socket", errorNumber);
+    throw core::socket_error("Unable to create socket", errorNumber);
 
   addr.sin_port = 0;
   if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) < 0)
-    throw socket_error("Unable to find free port", errorNumber);
+    throw core::socket_error("Unable to find free port", errorNumber);
 
   socklen_t n = sizeof(addr);
   if (getsockname (sock, (struct sockaddr *)&addr, &n) < 0)
-    throw socket_error("Unable to get port number", errorNumber);
+    throw core::socket_error("Unable to get port number", errorNumber);
 
   closesocket (sock);
   return ntohs(addr.sin_port);
@@ -226,7 +224,7 @@ TcpSocket::TcpSocket(const char *host, int port)
   hints.ai_next = nullptr;
 
   if ((result = getaddrinfo(host, nullptr, &hints, &ai)) != 0) {
-    throw getaddrinfo_error("Unable to resolve host by name", result);
+    throw core::getaddrinfo_error("Unable to resolve host by name", result);
   }
 
   sock = -1;
@@ -267,7 +265,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (sock == -1) {
       err = errorNumber;
       freeaddrinfo(ai);
-      throw socket_error("Unable to create socket", err);
+      throw core::socket_error("Unable to create socket", err);
     }
 
   /* Attempt to connect to the remote host */
@@ -294,7 +292,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (err == 0)
       throw std::runtime_error("No useful address for host");
     else
-      throw socket_error("Unable to connect to socket", err);
+      throw core::socket_error("Unable to connect to socket", err);
   }
 
   // Take proper ownership of the socket
@@ -391,7 +389,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   int sock;
 
   if ((sock = socket (listenaddr->sa_family, SOCK_STREAM, 0)) < 0)
-    throw socket_error("Unable to create listening socket", errorNumber);
+    throw core::socket_error("Unable to create listening socket", errorNumber);
 
   memcpy (&sa, listenaddr, listenaddrlen);
 #ifdef IPV6_V6ONLY
@@ -399,7 +397,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
     if (setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&one, sizeof(one))) {
       int e = errorNumber;
       closesocket(sock);
-      throw socket_error("Unable to set IPV6_V6ONLY", e);
+      throw core::socket_error("Unable to set IPV6_V6ONLY", e);
     }
   }
 #endif /* defined(IPV6_V6ONLY) */
@@ -417,14 +415,14 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     closesocket(sock);
-    throw socket_error("Unable to create listening socket", e);
+    throw core::socket_error("Unable to create listening socket", e);
   }
 #endif
 
   if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
     int e = errorNumber;
     closesocket(sock);
-    throw socket_error("Failed to bind socket", e);
+    throw core::socket_error("Failed to bind socket", e);
   }
 
   listen(sock);
@@ -535,7 +533,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
   snprintf (service, sizeof (service) - 1, "%d", port);
   service[sizeof (service) - 1] = '\0';
   if ((result = getaddrinfo(addr, service, &hints, &ai)) != 0)
-    throw getaddrinfo_error("Unable to resolve listening address", result);
+    throw core::getaddrinfo_error("Unable to resolve listening address", result);
 
   try {
     createTcpListeners(listeners, ai);
@@ -574,7 +572,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
     try {
       new_listeners.push_back(new TcpListener(current->ai_addr,
                                               current->ai_addrlen));
-    } catch (socket_error& e) {
+    } catch (core::socket_error& e) {
       // Ignore this if it is due to lack of address family support on
       // the interface or on the system
       if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT) {
@@ -722,7 +720,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     }
 
     if ((result = getaddrinfo (parts[0].c_str(), nullptr, &hints, &ai)) != 0) {
-      throw getaddrinfo_error("Unable to resolve host by name", result);
+      throw core::getaddrinfo_error("Unable to resolve host by name", result);
     }
 
     memcpy (&pattern.address.u.sa, ai->ai_addr, ai->ai_addrlen);

@@ -24,8 +24,6 @@
 
 #include <core/util.h>
 
-#include <rdr/Exception.h>
-
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 

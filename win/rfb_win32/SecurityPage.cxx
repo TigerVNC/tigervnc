@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -31,7 +31,6 @@
 
 #include <list>
 
-using namespace rdr;
 using namespace rfb;
 using namespace rfb::win32;
 using namespace std;

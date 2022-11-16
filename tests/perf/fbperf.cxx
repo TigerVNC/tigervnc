@@ -30,8 +30,6 @@
 
 #include <core/util.h>
 
-#include <rdr/Exception.h>
-
 #include "../vncviewer/PlatformPixelBuffer.h"
 
 #include "util.h"
