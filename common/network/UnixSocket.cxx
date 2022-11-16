@@ -30,7 +30,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
 #include <network/UnixSocket.h>
 
@@ -54,12 +54,12 @@ UnixSocket::UnixSocket(const char *path)
   socklen_t salen;
 
   if (strlen(path) >= sizeof(addr.sun_path))
-    throw socket_error("Socket path is too long", ENAMETOOLONG);
+    throw core::socket_error("Socket path is too long", ENAMETOOLONG);
 
   // - Create a socket
   sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock == -1)
-    throw socket_error("Unable to create socket", errno);
+    throw core::socket_error("Unable to create socket", errno);
 
   // - Attempt to connect
   memset(&addr, 0, sizeof(addr));
@@ -73,7 +73,7 @@ UnixSocket::UnixSocket(const char *path)
   }
 
   if (result == -1)
-    throw socket_error("Unable to connect to socket", err);
+    throw core::socket_error("Unable to connect to socket", err);
 
   setFd(sock);
 }
@@ -120,11 +120,11 @@ UnixListener::UnixListener(const char *path, int mode)
   int err, result;
 
   if (strlen(path) >= sizeof(addr.sun_path))
-    throw socket_error("Socket path is too long", ENAMETOOLONG);
+    throw core::socket_error("Socket path is too long", ENAMETOOLONG);
 
   // - Create a socket
   if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
-    throw socket_error("Unable to create listening socket", errno);
+    throw core::socket_error("Unable to create listening socket", errno);
 
   // - Delete existing socket (ignore result)
   unlink(path);
@@ -139,14 +139,14 @@ UnixListener::UnixListener(const char *path, int mode)
   umask(saved_umask);
   if (result < 0) {
     close(fd);
-    throw socket_error("Unable to bind listening socket", err);
+    throw core::socket_error("Unable to bind listening socket", err);
   }
 
   // - Set socket mode
   if (chmod(path, mode) < 0) {
     err = errno;
     close(fd);
-    throw socket_error("Unable to set socket mode", err);
+    throw core::socket_error("Unable to set socket mode", err);
   }
 
   listen(fd);

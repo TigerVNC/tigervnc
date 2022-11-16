@@ -22,7 +22,6 @@
 #endif
 
 #include <rdr/OutStream.h>
-#include <rfb/Exception.h>
 #include <rfb/encodings.h>
 #include <rfb/Palette.h>
 #include <rfb/PixelBuffer.h>
