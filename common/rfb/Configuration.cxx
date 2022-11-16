@@ -33,13 +33,15 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include <rfb/util.h>
+#include <core/util.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
 
+// Temporary during transition to new structure:
+using namespace core;
 using namespace rfb;
 
 static LogWriter vlog("Config");

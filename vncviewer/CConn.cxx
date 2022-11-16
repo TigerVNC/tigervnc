@@ -27,6 +27,8 @@
 #include <unistd.h>
 #endif
 
+#include <core/util.h>
+
 #include <rdr/Exception.h>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -39,7 +41,6 @@
 #include <rfb/fenceTypes.h>
 #include <rfb/Timer.h>
 #include <rfb/screenTypes.h>
-#include <rfb/util.h>
 
 #include <network/TcpSocket.h>
 #ifndef WIN32
@@ -151,46 +152,46 @@ std::string CConn::connectionInfo()
 
   char pfStr[100];
 
-  infoText += format(_("Desktop name: %.80s"), server.name());
+  infoText += core::format(_("Desktop name: %.80s"), server.name());
   infoText += "\n";
 
-  infoText += format(_("Host: %.80s port: %d"),
-                     serverHost.c_str(), serverPort);
+  infoText += core::format(_("Host: %.80s port: %d"),
+                           serverHost.c_str(), serverPort);
   infoText += "\n";
 
-  infoText += format(_("Size: %d x %d"),
-                     server.width(), server.height());
+  infoText += core::format(_("Size: %d x %d"),
+                           server.width(), server.height());
   infoText += "\n";
 
   // TRANSLATORS: Will be filled in with a string describing the
   // protocol pixel format in a fairly language neutral way
   server.pf().print(pfStr, 100);
-  infoText += format(_("Pixel format: %s"), pfStr);
+  infoText += core::format(_("Pixel format: %s"), pfStr);
   infoText += "\n";
 
   // TRANSLATORS: Similar to the earlier "Pixel format" string
   serverPF.print(pfStr, 100);
-  infoText += format(_("(server default %s)"), pfStr);
+  infoText += core::format(_("(server default %s)"), pfStr);
   infoText += "\n";
 
-  infoText += format(_("Requested encoding: %s"),
-                     encodingName(getPreferredEncoding()));
+  infoText += core::format(_("Requested encoding: %s"),
+                           encodingName(getPreferredEncoding()));
   infoText += "\n";
 
-  infoText += format(_("Last used encoding: %s"),
-                     encodingName(lastServerEncoding));
+  infoText += core::format(_("Last used encoding: %s"),
+                           encodingName(lastServerEncoding));
   infoText += "\n";
 
-  infoText += format(_("Line speed estimate: %d kbit/s"),
-                     (int)(bpsEstimate / 1000));
+  infoText += core::format(_("Line speed estimate: %d kbit/s"),
+                           (int)(bpsEstimate / 1000));
   infoText += "\n";
 
-  infoText += format(_("Protocol version: %d.%d"),
-                     server.majorVersion, server.minorVersion);
+  infoText += core::format(_("Protocol version: %d.%d"),
+                           server.majorVersion, server.minorVersion);
   infoText += "\n";
 
-  infoText += format(_("Security method: %s"),
-                     secTypeName(csecurity->getType()));
+  infoText += core::format(_("Security method: %s"),
+                           secTypeName(csecurity->getType()));
   infoText += "\n";
 
   return infoText;

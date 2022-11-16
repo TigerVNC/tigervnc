@@ -1,5 +1,6 @@
 add_library(core STATIC
-  Region.cxx)
+  Region.cxx
+  util.cxx)
 
 target_link_libraries(core rfb)
 target_include_directories(core PUBLIC ${CMAKE_SOURCE_DIR}/common)

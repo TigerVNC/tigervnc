@@ -27,6 +27,7 @@
 #include <rfb_win32/Service.h>
 #include <rfb/LogWriter.h>
 
+using namespace core;
 using namespace rfb;
 using namespace win32;
 using namespace winvnc;
