@@ -62,8 +62,11 @@ macro(libtool_create_control_file _target)
         # No shared library extension matched.  Check whether target is a CMake
         # target.
         if(TARGET ${library})
-          # Target is a CMake target, so ignore (CMake targets are static
-          # libs in TigerVNC.)
+          # Target is a CMake target, so assume it is a static library and
+          # build a reference to it
+          get_target_property(library_path ${library} BINARY_DIR)
+          set(library ${library_path}/${CMAKE_STATIC_LIBRARY_PREFIX}${library}.la)
+          set(_target_dependency_libs "${_target_dependency_libs} ${library}")
         elseif(${library} STREQUAL "-Wl,-Bstatic")
           # All following libraries should be static
           set(STATIC_MODE ON)
