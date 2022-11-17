@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
  * Copyright 2017 Peter Astrand <astrand@cendio.se> for Cendio AB
+ * Copyright 2011-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -420,13 +422,14 @@ StringParameter::operator const char *() const {
 // -=- BinaryParameter
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
-				 const void* v, size_t l, ConfigurationObject co)
+				 const uint8_t* v, size_t l, ConfigurationObject co)
 : VoidParameter(name_, desc_, co), value(0), length(0), def_value(0), def_length(0) {
   if (l) {
-    value = new char[l];
+    assert(v);
+    value = new uint8_t[l];
     length = l;
     memcpy(value, v, l);
-    def_value = new char[l];
+    def_value = new uint8_t[l];
     def_length = l;
     memcpy(def_value, v, l);
   }
@@ -442,39 +445,40 @@ bool BinaryParameter::setParam(const char* v) {
   vlog.debug("set %s(Binary) to %s", getName(), v);
   delete [] value;
   length = 0;
-  value = (char*)hexToBin(v, strlen(v));
+  value = hexToBin(v, strlen(v));
   if (value == NULL)
     return false;
   length = strlen(v)/2;
   return true;
 }
 
-void BinaryParameter::setParam(const void* v, size_t len) {
+void BinaryParameter::setParam(const uint8_t* v, size_t len) {
   LOCK_CONFIG;
   if (immutable) return; 
   vlog.debug("set %s(Binary)", getName());
   delete [] value; value = 0;
   if (len) {
-    value = new char[len];
+    assert(v);
+    value = new uint8_t[len];
     length = len;
     memcpy(value, v, len);
   }
 }
 
 char* BinaryParameter::getDefaultStr() const {
-  return binToHex((const uint8_t*)def_value, def_length);
+  return binToHex(def_value, def_length);
 }
 
 char* BinaryParameter::getValueStr() const {
   LOCK_CONFIG;
-  return binToHex((const uint8_t*)value, length);
+  return binToHex(value, length);
 }
 
-void BinaryParameter::getData(void** data_, size_t* length_) const {
+void BinaryParameter::getData(uint8_t** data_, size_t* length_) const {
   LOCK_CONFIG;
   if (length_) *length_ = length;
   if (data_) {
-    *data_ = new char[length];
+    *data_ = new uint8_t[length];
     memcpy(*data_, value, length);
   }
 }
