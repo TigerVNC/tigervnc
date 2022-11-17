@@ -61,13 +61,13 @@ FileVersionInfo::FileVersionInfo(const TCHAR* filename) {
 }
 
 const TCHAR* FileVersionInfo::getVerString(const TCHAR* name, DWORD langId) {
-  char langIdBuf[sizeof(langId)];
+  uint8_t langIdBuf[sizeof(langId)];
   for (int i=sizeof(langIdBuf)-1; i>=0; i--) {
-    langIdBuf[i] = (char) (langId & 0xff);
+    langIdBuf[i] = (langId & 0xff);
     langId = langId >> 8;
   }
 
-  TCharArray langIdStr(rdr::HexOutStream::binToHexStr(langIdBuf, sizeof(langId)));
+  TCharArray langIdStr(binToHex(langIdBuf, sizeof(langId)));
   TCharArray infoName(_tcslen(_T("StringFileInfo")) + 4 + _tcslen(name) + _tcslen(langIdStr.buf));
   _stprintf(infoName.buf, _T("\\StringFileInfo\\%s\\%s"), langIdStr.buf, name);
 

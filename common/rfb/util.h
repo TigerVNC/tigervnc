@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2019 Pierre Ossman for Cendio AB
+ * Copyright 2011-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 #include <limits.h>
 #include <string.h>
+#include <stdint.h>
 
 struct timeval;
 
@@ -72,6 +73,13 @@ namespace rfb {
 
   // Copies src to dest, up to specified length-1, and guarantees termination
   void strCopy(char* dest, const char* src, int destlen);
+
+  // Conversion to and from a hex string
+
+  void binToHex(const uint8_t* in, size_t inlen, char* out, size_t outlen);
+  char* binToHex(const uint8_t* in, size_t inlen);
+  bool hexToBin(const char* in, size_t inlen, uint8_t* out, size_t outlen);
+  uint8_t* hexToBin(const char* in, size_t inlen);
 
   // Makes sure line endings are in a certain format
 

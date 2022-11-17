@@ -32,9 +32,6 @@ namespace rdr {
     virtual void flush();
     virtual void cork(bool enable);
 
-    static char intToHex(int i);
-    static char* binToHexStr(const char* data, size_t length);
-
   private:
     virtual bool flushBuffer();
     void writeBuffer();

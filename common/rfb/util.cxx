@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2019 Pierre Ossman for Cendio AB
+ * Copyright 2011-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -110,6 +112,79 @@ namespace rfb {
     if (src)
       strncpy(dest, src, destlen-1);
     dest[src ? destlen-1 : 0] = 0;
+  }
+
+  static char intToHex(uint8_t i) {
+    if (i<=9)
+      return '0'+i;
+    else if ((i>=10) && (i<=15))
+      return 'a'+(i-10);
+    assert(false);
+    return '\0';
+  }
+
+  void binToHex(const uint8_t* in, size_t inlen,
+                char* out, size_t outlen) {
+    if (inlen > outlen/2)
+      inlen = outlen/2;
+
+    if (inlen > 0) {
+      assert(in);
+      assert(out);
+    }
+
+    for (size_t i=0; i<inlen; i++) {
+      out[i*2] = intToHex((in[i] >> 4) & 15);
+      out[i*2+1] = intToHex((in[i] & 15));
+    }
+  }
+
+  char* binToHex(const uint8_t* in, size_t inlen) {
+    char* out = new char[inlen*2+1]();
+    binToHex(in, inlen, out, inlen*2);
+    return out;
+  }
+
+  static bool readHexAndShift(char c, uint8_t* v) {
+    c=tolower(c);
+    if ((c >= '0') && (c <= '9'))
+      *v = (*v << 4) + (c - '0');
+    else if ((c >= 'a') && (c <= 'f'))
+      *v = (*v << 4) + (c - 'a' + 10);
+    else
+      return false;
+    return true;
+  }
+
+  bool hexToBin(const char* in, size_t inlen,
+                uint8_t* out, size_t outlen) {
+    assert(in);
+    assert(out);
+
+    if (inlen & 1)
+      return false;
+
+    if (inlen > outlen*2)
+      inlen = outlen*2;
+
+    for(size_t i=0; i<inlen; i+=2) {
+      uint8_t byte = 0;
+      if (!readHexAndShift(in[i], &byte) ||
+          !readHexAndShift(in[i+1], &byte))
+        return false;
+      out[i/2] = byte;
+    }
+
+    return true;
+  }
+
+  uint8_t* hexToBin(const char* in, size_t inlen) {
+    uint8_t* out = new uint8_t[inlen/2];
+    if (!hexToBin(in, inlen, out, inlen/2)) {
+      delete [] out;
+      return NULL;
+    }
+    return out;
   }
 
   char* convertLF(const char* src, size_t bytes)

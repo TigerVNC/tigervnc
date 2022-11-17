@@ -440,7 +440,13 @@ bool BinaryParameter::setParam(const char* v) {
   LOCK_CONFIG;
   if (immutable) return true;
   vlog.debug("set %s(Binary) to %s", getName(), v);
-  return rdr::HexInStream::hexStrToBin(v, &value, &length);
+  delete [] value;
+  length = 0;
+  value = (char*)hexToBin(v, strlen(v));
+  if (value == NULL)
+    return false;
+  length = strlen(v)/2;
+  return true;
 }
 
 void BinaryParameter::setParam(const void* v, size_t len) {
@@ -456,12 +462,12 @@ void BinaryParameter::setParam(const void* v, size_t len) {
 }
 
 char* BinaryParameter::getDefaultStr() const {
-  return rdr::HexOutStream::binToHexStr(def_value, def_length);
+  return binToHex((const uint8_t*)def_value, def_length);
 }
 
 char* BinaryParameter::getValueStr() const {
   LOCK_CONFIG;
-  return rdr::HexOutStream::binToHexStr(value, length);
+  return binToHex((const uint8_t*)value, length);
 }
 
 void BinaryParameter::getData(void** data_, size_t* length_) const {

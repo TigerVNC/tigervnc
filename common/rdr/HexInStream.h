@@ -29,9 +29,6 @@ namespace rdr {
     HexInStream(InStream& is);
     virtual ~HexInStream();
 
-    static bool readHexAndShift(char c, int* v);
-    static bool hexStrToBin(const char* s, char** data, size_t* length);
-
   private:
     virtual bool fillBuffer();
 
