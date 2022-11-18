@@ -25,7 +25,7 @@
 #include <math.h>
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/time.h>
 
 #include "GestureHandler.h"
 

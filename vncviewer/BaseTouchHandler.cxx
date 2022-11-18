@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <core/util.h>
+#include <core/time.h>
 
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
