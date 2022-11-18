@@ -7,6 +7,7 @@ add_library(core STATIC
   LogWriter.cxx
   Region.cxx
   Timer.cxx
+  time.cxx
   util.cxx)
 
 target_link_libraries(core os)
