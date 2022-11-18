@@ -66,37 +66,15 @@ int Timer::checkTimeouts() {
   gettimeofday(&start, 0);
   while (pending.front()->isBefore(start)) {
     Timer* timer;
-    timeval before, dueTime;
 
     timer = pending.front();
     pending.pop_front();
 
-    dueTime = timer->dueTime;
-    gettimeofday(&before, 0);
-    if (timer->cb->handleTimeout(timer)) {
-      timeval now;
+    timer->lastDueTime = timer->dueTime;
+    timer->cb->handleTimeout(timer);
 
-      if (msBetween(&dueTime, &timer->dueTime) != 0) {
-        vlog.error("Timer incorrectly modified whilst repeating");
-        timer->dueTime = dueTime;
-      }
-
-      gettimeofday(&now, 0);
-
-      timer->dueTime = addMillis(timer->dueTime, timer->timeoutMs);
-      if (timer->isBefore(now)) {
-        // Time has jumped forwards, or we're not getting enough
-        // CPU time for the timers
-
-        timer->dueTime = addMillis(before, timer->timeoutMs);
-        if (timer->isBefore(now))
-          timer->dueTime = now;
-      }
-
-      insertTimer(timer);
-    } else if (pending.empty()) {
+    if (pending.empty())
       return -1;
-    }
   }
   return getNextTimeout();
 }
@@ -141,6 +119,29 @@ void Timer::start(int timeoutMs_) {
   stop();
   timeoutMs = timeoutMs_;
   dueTime = addMillis(now, timeoutMs);
+  insertTimer(this);
+}
+
+void Timer::repeat() {
+  timeval now;
+
+  gettimeofday(&now, 0);
+
+  if (isStarted()) {
+    vlog.error("Incorrectly repeating already running timer");
+    stop();
+  }
+
+  if (msBetween(&lastDueTime, &dueTime) != 0)
+    vlog.error("Timer incorrectly modified whilst repeating");
+
+  dueTime = addMillis(lastDueTime, timeoutMs);
+  if (isBefore(now)) {
+    // Time has jumped forwards, or we're not getting enough
+    // CPU time for the timers
+    dueTime = now;
+  }
+
   insertTimer(this);
 }
 

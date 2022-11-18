@@ -518,13 +518,11 @@ void XserverDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
   vncKeyboardEvent(keysym, keycode, down);
 }
 
-bool XserverDesktop::handleTimeout(Timer* t)
+void XserverDesktop::handleTimeout(Timer* t)
 {
   if (t == &queryConnectTimer) {
     server->approveConnection(queryConnectSocket, false,
                               "The attempt to prompt the user to "
                               "accept the connection failed");
   }
-
-  return false;
 }

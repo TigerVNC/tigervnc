@@ -155,7 +155,7 @@ namespace rfb {
   protected:
 
     // Timer callbacks
-    virtual bool handleTimeout(Timer* t);
+    virtual void handleTimeout(Timer* t);
 
     // - Internal methods
 

@@ -140,7 +140,7 @@ namespace rfb {
     virtual void supportsLEDState();
 
     // Timer callbacks
-    virtual bool handleTimeout(Timer* t);
+    virtual void handleTimeout(Timer* t);
 
     // Internal methods
 

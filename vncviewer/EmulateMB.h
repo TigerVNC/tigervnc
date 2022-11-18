@@ -31,7 +31,7 @@ public:
 protected:
   virtual void sendPointerEvent(const rfb::Point& pos, int buttonMask)=0;
 
-  virtual bool handleTimeout(rfb::Timer *t);
+  virtual void handleTimeout(rfb::Timer *t);
 
 private:
   void sendAction(const rfb::Point& pos, int buttonMask, int action);

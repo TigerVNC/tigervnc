@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2018 Pierre Ossman for Cendio AB
+ * Copyright 2018-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ namespace rfb {
       //   running, causing another timeout after the appropriate
       //   interval.
       //   If the handler returns false then the Timer is cancelled.
-      virtual bool handleTimeout(Timer* t) = 0;
+      virtual void handleTimeout(Timer* t) = 0;
 
       virtual ~Callback() {}
     };
@@ -75,6 +75,12 @@ namespace rfb {
     //   of milliseconds. If the timer is already active then it will
     //   be implicitly cancelled and re-started.
     void start(int timeoutMs_);
+
+    // repeat()
+    //   Restarts the timer in a way that repeats that last timeout.
+    //   This allows you to have a periodic timer without the risk of
+    //   accumulating drift caused by processing delays.
+    void repeat();
 
     // stop()
     //   Cancels the timer.
@@ -100,7 +106,7 @@ namespace rfb {
     bool isBefore(timeval other);
 
   protected:
-    timeval dueTime;
+    timeval dueTime, lastDueTime;
     int timeoutMs;
     Callback* cb;
 
@@ -113,14 +119,14 @@ namespace rfb {
   template<class T> class MethodTimer
     : public Timer, public Timer::Callback {
   public:
-    MethodTimer(T* obj_, bool (T::*cb_)(Timer*))
+    MethodTimer(T* obj_, void (T::*cb_)(Timer*))
       : Timer(this), obj(obj_), cb(cb_) {}
 
-    virtual bool handleTimeout(Timer* t) { return (obj->*cb)(t); }
+    virtual void handleTimeout(Timer* t) { (obj->*cb)(t); }
 
   private:
     T* obj;
-    bool (T::*cb)(Timer*);
+    void (T::*cb)(Timer*);
   };
 
 };

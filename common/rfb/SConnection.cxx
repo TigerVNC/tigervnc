@@ -287,11 +287,11 @@ bool SConnection::processInitMsg()
   return reader_->readClientInit();
 }
 
-bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
+void SConnection::handleAuthFailureTimeout(Timer* /*t*/)
 {
   if (state_ != RFBSTATE_SECURITY_FAILURE) {
     close("SConnection::handleAuthFailureTimeout: invalid state");
-    return false;
+    return;
   }
 
   try {
@@ -304,12 +304,10 @@ bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
     os->flush();
   } catch (rdr::Exception& e) {
     close(e.str());
-    return false;
+    return;
   }
 
   close(authFailureMsg.c_str());
-
-  return false;
 }
 
 void SConnection::throwConnFailedException(const char* format, ...)

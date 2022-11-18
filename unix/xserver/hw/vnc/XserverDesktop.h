@@ -112,7 +112,7 @@ protected:
                          network::SocketServer* sockserv,
                          bool read, bool write);
 
-  virtual bool handleTimeout(rfb::Timer* t);
+  virtual void handleTimeout(rfb::Timer* t);
 
 private:
 
