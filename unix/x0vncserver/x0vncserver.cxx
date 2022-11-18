@@ -35,6 +35,7 @@
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
+#include <core/time.h>
 
 #include <rdr/FdOutStream.h>
 

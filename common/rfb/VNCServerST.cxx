@@ -56,7 +56,7 @@
 #include <stdlib.h>
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/time.h>
 
 #include <rdr/FdOutStream.h>
 
