@@ -24,13 +24,10 @@
 #ifndef __CORE_UTIL_H__
 #define __CORE_UTIL_H__
 
-#include <limits.h>
 #include <stdint.h>
 
 #include <string>
 #include <vector>
-
-struct timeval;
 
 namespace core {
 
@@ -71,24 +68,8 @@ namespace core {
   bool isValidUTF8(const char* str, size_t bytes = (size_t)-1);
   bool isValidUTF16(const wchar_t* wstr, size_t units = (size_t)-1);
 
-  // HELPER functions for timeout handling
-
-  // secsToMillis() turns seconds into milliseconds, capping the value so it
-  //   can't wrap round and become -ve
-  inline int secsToMillis(int secs) {
-    return (secs < 0 || secs > (INT_MAX/1000) ? INT_MAX : secs * 1000);
-  }
-
-  // Returns time elapsed between two moments in milliseconds.
-  unsigned msBetween(const struct timeval *first,
-                     const struct timeval *second);
-
-  // Returns time elapsed since given moment in milliseconds.
-  unsigned msSince(const struct timeval *then);
-
-  // Returns true if first happened before seconds
-  bool isBefore(const struct timeval *first,
-                const struct timeval *second);
+  // Convert a value to a string using the correct prefix to reduce
+  // the length of the string
 
   std::string siPrefix(long long value, const char *unit,
                        int precision=6);
