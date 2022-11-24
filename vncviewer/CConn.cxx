@@ -36,6 +36,7 @@
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/Timer.h>
+#include <rfb/Exception.h>
 #include <network/TcpSocket.h>
 #ifndef WIN32
 #include <network/UnixSocket.h>
@@ -274,6 +275,11 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     } else {
       disconnect();
     }
+  } catch (rfb::AuthFailureException& e) {
+    reset_password_data();
+    vlog.error("%s", e.str());
+    abort_connection(_("An authentication error occurred when communicating "
+                     "with the server:\n\n%s"), e.str());
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     abort_connection_with_unexpected_error(e);
