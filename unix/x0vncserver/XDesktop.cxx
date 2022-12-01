@@ -31,6 +31,7 @@
 #include <x0vncserver/XDesktop.h>
 
 #include <X11/XKBlib.h>
+#include <X11/Xutil.h>
 #ifdef HAVE_XTEST
 #include <X11/extensions/XTest.h>
 #endif
@@ -50,6 +51,7 @@ void vncSetGlueContext(Display *dpy, void *res);
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/XPixelBuffer.h>
 
+using namespace std;
 using namespace rfb;
 
 extern const unsigned short code_map_qnum_to_xorgevdev[];
@@ -192,7 +194,8 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
                    RRScreenChangeNotifyMask | RRCrtcChangeNotifyMask);
     /* Override TXWindow::init input mask */
     XSelectInput(dpy, DefaultRootWindow(dpy),
-                 PropertyChangeMask | StructureNotifyMask | ExposureMask);
+                 PropertyChangeMask | StructureNotifyMask |
+                 ExposureMask | EnterWindowMask | LeaveWindowMask);
   } else {
 #endif
     vlog.info("RANDR extension not present");
@@ -217,11 +220,13 @@ void XDesktop::poll() {
     Window root, child;
     int x, y, wx, wy;
     unsigned int mask;
-    XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
-                  &x, &y, &wx, &wy, &mask);
-    x -= geometry->offsetLeft();
-    y -= geometry->offsetTop();
-    server->setCursorPos(rfb::Point(x, y), false);
+
+    if (XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
+                      &x, &y, &wx, &wy, &mask)) {
+      x -= geometry->offsetLeft();
+      y -= geometry->offsetTop();
+      server->setCursorPos(rfb::Point(x, y), false);
+    }
   }
 }
 
@@ -253,7 +258,14 @@ void XDesktop::start(VNCServer* vs) {
 #endif
 
 #ifdef HAVE_XFIXES
-  setCursor();
+  Window root, child;
+  int x, y, wx, wy;
+  unsigned int mask;
+  // Check whether the cursor is initially on our screen
+  if (XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
+                    &x, &y, &wx, &wy, &mask))
+    setCursor();
+
 #endif
 
   server->setLEDState(ledState);
@@ -263,6 +275,9 @@ void XDesktop::start(VNCServer* vs) {
 
 void XDesktop::stop() {
   running = false;
+
+  // Delete added keycodes
+  deleteAddedKeysyms(dpy);
 
 #ifdef HAVE_XDAMAGE
   if (haveDamage)
@@ -383,6 +398,118 @@ KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
 }
 #endif
 
+KeyCode XDesktop::addKeysym(Display* dpy, KeySym keysym)
+{
+  int types[1];
+  unsigned int key;
+  XkbDescPtr xkb;
+  XkbMapChangesRec changes;
+  KeySym *syms;
+  KeySym upper, lower;
+
+  xkb = XkbGetMap(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+
+  if (!xkb)
+    return 0;
+
+  for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
+    if (XkbKeyNumGroups(xkb, key) == 0)
+      break;
+  }
+
+  if (key < xkb->min_key_code)
+    return 0;
+
+  memset(&changes, 0, sizeof(changes));
+
+  XConvertCase(keysym, &lower, &upper);
+
+  if (upper == lower)
+    types[XkbGroup1Index] = XkbOneLevelIndex;
+  else
+    types[XkbGroup1Index] = XkbAlphabeticIndex;
+
+  XkbChangeTypesOfKey(xkb, key, 1, XkbGroup1Mask, types, &changes);
+
+  syms = XkbKeySymsPtr(xkb,key);
+  if (upper == lower)
+    syms[0] = keysym;
+  else {
+    syms[0] = lower;
+    syms[1] = upper;
+  }
+
+  changes.changed |= XkbKeySymsMask;
+  changes.first_key_sym = key;
+  changes.num_key_syms = 1;
+
+  if (XkbChangeMap(dpy, xkb, &changes)) {
+    vlog.info("Added unknown keysym %s to keycode %d", XKeysymToString(keysym), key);
+    addedKeysyms[keysym] = key;
+    return key;
+  }
+
+  return 0;
+}
+
+void XDesktop::deleteAddedKeysyms(Display* dpy) {
+  XkbDescPtr xkb;
+  xkb = XkbGetMap(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+
+  if (!xkb)
+    return;
+
+  XkbMapChangesRec changes;
+  memset(&changes, 0, sizeof(changes));
+
+  KeyCode lowestKeyCode = xkb->max_key_code;
+  KeyCode highestKeyCode = xkb->min_key_code;
+  std::map<KeySym, KeyCode>::iterator it;
+  for (it = addedKeysyms.begin(); it != addedKeysyms.end(); it++) {
+    if (XkbKeyNumGroups(xkb, it->second) != 0) {
+      // Check if we are removing keysym we added ourself
+      if (XkbKeysymToKeycode(dpy, it->first) != it->second)
+        continue;
+
+      XkbChangeTypesOfKey(xkb, it->second, 0, XkbGroup1Mask, NULL, &changes);
+
+      if (it->second < lowestKeyCode)
+        lowestKeyCode = it->second;
+
+      if (it->second > highestKeyCode)
+        highestKeyCode = it->second;
+    }
+  }
+
+  changes.changed |= XkbKeySymsMask;
+  changes.first_key_sym = lowestKeyCode;
+  changes.num_key_syms = highestKeyCode - lowestKeyCode + 1;
+  XkbChangeMap(dpy, xkb, &changes);
+
+  addedKeysyms.clear();
+}
+
+KeyCode XDesktop::keysymToKeycode(Display* dpy, KeySym keysym) {
+  int keycode = 0;
+
+  // XKeysymToKeycode() doesn't respect state, so we have to use
+  // something slightly more complex
+  keycode = XkbKeysymToKeycode(dpy, keysym);
+
+  if (keycode != 0)
+    return keycode;
+
+  // TODO: try to further guess keycode with all possible mods as Xvnc does
+
+  keycode = addKeysym(dpy, keysym);
+
+  if (keycode == 0)
+    vlog.error("Failure adding new keysym 0x%lx", keysym);
+
+  return keycode;
+}
+
+
 void XDesktop::keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
 #ifdef HAVE_XTEST
   int keycode = 0;
@@ -398,9 +525,7 @@ void XDesktop::keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
     if (pressedKeys.find(keysym) != pressedKeys.end())
       keycode = pressedKeys[keysym];
     else {
-      // XKeysymToKeycode() doesn't respect state, so we have to use
-      // something slightly more complex
-      keycode = XkbKeysymToKeycode(dpy, keysym);
+      keycode = keysymToKeycode(dpy, keysym);
     }
   }
 
@@ -701,6 +826,15 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
     if (cev->subtype != XFixesDisplayCursorNotify)
       return false;
 
+    Window root, child;
+    int x, y, wx, wy;
+    unsigned int mask;
+
+    // Check whether the cursor is initially on our screen
+    if (!XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
+                      &x, &y, &wx, &wy, &mask))
+      return false;
+
     return setCursor();
 #endif
 #ifdef HAVE_XRANDR
@@ -751,6 +885,33 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
       server->setScreenLayout(computeScreenLayout());
     }
 
+    return true;
+#endif
+#ifdef HAVE_XFIXES
+  } else if (ev->type == EnterNotify) {
+    XCrossingEvent* cev;
+
+    if (!running)
+      return true;
+
+    cev = (XCrossingEvent*)ev;
+
+    if (cev->window != cev->root)
+      return false;
+
+    return setCursor();
+  } else if (ev->type == LeaveNotify) {
+    XCrossingEvent* cev;
+
+    if (!running)
+      return true;
+
+    cev = (XCrossingEvent*)ev;
+
+    if (cev->window == cev->root)
+      return false;
+
+    server->setCursor(0, 0, Point(), NULL);
     return true;
 #endif
   }
