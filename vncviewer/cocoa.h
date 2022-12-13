@@ -21,11 +21,8 @@
 
 class Fl_Window;
 
-int cocoa_get_level(Fl_Window *win);
-void cocoa_set_level(Fl_Window *win, int level);
-
-int cocoa_capture_displays(Fl_Window *win);
-void cocoa_release_displays(Fl_Window *win);
+int cocoa_tap_keyboard(Fl_Window *win);
+void cocoa_untap_keyboard(Fl_Window *win);
 
 typedef struct CGColorSpace *CGColorSpaceRef;
 
@@ -33,18 +30,5 @@ CGColorSpaceRef cocoa_win_color_space(Fl_Window *win);
 
 bool cocoa_win_is_zoomed(Fl_Window *win);
 void cocoa_win_zoom(Fl_Window *win);
-
-int cocoa_is_keyboard_event(const void *event);
-
-int cocoa_is_key_press(const void *event);
-
-int cocoa_event_keycode(const void *event);
-int cocoa_event_keysym(const void *event);
-
-int cocoa_set_caps_lock_state(bool on);
-int cocoa_set_num_lock_state(bool on);
-
-int cocoa_get_caps_lock_state(bool *on);
-int cocoa_get_num_lock_state(bool *on);
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+/* Copyright 2021 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,20 +15,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __KEYSYM_H__
-#define __KEYSYM_H__
 
-#include <rdr/types.h>
+#ifndef __RFB_KEYSYMSTR_H__
+#define __RFB_KEYSYMSTR_H__
 
-typedef struct {
-  const char* name;
-  int fltkcode;
-  int keycode;
-  rdr::U32 keysym;
-} MenuKeySymbol;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void getMenuKey(int *fltkcode, int *keycode, rdr::U32 *keysym);
-int getMenuKeySymbolCount();
-const MenuKeySymbol* getMenuKeySymbols();
+const char* KeySymName(unsigned keysym);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

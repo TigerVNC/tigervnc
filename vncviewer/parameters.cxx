@@ -155,8 +155,9 @@ StringParameter display("display",
 			"");
 #endif
 
-StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
-                        "F8");
+StringParameter hotKeyCombo("HotKeyCombo", "The key combination that "
+                            "triggers special actions in the viewer",
+                            "Ctrl,Alt");
 
 BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
                                    "Pass special keys (like Alt+Tab) directly "
@@ -206,8 +207,9 @@ static VoidParameter* parameterArray[] = {
   &sendPrimary,
   &setPrimary,
 #endif
-  &menuKey,
-  &fullscreenSystemKeys
+  &fullscreenSystemKeys,
+  /* Hot keys */
+  &hotKeyCombo,
 };
 
 static VoidParameter* readOnlyParameterArray[] = {

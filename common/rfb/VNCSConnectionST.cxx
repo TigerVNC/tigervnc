@@ -27,6 +27,7 @@
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Encoder.h>
 #include <rfb/KeyRemapper.h>
+#include <rfb/KeysymStr.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
@@ -86,8 +87,8 @@ VNCSConnectionST::~VNCSConnectionST()
     keycode = pressedKeys.begin()->first;
     pressedKeys.erase(pressedKeys.begin());
 
-    vlog.debug("Releasing key 0x%x / 0x%x on client disconnect",
-               keysym, keycode);
+    vlog.debug("Releasing key 0x%04x / %s (0x%04x) on client disconnect",
+               keycode, KeySymName(keysym), keysym);
     server->keyEvent(keysym, keycode, false);
   }
 
@@ -511,9 +512,11 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   if (!rfb::Server::acceptKeyEvents) return;
 
   if (down)
-    vlog.debug("Key pressed: 0x%x / 0x%x", keysym, keycode);
+    vlog.debug("Key pressed: 0x%04x / %s (0x%04x)",
+               keycode, KeySymName(keysym), keysym);
   else
-    vlog.debug("Key released: 0x%x / 0x%x", keysym, keycode);
+    vlog.debug("Key released: 0x%04x / %s (0x%04x)",
+               keycode, KeySymName(keysym), keysym);
 
   // Avoid lock keys if we don't know the server state
   if ((server->getLEDState() == ledUnknown) &&

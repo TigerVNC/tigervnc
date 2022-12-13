@@ -727,7 +727,10 @@ int main(int argc, char** argv)
         }
       }
 
-      usage(argv[0]);
+      vlog.error(_("Unknown parameter: %s"), argv[i]);
+
+      if (false)
+        usage(argv[0]);
     }
 
     strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);

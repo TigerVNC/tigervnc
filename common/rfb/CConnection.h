@@ -24,6 +24,8 @@
 #ifndef __RFB_CCONNECTION_H__
 #define __RFB_CCONNECTION_H__
 
+#include <map>
+
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/SecurityClient.h>
@@ -180,6 +182,18 @@ namespace rfb {
     // clipboard via handleClipboardRequest().
     virtual void sendClipboardData(const char* data);
 
+    // sendKeyPress()/sendKeyRelease() send keyboard events to the
+    // server
+    void sendKeyPress(int systemKeyCode, rdr::U32 keyCode, rdr::U32 keySym);
+    void sendKeyRelease(int systemKeyCode);
+
+    // releaseAllKeys() sends keyboard release events to the server for
+    // all keys that are currently pressed down by this client,
+    // avoiding keys getting stuck. This can be useful if the client
+    // loses keyboard focus or otherwise no longer gets keyboard events
+    // from the system.
+    void releaseAllKeys();
+
     // refreshFramebuffer() forces a complete refresh of the entire
     // framebuffer
     void refreshFramebuffer();
@@ -296,6 +310,13 @@ namespace rfb {
     char* serverClipboard;
     bool hasLocalClipboard;
     bool unsolicitedClipboardAttempt;
+
+    struct DownKey {
+        rdr::U32 keyCode;
+        rdr::U32 keySym;
+    };
+    typedef std::map<int, DownKey> DownMap;
+    DownMap downKeys;
   };
 }
 #endif

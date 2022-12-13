@@ -23,10 +23,13 @@
 #endif
 
 #include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
 #include <rfb/ServerParams.h>
 
 using namespace rfb;
+
+static LogWriter vlog("ServerParams");
 
 ServerParams::ServerParams()
   : majorVersion(0), minorVersion(0),
@@ -59,8 +62,14 @@ void ServerParams::setDimensions(int width, int height)
 
 void ServerParams::setDimensions(int width, int height, const ScreenSet& layout)
 {
-  if (!layout.validate(width, height))
+  if (!layout.validate(width, height)) {
+    char buffer[2048];
+    vlog.debug("Invalid screen layout for %dx%d:", width, height);
+    layout.print(buffer, sizeof(buffer));
+    vlog.debug("%s", buffer);
+
     throw Exception("Attempted to configure an invalid screen layout");
+  }
 
   width_ = width;
   height_ = height;

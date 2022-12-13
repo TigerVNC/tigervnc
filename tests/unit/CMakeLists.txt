@@ -14,6 +14,9 @@ target_link_libraries(gesturehandler rfb)
 add_executable(hostport hostport.cxx)
 target_link_libraries(hostport rfb)
 
+add_executable(hotkeyhandler hotkeyhandler.cxx ../../vncviewer/HotKeyHandler.cxx)
+target_link_libraries(hotkeyhandler rfb ${GETTEXT_LIBRARIES})
+
 add_executable(pixelformat pixelformat.cxx)
 target_link_libraries(pixelformat rfb)
 

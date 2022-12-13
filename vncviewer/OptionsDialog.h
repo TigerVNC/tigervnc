@@ -24,9 +24,11 @@
 #include <FL/Fl_Window.H>
 
 class Fl_Widget;
+class Fl_Box;
 class Fl_Group;
 class Fl_Check_Button;
 class Fl_Round_Button;
+class Fl_Toggle_Button;
 class Fl_Input;
 class Fl_Int_Input;
 class Fl_Choice;
@@ -54,6 +56,7 @@ protected:
   void createCompressionPage(int tx, int ty, int tw, int th);
   void createSecurityPage(int tx, int ty, int tw, int th);
   void createInputPage(int tx, int ty, int tw, int th);
+  void createHotKeysPage(int tx, int ty, int tw, int th);
   void createDisplayPage(int tx, int ty, int tw, int th);
   void createMiscPage(int tx, int ty, int tw, int th);
 
@@ -65,6 +68,8 @@ protected:
   static void handleRSAAES(Fl_Widget *widget, void *data);
 
   static void handleClipboard(Fl_Widget *widget, void *data);
+
+  static void handleHotKey(Fl_Widget *widget, void *data);
 
   static void handleFullScreenMode(Fl_Widget *widget, void *data);
 
@@ -118,7 +123,6 @@ protected:
   Fl_Check_Button *dotCursorCheckbox;
   Fl_Group *keyboardGroup;
   Fl_Check_Button *systemKeysCheckbox;
-  Fl_Choice *menuKeyChoice;
   Fl_Group *clipboardGroup;
   Fl_Check_Button *acceptClipboardCheckbox;
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -128,6 +132,15 @@ protected:
 #if !defined(WIN32) && !defined(__APPLE__)
   Fl_Check_Button *sendPrimaryCheckbox;
 #endif
+
+  /* Hot keys */
+  Fl_Toggle_Button *ctrlButton;
+  Fl_Toggle_Button *altButton;
+  Fl_Toggle_Button *shiftButton;
+  Fl_Toggle_Button *superButton;
+
+  Fl_Box *hotKeyText;
+  char hotKeyTextBuffer[1024];
 
   /* Display */
   Fl_Group *displayModeGroup;

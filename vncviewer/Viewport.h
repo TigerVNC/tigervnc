@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2019 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,22 +20,24 @@
 #ifndef __VIEWPORT_H__
 #define __VIEWPORT_H__
 
-#include <map>
-
 #include <rfb/Rect.h>
 
 #include <FL/Fl_Widget.H>
 
 #include "EmulateMB.h"
+#include "Keyboard.h"
+#include "HotKeyHandler.h"
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;
 
 class CConn;
+class Keyboard;
 class PlatformPixelBuffer;
 class Surface;
 
-class Viewport : public Fl_Widget, public EmulateMB {
+class Viewport : public Fl_Widget, protected EmulateMB,
+                 protected KeyboardHandler {
 public:
 
   Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_);
@@ -75,8 +77,6 @@ protected:
 private:
   bool hasFocus();
 
-  unsigned int getModifierMask(unsigned int keysym);
-
   static void handleClipboardChange(int source, void *data);
 
   void flushPendingClipboard();
@@ -84,22 +84,18 @@ private:
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 
-  void handleKeyPress(int keyCode, rdr::U32 keySym);
-  void handleKeyRelease(int keyCode);
+  void resetKeyboard();
+
+  virtual void handleKeyPress(int systemKeyCode,
+                              rdr::U32 keyCode, rdr::U32 keySym);
+  virtual void handleKeyRelease(int systemKeyCode);
 
   static int handleSystemEvent(void *event, void *data);
-
-#ifdef WIN32
-  static void handleAltGrTimeout(void *data);
-  void resolveAltGrDetection(bool isAltGrSequence);
-#endif
 
   void pushLEDState();
 
   void initContextMenu();
   void popupContextMenu();
-
-  void setMenuKey();
 
   static void handleOptions(void *data);
 
@@ -111,13 +107,11 @@ private:
   rfb::Point lastPointerPos;
   int lastButtonMask;
 
-  typedef std::map<int, rdr::U32> DownMap;
-  DownMap downKeySym;
-
-#ifdef WIN32
-  bool altGrArmed;
-  unsigned int altGrCtrlTime;
-#endif
+  Keyboard* keyboard;
+  HotKeyHandler hotKeyHandler;
+  bool hotKeyBypass;
+  bool hotKeyActive;
+  std::set<int> pressedKeys;
 
   bool firstLEDState;
 
@@ -126,8 +120,6 @@ private:
 
   int clipboardSource;
 
-  rdr::U32 menuKeySym;
-  int menuKeyCode, menuKeyFLTK;
   Fl_Menu_Button *contextMenu;
 
   bool menuCtrlKey;
