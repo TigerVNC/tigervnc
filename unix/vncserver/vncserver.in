@@ -150,8 +150,10 @@ if ($config{'password'} ||
 
 if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
     ($z,$z,$mode) = stat("$vncUserDir/passwd");
-    if (!(-e "$vncUserDir/passwd") || ($mode & 077)) {
+    if (! -e "$vncUserDir/passwd") {
         die "VNC authentication enabled, but no password file created.\n";
+    } elsif ($mode & 077) {
+        die "$vncUserDir/passwd must NOT be accessible by others. Set permission to 0600.\n";
     }
 }
 
