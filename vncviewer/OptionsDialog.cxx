@@ -719,7 +719,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
     encRSAAESCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
-                                                     _("RSA-AES")));
+                                                     "RSA-AES"));
     encRSAAESCheckbox->callback(handleRSAAES, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
 #endif
