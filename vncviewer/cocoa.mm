@@ -107,6 +107,11 @@ int cocoa_capture_displays(Fl_Window *win)
 
   [nsw setLevel:CGShieldingWindowLevel()];
 
+  // We're not getting put in front of the shielding window in many
+  // cases on macOS 13, despite setLevel: being documented as also
+  // pushing the window to the front. So let's explicitly move it.
+  [nsw orderFront:nsw];
+
   return 0;
 }
 
