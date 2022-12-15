@@ -70,7 +70,7 @@ extern char buildtime[];
 #undef VENDOR_STRING
 #include "version-config.h"
 
-#define XVNCVERSION "TigerVNC 1.12.80"
+#define XVNCVERSION "TigerVNC 1.12.90"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2022 TigerVNC Team and many others (see README.rst)\n" \
                        "See https://www.tigervnc.org for information on TigerVNC.\n")
 
