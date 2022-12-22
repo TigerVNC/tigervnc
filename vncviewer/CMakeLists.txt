@@ -4,6 +4,9 @@ include_directories(${GETTEXT_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/common)
 
 add_executable(vncviewer
+  fltk/Fl_Monitor_Arrangement.cxx
+  fltk/Fl_Navigation.cxx
+  fltk/theme.cxx
   menukey.cxx
   BaseTouchHandler.cxx
   CConn.cxx
@@ -18,7 +21,6 @@ add_executable(vncviewer
   parameters.cxx
   keysym2ucs.c
   touch.cxx
-  MonitorArrangement.cxx
   MonitorIndicesParameter.cxx
   vncviewer.cxx)
 

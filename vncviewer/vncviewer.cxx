@@ -60,13 +60,13 @@
 #include <network/TcpSocket.h>
 #include <os/os.h>
 
-#include <FL/Fl.H>
-#include <FL/Fl_Widget.H>
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/fl_ask.H>
 #include <FL/x.H>
 
+#include "fltk/theme.h"
+#include "fltk/util.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "CConn.h"
@@ -74,7 +74,6 @@
 #include "UserDialog.h"
 #include "touch.h"
 #include "vncviewer.h"
-#include "fltk_layout.h"
 
 #ifdef WIN32
 #include "resource.h"
@@ -323,18 +322,8 @@ static const char* getlocaledir()
 }
 static void init_fltk()
 {
-  // Basic text size (10pt @ 96 dpi => 13px)
-  FL_NORMAL_SIZE = 13;
-
-  // Select a FLTK scheme and background color that looks somewhat
-  // close to modern systems
-  Fl::scheme("gtk+");
-  Fl::background(220, 220, 220);
-
-  // macOS has a slightly brighter default background though
-#ifdef __APPLE__
-  Fl::background(240, 240, 240);
-#endif
+  // Adjust look of FLTK
+  init_theme();
 
   // Proper Gnome Shell integration requires that we set a sensible
   // WM_CLASS for the window.
@@ -395,20 +384,11 @@ static void init_fltk()
       delete icons[i];
 #endif
 
-  // This makes the "icon" in dialogs rounded, which fits better
-  // with the above schemes.
-  fl_message_icon()->box(FL_UP_BOX);
-
   // Turn off the annoying behaviour where popups track the mouse.
   fl_message_hotspot(false);
 
   // Avoid empty titles for popups
   fl_message_title_default(_("TigerVNC Viewer"));
-
-#ifdef WIN32
-  // Most "normal" Windows apps use this font for UI elements.
-  Fl::set_font(FL_HELVETICA, "Tahoma");
-#endif
 
   // FLTK exposes these so that we can translate them.
   fl_no     = _("No");
