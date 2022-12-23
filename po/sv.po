@@ -4,6 +4,7 @@
 #
 # Peter Åstrand <astrand@cendio.se>, 2011.
 # Göran Uddeborg <goeran@uddeborg.se>, 2015, 2016, 2017, 2018, 2019, 2021, 2022.
+# Luna Jernberg <droidbittin@gmail.com>, 2022.
 #
 # $Revision: 1.25 $
 msgid ""
@@ -11,15 +12,16 @@ msgstr ""
 "Project-Id-Version: tigervnc 1.12.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2022-12-15 16:35+0100\n"
-"PO-Revision-Date: 2022-12-19 21:23+0100\n"
-"Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
+"PO-Revision-Date: 2022-12-24 00:37+0100\n"
+"Last-Translator: Luna Jernberg <droidbittin@gmail.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #: vncviewer/CConn.cxx:103
 #, c-format
@@ -94,7 +96,7 @@ msgstr "Säkerhetsmetod: %s"
 
 #: vncviewer/CConn.cxx:270 vncviewer/CConn.cxx:272
 msgid "The connection was dropped by the server before the session could be established."
-msgstr "Anslutningen släpptes av servern innanc sessionen kunde etableras."
+msgstr "Anslutningen släpptes av servern innan sessionen kunde etableras."
 
 #: vncviewer/CConn.cxx:332
 #, c-format
@@ -305,7 +307,7 @@ msgstr "Visa punkt när muspekare saknas"
 
 #: vncviewer/OptionsDialog.cxx:835
 msgid "Keyboard"
-msgstr "Tangenbord"
+msgstr "Tangentbord"
 
 #: vncviewer/OptionsDialog.cxx:849
 msgid "Pass system keys directly to server (full screen)"
@@ -357,11 +359,11 @@ msgstr "Helskärm på alla bildskärmar"
 
 #: vncviewer/OptionsDialog.cxx:980
 msgid "Full screen on selected monitor(s)"
-msgstr "Fullskärm på valda bildskärmar"
+msgstr "Helskärm på valda bildskärmar"
 
 #: vncviewer/OptionsDialog.cxx:1007
 msgid "Misc."
-msgstr "Diverse"
+msgstr "Diverse."
 
 #: vncviewer/OptionsDialog.cxx:1015
 msgid "Shared (don't disconnect other viewers)"
@@ -715,7 +717,7 @@ msgstr "Virtual Network Computing (VNC) är ett system för fjärrskrivbord som 
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:23
 msgid "TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code bases. TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project in early 2009 so that TightVNC could focus on Windows platforms. TigerVNC supports a variant of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo JPEG codec."
-msgstr "TigerVNC är en höghastighetsversion av VNC baserat på kodbaserna RealVNC 4 och X.org. TigerVNC startades som ett arbete att utveckla nästa generation av TightVNC på Unix- och Linuxplattformar, men delades av från sitt föräldraprojekt i början av 2009 så att TightVNC kunde fokusera på plattformen Windows. TigerVNC stöjder en variant av Tight-kodning som är kraftigt accelererad genom användning av JPEG-omkodaren från libjpeg-turbo."
+msgstr "TigerVNC är en höghastighetsversion av VNC baserat på kodbaserna RealVNC 4 och X.org. TigerVNC startades som ett arbete att utveckla nästa generation av TightVNC på Unix- och Linuxplattformar, men delades av från sitt föräldraprojekt i början av 2009 så att TightVNC kunde fokusera på plattformen Windows. TigerVNC stödjer en variant av Tight-kodning som är kraftigt accelererad genom användning av JPEG-omkodaren från libjpeg-turbo."
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:33
 msgid "TigerVNC Viewer connection to a CentOS machine"
