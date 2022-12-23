@@ -44,4 +44,5 @@ abstract public class CSecurity {
    * It MUST be set by viewer.
    */
   public static UserPasswdGetter upg;
+  public static UserMsgBox msg;
 }

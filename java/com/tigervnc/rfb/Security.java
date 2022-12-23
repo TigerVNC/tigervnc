@@ -42,6 +42,9 @@ public class Security {
   public static final int secTypeTLS       = 18;
   public static final int secTypeVeNCrypt  = 19;
 
+  public static final int secTypeRA256     = 129;
+  public static final int secTypeRAne256   = 130;
+
   /* VeNCrypt subtypes */
   public static final int secTypePlain     = 256;
   public static final int secTypeTLSNone   = 257;
@@ -53,6 +56,9 @@ public class Security {
   public static final int secTypeIdent     = 265;
   public static final int secTypeTLSIdent  = 266;
   public static final int secTypeX509Ident = 267;
+
+  public static final int secTypeRA2UserPass = 1;
+  public static final int secTypeRA2Pass     = 2;
 
   // result types
 
@@ -166,6 +172,8 @@ public class Security {
     if (name.equalsIgnoreCase("Tight"))	    return secTypeTight;
     if (name.equalsIgnoreCase("RA2"))       return secTypeRA2;
     if (name.equalsIgnoreCase("RA2ne"))	    return secTypeRA2ne;
+    if (name.equalsIgnoreCase("RA2_256"))   return secTypeRA256;
+    if (name.equalsIgnoreCase("RA2ne_256"))	return secTypeRAne256;
     if (name.equalsIgnoreCase("SSPI"))      return secTypeSSPI;
     if (name.equalsIgnoreCase("SSPIne"))	  return secTypeSSPIne;
     //if (name.equalsIgnoreCase("ultra"))	    return secTypeUltra;
@@ -194,6 +202,8 @@ public class Security {
     case secTypeTight:      return "Tight";
     case secTypeRA2:        return "RA2";
     case secTypeRA2ne:      return "RA2ne";
+    case secTypeRA256:      return "RA2_256";
+    case secTypeRAne256:    return "RA2ne_256";
     case secTypeSSPI:       return "SSPI";
     case secTypeSSPIne:     return "SSPIne";
     //case secTypeUltra:      return "Ultra";
