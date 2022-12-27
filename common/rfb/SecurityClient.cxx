@@ -34,6 +34,7 @@
 #endif
 #ifdef HAVE_NETTLE
 #include <rfb/CSecurityRSAAES.h>
+#include <rfb/CSecurityDH.h>
 #endif
 
 using namespace rdr;
@@ -51,14 +52,14 @@ StringParameter SecurityClient::secTypes
  ", TLSNone, TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain"
 #endif
 #ifdef HAVE_NETTLE
- ", RA2, RA2ne, RA2_256, RA2ne_256"
+ ", RA2, RA2ne, RA2_256, RA2ne_256, DH"
 #endif
  ")",
 #ifdef HAVE_GNUTLS
  "X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,"
 #endif
 #ifdef HAVE_NETTLE
- "RA2,RA2_256,RA2ne,RA2ne_256,"
+ "RA2,RA2_256,RA2ne,RA2ne_256,DH"
 #endif
  "VncAuth,None",
 ConfViewer);
@@ -111,6 +112,8 @@ CSecurity* SecurityClient::GetCSecurity(CConnection* cc, U32 secType)
     return new CSecurityRSAAES(cc, secTypeRA256, 256, true);
   case secTypeRAne256:
     return new CSecurityRSAAES(cc, secTypeRAne256, 256, false);
+  case secTypeDH:
+    return new CSecurityDH(cc);
 #endif
   }
 

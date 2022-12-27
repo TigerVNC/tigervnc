@@ -43,6 +43,8 @@ namespace rfb {
   const rdr::U8 secTypeTLS     = 18;
   const rdr::U8 secTypeVeNCrypt= 19;
 
+  const rdr::U8 secTypeDH      = 30;
+
   const rdr::U8 secTypeRA256   = 129;
   const rdr::U8 secTypeRAne256 = 130;
 

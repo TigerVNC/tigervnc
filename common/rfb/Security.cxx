@@ -165,6 +165,7 @@ rdr::U32 rfb::secTypeNum(const char* name)
   if (strcasecmp(name, "SSPI") == 0)       return secTypeSSPI;
   if (strcasecmp(name, "SSPIne") == 0)     return secTypeSSPIne;
   if (strcasecmp(name, "VeNCrypt") == 0)   return secTypeVeNCrypt;
+  if (strcasecmp(name, "DH") == 0)         return secTypeDH;
 
   /* VeNCrypt subtypes */
   if (strcasecmp(name, "Plain") == 0)      return secTypePlain;
@@ -191,6 +192,7 @@ const char* rfb::secTypeName(rdr::U32 num)
   case secTypeSSPI:       return "SSPI";
   case secTypeSSPIne:     return "SSPIne";
   case secTypeVeNCrypt:   return "VeNCrypt";
+  case secTypeDH:         return "DH";
 
   /* VeNCrypt subtypes */
   case secTypePlain:      return "Plain";
