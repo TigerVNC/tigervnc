@@ -289,9 +289,15 @@ void OptionsDialog::loadOptions(void)
     case secTypeRA2:
     case secTypeRA256:
       encRSAAESCheckbox->value(true);
+      authVncCheckbox->value(true);
+      authPlainCheckbox->value(true);
+      break;
     case secTypeRA2ne:
     case secTypeRAne256:
       authVncCheckbox->value(true);
+    case secTypeDH:
+    case secTypeMSLogonII:
+      encNoneCheckbox->value(true);
       authPlainCheckbox->value(true);
       break;
 #endif
@@ -404,6 +410,8 @@ void OptionsDialog::storeOptions(void)
 #ifdef HAVE_NETTLE
       security.EnableSecType(secTypeRA2ne);
       security.EnableSecType(secTypeRAne256);
+      security.EnableSecType(secTypeDH);
+      security.EnableSecType(secTypeMSLogonII);
 #endif
     }
   }
