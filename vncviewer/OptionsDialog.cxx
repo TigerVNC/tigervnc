@@ -296,6 +296,7 @@ void OptionsDialog::loadOptions(void)
     case secTypeRAne256:
       authVncCheckbox->value(true);
     case secTypeDH:
+    case secTypeMSLogonII:
       encNoneCheckbox->value(true);
       authPlainCheckbox->value(true);
       break;
@@ -410,6 +411,7 @@ void OptionsDialog::storeOptions(void)
       security.EnableSecType(secTypeRA2ne);
       security.EnableSecType(secTypeRAne256);
       security.EnableSecType(secTypeDH);
+      security.EnableSecType(secTypeMSLogonII);
 #endif
     }
   }

@@ -103,7 +103,7 @@ if(GNUTLS_FOUND)
 endif()
 
 if (NETTLE_FOUND)
-  target_sources(rfb PRIVATE CSecurityDH.cxx
+  target_sources(rfb PRIVATE CSecurityDH.cxx CSecurityMSLogonII.cxx
                  CSecurityRSAAES.cxx SSecurityRSAAES.cxx)
   include_directories(${NETTLE_INCLUDE_DIRS} ${GMP_INCLUDE_DIRS})
   target_link_libraries(rfb ${HOGWEED_LIBRARIES}
