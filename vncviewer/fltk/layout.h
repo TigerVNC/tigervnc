@@ -40,24 +40,29 @@ static inline int gui_str_len(const char *str)
 
 /**** MARGINS ****/
 
-#define OUTER_MARGIN            15
-#define INNER_MARGIN            10
+#define OUTER_MARGIN            18
+#define INNER_MARGIN            12
 
 /* Tighter grouping of related fields */
-#define TIGHT_MARGIN            5
+#define TIGHT_MARGIN            6
 
 /**** ADJUSTMENTS ****/
-#define INDENT                  10
+#define INDENT                  12
 
 /**** FLTK WIDGETS ****/
 
 /* Fl_Input */
 #define INPUT_LABEL_OFFSET      FL_NORMAL_SIZE
-#define INPUT_HEIGHT            25
+#ifdef __APPLE__
+#define INPUT_HEIGHT            22
+#else
+#define INPUT_HEIGHT            32
+#endif
+
 
 /* Fl_Button */
-#define BUTTON_WIDTH            115
-#define BUTTON_HEIGHT           27
+#define BUTTON_WIDTH            132
+#define BUTTON_HEIGHT           INPUT_HEIGHT
 
 /* Fl_Round_Button (padding + focus draw bug) */
 #define RADIO_MIN_WIDTH         (FL_NORMAL_SIZE + 4 + 1)

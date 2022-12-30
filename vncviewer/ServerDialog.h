@@ -36,21 +36,17 @@ public:
 
 protected:
   static void handleOptions(Fl_Widget *widget, void *data);
-  static void handleLoad(Fl_Widget *widget, void *data);
-  static void handleSaveAs(Fl_Widget *widget, void *data);
   static void handleAbout(Fl_Widget *widget, void *data);
-  static void handleCancel(Fl_Widget *widget, void *data);
+  static void handleClose(Fl_Widget *widget, void *data);
   static void handleConnect(Fl_Widget *widget, void *data);
 
 private:
   void loadServerHistory();
   void saveServerHistory();
-  void updateUsedDir(const char* filename);
 
 protected:
   Fl_Input_Choice *serverName;
   std::vector<std::string> serverHistory;
-  char *usedDir;
 };
 
 #endif

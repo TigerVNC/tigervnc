@@ -881,7 +881,17 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
   if ((event == FL_MOVE) && (win == NULL))
     return 0;
 
+  if (event == FL_FOCUS) {
+    win->activate();
+    win->redraw();
+  }
+
   ret = Fl::handle_(event, win);
+
+  if (event == FL_UNFOCUS) {
+    win->deactivate();
+    win->redraw();
+  }
 
   // This is hackish and the result of the dodgy focus handling in FLTK.
   // The basic problem is that FLTK's view of focus and the system's tend

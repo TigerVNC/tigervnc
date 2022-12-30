@@ -61,7 +61,6 @@ static const Fl_Boxtype FL_CHECKERED_BOX = FL_FREE_BOXTYPE;
 Fl_Monitor_Arrangement::Fl_Monitor_Arrangement(
    int x, int y, int w, int h)
 :  Fl_Group(x, y, w, h),
-   SELECTION_COLOR(fl_lighter(FL_BLUE)),
    AVAILABLE_COLOR(fl_lighter(fl_lighter(fl_lighter(FL_BACKGROUND_COLOR))))
 {
   // Used for required monitors.
@@ -124,11 +123,11 @@ void Fl_Monitor_Arrangement::draw()
 
     if (is_required(iter->first)) {
       monitor->box(FL_CHECKERED_BOX);
-      monitor->color(SELECTION_COLOR);
+      monitor->color(FL_SELECTION_COLOR);
     } else {
       monitor->box(FL_BORDER_BOX);
       monitor->color(AVAILABLE_COLOR);
-      monitor->selection_color(SELECTION_COLOR);
+      monitor->selection_color(FL_SELECTION_COLOR);
     }
   }
 

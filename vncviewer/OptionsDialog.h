@@ -25,6 +25,7 @@
 
 class Fl_Widget;
 class Fl_Group;
+class Fl_Button;
 class Fl_Check_Button;
 class Fl_Round_Button;
 class Fl_Input;
@@ -56,6 +57,7 @@ protected:
   void createInputPage(int tx, int ty, int tw, int th);
   void createDisplayPage(int tx, int ty, int tw, int th);
   void createMiscPage(int tx, int ty, int tw, int th);
+  void createAdvancedPage(int tx, int ty, int tw, int th);
 
   static void handleAutoselect(Fl_Widget *widget, void *data);
   static void handleCompression(Fl_Widget *widget, void *data);
@@ -67,6 +69,10 @@ protected:
   static void handleClipboard(Fl_Widget *widget, void *data);
 
   static void handleFullScreenMode(Fl_Widget *widget, void *data);
+
+  static void handleLoad(Fl_Widget *widget, void *data);
+  static void handleSave(Fl_Widget *widget, void *data);
+  void updateUsedDir(const char* filename);
 
   static void handleCancel(Fl_Widget *widget, void *data);
   static void handleOK(Fl_Widget *widget, void *data);
@@ -140,6 +146,11 @@ protected:
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
   Fl_Check_Button *reconnectCheckbox;
+
+  /* Advanced */
+  Fl_Button *loadButton;
+  Fl_Button *saveButton;
+  char *usedDir;
 
 private:
   static int fltk_event_handler(int event);
