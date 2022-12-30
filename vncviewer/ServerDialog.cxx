@@ -23,7 +23,6 @@
 
 #include <errno.h>
 #include <algorithm>
-#include <libgen.h>
 
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
@@ -33,7 +32,6 @@
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
 #include <FL/Fl_Box.H>
-#include <FL/Fl_File_Chooser.H>
 
 #include <os/os.h>
 #include <rfb/Exception.h>
@@ -62,8 +60,7 @@ static LogWriter vlog("ServerDialog");
 const char* SERVER_HISTORY="tigervnc.history";
 
 ServerDialog::ServerDialog()
-  : Fl_Window(450, 0, "TigerVNC"),
-    usedDir(NULL)
+  : Fl_Window(450, 0, "TigerVNC")
 {
   int y;
   Fl_Box *box;
@@ -129,8 +126,6 @@ ServerDialog::ServerDialog()
 
 ServerDialog::~ServerDialog()
 {
-  if (usedDir) 
-    free(usedDir);
 }
 
 
@@ -173,102 +168,6 @@ void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
 }
 
 
-void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
-{
-  ServerDialog *dialog = (ServerDialog*)data;
-
-  if (!dialog->usedDir)
-    getuserhomedir(&(dialog->usedDir));
-
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
-                                                      0, _("Select a TigerVNC configuration file"));
-  file_chooser->preview(0);
-  file_chooser->previewButton->hide();
-  file_chooser->show();
-  
-  // Block until user picks something.
-  while(file_chooser->shown())
-    Fl::wait();
-  
-  // Did the user hit cancel?
-  if (file_chooser->value() == NULL) {
-    delete(file_chooser);
-    return;
-  }
-  
-  const char* filename = file_chooser->value();
-  dialog->updateUsedDir(filename);
-
-  try {
-    dialog->serverName->value(loadViewerParameters(filename));
-  } catch (Exception& e) {
-    vlog.error("%s", e.str());
-    fl_alert(_("Unable to load the specified configuration file:\n\n%s"),
-             e.str());
-  }
-
-  delete(file_chooser);
-}
-
-
-void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
-{ 
-  ServerDialog *dialog = (ServerDialog*)data;
-  const char* servername = dialog->serverName->value();
-  const char* filename;
-  if (!dialog->usedDir)
-    getuserhomedir(&dialog->usedDir);
-  
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
-                                                      2, _("Save the TigerVNC configuration to file"));
-  
-  file_chooser->preview(0);
-  file_chooser->previewButton->hide();
-  file_chooser->show();
-  
-  while(1) {
-    
-    // Block until user picks something.
-    while(file_chooser->shown())
-      Fl::wait();
-    
-    // Did the user hit cancel?
-    if (file_chooser->value() == NULL) {
-      delete(file_chooser);
-      return;
-    }
-    
-    filename = file_chooser->value();
-    dialog->updateUsedDir(filename);
-    
-    FILE* f = fopen(filename, "r");
-    if (f) {
-
-      // The file already exists.
-      fclose(f);
-      int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"), 
-                                       _("Overwrite"), _("No"), NULL, filename);
-      if (overwrite_choice == 1) {
-
-        // If the user doesn't want to overwrite:
-        file_chooser->show();
-        continue;
-      }
-    }
-
-    break;
-  }
-  
-  try {
-    saveViewerParameters(filename, servername);
-  } catch (Exception& e) {
-    vlog.error("%s", e.str());
-    fl_alert(_("Unable to save the specified configuration "
-               "file:\n\n%s"), e.str());
-  }
-  
-  delete(file_chooser);
-}
 
 
 void ServerDialog::handleAbout(Fl_Widget *widget, void *data)
@@ -411,11 +310,4 @@ void ServerDialog::saveServerHistory()
     fprintf(f, "%s\n", serverHistory[i].c_str());
 
   fclose(f);
-}
-
-void ServerDialog::updateUsedDir(const char* filename)
-{
-  char * name = strdup(filename);
-  usedDir = strdup(dirname(name));
-  free(name);
 }

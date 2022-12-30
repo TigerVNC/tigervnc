@@ -22,9 +22,14 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <libgen.h>
+
 #include <list>
 
+#include <os/os.h>
+
 #include <rdr/types.h>
+#include <rfb/LogWriter.h>
 #include <rfb/encodings.h>
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
@@ -53,17 +58,22 @@
 #include <FL/Fl_Round_Button.H>
 #include <FL/Fl_Int_Input.H>
 #include <FL/Fl_Choice.H>
+#include <FL/Fl_File_Chooser.H>
+#include <FL/fl_ask.H>
 
 using namespace std;
 using namespace rdr;
 using namespace rfb;
+
+static LogWriter vlog("OptionsDialog");
 
 std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
 
 static std::set<OptionsDialog *> instances;
 
 OptionsDialog::OptionsDialog()
-  : Fl_Window(620, 450, _("TigerVNC Options"))
+  : Fl_Window(620, 450, _("TigerVNC Options")),
+    usedDir(NULL)
 {
   int x, y;
   Fl_Navigation *navigation;
@@ -89,6 +99,7 @@ OptionsDialog::OptionsDialog()
     createInputPage(tx, ty, tw, th);
     createDisplayPage(tx, ty, tw, th);
     createMiscPage(tx, ty, tw, th);
+    createAdvancedPage(tx, ty, tw, th);
   }
 
   navigation->end();
@@ -122,6 +133,9 @@ OptionsDialog::~OptionsDialog()
 
   if (instances.size() == 0)
     Fl::remove_handler(fltk_event_handler);
+
+  if (usedDir)
+    free(usedDir);
 }
 
 
@@ -1043,6 +1057,30 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
 }
 
 
+void OptionsDialog::createAdvancedPage(int tx, int ty, int tw, int th)
+{
+  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Advanced"));
+
+  tx += OUTER_MARGIN;
+  ty += OUTER_MARGIN;
+
+  tw -= OUTER_MARGIN * 2;
+  th -= OUTER_MARGIN * 2;
+
+  loadButton = new Fl_Button(tx + (tw - BUTTON_WIDTH*2)/3, ty,
+                             BUTTON_WIDTH, BUTTON_HEIGHT,
+                             _("Load..."));
+  loadButton->callback(handleLoad, this);
+
+  saveButton = new Fl_Button(tx + tw - BUTTON_WIDTH - (tw - BUTTON_WIDTH*2)/3, ty,
+                             BUTTON_WIDTH, BUTTON_HEIGHT,
+                             _("Save As..."));
+  saveButton->callback(handleSave, this);
+
+  group->end();
+}
+
+
 void OptionsDialog::handleAutoselect(Fl_Widget *widget, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
@@ -1133,6 +1171,110 @@ void OptionsDialog::handleFullScreenMode(Fl_Widget *widget, void *data)
   } else {
     dialog->monitorArrangement->deactivate();
   }
+}
+
+void OptionsDialog::handleLoad(Fl_Widget *widget, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  if (!dialog->usedDir)
+    getuserhomedir(&(dialog->usedDir));
+
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"),
+                                                      0, _("Select a TigerVNC configuration file"));
+  file_chooser->preview(0);
+  file_chooser->previewButton->hide();
+  file_chooser->show();
+
+  // Block until user picks something.
+  while(file_chooser->shown())
+    Fl::wait();
+
+  // Did the user hit cancel?
+  if (file_chooser->value() == NULL) {
+    delete(file_chooser);
+    return;
+  }
+
+  const char* filename = file_chooser->value();
+  dialog->updateUsedDir(filename);
+
+  try {
+    loadViewerParameters(filename);
+    dialog->loadOptions();
+  } catch (Exception& e) {
+    vlog.error("%s", e.str());
+    fl_alert(_("Unable to load the specified configuration file:\n\n%s"),
+             e.str());
+  }
+
+  delete(file_chooser);
+}
+
+void OptionsDialog::handleSave(Fl_Widget *widget, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+  const char* filename;
+  if (!dialog->usedDir)
+    getuserhomedir(&dialog->usedDir);
+
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"),
+                                                      2, _("Save the TigerVNC configuration to file"));
+
+  file_chooser->preview(0);
+  file_chooser->previewButton->hide();
+  file_chooser->show();
+
+  while(1) {
+
+    // Block until user picks something.
+    while(file_chooser->shown())
+      Fl::wait();
+
+    // Did the user hit cancel?
+    if (file_chooser->value() == NULL) {
+      delete(file_chooser);
+      return;
+    }
+
+    filename = file_chooser->value();
+    dialog->updateUsedDir(filename);
+
+    FILE* f = fopen(filename, "r");
+    if (f) {
+
+      // The file already exists.
+      fclose(f);
+      int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"),
+                                       _("Overwrite"), _("No"), NULL, filename);
+      if (overwrite_choice == 1) {
+
+        // If the user doesn't want to overwrite:
+        file_chooser->show();
+        continue;
+      }
+    }
+
+    break;
+  }
+
+  try {
+    dialog->storeOptions();
+    saveViewerParameters(filename);
+  } catch (Exception& e) {
+    vlog.error("%s", e.str());
+    fl_alert(_("Unable to save the specified configuration "
+               "file:\n\n%s"), e.str());
+  }
+
+  delete(file_chooser);
+}
+
+void OptionsDialog::updateUsedDir(const char* filename)
+{
+  char * name = strdup(filename);
+  usedDir = strdup(dirname(name));
+  free(name);
 }
 
 void OptionsDialog::handleCancel(Fl_Widget *widget, void *data)
