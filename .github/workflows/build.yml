@@ -107,8 +107,8 @@ jobs:
       matrix:
         target:
           - centos7
-          - centos8
-          - centos9
+          - rocky8
+          - rocky9
           - bionic
           - focal
           - jammy

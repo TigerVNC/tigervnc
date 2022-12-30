@@ -1,4 +1,4 @@
-FROM quay.io/centos/centos:stream8
+FROM rockylinux:8
 
 RUN dnf -y group install 'Development Tools'
 RUN dnf -y install sudo
