@@ -81,7 +81,7 @@ void init_theme()
       CFStringGetCString(name, font_name, sizeof(font_name),
                          kCFStringEncodingUTF8);
 
-      Fl::set_font(FL_HELVETICA, strdup(font_name));
+      Fl::set_font(FL_HELVETICA, font_name);
 
       CFRelease(name);
     }
