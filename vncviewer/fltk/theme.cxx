@@ -41,6 +41,10 @@
 
 void init_theme()
 {
+#if defined(WIN32) || defined(__APPLE__)
+  static char font_name[256];
+#endif
+
   // Basic text size (10pt @ 96 dpi => 13px)
   FL_NORMAL_SIZE = 13;
 
@@ -62,21 +66,22 @@ void init_theme()
   NONCLIENTMETRICS metrics;
   metrics.cbSize = sizeof(metrics);
   if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS,
-                           sizeof(metrics), &metrics, 0))
-    Fl::set_font(FL_HELVETICA, metrics.lfMessageFont.lfFaceName);
+                           sizeof(metrics), &metrics, 0)) {
+    strcpy(font_name, metrics.lfMessageFont.lfFaceName);
+    Fl::set_font(FL_HELVETICA, font_name);
+  }
 #elif defined(__APPLE__)
   CTFontRef font;
   CFStringRef name;
-  char cname[256];
 
   font = CTFontCreateUIFontForLanguage(kCTFontSystemFontType, 0.0, NULL);
   if (font != NULL) {
     name = CTFontCopyFullName(font);
     if (name != NULL) {
-      CFStringGetCString(name, cname, sizeof(cname),
+      CFStringGetCString(name, font_name, sizeof(font_name),
                          kCFStringEncodingUTF8);
 
-      Fl::set_font(FL_HELVETICA, cname);
+      Fl::set_font(FL_HELVETICA, strdup(font_name));
 
       CFRelease(name);
     }
