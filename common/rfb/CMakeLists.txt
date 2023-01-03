@@ -50,7 +50,6 @@ add_library(rfb STATIC
   SSecurityStack.cxx
   SSecurityVncAuth.cxx
   SSecurityVeNCrypt.cxx
-  ScaleFilters.cxx
   Timer.cxx
   TightDecoder.cxx
   TightEncoder.cxx
