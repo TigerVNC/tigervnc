@@ -481,9 +481,10 @@ void EncodeManager::prepareEncoders(bool allowLossy)
       encoder->setFineQualityLevel(conn->client.fineQualityLevel,
                                    conn->client.subsampling);
     } else {
-      int level = __rfbmax(conn->client.qualityLevel,
-                           encoder->losslessQuality);
-      encoder->setQualityLevel(level);
+      if (conn->client.qualityLevel < encoder->losslessQuality)
+        encoder->setQualityLevel(encoder->losslessQuality);
+      else
+        encoder->setQualityLevel(conn->client.qualityLevel);
       encoder->setFineQualityLevel(-1, subsampleUndefined);
     }
   }
@@ -520,10 +521,14 @@ core::Region EncodeManager::getLosslessRefresh(const core::Region& req,
       // Use the narrowest axis to avoid getting to thin rects
       if (rect.width() > rect.height()) {
         int width = (maxUpdateSize - area) / rect.height();
-        rect.br.x = rect.tl.x + __rfbmax(1, width);
+        if (width < 1)
+          width = 1;
+        rect.br.x = rect.tl.x + width;
       } else {
         int height = (maxUpdateSize - area) / rect.width();
-        rect.br.y = rect.tl.y + __rfbmax(1, height);
+        if (height < 1)
+          height = 1;
+        rect.br.y = rect.tl.y + height;
       }
       refresh.assign_union(rect);
       break;

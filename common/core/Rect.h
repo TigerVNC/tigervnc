@@ -21,17 +21,7 @@
 #ifndef __CORE_RECT_INCLUDED__
 #define __CORE_RECT_INCLUDED__
 
-// Some platforms (e.g. Windows) include max() and min() macros in their
-// standard headers, but they are also standard C++ template functions, so some
-// C++ headers will undefine them.  So we steer clear of the names min and max
-// and define __rfbmin and __rfbmax instead.
-
-#ifndef __rfbmax
-#define __rfbmax(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef __rfbmin
-#define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
-#endif
+#include <algorithm>
 
 namespace core {
 
@@ -83,10 +73,10 @@ namespace core {
       __attribute__ ((warn_unused_result))
     {
       Rect result;
-      result.tl.x = __rfbmax(tl.x, r.tl.x);
-      result.tl.y = __rfbmax(tl.y, r.tl.y);
-      result.br.x = __rfbmax(__rfbmin(br.x, r.br.x), result.tl.x);
-      result.br.y = __rfbmax(__rfbmin(br.y, r.br.y), result.tl.y);
+      result.tl.x = std::max(tl.x, r.tl.x);
+      result.tl.y = std::max(tl.y, r.tl.y);
+      result.br.x = std::max(std::min(br.x, r.br.x), result.tl.x);
+      result.br.y = std::max(std::min(br.y, r.br.y), result.tl.y);
       return result;
     }
     inline Rect union_boundary(const Rect &r) const
@@ -95,10 +85,10 @@ namespace core {
       if (r.is_empty()) return *this;
       if (is_empty()) return r;
       Rect result;
-      result.tl.x = __rfbmin(tl.x, r.tl.x);
-      result.tl.y = __rfbmin(tl.y, r.tl.y);
-      result.br.x = __rfbmax(br.x, r.br.x);
-      result.br.y = __rfbmax(br.y, r.br.y);
+      result.tl.x = std::min(tl.x, r.tl.x);
+      result.tl.y = std::min(tl.y, r.tl.y);
+      result.br.x = std::max(br.x, r.br.x);
+      result.br.y = std::max(br.y, r.br.y);
       return result;
     }
     inline Rect translate(const Point &p) const
