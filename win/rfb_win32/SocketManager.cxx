@@ -165,9 +165,7 @@ void SocketManager::setDisable(network::SocketServer* srvr, bool disable)
 int SocketManager::checkTimeouts() {
   int timeout = EventManager::checkTimeouts();
 
-  std::map<HANDLE,ListenInfo>::iterator i;
-  for (i=listeners.begin(); i!=listeners.end(); i++)
-    soonestTimeout(&timeout, Timer::checkTimeouts());
+  soonestTimeout(&timeout, Timer::checkTimeouts());
 
   std::list<network::Socket*> shutdownSocks;
   std::map<HANDLE,ConnInfo>::iterator j, j_next;
