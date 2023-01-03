@@ -359,13 +359,6 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   if (!fullscreen_active() && !maximized) {
     if ((w() == viewport->w()) && (h() == viewport->h()))
       size(new_w, new_h);
-    else {
-      // Make sure the window isn't too big. We do this manually because
-      // we have to disable the window size restriction (and it isn't
-      // entirely trustworthy to begin with).
-      if ((w() > new_w) || (h() > new_h))
-        size(__rfbmin(w(), new_w), __rfbmin(h(), new_h));
-    }
   }
 
   viewport->size(new_w, new_h);
