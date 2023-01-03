@@ -61,7 +61,7 @@ int Timer::checkTimeouts() {
   timeval start;
 
   if (pending.empty())
-    return 0;
+    return -1;
 
   gettimeofday(&start, 0);
   while (pending.front()->isBefore(start)) {
@@ -95,7 +95,7 @@ int Timer::checkTimeouts() {
 
       insertTimer(timer);
     } else if (pending.empty()) {
-      return 0;
+      return -1;
     }
   }
   return getNextTimeout();
@@ -104,7 +104,7 @@ int Timer::checkTimeouts() {
 int Timer::getNextTimeout() {
   timeval now;
   gettimeofday(&now, 0);
-  int toWait = __rfbmax(1, pending.front()->getRemainingMs());
+  int toWait = pending.front()->getRemainingMs();
   if (toWait > pending.front()->timeoutMs) {
     if (toWait - pending.front()->timeoutMs < 1000) {
       vlog.info("gettimeofday is broken...");
@@ -113,7 +113,7 @@ int Timer::getNextTimeout() {
     // Time has jumped backwards!
     vlog.info("time has moved backwards!");
     pending.front()->dueTime = now;
-    toWait = 1;
+    toWait = 0;
   }
   return toWait;
 }
@@ -134,9 +134,6 @@ void Timer::start(int timeoutMs_) {
   gettimeofday(&now, 0);
   stop();
   timeoutMs = timeoutMs_;
-  // The rest of the code assumes non-zero timeout
-  if (timeoutMs <= 0)
-    timeoutMs = 1;
   dueTime = addMillis(now, timeoutMs);
   insertTimer(this);
 }

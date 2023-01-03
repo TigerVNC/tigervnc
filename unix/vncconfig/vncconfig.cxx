@@ -308,7 +308,7 @@ int main(int argc, char** argv)
       
       // Process expired timers and get the time until the next one
       int timeoutMs = Timer::checkTimeouts();
-      if (timeoutMs) {
+      if (timeoutMs >= 0) {
         tv.tv_sec = timeoutMs / 1000;
         tv.tv_usec = (timeoutMs % 1000) * 1000;
         tvp = &tv;

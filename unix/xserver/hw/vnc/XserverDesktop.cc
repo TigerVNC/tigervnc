@@ -395,7 +395,7 @@ void XserverDesktop::blockHandler(int* timeout)
 
     // Trigger timers and check when the next will expire
     int nextTimeout = Timer::checkTimeouts();
-    if (nextTimeout > 0 && (*timeout == -1 || nextTimeout < *timeout))
+    if (nextTimeout >= 0 && (*timeout == -1 || nextTimeout < *timeout))
       *timeout = nextTimeout;
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::blockHandler: %s",e.str());

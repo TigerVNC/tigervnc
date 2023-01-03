@@ -189,7 +189,7 @@ static void mainloop(const char* vncserver, network::Socket* sock)
       int next_timer;
 
       next_timer = Timer::checkTimeouts();
-      if (next_timer == 0)
+      if (next_timer < 0)
         next_timer = INT_MAX;
 
       if (Fl::wait((double)next_timer / 1000.0) < 0.0) {
