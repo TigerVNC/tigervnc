@@ -43,9 +43,16 @@ namespace core {
   // Returns time elapsed since given moment in milliseconds.
   unsigned msSince(const struct timeval *then);
 
+  // Returns time until the given moment in milliseconds.
+  unsigned msUntil(const struct timeval *then);
+
   // Returns true if first happened before seconds
   bool isBefore(const struct timeval *first,
                 const struct timeval *second);
+
+  // Returns a new timeval a specified number of milliseconds later than
+  // the given timeval
+  struct timeval addMillis(struct timeval inTime, int millis);
 }
 
 #endif
