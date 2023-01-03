@@ -109,9 +109,8 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
 
     // Copy still valid area
 
-    rect.setXYWH(0, 0,
-                 __rfbmin(fb->width(), framebuffer->width()),
-                 __rfbmin(fb->height(), framebuffer->height()));
+    rect = fb->getRect();
+    rect = rect.intersect(framebuffer->getRect());
     data = framebuffer->getBuffer(framebuffer->getRect(), &stride);
     fb->imageRect(rect, data, stride);
 

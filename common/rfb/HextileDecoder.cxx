@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -53,12 +55,12 @@ bool HextileDecoder::readRect(const core::Rect& r, rdr::InStream* is,
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
-    t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
+    t.br.y = std::min(r.br.y, t.tl.y + 16);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
       uint8_t tileType;
 
-      t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
+      t.br.x = std::min(r.br.x, t.tl.x + 16);
 
       if (!is->hasDataOrRestore(1))
         return false;
@@ -149,11 +151,11 @@ void HextileDecoder::hextileDecode(const core::Rect& r, rdr::InStream* is,
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
-    t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
+    t.br.y = std::min(r.br.y, t.tl.y + 16);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
 
-      t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
+      t.br.x = std::min(r.br.x, t.tl.x + 16);
 
       int tileType = is->readU8();
 
