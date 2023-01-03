@@ -50,7 +50,6 @@
 #endif
 
 #include <core/LogWriter.h>
-#include <core/util.h>
 #include <core/time.h>
 
 #include <rfb/Congestion.h>
@@ -101,7 +100,7 @@ Congestion::~Congestion()
 void Congestion::updatePosition(unsigned pos)
 {
   struct timeval now;
-  unsigned delta, consumed;
+  unsigned idle, delta, consumed;
 
   gettimeofday(&now, nullptr);
 
@@ -112,15 +111,17 @@ void Congestion::updatePosition(unsigned pos)
   // Idle for too long?
   // We use a very crude RTO calculation in order to keep things simple
   // FIXME: should implement RFC 2861
-  if (core::msBetween(&lastSent, &now) > __rfbmax(baseRTT*2, 100)) {
+  idle = core::msBetween(&lastSent, &now);
+  if (idle > 100 && idle > baseRTT*2) {
 
 #ifdef CONGESTION_DEBUG
     vlog.debug("Connection idle for %d ms, resetting congestion control",
-               core::msBetween(&lastSent, &now));
+               idle);
 #endif
 
     // Close congestion window and redo wire latency measurement
-    congWindow = __rfbmin(INITIAL_WINDOW, congWindow);
+    if (congWindow > INITIAL_WINDOW)
+      congWindow = INITIAL_WINDOW;
     baseRTT = -1;
     measurements = 0;
     gettimeofday(&lastAdjustment, nullptr);
@@ -432,7 +433,7 @@ void Congestion::updateCongestion()
 
   diff = minRTT - baseRTT;
 
-  if (diff > __rfbmax(100, baseRTT/2)) {
+  if (diff > 100 && diff > baseRTT/2) {
     // We have no way of detecting loss, so assume massive latency
     // spike means packet loss. Adjust the window and go directly
     // to congestion avoidance.

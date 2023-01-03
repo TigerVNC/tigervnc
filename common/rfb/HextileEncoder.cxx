@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <core/Configuration.h>
 
 #include <rdr/OutStream.h>
@@ -129,11 +131,11 @@ void HextileEncoder::hextileEncode(rdr::OutStream* os,
 
   for (t.tl.y = 0; t.tl.y < pb->height(); t.tl.y += 16) {
 
-    t.br.y = __rfbmin(pb->height(), t.tl.y + 16);
+    t.br.y = std::min(pb->height(), t.tl.y + 16);
 
     for (t.tl.x = 0; t.tl.x < pb->width(); t.tl.x += 16) {
 
-      t.br.x = __rfbmin(pb->width(), t.tl.x + 16);
+      t.br.x = std::min(pb->width(), t.tl.x + 16);
 
       pb->getImage(buf, t);
 
@@ -548,11 +550,11 @@ void HextileEncoder::hextileEncodeBetter(rdr::OutStream* os,
 
   for (t.tl.y = 0; t.tl.y < pb->height(); t.tl.y += 16) {
 
-    t.br.y = __rfbmin(pb->height(), t.tl.y + 16);
+    t.br.y = std::min(pb->height(), t.tl.y + 16);
 
     for (t.tl.x = 0; t.tl.x < pb->width(); t.tl.x += 16) {
 
-      t.br.x = __rfbmin(pb->width(), t.tl.x + 16);
+      t.br.x = std::min(pb->width(), t.tl.x + 16);
 
       pb->getImage(buf, t);
 

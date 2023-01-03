@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <algorithm>
 #include <vector>
 
 #include <core/LogWriter.h>
@@ -62,7 +63,7 @@ bool ComparingUpdateTracker::compare()
     oldFb.setSize(fb->width(), fb->height());
 
     for (int y=0; y<fb->height(); y+=BLOCK_SIZE) {
-      core::Rect pos(0, y, fb->width(), __rfbmin(fb->height(), y+BLOCK_SIZE));
+      core::Rect pos(0, y, fb->width(), std::min(fb->height(), y+BLOCK_SIZE));
       int srcStride;
       const uint8_t* srcData = fb->getBuffer(pos, &srcStride);
       oldFb.imageRect(pos, srcData, srcStride);
@@ -135,20 +136,20 @@ void ComparingUpdateTracker::compareRect(const core::Rect& r,
   for (int blockTop = r.tl.y; blockTop < r.br.y; blockTop += BLOCK_SIZE)
   {
     // Get a strip of the source buffer
-    core::Rect pos(r.tl.x, blockTop, r.br.x, __rfbmin(r.br.y, blockTop+BLOCK_SIZE));
+    core::Rect pos(r.tl.x, blockTop, r.br.x, std::min(r.br.y, blockTop+BLOCK_SIZE));
     int fbStride;
     const uint8_t* newBlockPtr = fb->getBuffer(pos, &fbStride);
     int newStrideBytes = fbStride * bytesPerPixel;
 
     uint8_t* oldBlockPtr = oldData;
-    int blockBottom = __rfbmin(blockTop+BLOCK_SIZE, r.br.y);
+    int blockBottom = std::min(blockTop+BLOCK_SIZE, r.br.y);
 
     for (int blockLeft = r.tl.x; blockLeft < r.br.x; blockLeft += BLOCK_SIZE)
     {
       const uint8_t* newPtr = newBlockPtr;
       uint8_t* oldPtr = oldBlockPtr;
 
-      int blockRight = __rfbmin(blockLeft+BLOCK_SIZE, r.br.x);
+      int blockRight = std::min(blockLeft+BLOCK_SIZE, r.br.x);
       int blockWidthInBytes = (blockRight-blockLeft) * bytesPerPixel;
 
       // Scan the block top to bottom, to identify the first row of change
