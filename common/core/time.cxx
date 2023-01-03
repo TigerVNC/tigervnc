@@ -33,6 +33,9 @@ namespace core {
   {
     unsigned diff;
 
+    if (isBefore(second, first))
+      return 0;
+
     diff = (second->tv_sec - first->tv_sec) * 1000;
 
     diff += second->tv_usec / 1000;
