@@ -77,16 +77,4 @@ namespace core {
                         int precision=6);
 }
 
-// Some platforms (e.g. Windows) include max() and min() macros in their
-// standard headers, but they are also standard C++ template functions, so some
-// C++ headers will undefine them.  So we steer clear of the names min and max
-// and define __rfbmin and __rfbmax instead.
-
-#ifndef __rfbmax
-#define __rfbmax(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef __rfbmin
-#define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
-#endif
-
 #endif

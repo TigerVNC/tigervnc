@@ -20,11 +20,6 @@ target_include_directories(rdr SYSTEM PUBLIC ${ZLIB_INCLUDE_DIRS})
 target_link_libraries(rdr core os)
 target_link_libraries(rdr ${ZLIB_LIBRARIES})
 
-if(MSVC)
-  # undef min and max macro
-  target_compile_definitions(rfb PRIVATE NOMINMAX)
-endif()
-
 if(GNUTLS_FOUND)
   target_include_directories(rdr SYSTEM PUBLIC ${GNUTLS_INCLUDE_DIR})
   target_link_libraries(rdr ${GNUTLS_LIBRARIES})

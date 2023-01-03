@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -134,11 +136,11 @@ void ZRLEDecoder::zrleDecode(const core::Rect& r, rdr::InStream* is,
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 64) {
 
-    t.br.y = __rfbmin(r.br.y, t.tl.y + 64);
+    t.br.y = std::min(r.br.y, t.tl.y + 64);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 64) {
 
-      t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
+      t.br.x = std::min(r.br.x, t.tl.x + 64);
 
       zlibHasData(&zis, 1);
       int mode = zis.readU8();

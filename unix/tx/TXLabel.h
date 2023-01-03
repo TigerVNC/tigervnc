@@ -27,6 +27,9 @@
 #define __TXLABEL_H__
 
 #include <stdlib.h>
+
+#include <algorithm>
+
 #include "TXWindow.h"
 #include <core/util.h>
 
@@ -63,8 +66,8 @@ public:
     } while (i < text.size());
     int textHeight = ((defaultFS->ascent + defaultFS->descent + lineSpacing)
                       * lines);
-    int newWidth = __rfbmax(width(), textWidth + xPad*2);
-    int newHeight = __rfbmax(height(), textHeight + yPad*2);
+    int newWidth = std::max(width(), textWidth + xPad*2);
+    int newHeight = std::max(height(), textHeight + yPad*2);
     if (width() < newWidth || height() < newHeight) {
       resize(newWidth, newHeight);
     }
