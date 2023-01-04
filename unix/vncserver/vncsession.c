@@ -48,7 +48,7 @@ extern char **environ;
 const char *SERVICE_NAME = "tigervnc";
 
 // Main script PID
-volatile static pid_t script = -1;
+static volatile pid_t script = -1;
 
 // Daemon completion pipe
 int daemon_pipe_fd = -1;
