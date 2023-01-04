@@ -362,7 +362,8 @@ std::string Fl_Monitor_Arrangement::description(int m)
 
 #if defined(WIN32)
 static BOOL CALLBACK EnumDisplayMonitorsCallback(
-  HMONITOR monitor, HDC deviceContext, LPRECT rect, LPARAM userData)
+  HMONITOR monitor, HDC /*deviceContext*/, LPRECT /*rect*/,
+  LPARAM userData)
 {
   std::set<HMONITOR>* sys_monitors = (std::set<HMONITOR>*)userData;
   sys_monitors->insert(monitor);
@@ -549,7 +550,8 @@ int Fl_Monitor_Arrangement::fltk_event_handler(int event)
   return 0;
 }
 
-void Fl_Monitor_Arrangement::monitor_pressed(Fl_Widget *widget, void *user_data)
+void Fl_Monitor_Arrangement::monitor_pressed(Fl_Widget* /*widget*/,
+                                             void *user_data)
 {
   Fl_Monitor_Arrangement *self = (Fl_Monitor_Arrangement *) user_data;
 

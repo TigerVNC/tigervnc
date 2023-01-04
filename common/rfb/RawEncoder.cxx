@@ -44,7 +44,8 @@ bool RawEncoder::isSupported()
   return true;
 }
 
-void RawEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
+void RawEncoder::writeRect(const PixelBuffer* pb,
+                           const Palette& /*palette*/)
 {
   const rdr::U8* buffer;
   int stride;

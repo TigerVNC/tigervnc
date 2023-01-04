@@ -139,7 +139,7 @@ void CConn::initDone()
                                              server.height()));
 }
 
-void CConn::setPixelFormat(const rfb::PixelFormat& pf)
+void CConn::setPixelFormat(const rfb::PixelFormat& /*pf*/)
 {
   // Override format
   CConnection::setPixelFormat(filePF);

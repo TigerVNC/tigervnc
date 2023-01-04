@@ -545,7 +545,7 @@ void XDesktop::keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
 #endif
 }
 
-void XDesktop::clientCutText(const char* str) {
+void XDesktop::clientCutText(const char* /*str*/) {
 }
 
 ScreenSet XDesktop::computeScreenLayout()

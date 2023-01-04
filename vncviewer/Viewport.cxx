@@ -114,7 +114,7 @@ enum { ID_DISCONNECT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
 static const WORD SCAN_FAKE = 0xaa;
 #endif
 
-Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
+Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
     lastPointerPos(0, 0), lastButtonMask(0),
 #ifdef WIN32

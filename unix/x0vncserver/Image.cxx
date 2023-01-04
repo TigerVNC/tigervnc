@@ -208,7 +208,8 @@ void Image::updateRect(Image *src, int dst_x, int dst_y,
 
 static bool caughtShmError = false;
 
-static int ShmCreationXErrorHandler(Display *dpy, XErrorEvent *error)
+static int ShmCreationXErrorHandler(Display* /*dpy*/,
+                                    XErrorEvent* /*error*/)
 {
   caughtShmError = true;
   return 0;

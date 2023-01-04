@@ -149,7 +149,7 @@ namespace rfb {
         setItemChecked(enc_idc, enable);
         setItemChecked(auth_idc, enable);
       }
-      inline bool showFileChooser(const RegKey& rk,
+      inline bool showFileChooser(const RegKey& /*rk*/,
                                   const char* title,
                                   const char* filter,
                                   HWND hwnd)

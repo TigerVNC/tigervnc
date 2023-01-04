@@ -35,10 +35,6 @@ struct timeval;
 #  define __printf_attr(a, b)
 #endif // __GNUC__
 
-#ifndef __unused_attr
-#  define __unused_attr __attribute((__unused__))
-#endif
-
 namespace rfb {
 
   // -=- Class to handle cleanup of arrays of characters

@@ -102,7 +102,7 @@ void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
   }
 }
 
-void TightEncoder::writeSolidRect(int width, int height,
+void TightEncoder::writeSolidRect(int /*width*/, int /*height*/,
                                   const PixelFormat& pf,
                                   const rdr::U8* colour)
 {

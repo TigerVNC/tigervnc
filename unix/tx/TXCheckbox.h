@@ -109,7 +109,7 @@ private:
                 text, strlen(text));
   }
 
-  virtual void handleEvent(TXWindow* w, XEvent* ev) {
+  virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
     switch (ev->type) {
     case Expose:
       paint();

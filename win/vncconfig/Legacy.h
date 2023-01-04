@@ -39,7 +39,7 @@ namespace rfb {
       void initDialog() {
         setItemChecked(IDC_PROTOCOL_3_3, rfb::Server::protocol3_3);
       }
-      bool onCommand(int id, int cmd) {
+      bool onCommand(int id, int /*cmd*/) {
         switch (id) {
         case IDC_LEGACY_IMPORT:
           {

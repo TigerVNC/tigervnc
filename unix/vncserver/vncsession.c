@@ -142,6 +142,7 @@ finish_daemon(void)
 static void
 sighandler(int sig)
 {
+    (void)sig;
     if (script > 0) {
         kill(script, SIGTERM);
     }
@@ -169,6 +170,10 @@ conv(int num_msg,
      const struct pam_message **msg,
      struct pam_response **resp, void *appdata_ptr)
 {
+    (void)num_msg;
+    (void)msg;
+    (void)resp;
+    (void)appdata_ptr;
     /* Opening a session should not require a conversation */
     return PAM_CONV_ERR;
 }

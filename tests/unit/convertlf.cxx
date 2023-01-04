@@ -84,7 +84,7 @@ static void testCRLF(const char* input, const char* expected)
     rfb::strFree(output);
 }
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
     testLF("", "");
     testLF("no EOL", "no EOL");

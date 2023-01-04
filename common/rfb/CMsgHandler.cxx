@@ -68,7 +68,8 @@ void CMsgHandler::setName(const char* name)
   server.setName(name);
 }
 
-void CMsgHandler::fence(rdr::U32 flags, unsigned len, const char data[])
+void CMsgHandler::fence(rdr::U32 /*flags*/, unsigned /*len*/,
+                        const char /*data*/ [])
 {
   server.supportsFence = true;
 }
@@ -150,7 +151,7 @@ void CMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
   server.setClipboardCaps(flags, lengths);
 }
 
-void CMsgHandler::handleClipboardRequest(rdr::U32 flags)
+void CMsgHandler::handleClipboardRequest(rdr::U32 /*flags*/)
 {
 }
 
@@ -158,12 +159,12 @@ void CMsgHandler::handleClipboardPeek()
 {
 }
 
-void CMsgHandler::handleClipboardNotify(rdr::U32 flags)
+void CMsgHandler::handleClipboardNotify(rdr::U32 /*flags*/)
 {
 }
 
-void CMsgHandler::handleClipboardProvide(rdr::U32 flags,
-                                         const size_t* lengths,
-                                         const rdr::U8* const* data)
+void CMsgHandler::handleClipboardProvide(rdr::U32 /*flags*/,
+                                         const size_t* /*lengths*/,
+                                         const rdr::U8* const* /*data*/)
 {
 }

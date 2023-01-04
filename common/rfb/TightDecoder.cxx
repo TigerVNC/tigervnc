@@ -199,13 +199,13 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
   return true;
 }
 
-bool TightDecoder::doRectsConflict(const Rect& rectA,
+bool TightDecoder::doRectsConflict(const Rect& /*rectA*/,
                                    const void* bufferA,
                                    size_t buflenA,
-                                   const Rect& rectB,
+                                   const Rect& /*rectB*/,
                                    const void* bufferB,
                                    size_t buflenB,
-                                   const ServerParams& server)
+                                   const ServerParams& /*server*/)
 {
   rdr::U8 comp_ctl_a, comp_ctl_b;
 

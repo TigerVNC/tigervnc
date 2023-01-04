@@ -63,7 +63,8 @@ bool HextileEncoder::isSupported()
   return conn->client.supportsEncoding(encodingHextile);
 }
 
-void HextileEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
+void HextileEncoder::writeRect(const PixelBuffer* pb,
+                               const Palette& /*palette*/)
 {
   rdr::OutStream* os = conn->getOutStream();
   switch (pb->getPF().bpp) {

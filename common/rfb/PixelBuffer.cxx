@@ -339,7 +339,7 @@ rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
   return &data[(r.tl.x + (r.tl.y * stride)) * (format.bpp/8)];
 }
 
-void FullFramePixelBuffer::commitBufferRW(const Rect& r)
+void FullFramePixelBuffer::commitBufferRW(const Rect& /*r*/)
 {
 }
 
@@ -371,7 +371,7 @@ void FullFramePixelBuffer::setBuffer(int width, int height,
   data = data_;
 }
 
-void FullFramePixelBuffer::setSize(int w, int h)
+void FullFramePixelBuffer::setSize(int /*w*/, int /*h*/)
 {
   // setBuffer() should be used
   throw rfb::Exception("Invalid call to FullFramePixelBuffer::setSize()");

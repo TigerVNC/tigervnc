@@ -73,7 +73,7 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
   }
 }
 
-void RegConfig::processEvent(HANDLE event_) {
+void RegConfig::processEvent(HANDLE /*event*/) {
   vlog.info("registry changed");
 
   // Reinstate the registry change notifications

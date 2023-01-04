@@ -108,7 +108,7 @@ private:
     } while (text.buf[i] != 0);
   }
 
-  virtual void handleEvent(TXWindow* w, XEvent* ev) {
+  virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
     switch (ev->type) {
     case Expose:
       paint();

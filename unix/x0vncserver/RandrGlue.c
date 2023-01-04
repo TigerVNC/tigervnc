@@ -505,11 +505,13 @@ int vncRandRReconfigureOutput(int outputIdx, int x, int y,
 
 int vncRandRCanCreateOutputs(int extraOutputs)
 {
+  (void)extraOutputs;
   return 0;
 }
 
 int vncRandRCreateOutputs(int extraOutputs)
 {
+  (void)extraOutputs;
   return 0;
 }
 

@@ -84,7 +84,7 @@ struct JPEG_SRC_MGR {
 };
 
 static void
-JpegNoOp(j_decompress_ptr dinfo)
+JpegNoOp(j_decompress_ptr /*dinfo*/)
 {
 }
 

@@ -79,8 +79,8 @@ struct monitorByNameData {
 };
 
 static BOOL CALLBACK monitorByNameEnumProc(HMONITOR monitor,
-                                    HDC dc,
-                                    LPRECT pos,
+                                    HDC /*dc*/,
+                                    LPRECT /*pos*/,
                                     LPARAM d) {
   monitorByNameData* data = (monitorByNameData*)d;
   memset(data->info, 0, sizeof(MONITORINFOEXA));

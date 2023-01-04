@@ -108,7 +108,7 @@ static const char* defaultDesktopName()
 
 static bool caughtSignal = false;
 
-static void CleanupSignalHandler(int sig)
+static void CleanupSignalHandler(int /*sig*/)
 {
   caughtSignal = true;
 }

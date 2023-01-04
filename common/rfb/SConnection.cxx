@@ -286,7 +286,7 @@ bool SConnection::processInitMsg()
   return reader_->readClientInit();
 }
 
-bool SConnection::handleAuthFailureTimeout(Timer* t)
+bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
 {
   if (state_ != RFBSTATE_SECURITY_FAILURE) {
     close("SConnection::handleAuthFailureTimeout: invalid state");
@@ -452,7 +452,7 @@ void SConnection::authSuccess()
 {
 }
 
-void SConnection::queryConnection(const char* userName)
+void SConnection::queryConnection(const char* /*userName*/)
 {
   approveConnection(true);
 }
@@ -491,14 +491,14 @@ void SConnection::approveConnection(bool accept, const char* reason)
   }
 }
 
-void SConnection::clientInit(bool shared)
+void SConnection::clientInit(bool /*shared*/)
 {
   writer_->writeServerInit(client.width(), client.height(),
                            client.pf(), client.name());
   state_ = RFBSTATE_NORMAL;
 }
 
-void SConnection::close(const char* reason)
+void SConnection::close(const char* /*reason*/)
 {
   state_ = RFBSTATE_CLOSING;
   cleanup();
@@ -512,7 +512,8 @@ void SConnection::setPixelFormat(const PixelFormat& pf)
     writeFakeColourMap();
 }
 
-void SConnection::framebufferUpdateRequest(const Rect& r, bool incremental)
+void SConnection::framebufferUpdateRequest(const Rect& /*r*/,
+                                           bool /*incremental*/)
 {
   if (!readyForSetColourMapEntries) {
     readyForSetColourMapEntries = true;
@@ -533,8 +534,9 @@ void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
   writer()->writeFence(flags, len, data);
 }
 
-void SConnection::enableContinuousUpdates(bool enable,
-                                          int x, int y, int w, int h)
+void SConnection::enableContinuousUpdates(bool /*enable*/,
+                                          int /*x*/, int /*y*/,
+                                          int /*w*/, int /*h*/)
 {
 }
 
@@ -542,11 +544,11 @@ void SConnection::handleClipboardRequest()
 {
 }
 
-void SConnection::handleClipboardAnnounce(bool available)
+void SConnection::handleClipboardAnnounce(bool /*available*/)
 {
 }
 
-void SConnection::handleClipboardData(const char* data)
+void SConnection::handleClipboardData(const char* /*data*/)
 {
 }
 

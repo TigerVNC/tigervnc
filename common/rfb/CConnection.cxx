@@ -635,11 +635,11 @@ void CConnection::handleClipboardRequest()
 {
 }
 
-void CConnection::handleClipboardAnnounce(bool available)
+void CConnection::handleClipboardAnnounce(bool /*available*/)
 {
 }
 
-void CConnection::handleClipboardData(const char* data)
+void CConnection::handleClipboardData(const char* /*data*/)
 {
 }
 

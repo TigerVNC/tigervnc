@@ -106,7 +106,7 @@ SecurityPage::initDialog()
 }
 
 bool
-SecurityPage::onCommand(int id, int cmd)
+SecurityPage::onCommand(int id, int /*cmd*/)
 {
   if (id == IDC_ENC_X509) {
     if (isItemChecked(IDC_ENC_X509))

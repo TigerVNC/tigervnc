@@ -102,7 +102,7 @@ void ControlPanel::UpdateListView(ListConnInfo* LCInfo)
   } 
 }
 
-BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM /*lParam*/)
 {
   switch (msg) {
   case WM_INITDIALOG:

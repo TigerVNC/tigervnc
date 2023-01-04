@@ -1050,7 +1050,7 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
 }
 
 
-void OptionsDialog::handleAutoselect(Fl_Widget *widget, void *data)
+void OptionsDialog::handleAutoselect(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1067,7 +1067,7 @@ void OptionsDialog::handleAutoselect(Fl_Widget *widget, void *data)
 }
 
 
-void OptionsDialog::handleCompression(Fl_Widget *widget, void *data)
+void OptionsDialog::handleCompression(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1078,7 +1078,7 @@ void OptionsDialog::handleCompression(Fl_Widget *widget, void *data)
 }
 
 
-void OptionsDialog::handleJpeg(Fl_Widget *widget, void *data)
+void OptionsDialog::handleJpeg(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1090,7 +1090,7 @@ void OptionsDialog::handleJpeg(Fl_Widget *widget, void *data)
 }
 
 
-void OptionsDialog::handleX509(Fl_Widget *widget, void *data)
+void OptionsDialog::handleX509(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1104,7 +1104,7 @@ void OptionsDialog::handleX509(Fl_Widget *widget, void *data)
 }
 
 
-void OptionsDialog::handleRSAAES(Fl_Widget *widget, void *data)
+void OptionsDialog::handleRSAAES(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1115,8 +1115,9 @@ void OptionsDialog::handleRSAAES(Fl_Widget *widget, void *data)
 }
 
 
-void OptionsDialog::handleClipboard(Fl_Widget *widget, void *data)
+void OptionsDialog::handleClipboard(Fl_Widget* /*widget*/, void *data)
 {
+  (void)data;
 #if !defined(WIN32) && !defined(__APPLE__)
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1131,7 +1132,7 @@ void OptionsDialog::handleClipboard(Fl_Widget *widget, void *data)
 #endif
 }
 
-void OptionsDialog::handleFullScreenMode(Fl_Widget *widget, void *data)
+void OptionsDialog::handleFullScreenMode(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1142,7 +1143,7 @@ void OptionsDialog::handleFullScreenMode(Fl_Widget *widget, void *data)
   }
 }
 
-void OptionsDialog::handleCancel(Fl_Widget *widget, void *data)
+void OptionsDialog::handleCancel(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
@@ -1150,7 +1151,7 @@ void OptionsDialog::handleCancel(Fl_Widget *widget, void *data)
 }
 
 
-void OptionsDialog::handleOK(Fl_Widget *widget, void *data)
+void OptionsDialog::handleOK(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 

@@ -51,7 +51,7 @@ void LogWriter::setLevel(int level) {
 }
 
 void
-LogWriter::listLogWriters(int width) {
+LogWriter::listLogWriters(int /*width*/) {
   // *** make this respect width...
   LogWriter* current = log_writers;
   fprintf(stderr, "  ");

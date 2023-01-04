@@ -107,7 +107,7 @@ void RREEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
   mos.clear();
 }
 
-void RREEncoder::writeSolidRect(int width, int height,
+void RREEncoder::writeSolidRect(int /*width*/, int /*height*/,
                                 const PixelFormat& pf,
                                 const rdr::U8* colour)
 {

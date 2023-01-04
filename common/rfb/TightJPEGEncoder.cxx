@@ -112,7 +112,8 @@ int TightJPEGEncoder::getQualityLevel()
   return qualityLevel;
 }
 
-void TightJPEGEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
+void TightJPEGEncoder::writeRect(const PixelBuffer* pb,
+                                 const Palette& /*palette*/)
 {
   const rdr::U8* buffer;
   int stride;

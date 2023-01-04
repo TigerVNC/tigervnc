@@ -73,7 +73,7 @@ ATOM ATOM_Popup_Selection = GlobalAddAtom(_T("RFB.WM_Hooks.PopupSelectionAtom"))
 
 HINSTANCE dll_instance = 0;
 
-BOOL WINAPI DllMain(HANDLE instance, ULONG reason, LPVOID reserved) {
+BOOL WINAPI DllMain(HANDLE instance, ULONG reason, LPVOID /*reserved*/) {
   switch (reason) {
   case DLL_PROCESS_ATTACH:
     dll_instance = (HINSTANCE)instance;
@@ -144,7 +144,7 @@ bool NotifyCursor(HCURSOR cursor) {
   return NotifyHookOwner(WM_HK_CursorChanged, 0, (LPARAM)cursor);
 }
 
-void ProcessWindowMessage(UINT msg, HWND wnd, WPARAM wParam, LPARAM lParam) {
+void ProcessWindowMessage(UINT msg, HWND wnd, WPARAM wParam, LPARAM /*lParam*/) {
 #ifdef _DEBUG
   if ((msg >= diagnostic_min) && (msg <= diagnostic_max))
     PostThreadMessage(hook_owner, WM_HK_Diagnostic, msg, (LPARAM)wnd);

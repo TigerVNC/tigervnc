@@ -65,8 +65,10 @@ H264DecoderContext* H264Decoder::findContext(const Rect& r)
   return NULL;
 }
 
-bool H264Decoder::readRect(const Rect& r, rdr::InStream* is,
-                           const ServerParams& server, rdr::OutStream* os)
+bool H264Decoder::readRect(const Rect& /*r*/,
+                           rdr::InStream* is,
+                           const ServerParams& /*server*/,
+                           rdr::OutStream* os)
 {
   rdr::U32 len;
 
@@ -92,7 +94,8 @@ bool H264Decoder::readRect(const Rect& r, rdr::InStream* is,
 }
 
 void H264Decoder::decodeRect(const Rect& r, const void* buffer,
-                             size_t buflen, const ServerParams& server,
+                             size_t buflen,
+                             const ServerParams& /*server*/,
                              ModifiablePixelBuffer* pb)
 {
   rdr::MemInStream is(buffer, buflen);

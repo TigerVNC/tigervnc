@@ -76,7 +76,7 @@ processParams(int argc, char* argv[]) {
 }
 
 
-int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
+int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*cmdShow*/) {
 
   // Configure debugging output
 #ifdef _DEBUG

@@ -33,8 +33,9 @@ namespace rfb {
 
       virtual ~H264DecoderContext() = 0;
 
-      virtual void decode(const rdr::U8* h264_buffer, rdr::U32 len,
-                          ModifiablePixelBuffer* pb) {}
+      virtual void decode(const rdr::U8* /*h264_buffer*/,
+                          rdr::U32 /*len*/,
+                          ModifiablePixelBuffer* /*pb*/) {}
       void reset();
 
       inline bool isEqualRect(const Rect &r) const { return r.equals(rect); }

@@ -48,7 +48,7 @@ RREDecoder::~RREDecoder()
 {
 }
 
-bool RREDecoder::readRect(const Rect& r, rdr::InStream* is,
+bool RREDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os)
 {
   rdr::U32 numRects;

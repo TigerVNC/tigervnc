@@ -46,7 +46,7 @@ static void doTest(const char* hostAndPort,
     rfb::strFree(host);
 }
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
     doTest(":5", "localhost", 5905);
 

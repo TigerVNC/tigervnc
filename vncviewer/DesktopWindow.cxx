@@ -1031,7 +1031,8 @@ void DesktopWindow::fullscreen_on()
 }
 
 #if !defined(WIN32) && !defined(__APPLE__)
-Bool eventIsFocusWithSerial(Display *display, XEvent *event, XPointer arg)
+Bool eventIsFocusWithSerial(Display* /*display*/, XEvent *event,
+                            XPointer arg)
 {
   unsigned long serial;
 
@@ -1270,7 +1271,7 @@ void DesktopWindow::handleResizeTimeout(void *data)
 }
 
 
-void DesktopWindow::reconfigureFullscreen(void *data)
+void DesktopWindow::reconfigureFullscreen(void* /*data*/)
 {
   std::set<DesktopWindow *>::iterator iter;
 
@@ -1495,7 +1496,7 @@ void DesktopWindow::repositionWidgets()
   vscroll->value(vscroll->clamp(vscroll->value()));
 }
 
-void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
+void DesktopWindow::handleClose(Fl_Widget* /*wnd*/, void* /*data*/)
 {
   disconnect();
 }
@@ -1552,7 +1553,7 @@ void DesktopWindow::scrollTo(int x, int y)
   damage(FL_DAMAGE_SCROLL);
 }
 
-void DesktopWindow::handleScroll(Fl_Widget *widget, void *data)
+void DesktopWindow::handleScroll(Fl_Widget* /*widget*/, void *data)
 {
   DesktopWindow *self = (DesktopWindow *)data;
 

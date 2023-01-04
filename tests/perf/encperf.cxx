@@ -329,12 +329,11 @@ void SConn::getStats(double& ratio, unsigned long long& bytes,
   manager->getStats(ratio, bytes, rawEquivalent);
 }
 
-void SConn::setAccessRights(AccessRights ar)
+void SConn::setAccessRights(AccessRights)
 {
 }
 
-void SConn::setDesktopSize(int fb_width, int fb_height,
-                           const rfb::ScreenSet& layout)
+void SConn::setDesktopSize(int, int, const rfb::ScreenSet&)
 {
 }
 

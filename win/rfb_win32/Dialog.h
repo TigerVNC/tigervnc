@@ -60,13 +60,13 @@ namespace rfb {
       // onCommand() is called upon receipt of a WM_COMMAND message item other than IDOK
       // or IDCANCEL.  It should return true if the command has been handled.
 
-      virtual bool onCommand(int item, int cmd) { return false; }
+      virtual bool onCommand(int /*item*/, int /*cmd*/) { return false; }
 
       // onHelp() is called upon receipt of a WM_MENU message.  This indicates that
       // context-specific help should be displayed, for a dialog control, for example.
       // It should return true if the command has been handled.
 
-      virtual bool onHelp(int item) { return false; }
+      virtual bool onHelp(int /*item*/) { return false; }
 
       // onOk() is called when the OK button is pressed.  The hwnd argument is the
       // dialog box's window handle.

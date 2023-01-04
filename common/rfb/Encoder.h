@@ -51,9 +51,10 @@ namespace rfb {
     // checking the list of encodings in the connection parameters.
     virtual bool isSupported()=0;
 
-    virtual void setCompressLevel(int level) {};
-    virtual void setQualityLevel(int level) {};
-    virtual void setFineQualityLevel(int quality, int subsampling) {};
+    virtual void setCompressLevel(int /*level*/) {};
+    virtual void setQualityLevel(int /*level*/) {};
+    virtual void setFineQualityLevel(int /*quality*/,
+                                     int /*subsampling*/) {};
 
     virtual int getCompressLevel() { return -1; };
     virtual int getQualityLevel() { return -1; };
