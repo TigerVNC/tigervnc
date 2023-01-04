@@ -134,5 +134,5 @@ void H264Decoder::decodeRect(const Rect& r, const void* buffer,
   if (!len)
     return;
 
-  ctx->decode(is.getptr(len), len, flags, pb);
+  ctx->decode(is.getptr(len), len, pb);
 }

@@ -154,7 +154,9 @@ void H264WinDecoderContext::freeCodec() {
   initialized = false;
 }
 
-void H264WinDecoderContext::decode(const rdr::U8* h264_buffer, rdr::U32 len, rdr::U32 flags, ModifiablePixelBuffer* pb) {  
+void H264WinDecoderContext::decode(const rdr::U8* h264_buffer,
+                                   rdr::U32 len,
+                                   ModifiablePixelBuffer* pb) {
   os::AutoMutex lock(&mutex);
   if (!initialized)
     return;

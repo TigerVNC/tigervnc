@@ -128,7 +128,9 @@ rdr::U8* H264LibavDecoderContext::makeH264WorkBuffer(const rdr::U8* buffer, rdr:
   return h264WorkBuffer;
 }
 
-void H264LibavDecoderContext::decode(const rdr::U8* h264_in_buffer, rdr::U32 len, rdr::U32 flags, ModifiablePixelBuffer* pb) {
+void H264LibavDecoderContext::decode(const rdr::U8* h264_in_buffer,
+                                     rdr::U32 len,
+                                     ModifiablePixelBuffer* pb) {
   os::AutoMutex lock(&mutex);
   if (!initialized)
     return;
