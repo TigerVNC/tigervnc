@@ -197,7 +197,7 @@ std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::fetchMoni
 
     // Start by creating a struct for every monitor.
     for (int i = 0; i < Fl::screen_count(); i++) {
-        Monitor monitor = {0};
+        Monitor monitor;
         bool match;
 
         // Get the properties of the monitor at the current index;
