@@ -232,6 +232,7 @@ void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
     break;
   case subsampleGray:
     jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
+    // fall through
   default:
     cinfo->comp_info[0].h_samp_factor = 1;
     cinfo->comp_info[0].v_samp_factor = 1;

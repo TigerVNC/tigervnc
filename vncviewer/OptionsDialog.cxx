@@ -295,6 +295,7 @@ void OptionsDialog::loadOptions(void)
     case secTypeRA2ne:
     case secTypeRAne256:
       authVncCheckbox->value(true);
+      /* fall through */
     case secTypeDH:
     case secTypeMSLogonII:
       encNoneCheckbox->value(true);

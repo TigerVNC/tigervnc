@@ -30,8 +30,10 @@ inline Pixel PixelFormat::pixelFromBuffer(const rdr::U8* buffer) const
     case 32:
       p |= ((Pixel)*(buffer++)) << 24;
       p |= ((Pixel)*(buffer++)) << 16;
+      /* fall through */
     case 16:
       p |= ((Pixel)*(buffer++)) << 8;
+      /* fall through */
     case 8:
       p |= *buffer;
     }
@@ -57,8 +59,10 @@ inline void PixelFormat::bufferFromPixel(rdr::U8* buffer, Pixel p) const
     case 32:
       *(buffer++) = (p >> 24) & 0xff;
       *(buffer++) = (p >> 16) & 0xff;
+      /* fall through */
     case 16:
       *(buffer++) = (p >>  8) & 0xff;
+      /* fall through */
     case 8:
       *(buffer++) = (p >>  0) & 0xff;
     }

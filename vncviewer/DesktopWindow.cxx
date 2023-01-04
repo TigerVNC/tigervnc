@@ -840,6 +840,7 @@ int DesktopWindow::handle(int event)
   case FL_ENTER:
       if (keyboardGrabbed)
           grabPointer();
+      /* fall through */
   case FL_LEAVE:
   case FL_DRAG:
   case FL_MOVE:

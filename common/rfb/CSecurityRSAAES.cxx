@@ -106,17 +106,20 @@ bool CSecurityRSAAES::processMsg()
       writePublicKey();
       writeRandom();
       state = ReadRandom;
+      /* fall through */
     case ReadRandom:
       if (!readRandom())
         return false;
       setCipher();
       writeHash();
       state = ReadHash;
+      /* fall through */
     case ReadHash:
       if (!readHash())
         return false;
       clearSecrets();
       state = ReadSubtype;
+      /* fall through */
     case ReadSubtype:
       if (!readSubtype())
         return false;
