@@ -21,18 +21,14 @@
 
 #define VNCSERVERNAMELEN 256
 
-#ifdef __GNUC__
-#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
-#else
-#  define __printf_attr(a, b)
-#endif // __GNUC__
-
 namespace rdr {
   struct Exception;
 };
 
-void abort_vncviewer(const char *error, ...) __printf_attr(1, 2);
-void abort_connection(const char *error, ...) __printf_attr(1, 2);
+void abort_vncviewer(const char *error, ...)
+  __attribute__((__format__ (__printf__, 1, 2)));
+void abort_connection(const char *error, ...)
+  __attribute__((__format__ (__printf__, 1, 2)));
 void abort_connection_with_unexpected_error(const rdr::Exception &);
 
 void disconnect();
