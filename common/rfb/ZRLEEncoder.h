@@ -42,8 +42,7 @@ namespace rfb {
                           const Palette& palette);
     void writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
                              const Palette& palette);
-    void writeRawTile(const Rect& tile, const PixelBuffer* pb,
-                      const Palette& palette);
+    void writeRawTile(const Rect& tile, const PixelBuffer* pb);
 
     void writePalette(const PixelFormat& pf, const Palette& palette);
 

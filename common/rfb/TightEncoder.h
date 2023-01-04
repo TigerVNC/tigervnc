@@ -43,7 +43,7 @@ namespace rfb {
   protected:
     void writeMonoRect(const PixelBuffer* pb, const Palette& palette);
     void writeIndexedRect(const PixelBuffer* pb, const Palette& palette);
-    void writeFullColourRect(const PixelBuffer* pb, const Palette& palette);
+    void writeFullColourRect(const PixelBuffer* pb);
 
     void writePixels(const rdr::U8* buffer, const PixelFormat& pf,
                      unsigned int count, rdr::OutStream* os);
