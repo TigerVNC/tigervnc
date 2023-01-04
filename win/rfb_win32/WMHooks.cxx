@@ -72,37 +72,37 @@ static void LoadHooks()
   if (hooksLibrary == NULL)
     return;
 
-  WM_Hooks_WindowChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_WindowChanged");
+  WM_Hooks_WindowChanged = (WM_Hooks_WMVAL_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_WindowChanged");
   if (WM_Hooks_WindowChanged == NULL)
     goto error;
-  WM_Hooks_WindowBorderChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_WindowBorderChanged");
+  WM_Hooks_WindowBorderChanged = (WM_Hooks_WMVAL_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_WindowBorderChanged");
   if (WM_Hooks_WindowBorderChanged == NULL)
     goto error;
-  WM_Hooks_WindowClientAreaChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_WindowClientAreaChanged");
+  WM_Hooks_WindowClientAreaChanged = (WM_Hooks_WMVAL_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_WindowClientAreaChanged");
   if (WM_Hooks_WindowClientAreaChanged == NULL)
     goto error;
-  WM_Hooks_RectangleChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_RectangleChanged");
+  WM_Hooks_RectangleChanged = (WM_Hooks_WMVAL_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_RectangleChanged");
   if (WM_Hooks_RectangleChanged == NULL)
     goto error;
 #ifdef _DEBUG
-  WM_Hooks_Diagnostic = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_Diagnostic");
+  WM_Hooks_Diagnostic = (WM_Hooks_WMVAL_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_Diagnostic");
   if (WM_Hooks_Diagnostic == NULL)
     goto error;
 #endif
 
-  WM_Hooks_Install = (WM_Hooks_Install_proto)GetProcAddress(hooksLibrary, "WM_Hooks_Install");
+  WM_Hooks_Install = (WM_Hooks_Install_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_Install");
   if (WM_Hooks_Install == NULL)
     goto error;
-  WM_Hooks_Remove = (WM_Hooks_Remove_proto)GetProcAddress(hooksLibrary, "WM_Hooks_Remove");
+  WM_Hooks_Remove = (WM_Hooks_Remove_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_Remove");
   if (WM_Hooks_Remove == NULL)
     goto error;
 #ifdef _DEBUG
-  WM_Hooks_SetDiagnosticRange = (WM_Hooks_SetDiagnosticRange_proto)GetProcAddress(hooksLibrary, "WM_Hooks_SetDiagnosticRange");
+  WM_Hooks_SetDiagnosticRange = (WM_Hooks_SetDiagnosticRange_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_SetDiagnosticRange");
   if (WM_Hooks_SetDiagnosticRange == NULL)
     goto error;
 #endif
 
-  WM_Hooks_EnableRealInputs = (WM_Hooks_EnableRealInputs_proto)GetProcAddress(hooksLibrary, "WM_Hooks_EnableRealInputs");
+  WM_Hooks_EnableRealInputs = (WM_Hooks_EnableRealInputs_proto)(void*)GetProcAddress(hooksLibrary, "WM_Hooks_EnableRealInputs");
   if (WM_Hooks_EnableRealInputs == NULL)
     goto error;
 

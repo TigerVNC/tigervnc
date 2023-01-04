@@ -49,7 +49,7 @@ VNCServerService::VNCServerService()
   if (sasLibrary == NULL) {
     sasLibrary = LoadLibrary("sas.dll");
     if (sasLibrary != NULL)
-      _SendSAS = (SendSAS_proto)GetProcAddress(sasLibrary, "SendSAS");
+      _SendSAS = (SendSAS_proto)(void*)GetProcAddress(sasLibrary, "SendSAS");
   }
   // - Set the service-mode logging defaults
   //   These will be overridden by the Log option in the
