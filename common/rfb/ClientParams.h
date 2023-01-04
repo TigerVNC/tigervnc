@@ -62,8 +62,8 @@ namespace rfb {
       return !beforeVersion(major,minor+1);
     }
 
-    const int width() const { return width_; }
-    const int height() const { return height_; }
+    int width() const { return width_; }
+    int height() const { return height_; }
     const ScreenSet& screenLayout() const { return screenLayout_; }
     void setDimensions(int width, int height);
     void setDimensions(int width, int height, const ScreenSet& layout);
