@@ -122,7 +122,7 @@ void SMsgHandler::handleClipboardRequest(rdr::U32 flags)
 {
 }
 
-void SMsgHandler::handleClipboardPeek(rdr::U32 flags)
+void SMsgHandler::handleClipboardPeek()
 {
 }
 

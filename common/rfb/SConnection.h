@@ -85,7 +85,7 @@ namespace rfb {
     virtual void clientCutText(const char* str);
 
     virtual void handleClipboardRequest(rdr::U32 flags);
-    virtual void handleClipboardPeek(rdr::U32 flags);
+    virtual void handleClipboardPeek();
     virtual void handleClipboardNotify(rdr::U32 flags);
     virtual void handleClipboardProvide(rdr::U32 flags,
                                         const size_t* lengths,

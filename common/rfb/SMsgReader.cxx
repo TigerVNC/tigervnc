@@ -429,7 +429,7 @@ bool SMsgReader::readExtendedClipboard(rdr::S32 len)
       handler->handleClipboardRequest(flags);
       break;
     case clipboardPeek:
-      handler->handleClipboardPeek(flags);
+      handler->handleClipboardPeek();
       break;
     case clipboardNotify:
       handler->handleClipboardNotify(flags);

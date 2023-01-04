@@ -154,7 +154,7 @@ void CMsgHandler::handleClipboardRequest(rdr::U32 flags)
 {
 }
 
-void CMsgHandler::handleClipboardPeek(rdr::U32 flags)
+void CMsgHandler::handleClipboardPeek()
 {
 }
 

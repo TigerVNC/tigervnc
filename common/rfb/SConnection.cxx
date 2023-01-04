@@ -402,7 +402,7 @@ void SConnection::handleClipboardRequest(rdr::U32 flags)
   handleClipboardRequest();
 }
 
-void SConnection::handleClipboardPeek(rdr::U32 flags)
+void SConnection::handleClipboardPeek()
 {
   if (client.clipboardFlags() & rfb::clipboardNotify)
     writer()->writeClipboardNotify(hasLocalClipboard ? rfb::clipboardUTF8 : 0);
