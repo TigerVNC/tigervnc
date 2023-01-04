@@ -78,7 +78,7 @@ StringParameter interface("interface",
 
 static const char* defaultDesktopName()
 {
-  size_t host_max = sysconf(_SC_HOST_NAME_MAX);
+  long host_max = sysconf(_SC_HOST_NAME_MAX);
   if (host_max < 0)
     return "";
 
@@ -90,7 +90,7 @@ static const char* defaultDesktopName()
   if (pwent == NULL)
     return "";
 
-  size_t len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname.data());
+  int len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname.data());
   if (len < 0)
     return "";
 

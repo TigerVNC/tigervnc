@@ -349,7 +349,7 @@ static void
 redir_stdio(const char *homedir, const char *display)
 {
     int fd;
-    size_t hostlen;
+    long hostlen;
     char* hostname = NULL;
     char logfile[PATH_MAX];
 

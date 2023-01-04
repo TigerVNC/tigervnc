@@ -108,7 +108,7 @@ bool RegConfigThread::start(const HKEY rootKey, const TCHAR* keyname) {
 }
 
 void RegConfigThread::worker() {
-  DWORD result = 0;
+  BOOL result = 0;
   MSG msg;
   thread_id = GetCurrentThreadId();
   while ((result = eventMgr.getMessage(&msg, 0, 0, 0)) > 0) {}
