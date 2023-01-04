@@ -59,11 +59,13 @@ static int is_system_hotkey(int vkCode) {
   case VK_TAB:
     if (GetAsyncKeyState(VK_MENU) & 0x8000)
       return 1;
+    break;
   case VK_ESCAPE:
     if (GetAsyncKeyState(VK_MENU) & 0x8000)
       return 1;
     if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
       return 1;
+    break;
   }
   return 0;
 }
