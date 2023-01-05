@@ -29,8 +29,8 @@
 #include <sys/time.h>
 
 #include <core/LogWriter.h>
+#include <core/string.h>
 #include <core/time.h>
-#include <core/util.h>
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/ScreenSet.h>

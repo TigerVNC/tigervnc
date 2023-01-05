@@ -7,8 +7,8 @@ add_library(core STATIC
   LogWriter.cxx
   Region.cxx
   Timer.cxx
-  time.cxx
-  util.cxx)
+  string.cxx
+  time.cxx)
 
 target_link_libraries(core os)
 target_include_directories(core PUBLIC ${CMAKE_SOURCE_DIR}/common)

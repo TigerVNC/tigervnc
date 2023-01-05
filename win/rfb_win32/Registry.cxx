@@ -23,7 +23,7 @@
 #endif
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Security.h>

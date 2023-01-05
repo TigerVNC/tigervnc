@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <core/util.h>
+#include <core/string.h>
 
 namespace core {
 

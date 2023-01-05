@@ -23,6 +23,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/string.h>
 #include <core/time.h>
 
 #include <rdr/FdInStream.h>

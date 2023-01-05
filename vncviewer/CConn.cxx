@@ -29,7 +29,7 @@
 
 #include <core/LogWriter.h>
 #include <core/Timer.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
