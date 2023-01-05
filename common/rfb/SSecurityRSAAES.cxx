@@ -238,36 +238,35 @@ bool SSecurityRSAAES::processMsg()
       loadPrivateKey();
       writePublicKey();
       state = ReadPublicKey;
-      // fall through
+      /* fall through */
     case ReadPublicKey:
-      if (readPublicKey()) {
-        writeRandom();
-        state = ReadRandom;
-      }
-      return false;
+      if (!readPublicKey())
+        return false;
+      writeRandom();
+      state = ReadRandom;
+      /* fall through */
     case ReadRandom:
-      if (readRandom()) {
-        setCipher();
-        writeHash();
-        state = ReadHash;
-      }
-      return false;
+      if (!readRandom())
+        return false;
+      setCipher();
+      writeHash();
+      state = ReadHash;
+      /* fall through */
     case ReadHash:
-      if (readHash()) {
-        clearSecrets();
-        writeSubtype();
-        state = ReadCredentials;
-      }
-      return false;
+      if (!readHash())
+        return false;
+      clearSecrets();
+      writeSubtype();
+      state = ReadCredentials;
+      /* fall through */
     case ReadCredentials:
-      if (readCredentials()) {
-        if (requireUsername)
-          verifyUserPass();
-        else
-          verifyPass();
-        return true;
-      }
-      return false;
+      if (!readCredentials())
+        return false;
+      if (requireUsername)
+        verifyUserPass();
+      else
+        verifyPass();
+      return true;
   }
   assert(!"unreachable");
   return false;
