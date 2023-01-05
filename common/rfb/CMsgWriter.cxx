@@ -25,7 +25,7 @@
 #include <assert.h>
 
 #include <core/Rect.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rdr/OutStream.h>
 #include <rdr/MemOutStream.h>

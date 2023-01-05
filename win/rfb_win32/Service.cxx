@@ -24,7 +24,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>

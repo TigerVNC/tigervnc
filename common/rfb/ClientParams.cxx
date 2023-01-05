@@ -24,7 +24,7 @@
 
 #include <stdexcept>
 
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/encodings.h>
 #include <rfb/ledStates.h>

@@ -24,7 +24,7 @@
 #include <string.h>
 #include <wchar.h>
 
-#include <core/util.h>
+#include <core/string.h>
 
 struct _ucs4utf8 {
     unsigned ucs4;

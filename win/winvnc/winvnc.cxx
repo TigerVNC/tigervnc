@@ -31,7 +31,7 @@
 #include <core/Logger_file.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb_win32/AboutDialog.h>
 #include <rfb_win32/MsgBox.h>

@@ -27,7 +27,7 @@
 #include <algorithm>
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rdr/OutStream.h>
 

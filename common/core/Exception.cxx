@@ -27,7 +27,7 @@
 #include <stdarg.h>
 
 #include <core/Exception.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #ifdef _WIN32
 #include <winsock2.h>

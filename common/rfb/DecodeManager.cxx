@@ -25,7 +25,7 @@
 
 #include <core/LogWriter.h>
 #include <core/Region.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>

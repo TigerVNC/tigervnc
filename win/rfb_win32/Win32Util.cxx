@@ -23,7 +23,7 @@
 #endif
 
 #include <core/Exception.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Win32Util.h>
