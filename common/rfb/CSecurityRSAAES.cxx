@@ -36,7 +36,7 @@
 #include <nettle/sha2.h>
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/CSecurityRSAAES.h>
 #include <rfb/CConnection.h>
