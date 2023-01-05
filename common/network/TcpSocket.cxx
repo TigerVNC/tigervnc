@@ -44,7 +44,7 @@
 #include <core/Configuration.h>
 #include <core/Exception.h>
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <network/TcpSocket.h>
 

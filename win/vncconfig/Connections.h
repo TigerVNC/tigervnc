@@ -21,7 +21,7 @@
 #include <vector>
 
 #include <core/Configuration.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>

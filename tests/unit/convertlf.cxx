@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 
-#include <core/util.h>
+#include <core/string.h>
 
 static const char* escape(const char* input)
 {

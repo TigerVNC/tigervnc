@@ -35,7 +35,7 @@
 #endif
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/CSecurityTLS.h>
 #include <rfb/CConnection.h>

@@ -25,7 +25,7 @@
 #include <winvnc/VNCServerService.h>
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb_win32/TsSessions.h>
 #include <rfb_win32/ModuleFileName.h>

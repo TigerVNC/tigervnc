@@ -22,7 +22,7 @@
 #endif
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/SMsgHandler.h>
 #include <rfb/ScreenSet.h>

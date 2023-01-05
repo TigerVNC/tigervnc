@@ -22,7 +22,7 @@
 #endif
 
 #include <core/Configuration.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/SSecurityPlain.h>
 #include <rfb/SConnection.h>

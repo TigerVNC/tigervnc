@@ -31,7 +31,7 @@
 #include <algorithm>
 
 #include "TXWindow.h"
-#include <core/util.h>
+#include <core/string.h>
 
 class TXLabel : public TXWindow, public TXEventHandler {
 public:

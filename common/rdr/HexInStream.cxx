@@ -23,7 +23,7 @@
 
 #include <algorithm>
 
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rdr/HexInStream.h>
 

@@ -27,7 +27,7 @@
 
 #include <vector>
 
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
