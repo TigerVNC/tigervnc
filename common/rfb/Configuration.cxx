@@ -290,16 +290,15 @@ BoolParameter::setParam(const char* v) {
 
   if (*v == 0 || strcasecmp(v, "1") == 0 || strcasecmp(v, "on") == 0
       || strcasecmp(v, "true") == 0 || strcasecmp(v, "yes") == 0)
-    value = 1;
+    setParam(true);
   else if (strcasecmp(v, "0") == 0 || strcasecmp(v, "off") == 0
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
-    value = 0;
+    setParam(false);
   else {
     vlog.error("Bool parameter %s: invalid value '%s'", getName(), v);
     return false;
   }
 
-  vlog.debug("set %s(Bool) to %s(%d)", getName(), v, value);
   return true;
 }
 
@@ -343,12 +342,7 @@ IntParameter::IntParameter(const char* name_, const char* desc_, int v,
 bool
 IntParameter::setParam(const char* v) {
   if (immutable) return true;
-  vlog.debug("set %s(Int) to %s", getName(), v);
-  int i = strtol(v, NULL, 0);
-  if (i < minValue || i > maxValue)
-    return false;
-  value = i;
-  return true;
+  return setParam(strtol(v, NULL, 0));
 }
 
 bool
@@ -440,15 +434,12 @@ BinaryParameter::~BinaryParameter() {
 }
 
 bool BinaryParameter::setParam(const char* v) {
-  LOCK_CONFIG;
   if (immutable) return true;
-  vlog.debug("set %s(Binary) to %s", getName(), v);
-  delete [] value;
-  length = 0;
-  value = hexToBin(v, strlen(v));
-  if (value == NULL)
+  uint8_t *newValue = hexToBin(v, strlen(v));
+  if (newValue == NULL)
     return false;
-  length = strlen(v)/2;
+  setParam(newValue, strlen(v)/2);
+  delete [] newValue;
   return true;
 }
 
