@@ -35,7 +35,7 @@
 #include <nettle/sha1.h>
 #include <nettle/sha2.h>
 
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/CSecurityRSAAES.h>
 #include <rfb/CConnection.h>

@@ -31,7 +31,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rfb/PixelBuffer.h>
 

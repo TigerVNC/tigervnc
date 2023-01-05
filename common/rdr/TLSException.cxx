@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rdr/TLSException.h>
 

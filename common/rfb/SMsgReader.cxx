@@ -27,7 +27,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>

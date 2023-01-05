@@ -18,11 +18,11 @@
  */
 
 //
-// util.h - miscellaneous useful bits
+// string.h - string utility functions
 //
 
-#ifndef __CORE_UTIL_H__
-#define __CORE_UTIL_H__
+#ifndef __CORE_STRING_H__
+#define __CORE_STRING_H__
 
 #include <stdint.h>
 

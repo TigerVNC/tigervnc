@@ -28,7 +28,7 @@
 #include <core/Logger_stdio.h>
 #include <core/Logger_syslog.h>
 #include <core/LogWriter.h>
-#include <core/util.h>
+#include <core/string.h>
 
 #include <network/TcpSocket.h>
 

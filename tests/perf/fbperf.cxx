@@ -28,8 +28,8 @@
 #include <FL/fl_draw.H>
 #include <FL/x.H>
 
+#include <core/string.h>
 #include <core/time.h>
-#include <core/util.h>
 
 #include "../vncviewer/PlatformPixelBuffer.h"
 
