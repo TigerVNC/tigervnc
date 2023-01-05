@@ -76,9 +76,6 @@ bool MonitorIndicesParameter::setParam(const char* value)
     int index;
     std::set<int> indices;
 
-    if (strlen(value) < 0)
-        return false;
-
     if (!parseIndices(value, &indices, true)) {
         vlog.error(_("Invalid configuration specified for %s"), name);
         return false;
@@ -200,7 +197,7 @@ std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::fetchMoni
 
     // Start by creating a struct for every monitor.
     for (int i = 0; i < Fl::screen_count(); i++) {
-        Monitor monitor = {0};
+        Monitor monitor;
         bool match;
 
         // Get the properties of the monitor at the current index;

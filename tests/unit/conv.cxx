@@ -291,7 +291,7 @@ static void doTests(const rfb::PixelFormat &dstpf,
   }
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char** /*argv*/)
 {
   rfb::PixelFormat dstpf, srcpf;
 

@@ -36,7 +36,7 @@ namespace rfb {
         setItemChecked(IDC_SHARE_ALWAYS, rfb::Server::alwaysShared);
         setItemChecked(IDC_SHARE_CLIENT, !(rfb::Server::neverShared || rfb::Server::alwaysShared));
       }
-      bool onCommand(int id, int cmd) {
+      bool onCommand(int /*id*/, int /*cmd*/) {
         setChanged((isItemChecked(IDC_DISCONNECT_CLIENTS) != rfb::Server::disconnectClients) ||
           (isItemChecked(IDC_SHARE_NEVER) != rfb::Server::neverShared) ||
           (isItemChecked(IDC_SHARE_ALWAYS) != rfb::Server::alwaysShared));

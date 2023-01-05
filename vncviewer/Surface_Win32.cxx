@@ -93,7 +93,9 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   DeleteDC(dstdc);
 }
 
-void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
+void Surface::blend(int /*src_x*/, int /*src_y*/,
+                    int /*x*/, int /*y*/, int /*w*/, int /*h*/,
+                    int /*a*/)
 {
   // Compositing doesn't work properly for window DC:s
   assert(false);

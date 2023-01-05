@@ -49,7 +49,7 @@ namespace rfb {
           enableAffectSSaver = false;
         enableItem(IDC_AFFECT_SCREENSAVER, enableAffectSSaver);
       }
-      bool onCommand(int id, int cmd) {
+      bool onCommand(int /*id*/, int /*cmd*/) {
         BOOL inputResetsBlocked;
         SystemParametersInfo(SPI_GETBLOCKSENDINPUTRESETS, 0, &inputResetsBlocked, 0);
         setChanged((rfb::Server::acceptKeyEvents != isItemChecked(IDC_ACCEPT_KEYS)) ||

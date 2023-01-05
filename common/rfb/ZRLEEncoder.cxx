@@ -76,7 +76,7 @@ void ZRLEEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
         tile.br.x = pb->width();
 
       if (palette.size() == 0)
-        writeRawTile(tile, pb, palette);
+        writeRawTile(tile, pb);
       else if (palette.size() <= 16)
         writePaletteTile(tile, pb, palette);
       else
@@ -171,8 +171,7 @@ void ZRLEEncoder::writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
   }
 }
 
-void ZRLEEncoder::writeRawTile(const Rect& tile, const PixelBuffer* pb,
-                               const Palette& palette)
+void ZRLEEncoder::writeRawTile(const Rect& tile, const PixelBuffer* pb)
 {
   const rdr::U8* buffer;
   int stride;

@@ -142,19 +142,21 @@ public:
 
   // takeFocus() is called when the window has received keyboard focus from the
   // window manager.
-  virtual void takeFocus(Time time) {}
+  virtual void takeFocus(Time /*time*/) {}
 
   // selectionNotify() is called when the selection owner has replied to a
   // request for information about a selection from the selection owner.
-  virtual void selectionNotify(XSelectionEvent* ev, Atom type, int format,
-                               int nitems, void* data) {}
+  virtual void selectionNotify(XSelectionEvent* /*ev*/, Atom /*type*/,
+                               int /*format*/, int /*nitems*/,
+                               void* /*data*/) {}
 
   // selectionRequest() is called when this window is the selection owner and
   // another X client has requested the selection.  It should set the given
   // property on the given window to the value of the given selection,
   // returning true if successful, false otherwise.
-  virtual bool selectionRequest(Window requestor,
-                                Atom selection, Atom property) { return false;}
+  virtual bool selectionRequest(Window /*requestor*/,
+                                Atom /*selection*/,
+                                Atom /*property*/) { return false;}
 
   // Static methods
 

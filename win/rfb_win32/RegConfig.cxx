@@ -73,7 +73,7 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
   }
 }
 
-void RegConfig::processEvent(HANDLE event_) {
+void RegConfig::processEvent(HANDLE /*event*/) {
   vlog.info("registry changed");
 
   // Reinstate the registry change notifications
@@ -108,7 +108,7 @@ bool RegConfigThread::start(const HKEY rootKey, const TCHAR* keyname) {
 }
 
 void RegConfigThread::worker() {
-  DWORD result = 0;
+  BOOL result = 0;
   MSG msg;
   thread_id = GetCurrentThreadId();
   while ((result = eventMgr.getMessage(&msg, 0, 0, 0)) > 0) {}

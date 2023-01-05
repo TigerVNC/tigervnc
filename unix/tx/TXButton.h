@@ -91,7 +91,7 @@ private:
     XDrawString(dpy, win(), gc, startx, starty, text.buf, strlen(text.buf));
   }
 
-  virtual void handleEvent(TXWindow* w, XEvent* ev) {
+  virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
     switch (ev->type) {
     case Expose:
       paint();

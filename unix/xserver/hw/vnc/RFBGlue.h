@@ -26,16 +26,14 @@ extern "C" {
 
 void vncInitRFB(void);
 
-#ifdef __GNUC__
-#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
-#else
-#  define __printf_attr(a, b)
-#endif // __GNUC__
-
-void vncLogError(const char *name, const char *format, ...) __printf_attr(2, 3);
-void vncLogStatus(const char *name, const char *format, ...) __printf_attr(2, 3);
-void vncLogInfo(const char *name, const char *format, ...) __printf_attr(2, 3);
-void vncLogDebug(const char *name, const char *format, ...) __printf_attr(2, 3);
+void vncLogError(const char *name, const char *format, ...)
+        __attribute__((__format__ (__printf__, 2, 3)));
+void vncLogStatus(const char *name, const char *format, ...)
+        __attribute__((__format__ (__printf__, 2, 3)));
+void vncLogInfo(const char *name, const char *format, ...)
+        __attribute__((__format__ (__printf__, 2, 3)));
+void vncLogDebug(const char *name, const char *format, ...)
+        __attribute__((__format__ (__printf__, 2, 3)));
 
 int vncSetParam(const char *name, const char *value);
 int vncSetParamSimple(const char *nameAndValue);

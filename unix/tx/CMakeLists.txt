@@ -1,4 +1,4 @@
-include_directories(${X11_INCLUDE_DIR})
+include_directories(SYSTEM ${X11_INCLUDE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/common)
 include_directories(${CMAKE_SOURCE_DIR}/common/rfb)

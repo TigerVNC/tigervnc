@@ -49,7 +49,7 @@ VNCServerService::VNCServerService()
   if (sasLibrary == NULL) {
     sasLibrary = LoadLibrary("sas.dll");
     if (sasLibrary != NULL)
-      _SendSAS = (SendSAS_proto)GetProcAddress(sasLibrary, "SendSAS");
+      _SendSAS = (SendSAS_proto)(void*)GetProcAddress(sasLibrary, "SendSAS");
   }
   // - Set the service-mode logging defaults
   //   These will be overridden by the Log option in the
@@ -101,7 +101,7 @@ BOOL GetSessionUserTokenWin(OUT LPHANDLE lphUserToken)
 
 //////////////////////////////////////////////////////////////////////////////
 // START the app as system 
-HANDLE LaunchProcessWin(DWORD dwSessionId)
+HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
 {
     HANDLE hProcess = NULL;
     HANDLE hToken = NULL;
@@ -125,7 +125,7 @@ HANDLE LaunchProcessWin(DWORD dwSessionId)
     return hProcess;
 }
 
-DWORD VNCServerService::serviceMain(int argc, TCHAR* argv[])
+DWORD VNCServerService::serviceMain(int /*argc*/, TCHAR* /*argv*/ [])
 {
     ConsoleSessionId OlddwSessionId;
 

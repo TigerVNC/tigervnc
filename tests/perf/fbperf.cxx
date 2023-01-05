@@ -378,7 +378,7 @@ static void dotest(TestWindow* win)
           1.0 / (delay + rate * 1920 * 1080));
 }
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
   TestWindow* win;
 

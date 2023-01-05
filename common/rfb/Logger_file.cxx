@@ -45,7 +45,7 @@ Logger_File::~Logger_File()
   delete mutex;
 }
 
-void Logger_File::write(int level, const char *logname, const char *message)
+void Logger_File::write(int /*level*/, const char *logname, const char *message)
 {
   os::AutoMutex a(mutex);
 

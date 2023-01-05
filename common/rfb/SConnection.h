@@ -85,7 +85,7 @@ namespace rfb {
     virtual void clientCutText(const char* str);
 
     virtual void handleClipboardRequest(rdr::U32 flags);
-    virtual void handleClipboardPeek(rdr::U32 flags);
+    virtual void handleClipboardPeek();
     virtual void handleClipboardNotify(rdr::U32 flags);
     virtual void handleClipboardProvide(rdr::U32 flags,
                                         const size_t* lengths,
@@ -222,7 +222,8 @@ namespace rfb {
     // throwConnFailedException() prints a message to the log, sends a conn
     // failed message to the client (if possible) and throws a
     // ConnFailedException.
-    void throwConnFailedException(const char* format, ...) __printf_attr(2, 3);
+    void throwConnFailedException(const char* format, ...)
+      __attribute__((__format__ (__printf__, 2, 3)));
 
     void setState(stateEnum s) { state_ = s; }
 

@@ -135,7 +135,8 @@ rfb::Rect PlatformPixelBuffer::getDamage(void)
 
 static bool caughtError;
 
-static int XShmAttachErrorHandler(Display *dpy, XErrorEvent *error)
+static int XShmAttachErrorHandler(Display* /*dpy*/,
+                                  XErrorEvent* /*error*/)
 {
   caughtError = true;
   return 0;

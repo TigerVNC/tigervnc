@@ -682,7 +682,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
 static bool findAndSetViewerParameterFromValue(
   VoidParameter* parameters[], size_t parameters_len,
-  char* value, char* line, char* filepath)
+  char* value, char* line)
 {
   const size_t buffersize = 256;
   char decodingBuffer[buffersize];
@@ -821,11 +821,11 @@ char* loadViewerParameters(const char *filename) {
 
       } else {
         invalidParameterName = findAndSetViewerParameterFromValue(parameterArray, sizeof(parameterArray),
-                                                                  value, line, filepath);
+                                                                  value, line);
 
         if (invalidParameterName) {
           invalidParameterName = findAndSetViewerParameterFromValue(readOnlyParameterArray, sizeof(readOnlyParameterArray),
-                                                                    value, line, filepath);
+                                                                    value, line);
         }
       }
     } catch(Exception& e) {

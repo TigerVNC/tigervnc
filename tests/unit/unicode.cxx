@@ -85,7 +85,7 @@ struct _utf8utf16 utf8utf16[] = {
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(*a))
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
     int failures;
     size_t i;

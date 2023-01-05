@@ -581,7 +581,7 @@ void CConnection::handleClipboardRequest(rdr::U32 flags)
   handleClipboardRequest();
 }
 
-void CConnection::handleClipboardPeek(rdr::U32 flags)
+void CConnection::handleClipboardPeek()
 {
   if (server.clipboardFlags() & rfb::clipboardNotify)
     writer()->writeClipboardNotify(hasLocalClipboard ? rfb::clipboardUTF8 : 0);
@@ -635,11 +635,11 @@ void CConnection::handleClipboardRequest()
 {
 }
 
-void CConnection::handleClipboardAnnounce(bool available)
+void CConnection::handleClipboardAnnounce(bool /*available*/)
 {
 }
 
-void CConnection::handleClipboardData(const char* data)
+void CConnection::handleClipboardData(const char* /*data*/)
 {
 }
 

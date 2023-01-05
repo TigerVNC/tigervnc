@@ -59,7 +59,8 @@ Win32TouchHandler::Win32TouchHandler(HWND hWnd) :
                supportedTouches);
 }
 
-bool Win32TouchHandler::processEvent(UINT Msg, WPARAM wParam, LPARAM lParam)
+bool Win32TouchHandler::processEvent(UINT Msg, WPARAM /*wParam*/,
+                                     LPARAM lParam)
 {
   GESTUREINFO gi;
 
@@ -386,7 +387,7 @@ void Win32TouchHandler::fakeButtonEvent(bool press, int button,
 }
 
 void Win32TouchHandler::fakeKeyEvent(bool press, int keysym,
-                                     const GestureEvent origEvent)
+                                     const GestureEvent /*origEvent*/)
 {
   UINT Msg = press ? WM_KEYDOWN : WM_KEYUP;
   WPARAM wParam;

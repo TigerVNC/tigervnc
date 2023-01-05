@@ -29,7 +29,7 @@
 using namespace rfb;
 
 // This method will only work for Windows NT, 2000, and XP (and possibly Vista)
-bool WinPasswdValidator::validateInternal(rfb::SConnection* sc,
+bool WinPasswdValidator::validateInternal(rfb::SConnection* /*sc*/,
 					  const char* username,
 					  const char* password)
 {

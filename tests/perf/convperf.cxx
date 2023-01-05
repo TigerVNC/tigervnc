@@ -41,7 +41,8 @@ struct TestEntry {
   testfn fn;
 };
 
-static void testMemcpy(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
+static void testMemcpy(rfb::PixelFormat &dstpf,
+                       rfb::PixelFormat& /*srcpf*/,
                        rdr::U8 *dst, rdr::U8 *src)
 {
   int h;
@@ -53,19 +54,22 @@ static void testMemcpy(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
   }
 }
 
-static void testBuffer(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
+static void testBuffer(rfb::PixelFormat &dstpf,
+                       rfb::PixelFormat &srcpf,
                        rdr::U8 *dst, rdr::U8 *src)
 {
   dstpf.bufferFromBuffer(dst, srcpf, src, tile, tile, fbsize, fbsize);
 }
 
-static void testToRGB(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
+static void testToRGB(rfb::PixelFormat& /*dstpf*/,
+                      rfb::PixelFormat &srcpf,
                       rdr::U8 *dst, rdr::U8 *src)
 {
   srcpf.rgbFromBuffer(dst, src, tile, fbsize, tile);
 }
 
-static void testFromRGB(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
+static void testFromRGB(rfb::PixelFormat &dstpf,
+                        rfb::PixelFormat& /*srcpf*/,
                         rdr::U8 *dst, rdr::U8 *src)
 {
   dstpf.bufferFromRGB(dst, src, tile, fbsize, tile);
@@ -120,7 +124,7 @@ static void doTests(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf)
   printf("\n");
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char** /*argv*/)
 {
   size_t bufsize;
 

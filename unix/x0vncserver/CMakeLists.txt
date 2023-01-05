@@ -1,4 +1,4 @@
-include_directories(${X11_INCLUDE_DIR})
+include_directories(SYSTEM ${X11_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/unix/common)
 include_directories(${CMAKE_SOURCE_DIR}/unix/tx)
 include_directories(${CMAKE_SOURCE_DIR}/unix)

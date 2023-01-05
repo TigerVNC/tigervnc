@@ -82,7 +82,7 @@ public:
   }    
 
 protected:
-  virtual void deleteWindow(TXWindow* w) {
+  virtual void deleteWindow(TXWindow* /*w*/) {
     ok = false;
     done = true;
     unmap();

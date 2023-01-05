@@ -229,7 +229,7 @@ struct DLGTEMPLATEEX {
   short cy;
 };
 
-static int CALLBACK removeCtxtHelp(HWND hwnd, UINT message, LPARAM lParam) {
+static int CALLBACK removeCtxtHelp(HWND /*hwnd*/, UINT message, LPARAM lParam) {
   if (message == PSCB_PRECREATE) {
     // Remove the context-help style, to remove the titlebar ? button
     // *** Nasty hack to cope with new & old dialog template formats...
@@ -280,6 +280,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     centerWindow(handle, owner);
     plog.info("created %p", handle);
 
+    (void)capture;
 #ifdef _DIALOG_CAPTURE
     if (capture) {
       plog.info("capturing \"%s\"", (const char*)CStr(title.buf));

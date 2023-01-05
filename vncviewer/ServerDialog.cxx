@@ -157,13 +157,13 @@ void ServerDialog::run(const char* servername, char *newservername)
   newservername[VNCSERVERNAMELEN - 1] = '\0';
 }
 
-void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
+void ServerDialog::handleOptions(Fl_Widget* /*widget*/, void* /*data*/)
 {
   OptionsDialog::showDialog();
 }
 
 
-void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
+void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
 
@@ -201,7 +201,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
 }
 
 
-void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
+void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
 { 
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
@@ -261,13 +261,13 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
 }
 
 
-void ServerDialog::handleAbout(Fl_Widget *widget, void *data)
+void ServerDialog::handleAbout(Fl_Widget* /*widget*/, void* /*data*/)
 {
   about_vncviewer();
 }
 
 
-void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
+void ServerDialog::handleCancel(Fl_Widget* /*widget*/, void* data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
 
@@ -276,7 +276,7 @@ void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
 }
 
 
-void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
+void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();

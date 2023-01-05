@@ -45,17 +45,22 @@ Decoder::~Decoder()
 {
 }
 
-void Decoder::getAffectedRegion(const Rect& rect, const void* buffer,
-                                size_t buflen, const ServerParams& server,
+void Decoder::getAffectedRegion(const Rect& rect,
+                                const void* /*buffer*/,
+                                size_t /*buflen*/,
+                                const ServerParams& /*server*/,
                                 Region* region)
 {
   region->reset(rect);
 }
 
-bool Decoder::doRectsConflict(const Rect& rectA, const void* bufferA,
-                              size_t buflenA, const Rect& rectB,
-                              const void* bufferB, size_t buflenB,
-                              const ServerParams& server)
+bool Decoder::doRectsConflict(const Rect& /*rectA*/,
+                              const void* /*bufferA*/,
+                              size_t /*buflenA*/,
+                              const Rect& /*rectB*/,
+                              const void* /*bufferB*/,
+                              size_t /*buflenB*/,
+                              const ServerParams& /*server*/)
 {
   return false;
 }

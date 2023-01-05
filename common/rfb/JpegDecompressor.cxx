@@ -84,7 +84,7 @@ struct JPEG_SRC_MGR {
 };
 
 static void
-JpegNoOp(j_decompress_ptr dinfo)
+JpegNoOp(j_decompress_ptr /*dinfo*/)
 {
 }
 
@@ -150,16 +150,18 @@ JpegDecompressor::~JpegDecompressor(void)
   delete dinfo;
 }
 
-void JpegDecompressor::decompress(const rdr::U8 *jpegBuf, int jpegBufLen,
-  rdr::U8 *buf, int stride, const Rect& r, const PixelFormat& pf)
+void JpegDecompressor::decompress(const rdr::U8 *jpegBuf,
+                                  int jpegBufLen, rdr::U8 *buf,
+                                  volatile int stride,
+                                  const Rect& r, const PixelFormat& pf)
 {
   int w = r.width();
   int h = r.height();
   int pixelsize;
   int dstBufStride;
-  rdr::U8 *dstBuf = NULL;
-  bool dstBufIsTemp = false;
-  JSAMPROW *rowPointer = NULL;
+  rdr::U8 * volatile dstBuf = NULL;
+  volatile bool dstBufIsTemp = false;
+  JSAMPROW * volatile rowPointer = NULL;
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error

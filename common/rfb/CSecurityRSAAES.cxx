@@ -100,31 +100,31 @@ bool CSecurityRSAAES::processMsg()
 {
   switch (state) {
     case ReadPublicKey:
-      if (readPublicKey()) {
-        verifyServer();
-        writePublicKey();
-        writeRandom();
-        state = ReadRandom;
-      }
-      return false;
+      if (!readPublicKey())
+        return false;
+      verifyServer();
+      writePublicKey();
+      writeRandom();
+      state = ReadRandom;
+      /* fall through */
     case ReadRandom:
-      if (readRandom()) {
-        setCipher();
-        writeHash();
-        state = ReadHash;
-      }
-      return false;
+      if (!readRandom())
+        return false;
+      setCipher();
+      writeHash();
+      state = ReadHash;
+      /* fall through */
     case ReadHash:
-      if (readHash()) {
-        clearSecrets();
-        state = ReadSubtype;
-      }
+      if (!readHash())
+        return false;
+      clearSecrets();
+      state = ReadSubtype;
+      /* fall through */
     case ReadSubtype:
-      if (readSubtype()) {
-        writeCredentials();
-        return true;
-      }
-      return false;
+      if (!readSubtype())
+        return false;
+      writeCredentials();
+      return true;
   }
   assert(!"unreachable");
   return false;

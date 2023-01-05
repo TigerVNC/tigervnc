@@ -183,7 +183,7 @@ void is888Tests()
     printf("\n");
 }
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
     sanityTests();
     is888Tests();

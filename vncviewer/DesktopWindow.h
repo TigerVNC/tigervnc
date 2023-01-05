@@ -37,12 +37,6 @@ class Viewport;
 
 class Fl_Scrollbar;
 
-#ifdef __GNUC__
-#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
-#else
-#  define __printf_attr(a, b)
-#endif // __GNUC__
-
 class DesktopWindow : public Fl_Window {
 public:
 
@@ -89,7 +83,8 @@ public:
 private:
   static void menuOverlay(void *data);
 
-  void setOverlay(const char *text, ...) __printf_attr(2, 3);
+  void setOverlay(const char *text, ...)
+    __attribute__((__format__ (__printf__, 2, 3)));
   static void updateOverlay(void *data);
 
   static int fltkDispatch(int event, Fl_Window *win);

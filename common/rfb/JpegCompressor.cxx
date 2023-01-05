@@ -155,15 +155,16 @@ JpegCompressor::~JpegCompressor(void)
   delete cinfo;
 }
 
-void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
-  const PixelFormat& pf, int quality, int subsamp)
+void JpegCompressor::compress(const rdr::U8 *buf, volatile int stride,
+                              const Rect& r, const PixelFormat& pf,
+                              int quality, int subsamp)
 {
   int w = r.width();
   int h = r.height();
   int pixelsize;
-  rdr::U8 *srcBuf = NULL;
-  bool srcBufIsTemp = false;
-  JSAMPROW *rowPointer = NULL;
+  rdr::U8 * volatile srcBuf = NULL;
+  volatile bool srcBufIsTemp = false;
+  JSAMPROW * volatile rowPointer = NULL;
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
@@ -232,6 +233,7 @@ void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
     break;
   case subsampleGray:
     jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
+    // fall through
   default:
     cinfo->comp_info[0].h_samp_factor = 1;
     cinfo->comp_info[0].v_samp_factor = 1;
@@ -252,7 +254,7 @@ void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
   delete[] rowPointer;
 }
 
-void JpegCompressor::writeBytes(const void* data, int length)
+void JpegCompressor::writeBytes(const void* /*data*/, int /*length*/)
 {
   throw rdr::Exception("writeBytes() is not valid with a JpegCompressor instance.  Use compress() instead.");
 }

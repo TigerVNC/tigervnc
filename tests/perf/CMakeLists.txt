@@ -1,5 +1,5 @@
 include_directories(${CMAKE_SOURCE_DIR}/common)
-include_directories(${GETTEXT_INCLUDE_DIR})
+include_directories(SYSTEM ${GETTEXT_INCLUDE_DIR})
 
 add_library(test_util STATIC util.cxx)
 
@@ -13,7 +13,7 @@ add_executable(encperf encperf.cxx)
 target_link_libraries(encperf test_util rfb)
 
 if (BUILD_VIEWER)
-  include_directories(${FLTK_INCLUDE_DIR})
+  include_directories(SYSTEM ${FLTK_INCLUDE_DIR})
   add_executable(fbperf
     fbperf.cxx
     ${CMAKE_SOURCE_DIR}/vncviewer/PlatformPixelBuffer.cxx

@@ -48,7 +48,7 @@ extern char **environ;
 const char *SERVICE_NAME = "tigervnc";
 
 // Main script PID
-volatile static pid_t script = -1;
+static volatile pid_t script = -1;
 
 // Daemon completion pipe
 int daemon_pipe_fd = -1;
@@ -142,6 +142,7 @@ finish_daemon(void)
 static void
 sighandler(int sig)
 {
+    (void)sig;
     if (script > 0) {
         kill(script, SIGTERM);
     }
@@ -169,6 +170,10 @@ conv(int num_msg,
      const struct pam_message **msg,
      struct pam_response **resp, void *appdata_ptr)
 {
+    (void)num_msg;
+    (void)msg;
+    (void)resp;
+    (void)appdata_ptr;
     /* Opening a session should not require a conversation */
     return PAM_CONV_ERR;
 }
@@ -344,7 +349,7 @@ static void
 redir_stdio(const char *homedir, const char *display)
 {
     int fd;
-    size_t hostlen;
+    long hostlen;
     char* hostname = NULL;
     char logfile[PATH_MAX];
 

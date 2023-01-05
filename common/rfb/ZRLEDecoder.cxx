@@ -80,8 +80,9 @@ ZRLEDecoder::~ZRLEDecoder()
 {
 }
 
-bool ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
-                           const ServerParams& server, rdr::OutStream* os)
+bool ZRLEDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
+                           const ServerParams& /*server*/,
+                           rdr::OutStream* os)
 {
   rdr::U32 len;
 

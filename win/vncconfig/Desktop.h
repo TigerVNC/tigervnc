@@ -40,7 +40,7 @@ namespace rfb {
         setItemChecked(IDC_REMOVE_WALLPAPER, rfb::win32::SDisplay::removeWallpaper);
         setItemChecked(IDC_DISABLE_EFFECTS, rfb::win32::SDisplay::disableEffects);
       }
-      bool onCommand(int id, int cmd) {
+      bool onCommand(int id, int /*cmd*/) {
         switch (id) {
         case IDC_DISCONNECT_LOGOFF:
         case IDC_DISCONNECT_LOCK:

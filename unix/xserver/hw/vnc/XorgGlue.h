@@ -24,18 +24,12 @@
 extern "C" {
 #endif
 
-#ifdef __GNUC__
-#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
-#  define __noreturn_attr __attribute__((noreturn))
-#else
-#  define __printf_attr(a, b)
-#  define __noreturn_attr
-#endif // __GNUC__
-
 const char *vncGetDisplay(void);
 unsigned long vncGetServerGeneration(void);
 
-void vncFatalError(const char *format, ...) __printf_attr(1, 2) __noreturn_attr;
+void vncFatalError(const char *format, ...)
+  __attribute__((__format__ (__printf__, 1, 2)))
+  __attribute__((noreturn));
 
 int vncGetScreenCount(void);
 

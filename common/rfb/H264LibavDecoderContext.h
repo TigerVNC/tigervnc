@@ -34,7 +34,8 @@ namespace rfb {
       H264LibavDecoderContext(const Rect &r) : H264DecoderContext(r) {}
       ~H264LibavDecoderContext() { freeCodec(); }
 
-      virtual void decode(const rdr::U8* h264_buffer, rdr::U32 len, rdr::U32 flags, ModifiablePixelBuffer* pb);
+      virtual void decode(const rdr::U8* h264_buffer, rdr::U32 len,
+                          ModifiablePixelBuffer* pb);
 
     protected:
       virtual bool initCodec();

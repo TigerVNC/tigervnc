@@ -40,7 +40,7 @@ SMsgHandler::~SMsgHandler()
 {
 }
 
-void SMsgHandler::clientInit(bool shared)
+void SMsgHandler::clientInit(bool /*shared*/)
 {
 }
 
@@ -118,21 +118,21 @@ void SMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
   client.setClipboardCaps(flags, lengths);
 }
 
-void SMsgHandler::handleClipboardRequest(rdr::U32 flags)
+void SMsgHandler::handleClipboardRequest(rdr::U32 /*flags*/)
 {
 }
 
-void SMsgHandler::handleClipboardPeek(rdr::U32 flags)
+void SMsgHandler::handleClipboardPeek()
 {
 }
 
-void SMsgHandler::handleClipboardNotify(rdr::U32 flags)
+void SMsgHandler::handleClipboardNotify(rdr::U32 /*flags*/)
 {
 }
 
-void SMsgHandler::handleClipboardProvide(rdr::U32 flags,
-                                         const size_t* lengths,
-                                         const rdr::U8* const* data)
+void SMsgHandler::handleClipboardProvide(rdr::U32 /*flags*/,
+                                         const size_t* /*lengths*/,
+                                         const rdr::U8* const* /*data*/)
 {
 }
 

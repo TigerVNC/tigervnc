@@ -89,7 +89,7 @@ void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 {
   switch (palette.size()) {
   case 0:
-    writeFullColourRect(pb, palette);
+    writeFullColourRect(pb);
     break;
   case 1:
     Encoder::writeSolidRect(pb, palette);
@@ -102,7 +102,7 @@ void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
   }
 }
 
-void TightEncoder::writeSolidRect(int width, int height,
+void TightEncoder::writeSolidRect(int /*width*/, int /*height*/,
                                   const PixelFormat& pf,
                                   const rdr::U8* colour)
 {
@@ -154,11 +154,11 @@ void TightEncoder::writeIndexedRect(const PixelBuffer* pb, const Palette& palett
     break;
   default:
     // It's more efficient to just do raw pixels
-    writeFullColourRect(pb, palette);
+    writeFullColourRect(pb);
   }
 }
 
-void TightEncoder::writeFullColourRect(const PixelBuffer* pb, const Palette& palette)
+void TightEncoder::writeFullColourRect(const PixelBuffer* pb)
 {
   const int streamId = 0;
 

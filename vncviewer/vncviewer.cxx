@@ -184,7 +184,7 @@ static void mainloop(const char* vncserver, network::Socket* sock)
 
     exitMainloop = false;
 
-    cc = new CConn(vncServerName, sock);
+    cc = new CConn(vncserver, sock);
 
     while (!exitMainloop) {
       int next_timer;
@@ -232,12 +232,12 @@ static void mainloop(const char* vncserver, network::Socket* sock)
 }
 
 #ifdef __APPLE__
-static void about_callback(Fl_Widget *widget, void *data)
+static void about_callback(Fl_Widget* /*widget*/, void* /*data*/)
 {
   about_vncviewer();
 }
 
-static void new_connection_cb(Fl_Widget *widget, void *data)
+static void new_connection_cb(Fl_Widget* /*widget*/, void* /*data*/)
 {
   const char *argv[2];
   pid_t pid;

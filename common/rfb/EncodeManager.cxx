@@ -1060,7 +1060,7 @@ void EncodeManager::OffsetPixelBuffer::update(const PixelFormat& pf,
   setBuffer(width, height, (rdr::U8*)data_, stride_);
 }
 
-rdr::U8* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& r, int* stride)
+rdr::U8* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /*stride*/)
 {
   throw rfb::Exception("Invalid write attempt to OffsetPixelBuffer");
 }

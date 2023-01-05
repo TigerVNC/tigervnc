@@ -61,8 +61,9 @@ static HandlerMap handlers;
 
 #if defined(WIN32)
 LRESULT CALLBACK win32WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam,
-                                 LPARAM lParam, UINT_PTR uIdSubclass,
-                                 DWORD_PTR dwRefData)
+                                 LPARAM lParam,
+                                 UINT_PTR /*uIdSubclass*/,
+                                 DWORD_PTR /*dwRefData*/)
 {
   bool handled = false;
 
@@ -168,7 +169,7 @@ void x11_ungrab_pointer(Window window)
 }
 #endif
 
-static int handleTouchEvent(void *event, void *data)
+static int handleTouchEvent(void *event, void* /*data*/)
 {
 #if defined(WIN32)
   MSG *msg = (MSG*)event;
@@ -189,7 +190,10 @@ static int handleTouchEvent(void *event, void *data)
                  (int)GetLastError());
     }
   }
-#elif !defined(__APPLE__)
+#elif defined(__APPLE__)
+  // No touch support on macOS
+  (void)event;
+#else
   XEvent *xevent = (XEvent*)event;
 
   if (xevent->type == MapNotify) {

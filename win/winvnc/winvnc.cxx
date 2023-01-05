@@ -238,7 +238,7 @@ static void processParams(int argc, char** argv) {
 // -=- main
 //
 
-int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdShow) {
+int WINAPI WinMain(HINSTANCE /*inst*/, HINSTANCE /*prevInst*/, char* /*cmdLine*/, int /*cmdShow*/) {
   int result = 0;
 
   try {

@@ -39,7 +39,7 @@ namespace rfb {
         setItemChecked(IDC_CAPTUREBLT, rfb::win32::DeviceFrameBuffer::useCaptureBlt);
         onCommand(IDC_USEHOOKS, 0);
       }
-      bool onCommand(int id, int cmd) {
+      bool onCommand(int id, int /*cmd*/) {
         switch (id) {
         case IDC_USEPOLLING:
         case IDC_USEHOOKS:

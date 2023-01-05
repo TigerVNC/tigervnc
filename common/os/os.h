@@ -19,8 +19,6 @@
 #ifndef OS_OS_H
 #define OS_OS_H
 
-#include <os/w32tiger.h>
-
 /*
  * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
  * If HOME environment variable is set then it is used.
