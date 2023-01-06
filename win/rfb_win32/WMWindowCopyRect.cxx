@@ -45,7 +45,7 @@ rfb::win32::WMCopyRect::processEvent() {
     if (IsWindow(window) && IsWindowVisible(window) && GetWindowRect(window, &wrect)) {
       Rect winrect(wrect.left, wrect.top, wrect.right, wrect.bottom);
       if (fg_window == window) {
-        if (!fg_window_rect.tl.equals(winrect.tl)  && ut) {
+        if (fg_window_rect.tl != winrect.tl && ut) {
           // Window has moved - mark both the previous and new position as changed
           // (we can't use add_copied() here because we aren't that properly synced
           // with the actual state of the framebuffer)

@@ -184,13 +184,13 @@ void JpegDecompressor::decompress(const uint8_t *jpegBuf,
 #ifdef JCS_EXTENSIONS
   // Try to have libjpeg output directly to our native format
   // libjpeg can only handle some "standard" formats
-  if (pfRGBX.equal(pf))
+  if (pfRGBX == pf)
     dinfo->out_color_space = JCS_EXT_RGBX;
-  else if (pfBGRX.equal(pf))
+  else if (pfBGRX == pf)
     dinfo->out_color_space = JCS_EXT_BGRX;
-  else if (pfXRGB.equal(pf))
+  else if (pfXRGB == pf)
     dinfo->out_color_space = JCS_EXT_XRGB;
-  else if (pfXBGR.equal(pf))
+  else if (pfXBGR == pf)
     dinfo->out_color_space = JCS_EXT_XBGR;
 
   if (dinfo->out_color_space != JCS_RGB) {

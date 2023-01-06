@@ -44,7 +44,7 @@ namespace rfb {
     inline bool operator==(const Screen& r) const {
       if (id != r.id)
         return false;
-      if (!dimensions.equals(r.dimensions))
+      if (dimensions != r.dimensions)
         return false;
       if (flags != r.flags)
         return false;

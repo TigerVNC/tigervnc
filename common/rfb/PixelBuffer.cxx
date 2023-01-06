@@ -101,7 +101,7 @@ void PixelBuffer::getImage(const PixelFormat& pf, void* imageBuf,
   const uint8_t* srcBuffer;
   int srcStride;
 
-  if (format.equal(pf)) {
+  if (format == pf) {
     getImage(imageBuf, r, stride);
     return;
   }

@@ -49,7 +49,8 @@ namespace rfb {
     // Checks if the formats have identical buffer representation.
     // They might still have different pixel representation, endianness
     // or true colour state.
-    bool equal(const PixelFormat& other) const;
+    bool operator==(const PixelFormat& other) const;
+    bool operator!=(const PixelFormat& other) const;
 
     void read(rdr::InStream* is);
     void write(rdr::OutStream* os) const;

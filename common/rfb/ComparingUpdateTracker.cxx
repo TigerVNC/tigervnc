@@ -90,7 +90,7 @@ bool ComparingUpdateTracker::compare()
   for (i = rects.begin(); i != rects.end(); i++)
     missedPixels += i->area();
 
-  if (changed.equals(newChanged))
+  if (changed == newChanged)
     return false;
 
   changed = newChanged;

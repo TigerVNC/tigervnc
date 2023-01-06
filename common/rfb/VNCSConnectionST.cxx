@@ -403,7 +403,7 @@ bool VNCSConnectionST::needRenderedCursor()
 
   if (!client.supportsLocalCursor())
     return true;
-  if (!server->getCursorPos().equals(pointerEventPos) &&
+  if ((server->getCursorPos() != pointerEventPos) &&
       (time(0) - pointerEventTime) > 0)
     return true;
 

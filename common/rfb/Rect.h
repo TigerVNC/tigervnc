@@ -50,7 +50,8 @@ namespace rfb {
     inline Point negate() const
       __attribute__ ((warn_unused_result))
       {return Point(-x, -y);}
-    inline bool equals(const Point &p) const {return x==p.x && y==p.y;}
+    inline bool operator==(const Point &p) const {return x==p.x && y==p.y;}
+    inline bool operator!=(const Point &p) const {return x!=p.x || y!=p.y;}
     inline Point translate(const Point &p) const
       __attribute__ ((warn_unused_result))
       {return Point(x+p.x, y+p.y);}
@@ -105,7 +106,8 @@ namespace rfb {
     {
       return Rect(tl.translate(p), br.translate(p));
     }
-    inline bool equals(const Rect &r) const {return r.tl.equals(tl) && r.br.equals(br);}
+    inline bool operator==(const Rect &r) const {return r.tl == tl && r.br == br;}
+    inline bool operator!=(const Rect &r) const {return r.tl != tl || r.br != br;}
     inline bool is_empty() const {return (tl.x >= br.x) || (tl.y >= br.y);}
     inline void clear() {tl = Point(); br = Point();}
     inline bool enclosed_by(const Rect &r) const {

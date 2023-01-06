@@ -71,7 +71,7 @@ win32::SPointer::pointerEvent(const Point& pos, int buttonmask)
   DWORD flags = MOUSEEVENTF_ABSOLUTE;
 
   // - Has the pointer moved since the last event?
-  if (!last_position.equals(pos))
+  if (last_position != pos)
     flags |= MOUSEEVENTF_MOVE;
 
   // - If the system swaps left and right mouse buttons then we must

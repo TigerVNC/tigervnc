@@ -39,7 +39,7 @@ namespace rfb {
                           ModifiablePixelBuffer* /*pb*/) {}
       void reset();
 
-      inline bool isEqualRect(const Rect &r) const { return r.equals(rect); }
+      inline bool isEqualRect(const Rect &r) const { return r == rect; }
       bool isReady();
 
     protected:

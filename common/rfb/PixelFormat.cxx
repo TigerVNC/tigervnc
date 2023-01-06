@@ -99,7 +99,7 @@ PixelFormat::PixelFormat()
   updateState();
 }
 
-bool PixelFormat::equal(const PixelFormat& other) const
+bool PixelFormat::operator==(const PixelFormat& other) const
 {
   if (bpp != other.bpp || depth != other.depth)
     return false;
@@ -146,6 +146,11 @@ bool PixelFormat::equal(const PixelFormat& other) const
   }
 
   return true;
+}
+
+bool PixelFormat::operator!=(const PixelFormat& other) const
+{
+  return !(*this == other);
 }
 
 void PixelFormat::read(rdr::InStream* is)
@@ -381,7 +386,7 @@ void PixelFormat::bufferFromBuffer(uint8_t* dst, const PixelFormat &srcPF,
                                    const uint8_t* src, int w, int h,
                                    int dstStride, int srcStride) const
 {
-  if (equal(srcPF)) {
+  if (*this == srcPF) {
     // Trivial case
     while (h--) {
       memcpy(dst, src, w * bpp/8);

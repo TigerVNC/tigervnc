@@ -468,8 +468,8 @@ SDisplay::recreatePixelBuffer(bool force) {
   // If nothing has changed & a recreate has not been forced, delete
   // the new device context and return
   if (pb && !force &&
-    newScreenRect.equals(screenRect) &&
-    new_device->getPF().equal(pb->getPF())) {
+    newScreenRect == screenRect &&
+    new_device->getPF() == pb->getPF()) {
     delete new_device;
     return;
   }
