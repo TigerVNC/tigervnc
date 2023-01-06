@@ -227,7 +227,9 @@ namespace rfb {
     // setCompressLevel()/setQualityLevel() controls the encoding hints
     // sent to the server
     void setCompressLevel(int level);
+    int getCompressLevel();
     void setQualityLevel(int level);
+    int getQualityLevel();
     // setPF() controls the pixel format requested from the server.
     // server.pf() will automatically be adjusted once the new format
     // is active.

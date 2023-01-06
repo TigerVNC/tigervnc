@@ -496,32 +496,34 @@ void CConn::updateCompressLevel()
 
 void CConn::updateQualityLevel()
 {
-  // Above 16Mbps (i.e. LAN), we choose the second highest JPEG quality,
-  // which should be perceptually lossless. If the bandwidth is below
-  // that, we choose a more lossy JPEG quality.
-  if (autoSelect && !noJpeg) {
-    int newQualityLevel;
+  int newQualityLevel;
+
+  if (noJpeg)
+    newQualityLevel = -1;
+  else if (!autoSelect)
+    newQualityLevel = ::qualityLevel;
+  else {
+    // Above 16Mbps (i.e. LAN), we choose the second highest JPEG
+    // quality, which should be perceptually lossless. If the bandwidth
+    // is below that, we choose a more lossy JPEG quality.
 
     if (bpsEstimate > 16000000)
       newQualityLevel = 8;
     else
       newQualityLevel = 6;
 
-    if (newQualityLevel != ::qualityLevel) {
+    if (newQualityLevel != getQualityLevel()) {
       vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
                 (int)(bpsEstimate/1000), newQualityLevel);
-      ::qualityLevel.setParam(newQualityLevel);
     }
   }
 
-  if (!noJpeg)
-    setQualityLevel(::qualityLevel);
-  else
-    setQualityLevel(-1);
+  setQualityLevel(newQualityLevel);
 }
 
 void CConn::updatePixelFormat()
 {
+  bool useFullColour;
   rfb::PixelFormat pf;
 
   if (server.beforeVersion(3, 8)) {
@@ -535,23 +537,22 @@ void CConn::updatePixelFormat()
     return;
   }
 
+  useFullColour = fullColour;
+
   // If the bandwidth drops below 256 Kbps, we switch to palette mode.
   if (autoSelect) {
-    bool newFullColour;
-
-    newFullColour = (bpsEstimate > 256000);
-    if (newFullColour != fullColour) {
-      if (newFullColour)
+    useFullColour = (bpsEstimate > 256000);
+    if (useFullColour != (server.pf() == fullColourPF)) {
+      if (useFullColour)
         vlog.info(_("Throughput %d kbit/s - full color is now enabled"),
                   (int)(bpsEstimate/1000));
       else
         vlog.info(_("Throughput %d kbit/s - full color is now disabled"),
                   (int)(bpsEstimate/1000));
-      fullColour.setParam(newFullColour);
     }
-  } 
+  }
 
-  if (fullColour) {
+  if (useFullColour) {
     pf = fullColourPF;
   } else {
     if (lowColourLevel == 0)
