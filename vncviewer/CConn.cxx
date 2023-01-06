@@ -552,10 +552,12 @@ void CConn::updatePixelFormat()
       pf = mediumColourPF;
   }
 
-  char str[256];
-  pf.print(str, 256);
-  vlog.info(_("Using pixel format %s"),str);
-  setPF(pf);
+  if (pf != server.pf()) {
+    char str[256];
+    pf.print(str, 256);
+    vlog.info(_("Using pixel format %s"),str);
+    setPF(pf);
+  }
 }
 
 void CConn::handleOptions(void *data)
