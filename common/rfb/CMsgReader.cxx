@@ -24,9 +24,10 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <vector>
+
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
-#include <rdr/types.h>
 
 #include <rfb/msgTypes.h>
 #include <rfb/clipboardTypes.h>
@@ -229,10 +230,10 @@ bool CMsgReader::readSetColourMapEntries()
     return false;
   is->clearRestorePoint();
 
-  rdr::U16Array rgbs(nColours * 3);
-  for (int i = 0; i < nColours * 3; i++)
-    rgbs.buf[i] = is->readU16();
-  handler->setColourMapEntries(firstColour, nColours, rgbs.buf);
+  std::vector<uint16_t> rgbs(nColours * 3);
+  for (size_t i = 0; i < rgbs.size(); i++)
+    rgbs[i] = is->readU16();
+  handler->setColourMapEntries(firstColour, nColours, rgbs.data());
 
   return true;
 }
@@ -477,15 +478,15 @@ bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
   if (width > maxCursorSize || height > maxCursorSize)
     throw Exception("Too big cursor");
 
-  rdr::U8Array rgba(width*height*4);
+  std::vector<uint8_t> rgba(width*height*4);
 
   if (width * height > 0) {
     uint8_t pr, pg, pb;
     uint8_t sr, sg, sb;
     int data_len = ((width+7)/8) * height;
     int mask_len = ((width+7)/8) * height;
-    rdr::U8Array data(data_len);
-    rdr::U8Array mask(mask_len);
+    std::vector<uint8_t> data(data_len);
+    std::vector<uint8_t> mask(mask_len);
 
     int x, y;
     uint8_t* out;
@@ -501,17 +502,17 @@ bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
     sg = is->readU8();
     sb = is->readU8();
 
-    is->readBytes(data.buf, data_len);
-    is->readBytes(mask.buf, mask_len);
+    is->readBytes(data.data(), data.size());
+    is->readBytes(mask.data(), mask.size());
 
     int maskBytesPerRow = (width+7)/8;
-    out = rgba.buf;
+    out = rgba.data();
     for (y = 0;y < height;y++) {
       for (x = 0;x < width;x++) {
         int byte = y * maskBytesPerRow + x / 8;
         int bit = 7 - x % 8;
 
-        if (data.buf[byte] & (1 << bit)) {
+        if (data[byte] & (1 << bit)) {
           out[0] = pr;
           out[1] = pg;
           out[2] = pb;
@@ -521,7 +522,7 @@ bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
           out[2] = sb;
         }
 
-        if (mask.buf[byte] & (1 << bit))
+        if (mask[byte] & (1 << bit))
           out[3] = 255;
         else
           out[3] = 0;
@@ -531,7 +532,7 @@ bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
     }
   }
 
-  handler->setCursor(width, height, hotspot, rgba.buf);
+  handler->setCursor(width, height, hotspot, rgba.data());
 
   return true;
 }
@@ -543,23 +544,23 @@ bool CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 
   int data_len = width * height * (handler->server.pf().bpp/8);
   int mask_len = ((width+7)/8) * height;
-  rdr::U8Array data(data_len);
-  rdr::U8Array mask(mask_len);
+  std::vector<uint8_t> data(data_len);
+  std::vector<uint8_t> mask(mask_len);
 
   int x, y;
-  rdr::U8Array rgba(width*height*4);
+  std::vector<uint8_t> rgba(width*height*4);
   uint8_t* in;
   uint8_t* out;
 
   if (!is->hasData(data_len + mask_len))
     return false;
 
-  is->readBytes(data.buf, data_len);
-  is->readBytes(mask.buf, mask_len);
+  is->readBytes(data.data(), data.size());
+  is->readBytes(mask.data(), mask.size());
 
   int maskBytesPerRow = (width+7)/8;
-  in = data.buf;
-  out = rgba.buf;
+  in = data.data();
+  out = rgba.data();
   for (y = 0;y < height;y++) {
     for (x = 0;x < width;x++) {
       int byte = y * maskBytesPerRow + x / 8;
@@ -567,7 +568,7 @@ bool CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 
       handler->server.pf().rgbFromBuffer(out, in, 1);
 
-      if (mask.buf[byte] & (1 << bit))
+      if (mask[byte] & (1 << bit))
         out[3] = 255;
       else
         out[3] = 0;
@@ -577,7 +578,7 @@ bool CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
     }
   }
 
-  handler->setCursor(width, height, hotspot, rgba.buf);
+  handler->setCursor(width, height, hotspot, rgba.data());
 
   return true;
 }
@@ -660,10 +661,10 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
 
   if (type == 0) {
     int len = width * height * (handler->server.pf().bpp/8);
-    rdr::U8Array andMask(len);
-    rdr::U8Array xorMask(len);
+    std::vector<uint8_t> andMask(len);
+    std::vector<uint8_t> xorMask(len);
 
-    rdr::U8Array data(width*height*4);
+    std::vector<uint8_t> data(width*height*4);
 
     uint8_t* andIn;
     uint8_t* xorIn;
@@ -674,12 +675,12 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
       return false;
     is->clearRestorePoint();
 
-    is->readBytes(andMask.buf, len);
-    is->readBytes(xorMask.buf, len);
+    is->readBytes(andMask.data(), andMask.size());
+    is->readBytes(xorMask.data(), xorMask.size());
 
-    andIn = andMask.buf;
-    xorIn = xorMask.buf;
-    out = data.buf;
+    andIn = andMask.data();
+    xorIn = xorMask.data();
+    out = data.data();
     Bpp = handler->server.pf().bpp/8;
     for (int y = 0;y < height;y++) {
       for (int x = 0;x < width;x++) {
@@ -727,18 +728,18 @@ bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot
       }
     }
 
-    handler->setCursor(width, height, hotspot, data.buf);
+    handler->setCursor(width, height, hotspot, data.data());
   } else if (type == 1) {
-    rdr::U8Array data(width*height*4);
+    std::vector<uint8_t> data(width*height*4);
 
     if (!is->hasDataOrRestore(width*height*4))
       return false;
     is->clearRestorePoint();
 
     // FIXME: Is alpha premultiplied?
-    is->readBytes(data.buf, width*height*4);
+    is->readBytes(data.data(), data.size());
 
-    handler->setCursor(width, height, hotspot, data.buf);
+    handler->setCursor(width, height, hotspot, data.data());
   } else {
     throw Exception("Unknown cursor type");
   }

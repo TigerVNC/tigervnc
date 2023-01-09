@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014-2017 Pierre Ossman for Cendio AB
+ * Copyright 2014-2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #include <assert.h>
 #include <string.h>
-#include <rdr/types.h>
+
 #include <rfb/Cursor.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
@@ -125,11 +125,11 @@ static void dither(int width, int height, int32_t* data)
   }
 }
 
-uint8_t* Cursor::getBitmap() const
+std::vector<uint8_t> Cursor::getBitmap() const
 {
   // First step is converting to luminance
-  rdr::S32Array luminance(width()*height());
-  int32_t *lum_ptr = luminance.buf;
+  std::vector<int32_t> luminance(width()*height());
+  int32_t *lum_ptr = luminance.data();
   const uint8_t *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
@@ -148,33 +148,33 @@ uint8_t* Cursor::getBitmap() const
   }
 
   // Then diterhing
-  dither(width(), height(), luminance.buf);
+  dither(width(), height(), luminance.data());
 
   // Then conversion to a bit mask
-  rdr::U8Array source((width()+7)/8*height());
-  memset(source.buf, 0, (width()+7)/8*height());
+  std::vector<uint8_t> source((width()+7)/8*height());
+  memset(source.data(), 0, source.size());
   int maskBytesPerRow = (width() + 7) / 8;
-  lum_ptr = luminance.buf;
+  lum_ptr = luminance.data();
   data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
       int byte = y * maskBytesPerRow + x / 8;
       int bit = 7 - x % 8;
       if (*lum_ptr > 32767)
-        source.buf[byte] |= (1 << bit);
+        source[byte] |= (1 << bit);
       lum_ptr++;
       data_ptr += 4;
     }
   }
 
-  return source.takeBuf();
+  return source;
 }
 
-uint8_t* Cursor::getMask() const
+std::vector<uint8_t> Cursor::getMask() const
 {
   // First step is converting to integer array
-  rdr::S32Array alpha(width()*height());
-  int32_t *alpha_ptr = alpha.buf;
+  std::vector<int32_t> alpha(width()*height());
+  int32_t *alpha_ptr = alpha.data();
   const uint8_t *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
@@ -184,26 +184,26 @@ uint8_t* Cursor::getMask() const
   }
 
   // Then diterhing
-  dither(width(), height(), alpha.buf);
+  dither(width(), height(), alpha.data());
 
   // Then conversion to a bit mask
-  rdr::U8Array mask((width()+7)/8*height());
-  memset(mask.buf, 0, (width()+7)/8*height());
+  std::vector<uint8_t> mask((width()+7)/8*height());
+  memset(mask.data(), 0, mask.size());
   int maskBytesPerRow = (width() + 7) / 8;
-  alpha_ptr = alpha.buf;
+  alpha_ptr = alpha.data();
   data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
       int byte = y * maskBytesPerRow + x / 8;
       int bit = 7 - x % 8;
       if (*alpha_ptr > 32767)
-        mask.buf[byte] |= (1 << bit);
+        mask[byte] |= (1 << bit);
       alpha_ptr++;
       data_ptr += 4;
     }
   }
 
-  return mask.takeBuf();
+  return mask;
 }
 
 // crop() determines the "busy" rectangle for the cursor - the minimum bounding

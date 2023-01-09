@@ -25,10 +25,11 @@
 
 #include <assert.h>
 
+#include <vector>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
-#include <rdr/types.h>
 
 #include <rfb/ServerParams.h>
 #include <rfb/Exception.h>
@@ -309,15 +310,15 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
 
       if (pf.is888()) {
         size_t len = palSize * 3;
-        rdr::U8Array tightPalette(len);
+        std::vector<uint8_t> tightPalette(len);
 
         assert(buflen >= len);
 
-        memcpy(tightPalette.buf, bufptr, len);
+        memcpy(tightPalette.data(), bufptr, len);
         bufptr += len;
         buflen -= len;
 
-        pf.bufferFromRGB(palette, tightPalette.buf, palSize);
+        pf.bufferFromRGB(palette, tightPalette.data(), palSize);
       } else {
         size_t len;
 

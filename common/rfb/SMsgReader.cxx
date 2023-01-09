@@ -23,9 +23,10 @@
 
 #include <stdio.h>
 
+#include <vector>
+
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
-#include <rdr/types.h>
 
 #include <rfb/msgTypes.h>
 #include <rfb/qemuTypes.h>
@@ -141,11 +142,11 @@ bool SMsgReader::readSetEncodings()
     return false;
   is->clearRestorePoint();
 
-  rdr::S32Array encodings(nEncodings);
-  for (int i = 0; i < nEncodings; i++)
-    encodings.buf[i] = is->readU32();
+  std::vector<int32_t> encodings(nEncodings);
+  for (size_t i = 0; i < encodings.size(); i++)
+    encodings[i] = is->readU32();
 
-  handler->setEncodings(nEncodings, encodings.buf);
+  handler->setEncodings(nEncodings, encodings.data());
 
   return true;
 }

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014-2017 Pierre Ossman for Cendio AB
+ * Copyright 2014-2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 #ifndef __RFB_CURSOR_H__
 #define __RFB_CURSOR_H__
 
+#include <vector>
+
 #include <rfb/PixelBuffer.h>
 
 namespace rfb {
@@ -40,9 +42,9 @@ namespace rfb {
     const uint8_t* getBuffer() const { return data; };
 
     // getBitmap() returns a monochrome version of the cursor
-    uint8_t* getBitmap() const;
+    std::vector<uint8_t> getBitmap() const;
     // getMask() returns a simple mask version of the alpha channel
-    uint8_t* getMask() const;
+    std::vector<uint8_t> getMask() const;
 
     // crop() crops the cursor down to the smallest possible size, based on the
     // mask.

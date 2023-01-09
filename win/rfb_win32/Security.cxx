@@ -104,21 +104,24 @@ PSID Sid::copySID(const PSID sid) {
 }
 
 void Sid::setSID(const PSID sid) {
-  delete [] buf;
-  buf = (uint8_t*)copySID(sid);
+  if (!IsValidSid(sid))
+    throw rdr::Exception("invalid SID in copyPSID");
+  resize(GetLengthSid(sid));
+  if (!CopySid(GetLengthSid(sid), data(), sid))
+    throw rdr::SystemException("CopySid failed", GetLastError());
 }
 
 void Sid::getUserNameAndDomain(TCHAR** name, TCHAR** domain) {
   DWORD nameLen = 0;
   DWORD domainLen = 0;
   SID_NAME_USE use;
-  LookupAccountSid(0, (PSID)buf, 0, &nameLen, 0, &domainLen, &use);
+  LookupAccountSid(0, (PSID)*this, 0, &nameLen, 0, &domainLen, &use);
   if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     throw rdr::SystemException("Unable to determine SID name lengths", GetLastError());
   vlog.info("nameLen=%lu, domainLen=%lu, use=%d", nameLen, domainLen, use);
   *name = new TCHAR[nameLen];
   *domain = new TCHAR[domainLen];
-  if (!LookupAccountSid(0, (PSID)buf, *name, &nameLen, *domain, &domainLen, &use))
+  if (!LookupAccountSid(0, (PSID)*this, *name, &nameLen, *domain, &domainLen, &use))
     throw rdr::SystemException("Unable to lookup account SID", GetLastError());
 }
 
@@ -149,10 +152,10 @@ Sid::SYSTEM::SYSTEM() {
 Sid::FromToken::FromToken(HANDLE h) {
   DWORD required = 0;
   GetTokenInformation(h, TokenUser, 0, 0, &required);
-  rdr::U8Array tmp(required);
-  if (!GetTokenInformation(h, TokenUser, tmp.buf, required, &required))
+  std::vector<uint8_t> tmp(required);
+  if (!GetTokenInformation(h, TokenUser, tmp.data(), tmp.size(), &required))
     throw rdr::SystemException("GetTokenInformation", GetLastError());
-  TOKEN_USER* tokenUser = (TOKEN_USER*)tmp.buf;
+  TOKEN_USER* tokenUser = (TOKEN_USER*)tmp.data();
   setSID(tokenUser->User.Sid);
 }
 

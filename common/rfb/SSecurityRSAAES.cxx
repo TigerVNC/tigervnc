@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <vector>
+
 #include <nettle/bignum.h>
 #include <nettle/sha1.h>
 #include <nettle/sha2.h>
@@ -39,7 +41,6 @@
 #include <rfb/Exception.h>
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
-#include <rdr/types.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <rfb/UnixPasswordValidator.h>
 #endif
@@ -123,7 +124,7 @@ next:
 }
 
 static bool loadPEM(uint8_t* data, size_t size, const char *begin,
-                    const char *end, uint8_t** der, size_t *derSize)
+                    const char *end, std::vector<uint8_t> *der)
 {
   ssize_t pos1 = findSubstr(data, size, begin);
   if (pos1 == -1)
@@ -135,13 +136,17 @@ static bool loadPEM(uint8_t* data, size_t size, const char *begin,
   char *derBase64 = (char *)data + pos1;
   if (!base64Size)
     return false;
-  *der = new uint8_t[BASE64_DECODE_LENGTH(base64Size)];
+  der->resize(BASE64_DECODE_LENGTH(base64Size));
   struct base64_decode_ctx ctx;
+  size_t derSize;
   base64_decode_init(&ctx);
-  if (!base64_decode_update(&ctx, derSize, *der, base64Size, derBase64))
+  if (!base64_decode_update(&ctx, &derSize, der->data(),
+                            base64Size, derBase64))
     return false;
   if (!base64_decode_final(&ctx))
     return false;
+  assert(derSize <= der->size());
+  der->resize(derSize);
   return true;
 }
 
@@ -157,25 +162,24 @@ void SSecurityRSAAES::loadPrivateKey()
     throw ConnFailedException("size of key file is zero or too big");
   }
   fseek(file, 0, SEEK_SET);
-  rdr::U8Array data(size);
-  if (fread(data.buf, 1, size, file) != size) {
+  std::vector<uint8_t> data(size);
+  if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
     throw ConnFailedException("failed to read key");
   }
   fclose(file);
 
-  rdr::U8Array der;
-  size_t derSize;
-  if (loadPEM(data.buf, size, "-----BEGIN RSA PRIVATE KEY-----\n",
-              "-----END RSA PRIVATE KEY-----", &der.buf, &derSize)) {
-    loadPKCS1Key(der.buf, derSize);
+  std::vector<uint8_t> der;
+  if (loadPEM(data.data(), data.size(),
+              "-----BEGIN RSA PRIVATE KEY-----\n",
+              "-----END RSA PRIVATE KEY-----", &der)) {
+    loadPKCS1Key(der.data(), der.size());
     return;
   }
-  if (der.buf)
-    delete[] der.takeBuf();
-  if (loadPEM(data.buf, size, "-----BEGIN PRIVATE KEY-----\n",
-                     "-----END PRIVATE KEY-----", &der.buf, &derSize)) {
-    loadPKCS8Key(der.buf, derSize);
+  if (loadPEM(data.data(), data.size(),
+              "-----BEGIN PRIVATE KEY-----\n",
+              "-----END PRIVATE KEY-----", &der)) {
+    loadPKCS8Key(der.data(), der.size());
     return;
   }
   throw ConnFailedException("failed to import key");

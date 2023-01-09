@@ -39,7 +39,6 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rdr/RandomStream.h>
-#include <rdr/types.h>
 #include <rfb/Exception.h>
 #include <os/os.h>
 
@@ -99,11 +98,11 @@ void CSecurityMSLogonII::writeCredentials()
   rdr::RandomStream rs;
 
   (CSecurity::upg)->getUserPasswd(isSecure(), &username.buf, &password.buf);
-  rdr::U8Array bBytes(8);
+  std::vector<uint8_t> bBytes(8);
   if (!rs.hasData(8))
     throw ConnFailedException("failed to generate DH private key");
-  rs.readBytes(bBytes.buf, 8);
-  nettle_mpz_set_str_256_u(b, 8, bBytes.buf);
+  rs.readBytes(bBytes.data(), bBytes.size());
+  nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
   mpz_powm(B, g, b, p);
 

@@ -27,7 +27,6 @@
 #include <rdr/OutStream.h>
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
-#include <rdr/types.h>
 
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>
@@ -443,14 +442,16 @@ void SMsgWriter::writePseudoRects()
                                cursor.hotspot().x, cursor.hotspot().y,
                                cursor.getBuffer());
     } else if (client->supportsEncoding(pseudoEncodingCursor)) {
-      rdr::U8Array data(cursor.width()*cursor.height() * (client->pf().bpp/8));
-      rdr::U8Array mask(cursor.getMask());
+      size_t data_len = cursor.width()*cursor.height() *
+                        (client->pf().bpp/8);
+      std::vector<uint8_t> data(data_len);
+      std::vector<uint8_t> mask(cursor.getMask());
 
       const uint8_t* in;
       uint8_t* out;
 
       in = cursor.getBuffer();
-      out = data.buf;
+      out = data.data();
       for (int i = 0;i < cursor.width()*cursor.height();i++) {
         client->pf().bufferFromRGB(out, in, 1);
         in += 4;
@@ -459,14 +460,14 @@ void SMsgWriter::writePseudoRects()
 
       writeSetCursorRect(cursor.width(), cursor.height(),
                          cursor.hotspot().x, cursor.hotspot().y,
-                         data.buf, mask.buf);
+                         data.data(), mask.data());
     } else if (client->supportsEncoding(pseudoEncodingXCursor)) {
-      rdr::U8Array bitmap(cursor.getBitmap());
-      rdr::U8Array mask(cursor.getMask());
+      std::vector<uint8_t> bitmap(cursor.getBitmap());
+      std::vector<uint8_t> mask(cursor.getMask());
 
       writeSetXCursorRect(cursor.width(), cursor.height(),
                           cursor.hotspot().x, cursor.hotspot().y,
-                          bitmap.buf, mask.buf);
+                          bitmap.data(), mask.data());
     } else {
       throw Exception("Client does not support local cursor");
     }

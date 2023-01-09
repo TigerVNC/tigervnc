@@ -24,7 +24,8 @@
 #ifndef __RFB_WIN32_SECURITY_H__
 #define __RFB_WIN32_SECURITY_H__
 
-#include <rdr/types.h>
+#include <stdint.h>
+#include <vector>
 #include <rfb_win32/LocalMem.h>
 #include <rfb_win32/TCharArray.h>
 #include <aclapi.h>
@@ -64,10 +65,9 @@ namespace rfb {
     };
 
     // Helper class for handling SIDs
-    struct Sid : rdr::U8Array {
+    struct Sid : std::vector<uint8_t> {
       Sid() {}
-      operator PSID() const {return (PSID)buf;}
-      PSID takePSID() {PSID r = (PSID)buf; buf = 0; return r;}
+      operator PSID() const {return (PSID)data();}
 
       static PSID copySID(const PSID sid);
 
