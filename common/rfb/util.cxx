@@ -301,7 +301,7 @@ namespace rfb {
     return buffer;
   }
 
-  size_t ucs4ToUTF8(unsigned src, char* dst) {
+  size_t ucs4ToUTF8(unsigned src, char dst[5]) {
     if (src < 0x80) {
       *dst++ = src;
       *dst++ = '\0';
@@ -382,7 +382,7 @@ namespace rfb {
     return consumed;
   }
 
-  size_t ucs4ToUTF16(unsigned src, wchar_t* dst) {
+  size_t ucs4ToUTF16(unsigned src, wchar_t dst[3]) {
     if ((src < 0xd800) || ((src >= 0xe000) && (src < 0x10000))) {
       *dst++ = src;
       *dst++ = L'\0';

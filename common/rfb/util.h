@@ -91,10 +91,10 @@ namespace rfb {
   // Convertions between various Unicode formats. The returned strings are
   // always null terminated and must be freed using strFree().
 
-  size_t ucs4ToUTF8(unsigned src, char* dst);
+  size_t ucs4ToUTF8(unsigned src, char dst[5]);
   size_t utf8ToUCS4(const char* src, size_t max, unsigned* dst);
 
-  size_t ucs4ToUTF16(unsigned src, wchar_t* dst);
+  size_t ucs4ToUTF16(unsigned src, wchar_t dst[3]);
   size_t utf16ToUCS4(const wchar_t* src, size_t max, unsigned* dst);
 
   char* latin1ToUTF8(const char* src, size_t bytes = (size_t)-1);
