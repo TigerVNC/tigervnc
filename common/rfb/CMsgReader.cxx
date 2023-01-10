@@ -277,8 +277,8 @@ bool CMsgReader::readServerCutText()
   }
   CharArray ca(len);
   is->readBytes(ca.buf, len);
-  CharArray filtered(convertLF(ca.buf, len));
-  handler->serverCutText(filtered.buf);
+  std::string filtered(convertLF(ca.buf, len));
+  handler->serverCutText(filtered.c_str());
 
   return true;
 }

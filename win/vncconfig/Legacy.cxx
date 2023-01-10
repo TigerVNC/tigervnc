@@ -62,15 +62,14 @@ void LegacyPage::LoadPrefs()
             regKey.setString("Log", logSetting);
           }
  
-          CharArray authHosts;
-          authHosts.buf = winvnc3.getString("AuthHosts", 0);
-          if (authHosts.buf) {
+          std::string authHosts = winvnc3.getString("AuthHosts", "");
+          if (!authHosts.empty()) {
             CharArray newHosts;
             newHosts.buf = strDup("");
 
             // Reformat AuthHosts to Hosts.  Wish I'd left the format the same. :( :( :(
             try {
-              CharArray tmp(authHosts.buf);
+              CharArray tmp(strDup(authHosts.c_str()));
               while (tmp.buf) {
 
                 // Split the AuthHosts string into patterns to match

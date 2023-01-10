@@ -433,29 +433,26 @@ bool CSecurityRSAAES::readSubtype()
 
 void CSecurityRSAAES::writeCredentials()
 {
-  CharArray username;
-  CharArray password;
+  std::string username;
+  std::string password;
 
-  (CSecurity::upg)->getUserPasswd(
-    isSecure(),
-    subtype == secTypeRA2UserPass ? &username.buf : NULL, &password.buf
-  );
-  size_t len;
-  if (username.buf) {
-    len = strlen(username.buf);
-    if (len > 255)
+  if (subtype == secTypeRA2UserPass)
+    (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+  else
+    (CSecurity::upg)->getUserPasswd(isSecure(), NULL, &password);
+
+  if (subtype == secTypeRA2UserPass) {
+    if (username.size() > 255)
       throw AuthFailureException("username is too long");
-    raos->writeU8(len);
-    if (len)
-      raos->writeBytes(username.buf, len);
+    raos->writeU8(username.size());
+    raos->writeBytes(username.data(), username.size());
   } else {
     raos->writeU8(0);
   }
-  len = strlen(password.buf);
-  if (len > 255)
+
+  if (password.size() > 255)
     throw AuthFailureException("password is too long");
-  raos->writeU8(len);
-  if (len)
-    raos->writeBytes(password.buf, len);
+  raos->writeU8(password.size());
+  raos->writeBytes(password.data(), password.size());
   raos->flush();
 }

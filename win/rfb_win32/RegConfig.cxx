@@ -26,7 +26,6 @@
 
 #include <rfb_win32/RegConfig.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 //#include <rdr/HexOutStream.h>
 
 using namespace rfb;
@@ -63,8 +62,8 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
     while (1) {
       const char *name = key.getValueName(i++);
       if (!name) break;
-      CharArray value(key.getRepresentation(name));
-      if (!value.buf || !Configuration::setParam(name, value.buf))
+      std::string value = key.getRepresentation(name);
+      if (!Configuration::setParam(name, value.c_str()))
         vlog.info("unable to process %s", name);
     }
   } catch (rdr::SystemException& e) {

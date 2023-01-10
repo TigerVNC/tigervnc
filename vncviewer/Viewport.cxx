@@ -560,7 +560,7 @@ void Viewport::resize(int x, int y, int w, int h)
 
 int Viewport::handle(int event)
 {
-  char *filtered;
+  std::string filtered;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
 
@@ -568,16 +568,14 @@ int Viewport::handle(int event)
   case FL_PASTE:
     filtered = convertLF(Fl::event_text(), Fl::event_length());
 
-    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(filtered));
+    vlog.debug("Sending clipboard data (%d bytes)", (int)filtered.size());
 
     try {
-      cc->sendClipboardData(filtered);
+      cc->sendClipboardData(filtered.c_str());
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       abort_connection_with_unexpected_error(e);
     }
-
-    strFree(filtered);
 
     return 1;
 

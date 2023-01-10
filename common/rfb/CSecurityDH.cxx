@@ -104,11 +104,12 @@ bool CSecurityDH::readKey()
 
 void CSecurityDH::writeCredentials()
 {
-  CharArray username;
-  CharArray password;
+  std::string username;
+  std::string password;
   rdr::RandomStream rs;
 
-  (CSecurity::upg)->getUserPasswd(isSecure(), &username.buf, &password.buf);
+  (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+
   std::vector<uint8_t> bBytes(keyLength);
   if (!rs.hasData(keyLength))
     throw ConnFailedException("failed to generate DH private key");
@@ -133,14 +134,12 @@ void CSecurityDH::writeCredentials()
   if (!rs.hasData(128))
     throw ConnFailedException("failed to generate random padding");
   rs.readBytes(buf, 128);
-  size_t len = strlen(username.buf);
-  if (len >= 64)
+  if (username.size() >= 64)
     throw AuthFailureException("username is too long");
-  memcpy(buf, username.buf, len + 1);
-  len = strlen(password.buf);
-  if (len >= 64)
+  memcpy(buf, username.c_str(), username.size() + 1);
+  if (password.size() >= 64)
     throw AuthFailureException("password is too long");
-  memcpy(buf + 64, password.buf, len + 1);
+  memcpy(buf + 64, password.c_str(), password.size() + 1);
   aes128_encrypt(&aesCtx, 128, (uint8_t *)buf, (uint8_t *)buf);
 
   rdr::OutStream* os = cc->getOutStream();

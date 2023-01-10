@@ -106,11 +106,8 @@ void SMsgHandler::handleClipboardCaps(uint32_t flags, const uint32_t* lengths)
       if (lengths[i] == 0)
         vlog.debug("    %s (only notify)", type);
       else {
-        char bytes[1024];
-
-        iecPrefix(lengths[i], "B", bytes, sizeof(bytes));
         vlog.debug("    %s (automatically send up to %s)",
-                   type, bytes);
+                   type, iecPrefix(lengths[i], "B").c_str());
       }
     }
   }

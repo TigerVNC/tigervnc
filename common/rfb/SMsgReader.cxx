@@ -316,8 +316,8 @@ bool SMsgReader::readClientCutText()
 
   CharArray ca(len);
   is->readBytes(ca.buf, len);
-  CharArray filtered(convertLF(ca.buf, len));
-  handler->clientCutText(filtered.buf);
+  std::string filtered(convertLF(ca.buf, len));
+  handler->clientCutText(filtered.c_str());
 
   return true;
 }

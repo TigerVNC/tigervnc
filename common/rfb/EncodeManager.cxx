@@ -177,8 +177,6 @@ void EncodeManager::logStats()
 
   double ratio;
 
-  char a[1024], b[1024];
-
   rects = 0;
   pixels = bytes = equivalent = 0;
 
@@ -194,13 +192,12 @@ void EncodeManager::logStats()
 
     ratio = (double)copyStats.equivalent / copyStats.bytes;
 
-    siPrefix(copyStats.rects, "rects", a, sizeof(a));
-    siPrefix(copyStats.pixels, "pixels", b, sizeof(b));
-    vlog.info("    %s: %s, %s", "Copies", a, b);
-    iecPrefix(copyStats.bytes, "B", a, sizeof(a));
+    vlog.info("    %s: %s, %s", "Copies",
+              siPrefix(copyStats.rects, "rects").c_str(),
+              siPrefix(copyStats.pixels, "pixels").c_str());
     vlog.info("    %*s  %s (1:%g ratio)",
               (int)strlen("Copies"), "",
-              a, ratio);
+              iecPrefix(copyStats.bytes, "B").c_str(), ratio);
   }
 
   for (i = 0;i < stats.size();i++) {
@@ -225,23 +222,22 @@ void EncodeManager::logStats()
 
       ratio = (double)stats[i][j].equivalent / stats[i][j].bytes;
 
-      siPrefix(stats[i][j].rects, "rects", a, sizeof(a));
-      siPrefix(stats[i][j].pixels, "pixels", b, sizeof(b));
-      vlog.info("    %s: %s, %s", encoderTypeName((EncoderType)j), a, b);
-      iecPrefix(stats[i][j].bytes, "B", a, sizeof(a));
+      vlog.info("    %s: %s, %s", encoderTypeName((EncoderType)j),
+                siPrefix(stats[i][j].rects, "rects").c_str(),
+                siPrefix(stats[i][j].pixels, "pixels").c_str());
       vlog.info("    %*s  %s (1:%g ratio)",
                 (int)strlen(encoderTypeName((EncoderType)j)), "",
-                a, ratio);
+                iecPrefix(stats[i][j].bytes, "B").c_str(), ratio);
     }
   }
 
   ratio = (double)equivalent / bytes;
 
-  siPrefix(rects, "rects", a, sizeof(a));
-  siPrefix(pixels, "pixels", b, sizeof(b));
-  vlog.info("  Total: %s, %s", a, b);
-  iecPrefix(bytes, "B", a, sizeof(a));
-  vlog.info("         %s (1:%g ratio)", a, ratio);
+  vlog.info("  Total: %s, %s",
+            siPrefix(rects, "rects").c_str(),
+            siPrefix(pixels, "pixels").c_str());
+  vlog.info("         %s (1:%g ratio)",
+            iecPrefix(bytes, "B").c_str(), ratio);
 }
 
 bool EncodeManager::supported(int encoding)

@@ -66,10 +66,6 @@ namespace rfb {
     delete [] s;
   }
 
-  void strFree(wchar_t* s) {
-    delete [] s;
-  }
-
 
   bool strSplit(const char* src, const char limiter, char** out1, char** out2, bool fromEnd) {
     CharArray out1old, out2old;
@@ -139,9 +135,12 @@ namespace rfb {
     }
   }
 
-  char* binToHex(const uint8_t* in, size_t inlen) {
-    char* out = new char[inlen*2+1]();
-    binToHex(in, inlen, out, inlen*2);
+  std::string binToHex(const uint8_t* in, size_t inlen) {
+    char* buffer = new char[inlen*2+1]();
+    std::string out;
+    binToHex(in, inlen, buffer, inlen*2);
+    out = buffer;
+    delete [] buffer;
     return out;
   }
 
@@ -185,19 +184,16 @@ namespace rfb {
     return out;
   }
 
-  char* convertLF(const char* src, size_t bytes)
+  std::string convertLF(const char* src, size_t bytes)
   {
-    char* buffer;
     size_t sz;
+    std::string out;
 
-    char* out;
     const char* in;
     size_t in_len;
 
-    // Always include space for a NULL
-    sz = 1;
-
     // Compute output size
+    sz = 0;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
@@ -215,44 +211,39 @@ namespace rfb {
       in_len--;
     }
 
-    // Alloc
-    buffer = new char[sz];
-    memset(buffer, 0, sz);
+    // Reserve space
+    out.reserve(sz);
 
     // And convert
-    out = buffer;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
       if (*in != '\r') {
-        *out++ = *in++;
+        out += *in++;
         in_len--;
         continue;
       }
 
       if ((in_len < 2) || (*(in+1) != '\n'))
-        *out++ = '\n';
+        out += '\n';
 
       in++;
       in_len--;
     }
 
-    return buffer;
+    return out;
   }
 
-  char* convertCRLF(const char* src, size_t bytes)
+  std::string convertCRLF(const char* src, size_t bytes)
   {
-    char* buffer;
+    std::string out;
     size_t sz;
 
-    char* out;
     const char* in;
     size_t in_len;
 
-    // Always include space for a NULL
-    sz = 1;
-
     // Compute output size
+    sz = 0;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
@@ -270,35 +261,30 @@ namespace rfb {
       in_len--;
     }
 
-    // Alloc
-    buffer = new char[sz];
-    memset(buffer, 0, sz);
+    // Reserve space
+    out.reserve(sz);
 
     // And convert
-    out = buffer;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
       if (*in == '\n') {
         if ((in == src) || (*(in-1) != '\r'))
-          *out++ = '\r';
+          out += '\r';
       }
 
-      *out = *in;
+      out += *in;
 
       if (*in == '\r') {
-        if ((in_len < 2) || (*(in+1) != '\n')) {
-          out++;
-          *out = '\n';
-        }
+        if ((in_len < 2) || (*(in+1) != '\n'))
+          out += '\n';
       }
 
-      out++;
       in++;
       in_len--;
     }
 
-    return buffer;
+    return out;
   }
 
   size_t ucs4ToUTF8(unsigned src, char dst[5]) {
@@ -438,18 +424,15 @@ namespace rfb {
     return 2;
   }
 
-  char* latin1ToUTF8(const char* src, size_t bytes) {
-    char* buffer;
+  std::string latin1ToUTF8(const char* src, size_t bytes) {
+    std::string out;
     size_t sz;
 
-    char* out;
     const char* in;
     size_t in_len;
 
-    // Always include space for a NULL
-    sz = 1;
-
     // Compute output size
+    sz = 0;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
@@ -459,35 +442,32 @@ namespace rfb {
       in_len--;
     }
 
-    // Alloc
-    buffer = new char[sz];
-    memset(buffer, 0, sz);
+    // Reserve space
+    out.reserve(sz);
 
     // And convert
-    out = buffer;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
-      out += ucs4ToUTF8(*(const unsigned char*)in, out);
+      char buf[5];
+      ucs4ToUTF8(*(const unsigned char*)in, buf);
+      out += buf;
       in++;
       in_len--;
     }
 
-    return buffer;
+    return out;
   }
 
-  char* utf8ToLatin1(const char* src, size_t bytes) {
-    char* buffer;
+  std::string utf8ToLatin1(const char* src, size_t bytes) {
+    std::string out;
     size_t sz;
 
-    char* out;
     const char* in;
     size_t in_len;
 
-    // Always include space for a NULL
-    sz = 1;
-
     // Compute output size
+    sz = 0;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
@@ -500,12 +480,10 @@ namespace rfb {
       sz++;
     }
 
-    // Alloc
-    buffer = new char[sz];
-    memset(buffer, 0, sz);
+    // Reserve space
+    out.reserve(sz);
 
     // And convert
-    out = buffer;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
@@ -517,27 +495,24 @@ namespace rfb {
       in_len -= len;
 
       if (ucs > 0xff)
-        *out++ = '?';
+        out += '?';
       else
-        *out++ = (unsigned char)ucs;
+        out += (unsigned char)ucs;
     }
 
-    return buffer;
+    return out;
   }
 
-  char* utf16ToUTF8(const wchar_t* src, size_t units)
+  std::string utf16ToUTF8(const wchar_t* src, size_t units)
   {
-    char* buffer;
+    std::string out;
     size_t sz;
 
-    char* out;
     const wchar_t* in;
     size_t in_len;
 
-    // Always include space for a NULL
-    sz = 1;
-
     // Compute output size
+    sz = 0;
     in = src;
     in_len = units;
     while ((in_len > 0) && (*in != '\0')) {
@@ -552,41 +527,38 @@ namespace rfb {
       sz += ucs4ToUTF8(ucs, buf);
     }
 
-    // Alloc
-    buffer = new char[sz];
-    memset(buffer, 0, sz);
+    // Reserve space
+    out.reserve(sz);
 
     // And convert
-    out = buffer;
     in = src;
     in_len = units;
     while ((in_len > 0) && (*in != '\0')) {
       size_t len;
       unsigned ucs;
+      char buf[5];
 
       len = utf16ToUCS4(in, in_len, &ucs);
       in += len;
       in_len -= len;
 
-      out += ucs4ToUTF8(ucs, out);
+      ucs4ToUTF8(ucs, buf);
+      out += buf;
     }
 
-    return buffer;
+    return out;
   }
 
-  wchar_t* utf8ToUTF16(const char* src, size_t bytes)
+  std::wstring utf8ToUTF16(const char* src, size_t bytes)
   {
-    wchar_t* buffer;
+    std::wstring out;
     size_t sz;
 
-    wchar_t* out;
     const char* in;
     size_t in_len;
 
-    // Always include space for a NULL
-    sz = 1;
-
     // Compute output size
+    sz = 0;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
@@ -601,26 +573,26 @@ namespace rfb {
       sz += ucs4ToUTF16(ucs, buf);
     }
 
-    // Alloc
-    buffer = new wchar_t[sz];
-    memset(buffer, 0, sz * sizeof(wchar_t));
+    // Reserve space
+    out.reserve(sz);
 
     // And convert
-    out = buffer;
     in = src;
     in_len = bytes;
     while ((in_len > 0) && (*in != '\0')) {
       size_t len;
       unsigned ucs;
+      wchar_t buf[3];
 
       len = utf8ToUCS4(in, in_len, &ucs);
       in += len;
       in_len -= len;
 
-      out += ucs4ToUTF16(ucs, out);
+      ucs4ToUTF16(ucs, buf);
+      out += buf;
     }
 
-    return buffer;
+    return out;
   }
 
   unsigned msBetween(const struct timeval *first,
@@ -657,12 +629,12 @@ namespace rfb {
     return false;
   }
 
-  static size_t doPrefix(long long value, const char *unit,
-                         char *buffer, size_t maxlen,
-                         unsigned divisor, const char **prefixes,
-                         size_t prefixCount, int precision) {
+  static std::string doPrefix(long long value, const char *unit,
+                              unsigned divisor, const char **prefixes,
+                              size_t prefixCount, int precision) {
+    char buffer[256];
     double newValue;
-    size_t prefix, len;
+    size_t prefix;
 
     newValue = value;
     prefix = 0;
@@ -673,11 +645,11 @@ namespace rfb {
       prefix++;
     }
 
-    len = snprintf(buffer, maxlen, "%.*g %s%s", precision, newValue,
-                   (prefix == 0) ? "" : prefixes[prefix-1], unit);
-    buffer[maxlen-1] = '\0';
+    snprintf(buffer, sizeof(buffer), "%.*g %s%s", precision, newValue,
+             (prefix == 0) ? "" : prefixes[prefix-1], unit);
+    buffer[sizeof(buffer)-1] = '\0';
 
-    return len;
+    return buffer;
   }
 
   static const char *siPrefixes[] =
@@ -685,16 +657,16 @@ namespace rfb {
   static const char *iecPrefixes[] =
     { "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
 
-  size_t siPrefix(long long value, const char *unit,
-                  char *buffer, size_t maxlen, int precision) {
-    return doPrefix(value, unit, buffer, maxlen, 1000, siPrefixes,
+  std::string siPrefix(long long value, const char *unit,
+                       int precision) {
+    return doPrefix(value, unit, 1000, siPrefixes,
                     sizeof(siPrefixes)/sizeof(*siPrefixes),
                     precision);
   }
 
-  size_t iecPrefix(long long value, const char *unit,
-                   char *buffer, size_t maxlen, int precision) {
-    return doPrefix(value, unit, buffer, maxlen, 1024, iecPrefixes,
+  std::string iecPrefix(long long value, const char *unit,
+                        int precision) {
+    return doPrefix(value, unit, 1024, iecPrefixes,
                     sizeof(iecPrefixes)/sizeof(*iecPrefixes),
                     precision);
   }

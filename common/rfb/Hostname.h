@@ -38,7 +38,9 @@ namespace rfb {
     return true;
   }
 
-  static void getHostAndPort(const char* hi, char** host, int* port, int basePort=5900) {
+  static void getHostAndPort(const char* hi, std::string* host,
+                             int* port, int basePort=5900)
+  {
     const char* hostStart;
     const char* hostEnd;
     const char* portStart;
@@ -86,14 +88,9 @@ namespace rfb {
       hostEnd--;
 
     if (hostStart == hostEnd)
-      *host = strDup("localhost");
-    else {
-      size_t len;
-      len = hostEnd - hostStart + 1;
-      *host = new char[len];
-      strncpy(*host, hostStart, len-1);
-      (*host)[len-1] = '\0';
-    }
+      *host = "localhost";
+    else
+      *host = std::string(hostStart, hostEnd - hostStart);
 
     if (portStart == NULL)
       *port = basePort;

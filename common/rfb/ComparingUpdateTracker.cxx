@@ -253,14 +253,12 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
 void ComparingUpdateTracker::logStats()
 {
   double ratio;
-  char a[1024], b[1024];
-
-  siPrefix(totalPixels, "pixels", a, sizeof(a));
-  siPrefix(missedPixels, "pixels", b, sizeof(b));
 
   ratio = (double)totalPixels / missedPixels;
 
-  vlog.info("%s in / %s out", a, b);
+  vlog.info("%s in / %s out",
+            siPrefix(totalPixels, "pixels").c_str(),
+            siPrefix(missedPixels, "pixels").c_str());
   vlog.info("(1:%g ratio)", ratio);
 
   totalPixels = missedPixels = 0;

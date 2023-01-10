@@ -384,7 +384,7 @@ void SConnection::clientCutText(const char* str)
   strFree(clientClipboard);
   clientClipboard = NULL;
 
-  clientClipboard = latin1ToUTF8(str);
+  clientClipboard = strDup(latin1ToUTF8(str).c_str());
 
   handleClipboardAnnounce(true);
 }
@@ -433,7 +433,8 @@ void SConnection::handleClipboardProvide(uint32_t flags,
   strFree(clientClipboard);
   clientClipboard = NULL;
 
-  clientClipboard = convertLF((const char*)data[0], lengths[0]);
+  std::string filtered(convertLF((const char*)data[0], lengths[0]));
+  clientClipboard = strDup(filtered.c_str());
 
   // FIXME: Should probably verify that this data was actually requested
   handleClipboardData(clientClipboard);
@@ -594,9 +595,9 @@ void SConnection::sendClipboardData(const char* data)
 {
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
       (client.clipboardFlags() & rfb::clipboardProvide)) {
-    CharArray filtered(convertCRLF(data));
-    size_t sizes[1] = { strlen(filtered.buf) + 1 };
-    const uint8_t* data[1] = { (const uint8_t*)filtered.buf };
+    std::string filtered(convertCRLF(data));
+    size_t sizes[1] = { filtered.size() + 1 };
+    const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -610,9 +611,9 @@ void SConnection::sendClipboardData(const char* data)
 
     writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
   } else {
-    CharArray latin1(utf8ToLatin1(data));
+    std::string latin1(utf8ToLatin1(data));
 
-    writer()->writeServerCutText(latin1.buf);
+    writer()->writeServerCutText(latin1.c_str());
   }
 }
 

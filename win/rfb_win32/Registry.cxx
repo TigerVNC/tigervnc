@@ -164,18 +164,21 @@ void RegKey::setBool(const char* valname, bool value) const {
   setInt(valname, value ? 1 : 0);
 }
 
-char* RegKey::getString(const char* valname) const {return getRepresentation(valname);}
-char* RegKey::getString(const char* valname, const char* def) const {
+std::string RegKey::getString(const char* valname) const {
+  return getRepresentation(valname);
+}
+
+std::string RegKey::getString(const char* valname, const char* def) const {
   try {
     return getString(valname);
   } catch(rdr::Exception&) {
-    return strDup(def);
+    return def;
   }
 }
 
 std::vector<uint8_t> RegKey::getBinary(const char* valname) const {
-  CharArray hex(getRepresentation(valname));
-  return hexToBin(hex.buf, strlen(hex.buf));
+  std::string hex = getRepresentation(valname);
+  return hexToBin(hex.data(), hex.size());
 }
 std::vector<uint8_t> RegKey::getBinary(const char* valname, const uint8_t* def, size_t deflen) const {
   try {
@@ -188,8 +191,7 @@ std::vector<uint8_t> RegKey::getBinary(const char* valname, const uint8_t* def, 
 }
 
 int RegKey::getInt(const char* valname) const {
-  CharArray tmp(getRepresentation(valname));
-  return atoi(tmp.buf);
+  return atoi(getRepresentation(valname).c_str());
 }
 int RegKey::getInt(const char* valname, int def) const {
   try {
@@ -206,17 +208,7 @@ bool RegKey::getBool(const char* valname, bool def) const {
   return getInt(valname, def ? 1 : 0) > 0;
 }
 
-static inline char* terminateData(char* data, int length)
-{
-  // We must terminate the string, just to be sure.  Stupid Win32...
-  int len = length/sizeof(char);
-  CharArray str(len+1);
-  memcpy(str.buf, data, length);
-  str.buf[len] = 0;
-  return str.takeBuf();
-}
-
-char* RegKey::getRepresentation(const char* valname) const {
+std::string RegKey::getRepresentation(const char* valname) const {
   DWORD type, length;
   LONG result = RegQueryValueEx(key, valname, 0, &type, 0, &length);
   if (result != ERROR_SUCCESS)
@@ -229,35 +221,34 @@ char* RegKey::getRepresentation(const char* valname) const {
   switch (type) {
   case REG_BINARY:
     {
-      CharArray hex(binToHex((const uint8_t*)data.buf, length));
-      return hex.takeBuf();
+      return binToHex((const uint8_t*)data.buf, length);
     }
   case REG_SZ:
     if (length) {
-      return terminateData(data.buf, length);
+      return std::string(data.buf, length);
     } else {
-      return strDup("");
+      return "";
     }
   case REG_DWORD:
     {
-      CharArray tmp(16);
-      sprintf(tmp.buf, "%lu", *((DWORD*)data.buf));
-      return tmp.takeBuf();
+      char tmp[16];
+      sprintf(tmp, "%lu", *((DWORD*)data.buf));
+      return tmp;
     }
   case REG_EXPAND_SZ:
     {
     if (length) {
-      CharArray str(terminateData(data.buf, length));
-      DWORD required = ExpandEnvironmentStrings(str.buf, 0, 0);
+      std::string str(data.buf, length);
+      DWORD required = ExpandEnvironmentStrings(str.c_str(), 0, 0);
       if (required==0)
         throw rdr::SystemException("ExpandEnvironmentStrings", GetLastError());
       CharArray result(required);
-      length = ExpandEnvironmentStrings(str.buf, result.buf, required);
+      length = ExpandEnvironmentStrings(str.c_str(), result.buf, required);
       if (required<length)
         throw rdr::Exception("unable to expand environment strings");
-      return result.takeBuf();
+      return result.buf;
     } else {
-      return strDup("");
+      return "";
     }
     }
   default:
@@ -267,7 +258,7 @@ char* RegKey::getRepresentation(const char* valname) const {
 
 bool RegKey::isValue(const char* valname) const {
   try {
-    CharArray tmp(getRepresentation(valname));
+    getRepresentation(valname);
     return true;
   } catch(rdr::Exception&) {
     return false;

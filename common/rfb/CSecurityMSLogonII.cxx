@@ -93,11 +93,12 @@ bool CSecurityMSLogonII::readKey()
 
 void CSecurityMSLogonII::writeCredentials()
 {
-  CharArray username;
-  CharArray password;
+  std::string username;
+  std::string password;
   rdr::RandomStream rs;
 
-  (CSecurity::upg)->getUserPasswd(isSecure(), &username.buf, &password.buf);
+  (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+
   std::vector<uint8_t> bBytes(8);
   if (!rs.hasData(8))
     throw ConnFailedException("failed to generate DH private key");
@@ -125,14 +126,12 @@ void CSecurityMSLogonII::writeCredentials()
     throw ConnFailedException("failed to generate random padding");
   rs.readBytes(user, 256);
   rs.readBytes(pass, 64);
-  size_t len = strlen(username.buf);
-  if (len >= 256)
+  if (username.size() >= 256)
     throw AuthFailureException("username is too long");
-  memcpy(user, username.buf, len + 1);
-  len = strlen(password.buf);
-  if (len >= 64)
+  memcpy(user, username.c_str(), username.size() + 1);
+  if (password.size() >= 64)
     throw AuthFailureException("password is too long");
-  memcpy(pass, password.buf, len + 1);
+  memcpy(pass, password.c_str(), password.size() + 1);
 
   // DES-CBC with the original key as IV, and the reversed one as the DES key
   struct CBC_CTX(struct des_ctx, DES_BLOCK_SIZE) ctx;

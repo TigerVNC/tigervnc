@@ -171,8 +171,8 @@ namespace rfb {
 
     virtual bool setParam(const char* value)  = 0;
     virtual bool setParam();
-    virtual char* getDefaultStr() const = 0;
-    virtual char* getValueStr() const = 0;
+    virtual std::string getDefaultStr() const = 0;
+    virtual std::string getValueStr() const = 0;
     virtual bool isBool() const;
 
     virtual void setImmutable();
@@ -195,8 +195,8 @@ namespace rfb {
 		   ConfigurationObject co=ConfGlobal);
     virtual bool setParam(const char* value);
     virtual bool setParam();
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     virtual bool isBool() const;
     virtual void setImmutable();
   private:
@@ -210,8 +210,8 @@ namespace rfb {
     virtual bool setParam(const char* value);
     virtual bool setParam();
     virtual void setParam(bool b);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     virtual bool isBool() const;
     operator bool() const;
   protected:
@@ -227,8 +227,8 @@ namespace rfb {
     using VoidParameter::setParam;
     virtual bool setParam(const char* value);
     virtual bool setParam(int v);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     operator int() const;
   protected:
     int value;
@@ -244,13 +244,9 @@ namespace rfb {
 		    ConfigurationObject co=ConfGlobal);
     virtual ~StringParameter();
     virtual bool setParam(const char* value);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     operator const char*() const;
-
-    // getData() returns a copy of the data - it must be delete[]d by the
-    // caller.
-    char* getData() const { return getValueStr(); }
   protected:
     char* value;
     char* def_value;
@@ -265,8 +261,8 @@ namespace rfb {
     virtual ~BinaryParameter();
     virtual bool setParam(const char* value);
     virtual void setParam(const uint8_t* v, size_t l);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
 
     std::vector<uint8_t> getData() const;
 

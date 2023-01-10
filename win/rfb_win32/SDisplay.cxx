@@ -296,8 +296,7 @@ void SDisplay::restartCore() {
 
 
 void SDisplay::handleClipboardRequest() {
-  CharArray data(clipboard->getClipText());
-  server->sendClipboardData(data.buf);
+  server->sendClipboardData(clipboard->getClipText().c_str());
 }
 
 void SDisplay::handleClipboardAnnounce(bool available) {

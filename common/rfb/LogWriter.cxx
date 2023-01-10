@@ -123,7 +123,7 @@ bool LogParameter::setParam(const char* v) {
   LogWriter::setLogParams("*::0");
   StringParameter::setParam(v);
   CharArray logParam;
-  CharArray params(getData());
+  CharArray params(strDup(getValueStr().c_str()));
   while (params.buf) {
     strSplit(params.buf, ',', &logParam.buf, &params.buf);
     if (strlen(logParam.buf) && !LogWriter::setLogParams(logParam.buf))

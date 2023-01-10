@@ -341,8 +341,9 @@ Socket* TcpListener::createSocket(int fd) {
   return new TcpSocket(fd);
 }
 
-void TcpListener::getMyAddresses(std::list<char*>* result) {
+std::list<std::string> TcpListener::getMyAddresses() {
   struct addrinfo *ai, *current, hints;
+  std::list<std::string> result;
 
   initSockets();
 
@@ -356,9 +357,11 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
 
   // Windows doesn't like NULL for service, so specify something
   if ((getaddrinfo(NULL, "1", &hints, &ai)) != 0)
-    return;
+    return result;
 
   for (current= ai; current != NULL; current = current->ai_next) {
+    char addr[INET6_ADDRSTRLEN];
+
     switch (current->ai_family) {
     case AF_INET:
       if (!UseIPv4)
@@ -372,15 +375,15 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
       continue;
     }
 
-    char *addr = new char[INET6_ADDRSTRLEN];
-
     getnameinfo(current->ai_addr, current->ai_addrlen, addr, INET6_ADDRSTRLEN,
                 NULL, 0, NI_NUMERICHOST);
 
-    result->push_back(addr);
+    result.push_back(addr);
   }
 
   freeaddrinfo(ai);
+
+  return result;
 }
 
 int TcpListener::getMyPort() {
@@ -707,7 +710,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   return pattern;
 }
 
-char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
+std::string TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
   char addr[INET6_ADDRSTRLEN + 2];
 
   if (p.address.u.sa.sa_family == AF_INET) {
@@ -739,5 +742,9 @@ char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
   else
     snprintf(result, resultlen, "%c%s/%u", action, addr, p.prefixlen);
 
-  return result;
+  std::string out = result;
+
+  delete [] result;
+
+  return out;
 }

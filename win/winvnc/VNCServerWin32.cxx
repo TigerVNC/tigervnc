@@ -117,25 +117,24 @@ void VNCServerWin32::processAddressChange() {
     prefix = "VNC Server (Service):";
 
   // Fetch the list of addresses
-  std::list<char*> addrs;
+  std::list<std::string> addrs;
   if (rfbSock.isListening())
-    TcpListener::getMyAddresses(&addrs);
+    addrs = TcpListener::getMyAddresses();
   else
-    addrs.push_front(strDup("Not accepting connections"));
+    addrs.push_front("Not accepting connections");
 
   // Allocate space for the new tip
-  std::list<char*>::iterator i, next_i;
+  std::list<std::string>::iterator i, next_i;
   int length = strlen(prefix)+1;
   for (i=addrs.begin(); i!= addrs.end(); i++)
-    length += strlen(*i) + 1;
+    length += i->size() + 1;
 
   // Build the new tip
   CharArray toolTip(length);
   strcpy(toolTip.buf, prefix);
   for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
     next_i = i; next_i ++;
-    CharArray addr(*i);    // Assumes ownership of string
-    strcat(toolTip.buf, addr.buf);
+    strcat(toolTip.buf, i->c_str());
     if (next_i != addrs.end())
       strcat(toolTip.buf, ",");
   }
@@ -230,11 +229,11 @@ bool VNCServerWin32::disconnectClients(const char* reason) {
 bool VNCServerWin32::addNewClient(const char* client) {
   TcpSocket* sock = 0;
   try {
-    CharArray hostname;
+    std::string hostname;
     int port;
-    getHostAndPort(client, &hostname.buf, &port, 5500);
+    getHostAndPort(client, &hostname, &port, 5500);
     vlog.error("port=%d", port);
-    sock = new TcpSocket(hostname.buf, port);
+    sock = new TcpSocket(hostname.c_str(), port);
     if (queueCommand(AddClient, sock, 0))
       return true;
     delete sock;

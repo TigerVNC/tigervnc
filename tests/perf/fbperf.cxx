@@ -322,7 +322,6 @@ static void dotest(TestWindow* win)
   double time[3];
 
   double delay, rate;
-  char s[1024];
 
   // Run the test several times at different resolutions...
   dosubtest(win, 800, 600, &pixels[0], &frames[0], &time[0]);
@@ -369,11 +368,9 @@ static void dotest(TestWindow* win)
   }
 
   fprintf(stderr, "Rendering delay: %g ms/frame\n", delay * 1000.0);
-  if (rate == 0.0)
-    strcpy(s, "N/A pixels/s");
-  else
-    rfb::siPrefix(1.0 / rate, "pixels/s", s, sizeof(s));
-  fprintf(stderr, "Rendering rate: %s\n", s);
+  fprintf(stderr, "Rendering rate: %s\n",
+          (rate == 0.0) ? "N/A pixels/s" :
+                          rfb::siPrefix(1.0 / rate, "pixels/s").c_str());
   fprintf(stderr, "Maximum FPS: %g fps @ 1920x1080\n",
           1.0 / (delay + rate * 1920 * 1080));
 }

@@ -93,8 +93,8 @@ namespace rfb {
 
 #ifdef HAVE_GNUTLS
         if (isItemChecked(IDC_ENC_X509)) {
-          SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Cert"));
-          SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Key"));
+          SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Cert").c_str());
+          SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Key").c_str());
         }
 #endif
 

@@ -67,9 +67,9 @@ const char* FileVersionInfo::getVerString(const char* name, DWORD langId) {
     langId = langId >> 8;
   }
 
-  CharArray langIdStr(binToHex(langIdBuf, sizeof(langId)));
-  CharArray infoName(strlen("StringFileInfo") + 4 + strlen(name) + strlen(langIdStr.buf));
-  sprintf(infoName.buf, "\\StringFileInfo\\%s\\%s", langIdStr.buf, name);
+  std::string langIdStr(binToHex(langIdBuf, sizeof(langId)));
+  CharArray infoName(strlen("StringFileInfo") + 4 + strlen(name) + strlen(langIdStr.c_str()));
+  sprintf(infoName.buf, "\\StringFileInfo\\%s\\%s", langIdStr.c_str(), name);
 
   // Locate the required version string within the version info
   char* buffer = 0;

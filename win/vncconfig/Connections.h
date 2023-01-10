@@ -73,7 +73,7 @@ namespace rfb {
 
         try {
           network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(newPat.buf));
-          pattern.replaceBuf(CharArray(network::TcpFilter::patternToStr(pat)).takeBuf());
+          pattern.replaceBuf(strDup(network::TcpFilter::patternToStr(pat).c_str()));
         } catch(rdr::Exception& e) {
           MsgBox(NULL, e.str(), MB_ICONEXCLAMATION | MB_OK);
           return false;
@@ -101,7 +101,7 @@ namespace rfb {
           SendMessage(listBox, LB_DELETESTRING, 0, 0);
 
         CharArray tmp;
-        tmp.buf = hosts.getData();
+        tmp.buf = strDup(hosts.getValueStr().c_str());
         while (tmp.buf) {
           CharArray first;
           strSplit(tmp.buf, ',', &first.buf, &tmp.buf);
@@ -228,13 +228,13 @@ namespace rfb {
         regKey.setInt("PortNumber", isItemChecked(IDC_RFB_ENABLE) ? getItemInt(IDC_PORT) : 0);
         regKey.setInt("IdleTimeout", getItemInt(IDC_IDLE_TIMEOUT));
         regKey.setInt("LocalHost", isItemChecked(IDC_LOCALHOST));
-        regKey.setString("Hosts", CharArray(getHosts()).buf);
+        regKey.setString("Hosts", getHosts().c_str());
         return true;
       }
       bool isChanged() {
         try {
-          CharArray new_hosts(getHosts());
-          return (strcmp(new_hosts.buf, hosts) != 0) ||
+          std::string new_hosts = getHosts();
+          return (new_hosts != (const char*)hosts) ||
               (localHost != isItemChecked(IDC_LOCALHOST)) ||
               (port_number != getItemInt(IDC_PORT)) ||
               (rfb::Server::idleTimeout != getItemInt(IDC_IDLE_TIMEOUT));
@@ -242,21 +242,21 @@ namespace rfb {
           return false;
         }
       }
-      char* getHosts() {
+      std::string getHosts() {
         int bufLen = 1, i;
         HWND listBox = GetDlgItem(handle, IDC_HOSTS);
         for (i=0; i<SendMessage(listBox, LB_GETCOUNT, 0, 0); i++)
           bufLen+=SendMessage(listBox, LB_GETTEXTLEN, i, 0)+1;
-        CharArray hosts_str(bufLen);
-        hosts_str.buf[0] = 0;
-        char* outPos = hosts_str.buf;
+        std::vector<char> hosts_str(bufLen);
+        hosts_str[0] = 0;
+        char* outPos = hosts_str.data();
         for (i=0; i<SendMessage(listBox, LB_GETCOUNT, 0, 0); i++) {
           outPos += SendMessage(listBox, LB_GETTEXT, i, (LPARAM)outPos);
           outPos[0] = ',';
           outPos[1] = 0;
           outPos++;
         }
-        return strDup(hosts_str.buf);
+        return hosts_str.data();
       }
 
     protected:

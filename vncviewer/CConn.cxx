@@ -75,8 +75,7 @@ static const PixelFormat mediumColourPF(8, 8, false, true,
 static const unsigned bpsEstimateWindow = 1000;
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
-  : serverHost(0), serverPort(0), desktop(NULL),
-    updateCount(0), pixelCount(0),
+  : serverPort(0), desktop(NULL), updateCount(0), pixelCount(0),
     lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
   setShared(::shared);
@@ -98,15 +97,16 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 #ifndef WIN32
       if (strchr(vncServerName, '/') != NULL) {
         sock = new network::UnixSocket(vncServerName);
-        serverHost = strDup(sock->getPeerAddress());
-        vlog.info(_("Connected to socket %s"), serverHost);
+        serverHost = sock->getPeerAddress();
+        vlog.info(_("Connected to socket %s"), serverHost.c_str());
       } else
 #endif
       {
         getHostAndPort(vncServerName, &serverHost, &serverPort);
 
-        sock = new network::TcpSocket(serverHost, serverPort);
-        vlog.info(_("Connected to host %s port %d"), serverHost, serverPort);
+        sock = new network::TcpSocket(serverHost.c_str(), serverPort);
+        vlog.info(_("Connected to host %s port %d"),
+                  serverHost.c_str(), serverPort);
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
@@ -118,7 +118,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 
   Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
 
-  setServerName(serverHost);
+  setServerName(serverHost.c_str());
   setStreams(&sock->inStream(), &sock->outStream());
 
   initialiseProtocol();
@@ -136,7 +136,6 @@ CConn::~CConn()
   if (desktop)
     delete desktop;
 
-  delete [] serverHost;
   if (sock)
     Fl::remove_fd(sock->getFd());
   delete sock;
@@ -160,7 +159,7 @@ const char *CConn::connectionInfo()
   strcat(infoText, "\n");
 
   snprintf(scratch, sizeof(scratch),
-           _("Host: %.80s port: %d"), serverHost, serverPort);
+           _("Host: %.80s port: %d"), serverHost.c_str(), serverPort);
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 

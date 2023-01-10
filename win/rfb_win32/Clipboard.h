@@ -50,7 +50,7 @@ namespace rfb {
       void setNotifier(Notifier* cbn) {notifier = cbn;}
 
       // - Get the clipboard contents
-      char* getClipText();
+      std::string getClipText();
 
       // - Set the clipboard contents
       void setClipText(const char* text);

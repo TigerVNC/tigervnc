@@ -135,7 +135,7 @@ void Configuration::list(int width, int nameWidth) {
 
   fprintf(stderr, "%s Parameters:\n", name.buf);
   while (current) {
-    char* def_str = current->getDefaultStr();
+    std::string def_str = current->getDefaultStr();
     const char* desc = current->getDescription();
     fprintf(stderr,"  %-*s -", nameWidth, current->getName());
     int column = strlen(current->getName());
@@ -157,11 +157,10 @@ void Configuration::list(int width, int nameWidth) {
       if (!s) break;
     }
 
-    if (def_str) {
-      if (column + (int)strlen(def_str) + 11 > width)
+    if (!def_str.empty()) {
+      if (column + (int)def_str.size() + 11 > width)
         fprintf(stderr,"\n%*s",nameWidth+4,"");
-      fprintf(stderr," (default=%s)\n",def_str);
-      strFree(def_str);
+      fprintf(stderr," (default=%s)\n",def_str.c_str());
     } else {
       fprintf(stderr,"\n");
     }
@@ -257,12 +256,11 @@ bool AliasParameter::setParam() {
   return param->setParam();
 }
 
-char*
-AliasParameter::getDefaultStr() const {
-  return 0;
+std::string AliasParameter::getDefaultStr() const {
+  return "";
 }
 
-char* AliasParameter::getValueStr() const {
+std::string AliasParameter::getValueStr() const {
   return param->getValueStr();
 }
 
@@ -313,13 +311,12 @@ void BoolParameter::setParam(bool b) {
   vlog.debug("set %s(Bool) to %d", getName(), value);
 }
 
-char*
-BoolParameter::getDefaultStr() const {
-  return strDup(def_value ? "1" : "0");
+std::string BoolParameter::getDefaultStr() const {
+  return def_value ? "1" : "0";
 }
 
-char* BoolParameter::getValueStr() const {
-  return strDup(value ? "1" : "0");
+std::string BoolParameter::getValueStr() const {
+  return value ? "1" : "0";
 }
 
 bool BoolParameter::isBool() const {
@@ -355,15 +352,14 @@ IntParameter::setParam(int v) {
   return true;
 }
 
-char*
-IntParameter::getDefaultStr() const {
-  char* result = new char[16];
+std::string IntParameter::getDefaultStr() const {
+  char result[16];
   sprintf(result, "%d", def_value);
   return result;
 }
 
-char* IntParameter::getValueStr() const {
-  char* result = new char[16];
+std::string IntParameter::getValueStr() const {
+  char result[16];
   sprintf(result, "%d", value);
   return result;
 }
@@ -400,13 +396,13 @@ bool StringParameter::setParam(const char* v) {
   return value != 0;
 }
 
-char* StringParameter::getDefaultStr() const {
-  return strDup(def_value);
+std::string StringParameter::getDefaultStr() const {
+  return def_value;
 }
 
-char* StringParameter::getValueStr() const {
+std::string StringParameter::getValueStr() const {
   LOCK_CONFIG;
-  return strDup(value);
+  return std::string(value);
 }
 
 StringParameter::operator const char *() const {
@@ -457,11 +453,11 @@ void BinaryParameter::setParam(const uint8_t* v, size_t len) {
   }
 }
 
-char* BinaryParameter::getDefaultStr() const {
+std::string BinaryParameter::getDefaultStr() const {
   return binToHex(def_value, def_length);
 }
 
-char* BinaryParameter::getValueStr() const {
+std::string BinaryParameter::getValueStr() const {
   LOCK_CONFIG;
   return binToHex(value, length);
 }

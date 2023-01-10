@@ -34,7 +34,6 @@
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
 
-#include <rfb/util.h>
 #include <rfb/Password.h>
 #include <rfb/Exception.h>
 
@@ -71,7 +70,8 @@ UserDialog::~UserDialog()
 {
 }
 
-void UserDialog::getUserPasswd(bool secure, char** user, char** password)
+void UserDialog::getUserPasswd(bool secure, std::string* user,
+                               std::string* password)
 {
   const char *passwordFileName(passwordFile);
 
@@ -80,13 +80,13 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
   char *envPassword = getenv("VNC_PASSWORD");
 
   if(user && envUsername && envPassword) {
-    *user = strdup(envUsername);
-    *password = strdup(envPassword);
+    *user = envUsername;
+    *password = envPassword;
     return;
   }
 
   if (!user && envPassword) {
-    *password = strdup(envPassword);
+    *password = envPassword;
     return;
   }
 
@@ -102,7 +102,7 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
     fclose(fp);
 
     PlainPasswd passwd(obfPwd);
-    *password = passwd.takeBuf();
+    *password = passwd.buf;
 
     return;
   }
@@ -198,8 +198,8 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 
   if (ret_val == 0) {
     if (user)
-      *user = strDup(username->value());
-    *password = strDup(passwd->value());
+      *user = username->value();
+    *password = passwd->value();
   }
 
   delete win;

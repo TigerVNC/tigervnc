@@ -75,8 +75,8 @@ namespace rfb {
       void setInt(const char* valname, int i) const;
       void setBool(const char* valname, bool b) const;
 
-      char* getString(const char* valname) const;
-      char* getString(const char* valname, const char* def) const;
+      std::string getString(const char* valname) const;
+      std::string getString(const char* valname, const char* def) const;
 
       std::vector<uint8_t> getBinary(const char* valname) const;
       std::vector<uint8_t> getBinary(const char* valname, const uint8_t* def, size_t deflength) const;
@@ -87,7 +87,7 @@ namespace rfb {
       bool getBool(const char* valname) const;
       bool getBool(const char* valname, bool def) const;
 
-      char* getRepresentation(const char* valname) const;
+      std::string getRepresentation(const char* valname) const;
 
       bool isValue(const char* valname) const;
 

@@ -85,7 +85,7 @@ private:
   static void handleUpdateTimeout(void *data);
 
 private:
-  char* serverHost;
+  std::string serverHost;
   int serverPort;
   network::Socket* sock;
 

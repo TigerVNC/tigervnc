@@ -113,9 +113,7 @@ int vncSetParamSimple(const char *nameAndValue)
 
 char* vncGetParam(const char *name)
 {
-  rfb::VoidParameter *param;
-  char *value;
-  char *ret;
+  VoidParameter *param;
 
   // Hack to avoid exposing password!
   if (strcasecmp(name, "Password") == 0)
@@ -125,15 +123,7 @@ char* vncGetParam(const char *name)
   if (param == NULL)
     return NULL;
 
-  value = param->getValueStr();
-  if (value == NULL)
-    return NULL;
-
-  ret = strdup(value);
-
-  delete [] value;
-
-  return ret;
+  return strdup(param->getValueStr().c_str());
 }
 
 const char* vncGetParamDesc(const char *name)
@@ -234,7 +224,7 @@ int vncIsTCPPortUsed(int port)
 char* vncConvertLF(const char* src, size_t bytes)
 {
   try {
-    return convertLF(src, bytes);
+    return strDup(convertLF(src, bytes).c_str());
   } catch (...) {
     return NULL;
   }
@@ -243,7 +233,7 @@ char* vncConvertLF(const char* src, size_t bytes)
 char* vncLatin1ToUTF8(const char* src, size_t bytes)
 {
   try {
-    return latin1ToUTF8(src, bytes);
+    return strDup(latin1ToUTF8(src, bytes).c_str());
   } catch (...) {
     return NULL;
   }
@@ -252,7 +242,7 @@ char* vncLatin1ToUTF8(const char* src, size_t bytes)
 char* vncUTF8ToLatin1(const char* src, size_t bytes)
 {
   try {
-    return utf8ToLatin1(src, bytes);
+    return strDup(utf8ToLatin1(src, bytes).c_str());
   } catch (...) {
     return NULL;
   }

@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <string>
 #include <vector>
 
 struct timeval;
@@ -59,7 +60,6 @@ namespace rfb {
 
   char* strDup(const char* s);
   void strFree(char* s);
-  void strFree(wchar_t* s);
 
   // Returns true if split successful.  Returns false otherwise.
   // ALWAYS *copies* first part of string to out1 buffer.
@@ -79,17 +79,16 @@ namespace rfb {
   // Conversion to and from a hex string
 
   void binToHex(const uint8_t* in, size_t inlen, char* out, size_t outlen);
-  char* binToHex(const uint8_t* in, size_t inlen);
+  std::string binToHex(const uint8_t* in, size_t inlen);
   bool hexToBin(const char* in, size_t inlen, uint8_t* out, size_t outlen);
   std::vector<uint8_t> hexToBin(const char* in, size_t inlen);
 
   // Makes sure line endings are in a certain format
 
-  char* convertLF(const char* src, size_t bytes = (size_t)-1);
-  char* convertCRLF(const char* src, size_t bytes = (size_t)-1);
+  std::string convertLF(const char* src, size_t bytes = (size_t)-1);
+  std::string convertCRLF(const char* src, size_t bytes = (size_t)-1);
 
-  // Convertions between various Unicode formats. The returned strings are
-  // always null terminated and must be freed using strFree().
+  // Convertions between various Unicode formats
 
   size_t ucs4ToUTF8(unsigned src, char dst[5]);
   size_t utf8ToUCS4(const char* src, size_t max, unsigned* dst);
@@ -97,11 +96,11 @@ namespace rfb {
   size_t ucs4ToUTF16(unsigned src, wchar_t dst[3]);
   size_t utf16ToUCS4(const wchar_t* src, size_t max, unsigned* dst);
 
-  char* latin1ToUTF8(const char* src, size_t bytes = (size_t)-1);
-  char* utf8ToLatin1(const char* src, size_t bytes = (size_t)-1);
+  std::string latin1ToUTF8(const char* src, size_t bytes = (size_t)-1);
+  std::string utf8ToLatin1(const char* src, size_t bytes = (size_t)-1);
 
-  char* utf16ToUTF8(const wchar_t* src, size_t units = (size_t)-1);
-  wchar_t* utf8ToUTF16(const char* src, size_t bytes = (size_t)-1);
+  std::string utf16ToUTF8(const wchar_t* src, size_t units = (size_t)-1);
+  std::wstring utf8ToUTF16(const char* src, size_t bytes = (size_t)-1);
 
   // HELPER functions for timeout handling
 
@@ -129,10 +128,10 @@ namespace rfb {
   bool isBefore(const struct timeval *first,
                 const struct timeval *second);
 
-  size_t siPrefix(long long value, const char *unit,
-                  char *buffer, size_t maxlen, int precision=6);
-  size_t iecPrefix(long long value, const char *unit,
-                   char *buffer, size_t maxlen, int precision=6);
+  std::string siPrefix(long long value, const char *unit,
+                       int precision=6);
+  std::string iecPrefix(long long value, const char *unit,
+                        int precision=6);
 }
 
 // Some platforms (e.g. Windows) include max() and min() macros in their

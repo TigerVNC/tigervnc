@@ -348,14 +348,13 @@ int vncConnectClient(const char *addr)
     return 0;
   }
 
-  char *host;
+  std::string host;
   int port;
 
   getHostAndPort(addr, &host, &port, 5500);
 
   try {
-    network::Socket* sock = new network::TcpSocket(host, port);
-    delete [] host;
+    network::Socket* sock = new network::TcpSocket(host.c_str(), port);
     desktop[0]->addClient(sock, true);
   } catch (rdr::Exception& e) {
     vlog.error("Reverse connection: %s",e.str());
