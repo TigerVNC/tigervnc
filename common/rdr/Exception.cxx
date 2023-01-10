@@ -28,7 +28,6 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #ifdef _WIN32
-#include <tchar.h>
 #include <winsock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>

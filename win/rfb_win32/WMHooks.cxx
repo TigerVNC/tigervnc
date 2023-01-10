@@ -211,7 +211,7 @@ WMHooksThread::worker() {
   //   actually complete them before we notify the hook callbacks & they go off
   //   capturing screen state.
   const int updateDelayMs = 40;
-  MsgWindow updateDelayWnd(_T("WMHooks::updateDelay"));
+  MsgWindow updateDelayWnd("WMHooks::updateDelay");
   IntervalTimer updateDelayTimer(updateDelayWnd.getHandle(), 1);
   Region updates[2];
   int activeRgn = 0;

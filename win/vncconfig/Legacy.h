@@ -44,12 +44,12 @@ namespace rfb {
         case IDC_LEGACY_IMPORT:
           {
             DWORD result = MsgBox(0,
-              _T("Importing your legacy VNC 3.3 settings will overwrite your existing settings.\n")
-              _T("Are you sure you wish to continue?"),
+              "Importing your legacy VNC 3.3 settings will overwrite your existing settings.\n"
+              "Are you sure you wish to continue?",
               MB_ICONWARNING | MB_YESNO);
             if (result == IDYES) {
               LoadPrefs();
-              MsgBox(0, _T("Imported VNC 3.3 settings successfully."),
+              MsgBox(0, "Imported VNC 3.3 settings successfully.",
                      MB_ICONINFORMATION | MB_OK);
 
               // Sleep to allow RegConfig thread to reload settings
@@ -65,7 +65,7 @@ namespace rfb {
         return false;
       }
       bool onOk() {
-        regKey.setBool(_T("Protocol3.3"), isItemChecked(IDC_PROTOCOL_3_3));
+        regKey.setBool("Protocol3.3", isItemChecked(IDC_PROTOCOL_3_3));
         return true;
       }
 

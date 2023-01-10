@@ -4,7 +4,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#include <tchar.h>
 #include "ListViewControl.h"
 #include "commctrl.h"
 //////////////////////////////////////////////////////////////////////
@@ -31,10 +30,10 @@ void ListViewControl::SelectLVItem(DWORD idListView, HWND hDlg, int numberItem)
 }
 
 BOOL ListViewControl::InitLVColumns(DWORD idListView, HWND hDlg, int width, int columns,
-                                    TCHAR *title[], DWORD mask, DWORD LVStyle, DWORD format)
+                                    char *title[], DWORD mask, DWORD LVStyle, DWORD format)
 {
   (void)ListView_SetExtendedListViewStyle(GetDlgItem(hDlg, idListView), LVStyle);
-  TCHAR szText[256];      
+  char szText[256];      
   LVCOLUMN lvc; 
   int iCol;
   
@@ -46,14 +45,14 @@ BOOL ListViewControl::InitLVColumns(DWORD idListView, HWND hDlg, int width, int 
     lvc.cx = width;           
     lvc.fmt = format;
     
-    _tcscpy(szText, title[iCol]); 
+    strcpy(szText, title[iCol]);
     if (ListView_InsertColumn(GetDlgItem(hDlg, idListView), iCol, &lvc) == -1) 
       return FALSE; 
   } 
   return TRUE; 
 }
 
-BOOL ListViewControl::InsertLVItem(DWORD idListView, HWND hDlg, int number,  TCHAR * texts[],
+BOOL ListViewControl::InsertLVItem(DWORD idListView, HWND hDlg, int number,  char * texts[],
                                    int columns)
 {
   int i;
@@ -77,7 +76,7 @@ BOOL ListViewControl::InsertLVItem(DWORD idListView, HWND hDlg, int number,  TCH
 }
 
 void ListViewControl::SetLVItemText(DWORD idListView, HWND hDlg, int numberItem,
-                                    int namberColumn, TCHAR * text)
+                                    int namberColumn, char * text)
 {
   ListView_SetItemText(
     GetDlgItem(hDlg, idListView), 
@@ -85,7 +84,7 @@ void ListViewControl::SetLVItemText(DWORD idListView, HWND hDlg, int numberItem,
 }
 
 void ListViewControl::GetLVItemText(DWORD idListView, HWND hDlg, int numberItem,
-                                    int namberColumn, TCHAR * text)
+                                    int namberColumn, char * text)
 {
 	 ListView_GetItemText(GetDlgItem(hDlg, idListView), numberItem,
 							namberColumn, text, 256);

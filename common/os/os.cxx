@@ -44,7 +44,7 @@ static int gethomedir(char **dirp, bool userDir)
 	uid_t uid;
 	struct passwd *passwd;
 #else
-	TCHAR *dir;
+	char *dir;
 	BOOL ret;
 #endif
 
@@ -73,7 +73,7 @@ static int gethomedir(char **dirp, bool userDir)
 	else
 		memcpy(dir + len, "/.vnc/\0", 7);
 #else
-	dir = new TCHAR[MAX_PATH];
+	dir = new char[MAX_PATH];
 	if (dir == NULL)
 		return -1;
 
@@ -89,7 +89,7 @@ static int gethomedir(char **dirp, bool userDir)
 	if (userDir)
 		dir[strlen(dir)+1] = '\0';
 	else
-		memcpy(dir+strlen(dir), (TCHAR *)"\\vnc\\\0", 6);
+		memcpy(dir+strlen(dir), "\\vnc\\\0", 6);
 #endif
 	*dirp = dir;
 	return 0;

@@ -34,7 +34,7 @@ namespace rfb {
 namespace win32 {
 
 
-FileVersionInfo::FileVersionInfo(const TCHAR* filename) {
+FileVersionInfo::FileVersionInfo(const char* filename) {
   // Get executable name
   ModuleFileName exeName;
   if (!filename)
@@ -50,29 +50,29 @@ FileVersionInfo::FileVersionInfo(const TCHAR* filename) {
 
   // Get version info size
   DWORD handle;
-  int size = GetFileVersionInfoSize((TCHAR*)filename, &handle);
+  int size = GetFileVersionInfoSize((char*)filename, &handle);
   if (!size)
     throw rdr::SystemException("GetVersionInfoSize failed", GetLastError());
 
   // Get version info
-  buf = new TCHAR[size];
-  if (!GetFileVersionInfo((TCHAR*)filename, handle, size, buf))
+  buf = new char[size];
+  if (!GetFileVersionInfo((char*)filename, handle, size, buf))
     throw rdr::SystemException("GetVersionInfo failed", GetLastError());
 }
 
-const TCHAR* FileVersionInfo::getVerString(const TCHAR* name, DWORD langId) {
+const char* FileVersionInfo::getVerString(const char* name, DWORD langId) {
   uint8_t langIdBuf[sizeof(langId)];
   for (int i=sizeof(langIdBuf)-1; i>=0; i--) {
     langIdBuf[i] = (langId & 0xff);
     langId = langId >> 8;
   }
 
-  TCharArray langIdStr(binToHex(langIdBuf, sizeof(langId)));
-  TCharArray infoName(_tcslen(_T("StringFileInfo")) + 4 + _tcslen(name) + _tcslen(langIdStr.buf));
-  _stprintf(infoName.buf, _T("\\StringFileInfo\\%s\\%s"), langIdStr.buf, name);
+  CharArray langIdStr(binToHex(langIdBuf, sizeof(langId)));
+  CharArray infoName(strlen("StringFileInfo") + 4 + strlen(name) + strlen(langIdStr.buf));
+  sprintf(infoName.buf, "\\StringFileInfo\\%s\\%s", langIdStr.buf, name);
 
   // Locate the required version string within the version info
-  TCHAR* buffer = 0;
+  char* buffer = 0;
   UINT length = 0;
   if (!VerQueryValue(buf, infoName.buf, (void**)&buffer, &length)) {
     printf("unable to find %s version string", infoName.buf);
@@ -82,8 +82,8 @@ const TCHAR* FileVersionInfo::getVerString(const TCHAR* name, DWORD langId) {
 }
 
 
-bool splitPath(const TCHAR* path, TCHAR** dir, TCHAR** file) {
-  return tstrSplit(path, '\\', dir, file, true);
+bool splitPath(const char* path, char** dir, char** file) {
+  return strSplit(path, '\\', dir, file, true);
 }
 
 

@@ -23,7 +23,6 @@
 
 #include <winvnc/resource.h>
 #include <rfb_win32/Dialog.h>
-//#include <rfb_win32/TCharArray.h>
 
 namespace winvnc {
 
@@ -41,10 +40,10 @@ namespace winvnc {
     // Dialog methods (protected)
     virtual void initDialog() {
       if (hostName.buf)
-        setItemString(IDC_HOST, rfb::TStr(hostName.buf));
+        setItemString(IDC_HOST, hostName.buf);
     }
     virtual bool onOk() {
-      hostName.replaceBuf(rfb::strDup(rfb::CStr(getItemString(IDC_HOST))));
+      hostName.replaceBuf(rfb::strDup(getItemString(IDC_HOST)));
       return true;
     }
 

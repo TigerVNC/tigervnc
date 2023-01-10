@@ -24,48 +24,46 @@
 #include <config.h>
 #endif
 
-#include <tchar.h>
-
 #include <wm_hooks/wm_hooks.h>
 #include <os/os.h>
 
 #define SHARED __attribute__((section ("shared"), shared))
 
-UINT WM_HK_PingThread = RegisterWindowMessage(_T("RFB.WM_Hooks.PingThread"));
+UINT WM_HK_PingThread = RegisterWindowMessage("RFB.WM_Hooks.PingThread");
 
-UINT WM_HK_WindowChanged = RegisterWindowMessage(_T("RFB.WM_Hooks.WindowChanged"));
+UINT WM_HK_WindowChanged = RegisterWindowMessage("RFB.WM_Hooks.WindowChanged");
 UINT WM_Hooks_WindowChanged() {
   return WM_HK_WindowChanged;
 }
 
-UINT WM_HK_WindowClientAreaChanged = RegisterWindowMessage(_T("RFB.WM_Hooks.WindowClientAreaChanged"));
+UINT WM_HK_WindowClientAreaChanged = RegisterWindowMessage("RFB.WM_Hooks.WindowClientAreaChanged");
 UINT WM_Hooks_WindowClientAreaChanged() {
   return WM_HK_WindowClientAreaChanged;
 }
 
-UINT WM_HK_WindowBorderChanged = RegisterWindowMessage(_T("RFB.WM_Hooks.WindowBorderChanged"));
+UINT WM_HK_WindowBorderChanged = RegisterWindowMessage("RFB.WM_Hooks.WindowBorderChanged");
 UINT WM_Hooks_WindowBorderChanged() {
   return WM_HK_WindowBorderChanged;
 }
 
-UINT WM_HK_RectangleChanged = RegisterWindowMessage(_T("RFB.WM_Hooks.RectangleChanged"));
+UINT WM_HK_RectangleChanged = RegisterWindowMessage("RFB.WM_Hooks.RectangleChanged");
 UINT WM_Hooks_RectangleChanged() {
   return WM_HK_RectangleChanged;
 }
 
-UINT WM_HK_CursorChanged = RegisterWindowMessage(_T("RFB.WM_Hooks.CursorChanged"));
+UINT WM_HK_CursorChanged = RegisterWindowMessage("RFB.WM_Hooks.CursorChanged");
 UINT WM_Hooks_CursorChanged() {
   return WM_HK_CursorChanged;
 }
 
 #ifdef _DEBUG
-UINT WM_HK_Diagnostic = RegisterWindowMessage(_T("RFB.WM_Hooks.Diagnostic"));
+UINT WM_HK_Diagnostic = RegisterWindowMessage("RFB.WM_Hooks.Diagnostic");
 UINT WM_Hooks_Diagnostic() {
   return WM_HK_Diagnostic;
 }
 #endif
 
-ATOM ATOM_Popup_Selection = GlobalAddAtom(_T("RFB.WM_Hooks.PopupSelectionAtom"));
+ATOM ATOM_Popup_Selection = GlobalAddAtom("RFB.WM_Hooks.PopupSelectionAtom");
 
 //
 // -=- DLL entry point

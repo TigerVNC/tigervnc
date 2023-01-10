@@ -448,9 +448,9 @@ SDisplay::recreatePixelBuffer(bool force) {
   //   Opening the whole display with CreateDC doesn't work on multi-monitor
   //   systems for some reason.
   DeviceContext* new_device = 0;
-  TCharArray deviceName(displayDevice.getData());
+  CharArray deviceName(displayDevice.getData());
   if (deviceName.buf[0]) {
-    vlog.info("Attaching to device %s", (const char*)CStr(deviceName.buf));
+    vlog.info("Attaching to device %s", deviceName.buf);
     new_device = new DeviceDC(deviceName.buf);
   }
   if (!new_device) {
@@ -461,7 +461,7 @@ SDisplay::recreatePixelBuffer(bool force) {
   // Get the coordinates of the specified dispay device
   Rect newScreenRect;
   if (deviceName.buf[0]) {
-    MonitorInfo info(CStr(deviceName.buf));
+    MonitorInfo info(deviceName.buf);
     newScreenRect = Rect(info.rcMonitor.left, info.rcMonitor.top,
                          info.rcMonitor.right, info.rcMonitor.bottom);
   } else {

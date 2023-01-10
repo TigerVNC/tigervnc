@@ -21,7 +21,6 @@ add_library(rfb_win32 STATIC
   Service.cxx
   SInput.cxx
   SocketManager.cxx
-  TCharArray.cxx
   TsSessions.cxx
   Win32Util.cxx
   WMCursor.cxx

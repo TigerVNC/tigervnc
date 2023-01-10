@@ -59,14 +59,14 @@ namespace rfb {
         return false;
       }
       bool onOk() {
-        const TCHAR* action = _T("None");
+        const char* action = "None";
         if (isItemChecked(IDC_DISCONNECT_LOGOFF))
-          action = _T("Logoff");
+          action = "Logoff";
         else if (isItemChecked(IDC_DISCONNECT_LOCK))
-          action = _T("Lock");
-        regKey.setString(_T("DisconnectAction"), action);
-        regKey.setBool(_T("RemoveWallpaper"), isItemChecked(IDC_REMOVE_WALLPAPER));
-        regKey.setBool(_T("DisableEffects"), isItemChecked(IDC_DISABLE_EFFECTS));
+          action = "Lock";
+        regKey.setString("DisconnectAction", action);
+        regKey.setBool("RemoveWallpaper", isItemChecked(IDC_REMOVE_WALLPAPER));
+        regKey.setBool("DisableEffects", isItemChecked(IDC_DISABLE_EFFECTS));
         return true;
       }
     protected:

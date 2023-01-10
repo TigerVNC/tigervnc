@@ -34,7 +34,7 @@ using namespace winvnc;
 using namespace rfb;
 using namespace win32;
 
-const TCHAR* winvnc::VNCServerService::Name = _T("TigerVNC");
+const char* winvnc::VNCServerService::Name = "TigerVNC";
 
 // SendSAS is not available until Windows 7, and missing from MinGW
 static HMODULE sasLibrary = NULL;
@@ -108,7 +108,7 @@ HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
     if (GetSessionUserTokenWin(&hToken))
     {
         ModuleFileName filename;
-        TCharArray cmdLine;
+        CharArray cmdLine;
         cmdLine.format("\"%s\" -noconsole -service_run", filename.buf);
         STARTUPINFO si;
         ZeroMemory(&si, sizeof si);
@@ -125,7 +125,7 @@ HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
     return hProcess;
 }
 
-DWORD VNCServerService::serviceMain(int /*argc*/, TCHAR* /*argv*/ [])
+DWORD VNCServerService::serviceMain(int /*argc*/, char* /*argv*/ [])
 {
     ConsoleSessionId OlddwSessionId;
 

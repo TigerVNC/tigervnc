@@ -65,7 +65,6 @@ struct ActiveDesktop {
       return false;
     }
     item.fChecked = enable_;
-    vlog.debug("%sbling %d: \"%s\"", enable_ ? "ena" : "disa", i, (const char*)CStr(item.wszFriendlyName));
 
     hr = handle->ModifyDesktopItem(&item, COMP_ELEM_CHECKED);
     return hr == S_OK;
@@ -257,8 +256,8 @@ void CleanDesktop::enableEffects() {
       vlog.debug("restore desktop effects");
 
       RegKey desktopCfg;
-      desktopCfg.openKey(HKEY_CURRENT_USER, _T("Control Panel\\Desktop"));
-      SysParamsInfo(SPI_SETFONTSMOOTHING, desktopCfg.getInt(_T("FontSmoothing"), 0) != 0, 0, SPIF_SENDCHANGE);
+      desktopCfg.openKey(HKEY_CURRENT_USER, "Control Panel\\Desktop");
+      SysParamsInfo(SPI_SETFONTSMOOTHING, desktopCfg.getInt("FontSmoothing", 0) != 0, 0, SPIF_SENDCHANGE);
       if (SysParamsInfo(SPI_SETUIEFFECTS, 0, (void*)(intptr_t)uiEffects, SPIF_SENDCHANGE) == ERROR_CALL_NOT_IMPLEMENTED) {
         SysParamsInfo(SPI_SETCOMBOBOXANIMATION, 0, (void*)(intptr_t)comboBoxAnim, SPIF_SENDCHANGE);
         SysParamsInfo(SPI_SETGRADIENTCAPTIONS, 0, (void*)(intptr_t)gradientCaptions, SPIF_SENDCHANGE);

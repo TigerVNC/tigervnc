@@ -27,8 +27,6 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 
-#include <tchar.h>
-
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -57,11 +55,11 @@ rfb::win32::WMPoller::setUpdateTracker(UpdateTracker* ut_) {
 
 bool
 rfb::win32::WMPoller::checkPollWindow(HWND w) {
-  TCHAR buffer[128];
+  char buffer[128];
   if (!GetClassName(w, buffer, 128))
     throw rdr::SystemException("unable to get window class:%u", GetLastError());
-  if ((_tcscmp(buffer, _T("tty")) != 0) &&
-    (_tcscmp(buffer, _T("ConsoleWindowClass")) != 0)) {
+  if ((strcmp(buffer, "tty") != 0) &&
+    (strcmp(buffer, "ConsoleWindowClass") != 0)) {
     return false;
   }
   return true;

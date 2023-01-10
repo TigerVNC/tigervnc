@@ -49,10 +49,10 @@ namespace rfb {
     public:
 
       // Returns true if key was created, false if already existed
-      bool createKey(const RegKey& root, const TCHAR* name);
+      bool createKey(const RegKey& root, const char* name);
 
       // Opens key if it exists, or raises an exception if not
-      void openKey(const RegKey& root, const TCHAR* name, bool readOnly=false);
+      void openKey(const RegKey& root, const char* name, bool readOnly=false);
 
       // Set the (discretionary) access control list for the key
       void setDACL(const PACL acl, bool inheritFromParent=true);
@@ -61,47 +61,47 @@ namespace rfb {
       void close();
 
       // Delete a subkey/value
-      void deleteKey(const TCHAR* name) const;
-      void deleteValue(const TCHAR* name) const;
+      void deleteKey(const char* name) const;
+      void deleteValue(const char* name) const;
 
 
       // Block waiting for a registry change, OR return immediately and notify the
       // event when there is a change, if specified
       void awaitChange(bool watchSubTree, DWORD filter, HANDLE event=0) const;
 
-      void setExpandString(const TCHAR* valname, const TCHAR* s) const;
-      void setString(const TCHAR* valname, const TCHAR* s) const;
-      void setBinary(const TCHAR* valname, const void* data, size_t length) const;
-      void setInt(const TCHAR* valname, int i) const;
-      void setBool(const TCHAR* valname, bool b) const;
+      void setExpandString(const char* valname, const char* s) const;
+      void setString(const char* valname, const char* s) const;
+      void setBinary(const char* valname, const void* data, size_t length) const;
+      void setInt(const char* valname, int i) const;
+      void setBool(const char* valname, bool b) const;
 
-      TCHAR* getString(const TCHAR* valname) const;
-      TCHAR* getString(const TCHAR* valname, const TCHAR* def) const;
+      char* getString(const char* valname) const;
+      char* getString(const char* valname, const char* def) const;
 
-      std::vector<uint8_t> getBinary(const TCHAR* valname) const;
-      std::vector<uint8_t> getBinary(const TCHAR* valname, const uint8_t* def, size_t deflength) const;
+      std::vector<uint8_t> getBinary(const char* valname) const;
+      std::vector<uint8_t> getBinary(const char* valname, const uint8_t* def, size_t deflength) const;
 
-      int getInt(const TCHAR* valname) const;
-      int getInt(const TCHAR* valname, int def) const;
+      int getInt(const char* valname) const;
+      int getInt(const char* valname, int def) const;
 
-      bool getBool(const TCHAR* valname) const;
-      bool getBool(const TCHAR* valname, bool def) const;
+      bool getBool(const char* valname) const;
+      bool getBool(const char* valname, bool def) const;
 
-      TCHAR* getRepresentation(const TCHAR* valname) const;
+      char* getRepresentation(const char* valname) const;
 
-      bool isValue(const TCHAR* valname) const;
+      bool isValue(const char* valname) const;
 
       // Get the name of value/key number "i"
       // If there are fewer than "i" values then return 0
       // NAME IS OWNED BY RegKey OBJECT!
-      const TCHAR* getValueName(int i);
-      const TCHAR* getKeyName(int i);
+      const char* getValueName(int i);
+      const char* getKeyName(int i);
 
       operator HKEY() const;
     protected:
       HKEY key;
       bool freeKey;
-      TCharArray valueName;
+      CharArray valueName;
       DWORD valueNameBufLen;
     };
 

@@ -20,7 +20,8 @@
 #define __RFB_WIN32_MSGBOX_H__
 
 #include <windows.h>
-#include <rfb_win32/TCharArray.h>
+
+#include <rfb/util.h>
 
 namespace rfb {
   namespace win32 {
@@ -31,28 +32,28 @@ namespace rfb {
     // Message box titles are based on the (standard Win32) flags
     // passed to the MsgBox helper function.
 
-    extern TStr AppName;
+    extern const char* AppName;
 
     // Wrapper around Win32 MessageBox()
-    static int MsgBox(HWND parent, const TCHAR* msg, UINT flags) {
-      const TCHAR* msgType = 0;
+    static int MsgBox(HWND parent, const char* msg, UINT flags) {
+      const char* msgType = 0;
       UINT tflags = flags & 0x70;
       if (tflags == MB_ICONHAND)
-        msgType = _T("Error");
+        msgType = "Error";
       else if (tflags == MB_ICONQUESTION)
-        msgType = _T("Question");
+        msgType = "Question";
       else if (tflags == MB_ICONEXCLAMATION)
-        msgType = _T("Warning");
+        msgType = "Warning";
       else if (tflags == MB_ICONASTERISK)
-        msgType = _T("Information");
+        msgType = "Information";
       flags |= MB_TOPMOST | MB_SETFOREGROUND;
-      int len = _tcslen(AppName.buf) + 1;
-      if (msgType) len += _tcslen(msgType) + 3;
-      TCharArray title(new TCHAR[len]);
-      _tcscpy(title.buf, AppName.buf);
+      int len = strlen(AppName) + 1;
+      if (msgType) len += strlen(msgType) + 3;
+      CharArray title(new char[len]);
+      strcpy(title.buf, AppName);
       if (msgType) {
-        _tcscat(title.buf, _T(" : "));
-        _tcscat(title.buf, msgType);
+        strcat(title.buf, " : ");
+        strcat(title.buf, msgType);
       }
       return MessageBox(parent, msg, title.buf, flags);
     }

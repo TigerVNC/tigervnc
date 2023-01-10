@@ -24,7 +24,6 @@
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/resource.h>
 #include <rfb_win32/Win32Util.h>
-#include <rfb_win32/TCharArray.h>
 #include <rfb_win32/Service.h>
 #include <rfb/LogWriter.h>
 
@@ -77,16 +76,16 @@ void QueryConnectDialog::worker() {
 void QueryConnectDialog::initDialog() {
   if (!SetTimer(handle, 1, 1000, 0))
     throw rdr::SystemException("SetTimer", GetLastError());
-  setItemString(IDC_QUERY_HOST, TStr(peerIp.buf));
+  setItemString(IDC_QUERY_HOST, peerIp.buf);
   if (!userName.buf)
     userName.buf = strDup("(anonymous)");
-  setItemString(IDC_QUERY_USER, TStr(userName.buf));
+  setItemString(IDC_QUERY_USER, userName.buf);
   setCountdownLabel();
 }
 
 void QueryConnectDialog::setCountdownLabel() {
-  TCHAR buf[16];
-  _stprintf(buf, _T("%d"), countdown);
+  char buf[16];
+  sprintf(buf, "%d", countdown);
   setItemString(IDC_QUERY_COUNTDOWN, buf);
 }
 

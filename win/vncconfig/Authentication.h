@@ -65,13 +65,13 @@ namespace rfb {
           PasswordDialog passwdDlg(regKey, registryInsecure);
           passwdDlg.showDialog(handle);
         } else if (id == IDC_LOAD_CERT) {
-          const TCHAR* title = _T("X509Cert");
-          const TCHAR* filter =
-             _T("X.509 Certificates (*.crt;*.cer;*.pem)\0*.crt;*.cer;*.pem\0All\0*.*\0");
+          const char* title = "X509Cert";
+          const char* filter =
+             "X.509 Certificates (*.crt;*.cer;*.pem)\0*.crt;*.cer;*.pem\0All\0*.*\0";
           showFileChooser(regKey, title, filter, handle);
         } else if (id == IDC_LOAD_CERTKEY) {
-          const TCHAR* title = _T("X509Key");
-          const TCHAR* filter = _T("X.509 Keys (*.key;*.pem)\0*.key;*.pem\0All\0*.*\0");
+          const char* title = "X509Key";
+          const char* filter = "X.509 Keys (*.key;*.pem)\0*.key;*.pem\0All\0*.*\0";
           showFileChooser(regKey, title, filter, handle);
         } else if (id == IDC_QUERY_LOGGED_ON) {
           enableItem(IDC_QUERY_LOGGED_ON, enableQueryOnlyIfLoggedOn());
@@ -85,10 +85,10 @@ namespace rfb {
         if (isItemChecked(IDC_AUTH_VNC))
           verifyVncPassword(regKey);
         else if (haveVncPassword() && 
-            MsgBox(0, _T("The VNC authentication method is disabled, but a password is still stored for it.\n")
-                      _T("Do you want to remove the VNC authentication password from the registry?"),
+            MsgBox(0, "The VNC authentication method is disabled, but a password is still stored for it.\n"
+                      "Do you want to remove the VNC authentication password from the registry?",
                       MB_ICONWARNING | MB_YESNO) == IDYES) {
-          regKey.setBinary(_T("Password"), 0, 0);
+          regKey.setBinary("Password", 0, 0);
         }
 
 #ifdef HAVE_GNUTLS
@@ -98,9 +98,9 @@ namespace rfb {
         }
 #endif
 
-        regKey.setString(_T("SecurityTypes"), security->ToString());
-        regKey.setBool(_T("QueryConnect"), isItemChecked(IDC_QUERY_CONNECT));
-        regKey.setBool(_T("QueryOnlyIfLoggedOn"), isItemChecked(IDC_QUERY_LOGGED_ON));
+        regKey.setString("SecurityTypes", security->ToString());
+        regKey.setBool("QueryConnect", isItemChecked(IDC_QUERY_CONNECT));
+        regKey.setBool("QueryOnlyIfLoggedOn", isItemChecked(IDC_QUERY_LOGGED_ON));
 
         return true;
       }
@@ -120,8 +120,8 @@ namespace rfb {
 
       static void verifyVncPassword(const RegKey& regKey) {
         if (!haveVncPassword()) {
-          MsgBox(0, _T("The VNC authentication method is enabled, but no password is specified.\n")
-                    _T("The password dialog will now be shown."), MB_ICONINFORMATION | MB_OK);
+          MsgBox(0, "The VNC authentication method is enabled, but no password is specified.\n"
+                    "The password dialog will now be shown.", MB_ICONINFORMATION | MB_OK);
           PasswordDialog passwd(regKey, registryInsecure);
           passwd.showDialog();
         }

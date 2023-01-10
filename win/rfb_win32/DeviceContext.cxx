@@ -156,8 +156,8 @@ Rect DeviceContext::getClipBox(HDC dc) {
 }
 
 
-DeviceDC::DeviceDC(const TCHAR* deviceName) {
-  dc = ::CreateDC(_T("DISPLAY"), deviceName, NULL, NULL);
+DeviceDC::DeviceDC(const char* deviceName) {
+  dc = ::CreateDC("DISPLAY", deviceName, NULL, NULL);
   if (!dc)
     throw rdr::SystemException("failed to create DeviceDC", GetLastError());
 }

@@ -46,7 +46,7 @@ RegConfig::~RegConfig() {
     eventMgr->removeEvent(event);
 }
 
-bool RegConfig::setKey(const HKEY rootkey, const TCHAR* keyname) {
+bool RegConfig::setKey(const HKEY rootkey, const char* keyname) {
   try {
     key.createKey(rootkey, keyname);
     processEvent(event);
@@ -61,10 +61,10 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
   DWORD i = 0;
   try {
     while (1) {
-      TCharArray name(tstrDup(key.getValueName(i++)));
+      CharArray name(strDup(key.getValueName(i++)));
       if (!name.buf) break;
-      TCharArray value(key.getRepresentation(name.buf));
-      if (!value.buf || !Configuration::setParam(CStr(name.buf), CStr(value.buf)))
+      CharArray value(key.getRepresentation(name.buf));
+      if (!value.buf || !Configuration::setParam(name.buf, value.buf))
         vlog.info("unable to process %s", name.buf);
     }
   } catch (rdr::SystemException& e) {
@@ -97,7 +97,7 @@ RegConfigThread::~RegConfigThread() {
   wait();
 }
 
-bool RegConfigThread::start(const HKEY rootKey, const TCHAR* keyname) {
+bool RegConfigThread::start(const HKEY rootKey, const char* keyname) {
   if (config.setKey(rootKey, keyname)) {
     Thread::start();
     while (thread_id == (DWORD)-1)

@@ -21,11 +21,11 @@ bool ControlPanel::showDialog()
 
 void ControlPanel::initDialog()
 {
-  TCHAR *ColumnsStrings[] = {
-    (TCHAR *) "IP address",
-    (TCHAR *) "Status"
+  const char *ColumnsStrings[] = {
+    "IP address",
+    "Status"
   };
-  InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 2, ColumnsStrings,
+  InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 2, (char **)ColumnsStrings,
                 LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
                 LVS_EX_FULLROWSELECT, LVCFMT_LEFT);
   SendCommand(4, -1);
@@ -93,7 +93,7 @@ void ControlPanel::UpdateListView(ListConnInfo* LCInfo)
 
   for (ListConn.iBegin(); !ListConn.iEnd(); ListConn.iNext()) {
     ListConn.iGetCharInfo(ItemString);
-    InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, (TCHAR **) ItemString, 2);
+    InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, (char **) ItemString, 2);
     for (ListSelConn.iBegin(); !ListSelConn.iEnd(); ListSelConn.iNext()) {
       if (ListSelConn.iGetConn() == ListConn.iGetConn())
         SelectLVItem(IDC_LIST_CONNECTIONS, handle, i);

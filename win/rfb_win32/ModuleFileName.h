@@ -20,13 +20,14 @@
 #define __RFB_WIN32_MODULE_FILENAME_H__
 
 #include <windows.h>
-#include <rfb_win32/TCharArray.h>
+
+#include <rfb/util.h>
 
 namespace rfb {
   namespace win32 {
 
-    struct ModuleFileName : public TCharArray {
-      ModuleFileName(HMODULE module=0) : TCharArray(MAX_PATH) {
+    struct ModuleFileName : public CharArray {
+      ModuleFileName(HMODULE module=0) : CharArray(MAX_PATH) {
         if (!module)
           module = GetModuleHandle(0);
         if (!GetModuleFileName(module, buf, MAX_PATH))

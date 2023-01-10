@@ -28,7 +28,6 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <tchar.h>
 #endif
 
 #include "parameters.h"

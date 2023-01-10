@@ -33,20 +33,20 @@ bool PasswordDialog::showDialog(HWND owner) {
 }
 
 bool PasswordDialog::onOk() {
-  TPlainPasswd password1(getItemString(IDC_PASSWORD1));
-  TPlainPasswd password2(getItemString(IDC_PASSWORD2));
-  if (_tcscmp(password1.buf, password2.buf) != 0) {
-    MsgBox(0, _T("The supplied passwords do not match"),
+  PlainPasswd password1(getItemString(IDC_PASSWORD1));
+  PlainPasswd password2(getItemString(IDC_PASSWORD2));
+  if (strcmp(password1.buf, password2.buf) != 0) {
+    MsgBox(0, "The supplied passwords do not match",
            MB_ICONEXCLAMATION | MB_OK);
     return false;
   }
   if (registryInsecure &&
-      (MsgBox(0, _T("Please note that your password cannot be stored securely on this system.  ")
-                 _T("Are you sure you wish to continue?"),
+      (MsgBox(0, "Please note that your password cannot be stored securely on this system.  "
+                 "Are you sure you wish to continue?",
               MB_YESNO | MB_ICONWARNING) == IDNO))
     return false;
   PlainPasswd password(strDup(password1.buf));
   ObfuscatedPasswd obfPwd(password);
-  regKey.setBinary(_T("Password"), obfPwd.buf, obfPwd.length);
+  regKey.setBinary("Password", obfPwd.buf, obfPwd.length);
   return true;
 }

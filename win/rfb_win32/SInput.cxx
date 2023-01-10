@@ -30,7 +30,6 @@
 #define XK_CURRENCY
 #include <rfb/keysymdef.h>
 
-#include <tchar.h>
 #include <rfb_win32/SInput.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Service.h>

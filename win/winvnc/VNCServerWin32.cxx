@@ -44,7 +44,7 @@ using namespace network;
 static LogWriter vlog("VNCServerWin32");
 
 
-const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TigerVNC\\WinVNC4");
+const char* winvnc::VNCServerWin32::RegConfigPath = "Software\\TigerVNC\\WinVNC4";
 
 
 static IntParameter port_number("PortNumber",
@@ -64,7 +64,7 @@ VNCServerWin32::VNCServerWin32()
     commandEvent(CreateEvent(0, TRUE, FALSE, 0)),
     sessionEvent(isServiceProcess() ?
       CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
-    vncServer(CStr(ComputerName().buf), &desktop),
+    vncServer(ComputerName().buf, &desktop),
     thread_id(-1), runServer(false), isDesktopStarted(false),
     config(&sockMgr), rfbSock(&sockMgr), trayIcon(0),
     queryConnectDialog(0)
@@ -112,9 +112,9 @@ void VNCServerWin32::processAddressChange() {
     return;
 
   // Tool-tip prefix depends on server mode
-  const TCHAR* prefix = _T("VNC Server (User):");
+  const char* prefix = "VNC Server (User):";
   if (isServiceProcess())
-    prefix = _T("VNC Server (Service):");
+    prefix = "VNC Server (Service):";
 
   // Fetch the list of addresses
   std::list<char*> addrs;
@@ -125,19 +125,19 @@ void VNCServerWin32::processAddressChange() {
 
   // Allocate space for the new tip
   std::list<char*>::iterator i, next_i;
-  int length = _tcslen(prefix)+1;
+  int length = strlen(prefix)+1;
   for (i=addrs.begin(); i!= addrs.end(); i++)
     length += strlen(*i) + 1;
 
   // Build the new tip
-  TCharArray toolTip(length);
-  _tcscpy(toolTip.buf, prefix);
+  CharArray toolTip(length);
+  strcpy(toolTip.buf, prefix);
   for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
     next_i = i; next_i ++;
-    TCharArray addr(*i);    // Assumes ownership of string
-    _tcscat(toolTip.buf, addr.buf);
+    CharArray addr(*i);    // Assumes ownership of string
+    strcat(toolTip.buf, addr.buf);
     if (next_i != addrs.end())
-      _tcscat(toolTip.buf, _T(","));
+      strcat(toolTip.buf, ",");
   }
   
   // Pass the new tip to the tray icon

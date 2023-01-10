@@ -24,7 +24,6 @@
 
 #include <rfb/WinPasswdValidator.h>
 #include <windows.h>
-#include <tchar.h>
 
 using namespace rfb;
 
@@ -33,9 +32,9 @@ bool WinPasswdValidator::validateInternal(rfb::SConnection* /*sc*/,
 					  const char* username,
 					  const char* password)
 {
-	TCHAR* user = (TCHAR*) strDup(username);
-	TCHAR* pass = (TCHAR*) strDup(password);
-	TCHAR* domain = (TCHAR*) strDup(".");
+	char* user = strDup(username);
+	char* pass = strDup(password);
+	char* domain = strDup(".");
 	HANDLE handle;
 
 	BOOL ret = LogonUser(user, domain, pass, LOGON32_LOGON_NETWORK,

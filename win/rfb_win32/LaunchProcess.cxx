@@ -32,8 +32,8 @@ using namespace rfb;
 using namespace win32;
 
 
-LaunchProcess::LaunchProcess(const TCHAR* exeName_, const TCHAR* params_)
-: exeName(tstrDup(exeName_)), params(tstrDup(params_)) {
+LaunchProcess::LaunchProcess(const char* exeName_, const char* params_)
+: exeName(strDup(exeName_)), params(strDup(params_)) {
   memset(&procInfo, 0, sizeof(procInfo));
 }
 
@@ -64,22 +64,22 @@ void LaunchProcess::start(HANDLE userToken, bool createConsole) {
   sinfo.lpDesktop = desktopName;
 
   // - Concoct a suitable command-line
-  TCharArray exePath;
-  if (!tstrContains(exeName.buf, _T('\\'))) {
+  CharArray exePath;
+  if (!strContains(exeName.buf, '\\')) {
     ModuleFileName filename;
-    TCharArray path; splitPath(filename.buf, &path.buf, 0);
-    exePath.buf = new TCHAR[_tcslen(path.buf) + _tcslen(exeName.buf) + 2];
-    _stprintf(exePath.buf, _T("%s\\%s"), path.buf, exeName.buf);
+    CharArray path; splitPath(filename.buf, &path.buf, 0);
+    exePath.buf = new char[strlen(path.buf) + strlen(exeName.buf) + 2];
+    sprintf(exePath.buf, "%s\\%s", path.buf, exeName.buf);
   } else {
-    exePath.buf = tstrDup(exeName.buf);
+    exePath.buf = strDup(exeName.buf);
   }
 
   // - Start the process
   // Note: We specify the exe's precise path in the ApplicationName parameter,
   //       AND include the name as the first part of the CommandLine parameter,
   //       because CreateProcess doesn't make ApplicationName argv[0] in C programs.
-  TCharArray cmdLine(_tcslen(exeName.buf) + 3 + _tcslen(params.buf) + 1);
-  _stprintf(cmdLine.buf, _T("\"%s\" %s"), exeName.buf, params.buf);
+  CharArray cmdLine(strlen(exeName.buf) + 3 + strlen(params.buf) + 1);
+  sprintf(cmdLine.buf, "\"%s\" %s", exeName.buf, params.buf);
   DWORD flags = createConsole ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW;
   BOOL success;
   if (userToken != INVALID_HANDLE_VALUE)

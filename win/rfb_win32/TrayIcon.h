@@ -34,7 +34,7 @@ namespace rfb {
 
     class TrayIcon : public MsgWindow {
     public:
-      TrayIcon() : MsgWindow(_T("VNCTray")) {
+      TrayIcon() : MsgWindow("VNCTray") {
 #ifdef NOTIFYICONDATA_V1_SIZE
         nid.cbSize = NOTIFYICONDATA_V1_SIZE;
 #else
@@ -59,12 +59,12 @@ namespace rfb {
           return refresh();
         }
       }
-      bool setToolTip(const TCHAR* text) {
+      bool setToolTip(const char* text) {
         if (text == 0) {
           nid.uFlags &= ~NIF_TIP;
         } else {
-          const int tipLen = sizeof(nid.szTip)/sizeof(TCHAR);
-          _tcsncpy(nid.szTip, text, tipLen);
+          const int tipLen = sizeof(nid.szTip)/sizeof(char);
+          strncpy(nid.szTip, text, tipLen);
           nid.szTip[tipLen-1] = 0;
           nid.uFlags |= NIF_TIP;
         }

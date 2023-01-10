@@ -73,11 +73,11 @@ namespace winvnc {
 class STrayIcon : public TrayIcon {
 public:
   STrayIcon(STrayIconThread& t) :
-    vncConfig(_T("vncconfig.exe"), isServiceProcess() ? _T("-noconsole -service") : _T("-noconsole")),
-    vncConnect(_T("winvnc4.exe"), _T("-noconsole -connect")), thread(t) {
+    vncConfig("vncconfig.exe", isServiceProcess() ? "-noconsole -service" : "-noconsole"),
+    vncConnect("winvnc4.exe", "-noconsole -connect"), thread(t) {
 
     // ***
-    SetWindowText(getHandle(), _T("winvnc::IPC_Interface"));
+    SetWindowText(getHandle(), "winvnc::IPC_Interface");
     // ***
 
     SetTimer(getHandle(), 1, 3000, 0);
@@ -154,13 +154,13 @@ public:
         thread.server.disconnectClients("tray menu disconnect");
         break;
       case ID_CLOSE:
-        if (MsgBox(0, _T("Are you sure you want to close the server?"),
+        if (MsgBox(0, "Are you sure you want to close the server?",
                    MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2) == IDYES) {
           if (isServiceProcess()) {
             try {
               rfb::win32::stopService(VNCServerService::Name);
             } catch (rdr::Exception& e) {
-              MsgBox(0, TStr(e.str()), MB_ICONERROR | MB_OK);
+              MsgBox(0, e.str(), MB_ICONERROR | MB_OK);
             }
           } else {
             thread.server.stop();
@@ -277,11 +277,11 @@ void STrayIconThread::worker() {
   }
 }
 
-void STrayIconThread::setToolTip(const TCHAR* text) {
+void STrayIconThread::setToolTip(const char* text) {
   if (!windowHandle) return;
   os::AutoMutex a(lock);
   delete [] toolTip.buf;
-  toolTip.buf = tstrDup(text);
+  toolTip.buf = strDup(text);
   PostMessage(windowHandle, WM_SET_TOOLTIP, 0, 0);
 }
 

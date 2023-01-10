@@ -21,8 +21,6 @@
 #ifndef __RFB_WIN32_CLEANDESKTOP_H__
 #define __RFB_WIN32_CLEANDESKTOP_H__
 
-#include <rfb_win32/TCharArray.h>
-
 namespace rfb {
 
   namespace win32 {

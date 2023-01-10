@@ -25,7 +25,8 @@
 #define __RFB_WIN32_MSG_WINDOW_H__
 
 #include <windows.h>
-#include <rfb_win32/TCharArray.h>
+
+#include <rfb/util.h>
 
 namespace rfb {
 
@@ -33,16 +34,16 @@ namespace rfb {
 
     class MsgWindow {
     public:
-      MsgWindow(const TCHAR* _name);
+      MsgWindow(const char* _name);
       virtual ~MsgWindow();
 
-      const TCHAR* getName() {return name.buf;}
+      const char* getName() {return name.buf;}
       HWND getHandle() const {return handle;}
 
       virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
     protected:
-      TCharArray name;
+      CharArray name;
       HWND handle;
     };
 

@@ -39,7 +39,7 @@ static LogWriter vlog("Clipboard");
 //
 
 Clipboard::Clipboard()
-  : MsgWindow(_T("Clipboard")), notifier(0), next_window(0) {
+  : MsgWindow("Clipboard"), notifier(0), next_window(0) {
   next_window = SetClipboardViewer(getHandle());
   vlog.debug("registered clipboard handler");
 }

@@ -43,7 +43,7 @@ static LogWriter vlog("main");
 #include <vncconfig/Desktop.h>
 
 
-TStr rfb::win32::AppName("TigerVNC Configuration");
+const char* rfb::win32::AppName = "TigerVNC Configuration";
 
 
 #ifdef _DEBUG
@@ -109,7 +109,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
 
       // Create the required configuration registry key
       RegKey rootKey;
-      rootKey.createKey(configKey, _T("Software\\TigerVNC\\WinVNC4"));
+      rootKey.createKey(configKey, "Software\\TigerVNC\\WinVNC4");
   
       // Override whatever security it already had (NT only)
       bool warnOnChangePassword = false;
@@ -130,8 +130,8 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
         // Something weird happens on NT 4.0 SP5 but I can't reproduce it on other
         // NT 4.0 service pack revisions.
         if (e.err == ERROR_INVALID_PARAMETER) {
-          MsgBox(0, _T("Windows reported an error trying to secure the VNC Server settings for this user.  ")
-                    _T("Your settings may not be secure!"), MB_ICONWARNING | MB_OK);
+          MsgBox(0, "Windows reported an error trying to secure the VNC Server settings for this user.  "
+                    "Your settings may not be secure!", MB_ICONWARNING | MB_OK);
         } else if (e.err != ERROR_CALL_NOT_IMPLEMENTED &&
                    e.err != ERROR_NOT_LOGGED_ON) {
           // If the call is not implemented, ignore the error and continue
@@ -142,7 +142,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
 
       // Start a RegConfig thread, to load in existing settings
       RegConfigThread config;
-      config.start(configKey, _T("Software\\TigerVNC\\WinVNC4"));
+      config.start(configKey, "Software\\TigerVNC\\WinVNC4");
 
       // Build the dialog
       std::list<PropSheetPage*> pages;
@@ -159,9 +159,9 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
       HICON icon = (HICON)LoadImage(inst, MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_SHARED);
 
       // Create the PropertySheet handler
-      const TCHAR* propSheetTitle = _T("VNC Server Properties (Service-Mode)");
+      const char* propSheetTitle = "VNC Server Properties (Service-Mode)";
       if (configKey == HKEY_CURRENT_USER)
-        propSheetTitle = _T("VNC Server Properties (User-Mode)");
+        propSheetTitle = "VNC Server Properties (User-Mode)";
       PropSheet sheet(inst, propSheetTitle, pages, icon);
 
 #ifdef _DEBUG
@@ -173,7 +173,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
     } catch (rdr::SystemException& e) {
       switch (e.err) {
       case ERROR_ACCESS_DENIED:
-        MsgBox(0, _T("You do not have sufficient access rights to run the VNC Configuration applet"),
+        MsgBox(0, "You do not have sufficient access rights to run the VNC Configuration applet",
                MB_ICONSTOP | MB_OK);
         return 1;
       };
@@ -181,7 +181,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
     }
 
   } catch (rdr::Exception& e) {
-    MsgBox(NULL, TStr(e.str()), MB_ICONEXCLAMATION | MB_OK);
+    MsgBox(NULL, e.str(), MB_ICONEXCLAMATION | MB_OK);
     return 1;
   }
 

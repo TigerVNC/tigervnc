@@ -35,18 +35,18 @@ using namespace rfb::win32;
 static LogWriter vlog("SecurityWin32");
 
 
-Trustee::Trustee(const TCHAR* name,
+Trustee::Trustee(const char* name,
                  TRUSTEE_FORM form,
                  TRUSTEE_TYPE type) {
   pMultipleTrustee = 0;
   MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
   TrusteeForm = form;
   TrusteeType = type;
-  ptstrName = (TCHAR*)name;
+  ptstrName = (char*)name;
 }
 
 
-ExplicitAccess::ExplicitAccess(const TCHAR* name,
+ExplicitAccess::ExplicitAccess(const char* name,
                                TRUSTEE_FORM type,
                                DWORD perms,
                                ACCESS_MODE mode,
@@ -75,7 +75,7 @@ void AccessEntries::allocMinEntries(int count) {
   }
 }
 
-void AccessEntries::addEntry(const TCHAR* trusteeName,
+void AccessEntries::addEntry(const char* trusteeName,
                              DWORD permissions,
                              ACCESS_MODE mode) {
   allocMinEntries(entry_count+1);
@@ -89,7 +89,7 @@ void AccessEntries::addEntry(const PSID sid,
                              ACCESS_MODE mode) {
   allocMinEntries(entry_count+1);
   ZeroMemory(&entries[entry_count], sizeof(EXPLICIT_ACCESS));
-  entries[entry_count] = ExplicitAccess((TCHAR*)sid, TRUSTEE_IS_SID, permissions, mode);
+  entries[entry_count] = ExplicitAccess((char*)sid, TRUSTEE_IS_SID, permissions, mode);
   entry_count++;
 }
 
@@ -111,7 +111,7 @@ void Sid::setSID(const PSID sid) {
     throw rdr::SystemException("CopySid failed", GetLastError());
 }
 
-void Sid::getUserNameAndDomain(TCHAR** name, TCHAR** domain) {
+void Sid::getUserNameAndDomain(char** name, char** domain) {
   DWORD nameLen = 0;
   DWORD domainLen = 0;
   SID_NAME_USE use;
@@ -119,8 +119,8 @@ void Sid::getUserNameAndDomain(TCHAR** name, TCHAR** domain) {
   if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     throw rdr::SystemException("Unable to determine SID name lengths", GetLastError());
   vlog.info("nameLen=%lu, domainLen=%lu, use=%d", nameLen, domainLen, use);
-  *name = new TCHAR[nameLen];
-  *domain = new TCHAR[domainLen];
+  *name = new char[nameLen];
+  *domain = new char[domainLen];
   if (!LookupAccountSid(0, (PSID)*this, *name, &nameLen, *domain, &domainLen, &use))
     throw rdr::SystemException("Unable to lookup account SID", GetLastError());
 }

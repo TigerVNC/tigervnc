@@ -38,7 +38,7 @@ void LegacyPage::LoadPrefs()
         //   settings from HKCU/Software/ORL/WinVNC3.
 
         // Get the name of the current user
-        TCharArray username;
+        CharArray username;
         try {
           UserName name;
           username.buf = name.takeBuf();
@@ -51,19 +51,19 @@ void LegacyPage::LoadPrefs()
         allowProperties = true;
         RegKey winvnc3;
         try {
-          winvnc3.openKey(HKEY_LOCAL_MACHINE, _T("Software\\ORL\\WinVNC3"));
-          int debugMode = winvnc3.getInt(_T("DebugMode"), 0);
+          winvnc3.openKey(HKEY_LOCAL_MACHINE, "Software\\ORL\\WinVNC3");
+          int debugMode = winvnc3.getInt("DebugMode", 0);
           const char* debugTarget = 0; 
           if (debugMode & 2) debugTarget = "file";
           if (debugMode & 4) debugTarget = "stderr";
           if (debugTarget) {
             char logSetting[32];
-            sprintf(logSetting, "*:%s:%d", debugTarget, winvnc3.getInt(_T("DebugLevel"), 0));
-            regKey.setString(_T("Log"), TStr(logSetting));
+            sprintf(logSetting, "*:%s:%d", debugTarget, winvnc3.getInt("DebugLevel", 0));
+            regKey.setString("Log", logSetting);
           }
  
-          TCharArray authHosts;
-          authHosts.buf = winvnc3.getString(_T("AuthHosts"), 0);
+          CharArray authHosts;
+          authHosts.buf = winvnc3.getString("AuthHosts", 0);
           if (authHosts.buf) {
             CharArray newHosts;
             newHosts.buf = strDup("");
@@ -125,27 +125,27 @@ void LegacyPage::LoadPrefs()
               }
 
               // Finally, save the Hosts value
-              regKey.setString(_T("Hosts"), TStr(newHosts.buf));
+              regKey.setString("Hosts", newHosts.buf);
             } catch (rdr::Exception&) {
-              MsgBox(0, _T("Unable to convert AuthHosts setting to Hosts format."),
+              MsgBox(0, "Unable to convert AuthHosts setting to Hosts format.",
                      MB_ICONWARNING | MB_OK);
             }
           } else {
-            regKey.setString(_T("Hosts"), _T("+"));
+            regKey.setString("Hosts", "+");
           }
 
-          regKey.setBool(_T("LocalHost"), winvnc3.getBool(_T("LoopbackOnly"), false));
+          regKey.setBool("LocalHost", winvnc3.getBool("LoopbackOnly", false));
           // *** check AllowLoopback?
 
-          if (winvnc3.getBool(_T("AuthRequired"), true))
-            regKey.setString(_T("SecurityTypes"), _T("VncAuth"));
+          if (winvnc3.getBool("AuthRequired", true))
+            regKey.setString("SecurityTypes", "VncAuth");
           else
-            regKey.setString(_T("SecurityTypes"), _T("None"));
+            regKey.setString("SecurityTypes", "None");
 
-          int connectPriority = winvnc3.getInt(_T("ConnectPriority"), 0);
-          regKey.setBool(_T("DisconnectClients"), connectPriority == 0);
-          regKey.setBool(_T("AlwaysShared"), connectPriority == 1);
-          regKey.setBool(_T("NeverShared"), connectPriority == 2);
+          int connectPriority = winvnc3.getInt("ConnectPriority", 0);
+          regKey.setBool("DisconnectClients", connectPriority == 0);
+          regKey.setBool("AlwaysShared", connectPriority == 1);
+          regKey.setBool("NeverShared", connectPriority == 2);
 
         } catch(rdr::Exception&) {
         }
@@ -154,7 +154,7 @@ void LegacyPage::LoadPrefs()
         allowProperties = true;
         try {
           RegKey userKey;
-          userKey.openKey(winvnc3, _T("Default"));
+          userKey.openKey(winvnc3, "Default");
           vlog.info("loading Default prefs");
           LoadUserPrefs(userKey);
         } catch(rdr::Exception& e) {
@@ -176,7 +176,7 @@ void LegacyPage::LoadPrefs()
           if (allowProperties) {
             try {
               RegKey userKey;
-              userKey.openKey(HKEY_CURRENT_USER, _T("Software\\ORL\\WinVNC3"));
+              userKey.openKey(HKEY_CURRENT_USER, "Software\\ORL\\WinVNC3");
               vlog.info("loading global User prefs");
               LoadUserPrefs(userKey);
             } catch(rdr::Exception& e) {
@@ -186,57 +186,57 @@ void LegacyPage::LoadPrefs()
         }
 
         // Disable the Options menu item if appropriate
-        regKey.setBool(_T("DisableOptions"), !allowProperties);
+        regKey.setBool("DisableOptions", !allowProperties);
       }
 
       void LegacyPage::LoadUserPrefs(const RegKey& key)
       {
-        regKey.setInt(_T("PortNumber"), key.getBool(_T("SocketConnect")) ? key.getInt(_T("PortNumber"), 5900) : 0);
-        if (key.getBool(_T("AutoPortSelect"), false)) {
-          MsgBox(0, _T("The AutoPortSelect setting is not supported by this release.")
-                    _T("The port number will default to 5900."),
+        regKey.setInt("PortNumber", key.getBool("SocketConnect") ? key.getInt("PortNumber", 5900) : 0);
+        if (key.getBool("AutoPortSelect", false)) {
+          MsgBox(0, "The AutoPortSelect setting is not supported by this release."
+                    "The port number will default to 5900.",
                     MB_ICONWARNING | MB_OK);
-          regKey.setInt(_T("PortNumber"), 5900);
+          regKey.setInt("PortNumber", 5900);
         }
-        regKey.setInt(_T("IdleTimeout"), key.getInt(_T("IdleTimeout"), 0));
+        regKey.setInt("IdleTimeout", key.getInt("IdleTimeout", 0));
 
-        regKey.setBool(_T("RemoveWallpaper"), key.getBool(_T("RemoveWallpaper")));
-        regKey.setBool(_T("DisableEffects"), key.getBool(_T("DisableEffects")));
+        regKey.setBool("RemoveWallpaper", key.getBool("RemoveWallpaper"));
+        regKey.setBool("DisableEffects", key.getBool("DisableEffects"));
 
-        if (key.getInt(_T("QuerySetting"), 2) != 2) {
-          regKey.setBool(_T("QueryConnect"), key.getInt(_T("QuerySetting")) > 2);
-          MsgBox(0, _T("The QuerySetting option has been replaced by QueryConnect.")
-                 _T("Please see the documentation for details of the QueryConnect option."),
+        if (key.getInt("QuerySetting", 2) != 2) {
+          regKey.setBool("QueryConnect", key.getInt("QuerySetting") > 2);
+          MsgBox(0, "The QuerySetting option has been replaced by QueryConnect."
+                 "Please see the documentation for details of the QueryConnect option.",
                  MB_ICONWARNING | MB_OK);
         }
-        regKey.setInt(_T("QueryTimeout"), key.getInt(_T("QueryTimeout"), 10));
+        regKey.setInt("QueryTimeout", key.getInt("QueryTimeout", 10));
 
         std::vector<uint8_t> passwd;
-        passwd = key.getBinary(_T("Password"));
-        regKey.setBinary(_T("Password"), passwd.data(), passwd.size());
+        passwd = key.getBinary("Password");
+        regKey.setBinary("Password", passwd.data(), passwd.size());
 
-        bool enableInputs = key.getBool(_T("InputsEnabled"), true);
-        regKey.setBool(_T("AcceptKeyEvents"), enableInputs);
-        regKey.setBool(_T("AcceptPointerEvents"), enableInputs);
-        regKey.setBool(_T("AcceptCutText"), enableInputs);
-        regKey.setBool(_T("SendCutText"), enableInputs);
+        bool enableInputs = key.getBool("InputsEnabled", true);
+        regKey.setBool("AcceptKeyEvents", enableInputs);
+        regKey.setBool("AcceptPointerEvents", enableInputs);
+        regKey.setBool("AcceptCutText", enableInputs);
+        regKey.setBool("SendCutText", enableInputs);
 
-        switch (key.getInt(_T("LockSetting"), 0)) {
-        case 0: regKey.setString(_T("DisconnectAction"), _T("None")); break;
-        case 1: regKey.setString(_T("DisconnectAction"), _T("Lock")); break;
-        case 2: regKey.setString(_T("DisconnectAction"), _T("Logoff")); break;
+        switch (key.getInt("LockSetting", 0)) {
+        case 0: regKey.setString("DisconnectAction", "None"); break;
+        case 1: regKey.setString("DisconnectAction", "Lock"); break;
+        case 2: regKey.setString("DisconnectAction", "Logoff"); break;
         };
 
-        regKey.setBool(_T("DisableLocalInputs"), key.getBool(_T("LocalInputsDisabled"), false));
+        regKey.setBool("DisableLocalInputs", key.getBool("LocalInputsDisabled", false));
 
         // *** ignore polling preferences
         // PollUnderCursor, PollForeground, OnlyPollConsole, OnlyPollOnEvent
-        regKey.setBool(_T("UseHooks"), !key.getBool(_T("PollFullScreen"), false));
+        regKey.setBool("UseHooks", !key.getBool("PollFullScreen", false));
 
-        if (key.isValue(_T("AllowShutdown")))
-          MsgBox(0, _T("The AllowShutdown option is not supported by this release."), MB_ICONWARNING | MB_OK);
-        if (key.isValue(_T("AllowEditClients")))
-          MsgBox(0, _T("The AllowEditClients option is not supported by this release."), MB_ICONWARNING | MB_OK);
+        if (key.isValue("AllowShutdown"))
+          MsgBox(0, "The AllowShutdown option is not supported by this release.", MB_ICONWARNING | MB_OK);
+        if (key.isValue("AllowEditClients"))
+          MsgBox(0, "The AllowEditClients option is not supported by this release.", MB_ICONWARNING | MB_OK);
 
-        allowProperties = key.getBool(_T("AllowProperties"), allowProperties);
+        allowProperties = key.getBool("AllowProperties", allowProperties);
       }

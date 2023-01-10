@@ -27,7 +27,6 @@
 #include <stdint.h>
 #include <vector>
 #include <rfb_win32/LocalMem.h>
-#include <rfb_win32/TCharArray.h>
 #include <aclapi.h>
 
 namespace rfb {
@@ -35,13 +34,13 @@ namespace rfb {
   namespace win32 {
 
     struct Trustee : public TRUSTEE {
-      Trustee(const TCHAR* name,
+      Trustee(const char* name,
               TRUSTEE_FORM form=TRUSTEE_IS_NAME,
               TRUSTEE_TYPE type=TRUSTEE_IS_UNKNOWN);
     };
 
     struct ExplicitAccess : public EXPLICIT_ACCESS {
-      ExplicitAccess(const TCHAR* name,
+      ExplicitAccess(const char* name,
                      TRUSTEE_FORM type,
                      DWORD perms,
                      ACCESS_MODE mode,
@@ -53,7 +52,7 @@ namespace rfb {
       AccessEntries();
       ~AccessEntries();
       void allocMinEntries(int count);
-      void addEntry(const TCHAR* trusteeName,
+      void addEntry(const char* trusteeName,
                     DWORD permissions,
                     ACCESS_MODE mode);
       void addEntry(const PSID sid,
@@ -73,7 +72,7 @@ namespace rfb {
 
       void setSID(const PSID sid);
 
-      void getUserNameAndDomain(TCHAR** name, TCHAR** domain);
+      void getUserNameAndDomain(char** name, char** domain);
 
       struct Administrators;
       struct SYSTEM;

@@ -79,24 +79,24 @@ void RegKey::setHKEY(HKEY k, bool fK) {
 }
 
 
-bool RegKey::createKey(const RegKey& root, const TCHAR* name) {
+bool RegKey::createKey(const RegKey& root, const char* name) {
   close();
   LONG result = RegCreateKey(root.key, name, &key);
   if (result != ERROR_SUCCESS) {
     vlog.error("RegCreateKey(%p, %s): %lx", root.key, name, result);
     throw rdr::SystemException("RegCreateKeyEx", result);
   }
-  vlog.debug("createKey(%p,%s) = %p", root.key, (const char*)CStr(name), key);
+  vlog.debug("createKey(%p,%s) = %p", root.key, name, key);
   freeKey = true;
   return true;
 }
 
-void RegKey::openKey(const RegKey& root, const TCHAR* name, bool readOnly) {
+void RegKey::openKey(const RegKey& root, const char* name, bool readOnly) {
   close();
   LONG result = RegOpenKeyEx(root.key, name, 0, readOnly ? KEY_READ : KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx (open)", result);
-  vlog.debug("openKey(%p,%s,%s) = %p", root.key, (const char*)CStr(name),
+  vlog.debug("openKey(%p,%s,%s) = %p", root.key, name,
 	         readOnly ? "ro" : "rw", key);
   freeKey = true;
 }
@@ -118,13 +118,13 @@ void RegKey::close() {
   }
 }
 
-void RegKey::deleteKey(const TCHAR* name) const {
+void RegKey::deleteKey(const char* name) const {
   LONG result = RegDeleteKey(key, name);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegDeleteKey", result);
 }
 
-void RegKey::deleteValue(const TCHAR* name) const {
+void RegKey::deleteValue(const char* name) const {
   LONG result = RegDeleteValue(key, name);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegDeleteValue", result);
@@ -140,44 +140,44 @@ void RegKey::awaitChange(bool watchSubTree, DWORD filter, HANDLE event) const {
 RegKey::operator HKEY() const {return key;}
 
 
-void RegKey::setExpandString(const TCHAR* valname, const TCHAR* value) const {
-  LONG result = RegSetValueEx(key, valname, 0, REG_EXPAND_SZ, (const BYTE*)value, (_tcslen(value)+1)*sizeof(TCHAR));
+void RegKey::setExpandString(const char* valname, const char* value) const {
+  LONG result = RegSetValueEx(key, valname, 0, REG_EXPAND_SZ, (const BYTE*)value, (strlen(value)+1)*sizeof(char));
   if (result != ERROR_SUCCESS) throw rdr::SystemException("setExpandString", result);
 }
 
-void RegKey::setString(const TCHAR* valname, const TCHAR* value) const {
-  LONG result = RegSetValueEx(key, valname, 0, REG_SZ, (const BYTE*)value, (_tcslen(value)+1)*sizeof(TCHAR));
+void RegKey::setString(const char* valname, const char* value) const {
+  LONG result = RegSetValueEx(key, valname, 0, REG_SZ, (const BYTE*)value, (strlen(value)+1)*sizeof(char));
   if (result != ERROR_SUCCESS) throw rdr::SystemException("setString", result);
 }
 
-void RegKey::setBinary(const TCHAR* valname, const void* value, size_t length) const {
+void RegKey::setBinary(const char* valname, const void* value, size_t length) const {
   LONG result = RegSetValueEx(key, valname, 0, REG_BINARY, (const BYTE*)value, length);
   if (result != ERROR_SUCCESS) throw rdr::SystemException("setBinary", result);
 }
 
-void RegKey::setInt(const TCHAR* valname, int value) const {
+void RegKey::setInt(const char* valname, int value) const {
   LONG result = RegSetValueEx(key, valname, 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
   if (result != ERROR_SUCCESS) throw rdr::SystemException("setInt", result);
 }
 
-void RegKey::setBool(const TCHAR* valname, bool value) const {
+void RegKey::setBool(const char* valname, bool value) const {
   setInt(valname, value ? 1 : 0);
 }
 
-TCHAR* RegKey::getString(const TCHAR* valname) const {return getRepresentation(valname);}
-TCHAR* RegKey::getString(const TCHAR* valname, const TCHAR* def) const {
+char* RegKey::getString(const char* valname) const {return getRepresentation(valname);}
+char* RegKey::getString(const char* valname, const char* def) const {
   try {
     return getString(valname);
   } catch(rdr::Exception&) {
-    return tstrDup(def);
+    return strDup(def);
   }
 }
 
-std::vector<uint8_t> RegKey::getBinary(const TCHAR* valname) const {
-  TCharArray hex(getRepresentation(valname));
-  return hexToBin(CStr(hex.buf), strlen(CStr(hex.buf)));
+std::vector<uint8_t> RegKey::getBinary(const char* valname) const {
+  CharArray hex(getRepresentation(valname));
+  return hexToBin(hex.buf, strlen(hex.buf));
 }
-std::vector<uint8_t> RegKey::getBinary(const TCHAR* valname, const uint8_t* def, size_t deflen) const {
+std::vector<uint8_t> RegKey::getBinary(const char* valname, const uint8_t* def, size_t deflen) const {
   try {
     return getBinary(valname);
   } catch(rdr::Exception&) {
@@ -187,11 +187,11 @@ std::vector<uint8_t> RegKey::getBinary(const TCHAR* valname, const uint8_t* def,
   }
 }
 
-int RegKey::getInt(const TCHAR* valname) const {
-  TCharArray tmp(getRepresentation(valname));
-  return _ttoi(tmp.buf);
+int RegKey::getInt(const char* valname) const {
+  CharArray tmp(getRepresentation(valname));
+  return atoi(tmp.buf);
 }
-int RegKey::getInt(const TCHAR* valname, int def) const {
+int RegKey::getInt(const char* valname, int def) const {
   try {
     return getInt(valname);
   } catch(rdr::Exception&) {
@@ -199,24 +199,24 @@ int RegKey::getInt(const TCHAR* valname, int def) const {
   }
 }
 
-bool RegKey::getBool(const TCHAR* valname) const {
+bool RegKey::getBool(const char* valname) const {
   return getInt(valname) > 0;
 }
-bool RegKey::getBool(const TCHAR* valname, bool def) const {
+bool RegKey::getBool(const char* valname, bool def) const {
   return getInt(valname, def ? 1 : 0) > 0;
 }
 
-static inline TCHAR* terminateData(char* data, int length)
+static inline char* terminateData(char* data, int length)
 {
   // We must terminate the string, just to be sure.  Stupid Win32...
-  int len = length/sizeof(TCHAR);
-  TCharArray str(len+1);
+  int len = length/sizeof(char);
+  CharArray str(len+1);
   memcpy(str.buf, data, length);
   str.buf[len] = 0;
   return str.takeBuf();
 }
 
-TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
+char* RegKey::getRepresentation(const char* valname) const {
   DWORD type, length;
   LONG result = RegQueryValueEx(key, valname, 0, &type, 0, &length);
   if (result != ERROR_SUCCESS)
@@ -229,35 +229,35 @@ TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
   switch (type) {
   case REG_BINARY:
     {
-      TCharArray hex(binToHex((const uint8_t*)data.buf, length));
+      CharArray hex(binToHex((const uint8_t*)data.buf, length));
       return hex.takeBuf();
     }
   case REG_SZ:
     if (length) {
       return terminateData(data.buf, length);
     } else {
-      return tstrDup(_T(""));
+      return strDup("");
     }
   case REG_DWORD:
     {
-      TCharArray tmp(16);
-      _stprintf(tmp.buf, _T("%lu"), *((DWORD*)data.buf));
+      CharArray tmp(16);
+      sprintf(tmp.buf, "%lu", *((DWORD*)data.buf));
       return tmp.takeBuf();
     }
   case REG_EXPAND_SZ:
     {
     if (length) {
-      TCharArray str(terminateData(data.buf, length));
+      CharArray str(terminateData(data.buf, length));
       DWORD required = ExpandEnvironmentStrings(str.buf, 0, 0);
       if (required==0)
         throw rdr::SystemException("ExpandEnvironmentStrings", GetLastError());
-      TCharArray result(required);
+      CharArray result(required);
       length = ExpandEnvironmentStrings(str.buf, result.buf, required);
       if (required<length)
         throw rdr::Exception("unable to expand environment strings");
       return result.takeBuf();
     } else {
-      return tstrDup(_T(""));
+      return strDup("");
     }
     }
   default:
@@ -265,16 +265,16 @@ TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
   }
 }
 
-bool RegKey::isValue(const TCHAR* valname) const {
+bool RegKey::isValue(const char* valname) const {
   try {
-    TCharArray tmp(getRepresentation(valname));
+    CharArray tmp(getRepresentation(valname));
     return true;
   } catch(rdr::Exception&) {
     return false;
   }
 }
 
-const TCHAR* RegKey::getValueName(int i) {
+const char* RegKey::getValueName(int i) {
   DWORD maxValueNameLen;
   LONG result = RegQueryInfoKey(key, 0, 0, 0, 0, 0, 0, 0, &maxValueNameLen, 0, 0, 0);
   if (result != ERROR_SUCCESS)
@@ -282,7 +282,7 @@ const TCHAR* RegKey::getValueName(int i) {
   if (valueNameBufLen < maxValueNameLen + 1) {
     valueNameBufLen = maxValueNameLen + 1;
     delete [] valueName.buf;
-    valueName.buf = new TCHAR[valueNameBufLen];
+    valueName.buf = new char[valueNameBufLen];
   }
   DWORD length = valueNameBufLen;
   result = RegEnumValue(key, i, valueName.buf, &length, NULL, 0, 0, 0);
@@ -292,7 +292,7 @@ const TCHAR* RegKey::getValueName(int i) {
   return valueName.buf;
 }
 
-const TCHAR* RegKey::getKeyName(int i) {
+const char* RegKey::getKeyName(int i) {
   DWORD maxValueNameLen;
   LONG result = RegQueryInfoKey(key, 0, 0, 0, 0, &maxValueNameLen, 0, 0, 0, 0, 0, 0);
   if (result != ERROR_SUCCESS)
@@ -300,7 +300,7 @@ const TCHAR* RegKey::getKeyName(int i) {
   if (valueNameBufLen < maxValueNameLen + 1) {
     valueNameBufLen = maxValueNameLen + 1;
     delete [] valueName.buf;
-    valueName.buf = new TCHAR[valueNameBufLen];
+    valueName.buf = new char[valueNameBufLen];
   }
   DWORD length = valueNameBufLen;
   result = RegEnumKeyEx(key, i, valueName.buf, &length, NULL, 0, 0, 0);
