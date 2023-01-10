@@ -63,7 +63,6 @@ namespace rfb {
 #endif
     gnutls_anon_server_credentials_t anon_cred;
     gnutls_certificate_credentials_t cert_cred;
-    char *keyfile, *certfile;
 
     bool anon;
 

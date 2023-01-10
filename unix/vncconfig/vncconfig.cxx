@@ -225,16 +225,15 @@ int main(int argc, char** argv)
     break;
   }
 
-  CharArray displaynameStr(displayname.getData());
-  if (!(dpy = XOpenDisplay(displaynameStr.buf))) {
+  if (!(dpy = XOpenDisplay(displayname))) {
     fprintf(stderr,"%s: unable to open display \"%s\"\n",
-            programName, XDisplayName(displaynameStr.buf));
+            programName, XDisplayName(displayname));
     exit(1);
   }
 
   if (!XVncExtQueryExtension(dpy, &vncExtEventBase, &vncExtErrorBase)) {
     fprintf(stderr,"No VNC extension on display %s\n",
-            XDisplayName(displaynameStr.buf));
+            XDisplayName(displayname));
     exit(1);
   }
 

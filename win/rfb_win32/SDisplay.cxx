@@ -120,13 +120,12 @@ void SDisplay::stop()
   // If we successfully start()ed then perform the DisconnectAction
   if (core) {
     CurrentUserToken cut;
-    CharArray action(disconnectAction.getData());
-    if (stricmp(action.buf, "Logoff") == 0) {
+    if (stricmp(disconnectAction, "Logoff") == 0) {
       if (!cut.h)
         vlog.info("ignoring DisconnectAction=Logoff - no current user");
       else
         ExitWindowsEx(EWX_LOGOFF, 0);
-    } else if (stricmp(action.buf, "Lock") == 0) {
+    } else if (stricmp(disconnectAction, "Lock") == 0) {
       if (!cut.h) {
         vlog.info("ignoring DisconnectAction=Lock - no current user");
       } else {
@@ -448,10 +447,9 @@ SDisplay::recreatePixelBuffer(bool force) {
   //   Opening the whole display with CreateDC doesn't work on multi-monitor
   //   systems for some reason.
   DeviceContext* new_device = 0;
-  CharArray deviceName(displayDevice.getData());
-  if (deviceName.buf[0]) {
-    vlog.info("Attaching to device %s", deviceName.buf);
-    new_device = new DeviceDC(deviceName.buf);
+  if (strlen(displayDevice) > 0) {
+    vlog.info("Attaching to device %s", (const char*)displayDevice);
+    new_device = new DeviceDC(displayDevice);
   }
   if (!new_device) {
     vlog.info("Attaching to virtual desktop");
@@ -460,8 +458,8 @@ SDisplay::recreatePixelBuffer(bool force) {
 
   // Get the coordinates of the specified dispay device
   Rect newScreenRect;
-  if (deviceName.buf[0]) {
-    MonitorInfo info(deviceName.buf);
+  if (strlen(displayDevice) > 0) {
+    MonitorInfo info(displayDevice);
     newScreenRect = Rect(info.rcMonitor.left, info.rcMonitor.top,
                          info.rcMonitor.right, info.rcMonitor.bottom);
   } else {

@@ -61,12 +61,7 @@ Security::Security()
 
 Security::Security(StringParameter &secTypes)
 {
-  char *secTypesStr;
-
-  secTypesStr = secTypes.getData();
-  enabledSecTypes = parseSecTypes(secTypesStr);
-
-  delete [] secTypesStr;
+  enabledSecTypes = parseSecTypes(secTypes);
 }
 
 const std::list<uint8_t> Security::GetEnabledSecTypes(void)

@@ -44,7 +44,7 @@
 #define __RFB_SSECURITY_H__
 
 #include <rfb/SConnection.h>
-#include <rfb/util.h>
+
 #include <list>
 
 namespace rfb {

@@ -73,7 +73,7 @@ UserDialog::~UserDialog()
 
 void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 {
-  CharArray passwordFileStr(passwordFile.getData());
+  const char *passwordFileName(passwordFile);
 
   assert(password);
   char *envUsername = getenv("VNC_USERNAME");
@@ -90,11 +90,11 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
     return;
   }
 
-  if (!user && passwordFileStr.buf[0]) {
+  if (!user && passwordFileName[0]) {
     ObfuscatedPasswd obfPwd(256);
     FILE* fp;
 
-    fp = fopen(passwordFileStr.buf, "rb");
+    fp = fopen(passwordFileName, "rb");
     if (!fp)
       throw rfb::Exception(_("Opening password file failed"));
 

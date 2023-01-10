@@ -33,7 +33,6 @@
 #include <rfb/Configuration.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 #include <rfb/ServerCore.h>
 #include <rdr/HexOutStream.h>
 #include <rfb/LogWriter.h>
@@ -246,13 +245,12 @@ void vncExtensionInit(void)
                     port);
         }
 
-        CharArray desktopNameStr(desktopName.getData());
         PixelFormat pf = vncGetPixelFormat(scr);
 
         vncSetGlueContext(scr);
         desktop[scr] = new XserverDesktop(scr,
                                           listeners,
-                                          desktopNameStr.buf,
+                                          desktopName,
                                           pf,
                                           vncGetScreenWidth(),
                                           vncGetScreenHeight(),

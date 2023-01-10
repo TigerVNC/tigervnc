@@ -31,7 +31,6 @@
 #include <rfb/Password.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 #include <rfb/Exception.h>
 #include <string.h>
 #include <stdio.h>
@@ -132,15 +131,15 @@ void VncAuthPasswdParameter::getVncAuthPasswd(PlainPasswd *password, PlainPasswd
 
   if (obfuscated.length == 0) {
     if (passwdFile) {
-      CharArray fname(passwdFile->getData());
-      if (!fname.buf[0]) {
+      const char *fname = *passwdFile;
+      if (!fname[0]) {
         vlog.info("neither %s nor %s params set", getName(), passwdFile->getName());
         return;
       }
 
-      FILE* fp = fopen(fname.buf, "r");
+      FILE* fp = fopen(fname, "r");
       if (!fp) {
-        vlog.error("opening password file '%s' failed",fname.buf);
+        vlog.error("opening password file '%s' failed", fname);
         return;
       }
 

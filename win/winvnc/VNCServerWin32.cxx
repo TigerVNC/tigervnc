@@ -151,8 +151,7 @@ void VNCServerWin32::regConfigChanged() {
   rfbSock.setPort(port_number, localHost);
 
   // -=- Update the TCP address filter for both ports, if open.
-  CharArray pattern(hosts.getData());
-  rfbSock.setFilter(pattern.buf);
+  rfbSock.setFilter(hosts);
 
   // -=- Update the tray icon tooltip text with IP addresses
   processAddressChange();

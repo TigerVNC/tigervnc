@@ -234,8 +234,7 @@ namespace rfb {
       bool isChanged() {
         try {
           CharArray new_hosts(getHosts());
-          CharArray old_hosts(hosts.getData());
-          return (strcmp(new_hosts.buf, old_hosts.buf) != 0) ||
+          return (strcmp(new_hosts.buf, hosts) != 0) ||
               (localHost != isItemChecked(IDC_LOCALHOST)) ||
               (port_number != getItemInt(IDC_PORT)) ||
               (rfb::Server::idleTimeout != getItemInt(IDC_IDLE_TIMEOUT));

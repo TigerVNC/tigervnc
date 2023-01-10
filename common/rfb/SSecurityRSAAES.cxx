@@ -152,7 +152,7 @@ static bool loadPEM(uint8_t* data, size_t size, const char *begin,
 
 void SSecurityRSAAES::loadPrivateKey()
 {
-  FILE* file = fopen(keyFile.getData(), "rb");
+  FILE* file = fopen(keyFile, "rb");
   if (!file)
     throw ConnFailedException("failed to open key file");
   fseek(file, 0, SEEK_END);
