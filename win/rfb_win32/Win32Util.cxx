@@ -82,11 +82,6 @@ const char* FileVersionInfo::getVerString(const char* name, DWORD langId) {
 }
 
 
-bool splitPath(const char* path, char** dir, char** file) {
-  return strSplit(path, '\\', dir, file, true);
-}
-
-
 void centerWindow(HWND handle, HWND parent) {
   RECT r;
   MonitorInfo mi(parent ? parent : handle);

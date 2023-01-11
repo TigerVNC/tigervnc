@@ -67,7 +67,9 @@ void LaunchProcess::start(HANDLE userToken, bool createConsole) {
   CharArray exePath;
   if (!strContains(exeName.buf, '\\')) {
     ModuleFileName filename;
-    CharArray path; splitPath(filename.buf, &path.buf, 0);
+    CharArray path(strDup(filename.buf));
+    if (strContains(path.buf, '\\'))
+      *strrchr(path.buf, '\\') = '\0';
     exePath.buf = new char[strlen(path.buf) + strlen(exeName.buf) + 2];
     sprintf(exePath.buf, "%s\\%s", path.buf, exeName.buf);
   } else {

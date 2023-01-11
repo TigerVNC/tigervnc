@@ -45,22 +45,15 @@ StringParameter PasswordValidator::plainUsers
 
 bool PasswordValidator::validUser(const char* username)
 {
-  CharArray users(strDup(plainUsers.getValueStr().c_str()));
-  CharArray user;
+  std::vector<std::string> users;
 
-  while (users.buf) {
-    strSplit(users.buf, ',', &user.buf, &users.buf);
-#ifdef WIN32
-    if (0 == stricmp(user.buf, "*"))
-	  return true;
-    if (0 == stricmp(user.buf, username))
-	  return true;
-#else
-    if (!strcmp(user.buf, "*"))
-	  return true;
-    if (!strcmp(user.buf, username))
-	  return true;
-#endif
+  users = strSplit(plainUsers, ',');
+
+  for (size_t i = 0; i < users.size(); i++) {
+    if (users[i] == "*")
+      return true;
+    if (users[i] == username)
+      return true;
   }
   return false;
 }

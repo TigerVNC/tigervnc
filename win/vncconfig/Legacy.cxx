@@ -69,30 +69,26 @@ void LegacyPage::LoadPrefs()
 
             // Reformat AuthHosts to Hosts.  Wish I'd left the format the same. :( :( :(
             try {
-              CharArray tmp(strDup(authHosts.c_str()));
-              while (tmp.buf) {
-
-                // Split the AuthHosts string into patterns to match
-                CharArray first;
-                rfb::strSplit(tmp.buf, ':', &first.buf, &tmp.buf);
-                if (strlen(first.buf)) {
+              // Split the AuthHosts string into patterns to match
+              std::vector<std::string> patterns;
+              patterns = rfb::strSplit(authHosts.c_str(), ':');
+              for (size_t i = 0; i < patterns.size(); i++) {
+                if (!patterns[i].empty()) {
                   int bits = 0;
                   char pattern[1+4*4+4];
-                  pattern[0] = first.buf[0];
+                  pattern[0] = patterns[i][0];
                   pattern[1] = 0;
 
                   // Split the pattern into IP address parts and process
-                  rfb::CharArray address;
-                  address.buf = rfb::strDup(&first.buf[1]);
-                  while (address.buf) {
-                    rfb::CharArray part;
-                    rfb::strSplit(address.buf, '.', &part.buf, &address.buf);
+                  std::vector<std::string> parts;
+                  parts = rfb::strSplit(&patterns[i][1], '.');
+                  for (size_t j = 0; j < parts.size(); j++) {
                     if (bits)
                       strcat(pattern, ".");
-                    if (strlen(part.buf) > 3)
+                    if (parts[j].size() > 3)
                       throw rdr::Exception("Invalid IP address part");
-                    if (strlen(part.buf) > 0) {
-                      strcat(pattern, part.buf);
+                    if (!parts[j].empty()) {
+                      strcat(pattern, parts[j].c_str());
                       bits += 8;
                     }
                   }

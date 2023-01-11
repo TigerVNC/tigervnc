@@ -66,35 +66,24 @@ namespace rfb {
     delete [] s;
   }
 
+  std::vector<std::string> strSplit(const char* src,
+                                    const char delimiter)
+  {
+    std::vector<std::string> out;
+    const char *start, *stop;
 
-  bool strSplit(const char* src, const char limiter, char** out1, char** out2, bool fromEnd) {
-    CharArray out1old, out2old;
-    if (out1) out1old.buf = *out1;
-    if (out2) out2old.buf = *out2;
-    int len = strlen(src);
-    int i=0, increment=1, limit=len;
-    if (fromEnd) {
-      i=len-1; increment = -1; limit = -1;
-    }
-    while (i!=limit) {
-      if (src[i] == limiter) {
-        if (out1) {
-          *out1 = new char[i+1];
-          if (i) memcpy(*out1, src, i);
-          (*out1)[i] = 0;
-        }
-        if (out2) {
-          *out2 = new char[len-i];
-          if (len-i-1) memcpy(*out2, &src[i+1], len-i-1);
-          (*out2)[len-i-1] = 0;
-        }
-        return true;
+    start = src;
+    do {
+      stop = strchr(start, delimiter);
+      if (stop == NULL) {
+        out.push_back(start);
+      } else {
+        out.push_back(std::string(start, stop-start));
+        start = stop + 1;
       }
-      i+=increment;
-    }
-    if (out1) *out1 = strDup(src);
-    if (out2) *out2 = 0;
-    return false;
+    } while (stop != NULL);
+
+    return out;
   }
 
   bool strContains(const char* src, char c) {

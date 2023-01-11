@@ -36,8 +36,6 @@ namespace rfb {
       const char* getVerString(const char* name, DWORD langId = 0x080904b0);
     };
 
-    bool splitPath(const char* path, char** dir, char** file);
-
     // Center the window to a rectangle, or to a parent window.
     // Optionally, resize the window to lay within the rect or parent window
     // If the parent window is NULL then the working area if the window's

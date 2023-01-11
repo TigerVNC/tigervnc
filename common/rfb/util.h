@@ -61,14 +61,9 @@ namespace rfb {
   char* strDup(const char* s);
   void strFree(char* s);
 
-  // Returns true if split successful.  Returns false otherwise.
-  // ALWAYS *copies* first part of string to out1 buffer.
-  // If limiter not found, leaves out2 alone (null) and just copies to out1.
-  // If out1 or out2 non-zero, calls strFree and zeroes them.
-  // If fromEnd is true, splits at end of string rather than beginning.
-  // Either out1 or out2 may be null, in which case the split will not return
-  // that part of the string.  Obviously, setting both to 0 is not useful...
-  bool strSplit(const char* src, const char limiter, char** out1, char** out2, bool fromEnd=false);
+  // Splits a string with the specified delimiter
+  std::vector<std::string> strSplit(const char* src,
+                                    const char delimiter);
 
   // Returns true if src contains c
   bool strContains(const char* src, char c);

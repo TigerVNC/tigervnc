@@ -100,13 +100,11 @@ namespace rfb {
         while (SendMessage(listBox, LB_GETCOUNT, 0, 0))
           SendMessage(listBox, LB_DELETESTRING, 0, 0);
 
-        CharArray tmp;
-        tmp.buf = strDup(hosts.getValueStr().c_str());
-        while (tmp.buf) {
-          CharArray first;
-          strSplit(tmp.buf, ',', &first.buf, &tmp.buf);
-          if (strlen(first.buf))
-            SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)first.buf);
+        std::vector<std::string> hostv;
+        hostv = strSplit(hosts, ',');
+        for (size_t i = 0; i < hostv.size(); i++) {
+          if (!hostv[i].empty())
+            SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)hostv[i].c_str());
         }
 
         onCommand(IDC_RFB_ENABLE, EN_CHANGE);

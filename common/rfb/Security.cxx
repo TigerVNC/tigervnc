@@ -206,10 +206,10 @@ const char* rfb::secTypeName(uint32_t num)
 std::list<uint32_t> rfb::parseSecTypes(const char* types_)
 {
   std::list<uint32_t> result;
-  CharArray types(strDup(types_)), type;
-  while (types.buf) {
-    strSplit(types.buf, ',', &type.buf, &types.buf);
-    uint32_t typeNum = secTypeNum(type.buf);
+  std::vector<std::string> types;
+  types = strSplit(types_, ',');
+  for (size_t i = 0; i < types.size(); i++) {
+    uint32_t typeNum = secTypeNum(types[i].c_str());
     if (typeNum != secTypeInvalid)
       result.push_back(typeNum);
   }
