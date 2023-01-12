@@ -53,9 +53,12 @@ namespace rfb {
 
     // the following three operations return a new region:
 
-    Region intersect(const Region& r) const;
-    Region union_(const Region& r) const;
-    Region subtract(const Region& r) const;
+    Region intersect(const Region& r) const
+      __attribute__ ((warn_unused_result));
+    Region union_(const Region& r) const
+      __attribute__ ((warn_unused_result));
+    Region subtract(const Region& r) const
+      __attribute__ ((warn_unused_result));
 
     bool equals(const Region& b) const;
     int numRects() const;
