@@ -168,7 +168,7 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
   ServerDialog *dialog = (ServerDialog*)data;
 
   if (!dialog->usedDir)
-    getuserhomedir(&(dialog->usedDir));
+    dialog->usedDir = strDup(getuserhomedir());
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
                                                       0, _("Select a TigerVNC configuration file"));
@@ -207,7 +207,7 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
   const char* servername = dialog->serverName->value();
   const char* filename;
   if (!dialog->usedDir)
-    getuserhomedir(&dialog->usedDir);
+    dialog->usedDir = strDup(getuserhomedir());
   
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
                                                       2, _("Save the TigerVNC configuration to file"));
@@ -315,13 +315,12 @@ void ServerDialog::loadServerHistory()
   return;
 #endif
 
-  char* homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1)
+  const char* homeDir = getvnchomedir();
+  if (homeDir == NULL)
     throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
-  delete[] homeDir;
 
   /* Read server history from file */
   FILE* f = fopen(filepath, "r");
@@ -382,13 +381,12 @@ void ServerDialog::saveServerHistory()
   return;
 #endif
 
-  char* homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1)
+  const char* homeDir = getvnchomedir();
+  if (homeDir == NULL)
     throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
-  delete[] homeDir;
 
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");

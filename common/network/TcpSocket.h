@@ -55,8 +55,8 @@ namespace network {
     TcpSocket(int sock);
     TcpSocket(const char *name, int port);
 
-    virtual char* getPeerAddress();
-    virtual char* getPeerEndpoint();
+    virtual const char* getPeerAddress();
+    virtual const char* getPeerEndpoint();
 
   protected:
     bool enableNagles(bool enable);

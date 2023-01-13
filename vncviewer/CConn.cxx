@@ -32,7 +32,6 @@
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
-#include <rfb/util.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/Timer.h>
@@ -99,7 +98,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 #ifndef WIN32
       if (strchr(vncServerName, '/') != NULL) {
         sock = new network::UnixSocket(vncServerName);
-        serverHost = sock->getPeerAddress();
+        serverHost = strDup(sock->getPeerAddress());
         vlog.info(_("Connected to socket %s"), serverHost);
       } else
 #endif

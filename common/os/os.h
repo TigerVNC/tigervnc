@@ -1,4 +1,5 @@
 /* Copyright (C) 2010 TightVNC Team.  All Rights Reserved.
+ * Copyright 2021-2023 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,21 +25,17 @@
  * If HOME environment variable is set then it is used.
  * Otherwise home directory is obtained via getpwuid function.
  *
- * Returns:
- * 0 - Success
- * -1 - Failure
+ * Returns NULL on failure.
  */
-int getvnchomedir(char **dirp);
+const char* getvnchomedir();
 
 /*
  * Get user home directory.
  * If HOME environment variable is set then it is used.
  * Otherwise home directory is obtained via getpwuid function.
  *
- * Returns:
- * 0 - Success
- * -1 - Failure
+ * Returns NULL on failure.
  */
-int getuserhomedir(char **dirp);
+const char* getuserhomedir();
 
 #endif /* OS_OS_H */

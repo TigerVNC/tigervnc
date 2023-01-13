@@ -131,9 +131,9 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
 {
   // - Check the connection isn't black-marked
   // *** do this in getSecurity instead?
-  CharArray address(sock->getPeerAddress());
-  if (blHosts->isBlackmarked(address.buf)) {
-    connectionsLog.error("blacklisted: %s", address.buf);
+  const char *address = sock->getPeerAddress();
+  if (blHosts->isBlackmarked(address)) {
+    connectionsLog.error("blacklisted: %s", address);
     try {
       rdr::OutStream& os = sock->outStream();
 
@@ -151,9 +151,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
     return;
   }
 
-  CharArray name;
-  name.buf = sock->getPeerEndpoint();
-  connectionsLog.status("accepted: %s", name.buf);
+  connectionsLog.status("accepted: %s", sock->getPeerEndpoint());
 
   // Adjust the exit timers
   if (rfb::Server::maxConnectionTime && clients.empty())
@@ -651,9 +649,7 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
                                   const char* userName)
 {
   // - Authentication succeeded - clear from blacklist
-  CharArray name;
-  name.buf = client->getSock()->getPeerAddress();
-  blHosts->clearBlackmark(name.buf);
+  blHosts->clearBlackmark(client->getSock()->getPeerAddress());
 
   // - Prepare the desktop for that the client will start requiring
   // resources after this

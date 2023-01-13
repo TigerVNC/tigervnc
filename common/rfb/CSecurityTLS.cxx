@@ -76,14 +76,13 @@ static LogWriter vlog("TLS");
 static const char* homedirfn(const char* fn)
 {
   static char full_path[PATH_MAX];
-  char* homedir = NULL;
+  const char* homedir;
 
-  if (getvnchomedir(&homedir) == -1)
+  homedir = getvnchomedir();
+  if (homedir == NULL)
     return "";
 
   snprintf(full_path, sizeof(full_path), "%s%s", homedir, fn);
-
-  delete [] homedir;
 
   return full_path;
 }
@@ -310,7 +309,7 @@ void CSecurityTLS::checkSession()
   unsigned int cert_list_size = 0;
   int err;
 
-  char *homeDir;
+  const char *homeDir;
   gnutls_datum_t info;
   size_t len;
 
@@ -390,15 +389,14 @@ void CSecurityTLS::checkSession()
 
   /* Certificate is fine, except we don't know the issuer, so TOFU time */
 
-  homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1) {
+  homeDir = getvnchomedir();
+  if (homeDir == NULL) {
     throw AuthFailureException("Could not obtain VNC home directory "
                                "path for known hosts storage");
   }
 
   CharArray dbPath(strlen(homeDir) + 16 + 1);
   sprintf(dbPath.buf, "%sx509_known_hosts", homeDir);
-  delete [] homeDir;
 
   err = gnutls_verify_stored_pubkey(dbPath.buf, NULL,
                                     client->getServerName(), NULL,

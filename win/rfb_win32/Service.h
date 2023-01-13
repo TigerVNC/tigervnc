@@ -110,8 +110,7 @@ namespace rfb {
     DWORD getServiceState(const char* name);
 
     // -=- Convert a supplied service state value to a printable string e.g. Running, Stopped...
-    //     The caller must delete the returned string buffer
-    char* serviceStateName(DWORD state);
+    const char* serviceStateName(DWORD state);
 
     // -=- Routine to determine whether the host process is running a service
     bool isServiceProcess();

@@ -433,15 +433,13 @@ static void init_fltk()
 static void mkvnchomedir()
 {
   // Create .vnc in the user's home directory if it doesn't already exist
-  char* homeDir = NULL;
-
-  if (getvnchomedir(&homeDir) == -1) {
+  const char* homeDir = getvnchomedir();
+  if (homeDir == NULL) {
     vlog.error(_("Could not obtain the home directory path"));
   } else {
     int result = mkdir(homeDir, 0755);
     if (result == -1 && errno != EEXIST)
       vlog.error(_("Could not create VNC home directory: %s"), strerror(errno));
-    delete [] homeDir;
   }
 }
 

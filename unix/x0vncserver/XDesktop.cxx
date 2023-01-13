@@ -327,9 +327,9 @@ void XDesktop::queryConnection(network::Socket* sock,
 
   queryConnectSock = sock;
 
-  CharArray address(sock->getPeerAddress());
   delete queryConnectDialog;
-  queryConnectDialog = new QueryConnectDialog(dpy, address.buf,
+  queryConnectDialog = new QueryConnectDialog(dpy,
+                                              sock->getPeerAddress(),
                                               userName,
                                               queryConnectTimeout,
                                               this);

@@ -211,17 +211,17 @@ TcpSocket::TcpSocket(const char *host, int port)
   enableNagles(false);
 }
 
-char* TcpSocket::getPeerAddress() {
+const char* TcpSocket::getPeerAddress() {
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
 
   if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
     vlog.error("unable to get peer name for socket");
-    return rfb::strDup("");
+    return "";
   }
 
   if (sa.u.sa.sa_family == AF_INET6) {
-    char buffer[INET6_ADDRSTRLEN + 2];
+    static char buffer[INET6_ADDRSTRLEN + 2];
     int ret;
 
     buffer[0] = '[';
@@ -231,12 +231,12 @@ char* TcpSocket::getPeerAddress() {
                       NI_NUMERICHOST);
     if (ret != 0) {
       vlog.error("unable to convert peer name to a string");
-      return rfb::strDup("");
+      return "";
     }
 
     strcat(buffer, "]");
 
-    return rfb::strDup(buffer);
+    return buffer;
   }
 
   if (sa.u.sa.sa_family == AF_INET) {
@@ -245,18 +245,18 @@ char* TcpSocket::getPeerAddress() {
     name = inet_ntoa(sa.u.sin.sin_addr);
     if (name == NULL) {
       vlog.error("unable to convert peer name to a string");
-      return rfb::strDup("");
+      return "";
     }
 
-    return rfb::strDup(name);
+    return name;
   }
 
   vlog.error("unknown address family for socket");
-  return rfb::strDup("");
+  return "";
 }
 
-char* TcpSocket::getPeerEndpoint() {
-  rfb::CharArray address; address.buf = getPeerAddress();
+const char* TcpSocket::getPeerEndpoint() {
+  static char buffer[INET6_ADDRSTRLEN + 2 + 32];
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
   int port;
@@ -270,9 +270,8 @@ char* TcpSocket::getPeerEndpoint() {
   else
     port = 0;
 
-  int buflen = strlen(address.buf) + 32;
-  char* buffer = new char[buflen];
-  sprintf(buffer, "%s::%d", address.buf, port);
+  sprintf(buffer, "%s::%d", getPeerAddress(), port);
+
   return buffer;
 }
 
@@ -569,33 +568,31 @@ patternMatchIP(const TcpFilter::Pattern& pattern, vnc_sockaddr_t *sa) {
 
 bool
 TcpFilter::verifyConnection(Socket* s) {
-  rfb::CharArray name;
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
 
   if (getpeername(s->getFd(), &sa.u.sa, &sa_size) != 0)
     return false;
 
-  name.buf = s->getPeerAddress();
   std::list<TcpFilter::Pattern>::iterator i;
   for (i=filter.begin(); i!=filter.end(); i++) {
     if (patternMatchIP(*i, &sa)) {
       switch ((*i).action) {
       case Accept:
-        vlog.debug("ACCEPT %s", name.buf);
+        vlog.debug("ACCEPT %s", s->getPeerAddress());
         return true;
       case Query:
-        vlog.debug("QUERY %s", name.buf);
+        vlog.debug("QUERY %s", s->getPeerAddress());
         s->setRequiresQuery();
         return true;
       case Reject:
-        vlog.debug("REJECT %s", name.buf);
+        vlog.debug("REJECT %s", s->getPeerAddress());
         return false;
       }
     }
   }
 
-  vlog.debug("[REJECT] %s", name.buf);
+  vlog.debug("[REJECT] %s", s->getPeerAddress());
   return false;
 }
 

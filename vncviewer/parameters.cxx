@@ -629,12 +629,11 @@ void saveViewerParameters(const char *filename, const char *servername) {
     return;
 #endif
     
-    char* homeDir = NULL;
-    if (getvnchomedir(&homeDir) == -1)
+    const char* homeDir = getvnchomedir();
+    if (homeDir == NULL)
       throw Exception(_("Could not obtain the home directory path"));
 
     snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir);
-    delete[] homeDir;
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
@@ -734,12 +733,11 @@ char* loadViewerParameters(const char *filename) {
     return loadFromReg();
 #endif
 
-    char* homeDir = NULL;
-    if (getvnchomedir(&homeDir) == -1)
+    const char* homeDir = getvnchomedir();
+    if (homeDir == NULL)
       throw Exception(_("Could not obtain the home directory path"));
 
     snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir);
-    delete[] homeDir;
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }

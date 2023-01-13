@@ -81,11 +81,11 @@ int Dialog::getItemInt(int id) {
     throw rdr::Exception("unable to read dialog Int");
   return result;
 }
-char* Dialog::getItemString(int id) {
-  CharArray tmp(256);
-  if (!GetDlgItemText(handle, id, tmp.buf, 256))
-    tmp.buf[0] = 0;
-  return tmp.takeBuf();
+const char* Dialog::getItemString(int id) {
+  static char tmp[256];
+  if (!GetDlgItemText(handle, id, tmp, 256))
+    return "";
+  return tmp;
 }
 
 void Dialog::setItemChecked(int id, bool state) {

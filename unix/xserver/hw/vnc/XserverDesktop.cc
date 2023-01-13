@@ -172,7 +172,7 @@ void XserverDesktop::queryConnection(network::Socket* sock,
     return;
   }
 
-  queryConnectAddress.replaceBuf(sock->getPeerAddress());
+  queryConnectAddress.replaceBuf(strDup(sock->getPeerAddress()));
   if (!userName)
     userName = "(anonymous)";
   queryConnectUsername.replaceBuf(strDup(userName));

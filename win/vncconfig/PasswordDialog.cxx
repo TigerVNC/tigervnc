@@ -33,8 +33,8 @@ bool PasswordDialog::showDialog(HWND owner) {
 }
 
 bool PasswordDialog::onOk() {
-  PlainPasswd password1(getItemString(IDC_PASSWORD1));
-  PlainPasswd password2(getItemString(IDC_PASSWORD2));
+  PlainPasswd password1(strDup(getItemString(IDC_PASSWORD1)));
+  PlainPasswd password2(strDup(getItemString(IDC_PASSWORD2)));
   if (strcmp(password1.buf, password2.buf) != 0) {
     MsgBox(0, "The supplied passwords do not match",
            MB_ICONEXCLAMATION | MB_OK);

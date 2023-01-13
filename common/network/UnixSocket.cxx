@@ -74,8 +74,8 @@ UnixSocket::UnixSocket(const char *path)
   setFd(sock);
 }
 
-char* UnixSocket::getPeerAddress() {
-  struct sockaddr_un addr;
+const char* UnixSocket::getPeerAddress() {
+  static struct sockaddr_un addr;
   socklen_t salen;
 
   // AF_UNIX only has a single address (the server side).
@@ -85,27 +85,27 @@ char* UnixSocket::getPeerAddress() {
   salen = sizeof(addr);
   if (getpeername(getFd(), (struct sockaddr *)&addr, &salen) != 0) {
     vlog.error("unable to get peer name for socket");
-    return rfb::strDup("");
+    return "";
   }
 
   if (salen > offsetof(struct sockaddr_un, sun_path))
-    return rfb::strDup(addr.sun_path);
+    return addr.sun_path;
 
   salen = sizeof(addr);
   if (getsockname(getFd(), (struct sockaddr *)&addr, &salen) != 0) {
     vlog.error("unable to get local name for socket");
-    return rfb::strDup("");
+    return "";
   }
 
   if (salen > offsetof(struct sockaddr_un, sun_path))
-    return rfb::strDup(addr.sun_path);
+    return addr.sun_path;
 
   // socketpair() will create unnamed sockets
 
-  return rfb::strDup("(unnamed UNIX socket)");
+  return "(unnamed UNIX socket)";
 }
 
-char* UnixSocket::getPeerEndpoint() {
+const char* UnixSocket::getPeerEndpoint() {
   return getPeerAddress();
 }
 

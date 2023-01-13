@@ -462,15 +462,15 @@ DWORD rfb::win32::getServiceState(const char* name) {
   return status.dwCurrentState;
 }
 
-char* rfb::win32::serviceStateName(DWORD state) {
+const char* rfb::win32::serviceStateName(DWORD state) {
   switch (state) {
-  case SERVICE_RUNNING: return strDup("Running");
-  case SERVICE_STOPPED: return strDup("Stopped");
-  case SERVICE_STOP_PENDING: return strDup("Stopping");
+  case SERVICE_RUNNING: return "Running";
+  case SERVICE_STOPPED: return "Stopped";
+  case SERVICE_STOP_PENDING: return "Stopping";
   };
-  CharArray tmp(32);
-  sprintf(tmp.buf, "Unknown (%lu)", state);
-  return tmp.takeBuf();
+  static char tmp[32];
+  sprintf(tmp, "Unknown (%lu)", state);
+  return tmp;
 }
 
 

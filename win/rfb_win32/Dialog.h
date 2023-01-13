@@ -77,7 +77,7 @@ namespace rfb {
       // Read the states of items
       bool isItemChecked(int id);
       int getItemInt(int id);
-      char* getItemString(int id); // Recipient owns string storage
+      const char *getItemString(int id);
       
       // Set the states of items
       void setItemChecked(int id, bool state);

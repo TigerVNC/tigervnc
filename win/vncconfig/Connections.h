@@ -60,7 +60,7 @@ namespace rfb {
         pattern.replaceBuf(0);
       }
       bool onOk() {
-        CharArray host(getItemString(IDC_HOST_PATTERN));
+        CharArray host(strDup(getItemString(IDC_HOST_PATTERN)));
         CharArray newPat(strlen(host.buf)+2);
         if (isItemChecked(IDC_ALLOW))
           newPat.buf[0] = '+';

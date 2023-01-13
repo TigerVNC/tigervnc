@@ -1,4 +1,5 @@
 /* Copyright (C) 2010 TightVNC Team.  All Rights Reserved.
+ * Copyright 2021-2023 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +27,8 @@
 
 #ifndef WIN32
 #include <pwd.h>
+#include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -36,19 +39,17 @@
 #include <shlobj.h>
 #endif
 
-static int gethomedir(char **dirp, bool userDir)
+static const char* gethomedir(bool userDir)
 {
+  static char dir[PATH_MAX];
+
 #ifndef WIN32
-  char *homedir, *dir;
-  size_t len;
+  char *homedir;
   uid_t uid;
   struct passwd *passwd;
 #else
-  char *dir;
   BOOL ret;
 #endif
-
-  assert(dirp != NULL && *dirp == NULL);
 
 #ifndef WIN32
   homedir = getenv("HOME");
@@ -57,51 +58,45 @@ static int gethomedir(char **dirp, bool userDir)
     passwd = getpwuid(uid);
     if (passwd == NULL) {
       /* Do we want emit error msg here? */
-      return -1;
+      return NULL;
     }
     homedir = passwd->pw_dir;
   }
 
-  len = strlen(homedir);
-  dir = new char[len+7];
-  if (dir == NULL)
-    return -1;
-
-  memcpy(dir, homedir, len);
   if (userDir)
-    dir[len]='\0';
-  else
-    memcpy(dir + len, "/.vnc/\0", 7);
-#else
-  dir = new char[MAX_PATH];
-  if (dir == NULL)
-    return -1;
+    return homedir;
 
+  snprintf(dir, sizeof(dir), "%s/.vnc/", homedir);
+
+  return dir;
+#else
   if (userDir)
     ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_PROFILE, FALSE);
   else
     ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_APPDATA, FALSE);
 
-  if (ret == FALSE) {
-    delete [] dir;
-    return -1;
-  }
+  if (ret == FALSE)
+    return NULL;
+
   if (userDir)
-    dir[strlen(dir)+1] = '\0';
-  else
-    memcpy(dir+strlen(dir), "\\vnc\\\0", 6);
+    return dir;
+
+  if (strlen(dir) + strlen("\\vnc\\") >= sizeof(dir))
+    return NULL;
+
+  strcat(dir, "\\vnc\\");
+
+  return dir;
 #endif
-  *dirp = dir;
-  return 0;
 }
 
-int getvnchomedir(char **dirp)
+const char* getvnchomedir()
 {
-  return gethomedir(dirp, false);
+  return gethomedir(false);
 }
 
-int getuserhomedir(char **dirp)
+const char* getuserhomedir()
 {
-  return gethomedir(dirp, true);
+  return gethomedir(true);
 }
 

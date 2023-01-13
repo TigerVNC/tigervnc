@@ -59,7 +59,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     pointerEventTime(0), clientHasCursor(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
-  peerEndpoint.buf = sock->getPeerEndpoint();
+  peerEndpoint.buf = strDup(sock->getPeerEndpoint());
 
   // Kick off the idle timer
   if (rfb::Server::idleTimeout) {
