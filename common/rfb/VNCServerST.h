@@ -112,7 +112,7 @@ namespace rfb {
     const ScreenSet& getScreenLayout() const { return screenLayout; }
     const Cursor* getCursor() const { return cursor; }
     const Point& getCursorPos() const { return cursorPos; }
-    const char* getName() const { return name.buf; }
+    const char* getName() const { return name.c_str(); }
     unsigned getLEDState() const { return ledState; }
 
     // Event handlers
@@ -183,7 +183,7 @@ namespace rfb {
     ScreenSet screenLayout;
     unsigned int ledState;
 
-    CharArray name;
+    std::string name;
 
     std::list<VNCSConnectionST*> clients;
     VNCSConnectionST* pointerClient;

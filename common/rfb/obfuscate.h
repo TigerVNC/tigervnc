@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,33 +16,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_PASSWORD_H__
-#define __RFB_PASSWORD_H__
 
-#include <rfb/util.h>
+#ifndef __RFB_OBFUSCATE_H__
+#define __RFB_OBFUSCATE_H__
+
+#include <stdint.h>
+
+#include <string>
+#include <vector>
 
 namespace rfb {
 
-  class ObfuscatedPasswd;
-
-  class PlainPasswd : public CharArray {
-  public:
-    PlainPasswd();
-    PlainPasswd(char* pwd);
-    PlainPasswd(size_t len);
-    PlainPasswd(const ObfuscatedPasswd& obfPwd);
-    ~PlainPasswd();
-    void replaceBuf(char* b);
-  };
-
-  class ObfuscatedPasswd : public CharArray {
-  public:
-    ObfuscatedPasswd();
-    ObfuscatedPasswd(size_t l);
-    ObfuscatedPasswd(const PlainPasswd& plainPwd);
-    ~ObfuscatedPasswd();
-    size_t length;
-  };
+  std::vector<uint8_t> obfuscate(const char *str);
+  std::string deobfuscate(const uint8_t *data, size_t len);
 
 }
+
 #endif

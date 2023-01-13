@@ -108,14 +108,16 @@ HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
     if (GetSessionUserTokenWin(&hToken))
     {
         ModuleFileName filename;
-        CharArray cmdLine;
-        cmdLine.format("\"%s\" -noconsole -service_run", filename.buf);
+        std::string cmdLine;
+        cmdLine = strFormat("\"%s\" -noconsole -service_run", filename.buf);
         STARTUPINFO si;
         ZeroMemory(&si, sizeof si);
         si.cb = sizeof si;
         si.dwFlags = STARTF_USESHOWWINDOW;
         PROCESS_INFORMATION	pi;
-        if (CreateProcessAsUser(hToken, NULL, cmdLine.buf, NULL, NULL, FALSE, DETACHED_PROCESS, NULL, NULL, &si, &pi))
+        if (CreateProcessAsUser(hToken, NULL, (char*)cmdLine.c_str(),
+                                NULL, NULL, FALSE, DETACHED_PROCESS,
+                                NULL, NULL, &si, &pi))
         {
             CloseHandle(pi.hThread);
             hProcess = pi.hProcess;

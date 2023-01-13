@@ -80,14 +80,14 @@ static LogWriter connectionsLog("Connections");
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
     blockCounter(0), pb(0), ledState(ledUnknown),
-    name(strDup(name_)), pointerClient(0), clipboardClient(0),
+    name(name_), pointerClient(0), clipboardClient(0),
     comparer(0), cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
     frameTimer(this)
 {
-  slog.debug("creating single-threaded server %s", name.buf);
+  slog.debug("creating single-threaded server %s", name.c_str());
 
   // FIXME: Do we really want to kick off these right away?
   if (rfb::Server::maxIdleTime)
@@ -98,7 +98,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
 
 VNCServerST::~VNCServerST()
 {
-  slog.debug("shutting down server %s", name.buf);
+  slog.debug("shutting down server %s", name.c_str());
 
   // Close any active clients, with appropriate logging & cleanup
   closeClients("Server shutdown");
@@ -175,14 +175,14 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
 
-      CharArray name(strDup((*ci)->getPeerEndpoint()));
+      std::string name((*ci)->getPeerEndpoint());
 
       // - Delete the per-Socket resources
       delete *ci;
 
       clients.remove(*ci);
 
-      connectionsLog.status("closed: %s", name.buf);
+      connectionsLog.status("closed: %s", name.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
@@ -386,7 +386,7 @@ void VNCServerST::bell()
 
 void VNCServerST::setName(const char* name_)
 {
-  name.replaceBuf(strDup(name_));
+  name = name_;
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;

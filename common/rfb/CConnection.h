@@ -27,7 +27,6 @@
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/SecurityClient.h>
-#include <rfb/util.h>
 
 namespace rfb {
 
@@ -206,7 +205,7 @@ namespace rfb {
 
     // Access method used by SSecurity implementations that can verify servers'
     // Identities, to determine the unique(ish) name of the server.
-    const char* getServerName() const { return serverName.buf; }
+    const char* getServerName() const { return serverName.c_str(); }
 
     bool isSecure() const { return csecurity ? csecurity->isSecure() : false; }
 
@@ -271,7 +270,7 @@ namespace rfb {
     bool shared;
     stateEnum state_;
 
-    CharArray serverName;
+    std::string serverName;
 
     bool pendingPFChange;
     rfb::PixelFormat pendingPF;

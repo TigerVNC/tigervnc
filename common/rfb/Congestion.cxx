@@ -38,6 +38,7 @@
 #endif
 
 #include <assert.h>
+#include <string.h>
 #include <sys/time.h>
 
 #ifdef __linux__

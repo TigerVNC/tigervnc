@@ -29,6 +29,7 @@
 #include <rdr/HexInStream.h>
 #include <stdlib.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 // These flags are required to control access control inheritance,
 // but are not defined by VC6's headers.  These definitions comes

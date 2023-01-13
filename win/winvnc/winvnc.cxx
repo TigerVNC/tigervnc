@@ -106,23 +106,23 @@ static void processParams(int argc, char** argv) {
 
       if (strcasecmp(argv[i], "-connect") == 0) {
         runServer = false;
-        CharArray host;
+        const char *host = NULL;
         if (i+1 < argc) {
-          host.buf = strDup(argv[i+1]);
+          host = argv[i+1];
           i++;
         } else {
           AddNewClientDialog ancd;
           if (ancd.showDialog())
-            host.buf = strDup(ancd.getHostName());
+            host = ancd.getHostName();
         }
-        if (host.buf) {
+        if (host != NULL) {
           HWND hwnd = FindWindow(0, "winvnc::IPC_Interface");
           if (!hwnd)
             throw rdr::Exception("Unable to locate existing VNC Server.");
           COPYDATASTRUCT copyData;
           copyData.dwData = 1; // *** AddNewClient
-          copyData.cbData = strlen(host.buf);
-          copyData.lpData = (void*)host.buf;
+          copyData.cbData = strlen(host);
+          copyData.lpData = (void*)host;
           printf("Sending connect request to VNC Server...\n");
           if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
             MsgBoxOrLog("Connection failed.", true);
@@ -152,12 +152,12 @@ static void processParams(int argc, char** argv) {
       } else if (strcasecmp(argv[i], "-status") == 0) {
         printf("Querying service status...\n");
         runServer = false;
-        CharArray result;
+        std::string result;
         DWORD state = rfb::win32::getServiceState(VNCServerService::Name);
-        result.format("The %s Service is in the %s state.",
-                      VNCServerService::Name,
-                      rfb::win32::serviceStateName(state));
-        MsgBoxOrLog(result.buf);
+        result = strFormat("The %s Service is in the %s state.",
+                           VNCServerService::Name,
+                           rfb::win32::serviceStateName(state));
+        MsgBoxOrLog(result.c_str());
       } else if (strcasecmp(argv[i], "-service") == 0) {
         printf("Run in service mode\n");
         runServer = false;

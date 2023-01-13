@@ -59,8 +59,8 @@ public:
 
   // setText() changes the text in the button.
   void setText(const char* text_) {
-    text.buf = rfb::strDup(text_);
-    int textWidth = XTextWidth(defaultFS, text.buf, strlen(text.buf));
+    text = text_;
+    int textWidth = XTextWidth(defaultFS, text.data(), text.size());
     int textHeight = (defaultFS->ascent + defaultFS->descent);
     int newWidth = __rfbmax(width(), textWidth + xPad*2 + bevel*2);
     int newHeight = __rfbmax(height(), textHeight + yPad*2 + bevel*2);
@@ -77,7 +77,7 @@ public:
 private:
 
   void paint() {
-    int tw = XTextWidth(defaultFS, text.buf, strlen(text.buf));
+    int tw = XTextWidth(defaultFS, text.data(), text.size());
     int startx = (width() - tw) / 2;
     int starty = (height() + defaultFS->ascent - defaultFS->descent) / 2;
     if (down || disabled_) {
@@ -88,7 +88,7 @@ private:
     }
 
     XSetForeground(dpy, gc, disabled_ ? disabledFg : defaultFg);
-    XDrawString(dpy, win(), gc, startx, starty, text.buf, strlen(text.buf));
+    XDrawString(dpy, win(), gc, startx, starty, text.data(), text.size());
   }
 
   virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
@@ -115,7 +115,7 @@ private:
   }
 
   GC gc;
-  rfb::CharArray text;
+  std::string text;
   TXButtonCallback* cb;
   bool down;
   bool disabled_;

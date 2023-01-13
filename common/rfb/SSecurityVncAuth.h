@@ -27,7 +27,6 @@
 #include <stdint.h>
 
 #include <rfb/Configuration.h>
-#include <rfb/Password.h>
 #include <rfb/SSecurity.h>
 #include <rfb/Security.h>
 
@@ -37,7 +36,7 @@ namespace rfb {
   public:
     // getVncAuthPasswd() fills buffer of given password and readOnlyPassword.
     // If there was no read only password in the file, readOnlyPassword buffer is null.
-    virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword)=0;
+    virtual void getVncAuthPasswd(std::string *password, std::string *readOnlyPassword)=0;
 
     virtual ~VncAuthPasswdGetter() { }
   };
@@ -45,7 +44,7 @@ namespace rfb {
   class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {
   public:
     VncAuthPasswdParameter(const char* name, const char* desc, StringParameter* passwdFile_);
-    virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword);
+    virtual void getVncAuthPasswd(std::string *password, std::string *readOnlyPassword);
   protected:
     StringParameter* passwdFile;
   };
@@ -60,7 +59,7 @@ namespace rfb {
     static StringParameter vncAuthPasswdFile;
     static VncAuthPasswdParameter vncAuthPasswd;
   private:
-    bool verifyResponse(const PlainPasswd &password);
+    bool verifyResponse(const char* password);
     enum {vncAuthChallengeSize = 16};
     uint8_t challenge[vncAuthChallengeSize];
     uint8_t response[vncAuthChallengeSize];

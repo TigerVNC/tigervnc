@@ -26,7 +26,8 @@
 #ifndef __RFB_WIN32_CURRENT_USER_H__
 #define __RFB_WIN32_CURRENT_USER_H__
 
-#include <rfb/util.h>
+#include <string>
+
 #include <rfb_win32/Handle.h>
 #include <rfb_win32/Security.h>
 
@@ -67,7 +68,7 @@ namespace rfb {
     //   Returns the name of the user the thread is currently running as.
     //   Raises a SystemException in case of error.
 
-    struct UserName : public CharArray {
+    struct UserName : public std::string {
       UserName();
     };
 

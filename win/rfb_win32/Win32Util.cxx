@@ -73,14 +73,14 @@ const char* FileVersionInfo::getVerString(const char* name, DWORD langId) {
   }
 
   std::string langIdStr(binToHex(langIdBuf, sizeof(langId)));
-  CharArray infoName(strlen("StringFileInfo") + 4 + strlen(name) + strlen(langIdStr.c_str()));
-  sprintf(infoName.buf, "\\StringFileInfo\\%s\\%s", langIdStr.c_str(), name);
+  std::string infoName;
+  infoName = strFormat("\\StringFileInfo\\%s\\%s", langIdStr.c_str(), name);
 
   // Locate the required version string within the version info
   char* buffer = 0;
   UINT length = 0;
-  if (!VerQueryValue(buf, infoName.buf, (void**)&buffer, &length)) {
-    printf("unable to find %s version string", infoName.buf);
+  if (!VerQueryValue(buf, infoName.c_str(), (void**)&buffer, &length)) {
+    printf("unable to find %s version string", infoName.c_str());
     throw rdr::Exception("VerQueryValue failed");
   }
   return buffer;

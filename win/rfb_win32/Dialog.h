@@ -25,11 +25,11 @@
 #ifndef __RFB_WIN32_DIALOG_H__
 #define __RFB_WIN32_DIALOG_H__
 
+#include <string>
+
 #include <windows.h>
 #include <prsht.h>
 #include <list>
-
-#include <rfb/util.h>
 
 namespace rfb {
 
@@ -131,7 +131,7 @@ namespace rfb {
       HICON icon;
       std::list<PropSheetPage*> pages;
       HINSTANCE inst;
-      CharArray title;
+      std::string title;
       HWND handle;
       bool alreadyShowing;
     };

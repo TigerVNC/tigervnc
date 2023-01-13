@@ -42,47 +42,45 @@ namespace rfb {
     public:
       ConnHostDialog() : Dialog(GetModuleHandle(0)) {}
       bool showDialog(const char* pat) {
-        pattern.replaceBuf(strDup(pat));
+        pattern = pat;
         return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONN_HOST));
       }
       void initDialog() {
-        if (strlen(pattern.buf) == 0)
-          pattern.replaceBuf(strDup("+"));
+        if (pattern.empty())
+          pattern = "+";
 
-        if (pattern.buf[0] == '+')
+        if (pattern[0] == '+')
           setItemChecked(IDC_ALLOW, true);
-        else if (pattern.buf[0] == '?')
+        else if (pattern[0] == '?')
           setItemChecked(IDC_QUERY, true);
         else
           setItemChecked(IDC_DENY, true);
 
-        setItemString(IDC_HOST_PATTERN, &pattern.buf[1]);
-        pattern.replaceBuf(0);
+        setItemString(IDC_HOST_PATTERN, &pattern.c_str()[1]);
+        pattern.clear();
       }
       bool onOk() {
-        CharArray host(strDup(getItemString(IDC_HOST_PATTERN)));
-        CharArray newPat(strlen(host.buf)+2);
+        std::string newPat;
         if (isItemChecked(IDC_ALLOW))
-          newPat.buf[0] = '+';
+          newPat = '+';
         else if (isItemChecked(IDC_QUERY))
-          newPat.buf[0] = '?';
+          newPat = '?';
         else
-          newPat.buf[0] = '-';
-        newPat.buf[1] = 0;
-        strcat(newPat.buf, host.buf);
+          newPat = '-';
+        newPat += getItemString(IDC_HOST_PATTERN);
 
         try {
-          network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(newPat.buf));
-          pattern.replaceBuf(strDup(network::TcpFilter::patternToStr(pat).c_str()));
+          network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(newPat.c_str()));
+          pattern = network::TcpFilter::patternToStr(pat);
         } catch(rdr::Exception& e) {
           MsgBox(NULL, e.str(), MB_ICONEXCLAMATION | MB_OK);
           return false;
         }
         return true;
       }
-      const char* getPattern() {return pattern.buf;}
+      const char* getPattern() {return pattern.c_str();}
     protected:
-      CharArray pattern;
+      std::string pattern;
     };
 
     class ConnectionsPage : public PropSheetPage {

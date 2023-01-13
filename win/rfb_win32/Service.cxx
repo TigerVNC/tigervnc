@@ -30,6 +30,7 @@
 #include <logmessages/messages.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 
 using namespace rdr;
@@ -321,12 +322,12 @@ bool rfb::win32::registerService(const char* name,
   }
 
   // - Add the supplied extra parameters to the command line
-  CharArray cmdline(cmdline_len+strlen(defaultcmdline));
-  sprintf(cmdline.buf, "\"%s\" %s", buffer.buf, defaultcmdline);
+  std::string cmdline;
+  cmdline = strFormat("\"%s\" %s", buffer.buf, defaultcmdline);
   for (i=0; i<argc; i++) {
-    strcat(cmdline.buf, " \"");
-    strcat(cmdline.buf, argv[i]);
-    strcat(cmdline.buf, "\"");
+    cmdline += " \"";
+    cmdline += argv[i];
+    cmdline += "\"";
   }
     
   // - Register the service
@@ -341,7 +342,7 @@ bool rfb::win32::registerService(const char* name,
     name, display, SC_MANAGER_ALL_ACCESS,
     SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
     SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
-    cmdline.buf, NULL, NULL, NULL, NULL, NULL);
+    cmdline.c_str(), NULL, NULL, NULL, NULL, NULL);
   if (!service)
     throw rdr::SystemException("unable to create service", GetLastError());
 
@@ -363,11 +364,11 @@ bool rfb::win32::registerService(const char* name,
   }
 
   const char* dllFilename = "logmessages.dll";
-  CharArray dllPath(strlen(buffer.buf) + strlen(dllFilename) + 1);
-  strcpy(dllPath.buf, buffer.buf);
-  strcat(dllPath.buf, dllFilename);
+  std::string dllPath;
+  dllPath = buffer.buf;
+  dllPath += dllFilename;
 
-  hk.setExpandString("EventMessageFile", dllPath.buf);
+  hk.setExpandString("EventMessageFile", dllPath.c_str());
   hk.setInt("TypesSupported", EVENTLOG_ERROR_TYPE | EVENTLOG_INFORMATION_TYPE);
 
   Sleep(500);

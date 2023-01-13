@@ -19,9 +19,9 @@
 #ifndef __RFB_WIN32_MSGBOX_H__
 #define __RFB_WIN32_MSGBOX_H__
 
-#include <windows.h>
+#include <string>
 
-#include <rfb/util.h>
+#include <windows.h>
 
 namespace rfb {
   namespace win32 {
@@ -49,13 +49,12 @@ namespace rfb {
       flags |= MB_TOPMOST | MB_SETFOREGROUND;
       int len = strlen(AppName) + 1;
       if (msgType) len += strlen(msgType) + 3;
-      CharArray title(new char[len]);
-      strcpy(title.buf, AppName);
+      std::string title = AppName;
       if (msgType) {
-        strcat(title.buf, " : ");
-        strcat(title.buf, msgType);
+        title += " : ";
+        title += msgType;
       }
-      return MessageBox(parent, msg, title.buf, flags);
+      return MessageBox(parent, msg, title.c_str(), flags);
     }
 
   };

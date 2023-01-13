@@ -19,7 +19,7 @@
 #include <vncconfig/resource.h>
 #include <vncconfig/PasswordDialog.h>
 #include <rfb_win32/MsgBox.h>
-#include <rfb/Password.h>
+#include <rfb/obfuscate.h>
 
 using namespace rfb;
 using namespace win32;
@@ -33,9 +33,9 @@ bool PasswordDialog::showDialog(HWND owner) {
 }
 
 bool PasswordDialog::onOk() {
-  PlainPasswd password1(strDup(getItemString(IDC_PASSWORD1)));
-  PlainPasswd password2(strDup(getItemString(IDC_PASSWORD2)));
-  if (strcmp(password1.buf, password2.buf) != 0) {
+  std::string password1(getItemString(IDC_PASSWORD1));
+  std::string password2(getItemString(IDC_PASSWORD2));
+  if (password1 != password2) {
     MsgBox(0, "The supplied passwords do not match",
            MB_ICONEXCLAMATION | MB_OK);
     return false;
@@ -45,8 +45,7 @@ bool PasswordDialog::onOk() {
                  "Are you sure you wish to continue?",
               MB_YESNO | MB_ICONWARNING) == IDNO))
     return false;
-  PlainPasswd password(strDup(password1.buf));
-  ObfuscatedPasswd obfPwd(password);
-  regKey.setBinary("Password", obfPwd.buf, obfPwd.length);
+  std::vector<uint8_t> obfPwd = obfuscate(password1.c_str());
+  regKey.setBinary("Password", obfPwd.data(), obfPwd.size());
   return true;
 }

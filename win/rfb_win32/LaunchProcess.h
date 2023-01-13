@@ -24,9 +24,9 @@
 #ifndef __RFB_WIN32_LAUNCHPROCESS_H__
 #define __RFB_WIN32_LAUNCHPROCESS_H__
 
-#include <windows.h>
+#include <string>
 
-#include <rfb/util.h>
+#include <windows.h>
 
 namespace rfb {
 
@@ -60,8 +60,8 @@ namespace rfb {
       PROCESS_INFORMATION procInfo;
       DWORD returnCode;
     protected:
-      CharArray exeName;
-      CharArray params;
+      std::string exeName;
+      std::string params;
     };
 
 

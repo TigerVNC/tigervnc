@@ -130,18 +130,17 @@ void VNCServerWin32::processAddressChange() {
     length += i->size() + 1;
 
   // Build the new tip
-  CharArray toolTip(length);
-  strcpy(toolTip.buf, prefix);
+  std::string toolTip(prefix);
   for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
     next_i = i; next_i ++;
-    strcat(toolTip.buf, i->c_str());
+    toolTip += *i;
     if (next_i != addrs.end())
-      strcat(toolTip.buf, ",");
+      toolTip += ",";
   }
   
   // Pass the new tip to the tray icon
   vlog.info("Refreshing tray icon");
-  trayIcon->setToolTip(toolTip.buf);
+  trayIcon->setToolTip(toolTip.c_str());
 }
 
 void VNCServerWin32::regConfigChanged() {

@@ -571,18 +571,18 @@ void SSecurityRSAAES::verifyUserPass()
 void SSecurityRSAAES::verifyPass()
 {
   VncAuthPasswdGetter* pg = &SSecurityVncAuth::vncAuthPasswd;
-  PlainPasswd passwd, passwdReadOnly;
+  std::string passwd, passwdReadOnly;
   pg->getVncAuthPasswd(&passwd, &passwdReadOnly);
 
-  if (!passwd.buf)
+  if (passwd.empty())
     throw AuthFailureException("No password configured for VNC Auth");
 
-  if (strcmp(password, passwd.buf) == 0) {
+  if (password == passwd) {
     accessRights = SConnection::AccessDefault;
     return;
   }
 
-  if (passwdReadOnly.buf && strcmp(password, passwdReadOnly.buf) == 0) {
+  if (!passwdReadOnly.empty() && password == passwdReadOnly) {
     accessRights = SConnection::AccessView;
     return;
   }

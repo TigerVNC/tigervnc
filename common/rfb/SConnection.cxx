@@ -247,7 +247,7 @@ bool SConnection::processSecurityMsg()
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
-    authFailureMsg.replaceBuf(strDup(e.str()));
+    authFailureMsg = e.str();
     authFailureTimer.start(100);
     return true;
   }
@@ -296,9 +296,8 @@ bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
   try {
     os->writeU32(secResultFailed);
     if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
-      const char* reason = authFailureMsg.buf;
-      os->writeU32(strlen(reason));
-      os->writeBytes(reason, strlen(reason));
+      os->writeU32(authFailureMsg.size());
+      os->writeBytes(authFailureMsg.data(), authFailureMsg.size());
     }
     os->flush();
   } catch (rdr::Exception& e) {
@@ -306,7 +305,7 @@ bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
     return false;
   }
 
-  close(authFailureMsg.buf);
+  close(authFailureMsg.c_str());
 
   return false;
 }

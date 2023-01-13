@@ -133,7 +133,7 @@ VoidParameter* Configuration::get(const char* param)
 void Configuration::list(int width, int nameWidth) {
   VoidParameter* current = head;
 
-  fprintf(stderr, "%s Parameters:\n", name.buf);
+  fprintf(stderr, "%s Parameters:\n", name.c_str());
   while (current) {
     std::string def_str = current->getDefaultStr();
     const char* desc = current->getDescription();

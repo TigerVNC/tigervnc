@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2022 Pierre Ossman for Cendio AB
+ * Copyright 2011-2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,10 @@ namespace rfb {
 
   char* strDup(const char* s);
   void strFree(char* s);
+
+  // Formats according to printf(), with a dynamic allocation
+  std::string strFormat(const char *fmt, ...)
+      __attribute__((__format__ (__printf__, 1, 2)));
 
   // Splits a string with the specified delimiter
   std::vector<std::string> strSplit(const char* src,

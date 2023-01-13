@@ -180,10 +180,8 @@ public:
         switch (command->dwData) {
         case 1:
           {
-            CharArray viewer(command->cbData + 1);
-            memcpy(viewer.buf, command->lpData, command->cbData);
-            viewer.buf[command->cbData] = 0;
-            return thread.server.addNewClient(viewer.buf) ? 1 : 0;
+            std::string viewer((char*)command->lpData, command->cbData);
+            return thread.server.addNewClient(viewer.c_str()) ? 1 : 0;
           }
         case 2:
           return thread.server.disconnectClients("IPC disconnect") ? 1 : 0;
@@ -220,8 +218,8 @@ public:
     case WM_SET_TOOLTIP:
       {
         os::AutoMutex a(thread.lock);
-        if (thread.toolTip.buf)
-          setToolTip(thread.toolTip.buf);
+        if (!thread.toolTip.empty())
+          setToolTip(thread.toolTip.c_str());
       }
       return 0;
 
@@ -280,8 +278,7 @@ void STrayIconThread::worker() {
 void STrayIconThread::setToolTip(const char* text) {
   if (!windowHandle) return;
   os::AutoMutex a(lock);
-  delete [] toolTip.buf;
-  toolTip.buf = strDup(text);
+  toolTip = text;
   PostMessage(windowHandle, WM_SET_TOOLTIP, 0, 0);
 }
 

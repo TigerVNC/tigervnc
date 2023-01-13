@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2022 Pierre Ossman for Cendio AB
+ * Copyright 2011-2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +64,33 @@ namespace rfb {
 
   void strFree(char* s) {
     delete [] s;
+  }
+
+  std::string strFormat(const char *fmt, ...)
+  {
+    va_list ap;
+    int len;
+    char *buf;
+    std::string out;
+
+    va_start(ap, fmt);
+    len = vsnprintf(NULL, 0, fmt, ap);
+    va_end(ap);
+
+    if (len < 0)
+      return "";
+
+    buf = new char[len+1];
+
+    va_start(ap, fmt);
+    vsnprintf(buf, len+1, fmt, ap);
+    va_end(ap);
+
+    out = buf;
+
+    delete [] buf;
+
+    return out;
   }
 
   std::vector<std::string> strSplit(const char* src,

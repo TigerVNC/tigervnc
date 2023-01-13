@@ -41,6 +41,7 @@
 #include <network/TcpSocket.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
+#include <rfb/util.h>
 
 #ifdef WIN32
 #include <os/winerrno.h>

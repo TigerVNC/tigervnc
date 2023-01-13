@@ -44,9 +44,11 @@
 #ifndef __RFB_CONFIGURATION_H__
 #define __RFB_CONFIGURATION_H__
 
-#include <vector>
+#include <limits.h>
+#include <stdint.h>
 
-#include <rfb/util.h>
+#include <string>
+#include <vector>
 
 namespace os { class Mutex; }
 
@@ -62,10 +64,10 @@ namespace rfb {
   class Configuration {
   public:
     // - Create a new Configuration object
-    Configuration(const char* name_) : name(strDup(name_)), head(0), _next(0) {}
+    Configuration(const char* name_) : name(name_), head(0), _next(0) {}
 
     // - Return the buffer containing the Configuration's name
-    const char* getName() const { return name.buf; }
+    const char* getName() const { return name.c_str(); }
 
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
@@ -131,7 +133,7 @@ namespace rfb {
     friend struct ParameterIterator;
 
     // Name for this Configuration
-    CharArray name;
+    std::string name;
 
     // - Pointer to first Parameter in this group
     VoidParameter* head;

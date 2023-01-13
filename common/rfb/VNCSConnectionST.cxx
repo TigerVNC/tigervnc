@@ -59,7 +59,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     pointerEventTime(0), clientHasCursor(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
-  peerEndpoint.buf = strDup(sock->getPeerEndpoint());
+  peerEndpoint = sock->getPeerEndpoint();
 
   // Kick off the idle timer
   if (rfb::Server::idleTimeout) {
@@ -75,8 +75,9 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
 VNCSConnectionST::~VNCSConnectionST()
 {
   // If we reach here then VNCServerST is deleting us!
-  if (closeReason.buf)
-    vlog.info("closing %s: %s", peerEndpoint.buf, closeReason.buf);
+  if (!closeReason.empty())
+    vlog.info("closing %s: %s", peerEndpoint.c_str(),
+              closeReason.c_str());
 
   // Release any keys the client still had pressed
   while (!pressedKeys.empty()) {
@@ -112,10 +113,10 @@ void VNCSConnectionST::close(const char* reason)
   SConnection::close(reason);
 
   // Log the reason for the close
-  if (!closeReason.buf)
-    closeReason.buf = strDup(reason);
+  if (closeReason.empty())
+    closeReason = reason;
   else
-    vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
+    vlog.debug("second close: %s (%s)", peerEndpoint.c_str(), reason);
 
   try {
     if (sock->outStream().hasBufferedData()) {

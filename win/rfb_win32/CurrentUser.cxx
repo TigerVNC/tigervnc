@@ -110,10 +110,12 @@ ImpersonateCurrentUser::~ImpersonateCurrentUser() {
 }
 
 
-UserName::UserName() : CharArray(UNLEN+1) {
+UserName::UserName() {
+  char buf[UNLEN+1];
   DWORD len = UNLEN+1;
   if (!GetUserName(buf, &len))
     throw rdr::SystemException("GetUserName failed", GetLastError());
+  assign(buf);
 }
 
 

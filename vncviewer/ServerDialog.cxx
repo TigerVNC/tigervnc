@@ -38,6 +38,7 @@
 #include <os/os.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 #include "fltk/layout.h"
 #include "ServerDialog.h"

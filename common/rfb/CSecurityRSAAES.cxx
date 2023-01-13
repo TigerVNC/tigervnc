@@ -208,13 +208,12 @@ void CSecurityRSAAES::verifyServer()
   sha1_update(&ctx, serverKey.size, serverKeyE);
   sha1_digest(&ctx, sizeof(f), f);
   const char *title = "Server key fingerprint";
-  CharArray text;
-  text.format(
+  std::string text = strFormat(
     "The server has provided the following identifying information:\n"
     "Fingerprint: %02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n"
     "Please verify that the information is correct and press \"Yes\". "
     "Otherwise press \"No\"", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
-  if (!msg->showMsgBox(UserMsgBox::M_YESNO, title, text.buf))
+  if (!msg->showMsgBox(UserMsgBox::M_YESNO, title, text.c_str()))
     throw AuthFailureException("server key mismatch");
 }
 

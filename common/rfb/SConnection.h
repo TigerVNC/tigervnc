@@ -257,7 +257,7 @@ namespace rfb {
     SSecurity* ssecurity;
 
     MethodTimer<SConnection> authFailureTimer;
-    CharArray authFailureMsg;
+    std::string authFailureMsg;
 
     stateEnum state_;
     int32_t preferredEncoding;

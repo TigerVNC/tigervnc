@@ -34,8 +34,8 @@
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
 
-#include <rfb/Password.h>
 #include <rfb/Exception.h>
+#include <rfb/obfuscate.h>
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
@@ -91,18 +91,17 @@ void UserDialog::getUserPasswd(bool secure, std::string* user,
   }
 
   if (!user && passwordFileName[0]) {
-    ObfuscatedPasswd obfPwd(256);
+    std::vector<uint8_t> obfPwd(256);
     FILE* fp;
 
     fp = fopen(passwordFileName, "rb");
     if (!fp)
       throw rfb::Exception(_("Opening password file failed"));
 
-    obfPwd.length = fread(obfPwd.buf, 1, obfPwd.length, fp);
+    obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
     fclose(fp);
 
-    PlainPasswd passwd(obfPwd);
-    *password = passwd.buf;
+    *password = deobfuscate(obfPwd.data(), obfPwd.size());
 
     return;
   }

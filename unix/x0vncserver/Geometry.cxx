@@ -24,6 +24,8 @@
 #include <config.h>
 #endif
 
+#include <string.h>
+
 #include <rfb/LogWriter.h>
 #include <x0vncserver/Geometry.h>
 

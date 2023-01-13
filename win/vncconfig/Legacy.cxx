@@ -38,10 +38,9 @@ void LegacyPage::LoadPrefs()
         //   settings from HKCU/Software/ORL/WinVNC3.
 
         // Get the name of the current user
-        CharArray username;
+        std::string username;
         try {
-          UserName name;
-          username.buf = name.takeBuf();
+          username = UserName();
         } catch (rdr::SystemException& e) {
           if (e.err != ERROR_NOT_LOGGED_ON)
             throw;
@@ -64,8 +63,7 @@ void LegacyPage::LoadPrefs()
  
           std::string authHosts = winvnc3.getString("AuthHosts", "");
           if (!authHosts.empty()) {
-            CharArray newHosts;
-            newHosts.buf = strDup("");
+            std::string newHosts;
 
             // Reformat AuthHosts to Hosts.  Wish I'd left the format the same. :( :( :(
             try {
@@ -107,20 +105,14 @@ void LegacyPage::LoadPrefs()
                   strcat(pattern, buf);
 
                   // Append this pattern to the Hosts value
-                  int length = strlen(newHosts.buf) + strlen(pattern) + 2;
-                  CharArray tmpHosts(length);
-                  strcpy(tmpHosts.buf, pattern);
-                  if (strlen(newHosts.buf)) {
-                    strcat(tmpHosts.buf, ",");
-                    strcat(tmpHosts.buf, newHosts.buf);
-                  }
-                  delete [] newHosts.buf;
-                  newHosts.buf = tmpHosts.takeBuf();
+                  if (!newHosts.empty())
+                    newHosts += ",";
+                  newHosts += pattern;
                 }
               }
 
               // Finally, save the Hosts value
-              regKey.setString("Hosts", newHosts.buf);
+              regKey.setString("Hosts", newHosts.c_str());
             } catch (rdr::Exception&) {
               MsgBox(0, "Unable to convert AuthHosts setting to Hosts format.",
                      MB_ICONWARNING | MB_OK);
@@ -157,10 +149,10 @@ void LegacyPage::LoadPrefs()
         }
 
         // Open the local, user-specific settings
-        if (userSettings && username.buf) {
+        if (userSettings && !username.empty()) {
           try {
             RegKey userKey;
-            userKey.openKey(winvnc3, username.buf);
+            userKey.openKey(winvnc3, username.c_str());
             vlog.info("loading local User prefs");
             LoadUserPrefs(userKey);
           } catch(rdr::Exception& e) {

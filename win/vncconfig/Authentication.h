@@ -32,7 +32,6 @@
 #ifdef HAVE_GNUTLS
 #include <rfb/SSecurityTLS.h>
 #endif
-#include <rfb/Password.h>
 
 static rfb::BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
   "Only prompt for a local user to accept incoming connections if there is a user logged on", false);
@@ -113,9 +112,9 @@ namespace rfb {
 
 
       static bool haveVncPassword() {
-        PlainPasswd password, passwordReadOnly;
+        std::string password, passwordReadOnly;
         SSecurityVncAuth::vncAuthPasswd.getVncAuthPasswd(&password, &passwordReadOnly);
-        return password.buf && strlen(password.buf) != 0;
+        return !password.empty();
       }
 
       static void verifyVncPassword(const RegKey& regKey) {

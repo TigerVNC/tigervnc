@@ -172,10 +172,10 @@ void XserverDesktop::queryConnection(network::Socket* sock,
     return;
   }
 
-  queryConnectAddress.replaceBuf(strDup(sock->getPeerAddress()));
+  queryConnectAddress = sock->getPeerAddress();
   if (!userName)
     userName = "(anonymous)";
-  queryConnectUsername.replaceBuf(strDup(userName));
+  queryConnectUsername = userName;
   queryConnectId = (uint32_t)(intptr_t)sock;
   queryConnectSocket = sock;
 
@@ -428,8 +428,8 @@ void XserverDesktop::getQueryConnect(uint32_t* opaqueId,
     *username = "";
     *timeout = 0;
   } else {
-    *address = queryConnectAddress.buf;
-    *username = queryConnectUsername.buf;
+    *address = queryConnectAddress.c_str();
+    *username = queryConnectUsername.c_str();
     *timeout = queryConnectTimeout;
   }
 }

@@ -207,7 +207,7 @@ BOOL PropSheetPage::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 
 PropSheet::PropSheet(HINSTANCE inst_, const char* title_, std::list<PropSheetPage*> pages_, HICON icon_)
-: icon(icon_), pages(pages_), inst(inst_), title(strDup(title_)), handle(0), alreadyShowing(0) {
+: icon(icon_), pages(pages_), inst(inst_), title(title_), handle(0), alreadyShowing(0) {
 }
 
 PropSheet::~PropSheet() {
@@ -264,7 +264,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     header.pfnCallback = removeCtxtHelp;
     header.hwndParent = owner;
     header.hInstance = inst;
-    header.pszCaption = title.buf;
+    header.pszCaption = title.c_str();
     header.nPages = count;
     header.nStartPage = 0;
     header.phpage = hpages;
@@ -282,7 +282,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     (void)capture;
 #ifdef _DIALOG_CAPTURE
     if (capture) {
-      plog.info("capturing \"%s\"", title.buf);
+      plog.info("capturing \"%s\"", title.c_str());
       char* tmpdir = getenv("TEMP");
       HDC dc = GetWindowDC(handle);
       DeviceFrameBuffer fb(dc);

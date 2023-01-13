@@ -26,6 +26,7 @@
 #include <list>
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
+#include <rfb/util.h>
 #include <rfb_win32/SocketManager.h>
 
 using namespace rfb;

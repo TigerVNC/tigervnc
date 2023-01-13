@@ -112,7 +112,7 @@ namespace rfb {
       updates.add_copied(dest, delta);
     }
 
-    const char* getPeerEndpoint() const {return peerEndpoint.buf;}
+    const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
 
   private:
     // SConnection callbacks
@@ -166,7 +166,7 @@ namespace rfb {
 
   private:
     network::Socket* sock;
-    CharArray peerEndpoint;
+    std::string peerEndpoint;
     bool reverseConnection;
 
     bool inProcessMessages;
@@ -197,7 +197,7 @@ namespace rfb {
     Point pointerEventPos;
     bool clientHasCursor;
 
-    CharArray closeReason;
+    std::string closeReason;
   };
 }
 #endif

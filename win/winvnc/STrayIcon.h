@@ -47,7 +47,7 @@ namespace winvnc {
     os::Mutex* lock;
     DWORD thread_id;
     HWND windowHandle;
-    rfb::CharArray toolTip;
+    std::string toolTip;
     VNCServerWin32& server;
     UINT inactiveIcon;
     UINT activeIcon;
