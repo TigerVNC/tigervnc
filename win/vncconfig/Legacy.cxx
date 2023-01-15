@@ -19,7 +19,6 @@
 #include <vncconfig/Legacy.h>
 
 #include <rfb/LogWriter.h>
-#include <rfb/Password.h>
 #include <rfb_win32/CurrentUser.h>
 
 using namespace rfb;
@@ -212,9 +211,9 @@ void LegacyPage::LoadPrefs()
         }
         regKey.setInt(_T("QueryTimeout"), key.getInt(_T("QueryTimeout"), 10));
 
-        ObfuscatedPasswd passwd;
-        key.getBinary(_T("Password"), (void**)&passwd.buf, &passwd.length, 0, 0);
-        regKey.setBinary(_T("Password"), passwd.buf, passwd.length);
+        std::vector<uint8_t> passwd;
+        passwd = key.getBinary(_T("Password"));
+        regKey.setBinary(_T("Password"), passwd.data(), passwd.size());
 
         bool enableInputs = key.getBool(_T("InputsEnabled"), true);
         regKey.setBool(_T("AcceptKeyEvents"), enableInputs);

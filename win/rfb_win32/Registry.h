@@ -78,8 +78,8 @@ namespace rfb {
       TCHAR* getString(const TCHAR* valname) const;
       TCHAR* getString(const TCHAR* valname, const TCHAR* def) const;
 
-      void getBinary(const TCHAR* valname, void** data, size_t* length) const;
-      void getBinary(const TCHAR* valname, void** data, size_t* length, void* def, size_t deflength) const;
+      std::vector<uint8_t> getBinary(const TCHAR* valname) const;
+      std::vector<uint8_t> getBinary(const TCHAR* valname, const uint8_t* def, size_t deflength) const;
 
       int getInt(const TCHAR* valname) const;
       int getInt(const TCHAR* valname, int def) const;

@@ -123,7 +123,12 @@ VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name,
 
 void VncAuthPasswdParameter::getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword) {
   ObfuscatedPasswd obfuscated, obfuscatedReadOnly;
-  getData((uint8_t**)&obfuscated.buf, &obfuscated.length);
+  std::vector<uint8_t> data = getData();
+  obfuscated.length = data.size();
+  if (!data.empty()) {
+    obfuscated.buf = new char[data.size()];
+    memcpy(obfuscated.buf, data.data(), data.size());
+  }
 
   if (obfuscated.length == 0) {
     if (passwdFile) {

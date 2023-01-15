@@ -44,6 +44,8 @@
 #ifndef __RFB_CONFIGURATION_H__
 #define __RFB_CONFIGURATION_H__
 
+#include <vector>
+
 #include <rfb/util.h>
 
 namespace os { class Mutex; }
@@ -266,9 +268,7 @@ namespace rfb {
     virtual char* getDefaultStr() const;
     virtual char* getValueStr() const;
 
-    // getData() will return length zero if there is no data
-    // NB: data may be set to zero, OR set to a zero-length buffer
-    void getData(uint8_t** data, size_t* length) const;
+    std::vector<uint8_t> getData() const;
 
   protected:
     uint8_t* value;

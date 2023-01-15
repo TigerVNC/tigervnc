@@ -178,12 +178,10 @@ namespace rfb {
     return true;
   }
 
-  uint8_t* hexToBin(const char* in, size_t inlen) {
-    uint8_t* out = new uint8_t[inlen/2];
-    if (!hexToBin(in, inlen, out, inlen/2)) {
-      delete [] out;
-      return NULL;
-    }
+  std::vector<uint8_t> hexToBin(const char* in, size_t inlen) {
+    std::vector<uint8_t> out(inlen/2);
+    if (!hexToBin(in, inlen, out.data(), inlen/2))
+      return std::vector<uint8_t>();
     return out;
   }
 

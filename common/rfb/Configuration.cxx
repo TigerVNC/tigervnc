@@ -435,11 +435,10 @@ BinaryParameter::~BinaryParameter() {
 
 bool BinaryParameter::setParam(const char* v) {
   if (immutable) return true;
-  uint8_t *newValue = hexToBin(v, strlen(v));
-  if (newValue == NULL)
+  std::vector<uint8_t> newValue = hexToBin(v, strlen(v));
+  if (newValue.empty() && strlen(v) > 0)
     return false;
-  setParam(newValue, strlen(v)/2);
-  delete [] newValue;
+  setParam(newValue.data(), newValue.size());
   return true;
 }
 
@@ -467,11 +466,9 @@ char* BinaryParameter::getValueStr() const {
   return binToHex(value, length);
 }
 
-void BinaryParameter::getData(uint8_t** data_, size_t* length_) const {
+std::vector<uint8_t> BinaryParameter::getData() const {
   LOCK_CONFIG;
-  if (length_) *length_ = length;
-  if (data_) {
-    *data_ = new uint8_t[length];
-    memcpy(*data_, value, length);
-  }
+  std::vector<uint8_t> out(length);
+  memcpy(out.data(), value, length);
+  return out;
 }

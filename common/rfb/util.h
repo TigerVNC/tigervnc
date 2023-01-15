@@ -28,6 +28,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <vector>
+
 struct timeval;
 
 namespace rfb {
@@ -79,7 +81,7 @@ namespace rfb {
   void binToHex(const uint8_t* in, size_t inlen, char* out, size_t outlen);
   char* binToHex(const uint8_t* in, size_t inlen);
   bool hexToBin(const char* in, size_t inlen, uint8_t* out, size_t outlen);
-  uint8_t* hexToBin(const char* in, size_t inlen);
+  std::vector<uint8_t> hexToBin(const char* in, size_t inlen);
 
   // Makes sure line endings are in a certain format
 

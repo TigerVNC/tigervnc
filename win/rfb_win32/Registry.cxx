@@ -173,23 +173,17 @@ TCHAR* RegKey::getString(const TCHAR* valname, const TCHAR* def) const {
   }
 }
 
-void RegKey::getBinary(const TCHAR* valname, void** data, size_t* length) const {
+std::vector<uint8_t> RegKey::getBinary(const TCHAR* valname) const {
   TCharArray hex(getRepresentation(valname));
-  *data = hexToBin(CStr(hex.buf), strlen(CStr(hex.buf)));
-  *length = strlen(CStr(hex.buf))/2;
-  if (*data == NULL)
-    throw rdr::Exception("getBinary failed");
+  return hexToBin(CStr(hex.buf), strlen(CStr(hex.buf)));
 }
-void RegKey::getBinary(const TCHAR* valname, void** data, size_t* length, void* def, size_t deflen) const {
+std::vector<uint8_t> RegKey::getBinary(const TCHAR* valname, const uint8_t* def, size_t deflen) const {
   try {
-    getBinary(valname, data, length);
+    return getBinary(valname);
   } catch(rdr::Exception&) {
-    if (deflen) {
-      *data = new char[deflen];
-      memcpy(*data, def, deflen);
-    } else
-      *data = 0;
-    *length = deflen;
+    std::vector<uint8_t> out(deflen);
+    memcpy(out.data(), def, deflen);
+    return out;
   }
 }
 
