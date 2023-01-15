@@ -281,12 +281,11 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 
 void DesktopWindow::setName(const char *name)
 {
-  CharArray windowNameStr;
-  windowNameStr.replaceBuf(new char[256]);
+  char windowNameStr[256];
 
-  snprintf(windowNameStr.buf, 256, "%.240s - TigerVNC", name);
+  snprintf(windowNameStr, 256, "%.240s - TigerVNC", name);
 
-  copy_label(windowNameStr.buf);
+  copy_label(windowNameStr);
 }
 
 

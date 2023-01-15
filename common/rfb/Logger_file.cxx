@@ -22,20 +22,21 @@
 #include <config.h>
 #endif
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <os/Mutex.h>
 
-#include <rfb/util.h>
 #include <rfb/Logger_file.h>
 
 using namespace rfb;
 
 Logger_File::Logger_File(const char* loggerName)
-  : Logger(loggerName), indent(13), width(79), m_filename(0), m_file(0),
+  : Logger(loggerName), indent(13), width(79), m_file(0),
     m_lastLogTime(0)
 {
+  m_filename[0] = '\0';
   mutex = new os::Mutex();
 }
 
@@ -50,11 +51,16 @@ void Logger_File::write(int /*level*/, const char *logname, const char *message)
   os::AutoMutex a(mutex);
 
   if (!m_file) {
-    if (!m_filename) return;
-    CharArray bakFilename(strlen(m_filename) + 1 + 4);
-    sprintf(bakFilename.buf, "%s.bak", m_filename);
-    remove(bakFilename.buf);
-    rename(m_filename, bakFilename.buf);
+    if (m_filename[0] == '\0')
+      return;
+    char bakFilename[PATH_MAX];
+    if (snprintf(bakFilename, sizeof(bakFilename),
+                 "%s.bak", m_filename) >= (int)sizeof(bakFilename)) {
+      remove(m_filename);
+    } else {
+      remove(bakFilename);
+      rename(m_filename, bakFilename);
+    }
     m_file = fopen(m_filename, "w+");
     if (!m_file) return;
   }
@@ -93,7 +99,10 @@ void Logger_File::write(int /*level*/, const char *logname, const char *message)
 void Logger_File::setFilename(const char* filename)
 {
   closeFile();
-  m_filename = strDup(filename);
+  m_filename[0] = '\0';
+  if (strlen(filename) >= sizeof(filename))
+    return;
+  strcpy(m_filename, filename);
 }
 
 void Logger_File::setFile(FILE* file)
@@ -104,13 +113,9 @@ void Logger_File::setFile(FILE* file)
 
 void Logger_File::closeFile()
 {
-  if (m_filename) {
-    if (m_file) {
-      fclose(m_file);
-      m_file = 0;
-    }
-    strFree(m_filename);
-    m_filename = 0;
+  if (m_file) {
+    fclose(m_file);
+    m_file = 0;
   }
 }
 

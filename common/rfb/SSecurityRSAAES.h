@@ -80,8 +80,8 @@ namespace rfb {
     uint8_t serverRandom[32];
     uint8_t clientRandom[32];
 
-    CharArray username;
-    CharArray password;
+    char username[256];
+    char password[256];
     SConnection::AccessRights accessRights;
 
     rdr::InStream* rais;

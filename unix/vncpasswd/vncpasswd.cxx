@@ -22,6 +22,7 @@
 #include <config.h>
 #endif
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -30,7 +31,6 @@
 #include <unistd.h>
 #include <os/os.h>
 #include <rfb/Password.h>
-#include <rfb/util.h>
 
 #include <termios.h>
 
@@ -130,7 +130,9 @@ int main(int argc, char** argv)
 {
   prog = argv[0];
 
-  char* fname = 0;
+  char fname[PATH_MAX];
+
+  fname[0] = '\0';
 
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-q") == 0) { // allowed for backwards compatibility
@@ -138,22 +140,25 @@ int main(int argc, char** argv)
       return encrypt_pipe();
     } else if (argv[i][0] == '-') {
       usage();
-    } else if (!fname) {
-      fname = strDup(argv[i]);
+    } else if (fname[0] == '\0') {
+      if (strlen(argv[i]) >= sizeof(fname)) {
+        fprintf(stderr, "Too long filename specified\n");
+        return -1;
+      }
+      strcpy(fname, argv[i]);
     } else {
       usage();
     }
   }
 
-  if (!fname) {
+  if (fname[0] == '\0') {
     const char *homeDir = os::getvnchomedir();
     if (homeDir == NULL) {
       fprintf(stderr, "Can't obtain VNC home directory\n");
       exit(1);
     }
     mkdir(homeDir, 0777);
-    fname = new char[strlen(homeDir) + strlen("/passwd") + 1];
-    sprintf(fname, "%s/passwd", homeDir);
+    snprintf(fname, sizeof(fname), "%s/passwd", homeDir);
   }
 
   while (true) {
@@ -171,7 +176,6 @@ int main(int argc, char** argv)
     FILE* fp = fopen(fname,"w");
     if (!fp) {
       fprintf(stderr,"Couldn't open %s for writing\n",fname);
-      delete [] fname;
       delete obfuscated;
       delete obfuscatedReadOnly;
       exit(1);
@@ -180,7 +184,6 @@ int main(int argc, char** argv)
 
     if (fwrite(obfuscated->buf, obfuscated->length, 1, fp) != 1) {
       fprintf(stderr,"Writing to %s failed\n",fname);
-      delete [] fname;
       delete obfuscated;
       delete obfuscatedReadOnly;
       exit(1);
@@ -191,7 +194,6 @@ int main(int argc, char** argv)
     if (obfuscatedReadOnly) {
       if (fwrite(obfuscatedReadOnly->buf, obfuscatedReadOnly->length, 1, fp) != 1) {
         fprintf(stderr,"Writing to %s failed\n",fname);
-        delete [] fname;
         delete obfuscatedReadOnly;
         exit(1);
       }
@@ -199,7 +201,6 @@ int main(int argc, char** argv)
 
     fclose(fp);
 
-    delete [] fname;
     delete obfuscatedReadOnly;
 
     return 0;

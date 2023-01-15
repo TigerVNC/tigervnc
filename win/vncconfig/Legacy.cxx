@@ -78,9 +78,9 @@ void LegacyPage::LoadPrefs()
                 rfb::strSplit(tmp.buf, ':', &first.buf, &tmp.buf);
                 if (strlen(first.buf)) {
                   int bits = 0;
-                  CharArray pattern(1+4*4+4);
-                  pattern.buf[0] = first.buf[0];
-                  pattern.buf[1] = 0;
+                  char pattern[1+4*4+4];
+                  pattern[0] = first.buf[0];
+                  pattern[1] = 0;
 
                   // Split the pattern into IP address parts and process
                   rfb::CharArray address;
@@ -89,11 +89,11 @@ void LegacyPage::LoadPrefs()
                     rfb::CharArray part;
                     rfb::strSplit(address.buf, '.', &part.buf, &address.buf);
                     if (bits)
-                      strcat(pattern.buf, ".");
+                      strcat(pattern, ".");
                     if (strlen(part.buf) > 3)
                       throw rdr::Exception("Invalid IP address part");
                     if (strlen(part.buf) > 0) {
-                      strcat(pattern.buf, part.buf);
+                      strcat(pattern, part.buf);
                       bits += 8;
                     }
                   }
@@ -101,20 +101,20 @@ void LegacyPage::LoadPrefs()
                   // Pad out the address specification if required
                   int addrBits = bits;
                   while (addrBits < 32) {
-                    if (addrBits) strcat(pattern.buf, ".");
-                    strcat(pattern.buf, "0");
+                    if (addrBits) strcat(pattern, ".");
+                    strcat(pattern, "0");
                     addrBits += 8;
                   }
 
                   // Append the number of bits to match
                   char buf[4];
                   sprintf(buf, "/%d", bits);
-                  strcat(pattern.buf, buf);
+                  strcat(pattern, buf);
 
                   // Append this pattern to the Hosts value
-                  int length = strlen(newHosts.buf) + strlen(pattern.buf) + 2;
+                  int length = strlen(newHosts.buf) + strlen(pattern) + 2;
                   CharArray tmpHosts(length);
-                  strcpy(tmpHosts.buf, pattern.buf);
+                  strcpy(tmpHosts.buf, pattern);
                   if (strlen(newHosts.buf)) {
                     strcat(tmpHosts.buf, ",");
                     strcat(tmpHosts.buf, newHosts.buf);

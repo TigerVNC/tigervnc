@@ -539,19 +539,13 @@ bool SSecurityRSAAES::readCredentials()
   uint8_t lenUsername = rais->readU8();
   if (!rais->hasDataOrRestore(lenUsername + 1))
     return false;
-  if (!username.buf) {
-    username.replaceBuf(new char[lenUsername + 1]);
-    rais->readBytes(username.buf, lenUsername);
-    username.buf[lenUsername] = 0;
-  } else {
-    rais->skip(lenUsername);
-  }
+  rais->readBytes(username, lenUsername);
+  username[lenUsername] = 0;
   uint8_t lenPassword = rais->readU8();
   if (!rais->hasDataOrRestore(lenPassword))
     return false;
-  password.replaceBuf(new char[lenPassword + 1]);
-  rais->readBytes(password.buf, lenPassword);
-  password.buf[lenPassword] = 0;
+  rais->readBytes(password, lenPassword);
+  password[lenPassword] = 0;
   rais->clearRestorePoint();
   return true;
 }
@@ -564,7 +558,7 @@ void SSecurityRSAAES::verifyUserPass()
 #elif !defined(__APPLE__)
   UnixPasswordValidator *valid = new UnixPasswordValidator();
 #endif
-  if (!valid->validate(sc, username.buf, password.buf)) {
+  if (!valid->validate(sc, username, password)) {
     delete valid;
     throw AuthFailureException("invalid password or username");
   }
@@ -583,12 +577,12 @@ void SSecurityRSAAES::verifyPass()
   if (!passwd.buf)
     throw AuthFailureException("No password configured for VNC Auth");
 
-  if (strcmp(password.buf, passwd.buf) == 0) {
+  if (strcmp(password, passwd.buf) == 0) {
     accessRights = SConnection::AccessDefault;
     return;
   }
 
-  if (passwdReadOnly.buf && strcmp(password.buf, passwdReadOnly.buf) == 0) {
+  if (passwdReadOnly.buf && strcmp(password, passwdReadOnly.buf) == 0) {
     accessRights = SConnection::AccessView;
     return;
   }
@@ -598,5 +592,5 @@ void SSecurityRSAAES::verifyPass()
 
 const char* SSecurityRSAAES::getUserName() const
 {
-  return username.buf;
+  return username;
 }

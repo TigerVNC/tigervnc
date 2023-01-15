@@ -80,9 +80,7 @@ SSecurityPlain::SSecurityPlain(SConnection* sc) : SSecurity(sc)
 bool SSecurityPlain::processMsg()
 {
   rdr::InStream* is = sc->getInStream();
-  char* pw;
-  char *uname;
-  CharArray password;
+  char password[1024];
 
   if (!valid)
     throw AuthFailureException("No password validator configured");
@@ -92,11 +90,11 @@ bool SSecurityPlain::processMsg()
       return false;
 
     ulen = is->readU32();
-    if (ulen > MaxSaneUsernameLength)
+    if (ulen >= sizeof(username))
       throw AuthFailureException("Too long username");
 
     plen = is->readU32();
-    if (plen > MaxSanePasswordLength)
+    if (plen >= sizeof(password))
       throw AuthFailureException("Too long password");
 
     state = 1;
@@ -106,16 +104,12 @@ bool SSecurityPlain::processMsg()
     if (!is->hasData(ulen + plen))
       return false;
     state = 2;
-    pw = new char[plen + 1];
-    uname = new char[ulen + 1];
-    username.replaceBuf(uname);
-    password.replaceBuf(pw);
-    is->readBytes(uname, ulen);
-    is->readBytes(pw, plen);
-    pw[plen] = 0;
-    uname[ulen] = 0;
+    is->readBytes(username, ulen);
+    is->readBytes(password, plen);
+    password[plen] = 0;
+    username[ulen] = 0;
     plen = 0;
-    if (!valid->validate(sc, uname, pw))
+    if (!valid->validate(sc, username, password))
       throw AuthFailureException("invalid password or username");
   }
 

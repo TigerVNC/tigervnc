@@ -21,18 +21,17 @@
 
 #include <windows.h>
 
-#include <rfb/util.h>
-
 namespace rfb {
   namespace win32 {
 
-    struct ModuleFileName : public CharArray {
-      ModuleFileName(HMODULE module=0) : CharArray(MAX_PATH) {
+    struct ModuleFileName {
+      ModuleFileName(HMODULE module=0) {
         if (!module)
           module = GetModuleHandle(0);
         if (!GetModuleFileName(module, buf, MAX_PATH))
           buf[0] = 0;
       }
+      char buf[MAX_PATH];
     };
 
   };
