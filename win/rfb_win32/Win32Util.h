@@ -25,15 +25,16 @@
 #ifndef __RFB_WIN32_GDIUTIL_H__
 #define __RFB_WIN32_GDIUTIL_H__
 
-#include <rfb/util.h>
-
 namespace rfb {
 
   namespace win32 {
 
-    struct FileVersionInfo : public CharArray {
+    struct FileVersionInfo {
       FileVersionInfo(const char* filename=0);
+      ~FileVersionInfo();
       const char* getVerString(const char* name, DWORD langId = 0x080904b0);
+    private:
+      char *buf;
     };
 
     // Center the window to a rectangle, or to a parent window.

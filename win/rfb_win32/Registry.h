@@ -22,9 +22,10 @@
 #ifndef __RFB_WIN32_REGISTRY_H__
 #define __RFB_WIN32_REGISTRY_H__
 
+#include <string>
+
 #include <windows.h>
 #include <rfb_win32/Security.h>
-#include <rfb/util.h>
 
 namespace rfb {
 
@@ -101,7 +102,7 @@ namespace rfb {
     protected:
       HKEY key;
       bool freeKey;
-      CharArray valueName;
+      char* valueName;
       DWORD valueNameBufLen;
     };
 

@@ -48,9 +48,9 @@ using namespace rfb::win32;
 static LogWriter vlog("Registry");
 
 
-RegKey::RegKey() : key(0), freeKey(false), valueNameBufLen(0) {}
+RegKey::RegKey() : key(0), freeKey(false), valueName(NULL), valueNameBufLen(0) {}
 
-RegKey::RegKey(const HKEY k) : key(0), freeKey(false), valueNameBufLen(0) {
+RegKey::RegKey(const HKEY k) : key(0), freeKey(false), valueName(NULL), valueNameBufLen(0) {
   LONG result = RegOpenKeyEx(k, 0, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx(HKEY)", result);
@@ -58,7 +58,7 @@ RegKey::RegKey(const HKEY k) : key(0), freeKey(false), valueNameBufLen(0) {
   freeKey = true;
 }
 
-RegKey::RegKey(const RegKey& k) : key(0), freeKey(false), valueNameBufLen(0) {
+RegKey::RegKey(const RegKey& k) : key(0), freeKey(false), valueName(NULL), valueNameBufLen(0) {
   LONG result = RegOpenKeyEx(k.key, 0, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx(RegKey&)", result);
@@ -68,6 +68,7 @@ RegKey::RegKey(const RegKey& k) : key(0), freeKey(false), valueNameBufLen(0) {
 
 RegKey::~RegKey() {
   close();
+  delete [] valueName;
 }
 
 
@@ -272,15 +273,15 @@ const char* RegKey::getValueName(int i) {
     throw rdr::SystemException("RegQueryInfoKey", result);
   if (valueNameBufLen < maxValueNameLen + 1) {
     valueNameBufLen = maxValueNameLen + 1;
-    delete [] valueName.buf;
-    valueName.buf = new char[valueNameBufLen];
+    delete [] valueName;
+    valueName = new char[valueNameBufLen];
   }
   DWORD length = valueNameBufLen;
-  result = RegEnumValue(key, i, valueName.buf, &length, NULL, 0, 0, 0);
+  result = RegEnumValue(key, i, valueName, &length, NULL, 0, 0, 0);
   if (result == ERROR_NO_MORE_ITEMS) return 0;
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegEnumValue", result);
-  return valueName.buf;
+  return valueName;
 }
 
 const char* RegKey::getKeyName(int i) {
@@ -290,13 +291,13 @@ const char* RegKey::getKeyName(int i) {
     throw rdr::SystemException("RegQueryInfoKey", result);
   if (valueNameBufLen < maxValueNameLen + 1) {
     valueNameBufLen = maxValueNameLen + 1;
-    delete [] valueName.buf;
-    valueName.buf = new char[valueNameBufLen];
+    delete [] valueName;
+    valueName = new char[valueNameBufLen];
   }
   DWORD length = valueNameBufLen;
-  result = RegEnumKeyEx(key, i, valueName.buf, &length, NULL, 0, 0, 0);
+  result = RegEnumKeyEx(key, i, valueName, &length, NULL, 0, 0, 0);
   if (result == ERROR_NO_MORE_ITEMS) return 0;
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegEnumKey", result);
-  return valueName.buf;
+  return valueName;
 }
