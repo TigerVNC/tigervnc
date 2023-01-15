@@ -167,13 +167,13 @@ namespace rfb {
           {
             HWND listBox = GetDlgItem(handle, IDC_HOSTS);
             int item = SendMessage(listBox, LB_GETCURSEL, 0, 0);
-            CharArray pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
-            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.buf);
+            std::vector<char> pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
+            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.data());
 
-            if (hostDialog.showDialog(pattern.buf)) {
+            if (hostDialog.showDialog(pattern.data())) {
               const char* newPat = hostDialog.getPattern();
               if (newPat) {
-                item = SendMessage(listBox, LB_FINDSTRINGEXACT, item, (LPARAM)pattern.buf);
+                item = SendMessage(listBox, LB_FINDSTRINGEXACT, item, (LPARAM)pattern.data());
                 if (item != LB_ERR) {
                   SendMessage(listBox, LB_DELETESTRING, item, 0); 
                   SendMessage(listBox, LB_INSERTSTRING, item, (LPARAM)newPat);
@@ -189,10 +189,10 @@ namespace rfb {
           {
             HWND listBox = GetDlgItem(handle, IDC_HOSTS);
             int item = SendMessage(listBox, LB_GETCURSEL, 0, 0);
-            CharArray pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
-            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.buf);
+            std::vector<char> pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
+            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.data());
             SendMessage(listBox, LB_DELETESTRING, item, 0);
-            SendMessage(listBox, LB_INSERTSTRING, item-1, (LPARAM)pattern.buf);
+            SendMessage(listBox, LB_INSERTSTRING, item-1, (LPARAM)pattern.data());
             SendMessage(listBox, LB_SETCURSEL, item-1, 0);
             onCommand(IDC_HOSTS, EN_CHANGE);
           }
@@ -202,10 +202,10 @@ namespace rfb {
           {
             HWND listBox = GetDlgItem(handle, IDC_HOSTS);
             int item = SendMessage(listBox, LB_GETCURSEL, 0, 0);
-            CharArray pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
-            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.buf);
+            std::vector<char> pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
+            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.data());
             SendMessage(listBox, LB_DELETESTRING, item, 0);
-            SendMessage(listBox, LB_INSERTSTRING, item+1, (LPARAM)pattern.buf);
+            SendMessage(listBox, LB_INSERTSTRING, item+1, (LPARAM)pattern.data());
             SendMessage(listBox, LB_SETCURSEL, item+1, 0);
             onCommand(IDC_HOSTS, EN_CHANGE);
           }

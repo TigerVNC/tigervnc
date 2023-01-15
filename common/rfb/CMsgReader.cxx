@@ -33,7 +33,6 @@
 #include <rfb/clipboardTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/CMsgReader.h>
 
@@ -73,10 +72,10 @@ bool CMsgReader::readServerInit()
   if (!is->hasDataOrRestore(len))
     return false;
   is->clearRestorePoint();
-  CharArray name(len + 1);
-  is->readBytes(name.buf, len);
-  name.buf[len] = '\0';
-  handler->serverInit(width, height, pf, name.buf);
+  std::vector<char> name(len + 1);
+  is->readBytes(name.data(), len);
+  name[len] = '\0';
+  handler->serverInit(width, height, pf, name.data());
 
   return true;
 }
@@ -275,9 +274,9 @@ bool CMsgReader::readServerCutText()
     vlog.error("cut text too long (%d bytes) - ignoring",len);
     return true;
   }
-  CharArray ca(len);
-  is->readBytes(ca.buf, len);
-  std::string filtered(convertLF(ca.buf, len));
+  std::vector<char> ca(len);
+  is->readBytes(ca.data(), len);
+  std::string filtered(convertLF(ca.data(), len));
   handler->serverCutText(filtered.c_str());
 
   return true;
@@ -762,14 +761,14 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
     return false;
   is->clearRestorePoint();
 
-  CharArray name(len + 1);
-  is->readBytes(name.buf, len);
-  name.buf[len] = '\0';
+  std::vector<char> name(len + 1);
+  is->readBytes(name.data(), len);
+  name[len] = '\0';
 
   if (x || y || w || h) {
     vlog.error("Ignoring DesktopName rect with non-zero position/size");
   } else {
-    handler->setName(name.buf);
+    handler->setName(name.data());
   }
 
   return true;

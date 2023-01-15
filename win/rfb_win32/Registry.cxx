@@ -214,40 +214,40 @@ std::string RegKey::getRepresentation(const char* valname) const {
   LONG result = RegQueryValueEx(key, valname, 0, &type, 0, &length);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("get registry value length", result);
-  CharArray data(length);
-  result = RegQueryValueEx(key, valname, 0, &type, (BYTE*)data.buf, &length);
+  std::vector<uint8_t> data(length);
+  result = RegQueryValueEx(key, valname, 0, &type, (BYTE*)data.data(), &length);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("get registry value", result);
 
   switch (type) {
   case REG_BINARY:
     {
-      return binToHex((const uint8_t*)data.buf, length);
+      return binToHex(data.data(), length);
     }
   case REG_SZ:
     if (length) {
-      return std::string(data.buf, length);
+      return std::string((char*)data.data(), length);
     } else {
       return "";
     }
   case REG_DWORD:
     {
       char tmp[16];
-      sprintf(tmp, "%lu", *((DWORD*)data.buf));
+      sprintf(tmp, "%lu", *((DWORD*)data.data()));
       return tmp;
     }
   case REG_EXPAND_SZ:
     {
     if (length) {
-      std::string str(data.buf, length);
+      std::string str((char*)data.data(), length);
       DWORD required = ExpandEnvironmentStrings(str.c_str(), 0, 0);
       if (required==0)
         throw rdr::SystemException("ExpandEnvironmentStrings", GetLastError());
-      CharArray result(required);
-      length = ExpandEnvironmentStrings(str.c_str(), result.buf, required);
+      std::vector<char> result(required);
+      length = ExpandEnvironmentStrings(str.c_str(), result.data(), required);
       if (required<length)
         throw rdr::Exception("unable to expand environment strings");
-      return result.buf;
+      return result.data();
     } else {
       return "";
     }

@@ -360,12 +360,12 @@ bool CConnection::processSecurityReasonMsg()
     return false;
   is->clearRestorePoint();
 
-  CharArray reason(len + 1);
-  is->readBytes(reason.buf, len);
-  reason.buf[len] = '\0';
+  std::vector<char> reason(len + 1);
+  is->readBytes(reason.data(), len);
+  reason[len] = '\0';
 
   state_ = RFBSTATE_INVALID;
-  throw AuthFailureException(reason.buf);
+  throw AuthFailureException(reason.data());
 }
 
 bool CConnection::processInitMsg()
