@@ -39,69 +39,69 @@
 static int gethomedir(char **dirp, bool userDir)
 {
 #ifndef WIN32
-	char *homedir, *dir;
-	size_t len;
-	uid_t uid;
-	struct passwd *passwd;
+  char *homedir, *dir;
+  size_t len;
+  uid_t uid;
+  struct passwd *passwd;
 #else
-	char *dir;
-	BOOL ret;
+  char *dir;
+  BOOL ret;
 #endif
 
-	assert(dirp != NULL && *dirp == NULL);
+  assert(dirp != NULL && *dirp == NULL);
 
 #ifndef WIN32
-	homedir = getenv("HOME");
-	if (homedir == NULL) {
-		uid = getuid();
-		passwd = getpwuid(uid);
-		if (passwd == NULL) {
-			/* Do we want emit error msg here? */
-			return -1;
-		}
-		homedir = passwd->pw_dir;
-	}
+  homedir = getenv("HOME");
+  if (homedir == NULL) {
+    uid = getuid();
+    passwd = getpwuid(uid);
+    if (passwd == NULL) {
+      /* Do we want emit error msg here? */
+      return -1;
+    }
+    homedir = passwd->pw_dir;
+  }
 
-	len = strlen(homedir);
-	dir = new char[len+7];
-	if (dir == NULL)
-		return -1;
+  len = strlen(homedir);
+  dir = new char[len+7];
+  if (dir == NULL)
+    return -1;
 
-	memcpy(dir, homedir, len);
-	if (userDir)
-		dir[len]='\0';
-	else
-		memcpy(dir + len, "/.vnc/\0", 7);
+  memcpy(dir, homedir, len);
+  if (userDir)
+    dir[len]='\0';
+  else
+    memcpy(dir + len, "/.vnc/\0", 7);
 #else
-	dir = new char[MAX_PATH];
-	if (dir == NULL)
-		return -1;
+  dir = new char[MAX_PATH];
+  if (dir == NULL)
+    return -1;
 
-	if (userDir)
-		ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_PROFILE, FALSE);
-	else
-		ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_APPDATA, FALSE);
+  if (userDir)
+    ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_PROFILE, FALSE);
+  else
+    ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_APPDATA, FALSE);
 
-	if (ret == FALSE) {
-		delete [] dir;
-		return -1;
-	}
-	if (userDir)
-		dir[strlen(dir)+1] = '\0';
-	else
-		memcpy(dir+strlen(dir), "\\vnc\\\0", 6);
+  if (ret == FALSE) {
+    delete [] dir;
+    return -1;
+  }
+  if (userDir)
+    dir[strlen(dir)+1] = '\0';
+  else
+    memcpy(dir+strlen(dir), "\\vnc\\\0", 6);
 #endif
-	*dirp = dir;
-	return 0;
+  *dirp = dir;
+  return 0;
 }
 
 int getvnchomedir(char **dirp)
 {
-	return gethomedir(dirp, false);
+  return gethomedir(dirp, false);
 }
 
 int getuserhomedir(char **dirp)
 {
-	return gethomedir(dirp, true);
+  return gethomedir(dirp, true);
 }
 
