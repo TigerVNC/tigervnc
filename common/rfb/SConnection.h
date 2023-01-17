@@ -24,6 +24,8 @@
 #ifndef __RFB_SCONNECTION_H__
 #define __RFB_SCONNECTION_H__
 
+#include <string>
+
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 
@@ -263,7 +265,8 @@ namespace rfb {
     int32_t preferredEncoding;
     AccessRights accessRights;
 
-    char* clientClipboard;
+    std::string clientClipboard;
+    bool hasRemoteClipboard;
     bool hasLocalClipboard;
     bool unsolicitedClipboardAttempt;
   };

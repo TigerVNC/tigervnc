@@ -24,6 +24,8 @@
 #ifndef __RFB_CCONNECTION_H__
 #define __RFB_CCONNECTION_H__
 
+#include <string>
+
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/SecurityClient.h>
@@ -292,7 +294,8 @@ namespace rfb {
     ModifiablePixelBuffer* framebuffer;
     DecodeManager decoder;
 
-    char* serverClipboard;
+    std::string serverClipboard;
+    bool hasRemoteClipboard;
     bool hasLocalClipboard;
     bool unsolicitedClipboardAttempt;
   };

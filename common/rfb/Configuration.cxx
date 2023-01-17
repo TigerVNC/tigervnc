@@ -372,7 +372,7 @@ IntParameter::operator int() const {
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
                                  const char* v, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), value(strDup(v)), def_value(strDup(v))
+  : VoidParameter(name_, desc_, co), value(v), def_value(v)
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
@@ -381,8 +381,6 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
 }
 
 StringParameter::~StringParameter() {
-  strFree(value);
-  strFree(def_value);
 }
 
 bool StringParameter::setParam(const char* v) {
@@ -391,9 +389,8 @@ bool StringParameter::setParam(const char* v) {
   if (!v)
     throw rfb::Exception("setParam(<null>) not allowed");
   vlog.debug("set %s(String) to %s", getName(), v);
-  CharArray oldValue(value);
-  value = strDup(v);
-  return value != 0;
+  value = v;
+  return true;
 }
 
 std::string StringParameter::getDefaultStr() const {
@@ -402,11 +399,11 @@ std::string StringParameter::getDefaultStr() const {
 
 std::string StringParameter::getValueStr() const {
   LOCK_CONFIG;
-  return std::string(value);
+  return value;
 }
 
 StringParameter::operator const char *() const {
-  return value;
+  return value.c_str();
 }
 
 // -=- BinaryParameter

@@ -59,7 +59,7 @@ CConnection::CConnection()
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
     framebuffer(NULL), decoder(this),
-    serverClipboard(NULL), hasLocalClipboard(false)
+    hasRemoteClipboard(false), hasLocalClipboard(false)
 {
 }
 
@@ -405,8 +405,6 @@ void CConnection::close()
   reader_ = NULL;
   delete writer_;
   writer_ = NULL;
-  strFree(serverClipboard);
-  serverClipboard = NULL;
 }
 
 void CConnection::setDesktopSize(int w, int h)
@@ -545,10 +543,8 @@ void CConnection::serverCutText(const char* str)
 {
   hasLocalClipboard = false;
 
-  strFree(serverClipboard);
-  serverClipboard = NULL;
-
-  serverClipboard = strDup(latin1ToUTF8(str).c_str());
+  serverClipboard = latin1ToUTF8(str);
+  hasRemoteClipboard = true;
 
   handleClipboardAnnounce(true);
 }
@@ -589,8 +585,7 @@ void CConnection::handleClipboardPeek()
 
 void CConnection::handleClipboardNotify(uint32_t flags)
 {
-  strFree(serverClipboard);
-  serverClipboard = NULL;
+  hasRemoteClipboard = false;
 
   if (flags & rfb::clipboardUTF8) {
     hasLocalClipboard = false;
@@ -609,14 +604,11 @@ void CConnection::handleClipboardProvide(uint32_t flags,
     return;
   }
 
-  strFree(serverClipboard);
-  serverClipboard = NULL;
-
-  std::string filtered(convertLF((const char*)data[0], lengths[0]));
-  serverClipboard = strDup(filtered.c_str());
+  serverClipboard = convertLF((const char*)data[0], lengths[0]);
+  hasRemoteClipboard = true;
 
   // FIXME: Should probably verify that this data was actually requested
-  handleClipboardData(serverClipboard);
+  handleClipboardData(serverClipboard.c_str());
 }
 
 void CConnection::authSuccess()
@@ -646,8 +638,8 @@ void CConnection::handleClipboardData(const char* /*data*/)
 
 void CConnection::requestClipboard()
 {
-  if (serverClipboard != NULL) {
-    handleClipboardData(serverClipboard);
+  if (hasRemoteClipboard) {
+    handleClipboardData(serverClipboard.c_str());
     return;
   }
 

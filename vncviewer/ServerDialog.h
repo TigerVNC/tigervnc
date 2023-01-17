@@ -50,7 +50,7 @@ private:
 protected:
   Fl_Input_Choice *serverName;
   std::vector<std::string> serverHistory;
-  char *usedDir;
+  std::string usedDir;
 };
 
 #endif

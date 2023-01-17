@@ -21,8 +21,7 @@
 #define __RFB_LISTCONNINFO_INCLUDED__
 
 #include <list>
-
-#include <rfb/util.h>
+#include <string>
 
 namespace winvnc {
 
@@ -53,12 +52,12 @@ namespace winvnc {
 
     void addInfo(void* Conn, const char* IP, int Status) {
       conn.push_back(Conn);
-      IP_address.push_back(rfb::strDup(IP));
+      IP_address.push_back(IP);
       status.push_back(Status);
     }
 
     void iGetCharInfo(const char* buf[2]) {
-      buf[0] = *Ii;
+      buf[0] = Ii->c_str();
       switch (*si) {
       case 0:
         buf[1] = "Full control";
@@ -107,10 +106,10 @@ namespace winvnc {
 
   private:
     std::list<void*> conn;
-    std::list<char*> IP_address;
+    std::list<std::string> IP_address;
     std::list<int> status;
     std::list<void*>::iterator ci;
-    std::list<char*>::iterator Ii;
+    std::list<std::string>::iterator Ii;
     std::list<int>::iterator si;
     bool disableClients;
   };

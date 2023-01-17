@@ -250,8 +250,8 @@ namespace rfb {
     virtual std::string getValueStr() const;
     operator const char*() const;
   protected:
-    char* value;
-    char* def_value;
+    std::string value;
+    std::string def_value;
   };
 
   class BinaryParameter : public VoidParameter {

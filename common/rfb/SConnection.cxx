@@ -60,7 +60,8 @@ SConnection::SConnection()
     is(0), os(0), reader_(0), writer_(0), ssecurity(0),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-    accessRights(0x0000), clientClipboard(NULL), hasLocalClipboard(false),
+    accessRights(0x0000), hasRemoteClipboard(false),
+    hasLocalClipboard(false),
     unsolicitedClipboardAttempt(false)
 {
   defaultMajorVersion = 3;
@@ -380,10 +381,8 @@ void SConnection::clientCutText(const char* str)
 {
   hasLocalClipboard = false;
 
-  strFree(clientClipboard);
-  clientClipboard = NULL;
-
-  clientClipboard = strDup(latin1ToUTF8(str).c_str());
+  clientClipboard = latin1ToUTF8(str);
+  hasRemoteClipboard = true;
 
   handleClipboardAnnounce(true);
 }
@@ -409,8 +408,7 @@ void SConnection::handleClipboardPeek()
 
 void SConnection::handleClipboardNotify(uint32_t flags)
 {
-  strFree(clientClipboard);
-  clientClipboard = NULL;
+  hasRemoteClipboard = false;
 
   if (flags & rfb::clipboardUTF8) {
     hasLocalClipboard = false;
@@ -429,14 +427,11 @@ void SConnection::handleClipboardProvide(uint32_t flags,
     return;
   }
 
-  strFree(clientClipboard);
-  clientClipboard = NULL;
-
-  std::string filtered(convertLF((const char*)data[0], lengths[0]));
-  clientClipboard = strDup(filtered.c_str());
+  clientClipboard = convertLF((const char*)data[0], lengths[0]);
+  hasRemoteClipboard = true;
 
   // FIXME: Should probably verify that this data was actually requested
-  handleClipboardData(clientClipboard);
+  handleClipboardData(clientClipboard.c_str());
 }
 
 void SConnection::supportsQEMUKeyEvent()
@@ -554,8 +549,8 @@ void SConnection::handleClipboardData(const char* /*data*/)
 
 void SConnection::requestClipboard()
 {
-  if (clientClipboard != NULL) {
-    handleClipboardData(clientClipboard);
+  if (hasRemoteClipboard) {
+    handleClipboardData(clientClipboard.c_str());
     return;
   }
 
@@ -624,8 +619,6 @@ void SConnection::cleanup()
   reader_ = NULL;
   delete writer_;
   writer_ = NULL;
-  strFree(clientClipboard);
-  clientClipboard = NULL;
 }
 
 void SConnection::writeFakeColourMap(void)

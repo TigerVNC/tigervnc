@@ -34,7 +34,7 @@ ClientParams::ClientParams()
   : majorVersion(0), minorVersion(0),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
     subsampling(subsampleUndefined),
-    width_(0), height_(0), name_(0),
+    width_(0), height_(0),
     cursorPos_(0, 0), ledState_(ledUnknown)
 {
   setName("");
@@ -49,7 +49,6 @@ ClientParams::ClientParams()
 
 ClientParams::~ClientParams()
 {
-  delete [] name_;
   delete cursor_;
 }
 
@@ -80,8 +79,7 @@ void ClientParams::setPF(const PixelFormat& pf)
 
 void ClientParams::setName(const char* name)
 {
-  delete [] name_;
-  name_ = strDup(name);
+  name_ = name;
 }
 
 void ClientParams::setCursor(const Cursor& other)

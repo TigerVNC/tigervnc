@@ -23,6 +23,8 @@
 #ifndef __RFB_SERVERPARAMS_H__
 #define __RFB_SERVERPARAMS_H__
 
+#include <string>
+
 #include <rfb/Cursor.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ScreenSet.h>
@@ -60,7 +62,7 @@ namespace rfb {
     const PixelFormat& pf() const { return pf_; }
     void setPF(const PixelFormat& pf);
 
-    const char* name() const { return name_; }
+    const char* name() const { return name_.c_str(); }
     void setName(const char* name);
 
     const Cursor& cursor() const { return *cursor_; }
@@ -85,7 +87,7 @@ namespace rfb {
     ScreenSet screenLayout_;
 
     PixelFormat pf_;
-    char* name_;
+    std::string name_;
     Cursor* cursor_;
     unsigned int ledState_;
     uint32_t clipFlags;

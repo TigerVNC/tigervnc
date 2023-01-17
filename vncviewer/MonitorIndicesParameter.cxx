@@ -53,7 +53,7 @@ std::set<int> MonitorIndicesParameter::getParam()
         return indices;
     }
 
-    valid = parseIndices(value, &configIndices);
+    valid = parseIndices(value.c_str(), &configIndices);
     if (!valid) {
         return indices;
     }

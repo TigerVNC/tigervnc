@@ -33,7 +33,7 @@ ServerParams::ServerParams()
     supportsQEMUKeyEvent(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
-    width_(0), height_(0), name_(0),
+    width_(0), height_(0),
     ledState_(ledUnknown)
 {
   setName("");
@@ -46,7 +46,6 @@ ServerParams::ServerParams()
 
 ServerParams::~ServerParams()
 {
-  delete [] name_;
   delete cursor_;
 }
 
@@ -77,8 +76,7 @@ void ServerParams::setPF(const PixelFormat& pf)
 
 void ServerParams::setName(const char* name)
 {
-  delete [] name_;
-  name_ = strDup(name);
+  name_ = name;
 }
 
 void ServerParams::setCursor(const Cursor& other)
