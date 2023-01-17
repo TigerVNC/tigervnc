@@ -152,8 +152,8 @@ int main(int argc, char** argv)
       exit(1);
     }
     mkdir(homeDir, 0777);
-    fname = new char[strlen(homeDir) + 7];
-    sprintf(fname, "%spasswd", homeDir);
+    fname = new char[strlen(homeDir) + strlen("/passwd") + 1];
+    sprintf(fname, "%s/passwd", homeDir);
   }
 
   while (true) {

@@ -66,7 +66,7 @@ static const char* gethomedir(bool userDir)
   if (userDir)
     return homedir;
 
-  snprintf(dir, sizeof(dir), "%s/.vnc/", homedir);
+  snprintf(dir, sizeof(dir), "%s/.vnc", homedir);
 
   return dir;
 #else
@@ -81,10 +81,10 @@ static const char* gethomedir(bool userDir)
   if (userDir)
     return dir;
 
-  if (strlen(dir) + strlen("\\vnc\\") >= sizeof(dir))
+  if (strlen(dir) + strlen("\\vnc") >= sizeof(dir))
     return NULL;
 
-  strcat(dir, "\\vnc\\");
+  strcat(dir, "\\vnc");
 
   return dir;
 #endif

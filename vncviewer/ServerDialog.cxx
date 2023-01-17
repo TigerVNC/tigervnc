@@ -320,7 +320,7 @@ void ServerDialog::loadServerHistory()
     throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
+  snprintf(filepath, sizeof(filepath), "%s/%s", homeDir, SERVER_HISTORY);
 
   /* Read server history from file */
   FILE* f = fopen(filepath, "r");
@@ -386,7 +386,7 @@ void ServerDialog::saveServerHistory()
     throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
+  snprintf(filepath, sizeof(filepath), "%s/%s", homeDir, SERVER_HISTORY);
 
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");

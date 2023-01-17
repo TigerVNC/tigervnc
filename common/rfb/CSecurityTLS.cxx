@@ -82,7 +82,7 @@ static const char* homedirfn(const char* fn)
   if (homedir == NULL)
     return "";
 
-  snprintf(full_path, sizeof(full_path), "%s%s", homedir, fn);
+  snprintf(full_path, sizeof(full_path), "%s/%s", homedir, fn);
 
   return full_path;
 }
@@ -395,8 +395,8 @@ void CSecurityTLS::checkSession()
                                "path for known hosts storage");
   }
 
-  CharArray dbPath(strlen(homeDir) + 16 + 1);
-  sprintf(dbPath.buf, "%sx509_known_hosts", homeDir);
+  CharArray dbPath(strlen(homeDir) + strlen("/x509_known_hosts") + 1);
+  sprintf(dbPath.buf, "%s/x509_known_hosts", homeDir);
 
   err = gnutls_verify_stored_pubkey(dbPath.buf, NULL,
                                     client->getServerName(), NULL,

@@ -633,7 +633,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
     if (homeDir == NULL)
       throw Exception(_("Could not obtain the home directory path"));
 
-    snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir);
+    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", homeDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
@@ -737,7 +737,7 @@ char* loadViewerParameters(const char *filename) {
     if (homeDir == NULL)
       throw Exception(_("Could not obtain the home directory path"));
 
-    snprintf(filepath, sizeof(filepath), "%sdefault.tigervnc", homeDir);
+    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", homeDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
