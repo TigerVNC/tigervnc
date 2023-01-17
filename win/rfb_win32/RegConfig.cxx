@@ -61,11 +61,11 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
   DWORD i = 0;
   try {
     while (1) {
-      CharArray name(strDup(key.getValueName(i++)));
-      if (!name.buf) break;
-      CharArray value(key.getRepresentation(name.buf));
-      if (!value.buf || !Configuration::setParam(name.buf, value.buf))
-        vlog.info("unable to process %s", name.buf);
+      const char *name = key.getValueName(i++);
+      if (!name) break;
+      CharArray value(key.getRepresentation(name));
+      if (!value.buf || !Configuration::setParam(name, value.buf))
+        vlog.info("unable to process %s", name);
     }
   } catch (rdr::SystemException& e) {
     if (e.err != 6)

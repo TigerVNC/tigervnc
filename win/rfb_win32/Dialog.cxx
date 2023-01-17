@@ -300,13 +300,12 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
         char title[128];
         if (!GetWindowText(PropSheet_GetCurrentPageHwnd(handle), title, sizeof(title)))
           sprintf(title, "capture%d", i);
-        CharArray pageTitle(strDup(title));
-        for (int j=0; j<strlen(pageTitle.buf); j++) {
-          if (pageTitle.buf[j] == '/' || pageTitle.buf[j] == '\\' || pageTitle.buf[j] == ':')
-            pageTitle.buf[j] = '-';
+        for (int j=0; j<strlen(title); j++) {
+          if (title == '/' || title[j] == '\\' || title[j] == ':')
+            title[j] = '-';
         }
         char filename[256];
-        sprintf(filename, "%s\\%s.bmp", tmpdir, pageTitle.buf);
+        sprintf(filename, "%s\\%s.bmp", tmpdir, title);
         vlog.debug("writing to %s", filename);
         saveBMP(filename, &fb);
         i++;

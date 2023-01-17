@@ -711,21 +711,18 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 }
 
 char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
-  rfb::CharArray addr;
-  char buffer[INET6_ADDRSTRLEN + 2];
+  char addr[INET6_ADDRSTRLEN + 2];
 
   if (p.address.u.sa.sa_family == AF_INET) {
     getnameinfo(&p.address.u.sa, sizeof(p.address.u.sin),
-                buffer, sizeof (buffer), NULL, 0, NI_NUMERICHOST);
-    addr.buf = rfb::strDup(buffer);
+                addr, sizeof(addr), NULL, 0, NI_NUMERICHOST);
   } else if (p.address.u.sa.sa_family == AF_INET6) {
-    buffer[0] = '[';
+    addr[0] = '[';
     getnameinfo(&p.address.u.sa, sizeof(p.address.u.sin6),
-                buffer + 1, sizeof (buffer) - 2, NULL, 0, NI_NUMERICHOST);
-    strcat(buffer, "]");
-    addr.buf = rfb::strDup(buffer);
+                addr + 1, sizeof(addr) - 2, NULL, 0, NI_NUMERICHOST);
+    strcat(addr, "]");
   } else
-    addr.buf = rfb::strDup("");
+    addr[0] = '\0';
 
   char action;
   switch (p.action) {
@@ -735,15 +732,15 @@ char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
   case Query: action = '?'; break;
   };
   size_t resultlen = (1                   // action
-                      + strlen (addr.buf) // address
+                      + strlen (addr)     // address
                       + 1                 // slash
                       + 3                 // prefix length, max 128
                       + 1);               // terminating nul
   char* result = new char[resultlen];
-  if (addr.buf[0] == '\0')
+  if (addr[0] == '\0')
     snprintf(result, resultlen, "%c", action);
   else
-    snprintf(result, resultlen, "%c%s/%u", action, addr.buf, p.prefixlen);
+    snprintf(result, resultlen, "%c%s/%u", action, addr, p.prefixlen);
 
   return result;
 }
