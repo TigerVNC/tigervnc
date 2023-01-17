@@ -433,7 +433,7 @@ static void init_fltk()
 static void mkvnchomedir()
 {
   // Create .vnc in the user's home directory if it doesn't already exist
-  const char* homeDir = getvnchomedir();
+  const char* homeDir = os::getvnchomedir();
   if (homeDir == NULL) {
     vlog.error(_("Could not obtain the home directory path"));
   } else {

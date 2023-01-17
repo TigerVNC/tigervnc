@@ -90,12 +90,12 @@ static const char* gethomedir(bool userDir)
 #endif
 }
 
-const char* getvnchomedir()
+const char* os::getvnchomedir()
 {
   return gethomedir(false);
 }
 
-const char* getuserhomedir()
+const char* os::getuserhomedir()
 {
   return gethomedir(true);
 }

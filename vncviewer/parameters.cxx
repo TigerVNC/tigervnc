@@ -629,7 +629,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
     return;
 #endif
     
-    const char* homeDir = getvnchomedir();
+    const char* homeDir = os::getvnchomedir();
     if (homeDir == NULL)
       throw Exception(_("Could not obtain the home directory path"));
 
@@ -733,7 +733,7 @@ char* loadViewerParameters(const char *filename) {
     return loadFromReg();
 #endif
 
-    const char* homeDir = getvnchomedir();
+    const char* homeDir = os::getvnchomedir();
     if (homeDir == NULL)
       throw Exception(_("Could not obtain the home directory path"));
 

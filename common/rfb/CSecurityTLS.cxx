@@ -78,7 +78,7 @@ static const char* homedirfn(const char* fn)
   static char full_path[PATH_MAX];
   const char* homedir;
 
-  homedir = getvnchomedir();
+  homedir = os::getvnchomedir();
   if (homedir == NULL)
     return "";
 
@@ -389,7 +389,7 @@ void CSecurityTLS::checkSession()
 
   /* Certificate is fine, except we don't know the issuer, so TOFU time */
 
-  homeDir = getvnchomedir();
+  homeDir = os::getvnchomedir();
   if (homeDir == NULL) {
     throw AuthFailureException("Could not obtain VNC home directory "
                                "path for known hosts storage");

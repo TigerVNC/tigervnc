@@ -146,7 +146,7 @@ int main(int argc, char** argv)
   }
 
   if (!fname) {
-    const char *homeDir = getvnchomedir();
+    const char *homeDir = os::getvnchomedir();
     if (homeDir == NULL) {
       fprintf(stderr, "Can't obtain VNC home directory\n");
       exit(1);
