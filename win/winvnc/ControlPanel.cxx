@@ -88,7 +88,7 @@ void ControlPanel::UpdateListView(ListConnInfo* LCInfo)
 
   ListConn.Copy(LCInfo);
 
-  char* ItemString[2];
+  const char* ItemString[2];
   int i = 0;
 
   for (ListConn.iBegin(); !ListConn.iEnd(); ListConn.iNext()) {

@@ -51,26 +51,26 @@ namespace winvnc {
       si++;
     }
 
-    void addInfo(void* Conn, char* IP, int Status) {
+    void addInfo(void* Conn, const char* IP, int Status) {
       conn.push_back(Conn);
       IP_address.push_back(rfb::strDup(IP));
       status.push_back(Status);
     }
 
-    void iGetCharInfo(char* buf[2]) {
+    void iGetCharInfo(const char* buf[2]) {
       buf[0] = *Ii;
       switch (*si) {
       case 0:
-        buf[1] = rfb::strDup("Full control");
+        buf[1] = "Full control";
         break;
       case 1:
-        buf[1] = rfb::strDup("View only");
+        buf[1] = "View only";
         break;
       case 2:
-        buf[1] = rfb::strDup("Stop updating");
+        buf[1] = "Stop updating";
         break;
       default:
-        buf[1] = rfb::strDup("Unknown");
+        buf[1] = "Unknown";
       }
     }
 
@@ -90,7 +90,7 @@ namespace winvnc {
     }
 
     void iAdd (ListConnInfo* InputList) {
-      char* buf[2];
+      const char* buf[2];
       InputList->iGetCharInfo(buf);
       addInfo(InputList->iGetConn(), buf[0], InputList->iGetStatus());
     }
