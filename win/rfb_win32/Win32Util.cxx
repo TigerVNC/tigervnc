@@ -74,7 +74,7 @@ const char* FileVersionInfo::getVerString(const char* name, DWORD langId) {
 
   std::string langIdStr(binToHex(langIdBuf, sizeof(langId)));
   std::string infoName;
-  infoName = strFormat("\\StringFileInfo\\%s\\%s", langIdStr.c_str(), name);
+  infoName = format("\\StringFileInfo\\%s\\%s", langIdStr.c_str(), name);
 
   // Locate the required version string within the version info
   char* buffer = 0;

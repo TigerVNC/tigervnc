@@ -47,7 +47,7 @@ bool PasswordValidator::validUser(const char* username)
 {
   std::vector<std::string> users;
 
-  users = strSplit(plainUsers, ',');
+  users = split(plainUsers, ',');
 
   for (size_t i = 0; i < users.size(); i++) {
     if (users[i] == "*")

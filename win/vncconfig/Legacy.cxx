@@ -69,7 +69,7 @@ void LegacyPage::LoadPrefs()
             try {
               // Split the AuthHosts string into patterns to match
               std::vector<std::string> patterns;
-              patterns = rfb::strSplit(authHosts.c_str(), ':');
+              patterns = rfb::split(authHosts.c_str(), ':');
               for (size_t i = 0; i < patterns.size(); i++) {
                 if (!patterns[i].empty()) {
                   int bits = 0;
@@ -79,7 +79,7 @@ void LegacyPage::LoadPrefs()
 
                   // Split the pattern into IP address parts and process
                   std::vector<std::string> parts;
-                  parts = rfb::strSplit(&patterns[i][1], '.');
+                  parts = rfb::split(&patterns[i][1], '.');
                   for (size_t j = 0; j < parts.size(); j++) {
                     if (bits)
                       strcat(pattern, ".");

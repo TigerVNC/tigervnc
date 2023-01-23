@@ -99,7 +99,7 @@ namespace rfb {
           SendMessage(listBox, LB_DELETESTRING, 0, 0);
 
         std::vector<std::string> hostv;
-        hostv = strSplit(hosts, ',');
+        hostv = split(hosts, ',');
         for (size_t i = 0; i < hostv.size(); i++) {
           if (!hostv[i].empty())
             SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)hostv[i].c_str());

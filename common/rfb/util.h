@@ -35,12 +35,12 @@ struct timeval;
 namespace rfb {
 
   // Formats according to printf(), with a dynamic allocation
-  std::string strFormat(const char *fmt, ...)
+  std::string format(const char *fmt, ...)
       __attribute__((__format__ (__printf__, 1, 2)));
 
   // Splits a string with the specified delimiter
-  std::vector<std::string> strSplit(const char* src,
-                                    const char delimiter);
+  std::vector<std::string> split(const char* src,
+                                 const char delimiter);
 
   // Conversion to and from a hex string
 

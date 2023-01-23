@@ -323,7 +323,7 @@ bool rfb::win32::registerService(const char* name,
 
   // - Add the supplied extra parameters to the command line
   std::string cmdline;
-  cmdline = strFormat("\"%s\" %s", buffer.buf, defaultcmdline);
+  cmdline = format("\"%s\" %s", buffer.buf, defaultcmdline);
   for (i=0; i<argc; i++) {
     cmdline += " \"";
     cmdline += argv[i];

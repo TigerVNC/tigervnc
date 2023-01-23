@@ -356,9 +356,9 @@ void CSecurityTLS::checkSession()
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
     std::string text;
     vlog.debug("hostname mismatch");
-    text = strFormat("Hostname (%s) does not match the server "
-                     "certificate, do you want to continue?",
-                     client->getServerName());
+    text = format("Hostname (%s) does not match the server "
+                  "certificate, do you want to continue?",
+                  client->getServerName());
     if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                          "Certificate hostname mismatch",
                          text.c_str()))
@@ -434,16 +434,16 @@ void CSecurityTLS::checkSession()
 
     if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
-      text = strFormat("This certificate has been signed by an "
-                       "unknown authority:\n"
-                       "\n"
-                       "%s\n"
-                       "\n"
-                       "Someone could be trying to impersonate the "
-                       "site and you should not continue.\n"
-                       "\n"
-                       "Do you want to make an exception for this "
-                       "server?", info.data);
+      text = format("This certificate has been signed by an unknown "
+                    "authority:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unknown certificate issuer",
@@ -452,15 +452,15 @@ void CSecurityTLS::checkSession()
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
-      text = strFormat("This certificate has expired:\n"
-                       "\n"
-                       "%s\n"
-                       "\n"
-                       "Someone could be trying to impersonate the "
-                       "site and you should not continue.\n"
-                       "\n"
-                       "Do you want to make an exception for this "
-                       "server?", info.data);
+      text = format("This certificate has expired:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Expired certificate",
@@ -475,18 +475,17 @@ void CSecurityTLS::checkSession()
 
     if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
-      text = strFormat("This host is previously known with a "
-                       "different certificate, and the new "
-                       "certificate has been signed by an "
-                       "unknown authority:\n"
-                       "\n"
-                       "%s\n"
-                       "\n"
-                       "Someone could be trying to impersonate the "
-                       "site and you should not continue.\n"
-                       "\n"
-                       "Do you want to make an exception for this "
-                       "server?", info.data);
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate has been "
+                    "signed by an unknown authority:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
@@ -495,17 +494,17 @@ void CSecurityTLS::checkSession()
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
-      text = strFormat("This host is previously known with a "
-                       "different certificate, and the new "
-                       "certificate has expired:\n"
-                       "\n"
-                       "%s\n"
-                       "\n"
-                       "Someone could be trying to impersonate the "
-                       "site and you should not continue.\n"
-                       "\n"
-                       "Do you want to make an exception for this "
-                       "server?", info.data);
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate has "
+                    "expired:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",

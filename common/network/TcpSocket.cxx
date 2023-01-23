@@ -507,7 +507,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
 TcpFilter::TcpFilter(const char* spec) {
   std::vector<std::string> patterns;
 
-  patterns = rfb::strSplit(spec, ',');
+  patterns = rfb::split(spec, ',');
 
   for (size_t i = 0; i < patterns.size(); i++) {
     if (!patterns[i].empty())
@@ -609,7 +609,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
   initSockets();
 
-  parts = rfb::strSplit(&p[1], '/');
+  parts = rfb::split(&p[1], '/');
   if (parts.size() > 2)
     throw Exception("invalid filter specified");
 

@@ -208,7 +208,7 @@ void CSecurityRSAAES::verifyServer()
   sha1_update(&ctx, serverKey.size, serverKeyE);
   sha1_digest(&ctx, sizeof(f), f);
   const char *title = "Server key fingerprint";
-  std::string text = strFormat(
+  std::string text = format(
     "The server has provided the following identifying information:\n"
     "Fingerprint: %02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n"
     "Please verify that the information is correct and press \"Yes\". "

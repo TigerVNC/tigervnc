@@ -109,7 +109,7 @@ HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
     {
         ModuleFileName filename;
         std::string cmdLine;
-        cmdLine = strFormat("\"%s\" -noconsole -service_run", filename.buf);
+        cmdLine = format("\"%s\" -noconsole -service_run", filename.buf);
         STARTUPINFO si;
         ZeroMemory(&si, sizeof si);
         si.cb = sizeof si;

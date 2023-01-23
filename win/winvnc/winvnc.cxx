@@ -154,9 +154,9 @@ static void processParams(int argc, char** argv) {
         runServer = false;
         std::string result;
         DWORD state = rfb::win32::getServiceState(VNCServerService::Name);
-        result = strFormat("The %s Service is in the %s state.",
-                           VNCServerService::Name,
-                           rfb::win32::serviceStateName(state));
+        result = format("The %s Service is in the %s state.",
+                        VNCServerService::Name,
+                        rfb::win32::serviceStateName(state));
         MsgBoxOrLog(result.c_str());
       } else if (strcasecmp(argv[i], "-service") == 0) {
         printf("Run in service mode\n");

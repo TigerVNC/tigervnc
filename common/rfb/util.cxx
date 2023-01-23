@@ -32,7 +32,7 @@
 
 namespace rfb {
 
-  std::string strFormat(const char *fmt, ...)
+  std::string format(const char *fmt, ...)
   {
     va_list ap;
     int len;
@@ -59,8 +59,8 @@ namespace rfb {
     return out;
   }
 
-  std::vector<std::string> strSplit(const char* src,
-                                    const char delimiter)
+  std::vector<std::string> split(const char* src,
+                                 const char delimiter)
   {
     std::vector<std::string> out;
     const char *start, *stop;
