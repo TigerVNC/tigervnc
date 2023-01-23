@@ -225,7 +225,7 @@ int vncIsTCPPortUsed(int port)
 char* vncConvertLF(const char* src, size_t bytes)
 {
   try {
-    return strDup(convertLF(src, bytes).c_str());
+    return strdup(convertLF(src, bytes).c_str());
   } catch (...) {
     return NULL;
   }
@@ -234,7 +234,7 @@ char* vncConvertLF(const char* src, size_t bytes)
 char* vncLatin1ToUTF8(const char* src, size_t bytes)
 {
   try {
-    return strDup(latin1ToUTF8(src, bytes).c_str());
+    return strdup(latin1ToUTF8(src, bytes).c_str());
   } catch (...) {
     return NULL;
   }
@@ -243,13 +243,8 @@ char* vncLatin1ToUTF8(const char* src, size_t bytes)
 char* vncUTF8ToLatin1(const char* src, size_t bytes)
 {
   try {
-    return strDup(utf8ToLatin1(src, bytes).c_str());
+    return strdup(utf8ToLatin1(src, bytes).c_str());
   } catch (...) {
     return NULL;
   }
-}
-
-void vncStrFree(char* str)
-{
-  strFree(str);
 }

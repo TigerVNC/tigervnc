@@ -34,9 +34,6 @@ struct timeval;
 
 namespace rfb {
 
-  char* strDup(const char* s);
-  void strFree(char* s);
-
   // Formats according to printf(), with a dynamic allocation
   std::string strFormat(const char *fmt, ...)
       __attribute__((__format__ (__printf__, 1, 2)));
@@ -44,12 +41,6 @@ namespace rfb {
   // Splits a string with the specified delimiter
   std::vector<std::string> strSplit(const char* src,
                                     const char delimiter);
-
-  // Returns true if src contains c
-  bool strContains(const char* src, char c);
-
-  // Copies src to dest, up to specified length-1, and guarantees termination
-  void strCopy(char* dest, const char* src, int destlen);
 
   // Conversion to and from a hex string
 

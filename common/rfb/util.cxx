@@ -32,18 +32,6 @@
 
 namespace rfb {
 
-  char* strDup(const char* s) {
-    if (!s) return 0;
-    int l = strlen(s);
-    char* r = new char[l+1];
-    memcpy(r, s, l+1);
-    return r;
-  };
-
-  void strFree(char* s) {
-    delete [] s;
-  }
-
   std::string strFormat(const char *fmt, ...)
   {
     va_list ap;
@@ -89,19 +77,6 @@ namespace rfb {
     } while (stop != NULL);
 
     return out;
-  }
-
-  bool strContains(const char* src, char c) {
-    int l=strlen(src);
-    for (int i=0; i<l; i++)
-      if (src[i] == c) return true;
-    return false;
-  }
-
-  void strCopy(char* dest, const char* src, int destlen) {
-    if (src)
-      strncpy(dest, src, destlen-1);
-    dest[src ? destlen-1 : 0] = 0;
   }
 
   static char intToHex(uint8_t i) {
