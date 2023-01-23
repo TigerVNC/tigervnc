@@ -26,6 +26,8 @@
 #include <config.h>
 #endif
 
+#include <string.h>
+
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/PixelBuffer.h>

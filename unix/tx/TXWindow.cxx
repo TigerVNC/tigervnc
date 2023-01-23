@@ -28,6 +28,7 @@
 #include <list>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
 #include <rfb/util.h>
 

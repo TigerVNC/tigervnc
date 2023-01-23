@@ -25,7 +25,6 @@
 #define __RFB_UTIL_H__
 
 #include <limits.h>
-#include <string.h>
 #include <stdint.h>
 
 #include <string>
@@ -34,29 +33,6 @@
 struct timeval;
 
 namespace rfb {
-
-  // -=- Class to handle cleanup of arrays of characters
-  class CharArray {
-  public:
-    CharArray() : buf(0) {}
-    CharArray(char* str) : buf(str) {} // note: assumes ownership
-    CharArray(size_t len) {
-      buf = new char[len]();
-      memset(buf, 0, len);
-    }
-    ~CharArray() {
-      delete [] buf;
-    }
-    void format(const char *fmt, ...)
-      __attribute__((__format__ (__printf__, 2, 3)));
-    // Get the buffer pointer & clear it (i.e. caller takes ownership)
-    char* takeBuf() {char* tmp = buf; buf = 0; return tmp;}
-    void replaceBuf(char* b) {delete [] buf; buf = b;}
-    char* buf;
-  private:
-    CharArray(const CharArray&);
-    CharArray& operator=(const CharArray&);
-  };
 
   char* strDup(const char* s);
   void strFree(char* s);

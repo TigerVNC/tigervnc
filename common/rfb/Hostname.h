@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include <rdr/Exception.h>
 #include <rfb/util.h>
 

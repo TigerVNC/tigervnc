@@ -25,34 +25,12 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include <rfb/util.h>
 
 namespace rfb {
-
-  void CharArray::format(const char *fmt, ...) {
-    va_list ap;
-    int len;
-
-    va_start(ap, fmt);
-    len = vsnprintf(NULL, 0, fmt, ap);
-    va_end(ap);
-
-    delete [] buf;
-
-    if (len < 0) {
-      buf = new char[1];
-      buf[0] = '\0';
-      return;
-    }
-
-    buf = new char[len+1];
-
-    va_start(ap, fmt);
-    vsnprintf(buf, len+1, fmt, ap);
-    va_end(ap);
-  }
 
   char* strDup(const char* s) {
     if (!s) return 0;
