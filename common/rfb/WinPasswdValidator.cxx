@@ -32,17 +32,10 @@ bool WinPasswdValidator::validateInternal(rfb::SConnection* /*sc*/,
 					  const char* username,
 					  const char* password)
 {
-	char* user = strDup(username);
-	char* pass = strDup(password);
-	char* domain = strDup(".");
 	HANDLE handle;
 
-	BOOL ret = LogonUser(user, domain, pass, LOGON32_LOGON_NETWORK,
+	BOOL ret = LogonUser(username, ".", password, LOGON32_LOGON_NETWORK,
 			     LOGON32_PROVIDER_DEFAULT, &handle);
-	delete [] user;
-	delete [] pass;
-	delete [] domain;
-
 	if (ret != 0) {
 		CloseHandle(handle);
 		return true;
