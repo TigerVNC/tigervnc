@@ -43,6 +43,7 @@
 #endif
 #ifdef HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
+#include <rfb/Exception.h>
 #include <RandrGlue.h>
 extern "C" {
 void vncSetGlueContext(Display *dpy, void *res);

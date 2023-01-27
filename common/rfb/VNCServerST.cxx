@@ -56,6 +56,7 @@
 #include <stdlib.h>
 
 #include <rfb/ComparingUpdateTracker.h>
+#include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>

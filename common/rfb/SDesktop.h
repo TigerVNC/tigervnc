@@ -41,14 +41,11 @@
 #include <rfb/PixelBuffer.h>
 #include <rfb/VNCServer.h>
 #include <rfb/InputHandler.h>
-#include <rfb/Exception.h>
 #include <rfb/screenTypes.h>
 
 namespace network { class Socket; }
 
 namespace rfb {
-
-  class VNCServer;
 
   class SDesktop : public InputHandler {
   public:

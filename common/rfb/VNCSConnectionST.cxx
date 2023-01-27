@@ -26,6 +26,7 @@
 
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Encoder.h>
+#include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
