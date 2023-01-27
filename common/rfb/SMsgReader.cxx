@@ -36,6 +36,7 @@
 #include <rfb/SMsgReader.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 

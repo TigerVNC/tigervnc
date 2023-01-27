@@ -26,6 +26,8 @@
 
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
+
 #include <rfb/ComparingUpdateTracker.h>
 
 using namespace rfb;

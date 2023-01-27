@@ -28,8 +28,8 @@
 #include <rfb/Decoder.h>
 #include <rfb/Exception.h>
 #include <rfb/Region.h>
-
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 #include <rdr/Exception.h>
 #include <rdr/MemOutStream.h>

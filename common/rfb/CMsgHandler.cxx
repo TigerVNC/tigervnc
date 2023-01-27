@@ -28,6 +28,7 @@
 #include <rfb/CMsgHandler.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/screenTypes.h>
+#include <rfb/util.h>
 
 static rfb::LogWriter vlog("CMsgHandler");
 

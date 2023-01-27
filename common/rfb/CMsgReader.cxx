@@ -31,6 +31,7 @@
 
 #include <rfb/msgTypes.h>
 #include <rfb/clipboardTypes.h>
+#include <rfb/util.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgHandler.h>

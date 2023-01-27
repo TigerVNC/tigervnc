@@ -31,6 +31,7 @@
 #include <rfb/Logger_stdio.h>
 #include <rfb/Logger_file.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 #include <rfb_win32/AboutDialog.h>
 #include <rfb_win32/MsgBox.h>
 #include <network/TcpSocket.h>

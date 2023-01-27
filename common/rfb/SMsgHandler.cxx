@@ -27,6 +27,7 @@
 #include <rfb/ScreenSet.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/encodings.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 

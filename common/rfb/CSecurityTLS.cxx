@@ -39,6 +39,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/UserMsgBox.h>
+#include <rfb/util.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
 #include <os/os.h>

@@ -22,7 +22,6 @@
 #define __RFB_WIN32_ABOUT_DIALOG_H__
 
 #include <rfb_win32/Dialog.h>
-#include <rfb/util.h>
 
 extern const char* buildTime;
 

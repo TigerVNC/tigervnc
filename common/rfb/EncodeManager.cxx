@@ -33,6 +33,7 @@
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
+#include <rfb/util.h>
 
 #include <rfb/RawEncoder.h>
 #include <rfb/RREEncoder.h>

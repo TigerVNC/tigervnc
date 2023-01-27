@@ -26,7 +26,6 @@
 #include <stdint.h>
 
 #include <rfb/Rect.h>
-#include <rfb/util.h>
 
 namespace rfb {
 

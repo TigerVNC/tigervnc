@@ -28,7 +28,6 @@
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb/Pixel.h>
-#include <rfb/util.h>
 
 namespace rfb {
 

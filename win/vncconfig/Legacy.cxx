@@ -19,6 +19,7 @@
 #include <vncconfig/Legacy.h>
 
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 #include <rfb_win32/CurrentUser.h>
 
 using namespace rfb;

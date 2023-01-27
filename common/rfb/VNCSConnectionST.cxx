@@ -40,6 +40,7 @@
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
