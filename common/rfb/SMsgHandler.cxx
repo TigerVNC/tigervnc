@@ -74,6 +74,20 @@ void SMsgHandler::setEncodings(int nEncodings, const int32_t* encodings)
     supportsQEMUKeyEvent();
 }
 
+void SMsgHandler::keyEvent(uint32_t /*keysym*/, uint32_t /*keycode*/,
+                           bool /*down*/)
+{
+}
+
+void SMsgHandler::pointerEvent(const Point& /*pos*/,
+                               int /*buttonMask*/)
+{
+}
+
+void SMsgHandler::clientCutText(const char* /*str*/)
+{
+}
+
 void SMsgHandler::handleClipboardCaps(uint32_t flags, const uint32_t* lengths)
 {
   int i;

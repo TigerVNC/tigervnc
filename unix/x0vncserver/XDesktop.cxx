@@ -600,9 +600,6 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
 #endif
 }
 
-void XDesktop::clientCutText(const char* /*str*/) {
-}
-
 ScreenSet XDesktop::computeScreenLayout()
 {
   ScreenSet layout;

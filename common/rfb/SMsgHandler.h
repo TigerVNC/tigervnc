@@ -27,14 +27,13 @@
 
 #include <rfb/PixelFormat.h>
 #include <rfb/ClientParams.h>
-#include <rfb/InputHandler.h>
 #include <rfb/ScreenSet.h>
 
 namespace rdr { class InStream; }
 
 namespace rfb {
 
-  class SMsgHandler : public InputHandler {
+  class SMsgHandler {
   public:
     SMsgHandler();
     virtual ~SMsgHandler();
@@ -55,6 +54,13 @@ namespace rfb {
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h) = 0;
 
+    virtual void keyEvent(uint32_t keysym, uint32_t keycode,
+                          bool down);
+    virtual void pointerEvent(const Point& pos,
+                              int buttonMask);
+
+    virtual void clientCutText(const char* str);
+
     virtual void handleClipboardCaps(uint32_t flags,
                                      const uint32_t* lengths);
     virtual void handleClipboardRequest(uint32_t flags);
@@ -63,9 +69,6 @@ namespace rfb {
     virtual void handleClipboardProvide(uint32_t flags,
                                         const size_t* lengths,
                                         const uint8_t* const* data);
-
-    // InputHandler interface
-    // The InputHandler methods will be called for the corresponding messages.
 
     // supportsLocalCursor() is called whenever the status of
     // cp.supportsLocalCursor has changed.  At the moment this happens on a

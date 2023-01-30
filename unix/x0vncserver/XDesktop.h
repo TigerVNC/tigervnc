@@ -62,7 +62,6 @@ public:
                        const char* userName) override;
   void pointerEvent(const rfb::Point& pos, int buttonMask) override;
   void keyEvent(uint32_t keysym, uint32_t xtcode, bool down) override;
-  void clientCutText(const char* str) override;
   unsigned int setScreenLayout(int fb_width, int fb_height,
                                const rfb::ScreenSet& layout) override;
 

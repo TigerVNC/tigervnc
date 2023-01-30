@@ -40,14 +40,13 @@
 
 #include <rfb/PixelBuffer.h>
 #include <rfb/VNCServer.h>
-#include <rfb/InputHandler.h>
 #include <rfb/screenTypes.h>
 
 namespace network { class Socket; }
 
 namespace rfb {
 
-  class SDesktop : public InputHandler {
+  class SDesktop {
   public:
     // init() is called immediately when the VNCServer gets a reference
     // to the SDesktop, so that a reverse reference can be set up.
@@ -91,10 +90,15 @@ namespace rfb {
     // signalling that a good time to render new data
     virtual void frameTick(uint64_t msc) { (void)msc; }
 
-    // InputHandler interface
-    // pointerEvent(), keyEvent() and clientCutText() are called in response to
-    // the relevant RFB protocol messages from clients.
-    // See InputHandler for method signatures.
+    // keyEvent() is called whenever a client sends an event that a
+    // key was pressed or released.
+    virtual void keyEvent(uint32_t /*keysym*/, uint32_t /*keycode*/,
+                          bool /*down*/) {};
+
+    // pointerEvent() is called whenever a client sends an event that
+    // the pointer moved, or a button was pressed or released.
+    virtual void pointerEvent(const Point& /*pos*/,
+                              int /*buttonMask*/) {};
 
     // handleClipboardRequest() is called whenever a client requests
     // the server to send over its clipboard data. It will only be
