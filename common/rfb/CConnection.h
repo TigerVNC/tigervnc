@@ -35,7 +35,6 @@ namespace rfb {
   class CMsgReader;
   class CMsgWriter;
   class CSecurity;
-  class IdentityVerifier;
 
   class CConnection : public CMsgHandler {
   public:
