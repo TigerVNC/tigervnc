@@ -456,7 +456,9 @@ void BinaryParameter::setParam(const uint8_t* v, size_t len) {
   LOCK_CONFIG;
   if (immutable) return; 
   vlog.debug("set %s(Binary)", getName());
-  delete [] value; value = 0;
+  delete [] value;
+  value = NULL;
+  length = 0;
   if (len) {
     assert(v);
     value = new uint8_t[len];
