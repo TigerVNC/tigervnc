@@ -481,6 +481,10 @@ void XDesktop::deleteAddedKeysyms(Display* dpy) {
     }
   }
 
+  // Did we actually find something to remove?
+  if (highestKeyCode < lowestKeyCode)
+    return;
+
   changes.changed |= XkbKeySymsMask;
   changes.first_key_sym = lowestKeyCode;
   changes.num_key_syms = highestKeyCode - lowestKeyCode + 1;
