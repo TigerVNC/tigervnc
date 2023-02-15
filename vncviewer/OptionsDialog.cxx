@@ -53,6 +53,7 @@
 #include <FL/Fl_Round_Button.H>
 #include <FL/Fl_Int_Input.H>
 #include <FL/Fl_Choice.H>
+#include <FL/Fl_Scroll.H>
 
 using namespace std;
 using namespace rdr;
@@ -314,6 +315,11 @@ void OptionsDialog::loadOptions(void)
 #endif
 #endif
 
+  /* SSH host (-via) */
+#ifndef WIN32
+  viaHostInput->value(via);
+#endif
+
   /* Input */
   const char *menuKeyBuf;
 
@@ -449,6 +455,11 @@ void OptionsDialog::storeOptions(void)
   }
 #endif
   SecurityClient::secTypes.setParam(security.ToString());
+#endif
+
+  /* SSH host (-via) */
+#ifndef WIN32
+  via.setParam(viaHostInput->value());
 #endif
 
   /* Input */
@@ -675,8 +686,10 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
 void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 {
-#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
-  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Security"));
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE) || !defined(WIN32)
+  Fl_Scroll *scroll = new Fl_Scroll(tx, ty, tw, th, _("Security"));
+  tw -= Fl::scrollbar_size();
+  Fl_Group *group = new Fl_Group(tx, ty, tw, 0);
 
   int orig_tx;
   int width;
@@ -687,6 +700,8 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   width = tw - OUTER_MARGIN * 2;
 
   orig_tx = tx;
+
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
 
   /* Encryption */
   ty += GROUP_LABEL_OFFSET;
@@ -732,7 +747,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
                             _("Path to X509 CRL file"));
     crlInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
     ty += INPUT_HEIGHT + TIGHT_MARGIN;
-#endif
+#endif // HAVE_GNUTLS
 #ifdef HAVE_NETTLE
     encRSAAESCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                      CHECK_MIN_WIDTH,
@@ -740,7 +755,7 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
                                                      "RSA-AES"));
     encRSAAESCheckbox->callback(handleRSAAES, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
-#endif
+#endif // HAVE_NETTLE
   }
 
   ty -= TIGHT_MARGIN;
@@ -796,9 +811,55 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   /* Back to normal */
   tx = orig_tx;
   ty += INNER_MARGIN;
+#endif // defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
+
+#ifndef WIN32
+  /* Connection */
+  ty += GROUP_LABEL_OFFSET;
+  //  height = GROUP_MARGIN * 2 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 1;
+  connectionGroup = new Fl_Group(tx, ty, width, 0, _("Connection"));
+  connectionGroup->labelfont(FL_BOLD);
+  connectionGroup->box(FL_FLAT_BOX);
+  connectionGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+
+  {
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
+
+
+    ty += INPUT_LABEL_OFFSET;
+    viaHostInput = new Fl_Input(tx, ty,
+                                width - INDENT*2, INPUT_HEIGHT,
+                                _("SSH Host"));
+    viaHostInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+    viaHostInput->activate();
+    ty += INPUT_HEIGHT + TIGHT_MARGIN;
+
+  }
+
+  ty -= TIGHT_MARGIN;
+
+  connectionGroup->end();
+  /* Needed for resize to work sanely */
+  connectionGroup->resizable(NULL);
+  connectionGroup->size(connectionGroup->w(),
+                            ty - connectionGroup->y());
+
+  /* Back to normal */
+  tx = orig_tx;
+  ty += INNER_MARGIN;
+
+#endif // !WIN32
+
+  /* Needed for resize to work sanely */
+  group->resizable(NULL);
+  ty += OUTER_MARGIN - INNER_MARGIN;
+  group->size(group->w(), ty - group->y());
 
   group->end();
-#endif
+  scroll->end();
+
+#endif // defined(HAVE_GNUTLS) || defined(HAVE_NETTLE) || !defined(WIN32)
 }
 
 

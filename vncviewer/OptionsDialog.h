@@ -63,6 +63,7 @@ protected:
 
   static void handleX509(Fl_Widget *widget, void *data);
   static void handleRSAAES(Fl_Widget *widget, void *data);
+  static void handleViaHost(Fl_Widget *widget, void *data);
 
   static void handleClipboard(Fl_Widget *widget, void *data);
 
@@ -110,6 +111,9 @@ protected:
   Fl_Check_Button *authNoneCheckbox;
   Fl_Check_Button *authVncCheckbox;
   Fl_Check_Button *authPlainCheckbox;
+
+  Fl_Group *connectionGroup;
+  Fl_Input *viaHostInput;
 
   /* Input */
   Fl_Check_Button *viewOnlyCheckbox;

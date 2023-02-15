@@ -587,9 +587,23 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
   const char *cmd = getenv("VNC_VIA_CMD");
   char *cmd2, *percent;
   char lport[10], rport[10];
+  char *tmps, *tmps2, *tmphead;
+
+  tmps = tmphead = strdup (gatewayHost);
+
+  /* strip leading whitespace from gatewayHost */
+  while (*tmps != '\0' && isspace(*tmps)) tmps++;
+
+  /* strip trailing whitespace from gatewayHost */
+  tmps2 = tmps;
+  while (*tmps2 != '\0' && !isspace(*tmps2)) tmps2++;
+  if (isspace (*tmps2)) *tmps2 = '\0';
+  vlog.info(_("Establish SSH tunnel to gatewayHost \"%s\"\n"), tmps);
+
   sprintf(lport, "%d", localPort);
   sprintf(rport, "%d", remotePort);
-  setenv("G", gatewayHost, 1);
+  setenv("G", tmps, 1);
+  free(tmphead);
   setenv("H", remoteHost, 1);
   setenv("R", rport, 1);
   setenv("L", lport, 1);
@@ -809,8 +823,24 @@ int main(int argc, char** argv)
     }
 
 #ifndef WIN32
-    if (strlen (via.getValueStr()) > 0 && mktunnel() != 0)
-      usage(argv[0]);
+    {
+      char *tmps;
+      bool useSSH = false;
+
+      /*
+       * only establish an SSH tunnel if the via parameter is not
+       * a blank string (empty or only whitespace)
+       */
+      tmps = via.getValueStr();
+      for( size_t i=0; i < strlen(tmps) ; i++) {
+        if (! isspace(tmps[i]) ) {
+          useSSH = true;
+        }
+      }
+      if (useSSH && mktunnel() != 0)
+        usage(argv[0]);
+      strFree(tmps);
+    }
 #endif
   }
 
