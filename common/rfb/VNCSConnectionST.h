@@ -38,7 +38,7 @@
 namespace rfb {
   class VNCServerST;
 
-  class VNCSConnectionST : private SConnection,
+  class VNCSConnectionST : public SConnection,
                            public core::Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse,
@@ -49,8 +49,6 @@ namespace rfb {
 
     bool accessCheck(AccessRights ar) const override;
     void close(const char* reason) override;
-
-    using SConnection::authenticated;
 
     // Methods called from VNCServerST.  None of these methods ever knowingly
     // throw an exception.
@@ -120,6 +118,11 @@ namespace rfb {
     const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
 
   private:
+    using SConnection::approveConnection;
+    using SConnection::requestClipboard;
+    using SConnection::announceClipboard;
+    using SConnection::sendClipboardData;
+
     // SConnection callbacks
 
     // These methods are invoked as callbacks from processMsg(
