@@ -429,20 +429,6 @@ void CConn::setCursorPos(const core::Point& pos)
   desktop->setCursorPos(pos);
 }
 
-void CConn::fence(uint32_t flags, unsigned len, const uint8_t data[])
-{
-  CMsgHandler::fence(flags, len, data);
-
-  if (flags & rfb::fenceFlagRequest) {
-    // We handle everything synchronously so we trivially honor these modes
-    flags = flags & (rfb::fenceFlagBlockBefore |
-                     rfb::fenceFlagBlockAfter);
-
-    writer()->writeFence(flags, len, data);
-    return;
-  }
-}
-
 void CConn::setLEDState(unsigned int state)
 {
   CConnection::setLEDState(state);

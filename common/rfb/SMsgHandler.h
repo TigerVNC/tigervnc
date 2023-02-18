@@ -27,80 +27,45 @@
 
 #include <rfb/ClientParams.h>
 
-namespace rdr { class InStream; }
-
 namespace rfb {
 
   class SMsgHandler {
   public:
-    SMsgHandler();
-    virtual ~SMsgHandler();
+    virtual ~SMsgHandler() {}
 
-    // The following methods are called as corresponding messages are read.  A
-    // derived class should override these methods as desired.  Note that for
-    // the setPixelFormat(), setEncodings() and clipboardCaps() methods, a
-    // derived class must call on to SMsgHandler's methods.
+    // The following methods are called as corresponding messages are
+    // read. A derived class must override these methods.
 
-    virtual void clientInit(bool shared);
+    virtual void clientInit(bool shared) = 0;
 
-    virtual void setPixelFormat(const PixelFormat& pf);
-    virtual void setEncodings(int nEncodings, const int32_t* encodings);
+    virtual void setPixelFormat(const PixelFormat& pf) = 0;
+    virtual void setEncodings(int nEncodings,
+                              const int32_t* encodings) = 0;
     virtual void framebufferUpdateRequest(const core::Rect& r,
                                           bool incremental) = 0;
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout) = 0;
-    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]) = 0;
+    virtual void fence(uint32_t flags, unsigned len,
+                       const uint8_t data[]) = 0;
     virtual void enableContinuousUpdates(bool enable,
-                                         int x, int y, int w, int h) = 0;
+                                         int x, int y,
+                                         int w, int h) = 0;
 
     virtual void keyEvent(uint32_t keysym, uint32_t keycode,
-                          bool down);
+                          bool down) = 0;
     virtual void pointerEvent(const core::Point& pos,
-                              uint16_t buttonMask);
+                              uint16_t buttonMask) = 0;
 
-    virtual void clientCutText(const char* str);
+    virtual void clientCutText(const char* str) = 0;
 
     virtual void handleClipboardCaps(uint32_t flags,
-                                     const uint32_t* lengths);
-    virtual void handleClipboardRequest(uint32_t flags);
-    virtual void handleClipboardPeek();
-    virtual void handleClipboardNotify(uint32_t flags);
+                                     const uint32_t* lengths) = 0;
+    virtual void handleClipboardRequest(uint32_t flags) = 0;
+    virtual void handleClipboardPeek() = 0;
+    virtual void handleClipboardNotify(uint32_t flags) = 0;
     virtual void handleClipboardProvide(uint32_t flags,
                                         const size_t* lengths,
-                                        const uint8_t* const* data);
-
-    // supportsLocalCursor() is called whenever the status of
-    // cp.supportsLocalCursor has changed.  At the moment this happens on a
-    // setEncodings message, but in the future this may be due to a message
-    // specially for this purpose.
-    virtual void supportsLocalCursor();
-
-    // supportsFence() is called the first time we detect support for fences
-    // in the client. A fence message should be sent at this point to notify
-    // the client of server support.
-    virtual void supportsFence();
-
-    // supportsContinuousUpdates() is called the first time we detect that
-    // the client wants the continuous updates extension. A
-    // EndOfContinuousUpdates message should be sent back to the client at
-    // this point if it is supported.
-    virtual void supportsContinuousUpdates();
-
-    // supportsLEDState() is called the first time we detect that the
-    // client supports the LED state extension. A LEDState message
-    // should be sent back to the client to inform it of the current
-    // server state.
-    virtual void supportsLEDState();
-
-    // supportsQEMUKeyEvent() is called the first time we detect that the
-    // client wants the QEMU Extended Key Event extension. The default
-    // handler will send a pseudo-rect back, signalling server support.
-    virtual void supportsQEMUKeyEvent();
-
-    // supportsExtendedMouseButtons() is called the first time we detect that the
-    // client supports sending 16 bit mouse button state. This lets us pass more button
-    // states between server and client.
-    virtual void supportsExtendedMouseButtons();
+                                        const uint8_t* const* data) = 0;
 
     ClientParams client;
   };

@@ -78,9 +78,6 @@ protected:
                  const uint8_t* data) override;
   void setCursorPos(const core::Point& pos) override;
 
-  void fence(uint32_t flags, unsigned len,
-             const uint8_t data[]) override;
-
   void setLEDState(unsigned int state) override;
 
   void handleClipboardRequest() override;

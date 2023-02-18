@@ -3,7 +3,6 @@ add_library(rfb STATIC
   Blacklist.cxx
   Congestion.cxx
   CConnection.cxx
-  CMsgHandler.cxx
   CMsgReader.cxx
   CMsgWriter.cxx
   CSecurityPlain.cxx
@@ -32,7 +31,6 @@ add_library(rfb STATIC
   RawDecoder.cxx
   RawEncoder.cxx
   SConnection.cxx
-  SMsgHandler.cxx
   SMsgReader.cxx
   SMsgWriter.cxx
   ServerCore.cxx

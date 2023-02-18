@@ -203,7 +203,15 @@ namespace rfb {
                                 int w, int h,
                                 const ScreenSet& layout) override;
 
+    void setName(const char* name) override;
+
+    void fence(uint32_t flags, unsigned len, const uint8_t data[]) override;
+
     void endOfContinuousUpdates() override;
+
+    void supportsQEMUKeyEvent() override;
+
+    void supportsExtendedMouseButtons() override;
 
     void serverInit(int width, int height, const PixelFormat& pf,
                     const char* name) override;
@@ -216,6 +224,8 @@ namespace rfb {
     bool dataRect(const core::Rect& r, int encoding) override;
 
     void serverCutText(const char* str) override;
+
+    void setLEDState(unsigned int state) override;
 
     void handleClipboardCaps(uint32_t flags,
                              const uint32_t* lengths) override;
@@ -281,13 +291,6 @@ namespace rfb {
     bool supportsCursorPosition;
     bool supportsDesktopResize;
     bool supportsLEDState;
-
-  private:
-    // This is a default implementation of fences that automatically
-    // responds to requests, stating no support for synchronisation.
-    // When overriding, call CMsgHandler::fence() directly in order to
-    // state correct support for fence flags.
-    void fence(uint32_t flags, unsigned len, const uint8_t data[]) override;
 
   private:
     bool processVersionMsg();

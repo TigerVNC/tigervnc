@@ -147,18 +147,38 @@ namespace rfb {
 
     void clientCutText(const char* str) override;
 
+    void handleClipboardCaps(uint32_t flags,
+                             const uint32_t* lengths) override;
     void handleClipboardRequest(uint32_t flags) override;
     void handleClipboardPeek() override;
     void handleClipboardNotify(uint32_t flags) override;
     void handleClipboardProvide(uint32_t flags, const size_t* lengths,
                                 const uint8_t* const* data) override;
 
-    void supportsQEMUKeyEvent() override;
-
-    virtual void supportsExtendedMouseButtons() override;
-
-
     // Methods to be overridden in a derived class
+
+    // supportsLocalCursor() is called whenever the status of
+    // cp.supportsLocalCursor has changed.  At the moment this happens on a
+    // setEncodings message, but in the future this may be due to a message
+    // specially for this purpose.
+    virtual void supportsLocalCursor();
+
+    // supportsFence() is called the first time we detect support for fences
+    // in the client. A fence message should be sent at this point to notify
+    // the client of server support.
+    virtual void supportsFence();
+
+    // supportsContinuousUpdates() is called the first time we detect that
+    // the client wants the continuous updates extension. A
+    // EndOfContinuousUpdates message should be sent back to the client at
+    // this point if it is supported.
+    virtual void supportsContinuousUpdates();
+
+    // supportsLEDState() is called the first time we detect that the
+    // client supports the LED state extension. A LEDState message
+    // should be sent back to the client to inform it of the current
+    // server state.
+    virtual void supportsLEDState();
 
     // versionReceived() indicates that the version number has just been read
     // from the client.  The version will already have been "cooked"

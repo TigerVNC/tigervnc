@@ -141,6 +141,10 @@ public:
   void setDesktopSize(int fb_width, int fb_height,
                       const rfb::ScreenSet& layout) override;
 
+  void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
+  void pointerEvent(const core::Point& pos,
+                    uint16_t buttonMask) override;
+
 protected:
   DummyOutStream *out;
   Manager *manager;
@@ -346,6 +350,14 @@ void SConn::setAccessRights(rfb::AccessRights)
 }
 
 void SConn::setDesktopSize(int, int, const rfb::ScreenSet&)
+{
+}
+
+void SConn::keyEvent(uint32_t, uint32_t, bool)
+{
+}
+
+void SConn::pointerEvent(const core::Point&, uint16_t)
 {
 }
 
