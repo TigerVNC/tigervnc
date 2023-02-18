@@ -34,11 +34,13 @@
 #ifndef __RFB_PIXELFORMAT_H__
 #define __RFB_PIXELFORMAT_H__
 
-#include <rfb/Pixel.h>
+#include <stdint.h>
 
 namespace rdr { class InStream; class OutStream; }
 
 namespace rfb {
+
+  typedef uint32_t Pixel; // must be big enough to hold any pixel value
 
   class PixelFormat {
   public:

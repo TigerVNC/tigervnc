@@ -26,7 +26,6 @@
 
 #include <stdint.h>
 
-#include <rfb/Pixel.h>
 #include <rfb/ServerParams.h>
 #include <rfb/Rect.h>
 #include <rfb/ScreenSet.h>
