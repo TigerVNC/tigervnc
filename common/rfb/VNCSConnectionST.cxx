@@ -313,9 +313,9 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
 void VNCSConnectionST::requestClipboardOrClose()
 {
   try {
+    if (state() != RFBSTATE_NORMAL) return;
     if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::acceptCutText) return;
-    if (state() != RFBSTATE_NORMAL) return;
     requestClipboard();
   } catch(rdr::Exception& e) {
     close(e.str());
@@ -325,9 +325,9 @@ void VNCSConnectionST::requestClipboardOrClose()
 void VNCSConnectionST::announceClipboardOrClose(bool available)
 {
   try {
+    if (state() != RFBSTATE_NORMAL) return;
     if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::sendCutText) return;
-    if (state() != RFBSTATE_NORMAL) return;
     announceClipboard(available);
   } catch(rdr::Exception& e) {
     close(e.str());
@@ -337,9 +337,9 @@ void VNCSConnectionST::announceClipboardOrClose(bool available)
 void VNCSConnectionST::sendClipboardDataOrClose(const char* data)
 {
   try {
+    if (state() != RFBSTATE_NORMAL) return;
     if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::sendCutText) return;
-    if (state() != RFBSTATE_NORMAL) return;
     sendClipboardData(data);
   } catch(rdr::Exception& e) {
     close(e.str());
