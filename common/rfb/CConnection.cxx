@@ -379,7 +379,6 @@ void CConnection::securityCompleted()
   reader_ = new CMsgReader(this, is);
   writer_ = new CMsgWriter(&server, os);
   vlog.debug("Authentication success!");
-  authSuccess();
   writer_->writeClientInit(shared);
 }
 
@@ -690,10 +689,6 @@ void CConnection::handleClipboardProvide(uint32_t flags,
 
   // FIXME: Should probably verify that this data was actually requested
   handleClipboardData(serverClipboard.c_str());
-}
-
-void CConnection::authSuccess()
-{
 }
 
 void CConnection::initDone()

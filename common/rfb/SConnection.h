@@ -180,11 +180,6 @@ namespace rfb {
     // server state.
     virtual void supportsLEDState();
 
-    // versionReceived() indicates that the version number has just been read
-    // from the client.  The version will already have been "cooked"
-    // to deal with unknown/bogus viewer protocol numbers.
-    virtual void versionReceived();
-
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
 

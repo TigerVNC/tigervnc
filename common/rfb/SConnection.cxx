@@ -154,8 +154,6 @@ bool SConnection::processVersionMsg()
                client.majorVersion,client.minorVersion);
   }
 
-  versionReceived();
-
   std::list<uint8_t> secTypes;
   std::list<uint8_t>::iterator i;
   secTypes = security.GetEnabledSecTypes();
@@ -519,10 +517,6 @@ void SConnection::supportsContinuousUpdates()
 }
 
 void SConnection::supportsLEDState()
-{
-}
-
-void SConnection::versionReceived()
 {
 }
 
