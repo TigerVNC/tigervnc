@@ -706,8 +706,10 @@ void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])
     return;
   }
 
-  if (len < 1)
+  if (len < 1) {
     vlog.error("Fence response of unexpected size received");
+    return;
+  }
 
   type = data[0];
 
