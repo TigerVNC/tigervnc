@@ -314,7 +314,6 @@ void VNCSConnectionST::requestClipboardOrClose()
 {
   try {
     if (state() != RFBSTATE_NORMAL) return;
-    if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::acceptCutText) return;
     requestClipboard();
   } catch(std::exception& e) {
@@ -326,7 +325,6 @@ void VNCSConnectionST::announceClipboardOrClose(bool available)
 {
   try {
     if (state() != RFBSTATE_NORMAL) return;
-    if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::sendCutText) return;
     announceClipboard(available);
   } catch(std::exception& e) {
@@ -338,7 +336,6 @@ void VNCSConnectionST::sendClipboardDataOrClose(const char* data)
 {
   try {
     if (state() != RFBSTATE_NORMAL) return;
-    if (!accessCheck(AccessCutText)) return;
     if (!rfb::Server::sendCutText) return;
     sendClipboardData(data);
   } catch(std::exception& e) {
@@ -745,20 +742,17 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
 void VNCSConnectionST::handleClipboardRequest()
 {
-  if (!accessCheck(AccessCutText)) return;
   server->handleClipboardRequest(this);
 }
 
 void VNCSConnectionST::handleClipboardAnnounce(bool available)
 {
-  if (!accessCheck(AccessCutText)) return;
   if (!rfb::Server::acceptCutText) return;
   server->handleClipboardAnnounce(this, available);
 }
 
 void VNCSConnectionST::handleClipboardData(const char* data)
 {
-  if (!accessCheck(AccessCutText)) return;
   if (!rfb::Server::acceptCutText) return;
   server->handleClipboardData(this, data);
 }

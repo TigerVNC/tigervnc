@@ -396,6 +396,9 @@ void SConnection::clientCutText(const char* str)
   clientClipboard = str;
   hasRemoteClipboard = true;
 
+  if (!accessCheck(AccessCutText))
+    return;
+
   handleClipboardAnnounce(true);
 }
 
@@ -451,6 +454,8 @@ void SConnection::handleClipboardRequest(uint32_t flags)
     vlog.debug("Ignoring unexpected clipboard request");
     return;
   }
+  if (!accessCheck(AccessCutText))
+    return;
   handleClipboardRequest();
 }
 
@@ -466,10 +471,15 @@ void SConnection::handleClipboardNotify(uint32_t flags)
 
   if (flags & rfb::clipboardUTF8) {
     hasLocalClipboard = false;
+    if (!accessCheck(AccessCutText))
+      return;
     handleClipboardAnnounce(true);
   } else {
+    if (!accessCheck(AccessCutText))
+      return;
     handleClipboardAnnounce(false);
   }
+
 }
 
 void SConnection::handleClipboardProvide(uint32_t flags,
@@ -488,6 +498,9 @@ void SConnection::handleClipboardProvide(uint32_t flags,
   }
   clientClipboard = core::convertLF((const char*)data[0], lengths[0]);
   hasRemoteClipboard = true;
+
+  if (!accessCheck(AccessCutText))
+    return;
 
   // FIXME: Should probably verify that this data was actually requested
   handleClipboardData(clientClipboard.c_str());
@@ -620,6 +633,9 @@ void SConnection::handleClipboardData(const char* /*data*/)
 
 void SConnection::requestClipboard()
 {
+  if (!accessCheck(AccessCutText))
+    return;
+
   if (hasRemoteClipboard) {
     handleClipboardData(clientClipboard.c_str());
     return;
@@ -632,6 +648,9 @@ void SConnection::requestClipboard()
 
 void SConnection::announceClipboard(bool available)
 {
+  if (!accessCheck(AccessCutText))
+    return;
+
   hasLocalClipboard = available;
   unsolicitedClipboardAttempt = false;
 
@@ -658,6 +677,9 @@ void SConnection::announceClipboard(bool available)
 
 void SConnection::sendClipboardData(const char* data)
 {
+  if (!accessCheck(AccessCutText))
+    return;
+
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
       (client.clipboardFlags() & rfb::clipboardProvide)) {
     // FIXME: This conversion magic should be in SMsgWriter
