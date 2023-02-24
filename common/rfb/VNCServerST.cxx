@@ -364,6 +364,9 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
 
 void VNCServerST::requestClipboard()
 {
+  if (!rfb::Server::acceptCutText)
+    return;
+
   if (clipboardClient == nullptr) {
     slog.debug("Got request for client clipboard but no client currently owns the clipboard");
     return;
@@ -378,6 +381,9 @@ void VNCServerST::announceClipboard(bool available)
 
   clipboardRequestors.clear();
 
+  if (!rfb::Server::sendCutText)
+    return;
+
   for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->announceClipboardOrClose(available);
 }
@@ -385,6 +391,9 @@ void VNCServerST::announceClipboard(bool available)
 void VNCServerST::sendClipboardData(const char* data)
 {
   std::list<VNCSConnectionST*>::iterator ci;
+
+  if (!rfb::Server::sendCutText)
+    return;
 
   if (strchr(data, '\r') != nullptr)
     throw std::invalid_argument("Invalid carriage return in clipboard data");
@@ -478,6 +487,9 @@ void VNCServerST::setLEDState(unsigned int state)
 
 void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
+  if (!rfb::Server::acceptKeyEvents)
+    return;
+
   if (rfb::Server::maxIdleTime)
     idleTimer.start(core::secsToMillis(rfb::Server::maxIdleTime));
 
@@ -500,6 +512,10 @@ void VNCServerST::pointerEvent(VNCSConnectionST* client,
                                uint16_t buttonMask)
 {
   time_t now = time(nullptr);
+
+  if (!rfb::Server::acceptPointerEvents)
+    return;
+
   if (rfb::Server::maxIdleTime)
     idleTimer.start(core::secsToMillis(rfb::Server::maxIdleTime));
 
@@ -529,9 +545,11 @@ void VNCServerST::handleClipboardRequest(VNCSConnectionST* client)
 void VNCServerST::handleClipboardAnnounce(VNCSConnectionST* client,
                                           bool available)
 {
-  if (available)
+  if (available) {
+    if (!rfb::Server::acceptCutText)
+      return;
     clipboardClient = client;
-  else {
+  } else {
     if (client != clipboardClient)
       return;
     clipboardClient = nullptr;
@@ -542,6 +560,8 @@ void VNCServerST::handleClipboardAnnounce(VNCSConnectionST* client,
 void VNCServerST::handleClipboardData(VNCSConnectionST* client,
                                       const char* data)
 {
+  if (!rfb::Server::acceptCutText)
+    return;
   if (client != clipboardClient) {
     slog.debug("Ignoring unexpected clipboard data");
     return;
@@ -555,6 +575,11 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
 {
   unsigned int result;
   std::list<VNCSConnectionST*>::iterator ci;
+
+  if (!rfb::Server::acceptSetDesktopSize) {
+    slog.debug("Rejecting unauthorized framebuffer resize request");
+    return resultProhibited;
+  }
 
   // We can't handle a framebuffer larger than this, so don't let a
   // client set one (see PixelBuffer.cxx)
