@@ -123,7 +123,7 @@ namespace rfb {
     void queryConnection(const char* userName) override;
     void clientInit(bool shared) override;
     void setPixelFormat(const PixelFormat& pf) override;
-    void pointerEvent(const Point& pos, int buttonMask) override;
+    void pointerEvent(const Point& pos, uint8_t buttonMask) override;
     void keyEvent(uint32_t keysym, uint32_t keycode,
                   bool down) override;
     void framebufferUpdateRequest(const Rect& r,

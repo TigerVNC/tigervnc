@@ -342,7 +342,7 @@ void XDesktop::queryConnection(network::Socket* sock,
   queryConnectDialog->map();
 }
 
-void XDesktop::pointerEvent(const Point& pos, int buttonMask) {
+void XDesktop::pointerEvent(const Point& pos, uint8_t buttonMask) {
 #ifdef HAVE_XTEST
   if (!haveXtest) return;
   XTestFakeMotionEvent(dpy, DefaultScreen(dpy),

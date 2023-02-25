@@ -173,7 +173,7 @@ void CMsgWriter::writeKeyEvent(uint32_t keysym, uint32_t keycode, bool down)
 }
 
 
-void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
+void CMsgWriter::writePointerEvent(const Point& pos, uint8_t buttonMask)
 {
   Point p(pos);
   if (p.x < 0) p.x = 0;

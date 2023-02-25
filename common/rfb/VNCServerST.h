@@ -117,7 +117,7 @@ namespace rfb {
 
     // Event handlers
     void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
-    void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
+    void pointerEvent(VNCSConnectionST* client, const Point& pos, uint8_t buttonMask);
 
     void handleClipboardRequest(VNCSConnectionST* client);
     void handleClipboardAnnounce(VNCSConnectionST* client, bool available);

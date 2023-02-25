@@ -660,7 +660,7 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
-void Viewport::sendPointerEvent(const rfb::Point& pos, int buttonMask)
+void Viewport::sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask)
 {
   if (viewOnly)
       return;
@@ -790,7 +790,7 @@ void Viewport::flushPendingClipboard()
 }
 
 
-void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
+void Viewport::handlePointerEvent(const rfb::Point& pos, uint8_t buttonMask)
 {
   filterPointerEvent(pos, buttonMask);
 }

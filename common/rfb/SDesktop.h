@@ -98,7 +98,7 @@ namespace rfb {
     // pointerEvent() is called whenever a client sends an event that
     // the pointer moved, or a button was pressed or released.
     virtual void pointerEvent(const Point& /*pos*/,
-                              int /*buttonMask*/) {};
+                              uint8_t /*buttonMask*/) {};
 
     // handleClipboardRequest() is called whenever a client requests
     // the server to send over its clipboard data. It will only be

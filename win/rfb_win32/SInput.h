@@ -44,7 +44,7 @@ namespace rfb {
       // - Create a pointer event at a the given coordinates, with the
       //   specified button state.  The event must be specified using
       //   Screen coordinates.
-      void pointerEvent(const Point& pos, int buttonmask);
+      void pointerEvent(const Point& pos, uint8_t buttonmask);
     protected:
       Point last_position;
       uint8_t last_buttonmask;

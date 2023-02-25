@@ -26,22 +26,22 @@ class EmulateMB : public rfb::Timer::Callback {
 public:
   EmulateMB();
 
-  void filterPointerEvent(const rfb::Point& pos, int buttonMask);
+  void filterPointerEvent(const rfb::Point& pos, uint8_t buttonMask);
 
 protected:
-  virtual void sendPointerEvent(const rfb::Point& pos, int buttonMask)=0;
+  virtual void sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask)=0;
 
   void handleTimeout(rfb::Timer *t) override;
 
 private:
-  void sendAction(const rfb::Point& pos, int buttonMask, int action);
+  void sendAction(const rfb::Point& pos, uint8_t buttonMask, int action);
 
-  int createButtonMask(int buttonMask);
+  int createButtonMask(uint8_t buttonMask);
 
 private:
   int state;
-  int emulatedButtonMask;
-  int lastButtonMask;
+  uint8_t emulatedButtonMask;
+  uint8_t lastButtonMask;
   rfb::Point lastPos, origPos;
   rfb::Timer timer;
 };

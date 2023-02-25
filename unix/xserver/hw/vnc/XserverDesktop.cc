@@ -463,7 +463,7 @@ void XserverDesktop::terminate()
   kill(getpid(), SIGTERM);
 }
 
-void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
+void XserverDesktop::pointerEvent(const Point& pos, uint8_t buttonMask)
 {
   vncPointerMove(pos.x + vncGetScreenX(screenIndex),
                  pos.y + vncGetScreenY(screenIndex));

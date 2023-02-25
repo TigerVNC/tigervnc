@@ -312,7 +312,7 @@ void SDisplay::handleClipboardData(const char* data) {
 }
 
 
-void SDisplay::pointerEvent(const Point& pos, int buttonmask) {
+void SDisplay::pointerEvent(const Point& pos, uint8_t buttonmask) {
   if (pb->getRect().contains(pos)) {
     Point screenPos = pos.translate(screenRect.tl);
     // - Check that the SDesktop doesn't need restarting
