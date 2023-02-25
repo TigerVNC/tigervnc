@@ -496,12 +496,12 @@ public:
   ~VNCSConnectionSTShiftPresser() {
     if (pressed) {
       vlog.debug("Releasing fake Shift_L");
-      server->keyEvent(XK_Shift_L, 0, false);
+      server->keyEvent(XK_Shift_L, 0x2a, false);
     }
   }
   void press() {
     vlog.debug("Pressing fake Shift_L");
-    server->keyEvent(XK_Shift_L, 0, true);
+    server->keyEvent(XK_Shift_L, 0x2a, true);
     pressed = true;
   }
   VNCServerST* server;
@@ -550,8 +550,8 @@ void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
 
         if (lock == (uppercase == shift)) {
           vlog.debug("Inserting fake CapsLock to get in sync with client");
-          server->keyEvent(XK_Caps_Lock, 0, true);
-          server->keyEvent(XK_Caps_Lock, 0, false);
+          server->keyEvent(XK_Caps_Lock, 0x3a, true);
+          server->keyEvent(XK_Caps_Lock, 0x3a, false);
         }
       }
 
@@ -580,8 +580,8 @@ void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
           //
         } else if (lock == (number == shift)) {
           vlog.debug("Inserting fake NumLock to get in sync with client");
-          server->keyEvent(XK_Num_Lock, 0, true);
-          server->keyEvent(XK_Num_Lock, 0, false);
+          server->keyEvent(XK_Num_Lock, 0x45, true);
+          server->keyEvent(XK_Num_Lock, 0x45, false);
         }
       }
     }
