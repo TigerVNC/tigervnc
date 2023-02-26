@@ -1,13 +1,14 @@
 # Serbian translation for tigervnc.
 # Copyright © 2020 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
-# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2016–2021.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2016–2023.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc-1.11.90\n"
+"Project-Id-Version: tigervnc-1.12.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2021-09-08 09:19+0200\n"
-"PO-Revision-Date: 2021-12-13 18:27+0200\n"
+"POT-Creation-Date: 2022-12-15 16:35+0100\n"
+"PO-Revision-Date: 2023-02-26 12:27+0100\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
 "Language: sr\n"
@@ -16,6 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Gtranslator 41.0\n"
 
 #: vncviewer/CConn.cxx:103
 #, c-format
@@ -88,73 +90,62 @@ msgstr "Издања протокола: %d.%d"
 msgid "Security method: %s"
 msgstr "Метода безбедности: %s"
 
-#: vncviewer/CConn.cxx:271 vncviewer/CConn.cxx:273
+#: vncviewer/CConn.cxx:270 vncviewer/CConn.cxx:272
 msgid "The connection was dropped by the server before the session could be established."
 msgstr "Сервер је одбацио везу пре него ли је сесија могла да се успостави."
 
-#: vncviewer/CConn.cxx:280 vncviewer/Viewport.cxx:575
-#: vncviewer/Viewport.cxx:673 vncviewer/Viewport.cxx:776
-#: vncviewer/Viewport.cxx:791 vncviewer/Viewport.cxx:802
-#: vncviewer/Viewport.cxx:830 vncviewer/Viewport.cxx:901
-#: vncviewer/Viewport.cxx:937
-#, c-format
-msgid ""
-"An unexpected error occurred when communicating with the server:\n"
-"\n"
-"%s"
-msgstr ""
-"Дошло је до неочекиване грешке приликом комуницирања са сервером:\n"
-"\n"
-"%s"
-
-#: vncviewer/CConn.cxx:333
+#: vncviewer/CConn.cxx:332
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "Неуспело подешавање величине радне површи: %d"
 
-#: vncviewer/CConn.cxx:405
+#: vncviewer/CConn.cxx:404
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Неисправни уноси подешавања мапе боје са сервера!"
 
-#: vncviewer/CConn.cxx:513
+#: vncviewer/CConn.cxx:512
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Пропусност је %d kbit/s — мењам на квалитет %d"
 
-#: vncviewer/CConn.cxx:535
+#: vncviewer/CConn.cxx:534
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "Пропусност је %d kbit/s — пуна боја је сада омогућена"
 
-#: vncviewer/CConn.cxx:538
+#: vncviewer/CConn.cxx:537
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
 msgstr "Пропусност је %d kbit/s — пуна боја је сада онемогућена"
 
-#: vncviewer/CConn.cxx:564
+#: vncviewer/CConn.cxx:563
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Користим формат пиксела %s"
 
-#: vncviewer/DesktopWindow.cxx:143
+#: vncviewer/DesktopWindow.cxx:145
 msgid "Invalid geometry specified!"
 msgstr "Наведена је неисправна геометрија!"
 
-#: vncviewer/DesktopWindow.cxx:616
-msgid "Adjusting window size to avoid accidental full screen request"
+#: vncviewer/DesktopWindow.cxx:166
+msgid "Reducing window size to fit on current monitor"
+msgstr "Смањујем величину прозора да стане на текући монитор"
+
+#: vncviewer/DesktopWindow.cxx:648
+msgid "Adjusting window size to avoid accidental full-screen request"
 msgstr "Прилагођавам величину прозора да би се избегли случајни захтеви за целим екраном"
 
-#: vncviewer/DesktopWindow.cxx:667
+#: vncviewer/DesktopWindow.cxx:696
 #, c-format
 msgid "Press %s to open the context menu"
 msgstr "Притисните „%s“ да отворите приручни изборник"
 
-#: vncviewer/DesktopWindow.cxx:1030 vncviewer/DesktopWindow.cxx:1038
-#: vncviewer/DesktopWindow.cxx:1058
+#: vncviewer/DesktopWindow.cxx:1083 vncviewer/DesktopWindow.cxx:1091
+#: vncviewer/DesktopWindow.cxx:1111
 msgid "Failure grabbing keyboard"
 msgstr "Неуспех хватања тастатуре"
 
-#: vncviewer/DesktopWindow.cxx:1352
+#: vncviewer/DesktopWindow.cxx:1401
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Прорачунат је неодговарајући распоред екрана за захтев промене величине!"
 
@@ -162,258 +153,251 @@ msgstr "Прорачунат је неодговарајући распоред 
 msgid "Invalid state for 3 button emulation"
 msgstr "Неисправно стање за опонашање 3 дугмета"
 
-#: vncviewer/MonitorArrangement.cxx:403
-msgid "Failed to get monitor name because X11 RandR could not be found"
-msgstr "Нисам успео да добавим назив монитора јер не могу наћи „X11 RandR“"
-
-#: vncviewer/MonitorArrangement.cxx:409
-#: vncviewer/MonitorIndicesParameter.cxx:47
-#: vncviewer/MonitorIndicesParameter.cxx:100
+#: vncviewer/MonitorIndicesParameter.cxx:52
+#: vncviewer/MonitorIndicesParameter.cxx:105
 msgid "Failed to get system monitor configuration"
 msgstr "Нисам успео да добавим подешавање монитора система"
 
-#: vncviewer/MonitorArrangement.cxx:417
-#, c-format
-msgid "Failed to get information about CRTC %d"
-msgstr "Нисам успео да добавим информације о „CRTC %d“"
-
-#: vncviewer/MonitorArrangement.cxx:430
-#, c-format
-msgid "Failed to get information about output %d for CRTC %d"
-msgstr "Нисам успео да добавим информације о излазу %d за „CRTC %d“"
-
-#: vncviewer/MonitorIndicesParameter.cxx:78
+#: vncviewer/MonitorIndicesParameter.cxx:83
 #, c-format
 msgid "Invalid configuration specified for %s"
 msgstr "Неисправно подешавање је наведено за „%s“"
 
-#: vncviewer/MonitorIndicesParameter.cxx:86
+#: vncviewer/MonitorIndicesParameter.cxx:91
 #, c-format
 msgid "Monitor index %d does not exist"
 msgstr "Индекс монитора %d не постоји"
 
-#: vncviewer/MonitorIndicesParameter.cxx:164
-#: vncviewer/MonitorIndicesParameter.cxx:184
+#: vncviewer/MonitorIndicesParameter.cxx:169
+#: vncviewer/MonitorIndicesParameter.cxx:189
 #, c-format
 msgid "Invalid monitor index '%s'"
 msgstr "Неисправан индекс монитора „%s“"
 
-#: vncviewer/MonitorIndicesParameter.cxx:172
+#: vncviewer/MonitorIndicesParameter.cxx:177
 #, c-format
 msgid "Unexpected character '%c'"
 msgstr "Неочекивани знак „%c“"
 
-#: vncviewer/OptionsDialog.cxx:58
+#: vncviewer/OptionsDialog.cxx:63
 msgid "VNC Viewer: Connection Options"
 msgstr "ВНЦ прегледач: Могућности повезивања"
 
-#: vncviewer/OptionsDialog.cxx:84 vncviewer/ServerDialog.cxx:109
-#: vncviewer/vncviewer.cxx:418
+#: vncviewer/OptionsDialog.cxx:89 vncviewer/ServerDialog.cxx:108
+#: vncviewer/vncviewer.cxx:417
 msgid "Cancel"
 msgstr "Откажи"
 
-#: vncviewer/OptionsDialog.cxx:89 vncviewer/vncviewer.cxx:417
+#: vncviewer/OptionsDialog.cxx:94 vncviewer/vncviewer.cxx:416
 msgid "OK"
 msgstr "У реду"
 
-#: vncviewer/OptionsDialog.cxx:447
+#: vncviewer/OptionsDialog.cxx:484
 msgid "Compression"
 msgstr "Сажимање"
 
-#: vncviewer/OptionsDialog.cxx:463
+#: vncviewer/OptionsDialog.cxx:501
 msgid "Auto select"
 msgstr "Сам изабери"
 
-#: vncviewer/OptionsDialog.cxx:475
+#: vncviewer/OptionsDialog.cxx:516
 msgid "Preferred encoding"
 msgstr "Жељено кодирање"
 
-#: vncviewer/OptionsDialog.cxx:523
+#: vncviewer/OptionsDialog.cxx:574
 msgid "Color level"
 msgstr "Ниво боје"
 
-#: vncviewer/OptionsDialog.cxx:534
+#: vncviewer/OptionsDialog.cxx:585
 msgid "Full"
 msgstr "Пуна"
 
-#: vncviewer/OptionsDialog.cxx:541
+#: vncviewer/OptionsDialog.cxx:592
 msgid "Medium"
 msgstr "Средња"
 
-#: vncviewer/OptionsDialog.cxx:548
+#: vncviewer/OptionsDialog.cxx:599
 msgid "Low"
 msgstr "Слаба"
 
-#: vncviewer/OptionsDialog.cxx:555
+#: vncviewer/OptionsDialog.cxx:606
 msgid "Very low"
 msgstr "Врло слаба"
 
-#: vncviewer/OptionsDialog.cxx:572
+#: vncviewer/OptionsDialog.cxx:624
 msgid "Custom compression level:"
 msgstr "Произвољни ниво сажимања:"
 
-#: vncviewer/OptionsDialog.cxx:578
+#: vncviewer/OptionsDialog.cxx:630
 msgid "level (0=fast, 9=best)"
 msgstr "ниво (0=брзо, 9=најбоље)"
 
-#: vncviewer/OptionsDialog.cxx:585
+#: vncviewer/OptionsDialog.cxx:637
 msgid "Allow JPEG compression:"
 msgstr "Дозволи ЈПЕГ сажимање:"
 
-#: vncviewer/OptionsDialog.cxx:591
+#: vncviewer/OptionsDialog.cxx:643
 msgid "quality (0=poor, 9=best)"
 msgstr "квалитет (0=лош, 9=најбољи)"
 
-#: vncviewer/OptionsDialog.cxx:602
+#: vncviewer/OptionsDialog.cxx:654
 msgid "Security"
 msgstr "Безбедност"
 
-#: vncviewer/OptionsDialog.cxx:617
+#: vncviewer/OptionsDialog.cxx:676
 msgid "Encryption"
 msgstr "Шифровање"
 
-#: vncviewer/OptionsDialog.cxx:628 vncviewer/OptionsDialog.cxx:681
-#: vncviewer/OptionsDialog.cxx:767
+#: vncviewer/OptionsDialog.cxx:687 vncviewer/OptionsDialog.cxx:750
+#: vncviewer/OptionsDialog.cxx:854
 msgid "None"
 msgstr "Ништа"
 
-#: vncviewer/OptionsDialog.cxx:634
+#: vncviewer/OptionsDialog.cxx:694
 msgid "TLS with anonymous certificates"
 msgstr "ТЛС са анонимним уверењима"
 
-#: vncviewer/OptionsDialog.cxx:640
+#: vncviewer/OptionsDialog.cxx:700
 msgid "TLS with X509 certificates"
 msgstr "ТЛС са X509 уверењима"
 
-#: vncviewer/OptionsDialog.cxx:647
+#: vncviewer/OptionsDialog.cxx:707
 msgid "Path to X509 CA certificate"
 msgstr "Путања до X509 уверења"
 
-#: vncviewer/OptionsDialog.cxx:654
+#: vncviewer/OptionsDialog.cxx:714
 msgid "Path to X509 CRL file"
 msgstr "Путања до X509 ЦРЛ датотеке"
 
-#: vncviewer/OptionsDialog.cxx:670
+#: vncviewer/OptionsDialog.cxx:739
 msgid "Authentication"
 msgstr "Потврђивање идентитета"
 
-#: vncviewer/OptionsDialog.cxx:687
+#: vncviewer/OptionsDialog.cxx:756
 msgid "Standard VNC (insecure without encryption)"
 msgstr "Стандардни ВНЦ (несигурно без шифровања)"
 
-#: vncviewer/OptionsDialog.cxx:693
+#: vncviewer/OptionsDialog.cxx:762
 msgid "Username and password (insecure without encryption)"
 msgstr "Корисник и лозинка (несигурно без шифровања)"
 
-#: vncviewer/OptionsDialog.cxx:712
+#: vncviewer/OptionsDialog.cxx:781
 msgid "Input"
 msgstr "Улаз"
 
-#: vncviewer/OptionsDialog.cxx:720
+#: vncviewer/OptionsDialog.cxx:794
 msgid "View only (ignore mouse and keyboard)"
 msgstr "Само преглед (занемари миша и тастатуру)"
 
-#: vncviewer/OptionsDialog.cxx:726
+#: vncviewer/OptionsDialog.cxx:801
+msgid "Mouse"
+msgstr "Миш"
+
+#: vncviewer/OptionsDialog.cxx:815
 msgid "Emulate middle mouse button"
 msgstr "Опонашај средње дугме миша"
 
-#: vncviewer/OptionsDialog.cxx:732
-msgid "Accept clipboard from server"
-msgstr "Прихвати оставу са сервера"
-
-#: vncviewer/OptionsDialog.cxx:740
-msgid "Also set primary selection"
-msgstr "Такође постави први избор"
-
-#: vncviewer/OptionsDialog.cxx:747
-msgid "Send clipboard to server"
-msgstr "Пошаљи оставу на сервер"
-
-#: vncviewer/OptionsDialog.cxx:755
-msgid "Send primary selection as clipboard"
-msgstr "Пошаљи први избор као оставу"
-
-#: vncviewer/OptionsDialog.cxx:762
-msgid "Pass system keys directly to server (full screen)"
-msgstr "Проследи системске кључеве директно на сервер (пун екран)"
-
-#: vncviewer/OptionsDialog.cxx:765
-msgid "Menu key"
-msgstr "Тастер изборника"
-
-#: vncviewer/OptionsDialog.cxx:782
-msgid "Screen"
-msgstr "Екран"
-
-#: vncviewer/OptionsDialog.cxx:790
-msgid "Resize remote session on connect"
-msgstr "Промени величину удаљене сесије приликом повезивања"
-
-#: vncviewer/OptionsDialog.cxx:803
-msgid "Resize remote session to the local window"
-msgstr "Промени величину удаљене сесије на месни прозор"
-
-#: vncviewer/OptionsDialog.cxx:809
-msgid "Enable full-screen"
-msgstr "Укључи преко целог екрана"
-
-#: vncviewer/OptionsDialog.cxx:825
-msgid "Use current monitor"
-msgstr "Користи текући монитор"
-
-#: vncviewer/OptionsDialog.cxx:833
-msgid "Use all monitors"
-msgstr "Користи све мониторе"
-
-#: vncviewer/OptionsDialog.cxx:841
-msgid "Use selected monitor(s)"
-msgstr "Користи изабрани монитор"
-
-#: vncviewer/OptionsDialog.cxx:867
-msgid "Misc."
-msgstr "Разно"
-
-#: vncviewer/OptionsDialog.cxx:875
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Дељено (не прекидај везу другим прегледачима)"
-
-#: vncviewer/OptionsDialog.cxx:881
-msgid "Ask to reconnect on connection errors"
-msgstr "Питај за поновно повезивање при грешкама везе"
-
-#: vncviewer/OptionsDialog.cxx:887
+#: vncviewer/OptionsDialog.cxx:821
 msgid "Show dot when no cursor"
 msgstr "Прикажи тачку када нема курзора"
 
-#: vncviewer/ServerDialog.cxx:57
+#: vncviewer/OptionsDialog.cxx:835
+msgid "Keyboard"
+msgstr "Тастатура"
+
+#: vncviewer/OptionsDialog.cxx:849
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Проследи системске кључеве директно на сервер (пун екран)"
+
+#: vncviewer/OptionsDialog.cxx:852
+msgid "Menu key"
+msgstr "Тастер изборника"
+
+#: vncviewer/OptionsDialog.cxx:871
+msgid "Clipboard"
+msgstr "Остава"
+
+#: vncviewer/OptionsDialog.cxx:885
+msgid "Accept clipboard from server"
+msgstr "Прихвати оставу са сервера"
+
+#: vncviewer/OptionsDialog.cxx:893
+msgid "Also set primary selection"
+msgstr "Такође постави први избор"
+
+#: vncviewer/OptionsDialog.cxx:900
+msgid "Send clipboard to server"
+msgstr "Пошаљи оставу на сервер"
+
+#: vncviewer/OptionsDialog.cxx:908
+msgid "Send primary selection as clipboard"
+msgstr "Пошаљи први избор као оставу"
+
+#: vncviewer/OptionsDialog.cxx:927
+msgid "Display"
+msgstr "Приказ"
+
+#: vncviewer/OptionsDialog.cxx:941
+msgid "Display mode"
+msgstr "Режим приказа"
+
+#: vncviewer/OptionsDialog.cxx:956
+msgid "Windowed"
+msgstr "Упрозорен"
+
+#: vncviewer/OptionsDialog.cxx:964
+msgid "Full screen on current monitor"
+msgstr "Цео екран на текућем монитору"
+
+#: vncviewer/OptionsDialog.cxx:972
+msgid "Full screen on all monitors"
+msgstr "Цео екран на свим мониторима"
+
+#: vncviewer/OptionsDialog.cxx:980
+msgid "Full screen on selected monitor(s)"
+msgstr "Цео екран на изабраном монитору"
+
+#: vncviewer/OptionsDialog.cxx:1007
+msgid "Misc."
+msgstr "Разно"
+
+#: vncviewer/OptionsDialog.cxx:1015
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Дељено (не прекидај везу другим прегледачима)"
+
+#: vncviewer/OptionsDialog.cxx:1021
+msgid "Ask to reconnect on connection errors"
+msgstr "Питај за поновно повезивање при грешкама везе"
+
+#: vncviewer/ServerDialog.cxx:58
 msgid "VNC Viewer: Connection Details"
 msgstr "ВНЦ прегледач: Појединости повезивања"
 
-#: vncviewer/ServerDialog.cxx:64 vncviewer/ServerDialog.cxx:69
+#: vncviewer/ServerDialog.cxx:65 vncviewer/ServerDialog.cxx:70
 msgid "VNC server:"
 msgstr "ВНЦ сервер:"
 
-#: vncviewer/ServerDialog.cxx:82
+#: vncviewer/ServerDialog.cxx:81
 msgid "Options..."
 msgstr "Могућности..."
 
-#: vncviewer/ServerDialog.cxx:87
+#: vncviewer/ServerDialog.cxx:86
 msgid "Load..."
 msgstr "Учитавам..."
 
-#: vncviewer/ServerDialog.cxx:92
+#: vncviewer/ServerDialog.cxx:91
 msgid "Save As..."
 msgstr "Сачувај као..."
 
-#: vncviewer/ServerDialog.cxx:104
+#: vncviewer/ServerDialog.cxx:103
 msgid "About..."
 msgstr "О програму..."
 
-#: vncviewer/ServerDialog.cxx:114
+#: vncviewer/ServerDialog.cxx:113
 msgid "Connect"
 msgstr "Повежи се"
 
-#: vncviewer/ServerDialog.cxx:140
+#: vncviewer/ServerDialog.cxx:145
 #, c-format
 msgid ""
 "Unable to load the server history:\n"
@@ -424,15 +408,15 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:164 vncviewer/ServerDialog.cxx:200
+#: vncviewer/ServerDialog.cxx:173 vncviewer/ServerDialog.cxx:212
 msgid "TigerVNC configuration (*.tigervnc)"
 msgstr "Подешавање ТиграВНЦ (*.tigervnc)"
 
-#: vncviewer/ServerDialog.cxx:165
+#: vncviewer/ServerDialog.cxx:174
 msgid "Select a TigerVNC configuration file"
 msgstr "Изаберите датотеку подешавања ТиграВНЦ"
 
-#: vncviewer/ServerDialog.cxx:186 vncviewer/vncviewer.cxx:553
+#: vncviewer/ServerDialog.cxx:196 vncviewer/vncviewer.cxx:552
 #, c-format
 msgid ""
 "Unable to load the specified configuration file:\n"
@@ -443,24 +427,24 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:201
+#: vncviewer/ServerDialog.cxx:213
 msgid "Save the TigerVNC configuration to file"
 msgstr "Сачувајте подешавање ТиграВНЦ у датотеку"
 
-#: vncviewer/ServerDialog.cxx:226
+#: vncviewer/ServerDialog.cxx:239
 #, c-format
 msgid "%s already exists. Do you want to overwrite?"
 msgstr "„%s“ већ постоји. Желите ли да је препишете?"
 
-#: vncviewer/ServerDialog.cxx:227 vncviewer/vncviewer.cxx:415
+#: vncviewer/ServerDialog.cxx:240 vncviewer/vncviewer.cxx:414
 msgid "No"
 msgstr "Не"
 
-#: vncviewer/ServerDialog.cxx:227
+#: vncviewer/ServerDialog.cxx:240
 msgid "Overwrite"
 msgstr "Препиши"
 
-#: vncviewer/ServerDialog.cxx:243
+#: vncviewer/ServerDialog.cxx:256
 #, c-format
 msgid ""
 "Unable to save the specified configuration file:\n"
@@ -471,7 +455,7 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:277
+#: vncviewer/ServerDialog.cxx:290
 #, c-format
 msgid ""
 "Unable to save the default configuration:\n"
@@ -482,7 +466,7 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:290
+#: vncviewer/ServerDialog.cxx:303
 #, c-format
 msgid ""
 "Unable to save the server history:\n"
@@ -493,27 +477,27 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:305 vncviewer/ServerDialog.cxx:368
-#: vncviewer/parameters.cxx:628 vncviewer/parameters.cxx:733
-#: vncviewer/vncviewer.cxx:460
+#: vncviewer/ServerDialog.cxx:320 vncviewer/ServerDialog.cxx:387
+#: vncviewer/parameters.cxx:635 vncviewer/parameters.cxx:740
+#: vncviewer/vncviewer.cxx:459
 msgid "Could not obtain the home directory path"
 msgstr "Не могу да набавим путању личног директоријума"
 
-#: vncviewer/ServerDialog.cxx:318 vncviewer/ServerDialog.cxx:377
-#: vncviewer/parameters.cxx:639 vncviewer/parameters.cxx:746
+#: vncviewer/ServerDialog.cxx:333 vncviewer/ServerDialog.cxx:396
+#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:753
 #, c-format
 msgid "Could not open \"%s\": %s"
 msgstr "Не могу да отворим „%s“: %s"
 
-#: vncviewer/ServerDialog.cxx:333 vncviewer/ServerDialog.cxx:339
-#: vncviewer/parameters.cxx:760 vncviewer/parameters.cxx:766
-#: vncviewer/parameters.cxx:797 vncviewer/parameters.cxx:826
-#: vncviewer/parameters.cxx:832
+#: vncviewer/ServerDialog.cxx:348 vncviewer/ServerDialog.cxx:356
+#: vncviewer/parameters.cxx:767 vncviewer/parameters.cxx:773
+#: vncviewer/parameters.cxx:804 vncviewer/parameters.cxx:833
+#: vncviewer/parameters.cxx:839
 #, c-format
 msgid "Failed to read line %d in file %s: %s"
 msgstr "Нисам успео да прочитам %d. ред у датотеци „%s“: %s"
 
-#: vncviewer/ServerDialog.cxx:340 vncviewer/parameters.cxx:767
+#: vncviewer/ServerDialog.cxx:357 vncviewer/parameters.cxx:774
 msgid "Line too long"
 msgstr "Ред је предуг"
 
@@ -545,127 +529,127 @@ msgstr "Лозинка:"
 msgid "Authentication cancelled"
 msgstr "Потврђивање идентитета је отказано"
 
-#: vncviewer/Viewport.cxx:390
+#: vncviewer/Viewport.cxx:391
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
 msgstr "Нисам успео да освежим стање диоде тастатуре: %lu"
 
-#: vncviewer/Viewport.cxx:396 vncviewer/Viewport.cxx:402
+#: vncviewer/Viewport.cxx:397 vncviewer/Viewport.cxx:403
 #, c-format
 msgid "Failed to update keyboard LED state: %d"
 msgstr "Нисам успео да освежим стање диоде тастатуре: %d"
 
-#: vncviewer/Viewport.cxx:432
+#: vncviewer/Viewport.cxx:433
 msgid "Failed to update keyboard LED state"
 msgstr "Нисам успео да освежим стање диоде тастатуре"
 
-#: vncviewer/Viewport.cxx:459 vncviewer/Viewport.cxx:467
-#: vncviewer/Viewport.cxx:484
+#: vncviewer/Viewport.cxx:460 vncviewer/Viewport.cxx:468
+#: vncviewer/Viewport.cxx:485
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
 msgstr "Нисам успео да добавим стање диоде тастатуре: %d"
 
-#: vncviewer/Viewport.cxx:854
+#: vncviewer/Viewport.cxx:849
 msgid "No key code specified on key press"
 msgstr "Није наведен код тастера на притисак истог"
 
-#: vncviewer/Viewport.cxx:1017
+#: vncviewer/Viewport.cxx:1008
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Нема шифре прегледа за проширени виртуелни кључ 0x%02x"
 
-#: vncviewer/Viewport.cxx:1019
+#: vncviewer/Viewport.cxx:1010
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Нема шифре прегледа за виртуелни кључ 0x%02x"
 
-#: vncviewer/Viewport.cxx:1025
+#: vncviewer/Viewport.cxx:1016
 #, c-format
 msgid "Invalid scan code 0x%02x"
 msgstr "Неисправан код скенирања 0x%02x"
 
-#: vncviewer/Viewport.cxx:1055
+#: vncviewer/Viewport.cxx:1046
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Нема симбола за проширени виртуелни кључ 0x%02x"
 
-#: vncviewer/Viewport.cxx:1057
+#: vncviewer/Viewport.cxx:1048
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Нема симбола за виртуелни кључ 0x%02x"
 
-#: vncviewer/Viewport.cxx:1157
+#: vncviewer/Viewport.cxx:1154
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Нема симбола за шифру кључа 0x%02x (у текућем стању)"
 
-#: vncviewer/Viewport.cxx:1190
+#: vncviewer/Viewport.cxx:1187
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Нема симбола за шифру кључа %d (у текућем стању)"
 
-#: vncviewer/Viewport.cxx:1250
+#: vncviewer/Viewport.cxx:1247
 msgctxt "ContextMenu|"
 msgid "Dis&connect"
 msgstr "Пре&кини везу"
 
-#: vncviewer/Viewport.cxx:1253
+#: vncviewer/Viewport.cxx:1250
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&Пун екран"
 
-#: vncviewer/Viewport.cxx:1256
+#: vncviewer/Viewport.cxx:1253
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "&Умањи"
 
-#: vncviewer/Viewport.cxx:1258
+#: vncviewer/Viewport.cxx:1255
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "&Величина прозора на сесију"
 
-#: vncviewer/Viewport.cxx:1263
+#: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ктрл"
 
-#: vncviewer/Viewport.cxx:1266
+#: vncviewer/Viewport.cxx:1263
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Алт"
 
-#: vncviewer/Viewport.cxx:1272
+#: vncviewer/Viewport.cxx:1269
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Пошаљи „%s“"
 
-#: vncviewer/Viewport.cxx:1278
+#: vncviewer/Viewport.cxx:1275
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Пошаљи Ктрл-Алт-&Дел"
 
-#: vncviewer/Viewport.cxx:1281
+#: vncviewer/Viewport.cxx:1278
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Освежи екран"
 
-#: vncviewer/Viewport.cxx:1284
+#: vncviewer/Viewport.cxx:1281
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "&Могућности..."
 
-#: vncviewer/Viewport.cxx:1286
+#: vncviewer/Viewport.cxx:1283
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Подаци о &вези..."
 
-#: vncviewer/Viewport.cxx:1288
+#: vncviewer/Viewport.cxx:1285
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "О &програму..."
 
-#: vncviewer/Viewport.cxx:1377
+#: vncviewer/Viewport.cxx:1374
 msgid "VNC connection info"
 msgstr "Подаци о ВНЦ вези"
 
@@ -713,71 +697,106 @@ msgstr "Прозор 0x%08lx има више од једне маске „X Inp
 msgid "Failure grabbing device %i"
 msgstr "Неуспех хватања уређаја %i"
 
-#: vncviewer/parameters.cxx:301 vncviewer/parameters.cxx:326
-#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:383
-#: vncviewer/parameters.cxx:403
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
+#: vncviewer/vncviewer.cxx:406 vncviewer/vncviewer.desktop.in.in:3
+msgid "TigerVNC Viewer"
+msgstr "Прегледач ТигарВНЦ"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
+#: vncviewer/vncviewer.desktop.in.in:5
+msgid "Connect to VNC server and display remote desktop"
+msgstr "Повежите се на ВНЦ сервер и прикажите удаљену радну површ"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
+msgid "Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network. Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device. This package contains a client which will enable you to connect to other desktops running a VNC server. VNC is platform-independent and supports various operating systems and architectures as both servers and clients."
+msgstr "Виртуелно мрежно рачунарство (VNC) је систем удаљеног приказа који вам омогућава да видте и радите са виртуелним окружењем радне површи које ради на другом рачунару на мрежи. Коришћењем ВМР-а, можете да покрећете графичке програме на удаљеном рачунару и да пошаљете само приказ тих програма вашем локалном уређају. Овај пакет садржи клијента који ће вам омогућити да се повежете са другим радним површима на којима ради ВМР сервер. ВМР је независан од платформе и подржава разне оперативне системе и архитектуре као и сервере и клијенте."
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:23
+msgid "TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code bases. TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project in early 2009 so that TightVNC could focus on Windows platforms. TigerVNC supports a variant of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo JPEG codec."
+msgstr "ТигарВНЦ великобрзинско издање ВНЦ-а засновано на основама „RealVNC“-у 4 и „X.org“ кода. ТигарВНЦ је започео као развојно залагање следеће генерације за „TightVNC“ на Јуникс и Линукс платформама, али се издваја из свог родитељског пројекта у раним 2009 тако да се „TightVNC“ може фокусирати на Виндоуз платформама. ТигарВНЦ подржава варијанту „Tight“ кодирања тако да је поприлично убрзан коришћењем „libjpeg-turbo“ ЈПЕГ кодека."
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:33
+msgid "TigerVNC Viewer connection to a CentOS machine"
+msgstr "Веза ТигарВНЦ прегледача са CentOS рачунаром"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:37
+msgid "TigerVNC Viewer connection to a macOS machine"
+msgstr "Веза ТигарВНЦ прегледача са macOS рачунаром"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:41
+msgid "TigerVNC Viewer connection to a Windows machine"
+msgstr "Веза ТигарВНЦ прегледача са Виндоуз рачунаром"
+
+#: vncviewer/parameters.cxx:308 vncviewer/parameters.cxx:333
+#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:390
+#: vncviewer/parameters.cxx:410
 msgid "The name of the parameter is too large"
 msgstr "Назив параметра је превелик"
 
-#: vncviewer/parameters.cxx:305 vncviewer/parameters.cxx:310
-#: vncviewer/parameters.cxx:361
+#: vncviewer/parameters.cxx:312 vncviewer/parameters.cxx:317
+#: vncviewer/parameters.cxx:368
 msgid "The parameter is too large"
 msgstr "Параметар је превелик"
 
-#: vncviewer/parameters.cxx:368 vncviewer/parameters.cxx:689
-#: vncviewer/parameters.cxx:811
+#: vncviewer/parameters.cxx:375 vncviewer/parameters.cxx:696
+#: vncviewer/parameters.cxx:818
 msgid "Invalid format or too large value"
 msgstr "Неисправан запис или предуга вредност"
 
-#: vncviewer/parameters.cxx:422 vncviewer/parameters.cxx:453
+#: vncviewer/parameters.cxx:429 vncviewer/parameters.cxx:460
 msgid "Failed to create registry key"
 msgstr "Нисам успео да направим кључ регистра"
 
-#: vncviewer/parameters.cxx:441 vncviewer/parameters.cxx:496
-#: vncviewer/parameters.cxx:538 vncviewer/parameters.cxx:605
+#: vncviewer/parameters.cxx:448 vncviewer/parameters.cxx:503
+#: vncviewer/parameters.cxx:545 vncviewer/parameters.cxx:612
 msgid "Failed to close registry key"
 msgstr "Нисам успео да затворим кључ регистра"
 
-#: vncviewer/parameters.cxx:459 vncviewer/parameters.cxx:476
-#: vncviewer/parameters.cxx:489 vncviewer/parameters.cxx:647
-#: vncviewer/parameters.cxx:657 vncviewer/parameters.cxx:668
+#: vncviewer/parameters.cxx:466 vncviewer/parameters.cxx:483
+#: vncviewer/parameters.cxx:654 vncviewer/parameters.cxx:664
+#: vncviewer/parameters.cxx:675
 #, c-format
 msgid "Failed to save \"%s\": %s"
 msgstr "Нисам успео да сачувам „%s“: %s"
 
-#: vncviewer/parameters.cxx:472 vncviewer/parameters.cxx:560
-#: vncviewer/parameters.cxx:670 vncviewer/parameters.cxx:707
+#: vncviewer/parameters.cxx:479 vncviewer/parameters.cxx:567
+#: vncviewer/parameters.cxx:677 vncviewer/parameters.cxx:714
 msgid "Unknown parameter type"
 msgstr "Непозната врста параметра"
 
-#: vncviewer/parameters.cxx:511 vncviewer/parameters.cxx:583
+#: vncviewer/parameters.cxx:496
+#, c-format
+msgid "Failed to remove \"%s\": %s"
+msgstr "Нисам успео да уклоним „%s“: %s"
+
+#: vncviewer/parameters.cxx:518 vncviewer/parameters.cxx:590
 msgid "Failed to open registry key"
 msgstr "Нисам успео да отворим кључ регистра"
 
-#: vncviewer/parameters.cxx:528
+#: vncviewer/parameters.cxx:535
 #, c-format
 msgid "Failed to read server history entry %d: %s"
 msgstr "Нисам успео да прочитам унос историјата сервера %d: %s"
 
-#: vncviewer/parameters.cxx:564 vncviewer/parameters.cxx:594
+#: vncviewer/parameters.cxx:571 vncviewer/parameters.cxx:601
 #, c-format
 msgid "Failed to read parameter \"%s\": %s"
 msgstr "Нисам успео да прочитам параметар „%s“: %s"
 
-#: vncviewer/parameters.cxx:648 vncviewer/parameters.cxx:659
+#: vncviewer/parameters.cxx:655 vncviewer/parameters.cxx:666
 msgid "Could not encode parameter"
 msgstr "Не могу да кодирам параметар"
 
-#: vncviewer/parameters.cxx:776
+#: vncviewer/parameters.cxx:783
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Датотека подешавања „%s“ је у неисправном запису"
 
-#: vncviewer/parameters.cxx:798
+#: vncviewer/parameters.cxx:805
 msgid "Invalid format"
 msgstr "Неисправан запис"
 
-#: vncviewer/parameters.cxx:833
+#: vncviewer/parameters.cxx:840
 msgid "Unknown parameter"
 msgstr "Непознат параметар"
 
@@ -821,28 +840,39 @@ msgstr "„X Input 2“ (или новије) није доступно."
 msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
 msgstr "„X Input 2“ (или новије) није доступно. Покрети додира неће бити подржани."
 
-#: vncviewer/vncviewer.cxx:106
+#: vncviewer/vncviewer.cxx:107
 #, c-format
 msgid ""
-"TigerVNC Viewer %d-bit v%s\n"
+"TigerVNC Viewer v%s\n"
 "Built on: %s\n"
 "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
 "See https://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"Прегледач ТигарВНЦ %d-бита и%s\n"
+"Прегледач ТигарВНЦ и%s\n"
 "Изграђен: %s\n"
 "Ауторска права © 1999-%d Тим Тигра ВНЦ-а и многи други (видите „README.rst“)\n"
 "Посетите „https://www.tigervnc.org“ да сазнате више о програму."
 
-#: vncviewer/vncviewer.cxx:172
+#: vncviewer/vncviewer.cxx:161
+#, c-format
+msgid ""
+"An unexpected error occurred when communicating with the server:\n"
+"\n"
+"%s"
+msgstr ""
+"Дошло је до неочекиване грешке приликом комуницирања са сервером:\n"
+"\n"
+"%s"
+
+#: vncviewer/vncviewer.cxx:177
 msgid "About TigerVNC Viewer"
 msgstr "О програму"
 
-#: vncviewer/vncviewer.cxx:193
+#: vncviewer/vncviewer.cxx:198
 msgid "Internal FLTK error. Exiting."
 msgstr "Унутрашња ФЛТК грешка. Излазим."
 
-#: vncviewer/vncviewer.cxx:212
+#: vncviewer/vncviewer.cxx:217
 #, c-format
 msgid ""
 "%s\n"
@@ -853,83 +883,79 @@ msgstr ""
 "\n"
 "Да покушам да се поново повежем?"
 
-#: vncviewer/vncviewer.cxx:243 vncviewer/vncviewer.cxx:255
+#: vncviewer/vncviewer.cxx:248 vncviewer/vncviewer.cxx:260
 #, c-format
 msgid "Error starting new TigerVNC Viewer: %s"
 msgstr "Грешка покретања новог примерка програма: %s"
 
-#: vncviewer/vncviewer.cxx:264
+#: vncviewer/vncviewer.cxx:269
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr "Примљен је сигнал за окончавање %d. Програм ће сада изаћи."
 
-#: vncviewer/vncviewer.cxx:407 vncviewer/vncviewer.desktop.in.in:3
-msgid "TigerVNC Viewer"
-msgstr "Прегледач ТигарВНЦ"
-
-#: vncviewer/vncviewer.cxx:416
+#: vncviewer/vncviewer.cxx:415
 msgid "Yes"
 msgstr "Да"
 
-#: vncviewer/vncviewer.cxx:419
+#: vncviewer/vncviewer.cxx:418
 msgid "Close"
 msgstr "Затвори"
 
-#: vncviewer/vncviewer.cxx:424
+#: vncviewer/vncviewer.cxx:423
 msgid "About"
 msgstr "О програму"
 
-#: vncviewer/vncviewer.cxx:427
+#: vncviewer/vncviewer.cxx:426
 msgid "Hide"
 msgstr "Сакриј"
 
-#: vncviewer/vncviewer.cxx:430
+#: vncviewer/vncviewer.cxx:429
 msgid "Quit"
 msgstr "Изађи"
 
-#: vncviewer/vncviewer.cxx:434
+#: vncviewer/vncviewer.cxx:433
 msgid "Services"
 msgstr "Услуге"
 
-#: vncviewer/vncviewer.cxx:435
+#: vncviewer/vncviewer.cxx:434
 msgid "Hide Others"
 msgstr "Сакриј остале"
 
-#: vncviewer/vncviewer.cxx:436
+#: vncviewer/vncviewer.cxx:435
 msgid "Show All"
 msgstr "Прикажи све"
 
-#: vncviewer/vncviewer.cxx:445
+#: vncviewer/vncviewer.cxx:444
 msgctxt "SysMenu|"
 msgid "&File"
 msgstr "&Датотека"
 
-#: vncviewer/vncviewer.cxx:448
+#: vncviewer/vncviewer.cxx:447
 msgctxt "SysMenu|File|"
 msgid "&New Connection"
 msgstr "&Нова веза"
 
-#: vncviewer/vncviewer.cxx:464
+#: vncviewer/vncviewer.cxx:463
 #, c-format
-msgid "Could not create VNC home directory: %s."
-msgstr "Не могу да направим личну фасциклу ВНЦ-а: %s."
+msgid "Could not create VNC home directory: %s"
+msgstr "Не могу да направим личну фасциклу ВНЦ-а: %s"
 
-#: vncviewer/vncviewer.cxx:563
+#: vncviewer/vncviewer.cxx:562
 msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
 msgstr "„FullScreenAllMonitors“ је застарело, поставите „FullScreenMode“ на „all“"
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:769 vncviewer/vncviewer.cxx:770
+#: vncviewer/vncviewer.cxx:768 vncviewer/vncviewer.cxx:769
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Параметри „-listen“ и „-via“ нису сагласни"
 
-#: vncviewer/vncviewer.cxx:784
+#: vncviewer/vncviewer.cxx:783
 #, c-format
 msgid "Listening on port %d"
 msgstr "Ослушкујем на прикључнику %d"
 
-#: vncviewer/vncviewer.cxx:817
+#: vncviewer/vncviewer.cxx:816
 #, c-format
 msgid ""
 "Failure waiting for incoming VNC connection:\n"
@@ -944,9 +970,26 @@ msgstr ""
 msgid "Remote Desktop Viewer"
 msgstr "Прегледач удаљених радних површи"
 
-#: vncviewer/vncviewer.desktop.in.in:5
-msgid "Connect to VNC server and display remote desktop"
-msgstr "Повежите се на ВНЦ сервер и прикажите удаљену радну површ"
+#~ msgid "Failed to get monitor name because X11 RandR could not be found"
+#~ msgstr "Нисам успео да добавим назив монитора јер не могу наћи „X11 RandR“"
+
+#~ msgid "Failed to get information about CRTC %d"
+#~ msgstr "Нисам успео да добавим информације о „CRTC %d“"
+
+#~ msgid "Failed to get information about output %d for CRTC %d"
+#~ msgstr "Нисам успео да добавим информације о излазу %d за „CRTC %d“"
+
+#~ msgid "Screen"
+#~ msgstr "Екран"
+
+#~ msgid "Resize remote session on connect"
+#~ msgstr "Промени величину удаљене сесије приликом повезивања"
+
+#~ msgid "Resize remote session to the local window"
+#~ msgstr "Промени величину удаљене сесије на месни прозор"
+
+#~ msgid "Enable full-screen"
+#~ msgstr "Укључи преко целог екрана"
 
 #~ msgid "Full (all available colors)"
 #~ msgstr "Пун (све доступне боје)"
