@@ -58,6 +58,9 @@ namespace rfb {
 
     void writeClientCutText(const char* str);
 
+    void writeQemuAudioEnableOrDisable(bool enable);
+    void writeQemuAudioSetFormat(rdr::U8 fmt, rdr::U8 channels, rdr::U32 frequency);
+
     void writeClipboardCaps(rdr::U32 caps, const rdr::U32* lengths);
     void writeClipboardRequest(rdr::U32 flags);
     void writeClipboardPeek(rdr::U32 flags);

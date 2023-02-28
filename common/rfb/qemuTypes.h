@@ -21,5 +21,15 @@
 namespace rfb {
   const int qemuExtendedKeyEvent = 0;
   const int qemuAudio = 1;
+
+  // VNC client -> QEMU server audio message IDs
+  const int msgToQemuEnableAudio    = 0;
+  const int msgToQemuDisableAudio   = 1;
+  const int msgToQemuSetAudioFormat = 2;
+
+  // QEMU server -> VNC client audio message IDs
+  const int msgFromQemuAudioEnd   = 0;
+  const int msgFromQemuAudioBegin = 1;
+  const int msgFromQemuAudioData  = 2;
 }
 #endif
