@@ -23,7 +23,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/clipboardTypes.h>
@@ -347,7 +346,8 @@ void SConnection::setAccessRights(AccessRights ar)
 
 bool SConnection::accessCheck(AccessRights ar) const
 {
-  assert(state_ >= RFBSTATE_QUERYING);
+  if (state_ < RFBSTATE_QUERYING)
+    throw Exception("SConnection::accessCheck: invalid state");
 
   return (accessRights & ar) == ar;
 }
