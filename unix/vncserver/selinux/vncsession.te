@@ -37,6 +37,7 @@ allow vnc_session_t self:fifo_file rw_fifo_file_perms;
 allow vnc_session_t vnc_session_var_run_t:file manage_file_perms;
 files_pid_filetrans(vnc_session_t, vnc_session_var_run_t, file)
 
+create_dirs_pattern(vnc_session_t, vnc_home_t, vnc_home_t)
 manage_files_pattern(vnc_session_t, vnc_home_t, vnc_home_t)
 manage_fifo_files_pattern(vnc_session_t, vnc_home_t, vnc_home_t)
 manage_sock_files_pattern(vnc_session_t, vnc_home_t, vnc_home_t)
