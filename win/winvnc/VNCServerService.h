@@ -28,10 +28,10 @@ namespace winvnc {
   public:
     VNCServerService();
 
-    DWORD serviceMain(int argc, TCHAR* argv[]);
+    DWORD serviceMain(int argc, char* argv[]);
     void stop();
 
-    static const TCHAR* Name;
+    static const char* Name;
   protected:
     rfb::win32::Handle stopServiceEvent;
     rfb::win32::Handle sessionEvent;

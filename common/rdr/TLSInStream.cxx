@@ -90,7 +90,7 @@ TLSInStream::~TLSInStream()
 
 bool TLSInStream::fillBuffer()
 {
-  size_t n = readTLS((U8*) end, availSpace());
+  size_t n = readTLS((uint8_t*) end, availSpace());
   if (n == 0)
     return false;
   end += n;
@@ -98,7 +98,7 @@ bool TLSInStream::fillBuffer()
   return true;
 }
 
-size_t TLSInStream::readTLS(U8* buf, size_t len)
+size_t TLSInStream::readTLS(uint8_t* buf, size_t len)
 {
   int n;
 

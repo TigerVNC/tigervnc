@@ -76,19 +76,20 @@ LogWriter::getLogWriter(const char* name) {
 }
 
 bool LogWriter::setLogParams(const char* params) {
-  CharArray logwriterName, loggerName, logLevel;
-  if (!strSplit(params, ':', &logwriterName.buf, &loggerName.buf) ||
-    !strSplit(loggerName.buf, ':', &loggerName.buf, &logLevel.buf)) {
+  std::vector<std::string> parts;
+  parts = split(params, ':');
+  if (parts.size() != 3) {
     fprintf(stderr,"failed to parse log params:%s\n",params);
     return false;
   }
-  int level = atoi(logLevel.buf);
+  int level = atoi(parts[2].c_str());
   Logger* logger = 0;
-  if (strcmp("", loggerName.buf) != 0) {
-    logger = Logger::getLogger(loggerName.buf);
-    if (!logger) fprintf(stderr,"no logger found! %s\n",loggerName.buf);
+  if (!parts[1].empty()) {
+    logger = Logger::getLogger(parts[1].c_str());
+    if (!logger)
+      fprintf(stderr, "no logger found! %s\n", parts[1].c_str());
   }
-  if (strcmp("*", logwriterName.buf) == 0) {
+  if (parts[0] == "*") {
     LogWriter* current = log_writers;
     while (current) {
       current->setLog(logger);
@@ -97,9 +98,9 @@ bool LogWriter::setLogParams(const char* params) {
     }
     return true;
   } else {
-    LogWriter* logwriter = getLogWriter(logwriterName.buf);
+    LogWriter* logwriter = getLogWriter(parts[0].c_str());
     if (!logwriter) {
-      fprintf(stderr,"no logwriter found! %s\n",logwriterName.buf);
+      fprintf(stderr, "no logwriter found! %s\n", parts[0].c_str());
     } else {
       logwriter->setLog(logger);
       logwriter->setLevel(level);
@@ -122,11 +123,12 @@ bool LogParameter::setParam(const char* v) {
   if (immutable) return true;
   LogWriter::setLogParams("*::0");
   StringParameter::setParam(v);
-  CharArray logParam;
-  CharArray params(getData());
-  while (params.buf) {
-    strSplit(params.buf, ',', &logParam.buf, &params.buf);
-    if (strlen(logParam.buf) && !LogWriter::setLogParams(logParam.buf))
+  std::vector<std::string> parts;
+  parts = split(v, ',');
+  for (size_t i = 0; i < parts.size(); i++) {
+    if (parts[i].empty())
+        continue;
+    if (!LogWriter::setLogParams(parts[i].c_str()))
       return false;
   }
   return true;

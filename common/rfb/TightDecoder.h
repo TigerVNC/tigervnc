@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2009-2015 Pierre Ossman for Cendio AB
+ * Copyright 2009-2022 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,24 +45,18 @@ namespace rfb {
                             ModifiablePixelBuffer* pb);
 
   private:
-    rdr::U32 readCompact(rdr::InStream* is);
+    uint32_t readCompact(rdr::InStream* is);
 
-    void FilterGradient24(const rdr::U8* inbuf, const PixelFormat& pf,
-                          rdr::U32* outbuf, int stride, const Rect& r);
+    void FilterGradient24(const uint8_t* inbuf, const PixelFormat& pf,
+                          uint32_t* outbuf, int stride, const Rect& r);
 
-    void FilterGradient(const rdr::U8* inbuf, const PixelFormat& pf,
-                        rdr::U16* outbuf, int stride, const Rect& r);
-    void FilterGradient(const rdr::U8* inbuf, const PixelFormat& pf,
-                        rdr::U32* outbuf, int stride, const Rect& r);
+    template<class T>
+    void FilterGradient(const uint8_t* inbuf, const PixelFormat& pf,
+                        T* outbuf, int stride, const Rect& r);
 
-    void FilterPalette(const rdr::U8* palette, int palSize,
-                       const rdr::U8* inbuf, rdr::U8* outbuf,
-                       int stride, const Rect& r);
-    void FilterPalette(const rdr::U16* palette, int palSize,
-                       const rdr::U8* inbuf, rdr::U16* outbuf,
-                       int stride, const Rect& r);
-    void FilterPalette(const rdr::U32* palette, int palSize,
-                       const rdr::U8* inbuf, rdr::U32* outbuf,
+    template<class T>
+    void FilterPalette(const T* palette, int palSize,
+                       const uint8_t* inbuf, T* outbuf,
                        int stride, const Rect& r);
 
   private:

@@ -24,8 +24,8 @@
 #ifndef __RFB_CMSGHANDLER_H__
 #define __RFB_CMSGHANDLER_H__
 
-#include <rdr/types.h>
-#include <rfb/Pixel.h>
+#include <stdint.h>
+
 #include <rfb/ServerParams.h>
 #include <rfb/Rect.h>
 #include <rfb/ScreenSet.h>
@@ -51,11 +51,11 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           const rdr::U8* data) = 0;
+                           const uint8_t* data) = 0;
     virtual void setCursorPos(const Point& pos) = 0;
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
-    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
+    virtual void fence(uint32_t flags, unsigned len, const char data[]);
     virtual void endOfContinuousUpdates();
     virtual void supportsQEMUKeyEvent();
     virtual void serverInit(int width, int height,
@@ -70,20 +70,20 @@ namespace rfb {
     virtual bool dataRect(const Rect& r, int encoding) = 0;
 
     virtual void setColourMapEntries(int firstColour, int nColours,
-				     rdr::U16* rgbs) = 0;
+				     uint16_t* rgbs) = 0;
     virtual void bell() = 0;
     virtual void serverCutText(const char* str) = 0;
 
     virtual void setLEDState(unsigned int state);
 
-    virtual void handleClipboardCaps(rdr::U32 flags,
-                                     const rdr::U32* lengths);
-    virtual void handleClipboardRequest(rdr::U32 flags);
+    virtual void handleClipboardCaps(uint32_t flags,
+                                     const uint32_t* lengths);
+    virtual void handleClipboardRequest(uint32_t flags);
     virtual void handleClipboardPeek();
-    virtual void handleClipboardNotify(rdr::U32 flags);
-    virtual void handleClipboardProvide(rdr::U32 flags,
+    virtual void handleClipboardNotify(uint32_t flags);
+    virtual void handleClipboardProvide(uint32_t flags,
                                         const size_t* lengths,
-                                        const rdr::U8* const* data);
+                                        const uint8_t* const* data);
 
     ServerParams server;
   };

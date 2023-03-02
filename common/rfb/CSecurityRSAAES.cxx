@@ -39,6 +39,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/UserMsgBox.h>
+#include <rfb/util.h>
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
 #include <os/os.h>
@@ -55,7 +56,7 @@ const int MaxKeyLength = 8192;
 
 using namespace rfb;
 
-CSecurityRSAAES::CSecurityRSAAES(CConnection* cc, rdr::U32 _secType,
+CSecurityRSAAES::CSecurityRSAAES(CConnection* cc, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
   : CSecurity(cc), state(ReadPublicKey),
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
@@ -155,8 +156,8 @@ void CSecurityRSAAES::writePublicKey()
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
                             &rs, random_func, NULL, NULL, clientKeyLength, 0))
     throw AuthFailureException("failed to generate key");
-  clientKeyN = new rdr::U8[rsaKeySize];
-  clientKeyE = new rdr::U8[rsaKeySize];
+  clientKeyN = new uint8_t[rsaKeySize];
+  clientKeyE = new uint8_t[rsaKeySize];
   nettle_mpz_get_str_256(rsaKeySize, clientKeyN, clientPublicKey.n);
   nettle_mpz_get_str_256(rsaKeySize, clientKeyE, clientPublicKey.e);
   os->writeU32(clientKeyLength);
@@ -180,8 +181,8 @@ bool CSecurityRSAAES::readPublicKey()
   if (!is->hasDataOrRestore(size * 2))
     return false;
   is->clearRestorePoint();
-  serverKeyE = new rdr::U8[size];
-  serverKeyN = new rdr::U8[size];
+  serverKeyE = new uint8_t[size];
+  serverKeyN = new uint8_t[size];
   is->readBytes(serverKeyN, size);
   is->readBytes(serverKeyE, size);
   rsa_public_key_init(&serverKey);
@@ -194,13 +195,13 @@ bool CSecurityRSAAES::readPublicKey()
 
 void CSecurityRSAAES::verifyServer()
 {
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((serverKeyLength & 0xff000000) >> 24),
-    (rdr::U8)((serverKeyLength & 0xff0000) >> 16),
-    (rdr::U8)((serverKeyLength & 0xff00) >> 8),
-    (rdr::U8)(serverKeyLength & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((serverKeyLength & 0xff000000) >> 24),
+    (uint8_t)((serverKeyLength & 0xff0000) >> 16),
+    (uint8_t)((serverKeyLength & 0xff00) >> 8),
+    (uint8_t)(serverKeyLength & 0xff)
   };
-  rdr::U8 f[8];
+  uint8_t f[8];
   struct sha1_ctx ctx;
   sha1_init(&ctx);
   sha1_update(&ctx, 4, lenServerKey);
@@ -208,13 +209,12 @@ void CSecurityRSAAES::verifyServer()
   sha1_update(&ctx, serverKey.size, serverKeyE);
   sha1_digest(&ctx, sizeof(f), f);
   const char *title = "Server key fingerprint";
-  CharArray text;
-  text.format(
+  std::string text = format(
     "The server has provided the following identifying information:\n"
     "Fingerprint: %02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n"
     "Please verify that the information is correct and press \"Yes\". "
     "Otherwise press \"No\"", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
-  if (!msg->showMsgBox(UserMsgBox::M_YESNO, title, text.buf))
+  if (!msg->showMsgBox(UserMsgBox::M_YESNO, title, text.c_str()))
     throw AuthFailureException("server key mismatch");
 }
 
@@ -238,7 +238,7 @@ void CSecurityRSAAES::writeRandom()
     mpz_clear(x);
     throw AuthFailureException("failed to encrypt random");
   }
-  rdr::U8* buffer = new rdr::U8[serverKey.size];
+  uint8_t* buffer = new uint8_t[serverKey.size];
   nettle_mpz_get_str_256(serverKey.size, buffer, x);
   mpz_clear(x);
   os->writeU16(serverKey.size);
@@ -259,7 +259,7 @@ bool CSecurityRSAAES::readRandom()
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
-  rdr::U8* buffer = new rdr::U8[size];
+  uint8_t* buffer = new uint8_t[size];
   is->readBytes(buffer, size);
   size_t randomSize = keySize / 8;
   mpz_t x;
@@ -278,7 +278,7 @@ void CSecurityRSAAES::setCipher()
 {
   rawis = cc->getInStream();
   rawos = cc->getOutStream();
-  rdr::U8 key[32];
+  uint8_t key[32];
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
@@ -310,20 +310,20 @@ void CSecurityRSAAES::setCipher()
 
 void CSecurityRSAAES::writeHash()
 {
-  rdr::U8 hash[32];
+  uint8_t hash[32];
   size_t len = serverKeyLength;
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   len = clientKeyLength;
-  rdr::U8 lenClientKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenClientKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   int hashSize;
   if (keySize == 128) {
@@ -355,25 +355,25 @@ void CSecurityRSAAES::writeHash()
 
 bool CSecurityRSAAES::readHash()
 {
-  rdr::U8 hash[32];
-  rdr::U8 realHash[32];
+  uint8_t hash[32];
+  uint8_t realHash[32];
   int hashSize = keySize == 128 ? 20 : 32;
   if (!rais->hasData(hashSize))
     return false;
   rais->readBytes(hash, hashSize);
   size_t len = serverKeyLength;
-  rdr::U8 lenServerKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenServerKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   len = clientKeyLength;
-  rdr::U8 lenClientKey[4] = {
-    (rdr::U8)((len & 0xff000000) >> 24),
-    (rdr::U8)((len & 0xff0000) >> 16),
-    (rdr::U8)((len & 0xff00) >> 8),
-    (rdr::U8)(len & 0xff)
+  uint8_t lenClientKey[4] = {
+    (uint8_t)((len & 0xff000000) >> 24),
+    (uint8_t)((len & 0xff0000) >> 16),
+    (uint8_t)((len & 0xff00) >> 8),
+    (uint8_t)(len & 0xff)
   };
   if (keySize == 128) {
     struct sha1_ctx ctx;
@@ -433,29 +433,26 @@ bool CSecurityRSAAES::readSubtype()
 
 void CSecurityRSAAES::writeCredentials()
 {
-  CharArray username;
-  CharArray password;
+  std::string username;
+  std::string password;
 
-  (CSecurity::upg)->getUserPasswd(
-    isSecure(),
-    subtype == secTypeRA2UserPass ? &username.buf : NULL, &password.buf
-  );
-  size_t len;
-  if (username.buf) {
-    len = strlen(username.buf);
-    if (len > 255)
+  if (subtype == secTypeRA2UserPass)
+    (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+  else
+    (CSecurity::upg)->getUserPasswd(isSecure(), NULL, &password);
+
+  if (subtype == secTypeRA2UserPass) {
+    if (username.size() > 255)
       throw AuthFailureException("username is too long");
-    raos->writeU8(len);
-    if (len)
-      raos->writeBytes(username.buf, len);
+    raos->writeU8(username.size());
+    raos->writeBytes(username.data(), username.size());
   } else {
     raos->writeU8(0);
   }
-  len = strlen(password.buf);
-  if (len > 255)
+
+  if (password.size() > 255)
     throw AuthFailureException("password is too long");
-  raos->writeU8(len);
-  if (len)
-    raos->writeBytes(password.buf, len);
+  raos->writeU8(password.size());
+  raos->writeBytes(password.data(), password.size());
   raos->flush();
 }

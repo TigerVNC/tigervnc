@@ -31,7 +31,7 @@ namespace rfb {
     virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
     virtual void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const uint8_t* colour);
   };
 }
 #endif

@@ -26,7 +26,6 @@
 #endif
 
 #include <rfb_win32/Dialog.h>
-#include <rfb_win32/TCharArray.h>
 #include <rfb/LogWriter.h>
 #include <rdr/Exception.h>
 #include <rfb_win32/Win32Util.h>
@@ -58,7 +57,7 @@ Dialog::~Dialog()
 }
 
 
-bool Dialog::showDialog(const TCHAR* resource, HWND owner)
+bool Dialog::showDialog(const char* resource, HWND owner)
 {
   if (alreadyShowing) return false;
   handle = 0;
@@ -82,11 +81,11 @@ int Dialog::getItemInt(int id) {
     throw rdr::Exception("unable to read dialog Int");
   return result;
 }
-TCHAR* Dialog::getItemString(int id) {
-  TCharArray tmp(256);
-  if (!GetDlgItemText(handle, id, tmp.buf, 256))
-    tmp.buf[0] = 0;
-  return tmp.takeBuf();
+const char* Dialog::getItemString(int id) {
+  static char tmp[256];
+  if (!GetDlgItemText(handle, id, tmp, 256))
+    return "";
+  return tmp;
 }
 
 void Dialog::setItemChecked(int id, bool state) {
@@ -95,7 +94,7 @@ void Dialog::setItemChecked(int id, bool state) {
 void Dialog::setItemInt(int id, int value) {
   SetDlgItemInt(handle, id, value, TRUE);
 }
-void Dialog::setItemString(int id, const TCHAR* s) {
+void Dialog::setItemString(int id, const char* s) {
   SetDlgItemText(handle, id, s);
 }
 
@@ -152,7 +151,7 @@ BOOL Dialog::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-PropSheetPage::PropSheetPage(HINSTANCE inst, const TCHAR* id) : Dialog(inst), propSheet(0) {
+PropSheetPage::PropSheetPage(HINSTANCE inst, const char* id) : Dialog(inst), propSheet(0) {
   page.dwSize = sizeof(page);
   page.dwFlags = 0; // PSP_USECALLBACK;
   page.hInstance = inst;
@@ -207,8 +206,8 @@ BOOL PropSheetPage::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 }
 
 
-PropSheet::PropSheet(HINSTANCE inst_, const TCHAR* title_, std::list<PropSheetPage*> pages_, HICON icon_)
-: icon(icon_), pages(pages_), inst(inst_), title(tstrDup(title_)), handle(0), alreadyShowing(0) {
+PropSheet::PropSheet(HINSTANCE inst_, const char* title_, std::list<PropSheetPage*> pages_, HICON icon_)
+: icon(icon_), pages(pages_), inst(inst_), title(title_), handle(0), alreadyShowing(0) {
 }
 
 PropSheet::~PropSheet() {
@@ -265,7 +264,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     header.pfnCallback = removeCtxtHelp;
     header.hwndParent = owner;
     header.hInstance = inst;
-    header.pszCaption = title.buf;
+    header.pszCaption = title.c_str();
     header.nPages = count;
     header.nStartPage = 0;
     header.phpage = hpages;
@@ -283,7 +282,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     (void)capture;
 #ifdef _DIALOG_CAPTURE
     if (capture) {
-      plog.info("capturing \"%s\"", (const char*)CStr(title.buf));
+      plog.info("capturing \"%s\"", title.c_str());
       char* tmpdir = getenv("TEMP");
       HDC dc = GetWindowDC(handle);
       DeviceFrameBuffer fb(dc);
@@ -298,16 +297,15 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
             DispatchMessage(&msg);
         }
         fb.grabRect(fb.getRect());
-        TCHAR title[128];
+        char title[128];
         if (!GetWindowText(PropSheet_GetCurrentPageHwnd(handle), title, sizeof(title)))
-          _stprintf(title, _T("capture%d"), i);
-        CharArray pageTitle(strDup(title));
-        for (int j=0; j<strlen(pageTitle.buf); j++) {
-          if (pageTitle.buf[j] == '/' || pageTitle.buf[j] == '\\' || pageTitle.buf[j] == ':')
-            pageTitle.buf[j] = '-';
+          sprintf(title, "capture%d", i);
+        for (int j=0; j<strlen(title); j++) {
+          if (title == '/' || title[j] == '\\' || title[j] == ':')
+            title[j] = '-';
         }
         char filename[256];
-        sprintf(filename, "%s\\%s.bmp", tmpdir, pageTitle.buf);
+        sprintf(filename, "%s\\%s.bmp", tmpdir, title);
         vlog.debug("writing to %s", filename);
         saveBMP(filename, &fb);
         i++;

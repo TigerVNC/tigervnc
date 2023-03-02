@@ -30,9 +30,9 @@
 #include <string.h>
 #include <time.h>
 #include <map>
+#include <string>
 
 #include <rfb/Configuration.h>
-#include <rfb/util.h>
 
 namespace rfb {
 
@@ -68,17 +68,12 @@ namespace rfb {
     void clearBlackmark(const char* name);
 
   protected:
-    struct ltStr {
-      bool operator()(const char* s1, const char* s2) const {
-        return strcmp(s1, s2) < 0;
-      };
-    };
     struct BlacklistInfo {
       int marks;
       time_t blockUntil;
       unsigned int blockTimeout;
     };
-    typedef std::map<const char*,BlacklistInfo,ltStr> BlacklistMap;
+    typedef std::map<std::string,BlacklistInfo> BlacklistMap;
     BlacklistMap blm;
   };
 

@@ -137,7 +137,7 @@ rfb::ScreenSet computeScreenLayout(OutputIdMap *outputIdMap)
     if (outputIdMap->count(outputId) == 1)
       newIdMap[outputId] = (*outputIdMap)[outputId];
     else {
-      rdr::U32 id;
+      uint32_t id;
       OutputIdMap::const_iterator iter;
 
       while (true) {

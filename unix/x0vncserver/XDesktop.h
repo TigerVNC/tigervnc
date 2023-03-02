@@ -58,7 +58,7 @@ public:
   KeyCode addKeysym(Display* dpy, KeySym keysym);
   void deleteAddedKeysyms(Display* dpy);
   KeyCode keysymToKeycode(Display* dpy, KeySym keysym);
-  virtual void keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down);
+  virtual void keyEvent(uint32_t keysym, uint32_t xtcode, bool down);
   virtual void clientCutText(const char* str);
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
                                        const rfb::ScreenSet& layout);

@@ -150,8 +150,8 @@ JpegDecompressor::~JpegDecompressor(void)
   delete dinfo;
 }
 
-void JpegDecompressor::decompress(const rdr::U8 *jpegBuf,
-                                  int jpegBufLen, rdr::U8 *buf,
+void JpegDecompressor::decompress(const uint8_t *jpegBuf,
+                                  int jpegBufLen, uint8_t *buf,
                                   volatile int stride,
                                   const Rect& r, const PixelFormat& pf)
 {
@@ -159,7 +159,7 @@ void JpegDecompressor::decompress(const rdr::U8 *jpegBuf,
   int h = r.height();
   int pixelsize;
   int dstBufStride;
-  rdr::U8 * volatile dstBuf = NULL;
+  uint8_t * volatile dstBuf = NULL;
   volatile bool dstBufIsTemp = false;
   JSAMPROW * volatile rowPointer = NULL;
 
@@ -184,23 +184,23 @@ void JpegDecompressor::decompress(const rdr::U8 *jpegBuf,
 #ifdef JCS_EXTENSIONS
   // Try to have libjpeg output directly to our native format
   // libjpeg can only handle some "standard" formats
-  if (pfRGBX.equal(pf))
+  if (pfRGBX == pf)
     dinfo->out_color_space = JCS_EXT_RGBX;
-  else if (pfBGRX.equal(pf))
+  else if (pfBGRX == pf)
     dinfo->out_color_space = JCS_EXT_BGRX;
-  else if (pfXRGB.equal(pf))
+  else if (pfXRGB == pf)
     dinfo->out_color_space = JCS_EXT_XRGB;
-  else if (pfXBGR.equal(pf))
+  else if (pfXBGR == pf)
     dinfo->out_color_space = JCS_EXT_XBGR;
 
   if (dinfo->out_color_space != JCS_RGB) {
-    dstBuf = (rdr::U8 *)buf;
+    dstBuf = (uint8_t *)buf;
     pixelsize = 4;
   }
 #endif
 
   if (dinfo->out_color_space == JCS_RGB) {
-    dstBuf = new rdr::U8[w * h * pixelsize];
+    dstBuf = new uint8_t[w * h * pixelsize];
     dstBufIsTemp = true;
     dstBufStride = w;
   }
@@ -226,7 +226,7 @@ void JpegDecompressor::decompress(const rdr::U8 *jpegBuf,
   }
 
   if (dinfo->out_color_space == JCS_RGB)
-    pf.bufferFromRGB((rdr::U8*)buf, dstBuf, w, stride, h);
+    pf.bufferFromRGB((uint8_t*)buf, dstBuf, w, stride, h);
 
   jpeg_finish_decompress(dinfo);
 

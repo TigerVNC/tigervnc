@@ -22,7 +22,6 @@
 
 #include <rfb_win32/AboutDialog.h>
 #include <rfb_win32/Win32Util.h>
-#include <rfb_win32/TCharArray.h>
 #include <rfb/LogWriter.h>
 
 using namespace rfb;
@@ -42,12 +41,12 @@ bool AboutDialog::showDialog() {
 
 void AboutDialog::initDialog() {
   // Set the build time field
-  SetWindowText(GetDlgItem(handle, BuildTime), TStr(buildTime));
+  SetWindowText(GetDlgItem(handle, BuildTime), buildTime);
 
   // Get our executable's version info
   FileVersionInfo verInfo;
 
-  SetWindowText(GetDlgItem(handle, Version), verInfo.getVerString(_T("ProductVersion")));
-  SetWindowText(GetDlgItem(handle, Copyright), verInfo.getVerString(_T("LegalCopyright")));
-  SetWindowText(GetDlgItem(handle, Description), verInfo.getVerString(_T("ProductName")));
+  SetWindowText(GetDlgItem(handle, Version), verInfo.getVerString("ProductVersion"));
+  SetWindowText(GetDlgItem(handle, Copyright), verInfo.getVerString("LegalCopyright"));
+  SetWindowText(GetDlgItem(handle, Description), verInfo.getVerString("ProductName"));
 }

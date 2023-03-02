@@ -54,7 +54,7 @@ StringParameter SecurityServer::secTypes
  "VncAuth",
 ConfServer);
 
-SSecurity* SecurityServer::GetSSecurity(SConnection* sc, U32 secType)
+SSecurity* SecurityServer::GetSSecurity(SConnection* sc, uint32_t secType)
 {
   if (!IsSupported(secType))
     goto bail;

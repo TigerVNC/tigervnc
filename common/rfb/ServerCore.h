@@ -25,7 +25,6 @@
 #define __RFB_SERVER_CORE_H__
 
 #include <rfb/Configuration.h>
-#include <rfb/util.h>
 
 namespace rfb {
 

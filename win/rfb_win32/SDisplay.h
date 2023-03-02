@@ -80,7 +80,7 @@ namespace rfb {
       virtual void handleClipboardAnnounce(bool available);
       virtual void handleClipboardData(const char* data);
       virtual void pointerEvent(const Point& pos, int buttonmask);
-      virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+      virtual void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
 
       // -=- Clipboard events
       

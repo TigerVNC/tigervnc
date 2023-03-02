@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@ void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 
 void TightEncoder::writeSolidRect(int /*width*/, int /*height*/,
                                   const PixelFormat& pf,
-                                  const rdr::U8* colour)
+                                  const uint8_t* colour)
 {
   rdr::OutStream* os;
 
@@ -116,40 +116,40 @@ void TightEncoder::writeSolidRect(int /*width*/, int /*height*/,
 
 void TightEncoder::writeMonoRect(const PixelBuffer* pb, const Palette& palette)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(pb->getRect(), &stride);
 
   switch (pb->getPF().bpp) {
   case 32:
-    writeMonoRect(pb->width(), pb->height(), (rdr::U32*)buffer, stride,
+    writeMonoRect(pb->width(), pb->height(), (uint32_t*)buffer, stride,
                   pb->getPF(), palette);
     break;
   case 16:
-    writeMonoRect(pb->width(), pb->height(), (rdr::U16*)buffer, stride,
+    writeMonoRect(pb->width(), pb->height(), (uint16_t*)buffer, stride,
                   pb->getPF(), palette);
     break;
   default:
-    writeMonoRect(pb->width(), pb->height(), (rdr::U8*)buffer, stride,
+    writeMonoRect(pb->width(), pb->height(), (uint8_t*)buffer, stride,
                   pb->getPF(), palette);
   }
 }
 
 void TightEncoder::writeIndexedRect(const PixelBuffer* pb, const Palette& palette)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(pb->getRect(), &stride);
 
   switch (pb->getPF().bpp) {
   case 32:
-    writeIndexedRect(pb->width(), pb->height(), (rdr::U32*)buffer, stride,
+    writeIndexedRect(pb->width(), pb->height(), (uint32_t*)buffer, stride,
                      pb->getPF(), palette);
     break;
   case 16:
-    writeIndexedRect(pb->width(), pb->height(), (rdr::U16*)buffer, stride,
+    writeIndexedRect(pb->width(), pb->height(), (uint16_t*)buffer, stride,
                      pb->getPF(), palette);
     break;
   default:
@@ -166,7 +166,7 @@ void TightEncoder::writeFullColourRect(const PixelBuffer* pb)
   rdr::OutStream* zos;
   int length;
 
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride, h;
 
   os = conn->getOutStream();
@@ -194,10 +194,10 @@ void TightEncoder::writeFullColourRect(const PixelBuffer* pb)
   flushZlibOutStream(zos);
 }
 
-void TightEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+void TightEncoder::writePixels(const uint8_t* buffer, const PixelFormat& pf,
                                unsigned int count, rdr::OutStream* os)
 {
-  rdr::U8 rgb[2048];
+  uint8_t rgb[2048];
 
   if ((pf.bpp != 32) || !pf.is888()) {
     os->writeBytes(buffer, count * pf.bpp/8);
@@ -219,9 +219,9 @@ void TightEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
   }
 }
 
-void TightEncoder::writeCompact(rdr::OutStream* os, rdr::U32 value)
+void TightEncoder::writeCompact(rdr::OutStream* os, uint32_t value)
 {
-  rdr::U8 b;
+  uint8_t b;
   b = value & 0x7F;
   if (value <= 0x7F) {
     os->writeU8(b);
@@ -274,16 +274,143 @@ void TightEncoder::flushZlibOutStream(rdr::OutStream* os_)
   memStream.clear();
 }
 
-//
-// Including BPP-dependent implementation of the encoder.
-//
+template<class T>
+void TightEncoder::writeMonoRect(int width, int height,
+                                 const T* buffer, int stride,
+                                 const PixelFormat& pf,
+                                 const Palette& palette)
+{
+  rdr::OutStream* os;
 
-#define BPP 8
-#include <rfb/TightEncoderBPP.cxx>
-#undef BPP
-#define BPP 16
-#include <rfb/TightEncoderBPP.cxx>
-#undef BPP
-#define BPP 32
-#include <rfb/TightEncoderBPP.cxx>
-#undef BPP
+  const int streamId = 1;
+  T pal[2];
+
+  int length;
+  rdr::OutStream* zos;
+
+  assert(palette.size() == 2);
+
+  os = conn->getOutStream();
+
+  os->writeU8((streamId | tightExplicitFilter) << 4);
+  os->writeU8(tightFilterPalette);
+
+  // Write the palette
+  pal[0] = (T)palette.getColour(0);
+  pal[1] = (T)palette.getColour(1);
+
+  os->writeU8(1);
+  writePixels((uint8_t*)pal, pf, 2, os);
+
+  // Set up compression
+  length = (width + 7)/8 * height;
+  zos = getZlibOutStream(streamId, monoZlibLevel, length);
+
+  // Encode the data
+  T bg;
+  unsigned int value, mask;
+  int pad, aligned_width;
+  int x, y, bg_bits;
+
+  bg = pal[0];
+  aligned_width = width - width % 8;
+  pad = stride - width;
+
+  for (y = 0; y < height; y++) {
+    for (x = 0; x < aligned_width; x += 8) {
+      for (bg_bits = 0; bg_bits < 8; bg_bits++) {
+        if (*buffer++ != bg)
+          break;
+      }
+      if (bg_bits == 8) {
+        zos->writeU8(0);
+        continue;
+      }
+      mask = 0x80 >> bg_bits;
+      value = mask;
+      for (bg_bits++; bg_bits < 8; bg_bits++) {
+        mask >>= 1;
+        if (*buffer++ != bg) {
+          value |= mask;
+        }
+      }
+      zos->writeU8(value);
+    }
+
+    if (x < width) {
+      mask = 0x80;
+      value = 0;
+
+      for (; x < width; x++) {
+        if (*buffer++ != bg) {
+          value |= mask;
+        }
+        mask >>= 1;
+      }
+      zos->writeU8(value);
+    }
+
+    buffer += pad;
+  }
+
+  // Finish the zlib stream
+  flushZlibOutStream(zos);
+}
+
+template<class T>
+void TightEncoder::writeIndexedRect(int width, int height,
+                                    const T* buffer, int stride,
+                                    const PixelFormat& pf,
+                                    const Palette& palette)
+{
+  rdr::OutStream* os;
+
+  const int streamId = 2;
+  T pal[256];
+
+  rdr::OutStream* zos;
+
+  int pad;
+  T prevColour;
+  unsigned char idx;
+
+  assert(palette.size() > 0);
+  assert(palette.size() <= 256);
+
+  os = conn->getOutStream();
+
+  os->writeU8((streamId | tightExplicitFilter) << 4);
+  os->writeU8(tightFilterPalette);
+
+  // Write the palette
+  for (int i = 0; i < palette.size(); i++)
+    pal[i] = (T)palette.getColour(i);
+
+  os->writeU8(palette.size() - 1);
+  writePixels((uint8_t*)pal, pf, palette.size(), os);
+
+  // Set up compression
+  zos = getZlibOutStream(streamId, idxZlibLevel, width * height);
+
+  // Encode the data
+  pad = stride - width;
+
+  prevColour = *buffer;
+  idx = palette.lookup(*buffer);
+
+  while (height--) {
+    int w = width;
+    while (w--) {
+      if (*buffer != prevColour) {
+        prevColour = *buffer;
+        idx = palette.lookup(*buffer);
+      }
+      zos->writeU8(idx);
+      buffer++;
+    }
+    buffer += pad;
+  }
+
+  // Finish the zlib stream
+  flushZlibOutStream(zos);
+}

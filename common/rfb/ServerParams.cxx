@@ -33,7 +33,7 @@ ServerParams::ServerParams()
     supportsQEMUKeyEvent(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
-    width_(0), height_(0), name_(0),
+    width_(0), height_(0),
     ledState_(ledUnknown)
 {
   setName("");
@@ -46,7 +46,6 @@ ServerParams::ServerParams()
 
 ServerParams::~ServerParams()
 {
-  delete [] name_;
   delete cursor_;
 }
 
@@ -77,8 +76,7 @@ void ServerParams::setPF(const PixelFormat& pf)
 
 void ServerParams::setName(const char* name)
 {
-  delete [] name_;
-  name_ = strDup(name);
+  name_ = name;
 }
 
 void ServerParams::setCursor(const Cursor& other)
@@ -92,7 +90,7 @@ void ServerParams::setLEDState(unsigned int state)
   ledState_ = state;
 }
 
-rdr::U32 ServerParams::clipboardSize(unsigned int format) const
+uint32_t ServerParams::clipboardSize(unsigned int format) const
 {
   int i;
 
@@ -104,7 +102,7 @@ rdr::U32 ServerParams::clipboardSize(unsigned int format) const
   throw Exception("Invalid clipboard format 0x%x", format);
 }
 
-void ServerParams::setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+void ServerParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)
 {
   int i, num;
 

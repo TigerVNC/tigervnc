@@ -32,7 +32,6 @@ add_library(rfb STATIC
   Logger.cxx
   Logger_file.cxx
   Logger_stdio.cxx
-  Password.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
   RREEncoder.cxx
@@ -64,6 +63,7 @@ add_library(rfb STATIC
   ZRLEEncoder.cxx
   ZRLEDecoder.cxx
   encodings.cxx
+  obfuscate.cxx
   util.cxx)
 
 target_link_libraries(rfb os rdr)

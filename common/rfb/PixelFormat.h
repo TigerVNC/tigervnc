@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,11 +34,13 @@
 #ifndef __RFB_PIXELFORMAT_H__
 #define __RFB_PIXELFORMAT_H__
 
-#include <rfb/Pixel.h>
+#include <stdint.h>
 
 namespace rdr { class InStream; class OutStream; }
 
 namespace rfb {
+
+  typedef uint32_t Pixel; // must be big enough to hold any pixel value
 
   class PixelFormat {
   public:
@@ -49,7 +51,8 @@ namespace rfb {
     // Checks if the formats have identical buffer representation.
     // They might still have different pixel representation, endianness
     // or true colour state.
-    bool equal(const PixelFormat& other) const;
+    bool operator==(const PixelFormat& other) const;
+    bool operator!=(const PixelFormat& other) const;
 
     void read(rdr::InStream* is);
     void write(rdr::OutStream* os) const;
@@ -58,29 +61,29 @@ namespace rfb {
     bool isBigEndian(void) const;
     bool isLittleEndian(void) const;
 
-    inline Pixel pixelFromBuffer(const rdr::U8* buffer) const;
-    inline void bufferFromPixel(rdr::U8* buffer, Pixel pixel) const;
+    inline Pixel pixelFromBuffer(const uint8_t* buffer) const;
+    inline void bufferFromPixel(uint8_t* buffer, Pixel pixel) const;
 
-    inline Pixel pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue) const;
-    inline Pixel pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue) const;
+    inline Pixel pixelFromRGB(uint16_t red, uint16_t green, uint16_t blue) const;
+    inline Pixel pixelFromRGB(uint8_t red, uint8_t green, uint8_t blue) const;
 
-    void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int pixels) const;
-    void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
+    void bufferFromRGB(uint8_t *dst, const uint8_t* src, int pixels) const;
+    void bufferFromRGB(uint8_t *dst, const uint8_t* src,
                        int w, int stride, int h) const;
 
-    inline void rgbFromPixel(Pixel pix, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const;
-    inline void rgbFromPixel(Pixel pix, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const;
+    inline void rgbFromPixel(Pixel pix, uint16_t *r, uint16_t *g, uint16_t *b) const;
+    inline void rgbFromPixel(Pixel pix, uint8_t *r, uint8_t *g, uint8_t *b) const;
 
-    void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels) const;
-    void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
+    void rgbFromBuffer(uint8_t* dst, const uint8_t* src, int pixels) const;
+    void rgbFromBuffer(uint8_t* dst, const uint8_t* src,
                        int w, int stride, int h) const;
 
     Pixel pixelFromPixel(const PixelFormat &srcPF, Pixel src) const;
 
-    void bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
-                          const rdr::U8* src, int pixels) const;
-    void bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
-                          const rdr::U8* src, int w, int h,
+    void bufferFromBuffer(uint8_t* dst, const PixelFormat &srcPF,
+                          const uint8_t* src, int pixels) const;
+    void bufferFromBuffer(uint8_t* dst, const PixelFormat &srcPF,
+                          const uint8_t* src, int w, int h,
                           int dstStride, int srcStride) const;
 
     void print(char* str, int len) const;
@@ -91,26 +94,14 @@ namespace rfb {
     bool isSane(void);
 
   private:
-    // Preprocessor generated, optimised methods
-
-    void directBufferFromBufferFrom888(rdr::U8* dst, const PixelFormat &srcPF,
-                                       const rdr::U8* src, int w, int h,
+    // Templated, optimised methods
+    template<class T>
+    void directBufferFromBufferFrom888(T* dst, const PixelFormat &srcPF,
+                                       const uint8_t* src, int w, int h,
                                        int dstStride, int srcStride) const;
-    void directBufferFromBufferFrom888(rdr::U16* dst, const PixelFormat &srcPF,
-                                       const rdr::U8* src, int w, int h,
-                                       int dstStride, int srcStride) const;
-    void directBufferFromBufferFrom888(rdr::U32* dst, const PixelFormat &srcPF,
-                                       const rdr::U8* src, int w, int h,
-                                       int dstStride, int srcStride) const;
-
-    void directBufferFromBufferTo888(rdr::U8* dst, const PixelFormat &srcPF,
-                                     const rdr::U8* src, int w, int h,
-                                     int dstStride, int srcStride) const;
-    void directBufferFromBufferTo888(rdr::U8* dst, const PixelFormat &srcPF,
-                                     const rdr::U16* src, int w, int h,
-                                     int dstStride, int srcStride) const;
-    void directBufferFromBufferTo888(rdr::U8* dst, const PixelFormat &srcPF,
-                                     const rdr::U32* src, int w, int h,
+    template<class T>
+    void directBufferFromBufferTo888(uint8_t* dst, const PixelFormat &srcPF,
+                                     const T* src, int w, int h,
                                      int dstStride, int srcStride) const;
 
   public:
@@ -136,18 +127,18 @@ namespace rfb {
     int maxBits, minBits;
     bool endianMismatch;
 
-    static rdr::U8 upconvTable[256*8];
-    static rdr::U8 downconvTable[256*8];
+    static uint8_t upconvTable[256*8];
+    static uint8_t downconvTable[256*8];
 
     class Init;
     friend class Init;
     static Init _init;
 
     /* Only for testing this class */
-    friend void makePixel(const rfb::PixelFormat &, rdr::U8 *);
+    friend void makePixel(const rfb::PixelFormat &, uint8_t *);
     friend bool verifyPixel(const rfb::PixelFormat &,
                             const rfb::PixelFormat &,
-                            const rdr::U8 *);
+                            const uint8_t *);
   };
 }
 

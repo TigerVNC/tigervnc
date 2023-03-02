@@ -83,7 +83,7 @@ bool CSecurityDH::readKey()
   if (!is->hasData(4))
     return false;
   is->setRestorePoint();
-  rdr::U16 gen = is->readU16();
+  uint16_t gen = is->readU16();
   keyLength = is->readU16();
   if (keyLength < MinKeyLength)
     throw AuthFailureException("DH key is too short");
@@ -93,38 +93,39 @@ bool CSecurityDH::readKey()
     return false;
   is->clearRestorePoint();
   mpz_set_ui(g, gen);
-  rdr::U8Array pBytes(keyLength);
-  rdr::U8Array ABytes(keyLength);
-  is->readBytes(pBytes.buf, keyLength);
-  is->readBytes(ABytes.buf, keyLength);
-  nettle_mpz_set_str_256_u(p, keyLength, pBytes.buf);
-  nettle_mpz_set_str_256_u(A, keyLength, ABytes.buf);
+  std::vector<uint8_t> pBytes(keyLength);
+  std::vector<uint8_t> ABytes(keyLength);
+  is->readBytes(pBytes.data(), pBytes.size());
+  is->readBytes(ABytes.data(), ABytes.size());
+  nettle_mpz_set_str_256_u(p, pBytes.size(), pBytes.data());
+  nettle_mpz_set_str_256_u(A, ABytes.size(), ABytes.data());
   return true;
 }
 
 void CSecurityDH::writeCredentials()
 {
-  CharArray username;
-  CharArray password;
+  std::string username;
+  std::string password;
   rdr::RandomStream rs;
 
-  (CSecurity::upg)->getUserPasswd(isSecure(), &username.buf, &password.buf);
-  rdr::U8Array bBytes(keyLength);
+  (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+
+  std::vector<uint8_t> bBytes(keyLength);
   if (!rs.hasData(keyLength))
     throw ConnFailedException("failed to generate DH private key");
-  rs.readBytes(bBytes.buf, keyLength);
-  nettle_mpz_set_str_256_u(b, keyLength, bBytes.buf);
+  rs.readBytes(bBytes.data(), bBytes.size());
+  nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
   mpz_powm(B, g, b, p);
 
-  rdr::U8Array sharedSecret(keyLength);
-  rdr::U8Array BBytes(keyLength);
-  nettle_mpz_get_str_256(keyLength, sharedSecret.buf, k);
-  nettle_mpz_get_str_256(keyLength, BBytes.buf, B);
-  rdr::U8 key[16];
+  std::vector<uint8_t> sharedSecret(keyLength);
+  std::vector<uint8_t> BBytes(keyLength);
+  nettle_mpz_get_str_256(sharedSecret.size(), sharedSecret.data(), k);
+  nettle_mpz_get_str_256(BBytes.size(), BBytes.data(), B);
+  uint8_t key[16];
   struct md5_ctx md5Ctx;
   md5_init(&md5Ctx);
-  md5_update(&md5Ctx, keyLength, sharedSecret.buf);
+  md5_update(&md5Ctx, sharedSecret.size(), sharedSecret.data());
   md5_digest(&md5Ctx, 16, key);
   struct aes128_ctx aesCtx;
   aes128_set_encrypt_key(&aesCtx, key);
@@ -133,18 +134,16 @@ void CSecurityDH::writeCredentials()
   if (!rs.hasData(128))
     throw ConnFailedException("failed to generate random padding");
   rs.readBytes(buf, 128);
-  size_t len = strlen(username.buf);
-  if (len >= 64)
+  if (username.size() >= 64)
     throw AuthFailureException("username is too long");
-  memcpy(buf, username.buf, len + 1);
-  len = strlen(password.buf);
-  if (len >= 64)
+  memcpy(buf, username.c_str(), username.size() + 1);
+  if (password.size() >= 64)
     throw AuthFailureException("password is too long");
-  memcpy(buf + 64, password.buf, len + 1);
-  aes128_encrypt(&aesCtx, 128, (rdr::U8 *)buf, (rdr::U8 *)buf);
+  memcpy(buf + 64, password.c_str(), password.size() + 1);
+  aes128_encrypt(&aesCtx, 128, (uint8_t *)buf, (uint8_t *)buf);
 
   rdr::OutStream* os = cc->getOutStream();
   os->writeBytes(buf, 128);
-  os->writeBytes(BBytes.buf, keyLength);
+  os->writeBytes(BBytes.data(), BBytes.size());
   os->flush();
 }

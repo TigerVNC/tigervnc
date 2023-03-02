@@ -35,6 +35,7 @@
 #include <rfb/encodings.h>
 #include <rfb/EncodeManager.h>
 #include <rfb/SSecurity.h>
+#include <rfb/util.h>
 
 #include <rfb/LogWriter.h>
 
@@ -59,7 +60,8 @@ SConnection::SConnection()
     is(0), os(0), reader_(0), writer_(0), ssecurity(0),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-    accessRights(0x0000), clientClipboard(NULL), hasLocalClipboard(false),
+    accessRights(0x0000), hasRemoteClipboard(false),
+    hasLocalClipboard(false),
     unsolicitedClipboardAttempt(false)
 {
   defaultMajorVersion = 3;
@@ -160,8 +162,8 @@ bool SConnection::processVersionMsg()
 
   versionReceived();
 
-  std::list<rdr::U8> secTypes;
-  std::list<rdr::U8>::iterator i;
+  std::list<uint8_t> secTypes;
+  std::list<uint8_t>::iterator i;
   secTypes = security.GetEnabledSecTypes();
 
   if (client.isVersion(3,3)) {
@@ -215,8 +217,8 @@ bool SConnection::processSecurityTypeMsg()
 void SConnection::processSecurityType(int secType)
 {
   // Verify that the requested security type should be offered
-  std::list<rdr::U8> secTypes;
-  std::list<rdr::U8>::iterator i;
+  std::list<uint8_t> secTypes;
+  std::list<uint8_t>::iterator i;
 
   secTypes = security.GetEnabledSecTypes();
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
@@ -246,7 +248,7 @@ bool SConnection::processSecurityMsg()
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
-    authFailureMsg.replaceBuf(strDup(e.str()));
+    authFailureMsg = e.str();
     authFailureTimer.start(100);
     return true;
   }
@@ -295,9 +297,8 @@ bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
   try {
     os->writeU32(secResultFailed);
     if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
-      const char* reason = authFailureMsg.buf;
-      os->writeU32(strlen(reason));
-      os->writeBytes(reason, strlen(reason));
+      os->writeU32(authFailureMsg.size());
+      os->writeBytes(authFailureMsg.data(), authFailureMsg.size());
     }
     os->flush();
   } catch (rdr::Exception& e) {
@@ -305,7 +306,7 @@ bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
     return false;
   }
 
-  close(authFailureMsg.buf);
+  close(authFailureMsg.c_str());
 
   return false;
 }
@@ -352,7 +353,7 @@ bool SConnection::accessCheck(AccessRights ar) const
   return (accessRights & ar) == ar;
 }
 
-void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
+void SConnection::setEncodings(int nEncodings, const int32_t* encodings)
 {
   int i;
 
@@ -367,7 +368,7 @@ void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
   SMsgHandler::setEncodings(nEncodings, encodings);
 
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard)) {
-    rdr::U32 sizes[] = { 0 };
+    uint32_t sizes[] = { 0 };
     writer()->writeClipboardCaps(rfb::clipboardUTF8 |
                                  rfb::clipboardRequest |
                                  rfb::clipboardPeek |
@@ -381,15 +382,13 @@ void SConnection::clientCutText(const char* str)
 {
   hasLocalClipboard = false;
 
-  strFree(clientClipboard);
-  clientClipboard = NULL;
-
   clientClipboard = latin1ToUTF8(str);
+  hasRemoteClipboard = true;
 
   handleClipboardAnnounce(true);
 }
 
-void SConnection::handleClipboardRequest(rdr::U32 flags)
+void SConnection::handleClipboardRequest(uint32_t flags)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard request for unsupported formats 0x%x", flags);
@@ -408,10 +407,9 @@ void SConnection::handleClipboardPeek()
     writer()->writeClipboardNotify(hasLocalClipboard ? rfb::clipboardUTF8 : 0);
 }
 
-void SConnection::handleClipboardNotify(rdr::U32 flags)
+void SConnection::handleClipboardNotify(uint32_t flags)
 {
-  strFree(clientClipboard);
-  clientClipboard = NULL;
+  hasRemoteClipboard = false;
 
   if (flags & rfb::clipboardUTF8) {
     hasLocalClipboard = false;
@@ -421,22 +419,20 @@ void SConnection::handleClipboardNotify(rdr::U32 flags)
   }
 }
 
-void SConnection::handleClipboardProvide(rdr::U32 flags,
+void SConnection::handleClipboardProvide(uint32_t flags,
                                          const size_t* lengths,
-                                         const rdr::U8* const* data)
+                                         const uint8_t* const* data)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard provide with unsupported formats 0x%x", flags);
     return;
   }
 
-  strFree(clientClipboard);
-  clientClipboard = NULL;
-
   clientClipboard = convertLF((const char*)data[0], lengths[0]);
+  hasRemoteClipboard = true;
 
   // FIXME: Should probably verify that this data was actually requested
-  handleClipboardData(clientClipboard);
+  handleClipboardData(clientClipboard.c_str());
 }
 
 void SConnection::supportsQEMUKeyEvent()
@@ -523,7 +519,7 @@ void SConnection::framebufferUpdateRequest(const Rect& /*r*/,
   }
 }
 
-void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
+void SConnection::fence(uint32_t flags, unsigned len, const char data[])
 {
   if (!(flags & fenceFlagRequest))
     return;
@@ -554,8 +550,8 @@ void SConnection::handleClipboardData(const char* /*data*/)
 
 void SConnection::requestClipboard()
 {
-  if (clientClipboard != NULL) {
-    handleClipboardData(clientClipboard);
+  if (hasRemoteClipboard) {
+    handleClipboardData(clientClipboard.c_str());
     return;
   }
 
@@ -594,9 +590,9 @@ void SConnection::sendClipboardData(const char* data)
 {
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
       (client.clipboardFlags() & rfb::clipboardProvide)) {
-    CharArray filtered(convertCRLF(data));
-    size_t sizes[1] = { strlen(filtered.buf) + 1 };
-    const rdr::U8* data[1] = { (const rdr::U8*)filtered.buf };
+    std::string filtered(convertCRLF(data));
+    size_t sizes[1] = { filtered.size() + 1 };
+    const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -610,9 +606,9 @@ void SConnection::sendClipboardData(const char* data)
 
     writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
   } else {
-    CharArray latin1(utf8ToLatin1(data));
+    std::string latin1(utf8ToLatin1(data));
 
-    writer()->writeServerCutText(latin1.buf);
+    writer()->writeServerCutText(latin1.c_str());
   }
 }
 
@@ -624,14 +620,12 @@ void SConnection::cleanup()
   reader_ = NULL;
   delete writer_;
   writer_ = NULL;
-  strFree(clientClipboard);
-  clientClipboard = NULL;
 }
 
 void SConnection::writeFakeColourMap(void)
 {
   int i;
-  rdr::U16 red[256], green[256], blue[256];
+  uint16_t red[256], green[256], blue[256];
 
   for (i = 0;i < 256;i++)
     client.pf().rgbFromPixel(i, &red[i], &green[i], &blue[i]);

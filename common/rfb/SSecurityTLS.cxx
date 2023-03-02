@@ -75,9 +75,6 @@ SSecurityTLS::SSecurityTLS(SConnection* sc, bool _anon)
   dh_params = NULL;
 #endif
 
-  certfile = X509_CertFile.getData();
-  keyfile = X509_KeyFile.getData();
-
   if (gnutls_global_init() != GNUTLS_E_SUCCESS)
     throw AuthFailureException("gnutls_global_init failed");
 }
@@ -135,9 +132,6 @@ void SSecurityTLS::shutdown()
 SSecurityTLS::~SSecurityTLS()
 {
   shutdown();
-
-  delete[] keyfile;
-  delete[] certfile;
 
   gnutls_global_deinit();
 }
@@ -293,7 +287,7 @@ void SSecurityTLS::setParams(gnutls_session_t session)
     gnutls_certificate_set_dh_params(cert_cred, dh_params);
 #endif
 
-    switch (gnutls_certificate_set_x509_key_file(cert_cred, certfile, keyfile, GNUTLS_X509_FMT_PEM)) {
+    switch (gnutls_certificate_set_x509_key_file(cert_cred, X509_CertFile, X509_KeyFile, GNUTLS_X509_FMT_PEM)) {
     case GNUTLS_E_SUCCESS:
       break;
     case GNUTLS_E_CERTIFICATE_KEY_MISMATCH:

@@ -130,7 +130,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
   try {
 
     int width, height;
-    rdr::U8Array buffer;
+    std::vector<uint8_t> buffer;
 
     // - Get the size and other details about the cursor.
 
@@ -149,7 +149,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     if (!iconInfo.hbmColor)
       height /= 2;
 
-    buffer.buf = new rdr::U8[width * height * 4];
+    buffer.resize(width * height * 4);
 
     Point hotspot = Point(iconInfo.xHotspot, iconInfo.yHotspot);
 
@@ -173,7 +173,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
       bi.bV5AlphaMask   = 0xFF000000;
 
       if (!GetDIBits(dc, iconInfo.hbmColor, 0, height,
-                     buffer.buf, (LPBITMAPINFO)&bi, DIB_RGB_COLORS))
+                     buffer.data(), (LPBITMAPINFO)&bi, DIB_RGB_COLORS))
         throw rdr::SystemException("GetDIBits", GetLastError());
 
       // We may not get the RGBA order we want, so shuffle things around
@@ -190,10 +190,10 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
           (bi.bV5BlueMask != ((unsigned)0xff << bidx*8)))
         throw rdr::Exception("unsupported cursor colour format");
 
-      rdr::U8* rwbuffer = buffer.buf;
+      uint8_t* rwbuffer = buffer.data();
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-          rdr::U8 r, g, b, a;
+          uint8_t r, g, b, a;
 
           r = rwbuffer[ridx];
           g = rwbuffer[gidx];
@@ -211,16 +211,16 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     } else {
       // B/W cursor
 
-      rdr::U8Array mask(maskInfo.bmWidthBytes * maskInfo.bmHeight);
-      rdr::U8* andMask = mask.buf;
-      rdr::U8* xorMask = mask.buf + height * maskInfo.bmWidthBytes;
+      std::vector<uint8_t> mask(maskInfo.bmWidthBytes * maskInfo.bmHeight);
+      uint8_t* andMask = mask.data();
+      uint8_t* xorMask = mask.data() + height * maskInfo.bmWidthBytes;
 
       if (!GetBitmapBits(iconInfo.hbmMask,
-                         maskInfo.bmWidthBytes * maskInfo.bmHeight, mask.buf))
+                         maskInfo.bmWidthBytes * maskInfo.bmHeight, mask.data()))
         throw rdr::SystemException("GetBitmapBits", GetLastError());
 
       bool doOutline = false;
-      rdr::U8* rwbuffer = buffer.buf;
+      uint8_t* rwbuffer = buffer.data();
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           int byte = y * maskInfo.bmWidthBytes + x / 8;
@@ -260,12 +260,12 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
         // The buffer needs to be slightly larger to make sure there
         // is room for the outline pixels
-        rdr::U8Array outline((width + 2)*(height + 2)*4);
-        memset(outline.buf, 0, (width + 2)*(height + 2)*4);
+        std::vector<uint8_t> outline((width + 2)*(height + 2)*4);
+        memset(outline.data(), 0, (width + 2)*(height + 2)*4);
 
         // Pass 1, outline everything
-        rdr::U8* in = buffer.buf;
-        rdr::U8* out = outline.buf + width*4 + 4;
+        uint8_t* in = buffer.data();
+        uint8_t* out = outline.data() + width*4 + 4;
         for (int y = 0; y < height; y++) {
           for (int x = 0; x < width; x++) {
             // Visible pixel?
@@ -285,8 +285,8 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
         }
 
         // Pass 2, overwrite with actual cursor
-        in = buffer.buf;
-        out = outline.buf + width*4 + 4;
+        in = buffer.data();
+        out = outline.data() + width*4 + 4;
         for (int y = 0; y < height; y++) {
           for (int x = 0; x < width; x++) {
             if (in[3] > 0)
@@ -302,12 +302,11 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
         hotspot.x += 1;
         hotspot.y += 1;
 
-        delete [] buffer.buf;
-        buffer.buf = outline.takeBuf();
+        buffer = outline;
       }
     }
 
-    server->setCursor(width, height, hotspot, buffer.buf);
+    server->setCursor(width, height, hotspot, buffer.data());
 
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());

@@ -43,7 +43,7 @@ namespace rfb {
     JpegCompressor(int bufferLen = 128*1024);
     virtual ~JpegCompressor();
 
-    void compress(const rdr::U8 *, int, const Rect&, const PixelFormat&, int, int);
+    void compress(const uint8_t *, int, const Rect&, const PixelFormat&, int, int);
 
     void writeBytes(const void*, int);
 

@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
- * Copyright 2009-2015 Pierre Ossman for Cendio AB
+ * Copyright 2009-2022 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
@@ -25,6 +25,8 @@
 
 #include <assert.h>
 
+#include <vector>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -40,16 +42,6 @@ using namespace rfb;
 static const int TIGHT_MAX_WIDTH = 2048;
 static const int TIGHT_MIN_TO_COMPRESS = 12;
 
-#define BPP 8
-#include <rfb/tightDecode.h>
-#undef BPP
-#define BPP 16
-#include <rfb/tightDecode.h>
-#undef BPP
-#define BPP 32
-#include <rfb/tightDecode.h>
-#undef BPP
-
 TightDecoder::TightDecoder() : Decoder(DecoderPartiallyOrdered)
 {
 }
@@ -61,7 +53,7 @@ TightDecoder::~TightDecoder()
 bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
                             const ServerParams& server, rdr::OutStream* os)
 {
-  rdr::U8 comp_ctl;
+  uint8_t comp_ctl;
 
   if (!is->hasData(1))
     return false;
@@ -90,7 +82,7 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
 
   // "JPEG" compression type.
   if (comp_ctl == tightJpeg) {
-    rdr::U32 len;
+    uint32_t len;
 
     // FIXME: Might be less than 3 bytes
     if (!is->hasDataOrRestore(3))
@@ -122,7 +114,7 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
 
   // Possible palette
   if ((comp_ctl & tightExplicitFilter) != 0) {
-    rdr::U8 filterId;
+    uint8_t filterId;
 
     if (!is->hasDataOrRestore(1))
       return false;
@@ -179,7 +171,7 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
       return false;
     os->copyBytes(is, dataSize);
   } else {
-    rdr::U32 len;
+    uint32_t len;
 
     // FIXME: Might be less than 3 bytes
     if (!is->hasDataOrRestore(3))
@@ -207,13 +199,13 @@ bool TightDecoder::doRectsConflict(const Rect& /*rectA*/,
                                    size_t buflenB,
                                    const ServerParams& /*server*/)
 {
-  rdr::U8 comp_ctl_a, comp_ctl_b;
+  uint8_t comp_ctl_a, comp_ctl_b;
 
   assert(buflenA >= 1);
   assert(buflenB >= 1);
 
-  comp_ctl_a = *(const rdr::U8*)bufferA;
-  comp_ctl_b = *(const rdr::U8*)bufferB;
+  comp_ctl_a = *(const uint8_t*)bufferA;
+  comp_ctl_b = *(const uint8_t*)bufferB;
 
   // Resets or use of zlib pose the same problem, so merge them
   if ((comp_ctl_a & 0x80) == 0x00)
@@ -231,12 +223,12 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
                               size_t buflen, const ServerParams& server,
                               ModifiablePixelBuffer* pb)
 {
-  const rdr::U8* bufptr;
+  const uint8_t* bufptr;
   const PixelFormat& pf = server.pf();
 
-  rdr::U8 comp_ctl;
+  uint8_t comp_ctl;
 
-  bufptr = (const rdr::U8*)buffer;
+  bufptr = (const uint8_t*)buffer;
 
   assert(buflen >= 1);
 
@@ -255,7 +247,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   // "Fill" compression type.
   if (comp_ctl == tightFill) {
     if (pf.is888()) {
-      rdr::U8 pix[4];
+      uint8_t pix[4];
 
       assert(buflen >= 3);
 
@@ -270,10 +262,10 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
 
   // "JPEG" compression type.
   if (comp_ctl == tightJpeg) {
-    rdr::U32 len;
+    uint32_t len;
 
     int stride;
-    rdr::U8 *buf;
+    uint8_t *buf;
 
     JpegDecompressor jd;
 
@@ -296,11 +288,11 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   // "Basic" compression type.
 
   int palSize = 0;
-  rdr::U8 palette[256 * 4];
+  uint8_t palette[256 * 4];
   bool useGradient = false;
 
   if ((comp_ctl & tightExplicitFilter) != 0) {
-    rdr::U8 filterId;
+    uint8_t filterId;
 
     assert(buflen >= 1);
 
@@ -318,15 +310,15 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
 
       if (pf.is888()) {
         size_t len = palSize * 3;
-        rdr::U8Array tightPalette(len);
+        std::vector<uint8_t> tightPalette(len);
 
         assert(buflen >= len);
 
-        memcpy(tightPalette.buf, bufptr, len);
+        memcpy(tightPalette.data(), bufptr, len);
         bufptr += len;
         buflen -= len;
 
-        pf.bufferFromRGB(palette, tightPalette.buf, palSize);
+        pf.bufferFromRGB(palette, tightPalette.data(), palSize);
       } else {
         size_t len;
 
@@ -351,7 +343,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
 
   // Determine if the data should be decompressed or just copied.
   size_t rowSize, dataSize;
-  rdr::U8* netbuf;
+  uint8_t* netbuf;
 
   netbuf = NULL;
 
@@ -371,7 +363,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   if (dataSize < TIGHT_MIN_TO_COMPRESS)
     assert(buflen >= dataSize);
   else {
-    rdr::U32 len;
+    uint32_t len;
     int streamId;
     rdr::MemInStream* ms;
 
@@ -388,7 +380,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
     zis[streamId].setUnderlying(ms, len);
 
     // Allocate buffer and decompress the data
-    netbuf = new rdr::U8[dataSize];
+    netbuf = new uint8_t[dataSize];
 
     if (!zis[streamId].hasData(dataSize))
       throw Exception("Tight decode error");
@@ -405,10 +397,10 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   // Time to decode the actual data
   bool directDecode;
 
-  rdr::U8* outbuf;
+  uint8_t* outbuf;
   int stride;
 
-  if (pb->getPF().equal(pf)) {
+  if (pb->getPF() == pf) {
     // Decode directly into the framebuffer (fast path)
     directDecode = true;
   } else {
@@ -419,7 +411,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   if (directDecode)
     outbuf = pb->getBufferRW(r, &stride);
   else {
-    outbuf = new rdr::U8[r.area() * (pf.bpp/8)];
+    outbuf = new uint8_t[r.area() * (pf.bpp/8)];
     stride = r.width();
   }
 
@@ -427,24 +419,24 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
     // Truecolor data
     if (useGradient) {
       if (pf.is888())
-        FilterGradient24(bufptr, pf, (rdr::U32*)outbuf, stride, r);
+        FilterGradient24(bufptr, pf, (uint32_t*)outbuf, stride, r);
       else {
         switch (pf.bpp) {
         case 8:
           assert(false);
           break;
         case 16:
-          FilterGradient(bufptr, pf, (rdr::U16*)outbuf, stride, r);
+          FilterGradient(bufptr, pf, (uint16_t*)outbuf, stride, r);
           break;
         case 32:
-          FilterGradient(bufptr, pf, (rdr::U32*)outbuf, stride, r);
+          FilterGradient(bufptr, pf, (uint32_t*)outbuf, stride, r);
           break;
         }
       }
     } else {
       // Copy
-      rdr::U8* ptr = outbuf;
-      const rdr::U8* srcPtr = bufptr;
+      uint8_t* ptr = outbuf;
+      const uint8_t* srcPtr = bufptr;
       int w = r.width();
       int h = r.height();
       if (pf.is888()) {
@@ -467,16 +459,16 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
     // Indexed color
     switch (pf.bpp) {
     case 8:
-      FilterPalette((const rdr::U8*)palette, palSize,
-                    bufptr, (rdr::U8*)outbuf, stride, r);
+      FilterPalette((const uint8_t*)palette, palSize,
+                    bufptr, (uint8_t*)outbuf, stride, r);
       break;
     case 16:
-      FilterPalette((const rdr::U16*)palette, palSize,
-                    bufptr, (rdr::U16*)outbuf, stride, r);
+      FilterPalette((const uint16_t*)palette, palSize,
+                    bufptr, (uint16_t*)outbuf, stride, r);
       break;
     case 32:
-      FilterPalette((const rdr::U32*)palette, palSize,
-                    bufptr, (rdr::U32*)outbuf, stride, r);
+      FilterPalette((const uint32_t*)palette, palSize,
+                    bufptr, (uint32_t*)outbuf, stride, r);
       break;
     }
   }
@@ -491,10 +483,10 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   delete [] netbuf;
 }
 
-rdr::U32 TightDecoder::readCompact(rdr::InStream* is)
+uint32_t TightDecoder::readCompact(rdr::InStream* is)
 {
-  rdr::U8 b;
-  rdr::U32 result;
+  uint8_t b;
+  uint32_t result;
 
   b = is->readU8();
   result = (int)b & 0x7F;
@@ -508,4 +500,145 @@ rdr::U32 TightDecoder::readCompact(rdr::InStream* is)
   }
 
   return result;
+}
+
+void
+TightDecoder::FilterGradient24(const uint8_t *inbuf,
+                               const PixelFormat& pf, uint32_t* outbuf,
+                               int stride, const Rect& r)
+{
+  int x, y, c;
+  uint8_t prevRow[TIGHT_MAX_WIDTH*3];
+  uint8_t thisRow[TIGHT_MAX_WIDTH*3];
+  uint8_t pix[3]; 
+  int est[3]; 
+
+  memset(prevRow, 0, sizeof(prevRow));
+
+  // Set up shortcut variables
+  int rectHeight = r.height();
+  int rectWidth = r.width();
+
+  for (y = 0; y < rectHeight; y++) {
+    for (x = 0; x < rectWidth; x++) {
+      /* First pixel in a row */
+      if (x == 0) {
+        for (c = 0; c < 3; c++) {
+          pix[c] = inbuf[y*rectWidth*3+c] + prevRow[c];
+          thisRow[c] = pix[c];
+        }
+        pf.bufferFromRGB((uint8_t*)&outbuf[y*stride], pix, 1);
+        continue;
+      }
+
+      for (c = 0; c < 3; c++) {
+        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+        if (est[c] > 0xff) {
+          est[c] = 0xff;
+        } else if (est[c] < 0) {
+          est[c] = 0;
+        }
+        pix[c] = inbuf[(y*rectWidth+x)*3+c] + est[c];
+        thisRow[x*3+c] = pix[c];
+      }
+      pf.bufferFromRGB((uint8_t*)&outbuf[y*stride+x], pix, 1);
+    }
+
+    memcpy(prevRow, thisRow, sizeof(prevRow));
+  }
+}
+
+template<class T>
+void TightDecoder::FilterGradient(const uint8_t* inbuf,
+                                  const PixelFormat& pf, T* outbuf,
+                                  int stride, const Rect& r)
+{
+  int x, y, c;
+  static uint8_t prevRow[TIGHT_MAX_WIDTH*3];
+  static uint8_t thisRow[TIGHT_MAX_WIDTH*3];
+  uint8_t pix[3]; 
+  int est[3]; 
+
+  memset(prevRow, 0, sizeof(prevRow));
+
+  // Set up shortcut variables
+  int rectHeight = r.height();
+  int rectWidth = r.width();
+
+  for (y = 0; y < rectHeight; y++) {
+    for (x = 0; x < rectWidth; x++) {
+      /* First pixel in a row */
+      if (x == 0) {
+        pf.rgbFromBuffer(pix, &inbuf[y*rectWidth], 1);
+        for (c = 0; c < 3; c++)
+          pix[c] += prevRow[c];
+
+        memcpy(thisRow, pix, sizeof(pix));
+
+        pf.bufferFromRGB((uint8_t*)&outbuf[y*stride], pix, 1);
+
+        continue;
+      }
+
+      for (c = 0; c < 3; c++) {
+        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+        if (est[c] > 255) {
+          est[c] = 255;
+        } else if (est[c] < 0) {
+          est[c] = 0;
+        }
+      }
+
+      pf.rgbFromBuffer(pix, &inbuf[y*rectWidth+x], 1);
+      for (c = 0; c < 3; c++)
+        pix[c] += est[c];
+
+      memcpy(&thisRow[x*3], pix, sizeof(pix));
+
+      pf.bufferFromRGB((uint8_t*)&outbuf[y*stride+x], pix, 1);
+    }
+
+    memcpy(prevRow, thisRow, sizeof(prevRow));
+  }
+}
+
+template<class T>
+void TightDecoder::FilterPalette(const T* palette, int palSize,
+                                 const uint8_t* inbuf, T* outbuf,
+                                 int stride, const Rect& r)
+{
+  // Indexed color
+  int x, h = r.height(), w = r.width(), b, pad = stride - w;
+  T* ptr = outbuf;
+  uint8_t bits;
+  const uint8_t* srcPtr = inbuf;
+  if (palSize <= 2) {
+    // 2-color palette
+    while (h > 0) {
+      for (x = 0; x < w / 8; x++) {
+        bits = *srcPtr++;
+        for (b = 7; b >= 0; b--) {
+          *ptr++ = palette[bits >> b & 1];
+        }
+      }
+      if (w % 8 != 0) {
+        bits = *srcPtr++;
+        for (b = 7; b >= 8 - w % 8; b--) {
+          *ptr++ = palette[bits >> b & 1];
+        }
+      }
+      ptr += pad;
+      h--;
+    }
+  } else {
+    // 256-color palette
+    while (h > 0) {
+      T *endOfRow = ptr + w;
+      while (ptr < endOfRow) {
+        *ptr++ = palette[*srcPtr++];
+      }
+      ptr += pad;
+      h--;
+    }
+  }
 }

@@ -23,7 +23,6 @@
 #include <rfb/SConnection.h>
 #include <rfb/SSecurity.h>
 #include <rfb/SSecurityVeNCrypt.h>
-#include <rfb/util.h>
 #include <rfb/Configuration.h>
 
 namespace rfb {
@@ -46,17 +45,14 @@ namespace rfb {
     SSecurityPlain(SConnection* sc);
     virtual bool processMsg();
     virtual int getType() const { return secTypePlain; };
-    virtual const char* getUserName() const { return username.buf; }
+    virtual const char* getUserName() const { return username; }
 
     virtual ~SSecurityPlain() { }
 
   private:
     PasswordValidator* valid;
     unsigned int ulen, plen, state;
-    CharArray username;
-
-    static const unsigned int MaxSaneUsernameLength = 1024;
-    static const unsigned int MaxSanePasswordLength = 1024;
+    char username[1024];
   };
 
 }

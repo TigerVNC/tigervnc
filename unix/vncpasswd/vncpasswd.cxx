@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2010 Antoine Martin.  All Rights Reserved.
  * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
+ * Copyright 2018-2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,8 +31,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <os/os.h>
-#include <rfb/Password.h>
-#include <rfb/util.h>
+
+#include <rfb/obfuscate.h>
 
 #include <termios.h>
 
@@ -58,16 +60,16 @@ static void enableEcho(bool enable) {
   tcsetattr(fileno(stdin), TCSAFLUSH, &attrs);
 }
 
-static char* getpassword(const char* prompt) {
-  PlainPasswd buf(256);
+static const char* getpassword(const char* prompt) {
+  static char buf[256];
   if (prompt) fputs(prompt, stdout);
   enableEcho(false);
-  char* result = fgets(buf.buf, 256, stdin);
+  char* result = fgets(buf, 256, stdin);
   enableEcho(true);
   if (result) {
     if (result[strlen(result)-1] == '\n')
       result[strlen(result)-1] = 0;
-    return buf.takeBuf();
+    return buf;
   }
   return 0;
 }
@@ -78,12 +80,12 @@ static int encrypt_pipe() {
 
   // We support a maximum of two passwords right now
   for (i = 0;i < 2;i++) {
-    char *result = getpassword(NULL);
+    const char *result = getpassword(NULL);
     if (!result)
       break;
 
-    ObfuscatedPasswd obfuscated(result);
-    if (fwrite(obfuscated.buf, obfuscated.length, 1, stdout) != 1) {
+    std::vector<uint8_t> obfuscated = obfuscate(result);
+    if (fwrite(obfuscated.data(), obfuscated.size(), 1, stdout) != 1) {
       fprintf(stderr,"Writing to stdout failed\n");
       return 1;
     }
@@ -96,15 +98,16 @@ static int encrypt_pipe() {
   return 0;
 }
 
-static ObfuscatedPasswd* readpassword() {
+static std::vector<uint8_t> readpassword() {
   while (true) {
-    PlainPasswd passwd(getpassword("Password:"));
-    if (!passwd.buf) {
+    const char *passwd = getpassword("Password:");
+    if (passwd == NULL) {
       perror("getpassword error");
       exit(1);
     }
-    if (strlen(passwd.buf) < 6) {
-      if (strlen(passwd.buf) == 0) {
+    std::string first = passwd;
+    if (first.size() < 6) {
+      if (first.empty()) {
         fprintf(stderr,"Password not changed\n");
         exit(1);
       }
@@ -112,17 +115,18 @@ static ObfuscatedPasswd* readpassword() {
       continue;
     }
 
-    PlainPasswd passwd2(getpassword("Verify:"));
-    if (!passwd2.buf) {
+    passwd = getpassword("Verify:");
+    if (passwd == NULL) {
       perror("getpass error");
       exit(1);
     }
-    if (strcmp(passwd.buf, passwd2.buf) != 0) {
+    std::string second = passwd;
+    if (first != second) {
       fprintf(stderr,"Passwords don't match - try again\n");
       continue;
     }
 
-    return new ObfuscatedPasswd(passwd);
+    return obfuscate(first.c_str());
   }
 }
 
@@ -130,7 +134,9 @@ int main(int argc, char** argv)
 {
   prog = argv[0];
 
-  char* fname = 0;
+  char fname[PATH_MAX];
+
+  fname[0] = '\0';
 
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-q") == 0) { // allowed for backwards compatibility
@@ -138,28 +144,30 @@ int main(int argc, char** argv)
       return encrypt_pipe();
     } else if (argv[i][0] == '-') {
       usage();
-    } else if (!fname) {
-      fname = strDup(argv[i]);
+    } else if (fname[0] == '\0') {
+      if (strlen(argv[i]) >= sizeof(fname)) {
+        fprintf(stderr, "Too long filename specified\n");
+        return -1;
+      }
+      strcpy(fname, argv[i]);
     } else {
       usage();
     }
   }
 
-  if (!fname) {
-    char *homeDir = NULL;
-    if (getvnchomedir(&homeDir) == -1) {
+  if (fname[0] == '\0') {
+    const char *homeDir = os::getvnchomedir();
+    if (homeDir == NULL) {
       fprintf(stderr, "Can't obtain VNC home directory\n");
       exit(1);
     }
     mkdir(homeDir, 0777);
-    fname = new char[strlen(homeDir) + 7];
-    sprintf(fname, "%spasswd", homeDir);
-    delete [] homeDir;
+    snprintf(fname, sizeof(fname), "%s/passwd", homeDir);
   }
 
   while (true) {
-    ObfuscatedPasswd* obfuscated = readpassword();
-    ObfuscatedPasswd* obfuscatedReadOnly = 0;
+    std::vector<uint8_t> obfuscated = readpassword();
+    std::vector<uint8_t> obfuscatedReadOnly;
 
     fprintf(stderr, "Would you like to enter a view-only password (y/n)? ");
     char yesno[3];
@@ -172,36 +180,23 @@ int main(int argc, char** argv)
     FILE* fp = fopen(fname,"w");
     if (!fp) {
       fprintf(stderr,"Couldn't open %s for writing\n",fname);
-      delete [] fname;
-      delete obfuscated;
-      delete obfuscatedReadOnly;
       exit(1);
     }
     chmod(fname, S_IRUSR|S_IWUSR);
 
-    if (fwrite(obfuscated->buf, obfuscated->length, 1, fp) != 1) {
+    if (fwrite(obfuscated.data(), obfuscated.size(), 1, fp) != 1) {
       fprintf(stderr,"Writing to %s failed\n",fname);
-      delete [] fname;
-      delete obfuscated;
-      delete obfuscatedReadOnly;
       exit(1);
     }
 
-    delete obfuscated;
-
-    if (obfuscatedReadOnly) {
-      if (fwrite(obfuscatedReadOnly->buf, obfuscatedReadOnly->length, 1, fp) != 1) {
+    if (!obfuscatedReadOnly.empty()) {
+      if (fwrite(obfuscatedReadOnly.data(), obfuscatedReadOnly.size(), 1, fp) != 1) {
         fprintf(stderr,"Writing to %s failed\n",fname);
-        delete [] fname;
-        delete obfuscatedReadOnly;
         exit(1);
       }
     }
 
     fclose(fp);
-
-    delete [] fname;
-    delete obfuscatedReadOnly;
 
     return 0;
   }

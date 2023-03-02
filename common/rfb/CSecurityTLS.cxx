@@ -39,6 +39,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/UserMsgBox.h>
+#include <rfb/util.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
 #include <os/os.h>
@@ -76,14 +77,13 @@ static LogWriter vlog("TLS");
 static const char* homedirfn(const char* fn)
 {
   static char full_path[PATH_MAX];
-  char* homedir = NULL;
+  const char* homedir;
 
-  if (getvnchomedir(&homedir) == -1)
+  homedir = os::getvnchomedir();
+  if (homedir == NULL)
     return "";
 
-  snprintf(full_path, sizeof(full_path), "%s%s", homedir, fn);
-
-  delete [] homedir;
+  snprintf(full_path, sizeof(full_path), "%s/%s", homedir, fn);
 
   return full_path;
 }
@@ -92,9 +92,6 @@ CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
   : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
     anon(_anon), tlsis(NULL), tlsos(NULL), rawis(NULL), rawos(NULL)
 {
-  cafile = X509CA.getData();
-  crlfile = X509CRL.getData();
-
   if (gnutls_global_init() != GNUTLS_E_SUCCESS)
     throw AuthFailureException("gnutls_global_init failed");
 }
@@ -145,9 +142,6 @@ void CSecurityTLS::shutdown()
 CSecurityTLS::~CSecurityTLS()
 {
   shutdown();
-
-  delete[] cafile;
-  delete[] crlfile;
 
   gnutls_global_deinit();
 }
@@ -287,10 +281,10 @@ void CSecurityTLS::setParam()
     if (gnutls_certificate_set_x509_system_trust(cert_cred) < 1)
       vlog.error("Could not load system certificate trust store");
 
-    if (*cafile && gnutls_certificate_set_x509_trust_file(cert_cred,cafile,GNUTLS_X509_FMT_PEM) < 0)
+    if (gnutls_certificate_set_x509_trust_file(cert_cred, X509CA, GNUTLS_X509_FMT_PEM) < 0)
       vlog.error("Could not load user specified certificate authority");
 
-    if (*crlfile && gnutls_certificate_set_x509_crl_file(cert_cred,crlfile,GNUTLS_X509_FMT_PEM) < 0)
+    if (gnutls_certificate_set_x509_crl_file(cert_cred, X509CRL, GNUTLS_X509_FMT_PEM) < 0)
       vlog.error("Could not load user specified certificate revocation list");
 
     if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred) != GNUTLS_E_SUCCESS)
@@ -316,7 +310,7 @@ void CSecurityTLS::checkSession()
   unsigned int cert_list_size = 0;
   int err;
 
-  char *homeDir;
+  const char *homeDir;
   gnutls_datum_t info;
   size_t len;
 
@@ -361,12 +355,14 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("decoding of certificate failed");
 
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
-    CharArray text;
+    std::string text;
     vlog.debug("hostname mismatch");
-    text.format("Hostname (%s) does not match the server certificate, "
-                "do you want to continue?", client->getServerName());
+    text = format("Hostname (%s) does not match the server "
+                  "certificate, do you want to continue?",
+                  client->getServerName());
     if (!msg->showMsgBox(UserMsgBox::M_YESNO,
-                         "Certificate hostname mismatch", text.buf))
+                         "Certificate hostname mismatch",
+                         text.c_str()))
       throw AuthFailureException("Certificate hostname mismatch");
   }
 
@@ -396,17 +392,16 @@ void CSecurityTLS::checkSession()
 
   /* Certificate is fine, except we don't know the issuer, so TOFU time */
 
-  homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1) {
+  homeDir = os::getvnchomedir();
+  if (homeDir == NULL) {
     throw AuthFailureException("Could not obtain VNC home directory "
                                "path for known hosts storage");
   }
 
-  CharArray dbPath(strlen(homeDir) + 16 + 1);
-  sprintf(dbPath.buf, "%sx509_known_hosts", homeDir);
-  delete [] homeDir;
+  std::string dbPath;
+  dbPath = (std::string)homeDir + "/x509_known_hosts";
 
-  err = gnutls_verify_stored_pubkey(dbPath.buf, NULL,
+  err = gnutls_verify_stored_pubkey(dbPath.c_str(), NULL,
                                     client->getServerName(), NULL,
                                     GNUTLS_CRT_X509, &cert_list[0], 0);
 
@@ -433,73 +428,93 @@ void CSecurityTLS::checkSession()
 
   /* New host */
   if (err == GNUTLS_E_NO_CERTIFICATE_FOUND) {
-    CharArray text;
+    std::string text;
 
     vlog.debug("Server host not previously known");
     vlog.debug("%s", info.data);
 
     if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
-      text.format("This certificate has been signed by an unknown "
-                  "authority:\n\n%s\n\nSomeone could be trying to "
-                  "impersonate the site and you should not "
-                  "continue.\n\nDo you want to make an exception "
-                  "for this server?", info.data);
+      text = format("This certificate has been signed by an unknown "
+                    "authority:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unknown certificate issuer",
-                           text.buf))
+                           text.c_str()))
         throw AuthFailureException("Unknown certificate issuer");
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
-      text.format("This certificate has expired:\n\n%s\n\nSomeone "
-                  "could be trying to impersonate the site and you "
-                  "should not continue.\n\nDo you want to make an "
-                  "exception for this server?", info.data);
+      text = format("This certificate has expired:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Expired certificate",
-                           text.buf))
+                           text.c_str()))
         throw AuthFailureException("Expired certificate");
     }
   } else if (err == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
-    CharArray text;
+    std::string text;
 
     vlog.debug("Server host key mismatch");
     vlog.debug("%s", info.data);
 
     if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
-      text.format("This host is previously known with a different "
-                  "certificate, and the new certificate has been "
-                  "signed by an unknown authority:\n\n%s\n\nSomeone "
-                  "could be trying to impersonate the site and you "
-                  "should not continue.\n\nDo you want to make an "
-                  "exception for this server?", info.data);
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate has been "
+                    "signed by an unknown authority:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
-                           text.buf))
+                           text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
-      text.format("This host is previously known with a different "
-                  "certificate, and the new certificate has expired:"
-                  "\n\n%s\n\nSomeone could be trying to impersonate "
-                  "the site and you should not continue.\n\nDo you "
-                  "want to make an exception for this server?",
-                  info.data);
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate has "
+                    "expired:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
 
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
-                           text.buf))
+                           text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
     }
   }
 
-  if (gnutls_store_pubkey(dbPath.buf, NULL, client->getServerName(),
+  if (gnutls_store_pubkey(dbPath.c_str(), NULL, client->getServerName(),
                           NULL, GNUTLS_CRT_X509, &cert_list[0], 0, 0))
     vlog.error("Failed to store server certificate to known hosts database");
 

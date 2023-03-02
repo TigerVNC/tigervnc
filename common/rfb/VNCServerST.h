@@ -98,7 +98,7 @@ namespace rfb {
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           const rdr::U8* data);
+                           const uint8_t* data);
     virtual void setCursorPos(const Point& p, bool warped);
     virtual void setName(const char* name_);
     virtual void setLEDState(unsigned state);
@@ -112,11 +112,11 @@ namespace rfb {
     const ScreenSet& getScreenLayout() const { return screenLayout; }
     const Cursor* getCursor() const { return cursor; }
     const Point& getCursorPos() const { return cursorPos; }
-    const char* getName() const { return name.buf; }
+    const char* getName() const { return name.c_str(); }
     unsigned getLEDState() const { return ledState; }
 
     // Event handlers
-    void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+    void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
     void pointerEvent(VNCSConnectionST* client, const Point& pos, int buttonMask);
 
     void handleClipboardRequest(VNCSConnectionST* client);
@@ -183,7 +183,7 @@ namespace rfb {
     ScreenSet screenLayout;
     unsigned int ledState;
 
-    CharArray name;
+    std::string name;
 
     std::list<VNCSConnectionST*> clients;
     VNCSConnectionST* pointerClient;

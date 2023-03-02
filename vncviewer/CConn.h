@@ -53,7 +53,7 @@ public:
 
   void setName(const char* name);
 
-  void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
+  void setColourMapEntries(int firstColour, int nColours, uint16_t* rgbs);
 
   void bell();
 
@@ -62,10 +62,10 @@ public:
   bool dataRect(const rfb::Rect& r, int encoding);
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 const rdr::U8* data);
+                 const uint8_t* data);
   void setCursorPos(const rfb::Point& pos);
 
-  void fence(rdr::U32 flags, unsigned len, const char data[]);
+  void fence(uint32_t flags, unsigned len, const char data[]);
 
   void setLEDState(unsigned int state);
 
@@ -85,7 +85,7 @@ private:
   static void handleUpdateTimeout(void *data);
 
 private:
-  char* serverHost;
+  std::string serverHost;
   int serverPort;
   network::Socket* sock;
 

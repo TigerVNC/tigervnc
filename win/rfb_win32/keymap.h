@@ -27,8 +27,8 @@
 // not on the main keyboard).
 
 struct keymap_t {
-  rdr::U32 keysym;
-  rdr::U8 vk;
+  uint32_t keysym;
+  uint8_t vk;
   bool extended;
 };
 

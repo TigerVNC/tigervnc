@@ -79,9 +79,9 @@ bool CSecurityMSLogonII::readKey()
   rdr::InStream* is = cc->getInStream();
   if (!is->hasData(24))
     return false;
-  rdr::U8 gBytes[8];
-  rdr::U8 pBytes[8];
-  rdr::U8 ABytes[8];
+  uint8_t gBytes[8];
+  uint8_t pBytes[8];
+  uint8_t ABytes[8];
   is->readBytes(gBytes, 8);
   is->readBytes(pBytes, 8);
   is->readBytes(ABytes, 8);
@@ -93,28 +93,29 @@ bool CSecurityMSLogonII::readKey()
 
 void CSecurityMSLogonII::writeCredentials()
 {
-  CharArray username;
-  CharArray password;
+  std::string username;
+  std::string password;
   rdr::RandomStream rs;
 
-  (CSecurity::upg)->getUserPasswd(isSecure(), &username.buf, &password.buf);
-  rdr::U8Array bBytes(8);
+  (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+
+  std::vector<uint8_t> bBytes(8);
   if (!rs.hasData(8))
     throw ConnFailedException("failed to generate DH private key");
-  rs.readBytes(bBytes.buf, 8);
-  nettle_mpz_set_str_256_u(b, 8, bBytes.buf);
+  rs.readBytes(bBytes.data(), bBytes.size());
+  nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
   mpz_powm(B, g, b, p);
 
-  rdr::U8 key[8];
-  rdr::U8 reversedKey[8];
-  rdr::U8 BBytes[8];
-  rdr::U8 user[256];
-  rdr::U8 pass[64];
+  uint8_t key[8];
+  uint8_t reversedKey[8];
+  uint8_t BBytes[8];
+  uint8_t user[256];
+  uint8_t pass[64];
   nettle_mpz_get_str_256(8, key, k);
   nettle_mpz_get_str_256(8, BBytes, B);
   for (int i = 0; i < 8; ++i) {
-    rdr::U8 x = 0;
+    uint8_t x = 0;
     for (int j = 0; j < 8; ++j) {
       x |= ((key[i] >> j) & 1) << (7 - j);
     }
@@ -125,14 +126,12 @@ void CSecurityMSLogonII::writeCredentials()
     throw ConnFailedException("failed to generate random padding");
   rs.readBytes(user, 256);
   rs.readBytes(pass, 64);
-  size_t len = strlen(username.buf);
-  if (len >= 256)
+  if (username.size() >= 256)
     throw AuthFailureException("username is too long");
-  memcpy(user, username.buf, len + 1);
-  len = strlen(password.buf);
-  if (len >= 64)
+  memcpy(user, username.c_str(), username.size() + 1);
+  if (password.size() >= 64)
     throw AuthFailureException("password is too long");
-  memcpy(pass, password.buf, len + 1);
+  memcpy(pass, password.c_str(), password.size() + 1);
 
   // DES-CBC with the original key as IV, and the reversed one as the DES key
   struct CBC_CTX(struct des_ctx, DES_BLOCK_SIZE) ctx;

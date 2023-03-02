@@ -33,7 +33,7 @@ namespace rfb {
     SecurityServer(void) : Security(secTypes) {}
 
     /* Create server side SSecurity class instance */
-    SSecurity* GetSSecurity(SConnection* sc, rdr::U32 secType);
+    SSecurity* GetSSecurity(SConnection* sc, uint32_t secType);
 
     static StringParameter secTypes;
   };

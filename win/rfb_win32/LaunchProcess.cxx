@@ -32,8 +32,8 @@ using namespace rfb;
 using namespace win32;
 
 
-LaunchProcess::LaunchProcess(const TCHAR* exeName_, const TCHAR* params_)
-: exeName(tstrDup(exeName_)), params(tstrDup(params_)) {
+LaunchProcess::LaunchProcess(const char* exeName_, const char* params_)
+: exeName(exeName_), params(params_) {
   memset(&procInfo, 0, sizeof(procInfo));
 }
 
@@ -64,28 +64,32 @@ void LaunchProcess::start(HANDLE userToken, bool createConsole) {
   sinfo.lpDesktop = desktopName;
 
   // - Concoct a suitable command-line
-  TCharArray exePath;
-  if (!tstrContains(exeName.buf, _T('\\'))) {
+  std::string exePath;
+  if (exeName.find('\\') == std::string::npos) {
     ModuleFileName filename;
-    TCharArray path; splitPath(filename.buf, &path.buf, 0);
-    exePath.buf = new TCHAR[_tcslen(path.buf) + _tcslen(exeName.buf) + 2];
-    _stprintf(exePath.buf, _T("%s\\%s"), path.buf, exeName.buf);
+    std::string path(filename.buf);
+    if (path.rfind('\\') != std::string::npos)
+      path.resize(path.rfind('\\'));
+    exePath = path + '\\' + exeName;
   } else {
-    exePath.buf = tstrDup(exeName.buf);
+    exePath = exeName;
   }
 
   // - Start the process
   // Note: We specify the exe's precise path in the ApplicationName parameter,
   //       AND include the name as the first part of the CommandLine parameter,
   //       because CreateProcess doesn't make ApplicationName argv[0] in C programs.
-  TCharArray cmdLine(_tcslen(exeName.buf) + 3 + _tcslen(params.buf) + 1);
-  _stprintf(cmdLine.buf, _T("\"%s\" %s"), exeName.buf, params.buf);
+  std::string cmdLine;
+  cmdLine = (std::string)"\"" + exeName + "\" " + params;
   DWORD flags = createConsole ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW;
   BOOL success;
   if (userToken != INVALID_HANDLE_VALUE)
-    success = CreateProcessAsUser(userToken, exePath.buf, cmdLine.buf, 0, 0, FALSE, flags, 0, 0, &sinfo, &procInfo);
+    success = CreateProcessAsUser(userToken, exePath.c_str(),
+                                  (char*)cmdLine.c_str(), 0, 0, FALSE,
+                                  flags, 0, 0, &sinfo, &procInfo);
   else
-    success = CreateProcess(exePath.buf, cmdLine.buf, 0, 0, FALSE, flags, 0, 0, &sinfo, &procInfo);
+    success = CreateProcess(exePath.c_str(), (char*)cmdLine.c_str(), 0,
+                            0, FALSE, flags, 0, 0, &sinfo, &procInfo);
   if (!success)
     throw rdr::SystemException("unable to launch process", GetLastError());
 

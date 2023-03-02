@@ -25,6 +25,7 @@
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb/Configuration.h>
 #include <rfb/Blacklist.h>
+#include <rfb/util.h>
 #include <network/TcpSocket.h>
 
 static rfb::IntParameter port_number("PortNumber",
@@ -41,48 +42,46 @@ namespace rfb {
     class ConnHostDialog : public Dialog {
     public:
       ConnHostDialog() : Dialog(GetModuleHandle(0)) {}
-      bool showDialog(const TCHAR* pat) {
-        pattern.replaceBuf(tstrDup(pat));
+      bool showDialog(const char* pat) {
+        pattern = pat;
         return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONN_HOST));
       }
       void initDialog() {
-        if (_tcslen(pattern.buf) == 0)
-          pattern.replaceBuf(tstrDup("+"));
+        if (pattern.empty())
+          pattern = "+";
 
-        if (pattern.buf[0] == _T('+'))
+        if (pattern[0] == '+')
           setItemChecked(IDC_ALLOW, true);
-        else if (pattern.buf[0] == _T('?'))
+        else if (pattern[0] == '?')
           setItemChecked(IDC_QUERY, true);
         else
           setItemChecked(IDC_DENY, true);
 
-        setItemString(IDC_HOST_PATTERN, &pattern.buf[1]);
-        pattern.replaceBuf(0);
+        setItemString(IDC_HOST_PATTERN, &pattern.c_str()[1]);
+        pattern.clear();
       }
       bool onOk() {
-        TCharArray host(getItemString(IDC_HOST_PATTERN));
-        TCharArray newPat(_tcslen(host.buf)+2);
+        std::string newPat;
         if (isItemChecked(IDC_ALLOW))
-          newPat.buf[0] = _T('+');
+          newPat = '+';
         else if (isItemChecked(IDC_QUERY))
-          newPat.buf[0] = _T('?');
+          newPat = '?';
         else
-          newPat.buf[0] = _T('-');
-        newPat.buf[1] = 0;
-        _tcscat(newPat.buf, host.buf);
+          newPat = '-';
+        newPat += getItemString(IDC_HOST_PATTERN);
 
         try {
-          network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(CStr(newPat.buf)));
-          pattern.replaceBuf(TCharArray(network::TcpFilter::patternToStr(pat)).takeBuf());
+          network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(newPat.c_str()));
+          pattern = network::TcpFilter::patternToStr(pat);
         } catch(rdr::Exception& e) {
-          MsgBox(NULL, TStr(e.str()), MB_ICONEXCLAMATION | MB_OK);
+          MsgBox(NULL, e.str(), MB_ICONEXCLAMATION | MB_OK);
           return false;
         }
         return true;
       }
-      const TCHAR* getPattern() {return pattern.buf;}
+      const char* getPattern() {return pattern.c_str();}
     protected:
-      TCharArray pattern;
+      std::string pattern;
     };
 
     class ConnectionsPage : public PropSheetPage {
@@ -100,13 +99,11 @@ namespace rfb {
         while (SendMessage(listBox, LB_GETCOUNT, 0, 0))
           SendMessage(listBox, LB_DELETESTRING, 0, 0);
 
-        CharArray tmp;
-        tmp.buf = hosts.getData();
-        while (tmp.buf) {
-          CharArray first;
-          strSplit(tmp.buf, ',', &first.buf, &tmp.buf);
-          if (strlen(first.buf))
-            SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)(const TCHAR*)TStr(first.buf));
+        std::vector<std::string> hostv;
+        hostv = split(hosts, ',');
+        for (size_t i = 0; i < hostv.size(); i++) {
+          if (!hostv[i].empty())
+            SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)hostv[i].c_str());
         }
 
         onCommand(IDC_RFB_ENABLE, EN_CHANGE);
@@ -157,9 +154,9 @@ namespace rfb {
           }
 
         case IDC_HOST_ADD:
-          if (hostDialog.showDialog(_T("")))
+          if (hostDialog.showDialog(""))
           {
-            const TCHAR* pattern = hostDialog.getPattern();
+            const char* pattern = hostDialog.getPattern();
             if (pattern)
               SendMessage(GetDlgItem(handle, IDC_HOSTS), LB_ADDSTRING, 0, (LPARAM)pattern);
           }
@@ -169,13 +166,13 @@ namespace rfb {
           {
             HWND listBox = GetDlgItem(handle, IDC_HOSTS);
             int item = SendMessage(listBox, LB_GETCURSEL, 0, 0);
-            TCharArray pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
-            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.buf);
+            std::vector<char> pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
+            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.data());
 
-            if (hostDialog.showDialog(pattern.buf)) {
-              const TCHAR* newPat = hostDialog.getPattern();
+            if (hostDialog.showDialog(pattern.data())) {
+              const char* newPat = hostDialog.getPattern();
               if (newPat) {
-                item = SendMessage(listBox, LB_FINDSTRINGEXACT, item, (LPARAM)pattern.buf);
+                item = SendMessage(listBox, LB_FINDSTRINGEXACT, item, (LPARAM)pattern.data());
                 if (item != LB_ERR) {
                   SendMessage(listBox, LB_DELETESTRING, item, 0); 
                   SendMessage(listBox, LB_INSERTSTRING, item, (LPARAM)newPat);
@@ -191,10 +188,10 @@ namespace rfb {
           {
             HWND listBox = GetDlgItem(handle, IDC_HOSTS);
             int item = SendMessage(listBox, LB_GETCURSEL, 0, 0);
-            TCharArray pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
-            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.buf);
+            std::vector<char> pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
+            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.data());
             SendMessage(listBox, LB_DELETESTRING, item, 0);
-            SendMessage(listBox, LB_INSERTSTRING, item-1, (LPARAM)pattern.buf);
+            SendMessage(listBox, LB_INSERTSTRING, item-1, (LPARAM)pattern.data());
             SendMessage(listBox, LB_SETCURSEL, item-1, 0);
             onCommand(IDC_HOSTS, EN_CHANGE);
           }
@@ -204,10 +201,10 @@ namespace rfb {
           {
             HWND listBox = GetDlgItem(handle, IDC_HOSTS);
             int item = SendMessage(listBox, LB_GETCURSEL, 0, 0);
-            TCharArray pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
-            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.buf);
+            std::vector<char> pattern(SendMessage(listBox, LB_GETTEXTLEN, item, 0)+1);
+            SendMessage(listBox, LB_GETTEXT, item, (LPARAM)pattern.data());
             SendMessage(listBox, LB_DELETESTRING, item, 0);
-            SendMessage(listBox, LB_INSERTSTRING, item+1, (LPARAM)pattern.buf);
+            SendMessage(listBox, LB_INSERTSTRING, item+1, (LPARAM)pattern.data());
             SendMessage(listBox, LB_SETCURSEL, item+1, 0);
             onCommand(IDC_HOSTS, EN_CHANGE);
           }
@@ -225,17 +222,16 @@ namespace rfb {
         return false;
       }
       bool onOk() {
-        regKey.setInt(_T("PortNumber"), isItemChecked(IDC_RFB_ENABLE) ? getItemInt(IDC_PORT) : 0);
-        regKey.setInt(_T("IdleTimeout"), getItemInt(IDC_IDLE_TIMEOUT));
-        regKey.setInt(_T("LocalHost"), isItemChecked(IDC_LOCALHOST));
-        regKey.setString(_T("Hosts"), TCharArray(getHosts()).buf);
+        regKey.setInt("PortNumber", isItemChecked(IDC_RFB_ENABLE) ? getItemInt(IDC_PORT) : 0);
+        regKey.setInt("IdleTimeout", getItemInt(IDC_IDLE_TIMEOUT));
+        regKey.setInt("LocalHost", isItemChecked(IDC_LOCALHOST));
+        regKey.setString("Hosts", getHosts().c_str());
         return true;
       }
       bool isChanged() {
         try {
-          CharArray new_hosts(getHosts());
-          CharArray old_hosts(hosts.getData());
-          return (strcmp(new_hosts.buf, old_hosts.buf) != 0) ||
+          std::string new_hosts = getHosts();
+          return (new_hosts != (const char*)hosts) ||
               (localHost != isItemChecked(IDC_LOCALHOST)) ||
               (port_number != getItemInt(IDC_PORT)) ||
               (rfb::Server::idleTimeout != getItemInt(IDC_IDLE_TIMEOUT));
@@ -243,21 +239,21 @@ namespace rfb {
           return false;
         }
       }
-      char* getHosts() {
+      std::string getHosts() {
         int bufLen = 1, i;
         HWND listBox = GetDlgItem(handle, IDC_HOSTS);
         for (i=0; i<SendMessage(listBox, LB_GETCOUNT, 0, 0); i++)
           bufLen+=SendMessage(listBox, LB_GETTEXTLEN, i, 0)+1;
-        TCharArray hosts_str(bufLen);
-        hosts_str.buf[0] = 0;
-        TCHAR* outPos = hosts_str.buf;
+        std::vector<char> hosts_str(bufLen);
+        hosts_str[0] = 0;
+        char* outPos = hosts_str.data();
         for (i=0; i<SendMessage(listBox, LB_GETCOUNT, 0, 0); i++) {
           outPos += SendMessage(listBox, LB_GETTEXT, i, (LPARAM)outPos);
           outPos[0] = ',';
           outPos[1] = 0;
           outPos++;
         }
-        return strDup(hosts_str.buf);
+        return hosts_str.data();
       }
 
     protected:

@@ -68,7 +68,7 @@ static rfb::BoolParameter translate("translate",
 static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
 
 // Encodings to use
-static const rdr::S32 encodings[] = {
+static const int32_t encodings[] = {
   rfb::encodingTight, rfb::encodingCopyRect, rfb::encodingRRE,
   rfb::encodingHextile, rfb::encodingZRLE, rfb::pseudoEncodingLastRect,
   rfb::pseudoEncodingQualityLevel0 + 8,
@@ -85,7 +85,7 @@ private:
   virtual void overrun(size_t needed);
 
   int offset;
-  rdr::U8 buf[131072];
+  uint8_t buf[131072];
 };
 
 class CConn : public rfb::CConnection {
@@ -98,12 +98,12 @@ public:
 
   virtual void initDone() {};
   virtual void resizeFramebuffer();
-  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
+  virtual void setCursor(int, int, const rfb::Point&, const uint8_t*);
   virtual void setCursorPos(const rfb::Point&);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
   virtual bool dataRect(const rfb::Rect&, int);
-  virtual void setColourMapEntries(int, int, rdr::U16*);
+  virtual void setColourMapEntries(int, int, uint16_t*);
   virtual void bell();
   virtual void serverCutText(const char*);
 
@@ -217,7 +217,7 @@ void CConn::resizeFramebuffer()
   setFramebuffer(pb);
 }
 
-void CConn::setCursor(int, int, const rfb::Point&, const rdr::U8*)
+void CConn::setCursor(int, int, const rfb::Point&, const uint8_t*)
 {
 }
 
@@ -265,7 +265,7 @@ bool CConn::dataRect(const rfb::Rect &r, int encoding)
   return true;
 }
 
-void CConn::setColourMapEntries(int, int, rdr::U16*)
+void CConn::setColourMapEntries(int, int, uint16_t*)
 {
 }
 

@@ -27,23 +27,21 @@
 static void doTest(const char* hostAndPort,
                    const char* expectedHost, int expectedPort)
 {
-    char* host;
+    std::string host;
     int port;
 
     printf("\"%s\": ", hostAndPort);
 
     rfb::getHostAndPort(hostAndPort, &host, &port);
 
-    if (strcmp(host, expectedHost) != 0)
-        printf("FAILED (\"%s\" != \"%s\")", host, expectedHost);
+    if (host != expectedHost)
+        printf("FAILED (\"%s\" != \"%s\")", host.c_str(), expectedHost);
     else if (port != expectedPort)
         printf("FAILED (%d != %d)", port, expectedPort);
     else
         printf("OK");
     printf("\n");
     fflush(stdout);
-
-    rfb::strFree(host);
 }
 
 int main(int /*argc*/, char** /*argv*/)

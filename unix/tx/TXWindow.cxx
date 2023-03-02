@@ -26,10 +26,11 @@
 #include <X11/Xatom.h>
 #include "TXWindow.h"
 #include <list>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
-#include <rfb/util.h>
 
 std::list<TXWindow*> windows;
 
@@ -100,7 +101,7 @@ void TXWindow::init(Display* dpy, const char* defaultWindowClass_)
   static unsigned char tickBits[] = { 0x80, 0xc0, 0xe2, 0x76, 0x3e, 0x1c, 0x08, 0x00};
   tick = XCreateBitmapFromData(dpy, DefaultRootWindow(dpy), (char*)tickBits,
                                tickSize, tickSize);
-  defaultWindowClass = rfb::strDup(defaultWindowClass_);
+  defaultWindowClass = strdup(defaultWindowClass_);
 }
 
 void TXWindow::handleXEvents(Display* dpy)
@@ -467,7 +468,7 @@ void TXWindow::handleXEvent(XEvent* ev)
           XChangeProperty(dpy, se.requestor, se.property, XA_ATOM, 32,
                           PropModeReplace, (unsigned char*)targets, 2);
         } else if (se.target == xaTIMESTAMP) {
-          rdr::U32 t = selectionOwnTime[se.selection];
+          Time t = selectionOwnTime[se.selection];
           XChangeProperty(dpy, se.requestor, se.property, XA_INTEGER, 32,
                           PropModeReplace, (unsigned char*)&t, 1);
         } else if (se.target == XA_STRING) {

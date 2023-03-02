@@ -33,7 +33,7 @@ namespace rfb {
     SecurityClient(void) : Security(secTypes) {}
 
     /* Create client side CSecurity class instance */
-    CSecurity* GetCSecurity(CConnection* cc, rdr::U32 secType);
+    CSecurity* GetCSecurity(CConnection* cc, uint32_t secType);
 
     static StringParameter secTypes;
   };

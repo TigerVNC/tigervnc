@@ -41,6 +41,7 @@
 #include <network/TcpSocket.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
+#include <rfb/util.h>
 
 #ifdef WIN32
 #include <os/winerrno.h>
@@ -211,17 +212,17 @@ TcpSocket::TcpSocket(const char *host, int port)
   enableNagles(false);
 }
 
-char* TcpSocket::getPeerAddress() {
+const char* TcpSocket::getPeerAddress() {
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
 
   if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
     vlog.error("unable to get peer name for socket");
-    return rfb::strDup("");
+    return "(N/A)";
   }
 
   if (sa.u.sa.sa_family == AF_INET6) {
-    char buffer[INET6_ADDRSTRLEN + 2];
+    static char buffer[INET6_ADDRSTRLEN + 2];
     int ret;
 
     buffer[0] = '[';
@@ -231,12 +232,12 @@ char* TcpSocket::getPeerAddress() {
                       NI_NUMERICHOST);
     if (ret != 0) {
       vlog.error("unable to convert peer name to a string");
-      return rfb::strDup("");
+      return "(N/A)";
     }
 
     strcat(buffer, "]");
 
-    return rfb::strDup(buffer);
+    return buffer;
   }
 
   if (sa.u.sa.sa_family == AF_INET) {
@@ -245,18 +246,18 @@ char* TcpSocket::getPeerAddress() {
     name = inet_ntoa(sa.u.sin.sin_addr);
     if (name == NULL) {
       vlog.error("unable to convert peer name to a string");
-      return rfb::strDup("");
+      return "(N/A)";
     }
 
-    return rfb::strDup(name);
+    return name;
   }
 
   vlog.error("unknown address family for socket");
-  return rfb::strDup("");
+  return "";
 }
 
-char* TcpSocket::getPeerEndpoint() {
-  rfb::CharArray address; address.buf = getPeerAddress();
+const char* TcpSocket::getPeerEndpoint() {
+  static char buffer[INET6_ADDRSTRLEN + 2 + 32];
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
   int port;
@@ -270,9 +271,8 @@ char* TcpSocket::getPeerEndpoint() {
   else
     port = 0;
 
-  int buflen = strlen(address.buf) + 32;
-  char* buffer = new char[buflen];
-  sprintf(buffer, "%s::%d", address.buf, port);
+  sprintf(buffer, "%s::%d", getPeerAddress(), port);
+
   return buffer;
 }
 
@@ -342,8 +342,9 @@ Socket* TcpListener::createSocket(int fd) {
   return new TcpSocket(fd);
 }
 
-void TcpListener::getMyAddresses(std::list<char*>* result) {
+std::list<std::string> TcpListener::getMyAddresses() {
   struct addrinfo *ai, *current, hints;
+  std::list<std::string> result;
 
   initSockets();
 
@@ -357,9 +358,11 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
 
   // Windows doesn't like NULL for service, so specify something
   if ((getaddrinfo(NULL, "1", &hints, &ai)) != 0)
-    return;
+    return result;
 
   for (current= ai; current != NULL; current = current->ai_next) {
+    char addr[INET6_ADDRSTRLEN];
+
     switch (current->ai_family) {
     case AF_INET:
       if (!UseIPv4)
@@ -373,15 +376,15 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
       continue;
     }
 
-    char *addr = new char[INET6_ADDRSTRLEN];
-
     getnameinfo(current->ai_addr, current->ai_addrlen, addr, INET6_ADDRSTRLEN,
                 NULL, 0, NI_NUMERICHOST);
 
-    result->push_back(addr);
+    result.push_back(addr);
   }
 
   freeaddrinfo(ai);
+
+  return result;
 }
 
 int TcpListener::getMyPort() {
@@ -502,13 +505,13 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
 
 
 TcpFilter::TcpFilter(const char* spec) {
-  rfb::CharArray tmp;
-  tmp.buf = rfb::strDup(spec);
-  while (tmp.buf) {
-    rfb::CharArray first;
-    rfb::strSplit(tmp.buf, ',', &first.buf, &tmp.buf);
-    if (strlen(first.buf))
-      filter.push_back(parsePattern(first.buf));
+  std::vector<std::string> patterns;
+
+  patterns = rfb::split(spec, ',');
+
+  for (size_t i = 0; i < patterns.size(); i++) {
+    if (!patterns[i].empty())
+      filter.push_back(parsePattern(patterns[i].c_str()));
   }
 }
 
@@ -569,33 +572,31 @@ patternMatchIP(const TcpFilter::Pattern& pattern, vnc_sockaddr_t *sa) {
 
 bool
 TcpFilter::verifyConnection(Socket* s) {
-  rfb::CharArray name;
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
 
   if (getpeername(s->getFd(), &sa.u.sa, &sa_size) != 0)
     return false;
 
-  name.buf = s->getPeerAddress();
   std::list<TcpFilter::Pattern>::iterator i;
   for (i=filter.begin(); i!=filter.end(); i++) {
     if (patternMatchIP(*i, &sa)) {
       switch ((*i).action) {
       case Accept:
-        vlog.debug("ACCEPT %s", name.buf);
+        vlog.debug("ACCEPT %s", s->getPeerAddress());
         return true;
       case Query:
-        vlog.debug("QUERY %s", name.buf);
+        vlog.debug("QUERY %s", s->getPeerAddress());
         s->setRequiresQuery();
         return true;
       case Reject:
-        vlog.debug("REJECT %s", name.buf);
+        vlog.debug("REJECT %s", s->getPeerAddress());
         return false;
       }
     }
   }
 
-  vlog.debug("[REJECT] %s", name.buf);
+  vlog.debug("[REJECT] %s", s->getPeerAddress());
   return false;
 }
 
@@ -603,14 +604,16 @@ TcpFilter::verifyConnection(Socket* s) {
 TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   TcpFilter::Pattern pattern;
 
-  rfb::CharArray addr, pref;
-  bool prefix_specified;
+  std::vector<std::string> parts;
   int family;
 
   initSockets();
 
-  prefix_specified = rfb::strSplit(&p[1], '/', &addr.buf, &pref.buf);
-  if (addr.buf[0] == '\0') {
+  parts = rfb::split(&p[1], '/');
+  if (parts.size() > 2)
+    throw Exception("invalid filter specified");
+
+  if (parts[0].empty()) {
     // Match any address
     memset (&pattern.address, 0, sizeof (pattern.address));
     pattern.address.u.sa.sa_family = AF_UNSPEC;
@@ -618,22 +621,19 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   } else {
     struct addrinfo hints;
     struct addrinfo *ai;
-    char *p = addr.buf;
     int result;
     memset (&hints, 0, sizeof (hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_NUMERICHOST;
 
     // Take out brackets, if present
-    if (*p == '[') {
-      size_t len;
-      p++;
-      len = strlen (p);
-      if (len > 0 && p[len - 1] == ']')
-        p[len - 1] = '\0';
+    if (parts[0][0] == '[') {
+      parts[0].erase(0, 1);
+      if (!parts[0].empty() && parts[0][parts.size()-1] == ']')
+        parts[0].erase(parts.size()-1, 1);
     }
 
-    if ((result = getaddrinfo (p, NULL, &hints, &ai)) != 0) {
+    if ((result = getaddrinfo (parts[0].c_str(), NULL, &hints, &ai)) != 0) {
       throw GAIException("unable to resolve host by name", result);
     }
 
@@ -642,14 +642,14 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
     family = pattern.address.u.sa.sa_family;
 
-    if (prefix_specified) {
+    if (parts.size() > 1) {
       if (family == AF_INET &&
-          rfb::strContains(pref.buf, '.')) {
+          (parts[1].find('.') != std::string::npos)) {
         throw Exception("mask no longer supported for filter, "
                         "use prefix instead");
       }
 
-      pattern.prefixlen = (unsigned int) atoi(pref.buf);
+      pattern.prefixlen = (unsigned int) atoi(parts[1].c_str());
     } else {
       switch (family) {
       case AF_INET:
@@ -710,22 +710,19 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   return pattern;
 }
 
-char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
-  rfb::CharArray addr;
-  char buffer[INET6_ADDRSTRLEN + 2];
+std::string TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
+  char addr[INET6_ADDRSTRLEN + 2];
 
   if (p.address.u.sa.sa_family == AF_INET) {
     getnameinfo(&p.address.u.sa, sizeof(p.address.u.sin),
-                buffer, sizeof (buffer), NULL, 0, NI_NUMERICHOST);
-    addr.buf = rfb::strDup(buffer);
+                addr, sizeof(addr), NULL, 0, NI_NUMERICHOST);
   } else if (p.address.u.sa.sa_family == AF_INET6) {
-    buffer[0] = '[';
+    addr[0] = '[';
     getnameinfo(&p.address.u.sa, sizeof(p.address.u.sin6),
-                buffer + 1, sizeof (buffer) - 2, NULL, 0, NI_NUMERICHOST);
-    strcat(buffer, "]");
-    addr.buf = rfb::strDup(buffer);
+                addr + 1, sizeof(addr) - 2, NULL, 0, NI_NUMERICHOST);
+    strcat(addr, "]");
   } else
-    addr.buf = rfb::strDup("");
+    addr[0] = '\0';
 
   char action;
   switch (p.action) {
@@ -735,15 +732,19 @@ char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
   case Query: action = '?'; break;
   };
   size_t resultlen = (1                   // action
-                      + strlen (addr.buf) // address
+                      + strlen (addr)     // address
                       + 1                 // slash
                       + 3                 // prefix length, max 128
                       + 1);               // terminating nul
   char* result = new char[resultlen];
-  if (addr.buf[0] == '\0')
+  if (addr[0] == '\0')
     snprintf(result, resultlen, "%c", action);
   else
-    snprintf(result, resultlen, "%c%s/%u", action, addr.buf, p.prefixlen);
+    snprintf(result, resultlen, "%c%s/%u", action, addr, p.prefixlen);
 
-  return result;
+  std::string out = result;
+
+  delete [] result;
+
+  return out;
 }

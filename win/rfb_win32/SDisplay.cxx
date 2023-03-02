@@ -120,13 +120,12 @@ void SDisplay::stop()
   // If we successfully start()ed then perform the DisconnectAction
   if (core) {
     CurrentUserToken cut;
-    CharArray action(disconnectAction.getData());
-    if (stricmp(action.buf, "Logoff") == 0) {
+    if (stricmp(disconnectAction, "Logoff") == 0) {
       if (!cut.h)
         vlog.info("ignoring DisconnectAction=Logoff - no current user");
       else
         ExitWindowsEx(EWX_LOGOFF, 0);
-    } else if (stricmp(action.buf, "Lock") == 0) {
+    } else if (stricmp(disconnectAction, "Lock") == 0) {
       if (!cut.h) {
         vlog.info("ignoring DisconnectAction=Lock - no current user");
       } else {
@@ -297,8 +296,7 @@ void SDisplay::restartCore() {
 
 
 void SDisplay::handleClipboardRequest() {
-  CharArray data(clipboard->getClipText());
-  server->sendClipboardData(data.buf);
+  server->sendClipboardData(clipboard->getClipText().c_str());
 }
 
 void SDisplay::handleClipboardAnnounce(bool available) {
@@ -323,7 +321,7 @@ void SDisplay::pointerEvent(const Point& pos, int buttonmask) {
   }
 }
 
-void SDisplay::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
+void SDisplay::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
   // - Check that the SDesktop doesn't need restarting
   if (isRestartRequired())
     restartCore();
@@ -448,10 +446,9 @@ SDisplay::recreatePixelBuffer(bool force) {
   //   Opening the whole display with CreateDC doesn't work on multi-monitor
   //   systems for some reason.
   DeviceContext* new_device = 0;
-  TCharArray deviceName(displayDevice.getData());
-  if (deviceName.buf[0]) {
-    vlog.info("Attaching to device %s", (const char*)CStr(deviceName.buf));
-    new_device = new DeviceDC(deviceName.buf);
+  if (strlen(displayDevice) > 0) {
+    vlog.info("Attaching to device %s", (const char*)displayDevice);
+    new_device = new DeviceDC(displayDevice);
   }
   if (!new_device) {
     vlog.info("Attaching to virtual desktop");
@@ -460,8 +457,8 @@ SDisplay::recreatePixelBuffer(bool force) {
 
   // Get the coordinates of the specified dispay device
   Rect newScreenRect;
-  if (deviceName.buf[0]) {
-    MonitorInfo info(CStr(deviceName.buf));
+  if (strlen(displayDevice) > 0) {
+    MonitorInfo info(displayDevice);
     newScreenRect = Rect(info.rcMonitor.left, info.rcMonitor.top,
                          info.rcMonitor.right, info.rcMonitor.bottom);
   } else {
@@ -471,8 +468,8 @@ SDisplay::recreatePixelBuffer(bool force) {
   // If nothing has changed & a recreate has not been forced, delete
   // the new device context and return
   if (pb && !force &&
-    newScreenRect.equals(screenRect) &&
-    new_device->getPF().equal(pb->getPF())) {
+    newScreenRect == screenRect &&
+    new_device->getPF() == pb->getPF()) {
     delete new_device;
     return;
   }

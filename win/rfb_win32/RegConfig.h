@@ -41,7 +41,7 @@ namespace rfb {
       ~RegConfig();
 
       // Specify the registry key to read Configuration items from
-      bool setKey(const HKEY rootkey, const TCHAR* keyname);
+      bool setKey(const HKEY rootkey, const char* keyname);
 
       // Support for a callback, run in the RegConfig host thread whenever
       // the registry configuration changes
@@ -70,7 +70,7 @@ namespace rfb {
       ~RegConfigThread();
 
       // Start the thread, reading from the specified key
-      bool start(const HKEY rootkey, const TCHAR* keyname);
+      bool start(const HKEY rootkey, const char* keyname);
     protected:
       virtual void worker();
       EventManager eventMgr;

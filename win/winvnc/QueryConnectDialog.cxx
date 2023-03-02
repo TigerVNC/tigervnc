@@ -24,7 +24,6 @@
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/resource.h>
 #include <rfb_win32/Win32Util.h>
-#include <rfb_win32/TCharArray.h>
 #include <rfb_win32/Service.h>
 #include <rfb/LogWriter.h>
 
@@ -46,9 +45,8 @@ QueryConnectDialog::QueryConnectDialog(network::Socket* sock_,
                                        const char* userName_,
                                        VNCServerWin32* s)
 : Dialog(GetModuleHandle(0)),
-  sock(sock_), approve(false), server(s) {
-  peerIp.buf = sock->getPeerAddress();
-  userName.buf = strDup(userName_);
+  sock(sock_), peerIp(sock->getPeerAddress()), userName(userName_),
+  approve(false), server(s) {
 }
 
 void QueryConnectDialog::startDialog() {
@@ -77,16 +75,16 @@ void QueryConnectDialog::worker() {
 void QueryConnectDialog::initDialog() {
   if (!SetTimer(handle, 1, 1000, 0))
     throw rdr::SystemException("SetTimer", GetLastError());
-  setItemString(IDC_QUERY_HOST, TStr(peerIp.buf));
-  if (!userName.buf)
-    userName.buf = strDup("(anonymous)");
-  setItemString(IDC_QUERY_USER, TStr(userName.buf));
+  setItemString(IDC_QUERY_HOST, peerIp.c_str());
+  if (userName.empty())
+    userName = "(anonymous)";
+  setItemString(IDC_QUERY_USER, userName.c_str());
   setCountdownLabel();
 }
 
 void QueryConnectDialog::setCountdownLabel() {
-  TCHAR buf[16];
-  _stprintf(buf, _T("%d"), countdown);
+  char buf[16];
+  sprintf(buf, "%d", countdown);
   setItemString(IDC_QUERY_COUNTDOWN, buf);
 }
 

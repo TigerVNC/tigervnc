@@ -25,18 +25,17 @@
 #ifndef __RFB_WIN32_GDIUTIL_H__
 #define __RFB_WIN32_GDIUTIL_H__
 
-#include <rfb_win32/TCharArray.h>
-
 namespace rfb {
 
   namespace win32 {
 
-    struct FileVersionInfo : public TCharArray {
-      FileVersionInfo(const TCHAR* filename=0);
-      const TCHAR* getVerString(const TCHAR* name, DWORD langId = 0x080904b0);
+    struct FileVersionInfo {
+      FileVersionInfo(const char* filename=0);
+      ~FileVersionInfo();
+      const char* getVerString(const char* name, DWORD langId = 0x080904b0);
+    private:
+      char *buf;
     };
-
-    bool splitPath(const TCHAR* path, TCHAR** dir, TCHAR** file);
 
     // Center the window to a rectangle, or to a parent window.
     // Optionally, resize the window to lay within the rect or parent window

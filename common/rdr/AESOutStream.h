@@ -28,7 +28,7 @@ namespace rdr {
 
   class AESOutStream : public BufferedOutStream {
   public:
-    AESOutStream(OutStream* out, const U8* key, int keySize);
+    AESOutStream(OutStream* out, const uint8_t* key, int keySize);
     virtual ~AESOutStream();
 
     virtual void flush();
@@ -36,16 +36,16 @@ namespace rdr {
 
   private:
     virtual bool flushBuffer();
-    void writeMessage(const U8* data, size_t length);
+    void writeMessage(const uint8_t* data, size_t length);
 
     int keySize;
     OutStream* out;
-    U8* msg;
+    uint8_t* msg;
     union {
       struct EAX_CTX(aes128_ctx) eaxCtx128;
       struct EAX_CTX(aes256_ctx) eaxCtx256;
     };
-    U8 counter[16];
+    uint8_t counter[16];
   };
 };
 

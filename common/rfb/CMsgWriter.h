@@ -25,7 +25,7 @@
 
 #include <list>
 
-#include <rdr/types.h>
+#include <stdint.h>
 
 namespace rdr { class OutStream; }
 
@@ -45,25 +45,25 @@ namespace rfb {
     void writeClientInit(bool shared);
 
     void writeSetPixelFormat(const PixelFormat& pf);
-    void writeSetEncodings(const std::list<rdr::U32> encodings);
+    void writeSetEncodings(const std::list<uint32_t> encodings);
     void writeSetDesktopSize(int width, int height, const ScreenSet& layout);
 
     void writeFramebufferUpdateRequest(const Rect& r,bool incremental);
     void writeEnableContinuousUpdates(bool enable, int x, int y, int w, int h);
 
-    void writeFence(rdr::U32 flags, unsigned len, const char data[]);
+    void writeFence(uint32_t flags, unsigned len, const char data[]);
 
-    void writeKeyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+    void writeKeyEvent(uint32_t keysym, uint32_t keycode, bool down);
     void writePointerEvent(const Point& pos, int buttonMask);
 
     void writeClientCutText(const char* str);
 
-    void writeClipboardCaps(rdr::U32 caps, const rdr::U32* lengths);
-    void writeClipboardRequest(rdr::U32 flags);
-    void writeClipboardPeek(rdr::U32 flags);
-    void writeClipboardNotify(rdr::U32 flags);
-    void writeClipboardProvide(rdr::U32 flags, const size_t* lengths,
-                               const rdr::U8* const* data);
+    void writeClipboardCaps(uint32_t caps, const uint32_t* lengths);
+    void writeClipboardRequest(uint32_t flags);
+    void writeClipboardPeek(uint32_t flags);
+    void writeClipboardNotify(uint32_t flags);
+    void writeClipboardProvide(uint32_t flags, const size_t* lengths,
+                               const uint8_t* const* data);
 
   protected:
     void startMsg(int type);

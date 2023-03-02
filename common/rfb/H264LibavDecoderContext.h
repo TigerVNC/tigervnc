@@ -34,7 +34,7 @@ namespace rfb {
       H264LibavDecoderContext(const Rect &r) : H264DecoderContext(r) {}
       ~H264LibavDecoderContext() { freeCodec(); }
 
-      virtual void decode(const rdr::U8* h264_buffer, rdr::U32 len,
+      virtual void decode(const uint8_t* h264_buffer, uint32_t len,
                           ModifiablePixelBuffer* pb);
 
     protected:
@@ -42,15 +42,15 @@ namespace rfb {
       virtual void freeCodec();
 
     private:
-      rdr::U8* makeH264WorkBuffer(const rdr::U8* buffer, rdr::U32 len);
+      uint8_t* makeH264WorkBuffer(const uint8_t* buffer, uint32_t len);
 
       AVCodecContext *avctx;
       AVCodecParserContext *parser;
       AVFrame* frame;
       SwsContext* sws;
       uint8_t* swsBuffer;
-      rdr::U8* h264WorkBuffer;
-      rdr::U32 h264WorkBufferLength;
+      uint8_t* h264WorkBuffer;
+      uint32_t h264WorkBufferLength;
   };
 }
 

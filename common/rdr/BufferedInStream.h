@@ -50,7 +50,7 @@ namespace rdr {
   private:
     size_t bufSize;
     size_t offset;
-    U8* start;
+    uint8_t* start;
 
     struct timeval lastSizeCheck;
     size_t peakUsage;

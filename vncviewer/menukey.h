@@ -18,16 +18,16 @@
 #ifndef __KEYSYM_H__
 #define __KEYSYM_H__
 
-#include <rdr/types.h>
+#include <stdint.h>
 
 typedef struct {
   const char* name;
   int fltkcode;
   int keycode;
-  rdr::U32 keysym;
+  uint32_t keysym;
 } MenuKeySymbol;
 
-void getMenuKey(int *fltkcode, int *keycode, rdr::U32 *keysym);
+void getMenuKey(int *fltkcode, int *keycode, uint32_t *keysym);
 int getMenuKeySymbolCount();
 const MenuKeySymbol* getMenuKeySymbols();
 

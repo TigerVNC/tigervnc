@@ -26,7 +26,6 @@
 
 #include <rfb_win32/RegConfig.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 //#include <rdr/HexOutStream.h>
 
 using namespace rfb;
@@ -46,7 +45,7 @@ RegConfig::~RegConfig() {
     eventMgr->removeEvent(event);
 }
 
-bool RegConfig::setKey(const HKEY rootkey, const TCHAR* keyname) {
+bool RegConfig::setKey(const HKEY rootkey, const char* keyname) {
   try {
     key.createKey(rootkey, keyname);
     processEvent(event);
@@ -61,11 +60,11 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
   DWORD i = 0;
   try {
     while (1) {
-      TCharArray name(tstrDup(key.getValueName(i++)));
-      if (!name.buf) break;
-      TCharArray value(key.getRepresentation(name.buf));
-      if (!value.buf || !Configuration::setParam(CStr(name.buf), CStr(value.buf)))
-        vlog.info("unable to process %s", name.buf);
+      const char *name = key.getValueName(i++);
+      if (!name) break;
+      std::string value = key.getRepresentation(name);
+      if (!Configuration::setParam(name, value.c_str()))
+        vlog.info("unable to process %s", name);
     }
   } catch (rdr::SystemException& e) {
     if (e.err != 6)
@@ -97,7 +96,7 @@ RegConfigThread::~RegConfigThread() {
   wait();
 }
 
-bool RegConfigThread::start(const HKEY rootKey, const TCHAR* keyname) {
+bool RegConfigThread::start(const HKEY rootKey, const char* keyname) {
   if (config.setKey(rootKey, keyname)) {
     Thread::start();
     while (thread_id == (DWORD)-1)

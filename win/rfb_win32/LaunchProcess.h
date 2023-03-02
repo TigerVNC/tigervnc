@@ -24,8 +24,9 @@
 #ifndef __RFB_WIN32_LAUNCHPROCESS_H__
 #define __RFB_WIN32_LAUNCHPROCESS_H__
 
+#include <string>
+
 #include <windows.h>
-#include <rfb_win32/TCharArray.h>
 
 namespace rfb {
 
@@ -33,7 +34,7 @@ namespace rfb {
 
     class LaunchProcess {
     public:
-      LaunchProcess(const TCHAR* exeName_, const TCHAR* params);
+      LaunchProcess(const char* exeName_, const char* params);
       ~LaunchProcess();
 
       // start() starts the specified process with the supplied
@@ -59,8 +60,8 @@ namespace rfb {
       PROCESS_INFORMATION procInfo;
       DWORD returnCode;
     protected:
-      TCharArray exeName;
-      TCharArray params;
+      std::string exeName;
+      std::string params;
     };
 
 

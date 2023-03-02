@@ -30,6 +30,7 @@
 
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgWriter.h>
+#include <rfb/util.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
@@ -281,12 +282,11 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 
 void DesktopWindow::setName(const char *name)
 {
-  CharArray windowNameStr;
-  windowNameStr.replaceBuf(new char[256]);
+  char windowNameStr[256];
 
-  snprintf(windowNameStr.buf, 256, "%.240s - TigerVNC", name);
+  snprintf(windowNameStr, 256, "%.240s - TigerVNC", name);
 
-  copy_label(windowNameStr.buf);
+  copy_label(windowNameStr);
 }
 
 
@@ -376,7 +376,7 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
-                              const rdr::U8* data)
+                              const uint8_t* data)
 {
   viewport->setCursor(width, height, hotspot, data);
 }
@@ -1321,7 +1321,7 @@ void DesktopWindow::remoteResize(int width, int height)
     layout.begin()->dimensions.br.y = height;
   } else {
     int i;
-    rdr::U32 id;
+    uint32_t id;
     int sx, sy, sw, sh;
     rfb::Rect viewport_rect, screen_rect;
 
@@ -1711,14 +1711,12 @@ void DesktopWindow::handleStatsTimeout(void *data)
   fl_draw(buffer, 5, statsHeight - 5);
 
   fl_color(FL_YELLOW);
-  siPrefix(self->stats[statsCount-1].pps, "pix/s",
-           buffer, sizeof(buffer), 3);
-  fl_draw(buffer, 5 + (statsWidth-10)/3, statsHeight - 5);
+  fl_draw(siPrefix(self->stats[statsCount-1].pps, "pix/s").c_str(),
+          5 + (statsWidth-10)/3, statsHeight - 5);
 
   fl_color(FL_RED);
-  siPrefix(self->stats[statsCount-1].bps * 8, "bps",
-           buffer, sizeof(buffer), 3);
-  fl_draw(buffer, 5 + (statsWidth-10)*2/3, statsHeight - 5);
+  fl_draw(siPrefix(self->stats[statsCount-1].bps * 8, "bps").c_str(),
+          5 + (statsWidth-10)*2/3, statsHeight - 5);
 
   image = surface->image();
   delete surface;

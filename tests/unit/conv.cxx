@@ -26,9 +26,9 @@
 
 #include <rfb/PixelFormat.h>
 
-static const rdr::U8 pixelRed = 0xf1;
-static const rdr::U8 pixelGreen = 0xc3;
-static const rdr::U8 pixelBlue = 0x97;
+static const uint8_t pixelRed = 0xf1;
+static const uint8_t pixelGreen = 0xc3;
+static const uint8_t pixelBlue = 0x97;
 
 static const int fbWidth = 40;
 static const int fbHeight = 30;
@@ -48,7 +48,7 @@ struct TestEntry {
 namespace rfb {
 
 void makePixel(const rfb::PixelFormat &pf,
-               rdr::U8 *buffer)
+               uint8_t *buffer)
 {
   rfb::Pixel p;
 
@@ -63,7 +63,7 @@ void makePixel(const rfb::PixelFormat &pf,
 
 bool verifyPixel(const rfb::PixelFormat &dstpf,
                  const rfb::PixelFormat &srcpf,
-                 const rdr::U8 *buffer)
+                 const uint8_t *buffer)
 {
   rfb::Pixel p;
   int r, g, b;
@@ -108,7 +108,7 @@ static bool testPixel(const rfb::PixelFormat &dstpf,
                       const rfb::PixelFormat &srcpf)
 {
   rfb::Pixel p;
-  rdr::U8 buffer[4];
+  uint8_t buffer[4];
 
   makePixel(srcpf, buffer);
 
@@ -127,7 +127,7 @@ static bool testBuffer(const rfb::PixelFormat &dstpf,
                        const rfb::PixelFormat &srcpf)
 {
   int i, x, y, unaligned;
-  rdr::U8 bufIn[fbMalloc], bufOut[fbMalloc];
+  uint8_t bufIn[fbMalloc], bufOut[fbMalloc];
 
   // Once aligned, and once unaligned
   for (unaligned = 0;unaligned < 2;unaligned++) {
@@ -160,7 +160,7 @@ static bool testBuffer(const rfb::PixelFormat &dstpf,
                            bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8))
             return false;
         } else {
-          const rdr::U8 zero[4] = { 0, 0, 0, 0 };
+          const uint8_t zero[4] = { 0, 0, 0, 0 };
           if (memcmp(bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8, zero,
                      dstpf.bpp/8) != 0)
             return false;
@@ -176,7 +176,7 @@ static bool testRGB(const rfb::PixelFormat &dstpf,
                     const rfb::PixelFormat &srcpf)
 {
   int i, x, y, unaligned;
-  rdr::U8 bufIn[fbMalloc], bufRGB[fbMalloc], bufOut[fbMalloc];
+  uint8_t bufIn[fbMalloc], bufRGB[fbMalloc], bufOut[fbMalloc];
 
   // Once aligned, and once unaligned
   for (unaligned = 0;unaligned < 2;unaligned++) {
@@ -215,7 +215,7 @@ static bool testRGB(const rfb::PixelFormat &dstpf,
                            bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8))
             return false;
         } else {
-          const rdr::U8 zero[4] = { 0, 0, 0, 0 };
+          const uint8_t zero[4] = { 0, 0, 0, 0 };
           if (memcmp(bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8, zero,
                      dstpf.bpp/8) != 0)
             return false;
@@ -231,9 +231,9 @@ static bool testPixelRGB(const rfb::PixelFormat &dstpf,
                          const rfb::PixelFormat &srcpf)
 {
   rfb::Pixel p;
-  rdr::U16 r16, g16, b16;
-  rdr::U8 r8, g8, b8;
-  rdr::U8 buffer[4];
+  uint16_t r16, g16, b16;
+  uint8_t r8, g8, b8;
+  uint8_t buffer[4];
 
   makePixel(srcpf, buffer);
 

@@ -28,13 +28,14 @@
 #include <rfb_win32/Handle.h>
 #include <rdr/HexOutStream.h>
 #include <rdr/Exception.h>
+#include <rfb/util.h>
 #include <stdio.h>
 
 namespace rfb {
 namespace win32 {
 
 
-FileVersionInfo::FileVersionInfo(const TCHAR* filename) {
+FileVersionInfo::FileVersionInfo(const char* filename) {
   // Get executable name
   ModuleFileName exeName;
   if (!filename)
@@ -50,40 +51,39 @@ FileVersionInfo::FileVersionInfo(const TCHAR* filename) {
 
   // Get version info size
   DWORD handle;
-  int size = GetFileVersionInfoSize((TCHAR*)filename, &handle);
+  int size = GetFileVersionInfoSize((char*)filename, &handle);
   if (!size)
     throw rdr::SystemException("GetVersionInfoSize failed", GetLastError());
 
   // Get version info
-  buf = new TCHAR[size];
-  if (!GetFileVersionInfo((TCHAR*)filename, handle, size, buf))
+  buf = new char[size];
+  if (!GetFileVersionInfo((char*)filename, handle, size, buf))
     throw rdr::SystemException("GetVersionInfo failed", GetLastError());
 }
 
-const TCHAR* FileVersionInfo::getVerString(const TCHAR* name, DWORD langId) {
-  char langIdBuf[sizeof(langId)];
+FileVersionInfo::~FileVersionInfo() {
+  delete [] buf;
+}
+
+const char* FileVersionInfo::getVerString(const char* name, DWORD langId) {
+  uint8_t langIdBuf[sizeof(langId)];
   for (int i=sizeof(langIdBuf)-1; i>=0; i--) {
-    langIdBuf[i] = (char) (langId & 0xff);
+    langIdBuf[i] = (langId & 0xff);
     langId = langId >> 8;
   }
 
-  TCharArray langIdStr(rdr::HexOutStream::binToHexStr(langIdBuf, sizeof(langId)));
-  TCharArray infoName(_tcslen(_T("StringFileInfo")) + 4 + _tcslen(name) + _tcslen(langIdStr.buf));
-  _stprintf(infoName.buf, _T("\\StringFileInfo\\%s\\%s"), langIdStr.buf, name);
+  std::string langIdStr(binToHex(langIdBuf, sizeof(langId)));
+  std::string infoName;
+  infoName = format("\\StringFileInfo\\%s\\%s", langIdStr.c_str(), name);
 
   // Locate the required version string within the version info
-  TCHAR* buffer = 0;
+  char* buffer = 0;
   UINT length = 0;
-  if (!VerQueryValue(buf, infoName.buf, (void**)&buffer, &length)) {
-    printf("unable to find %s version string", infoName.buf);
+  if (!VerQueryValue(buf, infoName.c_str(), (void**)&buffer, &length)) {
+    printf("unable to find %s version string", infoName.c_str());
     throw rdr::Exception("VerQueryValue failed");
   }
   return buffer;
-}
-
-
-bool splitPath(const TCHAR* path, TCHAR** dir, TCHAR** file) {
-  return tstrSplit(path, '\\', dir, file, true);
 }
 
 

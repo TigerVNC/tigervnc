@@ -23,6 +23,8 @@
 
 #include <stdio.h>
 
+#include <vector>
+
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
 
@@ -30,11 +32,11 @@
 #include <rfb/qemuTypes.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/Exception.h>
-#include <rfb/util.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SMsgReader.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -140,11 +142,11 @@ bool SMsgReader::readSetEncodings()
     return false;
   is->clearRestorePoint();
 
-  rdr::S32Array encodings(nEncodings);
-  for (int i = 0; i < nEncodings; i++)
-    encodings.buf[i] = is->readU32();
+  std::vector<int32_t> encodings(nEncodings);
+  for (size_t i = 0; i < encodings.size(); i++)
+    encodings[i] = is->readU32();
 
-  handler->setEncodings(nEncodings, encodings.buf);
+  handler->setEncodings(nEncodings, encodings.data());
 
   return true;
 }
@@ -153,7 +155,7 @@ bool SMsgReader::readSetDesktopSize()
 {
   int width, height;
   int screens, i;
-  rdr::U32 id, flags;
+  uint32_t id, flags;
   int sx, sy, sw, sh;
   ScreenSet layout;
 
@@ -225,8 +227,8 @@ bool SMsgReader::readEnableContinuousUpdates()
 
 bool SMsgReader::readFence()
 {
-  rdr::U32 flags;
-  rdr::U8 len;
+  uint32_t flags;
+  uint8_t len;
   char data[64];
 
   if (!is->hasData(3 + 4 + 1))
@@ -263,7 +265,7 @@ bool SMsgReader::readKeyEvent()
     return false;
   bool down = is->readU8();
   is->skip(2);
-  rdr::U32 key = is->readU32();
+  uint32_t key = is->readU32();
   handler->keyEvent(key, 0, down);
   return true;
 }
@@ -288,10 +290,10 @@ bool SMsgReader::readClientCutText()
   is->setRestorePoint();
 
   is->skip(3);
-  rdr::U32 len = is->readU32();
+  uint32_t len = is->readU32();
 
   if (len & 0x80000000) {
-    rdr::S32 slen = len;
+    int32_t slen = len;
     slen = -slen;
     if (readExtendedClipboard(slen)) {
       is->clearRestorePoint();
@@ -312,18 +314,18 @@ bool SMsgReader::readClientCutText()
     return true;
   }
 
-  CharArray ca(len);
-  is->readBytes(ca.buf, len);
-  CharArray filtered(convertLF(ca.buf, len));
-  handler->clientCutText(filtered.buf);
+  std::vector<char> ca(len);
+  is->readBytes(ca.data(), len);
+  std::string filtered(convertLF(ca.data(), len));
+  handler->clientCutText(filtered.c_str());
 
   return true;
 }
 
-bool SMsgReader::readExtendedClipboard(rdr::S32 len)
+bool SMsgReader::readExtendedClipboard(int32_t len)
 {
-  rdr::U32 flags;
-  rdr::U32 action;
+  uint32_t flags;
+  uint32_t action;
 
   if (!is->hasData(len))
     return false;
@@ -342,7 +344,7 @@ bool SMsgReader::readExtendedClipboard(rdr::S32 len)
   if (action & clipboardCaps) {
     int i;
     size_t num;
-    rdr::U32 lengths[16];
+    uint32_t lengths[16];
 
     num = 0;
     for (i = 0;i < 16;i++) {
@@ -350,7 +352,7 @@ bool SMsgReader::readExtendedClipboard(rdr::S32 len)
         num++;
     }
 
-    if (len < (rdr::S32)(4 + 4*num))
+    if (len < (int32_t)(4 + 4*num))
       throw Exception("Invalid extended clipboard message");
 
     num = 0;
@@ -366,7 +368,7 @@ bool SMsgReader::readExtendedClipboard(rdr::S32 len)
     int i;
     size_t num;
     size_t lengths[16];
-    rdr::U8* buffers[16];
+    uint8_t* buffers[16];
 
     zis.setUnderlying(is, len - 4);
 
@@ -407,7 +409,7 @@ bool SMsgReader::readExtendedClipboard(rdr::S32 len)
       if (!zis.hasData(lengths[num]))
         throw Exception("Extended clipboard decode error");
 
-      buffers[num] = new rdr::U8[lengths[num]];
+      buffers[num] = new uint8_t[lengths[num]];
       zis.readBytes(buffers[num], lengths[num]);
       num++;
     }
@@ -476,8 +478,8 @@ bool SMsgReader::readQEMUKeyEvent()
   if (!is->hasData(2 + 4 + 4))
     return false;
   bool down = is->readU16();
-  rdr::U32 keysym = is->readU32();
-  rdr::U32 keycode = is->readU32();
+  uint32_t keysym = is->readU32();
+  uint32_t keycode = is->readU32();
   if (!keycode) {
     vlog.error("Key event without keycode - ignoring");
     return true;

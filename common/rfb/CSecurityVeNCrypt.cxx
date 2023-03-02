@@ -86,7 +86,8 @@ bool CSecurityVeNCrypt::processMsg()
   }
 
   /* major version in upper 8 bits and minor version in lower 8 bits */
-  U16 Version = (((U16) majorVersion) << 8) | ((U16) minorVersion);
+  uint16_t Version = (((uint16_t) majorVersion) << 8) |
+                      ((uint16_t) minorVersion);
   
   if (!haveSentVersion) {
     /* Currently we don't support former VeNCrypt 0.1 */
@@ -131,7 +132,7 @@ bool CSecurityVeNCrypt::processMsg()
     if (!nAvailableTypes)
       throw AuthFailureException("The server reported no VeNCrypt sub-types");
 
-    availableTypes = new rdr::U32[nAvailableTypes];
+    availableTypes = new uint32_t[nAvailableTypes];
     haveNumberOfTypes = true;
   }
 
@@ -154,9 +155,9 @@ bool CSecurityVeNCrypt::processMsg()
     /* make a choice and send it to the server, meanwhile set up the stack */
     if (!haveChosenType) {
       chosenType = secTypeInvalid;
-      U8 i;
-      list<U32>::iterator j;
-      list<U32> secTypes;
+      uint8_t i;
+      list<uint32_t>::iterator j;
+      list<uint32_t> secTypes;
 
       secTypes = security->GetEnabledExtSecTypes();
 

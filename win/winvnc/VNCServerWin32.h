@@ -25,7 +25,6 @@
 #include <rfb_win32/RegConfig.h>
 #include <rfb_win32/SDisplay.h>
 #include <rfb_win32/SocketManager.h>
-#include <rfb_win32/TCharArray.h>
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/ManagedListener.h>
 
@@ -72,7 +71,7 @@ namespace winvnc {
     void queryConnectionComplete();
 
     // Where to read the configuration settings from
-    static const TCHAR* RegConfigPath;
+    static const char* RegConfigPath;
 
     bool getClientsInfo(ListConnInfo* LCInfo);
 

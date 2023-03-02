@@ -24,6 +24,7 @@
 
 #include <winvnc/VNCServerService.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 #include <rfb_win32/TsSessions.h>
 #include <rfb_win32/ModuleFileName.h>
 #include <windows.h>
@@ -34,7 +35,7 @@ using namespace winvnc;
 using namespace rfb;
 using namespace win32;
 
-const TCHAR* winvnc::VNCServerService::Name = _T("TigerVNC");
+const char* winvnc::VNCServerService::Name = "TigerVNC";
 
 // SendSAS is not available until Windows 7, and missing from MinGW
 static HMODULE sasLibrary = NULL;
@@ -108,14 +109,16 @@ HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
     if (GetSessionUserTokenWin(&hToken))
     {
         ModuleFileName filename;
-        TCharArray cmdLine;
-        cmdLine.format("\"%s\" -noconsole -service_run", filename.buf);
+        std::string cmdLine;
+        cmdLine = format("\"%s\" -noconsole -service_run", filename.buf);
         STARTUPINFO si;
         ZeroMemory(&si, sizeof si);
         si.cb = sizeof si;
         si.dwFlags = STARTF_USESHOWWINDOW;
         PROCESS_INFORMATION	pi;
-        if (CreateProcessAsUser(hToken, NULL, cmdLine.buf, NULL, NULL, FALSE, DETACHED_PROCESS, NULL, NULL, &si, &pi))
+        if (CreateProcessAsUser(hToken, NULL, (char*)cmdLine.c_str(),
+                                NULL, NULL, FALSE, DETACHED_PROCESS,
+                                NULL, NULL, &si, &pi))
         {
             CloseHandle(pi.hThread);
             hProcess = pi.hProcess;
@@ -125,7 +128,7 @@ HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
     return hProcess;
 }
 
-DWORD VNCServerService::serviceMain(int /*argc*/, TCHAR* /*argv*/ [])
+DWORD VNCServerService::serviceMain(int /*argc*/, char* /*argv*/ [])
 {
     ConsoleSessionId OlddwSessionId;
 

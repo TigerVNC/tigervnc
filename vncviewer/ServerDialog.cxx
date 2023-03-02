@@ -61,8 +61,6 @@ ServerDialog::ServerDialog()
   Fl_Button *button;
   Fl_Box *divider;
 
-  usedDir = NULL;
-
   x = OUTER_MARGIN;
   y = OUTER_MARGIN;
 
@@ -119,8 +117,6 @@ ServerDialog::ServerDialog()
 
 ServerDialog::~ServerDialog()
 {
-  if (usedDir) 
-    free(usedDir);
 }
 
 
@@ -167,10 +163,11 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
 {
   ServerDialog *dialog = (ServerDialog*)data;
 
-  if (!dialog->usedDir)
-    getuserhomedir(&(dialog->usedDir));
+  if (dialog->usedDir.empty())
+    dialog->usedDir = os::getuserhomedir();
 
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
+                                                      _("TigerVNC configuration (*.tigervnc)"),
                                                       0, _("Select a TigerVNC configuration file"));
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
@@ -206,10 +203,11 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
   const char* filename;
-  if (!dialog->usedDir)
-    getuserhomedir(&dialog->usedDir);
+  if (dialog->usedDir.empty())
+    dialog->usedDir = os::getuserhomedir();
   
-  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir, _("TigerVNC configuration (*.tigervnc)"), 
+  Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
+                                                      _("TigerVNC configuration (*.tigervnc)"),
                                                       2, _("Save the TigerVNC configuration to file"));
   
   file_chooser->preview(0);
@@ -315,13 +313,12 @@ void ServerDialog::loadServerHistory()
   return;
 #endif
 
-  char* homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1)
+  const char* homeDir = os::getvnchomedir();
+  if (homeDir == NULL)
     throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
-  delete[] homeDir;
+  snprintf(filepath, sizeof(filepath), "%s/%s", homeDir, SERVER_HISTORY);
 
   /* Read server history from file */
   FILE* f = fopen(filepath, "r");
@@ -382,13 +379,12 @@ void ServerDialog::saveServerHistory()
   return;
 #endif
 
-  char* homeDir = NULL;
-  if (getvnchomedir(&homeDir) == -1)
+  const char* homeDir = os::getvnchomedir();
+  if (homeDir == NULL)
     throw Exception(_("Could not obtain the home directory path"));
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%s%s", homeDir, SERVER_HISTORY);
-  delete[] homeDir;
+  snprintf(filepath, sizeof(filepath), "%s/%s", homeDir, SERVER_HISTORY);
 
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");
@@ -406,6 +402,6 @@ void ServerDialog::saveServerHistory()
 void ServerDialog::updateUsedDir(const char* filename)
 {
   char * name = strdup(filename);
-  usedDir = strdup(dirname(name));
+  usedDir = dirname(name);
   free(name);
 }

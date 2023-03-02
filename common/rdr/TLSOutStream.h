@@ -36,7 +36,7 @@ namespace rdr {
 
   private:
     virtual bool flushBuffer();
-    size_t writeTLS(const U8* data, size_t length);
+    size_t writeTLS(const uint8_t* data, size_t length);
     static ssize_t push(gnutls_transport_ptr_t str, const void* data, size_t size);
 
     gnutls_session_t session;

@@ -20,6 +20,8 @@
 #include <config.h>
 #endif
 
+#include <windows.h>
+
 #include <rfb_win32/EventManager.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>

@@ -28,7 +28,6 @@
 #include <rfb/LogWriter.h>
 #include <rdr/Exception.h>
 #include <malloc.h>
-#include <tchar.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -80,7 +79,7 @@ MsgWindowClass::MsgWindowClass() : classAtom(0) {
   wndClass.hCursor = 0;
   wndClass.hbrBackground = 0;
   wndClass.lpszMenuName = 0;
-  wndClass.lpszClassName = _T("rfb::win32::MsgWindowClass");
+  wndClass.lpszClassName = "rfb::win32::MsgWindowClass";
   classAtom = RegisterClass(&wndClass);
   if (!classAtom) {
     throw rdr::SystemException("unable to register MsgWindow window class", GetLastError());
@@ -89,7 +88,7 @@ MsgWindowClass::MsgWindowClass() : classAtom(0) {
 
 MsgWindowClass::~MsgWindowClass() {
   if (classAtom) {
-    UnregisterClass((const TCHAR*)(intptr_t)classAtom, instance);
+    UnregisterClass((const char*)(intptr_t)classAtom, instance);
   }
 }
 
@@ -99,21 +98,21 @@ static MsgWindowClass baseClass;
 // -=- MsgWindow
 //
 
-MsgWindow::MsgWindow(const TCHAR* name_) : name(tstrDup(name_)), handle(0) {
-  vlog.debug("creating window \"%s\"", (const char*)CStr(name.buf));
-  handle = CreateWindow((const TCHAR*)(intptr_t)baseClass.classAtom,
-                        name.buf, WS_OVERLAPPED, 0, 0, 10, 10, 0, 0,
+MsgWindow::MsgWindow(const char* name_) : name(name_), handle(0) {
+  vlog.debug("creating window \"%s\"", name.c_str());
+  handle = CreateWindow((const char*)(intptr_t)baseClass.classAtom,
+                        name.c_str(), WS_OVERLAPPED, 0, 0, 10, 10, 0, 0,
                         baseClass.instance, this);
   if (!handle) {
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }
-  vlog.debug("created window \"%s\" (%p)", (const char*)CStr(name.buf), handle);
+  vlog.debug("created window \"%s\" (%p)", name.c_str(), handle);
 }
 
 MsgWindow::~MsgWindow() {
   if (handle)
     DestroyWindow(handle);
-  vlog.debug("destroyed window \"%s\" (%p)", (const char*)CStr(name.buf), handle);
+  vlog.debug("destroyed window \"%s\" (%p)", name.c_str(), handle);
 }
 
 LRESULT

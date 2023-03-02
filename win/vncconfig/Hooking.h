@@ -56,14 +56,14 @@ namespace rfb {
       }
       bool onOk() {
         if (isItemChecked(IDC_USEPOLLING))
-          regKey.setInt(_T("UpdateMethod"), 0);
+          regKey.setInt("UpdateMethod", 0);
         if (isItemChecked(IDC_USEHOOKS))
-          regKey.setInt(_T("UpdateMethod"), 1);
-        regKey.setBool(_T("PollConsoleWindows"), isItemChecked(IDC_POLLCONSOLES));
-        regKey.setBool(_T("UseCaptureBlt"), isItemChecked(IDC_CAPTUREBLT));
+          regKey.setInt("UpdateMethod", 1);
+        regKey.setBool("PollConsoleWindows", isItemChecked(IDC_POLLCONSOLES));
+        regKey.setBool("UseCaptureBlt", isItemChecked(IDC_CAPTUREBLT));
 
         // *** LEGACY compatibility ***
-        regKey.setBool(_T("UseHooks"), isItemChecked(IDC_USEHOOKS));
+        regKey.setBool("UseHooks", isItemChecked(IDC_USEHOOKS));
         return true;
       }
     protected:

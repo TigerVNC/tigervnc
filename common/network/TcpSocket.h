@@ -39,6 +39,7 @@
 #endif
 
 #include <list>
+#include <string>
 
 /* Tunnelling support. */
 #define TUNNEL_PORT_OFFSET 5500
@@ -55,8 +56,8 @@ namespace network {
     TcpSocket(int sock);
     TcpSocket(const char *name, int port);
 
-    virtual char* getPeerAddress();
-    virtual char* getPeerEndpoint();
+    virtual const char* getPeerAddress();
+    virtual const char* getPeerEndpoint();
 
   protected:
     bool enableNagles(bool enable);
@@ -69,7 +70,7 @@ namespace network {
 
     virtual int getMyPort();
 
-    static void getMyAddresses(std::list<char*>* result);
+    static std::list<std::string> getMyAddresses();
 
   protected:
     virtual Socket* createSocket(int fd);
@@ -107,7 +108,7 @@ namespace network {
       vnc_sockaddr_t mask; // computed from address and prefix
     };
     static Pattern parsePattern(const char* s);
-    static char* patternToStr(const Pattern& p);
+    static std::string patternToStr(const Pattern& p);
   protected:
     std::list<Pattern> filter;
   };

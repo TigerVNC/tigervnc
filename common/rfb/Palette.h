@@ -22,8 +22,7 @@
 
 #include <assert.h>
 #include <string.h>
-
-#include <rdr/types.h>
+#include <stdint.h>
 
 namespace rfb {
   class Palette {
@@ -35,13 +34,13 @@ namespace rfb {
 
     void clear() { numColours = 0; memset(hash, 0, sizeof(hash)); }
 
-    inline bool insert(rdr::U32 colour, int numPixels);
-    inline unsigned char lookup(rdr::U32 colour) const;
-    inline rdr::U32 getColour(unsigned char index) const;
+    inline bool insert(uint32_t colour, int numPixels);
+    inline unsigned char lookup(uint32_t colour) const;
+    inline uint32_t getColour(unsigned char index) const;
     inline int getCount(unsigned char index) const;
 
   protected:
-    inline unsigned char genHash(rdr::U32 colour) const;
+    inline unsigned char genHash(uint32_t colour) const;
 
   protected:
     int numColours;
@@ -49,7 +48,7 @@ namespace rfb {
     struct PaletteListNode {
       PaletteListNode *next;
       unsigned char idx;
-      rdr::U32 colour;
+      uint32_t colour;
     };
 
     struct PaletteEntry {
@@ -67,7 +66,7 @@ namespace rfb {
   };
 }
 
-inline bool rfb::Palette::insert(rdr::U32 colour, int numPixels)
+inline bool rfb::Palette::insert(uint32_t colour, int numPixels)
 {
   PaletteListNode* pnode;
   PaletteListNode* prev_pnode;
@@ -145,7 +144,7 @@ inline bool rfb::Palette::insert(rdr::U32 colour, int numPixels)
   return true;
 }
 
-inline unsigned char rfb::Palette::lookup(rdr::U32 colour) const
+inline unsigned char rfb::Palette::lookup(uint32_t colour) const
 {
   unsigned char hash_key;
   PaletteListNode* pnode;
@@ -165,7 +164,7 @@ inline unsigned char rfb::Palette::lookup(rdr::U32 colour) const
   return 0;
 }
 
-inline rdr::U32 rfb::Palette::getColour(unsigned char index) const
+inline uint32_t rfb::Palette::getColour(unsigned char index) const
 {
   return entry[index].listNode->colour;
 }
@@ -175,7 +174,7 @@ inline int rfb::Palette::getCount(unsigned char index) const
   return entry[index].numPixels;
 }
 
-inline unsigned char rfb::Palette::genHash(rdr::U32 colour) const
+inline unsigned char rfb::Palette::genHash(uint32_t colour) const
 {
   unsigned char hash_key;
 

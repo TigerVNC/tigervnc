@@ -43,9 +43,9 @@ namespace rfb {
         return true;
       }
       bool onOk() {
-        regKey.setBool(_T("DisconnectClients"), isItemChecked(IDC_DISCONNECT_CLIENTS));
-        regKey.setBool(_T("AlwaysShared"), isItemChecked(IDC_SHARE_ALWAYS));
-        regKey.setBool(_T("NeverShared"), isItemChecked(IDC_SHARE_NEVER));
+        regKey.setBool("DisconnectClients", isItemChecked(IDC_DISCONNECT_CLIENTS));
+        regKey.setBool("AlwaysShared", isItemChecked(IDC_SHARE_ALWAYS));
+        regKey.setBool("NeverShared", isItemChecked(IDC_SHARE_NEVER));
        return true;
       }
     protected:

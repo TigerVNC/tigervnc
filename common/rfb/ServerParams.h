@@ -23,6 +23,8 @@
 #ifndef __RFB_SERVERPARAMS_H__
 #define __RFB_SERVERPARAMS_H__
 
+#include <string>
+
 #include <rfb/Cursor.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ScreenSet.h>
@@ -60,7 +62,7 @@ namespace rfb {
     const PixelFormat& pf() const { return pf_; }
     void setPF(const PixelFormat& pf);
 
-    const char* name() const { return name_; }
+    const char* name() const { return name_.c_str(); }
     void setName(const char* name);
 
     const Cursor& cursor() const { return *cursor_; }
@@ -69,9 +71,9 @@ namespace rfb {
     unsigned int ledState() { return ledState_; }
     void setLEDState(unsigned int state);
 
-    rdr::U32 clipboardFlags() const { return clipFlags; }
-    rdr::U32 clipboardSize(unsigned int format) const;
-    void setClipboardCaps(rdr::U32 flags, const rdr::U32* lengths);
+    uint32_t clipboardFlags() const { return clipFlags; }
+    uint32_t clipboardSize(unsigned int format) const;
+    void setClipboardCaps(uint32_t flags, const uint32_t* lengths);
 
     bool supportsQEMUKeyEvent;
     bool supportsSetDesktopSize;
@@ -85,11 +87,11 @@ namespace rfb {
     ScreenSet screenLayout_;
 
     PixelFormat pf_;
-    char* name_;
+    std::string name_;
     Cursor* cursor_;
     unsigned int ledState_;
-    rdr::U32 clipFlags;
-    rdr::U32 clipSizes[16];
+    uint32_t clipFlags;
+    uint32_t clipSizes[16];
   };
 }
 #endif

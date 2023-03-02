@@ -35,13 +35,13 @@ using namespace win32;
 static LogWriter vlog("CurrentUser");
 
 
-const TCHAR* shellIconClass = _T("Shell_TrayWnd");
+const char* shellIconClass = "Shell_TrayWnd";
 
 BOOL CALLBACK enumWindows(HWND hwnd, LPARAM lParam) {
-  TCHAR className[16];
+  char className[16];
   if (GetClassName(hwnd, className, sizeof(className)) &&
-      (_tcscmp(className, shellIconClass) == 0)) {
-    vlog.debug("located tray icon window (%s)", (const char*)CStr(className));
+      (strcmp(className, shellIconClass) == 0)) {
+    vlog.debug("located tray icon window (%s)", className);
     DWORD processId = 0;
     GetWindowThreadProcessId(hwnd, &processId);
     if (!processId)
@@ -61,7 +61,7 @@ BOOL CALLBACK enumDesktops(LPTSTR lpszDesktop, LPARAM lParam) {
   HDESK desktop = OpenDesktop(lpszDesktop, 0, FALSE, DESKTOP_ENUMERATE);
   vlog.debug("opening \"%s\"", lpszDesktop);
   if (!desktop) {
-    vlog.info("desktop \"%s\" inaccessible", (const char*)CStr(lpszDesktop));
+    vlog.info("desktop \"%s\" inaccessible", lpszDesktop);
     return TRUE;
   }
   BOOL result = EnumDesktopWindows(desktop, enumWindows, lParam);
@@ -110,10 +110,12 @@ ImpersonateCurrentUser::~ImpersonateCurrentUser() {
 }
 
 
-UserName::UserName() : TCharArray(UNLEN+1) {
+UserName::UserName() {
+  char buf[UNLEN+1];
   DWORD len = UNLEN+1;
   if (!GetUserName(buf, &len))
     throw rdr::SystemException("GetUserName failed", GetLastError());
+  assign(buf);
 }
 
 

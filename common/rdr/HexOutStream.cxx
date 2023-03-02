@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2019-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@
 #endif
 
 #include <rdr/HexOutStream.h>
-#include <rdr/Exception.h>
+#include <rfb/util.h>
 
 using namespace rdr;
 
@@ -36,39 +37,14 @@ HexOutStream::~HexOutStream()
 {
 }
 
-char HexOutStream::intToHex(int i) {
-  if ((i>=0) && (i<=9))
-    return '0'+i;
-  else if ((i>=10) && (i<=15))
-    return 'a'+(i-10);
-  else
-    throw rdr::Exception("intToHex failed");
-}
-
-char* HexOutStream::binToHexStr(const char* data, size_t length) {
-  char* buffer = new char[length*2+1];
-  for (size_t i=0; i<length; i++) {
-    buffer[i*2] = intToHex((data[i] >> 4) & 15);
-    buffer[i*2+1] = intToHex((data[i] & 15));
-    if (!buffer[i*2] || !buffer[i*2+1]) {
-      delete [] buffer;
-      return 0;
-    }
-  }
-  buffer[length*2] = 0;
-  return buffer;
-}
-
 bool HexOutStream::flushBuffer()
 {
   while (sentUpTo != ptr) {
-    U8* optr = out_stream.getptr(2);
+    uint8_t* optr = out_stream.getptr(2);
     size_t length = min(ptr-sentUpTo, out_stream.avail()/2);
 
-    for (size_t i=0; i<length; i++) {
-      optr[i*2] = intToHex((sentUpTo[i] >> 4) & 0xf);
-      optr[i*2+1] = intToHex(sentUpTo[i] & 0xf);
-    }
+    for (size_t i=0; i<length; i++)
+      rfb::binToHex(&sentUpTo[i], 1, (char*)&optr[i*2], 2);
 
     out_stream.setptr(length*2);
     sentUpTo += length;

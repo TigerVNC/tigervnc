@@ -24,7 +24,6 @@
 
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -36,7 +35,7 @@ const int POLLING_SEGMENTS = 16;
 const unsigned int SDisplayCorePolling::pollTimerId = 1;
 
 SDisplayCorePolling::SDisplayCorePolling(SDisplay* d, UpdateTracker* ut, int pollInterval_)
-  : MsgWindow(_T("rfb::win32::SDisplayCorePolling")), 
+  : MsgWindow("rfb::win32::SDisplayCorePolling"),
   pollTimer(getHandle(), pollTimerId), pollNextStrip(false), display(d), updateTracker(ut) {
   pollInterval = __rfbmax(10, (pollInterval_ / POLLING_SEGMENTS));
   copyrect.setUpdateTracker(ut);

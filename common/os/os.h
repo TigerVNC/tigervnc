@@ -1,4 +1,5 @@
 /* Copyright (C) 2010 TightVNC Team.  All Rights Reserved.
+ * Copyright 2021-2023 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,32 +20,26 @@
 #ifndef OS_OS_H
 #define OS_OS_H
 
-/*
- * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
- * If HOME environment variable is set then it is used.
- * Otherwise home directory is obtained via getpwuid function.
- *
- * Note for Windows:
- * This functions returns array of TCHARs, not array of chars.
- *
- * Returns:
- * 0 - Success
- * -1 - Failure
- */
-int getvnchomedir(char **dirp);
+namespace os {
 
-/*
- * Get user home directory.
- * If HOME environment variable is set then it is used.
- * Otherwise home directory is obtained via getpwuid function.
- *
- * Note for Windows:
- * This functions returns array of TCHARs, not array of chars.
- *
- * Returns:
- * 0 - Success
- * -1 - Failure
- */
-int getuserhomedir(char **dirp);
+  /*
+   * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
+   * If HOME environment variable is set then it is used.
+   * Otherwise home directory is obtained via getpwuid function.
+   *
+   * Returns NULL on failure.
+   */
+  const char* getvnchomedir();
+
+  /*
+   * Get user home directory.
+   * If HOME environment variable is set then it is used.
+   * Otherwise home directory is obtained via getpwuid function.
+   *
+   * Returns NULL on failure.
+   */
+  const char* getuserhomedir();
+
+}
 
 #endif /* OS_OS_H */

@@ -26,9 +26,11 @@
 
 #include <rfb/Rect.h>
 #include <rfb/Configuration.h>
-#include <rdr/types.h>
+
 #include <map>
 #include <vector>
+
+#include <stdint.h>
 
 namespace rfb {
 
@@ -45,7 +47,7 @@ namespace rfb {
       void pointerEvent(const Point& pos, int buttonmask);
     protected:
       Point last_position;
-      rdr::U8 last_buttonmask;
+      uint8_t last_buttonmask;
     };
 
     // -=- Keyboard event handling
@@ -53,13 +55,13 @@ namespace rfb {
     class SKeyboard {
     public:
       SKeyboard();
-      void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
+      void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
       static BoolParameter deadKeyAware;
       static BoolParameter rawKeyboard;
     private:
-      std::map<rdr::U32,rdr::U8> vkMap;
-      std::map<rdr::U32,bool> extendedMap;
-      std::vector<rdr::U8> deadChars;
+      std::map<uint32_t,uint8_t> vkMap;
+      std::map<uint32_t,bool> extendedMap;
+      std::vector<uint8_t> deadChars;
     };
 
   }; // win32

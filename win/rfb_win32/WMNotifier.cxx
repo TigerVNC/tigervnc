@@ -34,7 +34,7 @@ using namespace rfb::win32;
 static LogWriter vlog("WMMonitor");
 
 
-WMMonitor::WMMonitor() : MsgWindow(_T("WMMonitor")), notifier(0) {
+WMMonitor::WMMonitor() : MsgWindow("WMMonitor"), notifier(0) {
 }
 
 WMMonitor::~WMMonitor() {

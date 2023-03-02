@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,38 +38,30 @@ namespace rfb {
     virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
     virtual void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
-                                const rdr::U8* colour);
+                                const uint8_t* colour);
 
   protected:
     void writeMonoRect(const PixelBuffer* pb, const Palette& palette);
     void writeIndexedRect(const PixelBuffer* pb, const Palette& palette);
     void writeFullColourRect(const PixelBuffer* pb);
 
-    void writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+    void writePixels(const uint8_t* buffer, const PixelFormat& pf,
                      unsigned int count, rdr::OutStream* os);
 
-    void writeCompact(rdr::OutStream* os, rdr::U32 value);
+    void writeCompact(rdr::OutStream* os, uint32_t value);
 
     rdr::OutStream* getZlibOutStream(int streamId, int level, size_t length);
     void flushZlibOutStream(rdr::OutStream* os);
 
   protected:
-    // Preprocessor generated, optimised methods
+    // Templated, optimised methods
+    template<class T>
     void writeMonoRect(int width, int height,
-                       const rdr::U8* buffer, int stride,
+                       const T* buffer, int stride,
                        const PixelFormat& pf, const Palette& palette);
-    void writeMonoRect(int width, int height,
-                       const rdr::U16* buffer, int stride,
-                       const PixelFormat& pf, const Palette& palette);
-    void writeMonoRect(int width, int height,
-                       const rdr::U32* buffer, int stride,
-                       const PixelFormat& pf, const Palette& palette);
-
+    template<class T>
     void writeIndexedRect(int width, int height,
-                          const rdr::U16* buffer, int stride,
-                          const PixelFormat& pf, const Palette& palette);
-    void writeIndexedRect(int width, int height,
-                          const rdr::U32* buffer, int stride,
+                          const T* buffer, int stride,
                           const PixelFormat& pf, const Palette& palette);
 
     rdr::ZlibOutStream zlibStreams[4];

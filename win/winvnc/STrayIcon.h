@@ -20,7 +20,6 @@
 #define WINVNC_TRAYICON_H
 
 #include <winvnc/VNCServerWin32.h>
-#include <rfb_win32/TCharArray.h>
 #include <rfb/Configuration.h>
 
 namespace os {
@@ -36,7 +35,7 @@ namespace winvnc {
       UINT activeIcon, UINT dis_inactiveIcon, UINT dis_activeIcon, UINT menu);
     virtual ~STrayIconThread();
 
-    void setToolTip(const TCHAR* text);
+    void setToolTip(const char* text);
 
     static rfb::BoolParameter disableOptions;
     static rfb::BoolParameter disableClose;
@@ -48,7 +47,7 @@ namespace winvnc {
     os::Mutex* lock;
     DWORD thread_id;
     HWND windowHandle;
-    rfb::TCharArray toolTip;
+    std::string toolTip;
     VNCServerWin32& server;
     UINT inactiveIcon;
     UINT activeIcon;

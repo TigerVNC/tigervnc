@@ -23,7 +23,6 @@
 #include <rfb_win32/TsSessions.h>
 #include <rfb/LogWriter.h>
 #include <rdr/Exception.h>
-#include <tchar.h>
 #include <wtsapi32.h>
 
 static rfb::LogWriter vlog("TsSessions");
@@ -57,7 +56,7 @@ namespace win32 {
     // Try to reconnect our session to the console
     ConsoleSessionId console;
     vlog.info("Console session is %lu", console.id);
-    if (!WTSConnectSession(sessionId, console.id, (PTSTR)_T(""), 0))
+    if (!WTSConnectSession(sessionId, console.id, (PTSTR)"", 0))
       throw rdr::SystemException("Unable to connect session to Console", GetLastError());
 
     // Lock the newly connected session, for security

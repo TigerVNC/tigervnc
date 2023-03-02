@@ -62,12 +62,12 @@ namespace rfb {
         return false;
       }
       bool onOk() {
-        regKey.setBool(_T("AcceptKeyEvents"), isItemChecked(IDC_ACCEPT_KEYS));
-        regKey.setBool(_T("RawKeyboard"), isItemChecked(IDC_RAW_KEYBOARD));
-        regKey.setBool(_T("AcceptPointerEvents"), isItemChecked(IDC_ACCEPT_PTR));
-        regKey.setBool(_T("AcceptCutText"), isItemChecked(IDC_ACCEPT_CUTTEXT));
-        regKey.setBool(_T("SendCutText"), isItemChecked(IDC_SEND_CUTTEXT));
-        regKey.setBool(_T("DisableLocalInputs"), isItemChecked(IDC_DISABLE_LOCAL_INPUTS));
+        regKey.setBool("AcceptKeyEvents", isItemChecked(IDC_ACCEPT_KEYS));
+        regKey.setBool("RawKeyboard", isItemChecked(IDC_RAW_KEYBOARD));
+        regKey.setBool("AcceptPointerEvents", isItemChecked(IDC_ACCEPT_PTR));
+        regKey.setBool("AcceptCutText", isItemChecked(IDC_ACCEPT_CUTTEXT));
+        regKey.setBool("SendCutText", isItemChecked(IDC_SEND_CUTTEXT));
+        regKey.setBool("DisableLocalInputs", isItemChecked(IDC_DISABLE_LOCAL_INPUTS));
         if (enableAffectSSaver) {
           BOOL blocked = !isItemChecked(IDC_AFFECT_SCREENSAVER);
           SystemParametersInfo(SPI_SETBLOCKSENDINPUTRESETS, blocked, 0, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);

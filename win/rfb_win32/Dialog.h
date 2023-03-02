@@ -25,10 +25,11 @@
 #ifndef __RFB_WIN32_DIALOG_H__
 #define __RFB_WIN32_DIALOG_H__
 
+#include <string>
+
 #include <windows.h>
 #include <prsht.h>
 #include <list>
-#include <rfb_win32/TCharArray.h>
 
 namespace rfb {
 
@@ -51,7 +52,7 @@ namespace rfb {
       // expansion), and owner is an optional window handle - the corresponding
       // window is disabled while the dialog box is displayed.
 
-      bool showDialog(const TCHAR* resource, HWND owner=0);
+      bool showDialog(const char* resource, HWND owner=0);
 
       // initDialog() is called upon receipt of the WM_INITDIALOG message.
 
@@ -76,12 +77,12 @@ namespace rfb {
       // Read the states of items
       bool isItemChecked(int id);
       int getItemInt(int id);
-      TCHAR* getItemString(int id); // Recipient owns string storage
+      const char *getItemString(int id);
       
       // Set the states of items
       void setItemChecked(int id, bool state);
       void setItemInt(int id, int value);
-      void setItemString(int id, const TCHAR* s);
+      void setItemString(int id, const char* s);
 
       // enableItem is used to grey out an item, making it inaccessible, or to
       // re-enable it.
@@ -105,7 +106,7 @@ namespace rfb {
 
     class PropSheet {
     public:
-      PropSheet(HINSTANCE inst, const TCHAR* title, std::list<PropSheetPage*> pages, HICON icon=0);
+      PropSheet(HINSTANCE inst, const char* title, std::list<PropSheetPage*> pages, HICON icon=0);
       virtual ~PropSheet();
 
       // Display the PropertySheet
@@ -130,14 +131,14 @@ namespace rfb {
       HICON icon;
       std::list<PropSheetPage*> pages;
       HINSTANCE inst;
-      TCharArray title;
+      std::string title;
       HWND handle;
       bool alreadyShowing;
     };
 
     class PropSheetPage : public Dialog {
     public:
-      PropSheetPage(HINSTANCE inst, const TCHAR* id);
+      PropSheetPage(HINSTANCE inst, const char* id);
       virtual ~PropSheetPage();
 
       void setChanged(bool changed);

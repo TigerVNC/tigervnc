@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
-#include <rdr/types.h>
 #include <rfb/Rect.h>
 #include <list>
 #include <set>
@@ -38,22 +38,22 @@ namespace rfb {
 
   struct Screen {
     Screen(void) : id(0), flags(0) {};
-    Screen(rdr::U32 id_, int x_, int y_, int w_, int h_, rdr::U32 flags_) :
+    Screen(uint32_t id_, int x_, int y_, int w_, int h_, uint32_t flags_) :
       id(id_), dimensions(x_, y_, x_+w_, y_+h_), flags(flags_) {};
 
     inline bool operator==(const Screen& r) const {
       if (id != r.id)
         return false;
-      if (!dimensions.equals(r.dimensions))
+      if (dimensions != r.dimensions)
         return false;
       if (flags != r.flags)
         return false;
       return true;
     }
 
-    rdr::U32 id;
+    uint32_t id;
     Rect dimensions;
-    rdr::U32 flags;
+    uint32_t flags;
   };
 
   // rfb::ScreenSet
@@ -75,7 +75,7 @@ namespace rfb {
     inline int num_screens(void) const { return screens.size(); };
 
     inline void add_screen(const Screen screen) { screens.push_back(screen); };
-    inline void remove_screen(rdr::U32 id) {
+    inline void remove_screen(uint32_t id) {
       std::list<Screen>::iterator iter, nextiter;
       for (iter = screens.begin();iter != screens.end();iter = nextiter) {
         nextiter = iter; nextiter++;
@@ -86,7 +86,7 @@ namespace rfb {
 
     inline bool validate(int fb_width, int fb_height) const {
       std::list<Screen>::const_iterator iter;
-      std::set<rdr::U32> seen_ids;
+      std::set<uint32_t> seen_ids;
       Rect fb_rect;
 
       if (screens.empty())

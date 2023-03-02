@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,12 +16,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_PIXEL_H__
-#define __RFB_PIXEL_H__
 
-#include <rdr/types.h>
+#ifndef __RFB_OBFUSCATE_H__
+#define __RFB_OBFUSCATE_H__
+
+#include <stdint.h>
+
+#include <string>
+#include <vector>
 
 namespace rfb {
-  typedef rdr::U32 Pixel; // must be big enough to hold any pixel value
+
+  std::vector<uint8_t> obfuscate(const char *str);
+  std::string deobfuscate(const uint8_t *data, size_t len);
+
 }
+
 #endif

@@ -94,7 +94,7 @@ bool ZlibInStream::fillBuffer()
   if (!underlying)
     throw Exception("ZlibInStream overrun: no underlying stream");
 
-  zs->next_out = (U8*)end;
+  zs->next_out = (uint8_t*)end;
   zs->avail_out = availSpace();
 
   if (!underlying->hasData(1))
@@ -102,7 +102,7 @@ bool ZlibInStream::fillBuffer()
   size_t length = underlying->avail();
   if (length > bytesIn)
     length = bytesIn;
-  zs->next_in = (U8*)underlying->getptr(length);
+  zs->next_in = (uint8_t*)underlying->getptr(length);
   zs->avail_in = length;
 
   int rc = inflate(zs, Z_SYNC_FLUSH);

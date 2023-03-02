@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014-2017 Pierre Ossman for Cendio AB
+ * Copyright 2014-2023 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,25 +24,27 @@
 #ifndef __RFB_CURSOR_H__
 #define __RFB_CURSOR_H__
 
+#include <vector>
+
 #include <rfb/PixelBuffer.h>
 
 namespace rfb {
 
   class Cursor {
   public:
-    Cursor(int width, int height, const Point& hotspot, const rdr::U8* data);
+    Cursor(int width, int height, const Point& hotspot, const uint8_t* data);
     Cursor(const Cursor& other);
     ~Cursor();
 
     int width() const { return width_; };
     int height() const { return height_; };
     const Point& hotspot() const { return hotspot_; };
-    const rdr::U8* getBuffer() const { return data; };
+    const uint8_t* getBuffer() const { return data; };
 
     // getBitmap() returns a monochrome version of the cursor
-    rdr::U8* getBitmap() const;
+    std::vector<uint8_t> getBitmap() const;
     // getMask() returns a simple mask version of the alpha channel
-    rdr::U8* getMask() const;
+    std::vector<uint8_t> getMask() const;
 
     // crop() crops the cursor down to the smallest possible size, based on the
     // mask.
@@ -51,7 +53,7 @@ namespace rfb {
   protected:
     int width_, height_;
     Point hotspot_;
-    rdr::U8* data;
+    uint8_t* data;
   };
 
   class RenderedCursor : public PixelBuffer {
@@ -60,7 +62,7 @@ namespace rfb {
 
     Rect getEffectiveRect() const { return buffer.getRect(offset); }
 
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const;
+    virtual const uint8_t* getBuffer(const Rect& r, int* stride) const;
 
     void update(PixelBuffer* framebuffer, Cursor* cursor, const Point& pos);
 

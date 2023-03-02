@@ -44,7 +44,7 @@ using namespace network;
 static LogWriter vlog("VNCServerWin32");
 
 
-const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TigerVNC\\WinVNC4");
+const char* winvnc::VNCServerWin32::RegConfigPath = "Software\\TigerVNC\\WinVNC4";
 
 
 static IntParameter port_number("PortNumber",
@@ -64,7 +64,7 @@ VNCServerWin32::VNCServerWin32()
     commandEvent(CreateEvent(0, TRUE, FALSE, 0)),
     sessionEvent(isServiceProcess() ?
       CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
-    vncServer(CStr(ComputerName().buf), &desktop),
+    vncServer(ComputerName().buf, &desktop),
     thread_id(-1), runServer(false), isDesktopStarted(false),
     config(&sockMgr), rfbSock(&sockMgr), trayIcon(0),
     queryConnectDialog(0)
@@ -112,37 +112,35 @@ void VNCServerWin32::processAddressChange() {
     return;
 
   // Tool-tip prefix depends on server mode
-  const TCHAR* prefix = _T("VNC Server (User):");
+  const char* prefix = "VNC Server (User):";
   if (isServiceProcess())
-    prefix = _T("VNC Server (Service):");
+    prefix = "VNC Server (Service):";
 
   // Fetch the list of addresses
-  std::list<char*> addrs;
+  std::list<std::string> addrs;
   if (rfbSock.isListening())
-    TcpListener::getMyAddresses(&addrs);
+    addrs = TcpListener::getMyAddresses();
   else
-    addrs.push_front(strDup("Not accepting connections"));
+    addrs.push_front("Not accepting connections");
 
   // Allocate space for the new tip
-  std::list<char*>::iterator i, next_i;
-  int length = _tcslen(prefix)+1;
+  std::list<std::string>::iterator i, next_i;
+  int length = strlen(prefix)+1;
   for (i=addrs.begin(); i!= addrs.end(); i++)
-    length += strlen(*i) + 1;
+    length += i->size() + 1;
 
   // Build the new tip
-  TCharArray toolTip(length);
-  _tcscpy(toolTip.buf, prefix);
+  std::string toolTip(prefix);
   for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
     next_i = i; next_i ++;
-    TCharArray addr(*i);    // Assumes ownership of string
-    _tcscat(toolTip.buf, addr.buf);
+    toolTip += *i;
     if (next_i != addrs.end())
-      _tcscat(toolTip.buf, _T(","));
+      toolTip += ",";
   }
   
   // Pass the new tip to the tray icon
   vlog.info("Refreshing tray icon");
-  trayIcon->setToolTip(toolTip.buf);
+  trayIcon->setToolTip(toolTip.c_str());
 }
 
 void VNCServerWin32::regConfigChanged() {
@@ -151,8 +149,7 @@ void VNCServerWin32::regConfigChanged() {
   rfbSock.setPort(port_number, localHost);
 
   // -=- Update the TCP address filter for both ports, if open.
-  CharArray pattern(hosts.getData());
-  rfbSock.setFilter(pattern.buf);
+  rfbSock.setFilter(hosts);
 
   // -=- Update the tray icon tooltip text with IP addresses
   processAddressChange();
@@ -231,11 +228,11 @@ bool VNCServerWin32::disconnectClients(const char* reason) {
 bool VNCServerWin32::addNewClient(const char* client) {
   TcpSocket* sock = 0;
   try {
-    CharArray hostname;
+    std::string hostname;
     int port;
-    getHostAndPort(client, &hostname.buf, &port, 5500);
+    getHostAndPort(client, &hostname, &port, 5500);
     vlog.error("port=%d", port);
-    sock = new TcpSocket(hostname.buf, port);
+    sock = new TcpSocket(hostname.c_str(), port);
     if (queueCommand(AddClient, sock, 0))
       return true;
     delete sock;

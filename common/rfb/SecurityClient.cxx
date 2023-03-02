@@ -65,7 +65,7 @@ StringParameter SecurityClient::secTypes
  "VncAuth,None",
 ConfViewer);
 
-CSecurity* SecurityClient::GetCSecurity(CConnection* cc, U32 secType)
+CSecurity* SecurityClient::GetCSecurity(CConnection* cc, uint32_t secType)
 {
   assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)

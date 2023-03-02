@@ -39,7 +39,7 @@ static LogWriter vlog("Clipboard");
 //
 
 Clipboard::Clipboard()
-  : MsgWindow(_T("Clipboard")), notifier(0), next_window(0) {
+  : MsgWindow("Clipboard"), notifier(0), next_window(0) {
   next_window = SetClipboardViewer(getHandle());
   vlog.debug("registered clipboard handler");
 }
@@ -86,11 +86,11 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   return MsgWindow::processMessage(msg, wParam, lParam);
 };
 
-char*
+std::string
 Clipboard::getClipText() {
   HGLOBAL cliphandle;
   wchar_t* clipdata;
-  CharArray utf8;
+  std::string utf8;
 
   // Open the clipboard
   if (!OpenClipboard(getHandle()))
@@ -110,13 +110,13 @@ Clipboard::getClipText() {
   }
 
   // Convert it to UTF-8
-  utf8.replaceBuf(utf16ToUTF8(clipdata));
+  utf8 = utf16ToUTF8(clipdata);
 
   // Release the buffer and close the clipboard
   GlobalUnlock(cliphandle);
   CloseClipboard();
 
-  return convertLF(utf8.buf);
+  return convertLF(utf8.c_str());
 }
 
 void
@@ -130,19 +130,15 @@ Clipboard::setClipText(const char* text) {
       throw rdr::SystemException("unable to open Win32 clipboard", GetLastError());
 
     // - Convert the supplied clipboard text into UTF-16 format with CRLF
-    CharArray filtered(convertCRLF(text));
-    wchar_t* utf16;
-
-    utf16 = utf8ToUTF16(filtered.buf);
+    std::string filtered(convertCRLF(text));
+    std::wstring utf16(utf8ToUTF16(filtered.c_str()));
 
     // - Allocate global memory for the data
-    clip_handle = ::GlobalAlloc(GMEM_MOVEABLE, (wcslen(utf16) + 1) * 2);
+    clip_handle = ::GlobalAlloc(GMEM_MOVEABLE, (utf16.size() + 1) * 2);
 
     wchar_t* data = (wchar_t*) GlobalLock(clip_handle);
-    wcscpy(data, utf16);
+    wcscpy(data, utf16.c_str());
     GlobalUnlock(clip_handle);
-
-    strFree(utf16);
 
     // - Next, we must clear out any existing data
     if (!EmptyClipboard())

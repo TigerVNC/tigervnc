@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +44,11 @@
 #ifndef __RFB_CONFIGURATION_H__
 #define __RFB_CONFIGURATION_H__
 
-#include <rfb/util.h>
+#include <limits.h>
+#include <stdint.h>
+
+#include <string>
+#include <vector>
 
 namespace os { class Mutex; }
 
@@ -59,10 +64,10 @@ namespace rfb {
   class Configuration {
   public:
     // - Create a new Configuration object
-    Configuration(const char* name_) : name(strDup(name_)), head(0), _next(0) {}
+    Configuration(const char* name_) : name(name_), head(0), _next(0) {}
 
     // - Return the buffer containing the Configuration's name
-    const char* getName() const { return name.buf; }
+    const char* getName() const { return name.c_str(); }
 
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
@@ -128,7 +133,7 @@ namespace rfb {
     friend struct ParameterIterator;
 
     // Name for this Configuration
-    CharArray name;
+    std::string name;
 
     // - Pointer to first Parameter in this group
     VoidParameter* head;
@@ -168,8 +173,8 @@ namespace rfb {
 
     virtual bool setParam(const char* value)  = 0;
     virtual bool setParam();
-    virtual char* getDefaultStr() const = 0;
-    virtual char* getValueStr() const = 0;
+    virtual std::string getDefaultStr() const = 0;
+    virtual std::string getValueStr() const = 0;
     virtual bool isBool() const;
 
     virtual void setImmutable();
@@ -192,8 +197,8 @@ namespace rfb {
 		   ConfigurationObject co=ConfGlobal);
     virtual bool setParam(const char* value);
     virtual bool setParam();
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     virtual bool isBool() const;
     virtual void setImmutable();
   private:
@@ -207,8 +212,8 @@ namespace rfb {
     virtual bool setParam(const char* value);
     virtual bool setParam();
     virtual void setParam(bool b);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     virtual bool isBool() const;
     operator bool() const;
   protected:
@@ -224,8 +229,8 @@ namespace rfb {
     using VoidParameter::setParam;
     virtual bool setParam(const char* value);
     virtual bool setParam(int v);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     operator int() const;
   protected:
     int value;
@@ -241,38 +246,32 @@ namespace rfb {
 		    ConfigurationObject co=ConfGlobal);
     virtual ~StringParameter();
     virtual bool setParam(const char* value);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
     operator const char*() const;
-
-    // getData() returns a copy of the data - it must be delete[]d by the
-    // caller.
-    char* getData() const { return getValueStr(); }
   protected:
-    char* value;
-    char* def_value;
+    std::string value;
+    std::string def_value;
   };
 
   class BinaryParameter : public VoidParameter {
   public:
     BinaryParameter(const char* name_, const char* desc_,
-                    const void* v, size_t l,
+                    const uint8_t* v, size_t l,
                     ConfigurationObject co=ConfGlobal);
     using VoidParameter::setParam;
     virtual ~BinaryParameter();
     virtual bool setParam(const char* value);
-    virtual void setParam(const void* v, size_t l);
-    virtual char* getDefaultStr() const;
-    virtual char* getValueStr() const;
+    virtual void setParam(const uint8_t* v, size_t l);
+    virtual std::string getDefaultStr() const;
+    virtual std::string getValueStr() const;
 
-    // getData() will return length zero if there is no data
-    // NB: data may be set to zero, OR set to a zero-length buffer
-    void getData(void** data, size_t* length) const;
+    std::vector<uint8_t> getData() const;
 
   protected:
-    char* value;
+    uint8_t* value;
     size_t length;
-    char* def_value;
+    uint8_t* def_value;
     size_t def_length;
   };
 

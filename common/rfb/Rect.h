@@ -47,10 +47,17 @@ namespace rfb {
   struct Point {
     Point() : x(0), y(0) {}
     Point(int x_, int y_) : x(x_), y(y_) {}
-    inline Point negate() const {return Point(-x, -y);}
-    inline bool equals(const Point &p) const {return x==p.x && y==p.y;}
-    inline Point translate(const Point &p) const {return Point(x+p.x, y+p.y);}
-    inline Point subtract(const Point &p) const {return Point(x-p.x, y-p.y);}
+    inline Point negate() const
+      __attribute__ ((warn_unused_result))
+      {return Point(-x, -y);}
+    inline bool operator==(const Point &p) const {return x==p.x && y==p.y;}
+    inline bool operator!=(const Point &p) const {return x!=p.x || y!=p.y;}
+    inline Point translate(const Point &p) const
+      __attribute__ ((warn_unused_result))
+      {return Point(x+p.x, y+p.y);}
+    inline Point subtract(const Point &p) const
+      __attribute__ ((warn_unused_result))
+      {return Point(x-p.x, y-p.y);}
     int x, y;
   };
 
@@ -72,7 +79,9 @@ namespace rfb {
     inline void setXYWH(int x, int y, int w, int h) {
       tl.x = x; tl.y = y; br.x = x+w; br.y = y+h;
     }
-    inline Rect intersect(const Rect &r) const {
+    inline Rect intersect(const Rect &r) const
+      __attribute__ ((warn_unused_result))
+    {
       Rect result;
       result.tl.x = __rfbmax(tl.x, r.tl.x);
       result.tl.y = __rfbmax(tl.y, r.tl.y);
@@ -80,7 +89,9 @@ namespace rfb {
       result.br.y = __rfbmax(__rfbmin(br.y, r.br.y), result.tl.y);
       return result;
     }
-    inline Rect union_boundary(const Rect &r) const {
+    inline Rect union_boundary(const Rect &r) const
+      __attribute__ ((warn_unused_result))
+    {
       if (r.is_empty()) return *this;
       if (is_empty()) return r;
       Rect result;
@@ -90,10 +101,13 @@ namespace rfb {
       result.br.y = __rfbmax(br.y, r.br.y);
       return result;
     }
-    inline Rect translate(const Point &p) const {
+    inline Rect translate(const Point &p) const
+      __attribute__ ((warn_unused_result))
+    {
       return Rect(tl.translate(p), br.translate(p));
     }
-    inline bool equals(const Rect &r) const {return r.tl.equals(tl) && r.br.equals(br);}
+    inline bool operator==(const Rect &r) const {return r.tl == tl && r.br == br;}
+    inline bool operator!=(const Rect &r) const {return r.tl != tl || r.br != br;}
     inline bool is_empty() const {return (tl.x >= br.x) || (tl.y >= br.y);}
     inline void clear() {tl = Point(); br = Point();}
     inline bool enclosed_by(const Rect &r) const {

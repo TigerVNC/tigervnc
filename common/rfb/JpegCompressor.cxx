@@ -155,14 +155,14 @@ JpegCompressor::~JpegCompressor(void)
   delete cinfo;
 }
 
-void JpegCompressor::compress(const rdr::U8 *buf, volatile int stride,
+void JpegCompressor::compress(const uint8_t *buf, volatile int stride,
                               const Rect& r, const PixelFormat& pf,
                               int quality, int subsamp)
 {
   int w = r.width();
   int h = r.height();
   int pixelsize;
-  rdr::U8 * volatile srcBuf = NULL;
+  uint8_t * volatile srcBuf = NULL;
   volatile bool srcBufIsTemp = false;
   JSAMPROW * volatile rowPointer = NULL;
 
@@ -182,17 +182,17 @@ void JpegCompressor::compress(const rdr::U8 *buf, volatile int stride,
 #ifdef JCS_EXTENSIONS
   // Try to have libjpeg output directly to our native format
   // libjpeg can only handle some "standard" formats
-  if (pfRGBX.equal(pf))
+  if (pfRGBX == pf)
     cinfo->in_color_space = JCS_EXT_RGBX;
-  else if (pfBGRX.equal(pf))
+  else if (pfBGRX == pf)
     cinfo->in_color_space = JCS_EXT_BGRX;
-  else if (pfXRGB.equal(pf))
+  else if (pfXRGB == pf)
     cinfo->in_color_space = JCS_EXT_XRGB;
-  else if (pfXBGR.equal(pf))
+  else if (pfXBGR == pf)
     cinfo->in_color_space = JCS_EXT_XBGR;
 
   if (cinfo->in_color_space != JCS_RGB) {
-    srcBuf = (rdr::U8 *)buf;
+    srcBuf = (uint8_t *)buf;
     pixelsize = 4;
   }
 #endif
@@ -201,9 +201,9 @@ void JpegCompressor::compress(const rdr::U8 *buf, volatile int stride,
     stride = w;
 
   if (cinfo->in_color_space == JCS_RGB) {
-    srcBuf = new rdr::U8[w * h * pixelsize];
+    srcBuf = new uint8_t[w * h * pixelsize];
     srcBufIsTemp = true;
-    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w, stride, h);
+    pf.rgbFromBuffer(srcBuf, (const uint8_t *)buf, w, stride, h);
     stride = w;
   }
 

@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
  * Copyright 2017 Peter Astrand <astrand@cendio.se> for Cendio AB
+ * Copyright 2011-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -131,9 +133,9 @@ VoidParameter* Configuration::get(const char* param)
 void Configuration::list(int width, int nameWidth) {
   VoidParameter* current = head;
 
-  fprintf(stderr, "%s Parameters:\n", name.buf);
+  fprintf(stderr, "%s Parameters:\n", name.c_str());
   while (current) {
-    char* def_str = current->getDefaultStr();
+    std::string def_str = current->getDefaultStr();
     const char* desc = current->getDescription();
     fprintf(stderr,"  %-*s -", nameWidth, current->getName());
     int column = strlen(current->getName());
@@ -155,11 +157,10 @@ void Configuration::list(int width, int nameWidth) {
       if (!s) break;
     }
 
-    if (def_str) {
-      if (column + (int)strlen(def_str) + 11 > width)
+    if (!def_str.empty()) {
+      if (column + (int)def_str.size() + 11 > width)
         fprintf(stderr,"\n%*s",nameWidth+4,"");
-      fprintf(stderr," (default=%s)\n",def_str);
-      strFree(def_str);
+      fprintf(stderr," (default=%s)\n",def_str.c_str());
     } else {
       fprintf(stderr,"\n");
     }
@@ -255,12 +256,11 @@ bool AliasParameter::setParam() {
   return param->setParam();
 }
 
-char*
-AliasParameter::getDefaultStr() const {
-  return 0;
+std::string AliasParameter::getDefaultStr() const {
+  return "";
 }
 
-char* AliasParameter::getValueStr() const {
+std::string AliasParameter::getValueStr() const {
   return param->getValueStr();
 }
 
@@ -288,16 +288,15 @@ BoolParameter::setParam(const char* v) {
 
   if (*v == 0 || strcasecmp(v, "1") == 0 || strcasecmp(v, "on") == 0
       || strcasecmp(v, "true") == 0 || strcasecmp(v, "yes") == 0)
-    value = 1;
+    setParam(true);
   else if (strcasecmp(v, "0") == 0 || strcasecmp(v, "off") == 0
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
-    value = 0;
+    setParam(false);
   else {
     vlog.error("Bool parameter %s: invalid value '%s'", getName(), v);
     return false;
   }
 
-  vlog.debug("set %s(Bool) to %s(%d)", getName(), v, value);
   return true;
 }
 
@@ -312,13 +311,12 @@ void BoolParameter::setParam(bool b) {
   vlog.debug("set %s(Bool) to %d", getName(), value);
 }
 
-char*
-BoolParameter::getDefaultStr() const {
-  return strDup(def_value ? "1" : "0");
+std::string BoolParameter::getDefaultStr() const {
+  return def_value ? "1" : "0";
 }
 
-char* BoolParameter::getValueStr() const {
-  return strDup(value ? "1" : "0");
+std::string BoolParameter::getValueStr() const {
+  return value ? "1" : "0";
 }
 
 bool BoolParameter::isBool() const {
@@ -341,12 +339,7 @@ IntParameter::IntParameter(const char* name_, const char* desc_, int v,
 bool
 IntParameter::setParam(const char* v) {
   if (immutable) return true;
-  vlog.debug("set %s(Int) to %s", getName(), v);
-  int i = strtol(v, NULL, 0);
-  if (i < minValue || i > maxValue)
-    return false;
-  value = i;
-  return true;
+  return setParam(strtol(v, NULL, 0));
 }
 
 bool
@@ -359,15 +352,14 @@ IntParameter::setParam(int v) {
   return true;
 }
 
-char*
-IntParameter::getDefaultStr() const {
-  char* result = new char[16];
+std::string IntParameter::getDefaultStr() const {
+  char result[16];
   sprintf(result, "%d", def_value);
   return result;
 }
 
-char* IntParameter::getValueStr() const {
-  char* result = new char[16];
+std::string IntParameter::getValueStr() const {
+  char result[16];
   sprintf(result, "%d", value);
   return result;
 }
@@ -380,7 +372,7 @@ IntParameter::operator int() const {
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
                                  const char* v, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), value(strDup(v)), def_value(strDup(v))
+  : VoidParameter(name_, desc_, co), value(v), def_value(v)
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
@@ -389,8 +381,6 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
 }
 
 StringParameter::~StringParameter() {
-  strFree(value);
-  strFree(def_value);
 }
 
 bool StringParameter::setParam(const char* v) {
@@ -399,34 +389,34 @@ bool StringParameter::setParam(const char* v) {
   if (!v)
     throw rfb::Exception("setParam(<null>) not allowed");
   vlog.debug("set %s(String) to %s", getName(), v);
-  CharArray oldValue(value);
-  value = strDup(v);
-  return value != 0;
+  value = v;
+  return true;
 }
 
-char* StringParameter::getDefaultStr() const {
-  return strDup(def_value);
+std::string StringParameter::getDefaultStr() const {
+  return def_value;
 }
 
-char* StringParameter::getValueStr() const {
+std::string StringParameter::getValueStr() const {
   LOCK_CONFIG;
-  return strDup(value);
+  return value;
 }
 
 StringParameter::operator const char *() const {
-  return value;
+  return value.c_str();
 }
 
 // -=- BinaryParameter
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
-				 const void* v, size_t l, ConfigurationObject co)
+				 const uint8_t* v, size_t l, ConfigurationObject co)
 : VoidParameter(name_, desc_, co), value(0), length(0), def_value(0), def_length(0) {
   if (l) {
-    value = new char[l];
+    assert(v);
+    value = new uint8_t[l];
     length = l;
     memcpy(value, v, l);
-    def_value = new char[l];
+    def_value = new uint8_t[l];
     def_length = l;
     memcpy(def_value, v, l);
   }
@@ -437,38 +427,41 @@ BinaryParameter::~BinaryParameter() {
 }
 
 bool BinaryParameter::setParam(const char* v) {
-  LOCK_CONFIG;
   if (immutable) return true;
-  vlog.debug("set %s(Binary) to %s", getName(), v);
-  return rdr::HexInStream::hexStrToBin(v, &value, &length);
+  std::vector<uint8_t> newValue = hexToBin(v, strlen(v));
+  if (newValue.empty() && strlen(v) > 0)
+    return false;
+  setParam(newValue.data(), newValue.size());
+  return true;
 }
 
-void BinaryParameter::setParam(const void* v, size_t len) {
+void BinaryParameter::setParam(const uint8_t* v, size_t len) {
   LOCK_CONFIG;
   if (immutable) return; 
   vlog.debug("set %s(Binary)", getName());
-  delete [] value; value = 0;
+  delete [] value;
+  value = NULL;
+  length = 0;
   if (len) {
-    value = new char[len];
+    assert(v);
+    value = new uint8_t[len];
     length = len;
     memcpy(value, v, len);
   }
 }
 
-char* BinaryParameter::getDefaultStr() const {
-  return rdr::HexOutStream::binToHexStr(def_value, def_length);
+std::string BinaryParameter::getDefaultStr() const {
+  return binToHex(def_value, def_length);
 }
 
-char* BinaryParameter::getValueStr() const {
+std::string BinaryParameter::getValueStr() const {
   LOCK_CONFIG;
-  return rdr::HexOutStream::binToHexStr(value, length);
+  return binToHex(value, length);
 }
 
-void BinaryParameter::getData(void** data_, size_t* length_) const {
+std::vector<uint8_t> BinaryParameter::getData() const {
   LOCK_CONFIG;
-  if (length_) *length_ = length;
-  if (data_) {
-    *data_ = new char[length];
-    memcpy(*data_, value, length);
-  }
+  std::vector<uint8_t> out(length);
+  memcpy(out.data(), value, length);
+  return out;
 }

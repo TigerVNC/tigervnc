@@ -22,33 +22,34 @@
 #ifndef __RFB_SECTYPES_H__
 #define __RFB_SECTYPES_H__
 
-#include <rdr/types.h>
+#include <stdint.h>
+
 #include <rfb/Configuration.h>
 
 #include <list>
 
 namespace rfb {
-  const rdr::U8 secTypeInvalid    = 0;
-  const rdr::U8 secTypeNone       = 1;
-  const rdr::U8 secTypeVncAuth    = 2;
+  const uint8_t secTypeInvalid    = 0;
+  const uint8_t secTypeNone       = 1;
+  const uint8_t secTypeVncAuth    = 2;
 
-  const rdr::U8 secTypeRA2        = 5;
-  const rdr::U8 secTypeRA2ne      = 6;
+  const uint8_t secTypeRA2        = 5;
+  const uint8_t secTypeRA2ne      = 6;
 
-  const rdr::U8 secTypeSSPI       = 7;
-  const rdr::U8 secTypeSSPIne     = 8;
+  const uint8_t secTypeSSPI       = 7;
+  const uint8_t secTypeSSPIne     = 8;
 
-  const rdr::U8 secTypeTight      = 16;
-  const rdr::U8 secTypeUltra      = 17;
-  const rdr::U8 secTypeTLS        = 18;
-  const rdr::U8 secTypeVeNCrypt   = 19;
+  const uint8_t secTypeTight      = 16;
+  const uint8_t secTypeUltra      = 17;
+  const uint8_t secTypeTLS        = 18;
+  const uint8_t secTypeVeNCrypt   = 19;
 
-  const rdr::U8 secTypeDH         = 30;
+  const uint8_t secTypeDH         = 30;
 
-  const rdr::U8 secTypeMSLogonII  = 113;
+  const uint8_t secTypeMSLogonII  = 113;
 
-  const rdr::U8 secTypeRA256      = 129;
-  const rdr::U8 secTypeRAne256    = 130;
+  const uint8_t secTypeRA256      = 129;
+  const uint8_t secTypeRAne256    = 130;
 
   /* VeNCrypt subtypes */
   const int secTypePlain          = 256;
@@ -65,9 +66,9 @@ namespace rfb {
 
   // result types
 
-  const rdr::U32 secResultOK = 0;
-  const rdr::U32 secResultFailed = 1;
-  const rdr::U32 secResultTooMany = 2; // deprecated
+  const uint32_t secResultOK = 0;
+  const uint32_t secResultFailed = 1;
+  const uint32_t secResultTooMany = 2; // deprecated
 
   class Security {
   public:
@@ -87,18 +88,18 @@ namespace rfb {
      */
 
     /* Enable/Disable certain security type */
-    void EnableSecType(rdr::U32 secType);
-    void DisableSecType(rdr::U32 secType) { enabledSecTypes.remove(secType); }
+    void EnableSecType(uint32_t secType);
+    void DisableSecType(uint32_t secType) { enabledSecTypes.remove(secType); }
 
-    void SetSecTypes(std::list<rdr::U32> &secTypes) { enabledSecTypes = secTypes; }
+    void SetSecTypes(std::list<uint32_t> &secTypes) { enabledSecTypes = secTypes; }
 
     /* Check if certain type is supported */
-    bool IsSupported(rdr::U32 secType);
+    bool IsSupported(uint32_t secType);
 
     /* Get list of enabled security types without VeNCrypt subtypes */
-    const std::list<rdr::U8> GetEnabledSecTypes(void);
+    const std::list<uint8_t> GetEnabledSecTypes(void);
     /* Get list of enabled VeNCrypt subtypes */
-    const std::list<rdr::U32> GetEnabledExtSecTypes(void);
+    const std::list<uint32_t> GetEnabledExtSecTypes(void);
 
     /* Output char* is stored in static array */
     char *ToString(void);
@@ -108,12 +109,12 @@ namespace rfb {
 #endif
 
   private:
-    std::list<rdr::U32> enabledSecTypes;
+    std::list<uint32_t> enabledSecTypes;
   };
 
-  const char* secTypeName(rdr::U32 num);
-  rdr::U32 secTypeNum(const char* name);
-  std::list<rdr::U32> parseSecTypes(const char* types);
+  const char* secTypeName(uint32_t num);
+  uint32_t secTypeNum(const char* name);
+  std::list<uint32_t> parseSecTypes(const char* types);
 }
 
 #endif

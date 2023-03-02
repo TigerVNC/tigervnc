@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ void ZRLEEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 
 void ZRLEEncoder::writeSolidRect(int width, int height,
                                  const PixelFormat& pf,
-                                 const rdr::U8* colour)
+                                 const uint8_t* colour)
 {
   int tiles;
 
@@ -122,7 +122,7 @@ void ZRLEEncoder::writeSolidRect(int width, int height,
 void ZRLEEncoder::writePaletteTile(const Rect& tile, const PixelBuffer* pb,
                                    const Palette& palette)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(tile, &stride);
@@ -130,17 +130,17 @@ void ZRLEEncoder::writePaletteTile(const Rect& tile, const PixelBuffer* pb,
   switch (pb->getPF().bpp) {
   case 32:
     writePaletteTile(tile.width(), tile.height(),
-                     (rdr::U32*)buffer, stride,
+                     (uint32_t*)buffer, stride,
                      pb->getPF(), palette);
     break;
   case 16:
     writePaletteTile(tile.width(), tile.height(),
-                     (rdr::U16*)buffer, stride,
+                     (uint16_t*)buffer, stride,
                      pb->getPF(), palette);
     break;
   default:
     writePaletteTile(tile.width(), tile.height(),
-                     (rdr::U8*)buffer, stride,
+                     (uint8_t*)buffer, stride,
                      pb->getPF(), palette);
   }
 }
@@ -148,7 +148,7 @@ void ZRLEEncoder::writePaletteTile(const Rect& tile, const PixelBuffer* pb,
 void ZRLEEncoder::writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
                                       const Palette& palette)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(tile, &stride);
@@ -156,24 +156,24 @@ void ZRLEEncoder::writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
   switch (pb->getPF().bpp) {
   case 32:
     writePaletteRLETile(tile.width(), tile.height(),
-                        (rdr::U32*)buffer, stride,
+                        (uint32_t*)buffer, stride,
                         pb->getPF(), palette);
     break;
   case 16:
     writePaletteRLETile(tile.width(), tile.height(),
-                        (rdr::U16*)buffer, stride,
+                        (uint16_t*)buffer, stride,
                         pb->getPF(), palette);
     break;
   default:
     writePaletteRLETile(tile.width(), tile.height(),
-                        (rdr::U8*)buffer, stride,
+                        (uint8_t*)buffer, stride,
                         pb->getPF(), palette);
   }
 }
 
 void ZRLEEncoder::writeRawTile(const Rect& tile, const PixelBuffer* pb)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   int w, h, stride_bytes;
@@ -193,22 +193,22 @@ void ZRLEEncoder::writeRawTile(const Rect& tile, const PixelBuffer* pb)
 
 void ZRLEEncoder::writePalette(const PixelFormat& pf, const Palette& palette)
 {
-  rdr::U8 buffer[256*4];
+  uint8_t buffer[256*4];
   int i;
 
   if (pf.bpp == 32) {
-    rdr::U32* buf;
-    buf = (rdr::U32*)buffer;
+    uint32_t* buf;
+    buf = (uint32_t*)buffer;
     for (i = 0;i < palette.size();i++)
       *buf++ = palette.getColour(i);
   } else if (pf.bpp == 16) {
-    rdr::U16* buf;
-    buf = (rdr::U16*)buffer;
+    uint16_t* buf;
+    buf = (uint16_t*)buffer;
     for (i = 0;i < palette.size();i++)
       *buf++ = palette.getColour(i);
   } else {
-    rdr::U8* buf;
-    buf = (rdr::U8*)buffer;
+    uint8_t* buf;
+    buf = (uint8_t*)buffer;
     for (i = 0;i < palette.size();i++)
       *buf++ = palette.getColour(i);
   }
@@ -216,13 +216,13 @@ void ZRLEEncoder::writePalette(const PixelFormat& pf, const Palette& palette)
   writePixels(buffer, pf, palette.size());
 }
 
-void ZRLEEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+void ZRLEEncoder::writePixels(const uint8_t* buffer, const PixelFormat& pf,
                               unsigned int count)
 {
   Pixel maxPixel;
-  rdr::U8 pixBuf[4];
+  uint8_t pixBuf[4];
 
-  maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
+  maxPixel = pf.pixelFromRGB((uint16_t)-1, (uint16_t)-1, (uint16_t)-1);
   pf.bufferFromPixel(pixBuf, maxPixel);
 
   if ((pf.bpp != 32) || ((pixBuf[0] != 0) && (pixBuf[3] != 0))) {
@@ -239,16 +239,110 @@ void ZRLEEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
   }
 }
 
-//
-// Including BPP-dependent implementation of the encoder.
-//
+template<class T>
+void ZRLEEncoder::writePaletteTile(int width, int height,
+                                   const T* buffer, int stride,
+                                   const PixelFormat& pf,
+                                   const Palette& palette)
+{
+  const int bitsPerPackedPixel[] = {
+    0, 1, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+  };
 
-#define BPP 8
-#include <rfb/ZRLEEncoderBPP.cxx>
-#undef BPP
-#define BPP 16
-#include <rfb/ZRLEEncoderBPP.cxx>
-#undef BPP
-#define BPP 32
-#include <rfb/ZRLEEncoderBPP.cxx>
-#undef BPP
+  int bppp;
+  int pad;
+
+  assert(palette.size() > 1);
+  assert(palette.size() <= 16);
+
+  zos.writeU8(palette.size());
+  writePalette(pf, palette);
+
+  bppp = bitsPerPackedPixel[palette.size()-1];
+  pad = stride - width;
+
+  for (int i = 0; i < height; i++) {
+    int w;
+
+    uint8_t nbits = 0;
+    uint8_t byte = 0;
+
+    w = width;
+    while (w--) {
+      T pix = *buffer++;
+      uint8_t index = palette.lookup(pix);
+      byte = (byte << bppp) | index;
+      nbits += bppp;
+      if (nbits >= 8) {
+        zos.writeU8(byte);
+        nbits = 0;
+      }
+    }
+    if (nbits > 0) {
+      byte <<= 8 - nbits;
+      zos.writeU8(byte);
+    }
+
+    buffer += pad;
+  }
+}
+
+template<class T>
+void ZRLEEncoder::writePaletteRLETile(int width, int height,
+                                      const T* buffer, int stride,
+                                      const PixelFormat& pf,
+                                      const Palette& palette)
+{
+  int pad;
+
+  T prevColour;
+  int runLength;
+
+  assert(palette.size() > 1);
+  assert(palette.size() <= 127);
+
+  zos.writeU8(palette.size() | 0x80);
+  writePalette(pf, palette);
+
+  pad = stride - width;
+
+  prevColour = *buffer;
+  runLength = 0;
+
+  while (height--) {
+    int w = width;
+    while (w--) {
+      if (prevColour != *buffer) {
+        if (runLength == 1)
+          zos.writeU8(palette.lookup(prevColour));
+        else {
+          zos.writeU8(palette.lookup(prevColour) | 0x80);
+
+          while (runLength > 255) {
+            zos.writeU8(255);
+            runLength -= 255;
+          }
+          zos.writeU8(runLength - 1);
+        }
+
+        prevColour = *buffer;
+        runLength = 0;
+      }
+
+      runLength++;
+      buffer++;
+    }
+    buffer += pad;
+  }
+  if (runLength == 1)
+    zos.writeU8(palette.lookup(prevColour));
+  else {
+    zos.writeU8(palette.lookup(prevColour) | 0x80);
+
+    while (runLength > 255) {
+      zos.writeU8(255);
+      runLength -= 255;
+    }
+    zos.writeU8(runLength - 1);
+  }
+}

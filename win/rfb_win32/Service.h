@@ -40,10 +40,10 @@ namespace rfb {
     class Service {
     public:
 
-      Service(const TCHAR* name_);
+      Service(const char* name_);
       virtual ~Service();
 
-      const TCHAR* getName() {return name;}
+      const char* getName() {return name;}
       SERVICE_STATUS& getStatus() {return status;}
 
       void setStatus(DWORD status);
@@ -53,7 +53,7 @@ namespace rfb {
       void start();
 
       // - Service main procedure - override to implement a service
-      virtual DWORD serviceMain(int argc, TCHAR* argv[]) = 0;
+      virtual DWORD serviceMain(int argc, char* argv[]) = 0;
 
       // - Service control notifications
 
@@ -70,7 +70,7 @@ namespace rfb {
       SERVICE_STATUS_HANDLE status_handle;
       SERVICE_STATUS status;
     protected:
-      const TCHAR* name;
+      const char* name;
     };
 
     class ServiceHandle {
@@ -92,26 +92,25 @@ namespace rfb {
     bool emulateCtrlAltDel();
 
     // -=- Routines to initialise the Event Log target Logger
-    bool initEventLogLogger(const TCHAR* srcname);
+    bool initEventLogLogger(const char* srcname);
 
     // -=- Routines to register/unregister the service
     //     These routines also take care of registering the required
     //     event source information, etc.
-    // *** should really accept TCHAR argv
+    // *** should really accept char argv
 
-    bool registerService(const TCHAR* name, const TCHAR* display,
-                         const TCHAR* desc, int argc, char** argv);
-    bool unregisterService(const TCHAR* name);
+    bool registerService(const char* name, const char* display,
+                         const char* desc, int argc, char** argv);
+    bool unregisterService(const char* name);
 
-    bool startService(const TCHAR* name);
-    bool stopService(const TCHAR* name);
+    bool startService(const char* name);
+    bool stopService(const char* name);
 
     // -=- Get the state of the named service (one of the NT service state values)
-    DWORD getServiceState(const TCHAR* name);
+    DWORD getServiceState(const char* name);
 
     // -=- Convert a supplied service state value to a printable string e.g. Running, Stopped...
-    //     The caller must delete the returned string buffer
-    char* serviceStateName(DWORD state);
+    const char* serviceStateName(DWORD state);
 
     // -=- Routine to determine whether the host process is running a service
     bool isServiceProcess();

@@ -41,6 +41,5 @@ bool UnixPasswordValidator::validateInternal(SConnection * /*sc*/,
 					     const char *username,
 					     const char *password)
 {
-  CharArray service(strDup(pamService.getData()));
-  return do_pam_auth(service.buf, username, password);
+  return do_pam_auth(pamService, username, password);
 }

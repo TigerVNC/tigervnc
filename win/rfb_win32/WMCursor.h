@@ -43,7 +43,7 @@ namespace rfb {
         Info() : cursor(0), visible(false) {}
         bool operator!=(const Info& info) {
           return ((cursor != info.cursor) ||
-            (!position.equals(info.position)) ||
+            (position != info.position) ||
             (visible != info.visible));
         }
       };

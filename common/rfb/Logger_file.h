@@ -22,6 +22,8 @@
 #define __RFB_LOGGER_FILE_H__
 
 #include <time.h>
+#include <limits.h>
+
 #include <rfb/Logger.h>
 
 namespace os { class Mutex; }
@@ -42,7 +44,7 @@ namespace rfb {
 
   protected:
     void closeFile();
-    char* m_filename;
+    char m_filename[PATH_MAX];
     FILE* m_file;
     time_t m_lastLogTime;
     os::Mutex* mutex;

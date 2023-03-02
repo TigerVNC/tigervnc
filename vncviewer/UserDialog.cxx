@@ -34,9 +34,8 @@
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
 
-#include <rfb/util.h>
-#include <rfb/Password.h>
 #include <rfb/Exception.h>
+#include <rfb/obfuscate.h>
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
@@ -71,38 +70,38 @@ UserDialog::~UserDialog()
 {
 }
 
-void UserDialog::getUserPasswd(bool secure, char** user, char** password)
+void UserDialog::getUserPasswd(bool secure, std::string* user,
+                               std::string* password)
 {
-  CharArray passwordFileStr(passwordFile.getData());
+  const char *passwordFileName(passwordFile);
 
   assert(password);
   char *envUsername = getenv("VNC_USERNAME");
   char *envPassword = getenv("VNC_PASSWORD");
 
   if(user && envUsername && envPassword) {
-    *user = strdup(envUsername);
-    *password = strdup(envPassword);
+    *user = envUsername;
+    *password = envPassword;
     return;
   }
 
   if (!user && envPassword) {
-    *password = strdup(envPassword);
+    *password = envPassword;
     return;
   }
 
-  if (!user && passwordFileStr.buf[0]) {
-    ObfuscatedPasswd obfPwd(256);
+  if (!user && passwordFileName[0]) {
+    std::vector<uint8_t> obfPwd(256);
     FILE* fp;
 
-    fp = fopen(passwordFileStr.buf, "rb");
+    fp = fopen(passwordFileName, "rb");
     if (!fp)
       throw rfb::Exception(_("Opening password file failed"));
 
-    obfPwd.length = fread(obfPwd.buf, 1, obfPwd.length, fp);
+    obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
     fclose(fp);
 
-    PlainPasswd passwd(obfPwd);
-    *password = passwd.takeBuf();
+    *password = deobfuscate(obfPwd.data(), obfPwd.size());
 
     return;
   }
@@ -198,8 +197,8 @@ void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 
   if (ret_val == 0) {
     if (user)
-      *user = strDup(username->value());
-    *password = strDup(passwd->value());
+      *user = username->value();
+    *password = passwd->value();
   }
 
   delete win;

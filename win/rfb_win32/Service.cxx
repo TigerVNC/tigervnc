@@ -30,6 +30,7 @@
 #include <logmessages/messages.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 
 using namespace rdr;
@@ -90,7 +91,7 @@ VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
 
 // -=- Service
 
-Service::Service(const TCHAR* name_) : name(name_) {
+Service::Service(const char* name_) : name(name_) {
   vlog.debug("Service");
   status_handle = 0;
   status.dwControlsAccepted = SERVICE_CONTROL_INTERROGATE | SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_STOP;
@@ -105,7 +106,7 @@ Service::Service(const TCHAR* name_) : name(name_) {
 void
 Service::start() {
   SERVICE_TABLE_ENTRY entry[2];
-  entry[0].lpServiceName = (TCHAR*)name;
+  entry[0].lpServiceName = (char*)name;
   entry[0].lpServiceProc = serviceProc;
   entry[1].lpServiceName = NULL;
   entry[1].lpServiceProc = NULL;
@@ -263,7 +264,7 @@ rfb::win32::emulateCtrlAltDel() {
 
 class Logger_EventLog : public Logger {
 public:
-  Logger_EventLog(const TCHAR* srcname) : Logger("EventLog") {
+  Logger_EventLog(const char* srcname) : Logger("EventLog") {
     eventlog = RegisterEventSource(NULL, srcname);
     if (!eventlog)
       printf("Unable to open event log:%ld\n", GetLastError());
@@ -275,8 +276,7 @@ public:
 
   virtual void write(int level, const char *logname, const char *message) {
     if (!eventlog) return;
-    TStr log(logname), msg(message);
-    const TCHAR* strings[] = {log, msg};
+    const char* strings[] = {logname, message};
     WORD type = EVENTLOG_INFORMATION_TYPE;
     if (level == 0) type = EVENTLOG_ERROR_TYPE;
     if (!ReportEvent(eventlog, type, 0, VNC4LogMessage, NULL, 2, 0, strings, NULL)) {
@@ -291,7 +291,7 @@ protected:
 
 static Logger_EventLog* logger = 0;
 
-bool rfb::win32::initEventLogLogger(const TCHAR* srcname) {
+bool rfb::win32::initEventLogLogger(const char* srcname) {
   if (logger)
     return false;
   logger = new Logger_EventLog(srcname);
@@ -302,32 +302,32 @@ bool rfb::win32::initEventLogLogger(const TCHAR* srcname) {
 
 // -=- Registering and unregistering the service
 
-bool rfb::win32::registerService(const TCHAR* name,
-                                 const TCHAR* display,
-                                 const TCHAR* desc,
+bool rfb::win32::registerService(const char* name,
+                                 const char* display,
+                                 const char* desc,
                                  int argc, char** argv) {
 
   // - Initialise the default service parameters
-  const TCHAR* defaultcmdline;
-  defaultcmdline = _T("-service");
+  const char* defaultcmdline;
+  defaultcmdline = "-service";
 
   // - Get the full pathname of our executable
   ModuleFileName buffer;
 
   // - Calculate the command-line length
-  int cmdline_len = _tcslen(buffer.buf) + 4;
+  int cmdline_len = strlen(buffer.buf) + 4;
   int i;
   for (i=0; i<argc; i++) {
     cmdline_len += strlen(argv[i]) + 3;
   }
 
   // - Add the supplied extra parameters to the command line
-  TCharArray cmdline(cmdline_len+_tcslen(defaultcmdline));
-  _stprintf(cmdline.buf, _T("\"%s\" %s"), buffer.buf, defaultcmdline);
+  std::string cmdline;
+  cmdline = format("\"%s\" %s", buffer.buf, defaultcmdline);
   for (i=0; i<argc; i++) {
-    _tcscat(cmdline.buf, _T(" \""));
-    _tcscat(cmdline.buf, TStr(argv[i]));
-    _tcscat(cmdline.buf, _T("\""));
+    cmdline += " \"";
+    cmdline += argv[i];
+    cmdline += "\"";
   }
     
   // - Register the service
@@ -342,7 +342,7 @@ bool rfb::win32::registerService(const TCHAR* name,
     name, display, SC_MANAGER_ALL_ACCESS,
     SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
     SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
-    cmdline.buf, NULL, NULL, NULL, NULL, NULL);
+    cmdline.c_str(), NULL, NULL, NULL, NULL, NULL);
   if (!service)
     throw rdr::SystemException("unable to create service", GetLastError());
 
@@ -353,30 +353,30 @@ bool rfb::win32::registerService(const TCHAR* name,
   // - Register the event log source
   RegKey hk, hk2;
 
-  hk2.createKey(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"));
+  hk2.createKey(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application");
   hk.createKey(hk2, name);
 
-  for (i=_tcslen(buffer.buf); i>0; i--) {
-    if (buffer.buf[i] == _T('\\')) {
+  for (i=strlen(buffer.buf); i>0; i--) {
+    if (buffer.buf[i] == '\\') {
       buffer.buf[i+1] = 0;
       break;
     }
   }
 
-  const TCHAR* dllFilename = _T("logmessages.dll");
-  TCharArray dllPath(_tcslen(buffer.buf) + _tcslen(dllFilename) + 1);
-  _tcscpy(dllPath.buf, buffer.buf);
-  _tcscat(dllPath.buf, dllFilename);
+  const char* dllFilename = "logmessages.dll";
+  std::string dllPath;
+  dllPath = buffer.buf;
+  dllPath += dllFilename;
 
-  hk.setExpandString(_T("EventMessageFile"), dllPath.buf);
-  hk.setInt(_T("TypesSupported"), EVENTLOG_ERROR_TYPE | EVENTLOG_INFORMATION_TYPE);
+  hk.setExpandString("EventMessageFile", dllPath.c_str());
+  hk.setInt("TypesSupported", EVENTLOG_ERROR_TYPE | EVENTLOG_INFORMATION_TYPE);
 
   Sleep(500);
 
   return true;
 }
 
-bool rfb::win32::unregisterService(const TCHAR* name) {
+bool rfb::win32::unregisterService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
   if (!scm)
@@ -391,7 +391,7 @@ bool rfb::win32::unregisterService(const TCHAR* name) {
 
   // - Register the event log source
   RegKey hk;
-  hk.openKey(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"));
+  hk.openKey(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application");
   hk.deleteKey(name);
 
   Sleep(500);
@@ -402,7 +402,7 @@ bool rfb::win32::unregisterService(const TCHAR* name) {
 
 // -=- Starting and stopping the service
 
-bool rfb::win32::startService(const TCHAR* name) {
+bool rfb::win32::startService(const char* name) {
 
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
@@ -423,7 +423,7 @@ bool rfb::win32::startService(const TCHAR* name) {
   return true;
 }
 
-bool rfb::win32::stopService(const TCHAR* name) {
+bool rfb::win32::stopService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
   if (!scm)
@@ -444,7 +444,7 @@ bool rfb::win32::stopService(const TCHAR* name) {
   return true;
 }
 
-DWORD rfb::win32::getServiceState(const TCHAR* name) {
+DWORD rfb::win32::getServiceState(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
   if (!scm)
@@ -463,15 +463,15 @@ DWORD rfb::win32::getServiceState(const TCHAR* name) {
   return status.dwCurrentState;
 }
 
-char* rfb::win32::serviceStateName(DWORD state) {
+const char* rfb::win32::serviceStateName(DWORD state) {
   switch (state) {
-  case SERVICE_RUNNING: return strDup("Running");
-  case SERVICE_STOPPED: return strDup("Stopped");
-  case SERVICE_STOP_PENDING: return strDup("Stopping");
+  case SERVICE_RUNNING: return "Running";
+  case SERVICE_STOPPED: return "Stopped";
+  case SERVICE_STOP_PENDING: return "Stopping";
   };
-  CharArray tmp(32);
-  sprintf(tmp.buf, "Unknown (%lu)", state);
-  return tmp.takeBuf();
+  static char tmp[32];
+  sprintf(tmp, "Unknown (%lu)", state);
+  return tmp;
 }
 
 

@@ -61,18 +61,13 @@ Security::Security()
 
 Security::Security(StringParameter &secTypes)
 {
-  char *secTypesStr;
-
-  secTypesStr = secTypes.getData();
-  enabledSecTypes = parseSecTypes(secTypesStr);
-
-  delete [] secTypesStr;
+  enabledSecTypes = parseSecTypes(secTypes);
 }
 
-const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
+const std::list<uint8_t> Security::GetEnabledSecTypes(void)
 {
-  list<rdr::U8> result;
-  list<U32>::iterator i;
+  list<uint8_t> result;
+  list<uint32_t>::iterator i;
 
   /* Partial workaround for Vino's stupid behaviour. It doesn't allow
    * the basic authentication types as part of the VeNCrypt handshake,
@@ -93,10 +88,10 @@ const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
   return result;
 }
 
-const std::list<rdr::U32> Security::GetEnabledExtSecTypes(void)
+const std::list<uint32_t> Security::GetEnabledExtSecTypes(void)
 {
-  list<rdr::U32> result;
-  list<U32>::iterator i;
+  list<uint32_t> result;
+  list<uint32_t>::iterator i;
 
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i != secTypeVeNCrypt) /* Do not include VeNCrypt type to avoid loops */
@@ -105,9 +100,9 @@ const std::list<rdr::U32> Security::GetEnabledExtSecTypes(void)
   return result;
 }
 
-void Security::EnableSecType(U32 secType)
+void Security::EnableSecType(uint32_t secType)
 {
-  list<U32>::iterator i;
+  list<uint32_t>::iterator i;
 
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i == secType)
@@ -116,9 +111,9 @@ void Security::EnableSecType(U32 secType)
   enabledSecTypes.push_back(secType);
 }
 
-bool Security::IsSupported(U32 secType)
+bool Security::IsSupported(uint32_t secType)
 {
-  list<U32>::iterator i;
+  list<uint32_t>::iterator i;
 
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i == secType)
@@ -131,7 +126,7 @@ bool Security::IsSupported(U32 secType)
 
 char *Security::ToString(void)
 {
-  list<U32>::iterator i;
+  list<uint32_t>::iterator i;
   static char out[128]; /* Should be enough */
   bool firstpass = true;
   const char *name;
@@ -153,7 +148,7 @@ char *Security::ToString(void)
   return out;
 }
 
-rdr::U32 rfb::secTypeNum(const char* name)
+uint32_t rfb::secTypeNum(const char* name)
 {
   if (strcasecmp(name, "None") == 0)       return secTypeNone;
   if (strcasecmp(name, "VncAuth") == 0)    return secTypeVncAuth;
@@ -180,7 +175,7 @@ rdr::U32 rfb::secTypeNum(const char* name)
   return secTypeInvalid;
 }
 
-const char* rfb::secTypeName(rdr::U32 num)
+const char* rfb::secTypeName(uint32_t num)
 {
   switch (num) {
   case secTypeNone:       return "None";
@@ -208,13 +203,13 @@ const char* rfb::secTypeName(rdr::U32 num)
   }
 }
 
-std::list<rdr::U32> rfb::parseSecTypes(const char* types_)
+std::list<uint32_t> rfb::parseSecTypes(const char* types_)
 {
-  std::list<rdr::U32> result;
-  CharArray types(strDup(types_)), type;
-  while (types.buf) {
-    strSplit(types.buf, ',', &type.buf, &types.buf);
-    rdr::U32 typeNum = secTypeNum(type.buf);
+  std::list<uint32_t> result;
+  std::vector<std::string> types;
+  types = split(types_, ',');
+  for (size_t i = 0; i < types.size(); i++) {
+    uint32_t typeNum = secTypeNum(types[i].c_str());
     if (typeNum != secTypeInvalid)
       result.push_back(typeNum);
   }

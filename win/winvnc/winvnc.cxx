@@ -31,6 +31,7 @@
 #include <rfb/Logger_stdio.h>
 #include <rfb/Logger_file.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 #include <rfb_win32/AboutDialog.h>
 #include <rfb_win32/MsgBox.h>
 #include <network/TcpSocket.h>
@@ -41,7 +42,7 @@ using namespace win32;
 
 static LogWriter vlog("main");
 
-TStr rfb::win32::AppName("TigerVNC Server");
+const char* rfb::win32::AppName = "TigerVNC Server";
 
 
 extern bool runAsService;
@@ -56,12 +57,12 @@ static bool close_console = false;
 
 static void programInfo() {
   win32::FileVersionInfo inf;
-  _tprintf(_T("%s - %s, Version %s\n"),
-    inf.getVerString(_T("ProductName")),
-    inf.getVerString(_T("FileDescription")),
-    inf.getVerString(_T("FileVersion")));
+  printf("%s - %s, Version %s\n",
+    inf.getVerString("ProductName"),
+    inf.getVerString("FileDescription"),
+    inf.getVerString("FileVersion"));
   printf("%s\n", buildTime);
-  _tprintf(_T("%s\n\n"), inf.getVerString(_T("LegalCopyright")));
+  printf("%s\n\n", inf.getVerString("LegalCopyright"));
 }
 
 static void programUsage() {
@@ -87,7 +88,7 @@ static void programUsage() {
 
 static void MsgBoxOrLog(const char* msg, bool isError=false) {
   if (close_console) {
-    MsgBox(0, TStr(msg), (isError ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
+    MsgBox(0, msg, (isError ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
   } else {
     if (isError) {
       try {
@@ -106,30 +107,30 @@ static void processParams(int argc, char** argv) {
 
       if (strcasecmp(argv[i], "-connect") == 0) {
         runServer = false;
-        CharArray host;
+        const char *host = NULL;
         if (i+1 < argc) {
-          host.buf = strDup(argv[i+1]);
+          host = argv[i+1];
           i++;
         } else {
           AddNewClientDialog ancd;
           if (ancd.showDialog())
-            host.buf = strDup(ancd.getHostName());
+            host = ancd.getHostName();
         }
-        if (host.buf) {
-          HWND hwnd = FindWindow(0, _T("winvnc::IPC_Interface"));
+        if (host != NULL) {
+          HWND hwnd = FindWindow(0, "winvnc::IPC_Interface");
           if (!hwnd)
             throw rdr::Exception("Unable to locate existing VNC Server.");
           COPYDATASTRUCT copyData;
           copyData.dwData = 1; // *** AddNewClient
-          copyData.cbData = strlen(host.buf);
-          copyData.lpData = (void*)host.buf;
+          copyData.cbData = strlen(host);
+          copyData.lpData = (void*)host;
           printf("Sending connect request to VNC Server...\n");
           if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
             MsgBoxOrLog("Connection failed.", true);
         }
       } else if (strcasecmp(argv[i], "-disconnect") == 0) {
         runServer = false;
-        HWND hwnd = FindWindow(0, _T("winvnc::IPC_Interface"));
+        HWND hwnd = FindWindow(0, "winvnc::IPC_Interface");
         if (!hwnd)
           throw rdr::Exception("Unable to locate existing VNC Server.");
         COPYDATASTRUCT copyData;
@@ -152,12 +153,12 @@ static void processParams(int argc, char** argv) {
       } else if (strcasecmp(argv[i], "-status") == 0) {
         printf("Querying service status...\n");
         runServer = false;
-        CharArray result;
+        std::string result;
         DWORD state = rfb::win32::getServiceState(VNCServerService::Name);
-        result.format("The %s Service is in the %s state.",
-                      (const char*)CStr(VNCServerService::Name),
-                      rfb::win32::serviceStateName(state));
-        MsgBoxOrLog(result.buf);
+        result = format("The %s Service is in the %s state.",
+                        VNCServerService::Name,
+                        rfb::win32::serviceStateName(state));
+        MsgBoxOrLog(result.c_str());
       } else if (strcasecmp(argv[i], "-service") == 0) {
         printf("Run in service mode\n");
         runServer = false;
@@ -186,8 +187,8 @@ static void processParams(int argc, char** argv) {
         }
 
         if (rfb::win32::registerService(VNCServerService::Name,
-                                        _T("TigerVNC Server"),
-                                        _T("Provides remote access to this machine via the VNC/RFB protocol."),
+                                        "TigerVNC Server",
+                                        "Provides remote access to this machine via the VNC/RFB protocol.",
                                         argc-(j+1), &argv[j+1]))
           MsgBoxOrLog("Registered service successfully");
       } else if (strcasecmp(argv[i], "-unregister") == 0) {

@@ -33,7 +33,7 @@ namespace rfb {
 
   class SSecurityRSAAES : public SSecurity {
   public:
-    SSecurityRSAAES(SConnection* sc, rdr::U32 secType,
+    SSecurityRSAAES(SConnection* sc, uint32_t secType,
                     int keySize, bool isAllEncrypted);
     virtual ~SSecurityRSAAES();
     virtual bool processMsg();
@@ -50,8 +50,8 @@ namespace rfb {
   private:
     void cleanup();
     void loadPrivateKey();
-    void loadPKCS1Key(const rdr::U8* data, size_t size);
-    void loadPKCS8Key(const rdr::U8* data, size_t size);
+    void loadPKCS1Key(const uint8_t* data, size_t size);
+    void loadPKCS8Key(const uint8_t* data, size_t size);
     void writePublicKey();
     bool readPublicKey();
     void writeRandom();
@@ -68,20 +68,20 @@ namespace rfb {
     int state;
     int keySize;
     bool isAllEncrypted;
-    rdr::U32 secType;
+    uint32_t secType;
     struct rsa_private_key serverKey;
     struct rsa_public_key clientKey;
-    rdr::U32 serverKeyLength;
-    rdr::U8* serverKeyN;
-    rdr::U8* serverKeyE;
-    rdr::U32 clientKeyLength;
-    rdr::U8* clientKeyN;
-    rdr::U8* clientKeyE;
-    rdr::U8 serverRandom[32];
-    rdr::U8 clientRandom[32];
+    uint32_t serverKeyLength;
+    uint8_t* serverKeyN;
+    uint8_t* serverKeyE;
+    uint32_t clientKeyLength;
+    uint8_t* clientKeyN;
+    uint8_t* clientKeyE;
+    uint8_t serverRandom[32];
+    uint8_t clientRandom[32];
 
-    CharArray username;
-    CharArray password;
+    char username[256];
+    char password[256];
     SConnection::AccessRights accessRights;
 
     rdr::InStream* rais;

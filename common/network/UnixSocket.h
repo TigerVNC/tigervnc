@@ -38,8 +38,8 @@ namespace network {
     UnixSocket(int sock);
     UnixSocket(const char *name);
 
-    virtual char* getPeerAddress();
-    virtual char* getPeerEndpoint();
+    virtual const char* getPeerAddress();
+    virtual const char* getPeerEndpoint();
   };
 
   class UnixListener : public SocketListener {

@@ -26,7 +26,6 @@
 #include <windows.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
-#include <rfb_win32/TCharArray.h>
 
 namespace rfb {
 
@@ -50,7 +49,7 @@ namespace rfb {
     // -=- DeviceContext that opens a specific display device
     class DeviceDC : public DeviceContext {
     public:
-      DeviceDC(const TCHAR* deviceName);
+      DeviceDC(const char* deviceName);
       ~DeviceDC();
     };
 

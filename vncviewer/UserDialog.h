@@ -31,7 +31,8 @@ public:
 
   // UserPasswdGetter callbacks
 
-  void getUserPasswd(bool secure, char** user, char** password);
+  void getUserPasswd(bool secure, std::string* user,
+                     std::string* password);
 
   // UserMsgBox callbacks
 

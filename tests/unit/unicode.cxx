@@ -21,6 +21,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <wchar.h>
 
 #include <rfb/util.h>
@@ -93,8 +94,8 @@ int main(int /*argc*/, char** /*argv*/)
     unsigned ucs4;
     char utf8[5];
     wchar_t utf16[3];
-    char *out;
-    wchar_t *wout;
+    std::string out;
+    std::wstring wout;
     size_t len;
 
     failures = 0;
@@ -157,20 +158,18 @@ int main(int /*argc*/, char** /*argv*/)
             continue;
 
         out = rfb::latin1ToUTF8(latin1utf8[i].latin1);
-        if (strcmp(out, latin1utf8[i].utf8) != 0) {
+        if (out != latin1utf8[i].utf8) {
             printf("FAILED: latin1ToUTF8() #%d\n", (int)i+1);
             failures++;
         }
-        rfb::strFree(out);
     }
 
     for (i = 0;i < ARRAY_SIZE(latin1utf8);i++) {
         out = rfb::utf8ToLatin1(latin1utf8[i].utf8);
-        if (strcmp(out, latin1utf8[i].latin1) != 0) {
+        if (out != latin1utf8[i].latin1) {
             printf("FAILED: utf8ToLatin1() #%d\n", (int)i+1);
             failures++;
         }
-        rfb::strFree(out);
     }
 
     for (i = 0;i < ARRAY_SIZE(utf8utf16);i++) {
@@ -179,11 +178,10 @@ int main(int /*argc*/, char** /*argv*/)
             continue;
 
         out = rfb::utf16ToUTF8(utf8utf16[i].utf16);
-        if (strcmp(out, utf8utf16[i].utf8) != 0) {
+        if (out != utf8utf16[i].utf8) {
             printf("FAILED: utf16ToUTF8() #%d\n", (int)i+1);
             failures++;
         }
-        rfb::strFree(out);
     }
 
     for (i = 0;i < ARRAY_SIZE(utf8utf16);i++) {
@@ -192,11 +190,10 @@ int main(int /*argc*/, char** /*argv*/)
             continue;
 
         wout = rfb::utf8ToUTF16(utf8utf16[i].utf8);
-        if (wcscmp(wout, utf8utf16[i].utf16) != 0) {
+        if (wout != utf8utf16[i].utf16) {
             printf("FAILED: utf8ToUTF16() #%d\n", (int)i+1);
             failures++;
         }
-        rfb::strFree(wout);
     }
 
     if (failures == 0) {

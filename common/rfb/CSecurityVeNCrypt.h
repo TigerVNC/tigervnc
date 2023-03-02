@@ -25,9 +25,10 @@
 #ifndef __CSECURITYVENCRYPT_H__
 #define __CSECURITYVENCRYPT_H__
 
+#include <stdint.h>
+
 #include <rfb/CSecurity.h>
 #include <rfb/SecurityClient.h>
-#include <rdr/types.h>
 
 namespace rfb {
 
@@ -50,10 +51,10 @@ namespace rfb {
     bool haveListOfTypes;
     bool haveNumberOfTypes;
     bool haveChosenType;
-    rdr::U8 majorVersion, minorVersion;
-    rdr::U32 chosenType;
-    rdr::U8 nAvailableTypes;
-    rdr::U32 *availableTypes;
+    uint8_t majorVersion, minorVersion;
+    uint32_t chosenType;
+    uint8_t nAvailableTypes;
+    uint32_t *availableTypes;
   };
 }
 #endif

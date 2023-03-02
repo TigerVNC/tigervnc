@@ -49,8 +49,8 @@ namespace network {
     void cork(bool enable) { outstream->cork(enable); }
 
     // information about the remote end of the socket
-    virtual char* getPeerAddress() = 0; // a string e.g. "192.168.0.1"
-    virtual char* getPeerEndpoint() = 0; // <address>::<port>
+    virtual const char* getPeerAddress() = 0; // a string e.g. "192.168.0.1"
+    virtual const char* getPeerEndpoint() = 0; // <address>::<port>
 
     // Was there a "?" in the ConnectionFilter used to accept this Socket?
     void setRequiresQuery();

@@ -21,6 +21,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 
 #include <os/Mutex.h>
 
@@ -72,10 +73,10 @@ void KeyRemapper::setMapping(const char* m) {
   }
 }
 
-rdr::U32 KeyRemapper::remapKey(rdr::U32 key) const {
+uint32_t KeyRemapper::remapKey(uint32_t key) const {
   os::AutoMutex a(mutex);
 
-  std::map<rdr::U32,rdr::U32>::const_iterator i = mapping.find(key);
+  std::map<uint32_t,uint32_t>::const_iterator i = mapping.find(key);
   if (i != mapping.end())
     return i->second;
   return key;
@@ -86,7 +87,7 @@ class KeyMapParameter : public StringParameter {
 public:
   KeyMapParameter()
     : StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
-    setParam(value);
+    KeyRemapper::defInstance.setMapping("");
   }
   bool setParam(const char* v) {
     KeyRemapper::defInstance.setMapping(v);

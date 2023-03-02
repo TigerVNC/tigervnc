@@ -56,6 +56,7 @@
 #include <stdlib.h>
 
 #include <rfb/ComparingUpdateTracker.h>
+#include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -65,7 +66,6 @@
 #include <rfb/util.h>
 #include <rfb/ledStates.h>
 
-#include <rdr/types.h>
 
 using namespace rfb;
 
@@ -81,14 +81,14 @@ static LogWriter connectionsLog("Connections");
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
     blockCounter(0), pb(0), ledState(ledUnknown),
-    name(strDup(name_)), pointerClient(0), clipboardClient(0),
+    name(name_), pointerClient(0), clipboardClient(0),
     comparer(0), cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
     frameTimer(this)
 {
-  slog.debug("creating single-threaded server %s", name.buf);
+  slog.debug("creating single-threaded server %s", name.c_str());
 
   // FIXME: Do we really want to kick off these right away?
   if (rfb::Server::maxIdleTime)
@@ -99,7 +99,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
 
 VNCServerST::~VNCServerST()
 {
-  slog.debug("shutting down server %s", name.buf);
+  slog.debug("shutting down server %s", name.c_str());
 
   // Close any active clients, with appropriate logging & cleanup
   closeClients("Server shutdown");
@@ -132,9 +132,9 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
 {
   // - Check the connection isn't black-marked
   // *** do this in getSecurity instead?
-  CharArray address(sock->getPeerAddress());
-  if (blHosts->isBlackmarked(address.buf)) {
-    connectionsLog.error("blacklisted: %s", address.buf);
+  const char *address = sock->getPeerAddress();
+  if (blHosts->isBlackmarked(address)) {
+    connectionsLog.error("blacklisted: %s", address);
     try {
       rdr::OutStream& os = sock->outStream();
 
@@ -152,9 +152,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
     return;
   }
 
-  CharArray name;
-  name.buf = sock->getPeerEndpoint();
-  connectionsLog.status("accepted: %s", name.buf);
+  connectionsLog.status("accepted: %s", sock->getPeerEndpoint());
 
   // Adjust the exit timers
   if (rfb::Server::maxConnectionTime && clients.empty())
@@ -178,14 +176,14 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
 
-      CharArray name(strDup((*ci)->getPeerEndpoint()));
+      std::string name((*ci)->getPeerEndpoint());
 
       // - Delete the per-Socket resources
       delete *ci;
 
       clients.remove(*ci);
 
-      connectionsLog.status("closed: %s", name.buf);
+      connectionsLog.status("closed: %s", name.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
@@ -389,7 +387,7 @@ void VNCServerST::bell()
 
 void VNCServerST::setName(const char* name_)
 {
-  name.replaceBuf(strDup(name_));
+  name = name_;
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
@@ -416,7 +414,7 @@ void VNCServerST::add_copied(const Region& dest, const Point& delta)
 }
 
 void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
-                            const rdr::U8* data)
+                            const uint8_t* data)
 {
   delete cursor;
   cursor = new Cursor(width, height, newHotspot, data);
@@ -434,7 +432,7 @@ void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
 
 void VNCServerST::setCursorPos(const Point& pos, bool warped)
 {
-  if (!cursorPos.equals(pos)) {
+  if (cursorPos != pos) {
     cursorPos = pos;
     renderedCursorInvalid = true;
     std::list<VNCSConnectionST*>::iterator ci;
@@ -463,14 +461,14 @@ void VNCServerST::setLEDState(unsigned int state)
 
 // Event handlers
 
-void VNCServerST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
+void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
   if (rfb::Server::maxIdleTime)
     idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Remap the key if required
   if (keyRemapper) {
-    rdr::U32 newkey;
+    uint32_t newkey;
     newkey = keyRemapper->remapKey(keysym);
     if (newkey != keysym) {
       slog.debug("Key remapped to 0x%x", newkey);
@@ -652,9 +650,7 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
                                   const char* userName)
 {
   // - Authentication succeeded - clear from blacklist
-  CharArray name;
-  name.buf = client->getSock()->getPeerAddress();
-  blHosts->clearBlackmark(name.buf);
+  blHosts->clearBlackmark(client->getSock()->getPeerAddress());
 
   // - Prepare the desktop for that the client will start requiring
   // resources after this

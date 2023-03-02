@@ -50,38 +50,34 @@ static const char* escape(const char* input)
 
 static void testLF(const char* input, const char* expected)
 {
-    char* output;
+    std::string output;
 
     printf("convertLF(\"%s\"): ", escape(input));
 
     output = rfb::convertLF(input);
 
-    if (strcmp(output, expected) != 0)
-        printf("FAILED: got \"%s\"", escape(output));
+    if (output != expected)
+        printf("FAILED: got \"%s\"", escape(output.c_str()));
     else
         printf("OK");
     printf("\n");
     fflush(stdout);
-
-    rfb::strFree(output);
 }
 
 static void testCRLF(const char* input, const char* expected)
 {
-    char* output;
+    std::string output;
 
     printf("convertCRLF(\"%s\"): ", escape(input));
 
     output = rfb::convertCRLF(input);
 
-    if (strcmp(output, expected) != 0)
-        printf("FAILED: got \"%s\"", escape(output));
+    if (output != expected)
+        printf("FAILED: got \"%s\"", escape(output.c_str()));
     else
         printf("OK");
     printf("\n");
     fflush(stdout);
-
-    rfb::strFree(output);
 }
 
 int main(int /*argc*/, char** /*argv*/)

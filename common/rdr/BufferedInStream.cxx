@@ -34,7 +34,7 @@ static const size_t MAX_BUF_SIZE = 32 * 1024 * 1024;
 BufferedInStream::BufferedInStream()
   : bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
-  ptr = end = start = new U8[bufSize];
+  ptr = end = start = new uint8_t[bufSize];
   gettimeofday(&lastSizeCheck, NULL);
   peakUsage = 0;
 }
@@ -60,7 +60,7 @@ void BufferedInStream::ensureSpace(size_t needed)
 
   if (needed > bufSize) {
     size_t newSize;
-    U8* newBuffer;
+    uint8_t* newBuffer;
 
     if (needed > MAX_BUF_SIZE)
       throw Exception("BufferedInStream overrun: requested size of "
@@ -71,7 +71,7 @@ void BufferedInStream::ensureSpace(size_t needed)
     while (newSize < needed)
       newSize *= 2;
 
-    newBuffer = new U8[newSize];
+    newBuffer = new uint8_t[newSize];
     memcpy(newBuffer, ptr, end - ptr);
     delete [] start;
     bufSize = newSize;
@@ -101,7 +101,7 @@ void BufferedInStream::ensureSpace(size_t needed)
 
       // We know the buffer is empty, so just reset everything
       delete [] start;
-      ptr = end = start = new U8[newSize];
+      ptr = end = start = new uint8_t[newSize];
       bufSize = newSize;
     }
 

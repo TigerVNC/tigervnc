@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014-2018 Pierre Ossman for Cendio AB
+ * Copyright 2014-2022 Pierre Ossman for Cendio AB
  * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
@@ -33,6 +33,7 @@
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
+#include <rfb/util.h>
 
 #include <rfb/RawEncoder.h>
 #include <rfb/RREEncoder.h>
@@ -177,8 +178,6 @@ void EncodeManager::logStats()
 
   double ratio;
 
-  char a[1024], b[1024];
-
   rects = 0;
   pixels = bytes = equivalent = 0;
 
@@ -194,13 +193,12 @@ void EncodeManager::logStats()
 
     ratio = (double)copyStats.equivalent / copyStats.bytes;
 
-    siPrefix(copyStats.rects, "rects", a, sizeof(a));
-    siPrefix(copyStats.pixels, "pixels", b, sizeof(b));
-    vlog.info("    %s: %s, %s", "Copies", a, b);
-    iecPrefix(copyStats.bytes, "B", a, sizeof(a));
+    vlog.info("    %s: %s, %s", "Copies",
+              siPrefix(copyStats.rects, "rects").c_str(),
+              siPrefix(copyStats.pixels, "pixels").c_str());
     vlog.info("    %*s  %s (1:%g ratio)",
               (int)strlen("Copies"), "",
-              a, ratio);
+              iecPrefix(copyStats.bytes, "B").c_str(), ratio);
   }
 
   for (i = 0;i < stats.size();i++) {
@@ -225,23 +223,22 @@ void EncodeManager::logStats()
 
       ratio = (double)stats[i][j].equivalent / stats[i][j].bytes;
 
-      siPrefix(stats[i][j].rects, "rects", a, sizeof(a));
-      siPrefix(stats[i][j].pixels, "pixels", b, sizeof(b));
-      vlog.info("    %s: %s, %s", encoderTypeName((EncoderType)j), a, b);
-      iecPrefix(stats[i][j].bytes, "B", a, sizeof(a));
+      vlog.info("    %s: %s, %s", encoderTypeName((EncoderType)j),
+                siPrefix(stats[i][j].rects, "rects").c_str(),
+                siPrefix(stats[i][j].pixels, "pixels").c_str());
       vlog.info("    %*s  %s (1:%g ratio)",
                 (int)strlen(encoderTypeName((EncoderType)j)), "",
-                a, ratio);
+                iecPrefix(stats[i][j].bytes, "B").c_str(), ratio);
     }
   }
 
   ratio = (double)equivalent / bytes;
 
-  siPrefix(rects, "rects", a, sizeof(a));
-  siPrefix(pixels, "pixels", b, sizeof(b));
-  vlog.info("  Total: %s, %s", a, b);
-  iecPrefix(bytes, "B", a, sizeof(a));
-  vlog.info("         %s (1:%g ratio)", a, ratio);
+  vlog.info("  Total: %s, %s",
+            siPrefix(rects, "rects").c_str(),
+            siPrefix(pixels, "pixels").c_str());
+  vlog.info("         %s (1:%g ratio)",
+            iecPrefix(bytes, "B").c_str(), ratio);
 }
 
 bool EncodeManager::supported(int encoding)
@@ -377,7 +374,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
 
   bool allowJPEG;
 
-  rdr::S32 preferred;
+  int32_t preferred;
 
   std::vector<int>::iterator iter;
 
@@ -678,8 +675,8 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
 
     for (dx = rect.tl.x; dx < rect.br.x; dx += SolidSearchBlock) {
       // We define it like this to guarantee alignment
-      rdr::U32 _buffer;
-      rdr::U8* colourValue = (rdr::U8*)&_buffer;
+      uint32_t _buffer;
+      uint8_t* colourValue = (uint8_t*)&_buffer;
 
       dw = SolidSearchBlock;
       if (dx + dw > rect.br.x)
@@ -700,7 +697,7 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
         extendSolidAreaByBlock(sr, colourValue, pb, &erb);
 
         // Did we end up getting the entire rectangle?
-        if (erb.equals(rect))
+        if (erb == rect)
           erp = erb;
         else {
           // Don't bother with sending tiny rectangles
@@ -718,8 +715,8 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
           encoder->writeSolidRect(erp.width(), erp.height(),
                                   pb->getPF(), colourValue);
         } else {
-          rdr::U32 _buffer2;
-          rdr::U8* converted = (rdr::U8*)&_buffer2;
+          uint32_t _buffer2;
+          uint8_t* converted = (uint8_t*)&_buffer2;
 
           conn->client.pf().bufferFromBuffer(converted, pb->getPF(),
                                          colourValue, 1);
@@ -886,21 +883,21 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
   endRect();
 }
 
-bool EncodeManager::checkSolidTile(const Rect& r, const rdr::U8* colourValue,
+bool EncodeManager::checkSolidTile(const Rect& r, const uint8_t* colourValue,
                                    const PixelBuffer *pb)
 {
   switch (pb->getPF().bpp) {
   case 32:
-    return checkSolidTile(r, *(const rdr::U32*)colourValue, pb);
+    return checkSolidTile(r, *(const uint32_t*)colourValue, pb);
   case 16:
-    return checkSolidTile(r, *(const rdr::U16*)colourValue, pb);
+    return checkSolidTile(r, *(const uint16_t*)colourValue, pb);
   default:
-    return checkSolidTile(r, *(const rdr::U8*)colourValue, pb);
+    return checkSolidTile(r, *(const uint8_t*)colourValue, pb);
   }
 }
 
 void EncodeManager::extendSolidAreaByBlock(const Rect& r,
-                                           const rdr::U8* colourValue,
+                                           const uint8_t* colourValue,
                                            const PixelBuffer *pb, Rect* er)
 {
   int dx, dy, dw, dh;
@@ -956,7 +953,7 @@ void EncodeManager::extendSolidAreaByBlock(const Rect& r,
 }
 
 void EncodeManager::extendSolidAreaByPixel(const Rect& r, const Rect& sr,
-                                           const rdr::U8* colourValue,
+                                           const uint8_t* colourValue,
                                            const PixelBuffer *pb, Rect* er)
 {
   int cx, cy;
@@ -999,11 +996,11 @@ PixelBuffer* EncodeManager::preparePixelBuffer(const Rect& rect,
                                                const PixelBuffer *pb,
                                                bool convert)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   // Do wo need to convert the data?
-  if (convert && !conn->client.pf().equal(pb->getPF())) {
+  if (convert && conn->client.pf() != pb->getPF()) {
     convertedPixelBuffer.setPF(conn->client.pf());
     convertedPixelBuffer.setSize(rect.width(), rect.height());
 
@@ -1029,7 +1026,7 @@ PixelBuffer* EncodeManager::preparePixelBuffer(const Rect& rect,
 bool EncodeManager::analyseRect(const PixelBuffer *pb,
                                 struct RectInfo *info, int maxColours)
 {
-  const rdr::U8* buffer;
+  const uint8_t* buffer;
   int stride;
 
   buffer = pb->getBuffer(pb->getRect(), &stride);
@@ -1037,42 +1034,106 @@ bool EncodeManager::analyseRect(const PixelBuffer *pb,
   switch (pb->getPF().bpp) {
   case 32:
     return analyseRect(pb->width(), pb->height(),
-                       (const rdr::U32*)buffer, stride,
+                       (const uint32_t*)buffer, stride,
                        info, maxColours);
   case 16:
     return analyseRect(pb->width(), pb->height(),
-                       (const rdr::U16*)buffer, stride,
+                       (const uint16_t*)buffer, stride,
                        info, maxColours);
   default:
     return analyseRect(pb->width(), pb->height(),
-                       (const rdr::U8*)buffer, stride,
+                       (const uint8_t*)buffer, stride,
                        info, maxColours);
   }
 }
 
 void EncodeManager::OffsetPixelBuffer::update(const PixelFormat& pf,
                                               int width, int height,
-                                              const rdr::U8* data_,
+                                              const uint8_t* data_,
                                               int stride_)
 {
   format = pf;
   // Forced cast. We never write anything though, so it should be safe.
-  setBuffer(width, height, (rdr::U8*)data_, stride_);
+  setBuffer(width, height, (uint8_t*)data_, stride_);
 }
 
-rdr::U8* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /*stride*/)
+uint8_t* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /*stride*/)
 {
   throw rfb::Exception("Invalid write attempt to OffsetPixelBuffer");
 }
 
-// Preprocessor generated, optimised methods
+template<class T>
+inline bool EncodeManager::checkSolidTile(const Rect& r,
+                                          const T colourValue,
+                                          const PixelBuffer *pb)
+{
+  int w, h;
+  const T* buffer;
+  int stride, pad;
 
-#define BPP 8
-#include "EncodeManagerBPP.cxx"
-#undef BPP
-#define BPP 16
-#include "EncodeManagerBPP.cxx"
-#undef BPP
-#define BPP 32
-#include "EncodeManagerBPP.cxx"
-#undef BPP
+  w = r.width();
+  h = r.height();
+
+  buffer = (const T*)pb->getBuffer(r, &stride);
+  pad = stride - w;
+
+  while (h--) {
+    int w_ = w;
+    while (w_--) {
+      if (*buffer != colourValue)
+        return false;
+      buffer++;
+    }
+    buffer += pad;
+  }
+
+  return true;
+}
+
+template<class T>
+inline bool EncodeManager::analyseRect(int width, int height,
+                                       const T* buffer, int stride,
+                                       struct RectInfo *info, int maxColours)
+{
+  int pad;
+
+  T colour;
+  int count;
+
+  info->rleRuns = 0;
+  info->palette.clear();
+
+  pad = stride - width;
+
+  // For efficiency, we only update the palette on changes in colour
+  colour = buffer[0];
+  count = 0;
+  while (height--) {
+    int w_ = width;
+    while (w_--) {
+      if (*buffer != colour) {
+        if (!info->palette.insert(colour, count))
+          return false;
+        if (info->palette.size() > maxColours)
+          return false;
+
+        // FIXME: This doesn't account for switching lines
+        info->rleRuns++;
+
+        colour = *buffer;
+        count = 0;
+      }
+      buffer++;
+      count++;
+    }
+    buffer += pad;
+  }
+
+  // Make sure the final pixels also get counted
+  if (!info->palette.insert(colour, count))
+    return false;
+  if (info->palette.size() > maxColours)
+    return false;
+
+  return true;
+}

@@ -20,18 +20,18 @@
 #define __RFB_WIN32_COMPUTERNAME_H__
 
 #include <windows.h>
-#include <rfb_win32/TCharArray.h>
 
 namespace rfb {
   namespace win32 {
 
     // Get the computer name
-    struct ComputerName : TCharArray {
-      ComputerName() : TCharArray(MAX_COMPUTERNAME_LENGTH+1) {
+    struct ComputerName {
+      ComputerName() {
         ULONG namelength = MAX_COMPUTERNAME_LENGTH+1;
         if (!GetComputerName(buf, &namelength))
-          _tcscpy(buf, _T(""));
+          strcpy(buf, "");
       }
+      char buf[MAX_COMPUTERNAME_LENGTH+1];
     };
 
   };
