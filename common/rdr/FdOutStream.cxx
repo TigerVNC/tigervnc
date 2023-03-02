@@ -78,7 +78,7 @@ void FdOutStream::cork(bool enable)
 
 bool FdOutStream::flushBuffer()
 {
-  size_t n = writeFd((const void*) sentUpTo, ptr - sentUpTo);
+  size_t n = writeFd(sentUpTo, ptr - sentUpTo);
   if (n == 0)
     return false;
 
@@ -96,7 +96,7 @@ bool FdOutStream::flushBuffer()
 // returning EINTR.
 //
 
-size_t FdOutStream::writeFd(const void* data, size_t length)
+size_t FdOutStream::writeFd(const uint8_t* data, size_t length)
 {
   int n;
 

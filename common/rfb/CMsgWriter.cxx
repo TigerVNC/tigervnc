@@ -130,7 +130,7 @@ void CMsgWriter::writeEnableContinuousUpdates(bool enable,
   endMsg();
 }
 
-void CMsgWriter::writeFence(uint32_t flags, unsigned len, const char data[])
+void CMsgWriter::writeFence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   if (!server->supportsFence)
     throw Exception("Server does not support fences");
@@ -200,7 +200,7 @@ void CMsgWriter::writeClientCutText(const char* str)
   startMsg(msgTypeClientCutText);
   os->pad(3);
   os->writeU32(len);
-  os->writeBytes(str, len);
+  os->writeBytes((const uint8_t*)str, len);
   endMsg();
 }
 

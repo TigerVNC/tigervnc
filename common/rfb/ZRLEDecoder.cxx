@@ -99,7 +99,7 @@ bool ZRLEDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
   return true;
 }
 
-void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
+void ZRLEDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
                              size_t buflen, const ServerParams& server,
                              ModifiablePixelBuffer* pb)
 {
@@ -185,7 +185,7 @@ void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
                 *ptr = readOpaque24B(zis);
             }
           } else {
-            zis->readBytes(buf, t.area() * sizeof(T));
+            zis->readBytes((uint8_t*)buf, t.area() * sizeof(T));
           }
 
         } else {

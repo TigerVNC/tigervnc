@@ -130,7 +130,7 @@ void CSecurityDH::writeCredentials()
   struct aes128_ctx aesCtx;
   aes128_set_encrypt_key(&aesCtx, key);
 
-  char buf[128];
+  uint8_t buf[128];
   if (!rs.hasData(128))
     throw ConnFailedException("failed to generate random padding");
   rs.readBytes(buf, 128);
@@ -140,7 +140,7 @@ void CSecurityDH::writeCredentials()
   if (password.size() >= 64)
     throw AuthFailureException("password is too long");
   memcpy(buf + 64, password.c_str(), password.size() + 1);
-  aes128_encrypt(&aesCtx, 128, (uint8_t *)buf, (uint8_t *)buf);
+  aes128_encrypt(&aesCtx, 128, buf, buf);
 
   rdr::OutStream* os = cc->getOutStream();
   os->writeBytes(buf, 128);

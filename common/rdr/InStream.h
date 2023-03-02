@@ -145,7 +145,7 @@ namespace rdr {
 
     // readBytes() reads an exact number of bytes.
 
-    void readBytes(void* data, size_t length) {
+    void readBytes(uint8_t* data, size_t length) {
       check(length);
       memcpy(data, ptr, length);
       ptr += length;

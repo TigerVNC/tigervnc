@@ -49,7 +49,7 @@ bool CopyRectDecoder::readRect(const Rect& /*r*/,
 
 
 void CopyRectDecoder::getAffectedRegion(const Rect& rect,
-                                        const void* buffer,
+                                        const uint8_t* buffer,
                                         size_t buflen,
                                         const ServerParams& server,
                                         Region* region)
@@ -64,7 +64,7 @@ void CopyRectDecoder::getAffectedRegion(const Rect& rect,
                                                    srcY-rect.tl.y))));
 }
 
-void CopyRectDecoder::decodeRect(const Rect& r, const void* buffer,
+void CopyRectDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
                                  size_t buflen,
                                  const ServerParams& /*server*/,
                                  ModifiablePixelBuffer* pb)

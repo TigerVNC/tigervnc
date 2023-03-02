@@ -229,7 +229,7 @@ bool SMsgReader::readFence()
 {
   uint32_t flags;
   uint8_t len;
-  char data[64];
+  uint8_t data[64];
 
   if (!is->hasData(3 + 4 + 1))
     return false;
@@ -315,7 +315,7 @@ bool SMsgReader::readClientCutText()
   }
 
   std::vector<char> ca(len);
-  is->readBytes(ca.data(), len);
+  is->readBytes((uint8_t*)ca.data(), len);
   std::string filtered(convertLF(ca.data(), len));
   handler->clientCutText(filtered.c_str());
 

@@ -53,7 +53,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
     if (in->avail() < size)
       size = in->avail();
   
-    in->readBytes(data, size);
+    in->readBytes((uint8_t*)data, size);
   } catch (EndOfStream&) {
     return 0;
   } catch (SystemException &e) {

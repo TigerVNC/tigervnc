@@ -70,7 +70,7 @@ void CMsgHandler::setName(const char* name)
 }
 
 void CMsgHandler::fence(uint32_t /*flags*/, unsigned /*len*/,
-                        const char /*data*/ [])
+                        const uint8_t /*data*/ [])
 {
   server.supportsFence = true;
 }

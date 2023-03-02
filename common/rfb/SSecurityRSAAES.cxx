@@ -539,12 +539,12 @@ bool SSecurityRSAAES::readCredentials()
   uint8_t lenUsername = rais->readU8();
   if (!rais->hasDataOrRestore(lenUsername + 1))
     return false;
-  rais->readBytes(username, lenUsername);
+  rais->readBytes((uint8_t*)username, lenUsername);
   username[lenUsername] = 0;
   uint8_t lenPassword = rais->readU8();
   if (!rais->hasDataOrRestore(lenPassword))
     return false;
-  rais->readBytes(password, lenPassword);
+  rais->readBytes((uint8_t*)password, lenPassword);
   password[lenPassword] = 0;
   rais->clearRestorePoint();
   return true;

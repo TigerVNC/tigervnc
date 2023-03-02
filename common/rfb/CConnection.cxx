@@ -163,7 +163,7 @@ bool CConnection::processVersionMsg()
   if (!is->hasData(12))
     return false;
 
-  is->readBytes(verStr, 12);
+  is->readBytes((uint8_t*)verStr, 12);
   verStr[12] = '\0';
 
   if (sscanf(verStr, "RFB %03d.%03d\n",
@@ -192,7 +192,7 @@ bool CConnection::processVersionMsg()
 
   sprintf(verStr, "RFB %03d.%03d\n",
           server.majorVersion, server.minorVersion);
-  os->writeBytes(verStr, 12);
+  os->writeBytes((const uint8_t*)verStr, 12);
   os->flush();
 
   state_ = RFBSTATE_SECURITY_TYPES;
@@ -361,7 +361,7 @@ bool CConnection::processSecurityReasonMsg()
   is->clearRestorePoint();
 
   std::vector<char> reason(len + 1);
-  is->readBytes(reason.data(), len);
+  is->readBytes((uint8_t*)reason.data(), len);
   reason[len] = '\0';
 
   state_ = RFBSTATE_INVALID;
@@ -747,7 +747,7 @@ void CConnection::setPF(const PixelFormat& pf)
   formatChange = true;
 }
 
-void CConnection::fence(uint32_t flags, unsigned len, const char data[])
+void CConnection::fence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   CMsgHandler::fence(flags, len, data);
 

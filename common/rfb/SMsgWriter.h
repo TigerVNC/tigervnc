@@ -68,7 +68,7 @@ namespace rfb {
                                const uint8_t* const* data);
 
     // writeFence() sends a new fence request or response to the client.
-    void writeFence(uint32_t flags, unsigned len, const char data[]);
+    void writeFence(uint32_t flags, unsigned len, const uint8_t data[]);
 
     // writeEndOfContinuousUpdates() indicates that we have left continuous
     // updates mode.
@@ -135,10 +135,10 @@ namespace rfb {
     void writeSetDesktopNameRect(const char *name);
     void writeSetCursorRect(int width, int height,
                             int hotspotX, int hotspotY,
-                            const void* data, const void* mask);
+                            const uint8_t* data, const uint8_t* mask);
     void writeSetXCursorRect(int width, int height,
                              int hotspotX, int hotspotY,
-                             const void* data, const void* mask);
+                             const uint8_t* data, const uint8_t* mask);
     void writeSetCursorWithAlphaRect(int width, int height,
                                      int hotspotX, int hotspotY,
                                      const uint8_t* data);

@@ -74,7 +74,7 @@ bool CMsgReader::readServerInit()
     return false;
   is->clearRestorePoint();
   std::vector<char> name(len + 1);
-  is->readBytes(name.data(), len);
+  is->readBytes((uint8_t*)name.data(), len);
   name[len] = '\0';
   handler->serverInit(width, height, pf, name.data());
 
@@ -276,7 +276,7 @@ bool CMsgReader::readServerCutText()
     return true;
   }
   std::vector<char> ca(len);
-  is->readBytes(ca.data(), len);
+  is->readBytes((uint8_t*)ca.data(), len);
   std::string filtered(convertLF(ca.data(), len));
   handler->serverCutText(filtered.c_str());
 
@@ -409,7 +409,7 @@ bool CMsgReader::readFence()
 {
   uint32_t flags;
   uint8_t len;
-  char data[64];
+  uint8_t data[64];
 
   if (!is->hasData(3 + 4 + 1))
     return false;
@@ -763,7 +763,7 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
   is->clearRestorePoint();
 
   std::vector<char> name(len + 1);
-  is->readBytes(name.data(), len);
+  is->readBytes((uint8_t*)name.data(), len);
   name[len] = '\0';
 
   if (x || y || w || h) {

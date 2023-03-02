@@ -41,8 +41,8 @@ bool CSecurityPlain::processMsg()
   // Return the response to the server
   os->writeU32(username.size());
   os->writeU32(password.size());
-  os->writeBytes(username.data(), username.size());
-  os->writeBytes(password.data(), password.size());
+  os->writeBytes((const uint8_t*)username.data(), username.size());
+  os->writeBytes((const uint8_t*)password.data(), password.size());
   os->flush();
   return true;
 }

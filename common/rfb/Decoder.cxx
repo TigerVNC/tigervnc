@@ -46,7 +46,7 @@ Decoder::~Decoder()
 }
 
 void Decoder::getAffectedRegion(const Rect& rect,
-                                const void* /*buffer*/,
+                                const uint8_t* /*buffer*/,
                                 size_t /*buflen*/,
                                 const ServerParams& /*server*/,
                                 Region* region)
@@ -55,10 +55,10 @@ void Decoder::getAffectedRegion(const Rect& rect,
 }
 
 bool Decoder::doRectsConflict(const Rect& /*rectA*/,
-                              const void* /*bufferA*/,
+                              const uint8_t* /*bufferA*/,
                               size_t /*buflenA*/,
                               const Rect& /*rectB*/,
-                              const void* /*bufferB*/,
+                              const uint8_t* /*bufferB*/,
                               size_t /*buflenB*/,
                               const ServerParams& /*server*/)
 {

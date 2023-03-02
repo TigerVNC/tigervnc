@@ -88,7 +88,7 @@ void SConnection::initialiseProtocol()
   char str[13];
 
   sprintf(str, "RFB %03d.%03d\n", defaultMajorVersion, defaultMinorVersion);
-  os->writeBytes(str, 12);
+  os->writeBytes((const uint8_t*)str, 12);
   os->flush();
 
   state_ = RFBSTATE_PROTOCOL_VERSION;
@@ -126,7 +126,7 @@ bool SConnection::processVersionMsg()
   if (!is->hasData(12))
     return false;
 
-  is->readBytes(verStr, 12);
+  is->readBytes((uint8_t*)verStr, 12);
   verStr[12] = '\0';
 
   if (sscanf(verStr, "RFB %03d.%03d\n",
@@ -298,7 +298,8 @@ bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
     os->writeU32(secResultFailed);
     if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
       os->writeU32(authFailureMsg.size());
-      os->writeBytes(authFailureMsg.data(), authFailureMsg.size());
+      os->writeBytes((const uint8_t*)authFailureMsg.data(),
+                     authFailureMsg.size());
     }
     os->flush();
   } catch (rdr::Exception& e) {
@@ -326,12 +327,12 @@ void SConnection::throwConnFailedException(const char* format, ...)
     if (client.majorVersion == 3 && client.minorVersion == 3) {
       os->writeU32(0);
       os->writeU32(strlen(str));
-      os->writeBytes(str, strlen(str));
+      os->writeBytes((const uint8_t*)str, strlen(str));
       os->flush();
     } else {
       os->writeU8(0);
       os->writeU32(strlen(str));
-      os->writeBytes(str, strlen(str));
+      os->writeBytes((const uint8_t*)str, strlen(str));
       os->flush();
     }
   }
@@ -467,7 +468,7 @@ void SConnection::approveConnection(bool accept, const char* reason)
         if (!reason)
           reason = "Authentication failure";
         os->writeU32(strlen(reason));
-        os->writeBytes(reason, strlen(reason));
+        os->writeBytes((const uint8_t*)reason, strlen(reason));
       }
     }
     os->flush();
@@ -519,7 +520,8 @@ void SConnection::framebufferUpdateRequest(const Rect& /*r*/,
   }
 }
 
-void SConnection::fence(uint32_t flags, unsigned len, const char data[])
+void SConnection::fence(uint32_t flags, unsigned len,
+                        const uint8_t data[])
 {
   if (!(flags & fenceFlagRequest))
     return;

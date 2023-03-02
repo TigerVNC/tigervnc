@@ -161,7 +161,8 @@ void HextileEncoder::hextileEncode(rdr::OutStream* os,
         if (encodedLen < 0) {
           pb->getImage(buf, t);
           os->writeU8(hextileRaw);
-          os->writeBytes(buf, t.width() * t.height() * sizeof(T));
+          os->writeBytes((const uint8_t*)buf,
+                         t.width() * t.height() * sizeof(T));
           oldBgValid = oldFgValid = false;
           continue;
         }
@@ -557,7 +558,8 @@ void HextileEncoder::hextileEncodeBetter(rdr::OutStream* os,
       if ( (tileType & hextileRaw) != 0 ||
            encodedLen >= t.width() * t.height() * sizeof(T)) {
         os->writeU8(hextileRaw);
-        os->writeBytes(buf, t.width() * t.height() * sizeof(T));
+        os->writeBytes((const uint8_t*)buf,
+                       t.width() * t.height() * sizeof(T));
         oldBgValid = oldFgValid = false;
         continue;
       }

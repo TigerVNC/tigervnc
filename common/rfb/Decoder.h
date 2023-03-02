@@ -19,6 +19,8 @@
 #ifndef __RFB_DECODER_H__
 #define __RFB_DECODER_H__
 
+#include <stdint.h>
+
 namespace rdr {
   class InStream;
   class OutStream;
@@ -62,7 +64,7 @@ namespace rfb {
     // getAffectedRegion() returns the parts of the frame buffer will
     // be either read from or written do when decoding this rect. The
     // default implementation simply returns the given rectangle.
-    virtual void getAffectedRegion(const Rect& rect, const void* buffer,
+    virtual void getAffectedRegion(const Rect& rect, const uint8_t* buffer,
                                    size_t buflen, const ServerParams& server,
                                    Region* region);
 
@@ -70,10 +72,10 @@ namespace rfb {
     // in the order they were received. This will only be called if the
     // DecoderPartiallyOrdered flag has been set.
     virtual bool doRectsConflict(const Rect& rectA,
-                                 const void* bufferA,
+                                 const uint8_t* bufferA,
                                  size_t buflenA,
                                  const Rect& rectB,
-                                 const void* bufferB,
+                                 const uint8_t* bufferB,
                                  size_t buflenB,
                                  const ServerParams& server);
 
@@ -81,7 +83,7 @@ namespace rfb {
     // given buffer, onto the ModifiablePixelBuffer. The PixelFormat of
     // the PixelBuffer might not match the ConnParams and it is up to
     // the decoder to do any necessary conversion.
-    virtual void decodeRect(const Rect& r, const void* buffer,
+    virtual void decodeRect(const Rect& r, const uint8_t* buffer,
                             size_t buflen, const ServerParams& server,
                             ModifiablePixelBuffer* pb)=0;
 
