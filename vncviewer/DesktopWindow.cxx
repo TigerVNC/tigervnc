@@ -844,12 +844,20 @@ int DesktopWindow::handle(int event)
   case FL_LEAVE:
   case FL_DRAG:
   case FL_MOVE:
-    // We don't get FL_LEAVE with a grabbed pointer, so check manually
     if (mouseGrabbed) {
+      // We don't get FL_LEAVE with a grabbed pointer, so check manually
       if ((Fl::event_x() < 0) || (Fl::event_x() >= w()) ||
           (Fl::event_y() < 0) || (Fl::event_y() >= h())) {
         ungrabPointer();
       }
+      // We also don't get sensible coordinates on zaphod setups
+#if !defined(WIN32) && !defined(__APPLE__)
+      if ((fl_xevent != NULL) && (fl_xevent->type == MotionNotify) &&
+          (((XMotionEvent*)fl_xevent)->root !=
+           XRootWindow(fl_display, fl_screen))) {
+        ungrabPointer();
+      }
+#endif
     }
     if (fullscreen_active()) {
       // calculate width of "edge" regions
