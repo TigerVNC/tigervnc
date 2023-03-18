@@ -84,6 +84,27 @@ struct _utf8utf16 utf8utf16[] = {
     { "\xed\xa1\xbf",                                       L"\xfffd" },
 };
 
+const char *validutf8[] = {
+    "abc",
+    "\xc3\xa5\xc3\xa4\xc3\xb6",
+    "\xf0\xad\x80\x86",
+};
+
+const char *invalidutf8[] = {
+    "\xe5\xe4\xf6",
+    "\xf8\xa1\xa1\xa1\xa1",
+};
+
+const wchar_t *validutf16[] = {
+    L"abc",
+    L"\xe5\xe4\xf6",
+    L"\xd83d\xde38\xd83d\xde41\xd83d\xde42",
+};
+
+const wchar_t *invalidutf16[] = {
+    L"\xdc40\xdc12",
+};
+
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(*a))
 
 int main(int /*argc*/, char** /*argv*/)
@@ -192,6 +213,34 @@ int main(int /*argc*/, char** /*argv*/)
         wout = rfb::utf8ToUTF16(utf8utf16[i].utf8);
         if (wout != utf8utf16[i].utf16) {
             printf("FAILED: utf8ToUTF16() #%d\n", (int)i+1);
+            failures++;
+        }
+    }
+
+    for (i = 0;i < ARRAY_SIZE(validutf8);i++) {
+        if (!rfb::isValidUTF8(validutf8[i])) {
+            printf("FAILED: isValidUTF8() #%d\n", (int)i+1);
+            failures++;
+        }
+    }
+
+    for (i = 0;i < ARRAY_SIZE(invalidutf8);i++) {
+        if (rfb::isValidUTF8(invalidutf8[i])) {
+            printf("FAILED: ! isValidUTF8() #%d\n", (int)i+1);
+            failures++;
+        }
+    }
+
+    for (i = 0;i < ARRAY_SIZE(validutf16);i++) {
+        if (!rfb::isValidUTF16(validutf16[i])) {
+            printf("FAILED: isValidUTF16() #%d\n", (int)i+1);
+            failures++;
+        }
+    }
+
+    for (i = 0;i < ARRAY_SIZE(invalidutf16);i++) {
+        if (rfb::isValidUTF16(invalidutf16[i])) {
+            printf("FAILED: ! isValidUTF16() #%d\n", (int)i+1);
             failures++;
         }
     }

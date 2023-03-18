@@ -316,7 +316,10 @@ bool SMsgReader::readClientCutText()
 
   std::vector<char> ca(len);
   is->readBytes((uint8_t*)ca.data(), len);
-  std::string filtered(convertLF(ca.data(), len));
+
+  std::string utf8(latin1ToUTF8(ca.data(), ca.size()));
+  std::string filtered(convertLF(utf8.data(), utf8.size()));
+
   handler->clientCutText(filtered.c_str());
 
   return true;

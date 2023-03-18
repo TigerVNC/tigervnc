@@ -564,6 +564,40 @@ namespace rfb {
     return out;
   }
 
+  bool isValidUTF8(const char* str, size_t bytes)
+  {
+    while ((bytes > 0) && (*str != '\0')) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf8ToUCS4(str, bytes, &ucs);
+      str += len;
+      bytes -= len;
+
+      if (ucs == 0xfffd)
+        return false;
+    }
+
+    return true;
+  }
+
+  bool isValidUTF16(const wchar_t* wstr, size_t units)
+  {
+    while ((units > 0) && (*wstr != '\0')) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf16ToUCS4(wstr, units, &ucs);
+      wstr += len;
+      units -= len;
+
+      if (ucs == 0xfffd)
+        return false;
+    }
+
+    return true;
+  }
+
   unsigned msBetween(const struct timeval *first,
                      const struct timeval *second)
   {

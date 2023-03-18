@@ -38,6 +38,7 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -92,16 +93,15 @@ void SMsgWriter::writeBell()
 
 void SMsgWriter::writeServerCutText(const char* str)
 {
-  size_t len;
-
   if (strchr(str, '\r') != NULL)
     throw Exception("Invalid carriage return in clipboard data");
 
-  len = strlen(str);
+  std::string latin1(utf8ToLatin1(str));
+
   startMsg(msgTypeServerCutText);
   os->pad(3);
-  os->writeU32(len);
-  os->writeBytes((const uint8_t*)str, len);
+  os->writeU32(latin1.size());
+  os->writeBytes((const uint8_t*)latin1.data(), latin1.size());
   endMsg();
 }
 

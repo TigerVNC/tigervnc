@@ -383,7 +383,7 @@ void SConnection::clientCutText(const char* str)
 {
   hasLocalClipboard = false;
 
-  clientClipboard = latin1ToUTF8(str);
+  clientClipboard = str;
   hasRemoteClipboard = true;
 
   handleClipboardAnnounce(true);
@@ -429,6 +429,11 @@ void SConnection::handleClipboardProvide(uint32_t flags,
     return;
   }
 
+  // FIXME: This conversion magic should be in SMsgReader
+  if (!isValidUTF8((const char*)data[0], lengths[0])) {
+    vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+    return;
+  }
   clientClipboard = convertLF((const char*)data[0], lengths[0]);
   hasRemoteClipboard = true;
 
@@ -592,6 +597,7 @@ void SConnection::sendClipboardData(const char* data)
 {
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
       (client.clipboardFlags() & rfb::clipboardProvide)) {
+    // FIXME: This conversion magic should be in SMsgWriter
     std::string filtered(convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
     const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
@@ -608,9 +614,7 @@ void SConnection::sendClipboardData(const char* data)
 
     writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
   } else {
-    std::string latin1(utf8ToLatin1(data));
-
-    writer()->writeServerCutText(latin1.c_str());
+    writer()->writeServerCutText(data);
   }
 }
 

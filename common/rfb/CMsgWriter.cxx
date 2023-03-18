@@ -36,6 +36,7 @@
 #include <rfb/Rect.h>
 #include <rfb/ServerParams.h>
 #include <rfb/CMsgWriter.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -191,16 +192,15 @@ void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
 
 void CMsgWriter::writeClientCutText(const char* str)
 {
-  size_t len;
-
   if (strchr(str, '\r') != NULL)
     throw Exception("Invalid carriage return in clipboard data");
 
-  len = strlen(str);
+  std::string latin1(utf8ToLatin1(str));
+
   startMsg(msgTypeClientCutText);
   os->pad(3);
-  os->writeU32(len);
-  os->writeBytes((const uint8_t*)str, len);
+  os->writeU32(latin1.size());
+  os->writeBytes((const uint8_t*)latin1.data(), latin1.size());
   endMsg();
 }
 

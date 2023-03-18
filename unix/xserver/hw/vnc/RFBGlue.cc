@@ -248,3 +248,12 @@ char* vncUTF8ToLatin1(const char* src, size_t bytes)
     return NULL;
   }
 }
+
+int vncIsValidUTF8(const char* str, size_t bytes)
+{
+  try {
+    return isValidUTF8(str, bytes);
+  } catch (...) {
+    return 0;
+  }
+}
