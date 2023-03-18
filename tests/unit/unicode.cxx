@@ -53,6 +53,10 @@ struct _ucs4utf8 ucs4utf8[] = {
     { 0x1f638, "\xf0\x9f\x98\xb8" },
     { 0x2d006, "\xf0\xad\x80\x86" },
     { 0xfffd, "\xe5\xe4" },
+    { 0xfffd, "\xed\xa2\x80" },
+    { 0xfffd, "\xed\xbb\xbf" },
+    { 0xd880, "\xef\xbf\xbd" },
+    { 0xdeff, "\xef\xbf\xbd" },
     { 0x110200, "\xef\xbf\xbd" },
 };
 
@@ -93,6 +97,7 @@ const char *validutf8[] = {
 const char *invalidutf8[] = {
     "\xe5\xe4\xf6",
     "\xf8\xa1\xa1\xa1\xa1",
+    "\xed\xa2\x80",
 };
 
 const wchar_t *validutf16[] = {
