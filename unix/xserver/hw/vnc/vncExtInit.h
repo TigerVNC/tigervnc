@@ -34,6 +34,9 @@ void vncAddExtension(void);
 
 int vncNotifyQueryConnect(void);
 
+// xvnc.c
+extern int vncLowSpeedFixes;
+
 // vncExtInit.cc
 extern void* vncFbptr[];
 extern int vncFbstride[];

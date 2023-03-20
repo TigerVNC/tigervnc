@@ -221,6 +221,7 @@ ddxUseMsg(void)
     ErrorF("-depth D               set screen 0's depth\n");
     ErrorF("-pixelformat fmt       set pixel format (rgbNNN or bgrNNN)\n");
     ErrorF("-inetd                 has been launched from inetd\n");
+    ErrorF("-lowspeedfixes         fix random key press repeat, etc.\n");
     ErrorF
         ("-noclipboard           disable clipboard settings modification via vncconfig utility\n");
     ErrorF("-verbose [n]           verbose startup messages\n");
@@ -395,6 +396,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
             sprintf(displayNumStr, "%d", displayNum);
         }
 
+        return 1;
+    }
+
+    if (strcmp(argv[i], "-lowspeedfixes") == 0) {
+        vncLowSpeedFixes = 1;
         return 1;
     }
 

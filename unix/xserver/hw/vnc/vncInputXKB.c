@@ -16,6 +16,12 @@
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
+ *
+ * Changes:
+ *
+ *  20230320 - low speed fixes (-lowspeedfixes option)
+ *      by Roman E. Chechnev interferation at gmail dot com
+ *
  */
 
 #ifdef HAVE_DIX_CONFIG_H
@@ -46,6 +52,7 @@
 #define GetMaster(dev, type) ((dev)->master)
 #endif
 
+int vncLowSpeedFixes = 0;
 extern DeviceIntPtr vncKeyboardDev;
 
 static const KeyCode fakeKeys[] = {
@@ -664,6 +671,31 @@ static void vncXkbProcessDeviceEvent(int screenNum,
 	backupctrls = ctrls->enabled_ctrls;
 	ctrls->enabled_ctrls &= ~XkbAllFilteredEventsMask;
 
+	if (vncLowSpeedFixes){
+		dev->public.processInputProc(event, dev);
+		if (ET_KeyPress == event->device_event.type){
+			// FC37, the problem occurs on low-speed connections,
+			// when the time between keydown and keyup events is long,
+			// the OS starts repeating the keystroke, so we need
+			// generate the fake keyup event for normal keys
+			// (not for alt, ctrl, shift) right after receiving
+			// a keydown event to avoid it
+			if (    50 != event->device_event.detail.key  // left shift
+				&&  37 != event->device_event.detail.key  // left ctrl
+				&&  64 != event->device_event.detail.key  // left alt
+				&&  62 != event->device_event.detail.key  // right shift
+				&& 105 != event->device_event.detail.key  // right ctrl
+				&& 108 != event->device_event.detail.key) // right alt
+			{
+				// regular key, send release event
+				InternalEvent new_event = *event;
+				new_event.device_event.type = ET_KeyRelease;
+				dev->public.processInputProc(&new_event, dev);
+			}
+		}
+		goto out_restore;
+	}
+
 	/*
 	 * This flag needs to be set for key repeats to be properly
 	 * respected.
@@ -674,5 +706,7 @@ static void vncXkbProcessDeviceEvent(int screenNum,
 
 	dev->public.processInputProc(event, dev);
 
+out_restore:
 	ctrls->enabled_ctrls = backupctrls;
 }
+

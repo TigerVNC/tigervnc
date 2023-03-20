@@ -1,9 +1,9 @@
 .TH Xvnc 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
-Xvnc \- the X VNC server 
+Xvnc \- the X VNC server
 .SH SYNOPSIS
 .B Xvnc
-.RI [ options ] 
+.RI [ options ]
 .RI : display#
 .SH DESCRIPTION
 .B Xvnc
@@ -50,9 +50,17 @@ depth 16 is RGB565 and for depth 24 and 32 is RGB888.
 Listen on interface. By default Xvnc listens on all available interfaces.
 .
 .TP
-.B \-inetd 
+.B \-inetd
 This significantly changes Xvnc's behaviour so that it can be launched from
 inetd.  See the section below on usage with inetd.
+.
+.TP
+.B \-lowspeedfixes
+FC37, the problem occurs on low-speed connections, when the time between
+keydown and keyup events is long, the OS starts repeating the keystroke,
+so we need generate the fake keyup event
+for normal keys (not for alt, ctrl, shift) right after receiving
+a keydown event to avoid it
 .
 .TP
 .B \-help
