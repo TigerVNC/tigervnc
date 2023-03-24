@@ -66,7 +66,7 @@ add_library(rfb STATIC
   obfuscate.cxx
   util.cxx)
 
-target_link_libraries(rfb os rdr)
+target_link_libraries(rfb os rdr network)
 target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
 target_link_directories(rfb PUBLIC ${PIXMAN_LIBRARY_DIRS})
 

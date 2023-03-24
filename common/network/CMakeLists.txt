@@ -8,6 +8,8 @@ if(NOT WIN32)
   target_sources(network PRIVATE UnixSocket.cxx)
 endif()
 
+target_link_libraries(network os rdr rfb)
+
 if(WIN32)
 	target_link_libraries(network ws2_32)
 endif()

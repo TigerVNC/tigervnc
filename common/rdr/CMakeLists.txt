@@ -19,7 +19,7 @@ add_library(rdr STATIC
   ZlibInStream.cxx
   ZlibOutStream.cxx)
 
-target_link_libraries(rdr ${ZLIB_LIBRARIES} os)
+target_link_libraries(rdr ${ZLIB_LIBRARIES} os rfb)
 
 if(GNUTLS_FOUND)
   include_directories(SYSTEM ${GNUTLS_INCLUDE_DIR})
