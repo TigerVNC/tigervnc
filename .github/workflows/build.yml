@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   build-linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -29,6 +30,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 20
     defaults:
       run:
         shell: msys2 {0}
@@ -60,6 +62,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -81,6 +84,7 @@ jobs:
 
   build-java:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     strategy:
       matrix:
         java: [ '8', '11', '16' ]
@@ -103,6 +107,7 @@ jobs:
           path: java/build/VncViewer.jar
 
   build-packages:
+    timeout-minutes: 20
     strategy:
       matrix:
         target:
