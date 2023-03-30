@@ -56,3 +56,4 @@ docker run --volume ${CURDIR}/build:/home/deb/build --interactive --rm tigervnc/
 
 mkdir -p ${CURDIR}/result
 cp -av ${CURDIR}/build/*.deb ${CURDIR}/result
+cp -av ${CURDIR}/build/*.ddeb ${CURDIR}/result
