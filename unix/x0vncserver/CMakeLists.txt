@@ -1,9 +1,3 @@
-include_directories(SYSTEM ${X11_INCLUDE_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/unix/common)
-include_directories(${CMAKE_SOURCE_DIR}/unix/tx)
-include_directories(${CMAKE_SOURCE_DIR}/unix)
-include_directories(${CMAKE_SOURCE_DIR}/common)
-
 add_executable(x0vncserver
   buildtime.c
   Geometry.cxx
@@ -20,6 +14,11 @@ add_executable(x0vncserver
   ../vncconfig/QueryConnectDialog.cxx
 )
 
+target_include_directories(x0vncserver SYSTEM PUBLIC ${X11_INCLUDE_DIR})
+target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix/common)
+target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix/tx)
+target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix)
+target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_link_libraries(x0vncserver tx rfb network rdr unixcommon)
 
 if(X11_FOUND AND X11_XTest_LIB)

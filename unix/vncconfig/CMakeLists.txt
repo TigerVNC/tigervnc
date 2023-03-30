@@ -1,13 +1,13 @@
-include_directories(SYSTEM ${X11_INCLUDE_DIR})
-
-include_directories(${CMAKE_SOURCE_DIR}/common)
-include_directories(${CMAKE_SOURCE_DIR}/unix/tx)
-
 add_executable(vncconfig 
   buildtime.c
   vncExt.c
   vncconfig.cxx
   QueryConnectDialog.cxx)
+
+target_include_directories(vncconfig SYSTEM PUBLIC ${X11_INCLUDE_DIR})
+
+target_include_directories(vncconfig PUBLIC ${CMAKE_SOURCE_DIR}/common)
+target_include_directories(vncconfig PUBLIC ${CMAKE_SOURCE_DIR}/unix/tx)
 
 target_link_libraries(vncconfig tx rfb network rdr ${X11_LIBRARIES})
 

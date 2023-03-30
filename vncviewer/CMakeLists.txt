@@ -1,8 +1,3 @@
-include_directories(SYSTEM ${FLTK_INCLUDE_DIR})
-include_directories(SYSTEM ${GETTEXT_INCLUDE_DIR})
-
-include_directories(${CMAKE_SOURCE_DIR}/common)
-
 add_executable(vncviewer
   fltk/Fl_Monitor_Arrangement.cxx
   fltk/Fl_Navigation.cxx
@@ -31,7 +26,7 @@ endif()
 if(WIN32)
   # Since vncviewer.rc is generated, local includes will be looking
   # in the wrong directory. We need to help it out.
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+  target_include_directories(vncviewer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
   configure_file(vncviewer.rc.in vncviewer.rc)
   target_sources(vncviewer PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.rc)
 endif()
@@ -52,6 +47,9 @@ else()
   target_sources(vncviewer PRIVATE Surface_X11.cxx)
 endif()
 
+target_include_directories(vncviewer SYSTEM PUBLIC ${FLTK_INCLUDE_DIR})
+target_include_directories(vncviewer SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
+target_include_directories(vncviewer PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
 if(WIN32)
