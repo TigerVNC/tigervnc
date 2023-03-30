@@ -33,12 +33,12 @@ sed -i "s/@VERSION@/${VERSION}/" ${CURDIR}/rpmbuild/SPECS/tigervnc.spec
 
 docker run --volume ${CURDIR}/rpmbuild:/home/rpm/rpmbuild --interactive --rm tigervnc/${DOCKER} \
 	bash -e -x -c "
-	sudo dnf install -y xorg-x11-server-devel;
-	sudo dnf install -y https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm;
-	sudo dnf builddep -y ~/rpmbuild/SPECS/tigervnc.spec;
-	sudo chown 0.0 ~/rpmbuild/SOURCES/*;
-	sudo chown 0.0 ~/rpmbuild/SPECS/*;
-	rpmbuild -ba ~/rpmbuild/SPECS/tigervnc.spec;
+	sudo dnf install -y xorg-x11-server-devel
+	sudo dnf install -y https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm
+	sudo dnf builddep -y ~/rpmbuild/SPECS/tigervnc.spec
+	sudo chown 0.0 ~/rpmbuild/SOURCES/*
+	sudo chown 0.0 ~/rpmbuild/SPECS/*
+	rpmbuild -ba ~/rpmbuild/SPECS/tigervnc.spec
 	"
 
 mkdir -p ${CURDIR}/result
