@@ -15,3 +15,8 @@ else()
 	find_library(SWSCALE_LIBRARIES NAMES swscale)
 	find_package_handle_standard_args(SWSCALE DEFAULT_MSG SWSCALE_LIBRARIES SWSCALE_INCLUDE_DIRS)
 endif()
+
+if(Ffmpeg_FIND_REQUIRED AND
+   (NOT AVCODEC_FOUND OR NOT AVUTIL_FOUND OR NOT SWSCALE_FOUND))
+	message(FATAL_ERROR "Could not find FFMPEG")
+endif()

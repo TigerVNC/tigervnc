@@ -15,3 +15,7 @@ endif()
 if (NOT HOGWEED_FOUND OR NOT GMP_FOUND)
   set(NETTLE_FOUND 0)
 endif()
+
+if(Nettle_FIND_REQUIRED AND NOT NETTLE_FOUND)
+	message(FATAL_ERROR "Could not find Nettle")
+endif()

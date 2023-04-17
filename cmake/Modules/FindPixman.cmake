@@ -7,3 +7,7 @@ else()
 	find_library(PIXMAN_LIBRARIES NAMES pixman-1)
 	find_package_handle_standard_args(PIXMAN DEFAULT_MSG PIXMAN_LIBRARIES PIXMAN_INCLUDE_DIRS)
 endif()
+
+if(Pixman_FIND_REQUIRED AND NOT PIXMAN_FOUND)
+	message(FATAL_ERROR "Could not find Pixman")
+endif()

@@ -11,3 +11,7 @@ if(NOT GMP_FOUND)
   find_library(GMP_LIBRARIES NAMES gmp)
   find_package_handle_standard_args(GMP DEFAULT_MSG GMP_LIBRARIES GMP_INCLUDE_DIRS)
 endif()
+
+if(Gmp_FIND_REQUIRED AND NOT GMP_FOUND)
+	message(FATAL_ERROR "Could not find GMP")
+endif()
