@@ -312,8 +312,8 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
 
 ShmImage::~ShmImage()
 {
-  // FIXME: Destroy image as described in MIT-SHM documentation.
   if (shminfo != NULL) {
+    XShmDetach(dpy, shminfo);
     shmdt(shminfo->shmaddr);
     shmctl(shminfo->shmid, IPC_RMID, 0);
     delete shminfo;
