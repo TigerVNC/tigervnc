@@ -52,7 +52,6 @@ void vncSetGlueContext(Display *dpy, void *res);
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/XPixelBuffer.h>
 
-using namespace std;
 using namespace rfb;
 
 extern const unsigned short code_map_qnum_to_xorgevdev[];

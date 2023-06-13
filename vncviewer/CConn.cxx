@@ -55,9 +55,7 @@
 #include "win32.h"
 #endif
 
-using namespace rdr;
 using namespace rfb;
-using namespace std;
 
 static rfb::LogWriter vlog("CConn");
 

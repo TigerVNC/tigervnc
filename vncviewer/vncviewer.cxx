@@ -84,7 +84,6 @@ static rfb::LogWriter vlog("main");
 
 using namespace network;
 using namespace rfb;
-using namespace std;
 
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 

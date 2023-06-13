@@ -54,7 +54,6 @@
 #include <FL/Fl_Choice.H>
 
 using namespace std;
-using namespace rdr;
 using namespace rfb;
 
 std::map<OptionsCallback*, void*> OptionsDialog::callbacks;

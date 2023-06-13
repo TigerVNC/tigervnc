@@ -100,7 +100,6 @@ extern const unsigned int code_map_osx_to_qnum_len;
 
 
 using namespace rfb;
-using namespace rdr;
 
 static rfb::LogWriter vlog("Viewport");
 
