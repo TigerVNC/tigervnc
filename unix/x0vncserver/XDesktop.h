@@ -105,7 +105,9 @@ protected:
   void deleteAddedKeysyms(Display* dpy);
   KeyCode keysymToKeycode(Display* dpy, KeySym keysym);
 #endif
+#ifdef HAVE_XFIXES
   bool setCursor();
+#endif
   rfb::ScreenSet computeScreenLayout();
 };
 

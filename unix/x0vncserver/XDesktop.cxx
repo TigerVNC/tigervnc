@@ -947,6 +947,7 @@ void XDesktop::queryRejected()
   queryConnectSock = 0;
 }
 
+#ifdef HAVE_XFIXES
 bool XDesktop::setCursor()
 {
   XFixesCursorImage *cim;
@@ -994,3 +995,4 @@ bool XDesktop::setCursor()
   XFree(cim);
   return true;
 }
+#endif
