@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include <rfb/LogWriter.h>
+#include <rfb/Exception.h>
 
 #include <x0vncserver/XDesktop.h>
 
@@ -43,7 +44,6 @@
 #endif
 #ifdef HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
-#include <rfb/Exception.h>
 #include <RandrGlue.h>
 extern "C" {
 void vncSetGlueContext(Display *dpy, void *res);
@@ -787,6 +787,9 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
   return ret;
 
 #else
+  (void)fb_width;
+  (void)fb_height;
+  (void)layout;
   return rfb::resultProhibited;
 #endif /* HAVE_XRANDR */
 }
