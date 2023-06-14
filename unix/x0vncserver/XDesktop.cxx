@@ -276,8 +276,10 @@ void XDesktop::start(VNCServer* vs) {
 void XDesktop::stop() {
   running = false;
 
+#ifdef HAVE_XTEST
   // Delete added keycodes
   deleteAddedKeysyms(dpy);
+#endif
 
 #ifdef HAVE_XDAMAGE
   if (haveDamage)
@@ -355,6 +357,9 @@ void XDesktop::pointerEvent(const Point& pos, int buttonMask) {
     }
   }
   oldButtonMask = buttonMask;
+#else
+  (void)pos;
+  (void)buttonMask;
 #endif
 }
 
@@ -396,7 +401,6 @@ KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
 
   return keycode;
 }
-#endif
 
 KeyCode XDesktop::addKeysym(Display* dpy, KeySym keysym)
 {
@@ -512,6 +516,7 @@ KeyCode XDesktop::keysymToKeycode(Display* dpy, KeySym keysym) {
 
   return keycode;
 }
+#endif
 
 
 void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
@@ -546,6 +551,10 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
   vlog.debug("%d %s", keycode, down ? "down" : "up");
 
   XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
+#else
+  (void)keysym;
+  (void)xtcode;
+  (void)down;
 #endif
 }
 
