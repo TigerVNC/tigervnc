@@ -54,10 +54,6 @@ public:
   virtual void queryConnection(network::Socket* sock,
                                const char* userName);
   virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
-  KeyCode XkbKeysymToKeycode(Display* dpy, KeySym keysym);
-  KeyCode addKeysym(Display* dpy, KeySym keysym);
-  void deleteAddedKeysyms(Display* dpy);
-  KeyCode keysymToKeycode(Display* dpy, KeySym keysym);
   virtual void keyEvent(uint32_t keysym, uint32_t xtcode, bool down);
   virtual void clientCutText(const char* str);
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
@@ -101,7 +97,17 @@ protected:
   unsigned ledState;
   const unsigned short *codeMap;
   unsigned codeMapLen;
+
+protected:
+#ifdef HAVE_XTEST
+  KeyCode XkbKeysymToKeycode(Display* dpy, KeySym keysym);
+  KeyCode addKeysym(Display* dpy, KeySym keysym);
+  void deleteAddedKeysyms(Display* dpy);
+  KeyCode keysymToKeycode(Display* dpy, KeySym keysym);
+#endif
+#ifdef HAVE_XFIXES
   bool setCursor();
+#endif
   rfb::ScreenSet computeScreenLayout();
 };
 
