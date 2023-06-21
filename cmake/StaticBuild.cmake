@@ -168,8 +168,6 @@ if(BUILD_STATIC)
 endif()
 
 if(BUILD_STATIC_GCC)
-  # This ensures that we don't depend on libstdc++ or libgcc_s
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nodefaultlibs")
   set(STATIC_BASE_LIBRARIES "")
   if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lasan -Wl,-Bdynamic -ldl -lpthread")
@@ -195,6 +193,7 @@ if(BUILD_STATIC_GCC)
   else()
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lm -lgcc -lgcc_eh -lc")
   endif()
-  set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} ${STATIC_BASE_LIBRARIES}")
-  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic ${STATIC_BASE_LIBRARIES}")
+  # -nodefaultlibs ensures that we don't depend on libstdc++ or libgcc_s
+  set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} -nodefaultlibs ${STATIC_BASE_LIBRARIES}")
+  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic ${STATIC_BASE_LIBRARIES}")
 endif()
