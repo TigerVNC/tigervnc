@@ -52,7 +52,12 @@
 using namespace rdr;
 
 FdOutStream::FdOutStream(int fd_)
-  : BufferedOutStream(false), fd(fd_)
+#ifdef TCP_CORK
+  : BufferedOutStream(false),
+#else
+  : BufferedOutStream(true),
+#endif
+  fd(fd_)
 {
   gettimeofday(&lastWrite, NULL);
 }
