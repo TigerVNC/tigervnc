@@ -77,7 +77,7 @@ bool FdInStream::fillBuffer()
 // returning EINTR.
 //
 
-size_t FdInStream::readFd(void* buf, size_t len)
+size_t FdInStream::readFd(uint8_t* buf, size_t len)
 {
   int n;
   do {

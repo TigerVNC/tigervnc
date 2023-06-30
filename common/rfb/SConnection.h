@@ -132,7 +132,7 @@ namespace rfb {
     // it responds directly to requests (stating it doesn't support any
     // synchronisation) and drops responses. Override to implement more proper
     // support.
-    virtual void fence(uint32_t flags, unsigned len, const char data[]);
+    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
 
     // enableContinuousUpdates() is called when the client wants to enable
     // or disable continuous updates, or change the active area.

@@ -65,7 +65,7 @@ public:
                  const uint8_t* data);
   void setCursorPos(const rfb::Point& pos);
 
-  void fence(uint32_t flags, unsigned len, const char data[]);
+  void fence(uint32_t flags, unsigned len, const uint8_t data[]);
 
   void setLEDState(unsigned int state);
 

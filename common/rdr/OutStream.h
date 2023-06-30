@@ -70,7 +70,7 @@ namespace rdr {
 
     // writeBytes() writes an exact number of bytes.
 
-    void writeBytes(const void* data, size_t length) {
+    void writeBytes(const uint8_t* data, size_t length) {
       while (length > 0) {
         check(1);
         size_t n = length;

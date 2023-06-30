@@ -36,8 +36,8 @@ namespace rdr {
 
   public:
 
-    MemInStream(const void* data, size_t len, bool deleteWhenDone_=false)
-      : start((const uint8_t*)data), deleteWhenDone(deleteWhenDone_)
+    MemInStream(const uint8_t* data, size_t len, bool deleteWhenDone_=false)
+      : start(data), deleteWhenDone(deleteWhenDone_)
     {
       ptr = start;
       end = start + len;

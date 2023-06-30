@@ -45,7 +45,7 @@ namespace rfb {
 
     void compress(const uint8_t *, int, const Rect&, const PixelFormat&, int, int);
 
-    void writeBytes(const void*, int);
+    void writeBytes(const uint8_t*, int);
 
   private:
 

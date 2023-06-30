@@ -38,6 +38,7 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -63,7 +64,7 @@ void SMsgWriter::writeServerInit(uint16_t width, uint16_t height,
   os->writeU16(height);
   pf.write(os);
   os->writeU32(strlen(name));
-  os->writeBytes(name, strlen(name));
+  os->writeBytes((const uint8_t*)name, strlen(name));
   endMsg();
 }
 
@@ -92,16 +93,15 @@ void SMsgWriter::writeBell()
 
 void SMsgWriter::writeServerCutText(const char* str)
 {
-  size_t len;
-
   if (strchr(str, '\r') != NULL)
     throw Exception("Invalid carriage return in clipboard data");
 
-  len = strlen(str);
+  std::string latin1(utf8ToLatin1(str));
+
   startMsg(msgTypeServerCutText);
   os->pad(3);
-  os->writeU32(len);
-  os->writeBytes(str, len);
+  os->writeU32(latin1.size());
+  os->writeBytes((const uint8_t*)latin1.data(), latin1.size());
   endMsg();
 }
 
@@ -211,7 +211,8 @@ void SMsgWriter::writeClipboardProvide(uint32_t flags,
   endMsg();
 }
 
-void SMsgWriter::writeFence(uint32_t flags, unsigned len, const char data[])
+void SMsgWriter::writeFence(uint32_t flags, unsigned len,
+                            const uint8_t data[])
 {
   if (!client->supportsEncoding(pseudoEncodingFence))
     throw Exception("Client does not support fences");
@@ -585,12 +586,13 @@ void SMsgWriter::writeSetDesktopNameRect(const char *name)
   os->writeU16(0);
   os->writeU32(pseudoEncodingDesktopName);
   os->writeU32(strlen(name));
-  os->writeBytes(name, strlen(name));
+  os->writeBytes((const uint8_t*)name, strlen(name));
 }
 
 void SMsgWriter::writeSetCursorRect(int width, int height,
                                     int hotspotX, int hotspotY,
-                                    const void* data, const void* mask)
+                                    const uint8_t* data,
+                                    const uint8_t* mask)
 {
   if (!client->supportsEncoding(pseudoEncodingCursor))
     throw Exception("Client does not support local cursors");
@@ -608,7 +610,8 @@ void SMsgWriter::writeSetCursorRect(int width, int height,
 
 void SMsgWriter::writeSetXCursorRect(int width, int height,
                                      int hotspotX, int hotspotY,
-                                     const void* data, const void* mask)
+                                     const uint8_t* data,
+                                     const uint8_t* mask)
 {
   if (!client->supportsEncoding(pseudoEncodingXCursor))
     throw Exception("Client does not support local cursors");

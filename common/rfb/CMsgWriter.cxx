@@ -36,6 +36,7 @@
 #include <rfb/Rect.h>
 #include <rfb/ServerParams.h>
 #include <rfb/CMsgWriter.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -130,7 +131,7 @@ void CMsgWriter::writeEnableContinuousUpdates(bool enable,
   endMsg();
 }
 
-void CMsgWriter::writeFence(uint32_t flags, unsigned len, const char data[])
+void CMsgWriter::writeFence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   if (!server->supportsFence)
     throw Exception("Server does not support fences");
@@ -191,16 +192,15 @@ void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
 
 void CMsgWriter::writeClientCutText(const char* str)
 {
-  size_t len;
-
   if (strchr(str, '\r') != NULL)
     throw Exception("Invalid carriage return in clipboard data");
 
-  len = strlen(str);
+  std::string latin1(utf8ToLatin1(str));
+
   startMsg(msgTypeClientCutText);
   os->pad(3);
-  os->writeU32(len);
-  os->writeBytes(str, len);
+  os->writeU32(latin1.size());
+  os->writeBytes((const uint8_t*)latin1.data(), latin1.size());
   endMsg();
 }
 

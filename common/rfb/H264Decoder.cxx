@@ -93,7 +93,7 @@ bool H264Decoder::readRect(const Rect& /*r*/,
   return true;
 }
 
-void H264Decoder::decodeRect(const Rect& r, const void* buffer,
+void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
                              size_t buflen,
                              const ServerParams& /*server*/,
                              ModifiablePixelBuffer* pb)

@@ -48,7 +48,7 @@ namespace rdr {
 
     // data() returns a pointer to the buffer.
 
-    const void* data() { return (const void*)start; }
+    const uint8_t* data() { return start; }
 
   protected:
 

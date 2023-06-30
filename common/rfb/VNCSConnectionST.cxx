@@ -672,7 +672,7 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   writer()->writeDesktopSize(reasonClient, result);
 }
 
-void VNCSConnectionST::fence(uint32_t flags, unsigned len, const char data[])
+void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   uint8_t type;
 
@@ -685,7 +685,7 @@ void VNCSConnectionST::fence(uint32_t flags, unsigned len, const char data[])
       delete [] fenceData;
       fenceData = NULL;
       if (len > 0) {
-        fenceData = new char[len];
+        fenceData = new uint8_t[len];
         memcpy(fenceData, data, len);
       }
 
@@ -771,7 +771,7 @@ void VNCSConnectionST::supportsLocalCursor()
 
 void VNCSConnectionST::supportsFence()
 {
-  char type = 0;
+  uint8_t type = 0;
   writer()->writeFence(fenceFlagRequest, sizeof(type), &type);
 }
 
@@ -825,7 +825,7 @@ bool VNCSConnectionST::isShiftPressed()
 
 void VNCSConnectionST::writeRTTPing()
 {
-  char type;
+  uint8_t type;
 
   if (!client.supportsFence())
     return;

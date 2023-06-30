@@ -88,7 +88,7 @@ void SConnection::initialiseProtocol()
   char str[13];
 
   sprintf(str, "RFB %03d.%03d\n", defaultMajorVersion, defaultMinorVersion);
-  os->writeBytes(str, 12);
+  os->writeBytes((const uint8_t*)str, 12);
   os->flush();
 
   state_ = RFBSTATE_PROTOCOL_VERSION;
@@ -126,7 +126,7 @@ bool SConnection::processVersionMsg()
   if (!is->hasData(12))
     return false;
 
-  is->readBytes(verStr, 12);
+  is->readBytes((uint8_t*)verStr, 12);
   verStr[12] = '\0';
 
   if (sscanf(verStr, "RFB %03d.%03d\n",
@@ -298,7 +298,8 @@ bool SConnection::handleAuthFailureTimeout(Timer* /*t*/)
     os->writeU32(secResultFailed);
     if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
       os->writeU32(authFailureMsg.size());
-      os->writeBytes(authFailureMsg.data(), authFailureMsg.size());
+      os->writeBytes((const uint8_t*)authFailureMsg.data(),
+                     authFailureMsg.size());
     }
     os->flush();
   } catch (rdr::Exception& e) {
@@ -326,12 +327,12 @@ void SConnection::throwConnFailedException(const char* format, ...)
     if (client.majorVersion == 3 && client.minorVersion == 3) {
       os->writeU32(0);
       os->writeU32(strlen(str));
-      os->writeBytes(str, strlen(str));
+      os->writeBytes((const uint8_t*)str, strlen(str));
       os->flush();
     } else {
       os->writeU8(0);
       os->writeU32(strlen(str));
-      os->writeBytes(str, strlen(str));
+      os->writeBytes((const uint8_t*)str, strlen(str));
       os->flush();
     }
   }
@@ -382,7 +383,7 @@ void SConnection::clientCutText(const char* str)
 {
   hasLocalClipboard = false;
 
-  clientClipboard = latin1ToUTF8(str);
+  clientClipboard = str;
   hasRemoteClipboard = true;
 
   handleClipboardAnnounce(true);
@@ -428,6 +429,11 @@ void SConnection::handleClipboardProvide(uint32_t flags,
     return;
   }
 
+  // FIXME: This conversion magic should be in SMsgReader
+  if (!isValidUTF8((const char*)data[0], lengths[0])) {
+    vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+    return;
+  }
   clientClipboard = convertLF((const char*)data[0], lengths[0]);
   hasRemoteClipboard = true;
 
@@ -467,7 +473,7 @@ void SConnection::approveConnection(bool accept, const char* reason)
         if (!reason)
           reason = "Authentication failure";
         os->writeU32(strlen(reason));
-        os->writeBytes(reason, strlen(reason));
+        os->writeBytes((const uint8_t*)reason, strlen(reason));
       }
     }
     os->flush();
@@ -519,7 +525,8 @@ void SConnection::framebufferUpdateRequest(const Rect& /*r*/,
   }
 }
 
-void SConnection::fence(uint32_t flags, unsigned len, const char data[])
+void SConnection::fence(uint32_t flags, unsigned len,
+                        const uint8_t data[])
 {
   if (!(flags & fenceFlagRequest))
     return;
@@ -590,6 +597,7 @@ void SConnection::sendClipboardData(const char* data)
 {
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
       (client.clipboardFlags() & rfb::clipboardProvide)) {
+    // FIXME: This conversion magic should be in SMsgWriter
     std::string filtered(convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
     const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
@@ -606,9 +614,7 @@ void SConnection::sendClipboardData(const char* data)
 
     writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
   } else {
-    std::string latin1(utf8ToLatin1(data));
-
-    writer()->writeServerCutText(latin1.c_str());
+    writer()->writeServerCutText(data);
   }
 }
 

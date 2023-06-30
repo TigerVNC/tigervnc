@@ -128,7 +128,7 @@ namespace rfb {
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout);
-    virtual void fence(uint32_t flags, unsigned len, const char data[]);
+    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h);
     virtual void handleClipboardRequest();
@@ -174,7 +174,7 @@ namespace rfb {
     bool pendingSyncFence, syncFence;
     uint32_t fenceFlags;
     unsigned fenceDataLen;
-    char *fenceData;
+    uint8_t *fenceData;
 
     Congestion congestion;
     Timer congestionTimer;

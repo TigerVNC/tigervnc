@@ -53,6 +53,8 @@ char* vncConvertLF(const char* src, size_t bytes);
 char* vncLatin1ToUTF8(const char* src, size_t bytes);
 char* vncUTF8ToLatin1(const char* src, size_t bytes);
 
+int vncIsValidUTF8(const char* str, size_t bytes);
+
 #ifdef __cplusplus
 }
 #endif

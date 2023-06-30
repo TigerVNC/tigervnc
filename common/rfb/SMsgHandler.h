@@ -51,7 +51,7 @@ namespace rfb {
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental) = 0;
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout) = 0;
-    virtual void fence(uint32_t flags, unsigned len, const char data[]) = 0;
+    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]) = 0;
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h) = 0;
 

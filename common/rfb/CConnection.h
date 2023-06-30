@@ -249,7 +249,7 @@ namespace rfb {
     // responds to requests, stating no support for synchronisation.
     // When overriding, call CMsgHandler::fence() directly in order to
     // state correct support for fence flags.
-    virtual void fence(uint32_t flags, unsigned len, const char data[]);
+    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
 
   private:
     bool processVersionMsg();

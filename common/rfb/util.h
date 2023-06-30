@@ -68,6 +68,9 @@ namespace rfb {
   std::string utf16ToUTF8(const wchar_t* src, size_t units = (size_t)-1);
   std::wstring utf8ToUTF16(const char* src, size_t bytes = (size_t)-1);
 
+  bool isValidUTF8(const char* str, size_t bytes = (size_t)-1);
+  bool isValidUTF16(const wchar_t* wstr, size_t units = (size_t)-1);
+
   // HELPER functions for timeout handling
 
   // soonestTimeout() is a function to help work out the soonest of several

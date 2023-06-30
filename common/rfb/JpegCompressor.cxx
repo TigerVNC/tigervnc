@@ -254,7 +254,7 @@ void JpegCompressor::compress(const uint8_t *buf, volatile int stride,
   delete[] rowPointer;
 }
 
-void JpegCompressor::writeBytes(const void* /*data*/, int /*length*/)
+void JpegCompressor::writeBytes(const uint8_t* /*data*/, int /*length*/)
 {
   throw rdr::Exception("writeBytes() is not valid with a JpegCompressor instance.  Use compress() instead.");
 }

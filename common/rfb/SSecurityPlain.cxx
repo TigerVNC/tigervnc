@@ -99,8 +99,8 @@ bool SSecurityPlain::processMsg()
     if (!is->hasData(ulen + plen))
       return false;
     state = 2;
-    is->readBytes(username, ulen);
-    is->readBytes(password, plen);
+    is->readBytes((uint8_t*)username, ulen);
+    is->readBytes((uint8_t*)password, plen);
     password[plen] = 0;
     username[ulen] = 0;
     plen = 0;

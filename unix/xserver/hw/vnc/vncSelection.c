@@ -611,6 +611,11 @@ static void vncHandleSelection(Atom selection, Atom target,
     if (prop->type != xaUTF8_STRING)
       return;
 
+    if (!vncIsValidUTF8(prop->data, prop->size)) {
+      LOG_ERROR("Invalid UTF-8 sequence in clipboard");
+      return;
+    }
+
     filtered = vncConvertLF(prop->data, prop->size);
     if (filtered == NULL)
       return;

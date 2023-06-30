@@ -445,7 +445,7 @@ void CSecurityRSAAES::writeCredentials()
     if (username.size() > 255)
       throw AuthFailureException("username is too long");
     raos->writeU8(username.size());
-    raos->writeBytes(username.data(), username.size());
+    raos->writeBytes((const uint8_t*)username.data(), username.size());
   } else {
     raos->writeU8(0);
   }
@@ -453,6 +453,6 @@ void CSecurityRSAAES::writeCredentials()
   if (password.size() > 255)
     throw AuthFailureException("password is too long");
   raos->writeU8(password.size());
-  raos->writeBytes(password.data(), password.size());
+  raos->writeBytes((const uint8_t*)password.data(), password.size());
   raos->flush();
 }

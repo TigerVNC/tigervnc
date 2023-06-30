@@ -139,11 +139,11 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
       rdr::OutStream& os = sock->outStream();
 
       // Shortest possible way to tell a client it is not welcome
-      os.writeBytes("RFB 003.003\n", 12);
+      os.writeBytes((const uint8_t*)"RFB 003.003\n", 12);
       os.writeU32(0);
       const char* reason = "Too many security failures";
       os.writeU32(strlen(reason));
-      os.writeBytes(reason, strlen(reason));
+      os.writeBytes((const uint8_t*)reason, strlen(reason));
       os.flush();
     } catch (rdr::Exception&) {
     }

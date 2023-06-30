@@ -27,7 +27,7 @@ namespace rfb {
     virtual ~RawDecoder();
     virtual bool readRect(const Rect& r, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os);
-    virtual void decodeRect(const Rect& r, const void* buffer,
+    virtual void decodeRect(const Rect& r, const uint8_t* buffer,
                             size_t buflen, const ServerParams& server,
                             ModifiablePixelBuffer* pb);
   };

@@ -266,6 +266,8 @@ namespace rfb {
       *dst++ = 0x80 | (src & 0x3f);
       *dst++ = '\0';
       return 2;
+    } else if ((src >= 0xd800) && (src < 0xe000)) {
+      return ucs4ToUTF8(0xfffd, dst);
     } else if (src < 0x10000) {
       *dst++ = 0xe0 | (src >> 12);
       *dst++ = 0x80 | ((src >> 6) & 0x3f);
@@ -333,6 +335,10 @@ namespace rfb {
       src++;
       max--;
     }
+
+    // UTF-16 surrogate code point?
+    if ((*dst >= 0xd800) && (*dst < 0xe000))
+      *dst = 0xfffd;
 
     return consumed;
   }
@@ -562,6 +568,40 @@ namespace rfb {
     }
 
     return out;
+  }
+
+  bool isValidUTF8(const char* str, size_t bytes)
+  {
+    while ((bytes > 0) && (*str != '\0')) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf8ToUCS4(str, bytes, &ucs);
+      str += len;
+      bytes -= len;
+
+      if (ucs == 0xfffd)
+        return false;
+    }
+
+    return true;
+  }
+
+  bool isValidUTF16(const wchar_t* wstr, size_t units)
+  {
+    while ((units > 0) && (*wstr != '\0')) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf16ToUCS4(wstr, units, &ucs);
+      wstr += len;
+      units -= len;
+
+      if (ucs == 0xfffd)
+        return false;
+    }
+
+    return true;
   }
 
   unsigned msBetween(const struct timeval *first,

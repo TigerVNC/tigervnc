@@ -113,7 +113,7 @@ bool HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
   return true;
 }
 
-void HextileDecoder::decodeRect(const Rect& r, const void* buffer,
+void HextileDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
                                 size_t buflen, const ServerParams& server,
                                 ModifiablePixelBuffer* pb)
 {
@@ -158,7 +158,7 @@ void HextileDecoder::hextileDecode(const Rect& r, rdr::InStream* is,
       int tileType = is->readU8();
 
       if (tileType & hextileRaw) {
-        is->readBytes(buf, t.area() * sizeof(T));
+        is->readBytes((uint8_t*)buf, t.area() * sizeof(T));
         pb->imageRect(pf, t, buf);
         continue;
       }

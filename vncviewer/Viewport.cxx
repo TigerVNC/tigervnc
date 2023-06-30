@@ -566,6 +566,11 @@ int Viewport::handle(int event)
 
   switch (event) {
   case FL_PASTE:
+    if (!isValidUTF8(Fl::event_text(), Fl::event_length())) {
+      vlog.error("Invalid UTF-8 sequence in system clipboard");
+      return 1;
+    }
+
     filtered = convertLF(Fl::event_text(), Fl::event_length());
 
     vlog.debug("Sending clipboard data (%d bytes)", (int)filtered.size());

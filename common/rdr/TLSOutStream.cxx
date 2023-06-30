@@ -44,7 +44,7 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
   self->saved_exception = NULL;
 
   try {
-    out->writeBytes(data, size);
+    out->writeBytes((const uint8_t*)data, size);
     out->flush();
   } catch (SystemException &e) {
     vlog.error("Failure sending TLS data: %s", e.str());

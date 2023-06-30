@@ -55,7 +55,7 @@ namespace rfb {
     virtual void setCursorPos(const Point& pos) = 0;
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
-    virtual void fence(uint32_t flags, unsigned len, const char data[]);
+    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
     virtual void endOfContinuousUpdates();
     virtual void supportsQEMUKeyEvent();
     virtual void serverInit(int width, int height,

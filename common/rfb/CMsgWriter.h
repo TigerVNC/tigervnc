@@ -51,7 +51,7 @@ namespace rfb {
     void writeFramebufferUpdateRequest(const Rect& r,bool incremental);
     void writeEnableContinuousUpdates(bool enable, int x, int y, int w, int h);
 
-    void writeFence(uint32_t flags, unsigned len, const char data[]);
+    void writeFence(uint32_t flags, unsigned len, const uint8_t data[]);
 
     void writeKeyEvent(uint32_t keysym, uint32_t keycode, bool down);
     void writePointerEvent(const Point& pos, int buttonMask);

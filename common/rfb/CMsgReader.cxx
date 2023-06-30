@@ -74,9 +74,14 @@ bool CMsgReader::readServerInit()
     return false;
   is->clearRestorePoint();
   std::vector<char> name(len + 1);
-  is->readBytes(name.data(), len);
+  is->readBytes((uint8_t*)name.data(), len);
   name[len] = '\0';
-  handler->serverInit(width, height, pf, name.data());
+
+  if (isValidUTF8(name.data()))
+    handler->serverInit(width, height, pf, name.data());
+  else
+    handler->serverInit(width, height, pf,
+                        latin1ToUTF8(name.data()).c_str());
 
   return true;
 }
@@ -275,9 +280,13 @@ bool CMsgReader::readServerCutText()
     vlog.error("cut text too long (%d bytes) - ignoring",len);
     return true;
   }
+
   std::vector<char> ca(len);
-  is->readBytes(ca.data(), len);
-  std::string filtered(convertLF(ca.data(), len));
+  is->readBytes((uint8_t*)ca.data(), len);
+
+  std::string utf8(latin1ToUTF8(ca.data(), ca.size()));
+  std::string filtered(convertLF(utf8.data(), utf8.size()));
+
   handler->serverCutText(filtered.c_str());
 
   return true;
@@ -409,7 +418,7 @@ bool CMsgReader::readFence()
 {
   uint32_t flags;
   uint8_t len;
-  char data[64];
+  uint8_t data[64];
 
   if (!is->hasData(3 + 4 + 1))
     return false;
@@ -763,14 +772,20 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
   is->clearRestorePoint();
 
   std::vector<char> name(len + 1);
-  is->readBytes(name.data(), len);
+  is->readBytes((uint8_t*)name.data(), len);
   name[len] = '\0';
 
   if (x || y || w || h) {
     vlog.error("Ignoring DesktopName rect with non-zero position/size");
-  } else {
-    handler->setName(name.data());
+    return true;
   }
+
+  if (!isValidUTF8(name.data())) {
+    vlog.error("Ignoring DesktopName rect with invalid UTF-8 sequence");
+    return true;
+  }
+
+  handler->setName(name.data());
 
   return true;
 }
