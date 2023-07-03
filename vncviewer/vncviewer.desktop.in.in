@@ -6,5 +6,5 @@ Exec=@CMAKE_INSTALL_FULL_BINDIR@/vncviewer
 Icon=tigervnc
 Terminal=false
 Type=Application
-StartupWMClass=TigerVNC Viewer: Connection Details
+StartupWMClass=vncviewer
 Categories=Network;RemoteAccess;
