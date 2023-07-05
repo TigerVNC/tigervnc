@@ -306,6 +306,7 @@ void CSecurityTLS::checkSession()
   const gnutls_datum_t *cert_list;
   unsigned int cert_list_size = 0;
   int err;
+  bool hostname_match;
 
   const char *homeDir;
   gnutls_datum_t info;
@@ -370,18 +371,13 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("decoding of certificate failed");
 
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
-    std::string text;
     vlog.debug("hostname mismatch");
-    text = format("Hostname (%s) does not match the server "
-                  "certificate, do you want to continue?",
-                  client->getServerName());
-    if (!msg->showMsgBox(UserMsgBox::M_YESNO,
-                         "Certificate hostname mismatch",
-                         text.c_str()))
-      throw AuthFailureException("Certificate hostname mismatch");
+    hostname_match = false;
+  } else {
+    hostname_match = true;
   }
 
-  if (status == 0) {
+  if ((status == 0) && hostname_match) {
     /* Everything is fine (hostname + verification) */
     gnutls_x509_crt_deinit(crt);
     return;
@@ -515,6 +511,24 @@ void CSecurityTLS::checkSession()
       vlog.error("Unhandled certificate problems: 0x%x", status);
       throw AuthFailureException("Unhandled certificate problems");
     }
+
+    if (!hostname_match) {
+      text = format("The specified hostname \"%s\" does not match the "
+                    "certificate provided by the server:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", client->getServerName(), info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Certificate hostname mismatch",
+                           text.c_str()))
+        throw AuthFailureException("Certificate hostname mismatch");
+    }
   } else if (err == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
 
@@ -612,6 +626,26 @@ void CSecurityTLS::checkSession()
     if (status != 0) {
       vlog.error("Unhandled certificate problems: 0x%x", status);
       throw AuthFailureException("Unhandled certificate problems");
+    }
+
+    if (!hostname_match) {
+      text = format("This host is previously known with a different "
+                    "certificate, and the specified hostname \"%s\" "
+                    "does not match the new certificate provided by "
+                    "the server:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", client->getServerName(), info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Unexpected server certificate",
+                           text.c_str()))
+        throw AuthFailureException("Unexpected server certificate");
     }
   }
 
