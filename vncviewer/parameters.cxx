@@ -427,7 +427,7 @@ void saveHistoryToRegKey(const vector<string>& serverHistory) {
   if (res != ERROR_SUCCESS)
     throw rdr::SystemException(_("Failed to create registry key"), res);
 
-  size_t index = 0;
+  unsigned index = 0;
   assert(SERVER_HISTORY_SIZE < 100);
   char indexString[3];
 
@@ -517,7 +517,7 @@ void loadHistoryFromRegKey(vector<string>& serverHistory) {
     throw rdr::SystemException(_("Failed to open registry key"), res);
   }
 
-  size_t index;
+  unsigned index;
   const DWORD buffersize = 256;
   char indexString[3];
 
