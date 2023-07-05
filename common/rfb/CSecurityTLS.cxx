@@ -46,6 +46,16 @@
 
 #include <gnutls/x509.h>
 
+/*
+ * GNUTLS doesn't correctly export gnutls_free symbol which is
+ * a function pointer. Linking with Visual Studio 2008 Express will
+ * fail when you call gnutls_free().
+ */
+#if WIN32
+#undef gnutls_free
+#define gnutls_free free
+#endif
+
 using namespace rfb;
 
 static const char* homedirfn(const char* fn);
@@ -313,10 +323,40 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("server certificate verification failed");
   }
 
-  if (status & GNUTLS_CERT_REVOKED)
-    throw AuthFailureException("server certificate has been revoked");
+  if (status != 0) {
+    gnutls_datum_t status_str;
+    unsigned int fatal_status;
 
-  /* Process other errors later */
+    fatal_status = status & (~allowed_errors);
+
+    if (fatal_status != 0) {
+      std::string error;
+
+      if (gnutls_certificate_verification_status_print(fatal_status,
+                                                       GNUTLS_CRT_X509,
+                                                       &status_str,
+                                                       0) < 0)
+        throw Exception("Failed to get certificate error description");
+
+      error = format("Invalid server certificate: %s", status_str.data);
+
+      gnutls_free(status_str.data);
+
+      throw AuthFailureException(error.c_str());
+    }
+
+    if (gnutls_certificate_verification_status_print(status,
+                                                     GNUTLS_CRT_X509,
+                                                     &status_str,
+                                                     0) < 0)
+      throw Exception("Failed to get certificate error description");
+
+    vlog.info("Server certificate errors: %s", status_str.data);
+
+    gnutls_free(status_str.data);
+  }
+
+  /* Process overridable errors later */
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
   if (!cert_list_size)
@@ -346,27 +386,8 @@ void CSecurityTLS::checkSession()
     gnutls_x509_crt_deinit(crt);
     return;
   }
-    
-  if (status & GNUTLS_CERT_INVALID)
-    vlog.debug("server certificate invalid");
-  if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
-    vlog.debug("server cert signer not found");
-  if (status & GNUTLS_CERT_SIGNER_NOT_CA)
-    vlog.debug("server cert signer not CA");
-  if (status & GNUTLS_CERT_NOT_ACTIVATED)
-    vlog.debug("server certificate has not yet been activated");
-  if (status & GNUTLS_CERT_EXPIRED)
-    vlog.debug("server certificate has expired");
-  if (status & GNUTLS_CERT_INSECURE_ALGORITHM)
-    vlog.debug("server certificate uses an insecure algorithm");
 
-  if ((status & (~allowed_errors)) != 0) {
-    /* No other errors are allowed */
-    vlog.debug("GNUTLS status of certificate verification: 0x%x", status);
-    throw AuthFailureException("Invalid status of server certificate verification");
-  }
-
-  /* Certificate is fine, except we don't know the issuer, so TOFU time */
+  /* Certificate has some user overridable problems, so TOFU time */
 
   homeDir = os::getvnchomedir();
   if (homeDir == NULL) {
@@ -599,15 +620,6 @@ void CSecurityTLS::checkSession()
     vlog.error("Failed to store server certificate to known hosts database");
 
   gnutls_x509_crt_deinit(crt);
-  /*
-   * GNUTLS doesn't correctly export gnutls_free symbol which is
-   * a function pointer. Linking with Visual Studio 2008 Express will
-   * fail when you call gnutls_free().
-   */
-#if WIN32
-  free(info.data);
-#else
   gnutls_free(info.data);
-#endif
 }
 
