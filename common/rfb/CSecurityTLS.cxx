@@ -417,7 +417,8 @@ void CSecurityTLS::checkSession()
     vlog.debug("Server host not previously known");
     vlog.debug("%s", info.data);
 
-    if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
+    if (status & (GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
       text = format("This certificate has been signed by an unknown "
                     "authority:\n"
@@ -458,7 +459,8 @@ void CSecurityTLS::checkSession()
     vlog.debug("Server host key mismatch");
     vlog.debug("%s", info.data);
 
-    if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
+    if (status & (GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
       text = format("This host is previously known with a different "
                     "certificate, and the new certificate has been "
