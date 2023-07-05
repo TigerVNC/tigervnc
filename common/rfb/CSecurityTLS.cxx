@@ -435,6 +435,10 @@ void CSecurityTLS::checkSession()
                            "Unknown certificate issuer",
                            text.c_str()))
         throw AuthFailureException("Unknown certificate issuer");
+
+      status &= ~(GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
+                  GNUTLS_CERT_SIGNER_NOT_CA);
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
@@ -452,6 +456,13 @@ void CSecurityTLS::checkSession()
                            "Expired certificate",
                            text.c_str()))
         throw AuthFailureException("Expired certificate");
+
+      status &= ~GNUTLS_CERT_EXPIRED;
+    }
+
+    if (status != 0) {
+      vlog.error("Unhandled certificate problems: 0x%x", status);
+      throw AuthFailureException("Unhandled certificate problems");
     }
   } else if (err == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
@@ -478,6 +489,10 @@ void CSecurityTLS::checkSession()
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~(GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
+                  GNUTLS_CERT_SIGNER_NOT_CA);
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
@@ -497,6 +512,13 @@ void CSecurityTLS::checkSession()
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~GNUTLS_CERT_EXPIRED;
+    }
+
+    if (status != 0) {
+      vlog.error("Unhandled certificate problems: 0x%x", status);
+      throw AuthFailureException("Unhandled certificate problems");
     }
   }
 
