@@ -289,6 +289,7 @@ void CSecurityTLS::checkSession()
   const unsigned allowed_errors = GNUTLS_CERT_INVALID |
 				  GNUTLS_CERT_SIGNER_NOT_FOUND |
 				  GNUTLS_CERT_SIGNER_NOT_CA |
+				  GNUTLS_CERT_NOT_ACTIVATED |
 				  GNUTLS_CERT_EXPIRED;
   unsigned int status;
   const gnutls_datum_t *cert_list;
@@ -313,9 +314,6 @@ void CSecurityTLS::checkSession()
 
   if (status & GNUTLS_CERT_REVOKED)
     throw AuthFailureException("server certificate has been revoked");
-
-  if (status & GNUTLS_CERT_NOT_ACTIVATED)
-    throw AuthFailureException("server certificate has not been activated");
 
   if (status & GNUTLS_CERT_EXPIRED) {
     vlog.debug("server certificate has expired");
@@ -362,6 +360,8 @@ void CSecurityTLS::checkSession()
     vlog.debug("server cert signer not found");
   if (status & GNUTLS_CERT_SIGNER_NOT_CA)
     vlog.debug("server cert signer not CA");
+  if (status & GNUTLS_CERT_NOT_ACTIVATED)
+    vlog.debug("server certificate has not yet been activated");
   if (status & GNUTLS_CERT_EXPIRED)
     vlog.debug("server certificate has expired");
 
@@ -441,6 +441,25 @@ void CSecurityTLS::checkSession()
                   GNUTLS_CERT_SIGNER_NOT_CA);
     }
 
+    if (status & GNUTLS_CERT_NOT_ACTIVATED) {
+      text = format("This certificate is not yet valid:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Certificate is not yet valid",
+                           text.c_str()))
+        throw AuthFailureException("Certificate is not yet valid");
+
+      status &= ~GNUTLS_CERT_NOT_ACTIVATED;
+    }
+
     if (status & GNUTLS_CERT_EXPIRED) {
       text = format("This certificate has expired:\n"
                     "\n"
@@ -493,6 +512,27 @@ void CSecurityTLS::checkSession()
       status &= ~(GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA);
+    }
+
+    if (status & GNUTLS_CERT_NOT_ACTIVATED) {
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate is not yet "
+                    "valid:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Unexpected server certificate",
+                           text.c_str()))
+        throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~GNUTLS_CERT_NOT_ACTIVATED;
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
