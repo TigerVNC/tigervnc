@@ -315,14 +315,6 @@ void CSecurityTLS::checkSession()
   if (status & GNUTLS_CERT_REVOKED)
     throw AuthFailureException("server certificate has been revoked");
 
-  if (status & GNUTLS_CERT_EXPIRED) {
-    vlog.debug("server certificate has expired");
-    if (!msg->showMsgBox(UserMsgBox::M_YESNO, "certificate has expired",
-			 "The certificate of the server has expired, "
-			 "do you want to continue?"))
-      throw AuthFailureException("server certificate has expired");
-  }
-
   /* Process other errors later */
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
