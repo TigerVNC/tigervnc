@@ -47,18 +47,13 @@
 #include <gnutls/x509.h>
 
 /*
- * GNUTLS 2.6.5 and older didn't have some variables defined so don't use them.
- * GNUTLS 1.X.X defined LIBGNUTLS_VERSION_NUMBER so treat it as "old" gnutls as
- * well
+ * GNUTLS doesn't correctly export gnutls_free symbol which is
+ * a function pointer. Linking with Visual Studio 2008 Express will
+ * fail when you call gnutls_free().
  */
-#if (defined(GNUTLS_VERSION_NUMBER) && GNUTLS_VERSION_NUMBER < 0x020606) || \
-    defined(LIBGNUTLS_VERSION_NUMBER)
-#define WITHOUT_X509_TIMES
-#endif
-
-/* Ancient GNUTLS... */
-#if !defined(GNUTLS_VERSION_NUMBER) && !defined(LIBGNUTLS_VERSION_NUMBER)
-#define WITHOUT_X509_TIMES
+#if WIN32
+#undef gnutls_free
+#define gnutls_free free
 #endif
 
 using namespace rfb;
@@ -304,11 +299,14 @@ void CSecurityTLS::checkSession()
   const unsigned allowed_errors = GNUTLS_CERT_INVALID |
 				  GNUTLS_CERT_SIGNER_NOT_FOUND |
 				  GNUTLS_CERT_SIGNER_NOT_CA |
-				  GNUTLS_CERT_EXPIRED;
+				  GNUTLS_CERT_NOT_ACTIVATED |
+				  GNUTLS_CERT_EXPIRED |
+				  GNUTLS_CERT_INSECURE_ALGORITHM;
   unsigned int status;
   const gnutls_datum_t *cert_list;
   unsigned int cert_list_size = 0;
   int err;
+  bool hostname_match;
 
   const char *homeDir;
   gnutls_datum_t info;
@@ -326,22 +324,40 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("server certificate verification failed");
   }
 
-  if (status & GNUTLS_CERT_REVOKED)
-    throw AuthFailureException("server certificate has been revoked");
+  if (status != 0) {
+    gnutls_datum_t status_str;
+    unsigned int fatal_status;
 
-#ifndef WITHOUT_X509_TIMES
-  if (status & GNUTLS_CERT_NOT_ACTIVATED)
-    throw AuthFailureException("server certificate has not been activated");
+    fatal_status = status & (~allowed_errors);
 
-  if (status & GNUTLS_CERT_EXPIRED) {
-    vlog.debug("server certificate has expired");
-    if (!msg->showMsgBox(UserMsgBox::M_YESNO, "certificate has expired",
-			 "The certificate of the server has expired, "
-			 "do you want to continue?"))
-      throw AuthFailureException("server certificate has expired");
+    if (fatal_status != 0) {
+      std::string error;
+
+      if (gnutls_certificate_verification_status_print(fatal_status,
+                                                       GNUTLS_CRT_X509,
+                                                       &status_str,
+                                                       0) < 0)
+        throw Exception("Failed to get certificate error description");
+
+      error = format("Invalid server certificate: %s", status_str.data);
+
+      gnutls_free(status_str.data);
+
+      throw AuthFailureException(error.c_str());
+    }
+
+    if (gnutls_certificate_verification_status_print(status,
+                                                     GNUTLS_CRT_X509,
+                                                     &status_str,
+                                                     0) < 0)
+      throw Exception("Failed to get certificate error description");
+
+    vlog.info("Server certificate errors: %s", status_str.data);
+
+    gnutls_free(status_str.data);
   }
-#endif
-  /* Process other errors later */
+
+  /* Process overridable errors later */
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
   if (!cert_list_size)
@@ -355,42 +371,19 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("decoding of certificate failed");
 
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
-    std::string text;
-    vlog.debug("hostname mismatch");
-    text = format("Hostname (%s) does not match the server "
-                  "certificate, do you want to continue?",
-                  client->getServerName());
-    if (!msg->showMsgBox(UserMsgBox::M_YESNO,
-                         "Certificate hostname mismatch",
-                         text.c_str()))
-      throw AuthFailureException("Certificate hostname mismatch");
+    vlog.info("Server certificate doesn't match given server name");
+    hostname_match = false;
+  } else {
+    hostname_match = true;
   }
 
-  if (status == 0) {
+  if ((status == 0) && hostname_match) {
     /* Everything is fine (hostname + verification) */
     gnutls_x509_crt_deinit(crt);
     return;
   }
-    
-  if (status & GNUTLS_CERT_INVALID)
-    vlog.debug("server certificate invalid");
-  if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
-    vlog.debug("server cert signer not found");
-  if (status & GNUTLS_CERT_SIGNER_NOT_CA)
-    vlog.debug("server cert signer not CA");
-  if (status & GNUTLS_CERT_EXPIRED)
-    vlog.debug("server certificate has expired");
 
-  if (status & GNUTLS_CERT_INSECURE_ALGORITHM)
-    throw AuthFailureException("The server certificate uses an insecure algorithm");
-
-  if ((status & (~allowed_errors)) != 0) {
-    /* No other errors are allowed */
-    vlog.debug("GNUTLS status of certificate verification: 0x%x", status);
-    throw AuthFailureException("Invalid status of server certificate verification");
-  }
-
-  /* Certificate is fine, except we don't know the issuer, so TOFU time */
+  /* Certificate has some user overridable problems, so TOFU time */
 
   homeDir = os::getvnchomedir();
   if (homeDir == NULL) {
@@ -407,7 +400,7 @@ void CSecurityTLS::checkSession()
 
   /* Previously known? */
   if (err == GNUTLS_E_SUCCESS) {
-    vlog.debug("Server certificate found in known hosts file");
+    vlog.info("Server certificate found in known hosts file");
     gnutls_x509_crt_deinit(crt);
     return;
   }
@@ -430,10 +423,11 @@ void CSecurityTLS::checkSession()
   if (err == GNUTLS_E_NO_CERTIFICATE_FOUND) {
     std::string text;
 
-    vlog.debug("Server host not previously known");
-    vlog.debug("%s", info.data);
+    vlog.info("Server host not previously known");
+    vlog.info("%s", info.data);
 
-    if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
+    if (status & (GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
       text = format("This certificate has been signed by an unknown "
                     "authority:\n"
@@ -450,6 +444,29 @@ void CSecurityTLS::checkSession()
                            "Unknown certificate issuer",
                            text.c_str()))
         throw AuthFailureException("Unknown certificate issuer");
+
+      status &= ~(GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
+                  GNUTLS_CERT_SIGNER_NOT_CA);
+    }
+
+    if (status & GNUTLS_CERT_NOT_ACTIVATED) {
+      text = format("This certificate is not yet valid:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Certificate is not yet valid",
+                           text.c_str()))
+        throw AuthFailureException("Certificate is not yet valid");
+
+      status &= ~GNUTLS_CERT_NOT_ACTIVATED;
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
@@ -467,14 +484,59 @@ void CSecurityTLS::checkSession()
                            "Expired certificate",
                            text.c_str()))
         throw AuthFailureException("Expired certificate");
+
+      status &= ~GNUTLS_CERT_EXPIRED;
+    }
+
+    if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
+      text = format("This certificate uses an insecure algorithm:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Insecure certificate algorithm",
+                           text.c_str()))
+        throw AuthFailureException("Insecure certificate algorithm");
+
+      status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
+    }
+
+    if (status != 0) {
+      vlog.error("Unhandled certificate problems: 0x%x", status);
+      throw AuthFailureException("Unhandled certificate problems");
+    }
+
+    if (!hostname_match) {
+      text = format("The specified hostname \"%s\" does not match the "
+                    "certificate provided by the server:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", client->getServerName(), info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Certificate hostname mismatch",
+                           text.c_str()))
+        throw AuthFailureException("Certificate hostname mismatch");
     }
   } else if (err == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
 
-    vlog.debug("Server host key mismatch");
-    vlog.debug("%s", info.data);
+    vlog.info("Server host key mismatch");
+    vlog.info("%s", info.data);
 
-    if (status & (GNUTLS_CERT_SIGNER_NOT_FOUND |
+    if (status & (GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
       text = format("This host is previously known with a different "
                     "certificate, and the new certificate has been "
@@ -492,6 +554,31 @@ void CSecurityTLS::checkSession()
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~(GNUTLS_CERT_INVALID |
+                  GNUTLS_CERT_SIGNER_NOT_FOUND |
+                  GNUTLS_CERT_SIGNER_NOT_CA);
+    }
+
+    if (status & GNUTLS_CERT_NOT_ACTIVATED) {
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate is not yet "
+                    "valid:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Unexpected server certificate",
+                           text.c_str()))
+        throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~GNUTLS_CERT_NOT_ACTIVATED;
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
@@ -511,6 +598,54 @@ void CSecurityTLS::checkSession()
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~GNUTLS_CERT_EXPIRED;
+    }
+
+    if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate uses an "
+                    "insecure algorithm:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Unexpected server certificate",
+                           text.c_str()))
+        throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
+    }
+
+    if (status != 0) {
+      vlog.error("Unhandled certificate problems: 0x%x", status);
+      throw AuthFailureException("Unhandled certificate problems");
+    }
+
+    if (!hostname_match) {
+      text = format("This host is previously known with a different "
+                    "certificate, and the specified hostname \"%s\" "
+                    "does not match the new certificate provided by "
+                    "the server:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", client->getServerName(), info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Unexpected server certificate",
+                           text.c_str()))
+        throw AuthFailureException("Unexpected server certificate");
     }
   }
 
@@ -518,16 +653,9 @@ void CSecurityTLS::checkSession()
                           NULL, GNUTLS_CRT_X509, &cert_list[0], 0, 0))
     vlog.error("Failed to store server certificate to known hosts database");
 
+  vlog.info("Exception added for server host");
+
   gnutls_x509_crt_deinit(crt);
-  /*
-   * GNUTLS doesn't correctly export gnutls_free symbol which is
-   * a function pointer. Linking with Visual Studio 2008 Express will
-   * fail when you call gnutls_free().
-   */
-#if WIN32
-  free(info.data);
-#else
   gnutls_free(info.data);
-#endif
 }
 
