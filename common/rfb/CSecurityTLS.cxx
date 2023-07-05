@@ -46,21 +46,6 @@
 
 #include <gnutls/x509.h>
 
-/*
- * GNUTLS 2.6.5 and older didn't have some variables defined so don't use them.
- * GNUTLS 1.X.X defined LIBGNUTLS_VERSION_NUMBER so treat it as "old" gnutls as
- * well
- */
-#if (defined(GNUTLS_VERSION_NUMBER) && GNUTLS_VERSION_NUMBER < 0x020606) || \
-    defined(LIBGNUTLS_VERSION_NUMBER)
-#define WITHOUT_X509_TIMES
-#endif
-
-/* Ancient GNUTLS... */
-#if !defined(GNUTLS_VERSION_NUMBER) && !defined(LIBGNUTLS_VERSION_NUMBER)
-#define WITHOUT_X509_TIMES
-#endif
-
 using namespace rfb;
 
 static const char* homedirfn(const char* fn);
@@ -329,7 +314,6 @@ void CSecurityTLS::checkSession()
   if (status & GNUTLS_CERT_REVOKED)
     throw AuthFailureException("server certificate has been revoked");
 
-#ifndef WITHOUT_X509_TIMES
   if (status & GNUTLS_CERT_NOT_ACTIVATED)
     throw AuthFailureException("server certificate has not been activated");
 
@@ -340,7 +324,7 @@ void CSecurityTLS::checkSession()
 			 "do you want to continue?"))
       throw AuthFailureException("server certificate has expired");
   }
-#endif
+
   /* Process other errors later */
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
