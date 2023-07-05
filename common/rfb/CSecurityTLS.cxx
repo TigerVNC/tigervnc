@@ -290,7 +290,8 @@ void CSecurityTLS::checkSession()
 				  GNUTLS_CERT_SIGNER_NOT_FOUND |
 				  GNUTLS_CERT_SIGNER_NOT_CA |
 				  GNUTLS_CERT_NOT_ACTIVATED |
-				  GNUTLS_CERT_EXPIRED;
+				  GNUTLS_CERT_EXPIRED |
+				  GNUTLS_CERT_INSECURE_ALGORITHM;
   unsigned int status;
   const gnutls_datum_t *cert_list;
   unsigned int cert_list_size = 0;
@@ -356,9 +357,8 @@ void CSecurityTLS::checkSession()
     vlog.debug("server certificate has not yet been activated");
   if (status & GNUTLS_CERT_EXPIRED)
     vlog.debug("server certificate has expired");
-
   if (status & GNUTLS_CERT_INSECURE_ALGORITHM)
-    throw AuthFailureException("The server certificate uses an insecure algorithm");
+    vlog.debug("server certificate uses an insecure algorithm");
 
   if ((status & (~allowed_errors)) != 0) {
     /* No other errors are allowed */
@@ -471,6 +471,25 @@ void CSecurityTLS::checkSession()
       status &= ~GNUTLS_CERT_EXPIRED;
     }
 
+    if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
+      text = format("This certificate uses an insecure algorithm:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Insecure certificate algorithm",
+                           text.c_str()))
+        throw AuthFailureException("Insecure certificate algorithm");
+
+      status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
+    }
+
     if (status != 0) {
       vlog.error("Unhandled certificate problems: 0x%x", status);
       throw AuthFailureException("Unhandled certificate problems");
@@ -546,6 +565,27 @@ void CSecurityTLS::checkSession()
         throw AuthFailureException("Unexpected server certificate");
 
       status &= ~GNUTLS_CERT_EXPIRED;
+    }
+
+    if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
+      text = format("This host is previously known with a different "
+                    "certificate, and the new certificate uses an "
+                    "insecure algorithm:\n"
+                    "\n"
+                    "%s\n"
+                    "\n"
+                    "Someone could be trying to impersonate the site "
+                    "and you should not continue.\n"
+                    "\n"
+                    "Do you want to make an exception for this "
+                    "server?", info.data);
+
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+                           "Unexpected server certificate",
+                           text.c_str()))
+        throw AuthFailureException("Unexpected server certificate");
+
+      status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
     }
 
     if (status != 0) {
