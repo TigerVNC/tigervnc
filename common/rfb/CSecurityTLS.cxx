@@ -371,7 +371,7 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("decoding of certificate failed");
 
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
-    vlog.debug("hostname mismatch");
+    vlog.info("Server certificate doesn't match given server name");
     hostname_match = false;
   } else {
     hostname_match = true;
@@ -400,7 +400,7 @@ void CSecurityTLS::checkSession()
 
   /* Previously known? */
   if (err == GNUTLS_E_SUCCESS) {
-    vlog.debug("Server certificate found in known hosts file");
+    vlog.info("Server certificate found in known hosts file");
     gnutls_x509_crt_deinit(crt);
     return;
   }
@@ -423,8 +423,8 @@ void CSecurityTLS::checkSession()
   if (err == GNUTLS_E_NO_CERTIFICATE_FOUND) {
     std::string text;
 
-    vlog.debug("Server host not previously known");
-    vlog.debug("%s", info.data);
+    vlog.info("Server host not previously known");
+    vlog.info("%s", info.data);
 
     if (status & (GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
@@ -532,8 +532,8 @@ void CSecurityTLS::checkSession()
   } else if (err == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
 
-    vlog.debug("Server host key mismatch");
-    vlog.debug("%s", info.data);
+    vlog.info("Server host key mismatch");
+    vlog.info("%s", info.data);
 
     if (status & (GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
@@ -652,6 +652,8 @@ void CSecurityTLS::checkSession()
   if (gnutls_store_pubkey(dbPath.c_str(), NULL, client->getServerName(),
                           NULL, GNUTLS_CRT_X509, &cert_list[0], 0, 0))
     vlog.error("Failed to store server certificate to known hosts database");
+
+  vlog.info("Exception added for server host");
 
   gnutls_x509_crt_deinit(crt);
   gnutls_free(info.data);
