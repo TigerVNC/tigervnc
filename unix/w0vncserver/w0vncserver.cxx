@@ -33,6 +33,7 @@
 #include <rdr/FdOutStream.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include "parameters.h"
 #include "GSocketSource.h"
