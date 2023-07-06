@@ -23,6 +23,9 @@
 
 #include <assert.h>
 
+/* This is a C header, so safe to include */
+#include <core/i18n.h>
+
 #include "scrnintstr.h"
 #ifdef RANDR
 #include "randrstr.h"
