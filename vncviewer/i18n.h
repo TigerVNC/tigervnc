@@ -45,11 +45,11 @@ extern int asprintf (char **, const char *, ...)
 #endif
 #if defined(__GNUC__) && defined(wprintf)
 extern int fwprintf (FILE *, const wchar_t *, ...)
-  __attribute__((__format__ (__printf__, 2, 3)));
+  /* __attribute__((__format__ (__wprintf__, 2, 3))) */;
 extern int wprintf (const wchar_t *, ...)
-  __attribute__((__format__ (__printf__, 1, 2)));
+  /* __attribute__((__format__ (__wprintf__, 1, 2))) */;
 extern int swprintf (wchar_t *, size_t, const wchar_t *, ...)
-  __attribute__((__format__ (__printf__, 3, 4)));
+  /* __attribute__((__format__ (__wprintf__, 3, 4))) */;
 #endif
 
 #define _(String) gettext (String)
