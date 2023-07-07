@@ -61,6 +61,7 @@ extern int swprintf (wchar_t *, size_t, const wchar_t *, ...)
 #define _(String) gettext (String)
 #define C_(Context, String) pgettext (Context, String)
 #define N_(String) gettext_noop (String)
+#define NC_(Context, String) gettext_noop (String)
 
 #undef dgettext
 #undef dcgettext
