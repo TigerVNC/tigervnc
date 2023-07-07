@@ -65,10 +65,16 @@ extern int swprintf (wchar_t *, size_t, const wchar_t *, ...)
 
 #undef dgettext
 #undef dcgettext
+#undef dngettext
+#undef dcngettext
 #undef pgettext_aux
+#undef npgettext_aux
 #define dgettext dgettext_rfb
 #define dcgettext dcgettext_rfb
+#define dngettext dngettext_rfb
+#define dcngettext dcngettext_rfb
 #define pgettext_aux pgettext_rfb
+#define npgettext_aux npgettext_rfb
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,11 +85,27 @@ const char *dgettext_rfb(const char *domainname, const char *msgid)
 const char *dcgettext_rfb(const char *domainname, const char *msgid,
                           int category)
                           __attribute__ ((format_arg (2)));
+const char *dngettext_rfb(const char *domainname, const char *msgid,
+                          const char *msgid_plural,
+                          unsigned long int n)
+                          __attribute__ ((format_arg (2)))
+                          __attribute__ ((format_arg (3)));
+const char *dcngettext_rfb(const char *domainname, const char *msgid,
+                           const char *msgid_plural,
+                           unsigned long int n, int category)
+                          __attribute__ ((format_arg (2)))
+                          __attribute__ ((format_arg (3)));
 
 const char *pgettext_rfb(const char *domain,
                          const char *msg_ctxt_id, const char *msgid,
                          int category)
                          __attribute__ ((format_arg (3)));
+const char *npgettext_rfb(const char *domain,
+                          const char *msg_ctxt_id, const char *msgid,
+                          const char *msgid_plural,
+                          unsigned long int n, int category)
+                          __attribute__ ((format_arg (3)))
+                          __attribute__ ((format_arg (4)));
 
 #ifdef __cplusplus
 }
