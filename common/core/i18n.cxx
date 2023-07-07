@@ -37,7 +37,10 @@
 
 #undef dgettext
 #undef dcgettext
+#undef dngettext
+#undef dcngettext
 #undef pgettext_aux
+#undef npgettext_aux
 
 static bool initialized = false;
 
@@ -123,10 +126,36 @@ const char *dcgettext_rfb(const char *domainname, const char *msgid,
   return dcgettext(domainname, msgid, category);
 }
 
+const char *dngettext_rfb(const char *domainname, const char *msgid,
+                          const char *msgid_plural,
+                          unsigned long int n)
+{
+  initTranslations();
+  return dngettext(domainname, msgid, msgid_plural, n);
+}
+
+const char *dcngettext_rfb(const char *domainname, const char *msgid,
+                           const char *msgid_plural,
+                           unsigned long int n, int category)
+{
+  initTranslations();
+  return dcngettext(domainname, msgid, msgid_plural, n, category);
+}
+
 const char *pgettext_rfb(const char *domain,
                          const char *msg_ctxt_id, const char *msgid,
                          int category)
 {
   initTranslations();
   return pgettext_aux(domain, msg_ctxt_id, msgid, category);
+}
+
+const char *npgettext_rfb(const char *domain,
+                          const char *msg_ctxt_id, const char *msgid,
+                          const char *msgid_plural,
+                          unsigned long int n, int category)
+{
+  initTranslations();
+  return npgettext_aux(domain, msg_ctxt_id, msgid, msgid_plural,
+                       n, category);
 }
