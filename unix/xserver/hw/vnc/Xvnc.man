@@ -171,12 +171,6 @@ be either \fB0\fP (off), \fB1\fP (always) or \fB2\fP (auto). Default is
 \fB2\fP.
 .
 .TP
-.B \-ZlibLevel \fIlevel\fP
-Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
-Acceptable values are between 0 and 9.  Default is to use the standard
-compression level provided by the \fBzlib\fP(3) compression library.
-.
-.TP
 .B \-ImprovedHextile
 Use improved compression algorithm for Hextile encoding which achieves better
 compression ratios by the cost of using slightly more CPU time.  Default is

@@ -32,6 +32,8 @@ namespace rfb {
 
     virtual bool isSupported();
 
+    virtual void setCompressLevel(int level);
+
     virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
     virtual void writeSolidRect(int width, int height,
                                 const PixelFormat& pf,
