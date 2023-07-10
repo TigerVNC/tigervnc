@@ -33,6 +33,12 @@
 
 #include <core/i18n.h>
 
+// Restore original functions
+
+#undef dgettext
+#undef dcgettext
+#undef pgettext_aux
+
 static bool initialized = false;
 
 static const char* getlocaledir()
@@ -87,7 +93,7 @@ static const char* getlocaledir()
 #endif
 }
 
-void core::initTranslations()
+static void initTranslations()
 {
   const char* localedir;
 
@@ -102,4 +108,25 @@ void core::initTranslations()
     fprintf(stderr, "Failed to determine locale directory\n");
   else
     bindtextdomain(DEFAULT_TEXT_DOMAIN, localedir);
+}
+
+const char *dgettext_rfb(const char *domainname, const char *msgid)
+{
+  initTranslations();
+  return dgettext(domainname, msgid);
+}
+
+const char *dcgettext_rfb(const char *domainname, const char *msgid,
+                          int category)
+{
+  initTranslations();
+  return dcgettext(domainname, msgid, category);
+}
+
+const char *pgettext_rfb(const char *domain,
+                         const char *msg_ctxt_id, const char *msgid,
+                         int category)
+{
+  initTranslations();
+  return pgettext_aux(domain, msg_ctxt_id, msgid, category);
 }
