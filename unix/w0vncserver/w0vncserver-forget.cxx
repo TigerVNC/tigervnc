@@ -28,7 +28,6 @@
 
 #include <core/xdgdirs.h>
 #include <core/Configuration.h>
-#include <core/i18n.h>
 
 // Sync with RemoteDesktop.cxx
 static const char* RESTORE_TOKEN_FILENAME =  "restoretoken";
@@ -53,7 +52,6 @@ int main(int argc, char** argv)
   const char* stateDir;
 
   setlocale(LC_ALL, "");
-  core::initTranslations();
 
   programName = argv[0];
 

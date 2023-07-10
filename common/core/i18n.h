@@ -22,14 +22,6 @@
 
 #define DEFAULT_TEXT_DOMAIN "tigervnc"
 
-/* Need to tell gcc that pgettext() doesn't screw up format strings */
-#ifdef __GNUC__
-static const char *
-pgettext_aux (const char *domain,
-              const char *msg_ctxt_id, const char *msgid,
-              int category) __attribute__ ((format_arg (3)));
-#endif
-
 /*
  * LC_MESSAGES is only in POSIX, and hence missing on Windows. libintl
  * fixes that for us, but if that isn't included then we need to sort it
@@ -70,10 +62,30 @@ extern int swprintf (wchar_t *, size_t, const wchar_t *, ...)
 #define C_(Context, String) pgettext (Context, String)
 #define N_(String) gettext_noop (String)
 
-namespace core {
+#undef dgettext
+#undef dcgettext
+#undef pgettext_aux
+#define dgettext dgettext_rfb
+#define dcgettext dcgettext_rfb
+#define pgettext_aux pgettext_rfb
 
-  void initTranslations();
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+const char *dgettext_rfb(const char *domainname, const char *msgid)
+                         __attribute__ ((format_arg (2)));
+const char *dcgettext_rfb(const char *domainname, const char *msgid,
+                          int category)
+                          __attribute__ ((format_arg (2)));
+
+const char *pgettext_rfb(const char *domain,
+                         const char *msg_ctxt_id, const char *msgid,
+                         int category)
+                         __attribute__ ((format_arg (3)));
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif

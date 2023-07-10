@@ -35,7 +35,6 @@
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
-#include <core/i18n.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -292,7 +291,6 @@ static void usage()
 int main(int argc, char** argv)
 {
   setlocale(LC_ALL, "");
-  core::initTranslations();
 
   core::initStdIOLoggers();
   core::LogWriter::setLogParams("*:stderr:30");

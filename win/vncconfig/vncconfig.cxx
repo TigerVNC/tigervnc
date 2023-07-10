@@ -29,7 +29,6 @@
 
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
-#include <core/i18n.h>
 
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/RegConfig.h>
@@ -82,8 +81,6 @@ processParams(int argc, char* argv[]) {
 
 
 int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*cmdShow*/) {
-
-  initTranslations();
 
   // Configure debugging output
 #ifdef _DEBUG
