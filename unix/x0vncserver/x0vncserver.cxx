@@ -291,7 +291,6 @@ static void usage()
 int main(int argc, char** argv)
 {
   setlocale(LC_ALL, "");
-  core::initTranslations();
 
   core::initStdIOLoggers();
   core::LogWriter::setLogParams("*:stderr:30");

@@ -188,7 +188,6 @@ int main(int argc, char** argv)
   char fname[PATH_MAX];
 
   setlocale(LC_ALL, "");
-  core::initTranslations();
 
   fname[0] = '\0';
 

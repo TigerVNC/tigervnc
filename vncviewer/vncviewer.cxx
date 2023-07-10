@@ -577,7 +577,6 @@ int main(int argc, char** argv)
   argv0 = argv[0];
 
   setlocale(LC_ALL, "");
-  core::initTranslations();
 
   // Write about text to console, still using normal locale codeset
   fprintf(stderr,"\n%s\n", about_text());
