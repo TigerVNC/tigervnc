@@ -31,7 +31,6 @@
 #include <core/Logger_file.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
-#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb_win32/AboutDialog.h>
@@ -245,8 +244,6 @@ int WINAPI WinMain(HINSTANCE /*inst*/, HINSTANCE /*prevInst*/, char* /*cmdLine*/
   int result = 0;
 
   try {
-    initTranslations();
-
     // - Initialise the available loggers
     //freopen("\\\\drupe\\tjr\\WinVNC4.log","ab",stderr);
 #ifdef _DEBUG

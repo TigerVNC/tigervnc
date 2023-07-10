@@ -33,7 +33,6 @@
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 #include <core/Region.h>
-#include <core/i18n.h>
 
 #include <rfb/ServerCore.h>
 #include <rdr/HexOutStream.h>
@@ -179,7 +178,6 @@ void vncExtensionInit(void)
 
   try {
     if (!initialised) {
-      core::initTranslations();
       core::initStdIOLoggers();
 
       allowOverride.setImmutable();

@@ -32,7 +32,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <core/i18n.h>
 #include <core/xdgdirs.h>
 
 #include <rfb/obfuscate.h>
@@ -188,7 +187,6 @@ int main(int argc, char** argv)
   char fname[PATH_MAX];
 
   setlocale(LC_ALL, "");
-  core::initTranslations();
 
   fname[0] = '\0';
 
