@@ -42,6 +42,31 @@
 
 const int RADIUS = 4;
 
+/*
+ * fl_arc() and fl_pie() are broken on Windows, so we need to fudge the
+ * numbers a bit
+ */
+#ifdef WIN32
+static void fixed_arc(int x,int y,int w,int h,double a1,double a2) {
+  if ((a1 != 0.0) || (a2 != 360.0)) {
+    a1 -= 10.0;
+    a2 += 10.0;
+  }
+  fl_arc(x, y, w, h, a1, a2);
+}
+
+static void fixed_pie(int x,int y,int w,int h,double a1,double a2) {
+  if ((a1 != 0.0) || (a2 != 360.0)) {
+    a1 -= 10.0;
+    a2 += 10.0;
+  }
+  fl_pie(x, y, w, h, a1, a2);
+}
+
+#define fl_arc fixed_arc
+#define fl_pie fixed_pie
+#endif
+
 static Fl_Color light_border(Fl_Color c)
 {
   return fl_color_average(FL_BLACK, c, 0.12);
