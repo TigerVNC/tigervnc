@@ -66,6 +66,8 @@ ServerDialog::ServerDialog()
 
   serverName = new Fl_Input_Choice(LBLLEFT(x, y, w() - OUTER_MARGIN*2,
                                    INPUT_HEIGHT, _("VNC server:")));
+  // Bug fix for wrong background
+  serverName->color(FL_BACKGROUND2_COLOR);
   y += INPUT_HEIGHT + INNER_MARGIN;
 
   x2 = x;
