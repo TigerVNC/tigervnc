@@ -36,8 +36,160 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/fl_ask.H>
+#include <FL/fl_draw.H>
 
 #include "theme.h"
+
+const int RADIUS = 4;
+
+static Fl_Color light_border(Fl_Color c)
+{
+  return fl_color_average(FL_BLACK, c, 0.12);
+}
+
+static Fl_Color dark_border(Fl_Color c)
+{
+  return fl_color_average(FL_BLACK, c, 0.33);
+}
+
+static void theme_round_frame(bool up, int x, int y, int w, int h,
+                              int r, Fl_Color c)
+{
+  if (r > h/2)
+    r = h/2;
+
+  // Top
+  if (up)
+    Fl::set_box_color(light_border(c));
+  else
+    Fl::set_box_color(dark_border(c));
+
+  fl_xyline(x+r, y, x+w-r-1);
+
+  // Top corners
+  if (!up)
+    Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+
+  fl_arc(x, y, r*2, r*2, 90.0, 180.0);
+  fl_arc(x+w-(r*2), y, r*2, r*2, 0, 90.0);
+
+  // Left and right
+  Fl::set_box_color(light_border(c));
+
+  fl_yxline(x, y+r, y+h-r-1);
+  fl_yxline(x+w-1, y+r, y+h-r-1);
+
+  // Bottom corners
+  if (up)
+    Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+
+  fl_arc(x, y+h-(r*2), r*2, r*2, 180, 270.0);
+  fl_arc(x+w-(r*2), y+h-(r*2), r*2, r*2, 270, 360.0);
+
+  // Bottom
+  if (up)
+    Fl::set_box_color(dark_border(c));
+  else
+    Fl::set_box_color(light_border(c));
+
+  fl_xyline(x+r, y+h-1, x+w-r-1);
+}
+
+static void theme_up_frame(int x, int y, int w, int h, Fl_Color c)
+{
+  theme_round_frame(true, x, y, w, h, RADIUS, c);
+}
+
+static void theme_down_frame(int x, int y, int w, int h, Fl_Color c)
+{
+  theme_round_frame(false, x, y, w, h, RADIUS, c);
+}
+
+static void theme_round_rect(int x, int y, int w, int h, int r,
+                             Fl_Color c, Fl_Color c2=-1)
+{
+  if (r > h/2)
+   r = h/2;
+
+  if (c2 == (Fl_Color)-1)
+    c2 = c;
+
+  // Top
+  Fl::set_box_color(c);
+
+  fl_pie(x, y, r*2, r*2, 90.0, 180.0);
+  fl_rectf(x+r, y, w-(r*2), r);
+  fl_pie(x+w-(r*2), y, r*2, r*2, 0, 90.0);
+
+  // Middle
+  const int steps = h - r*2;
+  for (int i = 0; i < steps; i++) {
+    Fl::set_box_color(fl_color_average(c2, c, (double)i/steps));
+    fl_xyline(x, y+r+i, x+w-1);
+  }
+
+  // Bottom
+  Fl::set_box_color(c2);
+
+  fl_pie(x, y+h-(r*2), r*2, r*2, 180, 270.0);
+  fl_rectf(x+r, y+h-r, w-(r*2), r);
+  fl_pie(x+w-(r*2), y+h-(r*2), r*2, r*2, 270, 360.0);
+}
+
+static void theme_up_box(int x, int y, int w, int h, Fl_Color c)
+{
+  theme_round_rect(x, y, w, h, RADIUS,
+                   fl_color_average(FL_WHITE, c, 0.75));
+  theme_up_frame(x, y, w, h, c);
+}
+
+static void theme_down_box(int x, int y, int w, int h, Fl_Color c)
+{
+  theme_round_rect(x, y, w, h, RADIUS, c);
+  theme_down_frame(x, y, w, h, c);
+}
+
+static void theme_thin_up_box(int x, int y, int w, int h, Fl_Color c)
+{
+  theme_round_rect(x, y, w, h, RADIUS, c);
+  theme_up_frame(x, y, w, h, c);
+}
+
+static void theme_thin_down_box(int x, int y, int w, int h, Fl_Color c)
+{
+  theme_round_rect(x, y, w, h, RADIUS, c);
+  theme_down_frame(x, y, w, h, c);
+}
+
+static void theme_round_up_box(int x, int y, int w, int h, Fl_Color c)
+{
+  // Background
+  Fl::set_box_color(c);
+  fl_pie(x, y, w, h, 0.0, 360.0);
+
+  // Outline
+  Fl::set_box_color(light_border(c));
+  fl_arc(x, y, w, h, 0.0, 180.0);
+  Fl::set_box_color(dark_border(c));
+  fl_arc(x, y, w, h, 180.0, 360.0);
+  Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+  fl_arc(x, y, w, h, 225.0, 315.0);
+}
+
+static void theme_round_down_box(int x, int y, int w, int h, Fl_Color c)
+{
+  // Background
+  Fl::set_box_color(c);
+  fl_pie(x, y, w, h, 0.0, 360.0);
+
+  // Outline
+  Fl::set_box_color(fl_color_average(light_border(c), dark_border(c), 0.5));
+  fl_arc(x, y, w, h, 0.0, 180.0);
+  Fl::set_box_color(dark_border(c));
+  fl_arc(x, y, w, h, 45.0, 135.0);
+  Fl::set_box_color(light_border(c));
+  fl_arc(x, y, w, h, 180.0, 360.0);
+}
 
 void init_theme()
 {
@@ -48,9 +200,8 @@ void init_theme()
   // Basic text size (10pt @ 96 dpi => 13px)
   FL_NORMAL_SIZE = 13;
 
-  // Select a FLTK scheme and background color that looks somewhat
-  // close to modern systems
-  Fl::scheme("gtk+");
+  // Select a background color that looks somewhat close to modern
+  // systems
   Fl::background(220, 220, 220);
 
   // macOS has a slightly brighter default background though
@@ -58,9 +209,39 @@ void init_theme()
   Fl::background(240, 240, 240);
 #endif
 
-  // This makes the "icon" in dialogs rounded, which fits better
-  // with the above schemes.
-  fl_message_icon()->box(FL_UP_BOX);
+  // We will override the box types later, but changing scheme affects
+  // more things than just those, so we still want to switch from the
+  // default
+  Fl::scheme("gtk+");
+
+  // Define our box types
+  const int PX = 2;
+  const int PY = 2;
+
+  Fl::set_boxtype(THEME_UP_FRAME, theme_up_frame, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_DOWN_FRAME, theme_down_frame, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_UP_FRAME, theme_up_frame, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_DOWN_FRAME, theme_down_frame, PX, PY, PX*2, PY*2);
+
+  Fl::set_boxtype(THEME_UP_BOX, theme_up_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_DOWN_BOX, theme_down_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_UP_BOX, theme_thin_up_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_THIN_DOWN_BOX, theme_thin_down_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_ROUND_UP_BOX, theme_round_up_box, PX, PY, PX*2, PY*2);
+  Fl::set_boxtype(THEME_ROUND_DOWN_BOX, theme_round_down_box, PX, PY, PX*2, PY*2);
+
+  // Make them the default
+  Fl::set_boxtype(FL_UP_FRAME,        THEME_UP_FRAME);
+  Fl::set_boxtype(FL_DOWN_FRAME,      THEME_UP_FRAME);
+  Fl::set_boxtype(FL_THIN_UP_FRAME,   THEME_THIN_UP_FRAME);
+  Fl::set_boxtype(FL_THIN_DOWN_FRAME, THEME_THIN_DOWN_FRAME);
+
+  Fl::set_boxtype(FL_UP_BOX,          THEME_UP_BOX);
+  Fl::set_boxtype(FL_DOWN_BOX,        THEME_DOWN_BOX);
+  Fl::set_boxtype(FL_THIN_UP_BOX,     THEME_THIN_UP_BOX);
+  Fl::set_boxtype(FL_THIN_DOWN_BOX,   THEME_THIN_DOWN_BOX);
+  Fl::set_boxtype(_FL_ROUND_UP_BOX,   THEME_ROUND_UP_BOX);
+  Fl::set_boxtype(_FL_ROUND_DOWN_BOX, THEME_ROUND_DOWN_BOX);
 
 #if defined(WIN32)
   NONCLIENTMETRICS metrics;
