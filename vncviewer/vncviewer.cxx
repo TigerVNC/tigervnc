@@ -106,7 +106,7 @@ static const char *about_text()
              "Built on: %s\n"
              "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
              "See https://www.tigervnc.org for information on TigerVNC."),
-           PACKAGE_VERSION, BUILD_TIMESTAMP, 2022);
+           PACKAGE_VERSION, BUILD_TIMESTAMP, 2023);
 
   return buffer;
 }
