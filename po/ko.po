@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: tigervnc 1.12.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2022-12-15 16:35+0100\n"
-"PO-Revision-Date: 2023-08-15 22:54+0900\n"
+"PO-Revision-Date: 2023-08-15 23:51+0900\n"
 "Last-Translator: JiYoon Kwon <bbkjo0123@gmail.com>\n"
 "Language-Team: Korean <translation-team-ko@googlegroups.com>\n"
 "Language: ko\n"
@@ -592,7 +592,6 @@ msgstr "가상 키 0x%02x의 심볼이 없음"
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "키 0x%02x의 심볼이 없음 (현재 상태)"
 
-# (in the current state)를 굳이 괄호에 넣어서 번역해도 어색함 ㅠㅠ
 #: vncviewer/Viewport.cxx:1187
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
@@ -616,7 +615,7 @@ msgstr "최소화(&Z)"
 #: vncviewer/Viewport.cxx:1255
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
-msgstr "세션에 맞춰 화면 크기를 재설정"
+msgstr "세션에 맞춰 화면 크기를 재설정(&W)"
 
 #: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
