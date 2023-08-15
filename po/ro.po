@@ -229,7 +229,7 @@ msgstr "Indexul de monitor %d nu există"
 #: vncviewer/MonitorIndicesParameter.cxx:189
 #, c-format
 msgid "Invalid monitor index '%s'"
-msgstr "Index de monitor nevalid „% s”"
+msgstr "Index de monitor nevalid „%s”"
 
 #: vncviewer/MonitorIndicesParameter.cxx:177
 #, c-format
