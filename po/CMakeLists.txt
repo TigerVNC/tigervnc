@@ -1,6 +1,7 @@
 # Gettext support - mostly borrowed from the Licq project
 
 file(STRINGS LINGUAS po_FILES)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS LINGUAS)
 
 if (NOT GETTEXT_MSGMERGE_EXECUTABLE AND NOT GETTEXT_MSGFMT_EXECUTABLE)
   message(FATAL_ERROR "Gettext message catalog tools NOT found")
