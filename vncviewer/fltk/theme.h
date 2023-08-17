@@ -26,7 +26,7 @@
 
 #include <FL/Enumerations.H>
 
-#define _THEME_BOX_BASE         (FL_FREE_BOXTYPE+1000)
+#define _THEME_BOX_BASE         (FL_FREE_BOXTYPE+20)
 
 #define THEME_UP_FRAME          (Fl_Boxtype)(_THEME_BOX_BASE+0)
 #define THEME_DOWN_FRAME        (Fl_Boxtype)(_THEME_BOX_BASE+1)

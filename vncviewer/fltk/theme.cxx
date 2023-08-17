@@ -25,6 +25,8 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
+
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -270,6 +272,9 @@ void init_theme()
   // Define our box types
   const int PX = 2;
   const int PY = 2;
+
+  // FLTK lacks a bounds check
+  assert(THEME_ROUND_DOWN_BOX < 256);
 
   Fl::set_boxtype(THEME_UP_FRAME, theme_up_frame, PX, PY, PX*2, PY*2);
   Fl::set_boxtype(THEME_DOWN_FRAME, theme_down_frame, PX, PY, PX*2, PY*2);
