@@ -1248,7 +1248,7 @@ void Viewport::initContextMenu()
 {
   contextMenu->clear();
 
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Dis&connect"),
+  fltk_menu_add(contextMenu, p_("ContextMenu|", "Disconn&ect"),
                 0, NULL, (void*)ID_DISCONNECT, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Full screen"),
