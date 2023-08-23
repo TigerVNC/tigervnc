@@ -470,7 +470,7 @@ static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 			return;
 		}
 
-		LOG_INFO("Added unknown keysym 0x%x to keycode %d",
+		LOG_INFO("Added keysym 0x%x to keycode %d",
 		         keysym, keycode);
 
 		/*
