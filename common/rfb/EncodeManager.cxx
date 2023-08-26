@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014-2022 Pierre Ossman for Cendio AB
+ * Copyright 2014-2025 Pierre Ossman for Cendio AB
  * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
@@ -390,10 +390,6 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   indexed = indexedRLE = fullColour = encoderRaw;
 
   allowJPEG = conn->client.pf().bpp >= 16;
-  if (!allowLossy) {
-    if (encoders[encoderTightJPEG]->losslessQuality == -1)
-      allowJPEG = false;
-  }
 
   // Try to respect the client's wishes
   preferred = conn->getPreferredEncoding();
@@ -421,10 +417,43 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     break;
   }
 
+  // JPEG is the only encoder that can reduce things to grayscale
+  if ((conn->client.subsampling == subsampleGray) &&
+      encoders[encoderTightJPEG]->isSupported() && allowLossy) {
+    solid = bitmap = bitmapRLE = encoderTightJPEG;
+    indexed = indexedRLE = fullColour = encoderTightJPEG;
+  }
+
+  // Can't use lossy encoders for lossless refresh
+  if (!allowLossy) {
+    if ((fullColour != encoderRaw) &&
+        (encoders[fullColour]->flags & EncoderLossy) &&
+        (encoders[fullColour]->losslessQuality == -1))
+      fullColour = encoderRaw;
+    if ((indexed != encoderRaw) &&
+        (encoders[indexed]->flags & EncoderLossy) &&
+        (encoders[indexed]->losslessQuality == -1))
+      indexed = encoderRaw;
+    if ((indexedRLE != encoderRaw) &&
+        (encoders[indexedRLE]->flags & EncoderLossy) &&
+        (encoders[indexedRLE]->losslessQuality == -1))
+      indexedRLE = encoderRaw;
+    if ((bitmap != encoderRaw) &&
+        (encoders[bitmap]->flags & EncoderLossy) &&
+        (encoders[bitmap]->losslessQuality == -1))
+      bitmap = encoderRaw;
+    if ((bitmapRLE != encoderRaw) &&
+        (encoders[bitmapRLE]->flags & EncoderLossy) &&
+        (encoders[bitmapRLE]->losslessQuality == -1))
+      bitmapRLE = encoderRaw;
+  }
+
   // Any encoders still unassigned?
 
   if (fullColour == encoderRaw) {
-    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
+    if (encoders[encoderTightJPEG]->isSupported() &&
+        (allowLossy ||
+         encoders[encoderTightJPEG]->losslessQuality != -1))
       fullColour = encoderTightJPEG;
     else if (encoders[encoderZRLE]->isSupported())
       fullColour = encoderZRLE;
@@ -460,13 +489,6 @@ void EncodeManager::prepareEncoders(bool allowLossy)
       solid = encoderZRLE;
     else if (encoders[encoderHextile]->isSupported())
       solid = encoderHextile;
-  }
-
-  // JPEG is the only encoder that can reduce things to grayscale
-  if ((conn->client.subsampling == subsampleGray) &&
-      encoders[encoderTightJPEG]->isSupported() && allowLossy) {
-    solid = bitmap = bitmapRLE = encoderTightJPEG;
-    indexed = indexedRLE = fullColour = encoderTightJPEG;
   }
 
   activeEncoders[encoderSolid] = solid;
