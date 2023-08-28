@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
+
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
 #include <rfb/SConnection.h>
@@ -66,6 +68,9 @@ void JPEGEncoder::writeRect(const PixelBuffer* pb,
   const uint8_t* buffer;
   int stride;
 
+  const uint8_t* data;
+  size_t len;
+
   rdr::OutStream* os;
 
   buffer = pb->getBuffer(pb->getRect(), &stride);
@@ -75,7 +80,125 @@ void JPEGEncoder::writeRect(const PixelBuffer* pb,
 
   os = conn->getOutStream();
 
-  os->writeBytes(jc.data(), jc.length());
+  data = jc.data();
+  len = jc.length();
+
+  // scan through the segments to look for the huffman table and the
+  // quantization table
+  while (true) {
+    uint8_t type;
+    size_t seglen;
+
+    assert(len >= 2);
+
+    assert(data[0] == 0xff);
+    type = data[1];
+
+    // segment without length?
+    if ((type == 0x01) || ((type >= 0xd0) && (type <= 0xd9))) {
+      os->writeBytes(data, 2);
+      data += 2;
+      len -= 2;
+      continue;
+    }
+
+    assert(len >= 4);
+
+    seglen = data[2] << 16 | data[3];
+
+    assert(len >= (2 + seglen));
+
+    if (type == 0xc4) {
+      // huffman table
+
+      size_t totallen;
+
+      // there are multiple tables following each other
+      totallen = 2 + seglen;
+      while (true) {
+        assert(len >= totallen + 1);
+        assert(data[totallen] == 0xff);
+
+        assert(len >= totallen + 2);
+        if (data[totallen + 1] != 0xc4)
+            break;
+
+        seglen = data[totallen + 2] << 16 | data[totallen + 3];
+
+        assert(len >= (totallen + 2 + seglen));
+
+        totallen += 2 + seglen;
+      }
+
+      if ((totallen == lastHuffmanTables.size()) &&
+          (memcmp(data, lastHuffmanTables.data(), totallen) == 0)) {
+        // same table as last rect, so skip it
+        data += totallen;
+        len -= totallen;
+        continue;
+      }
+
+      // store this for the next rect
+      lastHuffmanTables.resize(totallen);
+      memcpy(lastHuffmanTables.data(), data, totallen);
+
+      os->writeBytes(data, totallen);
+      data += totallen;
+      len -= totallen;
+      continue;
+    }
+
+    if (type == 0xdb) {
+      // quantization table
+
+      size_t totallen;
+
+      // there are multiple tables following each other
+      totallen = 2 + seglen;
+      while (true) {
+        assert(len >= totallen + 1);
+        assert(data[totallen] == 0xff);
+
+        assert(len >= totallen + 2);
+        if (data[totallen + 1] != 0xdb)
+            break;
+
+        seglen = data[totallen + 2] << 16 | data[totallen + 3];
+
+        assert(len >= (totallen + 2 + seglen));
+
+        totallen += 2 + seglen;
+      }
+
+      if ((totallen == lastQuantTables.size()) &&
+          (memcmp(data, lastQuantTables.data(), totallen) == 0)) {
+        // same table as last rect, so skip it
+        data += totallen;
+        len -= totallen;
+        continue;
+      }
+
+      // store this for the next rect
+      lastQuantTables.resize(totallen);
+      memcpy(lastQuantTables.data(), data, totallen);
+
+      os->writeBytes(data, totallen);
+      data += totallen;
+      len -= totallen;
+      continue;
+    }
+
+    if (type == 0xda) {
+      // start of scan, i.e. the actual image data, so we are done
+      os->writeBytes(data, len);
+      break;
+    }
+
+    // some other segment
+    os->writeBytes(data, 2 + seglen);
+    data += 2 + seglen;
+    len -= 2 + seglen;
+  }
 }
 
 void JPEGEncoder::writeSolidRect(int width, int height,
