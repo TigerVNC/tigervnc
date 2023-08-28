@@ -405,7 +405,10 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     bitmapRLE = indexedRLE = fullColour = encoderHextile;
     break;
   case encodingTight:
-    if (encoders[encoderTightJPEG]->isSupported())
+    // Prefer the plain JPEG encoder as it compresses better
+    if (encoders[encoderJPEG]->isSupported())
+      fullColour = encoderJPEG;
+    else if (encoders[encoderTightJPEG]->isSupported())
       fullColour = encoderTightJPEG;
     else
       fullColour = encoderTight;
