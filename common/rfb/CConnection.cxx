@@ -1025,14 +1025,18 @@ void CConnection::updateEncodings()
   encodings.push_back(pseudoEncodingExtendedMouseButtons);
 
   if (Decoder::supported(preferredEncoding)) {
-    encodings.push_back(preferredEncoding);
+    if (!noJpeg || preferredEncoding != encodingJPEG)
+      encodings.push_back(preferredEncoding);
   }
 
   encodings.push_back(encodingCopyRect);
 
   for (int i = encodingMax; i >= 0; i--) {
-    if ((i != preferredEncoding) && Decoder::supported(i))
+    if ((i != preferredEncoding) && Decoder::supported(i)) {
+      if (noJpeg && i == encodingJPEG)
+        continue;
       encodings.push_back(i);
+    }
   }
 
   if (compressLevel >= 0 && compressLevel <= 9)

@@ -116,12 +116,13 @@ core::AliasParameter
                       "Alias for LowColorLevel", &lowColourLevel);
 core::EnumParameter
   preferredEncoding("PreferredEncoding",
-                    "Preferred encoding to use (Tight, ZRLE, Hextile, "
+                    "Preferred encoding to use (Tight, JPEG, ZRLE, "
+                    "Hextile, "
 #ifdef HAVE_H264
                     "H.264, "
 #endif
                     "or Raw)",
-                    {"Tight", "ZRLE", "Hextile",
+                    {"Tight", "JPEG", "ZRLE", "Hextile",
 #ifdef HAVE_H264
                      "H.264",
 #endif

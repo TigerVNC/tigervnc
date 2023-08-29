@@ -172,6 +172,8 @@ void OptionsDialog::loadOptions(void)
 
   if (preferredEncoding == "Tight")
     tightButton->setonly();
+  else if (preferredEncoding == "JPEG")
+    jpegButton->setonly();
   else if (preferredEncoding == "ZRLE")
     zrleButton->setonly();
   else if (preferredEncoding == "Hextile")
@@ -373,6 +375,8 @@ void OptionsDialog::storeOptions(void)
 
   if (tightButton->value())
     preferredEncoding.setParam(rfb::encodingName(rfb::encodingTight));
+  else if (jpegButton->value())
+    preferredEncoding.setParam(rfb::encodingName(rfb::encodingJPEG));
   else if (zrleButton->value())
     preferredEncoding.setParam(rfb::encodingName(rfb::encodingZRLE));
   else if (hextileButton->value())
@@ -573,6 +577,13 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
                                                RADIO_HEIGHT,
                                                "Tight"));
     tightButton->type(FL_RADIO_BUTTON);
+    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+
+    jpegButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                              RADIO_MIN_WIDTH,
+                                              RADIO_HEIGHT,
+                                              "JPEG"));
+    jpegButton->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     zrleButton = new Fl_Round_Button(LBLRIGHT(tx, ty,

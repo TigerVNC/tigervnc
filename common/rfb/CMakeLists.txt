@@ -22,6 +22,7 @@ add_library(rfb STATIC
   HextileEncoder.cxx
   JpegCompressor.cxx
   JpegDecompressor.cxx
+  JPEGDecoder.cxx
   KeyRemapper.cxx
   KeysymStr.c
   PixelBuffer.cxx
