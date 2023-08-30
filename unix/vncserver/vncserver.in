@@ -285,6 +285,7 @@ sub LoadConfig {
           if ($warnoverride && $config{$k}) {
             print("Warning: $configFile is overriding previously defined '$k' to be '$v'\n");
           }
+          $v =~ s/\$(\w+)/$ENV{$1}/g;
           $config{$k} = $v;
         } elsif ($_ =~ m/^\s*(\S+)/) {
           # We can't reasonably warn on override of toggles (e.g. AlwaysShared)
