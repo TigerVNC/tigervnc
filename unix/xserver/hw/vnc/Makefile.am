@@ -1,12 +1,19 @@
 TIGERVNC_SRCDIR=${top_srcdir}/../..
 TIGERVNC_BUILDDIR=${TIGERVNC_SRCDIR}
 
-RFB_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfb.la
-RDR_LIB=$(TIGERVNC_BUILDDIR)/common/rdr/librdr.la
-OS_LIB=$(TIGERVNC_BUILDDIR)/common/os/libos.la
-NETWORK_LIB=$(TIGERVNC_BUILDDIR)/common/network/libnetwork.la
-UNIXCOMMON_LIB=$(TIGERVNC_BUILDDIR)/unix/common/libunixcommon.la
-COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(OS_LIB) $(UNIXCOMMON_LIB)
+include $(TIGERVNC_BUILDDIR)/common/network/unix.mk
+include $(TIGERVNC_BUILDDIR)/common/os/unix.mk
+include $(TIGERVNC_BUILDDIR)/common/rdr/unix.mk
+include $(TIGERVNC_BUILDDIR)/common/rfb/unix.mk
+include $(TIGERVNC_BUILDDIR)/unix/common/unix.mk
+
+RFB_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfb.a
+RDR_LIB=$(TIGERVNC_BUILDDIR)/common/rdr/librdr.a
+OS_LIB=$(TIGERVNC_BUILDDIR)/common/os/libos.a
+NETWORK_LIB=$(TIGERVNC_BUILDDIR)/common/network/libnetwork.a
+UNIXCOMMON_LIB=$(TIGERVNC_BUILDDIR)/unix/common/libunixcommon.a
+STATIC_LIBS=$(network_LIBS) $(rfb_LIBS) $(rdr_LIBS) $(os_LIBS) $(unixcommon_LIBS)
+COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(OS_LIB) $(UNIXCOMMON_LIB) $(STATIC_LIBS)
 
 noinst_LTLIBRARIES = libvnccommon.la
 

@@ -79,57 +79,53 @@ function(libtool_generate_control_file _target)
       else()
         # No shared library extension matched.  Check whether target is a CMake
         # target.
-        if(TARGET ${library})
-          # Target is a CMake target, so assume it is a static library and
-          # build a reference to it
-          get_target_property(library_path ${library} BINARY_DIR)
-          set(library ${library_path}/${CMAKE_STATIC_LIBRARY_PREFIX}${library}.la)
-          set(_target_dependency_libs "${_target_dependency_libs} ${library}")
-        elseif(${library} STREQUAL "-Wl,-Bstatic")
-          # All following libraries should be static
-          set(STATIC_MODE ON)
-        elseif(${library} STREQUAL "-Wl,-Bdynamic")
-          # All following libraries should be dynamic
-          set(STATIC_MODE OFF)
-        elseif(${library} MATCHES "^${CMAKE_LIBRARY_PATH_FLAG}")
-          # Library search path
-          string(REPLACE ${CMAKE_LIBRARY_PATH_FLAG} "" library ${library})
-          list(APPEND LIBRARY_PATHS ${library})
-        else()
-          # Normal library, so use find_library() to attempt to locate the
-          # library in a system directory.
-
-          # Need to remove -l prefix
-          if(${library} MATCHES "^${CMAKE_LINK_LIBRARY_FLAG}")
-            string(REPLACE ${CMAKE_LINK_LIBRARY_FLAG} "" library ${library})
-          endif()
-
-          if(STATIC_MODE)
-            set(_library ${CMAKE_STATIC_LIBRARY_PREFIX}${library}${CMAKE_STATIC_LIBRARY_SUFFIX})
-            find_library(FL ${_library} PATHS ${LIBRARY_PATHS})
-          endif()
-
-          if(NOT FL)
-            find_library(FL ${library} PATHS ${LIBRARY_PATHS})
-          endif()
-
-          if(FL)
-            # Found library. Depending on if it's static or not we might
-            # extract the path and library name, then add the
-            # result to the libtool dependency libs.
-            if("${FL}" MATCHES ".+${CMAKE_STATIC_LIBRARY_SUFFIX}$")
-              set(_target_dependency_libs "${_target_dependency_libs} ${FL}")
-            else()
-              get_filename_component(_shared_lib ${FL} NAME_WE)
-              get_filename_component(_shared_lib_path ${FL} PATH)
-              string(REPLACE "lib" "" _shared_lib ${_shared_lib})
-              set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
-            endif()
+	if(NOT TARGET ${library})
+          if(${library} STREQUAL "-Wl,-Bstatic")
+            # All following libraries should be static
+            set(STATIC_MODE ON)
+          elseif(${library} STREQUAL "-Wl,-Bdynamic")
+            # All following libraries should be dynamic
+            set(STATIC_MODE OFF)
+          elseif(${library} MATCHES "^${CMAKE_LIBRARY_PATH_FLAG}")
+            # Library search path
+            string(REPLACE ${CMAKE_LIBRARY_PATH_FLAG} "" library ${library})
+            list(APPEND LIBRARY_PATHS ${library})
           else()
-            message(FATAL_ERROR " - could not find library ${library}")
+            # Normal library, so use find_library() to attempt to locate the
+            # library in a system directory.
+
+            # Need to remove -l prefix
+            if(${library} MATCHES "^${CMAKE_LINK_LIBRARY_FLAG}")
+              string(REPLACE ${CMAKE_LINK_LIBRARY_FLAG} "" library ${library})
+            endif()
+
+            if(STATIC_MODE)
+              set(_library ${CMAKE_STATIC_LIBRARY_PREFIX}${library}${CMAKE_STATIC_LIBRARY_SUFFIX})
+              find_library(FL ${_library} PATHS ${LIBRARY_PATHS})
+            endif()
+
+            if(NOT FL)
+              find_library(FL ${library} PATHS ${LIBRARY_PATHS})
+            endif()
+
+            if(FL)
+              # Found library. Depending on if it's static or not we might
+              # extract the path and library name, then add the
+              # result to the libtool dependency libs.
+              if("${FL}" MATCHES ".+${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+                set(_target_dependency_libs "${_target_dependency_libs} ${FL}")
+              else()
+                get_filename_component(_shared_lib ${FL} NAME_WE)
+                get_filename_component(_shared_lib_path ${FL} PATH)
+                string(REPLACE "lib" "" _shared_lib ${_shared_lib})
+                set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
+              endif()
+            else()
+              message(FATAL_ERROR " - could not find library ${library}")
+            endif()
+            # Need to clear FL to get new results next loop
+            unset(FL CACHE)
           endif()
-          # Need to clear FL to get new results next loop
-          unset(FL CACHE)
         endif()
       endif()
     else()
@@ -160,38 +156,15 @@ function(libtool_generate_control_file _target)
   get_target_property(_binary_dir ${_target} BINARY_DIR)
 
   # Write the libtool control file for the static library
-  set(_lname ${CMAKE_STATIC_LIBRARY_PREFIX}${_target})
-  set(_laname ${_binary_dir}/${_lname}.la)
+  set(_mkname ${_binary_dir}/unix.mk)
 
-  file(WRITE ${_laname} "# ${_lname}.la - a libtool library file\n# Generated by ltmain.sh (GNU libtool) 2.2.6b\n")
-  file(APPEND ${_laname} "dlname=''\n\n")
-  file(APPEND ${_laname} "library_names=''\n\n")
-  file(APPEND ${_laname} "old_library='${_lname}${CMAKE_STATIC_LIBRARY_SUFFIX}'\n\n")
-  file(APPEND ${_laname} "inherited_linker_flags=''\n\n")
-  file(APPEND ${_laname} "dependency_libs=' ${_target_dependency_libs}'\n\n")
-  file(APPEND ${_laname} "weak_library_names=''\n\n")
-  file(APPEND ${_laname} "current=\n")
-  file(APPEND ${_laname} "age=\n")
-  file(APPEND ${_laname} "revision=\n\n")
-  file(APPEND ${_laname} "installed=no\n\n")
-  file(APPEND ${_laname} "shouldnotlink=no\n\n")
-  file(APPEND ${_laname} "dlopen=''\n")
-  file(APPEND ${_laname} "dlpreopen=''\n\n")
-  file(APPEND ${_laname} "libdir='/usr/lib'\n\n")
+  file(WRITE ${_mkname} "${_target}_LIBS = ${_target_dependency_libs}\n")
 
   # Make sure the timestamp is updated to trigger other make invocations
-  add_custom_command(OUTPUT "${_laname}" DEPENDS ${_target}
-    COMMENT "Updating timestamp on ${_lname}.la"
-    COMMAND "${CMAKE_COMMAND}" -E touch "${_laname}")
-
-  # Add custom command to symlink the static library so that autotools finds
-  # the library in .libs.  These are executed after the specified target build.
-  set(_libname ${_binary_dir}/.libs/${_lname}${CMAKE_STATIC_LIBRARY_SUFFIX})
-  add_custom_command(OUTPUT "${_libname}" DEPENDS ${_target}
-    COMMENT "Creating symlink .libs/${_lname}${CMAKE_STATIC_LIBRARY_SUFFIX}"
-    COMMAND "${CMAKE_COMMAND}" -E make_directory "${_binary_dir}/.libs"
-    COMMAND "${CMAKE_COMMAND}" -E create_symlink ../${_lname}${CMAKE_STATIC_LIBRARY_SUFFIX} "${_libname}")
+  add_custom_command(OUTPUT "${_mkname}" DEPENDS ${_target}
+    COMMENT "Updating timestamp on ${_mkname}"
+    COMMAND "${CMAKE_COMMAND}" -E touch "${_mkname}")
 
   add_custom_target(${_target}.la ALL
-    DEPENDS "${_laname}" "${_libname}")
+    DEPENDS "${_mkname}" "${_libname}")
 endfunction()
