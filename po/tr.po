@@ -2,695 +2,971 @@
 # Copyright (C) TigerVNC Team
 # This file is distributed under the same license as the tigervnc package.
 # Volkan Gezer <volkangezer@gmail.com>, 2017.
+# Volkan Gezer <volkangezer@gmail.com>, 2023.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.7.90\n"
+"Project-Id-Version: tigervnc 1.12.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2017-04-19 13:05+0000\n"
-"PO-Revision-Date: 2017-04-28 15:00+0100\n"
+"POT-Creation-Date: 2022-12-15 16:35+0100\n"
+"PO-Revision-Date: 2023-09-08 22:51+0200\n"
 "Last-Translator: Volkan Gezer <volkangezer@gmail.com>\n"
-"Language-Team: Turkish <gnu-tr-u12a@lists.sourceforge.net>\n"
+"Language-Team: Turkish <gnome-turk@gnome.org>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 2.0\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: vncviewer/CConn.cxx:103
+#, c-format
+msgid "Connected to socket %s"
+msgstr "Bağlı olunan soket: %s"
 
 #: vncviewer/CConn.cxx:110
 #, c-format
-msgid "connected to host %s port %d"
+msgid "Connected to host %s port %d"
 msgstr "%s ana makinesinin, %d bağlantı noktasına bağlı"
 
-#: vncviewer/CConn.cxx:169
+#: vncviewer/CConn.cxx:114
+#, c-format
+msgid ""
+"Failed to connect to \"%s\":\n"
+"\n"
+"%s"
+msgstr ""
+"\"%s\" makinesine bağlanılamadı:\n"
+"\n"
+"%s"
+
+#: vncviewer/CConn.cxx:159
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Masaüstü adı: %.80s"
 
-#: vncviewer/CConn.cxx:174
+#: vncviewer/CConn.cxx:164
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Ana makine: %.80s bağlantı noktası: %d"
 
-#: vncviewer/CConn.cxx:179
+#: vncviewer/CConn.cxx:169
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Boyut: %d x %d"
 
-#: vncviewer/CConn.cxx:187
+#: vncviewer/CConn.cxx:177
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Piksel biçimi: %s"
 
-#: vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:184
 #, c-format
 msgid "(server default %s)"
 msgstr "(sunucu varsayılanı %s)"
 
-#: vncviewer/CConn.cxx:199
+#: vncviewer/CConn.cxx:189
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "İstenen kodlama: %s"
 
-#: vncviewer/CConn.cxx:204
+#: vncviewer/CConn.cxx:194
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Son kullanılan kodlama: %s"
 
-#: vncviewer/CConn.cxx:209
+#: vncviewer/CConn.cxx:199
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Hat hızı tahmini: %d kbit/s"
 
-#: vncviewer/CConn.cxx:214
+#: vncviewer/CConn.cxx:204
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Protokol sürümü: %d.%d"
 
-#: vncviewer/CConn.cxx:219
+#: vncviewer/CConn.cxx:209
 #, c-format
 msgid "Security method: %s"
 msgstr "Güvenlik yöntemi: %s"
 
-#: vncviewer/CConn.cxx:343
+#: vncviewer/CConn.cxx:270 vncviewer/CConn.cxx:272
+msgid "The connection was dropped by the server before the session could be established."
+msgstr "Oturum kurulmadan bağlantı sunucu tarafından kesildi."
+
+#: vncviewer/CConn.cxx:332
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "SetDesktopSize başarısız: %d"
 
-#: vncviewer/CConn.cxx:413
+#: vncviewer/CConn.cxx:404
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Sunucudan gelen geçersiz SetColourMapEntries!"
 
-#: vncviewer/CConn.cxx:489
-msgid "Enabling continuous updates"
-msgstr "Sürekli güncelleştirmeler etkinleştiriliyor"
-
-#: vncviewer/CConn.cxx:559
+#: vncviewer/CConn.cxx:512
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Verim %d kbit/s - %d kalitesine değiştiriliyor"
 
-#: vncviewer/CConn.cxx:581
+#: vncviewer/CConn.cxx:534
 #, c-format
-msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Verim %d kbit/s - tam renkli artık %s"
+msgid "Throughput %d kbit/s - full color is now enabled"
+msgstr "Verim %d kbit/s - tam renkli artık etkin"
 
-#: vncviewer/CConn.cxx:583
-msgid "disabled"
-msgstr "devre dışı"
-
-#: vncviewer/CConn.cxx:583
-msgid "enabled"
-msgstr "etkin"
-
-#: vncviewer/CConn.cxx:593
+#: vncviewer/CConn.cxx:537
 #, c-format
-msgid "Using %s encoding"
-msgstr "%s kodlaması kullanılıyor"
+msgid "Throughput %d kbit/s - full color is now disabled"
+msgstr "Verim %d kbit/s - tam renkli artık devre dışı"
 
-#: vncviewer/CConn.cxx:640
+#: vncviewer/CConn.cxx:563
 #, c-format
 msgid "Using pixel format %s"
 msgstr "%s piksel biçimi kullanılıyor"
 
-#: vncviewer/DesktopWindow.cxx:121
+#: vncviewer/DesktopWindow.cxx:145
 msgid "Invalid geometry specified!"
 msgstr "Geçersiz geometri belirtildi!"
 
-#: vncviewer/DesktopWindow.cxx:434
-msgid "Adjusting window size to avoid accidental full screen request"
+#: vncviewer/DesktopWindow.cxx:166
+msgid "Reducing window size to fit on current monitor"
+msgstr "Geçerli monitöre sığması için pencere boyutu azaltılıyor"
+
+#: vncviewer/DesktopWindow.cxx:648
+msgid "Adjusting window size to avoid accidental full-screen request"
 msgstr "Yanlışlıkla tam ekran isteğini önlemek için pencere boyutu ayarlanıyor"
 
-#: vncviewer/DesktopWindow.cxx:478
+#: vncviewer/DesktopWindow.cxx:696
 #, c-format
 msgid "Press %s to open the context menu"
 msgstr "Bağlam menüsünü açmak için %s tuşuna basın"
 
-#: vncviewer/DesktopWindow.cxx:741 vncviewer/DesktopWindow.cxx:747
-#: vncviewer/DesktopWindow.cxx:760
+#: vncviewer/DesktopWindow.cxx:1083 vncviewer/DesktopWindow.cxx:1091
+#: vncviewer/DesktopWindow.cxx:1111
 msgid "Failure grabbing keyboard"
 msgstr "Klavye yakalanamadı"
 
-#: vncviewer/DesktopWindow.cxx:772
-msgid "Failure grabbing mouse"
-msgstr "Fare yakalanamadı"
-
-#: vncviewer/DesktopWindow.cxx:1002
+#: vncviewer/DesktopWindow.cxx:1401
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Yeniden boyutlandırma isteği için geçersiz ekran düzeni hesaplandı!"
 
-#: vncviewer/FLTKPixelBuffer.cxx:33
-msgid "Not enough memory for framebuffer"
-msgstr "Çerçeve tamponu için yeterli bellek yok"
+#: vncviewer/EmulateMB.cxx:226 vncviewer/EmulateMB.cxx:289
+msgid "Invalid state for 3 button emulation"
+msgstr "3 düğme emülasyonu için geçersiz durum"
 
-#: vncviewer/OptionsDialog.cxx:57
+#: vncviewer/MonitorIndicesParameter.cxx:52
+#: vncviewer/MonitorIndicesParameter.cxx:105
+msgid "Failed to get system monitor configuration"
+msgstr "Sistem monitörü yapılandırması alınamadı"
+
+#: vncviewer/MonitorIndicesParameter.cxx:83
+#, c-format
+msgid "Invalid configuration specified for %s"
+msgstr "%s için geçersiz yapılandırma belirtildi"
+
+#: vncviewer/MonitorIndicesParameter.cxx:91
+#, c-format
+msgid "Monitor index %d does not exist"
+msgstr "%d monitör dizini mevcut değil"
+
+#: vncviewer/MonitorIndicesParameter.cxx:169
+#: vncviewer/MonitorIndicesParameter.cxx:189
+#, c-format
+msgid "Invalid monitor index '%s'"
+msgstr "Geçersiz monitör dizini '%s'"
+
+#: vncviewer/MonitorIndicesParameter.cxx:177
+#, c-format
+msgid "Unexpected character '%c'"
+msgstr "Beklenmeyen karakter '%c'"
+
+#: vncviewer/OptionsDialog.cxx:63
 msgid "VNC Viewer: Connection Options"
 msgstr "VNC Görüntüleyici: Bağlantı Seçenekleri"
 
-#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
-#: vncviewer/vncviewer.cxx:282
+#: vncviewer/OptionsDialog.cxx:89 vncviewer/ServerDialog.cxx:108
+#: vncviewer/vncviewer.cxx:417
 msgid "Cancel"
 msgstr "İptal"
 
-#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:281
+#: vncviewer/OptionsDialog.cxx:94 vncviewer/vncviewer.cxx:416
 msgid "OK"
 msgstr "Tamam"
 
-#: vncviewer/OptionsDialog.cxx:423
+#: vncviewer/OptionsDialog.cxx:484
 msgid "Compression"
 msgstr "Sıkıştırma"
 
-#: vncviewer/OptionsDialog.cxx:439
+#: vncviewer/OptionsDialog.cxx:501
 msgid "Auto select"
 msgstr "Otomatik seç"
 
-#: vncviewer/OptionsDialog.cxx:451
+#: vncviewer/OptionsDialog.cxx:516
 msgid "Preferred encoding"
 msgstr "Tercih edilen kodlama"
 
-#: vncviewer/OptionsDialog.cxx:499
+#: vncviewer/OptionsDialog.cxx:574
 msgid "Color level"
 msgstr "Renk seviyesi"
 
-#: vncviewer/OptionsDialog.cxx:510
-msgid "Full (all available colors)"
-msgstr "Tam (bütün mevcut renkler)"
+#: vncviewer/OptionsDialog.cxx:585
+msgid "Full"
+msgstr "Tam dolu"
 
-#: vncviewer/OptionsDialog.cxx:517
-msgid "Medium (256 colors)"
-msgstr "Orta (256 renk)"
+#: vncviewer/OptionsDialog.cxx:592
+msgid "Medium"
+msgstr "Orta"
 
-#: vncviewer/OptionsDialog.cxx:524
-msgid "Low (64 colors)"
-msgstr "Düşük (64 renk)"
+#: vncviewer/OptionsDialog.cxx:599
+msgid "Low"
+msgstr "Düşük"
 
-#: vncviewer/OptionsDialog.cxx:531
-msgid "Very low (8 colors)"
-msgstr "Çok düşük (8 renk)"
+#: vncviewer/OptionsDialog.cxx:606
+msgid "Very low"
+msgstr "Çok düşük"
 
-#: vncviewer/OptionsDialog.cxx:548
+#: vncviewer/OptionsDialog.cxx:624
 msgid "Custom compression level:"
 msgstr "Özel sıkıştırma seviyesi:"
 
-#: vncviewer/OptionsDialog.cxx:554
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "seviye (1=hızlı, 6=en iyi [4-6 nadiren kullanışlıdır])"
+#: vncviewer/OptionsDialog.cxx:630
+msgid "level (0=fast, 9=best)"
+msgstr "kalite (0=hızlı, 9=en iyi)"
 
-#: vncviewer/OptionsDialog.cxx:561
+#: vncviewer/OptionsDialog.cxx:637
 msgid "Allow JPEG compression:"
 msgstr "JPEG sıkıştırmasına izin ver:"
 
-#: vncviewer/OptionsDialog.cxx:567
+#: vncviewer/OptionsDialog.cxx:643
 msgid "quality (0=poor, 9=best)"
 msgstr "kalite (0=düşük, 9=yüksek)"
 
-#: vncviewer/OptionsDialog.cxx:578
+#: vncviewer/OptionsDialog.cxx:654
 msgid "Security"
 msgstr "Güvenlik"
 
-#: vncviewer/OptionsDialog.cxx:593
+#: vncviewer/OptionsDialog.cxx:676
 msgid "Encryption"
 msgstr "Şifreleme"
 
-#: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
-#: vncviewer/OptionsDialog.cxx:737
+#: vncviewer/OptionsDialog.cxx:687 vncviewer/OptionsDialog.cxx:750
+#: vncviewer/OptionsDialog.cxx:854
 msgid "None"
 msgstr "Yok"
 
-#: vncviewer/OptionsDialog.cxx:610
+#: vncviewer/OptionsDialog.cxx:694
 msgid "TLS with anonymous certificates"
 msgstr "Adsız sertifikalı  TLS"
 
-#: vncviewer/OptionsDialog.cxx:616
+#: vncviewer/OptionsDialog.cxx:700
 msgid "TLS with X509 certificates"
 msgstr "X509 sertifikalı TLS"
 
-#: vncviewer/OptionsDialog.cxx:623
+#: vncviewer/OptionsDialog.cxx:707
 msgid "Path to X509 CA certificate"
 msgstr "X509 CA sertifikası yolu"
 
-#: vncviewer/OptionsDialog.cxx:630
+#: vncviewer/OptionsDialog.cxx:714
 msgid "Path to X509 CRL file"
 msgstr "X509  CRL  dosyası  yolu"
 
-#: vncviewer/OptionsDialog.cxx:646
+#: vncviewer/OptionsDialog.cxx:739
 msgid "Authentication"
 msgstr "Doğrulama"
 
-#: vncviewer/OptionsDialog.cxx:663
+#: vncviewer/OptionsDialog.cxx:756
 msgid "Standard VNC (insecure without encryption)"
 msgstr "Standart VNC (şifreleme olmadan güvensiz)"
 
-#: vncviewer/OptionsDialog.cxx:669
+#: vncviewer/OptionsDialog.cxx:762
 msgid "Username and password (insecure without encryption)"
 msgstr "Kullanıcı adı ve şifre (şifreleme olmadan güvensiz)"
 
-#: vncviewer/OptionsDialog.cxx:688
+#: vncviewer/OptionsDialog.cxx:781
 msgid "Input"
 msgstr "Girdi"
 
-#: vncviewer/OptionsDialog.cxx:696
+#: vncviewer/OptionsDialog.cxx:794
 msgid "View only (ignore mouse and keyboard)"
 msgstr "Yalnızca görüntüleme (fare ve klavyeyi yoksay)"
 
-#: vncviewer/OptionsDialog.cxx:702
-msgid "Accept clipboard from server"
-msgstr "Sunucudan panoyu kabul et"
-
-#: vncviewer/OptionsDialog.cxx:710
-msgid "Also set primary selection"
-msgstr "Birincil seçim olarak da ayarla"
-
-#: vncviewer/OptionsDialog.cxx:717
-msgid "Send clipboard to server"
-msgstr "Panodan sunucuya gönder"
-
-#: vncviewer/OptionsDialog.cxx:725
-msgid "Send primary selection as clipboard"
-msgstr "Birincil seçimi pano olarak gönder"
-
-#: vncviewer/OptionsDialog.cxx:732
-msgid "Pass system keys directly to server (full screen)"
-msgstr "Sistem tuşlarını doğrudan sunucuya aktar (tam ekran)"
-
-#: vncviewer/OptionsDialog.cxx:735
-msgid "Menu key"
-msgstr "Menü tuşu"
-
-#: vncviewer/OptionsDialog.cxx:751
-msgid "Screen"
-msgstr "Ekran"
-
-#: vncviewer/OptionsDialog.cxx:759
-msgid "Resize remote session on connect"
-msgstr "Uzak oturumu yerel pencereye yeniden boyutlandır"
-
-#: vncviewer/OptionsDialog.cxx:772
-msgid "Resize remote session to the local window"
-msgstr "Uzak oturumu yerel pencereye yeniden boyutlandır"
-
-#: vncviewer/OptionsDialog.cxx:778
-msgid "Full-screen mode"
-msgstr "Tam ekran kipi"
-
-#: vncviewer/OptionsDialog.cxx:784
-msgid "Enable full-screen mode over all monitors"
-msgstr "Tüm monitörlerde tam ekran kipini etkinleştir"
-
-#: vncviewer/OptionsDialog.cxx:793
-msgid "Misc."
-msgstr "Çeşitli"
-
 #: vncviewer/OptionsDialog.cxx:801
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Paylaşılan (diğer görüntüleyenlerin bağlantısını kesme)"
+msgid "Mouse"
+msgstr "Fare"
 
-#: vncviewer/OptionsDialog.cxx:807
+#: vncviewer/OptionsDialog.cxx:815
+msgid "Emulate middle mouse button"
+msgstr "Orta fare düğmesini taklit et"
+
+#: vncviewer/OptionsDialog.cxx:821
 msgid "Show dot when no cursor"
 msgstr "İmleç yokken nokta göster"
 
-#: vncviewer/ServerDialog.cxx:42
+#: vncviewer/OptionsDialog.cxx:835
+msgid "Keyboard"
+msgstr "Tuş takımı"
+
+#: vncviewer/OptionsDialog.cxx:849
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Sistem tuşlarını doğrudan sunucuya aktar (tam ekran)"
+
+#: vncviewer/OptionsDialog.cxx:852
+msgid "Menu key"
+msgstr "Menü tuşu"
+
+#: vncviewer/OptionsDialog.cxx:871
+msgid "Clipboard"
+msgstr "Pano"
+
+#: vncviewer/OptionsDialog.cxx:885
+msgid "Accept clipboard from server"
+msgstr "Sunucudan panoyu kabul et"
+
+#: vncviewer/OptionsDialog.cxx:893
+msgid "Also set primary selection"
+msgstr "Birincil seçim olarak da ayarla"
+
+#: vncviewer/OptionsDialog.cxx:900
+msgid "Send clipboard to server"
+msgstr "Panodan sunucuya gönder"
+
+#: vncviewer/OptionsDialog.cxx:908
+msgid "Send primary selection as clipboard"
+msgstr "Birincil seçimi pano olarak gönder"
+
+#: vncviewer/OptionsDialog.cxx:927
+msgid "Display"
+msgstr "Görüntü"
+
+#: vncviewer/OptionsDialog.cxx:941
+msgid "Display mode"
+msgstr "Ekran kipi"
+
+#: vncviewer/OptionsDialog.cxx:956
+msgid "Windowed"
+msgstr "Pencereli"
+
+#: vncviewer/OptionsDialog.cxx:964
+msgid "Full screen on current monitor"
+msgstr "Mevcut monitörde tam ekran"
+
+#: vncviewer/OptionsDialog.cxx:972
+msgid "Full screen on all monitors"
+msgstr "Tüm monitörlerde tam ekranı etkinleştir"
+
+#: vncviewer/OptionsDialog.cxx:980
+msgid "Full screen on selected monitor(s)"
+msgstr "Seçilen monitör(ler)de tam ekranı etkinleştir"
+
+#: vncviewer/OptionsDialog.cxx:1007
+msgid "Misc."
+msgstr "Çeşitli"
+
+#: vncviewer/OptionsDialog.cxx:1015
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Paylaşılan (diğer görüntüleyenlerin bağlantısını kesme)"
+
+#: vncviewer/OptionsDialog.cxx:1021
+msgid "Ask to reconnect on connection errors"
+msgstr "Bağlantı hatalarında yeniden bağlanmayı iste"
+
+#: vncviewer/ServerDialog.cxx:58
 msgid "VNC Viewer: Connection Details"
 msgstr "VNC Görüntüleyici: Bağlantı Bilgileri"
 
-#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+#: vncviewer/ServerDialog.cxx:65 vncviewer/ServerDialog.cxx:70
 msgid "VNC server:"
 msgstr "VNC sunucusu:"
 
-#: vncviewer/ServerDialog.cxx:64
+#: vncviewer/ServerDialog.cxx:81
 msgid "Options..."
 msgstr "Seçenekler..."
 
-#: vncviewer/ServerDialog.cxx:69
+#: vncviewer/ServerDialog.cxx:86
 msgid "Load..."
 msgstr "Yükle..."
 
-#: vncviewer/ServerDialog.cxx:74
+#: vncviewer/ServerDialog.cxx:91
 msgid "Save As..."
 msgstr "Farklı Kaydet..."
 
-#: vncviewer/ServerDialog.cxx:86
+#: vncviewer/ServerDialog.cxx:103
 msgid "About..."
 msgstr "Hakkında..."
 
-#: vncviewer/ServerDialog.cxx:96
+#: vncviewer/ServerDialog.cxx:113
 msgid "Connect"
 msgstr "Bağlan"
 
-#: vncviewer/UserDialog.cxx:74
+#: vncviewer/ServerDialog.cxx:145
+#, c-format
+msgid ""
+"Unable to load the server history:\n"
+"\n"
+"%s"
+msgstr ""
+"Sunucu geçmişi yüklenemiyor:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:173 vncviewer/ServerDialog.cxx:212
+msgid "TigerVNC configuration (*.tigervnc)"
+msgstr "TigerVNC yapılandırması (*.tigervnc)"
+
+#: vncviewer/ServerDialog.cxx:174
+msgid "Select a TigerVNC configuration file"
+msgstr "TigerVNC yapılandırma dosyasını seçin"
+
+#: vncviewer/ServerDialog.cxx:196 vncviewer/vncviewer.cxx:552
+#, c-format
+msgid ""
+"Unable to load the specified configuration file:\n"
+"\n"
+"%s"
+msgstr ""
+"Belirtilen yapılandırma dosyası yüklenemiyor:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:213
+msgid "Save the TigerVNC configuration to file"
+msgstr "TigerVNC yapılandırmasını dosyaya kaydedin"
+
+#: vncviewer/ServerDialog.cxx:239
+#, c-format
+msgid "%s already exists. Do you want to overwrite?"
+msgstr "%s zaten mevcut. Üzerine yazmak istiyor musunuz?"
+
+#: vncviewer/ServerDialog.cxx:240 vncviewer/vncviewer.cxx:414
+msgid "No"
+msgstr "Hayır"
+
+#: vncviewer/ServerDialog.cxx:240
+msgid "Overwrite"
+msgstr "Üzerine yaz"
+
+#: vncviewer/ServerDialog.cxx:256
+#, c-format
+msgid ""
+"Unable to save the specified configuration file:\n"
+"\n"
+"%s"
+msgstr ""
+"Belirtilen yapılandırma dosyası kaydedilemiyor:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:290
+#, c-format
+msgid ""
+"Unable to save the default configuration:\n"
+"\n"
+"%s"
+msgstr ""
+"Varsayılan yapılandırma kaydedilemiyor:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:303
+#, c-format
+msgid ""
+"Unable to save the server history:\n"
+"\n"
+"%s"
+msgstr ""
+"Sunucu geçmişi kaydedilemiyor:\n"
+"\n"
+"%s"
+
+#: vncviewer/ServerDialog.cxx:320 vncviewer/ServerDialog.cxx:387
+#: vncviewer/parameters.cxx:635 vncviewer/parameters.cxx:740
+#: vncviewer/vncviewer.cxx:459
+msgid "Could not obtain the home directory path"
+msgstr "VNC ana dizini edinilemedi"
+
+#: vncviewer/ServerDialog.cxx:333 vncviewer/ServerDialog.cxx:396
+#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:753
+#, c-format
+msgid "Could not open \"%s\": %s"
+msgstr "\"%s\" açılamadı: %s"
+
+#: vncviewer/ServerDialog.cxx:348 vncviewer/ServerDialog.cxx:356
+#: vncviewer/parameters.cxx:767 vncviewer/parameters.cxx:773
+#: vncviewer/parameters.cxx:804 vncviewer/parameters.cxx:833
+#: vncviewer/parameters.cxx:839
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "%d satırını %s dosyasından okumak başarısız: %s"
+
+#: vncviewer/ServerDialog.cxx:357 vncviewer/parameters.cxx:774
+msgid "Line too long"
+msgstr "Satır çok uzun"
+
+#: vncviewer/UserDialog.cxx:98
 msgid "Opening password file failed"
 msgstr "Parola dosyası açılamadı"
 
-#: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
+#: vncviewer/UserDialog.cxx:118
 msgid "VNC authentication"
 msgstr "VNC doğrulaması"
 
-#: vncviewer/UserDialog.cxx:87 vncviewer/UserDialog.cxx:102
-msgid "Password:"
-msgstr "Şifre:"
+#: vncviewer/UserDialog.cxx:125
+msgid "This connection is secure"
+msgstr "Bu bağlantı güvenlidir"
 
-#: vncviewer/UserDialog.cxx:89
-msgid "Authentication cancelled"
-msgstr "Doğrulama iptal edildi"
+#: vncviewer/UserDialog.cxx:129
+msgid "This connection is not secure"
+msgstr "Bu bağlantı güvenli değil"
 
-#: vncviewer/UserDialog.cxx:99
+#: vncviewer/UserDialog.cxx:146
 msgid "Username:"
 msgstr "Kullanıcı adı:"
 
-#: vncviewer/Viewport.cxx:586
+#: vncviewer/UserDialog.cxx:159
+msgid "Password:"
+msgstr "Şifre:"
+
+#: vncviewer/UserDialog.cxx:198
+msgid "Authentication cancelled"
+msgstr "Doğrulama iptal edildi"
+
+#: vncviewer/Viewport.cxx:391
+#, c-format
+msgid "Failed to update keyboard LED state: %lu"
+msgstr "Klavye LED durumu güncellenemedi: %lu"
+
+#: vncviewer/Viewport.cxx:397 vncviewer/Viewport.cxx:403
+#, c-format
+msgid "Failed to update keyboard LED state: %d"
+msgstr "Klavye LED durumu güncellenemedi: %d"
+
+#: vncviewer/Viewport.cxx:433
+msgid "Failed to update keyboard LED state"
+msgstr "Klavye LED durumu güncellenemedi"
+
+#: vncviewer/Viewport.cxx:460 vncviewer/Viewport.cxx:468
+#: vncviewer/Viewport.cxx:485
+#, c-format
+msgid "Failed to get keyboard LED state: %d"
+msgstr "Klavye LED durumu alınamadı: %d"
+
+#: vncviewer/Viewport.cxx:849
+msgid "No key code specified on key press"
+msgstr "Tuşa basıldığında tuş kodu belirtilmedi"
+
+#: vncviewer/Viewport.cxx:1008
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Genişletilmiş sanal tuş 0x%02x için hiçbir tarama kodu yok"
 
-#: vncviewer/Viewport.cxx:588
+#: vncviewer/Viewport.cxx:1010
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Sanal tuş 0x%02x için tarama kodu yok"
 
-#: vncviewer/Viewport.cxx:605
+#: vncviewer/Viewport.cxx:1016
+#, c-format
+msgid "Invalid scan code 0x%02x"
+msgstr "Geçersiz tarama kodu 0x%02x"
+
+#: vncviewer/Viewport.cxx:1046
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Genişletilmiş sanal tuş 0x%02x için simge yok"
 
-#: vncviewer/Viewport.cxx:607
+#: vncviewer/Viewport.cxx:1048
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Sanal tuş 0x%02x için simge yok"
 
-#: vncviewer/Viewport.cxx:645
+#: vncviewer/Viewport.cxx:1154
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Tuş kodu 0x%02x için simge yok (mevcut durumda)"
 
-#: vncviewer/Viewport.cxx:671
+#: vncviewer/Viewport.cxx:1187
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Tuş kodu %d için simge yok (mevcut durumda)"
 
-#: vncviewer/Viewport.cxx:708
+#: vncviewer/Viewport.cxx:1247
 msgctxt "ContextMenu|"
-msgid "E&xit viewer"
-msgstr "Görüntüleyiciden &çık"
+msgid "Dis&connect"
+msgstr "Bağlantıyı &Kes"
 
-#: vncviewer/Viewport.cxx:711
+#: vncviewer/Viewport.cxx:1250
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&Tam Ekran"
 
-#: vncviewer/Viewport.cxx:714
+#: vncviewer/Viewport.cxx:1253
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
-msgstr "&Küçült"
+msgstr "K&üçült"
 
-#: vncviewer/Viewport.cxx:716
+#: vncviewer/Viewport.cxx:1255
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Pencereyi &oturuma tekrar boyutlandır"
 
-#: vncviewer/Viewport.cxx:721
+#: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:724
+#: vncviewer/Viewport.cxx:1263
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:730
+#: vncviewer/Viewport.cxx:1269
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "%s gönder"
 
-#: vncviewer/Viewport.cxx:736
+#: vncviewer/Viewport.cxx:1275
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
-msgstr "Ctrl-Alt-Del gönder"
+msgstr "Ctrl-Alt-Del &Gönder"
 
-#: vncviewer/Viewport.cxx:739
+#: vncviewer/Viewport.cxx:1278
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "Ekranı &yenile"
 
-#: vncviewer/Viewport.cxx:742
+#: vncviewer/Viewport.cxx:1281
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "&Seçenekler..."
 
-#: vncviewer/Viewport.cxx:744
+#: vncviewer/Viewport.cxx:1283
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Bağlantı &bilgisi..."
 
-#: vncviewer/Viewport.cxx:746
+#: vncviewer/Viewport.cxx:1285
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
-msgstr "&TigerVNC görüntüleyici hakkında..."
+msgstr "TigerVNC görüntüleyici &hakkında..."
 
-#: vncviewer/Viewport.cxx:749
-msgctxt "ContextMenu|"
-msgid "Dismiss &menu"
-msgstr "Menüyü &kapat"
-
-#: vncviewer/Viewport.cxx:833
+#: vncviewer/Viewport.cxx:1374
 msgid "VNC connection info"
 msgstr "VNC Bağlantı bilgisi"
 
-#: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
+#: vncviewer/Win32TouchHandler.cxx:47
+msgid "Window is registered for touch instead of gestures"
+msgstr "Pencere, hareketler yerine dokunma için kaydedildi"
+
+#: vncviewer/Win32TouchHandler.cxx:81
 #, c-format
-msgid "The name of the parameter %s was too large to write to the registry"
-msgstr "%s parametresinin adı kayıt defterine yazılamayacak kadar büyüktü."
+msgid "Failed to set gesture configuration (error 0x%x)"
+msgstr "Hareket yapılandırması ayarlanamadı (hata 0x%x)"
 
-#: vncviewer/parameters.cxx:292 vncviewer/parameters.cxx:299
+#: vncviewer/Win32TouchHandler.cxx:93
 #, c-format
-msgid "The parameter %s was too large to write to the registry"
-msgstr "%s parametresi kayıt defterine yazı yazamayacak kadar büyüktü."
+msgid "Failed to get gesture information (error 0x%x)"
+msgstr "Hareket bilgileri alınamadı (hata 0x%x)"
 
-#: vncviewer/parameters.cxx:305 vncviewer/parameters.cxx:326
+#: vncviewer/Win32TouchHandler.cxx:358
 #, c-format
-msgid "Failed to write parameter %s of type %s to the registry: %ld"
-msgstr "%s parametresi (%s türünde) kayıt defterine yazılamadı: %ld"
+msgid "Invalid mouse button %d, must be a number between 1 and 7."
+msgstr "Geçersiz fare düğmesi %d, 1 ile 7 arasında bir sayı olmalıdır."
 
-#: vncviewer/parameters.cxx:341 vncviewer/parameters.cxx:380
+#: vncviewer/Win32TouchHandler.cxx:423
 #, c-format
-msgid "The name of the parameter %s was too large to read from the registry"
-msgstr "%s parametresinin adı kayıt defterinden okunamayacak kadar büyüktü."
+msgid "Unhandled key 0x%x - can't generate keyboard event."
+msgstr "İşlenmeyen anahtar 0x%x - klavye olayı oluşturulamıyor."
 
-#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:389
+#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:107
 #, c-format
-msgid "Failed to read parameter %s from the registry: %ld"
-msgstr "%s parametresi kayıt defterinden okunamadı: %ld"
+msgid "Unable to get X Input 2 event mask for window 0x%08lx"
+msgstr "0x%08lx penceresi için X Giriş 2 olay maskesi alınamıyor"
 
-#: vncviewer/parameters.cxx:359
+#: vncviewer/XInputTouchHandler.cxx:104
 #, c-format
-msgid "The parameter %s was too large to read from the registry"
-msgstr "%s parametresini kayıt defterinden okunamayacak kadar büyüktü."
+msgid "Window 0x%08lx has no X Input 2 event mask"
+msgstr "Pencere 0x%08lx'te X Girişi 2 olay maskesi yok"
 
-#: vncviewer/parameters.cxx:409
+#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:114
 #, c-format
-msgid "Failed to create registry key: %ld"
-msgstr "Kayıt defteri anahtarı oluşturulamadı: %ld"
+msgid "Window 0x%08lx has more than one X Input 2 event mask"
+msgstr "Pencere 0x%08lx'te birden fazla X Girişi 2 olay maskesi var"
 
-#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
-#: vncviewer/parameters.cxx:534 vncviewer/parameters.cxx:665
+#: vncviewer/XInputTouchHandler.cxx:143
 #, c-format
-msgid "Unknown parameter type for parameter %s"
-msgstr "%s parametresi için bilinmeyen parametre türü"
+msgid "Failure grabbing device %i"
+msgstr "Başarısızlık yakalama cihazı %i"
 
-#: vncviewer/parameters.cxx:430 vncviewer/parameters.cxx:479
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
+#: vncviewer/vncviewer.cxx:406 vncviewer/vncviewer.desktop.in.in:3
+msgid "TigerVNC Viewer"
+msgstr "TigerVNC Görüntüleyici"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
+#: vncviewer/vncviewer.desktop.in.in:5
+msgid "Connect to VNC server and display remote desktop"
+msgstr "VNC sunucusuna bağlanın ve uzak masaüstünü görüntüleyin"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
+msgid "Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network. Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device. This package contains a client which will enable you to connect to other desktops running a VNC server. VNC is platform-independent and supports various operating systems and architectures as both servers and clients."
+msgstr "Sanal Ağ Bilgi İşlem (VNC), ağdaki başka bir bilgisayarda çalışan sanal masaüstü ortamını görüntülemenize ve etkileşimde bulunmanıza olanak tanıyan bir uzak görüntüleme sistemidir. VNC'yi kullanarak uzaktaki bir makinede grafik uygulamaları çalıştırabilir ve bu uygulamaların yalnızca ekranını yerel cihazınıza gönderebilirsiniz. Bu paket, VNC sunucusu çalıştıran diğer masaüstlerine bağlanmanızı sağlayacak bir istemci içerir. VNC platformdan bağımsızdır ve hem sunucu hem de istemci olarak çeşitli işletim sistemlerini ve mimarileri destekler."
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:23
+msgid "TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code bases. TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project in early 2009 so that TightVNC could focus on Windows platforms. TigerVNC supports a variant of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo JPEG codec."
+msgstr "TigerVNC, RealVNC 4 ve X.org kod tabanlarını temel alan yüksek hızlı bir VNC sürümüdür. TigerVNC, TightVNC'nin Unix ve Linux platformlarında yeni nesil geliştirme çalışması olarak başladı, ancak TightVNC'nin Windows platformlarına odaklanabilmesi için 2009'un başlarında ana projesinden ayrıldı. TigerVNC, libjpeg-turbo JPEG codec bileşeninin kullanımıyla büyük ölçüde hızlandırılan bir Sıkı kodlama çeşidini destekler."
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:33
+msgid "TigerVNC Viewer connection to a CentOS machine"
+msgstr "TigerVNC Görüntüleyici, CentOS makinesine bağlantı"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:37
+msgid "TigerVNC Viewer connection to a macOS machine"
+msgstr "TigerVNC Görüntüleyici, macOS makinesine bağlantı"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:41
+msgid "TigerVNC Viewer connection to a Windows machine"
+msgstr "TigerVNC Görüntüleyici, Windows makinesine bağlantı"
+
+#: vncviewer/parameters.cxx:308 vncviewer/parameters.cxx:333
+#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:390
+#: vncviewer/parameters.cxx:410
+msgid "The name of the parameter is too large"
+msgstr "Parametrenin adı çok büyük"
+
+#: vncviewer/parameters.cxx:312 vncviewer/parameters.cxx:317
+#: vncviewer/parameters.cxx:368
+msgid "The parameter is too large"
+msgstr "Parametre çok büyük"
+
+#: vncviewer/parameters.cxx:375 vncviewer/parameters.cxx:696
+#: vncviewer/parameters.cxx:818
+msgid "Invalid format or too large value"
+msgstr "Geçersiz biçim veya çok büyük değer"
+
+#: vncviewer/parameters.cxx:429 vncviewer/parameters.cxx:460
+msgid "Failed to create registry key"
+msgstr "Kayıt defteri anahtarı oluşturulamadı"
+
+#: vncviewer/parameters.cxx:448 vncviewer/parameters.cxx:503
+#: vncviewer/parameters.cxx:545 vncviewer/parameters.cxx:612
+msgid "Failed to close registry key"
+msgstr "Kayıt defteri anahtarı kapatılamadı"
+
+#: vncviewer/parameters.cxx:466 vncviewer/parameters.cxx:483
+#: vncviewer/parameters.cxx:654 vncviewer/parameters.cxx:664
+#: vncviewer/parameters.cxx:675
 #, c-format
-msgid "Failed to close registry key: %ld"
-msgstr "Kayıt defteri anahtarı kapatılamadı: %ld"
+msgid "Failed to save \"%s\": %s"
+msgstr "\"%s\" kaydedilemedi: %s"
 
-#: vncviewer/parameters.cxx:446
+#: vncviewer/parameters.cxx:479 vncviewer/parameters.cxx:567
+#: vncviewer/parameters.cxx:677 vncviewer/parameters.cxx:714
+msgid "Unknown parameter type"
+msgstr "Bilinmeyen parametre türü"
+
+#: vncviewer/parameters.cxx:496
 #, c-format
-msgid "Failed to open registry key: %ld"
-msgstr "Kayıt defteri anahtarı açılamadı: %ld"
+msgid "Failed to remove \"%s\": %s"
+msgstr "\"%s\" kaldırılamadı: %s"
 
-#: vncviewer/parameters.cxx:503
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr "Yapılandırma dosyası yazılamadı, ev dizini yolu edinilemiyor."
+#: vncviewer/parameters.cxx:518 vncviewer/parameters.cxx:590
+msgid "Failed to open registry key"
+msgstr "Kayıt defteri anahtarı açılamadı"
 
-#: vncviewer/parameters.cxx:516
+#: vncviewer/parameters.cxx:535
 #, c-format
-msgid "Failed to write configuration file, can't open %s: %s"
-msgstr "Yapılandırma dosyası yazımı başarısız, %s açılamıyor: %s"
+msgid "Failed to read server history entry %d: %s"
+msgstr "%d sunucu geçmişi girişi okunamadı: %s"
 
-#: vncviewer/parameters.cxx:559
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr "Yapılandırma dosyasını okuma başarısız, ev dizini yolu edinilemiyor."
-
-#: vncviewer/parameters.cxx:572
+#: vncviewer/parameters.cxx:571 vncviewer/parameters.cxx:601
 #, c-format
-msgid "Failed to read configuration file, can't open %s: %s"
-msgstr "Yapılandırma dosyası okuma başarısız, %s açılamıyor: %s"
+msgid "Failed to read parameter \"%s\": %s"
+msgstr "\"%s\" parametresi okunamadı: %s"
 
-#: vncviewer/parameters.cxx:585 vncviewer/parameters.cxx:590
-#: vncviewer/parameters.cxx:615 vncviewer/parameters.cxx:628
-#: vncviewer/parameters.cxx:644
-#, c-format
-msgid "Failed to read line %d in file %s: %s"
-msgstr "%d satırını %s dosyasından okumak başarısız: %s"
+#: vncviewer/parameters.cxx:655 vncviewer/parameters.cxx:666
+msgid "Could not encode parameter"
+msgstr "Parametre kodlanamadı"
 
-#: vncviewer/parameters.cxx:591
-msgid "Line too long"
-msgstr "Satır çok uzun"
-
-#: vncviewer/parameters.cxx:598
+#: vncviewer/parameters.cxx:783
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Yapılandırma dosyası %s geçersiz bir biçimde"
 
-#: vncviewer/parameters.cxx:616
+#: vncviewer/parameters.cxx:805
 msgid "Invalid format"
 msgstr "Geçersiz biçim"
 
-#: vncviewer/parameters.cxx:629 vncviewer/parameters.cxx:645
-msgid "Invalid format or too large value"
-msgstr "Geçersiz biçim veya çok büyük değer"
+#: vncviewer/parameters.cxx:840
+msgid "Unknown parameter"
+msgstr "Bilinmeyen parametre"
 
-#: vncviewer/parameters.cxx:672
+#: vncviewer/touch.cxx:75
 #, c-format
-msgid "Unknown parameter %s on line %d in file %s"
-msgstr "%sS dosyasında %d satırında bilinmeyen parametre %s"
+msgid "Got message (0x%x) for an unhandled window"
+msgstr "İşlenmeyen bir pencereye ilişkin ileti (0x%x) alındı"
 
-#: vncviewer/vncviewer.cxx:100
+#: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
+#, c-format
+msgid "Invalid window 0x%08lx specified for pointer grab"
+msgstr "İşaretçi yakalama için geçersiz pencere 0x%08lx belirtildi"
+
+#: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
+#, c-format
+msgid "Failed to create touch handler: %s"
+msgstr "Dokunma işleyicisi oluşturulamadı: %s"
+
+#: vncviewer/touch.cxx:188
+#, c-format
+msgid "Couldn't attach event handler to window (error 0x%x)"
+msgstr "Olay işleyicisi pencereye eklenemedi (hata 0x%x)"
+
+#: vncviewer/touch.cxx:212
+msgid "Failed to get event data for X Input event"
+msgstr "X Giriş etkinliği için etkinlik verileri alınamadı"
+
+#: vncviewer/touch.cxx:225
+msgid "X Input event for unknown window"
+msgstr "Bilinmeyen pencere için X Giriş olayı"
+
+#: vncviewer/touch.cxx:251
+msgid "X Input extension not available."
+msgstr "X Giriş uzantısı mevcut değil."
+
+#: vncviewer/touch.cxx:258
+msgid "X Input 2 (or newer) is not available."
+msgstr "X Giriş 2 (veya daha yenisi) mevcut değil."
+
+#: vncviewer/touch.cxx:263
+msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
+msgstr "X Giriş 2.2 (veya daha yenisi) mevcut değil. Dokunma hareketleri desteklenmeyecektir."
+
+#: vncviewer/vncviewer.cxx:107
 #, c-format
 msgid ""
-"TigerVNC Viewer %d-bit v%s\n"
+"TigerVNC Viewer v%s\n"
 "Built on: %s\n"
-"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
-"See http://www.tigervnc.org for information on TigerVNC."
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
+"See https://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC Görüntüleyici %d-bit v%s\n"
+"TigerVNC Görüntüleyici v%s\n"
 "Derlenme: %s\n"
-"Telif Hakkı (C) 1999-%d TigerVNC Takımı ve diğer birçok kişi (bkz. README.txt)\n"
+"Telif Hakkı (C) 1999-%d TigerVNC Takımı ve diğer birçok kişi (bkz. README.rst)\n"
 "TigerVNC hakkında bilgi için http://www.tigervnc.org adresine bakın."
 
-#: vncviewer/vncviewer.cxx:127
+#: vncviewer/vncviewer.cxx:161
+#, c-format
+msgid ""
+"An unexpected error occurred when communicating with the server:\n"
+"\n"
+"%s"
+msgstr ""
+"Sunucuyla iletişim kurulurken beklenmeyen bir hata oluştu:\n"
+"\n"
+"%s"
+
+#: vncviewer/vncviewer.cxx:177
 msgid "About TigerVNC Viewer"
 msgstr "TigerVNC Görüntüleyici Hakkında"
 
-#: vncviewer/vncviewer.cxx:140
+#: vncviewer/vncviewer.cxx:198
 msgid "Internal FLTK error. Exiting."
 msgstr "Dahili FLTK hatası. Çıkışıyor."
 
-#: vncviewer/vncviewer.cxx:158 vncviewer/vncviewer.cxx:170
+#: vncviewer/vncviewer.cxx:217
+#, c-format
+msgid ""
+"%s\n"
+"\n"
+"Attempt to reconnect?"
+msgstr ""
+"%s\n"
+"\n"
+"Yeniden bağlanma denensin mi?"
+
+#: vncviewer/vncviewer.cxx:248 vncviewer/vncviewer.cxx:260
 #, c-format
 msgid "Error starting new TigerVNC Viewer: %s"
 msgstr "Yeni TigerVNC Görüntüleyici başlatılırken hata oluştu: %s"
 
-#: vncviewer/vncviewer.cxx:179
+#: vncviewer/vncviewer.cxx:269
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr "Sonlandırma sinyali %d alındı. TigerVNC Görüntüleyici çıkacak."
 
-#: vncviewer/vncviewer.cxx:271
-msgid "TigerVNC Viewer"
-msgstr "TigerVNC Görüntüleyici"
-
-#: vncviewer/vncviewer.cxx:279
-msgid "No"
-msgstr "Hayır"
-
-#: vncviewer/vncviewer.cxx:280
+#: vncviewer/vncviewer.cxx:415
 msgid "Yes"
 msgstr "Evet"
 
-#: vncviewer/vncviewer.cxx:283
+#: vncviewer/vncviewer.cxx:418
 msgid "Close"
 msgstr "Kapat"
 
-#: vncviewer/vncviewer.cxx:288
+#: vncviewer/vncviewer.cxx:423
 msgid "About"
 msgstr "Hakkında"
 
-#: vncviewer/vncviewer.cxx:291
+#: vncviewer/vncviewer.cxx:426
 msgid "Hide"
 msgstr "Gizle"
 
-#: vncviewer/vncviewer.cxx:294
+#: vncviewer/vncviewer.cxx:429
 msgid "Quit"
 msgstr "Çık"
 
-#: vncviewer/vncviewer.cxx:298
+#: vncviewer/vncviewer.cxx:433
 msgid "Services"
 msgstr "Hizmetler"
 
-#: vncviewer/vncviewer.cxx:299
+#: vncviewer/vncviewer.cxx:434
 msgid "Hide Others"
 msgstr "Diğerlerini Gizle"
 
-#: vncviewer/vncviewer.cxx:300
+#: vncviewer/vncviewer.cxx:435
 msgid "Show All"
 msgstr "Tümü Göster"
 
-#: vncviewer/vncviewer.cxx:309
+#: vncviewer/vncviewer.cxx:444
 msgctxt "SysMenu|"
 msgid "&File"
 msgstr "&Dosya"
 
-#: vncviewer/vncviewer.cxx:312
+#: vncviewer/vncviewer.cxx:447
 msgctxt "SysMenu|File|"
 msgid "&New Connection"
 msgstr "&Yeni Bağlantı"
 
-#: vncviewer/vncviewer.cxx:324
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "VNC ana dizini oluşturulamadı: ana dizin yolu alınamıyor."
-
-#: vncviewer/vncviewer.cxx:329
+#: vncviewer/vncviewer.cxx:463
 #, c-format
-msgid "Could not create VNC home directory: %s."
+msgid "Could not create VNC home directory: %s"
 msgstr "VNC ana dizini oluşturulamadı: %s"
+
+#: vncviewer/vncviewer.cxx:562
+msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
+msgstr "FullScreenAllMonitors artık eski, bunun yerine FullScreenMode seçeneğini 'all' yapın"
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:534 vncviewer/vncviewer.cxx:535
+#: vncviewer/vncviewer.cxx:768 vncviewer/vncviewer.cxx:769
 msgid "Parameters -listen and -via are incompatible"
 msgstr "-listen ve -via parametreleri uyumsuzdur"
 
-#: vncviewer/vncviewer.cxx:550
+#: vncviewer/vncviewer.cxx:783
 #, c-format
 msgid "Listening on port %d"
 msgstr "%d bağlantı noktasında dinleniyor"
 
-#~ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-#~ msgstr "Anahtar kodu %d (0x%04x) için birden fazla karakter verilmiş: '%s'"
+#: vncviewer/vncviewer.cxx:816
+#, c-format
+msgid ""
+"Failure waiting for incoming VNC connection:\n"
+"\n"
+"%s"
+msgstr ""
+"Gelen VNC bağlantısını beklerken hata:\n"
+"\n"
+"%s"
 
-#~ msgid "Unknown FLTK key code %d (0x%04x)"
-#~ msgstr "Bilinmeyen FLTK anahtar kodu %d (0x%04x)"
-
-#~ msgid "Unknown decimal separator: '%s'"
-#~ msgstr "Bilinmeyen ondalık ayırıcıs: '%s'"
-
-#, fuzzy
-#~ msgid "Unknown escape sequence at character %d"
-#~ msgstr "Bilinmeyen ondalık ayırıcıs: '%s'"
-
-#, fuzzy
-#~ msgid "Unknown rect encoding"
-#~ msgstr "%s kodlaması kullanılıyor"
-
-#, fuzzy
-#~ msgid ""
-#~ "Desktop name: %.80s\n"
-#~ "Host: %.80s port: %d\n"
-#~ "Size: %d x %d\n"
-#~ "Pixel format: %s\n"
-#~ "(server default %s)\n"
-#~ "Requested encoding: %s\n"
-#~ "Last used encoding: %s\n"
-#~ "Line speed estimate: %d kbit/s\n"
-#~ "Protocol version: %d.%d\n"
-#~ "Security method: %s\n"
-#~ msgstr ""
-#~ "Masaüstü adı: %.80s\n"
-#~ "Boyut: %d x %d\n"
-#~ "Piksel biçimi: %s\n"
-#~ "(sunucu varsayılanı %s)\n"
-#~ "İstenen kodlama: %s\n"
-#~ "Son kullanılan kodlama: %s\n"
-#~ "Hat hızı tahmini: %d kbit/s\n"
+#: vncviewer/vncviewer.desktop.in.in:4
+msgid "Remote Desktop Viewer"
+msgstr "Uzak Masaüstü Görüntüleyici"
