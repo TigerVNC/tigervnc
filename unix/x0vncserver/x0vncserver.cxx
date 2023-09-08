@@ -306,16 +306,22 @@ int main(int argc, char** argv)
     }
 
     if ((int)rfbport != -1) {
+      std::list<network::SocketListener*> tcp_listeners;
       const char *addr = interface;
+
       if (strcasecmp(addr, "all") == 0)
         addr = 0;
       if (localhostOnly)
-        createLocalTcpListeners(&listeners, (int)rfbport);
+        createLocalTcpListeners(&tcp_listeners, (int)rfbport);
       else
-        createTcpListeners(&listeners, addr, (int)rfbport);
-      vlog.info("Listening for VNC connections on %s interface(s), port %d",
-                localhostOnly ? "local" : (const char*)interface,
-                (int)rfbport);
+        createTcpListeners(&tcp_listeners, addr, (int)rfbport);
+
+      if (!tcp_listeners.empty()) {
+        listeners.splice (listeners.end(), tcp_listeners);
+        vlog.info("Listening for VNC connections on %s interface(s), port %d",
+                  localhostOnly ? "local" : (const char*)interface,
+                  (int)rfbport);
+      }
 
       FileTcpFilter fileTcpFilter(hostsFile);
       if (strlen(hostsFile) != 0)
@@ -323,6 +329,11 @@ int main(int argc, char** argv)
              i != listeners.end();
              i++)
           (*i)->setFilter(&fileTcpFilter);
+    }
+
+    if (listeners.empty()) {
+      vlog.error("No path or port configured for incoming connections");
+      return -1;
     }
 
     PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);

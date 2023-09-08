@@ -229,6 +229,7 @@ void vncExtensionInit(void)
         }
 
         if (!inetd && rfbport != -1) {
+          std::list<network::SocketListener*> tcp_listeners;
           const char *addr = interface;
           int port = rfbport;
           if (port == 0) port = 5900 + atoi(vncGetDisplay());
@@ -236,14 +237,20 @@ void vncExtensionInit(void)
           if (strcasecmp(addr, "all") == 0)
             addr = 0;
           if (localhostOnly)
-            network::createLocalTcpListeners(&listeners, port);
+            network::createLocalTcpListeners(&tcp_listeners, port);
           else
-            network::createTcpListeners(&listeners, addr, port);
+            network::createTcpListeners(&tcp_listeners, addr, port);
 
-          vlog.info("Listening for VNC connections on %s interface(s), port %d",
-                    localhostOnly ? "local" : (const char*)interface,
-                    port);
+          if (!tcp_listeners.empty()) {
+            listeners.splice (listeners.end(), tcp_listeners);
+            vlog.info("Listening for VNC connections on %s interface(s), port %d",
+                      localhostOnly ? "local" : (const char*)interface,
+                      port);
+          }
         }
+
+        if (!inetd && listeners.empty())
+          throw rdr::Exception("No path or port configured for incoming connections");
 
         PixelFormat pf = vncGetPixelFormat(scr);
 

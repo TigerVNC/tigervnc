@@ -756,6 +756,8 @@ int main(int argc, char** argv)
         port = atoi(vncServerName);
 
       createTcpListeners(&listeners, 0, port);
+      if (listeners.empty())
+        throw Exception(_("Unable to listen for incoming connections"));
 
       vlog.info(_("Listening on port %d"), port);
 

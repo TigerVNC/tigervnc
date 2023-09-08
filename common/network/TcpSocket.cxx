@@ -496,10 +496,6 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
     }
   }
 
-  if (new_listeners.empty ())
-    throw SocketException("createTcpListeners: no addresses available",
-                          EADDRNOTAVAIL);
-
   listeners->splice (listeners->end(), new_listeners);
 }
 
