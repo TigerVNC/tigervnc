@@ -316,14 +316,14 @@ int main(int argc, char** argv)
       vlog.info("Listening for VNC connections on %s interface(s), port %d",
                 localhostOnly ? "local" : (const char*)interface,
                 (int)rfbport);
-    }
 
-    FileTcpFilter fileTcpFilter(hostsFile);
-    if (strlen(hostsFile) != 0)
-      for (std::list<SocketListener*>::iterator i = listeners.begin();
-           i != listeners.end();
-           i++)
-        (*i)->setFilter(&fileTcpFilter);
+      FileTcpFilter fileTcpFilter(hostsFile);
+      if (strlen(hostsFile) != 0)
+        for (std::list<SocketListener*>::iterator i = listeners.begin();
+             i != listeners.end();
+             i++)
+          (*i)->setFilter(&fileTcpFilter);
+    }
 
     PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);
 
