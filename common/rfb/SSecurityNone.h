@@ -28,7 +28,7 @@ namespace rfb {
 
   class SSecurityNone : public SSecurity {
   public:
-    SSecurityNone(SConnection* sc) : SSecurity(sc) {}
+    SSecurityNone(SConnection* sc, bool viewOnly) : SSecurity(sc, viewOnly) {}
     virtual bool processMsg() { return true; }
     virtual int getType() const {return secTypeNone;}
     virtual const char* getUserName() const {return 0;}

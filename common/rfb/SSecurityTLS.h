@@ -43,7 +43,7 @@ namespace rfb {
 
   class SSecurityTLS : public SSecurity {
   public:
-    SSecurityTLS(SConnection* sc, bool _anon);
+    SSecurityTLS(SConnection* sc, bool viewOnly, bool _anon);
     virtual ~SSecurityTLS();
     virtual bool processMsg();
     virtual const char* getUserName() const {return 0;}

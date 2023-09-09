@@ -26,7 +26,7 @@ namespace rfb {
 
   class SSecurityStack : public SSecurity {
   public:
-    SSecurityStack(SConnection* sc, int Type,
+    SSecurityStack(SConnection* sc, bool viewOnly, int Type,
                    SSecurity* s0 = NULL, SSecurity* s1 = NULL);
     ~SSecurityStack();
     virtual bool processMsg();

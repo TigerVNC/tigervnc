@@ -30,12 +30,15 @@ namespace rfb {
 
   class SecurityServer : public Security {
   public:
-    SecurityServer(void) : Security(secTypes) {}
+    SecurityServer(bool viewOnly) : Security(secTypes), viewOnly(viewOnly) {}
 
     /* Create server side SSecurity class instance */
     SSecurity* GetSSecurity(SConnection* sc, uint32_t secType);
 
     static StringParameter secTypes;
+
+  private:
+    bool viewOnly;
   };
 
 }

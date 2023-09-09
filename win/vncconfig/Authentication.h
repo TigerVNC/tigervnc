@@ -44,7 +44,7 @@ namespace rfb {
     public:
       SecPage(const RegKey& rk)
         : SecurityPage(NULL), regKey(rk) {
-        security = new SecurityServer();
+        security = new SecurityServer(false);
       }
 
       void initDialog() {

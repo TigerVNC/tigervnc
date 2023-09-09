@@ -70,9 +70,9 @@ BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
  false, ConfServer);
 
-SSecurityRSAAES::SSecurityRSAAES(SConnection* sc, uint32_t _secType,
+SSecurityRSAAES::SSecurityRSAAES(SConnection* sc, bool viewOnly, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
-  : SSecurity(sc), state(SendPublicKey),
+  : SSecurity(sc, viewOnly), state(SendPublicKey),
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
     serverKey(), clientKey(),
     serverKeyN(NULL), serverKeyE(NULL), clientKeyN(NULL), clientKeyE(NULL),

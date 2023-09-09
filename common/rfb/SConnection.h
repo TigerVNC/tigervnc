@@ -42,7 +42,7 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection();
+    SConnection(bool viewOnly);
     virtual ~SConnection();
 
     // Methods to initialise the connection
@@ -256,7 +256,7 @@ namespace rfb {
     SMsgReader* reader_;
     SMsgWriter* writer_;
 
-    SecurityServer security;
+    SecurityServer *security;
     SSecurity* ssecurity;
 
     MethodTimer<SConnection> authFailureTimer;

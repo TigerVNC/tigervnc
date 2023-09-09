@@ -56,7 +56,7 @@ namespace rfb {
     // addSocket
     //   Causes the server to allocate an RFB-protocol management
     //   structure for the socket & initialise it.
-    virtual void addSocket(network::Socket* sock, bool outgoing=false);
+    virtual void addSocket(network::Socket* sock, bool outgoing=false, bool viewOnly=false);
 
     // removeSocket
     //   Clean up any resources associated with the Socket

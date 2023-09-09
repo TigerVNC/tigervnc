@@ -32,7 +32,7 @@ namespace rfb {
 
   class SSecurityVeNCrypt : public SSecurity {
   public:
-    SSecurityVeNCrypt(SConnection* sc, SecurityServer *sec);
+    SSecurityVeNCrypt(SConnection* sc, bool viewOnly, SecurityServer *sec);
     ~SSecurityVeNCrypt();
     virtual bool processMsg();
     virtual int getType() const { return chosenType; }

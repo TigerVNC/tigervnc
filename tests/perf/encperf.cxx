@@ -303,6 +303,7 @@ void Manager::getStats(double& ratio, unsigned long long& encodedBytes,
 }
 
 SConn::SConn()
+: SConnection(false)
 {
   out = new DummyOutStream;
   setStreams(NULL, out);

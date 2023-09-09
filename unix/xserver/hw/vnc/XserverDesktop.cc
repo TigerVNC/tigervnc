@@ -402,10 +402,10 @@ void XserverDesktop::blockHandler(int* timeout)
   }
 }
 
-void XserverDesktop::addClient(Socket* sock, bool reverse)
+void XserverDesktop::addClient(Socket* sock, bool reverse, bool viewOnly)
 {
   vlog.debug("new client, sock %d reverse %d",sock->getFd(),reverse);
-  server->addSocket(sock, reverse);
+  server->addSocket(sock, reverse, viewOnly);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 }
 

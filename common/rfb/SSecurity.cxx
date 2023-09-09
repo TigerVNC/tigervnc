@@ -24,8 +24,9 @@
 
 using namespace rfb;
 
-SSecurity::SSecurity(SConnection* sc)
-  : sc(sc), accessRights(SConnection::AccessDefault)
+SSecurity::SSecurity(SConnection* sc, bool viewOnly)
+  : sc(sc),
+    accessRights(viewOnly ? SConnection::AccessView : SConnection::AccessDefault)
 {
 }
 

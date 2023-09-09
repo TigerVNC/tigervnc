@@ -38,8 +38,8 @@ using namespace std;
 
 static LogWriter vlog("SVeNCrypt");
 
-SSecurityVeNCrypt::SSecurityVeNCrypt(SConnection* sc, SecurityServer *sec)
-  : SSecurity(sc), security(sec)
+SSecurityVeNCrypt::SSecurityVeNCrypt(SConnection* sc, bool viewOnly, SecurityServer *sec)
+  : SSecurity(sc, viewOnly), security(sec)
 {
   ssecurity = NULL;
   haveSentVersion = false;

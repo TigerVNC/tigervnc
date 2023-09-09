@@ -42,7 +42,7 @@ namespace rfb {
 
   class SSecurityPlain : public SSecurity {
   public:
-    SSecurityPlain(SConnection* sc);
+    SSecurityPlain(SConnection* sc, bool viewOnly);
     virtual bool processMsg();
     virtual int getType() const { return secTypePlain; };
     virtual const char* getUserName() const { return username; }

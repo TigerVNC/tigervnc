@@ -228,7 +228,7 @@ Bool XVncExtSelectInput(Display* dpy, Window w, int mask)
   return True;
 }
 
-Bool XVncExtConnect(Display* dpy, const char* hostAndPort)
+Bool XVncExtConnect(Display* dpy, const char* hostAndPort, Bool viewOnly)
 {
   xVncExtConnectReq* req;
   xVncExtConnectReply rep;
@@ -243,6 +243,7 @@ Bool XVncExtConnect(Display* dpy, const char* hostAndPort)
   req->vncExtReqType = X_VncExtConnect;
   req->length += (strLen + 3) >> 2;
   req->strLen = strLen;
+  req->viewOnly = (CARD8)viewOnly;
   Data(dpy, hostAndPort, strLen);
   if (!_XReply(dpy, (xReply *)&rep, 0, xFalse)) {
     UnlockDisplay(dpy);

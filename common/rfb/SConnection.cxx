@@ -56,7 +56,7 @@ const SConnection::AccessRights SConnection::AccessNoQuery        = 0x0400;
 const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 
 
-SConnection::SConnection()
+SConnection::SConnection(bool viewOnly)
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0), ssecurity(0),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
@@ -70,6 +70,7 @@ SConnection::SConnection()
   if (rfb::Server::protocol3_3)
     defaultMinorVersion = 3;
 
+  security = new SecurityServer(viewOnly);
   client.setVersion(defaultMajorVersion, defaultMinorVersion);
 }
 
@@ -165,7 +166,7 @@ bool SConnection::processVersionMsg()
 
   std::list<uint8_t> secTypes;
   std::list<uint8_t>::iterator i;
-  secTypes = security.GetEnabledSecTypes();
+  secTypes = security->GetEnabledSecTypes();
 
   if (client.isVersion(3,3)) {
 
@@ -182,7 +183,7 @@ bool SConnection::processVersionMsg()
     os->writeU32(*i);
     if (*i == secTypeNone) os->flush();
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security.GetSSecurity(this, *i);
+    ssecurity = security->GetSSecurity(this, *i);
     return true;
   }
 
@@ -221,7 +222,7 @@ void SConnection::processSecurityType(int secType)
   std::list<uint8_t> secTypes;
   std::list<uint8_t>::iterator i;
 
-  secTypes = security.GetEnabledSecTypes();
+  secTypes = security->GetEnabledSecTypes();
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
     if (*i == secType) break;
   if (i == secTypes.end())
@@ -232,7 +233,7 @@ void SConnection::processSecurityType(int secType)
 
   try {
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security.GetSSecurity(this, secType);
+    ssecurity = security->GetSSecurity(this, secType);
   } catch (rdr::Exception& e) {
     throwConnFailedException("%s", e.str());
   }
@@ -621,6 +622,8 @@ void SConnection::sendClipboardData(const char* data)
 
 void SConnection::cleanup()
 {
+  delete security;
+  security = NULL;
   delete ssecurity;
   ssecurity = NULL;
   delete reader_;

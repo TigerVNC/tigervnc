@@ -33,7 +33,7 @@ namespace rfb {
 
   class SSecurityRSAAES : public SSecurity {
   public:
-    SSecurityRSAAES(SConnection* sc, uint32_t secType,
+    SSecurityRSAAES(SConnection* sc, bool viewOnly, uint32_t secType,
                     int keySize, bool isAllEncrypted);
     virtual ~SSecurityRSAAES();
     virtual bool processMsg();

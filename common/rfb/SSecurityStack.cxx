@@ -24,9 +24,9 @@
 
 using namespace rfb;
 
-SSecurityStack::SSecurityStack(SConnection* sc, int Type,
+SSecurityStack::SSecurityStack(SConnection* sc, bool viewOnly, int Type,
                                SSecurity* s0, SSecurity* s1)
-  : SSecurity(sc), state(0), state0(s0), state1(s1), type(Type)
+  : SSecurity(sc, viewOnly), state(0), state0(s0), state1(s1), type(Type)
 {
 }
 

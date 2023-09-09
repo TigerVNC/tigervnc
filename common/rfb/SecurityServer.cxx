@@ -60,33 +60,33 @@ SSecurity* SecurityServer::GetSSecurity(SConnection* sc, uint32_t secType)
     goto bail;
 
   switch (secType) {
-  case secTypeNone: return new SSecurityNone(sc);
-  case secTypeVncAuth: return new SSecurityVncAuth(sc);
-  case secTypeVeNCrypt: return new SSecurityVeNCrypt(sc, this);
-  case secTypePlain: return new SSecurityPlain(sc);
+  case secTypeNone: return new SSecurityNone(sc, viewOnly);
+  case secTypeVncAuth: return new SSecurityVncAuth(sc, viewOnly);
+  case secTypeVeNCrypt: return new SSecurityVeNCrypt(sc, viewOnly, this);
+  case secTypePlain: return new SSecurityPlain(sc, viewOnly);
 #ifdef HAVE_GNUTLS
   case secTypeTLSNone:
-    return new SSecurityStack(sc, secTypeTLSNone, new SSecurityTLS(sc, true));
+    return new SSecurityStack(sc, viewOnly, secTypeTLSNone, new SSecurityTLS(sc, viewOnly, true));
   case secTypeTLSVnc:
-    return new SSecurityStack(sc, secTypeTLSVnc, new SSecurityTLS(sc, true), new SSecurityVncAuth(sc));
+    return new SSecurityStack(sc, viewOnly, secTypeTLSVnc, new SSecurityTLS(sc, viewOnly, true), new SSecurityVncAuth(sc, viewOnly));
   case secTypeTLSPlain:
-    return new SSecurityStack(sc, secTypeTLSPlain, new SSecurityTLS(sc, true), new SSecurityPlain(sc));
+    return new SSecurityStack(sc, viewOnly, secTypeTLSPlain, new SSecurityTLS(sc, viewOnly, true), new SSecurityPlain(sc, viewOnly));
   case secTypeX509None:
-    return new SSecurityStack(sc, secTypeX509None, new SSecurityTLS(sc, false));
+    return new SSecurityStack(sc, viewOnly, secTypeX509None, new SSecurityTLS(sc, viewOnly, false));
   case secTypeX509Vnc:
-    return new SSecurityStack(sc, secTypeX509None, new SSecurityTLS(sc, false), new SSecurityVncAuth(sc));
+    return new SSecurityStack(sc, viewOnly, secTypeX509None, new SSecurityTLS(sc, viewOnly, false), new SSecurityVncAuth(sc, viewOnly));
   case secTypeX509Plain:
-    return new SSecurityStack(sc, secTypeX509Plain, new SSecurityTLS(sc, false), new SSecurityPlain(sc));
+    return new SSecurityStack(sc, viewOnly, secTypeX509Plain, new SSecurityTLS(sc, viewOnly, false), new SSecurityPlain(sc, viewOnly));
 #endif
 #ifdef HAVE_NETTLE
   case secTypeRA2:
-    return new SSecurityRSAAES(sc, secTypeRA2, 128, true);
+    return new SSecurityRSAAES(sc, viewOnly, secTypeRA2, 128, true);
   case secTypeRA2ne:
-    return new SSecurityRSAAES(sc, secTypeRA2ne, 128, false);
+    return new SSecurityRSAAES(sc, viewOnly, secTypeRA2ne, 128, false);
   case secTypeRA256:
-    return new SSecurityRSAAES(sc, secTypeRA256, 256, true);
+    return new SSecurityRSAAES(sc, viewOnly, secTypeRA256, 256, true);
   case secTypeRAne256:
-    return new SSecurityRSAAES(sc, secTypeRAne256, 256, false);
+    return new SSecurityRSAAES(sc, viewOnly, secTypeRAne256, 256, false);
 #endif
   }
 

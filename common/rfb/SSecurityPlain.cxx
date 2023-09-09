@@ -68,7 +68,8 @@ bool PasswordValidator::validUser(const char* username)
   return false;
 }
 
-SSecurityPlain::SSecurityPlain(SConnection* sc) : SSecurity(sc)
+SSecurityPlain::SSecurityPlain(SConnection* sc, bool viewOnly)
+  : SSecurity(sc, viewOnly)
 {
 #ifdef WIN32
   valid = new WinPasswdValidator();
