@@ -47,6 +47,10 @@ public:
   void blend(int src_x, int src_y, int x, int y, int w, int h, int a=255);
   void blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a=255);
 
+  void setScale(double x, double y);
+  double scaleX() { return scale_x; }
+  double scaleY() { return scale_y; }
+
 protected:
   void alloc();
   void dealloc();
@@ -54,6 +58,7 @@ protected:
 
 protected:
   int w, h;
+  double scale_x, scale_y;
 
 #if defined(WIN32)
   RGBQUAD* data;

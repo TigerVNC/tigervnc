@@ -53,6 +53,20 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   XRenderFreePicture(fl_display, winPict);
 }
 
+void Surface::setScale(double x, double y)
+{
+  scale_x = x;
+  scale_y = y;
+
+  XTransform transform_matrix = {{
+    {XDoubleToFixed(x), XDoubleToFixed(0), XDoubleToFixed(0)},
+    {XDoubleToFixed(0), XDoubleToFixed(y), XDoubleToFixed(0)},
+    {XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
+  }};
+  XRenderSetPictureTransform(fl_display, picture, &transform_matrix);
+  XRenderSetPictureFilter(fl_display, picture, FilterBilinear, 0, 0 );
+}
+
 void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
 {
   XRenderComposite(fl_display, PictOpSrc, picture, None, dst->picture,
