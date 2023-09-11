@@ -120,8 +120,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
 #ifdef WIN32
     altGrArmed(false),
 #endif
-    firstLEDState(true),
-    pendingServerClipboard(false), pendingClientClipboard(false),
+    firstLEDState(true), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -295,17 +294,15 @@ void Viewport::handleClipboardAnnounce(bool available)
 
   if (!available) {
     vlog.debug("Clipboard is no longer available on server");
-    pendingServerClipboard = false;
+    return;
+  }
+
+  if (!hasFocus()) {
+    vlog.debug("Got notification of new clipboard on server whilst not focused, ignoring");
     return;
   }
 
   pendingClientClipboard = false;
-
-  if (!hasFocus()) {
-    vlog.debug("Got notification of new clipboard on server whilst not focused, will request data later");
-    pendingServerClipboard = true;
-    return;
-  }
 
   vlog.debug("Got notification of new clipboard on server, requesting data");
   cc->requestClipboard();
@@ -758,8 +755,6 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   self->clipboardSource = source;
 
-  self->pendingServerClipboard = false;
-
   if (!self->hasFocus()) {
     vlog.debug("Local clipboard changed whilst not focused, will notify server later");
     self->pendingClientClipboard = true;
@@ -780,15 +775,6 @@ void Viewport::handleClipboardChange(int source, void *data)
 
 void Viewport::flushPendingClipboard()
 {
-  if (pendingServerClipboard) {
-    vlog.debug("Focus regained after remote clipboard change, requesting data");
-    try {
-      cc->requestClipboard();
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      abort_connection_with_unexpected_error(e);
-    }
-  }
   if (pendingClientClipboard) {
     vlog.debug("Focus regained after local clipboard change, notifying server");
     try {
@@ -799,7 +785,6 @@ void Viewport::flushPendingClipboard()
     }
   }
 
-  pendingServerClipboard = false;
   pendingClientClipboard = false;
 }
 

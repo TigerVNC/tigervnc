@@ -123,7 +123,6 @@ private:
 
   bool firstLEDState;
 
-  bool pendingServerClipboard;
   bool pendingClientClipboard;
 
   int clipboardSource;
