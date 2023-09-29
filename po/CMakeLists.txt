@@ -43,7 +43,7 @@ foreach(lang ${po_FILES})
 
   # Add command to build X.mo from X.po
   add_custom_command(OUTPUT ${mo}
-    COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} --check -o ${mo} ${po}
+    COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} --check --check-accelerators -o ${mo} ${po}
     DEPENDS ${po}
   )
 
