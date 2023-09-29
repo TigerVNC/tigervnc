@@ -494,7 +494,7 @@ msgstr "&Beállítások…"
 #: vncviewer/Viewport.cxx:1235
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
-msgstr "Kapcsolatinformációk…"
+msgstr "Kapcsolat&információk…"
 
 #: vncviewer/Viewport.cxx:1237
 msgctxt "ContextMenu|"

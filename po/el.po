@@ -458,33 +458,33 @@ msgstr "Χωρίς σύμβολο για τον κώδικα πλήκτρου %d
 #| msgid "Exit viewer"
 msgctxt "ContextMenu|"
 msgid "E&xit viewer"
-msgstr "Έξοδος από τον θεατή"
+msgstr "Έ&ξοδος από τον θεατή"
 
 #: vncviewer/Viewport.cxx:1202
 #, fuzzy
 #| msgid "Full screen"
 msgctxt "ContextMenu|"
 msgid "&Full screen"
-msgstr "Πλήρης οθόνη"
+msgstr "&Πλήρης οθόνη"
 
 #: vncviewer/Viewport.cxx:1205
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
-msgstr "Ελαχιστοποίηση"
+msgstr "Ε&λαχιστοποίηση"
 
 #: vncviewer/Viewport.cxx:1207
 #, fuzzy
 #| msgid "Resize window to session"
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
-msgstr "Αλλαγή μεγέθους παραθύρου στην συνεδρία"
+msgstr "Αλλαγή &μεγέθους παραθύρου στην συνεδρία"
 
 #: vncviewer/Viewport.cxx:1212
 #, fuzzy
 #| msgid "Ctrl"
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
-msgstr "Ctrl"
+msgstr "&Ctrl"
 
 #: vncviewer/Viewport.cxx:1215
 msgctxt "ContextMenu|"
@@ -503,41 +503,41 @@ msgstr "Αποστολή %s"
 #| msgid "Send Ctrl-Alt-Del"
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
-msgstr "Αποστολή Ctrl-Alt-Del"
+msgstr "Αποστολή Ctrl-Alt-&Del"
 
 #: vncviewer/Viewport.cxx:1230
 #, fuzzy
 #| msgid "Refresh screen"
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
-msgstr "Ανανέωση οθόνης"
+msgstr "Ανανέωση &οθόνης"
 
 #: vncviewer/Viewport.cxx:1233
 #, fuzzy
 #| msgid "Options..."
 msgctxt "ContextMenu|"
 msgid "&Options..."
-msgstr "Επιλογές..."
+msgstr "&Επιλογές..."
 
 #: vncviewer/Viewport.cxx:1235
 #, fuzzy
 #| msgid "Connection info..."
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
-msgstr "Πληροφορίες σύνδεσης..."
+msgstr "Πληροφορίες &σύνδεσης..."
 
 #: vncviewer/Viewport.cxx:1237
 #, fuzzy
 #| msgid "About TigerVNC viewer..."
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
-msgstr "Σχετικά με τον θεατή TigerVNC..."
+msgstr "Σχετικά με τον θεατή &TigerVNC..."
 
 #: vncviewer/Viewport.cxx:1240
 #, fuzzy
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
-msgstr "Μενού απόρριψης"
+msgstr "&Μενού απόρριψης"
 
 #: vncviewer/Viewport.cxx:1329
 msgid "VNC connection info"

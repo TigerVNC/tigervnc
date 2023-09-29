@@ -593,7 +593,7 @@ msgstr "Нет символа для кода клавиши %d (в текуще
 #: vncviewer/Viewport.cxx:1247
 msgctxt "ContextMenu|"
 msgid "Dis&connect"
-msgstr "Отключ."
+msgstr "От&ключ."
 
 #: vncviewer/Viewport.cxx:1250
 msgctxt "ContextMenu|"
@@ -608,7 +608,7 @@ msgstr "&Свернуть"
 #: vncviewer/Viewport.cxx:1255
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
-msgstr "Изменить размер окна"
+msgstr "&Изменить размер окна"
 
 #: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
@@ -644,7 +644,7 @@ msgstr "&Параметры"
 #: vncviewer/Viewport.cxx:1283
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
-msgstr "Сведения о соединении"
+msgstr "Сведения о сое&динении"
 
 #: vncviewer/Viewport.cxx:1285
 msgctxt "ContextMenu|"

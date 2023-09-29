@@ -516,7 +516,7 @@ msgstr "Om &TigerVNC-fremviseren ..."
 #: vncviewer/Viewport.cxx:1211
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
-msgstr "Fjern %menu"
+msgstr "Fjern &menu"
 
 #: vncviewer/Viewport.cxx:1300
 msgid "VNC connection info"
