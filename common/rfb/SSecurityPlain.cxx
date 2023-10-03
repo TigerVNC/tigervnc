@@ -28,6 +28,8 @@
 #include <rdr/InStream.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <rfb/UnixPasswordValidator.h>
+#include <unistd.h>
+#include <pwd.h>
 #endif
 #ifdef WIN32
 #include <rfb/WinPasswdValidator.h>
@@ -53,6 +55,13 @@ bool PasswordValidator::validUser(const char* username)
   for (size_t i = 0; i < users.size(); i++) {
     if (users[i] == "*")
       return true;
+#if !defined(WIN32) && !defined(__APPLE__)
+    if (users[i] == "%u") {
+      struct passwd *pw = getpwnam(username);
+      if (pw && pw->pw_uid == getuid())
+        return true;
+    }
+#endif
     if (users[i] == username)
       return true;
   }
