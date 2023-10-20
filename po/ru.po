@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: tigervnc 1.12.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2022-12-15 16:35+0100\n"
-"PO-Revision-Date: 2023-01-05 10:07+0300\n"
+"PO-Revision-Date: 2023-10-20 18:09+0300\n"
 "Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
 "Language-Team: Russian <gnu@d07.ru>\n"
 "Language: ru_UA\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 20.12.0\n"
+"X-Generator: Lokalize 22.12.3\n"
 
 #: vncviewer/CConn.cxx:103
 #, c-format
@@ -397,7 +397,7 @@ msgstr "О программе"
 
 #: vncviewer/ServerDialog.cxx:113
 msgid "Connect"
-msgstr "Подключ."
+msgstr "Войти"
 
 #: vncviewer/ServerDialog.cxx:145
 #, c-format
@@ -593,12 +593,12 @@ msgstr "Нет символа для кода клавиши %d (в текуще
 #: vncviewer/Viewport.cxx:1247
 msgctxt "ContextMenu|"
 msgid "Dis&connect"
-msgstr "От&ключ."
+msgstr "От&ключиться"
 
 #: vncviewer/Viewport.cxx:1250
 msgctxt "ContextMenu|"
 msgid "&Full screen"
-msgstr "&Полный экран"
+msgstr "Полный &экран"
 
 #: vncviewer/Viewport.cxx:1253
 msgctxt "ContextMenu|"
@@ -608,17 +608,17 @@ msgstr "&Свернуть"
 #: vncviewer/Viewport.cxx:1255
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
-msgstr "&Изменить размер окна"
+msgstr "Изменить &размер окна"
 
 #: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
-msgstr "&CTRL"
+msgstr "&Ctrl"
 
 #: vncviewer/Viewport.cxx:1263
 msgctxt "ContextMenu|"
 msgid "&Alt"
-msgstr "&ALT"
+msgstr "&Alt"
 
 #: vncviewer/Viewport.cxx:1269
 #, c-format
@@ -629,7 +629,7 @@ msgstr "Отправить %s"
 #: vncviewer/Viewport.cxx:1275
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
-msgstr "Отправить CTRL-ALT-&DEL"
+msgstr "Отправить Ctrl-Alt-&Del"
 
 #: vncviewer/Viewport.cxx:1278
 msgctxt "ContextMenu|"
@@ -639,17 +639,17 @@ msgstr "&Обновить экран"
 #: vncviewer/Viewport.cxx:1281
 msgctxt "ContextMenu|"
 msgid "&Options..."
-msgstr "&Параметры"
+msgstr "&Параметры…"
 
 #: vncviewer/Viewport.cxx:1283
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
-msgstr "Сведения о сое&динении"
+msgstr "Сведен&ия о соединении…"
 
 #: vncviewer/Viewport.cxx:1285
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
-msgstr "О &TigerVNC viewer"
+msgstr "О &TigerVNC…"
 
 #: vncviewer/Viewport.cxx:1374
 msgid "VNC connection info"
