@@ -201,8 +201,7 @@ parameter instead.
 A comma separated list of user names that are allowed to authenticate via
 any of the "Plain" security types (Plain, TLSPlain, etc.). Specify \fB*\fP
 to allow any user to authenticate using this security type. Specify \fB%u\fP
-to allow the effective user of the server process. Default is to deny all
-users.
+to allow the user of the server process. Default is to deny all users.
 .
 .TP
 .B \-pam_service \fIname\fP, \-PAMService \fIname\fP
