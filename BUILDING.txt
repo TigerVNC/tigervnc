@@ -146,7 +146,11 @@ that the viewer has already been built, per above.)
     system.  In particular, it will be necessary to customize the font, XKB,
     and DRI directories.)
 
+    For a regular, in-tree build:
   > make TIGERVNC_SRCDIR={source_directory}
+    If performing an out-of-tree build:
+  > make TIGERVNC_SRCDIR={source_directory} TIGERVNC_BUILDDIR={build_directory}
+    (NOTE: Use absolute paths for source_directory and build_directory)
 
 
 Building the Windows TigerVNC Viewer with MinGW
