@@ -96,7 +96,7 @@
  * action = 0: nothing
  * action < 0: ButtonRelease
  *
- * The comment preceeding each section is the current emulation state.
+ * The comment preceding each section is the current emulation state.
  * The comments to the right are of the form
  *      <button state> (<events>) -> <new emulation state>
  * which should be read as
