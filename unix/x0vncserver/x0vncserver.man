@@ -287,12 +287,6 @@ Use MIT-SHM extension if available.  Using that extension accelerates reading
 the screen.  Default is on.
 .
 .TP
-.B \-ZlibLevel \fIlevel\fP
-Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
-Acceptable values are between 0 and 9.  Default is to use the standard
-compression level provided by the \fBzlib\fP(3) compression library.
-.
-.TP
 .B \-ImprovedHextile
 Use improved compression algorithm for Hextile encoding which achieves better
 compression ratios by the cost of using slightly more CPU time.  Default is
