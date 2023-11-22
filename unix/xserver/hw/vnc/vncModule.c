@@ -36,7 +36,7 @@
 #include "XorgGlue.h"
 #include "RandrGlue.h"
 
-static void vncModuleInit(INITARGS);
+static void vncModuleInit(void);
 
 static MODULESETUPPROTO(vncSetup);
 
@@ -70,7 +70,7 @@ vncSetup(void * module, void * opts, int *errmaj, int *errmin) {
     return (void *)1;
 }
 
-static void vncModuleInit(INITARGS)
+static void vncModuleInit(void)
 {
   static char once = 0;
 
