@@ -39,10 +39,6 @@ namespace rfb {
     virtual bool processMsg();
     virtual const char* getUserName() const;
     virtual int getType() const { return secType; }
-    virtual AccessRights getAccessRights() const
-    {
-      return accessRights;
-    }
 
     static StringParameter keyFile;
     static BoolParameter requireUsername;
@@ -82,7 +78,6 @@ namespace rfb {
 
     char username[256];
     char password[256];
-    AccessRights accessRights;
 
     rdr::InStream* rais;
     rdr::OutStream* raos;
