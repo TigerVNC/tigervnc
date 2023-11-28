@@ -51,8 +51,8 @@ namespace rfb {
 
   class SSecurity {
   public:
-    SSecurity(SConnection* sc_) : sc(sc_) {}
-    virtual ~SSecurity() {}
+    SSecurity(SConnection* sc);
+    virtual ~SSecurity();
     virtual bool processMsg() = 0;
     virtual int getType() const = 0;
 
@@ -62,10 +62,11 @@ namespace rfb {
     // for this security type.
     virtual const char* getUserName() const = 0;
 
-    virtual SConnection::AccessRights getAccessRights() const { return SConnection::AccessDefault; }
+    virtual SConnection::AccessRights getAccessRights() const;
 
   protected:
     SConnection* sc;
+    SConnection::AccessRights accessRights;
   };
 
 }

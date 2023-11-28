@@ -54,7 +54,7 @@ VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 
 SSecurityVncAuth::SSecurityVncAuth(SConnection* sc)
   : SSecurity(sc), sentChallenge(false),
-    pg(&vncAuthPasswd), accessRights(SConnection::AccessNone)
+    pg(&vncAuthPasswd)
 {
 }
 

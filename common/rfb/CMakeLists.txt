@@ -44,6 +44,7 @@ add_library(rfb STATIC
   Security.cxx
   SecurityServer.cxx
   SecurityClient.cxx
+  SSecurity.cxx
   SSecurityPlain.cxx
   SSecurityStack.cxx
   SSecurityVncAuth.cxx
