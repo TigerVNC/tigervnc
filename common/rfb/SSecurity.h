@@ -62,7 +62,7 @@ namespace rfb {
     // for this security type.
     virtual const char* getUserName() const = 0;
 
-    virtual SConnection::AccessRights getAccessRights() const { return SConnection::AccessDefault; }
+    virtual AccessRights getAccessRights() const { return AccessDefault; }
 
   protected:
     SConnection* sc;

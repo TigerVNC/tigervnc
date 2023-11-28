@@ -55,7 +55,7 @@ namespace rfb {
     virtual bool processMsg();
     virtual int getType() const {return secTypeVncAuth;}
     virtual const char* getUserName() const {return 0;}
-    virtual SConnection::AccessRights getAccessRights() const { return accessRights; }
+    virtual AccessRights getAccessRights() const { return accessRights; }
     static StringParameter vncAuthPasswdFile;
     static VncAuthPasswdParameter vncAuthPasswd;
   private:
@@ -65,7 +65,7 @@ namespace rfb {
     uint8_t response[vncAuthChallengeSize];
     bool sentChallenge;
     VncAuthPasswdGetter* pg;
-    SConnection::AccessRights accessRights;
+    AccessRights accessRights;
   };
 }
 #endif

@@ -43,24 +43,12 @@ using namespace rfb;
 
 static LogWriter vlog("SConnection");
 
-// AccessRights values
-const SConnection::AccessRights SConnection::AccessView           = 0x0001;
-const SConnection::AccessRights SConnection::AccessKeyEvents      = 0x0002;
-const SConnection::AccessRights SConnection::AccessPtrEvents      = 0x0004;
-const SConnection::AccessRights SConnection::AccessCutText        = 0x0008;
-const SConnection::AccessRights SConnection::AccessSetDesktopSize = 0x0010;
-const SConnection::AccessRights SConnection::AccessNonShared      = 0x0020;
-const SConnection::AccessRights SConnection::AccessDefault        = 0x03ff;
-const SConnection::AccessRights SConnection::AccessNoQuery        = 0x0400;
-const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
-
-
 SConnection::SConnection()
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0), ssecurity(0),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-    accessRights(0x0000), hasRemoteClipboard(false),
+    accessRights(AccessNone), hasRemoteClipboard(false),
     hasLocalClipboard(false),
     unsolicitedClipboardAttempt(false)
 {

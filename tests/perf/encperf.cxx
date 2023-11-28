@@ -134,7 +134,7 @@ public:
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
-  virtual void setAccessRights(AccessRights ar);
+  virtual void setAccessRights(rfb::AccessRights ar);
 
   virtual void setDesktopSize(int fb_width, int fb_height,
                               const rfb::ScreenSet& layout);
@@ -329,7 +329,7 @@ void SConn::getStats(double& ratio, unsigned long long& bytes,
   manager->getStats(ratio, bytes, rawEquivalent);
 }
 
-void SConn::setAccessRights(AccessRights)
+void SConn::setAccessRights(rfb::AccessRights)
 {
 }
 

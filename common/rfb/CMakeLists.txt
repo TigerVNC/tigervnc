@@ -1,4 +1,5 @@
 add_library(rfb STATIC
+  AccessRights.cxx
   Blacklist.cxx
   Congestion.cxx
   CConnection.cxx
