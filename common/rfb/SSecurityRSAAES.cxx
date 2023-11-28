@@ -76,7 +76,7 @@ SSecurityRSAAES::SSecurityRSAAES(SConnection* sc, uint32_t _secType,
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
     serverKey(), clientKey(),
     serverKeyN(NULL), serverKeyE(NULL), clientKeyN(NULL), clientKeyE(NULL),
-    accessRights(SConnection::AccessDefault),
+    accessRights(AccessDefault),
     rais(NULL), raos(NULL), rawis(NULL), rawos(NULL)
 {
   assert(keySize == 128 || keySize == 256);
@@ -578,12 +578,12 @@ void SSecurityRSAAES::verifyPass()
     throw AuthFailureException("No password configured for VNC Auth");
 
   if (password == passwd) {
-    accessRights = SConnection::AccessDefault;
+    accessRights = AccessDefault;
     return;
   }
 
   if (!passwdReadOnly.empty() && password == passwdReadOnly) {
-    accessRights = SConnection::AccessView;
+    accessRights = AccessView;
     return;
   }
 

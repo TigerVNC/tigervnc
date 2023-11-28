@@ -39,7 +39,7 @@ namespace rfb {
     virtual bool processMsg();
     virtual const char* getUserName() const;
     virtual int getType() const { return secType; }
-    virtual SConnection::AccessRights getAccessRights() const
+    virtual AccessRights getAccessRights() const
     {
       return accessRights;
     }
@@ -82,7 +82,7 @@ namespace rfb {
 
     char username[256];
     char password[256];
-    SConnection::AccessRights accessRights;
+    AccessRights accessRights;
 
     rdr::InStream* rais;
     rdr::OutStream* raos;

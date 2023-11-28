@@ -680,7 +680,7 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
   }
 
   // - Does the client have the right to bypass the query?
-  if (client->accessCheck(SConnection::AccessNoQuery))
+  if (client->accessCheck(AccessNoQuery))
   {
     approveConnection(client->getSock(), true, NULL);
     return;
@@ -693,7 +693,7 @@ void VNCServerST::clientReady(VNCSConnectionST* client, bool shared)
 {
   if (!shared) {
     if (rfb::Server::disconnectClients &&
-        client->accessCheck(SConnection::AccessNonShared)) {
+        client->accessCheck(AccessNonShared)) {
       // - Close all the other connected clients
       slog.debug("non-shared connection - closing clients");
       closeClients("Non-shared connection requested", client->getSock());

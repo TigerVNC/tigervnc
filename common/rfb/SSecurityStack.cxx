@@ -71,14 +71,14 @@ const char* SSecurityStack::getUserName() const
   return c;
 }
 
-SConnection::AccessRights SSecurityStack::getAccessRights() const
+AccessRights SSecurityStack::getAccessRights() const
 {
-  SConnection::AccessRights accessRights;
+  AccessRights accessRights;
 
   if (!state0 && !state1)
     return SSecurity::getAccessRights();
 
-  accessRights = SConnection::AccessFull;
+  accessRights = AccessFull;
 
   if (state0)
     accessRights &= state0->getAccessRights();

@@ -54,7 +54,7 @@ VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 
 SSecurityVncAuth::SSecurityVncAuth(SConnection* sc)
   : SSecurity(sc), sentChallenge(false),
-    pg(&vncAuthPasswd), accessRights(0)
+    pg(&vncAuthPasswd), accessRights(AccessNone)
 {
 }
 
@@ -103,13 +103,13 @@ bool SSecurityVncAuth::processMsg()
     throw AuthFailureException("No password configured for VNC Auth");
 
   if (verifyResponse(passwd.c_str())) {
-    accessRights = SConnection::AccessDefault;
+    accessRights = AccessDefault;
     return true;
   }
 
   if (!passwdReadOnly.empty() &&
       verifyResponse(passwdReadOnly.c_str())) {
-    accessRights = SConnection::AccessView;
+    accessRights = AccessView;
     return true;
   }
 
