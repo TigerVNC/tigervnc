@@ -180,6 +180,7 @@ namespace rfb {
     // is up to the derived class.
 
     typedef uint16_t AccessRights;
+    static const AccessRights AccessNone;           // No rights at all
     static const AccessRights AccessView;           // View display contents
     static const AccessRights AccessKeyEvents;      // Send key events
     static const AccessRights AccessPtrEvents;      // Send pointer events
