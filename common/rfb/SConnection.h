@@ -43,7 +43,7 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection();
+    SConnection(AccessRights accessRights);
     virtual ~SConnection();
 
     // Methods to initialise the connection
@@ -175,6 +175,9 @@ namespace rfb {
     // and should be called whenever the client has requested the
     // clipboard via handleClipboardRequest().
     virtual void sendClipboardData(const char* data);
+
+    // getAccessRights() returns the access rights of a SConnection to the server.
+    AccessRights getAccessRights() { return accessRights; }
 
     // setAccessRights() allows a security package to limit the access rights
     // of a SConnection to the server.  How the access rights are treated

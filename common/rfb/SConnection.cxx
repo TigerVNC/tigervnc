@@ -43,12 +43,12 @@ using namespace rfb;
 
 static LogWriter vlog("SConnection");
 
-SConnection::SConnection()
+SConnection::SConnection(AccessRights accessRights)
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0), ssecurity(0),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-    accessRights(AccessNone), hasRemoteClipboard(false),
+    accessRights(accessRights), hasRemoteClipboard(false),
     hasLocalClipboard(false),
     unsolicitedClipboardAttempt(false)
 {

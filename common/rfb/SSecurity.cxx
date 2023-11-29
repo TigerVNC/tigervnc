@@ -25,7 +25,7 @@
 using namespace rfb;
 
 SSecurity::SSecurity(SConnection* sc)
-  : sc(sc), accessRights(AccessDefault)
+  : sc(sc), accessRights(sc->getAccessRights())
 {
 }
 

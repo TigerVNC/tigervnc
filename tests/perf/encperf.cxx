@@ -41,6 +41,8 @@
 #include <rdr/OutStream.h>
 #include <rdr/FileInStream.h>
 
+#include <rfb/AccessRights.h>
+
 #include <rfb/PixelFormat.h>
 
 #include <rfb/CConnection.h>
@@ -303,6 +305,7 @@ void Manager::getStats(double& ratio, unsigned long long& encodedBytes,
 }
 
 SConn::SConn()
+: SConnection(rfb::AccessDefault)
 {
   out = new DummyOutStream;
   setStreams(NULL, out);
