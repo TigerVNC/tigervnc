@@ -40,7 +40,8 @@ namespace rfb {
   class VNCSConnectionST : private SConnection,
                            public Timer::Callback {
   public:
-    VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
+    VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse,
+                     AccessRights ar);
     virtual ~VNCSConnectionST();
 
     // SConnection methods

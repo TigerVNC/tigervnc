@@ -39,7 +39,9 @@ namespace rfb {
     //   outgoing is set to true if the socket was created by connecting out
     //   to another host, or false if the socket was created by accept()ing
     //   an incoming connection.
-    virtual void addSocket(network::Socket* sock, bool outgoing=false) = 0;
+    //   accessRights allows to set the access rights to the server.
+    virtual void addSocket(network::Socket* sock, bool outgoing=false,
+                           AccessRights accessRights = AccessDefault) = 0;
 
     // removeSocket() tells the server to stop serving the Socket.  The
     //   caller retains ownership of the Socket - the server must NOT

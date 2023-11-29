@@ -46,7 +46,7 @@ char* XVncExtGetParamDesc(Display* dpy, const char* param);
 char** XVncExtListParams(Display* dpy, int* nParams);
 void XVncExtFreeParamList(char** list);
 Bool XVncExtSelectInput(Display* dpy, Window w, int mask);
-Bool XVncExtConnect(Display* dpy, const char* hostAndPort);
+Bool XVncExtConnect(Display* dpy, const char* hostAndPort, Bool viewOnly);
 Bool XVncExtGetQueryConnect(Display* dpy, char** addr,
                             char** user, int* timeout, void** opaqueId);
 Bool XVncExtApproveConnect(Display* dpy, void* opaqueId, int approve);
@@ -181,7 +181,7 @@ typedef struct {
   CARD8 vncExtReqType; /* always VncExtConnect */
   CARD16 length B16;
   CARD8 strLen;
-  CARD8 pad0;
+  CARD8 viewOnly;
   CARD16 pad1 B16;
 } xVncExtConnectReq;
 #define sz_xVncExtConnectReq 8

@@ -132,7 +132,7 @@ VNCServerST::~VNCServerST()
 
 // VNCServer methods
 
-void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
+void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights accessRights)
 {
   // - Check the connection isn't black-marked
   // *** do this in getSecurity instead?
@@ -163,7 +163,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
     connectTimer.start(secsToMillis(rfb::Server::maxConnectionTime));
   disconnectTimer.stop();
 
-  VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing);
+  VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
   clients.push_front(client);
   client->init();
 }
