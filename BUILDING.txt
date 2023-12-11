@@ -119,7 +119,6 @@ that the viewer has already been built, per above.)
   > cd {build_directory}
 
     If performing an out-of-tree build:
-  > mkdir unix
   > cp -R {source_directory}/unix/xserver unix/
 
   > cp -R {xorg_source}/* unix/xserver/
