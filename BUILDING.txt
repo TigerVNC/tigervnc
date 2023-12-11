@@ -9,6 +9,8 @@ Build Requirements (All Systems)
 
 -- CMake (http://www.cmake.org) v3.10 or later
 
+-- gcc
+
 -- zlib
 
 -- pixman
@@ -36,12 +38,13 @@ Build Requirements (Unix)
 =========================
 
 -- Non-Mac platforms:
-   * X11 development kit
+   * Development kits for all standard X11 libraries
    * PAM
 
 -- If building Xvnc/libvnc.so:
    * Xorg server source code, 1.16 or later
    * All build requirements Xorg imposes (see its documentation)
+   * patch
 
 -- Optional ffmpeg support (libav)
 
