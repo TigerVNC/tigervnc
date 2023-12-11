@@ -11,6 +11,8 @@ Build Requirements (All Systems)
 
 -- gcc
 
+Development kits for the following packages:
+
 -- zlib
 
 -- pixman
@@ -46,7 +48,9 @@ Build Requirements (Unix)
    * All build requirements Xorg imposes (see its documentation)
    * patch
 
--- Optional ffmpeg support (libav)
+-- Optional ffmpeg development kit support (libav)
+   * You might have to enable additional repositories for this. E.g.,
+     on RHEL, EPEL and RPMFusion (free + nonfree) need to be enabled.
 
 ============================
 Build Requirements (Windows)
