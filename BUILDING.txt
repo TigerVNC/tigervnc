@@ -137,20 +137,17 @@ that the viewer has already been built, per above.)
   > ./configure --with-pic --without-dtrace --disable-static --disable-dri \
       --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg \
       --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive \
-      --disable-config-dbus --disable-config-hal --disable-config-udev \
-      --disable-dri2 --enable-install-libxf86config --enable-glx \
+      --disable-config-hal --disable-config-udev --disable-dri2 --enable-glx \
       --with-default-font-path="catalogue:/etc/X11/fontpath.d,built-ins" \
-      --with-fontdir=/usr/share/X11/fonts \
       --with-xkb-path=/usr/share/X11/xkb \
       --with-xkb-output=/var/lib/xkb \
       --with-xkb-bin-directory=/usr/bin \
-      --with-serverconfig-path=/usr/lib[64]/xorg \
-      --with-dri-driver-path=/usr/lib[64]/dri \
+      --with-serverconfig-path=/usr/lib64/xorg \
       {additional configure options}
     (NOTE: This is merely an example that works with Red Hat Enterprise/CentOS
-    6 and recent Fedora releases.  You should customize it for your particular
-    system.  In particular, it will be necessary to customize the font, XKB,
-    and DRI directories.)
+    9 and recent Fedora releases.  You should customize it for your particular
+    system.  In particular, it will be necessary to customize the XKB
+    directory.)
 
     For a regular, in-tree build:
   > make TIGERVNC_SRCDIR={source_directory}
