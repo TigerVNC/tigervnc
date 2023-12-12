@@ -174,12 +174,12 @@ bool CSecurityVeNCrypt::processMsg()
 	  break;
       }
 
-      vlog.info("Choosing security type %s (%d)", secTypeName(chosenType),
-		 chosenType);
-
       /* Set up the stack according to the chosen type: */
       if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
 	throw AuthFailureException("No valid VeNCrypt sub-type");
+
+      vlog.info("Choosing security type %s (%d)", secTypeName(chosenType),
+		 chosenType);
 
       csecurity = security->GetCSecurity(cc, chosenType);
 
