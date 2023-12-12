@@ -819,23 +819,26 @@ static const struct codepair keysymtab[] = {
   { 0x13bd, 0x0153 }, /*                          oe œ LATIN SMALL LIGATURE OE */
   { 0x13be, 0x0178 }, /*                  Ydiaeresis Ÿ LATIN CAPITAL LETTER Y WITH DIAERESIS */
   { 0x20ac, 0x20ac }, /*                    EuroSign € EURO SIGN */
-  { 0xfe50, 0x0300 }, /*                               COMBINING GRAVE ACCENT */
-  { 0xfe51, 0x0301 }, /*                               COMBINING ACUTE ACCENT */
-  { 0xfe52, 0x0302 }, /*                               COMBINING CIRCUMFLEX ACCENT */
-  { 0xfe53, 0x0303 }, /*                               COMBINING TILDE */
-  { 0xfe54, 0x0304 }, /*                               COMBINING MACRON */
-  { 0xfe55, 0x0306 }, /*                               COMBINING BREVE */
-  { 0xfe56, 0x0307 }, /*                               COMBINING DOT ABOVE */
-  { 0xfe57, 0x0308 }, /*                               COMBINING DIAERESIS */
-  { 0xfe58, 0x030a }, /*                               COMBINING RING ABOVE */
-  { 0xfe59, 0x030b }, /*                               COMBINING DOUBLE ACUTE ACCENT */
-  { 0xfe5a, 0x030c }, /*                               COMBINING CARON */
-  { 0xfe5b, 0x0327 }, /*                               COMBINING CEDILLA */
-  { 0xfe5c, 0x0328 }, /*                               COMBINING OGONEK */
-  { 0xfe5d, 0x0345 }, /*                               COMBINING GREEK YPOGEGRAMMENI */
-  { 0xfe5e, 0x3099 }, /*                               COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK */
-  { 0xfe5f, 0x309a }, /*                               COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
-  { 0xfe60, 0x0323 }, /*                               COMBINING DOT BELOW */
+};
+
+static const struct codepair deadtab[] = {
+  { 0xfe50, 0x0300 }, /*                  dead_grave ` COMBINING GRAVE ACCENT */
+  { 0xfe51, 0x0301 }, /*                  dead_acute ´ COMBINING ACUTE ACCENT */
+  { 0xfe52, 0x0302 }, /*             dead_circumflex ^ COMBINING CIRCUMFLEX ACCENT */
+  { 0xfe53, 0x0303 }, /*                  dead_tilde ~ COMBINING TILDE */
+  { 0xfe54, 0x0304 }, /*                 dead_macron ¯ COMBINING MACRON */
+  { 0xfe55, 0x0306 }, /*                  dead_breve ˘ COMBINING BREVE */
+  { 0xfe56, 0x0307 }, /*               dead_abovedot ˙ COMBINING DOT ABOVE */
+  { 0xfe57, 0x0308 }, /*              dead_diaeresis ¨ COMBINING DIAERESIS */
+  { 0xfe58, 0x030a }, /*              dead_abovering ˚ COMBINING RING ABOVE */
+  { 0xfe59, 0x030b }, /*            dead_doubleacute ˝ COMBINING DOUBLE ACUTE ACCENT */
+  { 0xfe5a, 0x030c }, /*                  dead_caron ˇ COMBINING CARON */
+  { 0xfe5b, 0x0327 }, /*                dead_cedilla ¸ COMBINING CEDILLA */
+  { 0xfe5c, 0x0328 }, /*                 dead_ogonek ¸ COMBINING OGONEK */
+  { 0xfe5d, 0x0345 }, /*                   dead_iota ͺ COMBINING GREEK YPOGEGRAMMENI */
+  { 0xfe5e, 0x3099 }, /*           dead_voiced_sound ゛ COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK */
+  { 0xfe5f, 0x309a }, /*       dead_semivoiced_sound ゜ COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
+  { 0xfe60, 0x0323 }, /*               dead_belowdot . COMBINING DOT BELOW */
 };
 
 static const struct combiningpair combinetab[] = {
@@ -863,11 +866,48 @@ static const struct combiningpair combinetab[] = {
   { 0x0385, 0x0344 }, /*       GREEK DIALYTIKA TONOS ΅ COMBINING GREEK DIALYTIKA TONOS */
 };
 
-unsigned keysym2ucs(unsigned keysym)
+static unsigned find_ucs(unsigned keysym,
+                         const struct codepair *table, int entries)
 {
   int min = 0;
-  int max = sizeof(keysymtab) / sizeof(struct codepair) - 1;
+  int max = entries - 1;
   int mid;
+
+  /* binary search in table */
+  while (max >= min) {
+    mid = (min + max) / 2;
+    if (table[mid].keysym < keysym)
+      min = mid + 1;
+    else if (table[mid].keysym > keysym)
+      max = mid - 1;
+    else {
+      /* found it */
+      return table[mid].ucs;
+    }
+  }
+
+  return -1;
+}
+
+static unsigned find_sym(unsigned ucs,
+                         const struct codepair *table, int entries)
+{
+  int cur = 0;
+  int max = entries - 1;
+
+  /* linear search in table */
+  while (cur <= max) {
+    if (table[cur].ucs == ucs)
+      return table[cur].keysym;
+    cur++;
+  }
+
+  return NoSymbol;
+}
+
+unsigned keysym2ucs(unsigned keysym)
+{
+  unsigned ucs;
 
   /* first check for Latin-1 characters (1:1 mapping) */
   if ((keysym >= 0x0020 && keysym <= 0x007e) ||
@@ -878,18 +918,17 @@ unsigned keysym2ucs(unsigned keysym)
   if ((keysym & 0xff000000) == 0x01000000)
     return keysym & 0x00ffffff;
 
-  /* binary search in table */
-  while (max >= min) {
-    mid = (min + max) / 2;
-    if (keysymtab[mid].keysym < keysym)
-      min = mid + 1;
-    else if (keysymtab[mid].keysym > keysym)
-      max = mid - 1;
-    else {
-      /* found it */
-      return keysymtab[mid].ucs;
-    }
-  }
+  /* normal key? */
+  ucs = find_ucs(keysym, keysymtab,
+                 sizeof(keysymtab) / sizeof(struct codepair));
+  if (ucs != (unsigned)-1)
+    return ucs;
+
+  /* dead key? */
+  ucs = find_ucs(keysym, deadtab,
+                 sizeof(deadtab) / sizeof(struct codepair));
+  if (ucs != (unsigned)-1)
+    return ucs;
 
   /* no matching Unicode value found */
   return -1;
@@ -897,20 +936,24 @@ unsigned keysym2ucs(unsigned keysym)
 
 unsigned ucs2keysym(unsigned ucs)
 {
-  int cur = 0;
-  int max = sizeof(keysymtab) / sizeof(struct codepair) - 1;
+  unsigned keysym;
 
   /* first check for Latin-1 characters (1:1 mapping) */
   if ((ucs >= 0x0020 && ucs <= 0x007e) ||
       (ucs >= 0x00a0 && ucs <= 0x00ff))
     return ucs;
 
-  /* linear search in table */
-  while (cur <= max) {
-    if (keysymtab[cur].ucs == ucs)
-      return keysymtab[cur].keysym;
-    cur++;
-  }
+  /* normal key? */
+  keysym = find_sym(ucs, keysymtab,
+                    sizeof(keysymtab) / sizeof(struct codepair));
+  if (keysym != NoSymbol)
+    return keysym;
+
+  /* dead key? */
+  keysym = find_sym(ucs, deadtab,
+                    sizeof(deadtab) / sizeof(struct codepair));
+  if (keysym != NoSymbol)
+    return keysym;
 
   /* us the directly encoded 24-bit UCS character */
   if ((ucs & 0xff000000) == 0)
