@@ -58,6 +58,7 @@
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
+#include <rfb/KeysymStr.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
@@ -471,7 +472,8 @@ void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
     uint32_t newkey;
     newkey = keyRemapper->remapKey(keysym);
     if (newkey != keysym) {
-      slog.debug("Key remapped to 0x%x", newkey);
+      slog.debug("Key remapped to XK_%s (0x%x)",
+                 KeySymName(newkey), newkey);
       keysym = newkey;
     }
   }

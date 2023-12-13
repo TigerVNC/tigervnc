@@ -28,6 +28,7 @@
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
+#include <rfb/KeysymStr.h>
 #include <rfb/ledStates.h>
 #include <rfb/util.h>
 
@@ -867,12 +868,8 @@ void Viewport::handleKeyPress(int keyCode, uint32_t keySym)
   // and send the same on release.
   downKeySym[keyCode] = keySym;
 
-#if defined(WIN32) || defined(__APPLE__)
-  vlog.debug("Key pressed: 0x%04x => 0x%04x", keyCode, keySym);
-#else
   vlog.debug("Key pressed: 0x%04x => XK_%s (0x%04x)",
-             keyCode, XKeysymToString(keySym), keySym);
-#endif
+             keyCode, KeySymName(keySym), keySym);
 
   try {
     // Fake keycode?
@@ -902,12 +899,8 @@ void Viewport::handleKeyRelease(int keyCode)
     return;
   }
 
-#if defined(WIN32) || defined(__APPLE__)
-  vlog.debug("Key released: 0x%04x => 0x%04x", keyCode, iter->second);
-#else
   vlog.debug("Key released: 0x%04x => XK_%s (0x%04x)",
-             keyCode, XKeysymToString(iter->second), iter->second);
-#endif
+             keyCode, KeySymName(iter->second), iter->second);
 
   try {
     if (keyCode > 0xff)
