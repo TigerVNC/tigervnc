@@ -80,6 +80,11 @@ void CMsgHandler::endOfContinuousUpdates()
   server.supportsContinuousUpdates = true;
 }
 
+void CMsgHandler::supportExtendedMouseButtons()
+{
+  server.supportsExtendedMouseButtons = true;
+}
+
 void CMsgHandler::supportsQEMUKeyEvent()
 {
   server.supportsQEMUKeyEvent = true;

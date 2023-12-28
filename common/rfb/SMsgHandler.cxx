@@ -72,6 +72,8 @@ void SMsgHandler::setEncodings(int nEncodings, const int32_t* encodings)
     supportsLEDState();
   if (client.supportsEncoding(pseudoEncodingQEMUKeyEvent) && firstQEMUKeyEvent)
     supportsQEMUKeyEvent();
+  if (client.supportsEncoding(pseudoEncodingExtendedMouseButtons))
+    supportsExtendedMouseButtons();
 }
 
 void SMsgHandler::handleClipboardCaps(uint32_t flags, const uint32_t* lengths)
@@ -151,5 +153,9 @@ void SMsgHandler::supportsLEDState()
 }
 
 void SMsgHandler::supportsQEMUKeyEvent()
+{
+}
+
+void SMsgHandler::supportsExtendedMouseButtons()
 {
 }

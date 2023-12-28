@@ -150,8 +150,23 @@ public class CMsgWriter {
     if (p.x >= server.width()) p.x = server.width() - 1;
     if (p.y >= server.height()) p.y = server.height() - 1;
 
+    if(server.supportsExtendedMouseButtons)
+    {
+      writePointerEventExt(pos,buttonMask);
+      return;
+    }
+
     startMsg(MsgTypes.msgTypePointerEvent);
     os.writeU8(buttonMask);
+    os.writeU16(p.x);
+    os.writeU16(p.y);
+    endMsg();
+  }
+
+  synchronized public void writePointerEventExt(Point p, int buttonMask)
+  {
+    startMsg(MsgTypes.msgTypePointerEventExt);
+    os.writeU16(buttonMask);
     os.writeU16(p.x);
     os.writeU16(p.y);
     endMsg();

@@ -28,6 +28,8 @@ namespace rfb {
 
   const int msgTypeEndOfContinuousUpdates = 150;
 
+  const int msgTypeExtendedMouseSupport = 151;
+
   const int msgTypeServerFence = 248;
 
   // client to server
@@ -39,6 +41,8 @@ namespace rfb {
   const int msgTypeKeyEvent = 4;
   const int msgTypePointerEvent = 5;
   const int msgTypeClientCutText = 6;
+  const int msgTypePointerEventExt = 7;
+
 
   const int msgTypeEnableContinuousUpdates = 150;
 

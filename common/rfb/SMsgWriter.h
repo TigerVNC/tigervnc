@@ -93,6 +93,9 @@ namespace rfb {
     // And QEMU keyboard event handshake
     void writeQEMUKeyEvent();
 
+    // let the client know we support extended mouse button support
+    void writeExtendedMouseButtonSupport();
+
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out pseudo-rectangles to the client.
     bool needFakeUpdate();

@@ -29,6 +29,8 @@ public class MsgTypes {
 
   public static final int msgTypeEndOfContinuousUpdates = 150;
 
+  public static final int msgTypeExtendedMouseSupport = 151;
+
   public static final int msgTypeServerFence = 248;
 
   // client to server
@@ -40,6 +42,7 @@ public class MsgTypes {
   public static final int msgTypeKeyEvent = 4;
   public static final int msgTypePointerEvent = 5;
   public static final int msgTypeClientCutText = 6;
+  public static final int msgTypePointerEventExt = 7;
 
   public static final int msgTypeEnableContinuousUpdates = 150;
 

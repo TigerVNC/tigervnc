@@ -303,6 +303,15 @@ void SMsgWriter::writeQEMUKeyEvent()
   needQEMUKeyEvent = true;
 }
 
+void SMsgWriter::writeExtendedMouseButtonSupport()
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedMouseButtons))
+    throw Exception("Client does not support Extended Mouse Buttons");
+
+  startMsg(msgTypeExtendedMouseSupport);
+  endMsg();
+}
+
 bool SMsgWriter::needFakeUpdate()
 {
   if (needSetDesktopName)

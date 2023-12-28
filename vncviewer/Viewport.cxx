@@ -606,6 +606,11 @@ int Viewport::handle(int event)
     if (Fl::event_button3())
       buttonMask |= 4;
 
+    if(Fl::event_buttons()&FL_BUTTON(4))
+        buttonMask |= 128;
+    if(Fl::event_buttons()&FL_BUTTON(5))
+        buttonMask |= 256;
+
     if (event == FL_MOUSEWHEEL) {
       wheelMask = 0;
       if (Fl::event_dy() < 0)
