@@ -419,7 +419,6 @@ void VNCServerWin32::setConnStatus(ListConnInfo* listConn)
         break;
       }
       conn->setAccessRights(ar);
-      conn->framebufferUpdateRequest(vncServer.getPixelBuffer()->getRect(), false);
     }
   }
 }
