@@ -3,6 +3,7 @@
 vncsession \- start a VNC server
 .SH SYNOPSIS
 .B vncsession
+.RI [-D]
 .RI < username >
 .RI <: display# >
 .SH DESCRIPTION
@@ -15,6 +16,15 @@ appropriate options and starts a window manager on the VNC desktop.
 .B vncsession
 is rarely called directly and is normally started by the system service
 manager.
+
+.SH -D OPTION
+.B vncsession
+by default forks and detaches. If the -D option is used, it does not fork and
+detach. This option is provided for use with system service managers that
+require services to run in the foreground. This option is not intended for
+debugging in a login shell from a terminal or for running
+.B vncsession
+from a terminal as an ordinary user.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
