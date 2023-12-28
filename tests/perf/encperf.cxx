@@ -194,7 +194,7 @@ CConn::CConn(const char *filename)
 
   sc = new SConn();
   sc->client.setPF((bool)translate ? fbPF : pf);
-  sc->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
+  ((rfb::SMsgHandler*)sc)->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
 }
 
 CConn::~CConn()

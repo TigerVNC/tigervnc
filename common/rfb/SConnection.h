@@ -87,6 +87,59 @@ namespace rfb {
     // cleanup of the SConnection object by the server
     virtual void close(const char* reason);
 
+    // requestClipboard() will result in a request to the client to
+    // transfer its clipboard data. A call to handleClipboardData()
+    // will be made once the data is available.
+    virtual void requestClipboard();
+
+    // announceClipboard() informs the client of changes to the
+    // clipboard on the server. The client may later request the
+    // clipboard data via handleClipboardRequest().
+    virtual void announceClipboard(bool available);
+
+    // sendClipboardData() transfers the clipboard data to the client
+    // and should be called whenever the client has requested the
+    // clipboard via handleClipboardRequest().
+    virtual void sendClipboardData(const char* data);
+
+    // getAccessRights() returns the access rights of a SConnection to the server.
+    AccessRights getAccessRights() { return accessRights; }
+
+    // setAccessRights() allows a security package to limit the access rights
+    // of a SConnection to the server.  How the access rights are treated
+    // is up to the derived class.
+    virtual void setAccessRights(AccessRights ar);
+    virtual bool accessCheck(AccessRights ar) const;
+
+    // authenticated() returns true if the client has authenticated
+    // successfully.
+    bool authenticated() { return (state_ == RFBSTATE_INITIALISATION ||
+                                   state_ == RFBSTATE_NORMAL); }
+
+    SMsgReader* reader() { return reader_; }
+    SMsgWriter* writer() { return writer_; }
+
+    rdr::InStream* getInStream() { return is; }
+    rdr::OutStream* getOutStream() { return os; }
+
+    enum stateEnum {
+      RFBSTATE_UNINITIALISED,
+      RFBSTATE_PROTOCOL_VERSION,
+      RFBSTATE_SECURITY_TYPE,
+      RFBSTATE_SECURITY,
+      RFBSTATE_SECURITY_FAILURE,
+      RFBSTATE_QUERYING,
+      RFBSTATE_INITIALISATION,
+      RFBSTATE_NORMAL,
+      RFBSTATE_CLOSING,
+      RFBSTATE_INVALID
+    };
+
+    stateEnum state() { return state_; }
+
+    int32_t getPreferredEncoding() { return preferredEncoding; }
+
+  protected:
 
     // Overridden from SMsgHandler
 
@@ -166,62 +219,6 @@ namespace rfb {
     // client received the request.
     virtual void handleClipboardData(const char* data);
 
-
-    // Other methods
-
-    // requestClipboard() will result in a request to the client to
-    // transfer its clipboard data. A call to handleClipboardData()
-    // will be made once the data is available.
-    virtual void requestClipboard();
-
-    // announceClipboard() informs the client of changes to the
-    // clipboard on the server. The client may later request the
-    // clipboard data via handleClipboardRequest().
-    virtual void announceClipboard(bool available);
-
-    // sendClipboardData() transfers the clipboard data to the client
-    // and should be called whenever the client has requested the
-    // clipboard via handleClipboardRequest().
-    virtual void sendClipboardData(const char* data);
-
-    // getAccessRights() returns the access rights of a SConnection to the server.
-    AccessRights getAccessRights() { return accessRights; }
-
-    // setAccessRights() allows a security package to limit the access rights
-    // of a SConnection to the server.  How the access rights are treated
-    // is up to the derived class.
-    virtual void setAccessRights(AccessRights ar);
-    virtual bool accessCheck(AccessRights ar) const;
-
-    // authenticated() returns true if the client has authenticated
-    // successfully.
-    bool authenticated() { return (state_ == RFBSTATE_INITIALISATION ||
-                                   state_ == RFBSTATE_NORMAL); }
-
-    SMsgReader* reader() { return reader_; }
-    SMsgWriter* writer() { return writer_; }
-
-    rdr::InStream* getInStream() { return is; }
-    rdr::OutStream* getOutStream() { return os; }
-
-    enum stateEnum {
-      RFBSTATE_UNINITIALISED,
-      RFBSTATE_PROTOCOL_VERSION,
-      RFBSTATE_SECURITY_TYPE,
-      RFBSTATE_SECURITY,
-      RFBSTATE_SECURITY_FAILURE,
-      RFBSTATE_QUERYING,
-      RFBSTATE_INITIALISATION,
-      RFBSTATE_NORMAL,
-      RFBSTATE_CLOSING,
-      RFBSTATE_INVALID
-    };
-
-    stateEnum state() { return state_; }
-
-    int32_t getPreferredEncoding() { return preferredEncoding; }
-
-  protected:
     // failConnection() prints a message to the log, sends a connection
     // failed message to the client (if possible) and throws an
     // Exception.
