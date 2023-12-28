@@ -39,12 +39,12 @@ namespace rfb {
     CMsgHandler();
     virtual ~CMsgHandler();
 
-    // The following methods are called as corresponding messages are read.  A
-    // derived class should override these methods as desired.  Note that for
-    // the setDesktopSize(), setExtendedDesktopSize(), setPixelFormat(),
-    // setName(), serverInit() and clipboardCaps methods, a derived class
-    // should call on to CMsgHandler's methods to set the members of "server"
-    // appropriately.
+    // The following methods are called as corresponding messages are
+    // read.  A derived class should override these methods as desired.
+    // Note that for the setDesktopSize(), setExtendedDesktopSize(),
+    // setName(), serverInit() and handleClipboardCaps() methods, a
+    // derived class should call on to CMsgHandler's methods to set the
+    // members of "server" appropriately.
 
     virtual void setDesktopSize(int w, int h);
     virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
@@ -53,7 +53,6 @@ namespace rfb {
     virtual void setCursor(int width, int height, const Point& hotspot,
                            const uint8_t* data) = 0;
     virtual void setCursorPos(const Point& pos) = 0;
-    virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
     virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
     virtual void endOfContinuousUpdates();

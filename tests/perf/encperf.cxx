@@ -189,7 +189,7 @@ CConn::CConn(const char *filename)
   // Nor the frame buffer size and format
   rfb::PixelFormat pf;
   pf.parse(format);
-  setPixelFormat(pf);
+  server.setPF(pf);
   setDesktopSize(width, height);
 
   sc = new SConn();

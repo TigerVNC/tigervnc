@@ -59,11 +59,6 @@ void CMsgHandler::setExtendedDesktopSize(unsigned reason, unsigned result,
   server.setDimensions(width, height, layout);
 }
 
-void CMsgHandler::setPixelFormat(const PixelFormat& pf)
-{
-  server.setPF(pf);
-}
-
 void CMsgHandler::setName(const char* name)
 {
   server.setName(name);

@@ -68,7 +68,6 @@ public:
   ~CConn();
 
   void initDone() override;
-  void setPixelFormat(const rfb::PixelFormat& pf) override;
   void setCursor(int, int, const rfb::Point&, const uint8_t*) override;
   void setCursorPos(const rfb::Point&) override;
   void framebufferUpdateStart() override;
@@ -137,12 +136,6 @@ void CConn::initDone()
   setFramebuffer(new rfb::ManagedPixelBuffer(filePF,
                                              server.width(),
                                              server.height()));
-}
-
-void CConn::setPixelFormat(const rfb::PixelFormat& /*pf*/)
-{
-  // Override format
-  CConnection::setPixelFormat(filePF);
 }
 
 void CConn::setCursor(int, int, const rfb::Point&, const uint8_t*)
