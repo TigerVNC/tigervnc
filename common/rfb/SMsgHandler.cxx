@@ -53,12 +53,13 @@ void SMsgHandler::setPixelFormat(const PixelFormat& pf)
 void SMsgHandler::setEncodings(int nEncodings, const int32_t* encodings)
 {
   bool firstFence, firstContinuousUpdates, firstLEDState,
-       firstQEMUKeyEvent;
+       firstQEMUKeyEvent, firstExtMouseButtonEvent;
 
   firstFence = !client.supportsFence();
   firstContinuousUpdates = !client.supportsContinuousUpdates();
   firstLEDState = !client.supportsLEDState();
   firstQEMUKeyEvent = !client.supportsEncoding(pseudoEncodingQEMUKeyEvent);
+  firstExtMouseButtonEvent = !client.supportsEncoding(pseudoEncodingExtendedMouseButtons);
 
   client.setEncodings(nEncodings, encodings);
 
@@ -72,7 +73,7 @@ void SMsgHandler::setEncodings(int nEncodings, const int32_t* encodings)
     supportsLEDState();
   if (client.supportsEncoding(pseudoEncodingQEMUKeyEvent) && firstQEMUKeyEvent)
     supportsQEMUKeyEvent();
-  if (client.supportsEncoding(pseudoEncodingExtendedMouseButtons))
+  if (client.supportsEncoding(pseudoEncodingExtendedMouseButtons) && firstExtMouseButtonEvent)
     supportsExtendedMouseButtons();
 }
 

@@ -151,6 +151,7 @@ namespace rfb {
     void writeSetVMwareCursorPositionRect(int hotspotX, int hotspotY);
     void writeLEDStateRect(uint8_t state);
     void writeQEMUKeyEventRect();
+    void writeExtendedMouseButtonRect();
 
     ClientParams* client;
     rdr::OutStream* os;
@@ -163,6 +164,7 @@ namespace rfb {
     bool needCursorPos;
     bool needLEDState;
     bool needQEMUKeyEvent;
+    bool needExtMouseButtonEvent;
 
     typedef struct {
       uint16_t reason, result;

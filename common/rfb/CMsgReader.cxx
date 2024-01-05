@@ -118,9 +118,6 @@ bool CMsgReader::readMsg()
     case msgTypeEndOfContinuousUpdates:
       ret = readEndOfContinuousUpdates();
       break;
-    case msgTypeExtendedMouseSupport:
-      ret = readSupportExtendedMouseButton();
-      break;
     default:
       throw Exception("Unknown message type %d", currentMsgType);
     }
@@ -205,6 +202,10 @@ bool CMsgReader::readMsg()
       handler->supportsQEMUKeyEvent();
       ret = true;
       break;
+    case pseudoEncodingExtendedMouseButtons:
+      handler->supportExtendedMouseButtons();
+      ret = true;
+      break;  
     default:
       ret = readRect(dataRect, rectEncoding);
       break;
@@ -454,12 +455,6 @@ bool CMsgReader::readFence()
 bool CMsgReader::readEndOfContinuousUpdates()
 {
   handler->endOfContinuousUpdates();
-  return true;
-}
-
-bool CMsgReader::readSupportExtendedMouseButton()
-{
-  handler->supportExtendedMouseButtons();
   return true;
 }
 

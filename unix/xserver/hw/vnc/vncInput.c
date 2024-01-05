@@ -50,7 +50,7 @@ extern const unsigned int code_map_qnum_to_xorgevdev_len;
 extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
-#define BUTTONS 9
+#define BUTTONS 11
 
 DeviceIntPtr vncKeyboardDev;
 DeviceIntPtr vncPointerDev;
@@ -206,8 +206,11 @@ static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 		btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
 		btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
 		btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
-		btn_labels[7] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_BACK);
-		btn_labels[8] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_FORWARD);
+		btn_labels[7] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_SIDE);
+   		btn_labels[8] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_EXTRA);
+    	btn_labels[9] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_FORWARD);
+    	btn_labels[10] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_BACK);
+
 
 
 		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);

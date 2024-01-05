@@ -100,7 +100,7 @@ bool SMsgReader::readMsg()
     ret = readPointerEvent();
     break;
   case msgTypePointerEventExt:
-    ret = readPointerEvenExt();
+    ret = readPointerEventExt();
     break;
   case msgTypeClientCutText:
     ret = readClientCutText();
@@ -284,7 +284,7 @@ bool SMsgReader::readPointerEvent()
   return true;
 }
 
-bool SMsgReader::readPointerEvenExt()
+bool SMsgReader::readPointerEventExt()
 {
   if (!is->hasData(2 + 2 + 2))
     return false;

@@ -56,7 +56,6 @@ namespace rfb {
     bool readExtendedClipboard(int32_t len);
     bool readFence();
     bool readEndOfContinuousUpdates();
-    bool readSupportExtendedMouseButton();
 
     bool readFramebufferUpdate();
 

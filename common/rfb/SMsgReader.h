@@ -53,7 +53,7 @@ namespace rfb {
 
     bool readKeyEvent();
     bool readPointerEvent();
-    bool readPointerEvenExt();
+    bool readPointerEventExt();
     bool readClientCutText();
     bool readExtendedClipboard(int32_t len);
 

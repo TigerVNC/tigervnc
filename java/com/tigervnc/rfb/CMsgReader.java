@@ -80,9 +80,6 @@ public class CMsgReader {
       case MsgTypes.msgTypeEndOfContinuousUpdates:
         readEndOfContinuousUpdates();
         break;
-      case MsgTypes.msgTypeExtendedMouseSupport:
-        readSupportExtendedMouseButton();
-        break;
       default:
         vlog.error("unknown message type "+type);
         throw new Exception("unknown message type");
@@ -118,6 +115,9 @@ public class CMsgReader {
         break;
       case Encodings.pseudoEncodingExtendedDesktopSize:
         readExtendedDesktopSize(x, y, w, h);
+        break;
+      case Encodings.pseudoEncodingExtendedMouseButtons:
+        handler.SupportExtendedMouseButton();
         break;
       case Encodings.pseudoEncodingClientRedirect:
         nUpdateRectsLeft = 0;
@@ -193,11 +193,6 @@ public class CMsgReader {
   protected void readEndOfContinuousUpdates()
   {
     handler.endOfContinuousUpdates();
-  }
-
-  protected void readSupportExtendedMouseButton()
-  {
-    handler.SupportExtendedMouseButton();
   }
 
   protected void readFramebufferUpdate()

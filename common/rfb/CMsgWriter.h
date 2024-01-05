@@ -55,7 +55,6 @@ namespace rfb {
 
     void writeKeyEvent(uint32_t keysym, uint32_t keycode, bool down);
     void writePointerEvent(const Point& pos, int buttonMask);
-    void writePointerEventExt(const Point& pos, int buttonMask);
 
     void writeClientCutText(const char* str);
 
