@@ -207,11 +207,9 @@ static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 		btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
 		btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
 		btn_labels[7] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_SIDE);
-   		btn_labels[8] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_EXTRA);
-    	btn_labels[9] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_FORWARD);
-    	btn_labels[10] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_BACK);
-
-
+		btn_labels[8] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_EXTRA);
+		btn_labels[9] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_FORWARD);
+		btn_labels[10] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_BACK);
 
 		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
 		axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
