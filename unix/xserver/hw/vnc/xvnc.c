@@ -366,8 +366,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-inetd") == 0) {
         int nullfd;
 
-        dup2(0, 3);
-        vncInetdSock = 3;
+        if ((vncInetdSock = dup(0)) == -1)
+            FatalError
+                ("Xvnc error: failed to allocate a new file descriptor for -inetd: %s\n", strerror(errno));
+
 
         /* Avoid xserver >= 1.19's epoll-fd becoming fd 2 / stderr only to be
            replaced by /dev/null by OsInit() because the pollfd is not
