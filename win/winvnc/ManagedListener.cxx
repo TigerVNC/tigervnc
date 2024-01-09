@@ -45,7 +45,7 @@ ManagedListener::~ManagedListener() {
 }
 
 
-void ManagedListener::setServer(network::SocketServer* svr) {
+void ManagedListener::setServer(rfb::VNCServer* svr) {
   if (svr == server)
     return;
   vlog.info("set server to %p", svr);

@@ -55,6 +55,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <network/Socket.h>
+
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
@@ -128,7 +130,7 @@ VNCServerST::~VNCServerST()
 }
 
 
-// SocketServer methods
+// VNCServer methods
 
 void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
 {
@@ -232,8 +234,6 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
   }
   throw rdr::Exception("invalid Socket in VNCServerST");
 }
-
-// VNCServer methods
 
 void VNCServerST::blockUpdates()
 {

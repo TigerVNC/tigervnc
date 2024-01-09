@@ -51,7 +51,7 @@ namespace rfb {
     virtual ~VNCServerST();
 
 
-    // Methods overridden from SocketServer
+    // Methods overridden from VNCServer
 
     // addSocket
     //   Causes the server to allocate an RFB-protocol management
@@ -75,9 +75,6 @@ namespace rfb {
     // processSocketWriteEvent
     //   Flush pending data from the Socket on to the network.
     virtual void processSocketWriteEvent(network::Socket* sock);
-
-
-    // Methods overridden from VNCServer
 
     virtual void blockUpdates();
     virtual void unblockUpdates();
