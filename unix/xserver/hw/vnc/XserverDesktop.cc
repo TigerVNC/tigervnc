@@ -311,7 +311,7 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
 
 bool XserverDesktop::handleListenerEvent(int fd,
                                          std::list<SocketListener*>* sockets,
-                                         SocketServer* sockserv)
+                                         VNCServer* sockserv)
 {
   std::list<SocketListener*>::iterator i;
 
@@ -332,7 +332,7 @@ bool XserverDesktop::handleListenerEvent(int fd,
 }
 
 bool XserverDesktop::handleSocketEvent(int fd,
-                                       SocketServer* sockserv,
+                                       VNCServer* sockserv,
                                        bool read, bool write)
 {
   std::list<Socket*> sockets;

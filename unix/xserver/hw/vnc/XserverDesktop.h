@@ -42,7 +42,7 @@ namespace rfb {
   class VNCServerST;
 }
 
-namespace network { class SocketListener; class Socket; class SocketServer; }
+namespace network { class SocketListener; class Socket; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public rfb::Timer::Callback {
@@ -107,9 +107,9 @@ public:
 protected:
   bool handleListenerEvent(int fd,
                            std::list<network::SocketListener*>* sockets,
-                           network::SocketServer* sockserv);
+                           rfb::VNCServer* sockserv);
   bool handleSocketEvent(int fd,
-                         network::SocketServer* sockserv,
+                         rfb::VNCServer* sockserv,
                          bool read, bool write);
 
   virtual bool handleTimeout(rfb::Timer* t);
