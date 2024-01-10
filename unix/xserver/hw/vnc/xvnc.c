@@ -992,8 +992,6 @@ vncScreenInit(ScreenPtr pScreen, int argc, char **argv)
     vncFbptr[0] = pbits;
     vncFbstride[0] = vncScreenInfo.fb.paddedWidth;
 
-    miSetPixmapDepths();
-
     switch (vncScreenInfo.fb.depth) {
     case 16:
         miSetVisualTypesAndMasks(16,
@@ -1017,6 +1015,8 @@ vncScreenInit(ScreenPtr pScreen, int argc, char **argv)
     default:
         return FALSE;
     }
+
+    miSetPixmapDepths();
 
     ret = fbScreenInit(pScreen, pbits,
                        vncScreenInfo.fb.width, vncScreenInfo.fb.height,
