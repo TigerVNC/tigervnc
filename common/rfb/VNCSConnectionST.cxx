@@ -82,6 +82,9 @@ VNCSConnectionST::~VNCSConnectionST()
     vlog.info("closing %s: %s", peerEndpoint.c_str(),
               closeReason.c_str());
 
+  // Release any mouse buttons
+  server->pointerEvent(this, server->getCursorPos(), 0);
+
   // Release any keys the client still had pressed
   while (!pressedKeys.empty()) {
     uint32_t keysym, keycode;
