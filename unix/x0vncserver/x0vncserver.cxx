@@ -38,6 +38,9 @@
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
+#ifdef HAVE_SYSTEMD_H
+#  include <systemd/sd-daemon.h>
+#endif
 
 #include <signal.h>
 #include <X11/X.h>
@@ -112,6 +115,25 @@ static void CleanupSignalHandler(int /*sig*/)
 {
   caughtSignal = true;
 }
+
+#ifdef HAVE_SYSTEMD_H
+static int createSystemdListeners(std::list<SocketListener*> *listeners)
+{
+  int count = sd_listen_fds(0);
+
+  for (int i = 0; i < count; ++i) {
+      /* systemd sockets start at FD 3 */
+      listeners->push_back(new TcpListener(3 + i));
+  }
+
+  return count;
+}
+#else
+static int createSystemdListeners(std::list<SocketListener*> *)
+{
+  return 0;
+}
+#endif
 
 
 class FileTcpFilter : public TcpFilter
@@ -300,35 +322,40 @@ int main(int argc, char** argv)
 
     VNCServerST server(desktopName, &desktop);
 
-    if (rfbunixpath.getValueStr()[0] != '\0') {
-      listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
-      vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
-    }
-
-    if ((int)rfbport != -1) {
-      std::list<network::SocketListener*> tcp_listeners;
-      const char *addr = interface;
-
-      if (strcasecmp(addr, "all") == 0)
-        addr = 0;
-      if (localhostOnly)
-        createLocalTcpListeners(&tcp_listeners, (int)rfbport);
-      else
-        createTcpListeners(&tcp_listeners, addr, (int)rfbport);
-
-      if (!tcp_listeners.empty()) {
-        listeners.splice (listeners.end(), tcp_listeners);
-        vlog.info("Listening for VNC connections on %s interface(s), port %d",
-                  localhostOnly ? "local" : (const char*)interface,
-                  (int)rfbport);
+    if (createSystemdListeners(&listeners)) {
+      // When systemd is in charge of listeners, do not listen to anything else
+      vlog.info("Listening on systemd sockets");
+    } else {
+      if (rfbunixpath.getValueStr()[0] != '\0') {
+        listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
+        vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
       }
 
-      FileTcpFilter fileTcpFilter(hostsFile);
-      if (strlen(hostsFile) != 0)
-        for (std::list<SocketListener*>::iterator i = listeners.begin();
-             i != listeners.end();
-             i++)
-          (*i)->setFilter(&fileTcpFilter);
+      if ((int)rfbport != -1) {
+        std::list<network::SocketListener*> tcp_listeners;
+        const char *addr = interface;
+
+        if (strcasecmp(addr, "all") == 0)
+          addr = 0;
+        if (localhostOnly)
+          createLocalTcpListeners(&tcp_listeners, (int)rfbport);
+        else
+          createTcpListeners(&tcp_listeners, addr, (int)rfbport);
+
+        if (!tcp_listeners.empty()) {
+          listeners.splice (listeners.end(), tcp_listeners);
+          vlog.info("Listening for VNC connections on %s interface(s), port %d",
+                    localhostOnly ? "local" : (const char*)interface,
+                    (int)rfbport);
+        }
+
+        FileTcpFilter fileTcpFilter(hostsFile);
+        if (strlen(hostsFile) != 0)
+          for (std::list<SocketListener*>::iterator i = listeners.begin();
+               i != listeners.end();
+               i++)
+            (*i)->setFilter(&fileTcpFilter);
+      }
     }
 
     if (listeners.empty()) {

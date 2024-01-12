@@ -301,6 +301,9 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
+# check for systemd support (socket activation)
+pkg_check_modules(LIBSYSTEMD libsystemd)
+
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
