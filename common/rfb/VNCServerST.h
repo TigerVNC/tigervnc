@@ -191,6 +191,8 @@ namespace rfb {
     std::list<VNCSConnectionST*> clipboardRequestors;
     std::list<network::Socket*> closingSockets;
 
+    time_t pointerClientTime;
+
     ComparingUpdateTracker* comparer;
 
     Point cursorPos;
