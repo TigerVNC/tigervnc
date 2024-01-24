@@ -121,10 +121,8 @@ static int createSystemdListeners(std::list<SocketListener*> *listeners)
 {
   int count = sd_listen_fds(0);
 
-  for (int i = 0; i < count; ++i) {
-      /* systemd sockets start at FD 3 */
-      listeners->push_back(new TcpListener(3 + i));
-  }
+  for (int i = 0; i < count; ++i)
+      listeners->push_back(new TcpListener(SD_LISTEN_FDS_START + i));
 
   return count;
 }
