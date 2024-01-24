@@ -38,7 +38,7 @@
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
-#ifdef HAVE_SYSTEMD_H
+#ifdef HAVE_LIBSYSTEMD
 #  include <systemd/sd-daemon.h>
 #endif
 
@@ -118,7 +118,7 @@ static void CleanupSignalHandler(int /*sig*/)
 
 static bool hasSystemdListeners()
 {
-#ifdef HAVE_SYSTEMD_H
+#ifdef HAVE_LIBSYSTEMD
   // This also returns true on errors, because we then assume we were
   // meant to use systemd but failed somewhere
   return sd_listen_fds(0) != 0;
@@ -129,7 +129,7 @@ static bool hasSystemdListeners()
 
 static int createSystemdListeners(std::list<SocketListener*> *listeners)
 {
-#ifdef HAVE_SYSTEMD_H
+#ifdef HAVE_LIBSYSTEMD
   int count = sd_listen_fds(0);
   if (count < 0) {
     vlog.error("Error getting listening sockets from systemd: %s",

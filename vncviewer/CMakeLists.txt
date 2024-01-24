@@ -66,7 +66,6 @@ else()
   target_link_libraries(vncviewer ${X11_Xi_LIB})
 
   if(X11_Xrandr_LIB)
-    add_definitions(-DHAVE_XRANDR)
     target_link_libraries(vncviewer ${X11_Xrandr_LIB})
   endif()
 endif()
