@@ -120,6 +120,11 @@ static void CleanupSignalHandler(int /*sig*/)
 static int createSystemdListeners(std::list<SocketListener*> *listeners)
 {
   int count = sd_listen_fds(0);
+  if (count < 0) {
+    vlog.error("Error getting listening sockets from systemd: %s",
+               strerror(-count));
+    return count;
+  }
 
   for (int i = 0; i < count; ++i)
       listeners->push_back(new TcpListener(SD_LISTEN_FDS_START + i));
