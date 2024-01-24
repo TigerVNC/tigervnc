@@ -38,6 +38,9 @@
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
+#ifdef HAVE_SYSTEMD_H
+#  include <systemd/sd-daemon.h>
+#endif
 
 #include <signal.h>
 #include <X11/X.h>
@@ -111,6 +114,37 @@ static bool caughtSignal = false;
 static void CleanupSignalHandler(int /*sig*/)
 {
   caughtSignal = true;
+}
+
+static bool hasSystemdListeners()
+{
+#ifdef HAVE_SYSTEMD_H
+  // This also returns true on errors, because we then assume we were
+  // meant to use systemd but failed somewhere
+  return sd_listen_fds(0) != 0;
+#else
+  return false;
+#endif
+}
+
+static int createSystemdListeners(std::list<SocketListener*> *listeners)
+{
+#ifdef HAVE_SYSTEMD_H
+  int count = sd_listen_fds(0);
+  if (count < 0) {
+    vlog.error("Error getting listening sockets from systemd: %s",
+               strerror(-count));
+    return count;
+  }
+
+  for (int i = 0; i < count; ++i)
+      listeners->push_back(new TcpListener(SD_LISTEN_FDS_START + i));
+
+  return count;
+#else
+  (void)listeners;
+  return 0;
+#endif
 }
 
 
@@ -252,6 +286,10 @@ int main(int argc, char** argv)
   Configuration::removeParam("SendCutText");
   Configuration::removeParam("MaxCutText");
 
+  // Assume different defaults when socket activated
+  if (hasSystemdListeners())
+    rfbport.setParam(-1);
+
   for (int i = 1; i < argc; i++) {
     if (Configuration::setParam(argv[i]))
       continue;
@@ -299,6 +337,11 @@ int main(int argc, char** argv)
     XDesktop desktop(dpy, &geo);
 
     VNCServerST server(desktopName, &desktop);
+
+    if (createSystemdListeners(&listeners) > 0) {
+      // When systemd is in charge of listeners, do not listen to anything else
+      vlog.info("Listening on systemd sockets");
+    }
 
     if (rfbunixpath.getValueStr()[0] != '\0') {
       listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));

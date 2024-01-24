@@ -60,8 +60,8 @@ DISPLAY environment variable.
 .B \-rfbport \fIport\fP
 Specifies the TCP port on which x0vncserver listens for connections from
 viewers (the protocol used in VNC is called RFB - "remote framebuffer").
-The default port is 5900. Specify \fB-1\fP to disable listening on a TCP
-port.
+Specify \fB-1\fP to disable listening on a TCP port. The default port is
+5900 when started directly, and -1 when activated by a systemd socket.
 .
 .TP
 .B \-UseIPv4
@@ -74,7 +74,8 @@ Use IPv6 for incoming and outgoing connections. Default is on.
 .TP
 .B \-rfbunixpath \fIpath\fP
 Specifies the path of a Unix domain socket on which x0vncserver listens for
-connections from viewers.
+connections from viewers. Default is to not listen to any Unix domain
+socket.
 .
 .TP
 .B \-rfbunixmode \fImode\fP

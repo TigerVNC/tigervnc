@@ -48,6 +48,9 @@ Build Requirements (Unix)
    * All build requirements Xorg imposes (see its documentation)
    * patch
 
+-- If building x0vncserver with socket activation support:
+   * libsystemd
+
 -- Optional ffmpeg development kit support (libav)
    * You might have to enable additional repositories for this. E.g.,
      on RHEL, EPEL and RPMFusion (free + nonfree) need to be enabled.
