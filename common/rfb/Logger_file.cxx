@@ -100,7 +100,7 @@ void Logger_File::setFilename(const char* filename)
 {
   closeFile();
   m_filename[0] = '\0';
-  if (strlen(filename) >= sizeof(filename))
+  if (strlen(filename) >= sizeof(m_filename))
     return;
   strcpy(m_filename, filename);
 }
