@@ -83,6 +83,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
     blockCounter(0), pb(0), ledState(ledUnknown),
     name(name_), pointerClient(0), clipboardClient(0),
+    pointerClientTime(0),
     comparer(0), cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
@@ -484,14 +485,17 @@ void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 void VNCServerST::pointerEvent(VNCSConnectionST* client,
                                const Point& pos, int buttonMask)
 {
+  time_t now = time(0);
   if (rfb::Server::maxIdleTime)
     idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Let one client own the cursor whilst buttons are pressed in order
-  // to provide a bit more sane user experience
-  if ((pointerClient != NULL) && (pointerClient != client))
+  // to provide a bit more sane user experience. But limit the time to prevent
+  // locking out all others when e.g. the network is down.
+  if ((pointerClient != NULL) && (pointerClient != client) && ((now - pointerClientTime) < 3))
     return;
 
+  pointerClientTime = now;
   if (buttonMask)
     pointerClient = client;
   else
