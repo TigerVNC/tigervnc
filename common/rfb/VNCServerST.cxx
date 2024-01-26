@@ -493,7 +493,7 @@ void VNCServerST::pointerEvent(VNCSConnectionST* client,
   // to provide a bit more sane user experience. But limit the time to
   // prevent locking out all others when e.g. the network is down.
   if ((pointerClient != NULL) && (pointerClient != client) &&
-      ((now - pointerClientTime) < 3))
+      ((now - pointerClientTime) < 10))
     return;
 
   pointerClientTime = now;
