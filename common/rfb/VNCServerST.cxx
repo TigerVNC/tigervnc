@@ -490,9 +490,10 @@ void VNCServerST::pointerEvent(VNCSConnectionST* client,
     idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Let one client own the cursor whilst buttons are pressed in order
-  // to provide a bit more sane user experience. But limit the time to prevent
-  // locking out all others when e.g. the network is down.
-  if ((pointerClient != NULL) && (pointerClient != client) && ((now - pointerClientTime) < 3))
+  // to provide a bit more sane user experience. But limit the time to
+  // prevent locking out all others when e.g. the network is down.
+  if ((pointerClient != NULL) && (pointerClient != client) &&
+      ((now - pointerClientTime) < 3))
     return;
 
   pointerClientTime = now;
