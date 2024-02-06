@@ -215,7 +215,7 @@ Accept key press and release events from clients. Default is on.
 .
 .TP
 .B \-AcceptPointerEvents
-Accept pointer press and release events from clients. Default is on.
+Accept pointer movement and button events from clients. Default is on.
 .
 .TP
 .B \-AcceptSetDesktopSize

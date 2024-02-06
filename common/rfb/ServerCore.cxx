@@ -81,7 +81,7 @@ rfb::BoolParameter rfb::Server::acceptKeyEvents
  true);
 rfb::BoolParameter rfb::Server::acceptPointerEvents
 ("AcceptPointerEvents",
- "Accept pointer press and release events from clients.",
+ "Accept pointer movement and button events from clients.",
  true);
 rfb::BoolParameter rfb::Server::acceptCutText
 ("AcceptCutText",
