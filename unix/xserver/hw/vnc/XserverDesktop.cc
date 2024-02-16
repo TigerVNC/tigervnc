@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2019 Pierre Ossman for Cendio AB
+ * Copyright 2009-2024 Pierre Ossman for Cendio AB
  * Copyright 2014 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
@@ -54,6 +54,7 @@
 
 extern "C" {
 void vncSetGlueContext(int screenIndex);
+void vncPresentMscEvent(uint64_t id, uint64_t msc);
 }
 
 using namespace rfb;
@@ -143,6 +144,21 @@ void XserverDesktop::refreshScreenLayout()
 {
   vncSetGlueContext(screenIndex);
   server->setScreenLayout(::computeScreenLayout(&outputIdMap));
+}
+
+uint64_t XserverDesktop::getMsc()
+{
+  return server->getMsc();
+}
+
+void XserverDesktop::queueMsc(uint64_t id, uint64_t msc)
+{
+  pendingMsc[id] = msc;
+}
+
+void XserverDesktop::abortMsc(uint64_t id)
+{
+  pendingMsc.erase(id);
 }
 
 void XserverDesktop::init(rfb::VNCServer* vs)
@@ -469,6 +485,22 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   refreshScreenLayout();
 
   return result;
+}
+
+void XserverDesktop::frameTick(uint64_t msc)
+{
+  std::map<uint64_t, uint64_t>::iterator iter, next;
+
+  for (iter = pendingMsc.begin(); iter != pendingMsc.end();) {
+    next = iter; next++;
+
+    if (iter->second <= msc) {
+      pendingMsc.erase(iter->first);
+      vncPresentMscEvent(iter->first, msc);
+    }
+
+    iter = next;
+  }
 }
 
 void XserverDesktop::handleClipboardRequest()

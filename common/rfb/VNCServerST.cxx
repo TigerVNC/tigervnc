@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2019 Pierre Ossman for Cendio AB
+ * Copyright 2009-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
-    frameTimer(this)
+    msc(0), frameTimer(this)
 {
   slog.debug("creating single-threaded server %s", name.c_str());
 
@@ -255,6 +255,11 @@ void VNCServerST::unblockUpdates()
     if (!comparer->is_empty())
       startFrameClock();
   }
+}
+
+uint64_t VNCServerST::getMsc()
+{
+  return msc;
 }
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
@@ -633,6 +638,9 @@ void VNCServerST::handleTimeout(Timer* t)
       return;
 
     writeUpdate();
+
+    msc++;
+    desktop->frameTick(msc);
 
     // If this is the first iteration then we need to adjust the timeout
     frameTimer.repeat(1000/rfb::Server::frameRate);

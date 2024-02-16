@@ -36,6 +36,7 @@ from the X Consortium.
 #include "RFBGlue.h"
 #include "XorgGlue.h"
 #include "RandrGlue.h"
+#include "vncPresent.h"
 #include "xorg-version.h"
 
 #include <stdio.h>
@@ -1084,6 +1085,10 @@ vncScreenInit(ScreenPtr pScreen, int argc, char **argv)
     ret = fbCreateDefColormap(pScreen);
     if (!ret)
         return FALSE;
+
+    ret = vncPresentInit(pScreen);
+    if (!ret)
+        ErrorF("Failed to initialize Present extension\n");
 
     return TRUE;
 
