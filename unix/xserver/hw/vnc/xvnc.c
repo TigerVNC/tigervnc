@@ -670,14 +670,14 @@ vncRandRScreenSetSize(ScreenPtr pScreen,
             ret = vncRandRCrtcSet(pScreen, crtc, NULL,
                                   crtc->x, crtc->y, crtc->rotation, 0, NULL);
             if (!ret)
-                ErrorF("Warning: Unable to disable CRTC that is outside of new screen dimensions");
+                ErrorF("Warning: Unable to disable CRTC that is outside of new screen dimensions\n");
             continue;
         }
 
         /* Just needs to be resized to a temporary mode */
         mode = vncRandRModeGet(width - crtc->x, height - crtc->y);
         if (mode == NULL) {
-            ErrorF("Warning: Unable to create custom mode for %dx%d",
+            ErrorF("Warning: Unable to create custom mode for %dx%d\n",
                    width - crtc->x, height - crtc->y);
             continue;
         }
@@ -687,7 +687,7 @@ vncRandRScreenSetSize(ScreenPtr pScreen,
                               crtc->numOutputs, crtc->outputs);
         RRModeDestroy(mode);
         if (!ret)
-            ErrorF("Warning: Unable to crop CRTC to new screen dimensions");
+            ErrorF("Warning: Unable to crop CRTC to new screen dimensions\n");
     }
 
     return TRUE;
