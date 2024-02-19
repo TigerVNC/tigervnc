@@ -250,11 +250,9 @@ void VNCServerST::unblockUpdates()
 
   blockCounter--;
 
-  // Restart the frame clock if we have updates
-  if (blockCounter == 0) {
-    if (!comparer->is_empty())
-      startFrameClock();
-  }
+  // Restart the frame clock in case we have updates
+  if (blockCounter == 0)
+    startFrameClock();
 }
 
 uint64_t VNCServerST::getMsc()
@@ -641,17 +639,26 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
 void VNCServerST::handleTimeout(Timer* t)
 {
   if (t == &frameTimer) {
-    // We keep running until we go a full interval without any updates
-    if (comparer->is_empty()) {
+    int timeout;
+
+    // We keep running until we go a full interval without any updates,
+    // or there are no active clients anymore
+    if (comparer->is_empty() || !desktopStarted) {
       // Unless something waits for us to advance the frame count
       if (queuedMsc < msc)
         return;
     }
 
     // If this is the first iteration then we need to adjust the timeout
-    frameTimer.repeat(1000/rfb::Server::frameRate);
+    timeout = 1000/rfb::Server::frameRate;
 
-    if (!comparer->is_empty())
+    // If there are no clients, then slow down the clock
+    if (!desktopStarted)
+      timeout = 1000;
+
+    frameTimer.repeat(timeout);
+
+    if (!comparer->is_empty() && desktopStarted)
       writeUpdate();
 
     msc++;
@@ -737,6 +744,12 @@ void VNCServerST::startDesktop()
     // stopped, so flush those out
     if (!comparer->is_empty())
       writeUpdate();
+    // If the frame clock is running, then it will be running slowly,
+    // so give it a kick to run at normal speed right away
+    if (frameTimer.isStarted()) {
+      stopFrameClock();
+      startFrameClock();
+    }
   }
 }
 
@@ -746,7 +759,6 @@ void VNCServerST::stopDesktop()
     slog.debug("stopping desktop");
     desktopStarted = false;
     desktop->stop();
-    stopFrameClock();
   }
 }
 
@@ -774,8 +786,17 @@ void VNCServerST::startFrameClock()
     return;
   if (blockCounter > 0)
     return;
-  if (!desktopStarted)
+
+  // Anyone actually interested in frames?
+  if (comparer->is_empty() && (queuedMsc <= msc))
     return;
+
+  // Run the frame clock very slowly if there are no clients to actually
+  // send updates to
+  if (!desktopStarted) {
+    frameTimer.start(1000);
+    return;
+  }
 
   // The first iteration will be just half a frame as we get a very
   // unstable update rate if we happen to be perfectly in sync with
