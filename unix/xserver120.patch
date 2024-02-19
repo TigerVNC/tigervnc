@@ -60,6 +60,53 @@ Index: xserver/hw/Makefile.am
  
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland
  
+Index: xserver/hw/meson.build
+===================================================================
+--- xserver.orig/hw/meson.build
++++ xserver/hw/meson.build
+@@ -29,3 +29,5 @@ endif
+ if build_xwin
+     subdir('xwin')
+ endif
++
++subdir('vnc')
+Index: xserver/meson.build
+===================================================================
+--- xserver.orig/meson.build
++++ xserver/meson.build
+@@ -1,4 +1,4 @@
+-project('xserver', 'c',
++project('xserver', 'c', 'cpp',
+         default_options: [
+             'buildtype=debugoptimized',
+             'c_std=gnu99',
+@@ -6,13 +6,13 @@ project('xserver', 'c',
+         version: '1.20.0',
+         meson_version: '>= 0.42.0',
+ )
+-add_project_arguments('-DHAVE_DIX_CONFIG_H', language: 'c')
++add_project_arguments('-DHAVE_DIX_CONFIG_H', language: ['c', 'cpp'])
+ cc = meson.get_compiler('c')
+ 
+-add_global_arguments('-fno-strict-aliasing', language : 'c')
+-add_global_arguments('-fvisibility=hidden', language : 'c')
++add_global_arguments('-fno-strict-aliasing', language : ['c', 'cpp'])
++add_global_arguments('-fvisibility=hidden', language : ['c', 'cpp'])
+ 
+-add_global_link_arguments('-fvisibility=hidden', language : 'c')
++add_global_link_arguments('-fvisibility=hidden', language : ['c', 'cpp'])
+ 
+ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+     test_wflags = [
+@@ -56,7 +56,7 @@ foreach wflag: test_wflags
+     endif
+ endforeach
+ 
+-add_global_arguments(common_wflags, language : 'c')
++add_global_arguments(common_wflags, language : ['c', 'cpp'])
+ 
+ xproto_dep = dependency('xproto', version: '>= 7.0.31')
+ randrproto_dep = dependency('randrproto', version: '>= 1.6.0')
 Index: xserver/mi/miinitext.c
 ===================================================================
 --- xserver.orig/mi/miinitext.c

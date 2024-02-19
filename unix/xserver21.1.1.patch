@@ -1,7 +1,8 @@
-diff -urpN xorg-server-1.20.0/configure.ac xorg-server-1.20.0/configure.ac
---- xorg-server-1.20.0/configure.ac	2018-05-10 09:32:34.000000000 -0700
-+++ xorg-server-1.20.0/configure.ac	2018-06-13 19:04:47.536413626 -0700
-@@ -74,6 +74,7 @@ dnl forcing an entire recompile.x
+Index: xserver/configure.ac
+===================================================================
+--- xserver.orig/configure.ac
++++ xserver/configure.ac
+@@ -72,6 +72,7 @@ dnl forcing an entire recompile.x
  AC_CONFIG_HEADERS(include/version-config.h)
  
  AM_PROG_AS
@@ -9,7 +10,7 @@ diff -urpN xorg-server-1.20.0/configure.ac xorg-server-1.20.0/configure.ac
  AC_PROG_LN_S
  LT_PREREQ([2.2])
  LT_INIT([disable-static win32-dll])
-@@ -1777,6 +1778,10 @@ if test "x$XVFB" = xyes; then
+@@ -1713,6 +1714,10 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
  
@@ -20,16 +21,16 @@ diff -urpN xorg-server-1.20.0/configure.ac xorg-server-1.20.0/configure.ac
  
  dnl Xnest DDX
  
-@@ -1812,6 +1817,8 @@ if test "x$XORG" = xauto; then
+@@ -1748,6 +1753,8 @@ if test "x$XORG" = xauto; then
  fi
  AC_MSG_RESULT([$XORG])
  
 +AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 +
  if test "x$XORG" = xyes; then
- 	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
- 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
-@@ -2029,7 +2036,6 @@ if test "x$XORG" = xyes; then
+ 	PKG_CHECK_MODULES([LIBXCVT], $LIBXCVT)
+ 
+@@ -1956,7 +1963,6 @@ if test "x$XORG" = xyes; then
  	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
  	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
  	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
@@ -37,29 +38,78 @@ diff -urpN xorg-server-1.20.0/configure.ac xorg-server-1.20.0/configure.ac
  	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
  	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
  	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-@@ -2565,6 +2571,7 @@ hw/dmx/Makefile
- hw/dmx/man/Makefile
+@@ -2339,6 +2345,7 @@ hw/xfree86/utils/man/Makefile
+ hw/xfree86/utils/gtf/Makefile
  hw/vfb/Makefile
  hw/vfb/man/Makefile
 +hw/vnc/Makefile
  hw/xnest/Makefile
  hw/xnest/man/Makefile
  hw/xwin/Makefile
-diff -urpN xorg-server-1.20.0/hw/Makefile.am xorg-server-1.20.0/hw/Makefile.am
---- xorg-server-1.20.0/hw/Makefile.am	2018-05-10 09:32:34.000000000 -0700
-+++ xorg-server-1.20.0/hw/Makefile.am	2018-06-13 19:04:47.536413626 -0700
-@@ -44,3 +44,5 @@
+Index: xserver/hw/Makefile.am
+===================================================================
+--- xserver.orig/hw/Makefile.am
++++ xserver/hw/Makefile.am
+@@ -34,3 +34,5 @@ DIST_SUBDIRS = xfree86 vfb xnest xwin xq
  
  relink:
  	$(AM_V_at)for i in $(SUBDIRS) ; do $(MAKE) -C $$i relink || exit 1 ; done
 +
 +SUBDIRS += vnc
-diff -urpN xorg-server-1.20.0/mi/miinitext.c xorg-server-1.20.0/mi/miinitext.c
---- xorg-server-1.20.0/mi/miinitext.c	2018-05-10 09:32:37.000000000 -0700
-+++ xorg-server-1.20.0/mi/miinitext.c	2018-06-13 19:05:14.742200675 -0700
-@@ -107,8 +107,15 @@ SOFTWARE.
- #include "os.h"
- #include "globals.h"
+Index: xserver/hw/meson.build
+===================================================================
+--- xserver.orig/hw/meson.build
++++ xserver/hw/meson.build
+@@ -21,3 +21,5 @@ endif
+ if build_xwin
+     subdir('xwin')
+ endif
++
++subdir('vnc')
+Index: xserver/meson.build
+===================================================================
+--- xserver.orig/meson.build
++++ xserver/meson.build
+@@ -1,4 +1,4 @@
+-project('xserver', 'c',
++project('xserver', 'c', 'cpp',
+         default_options: [
+             'buildtype=debugoptimized',
+             'c_std=gnu99',
+@@ -8,13 +8,13 @@ project('xserver', 'c',
+ )
+ release_date = '2021-11-07'
+ 
+-add_project_arguments('-DHAVE_DIX_CONFIG_H', language: ['c', 'objc'])
++add_project_arguments('-DHAVE_DIX_CONFIG_H', language: ['c', 'objc', 'cpp'])
+ cc = meson.get_compiler('c')
+ 
+-add_global_arguments('-fno-strict-aliasing', language : 'c')
+-add_global_arguments('-fvisibility=hidden', language : 'c')
++add_global_arguments('-fno-strict-aliasing', language : ['c', 'cpp'])
++add_global_arguments('-fvisibility=hidden', language : ['c', 'cpp'])
+ 
+-add_global_link_arguments('-fvisibility=hidden', language : 'c')
++add_global_link_arguments('-fvisibility=hidden', language : ['c', 'cpp'])
+ 
+ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+     test_wflags = [
+@@ -58,7 +58,7 @@ foreach wflag: test_wflags
+     endif
+ endforeach
+ 
+-add_global_arguments(common_wflags, language : ['c', 'objc'])
++add_global_arguments(common_wflags, language : ['c', 'objc', 'cpp'])
+ 
+ libdrm_req = '>= 2.4.89'
+ libselinux_req = '>= 2.0.86'
+Index: xserver/mi/miinitext.c
+===================================================================
+--- xserver.orig/mi/miinitext.c
++++ xserver/mi/miinitext.c
+@@ -106,8 +106,15 @@ SOFTWARE.
+ 
+ #include "miinitext.h"
  
 +#ifdef TIGERVNC
 +extern void vncExtensionInit(void);
