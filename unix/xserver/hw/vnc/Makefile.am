@@ -35,7 +35,7 @@ man1_MANS = Xvnc.man
 
 Xvnc_SOURCES = xvnc.c \
 	$(top_srcdir)/Xi/stubs.c $(top_srcdir)/mi/miinitext.c \
-	$(top_srcdir)/fb/fbcmap_mi.c buildtime.c
+	buildtime.c
 
 # Xvnc contains no C++ sources so automake doesn't understand that we
 # need to use the C++ compiler to link things. This is the upstream
