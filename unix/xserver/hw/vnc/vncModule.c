@@ -53,7 +53,7 @@ static XF86ModuleVersionInfo vncVersRec =
     "TigerVNC Project",
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XORG_VERSION_CURRENT,
+    VENDOR_RELEASE,
     1, 0, 0,
     ABI_CLASS_EXTENSION,         /* needs the server extension ABI */
     ABI_EXTENSION_VERSION,

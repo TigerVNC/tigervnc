@@ -67,8 +67,6 @@ from the X Consortium.
 #include <X11/keysym.h>
 extern char buildtime[];
 
-#undef VENDOR_RELEASE
-#undef VENDOR_STRING
 #include "version-config.h"
 
 #define XVNCVERSION "TigerVNC 1.13.80"

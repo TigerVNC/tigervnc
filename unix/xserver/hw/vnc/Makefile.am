@@ -20,8 +20,9 @@ libvnccommon_la_SOURCES = $(HDRS) \
 	vncBlockHandler.c XorgGlue.c RandrGlue.c RFBGlue.cc XserverDesktop.cc \
 	vncInput.c vncInputXKB.c qnum_to_xorgevdev.c qnum_to_xorgkbd.c
 
-libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" -I$(TIGERVNC_SRCDIR)/unix/common \
-	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
+libvnccommon_la_CPPFLAGS = \
+	-I$(TIGERVNC_SRCDIR)/unix/common \
+	-I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
 	-I$(TIGERVNC_SRCDIR)/unix/vncconfig $(XVNC_CPPFLAGS) ${XSERVERLIBS_CFLAGS} \
 	-I$(top_srcdir)/include
 
@@ -40,8 +41,8 @@ nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
 
 Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_MODULE_EXTS \
 	-UHAVE_CONFIG_H \
-	-DXFree86Server -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
-	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common -I$(TIGERVNC_SRCDIR)/unix/common \
+	-I$(TIGERVNC_SRCDIR)/common \
+	-I$(TIGERVNC_SRCDIR)/unix/common \
 	-I$(top_srcdir)/include ${XSERVERLIBS_CFLAGS}
 
 LOCAL_LIBS = \
