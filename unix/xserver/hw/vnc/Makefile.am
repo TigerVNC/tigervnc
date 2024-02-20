@@ -21,8 +21,9 @@ libvnccommon_la_SOURCES = $(HDRS) \
 	vncInput.c vncInputXKB.c qnum_to_xorgevdev.c qnum_to_xorgkbd.c
 
 libvnccommon_la_CPPFLAGS = \
+	-I$(TIGERVNC_BUILDDIR) \
 	-I$(TIGERVNC_SRCDIR)/unix/common \
-	-I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
+	-I$(TIGERVNC_SRCDIR)/common \
 	-I$(TIGERVNC_SRCDIR)/unix/vncconfig $(XVNC_CPPFLAGS) ${XSERVERLIBS_CFLAGS} \
 	-I$(top_srcdir)/include
 
@@ -40,7 +41,7 @@ Xvnc_SOURCES = xvnc.c \
 nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
 
 Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_MODULE_EXTS \
-	-UHAVE_CONFIG_H \
+	-I$(TIGERVNC_BUILDDIR) \
 	-I$(TIGERVNC_SRCDIR)/common \
 	-I$(TIGERVNC_SRCDIR)/unix/common \
 	-I$(top_srcdir)/include ${XSERVERLIBS_CFLAGS}
@@ -64,7 +65,9 @@ libvnc_la_SOURCES = vncModule.c
 # See Xvnc magic above
 nodist_EXTRA_libvnc_la_SOURCES = dummy.cxx
 
-libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
+libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) \
+	-I$(TIGERVNC_BUILDDIR) \
+	-I$(TIGERVNC_SRCDIR)/common \
 	-I$(TIGERVNC_SRCDIR)/unix/common \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/os-support \
