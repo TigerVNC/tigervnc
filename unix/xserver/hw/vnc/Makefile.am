@@ -42,8 +42,6 @@ Xvnc_SOURCES = xvnc.c \
 # recommendation for coaxing automake.
 nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
 
-Xvnc_CPPFLAGS = $(AM_CPPFLAGS) -DTIGERVNC
-
 LOCAL_LIBS = \
 	$(XVNC_LIBS) \
 	$(XSERVER_LIBS) \

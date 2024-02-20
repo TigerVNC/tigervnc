@@ -36,22 +36,3 @@ diff -urpN xorg-server-1.20.0/hw/Makefile.am xorg-server-1.20.0/hw/Makefile.am
  	$(AM_V_at)for i in $(SUBDIRS) ; do $(MAKE) -C $$i relink || exit 1 ; done
 +
 +SUBDIRS += vnc
-diff -urpN xorg-server-1.20.0/mi/miinitext.c xorg-server-1.20.0/mi/miinitext.c
---- xorg-server-1.20.0/mi/miinitext.c	2018-05-10 09:32:37.000000000 -0700
-+++ xorg-server-1.20.0/mi/miinitext.c	2018-06-13 19:05:14.742200675 -0700
-@@ -107,8 +107,15 @@ SOFTWARE.
- #include "os.h"
- #include "globals.h"
- 
-+#ifdef TIGERVNC
-+extern void vncExtensionInit(void);
-+#endif
-+
- /* List of built-in (statically linked) extensions */
- static const ExtensionModule staticExtensions[] = {
-+#ifdef TIGERVNC
-+    {vncExtensionInit, "VNC-EXTENSION", NULL},
-+#endif
-     {GEExtensionInit, "Generic Event Extension", &noGEExtension},
-     {ShapeExtensionInit, "SHAPE", NULL},
- #ifdef MITSHM

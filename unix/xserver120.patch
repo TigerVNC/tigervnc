@@ -42,23 +42,3 @@ Index: xserver/hw/Makefile.am
  
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland
  
-Index: xserver/mi/miinitext.c
-===================================================================
---- xserver.orig/mi/miinitext.c
-+++ xserver/mi/miinitext.c
-@@ -107,8 +107,15 @@ SOFTWARE.
- #include "os.h"
- #include "globals.h"
- 
-+#ifdef TIGERVNC
-+extern void vncExtensionInit(void);
-+#endif
-+
- /* List of built-in (statically linked) extensions */
- static const ExtensionModule staticExtensions[] = {
-+#ifdef TIGERVNC
-+    {vncExtensionInit, "VNC-EXTENSION", NULL},
-+#endif
-     {GEExtensionInit, "Generic Event Extension", &noGEExtension},
-     {ShapeExtensionInit, "SHAPE", NULL},
- #ifdef MITSHM

@@ -40,30 +40,6 @@ diff -up xorg-server-1.17.1/hw/Makefile.am.vnc xorg-server-1.17.1/hw/Makefile.am
  
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland
  
-diff -up xorg-server-1.17.1/mi/miinitext.c.vnc xorg-server-1.17.1/mi/miinitext.c
---- xorg-server-1.17.1/mi/miinitext.c.vnc	2015-01-17 23:42:52.000000000 +0000
-+++ xorg-server-1.17.1/mi/miinitext.c	2015-02-13 16:14:05.131516821 +0000
-@@ -111,6 +111,10 @@ SOFTWARE.
- #include "micmap.h"
- #include "globals.h"
- 
-+#ifdef TIGERVNC
-+extern void vncExtensionInit(void);
-+#endif
-+
- /* The following is only a small first step towards run-time
-  * configurable extensions.
-  */
-@@ -235,6 +239,9 @@ EnableDisableExtensionError(const char *
- 
- /* List of built-in (statically linked) extensions */
- static const ExtensionModule staticExtensions[] = {
-+#ifdef TIGERVNC
-+    {vncExtensionInit, "VNC-EXTENSION", NULL},
-+#endif
-     {GEExtensionInit, "Generic Event Extension", &noGEExtension},
-     {ShapeExtensionInit, "SHAPE", NULL},
- #ifdef MITSHM
 diff -up xorg-server-1.17.1/os/WaitFor.c.vnc xorg-server-1.17.1/os/WaitFor.c
 --- xorg-server-1.17.1/os/WaitFor.c.vnc	2015-01-26 18:40:30.000000000 +0000
 +++ xorg-server-1.17.1/os/WaitFor.c	2015-02-13 16:14:05.132516837 +0000
