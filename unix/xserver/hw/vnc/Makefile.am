@@ -40,7 +40,7 @@ Xvnc_SOURCES = xvnc.c \
 # recommendation for coaxing automake.
 nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
 
-Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_MODULE_EXTS \
+Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC \
 	-I$(TIGERVNC_BUILDDIR) \
 	-I$(TIGERVNC_SRCDIR)/common \
 	-I$(TIGERVNC_SRCDIR)/unix/common \
