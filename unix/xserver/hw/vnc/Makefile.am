@@ -8,6 +8,12 @@ NETWORK_LIB=$(TIGERVNC_BUILDDIR)/common/network/libnetwork.la
 UNIXCOMMON_LIB=$(TIGERVNC_BUILDDIR)/unix/common/libunixcommon.la
 COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(OS_LIB) $(UNIXCOMMON_LIB)
 
+AM_CPPFLAGS = \
+	-I$(TIGERVNC_BUILDDIR) \
+	-I$(TIGERVNC_SRCDIR)/common \
+	-I$(TIGERVNC_SRCDIR)/unix/common \
+	$(DIX_CFLAGS)
+
 noinst_LTLIBRARIES = libvnccommon.la
 
 HDRS = vncExtInit.h vncHooks.h \
@@ -20,12 +26,8 @@ libvnccommon_la_SOURCES = $(HDRS) \
 	vncBlockHandler.c XorgGlue.c RandrGlue.c RFBGlue.cc XserverDesktop.cc \
 	vncInput.c vncInputXKB.c qnum_to_xorgevdev.c qnum_to_xorgkbd.c
 
-libvnccommon_la_CPPFLAGS = \
-	-I$(TIGERVNC_BUILDDIR) \
-	-I$(TIGERVNC_SRCDIR)/unix/common \
-	-I$(TIGERVNC_SRCDIR)/common \
-	-I$(TIGERVNC_SRCDIR)/unix/vncconfig $(XVNC_CPPFLAGS) ${XSERVERLIBS_CFLAGS} \
-	-I$(top_srcdir)/include
+libvnccommon_la_CPPFLAGS = $(AM_CPPFLAGS) \
+	-I$(TIGERVNC_SRCDIR)/unix/vncconfig
 
 bin_PROGRAMS = Xvnc
 
@@ -40,11 +42,7 @@ Xvnc_SOURCES = xvnc.c \
 # recommendation for coaxing automake.
 nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
 
-Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC \
-	-I$(TIGERVNC_BUILDDIR) \
-	-I$(TIGERVNC_SRCDIR)/common \
-	-I$(TIGERVNC_SRCDIR)/unix/common \
-	-I$(top_srcdir)/include ${XSERVERLIBS_CFLAGS}
+Xvnc_CPPFLAGS = $(AM_CPPFLAGS) -DTIGERVNC
 
 LOCAL_LIBS = \
 	$(XVNC_LIBS) \
@@ -65,15 +63,10 @@ libvnc_la_SOURCES = vncModule.c
 # See Xvnc magic above
 nodist_EXTRA_libvnc_la_SOURCES = dummy.cxx
 
-libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) \
-	-I$(TIGERVNC_BUILDDIR) \
-	-I$(TIGERVNC_SRCDIR)/common \
-	-I$(TIGERVNC_SRCDIR)/unix/common \
+libvnc_la_CPPFLAGS = $(AM_CPPFLAGS) \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/os-support \
-	-I$(top_srcdir)/hw/xfree86/os-support/bus \
-	-I$(top_srcdir)/include \
-	${XSERVERLIBS_CFLAGS}
+	-I$(top_srcdir)/hw/xfree86/os-support/bus
 
 libvnc_la_LDFLAGS = -module -avoid-version -Wl,-z,now
 
