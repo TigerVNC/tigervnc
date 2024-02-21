@@ -36,6 +36,7 @@ from the X Consortium.
 #include "RFBGlue.h"
 #include "XorgGlue.h"
 #include "RandrGlue.h"
+#include "vncDRI3.h"
 #include "vncPresent.h"
 #include "xorg-version.h"
 
@@ -1087,6 +1088,12 @@ vncScreenInit(ScreenPtr pScreen, int argc, char **argv)
     ret = vncPresentInit(pScreen);
     if (!ret)
         ErrorF("Failed to initialize Present extension\n");
+
+#ifdef DRI3
+    ret = vncDRI3Init(pScreen);
+    if (!ret)
+        ErrorF("Failed to initialize DRI3 extension\n");
+#endif
 
     return TRUE;
 
