@@ -1117,7 +1117,7 @@ extern void GlxExtensionInit(void);
 #endif
 
 static const ExtensionModule vncExtensions[] = {
-    {vncExtensionInit, "VNC-EXTENSION", NULL},
+    {vncExtensionInit, "TIGERVNC", NULL},
 #ifdef GLXEXT
 #if XORG_OLDER_THAN(1, 20, 0)
     { GlxExtensionInit, "GLX", &noGlxExtension },

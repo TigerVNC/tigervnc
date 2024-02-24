@@ -64,7 +64,7 @@ typedef struct {
 
 #ifdef _VNCEXT_PROTO_
 
-#define VNCEXTNAME "VNC-EXTENSION"
+#define VNCEXTNAME "TIGERVNC"
 
 typedef struct {
   CARD8 reqType;       /* always VncExtReqCode */
