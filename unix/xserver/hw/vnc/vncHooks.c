@@ -638,7 +638,12 @@ static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
                                    int x, int y)
 {
   SCREEN_PROLOGUE(pScreen_, CursorWarpedTo);
+
+  if (pScreen->CursorWarpedTo)
+    (*pScreen->CursorWarpedTo) (pDev, pScreen_, pClient, pWindow, pSprite, x, y);
+
   vncSetCursorPos(pScreen->myNum, x, y);
+
   SCREEN_EPILOGUE(CursorWarpedTo);
 }
 #endif
