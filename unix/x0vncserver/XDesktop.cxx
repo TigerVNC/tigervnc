@@ -230,9 +230,13 @@ void XDesktop::poll() {
   }
 }
 
+void XDesktop::init(VNCServer* vs)
+{
+  server = vs;
+}
 
-void XDesktop::start(VNCServer* vs) {
-
+void XDesktop::start()
+{
   // Determine actual number of buttons of the X pointer device.
   unsigned char btnMap[8];
   int numButtons = XGetPointerMapping(dpy, btnMap, 8);
@@ -247,7 +251,6 @@ void XDesktop::start(VNCServer* vs) {
   pb = new XPixelBuffer(dpy, factory, geometry->getRect());
   vlog.info("Allocated %s", pb->getImage()->classDesc());
 
-  server = vs;
   server->setPixelBuffer(pb, computeScreenLayout());
 
 #ifdef HAVE_XDAMAGE
@@ -290,7 +293,6 @@ void XDesktop::stop() {
   queryConnectDialog = 0;
 
   server->setPixelBuffer(0);
-  server = 0;
 
   delete pb;
   pb = 0;

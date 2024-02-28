@@ -92,6 +92,8 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
 {
   slog.debug("creating single-threaded server %s", name.c_str());
 
+  desktop_->init(this);
+
   // FIXME: Do we really want to kick off these right away?
   if (rfb::Server::maxIdleTime)
     idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
@@ -707,7 +709,7 @@ void VNCServerST::startDesktop()
 {
   if (!desktopStarted) {
     slog.debug("starting desktop");
-    desktop->start(this);
+    desktop->start();
     if (!pb)
       throw Exception("SDesktop::start() did not set a valid PixelBuffer");
     desktopStarted = true;

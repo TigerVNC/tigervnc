@@ -71,7 +71,8 @@ namespace rfb {
 
       // -=- SDesktop interface
 
-      virtual void start(VNCServer* vs);
+      virtual void init(VNCServer* vs);
+      virtual void start();
       virtual void stop();
       virtual void terminate();
       virtual void queryConnection(network::Socket* sock,

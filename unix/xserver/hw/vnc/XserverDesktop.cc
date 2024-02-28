@@ -145,11 +145,14 @@ void XserverDesktop::refreshScreenLayout()
   server->setScreenLayout(::computeScreenLayout(&outputIdMap));
 }
 
-void XserverDesktop::start(rfb::VNCServer* vs)
+void XserverDesktop::init(rfb::VNCServer* vs)
 {
   // We already own the server object, and we always keep it in a
   // ready state
-  assert(vs == server);
+}
+
+void XserverDesktop::start()
+{
 }
 
 void XserverDesktop::stop()

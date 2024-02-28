@@ -96,7 +96,12 @@ SDisplay::~SDisplay()
 
 // -=- SDesktop interface
 
-void SDisplay::start(VNCServer* vs)
+void SDisplay::init(VNCServer* vs)
+{
+  server = vs;
+}
+
+void SDisplay::start()
 {
   vlog.debug("starting");
 
@@ -105,7 +110,6 @@ void SDisplay::start(VNCServer* vs)
     setConsoleSession();
 
   // Start the SDisplay core
-  server = vs;
   startCore();
 
   vlog.debug("started");
@@ -135,10 +139,8 @@ void SDisplay::stop()
   }
 
   // Stop the SDisplayCore
-  if (server)
-    server->setPixelBuffer(0);
+  server->setPixelBuffer(0);
   stopCore();
-  server = 0;
 
   vlog.debug("stopped");
 

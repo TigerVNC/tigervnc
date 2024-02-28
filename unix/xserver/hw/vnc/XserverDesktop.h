@@ -88,7 +88,8 @@ public:
                          const char* rejectMsg=0);
 
   // rfb::SDesktop callbacks
-  virtual void start(rfb::VNCServer* vs);
+  virtual void init(rfb::VNCServer* vs);
+  virtual void start();
   virtual void stop();
   virtual void terminate();
   virtual void queryConnection(network::Socket* sock,

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2019 Pierre Ossman for Cendio AB
+ * Copyright 2009-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,18 +49,21 @@ namespace rfb {
 
   class SDesktop : public InputHandler {
   public:
+    // init() is called immediately when the VNCServer gets a reference
+    // to the SDesktop, so that a reverse reference can be set up.
+    virtual void init(rfb::VNCServer* vs) = 0;
+
     // start() is called by the server when the first client authenticates
     // successfully, and can be used to begin any expensive tasks which are not
     // needed when there are no clients.  A valid PixelBuffer must have been
     // set via the VNCServer's setPixelBuffer() method by the time this call
     // returns.
 
-    virtual void start(VNCServer* vs) = 0;
+    virtual void start() = 0;
 
     // stop() is called by the server when there are no longer any
     // authenticated clients, and therefore the desktop can cease any
-    // expensive tasks.  No further calls to the VNCServer passed to start()
-    // can be made once stop has returned.
+    // expensive tasks.
 
     virtual void stop() = 0;
 
@@ -136,13 +139,13 @@ namespace rfb {
       if (buffer) delete buffer;
     }
 
-    virtual void start(VNCServer* vs) {
+    virtual void init(VNCServer* vs) {
       server = vs;
       server->setPixelBuffer(buffer);
     }
+    virtual void start() {
+    }
     virtual void stop() {
-      server->setPixelBuffer(0);
-      server = 0;
     }
     virtual void queryConnection(network::Socket* sock,
                                  const char* /*userName*/) {
