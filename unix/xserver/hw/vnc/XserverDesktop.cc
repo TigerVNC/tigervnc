@@ -151,14 +151,6 @@ void XserverDesktop::init(rfb::VNCServer* vs)
   // ready state
 }
 
-void XserverDesktop::start()
-{
-}
-
-void XserverDesktop::stop()
-{
-}
-
 void XserverDesktop::queryConnection(network::Socket* sock,
                                      const char* userName)
 {

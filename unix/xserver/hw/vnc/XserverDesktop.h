@@ -89,8 +89,6 @@ public:
 
   // rfb::SDesktop callbacks
   virtual void init(rfb::VNCServer* vs);
-  virtual void start();
-  virtual void stop();
   virtual void terminate();
   virtual void queryConnection(network::Socket* sock,
                                const char* userName);

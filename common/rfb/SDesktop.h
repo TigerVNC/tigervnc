@@ -58,14 +58,12 @@ namespace rfb {
     // needed when there are no clients.  A valid PixelBuffer must have been
     // set via the VNCServer's setPixelBuffer() method by the time this call
     // returns.
-
-    virtual void start() = 0;
+    virtual void start() {}
 
     // stop() is called by the server when there are no longer any
     // authenticated clients, and therefore the desktop can cease any
     // expensive tasks.
-
-    virtual void stop() = 0;
+    virtual void stop() {}
 
     // queryConnection() is called when a connection has been
     // successfully authenticated.  The sock and userName arguments
@@ -142,10 +140,6 @@ namespace rfb {
     virtual void init(VNCServer* vs) {
       server = vs;
       server->setPixelBuffer(buffer);
-    }
-    virtual void start() {
-    }
-    virtual void stop() {
     }
     virtual void queryConnection(network::Socket* sock,
                                  const char* /*userName*/) {
