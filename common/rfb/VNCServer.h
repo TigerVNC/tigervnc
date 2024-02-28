@@ -43,6 +43,7 @@ namespace rfb {
     virtual void unblockUpdates() = 0;
 
     virtual uint64_t getMsc() = 0;
+    virtual void queueMsc(uint64_t target) = 0;
 
     // setPixelBuffer() tells the server to use the given pixel buffer (and
     // optionally a modified screen layout).  If this differs in size from

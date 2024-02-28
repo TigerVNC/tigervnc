@@ -88,7 +88,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
-    msc(0), frameTimer(this)
+    msc(0), queuedMsc(0), frameTimer(this)
 {
   slog.debug("creating single-threaded server %s", name.c_str());
 
@@ -260,6 +260,14 @@ void VNCServerST::unblockUpdates()
 uint64_t VNCServerST::getMsc()
 {
   return msc;
+}
+
+void VNCServerST::queueMsc(uint64_t target)
+{
+  if (target > queuedMsc)
+    queuedMsc = target;
+
+  startFrameClock();
 }
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
@@ -634,13 +642,17 @@ void VNCServerST::handleTimeout(Timer* t)
 {
   if (t == &frameTimer) {
     // We keep running until we go a full interval without any updates
-    if (comparer->is_empty())
-      return;
+    if (comparer->is_empty()) {
+      // Unless something waits for us to advance the frame count
+      if (queuedMsc < msc)
+        return;
+    }
 
     // If this is the first iteration then we need to adjust the timeout
     frameTimer.repeat(1000/rfb::Server::frameRate);
 
-    writeUpdate();
+    if (!comparer->is_empty())
+      writeUpdate();
 
     msc++;
     desktop->frameTick(msc);

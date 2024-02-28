@@ -154,6 +154,7 @@ uint64_t XserverDesktop::getMsc()
 void XserverDesktop::queueMsc(uint64_t id, uint64_t msc)
 {
   pendingMsc[id] = msc;
+  server->queueMsc(msc);
 }
 
 void XserverDesktop::abortMsc(uint64_t id)
