@@ -122,7 +122,7 @@ void Timer::start(int timeoutMs_) {
   insertTimer(this);
 }
 
-void Timer::repeat() {
+void Timer::repeat(int timeoutMs_) {
   timeval now;
 
   gettimeofday(&now, 0);
@@ -134,6 +134,9 @@ void Timer::repeat() {
 
   if (msBetween(&lastDueTime, &dueTime) != 0)
     vlog.error("Timer incorrectly modified whilst repeating");
+
+  if (timeoutMs_ != -1)
+    timeoutMs = timeoutMs_;
 
   dueTime = addMillis(lastDueTime, timeoutMs);
   if (isBefore(now)) {

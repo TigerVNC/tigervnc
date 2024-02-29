@@ -80,7 +80,9 @@ namespace rfb {
     //   Restarts the timer in a way that repeats that last timeout.
     //   This allows you to have a periodic timer without the risk of
     //   accumulating drift caused by processing delays.
-    void repeat();
+    //   A new interval can be specified, otherwise the previous
+    //   interval is reused.
+    void repeat(int timeoutMs_=-1);
 
     // stop()
     //   Cancels the timer.

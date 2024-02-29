@@ -633,10 +633,7 @@ void VNCServerST::handleTimeout(Timer* t)
     writeUpdate();
 
     // If this is the first iteration then we need to adjust the timeout
-    if (frameTimer.getTimeoutMs() != 1000/rfb::Server::frameRate)
-      frameTimer.start(1000/rfb::Server::frameRate);
-    else
-      frameTimer.repeat();
+    frameTimer.repeat(1000/rfb::Server::frameRate);
   } else if (t == &idleTimer) {
     slog.info("MaxIdleTime reached, exiting");
     desktop->terminate();
