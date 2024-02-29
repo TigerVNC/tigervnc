@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2016-2018 Pierre Ossman for Cendio AB
+ * Copyright 2016-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,14 +66,20 @@ int Timer::checkTimeouts() {
   gettimeofday(&start, 0);
   while (pending.front()->isBefore(start)) {
     Timer* timer;
-    timeval before;
+    timeval before, dueTime;
 
     timer = pending.front();
     pending.pop_front();
 
+    dueTime = timer->dueTime;
     gettimeofday(&before, 0);
     if (timer->cb->handleTimeout(timer)) {
       timeval now;
+
+      if (msBetween(&dueTime, &timer->dueTime) != 0) {
+        vlog.error("Timer incorrectly modified whilst repeating");
+        timer->dueTime = dueTime;
+      }
 
       gettimeofday(&now, 0);
 
