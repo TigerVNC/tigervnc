@@ -45,6 +45,7 @@
 #ifdef HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #include <RandrGlue.h>
+#include <CInput.h>
 extern "C" {
 void vncSetGlueContext(Display *dpy, void *res);
 }
@@ -404,19 +405,20 @@ KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
 
 KeyCode XDesktop::addKeysym(Display* dpy, KeySym keysym)
 {
-  int types[1];
+  //int types[1];
   unsigned int key;
   XkbDescPtr xkb;
-  XkbMapChangesRec changes;
-  KeySym *syms;
-  KeySym upper, lower;
+  XkbChangesRec changes;
+  //KeySym *syms;
+  //KeySym upper, lower;
 
-  xkb = XkbGetMap(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+  xkb = XkbGetMap(dpy, XkbAllComponentsMask|XkbNamesMask, XkbUseCoreKbd);
 
   if (!xkb)
     return 0;
 
-  for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
+  memset(&changes, 0, sizeof(changes));
+  /*   for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
     if (XkbKeyNumGroups(xkb, key) == 0)
       break;
   }
@@ -446,8 +448,11 @@ KeyCode XDesktop::addKeysym(Display* dpy, KeySym keysym)
   changes.changed |= XkbKeySymsMask;
   changes.first_key_sym = key;
   changes.num_key_syms = 1;
+ */
 
-  if (XkbChangeMap(dpy, xkb, &changes)) {
+  key = addKeysymToMap(keysym, xkb, &changes);
+
+  if (key && XkbChangeMap(dpy, xkb, &changes.map)) {
     vlog.info("Added unknown keysym %s to keycode %d", XKeysymToString(keysym), key);
     addedKeysyms[keysym] = key;
     return key;
@@ -466,6 +471,7 @@ void XDesktop::deleteAddedKeysyms(Display* dpy) {
   XkbMapChangesRec changes;
   memset(&changes, 0, sizeof(changes));
 
+  /*
   KeyCode lowestKeyCode = xkb->max_key_code;
   KeyCode highestKeyCode = xkb->min_key_code;
   std::map<KeySym, KeyCode>::iterator it;
@@ -493,6 +499,11 @@ void XDesktop::deleteAddedKeysyms(Display* dpy) {
   changes.first_key_sym = lowestKeyCode;
   changes.num_key_syms = highestKeyCode - lowestKeyCode + 1;
   XkbChangeMap(dpy, xkb, &changes);
+  */
+
+  removeAddedKeysymsFromMap(xkb, &changes);
+  if (changes.num_key_syms > 0)
+    XkbChangeMap(dpy, xkb, &changes);
 
   addedKeysyms.clear();
 }
@@ -549,6 +560,9 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
     pressedKeys.erase(keysym);
 
   vlog.debug("%d %s", keycode, down ? "down" : "up");
+
+  if(down)
+    onKeyUsed(keycode);
 
   XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #else
