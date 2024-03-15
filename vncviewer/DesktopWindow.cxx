@@ -368,7 +368,9 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
     }
   }
 
-  viewport->size(new_w, new_h);
+  viewport->resizeFramebuffer(new_w, new_h);
+
+  fitWindow(w(), h());
 
   repositionWidgets();
 }
@@ -598,6 +600,18 @@ void DesktopWindow::handleClipboardData(const char* data)
 }
 
 
+void DesktopWindow::fitWindow(int w, int h)
+{
+  double viewport_ratio =
+      static_cast<double>(viewport->frameBufferWidth())/viewport->frameBufferHeight();
+  double window_ratio = static_cast<double>(w)/h;
+  if (window_ratio < viewport_ratio)
+      viewport->size(w, w/viewport_ratio);
+  else
+      viewport->size(h*viewport_ratio, h);
+}
+
+
 void DesktopWindow::resize(int x, int y, int w, int h)
 {
   bool resizing;
@@ -659,6 +673,8 @@ void DesktopWindow::resize(int x, int y, int w, int h)
     resizing = false;
 
   Fl_Window::resize(x, y, w, h);
+
+  fitWindow(w, h);
 
   if (resizing) {
     // Try to get the remote size to match our window size, provided

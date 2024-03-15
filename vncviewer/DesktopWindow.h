@@ -108,6 +108,8 @@ private:
 
   void repositionWidgets();
 
+  void fitWindow(int w, int h);
+
   static void handleClose(Fl_Widget *wnd, void *data);
 
   static void handleOptions(void *data);

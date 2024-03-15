@@ -67,6 +67,10 @@ public:
 
   void resize(int x, int y, int w, int h);
 
+  void resizeFramebuffer(int w, int h);
+  int frameBufferWidth();
+  int frameBufferHeight();
+
   int handle(int event);
 
 protected:
@@ -104,6 +108,8 @@ private:
   void setMenuKey();
 
   static void handleOptions(void *data);
+
+  void updateFrameBufferScale(int w, int h);
 
 private:
   CConn* cc;
