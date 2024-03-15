@@ -35,7 +35,15 @@
 # your site
 #
 
+# Start with legacy ~/.vnc user dir
 $vncUserDir = "$ENV{HOME}/.vnc";
+if (stat($vncUserDir)) {
+  warn "~/.vnc is deprecated, please migrate to XDGBDS-compliant paths!";
+} else {
+  # Legacy path doesn't exist, start using new XDG-alike path
+  $vncUserDir = "$ENV{HOME}/.config/tigervnc";
+}
+
 $vncUserConfig = "$vncUserDir/config";
 
 $vncSystemConfigDir = "@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc";
@@ -111,8 +119,8 @@ $default_opts{pn} = undef;
 # Load user-overrideable system defaults
 LoadConfig($vncSystemConfigDefaultsFile);
 
-# Then the user's settings
-LoadConfig($vncUserConfig);
+# Then the user's settings (location overrideable by previous system defaults)
+LoadConfig($config{'userconfig'} || $vncUserConfig);
 
 # And then override anything set above if mandatory settings exist.
 # WARNING: "Mandatory" is used loosely here! As the man page says,

@@ -23,15 +23,6 @@
 namespace os {
 
   /*
-   * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
-   * If HOME environment variable is set then it is used.
-   * Otherwise home directory is obtained via getpwuid function.
-   *
-   * Returns NULL on failure.
-   */
-  const char* getvnchomedir();
-
-  /*
    * Get user home directory.
    * If HOME environment variable is set then it is used.
    * Otherwise home directory is obtained via getpwuid function.
@@ -39,6 +30,37 @@ namespace os {
    * Returns NULL on failure.
    */
   const char* getuserhomedir();
+
+  /*
+   * Get VNC config directory. On Unix-like systems, this is either:
+   * - $XDG_CONFIG_HOME/tigervnc
+   * - $HOME/.config/tigervnc
+   * On Windows, this is simply %APPDATA%/vnc/.
+   *
+   * Returns NULL on failure.
+   */
+  const char* getvncconfigdir();
+
+  /*
+   * Get VNC state (logs) directory. On Unix-like systems, this is either:
+   * - $XDG_STATE_HOME/tigervnc
+   * - $HOME/.local/state/tigervnc
+   * On Windows, this is simply %APPDATA%/vnc/.
+   *
+   * Returns NULL on failure.
+   */
+  const char* getvncstatedir();
+
+  /*
+   * Get legacy VNC home directory ($HOME/.vnc on Unix-likes).
+   * If HOME environment variable is set then it is used.
+   * Otherwise home directory is obtained via getpwuid function.
+   *
+   * Returns NULL on failure.
+   *
+   * Deprecated.
+   */
+  const char* getvnchomedir();
 
 }
 

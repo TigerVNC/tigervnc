@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #else
 #include <windows.h>
@@ -39,12 +40,12 @@
 #include <shlobj.h>
 #endif
 
-static const char* gethomedir(bool userDir)
+static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_def)
 {
   static char dir[PATH_MAX];
 
 #ifndef WIN32
-  char *homedir;
+  char *homedir, *xdgdir;
   uid_t uid;
   struct passwd *passwd;
 #else
@@ -66,7 +67,20 @@ static const char* gethomedir(bool userDir)
   if (userDir)
     return homedir;
 
+  // check if (deprecated) legacy path exists and use that if so
   snprintf(dir, sizeof(dir), "%s/.vnc", homedir);
+  struct stat st;
+
+  if (stat(dir, &st) == 0)
+    return dir;
+
+  if (xdg_def != NULL) {
+    xdgdir = getenv(xdg_env);
+    if (xdgdir != NULL)
+      snprintf(dir, sizeof(dir), "%s/tigervnc", xdgdir);
+    else
+      snprintf(dir, sizeof(dir), "%s/%s/tigervnc", homedir, xdg_def);
+  }
 
   return dir;
 #else
@@ -90,13 +104,23 @@ static const char* gethomedir(bool userDir)
 #endif
 }
 
-const char* os::getvnchomedir()
-{
-  return gethomedir(false);
-}
-
 const char* os::getuserhomedir()
 {
-  return gethomedir(true);
+  return getvncdir(true, NULL, NULL);
 }
 
+const char* os::getvncconfigdir()
+{
+  return getvncdir(false, "XDG_CONFIG_HOME", ".config");
+}
+
+const char* os::getvncstatedir()
+{
+  return getvncdir(false, "XDG_STATE_HOME", ".local/state");
+}
+
+/* deprecated */
+const char* os::getvnchomedir()
+{
+  return getvncdir(false, NULL, NULL);
+}

@@ -58,27 +58,27 @@
 
 using namespace rfb;
 
-static const char* homedirfn(const char* fn);
+static const char* configdirfn(const char* fn);
 
 StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
-                                     homedirfn("x509_ca.pem"),
+                                     configdirfn("x509_ca.pem"),
                                      ConfViewer);
 StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
-                                     homedirfn("x509_crl.pem"),
+                                     configdirfn("x509_crl.pem"),
                                      ConfViewer);
 
 static LogWriter vlog("TLS");
 
-static const char* homedirfn(const char* fn)
+static const char* configdirfn(const char* fn)
 {
   static char full_path[PATH_MAX];
-  const char* homedir;
+  const char* configdir;
 
-  homedir = os::getvnchomedir();
-  if (homedir == NULL)
+  configdir = os::getvncconfigdir();
+  if (configdir == NULL)
     return "";
 
-  snprintf(full_path, sizeof(full_path), "%s/%s", homedir, fn);
+  snprintf(full_path, sizeof(full_path), "%s/%s", configdir, fn);
 
   return full_path;
 }
@@ -308,7 +308,7 @@ void CSecurityTLS::checkSession()
   int err;
   bool hostname_match;
 
-  const char *homeDir;
+  const char *configDir;
   gnutls_datum_t info;
   size_t len;
 
@@ -385,14 +385,14 @@ void CSecurityTLS::checkSession()
 
   /* Certificate has some user overridable problems, so TOFU time */
 
-  homeDir = os::getvnchomedir();
-  if (homeDir == NULL) {
-    throw AuthFailureException("Could not obtain VNC home directory "
+  configDir = os::getvncconfigdir();
+  if (configDir == NULL) {
+    throw AuthFailureException("Could not obtain VNC config directory "
                                "path for known hosts storage");
   }
 
   std::string dbPath;
-  dbPath = (std::string)homeDir + "/x509_known_hosts";
+  dbPath = (std::string)configDir + "/x509_known_hosts";
 
   err = gnutls_verify_stored_pubkey(dbPath.c_str(), NULL,
                                     client->getServerName(), NULL,
