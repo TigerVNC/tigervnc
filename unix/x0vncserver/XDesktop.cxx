@@ -26,6 +26,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include <network/Socket.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 

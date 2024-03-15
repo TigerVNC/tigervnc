@@ -177,8 +177,8 @@ static void usage()
 {
   fprintf(stderr,"usage: %s [parameters]\n",
           programName);
-  fprintf(stderr,"       %s [parameters] -connect <host>[:<port>]\n",
-          programName);
+  fprintf(stderr,"       %s [parameters] -connect "
+          "[-viewOnly|-view-only] <host>[:<port>]\n", programName);
   fprintf(stderr,"       %s [parameters] -disconnect\n", programName);
   fprintf(stderr,"       %s [parameters] [-set] <Xvnc-param>=<value> ...\n",
           programName);
@@ -240,13 +240,19 @@ int main(int argc, char** argv)
   if (i < argc) {
     for (; i < argc; i++) {
       if (strcmp(argv[i], "-connect") == 0) {
+        Bool viewOnly = False;
         i++;
+        if (strcmp(argv[i], "-viewOnly") == 0 ||
+            strcmp(argv[i], "-view-only") == 0) {
+          viewOnly = True;
+          i++;
+        }
         if (i >= argc) usage();
-        if (!XVncExtConnect(dpy, argv[i])) {
+        if (!XVncExtConnect(dpy, argv[i], viewOnly)) {
           fprintf(stderr,"connecting to %s failed\n",argv[i]);
         }
       } else if (strcmp(argv[i], "-disconnect") == 0) {
-        if (!XVncExtConnect(dpy, "")) {
+        if (!XVncExtConnect(dpy, "", False)) {
           fprintf(stderr,"disconnecting all clients failed\n");
         }
       } else if (strcmp(argv[i], "-get") == 0) {

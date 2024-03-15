@@ -180,7 +180,7 @@ const char* SSecurityVeNCrypt::getUserName() const
   return ssecurity->getUserName();
 }
 
-SConnection::AccessRights SSecurityVeNCrypt::getAccessRights() const
+AccessRights SSecurityVeNCrypt::getAccessRights() const
 {
   if (ssecurity == NULL)
     return SSecurity::getAccessRights();

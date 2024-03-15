@@ -57,7 +57,7 @@ void vncRequestClipboard(void);
 void vncAnnounceClipboard(int available);
 void vncSendClipboardData(const char* data);
 
-int vncConnectClient(const char *addr);
+int vncConnectClient(const char *addr, int viewOnly);
 
 void vncGetQueryConnect(uint32_t *opaqueId, const char**username,
                         const char **address, int *timeout);

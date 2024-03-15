@@ -42,7 +42,7 @@ namespace rfb {
   class VNCServerST;
 }
 
-namespace network { class SocketListener; class Socket; class SocketServer; }
+namespace network { class SocketListener; class Socket; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public rfb::Timer::Callback {
@@ -72,7 +72,7 @@ public:
   void add_copied(const rfb::Region &dest, const rfb::Point &delta);
   void handleSocketEvent(int fd, bool read, bool write);
   void blockHandler(int* timeout);
-  void addClient(network::Socket* sock, bool reverse);
+  void addClient(network::Socket* sock, bool reverse, bool viewOnly);
   void disconnectClients();
 
   // QueryConnect methods called from X server code
@@ -107,9 +107,9 @@ public:
 protected:
   bool handleListenerEvent(int fd,
                            std::list<network::SocketListener*>* sockets,
-                           network::SocketServer* sockserv);
+                           rfb::VNCServer* sockserv);
   bool handleSocketEvent(int fd,
-                         network::SocketServer* sockserv,
+                         rfb::VNCServer* sockserv,
                          bool read, bool write);
 
   virtual bool handleTimeout(rfb::Timer* t);

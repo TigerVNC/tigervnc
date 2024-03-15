@@ -348,7 +348,7 @@ static int ProcVncExtConnect(ClientPtr client)
   address[stuff->strLen] = 0;
 
   rep.success = 0;
-  if (vncConnectClient(address) == 0)
+  if (vncConnectClient(address, (int)stuff->viewOnly) == 0)
         rep.success = 1;
 
   rep.type = X_Reply;

@@ -1,4 +1,5 @@
 add_library(rfb STATIC
+  AccessRights.cxx
   Blacklist.cxx
   Congestion.cxx
   CConnection.cxx
@@ -45,6 +46,7 @@ add_library(rfb STATIC
   Security.cxx
   SecurityServer.cxx
   SecurityClient.cxx
+  SSecurity.cxx
   SSecurityPlain.cxx
   SSecurityStack.cxx
   SSecurityVncAuth.cxx

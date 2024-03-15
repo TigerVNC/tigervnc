@@ -24,8 +24,12 @@
 
 #include <winsock2.h>
 #include <list>
+
+#include <network/Socket.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
+#include <rfb/VNCServer.h>
 #include <rfb/util.h>
 #include <rfb_win32/SocketManager.h>
 
@@ -55,7 +59,7 @@ static void requestAddressChangeEvents(network::SocketListener* sock_) {
 
 
 void SocketManager::addListener(network::SocketListener* sock_,
-                                network::SocketServer* srvr,
+                                VNCServer* srvr,
                                 AddressChangeNotifier* acn) {
   WSAEVENT event = WSACreateEvent();
   long flags = FD_ACCEPT | FD_CLOSE;
@@ -103,7 +107,7 @@ void SocketManager::remListener(network::SocketListener* sock) {
 }
 
 
-void SocketManager::addSocket(network::Socket* sock_, network::SocketServer* srvr, bool outgoing) {
+void SocketManager::addSocket(network::Socket* sock_, VNCServer* srvr, bool outgoing) {
   WSAEVENT event = WSACreateEvent();
   if (!event || !addEvent(event, this) ||
       (WSAEventSelect(sock_->getFd(), event, FD_READ | FD_CLOSE) == SOCKET_ERROR)) {
@@ -135,7 +139,7 @@ void SocketManager::remSocket(network::Socket* sock_) {
   throw rdr::Exception("Socket not registered");
 }
 
-bool SocketManager::getDisable(network::SocketServer* srvr)
+bool SocketManager::getDisable(VNCServer* srvr)
 {
   std::map<HANDLE,ListenInfo>::iterator i;
   for (i=listeners.begin(); i!=listeners.end(); i++) {
@@ -146,7 +150,7 @@ bool SocketManager::getDisable(network::SocketServer* srvr)
   throw rdr::Exception("Listener not registered");
 }
 
-void SocketManager::setDisable(network::SocketServer* srvr, bool disable)
+void SocketManager::setDisable(VNCServer* srvr, bool disable)
 {
   bool found = false;
   std::map<HANDLE,ListenInfo>::iterator i;

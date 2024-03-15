@@ -1,6 +1,4 @@
-/* Copyright (C) 2005 Martin Koegler
- * Copyright (C) 2006 OCCAM Financial Technology
- * Copyright (C) 2010 TigerVNC Team
+/* Copyright (C) 2023 TigerVNC Team
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,27 +15,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_SSECURITYSTACK_H__
-#define __RFB_SSECURITYSTACK_H__
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <rfb/SSecurity.h>
 
-namespace rfb {
+using namespace rfb;
 
-  class SSecurityStack : public SSecurity {
-  public:
-    SSecurityStack(SConnection* sc, int Type,
-                   SSecurity* s0 = NULL, SSecurity* s1 = NULL);
-    ~SSecurityStack();
-    virtual bool processMsg();
-    virtual int getType() const { return type; };
-    virtual const char* getUserName() const;
-    virtual AccessRights getAccessRights() const;
-  protected:
-    short state;
-    SSecurity* state0;
-    SSecurity* state1;
-    int type;
-  };
+SSecurity::SSecurity(SConnection* sc)
+  : sc(sc), accessRights(sc->getAccessRights())
+{
 }
-#endif
+
+SSecurity::~SSecurity()
+{
+}
+
+AccessRights SSecurity::getAccessRights() const
+{
+  return accessRights;
+}

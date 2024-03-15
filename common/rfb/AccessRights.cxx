@@ -1,43 +1,36 @@
-/* Copyright (C) 2005 Martin Koegler
- * Copyright (C) 2006 OCCAM Financial Technology
- * Copyright (C) 2010 TigerVNC Team
- * 
+/* Copyright 2024 TigerVNC Team
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_SSECURITYSTACK_H__
-#define __RFB_SSECURITYSTACK_H__
 
-#include <rfb/SSecurity.h>
+#include "AccessRights.h"
 
-namespace rfb {
+namespace rfb
+{
 
-  class SSecurityStack : public SSecurity {
-  public:
-    SSecurityStack(SConnection* sc, int Type,
-                   SSecurity* s0 = NULL, SSecurity* s1 = NULL);
-    ~SSecurityStack();
-    virtual bool processMsg();
-    virtual int getType() const { return type; };
-    virtual const char* getUserName() const;
-    virtual AccessRights getAccessRights() const;
-  protected:
-    short state;
-    SSecurity* state0;
-    SSecurity* state1;
-    int type;
-  };
-}
-#endif
+  // AccessRights values
+  const AccessRights AccessNone           = 0x0000;
+  const AccessRights AccessView           = 0x0001;
+  const AccessRights AccessKeyEvents      = 0x0002;
+  const AccessRights AccessPtrEvents      = 0x0004;
+  const AccessRights AccessCutText        = 0x0008;
+  const AccessRights AccessSetDesktopSize = 0x0010;
+  const AccessRights AccessNonShared      = 0x0020;
+  const AccessRights AccessDefault        = 0x03ff;
+  const AccessRights AccessNoQuery        = 0x0400;
+  const AccessRights AccessFull           = 0xffff;
+
+} /* namespace rfb */
