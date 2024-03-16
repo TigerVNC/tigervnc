@@ -153,6 +153,7 @@ class OptionsDialog extends Dialog {
   /* Misc. */
   JCheckBox sharedCheckbox;
   JCheckBox dotWhenNoCursorCheckbox;
+  JCheckBox largeCursorInsteadOfDotCheckbox;
   JCheckBox acceptBellCheckbox;
 
   /* SSH */
@@ -459,6 +460,7 @@ class OptionsDialog extends Dialog {
     /* Misc. */
     sharedCheckbox.setSelected(shared.getValue());
     dotWhenNoCursorCheckbox.setSelected(dotWhenNoCursor.getValue());
+    largeCursorInsteadOfDotCheckbox.setSelected(largeCursorInsteadOfDot.getValue());
     acceptBellCheckbox.setSelected(acceptBell.getValue());
 
     /* SSH */
@@ -614,6 +616,7 @@ class OptionsDialog extends Dialog {
     /* Misc. */
     shared.setParam(sharedCheckbox.isSelected());
     dotWhenNoCursor.setParam(dotWhenNoCursorCheckbox.isSelected());
+    largeCursorInsteadOfDot.setParam(largeCursorInsteadOfDotCheckbox.isSelected());
     acceptBell.setParam(acceptBellCheckbox.isSelected());
 
     /* SSH */
@@ -1174,6 +1177,7 @@ class OptionsDialog extends Dialog {
     sharedCheckbox =
       new JCheckBox("Shared (don't disconnect other viewers)");
     dotWhenNoCursorCheckbox = new JCheckBox("Show dot when no cursor");
+    largeCursorInsteadOfDotCheckbox = new JCheckBox("Use large cursor instead of dot");
     acceptBellCheckbox = new JCheckBox("Beep when requested by the server");
     MiscPanel.add(sharedCheckbox,
                   new GridBagConstraints(0, 0,
@@ -1189,15 +1193,22 @@ class OptionsDialog extends Dialog {
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(acceptBellCheckbox,
+    MiscPanel.add(largeCursorInsteadOfDotCheckbox,
                   new GridBagConstraints(0, 2,
                                          1, 1,
                                          LIGHT, LIGHT,
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+    MiscPanel.add(acceptBellCheckbox,
                   new GridBagConstraints(0, 3,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    MiscPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+                  new GridBagConstraints(0, 4,
                                          REMAINDER, REMAINDER,
                                          HEAVY, HEAVY,
                                          LINE_START, BOTH,

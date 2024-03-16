@@ -63,6 +63,9 @@ BoolParameter emulateMiddleButton("EmulateMiddleButton",
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
+BoolParameter largeCursorInsteadOfDot("LargeCursorInsteadOfDot",
+                                      "Use a large cursor bitmap instead of a dot "
+                                      "when using the dot cursor", false);
 
 BoolParameter alertOnFatalError("AlertOnFatalError",
                                 "Give a dialog on connection problems rather "
@@ -199,6 +202,7 @@ static VoidParameter* parameterArray[] = {
   &viewOnly,
   &emulateMiddleButton,
   &dotWhenNoCursor,
+  &largeCursorInsteadOfDot,
   &acceptClipboard,
   &sendClipboard,
 #if !defined(WIN32) && !defined(__APPLE__)

@@ -43,6 +43,11 @@ public class Parameters {
     "Show the dot cursor when the server sends an invisible cursor",
     false);
 
+  public static BoolParameter largeCursorInsteadOfDot
+  = new BoolParameter("LargeCursorInsteadOfDot",
+    "Use a large cursor bitmap instead of a dot when using the dot cursor",
+    false);
+
   public static BoolParameter sendLocalUsername
   = new BoolParameter("SendLocalUsername",
     "Send the local username for SecurityTypes "+
@@ -283,6 +288,7 @@ public class Parameters {
     CSecurityTLS.X509CRL,
     SecurityClient.secTypes,
     dotWhenNoCursor,
+    largeCursorInsteadOfDot,
     autoSelect,
     fullColor,
     lowColorLevel,
