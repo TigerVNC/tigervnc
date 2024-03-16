@@ -50,6 +50,7 @@ SMsgWriter::SMsgWriter(ClientParams* client_, rdr::OutStream* os_)
     needSetDesktopName(false), needCursor(false),
     needCursorPos(false), needLEDState(false),
     needQEMUKeyEvent(false)
+    ,needExtMouseButtonEvent(false)
 {
 }
 
@@ -303,6 +304,14 @@ void SMsgWriter::writeQEMUKeyEvent()
   needQEMUKeyEvent = true;
 }
 
+void SMsgWriter::writeExtendedMouseButtonSupport()
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedMouseButtons))
+    throw Exception("Client does not support Extended Mouse Buttons");
+ 
+  needExtMouseButtonEvent = true;
+}
+
 bool SMsgWriter::needFakeUpdate()
 {
   if (needSetDesktopName)
@@ -314,6 +323,8 @@ bool SMsgWriter::needFakeUpdate()
   if (needLEDState)
     return true;
   if (needQEMUKeyEvent)
+    return true;
+  if (needExtMouseButtonEvent)
     return true;
   if (needNoDataUpdate())
     return true;
@@ -362,6 +373,8 @@ void SMsgWriter::writeFramebufferUpdateStart(int nRects)
     if (needLEDState)
       nRects++;
     if (needQEMUKeyEvent)
+      nRects++;
+    if (needExtMouseButtonEvent)
       nRects++;
   }
 
@@ -501,6 +514,11 @@ void SMsgWriter::writePseudoRects()
   if (needQEMUKeyEvent) {
     writeQEMUKeyEventRect();
     needQEMUKeyEvent = false;
+  }
+
+  if (needExtMouseButtonEvent) {
+    writeExtendedMouseButtonRect();
+    needExtMouseButtonEvent = false;
   }
 }
 
@@ -734,4 +752,18 @@ void SMsgWriter::writeQEMUKeyEventRect()
   os->writeU16(0);
   os->writeU16(0);
   os->writeU32(pseudoEncodingQEMUKeyEvent);
+}
+
+void SMsgWriter::writeExtendedMouseButtonRect()
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedMouseButtons))
+    throw Exception("Client does not support extended mouse button events");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeExtendedMouseButtonRect: nRects out of sync");
+
+  os->writeS16(0);
+  os->writeS16(0);
+  os->writeU16(0);
+  os->writeU16(0);
+  os->writeU32(pseudoEncodingExtendedMouseButtons);
 }

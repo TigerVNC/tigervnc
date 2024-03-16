@@ -860,5 +860,7 @@ void CConnection::updateEncodings()
   if (qualityLevel >= 0 && qualityLevel <= 9)
       encodings.push_back(pseudoEncodingQualityLevel0 + qualityLevel);
 
+  encodings.push_back(pseudoEncodingExtendedMouseButtons);
+
   writer()->writeSetEncodings(encodings);
 }

@@ -256,6 +256,16 @@ class Viewport extends JPanel implements ActionListener {
         buttonMask |= 2;
       if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0)
         buttonMask |= 4;
+      
+      //there are no masks for buttons 6 and 7 so we need to check for them only when pressed.
+      if (tk.areExtraMouseButtonsEnabled()){ 
+        //Back
+        if (MouseInfo.getNumberOfButtons() >= 6 && ((e.getModifiersEx() & e.getMaskForButton(6)) != 0))
+          buttonMask |= 1024;
+        //Forward
+        if (MouseInfo.getNumberOfButtons() >= 7 && ((e.getModifiersEx() & e.getMaskForButton(7)) != 0))
+          buttonMask |= 512;
+      }
 
       if (e.getID() == MouseEvent.MOUSE_WHEEL) {
         wheelMask = 0;

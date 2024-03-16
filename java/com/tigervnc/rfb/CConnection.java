@@ -403,6 +403,12 @@ abstract public class CConnection extends CMsgHandler {
         requestNewUpdate();
     }
   }
+
+  public void SupportExtendedMouseButton()
+  {
+    super.SupportExtendedMouseButton();
+  }
+
   // serverInit() is called when the ServerInit message is received.  The
   // derived class must call on to CConnection::serverInit().
   public void serverInit(int width, int height,
@@ -683,6 +689,8 @@ abstract public class CConnection extends CMsgHandler {
     encodings.add(Encodings.pseudoEncodingLastRect);
     encodings.add(Encodings.pseudoEncodingContinuousUpdates);
     encodings.add(Encodings.pseudoEncodingFence);
+    encodings.add(Encodings.pseudoEncodingExtendedMouseButtons);
+
 
     if (Decoder.supported(preferredEncoding)) {
       encodings.add(preferredEncoding);

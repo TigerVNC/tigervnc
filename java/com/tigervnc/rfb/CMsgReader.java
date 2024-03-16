@@ -116,6 +116,9 @@ public class CMsgReader {
       case Encodings.pseudoEncodingExtendedDesktopSize:
         readExtendedDesktopSize(x, y, w, h);
         break;
+      case Encodings.pseudoEncodingExtendedMouseButtons:
+        handler.SupportExtendedMouseButton();
+        break;
       case Encodings.pseudoEncodingClientRedirect:
         nUpdateRectsLeft = 0;
         readClientRedirect(x, y, w, h);

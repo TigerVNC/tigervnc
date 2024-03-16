@@ -606,6 +606,14 @@ int Viewport::handle(int event)
     if (Fl::event_button3())
       buttonMask |= 4;
 
+    //Fl::event_button is only good for FL_PUSH and FL_RELEASE
+    if(event == FL_PUSH) {
+      if (Fl::event_button() == 8) //Mouse Back
+        buttonMask |= 1024;
+      if (Fl::event_button() == 9) //Mouse Forward
+        buttonMask |= 512;
+    }
+
     if (event == FL_MOUSEWHEEL) {
       wheelMask = 0;
       if (Fl::event_dy() < 0)
