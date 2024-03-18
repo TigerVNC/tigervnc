@@ -58,28 +58,22 @@
 
 using namespace rfb;
 
-static const char* configdirfn(const char* fn);
+static const char* vncdirfn(const char* fn, const char* dir);
 
 StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
-                                     configdirfn("x509_ca.pem"),
+                                     vncdirfn("x509_ca.pem", os::getvncconfigdir()),
                                      ConfViewer);
 StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
-                                     configdirfn("x509_crl.pem"),
+                                     vncdirfn("x509_crl.pem", os::getvncdatadir()),
                                      ConfViewer);
 
 static LogWriter vlog("TLS");
 
-static const char* configdirfn(const char* fn)
+static const char* vncdirfn(const char* fn, const char* dir)
 {
   static char full_path[PATH_MAX];
-  const char* configdir;
 
-  configdir = os::getvncconfigdir();
-  if (configdir == NULL)
-    return "";
-
-  snprintf(full_path, sizeof(full_path), "%s/%s", configdir, fn);
-
+  snprintf(full_path, sizeof(full_path), "%s/%s", dir, fn);
   return full_path;
 }
 
@@ -308,7 +302,7 @@ void CSecurityTLS::checkSession()
   int err;
   bool hostname_match;
 
-  const char *configDir;
+  const char *hostsDir;
   gnutls_datum_t info;
   size_t len;
 
@@ -385,14 +379,14 @@ void CSecurityTLS::checkSession()
 
   /* Certificate has some user overridable problems, so TOFU time */
 
-  configDir = os::getvncconfigdir();
-  if (configDir == NULL) {
+  hostsDir = os::getvncdatadir();
+  if (hostsDir == NULL) {
     throw AuthFailureException("Could not obtain VNC config directory "
                                "path for known hosts storage");
   }
 
   std::string dbPath;
-  dbPath = (std::string)configDir + "/x509_known_hosts";
+  dbPath = (std::string)hostsDir + "/x509_known_hosts";
 
   err = gnutls_verify_stored_pubkey(dbPath.c_str(), NULL,
                                     client->getServerName(), NULL,
