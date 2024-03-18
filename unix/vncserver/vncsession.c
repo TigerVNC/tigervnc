@@ -350,8 +350,9 @@ redir_stdio(const char *homedir, const char *display)
 {
     int fd;
     long hostlen;
-    char* hostname = NULL;
+    char* hostname = NULL, *xdgstate;
     char logfile[PATH_MAX];
+    struct stat st;
 
     fd = open("/dev/null", O_RDONLY);
     if (fd == -1) {
@@ -365,6 +366,16 @@ redir_stdio(const char *homedir, const char *display)
     close(fd);
 
     snprintf(logfile, sizeof(logfile), "%s/.vnc", homedir);
+    if (stat(logfile, &st) == 0)
+        syslog(LOG_WARNING, "~/.vnc is deprecated, please migrate to XDGBDS-compliant paths!");
+    else {
+        xdgstate = getenv("XDG_STATE_HOME");
+        if (xdgstate != NULL && xdgstate[0] == '/')
+            snprintf(logfile, sizeof(logfile), "%s/tigervnc", xdgstate);
+        else
+            snprintf(logfile, sizeof(logfile), "%s/.local/state/tigervnc", homedir);
+    }
+
     if (mkdir(logfile, 0755) == -1) {
         if (errno != EEXIST) {
             syslog(LOG_CRIT, "Failure creating \"%s\": %s", logfile, strerror(errno));
@@ -395,8 +406,8 @@ redir_stdio(const char *homedir, const char *display)
         _exit(EX_OSERR);
     }
 
-    snprintf(logfile, sizeof(logfile), "%s/.vnc/%s%s.log",
-             homedir, hostname, display);
+    snprintf(logfile + strlen(logfile), sizeof(logfile) - strlen(logfile), "/%s%s.log",
+             hostname, display);
     free(hostname);
     fd = open(logfile, O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (fd == -1) {
