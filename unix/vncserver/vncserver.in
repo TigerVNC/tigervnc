@@ -41,7 +41,9 @@ if (stat($vncUserDir)) {
   warn "~/.vnc is deprecated, please migrate to XDGBDS-compliant paths!";
 } else {
   # Legacy path doesn't exist, start using new XDG-alike path
-  $vncUserDir = "$ENV{HOME}/.config/tigervnc";
+  $vncUserDir = rindex "$ENV{XDG_CONFIG_HOME}", "/", 0
+    ? "$ENV{HOME}/.config/tigervnc"
+    : "$ENV{XDG_CONFIG_HOME}/tigervnc";
 }
 
 $vncUserConfig = "$vncUserDir/config";
