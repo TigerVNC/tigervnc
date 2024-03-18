@@ -76,7 +76,7 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
 
   if (xdg_def != NULL) {
     xdgdir = getenv(xdg_env);
-    if (xdgdir != NULL || xdgdir[0] != '/')
+    if (xdgdir != NULL && xdgdir[0] == '/')
       snprintf(dir, sizeof(dir), "%s/tigervnc", xdgdir);
     else
       snprintf(dir, sizeof(dir), "%s/%s/tigervnc", homedir, xdg_def);
