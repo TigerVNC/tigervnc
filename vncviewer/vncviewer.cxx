@@ -746,7 +746,7 @@ int main(int argc, char** argv)
   migrateDeprecatedOptions();
 
 #ifndef WIN32
-  // Check if config and state dirs are both the same legacy ~/.vnc dir
+  // Check if legacy ~/.vnc dir exists and warn the user of its deprecation
   struct stat st;
   if (stat(os::getvnchomedir(), &st) == 0)
     vlog.info(_("~/.vnc is deprecated, please migrate to XDGBDS-compliant paths!"));

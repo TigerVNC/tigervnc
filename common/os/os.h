@@ -42,7 +42,7 @@ namespace os {
   const char* getvncconfigdir();
 
   /*
-   * Get VNC cache directory. On Unix-like systems, this is either:
+   * Get VNC data directory. On Unix-like systems, this is either:
    * - $XDG_DATA_HOME/tigervnc
    * - $HOME/.local/share/tigervnc
    * On Windows, this is simply %APPDATA%/vnc/.
