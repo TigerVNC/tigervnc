@@ -58,22 +58,27 @@
 
 using namespace rfb;
 
-static const char* vncdirfn(const char* fn, const char* dir);
+static const char* configdirfn(const char* fn);
 
 StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
-                                     vncdirfn("x509_ca.pem", os::getvncconfigdir()),
+                                     configdirfn("x509_ca.pem"),
                                      ConfViewer);
 StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
-                                     vncdirfn("x509_crl.pem", os::getvncdatadir()),
+                                     configdirfn("x509_crl.pem"),
                                      ConfViewer);
 
 static LogWriter vlog("TLS");
 
-static const char* vncdirfn(const char* fn, const char* dir)
+static const char* configdirfn(const char* fn)
 {
   static char full_path[PATH_MAX];
+  const char* configdir;
 
-  snprintf(full_path, sizeof(full_path), "%s/%s", dir, fn);
+  configdir = os::getvncconfigdir();
+  if (configdir == NULL)
+    return "";
+
+  snprintf(full_path, sizeof(full_path), "%s/%s", configdir, fn);
   return full_path;
 }
 
@@ -379,7 +384,7 @@ void CSecurityTLS::checkSession()
 
   /* Certificate has some user overridable problems, so TOFU time */
 
-  hostsDir = os::getvncdatadir();
+  hostsDir = os::getvncconfigdir();
   if (hostsDir == NULL) {
     throw AuthFailureException("Could not obtain VNC config directory "
                                "path for known hosts storage");

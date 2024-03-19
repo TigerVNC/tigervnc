@@ -95,7 +95,7 @@ public class CSecurityTLS extends CSecurity {
   public static String getDefaultCRL() {
     if (UserPreferences.get("viewer", "x509crl") != null)
       return UserPreferences.get("viewer", "x509crl");
-    return FileUtils.getVncDataDir()+"x509_crl.pem";
+    return FileUtils.getVncConfigDir()+"x509_crl.pem";
   }
 
   public static void setDefaults()
@@ -277,7 +277,7 @@ public class CSecurityTLS extends CSecurity {
 			      "do you want to continue?"))
           throw new AuthFailureException("server certificate has expired");
       }
-      File vncDir = new File(FileUtils.getVncDataDir());
+      File vncDir = new File(FileUtils.getVncConfigDir());
       if (!vncDir.exists()) {
         try {
           vncDir.mkdir();
