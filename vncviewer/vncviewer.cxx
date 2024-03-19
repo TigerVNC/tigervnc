@@ -749,7 +749,7 @@ int main(int argc, char** argv)
   // Check if legacy ~/.vnc dir exists and warn the user of its deprecation
   struct stat st;
   if (stat(os::getvnchomedir(), &st) == 0)
-    vlog.info(_("~/.vnc is deprecated, please migrate to XDGBDS-compliant paths!"));
+    vlog.info(_("~/.vnc is deprecated, see https://github.com/TigerVNC/tigervnc/pull/1737"));
 #endif
   mkdirrecursive(os::getvncconfigdir());
   mkdirrecursive(os::getvncstatedir());

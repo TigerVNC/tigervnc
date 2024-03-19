@@ -367,7 +367,7 @@ redir_stdio(const char *homedir, const char *display)
 
     snprintf(logfile, sizeof(logfile), "%s/.vnc", homedir);
     if (stat(logfile, &st) == 0)
-        syslog(LOG_WARNING, "~/.vnc is deprecated, please migrate to XDGBDS-compliant paths!");
+        syslog(LOG_WARNING, "~/.vnc is deprecated, see https://github.com/TigerVNC/tigervnc/pull/1737");
     else {
         xdgstate = getenv("XDG_STATE_HOME");
         if (xdgstate != NULL && xdgstate[0] == '/')
