@@ -62,7 +62,7 @@ public class FileUtils {
   }
 
   public static String getVncConfigDir() {
-    File legacyDir = new File(getVncHomeDir());
+    File legacyDir = new File(getHomeDir() + ".vnc" + getFileSeparator());
     String os = System.getProperty("os.name");
 
     if (os.startsWith("Windows")) {
@@ -81,7 +81,7 @@ public class FileUtils {
     } else {
       if (legacyDir.exists()) {
         vlog.info("WARNING: ~/.vnc is deprecated, see https://github.com/TigerVNC/tigervnc/pull/1737");
-        return getVncHomeDir();
+        return legacyDir.getPath();
       }
       String configHome = System.getenv("XDG_CONFIG_HOME");
       if (configHome != null && configHome.startsWith("/")) {
@@ -90,11 +90,6 @@ public class FileUtils {
         return getHomeDir() + ".config" + getFileSeparator() + "tigervnc" + getFileSeparator();
       }
     }
-  }
-
-  @Deprecated
-  public static String getVncHomeDir() {
-    return getHomeDir()+".vnc"+getFileSeparator();
   }
 
   public static String getFileSeparator() {
