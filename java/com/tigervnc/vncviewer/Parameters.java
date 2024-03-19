@@ -325,13 +325,6 @@ public class Parameters {
     if (filename == null || filename.isEmpty()) {
       saveToReg(servername);
       return;
-      /*
-      String homeDir = FileUtils.getVncHomeDir();
-      if (homeDir == null)
-        throw new Exception("Failed to read configuration file, "+
-                            "can't obtain home directory path.");
-      filepath = homeDir.concat("default.tigervnc");
-      */
     } else {
       filepath = filename;
     }
@@ -385,16 +378,7 @@ public class Parameters {
 
     String filepath;
     if (filename == null) {
-
-      return loadFromReg(); 
-
-      /*
-      String homeDir = FileUtils.getVncHomeDir();
-      if (homeDir == null)
-        throw new Exception("Failed to read configuration file, "+
-                            "can't obtain home directory path.");
-      filepath = homeDir.concat("default.tigervnc");
-      */
+      return loadFromReg();
     } else {
       filepath = filename;
     }
