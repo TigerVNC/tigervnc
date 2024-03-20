@@ -80,7 +80,6 @@ public class FileUtils {
       return newDir.getPath();
     } else {
       if (legacyDir.exists()) {
-        vlog.info("WARNING: ~/.vnc is deprecated, see https://github.com/TigerVNC/tigervnc/pull/1737");
         return legacyDir.getPath();
       }
       String configHome = System.getenv("XDG_CONFIG_HOME");

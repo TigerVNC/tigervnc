@@ -121,9 +121,3 @@ const char* os::getvncstatedir()
 {
   return getvncdir(false, "XDG_STATE_HOME", ".local/state");
 }
-
-/* deprecated */
-const char* os::getvnchomedir()
-{
-  return getvncdir(false, NULL, NULL);
-}

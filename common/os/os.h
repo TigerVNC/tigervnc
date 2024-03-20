@@ -51,17 +51,6 @@ namespace os {
    */
   const char* getvncstatedir();
 
-  /*
-   * Get legacy VNC home directory ($HOME/.vnc on Unix-likes).
-   * If HOME environment variable is set then it is used.
-   * Otherwise home directory is obtained via getpwuid function.
-   *
-   * Returns NULL on failure.
-   *
-   * Deprecated.
-   */
-  const char* getvnchomedir();
-
 }
 
 #endif /* OS_OS_H */
