@@ -53,6 +53,8 @@ static volatile pid_t script = -1;
 // Daemon completion pipe
 int daemon_pipe_fd = -1;
 
+static char logfile[PATH_MAX];
+
 static int
 begin_daemon(void)
 {
@@ -351,7 +353,6 @@ redir_stdio(const char *homedir, const char *display)
     int fd;
     long hostlen;
     char* hostname = NULL, *xdgstate;
-    char logfile[PATH_MAX];
     struct stat st;
 
     fd = open("/dev/null", O_RDONLY);
@@ -365,13 +366,15 @@ redir_stdio(const char *homedir, const char *display)
     }
     close(fd);
 
-    snprintf(logfile, sizeof(logfile), "%s/.vnc", homedir);
-    if (stat(logfile, &st) != 0) {
-        xdgstate = getenv("XDG_STATE_HOME");
-        if (xdgstate != NULL && xdgstate[0] == '/')
-            snprintf(logfile, sizeof(logfile), "%s/tigervnc", xdgstate);
-        else
-            snprintf(logfile, sizeof(logfile), "%s/.local/state/tigervnc", homedir);
+    if (logfile[0] == 0) {
+        snprintf(logfile, sizeof(logfile), "%s/.vnc", homedir);
+        if (stat(logfile, &st) != 0) {
+            xdgstate = getenv("XDG_STATE_HOME");
+            if (xdgstate != NULL && xdgstate[0] == '/')
+                snprintf(logfile, sizeof(logfile), "%s/tigervnc", xdgstate);
+            else
+                snprintf(logfile, sizeof(logfile), "%s/.local/state/tigervnc", homedir);
+        }
     }
 
     if (mkdir(logfile, 0755) == -1) {
@@ -516,7 +519,7 @@ static void
 usage(void)
 {
     fprintf(stderr, "Syntax:\n");
-    fprintf(stderr, "    vncsession [-D] <username> <display>\n");
+    fprintf(stderr, "    vncsession [-D] [-l /path/to/log/dir] <username> <display>\n");
     exit(EX_USAGE);
 }
 
@@ -530,10 +533,16 @@ main(int argc, char **argv)
 
     int opt, forking = 1;
 
-    while ((opt = getopt(argc, argv, "D")) != -1) {
+    while ((opt = getopt(argc, argv, "Dl:")) != -1) {
         switch (opt) {
         case 'D':
             forking = 0;
+            break;
+        case 'l':
+            if (optarg[0] == '/')
+                snprintf(logfile, sizeof(logfile), "%s", optarg);
+            else
+                fprintf(stderr, "Option -l passed with non-absolute path, will be ignored.");
             break;
         default:
             usage();
