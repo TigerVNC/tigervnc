@@ -519,7 +519,7 @@ static void
 usage(void)
 {
     fprintf(stderr, "Syntax:\n");
-    fprintf(stderr, "    vncsession [-D] [-l /path/to/log/dir] <username> <display>\n");
+    fprintf(stderr, "    vncsession [-D] [-l path/to/log/dir] <username> <display>\n");
     exit(EX_USAGE);
 }
 
@@ -539,10 +539,7 @@ main(int argc, char **argv)
             forking = 0;
             break;
         case 'l':
-            if (optarg[0] == '/')
-                snprintf(logfile, sizeof(logfile), "%s", optarg);
-            else
-                fprintf(stderr, "Option -l passed with non-absolute path, will be ignored.");
+            snprintf(logfile, sizeof(logfile), optarg[0] == '/' ? "%s" : "./%s", optarg);
             break;
         default:
             usage();
