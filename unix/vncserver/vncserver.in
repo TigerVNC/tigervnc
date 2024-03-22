@@ -236,6 +236,7 @@ if ($cookie eq "") {
   }
 }
 
+$xauthorityFile = $config{'auth'} || $xauthorityFile;
 open(XAUTH, "|xauth -f $xauthorityFile source -");
 print XAUTH "add $host:$displayNumber . $cookie\n";
 print XAUTH "add $host/unix:$displayNumber . $cookie\n";
