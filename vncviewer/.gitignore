@@ -1,3 +1,5 @@
 vncviewer
 vncviewer.desktop.in
 vncviewer.desktop
+cmake_install.cmake
+org.tigervnc.vncviewer.metainfo.xml
