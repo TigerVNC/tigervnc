@@ -119,13 +119,8 @@ $default_opts{pn} = undef;
 # Load user-overrideable system defaults
 LoadConfig($vncSystemConfigDefaultsFile);
 
-# Then the user's settings (location overrideable by previous system defaults)
-if (exists $config{'userconfig'}) {
-  LoadConfig($config{'userconfig'});
-  delete $config{'userconfig'};
-} else {
-  LoadConfig($vncUserConfig);
-}
+# Then the user's settings
+LoadConfig($vncUserConfig);
 
 # And then override anything set above if mandatory settings exist.
 # WARNING: "Mandatory" is used loosely here! As the man page says,
@@ -236,7 +231,6 @@ if ($cookie eq "") {
   }
 }
 
-$xauthorityFile = $config{'auth'} || $xauthorityFile;
 open(XAUTH, "|xauth -f $xauthorityFile source -");
 print XAUTH "add $host:$displayNumber . $cookie\n";
 print XAUTH "add $host/unix:$displayNumber . $cookie\n";
