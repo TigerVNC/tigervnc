@@ -38,7 +38,6 @@
 #include <windows.h>
 #include <wininet.h> /* MinGW needs it */
 #include <shlobj.h>
-#define UNUSED(x) (void)(x)
 #endif
 
 static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_def)
@@ -85,8 +84,8 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
 
   return dir;
 #else
-  UNUSED(xdg_def);
-  UNUSED(xdg_env);
+  (void) xdg_def;
+  (void) xdg_env;
   if (userDir)
     ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_PROFILE, FALSE);
   else
