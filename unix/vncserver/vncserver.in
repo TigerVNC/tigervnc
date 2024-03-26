@@ -37,7 +37,9 @@
 
 # Start with legacy ~/.vnc user dir
 $vncUserDir = "$ENV{HOME}/.vnc";
-if (!stat($vncUserDir)) {
+if (stat($vncUserDir)) {
+  warn "~/.vnc is deprecated, see https://github.com/TigerVNC/tigervnc/pull/1737";
+} else {
   # Legacy path doesn't exist, start using new XDG-alike path
   $vncUserDir = rindex("$ENV{XDG_CONFIG_HOME}", "/", 0) == 0
     ? "$ENV{XDG_CONFIG_HOME}/tigervnc"
