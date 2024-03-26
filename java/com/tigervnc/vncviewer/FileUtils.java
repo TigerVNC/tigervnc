@@ -61,7 +61,7 @@ public class FileUtils {
     return homeDir + getFileSeparator();
   }
 
-  public static String getVncConfigDir() {
+  public static String getVncDir(String xdgEnv, String xdgDefault) {
     File legacyDir = new File(getHomeDir() + ".vnc" + getFileSeparator());
     String os = System.getProperty("os.name");
 
@@ -82,13 +82,19 @@ public class FileUtils {
       if (legacyDir.exists()) {
         return legacyDir.getPath();
       }
-      String configHome = System.getenv("XDG_CONFIG_HOME");
-      if (configHome != null && configHome.startsWith("/")) {
-        return configHome + getFileSeparator() + "tigervnc" + getFileSeparator();
-      } else {
-        return getHomeDir() + ".config" + getFileSeparator() + "tigervnc" + getFileSeparator();
-      }
+      String xdgBaseDir = System.getenv(xdgEnv);
+      return (xdgBaseDir != null && xdgBaseDir.startsWith("/"))
+        ? xdgBaseDir + getFileSeparator() + "tigervnc" + getFileSeparator()
+        : getHomeDir() + xdgDefault + getFileSeparator() + "tigervnc" + getFileSeparator();
     }
+  }
+
+  public static String getVncConfigDir() {
+    return getVncDir("XDG_CONFIG_HOME", ".config");
+  }
+
+  public static String getVncDataDir() {
+    return getVncDir("XDG_DATA_HOME", ".local" + getFileSeparator() + "share");
   }
 
   public static String getFileSeparator() {

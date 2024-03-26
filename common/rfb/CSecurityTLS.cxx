@@ -384,9 +384,9 @@ void CSecurityTLS::checkSession()
 
   /* Certificate has some user overridable problems, so TOFU time */
 
-  hostsDir = os::getvncconfigdir();
+  hostsDir = os::getvncdatadir();
   if (hostsDir == NULL) {
-    throw AuthFailureException("Could not obtain VNC config directory "
+    throw AuthFailureException("Could not obtain VNC data directory "
                                "path for known hosts storage");
   }
 

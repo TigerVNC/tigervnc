@@ -42,6 +42,17 @@ namespace os {
   const char* getvncconfigdir();
 
   /*
+   * Get VNC data directory used for X.509 known hosts.
+   * On Unix-like systems, this is either:
+   * - $XDG_DATA_HOME/tigervnc
+   * - $HOME/.local/share/tigervnc
+   * On Windows, this is simply %APPDATA%/vnc/.
+   *
+   * Returns NULL on failure.
+   */
+  const char* getvncdatadir();
+
+  /*
    * Get VNC state (logs) directory. On Unix-like systems, this is either:
    * - $XDG_STATE_HOME/tigervnc
    * - $HOME/.local/state/tigervnc

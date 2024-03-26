@@ -277,12 +277,12 @@ public class CSecurityTLS extends CSecurity {
 			      "do you want to continue?"))
           throw new AuthFailureException("server certificate has expired");
       }
-      File vncDir = new File(FileUtils.getVncConfigDir());
+      File vncDir = new File(FileUtils.getVncDataDir());
       if (!vncDir.exists()) {
         try {
           vncDir.mkdir();
         } catch(SecurityException e) {
-          throw new AuthFailureException("Could not obtain VNC home directory "+
+          throw new AuthFailureException("Could not obtain VNC data directory "+
                                          "path for known hosts storage");
         }
       }

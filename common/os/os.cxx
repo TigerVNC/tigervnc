@@ -116,6 +116,11 @@ const char* os::getvncconfigdir()
   return getvncdir(false, "XDG_CONFIG_HOME", ".config");
 }
 
+const char* os::getvncdatadir()
+{
+  return getvncdir(false, "XDG_DATA_HOME", ".local/share");
+}
+
 const char* os::getvncstatedir()
 {
   return getvncdir(false, "XDG_STATE_HOME", ".local/state");
