@@ -315,12 +315,12 @@ void ServerDialog::loadServerHistory()
   return;
 #endif
 
-  const char* homeDir = os::getvnchomedir();
-  if (homeDir == NULL)
-    throw Exception(_("Could not obtain the home directory path"));
+  const char* stateDir = os::getvncstatedir();
+  if (stateDir == NULL)
+    throw Exception(_("Could not obtain the state directory path"));
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%s/%s", homeDir, SERVER_HISTORY);
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, SERVER_HISTORY);
 
   /* Read server history from file */
   FILE* f = fopen(filepath, "r");
@@ -381,12 +381,12 @@ void ServerDialog::saveServerHistory()
   return;
 #endif
 
-  const char* homeDir = os::getvnchomedir();
-  if (homeDir == NULL)
-    throw Exception(_("Could not obtain the home directory path"));
+  const char* stateDir = os::getvncstatedir();
+  if (stateDir == NULL)
+    throw Exception(_("Could not obtain the state directory path"));
 
   char filepath[PATH_MAX];
-  snprintf(filepath, sizeof(filepath), "%s/%s", homeDir, SERVER_HISTORY);
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, SERVER_HISTORY);
 
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");

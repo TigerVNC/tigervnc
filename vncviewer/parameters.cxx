@@ -629,11 +629,11 @@ void saveViewerParameters(const char *filename, const char *servername) {
     return;
 #endif
     
-    const char* homeDir = os::getvnchomedir();
-    if (homeDir == NULL)
-      throw Exception(_("Could not obtain the home directory path"));
+    const char* configDir = os::getvncconfigdir();
+    if (configDir == NULL)
+      throw Exception(_("Could not obtain the config directory path"));
 
-    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", homeDir);
+    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
@@ -733,11 +733,11 @@ char* loadViewerParameters(const char *filename) {
     return loadFromReg();
 #endif
 
-    const char* homeDir = os::getvnchomedir();
-    if (homeDir == NULL)
-      throw Exception(_("Could not obtain the home directory path"));
+    const char* configDir = os::getvncconfigdir();
+    if (configDir == NULL)
+      throw Exception(_("Could not obtain the config directory path"));
 
-    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", homeDir);
+    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }

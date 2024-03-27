@@ -1,7 +1,7 @@
 ## Default settings for VNC servers started by the vncserver service
 #
 # Any settings given here will override the builtin defaults, but can
-# also be overriden by ~/.vnc/config and vncserver-config-mandatory.
+# also be overriden by ~/.config/tigervnc/config and vncserver-config-mandatory.
 #
 # See HOWTO.md and the following manpages for more details:
 #     vncsession(8) Xvnc(1)
