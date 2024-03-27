@@ -749,7 +749,9 @@ int main(int argc, char** argv)
   char *confdir = strdup(os::getvncconfigdir());
   char *dotdir = strrchr(confdir, '.');
   if (dotdir != NULL && strcmp(dotdir, ".vnc") == 0)
-    vlog.info(_("~/.vnc is deprecated, see https://github.com/TigerVNC/tigervnc/pull/1737"));
+    vlog.info(_("~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."));
+  free(confdir);
+  free(dotdir);
 #endif
   mkdirrecursive(os::getvncconfigdir());
   mkdirrecursive(os::getvncdatadir());

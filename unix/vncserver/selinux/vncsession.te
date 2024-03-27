@@ -72,13 +72,13 @@ optional_policy(`
 	userdom_spec_domtrans_all_users(vnc_session_t)
 	userdom_signal_all_users(vnc_session_t)
 
-	userdom_user_home_dir_filetrans(vnc_session_t, vnc_home_t, dir, ".vnc")
-	userdom_admin_home_dir_filetrans(vnc_session_t, vnc_home_t, dir, ".vnc")
+	userdom_user_home_dir_filetrans(vnc_session_t, vnc_home_t, dir)
+	userdom_admin_home_dir_filetrans(vnc_session_t, vnc_home_t, dir)
 
 	# This also affects other tools, e.g. vncpasswd
 	gen_require(`
 		attribute userdomain;
 	')
-	userdom_admin_home_dir_filetrans(userdomain, vnc_home_t, dir, ".vnc")
-	userdom_user_home_dir_filetrans(userdomain, vnc_home_t, dir, ".vnc")
+	userdom_admin_home_dir_filetrans(userdomain, vnc_home_t, dir)
+	userdom_user_home_dir_filetrans(userdomain, vnc_home_t, dir)
 ')
