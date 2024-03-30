@@ -149,11 +149,11 @@ class Viewport extends JPanel implements ActionListener {
   }
 
   static final int[] dotcursor_xpm = {
-    0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-    0xffffffff, 0xff000000, 0xff000000, 0xff000000, 0xffffffff,
-    0xffffffff, 0xff000000, 0xff000000, 0xff000000, 0xffffffff,
-    0xffffffff, 0xff000000, 0xff000000, 0xff000000, 0xffffffff,
-    0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0xff000000, 0xff000000, 0xff000000, 0x00000000,
+    0x00000000, 0xff000000, 0xff000000, 0xff000000, 0x00000000,
+    0x00000000, 0xff000000, 0xff000000, 0xff000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
   };
 
   public void setCursor(int width, int height, Point hotspot,
@@ -188,23 +188,20 @@ class Viewport extends JPanel implements ActionListener {
       }
     }
 
-    int cw = (int)Math.floor((float)cursor.getWidth() * scaleRatioX);
-    int ch = (int)Math.floor((float)cursor.getHeight() * scaleRatioY);
-
-    int x = (int)Math.floor((float)cursorHotspot.x * scaleRatioX);
-    int y = (int)Math.floor((float)cursorHotspot.y * scaleRatioY);
-
+    int cw = (int) Math.floor((float) cursor.getWidth() * scaleRatioX);
+    int ch = (int) Math.floor((float) cursor.getHeight() * scaleRatioY);
+    int x = cursorHotspot.x;
+    int y = cursorHotspot.y;
     Dimension cs = tk.getBestCursorSize(cw, ch);
-    if (cs.width != cw && cs.height != ch) {
-      cw = Math.min(cw, cs.width);
-      ch = Math.min(ch, cs.height);
-      x = (int)Math.min(x, Math.max(cs.width - 1, 0));
-      y = (int)Math.min(y, Math.max(cs.height - 1, 0));
-      BufferedImage tmp =
-        new BufferedImage(cs.width, cs.height, BufferedImage.TYPE_INT_ARGB_PRE);
+    if (cs.width != cursor.getWidth() || cs.height != cursor.getHeight()) {
+      cw = VncViewer.os.startsWith("windows") ?  Math.min(cw, cs.width) : cs.width;
+      ch = VncViewer.os.startsWith("windows") ?  Math.min(ch, cs.height) : cs.height;
+      BufferedImage tmp = new BufferedImage(cs.width, cs.height, BufferedImage.TYPE_INT_ARGB_PRE);
       Graphics2D g2 = tmp.createGraphics();
       g2.drawImage(cursor, 0, 0, cw, ch, 0, 0, width, height, null);
       g2.dispose();
+      x = (int) Math.min(Math.floor((float) x * (float) cw / (float) width), cw - 1);
+      y = (int) Math.min(Math.floor((float) y * (float) ch / (float) height), ch - 1);
       cursor = tmp;
     }
 
