@@ -69,8 +69,9 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
   add_definitions(-D_DEBUG)
 ENDIF()
 
-# Make sure we get a sane C version
+# Make sure we get a sane C and C++ version
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 # Tell the compiler to be stringent
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat=2 -Wvla")
