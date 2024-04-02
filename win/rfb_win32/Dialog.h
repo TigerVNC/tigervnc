@@ -52,7 +52,7 @@ namespace rfb {
       // expansion), and owner is an optional window handle - the corresponding
       // window is disabled while the dialog box is displayed.
 
-      bool showDialog(const char* resource, HWND owner=0);
+      bool showDialog(const char* resource, HWND owner=nullptr);
 
       // initDialog() is called upon receipt of the WM_INITDIALOG message.
 
@@ -106,7 +106,7 @@ namespace rfb {
 
     class PropSheet {
     public:
-      PropSheet(HINSTANCE inst, const char* title, std::list<PropSheetPage*> pages, HICON icon=0);
+      PropSheet(HINSTANCE inst, const char* title, std::list<PropSheetPage*> pages, HICON icon=nullptr);
       virtual ~PropSheet();
 
       // Display the PropertySheet

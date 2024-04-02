@@ -31,7 +31,7 @@ namespace rfb {
     SSecurityNone(SConnection* sc) : SSecurity(sc) {}
     virtual bool processMsg() { return true; }
     virtual int getType() const {return secTypeNone;}
-    virtual const char* getUserName() const {return 0;}
+    virtual const char* getUserName() const {return nullptr;}
   };
 }
 #endif

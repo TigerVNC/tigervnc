@@ -80,11 +80,11 @@ static const char * ledNames[XDESKTOP_N_LEDS] = {
 };
 
 XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
-  : dpy(dpy_), geometry(geometry_), pb(0), server(0),
-    queryConnectDialog(0), queryConnectSock(0),
+  : dpy(dpy_), geometry(geometry_), pb(nullptr), server(nullptr),
+    queryConnectDialog(nullptr), queryConnectSock(nullptr),
     oldButtonMask(0), haveXtest(false), haveDamage(false),
     maxButtons(0), running(false), ledMasks(), ledState(0),
-    codeMap(0), codeMapLen(0)
+    codeMap(nullptr), codeMapLen(0)
 {
   int major, minor;
 
@@ -108,7 +108,7 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
     Bool on;
 
     a = XInternAtom(dpy, ledNames[i], True);
-    if (!a || !XkbGetNamedIndicator(dpy, a, &shift, &on, NULL, NULL))
+    if (!a || !XkbGetNamedIndicator(dpy, a, &shift, &on, nullptr, nullptr))
       continue;
 
     ledMasks[i] = 1u << shift;
@@ -292,12 +292,12 @@ void XDesktop::stop() {
 #endif
 
   delete queryConnectDialog;
-  queryConnectDialog = 0;
+  queryConnectDialog = nullptr;
 
-  server->setPixelBuffer(0);
+  server->setPixelBuffer(nullptr);
 
   delete pb;
-  pb = 0;
+  pb = nullptr;
 }
 
 void XDesktop::terminate() {
@@ -479,7 +479,7 @@ void XDesktop::deleteAddedKeysyms(Display* dpy) {
       if (XkbKeysymToKeycode(dpy, it->first) != it->second)
         continue;
 
-      XkbChangeTypesOfKey(xkb, it->second, 0, XkbGroup1Mask, NULL, &changes);
+      XkbChangeTypesOfKey(xkb, it->second, 0, XkbGroup1Mask, nullptr, &changes);
 
       if (it->second < lowestKeyCode)
         lowestKeyCode = it->second;
@@ -931,7 +931,7 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
     if (cev->window == cev->root)
       return false;
 
-    server->setCursor(0, 0, Point(), NULL);
+    server->setCursor(0, 0, Point(), nullptr);
     return true;
 #endif
   }
@@ -942,8 +942,8 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 void XDesktop::queryApproved()
 {
   assert(isRunning());
-  server->approveConnection(queryConnectSock, true, 0);
-  queryConnectSock = 0;
+  server->approveConnection(queryConnectSock, true, nullptr);
+  queryConnectSock = nullptr;
 }
 
 void XDesktop::queryRejected()
@@ -951,7 +951,7 @@ void XDesktop::queryRejected()
   assert(isRunning());
   server->approveConnection(queryConnectSock, false,
                             "Connection rejected by local user");
-  queryConnectSock = 0;
+  queryConnectSock = nullptr;
 }
 
 #ifdef HAVE_XFIXES
@@ -960,7 +960,7 @@ bool XDesktop::setCursor()
   XFixesCursorImage *cim;
 
   cim = XFixesGetCursorImage(dpy);
-  if (cim == NULL)
+  if (cim == nullptr)
     return false;
 
   // Copied from XserverDesktop::setCursor() in

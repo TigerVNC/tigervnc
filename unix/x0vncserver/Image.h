@@ -111,7 +111,7 @@ public:
 
 protected:
 
-  void Init(int width, int height, const XVisualInfo *vinfo = NULL);
+  void Init(int width, int height, const XVisualInfo *vinfo = nullptr);
 
   XShmSegmentInfo *shminfo;
 

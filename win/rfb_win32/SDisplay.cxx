@@ -70,13 +70,13 @@ BoolParameter rfb::win32::SDisplay::disableEffects("DisableEffects",
 // -=- Constructor/Destructor
 
 SDisplay::SDisplay()
-  : server(0), pb(0), device(0),
-    core(0), ptr(0), kbd(0), clipboard(0),
-    inputs(0), monitor(0), cleanDesktop(0), cursor(0),
-    statusLocation(0), queryConnectionHandler(0), ledState(0)
+  : server(nullptr), pb(nullptr), device(nullptr),
+    core(nullptr), ptr(nullptr), kbd(nullptr), clipboard(nullptr),
+    inputs(nullptr), monitor(nullptr), cleanDesktop(nullptr), cursor(nullptr),
+    statusLocation(nullptr), queryConnectionHandler(nullptr), ledState(0)
 {
-  updateEvent.h = CreateEvent(0, TRUE, FALSE, 0);
-  terminateEvent.h = CreateEvent(0, TRUE, FALSE, 0);
+  updateEvent.h = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+  terminateEvent.h = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 }
 
 SDisplay::~SDisplay()
@@ -89,7 +89,7 @@ SDisplay::~SDisplay()
   // the VNCServer ought not to exist and therefore we shouldn't invoke any
   // methods on it.  Setting server to zero here ensures that stop() doesn't
   // call setPixelBuffer(0) on the server.
-  server = 0;
+  server = nullptr;
   if (core) stop();
 }
 
@@ -139,7 +139,7 @@ void SDisplay::stop()
   }
 
   // Stop the SDisplayCore
-  server->setPixelBuffer(0);
+  server->setPixelBuffer(nullptr);
   stopCore();
 
   vlog.debug("stopped");
@@ -156,7 +156,7 @@ void SDisplay::terminate()
 void SDisplay::queryConnection(network::Socket* sock,
                                const char* userName)
 {
-  assert(server != NULL);
+  assert(server != nullptr);
 
   if (queryConnectionHandler) {
     queryConnectionHandler->queryConnection(sock, userName);
@@ -198,7 +198,7 @@ void SDisplay::startCore() {
         core = new SDisplayCorePolling(this, &updates);
       core->setScreenRect(screenRect);
     } catch (rdr::Exception& e) {
-      delete core; core = 0;
+      delete core; core = nullptr;
       if (tryMethod == 0)
         throw rdr::Exception("unable to access desktop");
       tryMethod--;
@@ -234,16 +234,16 @@ void SDisplay::startCore() {
 void SDisplay::stopCore() {
   if (core)
     vlog.info("Stopping %s", core->methodName());
-  delete core; core = 0;
-  delete pb; pb = 0;
-  delete device; device = 0;
-  delete monitor; monitor = 0;
-  delete clipboard; clipboard = 0;
-  delete inputs; inputs = 0;
-  delete ptr; ptr = 0;
-  delete kbd; kbd = 0;
-  delete cleanDesktop; cleanDesktop = 0;
-  delete cursor; cursor = 0;
+  delete core; core = nullptr;
+  delete pb; pb = nullptr;
+  delete device; device = nullptr;
+  delete monitor; monitor = nullptr;
+  delete clipboard; clipboard = nullptr;
+  delete inputs; inputs = nullptr;
+  delete ptr; ptr = nullptr;
+  delete kbd; kbd = nullptr;
+  delete cleanDesktop; cleanDesktop = nullptr;
+  delete cursor; cursor = nullptr;
   ResetEvent(updateEvent);
 }
 
@@ -416,7 +416,7 @@ SDisplay::processEvent(HANDLE event) {
 
         // Update the cursor shape
         if (set_cursor)
-          pb->setCursor(info.visible ? info.cursor : 0, server);
+          pb->setCursor(info.visible ? info.cursor : nullptr, server);
 
         // Update the cursor position
         // NB: First translate from Screen coordinates to Desktop
@@ -447,14 +447,14 @@ SDisplay::recreatePixelBuffer(bool force) {
   //   If no device is specified, open entire screen using GetDC().
   //   Opening the whole display with CreateDC doesn't work on multi-monitor
   //   systems for some reason.
-  DeviceContext* new_device = 0;
+  DeviceContext* new_device = nullptr;
   if (strlen(displayDevice) > 0) {
     vlog.info("Attaching to device %s", (const char*)displayDevice);
     new_device = new DeviceDC(displayDevice);
   }
   if (!new_device) {
     vlog.info("Attaching to virtual desktop");
-    new_device = new WindowDC(0);
+    new_device = new WindowDC(nullptr);
   }
 
   // Get the coordinates of the specified dispay device

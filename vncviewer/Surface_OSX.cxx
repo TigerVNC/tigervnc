@@ -44,8 +44,8 @@ static CGImageRef create_image(CGColorSpaceRef lut,
 
   CGImageRef image;
 
-  provider = CGDataProviderCreateWithData(NULL, data,
-                                          w * h * 4, NULL);
+  provider = CGDataProviderCreateWithData(nullptr, data,
+                                          w * h * 4, nullptr);
   if (!provider)
     throw rdr::Exception("CGDataProviderCreateWithData");
 
@@ -58,7 +58,8 @@ static CGImageRef create_image(CGColorSpaceRef lut,
 
   image = CGImageCreate(w, h, 8, 32, w * 4, lut,
                         alpha | kCGBitmapByteOrder32Little,
-                        provider, NULL, false, kCGRenderingIntentDefault);
+                        provider, nullptr, false,
+                        kCGRenderingIntentDefault);
   CGDataProviderRelease(provider);
   if (!image)
     throw rdr::Exception("CGImageCreate");

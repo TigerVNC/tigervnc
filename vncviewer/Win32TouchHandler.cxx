@@ -43,7 +43,7 @@ Win32TouchHandler::Win32TouchHandler(HWND hWnd) :
 {
   // If window is registered as touch we can not receive gestures,
   // this should not happen
-  if (IsTouchWindow(hWnd, NULL))
+  if (IsTouchWindow(hWnd, nullptr))
     throw rfb::Exception(_("Window is registered for touch instead of gestures"));
 
   // We will not receive any touch/gesture events if this service

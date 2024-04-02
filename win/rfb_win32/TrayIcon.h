@@ -43,7 +43,7 @@ namespace rfb {
 
         nid.hWnd = getHandle();
         nid.uID = 0;
-        nid.hIcon = 0;
+        nid.hIcon = nullptr;
         nid.uFlags = NIF_ICON | NIF_MESSAGE;
         nid.uCallbackMessage = WM_USER;
       }
@@ -54,13 +54,13 @@ namespace rfb {
         if (icon == 0) {
           return remove();
         } else {
-          nid.hIcon = (HICON)LoadImage(GetModuleHandle(0), MAKEINTRESOURCE(icon),
+          nid.hIcon = (HICON)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(icon),
             IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
           return refresh();
         }
       }
       bool setToolTip(const char* text) {
-        if (text == 0) {
+        if (text == nullptr) {
           nid.uFlags &= ~NIF_TIP;
         } else {
           const int tipLen = sizeof(nid.szTip)/sizeof(char);

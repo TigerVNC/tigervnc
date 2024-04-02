@@ -67,7 +67,7 @@ bool Blacklist::isBlackmarked(const char* name) {
   // Entry exists - has it reached the threshold yet?
   if ((*i).second.marks >= threshold) {
     // Yes - entry is blocked - has the timeout expired?        
-    time_t now = time(0);
+    time_t now = time(nullptr);
     if (now >= (*i).second.blockUntil) {
       // Timeout has expired.  Reset timeout and allow
       // a re-try.

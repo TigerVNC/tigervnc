@@ -120,7 +120,7 @@
    pgettext_aux (DEFAULT_TEXT_DOMAIN, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, LC_MESSAGES)
 #else
 # define pgettext(Msgctxt, Msgid) \
-   pgettext_aux (NULL, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, LC_MESSAGES)
+   pgettext_aux (nullptr, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, LC_MESSAGES)
 #endif
 #define dpgettext(Domainname, Msgctxt, Msgid) \
   pgettext_aux (Domainname, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, LC_MESSAGES)
@@ -131,7 +131,7 @@
    npgettext_aux (DEFAULT_TEXT_DOMAIN, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, MsgidPlural, N, LC_MESSAGES)
 #else
 # define npgettext(Msgctxt, Msgid, MsgidPlural, N) \
-   npgettext_aux (NULL, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, MsgidPlural, N, LC_MESSAGES)
+   npgettext_aux (nullptr, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, MsgidPlural, N, LC_MESSAGES)
 #endif
 #define dnpgettext(Domainname, Msgctxt, Msgid, MsgidPlural, N) \
   npgettext_aux (Domainname, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, MsgidPlural, N, LC_MESSAGES)
@@ -197,7 +197,7 @@ npgettext_aux (const char *domain,
 #endif
 
 #define pgettext_expr(Msgctxt, Msgid) \
-  dcpgettext_expr (NULL, Msgctxt, Msgid, LC_MESSAGES)
+  dcpgettext_expr (nullptr, Msgctxt, Msgid, LC_MESSAGES)
 #define dpgettext_expr(Domainname, Msgctxt, Msgid) \
   dcpgettext_expr (Domainname, Msgctxt, Msgid, LC_MESSAGES)
 
@@ -224,7 +224,7 @@ dcpgettext_expr (const char *domain,
     (msgctxt_len + msgid_len <= sizeof (buf)
      ? buf
      : (char *) malloc (msgctxt_len + msgid_len));
-  if (msg_ctxt_id != NULL)
+  if (msg_ctxt_id != nullptr)
 #endif
     {
       int found_translation;
@@ -244,7 +244,7 @@ dcpgettext_expr (const char *domain,
 }
 
 #define npgettext_expr(Msgctxt, Msgid, MsgidPlural, N) \
-  dcnpgettext_expr (NULL, Msgctxt, Msgid, MsgidPlural, N, LC_MESSAGES)
+  dcnpgettext_expr (nullptr, Msgctxt, Msgid, MsgidPlural, N, LC_MESSAGES)
 #define dnpgettext_expr(Domainname, Msgctxt, Msgid, MsgidPlural, N) \
   dcnpgettext_expr (Domainname, Msgctxt, Msgid, MsgidPlural, N, LC_MESSAGES)
 
@@ -272,7 +272,7 @@ dcnpgettext_expr (const char *domain,
     (msgctxt_len + msgid_len <= sizeof (buf)
      ? buf
      : (char *) malloc (msgctxt_len + msgid_len));
-  if (msg_ctxt_id != NULL)
+  if (msg_ctxt_id != nullptr)
 #endif
     {
       int found_translation;

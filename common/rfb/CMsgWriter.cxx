@@ -192,7 +192,7 @@ void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
 
 void CMsgWriter::writeClientCutText(const char* str)
 {
-  if (strchr(str, '\r') != NULL)
+  if (strchr(str, '\r') != nullptr)
     throw Exception("Invalid carriage return in clipboard data");
 
   std::string latin1(utf8ToLatin1(str));

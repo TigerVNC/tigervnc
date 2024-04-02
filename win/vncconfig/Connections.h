@@ -41,7 +41,7 @@ namespace rfb {
 
     class ConnHostDialog : public Dialog {
     public:
-      ConnHostDialog() : Dialog(GetModuleHandle(0)) {}
+      ConnHostDialog() : Dialog(GetModuleHandle(nullptr)) {}
       bool showDialog(const char* pat) {
         pattern = pat;
         return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONN_HOST));
@@ -74,7 +74,7 @@ namespace rfb {
           network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(newPat.c_str()));
           pattern = network::TcpFilter::patternToStr(pat);
         } catch(rdr::Exception& e) {
-          MsgBox(NULL, e.str(), MB_ICONEXCLAMATION | MB_OK);
+          MsgBox(nullptr, e.str(), MB_ICONEXCLAMATION | MB_OK);
           return false;
         }
         return true;
@@ -87,7 +87,7 @@ namespace rfb {
     class ConnectionsPage : public PropSheetPage {
     public:
       ConnectionsPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_CONNECTIONS)), regKey(rk) {}
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_CONNECTIONS)), regKey(rk) {}
       void initDialog() {
         vlog.debug("set IDC_PORT %d", (int)port_number);
         setItemInt(IDC_PORT, port_number ? port_number : 5900);

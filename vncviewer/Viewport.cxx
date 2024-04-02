@@ -116,13 +116,13 @@ static const WORD SCAN_FAKE = 0xaa;
 #endif
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc_)
-  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
+  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
     lastPointerPos(0, 0), lastButtonMask(0),
 #ifdef WIN32
     altGrArmed(false),
 #endif
     firstLEDState(true), pendingClientClipboard(false),
-    menuCtrlKey(false), menuAltKey(false), cursor(NULL)
+    menuCtrlKey(false), menuAltKey(false), cursor(nullptr)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
   XkbDescPtr xkb;
@@ -188,7 +188,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
   OptionsDialog::addCallback(handleOptions, this);
 
   // Make sure we have an initial blank cursor set
-  setCursor(0, 0, rfb::Point(0, 0), NULL);
+  setCursor(0, 0, rfb::Point(0, 0), nullptr);
 }
 
 
@@ -702,7 +702,7 @@ unsigned int Viewport::getModifierMask(unsigned int keysym)
   mask = 0;
 
   xkb = XkbGetMap(fl_display, XkbAllComponentsMask, XkbUseCoreKbd);
-  if (xkb == NULL)
+  if (xkb == nullptr)
     return 0;
 
   for (keycode = xkb->min_key_code; keycode <= xkb->max_key_code; keycode++) {
@@ -722,7 +722,7 @@ unsigned int Viewport::getModifierMask(unsigned int keysym)
     goto out;
 
   act = XkbKeyAction(xkb, keycode, 0);
-  if (act == NULL)
+  if (act == nullptr)
     goto out;
   if (act->type != XkbSA_LockMods)
     goto out;
@@ -1164,7 +1164,7 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (keycode == 0)
         keycode = 0x100 | xevent->xkey.keycode;
 
-    XLookupString(&xevent->xkey, &str, 1, &keysym, NULL);
+    XLookupString(&xevent->xkey, &str, 1, &keysym, nullptr);
     if (keysym == NoSymbol) {
       vlog.error(_("No symbol for key code %d (in the current state)"),
                  (int)xevent->xkey.keycode);
@@ -1227,45 +1227,46 @@ void Viewport::initContextMenu()
   contextMenu->clear();
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Disconn&ect"),
-                0, NULL, (void*)ID_DISCONNECT, FL_MENU_DIVIDER);
+                0, nullptr, (void*)ID_DISCONNECT, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Full screen"),
-                0, NULL, (void*)ID_FULLSCREEN,
+                0, nullptr, (void*)ID_FULLSCREEN,
                 FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Minimi&ze"),
-                0, NULL, (void*)ID_MINIMIZE, 0);
+                0, nullptr, (void*)ID_MINIMIZE, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Resize &window to session"),
-                0, NULL, (void*)ID_RESIZE,
+                0, nullptr, (void*)ID_RESIZE,
                 (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
                 FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Ctrl"),
-                0, NULL, (void*)ID_CTRL,
+                0, nullptr, (void*)ID_CTRL,
                 FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Alt"),
-                0, NULL, (void*)ID_ALT,
+                0, nullptr, (void*)ID_ALT,
                 FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
 
   if (menuKeySym) {
     char sendMenuKey[64];
     snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"), (const char *)menuKey);
-    fltk_menu_add(contextMenu, sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
-    fltk_menu_add(contextMenu, "Secret shortcut menu key", menuKeyFLTK, NULL,
+    fltk_menu_add(contextMenu, sendMenuKey, 0, nullptr, (void*)ID_MENUKEY, 0);
+    fltk_menu_add(contextMenu, "Secret shortcut menu key",
+                  menuKeyFLTK, nullptr,
                   (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
   }
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Send Ctrl-Alt-&Del"),
-                0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
+                0, nullptr, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Refresh screen"),
-                0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
+                0, nullptr, (void*)ID_REFRESH, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Options..."),
-                0, NULL, (void*)ID_OPTIONS, 0);
+                0, nullptr, (void*)ID_OPTIONS, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
-                0, NULL, (void*)ID_INFO, 0);
+                0, nullptr, (void*)ID_INFO, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
-                0, NULL, (void*)ID_ABOUT, 0);
+                0, nullptr, (void*)ID_ABOUT, 0);
 }
 
 
@@ -1297,7 +1298,7 @@ void Viewport::popupContextMenu()
   if (Fl::belowmouse())
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 
-  if (m == NULL)
+  if (m == nullptr)
     return;
 
   switch (m->argument()) {

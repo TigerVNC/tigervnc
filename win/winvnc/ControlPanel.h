@@ -20,7 +20,7 @@ namespace winvnc {
   
   class ControlPanel : rfb::win32::Dialog, rfb::win32::ListViewControl {
   public:
-    ControlPanel(HWND hSTIcon) : Dialog(GetModuleHandle(0)), ListViewControl(){
+    ControlPanel(HWND hSTIcon) : Dialog(GetModuleHandle(nullptr)), ListViewControl(){
       m_hSTIcon = hSTIcon;
       stop_updating = false;
     };

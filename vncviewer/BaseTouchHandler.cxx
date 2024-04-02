@@ -40,7 +40,7 @@ static const unsigned DOUBLE_TAP_THRESHOLD = 50;
 
 BaseTouchHandler::BaseTouchHandler()
 {
-  gettimeofday(&lastTapTime, NULL);
+  gettimeofday(&lastTapTime, nullptr);
 }
 
 BaseTouchHandler::~BaseTouchHandler()
@@ -188,7 +188,7 @@ void BaseTouchHandler::handleTapEvent(const GestureEvent& ev,
   } else {
     firstDoubleTapEvent = ev;
   }
-  gettimeofday(&lastTapTime, NULL);
+  gettimeofday(&lastTapTime, nullptr);
 
   fakeMotionEvent(newEv);
   fakeButtonEvent(true, buttonEvent, newEv);

@@ -75,7 +75,7 @@ static const char* configdirfn(const char* fn)
   const char* configdir;
 
   configdir = os::getvncconfigdir();
-  if (configdir == NULL)
+  if (configdir == nullptr)
     return "";
 
   snprintf(full_path, sizeof(full_path), "%s/%s", configdir, fn);
@@ -83,8 +83,10 @@ static const char* configdirfn(const char* fn)
 }
 
 CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
-  : CSecurity(cc), session(NULL), anon_cred(NULL), cert_cred(NULL),
-    anon(_anon), tlsis(NULL), tlsos(NULL), rawis(NULL), rawos(NULL)
+  : CSecurity(cc), session(nullptr),
+    anon_cred(nullptr), cert_cred(nullptr),
+    anon(_anon), tlsis(nullptr), tlsos(nullptr),
+    rawis(nullptr), rawos(nullptr)
 {
   if (gnutls_global_init() != GNUTLS_E_SUCCESS)
     throw AuthFailureException("gnutls_global_init failed");
@@ -103,32 +105,32 @@ void CSecurityTLS::shutdown()
 
   if (anon_cred) {
     gnutls_anon_free_client_credentials(anon_cred);
-    anon_cred = 0;
+    anon_cred = nullptr;
   }
 
   if (cert_cred) {
     gnutls_certificate_free_credentials(cert_cred);
-    cert_cred = 0;
+    cert_cred = nullptr;
   }
 
   if (rawis && rawos) {
     cc->setStreams(rawis, rawos);
-    rawis = NULL;
-    rawos = NULL;
+    rawis = nullptr;
+    rawos = nullptr;
   }
 
   if (tlsis) {
     delete tlsis;
-    tlsis = NULL;
+    tlsis = nullptr;
   }
   if (tlsos) {
     delete tlsos;
-    tlsos = NULL;
+    tlsos = nullptr;
   }
 
   if (session) {
     gnutls_deinit(session);
-    session = 0;
+    session = nullptr;
   }
 }
 
@@ -206,7 +208,7 @@ void CSecurityTLS::setParam()
 
     prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
                          strlen(kx_anon_priority) + 1);
-    if (prio == NULL)
+    if (prio == nullptr)
       throw AuthFailureException("Not enough memory for GnuTLS priority string");
 
     strcpy(prio, Security::GnuTLSPriority);
@@ -242,7 +244,7 @@ void CSecurityTLS::setParam()
 
     prio = (char*)malloc(strlen(gnutls_default_priority) +
                          strlen(kx_anon_priority) + 1);
-    if (prio == NULL)
+    if (prio == nullptr)
       throw AuthFailureException("Not enough memory for GnuTLS priority string");
 
     strcpy(prio, gnutls_default_priority);
@@ -385,7 +387,7 @@ void CSecurityTLS::checkSession()
   /* Certificate has some user overridable problems, so TOFU time */
 
   hostsDir = os::getvncstatedir();
-  if (hostsDir == NULL) {
+  if (hostsDir == nullptr) {
     throw AuthFailureException("Could not obtain VNC state directory "
                                "path for known hosts storage");
   }
@@ -393,8 +395,8 @@ void CSecurityTLS::checkSession()
   std::string dbPath;
   dbPath = (std::string)hostsDir + "/x509_known_hosts";
 
-  err = gnutls_verify_stored_pubkey(dbPath.c_str(), NULL,
-                                    client->getServerName(), NULL,
+  err = gnutls_verify_stored_pubkey(dbPath.c_str(), nullptr,
+                                    client->getServerName(), nullptr,
                                     GNUTLS_CRT_X509, &cert_list[0], 0);
 
   /* Previously known? */
@@ -648,8 +650,9 @@ void CSecurityTLS::checkSession()
     }
   }
 
-  if (gnutls_store_pubkey(dbPath.c_str(), NULL, client->getServerName(),
-                          NULL, GNUTLS_CRT_X509, &cert_list[0], 0, 0))
+  if (gnutls_store_pubkey(dbPath.c_str(), nullptr,
+                          client->getServerName(), nullptr,
+                          GNUTLS_CRT_X509, &cert_list[0], 0, 0))
     vlog.error("Failed to store server certificate to known hosts database");
 
   vlog.info("Exception added for server host");

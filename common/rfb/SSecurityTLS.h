@@ -46,7 +46,7 @@ namespace rfb {
     SSecurityTLS(SConnection* sc, bool _anon);
     virtual ~SSecurityTLS();
     virtual bool processMsg();
-    virtual const char* getUserName() const {return 0;}
+    virtual const char* getUserName() const {return nullptr;}
     virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None;}
 
     static StringParameter X509_CertFile;

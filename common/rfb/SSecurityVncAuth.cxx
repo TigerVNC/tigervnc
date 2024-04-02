@@ -119,7 +119,9 @@ bool SSecurityVncAuth::processMsg()
 VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name,
                                                const char* desc,
                                                StringParameter* passwdFile_)
-: BinaryParameter(name, desc, 0, 0, ConfServer), passwdFile(passwdFile_) {
+: BinaryParameter(name, desc, nullptr, 0, ConfServer),
+  passwdFile(passwdFile_)
+{
 }
 
 void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string *readOnlyPassword) {
@@ -151,8 +153,8 @@ void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string
     }
   }
 
-  assert(password != NULL);
-  assert(readOnlyPassword != NULL);
+  assert(password != nullptr);
+  assert(readOnlyPassword != nullptr);
 
   try {
     *password = deobfuscate(obfuscated.data(), obfuscated.size());

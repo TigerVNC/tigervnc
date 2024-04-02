@@ -29,7 +29,7 @@ namespace rfb {
     class SharingPage : public PropSheetPage {
     public:
       SharingPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_SHARING)), regKey(rk) {}
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_SHARING)), regKey(rk) {}
       void initDialog() {
         setItemChecked(IDC_DISCONNECT_CLIENTS, rfb::Server::disconnectClients);
         setItemChecked(IDC_SHARE_NEVER, rfb::Server::neverShared);

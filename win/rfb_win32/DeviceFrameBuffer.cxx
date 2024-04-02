@@ -122,8 +122,8 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 {
   // - If hCursor is null then there is no cursor - clear the old one
 
-  if (hCursor == 0) {
-    server->setCursor(0, 0, Point(), NULL);
+  if (hCursor == nullptr) {
+    server->setCursor(0, 0, Point(), nullptr);
     return;
   }
 

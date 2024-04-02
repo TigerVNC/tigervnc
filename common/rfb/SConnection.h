@@ -71,7 +71,7 @@ namespace rfb {
     // later, after queryConnection() has returned.  It can only be called when
     // in state RFBSTATE_QUERYING.  On rejection, an AuthFailureException is
     // thrown, so this must be handled appropriately by the caller.
-    void approveConnection(bool accept, const char* reason=0);
+    void approveConnection(bool accept, const char* reason=nullptr);
 
 
     // Methods to terminate the connection

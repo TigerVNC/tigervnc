@@ -43,7 +43,7 @@ namespace rfb {
     class SecPage : public SecurityPage {
     public:
       SecPage(const RegKey& rk)
-        : SecurityPage(NULL), regKey(rk) {
+        : SecurityPage(nullptr), regKey(rk) {
         security = new SecurityServer();
       }
 
@@ -84,10 +84,10 @@ namespace rfb {
         if (isItemChecked(IDC_AUTH_VNC))
           verifyVncPassword(regKey);
         else if (haveVncPassword() && 
-            MsgBox(0, "The VNC authentication method is disabled, but a password is still stored for it.\n"
+            MsgBox(nullptr, "The VNC authentication method is disabled, but a password is still stored for it.\n"
                       "Do you want to remove the VNC authentication password from the registry?",
                       MB_ICONWARNING | MB_YESNO) == IDYES) {
-          regKey.setBinary("Password", 0, 0);
+          regKey.setBinary("Password", nullptr, 0);
         }
 
 #ifdef HAVE_GNUTLS
@@ -119,7 +119,7 @@ namespace rfb {
 
       static void verifyVncPassword(const RegKey& regKey) {
         if (!haveVncPassword()) {
-          MsgBox(0, "The VNC authentication method is enabled, but no password is specified.\n"
+          MsgBox(nullptr, "The VNC authentication method is enabled, but no password is specified.\n"
                     "The password dialog will now be shown.", MB_ICONINFORMATION | MB_OK);
           PasswordDialog passwd(regKey, registryInsecure);
           passwd.showDialog();
@@ -165,10 +165,10 @@ namespace rfb {
         ofn.nMaxFile = sizeof(filename);
         ofn.lpstrFilter = (char*)filter;
         ofn.nFilterIndex = 1;
-        ofn.lpstrFileTitle = NULL;
+        ofn.lpstrFileTitle = nullptr;
         ofn.nMaxFileTitle = 0;
         ofn.lpstrTitle = (char*)title;
-        ofn.lpstrInitialDir = NULL;
+        ofn.lpstrInitialDir = nullptr;
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
         if (GetOpenFileName(&ofn)==TRUE) {

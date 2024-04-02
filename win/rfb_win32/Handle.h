@@ -29,7 +29,7 @@ namespace rfb {
 
     class Handle {
     public:
-      Handle(HANDLE h_=0) : h(h_) {}
+      Handle(HANDLE h_=nullptr) : h(h_) {}
       ~Handle() {
         if (h) CloseHandle(h);
       }

@@ -16,7 +16,7 @@ using namespace winvnc;
 
 bool ControlPanel::showDialog()
 {
-  return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONTROL_PANEL), NULL);
+  return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONTROL_PANEL), nullptr);
 }
 
 void ControlPanel::initDialog()
@@ -118,7 +118,7 @@ BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM /*lPara
   case WM_COMMAND:
     switch (LOWORD(wParam)) {
     case IDCANCEL:
-      handle = NULL;
+      handle = nullptr;
       EndDialog(hwnd, 0);
       return TRUE;
     default:
@@ -145,7 +145,7 @@ void ControlPanel::SendCommand(DWORD command, int data)
   COPYDATASTRUCT copyData;
   copyData.dwData = command;
   copyData.cbData = 0;
-  copyData.lpData = 0;
+  copyData.lpData = nullptr;
   getSelConnInfo();
   if (data != -1) {
     ListConnStatus.Copy(&ListSelConn);

@@ -48,10 +48,10 @@ using namespace rfb;
 static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
-  : csecurity(0),
+  : csecurity(nullptr),
     supportsLocalCursor(false), supportsCursorPosition(false),
     supportsDesktopResize(false), supportsLEDState(false),
-    is(0), os(0), reader_(0), writer_(0),
+    is(nullptr), os(nullptr), reader_(nullptr), writer_(nullptr),
     shared(false),
     state_(RFBSTATE_UNINITIALISED),
     pendingPFChange(false), preferredEncoding(encodingTight),
@@ -59,7 +59,7 @@ CConnection::CConnection()
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
-    framebuffer(NULL), decoder(this),
+    framebuffer(nullptr), decoder(this),
     hasRemoteClipboard(false), hasLocalClipboard(false)
 {
 }
@@ -71,7 +71,7 @@ CConnection::~CConnection()
 
 void CConnection::setServerName(const char* name_)
 {
-  if (name_ == NULL)
+  if (name_ == nullptr)
     name_ = "";
   serverName = name_;
 }
@@ -91,7 +91,7 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
     assert(fb->height() == server.height());
   }
 
-  if ((framebuffer != NULL) && (fb != NULL)) {
+  if ((framebuffer != nullptr) && (fb != nullptr)) {
     Rect rect;
 
     const uint8_t* data;
@@ -399,13 +399,13 @@ void CConnection::close()
     vlog.error("%s", e.str());
   }
 
-  setFramebuffer(NULL);
+  setFramebuffer(nullptr);
   delete csecurity;
-  csecurity = NULL;
+  csecurity = nullptr;
   delete reader_;
-  reader_ = NULL;
+  reader_ = nullptr;
   delete writer_;
-  writer_ = NULL;
+  writer_ = nullptr;
 }
 
 void CConnection::setDesktopSize(int w, int h)
@@ -420,7 +420,7 @@ void CConnection::setDesktopSize(int w, int h)
                                            server.height());
 
   resizeFramebuffer();
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
 }
@@ -440,7 +440,7 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
                                            server.height());
 
   resizeFramebuffer();
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
 }
@@ -471,7 +471,7 @@ void CConnection::serverInit(int width, int height,
   vlog.debug("initialisation done");
 
   initDone();
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
 
@@ -501,7 +501,7 @@ void CConnection::framebufferUpdateStart()
 {
   CMsgHandler::framebufferUpdateStart();
 
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
 
   // Note: This might not be true if continuous updates are supported
   pendingUpdate = false;

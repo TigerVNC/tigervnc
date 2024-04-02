@@ -114,10 +114,10 @@ static const char* defaultDesktopName()
     return "";
 
   struct passwd* pwent = getpwuid(getuid());
-  if (pwent == NULL)
+  if (pwent == nullptr)
     return "";
 
-  size_t len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname.data());
+  size_t len = snprintf(nullptr, 0, "%s@%s", pwent->pw_name, hostname.data());
   if (len < 0)
     return "";
 
@@ -286,7 +286,7 @@ void vncExtensionClose(void)
   try {
     for (int scr = 0; scr < vncGetScreenCount(); scr++) {
       delete desktop[scr];
-      desktop[scr] = NULL;
+      desktop[scr] = nullptr;
     }
   } catch (rdr::Exception& e) {
     vncFatalError("vncExtInit: %s\n",e.str());

@@ -72,8 +72,8 @@ static const PixelFormat mediumColourPF(8, 8, false, true,
 // Time new bandwidth estimates are weighted against (in ms)
 static const unsigned bpsEstimateWindow = 1000;
 
-CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
-  : serverPort(0), desktop(NULL), updateCount(0), pixelCount(0),
+CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
+  : serverPort(0), desktop(nullptr), updateCount(0), pixelCount(0),
     lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
   setShared(::shared);
@@ -90,10 +90,10 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   if (!noJpeg)
     setQualityLevel(::qualityLevel);
 
-  if(sock == NULL) {
+  if(sock == nullptr) {
     try {
 #ifndef WIN32
-      if (strchr(vncServerName, '/') != NULL) {
+      if (strchr(vncServerName, '/') != nullptr) {
         sock = new network::UnixSocket(vncServerName);
         serverHost = sock->getPeerAddress();
         vlog.info(_("Connected to socket %s"), serverHost.c_str());
@@ -346,7 +346,7 @@ void CConn::framebufferUpdateStart()
   CConnection::framebufferUpdateStart();
 
   // For bandwidth estimate
-  gettimeofday(&updateStartTime, NULL);
+  gettimeofday(&updateStartTime, nullptr);
   updateStartPos = sock->inStream().pos();
 
   // Update the screen prematurely for very slow updates
@@ -367,7 +367,7 @@ void CConn::framebufferUpdateEnd()
   updateCount++;
 
   // Calculate bandwidth everything managed to maintain during this update
-  gettimeofday(&now, NULL);
+  gettimeofday(&now, nullptr);
   elapsed = (now.tv_sec - updateStartTime.tv_sec) * 1000000;
   elapsed += now.tv_usec - updateStartTime.tv_usec;
   if (elapsed == 0)

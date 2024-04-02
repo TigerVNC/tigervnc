@@ -62,7 +62,7 @@ H264DecoderContext* H264Decoder::findContext(const Rect& r)
   for (std::deque<H264DecoderContext*>::iterator it = contexts.begin(); it != contexts.end(); it++)
     if ((*it)->isEqualRect(r))
       return *it;
-  return NULL;
+  return nullptr;
 }
 
 bool H264Decoder::readRect(const Rect& /*r*/,
@@ -102,7 +102,7 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
   uint32_t len = is.readU32();
   uint32_t flags = is.readU32();
 
-  H264DecoderContext* ctx = NULL;
+  H264DecoderContext* ctx = nullptr;
   if (flags & resetAllContexts)
   {
     resetContexts();

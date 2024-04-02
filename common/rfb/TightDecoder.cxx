@@ -345,7 +345,7 @@ void TightDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
   size_t rowSize, dataSize;
   uint8_t* netbuf;
 
-  netbuf = NULL;
+  netbuf = nullptr;
 
   if (palSize != 0) {
     if (palSize <= 2)
@@ -387,7 +387,7 @@ void TightDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
     zis[streamId].readBytes(netbuf, dataSize);
 
     zis[streamId].flushUnderlying();
-    zis[streamId].setUnderlying(NULL, 0);
+    zis[streamId].setUnderlying(nullptr, 0);
     delete ms;
 
     bufptr = netbuf;

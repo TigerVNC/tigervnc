@@ -49,18 +49,18 @@ using namespace rfb::win32;
 static LogWriter vlog("Registry");
 
 
-RegKey::RegKey() : key(0), freeKey(false), valueName(NULL), valueNameBufLen(0) {}
+RegKey::RegKey() : key(nullptr), freeKey(false), valueName(nullptr), valueNameBufLen(0) {}
 
-RegKey::RegKey(const HKEY k) : key(0), freeKey(false), valueName(NULL), valueNameBufLen(0) {
-  LONG result = RegOpenKeyEx(k, 0, 0, KEY_ALL_ACCESS, &key);
+RegKey::RegKey(const HKEY k) : key(nullptr), freeKey(false), valueName(nullptr), valueNameBufLen(0) {
+  LONG result = RegOpenKeyEx(k, nullptr, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx(HKEY)", result);
   vlog.debug("duplicated %p to %p", k, key);
   freeKey = true;
 }
 
-RegKey::RegKey(const RegKey& k) : key(0), freeKey(false), valueName(NULL), valueNameBufLen(0) {
-  LONG result = RegOpenKeyEx(k.key, 0, 0, KEY_ALL_ACCESS, &key);
+RegKey::RegKey(const RegKey& k) : key(nullptr), freeKey(false), valueName(nullptr), valueNameBufLen(0) {
+  LONG result = RegOpenKeyEx(k.key, nullptr, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx(RegKey&)", result);
   vlog.debug("duplicated %p to %p", k.key, key);
@@ -108,7 +108,7 @@ void RegKey::setDACL(const PACL acl, bool inherit) {
   if ((result = SetSecurityInfo(key, SE_REGISTRY_KEY,
     DACL_SECURITY_INFORMATION |
     (inherit ? UNPROTECTED_DACL_SECURITY_INFORMATION : PROTECTED_DACL_SECURITY_INFORMATION),
-    0, 0, acl, 0)) != ERROR_SUCCESS)
+    nullptr, nullptr, acl, nullptr)) != ERROR_SUCCESS)
     throw rdr::SystemException("RegKey::setDACL failed", result);
 }
 
@@ -116,7 +116,7 @@ void RegKey::close() {
   if (freeKey) {
     vlog.debug("RegCloseKey(%p)", key);
     RegCloseKey(key);
-    key = 0;
+    key = nullptr;
   }
 }
 
@@ -133,7 +133,7 @@ void RegKey::deleteValue(const char* name) const {
 }
 
 void RegKey::awaitChange(bool watchSubTree, DWORD filter, HANDLE event) const {
-  LONG result = RegNotifyChangeKeyValue(key, watchSubTree, filter, event, event != 0);
+  LONG result = RegNotifyChangeKeyValue(key, watchSubTree, filter, event, event != nullptr);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegNotifyChangeKeyValue", result);
 }
@@ -212,11 +212,11 @@ bool RegKey::getBool(const char* valname, bool def) const {
 
 std::string RegKey::getRepresentation(const char* valname) const {
   DWORD type, length;
-  LONG result = RegQueryValueEx(key, valname, 0, &type, 0, &length);
+  LONG result = RegQueryValueEx(key, valname, nullptr, &type, nullptr, &length);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("get registry value length", result);
   std::vector<uint8_t> data(length);
-  result = RegQueryValueEx(key, valname, 0, &type, (BYTE*)data.data(), &length);
+  result = RegQueryValueEx(key, valname, nullptr, &type, (BYTE*)data.data(), &length);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("get registry value", result);
 
@@ -241,7 +241,7 @@ std::string RegKey::getRepresentation(const char* valname) const {
     {
     if (length) {
       std::string str((char*)data.data(), length);
-      DWORD required = ExpandEnvironmentStrings(str.c_str(), 0, 0);
+      DWORD required = ExpandEnvironmentStrings(str.c_str(), nullptr, 0);
       if (required==0)
         throw rdr::SystemException("ExpandEnvironmentStrings", GetLastError());
       std::vector<char> result(required);
@@ -269,7 +269,7 @@ bool RegKey::isValue(const char* valname) const {
 
 const char* RegKey::getValueName(int i) {
   DWORD maxValueNameLen;
-  LONG result = RegQueryInfoKey(key, 0, 0, 0, 0, 0, 0, 0, &maxValueNameLen, 0, 0, 0);
+  LONG result = RegQueryInfoKey(key, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &maxValueNameLen, nullptr, nullptr, nullptr);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegQueryInfoKey", result);
   if (valueNameBufLen < maxValueNameLen + 1) {
@@ -278,8 +278,8 @@ const char* RegKey::getValueName(int i) {
     valueName = new char[valueNameBufLen];
   }
   DWORD length = valueNameBufLen;
-  result = RegEnumValue(key, i, valueName, &length, NULL, 0, 0, 0);
-  if (result == ERROR_NO_MORE_ITEMS) return 0;
+  result = RegEnumValue(key, i, valueName, &length, nullptr, nullptr, nullptr, nullptr);
+  if (result == ERROR_NO_MORE_ITEMS) return nullptr;
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegEnumValue", result);
   return valueName;
@@ -287,7 +287,7 @@ const char* RegKey::getValueName(int i) {
 
 const char* RegKey::getKeyName(int i) {
   DWORD maxValueNameLen;
-  LONG result = RegQueryInfoKey(key, 0, 0, 0, 0, &maxValueNameLen, 0, 0, 0, 0, 0, 0);
+  LONG result = RegQueryInfoKey(key, nullptr, nullptr, nullptr, nullptr, &maxValueNameLen, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegQueryInfoKey", result);
   if (valueNameBufLen < maxValueNameLen + 1) {
@@ -296,8 +296,8 @@ const char* RegKey::getKeyName(int i) {
     valueName = new char[valueNameBufLen];
   }
   DWORD length = valueNameBufLen;
-  result = RegEnumKeyEx(key, i, valueName, &length, NULL, 0, 0, 0);
-  if (result == ERROR_NO_MORE_ITEMS) return 0;
+  result = RegEnumKeyEx(key, i, valueName, &length, nullptr, nullptr, nullptr, nullptr);
+  if (result == ERROR_NO_MORE_ITEMS) return nullptr;
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegEnumKey", result);
   return valueName;

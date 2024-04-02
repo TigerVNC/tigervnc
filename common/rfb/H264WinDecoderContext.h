@@ -48,14 +48,14 @@ namespace rfb {
       uint32_t crop_height = 0;
       uint32_t offset_x = 0;
       uint32_t offset_y = 0;
-      IMFTransform *decoder = NULL;
-      IMFTransform *converter = NULL;
-      IMFSample *input_sample = NULL;
-      IMFSample *decoded_sample = NULL;
-      IMFSample *converted_sample = NULL;
-      IMFMediaBuffer *input_buffer = NULL;
-      IMFMediaBuffer *decoded_buffer = NULL;
-      IMFMediaBuffer *converted_buffer = NULL;
+      IMFTransform *decoder = nullptr;
+      IMFTransform *converter = nullptr;
+      IMFSample *input_sample = nullptr;
+      IMFSample *decoded_sample = nullptr;
+      IMFSample *converted_sample = nullptr;
+      IMFMediaBuffer *input_buffer = nullptr;
+      IMFMediaBuffer *decoded_buffer = nullptr;
+      IMFMediaBuffer *converted_buffer = nullptr;
 
       void ParseSPS(const uint8_t* buffer, int length);
   };

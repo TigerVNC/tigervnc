@@ -82,7 +82,7 @@ protected:
 
 TestWindow::TestWindow() :
   Fl_Window(0, 0, "Framebuffer Performance Test"),
-  fb(NULL)
+  fb(nullptr)
 {
 }
 
@@ -116,7 +116,7 @@ void TestWindow::stop()
   hide();
 
   delete fb;
-  fb = NULL;
+  fb = nullptr;
 
   Fl::remove_idle(timer, this);
 }
@@ -208,7 +208,7 @@ void PartialTestWindow::changefb()
 }
 
 OverlayTestWindow::OverlayTestWindow() :
-  overlay(NULL), offscreen(NULL)
+  overlay(nullptr), offscreen(nullptr)
 {
 }
 
@@ -224,7 +224,7 @@ void OverlayTestWindow::start(int width, int height)
 #if !defined(__APPLE__)
   offscreen = new Surface(w(), h());
 #else
-  offscreen = NULL;
+  offscreen = nullptr;
 #endif
 }
 
@@ -233,9 +233,9 @@ void OverlayTestWindow::stop()
   PartialTestWindow::stop();
 
   delete offscreen;
-  offscreen = NULL;
+  offscreen = nullptr;
   delete overlay;
-  overlay = NULL;
+  overlay = nullptr;
 }
 
 void OverlayTestWindow::draw()
@@ -299,7 +299,7 @@ static void dosubtest(TestWindow* win, int width, int height,
 
   win->start(width, height);
 
-  gettimeofday(&start, NULL);
+  gettimeofday(&start, nullptr);
   while (rfb::msSince(&start) < 3000)
     Fl::wait();
 

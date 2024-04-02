@@ -34,7 +34,7 @@ namespace rfb {
       ~LocalMem() {LocalFree(ptr);}
       operator void*() {return ptr;}
       void* takePtr() {
-        void* t = ptr; ptr = 0; return t;
+        void* t = ptr; ptr = nullptr; return t;
       }
       void* ptr;
     };

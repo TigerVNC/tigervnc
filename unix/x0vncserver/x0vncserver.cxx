@@ -90,10 +90,10 @@ static const char* defaultDesktopName()
     return "";
 
   struct passwd* pwent = getpwuid(getuid());
-  if (pwent == NULL)
+  if (pwent == nullptr)
     return "";
 
-  int len = snprintf(NULL, 0, "%s@%s", pwent->pw_name, hostname.data());
+  int len = snprintf(nullptr, 0, "%s@%s", pwent->pw_name, hostname.data());
   if (len < 0)
     return "";
 
@@ -154,15 +154,15 @@ class FileTcpFilter : public TcpFilter
 public:
 
   FileTcpFilter(const char *fname)
-    : TcpFilter("-"), fileName(NULL), lastModTime(0)
+    : TcpFilter("-"), fileName(nullptr), lastModTime(0)
   {
-    if (fname != NULL)
+    if (fname != nullptr)
       fileName = strdup((char *)fname);
   }
 
   virtual ~FileTcpFilter()
   {
-    if (fileName != NULL)
+    if (fileName != nullptr)
       free(fileName);
   }
 
@@ -182,7 +182,7 @@ protected:
 
   bool reloadRules()
   {
-    if (fileName == NULL)
+    if (fileName == nullptr)
       return true;
 
     struct stat st;
@@ -192,7 +192,7 @@ protected:
     if (st.st_mtime != lastModTime) {
       // Actually reload only if the file was modified
       FILE *fp = fopen(fileName, "r");
-      if (fp == NULL)
+      if (fp == nullptr)
         return false;
 
       // Remove all the rules from the parent class
@@ -225,14 +225,14 @@ private:
 
   bool readLine(char *buf, int bufSize, FILE *fp)
   {
-    if (fp == NULL || buf == NULL || bufSize == 0)
+    if (fp == nullptr || buf == nullptr || bufSize == 0)
       return false;
 
-    if (fgets(buf, bufSize, fp) == NULL)
+    if (fgets(buf, bufSize, fp) == nullptr)
       return false;
 
     char *ptr = strchr(buf, '\n');
-    if (ptr != NULL) {
+    if (ptr != nullptr) {
       *ptr = '\0';              // remove newline at the end
     } else {
       if (!feof(fp)) {
@@ -353,7 +353,7 @@ int main(int argc, char** argv)
       const char *addr = interface;
 
       if (strcasecmp(addr, "all") == 0)
-        addr = 0;
+        addr = nullptr;
       if (localhostOnly)
         createLocalTcpListeners(&tcp_listeners, (int)rfbport);
       else
@@ -436,8 +436,8 @@ int main(int argc, char** argv)
 
       // Do the wait...
       sched.sleepStarted();
-      int n = select(FD_SETSIZE, &rfds, &wfds, 0,
-                     wait_ms ? &tv : NULL);
+      int n = select(FD_SETSIZE, &rfds, &wfds, nullptr,
+                     wait_ms ? &tv : nullptr);
       sched.sleepFinished();
 
       if (n < 0) {

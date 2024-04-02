@@ -103,6 +103,6 @@ Decoder* Decoder::createDecoder(int encoding)
     return new H264Decoder();
 #endif
   default:
-    return NULL;
+    return nullptr;
   }
 }

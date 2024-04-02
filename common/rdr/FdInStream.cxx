@@ -88,7 +88,7 @@ size_t FdInStream::readFd(uint8_t* buf, size_t len)
 
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
-    n = select(fd+1, &fds, 0, 0, &tv);
+    n = select(fd+1, &fds, nullptr, nullptr, &tv);
   } while (n < 0 && errorNumber == EINTR);
 
   if (n < 0)

@@ -38,7 +38,7 @@ IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
 
 ZRLEEncoder::ZRLEEncoder(SConnection* conn)
   : Encoder(conn, encodingZRLE, EncoderPlain, 127),
-  zos(0, 2), mos(129*1024)
+  zos(nullptr, 2), mos(129*1024)
 {
   if (zlibLevel != -1) {
     vlog.info("Warning: The ZlibLevel option is deprecated and is "
@@ -50,7 +50,7 @@ ZRLEEncoder::ZRLEEncoder(SConnection* conn)
 
 ZRLEEncoder::~ZRLEEncoder()
 {
-  zos.setUnderlying(NULL);
+  zos.setUnderlying(nullptr);
 }
 
 bool ZRLEEncoder::isSupported()

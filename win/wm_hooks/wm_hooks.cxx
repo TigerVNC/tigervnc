@@ -69,7 +69,7 @@ ATOM ATOM_Popup_Selection = GlobalAddAtom("RFB.WM_Hooks.PopupSelectionAtom");
 // -=- DLL entry point
 //
 
-HINSTANCE dll_instance = 0;
+HINSTANCE dll_instance = nullptr;
 
 BOOL WINAPI DllMain(HANDLE instance, ULONG reason, LPVOID /*reserved*/) {
   switch (reason) {
@@ -92,12 +92,12 @@ BOOL WINAPI DllMain(HANDLE instance, ULONG reason, LPVOID /*reserved*/) {
 
 DWORD hook_owner SHARED = 0;
 DWORD hook_target SHARED = 0;
-HHOOK hook_CallWndProc SHARED = 0;
-HHOOK hook_CallWndProcRet SHARED = 0;
-HHOOK hook_GetMessage SHARED = 0;
-HHOOK hook_DialogMessage SHARED = 0;
+HHOOK hook_CallWndProc SHARED = nullptr;
+HHOOK hook_CallWndProcRet SHARED = nullptr;
+HHOOK hook_GetMessage SHARED = nullptr;
+HHOOK hook_DialogMessage SHARED = nullptr;
 BOOL enable_cursor_shape SHARED = FALSE;
-HCURSOR cursor SHARED = 0;
+HCURSOR cursor SHARED = nullptr;
 #ifdef _DEBUG
 UINT diagnostic_min SHARED =1;
 UINT diagnostic_max SHARED =0;
@@ -252,7 +252,7 @@ void ProcessWindowMessage(UINT msg, HWND wnd, WPARAM wParam, LPARAM /*lParam*/) 
 				if (buffsize != 0)
 				{
 					buff = (RGNDATA *) new BYTE [buffsize];
-					if (buff == NULL)
+					if (buff == nullptr)
 						break;
 
 					// Now get the region data
@@ -277,7 +277,7 @@ void ProcessWindowMessage(UINT msg, HWND wnd, WPARAM wParam, LPARAM /*lParam*/) 
 			}
 
 			// Now free the region
-			if (region != NULL)
+			if (region != nullptr)
 				DeleteObject(region);
 		}
     */
@@ -353,19 +353,19 @@ BOOL WM_Hooks_Remove(DWORD owner) {
   if (owner != hook_owner) return FALSE;
   if (hook_CallWndProc) {
     UnhookWindowsHookEx(hook_CallWndProc);
-    hook_CallWndProc = 0;
+    hook_CallWndProc = nullptr;
   }
   if (hook_CallWndProcRet) {
     UnhookWindowsHookEx(hook_CallWndProcRet);
-    hook_CallWndProcRet = 0;
+    hook_CallWndProcRet = nullptr;
   }
   if (hook_GetMessage) {
     UnhookWindowsHookEx(hook_GetMessage);
-    hook_GetMessage = 0;
+    hook_GetMessage = nullptr;
   }
   if (hook_DialogMessage) {
     UnhookWindowsHookEx(hook_DialogMessage);
-    hook_DialogMessage = 0;
+    hook_DialogMessage = nullptr;
   }
   hook_owner = 0;
   hook_target = 0;
@@ -376,8 +376,8 @@ BOOL WM_Hooks_Remove(DWORD owner) {
 // -=- User input hooks
 //
 
-HHOOK hook_keyboard SHARED = 0;
-HHOOK hook_pointer SHARED = 0;
+HHOOK hook_keyboard SHARED = nullptr;
+HHOOK hook_pointer SHARED = nullptr;
 bool enable_real_ptr SHARED = true;
 bool enable_synth_ptr SHARED = true;
 bool enable_real_kbd SHARED = true;
@@ -414,11 +414,11 @@ bool RefreshInputHooks() {
   bool set_kbd_hook = !enable_real_kbd || !enable_synth_kbd;
   if (hook_keyboard && !set_kbd_hook) {
     UnhookWindowsHookEx(hook_keyboard);
-    hook_keyboard = 0;
+    hook_keyboard = nullptr;
   }
   if (hook_pointer && !set_ptr_hook) {
     UnhookWindowsHookEx(hook_pointer);
-    hook_pointer = 0;
+    hook_pointer = nullptr;
   }
   if (!hook_keyboard && set_kbd_hook) {
     hook_keyboard = SetWindowsHookEx(WH_KEYBOARD_LL, HookKeyboardHook, dll_instance, 0);

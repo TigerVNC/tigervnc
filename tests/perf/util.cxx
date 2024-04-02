@@ -65,8 +65,8 @@ cpucounter_t newCpuCounter(void)
   syscounter_t *c;
 
   c = (syscounter_t*)malloc(sizeof(syscounter_t) * 2);
-  if (c == NULL)
-    return NULL;
+  if (c == nullptr)
+    return nullptr;
 
   memset(c, 0, sizeof(syscounter_t) * 2);
 
@@ -149,7 +149,7 @@ void startTimeCounter(void)
 #ifdef WIN32
   QueryPerformanceCounter(&timeStart);
 #else
-  gettimeofday(&timeStart, NULL);
+  gettimeofday(&timeStart, nullptr);
 #endif
 }
 
@@ -158,7 +158,7 @@ void endTimeCounter(void)
 #ifdef WIN32
   QueryPerformanceCounter(&timeEnd);
 #else
-  gettimeofday(&timeEnd, NULL);
+  gettimeofday(&timeEnd, nullptr);
 #endif
 }
 

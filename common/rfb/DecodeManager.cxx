@@ -41,7 +41,7 @@ using namespace rfb;
 static LogWriter vlog("DecodeManager");
 
 DecodeManager::DecodeManager(CConnection *conn) :
-  conn(conn), threadException(NULL)
+  conn(conn), threadException(nullptr)
 {
   size_t cpuCount;
 
@@ -110,7 +110,7 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
 
   QueueEntry *entry;
 
-  assert(pb != NULL);
+  assert(pb != nullptr);
 
   if (!Decoder::supported(encoding)) {
     vlog.error("Unknown encoding %d", encoding);
@@ -247,7 +247,7 @@ void DecodeManager::setThreadException(const rdr::Exception& e)
 {
   os::AutoMutex a(queueMutex);
 
-  if (threadException != NULL)
+  if (threadException != nullptr)
     return;
 
   threadException = new rdr::Exception("Exception on worker thread: %s", e.str());
@@ -257,13 +257,13 @@ void DecodeManager::throwThreadException()
 {
   os::AutoMutex a(queueMutex);
 
-  if (threadException == NULL)
+  if (threadException == nullptr)
     return;
 
   rdr::Exception e(*threadException);
 
   delete threadException;
-  threadException = NULL;
+  threadException = nullptr;
 
   throw e;
 }
@@ -305,7 +305,7 @@ void DecodeManager::DecodeThread::worker()
 
     // Look for an available entry in the work queue
     entry = findEntry();
-    if (entry == NULL) {
+    if (entry == nullptr) {
       // Wait and try again
       manager->consumerCond->wait();
       continue;
@@ -351,7 +351,7 @@ DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
   Region lockedRegion;
 
   if (manager->workQueue.empty())
-    return NULL;
+    return nullptr;
 
   if (!manager->workQueue.front()->active)
     return manager->workQueue.front();
@@ -405,5 +405,5 @@ next:
     lockedRegion.assign_union(entry->affectedRegion);
   }
 
-  return NULL;
+  return nullptr;
 }

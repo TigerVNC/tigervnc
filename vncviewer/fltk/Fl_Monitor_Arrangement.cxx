@@ -379,7 +379,7 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
 
   Fl::screen_xywh(x, y, w, h, m);
 
-  EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallback,
+  EnumDisplayMonitors(nullptr, nullptr, EnumDisplayMonitorsCallback,
                       (LPARAM)&sys_monitors);
 
   for (iter = sys_monitors.begin(); iter != sys_monitors.end(); ++iter) {
@@ -441,11 +441,11 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
 
   info = IODisplayCreateInfoDictionary(CGDisplayIOServicePort(displayID),
                                        kIODisplayOnlyPreferredName);
-  if (info == NULL)
+  if (info == nullptr)
     return "";
 
   dict = (CFDictionaryRef) CFDictionaryGetValue(info, CFSTR(kDisplayProductName));
-  if (dict == NULL) {
+  if (dict == nullptr) {
     CFRelease(info);
     return "";
   }
@@ -454,7 +454,7 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
 
   if (dict_len > 0) {
     CFTypeRef * names = new CFTypeRef[dict_len];
-    CFDictionaryGetKeysAndValues(dict, NULL, (const void **) names);
+    CFDictionaryGetKeysAndValues(dict, nullptr, (const void **) names);
 
     if (names[0]) {
 
@@ -496,7 +496,7 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
   std::string name;
 
   fl_open_display();
-  assert(fl_display != NULL);
+  assert(fl_display != nullptr);
   Fl::screen_xywh(x, y, w, h, m);
 
   if (!XQueryExtension(fl_display, "RANDR", &xi_major, &ev, &err))

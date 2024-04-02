@@ -134,7 +134,7 @@ static bool parseNumber(std::string number, std::set<int> *indices)
     if (number.size() <= 0)
         return false;
 
-    int v = strtol(number.c_str(), NULL, 0);
+    int v = strtol(number.c_str(), nullptr, 0);
 
     if (v <= 0)
         return false;

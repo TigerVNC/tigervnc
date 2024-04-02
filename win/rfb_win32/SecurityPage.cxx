@@ -40,7 +40,7 @@ static LogWriter vlog("AuthDialog");
 
 /* XXX: This class contains bunch of similar code to unix/vncviewer/CConn.cxx */
 SecurityPage::SecurityPage(Security *security_)
-  : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_SECURITY)),
+  : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_SECURITY)),
     security(security_) {
 }
 

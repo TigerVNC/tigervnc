@@ -36,7 +36,7 @@ namespace rfb {
 
     // Wrapper around Win32 MessageBox()
     static int MsgBox(HWND parent, const char* msg, UINT flags) {
-      const char* msgType = 0;
+      const char* msgType = nullptr;
       UINT tflags = flags & 0x70;
       if (tflags == MB_ICONHAND)
         msgType = "Error";

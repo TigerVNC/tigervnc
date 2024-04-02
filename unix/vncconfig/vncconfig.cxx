@@ -62,7 +62,7 @@ BoolParameter iconic("iconic", "Start with window iconified", 0);
 #define SET_PRIMARY "SetPrimary"
 #define SEND_PRIMARY "SendPrimary"
 
-char* programName = 0;
+char* programName = nullptr;
 Display* dpy;
 int vncExtEventBase, vncExtErrorBase;
 
@@ -86,7 +86,7 @@ public:
       setPrimaryCB(dpy, "Also set primary selection", this, false, this),
       sendClipboard(dpy, "Send clipboard to viewers", this, false, this),
       sendPrimaryCB(dpy, "Send primary selection to viewers", this,false,this),
-      queryConnectDialog(0)
+      queryConnectDialog(nullptr)
   {
     int y = yPad;
     acceptClipboard.move(xPad, y);
@@ -104,7 +104,7 @@ public:
     sendPrimaryCB.disabled(!sendClipboard.checked());
     y += sendPrimaryCB.height();
     setEventHandler(this);
-    toplevel("VNC config", this, 0, 0, 0, iconic);
+    toplevel("VNC config", this, 0, nullptr, nullptr, iconic);
     XVncExtSelectInput(dpy, win(), VncExtQueryConnectMask);
   }
 
@@ -115,7 +115,7 @@ public:
        vlog.debug("query connection event");
        if (queryConnectDialog)
          delete queryConnectDialog;
-       queryConnectDialog = 0;
+       queryConnectDialog = nullptr;
        char* qcAddress;
        char* qcUser;
        int qcTimeout;
@@ -306,7 +306,7 @@ int main(int argc, char** argv)
 
     while (true) {
       struct timeval tv;
-      struct timeval* tvp = 0;
+      struct timeval* tvp = nullptr;
 
       // Process any incoming X events
       TXWindow::handleXEvents(dpy);
@@ -329,7 +329,7 @@ int main(int argc, char** argv)
       fd_set rfds;
       FD_ZERO(&rfds);
       FD_SET(ConnectionNumber(dpy), &rfds);
-      int n = select(FD_SETSIZE, &rfds, 0, 0, tvp);
+      int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, tvp);
       if (n < 0) throw rdr::SystemException("select",errno);
     }
 

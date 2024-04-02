@@ -71,7 +71,7 @@ Rect Geometry::parseString(const char *arg) const
 {
   Rect result;                  // empty by default
 
-  if (arg != NULL && strlen(arg) > 0) {
+  if (arg != nullptr && strlen(arg) > 0) {
     int w, h;
     int x = 0, y = 0;
     char sign_x[2] = "+";

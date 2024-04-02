@@ -301,7 +301,7 @@ static NSString *key_translate(UInt16 keyCode, UInt32 modifierFlags)
   const UCKeyboardLayout *layout;
   OSStatus err;
 
-  layout = NULL;
+  layout = nullptr;
 
   TISInputSourceRef keyboard;
   CFDataRef uchr;
@@ -309,11 +309,11 @@ static NSString *key_translate(UInt16 keyCode, UInt32 modifierFlags)
   keyboard = TISCopyCurrentKeyboardLayoutInputSource();
   uchr = (CFDataRef)TISGetInputSourceProperty(keyboard,
                                               kTISPropertyUnicodeKeyLayoutData);
-  if (uchr == NULL)
+  if (uchr == nullptr)
     return nil;
 
   layout = (const UCKeyboardLayout*)CFDataGetBytePtr(uchr);
-  if (layout == NULL)
+  if (layout == nullptr)
     return nil;
 
   UInt32 dead_state;

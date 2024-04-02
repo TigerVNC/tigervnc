@@ -25,9 +25,9 @@ namespace rfb {
   namespace win32 {
 
     struct ModuleFileName {
-      ModuleFileName(HMODULE module=0) {
+      ModuleFileName(HMODULE module=nullptr) {
         if (!module)
-          module = GetModuleHandle(0);
+          module = GetModuleHandle(nullptr);
         if (!GetModuleFileName(module, buf, MAX_PATH))
           buf[0] = 0;
       }

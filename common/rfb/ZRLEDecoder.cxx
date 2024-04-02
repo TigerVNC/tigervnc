@@ -286,5 +286,5 @@ void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
   }
 
   zis->flushUnderlying();
-  zis->setUnderlying(NULL, 0);
+  zis->setUnderlying(nullptr, 0);
 }

@@ -39,7 +39,7 @@ ClientParams::ClientParams()
 {
   setName("");
 
-  cursor_ = new Cursor(0, 0, Point(), NULL);
+  cursor_ = new Cursor(0, 0, Point(), nullptr);
 
   clipFlags = clipboardUTF8 | clipboardRTF | clipboardHTML |
               clipboardRequest | clipboardNotify | clipboardProvide;

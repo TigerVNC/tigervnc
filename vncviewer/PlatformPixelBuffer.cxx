@@ -41,16 +41,16 @@ static rfb::LogWriter vlog("PlatformPixelBuffer");
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                         255, 255, 255, 16, 8, 0),
-                       0, 0, NULL, 0),
+                       0, 0, nullptr, 0),
   Surface(width, height)
 #if !defined(WIN32) && !defined(__APPLE__)
-  , shminfo(NULL), xim(NULL)
+  , shminfo(nullptr), xim(nullptr)
 #endif
 {
 #if !defined(WIN32) && !defined(__APPLE__)
   if (!setupShm(width, height)) {
-    xim = XCreateImage(fl_display, CopyFromParent, 32,
-                       ZPixmap, 0, 0, width, height, 32, 0);
+    xim = XCreateImage(fl_display, (Visual*)CopyFromParent, 32,
+                       ZPixmap, 0, nullptr, width, height, 32, 0);
     if (!xim)
       throw rdr::Exception("XCreateImage");
 
@@ -78,15 +78,15 @@ PlatformPixelBuffer::~PlatformPixelBuffer()
     vlog.debug("Freeing shared memory XImage");
     XShmDetach(fl_display, shminfo);
     shmdt(shminfo->shmaddr);
-    shmctl(shminfo->shmid, IPC_RMID, 0);
+    shmctl(shminfo->shmid, IPC_RMID, nullptr);
     delete shminfo;
-    shminfo = NULL;
+    shminfo = nullptr;
   }
 
   // XDestroyImage() will free(xim->data) if appropriate
   if (xim)
     XDestroyImage(xim);
-  xim = NULL;
+  xim = nullptr;
 #endif
 }
 
@@ -113,7 +113,7 @@ rfb::Rect PlatformPixelBuffer::getDamage(void)
 
   GC gc;
 
-  gc = XCreateGC(fl_display, pixmap, 0, NULL);
+  gc = XCreateGC(fl_display, pixmap, 0, nullptr);
   if (shminfo) {
     XShmPutImage(fl_display, pixmap, gc, xim,
                  r.tl.x, r.tl.y, r.tl.x, r.tl.y,
@@ -147,7 +147,7 @@ bool PlatformPixelBuffer::setupShm(int width, int height)
   int major, minor;
   Bool pixmaps;
   XErrorHandler old_handler;
-  const char *display_name = XDisplayName (NULL);
+  const char *display_name = XDisplayName(nullptr);
 
   /* Don't use MIT-SHM on remote displays */
   if (*display_name && *display_name != ':')
@@ -158,8 +158,8 @@ bool PlatformPixelBuffer::setupShm(int width, int height)
 
   shminfo = new XShmSegmentInfo;
 
-  xim = XShmCreateImage(fl_display, CopyFromParent, 32,
-                        ZPixmap, 0, shminfo, width, height);
+  xim = XShmCreateImage(fl_display, (Visual*)CopyFromParent, 32,
+                        ZPixmap, nullptr, shminfo, width, height);
   if (!xim)
     goto free_shminfo;
 
@@ -169,8 +169,8 @@ bool PlatformPixelBuffer::setupShm(int width, int height)
   if (shminfo->shmid == -1)
     goto free_xim;
 
-  shminfo->shmaddr = xim->data = (char*)shmat(shminfo->shmid, 0, 0);
-  shmctl(shminfo->shmid, IPC_RMID, 0); // to avoid memory leakage
+  shminfo->shmaddr = xim->data = (char*)shmat(shminfo->shmid, nullptr, 0);
+  shmctl(shminfo->shmid, IPC_RMID, nullptr); // to avoid memory leakage
   if (shminfo->shmaddr == (char *)-1)
     goto free_xim;
 
@@ -202,11 +202,11 @@ free_shmaddr:
 
 free_xim:
   XDestroyImage(xim);
-  xim = NULL;
+  xim = nullptr;
 
 free_shminfo:
   delete shminfo;
-  shminfo = NULL;
+  shminfo = nullptr;
 
   return 0;
 }

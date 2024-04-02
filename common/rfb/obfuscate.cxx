@@ -41,7 +41,7 @@ std::vector<uint8_t> rfb::obfuscate(const char *str)
 {
   std::vector<uint8_t> buf(8);
 
-  assert(str != NULL);
+  assert(str != nullptr);
 
   size_t l = strlen(str), i;
   for (i=0; i<8; i++)
@@ -59,7 +59,7 @@ std::string rfb::deobfuscate(const uint8_t *data, size_t len)
   if (len != 8)
     throw rdr::Exception("bad obfuscated password length");
 
-  assert(data != NULL);
+  assert(data != nullptr);
 
   deskey(d3desObfuscationKey, DE1);
   des((uint8_t*)data, (uint8_t*)buf);

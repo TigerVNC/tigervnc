@@ -385,7 +385,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
     }
 
     zis.flushUnderlying();
-    zis.setUnderlying(NULL, 0);
+    zis.setUnderlying(nullptr, 0);
 
     handler->handleClipboardProvide(flags, lengths, buffers);
 

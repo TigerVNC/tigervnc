@@ -51,7 +51,7 @@ void vncLogError(const char *name, const char *format, ...)
   LogWriter *vlog;
   va_list ap;
   vlog = LogWriter::getLogWriter(name);
-  if (vlog == NULL)
+  if (vlog == nullptr)
     return;
   va_start(ap, format);
   vlog->verror(format, ap);
@@ -63,7 +63,7 @@ void vncLogStatus(const char *name, const char *format, ...)
   LogWriter *vlog;
   va_list ap;
   vlog = LogWriter::getLogWriter(name);
-  if (vlog == NULL)
+  if (vlog == nullptr)
     return;
   va_start(ap, format);
   vlog->vstatus(format, ap);
@@ -75,7 +75,7 @@ void vncLogInfo(const char *name, const char *format, ...)
   LogWriter *vlog;
   va_list ap;
   vlog = LogWriter::getLogWriter(name);
-  if (vlog == NULL)
+  if (vlog == nullptr)
     return;
   va_start(ap, format);
   vlog->vinfo(format, ap);
@@ -87,7 +87,7 @@ void vncLogDebug(const char *name, const char *format, ...)
   LogWriter *vlog;
   va_list ap;
   vlog = LogWriter::getLogWriter(name);
-  if (vlog == NULL)
+  if (vlog == nullptr)
     return;
   va_start(ap, format);
   vlog->vdebug(format, ap);
@@ -96,12 +96,12 @@ void vncLogDebug(const char *name, const char *format, ...)
 
 int vncSetParam(const char *name, const char *value)
 {
-  if (value != NULL)
+  if (value != nullptr)
     return rfb::Configuration::setParam(name, value);
   else {
     VoidParameter *param;
     param = rfb::Configuration::getParam(name);
-    if (param == NULL)
+    if (param == nullptr)
       return false;
     return param->setParam();
   }
@@ -118,11 +118,11 @@ char* vncGetParam(const char *name)
 
   // Hack to avoid exposing password!
   if (strcasecmp(name, "Password") == 0)
-    return NULL;
+    return nullptr;
 
   param = rfb::Configuration::getParam(name);
-  if (param == NULL)
-    return NULL;
+  if (param == nullptr)
+    return nullptr;
 
   return strdup(param->getValueStr().c_str());
 }
@@ -132,8 +132,8 @@ const char* vncGetParamDesc(const char *name)
   rfb::VoidParameter *param;
 
   param = rfb::Configuration::getParam(name);
-  if (param == NULL)
-    return NULL;
+  if (param == nullptr)
+    return nullptr;
 
   return param->getDescription();
 }
@@ -144,11 +144,11 @@ int vncIsParamBool(const char *name)
   BoolParameter *bparam;
 
   param = rfb::Configuration::getParam(name);
-  if (param == NULL)
+  if (param == nullptr)
     return false;
 
   bparam = dynamic_cast<BoolParameter*>(param);
-  if (bparam == NULL)
+  if (bparam == nullptr)
     return false;
 
   return true;
@@ -179,8 +179,8 @@ char *vncGetParamList(void)
   }
 
   data = (char*)malloc(len + 1);
-  if (data == NULL)
-    return NULL;
+  if (data == nullptr)
+    return nullptr;
 
   ptr = data;
   for (ParameterIterator i; i.param; i.next()) {
@@ -227,7 +227,7 @@ char* vncConvertLF(const char* src, size_t bytes)
   try {
     return strdup(convertLF(src, bytes).c_str());
   } catch (...) {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -236,7 +236,7 @@ char* vncLatin1ToUTF8(const char* src, size_t bytes)
   try {
     return strdup(latin1ToUTF8(src, bytes).c_str());
   } catch (...) {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -245,7 +245,7 @@ char* vncUTF8ToLatin1(const char* src, size_t bytes)
   try {
     return strdup(utf8ToLatin1(src, bytes).c_str());
   } catch (...) {
-    return NULL;
+    return nullptr;
   }
 }
 

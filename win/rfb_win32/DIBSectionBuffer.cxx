@@ -33,11 +33,11 @@ static LogWriter vlog("DIBSectionBuffer");
 
 
 DIBSectionBuffer::DIBSectionBuffer(HWND window_)
-  : bitmap(0), window(window_), device(0) {
+  : bitmap(nullptr), window(window_), device(nullptr) {
 }
 
 DIBSectionBuffer::DIBSectionBuffer(HDC device_)
-  : bitmap(0), window(0), device(device_) {
+  : bitmap(nullptr), window(nullptr), device(device_) {
 }
 
 DIBSectionBuffer::~DIBSectionBuffer() {
@@ -52,8 +52,8 @@ inline void initMaxAndShift(DWORD mask, int* max, int* shift) {
 }
 
 void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
-  HBITMAP new_bitmap = 0;
-  uint8_t* new_data = 0;
+  HBITMAP new_bitmap = nullptr;
+  uint8_t* new_data = nullptr;
 
   if (!pf.trueColour)
     throw rfb::Exception("palette format not supported");
@@ -78,10 +78,10 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
     // Create a DIBSection to draw into
     if (device)
       new_bitmap = ::CreateDIBSection(device, (BITMAPINFO*)&bi.bmiHeader, iUsage,
-                                      (void**)&new_data, NULL, 0);
+                                      (void**)&new_data, nullptr, 0);
     else
       new_bitmap = ::CreateDIBSection(WindowDC(window), (BITMAPINFO*)&bi.bmiHeader, iUsage,
-                                      (void**)&new_data, NULL, 0);
+                                      (void**)&new_data, nullptr, 0);
 
     if (!new_bitmap) {
       int err = GetLastError();
@@ -112,8 +112,8 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
   if (bitmap) {
     // Delete the old bitmap
     DeleteObject(bitmap);
-    bitmap = 0;
-    setBuffer(0, 0, NULL, 0);
+    bitmap = nullptr;
+    setBuffer(0, 0, nullptr, 0);
   }
 
   if (new_bitmap) {

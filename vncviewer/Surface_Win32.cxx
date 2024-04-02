@@ -78,7 +78,7 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
 {
   HDC origdc, dstdc;
 
-  dstdc = CreateCompatibleDC(NULL);
+  dstdc = CreateCompatibleDC(nullptr);
   if (!dstdc)
     throw rdr::SystemException("CreateCompatibleDC", GetLastError());
 
@@ -106,10 +106,10 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
   HDC dstdc, srcdc;
   BLENDFUNCTION blend;
 
-  dstdc = CreateCompatibleDC(NULL);
+  dstdc = CreateCompatibleDC(nullptr);
   if (!dstdc)
     throw rdr::SystemException("CreateCompatibleDC", GetLastError());
-  srcdc = CreateCompatibleDC(NULL);
+  srcdc = CreateCompatibleDC(nullptr);
   if (!srcdc)
     throw rdr::SystemException("CreateCompatibleDC", GetLastError());
 
@@ -152,8 +152,8 @@ void Surface::alloc()
   bih.biHeight       = -height(); // Negative to get top-down
   bih.biCompression  = BI_RGB;
 
-  bitmap = CreateDIBSection(NULL, (BITMAPINFO*)&bih,
-                            DIB_RGB_COLORS, (void**)&data, NULL, 0);
+  bitmap = CreateDIBSection(nullptr, (BITMAPINFO*)&bih,
+                            DIB_RGB_COLORS, (void**)&data, nullptr, 0);
   if (!bitmap)
     throw rdr::SystemException("CreateDIBSection", GetLastError());
 }

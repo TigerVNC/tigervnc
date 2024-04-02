@@ -47,7 +47,7 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
 {
   Picture winPict;
 
-  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, NULL);
+  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, nullptr);
   XRenderComposite(fl_display, PictOpSrc, picture, None, winPict,
                    src_x, src_y, 0, 0, x, y, w, h);
   XRenderFreePicture(fl_display, winPict);
@@ -90,7 +90,7 @@ void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
 {
   Picture winPict, alpha;
 
-  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, NULL);
+  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, nullptr);
   alpha = alpha_mask(a);
   XRenderComposite(fl_display, PictOpOver, picture, alpha, winPict,
                    src_x, src_y, 0, 0, x, y, w, h);
@@ -154,7 +154,7 @@ void Surface::alloc()
   if (!format)
     throw rdr::Exception("XRenderFindFormat");
 
-  picture = XRenderCreatePicture(fl_display, pixmap, format, 0, NULL);
+  picture = XRenderCreatePicture(fl_display, pixmap, format, 0, nullptr);
 
   visFormat = XRenderFindVisualFormat(fl_display, fl_visual->visual);
 }
@@ -177,8 +177,8 @@ void Surface::update(const Fl_RGB_Image* image)
   assert(image->w() == width());
   assert(image->h() == height());
 
-  img = XCreateImage(fl_display, CopyFromParent, 32,
-                     ZPixmap, 0, NULL, width(), height(),
+  img = XCreateImage(fl_display, (Visual*)CopyFromParent, 32,
+                     ZPixmap, 0, nullptr, width(), height(),
                      32, 0);
   if (!img)
     throw rdr::Exception("XCreateImage");
@@ -224,7 +224,7 @@ void Surface::update(const Fl_RGB_Image* image)
       in += image->ld() - image->w() * image->d();
   }
 
-  gc = XCreateGC(fl_display, pixmap, 0, NULL);
+  gc = XCreateGC(fl_display, pixmap, 0, nullptr);
   XPutImage(fl_display, pixmap, gc, img,
             0, 0, 0, 0, img->width, img->height);
   XFreeGC(fl_display, gc);

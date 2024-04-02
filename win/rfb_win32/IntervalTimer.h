@@ -31,7 +31,7 @@ namespace rfb {
       IntervalTimer(HWND hwnd_, int id_)
         : hwnd(hwnd_), id(id_), active(false) {
       }
-      IntervalTimer() : hwnd(0), id(0), active(false) {
+      IntervalTimer() : hwnd(nullptr), id(0), active(false) {
       }
       ~IntervalTimer() {
         stop();
@@ -40,7 +40,7 @@ namespace rfb {
       void start(int interval_) {
         if (!active || interval_ != interval) {
           interval = interval_;
-          if (!SetTimer(hwnd, id, interval, 0))
+          if (!SetTimer(hwnd, id, interval, nullptr))
             throw rdr::SystemException("SetTimer", GetLastError());
           active = true;
         }

@@ -308,7 +308,7 @@ SConn::SConn()
 : SConnection(rfb::AccessDefault)
 {
   out = new DummyOutStream;
-  setStreams(NULL, out);
+  setStreams(nullptr, out);
 
   setWriter(new rfb::SMsgWriter(&client, out));
 
@@ -323,7 +323,7 @@ SConn::~SConn()
 
 void SConn::writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb)
 {
-  manager->writeUpdate(ui, pb, NULL);
+  manager->writeUpdate(ui, pb, nullptr);
 }
 
 void SConn::getStats(double& ratio, unsigned long long& bytes,
@@ -357,7 +357,7 @@ static struct stats runTest(const char *fn)
   struct stats s;
   struct timeval start, stop;
 
-  gettimeofday(&start, NULL);
+  gettimeofday(&start, nullptr);
 
   try {
     cc = new CConn(fn);
@@ -375,7 +375,7 @@ static struct stats runTest(const char *fn)
     exit(1);
   }
 
-  gettimeofday(&stop, NULL);
+  gettimeofday(&stop, nullptr);
 
   s.decodeTime = cc->decodeTime;
   s.encodeTime = cc->encodeTime;
@@ -420,7 +420,7 @@ int main(int argc, char **argv)
 
   const char *fn;
 
-  fn = NULL;
+  fn = nullptr;
   for (i = 1; i < argc; i++) {
     if (rfb::Configuration::setParam(argv[i]))
       continue;
@@ -435,7 +435,7 @@ int main(int argc, char **argv)
       usage(argv[0]);
     }
 
-    if (fn != NULL)
+    if (fn != nullptr)
       usage(argv[0]);
 
     fn = argv[i];
@@ -447,7 +447,7 @@ int main(int argc, char **argv)
   double *dev = new double[runCount];
   double median, meddev;
 
-  if (fn == NULL) {
+  if (fn == nullptr) {
     fprintf(stderr, "No file specified!\n\n");
     usage(argv[0]);
   }

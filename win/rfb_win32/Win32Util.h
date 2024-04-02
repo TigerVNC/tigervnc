@@ -30,7 +30,7 @@ namespace rfb {
   namespace win32 {
 
     struct FileVersionInfo {
-      FileVersionInfo(const char* filename=0);
+      FileVersionInfo(const char* filename=nullptr);
       ~FileVersionInfo();
       const char* getVerString(const char* name, DWORD langId = 0x080904b0);
     private:

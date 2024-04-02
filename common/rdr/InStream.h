@@ -64,7 +64,7 @@ namespace rdr {
 #endif
 
       if (length > (size_t)(end - ptr)) {
-        if (restorePoint != NULL) {
+        if (restorePoint != nullptr) {
           bool ret;
           size_t restoreDiff;
 
@@ -100,21 +100,21 @@ namespace rdr {
 
     inline void setRestorePoint() {
 #ifdef RFB_INSTREAM_CHECK
-      if (restorePoint != NULL)
+      if (restorePoint != nullptr)
         throw Exception("Nested use of input stream restore point");
 #endif
       restorePoint = ptr;
     }
     inline void clearRestorePoint() {
 #ifdef RFB_INSTREAM_CHECK
-      if (restorePoint == NULL)
+      if (restorePoint == nullptr)
         throw Exception("Incorrect clearing of input stream restore point");
 #endif
-      restorePoint = NULL;
+      restorePoint = nullptr;
     }
     inline void gotoRestorePoint() {
 #ifdef RFB_INSTREAM_CHECK
-      if (restorePoint == NULL)
+      if (restorePoint == nullptr)
         throw Exception("Incorrect activation of input stream restore point");
 #endif
       ptr = restorePoint;
@@ -204,7 +204,7 @@ namespace rdr {
 
   protected:
 
-    InStream() : restorePoint(NULL)
+    InStream() : restorePoint(nullptr)
 #ifdef RFB_INSTREAM_CHECK
       ,checkedBytes(0)
 #endif

@@ -31,7 +31,7 @@ static LogWriter vlog("ManagedListener");
 
 
 ManagedListener::ManagedListener(SocketManager* mgr)
-: filter(0), manager(mgr), addrChangeNotifier(0), server(0), port(0), localOnly(false) {
+: filter(nullptr), manager(mgr), addrChangeNotifier(nullptr), server(nullptr), port(0), localOnly(false) {
 }
 
 ManagedListener::~ManagedListener() {
@@ -98,7 +98,7 @@ void ManagedListener::refresh() {
       if (localOnly)
         network::createLocalTcpListeners(&sockets, port);
       else
-        network::createTcpListeners(&sockets, NULL, port);
+        network::createTcpListeners(&sockets, nullptr, port);
     }
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());

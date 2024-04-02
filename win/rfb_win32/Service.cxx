@@ -42,7 +42,7 @@ static LogWriter vlog("Service");
 
 // - Internal service implementation functions
 
-Service* service = 0;
+Service* service = nullptr;
 bool runAsService = false;
 
 VOID WINAPI serviceHandler(DWORD control) {
@@ -93,7 +93,7 @@ VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
 
 Service::Service(const char* name_) : name(name_) {
   vlog.debug("Service");
-  status_handle = 0;
+  status_handle = nullptr;
   status.dwControlsAccepted = SERVICE_CONTROL_INTERROGATE | SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_STOP;
   status.dwServiceType = SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS;
   status.dwWin32ExitCode = NO_ERROR;
@@ -108,8 +108,8 @@ Service::start() {
   SERVICE_TABLE_ENTRY entry[2];
   entry[0].lpServiceName = (char*)name;
   entry[0].lpServiceProc = serviceProc;
-  entry[1].lpServiceName = NULL;
-  entry[1].lpServiceProc = NULL;
+  entry[1].lpServiceName = nullptr;
+  entry[1].lpServiceProc = nullptr;
   vlog.debug("entering dispatcher");
   if (!SetProcessShutdownParameters(0x100, 0))
     vlog.error("unable to set shutdown parameters: %lu", GetLastError());
@@ -125,7 +125,7 @@ Service::setStatus() {
 
 void
 Service::setStatus(DWORD state) {
-  if (status_handle == 0) {
+  if (status_handle == nullptr) {
     vlog.debug("warning - cannot setStatus");
     return;
   }
@@ -141,7 +141,7 @@ Service::setStatus(DWORD state) {
 
 Service::~Service() {
   vlog.debug("~Service");
-  service = 0;
+  service = nullptr;
 }
 
 
@@ -254,7 +254,7 @@ rfb::win32::changeDesktop() {
 bool
 rfb::win32::emulateCtrlAltDel() {
   rfb::win32::Handle sessionEventCad = 
-    CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNCCad");
+    CreateEvent(nullptr, FALSE, FALSE, "Global\\SessionEventTigerVNCCad");
   SetEvent(sessionEventCad);
   return true;
 }
@@ -265,7 +265,7 @@ rfb::win32::emulateCtrlAltDel() {
 class Logger_EventLog : public Logger {
 public:
   Logger_EventLog(const char* srcname) : Logger("EventLog") {
-    eventlog = RegisterEventSource(NULL, srcname);
+    eventlog = RegisterEventSource(nullptr, srcname);
     if (!eventlog)
       printf("Unable to open event log:%ld\n", GetLastError());
   }
@@ -279,7 +279,7 @@ public:
     const char* strings[] = {logname, message};
     WORD type = EVENTLOG_INFORMATION_TYPE;
     if (level == 0) type = EVENTLOG_ERROR_TYPE;
-    if (!ReportEvent(eventlog, type, 0, VNC4LogMessage, NULL, 2, 0, strings, NULL)) {
+    if (!ReportEvent(eventlog, type, 0, VNC4LogMessage, nullptr, 2, 0, strings, nullptr)) {
       // *** It's not at all clear what is the correct behaviour if this fails...
       printf("ReportEvent failed:%ld\n", GetLastError());
     }
@@ -289,7 +289,7 @@ protected:
   HANDLE eventlog;
 };
 
-static Logger_EventLog* logger = 0;
+static Logger_EventLog* logger = nullptr;
 
 bool rfb::win32::initEventLogLogger(const char* srcname) {
   if (logger)
@@ -333,7 +333,7 @@ bool rfb::win32::registerService(const char* name,
   // - Register the service
 
   // - Open the SCM
-  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
+  ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CREATE_SERVICE);
   if (!scm)
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
@@ -342,7 +342,7 @@ bool rfb::win32::registerService(const char* name,
     name, display, SC_MANAGER_ALL_ACCESS,
     SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
     SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
-    cmdline.c_str(), NULL, NULL, NULL, NULL, NULL);
+    cmdline.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
   if (!service)
     throw rdr::SystemException("unable to create service", GetLastError());
 
@@ -378,7 +378,7 @@ bool rfb::win32::registerService(const char* name,
 
 bool rfb::win32::unregisterService(const char* name) {
   // - Open the SCM
-  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
+  ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CREATE_SERVICE);
   if (!scm)
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
@@ -405,7 +405,7 @@ bool rfb::win32::unregisterService(const char* name) {
 bool rfb::win32::startService(const char* name) {
 
   // - Open the SCM
-  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+  ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
@@ -415,7 +415,7 @@ bool rfb::win32::startService(const char* name) {
     throw rdr::SystemException("unable to open the service", GetLastError());
 
   // - Start the service
-  if (!StartService(service, 0, NULL))
+  if (!StartService(service, 0, nullptr))
     throw rdr::SystemException("unable to start the service", GetLastError());
 
   Sleep(500);
@@ -425,7 +425,7 @@ bool rfb::win32::startService(const char* name) {
 
 bool rfb::win32::stopService(const char* name) {
   // - Open the SCM
-  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+  ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
@@ -446,7 +446,7 @@ bool rfb::win32::stopService(const char* name) {
 
 DWORD rfb::win32::getServiceState(const char* name) {
   // - Open the SCM
-  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+  ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 

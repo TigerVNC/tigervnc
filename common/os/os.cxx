@@ -58,12 +58,12 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
 
 #ifndef WIN32
   homedir = getenv("HOME");
-  if (homedir == NULL) {
+  if (homedir == nullptr) {
     uid = getuid();
     passwd = getpwuid(uid);
-    if (passwd == NULL) {
+    if (passwd == nullptr) {
       /* Do we want emit error msg here? */
-      return NULL;
+      return nullptr;
     }
     homedir = passwd->pw_dir;
   }
@@ -72,7 +72,7 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
     return homedir;
 
   xdgdir = getenv(xdg_env);
-  if (xdgdir != NULL && xdgdir[0] == '/')
+  if (xdgdir != nullptr && xdgdir[0] == '/')
     snprintf(dir, sizeof(dir), "%s/tigervnc", xdgdir);
   else
     snprintf(dir, sizeof(dir), "%s/%s/tigervnc", homedir, xdg_def);
@@ -83,25 +83,25 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
   (void) xdg_env;
 
   if (userDir)
-    ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_PROFILE, FALSE);
+    ret = SHGetSpecialFolderPath(nullptr, dir, CSIDL_PROFILE, FALSE);
   else
-    ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_APPDATA, FALSE);
+    ret = SHGetSpecialFolderPath(nullptr, dir, CSIDL_APPDATA, FALSE);
 
   if (ret == FALSE)
-    return NULL;
+    return nullptr;
 
   if (userDir)
     return dir;
 
-  ret = SHGetSpecialFolderPath(NULL, legacy, CSIDL_APPDATA, FALSE);
+  ret = SHGetSpecialFolderPath(nullptr, legacy, CSIDL_APPDATA, FALSE);
 
   if (ret == FALSE)
-    return NULL;
+    return nullptr;
 
   if (strlen(dir) + strlen("\\TigerVNC") >= sizeof(dir))
-    return NULL;
+    return nullptr;
   if (strlen(legacy) + strlen("\\vnc") >= sizeof(legacy))
-    return NULL;
+    return nullptr;
 
   strcat(dir, "\\TigerVNC");
   strcat(legacy, "\\vnc");
@@ -111,7 +111,7 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
 
 const char* os::getuserhomedir()
 {
-  return getvncdir(true, NULL, NULL);
+  return getvncdir(true, nullptr, nullptr);
 }
 
 const char* os::getvncconfigdir()

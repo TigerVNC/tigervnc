@@ -33,7 +33,7 @@ namespace rfb {
     class InputsPage : public PropSheetPage {
     public:
       InputsPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_INPUTS)),
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_INPUTS)),
           regKey(rk), enableAffectSSaver(true) {}
       void initDialog() {
         setItemChecked(IDC_ACCEPT_KEYS, rfb::Server::acceptKeyEvents);
@@ -70,7 +70,7 @@ namespace rfb {
         regKey.setBool("DisableLocalInputs", isItemChecked(IDC_DISABLE_LOCAL_INPUTS));
         if (enableAffectSSaver) {
           BOOL blocked = !isItemChecked(IDC_AFFECT_SCREENSAVER);
-          SystemParametersInfo(SPI_SETBLOCKSENDINPUTRESETS, blocked, 0, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+          SystemParametersInfo(SPI_SETBLOCKSENDINPUTRESETS, blocked, nullptr, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
         }
         return true;
       }

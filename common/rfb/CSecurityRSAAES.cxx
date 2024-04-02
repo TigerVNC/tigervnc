@@ -61,9 +61,9 @@ CSecurityRSAAES::CSecurityRSAAES(CConnection* cc, uint32_t _secType,
   : CSecurity(cc), state(ReadPublicKey),
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
     clientKey(), clientPublicKey(), serverKey(),
-    serverKeyN(NULL), serverKeyE(NULL),
-    clientKeyN(NULL), clientKeyE(NULL),
-    rais(NULL), raos(NULL), rawis(NULL), rawos(NULL)
+    serverKeyN(nullptr), serverKeyE(nullptr),
+    clientKeyN(nullptr), clientKeyE(nullptr),
+    rais(nullptr), raos(nullptr), rawis(nullptr), rawos(nullptr)
 {
   assert(keySize == 128 || keySize == 256);
 }
@@ -154,7 +154,8 @@ void CSecurityRSAAES::writePublicKey()
   // set e = 65537
   mpz_set_ui(clientPublicKey.e, 65537);
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
-                            &rs, random_func, NULL, NULL, clientKeyLength, 0))
+                            &rs, random_func, nullptr, nullptr,
+                            clientKeyLength, 0))
     throw AuthFailureException("failed to generate key");
   clientKeyN = new uint8_t[rsaKeySize];
   clientKeyE = new uint8_t[rsaKeySize];
@@ -413,10 +414,10 @@ void CSecurityRSAAES::clearSecrets()
   delete[] serverKeyE;
   delete[] clientKeyN;
   delete[] clientKeyE;
-  serverKeyN = NULL;
-  serverKeyE = NULL;
-  clientKeyN = NULL;
-  clientKeyE = NULL;
+  serverKeyN = nullptr;
+  serverKeyE = nullptr;
+  clientKeyN = nullptr;
+  clientKeyE = nullptr;
   memset(serverRandom, 0, sizeof(serverRandom));
   memset(clientRandom, 0, sizeof(clientRandom));
 }
@@ -439,7 +440,7 @@ void CSecurityRSAAES::writeCredentials()
   if (subtype == secTypeRA2UserPass)
     (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
   else
-    (CSecurity::upg)->getUserPasswd(isSecure(), NULL, &password);
+    (CSecurity::upg)->getUserPasswd(isSecure(), nullptr, &password);
 
   if (subtype == secTypeRA2UserPass) {
     if (username.size() > 255)

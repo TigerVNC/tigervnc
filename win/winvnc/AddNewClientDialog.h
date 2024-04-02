@@ -28,7 +28,7 @@ namespace winvnc {
 
   class AddNewClientDialog : public rfb::win32::Dialog {
   public:
-    AddNewClientDialog() : Dialog(GetModuleHandle(0)) {}
+    AddNewClientDialog() : Dialog(GetModuleHandle(nullptr)) {}
     // - Show the dialog and return true if OK was clicked,
     //   false in case of error or Cancel
     virtual bool showDialog() {

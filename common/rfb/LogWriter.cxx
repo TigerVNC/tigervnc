@@ -34,7 +34,8 @@ rfb::LogParameter rfb::logParams;
 using namespace rfb;
 
 
-LogWriter::LogWriter(const char* name) : m_name(name), m_level(0), m_log(0), m_next(log_writers) {
+LogWriter::LogWriter(const char* name)
+  : m_name(name), m_level(0), m_log(nullptr), m_next(log_writers) {
   log_writers = this;
 }
 
@@ -72,7 +73,7 @@ LogWriter::getLogWriter(const char* name) {
     if (strcasecmp(name, current->m_name) == 0) return current;
       current = current->m_next;
     }
-  return 0;
+  return nullptr;
 }
 
 bool LogWriter::setLogParams(const char* params) {
@@ -83,7 +84,7 @@ bool LogWriter::setLogParams(const char* params) {
     return false;
   }
   int level = atoi(parts[2].c_str());
-  Logger* logger = 0;
+  Logger* logger = nullptr;
   if (!parts[1].empty()) {
     logger = Logger::getLogger(parts[1].c_str());
     if (!logger)

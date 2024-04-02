@@ -313,10 +313,10 @@ void init_theme()
   CTFontRef font;
   CFStringRef name;
 
-  font = CTFontCreateUIFontForLanguage(kCTFontSystemFontType, 0.0, NULL);
-  if (font != NULL) {
+  font = CTFontCreateUIFontForLanguage(kCTFontSystemFontType, 0.0, nullptr);
+  if (font != nullptr) {
     name = CTFontCopyFullName(font);
-    if (name != NULL) {
+    if (name != nullptr) {
       CFStringGetCString(name, font_name, sizeof(font_name),
                          kCFStringEncodingUTF8);
 

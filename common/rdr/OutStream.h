@@ -36,7 +36,7 @@ namespace rdr {
 
   protected:
 
-    OutStream() : ptr(NULL), end(NULL), corked(false) {}
+    OutStream() : ptr(nullptr), end(nullptr), corked(false) {}
 
   public:
 

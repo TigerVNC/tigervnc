@@ -180,7 +180,7 @@ int main(int /*argc*/, char** /*argv*/)
 
     for (i = 0;i < ARRAY_SIZE(latin1utf8);i++) {
         /* Expected failure? */
-        if (strchr(latin1utf8[i].latin1, '?') != NULL)
+        if (strchr(latin1utf8[i].latin1, '?') != nullptr)
             continue;
 
         out = rfb::latin1ToUTF8(latin1utf8[i].latin1);
@@ -212,7 +212,7 @@ int main(int /*argc*/, char** /*argv*/)
 
     for (i = 0;i < ARRAY_SIZE(utf8utf16);i++) {
         /* Expected failure? */
-        if (strstr(utf8utf16[i].utf8, "\xef\xbf\xbd") != NULL)
+        if (strstr(utf8utf16[i].utf8, "\xef\xbf\xbd") != nullptr)
             continue;
 
         wout = rfb::utf8ToUTF16(utf8utf16[i].utf8);

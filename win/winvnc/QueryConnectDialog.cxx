@@ -44,7 +44,7 @@ static IntParameter timeout("QueryConnectTimeout",
 QueryConnectDialog::QueryConnectDialog(network::Socket* sock_,
                                        const char* userName_,
                                        VNCServerWin32* s)
-: Dialog(GetModuleHandle(0)),
+: Dialog(GetModuleHandle(nullptr)),
   sock(sock_), peerIp(sock->getPeerAddress()), userName(userName_),
   approve(false), server(s) {
 }
@@ -73,7 +73,7 @@ void QueryConnectDialog::worker() {
 // - Dialog overrides
 
 void QueryConnectDialog::initDialog() {
-  if (!SetTimer(handle, 1, 1000, 0))
+  if (!SetTimer(handle, 1, 1000, nullptr))
     throw rdr::SystemException("SetTimer", GetLastError());
   setItemString(IDC_QUERY_HOST, peerIp.c_str());
   if (userName.empty())

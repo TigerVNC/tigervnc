@@ -71,7 +71,7 @@ bool network::isSocketListening(int sock)
 }
 
 Socket::Socket(int fd)
-  : instream(0), outstream(0),
+  : instream(nullptr), outstream(nullptr),
     isShutdown_(false), queryConnection(false)
 {
   initSockets();
@@ -79,7 +79,7 @@ Socket::Socket(int fd)
 }
 
 Socket::Socket()
-  : instream(0), outstream(0),
+  : instream(nullptr), outstream(nullptr),
     isShutdown_(false), queryConnection(false)
 {
   initSockets();
@@ -129,13 +129,13 @@ void Socket::setFd(int fd)
 }
 
 SocketListener::SocketListener(int fd)
-  : fd(fd), filter(0)
+  : fd(fd), filter(nullptr)
 {
   initSockets();
 }
 
 SocketListener::SocketListener()
-  : fd(-1), filter(0)
+  : fd(-1), filter(nullptr)
 {
   initSockets();
 }
@@ -160,14 +160,14 @@ Socket* SocketListener::accept() {
   int new_sock = -1;
 
   // Accept an incoming connection
-  if ((new_sock = ::accept(fd, 0, 0)) < 0)
+  if ((new_sock = ::accept(fd, nullptr, nullptr)) < 0)
     throw SocketException("unable to accept new connection", errorNumber);
 
   // Create the socket object & check connection is allowed
   Socket* s = createSocket(new_sock);
   if (filter && !filter->verifyConnection(s)) {
     delete s;
-    return NULL;
+    return nullptr;
   }
 
   return s;

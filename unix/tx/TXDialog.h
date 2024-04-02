@@ -62,7 +62,7 @@ public:
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(ConnectionNumber(dpy), &rfds);
-        int n = select(FD_SETSIZE, &rfds, 0, 0, 0);
+        int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, nullptr);
         if (n < 0) throw rdr::SystemException("select",errno);
       }
     }

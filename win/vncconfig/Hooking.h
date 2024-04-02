@@ -31,7 +31,7 @@ namespace rfb {
     class HookingPage : public PropSheetPage {
     public:
       HookingPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_HOOKING)), regKey(rk) {}
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_HOOKING)), regKey(rk) {}
       void initDialog() {
         setItemChecked(IDC_USEPOLLING, rfb::win32::SDisplay::updateMethod == 0);
         setItemChecked(IDC_USEHOOKS, (rfb::win32::SDisplay::updateMethod == 1));

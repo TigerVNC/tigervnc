@@ -35,7 +35,7 @@ public:
   enum HAlign { left, centre, right };
   enum VAlign { top, middle, bottom };
 
-  TXLabel(Display* dpy_, const char* text_, TXWindow* parent_=0,
+  TXLabel(Display* dpy_, const char* text_, TXWindow* parent_=nullptr,
           int w=1, int h=1, HAlign ha=centre, VAlign va=middle)
     : TXWindow(dpy_, w, h, parent_), lineSpacing(2), lines(0),
       halign(ha), valign(va)

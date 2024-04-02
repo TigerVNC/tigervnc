@@ -75,7 +75,7 @@ SSecurityPlain::SSecurityPlain(SConnection* sc) : SSecurity(sc)
 #elif !defined(__APPLE__)
   valid = new UnixPasswordValidator();
 #else
-  valid = NULL;
+  valid = nullptr;
 #endif
 
   state = 0;

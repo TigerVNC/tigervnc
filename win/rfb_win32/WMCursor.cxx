@@ -32,8 +32,8 @@ using namespace rfb::win32;
 
 static LogWriter vlog("WMCursor");
 
-WMCursor::WMCursor() : cursor(0) {
-  cursor = (HCURSOR)LoadImage(0, IDC_ARROW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+WMCursor::WMCursor() : cursor(nullptr) {
+  cursor = (HCURSOR)LoadImage(nullptr, IDC_ARROW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
 }
 
 WMCursor::~WMCursor() {

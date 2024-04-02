@@ -27,7 +27,7 @@ namespace rfb {
     class PasswordDialog : public Dialog {
     public:
       PasswordDialog(const RegKey& rk, bool registryInsecure_);
-      bool showDialog(HWND owner=0);
+      bool showDialog(HWND owner=nullptr);
       bool onOk();
     protected:
       const RegKey& regKey;

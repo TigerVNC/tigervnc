@@ -41,7 +41,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 
   self->streamEmpty = false;
   delete self->saved_exception;
-  self->saved_exception = NULL;
+  self->saved_exception = nullptr;
 
   try {
     if (!in->hasData(1)) {
@@ -72,7 +72,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 }
 
 TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
-  : session(_session), in(_in), saved_exception(NULL)
+  : session(_session), in(_in), saved_exception(nullptr)
 {
   gnutls_transport_ptr_t recv, send;
 
@@ -83,7 +83,7 @@ TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
 
 TLSInStream::~TLSInStream()
 {
-  gnutls_transport_set_pull_function(session, NULL);
+  gnutls_transport_set_pull_function(session, nullptr);
 
   delete saved_exception;
 }

@@ -59,7 +59,7 @@ GAIException::GAIException(const char* s, int err)
   wchar_t *currStr = new wchar_t[len-strlen(str_)];
   wcsncpy(currStr, gai_strerrorW(err), len-1-strlen(str_));
   WideCharToMultiByte(CP_UTF8, 0, currStr, -1, str_+strlen(str_),
-                      len-1-strlen(str_), 0, 0);
+                      len-1-strlen(str_), nullptr, nullptr);
   delete [] currStr;
 #else
   strncat(str_, gai_strerror(err), len-1-strlen(str_));
@@ -83,9 +83,9 @@ SystemException::SystemException(const char* s, int err_)
 #ifdef _WIN32
   wchar_t *currStr = new wchar_t[len-strlen(str_)];
   FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                 0, err, 0, currStr, len-1-strlen(str_), 0);
+                 nullptr, err, 0, currStr, len-1-strlen(str_), nullptr);
   WideCharToMultiByte(CP_UTF8, 0, currStr, -1, str_+strlen(str_),
-                      len-1-strlen(str_), 0, 0);
+                      len-1-strlen(str_), nullptr, nullptr);
   delete [] currStr;
 
   int l = strlen(str_);

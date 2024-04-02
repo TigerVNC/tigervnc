@@ -29,7 +29,7 @@ namespace rfb {
     class DesktopPage : public PropSheetPage {
     public:
       DesktopPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DESKTOP)), regKey(rk) {}
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_DESKTOP)), regKey(rk) {}
       void initDialog() {
         const char *action(rfb::win32::SDisplay::disconnectAction);
         bool disconnectLock = stricmp(action, "Lock") == 0;

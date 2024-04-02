@@ -83,10 +83,10 @@ static LogWriter connectionsLog("Connections");
 
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
-    blockCounter(0), pb(0), ledState(ledUnknown),
-    name(name_), pointerClient(0), clipboardClient(0),
+    blockCounter(0), pb(nullptr), ledState(ledUnknown),
+    name(name_), pointerClient(nullptr), clipboardClient(nullptr),
     pointerClientTime(0),
-    comparer(0), cursor(new Cursor(0, 0, Point(), NULL)),
+    comparer(nullptr), cursor(new Cursor(0, 0, Point(), nullptr)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
@@ -177,7 +177,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
     if ((*ci)->getSock() == sock) {
       // - Remove any references to it
       if (pointerClient == *ci)
-        pointerClient = NULL;
+        pointerClient = nullptr;
       if (clipboardClient == *ci)
         handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
@@ -275,7 +275,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 
   pb = pb_;
   delete comparer;
-  comparer = 0;
+  comparer = nullptr;
 
   if (!pb) {
     screenLayout = ScreenSet();
@@ -355,7 +355,7 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
 
 void VNCServerST::requestClipboard()
 {
-  if (clipboardClient == NULL) {
+  if (clipboardClient == nullptr) {
     slog.debug("Got request for client clipboard but no client currently owns the clipboard");
     return;
   }
@@ -379,7 +379,7 @@ void VNCServerST::sendClipboardData(const char* data)
 {
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
 
-  if (strchr(data, '\r') != NULL)
+  if (strchr(data, '\r') != nullptr)
     throw Exception("Invalid carriage return in clipboard data");
 
   for (ci = clipboardRequestors.begin();
@@ -412,7 +412,7 @@ void VNCServerST::setName(const char* name_)
 
 void VNCServerST::add_changed(const Region& region)
 {
-  if (comparer == NULL)
+  if (comparer == nullptr)
     return;
 
   comparer->add_changed(region);
@@ -421,7 +421,7 @@ void VNCServerST::add_changed(const Region& region)
 
 void VNCServerST::add_copied(const Region& dest, const Point& delta)
 {
-  if (comparer == NULL)
+  if (comparer == nullptr)
     return;
 
   comparer->add_copied(dest, delta);
@@ -498,14 +498,14 @@ void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 void VNCServerST::pointerEvent(VNCSConnectionST* client,
                                const Point& pos, int buttonMask)
 {
-  time_t now = time(0);
+  time_t now = time(nullptr);
   if (rfb::Server::maxIdleTime)
     idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Let one client own the cursor whilst buttons are pressed in order
   // to provide a bit more sane user experience. But limit the time to
   // prevent locking out all others when e.g. the network is down.
-  if ((pointerClient != NULL) && (pointerClient != client) &&
+  if ((pointerClient != nullptr) && (pointerClient != client) &&
       ((now - pointerClientTime) < 10))
     return;
 
@@ -513,7 +513,7 @@ void VNCServerST::pointerEvent(VNCSConnectionST* client,
   if (buttonMask)
     pointerClient = client;
   else
-    pointerClient = NULL;
+    pointerClient = nullptr;
 
   desktop->pointerEvent(pos, buttonMask);
 }
@@ -533,7 +533,7 @@ void VNCServerST::handleClipboardAnnounce(VNCSConnectionST* client,
   else {
     if (client != clipboardClient)
       return;
-    clipboardClient = NULL;
+    clipboardClient = nullptr;
   }
   desktop->handleClipboardAnnounce(available);
 }
@@ -633,7 +633,7 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
     if ((*ci)->getSock() == sock)
       return (SConnection*)*ci;
   }
-  return 0;
+  return nullptr;
 }
 
 void VNCServerST::handleTimeout(Timer* t)
@@ -697,14 +697,14 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
   // - Are we configured to do queries?
   if (!rfb::Server::queryConnect &&
       !client->getSock()->requiresQuery()) {
-    approveConnection(client->getSock(), true, NULL);
+    approveConnection(client->getSock(), true, nullptr);
     return;
   }
 
   // - Does the client have the right to bypass the query?
   if (client->accessCheck(AccessNoQuery))
   {
-    approveConnection(client->getSock(), true, NULL);
+    approveConnection(client->getSock(), true, nullptr);
     return;
   }
 

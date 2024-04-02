@@ -92,7 +92,7 @@ namespace rfb {
 
     virtual void approveConnection(network::Socket* sock, bool accept,
                                    const char* reason);
-    virtual void closeClients(const char* reason) {closeClients(reason, 0);}
+    virtual void closeClients(const char* reason) {closeClients(reason, nullptr);}
     virtual SConnection* getConnection(network::Socket* sock);
 
     virtual void add_changed(const Region &region);

@@ -95,7 +95,7 @@ void GestureHandler::handleTouchBegin(int id, double x, double y)
     return;
   }
 
-  gettimeofday(&ght.started, NULL);
+  gettimeofday(&ght.started, nullptr);
   ght.active = true;
   ght.lastX = ght.firstX = x;
   ght.lastY = ght.firstY = y;
@@ -238,7 +238,7 @@ void GestureHandler::handleTouchEnd(int id)
     longpressTimer.stop();
 
     if (!waitingRelease) {
-      gettimeofday(&releaseStart, NULL);
+      gettimeofday(&releaseStart, nullptr);
       waitingRelease = true;
 
       // Can't be a tap that requires more touches than we current have
@@ -375,19 +375,19 @@ void GestureHandler::pushEvent(GestureEventType t)
 
   // For most gesture events the current (average) position is the
   // most useful
-  getPosition(NULL, NULL, &avgX, &avgY);
+  getPosition(nullptr, nullptr, &avgX, &avgY);
 
   // However we have a slight distance to detect gestures, so for the
   // first gesture event we want to use the first positions we saw
   if (t == GestureBegin)
-    getPosition(&avgX, &avgY, NULL, NULL);
+    getPosition(&avgX, &avgY, nullptr, nullptr);
 
   // For these gestures, we always want the event coordinates
   // to be where the gesture began, not the current touch location.
   switch (state) {
     case GH_TWODRAG:
     case GH_PINCH:
-      getPosition(&avgX, &avgY, NULL, NULL);
+      getPosition(&avgX, &avgY, nullptr, nullptr);
       break;
   }
 
@@ -398,9 +398,9 @@ void GestureHandler::pushEvent(GestureEventType t)
   if (state == GH_PINCH) {
     if (t == GestureBegin)
       getAverageDistance(&gev.magnitudeX, &gev.magnitudeY,
-                         NULL, NULL);
+                         nullptr, nullptr);
     else
-      getAverageDistance(NULL, NULL,
+      getAverageDistance(nullptr, nullptr,
                          &gev.magnitudeX, &gev.magnitudeY);
   } else if (state == GH_TWODRAG) {
     if (t == GestureBegin)

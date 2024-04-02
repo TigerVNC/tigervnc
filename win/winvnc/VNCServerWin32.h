@@ -64,7 +64,7 @@ namespace winvnc {
 
     // Disconnect all connected clients
     // THREAD-SAFE
-    bool disconnectClients(const char* reason=0);
+    bool disconnectClients(const char* reason=nullptr);
 
     // Call used to notify VNCServerST of user accept/reject query completion
     // CALLED FROM AcceptConnectDialog THREAD

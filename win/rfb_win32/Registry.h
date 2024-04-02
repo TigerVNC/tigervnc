@@ -68,7 +68,7 @@ namespace rfb {
 
       // Block waiting for a registry change, OR return immediately and notify the
       // event when there is a change, if specified
-      void awaitChange(bool watchSubTree, DWORD filter, HANDLE event=0) const;
+      void awaitChange(bool watchSubTree, DWORD filter, HANDLE event=nullptr) const;
 
       void setExpandString(const char* valname, const char* s) const;
       void setString(const char* valname, const char* s) const;

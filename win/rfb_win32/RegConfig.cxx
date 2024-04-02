@@ -35,7 +35,10 @@ using namespace rfb::win32;
 static LogWriter vlog("RegConfig");
 
 
-RegConfig::RegConfig(EventManager* em) : eventMgr(em), event(CreateEvent(0, TRUE, FALSE, 0)), callback(0) {
+RegConfig::RegConfig(EventManager* em)
+  : eventMgr(em), event(CreateEvent(nullptr, TRUE, FALSE, nullptr)),
+    callback(nullptr)
+{
   if (em->addEvent(event, this))
     eventMgr = em;
 }
@@ -110,7 +113,7 @@ void RegConfigThread::worker() {
   BOOL result = 0;
   MSG msg;
   thread_id = GetCurrentThreadId();
-  while ((result = eventMgr.getMessage(&msg, 0, 0, 0)) > 0) {}
+  while ((result = eventMgr.getMessage(&msg, nullptr, 0, 0)) > 0) {}
   if (result < 0)
     throw rdr::SystemException("RegConfigThread failed", GetLastError());
 }

@@ -35,7 +35,7 @@ namespace rfb {
     // and the pixel format, and access to the HDC itself.
     class DeviceContext {
     public:
-      DeviceContext() : dc(0) {}
+      DeviceContext() : dc(nullptr) {}
       virtual ~DeviceContext() {}
       operator HDC() const {return dc;}
       PixelFormat getPF() const;
