@@ -73,7 +73,6 @@ std::set<int> MonitorIndicesParameter::getParam()
 
 bool MonitorIndicesParameter::setParam(const char* value)
 {
-    int index;
     std::set<int> indices;
 
     if (!parseIndices(value, &indices, true)) {
@@ -81,9 +80,8 @@ bool MonitorIndicesParameter::setParam(const char* value)
         return false;
     }
 
-    for (std::set<int>::iterator it = indices.begin(); it != indices.end(); it++) {
-        index = *it + 1;
-
+    for (int index : indices) {
+        index += 1;
         if (index <= 0 || index > Fl::screen_count())
             vlog.error(_("Monitor index %d does not exist"), index);
     }
@@ -111,16 +109,14 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
     int bytesWritten = 0;
     char const * separator = "";
 
-    for (std::set<int>::iterator index = configIndices.begin();
-         index != configIndices.end();
-         index++)
+    for (int configIndex : configIndices)
     {
         bytesWritten += snprintf(
             buf+bytesWritten,
             BUF_MAX_LEN-bytesWritten,
             "%s%u",
             separator,
-            (*index)+1
+            configIndex+1
         );
 
         separator = ",";

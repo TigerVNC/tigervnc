@@ -88,11 +88,8 @@ XserverDesktop::XserverDesktop(int screenIndex_,
   server = new VNCServerST(name, this);
   setFramebuffer(width, height, fbptr, stride_);
 
-  for (std::list<SocketListener*>::iterator i = listeners.begin();
-       i != listeners.end();
-       i++) {
-    vncSetNotifyFd((*i)->getFd(), screenIndex, true, false);
-  }
+  for (SocketListener* listener : listeners)
+    vncSetNotifyFd(listener->getFd(), screenIndex, true, false);
 }
 
 XserverDesktop::~XserverDesktop()

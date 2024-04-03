@@ -52,23 +52,22 @@ Security::Security(StringParameter &secTypes)
 const std::list<uint8_t> Security::GetEnabledSecTypes(void)
 {
   list<uint8_t> result;
-  list<uint32_t>::iterator i;
 
   /* Partial workaround for Vino's stupid behaviour. It doesn't allow
    * the basic authentication types as part of the VeNCrypt handshake,
    * making it impossible for a client to do opportunistic encryption.
    * At least make it possible to connect when encryption is explicitly
    * disabled. */
-  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++) {
-    if (*i >= 0x100) {
+  for (uint32_t type : enabledSecTypes) {
+    if (type >= 0x100) {
       result.push_back(secTypeVeNCrypt);
       break;
     }
   }
 
-  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
-    if (*i < 0x100)
-      result.push_back(*i);
+  for (uint32_t type : enabledSecTypes)
+    if (type < 0x100)
+      result.push_back(type);
 
   return result;
 }
@@ -76,11 +75,10 @@ const std::list<uint8_t> Security::GetEnabledSecTypes(void)
 const std::list<uint32_t> Security::GetEnabledExtSecTypes(void)
 {
   list<uint32_t> result;
-  list<uint32_t>::iterator i;
 
-  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
-    if (*i != secTypeVeNCrypt) /* Do not include VeNCrypt type to avoid loops */
-      result.push_back(*i);
+  for (uint32_t type : enabledSecTypes)
+    if (type != secTypeVeNCrypt) /* Do not include VeNCrypt type to avoid loops */
+      result.push_back(type);
 
   return result;
 }
@@ -107,15 +105,14 @@ bool Security::IsSupported(uint32_t secType)
 
 char *Security::ToString(void)
 {
-  list<uint32_t>::iterator i;
   static char out[128]; /* Should be enough */
   bool firstpass = true;
   const char *name;
 
   memset(out, 0, sizeof(out));
 
-  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++) {
-    name = secTypeName(*i);
+  for (uint32_t type : enabledSecTypes) {
+    name = secTypeName(type);
     if (name[0] == '[') /* Unknown security type */
       continue;
 

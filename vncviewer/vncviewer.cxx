@@ -352,12 +352,12 @@ static void init_fltk()
   count = 0;
 
   // FIXME: Follow icon theme specification
-  for (size_t i = 0;i < sizeof(icon_sizes)/sizeof(icon_sizes[0]);i++) {
+  for (int icon_size : icon_sizes) {
       char icon_path[PATH_MAX];
       bool exists;
 
       sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tigervnc.png",
-              CMAKE_INSTALL_FULL_DATADIR, icon_sizes[i], icon_sizes[i]);
+              CMAKE_INSTALL_FULL_DATADIR, icon_size, icon_size);
 
       struct stat st;
       if (stat(icon_path, &st) != 0)
@@ -777,10 +777,8 @@ int main(int argc, char** argv)
       while (sock == nullptr) {
         fd_set rfds;
         FD_ZERO(&rfds);
-        for (std::list<SocketListener*>::iterator i = listeners.begin();
-             i != listeners.end();
-             i++)
-          FD_SET((*i)->getFd(), &rfds);
+        for (SocketListener* listener : listeners)
+          FD_SET(listener->getFd(), &rfds);
 
         int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, nullptr);
         if (n < 0) {
@@ -792,11 +790,9 @@ int main(int argc, char** argv)
           }
         }
 
-        for (std::list<SocketListener*>::iterator i = listeners.begin ();
-             i != listeners.end();
-             i++)
-          if (FD_ISSET((*i)->getFd(), &rfds)) {
-            sock = (*i)->accept();
+        for (SocketListener* listener : listeners)
+          if (FD_ISSET(listener->getFd(), &rfds)) {
+            sock = listener->accept();
             if (sock)
               /* Got a connection */
               break;

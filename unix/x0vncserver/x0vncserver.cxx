@@ -368,10 +368,8 @@ int main(int argc, char** argv)
 
       FileTcpFilter fileTcpFilter(hostsFile);
       if (strlen(hostsFile) != 0)
-        for (std::list<SocketListener*>::iterator i = listeners.begin();
-             i != listeners.end();
-             i++)
-          (*i)->setFilter(&fileTcpFilter);
+        for (SocketListener* listener : listeners)
+          listener->setFilter(&fileTcpFilter);
     }
 
     if (listeners.empty()) {
@@ -395,10 +393,8 @@ int main(int argc, char** argv)
       FD_ZERO(&wfds);
 
       FD_SET(ConnectionNumber(dpy), &rfds);
-      for (std::list<SocketListener*>::iterator i = listeners.begin();
-           i != listeners.end();
-           i++)
-        FD_SET((*i)->getFd(), &rfds);
+      for (SocketListener* listener : listeners)
+        FD_SET(listener->getFd(), &rfds);
 
       server.getSockets(&sockets);
       int clients_connected = 0;
@@ -450,11 +446,9 @@ int main(int argc, char** argv)
       }
 
       // Accept new VNC connections
-      for (std::list<SocketListener*>::iterator i = listeners.begin();
-           i != listeners.end();
-           i++) {
-        if (FD_ISSET((*i)->getFd(), &rfds)) {
-          Socket* sock = (*i)->accept();
+      for (SocketListener* listener : listeners) {
+        if (FD_ISSET(listener->getFd(), &rfds)) {
+          Socket* sock = listener->accept();
           if (sock) {
             server.addSocket(sock);
           } else {
@@ -494,11 +488,8 @@ int main(int argc, char** argv)
   TXWindow::handleXEvents(dpy);
 
   // Run listener destructors; remove UNIX sockets etc
-  for (std::list<SocketListener*>::iterator i = listeners.begin();
-       i != listeners.end();
-       i++) {
-    delete *i;
-  }
+  for (SocketListener* listener : listeners)
+    delete listener;
 
   vlog.info("Terminated");
   return 0;

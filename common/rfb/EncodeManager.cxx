@@ -161,12 +161,10 @@ EncodeManager::EncodeManager(SConnection* conn_)
 
 EncodeManager::~EncodeManager()
 {
-  std::vector<Encoder*>::iterator iter;
-
   logStats();
 
-  for (iter = encoders.begin();iter != encoders.end();iter++)
-    delete *iter;
+  for (Encoder* encoder : encoders)
+    delete encoder;
 }
 
 void EncodeManager::logStats()

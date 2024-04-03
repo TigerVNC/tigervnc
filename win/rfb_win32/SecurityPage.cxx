@@ -48,7 +48,6 @@ void
 SecurityPage::initDialog()
 {
   list<uint8_t> secTypes;
-  list<uint8_t>::iterator i;
 
   if (isItemChecked(IDC_ENC_X509))
     enableX509Dialogs();
@@ -58,8 +57,8 @@ SecurityPage::initDialog()
   secTypes = security->GetEnabledSecTypes();
 
   /* Process non-VeNCrypt sectypes */
-  for (i = secTypes.begin(); i != secTypes.end(); i++) {
-    switch (*i) {
+  for (uint8_t type : secTypes) {
+    switch (type) {
     case secTypeNone:
       enableAuthMethod(IDC_ENC_NONE, IDC_AUTH_NONE);
       break;
@@ -70,13 +69,12 @@ SecurityPage::initDialog()
   }
 
   list<uint32_t> secTypesExt;
-  list<uint32_t>::iterator iext;
 
   secTypesExt = security->GetEnabledExtSecTypes();
 
   /* Process VeNCrypt subtypes */
-  for (iext = secTypesExt.begin(); iext != secTypesExt.end(); iext++) {
-    switch (*iext) {
+  for (uint32_t type : secTypesExt) {
+    switch (type) {
     case secTypePlain:
       enableAuthMethod(IDC_ENC_NONE, IDC_AUTH_PLAIN);
       break;

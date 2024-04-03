@@ -51,17 +51,17 @@ H264Decoder::~H264Decoder()
 void H264Decoder::resetContexts()
 {
   os::AutoMutex lock(&mutex);
-  for (std::deque<H264DecoderContext*>::iterator it = contexts.begin(); it != contexts.end(); it++)
-    delete *it;
+  for (H264DecoderContext* context : contexts)
+    delete context;
   contexts.clear();
 }
 
 H264DecoderContext* H264Decoder::findContext(const Rect& r)
 {
   os::AutoMutex m(&mutex);
-  for (std::deque<H264DecoderContext*>::iterator it = contexts.begin(); it != contexts.end(); it++)
-    if ((*it)->isEqualRect(r))
-      return *it;
+  for (H264DecoderContext* context : contexts)
+    if (context->isEqualRect(r))
+      return context;
   return nullptr;
 }
 

@@ -65,12 +65,11 @@ void CMsgWriter::writeSetPixelFormat(const PixelFormat& pf)
 
 void CMsgWriter::writeSetEncodings(const std::list<uint32_t> encodings)
 {
-  std::list<uint32_t>::const_iterator iter;
   startMsg(msgTypeSetEncodings);
   os->pad(1);
   os->writeU16(encodings.size());
-  for (iter = encodings.begin(); iter != encodings.end(); ++iter)
-    os->writeU32(*iter);
+  for (uint32_t encoding : encodings)
+    os->writeU32(encoding);
   endMsg();
 }
 

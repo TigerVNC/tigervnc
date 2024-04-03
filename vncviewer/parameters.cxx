@@ -214,7 +214,7 @@ static VoidParameter* readOnlyParameterArray[] = {
 };
 
 // Encoding Table
-static struct {
+static const struct EscapeMap {
   const char first;
   const char second;
 } replaceMap[] = { { '\n', 'n' },
@@ -230,15 +230,15 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
     
     // Check for sequences which will need encoding
     normalCharacter = true;
-    for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
+    for (EscapeMap esc : replaceMap) {
 
-      if (val[i] == replaceMap[j].first) {
+      if (val[i] == esc.first) {
         dest[pos] = '\\';
         pos++;
         if (pos >= destSize)
           return false;
 
-        dest[pos] = replaceMap[j].second;
+        dest[pos] = esc.second;
         normalCharacter = false;
         break;
       }
@@ -269,9 +269,9 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
       bool escapedCharacter;
       
       escapedCharacter = false;
-      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
-        if (val[i+1] == replaceMap[j].second) {
-          dest[pos] = replaceMap[j].first;
+      for (EscapeMap esc : replaceMap) {
+        if (val[i+1] == esc.second) {
+          dest[pos] = esc.first;
           escapedCharacter = true;
           i++;
           break;
@@ -654,24 +654,24 @@ void saveViewerParameters(const char *filename, const char *servername) {
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
-  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
-    if (dynamic_cast<StringParameter*>(parameterArray[i]) != nullptr) {
-      if (!encodeValue(*(StringParameter*)parameterArray[i],
+  for (VoidParameter* param : parameterArray) {
+    if (dynamic_cast<StringParameter*>(param) != nullptr) {
+      if (!encodeValue(*(StringParameter*)param,
           encodingBuffer, buffersize)) {
         fclose(f);
         throw Exception(_("Failed to save \"%s\": %s"),
-                        parameterArray[i]->getName(),
+                        param->getName(),
                         _("Could not encode parameter"));
       }
-      fprintf(f, "%s=%s\n", ((StringParameter*)parameterArray[i])->getName(), encodingBuffer);
-    } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
-      fprintf(f, "%s=%d\n", ((IntParameter*)parameterArray[i])->getName(), (int)*(IntParameter*)parameterArray[i]);
-    } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != nullptr) {
-      fprintf(f, "%s=%d\n", ((BoolParameter*)parameterArray[i])->getName(), (int)*(BoolParameter*)parameterArray[i]);
+      fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
+    } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
+      fprintf(f, "%s=%d\n", ((IntParameter*)param)->getName(), (int)*(IntParameter*)param);
+    } else if (dynamic_cast<BoolParameter*>(param) != nullptr) {
+      fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
     } else {      
       fclose(f);
       throw Exception(_("Failed to save \"%s\": %s"),
-                      parameterArray[i]->getName(),
+                      param->getName(),
                       _("Unknown parameter type"));
     }
   }

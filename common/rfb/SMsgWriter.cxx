@@ -508,10 +508,9 @@ void SMsgWriter::writeNoDataRects()
 {
   if (!extendedDesktopSizeMsgs.empty()) {
     if (client->supportsEncoding(pseudoEncodingExtendedDesktopSize)) {
-      std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
-      for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
+      for (ExtendedDesktopSizeMsg msg : extendedDesktopSizeMsgs) {
         // FIXME: We can probably skip multiple reasonServer entries
-        writeExtendedDesktopSizeRect(ri->reason, ri->result,
+        writeExtendedDesktopSizeRect(msg.reason, msg.result,
                                      client->width(), client->height(),
                                      client->screenLayout());
       }

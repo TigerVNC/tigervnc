@@ -218,10 +218,8 @@ void OptionsDialog::loadOptions(void)
   Security security(SecurityClient::secTypes);
 
   list<uint8_t> secTypes;
-  list<uint8_t>::iterator iter;
 
    list<uint32_t> secTypesExt;
-   list<uint32_t>::iterator iterExt;
 
   encNoneCheckbox->value(false);
 #ifdef HAVE_GNUTLS
@@ -237,8 +235,8 @@ void OptionsDialog::loadOptions(void)
   authPlainCheckbox->value(false);
 
   secTypes = security.GetEnabledSecTypes();
-  for (iter = secTypes.begin(); iter != secTypes.end(); ++iter) {
-    switch (*iter) {
+  for (uint8_t type : secTypes) {
+    switch (type) {
     case secTypeNone:
       encNoneCheckbox->value(true);
       authNoneCheckbox->value(true);
@@ -251,8 +249,8 @@ void OptionsDialog::loadOptions(void)
   }
 
   secTypesExt = security.GetEnabledExtSecTypes();
-  for (iterExt = secTypesExt.begin(); iterExt != secTypesExt.end(); ++iterExt) {
-    switch (*iterExt) {
+  for (uint32_t type : secTypesExt) {
+    switch (type) {
     case secTypePlain:
       encNoneCheckbox->value(true);
       authPlainCheckbox->value(true);
