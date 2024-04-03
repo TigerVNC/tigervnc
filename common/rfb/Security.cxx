@@ -21,29 +21,12 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-#include <stdlib.h>
 #include <string.h>
-#include <rfb/CSecurityNone.h>
-#include <rfb/CSecurityStack.h>
-#include <rfb/CSecurityVeNCrypt.h>
-#include <rfb/CSecurityVncAuth.h>
-#include <rfb/CSecurityPlain.h>
-#include <rdr/Exception.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
-#include <rfb/SSecurityNone.h>
-#include <rfb/SSecurityStack.h>
-#include <rfb/SSecurityPlain.h>
-#include <rfb/SSecurityVncAuth.h>
-#include <rfb/SSecurityVeNCrypt.h>
-#ifdef HAVE_GNUTLS
-#include <rfb/CSecurityTLS.h>
-#include <rfb/SSecurityTLS.h>
-#endif
 #include <rfb/util.h>
 
-using namespace rdr;
 using namespace rfb;
 using namespace std;
 
