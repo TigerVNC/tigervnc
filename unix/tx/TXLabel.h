@@ -108,7 +108,7 @@ private:
     } while (i < text.size());
   }
 
-  virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
+  void handleEvent(TXWindow* /*w*/, XEvent* ev) override {
     switch (ev->type) {
     case Expose:
       paint();

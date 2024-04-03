@@ -55,7 +55,7 @@ namespace rfb {
 
     protected:
       // - Internal MsgWindow callback
-      virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+      LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) override;
 
       Notifier* notifier;
     };

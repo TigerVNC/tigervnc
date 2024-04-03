@@ -29,11 +29,11 @@ namespace rfb {
   public:
     RREEncoder(SConnection* conn);
     virtual ~RREEncoder();
-    virtual bool isSupported();
-    virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
-    virtual void writeSolidRect(int width, int height,
-                                const PixelFormat& pf,
-                                const uint8_t* colour);
+    bool isSupported() override;
+    void writeRect(const PixelBuffer* pb,
+                   const Palette& palette) override;
+    void writeSolidRect(int width, int height, const PixelFormat& pf,
+                        const uint8_t* colour) override;
   private:
     template<class T>
     inline void writePixel(rdr::OutStream* os, T pixel);

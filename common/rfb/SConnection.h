@@ -83,18 +83,17 @@ namespace rfb {
 
     // Overridden from SMsgHandler
 
-    virtual void setEncodings(int nEncodings, const int32_t* encodings);
+    void setEncodings(int nEncodings, const int32_t* encodings) override;
 
-    virtual void clientCutText(const char* str);
+    void clientCutText(const char* str) override;
 
-    virtual void handleClipboardRequest(uint32_t flags);
-    virtual void handleClipboardPeek();
-    virtual void handleClipboardNotify(uint32_t flags);
-    virtual void handleClipboardProvide(uint32_t flags,
-                                        const size_t* lengths,
-                                        const uint8_t* const* data);
+    void handleClipboardRequest(uint32_t flags) override;
+    void handleClipboardPeek() override;
+    void handleClipboardNotify(uint32_t flags) override;
+    void handleClipboardProvide(uint32_t flags, const size_t* lengths,
+                                const uint8_t* const* data) override;
 
-    virtual void supportsQEMUKeyEvent();
+    void supportsQEMUKeyEvent() override;
 
 
     // Methods to be overridden in a derived class
@@ -118,27 +117,27 @@ namespace rfb {
 
     // clientInit() is called when the ClientInit message is received.  The
     // derived class must call on to SConnection::clientInit().
-    virtual void clientInit(bool shared);
+    void clientInit(bool shared) override;
 
     // setPixelFormat() is called when a SetPixelFormat message is received.
     // The derived class must call on to SConnection::setPixelFormat().
-    virtual void setPixelFormat(const PixelFormat& pf);
+    void setPixelFormat(const PixelFormat& pf) override;
 
     // framebufferUpdateRequest() is called when a FramebufferUpdateRequest
     // message is received.  The derived class must call on to
     // SConnection::framebufferUpdateRequest().
-    virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
+    void framebufferUpdateRequest(const Rect& r, bool incremental) override;
 
     // fence() is called when we get a fence request or response. By default
     // it responds directly to requests (stating it doesn't support any
     // synchronisation) and drops responses. Override to implement more proper
     // support.
-    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
+    void fence(uint32_t flags, unsigned len, const uint8_t data[]) override;
 
     // enableContinuousUpdates() is called when the client wants to enable
     // or disable continuous updates, or change the active area.
-    virtual void enableContinuousUpdates(bool enable,
-                                         int x, int y, int w, int h);
+    void enableContinuousUpdates(bool enable,
+                                 int x, int y, int w, int h) override;
 
     // handleClipboardRequest() is called whenever the client requests
     // the server to send over its clipboard data. It will only be

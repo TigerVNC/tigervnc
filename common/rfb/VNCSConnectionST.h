@@ -46,8 +46,8 @@ namespace rfb {
 
     // SConnection methods
 
-    virtual bool accessCheck(AccessRights ar) const;
-    virtual void close(const char* reason);
+    bool accessCheck(AccessRights ar) const override;
+    void close(const char* reason) override;
 
     using SConnection::authenticated;
 
@@ -118,30 +118,32 @@ namespace rfb {
   private:
     // SConnection callbacks
 
-    // These methods are invoked as callbacks from processMsg()
-
-    virtual void authSuccess();
-    virtual void queryConnection(const char* userName);
-    virtual void clientInit(bool shared);
-    virtual void setPixelFormat(const PixelFormat& pf);
-    virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
-    virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
-    virtual void setDesktopSize(int fb_width, int fb_height,
-                                const ScreenSet& layout);
-    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
-    virtual void enableContinuousUpdates(bool enable,
-                                         int x, int y, int w, int h);
-    virtual void handleClipboardRequest();
-    virtual void handleClipboardAnnounce(bool available);
-    virtual void handleClipboardData(const char* data);
-    virtual void supportsLocalCursor();
-    virtual void supportsFence();
-    virtual void supportsContinuousUpdates();
-    virtual void supportsLEDState();
+    // These methods are invoked as callbacks from processMsg(
+    void authSuccess() override;
+    void queryConnection(const char* userName) override;
+    void clientInit(bool shared) override;
+    void setPixelFormat(const PixelFormat& pf) override;
+    void pointerEvent(const Point& pos, int buttonMask) override;
+    void keyEvent(uint32_t keysym, uint32_t keycode,
+                  bool down) override;
+    void framebufferUpdateRequest(const Rect& r,
+                                  bool incremental) override;
+    void setDesktopSize(int fb_width, int fb_height,
+                        const ScreenSet& layout) override;
+    void fence(uint32_t flags, unsigned len,
+               const uint8_t data[]) override;
+    void enableContinuousUpdates(bool enable,
+                                 int x, int y, int w, int h) override;
+    void handleClipboardRequest() override;
+    void handleClipboardAnnounce(bool available) override;
+    void handleClipboardData(const char* data) override;
+    void supportsLocalCursor() override;
+    void supportsFence() override;
+    void supportsContinuousUpdates() override;
+    void supportsLEDState() override;
 
     // Timer callbacks
-    virtual void handleTimeout(Timer* t);
+    void handleTimeout(Timer* t) override;
 
     // Internal methods
 

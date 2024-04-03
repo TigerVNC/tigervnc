@@ -31,11 +31,11 @@ namespace rdr {
     TLSOutStream(OutStream* out, gnutls_session_t session);
     virtual ~TLSOutStream();
 
-    virtual void flush();
-    virtual void cork(bool enable);
+    void flush() override;
+    void cork(bool enable) override;
 
   private:
-    virtual bool flushBuffer();
+    bool flushBuffer() override;
     size_t writeTLS(const uint8_t* data, size_t length);
     static ssize_t push(gnutls_transport_ptr_t str, const void* data, size_t size);
 

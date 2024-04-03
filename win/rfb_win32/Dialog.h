@@ -148,7 +148,7 @@ namespace rfb {
     protected:
       void setPropSheet(PropSheet* ps) {propSheet = ps;};
       static INT_PTR CALLBACK staticPageProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-      virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+      BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
       PROPSHEETPAGE page;
       PropSheet* propSheet;
     };

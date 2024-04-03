@@ -75,8 +75,8 @@ namespace rfb {
       void setDisable(VNCServer* srvr, bool disable);
 
     protected:
-      virtual int checkTimeouts();
-      virtual void processEvent(HANDLE event);
+      int checkTimeouts() override;
+      void processEvent(HANDLE event) override;
       virtual void remSocket(network::Socket* sock);
 
       struct ConnInfo {

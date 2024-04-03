@@ -145,12 +145,12 @@ namespace rfb {
       if (buffer) delete buffer;
     }
 
-    virtual void init(VNCServer* vs) {
+    void init(VNCServer* vs) override {
       server = vs;
       server->setPixelBuffer(buffer);
     }
-    virtual void queryConnection(network::Socket* sock,
-                                 const char* /*userName*/) {
+    void queryConnection(network::Socket* sock,
+                         const char* /*userName*/) override {
       server->approveConnection(sock, true, nullptr);
     }
 

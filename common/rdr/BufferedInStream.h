@@ -35,7 +35,7 @@ namespace rdr {
   public:
     virtual ~BufferedInStream();
 
-    virtual size_t pos();
+    size_t pos() override;
 
   protected:
     size_t availSpace() { return start + bufSize - end; }
@@ -45,7 +45,7 @@ namespace rdr {
   private:
     virtual bool fillBuffer() = 0;
 
-    virtual bool overrun(size_t needed);
+    bool overrun(size_t needed) override;
 
   private:
     size_t bufSize;

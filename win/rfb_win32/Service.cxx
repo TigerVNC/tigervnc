@@ -274,7 +274,7 @@ public:
       DeregisterEventSource(eventlog);
   }
 
-  virtual void write(int level, const char *logname, const char *message) {
+  void write(int level, const char *logname, const char *message) override {
     if (!eventlog) return;
     const char* strings[] = {logname, message};
     WORD type = EVENTLOG_INFORMATION_TYPE;

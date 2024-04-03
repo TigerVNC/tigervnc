@@ -61,7 +61,7 @@ namespace rfb {
                               size_t maxUpdateSize);
 
   protected:
-    virtual void handleTimeout(Timer* t);
+    void handleTimeout(Timer* t) override;
 
     void doUpdate(bool allowLossy, const Region& changed,
                   const Region& copied, const Point& copy_delta,
@@ -142,7 +142,7 @@ namespace rfb {
                   const uint8_t* data_, int stride);
 
     private:
-      virtual uint8_t* getBufferRW(const Rect& r, int* stride);
+      uint8_t* getBufferRW(const Rect& r, int* stride) override;
     };
 
     OffsetPixelBuffer offsetPixelBuffer;

@@ -38,11 +38,11 @@ namespace winvnc {
   protected:
 
     // Dialog methods (protected)
-    virtual void initDialog() {
+    void initDialog() override {
       if (!hostName.empty())
         setItemString(IDC_HOST, hostName.c_str());
     }
-    virtual bool onOk() {
+    bool onOk() override {
       hostName = getItemString(IDC_HOST);
       return true;
     }

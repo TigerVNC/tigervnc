@@ -40,7 +40,7 @@ namespace rdr {
     virtual ~RandomStream();
 
   private:
-    virtual bool fillBuffer();
+    bool fillBuffer() override;
 
   private:
     static unsigned int seed;

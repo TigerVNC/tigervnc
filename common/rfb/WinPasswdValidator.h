@@ -30,7 +30,7 @@ namespace rfb
     WinPasswdValidator() {};
     virtual ~WinPasswdValidator() {};
   protected:
-    bool validateInternal(SConnection *sc, const char* username, const char* password);
+    bool validateInternal(SConnection *sc, const char* username, const char* password) override;
   };
 }
 

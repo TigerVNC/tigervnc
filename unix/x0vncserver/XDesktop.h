@@ -47,25 +47,25 @@ public:
   virtual ~XDesktop();
   void poll();
   // -=- SDesktop interface
-  virtual void init(rfb::VNCServer* vs);
-  virtual void start();
-  virtual void stop();
-  virtual void terminate();
+  void init(rfb::VNCServer* vs) override;
+  void start() override;
+  void stop() override;
+  void terminate() override;
   bool isRunning();
-  virtual void queryConnection(network::Socket* sock,
-                               const char* userName);
-  virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
-  virtual void keyEvent(uint32_t keysym, uint32_t xtcode, bool down);
-  virtual void clientCutText(const char* str);
-  virtual unsigned int setScreenLayout(int fb_width, int fb_height,
-                                       const rfb::ScreenSet& layout);
+  void queryConnection(network::Socket* sock,
+                       const char* userName) override;
+  void pointerEvent(const rfb::Point& pos, int buttonMask) override;
+  void keyEvent(uint32_t keysym, uint32_t xtcode, bool down) override;
+  void clientCutText(const char* str) override;
+  unsigned int setScreenLayout(int fb_width, int fb_height,
+                               const rfb::ScreenSet& layout) override;
 
   // -=- TXGlobalEventHandler interface
-  virtual bool handleGlobalEvent(XEvent* ev);
+  bool handleGlobalEvent(XEvent* ev) override;
 
   // -=- QueryResultCallback interface
-  virtual void queryApproved();
-  virtual void queryRejected();
+  void queryApproved() override;
+  void queryRejected() override;
 
 protected:
   Display* dpy;

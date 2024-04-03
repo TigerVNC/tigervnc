@@ -110,7 +110,7 @@ public:
 
   // handleEvent()
 
-  virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
+  void handleEvent(TXWindow* /*w*/, XEvent* ev) override {
     if (ev->type == vncExtEventBase + VncExtQueryConnectNotify) {
        vlog.debug("query connection event");
        if (queryConnectDialog)
@@ -134,12 +134,12 @@ public:
   }
 
   // TXDeleteWindowCallback method
-  virtual void deleteWindow(TXWindow* /*w*/) {
+  void deleteWindow(TXWindow* /*w*/) override {
     exit(1);
   }
 
   // TXCheckboxCallback method
-  virtual void checkboxSelect(TXCheckbox* checkbox) {
+  void checkboxSelect(TXCheckbox* checkbox) override {
     if (checkbox == &acceptClipboard) {
       XVncExtSetParam(dpy, (acceptClipboard.checked()
                             ? ACCEPT_CUT_TEXT "=1" : ACCEPT_CUT_TEXT "=0"));
@@ -158,10 +158,10 @@ public:
   }
 
   // QueryResultCallback interface
-  virtual void queryApproved() {
+  void queryApproved() override {
     XVncExtApproveConnect(dpy, queryConnectId, 1);
   }
-  virtual void queryRejected() {
+  void queryRejected() override {
     XVncExtApproveConnect(dpy, queryConnectId, 0);
   }
 

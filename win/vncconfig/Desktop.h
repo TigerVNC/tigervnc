@@ -30,7 +30,7 @@ namespace rfb {
     public:
       DesktopPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_DESKTOP)), regKey(rk) {}
-      void initDialog() {
+      void initDialog() override {
         const char *action(rfb::win32::SDisplay::disconnectAction);
         bool disconnectLock = stricmp(action, "Lock") == 0;
         bool disconnectLogoff = stricmp(action, "Logoff") == 0;
@@ -40,7 +40,7 @@ namespace rfb {
         setItemChecked(IDC_REMOVE_WALLPAPER, rfb::win32::SDisplay::removeWallpaper);
         setItemChecked(IDC_DISABLE_EFFECTS, rfb::win32::SDisplay::disableEffects);
       }
-      bool onCommand(int id, int /*cmd*/) {
+      bool onCommand(int id, int /*cmd*/) override {
         switch (id) {
         case IDC_DISCONNECT_LOGOFF:
         case IDC_DISCONNECT_LOCK:
@@ -58,7 +58,7 @@ namespace rfb {
         }
         return false;
       }
-      bool onOk() {
+      bool onOk() override {
         const char* action = "None";
         if (isItemChecked(IDC_DISCONNECT_LOGOFF))
           action = "Logoff";

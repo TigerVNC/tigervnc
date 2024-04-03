@@ -54,12 +54,12 @@ namespace rdr {
         delete [] start;
     }
 
-    size_t pos() { return ptr - start; }
+    size_t pos() override { return ptr - start; }
     void reposition(size_t pos) { ptr = start + pos; }
 
   private:
 
-    bool overrun(size_t /*needed*/) { throw EndOfStream(); }
+    bool overrun(size_t /*needed*/) override { throw EndOfStream(); }
     const uint8_t* start;
     bool deleteWhenDone;
   };

@@ -45,7 +45,7 @@ public:
   inline void poll(rfb::VNCServer *server) { m_poller->poll(server); }
 
   // Override PixelBuffer::grabRegion().
-  virtual void grabRegion(const rfb::Region& region);
+  void grabRegion(const rfb::Region& region) override;
 
 protected:
   PollingManager *m_poller;

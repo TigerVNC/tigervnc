@@ -56,8 +56,8 @@ namespace network {
     TcpSocket(int sock);
     TcpSocket(const char *name, int port);
 
-    virtual const char* getPeerAddress();
-    virtual const char* getPeerEndpoint();
+    const char* getPeerAddress() override;
+    const char* getPeerEndpoint() override;
 
   protected:
     bool enableNagles(bool enable);
@@ -68,12 +68,12 @@ namespace network {
     TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
     TcpListener(int sock);
 
-    virtual int getMyPort();
+    int getMyPort() override;
 
     static std::list<std::string> getMyAddresses();
 
   protected:
-    virtual Socket* createSocket(int fd);
+    Socket* createSocket(int fd) override;
   };
 
   void createLocalTcpListeners(std::list<SocketListener*> *listeners,
@@ -97,7 +97,7 @@ namespace network {
     TcpFilter(const char* filter);
     virtual ~TcpFilter();
 
-    virtual bool verifyConnection(Socket* s);
+    bool verifyConnection(Socket* s) override;
 
     typedef enum {Accept, Reject, Query} Action;
     struct Pattern {

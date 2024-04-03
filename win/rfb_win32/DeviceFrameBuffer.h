@@ -69,7 +69,7 @@ namespace rfb {
       // - FrameBuffer overrides
 
       virtual void grabRect(const Rect &rect);
-      virtual void grabRegion(const Region &region);
+      void grabRegion(const Region &region) override;
 
       // - DeviceFrameBuffer specific methods
 

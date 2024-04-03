@@ -46,7 +46,7 @@ namespace rfb {
         pattern = pat;
         return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONN_HOST));
       }
-      void initDialog() {
+      void initDialog() override {
         if (pattern.empty())
           pattern = "+";
 
@@ -60,7 +60,7 @@ namespace rfb {
         setItemString(IDC_HOST_PATTERN, &pattern.c_str()[1]);
         pattern.clear();
       }
-      bool onOk() {
+      bool onOk() override {
         std::string newPat;
         if (isItemChecked(IDC_ALLOW))
           newPat = '+';
@@ -88,7 +88,7 @@ namespace rfb {
     public:
       ConnectionsPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_CONNECTIONS)), regKey(rk) {}
-      void initDialog() {
+      void initDialog() override {
         vlog.debug("set IDC_PORT %d", (int)port_number);
         setItemInt(IDC_PORT, port_number ? port_number : 5900);
         setItemChecked(IDC_RFB_ENABLE, port_number != 0);
@@ -108,7 +108,7 @@ namespace rfb {
 
         onCommand(IDC_RFB_ENABLE, EN_CHANGE);
       }
-      bool onCommand(int id, int cmd) {
+      bool onCommand(int id, int cmd) override {
         switch (id) {
         case IDC_HOSTS:
           {
@@ -221,7 +221,7 @@ namespace rfb {
         }
         return false;
       }
-      bool onOk() {
+      bool onOk() override {
         regKey.setInt("PortNumber", isItemChecked(IDC_RFB_ENABLE) ? getItemInt(IDC_PORT) : 0);
         regKey.setInt("IdleTimeout", getItemInt(IDC_IDLE_TIMEOUT));
         regKey.setInt("LocalHost", isItemChecked(IDC_LOCALHOST));

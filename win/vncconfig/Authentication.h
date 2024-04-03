@@ -47,7 +47,7 @@ namespace rfb {
         security = new SecurityServer();
       }
 
-      void initDialog() {
+      void initDialog() override {
         SecurityPage::initDialog();
 
         setItemChecked(IDC_QUERY_CONNECT, rfb::Server::queryConnect);
@@ -55,7 +55,7 @@ namespace rfb {
         onCommand(IDC_AUTH_NONE, 0);
       }
 
-      bool onCommand(int id, int cmd) {
+      bool onCommand(int id, int cmd) override {
         SecurityPage::onCommand(id, cmd);
 
         setChanged(true);
@@ -78,7 +78,7 @@ namespace rfb {
 
         return true;
       }
-      bool onOk() {
+      bool onOk() override {
         SecurityPage::onOk();
 
         if (isItemChecked(IDC_AUTH_VNC))
@@ -126,16 +126,16 @@ namespace rfb {
         }
       }
 
-      virtual void loadX509Certs(void) {}
-      virtual void enableX509Dialogs(void) {
+      void loadX509Certs(void) override {}
+      void enableX509Dialogs(void) override {
         enableItem(IDC_LOAD_CERT, true);
         enableItem(IDC_LOAD_CERTKEY, true);
       }
-      virtual void disableX509Dialogs(void) {
+      void disableX509Dialogs(void) override {
         enableItem(IDC_LOAD_CERT, false);
         enableItem(IDC_LOAD_CERTKEY, false);
       }
-      virtual void loadVncPasswd() {
+      void loadVncPasswd() override {
         enableItem(IDC_AUTH_VNC_PASSWD, isItemChecked(IDC_AUTH_VNC));
       }
 

@@ -80,11 +80,11 @@ class DummyOutStream : public rdr::OutStream {
 public:
   DummyOutStream();
 
-  virtual size_t length();
-  virtual void flush();
+  size_t length() override;
+  void flush() override;
 
 private:
-  virtual void overrun(size_t needed);
+  void overrun(size_t needed) override;
 
   int offset;
   uint8_t buf[131072];
@@ -98,16 +98,16 @@ public:
   void getStats(double& ratio, unsigned long long& bytes,
                 unsigned long long& rawEquivalent);
 
-  virtual void initDone() {};
-  virtual void resizeFramebuffer();
-  virtual void setCursor(int, int, const rfb::Point&, const uint8_t*);
-  virtual void setCursorPos(const rfb::Point&);
-  virtual void framebufferUpdateStart();
-  virtual void framebufferUpdateEnd();
-  virtual bool dataRect(const rfb::Rect&, int);
-  virtual void setColourMapEntries(int, int, uint16_t*);
-  virtual void bell();
-  virtual void serverCutText(const char*);
+  void initDone() override {};
+  void resizeFramebuffer() override;
+  void setCursor(int, int, const rfb::Point&, const uint8_t*) override;
+  void setCursorPos(const rfb::Point&) override;
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  bool dataRect(const rfb::Rect&, int) override;
+  void setColourMapEntries(int, int, uint16_t*) override;
+  void bell() override;
+  void serverCutText(const char*) override;
 
 public:
   double decodeTime;
@@ -136,10 +136,10 @@ public:
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
-  virtual void setAccessRights(rfb::AccessRights ar);
+  void setAccessRights(rfb::AccessRights ar) override;
 
-  virtual void setDesktopSize(int fb_width, int fb_height,
-                              const rfb::ScreenSet& layout);
+  void setDesktopSize(int fb_width, int fb_height,
+                      const rfb::ScreenSet& layout) override;
 
 protected:
   DummyOutStream *out;

@@ -38,9 +38,9 @@ namespace rfb {
   public:
     CSecurityTLS(CConnection* cc, bool _anon);
     virtual ~CSecurityTLS();
-    virtual bool processMsg();
-    virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
-    virtual bool isSecure() const { return !anon; }
+    bool processMsg() override;
+    int getType() const override { return anon ? secTypeTLSNone : secTypeX509None; }
+    bool isSecure() const override { return !anon; }
 
     static StringParameter X509CA;
     static StringParameter X509CRL;

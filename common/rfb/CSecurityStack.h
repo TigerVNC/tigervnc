@@ -30,9 +30,9 @@ namespace rfb {
     CSecurityStack(CConnection* cc, int Type,
                    CSecurity* s0 = nullptr, CSecurity* s1 = nullptr);
     ~CSecurityStack();
-    virtual bool processMsg();
-    virtual int getType() const {return type;};
-    virtual bool isSecure() const;
+    bool processMsg() override;
+    int getType() const override {return type;};
+    bool isSecure() const override;
   protected:
     int state;
     CSecurity* state0;

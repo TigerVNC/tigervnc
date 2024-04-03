@@ -166,7 +166,7 @@ public:
       free(fileName);
   }
 
-  virtual bool verifyConnection(Socket* s)
+  bool verifyConnection(Socket* s) override
   {
     if (!reloadRules()) {
       vlog.error("Could not read IP filtering rules: rejecting all clients");

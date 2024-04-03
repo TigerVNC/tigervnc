@@ -31,7 +31,7 @@ namespace rfb {
     Logger_Syslog(const char* loggerName);
     virtual ~Logger_Syslog();
 
-    virtual void write(int level, const char *logname, const char *message);
+    void write(int level, const char *logname, const char *message) override;
   };
 
   void initSyslogLogger();

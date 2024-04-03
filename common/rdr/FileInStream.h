@@ -34,7 +34,7 @@ namespace rdr {
     ~FileInStream(void);
 
   private:
-    virtual bool fillBuffer();
+    bool fillBuffer() override;
 
   private:
     FILE *file;

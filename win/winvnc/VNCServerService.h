@@ -28,8 +28,8 @@ namespace winvnc {
   public:
     VNCServerService();
 
-    DWORD serviceMain(int argc, char* argv[]);
-    void stop();
+    DWORD serviceMain(int argc, char* argv[]) override;
+    void stop() override;
 
     static const char* Name;
   protected:

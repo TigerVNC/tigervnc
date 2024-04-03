@@ -33,9 +33,9 @@ namespace rfb {
   public:
     CSecurityDH(CConnection* cc);
     virtual ~CSecurityDH();
-    virtual bool processMsg();
-    virtual int getType() const { return secTypeDH; }
-    virtual bool isSecure() const { return false; }
+    bool processMsg() override;
+    int getType() const override { return secTypeDH; }
+    bool isSecure() const override { return false; }
 
   private:
     bool readKey();

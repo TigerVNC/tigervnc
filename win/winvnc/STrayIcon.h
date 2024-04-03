@@ -42,7 +42,7 @@ namespace winvnc {
 
     friend class STrayIcon;
   protected:
-    virtual void worker();
+    void worker() override;
 
     os::Mutex* lock;
     DWORD thread_id;

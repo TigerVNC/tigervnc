@@ -120,7 +120,7 @@ public:
   void stop();
   DWORD getThreadId() { return thread_id; }
 protected:
-  virtual void worker();
+  void worker() override;
 protected:
   bool active;
   DWORD thread_id;

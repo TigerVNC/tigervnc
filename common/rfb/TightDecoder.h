@@ -31,18 +31,17 @@ namespace rfb {
   public:
     TightDecoder();
     virtual ~TightDecoder();
-    virtual bool readRect(const Rect& r, rdr::InStream* is,
-                          const ServerParams& server, rdr::OutStream* os);
-    virtual bool doRectsConflict(const Rect& rectA,
-                                 const uint8_t* bufferA,
-                                 size_t buflenA,
-                                 const Rect& rectB,
-                                 const uint8_t* bufferB,
-                                 size_t buflenB,
-                                 const ServerParams& server);
-    virtual void decodeRect(const Rect& r, const uint8_t* buffer,
-                            size_t buflen, const ServerParams& server,
-                            ModifiablePixelBuffer* pb);
+    bool readRect(const Rect& r, rdr::InStream* is,
+                  const ServerParams& server,
+                  rdr::OutStream* os) override;
+    bool doRectsConflict(const Rect& rectA,
+                         const uint8_t* bufferA, size_t buflenA,
+                         const Rect& rectB,
+                         const uint8_t* bufferB, size_t buflenB,
+                         const ServerParams& server) override;
+    void decodeRect(const Rect& r, const uint8_t* buffer,
+                    size_t buflen, const ServerParams& server,
+                    ModifiablePixelBuffer* pb) override;
 
   private:
     uint32_t readCompact(rdr::InStream* is);

@@ -36,10 +36,10 @@ namespace rfb {
     public:
       LegacyPage(const RegKey& rk, bool userSettings_)
         : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_LEGACY)), regKey(rk), userSettings(userSettings_) {}
-      void initDialog() {
+      void initDialog() override {
         setItemChecked(IDC_PROTOCOL_3_3, rfb::Server::protocol3_3);
       }
-      bool onCommand(int id, int /*cmd*/) {
+      bool onCommand(int id, int /*cmd*/) override {
         switch (id) {
         case IDC_LEGACY_IMPORT:
           {
@@ -64,7 +64,7 @@ namespace rfb {
         };
         return false;
       }
-      bool onOk() {
+      bool onOk() override {
         regKey.setBool("Protocol3.3", isItemChecked(IDC_PROTOCOL_3_3));
         return true;
       }

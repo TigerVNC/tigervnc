@@ -29,11 +29,11 @@ namespace rdr {
     HexOutStream(OutStream& os);
     virtual ~HexOutStream();
 
-    virtual void flush();
-    virtual void cork(bool enable);
+    void flush() override;
+    void cork(bool enable) override;
 
   private:
-    virtual bool flushBuffer();
+    bool flushBuffer() override;
     void writeBuffer();
 
     OutStream& out_stream;

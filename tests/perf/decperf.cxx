@@ -52,11 +52,11 @@ class DummyOutStream : public rdr::OutStream {
 public:
   DummyOutStream();
 
-  virtual size_t length();
-  virtual void flush();
+  size_t length() override;
+  void flush() override;
 
 private:
-  virtual void overrun(size_t needed);
+  void overrun(size_t needed) override;
 
   int offset;
   uint8_t buf[131072];
@@ -67,15 +67,15 @@ public:
   CConn(const char *filename);
   ~CConn();
 
-  virtual void initDone();
-  virtual void setPixelFormat(const rfb::PixelFormat& pf);
-  virtual void setCursor(int, int, const rfb::Point&, const uint8_t*);
-  virtual void setCursorPos(const rfb::Point&);
-  virtual void framebufferUpdateStart();
-  virtual void framebufferUpdateEnd();
-  virtual void setColourMapEntries(int, int, uint16_t*);
-  virtual void bell();
-  virtual void serverCutText(const char*);
+  void initDone() override;
+  void setPixelFormat(const rfb::PixelFormat& pf) override;
+  void setCursor(int, int, const rfb::Point&, const uint8_t*) override;
+  void setCursorPos(const rfb::Point&) override;
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  void setColourMapEntries(int, int, uint16_t*) override;
+  void bell() override;
+  void serverCutText(const char*) override;
 
 public:
   double cpuTime;

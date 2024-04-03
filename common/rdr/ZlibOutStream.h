@@ -40,11 +40,11 @@ namespace rdr {
 
     void setUnderlying(OutStream* os);
     void setCompressionLevel(int level=-1);
-    virtual void flush();
-    virtual void cork(bool enable);
+    void flush() override;
+    void cork(bool enable) override;
 
   private:
-    virtual bool flushBuffer();
+    bool flushBuffer() override;
     void deflate(int flush);
     void checkCompressionLevel();
 

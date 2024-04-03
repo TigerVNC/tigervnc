@@ -33,9 +33,9 @@ namespace rfb {
   public:
     CSecurityMSLogonII(CConnection* cc);
     virtual ~CSecurityMSLogonII();
-    virtual bool processMsg();
-    virtual int getType() const { return secTypeMSLogonII; }
-    virtual bool isSecure() const { return false; }
+    bool processMsg() override;
+    int getType() const override { return secTypeMSLogonII; }
+    bool isSecure() const override { return false; }
 
   private:
     bool readKey();

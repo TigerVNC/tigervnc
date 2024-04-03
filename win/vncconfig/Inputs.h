@@ -35,7 +35,7 @@ namespace rfb {
       InputsPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_INPUTS)),
           regKey(rk), enableAffectSSaver(true) {}
-      void initDialog() {
+      void initDialog() override {
         setItemChecked(IDC_ACCEPT_KEYS, rfb::Server::acceptKeyEvents);
         setItemChecked(IDC_RAW_KEYBOARD, SKeyboard::rawKeyboard);
         setItemChecked(IDC_ACCEPT_PTR, rfb::Server::acceptPointerEvents);
@@ -49,7 +49,7 @@ namespace rfb {
           enableAffectSSaver = false;
         enableItem(IDC_AFFECT_SCREENSAVER, enableAffectSSaver);
       }
-      bool onCommand(int /*id*/, int /*cmd*/) {
+      bool onCommand(int /*id*/, int /*cmd*/) override {
         BOOL inputResetsBlocked;
         SystemParametersInfo(SPI_GETBLOCKSENDINPUTRESETS, 0, &inputResetsBlocked, 0);
         setChanged((rfb::Server::acceptKeyEvents != isItemChecked(IDC_ACCEPT_KEYS)) ||
@@ -61,7 +61,7 @@ namespace rfb {
           (enableAffectSSaver && (!inputResetsBlocked != isItemChecked(IDC_AFFECT_SCREENSAVER))));
         return false;
       }
-      bool onOk() {
+      bool onOk() override {
         regKey.setBool("AcceptKeyEvents", isItemChecked(IDC_ACCEPT_KEYS));
         regKey.setBool("RawKeyboard", isItemChecked(IDC_RAW_KEYBOARD));
         regKey.setBool("AcceptPointerEvents", isItemChecked(IDC_ACCEPT_PTR));

@@ -27,8 +27,8 @@ namespace rfb {
   public:
     CSecurityVncAuth(CConnection* cc) : CSecurity(cc) {}
     virtual ~CSecurityVncAuth() {}
-    virtual bool processMsg();
-    virtual int getType() const {return secTypeVncAuth;};
+    bool processMsg() override;
+    int getType() const override {return secTypeVncAuth;};
   };
 }
 #endif

@@ -86,7 +86,7 @@ public:
     CPanel = new ControlPanel(getHandle());
   }
 
-  virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
+  LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) override {
     switch(msg) {
 
     case WM_USER:

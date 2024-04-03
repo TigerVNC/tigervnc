@@ -31,11 +31,11 @@ namespace rdr {
     AESOutStream(OutStream* out, const uint8_t* key, int keySize);
     virtual ~AESOutStream();
 
-    virtual void flush();
-    virtual void cork(bool enable);
+    void flush() override;
+    void cork(bool enable) override;
 
   private:
-    virtual bool flushBuffer();
+    bool flushBuffer() override;
     void writeMessage(const uint8_t* data, size_t length);
 
     int keySize;

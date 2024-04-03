@@ -44,7 +44,7 @@ namespace rdr {
     void init();
     void deinit();
 
-    virtual bool fillBuffer();
+    bool fillBuffer() override;
 
   private:
     InStream* underlying;

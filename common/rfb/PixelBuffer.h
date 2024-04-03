@@ -151,16 +151,16 @@ namespace rfb {
     virtual ~FullFramePixelBuffer();
 
   public:
-    virtual const uint8_t* getBuffer(const Rect& r, int* stride) const;
-    virtual uint8_t* getBufferRW(const Rect& r, int* stride);
-    virtual void commitBufferRW(const Rect& r);
+    const uint8_t* getBuffer(const Rect& r, int* stride) const override;
+    uint8_t* getBufferRW(const Rect& r, int* stride) override;
+    void commitBufferRW(const Rect& r) override;
 
   protected:
     FullFramePixelBuffer();
     virtual void setBuffer(int width, int height, uint8_t* data, int stride);
 
   private:
-    virtual void setSize(int w, int h);
+    void setSize(int w, int h) override;
 
   private:
     uint8_t* data;
@@ -178,7 +178,7 @@ namespace rfb {
 
     // Manage the pixel buffer layout
     virtual void setPF(const PixelFormat &pf);
-    virtual void setSize(int w, int h);
+    void setSize(int w, int h) override;
 
   private:
     uint8_t* data_; // Mirrors FullFramePixelBuffer::data

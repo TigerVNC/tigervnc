@@ -35,8 +35,8 @@ namespace rdr {
   public:
     virtual ~BufferedOutStream();
 
-    virtual size_t length();
-    virtual void flush();
+    size_t length() override;
+    void flush() override;
 
     // hasBufferedData() checks if there is any data yet to be flushed
 
@@ -49,7 +49,7 @@ namespace rdr {
 
     virtual bool flushBuffer() = 0;
 
-    virtual void overrun(size_t needed);
+    void overrun(size_t needed) override;
 
   private:
     size_t bufSize;

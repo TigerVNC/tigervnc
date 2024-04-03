@@ -98,7 +98,7 @@ namespace rfb {
       void stop();
 
     protected:
-      void worker();
+      void worker() override;
       DecodeManager::QueueEntry* findEntry();
 
     private:

@@ -43,10 +43,10 @@ public:
   virtual void start(int width, int height);
   virtual void stop();
 
-  virtual void draw();
+  void draw() override;
 
 protected:
-  virtual void flush();
+  void flush() override;
 
   void update();
   virtual void changefb();
@@ -63,17 +63,17 @@ protected:
 
 class PartialTestWindow: public TestWindow {
 protected:
-  virtual void changefb();
+  void changefb() override;
 };
 
 class OverlayTestWindow: public PartialTestWindow {
 public:
   OverlayTestWindow();
 
-  virtual void start(int width, int height);
-  virtual void stop();
+  void start(int width, int height) override;
+  void stop() override;
 
-  virtual void draw();
+  void draw() override;
 
 protected:
   Surface* overlay;
