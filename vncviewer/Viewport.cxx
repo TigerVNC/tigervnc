@@ -1222,6 +1222,9 @@ void Viewport::resolveAltGrDetection(bool isAltGrSequence)
 }
 #endif
 
+// FIXME: gcc confuses ID_DISCONNECT with NULL
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 void Viewport::initContextMenu()
 {
   contextMenu->clear();
@@ -1268,7 +1271,7 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
                 0, nullptr, (void*)ID_ABOUT, 0);
 }
-
+#pragma GCC diagnostic pop
 
 void Viewport::popupContextMenu()
 {
