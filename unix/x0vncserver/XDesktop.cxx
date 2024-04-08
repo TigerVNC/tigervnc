@@ -406,6 +406,43 @@ KeyCode XDesktop::XkbKeysymToKeycode(KeySym keysym) {
   return keycode;
 }
 
+/*
+ * Keeps the list in LRU order by moving the used key to front of the list.
+ */
+static void onKeyUsed(std::list<AddedKeySym> &list, KeyCode usedKeycode) {
+  if (list.empty() || list.front().keycode == usedKeycode)
+    return;
+
+  std::list<AddedKeySym>::iterator it = list.begin();
+  ++it;
+  for (; it != list.end(); ++it) {
+    AddedKeySym item = *it;
+    if (item.keycode == usedKeycode) {
+      list.erase(it);
+      list.push_front(item);
+      break;
+    }
+  }
+}
+
+/*
+ * Returns keycode of oldest item from list of manually added keysyms.
+ * The item is removed from the list.
+ * Returns 0 if no usable keycode is found.
+ */
+KeyCode XDesktop::getReusableKeycode(XkbDescPtr xkb) {
+  while (!addedKeysyms.empty()) {
+    AddedKeySym last = addedKeysyms.back();
+    addedKeysyms.pop_back();
+
+    // Make sure someone else hasn't modified the key
+    if (XkbKeyNumGroups(xkb, last.keycode) > 0 &&
+      XkbKeySymsPtr(xkb, last.keycode)[0] == last.keysym)
+      return last.keycode;
+  }
+  return 0;
+}
+
 KeyCode XDesktop::addKeysym(KeySym keysym)
 {
   int types[1];
@@ -426,6 +463,9 @@ KeyCode XDesktop::addKeysym(KeySym keysym)
   }
 
   if (key < xkb->min_key_code)
+    key = getReusableKeycode(xkb);
+
+  if (!key)
     return 0;
 
   memset(&changes, 0, sizeof(changes));
@@ -453,7 +493,7 @@ KeyCode XDesktop::addKeysym(KeySym keysym)
 
   if (XkbChangeMap(dpy, xkb, &changes)) {
     vlog.info("Added unknown keysym %s to keycode %d", XKeysymToString(keysym), key);
-    addedKeysyms[keysym] = key;
+    addedKeysyms.push_front({ syms[0], (KeyCode)key });
     return key;
   }
 
@@ -472,21 +512,17 @@ void XDesktop::deleteAddedKeysyms() {
 
   KeyCode lowestKeyCode = xkb->max_key_code;
   KeyCode highestKeyCode = xkb->min_key_code;
-  std::map<KeySym, KeyCode>::iterator it;
-  for (it = addedKeysyms.begin(); it != addedKeysyms.end(); it++) {
-    if (XkbKeyNumGroups(xkb, it->second) != 0) {
-      // Check if we are removing keysym we added ourself
-      if (XkbKeysymToKeycode(it->first) != it->second)
-        continue;
+  KeyCode keyCode = getReusableKeycode(xkb);
+  while (keyCode != 0) {
+    XkbChangeTypesOfKey(xkb, keyCode, 0, XkbGroup1Mask, nullptr, &changes);
 
-      XkbChangeTypesOfKey(xkb, it->second, 0, XkbGroup1Mask, nullptr, &changes);
+    if (keyCode < lowestKeyCode)
+      lowestKeyCode = keyCode;
 
-      if (it->second < lowestKeyCode)
-        lowestKeyCode = it->second;
+    if (keyCode > highestKeyCode)
+      highestKeyCode = keyCode;
 
-      if (it->second > highestKeyCode)
-        highestKeyCode = it->second;
-    }
+    keyCode = getReusableKeycode(xkb);
   }
 
   // Did we actually find something to remove?
@@ -497,8 +533,6 @@ void XDesktop::deleteAddedKeysyms() {
   changes.first_key_sym = lowestKeyCode;
   changes.num_key_syms = highestKeyCode - lowestKeyCode + 1;
   XkbChangeMap(dpy, xkb, &changes);
-
-  addedKeysyms.clear();
 }
 
 KeyCode XDesktop::keysymToKeycode(KeySym keysym) {
@@ -551,6 +585,9 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
     pressedKeys[keysym] = keycode;
   else
     pressedKeys.erase(keysym);
+
+  if (down)
+    onKeyUsed(addedKeysyms, keycode);
 
   vlog.debug("%d %s", keycode, down ? "down" : "up");
 
