@@ -280,9 +280,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     when |= FL_WRITE;
 
   Fl::add_fd(fd, when, socketEvent, data);
-
   recursing = false;
-  Fl::add_fd(fd, FL_READ | FL_EXCEPT, socketEvent, data);
 }
 
 ////////////////////// CConnection callback methods //////////////////////
