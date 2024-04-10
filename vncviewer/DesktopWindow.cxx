@@ -850,11 +850,15 @@ int DesktopWindow::handle(int event)
           (Fl::event_y() < 0) || (Fl::event_y() >= h())) {
         ungrabPointer();
       }
-      // We also don't get sensible coordinates on zaphod setups
 #if !defined(WIN32) && !defined(__APPLE__)
-      if ((fl_xevent != NULL) && (fl_xevent->type == MotionNotify) &&
-          (((XMotionEvent*)fl_xevent)->root !=
-           XRootWindow(fl_display, fl_screen))) {
+      Window root, child;
+      int x, y, wx, wy;
+      unsigned int mask;
+
+      // We also don't get sensible coordinates on zaphod setups
+      if (XQueryPointer(fl_display, fl_xid(this), &root, &child,
+                        &x, &y, &wx, &wy, &mask) &&
+          (root != XRootWindow(fl_display, fl_screen))) {
         ungrabPointer();
       }
 #endif
