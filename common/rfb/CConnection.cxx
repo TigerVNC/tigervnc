@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <algorithm>
+
 #include <rfb/Exception.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/fenceTypes.h>
@@ -226,14 +228,8 @@ bool CConnection::processSecurityTypesMsg()
       state_ = RFBSTATE_SECURITY_REASON;
       return true;
     } else if (secType == secTypeNone || secType == secTypeVncAuth) {
-      std::list<uint8_t>::iterator i;
-      for (i = secTypes.begin(); i != secTypes.end(); i++)
-        if (*i == secType) {
-          secType = *i;
-          break;
-        }
-
-      if (i == secTypes.end())
+      if (std::find(secTypes.begin(), secTypes.end(),
+                    secType) == secTypes.end())
         secType = secTypeInvalid;
     } else {
       vlog.error("Unknown 3.3 security type %d", secType);
@@ -260,8 +256,6 @@ bool CConnection::processSecurityTypesMsg()
       return true;
     }
 
-    std::list<uint8_t>::iterator j;
-
     for (int i = 0; i < nServerSecTypes; i++) {
       uint8_t serverSecType = is->readU8();
       vlog.debug("Server offers security type %s(%d)",
@@ -272,12 +266,10 @@ bool CConnection::processSecurityTypesMsg()
        * It means server's order specifies priority.
        */
       if (secType == secTypeInvalid) {
-        for (j = secTypes.begin(); j != secTypes.end(); j++)
-          if (*j == serverSecType) {
-            secType = *j;
-            break;
-          }
-       }
+        if (std::find(secTypes.begin(), secTypes.end(),
+                      serverSecType) != secTypes.end())
+          secType = serverSecType;
+      }
     }
 
     // Inform the server of our decision

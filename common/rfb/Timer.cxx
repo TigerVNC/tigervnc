@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <sys/time.h>
 
+#include <algorithm>
+
 #include <rfb/Timer.h>
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
@@ -153,12 +155,8 @@ void Timer::stop() {
 }
 
 bool Timer::isStarted() {
-  std::list<Timer*>::iterator i;
-  for (i=pending.begin(); i!=pending.end(); i++) {
-    if (*i == this)
-      return true;
-  }
-  return false;
+  return std::find(pending.begin(), pending.end(),
+                   this) != pending.end();
 }
 
 int Timer::getTimeoutMs() {

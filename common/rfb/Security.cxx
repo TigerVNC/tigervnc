@@ -23,6 +23,8 @@
 
 #include <string.h>
 
+#include <algorithm>
+
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/util.h>
@@ -85,22 +87,18 @@ const std::list<uint32_t> Security::GetEnabledExtSecTypes(void)
 
 void Security::EnableSecType(uint32_t secType)
 {
-  list<uint32_t>::iterator i;
-
-  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
-    if (*i == secType)
-      return;
+  if (std::find(enabledSecTypes.begin(), enabledSecTypes.end(),
+                secType) != enabledSecTypes.end())
+    return;
 
   enabledSecTypes.push_back(secType);
 }
 
 bool Security::IsSupported(uint32_t secType)
 {
-  list<uint32_t>::iterator i;
-
-  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
-    if (*i == secType)
-      return true;
+  if (std::find(enabledSecTypes.begin(), enabledSecTypes.end(),
+                secType) != enabledSecTypes.end())
+    return true;
   if (secType == secTypeVeNCrypt)
     return true;
 

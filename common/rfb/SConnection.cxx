@@ -23,6 +23,9 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#include <algorithm>
+
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/clipboardTypes.h>
@@ -206,12 +209,10 @@ void SConnection::processSecurityType(int secType)
 {
   // Verify that the requested security type should be offered
   std::list<uint8_t> secTypes;
-  std::list<uint8_t>::iterator i;
 
   secTypes = security.GetEnabledSecTypes();
-  for (i=secTypes.begin(); i!=secTypes.end(); i++)
-    if (*i == secType) break;
-  if (i == secTypes.end())
+  if (std::find(secTypes.begin(), secTypes.end(),
+                secType) == secTypes.end())
     throw Exception("Requested security type not available");
 
   vlog.info("Client requests security type %s(%d)",
