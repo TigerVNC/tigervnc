@@ -297,9 +297,8 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
   renderedCursorInvalid = true;
   add_changed(pb->getRect());
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     (*ci)->pixelBufferChange();
     // Since the new pixel buffer means an ExtendedDesktopSize needs to
     // be sent anyway, we don't need to call screenLayoutChange.
@@ -346,11 +345,9 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
 
   screenLayout = layout;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->screenLayoutChangeOrClose(reasonServer);
-  }
 }
 
 void VNCServerST::requestClipboard()
@@ -365,49 +362,41 @@ void VNCServerST::requestClipboard()
 
 void VNCServerST::announceClipboard(bool available)
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   clipboardRequestors.clear();
 
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->announceClipboardOrClose(available);
-  }
 }
 
 void VNCServerST::sendClipboardData(const char* data)
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   if (strchr(data, '\r') != nullptr)
     throw Exception("Invalid carriage return in clipboard data");
 
   for (ci = clipboardRequestors.begin();
-       ci != clipboardRequestors.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+       ci != clipboardRequestors.end(); ++ci)
     (*ci)->sendClipboardDataOrClose(data);
-  }
 
   clipboardRequestors.clear();
 }
 
 void VNCServerST::bell()
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->bellOrClose();
-  }
 }
 
 void VNCServerST::setName(const char* name_)
 {
   name = name_;
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->setDesktopNameOrClose(name_);
-  }
 }
 
 void VNCServerST::add_changed(const Region& region)
@@ -437,9 +426,8 @@ void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
 
   renderedCursorInvalid = true;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     (*ci)->renderedCursorChange();
     (*ci)->setCursorOrClose();
   }
@@ -461,17 +449,15 @@ void VNCServerST::setCursorPos(const Point& pos, bool warped)
 
 void VNCServerST::setLEDState(unsigned int state)
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   if (state == ledState)
     return;
 
   ledState = state;
 
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->setLEDStateOrClose(state);
-  }
 }
 
 // Event handlers
@@ -553,7 +539,7 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
                                          const ScreenSet& layout)
 {
   unsigned int result;
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   // We can't handle a framebuffer larger than this, so don't let a
   // client set one (see PixelBuffer.cxx)
@@ -580,8 +566,7 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
     throw Exception("Desktop configured a different screen layout than requested");
 
   // Notify other clients
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     if ((*ci) == requester)
       continue;
     (*ci)->screenLayoutChangeOrClose(reasonOtherClient);
@@ -606,9 +591,8 @@ void VNCServerST::approveConnection(network::Socket* sock, bool accept,
 
 void VNCServerST::closeClients(const char* reason, network::Socket* except)
 {
-  std::list<VNCSConnectionST*>::iterator i, next_i;
-  for (i=clients.begin(); i!=clients.end(); i=next_i) {
-    next_i = i; next_i++;
+  std::list<VNCSConnectionST*>::iterator i;
+  for (i = clients.begin(); i != clients.end(); ++i) {
     if ((*i)->getSock() != except)
       (*i)->close(reason);
   }
@@ -832,7 +816,7 @@ void VNCServerST::writeUpdate()
   UpdateInfo ui;
   Region toCheck;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   assert(blockCounter == 0);
   assert(desktopStarted);
@@ -861,8 +845,7 @@ void VNCServerST::writeUpdate()
 
   comparer->clear();
 
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     (*ci)->add_copied(ui.copied, ui.copy_delta);
     (*ci)->add_changed(ui.changed);
     (*ci)->writeFramebufferUpdateOrClose();
@@ -906,9 +889,8 @@ bool VNCServerST::getComparerState()
   if (rfb::Server::compareFB != 2)
     return true;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     if ((*ci)->getComparerState())
       return true;
   }
