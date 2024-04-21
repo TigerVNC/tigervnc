@@ -101,10 +101,10 @@ protected:
 
 protected:
 #ifdef HAVE_XTEST
-  KeyCode XkbKeysymToKeycode(Display* dpy, KeySym keysym);
-  KeyCode addKeysym(Display* dpy, KeySym keysym);
-  void deleteAddedKeysyms(Display* dpy);
-  KeyCode keysymToKeycode(Display* dpy, KeySym keysym);
+  KeyCode XkbKeysymToKeycode(KeySym keysym);
+  KeyCode addKeysym(KeySym keysym);
+  void deleteAddedKeysyms();
+  KeyCode keysymToKeycode(KeySym keysym);
 #endif
 #ifdef HAVE_XFIXES
   bool setCursor();

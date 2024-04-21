@@ -54,7 +54,7 @@ namespace rfb {
 
   protected:
     void shutdown();
-    void setParams(gnutls_session_t session);
+    void setParams();
 
   private:
     gnutls_session_t session;

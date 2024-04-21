@@ -40,7 +40,6 @@ namespace rfb {
   private:
     template<class T>
     void zrleDecode(const Rect& r, rdr::InStream* is,
-                    rdr::ZlibInStream* zis,
                     const PixelFormat& pf, ModifiablePixelBuffer* pb);
 
   private:

@@ -151,7 +151,7 @@ bool SSecurityTLS::processMsg()
       throw AuthFailureException("gnutls_set_default_priority failed");
 
     try {
-      setParams(session);
+      setParams();
     }
     catch(...) {
       os->writeU8(0);
@@ -190,7 +190,7 @@ bool SSecurityTLS::processMsg()
   return true;
 }
 
-void SSecurityTLS::setParams(gnutls_session_t session)
+void SSecurityTLS::setParams()
 {
   static const char kx_anon_priority[] = ":+ANON-ECDH:+ANON-DH";
 
