@@ -182,14 +182,14 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
 
-      std::string name((*ci)->getPeerEndpoint());
+      std::string peer((*ci)->getPeerEndpoint());
 
       // - Delete the per-Socket resources
       delete *ci;
 
       clients.remove(*ci);
 
-      connectionsLog.status("closed: %s", name.c_str());
+      connectionsLog.status("closed: %s", peer.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)

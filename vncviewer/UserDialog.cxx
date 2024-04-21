@@ -70,7 +70,7 @@ UserDialog::~UserDialog()
 {
 }
 
-void UserDialog::getUserPasswd(bool secure, std::string* user,
+void UserDialog::getUserPasswd(bool secure_, std::string* user,
                                std::string* password)
 {
   const char *passwordFileName(passwordFile);
@@ -121,7 +121,7 @@ void UserDialog::getUserPasswd(bool secure, std::string* user,
   banner = new Fl_Box(0, 0, win->w(), 20);
   banner->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE|FL_ALIGN_IMAGE_NEXT_TO_TEXT);
   banner->box(FL_FLAT_BOX);
-  if (secure) {
+  if (secure_) {
     banner->label(_("This connection is secure"));
     banner->color(FL_GREEN);
     banner->image(secure_icon);

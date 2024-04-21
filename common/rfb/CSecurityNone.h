@@ -29,7 +29,7 @@ namespace rfb {
 
   class CSecurityNone : public CSecurity {
   public:
-    CSecurityNone(CConnection* cc) : CSecurity(cc) {}
+    CSecurityNone(CConnection* cc_) : CSecurity(cc_) {}
     bool processMsg() override { return true; }
     int getType() const override {return secTypeNone;}
   };

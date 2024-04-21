@@ -157,8 +157,8 @@ UnixListener::~UnixListener()
     unlink(addr.sun_path);
 }
 
-Socket* UnixListener::createSocket(int fd) {
-  return new UnixSocket(fd);
+Socket* UnixListener::createSocket(int fd_) {
+  return new UnixSocket(fd_);
 }
 
 int UnixListener::getMyPort() {

@@ -86,7 +86,6 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
   freopen("CONOUT$","wb",stderr);
   setbuf(stderr, nullptr);
   initStdIOLoggers();
-  LogWriter vlog("main");
   logParams.setParam("*:stderr:100");
   vlog.info("Starting vncconfig applet");
 #endif

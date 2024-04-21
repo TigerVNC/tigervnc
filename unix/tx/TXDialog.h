@@ -33,9 +33,9 @@
 
 class TXDialog : public TXWindow, public TXDeleteWindowCallback {
 public:
-  TXDialog(Display* dpy, int width, int height, const char* name,
+  TXDialog(Display* dpy_, int width, int height, const char* name,
            bool modal_=false)
-    : TXWindow(dpy, width, height), done(false), ok(false), modal(modal_)
+    : TXWindow(dpy_, width, height), done(false), ok(false), modal(modal_)
   {
     toplevel(name, this);
     resize(width, height);

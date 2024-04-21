@@ -32,6 +32,11 @@ using namespace rfb;
 
 static LogWriter vlog("H264WinDecoderContext");
 
+// Older MinGW lacks this definition
+#ifndef HAVE_VIDEO_PROCESSOR_MFT
+static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
+#endif
+
 bool H264WinDecoderContext::initCodec() {
   os::AutoMutex lock(&mutex);
 
@@ -47,7 +52,6 @@ bool H264WinDecoderContext::initCodec() {
     return false;
   }
 
-  GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
   if (FAILED(CoCreateInstance(CLSID_VideoProcessorMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
   {
     vlog.error("Cannot create MediaFoundation Video Processor (available only on Windows 8+). Trying ColorConvert DMO.");
@@ -342,8 +346,8 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
       vlog.debug("Frame converted to RGB");
 
       BYTE* out;
-      DWORD len;
-      converted_buffer->Lock(&out, nullptr, &len);
+      DWORD buflen;
+      converted_buffer->Lock(&out, nullptr, &buflen);
       pb->imageRect(rect, out + offset_y * stride + offset_x * 4, (int)stride / 4);
       converted_buffer->Unlock();
     }
@@ -359,20 +363,20 @@ void H264WinDecoderContext::ParseSPS(const uint8_t* buffer, int length)
     if (available == 0)              \
     {                                \
         if (length == 0) return;     \
-        byte = *buffer++;            \
+        byte_ = *buffer++;            \
         length--;                    \
         available = 8;               \
     }                                \
-    bit = (byte >> --available) & 1; \
+    bit = (byte_ >> --available) & 1; \
 } while (0)
 
 #define GET_BITS(n, var) do {      \
     var = 0;                       \
-    for (int i = n-1; i >= 0; i--) \
+    for (int b = n-1; b >= 0; b--) \
     {                              \
         unsigned bit;              \
         GET_BIT(bit);              \
-        var |= bit << i;           \
+        var |= bit << b;           \
     }                              \
 } while (0)
 
@@ -411,7 +415,7 @@ void H264WinDecoderContext::ParseSPS(const uint8_t* buffer, int length)
     length--;
 
     int available = 0;
-    uint8_t byte = 0;
+    uint8_t byte_ = 0;
 
     unsigned profile_idc;
     unsigned seq_parameter_set_id;

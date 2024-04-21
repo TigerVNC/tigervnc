@@ -31,8 +31,8 @@ using namespace rdr;
 static const size_t DEFAULT_BUF_SIZE = 16384;
 static const size_t MAX_BUF_SIZE = 32 * 1024 * 1024;
 
-BufferedOutStream::BufferedOutStream(bool emulateCork)
-  : bufSize(DEFAULT_BUF_SIZE), offset(0), emulateCork(emulateCork)
+BufferedOutStream::BufferedOutStream(bool emulateCork_)
+  : bufSize(DEFAULT_BUF_SIZE), offset(0), emulateCork(emulateCork_)
 {
   ptr = start = sentUpTo = new uint8_t[bufSize];
   end = start + bufSize;

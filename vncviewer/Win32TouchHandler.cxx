@@ -37,8 +37,8 @@ static const DWORD MOUSEMOVE_FLAGS = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE |
 
 static const unsigned SINGLE_PAN_THRESHOLD = 50;
 
-Win32TouchHandler::Win32TouchHandler(HWND hWnd) :
-  hWnd(hWnd), gesturesConfigured(false), gestureActive(false),
+Win32TouchHandler::Win32TouchHandler(HWND hWnd_) :
+  hWnd(hWnd_), gesturesConfigured(false), gestureActive(false),
   ignoringGesture(false), fakeButtonMask(0)
 {
   // If window is registered as touch we can not receive gestures,

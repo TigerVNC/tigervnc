@@ -71,11 +71,11 @@ std::set<int> MonitorIndicesParameter::getParam()
     return indices;
 }
 
-bool MonitorIndicesParameter::setParam(const char* value)
+bool MonitorIndicesParameter::setParam(const char* v)
 {
     std::set<int> indices;
 
-    if (!parseIndices(value, &indices, true)) {
+    if (!parseIndices(v, &indices, true)) {
         vlog.error(_("Invalid configuration specified for %s"), name);
         return false;
     }
@@ -86,7 +86,7 @@ bool MonitorIndicesParameter::setParam(const char* value)
             vlog.error(_("Monitor index %d does not exist"), index);
     }
 
-    return StringParameter::setParam(value);
+    return StringParameter::setParam(v);
 }
 
 bool MonitorIndicesParameter::setParam(std::set<int> indices)

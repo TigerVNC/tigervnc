@@ -25,12 +25,12 @@
 #include "QueryConnectDialog.h"
 #include "vncExt.h"
 
-QueryConnectDialog::QueryConnectDialog(Display* dpy,
+QueryConnectDialog::QueryConnectDialog(Display* dpy_,
                                        const char* address_,
                                        const char* user_,
                                        int timeout_,
                                        QueryResultCallback* cb)
-  : TXDialog(dpy, 300, 100, "VNC Server : Accept Connection?"),
+  : TXDialog(dpy_, 300, 100, "VNC Server : Accept Connection?"),
     addressLbl(dpy, "Host:",this),
     address(dpy, address_, this),
     userLbl(dpy, "User:", this),

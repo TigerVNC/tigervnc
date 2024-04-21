@@ -36,8 +36,8 @@ static LogWriter vlog("ZRLEEncoder");
 
 IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
 
-ZRLEEncoder::ZRLEEncoder(SConnection* conn)
-  : Encoder(conn, encodingZRLE, EncoderPlain, 127),
+ZRLEEncoder::ZRLEEncoder(SConnection* conn_)
+  : Encoder(conn_, encodingZRLE, EncoderPlain, 127),
   zos(nullptr, 2), mos(129*1024)
 {
   if (zlibLevel != -1) {

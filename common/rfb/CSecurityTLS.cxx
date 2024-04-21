@@ -82,8 +82,8 @@ static const char* configdirfn(const char* fn)
   return full_path;
 }
 
-CSecurityTLS::CSecurityTLS(CConnection* cc, bool _anon)
-  : CSecurity(cc), session(nullptr),
+CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon)
+  : CSecurity(cc_), session(nullptr),
     anon_cred(nullptr), cert_cred(nullptr),
     anon(_anon), tlsis(nullptr), tlsos(nullptr),
     rawis(nullptr), rawos(nullptr)

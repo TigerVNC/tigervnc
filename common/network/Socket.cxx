@@ -128,8 +128,8 @@ void Socket::setFd(int fd)
   isShutdown_ = false;
 }
 
-SocketListener::SocketListener(int fd)
-  : fd(fd), filter(nullptr)
+SocketListener::SocketListener(int fd_)
+  : fd(fd_), filter(nullptr)
 {
   initSockets();
 }

@@ -138,8 +138,8 @@ bool NotifyRectangle(RECT* rect) {
   LPARAM l = MAKELONG((SHORT)rect->right, (SHORT)rect->bottom);
   return NotifyHookOwner(WM_HK_RectangleChanged, w, l);
 }
-bool NotifyCursor(HCURSOR cursor) {
-  return NotifyHookOwner(WM_HK_CursorChanged, 0, (LPARAM)cursor);
+bool NotifyCursor(HCURSOR cursor_) {
+  return NotifyHookOwner(WM_HK_CursorChanged, 0, (LPARAM)cursor_);
 }
 
 void ProcessWindowMessage(UINT msg, HWND wnd, WPARAM wParam, LPARAM /*lParam*/) {

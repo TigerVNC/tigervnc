@@ -33,11 +33,11 @@ using namespace rfb;
 static LogWriter vlog("Cursor");
 
 Cursor::Cursor(int width, int height, const Point& hotspot,
-               const uint8_t* data) :
+               const uint8_t* data_) :
   width_(width), height_(height), hotspot_(hotspot)
 {
-  this->data = new uint8_t[width_*height_*4];
-  memcpy(this->data, data, width_*height_*4);
+  data = new uint8_t[width_*height_*4];
+  memcpy(data, data_, width_*height_*4);
 }
 
 Cursor::Cursor(const Cursor& other) :

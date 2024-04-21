@@ -51,8 +51,8 @@ Exception::Exception(const char *format, ...) {
 	va_end(ap);
 }
 
-GAIException::GAIException(const char* s, int err)
-  : Exception("%s", s)
+GAIException::GAIException(const char* s, int err_)
+  : Exception("%s", s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
 #ifdef _WIN32

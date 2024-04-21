@@ -66,8 +66,8 @@ StringParameter SSecurityTLS::X509_KeyFile
 
 static LogWriter vlog("TLS");
 
-SSecurityTLS::SSecurityTLS(SConnection* sc, bool _anon)
-  : SSecurity(sc), session(nullptr), anon_cred(nullptr),
+SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
+  : SSecurity(sc_), session(nullptr), anon_cred(nullptr),
     cert_cred(nullptr), anon(_anon), tlsis(nullptr), tlsos(nullptr),
     rawis(nullptr), rawos(nullptr)
 {

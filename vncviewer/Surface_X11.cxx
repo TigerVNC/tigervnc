@@ -43,20 +43,22 @@ void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned 
                        0, 0, width(), height());
 }
 
-void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
+void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
+                   int dst_w, int dst_h)
 {
   Picture winPict;
 
   winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, nullptr);
   XRenderComposite(fl_display, PictOpSrc, picture, None, winPict,
-                   src_x, src_y, 0, 0, x, y, w, h);
+                   src_x, src_y, 0, 0, dst_x, dst_y, dst_w, dst_h);
   XRenderFreePicture(fl_display, winPict);
 }
 
-void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+void Surface::draw(Surface* dst, int src_x, int src_y,
+                   int dst_x, int dst_y, int dst_w, int dst_h)
 {
   XRenderComposite(fl_display, PictOpSrc, picture, None, dst->picture,
-                   src_x, src_y, 0, 0, x, y, w, h);
+                   src_x, src_y, 0, 0, dst_x, dst_y, dst_w, dst_h);
 }
 
 static Picture alpha_mask(int a)
@@ -86,27 +88,29 @@ static Picture alpha_mask(int a)
   return pict;
 }
 
-void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
+void Surface::blend(int src_x, int src_y, int dst_x, int dst_y,
+                    int dst_w, int dst_h, int a)
 {
   Picture winPict, alpha;
 
   winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, nullptr);
   alpha = alpha_mask(a);
   XRenderComposite(fl_display, PictOpOver, picture, alpha, winPict,
-                   src_x, src_y, 0, 0, x, y, w, h);
+                   src_x, src_y, 0, 0, dst_x, dst_y, dst_w, dst_h);
   XRenderFreePicture(fl_display, winPict);
 
   if (alpha != None)
     XRenderFreePicture(fl_display, alpha);
 }
 
-void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a)
+void Surface::blend(Surface* dst, int src_x, int src_y,
+                    int dst_x, int dst_y, int dst_w, int dst_h, int a)
 {
   Picture alpha;
 
   alpha = alpha_mask(a);
   XRenderComposite(fl_display, PictOpOver, picture, alpha, dst->picture,
-                   src_x, src_y, 0, 0, x, y, w, h);
+                   src_x, src_y, 0, 0, dst_x, dst_y, dst_w, dst_h);
   if (alpha != None)
     XRenderFreePicture(fl_display, alpha);
 }

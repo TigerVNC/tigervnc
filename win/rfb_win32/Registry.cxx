@@ -244,11 +244,11 @@ std::string RegKey::getRepresentation(const char* valname) const {
       DWORD required = ExpandEnvironmentStrings(str.c_str(), nullptr, 0);
       if (required==0)
         throw rdr::SystemException("ExpandEnvironmentStrings", GetLastError());
-      std::vector<char> result(required);
-      length = ExpandEnvironmentStrings(str.c_str(), result.data(), required);
+      std::vector<char> expanded(required);
+      length = ExpandEnvironmentStrings(str.c_str(), expanded.data(), required);
       if (required<length)
         throw rdr::Exception("unable to expand environment strings");
-      return result.data();
+      return expanded.data();
     } else {
       return "";
     }

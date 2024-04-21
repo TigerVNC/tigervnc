@@ -31,8 +31,8 @@
 
 using namespace rfb;
 
-RREEncoder::RREEncoder(SConnection* conn) :
-  Encoder(conn, encodingRRE, EncoderPlain)
+RREEncoder::RREEncoder(SConnection* conn_) :
+  Encoder(conn_, encodingRRE, EncoderPlain)
 {
 }
 

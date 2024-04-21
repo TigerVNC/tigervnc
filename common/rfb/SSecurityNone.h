@@ -28,7 +28,7 @@ namespace rfb {
 
   class SSecurityNone : public SSecurity {
   public:
-    SSecurityNone(SConnection* sc) : SSecurity(sc) {}
+    SSecurityNone(SConnection* sc_) : SSecurity(sc_) {}
     bool processMsg() override { return true; }
     int getType() const override {return secTypeNone;}
     const char* getUserName() const override {return nullptr;}

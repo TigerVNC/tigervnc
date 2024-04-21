@@ -338,8 +338,8 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   listen(sock);
 }
 
-Socket* TcpListener::createSocket(int fd) {
-  return new TcpSocket(fd);
+Socket* TcpListener::createSocket(int fd_) {
+  return new TcpSocket(fd_);
 }
 
 std::list<std::string> TcpListener::getMyAddresses() {

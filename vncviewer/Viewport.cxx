@@ -329,9 +329,9 @@ void Viewport::handleClipboardData(const char* data)
   Fl::copy(data, len, 1);
 }
 
-void Viewport::setLEDState(unsigned int state)
+void Viewport::setLEDState(unsigned int ledState)
 {
-  vlog.debug("Got server LED state: 0x%08x", state);
+  vlog.debug("Got server LED state: 0x%08x", ledState);
 
   // The first message is just considered to be the server announcing
   // support for this extension. We will push our state to sync up the
@@ -355,7 +355,7 @@ void Viewport::setLEDState(unsigned int state)
   memset(input, 0, sizeof(input));
   count = 0;
 
-  if (!!(state & ledCapsLock) != !!(GetKeyState(VK_CAPITAL) & 0x1)) {
+  if (!!(ledState & ledCapsLock) != !!(GetKeyState(VK_CAPITAL) & 0x1)) {
     input[count].type = input[count+1].type = INPUT_KEYBOARD;
     input[count].ki.wVk = input[count+1].ki.wVk = VK_CAPITAL;
     input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
@@ -364,7 +364,7 @@ void Viewport::setLEDState(unsigned int state)
     count += 2;
   }
 
-  if (!!(state & ledNumLock) != !!(GetKeyState(VK_NUMLOCK) & 0x1)) {
+  if (!!(ledState & ledNumLock) != !!(GetKeyState(VK_NUMLOCK) & 0x1)) {
     input[count].type = input[count+1].type = INPUT_KEYBOARD;
     input[count].ki.wVk = input[count+1].ki.wVk = VK_NUMLOCK;
     input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
@@ -373,7 +373,7 @@ void Viewport::setLEDState(unsigned int state)
     count += 2;
   }
 
-  if (!!(state & ledScrollLock) != !!(GetKeyState(VK_SCROLL) & 0x1)) {
+  if (!!(ledState & ledScrollLock) != !!(GetKeyState(VK_SCROLL) & 0x1)) {
     input[count].type = input[count+1].type = INPUT_KEYBOARD;
     input[count].ki.wVk = input[count+1].ki.wVk = VK_SCROLL;
     input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
@@ -391,13 +391,13 @@ void Viewport::setLEDState(unsigned int state)
 #elif defined(__APPLE__)
   int ret;
 
-  ret = cocoa_set_caps_lock_state(state & ledCapsLock);
+  ret = cocoa_set_caps_lock_state(ledState & ledCapsLock);
   if (ret != 0) {
     vlog.error(_("Failed to update keyboard LED state: %d"), ret);
     return;
   }
 
-  ret = cocoa_set_num_lock_state(state & ledNumLock);
+  ret = cocoa_set_num_lock_state(ledState & ledNumLock);
   if (ret != 0) {
     vlog.error(_("Failed to update keyboard LED state: %d"), ret);
     return;
@@ -414,17 +414,17 @@ void Viewport::setLEDState(unsigned int state)
   affect = values = 0;
 
   affect |= LockMask;
-  if (state & ledCapsLock)
+  if (ledState & ledCapsLock)
     values |= LockMask;
 
   mask = getModifierMask(XK_Num_Lock);
   affect |= mask;
-  if (state & ledNumLock)
+  if (ledState & ledNumLock)
     values |= mask;
 
   mask = getModifierMask(XK_Scroll_Lock);
   affect |= mask;
-  if (state & ledScrollLock)
+  if (ledState & ledScrollLock)
     values |= mask;
 
   ret = XkbLockModifiers(fl_display, XkbUseCoreKbd, affect, values);
@@ -435,21 +435,21 @@ void Viewport::setLEDState(unsigned int state)
 
 void Viewport::pushLEDState()
 {
-  unsigned int state;
+  unsigned int ledState;
 
   // Server support?
   if (cc->server.ledState() == ledUnknown)
     return;
 
-  state = 0;
+  ledState = 0;
 
 #if defined(WIN32)
   if (GetKeyState(VK_CAPITAL) & 0x1)
-    state |= ledCapsLock;
+    ledState |= ledCapsLock;
   if (GetKeyState(VK_NUMLOCK) & 0x1)
-    state |= ledNumLock;
+    ledState |= ledNumLock;
   if (GetKeyState(VK_SCROLL) & 0x1)
-    state |= ledScrollLock;
+    ledState |= ledScrollLock;
 #elif defined(__APPLE__)
   int ret;
   bool on;
@@ -460,7 +460,7 @@ void Viewport::pushLEDState()
     return;
   }
   if (on)
-    state |= ledCapsLock;
+    ledState |= ledCapsLock;
 
   ret = cocoa_get_num_lock_state(&on);
   if (ret != 0) {
@@ -468,10 +468,10 @@ void Viewport::pushLEDState()
     return;
   }
   if (on)
-    state |= ledNumLock;
+    ledState |= ledNumLock;
 
   // No support for Scroll Lock //
-  state |= (cc->server.ledState() & ledScrollLock);
+  ledState |= (cc->server.ledState() & ledScrollLock);
 
 #else
   unsigned int mask;
@@ -486,28 +486,28 @@ void Viewport::pushLEDState()
   }
 
   if (xkbState.locked_mods & LockMask)
-    state |= ledCapsLock;
+    ledState |= ledCapsLock;
 
   mask = getModifierMask(XK_Num_Lock);
   if (xkbState.locked_mods & mask)
-    state |= ledNumLock;
+    ledState |= ledNumLock;
 
   mask = getModifierMask(XK_Scroll_Lock);
   if (xkbState.locked_mods & mask)
-    state |= ledScrollLock;
+    ledState |= ledScrollLock;
 #endif
 
-  if ((state & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
+  if ((ledState & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(0x3a, XK_Caps_Lock);
     handleKeyRelease(0x3a);
   }
-  if ((state & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
+  if ((ledState & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(0x45, XK_Num_Lock);
     handleKeyRelease(0x45);
   }
-  if ((state & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
+  if ((ledState & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(0x46, XK_Scroll_Lock);
     handleKeyRelease(0x46);

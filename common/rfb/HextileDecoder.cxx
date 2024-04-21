@@ -191,10 +191,10 @@ void HextileDecoder::hextileDecode(const Rect& r, rdr::InStream* is,
           if (x + w > 16 || y + h > 16) {
             throw rfb::Exception("HEXTILE_DECODE: Hextile out of bounds");
           }
-          T* ptr = buf + y * t.width() + x;
+          ptr = buf + y * t.width() + x;
           int rowAdd = t.width() - w;
           while (h-- > 0) {
-            int len = w;
+            len = w;
             while (len-- > 0) *ptr++ = fg;
             ptr += rowAdd;
           }

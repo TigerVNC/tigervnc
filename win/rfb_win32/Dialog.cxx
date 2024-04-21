@@ -151,7 +151,7 @@ BOOL Dialog::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-PropSheetPage::PropSheetPage(HINSTANCE inst, const char* id) : Dialog(inst), propSheet(nullptr) {
+PropSheetPage::PropSheetPage(HINSTANCE inst_, const char* id) : Dialog(inst_), propSheet(nullptr) {
   page.dwSize = sizeof(page);
   page.dwFlags = 0; // PSP_USECALLBACK;
   page.hInstance = inst;
@@ -241,7 +241,7 @@ static int CALLBACK removeCtxtHelp(HWND /*hwnd*/, UINT message, LPARAM lParam) {
 }
 
 
-bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, bool capture) {
+bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bool capture) {
   if (alreadyShowing) return false;
   alreadyShowing = true;
   int count = pages.size();
@@ -262,7 +262,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     header.dwSize = sizeof(PROPSHEETHEADER); // Requires comctl32.dll 4.71 or greater, ie IE 4 or later
     header.dwFlags = PSH_MODELESS | (showApply ? 0 : PSH_NOAPPLYNOW) | (showCtxtHelp ? 0 : PSH_USECALLBACK);
     header.pfnCallback = removeCtxtHelp;
-    header.hwndParent = owner;
+    header.hwndParent = owner_;
     header.hInstance = inst;
     header.pszCaption = title.c_str();
     header.nPages = count;
@@ -276,7 +276,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     handle = (HWND)PropertySheet(&header);
     if ((handle == nullptr) || (handle == (HWND)-1))
       throw rdr::SystemException("PropertySheet failed", GetLastError());
-    centerWindow(handle, owner);
+    centerWindow(handle, owner_);
     plog.info("created %p", handle);
 
     (void)capture;
@@ -314,8 +314,8 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     } else {
 #endif
       try {
-        if (owner)
-          EnableWindow(owner, FALSE);
+        if (owner_)
+          EnableWindow(owner_, FALSE);
         // Run the PropertySheet
         MSG msg;
         while (GetMessage(&msg, nullptr, 0, 0)) {
@@ -324,11 +324,11 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
           if (!PropSheet_GetCurrentPageHwnd(handle))
             break;
         }
-        if (owner)
-          EnableWindow(owner, TRUE);
+        if (owner_)
+          EnableWindow(owner_, TRUE);
       } catch (...) {
-        if (owner)
-          EnableWindow(owner, TRUE);
+        if (owner_)
+          EnableWindow(owner_, TRUE);
         throw;
       }
 #ifdef _DIALOG_CAPTURE

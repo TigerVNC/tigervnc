@@ -338,17 +338,17 @@ bool rfb::win32::registerService(const char* name,
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
   // - Add the service
-  ServiceHandle service = CreateService(scm,
+  ServiceHandle handle = CreateService(scm,
     name, display, SC_MANAGER_ALL_ACCESS,
     SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
     SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
     cmdline.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
-  if (!service)
+  if (!handle)
     throw rdr::SystemException("unable to create service", GetLastError());
 
   // - Set a description
   SERVICE_DESCRIPTION sdesc = {(LPTSTR)desc};
-  ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &sdesc);
+  ChangeServiceConfig2(handle, SERVICE_CONFIG_DESCRIPTION, &sdesc);
 
   // - Register the event log source
   RegKey hk, hk2;
@@ -383,10 +383,10 @@ bool rfb::win32::unregisterService(const char* name) {
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
   // - Create the service
-  ServiceHandle service = OpenService(scm, name, SC_MANAGER_ALL_ACCESS);
-  if (!service)
+  ServiceHandle handle = OpenService(scm, name, SC_MANAGER_ALL_ACCESS);
+  if (!handle)
     throw rdr::SystemException("unable to locate the service", GetLastError());
-  if (!DeleteService(service))
+  if (!DeleteService(handle))
     throw rdr::SystemException("unable to remove the service", GetLastError());
 
   // - Register the event log source
@@ -410,12 +410,12 @@ bool rfb::win32::startService(const char* name) {
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
   // - Locate the service
-  ServiceHandle service = OpenService(scm, name, SERVICE_START);
-  if (!service)
+  ServiceHandle handle = OpenService(scm, name, SERVICE_START);
+  if (!handle)
     throw rdr::SystemException("unable to open the service", GetLastError());
 
   // - Start the service
-  if (!StartService(service, 0, nullptr))
+  if (!StartService(handle, 0, nullptr))
     throw rdr::SystemException("unable to start the service", GetLastError());
 
   Sleep(500);
@@ -430,13 +430,13 @@ bool rfb::win32::stopService(const char* name) {
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
   // - Locate the service
-  ServiceHandle service = OpenService(scm, name, SERVICE_STOP);
-  if (!service)
+  ServiceHandle handle = OpenService(scm, name, SERVICE_STOP);
+  if (!handle)
     throw rdr::SystemException("unable to open the service", GetLastError());
 
   // - Start the service
   SERVICE_STATUS status;
-  if (!ControlService(service, SERVICE_CONTROL_STOP, &status))
+  if (!ControlService(handle, SERVICE_CONTROL_STOP, &status))
     throw rdr::SystemException("unable to stop the service", GetLastError());
 
   Sleep(500);
@@ -451,13 +451,13 @@ DWORD rfb::win32::getServiceState(const char* name) {
     throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
   // - Locate the service
-  ServiceHandle service = OpenService(scm, name, SERVICE_INTERROGATE);
-  if (!service)
+  ServiceHandle handle = OpenService(scm, name, SERVICE_INTERROGATE);
+  if (!handle)
     throw rdr::SystemException("unable to open the service", GetLastError());
 
   // - Get the service status
   SERVICE_STATUS status;
-  if (!ControlService(service, SERVICE_CONTROL_INTERROGATE, (SERVICE_STATUS*)&status))
+  if (!ControlService(handle, SERVICE_CONTROL_INTERROGATE, (SERVICE_STATUS*)&status))
     throw rdr::SystemException("unable to query the service", GetLastError());
 
   return status.dwCurrentState;

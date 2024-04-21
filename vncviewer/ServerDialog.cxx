@@ -395,8 +395,8 @@ void ServerDialog::saveServerHistory()
                     filepath, strerror(errno));
 
   // Save the last X elements to the config file.
-  for(size_t i=0; i < serverHistory.size() && i <= SERVER_HISTORY_SIZE; i++)
-    fprintf(f, "%s\n", serverHistory[i].c_str());
+  for(size_t idx=0; idx < serverHistory.size() && idx <= SERVER_HISTORY_SIZE; idx++)
+    fprintf(f, "%s\n", serverHistory[idx].c_str());
 
   fclose(f);
 }

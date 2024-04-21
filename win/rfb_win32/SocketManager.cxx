@@ -229,11 +229,11 @@ void SocketManager::processEvent(HANDLE event) {
     try {
       // Process data from an active connection
 
-      WSANETWORKEVENTS events;
+      WSANETWORKEVENTS network_events;
       long eventMask;
 
       // Fetch why this event notification triggered
-      if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &events) == SOCKET_ERROR)
+      if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &network_events) == SOCKET_ERROR)
         throw rdr::SystemException("unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
 
       // Cancel event notification for this socket
@@ -245,14 +245,14 @@ void SocketManager::processEvent(HANDLE event) {
 
 
       // Call the socket server to process the event
-      if (events.lNetworkEvents & FD_WRITE) {
+      if (network_events.lNetworkEvents & FD_WRITE) {
         ci.server->processSocketWriteEvent(ci.sock);
         if (ci.sock->isShutdown()) {
           remSocket(ci.sock);
           return;
         }
       }
-      if (events.lNetworkEvents & (FD_READ | FD_CLOSE)) {
+      if (network_events.lNetworkEvents & (FD_READ | FD_CLOSE)) {
         ci.server->processSocketReadEvent(ci.sock);
         if (ci.sock->isShutdown()) {
           remSocket(ci.sock);

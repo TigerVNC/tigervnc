@@ -279,8 +279,8 @@ void CConn::serverCutText(const char*)
 {
 }
 
-Manager::Manager(class rfb::SConnection *conn) :
-  EncodeManager(conn)
+Manager::Manager(class rfb::SConnection *conn_) :
+  EncodeManager(conn_)
 {
 }
 
@@ -388,13 +388,13 @@ static struct stats runTest(const char *fn)
   return s;
 }
 
-static void sort(double *array, int count)
+static void sort(double *array, int len)
 {
   bool sorted;
   int i;
   do {
     sorted = true;
-    for (i = 1; i < count; i++) {
+    for (i = 1; i < len; i++) {
       if (array[i-1] > array[i]) {
         double d;
         d = array[i];

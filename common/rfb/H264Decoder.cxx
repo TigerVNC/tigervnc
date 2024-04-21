@@ -79,9 +79,9 @@ bool H264Decoder::readRect(const Rect& /*r*/,
 
   len = is->readU32();
   os->writeU32(len);
-  uint32_t flags = is->readU32();
+  uint32_t reset = is->readU32();
 
-  os->writeU32(flags);
+  os->writeU32(reset);
 
   if (!is->hasDataOrRestore(len))
     return false;
@@ -100,15 +100,15 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
 {
   rdr::MemInStream is(buffer, buflen);
   uint32_t len = is.readU32();
-  uint32_t flags = is.readU32();
+  uint32_t reset = is.readU32();
 
   H264DecoderContext* ctx = nullptr;
-  if (flags & resetAllContexts)
+  if (reset & resetAllContexts)
   {
     resetContexts();
     if (!len)
       return;
-    flags &= ~(resetContext | resetAllContexts);
+    reset &= ~(resetContext | resetAllContexts);
   } else {
     ctx = findContext(r);
   }

@@ -487,17 +487,17 @@ static void usage(const char *programName)
 }
 
 static void
-potentiallyLoadConfigurationFile(char *vncServerName)
+potentiallyLoadConfigurationFile(const char *filename)
 {
-  const bool hasPathSeparator = (strchr(vncServerName, '/') != nullptr ||
-                                 (strchr(vncServerName, '\\')) != nullptr);
+  const bool hasPathSeparator = (strchr(filename, '/') != nullptr ||
+                                 (strchr(filename, '\\')) != nullptr);
 
   if (hasPathSeparator) {
 #ifndef WIN32
     struct stat sb;
 
     // This might be a UNIX socket, we need to check
-    if (stat(vncServerName, &sb) == -1) {
+    if (stat(filename, &sb) == -1) {
       // Some access problem; let loadViewerParameters() deal with it...
     } else {
       if ((sb.st_mode & S_IFMT) == S_IFSOCK)
@@ -507,7 +507,7 @@ potentiallyLoadConfigurationFile(char *vncServerName)
 
     try {
       const char* newServerName;
-      newServerName = loadViewerParameters(vncServerName);
+      newServerName = loadViewerParameters(filename);
       // This might be empty, but we still need to clear it so we
       // don't try to connect to the filename
       strncpy(vncServerName, newServerName, VNCSERVERNAMELEN-1);

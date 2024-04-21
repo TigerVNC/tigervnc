@@ -46,12 +46,12 @@ using namespace rfb;
 
 static LogWriter vlog("SConnection");
 
-SConnection::SConnection(AccessRights accessRights)
+SConnection::SConnection(AccessRights accessRights_)
   : readyForSetColourMapEntries(false), is(nullptr), os(nullptr),
     reader_(nullptr), writer_(nullptr), ssecurity(nullptr),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-    accessRights(accessRights), hasRemoteClipboard(false),
+    accessRights(accessRights_), hasRemoteClipboard(false),
     hasLocalClipboard(false),
     unsolicitedClipboardAttempt(false)
 {
@@ -587,7 +587,7 @@ void SConnection::sendClipboardData(const char* data)
     // FIXME: This conversion magic should be in SMsgWriter
     std::string filtered(convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
-    const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
+    const uint8_t* datas[1] = { (const uint8_t*)filtered.c_str() };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -599,7 +599,7 @@ void SConnection::sendClipboardData(const char* data)
       }
     }
 
-    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
+    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, datas);
   } else {
     writer()->writeServerCutText(data);
   }

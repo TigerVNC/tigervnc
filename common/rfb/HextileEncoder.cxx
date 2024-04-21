@@ -38,8 +38,8 @@ BoolParameter improvedHextile("ImprovedHextile",
                               "ratios by the cost of using more CPU time",
                               true);
 
-HextileEncoder::HextileEncoder(SConnection* conn) :
-  Encoder(conn, encodingHextile, EncoderPlain)
+HextileEncoder::HextileEncoder(SConnection* conn_) :
+  Encoder(conn_, encodingHextile, EncoderPlain)
 {
 }
 

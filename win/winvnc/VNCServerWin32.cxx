@@ -179,13 +179,12 @@ int VNCServerWin32::run() {
   // - Set the address-changed handler for the RFB socket
   rfbSock.setAddressChangeNotifier(this);
 
-  DWORD result = 0;
+  int result = 0;
   try {
     vlog.debug("Entering message loop");
 
     // - Run the server until we're told to quit
     MSG msg;
-    int result = 0;
     while (runServer) {
       result = sockMgr.getMessage(&msg, nullptr, 0, 0);
       if (result < 0)

@@ -675,7 +675,7 @@ void CConnection::sendClipboardData(const char* data)
     // FIXME: This conversion magic should be in CMsgWriter
     std::string filtered(convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
-    const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
+    const uint8_t* datas[1] = { (const uint8_t*)filtered.c_str() };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -687,7 +687,7 @@ void CConnection::sendClipboardData(const char* data)
       }
     }
 
-    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
+    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, datas);
   } else {
     writer()->writeClientCutText(data);
   }

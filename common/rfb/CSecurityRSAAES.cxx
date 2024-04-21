@@ -56,9 +56,9 @@ const int MaxKeyLength = 8192;
 
 using namespace rfb;
 
-CSecurityRSAAES::CSecurityRSAAES(CConnection* cc, uint32_t _secType,
+CSecurityRSAAES::CSecurityRSAAES(CConnection* cc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
-  : CSecurity(cc), state(ReadPublicKey),
+  : CSecurity(cc_), state(ReadPublicKey),
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
     clientKey(), clientPublicKey(), serverKey(),
     serverKeyN(nullptr), serverKeyE(nullptr),

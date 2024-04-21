@@ -84,9 +84,9 @@ void Mutex::unlock()
 #endif
 }
 
-Condition::Condition(Mutex* mutex)
+Condition::Condition(Mutex* mutex_)
 {
-  this->mutex = mutex;
+  this->mutex = mutex_;
 
 #ifdef WIN32
   systemCondition = new CONDITION_VARIABLE;

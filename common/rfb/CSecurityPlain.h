@@ -26,7 +26,7 @@ namespace rfb {
 
   class CSecurityPlain : public CSecurity {
   public:
-    CSecurityPlain(CConnection* cc) : CSecurity(cc) {}
+    CSecurityPlain(CConnection* cc_) : CSecurity(cc_) {}
     bool processMsg() override;
     int getType() const override { return secTypePlain; }
   };

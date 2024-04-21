@@ -40,8 +40,8 @@ using namespace rfb;
 
 static LogWriter vlog("DecodeManager");
 
-DecodeManager::DecodeManager(CConnection *conn) :
-  conn(conn), threadException(nullptr)
+DecodeManager::DecodeManager(CConnection *conn_) :
+  conn(conn_), threadException(nullptr)
 {
   size_t cpuCount;
 
@@ -268,12 +268,9 @@ void DecodeManager::throwThreadException()
   throw e;
 }
 
-DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager)
+DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager_)
+  : manager(manager_), stopRequested(false)
 {
-  this->manager = manager;
-
-  stopRequested = false;
-
   start();
 }
 

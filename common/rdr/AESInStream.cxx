@@ -45,15 +45,15 @@ bool AESInStream::fillBuffer()
 {
   if (!in->hasData(2))
     return false;
-  const uint8_t* ptr = in->getptr(2);
-  size_t length = ((int)ptr[0] << 8) | (int)ptr[1];
+  const uint8_t* buf = in->getptr(2);
+  size_t length = ((int)buf[0] << 8) | (int)buf[1];
   if (!in->hasData(2 + length + 16))
     return false;
   ensureSpace(length);
-  ptr = in->getptr(2 + length + 16);
-  const uint8_t* ad = ptr;
-  const uint8_t* data = ptr + 2;
-  const uint8_t* mac = ptr + 2 + length;
+  buf = in->getptr(2 + length + 16);
+  const uint8_t* ad = buf;
+  const uint8_t* data = buf + 2;
+  const uint8_t* mac = buf + 2 + length;
   uint8_t macComputed[16];
 
   if (keySize == 128) {

@@ -66,10 +66,10 @@ char* programName = nullptr;
 Display* dpy;
 int vncExtEventBase, vncExtErrorBase;
 
-static bool getBoolParam(Display* dpy, const char* param) {
+static bool getBoolParam(Display* dpy_, const char* param) {
   char* data;
   int len;
-  if (XVncExtGetParam(dpy, param, &data, &len)) {
+  if (XVncExtGetParam(dpy_, param, &data, &len)) {
     if (strcmp(data,"1") == 0) return true;
   }
   return false;
@@ -80,12 +80,12 @@ class VncConfigWindow : public TXWindow, public TXEventHandler,
                         public TXCheckboxCallback,
                         public QueryResultCallback {
 public:
-  VncConfigWindow(Display* dpy)
-    : TXWindow(dpy, 300, 100),
-      acceptClipboard(dpy, "Accept clipboard from viewers", this, false, this),
-      setPrimaryCB(dpy, "Also set primary selection", this, false, this),
-      sendClipboard(dpy, "Send clipboard to viewers", this, false, this),
-      sendPrimaryCB(dpy, "Send primary selection to viewers", this,false,this),
+  VncConfigWindow(Display* dpy_)
+    : TXWindow(dpy_, 300, 100),
+      acceptClipboard(dpy_, "Accept clipboard from viewers", this, false, this),
+      setPrimaryCB(dpy_, "Also set primary selection", this, false, this),
+      sendClipboard(dpy_, "Send clipboard to viewers", this, false, this),
+      sendPrimaryCB(dpy_, "Send primary selection to viewers", this,false,this),
       queryConnectDialog(nullptr)
   {
     int y = yPad;
@@ -278,8 +278,8 @@ int main(int argc, char** argv)
       } else if (strcmp(argv[i], "-list") == 0) {
         int nParams;
         char** list = XVncExtListParams(dpy, &nParams);
-        for (int i = 0; i < nParams; i++) {
-          printf("%s\n",list[i]);
+        for (int n = 0; n < nParams; n++) {
+          printf("%s\n",list[n]);
         }
         XVncExtFreeParamList(list);
       } else if (strcmp(argv[i], "-set") == 0) {
