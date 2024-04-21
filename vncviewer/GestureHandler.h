@@ -47,7 +47,7 @@ class GestureHandler : public rfb::Timer::Callback {
     void twoTouchTimeout();
 
     void pushEvent(GestureEventType t);
-    GestureEventGesture stateToGesture(unsigned char state);
+    static GestureEventGesture stateToGesture(unsigned char state);
 
     void getPosition(double *firstX, double *firstY,
                      double *lastX, double *lastY);
