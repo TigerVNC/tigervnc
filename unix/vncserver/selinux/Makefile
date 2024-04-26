@@ -13,7 +13,7 @@ DATADIR=$(PREFIX)/share
 all: vncsession.pp.bz2
 
 %.pp.bz2: %.pp
-	bzip2 -9 $^
+	cat "$^" | bzip2 -9 > "$@"
 
 %.pp: %.te
 	make -f $(DATADIR)/selinux/devel/Makefile $@
