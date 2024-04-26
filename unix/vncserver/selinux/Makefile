@@ -17,6 +17,7 @@ all: vncsession.pp.bz2
 
 %.pp: %.te
 	make -f $(DATADIR)/selinux/devel/Makefile $@
+	rm -rf tmp
 
 clean:
 	rm -f *.pp *.pp.bz2
