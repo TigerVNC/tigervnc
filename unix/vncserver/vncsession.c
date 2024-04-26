@@ -346,12 +346,54 @@ switch_user(const char *username, uid_t uid, gid_t gid)
 }
 
 static void
+mkvncdir(const char *dir)
+{
+    if (mkdir(dir, 0755) == -1) {
+        if (errno != EEXIST) {
+            syslog(LOG_CRIT, "Failure creating \"%s\": %s", dir, strerror(errno));
+            _exit(EX_OSERR);
+        }
+
+#ifdef HAVE_SELINUX
+        /* this is only needed to handle historical type changes for the legacy dir */
+        int result;
+        if (selinux_file_context_verify(dir, 0) == 0) {
+            result = selinux_restorecon(dir, SELINUX_RESTORECON_RECURSE);
+
+            if (result < 0) {
+                syslog(LOG_WARNING, "Failure restoring SELinux context for \"%s\": %s", dir, strerror(errno));
+            }
+        }
+#endif
+    }
+}
+
+static void
+mkdirrecursive(const char *dir)
+{
+    char *path = strdup(dir);
+    char *p;
+
+    for (p = path + 1; *p; p++) {
+        if (*p == '/') {
+            *p = '\0';
+            mkvncdir(path);
+            *p = '/';
+        }
+    }
+
+    mkvncdir(path);
+    free(path);
+}
+
+static void
 redir_stdio(const char *homedir, const char *display)
 {
     int fd;
     long hostlen;
-    char* hostname = NULL;
-    char logfile[PATH_MAX];
+    char* hostname = NULL, *xdgstate;
+    char logfile[PATH_MAX], legacy[PATH_MAX];
+    struct stat st;
 
     fd = open("/dev/null", O_RDONLY);
     if (fd == -1) {
@@ -364,24 +406,19 @@ redir_stdio(const char *homedir, const char *display)
     }
     close(fd);
 
-    snprintf(logfile, sizeof(logfile), "%s/.vnc", homedir);
-    if (mkdir(logfile, 0755) == -1) {
-        if (errno != EEXIST) {
-            syslog(LOG_CRIT, "Failure creating \"%s\": %s", logfile, strerror(errno));
-            _exit(EX_OSERR);
-        }
+    xdgstate = getenv("XDG_STATE_HOME");
+    if (xdgstate != NULL && xdgstate[0] == '/')
+        snprintf(logfile, sizeof(logfile), "%s/tigervnc", xdgstate);
+    else
+        snprintf(logfile, sizeof(logfile), "%s/.local/state/tigervnc", homedir);
 
-#ifdef HAVE_SELINUX
-        int result;
-        if (selinux_file_context_verify(logfile, 0) == 0) {
-            result = selinux_restorecon(logfile, SELINUX_RESTORECON_RECURSE);
-
-            if (result < 0) {
-                syslog(LOG_WARNING, "Failure restoring SELinux context for \"%s\": %s", logfile, strerror(errno));
-            }
-        }
-#endif
+    snprintf(legacy, sizeof(legacy), "%s/.vnc", homedir);
+    if (stat(logfile, &st) != 0 && stat(legacy, &st) == 0) {
+        syslog(LOG_WARNING, "~/.vnc is deprecated, please consult 'man vncsession' for paths to migrate to.");
+        strcpy(logfile, legacy);
     }
+
+    mkdirrecursive(logfile);
 
     hostlen = sysconf(_SC_HOST_NAME_MAX);
     if (hostlen < 0) {
@@ -395,8 +432,8 @@ redir_stdio(const char *homedir, const char *display)
         _exit(EX_OSERR);
     }
 
-    snprintf(logfile, sizeof(logfile), "%s/.vnc/%s%s.log",
-             homedir, hostname, display);
+    snprintf(logfile + strlen(logfile), sizeof(logfile) - strlen(logfile), "/%s%s.log",
+             hostname, display);
     free(hostname);
     fd = open(logfile, O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (fd == -1) {

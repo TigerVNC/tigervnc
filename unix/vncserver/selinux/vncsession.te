@@ -37,6 +37,18 @@ allow vnc_session_t self:fifo_file rw_fifo_file_perms;
 allow vnc_session_t vnc_session_var_run_t:file manage_file_perms;
 files_pid_filetrans(vnc_session_t, vnc_session_var_run_t, file)
 
+# Allowed to create ~/.local
+optional_policy(`
+	gnome_filetrans_home_content(vnc_session_t)
+')
+optional_policy(`
+	gen_require(`
+		type gconf_home_t;
+	')
+	create_dirs_pattern(vnc_session_t, gconf_home_t, gconf_home_t)
+')
+
+# Manage TigerVNC files (mainly ~/.local/state/*.log)
 create_dirs_pattern(vnc_session_t, vnc_home_t, vnc_home_t)
 manage_files_pattern(vnc_session_t, vnc_home_t, vnc_home_t)
 manage_fifo_files_pattern(vnc_session_t, vnc_home_t, vnc_home_t)
@@ -72,13 +84,16 @@ optional_policy(`
 	userdom_spec_domtrans_all_users(vnc_session_t)
 	userdom_signal_all_users(vnc_session_t)
 
-	userdom_user_home_dir_filetrans(vnc_session_t, vnc_home_t, dir, ".vnc")
-	userdom_admin_home_dir_filetrans(vnc_session_t, vnc_home_t, dir, ".vnc")
-
-	# This also affects other tools, e.g. vncpasswd
+	# Make sure legacy path has correct type
 	gen_require(`
 		attribute userdomain;
+		type gconf_home_t;
 	')
 	userdom_admin_home_dir_filetrans(userdomain, vnc_home_t, dir, ".vnc")
 	userdom_user_home_dir_filetrans(userdomain, vnc_home_t, dir, ".vnc")
+
+	gnome_config_filetrans(userdomain, vnc_home_t, dir, "tigervnc")
+	gnome_data_filetrans(userdomain, vnc_home_t, dir, "tigervnc")
+	filetrans_pattern(userdomain, gconf_home_t, vnc_home_t, dir, "tigervnc")
+	filetrans_pattern(vnc_session_t, gconf_home_t, vnc_home_t, dir, "tigervnc")
 ')

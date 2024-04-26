@@ -1,6 +1,11 @@
 conv
+convertlf
 convperf
 decperf
+emulatemb
 encperf
 fbperf
+gesturehandler
 hostport
+pixelformat
+unicode

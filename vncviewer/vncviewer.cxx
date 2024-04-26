@@ -745,13 +745,18 @@ int main(int argc, char** argv)
 
   migrateDeprecatedOptions();
 
+  char *confdir = strdup(os::getvncconfigdir());
 #ifndef WIN32
-  // Check if config and state dirs are both the same legacy ~/.vnc dir
-  struct stat st;
-  if (stat(os::getvnchomedir(), &st) == 0)
-    vlog.info(_("~/.vnc is deprecated, please migrate to XDGBDS-compliant paths!"));
+  char *dotdir = strrchr(confdir, '.');
+  if (dotdir != NULL && strcmp(dotdir, ".vnc") == 0)
+    vlog.info(_("~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."));
+#else
+  char *vncdir = strrchr(confdir, '\\');
+  if (vncdir != NULL && strcmp(vncdir, "vnc") == 0)
+    vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
 #endif
   mkdirrecursive(os::getvncconfigdir());
+  mkdirrecursive(os::getvncdatadir());
   mkdirrecursive(os::getvncstatedir());
 
   CSecurity::upg = &dlg;

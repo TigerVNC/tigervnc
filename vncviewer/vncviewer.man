@@ -147,19 +147,22 @@ every supported scheme.
 .B \-passwd, \-PasswordFile \fIpassword-file\fP
 If you are on a filesystem which gives you access to the password file used by
 the server, you can specify it here to avoid typing it in.  It will usually be
-"~/.vnc/passwd".
+\fI$XDG_CONFIG_HOME/tigervnc/passwd\fP, or \fI~/.config/tigervnc/passwd\fP
+if the former is unset.
 .
 .TP
 .B \-X509CA \fIpath\fP
 Path to CA certificate to use when authenticating remote servers using any
 of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
-format. Default is \fB$HOME/.vnc/x509_ca.pem\fP.
+format. Default is \fI$XDG_CONFIG_HOME/tigervnc/x509_ca.pem\fP, or
+\fI~/.config/tigervnc/x509_ca.pem\fP.
 .
 .TP
 .B \-X509CRL \fIpath\fP
 Path to certificate revocation list to use in conjunction with
 \fB-X509CA\fP. Must also be in PEM format. Default is
-\fB$HOME/.vnc/x509_crl.pem\fP.
+\fI$XDG_CONFIG_HOME/tigervnc/x509_crl.pem\fP, or
+\fI~/.config/tigervnc/x509_crl.pem\fP.
 .
 .TP
 .B \-Shared
@@ -338,17 +341,33 @@ re-connect will be offered. Default is on.
 
 .SH FILES
 .TP
-$HOME/.vnc/default.tigervnc
+\fI$XDG_CONFIG_HOME/tigervnc/default.tigervnc\fP
+.TQ
+\fI$HOME/.config/tigervnc/default.tigervnc\fP
 Default configuration options. This file must have a "magic" first line of
 "TigerVNC Configuration file Version 1.0" (without quotes), followed by simple
 <setting>=<value> pairs of your choosing. The available settings are those
 shown in this man page.
 .TP
-$HOME/.vnc/x509_ca.pem
+\fI$XDG_CONFIG_HOME/tigervnc/x509_ca.pem\fP
+.TQ
+\fI$HOME/.config/tigervnc/x509_ca.pem\fP
 Default CA certificate for authenticating servers.
 .TP
-$HOME/.vnc/x509_crl.pem
+\fI$XDG_CONFIG_HOME/tigervnc/x509_crl.pem\fP
+.TQ
+\fI$HOME/.config/tigervnc/x509_crl.pem\fP
 Default certificate revocation list.
+.TP
+\fI$XDG_DATA_HOME/tigervnc/x509_known_hosts\fP
+.TQ
+\fI$HOME/.local/share/tigervnc/x509_known_hosts\fP
+Known hosts database for certificate-based authentication.
+.TP
+\fI$XDG_STATE_HOME/tigervnc/tigervnc.history\fP
+.TQ
+\fI$HOME/.local/state/tigervnc/tigervnc.history\fP
+History file for hostnames that have been recently connected to.
 
 .SH SEE ALSO
 .BR Xvnc (1),

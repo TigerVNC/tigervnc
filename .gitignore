@@ -2,8 +2,6 @@
 *.mo
 *.la
 *.lo
-*.class
-*.jar
 .deps
 .libs
 
@@ -12,18 +10,6 @@ CMakeCache.txt
 Makefile
 Makefile.in
 config.h
-
-*.xml
-*.man
-*.service
 cmake_install.cmake
 cmake_uninstall.cmake
 install_manifest.txt
-tests/unit/[a-z]*
-!tests/unit/[a-z]*\.
-
-timestamp
-vncserver
-!unix/vncserver
-vncsession
-vncsession-start

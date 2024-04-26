@@ -27,27 +27,33 @@ debugging in a login shell from a terminal or for running
 from a terminal as an ordinary user.
 
 .SH FILES
-Several VNC-related files are found in the directory $HOME/.vnc:
+Several VNC-related files are found in the directory \fI$HOME/.config/tigervnc\fP:
 .TP
-@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults
-The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
-and defines options to be passed to Xvnc, they will be used as defaults for
-users. The user's $HOME/.vnc/config overrides settings configured in this file.
-The overall configuration file load order is: this file, $HOME/.vnc/config,
-and then @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory. None are required to exist.
+\fI@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults\fP
+The optional system-wide equivalent of \fI$HOME/.config/tigervnc/config\fP.
+If this file exists and defines options to be passed to Xvnc, they will be used
+as defaults for users. The user's \fI$HOME/.config/tigervnc/config\fP overrides
+settings configured in this file. The overall configuration file load order is:
+this file, \fI$HOME/.config/tigervnc/config\fP, and then
+\fI@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory\fP.
+None are required to exist.
 .TP
-@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory
-The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
-and defines options to be passed to Xvnc, they will override any of the same
-options defined in a user's $HOME/.vnc/config. This file offers a mechanism
-to establish some basic form of system-wide policy. WARNING! There is
-nothing stopping users from constructing their own vncsession-like script
-that calls Xvnc directly to bypass any options defined in
-@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory. The overall configuration file load
-order is: @CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults, $HOME/.vnc/config, and then
-this file. None are required to exist.
+\fI@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory\fP
+The optional system-wide equivalent of \fI$HOME/.config/tigervnc/config\fP.
+If this file exists and defines options to be passed to Xvnc, they will override
+any of the same options defined in a user's \fI$HOME/.config/tigervnc/config\fP.
+This file offers a mechanism to establish some basic form of system-wide policy.
+WARNING! There is nothing stopping users from constructing their own
+vncsession-like script that calls Xvnc directly to bypass any options defined in
+\fI@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-mandatory\fP. The
+overall configuration file load order is:
+\fI@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver-config-defaults\fP,
+\fI$HOME/.config/tigervnc/config\fP, and then this file. None are required to
+exist.
 .TP
-$HOME/.vnc/config
+\fI$XDG_CONFIG_HOME/tigervnc/config\fP
+.TQ
+\fI$HOME/.config/tigervnc/config\fP
 An optional server config file wherein options to be passed to Xvnc are listed
 to avoid hard-coding them to the physical invocation. List options in this file
 one per line. For those requiring an argument, simply separate the option from
@@ -61,10 +67,14 @@ can be used to control which session type will be started. This should match
 one of the files in \fI/usr/share/xsessions\fP. E.g. if there is a file called
 "gnome.desktop", then "session=gnome" would be set to use that session type.
 .TP
-$HOME/.vnc/passwd
+\fI$XDG_CONFIG_HOME/tigervnc/passwd\fP
+.TQ
+\fI$HOME/.config/tigervnc/passwd\fP
 The VNC password file.
 .TP
-$HOME/.vnc/\fIhost\fP:\fIdisplay#\fP.log
+\fI$XDG_STATE_HOME/tigervnc/\fIBhost\fI:\fIBdisplay#\fI.log\fP
+.TQ
+\fI$HOME/.local/state/tigervnc/\fIBhost\fI:\fIBdisplay#\fI.log\fP
 The log file for Xvnc and the session.
 
 .SH SEE ALSO

@@ -30,7 +30,8 @@ To configure Xvnc parameters, you need to go to the same directory where
 you did the user mapping and open `vncserver-config-defaults`
 configuration file. This file is for the default Xvnc configuration and
 will be applied to every user unless any of the following applies:
-* The user has its own configuration in `$HOME/.vnc/config`.
+* The user has its own configuration in `$XDG_CONFIG_HOME/tigervnc/config`
+  or `$HOME/.config/tigervnc/config`.
 * The same option with different value is configured in 
   `vncserver-config-mandatory` configuration file, which replaces the
   default configuration and has even a higher priority than the per-user
@@ -74,10 +75,10 @@ You need to run it as the user who will run the server.
 
 ### Note:
 If you used TigerVNC before with your user and you already created a
-password, then you have to make sure the `$HOME/.vnc` folder created by
-`vncpasswd` have the correct *SELinux* context. You either can delete
-this folder and recreate it again by creating the password one more
-time, or alternatively you can run:
+password, then you have to make sure the (legacy, if used) `$HOME/.vnc`
+folder created by `vncpasswd` has the correct *SELinux* context. You
+either can delete this folder and recreate it again by creating the
+password one more time, or alternatively you can run:
 ```
 $ restorecon -RFv /home/<USER>/.vnc
 ```

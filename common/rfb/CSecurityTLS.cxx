@@ -79,7 +79,6 @@ static const char* configdirfn(const char* fn)
     return "";
 
   snprintf(full_path, sizeof(full_path), "%s/%s", configdir, fn);
-
   return full_path;
 }
 
@@ -308,7 +307,7 @@ void CSecurityTLS::checkSession()
   int err;
   bool hostname_match;
 
-  const char *configDir;
+  const char *hostsDir;
   gnutls_datum_t info;
   size_t len;
 
@@ -385,14 +384,14 @@ void CSecurityTLS::checkSession()
 
   /* Certificate has some user overridable problems, so TOFU time */
 
-  configDir = os::getvncconfigdir();
-  if (configDir == NULL) {
-    throw AuthFailureException("Could not obtain VNC config directory "
+  hostsDir = os::getvncdatadir();
+  if (hostsDir == NULL) {
+    throw AuthFailureException("Could not obtain VNC data directory "
                                "path for known hosts storage");
   }
 
   std::string dbPath;
-  dbPath = (std::string)configDir + "/x509_known_hosts";
+  dbPath = (std::string)hostsDir + "/x509_known_hosts";
 
   err = gnutls_verify_stored_pubkey(dbPath.c_str(), NULL,
                                     client->getServerName(), NULL,

@@ -161,7 +161,16 @@ int main(int argc, char** argv)
       fprintf(stderr, "Can't obtain VNC config directory\n");
       exit(1);
     }
-    mkdir(configDir, 0777);
+    strcpy(fname, configDir);
+    char *p = NULL;
+    for (p = fname + 1; *p; p++) {
+        if (*p == '/') {
+            *p = '\0';
+            mkdir(fname, 0777);
+            *p = '/';
+        }
+    }
+    mkdir(fname, 0777);
     snprintf(fname, sizeof(fname), "%s/passwd", configDir);
   }
 
