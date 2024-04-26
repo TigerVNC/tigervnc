@@ -23,6 +23,6 @@ clean:
 	rm -f *.pp *.pp.bz2
 	rm -rf tmp
 
-install: vncsession.pp.bz2
+install:
 	mkdir -p $(DESTDIR)$(DATADIR)/selinux/packages/targeted/
 	install vncsession.pp.bz2 $(DESTDIR)$(DATADIR)/selinux/packages/targeted/vncsession.pp.bz2
