@@ -156,13 +156,22 @@ int main(int argc, char** argv)
   }
 
   if (fname[0] == '\0') {
-    const char *homeDir = os::getvnchomedir();
-    if (homeDir == NULL) {
-      fprintf(stderr, "Can't obtain VNC home directory\n");
+    const char *configDir = os::getvncconfigdir();
+    if (configDir == NULL) {
+      fprintf(stderr, "Can't obtain VNC config directory\n");
       exit(1);
     }
-    mkdir(homeDir, 0777);
-    snprintf(fname, sizeof(fname), "%s/passwd", homeDir);
+    strcpy(fname, configDir);
+    char *p = NULL;
+    for (p = fname + 1; *p; p++) {
+        if (*p == '/') {
+            *p = '\0';
+            mkdir(fname, 0777);
+            *p = '/';
+        }
+    }
+    mkdir(fname, 0777);
+    snprintf(fname, sizeof(fname), "%s/passwd", configDir);
   }
 
   while (true) {

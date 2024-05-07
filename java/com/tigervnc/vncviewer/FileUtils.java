@@ -22,9 +22,11 @@ import javax.swing.filechooser.FileSystemView;
 
 import com.tigervnc.rfb.LogWriter;
 
+import java.io.File;
+
 public class FileUtils {
 
-  public static final String getHomeDir() {
+  public static String getHomeDir() {
     String homeDir = null;
     try {
       String os = System.getProperty("os.name");
@@ -56,21 +58,47 @@ public class FileUtils {
       vlog.error("Cannot access os.name system property:"+e.getMessage());
     }
 
-    String separator = null;
-    try {
-      separator = Character.toString(java.io.File.separatorChar);
-    } catch(java.security.AccessControlException e) {
-      vlog.error("Cannot access file.separator system property:"+e.getMessage());
-    }
-
     return homeDir + getFileSeparator();
   }
 
-  public static final String getVncHomeDir() {
-    return getHomeDir()+".vnc"+getFileSeparator();
+  public static String getVncDir(String xdgEnv, String xdgDefault) {
+    File legacyDir = new File(getHomeDir() + ".vnc" + getFileSeparator());
+    String os = System.getProperty("os.name");
+
+    if (os.startsWith("Windows")) {
+      File newDir = new File(System.getenv("APPDATA") + getFileSeparator() + "TigerVNC" + getFileSeparator());
+      if (!newDir.exists()) {
+        newDir.mkdirs();
+      }
+      File[] existingFiles = legacyDir.listFiles();
+      if (existingFiles != null) {
+        for (File file : existingFiles) {
+          file.renameTo(new File(newDir.getPath() + file.getName()));
+        }
+        legacyDir.delete();
+      }
+      return newDir.getPath();
+    } else {
+      if (legacyDir.exists()) {
+        vlog.info("WARNING: ~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to.");
+        return legacyDir.getPath();
+      }
+      String xdgBaseDir = System.getenv(xdgEnv);
+      return (xdgBaseDir != null && xdgBaseDir.startsWith("/"))
+        ? xdgBaseDir + getFileSeparator() + "tigervnc" + getFileSeparator()
+        : getHomeDir() + xdgDefault + getFileSeparator() + "tigervnc" + getFileSeparator();
+    }
   }
 
-  public static final String getFileSeparator() {
+  public static String getVncConfigDir() {
+    return getVncDir("XDG_CONFIG_HOME", ".config");
+  }
+
+  public static String getVncDataDir() {
+    return getVncDir("XDG_DATA_HOME", ".local" + getFileSeparator() + "share");
+  }
+
+  public static String getFileSeparator() {
     String separator = null;
     try {
       separator = Character.toString(java.io.File.separatorChar);

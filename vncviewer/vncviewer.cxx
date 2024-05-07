@@ -429,17 +429,34 @@ static void init_fltk()
 #endif
 }
 
-static void mkvnchomedir()
+static int mkvncdir(const char *dir)
 {
-  // Create .vnc in the user's home directory if it doesn't already exist
-  const char* homeDir = os::getvnchomedir();
-  if (homeDir == NULL) {
-    vlog.error(_("Could not obtain the home directory path"));
-  } else {
-    int result = mkdir(homeDir, 0755);
-    if (result == -1 && errno != EEXIST)
-      vlog.error(_("Could not create VNC home directory: %s"), strerror(errno));
+  int result = mkdir(dir, 0755);
+  if (result == -1 && errno != EEXIST) {
+    vlog.error(_("Could not create VNC directory %s: %s"), dir, strerror(errno));
+    return result;
   }
+  return 0;
+}
+
+static void mkdirrecursive(const char *dir)
+{
+  char *path = strdup(dir);
+  char *p;
+
+  for (p = path + 1; *p; p++) {
+    if (*p == '/') {
+      *p = '\0';
+      if (mkvncdir(path) != 0) {
+        free(path);
+        return;
+      }
+      *p = '/';
+    }
+  }
+
+  mkvncdir(path);
+  free(path);
 }
 
 static void usage(const char *programName)
@@ -728,7 +745,19 @@ int main(int argc, char** argv)
 
   migrateDeprecatedOptions();
 
-  mkvnchomedir();
+  char *confdir = strdup(os::getvncconfigdir());
+#ifndef WIN32
+  char *dotdir = strrchr(confdir, '.');
+  if (dotdir != NULL && strcmp(dotdir, ".vnc") == 0)
+    vlog.info(_("~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."));
+#else
+  char *vncdir = strrchr(confdir, '\\');
+  if (vncdir != NULL && strcmp(vncdir, "vnc") == 0)
+    vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
+#endif
+  mkdirrecursive(os::getvncconfigdir());
+  mkdirrecursive(os::getvncdatadir());
+  mkdirrecursive(os::getvncstatedir());
 
   CSecurity::upg = &dlg;
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)

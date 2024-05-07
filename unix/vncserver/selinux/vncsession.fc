@@ -19,6 +19,12 @@
 
 HOME_DIR/\.vnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
 /root/\.vnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
+HOME_DIR/\.config/tigervnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
+/root/\.config/tigervnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
+HOME_DIR/\.local/share/tigervnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
+/root/\.local/share/tigervnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
+HOME_DIR/\.local/state/tigervnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
+/root/\.local/state/tigervnc(/.*)?      gen_context(system_u:object_r:vnc_home_t,s0)
 
 /usr/sbin/vncsession			--	gen_context(system_u:object_r:vnc_session_exec_t,s0)
 /usr/libexec/vncsession-start		--	gen_context(system_u:object_r:vnc_session_exec_t,s0)

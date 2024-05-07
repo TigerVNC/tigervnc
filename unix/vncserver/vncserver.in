@@ -35,7 +35,15 @@
 # your site
 #
 
-$vncUserDir = "$ENV{HOME}/.vnc";
+$vncUserDir = rindex("$ENV{XDG_CONFIG_HOME}", "/", 0) == 0
+  ? "$ENV{XDG_CONFIG_HOME}/tigervnc"
+  : "$ENV{HOME}/.config/tigervnc";
+$vncLegacyDir = "$ENV{HOME}/.vnc";
+if (!stat($vncUserDir) && stat($vncLegacyDir)) {
+  warn "~/.vnc is deprecated, please consult 'man vncsession' for paths to migrate to.";
+  $vncUserDir = $vncLegacyDir;
+}
+
 $vncUserConfig = "$vncUserDir/config";
 
 $vncSystemConfigDir = "@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc";
