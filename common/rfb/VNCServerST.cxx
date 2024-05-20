@@ -55,6 +55,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <network/Socket.h>
+
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
@@ -128,9 +130,9 @@ VNCServerST::~VNCServerST()
 }
 
 
-// SocketServer methods
+// VNCServer methods
 
-void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
+void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights accessRights)
 {
   // - Check the connection isn't black-marked
   // *** do this in getSecurity instead?
@@ -161,7 +163,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
     connectTimer.start(secsToMillis(rfb::Server::maxConnectionTime));
   disconnectTimer.stop();
 
-  VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing);
+  VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
   clients.push_front(client);
   client->init();
 }
@@ -232,8 +234,6 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
   }
   throw rdr::Exception("invalid Socket in VNCServerST");
 }
-
-// VNCServer methods
 
 void VNCServerST::blockUpdates()
 {
@@ -680,7 +680,7 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
   }
 
   // - Does the client have the right to bypass the query?
-  if (client->accessCheck(SConnection::AccessNoQuery))
+  if (client->accessCheck(AccessNoQuery))
   {
     approveConnection(client->getSock(), true, NULL);
     return;
@@ -693,7 +693,7 @@ void VNCServerST::clientReady(VNCSConnectionST* client, bool shared)
 {
   if (!shared) {
     if (rfb::Server::disconnectClients &&
-        client->accessCheck(SConnection::AccessNonShared)) {
+        client->accessCheck(AccessNonShared)) {
       // - Close all the other connected clients
       slog.debug("non-shared connection - closing clients");
       closeClients("Non-shared connection requested", client->getSock());

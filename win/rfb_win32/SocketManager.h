@@ -19,22 +19,28 @@
 // -=- SocketManager.h
 
 // Socket manager class for Win32.
-// Passed a network::SocketListener and a network::SocketServer when
+// Passed a network::SocketListener and a rfb::VNCServer when
 // constructed.  Uses WSAAsyncSelect to get notifications of network 
 // connection attempts.  When an incoming connection is received,
-// the manager will call network::SocketServer::addClient().  If
+// the manager will call rfb::VNCServer::addClient().  If
 // addClient returns true then the manager registers interest in
 // network events on that socket, and calls
-// network::SocketServer::processSocketEvent().
+// rfb::VNCServer::processSocketEvent().
 
 #ifndef __RFB_WIN32_SOCKET_MGR_H__
 #define __RFB_WIN32_SOCKET_MGR_H__
 
 #include <map>
-#include <network/Socket.h>
 #include <rfb_win32/EventManager.h>
 
+namespace network {
+  class SocketListener;
+  class Socket;
+}
+
 namespace rfb {
+  class VNCServer;
+
   namespace win32 {
 
     class SocketManager : public EventManager, EventHandler {
@@ -52,21 +58,21 @@ namespace rfb {
       };
 
       // Add a listening socket.  Incoming connections will be added to the supplied
-      // SocketServer.
+      // VNCServer.
       void addListener(network::SocketListener* sock_,
-                       network::SocketServer* srvr,
+                       VNCServer* srvr,
                        AddressChangeNotifier* acn = 0);
 
       // Remove and delete a listening socket.
       void remListener(network::SocketListener* sock);
 
       // Add an already-connected socket.  Socket events will cause the supplied
-      // SocketServer to be called.  The socket must ALREADY BE REGISTERED with
-      // the SocketServer.
-      void addSocket(network::Socket* sock_, network::SocketServer* srvr, bool outgoing=true);
+      // VNCServer to be called.  The socket must ALREADY BE REGISTERED with
+      // the VNCServer.
+      void addSocket(network::Socket* sock_, VNCServer* srvr, bool outgoing=true);
 
-      bool getDisable(network::SocketServer* srvr);
-      void setDisable(network::SocketServer* srvr, bool disable);
+      bool getDisable(VNCServer* srvr);
+      void setDisable(VNCServer* srvr, bool disable);
 
     protected:
       virtual int checkTimeouts();
@@ -75,11 +81,11 @@ namespace rfb {
 
       struct ConnInfo {
         network::Socket* sock;
-        network::SocketServer* server;
+        VNCServer* server;
       };
       struct ListenInfo {
         network::SocketListener* sock;
-        network::SocketServer* server;
+        VNCServer* server;
         AddressChangeNotifier* notifier;
         bool disable;
       };

@@ -363,11 +363,11 @@ void VNCServerWin32::getConnInfo(ListConnInfo * listConn)
 
     if (!conn->authenticated())
       status = 3;
-    else if (conn->accessCheck(rfb::SConnection::AccessPtrEvents |
-                               rfb::SConnection::AccessKeyEvents |
-                               rfb::SConnection::AccessView))
+    else if (conn->accessCheck(rfb::AccessPtrEvents |
+                               rfb::AccessKeyEvents |
+                               rfb::AccessView))
       status = 0;
-    else if (conn->accessCheck(rfb::SConnection::AccessView))
+    else if (conn->accessCheck(rfb::AccessView))
       status = 1;
     else
       status = 2;
@@ -398,25 +398,25 @@ void VNCServerWin32::setConnStatus(ListConnInfo* listConn)
     if (status == 3) {
       conn->close(0);
     } else {
-      rfb::SConnection::AccessRights ar;
+      rfb::AccessRights ar;
 
-      ar = rfb::SConnection::AccessDefault;
+      ar = rfb::AccessDefault;
 
       switch (status) {
       case 0:
-        ar |= rfb::SConnection::AccessPtrEvents |
-              rfb::SConnection::AccessKeyEvents |
-              rfb::SConnection::AccessView;
+        ar |= rfb::AccessPtrEvents |
+              rfb::AccessKeyEvents |
+              rfb::AccessView;
         break;
       case 1:
-        ar |= rfb::SConnection::AccessView;
-        ar &= ~(rfb::SConnection::AccessPtrEvents |
-                rfb::SConnection::AccessKeyEvents);
+        ar |= rfb::AccessView;
+        ar &= ~(rfb::AccessPtrEvents |
+                rfb::AccessKeyEvents);
         break;
       case 2:
-        ar &= ~(rfb::SConnection::AccessPtrEvents |
-                rfb::SConnection::AccessKeyEvents |
-                rfb::SConnection::AccessView);
+        ar &= ~(rfb::AccessPtrEvents |
+                rfb::AccessKeyEvents |
+                rfb::AccessView);
         break;
       }
       conn->setAccessRights(ar);

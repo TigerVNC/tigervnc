@@ -267,7 +267,7 @@ void vncExtensionInit(void)
 
         if (scr == 0 && vncInetdSock != -1 && listeners.empty()) {
           network::Socket* sock = new network::TcpSocket(vncInetdSock);
-          desktop[scr]->addClient(sock, false);
+          desktop[scr]->addClient(sock, false, false);
           vlog.info("added inetd sock");
         }
       }
@@ -343,7 +343,7 @@ void vncSendClipboardData(const char* data)
     desktop[scr]->sendClipboardData(data);
 }
 
-int vncConnectClient(const char *addr)
+int vncConnectClient(const char *addr, int viewOnly)
 {
   if (strlen(addr) == 0) {
     try {
@@ -362,7 +362,9 @@ int vncConnectClient(const char *addr)
 
   try {
     network::Socket* sock = new network::TcpSocket(host.c_str(), port);
-    desktop[0]->addClient(sock, true);
+    vlog.info("Reverse connection: %s:%d%s", host.c_str(), port,
+              viewOnly ? " (view only)" : "");
+    desktop[0]->addClient(sock, true, (bool)viewOnly);
   } catch (rdr::Exception& e) {
     vlog.error("Reverse connection: %s",e.str());
     return -1;

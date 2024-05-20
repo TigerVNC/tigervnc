@@ -41,6 +41,8 @@
 #include <rdr/OutStream.h>
 #include <rdr/FileInStream.h>
 
+#include <rfb/AccessRights.h>
+
 #include <rfb/PixelFormat.h>
 
 #include <rfb/CConnection.h>
@@ -134,7 +136,7 @@ public:
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
-  virtual void setAccessRights(AccessRights ar);
+  virtual void setAccessRights(rfb::AccessRights ar);
 
   virtual void setDesktopSize(int fb_width, int fb_height,
                               const rfb::ScreenSet& layout);
@@ -303,6 +305,7 @@ void Manager::getStats(double& ratio, unsigned long long& encodedBytes,
 }
 
 SConn::SConn()
+: SConnection(rfb::AccessDefault)
 {
   out = new DummyOutStream;
   setStreams(NULL, out);
@@ -329,7 +332,7 @@ void SConn::getStats(double& ratio, unsigned long long& bytes,
   manager->getStats(ratio, bytes, rawEquivalent);
 }
 
-void SConn::setAccessRights(AccessRights)
+void SConn::setAccessRights(rfb::AccessRights)
 {
 }
 

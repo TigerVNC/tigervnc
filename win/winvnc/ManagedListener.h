@@ -27,7 +27,7 @@ namespace winvnc {
 
   // -=- ManagedListener
   //     Wrapper class which simplifies the management of a listening socket
-  //     on a specified port, attached to a SocketManager and SocketServer.
+  //     on a specified port, attached to a SocketManager and VNCServer.
   //     Reopens sockets & reconfigures filters & callbacks as appropriate.
   //     Handles addition/removal of Listeners from SocketManager internally.
 
@@ -36,7 +36,7 @@ namespace winvnc {
     ManagedListener(rfb::win32::SocketManager* mgr);
     ~ManagedListener();
     
-    void setServer(network::SocketServer* svr);
+    void setServer(rfb::VNCServer* svr);
     void setPort(int port, bool localOnly=false);
     void setFilter(const char* filter);
     void setAddressChangeNotifier(rfb::win32::SocketManager::AddressChangeNotifier* acn);
@@ -49,7 +49,7 @@ namespace winvnc {
     network::TcpFilter* filter;
     rfb::win32::SocketManager* manager;
     rfb::win32::SocketManager::AddressChangeNotifier* addrChangeNotifier;
-    network::SocketServer* server;
+    rfb::VNCServer* server;
     int port;
     bool localOnly;
   };
