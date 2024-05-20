@@ -259,6 +259,19 @@ stop_pam(pam_handle_t * pamh, int pamret)
     return pamret;
 }
 
+static char *
+getenvp(const char *name, char **envp)
+{
+    while (*envp) {
+        size_t varlen;
+        varlen = strcspn(*envp, "=");
+        if (strncmp(*envp, name, varlen) == 0)
+            return *envp + varlen + 1;
+        envp++;
+    }
+    return NULL;
+}
+
 static char **
 prepare_environ(pam_handle_t * pamh)
 {
@@ -387,7 +400,7 @@ mkdirrecursive(const char *dir)
 }
 
 static void
-redir_stdio(const char *homedir, const char *display)
+redir_stdio(const char *homedir, const char *display, char **envp)
 {
     int fd;
     long hostlen;
@@ -406,7 +419,7 @@ redir_stdio(const char *homedir, const char *display)
     }
     close(fd);
 
-    xdgstate = getenv("XDG_STATE_HOME");
+    xdgstate = getenvp("XDG_STATE_HOME", envp);
     if (xdgstate != NULL && xdgstate[0] == '/')
         snprintf(logfile, sizeof(logfile), "%s/tigervnc", xdgstate);
     else
@@ -503,7 +516,7 @@ run_script(const char *username, const char *display, char **envp)
 
     close_fds();
 
-    redir_stdio(pwent->pw_dir, display);
+    redir_stdio(pwent->pw_dir, display, envp);
 
     // execvpe() is not POSIX and is missing from older glibc
     // First clear out everything
