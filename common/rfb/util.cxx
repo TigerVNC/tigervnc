@@ -126,8 +126,8 @@ namespace rfb {
 
   bool hexToBin(const char* in, size_t inlen,
                 uint8_t* out, size_t outlen) {
-    assert(in);
-    assert(out);
+    assert(in || inlen == 0);
+    assert(out || outlen == 0);
 
     if (inlen & 1)
       return false;

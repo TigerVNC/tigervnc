@@ -56,10 +56,10 @@ std::string rfb::deobfuscate(const uint8_t *data, size_t len)
 {
   char buf[9];
 
-  assert(data != NULL);
-
   if (len != 8)
     throw rdr::Exception("bad obfuscated password length");
+
+  assert(data != NULL);
 
   deskey(d3desObfuscationKey, DE1);
   des((uint8_t*)data, (uint8_t*)buf);
