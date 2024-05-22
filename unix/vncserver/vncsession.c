@@ -472,6 +472,10 @@ close_fds(void)
         _exit(EX_OSERR);
     }
 
+    // We'll close the file descriptor that the logging uses, so might
+    // as well do it cleanly
+    closelog();
+
     while ((entry = readdir(dir)) != NULL) {
         int fd;
         fd = atoi(entry->d_name);
@@ -545,9 +549,12 @@ run_script(const char *username, const char *display, char **envp)
     child_argv[1] = display;
     child_argv[2] = NULL;
 
+    closelog();
+
     execvp(child_argv[0], (char*const*)child_argv);
 
     // execvp failed
+    openlog("vncsession", LOG_PID, LOG_AUTH);
     syslog(LOG_CRIT, "execvp: %s", strerror(errno));
 
     _exit(EX_OSERR);
