@@ -37,7 +37,6 @@
 #ifdef WIN32
 #include <os/winerrno.h>
 #include <direct.h>
-#define mkdir(path, mode) _mkdir(path)
 #endif
 
 #ifdef __APPLE__
@@ -429,36 +428,6 @@ static void init_fltk()
 #endif
 }
 
-static int mkvncdir(const char *dir)
-{
-  int result = mkdir(dir, 0755);
-  if (result == -1 && errno != EEXIST) {
-    vlog.error(_("Could not create VNC directory %s: %s"), dir, strerror(errno));
-    return result;
-  }
-  return 0;
-}
-
-static void mkdirrecursive(const char *dir)
-{
-  char *path = strdup(dir);
-  char *p;
-
-  for (p = path + 1; *p; p++) {
-    if (*p == '/') {
-      *p = '\0';
-      if (mkvncdir(path) != 0) {
-        free(path);
-        return;
-      }
-      *p = '/';
-    }
-  }
-
-  mkvncdir(path);
-  free(path);
-}
-
 static void usage(const char *programName)
 {
 #ifdef WIN32
@@ -755,9 +724,21 @@ int main(int argc, char** argv)
   if (vncdir != NULL && strcmp(vncdir, "vnc") == 0)
     vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
 #endif
-  mkdirrecursive(os::getvncconfigdir());
-  mkdirrecursive(os::getvncdatadir());
-  mkdirrecursive(os::getvncstatedir());
+
+  if (os::mkdir_p(os::getvncconfigdir(), 0755) == -1) {
+    if (errno != EEXIST)
+      vlog.error(_("Could not create VNC config directory: %s"), strerror(errno));
+  }
+
+  if (os::mkdir_p(os::getvncdatadir(), 0755) == -1) {
+    if (errno != EEXIST)
+      vlog.error(_("Could not create VNC data directory: %s"), strerror(errno));
+  }
+
+  if (os::mkdir_p(os::getvncstatedir(), 0755) == -1) {
+    if (errno != EEXIST)
+      vlog.error(_("Could not create VNC state directory: %s"), strerror(errno));
+  }
 
   CSecurity::upg = &dlg;
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)

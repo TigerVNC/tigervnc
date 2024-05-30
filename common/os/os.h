@@ -20,6 +20,8 @@
 #ifndef OS_OS_H
 #define OS_OS_H
 
+#include <sys/stat.h>
+
 namespace os {
 
   /*
@@ -62,6 +64,11 @@ namespace os {
    */
   const char* getvncstatedir();
 
+  /*
+   * Create directory recursively. Useful to create the nested directory
+   * structures needed for the above directories.
+   */
+  int mkdir_p(const char *path, mode_t mode);
 }
 
 #endif /* OS_OS_H */

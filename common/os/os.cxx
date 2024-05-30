@@ -24,6 +24,7 @@
 #include <os/os.h>
 
 #include <assert.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -39,6 +40,7 @@
 #include <wininet.h> /* MinGW needs it */
 #include <shlobj.h>
 #define stat _stat
+#define mkdir(path, mode) mkdir(path)
 #endif
 
 static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_def)
@@ -125,4 +127,36 @@ const char* os::getvncdatadir()
 const char* os::getvncstatedir()
 {
   return getvncdir(false, "XDG_STATE_HOME", ".local/state");
+}
+
+int os::mkdir_p(const char *path_, mode_t mode)
+{
+  char *path = strdup(path_);
+  char *p;
+
+#ifdef WIN32
+  (void)mode;
+#endif
+
+  for (p = path + 1; *p; p++) {
+    if (*p == '/') {
+      *p = '\0';
+      if (mkdir(path, mode) == -1) {
+        if (errno != EEXIST) {
+          free(path);
+          return -1;
+        }
+      }
+      *p = '/';
+    }
+  }
+
+  if (mkdir(path, mode) == -1) {
+    free(path);
+    return -1;
+  }
+
+  free(path);
+
+  return 0;
 }

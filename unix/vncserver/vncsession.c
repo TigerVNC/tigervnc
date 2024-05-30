@@ -358,33 +358,33 @@ switch_user(const char *username, uid_t uid, gid_t gid)
     }
 }
 
-static void
-mkvncdir(const char *dir)
+static int
+mkdir_p(const char *path_, mode_t mode)
 {
-    if (mkdir(dir, 0755) == -1) {
+  char *path = strdup(path_);
+  char *p;
+
+  for (p = path + 1; *p; p++) {
+    if (*p == '/') {
+      *p = '\0';
+      if (mkdir(path, mode) == -1) {
         if (errno != EEXIST) {
-            syslog(LOG_CRIT, "Failure creating \"%s\": %s", dir, strerror(errno));
-            _exit(EX_OSERR);
+          free(path);
+          return -1;
         }
+      }
+      *p = '/';
     }
-}
+  }
 
-static void
-mkdirrecursive(const char *dir)
-{
-    char *path = strdup(dir);
-    char *p;
-
-    for (p = path + 1; *p; p++) {
-        if (*p == '/') {
-            *p = '\0';
-            mkvncdir(path);
-            *p = '/';
-        }
-    }
-
-    mkvncdir(path);
+  if (mkdir(path, mode) == -1) {
     free(path);
+    return -1;
+  }
+
+  free(path);
+
+  return 0;
 }
 
 static void
@@ -431,7 +431,12 @@ redir_stdio(const char *homedir, const char *display, char **envp)
 #endif
     }
 
-    mkdirrecursive(logfile);
+    if (mkdir_p(logfile, 0755) == -1) {
+        if (errno != EEXIST) {
+            syslog(LOG_CRIT, "Failure creating \"%s\": %s", logfile, strerror(errno));
+            _exit(EX_OSERR);
+        }
+    }
 
     hostlen = sysconf(_SC_HOST_NAME_MAX);
     if (hostlen < 0) {
