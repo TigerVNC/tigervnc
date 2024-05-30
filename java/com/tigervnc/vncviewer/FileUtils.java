@@ -98,6 +98,10 @@ public class FileUtils {
     return getVncDir("XDG_DATA_HOME", ".local" + getFileSeparator() + "share");
   }
 
+  public static String getVncStateDir() {
+    return getVncDir("XDG_STATE_HOME", ".local" + getFileSeparator() + "state");
+  }
+
   public static String getFileSeparator() {
     String separator = null;
     try {
