@@ -366,18 +366,6 @@ mkvncdir(const char *dir)
             syslog(LOG_CRIT, "Failure creating \"%s\": %s", dir, strerror(errno));
             _exit(EX_OSERR);
         }
-
-#ifdef HAVE_SELINUX
-        /* this is only needed to handle historical type changes for the legacy dir */
-        int result;
-        if (selinux_file_context_verify(dir, 0) == 0) {
-            result = selinux_restorecon(dir, SELINUX_RESTORECON_RECURSE);
-
-            if (result < 0) {
-                syslog(LOG_WARNING, "Failure restoring SELinux context for \"%s\": %s", dir, strerror(errno));
-            }
-        }
-#endif
     }
 }
 
@@ -429,6 +417,18 @@ redir_stdio(const char *homedir, const char *display, char **envp)
     if (stat(logfile, &st) != 0 && stat(legacy, &st) == 0) {
         syslog(LOG_WARNING, "~/.vnc is deprecated, please consult 'man vncsession' for paths to migrate to.");
         strcpy(logfile, legacy);
+
+#ifdef HAVE_SELINUX
+        /* this is only needed to handle historical type changes for the legacy dir */
+        int result;
+        if (selinux_file_context_verify(legacy, 0) == 0) {
+            result = selinux_restorecon(legacy, SELINUX_RESTORECON_RECURSE);
+
+            if (result < 0) {
+                syslog(LOG_WARNING, "Failure restoring SELinux context for \"%s\": %s", legacy, strerror(errno));
+            }
+        }
+#endif
     }
 
     mkdirrecursive(logfile);
