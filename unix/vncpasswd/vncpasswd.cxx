@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -161,16 +162,10 @@ int main(int argc, char** argv)
       fprintf(stderr, "Can't obtain VNC config directory\n");
       exit(1);
     }
-    strcpy(fname, configDir);
-    char *p = NULL;
-    for (p = fname + 1; *p; p++) {
-        if (*p == '/') {
-            *p = '\0';
-            mkdir(fname, 0777);
-            *p = '/';
-        }
+    if (os::mkdir_p(configDir, 0777) == -1) {
+      fprintf(stderr, "Could not create VNC config directory: %s\n", strerror(errno));
+      exit(1);
     }
-    mkdir(fname, 0777);
     snprintf(fname, sizeof(fname), "%s/passwd", configDir);
   }
 
