@@ -37,6 +37,9 @@
 
 #include <termios.h>
 
+#ifdef HAVE_PWQUALITY
+#include <pwquality.h>
+#endif
 
 using namespace rfb;
 
@@ -99,6 +102,36 @@ static int encrypt_pipe() {
   return 0;
 }
 
+#ifdef HAVE_PWQUALITY
+static int check_passwd_pwquality(const char *password)
+{
+	int r;
+	void *auxerror;
+	pwquality_settings_t *pwq;
+	pwq = pwquality_default_settings();
+	if (!pwq)
+		return -EINVAL;
+	r = pwquality_read_config(pwq, NULL, &auxerror);
+	if (r) {
+		printf("Cannot check password quality: %s \n",
+			pwquality_strerror(NULL, 0, r, auxerror));
+		pwquality_free_settings(pwq);
+		return -EINVAL;
+	}
+
+	r = pwquality_check(pwq, password, NULL, NULL, &auxerror);
+	if (r < 0) {
+		printf("Password quality check failed:\n %s \n",
+			pwquality_strerror(NULL, 0, r, auxerror));
+		r = -EPERM;
+	}
+	pwquality_free_settings(pwq);
+
+	//return the score of password quality
+	return r;
+}
+#endif
+
 static std::vector<uint8_t> readpassword() {
   while (true) {
     const char *passwd = getpassword("Password:");
@@ -115,6 +148,15 @@ static std::vector<uint8_t> readpassword() {
       fprintf(stderr,"Password must be at least 6 characters - try again\n");
       continue;
     }
+
+#ifdef HAVE_PWQUALITY
+    //the function return score of password quality
+    int r = check_passwd_pwquality(passwd);
+    if (r < 0){
+      printf("Password quality check failed, please set it correctly.\n");
+      continue;
+    }
+#endif
 
     passwd = getpassword("Verify:");
     if (passwd == NULL) {

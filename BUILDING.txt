@@ -55,6 +55,9 @@ Build Requirements (Unix)
    * You might have to enable additional repositories for this. E.g.,
      on RHEL, EPEL and RPMFusion (free + nonfree) need to be enabled.
 
+-- If building vncpasswd with password quality check support:
+   * libpwquality
+
 ============================
 Build Requirements (Windows)
 ============================

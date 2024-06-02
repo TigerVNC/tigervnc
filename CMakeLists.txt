@@ -324,6 +324,20 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
+# check for password pwquality check support
+option(ENABLE_PWQUALITY "Enable password pwquality check" ON)
+if(ENABLE_PWQUALITY)
+  if(UNIX)
+    find_package(PkgConfig)
+    if(PKG_CONFIG_FOUND)
+      pkg_check_modules(PWQUALITY pwquality)
+      if(PWQUALITY_FOUND)
+        add_definitions(-DHAVE_PWQUALITY)
+      endif()
+    endif()
+  endif()
+endif()
+
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
