@@ -232,7 +232,8 @@ void Viewport::updateWindow()
   Rect r;
 
   r = frameBuffer->getDamage();
-  damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  damage(FL_DAMAGE_USER1, r.tl.x/frameBuffer->scaleX() + x(), r.tl.y/frameBuffer->scaleY() + y(),
+         r.width()/frameBuffer->scaleX(), r.height()/frameBuffer->scaleY());
 }
 
 static const char * dotcursor_xpm[] = {
@@ -541,17 +542,45 @@ void Viewport::draw()
 }
 
 
-void Viewport::resize(int x, int y, int w, int h)
+void Viewport::updateFrameBufferScale(int w, int h)
+{
+  double new_scale_x = static_cast<double>(frameBuffer->width())/w;
+  double new_scale_y = static_cast<double>(frameBuffer->height())/h;
+  frameBuffer->setScale(new_scale_x, new_scale_y);
+}
+
+
+void Viewport::resizeFramebuffer(int w, int h)
 {
   if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
     vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
                frameBuffer->width(), frameBuffer->height(), w, h);
 
+    // XXX: memory leak?
     frameBuffer = new PlatformPixelBuffer(w, h);
     assert(frameBuffer);
     cc->setFramebuffer(frameBuffer);
-  }
 
+    updateFrameBufferScale(this->w(), this->h());
+  }
+}
+
+
+int Viewport::frameBufferWidth()
+{
+  return frameBuffer->width();
+}
+
+
+int Viewport::frameBufferHeight()
+{
+  return frameBuffer->height();
+}
+
+
+void Viewport::resize(int x, int y, int w, int h)
+{
+  updateFrameBufferScale(w, h);
   Fl_Widget::resize(x, y, w, h);
 }
 
@@ -665,9 +694,13 @@ void Viewport::sendPointerEvent(const rfb::Point& pos, int buttonMask)
   if (viewOnly)
       return;
 
+  rfb::Point scaled_pos;
+  scaled_pos.x = pos.x * frameBuffer->scaleX();
+  scaled_pos.y = pos.y * frameBuffer->scaleY();
+
   if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
     try {
-      cc->writer()->writePointerEvent(pos, buttonMask);
+      cc->writer()->writePointerEvent(scaled_pos, buttonMask);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       abort_connection_with_unexpected_error(e);
@@ -677,7 +710,7 @@ void Viewport::sendPointerEvent(const rfb::Point& pos, int buttonMask)
       Fl::add_timeout((double)pointerEventInterval/1000.0,
                       handlePointerTimeout, this);
   }
-  lastPointerPos = pos;
+  lastPointerPos = scaled_pos;
   lastButtonMask = buttonMask;
 }
 
