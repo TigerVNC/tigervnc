@@ -23,6 +23,8 @@
 
 #include <dix.h>
 
+extern const char *renderNode;
+
 Bool vncDRI3Init(ScreenPtr screen);
 
 Bool vncDRI3IsHardwarePixmap(PixmapPtr pixmap);

@@ -37,6 +37,8 @@
 #error "This code is not compatible with accessors"
 #endif
 
+const char *renderNode = "/dev/dri/renderD128";
+
 static DevPrivateKeyRec vncDRI3ScreenPrivateKey;
 static DevPrivateKeyRec vncDRI3PixmapPrivateKey;
 
@@ -452,6 +454,15 @@ Bool vncDRI3Init(ScreenPtr screen)
     return FALSE;
 #endif
 
+  /* Empty render node is interpreted as disabling DRI3 */
+  if (renderNode[0] == '\0')
+    return TRUE;
+
+  if (renderNode[0] != '/') {
+    ErrorF("Invalid render node path \"%s\"\n", renderNode);
+    return FALSE;
+  }
+
   if (!dixRegisterPrivateKey(&vncDRI3ScreenPrivateKey, PRIVATE_SCREEN,
                              sizeof(vncDRI3ScreenPrivateRec)))
     return FALSE;
@@ -465,7 +476,7 @@ Bool vncDRI3Init(ScreenPtr screen)
 #ifdef HAVE_GBM
   screenPriv = vncDRI3ScreenPrivate(screen);
 
-  screenPriv->devicePath = "/dev/dri/renderD128";
+  screenPriv->devicePath = renderNode;
 
   screenPriv->fd = open(screenPriv->devicePath, O_RDWR|O_CLOEXEC);
   if (screenPriv->fd < 0) {
