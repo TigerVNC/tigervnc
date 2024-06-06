@@ -28,6 +28,77 @@ Index: xserver/configure.ac
  hw/xnest/Makefile
  hw/xnest/man/Makefile
  hw/xwin/Makefile
+Index: xserver/dri3/Makefile.am
+===================================================================
+--- xserver.orig/dri3/Makefile.am
++++ xserver/dri3/Makefile.am
+@@ -1,7 +1,7 @@
+ noinst_LTLIBRARIES = libdri3.la
+ AM_CFLAGS = \
+-	-DHAVE_XORG_CONFIG_H \
+-	@DIX_CFLAGS@ @XORG_CFLAGS@
++	@DIX_CFLAGS@ \
++	@LIBDRM_CFLAGS@
+
+ libdri3_la_SOURCES = \
+ 	dri3.h \
+Index: xserver/dri3/dri3.c
+===================================================================
+--- xserver.orig/dri3/dri3.c
++++ xserver/dri3/dri3.c
+@@ -20,10 +20,6 @@
+  * OF THIS SOFTWARE.
+  */
+ 
+-#ifdef HAVE_XORG_CONFIG_H
+-#include <xorg-config.h>
+-#endif
+-
+ #include "dri3_priv.h"
+ 
+ #include <drm_fourcc.h>
+Index: xserver/dri3/dri3_priv.h
+===================================================================
+--- xserver.orig/dri3/dri3_priv.h
++++ xserver/dri3/dri3_priv.h
+@@ -23,6 +23,7 @@
+ #ifndef _DRI3PRIV_H_
+ #define _DRI3PRIV_H_
+ 
++#include "dix-config.h"
+ #include <X11/X.h>
+ #include "scrnintstr.h"
+ #include "misc.h"
+Index: xserver/dri3/dri3_request.c
+===================================================================
+--- xserver.orig/dri3/dri3_request.c
++++ xserver/dri3/dri3_request.c
+@@ -20,10 +20,6 @@
+  * OF THIS SOFTWARE.
+  */
+ 
+-#ifdef HAVE_XORG_CONFIG_H
+-#include <xorg-config.h>
+-#endif
+-
+ #include "dri3_priv.h"
+ #include <syncsrv.h>
+ #include <unistd.h>
+Index: xserver/dri3/dri3_screen.c
+===================================================================
+--- xserver.orig/dri3/dri3_screen.c
++++ xserver/dri3/dri3_screen.c
+@@ -20,10 +20,6 @@
+  * OF THIS SOFTWARE.
+  */
+ 
+-#ifdef HAVE_XORG_CONFIG_H
+-#include <xorg-config.h>
+-#endif
+-
+ #include "dri3_priv.h"
+ #include <syncsdk.h>
+ #include <misync.h>
 Index: xserver/hw/Makefile.am
 ===================================================================
 --- xserver.orig/hw/Makefile.am
