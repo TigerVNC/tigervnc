@@ -22,6 +22,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <glob.h>
 #include <unistd.h>
 
 #ifdef HAVE_GBM
@@ -37,7 +38,7 @@
 #error "This code is not compatible with accessors"
 #endif
 
-const char *renderNode = "/dev/dri/renderD128";
+const char *renderNode = "auto";
 
 static DevPrivateKeyRec vncDRI3ScreenPrivateKey;
 static DevPrivateKeyRec vncDRI3PixmapPrivateKey;
@@ -458,7 +459,8 @@ Bool vncDRI3Init(ScreenPtr screen)
   if (renderNode[0] == '\0')
     return TRUE;
 
-  if (renderNode[0] != '/') {
+  if ((renderNode[0] != '/') &&
+      (strcasecmp(renderNode, "auto") != 0)) {
     ErrorF("Invalid render node path \"%s\"\n", renderNode);
     return FALSE;
   }
@@ -476,7 +478,37 @@ Bool vncDRI3Init(ScreenPtr screen)
 #ifdef HAVE_GBM
   screenPriv = vncDRI3ScreenPrivate(screen);
 
-  screenPriv->devicePath = renderNode;
+  if (strcasecmp(renderNode, "auto") == 0) {
+    glob_t globbuf;
+    int ret;
+
+    ret = glob("/dev/dri/renderD*", 0, NULL, &globbuf);
+    if (ret == GLOB_NOMATCH) {
+      ErrorF("Could not find any render nodes\n");
+      return FALSE;
+    }
+    if (ret != 0) {
+      ErrorF("Failure enumerating render nodes\n");
+      return FALSE;
+    }
+
+    screenPriv->devicePath = NULL;
+    for (size_t i = 0;i < globbuf.gl_pathc;i++) {
+      if (access(globbuf.gl_pathv[i], R_OK|W_OK) == 0) {
+        screenPriv->devicePath = strdup(globbuf.gl_pathv[i]);
+        break;
+      }
+    }
+
+    globfree(&globbuf);
+
+    if (screenPriv->devicePath == NULL) {
+      ErrorF("Could not find any available render nodes\n");
+      return FALSE;
+    }
+  } else {
+    screenPriv->devicePath = renderNode;
+  }
 
   screenPriv->fd = open(screenPriv->devicePath, O_RDWR|O_CLOEXEC);
   if (screenPriv->fd < 0) {
