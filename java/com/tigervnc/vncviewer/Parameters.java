@@ -38,10 +38,15 @@ public class Parameters {
     "Lion or later.",
     false);
 
-  public static BoolParameter dotWhenNoCursor
-  = new BoolParameter("DotWhenNoCursor",
-    "Show the dot cursor when the server sends an invisible cursor",
+  public static BoolParameter localCursor
+  = new BoolParameter("LocalCursor",
+    "Show the local cursor when the server sends an invisible cursor",
     false);
+
+  public static StringParameter cursorType
+  = new StringParameter("CursorType",
+    "Specify which cursor type the local cursor should be. Should be either Dot or System",
+    "Dot");
 
   public static BoolParameter sendLocalUsername
   = new BoolParameter("SendLocalUsername",
@@ -282,7 +287,8 @@ public class Parameters {
     CSecurityTLS.X509CA,
     CSecurityTLS.X509CRL,
     SecurityClient.secTypes,
-    dotWhenNoCursor,
+    localCursor,
+    cursorType,
     autoSelect,
     fullColor,
     lowColorLevel,
