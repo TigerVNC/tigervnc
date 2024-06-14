@@ -352,7 +352,14 @@ void OptionsDialog::loadOptions(void)
   /* Misc. */
   sharedCheckbox->value(shared);
   reconnectCheckbox->value(reconnectOnError);
-  dotCursorCheckbox->value(dotWhenNoCursor);
+  alwaysCursorCheckbox->value(alwaysCursor);
+  if (!strcasecmp(cursorType, "system")) {
+    cursorTypeChoice->value(1);
+  } else {
+    // Default
+    cursorTypeChoice->value(0);
+  }
+  handleAlwaysCursor(alwaysCursorCheckbox, this);
 }
 
 
@@ -486,7 +493,14 @@ void OptionsDialog::storeOptions(void)
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
   reconnectOnError.setParam(reconnectCheckbox->value());
-  dotWhenNoCursor.setParam(dotCursorCheckbox->value());
+  alwaysCursor.setParam(alwaysCursorCheckbox->value());
+
+  if (cursorTypeChoice->value() == 1) {
+    cursorType.setParam("System");
+  } else {
+    // Default
+    cursorType.setParam("Dot");
+  }
 
   std::map<OptionsCallback*, void*>::const_iterator iter;
 
@@ -835,11 +849,21 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                      _("Emulate middle mouse button")));
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
-    dotCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                    CHECK_MIN_WIDTH,
-                                                    CHECK_HEIGHT,
-                                                    _("Show dot when no cursor")));
+    alwaysCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                       CHECK_MIN_WIDTH,
+                                                       CHECK_HEIGHT,
+                                                       _("Show local cursor when not provided by server")));
+    alwaysCursorCheckbox->callback(handleAlwaysCursor, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+    /* Cursor type */
+    cursorTypeChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Cursor type")));
+
+    fltk_menu_add(cursorTypeChoice, _("Dot"), 0, nullptr, nullptr, 0);
+    fltk_menu_add(cursorTypeChoice, _("System"), 0, nullptr, nullptr, 0);
+
+    ty += CHOICE_HEIGHT + TIGHT_MARGIN;
+
   }
   ty -= TIGHT_MARGIN;
 
@@ -1180,4 +1204,15 @@ void OptionsDialog::handleScreenConfigTimeout(void *data)
     assert(self);
 
     self->monitorArrangement->value(fullScreenSelectedMonitors.getParam());
+}
+
+void OptionsDialog::handleAlwaysCursor(Fl_Widget* /*widget*/, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  if (dialog->alwaysCursorCheckbox->value()) {
+    dialog->cursorTypeChoice->activate();
+  } else {
+    dialog->cursorTypeChoice->deactivate();
+  }
 }
