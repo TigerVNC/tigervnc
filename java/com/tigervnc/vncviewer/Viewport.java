@@ -167,8 +167,15 @@ class Viewport extends JPanel implements ActionListener {
     for (i = 0; i < width*height; i++)
       if (data[i*4 + 3] != 0) break;
 
-    if ((i == width*height) && dotWhenNoCursor.getValue()) {
-      vlog.debug("cursor is empty - using dot");
+    useSystemCursor = false;
+    if ((i == width*height) && alwaysCursor.getValue()) {
+      String cursorTypeStr = cursorType.getValueStr();
+      if (cursorTypeStr.matches("^System$")) {
+        useSystemCursor = true;
+      } else {
+        vlog.debug("cursor is empty - using dot");
+      }
+      // Do this anyway to prevent cursor being null
       cursor = new BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB_PRE);
       cursor.setRGB(0, 0, 5, 5, dotcursor_xpm, 0, 5);
       cursorHotspot.x = cursorHotspot.y = 3;
@@ -216,7 +223,10 @@ class Viewport extends JPanel implements ActionListener {
 
     hotspot = new java.awt.Point(x, y);
     softCursor = tk.createCustomCursor(img, hotspot, name);
-    setCursor(softCursor);
+    if (useSystemCursor)
+      setCursor(java.awt.Cursor.getDefaultCursor());
+    else
+      setCursor(softCursor);
   }
 
   public void resize(int x, int y, int w, int h) {
@@ -830,6 +840,7 @@ class Viewport extends JPanel implements ActionListener {
   float scaleRatioX, scaleRatioY;
 
   static BufferedImage cursor;
+  static boolean useSystemCursor = false;
   Point cursorHotspot = new Point();
 
 }
