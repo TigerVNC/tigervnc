@@ -20,7 +20,10 @@ set(JAVA_KEYSTORE_TYPE "jks" CACHE STRING "Type of keystore (Default: \"jks\")")
 set(JAVA_KEY_ALIAS NOTFOUND CACHE STRING "Alias for the keystore entry used to generate the signature")
 set(JAVA_STOREPASS NOTFOUND CACHE STRING "Password required to access the keystore")
 set(JAVA_KEYPASS NOTFOUND CACHE STRING "Password used to protect the private key of the specified keystore entry")
+set(JAVA_PKCS11_PROVIDER_CLASS "sun.security.pkcs11.SunPKCS11" CACHE STRING "PKCS11 SecurityProvider class name")
+set(JAVA_PKCS11_PROVIDER_ARG NOTFOUND CACHE STRING "Path to the PKCS11 security provider class config file")
 set(JAVA_TSA_URL NOTFOUND CACHE STRING "URL of Time Stamping Authority (TSA)")
+set(JAVA_CERT_CHAIN NOTFOUND CACHE STRING "Path to CA certificate chain file")
 
 if(NOT BUILD)
 	STRING(TIMESTAMP BUILD "%Y%m%d" UTC)
@@ -166,9 +169,12 @@ add_custom_command(OUTPUT VncViewer.jar
     -DJAVA_KEYSTORE=${JAVA_KEYSTORE}
     -DJAVA_KEYSTORE_TYPE=${JAVA_KEYSTORE_TYPE}
     -DJAVA_STOREPASS=${JAVA_STOREPASS}
+    -DJAVA_PKCS11_PROVIDER_CLASS=${JAVA_PKCS11_PROVIDER_CLASS}
+    -DJAVA_PKCS11_PROVIDER_ARG=${JAVA_PKCS11_PROVIDER_ARG}
     -DJAVA_KEYPASS=${JAVA_KEYPASS}
     -DJAVA_KEY_ALIAS=${JAVA_KEY_ALIAS}
     -DJAVA_TSA_URL=${JAVA_TSA_URL}
+    -DJAVA_CERT_CHAIN=${JAVA_CERT_CHAIN}
     -P ${SRCDIR}/cmake/SignJar.cmake)
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)
