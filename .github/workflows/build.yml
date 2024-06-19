@@ -114,7 +114,6 @@ jobs:
           - centos7
           - rocky8
           - rocky9
-          - bionic
           - focal
           - jammy
       fail-fast: false

@@ -1,6 +1,6 @@
 /* Copyright (c) 1993  X Consortium
    Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
-   Copyright 2009-2015 Pierre Ossman for Cendio AB
+   Copyright 2009-2024 Pierre Ossman for Cendio AB
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -67,8 +67,6 @@ from the X Consortium.
 #include <X11/keysym.h>
 extern char buildtime[];
 
-#undef VENDOR_RELEASE
-#undef VENDOR_STRING
 #include "version-config.h"
 
 #define XVNCVERSION "TigerVNC 1.13.80"
@@ -1108,14 +1106,17 @@ vncClientStateChange(CallbackListPtr *a, void *b, void *c)
 #ifdef GLXEXT
 #if XORG_OLDER_THAN(1, 20, 0)
 extern void GlxExtensionInit(void);
+#endif
+#endif
 
-static ExtensionModule glxExt = {
-    GlxExtensionInit,
-    "GLX",
-    &noGlxExtension
+static const ExtensionModule vncExtensions[] = {
+    {vncExtensionInit, "VNC-EXTENSION", NULL},
+#ifdef GLXEXT
+#if XORG_OLDER_THAN(1, 20, 0)
+    { GlxExtensionInit, "GLX", &noGlxExtension },
+#endif
+#endif
 };
-#endif
-#endif
 
 void
 InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
@@ -1125,15 +1126,11 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
 
     vncPrintBanner();
 
+    if (serverGeneration == 1)
+        LoadExtensionList(vncExtensions, ARRAY_SIZE(vncExtensions), TRUE);
+
 #if XORG_AT_LEAST(1, 20, 0)
     xorgGlxCreateVendor();
-#else
-
-#ifdef GLXEXT
-    if (serverGeneration == 1)
-        LoadExtensionList(&glxExt, 1, TRUE);
-#endif
-
 #endif
 
     /* initialize pixmap formats */

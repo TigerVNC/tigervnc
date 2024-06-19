@@ -24,10 +24,12 @@
 #include <dix-config.h>
 #endif
 
+#include <version-config.h>
+
 #define XORG_AT_LEAST(major, minor, patch) \
-    (XORG_VERSION_CURRENT >= ((major * 10000000) + (minor * 100000) + (patch * 1000)))
+    (VENDOR_RELEASE >= ((major * 10000000) + (minor * 100000) + (patch * 1000)))
 #define XORG_OLDER_THAN(major, minor, patch) \
-    (XORG_VERSION_CURRENT < ((major * 10000000) + (minor * 100000) + (patch * 1000)))
+    (VENDOR_RELEASE < ((major * 10000000) + (minor * 100000) + (patch * 1000)))
 
 #if XORG_OLDER_THAN(1, 16, 0)
 #error "X.Org older than 1.16 is not supported"
