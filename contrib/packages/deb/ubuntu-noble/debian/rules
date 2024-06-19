@@ -1,0 +1,288 @@
+#!/usr/bin/make -f
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 by Joey Hess.
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+CFLAGS   := $(shell dpkg-buildflags --get CFLAGS)
+CPPFLAGS := $(shell dpkg-buildflags --get CPPFLAGS)
+CXXFLAGS := $(shell dpkg-buildflags --get CXXFLAGS)
+LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS)
+
+export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
+
+NUMJOBS := -j$(shell nproc)
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+DEB_HOST_ARCH      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_ARCH_OS   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
+ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
+	confflags += --build=$(DEB_HOST_GNU_TYPE)
+else
+	confflags += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+endif
+SOURCE_NAME    := tigervnc
+SOURCE_VERSION := $(shell dpkg-parsechangelog | awk -F': ' '/^Version: / {print $$2}')
+BUILDER=For technical support please see http://sourceforge.net/projects/tigervnc/support
+libdir = /usr/lib/$(DEB_HOST_MULTIARCH)
+
+
+ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -g -O2 -fPIC
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+endif
+
+export CC = gcc
+
+# use xorg sources as shipped in xorg-server-source package
+XORG_SOURCE_ARCHIVE = /usr/src/xorg-server.tar.xz
+
+xorg-source-stamp: $(XORG_SOURCE_ARCHIVE)
+	tar -C unix/xserver -axf $(XORG_SOURCE_ARCHIVE) --strip-components=1
+	cd unix/xserver && patch -p1 < ../xserver21.1.1.patch
+	patch -p1 < debian/xorg-source-patches/516_tigervnc-xorg-manpages.patch
+	touch xorg-source-stamp
+
+configure: config-stamp
+config-stamp: xorg-source-stamp
+	dh_testdir
+	# Add here commands to configure the package.
+	cmake -G"Unix Makefiles" \
+		-DBUILD_STATIC=off \
+		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
+		-DCMAKE_INSTALL_LIBEXECDIR:PATH=lib/$(DEB_HOST_MULTIARCH) \
+		-DCMAKE_INSTALL_UNITDIR:PATH=/lib/systemd/system
+	(cd unix/xserver; \
+	export PIXMANINCDIR=/usr/include/pixman-1; \
+	autoreconf -fiv; \
+  patch -p1 -i ../../debian/xorg-source-patches/debian_libtool.patch; \
+	./configure --prefix=/usr \
+		--disable-silent-rules \
+		--disable-static \
+		--without-dtrace \
+		--disable-strict-compilation \
+		--disable-debug \
+		--disable-unit-tests \
+		--with-int10=x86emu \
+		--with-extra-module-dir="/usr/lib/${DEB_HOST_MULTIARCH}/xorg/extra-modules,/usr/lib/xorg/extra-modules" \
+		--with-os-vendor="$(VENDOR)" \
+		--with-builderstring="$(SOURCE_NAME) $(SOURCE_VERSION) ($(BUILDER))" \
+		--with-xkb-path=/usr/share/X11/xkb \
+		--with-xkb-output=/var/lib/xkb \
+		--with-default-xkb-rules=evdev \
+		--disable-devel-docs \
+		--enable-mitshm \
+		--enable-xres \
+		--disable-xcsecurity \
+		--disable-tslib \
+		--enable-dbe \
+		--disable-xf86bigfont \
+		--disable-dpms \
+		--disable-config-hal \
+		--disable-config-udev \
+		--disable-xorg \
+		--disable-xquartz \
+		--disable-xwin \
+		--disable-xfake \
+		--disable-install-setuid \
+		--with-default-font-path="/usr/share/fonts/X11/misc,/usr/share/fonts/X11/cyrillic,/usr/share/fonts/X11/100dpi/:unscaled,/usr/share/fonts/X11/75dpi/:unscaled,/usr/share/fonts/X11/Type1,/usr/share/fonts/X11/100dpi,/usr/share/fonts/X11/75dpi,/var/lib/defoma/x-ttcidfont-conf.d/dirs/TrueType,built-ins" \
+		--enable-aiglx \
+		--enable-composite \
+		--enable-record \
+		--enable-xv \
+		--enable-xvmc \
+		--enable-dga \
+		--enable-screensaver \
+		--enable-xdmcp \
+		--enable-xdm-auth-1 \
+		--enable-glx \
+		--disable-dri --enable-dri2 --disable-dri3 \
+		--enable-xinerama \
+		--enable-xf86vidmode \
+		--enable-xace \
+		--enable-xfree86-utils \
+		--disable-dmx \
+		--disable-xvfb \
+		--disable-xnest \
+		--disable-kdrive \
+		--disable-xephyr \
+		--enable-xfbdev \
+		--with-sha1=libgcrypt \
+		--enable-xcsecurity \
+		--disable-docs \
+		--disable-selective-werror)
+	touch config-stamp
+
+build-arch: config-stamp build-arch-stamp
+build-arch-stamp:
+	dh_testdir
+
+	# Add here command to compile/build the package.
+	# Build first things.
+	# Build Xvnc
+	make $(NUMJOBS) LDFLAGS="-lpng"
+	make $(NUMJOBS) -C unix/xserver
+
+	touch build-arch-stamp
+
+build-indep: config-stamp  build-indep-stamp
+build-indep-stamp:
+	dh_testdir
+
+	# Add here command to compile/build the arch indep package.
+	# It's ok not to do anything here, if you don't need to build
+	#  anything for this package.
+	#/usr/bin/docbook-to-man debian/vnc.sgml > vnc.1
+	(cd media;make)
+	#(cd java;cmake -G"Unix Makefiles";make)
+
+	touch build-indep-stamp
+
+build: build-arch build-indep
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp build-indep-stamp config-stamp
+
+	# Add here commands to clean up after the build process.
+	dh_clean
+
+install: DH_OPTIONS=
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_prep
+	dh_installdirs
+	# Add here commands to install the package into debian/vnc.
+	make install DESTDIR=$(CURDIR)/debian/tigervncserver
+	(cd unix/xserver/hw/vnc; make install DESTDIR=$(CURDIR)/debian/tigervncserver)
+	# rename server files to tigervnc specific names
+	mv $(CURDIR)/debian/tigervncserver/usr/bin/Xvnc \
+		$(CURDIR)/debian/tigervncserver/usr/bin/Xtigervnc
+	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncconfig \
+		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncconfig
+	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncpasswd \
+		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncpasswd
+	mv $(CURDIR)/debian/tigervncserver/usr/bin/x0vncserver \
+		$(CURDIR)/debian/tigervncserver/usr/bin/x0tigervncserver
+	mv $(CURDIR)/debian/tigervncserver/usr/sbin/vncsession \
+		$(CURDIR)/debian/tigervncserver/usr/sbin/tigervncsession
+	mv $(CURDIR)/debian/tigervncserver/usr/lib/$(DEB_HOST_MULTIARCH)/vncserver \
+		$(CURDIR)/debian/tigervncserver/usr/lib/$(DEB_HOST_MULTIARCH)/tigervncserver
+	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncconfig.1 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncconfig.1
+	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncpasswd.1 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncpasswd.1
+	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/x0vncserver.1 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/x0tigervncserver.1
+	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/Xvnc.1 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/Xtigervnc.1
+	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man8/vncsession.8 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man8/tigervncsession.8
+	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man8/vncserver.8 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man8/tigervncserver.8
+	# delete development files
+	rm -f $(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions/libvnc.la
+	# move viewer files to viewer package, rename on the fly
+	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/bin
+	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncviewer \
+		$(CURDIR)/debian/xtigervncviewer/usr/bin/xtigervncviewer
+	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/man/man1
+	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncviewer.1 \
+		$(CURDIR)/debian/xtigervncviewer/usr/share/man/man1/xtigervncviewer.1
+	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
+	mv $(CURDIR)/debian/tigervncserver/usr/share/applications \
+		$(CURDIR)/debian/xtigervncviewer/usr/share/
+	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
+	mv $(CURDIR)/debian/tigervncserver/usr/share/icons \
+		$(CURDIR)/debian/xtigervncviewer/usr/share/
+	# tigervnc-java
+	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
+	#(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
+	# install additional license files
+	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer
+	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
+		$(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer/
+	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java
+	#cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
+		#$(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java/
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
+	mv $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc \
+		$(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
+#	dh_movefiles
+	sed 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g' \
+		debian/tigervncserver.postinst.in > debian/tigervncserver.postinst
+
+# Build architecture-independent files here.
+# Pass -i to all debhelper commands in this target to reduce clutter.
+binary-indep: build install
+
+binary-indep-keep:
+	dh_testdir -i
+	dh_testroot -i
+#	dh_installdebconf -i
+	dh_install
+	dh_installdocs -i
+	dh_installexamples -i
+	dh_installmenu -i
+#	dh_installlogrotate -i
+#	dh_installemacsen -i
+#	dh_installpam -i
+#	dh_installmime -i
+#	dh_installinit -i
+	dh_installcron -i
+	dh_installman -i
+	dh_installinfo -i
+#	dh_undocumented -i
+	dh_installchangelogs  -i
+	dh_link -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_perl -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir -a
+	dh_testroot -a
+#	dh_installdebconf -a
+	dh_installdocs -a
+#	dh_installexamples -a
+	dh_installmenu -a
+#	dh_installlogrotate -a
+#	dh_installemacsen -a
+#	dh_installpam -a
+#	dh_installmime -a
+	dh_install
+	dh_installinit -a
+#	dh_installcron -a
+	dh_installman -a
+	dh_installinfo -a
+#	dh_undocumented -a
+	dh_installchangelogs  -a
+	# Remove empty directories
+	dh_strip -a
+	dh_link -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_makeshlibs -a
+	dh_installdeb -a
+	dh_perl -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

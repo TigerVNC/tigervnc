@@ -111,11 +111,11 @@ jobs:
     strategy:
       matrix:
         target:
-          - centos7
           - rocky8
           - rocky9
           - focal
           - jammy
+          - noble
       fail-fast: false
     runs-on: ubuntu-latest
     env:
