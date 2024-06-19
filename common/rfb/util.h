@@ -73,13 +73,6 @@ namespace rfb {
 
   // HELPER functions for timeout handling
 
-  // soonestTimeout() is a function to help work out the soonest of several
-  //   timeouts.
-  inline void soonestTimeout(int* timeout, int newTimeout) {
-    if (newTimeout && (!*timeout || newTimeout < *timeout))
-      *timeout = newTimeout;
-  }
-
   // secsToMillis() turns seconds into milliseconds, capping the value so it
   //   can't wrap round and become -ve
   inline int secsToMillis(int secs) {

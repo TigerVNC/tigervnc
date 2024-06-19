@@ -79,6 +79,8 @@ namespace rfb {
 
     virtual void blockUpdates();
     virtual void unblockUpdates();
+    virtual uint64_t getMsc();
+    virtual void queueMsc(uint64_t target);
     virtual void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout);
     virtual void setPixelBuffer(PixelBuffer* pb);
     virtual void setScreenLayout(const ScreenSet& layout);
@@ -153,7 +155,7 @@ namespace rfb {
   protected:
 
     // Timer callbacks
-    virtual bool handleTimeout(Timer* t);
+    virtual void handleTimeout(Timer* t);
 
     // - Internal methods
 
@@ -204,6 +206,7 @@ namespace rfb {
     Timer disconnectTimer;
     Timer connectTimer;
 
+    uint64_t msc, queuedMsc;
     Timer frameTimer;
   };
 

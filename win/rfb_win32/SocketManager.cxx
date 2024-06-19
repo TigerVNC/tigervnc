@@ -169,9 +169,9 @@ void SocketManager::setDisable(VNCServer* srvr, bool disable)
 int SocketManager::checkTimeouts() {
   int timeout = EventManager::checkTimeouts();
 
-  std::map<HANDLE,ListenInfo>::iterator i;
-  for (i=listeners.begin(); i!=listeners.end(); i++)
-    soonestTimeout(&timeout, Timer::checkTimeouts());
+  int nextTimeout = Timer::checkTimeouts();
+  if (nextTimeout >= 0 && nextTimeout < timeout)
+    timeout = nextTimeout;
 
   std::list<network::Socket*> shutdownSocks;
   std::map<HANDLE,ConnInfo>::iterator j, j_next;

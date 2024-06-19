@@ -74,14 +74,13 @@ void QueryConnectDialog::buttonActivate(TXButton* b) {
     callback->queryRejected();
 }
   
-bool QueryConnectDialog::handleTimeout(rfb::Timer* /*t*/) {
+void QueryConnectDialog::handleTimeout(rfb::Timer* t) {
   if (timeUntilReject-- == 0) {
     unmap();
     callback->queryTimedOut();
-    return false;
   } else {
     refreshTimeout();
-    return true;
+    t->repeat();
   }
 }
 

@@ -11,12 +11,12 @@ COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(OS_LIB) $(UNIXCOMMON_LIB)
 noinst_LTLIBRARIES = libvnccommon.la
 
 HDRS = vncExtInit.h vncHooks.h \
-	vncBlockHandler.h vncSelection.h \
+	vncBlockHandler.h vncPresent.h vncSelection.h \
 	XorgGlue.h XserverDesktop.h xorg-version.h \
 	vncInput.h RFBGlue.h
 
 libvnccommon_la_SOURCES = $(HDRS) \
-	vncExt.c vncExtInit.cc vncHooks.c vncSelection.c \
+	vncExt.c vncExtInit.cc vncHooks.c vncPresent.c vncSelection.c \
 	vncBlockHandler.c XorgGlue.c RandrGlue.c RFBGlue.cc XserverDesktop.cc \
 	vncInput.c vncInputXKB.c qnum_to_xorgevdev.c qnum_to_xorgkbd.c
 

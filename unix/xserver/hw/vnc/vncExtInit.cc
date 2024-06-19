@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2019 Pierre Ossman for Cendio AB
+ * Copyright 2011-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -481,6 +481,33 @@ void vncRefreshScreenLayout(int scrIdx)
     desktop[scrIdx]->refreshScreenLayout();
   } catch (rdr::Exception& e) {
     vncFatalError("vncRefreshScreenLayout: %s\n", e.str());
+  }
+}
+
+uint64_t vncGetMsc(int scrIdx)
+{
+  try {
+    return desktop[scrIdx]->getMsc();
+  } catch (rdr::Exception& e) {
+    vncFatalError("vncGetMsc: %s\n", e.str());
+  }
+}
+
+void vncQueueMsc(int scrIdx, uint64_t id, uint64_t msc)
+{
+  try {
+    desktop[scrIdx]->queueMsc(id, msc);
+  } catch (rdr::Exception& e) {
+    vncFatalError("vncQueueMsc: %s\n", e.str());
+  }
+}
+
+void vncAbortMsc(int scrIdx, uint64_t id)
+{
+  try {
+    desktop[scrIdx]->abortMsc(id);
+  } catch (rdr::Exception& e) {
+    vncFatalError("vncAbortMsc: %s\n", e.str());
   }
 }
 

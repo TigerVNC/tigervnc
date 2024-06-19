@@ -277,13 +277,13 @@ void EmulateMB::filterPointerEvent(const rfb::Point& pos, int buttonMask)
   }
 }
 
-bool EmulateMB::handleTimeout(rfb::Timer *t)
+void EmulateMB::handleTimeout(rfb::Timer *t)
 {
   int action1, action2;
   int buttonMask;
 
   if (&timer != t)
-    return false;
+    return;
 
   if ((state > 10) || (state < 0))
     throw rfb::Exception(_("Invalid state for 3 button emulation"));
@@ -310,8 +310,6 @@ bool EmulateMB::handleTimeout(rfb::Timer *t)
   }
 
   state = stateTab[state][4][2];
-
-  return false;
 }
 
 void EmulateMB::sendAction(const rfb::Point& pos, int buttonMask, int action)

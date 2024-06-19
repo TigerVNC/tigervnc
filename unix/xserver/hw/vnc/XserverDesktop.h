@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2019 Pierre Ossman for Cendio AB
+ * Copyright 2009-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,9 @@ public:
   void unblockUpdates();
   void setFramebuffer(int w, int h, void* fbptr, int stride);
   void refreshScreenLayout();
+  uint64_t getMsc();
+  void queueMsc(uint64_t id, uint64_t msc);
+  void abortMsc(uint64_t id);
   void requestClipboard();
   void announceClipboard(bool available);
   void sendClipboardData(const char* data);
@@ -88,8 +91,7 @@ public:
                          const char* rejectMsg=0);
 
   // rfb::SDesktop callbacks
-  virtual void start(rfb::VNCServer* vs);
-  virtual void stop();
+  virtual void init(rfb::VNCServer* vs);
   virtual void terminate();
   virtual void queryConnection(network::Socket* sock,
                                const char* userName);
@@ -97,6 +99,7 @@ public:
   virtual void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
                                        const rfb::ScreenSet& layout);
+  virtual void frameTick(uint64_t msc);
   virtual void handleClipboardRequest();
   virtual void handleClipboardAnnounce(bool available);
   virtual void handleClipboardData(const char* data);
@@ -112,7 +115,7 @@ protected:
                          rfb::VNCServer* sockserv,
                          bool read, bool write);
 
-  virtual bool handleTimeout(rfb::Timer* t);
+  virtual void handleTimeout(rfb::Timer* t);
 
 private:
 
@@ -128,6 +131,8 @@ private:
   rfb::Timer queryConnectTimer;
 
   OutputIdMap outputIdMap;
+
+  std::map<uint64_t, uint64_t> pendingMsc;
 
   rfb::Point oldCursorPos;
 };

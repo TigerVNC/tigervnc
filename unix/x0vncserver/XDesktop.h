@@ -47,7 +47,8 @@ public:
   virtual ~XDesktop();
   void poll();
   // -=- SDesktop interface
-  virtual void start(rfb::VNCServer* vs);
+  virtual void init(rfb::VNCServer* vs);
+  virtual void start();
   virtual void stop();
   virtual void terminate();
   bool isRunning();

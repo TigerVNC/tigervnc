@@ -1,4 +1,4 @@
-/* Copyright 2020 Alex Tanskanen for Cendio AB
+/* Copyright 2024 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,34 +16,12 @@
  * USA.
  */
 
-#ifndef __EMULATEMB__
-#define __EMULATEMB__
+#ifndef __PRESENT_H__
+#define __PRESENT_H__
 
-#include <rfb/Timer.h>
-#include <rfb/Rect.h>
+#include <dix.h>
 
-class EmulateMB : public rfb::Timer::Callback {
-public:
-  EmulateMB();
-
-  void filterPointerEvent(const rfb::Point& pos, int buttonMask);
-
-protected:
-  virtual void sendPointerEvent(const rfb::Point& pos, int buttonMask)=0;
-
-  virtual void handleTimeout(rfb::Timer *t);
-
-private:
-  void sendAction(const rfb::Point& pos, int buttonMask, int action);
-
-  int createButtonMask(int buttonMask);
-
-private:
-  int state;
-  int emulatedButtonMask;
-  int lastButtonMask;
-  rfb::Point lastPos, origPos;
-  rfb::Timer timer;
-};
+Bool vncPresentInit(ScreenPtr screen);
+void vncPresentMscEvent(uint64_t id, uint64_t msc);
 
 #endif

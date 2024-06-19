@@ -64,14 +64,14 @@ void EventManager::removeEvent(HANDLE event) {
 
 
 int EventManager::checkTimeouts() {
-  return 0;
+  return -1;
 }
 
 BOOL EventManager::getMessage(MSG* msg, HWND hwnd, UINT minMsg, UINT maxMsg) {
   while (true) {
     // - Process any pending timeouts
-    DWORD timeout = checkTimeouts();
-    if (timeout == 0)
+    int timeout = checkTimeouts();
+    if (timeout < 0)
       timeout = INFINITE;
 
     // - Events take precedence over messages

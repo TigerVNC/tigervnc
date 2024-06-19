@@ -382,7 +382,7 @@ int main(int argc, char** argv)
     PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);
 
     while (!caughtSignal) {
-      int wait_ms;
+      int wait_ms, nextTimeout;
       struct timeval tv;
       fd_set rfds, wfds;
       std::list<Socket*> sockets;
@@ -426,7 +426,10 @@ int main(int argc, char** argv)
         }
       }
 
-      soonestTimeout(&wait_ms, Timer::checkTimeouts());
+      // Trigger timers and check when the next will expire
+      nextTimeout = Timer::checkTimeouts();
+      if (nextTimeout >= 0 && nextTimeout < wait_ms)
+        wait_ms = nextTimeout;
 
       tv.tv_sec = wait_ms / 1000;
       tv.tv_usec = (wait_ms % 1000) * 1000;

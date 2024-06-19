@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2019 Pierre Ossman for Cendio AB
+ * Copyright 2009-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,9 +90,11 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
-    frameTimer(this)
+    msc(0), queuedMsc(0), frameTimer(this)
 {
   slog.debug("creating single-threaded server %s", name.c_str());
+
+  desktop_->init(this);
 
   // FIXME: Do we really want to kick off these right away?
   if (rfb::Server::maxIdleTime)
@@ -248,11 +250,22 @@ void VNCServerST::unblockUpdates()
 
   blockCounter--;
 
-  // Restart the frame clock if we have updates
-  if (blockCounter == 0) {
-    if (!comparer->is_empty())
-      startFrameClock();
-  }
+  // Restart the frame clock in case we have updates
+  if (blockCounter == 0)
+    startFrameClock();
+}
+
+uint64_t VNCServerST::getMsc()
+{
+  return msc;
+}
+
+void VNCServerST::queueMsc(uint64_t target)
+{
+  if (target > queuedMsc)
+    queuedMsc = target;
+
+  startFrameClock();
 }
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
@@ -623,22 +636,33 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
   return 0;
 }
 
-bool VNCServerST::handleTimeout(Timer* t)
+void VNCServerST::handleTimeout(Timer* t)
 {
   if (t == &frameTimer) {
-    // We keep running until we go a full interval without any updates
-    if (comparer->is_empty())
-      return false;
+    int timeout;
 
-    writeUpdate();
-
-    // If this is the first iteration then we need to adjust the timeout
-    if (frameTimer.getTimeoutMs() != 1000/rfb::Server::frameRate) {
-      frameTimer.start(1000/rfb::Server::frameRate);
-      return false;
+    // We keep running until we go a full interval without any updates,
+    // or there are no active clients anymore
+    if (comparer->is_empty() || !desktopStarted) {
+      // Unless something waits for us to advance the frame count
+      if (queuedMsc < msc)
+        return;
     }
 
-    return true;
+    // If this is the first iteration then we need to adjust the timeout
+    timeout = 1000/rfb::Server::frameRate;
+
+    // If there are no clients, then slow down the clock
+    if (!desktopStarted)
+      timeout = 1000;
+
+    frameTimer.repeat(timeout);
+
+    if (!comparer->is_empty() && desktopStarted)
+      writeUpdate();
+
+    msc++;
+    desktop->frameTick(msc);
   } else if (t == &idleTimer) {
     slog.info("MaxIdleTime reached, exiting");
     desktop->terminate();
@@ -649,8 +673,6 @@ bool VNCServerST::handleTimeout(Timer* t)
     slog.info("MaxConnectionTime reached, exiting");
     desktop->terminate();
   }
-
-  return false;
 }
 
 void VNCServerST::queryConnection(VNCSConnectionST* client,
@@ -714,7 +736,7 @@ void VNCServerST::startDesktop()
 {
   if (!desktopStarted) {
     slog.debug("starting desktop");
-    desktop->start(this);
+    desktop->start();
     if (!pb)
       throw Exception("SDesktop::start() did not set a valid PixelBuffer");
     desktopStarted = true;
@@ -722,6 +744,12 @@ void VNCServerST::startDesktop()
     // stopped, so flush those out
     if (!comparer->is_empty())
       writeUpdate();
+    // If the frame clock is running, then it will be running slowly,
+    // so give it a kick to run at normal speed right away
+    if (frameTimer.isStarted()) {
+      stopFrameClock();
+      startFrameClock();
+    }
   }
 }
 
@@ -731,7 +759,6 @@ void VNCServerST::stopDesktop()
     slog.debug("stopping desktop");
     desktopStarted = false;
     desktop->stop();
-    stopFrameClock();
   }
 }
 
@@ -759,8 +786,17 @@ void VNCServerST::startFrameClock()
     return;
   if (blockCounter > 0)
     return;
-  if (!desktopStarted)
+
+  // Anyone actually interested in frames?
+  if (comparer->is_empty() && (queuedMsc <= msc))
     return;
+
+  // Run the frame clock very slowly if there are no clients to actually
+  // send updates to
+  if (!desktopStarted) {
+    frameTimer.start(1000);
+    return;
+  }
 
   // The first iteration will be just half a frame as we get a very
   // unstable update rate if we happen to be perfectly in sync with
