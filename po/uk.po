@@ -2,14 +2,14 @@
 # Copyright (C) 2014 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022.
+# Yuri Chornoivan <yurchor@ukr.net>, 2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2024.
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.12.90\n"
+"Project-Id-Version: tigervnc 1.13.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2022-12-15 16:35+0100\n"
-"PO-Revision-Date: 2022-12-16 13:54+0200\n"
-"Last-Translator: Fracture dept <yurchor@ukr.net>\n"
+"POT-Creation-Date: 2024-06-20 15:01+0200\n"
+"PO-Revision-Date: 2024-06-20 19:02+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 20.12.0\n"
+"X-Generator: Lokalize 23.04.3\n"
 
-#: vncviewer/CConn.cxx:103
+#: vncviewer/CConn.cxx:99
 #, c-format
 msgid "Connected to socket %s"
 msgstr "З’єднано з сокетом %s"
 
-#: vncviewer/CConn.cxx:110
+#: vncviewer/CConn.cxx:106
 #, c-format
 msgid "Connected to host %s port %d"
 msgstr "З’єднано з вузлом %s, порт %d"
 
-#: vncviewer/CConn.cxx:114
+#: vncviewer/CConn.cxx:111
 #, c-format
 msgid ""
 "Failed to connect to \"%s\":\n"
@@ -40,94 +40,94 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/CConn.cxx:159
+#: vncviewer/CConn.cxx:155
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Назва робочої станції: %.80s"
 
-#: vncviewer/CConn.cxx:164
+#: vncviewer/CConn.cxx:160
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Вузол: %.80s порт: %d"
 
-#: vncviewer/CConn.cxx:169
+#: vncviewer/CConn.cxx:165
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Розмір: %d x %d"
 
-#: vncviewer/CConn.cxx:177
+#: vncviewer/CConn.cxx:173
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Формат у пікселях: %s"
 
-#: vncviewer/CConn.cxx:184
+#: vncviewer/CConn.cxx:180
 #, c-format
 msgid "(server default %s)"
 msgstr "(типовий для сервера %s)"
 
-#: vncviewer/CConn.cxx:189
+#: vncviewer/CConn.cxx:185
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Запит щодо кодування: %s"
 
-#: vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:190
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Останнє використане кодування: %s"
 
-#: vncviewer/CConn.cxx:199
+#: vncviewer/CConn.cxx:195
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Оцінка швидкості лінії: %d кбіт/с"
 
-#: vncviewer/CConn.cxx:204
+#: vncviewer/CConn.cxx:200
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Версія протоколу: %d.%d"
 
-#: vncviewer/CConn.cxx:209
+#: vncviewer/CConn.cxx:205
 #, c-format
 msgid "Security method: %s"
 msgstr "Метод захисту: %s"
 
-#: vncviewer/CConn.cxx:270 vncviewer/CConn.cxx:272
+#: vncviewer/CConn.cxx:266 vncviewer/CConn.cxx:268
 msgid "The connection was dropped by the server before the session could be established."
 msgstr "З'єднання було розірвано сервером до того, як виникла можливість розпочати сеанс."
 
-#: vncviewer/CConn.cxx:332
+#: vncviewer/CConn.cxx:326
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "Помилка SetDesktopSize: %d"
 
-#: vncviewer/CConn.cxx:404
+#: vncviewer/CConn.cxx:399
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Некоректне значення SetColourMapEntries від сервера!"
 
-#: vncviewer/CConn.cxx:512
+#: vncviewer/CConn.cxx:507
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Пропускна здатність %d кбіт/с — змінюємо якість на %d"
 
-#: vncviewer/CConn.cxx:534
+#: vncviewer/CConn.cxx:529
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "Пропускна здатність %d кбіт/с — увімкнено повноцінні кольори"
 
-#: vncviewer/CConn.cxx:537
+#: vncviewer/CConn.cxx:532
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
 msgstr "Пропускна здатність %d кбіт/с — вимкнено повноцінні кольори"
 
-#: vncviewer/CConn.cxx:563
+#: vncviewer/CConn.cxx:558
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Використовуємо формат у пікселях %s"
 
-#: vncviewer/DesktopWindow.cxx:145
+#: vncviewer/DesktopWindow.cxx:146
 msgid "Invalid geometry specified!"
 msgstr "Вказано некоректні геометричні параметри!"
 
-#: vncviewer/DesktopWindow.cxx:166
+#: vncviewer/DesktopWindow.cxx:167
 msgid "Reducing window size to fit on current monitor"
 msgstr "Зменшуємо розмір вікна, щоб умістити його на поточному моніторі"
 
@@ -140,12 +140,12 @@ msgstr "Коригувати розміри вікна, щоб уникнути 
 msgid "Press %s to open the context menu"
 msgstr "Натисніть %s, щоб відкрити контекстне меню"
 
-#: vncviewer/DesktopWindow.cxx:1083 vncviewer/DesktopWindow.cxx:1091
-#: vncviewer/DesktopWindow.cxx:1111
+#: vncviewer/DesktopWindow.cxx:1097 vncviewer/DesktopWindow.cxx:1105
+#: vncviewer/DesktopWindow.cxx:1125
 msgid "Failure grabbing keyboard"
 msgstr "Помилка під час спроби перехопити клавіатуру"
 
-#: vncviewer/DesktopWindow.cxx:1401
+#: vncviewer/DesktopWindow.cxx:1415
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Результати обчислення компонування вікна для запиту щодо зміни розмірів є некоректними!"
 
@@ -154,218 +154,218 @@ msgid "Invalid state for 3 button emulation"
 msgstr "Некоректний стан для емуляції 3 кнопок"
 
 #: vncviewer/MonitorIndicesParameter.cxx:52
-#: vncviewer/MonitorIndicesParameter.cxx:105
+#: vncviewer/MonitorIndicesParameter.cxx:102
 msgid "Failed to get system monitor configuration"
 msgstr "Не вдалося отримати налаштування монітора з боку системи"
 
-#: vncviewer/MonitorIndicesParameter.cxx:83
+#: vncviewer/MonitorIndicesParameter.cxx:80
 #, c-format
 msgid "Invalid configuration specified for %s"
 msgstr "Вказано некоректні налаштування для %s"
 
-#: vncviewer/MonitorIndicesParameter.cxx:91
+#: vncviewer/MonitorIndicesParameter.cxx:88
 #, c-format
 msgid "Monitor index %d does not exist"
 msgstr "Монітора із індексом %d не існує"
 
-#: vncviewer/MonitorIndicesParameter.cxx:169
-#: vncviewer/MonitorIndicesParameter.cxx:189
+#: vncviewer/MonitorIndicesParameter.cxx:166
+#: vncviewer/MonitorIndicesParameter.cxx:186
 #, c-format
 msgid "Invalid monitor index '%s'"
 msgstr "Некоректний індекс монітора, «%s»"
 
-#: vncviewer/MonitorIndicesParameter.cxx:177
+#: vncviewer/MonitorIndicesParameter.cxx:174
 #, c-format
 msgid "Unexpected character '%c'"
 msgstr "Неочікуваний символ «%c»"
 
-#: vncviewer/OptionsDialog.cxx:63
-msgid "VNC Viewer: Connection Options"
-msgstr "Засіб перегляду VNC: параметри з’єднання"
+#: vncviewer/OptionsDialog.cxx:64
+msgid "TigerVNC Options"
+msgstr "Параметри TigerVNC"
 
-#: vncviewer/OptionsDialog.cxx:89 vncviewer/ServerDialog.cxx:108
-#: vncviewer/vncviewer.cxx:417
+#: vncviewer/OptionsDialog.cxx:97 vncviewer/ServerDialog.cxx:102
+#: vncviewer/vncviewer.cxx:395
 msgid "Cancel"
 msgstr "Скасувати"
 
-#: vncviewer/OptionsDialog.cxx:94 vncviewer/vncviewer.cxx:416
+#: vncviewer/OptionsDialog.cxx:102 vncviewer/vncviewer.cxx:394
 msgid "OK"
 msgstr "Гаразд"
 
-#: vncviewer/OptionsDialog.cxx:484
+#: vncviewer/OptionsDialog.cxx:502
 msgid "Compression"
 msgstr "Стискання"
 
-#: vncviewer/OptionsDialog.cxx:501
+#: vncviewer/OptionsDialog.cxx:518
 msgid "Auto select"
 msgstr "Автовибір"
 
-#: vncviewer/OptionsDialog.cxx:516
+#: vncviewer/OptionsDialog.cxx:529
 msgid "Preferred encoding"
 msgstr "Бажане кодування"
 
-#: vncviewer/OptionsDialog.cxx:574
+#: vncviewer/OptionsDialog.cxx:590
 msgid "Color level"
 msgstr "Рівень відтворення кольору"
 
-#: vncviewer/OptionsDialog.cxx:585
+#: vncviewer/OptionsDialog.cxx:602
 msgid "Full"
 msgstr "Повний"
 
-#: vncviewer/OptionsDialog.cxx:592
+#: vncviewer/OptionsDialog.cxx:609
 msgid "Medium"
 msgstr "Середній"
 
-#: vncviewer/OptionsDialog.cxx:599
+#: vncviewer/OptionsDialog.cxx:616
 msgid "Low"
 msgstr "Низький"
 
-#: vncviewer/OptionsDialog.cxx:606
+#: vncviewer/OptionsDialog.cxx:623
 msgid "Very low"
 msgstr "Дуже низький"
 
-#: vncviewer/OptionsDialog.cxx:624
+#: vncviewer/OptionsDialog.cxx:645
 msgid "Custom compression level:"
 msgstr "Нетиповий рівень стискання:"
 
-#: vncviewer/OptionsDialog.cxx:630
+#: vncviewer/OptionsDialog.cxx:652
 msgid "level (0=fast, 9=best)"
 msgstr "рівень (0=швидко, 9=найкраще)"
 
-#: vncviewer/OptionsDialog.cxx:637
+#: vncviewer/OptionsDialog.cxx:659
 msgid "Allow JPEG compression:"
 msgstr "Дозволити стискання JPEG:"
 
-#: vncviewer/OptionsDialog.cxx:643
+#: vncviewer/OptionsDialog.cxx:666
 msgid "quality (0=poor, 9=best)"
 msgstr "якість (0=найгірша, 9=найкраща)"
 
-#: vncviewer/OptionsDialog.cxx:654
+#: vncviewer/OptionsDialog.cxx:677
 msgid "Security"
 msgstr "Захист"
 
-#: vncviewer/OptionsDialog.cxx:676
+#: vncviewer/OptionsDialog.cxx:691
 msgid "Encryption"
 msgstr "Шифрування"
 
-#: vncviewer/OptionsDialog.cxx:687 vncviewer/OptionsDialog.cxx:750
-#: vncviewer/OptionsDialog.cxx:854
+#: vncviewer/OptionsDialog.cxx:703 vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:876
 msgid "None"
 msgstr "Немає"
 
-#: vncviewer/OptionsDialog.cxx:694
+#: vncviewer/OptionsDialog.cxx:710
 msgid "TLS with anonymous certificates"
 msgstr "TLS із анонімними сертифікатами"
 
-#: vncviewer/OptionsDialog.cxx:700
+#: vncviewer/OptionsDialog.cxx:716
 msgid "TLS with X509 certificates"
 msgstr "TLS з сертифікатами X509"
 
-#: vncviewer/OptionsDialog.cxx:707
+#: vncviewer/OptionsDialog.cxx:723
 msgid "Path to X509 CA certificate"
 msgstr "Шлях до сертифіката CA X509"
 
-#: vncviewer/OptionsDialog.cxx:714
+#: vncviewer/OptionsDialog.cxx:730
 msgid "Path to X509 CRL file"
 msgstr "Шлях до файла CRL X509"
 
-#: vncviewer/OptionsDialog.cxx:739
+#: vncviewer/OptionsDialog.cxx:758
 msgid "Authentication"
 msgstr "Розпізнавання"
 
-#: vncviewer/OptionsDialog.cxx:756
+#: vncviewer/OptionsDialog.cxx:776
 msgid "Standard VNC (insecure without encryption)"
 msgstr "Стандартний VNC (без захисту і шифрування)"
 
-#: vncviewer/OptionsDialog.cxx:762
+#: vncviewer/OptionsDialog.cxx:782
 msgid "Username and password (insecure without encryption)"
 msgstr "Ім’я користувача і пароль (без захисту і шифрування)"
 
-#: vncviewer/OptionsDialog.cxx:781
+#: vncviewer/OptionsDialog.cxx:805
 msgid "Input"
 msgstr "Введення"
 
-#: vncviewer/OptionsDialog.cxx:794
+#: vncviewer/OptionsDialog.cxx:818
 msgid "View only (ignore mouse and keyboard)"
 msgstr "Лише перегляд (ігнорувати сигнали від миші і клавіатури)"
 
-#: vncviewer/OptionsDialog.cxx:801
+#: vncviewer/OptionsDialog.cxx:825
 msgid "Mouse"
 msgstr "Миша"
 
-#: vncviewer/OptionsDialog.cxx:815
+#: vncviewer/OptionsDialog.cxx:837
 msgid "Emulate middle mouse button"
 msgstr "Емулювати середню кнопку миші"
 
-#: vncviewer/OptionsDialog.cxx:821
+#: vncviewer/OptionsDialog.cxx:843
 msgid "Show dot when no cursor"
 msgstr "Показувати крапку, якщо немає курсора"
 
-#: vncviewer/OptionsDialog.cxx:835
+#: vncviewer/OptionsDialog.cxx:859
 msgid "Keyboard"
 msgstr "Клавіатура"
 
-#: vncviewer/OptionsDialog.cxx:849
+#: vncviewer/OptionsDialog.cxx:871
 msgid "Pass system keys directly to server (full screen)"
 msgstr "Передавати натискання системних клавіш безпосередньо до сервера (повноекранний режим)"
 
-#: vncviewer/OptionsDialog.cxx:852
+#: vncviewer/OptionsDialog.cxx:874
 msgid "Menu key"
 msgstr "Клавіша меню"
 
-#: vncviewer/OptionsDialog.cxx:871
+#: vncviewer/OptionsDialog.cxx:895
 msgid "Clipboard"
 msgstr "Буфер обміну"
 
-#: vncviewer/OptionsDialog.cxx:885
+#: vncviewer/OptionsDialog.cxx:907
 msgid "Accept clipboard from server"
 msgstr "Приймати вміст буфера з сервера"
 
-#: vncviewer/OptionsDialog.cxx:893
+#: vncviewer/OptionsDialog.cxx:915
 msgid "Also set primary selection"
 msgstr "Також встановити основне позначене"
 
-#: vncviewer/OptionsDialog.cxx:900
+#: vncviewer/OptionsDialog.cxx:922
 msgid "Send clipboard to server"
 msgstr "Надіслати вміст буфера обміну до сервера"
 
-#: vncviewer/OptionsDialog.cxx:908
+#: vncviewer/OptionsDialog.cxx:930
 msgid "Send primary selection as clipboard"
 msgstr "Надіслати основне позначене як буфер обміну"
 
-#: vncviewer/OptionsDialog.cxx:927
+#: vncviewer/OptionsDialog.cxx:951
 msgid "Display"
 msgstr "Дисплей"
 
-#: vncviewer/OptionsDialog.cxx:941
+#: vncviewer/OptionsDialog.cxx:965
 msgid "Display mode"
 msgstr "Режим показу"
 
-#: vncviewer/OptionsDialog.cxx:956
+#: vncviewer/OptionsDialog.cxx:978
 msgid "Windowed"
 msgstr "У вікні"
 
-#: vncviewer/OptionsDialog.cxx:964
+#: vncviewer/OptionsDialog.cxx:986
 msgid "Full screen on current monitor"
 msgstr "Повноекранний режим на поточному моніторі"
 
-#: vncviewer/OptionsDialog.cxx:972
+#: vncviewer/OptionsDialog.cxx:994
 msgid "Full screen on all monitors"
 msgstr "Повноекранний режимі на усіх моніторах"
 
-#: vncviewer/OptionsDialog.cxx:980
+#: vncviewer/OptionsDialog.cxx:1002
 msgid "Full screen on selected monitor(s)"
 msgstr "Повноекранний режим на позначених моніторах"
 
-#: vncviewer/OptionsDialog.cxx:1007
-msgid "Misc."
+#: vncviewer/OptionsDialog.cxx:1031
+msgid "Miscellaneous"
 msgstr "Інше"
 
-#: vncviewer/OptionsDialog.cxx:1015
+#: vncviewer/OptionsDialog.cxx:1039
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Спільний (не від’єднувати інші засоби перегляду)"
 
-#: vncviewer/OptionsDialog.cxx:1021
+#: vncviewer/OptionsDialog.cxx:1045
 msgid "Ask to reconnect on connection errors"
 msgstr "Питати про повторне з'єднання при помилка з'єднання"
 
@@ -373,31 +373,31 @@ msgstr "Питати про повторне з'єднання при помил
 msgid "VNC Viewer: Connection Details"
 msgstr "Засіб перегляду VNC: подробиці з’єднання"
 
-#: vncviewer/ServerDialog.cxx:65 vncviewer/ServerDialog.cxx:70
+#: vncviewer/ServerDialog.cxx:68
 msgid "VNC server:"
 msgstr "Сервер VNC:"
 
-#: vncviewer/ServerDialog.cxx:81
+#: vncviewer/ServerDialog.cxx:75
 msgid "Options..."
 msgstr "Параметри…"
 
-#: vncviewer/ServerDialog.cxx:86
+#: vncviewer/ServerDialog.cxx:79
 msgid "Load..."
 msgstr "Завантажити…"
 
-#: vncviewer/ServerDialog.cxx:91
+#: vncviewer/ServerDialog.cxx:83
 msgid "Save As..."
 msgstr "Зберегти як…"
 
-#: vncviewer/ServerDialog.cxx:103
+#: vncviewer/ServerDialog.cxx:97
 msgid "About..."
 msgstr "Про програму…"
 
-#: vncviewer/ServerDialog.cxx:113
+#: vncviewer/ServerDialog.cxx:106
 msgid "Connect"
 msgstr "З'єднатися"
 
-#: vncviewer/ServerDialog.cxx:145
+#: vncviewer/ServerDialog.cxx:143
 #, c-format
 msgid ""
 "Unable to load the server history:\n"
@@ -408,15 +408,15 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:173 vncviewer/ServerDialog.cxx:212
+#: vncviewer/ServerDialog.cxx:172 vncviewer/ServerDialog.cxx:212
 msgid "TigerVNC configuration (*.tigervnc)"
 msgstr "налаштування TigerVNC (*.tigervnc)"
 
-#: vncviewer/ServerDialog.cxx:174
+#: vncviewer/ServerDialog.cxx:173
 msgid "Select a TigerVNC configuration file"
 msgstr "Виберіть файл налаштувань TigerVNC"
 
-#: vncviewer/ServerDialog.cxx:196 vncviewer/vncviewer.cxx:552
+#: vncviewer/ServerDialog.cxx:195 vncviewer/vncviewer.cxx:515
 #, c-format
 msgid ""
 "Unable to load the specified configuration file:\n"
@@ -436,7 +436,7 @@ msgstr "Зберегти налаштування TigerVNC до файла"
 msgid "%s already exists. Do you want to overwrite?"
 msgstr "%s вже існує. Перезаписати?"
 
-#: vncviewer/ServerDialog.cxx:240 vncviewer/vncviewer.cxx:414
+#: vncviewer/ServerDialog.cxx:240 vncviewer/vncviewer.cxx:392
 msgid "No"
 msgstr "Ні"
 
@@ -477,31 +477,29 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:320 vncviewer/ServerDialog.cxx:387
-#: vncviewer/parameters.cxx:635 vncviewer/parameters.cxx:740
-#: vncviewer/vncviewer.cxx:459
-msgid "Could not obtain the home directory path"
-msgstr "Не вдалося отримати шлях до домашнього каталогу"
+#: vncviewer/ServerDialog.cxx:320 vncviewer/ServerDialog.cxx:386
+msgid "Could not obtain the state directory path"
+msgstr "Не вдалося отримати шлях до каталогу стану"
 
-#: vncviewer/ServerDialog.cxx:333 vncviewer/ServerDialog.cxx:396
-#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:753
+#: vncviewer/ServerDialog.cxx:332 vncviewer/ServerDialog.cxx:394
+#: vncviewer/parameters.cxx:644 vncviewer/parameters.cxx:750
 #, c-format
 msgid "Could not open \"%s\": %s"
 msgstr "Не вдалося відкрити «%s»: %s"
 
-#: vncviewer/ServerDialog.cxx:348 vncviewer/ServerDialog.cxx:356
-#: vncviewer/parameters.cxx:767 vncviewer/parameters.cxx:773
-#: vncviewer/parameters.cxx:804 vncviewer/parameters.cxx:833
-#: vncviewer/parameters.cxx:839
+#: vncviewer/ServerDialog.cxx:347 vncviewer/ServerDialog.cxx:355
+#: vncviewer/parameters.cxx:764 vncviewer/parameters.cxx:770
+#: vncviewer/parameters.cxx:801 vncviewer/parameters.cxx:830
+#: vncviewer/parameters.cxx:836
 #, c-format
 msgid "Failed to read line %d in file %s: %s"
 msgstr "Не вдалося прочитати рядок %d у файлі %s: %s"
 
-#: vncviewer/ServerDialog.cxx:357 vncviewer/parameters.cxx:774
+#: vncviewer/ServerDialog.cxx:356 vncviewer/parameters.cxx:771
 msgid "Line too long"
 msgstr "Занадто довгий рядок"
 
-#: vncviewer/UserDialog.cxx:98
+#: vncviewer/UserDialog.cxx:99
 msgid "Opening password file failed"
 msgstr "Спроба відкриття файла паролів зазнала невдачі"
 
@@ -517,139 +515,139 @@ msgstr "Це з'єднання є безпечним"
 msgid "This connection is not secure"
 msgstr "Це з'єднання не є безпечним"
 
-#: vncviewer/UserDialog.cxx:146
+#: vncviewer/UserDialog.cxx:151
 msgid "Username:"
 msgstr "Користувач:"
 
-#: vncviewer/UserDialog.cxx:159
+#: vncviewer/UserDialog.cxx:164
 msgid "Password:"
 msgstr "Пароль:"
 
-#: vncviewer/UserDialog.cxx:198
+#: vncviewer/UserDialog.cxx:207
 msgid "Authentication cancelled"
 msgstr "Розпізнавання скасовано"
 
-#: vncviewer/Viewport.cxx:391
+#: vncviewer/Viewport.cxx:390
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
 msgstr "Не вдалося оновити стан лампочки клавіатури: %lu"
 
-#: vncviewer/Viewport.cxx:397 vncviewer/Viewport.cxx:403
+#: vncviewer/Viewport.cxx:396 vncviewer/Viewport.cxx:402
 #, c-format
 msgid "Failed to update keyboard LED state: %d"
 msgstr "Не вдалося оновити стан лампочки клавіатури: %d"
 
-#: vncviewer/Viewport.cxx:433
+#: vncviewer/Viewport.cxx:432
 msgid "Failed to update keyboard LED state"
 msgstr "Не вдалося оновити стан лампочки клавіатури"
 
-#: vncviewer/Viewport.cxx:460 vncviewer/Viewport.cxx:468
-#: vncviewer/Viewport.cxx:485
+#: vncviewer/Viewport.cxx:459 vncviewer/Viewport.cxx:467
+#: vncviewer/Viewport.cxx:484
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
 msgstr "Не вдалося отримати стан лампочки клавіатури: %d"
 
-#: vncviewer/Viewport.cxx:849
+#: vncviewer/Viewport.cxx:839
 msgid "No key code specified on key press"
 msgstr "Не вказано коду клавіші при натисканні"
 
-#: vncviewer/Viewport.cxx:1008
+#: vncviewer/Viewport.cxx:990
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Немає коду сканування для віртуальної клавіші розширення 0x%02x"
 
-#: vncviewer/Viewport.cxx:1010
+#: vncviewer/Viewport.cxx:992
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Немає коду сканування для віртуальної клавіші 0x%02x"
 
-#: vncviewer/Viewport.cxx:1016
+#: vncviewer/Viewport.cxx:998
 #, c-format
 msgid "Invalid scan code 0x%02x"
 msgstr "Некоректний код сканування 0x%02x"
 
-#: vncviewer/Viewport.cxx:1046
+#: vncviewer/Viewport.cxx:1028
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Немає символу для віртуальної клавіші розширення 0x%02x"
 
-#: vncviewer/Viewport.cxx:1048
+#: vncviewer/Viewport.cxx:1030
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Немає символу для віртуальної клавіші 0x%02x"
 
-#: vncviewer/Viewport.cxx:1154
+#: vncviewer/Viewport.cxx:1136
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Немає символу для клавіші з кодом 0x%02x (у поточному стані)"
 
-#: vncviewer/Viewport.cxx:1187
+#: vncviewer/Viewport.cxx:1169
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Немає символу для клавіші з кодом %d (у поточному стані)"
 
-#: vncviewer/Viewport.cxx:1247
+#: vncviewer/Viewport.cxx:1229
 msgctxt "ContextMenu|"
-msgid "Dis&connect"
+msgid "Disconn&ect"
 msgstr "Від'єд&натися"
 
-#: vncviewer/Viewport.cxx:1250
+#: vncviewer/Viewport.cxx:1232
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&На весь екран"
 
-#: vncviewer/Viewport.cxx:1253
+#: vncviewer/Viewport.cxx:1235
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "М&інімізувати"
 
-#: vncviewer/Viewport.cxx:1255
+#: vncviewer/Viewport.cxx:1237
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Змінити &розміри вікна відповідно до сеансу"
 
-#: vncviewer/Viewport.cxx:1260
+#: vncviewer/Viewport.cxx:1242
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:1263
+#: vncviewer/Viewport.cxx:1245
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:1269
+#: vncviewer/Viewport.cxx:1251
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Надіслати %s"
 
-#: vncviewer/Viewport.cxx:1275
+#: vncviewer/Viewport.cxx:1257
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "На&діслати Ctrl-Alt-Del"
 
-#: vncviewer/Viewport.cxx:1278
+#: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Оновити вміст екрана"
 
-#: vncviewer/Viewport.cxx:1281
+#: vncviewer/Viewport.cxx:1263
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "П&араметри…"
 
-#: vncviewer/Viewport.cxx:1283
+#: vncviewer/Viewport.cxx:1265
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Дані щодо з’&єднання…"
 
-#: vncviewer/Viewport.cxx:1285
+#: vncviewer/Viewport.cxx:1267
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Про &засіб перегляду TigerVNC…"
 
-#: vncviewer/Viewport.cxx:1374
+#: vncviewer/Viewport.cxx:1356
 msgid "VNC connection info"
 msgstr "Дані щодо з’єднання VNC"
 
@@ -657,27 +655,27 @@ msgstr "Дані щодо з’єднання VNC"
 msgid "Window is registered for touch instead of gestures"
 msgstr "Вікно зареєстровано для сенсорних дій, а не для жестів"
 
-#: vncviewer/Win32TouchHandler.cxx:81
+#: vncviewer/Win32TouchHandler.cxx:82
 #, c-format
 msgid "Failed to set gesture configuration (error 0x%x)"
 msgstr "Не вдалося встановити налаштування жестів (помилка 0x%x)"
 
-#: vncviewer/Win32TouchHandler.cxx:93
+#: vncviewer/Win32TouchHandler.cxx:94
 #, c-format
 msgid "Failed to get gesture information (error 0x%x)"
 msgstr "Не вдалося отримати відомості щодо жестів (помилка 0x%x)"
 
-#: vncviewer/Win32TouchHandler.cxx:358
+#: vncviewer/Win32TouchHandler.cxx:359
 #, c-format
 msgid "Invalid mouse button %d, must be a number between 1 and 7."
 msgstr "Некоректна кнопка миші, %d, номер кнопки має бути числом від 1 до 7."
 
-#: vncviewer/Win32TouchHandler.cxx:423
+#: vncviewer/Win32TouchHandler.cxx:424
 #, c-format
 msgid "Unhandled key 0x%x - can't generate keyboard event."
 msgstr "Непридатна до обробки клавіша 0x%x — не вдалося створити подію клавіатури."
 
-#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:107
+#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:108
 #, c-format
 msgid "Unable to get X Input 2 event mask for window 0x%08lx"
 msgstr "Не вдалося отримати маску події X Input 2 для вікна 0x%08lx"
@@ -687,7 +685,7 @@ msgstr "Не вдалося отримати маску події X Input 2 д�
 msgid "Window 0x%08lx has no X Input 2 event mask"
 msgstr "У вікна 0x%08lx немає маски подій X Input 2"
 
-#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:114
+#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:115
 #, c-format
 msgid "Window 0x%08lx has more than one X Input 2 event mask"
 msgstr "У вікна 0x%08lx є декілька масок подій X Input 2"
@@ -698,7 +696,7 @@ msgid "Failure grabbing device %i"
 msgstr "Помилка під час спроби захопити пристрій %i"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
-#: vncviewer/vncviewer.cxx:406 vncviewer/vncviewer.desktop.in.in:3
+#: vncviewer/vncviewer.cxx:389 vncviewer/vncviewer.desktop.in.in:3
 msgid "TigerVNC Viewer"
 msgstr "Засіб перегляду TigerVNC"
 
@@ -727,120 +725,124 @@ msgstr "З'єднання Переглядача TigerVNC із комп'ютер
 msgid "TigerVNC Viewer connection to a Windows machine"
 msgstr "З'єднання Переглядача TigerVNC із комп'ютером, де працює Windows"
 
-#: vncviewer/parameters.cxx:308 vncviewer/parameters.cxx:333
-#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:390
-#: vncviewer/parameters.cxx:410
+#: vncviewer/parameters.cxx:307 vncviewer/parameters.cxx:332
+#: vncviewer/parameters.cxx:349 vncviewer/parameters.cxx:389
+#: vncviewer/parameters.cxx:409
 msgid "The name of the parameter is too large"
 msgstr "Назва параметра є надто довгою"
 
-#: vncviewer/parameters.cxx:312 vncviewer/parameters.cxx:317
-#: vncviewer/parameters.cxx:368
+#: vncviewer/parameters.cxx:311 vncviewer/parameters.cxx:316
+#: vncviewer/parameters.cxx:367
 msgid "The parameter is too large"
 msgstr "Параметр є надто великим"
 
-#: vncviewer/parameters.cxx:375 vncviewer/parameters.cxx:696
-#: vncviewer/parameters.cxx:818
+#: vncviewer/parameters.cxx:374 vncviewer/parameters.cxx:694
+#: vncviewer/parameters.cxx:815
 msgid "Invalid format or too large value"
 msgstr "Некоректне форматування або надто велике значення"
 
-#: vncviewer/parameters.cxx:429 vncviewer/parameters.cxx:460
+#: vncviewer/parameters.cxx:428 vncviewer/parameters.cxx:459
 msgid "Failed to create registry key"
 msgstr "Не вдалося створити ключ реєстру"
 
-#: vncviewer/parameters.cxx:448 vncviewer/parameters.cxx:503
-#: vncviewer/parameters.cxx:545 vncviewer/parameters.cxx:612
+#: vncviewer/parameters.cxx:447 vncviewer/parameters.cxx:502
+#: vncviewer/parameters.cxx:544 vncviewer/parameters.cxx:611
 msgid "Failed to close registry key"
 msgstr "Не вдалося закрити ключ реєстру"
 
-#: vncviewer/parameters.cxx:466 vncviewer/parameters.cxx:483
-#: vncviewer/parameters.cxx:654 vncviewer/parameters.cxx:664
-#: vncviewer/parameters.cxx:675
+#: vncviewer/parameters.cxx:465 vncviewer/parameters.cxx:482
+#: vncviewer/parameters.cxx:652 vncviewer/parameters.cxx:662
+#: vncviewer/parameters.cxx:673
 #, c-format
 msgid "Failed to save \"%s\": %s"
 msgstr "Не вдалося зберегти «%s»: %s"
 
-#: vncviewer/parameters.cxx:479 vncviewer/parameters.cxx:567
-#: vncviewer/parameters.cxx:677 vncviewer/parameters.cxx:714
+#: vncviewer/parameters.cxx:478 vncviewer/parameters.cxx:566
+#: vncviewer/parameters.cxx:675 vncviewer/parameters.cxx:712
 msgid "Unknown parameter type"
 msgstr "Невідомий тип параметра"
 
-#: vncviewer/parameters.cxx:496
+#: vncviewer/parameters.cxx:495
 #, c-format
 msgid "Failed to remove \"%s\": %s"
 msgstr "Не вдалося вилучити «%s»: %s"
 
-#: vncviewer/parameters.cxx:518 vncviewer/parameters.cxx:590
+#: vncviewer/parameters.cxx:517 vncviewer/parameters.cxx:589
 msgid "Failed to open registry key"
 msgstr "Не вдалося відкрити ключ реєстру"
 
-#: vncviewer/parameters.cxx:535
+#: vncviewer/parameters.cxx:534
 #, c-format
 msgid "Failed to read server history entry %d: %s"
 msgstr "Не вдалося прочитати запис журналу сервера %d: %s"
 
-#: vncviewer/parameters.cxx:571 vncviewer/parameters.cxx:601
+#: vncviewer/parameters.cxx:570 vncviewer/parameters.cxx:600
 #, c-format
 msgid "Failed to read parameter \"%s\": %s"
 msgstr "Не вдалося прочитати параметр «%s»: %s"
 
-#: vncviewer/parameters.cxx:655 vncviewer/parameters.cxx:666
+#: vncviewer/parameters.cxx:634 vncviewer/parameters.cxx:738
+msgid "Could not obtain the config directory path"
+msgstr "Не вдалося отримати шлях до каталогу налаштувань"
+
+#: vncviewer/parameters.cxx:653 vncviewer/parameters.cxx:664
 msgid "Could not encode parameter"
 msgstr "Не вдалося закодувати параметр"
 
-#: vncviewer/parameters.cxx:783
+#: vncviewer/parameters.cxx:780
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Файл налаштувань %s збережено у некоректному форматі"
 
-#: vncviewer/parameters.cxx:805
+#: vncviewer/parameters.cxx:802
 msgid "Invalid format"
 msgstr "Некоректне форматування"
 
-#: vncviewer/parameters.cxx:840
+#: vncviewer/parameters.cxx:837
 msgid "Unknown parameter"
 msgstr "Невідомий параметр"
 
-#: vncviewer/touch.cxx:75
+#: vncviewer/touch.cxx:76
 #, c-format
 msgid "Got message (0x%x) for an unhandled window"
 msgstr "Отримано повідомлення (0x%x) для вікна, обробка якого не здійснюється"
 
-#: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
+#: vncviewer/touch.cxx:139 vncviewer/touch.cxx:161
 #, c-format
 msgid "Invalid window 0x%08lx specified for pointer grab"
 msgstr "Для захоплення вказівника вказано некоректне вікно 0x%08lx"
 
-#: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
+#: vncviewer/touch.cxx:184 vncviewer/touch.cxx:185
 #, c-format
 msgid "Failed to create touch handler: %s"
 msgstr "Не вдалося створити обробник сенсорних даних: %s"
 
-#: vncviewer/touch.cxx:188
+#: vncviewer/touch.cxx:189
 #, c-format
 msgid "Couldn't attach event handler to window (error 0x%x)"
 msgstr "Не вдалося долучити обробник подій до вікна (помилка 0x%x)"
 
-#: vncviewer/touch.cxx:212
+#: vncviewer/touch.cxx:216
 msgid "Failed to get event data for X Input event"
 msgstr "Не вдалося отримати дані події для події X Input"
 
-#: vncviewer/touch.cxx:225
+#: vncviewer/touch.cxx:229
 msgid "X Input event for unknown window"
 msgstr "Подія X Input для невідомого вікна"
 
-#: vncviewer/touch.cxx:251
+#: vncviewer/touch.cxx:255
 msgid "X Input extension not available."
 msgstr "Розширення X Input є недоступним."
 
-#: vncviewer/touch.cxx:258
+#: vncviewer/touch.cxx:262
 msgid "X Input 2 (or newer) is not available."
 msgstr "Немає доступу до X Input 2 (або новішої версії)."
 
-#: vncviewer/touch.cxx:263
+#: vncviewer/touch.cxx:267
 msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
 msgstr "Немає доступу до X Input 2.2 (або новішої версії). Ви не зможете скористатися підтримкою сенсорних жестів."
 
-#: vncviewer/vncviewer.cxx:107
+#: vncviewer/vncviewer.cxx:104
 #, c-format
 msgid ""
 "TigerVNC Viewer v%s\n"
@@ -853,7 +855,7 @@ msgstr ""
 "Авторські права належать команді TigerVNC та багатьом іншим (див. файл README.rst), 1999–%d\n"
 "Докладніший опис TigerVNC можна знайти на https://www.tigervnc.org."
 
-#: vncviewer/vncviewer.cxx:161
+#: vncviewer/vncviewer.cxx:158
 #, c-format
 msgid ""
 "An unexpected error occurred when communicating with the server:\n"
@@ -864,15 +866,15 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/vncviewer.cxx:177
+#: vncviewer/vncviewer.cxx:174
 msgid "About TigerVNC Viewer"
 msgstr "Про засіб перегляду TigerVNC"
 
-#: vncviewer/vncviewer.cxx:198
+#: vncviewer/vncviewer.cxx:195
 msgid "Internal FLTK error. Exiting."
 msgstr "Внутрішня помилка FLTK. Завершуємо роботу."
 
-#: vncviewer/vncviewer.cxx:217
+#: vncviewer/vncviewer.cxx:214
 #, c-format
 msgid ""
 "%s\n"
@@ -883,79 +885,102 @@ msgstr ""
 "\n"
 "Спробувати встановити з'єднання ще раз?"
 
-#: vncviewer/vncviewer.cxx:248 vncviewer/vncviewer.cxx:260
+#: vncviewer/vncviewer.cxx:245 vncviewer/vncviewer.cxx:257
 #, c-format
 msgid "Error starting new TigerVNC Viewer: %s"
 msgstr "Помилка під час спроби запуску нового засобу перегляду TigerVNC: %s"
 
-#: vncviewer/vncviewer.cxx:269
+#: vncviewer/vncviewer.cxx:266
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr "Отримано сигнал переривання %d. Зараз засіб перегляду TigerVNC завершить роботу."
 
-#: vncviewer/vncviewer.cxx:415
+#: vncviewer/vncviewer.cxx:393
 msgid "Yes"
 msgstr "Так"
 
-#: vncviewer/vncviewer.cxx:418
+#: vncviewer/vncviewer.cxx:396
 msgid "Close"
 msgstr "Закрити"
 
-#: vncviewer/vncviewer.cxx:423
+#: vncviewer/vncviewer.cxx:401
 msgid "About"
 msgstr "Про програму"
 
-#: vncviewer/vncviewer.cxx:426
+#: vncviewer/vncviewer.cxx:404
 msgid "Hide"
 msgstr "Сховати"
 
-#: vncviewer/vncviewer.cxx:429
+#: vncviewer/vncviewer.cxx:407
 msgid "Quit"
 msgstr "Вийти"
 
-#: vncviewer/vncviewer.cxx:433
+#: vncviewer/vncviewer.cxx:411
 msgid "Services"
 msgstr "Служби"
 
-#: vncviewer/vncviewer.cxx:434
+#: vncviewer/vncviewer.cxx:412
 msgid "Hide Others"
 msgstr "Сховати решту"
 
-#: vncviewer/vncviewer.cxx:435
+#: vncviewer/vncviewer.cxx:413
 msgid "Show All"
 msgstr "Показати всі"
 
-#: vncviewer/vncviewer.cxx:444
+#: vncviewer/vncviewer.cxx:422
 msgctxt "SysMenu|"
 msgid "&File"
 msgstr "&Файл"
 
-#: vncviewer/vncviewer.cxx:447
+#: vncviewer/vncviewer.cxx:425
 msgctxt "SysMenu|File|"
 msgid "&New Connection"
 msgstr "&Створити з'єднання"
 
-#: vncviewer/vncviewer.cxx:463
-#, c-format
-msgid "Could not create VNC home directory: %s"
-msgstr "Не вдалося створити домашній каталог VNC: %s"
-
-#: vncviewer/vncviewer.cxx:562
+#: vncviewer/vncviewer.cxx:525
 msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
 msgstr "FullScreenAllMonitors вважається застарілим, замість нього слід встановити для FullScreenMode значення «all»"
 
+#: vncviewer/vncviewer.cxx:721
+msgid "~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."
+msgstr "~/.vnc вважається застарілим, будь ласка, ознайомтеся із «man vncviewer», щоб дізнатися більше про перенесення даних."
+
+#: vncviewer/vncviewer.cxx:725
+#, c-format
+msgid "%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."
+msgstr "%%APPDATA%%\\vnc вважається застарілим, будь ласка, переходьте на %%APPDATA%%\\TigerVNC."
+
+#: vncviewer/vncviewer.cxx:730
+#, c-format
+msgid "Could not create VNC config directory: %s"
+msgstr "Не вдалося створити каталог налаштувань VNC: %s"
+
+#: vncviewer/vncviewer.cxx:735
+#, c-format
+msgid "Could not create VNC data directory: %s"
+msgstr "Не вдалося створити каталог даних VNC: %s"
+
+#: vncviewer/vncviewer.cxx:740
+#, c-format
+msgid "Could not create VNC state directory: %s"
+msgstr "Не вдалося створити каталог стану VNC: %s"
+
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:768 vncviewer/vncviewer.cxx:769
+#: vncviewer/vncviewer.cxx:755 vncviewer/vncviewer.cxx:756
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Параметри -listen і -via є несумісними"
 
-#: vncviewer/vncviewer.cxx:783
+#: vncviewer/vncviewer.cxx:770
+msgid "Unable to listen for incoming connections"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: vncviewer/vncviewer.cxx:772
 #, c-format
 msgid "Listening on port %d"
 msgstr "Очікуємо на дані на порту %d"
 
-#: vncviewer/vncviewer.cxx:816
+#: vncviewer/vncviewer.cxx:805
 #, c-format
 msgid ""
 "Failure waiting for incoming VNC connection:\n"
@@ -969,6 +994,12 @@ msgstr ""
 #: vncviewer/vncviewer.desktop.in.in:4
 msgid "Remote Desktop Viewer"
 msgstr "Засіб перегляду віддаленої стільниці"
+
+#~ msgid "VNC Viewer: Connection Options"
+#~ msgstr "Засіб перегляду VNC: параметри з’єднання"
+
+#~ msgid "Misc."
+#~ msgstr "Інше"
 
 #~ msgid "Failed to get monitor name because X11 RandR could not be found"
 #~ msgstr "Не вдалося отримати назву монітора, оскільки не вдалося знайти RandR X11"
