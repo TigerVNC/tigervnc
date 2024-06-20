@@ -42,6 +42,8 @@ Xvnc_SOURCES = xvnc.c \
 # recommendation for coaxing automake.
 nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
 
+Xvnc_CPPFLAGS = $(AM_CPPFLAGS)
+
 LOCAL_LIBS = \
 	$(XVNC_LIBS) \
 	$(XSERVER_LIBS) \
@@ -52,6 +54,14 @@ Xvnc_DEPENDENCIES = $(LOCAL_LIBS)
 Xvnc_LDADD = $(LOCAL_LIBS) $(XSERVER_SYS_LIBS) $(XVNC_SYS_LIBS)
 
 Xvnc_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+
+if DRI3
+Xvnc_SOURCES += vncDRI3.h vncDRI3.c vncDRI3Draw.c
+Xvnc_CPPFLAGS += \
+	-I$(top_srcdir)/dri3 \
+	$(GBM_CFLAGS)
+Xvnc_LDADD += $(GBM_LIBS)
+endif
 
 libvnc_la_LTLIBRARIES = libvnc.la
 libvnc_ladir = $(moduledir)/extensions

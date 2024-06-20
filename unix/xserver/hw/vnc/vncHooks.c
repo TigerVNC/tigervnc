@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2017 Pierre Ossman for Cendio AB
+ * Copyright 2009-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -469,39 +469,47 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                                RegionPtr pOldRegion)
 {
   int dx, dy;
-  BoxRec screen_box;
-  RegionRec copied, screen_rgn;
+  RegionRec copied;
 
   SCREEN_PROLOGUE(pWin->drawable.pScreen, CopyWindow);
 
-  RegionNull(&copied);
-  RegionCopy(&copied, pOldRegion);
+  if (is_visible(&pWin->drawable)) {
+    BoxRec screen_box;
+    RegionRec screen_rgn;
 
-  screen_box.x1 = 0;
-  screen_box.y1 = 0;
-  screen_box.x2 = pScreen->width;
-  screen_box.y2 = pScreen->height;
+    RegionNull(&copied);
+    RegionCopy(&copied, pOldRegion);
 
-  RegionInitBoxes(&screen_rgn, &screen_box, 1);
+    screen_box.x1 = 0;
+    screen_box.y1 = 0;
+    screen_box.x2 = pScreen->width;
+    screen_box.y2 = pScreen->height;
 
-  dx = pWin->drawable.x - ptOldOrg.x;
-  dy = pWin->drawable.y - ptOldOrg.y;
+    RegionInitBoxes(&screen_rgn, &screen_box, 1);
 
-  // RFB tracks copies in terms of destination rectangle, not source.
-  // We also need to copy with changes to the Window's clipping region.
-  // Finally, make sure we don't get copies to or from regions outside
-  // the framebuffer.
-  RegionIntersect(&copied, &copied, &screen_rgn);
-  RegionTranslate(&copied, dx, dy);
-  RegionIntersect(&copied, &copied, &screen_rgn);
-  RegionIntersect(&copied, &copied, &pWin->borderClip);
+    dx = pWin->drawable.x - ptOldOrg.x;
+    dy = pWin->drawable.y - ptOldOrg.y;
+
+    // RFB tracks copies in terms of destination rectangle, not source.
+    // We also need to copy with changes to the Window's clipping region.
+    // Finally, make sure we don't get copies to or from regions outside
+    // the framebuffer.
+    RegionIntersect(&copied, &copied, &screen_rgn);
+    RegionTranslate(&copied, dx, dy);
+    RegionIntersect(&copied, &copied, &screen_rgn);
+    RegionIntersect(&copied, &copied, &pWin->borderClip);
+
+    RegionUninit(&screen_rgn);
+  } else {
+    RegionNull(&copied);
+    dx = dy = 0;
+  }
 
   (*pScreen->CopyWindow) (pWin, ptOldOrg, pOldRegion);
 
   add_copied(pScreen, &copied, dx, dy);
 
   RegionUninit(&copied);
-  RegionUninit(&screen_rgn);
 
   SCREEN_EPILOGUE(CopyWindow);
 }
@@ -512,18 +520,23 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
                                       int h, Bool generateExposures)
 {
-  BoxRec box;
   RegionRec reg;
 
   SCREEN_PROLOGUE(pWin->drawable.pScreen, ClearToBackground);
 
-  box.x1 = x + pWin->drawable.x;
-  box.y1 = y + pWin->drawable.y;
-  box.x2 = w ? (box.x1 + w) : (pWin->drawable.x + pWin->drawable.width);
-  box.y2 = h ? (box.y1 + h) : (pWin->drawable.y + pWin->drawable.height);
+  if (is_visible(&pWin->drawable)) {
+    BoxRec box;
 
-  RegionInitBoxes(&reg, &box, 1);
-  RegionIntersect(&reg, &reg, &pWin->clipList);
+    box.x1 = x + pWin->drawable.x;
+    box.y1 = y + pWin->drawable.y;
+    box.x2 = w ? (box.x1 + w) : (pWin->drawable.x + pWin->drawable.width);
+    box.y2 = h ? (box.y1 + h) : (pWin->drawable.y + pWin->drawable.height);
+
+    RegionInitBoxes(&reg, &box, 1);
+    RegionIntersect(&reg, &reg, &pWin->clipList);
+  } else {
+    RegionNull(&reg);
+  }
 
   (*pScreen->ClearToBackground) (pWin, x, y, w, h, generateExposures);
 

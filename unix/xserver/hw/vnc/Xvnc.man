@@ -46,6 +46,12 @@ Specify pixel format for server to use (BGRnnn or RGBnnn). The default for
 depth 16 is RGB565 and for depth 24 and 32 is RGB888.
 .
 .TP
+.B \-rendernode \fIpath\fP
+DRM render node to use for DRI3 GPU acceleration. Specify an empty path to
+disable DRI3. Default is \fBauto\fP which makes \fBXvnc\fP pick a suitable
+available render node.
+.
+.TP
 .B \-interface \fIIP address\fP
 Listen on interface. By default Xvnc listens on all available interfaces.
 .

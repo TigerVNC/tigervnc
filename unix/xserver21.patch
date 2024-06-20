@@ -1,0 +1,67 @@
+diff --git a/configure.ac b/configure.ac
+index fad7b5769..2c167de3d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -72,6 +72,7 @@ dnl forcing an entire recompile.x
+ AC_CONFIG_HEADERS(include/version-config.h)
+ 
+ AM_PROG_AS
++AC_PROG_CXX
+ AC_PROG_LN_S
+ LT_PREREQ([2.2])
+ LT_INIT([disable-static win32-dll])
+@@ -1720,6 +1721,14 @@ if test "x$XVFB" = xyes; then
+ 	AC_SUBST([XVFB_SYS_LIBS])
+ fi
+ 
++dnl Xvnc DDX
++AC_SUBST([XVNC_LIBS], ["$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB"])
++AC_SUBST([XVNC_SYS_LIBS], ["$GLX_SYS_LIBS"])
++
++PKG_CHECK_MODULES(GBM, "$LIBGBM", [GBM=yes], [GBM=no])
++if test "x$GBM" = xyes; then
++	AC_DEFINE(HAVE_GBM, 1, [Have GBM support])
++fi
+ 
+ dnl Xnest DDX
+ 
+@@ -2038,7 +2047,6 @@ if test "x$GLAMOR" = xyes; then
+ 			 [AC_DEFINE(GLAMOR_HAS_EGL_QUERY_DRIVER, 1, [Have GLAMOR_HAS_EGL_QUERY_DRIVER])],
+ 			 [])
+ 
+-	PKG_CHECK_MODULES(GBM, "$LIBGBM", [GBM=yes], [GBM=no])
+ 	if test "x$GBM" = xyes; then
+ 		AC_DEFINE(GLAMOR_HAS_GBM, 1,
+ 			  [Build glamor with GBM-based EGL support])
+@@ -2346,6 +2354,7 @@ hw/xfree86/utils/man/Makefile
+ hw/xfree86/utils/gtf/Makefile
+ hw/vfb/Makefile
+ hw/vfb/man/Makefile
++hw/vnc/Makefile
+ hw/xnest/Makefile
+ hw/xnest/man/Makefile
+ hw/xwin/Makefile
+diff --git a/hw/Makefile.am b/hw/Makefile.am
+index 1749018fa..1172cd59b 100644
+--- a/hw/Makefile.am
++++ b/hw/Makefile.am
+@@ -34,3 +34,5 @@ DIST_SUBDIRS = xfree86 vfb xnest xwin xquartz kdrive
+ 
+ relink:
+ 	$(AM_V_at)for i in $(SUBDIRS) ; do $(MAKE) -C $$i relink || exit 1 ; done
++
++SUBDIRS += vnc
+diff --git a/include/dix-config.h.in b/include/dix-config.h.in
+index 382d70609..04a4fd263 100644
+--- a/include/dix-config.h.in
++++ b/include/dix-config.h.in
+@@ -77,6 +77,9 @@
+ /* Define to 1 if you have the <fcntl.h> header file. */
+ #undef HAVE_FCNTL_H
+ 
++/* Have GBM support */
++#undef HAVE_GBM
++
+ /* Define to 1 if you have the `getdtablesize' function. */
+ #undef HAVE_GETDTABLESIZE
+ 

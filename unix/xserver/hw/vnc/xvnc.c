@@ -36,6 +36,7 @@ from the X Consortium.
 #include "RFBGlue.h"
 #include "XorgGlue.h"
 #include "RandrGlue.h"
+#include "vncDRI3.h"
 #include "vncPresent.h"
 #include "xorg-version.h"
 
@@ -222,6 +223,9 @@ ddxUseMsg(void)
     ErrorF("-inetd                 has been launched from inetd\n");
     ErrorF
         ("-noclipboard           disable clipboard settings modification via vncconfig utility\n");
+#ifdef DRI3
+    ErrorF("-rendernode PATH       DRM render node to use for DRI3\n");
+#endif
     ErrorF("-verbose [n]           verbose startup messages\n");
     ErrorF("-quiet                 minimal startup messages\n");
     ErrorF("-version               show the server version\n");
@@ -403,6 +407,15 @@ ddxProcessArgument(int argc, char *argv[], int i)
         vncNoClipboard = 1;
         return 1;
     }
+
+#ifdef DRI3
+    if (strcmp(argv[i], "-rendernode") == 0) {
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
+        ++i;
+        renderNode = argv[i];
+        return 2;
+    }
+#endif
 
     if (!strcmp(argv[i], "-verbose")) {
         if (++i < argc && argv[i]) {
@@ -1088,6 +1101,12 @@ vncScreenInit(ScreenPtr pScreen, int argc, char **argv)
     if (!ret)
         ErrorF("Failed to initialize Present extension\n");
 
+#ifdef DRI3
+    ret = vncDRI3Init(pScreen);
+    if (!ret)
+        ErrorF("Failed to initialize DRI3 extension\n");
+#endif
+
     return TRUE;
 
 }                               /* end vncScreenInit */
@@ -1110,7 +1129,7 @@ extern void GlxExtensionInit(void);
 #endif
 
 static const ExtensionModule vncExtensions[] = {
-    {vncExtensionInit, "VNC-EXTENSION", NULL},
+    {vncExtensionInit, "TIGERVNC", NULL},
 #ifdef GLXEXT
 #if XORG_OLDER_THAN(1, 20, 0)
     { GlxExtensionInit, "GLX", &noGlxExtension },

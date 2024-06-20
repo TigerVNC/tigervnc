@@ -102,7 +102,7 @@ config-stamp: xorg-source-stamp
 		--enable-xdmcp \
 		--enable-xdm-auth-1 \
 		--enable-glx \
-		--disable-dri --enable-dri2 --disable-dri3 \
+		--disable-dri --enable-dri2 --enable-dri3 \
 		--enable-xinerama \
 		--enable-xf86vidmode \
 		--enable-xace \

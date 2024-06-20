@@ -28,7 +28,7 @@ BuildRequires: xorg-x11-server-source
 BuildRequires: libXext-devel, libX11-devel, libXi-devel, libXfixes-devel
 BuildRequires: libXdamage-devel, libXrandr-devel, libXt-devel, libXdmcp-devel
 BuildRequires: libXinerama-devel, mesa-libGL-devel, libxshmfence-devel
-BuildRequires: pixman-devel, libdrm-devel,
+BuildRequires: pixman-devel, libdrm-devel, mesa-libgbm-devel
 BuildRequires: xorg-x11-util-macros, xorg-x11-xtrans-devel, libXtst-devel
 BuildRequires: xorg-x11-font-utils
 BuildRequires:  libXfont2-devel
@@ -152,7 +152,7 @@ autoreconf -fiv
         --with-pic --disable-static \
         --with-default-font-path="catalogue:%{_sysconfdir}/X11/fontpath.d,built-ins" \
         --with-xkb-output=%{_localstatedir}/lib/xkb \
-        --enable-glx --disable-dri --enable-dri2 --disable-dri3 \
+        --enable-glx --disable-dri --enable-dri2 --enable-dri3 \
         --disable-unit-tests \
         --disable-config-hal \
         --disable-config-udev \
