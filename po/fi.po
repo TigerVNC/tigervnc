@@ -6,10 +6,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.12.90\n"
+"Project-Id-Version: tigervnc 1.13.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2022-12-15 16:35+0100\n"
-"PO-Revision-Date: 2022-12-21 22:34+0200\n"
+"POT-Creation-Date: 2024-06-20 15:01+0200\n"
+"PO-Revision-Date: 2024-06-22 21:10+0300\n"
 "Last-Translator: Lauri Nurmi <lanurmi@iki.fi>\n"
 "Language-Team: Finnish <translation-team-fi@lists.sourceforge.net>\n"
 "Language: fi\n"
@@ -18,19 +18,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.4.4\n"
 
-#: vncviewer/CConn.cxx:103
+#: vncviewer/CConn.cxx:99
 #, c-format
 msgid "Connected to socket %s"
 msgstr "Yhdistetty sokettiin %s"
 
-#: vncviewer/CConn.cxx:110
+#: vncviewer/CConn.cxx:106
 #, c-format
 msgid "Connected to host %s port %d"
 msgstr "Yhdistetty koneeseen %s porttiin %d"
 
-#: vncviewer/CConn.cxx:114
+#: vncviewer/CConn.cxx:111
 #, c-format
 msgid ""
 "Failed to connect to \"%s\":\n"
@@ -41,94 +41,94 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/CConn.cxx:159
+#: vncviewer/CConn.cxx:155
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Työpöydän nimi: %.80s"
 
-#: vncviewer/CConn.cxx:164
+#: vncviewer/CConn.cxx:160
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Kone: %.80s portti: %d"
 
-#: vncviewer/CConn.cxx:169
+#: vncviewer/CConn.cxx:165
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Koko: %d × %d"
 
-#: vncviewer/CConn.cxx:177
+#: vncviewer/CConn.cxx:173
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Pikselimuoto: %s"
 
-#: vncviewer/CConn.cxx:184
+#: vncviewer/CConn.cxx:180
 #, c-format
 msgid "(server default %s)"
 msgstr "(palvelimen oletus %s)"
 
-#: vncviewer/CConn.cxx:189
+#: vncviewer/CConn.cxx:185
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Pyydetty koodaus: %s"
 
-#: vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:190
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Viimeksi käytetty koodaus: %s"
 
-#: vncviewer/CConn.cxx:199
+#: vncviewer/CConn.cxx:195
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Rivinopeusarvio: %d kilobittiä/s"
 
-#: vncviewer/CConn.cxx:204
+#: vncviewer/CConn.cxx:200
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Yhteyskäytäntöversio: %d.%d"
 
-#: vncviewer/CConn.cxx:209
+#: vncviewer/CConn.cxx:205
 #, c-format
 msgid "Security method: %s"
 msgstr "Turvamenetelmä: %s"
 
-#: vncviewer/CConn.cxx:270 vncviewer/CConn.cxx:272
+#: vncviewer/CConn.cxx:266 vncviewer/CConn.cxx:268
 msgid "The connection was dropped by the server before the session could be established."
 msgstr "Palvelin pudotti yhteyden ennen kuin istuntoa voitiin muodostaa."
 
-#: vncviewer/CConn.cxx:332
+#: vncviewer/CConn.cxx:326
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "SetDesktopSize epäonnistui: %d"
 
-#: vncviewer/CConn.cxx:404
+#: vncviewer/CConn.cxx:399
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Virheellisiä SetColourMapEntries-tietueita palvelimelta!"
 
-#: vncviewer/CConn.cxx:512
+#: vncviewer/CConn.cxx:507
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Läpisyöttö %d kilobittiä/s - vaihdetaan laaduksi %d"
 
-#: vncviewer/CConn.cxx:534
+#: vncviewer/CConn.cxx:529
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "Läpisyöttö %d kilobittiä/s - täysvärit ovat nyt käytössä"
 
-#: vncviewer/CConn.cxx:537
+#: vncviewer/CConn.cxx:532
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
 msgstr "Läpisyöttö %d kilobittiä/s - täysvärit ovat nyt pois käytöstä"
 
-#: vncviewer/CConn.cxx:563
+#: vncviewer/CConn.cxx:558
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Käytetään pikselimuotoa %s"
 
-#: vncviewer/DesktopWindow.cxx:145
+#: vncviewer/DesktopWindow.cxx:146
 msgid "Invalid geometry specified!"
 msgstr "Virheellinen geometria määritelty!"
 
-#: vncviewer/DesktopWindow.cxx:166
+#: vncviewer/DesktopWindow.cxx:167
 msgid "Reducing window size to fit on current monitor"
 msgstr "Pienennetään ikkunan kokoa nykyiseen näyttöön sovittamiseksi"
 
@@ -141,12 +141,12 @@ msgstr "Säädetään ikkunakokoa tahattomien kokonäyttöpyyntöjen välttämis
 msgid "Press %s to open the context menu"
 msgstr "%s avaa ponnahdusvalikon"
 
-#: vncviewer/DesktopWindow.cxx:1083 vncviewer/DesktopWindow.cxx:1091
-#: vncviewer/DesktopWindow.cxx:1111
+#: vncviewer/DesktopWindow.cxx:1097 vncviewer/DesktopWindow.cxx:1105
+#: vncviewer/DesktopWindow.cxx:1125
 msgid "Failure grabbing keyboard"
 msgstr "Häiriö näppäimistöön tarttumisessa"
 
-#: vncviewer/DesktopWindow.cxx:1401
+#: vncviewer/DesktopWindow.cxx:1415
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Virheellinen näyttöasettelu laskettu koonmuuttamispyynnölle!"
 
@@ -155,218 +155,218 @@ msgid "Invalid state for 3 button emulation"
 msgstr "Virheellinen tila kolmen painikkeen jäljittelylle"
 
 #: vncviewer/MonitorIndicesParameter.cxx:52
-#: vncviewer/MonitorIndicesParameter.cxx:105
+#: vncviewer/MonitorIndicesParameter.cxx:102
 msgid "Failed to get system monitor configuration"
 msgstr "Järjestelmän näyttökokoonpanon selvittäminen epäonnistui"
 
-#: vncviewer/MonitorIndicesParameter.cxx:83
+#: vncviewer/MonitorIndicesParameter.cxx:80
 #, c-format
 msgid "Invalid configuration specified for %s"
 msgstr "%s:lle määritetty virheellinen arvo"
 
-#: vncviewer/MonitorIndicesParameter.cxx:91
+#: vncviewer/MonitorIndicesParameter.cxx:88
 #, c-format
 msgid "Monitor index %d does not exist"
 msgstr "Näyttöä numero %d ei ole olemassa"
 
-#: vncviewer/MonitorIndicesParameter.cxx:169
-#: vncviewer/MonitorIndicesParameter.cxx:189
+#: vncviewer/MonitorIndicesParameter.cxx:166
+#: vncviewer/MonitorIndicesParameter.cxx:186
 #, c-format
 msgid "Invalid monitor index '%s'"
 msgstr "Virheellinen näytön numero ”%s”"
 
-#: vncviewer/MonitorIndicesParameter.cxx:177
+#: vncviewer/MonitorIndicesParameter.cxx:174
 #, c-format
 msgid "Unexpected character '%c'"
 msgstr "Odottamaton merkki ”%c”"
 
-#: vncviewer/OptionsDialog.cxx:63
-msgid "VNC Viewer: Connection Options"
-msgstr "VNC-katselin: Yhteysvalinnat"
+#: vncviewer/OptionsDialog.cxx:64
+msgid "TigerVNC Options"
+msgstr "TigerVNC-asetukset"
 
-#: vncviewer/OptionsDialog.cxx:89 vncviewer/ServerDialog.cxx:108
-#: vncviewer/vncviewer.cxx:417
+#: vncviewer/OptionsDialog.cxx:97 vncviewer/ServerDialog.cxx:102
+#: vncviewer/vncviewer.cxx:395
 msgid "Cancel"
 msgstr "Peru"
 
-#: vncviewer/OptionsDialog.cxx:94 vncviewer/vncviewer.cxx:416
+#: vncviewer/OptionsDialog.cxx:102 vncviewer/vncviewer.cxx:394
 msgid "OK"
 msgstr "Valmis"
 
-#: vncviewer/OptionsDialog.cxx:484
+#: vncviewer/OptionsDialog.cxx:502
 msgid "Compression"
 msgstr "Tiivistys"
 
-#: vncviewer/OptionsDialog.cxx:501
+#: vncviewer/OptionsDialog.cxx:518
 msgid "Auto select"
 msgstr "Automaattivalinta"
 
-#: vncviewer/OptionsDialog.cxx:516
+#: vncviewer/OptionsDialog.cxx:529
 msgid "Preferred encoding"
 msgstr "Ensisijainen koodaus"
 
-#: vncviewer/OptionsDialog.cxx:574
+#: vncviewer/OptionsDialog.cxx:590
 msgid "Color level"
 msgstr "Väritaso"
 
-#: vncviewer/OptionsDialog.cxx:585
+#: vncviewer/OptionsDialog.cxx:602
 msgid "Full"
 msgstr "Täysi"
 
-#: vncviewer/OptionsDialog.cxx:592
+#: vncviewer/OptionsDialog.cxx:609
 msgid "Medium"
 msgstr "Keskilaatu"
 
-#: vncviewer/OptionsDialog.cxx:599
+#: vncviewer/OptionsDialog.cxx:616
 msgid "Low"
 msgstr "Matala"
 
-#: vncviewer/OptionsDialog.cxx:606
+#: vncviewer/OptionsDialog.cxx:623
 msgid "Very low"
 msgstr "Hyvin matala"
 
-#: vncviewer/OptionsDialog.cxx:624
+#: vncviewer/OptionsDialog.cxx:645
 msgid "Custom compression level:"
 msgstr "Oma tiivistystaso:"
 
-#: vncviewer/OptionsDialog.cxx:630
+#: vncviewer/OptionsDialog.cxx:652
 msgid "level (0=fast, 9=best)"
 msgstr "laatu (0=nopea, 9=paras)"
 
-#: vncviewer/OptionsDialog.cxx:637
+#: vncviewer/OptionsDialog.cxx:659
 msgid "Allow JPEG compression:"
 msgstr "Salli JPEG-tiivistys:"
 
-#: vncviewer/OptionsDialog.cxx:643
+#: vncviewer/OptionsDialog.cxx:666
 msgid "quality (0=poor, 9=best)"
 msgstr "laatu (0=heikko, 9=paras)"
 
-#: vncviewer/OptionsDialog.cxx:654
+#: vncviewer/OptionsDialog.cxx:677
 msgid "Security"
 msgstr "Turvallisuus"
 
-#: vncviewer/OptionsDialog.cxx:676
+#: vncviewer/OptionsDialog.cxx:691
 msgid "Encryption"
 msgstr "Salaus"
 
-#: vncviewer/OptionsDialog.cxx:687 vncviewer/OptionsDialog.cxx:750
-#: vncviewer/OptionsDialog.cxx:854
+#: vncviewer/OptionsDialog.cxx:703 vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:876
 msgid "None"
 msgstr "Ei mitään"
 
-#: vncviewer/OptionsDialog.cxx:694
+#: vncviewer/OptionsDialog.cxx:710
 msgid "TLS with anonymous certificates"
 msgstr "TLS anonyymeilla varmenteilla"
 
-#: vncviewer/OptionsDialog.cxx:700
+#: vncviewer/OptionsDialog.cxx:716
 msgid "TLS with X509 certificates"
 msgstr "TLS X509-varmenteilla"
 
-#: vncviewer/OptionsDialog.cxx:707
+#: vncviewer/OptionsDialog.cxx:723
 msgid "Path to X509 CA certificate"
 msgstr "Polku X509 CA-varmenteeseen"
 
-#: vncviewer/OptionsDialog.cxx:714
+#: vncviewer/OptionsDialog.cxx:730
 msgid "Path to X509 CRL file"
 msgstr "Polku X509 CRL-tiedostoon"
 
-#: vncviewer/OptionsDialog.cxx:739
+#: vncviewer/OptionsDialog.cxx:758
 msgid "Authentication"
 msgstr "Todennus"
 
-#: vncviewer/OptionsDialog.cxx:756
+#: vncviewer/OptionsDialog.cxx:776
 msgid "Standard VNC (insecure without encryption)"
 msgstr "Standardi-VNC (turvaton salauksetta)"
 
-#: vncviewer/OptionsDialog.cxx:762
+#: vncviewer/OptionsDialog.cxx:782
 msgid "Username and password (insecure without encryption)"
 msgstr "Käyttäjätunnus ja salasana (turvaton salauksetta)"
 
-#: vncviewer/OptionsDialog.cxx:781
+#: vncviewer/OptionsDialog.cxx:805
 msgid "Input"
 msgstr "Syöte"
 
-#: vncviewer/OptionsDialog.cxx:794
+#: vncviewer/OptionsDialog.cxx:818
 msgid "View only (ignore mouse and keyboard)"
 msgstr "Vain katselu (hiirtä ja näppäimistöä ei huomioida)"
 
-#: vncviewer/OptionsDialog.cxx:801
+#: vncviewer/OptionsDialog.cxx:825
 msgid "Mouse"
 msgstr "Hiiri"
 
-#: vncviewer/OptionsDialog.cxx:815
+#: vncviewer/OptionsDialog.cxx:837
 msgid "Emulate middle mouse button"
 msgstr "Jäljittele hiiren keskipainiketta"
 
-#: vncviewer/OptionsDialog.cxx:821
+#: vncviewer/OptionsDialog.cxx:843
 msgid "Show dot when no cursor"
 msgstr "Näytä piste kohdistimen puuttuessa"
 
-#: vncviewer/OptionsDialog.cxx:835
+#: vncviewer/OptionsDialog.cxx:859
 msgid "Keyboard"
 msgstr "Näppäimistö"
 
-#: vncviewer/OptionsDialog.cxx:849
+#: vncviewer/OptionsDialog.cxx:871
 msgid "Pass system keys directly to server (full screen)"
 msgstr "Välitä järjestelmänäppäimet suoraan palvelimelle (kokonäyttö)"
 
-#: vncviewer/OptionsDialog.cxx:852
+#: vncviewer/OptionsDialog.cxx:874
 msgid "Menu key"
 msgstr "Valikkonäppäin"
 
-#: vncviewer/OptionsDialog.cxx:871
+#: vncviewer/OptionsDialog.cxx:895
 msgid "Clipboard"
 msgstr "Leikepöytä"
 
-#: vncviewer/OptionsDialog.cxx:885
+#: vncviewer/OptionsDialog.cxx:907
 msgid "Accept clipboard from server"
 msgstr "Hyväksy leikepöytä palvelimelta"
 
-#: vncviewer/OptionsDialog.cxx:893
+#: vncviewer/OptionsDialog.cxx:915
 msgid "Also set primary selection"
 msgstr "Aseta myös ensisijainen valinta"
 
-#: vncviewer/OptionsDialog.cxx:900
+#: vncviewer/OptionsDialog.cxx:922
 msgid "Send clipboard to server"
 msgstr "Lähetä leikepöytä palvelimelle"
 
-#: vncviewer/OptionsDialog.cxx:908
+#: vncviewer/OptionsDialog.cxx:930
 msgid "Send primary selection as clipboard"
 msgstr "Lähetä ensisijainen valinta leikepöytänä"
 
-#: vncviewer/OptionsDialog.cxx:927
+#: vncviewer/OptionsDialog.cxx:951
 msgid "Display"
 msgstr "Näyttö"
 
-#: vncviewer/OptionsDialog.cxx:941
+#: vncviewer/OptionsDialog.cxx:965
 msgid "Display mode"
 msgstr "Näyttötila"
 
-#: vncviewer/OptionsDialog.cxx:956
+#: vncviewer/OptionsDialog.cxx:978
 msgid "Windowed"
 msgstr "Ikkunoitu"
 
-#: vncviewer/OptionsDialog.cxx:964
+#: vncviewer/OptionsDialog.cxx:986
 msgid "Full screen on current monitor"
 msgstr "Kokonäyttö nykyisellä näytöllä"
 
-#: vncviewer/OptionsDialog.cxx:972
+#: vncviewer/OptionsDialog.cxx:994
 msgid "Full screen on all monitors"
 msgstr "Kokonäyttö kaikilla näytöillä"
 
-#: vncviewer/OptionsDialog.cxx:980
+#: vncviewer/OptionsDialog.cxx:1002
 msgid "Full screen on selected monitor(s)"
 msgstr "Kokonäyttö valituilla näytöillä"
 
-#: vncviewer/OptionsDialog.cxx:1007
-msgid "Misc."
+#: vncviewer/OptionsDialog.cxx:1031
+msgid "Miscellaneous"
 msgstr "Sekalaiset"
 
-#: vncviewer/OptionsDialog.cxx:1015
+#: vncviewer/OptionsDialog.cxx:1039
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Jaettu (älä katkaise muiden katselimien yhteyksiä)"
 
-#: vncviewer/OptionsDialog.cxx:1021
+#: vncviewer/OptionsDialog.cxx:1045
 msgid "Ask to reconnect on connection errors"
 msgstr "Pyydä uudelleenyhdistämään yhteysvirheen sattuessa"
 
@@ -374,32 +374,32 @@ msgstr "Pyydä uudelleenyhdistämään yhteysvirheen sattuessa"
 msgid "VNC Viewer: Connection Details"
 msgstr "VNC-katselin: Yhteyden yksityiskohdat"
 
-#: vncviewer/ServerDialog.cxx:65 vncviewer/ServerDialog.cxx:70
+#: vncviewer/ServerDialog.cxx:68
 msgid "VNC server:"
 msgstr "VNC-palvelin:"
 
-#: vncviewer/ServerDialog.cxx:81
+#: vncviewer/ServerDialog.cxx:75
 msgid "Options..."
 msgstr "Valinnat..."
 
-#: vncviewer/ServerDialog.cxx:86
+#: vncviewer/ServerDialog.cxx:79
 msgid "Load..."
 msgstr "Lataa..."
 
 # Nappi ei skaalaudu tekstin leveyden mukaan.
-#: vncviewer/ServerDialog.cxx:91
+#: vncviewer/ServerDialog.cxx:83
 msgid "Save As..."
 msgstr "Tall. nimellä..."
 
-#: vncviewer/ServerDialog.cxx:103
+#: vncviewer/ServerDialog.cxx:97
 msgid "About..."
 msgstr "Tietoja..."
 
-#: vncviewer/ServerDialog.cxx:113
+#: vncviewer/ServerDialog.cxx:106
 msgid "Connect"
 msgstr "Yhdistä"
 
-#: vncviewer/ServerDialog.cxx:145
+#: vncviewer/ServerDialog.cxx:143
 #, c-format
 msgid ""
 "Unable to load the server history:\n"
@@ -410,15 +410,15 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:173 vncviewer/ServerDialog.cxx:212
+#: vncviewer/ServerDialog.cxx:172 vncviewer/ServerDialog.cxx:212
 msgid "TigerVNC configuration (*.tigervnc)"
 msgstr "TigerVNC-asetukset (*.tigervnc)"
 
-#: vncviewer/ServerDialog.cxx:174
+#: vncviewer/ServerDialog.cxx:173
 msgid "Select a TigerVNC configuration file"
 msgstr "Valitse TigerVNC-asetustiedosto"
 
-#: vncviewer/ServerDialog.cxx:196 vncviewer/vncviewer.cxx:552
+#: vncviewer/ServerDialog.cxx:195 vncviewer/vncviewer.cxx:515
 #, c-format
 msgid ""
 "Unable to load the specified configuration file:\n"
@@ -438,7 +438,7 @@ msgstr "Tallenna TigerVNC-asetukset tiedostoon"
 msgid "%s already exists. Do you want to overwrite?"
 msgstr "%s on jo olemassa. Haluatko korvata sen?"
 
-#: vncviewer/ServerDialog.cxx:240 vncviewer/vncviewer.cxx:414
+#: vncviewer/ServerDialog.cxx:240 vncviewer/vncviewer.cxx:392
 msgid "No"
 msgstr "Ei"
 
@@ -479,31 +479,29 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:320 vncviewer/ServerDialog.cxx:387
-#: vncviewer/parameters.cxx:635 vncviewer/parameters.cxx:740
-#: vncviewer/vncviewer.cxx:459
-msgid "Could not obtain the home directory path"
-msgstr "Kotihakemiston polkua ei saatu tietoon"
+#: vncviewer/ServerDialog.cxx:320 vncviewer/ServerDialog.cxx:386
+msgid "Could not obtain the state directory path"
+msgstr "Tilahakemiston polkua ei saatu tietoon"
 
-#: vncviewer/ServerDialog.cxx:333 vncviewer/ServerDialog.cxx:396
-#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:753
+#: vncviewer/ServerDialog.cxx:332 vncviewer/ServerDialog.cxx:394
+#: vncviewer/parameters.cxx:644 vncviewer/parameters.cxx:750
 #, c-format
 msgid "Could not open \"%s\": %s"
 msgstr "Tiedoston ”%s” avaaminen epäonnistui: %s"
 
-#: vncviewer/ServerDialog.cxx:348 vncviewer/ServerDialog.cxx:356
-#: vncviewer/parameters.cxx:767 vncviewer/parameters.cxx:773
-#: vncviewer/parameters.cxx:804 vncviewer/parameters.cxx:833
-#: vncviewer/parameters.cxx:839
+#: vncviewer/ServerDialog.cxx:347 vncviewer/ServerDialog.cxx:355
+#: vncviewer/parameters.cxx:764 vncviewer/parameters.cxx:770
+#: vncviewer/parameters.cxx:801 vncviewer/parameters.cxx:830
+#: vncviewer/parameters.cxx:836
 #, c-format
 msgid "Failed to read line %d in file %s: %s"
 msgstr "Rivin %d lukeminen tiedostosta %s epäonnistui: %s"
 
-#: vncviewer/ServerDialog.cxx:357 vncviewer/parameters.cxx:774
+#: vncviewer/ServerDialog.cxx:356 vncviewer/parameters.cxx:771
 msgid "Line too long"
 msgstr "Liian pitkä rivi"
 
-#: vncviewer/UserDialog.cxx:98
+#: vncviewer/UserDialog.cxx:99
 msgid "Opening password file failed"
 msgstr "Salasanatiedoston avaaminen epäonnistui"
 
@@ -519,139 +517,139 @@ msgstr "Tämä yhteys on turvallinen"
 msgid "This connection is not secure"
 msgstr "Tämä yhteys ei ole turvallinen"
 
-#: vncviewer/UserDialog.cxx:146
+#: vncviewer/UserDialog.cxx:151
 msgid "Username:"
 msgstr "Käyttäjätunnus:"
 
-#: vncviewer/UserDialog.cxx:159
+#: vncviewer/UserDialog.cxx:164
 msgid "Password:"
 msgstr "Salasana:"
 
-#: vncviewer/UserDialog.cxx:198
+#: vncviewer/UserDialog.cxx:207
 msgid "Authentication cancelled"
 msgstr "Todennus peruttu"
 
-#: vncviewer/Viewport.cxx:391
+#: vncviewer/Viewport.cxx:390
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
 msgstr "Näppäimistön LED-tilan päivittäminen epäonnistui: %lu"
 
-#: vncviewer/Viewport.cxx:397 vncviewer/Viewport.cxx:403
+#: vncviewer/Viewport.cxx:396 vncviewer/Viewport.cxx:402
 #, c-format
 msgid "Failed to update keyboard LED state: %d"
 msgstr "Näppäimistön LED-tilan päivittäminen epäonnistui: %d"
 
-#: vncviewer/Viewport.cxx:433
+#: vncviewer/Viewport.cxx:432
 msgid "Failed to update keyboard LED state"
 msgstr "Näppäimistön LED-tilan päivittäminen epäonnistui"
 
-#: vncviewer/Viewport.cxx:460 vncviewer/Viewport.cxx:468
-#: vncviewer/Viewport.cxx:485
+#: vncviewer/Viewport.cxx:459 vncviewer/Viewport.cxx:467
+#: vncviewer/Viewport.cxx:484
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
 msgstr "Näppäimistön LED-tilan noutaminen epäonnistui: %d"
 
-#: vncviewer/Viewport.cxx:849
+#: vncviewer/Viewport.cxx:839
 msgid "No key code specified on key press"
 msgstr "Näppäimenpainalluksella ei tuotettu näppäinkoodia"
 
-#: vncviewer/Viewport.cxx:1008
+#: vncviewer/Viewport.cxx:990
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Ei toimintakoodia laajennetulle virtuaalinäppäimelle 0x%02x"
 
-#: vncviewer/Viewport.cxx:1010
+#: vncviewer/Viewport.cxx:992
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Ei toimintakoodia virtuaalinäppäimelle 0x%02x"
 
-#: vncviewer/Viewport.cxx:1016
+#: vncviewer/Viewport.cxx:998
 #, c-format
 msgid "Invalid scan code 0x%02x"
 msgstr "Virheellinen toimintakoodi 0x%02x"
 
-#: vncviewer/Viewport.cxx:1046
+#: vncviewer/Viewport.cxx:1028
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Laajennetulle virtuaalinäppäimelle 0x%02x ei ole symbolia"
 
-#: vncviewer/Viewport.cxx:1048
+#: vncviewer/Viewport.cxx:1030
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Virtuaalinäppäimelle 0x%02x ei ole symbolia"
 
-#: vncviewer/Viewport.cxx:1154
+#: vncviewer/Viewport.cxx:1136
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Näppäinkoodille 0x%02x ei ole symbolia (nykyisessä tilassa)"
 
-#: vncviewer/Viewport.cxx:1187
+#: vncviewer/Viewport.cxx:1169
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Näppäinkoodille %d ei ole symbolia (nykyisessä tilassa)"
 
-#: vncviewer/Viewport.cxx:1247
+#: vncviewer/Viewport.cxx:1229
 msgctxt "ContextMenu|"
-msgid "Dis&connect"
+msgid "Disconn&ect"
 msgstr "Ka&tkaise yhteys"
 
-#: vncviewer/Viewport.cxx:1250
+#: vncviewer/Viewport.cxx:1232
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&Kokonäyttö"
 
-#: vncviewer/Viewport.cxx:1253
+#: vncviewer/Viewport.cxx:1235
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "Pi&enennä"
 
-#: vncviewer/Viewport.cxx:1255
+#: vncviewer/Viewport.cxx:1237
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "&Sovita ikkunan koko istuntoon"
 
-#: vncviewer/Viewport.cxx:1260
+#: vncviewer/Viewport.cxx:1242
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:1263
+#: vncviewer/Viewport.cxx:1245
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:1269
+#: vncviewer/Viewport.cxx:1251
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Lähetä %s"
 
-#: vncviewer/Viewport.cxx:1275
+#: vncviewer/Viewport.cxx:1257
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Lähetä Ctrl-Alt-&Del"
 
-#: vncviewer/Viewport.cxx:1278
+#: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "Vi&rkistä näyttö"
 
-#: vncviewer/Viewport.cxx:1281
+#: vncviewer/Viewport.cxx:1263
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "&Valinnat..."
 
-#: vncviewer/Viewport.cxx:1283
+#: vncviewer/Viewport.cxx:1265
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Yh&teyden tiedot..."
 
-#: vncviewer/Viewport.cxx:1285
+#: vncviewer/Viewport.cxx:1267
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Tietoa &TigerVNC:stä..."
 
-#: vncviewer/Viewport.cxx:1374
+#: vncviewer/Viewport.cxx:1356
 msgid "VNC connection info"
 msgstr "VNC-yhteyden tiedot"
 
@@ -659,27 +657,27 @@ msgstr "VNC-yhteyden tiedot"
 msgid "Window is registered for touch instead of gestures"
 msgstr "Ikkuna on rekisteröity kosketuksille eikä eleille"
 
-#: vncviewer/Win32TouchHandler.cxx:81
+#: vncviewer/Win32TouchHandler.cxx:82
 #, c-format
 msgid "Failed to set gesture configuration (error 0x%x)"
 msgstr "Eleasetusten asettaminen epäonnistui (virhe 0x%x)"
 
-#: vncviewer/Win32TouchHandler.cxx:93
+#: vncviewer/Win32TouchHandler.cxx:94
 #, c-format
 msgid "Failed to get gesture information (error 0x%x)"
 msgstr "Eletietojen saaminen epäonnistui (virhe 0x%x)"
 
-#: vncviewer/Win32TouchHandler.cxx:358
+#: vncviewer/Win32TouchHandler.cxx:359
 #, c-format
 msgid "Invalid mouse button %d, must be a number between 1 and 7."
 msgstr "Virheellinen hiiren painike %d, ei ole välillä 1 – 7."
 
-#: vncviewer/Win32TouchHandler.cxx:423
+#: vncviewer/Win32TouchHandler.cxx:424
 #, c-format
 msgid "Unhandled key 0x%x - can't generate keyboard event."
 msgstr "Käsittelemätön näppäin 0x%x - ei voi luoda näppäimistötapahtumaa."
 
-#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:107
+#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:108
 #, c-format
 msgid "Unable to get X Input 2 event mask for window 0x%08lx"
 msgstr "X Input 2 -tapahtumapeitettä ei saada ikkunalle 0x%08lx"
@@ -689,7 +687,7 @@ msgstr "X Input 2 -tapahtumapeitettä ei saada ikkunalle 0x%08lx"
 msgid "Window 0x%08lx has no X Input 2 event mask"
 msgstr "Ikkunalla 0x%08lx ei ole X Input 2 -tapahtumapeitettä"
 
-#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:114
+#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:115
 #, c-format
 msgid "Window 0x%08lx has more than one X Input 2 event mask"
 msgstr "Ikkunalla 0x%08lx on useampi X Input 2 -tapahtumapeite"
@@ -700,7 +698,7 @@ msgid "Failure grabbing device %i"
 msgstr "Häiriö laitteeseen %i tarttumisessa"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
-#: vncviewer/vncviewer.cxx:406 vncviewer/vncviewer.desktop.in.in:3
+#: vncviewer/vncviewer.cxx:389 vncviewer/vncviewer.desktop.in.in:3
 msgid "TigerVNC Viewer"
 msgstr "TigerVNC-katselin"
 
@@ -729,120 +727,124 @@ msgstr "TigerVNC-katselimen yhteys macOS-koneeseen"
 msgid "TigerVNC Viewer connection to a Windows machine"
 msgstr "TigerVNC-katselimen yhteys Windows-koneeseen"
 
-#: vncviewer/parameters.cxx:308 vncviewer/parameters.cxx:333
-#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:390
-#: vncviewer/parameters.cxx:410
+#: vncviewer/parameters.cxx:307 vncviewer/parameters.cxx:332
+#: vncviewer/parameters.cxx:349 vncviewer/parameters.cxx:389
+#: vncviewer/parameters.cxx:409
 msgid "The name of the parameter is too large"
 msgstr "Parametrin nimi on liian suuri"
 
-#: vncviewer/parameters.cxx:312 vncviewer/parameters.cxx:317
-#: vncviewer/parameters.cxx:368
+#: vncviewer/parameters.cxx:311 vncviewer/parameters.cxx:316
+#: vncviewer/parameters.cxx:367
 msgid "The parameter is too large"
 msgstr "Parametri on liian suuri"
 
-#: vncviewer/parameters.cxx:375 vncviewer/parameters.cxx:696
-#: vncviewer/parameters.cxx:818
+#: vncviewer/parameters.cxx:374 vncviewer/parameters.cxx:694
+#: vncviewer/parameters.cxx:815
 msgid "Invalid format or too large value"
 msgstr "Virheellinen muoto tai liian suuri arvo"
 
-#: vncviewer/parameters.cxx:429 vncviewer/parameters.cxx:460
+#: vncviewer/parameters.cxx:428 vncviewer/parameters.cxx:459
 msgid "Failed to create registry key"
 msgstr "Rekisteriavaimen luominen epäonnistui"
 
-#: vncviewer/parameters.cxx:448 vncviewer/parameters.cxx:503
-#: vncviewer/parameters.cxx:545 vncviewer/parameters.cxx:612
+#: vncviewer/parameters.cxx:447 vncviewer/parameters.cxx:502
+#: vncviewer/parameters.cxx:544 vncviewer/parameters.cxx:611
 msgid "Failed to close registry key"
 msgstr "Rekisteriavaimen sulkeminen epäonnistui"
 
-#: vncviewer/parameters.cxx:466 vncviewer/parameters.cxx:483
-#: vncviewer/parameters.cxx:654 vncviewer/parameters.cxx:664
-#: vncviewer/parameters.cxx:675
+#: vncviewer/parameters.cxx:465 vncviewer/parameters.cxx:482
+#: vncviewer/parameters.cxx:652 vncviewer/parameters.cxx:662
+#: vncviewer/parameters.cxx:673
 #, c-format
 msgid "Failed to save \"%s\": %s"
 msgstr "Tiedoston ”%s” tallentaminen epäonnistui: %s"
 
-#: vncviewer/parameters.cxx:479 vncviewer/parameters.cxx:567
-#: vncviewer/parameters.cxx:677 vncviewer/parameters.cxx:714
+#: vncviewer/parameters.cxx:478 vncviewer/parameters.cxx:566
+#: vncviewer/parameters.cxx:675 vncviewer/parameters.cxx:712
 msgid "Unknown parameter type"
 msgstr "Tuntematon parametrityyppi"
 
-#: vncviewer/parameters.cxx:496
+#: vncviewer/parameters.cxx:495
 #, c-format
 msgid "Failed to remove \"%s\": %s"
 msgstr "Tiedoston ”%s” poistaminen epäonnistui: %s"
 
-#: vncviewer/parameters.cxx:518 vncviewer/parameters.cxx:590
+#: vncviewer/parameters.cxx:517 vncviewer/parameters.cxx:589
 msgid "Failed to open registry key"
 msgstr "Rekisteriavaimen avaaminen epäonnistui"
 
-#: vncviewer/parameters.cxx:535
+#: vncviewer/parameters.cxx:534
 #, c-format
 msgid "Failed to read server history entry %d: %s"
 msgstr "Palvelinhistorian merkinnän %d lukeminen epäonnistui: %s"
 
-#: vncviewer/parameters.cxx:571 vncviewer/parameters.cxx:601
+#: vncviewer/parameters.cxx:570 vncviewer/parameters.cxx:600
 #, c-format
 msgid "Failed to read parameter \"%s\": %s"
 msgstr "Parametrin ”%s” lukeminen epäonnistui: %s"
 
-#: vncviewer/parameters.cxx:655 vncviewer/parameters.cxx:666
+#: vncviewer/parameters.cxx:634 vncviewer/parameters.cxx:738
+msgid "Could not obtain the config directory path"
+msgstr "Asetushakemiston polkua ei saatu selvitettyä"
+
+#: vncviewer/parameters.cxx:653 vncviewer/parameters.cxx:664
 msgid "Could not encode parameter"
 msgstr "Parametria ei voitu koodata"
 
-#: vncviewer/parameters.cxx:783
+#: vncviewer/parameters.cxx:780
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Asetustiedosto %s on virheellisessä muodossa"
 
-#: vncviewer/parameters.cxx:805
+#: vncviewer/parameters.cxx:802
 msgid "Invalid format"
 msgstr "Virheellinen muoto"
 
-#: vncviewer/parameters.cxx:840
+#: vncviewer/parameters.cxx:837
 msgid "Unknown parameter"
 msgstr "Tuntematon parametri"
 
-#: vncviewer/touch.cxx:75
+#: vncviewer/touch.cxx:76
 #, c-format
 msgid "Got message (0x%x) for an unhandled window"
 msgstr "Saatiin viesti (0x%x) käsittelemättömälle ikkunalle"
 
-#: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
+#: vncviewer/touch.cxx:139 vncviewer/touch.cxx:161
 #, c-format
 msgid "Invalid window 0x%08lx specified for pointer grab"
 msgstr "Virheellinen ikkuna 0x%08lx annettu osoittimeen tarttumiselle"
 
-#: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
+#: vncviewer/touch.cxx:184 vncviewer/touch.cxx:185
 #, c-format
 msgid "Failed to create touch handler: %s"
 msgstr "Kosketuskäsittelimen luominen epäonnistui: %s"
 
-#: vncviewer/touch.cxx:188
+#: vncviewer/touch.cxx:189
 #, c-format
 msgid "Couldn't attach event handler to window (error 0x%x)"
 msgstr "Tapahtumakäsittelintä ei voitu liittää ikkunaan (virhe 0x%x)"
 
-#: vncviewer/touch.cxx:212
+#: vncviewer/touch.cxx:216
 msgid "Failed to get event data for X Input event"
 msgstr "X Input -tapahtuman tapahtumatietodon noutaminen epäonnistui"
 
-#: vncviewer/touch.cxx:225
+#: vncviewer/touch.cxx:229
 msgid "X Input event for unknown window"
 msgstr "X Input -tapahtuma tuntemattomalle ikkunalle"
 
-#: vncviewer/touch.cxx:251
+#: vncviewer/touch.cxx:255
 msgid "X Input extension not available."
 msgstr "X Input -laajennos ei ole saatavilla."
 
-#: vncviewer/touch.cxx:258
+#: vncviewer/touch.cxx:262
 msgid "X Input 2 (or newer) is not available."
 msgstr "X Input 2 (tai uudempi) ei ole saatavilla."
 
-#: vncviewer/touch.cxx:263
+#: vncviewer/touch.cxx:267
 msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
 msgstr "X Input 2.2 (tai uudempi) ei ole saatavilla. Kosketuseleitä ei tueta."
 
-#: vncviewer/vncviewer.cxx:107
+#: vncviewer/vncviewer.cxx:104
 #, c-format
 msgid ""
 "TigerVNC Viewer v%s\n"
@@ -855,7 +857,7 @@ msgstr ""
 "Copyright © 1999-%d TigerVNC-ryhmä ja monet muut (ks. README.rst)\n"
 "Lisätietoja TigerVNC:stä osoitteessa https://www.tigervnc.org."
 
-#: vncviewer/vncviewer.cxx:161
+#: vncviewer/vncviewer.cxx:158
 #, c-format
 msgid ""
 "An unexpected error occurred when communicating with the server:\n"
@@ -866,15 +868,15 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/vncviewer.cxx:177
+#: vncviewer/vncviewer.cxx:174
 msgid "About TigerVNC Viewer"
 msgstr "Tietoa &TigerVNC:stä"
 
-#: vncviewer/vncviewer.cxx:198
+#: vncviewer/vncviewer.cxx:195
 msgid "Internal FLTK error. Exiting."
 msgstr "Sisäinen FLTK-virhe. Poistutaan."
 
-#: vncviewer/vncviewer.cxx:217
+#: vncviewer/vncviewer.cxx:214
 #, c-format
 msgid ""
 "%s\n"
@@ -885,79 +887,102 @@ msgstr ""
 "\n"
 "Yritetäänkö uudelleenyhdistämistä?"
 
-#: vncviewer/vncviewer.cxx:248 vncviewer/vncviewer.cxx:260
+#: vncviewer/vncviewer.cxx:245 vncviewer/vncviewer.cxx:257
 #, c-format
 msgid "Error starting new TigerVNC Viewer: %s"
 msgstr "Virhe käynnistettäessä uutta TigerVNC-katselinta: %s"
 
-#: vncviewer/vncviewer.cxx:269
+#: vncviewer/vncviewer.cxx:266
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr "Päättämissignaali %d on vastaanotettu. TigerVNC-katselin sulkeutuu."
 
-#: vncviewer/vncviewer.cxx:415
+#: vncviewer/vncviewer.cxx:393
 msgid "Yes"
 msgstr "Kyllä"
 
-#: vncviewer/vncviewer.cxx:418
+#: vncviewer/vncviewer.cxx:396
 msgid "Close"
 msgstr "Sulje"
 
-#: vncviewer/vncviewer.cxx:423
+#: vncviewer/vncviewer.cxx:401
 msgid "About"
 msgstr "Tietoja"
 
-#: vncviewer/vncviewer.cxx:426
+#: vncviewer/vncviewer.cxx:404
 msgid "Hide"
 msgstr "Piilota"
 
-#: vncviewer/vncviewer.cxx:429
+#: vncviewer/vncviewer.cxx:407
 msgid "Quit"
 msgstr "Poistu"
 
-#: vncviewer/vncviewer.cxx:433
+#: vncviewer/vncviewer.cxx:411
 msgid "Services"
 msgstr "Palvelut"
 
-#: vncviewer/vncviewer.cxx:434
+#: vncviewer/vncviewer.cxx:412
 msgid "Hide Others"
 msgstr "Piilota muut"
 
-#: vncviewer/vncviewer.cxx:435
+#: vncviewer/vncviewer.cxx:413
 msgid "Show All"
 msgstr "Näytä kaikki"
 
-#: vncviewer/vncviewer.cxx:444
+#: vncviewer/vncviewer.cxx:422
 msgctxt "SysMenu|"
 msgid "&File"
 msgstr "&Tiedosto"
 
-#: vncviewer/vncviewer.cxx:447
+#: vncviewer/vncviewer.cxx:425
 msgctxt "SysMenu|File|"
 msgid "&New Connection"
 msgstr "&Uusi yhteys"
 
-#: vncviewer/vncviewer.cxx:463
-#, c-format
-msgid "Could not create VNC home directory: %s"
-msgstr "VNC-kotihakemiston luominen epäonnistui: %s"
-
-#: vncviewer/vncviewer.cxx:562
+#: vncviewer/vncviewer.cxx:525
 msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
 msgstr "FullScreenAllMonitors on vanhentunut, aseta FullScreenMode-asetukseksi ”all” sen sijaan"
 
+#: vncviewer/vncviewer.cxx:721
+msgid "~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."
+msgstr "~/.vnc on vanhentunut, katso ”man vncviewer” sisältää lisätietoa korvaavista poluista."
+
+#: vncviewer/vncviewer.cxx:725
+#, c-format
+msgid "%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."
+msgstr "%%APPDATA%%\\vnc on vanhentunut, vaihda sijainniksi %%APPDATA%%\\TigerVNC."
+
+#: vncviewer/vncviewer.cxx:730
+#, c-format
+msgid "Could not create VNC config directory: %s"
+msgstr "VNC-asetushakemiston luominen epäonnistui: %s"
+
+#: vncviewer/vncviewer.cxx:735
+#, c-format
+msgid "Could not create VNC data directory: %s"
+msgstr "VNC-tietohakemiston luominen epäonnistui: %s"
+
+#: vncviewer/vncviewer.cxx:740
+#, c-format
+msgid "Could not create VNC state directory: %s"
+msgstr "VNC-tilahakemiston luominen epäonnistui: %s"
+
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:768 vncviewer/vncviewer.cxx:769
+#: vncviewer/vncviewer.cxx:755 vncviewer/vncviewer.cxx:756
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Parametrit -listen ja -via ovat yhteensopimattomia"
 
-#: vncviewer/vncviewer.cxx:783
+#: vncviewer/vncviewer.cxx:770
+msgid "Unable to listen for incoming connections"
+msgstr "Saapuvia yhteyksiä ei voi kuunnella"
+
+#: vncviewer/vncviewer.cxx:772
 #, c-format
 msgid "Listening on port %d"
 msgstr "Kuunnellaan portissa %d"
 
-#: vncviewer/vncviewer.cxx:816
+#: vncviewer/vncviewer.cxx:805
 #, c-format
 msgid ""
 "Failure waiting for incoming VNC connection:\n"
@@ -971,6 +996,12 @@ msgstr ""
 #: vncviewer/vncviewer.desktop.in.in:4
 msgid "Remote Desktop Viewer"
 msgstr "Etätyöpöytäkatselin"
+
+#~ msgid "VNC Viewer: Connection Options"
+#~ msgstr "VNC-katselin: Yhteysvalinnat"
+
+#~ msgid "Misc."
+#~ msgstr "Sekalaiset"
 
 #~ msgid "Failed to get monitor name because X11 RandR could not be found"
 #~ msgstr "Näytön nimen noutaminen epäonnistui, koska X11:n RandR:ää ei löytynyt"
