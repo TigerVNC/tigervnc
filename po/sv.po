@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: tigervnc 1.13.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2024-06-20 15:01+0200\n"
-"PO-Revision-Date: 2024-06-21 10:03+0200\n"
+"PO-Revision-Date: 2024-06-23 08:49+0200\n"
 "Last-Translator: Luna Jernberg <droidbittin@gmail.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -185,7 +185,7 @@ msgstr "Oväntat tecken ”%c”"
 
 #: vncviewer/OptionsDialog.cxx:64
 msgid "TigerVNC Options"
-msgstr "TigerVNC alternativ"
+msgstr "TigerVNC-alternativ"
 
 #: vncviewer/OptionsDialog.cxx:97 vncviewer/ServerDialog.cxx:102
 #: vncviewer/vncviewer.cxx:395
@@ -593,7 +593,7 @@ msgstr "Ingen symbol för tangentkod %d (i nuvarande tillstånd)"
 #: vncviewer/Viewport.cxx:1229
 msgctxt "ContextMenu|"
 msgid "Disconn&ect"
-msgstr "Koppla&ifrån"
+msgstr "Koppla &ifrån"
 
 #: vncviewer/Viewport.cxx:1232
 msgctxt "ContextMenu|"
