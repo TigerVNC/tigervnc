@@ -38,18 +38,18 @@ using namespace win32;
 const char* winvnc::VNCServerService::Name = "TigerVNC";
 
 // SendSAS is not available until Windows 7, and missing from MinGW
-static HMODULE sasLibrary = NULL;
+static HMODULE sasLibrary = nullptr;
 typedef void WINAPI (*SendSAS_proto)(BOOL AsUser);
-static SendSAS_proto _SendSAS = NULL;
+static SendSAS_proto _SendSAS = nullptr;
 
 VNCServerService::VNCServerService()
   : Service(Name)
-  , stopServiceEvent(CreateEvent(0, FALSE, FALSE, 0))
-  , sessionEvent(CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC"))
-  , sessionEventCad(CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNCCad")) {
-  if (sasLibrary == NULL) {
+  , stopServiceEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr))
+  , sessionEvent(CreateEvent(nullptr, FALSE, FALSE, "Global\\SessionEventTigerVNC"))
+  , sessionEventCad(CreateEvent(nullptr, FALSE, FALSE, "Global\\SessionEventTigerVNCCad")) {
+  if (sasLibrary == nullptr) {
     sasLibrary = LoadLibrary("sas.dll");
-    if (sasLibrary != NULL)
+    if (sasLibrary != nullptr)
       _SendSAS = (SendSAS_proto)(void*)GetProcAddress(sasLibrary, "SendSAS");
   }
   // - Set the service-mode logging defaults
@@ -104,8 +104,8 @@ BOOL GetSessionUserTokenWin(OUT LPHANDLE lphUserToken)
 // START the app as system 
 HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
 {
-    HANDLE hProcess = NULL;
-    HANDLE hToken = NULL;
+    HANDLE hProcess = nullptr;
+    HANDLE hToken = nullptr;
     if (GetSessionUserTokenWin(&hToken))
     {
         ModuleFileName filename;
@@ -116,9 +116,9 @@ HANDLE LaunchProcessWin(DWORD /*dwSessionId*/)
         si.cb = sizeof si;
         si.dwFlags = STARTF_USESHOWWINDOW;
         PROCESS_INFORMATION	pi;
-        if (CreateProcessAsUser(hToken, NULL, (char*)cmdLine.c_str(),
-                                NULL, NULL, FALSE, DETACHED_PROCESS,
-                                NULL, NULL, &si, &pi))
+        if (CreateProcessAsUser(hToken, nullptr, (char*)cmdLine.c_str(),
+                                nullptr, nullptr, FALSE, DETACHED_PROCESS,
+                                nullptr, nullptr, &si, &pi))
         {
             CloseHandle(pi.hThread);
             hProcess = pi.hProcess;
@@ -132,7 +132,7 @@ DWORD VNCServerService::serviceMain(int /*argc*/, char* /*argv*/ [])
 {
     ConsoleSessionId OlddwSessionId;
 
-    HANDLE hProcess = NULL;
+    HANDLE hProcess = nullptr;
     //We use this event to notify the program that the session has changed
     //The program need to end so the service can restart the program in the correct session
     //wait_for_existing_process();
@@ -150,7 +150,7 @@ DWORD VNCServerService::serviceMain(int /*argc*/, char* /*argv*/ [])
 
         //cad request
         case WAIT_OBJECT_0 + 1:
-            if (_SendSAS != NULL)
+            if (_SendSAS != nullptr)
                 _SendSAS(FALSE);
             break; 
 
@@ -163,7 +163,7 @@ DWORD VNCServerService::serviceMain(int /*argc*/, char* /*argv*/ [])
                     SetEvent(sessionEvent);
                 }
                 DWORD dwExitCode = 0;
-                if (hProcess == NULL ||
+                if (hProcess == nullptr ||
                     (GetExitCodeProcess(hProcess, &dwExitCode) &&
                     dwExitCode != STILL_ACTIVE &&
                     CloseHandle(hProcess)))

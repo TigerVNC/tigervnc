@@ -122,8 +122,8 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 {
   // - If hCursor is null then there is no cursor - clear the old one
 
-  if (hCursor == 0) {
-    server->setCursor(0, 0, Point(), NULL);
+  if (hCursor == nullptr) {
+    server->setCursor(0, 0, Point(), nullptr);
     return;
   }
 
@@ -223,19 +223,19 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
       uint8_t* rwbuffer = buffer.data();
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-          int byte = y * maskInfo.bmWidthBytes + x / 8;
+          int byte_ = y * maskInfo.bmWidthBytes + x / 8;
           int bit = 7 - x % 8;
 
-          if (!(andMask[byte] & (1 << bit))) {
+          if (!(andMask[byte_] & (1 << bit))) {
             // Valid pixel, so make it opaque
             rwbuffer[3] = 0xff;
 
             // Black or white?
-            if (xorMask[byte] & (1 << bit))
+            if (xorMask[byte_] & (1 << bit))
               rwbuffer[0] = rwbuffer[1] = rwbuffer[2] = 0xff;
             else
               rwbuffer[0] = rwbuffer[1] = rwbuffer[2] = 0;
-          } else if (xorMask[byte] & (1 << bit)) {
+          } else if (xorMask[byte_] & (1 << bit)) {
             // Replace any XORed pixels with black, because RFB doesn't support
             // XORing of cursors.  XORing is used for the I-beam cursor, which is most
             // often used over a white background, but also sometimes over a black

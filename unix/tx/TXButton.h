@@ -41,14 +41,15 @@ public:
 class TXButton : public TXWindow, public TXEventHandler {
 public:
 
-  TXButton(Display* dpy_, const char* text_, TXButtonCallback* cb_=0,
-           TXWindow* parent_=0, int w=1, int h=1)
+  TXButton(Display* dpy_, const char* text_,
+           TXButtonCallback* cb_=nullptr,
+           TXWindow* parent_=nullptr, int w=1, int h=1)
     : TXWindow(dpy_, w, h, parent_), cb(cb_), down(false),
       disabled_(false)
   {
     setEventHandler(this);
     setText(text_);
-    gc = XCreateGC(dpy, win(), 0, 0);
+    gc = XCreateGC(dpy, win(), 0, nullptr);
     XSetFont(dpy, gc, defaultFont);
     addEventMask(ExposureMask | ButtonPressMask | ButtonReleaseMask);
   }
@@ -91,7 +92,7 @@ private:
     XDrawString(dpy, win(), gc, startx, starty, text.data(), text.size());
   }
 
-  virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
+  void handleEvent(TXWindow* /*w*/, XEvent* ev) override {
     switch (ev->type) {
     case Expose:
       paint();

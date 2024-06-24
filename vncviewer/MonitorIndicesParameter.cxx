@@ -71,24 +71,22 @@ std::set<int> MonitorIndicesParameter::getParam()
     return indices;
 }
 
-bool MonitorIndicesParameter::setParam(const char* value)
+bool MonitorIndicesParameter::setParam(const char* v)
 {
-    int index;
     std::set<int> indices;
 
-    if (!parseIndices(value, &indices, true)) {
+    if (!parseIndices(v, &indices, true)) {
         vlog.error(_("Invalid configuration specified for %s"), name);
         return false;
     }
 
-    for (std::set<int>::iterator it = indices.begin(); it != indices.end(); it++) {
-        index = *it + 1;
-
+    for (int index : indices) {
+        index += 1;
         if (index <= 0 || index > Fl::screen_count())
             vlog.error(_("Monitor index %d does not exist"), index);
     }
 
-    return StringParameter::setParam(value);
+    return StringParameter::setParam(v);
 }
 
 bool MonitorIndicesParameter::setParam(std::set<int> indices)
@@ -111,16 +109,14 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
     int bytesWritten = 0;
     char const * separator = "";
 
-    for (std::set<int>::iterator index = configIndices.begin();
-         index != configIndices.end();
-         index++)
+    for (int configIndex : configIndices)
     {
         bytesWritten += snprintf(
             buf+bytesWritten,
             BUF_MAX_LEN-bytesWritten,
             "%s%u",
             separator,
-            (*index)+1
+            configIndex+1
         );
 
         separator = ",";
@@ -134,7 +130,7 @@ static bool parseNumber(std::string number, std::set<int> *indices)
     if (number.size() <= 0)
         return false;
 
-    int v = strtol(number.c_str(), NULL, 0);
+    int v = strtol(number.c_str(), nullptr, 0);
 
     if (v <= 0)
         return false;

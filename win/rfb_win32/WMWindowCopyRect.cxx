@@ -33,7 +33,7 @@ static LogWriter vlog("WMCopyRect");
 
 // -=- WMHooks class
 
-rfb::win32::WMCopyRect::WMCopyRect() : ut(0), fg_window(0) {
+rfb::win32::WMCopyRect::WMCopyRect() : ut(nullptr), fg_window(nullptr) {
 }
 
 bool
@@ -56,10 +56,10 @@ rfb::win32::WMCopyRect::processEvent() {
       fg_window = window;
       fg_window_rect = winrect;
     } else {
-      fg_window = 0;
+      fg_window = nullptr;
     }
   } else {
-    fg_window = 0;
+    fg_window = nullptr;
   }
   return false;
 }

@@ -35,21 +35,21 @@ namespace rfb {
     class LegacyPage : public PropSheetPage {
     public:
       LegacyPage(const RegKey& rk, bool userSettings_)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_LEGACY)), regKey(rk), userSettings(userSettings_) {}
-      void initDialog() {
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_LEGACY)), regKey(rk), userSettings(userSettings_) {}
+      void initDialog() override {
         setItemChecked(IDC_PROTOCOL_3_3, rfb::Server::protocol3_3);
       }
-      bool onCommand(int id, int /*cmd*/) {
+      bool onCommand(int id, int /*cmd*/) override {
         switch (id) {
         case IDC_LEGACY_IMPORT:
           {
-            DWORD result = MsgBox(0,
+            DWORD result = MsgBox(nullptr,
               "Importing your legacy VNC 3.3 settings will overwrite your existing settings.\n"
               "Are you sure you wish to continue?",
               MB_ICONWARNING | MB_YESNO);
             if (result == IDYES) {
               LoadPrefs();
-              MsgBox(0, "Imported VNC 3.3 settings successfully.",
+              MsgBox(nullptr, "Imported VNC 3.3 settings successfully.",
                      MB_ICONINFORMATION | MB_OK);
 
               // Sleep to allow RegConfig thread to reload settings
@@ -64,7 +64,7 @@ namespace rfb {
         };
         return false;
       }
-      bool onOk() {
+      bool onOk() override {
         regKey.setBool("Protocol3.3", isItemChecked(IDC_PROTOCOL_3_3));
         return true;
       }

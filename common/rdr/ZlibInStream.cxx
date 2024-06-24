@@ -29,7 +29,7 @@
 using namespace rdr;
 
 ZlibInStream::ZlibInStream()
-  : underlying(0), zs(NULL), bytesIn(0)
+  : underlying(nullptr), zs(nullptr), bytesIn(0)
 {
   init();
 }
@@ -54,7 +54,7 @@ void ZlibInStream::flushUnderlying()
     skip(avail());
   }
 
-  setUnderlying(NULL, 0);
+  setUnderlying(nullptr, 0);
 }
 
 void ZlibInStream::reset()
@@ -65,28 +65,28 @@ void ZlibInStream::reset()
 
 void ZlibInStream::init()
 {
-  assert(zs == NULL);
+  assert(zs == nullptr);
 
   zs = new z_stream;
-  zs->zalloc    = Z_NULL;
-  zs->zfree     = Z_NULL;
-  zs->opaque    = Z_NULL;
-  zs->next_in   = Z_NULL;
+  zs->zalloc    = nullptr;
+  zs->zfree     = nullptr;
+  zs->opaque    = nullptr;
+  zs->next_in   = nullptr;
   zs->avail_in  = 0;
   if (inflateInit(zs) != Z_OK) {
     delete zs;
-    zs = NULL;
+    zs = nullptr;
     throw Exception("ZlibInStream: inflateInit failed");
   }
 }
 
 void ZlibInStream::deinit()
 {
-  assert(zs != NULL);
-  setUnderlying(NULL, 0);
+  assert(zs != nullptr);
+  setUnderlying(nullptr, 0);
   inflateEnd(zs);
   delete zs;
-  zs = NULL;
+  zs = nullptr;
 }
 
 bool ZlibInStream::fillBuffer()

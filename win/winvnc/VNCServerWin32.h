@@ -64,7 +64,7 @@ namespace winvnc {
 
     // Disconnect all connected clients
     // THREAD-SAFE
-    bool disconnectClients(const char* reason=0);
+    bool disconnectClients(const char* reason=nullptr);
 
     // Call used to notify VNCServerST of user accept/reject query completion
     // CALLED FROM AcceptConnectDialog THREAD
@@ -81,20 +81,20 @@ namespace winvnc {
     // QueryConnectionHandler interface
     // Callback used to prompt user to accept or reject a connection.
     // CALLBACK IN VNCServerST "HOST" THREAD
-    virtual void queryConnection(network::Socket* sock,
-                                 const char* userName);
+    void queryConnection(network::Socket* sock,
+                         const char* userName) override;
 
     // SocketManager::AddressChangeNotifier interface
     // Used to keep tray icon up to date
-    virtual void processAddressChange();
+    void processAddressChange() override;
 
     // RegConfig::Callback interface
     // Called via the EventManager whenever RegConfig sees the registry change
-    virtual void regConfigChanged();
+    void regConfigChanged() override;
 
     // EventHandler interface
     // Used to perform queued commands
-    virtual void processEvent(HANDLE event);
+    void processEvent(HANDLE event) override;
 
     void getConnInfo(ListConnInfo * listConn);
     void setConnStatus(ListConnInfo* listConn);

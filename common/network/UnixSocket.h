@@ -38,8 +38,8 @@ namespace network {
     UnixSocket(int sock);
     UnixSocket(const char *name);
 
-    virtual const char* getPeerAddress();
-    virtual const char* getPeerEndpoint();
+    const char* getPeerAddress() override;
+    const char* getPeerEndpoint() override;
   };
 
   class UnixListener : public SocketListener {
@@ -47,10 +47,10 @@ namespace network {
     UnixListener(const char *listenaddr, int mode);
     virtual ~UnixListener();
 
-    int getMyPort();
+    int getMyPort() override;
 
   protected:
-    virtual Socket* createSocket(int fd);
+    Socket* createSocket(int fd) override;
   };
 
 }

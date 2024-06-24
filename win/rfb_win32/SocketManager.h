@@ -61,7 +61,7 @@ namespace rfb {
       // VNCServer.
       void addListener(network::SocketListener* sock_,
                        VNCServer* srvr,
-                       AddressChangeNotifier* acn = 0);
+                       AddressChangeNotifier* acn = nullptr);
 
       // Remove and delete a listening socket.
       void remListener(network::SocketListener* sock);
@@ -75,8 +75,8 @@ namespace rfb {
       void setDisable(VNCServer* srvr, bool disable);
 
     protected:
-      virtual int checkTimeouts();
-      virtual void processEvent(HANDLE event);
+      int checkTimeouts() override;
+      void processEvent(HANDLE event) override;
       virtual void remSocket(network::Socket* sock);
 
       struct ConnInfo {

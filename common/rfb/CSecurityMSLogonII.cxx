@@ -44,8 +44,8 @@
 
 using namespace rfb;
 
-CSecurityMSLogonII::CSecurityMSLogonII(CConnection* cc)
-  : CSecurity(cc)
+CSecurityMSLogonII::CSecurityMSLogonII(CConnection* cc_)
+  : CSecurity(cc_)
 {
   mpz_init(g);
   mpz_init(p);

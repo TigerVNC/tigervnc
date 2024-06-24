@@ -35,7 +35,7 @@ using namespace rfb;
 Logger_Syslog::Logger_Syslog(const char* loggerName)
   : Logger(loggerName)
 {
-  openlog(0, LOG_CONS | LOG_PID, LOG_USER);
+  openlog(nullptr, LOG_CONS | LOG_PID, LOG_USER);
 }
 
 Logger_Syslog::~Logger_Syslog()

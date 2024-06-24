@@ -96,7 +96,7 @@ MonitorInfo::MonitorInfo(const char* devName) {
   monitorByNameData data;
   data.info = this;
   data.monitorName = devName;
-  EnumDisplayMonitors(0, 0, &monitorByNameEnumProc, (LPARAM)&data);
+  EnumDisplayMonitors(nullptr, nullptr, &monitorByNameEnumProc, (LPARAM)&data);
 }
 
 void MonitorInfo::moveTo(HWND handle) {
@@ -134,7 +134,7 @@ void MonitorInfo::clipTo(HWND handle) {
   RECT r;
   GetWindowRect(handle, &r);
   clipTo(&r);
-  SetWindowPos(handle, 0, r.left, r.top, r.right-r.left, r.bottom-r.top,
+  SetWindowPos(handle, nullptr, r.left, r.top, r.right-r.left, r.bottom-r.top,
                SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 }
 

@@ -25,7 +25,7 @@ using namespace rfb;
 using namespace win32;
 
 PasswordDialog::PasswordDialog(const RegKey& rk, bool registryInsecure_)
-  : Dialog(GetModuleHandle(0)), regKey(rk), registryInsecure(registryInsecure_) {
+  : Dialog(GetModuleHandle(nullptr)), regKey(rk), registryInsecure(registryInsecure_) {
 }
 
 bool PasswordDialog::showDialog(HWND owner) {
@@ -36,12 +36,12 @@ bool PasswordDialog::onOk() {
   std::string password1(getItemString(IDC_PASSWORD1));
   std::string password2(getItemString(IDC_PASSWORD2));
   if (password1 != password2) {
-    MsgBox(0, "The supplied passwords do not match",
+    MsgBox(nullptr, "The supplied passwords do not match",
            MB_ICONEXCLAMATION | MB_OK);
     return false;
   }
   if (registryInsecure &&
-      (MsgBox(0, "Please note that your password cannot be stored securely on this system.  "
+      (MsgBox(nullptr, "Please note that your password cannot be stored securely on this system.  "
                  "Are you sure you wish to continue?",
               MB_YESNO | MB_ICONWARNING) == IDNO))
     return false;

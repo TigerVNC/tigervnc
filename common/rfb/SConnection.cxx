@@ -23,6 +23,9 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#include <algorithm>
+
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/clipboardTypes.h>
@@ -43,12 +46,12 @@ using namespace rfb;
 
 static LogWriter vlog("SConnection");
 
-SConnection::SConnection(AccessRights accessRights)
-  : readyForSetColourMapEntries(false),
-    is(0), os(0), reader_(0), writer_(0), ssecurity(0),
+SConnection::SConnection(AccessRights accessRights_)
+  : readyForSetColourMapEntries(false), is(nullptr), os(nullptr),
+    reader_(nullptr), writer_(nullptr), ssecurity(nullptr),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-    accessRights(accessRights), hasRemoteClipboard(false),
+    accessRights(accessRights_), hasRemoteClipboard(false),
     hasLocalClipboard(false),
     unsolicitedClipboardAttempt(false)
 {
@@ -206,12 +209,10 @@ void SConnection::processSecurityType(int secType)
 {
   // Verify that the requested security type should be offered
   std::list<uint8_t> secTypes;
-  std::list<uint8_t>::iterator i;
 
   secTypes = security.GetEnabledSecTypes();
-  for (i=secTypes.begin(); i!=secTypes.end(); i++)
-    if (*i == secType) break;
-  if (i == secTypes.end())
+  if (std::find(secTypes.begin(), secTypes.end(),
+                secType) == secTypes.end())
     throw Exception("Requested security type not available");
 
   vlog.info("Client requests security type %s(%d)",
@@ -586,7 +587,7 @@ void SConnection::sendClipboardData(const char* data)
     // FIXME: This conversion magic should be in SMsgWriter
     std::string filtered(convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
-    const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
+    const uint8_t* datas[1] = { (const uint8_t*)filtered.c_str() };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -598,7 +599,7 @@ void SConnection::sendClipboardData(const char* data)
       }
     }
 
-    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
+    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, datas);
   } else {
     writer()->writeServerCutText(data);
   }
@@ -607,11 +608,11 @@ void SConnection::sendClipboardData(const char* data)
 void SConnection::cleanup()
 {
   delete ssecurity;
-  ssecurity = NULL;
+  ssecurity = nullptr;
   delete reader_;
-  reader_ = NULL;
+  reader_ = nullptr;
   delete writer_;
-  writer_ = NULL;
+  writer_ = nullptr;
 }
 
 void SConnection::writeFakeColourMap(void)

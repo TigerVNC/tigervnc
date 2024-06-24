@@ -97,34 +97,32 @@ namespace rfb {
 
     // Note: These must be called by any deriving classes
 
-    virtual void setDesktopSize(int w, int h);
-    virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
-                                        int w, int h,
-                                        const ScreenSet& layout);
+    void setDesktopSize(int w, int h) override;
+    void setExtendedDesktopSize(unsigned reason, unsigned result,
+                                int w, int h,
+                                const ScreenSet& layout) override;
 
-    virtual void endOfContinuousUpdates();
+    void endOfContinuousUpdates() override;
 
-    virtual void serverInit(int width, int height,
-                            const PixelFormat& pf,
-                            const char* name);
+    void serverInit(int width, int height, const PixelFormat& pf,
+                    const char* name) override;
 
-    virtual bool readAndDecodeRect(const Rect& r, int encoding,
-                                   ModifiablePixelBuffer* pb);
+    bool readAndDecodeRect(const Rect& r, int encoding,
+                           ModifiablePixelBuffer* pb) override;
 
-    virtual void framebufferUpdateStart();
-    virtual void framebufferUpdateEnd();
-    virtual bool dataRect(const Rect& r, int encoding);
+    void framebufferUpdateStart() override;
+    void framebufferUpdateEnd() override;
+    bool dataRect(const Rect& r, int encoding) override;
 
-    virtual void serverCutText(const char* str);
+    void serverCutText(const char* str) override;
 
-    virtual void handleClipboardCaps(uint32_t flags,
-                                     const uint32_t* lengths);
-    virtual void handleClipboardRequest(uint32_t flags);
-    virtual void handleClipboardPeek();
-    virtual void handleClipboardNotify(uint32_t flags);
-    virtual void handleClipboardProvide(uint32_t flags,
-                                        const size_t* lengths,
-                                        const uint8_t* const* data);
+    void handleClipboardCaps(uint32_t flags,
+                                     const uint32_t* lengths) override;
+    void handleClipboardRequest(uint32_t flags) override;
+    void handleClipboardPeek() override;
+    void handleClipboardNotify(uint32_t flags) override;
+    void handleClipboardProvide(uint32_t flags, const size_t* lengths,
+                                const uint8_t* const* data) override;
 
 
     // Methods to be overridden in a derived class
@@ -249,7 +247,7 @@ namespace rfb {
     // responds to requests, stating no support for synchronisation.
     // When overriding, call CMsgHandler::fence() directly in order to
     // state correct support for fence flags.
-    virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
+    void fence(uint32_t flags, unsigned len, const uint8_t data[]) override;
 
   private:
     bool processVersionMsg();

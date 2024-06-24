@@ -35,11 +35,11 @@ class Win32TouchHandler: public BaseTouchHandler {
     bool isSinglePan(GESTUREINFO gi);
 
   protected:
-    virtual void fakeMotionEvent(const GestureEvent origEvent);
-    virtual void fakeButtonEvent(bool press, int button,
-                                 const GestureEvent origEvent);
-    virtual void fakeKeyEvent(bool press, int keycode,
-                              const GestureEvent origEvent);
+    void fakeMotionEvent(const GestureEvent origEvent) override;
+    void fakeButtonEvent(bool press, int button,
+                         const GestureEvent origEvent) override;
+    void fakeKeyEvent(bool press, int keycode,
+                      const GestureEvent origEvent) override;
   private:
     void pushFakeEvent(UINT Msg, WPARAM wParam, LPARAM lParam);
 

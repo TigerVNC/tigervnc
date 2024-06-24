@@ -33,7 +33,7 @@ namespace rdr {
     virtual ~TLSInStream();
 
   private:
-    virtual bool fillBuffer();
+    bool fillBuffer() override;
     size_t readTLS(uint8_t* buf, size_t len);
     static ssize_t pull(gnutls_transport_ptr_t str, void* data, size_t size);
 

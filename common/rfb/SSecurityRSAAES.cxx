@@ -70,14 +70,15 @@ BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
  false, ConfServer);
 
-SSecurityRSAAES::SSecurityRSAAES(SConnection* sc, uint32_t _secType,
+SSecurityRSAAES::SSecurityRSAAES(SConnection* sc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
-  : SSecurity(sc), state(SendPublicKey),
+  : SSecurity(sc_), state(SendPublicKey),
     keySize(_keySize), isAllEncrypted(_isAllEncrypted), secType(_secType),
     serverKey(), clientKey(),
-    serverKeyN(NULL), serverKeyE(NULL), clientKeyN(NULL), clientKeyE(NULL),
+    serverKeyN(nullptr), serverKeyE(nullptr),
+    clientKeyN(nullptr), clientKeyE(nullptr),
     accessRights(AccessDefault),
-    rais(NULL), raos(NULL), rawis(NULL), rawos(NULL)
+    rais(nullptr), raos(nullptr), rawis(nullptr), rawos(nullptr)
 {
   assert(keySize == 128 || keySize == 256);
 }
@@ -514,10 +515,10 @@ void SSecurityRSAAES::clearSecrets()
   delete[] serverKeyE;
   delete[] clientKeyN;
   delete[] clientKeyE;
-  serverKeyN = NULL;
-  serverKeyE = NULL;
-  clientKeyN = NULL;
-  clientKeyE = NULL;
+  serverKeyN = nullptr;
+  serverKeyE = nullptr;
+  clientKeyN = nullptr;
+  clientKeyE = nullptr;
   memset(serverRandom, 0, sizeof(serverRandom));
   memset(clientRandom, 0, sizeof(clientRandom));
 }

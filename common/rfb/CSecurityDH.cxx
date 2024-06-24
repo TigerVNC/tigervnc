@@ -47,8 +47,8 @@ using namespace rfb;
 const int MinKeyLength = 128;
 const int MaxKeyLength = 1024;
 
-CSecurityDH::CSecurityDH(CConnection* cc)
-  : CSecurity(cc), keyLength(0)
+CSecurityDH::CSecurityDH(CConnection* cc_)
+  : CSecurity(cc_), keyLength(0)
 {
   mpz_init(g);
   mpz_init(p);

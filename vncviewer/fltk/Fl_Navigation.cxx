@@ -72,7 +72,7 @@ Fl_Widget *Fl_Navigation::value()
       return pages->child(i);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int Fl_Navigation::value(Fl_Widget *newpage)
@@ -145,7 +145,7 @@ void Fl_Navigation::update_labels()
   int i, offset;
 
   labels->clear();
-  labels->resizable(NULL);
+  labels->resizable(nullptr);
 
   if (!pages->children())
     return;

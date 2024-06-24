@@ -88,7 +88,7 @@ static void programUsage() {
 
 static void MsgBoxOrLog(const char* msg, bool isError=false) {
   if (close_console) {
-    MsgBox(0, msg, (isError ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
+    MsgBox(nullptr, msg, (isError ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
   } else {
     if (isError) {
       try {
@@ -116,8 +116,8 @@ static void processParams(int argc, char** argv) {
           if (ancd.showDialog())
             host = ancd.getHostName();
         }
-        if (host != NULL) {
-          HWND hwnd = FindWindow(0, "winvnc::IPC_Interface");
+        if (host != nullptr) {
+          HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
           if (!hwnd)
             throw rdr::Exception("Unable to locate existing VNC Server.");
           COPYDATASTRUCT copyData;
@@ -130,12 +130,12 @@ static void processParams(int argc, char** argv) {
         }
       } else if (strcasecmp(argv[i], "-disconnect") == 0) {
         runServer = false;
-        HWND hwnd = FindWindow(0, "winvnc::IPC_Interface");
+        HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
         if (!hwnd)
           throw rdr::Exception("Unable to locate existing VNC Server.");
         COPYDATASTRUCT copyData;
         copyData.dwData = 2; // *** DisconnectClients
-        copyData.lpData = 0;
+        copyData.lpData = nullptr;
         copyData.cbData = 0;
         printf("Sending disconnect request to VNC Server...\n");
         if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
@@ -250,7 +250,7 @@ int WINAPI WinMain(HINSTANCE /*inst*/, HINSTANCE /*prevInst*/, char* /*cmdLine*/
 	freopen("CONIN$", "rb", stdin);
 	freopen("CONOUT$", "wb", stdout);
 	freopen("CONOUT$", "wb", stderr);
-    setbuf(stderr, 0);
+    setbuf(stderr, nullptr);
 	initStdIOLoggers();
 	initFileLogger("C:\\temp\\WinVNC4.log");
 	logParams.setParam("*:stderr:100");

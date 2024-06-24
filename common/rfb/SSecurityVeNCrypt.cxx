@@ -38,10 +38,11 @@ using namespace std;
 
 static LogWriter vlog("SVeNCrypt");
 
-SSecurityVeNCrypt::SSecurityVeNCrypt(SConnection* sc, SecurityServer *sec)
-  : SSecurity(sc), security(sec)
+SSecurityVeNCrypt::SSecurityVeNCrypt(SConnection* sc_,
+                                     SecurityServer *sec)
+  : SSecurity(sc_), security(sec)
 {
-  ssecurity = NULL;
+  ssecurity = nullptr;
   haveSentVersion = false;
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -51,7 +52,7 @@ SSecurityVeNCrypt::SSecurityVeNCrypt(SConnection* sc, SecurityServer *sec)
   haveChosenType = false;
   chosenType = secTypeVeNCrypt;
   numTypes = 0;
-  subTypes = NULL;
+  subTypes = nullptr;
 }
 
 SSecurityVeNCrypt::~SSecurityVeNCrypt()
@@ -175,14 +176,14 @@ bool SSecurityVeNCrypt::processMsg()
 
 const char* SSecurityVeNCrypt::getUserName() const
 {
-  if (ssecurity == NULL)
-    return NULL;
+  if (ssecurity == nullptr)
+    return nullptr;
   return ssecurity->getUserName();
 }
 
 AccessRights SSecurityVeNCrypt::getAccessRights() const
 {
-  if (ssecurity == NULL)
+  if (ssecurity == nullptr)
     return SSecurity::getAccessRights();
   return ssecurity->getAccessRights();
 }

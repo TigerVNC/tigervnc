@@ -91,21 +91,21 @@ public:
                          const char* rejectMsg=0);
 
   // rfb::SDesktop callbacks
-  virtual void init(rfb::VNCServer* vs);
-  virtual void terminate();
-  virtual void queryConnection(network::Socket* sock,
-                               const char* userName);
-  virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
-  virtual void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
-  virtual unsigned int setScreenLayout(int fb_width, int fb_height,
-                                       const rfb::ScreenSet& layout);
-  virtual void frameTick(uint64_t msc);
-  virtual void handleClipboardRequest();
-  virtual void handleClipboardAnnounce(bool available);
-  virtual void handleClipboardData(const char* data);
+  void init(rfb::VNCServer* vs) override;
+  void terminate() override;
+  void queryConnection(network::Socket* sock,
+                       const char* userName) override;
+  void pointerEvent(const rfb::Point& pos, int buttonMask) override;
+  void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
+  unsigned int setScreenLayout(int fb_width, int fb_height,
+                               const rfb::ScreenSet& layout) override;
+  void frameTick(uint64_t msc) override;
+  void handleClipboardRequest() override;
+  void handleClipboardAnnounce(bool available) override;
+  void handleClipboardData(const char* data) override;
 
   // rfb::PixelBuffer callbacks
-  virtual void grabRegion(const rfb::Region& r);
+  void grabRegion(const rfb::Region& r) override;
 
 protected:
   bool handleListenerEvent(int fd,
@@ -115,7 +115,7 @@ protected:
                          rfb::VNCServer* sockserv,
                          bool read, bool write);
 
-  virtual void handleTimeout(rfb::Timer* t);
+  void handleTimeout(rfb::Timer* t) override;
 
 private:
 

@@ -93,7 +93,7 @@ void SMsgWriter::writeBell()
 
 void SMsgWriter::writeServerCutText(const char* str)
 {
-  if (strchr(str, '\r') != NULL)
+  if (strchr(str, '\r') != nullptr)
     throw Exception("Invalid carriage return in clipboard data");
 
   std::string latin1(utf8ToLatin1(str));
@@ -508,10 +508,9 @@ void SMsgWriter::writeNoDataRects()
 {
   if (!extendedDesktopSizeMsgs.empty()) {
     if (client->supportsEncoding(pseudoEncodingExtendedDesktopSize)) {
-      std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
-      for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
+      for (ExtendedDesktopSizeMsg msg : extendedDesktopSizeMsgs) {
         // FIXME: We can probably skip multiple reasonServer entries
-        writeExtendedDesktopSizeRect(ri->reason, ri->result,
+        writeExtendedDesktopSizeRect(msg.reason, msg.result,
                                      client->width(), client->height(),
                                      client->screenLayout());
       }

@@ -138,7 +138,7 @@ EncodeManager::EncodeManager(SConnection* conn_)
 {
   StatsVector::iterator iter;
 
-  encoders.resize(encoderClassMax, NULL);
+  encoders.resize(encoderClassMax, nullptr);
   activeEncoders.resize(encoderTypeMax, encoderRaw);
 
   encoders[encoderRaw] = new RawEncoder(conn);
@@ -161,12 +161,10 @@ EncodeManager::EncodeManager(SConnection* conn_)
 
 EncodeManager::~EncodeManager()
 {
-  std::vector<Encoder*>::iterator iter;
-
   logStats();
 
-  for (iter = encoders.begin();iter != encoders.end();iter++)
-    delete *iter;
+  for (Encoder* encoder : encoders)
+    delete encoder;
 }
 
 void EncodeManager::logStats()
@@ -332,7 +330,7 @@ void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
      * We need to render the cursor seperately as it has its own
      * magical pixel buffer, so split it out from the changed region.
      */
-    if (renderedCursor != NULL) {
+    if (renderedCursor != nullptr) {
       cursorRegion = changed.intersect(renderedCursor->getEffectiveRect());
       changed.assign_subtract(renderedCursor->getEffectiveRect());
     }

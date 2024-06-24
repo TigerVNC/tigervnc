@@ -42,10 +42,10 @@ protected:
 public:
   static void showDialog(void);
 
-  static void addCallback(OptionsCallback *cb, void *data = NULL);
+  static void addCallback(OptionsCallback *cb, void *data = nullptr);
   static void removeCallback(OptionsCallback *cb);
 
-  void show(void);
+  void show(void) override;
 
 protected:
   void loadOptions(void);

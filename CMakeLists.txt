@@ -10,6 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 include(CheckIncludeFiles)
 include(CheckFunctionExists)
 include(CheckLibraryExists)
+include(CheckVariableExists)
 include(CheckTypeSize)
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
@@ -69,12 +70,16 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
   add_definitions(-D_DEBUG)
 ENDIF()
 
-# Make sure we get a sane C version
+# Make sure we get a sane C and C++ version
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 # Tell the compiler to be stringent
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat=2 -Wvla")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wformat=2 -Wvla")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wzero-as-null-pointer-constant")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
 # Make sure we catch these issues whilst developing
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
@@ -182,6 +187,13 @@ if(ENABLE_H264)
     add_definitions("-DHAVE_H264")
     set(H264_LIBS "WIN")  # may be LIBAV in the future
     set(H264_LIBRARIES ole32 mfplat mfuuid wmcodecdspuuid)
+
+    set(CMAKE_REQUIRED_LIBRARIES ${H264_LIBRARIES})
+    check_variable_exists(CLSID_VideoProcessorMFT HAVE_VIDEO_PROCESSOR_MFT)
+    set(CMAKE_REQUIRED_LIBRARIES)
+    if(HAVE_VIDEO_PROCESSOR_MFT)
+      add_definitions("-DHAVE_VIDEO_PROCESSOR_MFT")
+    endif()
   else()
     find_package(Ffmpeg)
     if (AVCODEC_FOUND AND AVUTIL_FOUND AND SWSCALE_FOUND)

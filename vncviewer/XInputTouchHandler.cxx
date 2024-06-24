@@ -43,8 +43,8 @@ static rfb::LogWriter vlog("XInputTouchHandler");
 
 static bool grabbed = false;
 
-XInputTouchHandler::XInputTouchHandler(Window wnd)
-  : wnd(wnd), fakeStateMask(0)
+XInputTouchHandler::XInputTouchHandler(Window wnd_)
+  : wnd(wnd_), fakeStateMask(0)
 {
   XIEventMask eventmask;
   unsigned char flags[XIMaskLen(XI_LASTEVENT)] = { 0 };
@@ -97,7 +97,7 @@ bool XInputTouchHandler::grabPointer()
 
   // We grab for the same events as the window is currently interested in
   curmasks = XIGetSelectedEvents(fl_display, wnd, &num_masks);
-  if (curmasks == NULL) {
+  if (curmasks == nullptr) {
     if (num_masks == -1)
       vlog.error(_("Unable to get X Input 2 event mask for window 0x%08lx"), wnd);
     else
@@ -314,7 +314,7 @@ void XInputTouchHandler::preparePointerEvent(XEvent* dst, const GestureEvent src
 {
   Window root, child;
   int rootX, rootY;
-  XkbStateRec state;
+  XkbStateRec xkbState;
 
   // We don't have a real event to steal things from, so we'll have
   // to fake these events based on the current state of things
@@ -324,7 +324,7 @@ void XInputTouchHandler::preparePointerEvent(XEvent* dst, const GestureEvent src
                         src.eventX,
                         src.eventY,
                         &rootX, &rootY, &child);
-  XkbGetState(fl_display, XkbUseCoreKbd, &state);
+  XkbGetState(fl_display, XkbUseCoreKbd, &xkbState);
 
   // XButtonEvent and XMotionEvent are almost identical, so we
   // don't have to care which it is for these fields
@@ -338,8 +338,8 @@ void XInputTouchHandler::preparePointerEvent(XEvent* dst, const GestureEvent src
   dst->xbutton.y = src.eventY;
   dst->xbutton.x_root = rootX;
   dst->xbutton.y_root = rootY;
-  dst->xbutton.state = state.mods;
-  dst->xbutton.state |= ((state.ptr_buttons >> 1) & 0x1f) << 8;
+  dst->xbutton.state = xkbState.mods;
+  dst->xbutton.state |= ((xkbState.ptr_buttons >> 1) & 0x1f) << 8;
   dst->xbutton.same_screen = True;
 }
 
@@ -390,7 +390,7 @@ void XInputTouchHandler::fakeKeyEvent(bool press, int keysym,
 
   Window root, child;
   int rootX, rootY;
-  XkbStateRec state;
+  XkbStateRec xkbState;
 
   int modmask;
 
@@ -399,7 +399,7 @@ void XInputTouchHandler::fakeKeyEvent(bool press, int keysym,
                         origEvent.eventX,
                         origEvent.eventY,
                         &rootX, &rootY, &child);
-  XkbGetState(fl_display, XkbUseCoreKbd, &state);
+  XkbGetState(fl_display, XkbUseCoreKbd, &xkbState);
 
   KeyCode kc = XKeysymToKeycode(fl_display, keysym);
 
@@ -418,8 +418,8 @@ void XInputTouchHandler::fakeKeyEvent(bool press, int keysym,
   fakeEvent.xkey.y = origEvent.eventY;
   fakeEvent.xkey.x_root = rootX;
   fakeEvent.xkey.y_root = rootY;
-  fakeEvent.xkey.state = state.mods;
-  fakeEvent.xkey.state |= ((state.ptr_buttons >> 1) & 0x1f) << 8;
+  fakeEvent.xkey.state = xkbState.mods;
+  fakeEvent.xkey.state |= ((xkbState.ptr_buttons >> 1) & 0x1f) << 8;
   fakeEvent.xkey.same_screen = True;
 
   // Apply our fake mask

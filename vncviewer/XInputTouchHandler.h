@@ -39,13 +39,13 @@ class XInputTouchHandler: public BaseTouchHandler, GestureHandler {
                          const XIDeviceEvent* origEvent);
 
     void preparePointerEvent(XEvent* dst, const GestureEvent src);
-    virtual void fakeMotionEvent(const GestureEvent origEvent);
-    virtual void fakeButtonEvent(bool press, int button,
-                                 const GestureEvent origEvent);
-    virtual void fakeKeyEvent(bool press, int keycode,
-                              const GestureEvent origEvent);
+    void fakeMotionEvent(const GestureEvent origEvent) override;
+    void fakeButtonEvent(bool press, int button,
+                         const GestureEvent origEvent) override;
+    void fakeKeyEvent(bool press, int keycode,
+                      const GestureEvent origEvent) override;
 
-    virtual void handleGestureEvent(const GestureEvent& event);
+    void handleGestureEvent(const GestureEvent& event) override;
 
   private:
     void pushFakeEvent(XEvent* event);

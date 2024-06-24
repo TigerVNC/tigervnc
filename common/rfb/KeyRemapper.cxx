@@ -89,7 +89,7 @@ public:
     : StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
     KeyRemapper::defInstance.setMapping("");
   }
-  bool setParam(const char* v) {
+  bool setParam(const char* v) override {
     KeyRemapper::defInstance.setMapping(v);
     return StringParameter::setParam(v);
   }

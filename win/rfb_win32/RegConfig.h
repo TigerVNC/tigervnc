@@ -56,7 +56,7 @@ namespace rfb {
       static void loadRegistryConfig(RegKey& key);
     protected:
       // EventHandler interface and trigger event
-      virtual void processEvent(HANDLE event);
+      void processEvent(HANDLE event) override;
 
       EventManager* eventMgr;
       Handle event;
@@ -72,7 +72,7 @@ namespace rfb {
       // Start the thread, reading from the specified key
       bool start(const HKEY rootkey, const char* keyname);
     protected:
-      virtual void worker();
+      void worker() override;
       EventManager eventMgr;
       RegConfig config;
       DWORD thread_id;

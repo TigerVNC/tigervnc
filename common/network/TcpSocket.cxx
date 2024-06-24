@@ -129,17 +129,17 @@ TcpSocket::TcpSocket(const char *host, int port)
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_canonname = NULL;
-  hints.ai_addr = NULL;
-  hints.ai_next = NULL;
+  hints.ai_canonname = nullptr;
+  hints.ai_addr = nullptr;
+  hints.ai_next = nullptr;
 
-  if ((result = getaddrinfo(host, NULL, &hints, &ai)) != 0) {
+  if ((result = getaddrinfo(host, nullptr, &hints, &ai)) != 0) {
     throw GAIException("unable to resolve host by name", result);
   }
 
   sock = -1;
   err = 0;
-  for (current = ai; current != NULL; current = current->ai_next) {
+  for (current = ai; current != nullptr; current = current->ai_next) {
     int family;
     vnc_sockaddr_t sa;
     socklen_t salen;
@@ -168,7 +168,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     else
       sa.u.sin6.sin6_port = htons(port);
 
-    getnameinfo(&sa.u.sa, salen, ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST);
+    getnameinfo(&sa.u.sa, salen, ntop, sizeof(ntop), nullptr, 0, NI_NUMERICHOST);
     vlog.debug("Connecting to %s [%s] port %d", host, ntop, port);
 
     sock = socket (family, SOCK_STREAM, 0);
@@ -228,7 +228,7 @@ const char* TcpSocket::getPeerAddress() {
     buffer[0] = '[';
 
     ret = getnameinfo(&sa.u.sa, sizeof(sa.u.sin6),
-                      buffer + 1, sizeof(buffer) - 2, NULL, 0,
+                      buffer + 1, sizeof(buffer) - 2, nullptr, 0,
                       NI_NUMERICHOST);
     if (ret != 0) {
       vlog.error("unable to convert peer name to a string");
@@ -244,7 +244,7 @@ const char* TcpSocket::getPeerAddress() {
     char *name;
 
     name = inet_ntoa(sa.u.sin.sin_addr);
-    if (name == NULL) {
+    if (name == nullptr) {
       vlog.error("unable to convert peer name to a string");
       return "(N/A)";
     }
@@ -338,8 +338,8 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   listen(sock);
 }
 
-Socket* TcpListener::createSocket(int fd) {
-  return new TcpSocket(fd);
+Socket* TcpListener::createSocket(int fd_) {
+  return new TcpSocket(fd_);
 }
 
 std::list<std::string> TcpListener::getMyAddresses() {
@@ -352,15 +352,15 @@ std::list<std::string> TcpListener::getMyAddresses() {
   hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_canonname = NULL;
-  hints.ai_addr = NULL;
-  hints.ai_next = NULL;
+  hints.ai_canonname = nullptr;
+  hints.ai_addr = nullptr;
+  hints.ai_next = nullptr;
 
   // Windows doesn't like NULL for service, so specify something
-  if ((getaddrinfo(NULL, "1", &hints, &ai)) != 0)
+  if ((getaddrinfo(nullptr, "1", &hints, &ai)) != 0)
     return result;
 
-  for (current= ai; current != NULL; current = current->ai_next) {
+  for (current= ai; current != nullptr; current = current->ai_next) {
     char addr[INET6_ADDRSTRLEN];
 
     switch (current->ai_family) {
@@ -377,7 +377,7 @@ std::list<std::string> TcpListener::getMyAddresses() {
     }
 
     getnameinfo(current->ai_addr, current->ai_addrlen, addr, INET6_ADDRSTRLEN,
-                NULL, 0, NI_NUMERICHOST);
+                nullptr, 0, NI_NUMERICHOST);
 
     result.push_back(addr);
   }
@@ -417,7 +417,7 @@ void network::createLocalTcpListeners(std::list<SocketListener*> *listeners,
   ai[1].ai_family = sa[1].u.sin6.sin6_family;
   ai[1].ai_addr = &sa[1].u.sa;
   ai[1].ai_addrlen = sizeof(sa[1].u.sin6);
-  ai[1].ai_next = NULL;
+  ai[1].ai_next = nullptr;
 
   createTcpListeners(listeners, ai);
 }
@@ -436,9 +436,9 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
   hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_canonname = NULL;
-  hints.ai_addr = NULL;
-  hints.ai_next = NULL;
+  hints.ai_canonname = nullptr;
+  hints.ai_addr = nullptr;
+  hints.ai_next = nullptr;
 
   snprintf (service, sizeof (service) - 1, "%d", port);
   service[sizeof (service) - 1] = '\0';
@@ -463,7 +463,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
 
   initSockets();
 
-  for (current = ai; current != NULL; current = current->ai_next) {
+  for (current = ai; current != nullptr; current = current->ai_next) {
     switch (current->ai_family) {
     case AF_INET:
       if (!UseIPv4)
@@ -629,7 +629,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
         parts[0].erase(parts.size()-1, 1);
     }
 
-    if ((result = getaddrinfo (parts[0].c_str(), NULL, &hints, &ai)) != 0) {
+    if ((result = getaddrinfo (parts[0].c_str(), nullptr, &hints, &ai)) != 0) {
       throw GAIException("unable to resolve host by name", result);
     }
 
@@ -711,11 +711,11 @@ std::string TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
 
   if (p.address.u.sa.sa_family == AF_INET) {
     getnameinfo(&p.address.u.sa, sizeof(p.address.u.sin),
-                addr, sizeof(addr), NULL, 0, NI_NUMERICHOST);
+                addr, sizeof(addr), nullptr, 0, NI_NUMERICHOST);
   } else if (p.address.u.sa.sa_family == AF_INET6) {
     addr[0] = '[';
     getnameinfo(&p.address.u.sa, sizeof(p.address.u.sin6),
-                addr + 1, sizeof(addr) - 2, NULL, 0, NI_NUMERICHOST);
+                addr + 1, sizeof(addr) - 2, nullptr, 0, NI_NUMERICHOST);
     strcat(addr, "]");
   } else
     addr[0] = '\0';

@@ -26,6 +26,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include <algorithm>
+
 #include <network/Socket.h>
 
 #include <rfb/LogWriter.h>
@@ -80,11 +82,11 @@ static const char * ledNames[XDESKTOP_N_LEDS] = {
 };
 
 XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
-  : dpy(dpy_), geometry(geometry_), pb(0), server(0),
-    queryConnectDialog(0), queryConnectSock(0),
+  : dpy(dpy_), geometry(geometry_), pb(nullptr), server(nullptr),
+    queryConnectDialog(nullptr), queryConnectSock(nullptr),
     oldButtonMask(0), haveXtest(false), haveDamage(false),
     maxButtons(0), running(false), ledMasks(), ledState(0),
-    codeMap(0), codeMapLen(0)
+    codeMap(nullptr), codeMapLen(0)
 {
   int major, minor;
 
@@ -108,7 +110,7 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
     Bool on;
 
     a = XInternAtom(dpy, ledNames[i], True);
-    if (!a || !XkbGetNamedIndicator(dpy, a, &shift, &on, NULL, NULL))
+    if (!a || !XkbGetNamedIndicator(dpy, a, &shift, &on, nullptr, nullptr))
       continue;
 
     ledMasks[i] = 1u << shift;
@@ -283,7 +285,7 @@ void XDesktop::stop() {
 
 #ifdef HAVE_XTEST
   // Delete added keycodes
-  deleteAddedKeysyms(dpy);
+  deleteAddedKeysyms();
 #endif
 
 #ifdef HAVE_XDAMAGE
@@ -292,12 +294,12 @@ void XDesktop::stop() {
 #endif
 
   delete queryConnectDialog;
-  queryConnectDialog = 0;
+  queryConnectDialog = nullptr;
 
-  server->setPixelBuffer(0);
+  server->setPixelBuffer(nullptr);
 
   delete pb;
-  pb = 0;
+  pb = nullptr;
 }
 
 void XDesktop::terminate() {
@@ -316,15 +318,13 @@ void XDesktop::queryConnection(network::Socket* sock,
   // Someone already querying?
   if (queryConnectSock) {
     std::list<network::Socket*> sockets;
-    std::list<network::Socket*>::iterator i;
 
     // Check if this socket is still valid
     server->getSockets(&sockets);
-    for (i = sockets.begin(); i != sockets.end(); i++) {
-      if (*i == queryConnectSock) {
-        server->approveConnection(sock, false, "Another connection is currently being queried.");
-        return;
-      }
+    if (std::find(sockets.begin(), sockets.end(),
+                  queryConnectSock) != sockets.end()) {
+      server->approveConnection(sock, false, "Another connection is currently being queried.");
+      return;
     }
   }
 
@@ -368,7 +368,7 @@ void XDesktop::pointerEvent(const Point& pos, int buttonMask) {
 }
 
 #ifdef HAVE_XTEST
-KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
+KeyCode XDesktop::XkbKeysymToKeycode(KeySym keysym) {
   XkbDescPtr xkb;
   XkbStateRec state;
   unsigned int mods;
@@ -401,12 +401,12 @@ KeyCode XDesktop::XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
   // Shift+Tab is usually ISO_Left_Tab, but RFB hides this fact. Do
   // another attempt if we failed the initial lookup
   if ((keycode == 0) && (keysym == XK_Tab) && (mods & ShiftMask))
-    return XkbKeysymToKeycode(dpy, XK_ISO_Left_Tab);
+    return XkbKeysymToKeycode(XK_ISO_Left_Tab);
 
   return keycode;
 }
 
-KeyCode XDesktop::addKeysym(Display* dpy, KeySym keysym)
+KeyCode XDesktop::addKeysym(KeySym keysym)
 {
   int types[1];
   unsigned int key;
@@ -460,7 +460,7 @@ KeyCode XDesktop::addKeysym(Display* dpy, KeySym keysym)
   return 0;
 }
 
-void XDesktop::deleteAddedKeysyms(Display* dpy) {
+void XDesktop::deleteAddedKeysyms() {
   XkbDescPtr xkb;
   xkb = XkbGetMap(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
 
@@ -476,10 +476,10 @@ void XDesktop::deleteAddedKeysyms(Display* dpy) {
   for (it = addedKeysyms.begin(); it != addedKeysyms.end(); it++) {
     if (XkbKeyNumGroups(xkb, it->second) != 0) {
       // Check if we are removing keysym we added ourself
-      if (XkbKeysymToKeycode(dpy, it->first) != it->second)
+      if (XkbKeysymToKeycode(it->first) != it->second)
         continue;
 
-      XkbChangeTypesOfKey(xkb, it->second, 0, XkbGroup1Mask, NULL, &changes);
+      XkbChangeTypesOfKey(xkb, it->second, 0, XkbGroup1Mask, nullptr, &changes);
 
       if (it->second < lowestKeyCode)
         lowestKeyCode = it->second;
@@ -501,19 +501,19 @@ void XDesktop::deleteAddedKeysyms(Display* dpy) {
   addedKeysyms.clear();
 }
 
-KeyCode XDesktop::keysymToKeycode(Display* dpy, KeySym keysym) {
+KeyCode XDesktop::keysymToKeycode(KeySym keysym) {
   int keycode = 0;
 
   // XKeysymToKeycode() doesn't respect state, so we have to use
   // something slightly more complex
-  keycode = XkbKeysymToKeycode(dpy, keysym);
+  keycode = XkbKeysymToKeycode(keysym);
 
   if (keycode != 0)
     return keycode;
 
   // TODO: try to further guess keycode with all possible mods as Xvnc does
 
-  keycode = addKeysym(dpy, keysym);
+  keycode = addKeysym(keysym);
 
   if (keycode == 0)
     vlog.error("Failure adding new keysym 0x%lx", keysym);
@@ -538,7 +538,7 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
     if (pressedKeys.find(keysym) != pressedKeys.end())
       keycode = pressedKeys[keysym];
     else {
-      keycode = keysymToKeycode(dpy, keysym);
+      keycode = keysymToKeycode(keysym);
     }
   }
 
@@ -931,7 +931,7 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
     if (cev->window == cev->root)
       return false;
 
-    server->setCursor(0, 0, Point(), NULL);
+    server->setCursor(0, 0, Point(), nullptr);
     return true;
 #endif
   }
@@ -942,8 +942,8 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 void XDesktop::queryApproved()
 {
   assert(isRunning());
-  server->approveConnection(queryConnectSock, true, 0);
-  queryConnectSock = 0;
+  server->approveConnection(queryConnectSock, true, nullptr);
+  queryConnectSock = nullptr;
 }
 
 void XDesktop::queryRejected()
@@ -951,7 +951,7 @@ void XDesktop::queryRejected()
   assert(isRunning());
   server->approveConnection(queryConnectSock, false,
                             "Connection rejected by local user");
-  queryConnectSock = 0;
+  queryConnectSock = nullptr;
 }
 
 #ifdef HAVE_XFIXES
@@ -960,7 +960,7 @@ bool XDesktop::setCursor()
   XFixesCursorImage *cim;
 
   cim = XFixesGetCursorImage(dpy);
-  if (cim == NULL)
+  if (cim == nullptr)
     return false;
 
   // Copied from XserverDesktop::setCursor() in

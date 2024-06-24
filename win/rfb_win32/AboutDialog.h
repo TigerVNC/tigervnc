@@ -33,7 +33,7 @@ namespace rfb {
     public:
       AboutDialog();
       virtual bool showDialog();
-      virtual void initDialog();
+      void initDialog() override;
 
       static AboutDialog instance;
 

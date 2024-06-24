@@ -33,7 +33,7 @@ namespace rdr {
     virtual ~AESInStream();
 
   private:
-    virtual bool fillBuffer();
+    bool fillBuffer() override;
 
     int keySize;
     InStream* in;

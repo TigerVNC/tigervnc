@@ -74,11 +74,11 @@ MsgWindowClass::MsgWindowClass() : classAtom(0) {
   wndClass.lpfnWndProc = MsgWindowProc;
   wndClass.cbClsExtra = 0;
   wndClass.cbWndExtra = 0;
-  wndClass.hInstance = instance = GetModuleHandle(0);
-  wndClass.hIcon = 0;
-  wndClass.hCursor = 0;
-  wndClass.hbrBackground = 0;
-  wndClass.lpszMenuName = 0;
+  wndClass.hInstance = instance = GetModuleHandle(nullptr);
+  wndClass.hIcon = nullptr;
+  wndClass.hCursor = nullptr;
+  wndClass.hbrBackground = nullptr;
+  wndClass.lpszMenuName = nullptr;
   wndClass.lpszClassName = "rfb::win32::MsgWindowClass";
   classAtom = RegisterClass(&wndClass);
   if (!classAtom) {
@@ -98,11 +98,11 @@ static MsgWindowClass baseClass;
 // -=- MsgWindow
 //
 
-MsgWindow::MsgWindow(const char* name_) : name(name_), handle(0) {
+MsgWindow::MsgWindow(const char* name_) : name(name_), handle(nullptr) {
   vlog.debug("creating window \"%s\"", name.c_str());
   handle = CreateWindow((const char*)(intptr_t)baseClass.classAtom,
-                        name.c_str(), WS_OVERLAPPED, 0, 0, 10, 10, 0, 0,
-                        baseClass.instance, this);
+                        name.c_str(), WS_OVERLAPPED, 0, 0, 10, 10,
+                        nullptr, nullptr, baseClass.instance, this);
   if (!handle) {
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }

@@ -48,7 +48,7 @@ static LogWriter plog("PropSheet");
 
 
 Dialog::Dialog(HINSTANCE inst_)
-: inst(inst_), handle(0), alreadyShowing(false)
+: inst(inst_), handle(nullptr), alreadyShowing(false)
 {
 }
 
@@ -60,7 +60,7 @@ Dialog::~Dialog()
 bool Dialog::showDialog(const char* resource, HWND owner)
 {
   if (alreadyShowing) return false;
-  handle = 0;
+  handle = nullptr;
   alreadyShowing = true;
   INT_PTR result = DialogBoxParam(inst, resource, owner,
                                   staticDialogProc, (LPARAM)this);
@@ -151,14 +151,14 @@ BOOL Dialog::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-PropSheetPage::PropSheetPage(HINSTANCE inst, const char* id) : Dialog(inst), propSheet(0) {
+PropSheetPage::PropSheetPage(HINSTANCE inst_, const char* id) : Dialog(inst_), propSheet(nullptr) {
   page.dwSize = sizeof(page);
   page.dwFlags = 0; // PSP_USECALLBACK;
   page.hInstance = inst;
   page.pszTemplate = id;
   page.pfnDlgProc = staticPageProc;
   page.lParam = (LPARAM)this;
-  page.pfnCallback = 0; // staticPageProc;
+  page.pfnCallback = nullptr; // staticPageProc;
 }
 
 PropSheetPage::~PropSheetPage() {
@@ -207,7 +207,7 @@ BOOL PropSheetPage::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 
 PropSheet::PropSheet(HINSTANCE inst_, const char* title_, std::list<PropSheetPage*> pages_, HICON icon_)
-: icon(icon_), pages(pages_), inst(inst_), title(title_), handle(0), alreadyShowing(0) {
+: icon(icon_), pages(pages_), inst(inst_), title(title_), handle(nullptr), alreadyShowing(0) {
 }
 
 PropSheet::~PropSheet() {
@@ -241,7 +241,7 @@ static int CALLBACK removeCtxtHelp(HWND /*hwnd*/, UINT message, LPARAM lParam) {
 }
 
 
-bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, bool capture) {
+bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bool capture) {
   if (alreadyShowing) return false;
   alreadyShowing = true;
   int count = pages.size();
@@ -262,7 +262,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     header.dwSize = sizeof(PROPSHEETHEADER); // Requires comctl32.dll 4.71 or greater, ie IE 4 or later
     header.dwFlags = PSH_MODELESS | (showApply ? 0 : PSH_NOAPPLYNOW) | (showCtxtHelp ? 0 : PSH_USECALLBACK);
     header.pfnCallback = removeCtxtHelp;
-    header.hwndParent = owner;
+    header.hwndParent = owner_;
     header.hInstance = inst;
     header.pszCaption = title.c_str();
     header.nPages = count;
@@ -274,9 +274,9 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     }
 
     handle = (HWND)PropertySheet(&header);
-    if ((handle == 0) || (handle == (HWND)-1))
+    if ((handle == nullptr) || (handle == (HWND)-1))
       throw rdr::SystemException("PropertySheet failed", GetLastError());
-    centerWindow(handle, owner);
+    centerWindow(handle, owner_);
     plog.info("created %p", handle);
 
     (void)capture;
@@ -314,21 +314,21 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     } else {
 #endif
       try {
-        if (owner)
-          EnableWindow(owner, FALSE);
+        if (owner_)
+          EnableWindow(owner_, FALSE);
         // Run the PropertySheet
         MSG msg;
-        while (GetMessage(&msg, 0, 0, 0)) {
+        while (GetMessage(&msg, nullptr, 0, 0)) {
           if (!PropSheet_IsDialogMessage(handle, &msg))
             DispatchMessage(&msg);
           if (!PropSheet_GetCurrentPageHwnd(handle))
             break;
         }
-        if (owner)
-          EnableWindow(owner, TRUE);
+        if (owner_)
+          EnableWindow(owner_, TRUE);
       } catch (...) {
-        if (owner)
-          EnableWindow(owner, TRUE);
+        if (owner_)
+          EnableWindow(owner_, TRUE);
         throw;
       }
 #ifdef _DIALOG_CAPTURE
@@ -338,13 +338,13 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     plog.info("finished %p", handle);
 
     DestroyWindow(handle);
-    handle = 0;
+    handle = nullptr;
     alreadyShowing = false;
 
     // Clear up the pages' GDI objects
     for (pspi=pages.begin(); pspi!=pages.end(); pspi++)
-      (*pspi)->setPropSheet(0);
-    delete [] hpages; hpages = 0;
+      (*pspi)->setPropSheet(nullptr);
+    delete [] hpages; hpages = nullptr;
 
     return true;
   } catch (rdr::Exception&) {
@@ -352,8 +352,8 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
 
     std::list<PropSheetPage*>::iterator pspi;
     for (pspi=pages.begin(); pspi!=pages.end(); pspi++)
-      (*pspi)->setPropSheet(0);
-    delete [] hpages; hpages = 0;
+      (*pspi)->setPropSheet(nullptr);
+    delete [] hpages; hpages = nullptr;
 
     throw;
   }

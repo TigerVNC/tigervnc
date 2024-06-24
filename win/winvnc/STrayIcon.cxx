@@ -80,13 +80,13 @@ public:
     SetWindowText(getHandle(), "winvnc::IPC_Interface");
     // ***
 
-    SetTimer(getHandle(), 1, 3000, 0);
+    SetTimer(getHandle(), 1, 3000, nullptr);
     PostMessage(getHandle(), WM_TIMER, 1, 0);
     PostMessage(getHandle(), WM_SET_TOOLTIP, 0, 0);
     CPanel = new ControlPanel(getHandle());
   }
 
-  virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
+  LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) override {
     switch(msg) {
 
     case WM_USER:
@@ -100,7 +100,7 @@ public:
           SendMessage(getHandle(), WM_COMMAND, ID_CONTR0L_PANEL, 0);
           break;
         case WM_RBUTTONUP:
-          HMENU menu = LoadMenu(GetModuleHandle(0), MAKEINTRESOURCE(thread.menu));
+          HMENU menu = LoadMenu(GetModuleHandle(nullptr), MAKEINTRESOURCE(thread.menu));
           HMENU trayMenu = GetSubMenu(menu, 0);
 
 
@@ -123,7 +123,7 @@ public:
           // Display the menu
           POINT pos;
           GetCursorPos(&pos);
-          TrackPopupMenu(trayMenu, 0, pos.x, pos.y, 0, getHandle(), 0);
+          TrackPopupMenu(trayMenu, 0, pos.x, pos.y, 0, getHandle(), nullptr);
 
           break;
 		} 
@@ -154,13 +154,13 @@ public:
         thread.server.disconnectClients("tray menu disconnect");
         break;
       case ID_CLOSE:
-        if (MsgBox(0, "Are you sure you want to close the server?",
+        if (MsgBox(nullptr, "Are you sure you want to close the server?",
                    MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2) == IDYES) {
           if (isServiceProcess()) {
             try {
               rfb::win32::stopService(VNCServerService::Name);
             } catch (rdr::Exception& e) {
-              MsgBox(0, e.str(), MB_ICONERROR | MB_OK);
+              MsgBox(nullptr, e.str(), MB_ICONERROR | MB_OK);
             }
           } else {
             thread.server.stop();
@@ -239,7 +239,7 @@ protected:
 
 STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT activeIcon_, 
                                  UINT dis_inactiveIcon_, UINT dis_activeIcon_, UINT menu_)
-: thread_id(-1), windowHandle(0), server(sm),
+: thread_id(-1), windowHandle(nullptr), server(sm),
   inactiveIcon(inactiveIcon_), activeIcon(activeIcon_),
   dis_inactiveIcon(dis_inactiveIcon_), dis_activeIcon(dis_activeIcon_),
   menu(menu_), runTrayIcon(true) {
@@ -266,12 +266,12 @@ void STrayIconThread::worker() {
     windowHandle = icon.getHandle();
 
     MSG msg;
-    while (runTrayIcon && ::GetMessage(&msg, 0, 0, 0) > 0) {
+    while (runTrayIcon && ::GetMessage(&msg, nullptr, 0, 0) > 0) {
       TranslateMessage(&msg);
       DispatchMessage(&msg);
     }
 
-    windowHandle = 0;
+    windowHandle = nullptr;
   }
 }
 

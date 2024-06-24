@@ -45,9 +45,11 @@ RandomStream::RandomStream()
 {
 #ifdef RFB_HAVE_WINCRYPT
   provider = 0;
-  if (!CryptAcquireContext(&provider, 0, 0, PROV_RSA_FULL, 0)) {
+  if (!CryptAcquireContext(&provider, nullptr, nullptr,
+                           PROV_RSA_FULL, 0)) {
     if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
-      if (!CryptAcquireContext(&provider, 0, 0, PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
+      if (!CryptAcquireContext(&provider, nullptr, nullptr,
+                               PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
         vlog.error("unable to create keyset");
         provider = 0;
       }
@@ -68,7 +70,7 @@ RandomStream::RandomStream()
 #endif
 #endif
     vlog.error("no OS supplied random source - using rand()");
-    seed += (unsigned int) time(0) + getpid() + getpid() * 987654 + rand();
+    seed += (unsigned int) time(nullptr) + getpid() + getpid() * 987654 + rand();
     srand(seed);
   }
 }

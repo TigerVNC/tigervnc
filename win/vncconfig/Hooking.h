@@ -31,15 +31,15 @@ namespace rfb {
     class HookingPage : public PropSheetPage {
     public:
       HookingPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_HOOKING)), regKey(rk) {}
-      void initDialog() {
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_HOOKING)), regKey(rk) {}
+      void initDialog() override {
         setItemChecked(IDC_USEPOLLING, rfb::win32::SDisplay::updateMethod == 0);
         setItemChecked(IDC_USEHOOKS, (rfb::win32::SDisplay::updateMethod == 1));
         setItemChecked(IDC_POLLCONSOLES, rfb::win32::WMPoller::poll_console_windows);
         setItemChecked(IDC_CAPTUREBLT, rfb::win32::DeviceFrameBuffer::useCaptureBlt);
         onCommand(IDC_USEHOOKS, 0);
       }
-      bool onCommand(int id, int /*cmd*/) {
+      bool onCommand(int id, int /*cmd*/) override {
         switch (id) {
         case IDC_USEPOLLING:
         case IDC_USEHOOKS:
@@ -54,7 +54,7 @@ namespace rfb {
         }
         return false;
       }
-      bool onOk() {
+      bool onOk() override {
         if (isItemChecked(IDC_USEPOLLING))
           regKey.setInt("UpdateMethod", 0);
         if (isItemChecked(IDC_USEHOOKS))

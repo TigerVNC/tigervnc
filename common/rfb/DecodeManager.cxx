@@ -40,8 +40,8 @@ using namespace rfb;
 
 static LogWriter vlog("DecodeManager");
 
-DecodeManager::DecodeManager(CConnection *conn) :
-  conn(conn), threadException(NULL)
+DecodeManager::DecodeManager(CConnection *conn_) :
+  conn(conn_), threadException(nullptr)
 {
   size_t cpuCount;
 
@@ -97,8 +97,8 @@ DecodeManager::~DecodeManager()
   delete producerCond;
   delete queueMutex;
 
-  for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
-    delete decoders[i];
+  for (Decoder* decoder : decoders)
+    delete decoder;
 }
 
 bool DecodeManager::decodeRect(const Rect& r, int encoding,
@@ -110,7 +110,7 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
 
   QueueEntry *entry;
 
-  assert(pb != NULL);
+  assert(pb != nullptr);
 
   if (!Decoder::supported(encoding)) {
     vlog.error("Unknown encoding %d", encoding);
@@ -247,7 +247,7 @@ void DecodeManager::setThreadException(const rdr::Exception& e)
 {
   os::AutoMutex a(queueMutex);
 
-  if (threadException != NULL)
+  if (threadException != nullptr)
     return;
 
   threadException = new rdr::Exception("Exception on worker thread: %s", e.str());
@@ -257,23 +257,20 @@ void DecodeManager::throwThreadException()
 {
   os::AutoMutex a(queueMutex);
 
-  if (threadException == NULL)
+  if (threadException == nullptr)
     return;
 
   rdr::Exception e(*threadException);
 
   delete threadException;
-  threadException = NULL;
+  threadException = nullptr;
 
   throw e;
 }
 
-DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager)
+DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager_)
+  : manager(manager_), stopRequested(false)
 {
-  this->manager = manager;
-
-  stopRequested = false;
-
   start();
 }
 
@@ -305,7 +302,7 @@ void DecodeManager::DecodeThread::worker()
 
     // Look for an available entry in the work queue
     entry = findEntry();
-    if (entry == NULL) {
+    if (entry == nullptr) {
       // Wait and try again
       manager->consumerCond->wait();
       continue;
@@ -347,24 +344,15 @@ void DecodeManager::DecodeThread::worker()
 
 DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
 {
-  std::list<DecodeManager::QueueEntry*>::iterator iter;
   Region lockedRegion;
 
   if (manager->workQueue.empty())
-    return NULL;
+    return nullptr;
 
   if (!manager->workQueue.front()->active)
     return manager->workQueue.front();
 
-  for (iter = manager->workQueue.begin();
-       iter != manager->workQueue.end();
-       ++iter) {
-    DecodeManager::QueueEntry* entry;
-
-    std::list<DecodeManager::QueueEntry*>::iterator iter2;
-
-    entry = *iter;
-
+  for (DecodeManager::QueueEntry* entry : manager->workQueue) {
     // Another thread working on this?
     if (entry->active)
       goto next;
@@ -372,8 +360,10 @@ DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
     // If this is an ordered decoder then make sure this is the first
     // rectangle in the queue for that decoder
     if (entry->decoder->flags & DecoderOrdered) {
-      for (iter2 = manager->workQueue.begin(); iter2 != iter; ++iter2) {
-        if (entry->encoding == (*iter2)->encoding)
+      for (DecodeManager::QueueEntry* entry2 : manager->workQueue) {
+        if (entry2 == entry)
+          break;
+        if (entry->encoding == entry2->encoding)
           goto next;
       }
     }
@@ -381,15 +371,17 @@ DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
     // For a partially ordered decoder we must ask the decoder for each
     // pair of rectangles.
     if (entry->decoder->flags & DecoderPartiallyOrdered) {
-      for (iter2 = manager->workQueue.begin(); iter2 != iter; ++iter2) {
-        if (entry->encoding != (*iter2)->encoding)
+      for (DecodeManager::QueueEntry* entry2 : manager->workQueue) {
+        if (entry2 == entry)
+          break;
+        if (entry->encoding != entry2->encoding)
           continue;
         if (entry->decoder->doRectsConflict(entry->rect,
                                             entry->bufferStream->data(),
                                             entry->bufferStream->length(),
-                                            (*iter2)->rect,
-                                            (*iter2)->bufferStream->data(),
-                                            (*iter2)->bufferStream->length(),
+                                            entry2->rect,
+                                            entry2->bufferStream->data(),
+                                            entry2->bufferStream->length(),
                                             *entry->server))
           goto next;
       }
@@ -405,5 +397,5 @@ next:
     lockedRegion.assign_union(entry->affectedRegion);
   }
 
-  return NULL;
+  return nullptr;
 }

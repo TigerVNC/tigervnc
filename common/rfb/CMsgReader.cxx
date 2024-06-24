@@ -385,7 +385,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
     }
 
     zis.flushUnderlying();
-    zis.setUnderlying(NULL, 0);
+    zis.setUnderlying(nullptr, 0);
 
     handler->handleClipboardProvide(flags, lengths, buffers);
 
@@ -827,31 +827,31 @@ bool CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
 
 bool CMsgReader::readLEDState()
 {
-  uint8_t state;
+  uint8_t ledState;
 
   if (!is->hasData(1))
     return false;
 
-  state = is->readU8();
+  ledState = is->readU8();
 
-  handler->setLEDState(state);
+  handler->setLEDState(ledState);
 
   return true;
 }
 
 bool CMsgReader::readVMwareLEDState()
 {
-  uint32_t state;
+  uint32_t ledState;
 
   if (!is->hasData(4))
     return false;
 
-  state = is->readU32();
+  ledState = is->readU32();
 
   // As luck has it, this extension uses the same bit definitions,
   // so no conversion required
 
-  handler->setLEDState(state);
+  handler->setLEDState(ledState);
 
   return true;
 }

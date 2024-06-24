@@ -39,9 +39,9 @@ public:
   virtual void disableX509Dialogs(void) = 0;
   virtual void loadVncPasswd(void) = 0;
 
-  virtual void initDialog();
-  virtual bool onCommand(int id, int cmd);
-  virtual bool onOk();
+  void initDialog() override;
+  bool onCommand(int id, int cmd) override;
+  bool onOk() override;
 
 protected:
   Security *security;

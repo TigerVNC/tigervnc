@@ -39,9 +39,9 @@ namespace rfb {
     CSecurityRSAAES(CConnection* cc, uint32_t secType,
                     int keySize, bool isAllEncrypted);
     virtual ~CSecurityRSAAES();
-    virtual bool processMsg();
-    virtual int getType() const { return secType; }
-    virtual bool isSecure() const { return secType == secTypeRA256; }
+    bool processMsg() override;
+    int getType() const override { return secType; }
+    bool isSecure() const override { return secType == secTypeRA256; }
 
     static IntParameter RSAKeyLength;
 

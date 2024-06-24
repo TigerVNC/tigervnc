@@ -39,7 +39,7 @@ FileInStream::FileInStream(const char *fileName)
 FileInStream::~FileInStream(void) {
   if (file) {
     fclose(file);
-    file = NULL;
+    file = nullptr;
   }
 }
 

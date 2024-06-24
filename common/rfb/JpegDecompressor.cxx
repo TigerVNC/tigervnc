@@ -159,9 +159,9 @@ void JpegDecompressor::decompress(const uint8_t *jpegBuf,
   int h = r.height();
   int pixelsize;
   int dstBufStride;
-  uint8_t * volatile dstBuf = NULL;
+  uint8_t * volatile dstBuf = nullptr;
   volatile bool dstBufIsTemp = false;
-  JSAMPROW * volatile rowPointer = NULL;
+  JSAMPROW * volatile rowPointer = nullptr;
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error

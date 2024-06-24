@@ -25,9 +25,9 @@
 
 using namespace rfb;
 
-CSecurityStack::CSecurityStack(CConnection* cc, int Type,
+CSecurityStack::CSecurityStack(CConnection* cc_, int Type,
                                CSecurity* s0, CSecurity* s1)
-  : CSecurity(cc), type(Type)
+  : CSecurity(cc_), type(Type)
 {
   state = 0;
   state0 = s0;

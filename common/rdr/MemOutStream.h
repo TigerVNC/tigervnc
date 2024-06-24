@@ -41,7 +41,7 @@ namespace rdr {
       delete [] start;
     }
 
-    size_t length() { return ptr - start; }
+    size_t length() override { return ptr - start; }
     void clear() { ptr = start; };
     void clearAndZero() { memset(start, 0, ptr-start); clear(); }
     void reposition(size_t pos) { ptr = start + pos; }
@@ -55,7 +55,7 @@ namespace rdr {
     // overrun() either doubles the buffer or adds enough space for
     // needed bytes.
 
-    virtual void overrun(size_t needed) {
+    void overrun(size_t needed) override {
       size_t len = ptr - start + needed;
       if (len < (size_t)(end - start) * 2)
         len = (end - start) * 2;

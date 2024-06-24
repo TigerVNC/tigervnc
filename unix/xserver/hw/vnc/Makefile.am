@@ -14,6 +14,8 @@ AM_CPPFLAGS = \
 	-I$(TIGERVNC_SRCDIR)/unix/common \
 	$(DIX_CFLAGS)
 
+AM_CXXFLAGS = -std=gnu++11
+
 noinst_LTLIBRARIES = libvnccommon.la
 
 HDRS = vncExtInit.h vncHooks.h \

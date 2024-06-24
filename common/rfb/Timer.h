@@ -124,7 +124,7 @@ namespace rfb {
     MethodTimer(T* obj_, void (T::*cb_)(Timer*))
       : Timer(this), obj(obj_), cb(cb_) {}
 
-    virtual void handleTimeout(Timer* t) { (obj->*cb)(t); }
+    void handleTimeout(Timer* t) override { return (obj->*cb)(t); }
 
   private:
     T* obj;

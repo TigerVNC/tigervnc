@@ -41,10 +41,10 @@ namespace rdr {
 
     unsigned getIdleTime();
 
-    virtual void cork(bool enable);
+    void cork(bool enable) override;
 
   private:
-    virtual bool flushBuffer();
+    bool flushBuffer() override;
     size_t writeFd(const uint8_t* data, size_t length);
     int fd;
     struct timeval lastWrite;

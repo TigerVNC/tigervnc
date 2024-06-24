@@ -38,7 +38,7 @@ namespace rfb {
 
     class WMPoller {
     public:
-      WMPoller() : ut(0) {}
+      WMPoller() : ut(nullptr) {}
 
       bool processEvent();
       bool setUpdateTracker(UpdateTracker* ut);

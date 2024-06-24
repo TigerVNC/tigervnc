@@ -29,9 +29,9 @@ namespace rfb {
 
   class CSecurityNone : public CSecurity {
   public:
-    CSecurityNone(CConnection* cc) : CSecurity(cc) {}
-    virtual bool processMsg() { return true; }
-    virtual int getType() const {return secTypeNone;}
+    CSecurityNone(CConnection* cc_) : CSecurity(cc_) {}
+    bool processMsg() override { return true; }
+    int getType() const override {return secTypeNone;}
   };
 }
 #endif

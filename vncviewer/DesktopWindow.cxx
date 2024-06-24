@@ -81,18 +81,18 @@ static std::set<DesktopWindow *> instances;
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), offscreen(NULL), overlay(NULL),
+  : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
     firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false),
     keyboardGrabbed(false), mouseGrabbed(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
-    statsGraph(NULL)
+    statsGraph(nullptr)
 {
   Fl_Group* group;
 
   // Dummy group to prevent FLTK from moving our widgets around
   group = new Fl_Group(0, 0, w, h);
-  group->resizable(NULL);
+  group->resizable(nullptr);
   resizable(group);
 
   viewport = new Viewport(w, h, serverPF, cc);
@@ -342,9 +342,9 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
   XGetWindowProperty(fl_display, fl_xid(this), net_wm_state, 0, 1024, False, XA_ATOM, &type, &format, &nitems, &remain, (unsigned char**)&atoms);
 
-  for (unsigned long i = 0;i < nitems;i++) {
-    if ((atoms[i] == net_wm_state_maximized_vert) ||
-        (atoms[i] == net_wm_state_maximized_horz)) {
+  for (unsigned long n = 0;n < nitems;n++) {
+    if ((atoms[n] == net_wm_state_maximized_vert) ||
+        (atoms[n] == net_wm_state_maximized_horz)) {
       maximized = true;
       break;
     }
@@ -438,7 +438,7 @@ void DesktopWindow::draw()
 #if !defined(__APPLE__)
 
   // Adjust offscreen surface dimensions
-  if ((offscreen == NULL) ||
+  if ((offscreen == nullptr) ||
       (offscreen->width() != w()) || (offscreen->height() != h())) {
     delete offscreen;
     offscreen = new Surface(w(), h());
@@ -513,8 +513,8 @@ void DesktopWindow::draw()
       windowRect.setXYWH(x(), y(), w(), h());
 
       bool foundEnclosedScreen = false;
-      for (int i = 0; i < Fl::screen_count(); i++) {
-        Fl::screen_xywh(sx, sy, sw, sh, i);
+      for (int idx = 0; idx < Fl::screen_count(); idx++) {
+        Fl::screen_xywh(sx, sy, sw, sh, idx);
 
         // The screen with the smallest index that are enclosed by
         // the viewport will be used for showing the overlay.
@@ -632,10 +632,10 @@ void DesktopWindow::resize(int x, int y, int w, int h)
     }
 
     if (resize_req) {
-      for (int i = 0;i < Fl::screen_count();i++) {
+      for (int idx = 0;idx < Fl::screen_count();idx++) {
         int sx, sy, sw, sh;
 
-        Fl::screen_xywh(sx, sy, sw, sh, i);
+        Fl::screen_xywh(sx, sy, sw, sh, idx);
 
         // We can't trust x and y if the window isn't mapped as the
         // window manager might adjust those numbers
@@ -786,7 +786,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   overlay = new Surface(image);
   overlayAlpha = 0;
-  gettimeofday(&overlayStart, NULL);
+  gettimeofday(&overlayStart, nullptr);
 
   delete image;
   delete [] buffer;
@@ -814,7 +814,7 @@ void DesktopWindow::updateOverlay(void *data)
     Fl::add_timeout(1.0/60, updateOverlay, self);
   } else {
     delete self->overlay;
-    self->overlay = NULL;
+    self->overlay = nullptr;
   }
 
   self->damage(FL_DAMAGE_USER1);
@@ -891,7 +891,7 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
   // FLTK keeps spamming bogus FL_MOVE events if _any_ X event is
   // received with the mouse pointer outside our windows
   // https://github.com/fltk/fltk/issues/76
-  if ((event == FL_MOVE) && (win == NULL))
+  if ((event == FL_MOVE) && (win == nullptr))
     return 0;
 
   ret = Fl::handle_(event, win);
@@ -977,9 +977,8 @@ void DesktopWindow::fullscreen_on()
       std::set<int> selected = fullScreenSelectedMonitors.getParam();
       monitors.insert(selected.begin(), selected.end());
     } else {
-      for (int i = 0; i < Fl::screen_count(); i++) {
-        monitors.insert(i);
-      }
+      for (int idx = 0; idx < Fl::screen_count(); idx++)
+        monitors.insert(idx);
     }
 
     // If no monitors were found in the selected monitors case, we want
@@ -1332,7 +1331,6 @@ void DesktopWindow::remoteResize(int width, int height)
     layout.begin()->dimensions.br.x = width;
     layout.begin()->dimensions.br.y = height;
   } else {
-    int i;
     uint32_t id;
     int sx, sy, sw, sh;
     rfb::Rect viewport_rect, screen_rect;
@@ -1348,8 +1346,8 @@ void DesktopWindow::remoteResize(int width, int height)
     // FIXME: We should really track screens better so we can handle
     //        a resized one.
     //
-    for (i = 0;i < Fl::screen_count();i++) {
-      Fl::screen_xywh(sx, sy, sw, sh, i);
+    for (int idx = 0;idx < Fl::screen_count();idx++) {
+      Fl::screen_xywh(sx, sy, sw, sh, idx);
 
       // Check that the screen is fully inside the framebuffer
       screen_rect.setXYWH(sx, sy, sw, sh);
@@ -1658,7 +1656,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
   self->stats[statsCount-1].pps = (pixels - self->statsLastPixels) * 1000 / elapsed;
   self->stats[statsCount-1].bps = (pos - self->statsLastPosition) * 1000 / elapsed;
 
-  gettimeofday(&self->statsLastTime, NULL);
+  gettimeofday(&self->statsLastTime, nullptr);
   self->statsLastUpdates = updates;
   self->statsLastPixels = pixels;
   self->statsLastPosition = pos;

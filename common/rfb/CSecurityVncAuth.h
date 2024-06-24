@@ -25,10 +25,10 @@ namespace rfb {
 
   class CSecurityVncAuth : public CSecurity {
   public:
-    CSecurityVncAuth(CConnection* cc) : CSecurity(cc) {}
+    CSecurityVncAuth(CConnection* cc_) : CSecurity(cc_) {}
     virtual ~CSecurityVncAuth() {}
-    virtual bool processMsg();
-    virtual int getType() const {return secTypeVncAuth;};
+    bool processMsg() override;
+    int getType() const override {return secTypeVncAuth;};
   };
 }
 #endif

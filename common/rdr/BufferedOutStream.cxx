@@ -31,12 +31,12 @@ using namespace rdr;
 static const size_t DEFAULT_BUF_SIZE = 16384;
 static const size_t MAX_BUF_SIZE = 32 * 1024 * 1024;
 
-BufferedOutStream::BufferedOutStream(bool emulateCork)
-  : bufSize(DEFAULT_BUF_SIZE), offset(0), emulateCork(emulateCork)
+BufferedOutStream::BufferedOutStream(bool emulateCork_)
+  : bufSize(DEFAULT_BUF_SIZE), offset(0), emulateCork(emulateCork_)
 {
   ptr = start = sentUpTo = new uint8_t[bufSize];
   end = start + bufSize;
-  gettimeofday(&lastSizeCheck, NULL);
+  gettimeofday(&lastSizeCheck, nullptr);
   peakUsage = 0;
 }
 
@@ -75,7 +75,7 @@ void BufferedOutStream::flush()
     ptr = sentUpTo = start;
 
   // Time to shrink an excessive buffer?
-  gettimeofday(&now, NULL);
+  gettimeofday(&now, nullptr);
   if ((sentUpTo == ptr) && (bufSize > DEFAULT_BUF_SIZE) &&
       ((now.tv_sec < lastSizeCheck.tv_sec) ||
        (now.tv_sec > (lastSizeCheck.tv_sec + 5)))) {
@@ -93,7 +93,7 @@ void BufferedOutStream::flush()
       bufSize = newSize;
     }
 
-    gettimeofday(&lastSizeCheck, NULL);
+    gettimeofday(&lastSizeCheck, nullptr);
     peakUsage = 0;
   }
 }
@@ -156,7 +156,7 @@ void BufferedOutStream::overrun(size_t needed)
   sentUpTo = start = newBuffer;
   end = newBuffer + newSize;
 
-  gettimeofday(&lastSizeCheck, NULL);
+  gettimeofday(&lastSizeCheck, nullptr);
   peakUsage = totalNeeded;
 
   return;

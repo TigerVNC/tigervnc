@@ -39,7 +39,7 @@ static LogWriter vlog("Clipboard");
 //
 
 Clipboard::Clipboard()
-  : MsgWindow("Clipboard"), notifier(0), next_window(0) {
+  : MsgWindow("Clipboard"), notifier(nullptr), next_window(nullptr) {
   next_window = SetClipboardViewer(getHandle());
   vlog.debug("registered clipboard handler");
 }
@@ -58,7 +58,7 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
                (long long)wParam, (long long)lParam);
     if ((HWND) wParam == next_window)
       next_window = (HWND) lParam;
-    else if (next_window != 0)
+    else if (next_window != nullptr)
       SendMessage(next_window, msg, wParam, lParam);
     else
       vlog.error("bad clipboard chain change!");
@@ -72,7 +72,7 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       } else {
         vlog.debug("local clipboard changed by %p", owner);
 
-        if (notifier == NULL)
+        if (notifier == nullptr)
           vlog.debug("no clipboard notifier registered");
         else
           notifier->notifyClipboardChanged(IsClipboardFormatAvailable(CF_UNICODETEXT));
@@ -94,19 +94,19 @@ Clipboard::getClipText() {
 
   // Open the clipboard
   if (!OpenClipboard(getHandle()))
-    return NULL;
+    return nullptr;
 
   // Get the clipboard data
   cliphandle = GetClipboardData(CF_UNICODETEXT);
   if (!cliphandle) {
     CloseClipboard();
-    return NULL;
+    return nullptr;
   }
 
   clipdata = (wchar_t*) GlobalLock(cliphandle);
   if (!clipdata) {
     CloseClipboard();
-    return NULL;
+    return nullptr;
   }
 
   // Convert it to UTF-8
@@ -121,7 +121,7 @@ Clipboard::getClipText() {
 
 void
 Clipboard::setClipText(const char* text) {
-  HANDLE clip_handle = 0;
+  HANDLE clip_handle = nullptr;
 
   try {
 
@@ -147,7 +147,7 @@ Clipboard::setClipText(const char* text) {
     // - Set the new clipboard data
     if (!SetClipboardData(CF_UNICODETEXT, clip_handle))
       throw rdr::SystemException("unable to set Win32 clipboard", GetLastError());
-    clip_handle = 0;
+    clip_handle = nullptr;
 
     vlog.debug("set clipboard");
   } catch (rdr::Exception& e) {

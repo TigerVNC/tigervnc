@@ -50,7 +50,7 @@ SocketManager::~SocketManager() {
 
 static void requestAddressChangeEvents(network::SocketListener* sock_) {
   DWORD dummy = 0;
-  if (WSAIoctl(sock_->getFd(), SIO_ADDRESS_LIST_CHANGE, 0, 0, 0, 0, &dummy, 0, 0) == SOCKET_ERROR) {
+  if (WSAIoctl(sock_->getFd(), SIO_ADDRESS_LIST_CHANGE, nullptr, 0, nullptr, 0, &dummy, nullptr, nullptr) == SOCKET_ERROR) {
     DWORD err = WSAGetLastError();
     if (err != WSAEWOULDBLOCK)
       vlog.error("Unable to track address changes: 0x%08x", (unsigned)err);
@@ -210,7 +210,7 @@ void SocketManager::processEvent(HANDLE event) {
       network::Socket* new_sock = li.sock->accept();
       if (new_sock && li.disable) {
         delete new_sock;
-        new_sock = 0;
+        new_sock = nullptr;
       }
       if (new_sock)
         addSocket(new_sock, li.server, false);
@@ -229,11 +229,11 @@ void SocketManager::processEvent(HANDLE event) {
     try {
       // Process data from an active connection
 
-      WSANETWORKEVENTS events;
+      WSANETWORKEVENTS network_events;
       long eventMask;
 
       // Fetch why this event notification triggered
-      if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &events) == SOCKET_ERROR)
+      if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &network_events) == SOCKET_ERROR)
         throw rdr::SystemException("unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
 
       // Cancel event notification for this socket
@@ -245,14 +245,14 @@ void SocketManager::processEvent(HANDLE event) {
 
 
       // Call the socket server to process the event
-      if (events.lNetworkEvents & FD_WRITE) {
+      if (network_events.lNetworkEvents & FD_WRITE) {
         ci.server->processSocketWriteEvent(ci.sock);
         if (ci.sock->isShutdown()) {
           remSocket(ci.sock);
           return;
         }
       }
-      if (events.lNetworkEvents & (FD_READ | FD_CLOSE)) {
+      if (network_events.lNetworkEvents & (FD_READ | FD_CLOSE)) {
         ci.server->processSocketReadEvent(ci.sock);
         if (ci.sock->isShutdown()) {
           remSocket(ci.sock);

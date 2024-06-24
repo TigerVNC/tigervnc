@@ -20,12 +20,12 @@ namespace winvnc {
   
   class ControlPanel : rfb::win32::Dialog, rfb::win32::ListViewControl {
   public:
-    ControlPanel(HWND hSTIcon) : Dialog(GetModuleHandle(0)), ListViewControl(){
+    ControlPanel(HWND hSTIcon) : Dialog(GetModuleHandle(nullptr)), ListViewControl(){
       m_hSTIcon = hSTIcon;
       stop_updating = false;
     };
     virtual bool showDialog();
-    virtual void initDialog();
+    void initDialog() override;
     virtual bool onCommand(int cmd);
     void UpdateListView(ListConnInfo* LCInfo);
     HWND GetHandle() {return handle;};
@@ -33,7 +33,7 @@ namespace winvnc {
     ~ControlPanel();
     ListConnInfo ListConnStatus;
   protected: 
-    virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
     void getSelConnInfo();
     HWND m_hSTIcon;
     ListConnInfo ListConn;

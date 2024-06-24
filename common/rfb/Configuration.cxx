@@ -48,9 +48,9 @@ static LogWriter vlog("Config");
 
 
 // -=- The Global/server/viewer Configuration objects
-Configuration* Configuration::global_ = 0;
-Configuration* Configuration::server_ = 0;
-Configuration* Configuration::viewer_ = 0;
+Configuration* Configuration::global_ = nullptr;
+Configuration* Configuration::server_ = nullptr;
+Configuration* Configuration::viewer_ = nullptr;
 
 Configuration* Configuration::global() {
   if (!global_)
@@ -76,13 +76,13 @@ bool Configuration::set(const char* n, const char* v, bool immutable) {
   return set(n, strlen(n), v, immutable);
 }
 
-bool Configuration::set(const char* name, int len,
+bool Configuration::set(const char* paramName, int len,
                              const char* val, bool immutable)
 {
   VoidParameter* current = head;
   while (current) {
     if ((int)strlen(current->getName()) == len &&
-        strncasecmp(current->getName(), name, len) == 0)
+        strncasecmp(current->getName(), paramName, len) == 0)
     {
       bool b = current->setParam(val);
       if (b && immutable) 
@@ -91,7 +91,7 @@ bool Configuration::set(const char* name, int len,
     }
     current = current->_next;
   }
-  return _next ? _next->set(name, len, val, immutable) : false;
+  return _next ? _next->set(paramName, len, val, immutable) : false;
 }
 
 bool Configuration::set(const char* config, bool immutable) {
@@ -127,7 +127,7 @@ VoidParameter* Configuration::get(const char* param)
       return current;
     current = current->_next;
   }
-  return _next ? _next->get(param) : 0;
+  return _next ? _next->get(param) : nullptr;
 }
 
 void Configuration::list(int width, int nameWidth) {
@@ -195,7 +195,7 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_,
 			     ConfigurationObject co)
   : immutable(false), name(name_), description(desc_)
 {
-  Configuration *conf = NULL;
+  Configuration *conf = nullptr;
 
   switch (co) {
   case ConfGlobal: conf = Configuration::global();
@@ -339,7 +339,7 @@ IntParameter::IntParameter(const char* name_, const char* desc_, int v,
 bool
 IntParameter::setParam(const char* v) {
   if (immutable) return true;
-  return setParam(strtol(v, NULL, 0));
+  return setParam(strtol(v, nullptr, 0));
 }
 
 bool
@@ -410,7 +410,8 @@ StringParameter::operator const char *() const {
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
 				 const uint8_t* v, size_t l, ConfigurationObject co)
-: VoidParameter(name_, desc_, co), value(0), length(0), def_value(0), def_length(0) {
+: VoidParameter(name_, desc_, co),
+  value(nullptr), length(0), def_value(nullptr), def_length(0) {
   if (l) {
     assert(v);
     value = new uint8_t[l];
@@ -440,7 +441,7 @@ void BinaryParameter::setParam(const uint8_t* v, size_t len) {
   if (immutable) return; 
   vlog.debug("set %s(Binary)", getName());
   delete [] value;
-  value = NULL;
+  value = nullptr;
   length = 0;
   if (len) {
     assert(v);

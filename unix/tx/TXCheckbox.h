@@ -48,14 +48,15 @@ public:
 class TXCheckbox : public TXWindow, public TXEventHandler {
 public:
   TXCheckbox(Display* dpy_, const char* text_, TXCheckboxCallback* cb_,
-             bool radio_=false, TXWindow* parent_=0, int w=1, int h=1)
-    : TXWindow(dpy_, w, h, parent_), cb(cb_), text(0),
+             bool radio_=false, TXWindow* parent_=nullptr,
+             int w=1, int h=1)
+    : TXWindow(dpy_, w, h, parent_), cb(cb_), text(nullptr),
       boxSize(radio_ ? 12 : 13), boxPad(4),
       checked_(false), disabled_(false), radio(radio_)
   {
     setEventHandler(this);
     setText(text_);
-    gc = XCreateGC(dpy, win(), 0, 0);
+    gc = XCreateGC(dpy, win(), 0, nullptr);
     XSetFont(dpy, gc, defaultFont);
     addEventMask(ExposureMask| ButtonPressMask | ButtonReleaseMask);
   }
@@ -109,7 +110,7 @@ private:
                 text, strlen(text));
   }
 
-  virtual void handleEvent(TXWindow* /*w*/, XEvent* ev) {
+  void handleEvent(TXWindow* /*w*/, XEvent* ev) override {
     switch (ev->type) {
     case Expose:
       paint();

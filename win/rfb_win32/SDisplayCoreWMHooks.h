@@ -43,14 +43,14 @@ namespace rfb {
       ~SDisplayCoreWMHooks();
 
       // - Called by SDisplay to flush updates to the specified tracker
-      virtual void flushUpdates();
+      void flushUpdates() override;
 
-      virtual const char* methodName() const { return "VNC Hooks"; }
+      const char* methodName() const override { return "VNC Hooks"; }
 
     protected:
       // - MsgWindow overrides
       //   processMessage is used to service the cursor & polling timers
-      virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+      LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) override;
 
       // - Hooking subcomponents used to track the desktop state
       WMHooks hooks;

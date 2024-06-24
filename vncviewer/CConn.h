@@ -45,37 +45,40 @@ public:
   static void socketEvent(FL_SOCKET fd, void *data);
 
   // CConnection callback methods
-  void initDone();
+  void initDone() override;
 
-  void setDesktopSize(int w, int h);
+  void setDesktopSize(int w, int h) override;
   void setExtendedDesktopSize(unsigned reason, unsigned result,
-                              int w, int h, const rfb::ScreenSet& layout);
+                              int w, int h,
+                              const rfb::ScreenSet& layout) override;
 
-  void setName(const char* name);
+  void setName(const char* name) override;
 
-  void setColourMapEntries(int firstColour, int nColours, uint16_t* rgbs);
+  void setColourMapEntries(int firstColour, int nColours,
+                           uint16_t* rgbs) override;
 
-  void bell();
+  void bell() override;
 
-  void framebufferUpdateStart();
-  void framebufferUpdateEnd();
-  bool dataRect(const rfb::Rect& r, int encoding);
+  void framebufferUpdateStart() override;
+  void framebufferUpdateEnd() override;
+  bool dataRect(const rfb::Rect& r, int encoding) override;
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 const uint8_t* data);
-  void setCursorPos(const rfb::Point& pos);
+                 const uint8_t* data) override;
+  void setCursorPos(const rfb::Point& pos) override;
 
-  void fence(uint32_t flags, unsigned len, const uint8_t data[]);
+  void fence(uint32_t flags, unsigned len,
+             const uint8_t data[]) override;
 
-  void setLEDState(unsigned int state);
+  void setLEDState(unsigned int state) override;
 
-  virtual void handleClipboardRequest();
-  virtual void handleClipboardAnnounce(bool available);
-  virtual void handleClipboardData(const char* data);
+  void handleClipboardRequest() override;
+  void handleClipboardAnnounce(bool available) override;
+  void handleClipboardData(const char* data) override;
 
 private:
 
-  void resizeFramebuffer();
+  void resizeFramebuffer() override;
 
   void autoSelectFormatAndEncoding();
   void updatePixelFormat();

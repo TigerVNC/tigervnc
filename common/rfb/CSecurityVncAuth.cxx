@@ -54,7 +54,7 @@ bool CSecurityVncAuth::processMsg()
   uint8_t challenge[vncAuthChallengeSize];
   is->readBytes(challenge, vncAuthChallengeSize);
   std::string passwd;
-  (CSecurity::upg)->getUserPasswd(cc->isSecure(), 0, &passwd);
+  (CSecurity::upg)->getUserPasswd(cc->isSecure(), nullptr, &passwd);
 
   // Calculate the correct response
   uint8_t key[8];

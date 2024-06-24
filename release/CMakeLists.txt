@@ -18,7 +18,7 @@ configure_file(tigervnc.iss.in tigervnc.iss)
 add_custom_target(installer
   iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION} tigervnc.iss
   DEPENDS vncviewer
-  SOURCES tigervnc.iss)
+  SOURCES ${CMAKE_CURRENT_BINARY_DIR}/tigervnc.iss)
 
 if(BUILD_WINVNC)
   configure_file(winvnc.iss.in winvnc.iss)
@@ -26,7 +26,7 @@ if(BUILD_WINVNC)
   add_custom_target(winvnc_installer
     iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-winvnc-${VERSION} winvnc.iss
     DEPENDS winvnc4 wm_hooks vncconfig
-    SOURCES winvnc.iss)
+    SOURCES ${CMAKE_CURRENT_BINARY_DIR}/winvnc.iss)
 endif()
 
 endif() # WIN32

@@ -38,7 +38,7 @@ static LogWriter vlog("SecurityWin32");
 Trustee::Trustee(const char* name,
                  TRUSTEE_FORM form,
                  TRUSTEE_TYPE type) {
-  pMultipleTrustee = 0;
+  pMultipleTrustee = nullptr;
   MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
   TrusteeForm = form;
   TrusteeType = type;
@@ -58,7 +58,7 @@ ExplicitAccess::ExplicitAccess(const char* name,
 }
 
 
-AccessEntries::AccessEntries() : entries(0), entry_count(0) {}
+AccessEntries::AccessEntries() : entries(nullptr), entry_count(0) {}
 
 AccessEntries::~AccessEntries() {
   delete [] entries;
@@ -115,19 +115,19 @@ void Sid::getUserNameAndDomain(char** name, char** domain) {
   DWORD nameLen = 0;
   DWORD domainLen = 0;
   SID_NAME_USE use;
-  LookupAccountSid(0, (PSID)*this, 0, &nameLen, 0, &domainLen, &use);
+  LookupAccountSid(nullptr, (PSID)*this, nullptr, &nameLen, nullptr, &domainLen, &use);
   if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     throw rdr::SystemException("Unable to determine SID name lengths", GetLastError());
   vlog.info("nameLen=%lu, domainLen=%lu, use=%d", nameLen, domainLen, use);
   *name = new char[nameLen];
   *domain = new char[domainLen];
-  if (!LookupAccountSid(0, (PSID)*this, *name, &nameLen, *domain, &domainLen, &use))
+  if (!LookupAccountSid(nullptr, (PSID)*this, *name, &nameLen, *domain, &domainLen, &use))
     throw rdr::SystemException("Unable to lookup account SID", GetLastError());
 }
 
 
 Sid::Administrators::Administrators() {
-  PSID sid = 0;
+  PSID sid = nullptr;
   SID_IDENTIFIER_AUTHORITY ntAuth = { SECURITY_NT_AUTHORITY };
   if (!AllocateAndInitializeSid(&ntAuth, 2,
                                 SECURITY_BUILTIN_DOMAIN_RID,
@@ -139,7 +139,7 @@ Sid::Administrators::Administrators() {
 }
 
 Sid::SYSTEM::SYSTEM() {
-  PSID sid = 0;
+  PSID sid = nullptr;
   SID_IDENTIFIER_AUTHORITY ntAuth = { SECURITY_NT_AUTHORITY };
   if (!AllocateAndInitializeSid(&ntAuth, 1,
                                 SECURITY_LOCAL_SYSTEM_RID,
@@ -151,7 +151,7 @@ Sid::SYSTEM::SYSTEM() {
 
 Sid::FromToken::FromToken(HANDLE h) {
   DWORD required = 0;
-  GetTokenInformation(h, TokenUser, 0, 0, &required);
+  GetTokenInformation(h, TokenUser, nullptr, 0, &required);
   std::vector<uint8_t> tmp(required);
   if (!GetTokenInformation(h, TokenUser, tmp.data(), tmp.size(), &required))
     throw rdr::SystemException("GetTokenInformation", GetLastError());

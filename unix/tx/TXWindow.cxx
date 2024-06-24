@@ -44,15 +44,15 @@ unsigned long TXWindow::disabledFg, TXWindow::disabledBg;
 unsigned long TXWindow::enabledBg;
 unsigned long TXWindow::scrollbarBg;
 Colormap TXWindow::cmap = 0;
-GC TXWindow::defaultGC = 0;
+GC TXWindow::defaultGC = nullptr;
 Font TXWindow::defaultFont = 0;
-XFontStruct* TXWindow::defaultFS = 0;
+XFontStruct* TXWindow::defaultFS = nullptr;
 Time TXWindow::cutBufferTime = 0;
 Pixmap TXWindow::dot = 0, TXWindow::tick = 0;
 const int TXWindow::dotSize = 4, TXWindow::tickSize = 8;
 char* TXWindow::defaultWindowClass;
 
-TXGlobalEventHandler* TXWindow::globalEventHandler = NULL;
+TXGlobalEventHandler* TXWindow::globalEventHandler = nullptr;
 
 void TXWindow::init(Display* dpy, const char* defaultWindowClass_)
 {
@@ -79,7 +79,7 @@ void TXWindow::init(Display* dpy, const char* defaultWindowClass_)
   darkBg = disabledFg = cols[3].pixel;
   scrollbarBg = cols[4].pixel;
   white = enabledBg = cols[5].pixel;
-  defaultGC = XCreateGC(dpy, DefaultRootWindow(dpy), 0, 0);
+  defaultGC = XCreateGC(dpy, DefaultRootWindow(dpy), 0, nullptr);
   defaultFS
     = XLoadQueryFont(dpy, "-*-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*");
   if (!defaultFS) {
@@ -258,7 +258,8 @@ Window TXWindow::windowWithName(Display* dpy, Window top, const char* name)
 TXWindow::TXWindow(Display* dpy_, int w, int h, TXWindow* parent_,
                    int borderWidth)
   : dpy(dpy_), xPad(3), yPad(3), bevel(2), parent(parent_), width_(w),
-    height_(h), eventHandler(0), dwc(0), eventMask(0), toplevel_(false)
+    height_(h), eventHandler(nullptr), dwc(nullptr), eventMask(0),
+    toplevel_(false)
 {
   sizeHints.flags = 0;
   XSetWindowAttributes attr;
@@ -266,7 +267,8 @@ TXWindow::TXWindow(Display* dpy_, int w, int h, TXWindow* parent_,
   attr.border_pixel = 0;
   Window par = parent ? parent->win() : DefaultRootWindow(dpy);
   win_ = XCreateWindow(dpy, par, 0, 0, width_, height_, borderWidth,
-                      CopyFromParent, CopyFromParent, CopyFromParent,
+                      CopyFromParent, CopyFromParent,
+                      (Visual*)CopyFromParent,
                       CWBackPixel | CWBorderPixel, &attr);
   if (parent) map();
 
@@ -292,7 +294,7 @@ void TXWindow::toplevel(const char* name, TXDeleteWindowCallback* dwc_,
   if (!windowClass) windowClass = defaultWindowClass;
   classHint.res_name = (char*)name;
   classHint.res_class = (char*)windowClass;
-  XSetWMProperties(dpy, win(), 0, 0, argv, argc,
+  XSetWMProperties(dpy, win(), nullptr, nullptr, argv, argc,
                    &sizeHints, &wmHints, &classHint);
   XStoreName(dpy, win(), name);
   XSetIconName(dpy, win(), name);
@@ -443,7 +445,7 @@ void TXWindow::handleXEvent(XEvent* ev)
         break;
       }
     }
-    selectionNotify(&ev->xselection, 0, 0, 0, 0);
+    selectionNotify(&ev->xselection, 0, 0, 0, nullptr);
     break;
 
   case SelectionRequest:

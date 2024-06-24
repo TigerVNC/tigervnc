@@ -116,13 +116,13 @@ static const WORD SCAN_FAKE = 0xaa;
 #endif
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc_)
-  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
+  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
     lastPointerPos(0, 0), lastButtonMask(0),
 #ifdef WIN32
     altGrArmed(false),
 #endif
     firstLEDState(true), pendingClientClipboard(false),
-    menuCtrlKey(false), menuAltKey(false), cursor(NULL)
+    menuCtrlKey(false), menuAltKey(false), cursor(nullptr)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
   XkbDescPtr xkb;
@@ -188,7 +188,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
   OptionsDialog::addCallback(handleOptions, this);
 
   // Make sure we have an initial blank cursor set
-  setCursor(0, 0, rfb::Point(0, 0), NULL);
+  setCursor(0, 0, rfb::Point(0, 0), nullptr);
 }
 
 
@@ -329,9 +329,9 @@ void Viewport::handleClipboardData(const char* data)
   Fl::copy(data, len, 1);
 }
 
-void Viewport::setLEDState(unsigned int state)
+void Viewport::setLEDState(unsigned int ledState)
 {
-  vlog.debug("Got server LED state: 0x%08x", state);
+  vlog.debug("Got server LED state: 0x%08x", ledState);
 
   // The first message is just considered to be the server announcing
   // support for this extension. We will push our state to sync up the
@@ -355,7 +355,7 @@ void Viewport::setLEDState(unsigned int state)
   memset(input, 0, sizeof(input));
   count = 0;
 
-  if (!!(state & ledCapsLock) != !!(GetKeyState(VK_CAPITAL) & 0x1)) {
+  if (!!(ledState & ledCapsLock) != !!(GetKeyState(VK_CAPITAL) & 0x1)) {
     input[count].type = input[count+1].type = INPUT_KEYBOARD;
     input[count].ki.wVk = input[count+1].ki.wVk = VK_CAPITAL;
     input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
@@ -364,7 +364,7 @@ void Viewport::setLEDState(unsigned int state)
     count += 2;
   }
 
-  if (!!(state & ledNumLock) != !!(GetKeyState(VK_NUMLOCK) & 0x1)) {
+  if (!!(ledState & ledNumLock) != !!(GetKeyState(VK_NUMLOCK) & 0x1)) {
     input[count].type = input[count+1].type = INPUT_KEYBOARD;
     input[count].ki.wVk = input[count+1].ki.wVk = VK_NUMLOCK;
     input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
@@ -373,7 +373,7 @@ void Viewport::setLEDState(unsigned int state)
     count += 2;
   }
 
-  if (!!(state & ledScrollLock) != !!(GetKeyState(VK_SCROLL) & 0x1)) {
+  if (!!(ledState & ledScrollLock) != !!(GetKeyState(VK_SCROLL) & 0x1)) {
     input[count].type = input[count+1].type = INPUT_KEYBOARD;
     input[count].ki.wVk = input[count+1].ki.wVk = VK_SCROLL;
     input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
@@ -391,13 +391,13 @@ void Viewport::setLEDState(unsigned int state)
 #elif defined(__APPLE__)
   int ret;
 
-  ret = cocoa_set_caps_lock_state(state & ledCapsLock);
+  ret = cocoa_set_caps_lock_state(ledState & ledCapsLock);
   if (ret != 0) {
     vlog.error(_("Failed to update keyboard LED state: %d"), ret);
     return;
   }
 
-  ret = cocoa_set_num_lock_state(state & ledNumLock);
+  ret = cocoa_set_num_lock_state(ledState & ledNumLock);
   if (ret != 0) {
     vlog.error(_("Failed to update keyboard LED state: %d"), ret);
     return;
@@ -414,17 +414,17 @@ void Viewport::setLEDState(unsigned int state)
   affect = values = 0;
 
   affect |= LockMask;
-  if (state & ledCapsLock)
+  if (ledState & ledCapsLock)
     values |= LockMask;
 
   mask = getModifierMask(XK_Num_Lock);
   affect |= mask;
-  if (state & ledNumLock)
+  if (ledState & ledNumLock)
     values |= mask;
 
   mask = getModifierMask(XK_Scroll_Lock);
   affect |= mask;
-  if (state & ledScrollLock)
+  if (ledState & ledScrollLock)
     values |= mask;
 
   ret = XkbLockModifiers(fl_display, XkbUseCoreKbd, affect, values);
@@ -435,21 +435,21 @@ void Viewport::setLEDState(unsigned int state)
 
 void Viewport::pushLEDState()
 {
-  unsigned int state;
+  unsigned int ledState;
 
   // Server support?
   if (cc->server.ledState() == ledUnknown)
     return;
 
-  state = 0;
+  ledState = 0;
 
 #if defined(WIN32)
   if (GetKeyState(VK_CAPITAL) & 0x1)
-    state |= ledCapsLock;
+    ledState |= ledCapsLock;
   if (GetKeyState(VK_NUMLOCK) & 0x1)
-    state |= ledNumLock;
+    ledState |= ledNumLock;
   if (GetKeyState(VK_SCROLL) & 0x1)
-    state |= ledScrollLock;
+    ledState |= ledScrollLock;
 #elif defined(__APPLE__)
   int ret;
   bool on;
@@ -460,7 +460,7 @@ void Viewport::pushLEDState()
     return;
   }
   if (on)
-    state |= ledCapsLock;
+    ledState |= ledCapsLock;
 
   ret = cocoa_get_num_lock_state(&on);
   if (ret != 0) {
@@ -468,10 +468,10 @@ void Viewport::pushLEDState()
     return;
   }
   if (on)
-    state |= ledNumLock;
+    ledState |= ledNumLock;
 
   // No support for Scroll Lock //
-  state |= (cc->server.ledState() & ledScrollLock);
+  ledState |= (cc->server.ledState() & ledScrollLock);
 
 #else
   unsigned int mask;
@@ -486,28 +486,28 @@ void Viewport::pushLEDState()
   }
 
   if (xkbState.locked_mods & LockMask)
-    state |= ledCapsLock;
+    ledState |= ledCapsLock;
 
   mask = getModifierMask(XK_Num_Lock);
   if (xkbState.locked_mods & mask)
-    state |= ledNumLock;
+    ledState |= ledNumLock;
 
   mask = getModifierMask(XK_Scroll_Lock);
   if (xkbState.locked_mods & mask)
-    state |= ledScrollLock;
+    ledState |= ledScrollLock;
 #endif
 
-  if ((state & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
+  if ((ledState & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(0x3a, XK_Caps_Lock);
     handleKeyRelease(0x3a);
   }
-  if ((state & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
+  if ((ledState & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(0x45, XK_Num_Lock);
     handleKeyRelease(0x45);
   }
-  if ((state & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
+  if ((ledState & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(0x46, XK_Scroll_Lock);
     handleKeyRelease(0x46);
@@ -702,7 +702,7 @@ unsigned int Viewport::getModifierMask(unsigned int keysym)
   mask = 0;
 
   xkb = XkbGetMap(fl_display, XkbAllComponentsMask, XkbUseCoreKbd);
-  if (xkb == NULL)
+  if (xkb == nullptr)
     return 0;
 
   for (keycode = xkb->min_key_code; keycode <= xkb->max_key_code; keycode++) {
@@ -722,7 +722,7 @@ unsigned int Viewport::getModifierMask(unsigned int keysym)
     goto out;
 
   act = XkbKeyAction(xkb, keycode, 0);
-  if (act == NULL)
+  if (act == nullptr)
     goto out;
   if (act->type != XkbSA_LockMods)
     goto out;
@@ -1164,7 +1164,7 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (keycode == 0)
         keycode = 0x100 | xevent->xkey.keycode;
 
-    XLookupString(&xevent->xkey, &str, 1, &keysym, NULL);
+    XLookupString(&xevent->xkey, &str, 1, &keysym, nullptr);
     if (keysym == NoSymbol) {
       vlog.error(_("No symbol for key code %d (in the current state)"),
                  (int)xevent->xkey.keycode);
@@ -1222,52 +1222,56 @@ void Viewport::resolveAltGrDetection(bool isAltGrSequence)
 }
 #endif
 
+// FIXME: gcc confuses ID_DISCONNECT with NULL
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 void Viewport::initContextMenu()
 {
   contextMenu->clear();
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Disconn&ect"),
-                0, NULL, (void*)ID_DISCONNECT, FL_MENU_DIVIDER);
+                0, nullptr, (void*)ID_DISCONNECT, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Full screen"),
-                0, NULL, (void*)ID_FULLSCREEN,
+                0, nullptr, (void*)ID_FULLSCREEN,
                 FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Minimi&ze"),
-                0, NULL, (void*)ID_MINIMIZE, 0);
+                0, nullptr, (void*)ID_MINIMIZE, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Resize &window to session"),
-                0, NULL, (void*)ID_RESIZE,
+                0, nullptr, (void*)ID_RESIZE,
                 (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
                 FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Ctrl"),
-                0, NULL, (void*)ID_CTRL,
+                0, nullptr, (void*)ID_CTRL,
                 FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Alt"),
-                0, NULL, (void*)ID_ALT,
+                0, nullptr, (void*)ID_ALT,
                 FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
 
   if (menuKeySym) {
     char sendMenuKey[64];
     snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"), (const char *)menuKey);
-    fltk_menu_add(contextMenu, sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
-    fltk_menu_add(contextMenu, "Secret shortcut menu key", menuKeyFLTK, NULL,
+    fltk_menu_add(contextMenu, sendMenuKey, 0, nullptr, (void*)ID_MENUKEY, 0);
+    fltk_menu_add(contextMenu, "Secret shortcut menu key",
+                  menuKeyFLTK, nullptr,
                   (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
   }
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Send Ctrl-Alt-&Del"),
-                0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
+                0, nullptr, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Refresh screen"),
-                0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
+                0, nullptr, (void*)ID_REFRESH, FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Options..."),
-                0, NULL, (void*)ID_OPTIONS, 0);
+                0, nullptr, (void*)ID_OPTIONS, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
-                0, NULL, (void*)ID_INFO, 0);
+                0, nullptr, (void*)ID_INFO, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
-                0, NULL, (void*)ID_ABOUT, 0);
+                0, nullptr, (void*)ID_ABOUT, 0);
 }
-
+#pragma GCC diagnostic pop
 
 void Viewport::popupContextMenu()
 {
@@ -1297,7 +1301,7 @@ void Viewport::popupContextMenu()
   if (Fl::belowmouse())
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 
-  if (m == NULL)
+  if (m == nullptr)
     return;
 
   switch (m->argument()) {

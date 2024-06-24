@@ -63,14 +63,14 @@ public:
 
   // Fl_Widget callback methods
 
-  void draw();
+  void draw() override;
 
-  void resize(int x, int y, int w, int h);
+  void resize(int x, int y, int w, int h) override;
 
-  int handle(int event);
+  int handle(int event) override;
 
 protected:
-  virtual void sendPointerEvent(const rfb::Point& pos, int buttonMask);
+  void sendPointerEvent(const rfb::Point& pos, int buttonMask) override;
 
 private:
   bool hasFocus();

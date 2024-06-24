@@ -42,12 +42,12 @@ class GestureHandler : public rfb::Timer::Callback {
   private:
     bool hasDetectedGesture();
 
-    virtual void handleTimeout(rfb::Timer* t);
+    void handleTimeout(rfb::Timer* t) override;
     void longpressTimeout();
     void twoTouchTimeout();
 
     void pushEvent(GestureEventType t);
-    GestureEventGesture stateToGesture(unsigned char state);
+    static GestureEventGesture stateToGesture(unsigned char state);
 
     void getPosition(double *firstX, double *firstY,
                      double *lastX, double *lastY);

@@ -97,7 +97,7 @@ static inline size_t fltk_menu_escape(const char *in, char *out, size_t maxlen)
 /* Helper to add menu entries safely */
 static inline void fltk_menu_add(Fl_Menu_ *menu, const char *text,
                                  int shortcut, Fl_Callback *cb,
-                                 void *data = 0, int flags = 0)
+                                 void *data=nullptr, int flags=0)
 {
     char buffer[1024];
 

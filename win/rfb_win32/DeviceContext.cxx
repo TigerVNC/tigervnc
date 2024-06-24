@@ -50,10 +50,10 @@ PixelFormat DeviceContext::getPF(HDC dc) {
   memset(&bi, 0, sizeof(bi));
   bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
   bi.bmiHeader.biBitCount = 0;
-  if (!::GetDIBits(dc, bitmap, 0, 1, NULL, (BITMAPINFO*)&bi, DIB_RGB_COLORS)) {
+  if (!::GetDIBits(dc, bitmap, 0, 1, nullptr, (BITMAPINFO*)&bi, DIB_RGB_COLORS)) {
     throw rdr::SystemException("unable to determine device pixel format", GetLastError());
   }
-  if (!::GetDIBits(dc, bitmap, 0, 1, NULL, (BITMAPINFO*)&bi, DIB_RGB_COLORS)) {
+  if (!::GetDIBits(dc, bitmap, 0, 1, nullptr, (BITMAPINFO*)&bi, DIB_RGB_COLORS)) {
     throw rdr::SystemException("unable to determine pixel shifts/palette", GetLastError());
   }
 
@@ -157,7 +157,7 @@ Rect DeviceContext::getClipBox(HDC dc) {
 
 
 DeviceDC::DeviceDC(const char* deviceName) {
-  dc = ::CreateDC("DISPLAY", deviceName, NULL, NULL);
+  dc = ::CreateDC("DISPLAY", deviceName, nullptr, nullptr);
   if (!dc)
     throw rdr::SystemException("failed to create DeviceDC", GetLastError());
 }

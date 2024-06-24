@@ -30,7 +30,7 @@ namespace rdr {
     virtual ~HexInStream();
 
   private:
-    virtual bool fillBuffer();
+    bool fillBuffer() override;
 
   private:
     InStream& in_stream;

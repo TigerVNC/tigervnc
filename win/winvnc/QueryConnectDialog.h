@@ -39,11 +39,11 @@ namespace winvnc {
     bool isAccepted() const {return approve;}
   protected:
     // Thread methods
-    virtual void worker();
+    void worker() override;
 
     // Dialog methods (protected)
-    virtual void initDialog();
-    virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    void initDialog() override;
+    BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
 
     // Custom internal methods
     void setCountdownLabel();

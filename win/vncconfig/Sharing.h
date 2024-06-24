@@ -29,20 +29,20 @@ namespace rfb {
     class SharingPage : public PropSheetPage {
     public:
       SharingPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_SHARING)), regKey(rk) {}
-      void initDialog() {
+        : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_SHARING)), regKey(rk) {}
+      void initDialog() override {
         setItemChecked(IDC_DISCONNECT_CLIENTS, rfb::Server::disconnectClients);
         setItemChecked(IDC_SHARE_NEVER, rfb::Server::neverShared);
         setItemChecked(IDC_SHARE_ALWAYS, rfb::Server::alwaysShared);
         setItemChecked(IDC_SHARE_CLIENT, !(rfb::Server::neverShared || rfb::Server::alwaysShared));
       }
-      bool onCommand(int /*id*/, int /*cmd*/) {
+      bool onCommand(int /*id*/, int /*cmd*/) override {
         setChanged((isItemChecked(IDC_DISCONNECT_CLIENTS) != rfb::Server::disconnectClients) ||
           (isItemChecked(IDC_SHARE_NEVER) != rfb::Server::neverShared) ||
           (isItemChecked(IDC_SHARE_ALWAYS) != rfb::Server::alwaysShared));
         return true;
       }
-      bool onOk() {
+      bool onOk() override {
         regKey.setBool("DisconnectClients", isItemChecked(IDC_DISCONNECT_CLIENTS));
         regKey.setBool("AlwaysShared", isItemChecked(IDC_SHARE_ALWAYS));
         regKey.setBool("NeverShared", isItemChecked(IDC_SHARE_NEVER));

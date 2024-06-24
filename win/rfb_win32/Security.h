@@ -96,17 +96,17 @@ namespace rfb {
     // Helper class for handling & freeing ACLs
     struct AccessControlList : public LocalMem {
       AccessControlList(int size) : LocalMem(size) {}
-      AccessControlList(PACL acl_=0) : LocalMem(acl_) {}
+      AccessControlList(PACL acl_=nullptr) : LocalMem(acl_) {}
       operator PACL() {return (PACL)ptr;}
     };
 
     // Create a new ACL based on supplied entries and, if supplied, existing ACL 
-    PACL CreateACL(const AccessEntries& ae, PACL existing_acl=0);
+    PACL CreateACL(const AccessEntries& ae, PACL existing_acl=nullptr);
 
     // Helper class for memory-management of self-relative SecurityDescriptors
     struct SecurityDescriptorPtr : LocalMem {
       SecurityDescriptorPtr(int size) : LocalMem(size) {}
-      SecurityDescriptorPtr(PSECURITY_DESCRIPTOR sd_=0) : LocalMem(sd_) {}
+      SecurityDescriptorPtr(PSECURITY_DESCRIPTOR sd_=nullptr) : LocalMem(sd_) {}
       PSECURITY_DESCRIPTOR takeSD() {return (PSECURITY_DESCRIPTOR)takePtr();}
     };
 

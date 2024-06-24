@@ -55,10 +55,10 @@ using namespace rfb;
 static Fl_Pixmap secure_icon(secure);
 static Fl_Pixmap insecure_icon(insecure);
 
-static int ret_val = 0;
+static long ret_val = 0;
 
-static void button_cb(Fl_Widget *widget, void *val) {
-  ret_val = (fl_intptr_t)val;
+static void button_cb(Fl_Widget *widget, long val) {
+  ret_val = val;
   widget->window()->hide();
 }
 
@@ -70,7 +70,7 @@ UserDialog::~UserDialog()
 {
 }
 
-void UserDialog::getUserPasswd(bool secure, std::string* user,
+void UserDialog::getUserPasswd(bool secure_, std::string* user,
                                std::string* password)
 {
   const char *passwordFileName(passwordFile);
@@ -116,12 +116,12 @@ void UserDialog::getUserPasswd(bool secure, std::string* user,
   int x, y;
 
   win = new Fl_Window(410, 0, _("VNC authentication"));
-  win->callback(button_cb,(void *)0);
+  win->callback(button_cb, 0);
 
   banner = new Fl_Box(0, 0, win->w(), 20);
   banner->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE|FL_ALIGN_IMAGE_NEXT_TO_TEXT);
   banner->box(FL_FLAT_BOX);
-  if (secure) {
+  if (secure_) {
     banner->label(_("This connection is secure"));
     banner->color(FL_GREEN);
     banner->image(secure_icon);
@@ -156,7 +156,7 @@ void UserDialog::getUserPasswd(bool secure, std::string* user,
      * Compiler is not bright enough to understand that
      * username won't be used further down...
      */
-    username = NULL;
+    username = nullptr;
   }
 
   y += INPUT_LABEL_OFFSET;
@@ -171,12 +171,12 @@ void UserDialog::getUserPasswd(bool secure, std::string* user,
   x -= BUTTON_WIDTH;
   button = new Fl_Return_Button(x, y, BUTTON_WIDTH,
                                 BUTTON_HEIGHT, fl_ok);
-  button->callback(button_cb, (void*)0);
+  button->callback(button_cb, 0);
   x -= INNER_MARGIN;
 
   x -= BUTTON_WIDTH;
   button = new Fl_Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, fl_cancel);
-  button->callback(button_cb, (void*)1);
+  button->callback(button_cb, 1);
   button->shortcut(FL_Escape);
   x -= INNER_MARGIN;
 
@@ -221,9 +221,9 @@ bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
 
   switch (flags & 0xf) {
   case M_OKCANCEL:
-    return fl_choice("%s", NULL, fl_ok, fl_cancel, buffer) == 1;
+    return fl_choice("%s", nullptr, fl_ok, fl_cancel, buffer) == 1;
   case M_YESNO:
-    return fl_choice("%s", NULL, fl_yes, fl_no, buffer) == 1;
+    return fl_choice("%s", nullptr, fl_yes, fl_no, buffer) == 1;
   case M_OK:
   default:
     if (((flags & 0xf0) == M_ICONERROR) ||

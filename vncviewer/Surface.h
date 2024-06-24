@@ -41,11 +41,15 @@ public:
 
   void clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a=255);
 
-  void draw(int src_x, int src_y, int x, int y, int w, int h);
-  void draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h);
+  void draw(int src_x, int src_y, int dst_x, int dst_y,
+            int dst_w, int dst_h);
+  void draw(Surface* dst, int src_x, int src_y, int dst_x, int dst_y,
+            int dst_w, int dst_h);
 
-  void blend(int src_x, int src_y, int x, int y, int w, int h, int a=255);
-  void blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a=255);
+  void blend(int src_x, int src_y, int dst_x, int dst_y,
+             int dst_w, int dst_h, int a=255);
+  void blend(Surface* dst, int src_x, int src_y, int dst_x, int dst_y,
+             int dst_w, int dst_h, int a=255);
 
 protected:
   void alloc();

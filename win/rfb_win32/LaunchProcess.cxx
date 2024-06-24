@@ -85,11 +85,15 @@ void LaunchProcess::start(HANDLE userToken, bool createConsole) {
   BOOL success;
   if (userToken != INVALID_HANDLE_VALUE)
     success = CreateProcessAsUser(userToken, exePath.c_str(),
-                                  (char*)cmdLine.c_str(), 0, 0, FALSE,
-                                  flags, 0, 0, &sinfo, &procInfo);
+                                  (char*)cmdLine.c_str(),
+                                  nullptr, nullptr, FALSE,
+                                  flags, nullptr, nullptr,
+                                  &sinfo, &procInfo);
   else
-    success = CreateProcess(exePath.c_str(), (char*)cmdLine.c_str(), 0,
-                            0, FALSE, flags, 0, 0, &sinfo, &procInfo);
+    success = CreateProcess(exePath.c_str(), (char*)cmdLine.c_str(),
+                            nullptr, nullptr, FALSE,
+                            flags, nullptr, nullptr,
+                            &sinfo, &procInfo);
   if (!success)
     throw rdr::SystemException("unable to launch process", GetLastError());
 

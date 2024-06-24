@@ -83,10 +83,10 @@ static LogWriter connectionsLog("Connections");
 
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
-    blockCounter(0), pb(0), ledState(ledUnknown),
-    name(name_), pointerClient(0), clipboardClient(0),
+    blockCounter(0), pb(nullptr), ledState(ledUnknown),
+    name(name_), pointerClient(nullptr), clipboardClient(nullptr),
     pointerClientTime(0),
-    comparer(0), cursor(new Cursor(0, 0, Point(), NULL)),
+    comparer(nullptr), cursor(new Cursor(0, 0, Point(), nullptr)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
@@ -177,19 +177,19 @@ void VNCServerST::removeSocket(network::Socket* sock) {
     if ((*ci)->getSock() == sock) {
       // - Remove any references to it
       if (pointerClient == *ci)
-        pointerClient = NULL;
+        pointerClient = nullptr;
       if (clipboardClient == *ci)
         handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
 
-      std::string name((*ci)->getPeerEndpoint());
+      std::string peer((*ci)->getPeerEndpoint());
 
       // - Delete the per-Socket resources
       delete *ci;
 
       clients.remove(*ci);
 
-      connectionsLog.status("closed: %s", name.c_str());
+      connectionsLog.status("closed: %s", peer.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
@@ -275,7 +275,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 
   pb = pb_;
   delete comparer;
-  comparer = 0;
+  comparer = nullptr;
 
   if (!pb) {
     screenLayout = ScreenSet();
@@ -297,9 +297,8 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
   renderedCursorInvalid = true;
   add_changed(pb->getRect());
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     (*ci)->pixelBufferChange();
     // Since the new pixel buffer means an ExtendedDesktopSize needs to
     // be sent anyway, we don't need to call screenLayoutChange.
@@ -346,16 +345,14 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
 
   screenLayout = layout;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->screenLayoutChangeOrClose(reasonServer);
-  }
 }
 
 void VNCServerST::requestClipboard()
 {
-  if (clipboardClient == NULL) {
+  if (clipboardClient == nullptr) {
     slog.debug("Got request for client clipboard but no client currently owns the clipboard");
     return;
   }
@@ -365,54 +362,46 @@ void VNCServerST::requestClipboard()
 
 void VNCServerST::announceClipboard(bool available)
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   clipboardRequestors.clear();
 
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->announceClipboardOrClose(available);
-  }
 }
 
 void VNCServerST::sendClipboardData(const char* data)
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
-  if (strchr(data, '\r') != NULL)
+  if (strchr(data, '\r') != nullptr)
     throw Exception("Invalid carriage return in clipboard data");
 
   for (ci = clipboardRequestors.begin();
-       ci != clipboardRequestors.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+       ci != clipboardRequestors.end(); ++ci)
     (*ci)->sendClipboardDataOrClose(data);
-  }
 
   clipboardRequestors.clear();
 }
 
 void VNCServerST::bell()
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->bellOrClose();
-  }
 }
 
 void VNCServerST::setName(const char* name_)
 {
   name = name_;
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->setDesktopNameOrClose(name_);
-  }
 }
 
 void VNCServerST::add_changed(const Region& region)
 {
-  if (comparer == NULL)
+  if (comparer == nullptr)
     return;
 
   comparer->add_changed(region);
@@ -421,7 +410,7 @@ void VNCServerST::add_changed(const Region& region)
 
 void VNCServerST::add_copied(const Region& dest, const Point& delta)
 {
-  if (comparer == NULL)
+  if (comparer == nullptr)
     return;
 
   comparer->add_copied(dest, delta);
@@ -437,9 +426,8 @@ void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
 
   renderedCursorInvalid = true;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     (*ci)->renderedCursorChange();
     (*ci)->setCursorOrClose();
   }
@@ -461,17 +449,15 @@ void VNCServerST::setCursorPos(const Point& pos, bool warped)
 
 void VNCServerST::setLEDState(unsigned int state)
 {
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   if (state == ledState)
     return;
 
   ledState = state;
 
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
     (*ci)->setLEDStateOrClose(state);
-  }
 }
 
 // Event handlers
@@ -498,14 +484,14 @@ void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 void VNCServerST::pointerEvent(VNCSConnectionST* client,
                                const Point& pos, int buttonMask)
 {
-  time_t now = time(0);
+  time_t now = time(nullptr);
   if (rfb::Server::maxIdleTime)
     idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
 
   // Let one client own the cursor whilst buttons are pressed in order
   // to provide a bit more sane user experience. But limit the time to
   // prevent locking out all others when e.g. the network is down.
-  if ((pointerClient != NULL) && (pointerClient != client) &&
+  if ((pointerClient != nullptr) && (pointerClient != client) &&
       ((now - pointerClientTime) < 10))
     return;
 
@@ -513,7 +499,7 @@ void VNCServerST::pointerEvent(VNCSConnectionST* client,
   if (buttonMask)
     pointerClient = client;
   else
-    pointerClient = NULL;
+    pointerClient = nullptr;
 
   desktop->pointerEvent(pos, buttonMask);
 }
@@ -533,7 +519,7 @@ void VNCServerST::handleClipboardAnnounce(VNCSConnectionST* client,
   else {
     if (client != clipboardClient)
       return;
-    clipboardClient = NULL;
+    clipboardClient = nullptr;
   }
   desktop->handleClipboardAnnounce(available);
 }
@@ -553,7 +539,7 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
                                          const ScreenSet& layout)
 {
   unsigned int result;
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   // We can't handle a framebuffer larger than this, so don't let a
   // client set one (see PixelBuffer.cxx)
@@ -580,8 +566,7 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
     throw Exception("Desktop configured a different screen layout than requested");
 
   // Notify other clients
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     if ((*ci) == requester)
       continue;
     (*ci)->screenLayoutChangeOrClose(reasonOtherClient);
@@ -606,9 +591,8 @@ void VNCServerST::approveConnection(network::Socket* sock, bool accept,
 
 void VNCServerST::closeClients(const char* reason, network::Socket* except)
 {
-  std::list<VNCSConnectionST*>::iterator i, next_i;
-  for (i=clients.begin(); i!=clients.end(); i=next_i) {
-    next_i = i; next_i++;
+  std::list<VNCSConnectionST*>::iterator i;
+  for (i = clients.begin(); i != clients.end(); ++i) {
     if ((*i)->getSock() != except)
       (*i)->close(reason);
   }
@@ -633,7 +617,7 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
     if ((*ci)->getSock() == sock)
       return (SConnection*)*ci;
   }
-  return 0;
+  return nullptr;
 }
 
 void VNCServerST::handleTimeout(Timer* t)
@@ -697,14 +681,14 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
   // - Are we configured to do queries?
   if (!rfb::Server::queryConnect &&
       !client->getSock()->requiresQuery()) {
-    approveConnection(client->getSock(), true, NULL);
+    approveConnection(client->getSock(), true, nullptr);
     return;
   }
 
   // - Does the client have the right to bypass the query?
   if (client->accessCheck(AccessNoQuery))
   {
-    approveConnection(client->getSock(), true, NULL);
+    approveConnection(client->getSock(), true, nullptr);
     return;
   }
 
@@ -832,7 +816,7 @@ void VNCServerST::writeUpdate()
   UpdateInfo ui;
   Region toCheck;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  std::list<VNCSConnectionST*>::iterator ci;
 
   assert(blockCounter == 0);
   assert(desktopStarted);
@@ -861,8 +845,7 @@ void VNCServerST::writeUpdate()
 
   comparer->clear();
 
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     (*ci)->add_copied(ui.copied, ui.copy_delta);
     (*ci)->add_changed(ui.changed);
     (*ci)->writeFramebufferUpdateOrClose();
@@ -906,9 +889,8 @@ bool VNCServerST::getComparerState()
   if (rfb::Server::compareFB != 2)
     return true;
 
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-    ci_next = ci; ci_next++;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ++ci) {
     if ((*ci)->getComparerState())
       return true;
   }

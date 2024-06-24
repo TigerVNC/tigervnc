@@ -64,7 +64,8 @@ namespace rfb {
   class Configuration {
   public:
     // - Create a new Configuration object
-    Configuration(const char* name_) : name(name_), head(0), _next(0) {}
+    Configuration(const char* name_)
+      : name(name_), head(nullptr), _next(nullptr) {}
 
     // - Return the buffer containing the Configuration's name
     const char* getName() const { return name.c_str(); }
@@ -195,12 +196,12 @@ namespace rfb {
   public:
     AliasParameter(const char* name_, const char* desc_,VoidParameter* param_,
 		   ConfigurationObject co=ConfGlobal);
-    virtual bool setParam(const char* value);
-    virtual bool setParam();
-    virtual std::string getDefaultStr() const;
-    virtual std::string getValueStr() const;
-    virtual bool isBool() const;
-    virtual void setImmutable();
+    bool setParam(const char* value) override;
+    bool setParam() override;
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
+    bool isBool() const override;
+    void setImmutable() override;
   private:
     VoidParameter* param;
   };
@@ -209,12 +210,12 @@ namespace rfb {
   public:
     BoolParameter(const char* name_, const char* desc_, bool v,
 		  ConfigurationObject co=ConfGlobal);
-    virtual bool setParam(const char* value);
-    virtual bool setParam();
+    bool setParam(const char* value) override;
+    bool setParam() override;
     virtual void setParam(bool b);
-    virtual std::string getDefaultStr() const;
-    virtual std::string getValueStr() const;
-    virtual bool isBool() const;
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
+    bool isBool() const override;
     operator bool() const;
   protected:
     bool value;
@@ -227,10 +228,10 @@ namespace rfb {
                  int minValue=INT_MIN, int maxValue=INT_MAX,
 		 ConfigurationObject co=ConfGlobal);
     using VoidParameter::setParam;
-    virtual bool setParam(const char* value);
+    bool setParam(const char* value) override;
     virtual bool setParam(int v);
-    virtual std::string getDefaultStr() const;
-    virtual std::string getValueStr() const;
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
     operator int() const;
   protected:
     int value;
@@ -244,10 +245,10 @@ namespace rfb {
     // be Null, and so neither can the default value!
     StringParameter(const char* name_, const char* desc_, const char* v,
 		    ConfigurationObject co=ConfGlobal);
-    virtual ~StringParameter();
-    virtual bool setParam(const char* value);
-    virtual std::string getDefaultStr() const;
-    virtual std::string getValueStr() const;
+    ~StringParameter() override;
+    bool setParam(const char* value) override;
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
     operator const char*() const;
   protected:
     std::string value;
@@ -260,11 +261,11 @@ namespace rfb {
                     const uint8_t* v, size_t l,
                     ConfigurationObject co=ConfGlobal);
     using VoidParameter::setParam;
-    virtual ~BinaryParameter();
-    virtual bool setParam(const char* value);
+    ~BinaryParameter() override;
+    bool setParam(const char* value) override;
     virtual void setParam(const uint8_t* v, size_t l);
-    virtual std::string getDefaultStr() const;
-    virtual std::string getValueStr() const;
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
 
     std::vector<uint8_t> getData() const;
 

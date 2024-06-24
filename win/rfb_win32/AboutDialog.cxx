@@ -32,7 +32,7 @@ static LogWriter vlog("AboutDialog");
 AboutDialog AboutDialog::instance;
 
 
-AboutDialog::AboutDialog() : Dialog(GetModuleHandle(0)) {
+AboutDialog::AboutDialog() : Dialog(GetModuleHandle(nullptr)) {
 }
 
 bool AboutDialog::showDialog() {

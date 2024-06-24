@@ -60,8 +60,8 @@ static const TightConf conf[10] = {
   { 9, 9, 9 }  // 9
 };
 
-TightEncoder::TightEncoder(SConnection* conn) :
-  Encoder(conn, encodingTight, EncoderPlain, 256)
+TightEncoder::TightEncoder(SConnection* conn_) :
+  Encoder(conn_, encodingTight, EncoderPlain, 256)
 {
   setCompressLevel(-1);
 }
@@ -260,12 +260,12 @@ void TightEncoder::flushZlibOutStream(rdr::OutStream* os_)
   rdr::ZlibOutStream* zos;
 
   zos = dynamic_cast<rdr::ZlibOutStream*>(os_);
-  if (zos == NULL)
+  if (zos == nullptr)
     return;
 
   zos->cork(false);
   zos->flush();
-  zos->setUnderlying(NULL);
+  zos->setUnderlying(nullptr);
 
   os = conn->getOutStream();
 

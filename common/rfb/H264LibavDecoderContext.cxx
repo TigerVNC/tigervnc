@@ -42,9 +42,9 @@ static LogWriter vlog("H264LibavDecoderContext");
 bool H264LibavDecoderContext::initCodec() {
   os::AutoMutex lock(&mutex);
 
-  sws = NULL;
-  swsBuffer = NULL;
-  h264WorkBuffer = NULL;
+  sws = nullptr;
+  swsBuffer = nullptr;
+  h264WorkBuffer = nullptr;
   h264WorkBufferLength = 0;
 
   const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
@@ -78,7 +78,7 @@ bool H264LibavDecoderContext::initCodec() {
     return false;
   }
 
-  if (avcodec_open2(avctx, codec, NULL) < 0)
+  if (avcodec_open2(avctx, codec, nullptr) < 0)
   {
     av_parser_close(parser);
     avcodec_free_context(&avctx);
@@ -117,7 +117,7 @@ uint8_t* H264LibavDecoderContext::makeH264WorkBuffer(const uint8_t* buffer, uint
   if (!h264WorkBuffer || reserve_len > h264WorkBufferLength)
   {
     h264WorkBuffer = (uint8_t*)realloc(h264WorkBuffer, reserve_len);
-    if (h264WorkBuffer == NULL) {
+    if (h264WorkBuffer == nullptr) {
       throw Exception("H264LibavDecoderContext: Unable to allocate memory");
     }
     h264WorkBufferLength = reserve_len;
@@ -204,7 +204,7 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
 
 #ifdef FFMPEG_INIT_PACKET_DEPRECATED
   packet->size = 0;
-  packet->data = NULL;
+  packet->data = nullptr;
   av_packet_free(&packet);
 #else
   delete packet;
@@ -218,7 +218,7 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
 
   sws = sws_getCachedContext(sws, frame->width, frame->height, avctx->pix_fmt,
                              frame->width, frame->height, AV_PIX_FMT_RGB32,
-                             0, NULL, NULL, NULL);
+                             0, nullptr, nullptr, nullptr);
 
   int stride;
   pb->getBuffer(rect, &stride);

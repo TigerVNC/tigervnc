@@ -27,12 +27,12 @@ namespace rfb {
   class SSecurityStack : public SSecurity {
   public:
     SSecurityStack(SConnection* sc, int Type,
-                   SSecurity* s0 = NULL, SSecurity* s1 = NULL);
+                   SSecurity* s0 = nullptr, SSecurity* s1 = nullptr);
     ~SSecurityStack();
-    virtual bool processMsg();
-    virtual int getType() const { return type; };
-    virtual const char* getUserName() const;
-    virtual AccessRights getAccessRights() const;
+    bool processMsg() override;
+    int getType() const override { return type; };
+    const char* getUserName() const override;
+    AccessRights getAccessRights() const override;
   protected:
     short state;
     SSecurity* state0;

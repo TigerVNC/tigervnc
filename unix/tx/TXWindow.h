@@ -65,7 +65,8 @@ public:
   // background (currently grey).  It is mapped by default if it has a parent.
   // If no parent is specified its parent is the root window and it will remain
   // unmapped.
-  TXWindow(Display* dpy_, int width=1, int height=1, TXWindow* parent_=0,
+  TXWindow(Display* dpy_, int width=1, int height=1,
+           TXWindow* parent_=nullptr,
            int borderWidth=0);
   virtual ~TXWindow();
 
@@ -73,8 +74,9 @@ public:
   // window-manager-related properties are set on the window.  The given
   // TXDeleteWindowCallback is notified when the window is "deleted" (cloesd)
   // by the user.
-  void toplevel(const char* name, TXDeleteWindowCallback* dwc=0,
-                int argc=0, char** argv=0, const char* windowClass=0,
+  void toplevel(const char* name, TXDeleteWindowCallback* dwc=nullptr,
+                int argc=0, char** argv=nullptr,
+                const char* windowClass=nullptr,
                 bool iconic=false);
 
   // setMaxSize() tells the window manager the maximum size to allow a
@@ -181,7 +183,7 @@ public:
 
   // strEmptyToNull() returns the string it's given but turns an empty string
   // into null, which can be useful for passing rfb parameters to Xlib calls.
-  static char* strEmptyToNull(char* s) { return s && s[0] ? s : 0; }
+  static char* strEmptyToNull(char* s) { return s && s[0] ? s : nullptr; }
 
   // The following are default values for various things.
   static unsigned long black, white;

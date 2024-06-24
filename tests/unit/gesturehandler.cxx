@@ -30,7 +30,7 @@
 class TestClass : public GestureHandler
 {
   protected:
-    virtual void handleGestureEvent(const GestureEvent& event);
+    void handleGestureEvent(const GestureEvent& event) override;
 
   public:
     std::vector<GestureEvent> events;

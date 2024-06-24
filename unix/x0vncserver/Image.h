@@ -98,20 +98,20 @@ public:
   ShmImage(Display *d, int width, int height);
   virtual ~ShmImage();
 
-  virtual const char *className() const {
+  const char *className() const override {
     return "ShmImage";
   }
-  virtual const char *classDesc() const {
+  const char *classDesc() const override {
     return "shared memory image";
   }
 
-  virtual void get(Window wnd, int x = 0, int y = 0);
-  virtual void get(Window wnd, int x, int y, int w, int h,
-                   int dst_x = 0, int dst_y = 0);
+  void get(Window wnd, int x = 0, int y = 0) override;
+  void get(Window wnd, int x, int y, int w, int h,
+           int dst_x = 0, int dst_y = 0) override;
 
 protected:
 
-  void Init(int width, int height, const XVisualInfo *vinfo = NULL);
+  void Init(int width, int height, const XVisualInfo *vinfo = nullptr);
 
   XShmSegmentInfo *shminfo;
 

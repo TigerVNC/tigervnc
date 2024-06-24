@@ -51,18 +51,18 @@ H264Decoder::~H264Decoder()
 void H264Decoder::resetContexts()
 {
   os::AutoMutex lock(&mutex);
-  for (std::deque<H264DecoderContext*>::iterator it = contexts.begin(); it != contexts.end(); it++)
-    delete *it;
+  for (H264DecoderContext* context : contexts)
+    delete context;
   contexts.clear();
 }
 
 H264DecoderContext* H264Decoder::findContext(const Rect& r)
 {
   os::AutoMutex m(&mutex);
-  for (std::deque<H264DecoderContext*>::iterator it = contexts.begin(); it != contexts.end(); it++)
-    if ((*it)->isEqualRect(r))
-      return *it;
-  return NULL;
+  for (H264DecoderContext* context : contexts)
+    if (context->isEqualRect(r))
+      return context;
+  return nullptr;
 }
 
 bool H264Decoder::readRect(const Rect& /*r*/,
@@ -79,9 +79,9 @@ bool H264Decoder::readRect(const Rect& /*r*/,
 
   len = is->readU32();
   os->writeU32(len);
-  uint32_t flags = is->readU32();
+  uint32_t reset = is->readU32();
 
-  os->writeU32(flags);
+  os->writeU32(reset);
 
   if (!is->hasDataOrRestore(len))
     return false;
@@ -100,15 +100,15 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
 {
   rdr::MemInStream is(buffer, buflen);
   uint32_t len = is.readU32();
-  uint32_t flags = is.readU32();
+  uint32_t reset = is.readU32();
 
-  H264DecoderContext* ctx = NULL;
-  if (flags & resetAllContexts)
+  H264DecoderContext* ctx = nullptr;
+  if (reset & resetAllContexts)
   {
     resetContexts();
     if (!len)
       return;
-    flags &= ~(resetContext | resetAllContexts);
+    reset &= ~(resetContext | resetAllContexts);
   } else {
     ctx = findContext(r);
   }

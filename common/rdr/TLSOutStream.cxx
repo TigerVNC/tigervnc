@@ -41,7 +41,7 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
   OutStream *out = self->out;
 
   delete self->saved_exception;
-  self->saved_exception = NULL;
+  self->saved_exception = nullptr;
 
   try {
     out->writeBytes((const uint8_t*)data, size);
@@ -62,7 +62,7 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
 }
 
 TLSOutStream::TLSOutStream(OutStream* _out, gnutls_session_t _session)
-  : session(_session), out(_out), saved_exception(NULL)
+  : session(_session), out(_out), saved_exception(nullptr)
 {
   gnutls_transport_ptr_t recv, send;
 
@@ -79,7 +79,7 @@ TLSOutStream::~TLSOutStream()
   } catch (Exception&) {
   }
 #endif
-  gnutls_transport_set_push_function(session, NULL);
+  gnutls_transport_set_push_function(session, nullptr);
 
   delete saved_exception;
 }

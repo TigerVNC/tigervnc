@@ -33,9 +33,9 @@
 
 class TXDialog : public TXWindow, public TXDeleteWindowCallback {
 public:
-  TXDialog(Display* dpy, int width, int height, const char* name,
+  TXDialog(Display* dpy_, int width, int height, const char* name,
            bool modal_=false)
-    : TXWindow(dpy, width, height), done(false), ok(false), modal(modal_)
+    : TXWindow(dpy_, width, height), done(false), ok(false), modal(modal_)
   {
     toplevel(name, this);
     resize(width, height);
@@ -62,7 +62,7 @@ public:
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(ConnectionNumber(dpy), &rfds);
-        int n = select(FD_SETSIZE, &rfds, 0, 0, 0);
+        int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, nullptr);
         if (n < 0) throw rdr::SystemException("select",errno);
       }
     }
@@ -82,7 +82,7 @@ public:
   }    
 
 protected:
-  virtual void deleteWindow(TXWindow* /*w*/) {
+  void deleteWindow(TXWindow* /*w*/) override {
     ok = false;
     done = true;
     unmap();

@@ -40,10 +40,10 @@ class QueryConnectDialog : public TXDialog, public TXEventHandler,
   QueryConnectDialog(Display* dpy, const char* address_,
                      const char* user_, int timeout_,
                      QueryResultCallback* cb);
-  void handleEvent(TXWindow*, XEvent* ) { }
-  void deleteWindow(TXWindow*);
-  void buttonActivate(TXButton* b);
-  void handleTimeout(rfb::Timer* t);
+  void handleEvent(TXWindow*, XEvent* ) override { }
+  void deleteWindow(TXWindow*) override;
+  void buttonActivate(TXButton* b) override;
+  void handleTimeout(rfb::Timer* t) override;
  private:
   void refreshTimeout();
   TXLabel addressLbl, address, userLbl, user, timeoutLbl, timeout;

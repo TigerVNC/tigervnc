@@ -52,8 +52,8 @@ VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 ("Password", "Obfuscated binary encoding of the password which clients must supply to "
  "access the server", &SSecurityVncAuth::vncAuthPasswdFile);
 
-SSecurityVncAuth::SSecurityVncAuth(SConnection* sc)
-  : SSecurity(sc), sentChallenge(false),
+SSecurityVncAuth::SSecurityVncAuth(SConnection* sc_)
+  : SSecurity(sc_), sentChallenge(false),
     pg(&vncAuthPasswd), accessRights(AccessNone)
 {
 }
@@ -116,10 +116,12 @@ bool SSecurityVncAuth::processMsg()
   throw AuthFailureException();
 }
 
-VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name,
+VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name_,
                                                const char* desc,
                                                StringParameter* passwdFile_)
-: BinaryParameter(name, desc, 0, 0, ConfServer), passwdFile(passwdFile_) {
+: BinaryParameter(name_, desc, nullptr, 0, ConfServer),
+  passwdFile(passwdFile_)
+{
 }
 
 void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string *readOnlyPassword) {
@@ -151,8 +153,8 @@ void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string
     }
   }
 
-  assert(password != NULL);
-  assert(readOnlyPassword != NULL);
+  assert(password != nullptr);
+  assert(readOnlyPassword != nullptr);
 
   try {
     *password = deobfuscate(obfuscated.data(), obfuscated.size());

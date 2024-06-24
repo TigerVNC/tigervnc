@@ -115,7 +115,7 @@ namespace rfb {
     // acceptance, or false for rejection, in which case a string
     // reason may also be given.
     virtual void approveConnection(network::Socket* sock, bool accept,
-                                   const char* reason = NULL) = 0;
+                                   const char* reason = nullptr) = 0;
 
     // - Close all currently-connected clients, by calling
     //   their close() method with the supplied reason.

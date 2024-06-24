@@ -38,7 +38,7 @@ public:
 
   void client_area(int &rx, int &ry, int &rw, int &rh, int lw);
 
-  virtual void draw();
+  void draw() override;
 
   // Delegation to underlying widget
   void begin();

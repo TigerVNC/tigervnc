@@ -37,13 +37,13 @@ static const DWORD MOUSEMOVE_FLAGS = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE |
 
 static const unsigned SINGLE_PAN_THRESHOLD = 50;
 
-Win32TouchHandler::Win32TouchHandler(HWND hWnd) :
-  hWnd(hWnd), gesturesConfigured(false), gestureActive(false),
+Win32TouchHandler::Win32TouchHandler(HWND hWnd_) :
+  hWnd(hWnd_), gesturesConfigured(false), gestureActive(false),
   ignoringGesture(false), fakeButtonMask(0)
 {
   // If window is registered as touch we can not receive gestures,
   // this should not happen
-  if (IsTouchWindow(hWnd, NULL))
+  if (IsTouchWindow(hWnd, nullptr))
     throw rfb::Exception(_("Window is registered for touch instead of gestures"));
 
   // We will not receive any touch/gesture events if this service

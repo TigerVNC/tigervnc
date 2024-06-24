@@ -35,7 +35,7 @@ using namespace rfb;
 XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
                            const Rect &rect)
   : FullFramePixelBuffer(),
-    m_poller(0),
+    m_poller(nullptr),
     m_dpy(dpy),
     m_image(factory.newImage(dpy, rect.width(), rect.height())),
     m_offsetLeft(rect.tl.x),

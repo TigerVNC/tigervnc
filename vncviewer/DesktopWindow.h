@@ -71,11 +71,11 @@ public:
   void handleClipboardData(const char* data);
 
   // Fl_Window callback methods
-  virtual void show();
-  virtual void draw();
-  virtual void resize(int x, int y, int w, int h);
+  void show() override;
+  void draw() override;
+  void resize(int x, int y, int w, int h) override;
 
-  virtual int handle(int event);
+  int handle(int event) override;
 
   void fullscreen_on();
 

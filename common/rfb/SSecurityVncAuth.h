@@ -44,7 +44,7 @@ namespace rfb {
   class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {
   public:
     VncAuthPasswdParameter(const char* name, const char* desc, StringParameter* passwdFile_);
-    virtual void getVncAuthPasswd(std::string *password, std::string *readOnlyPassword);
+    void getVncAuthPasswd(std::string *password, std::string *readOnlyPassword) override;
   protected:
     StringParameter* passwdFile;
   };
@@ -52,10 +52,10 @@ namespace rfb {
   class SSecurityVncAuth : public SSecurity {
   public:
     SSecurityVncAuth(SConnection* sc);
-    virtual bool processMsg();
-    virtual int getType() const {return secTypeVncAuth;}
-    virtual const char* getUserName() const {return 0;}
-    virtual AccessRights getAccessRights() const { return accessRights; }
+    bool processMsg() override;
+    int getType() const override {return secTypeVncAuth;}
+    const char* getUserName() const override {return nullptr;}
+    AccessRights getAccessRights() const override { return accessRights; }
     static StringParameter vncAuthPasswdFile;
     static VncAuthPasswdParameter vncAuthPasswd;
   private:

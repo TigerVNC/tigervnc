@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <algorithm>
+
 #include <rfb/Exception.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/fenceTypes.h>
@@ -48,10 +50,10 @@ using namespace rfb;
 static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
-  : csecurity(0),
+  : csecurity(nullptr),
     supportsLocalCursor(false), supportsCursorPosition(false),
     supportsDesktopResize(false), supportsLEDState(false),
-    is(0), os(0), reader_(0), writer_(0),
+    is(nullptr), os(nullptr), reader_(nullptr), writer_(nullptr),
     shared(false),
     state_(RFBSTATE_UNINITIALISED),
     pendingPFChange(false), preferredEncoding(encodingTight),
@@ -59,7 +61,7 @@ CConnection::CConnection()
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
-    framebuffer(NULL), decoder(this),
+    framebuffer(nullptr), decoder(this),
     hasRemoteClipboard(false), hasLocalClipboard(false)
 {
 }
@@ -71,7 +73,7 @@ CConnection::~CConnection()
 
 void CConnection::setServerName(const char* name_)
 {
-  if (name_ == NULL)
+  if (name_ == nullptr)
     name_ = "";
   serverName = name_;
 }
@@ -91,7 +93,7 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
     assert(fb->height() == server.height());
   }
 
-  if ((framebuffer != NULL) && (fb != NULL)) {
+  if ((framebuffer != nullptr) && (fb != nullptr)) {
     Rect rect;
 
     const uint8_t* data;
@@ -226,14 +228,8 @@ bool CConnection::processSecurityTypesMsg()
       state_ = RFBSTATE_SECURITY_REASON;
       return true;
     } else if (secType == secTypeNone || secType == secTypeVncAuth) {
-      std::list<uint8_t>::iterator i;
-      for (i = secTypes.begin(); i != secTypes.end(); i++)
-        if (*i == secType) {
-          secType = *i;
-          break;
-        }
-
-      if (i == secTypes.end())
+      if (std::find(secTypes.begin(), secTypes.end(),
+                    secType) == secTypes.end())
         secType = secTypeInvalid;
     } else {
       vlog.error("Unknown 3.3 security type %d", secType);
@@ -260,8 +256,6 @@ bool CConnection::processSecurityTypesMsg()
       return true;
     }
 
-    std::list<uint8_t>::iterator j;
-
     for (int i = 0; i < nServerSecTypes; i++) {
       uint8_t serverSecType = is->readU8();
       vlog.debug("Server offers security type %s(%d)",
@@ -272,12 +266,10 @@ bool CConnection::processSecurityTypesMsg()
        * It means server's order specifies priority.
        */
       if (secType == secTypeInvalid) {
-        for (j = secTypes.begin(); j != secTypes.end(); j++)
-          if (*j == serverSecType) {
-            secType = *j;
-            break;
-          }
-       }
+        if (std::find(secTypes.begin(), secTypes.end(),
+                      serverSecType) != secTypes.end())
+          secType = serverSecType;
+      }
     }
 
     // Inform the server of our decision
@@ -399,13 +391,13 @@ void CConnection::close()
     vlog.error("%s", e.str());
   }
 
-  setFramebuffer(NULL);
+  setFramebuffer(nullptr);
   delete csecurity;
-  csecurity = NULL;
+  csecurity = nullptr;
   delete reader_;
-  reader_ = NULL;
+  reader_ = nullptr;
   delete writer_;
-  writer_ = NULL;
+  writer_ = nullptr;
 }
 
 void CConnection::setDesktopSize(int w, int h)
@@ -420,7 +412,7 @@ void CConnection::setDesktopSize(int w, int h)
                                            server.height());
 
   resizeFramebuffer();
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
 }
@@ -440,7 +432,7 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
                                            server.height());
 
   resizeFramebuffer();
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
 }
@@ -471,7 +463,7 @@ void CConnection::serverInit(int width, int height,
   vlog.debug("initialisation done");
 
   initDone();
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
 
@@ -501,7 +493,7 @@ void CConnection::framebufferUpdateStart()
 {
   CMsgHandler::framebufferUpdateStart();
 
-  assert(framebuffer != NULL);
+  assert(framebuffer != nullptr);
 
   // Note: This might not be true if continuous updates are supported
   pendingUpdate = false;
@@ -683,7 +675,7 @@ void CConnection::sendClipboardData(const char* data)
     // FIXME: This conversion magic should be in CMsgWriter
     std::string filtered(convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
-    const uint8_t* data[1] = { (const uint8_t*)filtered.c_str() };
+    const uint8_t* datas[1] = { (const uint8_t*)filtered.c_str() };
 
     if (unsolicitedClipboardAttempt) {
       unsolicitedClipboardAttempt = false;
@@ -695,7 +687,7 @@ void CConnection::sendClipboardData(const char* data)
       }
     }
 
-    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
+    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, datas);
   } else {
     writer()->writeClientCutText(data);
   }

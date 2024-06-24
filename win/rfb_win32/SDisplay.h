@@ -71,31 +71,31 @@ namespace rfb {
 
       // -=- SDesktop interface
 
-      virtual void init(VNCServer* vs);
-      virtual void start();
-      virtual void stop();
-      virtual void terminate();
-      virtual void queryConnection(network::Socket* sock,
-                                   const char* userName);
-      virtual void handleClipboardRequest();
-      virtual void handleClipboardAnnounce(bool available);
-      virtual void handleClipboardData(const char* data);
-      virtual void pointerEvent(const Point& pos, int buttonmask);
-      virtual void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
+      void init(VNCServer* vs) override;
+      void start() override;
+      void stop() override;
+      void terminate() override;
+      void queryConnection(network::Socket* sock,
+                           const char* userName) override;
+      void handleClipboardRequest() override;
+      void handleClipboardAnnounce(bool available) override;
+      void handleClipboardData(const char* data) override;
+      void pointerEvent(const Point& pos, int buttonmask) override;
+      void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
 
       // -=- Clipboard events
       
-      virtual void notifyClipboardChanged(bool available);
+      void notifyClipboardChanged(bool available) override;
 
       // -=- Display events
       
-      virtual void notifyDisplayEvent(WMMonitor::Notifier::DisplayEventType evt);
+      void notifyDisplayEvent(WMMonitor::Notifier::DisplayEventType evt) override;
 
       // -=- EventHandler interface
 
       HANDLE getUpdateEvent() {return updateEvent;}
       HANDLE getTerminateEvent() {return terminateEvent;}
-      virtual void processEvent(HANDLE event);
+      void processEvent(HANDLE event) override;
 
       // -=- Notification of whether or not SDisplay is started
 

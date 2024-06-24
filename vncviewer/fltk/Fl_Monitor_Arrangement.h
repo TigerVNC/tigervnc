@@ -45,7 +45,7 @@ public:
   int value(std::set<int> indices);
 
 protected:
-  virtual void draw();
+  void draw() override;
 
 private:
   const Fl_Color AVAILABLE_COLOR;

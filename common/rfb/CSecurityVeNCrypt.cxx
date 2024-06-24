@@ -26,13 +26,15 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+#include <list>
+
 #include <rfb/Exception.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/CConnection.h>
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/LogWriter.h>
-#include <list>
 
 using namespace rfb;
 using namespace rdr;
@@ -40,8 +42,9 @@ using namespace std;
 
 static LogWriter vlog("CVeNCrypt");
 
-CSecurityVeNCrypt::CSecurityVeNCrypt(CConnection* cc, SecurityClient* sec)
-  : CSecurity(cc), csecurity(NULL), security(sec)
+CSecurityVeNCrypt::CSecurityVeNCrypt(CConnection* cc_,
+                                     SecurityClient* sec)
+  : CSecurity(cc_), csecurity(nullptr), security(sec)
 {
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -54,7 +57,7 @@ CSecurityVeNCrypt::CSecurityVeNCrypt(CConnection* cc, SecurityClient* sec)
   minorVersion = 0;
   chosenType = secTypeVeNCrypt;
   nAvailableTypes = 0;
-  availableTypes = NULL;
+  availableTypes = nullptr;
 }
 
 CSecurityVeNCrypt::~CSecurityVeNCrypt()
@@ -156,22 +159,17 @@ bool CSecurityVeNCrypt::processMsg()
     if (!haveChosenType) {
       chosenType = secTypeInvalid;
       uint8_t i;
-      list<uint32_t>::iterator j;
       list<uint32_t> secTypes;
 
       secTypes = security->GetEnabledExtSecTypes();
 
       /* Honor server's security type order */
       for (i = 0; i < nAvailableTypes; i++) {
-        for (j = secTypes.begin(); j != secTypes.end(); j++) {
-	  if (*j == availableTypes[i]) {
-	    chosenType = *j;
-	    break;
-	  }
-	}
-
-	if (chosenType != secTypeInvalid)
-	  break;
+        if (std::find(secTypes.begin(), secTypes.end(),
+                      availableTypes[i]) != secTypes.end()) {
+          chosenType = availableTypes[i];
+          break;
+        }
       }
 
       /* Set up the stack according to the chosen type: */

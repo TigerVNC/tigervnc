@@ -61,13 +61,13 @@ static BoolParameter showTrayIcon("ShowTrayIcon",
 
 VNCServerWin32::VNCServerWin32()
   : command(NoCommand),
-    commandEvent(CreateEvent(0, TRUE, FALSE, 0)),
+    commandEvent(CreateEvent(nullptr, TRUE, FALSE, nullptr)),
     sessionEvent(isServiceProcess() ?
-      CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
+      CreateEvent(nullptr, FALSE, FALSE, "Global\\SessionEventTigerVNC") : nullptr),
     vncServer(ComputerName().buf, &desktop),
     thread_id(-1), runServer(false), isDesktopStarted(false),
-    config(&sockMgr), rfbSock(&sockMgr), trayIcon(0),
-    queryConnectDialog(0)
+    config(&sockMgr), rfbSock(&sockMgr), trayIcon(nullptr),
+    queryConnectDialog(nullptr)
 {
   commandLock = new os::Mutex;
   commandSig = new os::Condition(commandLock);
@@ -92,7 +92,7 @@ VNCServerWin32::~VNCServerWin32() {
   delete trayIcon;
 
   // Stop the SDisplay from updating our state
-  desktop.setStatusLocation(0);
+  desktop.setStatusLocation(nullptr);
 
   // Join the Accept/Reject dialog thread
   if (queryConnectDialog) {
@@ -179,15 +179,14 @@ int VNCServerWin32::run() {
   // - Set the address-changed handler for the RFB socket
   rfbSock.setAddressChangeNotifier(this);
 
-  DWORD result = 0;
+  int result = 0;
   try {
     vlog.debug("Entering message loop");
 
     // - Run the server until we're told to quit
     MSG msg;
-    int result = 0;
     while (runServer) {
-      result = sockMgr.getMessage(&msg, NULL, 0, 0);
+      result = sockMgr.getMessage(&msg, nullptr, 0, 0);
       if (result < 0)
         throw rdr::SystemException("getMessage", GetLastError());
       if (!isServiceProcess() && (result == 0))
@@ -226,7 +225,7 @@ bool VNCServerWin32::disconnectClients(const char* reason) {
 }
 
 bool VNCServerWin32::addNewClient(const char* client) {
-  TcpSocket* sock = 0;
+  TcpSocket* sock = nullptr;
   try {
     std::string hostname;
     int port;
@@ -254,7 +253,7 @@ void VNCServerWin32::queryConnection(network::Socket* sock,
                                      const char* userName)
 {
   if (queryOnlyIfLoggedOn && CurrentUserToken().noUserLoggedOn()) {
-    vncServer.approveConnection(sock, true, NULL);
+    vncServer.approveConnection(sock, true, nullptr);
     return;
   }
   if (queryConnectDialog) {
@@ -266,7 +265,7 @@ void VNCServerWin32::queryConnection(network::Socket* sock,
 }
 
 void VNCServerWin32::queryConnectionComplete() {
-  queueCommand(QueryConnectionComplete, 0, 0, false);
+  queueCommand(QueryConnectionComplete, nullptr, 0, false);
 }
 
 
@@ -324,7 +323,7 @@ void VNCServerWin32::processEvent(HANDLE event_) {
                                   "Connection rejected by user");
       queryConnectDialog->wait();
       delete queryConnectDialog;
-      queryConnectDialog = 0;
+      queryConnectDialog = nullptr;
       break;
 
     default:
@@ -396,7 +395,7 @@ void VNCServerWin32::setConnStatus(ListConnInfo* listConn)
 
     status = listConn->iGetStatus();
     if (status == 3) {
-      conn->close(0);
+      conn->close(nullptr);
     } else {
       rfb::AccessRights ar;
 

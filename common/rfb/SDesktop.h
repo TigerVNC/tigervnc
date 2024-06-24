@@ -124,14 +124,18 @@ namespace rfb {
   //     a plain black desktop of the specified format.
   class SStaticDesktop : public SDesktop {
   public:
-    SStaticDesktop(const Point& size) : server(0), buffer(0) {
+    SStaticDesktop(const Point& size)
+      : server(nullptr), buffer(nullptr)
+    {
       PixelFormat pf;
       const uint8_t black[4] = { 0, 0, 0, 0 };
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
       if (buffer)
         buffer->fillRect(buffer->getRect(), black);
     }
-    SStaticDesktop(const Point& size, const PixelFormat& pf) : buffer(0) {
+    SStaticDesktop(const Point& size, const PixelFormat& pf)
+      : buffer(nullptr)
+    {
       const uint8_t black[4] = { 0, 0, 0, 0 };
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
       if (buffer)
@@ -141,13 +145,13 @@ namespace rfb {
       if (buffer) delete buffer;
     }
 
-    virtual void init(VNCServer* vs) {
+    void init(VNCServer* vs) override {
       server = vs;
       server->setPixelBuffer(buffer);
     }
-    virtual void queryConnection(network::Socket* sock,
-                                 const char* /*userName*/) {
-      server->approveConnection(sock, true, NULL);
+    void queryConnection(network::Socket* sock,
+                         const char* /*userName*/) override {
+      server->approveConnection(sock, true, nullptr);
     }
 
   protected:

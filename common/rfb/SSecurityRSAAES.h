@@ -36,10 +36,10 @@ namespace rfb {
     SSecurityRSAAES(SConnection* sc, uint32_t secType,
                     int keySize, bool isAllEncrypted);
     virtual ~SSecurityRSAAES();
-    virtual bool processMsg();
-    virtual const char* getUserName() const;
-    virtual int getType() const { return secType; }
-    virtual AccessRights getAccessRights() const
+    bool processMsg() override;
+    const char* getUserName() const override;
+    int getType() const override {return secType;}
+    AccessRights getAccessRights() const override
     {
       return accessRights;
     }

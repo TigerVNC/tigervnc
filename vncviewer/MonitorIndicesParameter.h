@@ -29,15 +29,15 @@ public:
     MonitorIndicesParameter(const char* name_, const char* desc_, const char* v);
     std::set<int> getParam();
     bool setParam(std::set<int> indices);
-    bool setParam(const char* value);
+    bool setParam(const char* v) override;
 private:
     typedef struct {
         int x, y, w, h;
         int fltkIndex;
     } Monitor;
 
-    bool parseIndices(const char* value, std::set<int> *indices,
-                      bool complain=false);
+    static bool parseIndices(const char* value, std::set<int> *indices,
+                             bool complain=false);
     std::vector<MonitorIndicesParameter::Monitor> fetchMonitors();
     static int compare(const void*, const void*);
 };
