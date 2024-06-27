@@ -95,6 +95,11 @@ namespace rfb {
     // handler will send a pseudo-rect back, signalling server support.
     virtual void supportsQEMUKeyEvent();
 
+    // supportsExtendedMouseButtons() is called the first time we detect that the
+    // client supports sending 16 bit mouse button state. This lets us pass more button
+    // states between server and client.
+    virtual void supportsExtendedMouseButtons();
+
     ClientParams client;
   };
 }

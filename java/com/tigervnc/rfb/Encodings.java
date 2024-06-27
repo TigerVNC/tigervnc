@@ -34,6 +34,7 @@ public class Encodings {
 
   public static final int pseudoEncodingXCursor = -240;
   public static final int pseudoEncodingCursor = -239;
+  public static final int pseudoEncodingExtendedMouseButtons = -241;
   public static final int pseudoEncodingDesktopSize = -223;
   public static final int pseudoEncodingExtendedDesktopSize = -308;
   public static final int pseudoEncodingDesktopName = -307;
