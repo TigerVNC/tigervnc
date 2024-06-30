@@ -30,6 +30,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "list.h"
 #include "xkbsrv.h"
 #include "xkbstr.h"
 #include "eventstr.h"
@@ -55,6 +56,25 @@ static const KeyCode fakeKeys[] = {
     8, 124, 125, 156, 127, 128
 #endif
     };
+
+typedef struct
+{
+	KeySym keysym;
+	KeyCode keycode;
+	struct xorg_list entry;
+} AddedKeySym;
+
+/*
+ * If a KeySym recieved from client is not mapped to any KeyCode, it needs to be
+ * mapped to an unused KeyCode to generate required key events.
+ *
+ * This list tracks such assignments. A KeyCode from this list can be reused if
+ * we run out of unused KeyCodes.
+ *
+ * Items in this list are maintained in LRU order, with most recently used key
+ * in front.
+ */
+static struct xorg_list addedKeysyms;
 
 static void vncXkbProcessDeviceEvent(int screenNum,
                                      InternalEvent *event,
@@ -218,6 +238,8 @@ void vncPrepareInputDevices(void)
 	 */
 	mieqSetHandler(ET_KeyPress, vncXkbProcessDeviceEvent);
 	mieqSetHandler(ET_KeyRelease, vncXkbProcessDeviceEvent);
+
+	xorg_list_init(&addedKeysyms);
 }
 
 unsigned vncGetKeyboardState(void)
@@ -568,6 +590,68 @@ int vncIsAffectedByNumLock(KeyCode keycode)
 	return 1;
 }
 
+static void saveAddedKeysym(KeyCode code, KeySym sym)
+{
+	AddedKeySym* item;
+
+	item = malloc(sizeof(AddedKeySym));
+	if (!item)
+		return;
+
+	item->keycode = code;
+	item->keysym = sym;
+	xorg_list_add(&item->entry, &addedKeysyms);
+}
+
+/*
+ * Keeps the list in LRU order by moving the used key to front of the list.
+ */
+void vncOnKeyUsed(KeyCode usedKeycode)
+{
+	AddedKeySym* it;
+
+	if (xorg_list_is_empty(&addedKeysyms))
+		return;
+
+	it = xorg_list_first_entry(&addedKeysyms, AddedKeySym, entry);
+	if (it->keycode == usedKeycode)
+		return;
+
+	xorg_list_for_each_entry(it, &addedKeysyms, entry) {
+		if (it->keycode == usedKeycode) {
+			xorg_list_del(&it->entry);
+			xorg_list_add(&it->entry, &addedKeysyms);
+			break;
+		}
+	}
+}
+
+/*
+ * Returns keycode of oldest item from list of manually added keysyms.
+ * The item is removed from the list.
+ * Returns 0 if no usable keycode is found.
+ */
+static KeyCode getReusableKeycode(XkbDescPtr xkb)
+{
+	AddedKeySym* last;
+	KeyCode result;
+
+	result = 0;
+	while (result == 0 && !xorg_list_is_empty(&addedKeysyms)) {
+		last = xorg_list_last_entry(&addedKeysyms, AddedKeySym, entry);
+
+		// Make sure someone else hasn't modified the key
+		if (XkbKeyNumGroups(xkb, last->keycode) > 0 &&
+			XkbKeySymsPtr(xkb, last->keycode)[0] == last->keysym &&
+			(xkb->names == NULL || xkb->names->keys[last->keycode].name[0] == 'T'))
+			result = last->keycode;
+
+		xorg_list_del(&last->entry);
+		free(last);
+	}
+	return result;
+}
+
 KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 {
 	DeviceIntPtr master;
@@ -589,6 +673,9 @@ KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 	}
 
 	if (key < xkb->min_key_code)
+		key = getReusableKeycode(xkb);
+
+	if (!key)
 		return 0;
 
 	memset(&changes, 0, sizeof(changes));
@@ -600,9 +687,8 @@ KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 	 * Tools like xkbcomp get confused if there isn't a name
 	 * assigned to the keycode we're trying to use.
 	 */
-	if (xkb->names && xkb->names->keys &&
-	    (xkb->names->keys[key].name[0] == '\0')) {
-		xkb->names->keys[key].name[0] = 'I';
+	if (xkb->names && xkb->names->keys) {
+		xkb->names->keys[key].name[0] = 'T';
 		xkb->names->keys[key].name[1] = '0' + (key / 100) % 10;
 		xkb->names->keys[key].name[2] = '0' + (key /  10) % 10;
 		xkb->names->keys[key].name[3] = '0' + (key /   1) % 10;
@@ -640,6 +726,8 @@ KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 	changes.map.num_key_syms = 1;
 
 	XkbSendNotification(master, &changes, &cause);
+
+	saveAddedKeysym(key, syms[0]);
 
 	return key;
 }

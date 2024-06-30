@@ -35,6 +35,12 @@
 class Geometry;
 class XPixelBuffer;
 
+struct AddedKeySym
+{
+  KeySym keysym;
+  KeyCode keycode;
+};
+
 // number of XKb indicator leds to handle
 #define XDESKTOP_N_LEDS 3
 
@@ -78,7 +84,7 @@ protected:
   bool haveXtest;
   bool haveDamage;
   int maxButtons;
-  std::map<KeySym, KeyCode> addedKeysyms;
+  std::list<AddedKeySym> addedKeysyms;
   std::map<KeySym, KeyCode> pressedKeys;
   bool running;
 #ifdef HAVE_XDAMAGE
@@ -102,6 +108,7 @@ protected:
 protected:
 #ifdef HAVE_XTEST
   KeyCode XkbKeysymToKeycode(KeySym keysym);
+  KeyCode getReusableKeycode(XkbDescPtr xkb);
   KeyCode addKeysym(KeySym keysym);
   void deleteAddedKeysyms();
   KeyCode keysymToKeycode(KeySym keysym);

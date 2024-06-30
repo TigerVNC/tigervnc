@@ -612,6 +612,9 @@ static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 	/* Now press the actual key */
 	pressKey(vncKeyboardDev, keycode, TRUE, "keycode");
 
+	if(down)
+		vncOnKeyUsed(keycode);
+
 	/* And store the mapping so that we can do a proper release later */
 	for (i = 0;i < 256;i++) {
 		if (i == keycode)
