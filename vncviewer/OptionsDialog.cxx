@@ -352,7 +352,13 @@ void OptionsDialog::loadOptions(void)
   /* Misc. */
   sharedCheckbox->value(shared);
   reconnectCheckbox->value(reconnectOnError);
-  dotCursorCheckbox->value(dotWhenNoCursor);
+  localCursorCheckbox->value(localCursor);
+  if (!strcasecmp(cursorType, "dot")) {
+    dotCursorButton->setonly();
+  } else {
+    systemCursorButton->setonly();
+  }
+  handleLocalCursor(localCursorCheckbox, this);
 }
 
 
@@ -486,7 +492,13 @@ void OptionsDialog::storeOptions(void)
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
   reconnectOnError.setParam(reconnectCheckbox->value());
-  dotWhenNoCursor.setParam(dotCursorCheckbox->value());
+  localCursor.setParam(localCursorCheckbox->value());
+
+  if (dotCursorButton->value()) {
+    cursorType.setParam("Dot");
+  } else {
+    cursorType.setParam("System");
+  }
 
   std::map<OptionsCallback*, void*>::const_iterator iter;
 
@@ -835,11 +847,46 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                      _("Emulate middle mouse button")));
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
-    dotCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                    CHECK_MIN_WIDTH,
-                                                    CHECK_HEIGHT,
-                                                    _("Show dot when no cursor")));
+    localCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                       CHECK_MIN_WIDTH,
+                                                       CHECK_HEIGHT,
+                                                       _("Show local cursor when not provided by server")));
+    localCursorCheckbox->callback(handleLocalCursor, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+    /* Cursor type box */
+    ty += GROUP_LABEL_OFFSET;
+    cursorGroup = new Fl_Group(tx, ty, width, 0, _("Cursor type"));
+    cursorGroup->box(FL_FLAT_BOX);
+    cursorGroup->labelfont(FL_BOLD);
+    cursorGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+
+    {
+      tx += INDENT;
+      ty += TIGHT_MARGIN;
+
+      dotCursorButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                     RADIO_MIN_WIDTH,
+                                                     RADIO_HEIGHT,
+                                                     "Dot cursor"));
+      dotCursorButton->type(FL_RADIO_BUTTON);
+      ty += RADIO_HEIGHT + TIGHT_MARGIN;
+
+      systemCursorButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                        RADIO_MIN_WIDTH,
+                                                        RADIO_HEIGHT,
+                                                        "System cursor"));
+      systemCursorButton->type(FL_RADIO_BUTTON);
+      ty += RADIO_HEIGHT + TIGHT_MARGIN;
+    }
+
+    ty -= TIGHT_MARGIN;
+
+    cursorGroup->end();
+    /* Needed for resize to work sanely */
+    cursorGroup->resizable(nullptr);
+    cursorGroup->size(cursorGroup->w(), ty - cursorGroup->y());
+
   }
   ty -= TIGHT_MARGIN;
 
@@ -1180,4 +1227,15 @@ void OptionsDialog::handleScreenConfigTimeout(void *data)
     assert(self);
 
     self->monitorArrangement->value(fullScreenSelectedMonitors.getParam());
+}
+
+void OptionsDialog::handleLocalCursor(Fl_Widget* /*widget*/, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  if (dialog->localCursorCheckbox->value()) {
+    dialog->cursorGroup->activate();
+  } else {
+    dialog->cursorGroup->deactivate();
+  }
 }

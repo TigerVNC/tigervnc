@@ -60,9 +60,12 @@ BoolParameter emulateMiddleButton("EmulateMiddleButton",
                                   "Emulate middle mouse button by pressing "
                                   "left and right mouse buttons simultaneously",
                                   false);
-BoolParameter dotWhenNoCursor("DotWhenNoCursor",
-                              "Show the dot cursor when the server sends an "
-                              "invisible cursor", false);
+BoolParameter localCursor("LocalCursor",
+                            "Show the local cursor when the server sends an "
+                            "invisible cursor", false);
+StringParameter cursorType("CursorType", "Specify which cursor type the local cursor should be. "
+                                                 "Should be either Dot or System",
+                               "Dot");
 
 BoolParameter alertOnFatalError("AlertOnFatalError",
                                 "Give a dialog on connection problems rather "
@@ -198,7 +201,8 @@ static VoidParameter* parameterArray[] = {
   /* Input */
   &viewOnly,
   &emulateMiddleButton,
-  &dotWhenNoCursor,
+  &localCursor,
+  &cursorType,
   &acceptClipboard,
   &sendClipboard,
 #if !defined(WIN32) && !defined(__APPLE__)

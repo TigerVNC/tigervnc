@@ -259,7 +259,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
   for (i = 0; i < width*height; i++)
     if (data[i*4 + 3] != 0) break;
 
-  if ((i == width*height) && dotWhenNoCursor) {
+  if ((i == width*height) && localCursor && !strcasecmp("dot", cursorType)) {
     vlog.debug("cursor is empty - using dot");
 
     Fl_Pixmap pxm(dotcursor_xpm);
@@ -279,8 +279,13 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     }
   }
 
-  if (Fl::belowmouse() == this)
-    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+  if (Fl::belowmouse() == this) {
+    if ((i == width*height) && localCursor && !strcasecmp("system", cursorType)) {
+      window()->cursor(FL_CURSOR_DEFAULT);
+    } else {
+      window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    }
+  }
 }
 
 void Viewport::handleClipboardRequest()

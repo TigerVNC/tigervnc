@@ -285,8 +285,14 @@ Use specified lossless compression level. 0 = Low, 9 = High. Default is 2.
 Use custom compression level. Default if \fBCompressLevel\fP is specified.
 .
 .TP
-.B \-DotWhenNoCursor
-Show the dot cursor when the server sends an invisible cursor. Default is off.
+.B \-LocalCursor
+Show a local cursor when the server sends an invisible cursor. Default is off.
+.
+.TP
+.B \-CursorType \fItype\fP
+Specify which cursor type to use when a local cursor is shown. It should be
+either "Dot", or "System". Ignored if LocalCursor is off.
+The default is "Dot".
 .
 .TP
 .B \-PointerEventInterval \fItime\fP

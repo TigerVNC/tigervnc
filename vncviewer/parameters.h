@@ -33,7 +33,8 @@
 
 extern rfb::IntParameter pointerEventInterval;
 extern rfb::BoolParameter emulateMiddleButton;
-extern rfb::BoolParameter dotWhenNoCursor;
+extern rfb::BoolParameter localCursor;
+extern rfb::StringParameter cursorType;
 
 extern rfb::StringParameter passwordFile;
 
