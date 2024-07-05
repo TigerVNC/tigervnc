@@ -54,7 +54,7 @@ inline static timeval addMillis(timeval inTime, int millis) {
 }
 
 inline static int diffTimeMillis(timeval later, timeval earlier) {
-  return ((later.tv_sec - earlier.tv_sec) * 1000) + ((later.tv_usec - earlier.tv_usec) / 1000);
+  return ((later.tv_sec - earlier.tv_sec) * 1000) + ((later.tv_usec - earlier.tv_usec + 999) / 1000);
 }
 
 std::list<Timer*> Timer::pending;
