@@ -413,7 +413,7 @@ int main(int argc, char** argv)
       if (!clients_connected)
         sched.reset();
 
-      wait_ms = 0;
+      wait_ms = -1;
 
       if (sched.isRunning()) {
         wait_ms = sched.millisRemaining();
@@ -424,7 +424,7 @@ int main(int argc, char** argv)
 
       // Trigger timers and check when the next will expire
       nextTimeout = Timer::checkTimeouts();
-      if (nextTimeout >= 0 && nextTimeout < wait_ms)
+      if (nextTimeout >= 0 && (wait_ms == -1 || nextTimeout < wait_ms))
         wait_ms = nextTimeout;
 
       tv.tv_sec = wait_ms / 1000;
@@ -433,7 +433,7 @@ int main(int argc, char** argv)
       // Do the wait...
       sched.sleepStarted();
       int n = select(FD_SETSIZE, &rfds, &wfds, nullptr,
-                     wait_ms ? &tv : nullptr);
+                     wait_ms >= 0 ? &tv : nullptr);
       sched.sleepFinished();
 
       if (n < 0) {
