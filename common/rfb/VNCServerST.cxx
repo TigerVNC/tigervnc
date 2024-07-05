@@ -627,7 +627,8 @@ void VNCServerST::handleTimeout(Timer* t)
 
     // We keep running until we go a full interval without any updates,
     // or there are no active clients anymore
-    if (comparer->is_empty() || !desktopStarted) {
+    if (!desktopStarted ||
+        ((comparer != nullptr) && comparer->is_empty())) {
       // Unless something waits for us to advance the frame count
       if (queuedMsc < msc)
         return;
@@ -642,7 +643,8 @@ void VNCServerST::handleTimeout(Timer* t)
 
     frameTimer.repeat(timeout);
 
-    if (!comparer->is_empty() && desktopStarted)
+    if (desktopStarted &&
+        ((comparer != nullptr) && !comparer->is_empty()))
       writeUpdate();
 
     msc++;
@@ -726,6 +728,7 @@ void VNCServerST::startDesktop()
     desktopStarted = true;
     // The tracker might have accumulated changes whilst we were
     // stopped, so flush those out
+    assert(comparer != nullptr);
     if (!comparer->is_empty())
       writeUpdate();
     // If the frame clock is running, then it will be running slowly,
@@ -772,8 +775,11 @@ void VNCServerST::startFrameClock()
     return;
 
   // Anyone actually interested in frames?
-  if (comparer->is_empty() && (queuedMsc <= msc))
-    return;
+  if (!desktopStarted ||
+      ((comparer != nullptr) && comparer->is_empty())) {
+    if (queuedMsc < msc)
+      return;
+  }
 
   // Run the frame clock very slowly if there are no clients to actually
   // send updates to
@@ -820,6 +826,7 @@ void VNCServerST::writeUpdate()
 
   assert(blockCounter == 0);
   assert(desktopStarted);
+  assert(comparer != nullptr);
 
   comparer->getUpdateInfo(&ui, pb->getRect());
   toCheck = ui.changed.union_(ui.copied);
@@ -862,6 +869,8 @@ Region VNCServerST::getPendingRegion()
   // Block clients as the frame buffer cannot be safely accessed
   if (blockCounter > 0)
     return pb->getRect();
+
+  assert(comparer != nullptr);
 
   // Block client from updating if there are pending updates
   if (comparer->is_empty())
