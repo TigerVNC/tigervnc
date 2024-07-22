@@ -131,7 +131,7 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
   if (!ctx->isReady())
     throw Exception("H264Decoder: Context is not ready");
 
-  if (flags & resetContext)
+  if (reset & resetContext)
     ctx->reset();
 
   if (!len)
