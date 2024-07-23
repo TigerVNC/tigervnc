@@ -41,6 +41,9 @@ from the X Consortium.
 #include "xorg-version.h"
 
 #include <stdio.h>
+#ifdef HAVE_LIBXCVT
+#include <libxcvt/libxcvt.h>
+#endif
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/Xos.h>
@@ -764,13 +767,37 @@ vncRandRModeGet(int width, int height)
     RRModePtr mode;
 
     memset(&modeInfo, 0, sizeof(modeInfo));
-    sprintf(name, "%dx%d", width, height);
 
+#ifdef HAVE_LIBXCVT
+    struct libxcvt_mode_info *cvtMode;
+
+    cvtMode = libxcvt_gen_mode_info(width, height, 60.0, false, false);
+
+    modeInfo.width      = cvtMode->hdisplay;
+    modeInfo.height     = cvtMode->vdisplay;
+    modeInfo.dotClock   = cvtMode->dot_clock * 1000.0;
+    modeInfo.hSyncStart = cvtMode->hsync_start;
+    modeInfo.hSyncEnd   = cvtMode->hsync_end;
+    modeInfo.hTotal     = cvtMode->htotal;
+    modeInfo.vSyncStart = cvtMode->vsync_start;
+    modeInfo.vSyncEnd   = cvtMode->vsync_end;
+    modeInfo.vTotal     = cvtMode->vtotal;
+    modeInfo.modeFlags  = cvtMode->mode_flags;
+
+    free(cvtMode);
+
+    /* libxcvt rounds up to multiples of 8, so override them here */
+    modeInfo.width = width;
+    modeInfo.height = height;
+#else
     modeInfo.width = width;
     modeInfo.height = height;
     modeInfo.hTotal = width;
     modeInfo.vTotal = height;
     modeInfo.dotClock = ((CARD32) width * (CARD32) height * 60);
+#endif
+
+    sprintf(name, "%dx%d", width, height);
     modeInfo.nameLength = strlen(name);
     mode = RRModeGet(&modeInfo, name);
     if (mode == NULL)
