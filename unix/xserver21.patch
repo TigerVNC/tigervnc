@@ -10,7 +10,7 @@ index fad7b5769..2c167de3d 100644
  AC_PROG_LN_S
  LT_PREREQ([2.2])
  LT_INIT([disable-static win32-dll])
-@@ -1720,6 +1721,14 @@ if test "x$XVFB" = xyes; then
+@@ -1720,6 +1721,19 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
  
@@ -21,6 +21,11 @@ index fad7b5769..2c167de3d 100644
 +PKG_CHECK_MODULES(GBM, "$LIBGBM", [GBM=yes], [GBM=no])
 +if test "x$GBM" = xyes; then
 +	AC_DEFINE(HAVE_GBM, 1, [Have GBM support])
++fi
++
++PKG_CHECK_MODULES(LIBXCVT, "$LIBXCVT", [XCVT=yes], [XCVT=no])
++if test "x$XCVT" = xyes; then
++	AC_DEFINE(HAVE_LIBXCVT, 1, [Have libxcvt support])
 +fi
  
  dnl Xnest DDX
@@ -55,6 +60,16 @@ diff --git a/include/dix-config.h.in b/include/dix-config.h.in
 index 382d70609..04a4fd263 100644
 --- a/include/dix-config.h.in
 +++ b/include/dix-config.h.in
+@@ -63,6 +63,9 @@
+ /* Has libunwind support */
+ #undef HAVE_LIBUNWIND
+
++/* Have libxcvt support */
++#undef HAVE_LIBXCVT
++
+ /* Define to 1 if you have the `cbrt' function. */
+ #undef HAVE_CBRT
+
 @@ -77,6 +77,9 @@
  /* Define to 1 if you have the <fcntl.h> header file. */
  #undef HAVE_FCNTL_H
