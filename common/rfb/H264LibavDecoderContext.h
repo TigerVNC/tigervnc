@@ -47,8 +47,8 @@ namespace rfb {
       AVCodecContext *avctx;
       AVCodecParserContext *parser;
       AVFrame* frame;
+      AVFrame* rgbFrame = nullptr;
       SwsContext* sws;
-      uint8_t* swsBuffer;
       uint8_t* h264WorkBuffer;
       uint32_t h264WorkBufferLength;
   };
