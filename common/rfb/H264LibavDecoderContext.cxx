@@ -43,7 +43,6 @@ bool H264LibavDecoderContext::initCodec() {
   os::AutoMutex lock(&mutex);
 
   sws = NULL;
-  swsBuffer = NULL;
   h264WorkBuffer = NULL;
   h264WorkBufferLength = 0;
 
@@ -87,9 +86,6 @@ bool H264LibavDecoderContext::initCodec() {
     return false;
   }
 
-  int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, rect.width(), rect.height(), 1);
-  swsBuffer = new uint8_t[numBytes];
-
   initialized = true;
   return true;
 }
@@ -101,8 +97,8 @@ void H264LibavDecoderContext::freeCodec() {
     return;
   av_parser_close(parser);
   avcodec_free_context(&avctx);
+  av_frame_free(&rgbFrame);
   av_frame_free(&frame);
-  delete[] swsBuffer;
   free(h264WorkBuffer);
   initialized = false;
 }
@@ -220,11 +216,22 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
                              frame->width, frame->height, AV_PIX_FMT_RGB32,
                              0, NULL, NULL, NULL);
 
-  int stride;
-  pb->getBuffer(rect, &stride);
-  int dst_linesize = stride * pb->getPF().bpp/8;  // stride is in pixels, linesize is in bytes (stride x4). We need bytes
+  if (rgbFrame && (rgbFrame->width != frame->width || rgbFrame->height != frame->height)) {
+    av_frame_free(&rgbFrame);
 
-  sws_scale(sws, frame->data, frame->linesize, 0, frame->height, &swsBuffer, &dst_linesize);
+  }
 
-  pb->imageRect(rect, swsBuffer, stride);
+  if (!rgbFrame) {
+    rgbFrame = av_frame_alloc();
+    // TODO: Can we really assume that the pixel format will always be RGB32?
+    rgbFrame->format = AV_PIX_FMT_RGB32;
+    rgbFrame->width = frame->width;
+    rgbFrame->height = frame->height;
+    av_frame_get_buffer(rgbFrame, 0);
+  }
+
+  sws_scale(sws, frame->data, frame->linesize, 0, frame->height, rgbFrame->data,
+            rgbFrame->linesize);
+
+  pb->imageRect(rect, rgbFrame->data[0], rgbFrame->linesize[0] / 4);
 }
