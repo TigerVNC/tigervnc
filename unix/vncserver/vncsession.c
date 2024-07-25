@@ -545,7 +545,7 @@ run_script(const char *username, const char *display, char **envp)
 
     // Set up some basic environment for the script
     setenv("HOME", pwent->pw_dir, 1);
-    setenv("SHELL", pwent->pw_shell, 1);
+    setenv("SHELL", *pwent->pw_shell != '\0' ? pwent->pw_shell : "/bin/sh", 1);
     setenv("LOGNAME", pwent->pw_name, 1);
     setenv("USER", pwent->pw_name, 1);
     setenv("USERNAME", pwent->pw_name, 1);
