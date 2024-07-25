@@ -20,13 +20,11 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
+#include <algorithm>
 #include <rdr/HexOutStream.h>
 #include <rfb/util.h>
 
 using namespace rdr;
-
-static inline size_t min(size_t a, size_t b) {return a<b ? a : b;}
 
 HexOutStream::HexOutStream(OutStream& os)
   : out_stream(os)
@@ -41,7 +39,7 @@ bool HexOutStream::flushBuffer()
 {
   while (sentUpTo != ptr) {
     uint8_t* optr = out_stream.getptr(2);
-    size_t length = min(ptr-sentUpTo, out_stream.avail()/2);
+    size_t length = std::min((size_t)(ptr-sentUpTo), out_stream.avail()/2);
 
     for (size_t i=0; i<length; i++)
       rfb::binToHex(&sentUpTo[i], 1, (char*)&optr[i*2], 2);
@@ -64,4 +62,3 @@ void HexOutStream::cork(bool enable)
   BufferedOutStream::cork(enable);
   out_stream.cork(enable);
 }
-
