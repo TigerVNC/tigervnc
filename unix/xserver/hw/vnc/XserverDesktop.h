@@ -111,6 +111,13 @@ public:
   void grabRegion(const core::Region& r) override;
 
 protected:
+#ifdef HAVE_SYSTEMD_DAEMON
+  // - Check whether user is logged into a session
+  //   Returns true if user is already logged or there is no
+  //   user session at all.
+  bool checkUserLogged(const char* userName);
+#endif
+
   bool handleListenerEvent(int fd,
                            std::list<network::SocketListener*>* sockets,
                            rfb::VNCServer* sockserv);

@@ -720,13 +720,6 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
     return;
   }
 
-  // - Are we configured to do queries?
-  if (!rfb::Server::queryConnect &&
-      !client->getSock()->requiresQuery()) {
-    approveConnection(client->getSock(), true, nullptr);
-    return;
-  }
-
   // - Does the client have the right to bypass the query?
   if (client->accessCheck(AccessNoQuery))
   {
