@@ -200,6 +200,13 @@ Never treat incoming connections as shared, regardless of the client-specified
 setting. Default is off.
 .
 .TP
+B \-ApproveLoggedUserOnly
+Approve only the user who is currently logged into the session.
+This is expected to be combined with "Plain" security type and with
+"PlainUsers=*" option allowing everyone to connect to the session.
+Default is off.
+.
+.TP
 .B \-pam_service \fIname\fP, \-PAMService \fIname\fP
 PAM service name to use when authentication users using any of the "Plain"
 security types. Default is \fBvnc\fP.
