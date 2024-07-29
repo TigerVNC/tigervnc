@@ -60,7 +60,7 @@ StringParameter SecurityClient::secTypes
  "X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,"
 #endif
 #ifdef HAVE_NETTLE
- "RA2,RA2_256,RA2ne,RA2ne_256,DH,MSLogonII"
+ "RA2,RA2_256,RA2ne,RA2ne_256,DH,MSLogonII,"
 #endif
  "VncAuth,None",
 ConfViewer);
