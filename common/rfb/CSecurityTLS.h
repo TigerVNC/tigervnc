@@ -28,7 +28,6 @@
 
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
-#include <rfb/UserMsgBox.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <gnutls/gnutls.h>

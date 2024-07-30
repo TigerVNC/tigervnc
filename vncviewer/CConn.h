@@ -24,6 +24,7 @@
 
 #include <rfb/CConnection.h>
 #include <rdr/FdInStream.h>
+#include "UserDialog.h"
 
 namespace network { class Socket; }
 
@@ -44,7 +45,16 @@ public:
   // Callback when socket is ready (or broken)
   static void socketEvent(FL_SOCKET fd, void *data);
 
+  // Forget any saved password
+  void resetPassword();
+
   // CConnection callback methods
+
+  bool showMsgBox(rfb::MsgBoxFlags flags, const char *title,
+                  const char *text) override;
+  void getUserPasswd(bool secure, std::string *user,
+                     std::string *password) override;
+
   void initDone() override;
 
   void setDesktopSize(int w, int h) override;
@@ -105,6 +115,8 @@ private:
   struct timeval updateStartTime;
   size_t updateStartPos;
   unsigned long long bpsEstimate;
+
+  UserDialog dlg;
 };
 
 #endif

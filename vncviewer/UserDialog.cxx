@@ -248,7 +248,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
     throw rfb::AuthCancelledException();
 }
 
-bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
+bool UserDialog::showMsgBox(MsgBoxFlags flags, const char* title, const char* text)
 {
   char buffer[1024];
 

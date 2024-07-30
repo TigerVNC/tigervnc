@@ -75,6 +75,8 @@ public:
   void setColourMapEntries(int, int, uint16_t*) override;
   void bell() override;
   void serverCutText(const char*) override;
+  virtual void getUserPasswd(bool secure, std::string *user, std::string *password) override;
+  virtual bool showMsgBox(rfb::MsgBoxFlags flags, const char *title, const char *text) override;
 
 public:
   double cpuTime;
@@ -82,6 +84,7 @@ public:
 protected:
   rdr::FileInStream *in;
   DummyOutStream *out;
+
 };
 
 DummyOutStream::DummyOutStream()
@@ -172,6 +175,15 @@ void CConn::bell()
 
 void CConn::serverCutText(const char*)
 {
+}
+
+void CConn::getUserPasswd(bool, std::string *, std::string *)
+{
+}
+
+bool CConn::showMsgBox(rfb::MsgBoxFlags, const char *, const char *)
+{
+    return true;
 }
 
 struct stats

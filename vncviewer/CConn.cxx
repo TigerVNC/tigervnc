@@ -275,7 +275,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     vlog.info("%s", e.str());
     disconnect();
   } catch (rfb::AuthFailureException& e) {
-    reset_password_data();
+    cc->resetPassword();
     vlog.error(_("Authentication failed: %s"), e.str());
     abort_connection(_("Failed to authenticate with the server. Reason "
                        "given by the server:\n\n%s"), e.str());
@@ -292,7 +292,24 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
   recursing = false;
 }
 
+void CConn::resetPassword()
+{
+    dlg.resetPassword();
+}
+
 ////////////////////// CConnection callback methods //////////////////////
+
+bool CConn::showMsgBox(MsgBoxFlags flags, const char *title,
+                       const char *text)
+{
+    return dlg.showMsgBox(flags, title, text);
+}
+
+void CConn::getUserPasswd(bool secure, std::string *user,
+                          std::string *password)
+{
+    dlg.getUserPasswd(secure, user, password);
+}
 
 // initDone() is called when the serverInit message has been received.  At
 // this point we create the desktop window and display it.  We also tell the
