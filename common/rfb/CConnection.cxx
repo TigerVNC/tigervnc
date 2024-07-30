@@ -609,6 +609,14 @@ void CConnection::handleClipboardProvide(uint32_t flags,
   handleClipboardData(serverClipboard.c_str());
 }
 
+void CConnection::getUserPasswd(bool, std::string*, std::string*)
+{}
+
+bool CConnection::showMsgBox(MsgBoxFlags, const char *, const char *)
+{
+    return true;
+}
+
 void CConnection::authSuccess()
 {
 }

@@ -38,7 +38,6 @@
 #include <rfb/CConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-#include <rfb/UserMsgBox.h>
 #include <rfb/util.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
@@ -441,7 +440,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unknown certificate issuer",
                            text.c_str()))
         throw AuthFailureException("Unknown certificate issuer");
@@ -461,8 +460,8 @@ void CSecurityTLS::checkSession()
                     "\n"
                     "Do you want to make an exception for this "
                     "server?", info.data);
-
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+        
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Certificate is not yet valid",
                            text.c_str()))
         throw AuthFailureException("Certificate is not yet valid");
@@ -481,7 +480,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Expired certificate",
                            text.c_str()))
         throw AuthFailureException("Expired certificate");
@@ -500,7 +499,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Insecure certificate algorithm",
                            text.c_str()))
         throw AuthFailureException("Insecure certificate algorithm");
@@ -525,7 +524,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", client->getServerName(), info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Certificate hostname mismatch",
                            text.c_str()))
         throw AuthFailureException("Certificate hostname mismatch");
@@ -551,7 +550,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
@@ -574,7 +573,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
@@ -595,7 +594,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
@@ -616,7 +615,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");
@@ -643,7 +642,7 @@ void CSecurityTLS::checkSession()
                     "Do you want to make an exception for this "
                     "server?", client->getServerName(), info.data);
 
-      if (!msg->showMsgBox(UserMsgBox::M_YESNO,
+      if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
         throw AuthFailureException("Unexpected server certificate");

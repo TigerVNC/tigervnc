@@ -607,7 +607,6 @@ static int mktunnel()
 int main(int argc, char** argv)
 {
   const char *localedir;
-  UserDialog dlg;
 
   argv0 = argv[0];
 
@@ -741,11 +740,6 @@ int main(int argc, char** argv)
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC state directory: %s"), strerror(errno));
   }
-
-  CSecurity::upg = &dlg;
-#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
-  CSecurity::msg = &dlg;
-#endif
 
   Socket *sock = nullptr;
 
