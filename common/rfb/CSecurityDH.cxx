@@ -108,7 +108,7 @@ void CSecurityDH::writeCredentials()
   std::string password;
   rdr::RandomStream rs;
 
-  (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+  cc->getUserPasswd(isSecure(), &username, &password);
 
   std::vector<uint8_t> bBytes(keyLength);
   if (!rs.hasData(keyLength))

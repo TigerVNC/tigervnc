@@ -36,8 +36,21 @@ namespace rfb {
   class CMsgWriter;
   class CSecurity;
   class IdentityVerifier;
-
-  class CConnection : public CMsgHandler {
+  
+  enum class MsgBoxFlags{
+      M_OK = 0,
+      M_OKCANCEL = 1,
+      M_YESNO = 4,
+      M_ICONERROR = 0x10,
+      M_ICONQUESTION = 0x20,
+      M_ICONWARNING = 0x30,
+      M_ICONINFORMATION = 0x40,
+      M_DEFBUTTON1 = 0,
+      M_DEFBUTTON2 = 0x100
+  };
+  
+  class CConnection : public CMsgHandler
+  {
   public:
 
     CConnection();
@@ -126,7 +139,15 @@ namespace rfb {
 
 
     // Methods to be overridden in a derived class
-
+    
+    // getUserPasswd gets the username and password.  This might involve a
+    // dialog, getpass(), etc.  The user buffer pointer can be null, in which
+    // case no user name will be retrieved.
+    virtual void getUserPasswd(bool secure, std::string* user,
+                               std::string* password) = 0;
+    
+    virtual bool showMsgBox(MsgBoxFlags flags, const char *title, const char *text) = 0;
+    
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
 
