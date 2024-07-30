@@ -93,8 +93,6 @@ static bool exitMainloop = false;
 static char *exitError = nullptr;
 static bool fatalError = false;
 
-static UserDialog dlg;
-
 static const char *about_text()
 {
   static char buffer[1024];
@@ -169,11 +167,6 @@ void disconnect()
 bool should_disconnect()
 {
   return exitMainloop;
-}
-
-void reset_password_data()
-{
-  dlg.resetPassword();
 }
 
 void about_vncviewer()
@@ -747,11 +740,6 @@ int main(int argc, char** argv)
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC state directory: %s"), strerror(errno));
   }
-
-  CSecurity::upg = &dlg;
-#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
-  CSecurity::msg = &dlg;
-#endif
 
   Socket *sock = nullptr;
 

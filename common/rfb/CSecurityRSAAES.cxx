@@ -38,7 +38,6 @@
 #include <rfb/CConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-#include <rfb/UserMsgBox.h>
 #include <rfb/util.h>
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
@@ -215,7 +214,7 @@ void CSecurityRSAAES::verifyServer()
     "Fingerprint: %02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n"
     "Please verify that the information is correct and press \"Yes\". "
     "Otherwise press \"No\"", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
-  if (!msg->showMsgBox(UserMsgBox::M_YESNO, title, text.c_str()))
+  if (!cc->showMsgBox(MsgBoxFlags::M_YESNO, title, text.c_str()))
     throw Exception("server key mismatch");
 }
 
@@ -438,9 +437,9 @@ void CSecurityRSAAES::writeCredentials()
   std::string password;
 
   if (subtype == secTypeRA2UserPass)
-    (CSecurity::upg)->getUserPasswd(isSecure(), &username, &password);
+    cc->getUserPasswd(isSecure(), &username, &password);
   else
-    (CSecurity::upg)->getUserPasswd(isSecure(), nullptr, &password);
+    cc->getUserPasswd(isSecure(), nullptr, &password);
 
   if (subtype == secTypeRA2UserPass) {
     if (username.size() > 255)

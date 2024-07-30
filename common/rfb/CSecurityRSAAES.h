@@ -27,13 +27,11 @@
 #include <nettle/rsa.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
-#include <rfb/UserMsgBox.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rdr/RandomStream.h>
 
 namespace rfb {
-  class UserMsgBox;
   class CSecurityRSAAES : public CSecurity {
   public:
     CSecurityRSAAES(CConnection* cc, uint32_t secType,

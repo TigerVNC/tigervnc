@@ -248,7 +248,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
     throw rfb::AuthCancelledException();
 }
 
-bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
+bool UserDialog::showMsgBox(MsgBoxFlags flags, const char* title, const char* text)
 {
   char buffer[1024];
 
@@ -260,15 +260,15 @@ bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
 
   fl_message_title(title);
 
-  switch (flags & 0xf) {
-  case M_OKCANCEL:
+  switch ((MsgBoxFlags)((int)flags & 0xf)) {
+  case MsgBoxFlags::M_OKCANCEL:
     return fl_choice("%s", nullptr, fl_ok, fl_cancel, buffer) == 1;
-  case M_YESNO:
+  case MsgBoxFlags::M_YESNO:
     return fl_choice("%s", nullptr, fl_yes, fl_no, buffer) == 1;
-  case M_OK:
+  case MsgBoxFlags::M_OK:
   default:
-    if (((flags & 0xf0) == M_ICONERROR) ||
-        ((flags & 0xf0) == M_ICONWARNING))
+    if ((((int)flags & 0xf0) == (int)MsgBoxFlags::M_ICONERROR) ||
+          (((int)flags & 0xf0) == (int)MsgBoxFlags::M_ICONWARNING))
       fl_alert("%s", buffer);
     else
       fl_message("%s", buffer);
