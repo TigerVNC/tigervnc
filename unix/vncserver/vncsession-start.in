@@ -19,11 +19,18 @@
 #
 
 USERSFILE="@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncserver.users"
+SETTINGSFILE="@CMAKE_INSTALL_FULL_SYSCONFDIR@/tigervnc/vncsession"
 
 if [ $# -ne 1 ]; then
 	echo "Syntax:" >&2
 	echo "    $0 <display>" >&2
 	exit 1
+fi
+
+# Load any custom settings for execution
+VNCSESSIONARGS=''
+if [ -e "${SETTINGSFILE}" ]; then
+	source "${SETTINGSFILE}"
 fi
 
 if [ ! -f "${USERSFILE}" ]; then
@@ -40,4 +47,4 @@ if [ -z "${USER}" ]; then
 	exit 1
 fi
 
-exec "@CMAKE_INSTALL_FULL_SBINDIR@/vncsession" "${USER}" "${DISPLAY}"
+exec "@CMAKE_INSTALL_FULL_SBINDIR@/vncsession" ${VNCSESSIONARGS} "${USER}" "${DISPLAY}"
