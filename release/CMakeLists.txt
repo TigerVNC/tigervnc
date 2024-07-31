@@ -13,6 +13,13 @@ if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   set(INST_DEFS -DWIN64)
 endif()
 
+# Set BUILD_STATIC definition for Inno Setup
+if(BUILD_STATIC)
+  set(BUILD_STATIC_DEFINE "#define BUILD_STATIC_ENABLED")
+else()
+  set(BUILD_STATIC_DEFINE "")
+endif()
+
 configure_file(tigervnc.iss.in tigervnc.iss)
 
 add_custom_target(installer

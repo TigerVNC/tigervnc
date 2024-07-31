@@ -347,6 +347,8 @@ add_subdirectory(common)
 
 if(WIN32)
   add_subdirectory(win)
+  find_path(TEMP_PATH libunistring-5.dll)
+  set(WIN_DLL_PATH "${TEMP_PATH}" CACHE PATH "Path where Windows DLL files are located for installer.")
 else()
   # No interest in building x related parts on Apple
   if(NOT APPLE)
