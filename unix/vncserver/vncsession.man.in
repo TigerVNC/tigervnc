@@ -3,7 +3,7 @@
 vncsession \- start a VNC server
 .SH SYNOPSIS
 .B vncsession
-.RI [-D]
+.RI [-DM]
 .RI < username >
 .RI <: display# >
 .SH DESCRIPTION
@@ -25,6 +25,12 @@ require services to run in the foreground. This option is not intended for
 debugging in a login shell from a terminal or for running
 .B vncsession
 from a terminal as an ordinary user.
+
+.SH -M OPTION
+.B vncsession
+by default the output from the session is redirected to
+\fI$HOME/.vnc/hostname:display.log\fP. This option will instead leave messages
+sent to stdout or stderr.
 
 .SH FILES
 Several VNC-related files are found in the directory \fI$HOME/.config/tigervnc\fP:

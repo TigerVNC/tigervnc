@@ -493,7 +493,7 @@ close_fds(void)
 }
 
 static pid_t
-run_script(const char *username, const char *display, char **envp)
+run_script(const char *username, const char *display, char **envp, int log_messages)
 {
     struct passwd *pwent;
     pid_t pid;
@@ -525,7 +525,8 @@ run_script(const char *username, const char *display, char **envp)
 
     close_fds();
 
-    redir_stdio(pwent->pw_dir, display, envp);
+    if (log_messages)
+        redir_stdio(pwent->pw_dir, display, envp);
 
     // execvpe() is not POSIX and is missing from older glibc
     // First clear out everything
@@ -569,7 +570,7 @@ static void
 usage(void)
 {
     fprintf(stderr, "Syntax:\n");
-    fprintf(stderr, "    vncsession [-D] <username> <display>\n");
+    fprintf(stderr, "    vncsession [-DM] <username> <display>\n");
     exit(EX_USAGE);
 }
 
@@ -581,12 +582,15 @@ main(int argc, char **argv)
 
     const char *username, *display;
 
-    int opt, forking = 1;
+    int opt, forking = 1, log_messages = 1;
 
-    while ((opt = getopt(argc, argv, "D")) != -1) {
+    while ((opt = getopt(argc, argv, "DM")) != -1) {
         switch (opt) {
         case 'D':
             forking = 0;
+            break;
+        case 'M':
+            log_messages = 0;
             break;
         default:
             usage();
@@ -649,7 +653,7 @@ main(int argc, char **argv)
 
     setup_signals();
 
-    script = run_script(username, display, child_env);
+    script = run_script(username, display, child_env, log_messages);
     if (script == -1) {
         syslog(LOG_CRIT, "Failure starting vncserver script");
         stop_pam(pamh, pamret);
