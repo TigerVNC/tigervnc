@@ -99,6 +99,7 @@ void H264LibavDecoderContext::freeCodec() {
   avcodec_free_context(&avctx);
   av_frame_free(&rgbFrame);
   av_frame_free(&frame);
+  sws_freeContext(sws);
   free(h264WorkBuffer);
   initialized = false;
 }
