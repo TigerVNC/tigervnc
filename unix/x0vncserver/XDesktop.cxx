@@ -492,7 +492,8 @@ KeyCode XDesktop::addKeysym(KeySym keysym)
   changes.num_key_syms = 1;
 
   if (XkbChangeMap(dpy, xkb, &changes)) {
-    vlog.info("Added unknown keysym %s to keycode %d", XKeysymToString(keysym), key);
+    vlog.info("Added unknown keysym XK_%s (0x%04x) to keycode %d",
+              XKeysymToString(keysym), (unsigned)keysym, key);
     addedKeysyms.push_front({ syms[0], (KeyCode)key });
     return key;
   }
