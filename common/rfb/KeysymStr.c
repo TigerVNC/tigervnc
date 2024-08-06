@@ -34,6 +34,9 @@ in this Software without prior written authorization from The Open Group.
 #include "keysymdef.h"
 #include "KeysymStr.h"
 
+/* Change the name of this to avoid conflict with libX11 */
+#define _XkeyTable _vncXkeyTable
+
 #define NEEDKTABLE
 #define NEEDVTABLE
 #include "ks_tables.h"
