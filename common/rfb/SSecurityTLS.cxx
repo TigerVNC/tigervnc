@@ -34,6 +34,7 @@
 #include <rfb/SConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
+#include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
 #include <gnutls/x509.h>
@@ -71,12 +72,15 @@ SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
     cert_cred(nullptr), anon(_anon), tlsis(nullptr), tlsos(nullptr),
     rawis(nullptr), rawos(nullptr)
 {
+  int ret;
+
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
   dh_params = nullptr;
 #endif
 
-  if (gnutls_global_init() != GNUTLS_E_SUCCESS)
-    throw AuthFailureException("gnutls_global_init failed");
+  ret = gnutls_global_init();
+  if (ret != GNUTLS_E_SUCCESS)
+    throw rdr::TLSException("gnutls_global_init()", ret);
 }
 
 void SSecurityTLS::shutdown()
@@ -138,17 +142,21 @@ SSecurityTLS::~SSecurityTLS()
 
 bool SSecurityTLS::processMsg()
 {
+  int err;
+
   vlog.debug("Process security message (session %p)", session);
 
   if (!session) {
     rdr::InStream* is = sc->getInStream();
     rdr::OutStream* os = sc->getOutStream();
 
-    if (gnutls_init(&session, GNUTLS_SERVER) != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_init failed");
+    err = gnutls_init(&session, GNUTLS_SERVER);
+    if (err != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("gnutls_init()", err);
 
-    if (gnutls_set_default_priority(session) != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_set_default_priority failed");
+    err = gnutls_set_default_priority(session);
+    if (err != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("gnutls_set_default_priority()", err);
 
     try {
       setParams();
@@ -170,7 +178,6 @@ bool SSecurityTLS::processMsg()
     rawos = os;
   }
 
-  int err;
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
     if (!gnutls_error_is_fatal(err)) {
@@ -179,7 +186,7 @@ bool SSecurityTLS::processMsg()
     }
     vlog.error("TLS Handshake failed: %s", gnutls_strerror (err));
     shutdown();
-    throw AuthFailureException("TLS Handshake failed");
+    throw rdr::TLSException("TLS Handshake failed", err);
   }
 
   vlog.debug("TLS handshake completed with %s",
@@ -204,7 +211,7 @@ void SSecurityTLS::setParams()
     prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
                          strlen(kx_anon_priority) + 1);
     if (prio == nullptr)
-      throw AuthFailureException("Not enough memory for GnuTLS priority string");
+      throw Exception("Not enough memory for GnuTLS priority string");
 
     strcpy(prio, Security::GnuTLSPriority);
     if (anon)
@@ -217,7 +224,7 @@ void SSecurityTLS::setParams()
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw AuthFailureException("gnutls_set_priority_direct failed");
+      throw rdr::TLSException("gnutls_set_priority_direct()", ret);
     }
   } else if (anon) {
     const char *err;
@@ -229,7 +236,7 @@ void SSecurityTLS::setParams()
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw AuthFailureException("gnutls_set_default_priority_append failed");
+      throw rdr::TLSException("gnutls_set_default_priority_append()", ret);
     }
 #else
     // We don't know what the system default priority is, so we guess
@@ -240,7 +247,7 @@ void SSecurityTLS::setParams()
     prio = (char*)malloc(strlen(gnutls_default_priority) +
                          strlen(kx_anon_priority) + 1);
     if (prio == nullptr)
-      throw AuthFailureException("Not enough memory for GnuTLS priority string");
+      throw Exception("Not enough memory for GnuTLS priority string");
 
     strcpy(prio, gnutls_default_priority);
     strcat(prio, kx_anon_priority);
@@ -252,36 +259,41 @@ void SSecurityTLS::setParams()
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw AuthFailureException("gnutls_set_priority_direct failed");
+      throw rdr::TLSException("gnutls_set_priority_direct()", ret);
     }
 #endif
   }
 
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
-  if (gnutls_dh_params_init(&dh_params) != GNUTLS_E_SUCCESS)
-    throw AuthFailureException("gnutls_dh_params_init failed");
+  ret = gnutls_dh_params_init(&dh_params);
+  if (ret != GNUTLS_E_SUCCESS)
+    throw rdr::TLSException("gnutls_dh_params_init()", ret);
 
-  if (gnutls_dh_params_import_pkcs3(dh_params, &ffdhe_pkcs3_param, GNUTLS_X509_FMT_PEM) != GNUTLS_E_SUCCESS)
-    throw AuthFailureException("gnutls_dh_params_import_pkcs3 failed");
+  ret = gnutls_dh_params_import_pkcs3(dh_params, &ffdhe_pkcs3_param,
+                                      GNUTLS_X509_FMT_PEM);
+  if (ret != GNUTLS_E_SUCCESS)
+    throw rdr::TLSException("gnutls_dh_params_import_pkcs3()", ret);
 #endif
 
   if (anon) {
-    if (gnutls_anon_allocate_server_credentials(&anon_cred) != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_anon_allocate_server_credentials failed");
+    ret = gnutls_anon_allocate_server_credentials(&anon_cred);
+    if (ret != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("gnutls_anon_allocate_server_credentials()", ret);
 
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
     gnutls_anon_set_server_dh_params(anon_cred, dh_params);
 #endif
 
-    if (gnutls_credentials_set(session, GNUTLS_CRD_ANON, anon_cred)
-        != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_credentials_set failed");
+    ret = gnutls_credentials_set(session, GNUTLS_CRD_ANON, anon_cred);
+    if (ret != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("gnutls_credentials_set()", ret);
 
     vlog.debug("Anonymous session has been set");
 
   } else {
-    if (gnutls_certificate_allocate_credentials(&cert_cred) != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_certificate_allocate_credentials failed");
+    ret = gnutls_certificate_allocate_credentials(&cert_cred);
+    if (ret != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("gnutls_certificate_allocate_credentials()", ret);
 
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
     gnutls_certificate_set_dh_params(cert_cred, dh_params);
@@ -291,16 +303,16 @@ void SSecurityTLS::setParams()
     case GNUTLS_E_SUCCESS:
       break;
     case GNUTLS_E_CERTIFICATE_KEY_MISMATCH:
-      throw AuthFailureException("Private key does not match certificate");
+      throw Exception("Private key does not match certificate");
     case GNUTLS_E_UNSUPPORTED_CERTIFICATE_TYPE:
-      throw AuthFailureException("Unsupported certificate type");
+      throw Exception("Unsupported certificate type");
     default:
-      throw AuthFailureException("Error loading X509 certificate or key");
+      throw Exception("Error loading X509 certificate or key");
     }
 
-    if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred)
-        != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_credentials_set failed");
+    ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
+    if (ret != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("gnutls_credentials_set()", ret);
 
     vlog.debug("X509 session has been set");
 

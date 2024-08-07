@@ -156,7 +156,7 @@ void CSecurityRSAAES::writePublicKey()
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
                             &rs, random_func, nullptr, nullptr,
                             clientKeyLength, 0))
-    throw AuthFailureException("failed to generate key");
+    throw Exception("failed to generate key");
   clientKeyN = new uint8_t[rsaKeySize];
   clientKeyE = new uint8_t[rsaKeySize];
   nettle_mpz_get_str_256(rsaKeySize, clientKeyN, clientPublicKey.n);
@@ -175,9 +175,9 @@ bool CSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   serverKeyLength = is->readU32();
   if (serverKeyLength < MinKeyLength)
-    throw AuthFailureException("server key is too short");
+    throw Exception("server key is too short");
   if (serverKeyLength > MaxKeyLength)
-    throw AuthFailureException("server key is too long");
+    throw Exception("server key is too long");
   size_t size = (serverKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -190,7 +190,7 @@ bool CSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(serverKey.n, size, serverKeyN);
   nettle_mpz_set_str_256_u(serverKey.e, size, serverKeyE);
   if (!rsa_public_key_prepare(&serverKey))
-    throw AuthFailureException("server key is invalid");
+    throw Exception("server key is invalid");
   return true;
 }
 
@@ -216,7 +216,7 @@ void CSecurityRSAAES::verifyServer()
     "Please verify that the information is correct and press \"Yes\". "
     "Otherwise press \"No\"", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
   if (!msg->showMsgBox(UserMsgBox::M_YESNO, title, text.c_str()))
-    throw AuthFailureException("server key mismatch");
+    throw Exception("server key mismatch");
 }
 
 void CSecurityRSAAES::writeRandom()
@@ -237,7 +237,7 @@ void CSecurityRSAAES::writeRandom()
   }
   if (!res) {
     mpz_clear(x);
-    throw AuthFailureException("failed to encrypt random");
+    throw Exception("failed to encrypt random");
   }
   uint8_t* buffer = new uint8_t[serverKey.size];
   nettle_mpz_get_str_256(serverKey.size, buffer, x);
@@ -256,7 +256,7 @@ bool CSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != clientKey.size)
-    throw AuthFailureException("client key length doesn't match");
+    throw Exception("client key length doesn't match");
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -269,7 +269,7 @@ bool CSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&clientKey, &randomSize, serverRandom, x) ||
       randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw AuthFailureException("failed to decrypt server random");
+    throw Exception("failed to decrypt server random");
   }
   mpz_clear(x);
   return true;
@@ -398,7 +398,7 @@ bool CSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw AuthFailureException("hash doesn't match");
+    throw Exception("hash doesn't match");
   return true;
 }
 
@@ -428,7 +428,7 @@ bool CSecurityRSAAES::readSubtype()
     return false;
   subtype = rais->readU8();
   if (subtype != secTypeRA2UserPass && subtype != secTypeRA2Pass)
-    throw AuthFailureException("unknown RSA-AES subtype");
+    throw Exception("unknown RSA-AES subtype");
   return true;
 }
 
@@ -444,7 +444,7 @@ void CSecurityRSAAES::writeCredentials()
 
   if (subtype == secTypeRA2UserPass) {
     if (username.size() > 255)
-      throw AuthFailureException("username is too long");
+      throw Exception("username is too long");
     raos->writeU8(username.size());
     raos->writeBytes((const uint8_t*)username.data(), username.size());
   } else {
@@ -452,7 +452,7 @@ void CSecurityRSAAES::writeCredentials()
   }
 
   if (password.size() > 255)
-    throw AuthFailureException("password is too long");
+    throw Exception("password is too long");
   raos->writeU8(password.size());
   raos->writeBytes((const uint8_t*)password.data(), password.size());
   raos->flush();

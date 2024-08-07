@@ -86,9 +86,9 @@ bool CSecurityDH::readKey()
   uint16_t gen = is->readU16();
   keyLength = is->readU16();
   if (keyLength < MinKeyLength)
-    throw AuthFailureException("DH key is too short");
+    throw Exception("DH key is too short");
   if (keyLength > MaxKeyLength)
-    throw AuthFailureException("DH key is too long");
+    throw Exception("DH key is too long");
   if (!is->hasDataOrRestore(keyLength * 2))
     return false;
   is->clearRestorePoint();
@@ -135,10 +135,10 @@ void CSecurityDH::writeCredentials()
     throw ConnFailedException("failed to generate random padding");
   rs.readBytes(buf, 128);
   if (username.size() >= 64)
-    throw AuthFailureException("username is too long");
+    throw Exception("username is too long");
   memcpy(buf, username.c_str(), username.size() + 1);
   if (password.size() >= 64)
-    throw AuthFailureException("password is too long");
+    throw Exception("password is too long");
   memcpy(buf + 64, password.c_str(), password.size() + 1);
   aes128_encrypt(&aesCtx, 128, buf, buf);
 

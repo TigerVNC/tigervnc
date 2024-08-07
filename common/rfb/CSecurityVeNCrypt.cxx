@@ -107,7 +107,7 @@ bool CSecurityVeNCrypt::processMsg()
       os->writeU8(0);
       os->writeU8(0);
       os->flush();
-      throw AuthFailureException("The server reported an unsupported VeNCrypt version");
+      throw Exception("The server reported an unsupported VeNCrypt version");
      }
 
      haveSentVersion = true;
@@ -119,8 +119,8 @@ bool CSecurityVeNCrypt::processMsg()
       return false;
 
     if (is->readU8())
-      throw AuthFailureException("The server reported it could not support the "
-				 "VeNCrypt version");
+      throw Exception("The server reported it could not support the "
+                      "VeNCrypt version");
 
     haveAgreedVersion = true;
   }
@@ -133,7 +133,7 @@ bool CSecurityVeNCrypt::processMsg()
     nAvailableTypes = is->readU8();
 
     if (!nAvailableTypes)
-      throw AuthFailureException("The server reported no VeNCrypt sub-types");
+      throw Exception("The server reported no VeNCrypt sub-types");
 
     availableTypes = new uint32_t[nAvailableTypes];
     haveNumberOfTypes = true;
@@ -174,7 +174,7 @@ bool CSecurityVeNCrypt::processMsg()
 
       /* Set up the stack according to the chosen type: */
       if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
-	throw AuthFailureException("No valid VeNCrypt sub-type");
+        throw Exception("No valid VeNCrypt sub-type");
 
       vlog.info("Choosing security type %s (%d)", secTypeName(chosenType),
 		 chosenType);
@@ -193,7 +193,7 @@ bool CSecurityVeNCrypt::processMsg()
      * happen, since if the server supports 0 sub-types, it doesn't support
      * this security type
      */
-    throw AuthFailureException("The server reported 0 VeNCrypt sub-types");
+    throw Exception("The server reported 0 VeNCrypt sub-types");
   }
 
   return csecurity->processMsg();

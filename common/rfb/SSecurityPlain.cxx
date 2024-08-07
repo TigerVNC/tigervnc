@@ -87,7 +87,7 @@ bool SSecurityPlain::processMsg()
   char password[1024];
 
   if (!valid)
-    throw AuthFailureException("No password validator configured");
+    throw Exception("No password validator configured");
 
   if (state == 0) {
     if (!is->hasData(8))

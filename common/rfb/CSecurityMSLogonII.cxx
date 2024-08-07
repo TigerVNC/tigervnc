@@ -127,10 +127,10 @@ void CSecurityMSLogonII::writeCredentials()
   rs.readBytes(user, 256);
   rs.readBytes(pass, 64);
   if (username.size() >= 256)
-    throw AuthFailureException("username is too long");
+    throw Exception("username is too long");
   memcpy(user, username.c_str(), username.size() + 1);
   if (password.size() >= 64)
-    throw AuthFailureException("password is too long");
+    throw Exception("password is too long");
   memcpy(pass, password.c_str(), password.size() + 1);
 
   // DES-CBC with the original key as IV, and the reversed one as the DES key

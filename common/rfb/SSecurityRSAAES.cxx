@@ -565,7 +565,7 @@ void SSecurityRSAAES::verifyUserPass()
   }
   delete valid;
 #else
-  throw AuthFailureException("No password validator configured");
+  throw Exception("No password validator configured");
 #endif
 }
 
@@ -576,7 +576,7 @@ void SSecurityRSAAES::verifyPass()
   pg->getVncAuthPasswd(&passwd, &passwdReadOnly);
 
   if (passwd.empty())
-    throw AuthFailureException("No password configured for VNC Auth");
+    throw Exception("No password configured");
 
   if (password == passwd) {
     accessRights = AccessDefault;
