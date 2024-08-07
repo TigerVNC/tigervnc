@@ -52,6 +52,11 @@
 #include "XorgGlue.h"
 #include "vncInput.h"
 
+#if HAVE_SYSTEMD_DAEMON
+#  include <pwd.h>
+#  include <systemd/sd-login.h>
+#endif
+
 extern "C" {
 void vncSetGlueContext(int screenIndex);
 void vncPresentMscEvent(uint64_t id, uint64_t msc);
@@ -71,7 +76,14 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "Accept Connection dialog before "
                                  "rejecting the connection",
                                  10);
-
+#ifdef HAVE_SYSTEMD_DAEMON
+BoolParameter approveLoggedUserOnly
+("ApproveLoggedUserOnly",
+ "Approve only the user who is currently logged into the session."
+ "This is expected to be combined with 'plain' security type and with "
+ "'PlainUsers=*' option allowing everyone to connect to the session.",
+  false);
+#endif
 
 XserverDesktop::XserverDesktop(int screenIndex_,
                                std::list<network::SocketListener*> listeners_,
@@ -165,10 +177,116 @@ void XserverDesktop::init(rfb::VNCServer* vs)
   // ready state
 }
 
+#ifdef HAVE_SYSTEMD_DAEMON
+bool XserverDesktop::checkUserLogged(const char* userName)
+{
+  bool ret = false;
+  bool noUserSession = true;
+  int res;
+  char **sessions;
+
+  res = sd_get_sessions(&sessions);
+  if (res < 0) {
+    vlog.debug("logind: failed to get sessions");
+    return false;
+  }
+
+  if (sessions != nullptr && sessions[0] != nullptr) {
+    for (int i = 0; sessions[i]; i++) {
+      uid_t uid;
+      char *clazz;
+      char *display;
+      char *type;
+
+      res = sd_session_get_type(sessions[i], &type);
+      if (res < 0) {
+        vlog.debug("logind: failed to determine session type");
+        break;
+      }
+
+      if (strcmp(type, "x11") != 0) {
+        free(type);
+        continue;
+      }
+      free(type);
+
+      res = sd_session_get_display(sessions[i], &display);
+      if (res < 0) {
+        vlog.debug("logind: failed to determine display of session");
+        break;
+      }
+
+      std::string serverDisplay = ":" + std::to_string(screenIndex);
+      if (strcmp(display, serverDisplay.c_str()) != 0) {
+        free(display);
+        continue;
+      }
+      free(display);
+
+      res = sd_session_get_class(sessions[i], &clazz);
+      if (res < 0) {
+        vlog.debug("logind: failed to determine session class");
+        break;
+      }
+
+      res = sd_session_get_uid(sessions[i], &uid);
+      if (res < 0) {
+        vlog.debug("logind: failed to determine user id of session");
+        break;
+      }
+
+      if (uid != 0 && strcmp(clazz, "user") == 0) {
+        noUserSession = false;
+      }
+      free(clazz);
+
+      struct passwd *pw = getpwnam(userName);
+      if (!pw) {
+        vlog.debug("logind: user not found");
+        break;
+      }
+
+      if (uid == pw->pw_uid) {
+        ret = true;
+        break;
+      }
+    }
+  }
+
+  if (sessions) {
+    for (int i = 0; sessions[i]; i ++) {
+      free(sessions[i]);
+    }
+
+    free (sessions);
+  }
+
+  // If we didn't find a matching user, we can still allow the user
+  // to log in if there is no user session yet.
+  return !ret ? noUserSession : ret;
+}
+#endif
+
 void XserverDesktop::queryConnection(network::Socket* sock,
                                      const char* userName)
 {
   int count;
+
+#ifdef HAVE_SYSTEMD_DAEMON
+  // - Only owner of the session can be approved
+  if (approveLoggedUserOnly && !checkUserLogged(userName)) {
+    server->approveConnection(sock, false,
+                              "The user is not owner of the running session");
+    return;
+  }
+#endif
+
+  // - Are we configured to do queries?
+  if (!rfb::Server::queryConnect &&
+      !sock->requiresQuery()) {
+    server->approveConnection(sock, true, nullptr);
+    return;
+  }
 
   if (queryConnectTimer.isStarted()) {
     server->approveConnection(sock, false, "Another connection is currently being queried.");
