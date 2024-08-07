@@ -274,6 +274,10 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
   } catch (rfb::AuthCancelledException& e) {
     vlog.info("%s", e.str());
     disconnect();
+  } catch (rfb::AuthFailureException& e) {
+    vlog.error(_("Authentication failed: %s"), e.str());
+    abort_connection(_("Failed to authenticate with the server. Reason "
+                       "given by the server:\n\n%s"), e.str());
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     abort_connection_with_unexpected_error(e);
