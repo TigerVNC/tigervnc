@@ -10,11 +10,33 @@ AppPublisherURL=https://tigervnc.org
 DefaultDirName={pf}\TigerVNC
 DefaultGroupName=TigerVNC
 LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.TXT
+@BUILD_STATIC_DEFINE@
 
 [Files]
 Source: "@CMAKE_BINARY_DIR@\vncviewer\vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 Source: "@CMAKE_SOURCE_DIR@\README.rst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@WIN_DLL_PATH@/libffi-8.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libiconv-2.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libintl-8.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libp11-kit-0.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libunistring-5.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+
+#ifndef BUILD_STATIC_ENABLED
+Source: "@WIN_DLL_PATH@/libfltk.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libgcc_s_seh-1.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libgmp-10.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libgnutls-30.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libhogweed-6.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libidn2-0.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libjpeg-8.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libnettle-8.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libpixman-1-0.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libstdc++-6.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libtasn1-6.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/libwinpthread-1.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+Source: "@WIN_DLL_PATH@/zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace;
+#endif
 
 #define LINGUAS
 #define Lang
