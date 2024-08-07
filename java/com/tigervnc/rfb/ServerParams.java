@@ -38,7 +38,7 @@ public class ServerParams {
   {
     majorVersion = 0; minorVersion = 0;
     width_ = 0; height_ = 0; useCopyRect = false;
-    supportsLocalCursor = false; supportsLocalXCursor = false;
+    supportsLocalCursor = false; supportsLocalXCursor = false; supportsExtendedMouseButtons = false;
     supportsLocalCursorWithAlpha = false;
     supportsDesktopResize = false; supportsExtendedDesktopSize = false;
     supportsDesktopRename = false; supportsLastRect = false;
@@ -120,6 +120,7 @@ public class ServerParams {
     supportsDesktopResize = false;
     supportsExtendedDesktopSize = false;
     supportsLocalXCursor = false;
+    supportsExtendedMouseButtons = false;
     supportsLastRect = false;
     compressLevel = -1;
     qualityLevel = -1;
@@ -139,6 +140,9 @@ public class ServerParams {
         break;
       case Encodings.pseudoEncodingXCursor:
         supportsLocalXCursor = true;
+        break;
+      case Encodings.pseudoEncodingExtendedMouseButtons:
+        supportsExtendedMouseButtons = true;
         break;
       case Encodings.pseudoEncodingCursorWithAlpha:
         supportsLocalCursorWithAlpha = true;
@@ -205,6 +209,7 @@ public class ServerParams {
 
   public boolean supportsLocalCursor;
   public boolean supportsLocalXCursor;
+  public boolean supportsExtendedMouseButtons;
   public boolean supportsLocalCursorWithAlpha;
   public boolean supportsDesktopResize;
   public boolean supportsExtendedDesktopSize;

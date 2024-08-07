@@ -202,6 +202,10 @@ bool CMsgReader::readMsg()
       handler->supportsQEMUKeyEvent();
       ret = true;
       break;
+    case pseudoEncodingExtendedMouseButtons:
+      handler->supportExtendedMouseButtons();
+      ret = true;
+      break;  
     default:
       ret = readRect(dataRect, rectEncoding);
       break;

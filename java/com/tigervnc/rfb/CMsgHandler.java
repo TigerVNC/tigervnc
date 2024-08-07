@@ -73,6 +73,11 @@ abstract public class CMsgHandler {
     server.supportsContinuousUpdates = true;
   }
 
+  public void SupportExtendedMouseButton()
+  {
+    server.supportsExtendedMouseButtons = true;
+  }
+
   abstract public void clientRedirect(int port, String host,
                                       String x509subject);
 
