@@ -444,7 +444,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unknown certificate issuer",
                            text.c_str()))
-        throw AuthFailureException("Unknown certificate issuer");
+        throw AuthCancelledException();
 
       status &= ~(GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
@@ -465,7 +465,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Certificate is not yet valid",
                            text.c_str()))
-        throw AuthFailureException("Certificate is not yet valid");
+        throw AuthCancelledException();
 
       status &= ~GNUTLS_CERT_NOT_ACTIVATED;
     }
@@ -484,7 +484,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Expired certificate",
                            text.c_str()))
-        throw AuthFailureException("Expired certificate");
+        throw AuthCancelledException();
 
       status &= ~GNUTLS_CERT_EXPIRED;
     }
@@ -503,7 +503,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Insecure certificate algorithm",
                            text.c_str()))
-        throw AuthFailureException("Insecure certificate algorithm");
+        throw AuthCancelledException();
 
       status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
     }
@@ -528,7 +528,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Certificate hostname mismatch",
                            text.c_str()))
-        throw AuthFailureException("Certificate hostname mismatch");
+        throw AuthCancelledException();
     }
   } else if (err == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
@@ -554,7 +554,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
-        throw AuthFailureException("Unexpected server certificate");
+        throw AuthCancelledException();
 
       status &= ~(GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
@@ -577,7 +577,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
-        throw AuthFailureException("Unexpected server certificate");
+        throw AuthCancelledException();
 
       status &= ~GNUTLS_CERT_NOT_ACTIVATED;
     }
@@ -598,7 +598,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
-        throw AuthFailureException("Unexpected server certificate");
+        throw AuthCancelledException();
 
       status &= ~GNUTLS_CERT_EXPIRED;
     }
@@ -619,7 +619,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
-        throw AuthFailureException("Unexpected server certificate");
+        throw AuthCancelledException();
 
       status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
     }
@@ -646,7 +646,7 @@ void CSecurityTLS::checkSession()
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Unexpected server certificate",
                            text.c_str()))
-        throw AuthFailureException("Unexpected server certificate");
+        throw AuthCancelledException();
     }
   }
 

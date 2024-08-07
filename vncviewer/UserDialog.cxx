@@ -204,7 +204,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
   delete win;
 
   if (ret_val != 0)
-    throw rfb::Exception(_("Authentication cancelled"));
+    throw rfb::AuthCancelledException();
 }
 
 bool UserDialog::showMsgBox(int flags, const char* title, const char* text)

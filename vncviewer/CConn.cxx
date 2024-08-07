@@ -29,6 +29,7 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
+#include <rfb/Exception.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -270,6 +271,9 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     } else {
       disconnect();
     }
+  } catch (rfb::AuthCancelledException& e) {
+    vlog.info("%s", e.str());
+    disconnect();
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     abort_connection_with_unexpected_error(e);
