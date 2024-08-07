@@ -41,11 +41,6 @@
 using namespace rdr;
 using namespace rfb;
 
-UserPasswdGetter *CSecurity::upg = nullptr;
-#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
-UserMsgBox *CSecurity::msg = nullptr;
-#endif
-
 StringParameter SecurityClient::secTypes
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth, Plain"
@@ -67,11 +62,6 @@ ConfViewer);
 
 CSecurity* SecurityClient::GetCSecurity(CConnection* cc, uint32_t secType)
 {
-  assert (CSecurity::upg != nullptr); /* (upg == nullptr) means bug in the viewer */
-#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
-  assert (CSecurity::msg != nullptr);
-#endif
-
   if (!IsSupported(secType))
     goto bail;
 

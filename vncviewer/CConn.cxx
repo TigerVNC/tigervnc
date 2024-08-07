@@ -597,3 +597,13 @@ void CConn::handleUpdateTimeout(void *data)
 
   Fl::repeat_timeout(1.0, handleUpdateTimeout, data);
 }
+
+bool CConn::showMsgBox(MsgBoxFlags flags, const char *title, const char *text)
+{
+    return dlg.showMsgBox(flags, title, text);
+}
+
+void CConn::getUserPasswd(bool secure, std::string *user, std::string *password)
+{
+    dlg.getUserPasswd(secure, user, password);
+}
