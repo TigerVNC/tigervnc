@@ -114,7 +114,7 @@ bool SSecurityPlain::processMsg()
     username[ulen] = 0;
     plen = 0;
     if (!valid->validate(sc, username, password))
-      throw AuthFailureException("invalid password or username");
+      throw AuthFailureException("Authentication failed");
   }
 
   return true;

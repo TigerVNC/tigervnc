@@ -561,7 +561,7 @@ void SSecurityRSAAES::verifyUserPass()
 #endif
   if (!valid->validate(sc, username, password)) {
     delete valid;
-    throw AuthFailureException("invalid password or username");
+    throw AuthFailureException("Authentication failed");
   }
   delete valid;
 #else
@@ -588,7 +588,7 @@ void SSecurityRSAAES::verifyPass()
     return;
   }
 
-  throw AuthFailureException();
+  throw AuthFailureException("Authentication failed");
 }
 
 const char* SSecurityRSAAES::getUserName() const

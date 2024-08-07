@@ -332,7 +332,7 @@ bool CConnection::processSecurityResultMsg()
 
   if (server.beforeVersion(3,8)) {
     state_ = RFBSTATE_INVALID;
-    throw AuthFailureException();
+    throw AuthFailureException("Authentication failed");
   }
 
   state_ = RFBSTATE_SECURITY_REASON;
