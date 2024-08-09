@@ -535,6 +535,12 @@ migrateDeprecatedOptions()
 
     fullScreenMode.setParam("all");
   }
+  if (dotWhenNoCursor) {
+    vlog.info(_("DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' instead"));
+
+    alwaysCursor.setParam(true);
+    cursorType.setParam("Dot");
+  }
 }
 
 #ifndef WIN32
