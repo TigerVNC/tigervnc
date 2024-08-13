@@ -149,6 +149,11 @@ static std::vector<uint8_t> readpassword() {
       continue;
     }
 
+    if (first.size() > 8) {
+      fprintf(stderr,"Password should not be greater than 8 characters\nBecause only 8 valid characters are used - try again\n");
+      continue;
+    }
+
 #ifdef HAVE_PWQUALITY
     //the function return score of password quality
     int r = check_passwd_pwquality(passwd);
