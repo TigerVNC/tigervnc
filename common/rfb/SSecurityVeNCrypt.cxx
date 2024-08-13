@@ -33,8 +33,6 @@
 #include <rdr/OutStream.h>
 
 using namespace rfb;
-using namespace rdr;
-using namespace std;
 
 static LogWriter vlog("SVeNCrypt");
 
@@ -120,7 +118,7 @@ bool SSecurityVeNCrypt::processMsg()
    * followed by authentication types (uint32_t:s)
    */
   if (!haveSentTypes) {
-    list<uint32_t> listSubTypes;
+    std::list<uint32_t> listSubTypes;
 
     listSubTypes = security->GetEnabledExtSecTypes();
 

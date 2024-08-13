@@ -27,7 +27,7 @@
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/CSecurityPlain.h>
-#include <rdr/Exception.h>
+#include <rfb/Exception.h>
 #include <rfb/Security.h>
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
@@ -38,7 +38,6 @@
 #include <rfb/CSecurityMSLogonII.h>
 #endif
 
-using namespace rdr;
 using namespace rfb;
 
 UserPasswdGetter *CSecurity::upg = nullptr;

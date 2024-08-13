@@ -37,8 +37,6 @@
 #include <rfb/LogWriter.h>
 
 using namespace rfb;
-using namespace rdr;
-using namespace std;
 
 static LogWriter vlog("CVeNCrypt");
 
@@ -68,8 +66,8 @@ CSecurityVeNCrypt::~CSecurityVeNCrypt()
 
 bool CSecurityVeNCrypt::processMsg()
 {
-  InStream* is = cc->getInStream();
-  OutStream* os = cc->getOutStream();
+  rdr::InStream* is = cc->getInStream();
+  rdr::OutStream* os = cc->getOutStream();
 
   /* get major, minor versions, send what we can support (or 0.0 for can't support it) */
   if (!haveRecvdMajorVersion) {
@@ -159,7 +157,7 @@ bool CSecurityVeNCrypt::processMsg()
     if (!haveChosenType) {
       chosenType = secTypeInvalid;
       uint8_t i;
-      list<uint32_t> secTypes;
+      std::list<uint32_t> secTypes;
 
       secTypes = security->GetEnabledExtSecTypes();
 

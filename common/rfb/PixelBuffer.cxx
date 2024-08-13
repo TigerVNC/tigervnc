@@ -33,7 +33,6 @@
 #include <rfb/PixelBuffer.h>
 
 using namespace rfb;
-using namespace rdr;
 
 static LogWriter vlog("PixelBuffer");
 

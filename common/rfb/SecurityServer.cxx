@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/SSecurityNone.h>
 #include <rfb/SSecurityStack.h>
@@ -35,7 +35,6 @@
 #include <rfb/SSecurityRSAAES.h>
 #endif
 
-using namespace rdr;
 using namespace rfb;
 
 StringParameter SecurityServer::secTypes
