@@ -112,7 +112,7 @@ void CSecurityDH::writeCredentials()
 
   std::vector<uint8_t> bBytes(keyLength);
   if (!rs.hasData(keyLength))
-    throw ConnFailedException("failed to generate DH private key");
+    throw Exception("failed to generate DH private key");
   rs.readBytes(bBytes.data(), bBytes.size());
   nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
@@ -132,7 +132,7 @@ void CSecurityDH::writeCredentials()
 
   uint8_t buf[128];
   if (!rs.hasData(128))
-    throw ConnFailedException("failed to generate random padding");
+    throw Exception("failed to generate random padding");
   rs.readBytes(buf, 128);
   if (username.size() >= 64)
     throw Exception("username is too long");

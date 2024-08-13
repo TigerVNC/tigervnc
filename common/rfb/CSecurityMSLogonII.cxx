@@ -101,7 +101,7 @@ void CSecurityMSLogonII::writeCredentials()
 
   std::vector<uint8_t> bBytes(8);
   if (!rs.hasData(8))
-    throw ConnFailedException("failed to generate DH private key");
+    throw Exception("failed to generate DH private key");
   rs.readBytes(bBytes.data(), bBytes.size());
   nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
@@ -123,7 +123,7 @@ void CSecurityMSLogonII::writeCredentials()
   }
 
   if (!rs.hasData(256 + 64))
-    throw ConnFailedException("failed to generate random padding");
+    throw Exception("failed to generate random padding");
   rs.readBytes(user, 256);
   rs.readBytes(pass, 64);
   if (username.size() >= 256)

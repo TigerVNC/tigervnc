@@ -135,7 +135,7 @@ static void random_func(void* ctx, size_t length, uint8_t* dst)
 {
   rdr::RandomStream* rs = (rdr::RandomStream*)ctx;
   if (!rs->hasData(length))
-    throw ConnFailedException("failed to generate random");
+    throw Exception("failed to generate random");
   rs->readBytes(dst, length);
 }
 
@@ -223,7 +223,7 @@ void CSecurityRSAAES::writeRandom()
 {
   rdr::OutStream* os = cc->getOutStream();
   if (!rs.hasData(keySize / 8))
-    throw ConnFailedException("failed to generate random");
+    throw Exception("failed to generate random");
   rs.readBytes(clientRandom, keySize / 8);
   mpz_t x;
   mpz_init(x);
