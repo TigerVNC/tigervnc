@@ -46,16 +46,6 @@
 
 #include <gnutls/x509.h>
 
-/*
- * GNUTLS doesn't correctly export gnutls_free symbol which is
- * a function pointer. Linking with Visual Studio 2008 Express will
- * fail when you call gnutls_free().
- */
-#if WIN32
-#undef gnutls_free
-#define gnutls_free free
-#endif
-
 using namespace rfb;
 
 static const char* configdirfn(const char* fn);
