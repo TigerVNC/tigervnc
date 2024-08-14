@@ -393,8 +393,9 @@ redir_stdio(const char *homedir, const char *display, char **envp)
     int fd;
     long hostlen;
     char* hostname = NULL, *xdgstate;
-    char logfile[PATH_MAX], legacy[PATH_MAX];
+    char logdir[PATH_MAX], logfile[PATH_MAX], logfile_old[PATH_MAX], legacy[PATH_MAX];
     struct stat st;
+    size_t fmt_len;
 
     fd = open("/dev/null", O_RDONLY);
     if (fd == -1) {
@@ -408,15 +409,24 @@ redir_stdio(const char *homedir, const char *display, char **envp)
     close(fd);
 
     xdgstate = getenvp("XDG_STATE_HOME", envp);
-    if (xdgstate != NULL && xdgstate[0] == '/')
-        snprintf(logfile, sizeof(logfile), "%s/tigervnc", xdgstate);
-    else
-        snprintf(logfile, sizeof(logfile), "%s/.local/state/tigervnc", homedir);
+    if (xdgstate != NULL && xdgstate[0] == '/') {
+        fmt_len = snprintf(logdir, sizeof(logdir), "%s/tigervnc", xdgstate);
+        if (fmt_len >= sizeof(logdir)) {
+            syslog(LOG_CRIT, "Log dir path too long");
+            _exit(EX_OSERR);
+        }
+    } else {
+        fmt_len = snprintf(logdir, sizeof(logdir), "%s/.local/state/tigervnc", homedir);
+        if (fmt_len >= sizeof(logdir)) {
+            syslog(LOG_CRIT, "Log dir path too long");
+            _exit(EX_OSERR);
+        }
+    }
 
     snprintf(legacy, sizeof(legacy), "%s/.vnc", homedir);
-    if (stat(logfile, &st) != 0 && stat(legacy, &st) == 0) {
+    if (stat(logdir, &st) != 0 && stat(legacy, &st) == 0) {
         syslog(LOG_WARNING, "~/.vnc is deprecated, please consult 'man vncsession' for paths to migrate to.");
-        strcpy(logfile, legacy);
+        strcpy(logdir, legacy);
 
 #ifdef HAVE_SELINUX
         /* this is only needed to handle historical type changes for the legacy dir */
@@ -431,9 +441,9 @@ redir_stdio(const char *homedir, const char *display, char **envp)
 #endif
     }
 
-    if (mkdir_p(logfile, 0755) == -1) {
+    if (mkdir_p(logdir, 0755) == -1) {
         if (errno != EEXIST) {
-            syslog(LOG_CRIT, "Failure creating \"%s\": %s", logfile, strerror(errno));
+            syslog(LOG_CRIT, "Failure creating \"%s\": %s", logdir, strerror(errno));
             _exit(EX_OSERR);
         }
     }
@@ -450,9 +460,24 @@ redir_stdio(const char *homedir, const char *display, char **envp)
         _exit(EX_OSERR);
     }
 
-    snprintf(logfile + strlen(logfile), sizeof(logfile) - strlen(logfile), "/%s%s.log",
-             hostname, display);
+    fmt_len = snprintf(logfile, sizeof(logfile), "/%s/%s%s.log", logdir, hostname, display);
+    if (fmt_len >= sizeof(logfile)) {
+        syslog(LOG_CRIT, "Log path too long");
+        _exit(EX_OSERR);
+    }
+    fmt_len = snprintf(logfile_old, sizeof(logfile_old), "/%s/%s%s.log.old", logdir, hostname, display);
+    if (fmt_len >= sizeof(logfile)) {
+        syslog(LOG_CRIT, "Log.old path too long");
+        _exit(EX_OSERR);
+    }
     free(hostname);
+
+    if (stat(logfile, &st) == 0) {
+        if (rename(logfile, logfile_old) != 0) {
+            syslog(LOG_CRIT, "Failure renaming log file \"%s\" to \"%s\": %s", logfile, logfile_old, strerror(errno));
+            _exit(EX_OSERR);
+        }
+    }
     fd = open(logfile, O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (fd == -1) {
         syslog(LOG_CRIT, "Failure creating log file \"%s\": %s", logfile, strerror(errno));
