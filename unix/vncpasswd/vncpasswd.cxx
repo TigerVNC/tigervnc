@@ -139,14 +139,12 @@ static std::vector<uint8_t> readpassword() {
       perror("getpassword error");
       exit(1);
     }
+
     std::string first = passwd;
-    if (first.size() < 6) {
-      if (first.empty()) {
-        fprintf(stderr,"Password not changed\n");
-        exit(1);
-      }
-      fprintf(stderr,"Password must be at least 6 characters - try again\n");
-      continue;
+
+    if (first.empty()) {
+      fprintf(stderr,"Password not changed\n");
+      exit(1);
     }
 
     if (first.size() > 8) {
@@ -159,6 +157,11 @@ static std::vector<uint8_t> readpassword() {
     int r = check_passwd_pwquality(passwd);
     if (r < 0){
       printf("Password quality check failed, please set it correctly.\n");
+      continue;
+    }
+#else
+    if (first.size() < 6) {
+      fprintf(stderr,"Password must be at least 6 characters - try again\n");
       continue;
     }
 #endif
