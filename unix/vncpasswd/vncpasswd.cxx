@@ -163,8 +163,10 @@ int main(int argc, char** argv)
       exit(1);
     }
     if (os::mkdir_p(configDir, 0777) == -1) {
-      fprintf(stderr, "Could not create VNC config directory: %s\n", strerror(errno));
-      exit(1);
+      if (errno != EEXIST) {
+        fprintf(stderr, "Could not create VNC config directory: %s\n", strerror(errno));
+        exit(1);
+      }
     }
     snprintf(fname, sizeof(fname), "%s/passwd", configDir);
   }
