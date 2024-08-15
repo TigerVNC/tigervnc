@@ -337,9 +337,9 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # check for password pwquality check support
-option(ENABLE_PWQUALITY "Enable password pwquality check" ON)
-if(ENABLE_PWQUALITY)
-  if(UNIX)
+if(UNIX AND NOT APPLE)
+  option(ENABLE_PWQUALITY "Enable password pwquality check" ON)
+  if(ENABLE_PWQUALITY)
     find_package(PkgConfig)
     if(PKG_CONFIG_FOUND)
       pkg_check_modules(PWQUALITY pwquality)
