@@ -47,6 +47,7 @@
 #include <limits.h>
 #include <stdint.h>
 
+#include <list>
 #include <string>
 #include <vector>
 
@@ -62,8 +63,7 @@ namespace rfb {
   class Configuration {
   public:
     // - Create a new Configuration object
-    Configuration()
-      : head(nullptr) {}
+    Configuration() {}
 
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
@@ -124,8 +124,8 @@ namespace rfb {
     friend class VoidParameter;
     friend struct ParameterIterator;
 
-    // - Pointer to first Parameter in this group
-    VoidParameter* head;
+    // - List of Parameters
+    std::list<VoidParameter*> params;
 
     // The process-wide, Global Configuration object
     static Configuration* global_;
@@ -242,12 +242,20 @@ namespace rfb {
   //     via config. The next() method moves on to the next Parameter.
 
   struct ParameterIterator {
-    ParameterIterator() : config(Configuration::global()), param(config->head) {}
+    ParameterIterator()
+      : config(Configuration::global()),
+        param(config->params.front()),
+        iter(config->params.begin()) {}
     void next() {
-      param = param->_next;
+      iter++;
+      if (iter == config->params.end())
+        param = nullptr;
+      else
+        param = *iter;
     }
     Configuration* config;
     VoidParameter* param;
+    std::list<VoidParameter*>::iterator iter;
   };
 
 };

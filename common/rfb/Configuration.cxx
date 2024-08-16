@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <os/Mutex.h>
@@ -66,8 +67,7 @@ bool Configuration::set(const char* n, const char* v, bool immutable) {
 bool Configuration::set(const char* paramName, int len,
                              const char* val, bool immutable)
 {
-  VoidParameter* current = head;
-  while (current) {
+  for (VoidParameter* current: params) {
     if ((int)strlen(current->getName()) == len &&
         strncasecmp(current->getName(), paramName, len) == 0)
     {
@@ -76,7 +76,6 @@ bool Configuration::set(const char* paramName, int len,
 	current->setImmutable();
       return b;
     }
-    current = current->_next;
   }
   return false;
 }
@@ -92,15 +91,13 @@ bool Configuration::set(const char* config, bool immutable) {
   if (equal) {
     return set(config, equal-config, equal+1, immutable);
   } else if (hyphen) {
-    VoidParameter* current = head;
-    while (current) {
+    for (VoidParameter* current: params) {
       if (strcasecmp(current->getName(), config) == 0) {
         bool b = current->setParam();
         if (b && immutable) 
 	  current->setImmutable();
         return b;
       }
-      current = current->_next;
     }
   }    
   return false;
@@ -108,19 +105,15 @@ bool Configuration::set(const char* config, bool immutable) {
 
 VoidParameter* Configuration::get(const char* param)
 {
-  VoidParameter* current = head;
-  while (current) {
+  for (VoidParameter* current: params) {
     if (strcasecmp(current->getName(), param) == 0)
       return current;
-    current = current->_next;
   }
   return nullptr;
 }
 
 void Configuration::list(int width, int nameWidth) {
-  VoidParameter* current = head;
-
-  while (current) {
+  for (VoidParameter* current: params) {
     std::string def_str = current->getDefaultStr();
     const char* desc = current->getDescription();
     fprintf(stderr,"  %-*s -", nameWidth, current->getName());
@@ -150,25 +143,22 @@ void Configuration::list(int width, int nameWidth) {
     } else {
       fprintf(stderr,"\n");
     }
-    current = current->_next;
   }
 }
 
 
 bool Configuration::remove(const char* param) {
-  VoidParameter *current = head;
-  VoidParameter **prevnext = &head;
+  std::list<VoidParameter*>::iterator iter;
 
-  while (current) {
-    if (strcasecmp(current->getName(), param) == 0) {
-      *prevnext = current->_next;
-      return true;
-    }
-    prevnext = &current->_next;
-    current = current->_next;
-  }
+  iter = std::find_if(params.begin(), params.end(),
+                      [param](VoidParameter* p) {
+                        return strcasecmp(p->getName(), param) == 0;
+                      });
+  if (iter != params.end())
+    return false;
 
-  return false;
+  params.erase(iter);
+  return true;
 }
 
 
@@ -180,14 +170,17 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_)
   Configuration *conf;
 
   conf = Configuration::global();
-
-  _next = conf->head;
-  conf->head = this;
+  conf->params.push_back(this);
 
   mutex = new os::Mutex();
 }
 
 VoidParameter::~VoidParameter() {
+  Configuration *conf;
+
+  conf = Configuration::global();
+  conf->params.remove(this);
+
   delete mutex;
 }
 
