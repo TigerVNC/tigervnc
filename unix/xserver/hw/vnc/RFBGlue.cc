@@ -158,7 +158,7 @@ int vncGetParamCount(void)
   int count;
 
   count = 0;
-  for (ParameterIterator i; i.param; i.next())
+  for (VoidParameter *param: *rfb::Configuration::global())
     count++;
 
   return count;
@@ -171,8 +171,8 @@ char *vncGetParamList(void)
 
   len = 0;
 
-  for (ParameterIterator i; i.param; i.next()) {
-    int l = strlen(i.param->getName());
+  for (VoidParameter *param: *rfb::Configuration::global()) {
+    int l = strlen(param->getName());
     if (l <= 255)
       len += l + 1;
   }
@@ -182,11 +182,11 @@ char *vncGetParamList(void)
     return nullptr;
 
   ptr = data;
-  for (ParameterIterator i; i.param; i.next()) {
-    int l = strlen(i.param->getName());
+  for (VoidParameter *param: *rfb::Configuration::global()) {
+    int l = strlen(param->getName());
     if (l <= 255) {
       *ptr++ = l;
-      memcpy(ptr, i.param->getName(), l);
+      memcpy(ptr, param->getName(), l);
       ptr += l;
     }
   }

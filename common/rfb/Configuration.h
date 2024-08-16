@@ -55,7 +55,6 @@ namespace os { class Mutex; }
 
 namespace rfb {
   class VoidParameter;
-  struct ParameterIterator;
 
   // -=- Configuration
   //     Class used to access parameters.
@@ -94,6 +93,11 @@ namespace rfb {
     void writeToFile(const char* filename);
 
 
+    // - Iterate over all parameters
+    std::list<VoidParameter*>::iterator begin() { return params.begin(); }
+    std::list<VoidParameter*>::iterator end() { return params.end(); }
+
+
     // - Get the Global Configuration object
     //   NB: This call does NOT lock the Configuration system.
     //       ALWAYS ensure that if you have ANY global Parameters,
@@ -122,7 +126,6 @@ namespace rfb {
 
   private:
     friend class VoidParameter;
-    friend struct ParameterIterator;
 
     // - List of Parameters
     std::list<VoidParameter*> params;
@@ -152,7 +155,6 @@ namespace rfb {
 
   protected:
     friend class Configuration;
-    friend struct ParameterIterator;
 
     VoidParameter* _next;
     bool immutable;
@@ -234,28 +236,6 @@ namespace rfb {
     size_t length;
     uint8_t* def_value;
     size_t def_length;
-  };
-
-  // -=- ParameterIterator
-  //     Iterates over all enabled parameters.
-  //     Current Parameter is accessed via param, the current Configuration
-  //     via config. The next() method moves on to the next Parameter.
-
-  struct ParameterIterator {
-    ParameterIterator()
-      : config(Configuration::global()),
-        param(config->params.front()),
-        iter(config->params.begin()) {}
-    void next() {
-      iter++;
-      if (iter == config->params.end())
-        param = nullptr;
-      else
-        param = *iter;
-    }
-    Configuration* config;
-    VoidParameter* param;
-    std::list<VoidParameter*>::iterator iter;
   };
 
 };
