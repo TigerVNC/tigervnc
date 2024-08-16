@@ -30,7 +30,6 @@ public:
   ~UserDialog();
 
   // UserPasswdGetter callbacks
-
   void getUserPasswd(bool secure, std::string* user,
                      std::string* password) override;
 
@@ -43,6 +42,7 @@ public:
  private:
   std::string savedUsername;
   std::string savedPassword;
+
 };
 
 #endif

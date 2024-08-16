@@ -121,6 +121,13 @@ namespace rfb {
 
     // Methods to be overridden in a derived class
 
+    /*!
+     * \brief Get x509 authentication CA and CRL file, the file format is pem.
+     * \param ca: certificate authority, the file format is pem.
+     * \param crl: certificate revocation list, the file format is pem.
+     */
+    virtual int getX509File(std::string* ca, std::string* crl) = 0;
+
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
 

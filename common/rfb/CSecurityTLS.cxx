@@ -49,29 +49,7 @@
 
 using namespace rfb;
 
-static const char* configdirfn(const char* fn);
-
-StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
-                                     configdirfn("x509_ca.pem"),
-                                     ConfViewer);
-StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
-                                     configdirfn("x509_crl.pem"),
-                                     ConfViewer);
-
 static LogWriter vlog("TLS");
-
-static const char* configdirfn(const char* fn)
-{
-  static char full_path[PATH_MAX];
-  const char* configdir;
-
-  configdir = os::getvncconfigdir();
-  if (configdir == nullptr)
-    return "";
-
-  snprintf(full_path, sizeof(full_path), "%s/%s", configdir, fn);
-  return full_path;
-}
 
 CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon)
   : CSecurity(cc_), session(nullptr),
@@ -276,11 +254,16 @@ void CSecurityTLS::setParam()
     if (gnutls_certificate_set_x509_system_trust(cert_cred) < 1)
       vlog.error("Could not load system certificate trust store");
 
-    if (gnutls_certificate_set_x509_trust_file(cert_cred, X509CA, GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error("Could not load user specified certificate authority");
-
-    if (gnutls_certificate_set_x509_crl_file(cert_cred, X509CRL, GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error("Could not load user specified certificate revocation list");
+    std::string ca, crl;
+    int nRet = client->getX509File(&ca, &crl);
+    if(nRet)
+        throw AuthFailureException("Get X509 certificate file fail");
+    if(!ca.empty())
+        if (gnutls_certificate_set_x509_trust_file(cert_cred, ca.c_str(), GNUTLS_X509_FMT_PEM) < 0)
+            vlog.error("Could not load user specified certificate authority");
+    if(!crl.empty())
+        if (gnutls_certificate_set_x509_crl_file(cert_cred, crl.c_str(), GNUTLS_X509_FMT_PEM) < 0)
+            vlog.error("Could not load user specified certificate revocation list");
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
     if (ret != GNUTLS_E_SUCCESS)
@@ -481,7 +464,6 @@ void CSecurityTLS::checkSession()
                     "\n"
                     "Do you want to make an exception for this "
                     "server?", info.data);
-
       if (!msg->showMsgBox(UserMsgBox::M_YESNO,
                            "Expired certificate",
                            text.c_str()))
