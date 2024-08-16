@@ -279,8 +279,6 @@ int main(int argc, char** argv)
   programName = argv[0];
   Display* dpy;
 
-  Configuration::enableServerParams();
-
   // Assume different defaults when socket activated
   if (hasSystemdListeners())
     rfbport.setParam(-1);

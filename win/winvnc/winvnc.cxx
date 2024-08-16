@@ -260,8 +260,6 @@ int WINAPI WinMain(HINSTANCE /*inst*/, HINSTANCE /*prevInst*/, char* /*cmdLine*/
 #endif
     rfb::win32::initEventLogLogger(VNCServerService::Name);
 
-	Configuration::enableServerParams();
-
     // - By default, just log errors to stderr
     
 

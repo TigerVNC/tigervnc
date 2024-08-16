@@ -48,27 +48,13 @@ using namespace rfb;
 static LogWriter vlog("Config");
 
 
-// -=- The Global/server/viewer Configuration objects
+// -=- The Global Configuration object
 Configuration* Configuration::global_ = nullptr;
-Configuration* Configuration::server_ = nullptr;
-Configuration* Configuration::viewer_ = nullptr;
 
 Configuration* Configuration::global() {
   if (!global_)
-    global_ = new Configuration("Global");
+    global_ = new Configuration();
   return global_;
-}
-
-Configuration* Configuration::server() {
-  if (!server_)
-    server_ = new Configuration("Server");
-  return server_;
-}
-
-Configuration* Configuration::viewer() {
-  if (!viewer_)
-    viewer_ = new Configuration("Viewer");
-  return viewer_;
 }
 
 // -=- Configuration implementation
@@ -92,7 +78,7 @@ bool Configuration::set(const char* paramName, int len,
     }
     current = current->_next;
   }
-  return _next ? _next->set(paramName, len, val, immutable) : false;
+  return false;
 }
 
 bool Configuration::set(const char* config, bool immutable) {
@@ -117,7 +103,7 @@ bool Configuration::set(const char* config, bool immutable) {
       current = current->_next;
     }
   }    
-  return _next ? _next->set(config, immutable) : false;
+  return false;
 }
 
 VoidParameter* Configuration::get(const char* param)
@@ -128,13 +114,12 @@ VoidParameter* Configuration::get(const char* param)
       return current;
     current = current->_next;
   }
-  return _next ? _next->get(param) : nullptr;
+  return nullptr;
 }
 
 void Configuration::list(int width, int nameWidth) {
   VoidParameter* current = head;
 
-  fprintf(stderr, "%s Parameters:\n", name.c_str());
   while (current) {
     std::string def_str = current->getDefaultStr();
     const char* desc = current->getDescription();
@@ -167,9 +152,6 @@ void Configuration::list(int width, int nameWidth) {
     }
     current = current->_next;
   }
-
-  if (_next)
-    _next->list(width, nameWidth);
 }
 
 
@@ -192,20 +174,12 @@ bool Configuration::remove(const char* param) {
 
 // -=- VoidParameter
 
-VoidParameter::VoidParameter(const char* name_, const char* desc_,
-			     ConfigurationObject co)
+VoidParameter::VoidParameter(const char* name_, const char* desc_)
   : immutable(false), name(name_), description(desc_)
 {
-  Configuration *conf = nullptr;
+  Configuration *conf;
 
-  switch (co) {
-  case ConfGlobal: conf = Configuration::global();
-    break;
-  case ConfServer: conf = Configuration::server();
-    break;
-  case ConfViewer: conf = Configuration::viewer();
-    break;
-  }
+  conf = Configuration::global();
 
   _next = conf->head;
   conf->head = this;
@@ -244,8 +218,8 @@ VoidParameter::setImmutable() {
 // -=- AliasParameter
 
 AliasParameter::AliasParameter(const char* name_, const char* desc_,
-                               VoidParameter* param_, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), param(param_) {
+                               VoidParameter* param_)
+  : VoidParameter(name_, desc_), param(param_) {
 }
 
 bool
@@ -274,9 +248,8 @@ AliasParameter::setImmutable() {
 
 // -=- BoolParameter
 
-BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v,
-			     ConfigurationObject co)
-: VoidParameter(name_, desc_, co), value(v), def_value(v) {
+BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v)
+: VoidParameter(name_, desc_), value(v), def_value(v) {
 }
 
 bool
@@ -323,8 +296,8 @@ BoolParameter::operator bool() const {
 // -=- IntParameter
 
 IntParameter::IntParameter(const char* name_, const char* desc_, int v,
-                           int minValue_, int maxValue_, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), value(v), def_value(v),
+                           int minValue_, int maxValue_)
+  : VoidParameter(name_, desc_), value(v), def_value(v),
     minValue(minValue_), maxValue(maxValue_)
 {
 }
@@ -364,8 +337,8 @@ IntParameter::operator int() const {
 // -=- StringParameter
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
-                                 const char* v, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), value(v), def_value(v)
+                                 const char* v)
+  : VoidParameter(name_, desc_), value(v), def_value(v)
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
@@ -399,8 +372,8 @@ StringParameter::operator const char *() const {
 // -=- BinaryParameter
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
-				 const uint8_t* v, size_t l, ConfigurationObject co)
-: VoidParameter(name_, desc_, co),
+				 const uint8_t* v, size_t l)
+: VoidParameter(name_, desc_),
   value(nullptr), length(0), def_value(nullptr), def_length(0) {
   if (l) {
     assert(v);

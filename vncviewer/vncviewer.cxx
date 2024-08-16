@@ -659,8 +659,6 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  Configuration::enableViewerParams();
-
   /* Load the default parameter settings */
   char defaultServerName[VNCSERVERNAMELEN] = "";
   try {

@@ -43,7 +43,6 @@ void vncInitRFB(void)
   rfb::initStdIOLoggers();
   rfb::initSyslogLogger();
   rfb::LogWriter::setLogParams("*:stderr:30");
-  rfb::Configuration::enableServerParams();
 }
 
 void vncLogError(const char *name, const char *format, ...)
