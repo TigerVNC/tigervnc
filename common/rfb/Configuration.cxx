@@ -171,6 +171,9 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_)
 
   conf = Configuration::global();
   conf->params.push_back(this);
+  conf->params.sort([](const VoidParameter* a, const VoidParameter* b) {
+    return strcasecmp(a->getName(), b->getName()) < 0;
+  });
 
   mutex = new os::Mutex();
 }
