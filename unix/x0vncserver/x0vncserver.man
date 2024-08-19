@@ -110,7 +110,7 @@ are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
 Default is \fBTLSVnc,VncAuth\fP.
 .
 .TP
-.B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
+.B \-PasswordFile \fIpasswd-file\fP, \-rfbauth \fIpasswd-file\fP
 Password file for VNC authentication.  There is no default, you should
 specify the password file explicitly.  Password file should be created with
 the \fBvncpasswd\fP(1) utility.  The file is accessed each time a connection

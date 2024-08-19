@@ -101,7 +101,7 @@ connections from viewers.
 Specifies the mode of the Unix domain socket.  The default is 0600.
 .
 .TP
-.B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
+.B \-PasswordFile \fIpasswd-file\fP, \-rfbauth \fIpasswd-file\fP
 Password file for VNC authentication.  There is no default, you should
 specify the password file explicitly.  Password file should be created with
 the \fBvncpasswd\fP(1) utility.  The file is accessed each time a connection
