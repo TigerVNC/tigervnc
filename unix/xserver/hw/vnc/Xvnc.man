@@ -308,6 +308,11 @@ Send the primary selection and cut buffer to the server as well as the
 clipboard selection. Default is on.
 .
 .TP
+.B \-SetPrimary
+Set the primary selection as well as the clipboard selection.
+Default is on.
+.
+.TP
 .B \-UseBlacklist
 Temporarily reject connections from a host if it repeatedly fails to
 authenticate. Default is on.
