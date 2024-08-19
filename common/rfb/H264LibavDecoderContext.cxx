@@ -217,6 +217,21 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
                              frame->width, frame->height, AV_PIX_FMT_RGB32,
                              0, nullptr, nullptr, nullptr);
 
+  int inFull, outFull, brightness, contrast, saturation;
+  const int* inTable;
+  const int* outTable;
+
+  sws_getColorspaceDetails(sws, (int**)&inTable, &inFull, (int**)&outTable,
+      &outFull, &brightness, &contrast, &saturation);
+  if (frame->colorspace != AVCOL_SPC_UNSPECIFIED) {
+    inTable = sws_getCoefficients(frame->colorspace);
+  }
+  if (frame->color_range != AVCOL_RANGE_UNSPECIFIED) {
+    inFull = frame->color_range == AVCOL_RANGE_JPEG;
+  }
+  sws_setColorspaceDetails(sws, inTable, inFull, outTable, outFull, brightness,
+      contrast, saturation);
+
   if (rgbFrame && (rgbFrame->width != frame->width || rgbFrame->height != frame->height)) {
     av_frame_free(&rgbFrame);
 
