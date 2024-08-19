@@ -274,15 +274,15 @@ bool BoolParameter::setParam() {
 void BoolParameter::setParam(bool b) {
   if (immutable) return;
   value = b;
-  vlog.debug("Set %s(Bool) to %d", getName(), value);
+  vlog.debug("Set %s(Bool) to %s", getName(), getValueStr().c_str());
 }
 
 std::string BoolParameter::getDefaultStr() const {
-  return def_value ? "1" : "0";
+  return def_value ? "on" : "off";
 }
 
 std::string BoolParameter::getValueStr() const {
-  return value ? "1" : "0";
+  return value ? "on" : "off";
 }
 
 BoolParameter::operator bool() const {
