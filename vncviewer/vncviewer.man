@@ -307,6 +307,14 @@ normally closed.  This option requests that they be left open, allowing you to
 share the desktop with someone already using it.
 .
 .TP
+.B \-UseIPv4
+Use IPv4 for incoming and outgoing connections. Default is on.
+.
+.TP
+.B \-UseIPv6
+Use IPv6 for incoming and outgoing connections. Default is on.
+.
+.TP
 \fB\-via\fR \fIgateway\fR
 Automatically create encrypted TCP tunnel to the \fIgateway\fR machine
 before connection, connect to the \fIhost\fR through that tunnel
