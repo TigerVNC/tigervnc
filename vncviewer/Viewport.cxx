@@ -1315,6 +1315,10 @@ void Viewport::popupContextMenu()
       ((DesktopWindow*)window())->fullscreen_on();
     break;
   case ID_MINIMIZE:
+#ifdef __APPLE__
+    if (window()->fullscreen_active())
+      window()->fullscreen_off();
+#endif
     window()->iconize();
     break;
   case ID_RESIZE:
