@@ -238,11 +238,8 @@ namespace rfb {
 
   class StringParameter : public VoidParameter {
   public:
-    // StringParameter contains a null-terminated string, which CANNOT
-    // be Null, and so neither can the default value!
     StringParameter(const char* name_, const char* desc_, const char* v,
 		    ConfigurationObject co=ConfGlobal);
-    ~StringParameter() override;
     bool setParam(const char* value) override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;

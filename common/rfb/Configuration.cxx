@@ -369,9 +369,6 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
   }
 }
 
-StringParameter::~StringParameter() {
-}
-
 bool StringParameter::setParam(const char* v) {
   LOCK_CONFIG;
   if (immutable) return true;
