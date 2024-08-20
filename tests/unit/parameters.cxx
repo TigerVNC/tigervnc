@@ -385,6 +385,97 @@ static void test_binary()
   printf("OK\n");
 }
 
+static void test_int_list()
+{
+  bool ok;
+  std::list<int> data;
+
+  printf("%s: ", __func__);
+
+  // List values
+  rfb::IntListParameter list("listparam", "", {});
+  list.setParam({1, 2, 3, 4});
+  data = {1, 2, 3, 4};
+  ASSERT_EQ_I(std::distance(list.begin(), list.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(list.begin(), list.end(), data.begin()), true);
+
+  // List strings
+  rfb::IntListParameter strings("listparam", "", {});
+  strings.setParam("1,2,3,4");
+  data = {1, 2, 3, 4};
+  ASSERT_EQ_I(std::distance(strings.begin(), strings.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(strings.begin(), strings.end(), data.begin()), true);
+
+  // Min/Max values
+  rfb::IntListParameter bounds("listparam", "", {}, 20, 100);
+  ASSERT_EQ_I(bounds.setParam({57, 73}), true);
+  data = {57, 73};
+  ASSERT_EQ_I(std::distance(bounds.begin(), bounds.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(bounds.begin(), bounds.end(), data.begin()), true);
+  ASSERT_EQ_I(bounds.setParam({57, 123}), false);
+  data = {57, 73};
+  ASSERT_EQ_I(std::distance(bounds.begin(), bounds.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(bounds.begin(), bounds.end(), data.begin()), true);
+  ASSERT_EQ_I(bounds.setParam("57,123"), false);
+  data = {57, 73};
+  ASSERT_EQ_I(std::distance(bounds.begin(), bounds.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(bounds.begin(), bounds.end(), data.begin()), true);
+  ASSERT_EQ_I(bounds.setParam({57, -30}), false);
+  data = {57, 73};
+  ASSERT_EQ_I(std::distance(bounds.begin(), bounds.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(bounds.begin(), bounds.end(), data.begin()), true);
+  ASSERT_EQ_I(bounds.setParam("57,-30"), false);
+  data = {57, 73};
+  ASSERT_EQ_I(std::distance(bounds.begin(), bounds.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(bounds.begin(), bounds.end(), data.begin()), true);
+
+  // Min/Max default value
+  try {
+    rfb::IntListParameter defbounds("listparam", "", {10}, 20, 100);
+    ok = false;
+  } catch (std::exception&) {
+    ok = true;
+  }
+  ASSERT_EQ_I(ok, true);
+
+  // Validation
+  rfb::IntListParameter valid("listparam", "", {});
+  ASSERT_EQ_I(valid.setParam("1,2,3,4"), true);
+  data = {1, 2, 3, 4};
+  ASSERT_EQ_I(std::distance(valid.begin(), valid.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(valid.begin(), valid.end(), data.begin()), true);
+  ASSERT_EQ_I(valid.setParam("foo"), false);
+  data = {1, 2, 3, 4};
+  ASSERT_EQ_I(std::distance(valid.begin(), valid.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(valid.begin(), valid.end(), data.begin()), true);
+  ASSERT_EQ_I(valid.setParam("1,2,x,4"), false);
+  data = {1, 2, 3, 4};
+  ASSERT_EQ_I(std::distance(valid.begin(), valid.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(valid.begin(), valid.end(), data.begin()), true);
+
+  // String encoding
+  rfb::IntListParameter encoding("listparam", "", {});
+  encoding.setParam({1, 2, 3, 4});
+  ASSERT_EQ_S(encoding.getValueStr().c_str(), "1,2,3,4");
+
+  // Default value
+  rfb::IntListParameter def("listparam", "", {1, 2, 3});
+  ASSERT_EQ_I(def.isDefault(), true);
+  def.setParam({4, 5, 6});
+  ASSERT_EQ_I(def.isDefault(), false);
+  def.setParam({1, 2, 3});
+  ASSERT_EQ_I(def.isDefault(), true);
+
+  // Immutable
+  rfb::IntListParameter immutable("listparam", "", {});
+  immutable.setImmutable();
+  immutable.setParam({1, 2, 3, 4});
+  immutable.setParam("1,2,3,4");
+  ASSERT_EQ_I(immutable.begin() == immutable.end(), true);
+
+  printf("OK\n");
+}
+
 int main(int /*argc*/, char** /*argv*/)
 {
   printf("Parameters test\n");
@@ -394,6 +485,8 @@ int main(int /*argc*/, char** /*argv*/)
   test_string();
   test_enum();
   test_binary();
+
+  test_int_list();
 
   return 0;
 }
