@@ -101,6 +101,8 @@ static void test_bool()
 
 static void test_int()
 {
+  bool ok;
+
   printf("%s: ", __func__);
 
   // Int values
@@ -129,6 +131,22 @@ static void test_int()
   ASSERT_EQ_I(bounds, 57);
   ASSERT_EQ_I(bounds.setParam("-30"), false);
   ASSERT_EQ_I(bounds, 57);
+
+  // Min/Max default value
+  try {
+    rfb::IntParameter defbounds("intparam", "", 10, 20, 100);
+    ok = false;
+  } catch (std::exception&) {
+    ok = true;
+  }
+  ASSERT_EQ_I(ok, true);
+
+  // Validation
+  rfb::IntParameter valid("intparam", "", 0);
+  ASSERT_EQ_I(valid.setParam("123"), true);
+  ASSERT_EQ_I(valid, 123);
+  ASSERT_EQ_I(valid.setParam("foo"), false);
+  ASSERT_EQ_I(valid, 123);
 
   // String encoding
   rfb::IntParameter encoding("intparam", "", 0);
