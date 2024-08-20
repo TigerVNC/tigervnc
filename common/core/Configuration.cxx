@@ -322,20 +322,33 @@ IntParameter::IntParameter(const char* name_, const char* desc_, int v,
   : VoidParameter(name_, desc_), value(v), def_value(v),
     minValue(minValue_), maxValue(maxValue_)
 {
+  if (v < minValue || v > maxValue) {
+    vlog.error("Invalid default value %d for %s", v, getName());
+    throw std::invalid_argument("Invalid default value");
+  }
 }
 
 bool
 IntParameter::setParam(const char* v) {
+  char* end;
+  long n;
   if (immutable) return true;
-  return setParam(strtol(v, nullptr, 0));
+  n = strtol(v, &end, 0);
+  if ((*end != 0) || (n < INT_MIN) || (n > INT_MAX)) {
+    vlog.error("Int parameter %s: Invalid value '%s'", getName(), v);
+    return false;
+  }
+  return setParam(n);
 }
 
 bool
 IntParameter::setParam(int v) {
   if (immutable) return true;
-  vlog.debug("Set %s(Int) to %d", getName(), v);
-  if (v < minValue || v > maxValue)
+  if (v < minValue || v > maxValue) {
+    vlog.error("Int parameter %s: Invalid value '%d'", getName(), v);
     return false;
+  }
+  vlog.debug("Set %s(Int) to %d", getName(), v);
   value = v;
   return true;
 }
