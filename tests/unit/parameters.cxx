@@ -153,6 +153,24 @@ TEST(IntParameter, minmax)
   EXPECT_EQ(bounds, 57);
 }
 
+TEST(IntParameter, minmaxdefault)
+{
+  EXPECT_THROW({
+    core::IntParameter defbounds("intparam", "", 10, 20, 100);
+  }, std::invalid_argument);
+}
+
+TEST(IntParameter, validation)
+{
+  core::IntParameter valid("intparam", "", 0);
+
+  EXPECT_TRUE(valid.setParam("123"));
+  EXPECT_EQ(valid, 123);
+
+  EXPECT_FALSE(valid.setParam("foo"));
+  EXPECT_EQ(valid, 123);
+}
+
 TEST(IntParameter, encoding)
 {
   core::IntParameter encoding("intparam", "", 0);
