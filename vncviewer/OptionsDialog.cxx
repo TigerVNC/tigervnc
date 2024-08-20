@@ -330,7 +330,7 @@ void OptionsDialog::loadOptions(void)
     }
   }
 
-  monitorArrangement->value(fullScreenSelectedMonitors.getParam());
+  monitorArrangement->value(fullScreenSelectedMonitors.getMonitors());
 
   handleFullScreenMode(selectedMonitorsButton, this);
 
@@ -473,7 +473,7 @@ void OptionsDialog::storeOptions(void)
     }
   }
 
-  fullScreenSelectedMonitors.setParam(monitorArrangement->value());
+  fullScreenSelectedMonitors.setMonitors(monitorArrangement->value());
 
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
@@ -1197,7 +1197,7 @@ void OptionsDialog::handleScreenConfigTimeout(void *data)
 
     assert(self);
 
-    self->monitorArrangement->value(fullScreenSelectedMonitors.getParam());
+    self->monitorArrangement->value(fullScreenSelectedMonitors.getMonitors());
 }
 
 void OptionsDialog::handleAlwaysCursor(Fl_Widget* /*widget*/, void *data)

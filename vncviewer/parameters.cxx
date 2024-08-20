@@ -163,7 +163,7 @@ MonitorIndicesParameter
   fullScreenSelectedMonitors("FullScreenSelectedMonitors",
                              "Use the given list of monitors in full "
                              "screen when -FullScreenMode=Selected.",
-                             "1");
+                             {1});
 core::StringParameter
   desktopSize("DesktopSize",
               "Reconfigure desktop size on the server on connect (if "

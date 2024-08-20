@@ -1018,7 +1018,7 @@ void DesktopWindow::fullscreen_on()
     std::set<int> monitors;
 
     if (selectedMonitors and not allMonitors) {
-      std::set<int> selected = fullScreenSelectedMonitors.getParam();
+      std::set<int> selected = fullScreenSelectedMonitors.getMonitors();
       monitors.insert(selected.begin(), selected.end());
     } else {
       for (int idx = 0; idx < Fl::screen_count(); idx++)
