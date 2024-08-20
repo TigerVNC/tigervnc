@@ -32,13 +32,9 @@
 
 #include <stdexcept>
 
-#include <os/Mutex.h>
-
 #include <rfb/util.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
-
-#define LOCK_CONFIG os::AutoMutex a(mutex)
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
@@ -209,12 +205,9 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_,
 
   _next = conf->head;
   conf->head = this;
-
-  mutex = new os::Mutex();
 }
 
 VoidParameter::~VoidParameter() {
-  delete mutex;
 }
 
 const char*
@@ -385,7 +378,6 @@ StringParameter::~StringParameter() {
 }
 
 bool StringParameter::setParam(const char* v) {
-  LOCK_CONFIG;
   if (immutable) return true;
   if (!v)
     throw std::invalid_argument("setParam(<null>) not allowed");
@@ -399,7 +391,6 @@ std::string StringParameter::getDefaultStr() const {
 }
 
 std::string StringParameter::getValueStr() const {
-  LOCK_CONFIG;
   return value;
 }
 
@@ -438,7 +429,6 @@ bool BinaryParameter::setParam(const char* v) {
 }
 
 void BinaryParameter::setParam(const uint8_t* v, size_t len) {
-  LOCK_CONFIG;
   if (immutable) return; 
   vlog.debug("Set %s(Binary)", getName());
   delete [] value;
@@ -457,12 +447,10 @@ std::string BinaryParameter::getDefaultStr() const {
 }
 
 std::string BinaryParameter::getValueStr() const {
-  LOCK_CONFIG;
   return binToHex(value, length);
 }
 
 std::vector<uint8_t> BinaryParameter::getData() const {
-  LOCK_CONFIG;
   std::vector<uint8_t> out(length);
   memcpy(out.data(), value, length);
   return out;
