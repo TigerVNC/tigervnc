@@ -215,7 +215,7 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
 
   sws = sws_getCachedContext(sws, frame->width, frame->height, avctx->pix_fmt,
                              frame->width, frame->height, AV_PIX_FMT_RGB32,
-                             0, nullptr, nullptr, nullptr);
+                             SWS_POINT, nullptr, nullptr, nullptr);
 
   int inFull, outFull, brightness, contrast, saturation;
   const int* inTable;
