@@ -52,6 +52,7 @@ using namespace std;
 
 static LogWriter vlog("Parameters");
 
+static const char* configdirfn(const char* fn);
 
 IntParameter pointerEventInterval("PointerEventInterval",
                                   "Time in milliseconds to rate-limit"
@@ -75,6 +76,13 @@ BoolParameter reconnectOnError("ReconnectOnError",
 StringParameter passwordFile("PasswordFile",
                              "Password file for VNC authentication", "");
 AliasParameter passwd("passwd", "Alias for PasswordFile", &passwordFile);
+
+StringParameter X509CA("X509CA", "X509 CA certificate",
+                       configdirfn("x509_ca.pem"),
+                       ConfViewer);
+StringParameter X509CRL("X509CRL", "X509 CRL file",
+                        configdirfn("x509_crl.pem"),
+                        ConfViewer);
 
 BoolParameter autoSelect("AutoSelect",
                          "Auto select pixel format and encoding. "
@@ -175,8 +183,8 @@ static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0"
 static VoidParameter* parameterArray[] = {
   /* Security */
 #ifdef HAVE_GNUTLS
-  &CSecurityTLS::X509CA,
-  &CSecurityTLS::X509CRL,
+  &X509CA,
+  &X509CRL,
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   /* Misc. */
@@ -220,6 +228,19 @@ static const struct EscapeMap {
 } replaceMap[] = { { '\n', 'n' },
                    { '\r', 'r' },
                    { '\\', '\\' } };
+
+static const char* configdirfn(const char* fn)
+{
+  static char full_path[PATH_MAX];
+  const char* configdir;
+
+  configdir = os::getvncconfigdir();
+  if (configdir == nullptr)
+    return "";
+
+  snprintf(full_path, sizeof(full_path), "%s/%s", configdir, fn);
+  return full_path;
+}
 
 static bool encodeValue(const char* val, char* dest, size_t destSize) {
 

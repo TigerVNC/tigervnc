@@ -37,6 +37,11 @@ extern rfb::BoolParameter dotWhenNoCursor;
 
 extern rfb::StringParameter passwordFile;
 
+#ifdef HAVE_GNUTLS
+extern rfb::StringParameter X509CA;
+extern rfb::StringParameter X509CRL;
+#endif
+
 extern rfb::BoolParameter autoSelect;
 extern rfb::BoolParameter fullColour;
 extern rfb::AliasParameter fullColourAlias;

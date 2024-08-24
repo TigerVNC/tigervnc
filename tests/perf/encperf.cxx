@@ -108,6 +108,7 @@ public:
   void setColourMapEntries(int, int, uint16_t*) override;
   void bell() override;
   void serverCutText(const char*) override;
+  virtual int getX509File(std::string *ca, std::string *crl) override;
 
 public:
   double decodeTime;
@@ -277,6 +278,11 @@ void CConn::bell()
 
 void CConn::serverCutText(const char*)
 {
+}
+
+int CConn::getX509File(std::string *, std::string *)
+{
+    return 0;
 }
 
 Manager::Manager(class rfb::SConnection *conn_) :

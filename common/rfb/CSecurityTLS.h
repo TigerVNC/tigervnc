@@ -42,9 +42,6 @@ namespace rfb {
     int getType() const override { return anon ? secTypeTLSNone : secTypeX509None; }
     bool isSecure() const override { return !anon; }
 
-    static StringParameter X509CA;
-    static StringParameter X509CRL;
-
   protected:
     void shutdown();
     void freeResources();

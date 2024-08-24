@@ -45,6 +45,8 @@ public:
   static void socketEvent(FL_SOCKET fd, void *data);
 
   // CConnection callback methods
+  virtual int getX509File(std::string *ca, std::string *crl) override;
+
   void initDone() override;
 
   void setDesktopSize(int w, int h) override;

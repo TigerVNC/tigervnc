@@ -303,8 +303,8 @@ void OptionsDialog::loadOptions(void)
   }
 
 #ifdef HAVE_GNUTLS
-  caInput->value(CSecurityTLS::X509CA);
-  crlInput->value(CSecurityTLS::X509CRL);
+  caInput->value(::X509CA);
+  crlInput->value(::X509CRL);
 
   handleX509(encX509Checkbox, this);
 #endif
@@ -434,8 +434,8 @@ void OptionsDialog::storeOptions(void)
       security.EnableSecType(secTypeX509Plain);
   }
 
-  CSecurityTLS::X509CA.setParam(caInput->value());
-  CSecurityTLS::X509CRL.setParam(crlInput->value());
+  ::X509CA.setParam(caInput->value());
+  ::X509CRL.setParam(crlInput->value());
 #endif
 
 #ifdef HAVE_NETTLE

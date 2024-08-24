@@ -606,3 +606,10 @@ void CConn::handleUpdateTimeout(void *data)
 
   Fl::repeat_timeout(1.0, handleUpdateTimeout, data);
 }
+
+int CConn::getX509File(std::string *ca, std::string *crl)
+{
+    *ca = ::X509CA;
+    *crl = ::X509CRL;
+    return 0;
+}
