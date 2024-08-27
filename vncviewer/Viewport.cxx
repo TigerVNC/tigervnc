@@ -1316,6 +1316,8 @@ void Viewport::popupContextMenu()
     break;
   case ID_MINIMIZE:
 #ifdef __APPLE__
+    // FIXME: Workaround for not being able to minimize in fullscreen
+    // https://github.com/TigerVNC/tigervnc/pull/1813
     if (window()->fullscreen_active())
       window()->fullscreen_off();
 #endif
