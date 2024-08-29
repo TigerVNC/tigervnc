@@ -317,7 +317,7 @@ void ServerDialog::loadServerHistory()
 
   const char* stateDir = os::getvncstatedir();
   if (stateDir == nullptr)
-    throw Exception(_("Could not obtain the state directory path"));
+    throw Exception(_("Could not determine VNC state directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, SERVER_HISTORY);
@@ -383,7 +383,7 @@ void ServerDialog::saveServerHistory()
 
   const char* stateDir = os::getvncstatedir();
   if (stateDir == nullptr)
-    throw Exception(_("Could not obtain the state directory path"));
+    throw Exception(_("Could not determine VNC state directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, SERVER_HISTORY);

@@ -631,7 +631,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
     
     const char* configDir = os::getvncconfigdir();
     if (configDir == nullptr)
-      throw Exception(_("Could not obtain the config directory path"));
+      throw Exception(_("Could not determine VNC config directory path"));
 
     snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
   } else {
@@ -735,7 +735,7 @@ char* loadViewerParameters(const char *filename) {
 
     const char* configDir = os::getvncconfigdir();
     if (configDir == nullptr)
-      throw Exception(_("Could not obtain the config directory path"));
+      throw Exception(_("Could not determine VNC config directory path"));
 
     snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
   } else {

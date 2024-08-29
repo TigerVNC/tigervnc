@@ -560,7 +560,8 @@ create_base_dirs()
 
   if (os::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
-      vlog.error(_("Could not create VNC config directory: %s"), strerror(errno));
+      vlog.error(_("Could not create VNC config directory \"%s\": %s"),
+                 dir, strerror(errno));
   }
 
   dir = os::getvncdatadir();
@@ -571,7 +572,8 @@ create_base_dirs()
 
   if (os::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
-      vlog.error(_("Could not create VNC data directory: %s"), strerror(errno));
+      vlog.error(_("Could not create VNC data directory \"%s\": %s"),
+                 dir, strerror(errno));
   }
 
   dir = os::getvncstatedir();
@@ -582,7 +584,8 @@ create_base_dirs()
 
   if (os::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
-      vlog.error(_("Could not create VNC state directory: %s"), strerror(errno));
+      vlog.error(_("Could not create VNC state directory \"%s\": %s"),
+                 dir, strerror(errno));
   }
 }
 

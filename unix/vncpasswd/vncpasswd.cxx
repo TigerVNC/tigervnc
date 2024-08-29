@@ -209,12 +209,13 @@ int main(int argc, char** argv)
   if (fname[0] == '\0') {
     const char *configDir = os::getvncconfigdir();
     if (configDir == nullptr) {
-      fprintf(stderr, "Can't obtain VNC config directory\n");
+      fprintf(stderr, "Could not determine VNC config directory path\n");
       exit(1);
     }
     if (os::mkdir_p(configDir, 0777) == -1) {
       if (errno != EEXIST) {
-        fprintf(stderr, "Could not create VNC config directory: %s\n", strerror(errno));
+        fprintf(stderr, "Could not create VNC config directory \"%s\": %s\n",
+                configDir, strerror(errno));
         exit(1);
       }
     }

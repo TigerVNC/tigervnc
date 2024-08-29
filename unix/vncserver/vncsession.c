@@ -443,7 +443,7 @@ redir_stdio(const char *homedir, const char *display, char **envp)
 
     if (mkdir_p(logdir, 0755) == -1) {
         if (errno != EEXIST) {
-            syslog(LOG_CRIT, "Failure creating \"%s\": %s", logdir, strerror(errno));
+            syslog(LOG_CRIT, "Could not create VNC state directory \"%s\": %s", logdir, strerror(errno));
             _exit(EX_OSERR);
         }
     }
