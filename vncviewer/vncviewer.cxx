@@ -531,28 +531,47 @@ migrateDeprecatedOptions()
 static void
 create_base_dirs()
 {
-  char *confdir = strdup(os::getvncconfigdir());
+  const char *dir;
+
+  dir = os::getvncconfigdir();
+  if (dir == NULL) {
+    vlog.error(_("Could not determine VNC config directory path"));
+    return;
+  }
+
 #ifndef WIN32
-  char *dotdir = strrchr(confdir, '.');
+  const char *dotdir = strrchr(dir, '.');
   if (dotdir != NULL && strcmp(dotdir, ".vnc") == 0)
     vlog.info(_("~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."));
 #else
-  char *vncdir = strrchr(confdir, '\\');
+  const char *vncdir = strrchr(dir, '\\');
   if (vncdir != NULL && strcmp(vncdir, "vnc") == 0)
     vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
 #endif
 
-  if (os::mkdir_p(os::getvncconfigdir(), 0755) == -1) {
+  if (os::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC config directory: %s"), strerror(errno));
   }
 
-  if (os::mkdir_p(os::getvncdatadir(), 0755) == -1) {
+  dir = os::getvncdatadir();
+  if (dir == NULL) {
+    vlog.error(_("Could not determine VNC data directory path"));
+    return;
+  }
+
+  if (os::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC data directory: %s"), strerror(errno));
   }
 
-  if (os::mkdir_p(os::getvncstatedir(), 0755) == -1) {
+  dir = os::getvncstatedir();
+  if (dir == NULL) {
+    vlog.error(_("Could not determine VNC state directory path"));
+    return;
+  }
+
+  if (os::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC state directory: %s"), strerror(errno));
   }
