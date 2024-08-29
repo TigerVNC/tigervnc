@@ -537,6 +537,36 @@ migrateDeprecatedOptions()
   }
 }
 
+static void
+create_base_dirs()
+{
+  char *confdir = strdup(os::getvncconfigdir());
+#ifndef WIN32
+  char *dotdir = strrchr(confdir, '.');
+  if (dotdir != nullptr && strcmp(dotdir, ".vnc") == 0)
+    vlog.info(_("~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."));
+#else
+  char *vncdir = strrchr(confdir, '\\');
+  if (vncdir != nullptr && strcmp(vncdir, "vnc") == 0)
+    vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
+#endif
+
+  if (os::mkdir_p(os::getvncconfigdir(), 0755) == -1) {
+    if (errno != EEXIST)
+      vlog.error(_("Could not create VNC config directory: %s"), strerror(errno));
+  }
+
+  if (os::mkdir_p(os::getvncdatadir(), 0755) == -1) {
+    if (errno != EEXIST)
+      vlog.error(_("Could not create VNC data directory: %s"), strerror(errno));
+  }
+
+  if (os::mkdir_p(os::getvncstatedir(), 0755) == -1) {
+    if (errno != EEXIST)
+      vlog.error(_("Could not create VNC state directory: %s"), strerror(errno));
+  }
+}
+
 #ifndef WIN32
 static int
 interpretViaParam(char *remoteHost, int *remotePort, int localPort)
@@ -722,31 +752,7 @@ int main(int argc, char** argv)
 
   migrateDeprecatedOptions();
 
-  char *confdir = strdup(os::getvncconfigdir());
-#ifndef WIN32
-  char *dotdir = strrchr(confdir, '.');
-  if (dotdir != nullptr && strcmp(dotdir, ".vnc") == 0)
-    vlog.info(_("~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."));
-#else
-  char *vncdir = strrchr(confdir, '\\');
-  if (vncdir != nullptr && strcmp(vncdir, "vnc") == 0)
-    vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
-#endif
-
-  if (os::mkdir_p(os::getvncconfigdir(), 0755) == -1) {
-    if (errno != EEXIST)
-      vlog.error(_("Could not create VNC config directory: %s"), strerror(errno));
-  }
-
-  if (os::mkdir_p(os::getvncdatadir(), 0755) == -1) {
-    if (errno != EEXIST)
-      vlog.error(_("Could not create VNC data directory: %s"), strerror(errno));
-  }
-
-  if (os::mkdir_p(os::getvncstatedir(), 0755) == -1) {
-    if (errno != EEXIST)
-      vlog.error(_("Could not create VNC state directory: %s"), strerror(errno));
-  }
+  create_base_dirs();
 
   CSecurity::upg = &dlg;
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
