@@ -91,7 +91,7 @@ void UserDialog::getUserPasswd(bool secure, std::string* user,
   }
 
   if (!user && passwordFileName[0]) {
-    std::vector<uint8_t> obfPwd(256);
+    std::vector<uint8_t> obfPwd(8);
     FILE* fp;
 
     fp = fopen(passwordFileName, "rb");
