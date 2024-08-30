@@ -22,6 +22,8 @@
 
 #include "GestureEvent.h"
 
+#include <sys/time.h>
+
 class BaseTouchHandler {
   public:
     virtual ~BaseTouchHandler();
