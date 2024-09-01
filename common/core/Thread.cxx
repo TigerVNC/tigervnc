@@ -29,15 +29,12 @@
 #endif
 
 #include <core/Exception.h>
-#include <core/Mutex.h>
 #include <core/Thread.h>
 
 using namespace core;
 
 Thread::Thread() : running(false), threadId(nullptr)
 {
-  mutex = new Mutex;
-
 #ifdef WIN32
   threadId = new HANDLE;
 #else
@@ -54,13 +51,11 @@ Thread::~Thread()
     pthread_cancel(*(pthread_t*)threadId);
   delete (pthread_t*)threadId;
 #endif
-
-  delete mutex;
 }
 
 void Thread::start()
 {
-  AutoMutex a(mutex);
+  const std::lock_guard<std::mutex> lock(mutex);
 
 #ifdef WIN32
   *(HANDLE*)threadId = CreateThread(nullptr, 0, startRoutine, this, 0, nullptr);
@@ -110,7 +105,7 @@ void Thread::wait()
 
 bool Thread::isRunning()
 {
-  AutoMutex a(mutex);
+  const std::lock_guard<std::mutex> lock(mutex);
 
   return running;
 }
@@ -160,9 +155,9 @@ void* Thread::startRoutine(void* data)
   } catch(...) {
   }
 
-  self->mutex->lock();
+  self->mutex.lock();
   self->running = false;
-  self->mutex->unlock();
+  self->mutex.unlock();
 
 #ifdef WIN32
   return 0;

@@ -21,9 +21,9 @@
 
 #include <stddef.h>
 
-namespace core {
-  class Mutex;
+#include <mutex>
 
+namespace core {
   class Thread {
   public:
     Thread();
@@ -48,7 +48,7 @@ namespace core {
 #endif
 
   private:
-    Mutex *mutex;
+    std::mutex mutex;
     bool running;
 
     void *threadId;

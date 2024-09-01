@@ -23,7 +23,6 @@
 #endif
 
 #include <core/LogWriter.h>
-#include <core/Mutex.h>
 #include <core/Thread.h>
 
 #include <rfb_win32/WMHooks.h>
@@ -129,7 +128,7 @@ protected:
 
 static WMHooksThread* hook_mgr = nullptr;
 static std::list<WMHooks*> hooks;
-static Mutex hook_mgr_lock;
+static std::mutex hook_mgr_lock;
 
 
 static bool StartHookThread() {
@@ -167,7 +166,7 @@ static void StopHookThread() {
 
 static bool AddHook(WMHooks* hook) {
   vlog.debug("Adding hook");
-  AutoMutex a(&hook_mgr_lock);
+  const std::lock_guard<std::mutex> lock(hook_mgr_lock);
   if (!StartHookThread())
     return false;
   hooks.push_back(hook);
@@ -177,7 +176,7 @@ static bool AddHook(WMHooks* hook) {
 static bool RemHook(WMHooks* hook) {
   {
     vlog.debug("Removing hook");
-    AutoMutex a(&hook_mgr_lock);
+    const std::lock_guard<std::mutex> lock(hook_mgr_lock);
     hooks.remove(hook);
   }
   StopHookThread();
@@ -185,7 +184,7 @@ static bool RemHook(WMHooks* hook) {
 }
 
 static void NotifyHooksRegion(const Region& r) {
-  AutoMutex a(&hook_mgr_lock);
+  const std::lock_guard<std::mutex> lock(hook_mgr_lock);
   std::list<WMHooks*>::iterator i;
   for (i=hooks.begin(); i!=hooks.end(); i++)
     (*i)->NotifyHooksRegion(r);
@@ -324,7 +323,7 @@ bool rfb::win32::WMHooks::setEvent(HANDLE ue) {
 
 bool rfb::win32::WMHooks::getUpdates(UpdateTracker* ut) {
   if (!updatesReady) return false;
-  AutoMutex a(&hook_mgr_lock);
+  const std::lock_guard<std::mutex> lock(hook_mgr_lock);
   updates.copyTo(ut);
   updates.clear();
   updatesReady = false;
@@ -376,12 +375,12 @@ static bool blockRealInputs(bool block_) {
   return block_ == blocking;
 }
 
-static Mutex blockMutex;
+static std::mutex blockMutex;
 static int blockCount = 0;
 
 bool rfb::win32::WMBlockInput::blockInputs(bool on) {
   if (active == on) return true;
-  AutoMutex a(&blockMutex);
+  const std::lock_guard<std::mutex> lock(blockMutex);
   int newCount = on ? blockCount+1 : blockCount-1;
   if (!blockRealInputs(newCount > 0))
     return false;

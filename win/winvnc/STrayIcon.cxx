@@ -28,7 +28,6 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
-#include <core/Mutex.h>
 #include <core/Thread.h>
 
 #include <rfb_win32/LaunchProcess.h>
@@ -217,7 +216,7 @@ public:
 
     case WM_SET_TOOLTIP:
       {
-        AutoMutex a(thread.lock);
+        const std::lock_guard<std::mutex> a(thread.lock);
         if (!thread.toolTip.empty())
           setToolTip(thread.toolTip.c_str());
       }
@@ -243,7 +242,6 @@ STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT ac
   inactiveIcon(inactiveIcon_), activeIcon(activeIcon_),
   dis_inactiveIcon(dis_inactiveIcon_), dis_activeIcon(dis_activeIcon_),
   menu(menu_), runTrayIcon(true) {
-  lock = new Mutex;
   start();
   while (thread_id == (DWORD)-1)
     Sleep(0);
@@ -252,7 +250,6 @@ STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT ac
 STrayIconThread::~STrayIconThread() {
   runTrayIcon = false;
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);
-  delete lock;
 }
 
 void STrayIconThread::worker() {
@@ -277,7 +274,7 @@ void STrayIconThread::worker() {
 
 void STrayIconThread::setToolTip(const char* text) {
   if (!windowHandle) return;
-  AutoMutex a(lock);
+  const std::lock_guard<std::mutex> a(lock);
   toolTip = text;
   PostMessage(windowHandle, WM_SET_TOOLTIP, 0, 0);
 }

@@ -19,6 +19,8 @@
 #ifndef WINVNC_TRAYICON_H
 #define WINVNC_TRAYICON_H
 
+#include <mutex>
+
 #include <winvnc/VNCServerWin32.h>
 
 #include <core/Configuration.h>
@@ -41,7 +43,7 @@ namespace winvnc {
   protected:
     void worker() override;
 
-    core::Mutex* lock;
+    std::mutex lock;
     DWORD thread_id;
     HWND windowHandle;
     std::string toolTip;
