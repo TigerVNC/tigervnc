@@ -119,7 +119,7 @@ static void processParams(int argc, char** argv) {
         if (host != nullptr) {
           HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
           if (!hwnd)
-            throw rdr::Exception("Unable to locate existing VNC Server.");
+            throw std::runtime_error("Unable to locate existing VNC Server.");
           COPYDATASTRUCT copyData;
           copyData.dwData = 1; // *** AddNewClient
           copyData.cbData = strlen(host);
@@ -132,7 +132,7 @@ static void processParams(int argc, char** argv) {
         runServer = false;
         HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
         if (!hwnd)
-          throw rdr::Exception("Unable to locate existing VNC Server.");
+          throw std::runtime_error("Unable to locate existing VNC Server.");
         COPYDATASTRUCT copyData;
         copyData.dwData = 2; // *** DisconnectClients
         copyData.lpData = nullptr;

@@ -38,7 +38,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <rdr/Exception.h>
+
 #include <network/TcpSocket.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 #include <rfb/util.h>
@@ -200,7 +203,7 @@ TcpSocket::TcpSocket(const char *host, int port)
 
   if (sock == -1) {
     if (err == 0)
-      throw Exception("No useful address for host");
+      throw std::runtime_error("No useful address for host");
     else
       throw SocketException("unable to connect to socket", err);
   }
@@ -607,7 +610,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
   parts = rfb::split(&p[1], '/');
   if (parts.size() > 2)
-    throw Exception("invalid filter specified");
+    throw std::invalid_argument("invalid filter specified");
 
   if (parts[0].empty()) {
     // Match any address
@@ -641,8 +644,8 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     if (parts.size() > 1) {
       if (family == AF_INET &&
           (parts[1].find('.') != std::string::npos)) {
-        throw Exception("mask no longer supported for filter, "
-                        "use prefix instead");
+        throw std::invalid_argument("mask no longer supported for "
+                                    "filter, use prefix instead");
       }
 
       pattern.prefixlen = (unsigned int) atoi(parts[1].c_str());
@@ -655,7 +658,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
         pattern.prefixlen = 128;
         break;
       default:
-        throw Exception("unknown address family");
+        throw std::runtime_error("unknown address family");
       }
     }
   }
@@ -663,8 +666,9 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   family = pattern.address.u.sa.sa_family;
 
   if (pattern.prefixlen > (family == AF_INET ? 32: 128))
-    throw Exception(rfb::format("invalid prefix length for filter address: %u",
-                                pattern.prefixlen));
+    throw std::invalid_argument(rfb::format("invalid prefix length for "
+                                            "filter address: %u",
+                                            pattern.prefixlen));
 
   // Compute mask from address and prefix length
   memset (&pattern.mask, 0, sizeof (pattern.mask));

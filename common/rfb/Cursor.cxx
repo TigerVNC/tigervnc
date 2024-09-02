@@ -24,9 +24,10 @@
 #include <assert.h>
 #include <string.h>
 
+#include <stdexcept>
+
 #include <rfb/Cursor.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Exception.h>
 
 using namespace rfb;
 
@@ -260,7 +261,7 @@ const uint8_t* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
 
   r = _r.translate(offset.negate());
   if (!r.enclosed_by(buffer.getRect()))
-    throw Exception("RenderedCursor: Invalid area requested");
+    throw std::out_of_range("RenderedCursor: Invalid area requested");
 
   return buffer.getBuffer(r, stride);
 }

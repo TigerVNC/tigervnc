@@ -27,7 +27,6 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Exception.h>
 #include <rfb/KeysymStr.h>
 #include <rfb/ledStates.h>
 #include <rfb/util.h>
@@ -130,11 +129,11 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
 
   xkb = XkbGetMap(fl_display, 0, XkbUseCoreKbd);
   if (!xkb)
-    throw rfb::Exception("XkbGetMap");
+    throw std::runtime_error("XkbGetMap");
 
   status = XkbGetNames(fl_display, XkbKeyNamesMask, xkb);
   if (status != Success)
-    throw rfb::Exception("XkbGetNames");
+    throw std::runtime_error("XkbGetNames");
 
   memset(code_map_keycode_to_qnum, 0, sizeof(code_map_keycode_to_qnum));
   for (KeyCode keycode = xkb->min_key_code;

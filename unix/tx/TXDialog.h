@@ -28,6 +28,8 @@
 #ifndef __TXDIALOG_H__
 #define __TXDIALOG_H__
 
+#include <rdr/Exception.h>
+
 #include "TXWindow.h"
 #include <errno.h>
 

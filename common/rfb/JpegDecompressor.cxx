@@ -120,7 +120,7 @@ JpegDecompressor::JpegDecompressor(void)
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
-    throw rdr::Exception(err->lastError);
+    throw std::runtime_error(err->lastError);
   }
 
   jpeg_create_decompress(dinfo);
@@ -168,7 +168,7 @@ void JpegDecompressor::decompress(const uint8_t *jpegBuf,
     jpeg_abort_decompress(dinfo);
     if (dstBufIsTemp && dstBuf) delete[] dstBuf;
     if (rowPointer) delete[] rowPointer;
-    throw rdr::Exception(err->lastError);
+    throw std::runtime_error(err->lastError);
   }
 
   src->pub.next_input_byte = jpegBuf;

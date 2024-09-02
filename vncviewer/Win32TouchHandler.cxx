@@ -22,9 +22,10 @@
 
 #include <math.h>
 
+#include <stdexcept>
+
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
-#include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
 #include "i18n.h"
@@ -44,7 +45,7 @@ Win32TouchHandler::Win32TouchHandler(HWND hWnd_) :
   // If window is registered as touch we can not receive gestures,
   // this should not happen
   if (IsTouchWindow(hWnd, nullptr))
-    throw rfb::Exception(_("Window is registered for touch instead of gestures"));
+    throw std::runtime_error(_("Window is registered for touch instead of gestures"));
 
   // We will not receive any touch/gesture events if this service
   // isn't running - Logging is enough

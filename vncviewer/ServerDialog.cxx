@@ -346,7 +346,7 @@ void ServerDialog::loadServerHistory()
 
   const char* stateDir = os::getvncstatedir();
   if (stateDir == nullptr)
-    throw Exception(_("Could not determine VNC state directory path"));
+    throw std::runtime_error(_("Could not determine VNC state directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, SERVER_HISTORY);
@@ -382,8 +382,11 @@ void ServerDialog::loadServerHistory()
 
     if (len == (sizeof(line) - 1)) {
       fclose(f);
-      throw Exception(format(_("Failed to read line %d in file %s: %s"),
-                             lineNr, filepath, _("Line too long")));
+      throw std::runtime_error(format("%s: %s",
+                                      format(_("Failed to read line %d "
+                                               "in file %s"),
+                                             lineNr, filepath).c_str(),
+                                      _("Line too long")));
     }
 
     if ((len > 0) && (line[len-1] == '\n')) {
@@ -422,7 +425,7 @@ void ServerDialog::saveServerHistory()
 
   const char* stateDir = os::getvncstatedir();
   if (stateDir == nullptr)
-    throw Exception(_("Could not determine VNC state directory path"));
+    throw std::runtime_error(_("Could not determine VNC state directory path"));
 
   char filepath[PATH_MAX];
   snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, SERVER_HISTORY);

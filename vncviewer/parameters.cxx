@@ -305,16 +305,16 @@ static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
   wchar_t name[buffersize];
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw Exception(_("The name of the parameter is too large"));
+    throw std::invalid_argument(_("The name of the parameter is too large"));
 
   char encodingBuffer[buffersize];
   if (!encodeValue(_value, encodingBuffer, buffersize))
-    throw Exception(_("The parameter is too large"));
+    throw std::invalid_argument(_("The parameter is too large"));
 
   wchar_t value[buffersize];
   size = fl_utf8towc(encodingBuffer, strlen(encodingBuffer)+1, value, buffersize);
   if (size >= buffersize)
-    throw Exception(_("The parameter is too large"));
+    throw std::invalid_argument(_("The parameter is too large"));
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_SZ, (BYTE*)&value, (wcslen(value)+1)*2);
   if (res != ERROR_SUCCESS)
@@ -330,7 +330,7 @@ static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw Exception(_("The name of the parameter is too large"));
+    throw std::out_of_range(_("The name of the parameter is too large"));
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_DWORD, (BYTE*)&value, sizeof(DWORD));
   if (res != ERROR_SUCCESS)
@@ -347,7 +347,7 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw Exception(_("The name of the parameter is too large"));
+    throw std::out_of_range(_("The name of the parameter is too large"));
 
   value = new WCHAR[destSize];
   valuesize = destSize;
@@ -365,14 +365,14 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
   delete [] value;
   if (size >= destSize) {
     delete [] utf8val;
-    throw Exception(_("The parameter is too large"));
+    throw std::out_of_range(_("The parameter is too large"));
   }
 
   bool ret = decodeValue(utf8val, dest, destSize);
   delete [] utf8val;
 
   if (!ret)
-    throw Exception(_("Invalid format or too large value"));
+    throw std::invalid_argument(_("Invalid format or too large value"));
 
   return true;
 }
@@ -387,7 +387,7 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw Exception(_("The name of the parameter is too large"));
+    throw std::out_of_range(_("The name of the parameter is too large"));
 
   LONG res = RegQueryValueExW(*hKey, name, nullptr, nullptr, (LPBYTE)&value, &dwordsize);
   if (res != ERROR_SUCCESS){
@@ -407,7 +407,7 @@ static void removeValue(const char* _name, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw Exception(_("The name of the parameter is too large"));
+    throw std::out_of_range(_("The name of the parameter is too large"));
 
   LONG res = RegDeleteValueW(*hKey, name);
   if (res != ERROR_SUCCESS) {
@@ -465,8 +465,8 @@ static void saveToReg(const char* servername) {
     setKeyString("ServerName", servername, &hKey);
   } catch (std::exception& e) {
     RegCloseKey(hKey);
-    throw Exception(format(_("Failed to save \"%s\": %s"),
-                           "ServerName", e.what()));
+    throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
+                                    "ServerName", e.what()));
   }
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
@@ -478,12 +478,13 @@ static void saveToReg(const char* servername) {
       } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != nullptr) {
         setKeyInt(parameterArray[i]->getName(), (int)*(BoolParameter*)parameterArray[i], &hKey);
       } else {
-        throw Exception(_("Unknown parameter type"));
+        throw std::logic_error(_("Unknown parameter type"));
       }
     } catch (std::exception& e) {
       RegCloseKey(hKey);
-      throw Exception(format(_("Failed to save \"%s\": %s"),
-                             parameterArray[i]->getName(), e.what()));
+      throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
+                                      parameterArray[i]->getName(),
+                                      e.what()));
     }
   }
 
@@ -495,9 +496,9 @@ static void saveToReg(const char* servername) {
       removeValue(readOnlyParameterArray[i]->getName(), &hKey);
     } catch (std::exception& e) {
       RegCloseKey(hKey);
-      throw Exception(format(_("Failed to remove \"%s\": %s"),
-                             readOnlyParameterArray[i]->getName(),
-                             e.what()));
+      throw std::runtime_error(format(_("Failed to remove \"%s\": %s"),
+                                      readOnlyParameterArray[i]->getName(),
+                                      e.what()));
     }
   }
 
@@ -570,7 +571,7 @@ static void getParametersFromReg(VoidParameter* parameters[],
         if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
           ((BoolParameter*)parameters[i])->setParam(intValue);
       } else {
-        throw Exception(_("Unknown parameter type"));
+        throw std::logic_error(_("Unknown parameter type"));
       }
     } catch(std::exception& e) {
       // Just ignore this entry and continue with the rest
@@ -638,7 +639,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
     
     const char* configDir = os::getvncconfigdir();
     if (configDir == nullptr)
-      throw Exception(_("Could not determine VNC config directory path"));
+      throw std::runtime_error(_("Could not determine VNC config directory path"));
 
     snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
   } else {
@@ -657,9 +658,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   if (!encodeValue(servername, encodingBuffer, buffersize)) {
     fclose(f);
-    throw Exception(format(_("Failed to save \"%s\": %s"),
-                           "ServerName",
-                           _("Could not encode parameter")));
+    throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
+                                    "ServerName",
+                                    _("Could not encode parameter")));
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
@@ -668,9 +669,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
       if (!encodeValue(*(StringParameter*)param,
           encodingBuffer, buffersize)) {
         fclose(f);
-        throw Exception(format(_("Failed to save \"%s\": %s"),
-                               param->getName(),
-                               _("Could not encode parameter")));
+        throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
+                                        param->getName(),
+                                        _("Could not encode parameter")));
       }
       fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
     } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
@@ -679,9 +680,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
       fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
     } else {      
       fclose(f);
-      throw Exception(format(_("Failed to save \"%s\": %s"),
-                             param->getName(),
-                             _("Unknown parameter type")));
+      throw std::logic_error(format(_("Failed to save \"%s\": %s"),
+                                    param->getName(),
+                                    _("Unknown parameter type")));
     }
   }
   fclose(f);
@@ -700,7 +701,7 @@ static bool findAndSetViewerParameterFromValue(
     if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
       if (strcasecmp(line, ((StringParameter*)parameters[i])->getName()) == 0) {
         if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
-          throw Exception(_("Invalid format or too large value"));
+          throw std::runtime_error(_("Invalid format or too large value"));
         ((StringParameter*)parameters[i])->setParam(decodingBuffer);
         return false;
       }
@@ -718,7 +719,7 @@ static bool findAndSetViewerParameterFromValue(
       }
 
     } else {
-      throw Exception(_("Unknown parameter type"));
+      throw std::logic_error(_("Unknown parameter type"));
     }
   }
 
@@ -744,7 +745,7 @@ char* loadViewerParameters(const char *filename) {
 
     const char* configDir = os::getvncconfigdir();
     if (configDir == nullptr)
-      throw Exception(_("Could not determine VNC config directory path"));
+      throw std::runtime_error(_("Could not determine VNC config directory path"));
 
     snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
   } else {
@@ -777,8 +778,11 @@ char* loadViewerParameters(const char *filename) {
 
     if (strlen(line) == (sizeof(line) - 1)) {
       fclose(f);
-      throw Exception(format(_("Failed to read line %d in file %s: %s"),
-                             lineNr, filepath, _("Line too long")));
+      throw std::runtime_error(format("%s: %s",
+                                      format(_("Failed to read line %d "
+                                               "in file \"%s\""),
+                                             lineNr, filepath).c_str(),
+                                      _("Line too long")));
     }
 
     // Make sure that the first line of the file has the file identifier string
@@ -787,8 +791,9 @@ char* loadViewerParameters(const char *filename) {
         continue;
 
       fclose(f);
-      throw Exception(format(_("Configuration file %s is in an invalid "
-                               "format"), filepath));
+      throw std::runtime_error(format(_("Configuration file %s is in "
+                                        "an invalid format"),
+                                      filepath));
     }
     
     // Skip empty lines and comments
@@ -822,7 +827,7 @@ char* loadViewerParameters(const char *filename) {
       if (strcasecmp(line, "ServerName") == 0) {
 
         if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
-          throw Exception(_("Invalid format or too large value"));
+          throw std::runtime_error(_("Invalid format or too large value"));
         snprintf(servername, sizeof(decodingBuffer), "%s", decodingBuffer);
         invalidParameterName = false;
 

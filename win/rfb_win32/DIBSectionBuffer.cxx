@@ -56,7 +56,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
   uint8_t* new_data = nullptr;
 
   if (!pf.trueColour)
-    throw rfb::Exception("palette format not supported");
+    throw std::invalid_argument("palette format not supported");
 
   format = pf;
 
@@ -158,7 +158,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
       bits = bits >> 1;
     }
     if (depth > bpp)
-      throw Exception("Bad DIBSection format (depth exceeds bpp)");
+      throw std::runtime_error("Bad DIBSection format (depth exceeds bpp)");
 
     format = PixelFormat(bpp, depth, false, true,
                          redMax, greenMax, blueMax,

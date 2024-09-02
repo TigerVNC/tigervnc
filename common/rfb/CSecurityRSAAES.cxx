@@ -134,7 +134,7 @@ static void random_func(void* ctx, size_t length, uint8_t* dst)
 {
   rdr::RandomStream* rs = (rdr::RandomStream*)ctx;
   if (!rs->hasData(length))
-    throw Exception("failed to generate random");
+    throw std::runtime_error("failed to generate random");
   rs->readBytes(dst, length);
 }
 
@@ -155,7 +155,7 @@ void CSecurityRSAAES::writePublicKey()
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
                             &rs, random_func, nullptr, nullptr,
                             clientKeyLength, 0))
-    throw Exception("failed to generate key");
+    throw std::runtime_error("failed to generate key");
   clientKeyN = new uint8_t[rsaKeySize];
   clientKeyE = new uint8_t[rsaKeySize];
   nettle_mpz_get_str_256(rsaKeySize, clientKeyN, clientPublicKey.n);
@@ -222,7 +222,7 @@ void CSecurityRSAAES::writeRandom()
 {
   rdr::OutStream* os = cc->getOutStream();
   if (!rs.hasData(keySize / 8))
-    throw Exception("failed to generate random");
+    throw std::runtime_error("failed to generate random");
   rs.readBytes(clientRandom, keySize / 8);
   mpz_t x;
   mpz_init(x);
@@ -236,7 +236,7 @@ void CSecurityRSAAES::writeRandom()
   }
   if (!res) {
     mpz_clear(x);
-    throw Exception("failed to encrypt random");
+    throw std::runtime_error("failed to encrypt random");
   }
   uint8_t* buffer = new uint8_t[serverKey.size];
   nettle_mpz_get_str_256(serverKey.size, buffer, x);
@@ -443,7 +443,7 @@ void CSecurityRSAAES::writeCredentials()
 
   if (subtype == secTypeRA2UserPass) {
     if (username.size() > 255)
-      throw Exception("username is too long");
+      throw std::out_of_range("username is too long");
     raos->writeU8(username.size());
     raos->writeBytes((const uint8_t*)username.data(), username.size());
   } else {
@@ -451,7 +451,7 @@ void CSecurityRSAAES::writeCredentials()
   }
 
   if (password.size() > 255)
-    throw Exception("password is too long");
+    throw std::out_of_range("password is too long");
   raos->writeU8(password.size());
   raos->writeBytes((const uint8_t*)password.data(), password.size());
   raos->flush();

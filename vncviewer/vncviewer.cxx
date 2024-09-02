@@ -55,7 +55,6 @@
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
-#include <rfb/Exception.h>
 #include <rdr/Exception.h>
 #include <network/TcpSocket.h>
 #include <os/os.h>
@@ -757,7 +756,7 @@ int main(int argc, char** argv)
 
       createTcpListeners(&listeners, nullptr, port);
       if (listeners.empty())
-        throw Exception(_("Unable to listen for incoming connections"));
+        throw std::runtime_error(_("Unable to listen for incoming connections"));
 
       vlog.info(_("Listening on port %d"), port);
 

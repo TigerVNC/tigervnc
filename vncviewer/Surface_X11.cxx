@@ -23,10 +23,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <stdexcept>
+
 #include <FL/Fl_RGB_Image.H>
 #include <FL/x.H>
-
-#include <rdr/Exception.h>
 
 #include "Surface.h"
 
@@ -156,7 +156,7 @@ void Surface::alloc()
                              &templ, 0);
 
   if (!format)
-    throw rdr::Exception("XRenderFindFormat");
+    throw std::runtime_error("XRenderFindFormat");
 
   picture = XRenderCreatePicture(fl_display, pixmap, format, 0, nullptr);
 
@@ -185,11 +185,11 @@ void Surface::update(const Fl_RGB_Image* image)
                      ZPixmap, 0, nullptr, width(), height(),
                      32, 0);
   if (!img)
-    throw rdr::Exception("XCreateImage");
+    throw std::runtime_error("XCreateImage");
 
   img->data = (char*)malloc(img->bytes_per_line * img->height);
   if (!img->data)
-    throw rdr::Exception("malloc");
+    throw std::bad_alloc();
 
   // Convert data and pre-multiply alpha
   in = (const unsigned char*)image->data()[0];

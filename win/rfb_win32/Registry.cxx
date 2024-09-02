@@ -247,14 +247,14 @@ std::string RegKey::getRepresentation(const char* valname) const {
       std::vector<char> expanded(required);
       length = ExpandEnvironmentStrings(str.c_str(), expanded.data(), required);
       if (required<length)
-        throw rdr::Exception("unable to expand environment strings");
+        throw std::runtime_error("unable to expand environment strings");
       return expanded.data();
     } else {
       return "";
     }
     }
   default:
-    throw rdr::Exception("unsupported registry type");
+    throw std::logic_error("unsupported registry type");
   }
 }
 

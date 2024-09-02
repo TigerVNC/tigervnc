@@ -58,7 +58,6 @@
 #include <network/Socket.h>
 
 #include <rfb/ComparingUpdateTracker.h>
-#include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
 #include <rfb/LogWriter.h>
@@ -224,7 +223,7 @@ void VNCServerST::processSocketReadEvent(network::Socket* sock)
       return;
     }
   }
-  throw rdr::Exception("invalid Socket in VNCServerST");
+  throw std::invalid_argument("invalid Socket in VNCServerST");
 }
 
 void VNCServerST::processSocketWriteEvent(network::Socket* sock)
@@ -237,7 +236,7 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
       return;
     }
   }
-  throw rdr::Exception("invalid Socket in VNCServerST");
+  throw std::invalid_argument("invalid Socket in VNCServerST");
 }
 
 void VNCServerST::blockUpdates()
@@ -284,13 +283,13 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
     screenLayout = ScreenSet();
 
     if (desktopStarted)
-      throw Exception("setPixelBuffer: null PixelBuffer when desktopStarted?");
+      throw std::logic_error("setPixelBuffer: null PixelBuffer when desktopStarted?");
 
     return;
   }
 
   if (!layout.validate(pb->width(), pb->height()))
-    throw Exception("setPixelBuffer: invalid screen layout");
+    throw std::invalid_argument("setPixelBuffer: invalid screen layout");
 
   screenLayout = layout;
 
@@ -342,9 +341,9 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 void VNCServerST::setScreenLayout(const ScreenSet& layout)
 {
   if (!pb)
-    throw Exception("setScreenLayout: new screen layout without a PixelBuffer");
+    throw std::logic_error("setScreenLayout: new screen layout without a PixelBuffer");
   if (!layout.validate(pb->width(), pb->height()))
-    throw Exception("setScreenLayout: invalid screen layout");
+    throw std::invalid_argument("setScreenLayout: invalid screen layout");
 
   screenLayout = layout;
 
@@ -378,7 +377,7 @@ void VNCServerST::sendClipboardData(const char* data)
   std::list<VNCSConnectionST*>::iterator ci;
 
   if (strchr(data, '\r') != nullptr)
-    throw Exception("Invalid carriage return in clipboard data");
+    throw std::invalid_argument("Invalid carriage return in clipboard data");
 
   for (ci = clipboardRequestors.begin();
        ci != clipboardRequestors.end(); ++ci)
@@ -566,7 +565,7 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
 
   // Sanity check
   if (screenLayout != layout)
-    throw Exception("Desktop configured a different screen layout than requested");
+    throw std::runtime_error("Desktop configured a different screen layout than requested");
 
   // Notify other clients
   for (ci = clients.begin(); ci != clients.end(); ++ci) {
@@ -727,7 +726,7 @@ void VNCServerST::startDesktop()
     slog.debug("starting desktop");
     desktop->start();
     if (!pb)
-      throw Exception("SDesktop::start() did not set a valid PixelBuffer");
+      throw std::logic_error("SDesktop::start() did not set a valid PixelBuffer");
     desktopStarted = true;
     // The tracker might have accumulated changes whilst we were
     // stopped, so flush those out

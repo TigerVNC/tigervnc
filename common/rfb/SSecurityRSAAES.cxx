@@ -161,7 +161,7 @@ void SSecurityRSAAES::loadPrivateKey()
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
     fclose(file);
-    throw Exception("size of key file is zero or too big");
+    throw std::runtime_error("size of key file is zero or too big");
   }
   fseek(file, 0, SEEK_SET);
   std::vector<uint8_t> data(size);
@@ -184,7 +184,7 @@ void SSecurityRSAAES::loadPrivateKey()
     loadPKCS8Key(der.data(), der.size());
     return;
   }
-  throw Exception("failed to import key");
+  throw std::runtime_error("failed to import key");
 }
 
 void SSecurityRSAAES::loadPKCS1Key(const uint8_t* data, size_t size)
@@ -195,7 +195,7 @@ void SSecurityRSAAES::loadPKCS1Key(const uint8_t* data, size_t size)
   if (!rsa_keypair_from_der(&pub, &serverKey, 0, size, data)) {
     rsa_private_key_clear(&serverKey);
     rsa_public_key_clear(&pub);
-    throw Exception("failed to import key");
+    throw std::runtime_error("failed to import key");
   }
   serverKeyLength = serverKey.size * 8;
   serverKeyN = new uint8_t[serverKey.size];
@@ -235,7 +235,7 @@ void SSecurityRSAAES::loadPKCS8Key(const uint8_t* data, size_t size)
   loadPKCS1Key(i.data, i.length);
   return;
 failed:
-  throw Exception("failed to import key");
+  throw std::runtime_error("failed to import key");
 }
 
 bool SSecurityRSAAES::processMsg()
@@ -319,7 +319,7 @@ static void random_func(void* ctx, size_t length, uint8_t* dst)
 {
   rdr::RandomStream* rs = (rdr::RandomStream*)ctx;
   if (!rs->hasData(length))
-    throw Exception("failed to encrypt random");
+    throw std::runtime_error("failed to encrypt random");
   rs->readBytes(dst, length);
 }
 
@@ -327,7 +327,7 @@ void SSecurityRSAAES::writeRandom()
 {
   rdr::OutStream* os = sc->getOutStream();
   if (!rs.hasData(keySize / 8))
-    throw Exception("failed to generate random");
+    throw std::runtime_error("failed to generate random");
   rs.readBytes(serverRandom, keySize / 8);
   mpz_t x;
   mpz_init(x);
@@ -341,7 +341,7 @@ void SSecurityRSAAES::writeRandom()
   }
   if (!res) {
     mpz_clear(x);
-    throw Exception("failed to encrypt random");
+    throw std::runtime_error("failed to encrypt random");
   }
   uint8_t* buffer = new uint8_t[clientKey.size];
   nettle_mpz_get_str_256(clientKey.size, buffer, x);
@@ -566,7 +566,7 @@ void SSecurityRSAAES::verifyUserPass()
   }
   delete valid;
 #else
-  throw Exception("No password validator configured");
+  throw std::logic_error("No password validator configured");
 #endif
 }
 
@@ -577,7 +577,7 @@ void SSecurityRSAAES::verifyPass()
   pg->getVncAuthPasswd(&passwd, &passwdReadOnly);
 
   if (passwd.empty())
-    throw Exception("No password configured");
+    throw std::runtime_error("No password configured");
 
   if (password == passwd) {
     accessRights = AccessDefault;

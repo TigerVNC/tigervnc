@@ -22,13 +22,13 @@
 
 #include <assert.h>
 
+#include <stdexcept>
+
 #include <ApplicationServices/ApplicationServices.h>
 
 #include <FL/Fl_RGB_Image.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
-
-#include <rdr/Exception.h>
 
 #include "cocoa.h"
 #include "Surface.h"
@@ -47,7 +47,7 @@ static CGImageRef create_image(CGColorSpaceRef lut,
   provider = CGDataProviderCreateWithData(nullptr, data,
                                           w * h * 4, nullptr);
   if (!provider)
-    throw rdr::Exception("CGDataProviderCreateWithData");
+    throw std::runtime_error("CGDataProviderCreateWithData");
 
   // FIXME: This causes a performance hit, but is necessary to avoid
   //        artifacts in the edges of the window
@@ -62,7 +62,7 @@ static CGImageRef create_image(CGColorSpaceRef lut,
                         kCGRenderingIntentDefault);
   CGDataProviderRelease(provider);
   if (!image)
-    throw rdr::Exception("CGImageCreate");
+    throw std::runtime_error("CGImageCreate");
 
   return image;
 }
@@ -85,7 +85,7 @@ static void render(CGContextRef gc, CGColorSpaceRef lut,
 
   subimage = CGImageCreateWithImageInRect(image, rect);
   if (!subimage)
-    throw rdr::Exception("CGImageCreateImageWithImageInRect");
+    throw std::runtime_error("CGImageCreateImageWithImageInRect");
 
   CGContextSaveGState(gc);
 
@@ -112,7 +112,7 @@ static CGContextRef make_bitmap(int width, int height, unsigned char* data)
   bitmap = CGBitmapContextCreate(data, width, height, 8, width*4, srgb,
                                  kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
   if (!bitmap)
-    throw rdr::Exception("CGBitmapContextCreate");
+    throw std::runtime_error("CGBitmapContextCreate");
 
   return bitmap;
 }
