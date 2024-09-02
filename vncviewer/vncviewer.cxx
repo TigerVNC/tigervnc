@@ -157,7 +157,7 @@ void abort_connection(const char *error, ...)
 
 void abort_connection_with_unexpected_error(const rdr::Exception &e) {
   abort_connection(_("An unexpected error occurred when communicating "
-                     "with the server:\n\n%s"), e.str());
+                     "with the server:\n\n%s"), e.what());
 }
 
 void disconnect()
@@ -514,9 +514,9 @@ potentiallyLoadConfigurationFile(const char *filename)
       strncpy(vncServerName, newServerName, VNCSERVERNAMELEN-1);
       vncServerName[VNCSERVERNAMELEN-1] = '\0';
     } catch (rfb::Exception& e) {
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
       abort_vncviewer(_("Unable to load the specified configuration "
-                        "file:\n\n%s"), e.str());
+                        "file:\n\n%s"), e.what());
     }
   }
 }
@@ -672,7 +672,7 @@ int main(int argc, char** argv)
       defaultServerName[VNCSERVERNAMELEN-1] = '\0';
     }
   } catch (rfb::Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
   }
 
   for (int i = 1; i < argc;) {
@@ -787,8 +787,8 @@ int main(int argc, char** argv)
           }
       }
     } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      abort_vncviewer(_("Failure waiting for incoming VNC connection:\n\n%s"), e.str());
+      vlog.error("%s", e.what());
+      abort_vncviewer(_("Failure waiting for incoming VNC connection:\n\n%s"), e.what());
       return 1; /* Not reached */
     }
 
@@ -808,8 +808,8 @@ int main(int argc, char** argv)
       try {
         mktunnel();
       } catch (rdr::Exception& e) {
-        vlog.error("%s", e.str());
-        abort_vncviewer(_("Failure setting up encrypted tunnel:\n\n%s"), e.str());
+        vlog.error("%s", e.what());
+        abort_vncviewer(_("Failure setting up encrypted tunnel:\n\n%s"), e.what());
       }
     }
 #endif

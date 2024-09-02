@@ -130,7 +130,7 @@ void VNCSConnectionST::close(const char* reason)
         vlog.error("Failed to flush remaining socket data on close");
     }
   } catch (rdr::Exception& e) {
-    vlog.error("Failed to flush remaining socket data on close: %s", e.str());
+    vlog.error("Failed to flush remaining socket data on close: %s", e.what());
   }
 
   // Just shutdown the socket and mark our state as closing.  Eventually the
@@ -147,7 +147,7 @@ bool VNCSConnectionST::init()
   try {
     initialiseProtocol();
   } catch (rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
     return false;
   }
   return true;
@@ -190,7 +190,7 @@ void VNCSConnectionST::processMessages()
   } catch (rdr::EndOfStream&) {
     close("Clean disconnection");
   } catch (rdr::Exception &e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -204,7 +204,7 @@ void VNCSConnectionST::flushSocket()
     if (!sock->outStream().hasBufferedData())
       writeFramebufferUpdate();
   } catch (rdr::Exception &e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -253,7 +253,7 @@ void VNCSConnectionST::pixelBufferChange()
     updates.add_changed(server->getPixelBuffer()->getRect());
     writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -262,7 +262,7 @@ void VNCSConnectionST::writeFramebufferUpdateOrClose()
   try {
     writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -272,7 +272,7 @@ void VNCSConnectionST::screenLayoutChangeOrClose(uint16_t reason)
     screenLayoutChange(reason);
     writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -281,7 +281,7 @@ void VNCSConnectionST::bellOrClose()
   try {
     if (state() == RFBSTATE_NORMAL) writer()->writeBell();
   } catch(rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -291,7 +291,7 @@ void VNCSConnectionST::setDesktopNameOrClose(const char *name)
     setDesktopName(name);
     writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -301,7 +301,7 @@ void VNCSConnectionST::setCursorOrClose()
     setCursor();
     writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -311,7 +311,7 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
     setLEDState(state);
     writeFramebufferUpdate();
   } catch(rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -323,7 +323,7 @@ void VNCSConnectionST::requestClipboardOrClose()
     if (!rfb::Server::acceptCutText) return;
     requestClipboard();
   } catch(rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -335,7 +335,7 @@ void VNCSConnectionST::announceClipboardOrClose(bool available)
     if (!rfb::Server::sendCutText) return;
     announceClipboard(available);
   } catch(rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -347,7 +347,7 @@ void VNCSConnectionST::sendClipboardDataOrClose(const char* data)
     if (!rfb::Server::sendCutText) return;
     sendClipboardData(data);
   } catch(rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -419,7 +419,7 @@ void VNCSConnectionST::approveConnectionOrClose(bool accept,
   try {
     approveConnection(accept, reason);
   } catch (rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 }
 
@@ -806,7 +806,7 @@ void VNCSConnectionST::handleTimeout(Timer* t)
         (t == &losslessTimer))
       writeFramebufferUpdate();
   } catch (rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
   }
 
   if (t == &idleTimer)

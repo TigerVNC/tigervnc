@@ -146,7 +146,7 @@ void LegacyPage::LoadPrefs()
           vlog.info("loading Default prefs");
           LoadUserPrefs(userKey);
         } catch(rdr::Exception& e) {
-          vlog.error("error reading Default settings:%s", e.str());
+          vlog.error("error reading Default settings:%s", e.what());
         }
 
         // Open the local, user-specific settings
@@ -157,7 +157,7 @@ void LegacyPage::LoadPrefs()
             vlog.info("loading local User prefs");
             LoadUserPrefs(userKey);
           } catch(rdr::Exception& e) {
-            vlog.error("error reading local User settings:%s", e.str());
+            vlog.error("error reading local User settings:%s", e.what());
           }
 
           // Open the user's own settings
@@ -168,7 +168,7 @@ void LegacyPage::LoadPrefs()
               vlog.info("loading global User prefs");
               LoadUserPrefs(userKey);
             } catch(rdr::Exception& e) {
-              vlog.error("error reading global User settings:%s", e.str());
+              vlog.error("error reading global User settings:%s", e.what());
             }
           }
         }

@@ -466,7 +466,7 @@ static void saveToReg(const char* servername) {
   } catch (Exception& e) {
     RegCloseKey(hKey);
     throw Exception(format(_("Failed to save \"%s\": %s"),
-                           "ServerName", e.str()));
+                           "ServerName", e.what()));
   }
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
@@ -483,7 +483,7 @@ static void saveToReg(const char* servername) {
     } catch (Exception& e) {
       RegCloseKey(hKey);
       throw Exception(format(_("Failed to save \"%s\": %s"),
-                             parameterArray[i]->getName(), e.str()));
+                             parameterArray[i]->getName(), e.what()));
     }
   }
 
@@ -497,7 +497,7 @@ static void saveToReg(const char* servername) {
       RegCloseKey(hKey);
       throw Exception(format(_("Failed to remove \"%s\": %s"),
                              readOnlyParameterArray[i]->getName(),
-                             e.str()));
+                             e.what()));
     }
   }
 
@@ -537,7 +537,7 @@ list<string> loadHistoryFromRegKey() {
     } catch (Exception& e) {
       // Just ignore this entry and try the next one
       vlog.error(_("Failed to read server history entry %d: %s"),
-                 (int)index, e.str());
+                 (int)index, e.what());
       continue;
     }
 
@@ -575,7 +575,7 @@ static void getParametersFromReg(VoidParameter* parameters[],
     } catch(Exception& e) {
       // Just ignore this entry and continue with the rest
       vlog.error(_("Failed to read parameter \"%s\": %s"),
-                 parameters[i]->getName(), e.str());
+                 parameters[i]->getName(), e.what());
     }
   }
 }
@@ -605,7 +605,7 @@ static char* loadFromReg() {
       snprintf(servername, buffersize, "%s", servernameBuffer);
   } catch(Exception& e) {
     vlog.error(_("Failed to read parameter \"%s\": %s"),
-               "ServerName", e.str());
+               "ServerName", e.what());
     strcpy(servername, "");
   }
 
@@ -838,7 +838,7 @@ char* loadViewerParameters(const char *filename) {
     } catch(Exception& e) {
       // Just ignore this entry and continue with the rest
       vlog.error(_("Failed to read line %d in file %s: %s"),
-                 lineNr, filepath, e.str());
+                 lineNr, filepath, e.what());
       continue;
     }
 

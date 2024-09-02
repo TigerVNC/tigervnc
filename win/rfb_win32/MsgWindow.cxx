@@ -62,7 +62,7 @@ LRESULT CALLBACK MsgWindowProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
   try {
     result = _this->processMessage(msg, wParam, lParam);
   } catch (rdr::Exception& e) {
-    vlog.error("untrapped: %s", e.str());
+    vlog.error("untrapped: %s", e.what());
   }
 
   return result;

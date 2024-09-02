@@ -388,7 +388,7 @@ void CConnection::close()
   try {
     decoder.flush();
   } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
   }
 
   setFramebuffer(nullptr);

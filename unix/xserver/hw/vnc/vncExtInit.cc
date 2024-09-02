@@ -275,7 +275,7 @@ void vncExtensionInit(void)
       vncHooksInit(scr);
     }
   } catch (rdr::Exception& e) {
-    vncFatalError("vncExtInit: %s\n",e.str());
+    vncFatalError("vncExtInit: %s\n",e.what());
   }
 
   vncRegisterBlockHandlers();
@@ -289,7 +289,7 @@ void vncExtensionClose(void)
       desktop[scr] = nullptr;
     }
   } catch (rdr::Exception& e) {
-    vncFatalError("vncExtInit: %s\n",e.str());
+    vncFatalError("vncExtInit: %s\n",e.what());
   }
 }
 
@@ -349,7 +349,7 @@ int vncConnectClient(const char *addr, int viewOnly)
     try {
       desktop[0]->disconnectClients();
     } catch (rdr::Exception& e) {
-      vlog.error("Disconnecting all clients: %s",e.str());
+      vlog.error("Disconnecting all clients: %s", e.what());
       return -1;
     }
     return 0;
@@ -366,7 +366,7 @@ int vncConnectClient(const char *addr, int viewOnly)
               viewOnly ? " (view only)" : "");
     desktop[0]->addClient(sock, true, (bool)viewOnly);
   } catch (rdr::Exception& e) {
-    vlog.error("Reverse connection: %s",e.str());
+    vlog.error("Reverse connection: %s", e.what());
     return -1;
   }
 
@@ -463,7 +463,7 @@ void vncPostScreenResize(int scrIdx, int success, int width, int height)
                                       vncFbptr[scrIdx],
                                       vncFbstride[scrIdx]);
     } catch (rdr::Exception& e) {
-      vncFatalError("vncPostScreenResize: %s\n", e.str());
+      vncFatalError("vncPostScreenResize: %s\n", e.what());
     }
   }
 
@@ -480,7 +480,7 @@ void vncRefreshScreenLayout(int scrIdx)
   try {
     desktop[scrIdx]->refreshScreenLayout();
   } catch (rdr::Exception& e) {
-    vncFatalError("vncRefreshScreenLayout: %s\n", e.str());
+    vncFatalError("vncRefreshScreenLayout: %s\n", e.what());
   }
 }
 
@@ -489,7 +489,7 @@ uint64_t vncGetMsc(int scrIdx)
   try {
     return desktop[scrIdx]->getMsc();
   } catch (rdr::Exception& e) {
-    vncFatalError("vncGetMsc: %s\n", e.str());
+    vncFatalError("vncGetMsc: %s\n", e.what());
   }
 }
 
@@ -498,7 +498,7 @@ void vncQueueMsc(int scrIdx, uint64_t id, uint64_t msc)
   try {
     desktop[scrIdx]->queueMsc(id, msc);
   } catch (rdr::Exception& e) {
-    vncFatalError("vncQueueMsc: %s\n", e.str());
+    vncFatalError("vncQueueMsc: %s\n", e.what());
   }
 }
 
@@ -507,7 +507,7 @@ void vncAbortMsc(int scrIdx, uint64_t id)
   try {
     desktop[scrIdx]->abortMsc(id);
   } catch (rdr::Exception& e) {
-    vncFatalError("vncAbortMsc: %s\n", e.str());
+    vncFatalError("vncAbortMsc: %s\n", e.what());
   }
 }
 
