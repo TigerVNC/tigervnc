@@ -147,11 +147,11 @@ bool CConnection::processMsg()
   case RFBSTATE_INITIALISATION:   return processInitMsg();           break;
   case RFBSTATE_NORMAL:           return reader_->readMsg();         break;
   case RFBSTATE_CLOSING:
-    throw Exception("CConnection::processMsg: called while closing");
+    throw std::logic_error("CConnection::processMsg: called while closing");
   case RFBSTATE_UNINITIALISED:
-    throw Exception("CConnection::processMsg: not initialised yet?");
+    throw std::logic_error("CConnection::processMsg: not initialised yet?");
   default:
-    throw Exception("CConnection::processMsg: invalid state");
+    throw std::logic_error("CConnection::processMsg: invalid state");
   }
 }
 

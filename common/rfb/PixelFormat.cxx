@@ -86,7 +86,7 @@ PixelFormat::PixelFormat(int b, int d, bool e, bool t,
     redShift(rs), greenShift(gs), blueShift(bs)
 {
   if (!isSane())
-    throw Exception("invalid pixel format");
+    throw std::invalid_argument("invalid pixel format");
 
   updateState();
 }

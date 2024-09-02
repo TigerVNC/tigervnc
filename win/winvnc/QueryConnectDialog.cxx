@@ -60,7 +60,7 @@ void QueryConnectDialog::worker() {
   countdown = timeout;
   try {
     if (desktopChangeRequired() && !changeDesktop())
-      throw rdr::Exception("changeDesktop failed");
+      throw std::runtime_error("changeDesktop failed");
     approve = Dialog::showDialog(MAKEINTRESOURCE(IDD_QUERY_CONNECT));
     server->queryConnectionComplete();
   } catch (...) {

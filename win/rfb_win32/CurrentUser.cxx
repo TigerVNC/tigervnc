@@ -92,7 +92,7 @@ ImpersonateCurrentUser::ImpersonateCurrentUser() {
   if (!isServiceProcess())
     return;
   if (!token.canImpersonate())
-    throw rdr::Exception("Cannot impersonate unsafe or null token");
+    throw std::runtime_error("Cannot impersonate unsafe or null token");
   if (!ImpersonateLoggedOnUser(token)) {
     DWORD err = GetLastError();
     if (err != ERROR_CALL_NOT_IMPLEMENTED)

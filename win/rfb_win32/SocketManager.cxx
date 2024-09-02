@@ -25,6 +25,8 @@
 #include <winsock2.h>
 #include <list>
 
+#include <rdr/Exception.h>
+
 #include <network/Socket.h>
 
 #include <rfb/LogWriter.h>
@@ -75,7 +77,7 @@ void SocketManager::addListener(network::SocketListener* sock_,
 
     // addEvent is the last thing we do, so that the event is NOT registered if previous steps fail
     if (!event || !addEvent(event, this))
-      throw rdr::Exception("Unable to add listener");
+      throw std::runtime_error("Unable to add listener");
   } catch (std::exception& e) {
     if (event)
       WSACloseEvent(event);
@@ -103,7 +105,7 @@ void SocketManager::remListener(network::SocketListener* sock) {
       return;
     }
   }
-  throw rdr::Exception("Listener not registered");
+  throw std::runtime_error("Listener not registered");
 }
 
 
@@ -136,7 +138,7 @@ void SocketManager::remSocket(network::Socket* sock_) {
       return;
     }
   }
-  throw rdr::Exception("Socket not registered");
+  throw std::runtime_error("Socket not registered");
 }
 
 bool SocketManager::getDisable(VNCServer* srvr)
@@ -147,7 +149,7 @@ bool SocketManager::getDisable(VNCServer* srvr)
       return i->second.disable;
     }
   }
-  throw rdr::Exception("Listener not registered");
+  throw std::runtime_error("Listener not registered");
 }
 
 void SocketManager::setDisable(VNCServer* srvr, bool disable)
@@ -163,7 +165,7 @@ void SocketManager::setDisable(VNCServer* srvr, bool disable)
     }
   }
   if (!found)
-    throw rdr::Exception("Listener not registered");
+    throw std::runtime_error("Listener not registered");
 }
 
 int SocketManager::checkTimeouts() {

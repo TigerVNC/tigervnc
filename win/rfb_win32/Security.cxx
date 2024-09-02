@@ -96,7 +96,7 @@ void AccessEntries::addEntry(const PSID sid,
 
 PSID Sid::copySID(const PSID sid) {
   if (!IsValidSid(sid))
-    throw rdr::Exception("invalid SID in copyPSID");
+    throw std::invalid_argument("invalid SID in copyPSID");
   PSID buf = (PSID)new uint8_t[GetLengthSid(sid)];
   if (!CopySid(GetLengthSid(sid), buf, sid))
     throw rdr::Win32Exception("CopySid failed", GetLastError());
@@ -105,7 +105,7 @@ PSID Sid::copySID(const PSID sid) {
 
 void Sid::setSID(const PSID sid) {
   if (!IsValidSid(sid))
-    throw rdr::Exception("invalid SID in copyPSID");
+    throw std::invalid_argument("invalid SID in copyPSID");
   resize(GetLengthSid(sid));
   if (!CopySid(GetLengthSid(sid), data(), sid))
     throw rdr::Win32Exception("CopySid failed", GetLastError());

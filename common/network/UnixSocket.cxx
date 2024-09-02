@@ -29,7 +29,10 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#include <rdr/Exception.h>
+
 #include <network/UnixSocket.h>
+
 #include <rfb/LogWriter.h>
 
 using namespace network;

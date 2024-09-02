@@ -32,7 +32,6 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Exception.h>
 #include <rfb/util.h>
 
 #include <rfb/RawEncoder.h>
@@ -1055,7 +1054,7 @@ void EncodeManager::OffsetPixelBuffer::update(const PixelFormat& pf,
 
 uint8_t* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /*stride*/)
 {
-  throw rfb::Exception("Invalid write attempt to OffsetPixelBuffer");
+  throw std::logic_error("Invalid write attempt to OffsetPixelBuffer");
 }
 
 template<class T>

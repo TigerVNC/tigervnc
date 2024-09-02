@@ -22,8 +22,9 @@
 
 #include <stdio.h>
 
+#include <stdexcept>
+
 #include <rfb/PixelFormat.h>
-#include <rfb/Exception.h>
 
 static void doTest(bool should_fail, int b, int d, bool e, bool t,
                    int rm, int gm, int bm, int rs, int gs, int bs)

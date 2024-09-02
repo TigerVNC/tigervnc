@@ -87,7 +87,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
         break;
       default:
         vlog.error("bits per pixel %u not supported", bi.bmiHeader.biBitCount);
-        throw rdr::Exception("unknown bits per pixel specified");
+        throw std::invalid_argument("unknown bits per pixel specified");
       };
       break;
     case BI_BITFIELDS:

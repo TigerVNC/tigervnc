@@ -23,7 +23,6 @@
 #ifndef __RDR_MEMOUTSTREAM_H__
 #define __RDR_MEMOUTSTREAM_H__
 
-#include <rdr/Exception.h>
 #include <rdr/OutStream.h>
 
 namespace rdr {
@@ -61,7 +60,7 @@ namespace rdr {
         len = (end - start) * 2;
 
       if (len < (size_t)(end - start))
-        throw Exception("Overflow in MemOutStream::overrun()");
+        throw std::out_of_range("Overflow in MemOutStream::overrun()");
 
       uint8_t* newStart = new uint8_t[len];
       memcpy(newStart, start, ptr - start);

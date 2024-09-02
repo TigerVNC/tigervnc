@@ -39,6 +39,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <rdr/Exception.h>
+
 #include <network/Socket.h>
 
 using namespace network;

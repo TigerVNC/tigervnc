@@ -78,7 +78,7 @@ int Dialog::getItemInt(int id) {
   BOOL trans;
   int result = GetDlgItemInt(handle, id, &trans, TRUE);
   if (!trans)
-    throw rdr::Exception("unable to read dialog Int");
+    throw std::runtime_error("unable to read dialog Int");
   return result;
 }
 const char* Dialog::getItemString(int id) {

@@ -22,7 +22,8 @@
 #include <config.h>
 #endif
 
-#include <rfb/Exception.h>
+#include <stdexcept>
+
 #include <rfb/ledStates.h>
 #include <rfb/ServerParams.h>
 #include <rfb/util.h>
@@ -60,7 +61,7 @@ void ServerParams::setDimensions(int width, int height)
 void ServerParams::setDimensions(int width, int height, const ScreenSet& layout)
 {
   if (!layout.validate(width, height))
-    throw Exception("Attempted to configure an invalid screen layout");
+    throw std::invalid_argument("Attempted to configure an invalid screen layout");
 
   width_ = width;
   height_ = height;
@@ -72,7 +73,7 @@ void ServerParams::setPF(const PixelFormat& pf)
   pf_ = pf;
 
   if (pf.bpp != 8 && pf.bpp != 16 && pf.bpp != 32)
-    throw Exception("setPF: not 8, 16 or 32 bpp?");
+    throw std::invalid_argument("setPF: not 8, 16 or 32 bpp?");
 }
 
 void ServerParams::setName(const char* name)
@@ -100,7 +101,7 @@ uint32_t ServerParams::clipboardSize(unsigned int format) const
       return clipSizes[i];
   }
 
-  throw Exception(rfb::format("Invalid clipboard format 0x%x", format));
+  throw std::invalid_argument(rfb::format("Invalid clipboard format 0x%x", format));
 }
 
 void ServerParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)

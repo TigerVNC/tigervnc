@@ -81,7 +81,7 @@ const char* FileVersionInfo::getVerString(const char* name, DWORD langId) {
   UINT length = 0;
   if (!VerQueryValue(buf, infoName.c_str(), (void**)&buffer, &length)) {
     printf("unable to find %s version string", infoName.c_str());
-    throw rdr::Exception("VerQueryValue failed");
+    throw std::runtime_error("VerQueryValue failed");
   }
   return buffer;
 }

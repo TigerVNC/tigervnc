@@ -171,7 +171,7 @@ void DummyOutStream::overrun(size_t needed)
 {
   flush();
   if (avail() < needed)
-    throw rdr::Exception("Insufficient dummy output buffer");
+    throw std::out_of_range("Insufficient dummy output buffer");
 }
 
 CConn::CConn(const char *filename)

@@ -387,8 +387,8 @@ void CSecurityTLS::checkSession()
 
   hostsDir = os::getvncstatedir();
   if (hostsDir == nullptr) {
-    throw Exception("Could not obtain VNC state directory path for "
-                    "known hosts storage");
+    throw std::runtime_error("Could not obtain VNC state directory "
+                             "path for known hosts storage");
   }
 
   std::string dbPath;
@@ -509,7 +509,7 @@ void CSecurityTLS::checkSession()
 
     if (status != 0) {
       vlog.error("Unhandled certificate problems: 0x%x", status);
-      throw Exception("Unhandled certificate problems");
+      throw std::logic_error("Unhandled certificate problems");
     }
 
     if (!hostname_match) {
@@ -625,7 +625,7 @@ void CSecurityTLS::checkSession()
 
     if (status != 0) {
       vlog.error("Unhandled certificate problems: 0x%x", status);
-      throw Exception("Unhandled certificate problems");
+      throw std::logic_error("Unhandled certificate problems");
     }
 
     if (!hostname_match) {
