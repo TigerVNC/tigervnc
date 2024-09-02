@@ -26,23 +26,27 @@
 namespace rdr {
 
   struct Exception {
-    enum { len = 256 };
-    char str_[len];
     Exception(const char* message);
     Exception(const std::string& message);
     virtual ~Exception() {}
     virtual const char* str() const { return str_; }
+  private:
+    char str_[256];
   };
 
   struct PosixException : public Exception {
     int err;
     PosixException(const char* s, int err_);
+  private:
+    std::string strerror(int err_) const;
   };
 
 #ifdef WIN32
   struct Win32Exception : public Exception {
     unsigned err;
     Win32Exception(const char* s, unsigned err_);
+  private:
+    std::string strerror(unsigned err_) const;
   };
 #endif
 
@@ -59,6 +63,8 @@ namespace rdr {
   struct GAIException : public Exception {
     int err;
     GAIException(const char* s, int err_);
+  private:
+    std::string strerror(int err_) const;
   };
 
   struct EndOfStream : public Exception {
