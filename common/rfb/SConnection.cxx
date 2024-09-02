@@ -133,9 +133,10 @@ bool SConnection::processVersionMsg()
 
   if (client.majorVersion != 3) {
     // unknown protocol version
-    failConnection("Client needs protocol version %d.%d, server has %d.%d",
-                   client.majorVersion, client.minorVersion,
-                   defaultMajorVersion, defaultMinorVersion);
+    failConnection(format("Client needs protocol version %d.%d, "
+                          "server has %d.%d",
+                          client.majorVersion, client.minorVersion,
+                          defaultMajorVersion, defaultMinorVersion));
   }
 
   if (client.minorVersion != 3 && client.minorVersion != 7 && client.minorVersion != 8) {
@@ -165,8 +166,9 @@ bool SConnection::processVersionMsg()
       if (*i == secTypeNone || *i == secTypeVncAuth) break;
     }
     if (i == secTypes.end()) {
-      failConnection("No supported security type for %d.%d client",
-                     client.majorVersion, client.minorVersion);
+      failConnection(format("No supported security type for "
+                            "%d.%d client",
+                            client.majorVersion, client.minorVersion));
     }
 
     os->writeU32(*i);
@@ -222,7 +224,7 @@ void SConnection::processSecurityType(int secType)
     state_ = RFBSTATE_SECURITY;
     ssecurity = security.GetSSecurity(this, secType);
   } catch (rdr::Exception& e) {
-    failConnection("%s", e.str());
+    failConnection(e.str());
   }
 }
 
@@ -299,33 +301,31 @@ void SConnection::handleAuthFailureTimeout(Timer* /*t*/)
   close(authFailureMsg.c_str());
 }
 
-void SConnection::failConnection(const char* format, ...)
+void SConnection::failConnection(const char* message)
 {
-	va_list ap;
-	char str[256];
-
-	va_start(ap, format);
-	(void) vsnprintf(str, sizeof(str), format, ap);
-	va_end(ap);
-
-  vlog.info("Connection failed: %s", str);
+  vlog.info("Connection failed: %s", message);
 
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (client.majorVersion == 3 && client.minorVersion == 3) {
       os->writeU32(0);
-      os->writeU32(strlen(str));
-      os->writeBytes((const uint8_t*)str, strlen(str));
+      os->writeU32(strlen(message));
+      os->writeBytes((const uint8_t*)message, strlen(message));
       os->flush();
     } else {
       os->writeU8(0);
-      os->writeU32(strlen(str));
-      os->writeBytes((const uint8_t*)str, strlen(str));
+      os->writeU32(strlen(message));
+      os->writeBytes((const uint8_t*)message, strlen(message));
       os->flush();
     }
   }
 
   state_ = RFBSTATE_INVALID;
-  throw Exception("%s", str);
+  throw Exception(message);
+}
+
+void SConnection::failConnection(const std::string& message)
+{
+  failConnection(message.c_str());
 }
 
 void SConnection::setAccessRights(AccessRights ar)

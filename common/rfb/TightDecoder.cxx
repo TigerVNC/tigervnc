@@ -36,6 +36,7 @@
 #include <rfb/PixelBuffer.h>
 #include <rfb/TightConstants.h>
 #include <rfb/TightDecoder.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -110,7 +111,7 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
   int palSize = 0;
 
   if (r.width() > TIGHT_MAX_WIDTH)
-    throw Exception("TightDecoder: too large rectangle (%d pixels)", r.width());
+    throw Exception(format("TightDecoder: too large rectangle (%d pixels)", r.width()));
 
   // Possible palette
   if ((comp_ctl & tightExplicitFilter) != 0) {

@@ -119,7 +119,7 @@ bool CMsgReader::readMsg()
       ret = readEndOfContinuousUpdates();
       break;
     default:
-      throw Exception("Unknown message type %d", currentMsgType);
+      throw Exception(format("Unknown message type %d", currentMsgType));
     }
 
     if (ret)

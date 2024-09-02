@@ -44,16 +44,19 @@
 
 using namespace rdr;
 
-Exception::Exception(const char *format, ...) {
-	va_list ap;
-
-	va_start(ap, format);
-	(void) vsnprintf(str_, len, format, ap);
-	va_end(ap);
+Exception::Exception(const char *message)
+{
+  snprintf(str_, len, "%s", message);
 }
 
+Exception::Exception(const std::string& message)
+{
+  snprintf(str_, len, "%s", message.c_str());
+}
+
+
 GAIException::GAIException(const char* s, int err_)
-  : Exception("%s", s), err(err_)
+  : Exception(s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
 #ifdef _WIN32
@@ -78,7 +81,7 @@ GAIException::GAIException(const char* s, int err_)
 }
 
 PosixException::PosixException(const char* s, int err_)
-  : Exception("%s", s), err(err_)
+  : Exception(s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
 #ifdef _WIN32
@@ -99,7 +102,7 @@ PosixException::PosixException(const char* s, int err_)
 
 #ifdef WIN32
 Win32Exception::Win32Exception(const char* s, unsigned err_)
-  : Exception("%s", s), err(err_)
+  : Exception(s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
   wchar_t *currStr = new wchar_t[len-strlen(str_)];

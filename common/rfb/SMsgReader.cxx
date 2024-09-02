@@ -464,7 +464,7 @@ bool SMsgReader::readQEMUMessage()
     ret = readQEMUKeyEvent();
     break;
   default:
-    throw Exception("unknown QEMU submessage type %d", subType);
+    throw Exception(format("unknown QEMU submessage type %d", subType));
   }
 
   if (!ret) {

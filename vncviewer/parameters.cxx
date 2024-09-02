@@ -465,8 +465,8 @@ static void saveToReg(const char* servername) {
     setKeyString("ServerName", servername, &hKey);
   } catch (Exception& e) {
     RegCloseKey(hKey);
-    throw Exception(_("Failed to save \"%s\": %s"),
-                    "ServerName", e.str());
+    throw Exception(format(_("Failed to save \"%s\": %s"),
+                           "ServerName", e.str()));
   }
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
@@ -482,8 +482,8 @@ static void saveToReg(const char* servername) {
       }
     } catch (Exception& e) {
       RegCloseKey(hKey);
-      throw Exception(_("Failed to save \"%s\": %s"),
-                      parameterArray[i]->getName(), e.str());
+      throw Exception(format(_("Failed to save \"%s\": %s"),
+                             parameterArray[i]->getName(), e.str()));
     }
   }
 
@@ -495,8 +495,9 @@ static void saveToReg(const char* servername) {
       removeValue(readOnlyParameterArray[i]->getName(), &hKey);
     } catch (Exception& e) {
       RegCloseKey(hKey);
-      throw Exception(_("Failed to remove \"%s\": %s"),
-                      readOnlyParameterArray[i]->getName(), e.str());
+      throw Exception(format(_("Failed to remove \"%s\": %s"),
+                             readOnlyParameterArray[i]->getName(),
+                             e.str()));
     }
   }
 
@@ -656,8 +657,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   if (!encodeValue(servername, encodingBuffer, buffersize)) {
     fclose(f);
-    throw Exception(_("Failed to save \"%s\": %s"),
-                    "ServerName", _("Could not encode parameter"));
+    throw Exception(format(_("Failed to save \"%s\": %s"),
+                           "ServerName",
+                           _("Could not encode parameter")));
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
@@ -666,9 +668,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
       if (!encodeValue(*(StringParameter*)param,
           encodingBuffer, buffersize)) {
         fclose(f);
-        throw Exception(_("Failed to save \"%s\": %s"),
-                        param->getName(),
-                        _("Could not encode parameter"));
+        throw Exception(format(_("Failed to save \"%s\": %s"),
+                               param->getName(),
+                               _("Could not encode parameter")));
       }
       fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
     } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
@@ -677,9 +679,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
       fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
     } else {      
       fclose(f);
-      throw Exception(_("Failed to save \"%s\": %s"),
-                      param->getName(),
-                      _("Unknown parameter type"));
+      throw Exception(format(_("Failed to save \"%s\": %s"),
+                             param->getName(),
+                             _("Unknown parameter type")));
     }
   }
   fclose(f);
@@ -775,8 +777,8 @@ char* loadViewerParameters(const char *filename) {
 
     if (strlen(line) == (sizeof(line) - 1)) {
       fclose(f);
-      throw Exception(_("Failed to read line %d in file %s: %s"),
-                      lineNr, filepath, _("Line too long"));
+      throw Exception(format(_("Failed to read line %d in file %s: %s"),
+                             lineNr, filepath, _("Line too long")));
     }
 
     // Make sure that the first line of the file has the file identifier string
@@ -785,8 +787,8 @@ char* loadViewerParameters(const char *filename) {
         continue;
 
       fclose(f);
-      throw Exception(_("Configuration file %s is in an invalid format"),
-                      filepath);
+      throw Exception(format(_("Configuration file %s is in an invalid "
+                               "format"), filepath));
     }
     
     // Skip empty lines and comments

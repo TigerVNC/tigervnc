@@ -24,7 +24,9 @@ namespace rfb {
   typedef rdr::Exception Exception;
   struct AuthFailureException : public Exception {
     AuthFailureException(const char* reason)
-      : Exception("%s", reason) {}
+      : Exception(reason) {}
+    AuthFailureException(std::string& reason)
+      : Exception(reason) {}
   };
   struct AuthCancelledException : public rfb::Exception {
     AuthCancelledException()

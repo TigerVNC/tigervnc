@@ -127,7 +127,7 @@ JpegCompressor::JpegCompressor(int bufferLen) : MemOutStream(bufferLen)
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
-    throw rdr::Exception("%s", err->lastError);
+    throw rdr::Exception(err->lastError);
   }
 
   jpeg_create_compress(cinfo);
@@ -171,7 +171,7 @@ void JpegCompressor::compress(const uint8_t *buf, volatile int stride,
     jpeg_abort_compress(cinfo);
     if (srcBufIsTemp && srcBuf) delete[] srcBuf;
     if (rowPointer) delete[] rowPointer;
-    throw rdr::Exception("%s", err->lastError);
+    throw rdr::Exception(err->lastError);
   }
 
   cinfo->image_width = w;
