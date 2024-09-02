@@ -24,6 +24,8 @@
 
 #include <rdr/TLSException.h>
 
+#include <rfb/util.h>
+
 #include <string.h>
 #include <stdio.h>
 #ifdef HAVE_GNUTLS
@@ -34,7 +36,8 @@ using namespace rdr;
 
 #ifdef HAVE_GNUTLS
 TLSException::TLSException(const char* s, int err_)
-  : Exception("%s: %s (%d)", s, gnutls_strerror(err_), err_), err(err_)
+  : Exception(rfb::format("%s: %s (%d)", s, gnutls_strerror(err_), err_)),
+    err(err_)
 {
 }
 #endif /* HAVE_GNUTLS */

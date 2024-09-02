@@ -663,8 +663,8 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   family = pattern.address.u.sa.sa_family;
 
   if (pattern.prefixlen > (family == AF_INET ? 32: 128))
-    throw Exception("invalid prefix length for filter address: %u",
-                    pattern.prefixlen);
+    throw Exception(rfb::format("invalid prefix length for filter address: %u",
+                                pattern.prefixlen));
 
   // Compute mask from address and prefix length
   memset (&pattern.mask, 0, sizeof (pattern.mask));

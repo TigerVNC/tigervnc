@@ -21,13 +21,15 @@
 #ifndef __RDR_EXCEPTION_H__
 #define __RDR_EXCEPTION_H__
 
+#include <string>
+
 namespace rdr {
 
   struct Exception {
     enum { len = 256 };
     char str_[len];
-    Exception(const char *format=nullptr, ...)
-      __attribute__((__format__ (__printf__, 2, 3)));
+    Exception(const char* message);
+    Exception(const std::string& message);
     virtual ~Exception() {}
     virtual const char* str() const { return str_; }
   };

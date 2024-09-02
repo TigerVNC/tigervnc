@@ -344,7 +344,8 @@ void CSecurityTLS::checkSession()
 
       gnutls_free(status_str.data);
 
-      throw Exception("Invalid server certificate: %s", error.c_str());
+      throw Exception(format("Invalid server certificate: %s",
+                             error.c_str()));
     }
 
     err = gnutls_certificate_verification_status_print(status,

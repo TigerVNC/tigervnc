@@ -185,8 +185,8 @@ bool CConnection::processVersionMsg()
     vlog.error("Server gave unsupported RFB protocol version %d.%d",
                server.majorVersion, server.minorVersion);
     state_ = RFBSTATE_INVALID;
-    throw Exception("Server gave unsupported RFB protocol version %d.%d",
-                    server.majorVersion, server.minorVersion);
+    throw Exception(format("Server gave unsupported RFB protocol version %d.%d",
+                           server.majorVersion, server.minorVersion));
   } else if (server.beforeVersion(3,7)) {
     server.setVersion(3,3);
   } else if (server.afterVersion(3,8)) {

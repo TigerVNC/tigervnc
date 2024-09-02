@@ -27,6 +27,7 @@
 #include <rfb/ledStates.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/ClientParams.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -160,7 +161,7 @@ uint32_t ClientParams::clipboardSize(unsigned int format) const
       return clipSizes[i];
   }
 
-  throw Exception("Invalid clipboard format 0x%x", format);
+  throw Exception(rfb::format("Invalid clipboard format 0x%x", format));
 }
 
 void ClientParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)

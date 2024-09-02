@@ -219,8 +219,8 @@ namespace rfb {
     // failConnection() prints a message to the log, sends a connection
     // failed message to the client (if possible) and throws an
     // Exception.
-    void failConnection(const char* format, ...)
-      __attribute__((__format__ (__printf__, 2, 3)));
+    void failConnection(const char* message);
+    void failConnection(const std::string& message);
 
     void setState(stateEnum s) { state_ = s; }
 

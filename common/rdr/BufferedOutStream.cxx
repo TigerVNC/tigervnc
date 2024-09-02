@@ -25,6 +25,7 @@
 #include <rdr/BufferedOutStream.h>
 #include <rdr/Exception.h>
 
+#include <rfb/util.h>
 
 using namespace rdr;
 
@@ -138,10 +139,10 @@ void BufferedOutStream::overrun(size_t needed)
   // We'll need to allocate more buffer space...
 
   if (totalNeeded > MAX_BUF_SIZE)
-    throw Exception("BufferedOutStream overrun: requested size of "
-                    "%lu bytes exceeds maximum of %lu bytes",
-                    (long unsigned)totalNeeded,
-                    (long unsigned)MAX_BUF_SIZE);
+    throw Exception(rfb::format("BufferedOutStream overrun: requested "
+                                "size of %lu bytes exceeds maximum of "
+                                "%lu bytes", (long unsigned)totalNeeded,
+                                (long unsigned)MAX_BUF_SIZE));
 
   newSize = DEFAULT_BUF_SIZE;
   while (newSize < totalNeeded)

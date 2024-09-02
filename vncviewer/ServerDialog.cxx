@@ -382,8 +382,8 @@ void ServerDialog::loadServerHistory()
 
     if (len == (sizeof(line) - 1)) {
       fclose(f);
-      throw Exception(_("Failed to read line %d in file %s: %s"),
-                      lineNr, filepath, _("Line too long"));
+      throw Exception(format(_("Failed to read line %d in file %s: %s"),
+                             lineNr, filepath, _("Line too long")));
     }
 
     if ((len > 0) && (line[len-1] == '\n')) {
