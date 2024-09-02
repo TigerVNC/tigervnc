@@ -216,10 +216,10 @@ namespace rfb {
     int32_t getPreferredEncoding() { return preferredEncoding; }
 
   protected:
-    // throwConnFailedException() prints a message to the log, sends a conn
-    // failed message to the client (if possible) and throws a
-    // ConnFailedException.
-    void throwConnFailedException(const char* format, ...)
+    // failConnection() prints a message to the log, sends a connection
+    // failed message to the client (if possible) and throws an
+    // Exception.
+    void failConnection(const char* format, ...)
       __attribute__((__format__ (__printf__, 2, 3)));
 
     void setState(stateEnum s) { state_ = s; }

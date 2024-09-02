@@ -295,9 +295,9 @@ bool SSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   clientKeyLength = is->readU32();
   if (clientKeyLength < MinKeyLength)
-    throw ConnFailedException("client key is too short");
+    throw Exception("client key is too short");
   if (clientKeyLength > MaxKeyLength)
-    throw ConnFailedException("client key is too long");
+    throw Exception("client key is too long");
   size_t size = (clientKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -310,7 +310,7 @@ bool SSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(clientKey.n, size, clientKeyN);
   nettle_mpz_set_str_256_u(clientKey.e, size, clientKeyE);
   if (!rsa_public_key_prepare(&clientKey))
-    throw ConnFailedException("client key is invalid");
+    throw Exception("client key is invalid");
   return true;
 }
 
@@ -318,7 +318,7 @@ static void random_func(void* ctx, size_t length, uint8_t* dst)
 {
   rdr::RandomStream* rs = (rdr::RandomStream*)ctx;
   if (!rs->hasData(length))
-    throw ConnFailedException("failed to encrypt random");
+    throw Exception("failed to encrypt random");
   rs->readBytes(dst, length);
 }
 
@@ -326,7 +326,7 @@ void SSecurityRSAAES::writeRandom()
 {
   rdr::OutStream* os = sc->getOutStream();
   if (!rs.hasData(keySize / 8))
-    throw ConnFailedException("failed to generate random");
+    throw Exception("failed to generate random");
   rs.readBytes(serverRandom, keySize / 8);
   mpz_t x;
   mpz_init(x);
@@ -340,7 +340,7 @@ void SSecurityRSAAES::writeRandom()
   }
   if (!res) {
     mpz_clear(x);
-    throw ConnFailedException("failed to encrypt random");
+    throw Exception("failed to encrypt random");
   }
   uint8_t* buffer = new uint8_t[clientKey.size];
   nettle_mpz_get_str_256(clientKey.size, buffer, x);
@@ -359,7 +359,7 @@ bool SSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != serverKey.size)
-    throw ConnFailedException("server key length doesn't match");
+    throw Exception("server key length doesn't match");
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -372,7 +372,7 @@ bool SSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&serverKey, &randomSize, clientRandom, x) ||
     randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw ConnFailedException("failed to decrypt client random");
+    throw Exception("failed to decrypt client random");
   }
   mpz_clear(x);
   return true;
@@ -501,7 +501,7 @@ bool SSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw ConnFailedException("hash doesn't match");
+    throw Exception("hash doesn't match");
   return true;
 }
 

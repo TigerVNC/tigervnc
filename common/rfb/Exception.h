@@ -30,9 +30,5 @@ namespace rfb {
     AuthCancelledException()
       : Exception("Authentication cancelled") {}
   };
-  struct ConnFailedException : public Exception {
-    ConnFailedException(const char* reason)
-      : Exception("%s", reason) {}
-  };
 }
 #endif

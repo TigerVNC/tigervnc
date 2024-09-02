@@ -133,9 +133,9 @@ bool SConnection::processVersionMsg()
 
   if (client.majorVersion != 3) {
     // unknown protocol version
-    throwConnFailedException("Client needs protocol version %d.%d, server has %d.%d",
-                             client.majorVersion, client.minorVersion,
-                             defaultMajorVersion, defaultMinorVersion);
+    failConnection("Client needs protocol version %d.%d, server has %d.%d",
+                   client.majorVersion, client.minorVersion,
+                   defaultMajorVersion, defaultMinorVersion);
   }
 
   if (client.minorVersion != 3 && client.minorVersion != 7 && client.minorVersion != 8) {
@@ -165,8 +165,8 @@ bool SConnection::processVersionMsg()
       if (*i == secTypeNone || *i == secTypeVncAuth) break;
     }
     if (i == secTypes.end()) {
-      throwConnFailedException("No supported security type for %d.%d client",
-                               client.majorVersion, client.minorVersion);
+      failConnection("No supported security type for %d.%d client",
+                     client.majorVersion, client.minorVersion);
     }
 
     os->writeU32(*i);
@@ -179,7 +179,7 @@ bool SConnection::processVersionMsg()
   // list supported security types for >=3.7 clients
 
   if (secTypes.empty())
-    throwConnFailedException("No supported security types");
+    failConnection("No supported security types");
 
   os->writeU8(secTypes.size());
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
@@ -222,7 +222,7 @@ void SConnection::processSecurityType(int secType)
     state_ = RFBSTATE_SECURITY;
     ssecurity = security.GetSSecurity(this, secType);
   } catch (rdr::Exception& e) {
-    throwConnFailedException("%s", e.str());
+    failConnection("%s", e.str());
   }
 }
 
@@ -299,7 +299,7 @@ void SConnection::handleAuthFailureTimeout(Timer* /*t*/)
   close(authFailureMsg.c_str());
 }
 
-void SConnection::throwConnFailedException(const char* format, ...)
+void SConnection::failConnection(const char* format, ...)
 {
 	va_list ap;
 	char str[256];
@@ -325,7 +325,7 @@ void SConnection::throwConnFailedException(const char* format, ...)
   }
 
   state_ = RFBSTATE_INVALID;
-  throw ConnFailedException(str);
+  throw Exception("%s", str);
 }
 
 void SConnection::setAccessRights(AccessRights ar)
