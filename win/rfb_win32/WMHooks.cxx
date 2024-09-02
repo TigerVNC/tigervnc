@@ -22,8 +22,10 @@
 #include <config.h>
 #endif
 
+#include <mutex>
+#include <thread>
+
 #include <core/LogWriter.h>
-#include <core/Thread.h>
 
 #include <rfb_win32/WMHooks.h>
 #include <rfb_win32/Service.h>
@@ -114,15 +116,17 @@ error:
 }
 
 
-class WMHooksThread : public Thread {
+class WMHooksThread {
 public:
-  WMHooksThread() : active(true), thread_id(-1) { }
+  WMHooksThread() : active(true), thread(WMHooksThread::worker, this),
+                    thread_id(-1) { }
   void stop();
   DWORD getThreadId() { return thread_id; }
 protected:
-  void worker() override;
+  void worker();
 protected:
   bool active;
+  std::thread thread;
   DWORD thread_id;
 };
 
@@ -138,7 +142,6 @@ static bool StartHookThread() {
     return false;
   vlog.debug("Creating thread");
   hook_mgr = new WMHooksThread();
-  hook_mgr->start();
   while (hook_mgr->getThreadId() == (DWORD)-1)
     Sleep(0);
   vlog.debug("Installing hooks");
@@ -301,7 +304,7 @@ WMHooksThread::stop() {
   active = false;
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);
   vlog.debug("Waiting for WMHooks thread");
-  wait();
+  thread.join();
 }
 
 // -=- WMHooks class

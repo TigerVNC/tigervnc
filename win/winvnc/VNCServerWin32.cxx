@@ -93,10 +93,8 @@ VNCServerWin32::~VNCServerWin32() {
   desktop.setStatusLocation(nullptr);
 
   // Join the Accept/Reject dialog thread
-  if (queryConnectDialog) {
-    queryConnectDialog->wait();
+  if (queryConnectDialog)
     delete queryConnectDialog;
-  }
 }
 
 
@@ -314,7 +312,6 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       vncServer.approveConnection(queryConnectDialog->getSock(),
                                   queryConnectDialog->isAccepted(),
                                   "Connection rejected by user");
-      queryConnectDialog->wait();
       delete queryConnectDialog;
       queryConnectDialog = nullptr;
       break;

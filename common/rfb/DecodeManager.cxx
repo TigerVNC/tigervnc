@@ -47,7 +47,7 @@ DecodeManager::DecodeManager(CConnection *conn_) :
 
   memset(stats, 0, sizeof(stats));
 
-  cpuCount = core::Thread::getSystemCPUCount();
+  cpuCount = std::thread::hardware_concurrency();
   if (cpuCount == 0) {
     vlog.error("Unable to determine the number of CPU cores on this system");
     cpuCount = 1;
@@ -253,7 +253,7 @@ void DecodeManager::throwThreadException()
 }
 
 DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager_)
-  : manager(manager_), stopRequested(false)
+  : manager(manager_), thread(nullptr), stopRequested(false)
 {
   start();
 }
@@ -261,14 +261,24 @@ DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager_)
 DecodeManager::DecodeThread::~DecodeThread()
 {
   stop();
-  wait();
+  if (thread != nullptr) {
+    thread->join();
+    delete thread;
+  }
+}
+
+void DecodeManager::DecodeThread::start()
+{
+  assert(thread == nullptr);
+
+  thread = new std::thread(&DecodeThread::worker, this);
 }
 
 void DecodeManager::DecodeThread::stop()
 {
   const std::lock_guard<std::mutex> lock(manager->queueMutex);
 
-  if (!isRunning())
+  if (thread == nullptr)
     return;
 
   stopRequested = true;

@@ -48,13 +48,21 @@ QueryConnectDialog::QueryConnectDialog(network::Socket* sock_,
                                        const char* userName_,
                                        VNCServerWin32* s)
 : Dialog(GetModuleHandle(nullptr)),
-  sock(sock_), peerIp(sock->getPeerAddress()),
+  thread(nullptr), sock(sock_), peerIp(sock->getPeerAddress()),
   userName(userName_?userName_:""),
   approve(false), server(s) {
 }
 
+QueryConnectDialog::~QueryConnectDialog()
+{
+  if (thread != nullptr) {
+    thread->join();
+    delete thread;
+  }
+}
+
 void QueryConnectDialog::startDialog() {
-  start();
+  thread = new std::thread(&QueryConnectDialog::worker, this);
 }
 
 

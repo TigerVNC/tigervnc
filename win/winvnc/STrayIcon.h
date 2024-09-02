@@ -20,15 +20,15 @@
 #define WINVNC_TRAYICON_H
 
 #include <mutex>
+#include <thread>
 
 #include <winvnc/VNCServerWin32.h>
 
 #include <core/Configuration.h>
-#include <core/Thread.h>
 
 namespace winvnc {
 
-  class STrayIconThread : core::Thread {
+  class STrayIconThread {
   public:
     STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon,
       UINT activeIcon, UINT dis_inactiveIcon, UINT dis_activeIcon, UINT menu);
@@ -41,9 +41,10 @@ namespace winvnc {
 
     friend class STrayIcon;
   protected:
-    void worker() override;
+    void worker();
 
     std::mutex lock;
+    std::thread thread;
     DWORD thread_id;
     HWND windowHandle;
     std::string toolTip;

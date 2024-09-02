@@ -23,9 +23,9 @@
 #include <exception>
 #include <list>
 #include <mutex>
+#include <thread>
 
 #include <core/Region.h>
-#include <core/Thread.h>
 
 #include <rfb/encodings.h>
 
@@ -91,20 +91,22 @@ namespace rfb {
     std::condition_variable consumerCond;
 
   private:
-    class DecodeThread : public core::Thread {
+    class DecodeThread {
     public:
       DecodeThread(DecodeManager* manager);
       ~DecodeThread();
 
+      void start();
       void stop();
 
     protected:
-      void worker() override;
+      void worker();
       DecodeManager::QueueEntry* findEntry();
 
     private:
       DecodeManager* manager;
 
+      std::thread* thread;
       bool stopRequested;
     };
 
