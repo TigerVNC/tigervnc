@@ -196,7 +196,7 @@ void XserverDesktop::requestClipboard()
   try {
     server->requestClipboard();
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::requestClipboard: %s",e.str());
+    vlog.error("XserverDesktop::requestClipboard: %s",e.what());
   }
 }
 
@@ -205,7 +205,7 @@ void XserverDesktop::announceClipboard(bool available)
   try {
     server->announceClipboard(available);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::announceClipboard: %s",e.str());
+    vlog.error("XserverDesktop::announceClipboard: %s",e.what());
   }
 }
 
@@ -214,7 +214,7 @@ void XserverDesktop::sendClipboardData(const char* data_)
   try {
     server->sendClipboardData(data_);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::sendClipboardData: %s",e.str());
+    vlog.error("XserverDesktop::sendClipboardData: %s",e.what());
   }
 }
 
@@ -233,7 +233,7 @@ void XserverDesktop::setDesktopName(const char* name)
   try {
     server->setName(name);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::setDesktopName: %s",e.str());
+    vlog.error("XserverDesktop::setDesktopName: %s",e.what());
   }
 }
 
@@ -268,7 +268,7 @@ void XserverDesktop::setCursor(int width, int height, int hotX, int hotY,
   try {
     server->setCursor(width, height, Point(hotX, hotY), cursorData);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::setCursor: %s",e.str());
+    vlog.error("XserverDesktop::setCursor: %s",e.what());
   }
 
   delete [] cursorData;
@@ -279,7 +279,7 @@ void XserverDesktop::setCursorPos(int x, int y, bool warped)
   try {
     server->setCursorPos(Point(x, y), warped);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::setCursorPos: %s",e.str());
+    vlog.error("XserverDesktop::setCursorPos: %s",e.what());
   }
 }
 
@@ -288,7 +288,7 @@ void XserverDesktop::add_changed(const rfb::Region &region)
   try {
     server->add_changed(region);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::add_changed: %s",e.str());
+    vlog.error("XserverDesktop::add_changed: %s",e.what());
   }
 }
 
@@ -297,7 +297,7 @@ void XserverDesktop::add_copied(const rfb::Region &dest, const rfb::Point &delta
   try {
     server->add_copied(dest, delta);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::add_copied: %s",e.str());
+    vlog.error("XserverDesktop::add_copied: %s",e.what());
   }
 }
 
@@ -314,7 +314,7 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
 
     vlog.error("Cannot find file descriptor for socket event");
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::handleSocketEvent: %s",e.str());
+    vlog.error("XserverDesktop::handleSocketEvent: %s",e.what());
   }
 }
 
@@ -407,7 +407,7 @@ void XserverDesktop::blockHandler(int* timeout)
     if (nextTimeout >= 0 && (*timeout == -1 || nextTimeout < *timeout))
       *timeout = nextTimeout;
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::blockHandler: %s",e.str());
+    vlog.error("XserverDesktop::blockHandler: %s", e.what());
   }
 }
 

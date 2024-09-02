@@ -54,7 +54,7 @@ bool RegConfig::setKey(const HKEY rootkey, const char* keyname) {
     processEvent(event);
     return true;
   } catch (rdr::Exception& e) {
-    vlog.debug("%s", e.str());
+    vlog.debug("%s", e.what());
     return false;
   }
 }
@@ -71,7 +71,7 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
     }
   } catch (rdr::Win32Exception& e) {
     if (e.err != ERROR_INVALID_HANDLE)
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
   }
 }
 

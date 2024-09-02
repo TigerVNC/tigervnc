@@ -141,9 +141,9 @@ void ServerDialog::run(const char* servername, char *newservername)
       fltk_menu_add(dialog.serverName->menubutton(),
                     entry.c_str(), 0, nullptr);
   } catch (Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     fl_alert(_("Unable to load the server history:\n\n%s"),
-             e.str());
+             e.what());
   }
 
   while (dialog.shown()) Fl::wait();
@@ -193,9 +193,9 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
   try {
     dialog->serverName->value(loadViewerParameters(filename));
   } catch (Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     fl_alert(_("Unable to load the specified configuration file:\n\n%s"),
-             e.str());
+             e.what());
   }
 
   delete(file_chooser);
@@ -254,9 +254,9 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
   try {
     saveViewerParameters(filename, servername);
   } catch (Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     fl_alert(_("Unable to save the specified configuration "
-               "file:\n\n%s"), e.str());
+               "file:\n\n%s"), e.what());
   }
   
   delete(file_chooser);
@@ -288,9 +288,9 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
   try {
     saveViewerParameters(nullptr, servername);
   } catch (Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     fl_alert(_("Unable to save the default configuration:\n\n%s"),
-             e.str());
+             e.what());
   }
 
   // avoid duplicates in the history
@@ -300,9 +300,9 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
   try {
     dialog->saveServerHistory();
   } catch (Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     fl_alert(_("Unable to save the server history:\n\n%s"),
-             e.str());
+             e.what());
   }
 }
 

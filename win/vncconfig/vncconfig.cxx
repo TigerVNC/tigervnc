@@ -180,7 +180,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
     }
 
   } catch (rdr::Exception& e) {
-    MsgBox(nullptr, e.str(), MB_ICONEXCLAMATION | MB_OK);
+    MsgBox(nullptr, e.what(), MB_ICONEXCLAMATION | MB_OK);
     return 1;
   }
 

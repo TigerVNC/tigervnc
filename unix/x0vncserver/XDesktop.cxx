@@ -1050,7 +1050,7 @@ bool XDesktop::setCursor()
     server->setCursor(cim->width, cim->height, Point(cim->xhot, cim->yhot),
                       cursorData);
   } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::setCursor: %s",e.str());
+    vlog.error("XserverDesktop::setCursor: %s",e.what());
   }
 
   delete [] cursorData;

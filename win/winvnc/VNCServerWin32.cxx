@@ -197,10 +197,10 @@ int VNCServerWin32::run() {
 
     vlog.debug("Server exited cleanly");
   } catch (rdr::Win32Exception &s) {
-    vlog.error("%s", s.str());
+    vlog.error("%s", s.what());
     result = s.err;
   } catch (rdr::Exception &e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
   }
 
   {

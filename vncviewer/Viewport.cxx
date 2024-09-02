@@ -576,7 +576,7 @@ int Viewport::handle(int event)
     try {
       cc->sendClipboardData(filtered.c_str());
     } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
       abort_connection_with_unexpected_error(e);
     }
 
@@ -669,7 +669,7 @@ void Viewport::sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask)
     try {
       cc->writer()->writePointerEvent(pos, buttonMask);
     } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
       abort_connection_with_unexpected_error(e);
     }
   } else {
@@ -776,7 +776,7 @@ void Viewport::handleClipboardChange(int source, void *data)
   try {
     self->cc->announceClipboard(true);
   } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     abort_connection_with_unexpected_error(e);
   }
 }
@@ -789,7 +789,7 @@ void Viewport::flushPendingClipboard()
     try {
       cc->announceClipboard(true);
     } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
       abort_connection_with_unexpected_error(e);
     }
   }
@@ -814,7 +814,7 @@ void Viewport::handlePointerTimeout(void *data)
     self->cc->writer()->writePointerEvent(self->lastPointerPos,
                                           self->lastButtonMask);
   } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     abort_connection_with_unexpected_error(e);
   }
 }
@@ -886,7 +886,7 @@ void Viewport::handleKeyPress(int keyCode, uint32_t keySym)
     else
       cc->writer()->writeKeyEvent(keySym, keyCode, true);
   } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     abort_connection_with_unexpected_error(e);
   }
 }
@@ -916,7 +916,7 @@ void Viewport::handleKeyRelease(int keyCode)
     else
       cc->writer()->writeKeyEvent(iter->second, keyCode, false);
   } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     abort_connection_with_unexpected_error(e);
   }
 

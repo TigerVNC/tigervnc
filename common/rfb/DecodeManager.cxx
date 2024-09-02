@@ -149,7 +149,7 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
     if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
       return false;
   } catch (rdr::Exception& e) {
-    throw Exception(format("Error reading rect: %s", e.str()));
+    throw Exception(format("Error reading rect: %s", e.what()));
   }
 
   stats[encoding].rects++;
@@ -250,7 +250,7 @@ void DecodeManager::setThreadException(const rdr::Exception& e)
   if (threadException != nullptr)
     return;
 
-  threadException = new rdr::Exception(format("Exception on worker thread: %s", e.str()));
+  threadException = new rdr::Exception(format("Exception on worker thread: %s", e.what()));
 }
 
 void DecodeManager::throwThreadException()

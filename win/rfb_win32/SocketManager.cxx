@@ -80,7 +80,7 @@ void SocketManager::addListener(network::SocketListener* sock_,
     if (event)
       WSACloseEvent(event);
     delete sock_;
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     throw;
   }
 
@@ -268,7 +268,7 @@ void SocketManager::processEvent(HANDLE event) {
       if (WSAEventSelect(ci.sock->getFd(), event, eventMask) == SOCKET_ERROR)
         throw rdr::SocketException("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
     } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
       remSocket(ci.sock);
     }
   }

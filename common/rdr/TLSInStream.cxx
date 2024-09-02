@@ -57,12 +57,12 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
   } catch (EndOfStream&) {
     return 0;
   } catch (SocketException& e) {
-    vlog.error("Failure reading TLS data: %s", e.str());
+    vlog.error("Failure reading TLS data: %s", e.what());
     gnutls_transport_set_errno(self->session, e.err);
     self->saved_exception = new SocketException(e);
     return -1;
   } catch (Exception& e) {
-    vlog.error("Failure reading TLS data: %s", e.str());
+    vlog.error("Failure reading TLS data: %s", e.what());
     gnutls_transport_set_errno(self->session, EINVAL);
     self->saved_exception = new Exception(e);
     return -1;

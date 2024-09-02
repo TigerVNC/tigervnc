@@ -476,7 +476,7 @@ int main(int argc, char** argv)
     }
 
   } catch (rdr::Exception &e) {
-    vlog.error("%s", e.str());
+    vlog.error("%s", e.what());
     return 1;
   }
 

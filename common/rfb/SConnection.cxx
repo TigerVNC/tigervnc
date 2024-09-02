@@ -224,7 +224,7 @@ void SConnection::processSecurityType(int secType)
     state_ = RFBSTATE_SECURITY;
     ssecurity = security.GetSSecurity(this, secType);
   } catch (rdr::Exception& e) {
-    failConnection(e.str());
+    failConnection(e.what());
   }
 }
 
@@ -235,11 +235,11 @@ bool SConnection::processSecurityMsg()
     if (!ssecurity->processMsg())
       return false;
   } catch (AuthFailureException& e) {
-    vlog.error("AuthFailureException: %s", e.str());
+    vlog.error("AuthFailureException: %s", e.what());
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
-    authFailureMsg = e.str();
+    authFailureMsg = e.what();
     authFailureTimer.start(100);
     return true;
   }
@@ -294,7 +294,7 @@ void SConnection::handleAuthFailureTimeout(Timer* /*t*/)
     }
     os->flush();
   } catch (rdr::Exception& e) {
-    close(e.str());
+    close(e.what());
     return;
   }
 

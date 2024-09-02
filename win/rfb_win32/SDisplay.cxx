@@ -202,7 +202,7 @@ void SDisplay::startCore() {
       if (tryMethod == 0)
         throw rdr::Exception("unable to access desktop");
       tryMethod--;
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
     }
   }
   vlog.info("Started %s", core->methodName());
@@ -292,7 +292,7 @@ void SDisplay::restartCore() {
     // to cause the server to stop() the desktop.
     // Otherwise, the SDesktop is in an inconsistent state
     // and the server will crash.
-    server->closeClients(e.str());
+    server->closeClients(e.what());
   }
 }
 
@@ -401,7 +401,7 @@ SDisplay::processEvent(HANDLE event) {
       try {
         core->flushUpdates();
       } catch (rdr::Exception& e) {
-        vlog.error("%s", e.str());
+        vlog.error("%s", e.what());
         restartCore();
         return;
       }

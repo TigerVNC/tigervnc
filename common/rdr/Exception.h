@@ -29,7 +29,7 @@ namespace rdr {
     Exception(const char* message);
     Exception(const std::string& message);
     virtual ~Exception() {}
-    virtual const char* str() const { return str_; }
+    virtual const char* what() const { return str_; }
   private:
     char str_[256];
   };
