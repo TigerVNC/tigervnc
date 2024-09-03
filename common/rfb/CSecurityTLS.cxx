@@ -333,11 +333,12 @@ void CSecurityTLS::checkSession()
     if (fatal_status != 0) {
       std::string error;
 
-      if (gnutls_certificate_verification_status_print(fatal_status,
-                                                       GNUTLS_CRT_X509,
-                                                       &status_str,
-                                                       0) < 0)
-        throw Exception("Failed to get certificate error description");
+      err = gnutls_certificate_verification_status_print(fatal_status,
+                                                         GNUTLS_CRT_X509,
+                                                         &status_str,
+                                                         0);
+      if (err != GNUTLS_E_SUCCESS)
+        throw rdr::TLSException("Failed to get certificate error description", err);
 
       error = (const char*)status_str.data;
 
@@ -346,11 +347,12 @@ void CSecurityTLS::checkSession()
       throw Exception("Invalid server certificate: %s", error.c_str());
     }
 
-    if (gnutls_certificate_verification_status_print(status,
-                                                     GNUTLS_CRT_X509,
-                                                     &status_str,
-                                                     0) < 0)
-      throw Exception("Failed to get certificate error description");
+    err = gnutls_certificate_verification_status_print(status,
+                                                       GNUTLS_CRT_X509,
+                                                       &status_str,
+                                                       0);
+    if (err != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("Failed to get certificate error description", err);
 
     vlog.info("Server certificate errors: %s", status_str.data);
 
@@ -367,8 +369,9 @@ void CSecurityTLS::checkSession()
   gnutls_x509_crt_t crt;
   gnutls_x509_crt_init(&crt);
 
-  if (gnutls_x509_crt_import(crt, &cert_list[0], GNUTLS_X509_FMT_DER) < 0)
-    throw Exception("decoding of certificate failed");
+  err = gnutls_x509_crt_import(crt, &cert_list[0], GNUTLS_X509_FMT_DER);
+  if (err != GNUTLS_E_SUCCESS)
+    throw rdr::TLSException("Failed to decode server certificate", err);
 
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
     vlog.info("Server certificate doesn't match given server name");

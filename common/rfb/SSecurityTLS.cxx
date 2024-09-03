@@ -299,16 +299,11 @@ void SSecurityTLS::setParams()
     gnutls_certificate_set_dh_params(cert_cred, dh_params);
 #endif
 
-    switch (gnutls_certificate_set_x509_key_file(cert_cred, X509_CertFile, X509_KeyFile, GNUTLS_X509_FMT_PEM)) {
-    case GNUTLS_E_SUCCESS:
-      break;
-    case GNUTLS_E_CERTIFICATE_KEY_MISMATCH:
-      throw Exception("Private key does not match certificate");
-    case GNUTLS_E_UNSUPPORTED_CERTIFICATE_TYPE:
-      throw Exception("Unsupported certificate type");
-    default:
-      throw Exception("Error loading X509 certificate or key");
-    }
+    ret = gnutls_certificate_set_x509_key_file(cert_cred, X509_CertFile,
+                                               X509_KeyFile,
+                                               GNUTLS_X509_FMT_PEM);
+    if (ret != GNUTLS_E_SUCCESS)
+      throw rdr::TLSException("Failed to load certificate and key", ret);
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
     if (ret != GNUTLS_E_SUCCESS)
