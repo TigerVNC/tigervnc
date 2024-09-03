@@ -18,6 +18,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <mfapi.h>
 #include <mferror.h>
 #include <wmcodecdsp.h>

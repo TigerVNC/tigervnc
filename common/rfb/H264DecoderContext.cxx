@@ -18,6 +18,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <os/Mutex.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
