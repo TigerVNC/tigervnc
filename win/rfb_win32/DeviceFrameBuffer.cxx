@@ -308,7 +308,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     server->setCursor(width, height, hotspot, buffer.data());
 
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.error("%s", e.what());
   }
 }

@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright 2015-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,17 +22,15 @@
 #ifndef __RDR_EXCEPTION_H__
 #define __RDR_EXCEPTION_H__
 
+#include <stdexcept>
 #include <string>
 
 namespace rdr {
 
-  struct Exception {
-    Exception(const char* message);
-    Exception(const std::string& message);
-    virtual ~Exception() {}
-    virtual const char* what() const { return str_; }
-  private:
-    char str_[256];
+  class Exception : public std::runtime_error {
+  public:
+    Exception(const char* what_arg) : std::runtime_error(what_arg) {}
+    Exception(const std::string& what_arg) : std::runtime_error(what_arg) {}
   };
 
   struct PosixException : public Exception {

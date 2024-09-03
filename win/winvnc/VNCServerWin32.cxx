@@ -199,7 +199,7 @@ int VNCServerWin32::run() {
   } catch (rdr::Win32Exception &s) {
     vlog.error("%s", s.what());
     result = s.err;
-  } catch (rdr::Exception &e) {
+  } catch (std::exception &e) {
     vlog.error("%s", e.what());
   }
 

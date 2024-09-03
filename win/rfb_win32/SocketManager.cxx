@@ -76,7 +76,7 @@ void SocketManager::addListener(network::SocketListener* sock_,
     // addEvent is the last thing we do, so that the event is NOT registered if previous steps fail
     if (!event || !addEvent(event, this))
       throw rdr::Exception("Unable to add listener");
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     if (event)
       WSACloseEvent(event);
     delete sock_;
@@ -267,7 +267,7 @@ void SocketManager::processEvent(HANDLE event) {
         eventMask |= FD_WRITE;
       if (WSAEventSelect(ci.sock->getFd(), event, eventMask) == SOCKET_ERROR)
         throw rdr::SocketException("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
-    } catch (rdr::Exception& e) {
+    } catch (std::exception& e) {
       vlog.error("%s", e.what());
       remSocket(ci.sock);
     }

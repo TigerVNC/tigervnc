@@ -228,7 +228,7 @@ static void processParams(int argc, char** argv) {
         break;
       }
 
-    } catch (rdr::Exception& e) {
+    } catch (std::exception& e) {
       MsgBoxOrLog(e.what(), true);
     }
   }
@@ -284,7 +284,7 @@ int WINAPI WinMain(HINSTANCE /*inst*/, HINSTANCE /*prevInst*/, char* /*cmdLine*/
     }
 
     vlog.debug("WinVNC service destroyed");
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     MsgBoxOrLog(e.what(), true);
   }
 

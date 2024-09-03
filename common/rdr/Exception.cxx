@@ -42,16 +42,6 @@
 
 using namespace rdr;
 
-Exception::Exception(const char *message)
-{
-  snprintf(str_, sizeof(str_), "%s", message);
-}
-
-Exception::Exception(const std::string& message)
-{
-  snprintf(str_, sizeof(str_), "%s", message.c_str());
-}
-
 
 GAIException::GAIException(const char* s, int err_)
   : Exception(rfb::format("%s: %s (%d)", s, strerror(err_).c_str(), err_)),

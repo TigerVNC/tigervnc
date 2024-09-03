@@ -54,7 +54,7 @@ ZlibOutStream::~ZlibOutStream()
 {
   try {
     flush();
-  } catch (Exception&) {
+  } catch (std::exception&) {
   }
   deflateEnd(zs);
   delete zs;

@@ -150,7 +150,7 @@ Clipboard::setClipText(const char* text) {
     clip_handle = nullptr;
 
     vlog.debug("set clipboard");
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.debug("%s", e.what());
   }
 

@@ -440,7 +440,7 @@ void saveHistoryToRegKey(const list<string>& serverHistory) {
       setKeyString(indexString, entry.c_str(), &hKey);
       index++;
     }
-  } catch (Exception& e) {
+  } catch (std::exception& e) {
     RegCloseKey(hKey);
     throw;
   }
@@ -463,7 +463,7 @@ static void saveToReg(const char* servername) {
 
   try {
     setKeyString("ServerName", servername, &hKey);
-  } catch (Exception& e) {
+  } catch (std::exception& e) {
     RegCloseKey(hKey);
     throw Exception(format(_("Failed to save \"%s\": %s"),
                            "ServerName", e.what()));
@@ -480,7 +480,7 @@ static void saveToReg(const char* servername) {
       } else {
         throw Exception(_("Unknown parameter type"));
       }
-    } catch (Exception& e) {
+    } catch (std::exception& e) {
       RegCloseKey(hKey);
       throw Exception(format(_("Failed to save \"%s\": %s"),
                              parameterArray[i]->getName(), e.what()));
@@ -493,7 +493,7 @@ static void saveToReg(const char* servername) {
   for (size_t i = 0; i < sizeof(readOnlyParameterArray)/sizeof(VoidParameter*); i++) {
     try {
       removeValue(readOnlyParameterArray[i]->getName(), &hKey);
-    } catch (Exception& e) {
+    } catch (std::exception& e) {
       RegCloseKey(hKey);
       throw Exception(format(_("Failed to remove \"%s\": %s"),
                              readOnlyParameterArray[i]->getName(),
@@ -534,7 +534,7 @@ list<string> loadHistoryFromRegKey() {
       if (!getKeyString(indexString, servernameBuffer,
                         buffersize, &hKey))
         break;
-    } catch (Exception& e) {
+    } catch (std::exception& e) {
       // Just ignore this entry and try the next one
       vlog.error(_("Failed to read server history entry %d: %s"),
                  (int)index, e.what());
@@ -572,7 +572,7 @@ static void getParametersFromReg(VoidParameter* parameters[],
       } else {
         throw Exception(_("Unknown parameter type"));
       }
-    } catch(Exception& e) {
+    } catch(std::exception& e) {
       // Just ignore this entry and continue with the rest
       vlog.error(_("Failed to read parameter \"%s\": %s"),
                  parameters[i]->getName(), e.what());
@@ -603,7 +603,7 @@ static char* loadFromReg() {
   try {
     if (getKeyString("ServerName", servernameBuffer, buffersize, &hKey))
       snprintf(servername, buffersize, "%s", servernameBuffer);
-  } catch(Exception& e) {
+  } catch(std::exception& e) {
     vlog.error(_("Failed to read parameter \"%s\": %s"),
                "ServerName", e.what());
     strcpy(servername, "");
@@ -835,7 +835,7 @@ char* loadViewerParameters(const char *filename) {
                                                                     value, line);
         }
       }
-    } catch(Exception& e) {
+    } catch(std::exception& e) {
       // Just ignore this entry and continue with the rest
       vlog.error(_("Failed to read line %d in file %s: %s"),
                  lineNr, filepath, e.what());
