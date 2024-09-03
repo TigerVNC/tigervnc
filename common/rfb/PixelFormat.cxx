@@ -180,7 +180,7 @@ void PixelFormat::read(rdr::InStream* is)
   }
 
   if (!isSane())
-    throw Exception("invalid pixel format");
+    throw ProtocolException("invalid pixel format");
 
   updateState();
 }

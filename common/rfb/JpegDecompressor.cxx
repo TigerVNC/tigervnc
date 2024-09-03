@@ -24,7 +24,7 @@
 #endif
 
 #include <rfb/JpegDecompressor.h>
-#include <rdr/Exception.h>
+#include <rfb/Exception.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 
@@ -217,7 +217,7 @@ void JpegDecompressor::decompress(const uint8_t *jpegBuf,
     jpeg_abort_decompress(dinfo);
     if (dstBufIsTemp && dstBuf) delete[] dstBuf;
     if (rowPointer) delete[] rowPointer;
-    throw rdr::Exception("Tight Decoding: Wrong JPEG data received.\n");
+    throw ProtocolException("Tight Decoding: Wrong JPEG data received.\n");
   }
 
   while (dinfo->output_scanline < dinfo->output_height) {

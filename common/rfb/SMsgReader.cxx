@@ -107,7 +107,7 @@ bool SMsgReader::readMsg()
     break;
   default:
     vlog.error("unknown message type %d", currentMsgType);
-    throw Exception("unknown message type");
+    throw ProtocolException("unknown message type");
   }
 
   if (ret)
@@ -334,7 +334,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
     return false;
 
   if (len < 4)
-    throw Exception("Invalid extended clipboard message");
+    throw ProtocolException("Invalid extended clipboard message");
   if (len > maxCutText) {
     vlog.error("Extended clipboard message too long (%d bytes) - ignoring", len);
     is->skip(len);
@@ -356,7 +356,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
     }
 
     if (len < (int32_t)(4 + 4*num))
-      throw Exception("Invalid extended clipboard message");
+      throw ProtocolException("Invalid extended clipboard message");
 
     num = 0;
     for (i = 0;i < 16;i++) {
@@ -381,7 +381,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
         continue;
 
       if (!zis.hasData(4))
-        throw Exception("Extended clipboard decode error");
+        throw ProtocolException("Extended clipboard decode error");
 
       lengths[num] = zis.readU32();
 
@@ -394,7 +394,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
           size_t chunk;
 
           if (!zis.hasData(1))
-            throw Exception("Extended clipboard decode error");
+            throw ProtocolException("Extended clipboard decode error");
 
           chunk = zis.avail();
           if (chunk > lengths[num])
@@ -410,7 +410,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
       }
 
       if (!zis.hasData(lengths[num]))
-        throw Exception("Extended clipboard decode error");
+        throw ProtocolException("Extended clipboard decode error");
 
       buffers[num] = new uint8_t[lengths[num]];
       zis.readBytes(buffers[num], lengths[num]);
@@ -440,7 +440,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
       handler->handleClipboardNotify(flags);
       break;
     default:
-      throw Exception("Invalid extended clipboard action");
+      throw ProtocolException("Invalid extended clipboard action");
     }
   }
 
@@ -464,7 +464,7 @@ bool SMsgReader::readQEMUMessage()
     ret = readQEMUKeyEvent();
     break;
   default:
-    throw Exception(format("unknown QEMU submessage type %d", subType));
+    throw ProtocolException(format("unknown QEMU submessage type %d", subType));
   }
 
   if (!ret) {

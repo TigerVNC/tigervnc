@@ -36,6 +36,7 @@
 #include <nettle/sha2.h>
 #include <nettle/base64.h>
 #include <nettle/asn1.h>
+
 #include <rfb/SSecurityRSAAES.h>
 #include <rfb/SConnection.h>
 #include <rfb/LogWriter.h>
@@ -296,9 +297,9 @@ bool SSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   clientKeyLength = is->readU32();
   if (clientKeyLength < MinKeyLength)
-    throw Exception("client key is too short");
+    throw ProtocolException("client key is too short");
   if (clientKeyLength > MaxKeyLength)
-    throw Exception("client key is too long");
+    throw ProtocolException("client key is too long");
   size_t size = (clientKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -311,7 +312,7 @@ bool SSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(clientKey.n, size, clientKeyN);
   nettle_mpz_set_str_256_u(clientKey.e, size, clientKeyE);
   if (!rsa_public_key_prepare(&clientKey))
-    throw Exception("client key is invalid");
+    throw ProtocolException("client key is invalid");
   return true;
 }
 
@@ -360,7 +361,7 @@ bool SSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != serverKey.size)
-    throw Exception("server key length doesn't match");
+    throw ProtocolException("server key length doesn't match");
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -373,7 +374,7 @@ bool SSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&serverKey, &randomSize, clientRandom, x) ||
     randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw Exception("failed to decrypt client random");
+    throw ProtocolException("failed to decrypt client random");
   }
   mpz_clear(x);
   return true;
@@ -502,7 +503,7 @@ bool SSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw Exception("hash doesn't match");
+    throw ProtocolException("hash doesn't match");
   return true;
 }
 

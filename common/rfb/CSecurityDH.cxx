@@ -86,9 +86,9 @@ bool CSecurityDH::readKey()
   uint16_t gen = is->readU16();
   keyLength = is->readU16();
   if (keyLength < MinKeyLength)
-    throw Exception("DH key is too short");
+    throw ProtocolException("DH key is too short");
   if (keyLength > MaxKeyLength)
-    throw Exception("DH key is too long");
+    throw ProtocolException("DH key is too long");
   if (!is->hasDataOrRestore(keyLength * 2))
     return false;
   is->clearRestorePoint();

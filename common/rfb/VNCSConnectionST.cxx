@@ -728,7 +728,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
   Rect rect;
 
   if (!client.supportsFence() || !client.supportsContinuousUpdates())
-    throw Exception("Client tried to enable continuous updates when not allowed");
+    throw ProtocolException("Client tried to enable continuous updates when not allowed");
 
   continuousUpdates = enable;
 

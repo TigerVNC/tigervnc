@@ -146,7 +146,7 @@ bool CSecurityTLS::processMsg()
       return false;
 
     if (is->readU8() == 0)
-      throw Exception("Server failed to initialize TLS session");
+      throw ProtocolException("Server failed to initialize TLS session");
 
     ret = gnutls_init(&session, GNUTLS_CLIENT);
     if (ret != GNUTLS_E_SUCCESS)
@@ -312,7 +312,7 @@ void CSecurityTLS::checkSession()
     return;
 
   if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509)
-    throw Exception("unsupported certificate type");
+    throw ProtocolException("unsupported certificate type");
 
   err = gnutls_certificate_verify_peers2(session, &status);
   if (err != 0) {
@@ -340,8 +340,8 @@ void CSecurityTLS::checkSession()
 
       gnutls_free(status_str.data);
 
-      throw Exception(format("Invalid server certificate: %s",
-                             error.c_str()));
+      throw ProtocolException(format("Invalid server certificate: %s",
+                                     error.c_str()));
     }
 
     err = gnutls_certificate_verification_status_print(status,
@@ -360,7 +360,7 @@ void CSecurityTLS::checkSession()
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
   if (!cert_list_size)
-    throw Exception("empty certificate chain");
+    throw ProtocolException("empty certificate chain");
 
   /* Process only server's certificate, not issuer's certificate */
   gnutls_x509_crt_t crt;

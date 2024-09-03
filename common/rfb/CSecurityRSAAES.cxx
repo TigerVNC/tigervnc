@@ -174,9 +174,9 @@ bool CSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   serverKeyLength = is->readU32();
   if (serverKeyLength < MinKeyLength)
-    throw Exception("server key is too short");
+    throw ProtocolException("server key is too short");
   if (serverKeyLength > MaxKeyLength)
-    throw Exception("server key is too long");
+    throw ProtocolException("server key is too long");
   size_t size = (serverKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -189,7 +189,7 @@ bool CSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(serverKey.n, size, serverKeyN);
   nettle_mpz_set_str_256_u(serverKey.e, size, serverKeyE);
   if (!rsa_public_key_prepare(&serverKey))
-    throw Exception("server key is invalid");
+    throw ProtocolException("server key is invalid");
   return true;
 }
 
@@ -255,7 +255,7 @@ bool CSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != clientKey.size)
-    throw Exception("client key length doesn't match");
+    throw ProtocolException("client key length doesn't match");
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -268,7 +268,7 @@ bool CSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&clientKey, &randomSize, serverRandom, x) ||
       randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw Exception("failed to decrypt server random");
+    throw ProtocolException("failed to decrypt server random");
   }
   mpz_clear(x);
   return true;
@@ -397,7 +397,7 @@ bool CSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw Exception("hash doesn't match");
+    throw ProtocolException("hash doesn't match");
   return true;
 }
 
@@ -427,7 +427,7 @@ bool CSecurityRSAAES::readSubtype()
     return false;
   subtype = rais->readU8();
   if (subtype != secTypeRA2UserPass && subtype != secTypeRA2Pass)
-    throw Exception("unknown RSA-AES subtype");
+    throw ProtocolException("unknown RSA-AES subtype");
   return true;
 }
 

@@ -172,7 +172,7 @@ bool CConnection::processVersionMsg()
   if (sscanf(verStr, "RFB %03d.%03d\n",
              &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
-    throw Exception("reading version failed: not an RFB server?");
+    throw ProtocolException("reading version failed: not an RFB server?");
   }
 
   server.setVersion(majorVersion, minorVersion);
@@ -185,8 +185,10 @@ bool CConnection::processVersionMsg()
     vlog.error("Server gave unsupported RFB protocol version %d.%d",
                server.majorVersion, server.minorVersion);
     state_ = RFBSTATE_INVALID;
-    throw Exception(format("Server gave unsupported RFB protocol version %d.%d",
-                           server.majorVersion, server.minorVersion));
+    throw ProtocolException(format("Server gave unsupported RFB "
+                                   "protocol version %d.%d",
+                                   server.majorVersion,
+                                   server.minorVersion));
   } else if (server.beforeVersion(3,7)) {
     server.setVersion(3,3);
   } else if (server.afterVersion(3,8)) {
@@ -233,7 +235,7 @@ bool CConnection::processSecurityTypesMsg()
         secType = secTypeInvalid;
     } else {
       vlog.error("Unknown 3.3 security type %d", secType);
-      throw Exception("Unknown 3.3 security type");
+      throw ProtocolException("Unknown 3.3 security type");
     }
 
   } else {
@@ -283,7 +285,7 @@ bool CConnection::processSecurityTypesMsg()
   if (secType == secTypeInvalid) {
     state_ = RFBSTATE_INVALID;
     vlog.error("No matching security types");
-    throw Exception("No matching security types");
+    throw ProtocolException("No matching security types");
   }
 
   state_ = RFBSTATE_SECURITY;
@@ -327,7 +329,7 @@ bool CConnection::processSecurityResultMsg()
     vlog.debug("auth failed - too many tries");
     break;
   default:
-    throw Exception("Unknown security result from server");
+    throw ProtocolException("Unknown security result from server");
   }
 
   if (server.beforeVersion(3,8)) {

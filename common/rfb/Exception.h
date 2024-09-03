@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +23,13 @@
 
 namespace rfb {
   typedef rdr::Exception Exception;
+
+  class ProtocolException : public Exception {
+  public:
+    ProtocolException(const char* what_arg) : Exception(what_arg) {}
+    ProtocolException(const std::string& what_arg) : Exception(what_arg) {}
+  };
+
   struct AuthFailureException : public Exception {
     AuthFailureException(const char* reason)
       : Exception(reason) {}

@@ -123,7 +123,7 @@ bool SConnection::processVersionMsg()
   if (sscanf(verStr, "RFB %03d.%03d\n",
              &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
-    throw Exception("reading version failed: not an RFB client?");
+    throw ProtocolException("reading version failed: not an RFB client?");
   }
 
   client.setVersion(majorVersion, minorVersion);
@@ -215,7 +215,7 @@ void SConnection::processSecurityType(int secType)
   secTypes = security.GetEnabledSecTypes();
   if (std::find(secTypes.begin(), secTypes.end(),
                 secType) == secTypes.end())
-    throw Exception("Requested security type not available");
+    throw ProtocolException("Requested security type not available");
 
   vlog.info("Client requests security type %s(%d)",
             secTypeName(secType),secType);
@@ -320,7 +320,7 @@ void SConnection::failConnection(const char* message)
   }
 
   state_ = RFBSTATE_INVALID;
-  throw Exception(message);
+  throw ProtocolException(message);
 }
 
 void SConnection::failConnection(const std::string& message)
