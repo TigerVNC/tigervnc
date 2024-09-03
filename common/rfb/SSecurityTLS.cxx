@@ -208,10 +208,8 @@ void SSecurityTLS::setParams()
     char *prio;
     const char *err;
 
-    prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
-                         strlen(kx_anon_priority) + 1);
-    if (prio == nullptr)
-      throw Exception("Not enough memory for GnuTLS priority string");
+    prio = new char[strlen(Security::GnuTLSPriority) +
+                    strlen(kx_anon_priority) + 1];
 
     strcpy(prio, Security::GnuTLSPriority);
     if (anon)
@@ -219,7 +217,7 @@ void SSecurityTLS::setParams()
 
     ret = gnutls_priority_set_direct(session, prio, &err);
 
-    free(prio);
+    delete [] prio;
 
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
@@ -244,17 +242,15 @@ void SSecurityTLS::setParams()
     static const char gnutls_default_priority[] = "NORMAL";
     char *prio;
 
-    prio = (char*)malloc(strlen(gnutls_default_priority) +
-                         strlen(kx_anon_priority) + 1);
-    if (prio == nullptr)
-      throw Exception("Not enough memory for GnuTLS priority string");
+    prio = new char[strlen(gnutls_default_priority) +
+                    strlen(kx_anon_priority) + 1];
 
     strcpy(prio, gnutls_default_priority);
     strcat(prio, kx_anon_priority);
 
     ret = gnutls_priority_set_direct(session, prio, &err);
 
-    free(prio);
+    delete [] prio;
 
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
