@@ -38,6 +38,7 @@
 #include <os/os.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rfb/util.h>
 
 #include "fltk/layout.h"
 #include "ServerDialog.h"
@@ -329,8 +330,8 @@ void ServerDialog::loadServerHistory()
       // no history file
       return;
     }
-    throw Exception(_("Could not open \"%s\": %s"),
-                    filepath, strerror(errno));
+    std::string msg = format(_("Could not open \"%s\""), filepath);
+    throw rdr::SystemException(msg.c_str(), errno);
   }
 
   int lineNr = 0;
@@ -344,8 +345,9 @@ void ServerDialog::loadServerHistory()
         break;
 
       fclose(f);
-      throw Exception(_("Failed to read line %d in file %s: %s"),
-                      lineNr, filepath, strerror(errno));
+      std::string msg = format(_("Failed to read line %d in "
+                                 "file \"%s\""), lineNr, filepath);
+      throw rdr::SystemException(msg.c_str(), errno);
     }
 
     int len = strlen(line);
@@ -390,9 +392,10 @@ void ServerDialog::saveServerHistory()
 
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");
-  if (!f)
-    throw Exception(_("Could not open \"%s\": %s"),
-                    filepath, strerror(errno));
+  if (!f) {
+    std::string msg = format(_("Could not open \"%s\""), filepath);
+    throw rdr::SystemException(msg.c_str(), errno);
+  }
 
   // Save the last X elements to the config file.
   for(size_t idx=0; idx < serverHistory.size() && idx <= SERVER_HISTORY_SIZE; idx++)

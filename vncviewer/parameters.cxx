@@ -36,6 +36,7 @@
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/SecurityClient.h>
+#include <rfb/util.h>
 
 #include <FL/fl_utf8.h>
 
@@ -640,9 +641,10 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   /* Write parameters to file */
   FILE* f = fopen(filepath, "w+");
-  if (!f)
-    throw Exception(_("Could not open \"%s\": %s"),
-                    filepath, strerror(errno));
+  if (!f) {
+    std::string msg = format(_("Could not open \"%s\""), filepath);
+    throw rdr::SystemException(msg.c_str(), errno);
+  }
 
   fprintf(f, "%s\n", IDENTIFIER_STRING);
   fprintf(f, "\n");
@@ -747,8 +749,8 @@ char* loadViewerParameters(const char *filename) {
   if (!f) {
     if (!filename)
       return nullptr; // Use defaults.
-    throw Exception(_("Could not open \"%s\": %s"),
-                    filepath, strerror(errno));
+    std::string msg = format(_("Could not open \"%s\""), filepath);
+    throw rdr::SystemException(msg.c_str(), errno);
   }
   
   int lineNr = 0;
@@ -761,8 +763,9 @@ char* loadViewerParameters(const char *filename) {
         break;
 
       fclose(f);
-      throw Exception(_("Failed to read line %d in file %s: %s"),
-                      lineNr, filepath, strerror(errno));
+      std::string msg = format(_("Failed to read line %d in "
+                                 "file \"%s\""), lineNr, filepath);
+      throw rdr::SystemException(msg.c_str(), errno);
     }
 
     if (strlen(line) == (sizeof(line) - 1)) {

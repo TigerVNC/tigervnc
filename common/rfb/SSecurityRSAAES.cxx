@@ -24,6 +24,7 @@
 #error "This source should not be compiled without HAVE_NETTLE defined"
 #endif
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -155,7 +156,7 @@ void SSecurityRSAAES::loadPrivateKey()
 {
   FILE* file = fopen(keyFile, "rb");
   if (!file)
-    throw Exception("failed to open key file");
+    throw rdr::SystemException("failed to open key file", errno);
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
@@ -166,7 +167,7 @@ void SSecurityRSAAES::loadPrivateKey()
   std::vector<uint8_t> data(size);
   if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
-    throw Exception("failed to read key");
+    throw rdr::SystemException("failed to read key", errno);
   }
   fclose(file);
 
