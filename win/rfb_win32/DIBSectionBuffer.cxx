@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/BitmapInfo.h>

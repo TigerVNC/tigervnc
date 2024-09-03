@@ -18,17 +18,22 @@
 #ifndef __RFB_EXCEPTION_H__
 #define __RFB_EXCEPTION_H__
 
-#include <rdr/Exception.h>
+#include <stdexcept>
 
 namespace rfb {
-  typedef rdr::Exception Exception;
-  struct AuthFailureException : public Exception {
-    AuthFailureException(const char* reason)
-      : Exception(reason) {}
+  class protocol_error : public std::runtime_error {
+  public:
+    protocol_error(const char* what_arg) : std::runtime_error(what_arg) {}
+    protocol_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
   };
-  struct AuthCancelledException : public rfb::Exception {
+
+  struct AuthFailureException : public std::runtime_error {
+    AuthFailureException(const char* reason)
+      : std::runtime_error(reason) {}
+  };
+  struct AuthCancelledException : public std::runtime_error {
     AuthCancelledException()
-      : Exception("Authentication cancelled") {}
+      : std::runtime_error("Authentication cancelled") {}
   };
 }
 #endif

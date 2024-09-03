@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <network/TcpSocket.h>
 
 #include <rfb/ComparingUpdateTracker.h>
@@ -728,7 +730,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
   Rect rect;
 
   if (!client.supportsFence() || !client.supportsContinuousUpdates())
-    throw Exception("Client tried to enable continuous updates when not allowed");
+    throw protocol_error("Client tried to enable continuous updates when not allowed");
 
   continuousUpdates = enable;
 
