@@ -44,7 +44,15 @@ using namespace rdr;
 
 
 GAIException::GAIException(const char* s, int err_)
-  : Exception(rfb::format("%s: %s (%d)", s, strerror(err_).c_str(), err_)),
+  : std::runtime_error(rfb::format("%s: %s (%d)", s,
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
+{
+}
+
+GAIException::GAIException(const std::string& s, int err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", s.c_str(),
+                                   strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
@@ -63,8 +71,16 @@ std::string GAIException::strerror(int err_) const
 #endif
 }
 
-PosixException::PosixException(const char* s, int err_)
-  : Exception(rfb::format("%s: %s (%d)", s, strerror(err_).c_str(), err_)),
+PosixException::PosixException(const char* what_arg, int err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
+{
+}
+
+PosixException::PosixException(const std::string& what_arg, int err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
+                                   strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
@@ -84,8 +100,16 @@ std::string PosixException::strerror(int err_) const
 }
 
 #ifdef WIN32
-Win32Exception::Win32Exception(const char* s, unsigned err_)
-  : Exception(rfb::format("%s: %s (%d)", s, strerror(err_).c_str(), err_)),
+Win32Exception::Win32Exception(const char* what_arg, unsigned err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
+{
+}
+
+Win32Exception::Win32Exception(const std::string& what_arg, unsigned err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
+                                   strerror(err_).c_str(), err_)),
     err(err_)
 {
 }

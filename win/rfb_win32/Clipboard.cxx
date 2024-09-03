@@ -23,6 +23,8 @@
 #include <config.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <rfb_win32/Clipboard.h>
 #include <rfb_win32/WMShatter.h>
 #include <rfb/util.h>

@@ -33,7 +33,9 @@
 #include "parameters.h"
 
 #include <os/os.h>
-#include <rfb/Exception.h>
+
+#include <rdr/Exception.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/util.h>

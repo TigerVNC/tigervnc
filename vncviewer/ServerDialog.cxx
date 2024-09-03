@@ -36,7 +36,9 @@
 #include <FL/Fl_File_Chooser.H>
 
 #include <os/os.h>
-#include <rfb/Exception.h>
+
+#include <rdr/Exception.h>
+
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>

@@ -27,47 +27,52 @@
 
 namespace rdr {
 
-  class Exception : public std::runtime_error {
+  class PosixException : public std::runtime_error {
   public:
-    Exception(const char* what_arg) : std::runtime_error(what_arg) {}
-    Exception(const std::string& what_arg) : std::runtime_error(what_arg) {}
-  };
-
-  struct PosixException : public Exception {
     int err;
-    PosixException(const char* s, int err_);
+    PosixException(const char* what_arg, int err_);
+    PosixException(const std::string& what_arg, int err_);
   private:
     std::string strerror(int err_) const;
   };
 
 #ifdef WIN32
-  struct Win32Exception : public Exception {
+  class Win32Exception : public std::runtime_error {
+  public:
     unsigned err;
-    Win32Exception(const char* s, unsigned err_);
+    Win32Exception(const char* what_arg, unsigned err_);
+    Win32Exception(const std::string& what_arg, unsigned err_);
   private:
     std::string strerror(unsigned err_) const;
   };
 #endif
 
 #ifdef WIN32
-  struct SocketException : public Win32Exception {
-    SocketException(const char* text, unsigned err_) : Win32Exception(text, err_) {}
+  class SocketException : public Win32Exception {
+  public:
+    SocketException(const char* what_arg, unsigned err_) : Win32Exception(what_arg, err_) {}
+    SocketException(const std::string& what_arg, unsigned err_) : Win32Exception(what_arg, err_) {}
   };
 #else
-  struct SocketException : public PosixException {
-    SocketException(const char* text, int err_) : PosixException(text, err_) {}
+  class SocketException : public PosixException {
+  public:
+    SocketException(const char* what_arg, unsigned err_) : PosixException(what_arg, err_) {}
+    SocketException(const std::string& what_arg, unsigned err_) : PosixException(what_arg, err_) {}
   };
 #endif
 
-  struct GAIException : public Exception {
+  class GAIException : public std::runtime_error {
+  public:
     int err;
     GAIException(const char* s, int err_);
+    GAIException(const std::string& s, int err_);
   private:
     std::string strerror(int err_) const;
   };
 
-  struct EndOfStream : public Exception {
-    EndOfStream() : Exception("End of stream") {}
+  class EndOfStream : public std::runtime_error {
+  public:
+    EndOfStream() : std::runtime_error("End of stream") {}
   };
 
 }

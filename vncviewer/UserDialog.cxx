@@ -36,6 +36,8 @@
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
 
+#include <rdr/Exception.h>
+
 #include <rfb/Exception.h>
 #include <rfb/obfuscate.h>
 

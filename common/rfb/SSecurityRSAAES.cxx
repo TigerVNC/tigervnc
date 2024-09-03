@@ -37,12 +37,14 @@
 #include <nettle/base64.h>
 #include <nettle/asn1.h>
 
+#include <rdr/AESInStream.h>
+#include <rdr/AESOutStream.h>
+#include <rdr/Exception.h>
+
 #include <rfb/SSecurityRSAAES.h>
 #include <rfb/SConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-#include <rdr/AESInStream.h>
-#include <rdr/AESOutStream.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <rfb/UnixPasswordValidator.h>
 #endif

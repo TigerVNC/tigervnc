@@ -36,7 +36,8 @@ using namespace rdr;
 
 #ifdef HAVE_GNUTLS
 TLSException::TLSException(const char* s, int err_)
-  : Exception(rfb::format("%s: %s (%d)", s, gnutls_strerror(err_), err_)),
+  : std::runtime_error(rfb::format("%s: %s (%d)", s,
+                                   gnutls_strerror(err_), err_)),
     err(err_)
 {
 }

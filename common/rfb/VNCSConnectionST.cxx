@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <network/TcpSocket.h>
 
 #include <rfb/ComparingUpdateTracker.h>

@@ -22,8 +22,9 @@
 #include <config.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <rfb_win32/WMPoller.h>
-#include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 

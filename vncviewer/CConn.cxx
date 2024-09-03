@@ -27,6 +27,8 @@
 #include <unistd.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Exception.h>
