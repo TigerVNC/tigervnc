@@ -22,7 +22,9 @@
 #endif
 
 #include <algorithm>
+
 #include <rdr/HexInStream.h>
+
 #include <rfb/util.h>
 
 using namespace rdr;
