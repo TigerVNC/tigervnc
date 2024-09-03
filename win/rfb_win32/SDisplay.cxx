@@ -197,7 +197,7 @@ void SDisplay::startCore() {
       else
         core = new SDisplayCorePolling(this, &updates);
       core->setScreenRect(screenRect);
-    } catch (rdr::Exception& e) {
+    } catch (std::exception& e) {
       delete core; core = nullptr;
       if (tryMethod == 0)
         throw rdr::Exception("unable to access desktop");
@@ -287,7 +287,7 @@ void SDisplay::restartCore() {
     // Start a new Core if possible
     startCore();
     vlog.info("restarted");
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     // If startCore() fails then we MUST disconnect all clients,
     // to cause the server to stop() the desktop.
     // Otherwise, the SDesktop is in an inconsistent state
@@ -400,7 +400,7 @@ SDisplay::processEvent(HANDLE event) {
       // - Flush any updates from the core
       try {
         core->flushUpdates();
-      } catch (rdr::Exception& e) {
+      } catch (std::exception& e) {
         vlog.error("%s", e.what());
         restartCore();
         return;

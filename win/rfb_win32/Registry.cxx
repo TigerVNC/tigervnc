@@ -173,7 +173,7 @@ std::string RegKey::getString(const char* valname) const {
 std::string RegKey::getString(const char* valname, const char* def) const {
   try {
     return getString(valname);
-  } catch(rdr::Exception&) {
+  } catch(std::exception&) {
     return def;
   }
 }
@@ -185,7 +185,7 @@ std::vector<uint8_t> RegKey::getBinary(const char* valname) const {
 std::vector<uint8_t> RegKey::getBinary(const char* valname, const uint8_t* def, size_t deflen) const {
   try {
     return getBinary(valname);
-  } catch(rdr::Exception&) {
+  } catch(std::exception&) {
     std::vector<uint8_t> out(deflen);
     memcpy(out.data(), def, deflen);
     return out;
@@ -198,7 +198,7 @@ int RegKey::getInt(const char* valname) const {
 int RegKey::getInt(const char* valname, int def) const {
   try {
     return getInt(valname);
-  } catch(rdr::Exception&) {
+  } catch(std::exception&) {
     return def;
   }
 }
@@ -262,7 +262,7 @@ bool RegKey::isValue(const char* valname) const {
   try {
     getRepresentation(valname);
     return true;
-  } catch(rdr::Exception&) {
+  } catch(std::exception&) {
     return false;
   }
 }

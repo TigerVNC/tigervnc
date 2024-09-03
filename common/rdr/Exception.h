@@ -21,17 +21,15 @@
 #ifndef __RDR_EXCEPTION_H__
 #define __RDR_EXCEPTION_H__
 
+#include <stdexcept>
 #include <string>
 
 namespace rdr {
 
-  struct Exception {
-    Exception(const char* message);
-    Exception(const std::string& message);
-    virtual ~Exception() {}
-    virtual const char* what() const { return str_; }
-  private:
-    char str_[256];
+  class Exception : public std::runtime_error {
+  public:
+    Exception(const char* what_arg) : std::runtime_error(what_arg) {}
+    Exception(const std::string& what_arg) : std::runtime_error(what_arg) {}
   };
 
   struct PosixException : public Exception {

@@ -151,7 +151,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
       os.writeU32(strlen(reason));
       os.writeBytes((const uint8_t*)reason, strlen(reason));
       os.flush();
-    } catch (rdr::Exception&) {
+    } catch (std::exception&) {
     }
     sock->shutdown();
     closingSockets.push_back(sock);

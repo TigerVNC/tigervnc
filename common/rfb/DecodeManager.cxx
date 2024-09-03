@@ -148,7 +148,7 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
   try {
     if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
       return false;
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     throw Exception(format("Error reading rect: %s", e.what()));
   }
 
@@ -243,7 +243,7 @@ void DecodeManager::logStats()
             iecPrefix(bytes, "B").c_str(), ratio);
 }
 
-void DecodeManager::setThreadException(const rdr::Exception& e)
+void DecodeManager::setThreadException(const std::exception& e)
 {
   os::AutoMutex a(queueMutex);
 
@@ -260,7 +260,7 @@ void DecodeManager::throwThreadException()
   if (threadException == nullptr)
     return;
 
-  rdr::Exception e(*threadException);
+  std::exception e(*threadException);
 
   delete threadException;
   threadException = nullptr;
@@ -318,7 +318,7 @@ void DecodeManager::DecodeThread::worker()
       entry->decoder->decodeRect(entry->rect, entry->bufferStream->data(),
                                  entry->bufferStream->length(),
                                  *entry->server, entry->pb);
-    } catch (rdr::Exception& e) {
+    } catch (std::exception& e) {
       manager->setThreadException(e);
     } catch(...) {
       assert(false);

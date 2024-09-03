@@ -335,7 +335,7 @@ int main(int argc, char** argv)
 
     XCloseDisplay(dpy);
 
-  } catch (rdr::Exception &e) {
+  } catch (std::exception& e) {
     vlog.error("%s", e.what());
   }
 

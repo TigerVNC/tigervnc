@@ -53,7 +53,7 @@ bool RegConfig::setKey(const HKEY rootkey, const char* keyname) {
     key.createKey(rootkey, keyname);
     processEvent(event);
     return true;
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.debug("%s", e.what());
     return false;
   }

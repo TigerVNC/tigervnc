@@ -173,7 +173,7 @@ void CleanDesktop::disableWallpaper() {
       ActiveDesktop ad;
       if (ad.enable(false))
         restoreActiveDesktop = true;
-    } catch (rdr::Exception& e) {
+    } catch (std::exception& e) {
       vlog.error("%s", e.what());
     }
 
@@ -181,7 +181,7 @@ void CleanDesktop::disableWallpaper() {
     SysParamsInfo(SPI_SETDESKWALLPAPER, 0, (PVOID) "", SPIF_SENDCHANGE);
     restoreWallpaper = true;
 
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.info("%s", e.what());
   }
 }
@@ -198,7 +198,7 @@ void CleanDesktop::enableWallpaper() {
         ActiveDesktop ad;
         ad.enable(true);
         restoreActiveDesktop = false;
-      } catch (rdr::Exception& e) {
+      } catch (std::exception& e) {
         vlog.error("%s", e.what());
       }
     }
@@ -211,7 +211,7 @@ void CleanDesktop::enableWallpaper() {
       restoreWallpaper = false;
     }
 
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.info("%s", e.what());
   }
 }
@@ -243,7 +243,7 @@ void CleanDesktop::disableEffects() {
     }
     restoreEffects = true;
 
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.info("%s", e.what());
   }
 }
@@ -268,7 +268,7 @@ void CleanDesktop::enableEffects() {
       restoreEffects = false;
     }
 
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.info("%s", e.what());
   }
 }

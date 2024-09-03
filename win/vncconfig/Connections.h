@@ -73,7 +73,7 @@ namespace rfb {
         try {
           network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(newPat.c_str()));
           pattern = network::TcpFilter::patternToStr(pat);
-        } catch(rdr::Exception& e) {
+        } catch(std::exception& e) {
           MsgBox(nullptr, e.what(), MB_ICONEXCLAMATION | MB_OK);
           return false;
         }
@@ -235,7 +235,7 @@ namespace rfb {
               (localHost != isItemChecked(IDC_LOCALHOST)) ||
               (port_number != getItemInt(IDC_PORT)) ||
               (rfb::Server::idleTimeout != getItemInt(IDC_IDLE_TIMEOUT));
-        } catch (rdr::Exception&) {
+        } catch (std::exception&) {
           return false;
         }
       }

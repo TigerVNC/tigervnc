@@ -387,7 +387,7 @@ void CConnection::close()
    */
   try {
     decoder.flush();
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     vlog.error("%s", e.what());
   }
 

@@ -223,7 +223,7 @@ void SConnection::processSecurityType(int secType)
   try {
     state_ = RFBSTATE_SECURITY;
     ssecurity = security.GetSSecurity(this, secType);
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     failConnection(e.what());
   }
 }
@@ -293,7 +293,7 @@ void SConnection::handleAuthFailureTimeout(Timer* /*t*/)
                      authFailureMsg.size());
     }
     os->flush();
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     close(e.what());
     return;
   }
