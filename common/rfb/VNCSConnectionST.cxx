@@ -126,14 +126,15 @@ void VNCSConnectionST::close(const char* reason)
     vlog.debug("second close: %s (%s)", peerEndpoint.c_str(), reason);
 
   try {
+    auto out = getOutStream();
     if (sock->outStream().hasBufferedData()) {
-      sock->outStream().cork(false);
-      sock->outStream().flush();
+      out->cork(false);
+      out->flush();
       if (sock->outStream().hasBufferedData())
-        vlog.error("Failed to flush remaining socket data on close");
+        vlog.error("Failed to flush remaining data of out stream on close");
     }
   } catch (rdr::Exception& e) {
-    vlog.error("Failed to flush remaining socket data on close: %s", e.str());
+    vlog.error("Failed to flush remaining data of out stream on close: %s", e.str());
   }
 
   // Just shutdown the socket and mark our state as closing.  Eventually the
@@ -201,7 +202,8 @@ void VNCSConnectionST::flushSocket()
 {
   if (state() == RFBSTATE_CLOSING) return;
   try {
-    sock->outStream().flush();
+    auto out = getOutStream();
+    out->flush();
     // Flushing the socket might release an update that was previously
     // delayed because of congestion.
     if (!sock->outStream().hasBufferedData())
@@ -837,7 +839,7 @@ void VNCSConnectionST::writeRTTPing()
   if (!client.supportsFence())
     return;
 
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(getOutStream()->length());
 
   // We need to make sure any old update are already processed by the
   // time we get the response back. This allows us to reliably throttle
@@ -856,7 +858,8 @@ bool VNCSConnectionST::isCongested()
   congestionTimer.stop();
 
   // Stuff still waiting in the send buffer?
-  sock->outStream().flush();
+  auto out = getOutStream();
+  out->flush();
   congestion.debugTrace("congestion-trace.csv", sock->getFd());
   if (sock->outStream().hasBufferedData())
     return true;
@@ -864,7 +867,7 @@ bool VNCSConnectionST::isCongested()
   if (!client.supportsFence())
     return false;
 
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(out->length());
   if (!congestion.isCongested())
     return false;
 
@@ -878,7 +881,7 @@ bool VNCSConnectionST::isCongested()
 
 void VNCSConnectionST::writeFramebufferUpdate()
 {
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(getOutStream()->length());
 
   // We're in the middle of processing a command that's supposed to be
   // synchronised. Allowing an update to slip out right now might violate
@@ -917,7 +920,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   getOutStream()->cork(false);
 
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(getOutStream()->length());
 }
 
 void VNCSConnectionST::writeNoDataUpdate()
