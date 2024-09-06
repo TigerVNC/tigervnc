@@ -41,6 +41,7 @@
 #include <rfb/util.h>
 
 #include "fltk/layout.h"
+#include "fltk/util.h"
 #include "ServerDialog.h"
 #include "OptionsDialog.h"
 #include "i18n.h"
@@ -138,7 +139,8 @@ void ServerDialog::run(const char* servername, char *newservername)
 
     dialog.serverName->clear();
     for(i = 0; i < dialog.serverHistory.size(); ++i)
-      dialog.serverName->add(dialog.serverHistory[i].c_str());
+      fltk_menu_add(dialog.serverName->menubutton(),
+                    dialog.serverHistory[i].c_str(), 0, nullptr);
   } catch (Exception& e) {
     vlog.error("%s", e.str());
     fl_alert(_("Unable to load the server history:\n\n%s"),
