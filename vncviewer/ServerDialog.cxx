@@ -292,13 +292,12 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
              e.str());
   }
 
+  // avoid duplicates in the history
+  dialog->serverHistory.remove(servername);
+  dialog->serverHistory.insert(dialog->serverHistory.begin(), servername);
+
   try {
-    list<string>::iterator elem = std::find(dialog->serverHistory.begin(), dialog->serverHistory.end(), servername);
-    // avoid duplicates in the history
-    if(dialog->serverHistory.end() == elem) {
-      dialog->serverHistory.insert(dialog->serverHistory.begin(), servername);
-      dialog->saveServerHistory();
-    }
+    dialog->saveServerHistory();
   } catch (Exception& e) {
     vlog.error("%s", e.str());
     fl_alert(_("Unable to save the server history:\n\n%s"),
