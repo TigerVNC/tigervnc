@@ -133,14 +133,12 @@ void ServerDialog::run(const char* servername, char *newservername)
   dialog.show();
 
   try {
-    size_t i;
-
     dialog.loadServerHistory();
 
     dialog.serverName->clear();
-    for(i = 0; i < dialog.serverHistory.size(); ++i)
+    for (const string& entry : dialog.serverHistory)
       fltk_menu_add(dialog.serverName->menubutton(),
-                    dialog.serverHistory[i].c_str(), 0, nullptr);
+                    entry.c_str(), 0, nullptr);
   } catch (Exception& e) {
     vlog.error("%s", e.str());
     fl_alert(_("Unable to load the server history:\n\n%s"),
@@ -295,7 +293,7 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
   }
 
   try {
-    vector<string>::iterator elem = std::find(dialog->serverHistory.begin(), dialog->serverHistory.end(), servername);
+    list<string>::iterator elem = std::find(dialog->serverHistory.begin(), dialog->serverHistory.end(), servername);
     // avoid duplicates in the history
     if(dialog->serverHistory.end() == elem) {
       dialog->serverHistory.insert(dialog->serverHistory.begin(), servername);
@@ -314,7 +312,7 @@ void ServerDialog::loadServerHistory()
   serverHistory.clear();
 
 #ifdef _WIN32
-  loadHistoryFromRegKey(serverHistory);
+  serverHistory = loadHistoryFromRegKey();
   return;
 #endif
 
@@ -400,8 +398,12 @@ void ServerDialog::saveServerHistory()
   }
 
   // Save the last X elements to the config file.
-  for(size_t idx=0; idx < serverHistory.size() && idx <= SERVER_HISTORY_SIZE; idx++)
-    fprintf(f, "%s\n", serverHistory[idx].c_str());
+  size_t count = 0;
+  for (const string& entry : serverHistory) {
+    if (++count > SERVER_HISTORY_SIZE)
+      break;
+    fprintf(f, "%s\n", entry.c_str());
+  }
 
   fclose(f);
 }

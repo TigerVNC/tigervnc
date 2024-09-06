@@ -21,7 +21,7 @@
 
 #include <FL/Fl_Window.H>
 #include <string>
-#include <vector>
+#include <list>
 
 class Fl_Widget;
 class Fl_Input_Choice;
@@ -49,7 +49,7 @@ private:
 
 protected:
   Fl_Input_Choice *serverName;
-  std::vector<std::string> serverHistory;
+  std::list<std::string> serverHistory;
   std::string usedDir;
 };
 

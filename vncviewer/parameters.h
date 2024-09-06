@@ -24,7 +24,7 @@
 #include "MonitorIndicesParameter.h"
 
 #ifdef _WIN32
-#include <vector>
+#include <list>
 #include <string>
 #endif
 
@@ -84,8 +84,8 @@ void saveViewerParameters(const char *filename, const char *servername=nullptr);
 char* loadViewerParameters(const char *filename);
 
 #ifdef _WIN32
-void loadHistoryFromRegKey(std::vector<std::string>& serverHistory);
-void saveHistoryToRegKey(const std::vector<std::string>& serverHistory);
+std::list<std::string> loadHistoryFromRegKey();
+void saveHistoryToRegKey(const std::list<std::string>& serverHistory);
 #endif
 
 #endif
