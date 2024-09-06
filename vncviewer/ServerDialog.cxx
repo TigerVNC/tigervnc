@@ -37,6 +37,7 @@
 
 #include <os/os.h>
 #include <rfb/Exception.h>
+#include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 
@@ -306,14 +307,42 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
 }
 
 
+static bool same_server(const string& a, const string& b)
+{
+  string hostA, hostB;
+  int portA, portB;
+
+#ifndef WIN32
+  if ((a.find("/") != string::npos) || (b.find("/") != string::npos))
+    return a == b;
+#endif
+
+  try {
+    getHostAndPort(a.c_str(), &hostA, &portA);
+    getHostAndPort(b.c_str(), &hostB, &portB);
+  } catch (Exception& e) {
+    return false;
+  }
+
+  if (hostA != hostB)
+    return false;
+
+  if (portA != portB)
+    return false;
+
+  return true;
+}
+
+
 void ServerDialog::loadServerHistory()
 {
+  list<string> rawHistory;
+
   serverHistory.clear();
 
 #ifdef _WIN32
-  serverHistory = loadHistoryFromRegKey();
-  return;
-#endif
+  rawHistory = loadHistoryFromRegKey();
+#else
 
   const char* stateDir = os::getvncstatedir();
   if (stateDir == nullptr)
@@ -369,10 +398,19 @@ void ServerDialog::loadServerHistory()
     if (len == 0)
       continue;
 
-    serverHistory.push_back(line);
+    rawHistory.push_back(line);
   }
 
   fclose(f);
+#endif
+
+  // Filter out duplicates, even if they have different formats
+  for (const string& entry : rawHistory) {
+    if (std::find_if(serverHistory.begin(), serverHistory.end(),
+                     [&entry](const string& s) { return same_server(s, entry); }) != serverHistory.end())
+      continue;
+    serverHistory.push_back(entry);
+  }
 }
 
 void ServerDialog::saveServerHistory()
