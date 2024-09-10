@@ -37,6 +37,10 @@ namespace rdr {
     SystemException(const char* s, int err_);
   };
 
+  struct SocketException : public SystemException {
+    SocketException(const char* text, int err_) : SystemException(text, err_) {}
+  };
+
   struct GAIException : public Exception {
     int err;
     GAIException(const char* s, int err_);
