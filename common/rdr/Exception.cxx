@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright 2014-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +81,15 @@ PosixException::PosixException(const char* s, int err_)
   : Exception("%s", s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
+#ifdef _WIN32
+  wchar_t *currStr = new wchar_t[len-strlen(str_)];
+  wcsncpy(currStr, _wcserror(err), len-1-strlen(str_));
+  WideCharToMultiByte(CP_UTF8, 0, currStr, -1, str_+strlen(str_),
+                      len-1-strlen(str_), nullptr, nullptr);
+  delete [] currStr;
+#else
   strncat(str_, strerror(err), len-1-strlen(str_));
+#endif
   strncat(str_, " (", len-1-strlen(str_));
   char buf[20];
     sprintf(buf,"%d",err);
