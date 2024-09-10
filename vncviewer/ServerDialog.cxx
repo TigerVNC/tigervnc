@@ -359,7 +359,7 @@ void ServerDialog::loadServerHistory()
       return;
     }
     std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::SystemException(msg.c_str(), errno);
+    throw rdr::PosixException(msg.c_str(), errno);
   }
 
   int lineNr = 0;
@@ -375,7 +375,7 @@ void ServerDialog::loadServerHistory()
       fclose(f);
       std::string msg = format(_("Failed to read line %d in "
                                  "file \"%s\""), lineNr, filepath);
-      throw rdr::SystemException(msg.c_str(), errno);
+      throw rdr::PosixException(msg.c_str(), errno);
     }
 
     int len = strlen(line);
@@ -431,7 +431,7 @@ void ServerDialog::saveServerHistory()
   FILE* f = fopen(filepath, "w+");
   if (!f) {
     std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::SystemException(msg.c_str(), errno);
+    throw rdr::PosixException(msg.c_str(), errno);
   }
 
   // Save the last X elements to the config file.

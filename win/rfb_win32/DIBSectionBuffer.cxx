@@ -85,7 +85,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
 
     if (!new_bitmap) {
       int err = GetLastError();
-      throw rdr::SystemException("unable to create DIB section", err);
+      throw rdr::Win32Exception("unable to create DIB section", err);
     }
 
     vlog.debug("recreateBuffer()");
@@ -128,7 +128,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
     // Determine the *actual* DIBSection format
     DIBSECTION ds;
     if (!GetObject(bitmap, sizeof(ds), &ds))
-      throw rdr::SystemException("GetObject", GetLastError());
+      throw rdr::Win32Exception("GetObject", GetLastError());
 
     // Correct the "stride" of the DIB
     // *** This code DWORD aligns each row - is that right???

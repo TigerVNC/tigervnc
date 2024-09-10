@@ -80,7 +80,7 @@ CurrentUserToken::CurrentUserToken() {
     if (!OpenProcessToken(GetCurrentProcess(), GENERIC_ALL, &h)) {
       DWORD err = GetLastError();
       if (err != ERROR_CALL_NOT_IMPLEMENTED)
-        throw rdr::SystemException("OpenProcessToken failed", err);
+        throw rdr::Win32Exception("OpenProcessToken failed", err);
       h = INVALID_HANDLE_VALUE;
     }
   }
@@ -96,7 +96,7 @@ ImpersonateCurrentUser::ImpersonateCurrentUser() {
   if (!ImpersonateLoggedOnUser(token)) {
     DWORD err = GetLastError();
     if (err != ERROR_CALL_NOT_IMPLEMENTED)
-      throw rdr::SystemException("Failed to impersonate user", GetLastError());
+      throw rdr::Win32Exception("Failed to impersonate user", GetLastError());
   }
 }
 
@@ -114,7 +114,7 @@ UserName::UserName() {
   char buf[UNLEN+1];
   DWORD len = UNLEN+1;
   if (!GetUserName(buf, &len))
-    throw rdr::SystemException("GetUserName failed", GetLastError());
+    throw rdr::Win32Exception("GetUserName failed", GetLastError());
   assign(buf);
 }
 

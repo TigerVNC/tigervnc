@@ -45,7 +45,7 @@ WMCursor::getCursorInfo() {
   CURSORINFO info;
   info.cbSize = sizeof(CURSORINFO);
   if (!GetCursorInfo(&info))
-    throw rdr::SystemException("GetCursorInfo failed", GetLastError());
+    throw rdr::Win32Exception("GetCursorInfo failed", GetLastError());
   result.cursor = info.hCursor;
   result.position = Point(info.ptScreenPos.x, info.ptScreenPos.y);
   result.visible = info.flags & CURSOR_SHOWING;

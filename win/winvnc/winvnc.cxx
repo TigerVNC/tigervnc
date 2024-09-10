@@ -177,13 +177,13 @@ static void processParams(int argc, char** argv) {
         // Try to clean up earlier services we've had
         try {
           rfb::win32::unregisterService("WinVNC4");
-        } catch (rdr::SystemException&) {
+        } catch (rdr::Win32Exception&) {
           // Do nothing as we might fail simply because there was no
           // service to remove
         }
         try {
           rfb::win32::unregisterService("TigerVNC Server");
-        } catch (rdr::SystemException&) {
+        } catch (rdr::Win32Exception&) {
         }
 
         if (rfb::win32::registerService(VNCServerService::Name,
