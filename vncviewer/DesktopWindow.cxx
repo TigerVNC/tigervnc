@@ -245,6 +245,11 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
 DesktopWindow::~DesktopWindow()
 {
+  // Don't leave any dangling grabs as they are not automatically
+  // cleaned up on all platforms
+  ungrabPointer();
+  ungrabKeyboard();
+
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
   Fl::remove_timeout(handleGrab, this);
