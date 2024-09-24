@@ -600,22 +600,22 @@ int Viewport::handle(int event)
   case FL_MOUSEWHEEL:
     buttonMask = 0;
     if (Fl::event_button1())
-      buttonMask |= 1;
+      buttonMask |= 1 << 0;
     if (Fl::event_button2())
-      buttonMask |= 2;
+      buttonMask |= 1 << 1;
     if (Fl::event_button3())
-      buttonMask |= 4;
+      buttonMask |= 1 << 2;
 
     if (event == FL_MOUSEWHEEL) {
       wheelMask = 0;
       if (Fl::event_dy() < 0)
-        wheelMask |= 8;
+        wheelMask |= 1 << 3;
       if (Fl::event_dy() > 0)
-        wheelMask |= 16;
+        wheelMask |= 1 << 4;
       if (Fl::event_dx() < 0)
-        wheelMask |= 32;
+        wheelMask |= 1 << 5;
       if (Fl::event_dx() > 0)
-        wheelMask |= 64;
+        wheelMask |= 1 << 6;
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
