@@ -176,8 +176,11 @@ void VNCServerST::removeSocket(network::Socket* sock) {
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
       // - Remove any references to it
-      if (pointerClient == *ci)
+      if (pointerClient == *ci) {
+        // Release the mouse buttons the client have pressed
+        desktop->pointerEvent(cursorPos, 0);
         pointerClient = nullptr;
+      }
       if (clipboardClient == *ci)
         handleClipboardAnnounce(*ci, false);
       clipboardRequestors.remove(*ci);
