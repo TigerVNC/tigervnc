@@ -80,7 +80,7 @@ namespace rfb {
       void handleClipboardRequest() override;
       void handleClipboardAnnounce(bool available) override;
       void handleClipboardData(const char* data) override;
-      void pointerEvent(const Point& pos, uint8_t buttonmask) override;
+      void pointerEvent(const Point& pos, uint16_t buttonmask) override;
       void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
 
       // -=- Clipboard events

@@ -272,11 +272,32 @@ bool SMsgReader::readKeyEvent()
 
 bool SMsgReader::readPointerEvent()
 {
+  int mask;
+  int x;
+  int y;
+
   if (!is->hasData(1 + 2 + 2))
     return false;
-  int mask = is->readU8();
-  int x = is->readU16();
-  int y = is->readU16();
+
+  is->setRestorePoint();
+
+  mask = is->readU8();
+  x = is->readU16();
+  y = is->readU16();
+
+  if (handler->client.supportsExtendedMouseButtons() && mask & 0x80 ) {
+    int highBits;
+    int lowBits;
+
+    if (!is->hasDataOrRestore(1))
+      return false;
+
+    highBits = is->readU8();
+    lowBits = mask & 0x7f; /* Clear marker bit */
+    mask = (highBits << 7) | lowBits;
+  }
+
+  is->clearRestorePoint();
   handler->pointerEvent(Point(x, y), mask);
   return true;
 }

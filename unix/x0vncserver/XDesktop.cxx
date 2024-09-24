@@ -242,9 +242,9 @@ void XDesktop::init(VNCServer* vs)
 void XDesktop::start()
 {
   // Determine actual number of buttons of the X pointer device.
-  unsigned char btnMap[8];
-  int numButtons = XGetPointerMapping(dpy, btnMap, 8);
-  maxButtons = (numButtons > 8) ? 8 : numButtons;
+  unsigned char btnMap[9];
+  int numButtons = XGetPointerMapping(dpy, btnMap, 9);
+  maxButtons = (numButtons > 9) ? 9 : numButtons;
   vlog.info("Enabling %d button%s of X pointer device",
             maxButtons, (maxButtons != 1) ? "s" : "");
 
@@ -342,7 +342,7 @@ void XDesktop::queryConnection(network::Socket* sock,
   queryConnectDialog->map();
 }
 
-void XDesktop::pointerEvent(const Point& pos, uint8_t buttonMask) {
+void XDesktop::pointerEvent(const Point& pos, uint16_t buttonMask) {
 #ifdef HAVE_XTEST
   if (!haveXtest) return;
   XTestFakeMotionEvent(dpy, DefaultScreen(dpy),

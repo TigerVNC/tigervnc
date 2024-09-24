@@ -50,7 +50,7 @@ extern const unsigned int code_map_qnum_to_xorgevdev_len;
 extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
-#define BUTTONS 7
+#define BUTTONS 9
 
 DeviceIntPtr vncKeyboardDev;
 DeviceIntPtr vncPointerDev;
@@ -206,6 +206,23 @@ static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 		btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
 		btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
 		btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+
+		/*
+		 * The labels BTN_LABEL_PROP_BTN_SIDE and BTN_LABEL_PROP_BTN_EXTRA
+		 * represent the side buttons on mice that are typically used to
+		 * navigate back/forward respectively in web browsers.
+		 *
+		 * In X11, these labels are mapped to the BTN_SIDE and BTN_EXTRA
+		 * input codes, which are mapped in the Linux HID driver. These
+		 * are not to be confused with the BTN_FORWARD and BTN_BACK input
+		 * codes, which some applications also use for back/forward
+		 * navigation.
+		 *
+		 * It seems like most mice have their side buttons mapped to
+		 * BTN_SIDE and BTN_EXTRA.
+		 */
+		btn_labels[7] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_SIDE);
+		btn_labels[8] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_EXTRA);
 
 		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
 		axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
