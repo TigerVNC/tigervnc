@@ -222,6 +222,27 @@ Accept pointer movement and button events from clients. Default is on.
 Accept requests to resize the size of the desktop. Default is on.
 .
 .TP
+.B \-AcceptCutText
+Accept clipboard updates from clients. Default is on.
+.
+.TP
+.B \-SetPrimary
+Set the PRIMARY as well as the CLIPBOARD selection. Default is on.
+.
+.TP
+.B \-MaxCutText \fIbytes\fP
+The maximum permitted size of an incoming clipboard update.
+Default is \fB262144\fP.
+.
+.TP
+.B \-SendCutText
+Send clipboard changes to clients. Default is on.
+.
+.TP
+.B \-SendPrimary
+Send the PRIMARY as well as the CLIPBOARD selection to clients. Default is on.
+.
+.TP
 .B \-RemapKeys \fImapping
 Sets up a keyboard mapping.
 .I mapping
