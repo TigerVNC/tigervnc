@@ -45,6 +45,7 @@
 #endif
 #ifdef HAVE_XFIXES
 #include <X11/extensions/Xfixes.h>
+#include <X11/Xatom.h>
 #endif
 #ifdef HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -83,7 +84,7 @@ static const char * ledNames[XDESKTOP_N_LEDS] = {
 
 XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
   : dpy(dpy_), geometry(geometry_), pb(nullptr), server(nullptr),
-    queryConnectDialog(nullptr), queryConnectSock(nullptr),
+    queryConnectDialog(nullptr), queryConnectSock(nullptr), selection(dpy_, this),
     oldButtonMask(0), haveXtest(false), haveDamage(false),
     maxButtons(0), running(false), ledMasks(), ledState(0),
     codeMap(nullptr), codeMapLen(0)
@@ -181,10 +182,15 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
   if (XFixesQueryExtension(dpy, &xfixesEventBase, &xfixesErrorBase)) {
     XFixesSelectCursorInput(dpy, DefaultRootWindow(dpy),
                             XFixesDisplayCursorNotifyMask);
+
+    XFixesSelectSelectionInput(dpy, DefaultRootWindow(dpy), XA_PRIMARY,
+                               XFixesSetSelectionOwnerNotifyMask);
+    XFixesSelectSelectionInput(dpy, DefaultRootWindow(dpy), xaCLIPBOARD,
+                               XFixesSetSelectionOwnerNotifyMask);
   } else {
 #endif
     vlog.info("XFIXES extension not present");
-    vlog.info("Will not be able to display cursors");
+    vlog.info("Will not be able to display cursors or monitor clipboard");
 #ifdef HAVE_XFIXES
   }
 #endif
@@ -891,6 +897,20 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
       return false;
 
     return setCursor();
+  }
+  else if (ev->type == xfixesEventBase + XFixesSelectionNotify) {
+    XFixesSelectionNotifyEvent* sev = (XFixesSelectionNotifyEvent*)ev;
+
+    if (!running)
+      return true;
+
+    if (sev->subtype != XFixesSetSelectionOwnerNotify)
+      return false;
+
+    selection.handleSelectionOwnerChange(sev->owner, sev->selection,
+                                         sev->timestamp);
+
+    return true;
 #endif
 #ifdef HAVE_XRANDR
   } else if (ev->type == Expose) {
@@ -1038,3 +1058,28 @@ bool XDesktop::setCursor()
   return true;
 }
 #endif
+
+// X selection availability changed, let VNC clients know
+void XDesktop::handleXSelectionAnnounce(bool available) {
+  server->announceClipboard(available);
+}
+
+// A VNC client wants data, send request to selection owner
+void XDesktop::handleClipboardRequest() { 
+  selection.requestSelectionData(); 
+}
+
+// Data is available, send it to clients
+void XDesktop::handleXSelectionData(const char* data) {
+  server->sendClipboardData(data);
+}
+
+// When a client says it has clipboard data, request it 
+void XDesktop::handleClipboardAnnounce(bool available) {
+   if(available) server->requestClipboard();
+}
+
+// Client has sent the data
+void XDesktop::handleClipboardData(const char* data) {
+  if (data) selection.handleClientClipboardData(data);
+}

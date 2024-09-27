@@ -281,11 +281,6 @@ int main(int argc, char** argv)
 
   Configuration::enableServerParams();
 
-  // FIXME: We don't support clipboard yet
-  Configuration::removeParam("AcceptCutText");
-  Configuration::removeParam("SendCutText");
-  Configuration::removeParam("MaxCutText");
-
   // Assume different defaults when socket activated
   if (hasSystemdListeners())
     rfbport.setParam(-1);

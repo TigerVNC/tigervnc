@@ -11,6 +11,7 @@ add_executable(x0vncserver
   XPixelBuffer.cxx
   XDesktop.cxx
   RandrGlue.c
+  XSelection.cxx
   ../vncconfig/QueryConnectDialog.cxx
 )
 
