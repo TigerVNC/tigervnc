@@ -754,6 +754,11 @@ void Viewport::handleClipboardChange(int source, void *data)
     return;
 #endif
 
+  if (!Fl::clipboard_contains(Fl::clipboard_plain_text)) {
+    vlog.debug("Got non-plain text in local clipboard, ignoring.");
+    return;
+  }
+
   self->clipboardSource = source;
 
   if (!self->hasFocus()) {
