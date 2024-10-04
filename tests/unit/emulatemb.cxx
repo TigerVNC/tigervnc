@@ -42,14 +42,14 @@ rfb::BoolParameter emulateMiddleButton("dummy_name", "dummy_desc", true);
 class TestClass : public EmulateMB
 {
 public:
-  void sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask) override;
+  void sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask) override;
 
-  struct PointerEventParams {rfb::Point pos; uint8_t mask; };
+  struct PointerEventParams {rfb::Point pos; uint16_t mask; };
 
   std::vector<PointerEventParams> results;
 };
 
-void TestClass::sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask)
+void TestClass::sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask)
 {
   PointerEventParams params;
   params.pos = pos;
