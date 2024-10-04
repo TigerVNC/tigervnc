@@ -606,6 +606,20 @@ int Viewport::handle(int event)
     if (Fl::event_button3())
       buttonMask |= 1 << 2;
 
+  // The back/forward buttons are not supported by FTLK 1.3 and require
+  // a patch which adds these buttons to the FLTK API. These buttons
+  // will be part of the upcoming 1.4 API:
+  //   * https://github.com/fltk/fltk/pull/1081
+  //
+  // A backport for branch-1.3 is available here:
+  //   * https://github.com/fltk/fltk/pull/1083
+#if defined(FL_BUTTON4) && defined(FL_BUTTON5)
+    if (Fl::event_button4())
+      buttonMask |= 1 << 7;
+    if (Fl::event_button5())
+      buttonMask |= 1 << 8;
+#endif
+
     if (event == FL_MOUSEWHEEL) {
       wheelMask = 0;
       if (Fl::event_dy() < 0)
@@ -660,7 +674,7 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
-void Viewport::sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask)
+void Viewport::sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask)
 {
   if (viewOnly)
       return;
@@ -790,7 +804,7 @@ void Viewport::flushPendingClipboard()
 }
 
 
-void Viewport::handlePointerEvent(const rfb::Point& pos, uint8_t buttonMask)
+void Viewport::handlePointerEvent(const rfb::Point& pos, uint16_t buttonMask)
 {
   filterPointerEvent(pos, buttonMask);
 }
@@ -937,6 +951,8 @@ int Viewport::handleSystemEvent(void *event, void *data)
       (msg->message == WM_RBUTTONUP) ||
       (msg->message == WM_MBUTTONDOWN) ||
       (msg->message == WM_MBUTTONUP) ||
+      (msg->message == WM_XBUTTONDOWN) ||
+      (msg->message == WM_XBUTTONUP) ||
       (msg->message == WM_MOUSEWHEEL) ||
       (msg->message == WM_MOUSEHWHEEL)) {
     // We can't get a mouse event in the middle of an AltGr sequence, so
