@@ -32,7 +32,7 @@ ServerParams::ServerParams()
   : majorVersion(0), minorVersion(0),
     supportsQEMUKeyEvent(false),
     supportsSetDesktopSize(false), supportsFence(false),
-    supportsContinuousUpdates(false),
+    supportsContinuousUpdates(false), supportsExtendedMouseButtons(false),
     width_(0), height_(0),
     ledState_(ledUnknown)
 {
