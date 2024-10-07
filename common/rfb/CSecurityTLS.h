@@ -43,6 +43,8 @@ namespace rfb {
 
     static StringParameter X509CA;
     static StringParameter X509CRL;
+    static StringParameter X509CERT;
+    static StringParameter X509KEY;
 
   protected:
     void shutdown();

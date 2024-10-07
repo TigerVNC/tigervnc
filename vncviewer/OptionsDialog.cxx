@@ -61,7 +61,7 @@ std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
 static std::set<OptionsDialog *> instances;
 
 OptionsDialog::OptionsDialog()
-  : Fl_Window(580, 420, _("TigerVNC Options"))
+  : Fl_Window(580, 450, _("TigerVNC Options"))
 {
   int x, y;
   Fl_Navigation *navigation;
@@ -305,6 +305,8 @@ void OptionsDialog::loadOptions(void)
 #ifdef HAVE_GNUTLS
   caInput->value(CSecurityTLS::X509CA);
   crlInput->value(CSecurityTLS::X509CRL);
+  certInput->value(CSecurityTLS::X509CERT);
+  keyInput->value(CSecurityTLS::X509KEY);
 
   handleX509(encX509Checkbox, this);
 #endif
@@ -436,6 +438,8 @@ void OptionsDialog::storeOptions(void)
 
   CSecurityTLS::X509CA.setParam(caInput->value());
   CSecurityTLS::X509CRL.setParam(crlInput->value());
+  CSecurityTLS::X509CERT.setParam(certInput->value());
+  CSecurityTLS::X509KEY.setParam(keyInput->value());
 #endif
 
 #ifdef HAVE_NETTLE
@@ -727,6 +731,20 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
                             width - INDENT * 2, INPUT_HEIGHT,
                             _("Path to X509 CRL file"));
     crlInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+    ty += INPUT_HEIGHT + TIGHT_MARGIN;
+
+    ty += INPUT_LABEL_OFFSET;
+    certInput = new Fl_Input(tx + INDENT, ty,
+                           width - INDENT * 2, INPUT_HEIGHT,
+                           _("Path to X509 client certificate"));
+    certInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+    ty += INPUT_HEIGHT + TIGHT_MARGIN;
+
+    ty += INPUT_LABEL_OFFSET;
+    keyInput = new Fl_Input(tx + INDENT, ty,
+                            width - INDENT * 2, INPUT_HEIGHT,
+                            _("Path to X509 client private key"));
+    keyInput->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
     ty += INPUT_HEIGHT + TIGHT_MARGIN;
 #endif
 #ifdef HAVE_NETTLE
@@ -1094,9 +1112,13 @@ void OptionsDialog::handleX509(Fl_Widget* /*widget*/, void *data)
   if (dialog->encX509Checkbox->value()) {
     dialog->caInput->activate();
     dialog->crlInput->activate();
+    dialog->certInput->activate();
+    dialog->keyInput->activate();
   } else {
     dialog->caInput->deactivate();
     dialog->crlInput->deactivate();
+    dialog->certInput->deactivate();
+    dialog->keyInput->deactivate();
   }
 }
 

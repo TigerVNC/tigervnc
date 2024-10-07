@@ -105,6 +105,8 @@ protected:
   Fl_Check_Button *encRSAAESCheckbox;
   Fl_Input *caInput;
   Fl_Input *crlInput;
+  Fl_Input *certInput;
+  Fl_Input *keyInput;
 
   Fl_Group *authenticationGroup;
   Fl_Check_Button *authNoneCheckbox;
