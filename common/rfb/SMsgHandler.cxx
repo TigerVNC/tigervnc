@@ -53,12 +53,13 @@ void SMsgHandler::setPixelFormat(const PixelFormat& pf)
 void SMsgHandler::setEncodings(int nEncodings, const int32_t* encodings)
 {
   bool firstFence, firstContinuousUpdates, firstLEDState,
-       firstQEMUKeyEvent;
+       firstQEMUKeyEvent, firstExtMouseButtonsEvent;
 
   firstFence = !client.supportsFence();
   firstContinuousUpdates = !client.supportsContinuousUpdates();
   firstLEDState = !client.supportsLEDState();
   firstQEMUKeyEvent = !client.supportsEncoding(pseudoEncodingQEMUKeyEvent);
+  firstExtMouseButtonsEvent = !client.supportsEncoding(pseudoEncodingExtendedMouseButtons);
 
   client.setEncodings(nEncodings, encodings);
 
@@ -72,6 +73,8 @@ void SMsgHandler::setEncodings(int nEncodings, const int32_t* encodings)
     supportsLEDState();
   if (client.supportsEncoding(pseudoEncodingQEMUKeyEvent) && firstQEMUKeyEvent)
     supportsQEMUKeyEvent();
+  if (client.supportsEncoding(pseudoEncodingExtendedMouseButtons) && firstExtMouseButtonsEvent)
+    supportsExtendedMouseButtons();
 }
 
 void SMsgHandler::keyEvent(uint32_t /*keysym*/, uint32_t /*keycode*/,
@@ -80,7 +83,7 @@ void SMsgHandler::keyEvent(uint32_t /*keysym*/, uint32_t /*keycode*/,
 }
 
 void SMsgHandler::pointerEvent(const Point& /*pos*/,
-                               uint8_t /*buttonMask*/)
+                               uint16_t /*buttonMask*/)
 {
 }
 
@@ -165,5 +168,9 @@ void SMsgHandler::supportsLEDState()
 }
 
 void SMsgHandler::supportsQEMUKeyEvent()
+{
+}
+
+void SMsgHandler::supportsExtendedMouseButtons()
 {
 }

@@ -115,6 +115,7 @@ enum { ID_DISCONNECT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
 static const WORD SCAN_FAKE = 0xaa;
 #endif
 
+
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
     lastPointerPos(0, 0), lastButtonMask(0),
@@ -600,29 +601,42 @@ int Viewport::handle(int event)
   case FL_MOUSEWHEEL:
     buttonMask = 0;
     if (Fl::event_button1())
-      buttonMask |= 1;
+      buttonMask |= 1 << 0;
     if (Fl::event_button2())
-      buttonMask |= 2;
+      buttonMask |= 1 << 1;
     if (Fl::event_button3())
-      buttonMask |= 4;
+      buttonMask |= 1 << 2;
+
+  // The back/forward buttons are not supported by FTLK 1.3 and require
+  // a patch which adds these buttons to the FLTK API. These buttons
+  // will be part of the upcoming 1.4 API:
+  //   * https://github.com/fltk/fltk/pull/1081
+  //
+  // A backport for branch-1.3 is available here:
+  //   * https://github.com/fltk/fltk/pull/1083
+#if defined(FL_BUTTON4) && defined(FL_BUTTON5)
+    if (Fl::event_button4())
+      buttonMask |= 1 << 7;
+    if (Fl::event_button5())
+      buttonMask |= 1 << 8;
+#endif
 
     if (event == FL_MOUSEWHEEL) {
       wheelMask = 0;
       if (Fl::event_dy() < 0)
-        wheelMask |= 8;
+        wheelMask |= 1 << 3;
       if (Fl::event_dy() > 0)
-        wheelMask |= 16;
+        wheelMask |= 1 << 4;
       if (Fl::event_dx() < 0)
-        wheelMask |= 32;
+        wheelMask |= 1 << 5;
       if (Fl::event_dx() > 0)
-        wheelMask |= 64;
+        wheelMask |= 1 << 6;
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
       handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()),
                          buttonMask | wheelMask);
     } 
-
     handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), buttonMask);
     return 1;
 
@@ -660,7 +674,7 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
-void Viewport::sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask)
+void Viewport::sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask)
 {
   if (viewOnly)
       return;
@@ -798,7 +812,7 @@ void Viewport::flushPendingClipboard()
 }
 
 
-void Viewport::handlePointerEvent(const rfb::Point& pos, uint8_t buttonMask)
+void Viewport::handlePointerEvent(const rfb::Point& pos, uint16_t buttonMask)
 {
   filterPointerEvent(pos, buttonMask);
 }
@@ -945,6 +959,8 @@ int Viewport::handleSystemEvent(void *event, void *data)
       (msg->message == WM_RBUTTONUP) ||
       (msg->message == WM_MBUTTONDOWN) ||
       (msg->message == WM_MBUTTONUP) ||
+      (msg->message == WM_XBUTTONDOWN) ||
+      (msg->message == WM_XBUTTONUP) ||
       (msg->message == WM_MOUSEWHEEL) ||
       (msg->message == WM_MOUSEHWHEEL)) {
     // We can't get a mouse event in the middle of an AltGr sequence, so
@@ -1242,20 +1258,20 @@ void Viewport::initContextMenu()
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Full screen"),
                 0, nullptr, (void*)ID_FULLSCREEN,
-                FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
+                2 | (window()->fullscreen_active()?4:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Minimi&ze"),
                 0, nullptr, (void*)ID_MINIMIZE, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Resize &window to session"),
                 0, nullptr, (void*)ID_RESIZE,
-                (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
+                (window()->fullscreen_active()?1:0) |
                 FL_MENU_DIVIDER);
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Ctrl"),
                 0, nullptr, (void*)ID_CTRL,
-                FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
+                2 | (menuCtrlKey?4:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Alt"),
                 0, nullptr, (void*)ID_ALT,
-                FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
+                2 | (menuAltKey?4:0));
 
   if (menuKeySym) {
     char sendMenuKey[64];
