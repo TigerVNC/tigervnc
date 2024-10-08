@@ -305,8 +305,8 @@ void OptionsDialog::loadOptions(void)
 #ifdef HAVE_GNUTLS
   caInput->value(CSecurityTLS::X509CA);
   crlInput->value(CSecurityTLS::X509CRL);
-  certInput->value(CSecurityTLS::X509CERT);
-  keyInput->value(CSecurityTLS::X509KEY);
+  certInput->value(CSecurityTLS::X509Cert);
+  keyInput->value(CSecurityTLS::X509Key);
 
   handleX509(encX509Checkbox, this);
 #endif
@@ -438,8 +438,8 @@ void OptionsDialog::storeOptions(void)
 
   CSecurityTLS::X509CA.setParam(caInput->value());
   CSecurityTLS::X509CRL.setParam(crlInput->value());
-  CSecurityTLS::X509CERT.setParam(certInput->value());
-  CSecurityTLS::X509KEY.setParam(keyInput->value());
+  CSecurityTLS::X509Cert.setParam(certInput->value());
+  CSecurityTLS::X509Key.setParam(keyInput->value());
 #endif
 
 #ifdef HAVE_NETTLE

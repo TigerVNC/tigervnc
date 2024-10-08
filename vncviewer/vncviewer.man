@@ -165,18 +165,18 @@ Path to certificate revocation list to use in conjunction with
 \fI~/.config/tigervnc/x509_crl.pem\fP.
 .
 .TP
-.B \-X509CERT \fIpath\fP
+.B \-X509Cert \fIpath\fP
 Path to client certificate to use when authenticating client using any
 of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
-format. Default is \fI$XDG_CONFIG_HOME/tigervnc/x509_cert.pem\fP, or
-\fI~/.config/tigervnc/x509_cert.pem\fP.
+format. Default is \fI$XDG_CONFIG_HOME/tigervnc/x509_client_cert.pem\fP, or
+\fI~/.config/tigervnc/x509_client_cert.pem\fP.
 .
 .TP
-.B \-X509KEY \fIpath\fP
+.B \-X509Key \fIpath\fP
 Path to client private key to use in conjunction with
 \fB-X509CERT\fP. Must also be in PEM format. Default is
-\fI$XDG_CONFIG_HOME/tigervnc/x509_key.pem\fP, or
-\fI~/.config/tigervnc/x509_key.pem\fP.
+\fI$XDG_CONFIG_HOME/tigervnc/x509_client_key.pem\fP, or
+\fI~/.config/tigervnc/x509_client_key.pem\fP.
 .
 .TP
 .B \-Shared
