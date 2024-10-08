@@ -174,7 +174,7 @@ format. Default is \fI$XDG_CONFIG_HOME/tigervnc/x509_client_cert.pem\fP, or
 .TP
 .B \-X509Key \fIpath\fP
 Path to client private key to use in conjunction with
-\fB-X509CERT\fP. Must also be in PEM format. Default is
+\fB-X509Cert\fP. Must also be in PEM format. Default is
 \fI$XDG_CONFIG_HOME/tigervnc/x509_client_key.pem\fP, or
 \fI~/.config/tigervnc/x509_client_key.pem\fP.
 .
