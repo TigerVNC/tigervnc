@@ -32,10 +32,27 @@ namespace rdr {
     virtual const char* str() const { return str_; }
   };
 
-  struct SystemException : public Exception {
+  struct PosixException : public Exception {
     int err;
-    SystemException(const char* s, int err_);
+    PosixException(const char* s, int err_);
   };
+
+#ifdef WIN32
+  struct Win32Exception : public Exception {
+    unsigned err;
+    Win32Exception(const char* s, unsigned err_);
+  };
+#endif
+
+#ifdef WIN32
+  struct SocketException : public Win32Exception {
+    SocketException(const char* text, unsigned err_) : Win32Exception(text, err_) {}
+  };
+#else
+  struct SocketException : public PosixException {
+    SocketException(const char* text, int err_) : PosixException(text, err_) {}
+  };
+#endif
 
   struct GAIException : public Exception {
     int err;

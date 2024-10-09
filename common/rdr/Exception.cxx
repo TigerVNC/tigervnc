@@ -76,11 +76,23 @@ GAIException::GAIException(const char* s, int err_)
   strncat(str_, ")", len-1-strlen(str_));
 }
 
-SystemException::SystemException(const char* s, int err_)
+PosixException::PosixException(const char* s, int err_)
   : Exception("%s", s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
-#ifdef _WIN32
+  strncat(str_, strerror(err), len-1-strlen(str_));
+  strncat(str_, " (", len-1-strlen(str_));
+  char buf[20];
+    sprintf(buf,"%d",err);
+  strncat(str_, buf, len-1-strlen(str_));
+  strncat(str_, ")", len-1-strlen(str_));
+}
+
+#ifdef WIN32
+Win32Exception::Win32Exception(const char* s, unsigned err_)
+  : Exception("%s", s), err(err_)
+{
+  strncat(str_, ": ", len-1-strlen(str_));
   wchar_t *currStr = new wchar_t[len-strlen(str_)];
   FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                  nullptr, err, 0, currStr, len-1-strlen(str_), nullptr);
@@ -92,18 +104,10 @@ SystemException::SystemException(const char* s, int err_)
   if ((l >= 2) && (str_[l-2] == '\r') && (str_[l-1] == '\n'))
       str_[l-2] = 0;
 
-#else
-  strncat(str_, strerror(err), len-1-strlen(str_));
-#endif
   strncat(str_, " (", len-1-strlen(str_));
   char buf[20];
-#ifdef WIN32
-  if (err < 0)
-    sprintf(buf, "%x", err);
-  else
-#endif
-    sprintf(buf,"%d",err);
+  sprintf(buf,"%d",err);
   strncat(str_, buf, len-1-strlen(str_));
   strncat(str_, ")", len-1-strlen(str_));
 }
-
+#endif

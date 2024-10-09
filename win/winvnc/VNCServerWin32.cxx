@@ -188,7 +188,7 @@ int VNCServerWin32::run() {
     while (runServer) {
       result = sockMgr.getMessage(&msg, nullptr, 0, 0);
       if (result < 0)
-        throw rdr::SystemException("getMessage", GetLastError());
+        throw rdr::Win32Exception("getMessage", GetLastError());
       if (!isServiceProcess() && (result == 0))
         break;
       TranslateMessage(&msg);
@@ -196,7 +196,7 @@ int VNCServerWin32::run() {
     }
 
     vlog.debug("Server exited cleanly");
-  } catch (rdr::SystemException &s) {
+  } catch (rdr::Win32Exception &s) {
     vlog.error("%s", s.str());
     result = s.err;
   } catch (rdr::Exception &e) {

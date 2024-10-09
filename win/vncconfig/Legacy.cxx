@@ -42,7 +42,7 @@ void LegacyPage::LoadPrefs()
         std::string username;
         try {
           username = UserName();
-        } catch (rdr::SystemException& e) {
+        } catch (rdr::Win32Exception& e) {
           if (e.err != ERROR_NOT_LOGGED_ON)
             throw;
         }

@@ -30,7 +30,7 @@ namespace rfb {
       CompatibleBitmap(HDC hdc, int width, int height) {
         hbmp = CreateCompatibleBitmap(hdc, width, height);
         if (!hbmp)
-          throw rdr::SystemException("CreateCompatibleBitmap() failed", GetLastError());
+          throw rdr::Win32Exception("CreateCompatibleBitmap() failed", GetLastError());
       }
       virtual ~CompatibleBitmap() {
         if (hbmp) DeleteObject(hbmp);

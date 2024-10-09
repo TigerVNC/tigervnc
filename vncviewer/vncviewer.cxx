@@ -808,7 +808,7 @@ int main(int argc, char** argv)
             vlog.debug("Interrupted select() system call");
             continue;
           } else {
-            throw rdr::SystemException("select", errno);
+            throw rdr::SocketException("select", errno);
           }
         }
 

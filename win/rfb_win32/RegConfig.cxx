@@ -69,8 +69,8 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
       if (!Configuration::setParam(name, value.c_str()))
         vlog.info("unable to process %s", name);
     }
-  } catch (rdr::SystemException& e) {
-    if (e.err != 6)
+  } catch (rdr::Win32Exception& e) {
+    if (e.err != ERROR_INVALID_HANDLE)
       vlog.error("%s", e.str());
   }
 }
@@ -115,5 +115,5 @@ void RegConfigThread::worker() {
   thread_id = GetCurrentThreadId();
   while ((result = eventMgr.getMessage(&msg, nullptr, 0, 0)) > 0) {}
   if (result < 0)
-    throw rdr::SystemException("RegConfigThread failed", GetLastError());
+    throw rdr::Win32Exception("RegConfigThread failed", GetLastError());
 }

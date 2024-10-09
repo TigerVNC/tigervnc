@@ -57,10 +57,10 @@ void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
 
   dc = CreateCompatibleDC(fl_gc);
   if (!dc)
-    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+    throw rdr::Win32Exception("CreateCompatibleDC", GetLastError());
 
   if (!SelectObject(dc, bitmap))
-    throw rdr::SystemException("SelectObject", GetLastError());
+    throw rdr::Win32Exception("SelectObject", GetLastError());
 
   if (!BitBlt(fl_gc, dst_x, dst_y, dst_w, dst_h,
               dc, src_x, src_y, SRCCOPY)) {
@@ -70,7 +70,7 @@ void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
     // with it. For now, we've only seen this error and for this function
     // so only ignore this combination.
     if (GetLastError() != ERROR_INVALID_HANDLE)
-      throw rdr::SystemException("BitBlt", GetLastError());
+      throw rdr::Win32Exception("BitBlt", GetLastError());
   }
 
   DeleteDC(dc);
@@ -83,10 +83,10 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
 
   dstdc = CreateCompatibleDC(nullptr);
   if (!dstdc)
-    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+    throw rdr::Win32Exception("CreateCompatibleDC", GetLastError());
 
   if (!SelectObject(dstdc, dst->bitmap))
-    throw rdr::SystemException("SelectObject", GetLastError());
+    throw rdr::Win32Exception("SelectObject", GetLastError());
 
   origdc = fl_gc;
   fl_gc = dstdc;
@@ -113,15 +113,15 @@ void Surface::blend(Surface* dst, int src_x, int src_y,
 
   dstdc = CreateCompatibleDC(nullptr);
   if (!dstdc)
-    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+    throw rdr::Win32Exception("CreateCompatibleDC", GetLastError());
   srcdc = CreateCompatibleDC(nullptr);
   if (!srcdc)
-    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+    throw rdr::Win32Exception("CreateCompatibleDC", GetLastError());
 
   if (!SelectObject(dstdc, dst->bitmap))
-    throw rdr::SystemException("SelectObject", GetLastError());
+    throw rdr::Win32Exception("SelectObject", GetLastError());
   if (!SelectObject(srcdc, bitmap))
-    throw rdr::SystemException("SelectObject", GetLastError());
+    throw rdr::Win32Exception("SelectObject", GetLastError());
 
   blend.BlendOp = AC_SRC_OVER;
   blend.BlendFlags = 0;
@@ -136,7 +136,7 @@ void Surface::blend(Surface* dst, int src_x, int src_y,
     // with it. For now, we've only seen this error and for this function
     // so only ignore this combination.
     if (GetLastError() != ERROR_INVALID_HANDLE)
-      throw rdr::SystemException("BitBlt", GetLastError());
+      throw rdr::Win32Exception("BitBlt", GetLastError());
   }
 
   DeleteDC(srcdc);
@@ -161,7 +161,7 @@ void Surface::alloc()
   bitmap = CreateDIBSection(nullptr, (BITMAPINFO*)&bih,
                             DIB_RGB_COLORS, (void**)&data, nullptr, 0);
   if (!bitmap)
-    throw rdr::SystemException("CreateDIBSection", GetLastError());
+    throw rdr::Win32Exception("CreateDIBSection", GetLastError());
 }
 
 void Surface::dealloc()

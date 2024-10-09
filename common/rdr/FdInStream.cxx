@@ -92,7 +92,7 @@ size_t FdInStream::readFd(uint8_t* buf, size_t len)
   } while (n < 0 && errorNumber == EINTR);
 
   if (n < 0)
-    throw SystemException("select", errorNumber);
+    throw SocketException("select", errorNumber);
 
   if (n == 0)
     return 0;
@@ -102,7 +102,7 @@ size_t FdInStream::readFd(uint8_t* buf, size_t len)
   } while (n < 0 && errorNumber == EINTR);
 
   if (n < 0)
-    throw SystemException("read", errorNumber);
+    throw SocketException("read", errorNumber);
   if (n == 0)
     throw EndOfStream();
 

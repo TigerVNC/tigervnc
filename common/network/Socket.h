@@ -26,7 +26,6 @@
 #include <limits.h>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
-#include <rdr/Exception.h>
 
 namespace network {
 
@@ -105,10 +104,6 @@ namespace network {
   protected:
     int fd;
     ConnectionFilter* filter;
-  };
-
-  struct SocketException : public rdr::SystemException {
-    SocketException(const char* text, int err_) : rdr::SystemException(text, err_) {}
   };
 
 }

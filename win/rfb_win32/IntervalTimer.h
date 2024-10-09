@@ -41,7 +41,7 @@ namespace rfb {
         if (!active || interval_ != interval) {
           interval = interval_;
           if (!SetTimer(hwnd, id, interval, nullptr))
-            throw rdr::SystemException("SetTimer", GetLastError());
+            throw rdr::Win32Exception("SetTimer", GetLastError());
           active = true;
         }
       }
