@@ -288,7 +288,7 @@ sub LoadConfig {
     if (open(IN, $configFile)) {
       while (<IN>) {
         next if /^#/;
-        if (my ($k, $v) = /^\s*(\w+)\s*=\s*(.+)$/) {
+        if (my ($k, $v) = /^\s*(\w+)\s*=\s*(.*)$/) {
           $k = lc($k); # must normalize key case
           if ($warnoverride && $config{$k}) {
             print("Warning: $configFile is overriding previously defined '$k' to be '$v'\n");
