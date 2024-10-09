@@ -212,6 +212,8 @@ public class VncViewer implements Runnable {
 
     // Check if the server name in reality is a configuration file
     potentiallyLoadConfigurationFile(vncServerName);
+
+    migrateDeprecatedOptions();
   }
 
   public static void usage() {
@@ -446,6 +448,15 @@ public class VncViewer implements Runnable {
           cc.close();
       }
       exit(1);
+    }
+  }
+
+  static void migrateDeprecatedOptions() {
+    if (dotWhenNoCursor.getValue()) {
+      vlog.info("DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' instead");
+
+      alwaysCursor.setParam(true);
+      cursorType.setParam("Dot");
     }
   }
 
