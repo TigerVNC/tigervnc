@@ -40,6 +40,7 @@
 #include "parameters.h"
 
 #include "fltk/layout.h"
+#include "fltk/theme.h"
 #include "fltk/util.h"
 #include "fltk/Fl_Monitor_Arrangement.h"
 #include "fltk/Fl_Navigation.h"
@@ -353,6 +354,15 @@ void OptionsDialog::loadOptions(void)
   sharedCheckbox->value(shared);
   reconnectCheckbox->value(reconnectOnError);
   dotCursorCheckbox->value(dotWhenNoCursor);
+
+  /* Theme */
+  if (!strcasecmp(theme, "light")) {
+    lightThemeButton->setonly();
+  } else if (!strcasecmp(theme, "dark")) {
+    darkThemeButton->setonly();
+  } else {
+    autoThemeButton->setonly();
+  }
 }
 
 
@@ -487,6 +497,15 @@ void OptionsDialog::storeOptions(void)
   shared.setParam(sharedCheckbox->value());
   reconnectOnError.setParam(reconnectCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
+
+  /* Theme */
+  if (lightThemeButton->value()) {
+    theme.setParam("Light");
+  } else if (darkThemeButton->value()) {
+    theme.setParam("Dark");
+  } else {
+    theme.setParam("Auto");
+  }
 
   std::map<OptionsCallback*, void*>::const_iterator iter;
 
@@ -1028,8 +1047,15 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
 {
   Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Miscellaneous"));
 
+  int orig_tx;
+  int width;
+
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
+
+  width = tw - OUTER_MARGIN * 2;
+
+  orig_tx = tx;
 
   sharedCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                   CHECK_MIN_WIDTH,
@@ -1042,6 +1068,53 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
                                                   CHECK_HEIGHT,
                                                   _("Ask to reconnect on connection errors")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+  /* Theme */
+  ty += GROUP_LABEL_OFFSET;
+  themeGroup = new Fl_Group(tx, ty, width, 0, _("Theme"));
+  themeGroup->labelfont(FL_BOLD);
+  themeGroup->box(FL_FLAT_BOX);
+  themeGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+
+  {
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
+    width -= INDENT;
+
+    lightThemeButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                    RADIO_MIN_WIDTH,
+                                                    RADIO_HEIGHT,
+                                                    _("Light")));
+    lightThemeButton->type(FL_RADIO_BUTTON);
+    lightThemeButton->callback(handleTheme, this);
+    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+
+    darkThemeButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                   RADIO_MIN_WIDTH,
+                                                   RADIO_HEIGHT,
+                                                   _("Dark")));
+    darkThemeButton->type(FL_RADIO_BUTTON);
+    darkThemeButton->callback(handleTheme, this);
+    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+
+    autoThemeButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                                   RADIO_MIN_WIDTH,
+                                                   RADIO_HEIGHT,
+                                                   _("Auto")));
+    autoThemeButton->type(FL_RADIO_BUTTON);
+    autoThemeButton->callback(handleTheme, this);
+    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+  }
+  ty -= TIGHT_MARGIN;
+
+  themeGroup->end();
+  /* Needed for resize to work sanely */
+  themeGroup->resizable(nullptr);
+  themeGroup->size(themeGroup->w(), ty - themeGroup->y());
+
+  /* Back to normal */
+  tx = orig_tx;
+  ty += INNER_MARGIN;
 
   group->end();
 }
@@ -1138,6 +1211,24 @@ void OptionsDialog::handleFullScreenMode(Fl_Widget* /*widget*/, void *data)
   } else {
     dialog->monitorArrangement->deactivate();
   }
+}
+
+void OptionsDialog::handleTheme(Fl_Widget* /*widget*/, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  // Update FLTK theme
+  if (dialog->lightThemeButton->value()) {
+    init_theme("Light");
+  } else if (dialog->darkThemeButton->value()) {
+    init_theme("Dark");
+  } else {
+    init_theme("Auto");
+  }
+
+  // Redraw all windows using new theme
+  for (Fl_Window* wnd = Fl::first_window();  wnd;  wnd = Fl::next_window(wnd))
+    wnd->redraw();
 }
 
 void OptionsDialog::handleCancel(Fl_Widget* /*widget*/, void *data)

@@ -57,6 +57,8 @@ extern rfb::StringParameter desktopSize;
 extern rfb::StringParameter geometry;
 extern rfb::BoolParameter remoteResize;
 
+extern rfb::StringParameter theme;
+
 extern rfb::BoolParameter listenMode;
 
 extern rfb::BoolParameter viewOnly;

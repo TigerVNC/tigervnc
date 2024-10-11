@@ -40,6 +40,6 @@
 #define THEME_ROUND_UP_BOX      (Fl_Boxtype)(_THEME_BOX_BASE+8)
 #define THEME_ROUND_DOWN_BOX    (Fl_Boxtype)(_THEME_BOX_BASE+9)
 
-void init_theme();
+void init_theme(const char* theme);
 
 #endif
