@@ -43,6 +43,7 @@
 #include "theme.h"
 
 const int RADIUS = 4;
+static bool dark_mode = false;
 
 /*
  * fl_arc() and fl_pie() are broken on Windows, so we need to fudge the
@@ -165,8 +166,13 @@ static void theme_round_rect(int x, int y, int w, int h, int r,
 
 static void theme_up_box(int x, int y, int w, int h, Fl_Color c)
 {
-  theme_round_rect(x, y, w, h, RADIUS,
-                   fl_color_average(FL_WHITE, c, 0.75));
+  if (dark_mode) {
+    theme_round_rect(x, y, w, h, RADIUS,
+                     fl_color_average(FL_WHITE, c, 0.1));
+  } else {
+    theme_round_rect(x, y, w, h, RADIUS,
+                     fl_color_average(FL_WHITE, c, 0.75));
+  }
   theme_up_frame(x, y, w, h, c);
 }
 
@@ -218,8 +224,22 @@ static void theme_round_down_box(int x, int y, int w, int h, Fl_Color c)
   fl_arc(x, y, w, h, 180.0, 360.0);
 }
 
-void init_theme()
+static void set_theme(const char* theme)
 {
+  if (!strcasecmp(theme, "light")) {
+    dark_mode = false;
+  } else if (!strcasecmp(theme, "dark")) {
+    dark_mode = true;
+  } else {
+    // FIXME: Determine use of dark mode from the system
+    dark_mode = false;
+  }
+}
+
+void init_theme(const char* theme)
+{
+  set_theme(theme);
+
 #if defined(WIN32) || defined(__APPLE__)
   static char font_name[256];
 #endif
@@ -232,37 +252,74 @@ void init_theme()
 
   // FIXME: Should get these from the system,
   //        Fl::get_system_colors() is unfortunately not very capable
-  // FIXME: Should also handle dark mode
 
 #if defined(WIN32)
   // Windows 11
-  Fl::foreground(26, 26, 26);
-  Fl::background(243, 243, 243);
+  if (dark_mode) {
+    Fl::foreground(255, 255, 255);
+    Fl::background(25, 25, 25);
+    Fl::background2(32, 32, 32);
+  } else {
+    Fl::foreground(26, 26, 26);
+    Fl::background(243, 243, 243);
+    Fl::background2(255, 255, 255);
+  }
 #elif defined(__APPLE__)
   // FIXME: Text is rendered slightly lighter than what we specify here
   //        for some odd reason. The target is (38, 38, 38).
-  Fl::foreground(28, 28, 28);
-  Fl::background(246, 246, 246);
+  if (dark_mode) {
+    Fl::foreground(223, 223, 223);
+    Fl::background(50, 50, 50);
+    Fl::background2(23, 23, 23);
+  } else {
+    Fl::foreground(28, 28, 28);
+    Fl::background(246, 246, 246);
+    Fl::background2(255, 255, 255);
+  }
 #else
   // GNOME
-  Fl::foreground(46, 52, 54);
-  Fl::background(246, 245, 244);
+  if (dark_mode) {
+    Fl::foreground(255, 255, 255);
+    Fl::background(51, 51, 51);
+    Fl::background2(45, 45, 45);
+  } else {
+    Fl::foreground(46, 52, 54);
+    Fl::background(246, 245, 244);
+    Fl::background2(255, 255, 255);
+  }
 #endif
 
 #if defined(WIN32)
   // Windows 11 default accent color
-  Fl::set_color(FL_SELECTION_COLOR, 0, 103, 192);
+  if (dark_mode) {
+    Fl::set_color(FL_SELECTION_COLOR, 0, 160, 250);
+  } else {
+    Fl::set_color(FL_SELECTION_COLOR, 0, 103, 192);
+  }
 #elif defined(__APPLE__)
-  Fl::set_color(FL_SELECTION_COLOR, 0, 122, 255);
+  if (dark_mode) {
+    Fl::set_color(FL_SELECTION_COLOR, 0, 87, 207);
+  } else {
+    Fl::set_color(FL_SELECTION_COLOR, 0, 122, 255);
+  }
 #else
   // GNOME
-  Fl::set_color(FL_SELECTION_COLOR, 53, 132, 228);
+  if (dark_mode) {
+    Fl::set_color(FL_SELECTION_COLOR, 21, 83, 158);
+  } else {
+    Fl::set_color(FL_SELECTION_COLOR, 53, 132, 228);
+  }
 #endif
 
   // The arrow on Fl_Return_Button gets a invisible, so let's adjust it
   // to compensate for our lighter buttons
-  Fl::set_color(FL_LIGHT3, light_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.5)));
-  Fl::set_color(FL_DARK3, dark_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.5)));
+  if (dark_mode) {
+    Fl::set_color(FL_LIGHT3, light_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.75)));
+    Fl::set_color(FL_DARK3, dark_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.75)));
+  } else {
+    Fl::set_color(FL_LIGHT3, light_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.5)));
+    Fl::set_color(FL_DARK3, dark_border(fl_color_average(FL_WHITE, FL_BACKGROUND_COLOR, 0.5)));
+  }
 
   // We will override the box types later, but changing scheme affects
   // more things than just those, so we still want to switch from the

@@ -164,7 +164,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
   icon->box(FL_UP_BOX);
   icon->labelfont(FL_TIMES_BOLD);
   icon->labelsize(34);
-  icon->color(FL_WHITE);
+  icon->color(FL_BACKGROUND2_COLOR);
   icon->labelcolor(FL_BLUE);
 
   x += icon->w() + INNER_MARGIN;

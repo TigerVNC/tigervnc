@@ -321,7 +321,7 @@ static const char* getlocaledir()
 static void init_fltk()
 {
   // Adjust look of FLTK
-  init_theme();
+  init_theme(theme);
 
   // Proper Gnome Shell integration requires that we set a sensible
   // WM_CLASS for the window.

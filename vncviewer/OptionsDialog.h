@@ -68,6 +68,8 @@ protected:
 
   static void handleFullScreenMode(Fl_Widget *widget, void *data);
 
+  static void handleTheme(Fl_Widget *widget, void *data);
+
   static void handleCancel(Fl_Widget *widget, void *data);
   static void handleOK(Fl_Widget *widget, void *data);
 
@@ -140,6 +142,10 @@ protected:
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
   Fl_Check_Button *reconnectCheckbox;
+  Fl_Group *themeGroup;
+  Fl_Round_Button *lightThemeButton;
+  Fl_Round_Button *darkThemeButton;
+  Fl_Round_Button *autoThemeButton;
 
 private:
   static int fltk_event_handler(int event);
