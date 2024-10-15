@@ -60,6 +60,7 @@ protected:
   static void handleAutoselect(Fl_Widget *widget, void *data);
   static void handleCompression(Fl_Widget *widget, void *data);
   static void handleJpeg(Fl_Widget *widget, void *data);
+  static void handleAlwaysCursor(Fl_Widget *widget, void *data);
 
   static void handleX509(Fl_Widget *widget, void *data);
   static void handleRSAAES(Fl_Widget *widget, void *data);
@@ -115,7 +116,8 @@ protected:
   Fl_Check_Button *viewOnlyCheckbox;
   Fl_Group *mouseGroup;
   Fl_Check_Button *emulateMBCheckbox;
-  Fl_Check_Button *dotCursorCheckbox;
+  Fl_Check_Button *alwaysCursorCheckbox;
+  Fl_Choice *cursorTypeChoice;
   Fl_Group *keyboardGroup;
   Fl_Check_Button *systemKeysCheckbox;
   Fl_Choice *menuKeyChoice;

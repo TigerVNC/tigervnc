@@ -152,8 +152,10 @@ class OptionsDialog extends Dialog {
 
   /* Misc. */
   JCheckBox sharedCheckbox;
-  JCheckBox dotWhenNoCursorCheckbox;
+  JCheckBox alwaysCursorCheckbox;
   JCheckBox acceptBellCheckbox;
+
+  JComboBox cursorTypeChoice;
 
   /* SSH */
   JCheckBox tunnelCheckbox;
@@ -311,6 +313,7 @@ class OptionsDialog extends Dialog {
     handleAutoselect();
     handleCompression();
     handleJpeg();
+    handleAlwaysCursor();
 
     /* Security */
     Security security = new Security(SecurityClient.secTypes);
@@ -458,7 +461,9 @@ class OptionsDialog extends Dialog {
 
     /* Misc. */
     sharedCheckbox.setSelected(shared.getValue());
-    dotWhenNoCursorCheckbox.setSelected(dotWhenNoCursor.getValue());
+    alwaysCursorCheckbox.setSelected(alwaysCursor.getValue());
+    String cursorTypeStr = cursorType.getValueStr();
+    cursorTypeChoice.setSelectedItem(cursorTypeStr);
     acceptBellCheckbox.setSelected(acceptBell.getValue());
 
     /* SSH */
@@ -613,8 +618,9 @@ class OptionsDialog extends Dialog {
 
     /* Misc. */
     shared.setParam(sharedCheckbox.isSelected());
-    dotWhenNoCursor.setParam(dotWhenNoCursorCheckbox.isSelected());
+    alwaysCursor.setParam(alwaysCursorCheckbox.isSelected());
     acceptBell.setParam(acceptBellCheckbox.isSelected());
+    cursorType.setParam((String)cursorTypeChoice.getSelectedItem());
 
     /* SSH */
     tunnel.setParam(tunnelCheckbox.isSelected());
@@ -1173,31 +1179,54 @@ class OptionsDialog extends Dialog {
     MiscPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
     sharedCheckbox =
       new JCheckBox("Shared (don't disconnect other viewers)");
-    dotWhenNoCursorCheckbox = new JCheckBox("Show dot when no cursor");
+    alwaysCursorCheckbox = new JCheckBox("Show local cursor when not provided by server");
+    alwaysCursorCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleAlwaysCursor();
+      }
+    });
+    JLabel cursorTypeLabel = new JLabel("Cursor type:");
+    String[] cursorTypes = {"Dot", "System"};
+    cursorTypeChoice = new MyJComboBox(cursorTypes);
+    cursorTypeChoice.setPrototypeDisplayValue("System.");
     acceptBellCheckbox = new JCheckBox("Beep when requested by the server");
     MiscPanel.add(sharedCheckbox,
                   new GridBagConstraints(0, 0,
-                                         1, 1,
+                                         REMAINDER, 1,
                                          LIGHT, LIGHT,
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(dotWhenNoCursorCheckbox,
+    MiscPanel.add(alwaysCursorCheckbox,
                   new GridBagConstraints(0, 1,
-                                         1, 1,
+                                         REMAINDER, 1,
                                          LIGHT, LIGHT,
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(acceptBellCheckbox,
+    MiscPanel.add(cursorTypeLabel,
                   new GridBagConstraints(0, 2,
                                          1, 1,
                                          LIGHT, LIGHT,
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+    MiscPanel.add(cursorTypeChoice,
+                  new GridBagConstraints(1, 2,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 5, 4, 0),
+                                         NONE, NONE));
+    MiscPanel.add(acceptBellCheckbox,
                   new GridBagConstraints(0, 3,
+                                         REMAINDER, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    MiscPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+                  new GridBagConstraints(0, 4,
                                          REMAINDER, REMAINDER,
                                          HEAVY, HEAVY,
                                          LINE_START, BOTH,
@@ -1631,6 +1660,11 @@ class OptionsDialog extends Dialog {
       for (JComponent c : components)
         c.setEnabled(false);
     }
+  }
+
+  private void handleAlwaysCursor()
+  {
+    cursorTypeChoice.setEnabled(alwaysCursorCheckbox.isSelected());
   }
 
   static LogWriter vlog = new LogWriter("OptionsDialog");

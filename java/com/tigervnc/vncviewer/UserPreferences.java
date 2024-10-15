@@ -144,6 +144,11 @@ public class UserPreferences {
     }
   }
 
+  public static void delete(String nName, String key) {
+      Preferences node = root.node(nName);
+      node.remove(key);
+  }
+
   static LogWriter vlog = new LogWriter("UserPreferences");
 }
 
