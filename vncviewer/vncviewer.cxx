@@ -80,7 +80,7 @@ static const char *argv0 = nullptr;
 
 static bool inMainloop = false;
 static bool exitMainloop = false;
-static char *exitError = nullptr;
+static std::string exitError;
 static bool fatalError = false;
 
 static const char *about_text()
@@ -107,12 +107,11 @@ void abort_vncviewer(const char *error, ...)
 
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if (exitError == nullptr) {
+  if (exitError.empty()) {
     va_list ap;
 
     va_start(ap, error);
-    exitError = (char*)malloc(1024);
-    vsnprintf(exitError, 1024, error, ap);
+    exitError = core::vformat(error, ap);
     va_end(ap);
   }
 
@@ -120,8 +119,8 @@ void abort_vncviewer(const char *error, ...)
     exitMainloop = true;
   else {
     // We're early in the startup. Assume we can just exit().
-    if (alertOnFatalError && (exitError != nullptr))
-      fl_alert("%s", exitError);
+    if (alertOnFatalError)
+      fl_alert("%s", exitError.c_str());
     exit(EXIT_FAILURE);
   }
 }
@@ -132,12 +131,11 @@ void abort_connection(const char *error, ...)
 
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if (exitError == nullptr) {
+  if (exitError.empty()) {
     va_list ap;
 
     va_start(ap, error);
-    exitError = (char*)malloc(1024);
-    vsnprintf(exitError, 1024, error, ap);
+    exitError = core::vformat(error, ap);
     va_end(ap);
   }
 
@@ -186,22 +184,21 @@ static void mainloop(const char* vncserver, network::Socket* sock)
     delete cc;
 
     if (fatalError) {
-      assert(exitError != nullptr);
+      assert(!exitError.empty());
       if (alertOnFatalError)
-        fl_alert("%s", exitError);
+        fl_alert("%s", exitError.c_str());
       break;
     }
 
-    if (exitError == nullptr)
+    if (exitError.empty())
       break;
 
     if(reconnectOnError && (sock == nullptr)) {
       int ret;
       ret = fl_choice(_("%s\n\n"
                         "Attempt to reconnect?"),
-                      nullptr, fl_yes, fl_no, exitError);
-      free(exitError);
-      exitError = nullptr;
+                      nullptr, fl_yes, fl_no, exitError.c_str());
+      exitError.clear();
       if (ret == 1)
         continue;
       else
@@ -209,7 +206,7 @@ static void mainloop(const char* vncserver, network::Socket* sock)
     }
 
     if (alertOnFatalError)
-      fl_alert("%s", exitError);
+      fl_alert("%s", exitError.c_str());
 
     break;
   }

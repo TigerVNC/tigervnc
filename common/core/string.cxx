@@ -35,11 +35,23 @@ namespace core {
   std::string format(const char *fmt, ...)
   {
     va_list ap;
+    std::string result;
+
+    va_start(ap, fmt);
+    result = vformat(fmt, ap);
+    va_end(ap);
+
+    return result;
+  }
+
+  std::string vformat(const char *fmt, va_list ap_)
+  {
+    va_list ap;
     int len;
     char *buf;
     std::string out;
 
-    va_start(ap, fmt);
+    va_copy(ap, ap_);
     len = vsnprintf(nullptr, 0, fmt, ap);
     va_end(ap);
 
@@ -48,7 +60,7 @@ namespace core {
 
     buf = new char[len+1];
 
-    va_start(ap, fmt);
+    va_copy(ap, ap_);
     vsnprintf(buf, len+1, fmt, ap);
     va_end(ap);
 
