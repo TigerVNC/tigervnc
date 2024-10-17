@@ -178,6 +178,8 @@ static VoidParameter* parameterArray[] = {
 #ifdef HAVE_GNUTLS
   &CSecurityTLS::X509CA,
   &CSecurityTLS::X509CRL,
+  &CSecurityTLS::X509Cert,
+  &CSecurityTLS::X509Key,
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   /* Misc. */
