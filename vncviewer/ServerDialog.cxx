@@ -130,7 +130,7 @@ ServerDialog::~ServerDialog()
 }
 
 
-void ServerDialog::run(const char* servername, char *newservername)
+std::string ServerDialog::run(const char* servername)
 {
   ServerDialog dialog;
 
@@ -148,12 +148,10 @@ void ServerDialog::run(const char* servername, char *newservername)
   while (dialog.shown()) Fl::wait();
 
   if (dialog.serverName->value() == nullptr) {
-    newservername[0] = '\0';
-    return;
+    return "";
   }
 
-  strncpy(newservername, dialog.serverName->value(), VNCSERVERNAMELEN);
-  newservername[VNCSERVERNAMELEN - 1] = '\0';
+  return dialog.serverName->value();
 }
 
 void ServerDialog::handleOptions(Fl_Widget* /*widget*/, void* /*data*/)
@@ -190,7 +188,7 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
   dialog->updateUsedDir(filename);
 
   try {
-    dialog->serverName->value(loadViewerParameters(filename));
+    dialog->serverName->value(loadViewerParameters(filename).c_str());
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
     fl_alert(_("Unable to load the specified configuration file:\n\n%s"),
