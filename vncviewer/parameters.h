@@ -92,7 +92,7 @@ extern core::StringParameter via;
 #endif
 
 void saveViewerParameters(const char *filename, const char *servername=nullptr);
-char* loadViewerParameters(const char *filename);
+std::string loadViewerParameters(const char *filename);
 
 #ifdef _WIN32
 std::list<std::string> loadHistoryFromRegKey();

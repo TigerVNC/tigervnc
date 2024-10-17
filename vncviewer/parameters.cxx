@@ -701,7 +701,7 @@ static void getParametersFromReg(core::Parameter* parameters[],
   }
 }
 
-static char* loadFromReg() {
+static std::string loadFromReg() {
 
   HKEY hKey;
 
@@ -711,19 +711,17 @@ static char* loadFromReg() {
   if (res != ERROR_SUCCESS) {
     if (res == ERROR_FILE_NOT_FOUND) {
       // The key does not exist, defaults will be used.
-      return nullptr;
+      return "";
     }
 
     throw core::win32_error(_("Failed to open registry key"), res);
   }
 
   const size_t buffersize = 256;
-  static char servername[buffersize];
+  char servername[buffersize];
 
-  char servernameBuffer[buffersize];
   try {
-    if (getKeyString("ServerName", servernameBuffer, buffersize, &hKey))
-      snprintf(servername, buffersize, "%s", servernameBuffer);
+    getKeyString("ServerName", servername, buffersize, &hKey);
   } catch(std::exception& e) {
     vlog.error(_("Failed to read parameter \"%s\": %s"),
                "ServerName", e.what());
@@ -825,13 +823,13 @@ static bool findAndSetViewerParameterFromValue(
   return true;
 }
 
-char* loadViewerParameters(const char *filename) {
+std::string loadViewerParameters(const char *filename) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
   char line[buffersize];
   char decodingBuffer[buffersize];
-  static char servername[sizeof(line)];
+  char servername[sizeof(line)];
 
   memset(servername, '\0', sizeof(servername));
 
@@ -855,7 +853,7 @@ char* loadViewerParameters(const char *filename) {
   FILE* f = fopen(filepath, "r");
   if (!f) {
     if (!filename)
-      return nullptr; // Use defaults.
+      return ""; // Use defaults.
     throw core::posix_error(
       core::format(_("Failed to open \"%s\""), filepath), errno);
   }

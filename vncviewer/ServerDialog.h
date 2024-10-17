@@ -34,7 +34,7 @@ protected:
   ~ServerDialog();
 
 public:
-  static void run(const char* servername, char *newservername);
+  static std::string run(const char* servername);
 
 protected:
   static void handleOptions(Fl_Widget *widget, void *data);
