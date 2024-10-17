@@ -70,7 +70,7 @@ public:
   int handle(int event) override;
 
 protected:
-  void sendPointerEvent(const rfb::Point& pos, uint8_t buttonMask) override;
+  void sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask) override;
 
 private:
   bool hasFocus();
@@ -81,7 +81,7 @@ private:
 
   void flushPendingClipboard();
 
-  void handlePointerEvent(const rfb::Point& pos, uint8_t buttonMask);
+  void handlePointerEvent(const rfb::Point& pos, uint16_t buttonMask);
   static void handlePointerTimeout(void *data);
 
   void resetKeyboard();
@@ -111,7 +111,7 @@ private:
   PlatformPixelBuffer* frameBuffer;
 
   rfb::Point lastPointerPos;
-  uint8_t lastButtonMask;
+  uint16_t lastButtonMask;
 
   typedef std::map<int, uint32_t> DownMap;
   DownMap downKeySym;

@@ -433,6 +433,11 @@ void SConnection::supportsQEMUKeyEvent()
   writer()->writeQEMUKeyEvent();
 }
 
+void SConnection::supportsExtendedMouseButtons()
+{
+  writer()->writeExtendedMouseButtonsSupport();
+}
+
 void SConnection::versionReceived()
 {
 }

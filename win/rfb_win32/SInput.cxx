@@ -65,7 +65,7 @@ win32::SPointer::SPointer()
 }
 
 void
-win32::SPointer::pointerEvent(const Point& pos, uint8_t buttonmask)
+win32::SPointer::pointerEvent(const Point& pos, uint16_t buttonmask)
 {
   // - We are specifying absolute coordinates
   DWORD flags = MOUSEEVENTF_ABSOLUTE;

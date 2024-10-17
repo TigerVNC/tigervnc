@@ -101,6 +101,7 @@ namespace rfb {
     bool supportsLEDState() const;
     bool supportsFence() const;
     bool supportsContinuousUpdates() const;
+    bool supportsExtendedMouseButtons() const;
 
     int compressLevel;
     int qualityLevel;
