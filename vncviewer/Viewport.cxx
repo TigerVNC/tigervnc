@@ -120,6 +120,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
     lastPointerPos(0, 0), lastButtonMask(0),
 #ifdef WIN32
     altGrArmed(false),
+    vkPacketHighSurrogate(0),
 #endif
     firstLEDState(true), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(nullptr)
@@ -971,6 +972,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
       keyCode = 0x38;
     }
 
+    // VK_PACKET handling: Translate to WM_*CHAR message, handled below.
+    if (vKey == VK_PACKET) {
+      TranslateMessage(msg);
+      return 1;
+    }
+
     // Windows doesn't have a proper AltGr, but handles it using fake
     // Ctrl+Alt. However the remote end might not be Windows, so we need
     // to merge those in to a single AltGr event. We detect this case
@@ -1086,6 +1093,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
       keyCode = 0x38;
     }
 
+    // VK_PACKET handling: Translate to WM_*CHAR message, handled below.
+    if (vKey == VK_PACKET) {
+      TranslateMessage(msg);
+      return 1;
+    }
+
     // We can't get a release in the middle of an AltGr sequence, so
     // abort that detection
     if (self->altGrArmed)
@@ -1118,6 +1131,55 @@ int Viewport::handleSystemEvent(void *event, void *data)
         self->handleKeyRelease(0x36);
     }
 
+    return 1;
+  } else if ((msg->message == WM_CHAR) || (msg->message == WM_DEADCHAR) ||
+             (msg->message == WM_SYSCHAR) || (msg->message == WM_SYSDEADCHAR)) {
+    // Windows will send VK_PACKET key events if it doesn't have a physical key
+    // associated with the event (e.g. from a mobile device virtual keyboard).
+    // After translating a keydown/keyup event pair with VK_PACKET as vKey, a
+    // WM_*CHAR message will be issued containing a UTF-16 code unit. Unicode
+    // characters outside of the range U+0000 - U+ffff (Basic Multilingual
+    // Plane, BMP), are encoded as a pair of UTF-16 code units that will need to
+    // be synthesized into one Unicode code point.
+    uint32_t ucsCode = msg->wParam;
+    if ((ucsCode & 0xfc00) == 0xd800) {
+      // We have received a high surrogate code unit. Remember it and wait for
+      // the low surrogate which should come immediately after.
+      if (self->vkPacketHighSurrogate) {
+        vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
+                     "codes: 0x%04x, 0x%04x"),
+                   self->vkPacketHighSurrogate, ucsCode);
+      }
+      self->vkPacketHighSurrogate = ucsCode;
+      return 1;
+    }
+    uint32_t codePoint = 0;
+    if ((ucsCode & 0xfc00) == 0xdc00) {
+      // We have received a low surrogate code unit. We should have a high
+      // surrogate saved that we can use to calculate the code point.
+      if (!self->vkPacketHighSurrogate) {
+        vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
+                     "code: 0x%04x"),
+                   ucsCode);
+        return 1;
+      }
+      codePoint = (((self->vkPacketHighSurrogate & 0x03ff) << 10) |
+                   (ucsCode & 0x03ff)) + 0x010000;
+    } else {
+      // BMP character. Unicode characters in this range are encoded as a
+      // single UTF-16 code unit.
+      if (self->vkPacketHighSurrogate) {
+        vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
+                     "codes: 0x%04x, U+%04x"),
+                   self->vkPacketHighSurrogate, ucsCode);
+        self->vkPacketHighSurrogate = 0;
+      }
+      codePoint = ucsCode;
+    }
+    uint32_t keySym = ucs2keysym(codePoint);
+    uint32_t keyCode = 0x100 + keySym; // Fake key code
+    self->handleKeyPress(keyCode, keySym);
+    self->handleKeyRelease(keyCode);
     return 1;
   }
 #elif defined(__APPLE__)
