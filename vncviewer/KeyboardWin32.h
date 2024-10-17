@@ -54,6 +54,8 @@ private:
   bool altGrArmed;
   unsigned int altGrCtrlTime;
 
+  uint32_t vkPacketHighSurrogate;
+
   bool leftShiftDown;
   bool rightShiftDown;
 };
