@@ -52,6 +52,7 @@
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
+#include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
 #include <rfb/Exception.h>
@@ -583,40 +584,6 @@ create_base_dirs()
 }
 
 #ifndef WIN32
-static int
-interpretViaParam(char *remoteHost, int *remotePort, int localPort)
-{
-  const int SERVER_PORT_OFFSET = 5900;
-  char *pos = strchr(vncServerName, ':');
-  if (pos == nullptr)
-    *remotePort = SERVER_PORT_OFFSET;
-  else {
-    int portOffset = SERVER_PORT_OFFSET;
-    size_t len;
-    *pos++ = '\0';
-    len = strlen(pos);
-    if (*pos == ':') {
-      /* Two colons is an absolute port number, not an offset. */
-      pos++;
-      len--;
-      portOffset = 0;
-    }
-    if (!len || strspn (pos, "-0123456789") != len )
-      return 1;
-    *remotePort = atoi(pos) + portOffset;
-  }
-
-  if (*vncServerName != '\0')
-    strcpy(remoteHost, vncServerName);
-  else
-    strcpy(remoteHost, "localhost");
-
-  snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
-  vncServerName[VNCSERVERNAMELEN - 1] = '\0';
-
-  return 0;
-}
-
 static void
 createTunnel(const char *gatewayHost, const char *remoteHost,
              int remotePort, int localPort)
@@ -640,19 +607,18 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
   free(cmd2);
 }
 
-static int mktunnel()
+static void mktunnel()
 {
   const char *gatewayHost;
-  char remoteHost[VNCSERVERNAMELEN];
+  std::string remoteHost;
   int localPort = findFreeTcpPort();
   int remotePort;
 
-  if (interpretViaParam(remoteHost, &remotePort, localPort) != 0)
-    return 1;
+  getHostAndPort(vncServerName, &remoteHost, &remotePort);
+  snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
+  vncServerName[VNCSERVERNAMELEN - 1] = '\0';
   gatewayHost = (const char*)via;
-  createTunnel(gatewayHost, remoteHost, remotePort, localPort);
-
-  return 0;
+  createTunnel(gatewayHost, remoteHost.c_str(), remotePort, localPort);
 }
 #endif /* !WIN32 */
 
@@ -838,8 +804,14 @@ int main(int argc, char** argv)
     }
 
 #ifndef WIN32
-    if (strlen(via) > 0 && mktunnel() != 0)
-      usage(argv[0]);
+    if (strlen(via) > 0) {
+      try {
+        mktunnel();
+      } catch (rdr::Exception& e) {
+        vlog.error("%s", e.str());
+        abort_vncviewer(_("Failure setting up encrypted tunnel:\n\n%s"), e.str());
+      }
+    }
 #endif
   }
 
