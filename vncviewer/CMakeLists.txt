@@ -18,7 +18,6 @@ add_executable(vncviewer
   PlatformPixelBuffer.cxx
   Viewport.cxx
   parameters.cxx
-  keysym2ucs.c
   touch.cxx
   MonitorIndicesParameter.cxx
   vncviewer.cxx)
@@ -37,17 +36,15 @@ endif()
 
 if(WIN32)
   target_sources(vncviewer PRIVATE Win32TouchHandler.cxx win32.c)
-elseif(APPLE)
-  target_sources(vncviewer PRIVATE cocoa.mm osx_to_qnum.c)
-else()
-  target_sources(vncviewer PRIVATE GestureHandler.cxx XInputTouchHandler.cxx xkb_to_qnum.c)
-endif()
-
-if(WIN32)
+  target_sources(vncviewer PRIVATE KeyboardWin32.cxx keysym2ucs.c)
   target_sources(vncviewer PRIVATE Surface_Win32.cxx)
 elseif(APPLE)
+  target_sources(vncviewer PRIVATE cocoa.mm)
+  target_sources(vncviewer PRIVATE KeyboardMacOS.mm osx_to_qnum.c keysym2ucs.c)
   target_sources(vncviewer PRIVATE Surface_OSX.cxx)
 else()
+  target_sources(vncviewer PRIVATE GestureHandler.cxx XInputTouchHandler.cxx)
+  target_sources(vncviewer PRIVATE KeyboardX11.cxx xkb_to_qnum.c)
   target_sources(vncviewer PRIVATE Surface_X11.cxx)
 endif()
 
