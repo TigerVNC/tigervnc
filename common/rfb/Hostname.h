@@ -39,8 +39,8 @@ namespace rfb {
     return true;
   }
 
-  static void getHostAndPort(const char* hi, std::string* host,
-                             int* port, int basePort=5900)
+  static inline void getHostAndPort(const char* hi, std::string* host,
+                                    int* port, int basePort=5900)
   {
     const char* hostStart;
     const char* hostEnd;
