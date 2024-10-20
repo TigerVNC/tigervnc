@@ -69,7 +69,7 @@ void SocketManager::addListener(network::SocketListener* sock_,
     flags |= FD_ADDRESS_LIST_CHANGE;
   try {
     if (event && (WSAEventSelect(sock_->getFd(), event, flags) == SOCKET_ERROR))
-      throw rdr::SocketException("Unable to select on listener", WSAGetLastError());
+      throw rdr::socket_error("Unable to select on listener", WSAGetLastError());
 
     // requestAddressChangeEvents MUST happen after WSAEventSelect, so that the socket is non-blocking
     if (acn)
@@ -186,7 +186,7 @@ int SocketManager::checkTimeouts() {
       if (j->second.sock->outStream().hasBufferedData())
         eventMask |= FD_WRITE;
       if (WSAEventSelect(j->second.sock->getFd(), j->first, eventMask) == SOCKET_ERROR)
-        throw rdr::SocketException("unable to adjust WSAEventSelect:%u", WSAGetLastError());
+        throw rdr::socket_error("unable to adjust WSAEventSelect:%u", WSAGetLastError());
     }
   }
 
@@ -236,11 +236,11 @@ void SocketManager::processEvent(HANDLE event) {
 
       // Fetch why this event notification triggered
       if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &network_events) == SOCKET_ERROR)
-        throw rdr::SocketException("unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
+        throw rdr::socket_error("unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
 
       // Cancel event notification for this socket
       if (WSAEventSelect(ci.sock->getFd(), event, 0) == SOCKET_ERROR)
-        throw rdr::SocketException("unable to disable WSAEventSelect:%u", WSAGetLastError());
+        throw rdr::socket_error("unable to disable WSAEventSelect:%u", WSAGetLastError());
 
       // Reset the event object
       WSAResetEvent(event);
@@ -268,7 +268,7 @@ void SocketManager::processEvent(HANDLE event) {
       if (ci.sock->outStream().hasBufferedData())
         eventMask |= FD_WRITE;
       if (WSAEventSelect(ci.sock->getFd(), event, eventMask) == SOCKET_ERROR)
-        throw rdr::SocketException("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
+        throw rdr::socket_error("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
     } catch (std::exception& e) {
       vlog.error("%s", e.what());
       remSocket(ci.sock);

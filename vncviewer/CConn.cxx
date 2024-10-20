@@ -263,7 +263,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     }
 
     cc->getOutStream()->cork(false);
-  } catch (rdr::EndOfStream& e) {
+  } catch (rdr::end_of_stream& e) {
     vlog.info("%s", e.what());
     if (!cc->desktop) {
       vlog.error(_("The connection was dropped by the server before "
@@ -273,10 +273,10 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     } else {
       disconnect();
     }
-  } catch (rfb::AuthCancelledException& e) {
+  } catch (rfb::auth_cancelled& e) {
     vlog.info("%s", e.what());
     disconnect();
-  } catch (rfb::AuthFailureException& e) {
+  } catch (rfb::auth_error& e) {
     cc->resetPassword();
     vlog.error(_("Authentication failed: %s"), e.what());
     abort_connection(_("Failed to authenticate with the server. Reason "

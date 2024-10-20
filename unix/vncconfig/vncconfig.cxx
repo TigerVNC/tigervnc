@@ -330,7 +330,7 @@ int main(int argc, char** argv)
       FD_ZERO(&rfds);
       FD_SET(ConnectionNumber(dpy), &rfds);
       int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, tvp);
-      if (n < 0) throw rdr::SocketException("select", errno);
+      if (n < 0) throw rdr::socket_error("select", errno);
     }
 
     XCloseDisplay(dpy);

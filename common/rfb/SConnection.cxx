@@ -123,7 +123,7 @@ bool SConnection::processVersionMsg()
   if (sscanf(verStr, "RFB %03d.%03d\n",
              &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
-    throw ProtocolException("reading version failed: not an RFB client?");
+    throw protocol_error("reading version failed: not an RFB client?");
   }
 
   client.setVersion(majorVersion, minorVersion);
@@ -215,7 +215,7 @@ void SConnection::processSecurityType(int secType)
   secTypes = security.GetEnabledSecTypes();
   if (std::find(secTypes.begin(), secTypes.end(),
                 secType) == secTypes.end())
-    throw ProtocolException("Requested security type not available");
+    throw protocol_error("Requested security type not available");
 
   vlog.info("Client requests security type %s(%d)",
             secTypeName(secType),secType);
@@ -234,8 +234,8 @@ bool SConnection::processSecurityMsg()
   try {
     if (!ssecurity->processMsg())
       return false;
-  } catch (AuthFailureException& e) {
-    vlog.error("AuthFailureException: %s", e.what());
+  } catch (auth_error& e) {
+    vlog.error("Authentication error: %s", e.what());
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
@@ -320,7 +320,7 @@ void SConnection::failConnection(const char* message)
   }
 
   state_ = RFBSTATE_INVALID;
-  throw ProtocolException(message);
+  throw protocol_error(message);
 }
 
 void SConnection::failConnection(const std::string& message)
@@ -474,9 +474,9 @@ void SConnection::approveConnection(bool accept, const char* reason)
   } else {
     state_ = RFBSTATE_INVALID;
     if (reason)
-      throw AuthFailureException(reason);
+      throw auth_error(reason);
     else
-      throw AuthFailureException("Connection rejected");
+      throw auth_error("Connection rejected");
   }
 }
 

@@ -89,7 +89,7 @@ bool RandomStream::fillBuffer() {
 #ifdef RFB_HAVE_WINCRYPT
   if (provider) {
     if (!CryptGenRandom(provider, availSpace(), (uint8_t*)end))
-      throw rdr::Win32Exception("unable to CryptGenRandom", GetLastError());
+      throw rdr::win32_error("unable to CryptGenRandom", GetLastError());
     end += availSpace();
   } else {
 #else
@@ -97,8 +97,8 @@ bool RandomStream::fillBuffer() {
   if (fp) {
     size_t n = fread((uint8_t*)end, 1, availSpace(), fp);
     if (n <= 0)
-      throw rdr::PosixException("reading /dev/urandom or /dev/random failed",
-                                errno);
+      throw rdr::posix_error("reading /dev/urandom or /dev/random "
+                             "failed", errno);
     end += n;
   } else {
 #else

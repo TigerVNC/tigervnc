@@ -25,10 +25,10 @@
 
 namespace rdr {
 
-  class TLSException : public std::runtime_error {
+  class tls_error : public std::runtime_error {
   public:
     int err;
-    TLSException(const char* s, int err_);
+    tls_error(const char* s, int err_);
   };
 
 }

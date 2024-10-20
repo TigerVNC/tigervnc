@@ -126,7 +126,7 @@ win32::SPointer::pointerEvent(const Point& pos, uint8_t buttonmask)
     evt.mi.mouseData = data;
     evt.mi.time = 0;
     if (SendInput(1, &evt, sizeof(evt)) != 1)
-      throw rdr::Win32Exception("SendInput", GetLastError());
+      throw rdr::win32_error("SendInput", GetLastError());
   }
 }
 

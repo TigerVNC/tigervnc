@@ -273,7 +273,7 @@ namespace rfb {
     bool processSecurityResultMsg();
     bool processSecurityReasonMsg();
     bool processInitMsg();
-    void throwAuthFailureException();
+    void throwAuthError();
     void securityCompleted();
 
     void requestNewUpdate();

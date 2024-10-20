@@ -27,52 +27,52 @@
 
 namespace rdr {
 
-  class PosixException : public std::runtime_error {
+  class posix_error : public std::runtime_error {
   public:
     int err;
-    PosixException(const char* what_arg, int err_);
-    PosixException(const std::string& what_arg, int err_);
+    posix_error(const char* what_arg, int err_);
+    posix_error(const std::string& what_arg, int err_);
   private:
     std::string strerror(int err_) const;
   };
 
 #ifdef WIN32
-  class Win32Exception : public std::runtime_error {
+  class win32_error : public std::runtime_error {
   public:
     unsigned err;
-    Win32Exception(const char* what_arg, unsigned err_);
-    Win32Exception(const std::string& what_arg, unsigned err_);
+    win32_error(const char* what_arg, unsigned err_);
+    win32_error(const std::string& what_arg, unsigned err_);
   private:
     std::string strerror(unsigned err_) const;
   };
 #endif
 
 #ifdef WIN32
-  class SocketException : public Win32Exception {
+  class socket_error : public win32_error {
   public:
-    SocketException(const char* what_arg, unsigned err_) : Win32Exception(what_arg, err_) {}
-    SocketException(const std::string& what_arg, unsigned err_) : Win32Exception(what_arg, err_) {}
+    socket_error(const char* what_arg, unsigned err_) : win32_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : win32_error(what_arg, err_) {}
   };
 #else
-  class SocketException : public PosixException {
+  class socket_error : public posix_error {
   public:
-    SocketException(const char* what_arg, unsigned err_) : PosixException(what_arg, err_) {}
-    SocketException(const std::string& what_arg, unsigned err_) : PosixException(what_arg, err_) {}
+    socket_error(const char* what_arg, unsigned err_) : posix_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : posix_error(what_arg, err_) {}
   };
 #endif
 
-  class GAIException : public std::runtime_error {
+  class getaddrinfo_error : public std::runtime_error {
   public:
     int err;
-    GAIException(const char* s, int err_);
-    GAIException(const std::string& s, int err_);
+    getaddrinfo_error(const char* s, int err_);
+    getaddrinfo_error(const std::string& s, int err_);
   private:
     std::string strerror(int err_) const;
   };
 
-  class EndOfStream : public std::runtime_error {
+  class end_of_stream : public std::runtime_error {
   public:
-    EndOfStream() : std::runtime_error("End of stream") {}
+    end_of_stream() : std::runtime_error("End of stream") {}
   };
 
 }

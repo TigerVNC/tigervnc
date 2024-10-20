@@ -35,7 +35,7 @@ namespace win32 {
     if (processId == (DWORD)-1)
       processId = GetCurrentProcessId();
     if (!ProcessIdToSessionId(GetCurrentProcessId(), &id))
-      throw rdr::Win32Exception("ProcessIdToSessionId", GetLastError());
+      throw rdr::win32_error("ProcessIdToSessionId", GetLastError());
   }
 
   ProcessSessionId mySessionId;
@@ -57,7 +57,7 @@ namespace win32 {
     ConsoleSessionId console;
     vlog.info("Console session is %lu", console.id);
     if (!WTSConnectSession(sessionId, console.id, (PTSTR)"", 0))
-      throw rdr::Win32Exception("Unable to connect session to Console", GetLastError());
+      throw rdr::win32_error("Unable to connect session to Console", GetLastError());
 
     // Lock the newly connected session, for security
     LockWorkStation();

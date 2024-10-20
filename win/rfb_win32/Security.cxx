@@ -99,7 +99,7 @@ PSID Sid::copySID(const PSID sid) {
     throw std::invalid_argument("invalid SID in copyPSID");
   PSID buf = (PSID)new uint8_t[GetLengthSid(sid)];
   if (!CopySid(GetLengthSid(sid), buf, sid))
-    throw rdr::Win32Exception("CopySid failed", GetLastError());
+    throw rdr::win32_error("CopySid failed", GetLastError());
   return buf;
 }
 
@@ -108,7 +108,7 @@ void Sid::setSID(const PSID sid) {
     throw std::invalid_argument("invalid SID in copyPSID");
   resize(GetLengthSid(sid));
   if (!CopySid(GetLengthSid(sid), data(), sid))
-    throw rdr::Win32Exception("CopySid failed", GetLastError());
+    throw rdr::win32_error("CopySid failed", GetLastError());
 }
 
 void Sid::getUserNameAndDomain(char** name, char** domain) {
@@ -117,12 +117,12 @@ void Sid::getUserNameAndDomain(char** name, char** domain) {
   SID_NAME_USE use;
   LookupAccountSid(nullptr, (PSID)*this, nullptr, &nameLen, nullptr, &domainLen, &use);
   if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-    throw rdr::Win32Exception("Unable to determine SID name lengths", GetLastError());
+    throw rdr::win32_error("Unable to determine SID name lengths", GetLastError());
   vlog.info("nameLen=%lu, domainLen=%lu, use=%d", nameLen, domainLen, use);
   *name = new char[nameLen];
   *domain = new char[domainLen];
   if (!LookupAccountSid(nullptr, (PSID)*this, *name, &nameLen, *domain, &domainLen, &use))
-    throw rdr::Win32Exception("Unable to lookup account SID", GetLastError());
+    throw rdr::win32_error("Unable to lookup account SID", GetLastError());
 }
 
 
@@ -133,7 +133,7 @@ Sid::Administrators::Administrators() {
                                 SECURITY_BUILTIN_DOMAIN_RID,
                                 DOMAIN_ALIAS_RID_ADMINS,
                                 0, 0, 0, 0, 0, 0, &sid)) 
-    throw rdr::Win32Exception("Sid::Administrators", GetLastError());
+    throw rdr::win32_error("Sid::Administrators", GetLastError());
   setSID(sid);
   FreeSid(sid);
 }
@@ -144,7 +144,7 @@ Sid::SYSTEM::SYSTEM() {
   if (!AllocateAndInitializeSid(&ntAuth, 1,
                                 SECURITY_LOCAL_SYSTEM_RID,
                                 0, 0, 0, 0, 0, 0, 0, &sid))
-          throw rdr::Win32Exception("Sid::SYSTEM", GetLastError());
+          throw rdr::win32_error("Sid::SYSTEM", GetLastError());
   setSID(sid);
   FreeSid(sid);
 }
@@ -154,7 +154,7 @@ Sid::FromToken::FromToken(HANDLE h) {
   GetTokenInformation(h, TokenUser, nullptr, 0, &required);
   std::vector<uint8_t> tmp(required);
   if (!GetTokenInformation(h, TokenUser, tmp.data(), tmp.size(), &required))
-    throw rdr::Win32Exception("GetTokenInformation", GetLastError());
+    throw rdr::win32_error("GetTokenInformation", GetLastError());
   TOKEN_USER* tokenUser = (TOKEN_USER*)tmp.data();
   setSID(tokenUser->User.Sid);
 }
@@ -164,7 +164,7 @@ PACL rfb::win32::CreateACL(const AccessEntries& ae, PACL existing_acl) {
   PACL new_dacl;
   DWORD result;
   if ((result = SetEntriesInAcl(ae.entry_count, ae.entries, existing_acl, &new_dacl)) != ERROR_SUCCESS)
-    throw rdr::Win32Exception("SetEntriesInAcl", result);
+    throw rdr::win32_error("SetEntriesInAcl", result);
   return new_dacl;
 }
 
@@ -172,18 +172,18 @@ PACL rfb::win32::CreateACL(const AccessEntries& ae, PACL existing_acl) {
 PSECURITY_DESCRIPTOR rfb::win32::CreateSdWithDacl(const PACL dacl) {
   SECURITY_DESCRIPTOR absSD;
   if (!InitializeSecurityDescriptor(&absSD, SECURITY_DESCRIPTOR_REVISION))
-    throw rdr::Win32Exception("InitializeSecurityDescriptor", GetLastError());
+    throw rdr::win32_error("InitializeSecurityDescriptor", GetLastError());
   Sid::SYSTEM owner;
   if (!SetSecurityDescriptorOwner(&absSD, owner, FALSE))
-    throw rdr::Win32Exception("SetSecurityDescriptorOwner", GetLastError());
+    throw rdr::win32_error("SetSecurityDescriptorOwner", GetLastError());
   Sid::Administrators group;
   if (!SetSecurityDescriptorGroup(&absSD, group, FALSE))
-    throw rdr::Win32Exception("SetSecurityDescriptorGroupp", GetLastError());
+    throw rdr::win32_error("SetSecurityDescriptorGroupp", GetLastError());
   if (!SetSecurityDescriptorDacl(&absSD, TRUE, dacl, FALSE))
-    throw rdr::Win32Exception("SetSecurityDescriptorDacl", GetLastError());
+    throw rdr::win32_error("SetSecurityDescriptorDacl", GetLastError());
   DWORD sdSize = GetSecurityDescriptorLength(&absSD);
   SecurityDescriptorPtr sd(sdSize);
   if (!MakeSelfRelativeSD(&absSD, (PSECURITY_DESCRIPTOR)sd.ptr, &sdSize))
-    throw rdr::Win32Exception("MakeSelfRelativeSD", GetLastError());
+    throw rdr::win32_error("MakeSelfRelativeSD", GetLastError());
   return sd.takeSD();
 }

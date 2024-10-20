@@ -159,7 +159,7 @@ void SSecurityRSAAES::loadPrivateKey()
 {
   FILE* file = fopen(keyFile, "rb");
   if (!file)
-    throw rdr::PosixException("failed to open key file", errno);
+    throw rdr::posix_error("failed to open key file", errno);
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
@@ -170,7 +170,7 @@ void SSecurityRSAAES::loadPrivateKey()
   std::vector<uint8_t> data(size);
   if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
-    throw rdr::PosixException("failed to read key", errno);
+    throw rdr::posix_error("failed to read key", errno);
   }
   fclose(file);
 
@@ -299,9 +299,9 @@ bool SSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   clientKeyLength = is->readU32();
   if (clientKeyLength < MinKeyLength)
-    throw ProtocolException("client key is too short");
+    throw protocol_error("client key is too short");
   if (clientKeyLength > MaxKeyLength)
-    throw ProtocolException("client key is too long");
+    throw protocol_error("client key is too long");
   size_t size = (clientKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -314,7 +314,7 @@ bool SSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(clientKey.n, size, clientKeyN);
   nettle_mpz_set_str_256_u(clientKey.e, size, clientKeyE);
   if (!rsa_public_key_prepare(&clientKey))
-    throw ProtocolException("client key is invalid");
+    throw protocol_error("client key is invalid");
   return true;
 }
 
@@ -363,7 +363,7 @@ bool SSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != serverKey.size)
-    throw ProtocolException("server key length doesn't match");
+    throw protocol_error("server key length doesn't match");
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -376,7 +376,7 @@ bool SSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&serverKey, &randomSize, clientRandom, x) ||
     randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw ProtocolException("failed to decrypt client random");
+    throw protocol_error("failed to decrypt client random");
   }
   mpz_clear(x);
   return true;
@@ -505,7 +505,7 @@ bool SSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw ProtocolException("hash doesn't match");
+    throw protocol_error("hash doesn't match");
   return true;
 }
 
@@ -565,7 +565,7 @@ void SSecurityRSAAES::verifyUserPass()
 #endif
   if (!valid->validate(sc, username, password)) {
     delete valid;
-    throw AuthFailureException("Authentication failed");
+    throw auth_error("Authentication failed");
   }
   delete valid;
 #else
@@ -592,7 +592,7 @@ void SSecurityRSAAES::verifyPass()
     return;
   }
 
-  throw AuthFailureException("Authentication failed");
+  throw auth_error("Authentication failed");
 }
 
 const char* SSecurityRSAAES::getUserName() const

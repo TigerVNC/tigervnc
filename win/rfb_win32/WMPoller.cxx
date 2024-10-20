@@ -58,7 +58,7 @@ bool
 rfb::win32::WMPoller::checkPollWindow(HWND w) {
   char buffer[128];
   if (!GetClassName(w, buffer, 128))
-    throw rdr::Win32Exception("unable to get window class:%u", GetLastError());
+    throw rdr::win32_error("unable to get window class:%u", GetLastError());
   if ((strcmp(buffer, "tty") != 0) &&
     (strcmp(buffer, "ConsoleWindowClass") != 0)) {
     return false;

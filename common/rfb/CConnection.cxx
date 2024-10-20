@@ -172,7 +172,7 @@ bool CConnection::processVersionMsg()
   if (sscanf(verStr, "RFB %03d.%03d\n",
              &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
-    throw ProtocolException("reading version failed: not an RFB server?");
+    throw protocol_error("reading version failed: not an RFB server?");
   }
 
   server.setVersion(majorVersion, minorVersion);
@@ -185,10 +185,10 @@ bool CConnection::processVersionMsg()
     vlog.error("Server gave unsupported RFB protocol version %d.%d",
                server.majorVersion, server.minorVersion);
     state_ = RFBSTATE_INVALID;
-    throw ProtocolException(format("Server gave unsupported RFB "
-                                   "protocol version %d.%d",
-                                   server.majorVersion,
-                                   server.minorVersion));
+    throw protocol_error(format("Server gave unsupported RFB protocol "
+                                "version %d.%d",
+                                server.majorVersion,
+                                server.minorVersion));
   } else if (server.beforeVersion(3,7)) {
     server.setVersion(3,3);
   } else if (server.afterVersion(3,8)) {
@@ -235,7 +235,7 @@ bool CConnection::processSecurityTypesMsg()
         secType = secTypeInvalid;
     } else {
       vlog.error("Unknown 3.3 security type %d", secType);
-      throw ProtocolException("Unknown 3.3 security type");
+      throw protocol_error("Unknown 3.3 security type");
     }
 
   } else {
@@ -285,7 +285,7 @@ bool CConnection::processSecurityTypesMsg()
   if (secType == secTypeInvalid) {
     state_ = RFBSTATE_INVALID;
     vlog.error("No matching security types");
-    throw ProtocolException("No matching security types");
+    throw protocol_error("No matching security types");
   }
 
   state_ = RFBSTATE_SECURITY;
@@ -329,12 +329,12 @@ bool CConnection::processSecurityResultMsg()
     vlog.debug("auth failed - too many tries");
     break;
   default:
-    throw ProtocolException("Unknown security result from server");
+    throw protocol_error("Unknown security result from server");
   }
 
   if (server.beforeVersion(3,8)) {
     state_ = RFBSTATE_INVALID;
-    throw AuthFailureException("Authentication failed");
+    throw auth_error("Authentication failed");
   }
 
   state_ = RFBSTATE_SECURITY_REASON;
@@ -360,7 +360,7 @@ bool CConnection::processSecurityReasonMsg()
   reason[len] = '\0';
 
   state_ = RFBSTATE_INVALID;
-  throw AuthFailureException(reason.data());
+  throw auth_error(reason.data());
 }
 
 bool CConnection::processInitMsg()

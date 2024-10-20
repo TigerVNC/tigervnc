@@ -46,19 +46,19 @@ FileVersionInfo::FileVersionInfo(const char* filename) {
   {
     Handle file(CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
 	  if (file.h == INVALID_HANDLE_VALUE)
-      throw rdr::Win32Exception("Failed to open file", GetLastError());
+      throw rdr::win32_error("Failed to open file", GetLastError());
   }
 
   // Get version info size
   DWORD handle;
   int size = GetFileVersionInfoSize((char*)filename, &handle);
   if (!size)
-    throw rdr::Win32Exception("GetVersionInfoSize failed", GetLastError());
+    throw rdr::win32_error("GetVersionInfoSize failed", GetLastError());
 
   // Get version info
   buf = new char[size];
   if (!GetFileVersionInfo((char*)filename, handle, size, buf))
-    throw rdr::Win32Exception("GetVersionInfo failed", GetLastError());
+    throw rdr::win32_error("GetVersionInfo failed", GetLastError());
 }
 
 FileVersionInfo::~FileVersionInfo() {

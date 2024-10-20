@@ -380,7 +380,7 @@ static struct stats runTest(const char *fn)
   try {
     while (true)
       cc->processMsg();
-  } catch (rdr::EndOfStream& e) {
+  } catch (rdr::end_of_stream& e) {
   } catch (std::exception& e) {
     fprintf(stderr, "Failed to run rfb file: %s\n", e.what());
     exit(1);

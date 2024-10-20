@@ -82,7 +82,7 @@ MsgWindowClass::MsgWindowClass() : classAtom(0) {
   wndClass.lpszClassName = "rfb::win32::MsgWindowClass";
   classAtom = RegisterClass(&wndClass);
   if (!classAtom) {
-    throw rdr::Win32Exception("unable to register MsgWindow window class", GetLastError());
+    throw rdr::win32_error("unable to register MsgWindow window class", GetLastError());
   }
 }
 
@@ -104,7 +104,7 @@ MsgWindow::MsgWindow(const char* name_) : name(name_), handle(nullptr) {
                         name.c_str(), WS_OVERLAPPED, 0, 0, 10, 10,
                         nullptr, nullptr, baseClass.instance, this);
   if (!handle) {
-    throw rdr::Win32Exception("unable to create WMNotifier window instance", GetLastError());
+    throw rdr::win32_error("unable to create WMNotifier window instance", GetLastError());
   }
   vlog.debug("created window \"%s\" (%p)", name.c_str(), handle);
 }

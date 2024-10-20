@@ -43,21 +43,21 @@
 using namespace rdr;
 
 
-GAIException::GAIException(const char* s, int err_)
+getaddrinfo_error::getaddrinfo_error(const char* s, int err_)
   : std::runtime_error(rfb::format("%s: %s (%d)", s,
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-GAIException::GAIException(const std::string& s, int err_)
+getaddrinfo_error::getaddrinfo_error(const std::string& s, int err_)
   : std::runtime_error(rfb::format("%s: %s (%d)", s.c_str(),
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-std::string GAIException::strerror(int err_) const
+std::string getaddrinfo_error::strerror(int err_) const
 {
 #ifdef _WIN32
   char str[256];
@@ -71,21 +71,21 @@ std::string GAIException::strerror(int err_) const
 #endif
 }
 
-PosixException::PosixException(const char* what_arg, int err_)
+posix_error::posix_error(const char* what_arg, int err_)
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-PosixException::PosixException(const std::string& what_arg, int err_)
+posix_error::posix_error(const std::string& what_arg, int err_)
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-std::string PosixException::strerror(int err_) const
+std::string posix_error::strerror(int err_) const
 {
 #ifdef _WIN32
   char str[256];
@@ -100,21 +100,21 @@ std::string PosixException::strerror(int err_) const
 }
 
 #ifdef WIN32
-Win32Exception::Win32Exception(const char* what_arg, unsigned err_)
+win32_error::win32_error(const char* what_arg, unsigned err_)
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-Win32Exception::Win32Exception(const std::string& what_arg, unsigned err_)
+win32_error::win32_error(const std::string& what_arg, unsigned err_)
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-std::string Win32Exception::strerror(unsigned err_) const
+std::string win32_error::strerror(unsigned err_) const
 {
   wchar_t wstr[256];
   char str[256];

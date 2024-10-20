@@ -46,10 +46,10 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
   try {
     out->writeBytes((const uint8_t*)data, size);
     out->flush();
-  } catch (SocketException& e) {
+  } catch (socket_error& e) {
     vlog.error("Failure sending TLS data: %s", e.what());
     gnutls_transport_set_errno(self->session, e.err);
-    self->saved_exception = new SocketException(e);
+    self->saved_exception = new socket_error(e);
     return -1;
   } catch (std::exception& e) {
     vlog.error("Failure sending TLS data: %s", e.what());
@@ -118,7 +118,7 @@ size_t TLSOutStream::writeTLS(const uint8_t* data, size_t length)
     throw *saved_exception;
 
   if (n < 0)
-    throw TLSException("writeTLS", n);
+    throw tls_error("writeTLS", n);
 
   return n;
 }

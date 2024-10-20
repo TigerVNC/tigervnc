@@ -22,21 +22,21 @@
 #include <stdexcept>
 
 namespace rfb {
-  class ProtocolException : public std::runtime_error {
+  class protocol_error : public std::runtime_error {
   public:
-    ProtocolException(const char* what_arg) : std::runtime_error(what_arg) {}
-    ProtocolException(const std::string& what_arg) : std::runtime_error(what_arg) {}
+    protocol_error(const char* what_arg) : std::runtime_error(what_arg) {}
+    protocol_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
   };
 
-  class AuthFailureException : public std::runtime_error {
+  class auth_error : public std::runtime_error {
   public:
-    AuthFailureException(const char* reason) : std::runtime_error(reason) {}
-    AuthFailureException(std::string& reason) : std::runtime_error(reason) {}
+    auth_error(const char* reason) : std::runtime_error(reason) {}
+    auth_error(std::string& reason) : std::runtime_error(reason) {}
   };
 
-  class AuthCancelledException : public std::runtime_error {
+  class auth_cancelled : public std::runtime_error {
   public:
-    AuthCancelledException()
+    auth_cancelled()
       : std::runtime_error("Authentication cancelled") {}
   };
 }

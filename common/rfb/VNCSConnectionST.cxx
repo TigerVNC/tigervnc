@@ -189,7 +189,7 @@ void VNCSConnectionST::processMessages()
     // We wait until now with this to aggregate responses and to give 
     // higher priority to user actions such as keyboard and pointer events.
     writeFramebufferUpdate();
-  } catch (rdr::EndOfStream&) {
+  } catch (rdr::end_of_stream&) {
     close("Clean disconnection");
   } catch (std::exception& e) {
     close(e.what());
@@ -730,7 +730,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
   Rect rect;
 
   if (!client.supportsFence() || !client.supportsContinuousUpdates())
-    throw ProtocolException("Client tried to enable continuous updates when not allowed");
+    throw protocol_error("Client tried to enable continuous updates when not allowed");
 
   continuousUpdates = enable;
 

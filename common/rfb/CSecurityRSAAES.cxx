@@ -174,9 +174,9 @@ bool CSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   serverKeyLength = is->readU32();
   if (serverKeyLength < MinKeyLength)
-    throw ProtocolException("server key is too short");
+    throw protocol_error("server key is too short");
   if (serverKeyLength > MaxKeyLength)
-    throw ProtocolException("server key is too long");
+    throw protocol_error("server key is too long");
   size_t size = (serverKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -189,7 +189,7 @@ bool CSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(serverKey.n, size, serverKeyN);
   nettle_mpz_set_str_256_u(serverKey.e, size, serverKeyE);
   if (!rsa_public_key_prepare(&serverKey))
-    throw ProtocolException("server key is invalid");
+    throw protocol_error("server key is invalid");
   return true;
 }
 
@@ -215,7 +215,7 @@ void CSecurityRSAAES::verifyServer()
     "Please verify that the information is correct and press \"Yes\". "
     "Otherwise press \"No\"", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
   if (!cc->showMsgBox(MsgBoxFlags::M_YESNO, title, text.c_str()))
-    throw AuthCancelledException();
+    throw auth_cancelled();
 }
 
 void CSecurityRSAAES::writeRandom()
@@ -255,7 +255,7 @@ bool CSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != clientKey.size)
-    throw ProtocolException("client key length doesn't match");
+    throw protocol_error("client key length doesn't match");
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -268,7 +268,7 @@ bool CSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&clientKey, &randomSize, serverRandom, x) ||
       randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw ProtocolException("failed to decrypt server random");
+    throw protocol_error("failed to decrypt server random");
   }
   mpz_clear(x);
   return true;
@@ -397,7 +397,7 @@ bool CSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw ProtocolException("hash doesn't match");
+    throw protocol_error("hash doesn't match");
   return true;
 }
 
@@ -427,7 +427,7 @@ bool CSecurityRSAAES::readSubtype()
     return false;
   subtype = rais->readU8();
   if (subtype != secTypeRA2UserPass && subtype != secTypeRA2Pass)
-    throw ProtocolException("unknown RSA-AES subtype");
+    throw protocol_error("unknown RSA-AES subtype");
   return true;
 }
 

@@ -99,7 +99,7 @@ bool SSecurityVeNCrypt::processMsg()
     case 0x0001: /* 0.1 Legacy VeNCrypt, not supported */
       os->writeU8(0xFF); /* This is not OK */
       os->flush();
-      throw ProtocolException("The client cannot support the server's "
+      throw protocol_error("The client cannot support the server's "
                               "VeNCrypt version");
 
     case 0x0002: /* 0.2 */
@@ -109,7 +109,7 @@ bool SSecurityVeNCrypt::processMsg()
     default:
       os->writeU8(0xFF); /* Not OK */
       os->flush();
-      throw ProtocolException("The client returned an unsupported VeNCrypt version");
+      throw protocol_error("The client returned an unsupported VeNCrypt version");
     }
   }
 
@@ -138,7 +138,7 @@ bool SSecurityVeNCrypt::processMsg()
       os->flush(); 
       haveSentTypes = true;
     } else
-      throw ProtocolException("There are no VeNCrypt sub-types to send to the client");
+      throw protocol_error("There are no VeNCrypt sub-types to send to the client");
   }
 
   /* get type back from client (must be one of the ones we sent) */
@@ -163,7 +163,7 @@ bool SSecurityVeNCrypt::processMsg()
 
     /* Set up the stack according to the chosen type */
     if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
-      throw ProtocolException("No valid VeNCrypt sub-type");
+      throw protocol_error("No valid VeNCrypt sub-type");
 
     ssecurity = security->GetSSecurity(sc, chosenType);
   }
