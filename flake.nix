@@ -49,6 +49,9 @@
           };
         });
         gmp = ming.gmp.override { withStatic = true; };
+        libiconv = ming.libiconv.override
+          { enableStatic = true; enableShared = false; };
+        libintl = confStatic (ming.libintl.override { inherit libiconv; });
         confStatic = pkg: pkg.overrideAttrs (old: {
           configureFlags = (old.configureFlags or [])
                            ++ [ "--disable-shared" "--enable-static" ]; });
@@ -73,6 +76,8 @@
         buildInputs = [
           fltk
           gmp
+          libiconv
+          libintl
           libjpeg_turbo
           mcfg
           nettle
@@ -81,12 +86,11 @@
         ];
         src = ./.;
         CXXFLAGS = [
-          "-DLC_MESSAGES=0"
           "-static"
         ];
         # Enforce self-contained build. Shared libraries will only be allowed if
-        # included in the output
-        allowedReferences = [];
+        # included in the output. An exception is made for gettext (todo fix).
+        allowedReferences = [ libintl ];
       };
 
       java-build = pkgs.stdenv.mkDerivation {
