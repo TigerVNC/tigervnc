@@ -28,7 +28,7 @@ namespace rfb {
     // Allocate and/or manage LocalAlloc memory.
     struct LocalMem {
       LocalMem(int size) : ptr(LocalAlloc(LMEM_FIXED, size)) {
-        if (!ptr) throw rdr::Win32Exception("LocalAlloc", GetLastError());
+        if (!ptr) throw rdr::win32_error("LocalAlloc", GetLastError());
       }
       LocalMem(void* p) : ptr(p) {}
       ~LocalMem() {LocalFree(ptr);}

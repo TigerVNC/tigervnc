@@ -159,7 +159,7 @@ void SSecurityRSAAES::loadPrivateKey()
 {
   FILE* file = fopen(keyFile, "rb");
   if (!file)
-    throw rdr::PosixException("failed to open key file", errno);
+    throw rdr::posix_error("failed to open key file", errno);
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
@@ -170,7 +170,7 @@ void SSecurityRSAAES::loadPrivateKey()
   std::vector<uint8_t> data(size);
   if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
-    throw rdr::PosixException("failed to read key", errno);
+    throw rdr::posix_error("failed to read key", errno);
   }
   fclose(file);
 
@@ -565,7 +565,7 @@ void SSecurityRSAAES::verifyUserPass()
 #endif
   if (!valid->validate(sc, username, password)) {
     delete valid;
-    throw AuthFailureException("Authentication failed");
+    throw auth_error("Authentication failed");
   }
   delete valid;
 #else
@@ -592,7 +592,7 @@ void SSecurityRSAAES::verifyPass()
     return;
   }
 
-  throw AuthFailureException("Authentication failed");
+  throw auth_error("Authentication failed");
 }
 
 const char* SSecurityRSAAES::getUserName() const

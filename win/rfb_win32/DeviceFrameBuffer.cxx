@@ -102,7 +102,7 @@ DeviceFrameBuffer::grabRect(const Rect &rect) {
     if (ignoreGrabErrors)
       vlog.error("BitBlt failed:%ld", GetLastError());
     else
-      throw rdr::Win32Exception("BitBlt failed", GetLastError());
+      throw rdr::win32_error("BitBlt failed", GetLastError());
   }
 }
 
@@ -138,7 +138,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     BITMAP maskInfo;
     if (!GetObject(iconInfo.hbmMask, sizeof(BITMAP), &maskInfo))
-      throw rdr::Win32Exception("GetObject() failed", GetLastError());
+      throw rdr::win32_error("GetObject() failed", GetLastError());
     if (maskInfo.bmPlanes != 1)
       throw std::invalid_argument("unsupported multi-plane cursor");
     if (maskInfo.bmBitsPixel != 1)
@@ -174,7 +174,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
       if (!GetDIBits(dc, iconInfo.hbmColor, 0, height,
                      buffer.data(), (LPBITMAPINFO)&bi, DIB_RGB_COLORS))
-        throw rdr::Win32Exception("GetDIBits", GetLastError());
+        throw rdr::win32_error("GetDIBits", GetLastError());
 
       // We may not get the RGBA order we want, so shuffle things around
       int ridx, gidx, bidx, aidx;
@@ -217,7 +217,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
       if (!GetBitmapBits(iconInfo.hbmMask,
                          maskInfo.bmWidthBytes * maskInfo.bmHeight, mask.data()))
-        throw rdr::Win32Exception("GetBitmapBits", GetLastError());
+        throw rdr::win32_error("GetBitmapBits", GetLastError());
 
       bool doOutline = false;
       uint8_t* rwbuffer = buffer.data();

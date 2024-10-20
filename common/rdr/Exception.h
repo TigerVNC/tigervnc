@@ -26,40 +26,40 @@
 
 namespace rdr {
 
-  struct PosixException : public std::runtime_error {
+  struct posix_error : public std::runtime_error {
     int err;
-    PosixException(const char* what_arg, int err_);
-    PosixException(const std::string& what_arg, int err_);
+    posix_error(const char* what_arg, int err_);
+    posix_error(const std::string& what_arg, int err_);
   private:
     std::string strerror(int err_) const;
   };
 
 #ifdef WIN32
-  struct Win32Exception : public std::runtime_error {
+  struct win32_error : public std::runtime_error {
     unsigned err;
-    Win32Exception(const char* what_arg, unsigned err_);
-    Win32Exception(const std::string& what_arg, unsigned err_);
+    win32_error(const char* what_arg, unsigned err_);
+    win32_error(const std::string& what_arg, unsigned err_);
   private:
     std::string strerror(unsigned err_) const;
   };
 #endif
 
 #ifdef WIN32
-  struct SocketException : public Win32Exception {
-    SocketException(const char* what_arg, unsigned err_) : Win32Exception(what_arg, err_) {}
-    SocketException(const std::string& what_arg, unsigned err_) : Win32Exception(what_arg, err_) {}
+  struct socket_error : public win32_error {
+    socket_error(const char* what_arg, unsigned err_) : win32_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : win32_error(what_arg, err_) {}
   };
 #else
-  struct SocketException : public PosixException {
-    SocketException(const char* what_arg, unsigned err_) : PosixException(what_arg, err_) {}
-    SocketException(const std::string& what_arg, unsigned err_) : PosixException(what_arg, err_) {}
+  struct socket_error : public posix_error {
+    socket_error(const char* what_arg, unsigned err_) : posix_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : posix_error(what_arg, err_) {}
   };
 #endif
 
-  struct GAIException : public std::runtime_error {
+  struct getaddrinfo_error : public std::runtime_error {
     int err;
-    GAIException(const char* s, int err_);
-    GAIException(const std::string& s, int err_);
+    getaddrinfo_error(const char* s, int err_);
+    getaddrinfo_error(const std::string& s, int err_);
   private:
     std::string strerror(int err_) const;
   };

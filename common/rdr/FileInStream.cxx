@@ -33,7 +33,7 @@ FileInStream::FileInStream(const char *fileName)
 {
   file = fopen(fileName, "rb");
   if (!file)
-    throw PosixException("fopen", errno);
+    throw posix_error("fopen", errno);
 }
 
 FileInStream::~FileInStream(void) {
@@ -48,7 +48,7 @@ bool FileInStream::fillBuffer()
   size_t n = fread((uint8_t*)end, 1, availSpace(), file);
   if (n == 0) {
     if (ferror(file))
-      throw PosixException("fread", errno);
+      throw posix_error("fread", errno);
     if (feof(file))
       throw EndOfStream();
     return false;

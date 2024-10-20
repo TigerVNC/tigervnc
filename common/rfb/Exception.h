@@ -27,12 +27,12 @@ namespace rfb {
     protocol_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
   };
 
-  struct AuthFailureException : public std::runtime_error {
-    AuthFailureException(const char* reason)
+  struct auth_error : public std::runtime_error {
+    auth_error(const char* reason)
       : std::runtime_error(reason) {}
   };
-  struct AuthCancelledException : public std::runtime_error {
-    AuthCancelledException()
+  struct auth_cancelled : public std::runtime_error {
+    auth_cancelled()
       : std::runtime_error("Authentication cancelled") {}
   };
 }

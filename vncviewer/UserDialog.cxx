@@ -117,7 +117,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
 
     fp = fopen(passwordFileName, "rb");
     if (!fp)
-      throw rdr::PosixException(_("Opening password file failed"), errno);
+      throw rdr::posix_error(_("Opening password file failed"), errno);
 
     obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
     fclose(fp);
@@ -248,7 +248,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
   delete win;
 
   if (ret_val != 0)
-    throw rfb::AuthCancelledException();
+    throw rfb::auth_cancelled();
 }
 
 bool UserDialog::showMsgBox(MsgBoxFlags flags, const char* title, const char* text)

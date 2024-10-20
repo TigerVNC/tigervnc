@@ -68,12 +68,13 @@ namespace rfb {
     // data is available.
     bool processMsg();
 
-    // approveConnection() is called to either accept or reject the connection.
-    // If accept is false, the reason string gives the reason for the
-    // rejection.  It can either be called directly from queryConnection() or
-    // later, after queryConnection() has returned.  It can only be called when
-    // in state RFBSTATE_QUERYING.  On rejection, an AuthFailureException is
-    // thrown, so this must be handled appropriately by the caller.
+    // approveConnection() is called to either accept or reject the
+    // connection. If accept is false, the reason string gives the
+    // reason for the rejection.  It can either be called directly from
+    // queryConnection() or later, after queryConnection() has returned.
+    // It can only be called when in state RFBSTATE_QUERYING.  On
+    // rejection, an auth_error is thrown, so this must be handled
+    // appropriately by the caller.
     void approveConnection(bool accept, const char* reason=nullptr);
 
 

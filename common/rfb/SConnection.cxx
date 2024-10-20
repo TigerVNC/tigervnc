@@ -234,8 +234,8 @@ bool SConnection::processSecurityMsg()
   try {
     if (!ssecurity->processMsg())
       return false;
-  } catch (AuthFailureException& e) {
-    vlog.error("AuthFailureException: %s", e.what());
+  } catch (auth_error& e) {
+    vlog.error("Authentication error: %s", e.what());
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
@@ -474,9 +474,9 @@ void SConnection::approveConnection(bool accept, const char* reason)
   } else {
     state_ = RFBSTATE_INVALID;
     if (reason)
-      throw AuthFailureException(reason);
+      throw auth_error(reason);
     else
-      throw AuthFailureException("Connection rejected");
+      throw auth_error("Connection rejected");
   }
 }
 

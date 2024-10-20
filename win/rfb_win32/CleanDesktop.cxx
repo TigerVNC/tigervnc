@@ -45,7 +45,7 @@ struct ActiveDesktop {
     HRESULT result = CoCreateInstance(CLSID_ActiveDesktop, nullptr, CLSCTX_INPROC_SERVER,
                                       IID_IActiveDesktop, (PVOID*)&handle);
     if (result != S_OK)
-      throw rdr::Win32Exception("failed to contact Active Desktop", HRESULT_CODE(result));
+      throw rdr::win32_error("failed to contact Active Desktop", HRESULT_CODE(result));
   }
   ~ActiveDesktop() {
     if (handle)

@@ -115,7 +115,7 @@ Service::start() {
     vlog.error("unable to set shutdown parameters: %lu", GetLastError());
   service = this;
   if (!StartServiceCtrlDispatcher(entry))
-    throw Win32Exception("unable to start service", GetLastError());
+    throw win32_error("unable to start service", GetLastError());
 }
 
 void
@@ -335,7 +335,7 @@ bool rfb::win32::registerService(const char* name,
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CREATE_SERVICE);
   if (!scm)
-    throw rdr::Win32Exception("unable to open Service Control Manager", GetLastError());
+    throw rdr::win32_error("unable to open Service Control Manager", GetLastError());
 
   // - Add the service
   ServiceHandle handle = CreateService(scm,
@@ -344,7 +344,7 @@ bool rfb::win32::registerService(const char* name,
     SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
     cmdline.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
   if (!handle)
-    throw rdr::Win32Exception("unable to create service", GetLastError());
+    throw rdr::win32_error("unable to create service", GetLastError());
 
   // - Set a description
   SERVICE_DESCRIPTION sdesc = {(LPTSTR)desc};
@@ -380,14 +380,14 @@ bool rfb::win32::unregisterService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CREATE_SERVICE);
   if (!scm)
-    throw rdr::Win32Exception("unable to open Service Control Manager", GetLastError());
+    throw rdr::win32_error("unable to open Service Control Manager", GetLastError());
 
   // - Create the service
   ServiceHandle handle = OpenService(scm, name, SC_MANAGER_ALL_ACCESS);
   if (!handle)
-    throw rdr::Win32Exception("unable to locate the service", GetLastError());
+    throw rdr::win32_error("unable to locate the service", GetLastError());
   if (!DeleteService(handle))
-    throw rdr::Win32Exception("unable to remove the service", GetLastError());
+    throw rdr::win32_error("unable to remove the service", GetLastError());
 
   // - Register the event log source
   RegKey hk;
@@ -407,16 +407,16 @@ bool rfb::win32::startService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
-    throw rdr::Win32Exception("unable to open Service Control Manager", GetLastError());
+    throw rdr::win32_error("unable to open Service Control Manager", GetLastError());
 
   // - Locate the service
   ServiceHandle handle = OpenService(scm, name, SERVICE_START);
   if (!handle)
-    throw rdr::Win32Exception("unable to open the service", GetLastError());
+    throw rdr::win32_error("unable to open the service", GetLastError());
 
   // - Start the service
   if (!StartService(handle, 0, nullptr))
-    throw rdr::Win32Exception("unable to start the service", GetLastError());
+    throw rdr::win32_error("unable to start the service", GetLastError());
 
   Sleep(500);
 
@@ -427,17 +427,17 @@ bool rfb::win32::stopService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
-    throw rdr::Win32Exception("unable to open Service Control Manager", GetLastError());
+    throw rdr::win32_error("unable to open Service Control Manager", GetLastError());
 
   // - Locate the service
   ServiceHandle handle = OpenService(scm, name, SERVICE_STOP);
   if (!handle)
-    throw rdr::Win32Exception("unable to open the service", GetLastError());
+    throw rdr::win32_error("unable to open the service", GetLastError());
 
   // - Start the service
   SERVICE_STATUS status;
   if (!ControlService(handle, SERVICE_CONTROL_STOP, &status))
-    throw rdr::Win32Exception("unable to stop the service", GetLastError());
+    throw rdr::win32_error("unable to stop the service", GetLastError());
 
   Sleep(500);
 
@@ -448,17 +448,17 @@ DWORD rfb::win32::getServiceState(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
-    throw rdr::Win32Exception("unable to open Service Control Manager", GetLastError());
+    throw rdr::win32_error("unable to open Service Control Manager", GetLastError());
 
   // - Locate the service
   ServiceHandle handle = OpenService(scm, name, SERVICE_INTERROGATE);
   if (!handle)
-    throw rdr::Win32Exception("unable to open the service", GetLastError());
+    throw rdr::win32_error("unable to open the service", GetLastError());
 
   // - Get the service status
   SERVICE_STATUS status;
   if (!ControlService(handle, SERVICE_CONTROL_INTERROGATE, (SERVICE_STATUS*)&status))
-    throw rdr::Win32Exception("unable to query the service", GetLastError());
+    throw rdr::win32_error("unable to query the service", GetLastError());
 
   return status.dwCurrentState;
 }

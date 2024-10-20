@@ -113,7 +113,7 @@ bool SSecurityVncAuth::processMsg()
     return true;
   }
 
-  throw AuthFailureException("Authentication failed");
+  throw auth_error("Authentication failed");
 }
 
 VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name_,

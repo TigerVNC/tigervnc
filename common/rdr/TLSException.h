@@ -25,9 +25,9 @@
 
 namespace rdr {
 
-  struct TLSException : public std::runtime_error {
+  struct tls_error : public std::runtime_error {
     int err;
-    TLSException(const char* s, int err_);
+    tls_error(const char* s, int err_);
   };
 
 }
