@@ -313,6 +313,7 @@ void TXWindow::toplevel(const char* name, TXDeleteWindowCallback* dwc_,
 void TXWindow::setName(const char* name)
 {
   XClassHint classHint;
+  memset(&classHint, 0, sizeof(classHint));
   XGetClassHint(dpy, win(), &classHint);
   XFree(classHint.res_name);
   classHint.res_name = (char*)name;
