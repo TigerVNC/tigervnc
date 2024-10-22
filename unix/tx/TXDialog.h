@@ -28,6 +28,8 @@
 #ifndef __TXDIALOG_H__
 #define __TXDIALOG_H__
 
+#include <rdr/Exception.h>
+
 #include "TXWindow.h"
 #include <errno.h>
 
@@ -63,7 +65,7 @@ public:
         FD_ZERO(&rfds);
         FD_SET(ConnectionNumber(dpy), &rfds);
         int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, nullptr);
-        if (n < 0) throw rdr::SocketException("select", errno);
+        if (n < 0) throw rdr::socket_error("select", errno);
       }
     }
     return true;

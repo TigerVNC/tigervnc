@@ -21,46 +21,51 @@
 #ifndef __RDR_EXCEPTION_H__
 #define __RDR_EXCEPTION_H__
 
+#include <stdexcept>
+#include <string>
+
 namespace rdr {
 
-  struct Exception {
-    enum { len = 256 };
-    char str_[len];
-    Exception(const char *format=nullptr, ...)
-      __attribute__((__format__ (__printf__, 2, 3)));
-    virtual ~Exception() {}
-    virtual const char* str() const { return str_; }
-  };
-
-  struct PosixException : public Exception {
+  struct posix_error : public std::runtime_error {
     int err;
-    PosixException(const char* s, int err_);
+    posix_error(const char* what_arg, int err_);
+    posix_error(const std::string& what_arg, int err_);
+  private:
+    std::string strerror(int err_) const;
   };
 
 #ifdef WIN32
-  struct Win32Exception : public Exception {
+  struct win32_error : public std::runtime_error {
     unsigned err;
-    Win32Exception(const char* s, unsigned err_);
+    win32_error(const char* what_arg, unsigned err_);
+    win32_error(const std::string& what_arg, unsigned err_);
+  private:
+    std::string strerror(unsigned err_) const;
   };
 #endif
 
 #ifdef WIN32
-  struct SocketException : public Win32Exception {
-    SocketException(const char* text, unsigned err_) : Win32Exception(text, err_) {}
+  struct socket_error : public win32_error {
+    socket_error(const char* what_arg, unsigned err_) : win32_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : win32_error(what_arg, err_) {}
   };
 #else
-  struct SocketException : public PosixException {
-    SocketException(const char* text, int err_) : PosixException(text, err_) {}
+  struct socket_error : public posix_error {
+    socket_error(const char* what_arg, unsigned err_) : posix_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : posix_error(what_arg, err_) {}
   };
 #endif
 
-  struct GAIException : public Exception {
+  struct getaddrinfo_error : public std::runtime_error {
     int err;
-    GAIException(const char* s, int err_);
+    getaddrinfo_error(const char* s, int err_);
+    getaddrinfo_error(const std::string& s, int err_);
+  private:
+    std::string strerror(int err_) const;
   };
 
-  struct EndOfStream : public Exception {
-    EndOfStream() : Exception("End of stream") {}
+  struct EndOfStream : public std::runtime_error {
+    EndOfStream() : std::runtime_error("End of stream") {}
   };
 
 }

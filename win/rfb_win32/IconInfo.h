@@ -28,7 +28,7 @@ namespace rfb {
     struct IconInfo : public ICONINFO {
       IconInfo(HICON icon) {
         if (!GetIconInfo(icon, this))
-          throw rdr::Win32Exception("GetIconInfo() failed", GetLastError());
+          throw rdr::win32_error("GetIconInfo() failed", GetLastError());
       }
       ~IconInfo() {
         if (hbmColor)

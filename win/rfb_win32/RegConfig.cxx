@@ -53,8 +53,8 @@ bool RegConfig::setKey(const HKEY rootkey, const char* keyname) {
     key.createKey(rootkey, keyname);
     processEvent(event);
     return true;
-  } catch (rdr::Exception& e) {
-    vlog.debug("%s", e.str());
+  } catch (std::exception& e) {
+    vlog.debug("%s", e.what());
     return false;
   }
 }
@@ -69,9 +69,9 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
       if (!Configuration::setParam(name, value.c_str()))
         vlog.info("unable to process %s", name);
     }
-  } catch (rdr::Win32Exception& e) {
+  } catch (rdr::win32_error& e) {
     if (e.err != ERROR_INVALID_HANDLE)
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
   }
 }
 
@@ -115,5 +115,5 @@ void RegConfigThread::worker() {
   thread_id = GetCurrentThreadId();
   while ((result = eventMgr.getMessage(&msg, nullptr, 0, 0)) > 0) {}
   if (result < 0)
-    throw rdr::Win32Exception("RegConfigThread failed", GetLastError());
+    throw rdr::win32_error("RegConfigThread failed", GetLastError());
 }

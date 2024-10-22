@@ -20,14 +20,15 @@
 // derived class for a particular security type overrides the processMsg()
 // method.
 
-// processMsg() is called first when the security type has been decided on, and
-// will keep being called whenever there is data to read from the client.  It
-// should return false when it needs more data, or true when the connection has
-// been successfully authenticated.  In the event of authentication failure an
-// AuthFailureException should be thrown - this will result in a "failed"
-// security result being sent to the client with the str() from the exception
-// being sent as the reason.  Any other type of failure should be indicated by
-// some other kind of exception which will cause the connection to be aborted.
+// processMsg() is called first when the security type has been decided
+// on, and will keep being called whenever there is data to read from
+// the client.  It should return false when it needs more data, or true
+// when the connection has been successfully authenticated.  In the
+// event of authentication failure an auth_error should be thrown - this
+// will result in a "failed" security result being sent to the client
+// with the str() from the exception being sent as the reason.  Any
+// other type of failure should be indicated by some other kind of
+// exception which will cause the connection to be aborted.
 //
 // processMsg() must never block (or at least must never block until the client
 // has been authenticated) - this is to prevent denial of service attacks.

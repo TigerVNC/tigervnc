@@ -119,7 +119,7 @@ static void processParams(int argc, char** argv) {
         if (host != nullptr) {
           HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
           if (!hwnd)
-            throw rdr::Exception("Unable to locate existing VNC Server.");
+            throw std::runtime_error("Unable to locate existing VNC Server.");
           COPYDATASTRUCT copyData;
           copyData.dwData = 1; // *** AddNewClient
           copyData.cbData = strlen(host);
@@ -132,7 +132,7 @@ static void processParams(int argc, char** argv) {
         runServer = false;
         HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
         if (!hwnd)
-          throw rdr::Exception("Unable to locate existing VNC Server.");
+          throw std::runtime_error("Unable to locate existing VNC Server.");
         COPYDATASTRUCT copyData;
         copyData.dwData = 2; // *** DisconnectClients
         copyData.lpData = nullptr;
@@ -177,13 +177,13 @@ static void processParams(int argc, char** argv) {
         // Try to clean up earlier services we've had
         try {
           rfb::win32::unregisterService("WinVNC4");
-        } catch (rdr::Win32Exception&) {
+        } catch (rdr::win32_error&) {
           // Do nothing as we might fail simply because there was no
           // service to remove
         }
         try {
           rfb::win32::unregisterService("TigerVNC Server");
-        } catch (rdr::Win32Exception&) {
+        } catch (rdr::win32_error&) {
         }
 
         if (rfb::win32::registerService(VNCServerService::Name,
@@ -228,8 +228,8 @@ static void processParams(int argc, char** argv) {
         break;
       }
 
-    } catch (rdr::Exception& e) {
-      MsgBoxOrLog(e.str(), true);
+    } catch (std::exception& e) {
+      MsgBoxOrLog(e.what(), true);
     }
   }
 }
@@ -284,8 +284,8 @@ int WINAPI WinMain(HINSTANCE /*inst*/, HINSTANCE /*prevInst*/, char* /*cmdLine*/
     }
 
     vlog.debug("WinVNC service destroyed");
-  } catch (rdr::Exception& e) {
-    MsgBoxOrLog(e.str(), true);
+  } catch (std::exception& e) {
+    MsgBoxOrLog(e.what(), true);
   }
 
   vlog.debug("WinVNC process quitting");

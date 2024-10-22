@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/BitmapInfo.h>
@@ -56,7 +58,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
   uint8_t* new_data = nullptr;
 
   if (!pf.trueColour)
-    throw rfb::Exception("palette format not supported");
+    throw std::invalid_argument("palette format not supported");
 
   format = pf;
 
@@ -85,7 +87,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
 
     if (!new_bitmap) {
       int err = GetLastError();
-      throw rdr::Win32Exception("unable to create DIB section", err);
+      throw rdr::win32_error("unable to create DIB section", err);
     }
 
     vlog.debug("recreateBuffer()");
@@ -128,7 +130,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
     // Determine the *actual* DIBSection format
     DIBSECTION ds;
     if (!GetObject(bitmap, sizeof(ds), &ds))
-      throw rdr::Win32Exception("GetObject", GetLastError());
+      throw rdr::win32_error("GetObject", GetLastError());
 
     // Correct the "stride" of the DIB
     // *** This code DWORD aligns each row - is that right???
@@ -158,7 +160,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
       bits = bits >> 1;
     }
     if (depth > bpp)
-      throw Exception("Bad DIBSection format (depth exceeds bpp)");
+      throw std::runtime_error("Bad DIBSection format (depth exceeds bpp)");
 
     format = PixelFormat(bpp, depth, false, true,
                          redMax, greenMax, blueMax,

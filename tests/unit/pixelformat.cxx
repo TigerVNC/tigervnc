@@ -22,8 +22,9 @@
 
 #include <stdio.h>
 
+#include <stdexcept>
+
 #include <rfb/PixelFormat.h>
-#include <rfb/Exception.h>
 
 static void doTest(bool should_fail, int b, int d, bool e, bool t,
                    int rm, int gm, int bm, int rs, int gs, int bs)
@@ -36,7 +37,7 @@ static void doTest(bool should_fail, int b, int d, bool e, bool t,
 
     try {
         pf = new rfb::PixelFormat(b, d, e, t, rm, gm, bm, rs, gs, bs);
-    } catch(rfb::Exception&) {
+    } catch(std::exception&) {
         if (should_fail)
             printf("OK");
         else

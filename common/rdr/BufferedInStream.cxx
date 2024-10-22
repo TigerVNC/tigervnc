@@ -24,7 +24,8 @@
 #include <assert.h>
 
 #include <rdr/BufferedInStream.h>
-#include <rdr/Exception.h>
+
+#include <rfb/util.h>
 
 using namespace rdr;
 
@@ -63,9 +64,12 @@ void BufferedInStream::ensureSpace(size_t needed)
     uint8_t* newBuffer;
 
     if (needed > MAX_BUF_SIZE)
-      throw Exception("BufferedInStream overrun: requested size of "
-                      "%lu bytes exceeds maximum of %lu bytes",
-                      (long unsigned)needed, (long unsigned)MAX_BUF_SIZE);
+      throw std::out_of_range(rfb::format("BufferedInStream overrun: "
+                                          "requested size of %lu bytes "
+                                          "exceeds maximum of %lu "
+                                          "bytes",
+                                          (long unsigned)needed,
+                                          (long unsigned)MAX_BUF_SIZE));
 
     newSize = DEFAULT_BUF_SIZE;
     while (newSize < needed)

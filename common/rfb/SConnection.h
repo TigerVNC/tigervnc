@@ -68,12 +68,13 @@ namespace rfb {
     // data is available.
     bool processMsg();
 
-    // approveConnection() is called to either accept or reject the connection.
-    // If accept is false, the reason string gives the reason for the
-    // rejection.  It can either be called directly from queryConnection() or
-    // later, after queryConnection() has returned.  It can only be called when
-    // in state RFBSTATE_QUERYING.  On rejection, an AuthFailureException is
-    // thrown, so this must be handled appropriately by the caller.
+    // approveConnection() is called to either accept or reject the
+    // connection. If accept is false, the reason string gives the
+    // reason for the rejection.  It can either be called directly from
+    // queryConnection() or later, after queryConnection() has returned.
+    // It can only be called when in state RFBSTATE_QUERYING.  On
+    // rejection, an auth_error is thrown, so this must be handled
+    // appropriately by the caller.
     void approveConnection(bool accept, const char* reason=nullptr);
 
 
@@ -219,8 +220,8 @@ namespace rfb {
     // failConnection() prints a message to the log, sends a connection
     // failed message to the client (if possible) and throws an
     // Exception.
-    void failConnection(const char* format, ...)
-      __attribute__((__format__ (__printf__, 2, 3)));
+    void failConnection(const char* message);
+    void failConnection(const std::string& message);
 
     void setState(stateEnum s) { state_ = s; }
 

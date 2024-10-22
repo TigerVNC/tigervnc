@@ -28,11 +28,12 @@
 #include <assert.h>
 #include <string.h>
 
+#include <stdexcept>
+
 extern "C" {
 #include <rfb/d3des.h>
 }
 
-#include <rdr/Exception.h>
 #include <rfb/obfuscate.h>
 
 static unsigned char d3desObfuscationKey[] = {23,82,107,6,35,78,88,7};
@@ -57,7 +58,7 @@ std::string rfb::deobfuscate(const uint8_t *data, size_t len)
   char buf[9];
 
   if (len != 8)
-    throw rdr::Exception("bad obfuscated password length");
+    throw std::invalid_argument("bad obfuscated password length");
 
   assert(data != nullptr);
 

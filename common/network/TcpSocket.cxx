@@ -38,7 +38,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <rdr/Exception.h>
+
 #include <network/TcpSocket.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 #include <rfb/util.h>
@@ -82,15 +85,15 @@ int network::findFreeTcpPort (void)
   addr.sin_addr.s_addr = INADDR_ANY;
 
   if ((sock = socket (AF_INET, SOCK_STREAM, 0)) < 0)
-    throw SocketException ("unable to create socket", errorNumber);
+    throw socket_error("unable to create socket", errorNumber);
 
   addr.sin_port = 0;
   if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) < 0)
-    throw SocketException ("unable to find free port", errorNumber);
+    throw socket_error("unable to find free port", errorNumber);
 
   socklen_t n = sizeof(addr);
   if (getsockname (sock, (struct sockaddr *)&addr, &n) < 0)
-    throw SocketException ("unable to get port number", errorNumber);
+    throw socket_error("unable to get port number", errorNumber);
 
   closesocket (sock);
   return ntohs(addr.sin_port);
@@ -134,7 +137,7 @@ TcpSocket::TcpSocket(const char *host, int port)
   hints.ai_next = nullptr;
 
   if ((result = getaddrinfo(host, nullptr, &hints, &ai)) != 0) {
-    throw GAIException("unable to resolve host by name", result);
+    throw getaddrinfo_error("unable to resolve host by name", result);
   }
 
   sock = -1;
@@ -175,7 +178,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (sock == -1) {
       err = errorNumber;
       freeaddrinfo(ai);
-      throw SocketException("unable to create socket", err);
+      throw socket_error("unable to create socket", err);
     }
 
   /* Attempt to connect to the remote host */
@@ -200,9 +203,9 @@ TcpSocket::TcpSocket(const char *host, int port)
 
   if (sock == -1) {
     if (err == 0)
-      throw Exception("No useful address for host");
+      throw std::runtime_error("No useful address for host");
     else
-      throw SocketException("unable to connect to socket", err);
+      throw socket_error("unable to connect to socket", err);
   }
 
   // Take proper ownership of the socket
@@ -299,7 +302,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   int sock;
 
   if ((sock = socket (listenaddr->sa_family, SOCK_STREAM, 0)) < 0)
-    throw SocketException("unable to create listening socket", errorNumber);
+    throw socket_error("unable to create listening socket", errorNumber);
 
   memcpy (&sa, listenaddr, listenaddrlen);
 #ifdef IPV6_V6ONLY
@@ -307,7 +310,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
     if (setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&one, sizeof(one))) {
       int e = errorNumber;
       closesocket(sock);
-      throw SocketException("unable to set IPV6_V6ONLY", e);
+      throw socket_error("unable to set IPV6_V6ONLY", e);
     }
   }
 #endif /* defined(IPV6_V6ONLY) */
@@ -325,14 +328,14 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     closesocket(sock);
-    throw SocketException("unable to create listening socket", e);
+    throw socket_error("unable to create listening socket", e);
   }
 #endif
 
   if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
     int e = errorNumber;
     closesocket(sock);
-    throw SocketException("failed to bind socket", e);
+    throw socket_error("failed to bind socket", e);
   }
 
   listen(sock);
@@ -443,7 +446,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
   snprintf (service, sizeof (service) - 1, "%d", port);
   service[sizeof (service) - 1] = '\0';
   if ((result = getaddrinfo(addr, service, &hints, &ai)) != 0)
-    throw GAIException("unable to resolve listening address", result);
+    throw getaddrinfo_error("unable to resolve listening address", result);
 
   try {
     createTcpListeners(listeners, ai);
@@ -482,7 +485,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
     try {
       new_listeners.push_back(new TcpListener(current->ai_addr,
                                               current->ai_addrlen));
-    } catch (SocketException& e) {
+    } catch (socket_error& e) {
       // Ignore this if it is due to lack of address family support on
       // the interface or on the system
       if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT) {
@@ -607,7 +610,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
   parts = rfb::split(&p[1], '/');
   if (parts.size() > 2)
-    throw Exception("invalid filter specified");
+    throw std::invalid_argument("invalid filter specified");
 
   if (parts[0].empty()) {
     // Match any address
@@ -630,7 +633,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     }
 
     if ((result = getaddrinfo (parts[0].c_str(), nullptr, &hints, &ai)) != 0) {
-      throw GAIException("unable to resolve host by name", result);
+      throw getaddrinfo_error("unable to resolve host by name", result);
     }
 
     memcpy (&pattern.address.u.sa, ai->ai_addr, ai->ai_addrlen);
@@ -641,8 +644,8 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     if (parts.size() > 1) {
       if (family == AF_INET &&
           (parts[1].find('.') != std::string::npos)) {
-        throw Exception("mask no longer supported for filter, "
-                        "use prefix instead");
+        throw std::invalid_argument("mask no longer supported for "
+                                    "filter, use prefix instead");
       }
 
       pattern.prefixlen = (unsigned int) atoi(parts[1].c_str());
@@ -655,7 +658,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
         pattern.prefixlen = 128;
         break;
       default:
-        throw Exception("unknown address family");
+        throw std::runtime_error("unknown address family");
       }
     }
   }
@@ -663,8 +666,9 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   family = pattern.address.u.sa.sa_family;
 
   if (pattern.prefixlen > (family == AF_INET ? 32: 128))
-    throw Exception("invalid prefix length for filter address: %u",
-                    pattern.prefixlen);
+    throw std::invalid_argument(rfb::format("invalid prefix length for "
+                                            "filter address: %u",
+                                            pattern.prefixlen));
 
   // Compute mask from address and prefix length
   memset (&pattern.mask, 0, sizeof (pattern.mask));
