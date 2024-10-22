@@ -57,7 +57,7 @@ namespace rfb {
     virtual void keyEvent(uint32_t keysym, uint32_t keycode,
                           bool down);
     virtual void pointerEvent(const Point& pos,
-                              uint8_t buttonMask);
+                              uint16_t buttonMask);
 
     virtual void clientCutText(const char* str);
 
@@ -97,6 +97,11 @@ namespace rfb {
     // client wants the QEMU Extended Key Event extension. The default
     // handler will send a pseudo-rect back, signalling server support.
     virtual void supportsQEMUKeyEvent();
+
+    // supportsExtendedMouseButtons() is called the first time we detect that the
+    // client supports sending 16 bit mouse button state. This lets us pass more button
+    // states between server and client.
+    virtual void supportsExtendedMouseButtons();
 
     ClientParams client;
   };
