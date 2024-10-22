@@ -37,7 +37,7 @@ XSelection::XSelection(Display* dpy_, XSelectionHandler* handler_)
   probeProperty = XInternAtom(dpy, "TigerVNC_ProbeProperty", False);
   transferProperty = XInternAtom(dpy, "TigerVNC_TransferProperty", False);
   timestampProperty = XInternAtom(dpy, "TigerVNC_TimestampProperty", False);
-  setName("TigerVNC Clipboard (x0vncserver)");
+  toplevel("TigerVNC Clipboard (x0vncserver)");
   addEventMask(PropertyChangeMask); // Required for PropertyNotify events
 }
 
