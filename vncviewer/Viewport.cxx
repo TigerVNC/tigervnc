@@ -1177,7 +1177,7 @@ int Viewport::handleSystemEvent(void *event, void *data)
       codePoint = ucsCode;
     }
     uint32_t keySym = ucs2keysym(codePoint);
-    uint32_t keyCode = 0x100 + keySym; // Fake key code
+    uint32_t keyCode = 0x01000000 | codePoint; // Fake key code
     self->handleKeyPress(keyCode, keySym);
     self->handleKeyRelease(keyCode);
     return 1;
