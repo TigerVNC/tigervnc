@@ -429,7 +429,7 @@ bool KeyboardWin32::handleEvent(const void* event)
       codePoint = ucsCode;
     }
     uint32_t keySym = ucs2keysym(codePoint);
-    uint32_t keyCode = 0x100 + keySym; // Fake key code
+    uint32_t keyCode = 0x01000000 | codePoint; // Fake key code
     handler->handleKeyPress(keyCode, keyCode, keySym);
     handler->handleKeyRelease(keyCode);
     return true;
