@@ -404,3 +404,32 @@ Distribution-Specific Packaging
 
 Configuration for building packages for current versions of RHEL/CentOS
 and Ubuntu LTS can be found under contrib/packages.
+
+
+===============
+Build using Nix
+===============
+
+The perhaps easiest way to build TigerVNC is using Nix.
+
+To install Nix on Linux, macOS or WSL:
+
+  curl --proto '=https' --tlsv1.2 -sSf -L \
+    https://install.determinate.systems/nix | sh -s -- install --determinate
+
+To build native binaries for the current system (supports linux and darwin on
+x86_64 and aarch64):
+
+  nix build .
+
+To build for 64-bit Windows:
+
+  nix build .#windows
+
+To build for 32-bit Windows:
+
+  nix build .#windows32
+
+To build the Java version of the TigerVNC Viewer:
+
+  nix build .#java
