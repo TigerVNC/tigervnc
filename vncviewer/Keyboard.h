@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,22 +16,34 @@
  * USA.
  */
 
-#ifndef __VNCVIEWER_COCOA_H__
-#define __VNCVIEWER_COCOA_H__
+#ifndef __KEYBOARD_H__
+#define __KEYBOARD_H__
 
-class Fl_Window;
+#include <stdint.h>
 
-int cocoa_get_level(Fl_Window *win);
-void cocoa_set_level(Fl_Window *win, int level);
+class KeyboardHandler
+{
+public:
+  virtual void handleKeyPress(int systemKeyCode,
+                              uint32_t keyCode, uint32_t keySym) = 0;
+  virtual void handleKeyRelease(int systemKeyCode) = 0;
+};
 
-int cocoa_capture_displays(Fl_Window *win);
-void cocoa_release_displays(Fl_Window *win);
+class Keyboard
+{
+public:
+  Keyboard(KeyboardHandler* handler_) : handler(handler_) {};
+  virtual ~Keyboard() {};
 
-typedef struct CGColorSpace *CGColorSpaceRef;
+  virtual bool handleEvent(const void* event) = 0;
 
-CGColorSpaceRef cocoa_win_color_space(Fl_Window *win);
+  virtual void reset() {};
 
-bool cocoa_win_is_zoomed(Fl_Window *win);
-void cocoa_win_zoom(Fl_Window *win);
+  virtual unsigned getLEDState() = 0;
+  virtual void setLEDState(unsigned state) = 0;
+
+protected:
+  KeyboardHandler* handler;
+};
 
 #endif
