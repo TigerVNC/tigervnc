@@ -41,7 +41,8 @@ static core::LogWriter vlog("TLSSocket");
 
 TLSSocket::TLSSocket(InStream* in_, OutStream* out_,
                      gnutls_session_t session_)
-  : session(session_), in(in_), out(out_), tlsin(this), tlsout(this)
+  : session(session_), established(false),
+    in(in_), out(out_), tlsin(this), tlsout(this)
 {
   gnutls_transport_set_pull_function(
     session, [](gnutls_transport_ptr_t sock, void* data, size_t size) {
@@ -93,12 +94,17 @@ bool TLSSocket::handshake()
     throw rdr::tls_error("TLS Handshake failed", err, alert);
   }
 
+  established = true;
+
   return true;
 }
 
 void TLSSocket::shutdown()
 {
   int ret;
+
+  if (!established)
+    return;
 
   try {
     if (tlsout.hasBufferedData()) {
@@ -114,6 +120,7 @@ void TLSSocket::shutdown()
   // FIXME: We can't currently wait for the response, so we only send
   //        our close and hope for the best
   ret = gnutls_bye(session, GNUTLS_SHUT_WR);
+  established = false;
   if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION)) {
     if ((ret == GNUTLS_E_PULL_ERROR) || (ret == GNUTLS_E_PUSH_ERROR)) {
       try {

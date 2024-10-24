@@ -62,6 +62,7 @@ namespace rdr {
     ssize_t push(const void* data, size_t size);
 
     gnutls_session_t session;
+    bool established;
 
     InStream* in;
     OutStream* out;
