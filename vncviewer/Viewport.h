@@ -77,6 +77,9 @@ private:
 
   unsigned int getModifierMask(unsigned int keysym);
 
+  // Show the currently set (or system) cursor
+  void showCursor();
+
   static void handleClipboardChange(int source, void *data);
 
   void flushPendingClipboard();
@@ -136,6 +139,7 @@ private:
 
   Fl_RGB_Image *cursor;
   rfb::Point cursorHotspot;
+  bool cursorIsBlank;
 };
 
 #endif
