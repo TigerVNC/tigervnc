@@ -22,6 +22,8 @@
 
 #include <FL/Fl.H>
 
+#include <core/Timer.h>
+
 #include <rfb/CConnection.h>
 
 #include "UserDialog.h"
@@ -48,6 +50,8 @@ protected:
 
   // Callback when socket is ready (or broken)
   static void socketEvent(FL_SOCKET fd, void *data);
+
+  void processNextMsg(core::Timer*);
 
   // Forget any saved password
   void resetPassword();
@@ -100,6 +104,7 @@ private:
   std::string serverHost;
   int serverPort;
   network::Socket* sock;
+  core::MethodTimer<CConn> msgTimer;
 
   DesktopWindow *desktop;
 

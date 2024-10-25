@@ -28,7 +28,6 @@ void abort_connection(const char *error, ...)
 void abort_connection_with_unexpected_error(const std::exception &);
 
 void disconnect();
-bool should_disconnect();
 
 void about_vncviewer();
 

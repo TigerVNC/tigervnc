@@ -164,11 +164,6 @@ void disconnect()
   exitMainloop = true;
 }
 
-bool should_disconnect()
-{
-  return exitMainloop;
-}
-
 void about_vncviewer()
 {
   fl_message_title(_("About TigerVNC"));

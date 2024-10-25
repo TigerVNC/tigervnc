@@ -78,7 +78,8 @@ static const rfb::PixelFormat mediumColourPF(8, 8, false, true,
 static const unsigned bpsEstimateWindow = 1000;
 
 CConn::CConn()
-  : serverPort(0), sock(nullptr), desktop(nullptr),
+  : serverPort(0), sock(nullptr),
+    msgTimer(this, &CConn::processNextMsg), desktop(nullptr),
     updateCount(0), pixelCount(0),
     lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
@@ -245,42 +246,39 @@ unsigned CConn::getPosition()
 void CConn::socketEvent(FL_SOCKET fd, void *data)
 {
   CConn *cc;
-  static bool recursing = false;
-  int when;
 
   assert(data);
   cc = (CConn*)data;
+
+  // Stop monitoring the socket for now and start processing incoming
+  // data asynchronously
+  Fl::remove_fd(fd);
+  cc->msgTimer.start(0);
+
+  // Coalesce data until we're fully done processing things
+  cc->getOutStream()->cork(true);
+}
+
+void CConn::processNextMsg(core::Timer*)
+{
+  static bool recursing = false;
+  bool again;
+  int when;
 
   // I don't think processMsg() is recursion safe, so add this check
   assert(!recursing);
 
   recursing = true;
-  Fl::remove_fd(fd);
 
+  again = false;
   try {
     // We might have been called to flush unwritten socket data
-    cc->sock->outStream().flush();
+    sock->outStream().flush();
 
-    cc->getOutStream()->cork(true);
-
-    // processMsg() only processes one message, so we need to loop
-    // until the buffers are empty or things will stall.
-    while (cc->processMsg()) {
-
-      // Make sure that the FLTK handling and the timers gets some CPU
-      // time in case of back to back messages
-      Fl::check();
-      core::Timer::checkTimeouts();
-
-      // Also check if we need to stop reading and terminate
-      if (should_disconnect())
-        break;
-    }
-
-    cc->getOutStream()->cork(false);
+    again = processMsg();
   } catch (rdr::end_of_stream& e) {
     vlog.info("%s", e.what());
-    if (!cc->desktop) {
+    if (!desktop) {
       vlog.error(_("The connection was dropped by the server before "
                    "the session could be established."));
       abort_connection(_("The connection was dropped by the server "
@@ -292,7 +290,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     vlog.info("%s", e.what());
     disconnect();
   } catch (rfb::auth_error& e) {
-    cc->resetPassword();
+    resetPassword();
     vlog.error(_("Authentication failed: %s"), e.what());
     abort_connection(_("Failed to authenticate with the server. Reason "
                        "given by the server:\n\n%s"), e.what());
@@ -301,12 +299,22 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     abort_connection_with_unexpected_error(e);
   }
 
+  recursing = false;
+
+  if (again) {
+    msgTimer.repeat();
+    return;
+  }
+
+  // Out of data, go back to waiting
+
+  getOutStream()->cork(false);
+
   when = FL_READ | FL_EXCEPT;
-  if (cc->sock->outStream().hasBufferedData())
+  if (sock->outStream().hasBufferedData())
     when |= FL_WRITE;
 
-  Fl::add_fd(fd, when, socketEvent, data);
-  recursing = false;
+  Fl::add_fd(sock->getFd(), when, socketEvent, this);
 }
 
 void CConn::resetPassword()
