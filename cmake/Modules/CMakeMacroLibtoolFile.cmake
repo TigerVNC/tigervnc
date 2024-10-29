@@ -180,8 +180,10 @@ function(libtool_generate_control_file _target)
   file(APPEND ${_laname} "libdir='/usr/lib'\n\n")
 
   # Make sure the timestamp is updated to trigger other make invocations
-  add_custom_command(OUTPUT "${_laname}" DEPENDS ${_target}
+  set(_lamarker ${_binary_dir}/.${_lname}.la.fresh)
+  add_custom_command(OUTPUT "${_lamarker}" DEPENDS ${_target}
     COMMENT "Updating timestamp on ${_lname}.la"
+    COMMAND "${CMAKE_COMMAND}" -E touch "${_lamarker}"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_laname}")
 
   # Add custom command to symlink the static library so that autotools finds
@@ -193,5 +195,5 @@ function(libtool_generate_control_file _target)
     COMMAND "${CMAKE_COMMAND}" -E create_symlink ../${_lname}${CMAKE_STATIC_LIBRARY_SUFFIX} "${_libname}")
 
   add_custom_target(${_target}.la ALL
-    DEPENDS "${_laname}" "${_libname}")
+    DEPENDS "${_lamarker}" "${_libname}")
 endfunction()
