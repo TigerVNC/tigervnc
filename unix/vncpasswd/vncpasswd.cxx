@@ -31,7 +31,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <os/os.h>
+
+#include <core/xdgdirs.h>
 
 #include <rfb/obfuscate.h>
 
@@ -219,12 +220,12 @@ int main(int argc, char** argv)
   }
 
   if (fname[0] == '\0') {
-    const char *configDir = os::getvncconfigdir();
+    const char* configDir = core::getvncconfigdir();
     if (configDir == nullptr) {
       fprintf(stderr, "Could not determine VNC config directory path\n");
       exit(1);
     }
-    if (os::mkdir_p(configDir, 0777) == -1) {
+    if (core::mkdir_p(configDir, 0777) == -1) {
       if (errno != EEXIST) {
         fprintf(stderr, "Could not create VNC config directory \"%s\": %s\n",
                 configDir, strerror(errno));

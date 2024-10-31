@@ -35,8 +35,7 @@
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/string.h>
-
-#include <os/os.h>
+#include <core/xdgdirs.h>
 
 #include <rfb/SecurityClient.h>
 
@@ -728,7 +727,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
     return;
 #endif
     
-    const char* configDir = os::getvncconfigdir();
+    const char* configDir = core::getvncconfigdir();
     if (configDir == nullptr)
       throw std::runtime_error(_("Could not determine VNC config directory path"));
 
@@ -806,7 +805,7 @@ char* loadViewerParameters(const char *filename) {
     return loadFromReg();
 #endif
 
-    const char* configDir = os::getvncconfigdir();
+    const char* configDir = core::getvncconfigdir();
     if (configDir == nullptr)
       throw std::runtime_error(_("Could not determine VNC config directory path"));
 

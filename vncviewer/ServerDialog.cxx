@@ -43,8 +43,7 @@
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/string.h>
-
-#include <os/os.h>
+#include <core/xdgdirs.h>
 
 #include <network/TcpSocket.h>
 
@@ -174,7 +173,7 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
   ServerDialog *dialog = (ServerDialog*)data;
 
   if (dialog->usedDir.empty())
-    dialog->usedDir = os::getuserhomedir();
+    dialog->usedDir = core::getuserhomedir();
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
                                                       _("TigerVNC configuration (*.tigervnc)"),
@@ -214,7 +213,7 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
   const char* servername = dialog->serverName->value();
   const char* filename;
   if (dialog->usedDir.empty())
-    dialog->usedDir = os::getuserhomedir();
+    dialog->usedDir = core::getuserhomedir();
   
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
                                                       _("TigerVNC configuration (*.tigervnc)"),
@@ -350,7 +349,7 @@ void ServerDialog::loadServerHistory()
   rawHistory = loadHistoryFromRegKey();
 #else
 
-  const char* stateDir = os::getvncstatedir();
+  const char* stateDir = core::getvncstatedir();
   if (stateDir == nullptr)
     throw std::runtime_error(_("Could not determine VNC state directory path"));
 
@@ -430,7 +429,7 @@ void ServerDialog::saveServerHistory()
   return;
 #endif
 
-  const char* stateDir = os::getvncstatedir();
+  const char* stateDir = core::getvncstatedir();
   if (stateDir == nullptr)
     throw std::runtime_error(_("Could not determine VNC state directory path"));
 
