@@ -28,7 +28,7 @@
 #include <winsock2.h>
 #define errorNumber WSAGetLastError()
 #define close closesocket
-#include <os/winerrno.h>
+#include <core/winerrno.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

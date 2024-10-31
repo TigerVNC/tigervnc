@@ -35,7 +35,7 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-#include <os/winerrno.h>
+#include <core/winerrno.h>
 #include <direct.h>
 #endif
 
