@@ -1,5 +1,5 @@
-TIGERVNC_SRCDIR=${top_srcdir}/../..
-TIGERVNC_BUILDDIR=${TIGERVNC_SRCDIR}
+TIGERVNC_SRCDIR=$(abspath ${top_srcdir}/../..)
+TIGERVNC_BUILDDIR=$(abspath ${TIGERVNC_SRCDIR})
 
 RFB_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfb.la
 RDR_LIB=$(TIGERVNC_BUILDDIR)/common/rdr/librdr.la
