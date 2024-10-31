@@ -33,8 +33,6 @@
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Registry.h>
 
-#include <os/os.h>
-
 #include <set>
 
 using namespace rfb;

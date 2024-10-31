@@ -46,8 +46,6 @@
 #include <rdr/AESOutStream.h>
 #include <rdr/RandomStream.h>
 
-#include <os/os.h>
-
 enum {
   ReadPublicKey,
   ReadRandom,
