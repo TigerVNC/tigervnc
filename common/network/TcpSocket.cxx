@@ -49,7 +49,7 @@
 #include <network/TcpSocket.h>
 
 #ifdef WIN32
-#include <os/winerrno.h>
+#include <core/winerrno.h>
 #endif
 
 #ifndef INADDR_NONE
