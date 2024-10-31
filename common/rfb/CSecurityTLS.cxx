@@ -36,6 +36,7 @@
 
 #include <core/LogWriter.h>
 #include <core/string.h>
+#include <core/xdgdirs.h>
 
 #include <rfb/CSecurityTLS.h>
 #include <rfb/CConnection.h>
@@ -44,8 +45,6 @@
 #include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
-
-#include <os/os.h>
 
 #include <gnutls/x509.h>
 
@@ -65,7 +64,7 @@ static const char* configdirfn(const char* fn)
   static char full_path[PATH_MAX];
   const char* configdir;
 
-  configdir = os::getvncconfigdir();
+  configdir = core::getvncconfigdir();
   if (configdir == nullptr)
     return "";
 
@@ -399,7 +398,7 @@ void CSecurityTLS::checkSession()
 
   /* Certificate has some user overridable problems, so TOFU time */
 
-  hostsDir = os::getvncstatedir();
+  hostsDir = core::getvncstatedir();
   if (hostsDir == nullptr) {
     throw std::runtime_error("Could not obtain VNC state directory "
                              "path for known hosts storage");

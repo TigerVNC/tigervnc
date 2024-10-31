@@ -8,7 +8,8 @@ add_library(core STATIC
   Region.cxx
   Timer.cxx
   string.cxx
-  time.cxx)
+  time.cxx
+  xdgdirs.cxx)
 
 target_link_libraries(core os)
 target_include_directories(core PUBLIC ${CMAKE_SOURCE_DIR}/common)
