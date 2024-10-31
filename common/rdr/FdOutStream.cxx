@@ -28,7 +28,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #define errorNumber WSAGetLastError()
-#include <os/winerrno.h>
+#include <core/winerrno.h>
 #else
 #include <sys/types.h>
 #include <unistd.h>
