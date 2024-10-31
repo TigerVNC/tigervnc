@@ -21,8 +21,6 @@
 #include <config.h>
 #endif
 
-#include <os/os.h>
-
 #include <assert.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -42,6 +40,8 @@
 #define stat _stat
 #define mkdir(path, mode) mkdir(path)
 #endif
+
+#include <core/xdgdirs.h>
 
 static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_def)
 {
@@ -109,27 +109,27 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
   return (stat(dir, &st) != 0 && stat(legacy, &st) == 0) ? legacy : dir;
 }
 
-const char* os::getuserhomedir()
+const char* core::getuserhomedir()
 {
   return getvncdir(true, nullptr, nullptr);
 }
 
-const char* os::getvncconfigdir()
+const char* core::getvncconfigdir()
 {
   return getvncdir(false, "XDG_CONFIG_HOME", ".config");
 }
 
-const char* os::getvncdatadir()
+const char* core::getvncdatadir()
 {
   return getvncdir(false, "XDG_DATA_HOME", ".local/share");
 }
 
-const char* os::getvncstatedir()
+const char* core::getvncstatedir()
 {
   return getvncdir(false, "XDG_STATE_HOME", ".local/state");
 }
 
-int os::mkdir_p(const char *path_, mode_t mode)
+int core::mkdir_p(const char *path_, mode_t mode)
 {
   char *path = strdup(path_);
   char *p;

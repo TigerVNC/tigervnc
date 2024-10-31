@@ -17,12 +17,12 @@
  * USA.
  */
 
-#ifndef OS_OS_H
-#define OS_OS_H
+#ifndef CORE_XDGDIRS_H
+#define CORE_XDGDIRS_H
 
 #include <sys/stat.h>
 
-namespace os {
+namespace core {
 
   /*
    * Get user home directory.
@@ -71,4 +71,4 @@ namespace os {
   int mkdir_p(const char *path, mode_t mode);
 }
 
-#endif /* OS_OS_H */
+#endif /* CORE_XDGDIRS_H */
