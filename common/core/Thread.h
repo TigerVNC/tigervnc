@@ -16,49 +16,43 @@
  * USA.
  */
 
-#ifndef __OS_MUTEX_H__
-#define __OS_MUTEX_H__
+#ifndef __CORE_THREAD_H__
+#define __CORE_THREAD_H__
 
-namespace os {
-  class Condition;
+#include <stddef.h>
 
-  class Mutex {
+namespace core {
+  class Mutex;
+
+  class Thread {
   public:
-    Mutex();
-    ~Mutex();
+    Thread();
+    virtual ~Thread();
 
-    void lock();
-    void unlock();
-
-  private:
-    friend class Condition;
-
-    void* systemMutex;
-  };
-
-  class AutoMutex {
-  public:
-    AutoMutex(Mutex* mutex) { m = mutex; m->lock(); }
-    ~AutoMutex() { m->unlock(); }
-  private:
-    Mutex* m;
-  };
-
-  class Condition {
-  public:
-    Condition(Mutex* mutex);
-    ~Condition();
-
+    void start();
     void wait();
 
-    void signal();
-    void broadcast();
+    bool isRunning();
+
+  public:
+    static size_t getSystemCPUCount();
+
+  protected:
+    virtual void worker() = 0;
 
   private:
-    Mutex* mutex;
-    void* systemCondition;
-  };
+#ifdef WIN32
+    static long unsigned __stdcall startRoutine(void* data);
+#else
+    static void* startRoutine(void* data);
+#endif
 
+  private:
+    Mutex *mutex;
+    bool running;
+
+    void *threadId;
+  };
 }
 
 #endif
