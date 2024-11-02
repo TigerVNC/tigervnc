@@ -26,9 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <os/Mutex.h>
-
 #include <core/Logger_file.h>
+#include <core/Mutex.h>
 
 using namespace core;
 
@@ -37,7 +36,7 @@ Logger_File::Logger_File(const char* loggerName)
     m_lastLogTime(0)
 {
   m_filename[0] = '\0';
-  mutex = new os::Mutex();
+  mutex = new Mutex();
 }
 
 Logger_File::~Logger_File()
@@ -48,7 +47,7 @@ Logger_File::~Logger_File()
 
 void Logger_File::write(int /*level*/, const char *logname, const char *message)
 {
-  os::AutoMutex a(mutex);
+  AutoMutex a(mutex);
 
   if (!m_file) {
     if (m_filename[0] == '\0')

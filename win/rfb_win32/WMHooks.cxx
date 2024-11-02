@@ -23,9 +23,8 @@
 #endif
 
 #include <core/LogWriter.h>
-
-#include <os/Mutex.h>
-#include <os/Thread.h>
+#include <core/Mutex.h>
+#include <core/Thread.h>
 
 #include <rfb_win32/WMHooks.h>
 #include <rfb_win32/Service.h>
@@ -116,7 +115,7 @@ error:
 }
 
 
-class WMHooksThread : public os::Thread {
+class WMHooksThread : public Thread {
 public:
   WMHooksThread() : active(true), thread_id(-1) { }
   void stop();
@@ -130,7 +129,7 @@ protected:
 
 static WMHooksThread* hook_mgr = nullptr;
 static std::list<WMHooks*> hooks;
-static os::Mutex hook_mgr_lock;
+static Mutex hook_mgr_lock;
 
 
 static bool StartHookThread() {
@@ -168,7 +167,7 @@ static void StopHookThread() {
 
 static bool AddHook(WMHooks* hook) {
   vlog.debug("Adding hook");
-  os::AutoMutex a(&hook_mgr_lock);
+  AutoMutex a(&hook_mgr_lock);
   if (!StartHookThread())
     return false;
   hooks.push_back(hook);
@@ -178,7 +177,7 @@ static bool AddHook(WMHooks* hook) {
 static bool RemHook(WMHooks* hook) {
   {
     vlog.debug("Removing hook");
-    os::AutoMutex a(&hook_mgr_lock);
+    AutoMutex a(&hook_mgr_lock);
     hooks.remove(hook);
   }
   StopHookThread();
@@ -186,7 +185,7 @@ static bool RemHook(WMHooks* hook) {
 }
 
 static void NotifyHooksRegion(const Region& r) {
-  os::AutoMutex a(&hook_mgr_lock);
+  AutoMutex a(&hook_mgr_lock);
   std::list<WMHooks*>::iterator i;
   for (i=hooks.begin(); i!=hooks.end(); i++)
     (*i)->NotifyHooksRegion(r);
@@ -325,7 +324,7 @@ bool rfb::win32::WMHooks::setEvent(HANDLE ue) {
 
 bool rfb::win32::WMHooks::getUpdates(UpdateTracker* ut) {
   if (!updatesReady) return false;
-  os::AutoMutex a(&hook_mgr_lock);
+  AutoMutex a(&hook_mgr_lock);
   updates.copyTo(ut);
   updates.clear();
   updatesReady = false;
@@ -377,12 +376,12 @@ static bool blockRealInputs(bool block_) {
   return block_ == blocking;
 }
 
-static os::Mutex blockMutex;
+static Mutex blockMutex;
 static int blockCount = 0;
 
 bool rfb::win32::WMBlockInput::blockInputs(bool on) {
   if (active == on) return true;
-  os::AutoMutex a(&blockMutex);
+  AutoMutex a(&blockMutex);
   int newCount = on ? blockCount+1 : blockCount-1;
   if (!blockRealInputs(newCount > 0))
     return false;
