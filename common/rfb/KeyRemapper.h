@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 
-namespace os { class Mutex; }
+namespace core { class Mutex; }
 
 namespace rfb {
 
@@ -36,7 +36,7 @@ namespace rfb {
     static KeyRemapper defInstance;
   private:
     std::map<uint32_t,uint32_t> mapping;
-    os::Mutex* mutex;
+    core::Mutex* mutex;
   };
 
 };

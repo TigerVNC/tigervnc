@@ -51,7 +51,7 @@ endif()
 target_include_directories(vncviewer SYSTEM PUBLIC ${FLTK_INCLUDE_DIR})
 target_include_directories(vncviewer SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
 target_include_directories(vncviewer PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(vncviewer core rfb network rdr os)
+target_link_libraries(vncviewer core rfb network rdr)
 target_link_libraries(vncviewer ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
 if(WIN32)
