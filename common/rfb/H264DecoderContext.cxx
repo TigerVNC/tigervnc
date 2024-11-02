@@ -25,8 +25,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
-
-#include <os/Mutex.h>
+#include <core/Mutex.h>
 
 #include <rfb/H264DecoderContext.h>
 
@@ -59,7 +58,7 @@ H264DecoderContext::~H264DecoderContext()
 
 bool H264DecoderContext::isReady()
 {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
   return initialized;
 }
 

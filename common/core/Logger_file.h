@@ -26,9 +26,9 @@
 
 #include <core/Logger.h>
 
-namespace os { class Mutex; }
-
 namespace core {
+
+  class Mutex;
 
   class Logger_File : public Logger {
   public:
@@ -47,10 +47,11 @@ namespace core {
     char m_filename[PATH_MAX];
     FILE* m_file;
     time_t m_lastLogTime;
-    os::Mutex* mutex;
+    Mutex* mutex;
   };
 
   bool initFileLogger(const char* filename);
+
 };
 
 #endif

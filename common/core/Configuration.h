@@ -50,9 +50,9 @@
 #include <string>
 #include <vector>
 
-namespace os { class Mutex; }
-
 namespace core {
+
+  class Mutex;
   class VoidParameter;
   struct ParameterIterator;
 
@@ -189,7 +189,7 @@ namespace core {
     const char* name;
     const char* description;
 
-    os::Mutex* mutex;
+    Mutex* mutex;
   };
 
   class AliasParameter : public VoidParameter {

@@ -22,16 +22,14 @@
 #include <list>
 
 #include <core/Region.h>
-
-#include <os/Thread.h>
+#include <core/Thread.h>
 
 #include <rfb/encodings.h>
 
-namespace core { struct Rect; }
-
-namespace os {
+namespace core {
   class Condition;
   class Mutex;
+  struct Rect;
 }
 
 namespace rdr {
@@ -87,12 +85,12 @@ namespace rfb {
     std::list<rdr::MemOutStream*> freeBuffers;
     std::list<QueueEntry*> workQueue;
 
-    os::Mutex* queueMutex;
-    os::Condition* producerCond;
-    os::Condition* consumerCond;
+    core::Mutex* queueMutex;
+    core::Condition* producerCond;
+    core::Condition* consumerCond;
 
   private:
-    class DecodeThread : public os::Thread {
+    class DecodeThread : public core::Thread {
     public:
       DecodeThread(DecodeManager* manager);
       ~DecodeThread();

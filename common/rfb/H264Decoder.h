@@ -23,7 +23,8 @@
 
 #include <deque>
 
-#include <os/Mutex.h>
+#include <core/Mutex.h>
+
 #include <rfb/Decoder.h>
 
 namespace rfb {
@@ -44,7 +45,7 @@ namespace rfb {
     void resetContexts();
     H264DecoderContext* findContext(const core::Rect& r);
 
-    os::Mutex mutex;
+    core::Mutex mutex;
     std::deque<H264DecoderContext*> contexts;
   };
 }

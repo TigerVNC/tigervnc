@@ -55,7 +55,7 @@ H264Decoder::~H264Decoder()
 
 void H264Decoder::resetContexts()
 {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
   for (H264DecoderContext* context : contexts)
     delete context;
   contexts.clear();
@@ -63,7 +63,7 @@ void H264Decoder::resetContexts()
 
 H264DecoderContext* H264Decoder::findContext(const core::Rect& r)
 {
-  os::AutoMutex m(&mutex);
+  core::AutoMutex m(&mutex);
   for (H264DecoderContext* context : contexts)
     if (context->isEqualRect(r))
       return context;
@@ -120,7 +120,7 @@ void H264Decoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
 
   if (!ctx)
   {
-    os::AutoMutex lock(&mutex);
+    core::AutoMutex lock(&mutex);
     if (contexts.size() >= MAX_H264_INSTANCES)
     {
       H264DecoderContext* excess_ctx = contexts.front();

@@ -24,8 +24,7 @@
 #include <stdint.h>
 
 #include <core/Rect.h>
-
-#include <os/Mutex.h>
+#include <core/Mutex.h>
 
 namespace rfb {
 
@@ -46,7 +45,7 @@ namespace rfb {
       bool isReady();
 
     protected:
-      os::Mutex mutex;
+      core::Mutex mutex;
       core::Rect rect;
       bool initialized;
 
