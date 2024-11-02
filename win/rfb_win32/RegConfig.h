@@ -24,7 +24,7 @@
 #ifndef __RFB_WIN32_REG_CONFIG_H__
 #define __RFB_WIN32_REG_CONFIG_H__
 
-#include <os/Thread.h>
+#include <core/Thread.h>
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/EventManager.h>
@@ -63,7 +63,7 @@ namespace rfb {
       RegKey key;
     };
 
-    class RegConfigThread : os::Thread {
+    class RegConfigThread : core::Thread {
     public:
       RegConfigThread();
       ~RegConfigThread();

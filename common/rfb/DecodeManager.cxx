@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include <core/LogWriter.h>
+#include <core/Mutex.h>
 #include <core/Region.h>
 #include <core/string.h>
 
@@ -33,8 +34,6 @@
 #include <rfb/Exception.h>
 
 #include <rdr/MemOutStream.h>
-
-#include <os/Mutex.h>
 
 using namespace rfb;
 
@@ -49,11 +48,11 @@ DecodeManager::DecodeManager(CConnection *conn_) :
 
   memset(stats, 0, sizeof(stats));
 
-  queueMutex = new os::Mutex();
-  producerCond = new os::Condition(queueMutex);
-  consumerCond = new os::Condition(queueMutex);
+  queueMutex = new core::Mutex();
+  producerCond = new core::Condition(queueMutex);
+  consumerCond = new core::Condition(queueMutex);
 
-  cpuCount = os::Thread::getSystemCPUCount();
+  cpuCount = core::Thread::getSystemCPUCount();
   if (cpuCount == 0) {
     vlog.error("Unable to determine the number of CPU cores on this system");
     cpuCount = 1;
@@ -245,7 +244,7 @@ void DecodeManager::logStats()
 
 void DecodeManager::setThreadException(const std::exception& e)
 {
-  os::AutoMutex a(queueMutex);
+  core::AutoMutex a(queueMutex);
 
   if (threadException != nullptr)
     return;
@@ -256,7 +255,7 @@ void DecodeManager::setThreadException(const std::exception& e)
 
 void DecodeManager::throwThreadException()
 {
-  os::AutoMutex a(queueMutex);
+  core::AutoMutex a(queueMutex);
 
   if (threadException == nullptr)
     return;
@@ -283,7 +282,7 @@ DecodeManager::DecodeThread::~DecodeThread()
 
 void DecodeManager::DecodeThread::stop()
 {
-  os::AutoMutex a(manager->queueMutex);
+  core::AutoMutex a(manager->queueMutex);
 
   if (!isRunning())
     return;

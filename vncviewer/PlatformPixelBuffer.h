@@ -28,9 +28,8 @@
 
 #include <list>
 
+#include <core/Mutex.h>
 #include <core/Region.h>
-
-#include <os/Mutex.h>
 
 #include <rfb/PixelBuffer.h>
 
@@ -49,7 +48,7 @@ public:
   using rfb::FullFramePixelBuffer::height;
 
 protected:
-  os::Mutex mutex;
+  core::Mutex mutex;
   core::Region damage;
 
 #if !defined(WIN32) && !defined(__APPLE__)

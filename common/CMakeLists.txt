@@ -1,5 +1,4 @@
 add_subdirectory(core)
-add_subdirectory(os)
 add_subdirectory(rdr)
 add_subdirectory(network)
 add_subdirectory(rfb)
@@ -10,6 +9,6 @@ add_subdirectory(rfb)
 # is passed (additionally, libvnc is not used on Windows.)
 
 if(NOT WIN32)
-  set_target_properties(core os rdr network rfb
+  set_target_properties(core rdr network rfb
     PROPERTIES COMPILE_FLAGS -fPIC)
 endif()
