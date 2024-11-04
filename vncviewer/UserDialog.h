@@ -38,8 +38,8 @@ public:
   void resetPassword();
 
 private:
-  std::string savedUsername;
-  std::string savedPassword;
+  static std::string savedUsername;
+  static std::string savedPassword;
 };
 
 #endif

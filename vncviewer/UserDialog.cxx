@@ -57,6 +57,9 @@ using namespace rfb;
 static Fl_Pixmap secure_icon(secure);
 static Fl_Pixmap insecure_icon(insecure);
 
+std::string UserDialog::savedUsername;
+std::string UserDialog::savedPassword;
+
 static long ret_val = 0;
 
 static void button_cb(Fl_Widget *widget, long val) {
