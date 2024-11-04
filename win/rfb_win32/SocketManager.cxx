@@ -201,7 +201,7 @@ void SocketManager::processEvent(HANDLE event) {
     ListenInfo li = listeners[event];
 
     // Accept an incoming connection
-    vlog.debug("accepting incoming connection");
+    vlog.debug("Accepting incoming connection");
 
     // What kind of event is this?
     WSANETWORKEVENTS network_events;
@@ -215,13 +215,13 @@ void SocketManager::processEvent(HANDLE event) {
       if (new_sock)
         addSocket(new_sock, li.server, false);
     } else if (network_events.lNetworkEvents & FD_CLOSE) {
-      vlog.info("deleting listening socket");
+      vlog.info("Deleting listening socket");
       remListener(li.sock);
     } else if (network_events.lNetworkEvents & FD_ADDRESS_LIST_CHANGE) {
       li.notifier->processAddressChange();
       requestAddressChangeEvents(li.sock);
     } else {
-      vlog.error("unknown listener event: %lx", network_events.lNetworkEvents);
+      vlog.error("Unknown listener event: %lx", network_events.lNetworkEvents);
     }
   } else if (connections.count(event)) {
     ConnInfo ci = connections[event];
@@ -234,7 +234,7 @@ void SocketManager::processEvent(HANDLE event) {
 
       // Fetch why this event notification triggered
       if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &network_events) == SOCKET_ERROR)
-        throw rdr::SocketException("unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
+        throw rdr::SocketException("Unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
 
       // Cancel event notification for this socket
       if (WSAEventSelect(ci.sock->getFd(), event, 0) == SOCKET_ERROR)

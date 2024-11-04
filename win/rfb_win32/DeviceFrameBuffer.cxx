@@ -256,7 +256,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
       }
 
       if (doOutline) {
-        vlog.debug("drawing cursor outline!");
+        vlog.debug("Drawing cursor outline!");
 
         // The buffer needs to be slightly larger to make sure there
         // is room for the outline pixels

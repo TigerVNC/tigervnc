@@ -69,7 +69,7 @@ UnixSocket::UnixSocket(const char *path)
   }
 
   if (result == -1)
-    throw SocketException("unable to connect to socket", err);
+    throw SocketException("Unable to connect to socket", err);
 
   setFd(sock);
 }
@@ -84,7 +84,7 @@ const char* UnixSocket::getPeerAddress() {
 
   salen = sizeof(addr);
   if (getpeername(getFd(), (struct sockaddr *)&addr, &salen) != 0) {
-    vlog.error("unable to get peer name for socket");
+    vlog.error("Unable to get peer name for socket");
     return "";
   }
 
@@ -93,7 +93,7 @@ const char* UnixSocket::getPeerAddress() {
 
   salen = sizeof(addr);
   if (getsockname(getFd(), (struct sockaddr *)&addr, &salen) != 0) {
-    vlog.error("unable to get local name for socket");
+    vlog.error("Unable to get local name for socket");
     return "";
   }
 
@@ -120,7 +120,7 @@ UnixListener::UnixListener(const char *path, int mode)
 
   // - Create a socket
   if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
-    throw SocketException("unable to create listening socket", errno);
+    throw SocketException("Unable to create listening socket", errno);
 
   // - Delete existing socket (ignore result)
   unlink(path);
@@ -135,14 +135,14 @@ UnixListener::UnixListener(const char *path, int mode)
   umask(saved_umask);
   if (result < 0) {
     close(fd);
-    throw SocketException("unable to bind listening socket", err);
+    throw SocketException("Unable to bind listening socket", err);
   }
 
   // - Set socket mode
   if (chmod(path, mode) < 0) {
     err = errno;
     close(fd);
-    throw SocketException("unable to set socket mode", err);
+    throw SocketException("Unable to set socket mode", err);
   }
 
   listen(fd);

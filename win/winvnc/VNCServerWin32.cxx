@@ -327,7 +327,7 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       break;
 
     default:
-      vlog.error("unknown command %d queued", command);
+      vlog.error("Unknown command %d queued", command);
     };
 
     // Clear the command and signal completion

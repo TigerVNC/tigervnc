@@ -412,7 +412,7 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
           SHORT dc = VkKeyScan(keysym);
           if (dc != -1) {
             if (down) {
-              vlog.info("latin-1 dead key: 0x%x vkCode 0x%x mod 0x%x "
+              vlog.info("Latin-1 dead key: 0x%x vkCode 0x%x mod 0x%x "
                         "followed by space", keysym, LOBYTE(dc), HIBYTE(dc));
               doKeyEventWithModifiers(LOBYTE(dc), HIBYTE(dc), true);
               doKeyEventWithModifiers(LOBYTE(dc), HIBYTE(dc), false);
@@ -438,7 +438,7 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
                 SHORT dc = VkKeyScan(latin1ToDeadChars[j].deadChar);
                 SHORT bc = VkKeyScan(latin1ToDeadChars[j].baseChar);
                 if (dc != -1 && bc != -1) {
-                  vlog.info("latin-1 key: 0x%x dead key vkCode 0x%x mod 0x%x "
+                  vlog.info("Latin-1 key: 0x%x dead key vkCode 0x%x mod 0x%x "
                             "followed by vkCode 0x%x mod 0x%x",
                             keysym, LOBYTE(dc), HIBYTE(dc),
                             LOBYTE(bc), HIBYTE(bc));
@@ -454,14 +454,14 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
             break;
           }
         }
-        vlog.info("ignoring unrecognised Latin-1 keysym 0x%x",keysym);
+        vlog.info("Ignoring unrecognised Latin-1 keysym 0x%x",keysym);
       }
       return;
     }
 
     BYTE vkCode = LOBYTE(s);
     BYTE modifierState = HIBYTE(s);
-    vlog.debug("latin-1 key: 0x%x vkCode 0x%x mod 0x%x down %d",
+    vlog.debug("Latin-1 key: 0x%x vkCode 0x%x mod 0x%x down %d",
                keysym, vkCode, modifierState, down);
     doKeyEventWithModifiers(vkCode, modifierState, down);
 
@@ -470,7 +470,7 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
     // see if it's a recognised keyboard key, otherwise ignore it
 
     if (vkMap.find(keysym) == vkMap.end()) {
-      vlog.info("ignoring unknown keysym 0x%x",keysym);
+      vlog.info("Ignoring unknown keysym 0x%x",keysym);
       return;
     }
     BYTE vkCode = vkMap[keysym];
@@ -478,7 +478,7 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
     if (extendedMap[keysym]) flags |= KEYEVENTF_EXTENDEDKEY;
     if (!down) flags |= KEYEVENTF_KEYUP;
 
-    vlog.debug("keyboard key: keysym 0x%x vkCode 0x%x ext %d down %d",
+    vlog.debug("Keyboard key: keysym 0x%x vkCode 0x%x ext %d down %d",
                keysym, vkCode, extendedMap[keysym], down);
     if (down && (vkCode == VK_DELETE) &&
         ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) &&

@@ -81,8 +81,8 @@ public class CMsgReader {
         readEndOfContinuousUpdates();
         break;
       default:
-        vlog.error("unknown message type "+type);
-        throw new Exception("unknown message type");
+        vlog.error("Unknown message type "+type);
+        throw new Exception("Unknown message type");
       }
     } else {
       int x = is.readU16();
@@ -154,7 +154,7 @@ public class CMsgReader {
 
     if (len > 256*1024) {
       is.skip(len);
-      vlog.error("cut text too long ("+len+" bytes) - ignoring");
+      vlog.error("Cut text too long ("+len+" bytes) - ignoring");
       return;
     }
 

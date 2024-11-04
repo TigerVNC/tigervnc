@@ -97,7 +97,7 @@ bool ZlibOutStream::flushBuffer()
   zs->avail_in = ptr - sentUpTo;
 
 #ifdef ZLIBOUT_DEBUG
-  vlog.debug("flush: avail_in %d",zs->avail_in);
+  vlog.debug("Flush: avail_in %d",zs->avail_in);
 #endif
 
   // Force out everything from the zlib encoder
@@ -124,7 +124,7 @@ void ZlibOutStream::deflate(int flush)
     zs->avail_out = chunk = underlying->avail();
 
 #ifdef ZLIBOUT_DEBUG
-    vlog.debug("calling deflate, avail_in %d, avail_out %d",
+    vlog.debug("Calling deflate, avail_in %d, avail_out %d",
                zs->avail_in,zs->avail_out);
 #endif
 
@@ -138,7 +138,7 @@ void ZlibOutStream::deflate(int flush)
     }
 
 #ifdef ZLIBOUT_DEBUG
-    vlog.debug("after deflate: %d bytes",
+    vlog.debug("After deflate: %d bytes",
                zs->next_out-underlying->getptr());
 #endif
 
@@ -152,7 +152,7 @@ void ZlibOutStream::checkCompressionLevel()
 
   if (newLevel != compressionLevel) {
 #ifdef ZLIBOUT_DEBUG
-    vlog.debug("change: avail_in %d",zs->avail_in);
+    vlog.debug("Change: avail_in %d",zs->avail_in);
 #endif
 
     // zlib is just horribly stupid. It does an implicit flush on

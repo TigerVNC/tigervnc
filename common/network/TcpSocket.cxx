@@ -217,7 +217,7 @@ const char* TcpSocket::getPeerAddress() {
   socklen_t sa_size = sizeof(sa);
 
   if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
-    vlog.error("unable to get peer name for socket");
+    vlog.error("Unable to get peer name for socket");
     return "(N/A)";
   }
 
@@ -231,7 +231,7 @@ const char* TcpSocket::getPeerAddress() {
                       buffer + 1, sizeof(buffer) - 2, nullptr, 0,
                       NI_NUMERICHOST);
     if (ret != 0) {
-      vlog.error("unable to convert peer name to a string");
+      vlog.error("Unable to convert peer name to a string");
       return "(N/A)";
     }
 
@@ -245,14 +245,14 @@ const char* TcpSocket::getPeerAddress() {
 
     name = inet_ntoa(sa.u.sin.sin_addr);
     if (name == nullptr) {
-      vlog.error("unable to convert peer name to a string");
+      vlog.error("Unable to convert peer name to a string");
       return "(N/A)";
     }
 
     return name;
   }
 
-  vlog.error("unknown address family for socket");
+  vlog.error("Unknown address family for socket");
   return "";
 }
 
@@ -281,7 +281,7 @@ bool TcpSocket::enableNagles(bool enable) {
   if (setsockopt(getFd(), IPPROTO_TCP, TCP_NODELAY,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
-    vlog.error("unable to setsockopt TCP_NODELAY: %d", e);
+    vlog.error("Unable to setsockopt TCP_NODELAY: %d", e);
     return false;
   }
   return true;
@@ -299,7 +299,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   int sock;
 
   if ((sock = socket (listenaddr->sa_family, SOCK_STREAM, 0)) < 0)
-    throw SocketException("unable to create listening socket", errorNumber);
+    throw SocketException("Unable to create listening socket", errorNumber);
 
   memcpy (&sa, listenaddr, listenaddrlen);
 #ifdef IPV6_V6ONLY
@@ -307,7 +307,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
     if (setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&one, sizeof(one))) {
       int e = errorNumber;
       closesocket(sock);
-      throw SocketException("unable to set IPV6_V6ONLY", e);
+      throw SocketException("Unable to set IPV6_V6ONLY", e);
     }
   }
 #endif /* defined(IPV6_V6ONLY) */
@@ -325,14 +325,14 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     closesocket(sock);
-    throw SocketException("unable to create listening socket", e);
+    throw SocketException("Unable to create listening socket", e);
   }
 #endif
 
   if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
     int e = errorNumber;
     closesocket(sock);
-    throw SocketException("failed to bind socket", e);
+    throw SocketException("Failed to bind socket", e);
   }
 
   listen(sock);
@@ -443,7 +443,7 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
   snprintf (service, sizeof (service) - 1, "%d", port);
   service[sizeof (service) - 1] = '\0';
   if ((result = getaddrinfo(addr, service, &hints, &ai)) != 0)
-    throw GAIException("unable to resolve listening address", result);
+    throw GAIException("Unable to resolve listening address", result);
 
   try {
     createTcpListeners(listeners, ai);
@@ -630,7 +630,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     }
 
     if ((result = getaddrinfo (parts[0].c_str(), nullptr, &hints, &ai)) != 0) {
-      throw GAIException("unable to resolve host by name", result);
+      throw GAIException("Unable to resolve host by name", result);
     }
 
     memcpy (&pattern.address.u.sa, ai->ai_addr, ai->ai_addrlen);
@@ -641,7 +641,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     if (parts.size() > 1) {
       if (family == AF_INET &&
           (parts[1].find('.') != std::string::npos)) {
-        throw Exception("mask no longer supported for filter, "
+        throw Exception("Mask no longer supported for filter, "
                         "use prefix instead");
       }
 

@@ -112,7 +112,7 @@ public:
 
   void handleEvent(TXWindow* /*w*/, XEvent* ev) override {
     if (ev->type == vncExtEventBase + VncExtQueryConnectNotify) {
-       vlog.debug("query connection event");
+       vlog.debug("Query connection event");
        if (queryConnectDialog)
          delete queryConnectDialog;
        queryConnectDialog = nullptr;

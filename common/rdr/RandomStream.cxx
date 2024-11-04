@@ -50,11 +50,11 @@ RandomStream::RandomStream()
     if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(&provider, nullptr, nullptr,
                                PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
-        vlog.error("unable to create keyset");
+        vlog.error("Unable to create keyset");
         provider = 0;
       }
     } else {
-      vlog.error("unable to acquire context");
+      vlog.error("Unable to acquire context");
       provider = 0;
     }
   }
@@ -69,7 +69,7 @@ RandomStream::RandomStream()
   {
 #endif
 #endif
-    vlog.error("no OS supplied random source - using rand()");
+    vlog.error("No OS supplied random source, using rand()");
     seed += (unsigned int) time(nullptr) + getpid() + getpid() * 987654 + rand();
     srand(seed);
   }
@@ -89,7 +89,7 @@ bool RandomStream::fillBuffer() {
 #ifdef RFB_HAVE_WINCRYPT
   if (provider) {
     if (!CryptGenRandom(provider, availSpace(), (uint8_t*)end))
-      throw rdr::Win32Exception("unable to CryptGenRandom", GetLastError());
+      throw rdr::Win32Exception("Unable to CryptGenRandom", GetLastError());
     end += availSpace();
   } else {
 #else
@@ -97,7 +97,7 @@ bool RandomStream::fillBuffer() {
   if (fp) {
     size_t n = fread((uint8_t*)end, 1, availSpace(), fp);
     if (n <= 0)
-      throw rdr::PosixException("reading /dev/urandom or /dev/random failed",
+      throw rdr::PosixException("Reading /dev/urandom or /dev/random failed",
                                 errno);
     end += n;
   } else {

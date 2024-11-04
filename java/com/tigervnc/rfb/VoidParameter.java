@@ -61,7 +61,7 @@ abstract public class VoidParameter {
   abstract public String getValueStr();
   public boolean isBool() { return false; }
   public void setImmutable() {
-    vlog.debug("set immutable "+getName());
+    vlog.debug("Set immutable "+getName());
     immutable = true;
   }
 

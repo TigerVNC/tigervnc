@@ -260,7 +260,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     if (data[i*4 + 3] != 0) break;
 
   if ((i == width*height) && dotWhenNoCursor) {
-    vlog.debug("cursor is empty - using dot");
+    vlog.debug("Cursor is empty, using dot");
 
     Fl_Pixmap pxm(dotcursor_xpm);
     cursor = new Fl_RGB_Image(&pxm);

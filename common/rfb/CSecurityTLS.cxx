@@ -316,11 +316,11 @@ void CSecurityTLS::checkSession()
     return;
 
   if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509)
-    throw Exception("unsupported certificate type");
+    throw Exception("Unsupported certificate type");
 
   err = gnutls_certificate_verify_peers2(session, &status);
   if (err != 0) {
-    vlog.error("server certificate verification failed: %s", gnutls_strerror(err));
+    vlog.error("Server certificate verification failed: %s", gnutls_strerror(err));
     throw rdr::TLSException("server certificate verification()", err);
   }
 

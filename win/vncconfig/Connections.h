@@ -89,7 +89,7 @@ namespace rfb {
       ConnectionsPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_CONNECTIONS)), regKey(rk) {}
       void initDialog() override {
-        vlog.debug("set IDC_PORT %d", (int)port_number);
+        vlog.debug("Set IDC_PORT %d", (int)port_number);
         setItemInt(IDC_PORT, port_number ? port_number : 5900);
         setItemChecked(IDC_RFB_ENABLE, port_number != 0);
         setItemInt(IDC_IDLE_TIMEOUT, rfb::Server::idleTimeout);

@@ -185,7 +185,7 @@ public class TcpSocket extends Socket {
     try {
       sock.channel.socket().setTcpNoDelay(!enable);
     } catch(java.net.SocketException e) {
-      vlog.error("unable to setsockopt TCP_NODELAY: "+e.getMessage());
+      vlog.error("Unable to setsockopt TCP_NODELAY: "+e.getMessage());
       return false;
     }
     return true;

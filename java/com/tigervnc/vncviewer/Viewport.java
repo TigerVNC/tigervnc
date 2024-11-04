@@ -168,7 +168,7 @@ class Viewport extends JPanel implements ActionListener {
       if (data[i*4 + 3] != 0) break;
 
     if ((i == width*height) && dotWhenNoCursor.getValue()) {
-      vlog.debug("cursor is empty - using dot");
+      vlog.debug("Cursor is empty: Using dot");
       cursor = new BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB_PRE);
       cursor.setRGB(0, 0, 5, 5, dotcursor_xpm, 0, 5);
       cursorHotspot.x = cursorHotspot.y = 3;

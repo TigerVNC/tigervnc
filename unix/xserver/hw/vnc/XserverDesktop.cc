@@ -333,7 +333,7 @@ bool XserverDesktop::handleListenerEvent(int fd,
     return false;
 
   Socket* sock = (*i)->accept();
-  vlog.debug("new client, sock %d", sock->getFd());
+  vlog.debug("New client, sock %d", sock->getFd());
   sockserv->addSocket(sock);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 
@@ -380,7 +380,7 @@ void XserverDesktop::blockHandler(int* timeout)
     for (i = sockets.begin(); i != sockets.end(); i++) {
       int fd = (*i)->getFd();
       if ((*i)->isShutdown()) {
-        vlog.debug("client gone, sock %d",fd);
+        vlog.debug("Client gone, sock %d",fd);
         vncRemoveNotifyFd(fd);
         server->removeSocket(*i);
         vncClientGone(fd);
@@ -413,14 +413,14 @@ void XserverDesktop::blockHandler(int* timeout)
 
 void XserverDesktop::addClient(Socket* sock, bool reverse, bool viewOnly)
 {
-  vlog.debug("new client, sock %d reverse %d",sock->getFd(),reverse);
+  vlog.debug("New client, sock %d reverse %d",sock->getFd(),reverse);
   server->addSocket(sock, reverse, viewOnly ? AccessView : AccessDefault);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 }
 
 void XserverDesktop::disconnectClients()
 {
-  vlog.debug("disconnecting all clients");
+  vlog.debug("Disconnecting all clients");
   return server->closeClients("Disconnection from server end");
 }
 

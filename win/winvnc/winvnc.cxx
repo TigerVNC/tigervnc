@@ -199,9 +199,9 @@ static void processParams(int argc, char** argv) {
 
       } else if (strcasecmp(argv[i], "-noconsole") == 0) {
         close_console = true;
-        vlog.info("closing console");
+        vlog.info("Closing console");
         if (!FreeConsole())
-          vlog.info("unable to close console:%lu", GetLastError());
+          vlog.info("Unable to close console:%lu", GetLastError());
 
       } else if ((strcasecmp(argv[i], "-help") == 0) ||
         (strcasecmp(argv[i], "--help") == 0) ||

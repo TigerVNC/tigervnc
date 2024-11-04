@@ -41,11 +41,11 @@ static LogWriter vlog("Clipboard");
 Clipboard::Clipboard()
   : MsgWindow("Clipboard"), notifier(nullptr), next_window(nullptr) {
   next_window = SetClipboardViewer(getHandle());
-  vlog.debug("registered clipboard handler");
+  vlog.debug("Registered clipboard handler");
 }
 
 Clipboard::~Clipboard() {
-  vlog.debug("removing %p from chain (next is %p)", getHandle(), next_window);
+  vlog.debug("Removing %p from chain (next is %p)", getHandle(), next_window);
   ChangeClipboardChain(getHandle(), next_window);
 }
 
@@ -54,26 +54,26 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   switch (msg) {
 
   case WM_CHANGECBCHAIN:
-    vlog.debug("change clipboard chain (%I64x, %I64x)",
+    vlog.debug("Change clipboard chain (%I64x, %I64x)",
                (long long)wParam, (long long)lParam);
     if ((HWND) wParam == next_window)
       next_window = (HWND) lParam;
     else if (next_window != nullptr)
       SendMessage(next_window, msg, wParam, lParam);
     else
-      vlog.error("bad clipboard chain change!");
+      vlog.error("Bad clipboard chain change!");
     break;
 
   case WM_DRAWCLIPBOARD:
     {
       HWND owner = GetClipboardOwner();
       if (owner == getHandle()) {
-        vlog.debug("local clipboard changed by me");
+        vlog.debug("Local clipboard changed by me");
       } else {
-        vlog.debug("local clipboard changed by %p", owner);
+        vlog.debug("Local clipboard changed by %p", owner);
 
         if (notifier == nullptr)
-          vlog.debug("no clipboard notifier registered");
+          vlog.debug("No clipboard notifier registered");
         else
           notifier->notifyClipboardChanged(IsClipboardFormatAvailable(CF_UNICODETEXT));
 			}
@@ -149,18 +149,18 @@ Clipboard::setClipText(const char* text) {
       throw rdr::Win32Exception("unable to set Win32 clipboard", GetLastError());
     clip_handle = nullptr;
 
-    vlog.debug("set clipboard");
+    vlog.debug("Set clipboard");
   } catch (rdr::Exception& e) {
     vlog.debug("%s", e.str());
   }
 
   // - Close the clipboard
   if (!CloseClipboard())
-    vlog.debug("unable to close Win32 clipboard: %lu", GetLastError());
+    vlog.debug("Unable to close Win32 clipboard: %lu", GetLastError());
   else
-    vlog.debug("closed clipboard");
+    vlog.debug("Closed clipboard");
   if (clip_handle) {
-    vlog.debug("freeing clipboard handle");
+    vlog.debug("Freeing clipboard handle");
     GlobalFree(clip_handle);
   }
 }

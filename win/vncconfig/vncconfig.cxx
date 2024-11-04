@@ -164,7 +164,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
       PropSheet sheet(inst, propSheetTitle, pages, icon);
 
 #ifdef _DEBUG
-      vlog.debug("capture dialogs=%s", captureDialogs ? "true" : "false");
+      vlog.debug("Capture dialogs=%s", captureDialogs ? "true" : "false");
       sheet.showPropSheet(nullptr, true, false, captureDialogs);
 #else
       sheet.showPropSheet(nullptr, true, false);

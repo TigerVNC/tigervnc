@@ -112,7 +112,7 @@ bool SConnection::processVersionMsg()
   int majorVersion;
   int minorVersion;
 
-  vlog.debug("reading protocol version");
+  vlog.debug("Reading protocol version");
 
   if (!is->hasData(12))
     return false;
@@ -193,7 +193,7 @@ bool SConnection::processVersionMsg()
 
 bool SConnection::processSecurityTypeMsg()
 {
-  vlog.debug("processing security type message");
+  vlog.debug("Processing security type message");
 
   if (!is->hasData(1))
     return false;
@@ -228,7 +228,7 @@ void SConnection::processSecurityType(int secType)
 
 bool SConnection::processSecurityMsg()
 {
-  vlog.debug("processing security message");
+  vlog.debug("Processing security message");
   try {
     if (!ssecurity->processMsg())
       return false;
@@ -272,7 +272,7 @@ bool SConnection::processSecurityFailure()
 
 bool SConnection::processInitMsg()
 {
-  vlog.debug("reading client initialisation");
+  vlog.debug("Reading client initialisation");
   return reader_->readClientInit();
 }
 

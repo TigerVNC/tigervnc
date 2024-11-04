@@ -80,7 +80,7 @@ void Image::Init(int width, int height)
   Visual* vis = DefaultVisual(dpy, DefaultScreen(dpy));
 
   if (vis->c_class != TrueColor) {
-    vlog.error("pseudocolour not supported");
+    vlog.error("Pseudocolour not supported");
     exit(1);
   }
 
@@ -251,7 +251,7 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
   }
 
   if (visual->c_class != TrueColor) {
-    vlog.error("pseudocolour not supported");
+    vlog.error("Pseudocolour not supported");
     exit(1);
   }
 
