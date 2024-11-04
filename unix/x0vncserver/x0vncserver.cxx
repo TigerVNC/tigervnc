@@ -251,7 +251,7 @@ char* programName;
 
 static void printVersion(FILE *fp)
 {
-  fprintf(fp, "TigerVNC Server version %s, built %s\n",
+  fprintf(fp, "TigerVNC server version %s, built %s\n",
           PACKAGE_VERSION, buildtime);
 }
 

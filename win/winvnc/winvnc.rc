@@ -76,9 +76,9 @@ BEGIN
         BLOCK "080904b0"
         BEGIN
             VALUE "Comments", "\0"
-            VALUE "CompanyName", "TigerVNC Project\0"
-            VALUE "FileDescription", "TigerVNC Server\0"
-            VALUE "ProductName", "TigerVNC Server\0"
+            VALUE "CompanyName", "TigerVNC project\0"
+            VALUE "FileDescription", "TigerVNC server\0"
+            VALUE "ProductName", "TigerVNC server\0"
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "winvnc\0"
             VALUE "LegalCopyright", "Copyright (C) 1999-2024 TigerVNC Team and many others (see README.rst)\0"
@@ -119,14 +119,14 @@ IDR_TRAY MENU DISCARDABLE
 BEGIN
     POPUP "Tray Menu"
     BEGIN
-        MENUITEM "Control &Panel",              ID_CONTR0L_PANEL
+        MENUITEM "Control &panel",              ID_CONTR0L_PANEL
         MENUITEM SEPARATOR
         MENUITEM "&Options...",                 ID_OPTIONS
-        MENUITEM "Add &New Client...",          ID_CONNECT
-        MENUITEM "&Disconnect Clients",         ID_DISCONNECT
-        MENUITEM "D&isable New Clients",        ID_DISABLE_NEW_CLIENTS
+        MENUITEM "Add &new client...",          ID_CONNECT
+        MENUITEM "&Disconnect clients",         ID_DISCONNECT
+        MENUITEM "D&isable new clients",        ID_DISABLE_NEW_CLIENTS
         MENUITEM SEPARATOR
-        MENUITEM "&Close VNC Server",           ID_CLOSE
+        MENUITEM "&Close VNC server",           ID_CLOSE
         MENUITEM "&About...",                   ID_ABOUT
     END
 END
@@ -140,7 +140,7 @@ END
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 300, 92
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "About TigerVNC Server for Windows"
+CAPTION "About TigerVNC server for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,245,70,47,15
@@ -156,7 +156,7 @@ END
 IDD_QUERY_CONNECT DIALOG DISCARDABLE  0, 0, 164, 93
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "VNC Server : Accept Connection?"
+CAPTION "VNC server : Accept connection?"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "&Reject",IDCANCEL,105,72,52,14
@@ -173,7 +173,7 @@ END
 IDD_ADD_NEW_CLIENT DIALOG DISCARDABLE  0, 0, 177, 52
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "VNC Server : Add New Client"
+CAPTION "VNC server : Add new client"
 FONT 8, "MS Sans Serif"
 BEGIN
     EDITTEXT        IDC_HOST,80,10,90,15,ES_AUTOHSCROLL
@@ -187,7 +187,7 @@ END
 IDD_CONTROL_PANEL DIALOG DISCARDABLE  0, 0, 267, 238
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | DS_CONTEXTHELP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Control Panel"
+CAPTION "Control panel"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_LIST_CONNECTIONS,"SysListView32",LVS_REPORT | 
@@ -200,11 +200,11 @@ BEGIN
     PUSHBUTTON      "View-only",IDC_VIEW_ONLY,13,121,111,14
     PUSHBUTTON      "Full control ",IDC_FULL_CONTROL,13,145,112,14
     PUSHBUTTON      "Stop updating",IDC_STOP_UPDATE,13,167,111,14
-    PUSHBUTTON      "Kill Clients",IDC_KILL_SEL_CLIENT,13,190,111,14
+    PUSHBUTTON      "Kill clients",IDC_KILL_SEL_CLIENT,13,190,111,14
     PUSHBUTTON      "Properties",IDC_PROPERTIES,144,121,111,14
-    PUSHBUTTON      "Add New Client",IDC_ADD_CLIENT,144,145,111,14
-    PUSHBUTTON      "Kill All Clients",IDC_KILL_ALL,144,167,111,14
-    CONTROL         "Disable New Clients",IDC_DISABLE_CLIENTS,"Button",
+    PUSHBUTTON      "Add new client",IDC_ADD_CLIENT,144,145,111,14
+    PUSHBUTTON      "Kill all clients",IDC_KILL_ALL,144,167,111,14
+    CONTROL         "Disable new clients",IDC_DISABLE_CLIENTS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,144,191,111,13
     PUSHBUTTON      "Close",IDCANCEL,144,217,111,14
 END

@@ -61,7 +61,7 @@ std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
 static std::set<OptionsDialog *> instances;
 
 OptionsDialog::OptionsDialog()
-  : Fl_Window(580, 420, _("TigerVNC Options"))
+  : Fl_Window(580, 420, _("TigerVNC options"))
 {
   int x, y;
   Fl_Navigation *navigation;

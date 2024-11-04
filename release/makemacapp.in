@@ -37,7 +37,7 @@ fi
 
 umask 022
 TMPDIR=`mktemp -d /tmp/$PACKAGE_NAME-build.XXXXXX`
-APPROOT="$TMPDIR/dmg/TigerVNC Viewer $VERSION.app"
+APPROOT="$TMPDIR/dmg/TigerVNC viewer $VERSION.app"
 mkdir -p "$APPROOT/Contents/MacOS"
 mkdir -p "$APPROOT/Contents/Resources"
 

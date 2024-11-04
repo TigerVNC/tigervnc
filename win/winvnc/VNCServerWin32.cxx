@@ -112,9 +112,9 @@ void VNCServerWin32::processAddressChange() {
     return;
 
   // Tool-tip prefix depends on server mode
-  const char* prefix = "VNC Server (User):";
+  const char* prefix = "VNC server (user):";
   if (isServiceProcess())
-    prefix = "VNC Server (Service):";
+    prefix = "VNC server (service):";
 
   // Fetch the list of addresses
   std::list<std::string> addrs;
@@ -300,12 +300,12 @@ void VNCServerWin32::processEvent(HANDLE event_) {
     switch (command) {
 
     case DisconnectClients:
-      // Disconnect all currently active VNC Viewers
+      // Disconnect all currently active VNC viewers
       vncServer.closeClients((const char*)commandData);
       break;
 
     case AddClient:
-      // Make a reverse connection to a VNC Viewer
+      // Make a reverse connection to a VNC viewer
       sockMgr.addSocket((network::Socket*)commandData, &vncServer);
       break;
   case GetClientsInfo:

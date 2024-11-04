@@ -278,7 +278,7 @@ QueryConnect to be supported.
 .
 .TP
 .B \-QueryConnectTimeout \fIseconds\fP
-Number of seconds to show the Accept Connection dialog before rejecting the
+Number of seconds to show the Accept connection dialog before rejecting the
 connection.  Default is \fB10\fP.
 .
 .TP

@@ -129,7 +129,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
         // Something weird happens on NT 4.0 SP5 but I can't reproduce it on other
         // NT 4.0 service pack revisions.
         if (e.err == ERROR_INVALID_PARAMETER) {
-          MsgBox(nullptr, "Windows reported an error trying to secure the VNC Server settings for this user.  "
+          MsgBox(nullptr, "Windows reported an error trying to secure the VNC server settings for this user.  "
                     "Your settings may not be secure!", MB_ICONWARNING | MB_OK);
         } else if (e.err != ERROR_CALL_NOT_IMPLEMENTED &&
                    e.err != ERROR_NOT_LOGGED_ON) {
@@ -158,9 +158,9 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
       HICON icon = (HICON)LoadImage(inst, MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_SHARED);
 
       // Create the PropertySheet handler
-      const char* propSheetTitle = "VNC Server Properties (Service-Mode)";
+      const char* propSheetTitle = "VNC server properties (service-mode)";
       if (configKey == HKEY_CURRENT_USER)
-        propSheetTitle = "VNC Server Properties (User-Mode)";
+        propSheetTitle = "VNC server properties (user-mode)";
       PropSheet sheet(inst, propSheetTitle, pages, icon);
 
 #ifdef _DEBUG

@@ -30,7 +30,7 @@ QueryConnectDialog::QueryConnectDialog(Display* dpy_,
                                        const char* user_,
                                        int timeout_,
                                        QueryResultCallback* cb)
-  : TXDialog(dpy_, 300, 100, "VNC Server : Accept Connection?"),
+  : TXDialog(dpy_, 300, 100, "VNC server : Accept connection?"),
     addressLbl(dpy, "Host:",this),
     address(dpy, address_, this),
     userLbl(dpy, "User:", this),

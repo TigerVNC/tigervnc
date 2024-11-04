@@ -68,7 +68,7 @@ BoolParameter rawKeyboard("RawKeyboard",
                           "layout", false);
 IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "Number of seconds to show the "
-                                 "Accept Connection dialog before "
+                                 "Accept connection dialog before "
                                  "rejecting the connection",
                                  10);
 

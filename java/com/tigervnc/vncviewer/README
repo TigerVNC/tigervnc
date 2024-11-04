@@ -1,5 +1,5 @@
 
-TigerVNC Java Viewer
+TigerVNC Java viewer
 ====================
 
 This distribution is based on the standard VNC source and includes new
@@ -27,9 +27,9 @@ available.
 Installation
 ============
 
-The TigerVNC Java Viewer requires installation of either a JRE (Java
+The TigerVNC Java viewer requires installation of either a JRE (Java
 Runtime Environment) or a JDK (Java Development Kit).  If VncViewer.jar is
-in the current directory, then the TigerVNC Java Viewer can be launched
+in the current directory, then the TigerVNC Java viewer can be launched
 with the following command line:
 
    java -jar VncViewer.jar [parameters]
@@ -41,7 +41,7 @@ optional parameters supported by VncViewer.
 Parameters
 ==========
 
-The TigerVNC Java Viewer accepts a number of optional parameters, allowing you
+The TigerVNC Java viewer accepts a number of optional parameters, allowing you
 to customize its behavior. Example:
 
   java -jar VncViewer.jar Port=5901 ScalingFactor=50

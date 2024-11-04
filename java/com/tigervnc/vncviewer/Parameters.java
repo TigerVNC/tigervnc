@@ -192,7 +192,7 @@ public class Parameters {
     "specified from the point of view of the gateway machine, "+
     "e.g. \"localhost\" denotes the gateway, "+
     "not the machine on which the viewer was launched. "+
-    "See the System Properties section below for "+
+    "See the System properties section below for "+
     "information on configuring the -Via option.", "");
 
   public static BoolParameter tunnel
