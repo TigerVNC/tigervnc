@@ -91,7 +91,7 @@ win32::SPointer::pointerEvent(const Point& pos, uint8_t buttonmask)
       if (buttonmask & (1<<i)) {
         flags |= buttonDownMapping[i];
         if (buttonDataMapping[i]) {
-          if (data) vlog.info("warning - two buttons set mouse_event data field");
+          if (data) vlog.info("Warning: Two buttons set mouse_event data field");
           data = buttonDataMapping[i];
         }
       } else {

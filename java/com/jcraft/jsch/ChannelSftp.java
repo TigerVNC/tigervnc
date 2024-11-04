@@ -1382,7 +1382,7 @@ public class ChannelSftp extends ChannelSession{
                  try{
                    sendREAD(handle, request_offset, request_len, rq);
                  }
-                 catch(Exception e){ throw new IOException("error"); }
+                 catch(Exception e){ throw new IOException("Error"); }
                  request_offset += request_len;
                }
              }
@@ -1403,11 +1403,11 @@ public class ChannelSftp extends ChannelSession{
                return 0;
              }
              catch(SftpException e){
-               throw new IOException("error: "+e.toString());
+               throw new IOException("Error: "+e.toString());
              }
 
              if(type!=SSH_FXP_STATUS && type!=SSH_FXP_DATA){ 
-               throw new IOException("error");
+               throw new IOException("Error");
              }
              if(type==SSH_FXP_STATUS){
                fill(buf, rest_length);
@@ -1418,7 +1418,7 @@ public class ChannelSftp extends ChannelSession{
                  return -1;
                }
                //throwStatusError(buf, i);
-               throw new IOException("error");
+               throw new IOException("Error");
              }
 
              buf.rewind();
@@ -1477,7 +1477,7 @@ public class ChannelSftp extends ChannelSession{
                             rr.offset+length_of_data,
                             (int)(rr.length-length_of_data), rq);
                  }
-                 catch(Exception e){ throw new IOException("error"); }
+                 catch(Exception e){ throw new IOException("Error"); }
                  request_offset=rr.offset+rr.length;
                }
 
@@ -1502,7 +1502,7 @@ public class ChannelSftp extends ChannelSession{
              if(monitor!=null)monitor.end();
              rq.cancel(header, buf);
              try{_sendCLOSE(handle, header);}
-             catch(Exception e){throw new IOException("error");}
+             catch(Exception e){throw new IOException("Error");}
            }
          };
        return in;

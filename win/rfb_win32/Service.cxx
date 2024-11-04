@@ -48,24 +48,24 @@ bool runAsService = false;
 VOID WINAPI serviceHandler(DWORD control) {
   switch (control) {
   case SERVICE_CONTROL_INTERROGATE:
-    vlog.info("cmd: report status");
+    vlog.info("CMD: Report status");
     service->setStatus();
     return;
   case SERVICE_CONTROL_PARAMCHANGE:
-    vlog.info("cmd: param change");
+    vlog.info("CMD: Param change");
     service->readParams();
     return;
   case SERVICE_CONTROL_SHUTDOWN:
-    vlog.info("cmd: OS shutdown");
+    vlog.info("CMD: OS shutdown");
     service->osShuttingDown();
     return;
   case SERVICE_CONTROL_STOP:
-    vlog.info("cmd: stop");
+    vlog.info("CMD: Stop");
     service->setStatus(SERVICE_STOP_PENDING);
     service->stop();
     return;
   };
-  vlog.debug("cmd: unknown %lu", control);
+  vlog.debug("CMD: Unknown %lu", control);
 }
 
 
@@ -126,7 +126,7 @@ Service::setStatus() {
 void
 Service::setStatus(DWORD state) {
   if (status_handle == nullptr) {
-    vlog.debug("warning - cannot setStatus");
+    vlog.debug("Warning: Cannot setStatus");
     return;
   }
   status.dwCurrentState = state;

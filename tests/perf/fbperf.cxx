@@ -344,7 +344,7 @@ static void dotest(TestWindow* win)
 
   // We are restricted by some delay, e.g. refresh rate
   if (is_constant(frames[0]/time[0], frames[2]/time[2])) {
-    fprintf(stderr, "WARNING: Fixed delay dominating updates.\n\n");
+    fprintf(stderr, "Warning: Fixed delay dominating updates.\n\n");
     delay = time[2]/frames[2];
     rate = 0.0;
   }
@@ -359,7 +359,7 @@ static void dotest(TestWindow* win)
   // We can hit cache limits that causes performance to drop
   // with increasing update size, screwing up our calculations
   if ((pixels[2] / time[2]) < (pixels[0] / time[0] * 0.9)) {
-    fprintf(stderr, "WARNING: Unexpected behaviour. Measurement unreliable.\n\n");
+    fprintf(stderr, "Warning: Unexpected behaviour. Measurement unreliable.\n\n");
 
     // We can't determine the proportions between these, so divide the
     // time spent evenly
