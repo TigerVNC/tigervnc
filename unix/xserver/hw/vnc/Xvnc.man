@@ -361,8 +361,8 @@ localhost -once securitytypes=none
 
 In this example a viewer connection to :50 will result in a new Xvnc for that
 connection which should display the standard XDM login screen on that machine.
-Because the user needs to login via XDM, it is usually OK to accept connections
-without a VNC password in this case.
+It is usually OK to accept connections without a VNC password, since the user
+still needs to log in via XDM in this case.
 
 In the wait mode, when the first connection comes in, inetd gives the listening
 socket to Xvnc.  This means that for a given TCP port, there is only ever one
