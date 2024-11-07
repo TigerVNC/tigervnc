@@ -42,7 +42,7 @@ void LegacyPage::LoadPrefs()
         std::string username;
         try {
           username = UserName();
-        } catch (rdr::Win32Exception& e) {
+        } catch (rdr::win32_error& e) {
           if (e.err != ERROR_NOT_LOGGED_ON)
             throw;
         }
@@ -85,7 +85,7 @@ void LegacyPage::LoadPrefs()
                     if (bits)
                       strcat(pattern, ".");
                     if (parts[j].size() > 3)
-                      throw rdr::Exception("Invalid IP address part");
+                      throw std::invalid_argument("Invalid IP address part");
                     if (!parts[j].empty()) {
                       strcat(pattern, parts[j].c_str());
                       bits += 8;
@@ -114,7 +114,7 @@ void LegacyPage::LoadPrefs()
 
               // Finally, save the Hosts value
               regKey.setString("Hosts", newHosts.c_str());
-            } catch (rdr::Exception&) {
+            } catch (std::exception&) {
               MsgBox(nullptr, "Unable to convert AuthHosts setting to Hosts format.",
                      MB_ICONWARNING | MB_OK);
             }
@@ -135,7 +135,7 @@ void LegacyPage::LoadPrefs()
           regKey.setBool("AlwaysShared", connectPriority == 1);
           regKey.setBool("NeverShared", connectPriority == 2);
 
-        } catch(rdr::Exception&) {
+        } catch(std::exception&) {
         }
 
         // Open the local, default-user settings
@@ -145,8 +145,8 @@ void LegacyPage::LoadPrefs()
           userKey.openKey(winvnc3, "Default");
           vlog.info("loading Default prefs");
           LoadUserPrefs(userKey);
-        } catch(rdr::Exception& e) {
-          vlog.error("error reading Default settings:%s", e.str());
+        } catch(std::exception& e) {
+          vlog.error("error reading Default settings:%s", e.what());
         }
 
         // Open the local, user-specific settings
@@ -156,8 +156,8 @@ void LegacyPage::LoadPrefs()
             userKey.openKey(winvnc3, username.c_str());
             vlog.info("loading local User prefs");
             LoadUserPrefs(userKey);
-          } catch(rdr::Exception& e) {
-            vlog.error("error reading local User settings:%s", e.str());
+          } catch(std::exception& e) {
+            vlog.error("error reading local User settings:%s", e.what());
           }
 
           // Open the user's own settings
@@ -167,8 +167,8 @@ void LegacyPage::LoadPrefs()
               userKey.openKey(HKEY_CURRENT_USER, "Software\\ORL\\WinVNC3");
               vlog.info("loading global User prefs");
               LoadUserPrefs(userKey);
-            } catch(rdr::Exception& e) {
-              vlog.error("error reading global User settings:%s", e.str());
+            } catch(std::exception& e) {
+              vlog.error("error reading global User settings:%s", e.what());
             }
           }
         }

@@ -30,12 +30,13 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <stdexcept>
+
 #include <os/Mutex.h>
 
 #include <rfb/util.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Exception.h>
 
 #define LOCK_CONFIG os::AutoMutex a(mutex)
 
@@ -376,7 +377,7 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
-    throw rfb::Exception("Default value <null> not allowed");
+    throw std::invalid_argument("Default value <null> not allowed");
   }
 }
 
@@ -387,7 +388,7 @@ bool StringParameter::setParam(const char* v) {
   LOCK_CONFIG;
   if (immutable) return true;
   if (!v)
-    throw rfb::Exception("setParam(<null>) not allowed");
+    throw std::invalid_argument("setParam(<null>) not allowed");
   vlog.debug("set %s(String) to %s", getName(), v);
   value = v;
   return true;

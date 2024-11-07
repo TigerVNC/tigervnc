@@ -54,7 +54,7 @@
 
 #include <assert.h>
 
-#include <rfb/Exception.h>
+#include <stdexcept>
 
 #include "parameters.h"
 #include "i18n.h"
@@ -223,7 +223,7 @@ void EmulateMB::filterPointerEvent(const rfb::Point& pos, uint8_t buttonMask)
     btstate |= 0x2;
 
   if ((state > 10) || (state < 0))
-    throw rfb::Exception(_("Invalid state for 3 button emulation"));
+    throw std::runtime_error(_("Invalid state for 3 button emulation"));
 
   action1 = stateTab[state][btstate][0];
 
@@ -286,7 +286,7 @@ void EmulateMB::handleTimeout(rfb::Timer *t)
     return;
 
   if ((state > 10) || (state < 0))
-    throw rfb::Exception(_("Invalid state for 3 button emulation"));
+    throw std::runtime_error(_("Invalid state for 3 button emulation"));
 
   // Timeout shouldn't trigger when there's no timeout action
   assert(stateTab[state][4][2] >= 0);

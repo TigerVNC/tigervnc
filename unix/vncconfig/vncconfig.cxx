@@ -330,13 +330,13 @@ int main(int argc, char** argv)
       FD_ZERO(&rfds);
       FD_SET(ConnectionNumber(dpy), &rfds);
       int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, tvp);
-      if (n < 0) throw rdr::SocketException("select", errno);
+      if (n < 0) throw rdr::socket_error("select", errno);
     }
 
     XCloseDisplay(dpy);
 
-  } catch (rdr::Exception &e) {
-    vlog.error("%s", e.str());
+  } catch (std::exception& e) {
+    vlog.error("%s", e.what());
   }
 
   return 0;

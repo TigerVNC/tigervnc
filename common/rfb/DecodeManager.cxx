@@ -114,14 +114,14 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
 
   if (!Decoder::supported(encoding)) {
     vlog.error("Unknown encoding %d", encoding);
-    throw rdr::Exception("Unknown encoding");
+    throw protocol_error("Unknown encoding");
   }
 
   if (!decoders[encoding]) {
     decoders[encoding] = Decoder::createDecoder(encoding);
     if (!decoders[encoding]) {
       vlog.error("Unknown encoding %d", encoding);
-      throw rdr::Exception("Unknown encoding");
+      throw protocol_error("Unknown encoding");
     }
   }
 
@@ -148,8 +148,8 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
   try {
     if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
       return false;
-  } catch (rdr::Exception& e) {
-    throw Exception("Error reading rect: %s", e.str());
+  } catch (std::exception& e) {
+    throw std::runtime_error(format("Error reading rect: %s", e.what()));
   }
 
   stats[encoding].rects++;
@@ -243,14 +243,14 @@ void DecodeManager::logStats()
             iecPrefix(bytes, "B").c_str(), ratio);
 }
 
-void DecodeManager::setThreadException(const rdr::Exception& e)
+void DecodeManager::setThreadException(const std::exception& e)
 {
   os::AutoMutex a(queueMutex);
 
   if (threadException != nullptr)
     return;
 
-  threadException = new rdr::Exception("Exception on worker thread: %s", e.str());
+  threadException = new std::runtime_error(format("Exception on worker thread: %s", e.what()));
 }
 
 void DecodeManager::throwThreadException()
@@ -260,7 +260,7 @@ void DecodeManager::throwThreadException()
   if (threadException == nullptr)
     return;
 
-  rdr::Exception e(*threadException);
+  std::exception e(*threadException);
 
   delete threadException;
   threadException = nullptr;
@@ -318,7 +318,7 @@ void DecodeManager::DecodeThread::worker()
       entry->decoder->decodeRect(entry->rect, entry->bufferStream->data(),
                                  entry->bufferStream->length(),
                                  *entry->server, entry->pb);
-    } catch (rdr::Exception& e) {
+    } catch (std::exception& e) {
       manager->setThreadException(e);
     } catch(...) {
       assert(false);

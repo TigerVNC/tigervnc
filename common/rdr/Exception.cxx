@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright 2014-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,8 @@
 
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
+#include <rfb/util.h>
+
 #ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>
@@ -37,77 +40,94 @@
 
 #include <string.h>
 
-#ifdef HAVE_GNUTLS
-#include <gnutls/gnutls.h>
-#endif
-
 using namespace rdr;
 
-Exception::Exception(const char *format, ...) {
-	va_list ap;
 
-	va_start(ap, format);
-	(void) vsnprintf(str_, len, format, ap);
-	va_end(ap);
+getaddrinfo_error::getaddrinfo_error(const char* s, int err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", s,
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
+{
 }
 
-GAIException::GAIException(const char* s, int err_)
-  : Exception("%s", s), err(err_)
+getaddrinfo_error::getaddrinfo_error(const std::string& s, int err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", s.c_str(),
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
 {
-  strncat(str_, ": ", len-1-strlen(str_));
+}
+
+std::string getaddrinfo_error::strerror(int err_) const
+{
 #ifdef _WIN32
-  wchar_t *currStr = new wchar_t[len-strlen(str_)];
-  wcsncpy(currStr, gai_strerrorW(err), len-1-strlen(str_));
-  WideCharToMultiByte(CP_UTF8, 0, currStr, -1, str_+strlen(str_),
-                      len-1-strlen(str_), nullptr, nullptr);
-  delete [] currStr;
+  char str[256];
+
+  WideCharToMultiByte(CP_UTF8, 0, gai_strerrorW(err_), -1, str,
+                      sizeof(str), nullptr, nullptr);
+
+  return str;
 #else
-  strncat(str_, gai_strerror(err), len-1-strlen(str_));
+  return gai_strerror(err_);
 #endif
-  strncat(str_, " (", len-1-strlen(str_));
-  char buf[20];
-#ifdef WIN32
-  if (err < 0)
-    sprintf(buf, "%x", err);
-  else
-#endif
-    sprintf(buf,"%d",err);
-  strncat(str_, buf, len-1-strlen(str_));
-  strncat(str_, ")", len-1-strlen(str_));
 }
 
-PosixException::PosixException(const char* s, int err_)
-  : Exception("%s", s), err(err_)
+posix_error::posix_error(const char* what_arg, int err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
 {
-  strncat(str_, ": ", len-1-strlen(str_));
-  strncat(str_, strerror(err), len-1-strlen(str_));
-  strncat(str_, " (", len-1-strlen(str_));
-  char buf[20];
-    sprintf(buf,"%d",err);
-  strncat(str_, buf, len-1-strlen(str_));
-  strncat(str_, ")", len-1-strlen(str_));
+}
+
+posix_error::posix_error(const std::string& what_arg, int err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
+{
+}
+
+std::string posix_error::strerror(int err_) const
+{
+#ifdef _WIN32
+  char str[256];
+
+  WideCharToMultiByte(CP_UTF8, 0, _wcserror(err_), -1, str,
+                      sizeof(str), nullptr, nullptr);
+
+  return str;
+#else
+  return ::strerror(err_);
+#endif
 }
 
 #ifdef WIN32
-Win32Exception::Win32Exception(const char* s, unsigned err_)
-  : Exception("%s", s), err(err_)
+win32_error::win32_error(const char* what_arg, unsigned err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
 {
-  strncat(str_, ": ", len-1-strlen(str_));
-  wchar_t *currStr = new wchar_t[len-strlen(str_)];
+}
+
+win32_error::win32_error(const std::string& what_arg, unsigned err_)
+  : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
+                                   strerror(err_).c_str(), err_)),
+    err(err_)
+{
+}
+
+std::string win32_error::strerror(unsigned err_) const
+{
+  wchar_t wstr[256];
+  char str[256];
+
   FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                 nullptr, err, 0, currStr, len-1-strlen(str_), nullptr);
-  WideCharToMultiByte(CP_UTF8, 0, currStr, -1, str_+strlen(str_),
-                      len-1-strlen(str_), nullptr, nullptr);
-  delete [] currStr;
+                 nullptr, err_, 0, wstr, sizeof(wstr), nullptr);
+  WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str,
+                      sizeof(str), nullptr, nullptr);
 
-  int l = strlen(str_);
-  if ((l >= 2) && (str_[l-2] == '\r') && (str_[l-1] == '\n'))
-      str_[l-2] = 0;
+  int l = strlen(str);
+  if ((l >= 2) && (str[l-2] == '\r') && (str[l-1] == '\n'))
+      str[l-2] = 0;
 
-  strncat(str_, " (", len-1-strlen(str_));
-  char buf[20];
-  sprintf(buf,"%d",err);
-  strncat(str_, buf, len-1-strlen(str_));
-  strncat(str_, ")", len-1-strlen(str_));
+  return str;
 }
 #endif

@@ -1,6 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright 2015-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,46 +22,57 @@
 #ifndef __RDR_EXCEPTION_H__
 #define __RDR_EXCEPTION_H__
 
+#include <stdexcept>
+#include <string>
+
 namespace rdr {
 
-  struct Exception {
-    enum { len = 256 };
-    char str_[len];
-    Exception(const char *format=nullptr, ...)
-      __attribute__((__format__ (__printf__, 2, 3)));
-    virtual ~Exception() {}
-    virtual const char* str() const { return str_; }
-  };
-
-  struct PosixException : public Exception {
+  class posix_error : public std::runtime_error {
+  public:
     int err;
-    PosixException(const char* s, int err_);
+    posix_error(const char* what_arg, int err_);
+    posix_error(const std::string& what_arg, int err_);
+  private:
+    std::string strerror(int err_) const;
   };
 
 #ifdef WIN32
-  struct Win32Exception : public Exception {
+  class win32_error : public std::runtime_error {
+  public:
     unsigned err;
-    Win32Exception(const char* s, unsigned err_);
+    win32_error(const char* what_arg, unsigned err_);
+    win32_error(const std::string& what_arg, unsigned err_);
+  private:
+    std::string strerror(unsigned err_) const;
   };
 #endif
 
 #ifdef WIN32
-  struct SocketException : public Win32Exception {
-    SocketException(const char* text, unsigned err_) : Win32Exception(text, err_) {}
+  class socket_error : public win32_error {
+  public:
+    socket_error(const char* what_arg, unsigned err_) : win32_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : win32_error(what_arg, err_) {}
   };
 #else
-  struct SocketException : public PosixException {
-    SocketException(const char* text, int err_) : PosixException(text, err_) {}
+  class socket_error : public posix_error {
+  public:
+    socket_error(const char* what_arg, unsigned err_) : posix_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) : posix_error(what_arg, err_) {}
   };
 #endif
 
-  struct GAIException : public Exception {
+  class getaddrinfo_error : public std::runtime_error {
+  public:
     int err;
-    GAIException(const char* s, int err_);
+    getaddrinfo_error(const char* s, int err_);
+    getaddrinfo_error(const std::string& s, int err_);
+  private:
+    std::string strerror(int err_) const;
   };
 
-  struct EndOfStream : public Exception {
-    EndOfStream() : Exception("End of stream") {}
+  class end_of_stream : public std::runtime_error {
+  public:
+    end_of_stream() : std::runtime_error("End of stream") {}
   };
 
 }

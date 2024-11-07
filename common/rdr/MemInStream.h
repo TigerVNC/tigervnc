@@ -59,7 +59,7 @@ namespace rdr {
 
   private:
 
-    bool overrun(size_t /*needed*/) override { throw EndOfStream(); }
+    bool overrun(size_t /*needed*/) override { throw end_of_stream(); }
     const uint8_t* start;
     bool deleteWhenDone;
   };

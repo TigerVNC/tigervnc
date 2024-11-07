@@ -5,6 +5,8 @@ cat /usr/i686-pc-mingw32/sys-root/mingw/include/winerror.h \
  | egrep -v 'EINTR|EBADF|EACCES|EFAULT|EINVAL|EMFILE|_QOS|PROVIDER|PROCTABLE'
 */
 
+#include <winsock2.h>
+
 #undef EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #undef EINPROGRESS

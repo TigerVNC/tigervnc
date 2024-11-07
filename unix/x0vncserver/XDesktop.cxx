@@ -31,7 +31,6 @@
 #include <network/Socket.h>
 
 #include <rfb/LogWriter.h>
-#include <rfb/Exception.h>
 
 #include <x0vncserver/XDesktop.h>
 
@@ -98,7 +97,7 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
   if (!XkbQueryExtension(dpy, &xkbOpcode, &xkbEventBase,
                          &xkbErrorBase, &major, &minor)) {
     vlog.error("XKEYBOARD extension not present");
-    throw Exception();
+    throw std::runtime_error("XKEYBOARD extension not present");
   }
 
   XkbSelectEvents(dpy, XkbUseCoreKbd, XkbIndicatorStateNotifyMask,
@@ -1049,8 +1048,8 @@ bool XDesktop::setCursor()
   try {
     server->setCursor(cim->width, cim->height, Point(cim->xhot, cim->yhot),
                       cursorData);
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::setCursor: %s",e.str());
+  } catch (std::exception& e) {
+    vlog.error("XserverDesktop::setCursor: %s",e.what());
   }
 
   delete [] cursorData;

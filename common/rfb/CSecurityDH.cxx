@@ -86,9 +86,9 @@ bool CSecurityDH::readKey()
   uint16_t gen = is->readU16();
   keyLength = is->readU16();
   if (keyLength < MinKeyLength)
-    throw Exception("DH key is too short");
+    throw protocol_error("DH key is too short");
   if (keyLength > MaxKeyLength)
-    throw Exception("DH key is too long");
+    throw protocol_error("DH key is too long");
   if (!is->hasDataOrRestore(keyLength * 2))
     return false;
   is->clearRestorePoint();
@@ -112,7 +112,7 @@ void CSecurityDH::writeCredentials()
 
   std::vector<uint8_t> bBytes(keyLength);
   if (!rs.hasData(keyLength))
-    throw Exception("failed to generate DH private key");
+    throw std::runtime_error("failed to generate DH private key");
   rs.readBytes(bBytes.data(), bBytes.size());
   nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
@@ -132,13 +132,13 @@ void CSecurityDH::writeCredentials()
 
   uint8_t buf[128];
   if (!rs.hasData(128))
-    throw Exception("failed to generate random padding");
+    throw std::runtime_error("failed to generate random padding");
   rs.readBytes(buf, 128);
   if (username.size() >= 64)
-    throw Exception("username is too long");
+    throw std::out_of_range("username is too long");
   memcpy(buf, username.c_str(), username.size() + 1);
   if (password.size() >= 64)
-    throw Exception("password is too long");
+    throw std::out_of_range("password is too long");
   memcpy(buf + 64, password.c_str(), password.size() + 1);
   aes128_encrypt(&aesCtx, 128, buf, buf);
 

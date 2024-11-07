@@ -27,7 +27,6 @@
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/CSecurityPlain.h>
-#include <rfb/Exception.h>
 #include <rfb/Security.h>
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
@@ -110,5 +109,5 @@ CSecurity* SecurityClient::GetCSecurity(CConnection* cc, uint32_t secType)
   }
 
 bail:
-  throw Exception("Security type not supported");
+  throw std::invalid_argument("Security type not supported");
 }

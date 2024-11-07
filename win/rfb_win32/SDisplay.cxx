@@ -35,7 +35,6 @@
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb_win32/SDisplayCoreWMHooks.h>
-#include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
 
@@ -172,12 +171,12 @@ void SDisplay::startCore() {
   // Currently, we just check whether we're in the console session, and
   //   fail if not
   if (!inConsoleSession())
-    throw rdr::Exception("Console is not session zero - oreconnect to restore Console sessin");
+    throw std::runtime_error("Console is not session zero - oreconnect to restore Console sessin");
   
   // Switch to the current input desktop
   if (rfb::win32::desktopChangeRequired()) {
     if (!rfb::win32::changeDesktop())
-      throw rdr::Exception("unable to switch into input desktop");
+      throw std::runtime_error("unable to switch into input desktop");
   }
 
   // Initialise the change tracker and clipper
@@ -197,12 +196,12 @@ void SDisplay::startCore() {
       else
         core = new SDisplayCorePolling(this, &updates);
       core->setScreenRect(screenRect);
-    } catch (rdr::Exception& e) {
+    } catch (std::exception& e) {
       delete core; core = nullptr;
       if (tryMethod == 0)
-        throw rdr::Exception("unable to access desktop");
+        throw std::runtime_error("unable to access desktop");
       tryMethod--;
-      vlog.error("%s", e.str());
+      vlog.error("%s", e.what());
     }
   }
   vlog.info("Started %s", core->methodName());
@@ -287,12 +286,12 @@ void SDisplay::restartCore() {
     // Start a new Core if possible
     startCore();
     vlog.info("restarted");
-  } catch (rdr::Exception& e) {
+  } catch (std::exception& e) {
     // If startCore() fails then we MUST disconnect all clients,
     // to cause the server to stop() the desktop.
     // Otherwise, the SDesktop is in an inconsistent state
     // and the server will crash.
-    server->closeClients(e.str());
+    server->closeClients(e.what());
   }
 }
 
@@ -400,8 +399,8 @@ SDisplay::processEvent(HANDLE event) {
       // - Flush any updates from the core
       try {
         core->flushUpdates();
-      } catch (rdr::Exception& e) {
-        vlog.error("%s", e.str());
+      } catch (std::exception& e) {
+        vlog.error("%s", e.what());
         restartCore();
         return;
       }
@@ -435,7 +434,7 @@ SDisplay::processEvent(HANDLE event) {
     }
     return;
   }
-  throw rdr::Exception("No such event");
+  throw std::runtime_error("No such event");
 }
 
 

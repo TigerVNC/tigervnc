@@ -27,6 +27,8 @@
 #include <unistd.h>
 #endif
 
+#include <rdr/Exception.h>
+
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Exception.h>
@@ -107,10 +109,10 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
         vlog.info(_("Connected to host %s port %d"),
                   serverHost.c_str(), serverPort);
       }
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
+    } catch (std::exception& e) {
+      vlog.error("%s", e.what());
       abort_connection(_("Failed to connect to \"%s\":\n\n%s"),
-                       vncServerName, e.str());
+                       vncServerName, e.what());
       return;
     }
   }
@@ -261,8 +263,8 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     }
 
     cc->getOutStream()->cork(false);
-  } catch (rdr::EndOfStream& e) {
-    vlog.info("%s", e.str());
+  } catch (rdr::end_of_stream& e) {
+    vlog.info("%s", e.what());
     if (!cc->desktop) {
       vlog.error(_("The connection was dropped by the server before "
                    "the session could be established."));
@@ -271,16 +273,16 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     } else {
       disconnect();
     }
-  } catch (rfb::AuthCancelledException& e) {
-    vlog.info("%s", e.str());
+  } catch (rfb::auth_cancelled& e) {
+    vlog.info("%s", e.what());
     disconnect();
-  } catch (rfb::AuthFailureException& e) {
+  } catch (rfb::auth_error& e) {
     cc->resetPassword();
-    vlog.error(_("Authentication failed: %s"), e.str());
+    vlog.error(_("Authentication failed: %s"), e.what());
     abort_connection(_("Failed to authenticate with the server. Reason "
-                       "given by the server:\n\n%s"), e.str());
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
+                       "given by the server:\n\n%s"), e.what());
+  } catch (std::exception& e) {
+    vlog.error("%s", e.what());
     abort_connection_with_unexpected_error(e);
   }
 

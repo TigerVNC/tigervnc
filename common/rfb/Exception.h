@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014-2024 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,17 +19,25 @@
 #ifndef __RFB_EXCEPTION_H__
 #define __RFB_EXCEPTION_H__
 
-#include <rdr/Exception.h>
+#include <stdexcept>
 
 namespace rfb {
-  typedef rdr::Exception Exception;
-  struct AuthFailureException : public Exception {
-    AuthFailureException(const char* reason)
-      : Exception("%s", reason) {}
+  class protocol_error : public std::runtime_error {
+  public:
+    protocol_error(const char* what_arg) : std::runtime_error(what_arg) {}
+    protocol_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
   };
-  struct AuthCancelledException : public rfb::Exception {
-    AuthCancelledException()
-      : Exception("Authentication cancelled") {}
+
+  class auth_error : public std::runtime_error {
+  public:
+    auth_error(const char* reason) : std::runtime_error(reason) {}
+    auth_error(std::string& reason) : std::runtime_error(reason) {}
+  };
+
+  class auth_cancelled : public std::runtime_error {
+  public:
+    auth_cancelled()
+      : std::runtime_error("Authentication cancelled") {}
   };
 }
 #endif

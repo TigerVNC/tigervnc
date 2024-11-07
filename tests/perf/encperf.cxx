@@ -171,7 +171,7 @@ void DummyOutStream::overrun(size_t needed)
 {
   flush();
   if (avail() < needed)
-    throw rdr::Exception("Insufficient dummy output buffer");
+    throw std::out_of_range("Insufficient dummy output buffer");
 }
 
 CConn::CConn(const char *filename)
@@ -372,17 +372,17 @@ static struct stats runTest(const char *fn)
 
   try {
     cc = new CConn(fn);
-  } catch (rdr::Exception& e) {
-    fprintf(stderr, "Failed to open rfb file: %s\n", e.str());
+  } catch (std::exception& e) {
+    fprintf(stderr, "Failed to open rfb file: %s\n", e.what());
     exit(1);
   }
 
   try {
     while (true)
       cc->processMsg();
-  } catch (rdr::EndOfStream& e) {
-  } catch (rdr::Exception& e) {
-    fprintf(stderr, "Failed to run rfb file: %s\n", e.str());
+  } catch (rdr::end_of_stream& e) {
+  } catch (std::exception& e) {
+    fprintf(stderr, "Failed to run rfb file: %s\n", e.what());
     exit(1);
   }
 

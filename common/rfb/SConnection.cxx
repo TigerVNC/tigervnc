@@ -95,14 +95,14 @@ bool SConnection::processMsg()
   case RFBSTATE_INITIALISATION:   return processInitMsg();         break;
   case RFBSTATE_NORMAL:           return reader_->readMsg();       break;
   case RFBSTATE_QUERYING:
-    throw Exception("SConnection::processMsg: bogus data from client while "
-                    "querying");
+    throw std::logic_error("SConnection::processMsg: bogus data from "
+                           "client while querying");
   case RFBSTATE_CLOSING:
-    throw Exception("SConnection::processMsg: called while closing");
+    throw std::logic_error("SConnection::processMsg: called while closing");
   case RFBSTATE_UNINITIALISED:
-    throw Exception("SConnection::processMsg: not initialised yet?");
+    throw std::logic_error("SConnection::processMsg: not initialised yet?");
   default:
-    throw Exception("SConnection::processMsg: invalid state");
+    throw std::logic_error("SConnection::processMsg: invalid state");
   }
 }
 
@@ -123,7 +123,7 @@ bool SConnection::processVersionMsg()
   if (sscanf(verStr, "RFB %03d.%03d\n",
              &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
-    throw Exception("reading version failed: not an RFB client?");
+    throw protocol_error("reading version failed: not an RFB client?");
   }
 
   client.setVersion(majorVersion, minorVersion);
@@ -133,9 +133,10 @@ bool SConnection::processVersionMsg()
 
   if (client.majorVersion != 3) {
     // unknown protocol version
-    failConnection("Client needs protocol version %d.%d, server has %d.%d",
-                   client.majorVersion, client.minorVersion,
-                   defaultMajorVersion, defaultMinorVersion);
+    failConnection(format("Client needs protocol version %d.%d, "
+                          "server has %d.%d",
+                          client.majorVersion, client.minorVersion,
+                          defaultMajorVersion, defaultMinorVersion));
   }
 
   if (client.minorVersion != 3 && client.minorVersion != 7 && client.minorVersion != 8) {
@@ -165,8 +166,9 @@ bool SConnection::processVersionMsg()
       if (*i == secTypeNone || *i == secTypeVncAuth) break;
     }
     if (i == secTypes.end()) {
-      failConnection("No supported security type for %d.%d client",
-                     client.majorVersion, client.minorVersion);
+      failConnection(format("No supported security type for "
+                            "%d.%d client",
+                            client.majorVersion, client.minorVersion));
     }
 
     os->writeU32(*i);
@@ -213,7 +215,7 @@ void SConnection::processSecurityType(int secType)
   secTypes = security.GetEnabledSecTypes();
   if (std::find(secTypes.begin(), secTypes.end(),
                 secType) == secTypes.end())
-    throw Exception("Requested security type not available");
+    throw protocol_error("Requested security type not available");
 
   vlog.info("Client requests security type %s(%d)",
             secTypeName(secType),secType);
@@ -221,8 +223,8 @@ void SConnection::processSecurityType(int secType)
   try {
     state_ = RFBSTATE_SECURITY;
     ssecurity = security.GetSSecurity(this, secType);
-  } catch (rdr::Exception& e) {
-    failConnection("%s", e.str());
+  } catch (std::exception& e) {
+    failConnection(e.what());
   }
 }
 
@@ -232,12 +234,12 @@ bool SConnection::processSecurityMsg()
   try {
     if (!ssecurity->processMsg())
       return false;
-  } catch (AuthFailureException& e) {
-    vlog.error("AuthFailureException: %s", e.str());
+  } catch (auth_error& e) {
+    vlog.error("Authentication error: %s", e.what());
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
-    authFailureMsg = e.str();
+    authFailureMsg = e.what();
     authFailureTimer.start(100);
     return true;
   }
@@ -291,41 +293,39 @@ void SConnection::handleAuthFailureTimeout(Timer* /*t*/)
                      authFailureMsg.size());
     }
     os->flush();
-  } catch (rdr::Exception& e) {
-    close(e.str());
+  } catch (std::exception& e) {
+    close(e.what());
     return;
   }
 
   close(authFailureMsg.c_str());
 }
 
-void SConnection::failConnection(const char* format, ...)
+void SConnection::failConnection(const char* message)
 {
-	va_list ap;
-	char str[256];
-
-	va_start(ap, format);
-	(void) vsnprintf(str, sizeof(str), format, ap);
-	va_end(ap);
-
-  vlog.info("Connection failed: %s", str);
+  vlog.info("Connection failed: %s", message);
 
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (client.majorVersion == 3 && client.minorVersion == 3) {
       os->writeU32(0);
-      os->writeU32(strlen(str));
-      os->writeBytes((const uint8_t*)str, strlen(str));
+      os->writeU32(strlen(message));
+      os->writeBytes((const uint8_t*)message, strlen(message));
       os->flush();
     } else {
       os->writeU8(0);
-      os->writeU32(strlen(str));
-      os->writeBytes((const uint8_t*)str, strlen(str));
+      os->writeU32(strlen(message));
+      os->writeBytes((const uint8_t*)message, strlen(message));
       os->flush();
     }
   }
 
   state_ = RFBSTATE_INVALID;
-  throw Exception("%s", str);
+  throw protocol_error(message);
+}
+
+void SConnection::failConnection(const std::string& message)
+{
+  failConnection(message.c_str());
 }
 
 void SConnection::setAccessRights(AccessRights ar)
@@ -336,7 +336,7 @@ void SConnection::setAccessRights(AccessRights ar)
 bool SConnection::accessCheck(AccessRights ar) const
 {
   if (state_ < RFBSTATE_QUERYING)
-    throw Exception("SConnection::accessCheck: invalid state");
+    throw std::logic_error("SConnection::accessCheck: invalid state");
 
   return (accessRights & ar) == ar;
 }
@@ -449,7 +449,7 @@ void SConnection::queryConnection(const char* /*userName*/)
 void SConnection::approveConnection(bool accept, const char* reason)
 {
   if (state_ != RFBSTATE_QUERYING)
-    throw Exception("SConnection::approveConnection: invalid state");
+    throw std::logic_error("SConnection::approveConnection: invalid state");
 
   if (!client.beforeVersion(3,8) || ssecurity->getType() != secTypeNone) {
     if (accept) {
@@ -474,9 +474,9 @@ void SConnection::approveConnection(bool accept, const char* reason)
   } else {
     state_ = RFBSTATE_INVALID;
     if (reason)
-      throw AuthFailureException(reason);
+      throw auth_error(reason);
     else
-      throw AuthFailureException("Connection rejected");
+      throw auth_error("Connection rejected");
   }
 }
 

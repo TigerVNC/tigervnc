@@ -60,7 +60,7 @@ void QueryConnectDialog::worker() {
   countdown = timeout;
   try {
     if (desktopChangeRequired() && !changeDesktop())
-      throw rdr::Exception("changeDesktop failed");
+      throw std::runtime_error("changeDesktop failed");
     approve = Dialog::showDialog(MAKEINTRESOURCE(IDD_QUERY_CONNECT));
     server->queryConnectionComplete();
   } catch (...) {
@@ -74,7 +74,7 @@ void QueryConnectDialog::worker() {
 
 void QueryConnectDialog::initDialog() {
   if (!SetTimer(handle, 1, 1000, nullptr))
-    throw rdr::Win32Exception("SetTimer", GetLastError());
+    throw rdr::win32_error("SetTimer", GetLastError());
   setItemString(IDC_QUERY_HOST, peerIp.c_str());
   if (userName.empty())
     userName = "(anonymous)";

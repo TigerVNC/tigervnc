@@ -159,8 +159,8 @@ public:
           if (isServiceProcess()) {
             try {
               rfb::win32::stopService(VNCServerService::Name);
-            } catch (rdr::Exception& e) {
-              MsgBox(nullptr, e.str(), MB_ICONERROR | MB_OK);
+            } catch (std::exception& e) {
+              MsgBox(nullptr, e.what(), MB_ICONERROR | MB_OK);
             }
           } else {
             thread.server.stop();

@@ -100,8 +100,8 @@ void ManagedListener::refresh() {
       else
         network::createTcpListeners(&sockets, nullptr, port);
     }
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
+  } catch (std::exception& e) {
+    vlog.error("%s", e.what());
   }
   if (!sockets.empty()) {
     if (!localOnly) {

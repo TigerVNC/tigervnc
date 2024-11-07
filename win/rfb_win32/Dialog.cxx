@@ -65,7 +65,7 @@ bool Dialog::showDialog(const char* resource, HWND owner)
   INT_PTR result = DialogBoxParam(inst, resource, owner,
                                   staticDialogProc, (LPARAM)this);
   if (result<0)
-    throw rdr::Win32Exception("DialogBoxParam failed", GetLastError());
+    throw rdr::win32_error("DialogBoxParam failed", GetLastError());
   alreadyShowing = false;
   return (result == 1);
 }
@@ -78,7 +78,7 @@ int Dialog::getItemInt(int id) {
   BOOL trans;
   int result = GetDlgItemInt(handle, id, &trans, TRUE);
   if (!trans)
-    throw rdr::Exception("unable to read dialog Int");
+    throw std::runtime_error("unable to read dialog Int");
   return result;
 }
 const char* Dialog::getItemString(int id) {
@@ -275,7 +275,7 @@ bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bo
 
     handle = (HWND)PropertySheet(&header);
     if ((handle == nullptr) || (handle == (HWND)-1))
-      throw rdr::Win32Exception("PropertySheet failed", GetLastError());
+      throw rdr::win32_error("PropertySheet failed", GetLastError());
     centerWindow(handle, owner_);
     plog.info("created %p", handle);
 
@@ -347,7 +347,7 @@ bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bo
     delete [] hpages; hpages = nullptr;
 
     return true;
-  } catch (rdr::Exception&) {
+  } catch (std::exception&) {
     alreadyShowing = false;
 
     std::list<PropSheetPage*>::iterator pspi;
