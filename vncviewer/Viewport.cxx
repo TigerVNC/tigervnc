@@ -121,7 +121,8 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
     altGrArmed(false),
 #endif
     firstLEDState(true), pendingClientClipboard(false),
-    menuCtrlKey(false), menuAltKey(false), cursor(nullptr)
+    menuCtrlKey(false), menuAltKey(false), cursor(nullptr),
+    cursorIsBlank(false)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
   XkbDescPtr xkb;
@@ -258,7 +259,12 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
   for (i = 0; i < width*height; i++)
     if (data[i*4 + 3] != 0) break;
 
-  if ((i == width*height) && dotWhenNoCursor) {
+  cursorIsBlank = i == width*height;
+
+  if (cursorIsBlank && alwaysCursor) {
+    // This is the default in case the local cursor should be displayed yet cursorType is invalid.
+    // Since the cursor variable isn't used if the cursorType is system, we can do this without checking the current
+    // type which helps handle changing the type while the viewer is running.
     vlog.debug("cursor is empty - using dot");
 
     Fl_Pixmap pxm(dotcursor_xpm);
@@ -279,7 +285,16 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
   }
 
   if (Fl::belowmouse() == this)
+    showCursor();
+}
+
+void Viewport::showCursor()
+{
+  if (cursorIsBlank && alwaysCursor && !strcasecmp("system", cursorType)) {
+    window()->cursor(FL_CURSOR_DEFAULT);
+  } else {
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+  }
 }
 
 void Viewport::handleClipboardRequest()
@@ -582,7 +597,7 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_ENTER:
-    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    showCursor();
     // Yes, we would like some pointer events please!
     return 1;
 
@@ -1306,7 +1321,7 @@ void Viewport::popupContextMenu()
 
   // Back to our proper mouse pointer.
   if (Fl::belowmouse())
-    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    showCursor();
 
   if (m == nullptr)
     return;
