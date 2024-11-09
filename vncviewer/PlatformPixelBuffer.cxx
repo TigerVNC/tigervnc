@@ -95,7 +95,7 @@ void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
 {
   FullFramePixelBuffer::commitBufferRW(r);
   mutex.lock();
-  damage.assign_union(rfb::Region(r));
+  damage.assign_union(r);
   mutex.unlock();
 }
 

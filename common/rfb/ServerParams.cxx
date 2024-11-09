@@ -46,7 +46,7 @@ ServerParams::ServerParams()
 
   pf_ = new PixelFormat();
 
-  cursor_ = new Cursor(0, 0, Point(), nullptr);
+  cursor_ = new Cursor(0, 0, {}, nullptr);
 
   clipFlags = 0;
   memset(clipSizes, 0, sizeof(clipSizes));

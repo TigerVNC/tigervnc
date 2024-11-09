@@ -88,7 +88,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     blockCounter(0), pb(nullptr), ledState(ledUnknown),
     name(name_), pointerClient(nullptr), clipboardClient(nullptr),
     pointerClientTime(0),
-    comparer(nullptr), cursor(new Cursor(0, 0, Point(), nullptr)),
+    comparer(nullptr), cursor(new Cursor(0, 0, {}, nullptr)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
@@ -879,7 +879,7 @@ Region VNCServerST::getPendingRegion()
 
   // Block client from updating if there are pending updates
   if (comparer->is_empty())
-    return Region();
+    return {};
 
   comparer->getUpdateInfo(&ui, pb->getRect());
 

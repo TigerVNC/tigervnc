@@ -152,7 +152,7 @@ Rect DeviceContext::getClipBox(HDC dc) {
   RECT cr;
   if (!GetClipBox(dc, &cr))
     throw rdr::win32_error("GetClipBox", GetLastError());
-  return Rect(cr.left, cr.top, cr.right, cr.bottom);
+  return {cr.left, cr.top, cr.right, cr.bottom};
 }
 
 

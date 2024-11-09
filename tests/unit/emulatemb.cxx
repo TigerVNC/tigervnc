@@ -69,7 +69,7 @@ void testDisabledOption()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(false);
-  test.filterPointerEvent(rfb::Point(0, 10), left);
+  test.filterPointerEvent({0, 10}, left);
 
   ASSERT_EQ(test.results.size(), 1);
 
@@ -87,8 +87,8 @@ void testLeftClick()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(0, 0), left);
-  test.filterPointerEvent(rfb::Point(0, 0), empty);
+  test.filterPointerEvent({0, 0}, left);
+  test.filterPointerEvent({0, 0}, empty);
 
   ASSERT_EQ(test.results.size(), 3);
 
@@ -114,7 +114,7 @@ void testNormalLeftPress()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(10, 20), left);
+  test.filterPointerEvent({10, 20}, left);
   usleep(100000); // 0.1s
   rfb::Timer::checkTimeouts();
 
@@ -138,7 +138,7 @@ void testNormalMiddlePress()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(0, 0), middle);
+  test.filterPointerEvent({0, 0}, middle);
 
   ASSERT_EQ(test.results.size(), 1);
 
@@ -156,7 +156,7 @@ void testNormalRightPress()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(0, 0), right);
+  test.filterPointerEvent({0, 0}, right);
   usleep(100000); // 0.1s
   rfb::Timer::checkTimeouts();
 
@@ -180,8 +180,8 @@ void testEmulateMiddleMouseButton()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(20, 30), right);
-  test.filterPointerEvent(rfb::Point(20, 30), both);
+  test.filterPointerEvent({20, 30}, right);
+  test.filterPointerEvent({20, 30}, both);
 
   ASSERT_EQ(test.results.size(), 2);
 
@@ -203,9 +203,9 @@ void testLeftReleaseAfterEmulate()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(20, 30), left);
-  test.filterPointerEvent(rfb::Point(20, 30), both);
-  test.filterPointerEvent(rfb::Point(20, 30), right); // left released
+  test.filterPointerEvent({20, 30}, left);
+  test.filterPointerEvent({20, 30}, both);
+  test.filterPointerEvent({20, 30}, right); // left released
 
   ASSERT_EQ(test.results.size(), 3);
 
@@ -231,9 +231,9 @@ void testRightReleaseAfterEmulate()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(20, 30), right);
-  test.filterPointerEvent(rfb::Point(20, 30), both);
-  test.filterPointerEvent(rfb::Point(20, 30), left); // right released
+  test.filterPointerEvent({20, 30}, right);
+  test.filterPointerEvent({20, 30}, both);
+  test.filterPointerEvent({20, 30}, left); // right released
 
   ASSERT_EQ(test.results.size(), 3);
 
@@ -259,10 +259,10 @@ void testLeftRepressAfterEmulate()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(20, 30), left);
-  test.filterPointerEvent(rfb::Point(20, 30), both);
-  test.filterPointerEvent(rfb::Point(20, 30), right); // left released
-  test.filterPointerEvent(rfb::Point(20, 30), both);
+  test.filterPointerEvent({20, 30}, left);
+  test.filterPointerEvent({20, 30}, both);
+  test.filterPointerEvent({20, 30}, right); // left released
+  test.filterPointerEvent({20, 30}, both);
 
   ASSERT_EQ(test.results.size(), 4);
 
@@ -292,10 +292,10 @@ void testRightRepressAfterEmulate()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(20, 30), right);
-  test.filterPointerEvent(rfb::Point(20, 30), both);
-  test.filterPointerEvent(rfb::Point(20, 30), left); // right released
-  test.filterPointerEvent(rfb::Point(20, 30), both);
+  test.filterPointerEvent({20, 30}, right);
+  test.filterPointerEvent({20, 30}, both);
+  test.filterPointerEvent({20, 30}, left); // right released
+  test.filterPointerEvent({20, 30}, both);
 
   ASSERT_EQ(test.results.size(), 4);
 
@@ -325,10 +325,10 @@ void testBothPressAfterLeftTimeout()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(10, 20), left);
+  test.filterPointerEvent({10, 20}, left);
   usleep(100000); // 0.1s
   rfb::Timer::checkTimeouts();
-  test.filterPointerEvent(rfb::Point(10, 20), both);
+  test.filterPointerEvent({10, 20}, both);
 
   ASSERT_EQ(test.results.size(), 3);
 
@@ -354,10 +354,10 @@ void testBothPressAfterRightTimeout()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(10, 20), right);
+  test.filterPointerEvent({10, 20}, right);
   usleep(100000); // 0.1s
   rfb::Timer::checkTimeouts();
-  test.filterPointerEvent(rfb::Point(10, 20), both);
+  test.filterPointerEvent({10, 20}, both);
 
   ASSERT_EQ(test.results.size(), 3);
 
@@ -383,10 +383,10 @@ void testTimeoutAndDrag()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(0, 0), left);
+  test.filterPointerEvent({0, 0}, left);
   usleep(100000); //0.1s
   rfb::Timer::checkTimeouts();
-  test.filterPointerEvent(rfb::Point(10, 10), left);
+  test.filterPointerEvent({10, 10}, left);
 
   ASSERT_EQ(test.results.size(), 3);
 
@@ -412,8 +412,8 @@ void testDragAndTimeout()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(10, 10), left);
-  test.filterPointerEvent(rfb::Point(30, 30), left);
+  test.filterPointerEvent({10, 10}, left);
+  test.filterPointerEvent({30, 30}, left);
   usleep(100000); //0.1s
   rfb::Timer::checkTimeouts();
 
@@ -441,8 +441,8 @@ void testDragAndRelease()
   printf("%s: ", __func__);
 
   emulateMiddleButton.setParam(true);
-  test.filterPointerEvent(rfb::Point(10, 10), left);
-  test.filterPointerEvent(rfb::Point(20, 20), empty);
+  test.filterPointerEvent({10, 10}, left);
+  test.filterPointerEvent({20, 20}, empty);
 
   ASSERT_EQ(test.results.size(), 3);
 

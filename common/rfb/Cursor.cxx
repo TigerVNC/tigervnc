@@ -215,9 +215,9 @@ std::vector<uint8_t> Cursor::getMask() const
 
 void Cursor::crop()
 {
-  Rect busy = Rect(0, 0, width_, height_);
-  busy = busy.intersect(Rect(hotspot_.x, hotspot_.y,
-                             hotspot_.x+1, hotspot_.y+1));
+  Rect busy(0, 0, width_, height_);
+  busy = busy.intersect({hotspot_.x, hotspot_.y,
+                         hotspot_.x+1, hotspot_.y+1});
   int x, y;
   uint8_t *data_ptr = data;
   for (y = 0; y < height(); y++) {
@@ -313,7 +313,7 @@ void RenderedCursor::update(PixelBuffer* framebuffer,
       else if (fg[3] == 0xff) {
         memcpy(rgb, fg, 3);
       } else {
-        buffer.getImage(bg, Rect(x, y, x+1, y+1));
+        buffer.getImage(bg, {x, y, x+1, y+1});
         format.rgbFromBuffer(rgb, bg, 1);
         // FIXME: Gamma aware blending
         for (int i = 0;i < 3;i++) {
@@ -323,7 +323,7 @@ void RenderedCursor::update(PixelBuffer* framebuffer,
       }
 
       format.bufferFromRGB(bg, rgb, 1);
-      buffer.imageRect(Rect(x, y, x+1, y+1), bg);
+      buffer.imageRect({x, y, x+1, y+1}, bg);
     }
   }
 }

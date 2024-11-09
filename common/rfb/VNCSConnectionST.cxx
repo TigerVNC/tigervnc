@@ -54,7 +54,7 @@ using namespace rfb;
 
 static LogWriter vlog("VNCSConnST");
 
-static Cursor emptyCursor(0, 0, Point(0, 0), nullptr);
+static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse, AccessRights ar)
@@ -220,11 +220,11 @@ void VNCSConnectionST::pixelBufferChange()
       //updates.intersect(server->pb->getRect());
       //
       //if (server->pb->width() > client.width())
-      //  updates.add_changed(Rect(client.width(), 0, server->pb->width(),
-      //                           server->pb->height()));
+      //  updates.add_changed({client.width(), 0, server->pb->width(),
+      //                       server->pb->height()});
       //if (server->pb->height() > client.height())
-      //  updates.add_changed(Rect(0, client.height(), client.width(),
-      //                           server->pb->height()));
+      //  updates.add_changed({0, client.height(), client.width(),
+      //                       server->pb->height()});
 
       damagedCursorRegion.assign_intersect(server->getPixelBuffer()->getRect());
 
@@ -240,7 +240,7 @@ void VNCSConnectionST::pixelBufferChange()
       }
 
       // Drop any lossy tracking that is now outside the framebuffer
-      encodeManager.pruneLosslessRefresh(Region(server->getPixelBuffer()->getRect()));
+      encodeManager.pruneLosslessRefresh(server->getPixelBuffer()->getRect());
     }
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
@@ -618,11 +618,11 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   SConnection::framebufferUpdateRequest(r, incremental);
 
   // Check that the client isn't sending crappy requests
-  if (!r.enclosed_by(Rect(0, 0, client.width(), client.height()))) {
+  if (!r.enclosed_by({0, 0, client.width(), client.height()})) {
     vlog.error("FramebufferUpdateRequest %dx%d at %d,%d exceeds framebuffer %dx%d",
                r.width(), r.height(), r.tl.x, r.tl.y,
                client.width(), client.height());
-    safeRect = r.intersect(Rect(0, 0, client.width(), client.height()));
+    safeRect = r.intersect({0, 0, client.width(), client.height()});
   } else {
     safeRect = r;
   }

@@ -203,7 +203,7 @@ bool SMsgReader::readFramebufferUpdateRequest()
   int y = is->readU16();
   int w = is->readU16();
   int h = is->readU16();
-  handler->framebufferUpdateRequest(Rect(x, y, x+w, y+h), inc);
+  handler->framebufferUpdateRequest({x, y, x+w, y+h}, inc);
   return true;
 }
 
@@ -300,7 +300,7 @@ bool SMsgReader::readPointerEvent()
   }
 
   is->clearRestorePoint();
-  handler->pointerEvent(Point(x, y), mask);
+  handler->pointerEvent({x, y}, mask);
   return true;
 }
 
