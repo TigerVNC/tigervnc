@@ -129,7 +129,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
   OptionsDialog::addCallback(handleOptions, this);
 
   // Make sure we have an initial blank cursor set
-  setCursor(0, 0, rfb::Point(0, 0), nullptr);
+  setCursor(0, 0, {0, 0}, nullptr);
 }
 
 
@@ -430,7 +430,7 @@ int Viewport::handle(int event)
   case FL_LEAVE:
     window()->cursor(FL_CURSOR_DEFAULT);
     // We want a last move event to help trigger edge stuff
-    handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), 0);
+    handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()}, 0);
     return 1;
 
   case FL_PUSH:
@@ -473,11 +473,11 @@ int Viewport::handle(int event)
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
-      handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()),
+      handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()},
                          buttonMask | wheelMask);
     } 
 
-    handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), buttonMask);
+    handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()}, buttonMask);
     return 1;
 
   case FL_FOCUS:

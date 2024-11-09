@@ -63,7 +63,7 @@ namespace rfb {
 
     class DeviceFrameBuffer : public DIBSectionBuffer {
     public:
-      DeviceFrameBuffer(HDC deviceContext, const Rect& area_=Rect());
+      DeviceFrameBuffer(HDC deviceContext, const Rect& area_={});
       virtual ~DeviceFrameBuffer();
 
       // - FrameBuffer overrides

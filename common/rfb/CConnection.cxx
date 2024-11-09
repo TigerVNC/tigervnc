@@ -896,9 +896,9 @@ void CConnection::requestNewUpdate()
 
   if (forceNonincremental || !continuousUpdates) {
     pendingUpdate = true;
-    writer()->writeFramebufferUpdateRequest(Rect(0, 0,
-                                                 server.width(),
-                                                 server.height()),
+    writer()->writeFramebufferUpdateRequest({0, 0,
+                                             server.width(),
+                                             server.height()},
                                             !forceNonincremental);
   }
 

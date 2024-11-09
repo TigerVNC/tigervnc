@@ -461,8 +461,8 @@ SDisplay::recreatePixelBuffer(bool force) {
   Rect newScreenRect;
   if (strlen(displayDevice) > 0) {
     MonitorInfo info(displayDevice);
-    newScreenRect = Rect(info.rcMonitor.left, info.rcMonitor.top,
-                         info.rcMonitor.right, info.rcMonitor.bottom);
+    newScreenRect = {info.rcMonitor.left, info.rcMonitor.top,
+                     info.rcMonitor.right, info.rcMonitor.bottom};
   } else {
     newScreenRect = new_device->getClipBox();
   }

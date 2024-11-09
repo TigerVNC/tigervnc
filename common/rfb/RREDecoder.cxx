@@ -109,6 +109,6 @@ void RREDecoder::rreDecode(const Rect& r, rdr::InStream* is,
     if (((x+w) > r.width()) || ((y+h) > r.height()))
       throw protocol_error("RRE decode error");
 
-    pb->fillRect(pf, Rect(r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h), &pix);
+    pb->fillRect(pf, {r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h}, &pix);
   }
 }

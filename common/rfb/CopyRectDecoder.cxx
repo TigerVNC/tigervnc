@@ -60,8 +60,8 @@ void CopyRectDecoder::getAffectedRegion(const Rect& rect,
 
   Decoder::getAffectedRegion(rect, buffer, buflen, server, region);
 
-  region->assign_union(Region(rect.translate(Point(srcX-rect.tl.x,
-                                                   srcY-rect.tl.y))));
+  region->assign_union(rect.translate({srcX-rect.tl.x,
+                                       srcY-rect.tl.y}));
 }
 
 void CopyRectDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
@@ -72,5 +72,5 @@ void CopyRectDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
   rdr::MemInStream is(buffer, buflen);
   int srcX = is.readU16();
   int srcY = is.readU16();
-  pb->copyRect(r, Point(r.tl.x-srcX, r.tl.y-srcY));
+  pb->copyRect(r, {r.tl.x-srcX, r.tl.y-srcY});
 }
