@@ -235,7 +235,7 @@ void XDesktop::poll() {
                       &x, &y, &wx, &wy, &mask)) {
       x -= geometry->offsetLeft();
       y -= geometry->offsetTop();
-      server->setCursorPos(rfb::Point(x, y), false);
+      server->setCursorPos({x, y}, false);
     }
   }
 }
@@ -869,8 +869,8 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 
     dev = (XDamageNotifyEvent*)ev;
     rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
-    rect = rect.translate(Point(-geometry->offsetLeft(),
-                                -geometry->offsetTop()));
+    rect = rect.translate({-geometry->offsetLeft(),
+                           -geometry->offsetTop()});
     server->add_changed(rect);
 
     return true;
@@ -941,7 +941,7 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
       server->setPixelBuffer(pb, computeScreenLayout());
 
       // Mark entire screen as changed
-      server->add_changed(rfb::Region(Rect(0, 0, cev->width, cev->height)));
+      server->add_changed({{0, 0, cev->width, cev->height}});
     }
 
     return true;
@@ -986,7 +986,7 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
     if (cev->window == cev->root)
       return false;
 
-    server->setCursor(0, 0, Point(), nullptr);
+    server->setCursor(0, 0, {}, nullptr);
     return true;
 #endif
   }
@@ -1047,7 +1047,7 @@ bool XDesktop::setCursor()
   }
 
   try {
-    server->setCursor(cim->width, cim->height, Point(cim->xhot, cim->yhot),
+    server->setCursor(cim->width, cim->height, {cim->xhot, cim->yhot},
                       cursorData);
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::setCursor: %s",e.what());

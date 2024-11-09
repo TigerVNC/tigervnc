@@ -416,8 +416,8 @@ void vncAddChanged(int scrIdx, int nRects,
                    const struct UpdateRect *rects)
 {
   for (int i = 0;i < nRects;i++) {
-    desktop[scrIdx]->add_changed(Region(Rect(rects[i].x1, rects[i].y1,
-                                             rects[i].x2, rects[i].y2)));
+    desktop[scrIdx]->add_changed({{rects[i].x1, rects[i].y1,
+                                   rects[i].x2, rects[i].y2}});
   }
 }
 
@@ -426,9 +426,9 @@ void vncAddCopied(int scrIdx, int nRects,
                   int dx, int dy)
 {
   for (int i = 0;i < nRects;i++) {
-    desktop[scrIdx]->add_copied(Region(Rect(rects[i].x1, rects[i].y1,
-                                            rects[i].x2, rects[i].y2)),
-                                Point(dx, dy));
+    desktop[scrIdx]->add_copied({{rects[i].x1, rects[i].y1,
+                                  rects[i].x2, rects[i].y2}},
+                                {dx, dy});
   }
 }
 
@@ -470,7 +470,7 @@ void vncPostScreenResize(int scrIdx, int success, int width, int height)
 
   if (success) {
     // Mark entire screen as changed
-    desktop[scrIdx]->add_changed(Region(Rect(0, 0, width, height)));
+    desktop[scrIdx]->add_changed({{0, 0, width, height}});
   }
 }
 

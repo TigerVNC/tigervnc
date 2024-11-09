@@ -71,7 +71,7 @@ rfb::win32::WMPoller::pollWindow(HWND w, PollInfo* i) {
   RECT r;
   if (IsWindowVisible(w) && GetWindowRect(w, &r)) {
     if (IsRectEmpty(&r)) return;
-    Region wrgn(Rect(r.left, r.top, r.right, r.bottom));
+    Region wrgn({r.left, r.top, r.right, r.bottom});
     if (checkPollWindow(w)) {
       wrgn.assign_subtract(i->poll_exclude);
       i->poll_include.assign_union(wrgn);
