@@ -236,8 +236,8 @@ WMHooksThread::worker() {
       hwnd = (HWND) msg.lParam;
       if (IsWindow(hwnd) && IsWindowVisible(hwnd) && !IsIconic(hwnd) &&
         GetWindowRect(hwnd, &wrect) && !IsRectEmpty(&wrect)) {
-          updates[activeRgn].assign_union(Rect(wrect.left, wrect.top,
-                                               wrect.right, wrect.bottom));
+          updates[activeRgn].assign_union({{wrect.left, wrect.top,
+                                            wrect.right, wrect.bottom}});
           updateDelayTimer.start(updateDelayMs);
       }
 
@@ -249,8 +249,8 @@ WMHooksThread::worker() {
       {
         POINT pt = {0,0};
         if (ClientToScreen(hwnd, &pt)) {
-          updates[activeRgn].assign_union(Rect(wrect.left+pt.x, wrect.top+pt.y,
-                                               wrect.right+pt.x, wrect.bottom+pt.y));
+          updates[activeRgn].assign_union({{wrect.left+pt.x, wrect.top+pt.y,
+                                            wrect.right+pt.x, wrect.bottom+pt.y}});
           updateDelayTimer.start(updateDelayMs);
         }
       }
@@ -260,14 +260,14 @@ WMHooksThread::worker() {
       if (IsWindow(hwnd) && IsWindowVisible(hwnd) && !IsIconic(hwnd) &&
           GetWindowRect(hwnd, &wrect) && !IsRectEmpty(&wrect))
       {
-        Region changed(Rect(wrect.left, wrect.top, wrect.right, wrect.bottom));
+        Region changed({wrect.left, wrect.top, wrect.right, wrect.bottom});
         RECT crect;
         POINT pt = {0,0};
         if (GetClientRect(hwnd, &crect) && ClientToScreen(hwnd, &pt) &&
             !IsRectEmpty(&crect))
         {
-          changed.assign_subtract(Rect(crect.left+pt.x, crect.top+pt.y,
-                                       crect.right+pt.x, crect.bottom+pt.y));
+          changed.assign_subtract({{crect.left+pt.x, crect.top+pt.y,
+                                    crect.right+pt.x, crect.bottom+pt.y}});
         }
         if (!changed.is_empty()) {
           updates[activeRgn].assign_union(changed);
@@ -275,8 +275,8 @@ WMHooksThread::worker() {
         }
       }
     } else if (msg.message == rectangleMsg) {
-      Rect r = Rect(LOWORD(msg.wParam), HIWORD(msg.wParam),
-                    LOWORD(msg.lParam), HIWORD(msg.lParam));
+      Rect r(LOWORD(msg.wParam), HIWORD(msg.wParam),
+             LOWORD(msg.lParam), HIWORD(msg.lParam));
       if (!r.is_empty()) {
         updates[activeRgn].assign_union(r);
         updateDelayTimer.start(updateDelayMs);

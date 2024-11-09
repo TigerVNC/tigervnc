@@ -268,7 +268,7 @@ void XserverDesktop::setCursor(int width, int height, int hotX, int hotY,
   }
 
   try {
-    server->setCursor(width, height, Point(hotX, hotY), cursorData);
+    server->setCursor(width, height, {hotX, hotY}, cursorData);
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::setCursor: %s",e.what());
   }
@@ -279,7 +279,7 @@ void XserverDesktop::setCursor(int width, int height, int hotX, int hotY,
 void XserverDesktop::setCursorPos(int x, int y, bool warped)
 {
   try {
-    server->setCursorPos(Point(x, y), warped);
+    server->setCursorPos({x, y}, warped);
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::setCursorPos: %s",e.what());
   }

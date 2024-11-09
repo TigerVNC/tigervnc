@@ -52,9 +52,9 @@ namespace rfb {
 
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.
-    Rect getRect() const { return Rect(0, 0, width_, height_); }
+    Rect getRect() const { return {0, 0, width_, height_}; }
     Rect getRect(const Point& pos) const {
-      return Rect(pos, pos.translate(Point(width_, height_)));
+      return {pos, pos.translate({width_, height_})};
     }
 
     ///////////////////////////////////////////////

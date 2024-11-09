@@ -293,7 +293,7 @@ void EncodeManager::writeLosslessRefresh(const Region& req, const PixelBuffer* p
                                          size_t maxUpdateSize)
 {
   doUpdate(false, getLosslessRefresh(req, maxUpdateSize),
-           Region(), Point(), pb, renderedCursor);
+           {}, {}, pb, renderedCursor);
 }
 
 void EncodeManager::handleTimeout(Timer* t)
@@ -521,12 +521,12 @@ Region EncodeManager::getLosslessRefresh(const Region& req,
         int height = (maxUpdateSize - area) / rect.width();
         rect.br.y = rect.tl.y + __rfbmax(1, height);
       }
-      refresh.assign_union(Region(rect));
+      refresh.assign_union(rect);
       break;
     }
 
     area += rect.area();
-    refresh.assign_union(Region(rect));
+    refresh.assign_union(rect);
 
     rects.erase(rects.begin() + idx);
   }
@@ -589,13 +589,13 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
   if ((encoder->flags & EncoderLossy) &&
       ((encoder->losslessQuality == -1) ||
        (encoder->getQualityLevel() < encoder->losslessQuality)))
-    lossyRegion.assign_union(Region(rect));
+    lossyRegion.assign_union(rect);
   else
-    lossyRegion.assign_subtract(Region(rect));
+    lossyRegion.assign_subtract(rect);
 
   // This was either a rect getting refreshed, or a rect that just got
   // new content. Either way we should not try to refresh it anymore.
-  pendingRefreshRegion.assign_subtract(Region(rect));
+  pendingRefreshRegion.assign_subtract(rect);
 
   return encoder;
 }
@@ -679,7 +679,7 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
       if (dx + dw > rect.br.x)
         dw = rect.br.x - dx;
 
-      pb->getImage(colourValue, Rect(dx, dy, dx+1, dy+1));
+      pb->getImage(colourValue, {dx, dy, dx+1, dy+1});
 
       sr.setXYWH(dx, dy, dw, dh);
       if (checkSolidTile(sr, colourValue, pb)) {
@@ -723,7 +723,7 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
         }
         endRect();
 
-        changed->assign_subtract(Region(erp));
+        changed->assign_subtract(erp);
 
         // Search remaining areas by recursion
         // FIXME: Is this the best way to divide things up?

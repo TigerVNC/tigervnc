@@ -123,7 +123,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
   // - If hCursor is null then there is no cursor - clear the old one
 
   if (hCursor == nullptr) {
-    server->setCursor(0, 0, Point(), nullptr);
+    server->setCursor(0, 0, {}, nullptr);
     return;
   }
 
@@ -151,7 +151,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     buffer.resize(width * height * 4);
 
-    Point hotspot = Point(iconInfo.xHotspot, iconInfo.yHotspot);
+    Point hotspot(iconInfo.xHotspot, iconInfo.yHotspot);
 
     if (iconInfo.hbmColor) {
       // Colour cursor

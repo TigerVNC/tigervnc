@@ -223,8 +223,10 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
           }
         endOfChangeRight:
 
-          // Block change extends from (changeLeft, y) to (changeRight, y + changeHeight)
-          newChanged->assign_union(Region(Rect(changeLeft, y, changeRight, y + changeHeight)));
+          // Block change extends from (changeLeft, y) to (changeRight,
+          // y + changeHeight)
+          newChanged->assign_union({{changeLeft, y,
+                                     changeRight, y + changeHeight}});
 
           // Copy the change from fb to oldFb to allow future changes to be identified
           for (int row = 0; row < changeHeight; row++)
