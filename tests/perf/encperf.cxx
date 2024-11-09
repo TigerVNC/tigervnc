@@ -262,7 +262,7 @@ bool CConn::dataRect(const rfb::Rect &r, int encoding)
     return false;
 
   if (encoding != rfb::encodingCopyRect) // FIXME
-    updates.add_changed(rfb::Region(r));
+    updates.add_changed(r);
 
   return true;
 }

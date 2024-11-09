@@ -47,7 +47,7 @@ ClientParams::ClientParams()
 
   pf_ = new PixelFormat();
 
-  cursor_ = new Cursor(0, 0, Point(), nullptr);
+  cursor_ = new Cursor(0, 0, {}, nullptr);
 
   clipFlags = clipboardUTF8 | clipboardRTF | clipboardHTML |
               clipboardRequest | clipboardNotify | clipboardProvide;
