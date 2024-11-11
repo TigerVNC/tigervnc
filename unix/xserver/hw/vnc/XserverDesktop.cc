@@ -407,7 +407,7 @@ void XserverDesktop::blockHandler(int* timeout)
     }
 
     // Trigger timers and check when the next will expire
-    int nextTimeout = Timer::checkTimeouts();
+    int nextTimeout = core::Timer::checkTimeouts();
     if (nextTimeout >= 0 && (*timeout == -1 || nextTimeout < *timeout))
       *timeout = nextTimeout;
   } catch (std::exception& e) {
@@ -548,7 +548,7 @@ void XserverDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
   vncKeyboardEvent(keysym, keycode, down);
 }
 
-void XserverDesktop::handleTimeout(Timer* t)
+void XserverDesktop::handleTimeout(core::Timer* t)
 {
   if (t == &queryConnectTimer) {
     server->approveConnection(queryConnectSocket, false,

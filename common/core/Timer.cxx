@@ -29,13 +29,10 @@
 #include <algorithm>
 
 #include <core/LogWriter.h>
+#include <core/Timer.h>
 #include <core/util.h>
 
-#include <rfb/Timer.h>
-
-// Temporary during transition to new structure:
 using namespace core;
-using namespace rfb;
 
 #ifndef __NO_DEFINE_VLOG__
 static LogWriter vlog("Timer");

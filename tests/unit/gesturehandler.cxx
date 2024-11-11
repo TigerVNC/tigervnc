@@ -115,7 +115,7 @@ void testTwoTapSlowBegin()
   test.handleTouchBegin(1, 20.0, 30.0);
 
   usleep(500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchBegin(2, 30.0, 50.0);
   test.handleTouchEnd(1);
@@ -137,7 +137,7 @@ void testTwoTapSlowEnd()
   test.handleTouchEnd(1);
 
   usleep(500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchEnd(2);
 
@@ -156,7 +156,7 @@ void testTwoTapTimeout()
   test.handleTouchBegin(2, 30.0, 50.0);
 
   usleep(1500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchEnd(1);
   test.handleTouchEnd(2);
@@ -213,7 +213,7 @@ void testThreeTapSlowBegin()
   test.handleTouchBegin(2, 30.0, 50.0);
 
   usleep(500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchBegin(3, 40.0, 40.0);
   test.handleTouchEnd(1);
@@ -238,7 +238,7 @@ void testThreeTapSlowEnd()
   test.handleTouchEnd(2);
 
   usleep(500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchEnd(3);
 
@@ -281,7 +281,7 @@ void testThreeTapTimeout()
   test.handleTouchBegin(3, 40.0, 40.0);
 
   usleep(1500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchEnd(1);
   test.handleTouchEnd(2);
@@ -429,7 +429,7 @@ void testLongPressNormal()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(1500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 1);
 
@@ -463,7 +463,7 @@ void testLongPressDrag()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(1500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 1);
 
@@ -673,7 +673,7 @@ void testTwoDragFastAlmost()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 0);
 
@@ -694,7 +694,7 @@ void testTwoDragSlowHoriz()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(60000); // 60ms
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
   ASSERT_EQ(test.events[0].type, GestureBegin);
@@ -728,7 +728,7 @@ void testTwoDragSlowVert()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(60000); // 60ms
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
   ASSERT_EQ(test.events[0].type, GestureBegin);
@@ -762,7 +762,7 @@ void testTwoDragSlowDiag()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(60000); // 60ms
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
   ASSERT_EQ(test.events[0].type, GestureBegin);
@@ -791,7 +791,7 @@ void testTwoDragTooSlow()
   test.handleTouchBegin(1, 20.0, 30.0);
 
   usleep(500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchBegin(2, 30.0, 30.0);
   test.handleTouchUpdate(2, 50.0, 30.0);
@@ -917,7 +917,7 @@ void testPinchFastAlmost()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(500000);
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 0);
 
@@ -941,7 +941,7 @@ void testPinchSlowIn()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(60000); // 60ms
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
 
@@ -978,7 +978,7 @@ void testPinchSlowOut()
   ASSERT_EQ(test.events.size(), 0);
 
   usleep(60000); // 60ms
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
 
@@ -1008,7 +1008,7 @@ void testPinchTooSlow()
   test.handleTouchBegin(1, 0.0, 0.0);
 
   usleep(60000); // 60ms
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   test.handleTouchBegin(2, 130.0, 130.0);
   test.handleTouchUpdate(2, 100.0, 130.0);
