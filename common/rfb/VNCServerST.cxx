@@ -629,7 +629,7 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
   return nullptr;
 }
 
-void VNCServerST::handleTimeout(Timer* t)
+void VNCServerST::handleTimeout(core::Timer* t)
 {
   if (t == &frameTimer) {
     int timeout;

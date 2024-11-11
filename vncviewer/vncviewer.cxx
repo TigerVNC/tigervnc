@@ -51,11 +51,11 @@
 #include <core/Exception.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/Timer.h>
 
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
-#include <rfb/Timer.h>
 
 #include <network/TcpSocket.h>
 
@@ -189,7 +189,7 @@ static void mainloop(const char* vncserver, network::Socket* sock)
     while (!exitMainloop) {
       int next_timer;
 
-      next_timer = Timer::checkTimeouts();
+      next_timer = core::Timer::checkTimeouts();
       if (next_timer < 0)
         next_timer = INT_MAX;
 

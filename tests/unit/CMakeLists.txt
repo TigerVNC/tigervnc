@@ -11,7 +11,7 @@ add_executable(convertlf convertlf.cxx)
 target_link_libraries(convertlf core)
 
 add_executable(gesturehandler gesturehandler.cxx ../../vncviewer/GestureHandler.cxx)
-target_link_libraries(gesturehandler core rfb)
+target_link_libraries(gesturehandler core)
 
 add_executable(hostport hostport.cxx)
 target_link_libraries(hostport network)
@@ -24,4 +24,4 @@ target_link_libraries(unicode core)
 
 add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
 target_include_directories(emulatemb SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
-target_link_libraries(emulatemb core rfb ${GETTEXT_LIBRARIES})
+target_link_libraries(emulatemb core ${GETTEXT_LIBRARIES})
