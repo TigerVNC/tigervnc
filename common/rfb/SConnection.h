@@ -26,10 +26,11 @@
 
 #include <string>
 
+#include <core/Timer.h>
+
 #include <rfb/AccessRights.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SecurityServer.h>
-#include <rfb/Timer.h>
 
 namespace rdr {
   class InStream;
@@ -245,7 +246,7 @@ namespace rfb {
     bool processSecurityFailure();
     bool processInitMsg();
 
-    void handleAuthFailureTimeout(Timer* t);
+    void handleAuthFailureTimeout(core::Timer* t);
 
     int defaultMajorVersion, defaultMinorVersion;
 
@@ -258,7 +259,7 @@ namespace rfb {
     SecurityServer security;
     SSecurity* ssecurity;
 
-    MethodTimer<SConnection> authFailureTimer;
+    core::MethodTimer<SConnection> authFailureTimer;
     std::string authFailureMsg;
 
     stateEnum state_;

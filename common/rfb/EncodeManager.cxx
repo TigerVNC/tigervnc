@@ -298,7 +298,7 @@ void EncodeManager::writeLosslessRefresh(const core::Region& req,
            {}, {}, pb, renderedCursor);
 }
 
-void EncodeManager::handleTimeout(Timer* t)
+void EncodeManager::handleTimeout(core::Timer* t)
 {
   if (t == &recentChangeTimer) {
     // Any lossy region that wasn't recently updated can
