@@ -40,6 +40,7 @@
 #include <rfb/ZRLEEncoder.h>
 #include <rfb/TightEncoder.h>
 #include <rfb/TightJPEGEncoder.h>
+#include <rfb/H264Encoder.h>
 
 using namespace rfb;
 
@@ -68,6 +69,7 @@ enum EncoderClass {
   encoderTight,
   encoderTightJPEG,
   encoderZRLE,
+  encoderH264,
   encoderClassMax,
 };
 
@@ -103,6 +105,8 @@ static const char *encoderClassName(EncoderClass klass)
     return "Tight (JPEG)";
   case encoderZRLE:
     return "ZRLE";
+  case encoderH264:
+    return "H264";
   case encoderClassMax:
     break;
   }
@@ -146,6 +150,7 @@ EncodeManager::EncodeManager(SConnection* conn_)
   encoders[encoderTight] = new TightEncoder(conn);
   encoders[encoderTightJPEG] = new TightJPEGEncoder(conn);
   encoders[encoderZRLE] = new ZRLEEncoder(conn);
+  encoders[encoderH264] = new H264Encoder(conn);
 
   updates = 0;
   memset(&copyStats, 0, sizeof(copyStats));
@@ -246,6 +251,9 @@ bool EncodeManager::supported(int encoding)
   case encodingHextile:
   case encodingZRLE:
   case encodingTight:
+#ifdef HAVE_H264
+  case encodingH264:
+#endif
     return true;
   default:
     return false;
@@ -406,6 +414,14 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     bitmapRLE = indexedRLE = encoderZRLE;
     bitmap = indexed = encoderZRLE;
     break;
+#ifdef HAVE_H264
+  case encodingH264:
+    vlog.debug("prepareEncoders --- encodingH264");
+    fullColour = encoderH264;
+    bitmapRLE = indexedRLE = encoderH264;
+    bitmap = indexed = encoderH264;
+    break;
+#endif
   }
 
   // Any encoders still unassigned?
