@@ -34,8 +34,6 @@
 
 #include <x0vncserver/XPixelBuffer.h>
 
-using namespace rfb;
-
 XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
                            const core::Rect& rect)
   : FullFramePixelBuffer(),
@@ -46,16 +44,16 @@ XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
     m_offsetTop(rect.tl.y)
 {
   // Fill in the PixelFormat structure of the parent class.
-  format = PixelFormat(m_image->xim->bits_per_pixel,
-                       m_image->xim->depth,
-                       (m_image->xim->byte_order == MSBFirst),
-                       true,
-                       m_image->xim->red_mask   >> (ffs(m_image->xim->red_mask) - 1),
-                       m_image->xim->green_mask >> (ffs(m_image->xim->green_mask) - 1),
-                       m_image->xim->blue_mask  >> (ffs(m_image->xim->blue_mask) - 1),
-                       ffs(m_image->xim->red_mask) - 1,
-                       ffs(m_image->xim->green_mask) - 1,
-                       ffs(m_image->xim->blue_mask) - 1);
+  format = rfb::PixelFormat(m_image->xim->bits_per_pixel,
+                            m_image->xim->depth,
+                            (m_image->xim->byte_order == MSBFirst),
+                            true,
+                            m_image->xim->red_mask   >> (ffs(m_image->xim->red_mask) - 1),
+                            m_image->xim->green_mask >> (ffs(m_image->xim->green_mask) - 1),
+                            m_image->xim->blue_mask  >> (ffs(m_image->xim->blue_mask) - 1),
+                            ffs(m_image->xim->red_mask) - 1,
+                            ffs(m_image->xim->green_mask) - 1,
+                            ffs(m_image->xim->blue_mask) - 1);
 
   // Set up the remaining data of the parent class.
   setBuffer(rect.width(), rect.height(), (uint8_t *)m_image->xim->data,
