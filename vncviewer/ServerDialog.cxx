@@ -57,9 +57,6 @@
 #include "vncviewer.h"
 #include "parameters.h"
 
-
-using namespace std;
-
 static core::LogWriter vlog("ServerDialog");
 
 const char* SERVER_HISTORY="tigervnc.history";
@@ -144,7 +141,7 @@ void ServerDialog::run(const char* servername, char *newservername)
     dialog.loadServerHistory();
 
     dialog.serverName->clear();
-    for (const string& entry : dialog.serverHistory)
+    for (const std::string& entry : dialog.serverHistory)
       fltk_menu_add(dialog.serverName->menubutton(),
                     entry.c_str(), 0, nullptr);
   } catch (std::exception& e) {
@@ -314,13 +311,14 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
 }
 
 
-static bool same_server(const string& a, const string& b)
+static bool same_server(const std::string& a, const std::string& b)
 {
-  string hostA, hostB;
+  std::string hostA, hostB;
   int portA, portB;
 
 #ifndef WIN32
-  if ((a.find("/") != string::npos) || (b.find("/") != string::npos))
+  if ((a.find("/") != std::string::npos) ||
+      (b.find("/") != std::string::npos))
     return a == b;
 #endif
 
@@ -343,7 +341,7 @@ static bool same_server(const string& a, const string& b)
 
 void ServerDialog::loadServerHistory()
 {
-  list<string> rawHistory;
+  std::list<std::string> rawHistory;
 
   serverHistory.clear();
 
@@ -416,9 +414,11 @@ void ServerDialog::loadServerHistory()
 #endif
 
   // Filter out duplicates, even if they have different formats
-  for (const string& entry : rawHistory) {
+  for (const std::string& entry : rawHistory) {
     if (std::find_if(serverHistory.begin(), serverHistory.end(),
-                     [&entry](const string& s) { return same_server(s, entry); }) != serverHistory.end())
+                     [&entry](const std::string& s) {
+                       return same_server(s, entry);
+                     }) != serverHistory.end())
       continue;
     serverHistory.push_back(entry);
   }
@@ -447,7 +447,7 @@ void ServerDialog::saveServerHistory()
 
   // Save the last X elements to the config file.
   size_t count = 0;
-  for (const string& entry : serverHistory) {
+  for (const std::string& entry : serverHistory) {
     if (++count > SERVER_HISTORY_SIZE)
       break;
     fprintf(f, "%s\n", entry.c_str());

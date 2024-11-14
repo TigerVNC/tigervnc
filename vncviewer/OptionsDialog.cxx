@@ -53,9 +53,6 @@
 #include <FL/Fl_Int_Input.H>
 #include <FL/Fl_Choice.H>
 
-using namespace std;
-using namespace rfb;
-
 std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
 
 static std::set<OptionsDialog *> instances;
@@ -162,24 +159,24 @@ void OptionsDialog::loadOptions(void)
   /* Compression */
   autoselectCheckbox->value(autoSelect);
 
-  int encNum = encodingNum(preferredEncoding);
+  int encNum = rfb::encodingNum(preferredEncoding);
 
   switch (encNum) {
-  case encodingTight:
+  case rfb::encodingTight:
     tightButton->setonly();
     break;
-  case encodingZRLE:
+  case rfb::encodingZRLE:
     zrleButton->setonly();
     break;
-  case encodingHextile:
+  case rfb::encodingHextile:
     hextileButton->setonly();
     break;
 #ifdef HAVE_H264
-  case encodingH264:
+  case rfb::encodingH264:
     h264Button->setonly();
     break;
 #endif
-  case encodingRaw:
+  case rfb::encodingRaw:
     rawButton->setonly();
     break;
   }
@@ -215,11 +212,11 @@ void OptionsDialog::loadOptions(void)
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   /* Security */
-  Security security(SecurityClient::secTypes);
+  rfb::Security security(rfb::SecurityClient::secTypes);
 
-  list<uint8_t> secTypes;
+  std::list<uint8_t> secTypes;
 
-   list<uint32_t> secTypesExt;
+  std::list<uint32_t> secTypesExt;
 
   encNoneCheckbox->value(false);
 #ifdef HAVE_GNUTLS
@@ -237,11 +234,11 @@ void OptionsDialog::loadOptions(void)
   secTypes = security.GetEnabledSecTypes();
   for (uint8_t type : secTypes) {
     switch (type) {
-    case secTypeNone:
+    case rfb::secTypeNone:
       encNoneCheckbox->value(true);
       authNoneCheckbox->value(true);
       break;
-    case secTypeVncAuth:
+    case rfb::secTypeVncAuth:
       encNoneCheckbox->value(true);
       authVncCheckbox->value(true);
       break;
@@ -251,49 +248,49 @@ void OptionsDialog::loadOptions(void)
   secTypesExt = security.GetEnabledExtSecTypes();
   for (uint32_t type : secTypesExt) {
     switch (type) {
-    case secTypePlain:
+    case rfb::secTypePlain:
       encNoneCheckbox->value(true);
       authPlainCheckbox->value(true);
       break;
 #ifdef HAVE_GNUTLS
-    case secTypeTLSNone:
+    case rfb::secTypeTLSNone:
       encTLSCheckbox->value(true);
       authNoneCheckbox->value(true);
       break;
-    case secTypeTLSVnc:
+    case rfb::secTypeTLSVnc:
       encTLSCheckbox->value(true);
       authVncCheckbox->value(true);
       break;
-    case secTypeTLSPlain:
+    case rfb::secTypeTLSPlain:
       encTLSCheckbox->value(true);
       authPlainCheckbox->value(true);
       break;
-    case secTypeX509None:
+    case rfb::secTypeX509None:
       encX509Checkbox->value(true);
       authNoneCheckbox->value(true);
       break;
-    case secTypeX509Vnc:
+    case rfb::secTypeX509Vnc:
       encX509Checkbox->value(true);
       authVncCheckbox->value(true);
       break;
-    case secTypeX509Plain:
+    case rfb::secTypeX509Plain:
       encX509Checkbox->value(true);
       authPlainCheckbox->value(true);
       break;
 #endif
 #ifdef HAVE_NETTLE
-    case secTypeRA2:
-    case secTypeRA256:
+    case rfb::secTypeRA2:
+    case rfb::secTypeRA256:
       encRSAAESCheckbox->value(true);
       authVncCheckbox->value(true);
       authPlainCheckbox->value(true);
       break;
-    case secTypeRA2ne:
-    case secTypeRAne256:
+    case rfb::secTypeRA2ne:
+    case rfb::secTypeRAne256:
       authVncCheckbox->value(true);
       /* fall through */
-    case secTypeDH:
-    case secTypeMSLogonII:
+    case rfb::secTypeDH:
+    case rfb::secTypeMSLogonII:
       encNoneCheckbox->value(true);
       authPlainCheckbox->value(true);
       break;
@@ -303,8 +300,8 @@ void OptionsDialog::loadOptions(void)
   }
 
 #ifdef HAVE_GNUTLS
-  caInput->value(CSecurityTLS::X509CA);
-  crlInput->value(CSecurityTLS::X509CRL);
+  caInput->value(rfb::CSecurityTLS::X509CA);
+  crlInput->value(rfb::CSecurityTLS::X509CRL);
 
   handleX509(encX509Checkbox, this);
 #endif
@@ -369,17 +366,17 @@ void OptionsDialog::storeOptions(void)
   autoSelect.setParam(autoselectCheckbox->value());
 
   if (tightButton->value())
-    preferredEncoding.setParam(encodingName(encodingTight));
+    preferredEncoding.setParam(rfb::encodingName(rfb::encodingTight));
   else if (zrleButton->value())
-    preferredEncoding.setParam(encodingName(encodingZRLE));
+    preferredEncoding.setParam(rfb::encodingName(rfb::encodingZRLE));
   else if (hextileButton->value())
-    preferredEncoding.setParam(encodingName(encodingHextile));
+    preferredEncoding.setParam(rfb::encodingName(rfb::encodingHextile));
 #ifdef HAVE_H264
   else if (h264Button->value())
-    preferredEncoding.setParam(encodingName(encodingH264));
+    preferredEncoding.setParam(rfb::encodingName(rfb::encodingH264));
 #endif
   else if (rawButton->value())
-    preferredEncoding.setParam(encodingName(encodingRaw));
+    preferredEncoding.setParam(rfb::encodingName(rfb::encodingRaw));
 
   fullColour.setParam(fullcolorCheckbox->value());
   if (verylowcolorCheckbox->value())
@@ -396,26 +393,26 @@ void OptionsDialog::storeOptions(void)
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   /* Security */
-  Security security;
+  rfb::Security security;
 
   /* Process security types which don't use encryption */
   if (encNoneCheckbox->value()) {
     if (authNoneCheckbox->value())
-      security.EnableSecType(secTypeNone);
+      security.EnableSecType(rfb::secTypeNone);
     if (authVncCheckbox->value()) {
-      security.EnableSecType(secTypeVncAuth);
+      security.EnableSecType(rfb::secTypeVncAuth);
 #ifdef HAVE_NETTLE
-      security.EnableSecType(secTypeRA2ne);
-      security.EnableSecType(secTypeRAne256);
+      security.EnableSecType(rfb::secTypeRA2ne);
+      security.EnableSecType(rfb::secTypeRAne256);
 #endif
     }
     if (authPlainCheckbox->value()) {
-      security.EnableSecType(secTypePlain);
+      security.EnableSecType(rfb::secTypePlain);
 #ifdef HAVE_NETTLE
-      security.EnableSecType(secTypeRA2ne);
-      security.EnableSecType(secTypeRAne256);
-      security.EnableSecType(secTypeDH);
-      security.EnableSecType(secTypeMSLogonII);
+      security.EnableSecType(rfb::secTypeRA2ne);
+      security.EnableSecType(rfb::secTypeRAne256);
+      security.EnableSecType(rfb::secTypeDH);
+      security.EnableSecType(rfb::secTypeMSLogonII);
 #endif
     }
   }
@@ -424,34 +421,34 @@ void OptionsDialog::storeOptions(void)
   /* Process security types which use TLS encryption */
   if (encTLSCheckbox->value()) {
     if (authNoneCheckbox->value())
-      security.EnableSecType(secTypeTLSNone);
+      security.EnableSecType(rfb::secTypeTLSNone);
     if (authVncCheckbox->value())
-      security.EnableSecType(secTypeTLSVnc);
+      security.EnableSecType(rfb::secTypeTLSVnc);
     if (authPlainCheckbox->value())
-      security.EnableSecType(secTypeTLSPlain);
+      security.EnableSecType(rfb::secTypeTLSPlain);
   }
 
   /* Process security types which use X509 encryption */
   if (encX509Checkbox->value()) {
     if (authNoneCheckbox->value())
-      security.EnableSecType(secTypeX509None);
+      security.EnableSecType(rfb::secTypeX509None);
     if (authVncCheckbox->value())
-      security.EnableSecType(secTypeX509Vnc);
+      security.EnableSecType(rfb::secTypeX509Vnc);
     if (authPlainCheckbox->value())
-      security.EnableSecType(secTypeX509Plain);
+      security.EnableSecType(rfb::secTypeX509Plain);
   }
 
-  CSecurityTLS::X509CA.setParam(caInput->value());
-  CSecurityTLS::X509CRL.setParam(crlInput->value());
+  rfb::CSecurityTLS::X509CA.setParam(caInput->value());
+  rfb::CSecurityTLS::X509CRL.setParam(crlInput->value());
 #endif
 
 #ifdef HAVE_NETTLE
   if (encRSAAESCheckbox->value()) {
-    security.EnableSecType(secTypeRA2);
-    security.EnableSecType(secTypeRA256);
+    security.EnableSecType(rfb::secTypeRA2);
+    security.EnableSecType(rfb::secTypeRA256);
   }
 #endif
-  SecurityClient::secTypes.setParam(security.ToString());
+  rfb::SecurityClient::secTypes.setParam(security.ToString());
 #endif
 
   /* Input */

@@ -36,7 +36,6 @@
 #include <network/UnixSocket.h>
 
 using namespace network;
-using namespace rdr;
 
 static core::LogWriter vlog("UnixSocket");
 
