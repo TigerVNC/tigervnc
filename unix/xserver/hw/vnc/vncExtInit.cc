@@ -55,8 +55,6 @@ extern "C" {
 void vncSetGlueContext(int screenIndex);
 }
 
-using namespace rfb;
-
 static core::LogWriter vlog("vncext");
 
 // We can't safely get this from Xorg
@@ -140,7 +138,7 @@ static const char* defaultDesktopName()
   return name;
 }
 
-static PixelFormat vncGetPixelFormat(int scrIdx)
+static rfb::PixelFormat vncGetPixelFormat(int scrIdx)
 {
   int depth, bpp;
   int trueColour, bigEndian;
@@ -164,9 +162,9 @@ static PixelFormat vncGetPixelFormat(int scrIdx)
   greenMax   = greenMask >> greenShift;
   blueMax    = blueMask  >> blueShift;
 
-  return PixelFormat(bpp, depth, bigEndian, trueColour,
-                     redMax, greenMax, blueMax,
-                     redShift, greenShift, blueShift);
+  return rfb::PixelFormat(bpp, depth, bigEndian, trueColour,
+                          redMax, greenMax, blueMax,
+                          redShift, greenShift, blueShift);
 }
 
 static void parseOverrideList(const char *text, ParamSet &out)
@@ -264,7 +262,7 @@ void vncExtensionInit(void)
         if (!inetd && listeners.empty())
           throw std::runtime_error("No path or port configured for incoming connections");
 
-        PixelFormat pf = vncGetPixelFormat(scr);
+        rfb::PixelFormat pf = vncGetPixelFormat(scr);
 
         vncSetGlueContext(scr);
         desktop[scr] = new XserverDesktop(scr,
@@ -415,11 +413,11 @@ void vncSetLEDState(unsigned long leds)
 
   state = 0;
   if (leds & (1 << 0))
-    state |= ledCapsLock;
+    state |= rfb::ledCapsLock;
   if (leds & (1 << 1))
-    state |= ledNumLock;
+    state |= rfb::ledNumLock;
   if (leds & (1 << 2))
-    state |= ledScrollLock;
+    state |= rfb::ledScrollLock;
 
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->setLEDState(state);

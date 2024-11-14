@@ -58,8 +58,6 @@ void vncSetGlueContext(Display *dpy, void *res);
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/XPixelBuffer.h>
 
-using namespace rfb;
-
 extern const unsigned short code_map_qnum_to_xorgevdev[];
 extern const unsigned int code_map_qnum_to_xorgevdev_len;
 
@@ -245,7 +243,7 @@ void XDesktop::poll() {
   }
 }
 
-void XDesktop::init(VNCServer* vs)
+void XDesktop::init(rfb::VNCServer* vs)
 {
   server = vs;
 }
@@ -613,9 +611,9 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
 #endif
 }
 
-ScreenSet XDesktop::computeScreenLayout()
+rfb::ScreenSet XDesktop::computeScreenLayout()
 {
-  ScreenSet layout;
+  rfb::ScreenSet layout;
   char buffer[2048];
 
 #ifdef HAVE_XRANDR
@@ -630,7 +628,7 @@ ScreenSet XDesktop::computeScreenLayout()
   XRRFreeScreenResources(res);
 
   // Adjust the layout relative to the geometry
-  ScreenSet::iterator iter, iter_next;
+  rfb::ScreenSet::iterator iter, iter_next;
   core::Point offset(-geometry->offsetLeft(), -geometry->offsetTop());
   for (iter = layout.begin();iter != layout.end();iter = iter_next) {
     iter_next = iter; ++iter_next;
@@ -713,9 +711,9 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
   } else {
     vlog.debug("Impossible layout - trying to adjust");
 
-    ScreenSet::const_iterator firstscreen = layout.begin();
+    rfb::ScreenSet::const_iterator firstscreen = layout.begin();
     adjustedLayout.add_screen(*firstscreen);
-    ScreenSet::iterator iter = adjustedLayout.begin();
+    rfb::ScreenSet::iterator iter = adjustedLayout.begin();
     RROutput outputId = None;
 
     for (int i = 0;i < vncRandRGetOutputCount();i++) {

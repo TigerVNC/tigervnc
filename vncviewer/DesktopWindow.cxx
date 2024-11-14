@@ -73,8 +73,6 @@ static int edge_scroll_size_y = 96;
 // default: roughly 60 fps for smooth motion
 #define EDGE_SCROLL_SECONDS_PER_FRAME 0.016666
 
-using namespace rfb;
-
 static core::LogWriter vlog("DesktopWindow");
 
 // Global due to http://www.fltk.org/str.php?L2177 and the similar
@@ -1326,8 +1324,8 @@ void DesktopWindow::reconfigureFullscreen(void* /*data*/)
 void DesktopWindow::remoteResize()
 {
   int width, height;
-  ScreenSet layout;
-  ScreenSet::const_iterator iter;
+  rfb::ScreenSet layout;
+  rfb::ScreenSet::const_iterator iter;
 
   if (viewOnly)
     return;

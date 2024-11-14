@@ -38,8 +38,6 @@
 
 #include <x0vncserver/PollingManager.h>
 
-using namespace rfb;
-
 static core::LogWriter vlog("PollingMgr");
 
 const int PollingManager::m_pollingOrder[32] = {
@@ -126,7 +124,7 @@ void PollingManager::debugAfterPoll()
 // Search for changed rectangles on the screen.
 //
 
-void PollingManager::poll(VNCServer *server)
+void PollingManager::poll(rfb::VNCServer* server)
 {
 #ifdef DEBUG
   debugBeforePoll();
@@ -145,7 +143,7 @@ void PollingManager::poll(VNCServer *server)
 #define DBG_REPORT_CHANGES(title)
 #endif
 
-bool PollingManager::pollScreen(VNCServer *server)
+bool PollingManager::pollScreen(rfb::VNCServer* server)
 {
   if (!server)
     return false;
@@ -262,7 +260,7 @@ int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
   return nTilesChanged;
 }
 
-int PollingManager::sendChanges(VNCServer *server) const
+int PollingManager::sendChanges(rfb::VNCServer* server) const
 {
   const bool *pChangeFlags = m_changeFlags;
   int nTilesChanged = 0;

@@ -49,9 +49,6 @@
 
 #include "i18n.h"
 
-using namespace rfb;
-using namespace std;
-
 static core::LogWriter vlog("Parameters");
 
 core::IntParameter
@@ -239,10 +236,10 @@ static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0"
 static core::VoidParameter* parameterArray[] = {
   /* Security */
 #ifdef HAVE_GNUTLS
-  &CSecurityTLS::X509CA,
-  &CSecurityTLS::X509CRL,
+  &rfb::CSecurityTLS::X509CA,
+  &rfb::CSecurityTLS::X509CRL,
 #endif // HAVE_GNUTLS
-  &SecurityClient::secTypes,
+  &rfb::SecurityClient::secTypes,
   /* Misc. */
   &reconnectOnError,
   &shared,
@@ -483,7 +480,8 @@ static void removeValue(const char* _name, HKEY* hKey) {
   }
 }
 
-void saveHistoryToRegKey(const list<string>& serverHistory) {
+void saveHistoryToRegKey(const std::list<std::string>& serverHistory)
+{
   HKEY hKey;
   LONG res = RegCreateKeyExW(HKEY_CURRENT_USER,
                              L"Software\\TigerVNC\\vncviewer\\history", 0, nullptr,
@@ -498,7 +496,7 @@ void saveHistoryToRegKey(const list<string>& serverHistory) {
   char indexString[3];
 
   try {
-    for (const string& entry : serverHistory) {
+    for (const std::string& entry : serverHistory) {
       if (index > SERVER_HISTORY_SIZE)
         break;
       snprintf(indexString, 3, "%d", index);
@@ -588,9 +586,10 @@ static void saveToReg(const char* servername) {
     throw core::win32_error(_("Failed to close registry key"), res);
 }
 
-list<string> loadHistoryFromRegKey() {
+std::list<std::string> loadHistoryFromRegKey()
+{
   HKEY hKey;
-  list<string> serverHistory;
+  std::list<std::string> serverHistory;
 
   LONG res = RegOpenKeyExW(HKEY_CURRENT_USER,
                            L"Software\\TigerVNC\\vncviewer\\history", 0,
