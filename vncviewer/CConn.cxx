@@ -27,6 +27,7 @@
 #include <unistd.h>
 #endif
 
+#include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
 #include <core/string.h>
@@ -40,6 +41,7 @@
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/fenceTypes.h>
+#include <rfb/obfuscate.h>
 #include <rfb/screenTypes.h>
 
 #include <network/TcpSocket.h>
@@ -50,6 +52,9 @@
 #include <FL/Fl.H>
 #include <FL/fl_ask.H>
 
+#include "fltk/layout.h"
+#include "fltk/util.h"
+#include "AuthDialog.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
@@ -57,6 +62,9 @@
 #include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
+
+std::string CConn::savedUsername;
+std::string CConn::savedPassword;
 
 #ifdef WIN32
 #include "win32.h"
@@ -319,7 +327,8 @@ void CConn::processNextMsg(core::Timer*)
 
 void CConn::resetPassword()
 {
-    dlg.resetPassword();
+  savedUsername.clear();
+  savedPassword.clear();
 }
 
 ////////////////////// CConnection callback methods //////////////////////
@@ -327,13 +336,108 @@ void CConn::resetPassword()
 bool CConn::showMsgBox(rfb::MsgBoxFlags flags, const char *title,
                        const char *text)
 {
-    return dlg.showMsgBox(flags, title, text);
+  char buffer[1024];
+
+  if (fltk_escape(text, buffer, sizeof(buffer)) >= sizeof(buffer))
+    return 0;
+
+  // FLTK doesn't give us a flexible choice of the icon, so we ignore those
+  // bits for now.
+
+  fl_message_title(title);
+
+  switch (flags & 0xf) {
+  case rfb::M_OKCANCEL:
+    return fl_choice("%s", nullptr, fl_ok, fl_cancel, buffer) == 1;
+  case rfb::M_YESNO:
+    return fl_choice("%s", nullptr, fl_yes, fl_no, buffer) == 1;
+  case rfb::M_OK:
+  default:
+    if (((flags & 0xf0) == rfb::M_ICONERROR) ||
+        ((flags & 0xf0) == rfb::M_ICONWARNING))
+      fl_alert("%s", buffer);
+    else
+      fl_message("%s", buffer);
+    return true;
+  }
+
+  return false;
 }
 
 void CConn::getUserPasswd(bool secure, std::string *user,
                           std::string *password)
 {
-    dlg.getUserPasswd(secure, user, password);
+  const char *passwordFileName(passwordFile);
+  int ret_val;
+
+  assert(password);
+  char *envUsername = getenv("VNC_USERNAME");
+  char *envPassword = getenv("VNC_PASSWORD");
+
+  if(user && envUsername && envPassword) {
+    *user = envUsername;
+    *password = envPassword;
+    return;
+  }
+
+  if (!user && envPassword) {
+    *password = envPassword;
+    return;
+  }
+
+  if (user && !savedUsername.empty() && !savedPassword.empty()) {
+    *user = savedUsername;
+    *password = savedPassword;
+    return;
+  }
+
+  if (!user && !savedPassword.empty()) {
+    *password = savedPassword;
+    return;
+  }
+
+  if (!user && passwordFileName[0]) {
+    std::vector<uint8_t> obfPwd(8);
+    FILE* fp;
+
+    fp = fopen(passwordFileName, "rb");
+    if (!fp)
+      throw core::posix_error(_("Opening password file failed"), errno);
+
+    obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
+    fclose(fp);
+
+    *password = rfb::deobfuscate(obfPwd.data(), obfPwd.size());
+
+    return;
+  }
+
+  AuthDialog d(secure, user != nullptr, password != nullptr);
+  d.show();
+  while (d.shown())
+    Fl::wait();
+  ret_val = d.result();
+
+  if (ret_val == 1) {
+    bool keepPasswd;
+
+    if (reconnectOnError)
+      keepPasswd = d.getKeepPassword();
+    else
+      keepPasswd = false;
+
+    if (user) {
+      *user = d.getUser();
+      if (keepPasswd)
+        savedUsername = d.getUser();
+    }
+    *password = d.getPassword();
+    if (keepPasswd)
+      savedPassword = d.getPassword();
+  }
+
+  if (ret_val != 1)
+    throw rfb::auth_cancelled();
 }
 
 // initDone() is called when the serverInit message has been received.  At

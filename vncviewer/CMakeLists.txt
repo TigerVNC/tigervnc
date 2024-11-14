@@ -15,7 +15,6 @@ add_executable(vncviewer
   CConn.cxx
   DesktopWindow.cxx
   EmulateMB.cxx
-  UserDialog.cxx
   ServerDialog.cxx
   ShortcutHandler.cxx
   Surface.cxx

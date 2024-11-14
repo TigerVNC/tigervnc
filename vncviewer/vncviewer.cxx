@@ -73,7 +73,6 @@
 #include "parameters.h"
 #include "CConn.h"
 #include "ServerDialog.h"
-#include "UserDialog.h"
 #include "touch.h"
 #include "vncviewer.h"
 
