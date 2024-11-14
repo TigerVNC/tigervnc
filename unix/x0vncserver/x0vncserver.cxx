@@ -59,9 +59,6 @@
 
 extern char buildtime[];
 
-using namespace rfb;
-using namespace network;
-
 static core::LogWriter vlog("Main");
 
 static const char* defaultDesktopName();
@@ -143,7 +140,7 @@ static bool hasSystemdListeners()
 #endif
 }
 
-static int createSystemdListeners(std::list<SocketListener*> *listeners)
+static int createSystemdListeners(std::list<network::SocketListener*> *listeners)
 {
 #ifdef HAVE_LIBSYSTEMD
   int count = sd_listen_fds(0);
@@ -154,7 +151,7 @@ static int createSystemdListeners(std::list<SocketListener*> *listeners)
   }
 
   for (int i = 0; i < count; ++i)
-      listeners->push_back(new TcpListener(SD_LISTEN_FDS_START + i));
+      listeners->push_back(new network::TcpListener(SD_LISTEN_FDS_START + i));
 
   return count;
 #else
@@ -164,7 +161,7 @@ static int createSystemdListeners(std::list<SocketListener*> *listeners)
 }
 
 
-class FileTcpFilter : public TcpFilter
+class FileTcpFilter : public network::TcpFilter
 {
 
 public:
@@ -182,7 +179,7 @@ public:
       free(fileName);
   }
 
-  bool verifyConnection(Socket* s) override
+  bool verifyConnection(network::Socket* s) override
   {
     if (!reloadRules()) {
       vlog.error("Could not read IP filtering rules, rejecting all clients");
@@ -346,7 +343,7 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  std::list<SocketListener*> listeners;
+  std::list<network::SocketListener*> listeners;
 
   try {
     TXWindow::init(dpy,"x0vncserver");
@@ -358,7 +355,7 @@ int main(int argc, char** argv)
     }
     XDesktop desktop(dpy, &geo);
 
-    VNCServerST server(desktopName, &desktop);
+    rfb::VNCServerST server(desktopName, &desktop);
 
     if (createSystemdListeners(&listeners) > 0) {
       // When systemd is in charge of listeners, do not listen to anything else
@@ -390,7 +387,7 @@ int main(int argc, char** argv)
 
       FileTcpFilter fileTcpFilter(hostsFile);
       if (strlen(hostsFile) != 0)
-        for (SocketListener* listener : listeners)
+        for (network::SocketListener* listener : listeners)
           listener->setFilter(&fileTcpFilter);
     }
 
@@ -405,8 +402,8 @@ int main(int argc, char** argv)
       int wait_ms, nextTimeout;
       struct timeval tv;
       fd_set rfds, wfds;
-      std::list<Socket*> sockets;
-      std::list<Socket*>::iterator i;
+      std::list<network::Socket*> sockets;
+      std::list<network::Socket*>::iterator i;
 
       // Process any incoming X events
       TXWindow::handleXEvents(dpy);
@@ -415,7 +412,7 @@ int main(int argc, char** argv)
       FD_ZERO(&wfds);
 
       FD_SET(ConnectionNumber(dpy), &rfds);
-      for (SocketListener* listener : listeners)
+      for (network::SocketListener* listener : listeners)
         FD_SET(listener->getFd(), &rfds);
 
       server.getSockets(&sockets);
@@ -468,9 +465,9 @@ int main(int argc, char** argv)
       }
 
       // Accept new VNC connections
-      for (SocketListener* listener : listeners) {
+      for (network::SocketListener* listener : listeners) {
         if (FD_ISSET(listener->getFd(), &rfds)) {
-          Socket* sock = listener->accept();
+          network::Socket* sock = listener->accept();
           if (sock) {
             server.addSocket(sock);
           } else {
@@ -510,7 +507,7 @@ int main(int argc, char** argv)
   TXWindow::handleXEvents(dpy);
 
   // Run listener destructors; remove UNIX sockets etc
-  for (SocketListener* listener : listeners)
+  for (network::SocketListener* listener : listeners)
     delete listener;
 
   vlog.info("Terminated");

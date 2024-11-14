@@ -71,8 +71,6 @@
 #include "cocoa.h"
 #endif
 
-using namespace rfb;
-
 static core::LogWriter vlog("Viewport");
 
 // Menu constants
@@ -328,29 +326,32 @@ void Viewport::pushLEDState()
     return;
 
   // Server support?
-  if (cc->server.ledState() == ledUnknown)
+  if (cc->server.ledState() == rfb::ledUnknown)
     return;
 
   ledState = keyboard->getLEDState();
-  if (ledState == ledUnknown)
+  if (ledState == rfb::ledUnknown)
     return;
 
 #if defined(__APPLE__)
   // No support for Scroll Lock //
-  ledState |= (cc->server.ledState() & ledScrollLock);
+  ledState |= (cc->server.ledState() & rfb::ledScrollLock);
 #endif
 
-  if ((ledState & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
+  if ((ledState & rfb::ledCapsLock) !=
+      (cc->server.ledState() & rfb::ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
     handleKeyRelease(FAKE_KEY_CODE);
   }
-  if ((ledState & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
+  if ((ledState & rfb::ledNumLock) !=
+      (cc->server.ledState() & rfb::ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
     handleKeyRelease(FAKE_KEY_CODE);
   }
-  if ((ledState & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
+  if ((ledState & rfb::ledScrollLock) !=
+      (cc->server.ledState() & rfb::ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
     handleKeyRelease(FAKE_KEY_CODE);

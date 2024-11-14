@@ -61,19 +61,17 @@
 #include "win32.h"
 #endif
 
-using namespace rfb;
-
 static core::LogWriter vlog("CConn");
 
 // 8 colours (1 bit per component)
-static const PixelFormat verylowColourPF(8, 3,false, true,
-                                         1, 1, 1, 2, 1, 0);
+static const rfb::PixelFormat verylowColourPF(8, 3,false, true,
+                                              1, 1, 1, 2, 1, 0);
 // 64 colours (2 bits per component)
-static const PixelFormat lowColourPF(8, 6, false, true,
-                                     3, 3, 3, 4, 2, 0);
+static const rfb::PixelFormat lowColourPF(8, 6, false, true,
+                                          3, 3, 3, 4, 2, 0);
 // 256 colours (2-3 bits per component)
-static const PixelFormat mediumColourPF(8, 8, false, true,
-                                        7, 7, 3, 5, 2, 0);
+static const rfb::PixelFormat mediumColourPF(8, 8, false, true,
+                                             7, 7, 3, 5, 2, 0);
 
 // Time new bandwidth estimates are weighted against (in ms)
 static const unsigned bpsEstimateWindow = 1000;
@@ -174,11 +172,11 @@ std::string CConn::connectionInfo()
   infoText += "\n";
 
   infoText += core::format(_("Requested encoding: %s"),
-                           encodingName(getPreferredEncoding()));
+                           rfb::encodingName(getPreferredEncoding()));
   infoText += "\n";
 
   infoText += core::format(_("Last used encoding: %s"),
-                           encodingName(lastServerEncoding));
+                           rfb::encodingName(lastServerEncoding));
   infoText += "\n";
 
   infoText += core::format(_("Line speed estimate: %d kbit/s"),
@@ -190,7 +188,7 @@ std::string CConn::connectionInfo()
   infoText += "\n";
 
   infoText += core::format(_("Security method: %s"),
-                           secTypeName(csecurity->getType()));
+                           rfb::secTypeName(csecurity->getType()));
   infoText += "\n";
 
   return infoText;
@@ -285,7 +283,7 @@ void CConn::resetPassword()
 
 ////////////////////// CConnection callback methods //////////////////////
 
-bool CConn::showMsgBox(MsgBoxFlags flags, const char *title,
+bool CConn::showMsgBox(rfb::MsgBoxFlags flags, const char *title,
                        const char *text)
 {
     return dlg.showMsgBox(flags, title, text);
@@ -315,7 +313,7 @@ void CConn::initDone()
 
   // Force a switch to the format and encoding we'd like
   updatePixelFormat();
-  int encNum = encodingNum(::preferredEncoding);
+  int encNum = rfb::encodingNum(::preferredEncoding);
   if (encNum != -1)
     setPreferredEncoding(encNum);
 }
@@ -326,7 +324,7 @@ void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
 {
   CConnection::setExtendedDesktopSize(reason, result, w, h, layout);
 
-  if (reason == reasonClient)
+  if (reason == rfb::reasonClient)
     desktop->setDesktopSizeDone(result);
 }
 
@@ -408,7 +406,7 @@ bool CConn::dataRect(const core::Rect& r, int encoding)
 {
   bool ret;
 
-  if (encoding != encodingCopyRect)
+  if (encoding != rfb::encodingCopyRect)
     lastServerEncoding = encoding;
 
   ret = CConnection::dataRect(r, encoding);
@@ -434,9 +432,10 @@ void CConn::fence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   CMsgHandler::fence(flags, len, data);
 
-  if (flags & fenceFlagRequest) {
+  if (flags & rfb::fenceFlagRequest) {
     // We handle everything synchronously so we trivially honor these modes
-    flags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter);
+    flags = flags & (rfb::fenceFlagBlockBefore |
+                     rfb::fenceFlagBlockAfter);
 
     writer()->writeFence(flags, len, data);
     return;
@@ -494,7 +493,7 @@ void CConn::autoSelectFormatAndEncoding()
   int newQualityLevel = ::qualityLevel;
 
   // Always use Tight
-  setPreferredEncoding(encodingTight);
+  setPreferredEncoding(rfb::encodingTight);
 
   // Select appropriate quality level
   if (!noJpeg) {
@@ -540,7 +539,7 @@ void CConn::autoSelectFormatAndEncoding()
 // format and encoding appropriately.
 void CConn::updatePixelFormat()
 {
-  PixelFormat pf;
+  rfb::PixelFormat pf;
 
   if (fullColour) {
     pf = fullColourPF;
@@ -568,7 +567,7 @@ void CConn::handleOptions(void *data)
   // list is cheap. Avoid overriding what the auto logic has selected
   // though.
   if (!autoSelect) {
-    int encNum = encodingNum(::preferredEncoding);
+    int encNum = rfb::encodingNum(::preferredEncoding);
 
     if (encNum != -1)
       self->setPreferredEncoding(encNum);

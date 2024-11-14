@@ -60,9 +60,6 @@ void vncSetGlueContext(int screenIndex);
 void vncPresentMscEvent(uint64_t id, uint64_t msc);
 }
 
-using namespace rfb;
-using namespace network;
-
 static core::LogWriter vlog("XserverDesktop");
 
 core::BoolParameter
@@ -88,10 +85,10 @@ XserverDesktop::XserverDesktop(int screenIndex_,
 {
   format = pf;
 
-  server = new VNCServerST(name, this);
+  server = new rfb::VNCServerST(name, this);
   setFramebuffer(width, height, fbptr, stride_);
 
-  for (SocketListener* listener : listeners)
+  for (network::SocketListener* listener : listeners)
     vncSetNotifyFd(listener->getFd(), screenIndex, true, false);
 }
 
@@ -119,7 +116,7 @@ void XserverDesktop::unblockUpdates()
 
 void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride_)
 {
-  ScreenSet layout;
+  rfb::ScreenSet layout;
 
   if (shadowFramebuffer) {
     delete [] shadowFramebuffer;
@@ -323,10 +320,10 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
 }
 
 bool XserverDesktop::handleListenerEvent(int fd,
-                                         std::list<SocketListener*>* sockets,
-                                         VNCServer* sockserv)
+                                         std::list<network::SocketListener*>* sockets,
+                                         rfb::VNCServer* sockserv)
 {
-  std::list<SocketListener*>::iterator i;
+  std::list<network::SocketListener*>::iterator i;
 
   for (i = sockets->begin(); i != sockets->end(); i++) {
     if ((*i)->getFd() == fd)
@@ -336,7 +333,7 @@ bool XserverDesktop::handleListenerEvent(int fd,
   if (i == sockets->end())
     return false;
 
-  Socket* sock = (*i)->accept();
+  network::Socket* sock = (*i)->accept();
   vlog.debug("New client, sock %d", sock->getFd());
   sockserv->addSocket(sock);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
@@ -345,11 +342,11 @@ bool XserverDesktop::handleListenerEvent(int fd,
 }
 
 bool XserverDesktop::handleSocketEvent(int fd,
-                                       VNCServer* sockserv,
+                                       rfb::VNCServer* sockserv,
                                        bool read, bool write)
 {
-  std::list<Socket*> sockets;
-  std::list<Socket*>::iterator i;
+  std::list<network::Socket*> sockets;
+  std::list<network::Socket*>::iterator i;
 
   sockserv->getSockets(&sockets);
   for (i = sockets.begin(); i != sockets.end(); i++) {
@@ -378,8 +375,8 @@ void XserverDesktop::blockHandler(int* timeout)
   vncInitInputDevice();
 
   try {
-    std::list<Socket*> sockets;
-    std::list<Socket*>::iterator i;
+    std::list<network::Socket*> sockets;
+    std::list<network::Socket*>::iterator i;
     server->getSockets(&sockets);
     for (i = sockets.begin(); i != sockets.end(); i++) {
       int fd = (*i)->getFd();
@@ -415,10 +412,12 @@ void XserverDesktop::blockHandler(int* timeout)
   }
 }
 
-void XserverDesktop::addClient(Socket* sock, bool reverse, bool viewOnly)
+void XserverDesktop::addClient(network::Socket* sock,
+                               bool reverse, bool viewOnly)
 {
   vlog.debug("New client, sock %d reverse %d",sock->getFd(),reverse);
-  server->addSocket(sock, reverse, viewOnly ? AccessView : AccessDefault);
+  server->addSocket(sock, reverse,
+                    viewOnly ? rfb::AccessView : rfb::AccessDefault);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 }
 

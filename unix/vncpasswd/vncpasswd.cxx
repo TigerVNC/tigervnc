@@ -42,8 +42,6 @@
 #include <pwquality.h>
 #endif
 
-using namespace rfb;
-
 char* prog;
 
 static void usage()
@@ -89,7 +87,7 @@ static int encrypt_pipe() {
     if (!result)
       break;
 
-    std::vector<uint8_t> obfuscated = obfuscate(result);
+    std::vector<uint8_t> obfuscated = rfb::obfuscate(result);
     if (fwrite(obfuscated.data(), obfuscated.size(), 1, stdout) != 1) {
       fprintf(stderr,"Writing to stdout failed\n");
       return 1;
@@ -178,7 +176,7 @@ static std::vector<uint8_t> readpassword() {
       continue;
     }
 
-    return obfuscate(first.c_str());
+    return rfb::obfuscate(first.c_str());
   }
 }
 

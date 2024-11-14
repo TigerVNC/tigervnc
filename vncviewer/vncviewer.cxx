@@ -83,9 +83,6 @@
 
 static core::LogWriter vlog("main");
 
-using namespace network;
-using namespace rfb;
-
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
 static const char *argv0 = nullptr;
@@ -618,10 +615,10 @@ static void mktunnel()
 {
   const char *gatewayHost;
   std::string remoteHost;
-  int localPort = findFreeTcpPort();
+  int localPort = network::findFreeTcpPort();
   int remotePort;
 
-  getHostAndPort(vncServerName, &remoteHost, &remotePort);
+  network::getHostAndPort(vncServerName, &remoteHost, &remotePort);
   snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
   vncServerName[VNCSERVERNAMELEN - 1] = '\0';
   gatewayHost = (const char*)via;
@@ -740,7 +737,7 @@ int main(int argc, char** argv)
 
   create_base_dirs();
 
-  Socket *sock = nullptr;
+  network::Socket* sock = nullptr;
 
 #ifndef WIN32
   /* Specifying -via and -listen together is nonsense */
@@ -754,7 +751,7 @@ int main(int argc, char** argv)
 #endif
 
   if (listenMode) {
-    std::list<SocketListener*> listeners;
+    std::list<network::SocketListener*> listeners;
     try {
       int port = 5500;
       if (isdigit(vncServerName[0]))
@@ -770,7 +767,7 @@ int main(int argc, char** argv)
       while (sock == nullptr) {
         fd_set rfds;
         FD_ZERO(&rfds);
-        for (SocketListener* listener : listeners)
+        for (network::SocketListener* listener : listeners)
           FD_SET(listener->getFd(), &rfds);
 
         int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, nullptr);
@@ -783,7 +780,7 @@ int main(int argc, char** argv)
           }
         }
 
-        for (SocketListener* listener : listeners)
+        for (network::SocketListener* listener : listeners)
           if (FD_ISSET(listener->getFd(), &rfds)) {
             sock = listener->accept();
             if (sock)
