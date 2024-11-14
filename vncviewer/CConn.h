@@ -51,9 +51,6 @@ protected:
 
   void processNextMsg(core::Timer*);
 
-  // Forget any saved password
-  void resetPassword();
-
   // CConnection callback methods
 
   bool showMsgBox(rfb::MsgBoxFlags flags, const char *title,

@@ -298,7 +298,8 @@ void CConn::processNextMsg(core::Timer*)
     vlog.info("%s", e.what());
     disconnect();
   } catch (rfb::auth_error& e) {
-    resetPassword();
+    savedUsername.clear();
+    savedPassword.clear();
     vlog.error(_("Authentication failed: %s"), e.what());
     abort_connection(_("Failed to authenticate with the server. Reason "
                        "given by the server:\n\n%s"), e.what());
@@ -323,12 +324,6 @@ void CConn::processNextMsg(core::Timer*)
     when |= FL_WRITE;
 
   Fl::add_fd(sock->getFd(), when, socketEvent, this);
-}
-
-void CConn::resetPassword()
-{
-  savedUsername.clear();
-  savedPassword.clear();
 }
 
 ////////////////////// CConnection callback methods //////////////////////
