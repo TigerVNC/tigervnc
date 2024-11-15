@@ -21,7 +21,11 @@
 #include <config.h>
 #endif
 
+#include <stdexcept>
+
 #include <rfb/Security.h>
+#include <rfb/SecurityServer.h>
+
 #include <rfb/SSecurityNone.h>
 #include <rfb/SSecurityStack.h>
 #include <rfb/SSecurityPlain.h>

@@ -19,6 +19,7 @@
 #ifndef __RFB_COMPARINGUPDATETRACKER_H__
 #define __RFB_COMPARINGUPDATETRACKER_H__
 
+#include <rfb/PixelBuffer.h>
 #include <rfb/UpdateTracker.h>
 
 namespace rfb {

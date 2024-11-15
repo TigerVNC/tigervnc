@@ -24,6 +24,9 @@
 
 #include <rdr/Exception.h>
 
+#include <rdr/FdInStream.h>
+#include <rdr/FdOutStream.h>
+
 #include <network/TcpSocket.h>
 
 #include <rfb/ComparingUpdateTracker.h>
@@ -37,6 +40,7 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/VNCSConnectionST.h>
+#include <rfb/encodings.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/ledStates.h>

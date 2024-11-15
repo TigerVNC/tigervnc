@@ -32,6 +32,8 @@
 #include <rfb/qemuTypes.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/Exception.h>
+#include <rfb/PixelFormat.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SMsgReader.h>
 #include <rfb/Configuration.h>

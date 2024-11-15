@@ -21,7 +21,6 @@
 
 #include <rfb/Rect.h>
 #include <rfb/Region.h>
-#include <rfb/PixelBuffer.h>
 
 namespace rfb {
 

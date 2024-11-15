@@ -25,6 +25,8 @@
 #include <stdexcept>
 
 #include <rfb/ledStates.h>
+#include <rfb/Cursor.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/ServerParams.h>
 #include <rfb/util.h>
 
@@ -39,6 +41,10 @@ ServerParams::ServerParams()
     ledState_(ledUnknown)
 {
   setName("");
+
+  screenLayout_ = new ScreenSet();
+
+  pf_ = new PixelFormat();
 
   cursor_ = new Cursor(0, 0, Point(), nullptr);
 
@@ -65,12 +71,14 @@ void ServerParams::setDimensions(int width, int height, const ScreenSet& layout)
 
   width_ = width;
   height_ = height;
-  screenLayout_ = layout;
+  delete screenLayout_;
+  screenLayout_ = new ScreenSet(layout);
 }
 
 void ServerParams::setPF(const PixelFormat& pf)
 {
-  pf_ = pf;
+  delete pf_;
+  pf_ = new PixelFormat(pf);
 
   if (pf.bpp != 8 && pf.bpp != 16 && pf.bpp != 32)
     throw std::invalid_argument("setPF: Not 8, 16 or 32 bpp?");

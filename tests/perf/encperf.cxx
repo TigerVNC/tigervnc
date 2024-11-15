@@ -42,14 +42,12 @@
 #include <rdr/FileInStream.h>
 
 #include <rfb/AccessRights.h>
-
 #include <rfb/PixelFormat.h>
-
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
+#include <rfb/Configuration.h>
 #include <rfb/UpdateTracker.h>
-
 #include <rfb/EncodeManager.h>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>

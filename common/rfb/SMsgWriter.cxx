@@ -32,10 +32,13 @@
 #include <rfb/fenceTypes.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/ClientParams.h>
+#include <rfb/Cursor.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/Encoder.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/LogWriter.h>
+#include <rfb/encodings.h>
 #include <rfb/ledStates.h>
 #include <rfb/util.h>
 

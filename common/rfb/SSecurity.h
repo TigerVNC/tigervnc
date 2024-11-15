@@ -44,11 +44,11 @@
 #ifndef __RFB_SSECURITY_H__
 #define __RFB_SSECURITY_H__
 
-#include <rfb/SConnection.h>
-
-#include <list>
+#include <rfb/AccessRights.h>
 
 namespace rfb {
+
+  class SConnection;
 
   class SSecurity {
   public:

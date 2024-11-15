@@ -55,12 +55,15 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <rdr/FdOutStream.h>
+
 #include <network/Socket.h>
 
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
 #include <rfb/LogWriter.h>
+#include <rfb/SDesktop.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
 #include <rfb/VNCServerST.h>

@@ -22,7 +22,6 @@
 
 #include <rdr/ZlibInStream.h>
 #include <rfb/Decoder.h>
-#include <rfb/JpegDecompressor.h>
 
 namespace rfb {
 

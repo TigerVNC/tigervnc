@@ -20,9 +20,12 @@
 #ifndef UNIXCOMMON_H
 #define UNIXCOMMON_H
 
-#include <map>
+#include <stdint.h>
 
-#include <rfb/ScreenSet.h>
+#include <map>
+#include <set>
+
+namespace rfb { struct ScreenSet; }
 
 typedef std::map<unsigned int, uint32_t> OutputIdMap;
 

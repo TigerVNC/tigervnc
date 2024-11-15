@@ -22,6 +22,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <network/TcpSocket.h>
 #include <rfb/Configuration.h>

@@ -23,13 +23,18 @@
 #ifndef __RFB_VNCSERVER_H__
 #define __RFB_VNCSERVER_H__
 
+#include <list>
+
+#include <rfb/AccessRights.h>
 #include <rfb/UpdateTracker.h>
-#include <rfb/SSecurity.h>
-#include <rfb/ScreenSet.h>
 
 namespace network { class Socket; }
 
 namespace rfb {
+
+  class PixelBuffer;
+  class SConnection;
+  struct ScreenSet;
 
   class VNCServer : public UpdateTracker {
   public:

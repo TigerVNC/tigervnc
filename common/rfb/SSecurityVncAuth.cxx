@@ -25,6 +25,8 @@
 #include <config.h>
 #endif
 
+#include <rdr/OutStream.h>
+
 #include <rfb/SSecurityVncAuth.h>
 #include <rdr/RandomStream.h>
 #include <rfb/SConnection.h>
@@ -32,6 +34,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/obfuscate.h>
+
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>

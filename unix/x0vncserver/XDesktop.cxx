@@ -31,6 +31,7 @@
 #include <network/Socket.h>
 
 #include <rfb/LogWriter.h>
+#include <rfb/ScreenSet.h>
 
 #include <x0vncserver/XDesktop.h>
 

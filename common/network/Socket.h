@@ -24,8 +24,11 @@
 #include <list>
 
 #include <limits.h>
-#include <rdr/FdInStream.h>
-#include <rdr/FdOutStream.h>
+
+namespace rdr {
+  class FdInStream;
+  class FdOutStream;
+}
 
 namespace network {
 
@@ -40,12 +43,12 @@ namespace network {
 
     rdr::FdInStream &inStream() {return *instream;}
     rdr::FdOutStream &outStream() {return *outstream;}
-    int getFd() {return outstream->getFd();}
+    int getFd();
 
     void shutdown();
     bool isShutdown() const;
 
-    void cork(bool enable) { outstream->cork(enable); }
+    void cork(bool enable);
 
     // information about the remote end of the socket
     virtual const char* getPeerAddress() = 0; // a string e.g. "192.168.0.1"

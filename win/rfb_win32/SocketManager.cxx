@@ -27,6 +27,8 @@
 
 #include <rdr/Exception.h>
 
+#include <rdr/FdOutStream.h>
+
 #include <network/Socket.h>
 
 #include <rfb/LogWriter.h>

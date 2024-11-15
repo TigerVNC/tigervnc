@@ -29,8 +29,6 @@
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
 
-#include <rdr/RandomStream.h>
-
 namespace rdr {
   class InStream;
   class OutStream;
@@ -39,6 +37,9 @@ namespace rdr {
 }
 
 namespace rfb {
+
+  class IntParameter;
+
   class CSecurityRSAAES : public CSecurity {
   public:
     CSecurityRSAAES(CConnection* cc, uint32_t secType,
@@ -86,9 +87,8 @@ namespace rfb {
 
     rdr::InStream* rawis;
     rdr::OutStream* rawos;
-
-    rdr::RandomStream rs;
   };
+
 }
 
 #endif
