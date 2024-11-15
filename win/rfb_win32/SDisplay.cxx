@@ -36,6 +36,7 @@
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb_win32/SDisplayCoreWMHooks.h>
 #include <rfb/LogWriter.h>
+#include <rfb/VNCServer.h>
 #include <rfb/ledStates.h>
 
 
