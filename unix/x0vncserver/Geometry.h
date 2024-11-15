@@ -24,7 +24,8 @@
 #define __GEOMETRY_H__
 
 #include <rfb/Rect.h>
-#include <rfb/Configuration.h>
+
+namespace rfb { class StringParameter; }
 
 class Geometry
 {

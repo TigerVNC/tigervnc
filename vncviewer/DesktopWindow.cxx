@@ -30,6 +30,7 @@
 
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgWriter.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/util.h>
 
 #include "DesktopWindow.h"

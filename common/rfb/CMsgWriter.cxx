@@ -34,6 +34,7 @@
 #include <rfb/clipboardTypes.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/ServerParams.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/util.h>

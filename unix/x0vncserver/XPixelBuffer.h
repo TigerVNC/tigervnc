@@ -24,9 +24,11 @@
 #define __XPIXELBUFFER_H__
 
 #include <rfb/PixelBuffer.h>
-#include <rfb/VNCServer.h>
+
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
+
+namespace rfb { class VNCServer; }
 
 //
 // XPixelBuffer is an Image-based implementation of FullFramePixelBuffer.

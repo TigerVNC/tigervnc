@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include <rdr/OutStream.h>
+
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/clipboardTypes.h>

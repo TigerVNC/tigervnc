@@ -24,10 +24,13 @@
 #include <stdint.h>
 
 #include <os/Mutex.h>
+
 #include <rfb/Rect.h>
-#include <rfb/Decoder.h>
 
 namespace rfb {
+
+  class ModifiablePixelBuffer;
+
   class H264DecoderContext {
     public:
       static H264DecoderContext *createContext(const Rect &r);
@@ -52,6 +55,7 @@ namespace rfb {
       virtual bool initCodec() { return false; }
       virtual void freeCodec() {}
   };
+
 }
 
 #endif

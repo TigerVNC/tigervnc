@@ -27,7 +27,6 @@
 #include <stdint.h>
 
 #include <rfb/Rect.h>
-#include <rfb/encodings.h>
 
 namespace rdr { class InStream; }
 

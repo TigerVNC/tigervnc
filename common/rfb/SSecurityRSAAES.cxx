@@ -40,6 +40,7 @@
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
 #include <rdr/Exception.h>
+#include <rdr/RandomStream.h>
 
 #include <rfb/SSecurityRSAAES.h>
 #include <rfb/SConnection.h>
@@ -330,6 +331,7 @@ static void random_func(void* ctx, size_t length, uint8_t* dst)
 
 void SSecurityRSAAES::writeRandom()
 {
+  rdr::RandomStream rs;
   rdr::OutStream* os = sc->getOutStream();
   if (!rs.hasData(keySize / 8))
     throw std::runtime_error("Failed to generate random");

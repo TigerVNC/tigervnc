@@ -29,7 +29,13 @@
 
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
+#include <rfb/PixelFormat.h>
 #include <rfb/SecurityClient.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
 
@@ -237,7 +243,7 @@ namespace rfb {
     // Identities, to determine the unique(ish) name of the server.
     const char* getServerName() const { return serverName.c_str(); }
 
-    bool isSecure() const { return csecurity ? csecurity->isSecure() : false; }
+    bool isSecure() const;
 
     enum stateEnum {
       RFBSTATE_UNINITIALISED,

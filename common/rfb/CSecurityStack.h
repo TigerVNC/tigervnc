@@ -21,7 +21,6 @@
 #define __RFB_CSECURITYSTACK_H__
 
 #include <rfb/CSecurity.h>
-#include <rfb/Security.h>
 
 namespace rfb {
 

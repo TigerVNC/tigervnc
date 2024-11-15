@@ -33,6 +33,7 @@
 
 #include <rfb/ServerParams.h>
 #include <rfb/Exception.h>
+#include <rfb/JpegDecompressor.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/TightConstants.h>
 #include <rfb/TightDecoder.h>

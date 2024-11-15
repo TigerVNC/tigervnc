@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <string.h>
 
 #include <rdr/Exception.h>
 

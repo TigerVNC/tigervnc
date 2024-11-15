@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <rdr/OutStream.h>
+
 #include <rfb/encodings.h>
 #include <rfb/SConnection.h>
 #include <rfb/HextileEncoder.h>

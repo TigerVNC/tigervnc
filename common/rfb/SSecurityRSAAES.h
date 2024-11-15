@@ -25,11 +25,11 @@
 
 #include <nettle/rsa.h>
 #include <rfb/SSecurity.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
-#include <rdr/RandomStream.h>
 
 namespace rfb {
+
+  class BoolParameter;
+  class StringParameter;
 
   class SSecurityRSAAES : public SSecurity {
   public:
@@ -89,8 +89,6 @@ namespace rfb {
 
     rdr::InStream* rawis;
     rdr::OutStream* rawos;
-
-    rdr::RandomStream rs;
   };
 
 }
