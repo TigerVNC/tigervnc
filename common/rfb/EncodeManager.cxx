@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 
+#include <rfb/Cursor.h>
 #include <rfb/EncodeManager.h>
 #include <rfb/Encoder.h>
 #include <rfb/Palette.h>
@@ -32,6 +33,7 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
+#include <rfb/encodings.h>
 #include <rfb/util.h>
 
 #include <rfb/RawEncoder.h>

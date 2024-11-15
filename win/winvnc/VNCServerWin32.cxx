@@ -35,6 +35,7 @@
 
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
+#include <rfb/SConnection.h>
 
 using namespace rfb;
 using namespace win32;

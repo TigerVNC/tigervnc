@@ -31,13 +31,17 @@
 #include <errno.h>
 #include <pwd.h>
 
+#include <rdr/FdOutStream.h>
+
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/Configuration.h>
 #include <rfb/Timer.h>
+
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
+
 #ifdef HAVE_LIBSYSTEMD
 #  include <systemd/sd-daemon.h>
 #endif

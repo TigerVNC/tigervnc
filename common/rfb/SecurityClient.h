@@ -22,11 +22,13 @@
 #ifndef __RFB_SECURITYCLIENT_H__
 #define __RFB_SECURITYCLIENT_H__
 
-#include <rfb/Configuration.h>
 #include <rfb/Security.h>
-#include <rfb/CSecurity.h>
 
 namespace rfb {
+
+  class CConnection;
+  class CSecurity;
+  class StringParameter;
 
   class SecurityClient : public Security {
   public:

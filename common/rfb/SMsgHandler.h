@@ -25,9 +25,7 @@
 
 #include <stdint.h>
 
-#include <rfb/PixelFormat.h>
 #include <rfb/ClientParams.h>
-#include <rfb/ScreenSet.h>
 
 namespace rdr { class InStream; }
 

@@ -25,6 +25,7 @@
 #include <rfb/Exception.h>
 #include <rfb/encodings.h>
 #include <rfb/Palette.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/SConnection.h>
 #include <rfb/ZRLEEncoder.h>
 #include <rfb/Configuration.h>

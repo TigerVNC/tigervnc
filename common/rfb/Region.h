@@ -29,6 +29,9 @@ struct pixman_region16;
 
 namespace rfb {
 
+  struct Point;
+  struct Rect;
+
   class Region {
   public:
     // Create an empty region

@@ -41,6 +41,9 @@
 
 #include <rdr/Exception.h>
 
+#include <rdr/FdInStream.h>
+#include <rdr/FdOutStream.h>
+
 #include <network/Socket.h>
 
 #include <rfb/LogWriter.h>
@@ -99,6 +102,11 @@ Socket::~Socket()
   delete outstream;
 }
 
+int Socket::getFd()
+{
+  return outstream->getFd();
+}
+
 // if shutdown() is overridden then the override MUST call on to here
 void Socket::shutdown()
 {
@@ -120,6 +128,11 @@ void Socket::shutdown()
 bool Socket::isShutdown() const
 {
   return isShutdown_;
+}
+
+void Socket::cork(bool enable)
+{
+  outstream->cork(enable);
 }
 
 // Was there a "?" in the ConnectionFilter used to accept this Socket?

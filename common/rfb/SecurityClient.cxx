@@ -25,12 +25,14 @@
 
 #include <stdexcept>
 
+#include <rfb/Configuration.h>
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/CSecurityPlain.h>
 #include <rfb/Security.h>
+#include <rfb/SecurityClient.h>
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
