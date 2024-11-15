@@ -41,6 +41,7 @@
 #include <rfb/util.h>
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
+#include <rdr/RandomStream.h>
 #include <os/os.h>
 
 enum {
@@ -147,12 +148,12 @@ bool CSecurityRSAAES::processMsg()
   return false;
 }
 
-static void random_func(void* ctx, size_t length, uint8_t* dst)
+static void random_func(void*, size_t length, uint8_t* dst)
 {
-  rdr::RandomStream* rs = (rdr::RandomStream*)ctx;
-  if (!rs->hasData(length))
+  rdr::RandomStream rs;
+  if (!rs.hasData(length))
     throw std::runtime_error("Failed to generate random");
-  rs->readBytes(dst, length);
+  rs.readBytes(dst, length);
 }
 
 void CSecurityRSAAES::writePublicKey()
@@ -170,7 +171,7 @@ void CSecurityRSAAES::writePublicKey()
   // set e = 65537
   mpz_set_ui(clientPublicKey.e, 65537);
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
-                            &rs, random_func, nullptr, nullptr,
+                            nullptr, random_func, nullptr, nullptr,
                             clientKeyLength, 0))
     throw std::runtime_error("Failed to generate key");
   clientKeyN = new uint8_t[rsaKeySize];
@@ -237,6 +238,7 @@ void CSecurityRSAAES::verifyServer()
 
 void CSecurityRSAAES::writeRandom()
 {
+  rdr::RandomStream rs;
   rdr::OutStream* os = cc->getOutStream();
   if (!rs.hasData(keySize / 8))
     throw std::runtime_error("Failed to generate random");

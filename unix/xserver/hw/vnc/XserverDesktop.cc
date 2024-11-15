@@ -37,7 +37,10 @@
 #include <fcntl.h>
 #include <sys/utsname.h>
 
+#include <rdr/FdOutStream.h>
+
 #include <network/Socket.h>
+
 #include <rfb/VNCServerST.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>

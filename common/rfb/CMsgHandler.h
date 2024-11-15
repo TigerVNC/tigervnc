@@ -27,12 +27,15 @@
 #include <stdint.h>
 
 #include <rfb/ServerParams.h>
-#include <rfb/Rect.h>
-#include <rfb/ScreenSet.h>
 
 namespace rdr { class InStream; }
 
 namespace rfb {
+
+  class ModifiablePixelBuffer;
+  struct Point;
+  struct Rect;
+  struct ScreenSet;
 
   class CMsgHandler {
   public:

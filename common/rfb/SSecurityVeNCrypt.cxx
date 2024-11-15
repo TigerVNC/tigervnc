@@ -26,9 +26,13 @@
 #include <config.h>
 #endif
 
+#include <rfb/SConnection.h>
+#include <rfb/SecurityServer.h>
 #include <rfb/SSecurityVeNCrypt.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Security.h>
+
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 

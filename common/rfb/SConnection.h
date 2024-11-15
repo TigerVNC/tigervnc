@@ -26,13 +26,15 @@
 
 #include <string>
 
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
-
 #include <rfb/AccessRights.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SecurityServer.h>
 #include <rfb/Timer.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
 

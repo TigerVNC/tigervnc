@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <rfb/Configuration.h>
 #include <rfb/SSecurityPlain.h>
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>

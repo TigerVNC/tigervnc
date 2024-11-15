@@ -28,6 +28,7 @@
 #include <unixcommon.h>
 #include <rfb/screenTypes.h>
 #include <rfb/LogWriter.h>
+#include <rfb/ScreenSet.h>
 #include <RandrGlue.h>
 static rfb::LogWriter vlog("RandR");
 
