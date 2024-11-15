@@ -27,8 +27,6 @@
 
 #include <rfb/SSecurity.h>
 
-#include <rdr/RandomStream.h>
-
 namespace rdr {
   class InStream;
   class OutStream;
@@ -37,6 +35,9 @@ namespace rdr {
 }
 
 namespace rfb {
+
+  class BoolParameter;
+  class StringParameter;
 
   class SSecurityRSAAES : public SSecurity {
   public:
@@ -96,8 +97,6 @@ namespace rfb {
 
     rdr::InStream* rawis;
     rdr::OutStream* rawos;
-
-    rdr::RandomStream rs;
   };
 
 }

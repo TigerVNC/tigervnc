@@ -38,6 +38,7 @@
 
 #include <rdr/Exception.h>
 
+#include <rfb/CConnection.h>
 #include <rfb/Exception.h>
 #include <rfb/obfuscate.h>
 

@@ -28,6 +28,8 @@
 #endif
 
 #include <rdr/Exception.h>
+#include <rdr/FdInStream.h>
+#include <rdr/FdOutStream.h>
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>

@@ -26,8 +26,7 @@
 #ifndef __RFB_JPEGDECOMPRESSOR_H__
 #define __RFB_JPEGDECOMPRESSOR_H__
 
-#include <rfb/PixelFormat.h>
-#include <rfb/Rect.h>
+#include <stdint.h>
 
 struct jpeg_decompress_struct;
 
@@ -35,6 +34,9 @@ struct JPEG_ERROR_MGR;
 struct JPEG_SRC_MGR;
 
 namespace rfb {
+
+  class PixelFormat;
+  struct Rect;
 
   class JpegDecompressor {
 

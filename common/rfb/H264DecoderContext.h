@@ -24,9 +24,11 @@
 #include <stdint.h>
 
 #include <rfb/Rect.h>
-#include <rfb/Decoder.h>
 
 namespace rfb {
+
+  class ModifiablePixelBuffer;
+
   class H264DecoderContext {
     public:
       static H264DecoderContext *createContext(const Rect &r);
@@ -44,6 +46,7 @@ namespace rfb {
 
       H264DecoderContext(const Rect &r) : rect(r) {}
   };
+
 }
 
 #endif

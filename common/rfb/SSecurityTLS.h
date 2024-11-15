@@ -26,6 +26,7 @@
 #error "This header should not be included without HAVE_GNUTLS defined"
 #endif
 
+#include <rfb/Security.h>
 #include <rfb/SSecurity.h>
 
 #include <gnutls/gnutls.h>
@@ -45,6 +46,8 @@ namespace rdr {
 }
 
 namespace rfb {
+
+  class StringParameter;
 
   class SSecurityTLS : public SSecurity {
   public:

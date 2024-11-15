@@ -20,7 +20,6 @@
 #ifndef __RFB_SECURITYSERVER_H__
 #define __RFB_SECURITYSERVER_H__
 
-#include <rfb/Configuration.h>
 #include <rfb/Security.h>
 
 namespace rfb {

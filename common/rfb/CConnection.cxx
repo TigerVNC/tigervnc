@@ -36,6 +36,7 @@
 #include <rfb/CSecurity.h>
 #include <rfb/Decoder.h>
 #include <rfb/KeysymStr.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
@@ -837,6 +838,11 @@ void CConnection::setPF(const PixelFormat& pf)
 
   nextPF = pf;
   formatChange = true;
+}
+
+bool CConnection::isSecure() const
+{
+  return csecurity ? csecurity->isSecure() : false;
 }
 
 void CConnection::fence(uint32_t flags, unsigned len, const uint8_t data[])

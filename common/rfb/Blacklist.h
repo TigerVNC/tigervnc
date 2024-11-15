@@ -27,12 +27,10 @@
 #ifndef __RFB_BLACKLIST_H__
 #define __RFB_BLACKLIST_H__
 
-#include <string.h>
 #include <time.h>
+
 #include <map>
 #include <string>
-
-#include <rfb/Configuration.h>
 
 namespace rfb {
 

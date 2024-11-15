@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <rfb/PixelBuffer.h>
+#include <rfb/Rect.h>
 
 namespace rfb {
 

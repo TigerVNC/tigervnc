@@ -33,9 +33,10 @@
 
 #include <rfb/SDesktop.h>
 #include <rfb/PixelBuffer.h>
-#include <rfb/Configuration.h>
 #include <rfb/Timer.h>
+
 #include <unixcommon.h>
+
 #include "vncInput.h"
 
 namespace rfb {

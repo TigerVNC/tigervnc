@@ -28,11 +28,13 @@
 
 #include <stdint.h>
 
-#include <rfb/Cursor.h>
-#include <rfb/PixelFormat.h>
-#include <rfb/ScreenSet.h>
+#include <rfb/Rect.h>
 
 namespace rfb {
+
+  class Cursor;
+  class PixelFormat;
+  struct ScreenSet;
 
   const int subsampleUndefined = -1;
   const int subsampleNone = 0;
@@ -66,11 +68,11 @@ namespace rfb {
 
     int width() const { return width_; }
     int height() const { return height_; }
-    const ScreenSet& screenLayout() const { return screenLayout_; }
+    const ScreenSet& screenLayout() const { return *screenLayout_; }
     void setDimensions(int width, int height);
     void setDimensions(int width, int height, const ScreenSet& layout);
 
-    const PixelFormat& pf() const { return pf_; }
+    const PixelFormat& pf() const { return *pf_; }
     void setPF(const PixelFormat& pf);
 
     const char* name() const { return name_.c_str(); }
@@ -112,9 +114,9 @@ namespace rfb {
 
     int width_;
     int height_;
-    ScreenSet screenLayout_;
+    ScreenSet* screenLayout_;
 
-    PixelFormat pf_;
+    PixelFormat* pf_;
     std::string name_;
     Cursor* cursor_;
     Point cursorPos_;

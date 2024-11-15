@@ -26,7 +26,6 @@
 
 #include <sys/time.h>
 
-#include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
@@ -40,6 +39,7 @@ namespace rfb {
   class ListConnInfo;
   class PixelBuffer;
   class KeyRemapper;
+  class SDesktop;
 
   class VNCServerST : public VNCServer,
                       public Timer::Callback {

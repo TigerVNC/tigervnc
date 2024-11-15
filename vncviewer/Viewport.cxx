@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <stdexcept>
+
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>

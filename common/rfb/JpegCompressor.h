@@ -26,8 +26,6 @@
 #define __RFB_JPEGCOMPRESSOR_H__
 
 #include <rdr/MemOutStream.h>
-#include <rfb/PixelFormat.h>
-#include <rfb/Rect.h>
 
 struct jpeg_compress_struct;
 
@@ -35,6 +33,9 @@ struct JPEG_ERROR_MGR;
 struct JPEG_DEST_MGR;
 
 namespace rfb {
+
+  class PixelFormat;
+  struct Rect;
 
   class JpegCompressor : public rdr::MemOutStream {
 

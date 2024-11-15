@@ -25,15 +25,13 @@
 
 #include <stdint.h>
 
-#include <rfb/encodings.h>
-#include <rfb/ScreenSet.h>
-
 namespace rdr { class OutStream; }
 
 namespace rfb {
 
   class ClientParams;
   class PixelFormat;
+  struct Rect;
   struct ScreenSet;
 
   class SMsgWriter {

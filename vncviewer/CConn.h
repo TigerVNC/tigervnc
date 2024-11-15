@@ -23,7 +23,7 @@
 #include <FL/Fl.H>
 
 #include <rfb/CConnection.h>
-#include <rdr/FdInStream.h>
+
 #include "UserDialog.h"
 
 namespace network { class Socket; }
