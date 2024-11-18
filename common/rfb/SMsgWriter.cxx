@@ -48,7 +48,7 @@ SMsgWriter::SMsgWriter(ClientParams* client_, rdr::OutStream* os_)
     nRectsInUpdate(0), nRectsInHeader(0),
     needSetDesktopName(false), needCursor(false),
     needCursorPos(false), needLEDState(false),
-    needQEMUKeyEvent(false)
+    needQEMUKeyEvent(false), needExtMouseButtonsEvent(false)
 {
 }
 
@@ -302,6 +302,14 @@ void SMsgWriter::writeQEMUKeyEvent()
   needQEMUKeyEvent = true;
 }
 
+void SMsgWriter::writeExtendedMouseButtonsSupport()
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedMouseButtons))
+    throw std::logic_error("Client does not support Extended Mouse Buttons");
+
+  needExtMouseButtonsEvent = true;
+}
+
 bool SMsgWriter::needFakeUpdate()
 {
   if (needSetDesktopName)
@@ -313,6 +321,8 @@ bool SMsgWriter::needFakeUpdate()
   if (needLEDState)
     return true;
   if (needQEMUKeyEvent)
+    return true;
+  if (needExtMouseButtonsEvent)
     return true;
   if (needNoDataUpdate())
     return true;
@@ -361,6 +371,8 @@ void SMsgWriter::writeFramebufferUpdateStart(int nRects)
     if (needLEDState)
       nRects++;
     if (needQEMUKeyEvent)
+      nRects++;
+    if (needExtMouseButtonsEvent)
       nRects++;
   }
 
@@ -500,6 +512,11 @@ void SMsgWriter::writePseudoRects()
   if (needQEMUKeyEvent) {
     writeQEMUKeyEventRect();
     needQEMUKeyEvent = false;
+  }
+
+  if (needExtMouseButtonsEvent) {
+    writeExtendedMouseButtonsRect();
+    needExtMouseButtonsEvent = false;
   }
 }
 
@@ -732,4 +749,18 @@ void SMsgWriter::writeQEMUKeyEventRect()
   os->writeU16(0);
   os->writeU16(0);
   os->writeU32(pseudoEncodingQEMUKeyEvent);
+}
+
+void SMsgWriter::writeExtendedMouseButtonsRect()
+{
+  if (!client->supportsEncoding(pseudoEncodingExtendedMouseButtons))
+    throw std::logic_error("Client does not support extended mouse button events");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw std::logic_error("SMsgWriter::writeExtendedMouseButtonsRect: nRects out of sync");
+
+  os->writeS16(0);
+  os->writeS16(0);
+  os->writeU16(0);
+  os->writeU16(0);
+  os->writeU32(pseudoEncodingExtendedMouseButtons);
 }

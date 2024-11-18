@@ -230,3 +230,10 @@ bool ClientParams::supportsContinuousUpdates() const
     return true;
   return false;
 }
+
+bool ClientParams::supportsExtendedMouseButtons() const
+{
+  if (supportsEncoding(pseudoEncodingExtendedMouseButtons))
+    return true;
+  return false;
+}

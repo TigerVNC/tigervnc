@@ -93,6 +93,9 @@ namespace rfb {
     // And QEMU keyboard event handshake
     void writeQEMUKeyEvent();
 
+    // let the client know we support extended mouse button support
+    void writeExtendedMouseButtonsSupport();
+
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out pseudo-rectangles to the client.
     bool needFakeUpdate();
@@ -148,6 +151,7 @@ namespace rfb {
     void writeSetVMwareCursorPositionRect(int hotspotX, int hotspotY);
     void writeLEDStateRect(uint8_t state);
     void writeQEMUKeyEventRect();
+    void writeExtendedMouseButtonsRect();
 
     ClientParams* client;
     rdr::OutStream* os;
@@ -160,6 +164,7 @@ namespace rfb {
     bool needCursorPos;
     bool needLEDState;
     bool needQEMUKeyEvent;
+    bool needExtMouseButtonsEvent;
 
     typedef struct {
       uint16_t reason, result;

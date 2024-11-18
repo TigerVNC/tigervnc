@@ -22,6 +22,7 @@
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 
 #include <rdr/OutStream.h>
 #include <rdr/MemOutStream.h>
@@ -172,18 +173,47 @@ void CMsgWriter::writeKeyEvent(uint32_t keysym, uint32_t keycode, bool down)
 }
 
 
-void CMsgWriter::writePointerEvent(const Point& pos, uint8_t buttonMask)
+void CMsgWriter::writePointerEvent(const Point& pos, uint16_t buttonMask)
 {
   Point p(pos);
+  bool extendedMouseButtons;
+
   if (p.x < 0) p.x = 0;
   if (p.y < 0) p.y = 0;
   if (p.x >= server->width()) p.x = server->width() - 1;
   if (p.y >= server->height()) p.y = server->height() - 1;
 
+  /* The highest bit in buttonMask is never sent to the server */
+  assert(!(buttonMask & 0x8000));
+
+  /* Only send extended pointerEvent message when needed */
+  extendedMouseButtons = buttonMask & 0x7f80;
+
   startMsg(msgTypePointerEvent);
-  os->writeU8(buttonMask);
-  os->writeU16(p.x);
-  os->writeU16(p.y);
+  if (server->supportsExtendedMouseButtons && extendedMouseButtons) {
+    int higherBits;
+    int lowerBits;
+
+    higherBits = (buttonMask  >> 7) & 0xff;
+    assert(!(higherBits & 0xfc)); /* Bits 2-7 are reserved */
+
+    lowerBits = buttonMask & 0x7f;
+    lowerBits |= 0x80; /* Set marker bit to 1 */
+
+    os->writeU8(lowerBits);
+    os->writeU16(p.x);
+    os->writeU16(p.y);
+    os->writeU8(higherBits);
+  } else {
+    /* Marker bit must be set to 0, otherwise the server might confuse
+     * the marker bit with the highest bit in a normal PointerEvent
+     * message.
+    */
+    buttonMask &= 0x7f;
+    os->writeU8(buttonMask);
+    os->writeU16(p.x);
+    os->writeU16(p.y);
+  }
   endMsg();
 }
 

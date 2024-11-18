@@ -57,6 +57,7 @@ namespace rfb {
     virtual void fence(uint32_t flags, unsigned len, const uint8_t data[]);
     virtual void endOfContinuousUpdates();
     virtual void supportsQEMUKeyEvent();
+    virtual void supportsExtendedMouseButtons();
     virtual void serverInit(int width, int height,
                             const PixelFormat& pf,
                             const char* name) = 0;

@@ -837,6 +837,7 @@ void CConnection::updateEncodings()
   encodings.push_back(pseudoEncodingContinuousUpdates);
   encodings.push_back(pseudoEncodingFence);
   encodings.push_back(pseudoEncodingQEMUKeyEvent);
+  encodings.push_back(pseudoEncodingExtendedMouseButtons);
 
   if (Decoder::supported(preferredEncoding)) {
     encodings.push_back(preferredEncoding);

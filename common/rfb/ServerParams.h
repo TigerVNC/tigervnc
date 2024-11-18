@@ -79,6 +79,7 @@ namespace rfb {
     bool supportsSetDesktopSize;
     bool supportsFence;
     bool supportsContinuousUpdates;
+    bool supportsExtendedMouseButtons;
 
   private:
 
