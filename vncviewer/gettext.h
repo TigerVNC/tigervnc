@@ -83,13 +83,13 @@
 # define dcngettext(Domainname, Msgid1, Msgid2, N, Category) \
     ((void) (Category), dngettext (Domainname, Msgid1, Msgid2, N))
 # undef textdomain
-# define textdomain(Domainname) ((const char *) (Domainname))
+# define textdomain(Domainname) ((void) (Domainname))
 # undef bindtextdomain
 # define bindtextdomain(Domainname, Dirname) \
-    ((void) (Domainname), (const char *) (Dirname))
+    ((void) (Domainname), (void) (Dirname))
 # undef bind_textdomain_codeset
 # define bind_textdomain_codeset(Domainname, Codeset) \
-    ((void) (Domainname), (const char *) (Codeset))
+    ((void) (Domainname), (void) (Codeset))
 
 #endif
 
