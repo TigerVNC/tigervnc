@@ -471,14 +471,22 @@ static void saveToReg(const char* servername) {
       _("Failed to save \"%s\": %s"), "ServerName", e.what()));
   }
 
-  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (VoidParameter* param : parameterArray) {
+    StringParameter* sparam;
+    IntParameter* iparam;
+    BoolParameter* bparam;
+
+    sparam = dynamic_cast<StringParameter*>(param);
+    iparam = dynamic_cast<IntParameter*>(param);
+    bparam = dynamic_cast<BoolParameter*>(param);
+
     try {
-      if (dynamic_cast<StringParameter*>(parameterArray[i]) != nullptr) {
-        setKeyString(parameterArray[i]->getName(), *(StringParameter*)parameterArray[i], &hKey);
-      } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
-        setKeyInt(parameterArray[i]->getName(), (int)*(IntParameter*)parameterArray[i], &hKey);
-      } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != nullptr) {
-        setKeyInt(parameterArray[i]->getName(), (int)*(BoolParameter*)parameterArray[i], &hKey);
+      if (sparam != nullptr) {
+        setKeyString(sparam->getName(), *(sparam), &hKey);
+      } else if (iparam != nullptr) {
+        setKeyInt(iparam->getName(), (int)*(iparam), &hKey);
+      } else if (bparam != nullptr) {
+        setKeyInt(bparam->getName(), (int)*(bparam), &hKey);
       } else {
         throw std::logic_error(_("Unknown parameter type"));
       }
@@ -486,21 +494,21 @@ static void saveToReg(const char* servername) {
       RegCloseKey(hKey);
       throw std::runtime_error(
         core::format(_("Failed to save \"%s\": %s"),
-                     parameterArray[i]->getName(), e.what()));
+                     param->getName(), e.what()));
     }
   }
 
   // Remove read-only parameters to replicate the behaviour of Linux/macOS when they
   // store a config to disk. If the parameter hasn't been migrated at this point it
   // will be lost.
-  for (size_t i = 0; i < sizeof(readOnlyParameterArray)/sizeof(VoidParameter*); i++) {
+  for (VoidParameter* param : readOnlyParameterArray) {
     try {
-      removeValue(readOnlyParameterArray[i]->getName(), &hKey);
+      removeValue(param->getName(), &hKey);
     } catch (std::exception& e) {
       RegCloseKey(hKey);
       throw std::runtime_error(
         core::format(_("Failed to remove \"%s\": %s"),
-                     readOnlyParameterArray[i]->getName(), e.what()));
+                     param->getName(), e.what()));
     }
   }
 
@@ -562,16 +570,24 @@ static void getParametersFromReg(VoidParameter* parameters[],
   char stringValue[buffersize];
 
   for (size_t i = 0; i < parameters_len; i++) {
+    StringParameter* sparam;
+    IntParameter* iparam;
+    BoolParameter* bparam;
+
+    sparam = dynamic_cast<StringParameter*>(parameters[i]);
+    iparam = dynamic_cast<IntParameter*>(parameters[i]);
+    bparam = dynamic_cast<BoolParameter*>(parameters[i]);
+
     try {
-      if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-        if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
-          parameters[i]->setParam(stringValue);
-      } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
-        if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
-          ((IntParameter*)parameters[i])->setParam(intValue);
-      } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
-        if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
-          ((BoolParameter*)parameters[i])->setParam(intValue);
+      if (sparam != nullptr) {
+        if (getKeyString(sparam->getName(), stringValue, buffersize, hKey))
+          sparam->setParam(stringValue);
+      } else if (iparam != nullptr) {
+        if (getKeyInt(iparam->getName(), &intValue, hKey))
+          iparam->setParam(intValue);
+      } else if (bparam != nullptr) {
+        if (getKeyInt(bparam->getName(), &intValue, hKey))
+          bparam->setParam(intValue);
       } else {
         throw std::logic_error(_("Unknown parameter type"));
       }
@@ -670,19 +686,26 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
   for (VoidParameter* param : parameterArray) {
-    if (dynamic_cast<StringParameter*>(param) != nullptr) {
-      if (!encodeValue(*(StringParameter*)param,
-          encodingBuffer, buffersize)) {
+    StringParameter* sparam;
+    IntParameter* iparam;
+    BoolParameter* bparam;
+
+    sparam = dynamic_cast<StringParameter*>(param);
+    iparam = dynamic_cast<IntParameter*>(param);
+    bparam = dynamic_cast<BoolParameter*>(param);
+
+    if (sparam != nullptr) {
+      if (!encodeValue(*sparam, encodingBuffer, buffersize)) {
         fclose(f);
         throw std::runtime_error(
           core::format(_("Failed to save \"%s\": %s"), param->getName(),
                        _("Could not encode parameter")));
       }
-      fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
-    } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((IntParameter*)param)->getName(), (int)*(IntParameter*)param);
-    } else if (dynamic_cast<BoolParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
+      fprintf(f, "%s=%s\n", sparam->getName(), encodingBuffer);
+    } else if (iparam != nullptr) {
+      fprintf(f, "%s=%d\n", iparam->getName(), (int)*iparam);
+    } else if (bparam != nullptr) {
+      fprintf(f, "%s=%d\n", bparam->getName(), (int)*bparam);
     } else {      
       fclose(f);
       throw std::logic_error(
@@ -702,24 +725,31 @@ static bool findAndSetViewerParameterFromValue(
 
   // Find and set the correct parameter
   for (size_t i = 0; i < parameters_len; i++) {
+    StringParameter* sparam;
+    IntParameter* iparam;
+    BoolParameter* bparam;
 
-    if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((StringParameter*)parameters[i])->getName()) == 0) {
+    sparam = dynamic_cast<StringParameter*>(parameters[i]);
+    iparam = dynamic_cast<IntParameter*>(parameters[i]);
+    bparam = dynamic_cast<BoolParameter*>(parameters[i]);
+
+    if (sparam != nullptr) {
+      if (strcasecmp(line, sparam->getName()) == 0) {
         if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
           throw std::runtime_error(_("Invalid format or too large value"));
-        ((StringParameter*)parameters[i])->setParam(decodingBuffer);
+        sparam->setParam(decodingBuffer);
         return false;
       }
 
-    } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((IntParameter*)parameters[i])->getName()) == 0) {
-        ((IntParameter*)parameters[i])->setParam(atoi(value));
+    } else if (iparam != nullptr) {
+      if (strcasecmp(line, iparam->getName()) == 0) {
+        iparam->setParam(atoi(value));
         return false;
       }
 
-    } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((BoolParameter*)parameters[i])->getName()) == 0) {
-        ((BoolParameter*)parameters[i])->setParam(atoi(value));
+    } else if (bparam != nullptr) {
+      if (strcasecmp(line, bparam->getName()) == 0) {
+        bparam->setParam(atoi(value));
         return false;
       }
 
