@@ -22,6 +22,9 @@
 #endif
 
 #include <assert.h>
+
+#include <stdexcept>
+
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>
