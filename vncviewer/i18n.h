@@ -28,6 +28,18 @@ pgettext_aux (const char *domain,
               int category) __attribute__ ((format_arg (3)));
 #endif
 
+/*
+ * LC_MESSAGES is only in POSIX, and hence missing on Windows. libintl
+ * fixes that for us, but if that isn't included then we need to sort it
+ * out ourselves.
+ */
+#if !defined ENABLE_NLS || !ENABLE_NLS
+#include <locale.h>
+#ifndef LC_MESSAGES
+#define LC_MESSAGES 1729
+#endif
+#endif
+
 #include "gettext.h"
 
 /* gettext breaks -Wformat (upstream bug 64384) */
