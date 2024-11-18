@@ -580,7 +580,7 @@ static void getParametersFromReg(VoidParameter* parameters[],
   int intValue = 0;
   char stringValue[buffersize];
 
-  for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < parameters_len; i++) {
     try {
       if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
         if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
@@ -629,9 +629,13 @@ static char* loadFromReg() {
     strcpy(servername, "");
   }
 
-  getParametersFromReg(parameterArray, sizeof(parameterArray), &hKey);
+  getParametersFromReg(parameterArray,
+                       sizeof(parameterArray) / sizeof(VoidParameter*),
+                       &hKey);
   getParametersFromReg(readOnlyParameterArray,
-                       sizeof(readOnlyParameterArray), &hKey);
+                       sizeof(readOnlyParameterArray) /
+                         sizeof(VoidParameter*),
+                       &hKey);
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS)
@@ -705,7 +709,7 @@ static bool findAndSetViewerParameterFromValue(
   char decodingBuffer[buffersize];
 
   // Find and set the correct parameter
-  for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < parameters_len; i++) {
     if (strcasecmp(line, parameters[i]->getName()) == 0) {
       if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
         throw std::runtime_error(_("Invalid format or too large value"));
@@ -825,12 +829,16 @@ char* loadViewerParameters(const char *filename) {
         invalidParameterName = false;
 
       } else {
-        invalidParameterName = findAndSetViewerParameterFromValue(parameterArray, sizeof(parameterArray),
-                                                                  value, line);
+        invalidParameterName = findAndSetViewerParameterFromValue(
+          parameterArray,
+          sizeof(parameterArray) / sizeof(VoidParameter *),
+          value, line);
 
         if (invalidParameterName) {
-          invalidParameterName = findAndSetViewerParameterFromValue(readOnlyParameterArray, sizeof(readOnlyParameterArray),
-                                                                    value, line);
+          invalidParameterName = findAndSetViewerParameterFromValue(
+            readOnlyParameterArray,
+            sizeof(readOnlyParameterArray) / sizeof(VoidParameter *),
+            value, line);
         }
       }
     } catch(std::exception& e) {
