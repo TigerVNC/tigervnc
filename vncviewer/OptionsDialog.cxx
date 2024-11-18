@@ -794,6 +794,11 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   ty += INNER_MARGIN;
 
   group->end();
+#else
+  (void)tx;
+  (void)ty;
+  (void)tw;
+  (void)th;
 #endif
 }
 
