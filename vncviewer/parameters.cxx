@@ -480,46 +480,52 @@ static void saveToReg(const char* servername) {
       _("Failed to save \"%s\": %s"), "ServerName", e.what()));
   }
 
-  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
-    if (parameterArray[i]->isDefault()) {
+  for (VoidParameter* param : parameterArray) {
+    IntParameter* iparam;
+    BoolParameter* bparam;
+
+    if (param->isDefault()) {
       try {
-        removeValue(parameterArray[i]->getName(), &hKey);
+        removeValue(param->getName(), &hKey);
       } catch (std::exception& e) {
         RegCloseKey(hKey);
         throw std::runtime_error(
           core::format(_("Failed to remove \"%s\": %s"),
-                       parameterArray[i]->getName(), e.what()));
+                       param->getName(), e.what()));
       }
       continue;
     }
 
+    iparam = dynamic_cast<IntParameter*>(param);
+    bparam = dynamic_cast<BoolParameter*>(param);
+
     try {
-      if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
-        setKeyInt(parameterArray[i]->getName(), (int)*(IntParameter*)parameterArray[i], &hKey);
-      } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != nullptr) {
-        setKeyInt(parameterArray[i]->getName(), (int)*(BoolParameter*)parameterArray[i], &hKey);
+      if (iparam != nullptr) {
+        setKeyInt(iparam->getName(), (int)*(iparam), &hKey);
+      } else if (bparam != nullptr) {
+        setKeyInt(bparam->getName(), (int)*(bparam), &hKey);
       } else {
-        setKeyString(parameterArray[i]->getName(), parameterArray[i]->getValueStr().c_str(), &hKey);
+        setKeyString(param->getName(), param->getValueStr().c_str(), &hKey);
       }
     } catch (std::exception& e) {
       RegCloseKey(hKey);
       throw std::runtime_error(
         core::format(_("Failed to save \"%s\": %s"),
-                     parameterArray[i]->getName(), e.what()));
+                     param->getName(), e.what()));
     }
   }
 
   // Remove read-only parameters to replicate the behaviour of Linux/macOS when they
   // store a config to disk. If the parameter hasn't been migrated at this point it
   // will be lost.
-  for (size_t i = 0; i < sizeof(readOnlyParameterArray)/sizeof(VoidParameter*); i++) {
+  for (VoidParameter* param : readOnlyParameterArray) {
     try {
-      removeValue(readOnlyParameterArray[i]->getName(), &hKey);
+      removeValue(param->getName(), &hKey);
     } catch (std::exception& e) {
       RegCloseKey(hKey);
       throw std::runtime_error(
         core::format(_("Failed to remove \"%s\": %s"),
-                     readOnlyParameterArray[i]->getName(), e.what()));
+                     param->getName(), e.what()));
     }
   }
 
@@ -581,13 +587,19 @@ static void getParametersFromReg(VoidParameter* parameters[],
   char stringValue[buffersize];
 
   for (size_t i = 0; i < parameters_len; i++) {
+    IntParameter* iparam;
+    BoolParameter* bparam;
+
+    iparam = dynamic_cast<IntParameter*>(parameters[i]);
+    bparam = dynamic_cast<BoolParameter*>(parameters[i]);
+
     try {
-      if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
-        if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
-          ((IntParameter*)parameters[i])->setParam(intValue);
-      } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
-        if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
-          ((BoolParameter*)parameters[i])->setParam(intValue);
+      if (iparam != nullptr) {
+        if (getKeyInt(iparam->getName(), &intValue, hKey))
+          iparam->setParam(intValue);
+      } else if (bparam != nullptr) {
+        if (getKeyInt(bparam->getName(), &intValue, hKey))
+          bparam->setParam(intValue);
       } else {
         if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
           parameters[i]->setParam(stringValue);
