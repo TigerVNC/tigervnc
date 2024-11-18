@@ -142,72 +142,53 @@ CConn::~CConn()
   delete sock;
 }
 
-const char *CConn::connectionInfo()
+std::string CConn::connectionInfo()
 {
-  static char infoText[1024] = "";
+  std::string infoText;
 
-  char scratch[100];
   char pfStr[100];
 
-  // Crude way of avoiding constant overflow checks
-  assert((sizeof(scratch) + 1) * 10 < sizeof(infoText));
+  infoText += format(_("Desktop name: %.80s"), server.name());
+  infoText += "\n";
 
-  infoText[0] = '\0';
+  infoText += format(_("Host: %.80s port: %d"),
+                     serverHost.c_str(), serverPort);
+  infoText += "\n";
 
-  snprintf(scratch, sizeof(scratch),
-           _("Desktop name: %.80s"), server.name());
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
-
-  snprintf(scratch, sizeof(scratch),
-           _("Host: %.80s port: %d"), serverHost.c_str(), serverPort);
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
-
-  snprintf(scratch, sizeof(scratch),
-           _("Size: %d x %d"), server.width(), server.height());
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("Size: %d x %d"),
+                     server.width(), server.height());
+  infoText += "\n";
 
   // TRANSLATORS: Will be filled in with a string describing the
   // protocol pixel format in a fairly language neutral way
   server.pf().print(pfStr, 100);
-  snprintf(scratch, sizeof(scratch),
-           _("Pixel format: %s"), pfStr);
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("Pixel format: %s"), pfStr);
+  infoText += "\n";
 
   // TRANSLATORS: Similar to the earlier "Pixel format" string
   serverPF.print(pfStr, 100);
-  snprintf(scratch, sizeof(scratch),
-           _("(server default %s)"), pfStr);
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("(server default %s)"), pfStr);
+  infoText += "\n";
 
-  snprintf(scratch, sizeof(scratch),
-           _("Requested encoding: %s"), encodingName(getPreferredEncoding()));
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("Requested encoding: %s"),
+                     encodingName(getPreferredEncoding()));
+  infoText += "\n";
 
-  snprintf(scratch, sizeof(scratch),
-           _("Last used encoding: %s"), encodingName(lastServerEncoding));
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("Last used encoding: %s"),
+                     encodingName(lastServerEncoding));
+  infoText += "\n";
 
-  snprintf(scratch, sizeof(scratch),
-           _("Line speed estimate: %d kbit/s"), (int)(bpsEstimate/1000));
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("Line speed estimate: %d kbit/s"),
+                     (int)(bpsEstimate / 1000));
+  infoText += "\n";
 
-  snprintf(scratch, sizeof(scratch),
-           _("Protocol version: %d.%d"), server.majorVersion, server.minorVersion);
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("Protocol version: %d.%d"),
+                     server.majorVersion, server.minorVersion);
+  infoText += "\n";
 
-  snprintf(scratch, sizeof(scratch),
-           _("Security method: %s"), secTypeName(csecurity->getType()));
-  strcat(infoText, scratch);
-  strcat(infoText, "\n");
+  infoText += format(_("Security method: %s"),
+                     secTypeName(csecurity->getType()));
+  infoText += "\n";
 
   return infoText;
 }

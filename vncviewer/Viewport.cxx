@@ -1385,7 +1385,8 @@ void Viewport::popupContextMenu()
     OptionsDialog::showDialog();
     break;
   case ID_INFO:
-    if (fltk_escape(cc->connectionInfo(), buffer, sizeof(buffer)) < sizeof(buffer)) {
+    if (fltk_escape(cc->connectionInfo().c_str(),
+                    buffer, sizeof(buffer)) < sizeof(buffer)) {
       fl_message_title(_("VNC connection info"));
       fl_message("%s", buffer);
     }

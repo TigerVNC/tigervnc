@@ -36,7 +36,7 @@ public:
   CConn(const char* vncServerName, network::Socket* sock);
   ~CConn();
 
-  const char *connectionInfo();
+  std::string connectionInfo();
 
   unsigned getUpdateCount();
   unsigned getPixelCount();
