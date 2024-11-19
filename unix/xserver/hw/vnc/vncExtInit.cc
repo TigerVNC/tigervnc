@@ -31,13 +31,12 @@
 #include <string>
 
 #include <core/Configuration.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
 #include <core/Region.h>
 
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ServerCore.h>
 #include <rdr/HexOutStream.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
 
 #include <network/TcpSocket.h>
@@ -58,7 +57,7 @@ void vncSetGlueContext(int screenIndex);
 
 using namespace rfb;
 
-static rfb::LogWriter vlog("vncext");
+static core::LogWriter vlog("vncext");
 
 // We can't safely get this from Xorg
 #define MAXSCREENS 16
@@ -202,7 +201,7 @@ void vncExtensionInit(void)
 
   try {
     if (!initialised) {
-      rfb::initStdIOLoggers();
+      core::initStdIOLoggers();
 
       parseOverrideList(allowOverride, allowOverrideSet);
       allowOverride.setImmutable();

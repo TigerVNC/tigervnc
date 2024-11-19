@@ -31,13 +31,12 @@
 #include <rfb/keysymdef.h>
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rfb_win32/SInput.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/keymap.h>
-
-#include <rfb/LogWriter.h>
 
 using namespace core;
 using namespace rfb;

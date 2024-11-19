@@ -35,11 +35,11 @@
 #include <nettle/sha1.h>
 #include <nettle/sha2.h>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rfb/CSecurityRSAAES.h>
 #include <rfb/CConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 
 #include <rdr/AESInStream.h>
@@ -60,7 +60,7 @@ const int MaxKeyLength = 8192;
 
 using namespace rfb;
 
-static LogWriter vlog("CSecurityRSAAES");
+static core::LogWriter vlog("CSecurityRSAAES");
 
 CSecurityRSAAES::CSecurityRSAAES(CConnection* cc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)

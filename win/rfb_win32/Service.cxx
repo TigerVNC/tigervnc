@@ -23,6 +23,7 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rfb_win32/Service.h>
@@ -32,9 +33,6 @@
 #include <rfb_win32/Handle.h>
 
 #include <logmessages/messages.h>
-
-#include <rfb/LogWriter.h>
-
 
 using namespace core;
 using namespace rfb;

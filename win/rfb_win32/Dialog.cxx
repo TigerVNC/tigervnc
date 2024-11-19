@@ -26,9 +26,9 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rfb_win32/Dialog.h>
-#include <rfb/LogWriter.h>
 #include <rfb_win32/Win32Util.h>
 
 #ifdef _DIALOG_CAPTURE
@@ -44,8 +44,8 @@
 using namespace rfb;
 using namespace rfb::win32;
 
-static LogWriter dlog("Dialog");
-static LogWriter plog("PropSheet");
+static core::LogWriter dlog("Dialog");
+static core::LogWriter plog("PropSheet");
 
 
 Dialog::Dialog(HINSTANCE inst_)

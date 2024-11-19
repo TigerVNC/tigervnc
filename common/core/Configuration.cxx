@@ -33,20 +33,17 @@
 #include <stdexcept>
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <os/Mutex.h>
-
-#include <rfb/LogWriter.h>
 
 #define LOCK_CONFIG os::AutoMutex a(mutex)
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
 
-// Temporary during transition to new structure:
 using namespace core;
-using namespace rfb;
 
 static LogWriter vlog("Config");
 

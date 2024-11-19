@@ -27,6 +27,8 @@
 
 #include <assert.h>
 
+#include <core/LogWriter.h>
+
 #include <rfb_win32/SDisplay.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/TsSessions.h>
@@ -35,7 +37,6 @@
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb_win32/SDisplayCoreWMHooks.h>
-#include <rfb/LogWriter.h>
 #include <rfb/VNCServer.h>
 #include <rfb/ledStates.h>
 

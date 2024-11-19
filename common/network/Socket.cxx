@@ -40,17 +40,16 @@
 #include <errno.h>
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
 #include <network/Socket.h>
 
-#include <rfb/LogWriter.h>
-
 using namespace network;
 
-static rfb::LogWriter vlog("Socket");
+static core::LogWriter vlog("Socket");
 
 // -=- Socket initialisation
 static bool socketsInitialised = false;

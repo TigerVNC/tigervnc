@@ -28,9 +28,9 @@
 
 #include <os/Mutex.h>
 
-#include <rfb/Logger_file.h>
+#include <core/Logger_file.h>
 
-using namespace rfb;
+using namespace core;
 
 Logger_File::Logger_File(const char* loggerName)
   : Logger(loggerName), indent(13), width(79), m_file(nullptr),
@@ -121,7 +121,8 @@ void Logger_File::closeFile()
 
 static Logger_File logger("file");
 
-bool rfb::initFileLogger(const char* filename) {
+bool core::initFileLogger(const char* filename)
+{
   logger.setFilename(filename);
   logger.registerLogger();
   return true;

@@ -31,15 +31,14 @@
 #include <string.h>
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <network/UnixSocket.h>
-
-#include <rfb/LogWriter.h>
 
 using namespace network;
 using namespace rdr;
 
-static rfb::LogWriter vlog("UnixSocket");
+static core::LogWriter vlog("UnixSocket");
 
 // -=- UnixSocket
 

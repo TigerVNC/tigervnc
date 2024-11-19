@@ -25,12 +25,13 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+
 #include <rfb/UpdateTracker.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("UpdateTracker");
+static core::LogWriter vlog("UpdateTracker");
 
 
 // -=- ClippingUpdateTracker

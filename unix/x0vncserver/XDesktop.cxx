@@ -28,9 +28,10 @@
 
 #include <algorithm>
 
+#include <core/LogWriter.h>
+
 #include <network/Socket.h>
 
-#include <rfb/LogWriter.h>
 #include <rfb/ScreenSet.h>
 
 #include <x0vncserver/XDesktop.h>
@@ -79,7 +80,7 @@ core::IntParameter
                       "connection",
                       10);
 
-static rfb::LogWriter vlog("XDesktop");
+static core::LogWriter vlog("XDesktop");
 
 // order is important as it must match RFB extension
 static const char * ledNames[XDESKTOP_N_LEDS] = {

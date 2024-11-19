@@ -18,13 +18,14 @@
 
 // -=- Logger_syslog - log to syslog
 
-#ifndef __RFB_LOGGER_SYSLOG_H__
-#define __RFB_LOGGER_SYSLOG_H__
+#ifndef __CORE_LOGGER_SYSLOG_H__
+#define __CORE_LOGGER_SYSLOG_H__
 
 #include <time.h>
-#include <rfb/Logger.h>
 
-namespace rfb {
+#include <core/Logger.h>
+
+namespace core {
 
   class Logger_Syslog : public Logger {
   public:

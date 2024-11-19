@@ -27,10 +27,10 @@
 
 #include <stdexcept>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rfb/CMsgWriter.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
 
 // FLTK can pull in the X11 headers on some systems
@@ -73,7 +73,7 @@
 
 using namespace rfb;
 
-static rfb::LogWriter vlog("Viewport");
+static core::LogWriter vlog("Viewport");
 
 // Menu constants
 

@@ -22,8 +22,10 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+
 #include <rfb_win32/WMWindowCopyRect.h>
-#include <rfb/LogWriter.h>
+
 #include <windows.h>
 
 using namespace core;

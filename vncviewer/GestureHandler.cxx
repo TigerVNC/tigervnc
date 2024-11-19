@@ -24,12 +24,12 @@
 #include <assert.h>
 #include <math.h>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
-#include <rfb/LogWriter.h>
 
 #include "GestureHandler.h"
 
-static rfb::LogWriter vlog("GestureHandler");
+static core::LogWriter vlog("GestureHandler");
 
 static const unsigned char GH_NOGESTURE = 0;
 static const unsigned char GH_ONETAP    = 1;
