@@ -48,33 +48,10 @@
 #include "parameters.h"
 #include "UserDialog.h"
 
-/* xpm:s predate const, so they have invalid definitions */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-#include "../media/secure.xpm"
-#include "../media/insecure.xpm"
-#pragma GCC diagnostic pop
-
-static Fl_Pixmap secure_icon(secure);
-static Fl_Pixmap insecure_icon(insecure);
+#include "AuthDialog.h"
 
 std::string UserDialog::savedUsername;
 std::string UserDialog::savedPassword;
-
-static long ret_val = 0;
-
-static void button_cb(Fl_Widget *widget, long val) {
-  Fl_Window* win;
-
-  ret_val = val;
-
-  assert(widget != nullptr);
-  win = dynamic_cast<Fl_Window*>(widget);
-  if (win == nullptr)
-    win = widget->window();
-  assert(win != nullptr);
-  win->hide();
-}
 
 UserDialog::UserDialog()
 {
@@ -94,6 +71,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
                                std::string* password)
 {
   const char *passwordFileName(passwordFile);
+  int ret_val;
 
   assert(password);
   char *envUsername = getenv("VNC_USERNAME");
@@ -137,127 +115,31 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
     return;
   }
 
-  Fl_Window *win;
-  Fl_Box *banner;
-  Fl_Input *username;
-  Fl_Secret_Input *passwd;
-  Fl_Box *icon;
-  Fl_Button *button;
-  Fl_Check_Button *keepPasswdCheckbox;
+  AuthDialog d(secure_, user != nullptr, password != nullptr);
+  d.show();
+  while (d.shown())
+    Fl::wait();
+  ret_val = d.result();
 
-  int x, y;
-
-  win = new Fl_Window(410, 0, _("VNC authentication"));
-  win->callback(button_cb, 1);
-
-  banner = new Fl_Box(0, 0, win->w(), 20);
-  banner->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE|FL_ALIGN_IMAGE_NEXT_TO_TEXT);
-  banner->box(FL_FLAT_BOX);
-  if (secure_) {
-    banner->label(_("This connection is secure"));
-    banner->color(FL_GREEN);
-    banner->image(secure_icon);
-  } else {
-    banner->label(_("This connection is not secure"));
-    banner->color(FL_RED);
-    banner->image(insecure_icon);
-  }
-
-  x = OUTER_MARGIN;
-  y = banner->h() + OUTER_MARGIN;
-
-  /* Mimic a fl_ask() box */
-  icon = new Fl_Box(x, y, 50, 50, "?");
-  icon->box(FL_UP_BOX);
-  icon->labelfont(FL_TIMES_BOLD);
-  icon->labelsize(34);
-  icon->color(FL_WHITE);
-  icon->labelcolor(FL_BLUE);
-
-  x += icon->w() + INNER_MARGIN;
-  y += INNER_MARGIN;
-
-  if (user) {
-    y += INPUT_LABEL_OFFSET;
-    username = new Fl_Input(x, y, win->w()- x - OUTER_MARGIN,
-                            INPUT_HEIGHT, _("Username:"));
-    username->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
-    y += INPUT_HEIGHT + INNER_MARGIN;
-  } else {
-    /*
-     * Compiler is not bright enough to understand that
-     * username won't be used further down...
-     */
-    username = nullptr;
-  }
-
-  y += INPUT_LABEL_OFFSET;
-  passwd = new Fl_Secret_Input(x, y, win->w()- x - OUTER_MARGIN,
-                               INPUT_HEIGHT, _("Password:"));
-  passwd->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
-  y += INPUT_HEIGHT + INNER_MARGIN;
-
-  if (reconnectOnError) {
-    keepPasswdCheckbox = new Fl_Check_Button(LBLRIGHT(x, y,
-                                                      CHECK_MIN_WIDTH,
-                                                      CHECK_HEIGHT,
-                                                      _("Keep password for reconnect")));
-    y += CHECK_HEIGHT + INNER_MARGIN;
-  } else {
-    keepPasswdCheckbox = nullptr;
-  }
-
-  x = win->w() - OUTER_MARGIN;
-  y += OUTER_MARGIN - INNER_MARGIN;
-
-  x -= BUTTON_WIDTH;
-  button = new Fl_Return_Button(x, y, BUTTON_WIDTH,
-                                BUTTON_HEIGHT, fl_ok);
-  button->callback(button_cb, 0);
-  x -= INNER_MARGIN;
-
-  x -= BUTTON_WIDTH;
-  button = new Fl_Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, fl_cancel);
-  button->callback(button_cb, 1);
-  button->shortcut(FL_Escape);
-  x -= INNER_MARGIN;
-
-  y += BUTTON_HEIGHT;
-
-  y += OUTER_MARGIN;
-
-  win->end();
-
-  win->size(win->w(), y);
-
-  win->set_modal();
-
-  ret_val = -1;
-
-  win->show();
-  while (win->shown()) Fl::wait();
-
-  if (ret_val == 0) {
+  if (ret_val == 1) {
     bool keepPasswd;
 
     if (reconnectOnError)
-      keepPasswd = keepPasswdCheckbox->value();
+      keepPasswd = d.getKeepPassword();
     else
       keepPasswd = false;
 
     if (user) {
-      *user = username->value();
+      *user = d.getUser();
       if (keepPasswd)
-        savedUsername = username->value();
+        savedUsername = d.getUser();
     }
-    *password = passwd->value();
+    *password = d.getPassword();
     if (keepPasswd)
-      savedPassword = passwd->value();
+      savedPassword = d.getPassword();
   }
 
-  delete win;
-
-  if (ret_val != 0)
+  if (ret_val != 1)
     throw rfb::auth_cancelled();
 }
 
