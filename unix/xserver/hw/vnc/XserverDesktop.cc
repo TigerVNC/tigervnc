@@ -38,13 +38,13 @@
 #include <sys/utsname.h>
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 
 #include <rdr/FdOutStream.h>
 
 #include <network/Socket.h>
 
 #include <rfb/VNCServerST.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ServerCore.h>
 
 #include "XserverDesktop.h"
@@ -63,7 +63,7 @@ void vncPresentMscEvent(uint64_t id, uint64_t msc);
 using namespace rfb;
 using namespace network;
 
-static LogWriter vlog("XserverDesktop");
+static core::LogWriter vlog("XserverDesktop");
 
 core::BoolParameter
   rawKeyboard("RawKeyboard",

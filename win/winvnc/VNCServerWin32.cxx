@@ -27,6 +27,8 @@
 #include <winvnc/ListConnInfo.h>
 #include <winvnc/STrayIcon.h>
 
+#include <core/LogWriter.h>
+
 #include <os/Mutex.h>
 
 #include <network/TcpSocket.h>
@@ -35,7 +37,6 @@
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
 
-#include <rfb/LogWriter.h>
 #include <rfb/SConnection.h>
 
 using namespace core;

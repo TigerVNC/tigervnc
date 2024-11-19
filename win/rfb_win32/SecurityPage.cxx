@@ -21,7 +21,8 @@
 #include <config.h>
 #endif
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+
 #include <rfb/Security.h>
 
 #include <rfb_win32/resource.h>
@@ -29,6 +30,7 @@
 
 #include <list>
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 using namespace std;

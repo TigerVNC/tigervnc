@@ -22,6 +22,7 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rfb_win32/Registry.h>
@@ -32,8 +33,6 @@
 #include <rdr/HexInStream.h>
 
 #include <stdlib.h>
-
-#include <rfb/LogWriter.h>
 
 // These flags are required to control access control inheritance,
 // but are not defined by VC6's headers.  These definitions comes

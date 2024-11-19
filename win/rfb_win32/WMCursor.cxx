@@ -23,10 +23,11 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rfb_win32/WMCursor.h>
+
 #include <rfb/Exception.h>
-#include <rfb/LogWriter.h>
 
 using namespace core;
 using namespace rfb;

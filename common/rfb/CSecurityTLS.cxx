@@ -34,11 +34,11 @@
 #include <unistd.h>
 #endif
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rfb/CSecurityTLS.h>
 #include <rfb/CConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 
 #include <rdr/TLSException.h>
@@ -58,7 +58,7 @@ core::StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
 core::StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
                                             configdirfn("x509_crl.pem"));
 
-static LogWriter vlog("TLS");
+static core::LogWriter vlog("TLS");
 
 static const char* configdirfn(const char* fn)
 {

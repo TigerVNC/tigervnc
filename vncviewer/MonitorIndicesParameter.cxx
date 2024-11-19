@@ -30,13 +30,14 @@
 #include <stdexcept>
 
 #include "i18n.h"
+
 #include <FL/Fl.H>
-#include <rfb/LogWriter.h>
+
+#include <core/LogWriter.h>
 
 #include "MonitorIndicesParameter.h"
 
-using namespace rfb;
-static LogWriter vlog("MonitorIndicesParameter");
+static core::LogWriter vlog("MonitorIndicesParameter");
 
 MonitorIndicesParameter::MonitorIndicesParameter(const char* name_, const char* desc_, const char* v)
 : StringParameter(name_, desc_, v) {}

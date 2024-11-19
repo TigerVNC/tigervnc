@@ -24,15 +24,17 @@
 
 #include <malloc.h>
 
+#include <core/LogWriter.h>
+
 #include <rfb_win32/RegConfig.h>
-#include <rfb/LogWriter.h>
+
 //#include <rdr/HexOutStream.h>
 
 using namespace rfb;
 using namespace rfb::win32;
 
 
-static LogWriter vlog("RegConfig");
+static core::LogWriter vlog("RegConfig");
 
 
 RegConfig::RegConfig(EventManager* em)

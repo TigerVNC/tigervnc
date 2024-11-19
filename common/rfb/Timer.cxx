@@ -28,10 +28,10 @@
 
 #include <algorithm>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rfb/Timer.h>
-#include <rfb/LogWriter.h>
 
 // Temporary during transition to new structure:
 using namespace core;

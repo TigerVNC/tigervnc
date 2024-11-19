@@ -35,11 +35,12 @@ const int kVK_RightCommand = 0x36;
 // And this is still missing
 const int kVK_Menu = 0x6E;
 
+#include <core/LogWriter.h>
+
 #define XK_LATIN1
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
 #include <rfb/XF86keysym.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
 
 #define NoSymbol 0
@@ -51,7 +52,7 @@ const int kVK_Menu = 0x6E;
 extern const unsigned short code_map_osx_to_qnum[];
 extern const unsigned int code_map_osx_to_qnum_len;
 
-static rfb::LogWriter vlog("KeyboardMacOS");
+static core::LogWriter vlog("KeyboardMacOS");
 
 static const int kvk_map[][2] = {
   { kVK_Return,         XK_Return },

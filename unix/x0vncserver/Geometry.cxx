@@ -26,12 +26,11 @@
 
 #include <string.h>
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+
 #include <x0vncserver/Geometry.h>
 
-using namespace rfb;
-
-static LogWriter vlog("Geometry");
+static core::LogWriter vlog("Geometry");
 
 core::StringParameter Geometry::m_geometryParam("Geometry",
   "Screen area shown to VNC clients. "

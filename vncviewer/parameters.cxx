@@ -33,11 +33,11 @@
 #include "parameters.h"
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <os/os.h>
 
-#include <rfb/LogWriter.h>
 #include <rfb/SecurityClient.h>
 
 #include <FL/fl_utf8.h>
@@ -53,7 +53,7 @@
 using namespace rfb;
 using namespace std;
 
-static LogWriter vlog("Parameters");
+static core::LogWriter vlog("Parameters");
 
 core::IntParameter
   pointerEventInterval("PointerEventInterval",

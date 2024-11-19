@@ -17,7 +17,7 @@ add_library(rdr STATIC
 
 target_include_directories(rdr PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rdr SYSTEM PUBLIC ${ZLIB_INCLUDE_DIRS})
-target_link_libraries(rdr core os rfb)
+target_link_libraries(rdr core os)
 target_link_libraries(rdr ${ZLIB_LIBRARIES})
 
 if(MSVC)

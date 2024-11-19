@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+
 #include <os/Mutex.h>
 #include <os/Thread.h>
 
@@ -29,7 +31,6 @@
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/IntervalTimer.h>
-#include <rfb/LogWriter.h>
 
 #include <list>
 

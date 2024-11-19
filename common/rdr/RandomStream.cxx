@@ -21,10 +21,9 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rdr/RandomStream.h>
-
-#include <rfb/LogWriter.h>
 
 #include <time.h>
 #include <stdlib.h>
@@ -38,7 +37,7 @@
 #endif
 #endif
 
-static rfb::LogWriter vlog("RandomStream");
+static core::LogWriter vlog("RandomStream");
 
 using namespace rdr;
 

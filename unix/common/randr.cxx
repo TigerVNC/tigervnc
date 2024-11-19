@@ -26,11 +26,15 @@
 #include <stdlib.h>
 
 #include <unixcommon.h>
+
+#include <core/LogWriter.h>
+
 #include <rfb/screenTypes.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ScreenSet.h>
+
 #include <RandrGlue.h>
-static rfb::LogWriter vlog("RandR");
+
+static core::LogWriter vlog("RandR");
 
 static int ResizeScreen(bool dryrun, int fb_width, int fb_height,
                         std::set<unsigned int>* disabledOutputs)
