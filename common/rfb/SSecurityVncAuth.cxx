@@ -26,13 +26,13 @@
 #endif
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 
 #include <rdr/OutStream.h>
 
 #include <rfb/SSecurityVncAuth.h>
 #include <rdr/RandomStream.h>
 #include <rfb/SConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/obfuscate.h>
 
@@ -46,7 +46,7 @@ extern "C" {
 
 using namespace rfb;
 
-static LogWriter vlog("SVncAuth");
+static core::LogWriter vlog("SVncAuth");
 
 core::StringParameter SSecurityVncAuth::vncAuthPasswdFile
 ("PasswordFile", "Password file for VNC authentication", "");

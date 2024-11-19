@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rdr/OutStream.h>
@@ -39,13 +40,12 @@
 #include <rfb/Encoder.h>
 #include <rfb/ScreenSet.h>
 #include <rfb/SMsgWriter.h>
-#include <rfb/LogWriter.h>
 #include <rfb/encodings.h>
 #include <rfb/ledStates.h>
 
 using namespace rfb;
 
-static LogWriter vlog("SMsgWriter");
+static core::LogWriter vlog("SMsgWriter");
 
 SMsgWriter::SMsgWriter(ClientParams* client_, rdr::OutStream* os_)
   : client(client_), os(os_),

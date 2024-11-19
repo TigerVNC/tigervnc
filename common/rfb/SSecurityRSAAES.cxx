@@ -38,6 +38,7 @@
 #include <nettle/asn1.h>
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
@@ -45,7 +46,6 @@
 
 #include <rfb/SSecurityRSAAES.h>
 #include <rfb/SConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <rfb/UnixPasswordValidator.h>
@@ -76,7 +76,7 @@ core::BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
  false);
 
-static LogWriter vlog("SSecurityRSAAES");
+static core::LogWriter vlog("SSecurityRSAAES");
 
 SSecurityRSAAES::SSecurityRSAAES(SConnection* sc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)

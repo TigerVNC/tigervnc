@@ -25,34 +25,31 @@
 #include <string.h>
 
 #include <core/Configuration.h>
+#include <core/Logger_stdio.h>
+#include <core/Logger_syslog.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <network/TcpSocket.h>
 
-#include <rfb/LogWriter.h>
-#include <rfb/Logger_stdio.h>
-#include <rfb/Logger_syslog.h>
-
 #include "RFBGlue.h"
 
-using namespace rfb;
-
 // Loggers used by C code must be created here
-static LogWriter inputLog("Input");
-static LogWriter selectionLog("Selection");
+static core::LogWriter inputLog("Input");
+static core::LogWriter selectionLog("Selection");
 
 void vncInitRFB(void)
 {
-  rfb::initStdIOLoggers();
-  rfb::initSyslogLogger();
-  rfb::LogWriter::setLogParams("*:stderr:30");
+  core::initStdIOLoggers();
+  core::initSyslogLogger();
+  core::LogWriter::setLogParams("*:stderr:30");
 }
 
 void vncLogError(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);
@@ -62,9 +59,9 @@ void vncLogError(const char *name, const char *format, ...)
 
 void vncLogStatus(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);
@@ -74,9 +71,9 @@ void vncLogStatus(const char *name, const char *format, ...)
 
 void vncLogInfo(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);
@@ -86,9 +83,9 @@ void vncLogInfo(const char *name, const char *format, ...)
 
 void vncLogDebug(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);

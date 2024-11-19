@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rfb/Cursor.h>
@@ -34,7 +35,6 @@
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/UpdateTracker.h>
-#include <rfb/LogWriter.h>
 #include <rfb/encodings.h>
 
 #include <rfb/RawEncoder.h>
@@ -46,7 +46,7 @@
 
 using namespace rfb;
 
-static LogWriter vlog("EncodeManager");
+static core::LogWriter vlog("EncodeManager");
 
 // Split each rectangle into smaller ones no larger than this area,
 // and no wider than this width.

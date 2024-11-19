@@ -24,18 +24,17 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/WMShatter.h>
-
-#include <rfb/LogWriter.h>
 
 #include <malloc.h>
 
 using namespace rfb;
 using namespace rfb::win32;
 
-static LogWriter vlog("MsgWindow");
+static core::LogWriter vlog("MsgWindow");
 
 //
 // -=- MsgWindowClass

@@ -34,12 +34,11 @@
 #include <FL/x.H>
 
 #include <core/Exception.h>
-
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
 
 #include "PlatformPixelBuffer.h"
 
-static rfb::LogWriter vlog("PlatformPixelBuffer");
+static core::LogWriter vlog("PlatformPixelBuffer");
 
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,

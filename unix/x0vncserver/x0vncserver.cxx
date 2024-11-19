@@ -32,11 +32,11 @@
 #include <pwd.h>
 
 #include <core/Configuration.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
 
 #include <rdr/FdOutStream.h>
 
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/Timer.h>
 
@@ -62,7 +62,7 @@ extern char buildtime[];
 using namespace rfb;
 using namespace network;
 
-static LogWriter vlog("Main");
+static core::LogWriter vlog("Main");
 
 static const char* defaultDesktopName();
 
@@ -289,8 +289,8 @@ static void usage()
 
 int main(int argc, char** argv)
 {
-  initStdIOLoggers();
-  LogWriter::setLogParams("*:stderr:30");
+  core::initStdIOLoggers();
+  core::LogWriter::setLogParams("*:stderr:30");
 
   programName = argv[0];
   Display* dpy;
