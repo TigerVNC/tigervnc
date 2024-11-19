@@ -31,8 +31,8 @@
 #include <X11/Xlib.h>
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 
-#include <rfb/LogWriter.h>
 #include <rfb/VNCServer.h>
 #include <rfb/ServerCore.h>
 
@@ -40,7 +40,7 @@
 
 using namespace rfb;
 
-static LogWriter vlog("PollingMgr");
+static core::LogWriter vlog("PollingMgr");
 
 const int PollingManager::m_pollingOrder[32] = {
    0, 16,  8, 24,  4, 20, 12, 28,

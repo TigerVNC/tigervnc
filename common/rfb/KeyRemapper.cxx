@@ -24,15 +24,15 @@
 #include <string.h>
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 
 #include <os/Mutex.h>
 
 #include <rfb/KeyRemapper.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("KeyRemapper");
+static core::LogWriter vlog("KeyRemapper");
 
 KeyRemapper KeyRemapper::defInstance;
 

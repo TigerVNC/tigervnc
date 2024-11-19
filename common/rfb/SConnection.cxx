@@ -26,6 +26,7 @@
 
 #include <algorithm>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rdr/OutStream.h>
@@ -43,11 +44,9 @@
 #include <rfb/EncodeManager.h>
 #include <rfb/SSecurity.h>
 
-#include <rfb/LogWriter.h>
-
 using namespace rfb;
 
-static LogWriter vlog("SConnection");
+static core::LogWriter vlog("SConnection");
 
 SConnection::SConnection(AccessRights accessRights_)
   : readyForSetColourMapEntries(false), is(nullptr), os(nullptr),

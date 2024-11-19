@@ -28,11 +28,10 @@
 #include <winvnc/VNCServerService.h>
 #include <winvnc/AddNewClientDialog.h>
 
+#include <core/Logger_file.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
-
-#include <rfb/Logger_stdio.h>
-#include <rfb/Logger_file.h>
-#include <rfb/LogWriter.h>
 
 #include <rfb_win32/AboutDialog.h>
 #include <rfb_win32/MsgBox.h>

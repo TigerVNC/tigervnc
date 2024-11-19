@@ -41,13 +41,12 @@
 #include <FL/Fl_File_Chooser.H>
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <os/os.h>
 
 #include <network/TcpSocket.h>
-
-#include <rfb/LogWriter.h>
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
@@ -59,9 +58,8 @@
 
 
 using namespace std;
-using namespace rfb;
 
-static LogWriter vlog("ServerDialog");
+static core::LogWriter vlog("ServerDialog");
 
 const char* SERVER_HISTORY="tigervnc.history";
 

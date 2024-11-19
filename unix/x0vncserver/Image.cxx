@@ -32,7 +32,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+
 #include <x0vncserver/Image.h>
 
 //
@@ -60,7 +61,7 @@ ImageCleanup imageCleanup;
 // Image class implementation.
 //
 
-static rfb::LogWriter vlog("Image");
+static core::LogWriter vlog("Image");
 
 Image::Image(Display *d)
   : xim(nullptr), dpy(d)

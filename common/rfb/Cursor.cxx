@@ -26,12 +26,13 @@
 
 #include <stdexcept>
 
+#include <core/LogWriter.h>
+
 #include <rfb/Cursor.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("Cursor");
+static core::LogWriter vlog("Cursor");
 
 Cursor::Cursor(int width, int height, const core::Point& hotspot,
                const uint8_t* data_) :

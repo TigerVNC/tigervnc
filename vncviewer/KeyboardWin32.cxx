@@ -31,12 +31,13 @@
 
 #include <FL/Fl.H>
 
+#include <core/LogWriter.h>
+
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #define XK_KOREAN
 #include <rfb/keysymdef.h>
 #include <rfb/XF86keysym.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
 
 #define NoSymbol 0
@@ -50,7 +51,7 @@
 // Used to detect fake input (0xaa is not a real key)
 static const WORD SCAN_FAKE = 0xaa;
 
-static rfb::LogWriter vlog("KeyboardWin32");
+static core::LogWriter vlog("KeyboardWin32");
 
 // Layout independent keys
 static const UINT vkey_map[][3] = {

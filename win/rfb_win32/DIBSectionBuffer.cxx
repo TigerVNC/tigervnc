@@ -22,16 +22,16 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/BitmapInfo.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 using namespace win32;
 
-static LogWriter vlog("DIBSectionBuffer");
+static core::LogWriter vlog("DIBSectionBuffer");
 
 
 DIBSectionBuffer::DIBSectionBuffer(HWND window_)

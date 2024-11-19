@@ -20,10 +20,12 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+
 #include <winvnc/ManagedListener.h>
-#include <rfb/LogWriter.h>
 
 using namespace winvnc;
+using namespace core;
 using namespace rfb;
 using namespace win32;
 

@@ -28,9 +28,9 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
-#include <rfb/LogWriter.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/ScreenSet.h>
 
@@ -74,7 +74,7 @@ static int edge_scroll_size_y = 96;
 
 using namespace rfb;
 
-static rfb::LogWriter vlog("DesktopWindow");
+static core::LogWriter vlog("DesktopWindow");
 
 // Global due to http://www.fltk.org/str.php?L2177 and the similar
 // issue for Fl::event_dispatch.
@@ -225,7 +225,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   repositionWidgets();
 
   // Throughput graph for debugging
-  if (vlog.getLevel() >= LogWriter::LEVEL_DEBUG) {
+  if (vlog.getLevel() >= core::LogWriter::LEVEL_DEBUG) {
     memset(&stats, 0, sizeof(stats));
     Fl::add_timeout(0, handleStatsTimeout, this);
   }

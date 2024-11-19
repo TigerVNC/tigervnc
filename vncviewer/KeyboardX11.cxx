@@ -27,7 +27,8 @@
 #include <X11/XKBlib.h>
 #include <FL/x.H>
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+
 #include <rfb/ledStates.h>
 
 #include "i18n.h"
@@ -39,7 +40,7 @@ extern const struct _code_map_xkb_to_qnum {
 } code_map_xkb_to_qnum[];
 extern const unsigned int code_map_xkb_to_qnum_len;
 
-static rfb::LogWriter vlog("KeyboardX11");
+static core::LogWriter vlog("KeyboardX11");
 
 KeyboardX11::KeyboardX11(KeyboardHandler* handler_)
   : Keyboard(handler_)

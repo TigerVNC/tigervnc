@@ -23,14 +23,13 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <core/Exception.h>
 
 #include <rfb_win32/Clipboard.h>
 #include <rfb_win32/WMShatter.h>
-
-#include <rfb/LogWriter.h>
 
 using namespace core;
 using namespace rfb;

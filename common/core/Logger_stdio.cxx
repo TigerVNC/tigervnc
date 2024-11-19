@@ -16,38 +16,22 @@
  * USA.
  */
 
-// -=- Logger_file - log to a file
+// -=- Logger_stdio.cxx - Logger instances for stderr and stdout
 
-#ifndef __RFB_LOGGER_FILE_H__
-#define __RFB_LOGGER_FILE_H__
-
-#include <time.h>
-#include <limits.h>
-
-#include <rfb/Logger.h>
-
-namespace rfb {
-
-  class Logger_File : public Logger {
-  public:
-    Logger_File(const char* loggerName);
-    ~Logger_File();
-
-    void write(int level, const char *logname, const char *message) override;
-    void setFilename(const char* filename);
-    void setFile(FILE* file);
-
-    int indent;
-    int width;
-
-  protected:
-    void closeFile();
-    char m_filename[PATH_MAX];
-    FILE* m_file;
-    time_t m_lastLogTime;
-  };
-
-  bool initFileLogger(const char* filename);
-};
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
+
+#include <core/Logger_stdio.h>
+
+using namespace core;
+
+static Logger_StdIO logStdErr("stderr", stderr);
+static Logger_StdIO logStdOut("stdout", stdout);
+
+bool core::initStdIOLoggers()
+{
+  logStdErr.registerLogger();
+  logStdOut.registerLogger();
+  return true;
+}

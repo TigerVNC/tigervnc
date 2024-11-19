@@ -22,8 +22,10 @@
 #include <string.h>
 
 #include "resource.h"
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
+
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
+
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/RegConfig.h>
 #include <rfb_win32/CurrentUser.h>

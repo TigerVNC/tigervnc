@@ -21,9 +21,9 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
-#include <rfb/LogWriter.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/ScreenSet.h>
 #include <rfb/clipboardTypes.h>
@@ -31,7 +31,7 @@
 
 using namespace rfb;
 
-static LogWriter vlog("SMsgHandler");
+static core::LogWriter vlog("SMsgHandler");
 
 SMsgHandler::SMsgHandler()
 {

@@ -19,9 +19,8 @@
 #include <X11/Xatom.h>
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
-
-#include <rfb/LogWriter.h>
 
 #include <x0vncserver/XSelection.h>
 
@@ -34,7 +33,7 @@ core::BoolParameter
               "Send the PRIMARY as well as the CLIPBOARD selection",
               true);
 
-static rfb::LogWriter vlog("XSelection");
+static core::LogWriter vlog("XSelection");
 
 XSelection::XSelection(Display* dpy_, XSelectionHandler* handler_)
     : TXWindow(dpy_, 1, 1, nullptr), handler(handler_), announcedSelection(None)

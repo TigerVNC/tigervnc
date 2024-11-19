@@ -22,6 +22,7 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
 #include <rdr/FdInStream.h>
@@ -34,7 +35,6 @@
 #include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
 #include <rfb/SMsgWriter.h>
@@ -51,7 +51,7 @@
 
 using namespace rfb;
 
-static LogWriter vlog("VNCSConnST");
+static core::LogWriter vlog("VNCSConnST");
 
 static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 

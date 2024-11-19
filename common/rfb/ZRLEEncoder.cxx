@@ -22,6 +22,7 @@
 #endif
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
@@ -29,11 +30,10 @@
 #include <rfb/PixelBuffer.h>
 #include <rfb/SConnection.h>
 #include <rfb/ZRLEEncoder.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("ZRLEEncoder");
+static core::LogWriter vlog("ZRLEEncoder");
 
 core::IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
 

@@ -26,16 +26,12 @@
 #include <string.h>
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 #include <core/util.h>
 
-#include <rfb/LogWriter.h>
-
-rfb::LogParameter rfb::logParams;
-
-// Temporary during transition to new structure:
 using namespace core;
-using namespace rfb;
 
+LogParameter core::logParams;
 
 LogWriter::LogWriter(const char* name)
   : m_name(name), m_level(0), m_log(nullptr), m_next(log_writers) {

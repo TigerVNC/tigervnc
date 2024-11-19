@@ -25,10 +25,6 @@ add_library(rfb STATIC
   JpegDecompressor.cxx
   KeyRemapper.cxx
   KeysymStr.c
-  LogWriter.cxx
-  Logger.cxx
-  Logger_file.cxx
-  Logger_stdio.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
   RREEncoder.cxx
@@ -75,10 +71,6 @@ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   target_include_directories(rfb SYSTEM PUBLIC ${H264_INCLUDE_DIRS})
   target_link_libraries(rfb ${H264_LIBRARIES})
   target_link_directories(rfb PUBLIC ${H264_LIBRARY_DIRS})
-endif()
-
-if(UNIX)
-  target_sources(rfb PRIVATE Logger_syslog.cxx)
 endif()
 
 if(WIN32)

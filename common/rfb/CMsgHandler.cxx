@@ -23,14 +23,14 @@
 
 #include <stdio.h>
 
+#include <core/LogWriter.h>
 #include <core/util.h>
 
-#include <rfb/LogWriter.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/screenTypes.h>
 
-static rfb::LogWriter vlog("CMsgHandler");
+static core::LogWriter vlog("CMsgHandler");
 
 using namespace rfb;
 
