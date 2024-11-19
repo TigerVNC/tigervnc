@@ -42,9 +42,8 @@
 
 #include <core/Configuration.h>
 #include <core/Exception.h>
-
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
 
 #include "TXWindow.h"
 #include "TXCheckbox.h"
@@ -53,7 +52,7 @@
 
 using namespace rfb;
 
-static LogWriter vlog("vncconfig");
+static core::LogWriter vlog("vncconfig");
 
 core::StringParameter displayname("display", "The X display", "");
 core::BoolParameter noWindow("nowin", "Don't display a window", 0);
@@ -210,8 +209,8 @@ void removeArgs(int* argc, char** argv, int first, int n)
 int main(int argc, char** argv)
 {
   programName = argv[0];
-  rfb::initStdIOLoggers();
-  rfb::LogWriter::setLogParams("*:stderr:30");
+  core::initStdIOLoggers();
+  core::LogWriter::setLogParams("*:stderr:30");
 
   // Process vncconfig's own parameters first, then we process the
   // other arguments when we have the X display.

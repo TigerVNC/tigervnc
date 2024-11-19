@@ -24,18 +24,17 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
-
-#include <rfb/LogWriter.h>
 
 #include <errno.h>
 
 #ifdef HAVE_GNUTLS 
 using namespace rdr;
 
-static rfb::LogWriter vlog("TLSInStream");
+static core::LogWriter vlog("TLSInStream");
 
 ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 {

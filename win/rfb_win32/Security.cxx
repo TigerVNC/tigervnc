@@ -22,13 +22,15 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+
 #include <rfb_win32/Security.h>
-#include <rfb/LogWriter.h>
 
 #include <lmcons.h>
 #include <accctrl.h>
 #include <list>
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 

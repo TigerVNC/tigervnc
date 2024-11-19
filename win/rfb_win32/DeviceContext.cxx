@@ -22,12 +22,11 @@
 #endif
 
 #include <core/Exception.h>
+#include <core/LogWriter.h>
 
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/CompatibleBitmap.h>
 #include <rfb_win32/BitmapInfo.h>
-
-#include <rfb/LogWriter.h>
 
 using namespace core;
 using namespace rfb;

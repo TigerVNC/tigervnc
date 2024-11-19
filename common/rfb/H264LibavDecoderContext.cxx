@@ -33,13 +33,14 @@ extern "C" {
 #define FFMPEG_INIT_PACKET_DEPRECATED
 #endif
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264LibavDecoderContext.h>
 
 using namespace rfb;
 
-static LogWriter vlog("H264LibavDecoderContext");
+static core::LogWriter vlog("H264LibavDecoderContext");
 
 bool H264LibavDecoderContext::initCodec() {
   os::AutoMutex lock(&mutex);

@@ -21,17 +21,14 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
 #include <core/Region.h>
-
-#include <rfb/LogWriter.h>
 
 extern "C" {
 #include <pixman.h>
 }
 
 using namespace core;
-// Temporary during transition to new structure:
-using namespace rfb;
 
 static LogWriter vlog("Region");
 

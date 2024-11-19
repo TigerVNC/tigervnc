@@ -18,17 +18,17 @@
 
 // -=- Logger_file - log to a file
 
-#ifndef __RFB_LOGGER_FILE_H__
-#define __RFB_LOGGER_FILE_H__
+#ifndef __CORE_LOGGER_FILE_H__
+#define __CORE_LOGGER_FILE_H__
 
 #include <time.h>
 #include <limits.h>
 
-#include <rfb/Logger.h>
+#include <core/Logger.h>
 
 namespace os { class Mutex; }
 
-namespace rfb {
+namespace core {
 
   class Logger_File : public Logger {
   public:

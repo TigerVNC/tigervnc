@@ -30,16 +30,17 @@
 
 #include <FL/x.H>
 
+#include <core/LogWriter.h>
+
 #ifndef XK_MISCELLANY
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
 #endif
-#include <rfb/LogWriter.h>
 
 #include "i18n.h"
 #include "XInputTouchHandler.h"
 
-static rfb::LogWriter vlog("XInputTouchHandler");
+static core::LogWriter vlog("XInputTouchHandler");
 
 static bool grabbed = false;
 

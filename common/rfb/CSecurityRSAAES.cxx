@@ -39,7 +39,6 @@
 
 #include <rfb/CSecurityRSAAES.h>
 #include <rfb/CConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 
 #include <rdr/AESInStream.h>

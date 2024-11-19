@@ -23,16 +23,19 @@
 #endif
 
 #include <stdlib.h>
-#include <rfb/LogWriter.h>
+
+#include <core/LogWriter.h>
+
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
+
 #include <lmcons.h>
 #include <wtsapi32.h>
 
 using namespace rfb;
 using namespace win32;
 
-static LogWriter vlog("CurrentUser");
+static core::LogWriter vlog("CurrentUser");
 
 
 const char* shellIconClass = "Shell_TrayWnd";

@@ -26,10 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <rfb/Logger.h>
-#include <rfb/LogWriter.h>
+#include <core/Logger.h>
+#include <core/LogWriter.h>
 
-using namespace rfb;
+using namespace core;
 
 Logger* Logger::loggers = nullptr;
 

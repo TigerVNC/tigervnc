@@ -16,21 +16,24 @@
  * USA.
  */
 
-// -=- Logger_stdio.cxx - Logger instances for stderr and stdout
+// -=- Logger_stdio - standard output logger instances
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#ifndef __CORE_LOGGER_STDIO_H__
+#define __CORE_LOGGER_STDIO_H__
+
+#include <core/Logger_file.h>
+
+namespace core {
+
+  class Logger_StdIO : public Logger_File {
+  public:
+    Logger_StdIO(const char *name, FILE* file) : Logger_File(name) {
+      setFile(file);
+    }
+  };
+
+  bool initStdIOLoggers();
+
+};
+
 #endif
-
-#include <rfb/Logger_stdio.h>
-
-using namespace rfb;
-
-static Logger_StdIO logStdErr("stderr", stderr);
-static Logger_StdIO logStdOut("stdout", stdout);
-
-bool rfb::initStdIOLoggers() {
-  logStdErr.registerLogger();
-  logStdOut.registerLogger();
-  return true;
-}
