@@ -56,6 +56,12 @@ StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
 StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
                                      configdirfn("x509_crl.pem"),
                                      ConfViewer);
+StringParameter CSecurityTLS::X509Cert("X509Cert", "X509 client certificate",
+                                     configdirfn("x509_client_cert.pem"),
+                                     ConfViewer);
+StringParameter CSecurityTLS::X509Key("X509Key", "X509 client private key",
+                                     configdirfn("x509_client_key.pem"),
+                                     ConfViewer);
 
 static LogWriter vlog("TLS");
 
@@ -276,6 +282,9 @@ void CSecurityTLS::setParam()
 
     if (gnutls_certificate_set_x509_crl_file(cert_cred, X509CRL, GNUTLS_X509_FMT_PEM) < 0)
       vlog.error("Could not load user specified certificate revocation list");
+
+    if (gnutls_certificate_set_x509_key_file (cert_cred, X509Cert, X509Key, GNUTLS_X509_FMT_PEM) < 0)
+      vlog.error("Could not load user specified client certificate");
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
     if (ret != GNUTLS_E_SUCCESS)
