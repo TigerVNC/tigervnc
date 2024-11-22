@@ -31,12 +31,13 @@
 #include <errno.h>
 #include <pwd.h>
 
+#include <core/Configuration.h>
+
 #include <rdr/FdOutStream.h>
 
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 #include <rfb/VNCServerST.h>
-#include <rfb/Configuration.h>
 #include <rfb/Timer.h>
 
 #include <network/TcpSocket.h>
@@ -65,23 +66,34 @@ static LogWriter vlog("Main");
 
 static const char* defaultDesktopName();
 
-IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
-                          "cycle; actual interval may be dynamically "
-                          "adjusted to satisfy MaxProcessorUsage setting", 30);
-IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
-                               "CPU time to be consumed", 35);
-StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
-StringParameter displayname("display", "The X display", "");
-IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
-StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
-IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
-StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
-BoolParameter localhostOnly("localhost",
-                            "Only allow connections from localhost",
-                            false);
-StringParameter interface("interface",
-                          "Listen on the specified network address",
-                          "all");
+core::IntParameter
+  pollingCycle("PollingCycle",
+               "Milliseconds per one polling cycle; actual interval "
+               "may be dynamically adjusted to satisfy "
+               "MaxProcessorUsage setting", 30);
+core::IntParameter
+  maxProcessorUsage("MaxProcessorUsage",
+                    "Maximum percentage of CPU time to be consumed",
+                    35);
+core::StringParameter
+  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+core::StringParameter
+  displayname("display", "The X display", "");
+core::IntParameter
+  rfbport("rfbport", "TCP port to listen for RFB protocol", 5900);
+core::StringParameter
+  rfbunixpath("rfbunixpath",
+              "Unix socket to listen for RFB protocol", "");
+core::IntParameter
+  rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+core::StringParameter
+  hostsFile("HostsFile", "File with IP access control rules", "");
+core::BoolParameter
+  localhostOnly("localhost",
+                "Only allow connections from localhost", false);
+core::StringParameter
+  interface("interface",
+            "Listen on the specified network address", "all");
 
 static const char* defaultDesktopName()
 {
@@ -271,7 +283,7 @@ static void usage()
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n");
-  Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
   exit(1);
 }
 
@@ -290,7 +302,7 @@ int main(int argc, char** argv)
   for (int i = 1; i < argc;) {
     int ret;
 
-    ret = Configuration::handleParamArg(argc, argv, i);
+    ret = core::Configuration::handleParamArg(argc, argv, i);
     if (ret > 0) {
       i += ret;
       continue;

@@ -478,7 +478,7 @@ static void usage(const char *programName)
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n"));
-  Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
 
 #ifdef WIN32
   // Just wait for the user to kill the console window
@@ -683,7 +683,7 @@ int main(int argc, char** argv)
   for (int i = 1; i < argc;) {
     int ret;
 
-    ret = Configuration::handleParamArg(argc, argv, i);
+    ret = core::Configuration::handleParamArg(argc, argv, i);
     if (ret > 0) {
       i += ret;
       continue;

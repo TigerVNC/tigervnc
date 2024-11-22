@@ -20,21 +20,22 @@
 
 #include <vector>
 
+#include <core/Configuration.h>
 #include <core/util.h>
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/ModuleFileName.h>
-#include <rfb/Configuration.h>
+
 #include <rfb/Blacklist.h>
 
 #include <network/TcpSocket.h>
 
-static rfb::IntParameter port_number("PortNumber",
+static core::IntParameter port_number("PortNumber",
   "TCP/IP port on which the server will accept connections", 5900);
-static rfb::StringParameter hosts("Hosts",
+static core::StringParameter hosts("Hosts",
   "Filter describing which hosts are allowed access to this server", "+");
-static rfb::BoolParameter localHost("LocalHost",
+static core::BoolParameter localHost("LocalHost",
   "Only accept connections from via the local loop-back network interface", false);
 
 namespace rfb {

@@ -22,8 +22,10 @@
 #define __RFB_LOG_WRITER_H__
 
 #include <stdarg.h>
+
+#include <core/Configuration.h>
+
 #include <rfb/Logger.h>
-#include <rfb/Configuration.h>
 
 // Each log writer instance has a unique textual name,
 // and is attached to a particular Log instance and
@@ -101,7 +103,7 @@ namespace rfb {
     LogWriter* m_next;
   };
 
-  class LogParameter : public StringParameter {
+  class LogParameter : public core::StringParameter {
   public:
     LogParameter();
     bool setParam(const char* v) override;

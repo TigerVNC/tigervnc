@@ -20,7 +20,8 @@
 #ifndef __PARAMETERS_H__
 #define __PARAMETERS_H__
 
-#include <rfb/Configuration.h>
+#include <core/Configuration.h>
+
 #include "MonitorIndicesParameter.h"
 
 #ifdef _WIN32
@@ -31,55 +32,55 @@
 #define SERVER_HISTORY_SIZE 20
 
 
-extern rfb::IntParameter pointerEventInterval;
-extern rfb::BoolParameter emulateMiddleButton;
-extern rfb::BoolParameter dotWhenNoCursor; // deprecated
-extern rfb::BoolParameter alwaysCursor;
-extern rfb::StringParameter cursorType;
+extern core::IntParameter pointerEventInterval;
+extern core::BoolParameter emulateMiddleButton;
+extern core::BoolParameter dotWhenNoCursor; // deprecated
+extern core::BoolParameter alwaysCursor;
+extern core::StringParameter cursorType;
 
-extern rfb::StringParameter passwordFile;
+extern core::StringParameter passwordFile;
 
-extern rfb::BoolParameter autoSelect;
-extern rfb::BoolParameter fullColour;
-extern rfb::AliasParameter fullColourAlias;
-extern rfb::IntParameter lowColourLevel;
-extern rfb::AliasParameter lowColourLevelAlias;
-extern rfb::StringParameter preferredEncoding;
-extern rfb::BoolParameter customCompressLevel;
-extern rfb::IntParameter compressLevel;
-extern rfb::BoolParameter noJpeg;
-extern rfb::IntParameter qualityLevel;
+extern core::BoolParameter autoSelect;
+extern core::BoolParameter fullColour;
+extern core::AliasParameter fullColourAlias;
+extern core::IntParameter lowColourLevel;
+extern core::AliasParameter lowColourLevelAlias;
+extern core::StringParameter preferredEncoding;
+extern core::BoolParameter customCompressLevel;
+extern core::IntParameter compressLevel;
+extern core::BoolParameter noJpeg;
+extern core::IntParameter qualityLevel;
 
-extern rfb::BoolParameter maximize;
-extern rfb::BoolParameter fullScreen;
-extern rfb::StringParameter fullScreenMode;
-extern rfb::BoolParameter fullScreenAllMonitors; // deprecated
+extern core::BoolParameter maximize;
+extern core::BoolParameter fullScreen;
+extern core::StringParameter fullScreenMode;
+extern core::BoolParameter fullScreenAllMonitors; // deprecated
 extern MonitorIndicesParameter fullScreenSelectedMonitors;
-extern rfb::StringParameter desktopSize;
-extern rfb::StringParameter geometry;
-extern rfb::BoolParameter remoteResize;
+extern core::StringParameter desktopSize;
+extern core::StringParameter geometry;
+extern core::BoolParameter remoteResize;
 
-extern rfb::BoolParameter listenMode;
+extern core::BoolParameter listenMode;
 
-extern rfb::BoolParameter viewOnly;
-extern rfb::BoolParameter shared;
+extern core::BoolParameter viewOnly;
+extern core::BoolParameter shared;
 
-extern rfb::BoolParameter acceptClipboard;
-extern rfb::BoolParameter setPrimary;
-extern rfb::BoolParameter sendClipboard;
+extern core::BoolParameter acceptClipboard;
+extern core::BoolParameter setPrimary;
+extern core::BoolParameter sendClipboard;
 #if !defined(WIN32) && !defined(__APPLE__)
-extern rfb::BoolParameter sendPrimary;
-extern rfb::StringParameter display;
+extern core::BoolParameter sendPrimary;
+extern core::StringParameter display;
 #endif
 
-extern rfb::StringParameter menuKey;
+extern core::StringParameter menuKey;
 
-extern rfb::BoolParameter fullscreenSystemKeys;
-extern rfb::BoolParameter alertOnFatalError;
-extern rfb::BoolParameter reconnectOnError;
+extern core::BoolParameter fullscreenSystemKeys;
+extern core::BoolParameter alertOnFatalError;
+extern core::BoolParameter reconnectOnError;
 
 #ifndef WIN32
-extern rfb::StringParameter via;
+extern core::StringParameter via;
 #endif
 
 void saveViewerParameters(const char *filename, const char *servername=nullptr);

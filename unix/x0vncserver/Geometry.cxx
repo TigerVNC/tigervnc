@@ -33,7 +33,7 @@ using namespace rfb;
 
 static LogWriter vlog("Geometry");
 
-StringParameter Geometry::m_geometryParam("Geometry",
+core::StringParameter Geometry::m_geometryParam("Geometry",
   "Screen area shown to VNC clients. "
   "Format is <width>x<height>+<offset_x>+<offset_y>, "
   "more information in man X, section GEOMETRY SPECIFICATIONS. "

@@ -22,16 +22,17 @@
 #include <config.h>
 #endif
 
-#include <rfb/Configuration.h>
+#include <core/Configuration.h>
+
 #include <rfb/UnixPasswordValidator.h>
 #include <rfb/pam.h>
 
 using namespace rfb;
 
-static StringParameter pamService
+static core::StringParameter pamService
   ("PAMService", "Service name for PAM password validation", "vnc");
-AliasParameter pam_service("pam_service", "Alias for PAMService",
-                           &pamService);
+core::AliasParameter pam_service("pam_service", "Alias for PAMService",
+                                 &pamService);
 
 int do_pam_auth(const char *service, const char *username,
 	        const char *password);

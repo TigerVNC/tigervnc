@@ -24,9 +24,11 @@
 #ifndef __RFB_SDISPLAY_H__
 #define __RFB_SDISPLAY_H__
 
+#include <core/Configuration.h>
+
 #include <rfb/SDesktop.h>
 #include <rfb/UpdateTracker.h>
-#include <rfb/Configuration.h>
+
 #include <rfb_win32/Handle.h>
 #include <rfb_win32/EventManager.h>
 #include <rfb_win32/SInput.h>
@@ -108,11 +110,11 @@ namespace rfb {
         queryConnectionHandler = qch;
       }
 
-      static IntParameter updateMethod;
-      static BoolParameter disableLocalInputs;
-      static StringParameter disconnectAction;
-      static BoolParameter removeWallpaper;
-      static BoolParameter disableEffects;
+      static core::IntParameter updateMethod;
+      static core::BoolParameter disableLocalInputs;
+      static core::StringParameter disconnectAction;
+      static core::BoolParameter removeWallpaper;
+      static core::BoolParameter disableEffects;
 
       // -=- Use by VNC Config to determine whether hooks are available
       static bool areHooksAvailable();

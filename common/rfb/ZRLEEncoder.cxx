@@ -21,20 +21,21 @@
 #include <config.h>
 #endif
 
+#include <core/Configuration.h>
+
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
 #include <rfb/Palette.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/SConnection.h>
 #include <rfb/ZRLEEncoder.h>
-#include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 
 using namespace rfb;
 
 static LogWriter vlog("ZRLEEncoder");
 
-IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
+core::IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
 
 ZRLEEncoder::ZRLEEncoder(SConnection* conn_)
   : Encoder(conn_, encodingZRLE, EncoderPlain, 127),
