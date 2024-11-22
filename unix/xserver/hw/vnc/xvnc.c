@@ -374,7 +374,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
         if ((vncInetdSock = dup(0)) == -1)
             FatalError
-                ("Xvnc error: failed to allocate a new file descriptor for -inetd: %s\n", strerror(errno));
+                ("Xvnc error: Failed to allocate a new file descriptor for -inetd: %s\n", strerror(errno));
 
 
         /* Avoid xserver >= 1.19's epoll-fd becoming fd 2 / stderr only to be
@@ -396,7 +396,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
                 if (displayNum == 100)
                     FatalError
-                        ("Xvnc error: no free display number for -inetd\n");
+                        ("Xvnc error: No free display number for -inetd\n");
             }
 
             display = displayNumStr;

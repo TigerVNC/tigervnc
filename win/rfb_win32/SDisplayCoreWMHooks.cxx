@@ -40,7 +40,7 @@ SDisplayCoreWMHooks::SDisplayCoreWMHooks(SDisplay* d, UpdateTracker* ut)
   consolePollTimer(getHandle(), consolePollTimerId),
   pollConsoles(false) {
   if (!hooks.setEvent(display->getUpdateEvent()))
-    throw std::runtime_error("hook subsystem failed to initialise");
+    throw std::runtime_error("Hook subsystem failed to initialise");
   poller.setUpdateTracker(updateTracker);
   cursorTimer.start(20);
   consolePollTimer.start(200);

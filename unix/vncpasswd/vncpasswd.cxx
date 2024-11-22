@@ -47,7 +47,7 @@ char* prog;
 
 static void usage()
 {
-  fprintf(stderr,"usage: %s [file]\n", prog);
+  fprintf(stderr,"Usage: %s [file]\n", prog);
   fprintf(stderr,"       %s -f\n", prog);
   exit(1);
 }

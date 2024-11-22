@@ -44,7 +44,7 @@ static void fillMonitorInfo(HMONITOR monitor, MONITORINFOEXA* mi) {
   memset(mi, 0, sizeof(MONITORINFOEXA));
   mi->cbSize = sizeof(MONITORINFOEXA);
   if (!GetMonitorInfo(monitor, mi))
-    throw rdr::win32_error("failed to GetMonitorInfo", GetLastError());
+    throw rdr::win32_error("Failed to GetMonitorInfo", GetLastError());
   vlog.debug("Monitor is %ld,%ld-%ld,%ld", mi->rcMonitor.left, mi->rcMonitor.top, mi->rcMonitor.right, mi->rcMonitor.bottom);
   vlog.debug("Work area is %ld,%ld-%ld,%ld", mi->rcWork.left, mi->rcWork.top, mi->rcWork.right, mi->rcWork.bottom);
   vlog.debug("Device is \"%s\"", mi->szDevice);
@@ -57,7 +57,7 @@ MonitorInfo::MonitorInfo(HWND window) {
 
   HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
   if (!monitor)
-    throw rdr::win32_error("failed to get monitor", GetLastError());
+    throw rdr::win32_error("Failed to get monitor", GetLastError());
   fillMonitorInfo(monitor, this);
 }
 
@@ -67,7 +67,7 @@ MonitorInfo::MonitorInfo(const RECT& r) {
 
   HMONITOR monitor = MonitorFromRect(&r, MONITOR_DEFAULTTONEAREST);
   if (!monitor)
-    throw rdr::win32_error("failed to get monitor", GetLastError());
+    throw rdr::win32_error("Failed to get monitor", GetLastError());
   fillMonitorInfo(monitor, this);
 }
 

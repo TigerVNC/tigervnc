@@ -436,7 +436,7 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
     unwrap(vncHooksScreen, rp, rrCrtcSet);
   }
 
-  DBGPRINT((stderr,"vncHooksCloseScreen: unwrapped screen functions\n"));
+  DBGPRINT((stderr,"vncHooksCloseScreen: Unwrapped screen functions\n"));
 
   return (*pScreen->CloseScreen)(pScreen);
 }
@@ -1214,7 +1214,7 @@ static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
   (*pGC->funcs->ValidateGC) (pGC, changes, pDrawable);
   if (is_visible(pDrawable)) {
     pGCPriv->ops = pGC->ops;
-    DBGPRINT((stderr,"vncHooksValidateGC: wrapped GC ops\n"));
+    DBGPRINT((stderr,"vncHooksValidateGC: Wrapped GC ops\n"));
   } else {
     pGCPriv->ops = NULL;
   }

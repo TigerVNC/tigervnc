@@ -448,7 +448,7 @@ static void usage(const char *programName)
 
   fprintf(stderr,
           "\n"
-          "usage: %s [parameters] [host][:displayNum]\n"
+          "Usage: %s [parameters] [host][:displayNum]\n"
           "       %s [parameters] [host][::port]\n"
 #ifndef WIN32
           "       %s [parameters] [unix socket]\n"

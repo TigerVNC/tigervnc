@@ -53,7 +53,7 @@ void LaunchProcess::start(HANDLE userToken, bool createConsole) {
   char buf[256];
   HDESK desktop = GetThreadDesktop(GetCurrentThreadId());
   if (!GetUserObjectInformation(desktop, UOI_NAME, buf, 256, &size))
-    throw rdr::win32_error("unable to launch process", GetLastError());
+    throw rdr::win32_error("Unable to launch process", GetLastError());
 
   snprintf(desktopName, 256, "WinSta0\\%s", buf);
 
@@ -95,7 +95,7 @@ void LaunchProcess::start(HANDLE userToken, bool createConsole) {
                             flags, nullptr, nullptr,
                             &sinfo, &procInfo);
   if (!success)
-    throw rdr::win32_error("unable to launch process", GetLastError());
+    throw rdr::win32_error("Unable to launch process", GetLastError());
 
   // Wait for it to finish initialising
   WaitForInputIdle(procInfo.hProcess, 15000);

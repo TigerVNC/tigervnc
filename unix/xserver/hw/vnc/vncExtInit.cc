@@ -89,7 +89,7 @@ rfb::BoolParameter localhostOnly("localhost",
                                  "Only allow connections from localhost",
                                  false);
 rfb::StringParameter interface("interface",
-                               "listen on the specified network address",
+                               "Listen on the specified network address",
                                "all");
 rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
                                      "Avoid fake Shift presses for keys affected by NumLock.",
@@ -173,13 +173,13 @@ static void parseOverrideList(const char *text, ParamSet &out)
 void vncExtensionInit(void)
 {
   if (vncExtGeneration == vncGetServerGeneration()) {
-    vlog.error("vncExtensionInit: called twice in same generation?");
+    vlog.error("vncExtensionInit: Called twice in same generation?");
     return;
   }
   vncExtGeneration = vncGetServerGeneration();
 
   if (vncGetScreenCount() > MAXSCREENS)
-    vncFatalError("vncExtensionInit: too many screens\n");
+    vncFatalError("vncExtensionInit: Too many screens\n");
 
   vncAddExtension();
 

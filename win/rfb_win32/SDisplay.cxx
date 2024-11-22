@@ -176,7 +176,7 @@ void SDisplay::startCore() {
   // Switch to the current input desktop
   if (rfb::win32::desktopChangeRequired()) {
     if (!rfb::win32::changeDesktop())
-      throw std::runtime_error("unable to switch into input desktop");
+      throw std::runtime_error("Unable to switch into input desktop");
   }
 
   // Initialise the change tracker and clipper
@@ -199,7 +199,7 @@ void SDisplay::startCore() {
     } catch (std::exception& e) {
       delete core; core = nullptr;
       if (tryMethod == 0)
-        throw std::runtime_error("unable to access desktop");
+        throw std::runtime_error("Unable to access desktop");
       tryMethod--;
       vlog.error("%s", e.what());
     }

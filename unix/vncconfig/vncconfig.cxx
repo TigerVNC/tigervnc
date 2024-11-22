@@ -175,7 +175,7 @@ private:
 
 static void usage()
 {
-  fprintf(stderr,"usage: %s [parameters]\n",
+  fprintf(stderr,"Usage: %s [parameters]\n",
           programName);
   fprintf(stderr,"       %s [parameters] -connect "
           "[-view-only] <host>[:<port>]\n", programName);
@@ -248,11 +248,11 @@ int main(int argc, char** argv)
         }
         if (i >= argc) usage();
         if (!XVncExtConnect(dpy, argv[i], viewOnly)) {
-          fprintf(stderr,"connecting to %s failed\n",argv[i]);
+          fprintf(stderr, "Connecting to %s failed\n",argv[i]);
         }
       } else if (strcmp(argv[i], "-disconnect") == 0) {
         if (!XVncExtConnect(dpy, "", False)) {
-          fprintf(stderr,"disconnecting all clients failed\n");
+          fprintf(stderr, "Disconnecting all clients failed\n");
         }
       } else if (strcmp(argv[i], "-get") == 0) {
         i++;
@@ -262,7 +262,7 @@ int main(int argc, char** argv)
         if (XVncExtGetParam(dpy, argv[i], &data, &len)) {
           printf("%.*s\n",len,data);
         } else {
-          fprintf(stderr,"getting param %s failed\n",argv[i]);
+          fprintf(stderr, "Getting param %s failed\n",argv[i]);
         }
         XFree(data);
       } else if (strcmp(argv[i], "-desc") == 0) {
@@ -272,7 +272,7 @@ int main(int argc, char** argv)
         if (desc) {
           printf("%s\n",desc);
         } else {
-          fprintf(stderr,"getting description for param %s failed\n",argv[i]);
+          fprintf(stderr, "Getting description for param %s failed\n",argv[i]);
         }
         XFree(desc);
       } else if (strcmp(argv[i], "-list") == 0) {
@@ -286,10 +286,10 @@ int main(int argc, char** argv)
         i++;
         if (i >= argc) usage();
         if (!XVncExtSetParam(dpy, argv[i])) {
-          fprintf(stderr,"setting param %s failed\n",argv[i]);
+          fprintf(stderr, "Setting param %s failed\n",argv[i]);
         }
       } else if (XVncExtSetParam(dpy, argv[i])) {
-        fprintf(stderr,"set parameter %s\n",argv[i]);
+        fprintf(stderr, "Set parameter %s\n",argv[i]);
       } else {
         usage();
       }

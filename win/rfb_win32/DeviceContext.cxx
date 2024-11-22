@@ -51,10 +51,10 @@ PixelFormat DeviceContext::getPF(HDC dc) {
   bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
   bi.bmiHeader.biBitCount = 0;
   if (!::GetDIBits(dc, bitmap, 0, 1, nullptr, (BITMAPINFO*)&bi, DIB_RGB_COLORS)) {
-    throw rdr::win32_error("unable to determine device pixel format", GetLastError());
+    throw rdr::win32_error("Unable to determine device pixel format", GetLastError());
   }
   if (!::GetDIBits(dc, bitmap, 0, 1, nullptr, (BITMAPINFO*)&bi, DIB_RGB_COLORS)) {
-    throw rdr::win32_error("unable to determine pixel shifts/palette", GetLastError());
+    throw rdr::win32_error("Unable to determine pixel shifts/palette", GetLastError());
   }
 
   // Set the initial format information
@@ -87,7 +87,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
         break;
       default:
         vlog.error("Bits per pixel %u not supported", bi.bmiHeader.biBitCount);
-        throw std::invalid_argument("unknown bits per pixel specified");
+        throw std::invalid_argument("Unknown bits per pixel specified");
       };
       break;
     case BI_BITFIELDS:
@@ -115,7 +115,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
 
     // Check that the depth & bpp are valid
     if (depth > bpp) {
-      vlog.error("depth exceeds bits per pixel!");
+      vlog.error("Depth exceeds bits per pixel!");
       bpp = depth;
     }
 
@@ -159,7 +159,7 @@ Rect DeviceContext::getClipBox(HDC dc) {
 DeviceDC::DeviceDC(const char* deviceName) {
   dc = ::CreateDC("DISPLAY", deviceName, nullptr, nullptr);
   if (!dc)
-    throw rdr::win32_error("failed to create DeviceDC", GetLastError());
+    throw rdr::win32_error("Failed to create DeviceDC", GetLastError());
 }
 
 DeviceDC::~DeviceDC() {

@@ -214,11 +214,11 @@ std::string RegKey::getRepresentation(const char* valname) const {
   DWORD type, length;
   LONG result = RegQueryValueEx(key, valname, nullptr, &type, nullptr, &length);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("get registry value length", result);
+    throw rdr::win32_error("Get registry value length", result);
   std::vector<uint8_t> data(length);
   result = RegQueryValueEx(key, valname, nullptr, &type, (BYTE*)data.data(), &length);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("get registry value", result);
+    throw rdr::win32_error("Get registry value", result);
 
   switch (type) {
   case REG_BINARY:
@@ -247,14 +247,14 @@ std::string RegKey::getRepresentation(const char* valname) const {
       std::vector<char> expanded(required);
       length = ExpandEnvironmentStrings(str.c_str(), expanded.data(), required);
       if (required<length)
-        throw std::runtime_error("unable to expand environment strings");
+        throw std::runtime_error("Unable to expand environment strings");
       return expanded.data();
     } else {
       return "";
     }
     }
   default:
-    throw std::logic_error("unsupported registry type");
+    throw std::logic_error("Unsupported registry type");
   }
 }
 

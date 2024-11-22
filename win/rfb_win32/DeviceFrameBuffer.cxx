@@ -54,14 +54,14 @@ DeviceFrameBuffer::DeviceFrameBuffer(HDC deviceContext, const Rect& wRect)
 
   int capabilities = GetDeviceCaps(device, RASTERCAPS);
   if (!(capabilities & RC_BITBLT)) {
-    throw std::invalid_argument("device does not support BitBlt");
+    throw std::invalid_argument("Device does not support BitBlt");
   }
   if (!(capabilities & RC_DI_BITMAP)) {
-    throw std::invalid_argument("device does not support GetDIBits");
+    throw std::invalid_argument("Device does not support GetDIBits");
   }
   /*
   if (GetDeviceCaps(device, PLANES) != 1) {
-    throw std::invalid_argument("device does not support planar displays");
+    throw std::invalid_argument("Device does not support planar displays");
   }
   */
 
@@ -140,9 +140,9 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     if (!GetObject(iconInfo.hbmMask, sizeof(BITMAP), &maskInfo))
       throw rdr::win32_error("GetObject() failed", GetLastError());
     if (maskInfo.bmPlanes != 1)
-      throw std::invalid_argument("unsupported multi-plane cursor");
+      throw std::invalid_argument("Unsupported multi-plane cursor");
     if (maskInfo.bmBitsPixel != 1)
-      throw std::invalid_argument("unsupported cursor mask format");
+      throw std::invalid_argument("Unsupported cursor mask format");
 
     width = maskInfo.bmWidth;
     height = maskInfo.bmHeight;
@@ -188,7 +188,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
       if ((bi.bV5RedMask != ((unsigned)0xff << ridx*8)) ||
           (bi.bV5GreenMask != ((unsigned)0xff << gidx*8)) ||
           (bi.bV5BlueMask != ((unsigned)0xff << bidx*8)))
-        throw std::invalid_argument("unsupported cursor colour format");
+        throw std::invalid_argument("Unsupported cursor colour format");
 
       uint8_t* rwbuffer = buffer.data();
       for (int y = 0; y < height; y++) {

@@ -58,7 +58,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
   uint8_t* new_data = nullptr;
 
   if (!pf.trueColour)
-    throw std::invalid_argument("palette format not supported");
+    throw std::invalid_argument("Palette format not supported");
 
   format = pf;
 
@@ -87,7 +87,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
 
     if (!new_bitmap) {
       int err = GetLastError();
-      throw rdr::win32_error("unable to create DIB section", err);
+      throw rdr::win32_error("Unable to create DIB section", err);
     }
 
     vlog.debug("recreateBuffer()");
