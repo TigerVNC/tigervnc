@@ -29,8 +29,10 @@
 #define __RFB_WIN32_WM_POLLER_H__
 
 #include <windows.h>
+
+#include <core/Configuration.h>
+
 #include <rfb/UpdateTracker.h>
-#include <rfb/Configuration.h>
 
 namespace rfb {
 
@@ -43,7 +45,7 @@ namespace rfb {
       bool processEvent();
       bool setUpdateTracker(UpdateTracker* ut);
 
-      static BoolParameter poll_console_windows;
+      static core::BoolParameter poll_console_windows;
     protected:
       struct PollInfo {
         core::Region poll_include;

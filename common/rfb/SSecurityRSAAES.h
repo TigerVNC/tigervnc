@@ -27,6 +27,11 @@
 
 #include <rfb/SSecurity.h>
 
+namespace core {
+  class BoolParameter;
+  class StringParameter;
+}
+
 namespace rdr {
   class InStream;
   class OutStream;
@@ -35,9 +40,6 @@ namespace rdr {
 }
 
 namespace rfb {
-
-  class BoolParameter;
-  class StringParameter;
 
   class SSecurityRSAAES : public SSecurity {
   public:
@@ -52,8 +54,8 @@ namespace rfb {
       return accessRights;
     }
 
-    static StringParameter keyFile;
-    static BoolParameter requireUsername;
+    static core::StringParameter keyFile;
+    static core::BoolParameter requireUsername;
 
   private:
     void cleanup();

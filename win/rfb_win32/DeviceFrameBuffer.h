@@ -28,13 +28,13 @@
 
 #include <windows.h>
 
+#include <core/Configuration.h>
 #include <core/Region.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
 
 #include <rfb/Cursor.h>
 #include <rfb/Exception.h>
-#include <rfb/Configuration.h>
 
 namespace rfb {
 
@@ -82,7 +82,7 @@ namespace rfb {
       // Only set this if you are sure you'll capture the errors some other way!
       void setIgnoreGrabErrors(bool ie) {ignoreGrabErrors=ie;}
       
-      static BoolParameter useCaptureBlt;
+      static core::BoolParameter useCaptureBlt;
 
     protected:
       // Translate supplied Desktop coordinates into Device-relative coordinates

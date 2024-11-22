@@ -57,8 +57,8 @@ namespace rfb {
     const char* getUserName() const override {return nullptr;}
     int getType() const override { return anon ? secTypeTLSNone : secTypeX509None;}
 
-    static StringParameter X509_CertFile;
-    static StringParameter X509_KeyFile;
+    static core::StringParameter X509_CertFile;
+    static core::StringParameter X509_KeyFile;
 
   protected:
     void shutdown();

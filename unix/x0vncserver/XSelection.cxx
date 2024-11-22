@@ -18,19 +18,21 @@
 
 #include <X11/Xatom.h>
 
+#include <core/Configuration.h>
 #include <core/util.h>
 
-#include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 
 #include <x0vncserver/XSelection.h>
 
-rfb::BoolParameter setPrimary("SetPrimary",
-                              "Set the PRIMARY as well as the CLIPBOARD selection",
-                              true);
-rfb::BoolParameter sendPrimary("SendPrimary",
-                               "Send the PRIMARY as well as the CLIPBOARD selection",
-                               true);
+core::BoolParameter
+  setPrimary("SetPrimary",
+             "Set the PRIMARY as well as the CLIPBOARD selection",
+             true);
+core::BoolParameter
+  sendPrimary("SendPrimary",
+              "Send the PRIMARY as well as the CLIPBOARD selection",
+              true);
 
 static rfb::LogWriter vlog("XSelection");
 

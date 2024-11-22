@@ -31,7 +31,7 @@ namespace rfb {
   public:
     bool validate(SConnection* sc, const char *username, const char *password)
       { return validUser(username) ? validateInternal(sc, username, password) : false; }
-    static StringParameter plainUsers;
+    static core::StringParameter plainUsers;
 
     virtual ~PasswordValidator() { }
 
