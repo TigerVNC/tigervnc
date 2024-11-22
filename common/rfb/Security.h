@@ -26,9 +26,9 @@
 
 #include <list>
 
-namespace rfb {
+namespace core { class StringParameter; }
 
-  class StringParameter;
+namespace rfb {
 
   const uint8_t secTypeInvalid    = 0;
   const uint8_t secTypeNone       = 1;
@@ -77,7 +77,7 @@ namespace rfb {
      * Create Security instance.
      */
     Security();
-    Security(StringParameter &secTypes);
+    Security(core::StringParameter& secTypes);
 
     /*
      * Note about security types.
@@ -106,7 +106,7 @@ namespace rfb {
     char *ToString(void);
 
 #ifdef HAVE_GNUTLS
-    static StringParameter GnuTLSPriority;
+    static core::StringParameter GnuTLSPriority;
 #endif
 
   private:

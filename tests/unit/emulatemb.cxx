@@ -25,7 +25,8 @@
 #include <unistd.h>
 
 #include <core/Rect.h>
-#include <rfb/Configuration.h>
+#include <core/Configuration.h>
+
 #include "EmulateMB.h"
 
 // The button masks for the mouse buttons
@@ -37,7 +38,7 @@ static const int right          = 0x04;
 static const int both           = 0x05;
 static const int middleAndRight = 0x06;
 
-rfb::BoolParameter emulateMiddleButton("dummy_name", "dummy_desc", true);
+core::BoolParameter emulateMiddleButton("dummy_name", "dummy_desc", true);
 
 class TestClass : public EmulateMB
 {

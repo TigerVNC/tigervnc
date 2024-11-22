@@ -22,9 +22,9 @@
 #include <set>
 #include <vector>
 
-#include <rfb/Configuration.h>
+#include <core/Configuration.h>
 
-class MonitorIndicesParameter: public rfb::StringParameter {
+class MonitorIndicesParameter: public core::StringParameter {
 public:
     MonitorIndicesParameter(const char* name_, const char* desc_, const char* v);
     std::set<int> getParam();

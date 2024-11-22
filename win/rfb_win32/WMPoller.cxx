@@ -22,11 +22,11 @@
 #include <config.h>
 #endif
 
+#include <core/Configuration.h>
 #include <core/Exception.h>
 
 #include <rfb_win32/WMPoller.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
 
 using namespace core;
 using namespace rfb;

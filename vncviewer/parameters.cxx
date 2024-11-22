@@ -55,125 +55,180 @@ using namespace std;
 
 static LogWriter vlog("Parameters");
 
+core::IntParameter
+  pointerEventInterval("PointerEventInterval",
+                       "Time in milliseconds to rate-limit successive "
+                       "pointer events",
+                       17);
+core::BoolParameter
+  emulateMiddleButton("EmulateMiddleButton",
+                      "Emulate middle mouse button by pressing left "
+                      "and right mouse buttons simultaneously",
+                      false);
+core::BoolParameter
+  dotWhenNoCursor("DotWhenNoCursor",
+                  "[DEPRECATED] Show the dot cursor when the server "
+                  "sends an invisible cursor",
+                  false);
+core::BoolParameter
+  alwaysCursor("AlwaysCursor",
+               "Show the local cursor when the server sends an "
+               "invisible cursor",
+               false);
+core::StringParameter
+  cursorType("CursorType",
+             "Specify which cursor type the local cursor should be. "
+             "Should be either Dot or System",
+             "Dot");
 
-IntParameter pointerEventInterval("PointerEventInterval",
-                                  "Time in milliseconds to rate-limit"
-                                  " successive pointer events", 17);
-BoolParameter emulateMiddleButton("EmulateMiddleButton",
-                                  "Emulate middle mouse button by pressing "
-                                  "left and right mouse buttons simultaneously",
-                                  false);
-BoolParameter dotWhenNoCursor("DotWhenNoCursor",
-                              "[DEPRECATED] Show the dot cursor when the server sends an "
-                              "invisible cursor", false);
-BoolParameter alwaysCursor("AlwaysCursor",
-                           "Show the local cursor when the server sends an "
-                           "invisible cursor", false);
-StringParameter cursorType("CursorType",
-                           "Specify which cursor type the local cursor should be. "
-                           "Should be either Dot or System",
-                           "Dot");
+core::BoolParameter
+  alertOnFatalError("AlertOnFatalError",
+                    "Give a dialog on connection problems rather than "
+                    "exiting immediately",
+                    true);
 
-BoolParameter alertOnFatalError("AlertOnFatalError",
-                                "Give a dialog on connection problems rather "
-                                "than exiting immediately", true);
+core::BoolParameter
+  reconnectOnError("ReconnectOnError",
+                   "Give a dialog on connection problems rather than "
+                   "exiting immediately and ask for a reconnect.",
+                   true);
 
-BoolParameter reconnectOnError("ReconnectOnError",
-                               "Give a dialog on connection problems rather "
-                               "than exiting immediately and ask for a reconnect.", true);
+core::StringParameter
+  passwordFile("PasswordFile",
+               "Password file for VNC authentication",
+               "");
+core::AliasParameter
+  passwd("passwd", "Alias for PasswordFile", &passwordFile);
 
-StringParameter passwordFile("PasswordFile",
-                             "Password file for VNC authentication", "");
-AliasParameter passwd("passwd", "Alias for PasswordFile", &passwordFile);
+core::BoolParameter
+  autoSelect("AutoSelect",
+             "Auto select pixel format and encoding. Default if "
+             "PreferredEncoding and FullColor are not specified.",
+             true);
+core::BoolParameter
+  fullColour("FullColor", "Use full color", true);
+core::AliasParameter
+  fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
+core::IntParameter
+  lowColourLevel("LowColorLevel",
+                 "Color level to use on slow connections. "
+                 "0 = Very Low, 1 = Low, 2 = Medium",
+                 2);
+core::AliasParameter
+  lowColourLevelAlias("LowColourLevel",
+                      "Alias for LowColorLevel", &lowColourLevel);
+core::StringParameter
+  preferredEncoding("PreferredEncoding",
+                    "Preferred encoding to use (Tight, ZRLE, Hextile "
+                    "or Raw)",
+                    "Tight");
+core::BoolParameter
+  customCompressLevel("CustomCompressLevel",
+                      "Use custom compression level. Default if "
+                      "CompressLevel is specified.",
+                      false);
+core::IntParameter
+  compressLevel("CompressLevel",
+                "Use specified compression level 0 = Low, 9 = High",
+                2);
+core::BoolParameter
+  noJpeg("NoJPEG",
+         "Disable lossy JPEG compression in Tight encoding.",
+         false);
+core::IntParameter
+  qualityLevel("QualityLevel",
+               "JPEG quality level. 0 = Low, 9 = High",
+               8);
 
-BoolParameter autoSelect("AutoSelect",
-                         "Auto select pixel format and encoding. "
-                         "Default if PreferredEncoding and FullColor are not specified.", 
-                         true);
-BoolParameter fullColour("FullColor",
-                         "Use full color", true);
-AliasParameter fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
-IntParameter lowColourLevel("LowColorLevel",
-                            "Color level to use on slow connections. "
-                            "0 = Very Low, 1 = Low, 2 = Medium", 2);
-AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", &lowColourLevel);
-StringParameter preferredEncoding("PreferredEncoding",
-                                  "Preferred encoding to use (Tight, ZRLE, Hextile or"
-                                  " Raw)", "Tight");
-BoolParameter customCompressLevel("CustomCompressLevel",
-                                  "Use custom compression level. "
-                                  "Default if CompressLevel is specified.", false);
-IntParameter compressLevel("CompressLevel",
-                           "Use specified compression level 0 = Low, 9 = High",
-                           2);
-BoolParameter noJpeg("NoJPEG",
-                     "Disable lossy JPEG compression in Tight encoding.",
-                     false);
-IntParameter qualityLevel("QualityLevel",
-                          "JPEG quality level. 0 = Low, 9 = High",
-                          8);
+core::BoolParameter
+  maximize("Maximize", "Maximize viewer window", false);
+core::BoolParameter
+  fullScreen("FullScreen", "Enable full screen", false);
+core::StringParameter
+  fullScreenMode("FullScreenMode",
+                 "Specify which monitors to use when in full screen. "
+                 "Should be either Current, Selected or All",
+                 "Current");
+core::BoolParameter
+  fullScreenAllMonitors("FullScreenAllMonitors",
+                        "[DEPRECATED] Enable full screen over all "
+                        "monitors",
+                        false);
+MonitorIndicesParameter
+  fullScreenSelectedMonitors("FullScreenSelectedMonitors",
+                             "Use the given list of monitors in full "
+                             "screen when -FullScreenMode=Selected.",
+                             "1");
+core::StringParameter
+  desktopSize("DesktopSize",
+              "Reconfigure desktop size on the server on connect (if "
+              "possible)",
+              "");
+core::StringParameter
+  geometry("geometry",
+           "Specify size and position of viewer window",
+           "");
 
-BoolParameter maximize("Maximize", "Maximize viewer window", false);
-BoolParameter fullScreen("FullScreen", "Enable full screen", false);
-StringParameter fullScreenMode("FullScreenMode", "Specify which monitors to use when in full screen. "
-                                                 "Should be either Current, Selected or All",
-                                                 "Current");
-BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
-                                    "[DEPRECATED] Enable full screen over all monitors",
-                                    false);
-MonitorIndicesParameter fullScreenSelectedMonitors("FullScreenSelectedMonitors",
-                                         "Use the given list of monitors in full screen"
-                                         " when -FullScreenMode=Selected.",
-                                         "1");
-StringParameter desktopSize("DesktopSize",
-                            "Reconfigure desktop size on the server on "
-                            "connect (if possible)", "");
-StringParameter geometry("geometry",
-                         "Specify size and position of viewer window", "");
+core::BoolParameter
+  listenMode("listen",
+             "Listen for connections from VNC servers",
+             false);
 
-BoolParameter listenMode("listen", "Listen for connections from VNC servers", false);
+core::BoolParameter
+  remoteResize("RemoteResize",
+               "Dynamically resize the remote desktop size as the size "
+               "of the local client window changes. (Does not work "
+               "with all servers)",
+               true);
 
-BoolParameter remoteResize("RemoteResize",
-                           "Dynamically resize the remote desktop size as "
-                           "the size of the local client window changes. "
-                           "(Does not work with all servers)", true);
+core::BoolParameter
+  viewOnly("ViewOnly",
+           "Don't send any mouse or keyboard events to the server",
+           false);
+core::BoolParameter
+  shared("Shared",
+         "Don't disconnect other viewers upon connection - "
+         "share the desktop instead",
+         false);
 
-BoolParameter viewOnly("ViewOnly",
-                       "Don't send any mouse or keyboard events to the server",
-                       false);
-BoolParameter shared("Shared",
-                     "Don't disconnect other viewers upon connection - "
-                     "share the desktop instead",
-                     false);
-
-BoolParameter acceptClipboard("AcceptClipboard",
-                              "Accept clipboard changes from the server",
-                              true);
-BoolParameter sendClipboard("SendClipboard",
-                            "Send clipboard changes to the server", true);
+core::BoolParameter
+  acceptClipboard("AcceptClipboard",
+                  "Accept clipboard changes from the server",
+                  true);
+core::BoolParameter
+  sendClipboard("SendClipboard",
+                "Send clipboard changes to the server",
+                true);
 #if !defined(WIN32) && !defined(__APPLE__)
-BoolParameter setPrimary("SetPrimary",
-                         "Set the primary selection as well as the "
-                         "clipboard selection", true);
-BoolParameter sendPrimary("SendPrimary",
-                          "Send the primary selection to the "
-                          "server as well as the clipboard selection",
-                          true);
-StringParameter display("display",
-			"Specifies the X display on which the VNC viewer window should appear.",
-			"");
+core::BoolParameter
+  setPrimary("SetPrimary",
+             "Set the primary selection as well as the clipboard "
+             "selection",
+             true);
+core::BoolParameter
+  sendPrimary("SendPrimary",
+              "Send the primary selection to the server as well as the "
+              "clipboard selection",
+              true);
+core::StringParameter
+  display("display",
+          "Specifies the X display on which the VNC viewer window "
+          "should appear.",
+          "");
 #endif
 
-StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
-                        "F8");
+core::StringParameter
+  menuKey("MenuKey", "The key which brings up the popup menu", "F8");
 
-BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
-                                   "Pass special keys (like Alt+Tab) directly "
-                                   "to the server when in full-screen mode.",
-                                   true);
+core::BoolParameter
+  fullscreenSystemKeys("FullscreenSystemKeys",
+                       "Pass special keys (like Alt+Tab) directly to "
+                       "the server when in full-screen mode.",
+                       true);
 
 #ifndef WIN32
-StringParameter via("via", "Gateway to tunnel via", "");
+core::StringParameter
+  via("via", "Gateway to tunnel via", "");
 #endif
 
 static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
@@ -182,7 +237,7 @@ static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0"
  * We only save the sub set of parameters that can be modified from
  * the graphical user interface
  */
-static VoidParameter* parameterArray[] = {
+static core::VoidParameter* parameterArray[] = {
   /* Security */
 #ifdef HAVE_GNUTLS
   &CSecurityTLS::X509CA,
@@ -220,7 +275,7 @@ static VoidParameter* parameterArray[] = {
   &fullscreenSystemKeys
 };
 
-static VoidParameter* readOnlyParameterArray[] = {
+static core::VoidParameter* readOnlyParameterArray[] = {
   &fullScreenAllMonitors,
   &dotWhenNoCursor
 };
@@ -480,9 +535,9 @@ static void saveToReg(const char* servername) {
       _("Failed to save \"%s\": %s"), "ServerName", e.what()));
   }
 
-  for (VoidParameter* param : parameterArray) {
-    IntParameter* iparam;
-    BoolParameter* bparam;
+  for (core::VoidParameter* param : parameterArray) {
+    core::IntParameter* iparam;
+    core::BoolParameter* bparam;
 
     if (param->isDefault()) {
       try {
@@ -496,8 +551,8 @@ static void saveToReg(const char* servername) {
       continue;
     }
 
-    iparam = dynamic_cast<IntParameter*>(param);
-    bparam = dynamic_cast<BoolParameter*>(param);
+    iparam = dynamic_cast<core::IntParameter*>(param);
+    bparam = dynamic_cast<core::BoolParameter*>(param);
 
     try {
       if (iparam != nullptr) {
@@ -518,7 +573,7 @@ static void saveToReg(const char* servername) {
   // Remove read-only parameters to replicate the behaviour of Linux/macOS when they
   // store a config to disk. If the parameter hasn't been migrated at this point it
   // will be lost.
-  for (VoidParameter* param : readOnlyParameterArray) {
+  for (core::VoidParameter* param : readOnlyParameterArray) {
     try {
       removeValue(param->getName(), &hKey);
     } catch (std::exception& e) {
@@ -579,7 +634,7 @@ list<string> loadHistoryFromRegKey() {
   return serverHistory;
 }
 
-static void getParametersFromReg(VoidParameter* parameters[],
+static void getParametersFromReg(core::VoidParameter* parameters[],
                                  size_t parameters_len, HKEY* hKey)
 {
   const size_t buffersize = 256;
@@ -587,11 +642,11 @@ static void getParametersFromReg(VoidParameter* parameters[],
   char stringValue[buffersize];
 
   for (size_t i = 0; i < parameters_len; i++) {
-    IntParameter* iparam;
-    BoolParameter* bparam;
+    core::IntParameter* iparam;
+    core::BoolParameter* bparam;
 
-    iparam = dynamic_cast<IntParameter*>(parameters[i]);
-    bparam = dynamic_cast<BoolParameter*>(parameters[i]);
+    iparam = dynamic_cast<core::IntParameter*>(parameters[i]);
+    bparam = dynamic_cast<core::BoolParameter*>(parameters[i]);
 
     try {
       if (iparam != nullptr) {
@@ -642,11 +697,12 @@ static char* loadFromReg() {
   }
 
   getParametersFromReg(parameterArray,
-                       sizeof(parameterArray) / sizeof(VoidParameter*),
+                       sizeof(parameterArray) /
+                         sizeof(core::VoidParameter*),
                        &hKey);
   getParametersFromReg(readOnlyParameterArray,
                        sizeof(readOnlyParameterArray) /
-                         sizeof(VoidParameter*),
+                         sizeof(core::VoidParameter*),
                        &hKey);
 
   res = RegCloseKey(hKey);
@@ -698,7 +754,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
-  for (VoidParameter* param : parameterArray) {
+  for (core::VoidParameter* param : parameterArray) {
     if (param->isDefault())
       continue;
     if (!encodeValue(param->getValueStr().c_str(),
@@ -714,7 +770,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
 }
 
 static bool findAndSetViewerParameterFromValue(
-  VoidParameter* parameters[], size_t parameters_len,
+  core::VoidParameter* parameters[], size_t parameters_len,
   char* value, char* line)
 {
   const size_t buffersize = 256;
@@ -843,13 +899,14 @@ char* loadViewerParameters(const char *filename) {
       } else {
         invalidParameterName = findAndSetViewerParameterFromValue(
           parameterArray,
-          sizeof(parameterArray) / sizeof(VoidParameter *),
+          sizeof(parameterArray) / sizeof(core::VoidParameter *),
           value, line);
 
         if (invalidParameterName) {
           invalidParameterName = findAndSetViewerParameterFromValue(
             readOnlyParameterArray,
-            sizeof(readOnlyParameterArray) / sizeof(VoidParameter *),
+            sizeof(readOnlyParameterArray) /
+              sizeof(core::VoidParameter *),
             value, line);
         }
       }

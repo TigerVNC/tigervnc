@@ -43,7 +43,7 @@
 
 static rfb::LogWriter vlog("CMsgReader");
 
-static rfb::IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
+static core::IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
 
 using namespace rfb;
 

@@ -30,9 +30,9 @@
 #include <set>
 #include <string>
 
+#include <core/Configuration.h>
 #include <core/Region.h>
 
-#include <rfb/Configuration.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 #include <rfb/ServerCore.h>
@@ -82,27 +82,39 @@ static ParamSet allowOverrideSet;
 
 static const char* defaultDesktopName();
 
-rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
-rfb::StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
-rfb::IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
-rfb::StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
-rfb::BoolParameter localhostOnly("localhost",
-                                 "Only allow connections from localhost",
-                                 false);
-rfb::StringParameter interface("interface",
-                               "Listen on the specified network address",
-                               "all");
-rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
-                                     "Avoid fake Shift presses for keys affected by NumLock.",
-                                     true);
-rfb::StringParameter allowOverride("AllowOverride",
-                                   "Comma separated list of parameters that can be modified using VNC extension.",
-                                   "desktop,AcceptPointerEvents,SendCutText,AcceptCutText,SendPrimary,SetPrimary");
-rfb::BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
-                              "as the CLIPBOARD selection", true);
-rfb::BoolParameter sendPrimary("SendPrimary",
-                               "Send the PRIMARY as well as the CLIPBOARD selection",
-                               true);
+core::IntParameter
+  rfbport("rfbport", "TCP port to listen for RFB protocol", 0);
+core::StringParameter
+  rfbunixpath("rfbunixpath",
+              "Unix socket to listen for RFB protocol", "");
+core::IntParameter
+  rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+core::StringParameter
+  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+core::BoolParameter
+  localhostOnly("localhost",
+                "Only allow connections from localhost", false);
+core::StringParameter
+  interface("interface",
+            "Listen on the specified network address", "all");
+core::BoolParameter
+  avoidShiftNumLock("AvoidShiftNumLock",
+                    "Avoid fake Shift presses for keys affected by "
+                    "NumLock.", true);
+core::StringParameter
+  allowOverride("AllowOverride",
+                "Comma separated list of parameters that can be "
+                "modified using VNC extension.",
+                "desktop,AcceptPointerEvents,SendCutText,AcceptCutText,"
+                "SendPrimary,SetPrimary");
+core::BoolParameter
+  setPrimary("SetPrimary",
+             "Set the PRIMARY as well as the CLIPBOARD selection",
+             true);
+core::BoolParameter
+  sendPrimary("SendPrimary",
+              "Send the PRIMARY as well as the CLIPBOARD selection",
+              true);
 
 static const char* defaultDesktopName()
 {
@@ -517,5 +529,5 @@ int vncOverrideParam(const char *param, const char *value)
   if (allowOverrideSet.find(param) == allowOverrideSet.end())
     return 0;
 
-  return rfb::Configuration::setParam(param, value);
+  return core::Configuration::setParam(param, value);
 }

@@ -24,29 +24,29 @@
 #ifndef __RFB_SERVER_CORE_H__
 #define __RFB_SERVER_CORE_H__
 
-#include <rfb/Configuration.h>
+#include <core/Configuration.h>
 
 namespace rfb {
 
   class Server {
   public:
 
-    static IntParameter idleTimeout;
-    static IntParameter maxDisconnectionTime;
-    static IntParameter maxConnectionTime;
-    static IntParameter maxIdleTime;
-    static IntParameter compareFB;
-    static IntParameter frameRate;
-    static BoolParameter protocol3_3;
-    static BoolParameter alwaysShared;
-    static BoolParameter neverShared;
-    static BoolParameter disconnectClients;
-    static BoolParameter acceptKeyEvents;
-    static BoolParameter acceptPointerEvents;
-    static BoolParameter acceptCutText;
-    static BoolParameter sendCutText;
-    static BoolParameter acceptSetDesktopSize;
-    static BoolParameter queryConnect;
+    static core::IntParameter idleTimeout;
+    static core::IntParameter maxDisconnectionTime;
+    static core::IntParameter maxConnectionTime;
+    static core::IntParameter maxIdleTime;
+    static core::IntParameter compareFB;
+    static core::IntParameter frameRate;
+    static core::BoolParameter protocol3_3;
+    static core::BoolParameter alwaysShared;
+    static core::BoolParameter neverShared;
+    static core::BoolParameter disconnectClients;
+    static core::BoolParameter acceptKeyEvents;
+    static core::BoolParameter acceptPointerEvents;
+    static core::BoolParameter acceptCutText;
+    static core::BoolParameter sendCutText;
+    static core::BoolParameter acceptSetDesktopSize;
+    static core::BoolParameter queryConnect;
 
   };
 
