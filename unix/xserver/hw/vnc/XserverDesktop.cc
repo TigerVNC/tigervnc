@@ -37,13 +37,14 @@
 #include <fcntl.h>
 #include <sys/utsname.h>
 
+#include <core/Configuration.h>
+
 #include <rdr/FdOutStream.h>
 
 #include <network/Socket.h>
 
 #include <rfb/VNCServerST.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
 #include <rfb/ServerCore.h>
 
 #include "XserverDesktop.h"
@@ -64,15 +65,15 @@ using namespace network;
 
 static LogWriter vlog("XserverDesktop");
 
-BoolParameter rawKeyboard("RawKeyboard",
-                          "Send keyboard events straight through and "
-                          "avoid mapping them to the current keyboard "
-                          "layout", false);
-IntParameter queryConnectTimeout("QueryConnectTimeout",
-                                 "Number of seconds to show the "
-                                 "Accept connection dialog before "
-                                 "rejecting the connection",
-                                 10);
+core::BoolParameter
+  rawKeyboard("RawKeyboard",
+              "Send keyboard events straight through and avoid mapping "
+              "them to the current keyboard layout", false);
+core::IntParameter
+  queryConnectTimeout("QueryConnectTimeout",
+                      "Number of seconds to show the 'Accept "
+                      "connection' dialog before rejecting the "
+                      "connection", 10);
 
 
 XserverDesktop::XserverDesktop(int screenIndex_,

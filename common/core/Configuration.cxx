@@ -33,8 +33,9 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <core/Configuration.h>
 #include <core/util.h>
-#include <rfb/Configuration.h>
+
 #include <rfb/LogWriter.h>
 
 #include <rdr/HexOutStream.h>

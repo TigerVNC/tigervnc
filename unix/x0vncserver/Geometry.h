@@ -50,7 +50,7 @@ protected:
   // and return that rectangle clipped to m_rect.
   core::Rect parseString(const char* arg) const;
 
-  static rfb::StringParameter m_geometryParam;
+  static core::StringParameter m_geometryParam;
 
   int m_fullWidth;
   int m_fullHeight;

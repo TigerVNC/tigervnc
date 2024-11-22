@@ -37,6 +37,8 @@
 #include <math.h>
 #include <sys/time.h>
 
+#include <core/Configuration.h>
+
 #include <rdr/OutStream.h>
 #include <rdr/FileInStream.h>
 
@@ -45,7 +47,6 @@
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
-#include <rfb/Configuration.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/EncodeManager.h>
 #include <rfb/SConnection.h>
@@ -53,15 +54,15 @@
 
 #include "util.h"
 
-static rfb::IntParameter width("width", "Frame buffer width", 0);
-static rfb::IntParameter height("height", "Frame buffer height", 0);
-static rfb::IntParameter count("count", "Number of benchmark iterations", 9);
+static core::IntParameter width("width", "Frame buffer width", 0);
+static core::IntParameter height("height", "Frame buffer height", 0);
+static core::IntParameter count("count", "Number of benchmark iterations", 9);
 
-static rfb::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
+static core::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
-static rfb::BoolParameter translate("translate",
-                                    "Translate 8-bit and 16-bit datasets into 24-bit",
-                                    true);
+static core::BoolParameter translate("translate",
+                                     "Translate 8-bit and 16-bit datasets into 24-bit",
+                                     true);
 
 // The frame buffer (and output) is always this format
 static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
@@ -418,7 +419,7 @@ static void usage(const char *argv0)
 {
   fprintf(stderr, "Syntax: %s [options] <rfb file>\n", argv0);
   fprintf(stderr, "Options:\n");
-  rfb::Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
   exit(1);
 }
 
@@ -432,7 +433,7 @@ int main(int argc, char **argv)
   for (i = 1; i < argc; i++) {
     int ret;
 
-    ret = rfb::Configuration::handleParamArg(argc, argv, i);
+    ret = core::Configuration::handleParamArg(argc, argv, i);
     if (ret > 0) {
       i += ret;
       continue;

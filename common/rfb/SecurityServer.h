@@ -34,7 +34,7 @@ namespace rfb {
     /* Create server side SSecurity class instance */
     SSecurity* GetSSecurity(SConnection* sc, uint32_t secType);
 
-    static StringParameter secTypes;
+    static core::StringParameter secTypes;
   };
 
 }

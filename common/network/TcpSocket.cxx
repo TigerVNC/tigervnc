@@ -41,13 +41,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <core/Configuration.h>
 #include <core/Exception.h>
 #include <core/util.h>
 
 #include <network/TcpSocket.h>
 
 #include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
 
 #ifdef WIN32
 #include <os/winerrno.h>
@@ -74,8 +74,8 @@ using namespace network;
 
 static rfb::LogWriter vlog("TcpSocket");
 
-static rfb::BoolParameter UseIPv4("UseIPv4", "Use IPv4 for incoming and outgoing connections.", true);
-static rfb::BoolParameter UseIPv6("UseIPv6", "Use IPv6 for incoming and outgoing connections.", true);
+static core::BoolParameter UseIPv4("UseIPv4", "Use IPv4 for incoming and outgoing connections.", true);
+static core::BoolParameter UseIPv6("UseIPv6", "Use IPv6 for incoming and outgoing connections.", true);
 
 /* Tunnelling support. */
 int network::findFreeTcpPort (void)

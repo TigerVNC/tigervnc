@@ -26,11 +26,12 @@
 #include <winvnc/VNCServerService.h>
 #include <winvnc/resource.h>
 
+#include <core/Configuration.h>
+
 #include <os/Mutex.h>
 #include <os/Thread.h>
 
 #include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
 
 #include <rfb_win32/LaunchProcess.h>
 #include <rfb_win32/TrayIcon.h>

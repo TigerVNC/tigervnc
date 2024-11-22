@@ -6,10 +6,10 @@ add_executable(convperf convperf.cxx)
 target_link_libraries(convperf test_util rfb)
 
 add_executable(decperf decperf.cxx)
-target_link_libraries(decperf test_util rfb)
+target_link_libraries(decperf test_util rdr rfb)
 
 add_executable(encperf encperf.cxx)
-target_link_libraries(encperf test_util rfb)
+target_link_libraries(encperf test_util core rdr rfb)
 
 if (BUILD_VIEWER)
   add_executable(fbperf
