@@ -67,7 +67,7 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
       if (!name) break;
       std::string value = key.getRepresentation(name);
       if (!Configuration::setParam(name, value.c_str()))
-        vlog.info("unable to process %s", name);
+        vlog.info("Unable to process %s", name);
     }
   } catch (rdr::win32_error& e) {
     if (e.err != ERROR_INVALID_HANDLE)
@@ -76,7 +76,7 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
 }
 
 void RegConfig::processEvent(HANDLE /*event*/) {
-  vlog.info("registry changed");
+  vlog.info("Registry changed");
 
   // Reinstate the registry change notifications
   ResetEvent(event);

@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=TigerVNC Viewer
-GenericName=Remote Desktop Viewer
+Name=TigerVNC viewer
+GenericName=Remote desktop viewer
 Comment=Connect to VNC server and display remote desktop
 Exec=@CMAKE_INSTALL_FULL_BINDIR@/vncviewer
 Icon=tigervnc

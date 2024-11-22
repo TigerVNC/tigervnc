@@ -237,7 +237,7 @@ bool VoidParameter::isBool() const {
 
 void
 VoidParameter::setImmutable() {
-  vlog.debug("set immutable %s", getName());
+  vlog.debug("Set immutable %s", getName());
   immutable = true;
 }
 
@@ -271,7 +271,7 @@ bool AliasParameter::isBool() const {
 
 void
 AliasParameter::setImmutable() {
-  vlog.debug("set immutable %s (Alias)", getName());
+  vlog.debug("Set immutable %s (Alias)", getName());
   param->setImmutable();
 }
 
@@ -309,7 +309,7 @@ bool BoolParameter::setParam() {
 void BoolParameter::setParam(bool b) {
   if (immutable) return;
   value = b;
-  vlog.debug("set %s(Bool) to %d", getName(), value);
+  vlog.debug("Set %s(Bool) to %d", getName(), value);
 }
 
 std::string BoolParameter::getDefaultStr() const {
@@ -346,7 +346,7 @@ IntParameter::setParam(const char* v) {
 bool
 IntParameter::setParam(int v) {
   if (immutable) return true;
-  vlog.debug("set %s(Int) to %d", getName(), v);
+  vlog.debug("Set %s(Int) to %d", getName(), v);
   if (v < minValue || v > maxValue)
     return false;
   value = v;
@@ -389,7 +389,7 @@ bool StringParameter::setParam(const char* v) {
   if (immutable) return true;
   if (!v)
     throw std::invalid_argument("setParam(<null>) not allowed");
-  vlog.debug("set %s(String) to %s", getName(), v);
+  vlog.debug("Set %s(String) to %s", getName(), v);
   value = v;
   return true;
 }
@@ -440,7 +440,7 @@ bool BinaryParameter::setParam(const char* v) {
 void BinaryParameter::setParam(const uint8_t* v, size_t len) {
   LOCK_CONFIG;
   if (immutable) return; 
-  vlog.debug("set %s(Binary)", getName());
+  vlog.debug("Set %s(Binary)", getName());
   delete [] value;
   value = nullptr;
   length = 0;

@@ -58,7 +58,7 @@ namespace winvnc {
     // THREAD-SAFE
     bool isServerInUse() const {return isDesktopStarted;}
 
-    // Connect out to the specified VNC Viewer
+    // Connect out to the specified VNC viewer
     // THREAD-SAFE
     bool addNewClient(const char* client);
 

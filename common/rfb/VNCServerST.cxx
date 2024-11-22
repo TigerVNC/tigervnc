@@ -17,7 +17,7 @@
  * USA.
  */
 
-// -=- Single-Threaded VNC Server implementation
+// -=- Single-Threaded VNC server implementation
 
 
 // Note about how sockets get closed:

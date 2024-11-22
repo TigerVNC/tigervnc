@@ -113,10 +113,10 @@ public class CConn extends CConnection implements
           Tunnel.createTunnel(gatewayHost, getServerName(),
                               getServerPort(), localPort);
           sock = new TcpSocket("localhost", localPort);
-          vlog.info("connected to localhost port "+localPort);
+          vlog.info("Connected to localhost port "+localPort);
         } else {
           sock = new TcpSocket(getServerName(), getServerPort());
-          vlog.info("connected to host "+getServerName()+" port "+getServerPort());
+          vlog.info("Connected to host "+getServerName()+" port "+getServerPort());
         }
       } catch (java.lang.Exception e) {
         throw new Exception(e.getMessage());
@@ -126,7 +126,7 @@ public class CConn extends CConnection implements
       if (listenMode.getValue())
         vlog.info("Accepted connection from " + name);
       else
-        vlog.info("connected to host "+Hostname.getHost(name)+" port "+Hostname.getPort(name));
+        vlog.info("Connected to host "+Hostname.getHost(name)+" port "+Hostname.getPort(name));
     }
 
     // See callback below

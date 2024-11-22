@@ -143,10 +143,10 @@ void LegacyPage::LoadPrefs()
         try {
           RegKey userKey;
           userKey.openKey(winvnc3, "Default");
-          vlog.info("loading Default prefs");
+          vlog.info("Loading default prefs");
           LoadUserPrefs(userKey);
         } catch(std::exception& e) {
-          vlog.error("error reading Default settings:%s", e.what());
+          vlog.error("Error reading Default settings:%s", e.what());
         }
 
         // Open the local, user-specific settings
@@ -154,10 +154,10 @@ void LegacyPage::LoadPrefs()
           try {
             RegKey userKey;
             userKey.openKey(winvnc3, username.c_str());
-            vlog.info("loading local User prefs");
+            vlog.info("Loading local user prefs");
             LoadUserPrefs(userKey);
           } catch(std::exception& e) {
-            vlog.error("error reading local User settings:%s", e.what());
+            vlog.error("Error reading local User settings:%s", e.what());
           }
 
           // Open the user's own settings
@@ -165,10 +165,10 @@ void LegacyPage::LoadPrefs()
             try {
               RegKey userKey;
               userKey.openKey(HKEY_CURRENT_USER, "Software\\ORL\\WinVNC3");
-              vlog.info("loading global User prefs");
+              vlog.info("Loading global user prefs");
               LoadUserPrefs(userKey);
             } catch(std::exception& e) {
-              vlog.error("error reading global User settings:%s", e.what());
+              vlog.error("Error reading global User settings:%s", e.what());
             }
           }
         }

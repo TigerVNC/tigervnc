@@ -80,7 +80,7 @@ public class FileUtils {
       return newDir.getPath();
     } else {
       if (legacyDir.exists()) {
-        vlog.info("WARNING: ~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to.");
+        vlog.info("Warning: ~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to.");
         return legacyDir.getPath();
       }
       String xdgBaseDir = System.getenv(xdgEnv);

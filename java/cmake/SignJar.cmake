@@ -31,7 +31,7 @@ else()
   execute_process(COMMAND
     ${KEYTOOL} -genkey -alias TigerVNC -keystore tigervnc.keystore -keyalg RSA
       -storepass tigervnc -keypass tigervnc -validity 7300
-      -dname "CN=TigerVNC, OU=Software Development, O=The TigerVNC Project, L=Austin, S=Texas, C=US"
+      -dname "CN=TigerVNC, OU=Software development, O=The TigerVNC project, L=Austin, S=Texas, C=US"
     RESULT_VARIABLE RESULT OUTPUT_VARIABLE OUTPUT ERROR_VARIABLE ERROR)
   if(NOT RESULT EQUAL 0)
     message(FATAL_ERROR "${KEYTOOL} failed:\n${ERROR}")

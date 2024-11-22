@@ -136,14 +136,14 @@ static bool StartHookThread() {
     return true;
   if (hooksLibrary == nullptr)
     return false;
-  vlog.debug("creating thread");
+  vlog.debug("Creating thread");
   hook_mgr = new WMHooksThread();
   hook_mgr->start();
   while (hook_mgr->getThreadId() == (DWORD)-1)
     Sleep(0);
-  vlog.debug("installing hooks");
+  vlog.debug("Installing hooks");
   if (!WM_Hooks_Install(hook_mgr->getThreadId(), 0)) {
-    vlog.error("failed to initialise hooks");
+    vlog.error("Failed to initialise hooks");
     hook_mgr->stop();
     delete hook_mgr;
     hook_mgr = nullptr;
@@ -157,7 +157,7 @@ static void StopHookThread() {
     return;
   if (!hooks.empty())
     return;
-  vlog.debug("closing thread");
+  vlog.debug("Closing thread");
   hook_mgr->stop();
   delete hook_mgr;
   hook_mgr = nullptr;
@@ -165,7 +165,7 @@ static void StopHookThread() {
 
 
 static bool AddHook(WMHooks* hook) {
-  vlog.debug("adding hook");
+  vlog.debug("Adding hook");
   os::AutoMutex a(&hook_mgr_lock);
   if (!StartHookThread())
     return false;
@@ -175,7 +175,7 @@ static bool AddHook(WMHooks* hook) {
 
 static bool RemHook(WMHooks* hook) {
   {
-    vlog.debug("removing hook");
+    vlog.debug("Removing hook");
     os::AutoMutex a(&hook_mgr_lock);
     hooks.remove(hook);
   }
@@ -216,7 +216,7 @@ WMHooksThread::worker() {
   Region updates[2];
   int activeRgn = 0;
 
-  vlog.debug("starting hook thread");
+  vlog.debug("Starting hook thread");
 
   thread_id = GetCurrentThreadId();
 
@@ -291,16 +291,16 @@ WMHooksThread::worker() {
     }
   }
 
-  vlog.debug("stopping hook thread - processed %d events", count);
+  vlog.debug("Stopping hook thread - processed %d events", count);
   WM_Hooks_Remove(getThreadId());
 }
 
 void
 WMHooksThread::stop() {
-  vlog.debug("stopping WMHooks thread");
+  vlog.debug("Stopping WMHooks thread");
   active = false;
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);
-  vlog.debug("waiting for WMHooks thread");
+  vlog.debug("Waiting for WMHooks thread");
   wait();
 }
 

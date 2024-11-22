@@ -102,7 +102,7 @@ void SDisplay::init(VNCServer* vs)
 
 void SDisplay::start()
 {
-  vlog.debug("starting");
+  vlog.debug("Starting");
 
   // Try to make session zero the console session
   if (!inConsoleSession())
@@ -111,26 +111,26 @@ void SDisplay::start()
   // Start the SDisplay core
   startCore();
 
-  vlog.debug("started");
+  vlog.debug("Started");
 
   if (statusLocation) *statusLocation = true;
 }
 
 void SDisplay::stop()
 {
-  vlog.debug("stopping");
+  vlog.debug("Stopping");
 
   // If we successfully start()ed then perform the DisconnectAction
   if (core) {
     CurrentUserToken cut;
     if (stricmp(disconnectAction, "Logoff") == 0) {
       if (!cut.h)
-        vlog.info("ignoring DisconnectAction=Logoff - no current user");
+        vlog.info("Ignoring DisconnectAction=Logoff - no current user");
       else
         ExitWindowsEx(EWX_LOGOFF, 0);
     } else if (stricmp(disconnectAction, "Lock") == 0) {
       if (!cut.h) {
-        vlog.info("ignoring DisconnectAction=Lock - no current user");
+        vlog.info("Ignoring DisconnectAction=Lock - no current user");
       } else {
         LockWorkStation();
       }
@@ -141,7 +141,7 @@ void SDisplay::stop()
   server->setPixelBuffer(nullptr);
   stopCore();
 
-  vlog.debug("stopped");
+  vlog.debug("Stopped");
 
   if (statusLocation) *statusLocation = false;
 }
@@ -278,14 +278,14 @@ bool SDisplay::isRestartRequired() {
 
 
 void SDisplay::restartCore() {
-  vlog.info("restarting");
+  vlog.info("Restarting");
 
   // Stop the existing Core  related resources
   stopCore();
   try {
     // Start a new Core if possible
     startCore();
-    vlog.info("restarted");
+    vlog.info("Restarted");
   } catch (std::exception& e) {
     // If startCore() fails then we MUST disconnect all clients,
     // to cause the server to stop() the desktop.
@@ -351,7 +351,7 @@ bool SDisplay::checkLedState() {
 
 void
 SDisplay::notifyClipboardChanged(bool available) {
-  vlog.debug("clipboard text changed");
+  vlog.debug("Clipboard text changed");
   if (server)
     server->announceClipboard(available);
 }
@@ -361,15 +361,15 @@ void
 SDisplay::notifyDisplayEvent(WMMonitor::Notifier::DisplayEventType evt) {
   switch (evt) {
   case WMMonitor::Notifier::DisplaySizeChanged:
-    vlog.debug("desktop size changed");
+    vlog.debug("Desktop size changed");
     recreatePixelBuffer();
     break;
   case WMMonitor::Notifier::DisplayPixelFormatChanged:
-    vlog.debug("desktop format changed");
+    vlog.debug("Desktop format changed");
     recreatePixelBuffer();
     break;
   default:
-    vlog.error("unknown display event received");
+    vlog.error("Unknown display event received");
   }
 }
 
@@ -381,7 +381,7 @@ SDisplay::processEvent(HANDLE event) {
 
     // - If the SDisplay isn't even started then quit now
     if (!core) {
-      vlog.error("not start()ed");
+      vlog.error("Not start()ed");
       return;
     }
 
@@ -479,14 +479,14 @@ SDisplay::recreatePixelBuffer(bool force) {
   flushChangeTracker();
 
   // Delete the old pixelbuffer and device context
-  vlog.debug("deleting old pixel buffer & device");
+  vlog.debug("Deleting old pixel buffer & device");
   if (pb)
     delete pb;
   if (device)
     delete device;
 
   // Create a DeviceFrameBuffer attached to the new device
-  vlog.debug("creating pixel buffer");
+  vlog.debug("Creating pixel buffer");
   DeviceFrameBuffer* new_buffer = new DeviceFrameBuffer(*new_device);
 
   // Replace the old PixelBuffer

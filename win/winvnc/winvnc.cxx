@@ -16,7 +16,7 @@
  * USA.
  */
 
-// -=- VNC Server 4.0 for Windows (WinVNC4)
+// -=- VNC server 4.0 for Windows (WinVNC4)
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -155,7 +155,7 @@ static void processParams(int argc, char** argv) {
         runServer = false;
         std::string result;
         DWORD state = rfb::win32::getServiceState(VNCServerService::Name);
-        result = format("The %s Service is in the %s state.",
+        result = format("The %s service is in the %s state.",
                         VNCServerService::Name,
                         rfb::win32::serviceStateName(state));
         MsgBoxOrLog(result.c_str());
@@ -199,9 +199,9 @@ static void processParams(int argc, char** argv) {
 
       } else if (strcasecmp(argv[i], "-noconsole") == 0) {
         close_console = true;
-        vlog.info("closing console");
+        vlog.info("Closing console");
         if (!FreeConsole())
-          vlog.info("unable to close console:%lu", GetLastError());
+          vlog.info("Unable to close console:%lu", GetLastError());
 
       } else if ((strcasecmp(argv[i], "-help") == 0) ||
         (strcasecmp(argv[i], "--help") == 0) ||

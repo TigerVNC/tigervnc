@@ -47,7 +47,7 @@ class ServerDialog extends Dialog implements Runnable {
     super(true);
     this.vncServerName = vncServerName;
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    setTitle("VNC Viewer: Connection Details");
+    setTitle("VNC viewer: Connection details");
     setResizable(false);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {

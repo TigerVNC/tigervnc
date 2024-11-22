@@ -40,7 +40,7 @@ public class IntParameter extends VoidParameter {
 
   public boolean setParam(String v) {
     if (immutable) return true;
-    vlog.debug("set "+getName()+"(Int) to "+v);
+    vlog.debug("Set "+getName()+"(Int) to "+v);
     try {
       int i;
       i = Integer.parseInt(v);
@@ -55,7 +55,7 @@ public class IntParameter extends VoidParameter {
 
   public boolean setParam(int v) {
     if (immutable) return true;
-    vlog.debug("set "+getName()+"(Int) to "+v);
+    vlog.debug("Set "+getName()+"(Int) to "+v);
     if (v < minValue || v > maxValue)
       return false;
     value = v;

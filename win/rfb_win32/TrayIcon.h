@@ -18,7 +18,7 @@
 
 // -=- CView.h
 
-// An instance of the CView class is created for each VNC Viewer connection.
+// An instance of the CView class is created for each VNC viewer connection.
 
 #ifndef __RFB_WIN32_TRAY_ICON_H__
 #define __RFB_WIN32_TRAY_ICON_H__

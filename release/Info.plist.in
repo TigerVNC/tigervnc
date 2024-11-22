@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>TigerVNC Viewer</string>
+	<string>TigerVNC viewer</string>
 	<key>CFBundleExecutable</key>
-	<string>TigerVNC Viewer</string>
+	<string>TigerVNC viewer</string>
 	<key>NSHighResolutionCapable</key>
 	<false/>
 	<key>CFBundleGetInfoString</key>
@@ -19,9 +19,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>
-	<string>TigerVNC Viewer @VERSION@</string>
+	<string>TigerVNC viewer @VERSION@</string>
 	<key>CFBundleName</key>
-	<string>TigerVNC Viewer</string>
+	<string>TigerVNC viewer</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

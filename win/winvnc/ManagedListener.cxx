@@ -48,7 +48,7 @@ ManagedListener::~ManagedListener() {
 void ManagedListener::setServer(rfb::VNCServer* svr) {
   if (svr == server)
     return;
-  vlog.info("set server to %p", svr);
+  vlog.info("Set server to %p", svr);
   server = svr;
   refresh();
 }
@@ -56,14 +56,14 @@ void ManagedListener::setServer(rfb::VNCServer* svr) {
 void ManagedListener::setPort(int port_, bool localOnly_) {
   if ((port_ == port) && (localOnly == localOnly_))
     return;
-  vlog.info("set port to %d", port_);
+  vlog.info("Set port to %d", port_);
   port = port_;
   localOnly = localOnly_;
   refresh();
 }
 
 void ManagedListener::setFilter(const char* filterStr) {
-  vlog.info("set filter to %s", filterStr);
+  vlog.info("Set filter to %s", filterStr);
   delete filter;
   filter = new network::TcpFilter(filterStr);
   if (!sockets.empty() && !localOnly) {

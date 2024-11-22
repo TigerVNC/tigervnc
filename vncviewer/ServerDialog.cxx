@@ -60,7 +60,7 @@ static LogWriter vlog("ServerDialog");
 const char* SERVER_HISTORY="tigervnc.history";
 
 ServerDialog::ServerDialog()
-  : Fl_Window(450, 0, _("VNC Viewer: Connection Details"))
+  : Fl_Window(450, 0, _("VNC viewer: Connection details"))
 {
   int x, y, x2;
   Fl_Button *button;
@@ -85,7 +85,7 @@ ServerDialog::ServerDialog()
   button->callback(this->handleLoad, this);
   x2 += BUTTON_WIDTH + INNER_MARGIN;
 
-  button = new Fl_Button(x2, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("Save As..."));
+  button = new Fl_Button(x2, y, BUTTON_WIDTH, BUTTON_HEIGHT, _("Save as..."));
   button->callback(this->handleSaveAs, this);
   x2 += BUTTON_WIDTH + INNER_MARGIN;
 

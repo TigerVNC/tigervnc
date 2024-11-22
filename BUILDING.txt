@@ -4,7 +4,7 @@
 
 
 ================================
-Build Requirements (All Systems)
+Build requirements (all systems)
 ================================
 
 -- CMake (http://www.cmake.org) v3.10 or later
@@ -36,7 +36,7 @@ Development kits for the following packages:
 
 
 =========================
-Build Requirements (Unix)
+Build requirements (Unix)
 =========================
 
 -- Non-Mac platforms:
@@ -59,7 +59,7 @@ Build Requirements (Unix)
    * libpwquality
 
 ============================
-Build Requirements (Windows)
+Build requirements (Windows)
 ============================
 
 -- MinGW or MinGW-w64
@@ -75,16 +75,16 @@ Build Requirements (Windows)
 
 
 =========================
-Build Requirements (Java)
+Build requirements (Java)
 =========================
 
 -- Sun/Oracle JDK 1.7 or later or OpenJDK 7 or later
 
--- See "Building Java Support" below.
+-- See "Building Java support" below.
 
 
 ==================
-Out-of-Tree Builds
+Out-of-tree builds
 ==================
 
 Binary objects, libraries, and executables are generated in the same directory
@@ -102,10 +102,10 @@ Building TigerVNC
 =================
 
 
-Building the TigerVNC Viewer on Unix/Mac Systems
+Building the TigerVNC viewer on Unix/Mac systems
 ------------------------------------------------
 
-The following procedure will build the TigerVNC Viewer on Linux and Unix
+The following procedure will build the TigerVNC viewer on Linux and Unix
 systems.
 
   cd {build_directory}
@@ -113,10 +113,10 @@ systems.
   make
 
 
-Building the TigerVNC Server on Unix/Linux Systems
+Building the TigerVNC server on Unix/Linux systems
 --------------------------------------------------
 
-Building the TigerVNC Server (Xvnc) is a bit trickier. Xvnc is typically built
+Building the TigerVNC server (Xvnc) is a bit trickier. Xvnc is typically built
 to use the X11 shared libraries provided with the system.  The procedure for
 this is system-specific, since it requires specifying such things as font
 directories, but the general outline is as follows (this procedure assumes
@@ -162,7 +162,7 @@ that the viewer has already been built, per above.)
     (NOTE: Use absolute paths for source_directory and build_directory)
 
 
-Building the Windows TigerVNC Viewer with MinGW
+Building the Windows TigerVNC viewer with MinGW
 -----------------------------------------------
 
 If building the Windows version of TigerVNC on a Windows build system, use
@@ -176,13 +176,13 @@ If cross-compiling on a Unix/Linux system, then see the "Build Recipes" section
 below.
 
 
-Debug Build
+Debug build
 -----------
 
 Add "-DCMAKE_BUILD_TYPE=Debug" to the CMake command line.
 
 
-Portable (semi-static) Build
+Portable (semi-static) build
 ----------------------------
 
 TigerVNC can under favourble circumstances be built in a way that allows
@@ -199,7 +199,7 @@ specific system.
 
 
 =====================
-Building Java Support
+Building Java support
 =====================
 
 TigerVNC includes a Java version of the TigerVNC Viewer, which can be used on
@@ -221,10 +221,10 @@ tools are needed to sign the JAR file, which is necessary to enable certain
 functionality (such as clipboard transfers) when the Java viewer is used as an
 applet.
 
-If the Java viewer is built along with the Windows TigerVNC Server (WinVNC),
+If the Java viewer is built along with the Windows TigerVNC server (WinVNC),
 then the build system will embed the Java viewer into WinVNC4.exe so that it
 will automatically be served up using WinVNC's built-in HTTP server.
-Similarly, if the Java viewer is built along with the Unix TigerVNC Server
+Similarly, if the Java viewer is built along with the Unix TigerVNC server
 (Xvnc), then the build system will include the Java viewer in the server
 tarball.
 
@@ -252,7 +252,7 @@ or ":file " (see the jarsigner documentation for more info):
 
 
 ======================================
-Building TLS Support
+Building TLS support
 ======================================
 
 TLS requires GnuTLS, which is supplied with most Linux distributions and
@@ -272,7 +272,7 @@ libgnutls located under /usr/local.
 
 
 ======================================
-Building Native Language Support (NLS)
+Building native language support (NLS)
 ======================================
 
 NLS requires gettext, which is supplied with most Linux distributions and
@@ -314,7 +314,7 @@ c:\Program Files\TigerVNC on Windows and /usr/local on Unix.
 
 
 =========================
-Creating Release Packages
+Creating release packages
 =========================
 
 The following commands can be used to create various types of release packages:
@@ -325,16 +325,16 @@ Unix
 
 make tarball
 
-  Create a binary tarball containing the TigerVNC Viewer
+  Create a binary tarball containing the TigerVNC viewer
 
 make servertarball
 
-  Create a binary tarball containing both the TigerVNC Server and Viewer
+  Create a binary tarball containing both the TigerVNC server and viewer
 
 make dmg
 
   Create Macintosh disk image file that contains an application bundle of the
-  TigerVNC Viewer
+  TigerVNC viewer
 
 
 Windows
@@ -347,11 +347,11 @@ make installer
 
 
 =============
-Build Recipes
+Build recipes
 =============
 
 
-MinGW Build on Cygwin
+MinGW build on Cygwin
 ---------------------
 
   cd {build_directory}
@@ -367,7 +367,7 @@ other Cygwin DLL's.  The mingw64-x86_64-gcc-core and mingw64-x86_64-gcc-g++
 packages (and their dependencies) must be installed.
 
 
-MinGW-w64 Build on Windows
+MinGW-w64 build on Windows
 --------------------------
 
 This produces a build of TigerVNC using the "native" MinGW-w64 toolchain
@@ -384,7 +384,7 @@ This produces a build of TigerVNC using the "native" MinGW-w64 toolchain
   make
 
 
-MinGW Build on Linux
+MinGW build on Linux
 --------------------
 
   cd {build_directory}
@@ -399,7 +399,7 @@ MinGW Build on Linux
 
 
 ===============================
-Distribution-Specific Packaging
+Distribution-specific packaging
 ===============================
 
 Configuration for building packages for current versions of RHEL/CentOS

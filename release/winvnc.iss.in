@@ -2,13 +2,13 @@
 #ifdef WIN64
 ArchitecturesInstallIn64BitMode=x64
 #endif
-AppName=TigerVNC Server
-AppVerName=TigerVNC Server v@VERSION@ (@BUILD@)
+AppName=TigerVNC server
+AppVerName=TigerVNC server v@VERSION@ (@BUILD@)
 AppVersion=@VERSION@
 AppPublisher=TigerVNC project
 AppPublisherURL=https://tigervnc.org
-DefaultDirName={pf}\TigerVNC Server
-DefaultGroupName=TigerVNC Server
+DefaultDirName={pf}\TigerVNC server
+DefaultGroupName=TigerVNC server
 LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.TXT
 
 [Dirs]
@@ -25,20 +25,20 @@ Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 
 
 [Icons]
-Name: "{group}\VNC Server (User-Mode)\Run VNC Server"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole";
-Name: "{group}\VNC Server (User-Mode)\Configure VNC Server"; FileName: "{app}\vncconfig.exe"; Parameters: "-user";
+Name: "{group}\VNC server (User-Mode)\Run VNC server"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole";
+Name: "{group}\VNC server (User-Mode)\Configure VNC server"; FileName: "{app}\vncconfig.exe"; Parameters: "-user";
 
-Name: "{group}\VNC Server (Service-Mode)\Configure VNC Service"; FileName: "{app}\vncconfig.exe"; Parameters: "-noconsole -service";
-Name: "{group}\VNC Server (Service-Mode)\Register VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-register";
-Name: "{group}\VNC Server (Service-Mode)\Unregister VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-unregister";
-Name: "{group}\VNC Server (Service-Mode)\Start VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole -start";
-Name: "{group}\VNC Server (Service-Mode)\Stop VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole -stop";
+Name: "{group}\VNC server (Service-Mode)\Configure VNC service"; FileName: "{app}\vncconfig.exe"; Parameters: "-noconsole -service";
+Name: "{group}\VNC server (Service-Mode)\Register VNC service"; FileName: "{app}\winvnc4.exe"; Parameters: "-register";
+Name: "{group}\VNC server (Service-Mode)\Unregister VNC service"; FileName: "{app}\winvnc4.exe"; Parameters: "-unregister";
+Name: "{group}\VNC server (Service-Mode)\Start VNC service"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole -start";
+Name: "{group}\VNC server (Service-Mode)\Stop VNC service"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole -stop";
 Name: "{group}\License"; FileName: "write.exe"; Parameters: "LICENCE.TXT"; WorkingDir: "{app}"; Flags: "useapppaths"
-Name: "{group}\Read Me"; FileName: "write.exe"; Parameters: "README.rst"; WorkingDir: "{app}"; Flags: "useapppaths"
-Name: "{group}\Uninstall TigerVNC Server"; FileName: "{uninstallexe}"; WorkingDir: "{app}";
+Name: "{group}\Read me"; FileName: "write.exe"; Parameters: "README.rst"; WorkingDir: "{app}"; Flags: "useapppaths"
+Name: "{group}\Uninstall TigerVNC server"; FileName: "{uninstallexe}"; WorkingDir: "{app}";
 
 [Tasks]
-Name: installservice; Description: "&Register new TigerVNC Server as a system service"; GroupDescription: "Server configuration:"; 
+Name: installservice; Description: "&Register new TigerVNC server as a system service"; GroupDescription: "Server configuration:"; 
 Name: startservice; Description: "&Start or restart TigerVNC service"; GroupDescription: "Server configuration:";
 
 [Run]
@@ -106,7 +106,7 @@ var
 function InitializeSetup: Boolean;
 begin
   GetWindowsVersionEx(OSVersion);
-  MsgBox('TigerVNC Windows Server is currently unmaintained and may not function correctly.', mbError, MB_OK);
+  MsgBox('TigerVNC Windows server is currently unmaintained and may not function correctly.', mbError, MB_OK);
   Result := True;
 end;
 
@@ -137,11 +137,11 @@ begin
     o Modify Service-Mode start menu commands so they run as administrator.
     o Set up the SoftwareSASGeneration system policy so as to allow services to simulate Ctrl+Alt+Del. }
   if (CurStep = ssPostInstall) and (OSVersion.Major >= 6) then begin
-    SetRunAsUserFlag('{group}\VNC Server (Service-Mode)\Configure VNC Service.lnk');
-    SetRunAsUserFlag('{group}\VNC Server (Service-Mode)\Register VNC Service.lnk');
-    SetRunAsUserFlag('{group}\VNC Server (Service-Mode)\Unregister VNC Service.lnk');
-    SetRunAsUserFlag('{group}\VNC Server (Service-Mode)\Start VNC Service.lnk');
-    SetRunAsUserFlag('{group}\VNC Server (Service-Mode)\Stop VNC Service.lnk');
+    SetRunAsUserFlag('{group}\VNC server (Service-Mode)\Configure VNC Service.lnk');
+    SetRunAsUserFlag('{group}\VNC server (Service-Mode)\Register VNC Service.lnk');
+    SetRunAsUserFlag('{group}\VNC server (Service-Mode)\Unregister VNC Service.lnk');
+    SetRunAsUserFlag('{group}\VNC server (Service-Mode)\Start VNC Service.lnk');
+    SetRunAsUserFlag('{group}\VNC server (Service-Mode)\Stop VNC Service.lnk');
     if not RegQueryDWordValue(
       HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System',
       'SoftwareSASGeneration', Flags

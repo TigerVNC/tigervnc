@@ -130,7 +130,7 @@ window will be placed by the window manager by default.
 .B \-listen \fI[port]\fP
 Causes vncviewer to listen on the given port (default 5500) for reverse
 connections from a VNC server.  WinVNC supports reverse connections initiated
-using the 'Add New Client' menu option or the '\-connect' command-line option.
+using the 'Add new client' menu option or the '\-connect' command-line option.
 Xvnc supports reverse connections with a helper program called
 .B vncconfig.
 .

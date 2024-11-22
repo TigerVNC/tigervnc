@@ -244,7 +244,7 @@ set(CMAKE_REQUIRED_FLAGS)
 set(CMAKE_REQUIRED_DEFINITIONS)
 
 if(NOT FOUND_LIBJPEG_TURBO)
-  message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
+  message(STATUS "Warning: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
 option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)

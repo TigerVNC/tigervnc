@@ -1,6 +1,6 @@
 .TH X0VNCSERVER 1 "" "TigerVNC" "TigerVNC Manual"
 .SH NAME
-x0vncserver \- TigerVNC Server for X displays
+x0vncserver \- TigerVNC server for X displays
 .SH SYNOPSIS
 .B x0vncserver
 .RI [ options ]
@@ -8,7 +8,7 @@ x0vncserver \- TigerVNC Server for X displays
 .B x0vncserver -version
 .SH DESCRIPTION
 .B x0vncserver
-is a TigerVNC Server which makes any X display remotely accessible via VNC,
+is a TigerVNC server which makes any X display remotely accessible via VNC,
 TigerVNC or compatible viewers.  Unlike \fBXvnc\fP(1), it does not create a
 virtual display.  Instead, it just shares an existing X server (typically,
 that one connected to the physical screen).
@@ -180,7 +180,7 @@ connections. Default is off.
 .
 .TP
 .B \-QueryConnectTimeout \fIseconds\fP
-Number of seconds to show the Accept Connection dialog before rejecting the
+Number of seconds to show the Accept connection dialog before rejecting the
 connection.  Default is \fB10\fP.
 .
 .TP

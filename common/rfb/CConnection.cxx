@@ -161,7 +161,7 @@ bool CConnection::processVersionMsg()
   int majorVersion;
   int minorVersion;
 
-  vlog.debug("reading protocol version");
+  vlog.debug("Reading protocol version");
 
   if (!is->hasData(12))
     return false;
@@ -211,7 +211,7 @@ bool CConnection::processVersionMsg()
 
 bool CConnection::processSecurityTypesMsg()
 {
-  vlog.debug("processing security types message");
+  vlog.debug("Processing security types message");
 
   int secType = secTypeInvalid;
 
@@ -296,7 +296,7 @@ bool CConnection::processSecurityTypesMsg()
 
 bool CConnection::processSecurityMsg()
 {
-  vlog.debug("processing security message");
+  vlog.debug("Processing security message");
   if (!csecurity->processMsg())
     return false;
 
@@ -307,7 +307,7 @@ bool CConnection::processSecurityMsg()
 
 bool CConnection::processSecurityResultMsg()
 {
-  vlog.debug("processing security result message");
+  vlog.debug("Processing security result message");
   int result;
 
   if (server.beforeVersion(3,8) && csecurity->getType() == secTypeNone) {
@@ -323,10 +323,10 @@ bool CConnection::processSecurityResultMsg()
     securityCompleted();
     return true;
   case secResultFailed:
-    vlog.debug("auth failed");
+    vlog.debug("Auth failed");
     break;
   case secResultTooMany:
-    vlog.debug("auth failed - too many tries");
+    vlog.debug("Auth failed: Too many tries");
     break;
   default:
     throw protocol_error("Unknown security result from server");
@@ -343,7 +343,7 @@ bool CConnection::processSecurityResultMsg()
 
 bool CConnection::processSecurityReasonMsg()
 {
-  vlog.debug("processing security reason message");
+  vlog.debug("Processing security reason message");
 
   if (!is->hasData(4))
     return false;
@@ -365,7 +365,7 @@ bool CConnection::processSecurityReasonMsg()
 
 bool CConnection::processInitMsg()
 {
-  vlog.debug("reading server initialisation");
+  vlog.debug("Reading server initialisation");
   return reader_->readServerInit();
 }
 
@@ -462,7 +462,7 @@ void CConnection::serverInit(int width, int height,
   CMsgHandler::serverInit(width, height, pf, name);
 
   state_ = RFBSTATE_NORMAL;
-  vlog.debug("initialisation done");
+  vlog.debug("Initialisation done");
 
   initDone();
   assert(framebuffer != nullptr);

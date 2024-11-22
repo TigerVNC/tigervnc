@@ -60,12 +60,12 @@ void KeyRemapper::setMapping(const char* m) {
     if (sscanf(m, "0x%x%c>0x%x", &from,
                &bidi, &to) == 3) {
       if (bidi != '-' && bidi != '<')
-        vlog.error("warning: unknown operation %c>, assuming ->", bidi);
+        vlog.error("Warning: Unknown operation %c>, assuming ->", bidi);
       mapping[from] = to;
       if (bidi == '<')
         mapping[to] = from;
     } else {
-      vlog.error("warning: bad mapping %.*s", (int)(nextComma-m), m);
+      vlog.error("Warning: Bad mapping %.*s", (int)(nextComma-m), m);
     }
     m = nextComma;
     if (nextComma[0])

@@ -101,9 +101,9 @@ static const char *about_text()
   // encodings, so we need to make sure we get a fresh string every
   // time.
   snprintf(buffer, sizeof(buffer),
-           _("TigerVNC Viewer v%s\n"
+           _("TigerVNC viewer v%s\n"
              "Built on: %s\n"
-             "Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
+             "Copyright (C) 1999-%d TigerVNC team and many others (see README.rst)\n"
              "See https://www.tigervnc.org for information on TigerVNC."),
            PACKAGE_VERSION, BUILD_TIMESTAMP, 2024);
 
@@ -263,7 +263,7 @@ static void CleanupSignalHandler(int sig)
 {
   // CleanupSignalHandler allows C++ object cleanup to happen because it calls
   // exit() rather than the default which is to abort.
-  vlog.info(_("Termination signal %d has been received. TigerVNC Viewer will now exit."), sig);
+  vlog.info(_("Termination signal %d has been received. TigerVNC viewer will now exit."), sig);
   exit(1);
 }
 
@@ -388,7 +388,7 @@ static void init_fltk()
   fl_message_hotspot(false);
 
   // Avoid empty titles for popups
-  fl_message_title_default(_("TigerVNC Viewer"));
+  fl_message_title_default(_("TigerVNC viewer"));
 
   // FLTK exposes these so that we can translate them.
   fl_no     = _("No");
@@ -411,8 +411,8 @@ static void init_fltk()
 
   Fl_Mac_App_Menu::print = ""; // Don't want the print item
   Fl_Mac_App_Menu::services = _("Services");
-  Fl_Mac_App_Menu::hide_others = _("Hide Others");
-  Fl_Mac_App_Menu::show = _("Show All");
+  Fl_Mac_App_Menu::hide_others = _("Hide others");
+  Fl_Mac_App_Menu::show = _("Show all");
 
   fl_mac_set_about(about_callback, nullptr);
 

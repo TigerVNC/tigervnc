@@ -99,7 +99,7 @@ int Timer::getNextTimeout() {
       return toWait;
     }
     // Time has jumped backwards!
-    vlog.info("time has moved backwards!");
+    vlog.info("Time has moved backwards!");
     pending.front()->dueTime = now;
     toWait = 0;
   }

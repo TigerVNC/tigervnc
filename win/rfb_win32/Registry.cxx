@@ -55,7 +55,7 @@ RegKey::RegKey(const HKEY k) : key(nullptr), freeKey(false), valueName(nullptr),
   LONG result = RegOpenKeyEx(k, nullptr, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::win32_error("RegOpenKeyEx(HKEY)", result);
-  vlog.debug("duplicated %p to %p", k, key);
+  vlog.debug("Duplicated %p to %p", k, key);
   freeKey = true;
 }
 
@@ -63,7 +63,7 @@ RegKey::RegKey(const RegKey& k) : key(nullptr), freeKey(false), valueName(nullpt
   LONG result = RegOpenKeyEx(k.key, nullptr, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::win32_error("RegOpenKeyEx(RegKey&)", result);
-  vlog.debug("duplicated %p to %p", k.key, key);
+  vlog.debug("Duplicated %p to %p", k.key, key);
   freeKey = true;
 }
 

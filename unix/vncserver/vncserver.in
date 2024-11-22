@@ -238,7 +238,7 @@ close(XAUTH);
 
 $ENV{XAUTHORITY} = $xauthorityFile;
 
-# Now start the X VNC Server
+# Now start the X VNC server
 
 @cmd = ("xinit");
 

@@ -45,9 +45,9 @@ static void fillMonitorInfo(HMONITOR monitor, MONITORINFOEXA* mi) {
   mi->cbSize = sizeof(MONITORINFOEXA);
   if (!GetMonitorInfo(monitor, mi))
     throw rdr::win32_error("failed to GetMonitorInfo", GetLastError());
-  vlog.debug("monitor is %ld,%ld-%ld,%ld", mi->rcMonitor.left, mi->rcMonitor.top, mi->rcMonitor.right, mi->rcMonitor.bottom);
-  vlog.debug("work area is %ld,%ld-%ld,%ld", mi->rcWork.left, mi->rcWork.top, mi->rcWork.right, mi->rcWork.bottom);
-  vlog.debug("device is \"%s\"", mi->szDevice);
+  vlog.debug("Monitor is %ld,%ld-%ld,%ld", mi->rcMonitor.left, mi->rcMonitor.top, mi->rcMonitor.right, mi->rcMonitor.bottom);
+  vlog.debug("Work area is %ld,%ld-%ld,%ld", mi->rcWork.left, mi->rcWork.top, mi->rcWork.right, mi->rcWork.bottom);
+  vlog.debug("Device is \"%s\"", mi->szDevice);
 }
 
 

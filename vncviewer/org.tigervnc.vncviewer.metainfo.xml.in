@@ -30,15 +30,15 @@
   <launchable type="desktop-id">vncviewer.desktop</launchable>
   <screenshots>
     <screenshot type="default">
-      <caption>TigerVNC Viewer connection to a CentOS machine</caption>
+      <caption>TigerVNC viewer connection to a CentOS machine</caption>
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-linux.jpg</image>
     </screenshot>
     <screenshot>
-      <caption>TigerVNC Viewer connection to a macOS machine</caption>
+      <caption>TigerVNC viewer connection to a macOS machine</caption>
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-macos.jpg</image>
     </screenshot>
     <screenshot>
-      <caption>TigerVNC Viewer connection to a Windows machine</caption>
+      <caption>TigerVNC viewer connection to a Windows machine</caption>
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-windows.jpg</image>
     </screenshot>
   </screenshots>

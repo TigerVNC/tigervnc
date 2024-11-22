@@ -306,7 +306,7 @@ bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bo
         }
         char filename[256];
         sprintf(filename, "%s\\%s.bmp", tmpdir, title);
-        vlog.debug("writing to %s", filename);
+        vlog.debug("Writing to %s", filename);
         saveBMP(filename, &fb);
         i++;
       }

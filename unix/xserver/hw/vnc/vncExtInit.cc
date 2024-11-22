@@ -141,7 +141,7 @@ static PixelFormat vncGetPixelFormat(int scrIdx)
                      &redMask, &greenMask, &blueMask);
 
   if (!trueColour) {
-    vlog.error("pseudocolour not supported");
+    vlog.error("Pseudocolour not supported");
     abort();
   }
 
@@ -263,12 +263,12 @@ void vncExtensionInit(void)
                                           vncGetScreenHeight(),
                                           vncFbptr[scr],
                                           vncFbstride[scr]);
-        vlog.info("created VNC server for screen %d", scr);
+        vlog.info("Created VNC server for screen %d", scr);
 
         if (scr == 0 && vncInetdSock != -1 && listeners.empty()) {
           network::Socket* sock = new network::TcpSocket(vncInetdSock);
           desktop[scr]->addClient(sock, false, false);
-          vlog.info("added inetd sock");
+          vlog.info("Added inetd sock");
         }
       }
 

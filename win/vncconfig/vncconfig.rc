@@ -110,7 +110,7 @@ BEGIN
     LTEXT           "Disconnect idle clients after (seconds):",IDC_STATIC,7,
                     25,138,15,SS_CENTERIMAGE
     EDITTEXT        IDC_IDLE_TIMEOUT,150,25,61,15,ES_AUTOHSCROLL | ES_NUMBER
-    GROUPBOX        "Access Control",IDC_STATIC,7,55,204,135
+    GROUPBOX        "Access control",IDC_STATIC,7,55,204,135
     CONTROL         "Only accept connections from the local machine",
                     IDC_LOCALHOST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
                     70,190,15
@@ -125,7 +125,7 @@ END
 
 IDD_HOOKING DIALOG DISCARDABLE  0, 0, 197, 101
 STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Capture Method"
+CAPTION "Capture method"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Poll for changes to the desktop",IDC_USEPOLLING,"Button",
@@ -141,12 +141,12 @@ END
 IDD_AUTH_VNC_PASSWD DIALOG DISCARDABLE  0, 0, 212, 70
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "VNC Server Password"
+CAPTION "VNC server password"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "New Password:",IDC_STATIC,7,10,63,15
+    LTEXT           "New password:",IDC_STATIC,7,10,63,15
     EDITTEXT        IDC_PASSWORD1,75,10,130,15,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "Confirm Password:",IDC_STATIC,7,30,63,14
+    LTEXT           "Confirm password:",IDC_STATIC,7,30,63,14
     EDITTEXT        IDC_PASSWORD2,75,30,130,14,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,100,50,50,15
     PUSHBUTTON      "Cancel",IDCANCEL,155,50,50,15
@@ -157,14 +157,14 @@ STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Legacy"
 FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "&Import VNC 3.3 Settings",IDC_LEGACY_IMPORT,7,10,92,20
+    PUSHBUTTON      "&Import VNC 3.3 settings",IDC_LEGACY_IMPORT,7,10,92,20
     CONTROL         "Only use protocol version 3.3",IDC_PROTOCOL_3_3,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,35,152,15
 END
 
 IDD_CONN_HOST DIALOG DISCARDABLE  0, 0, 225, 57
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
-CAPTION "Specify Host IP Address Pattern"
+CAPTION "Specify host IP address pattern"
 FONT 8, "MS Sans Serif"
 BEGIN
     EDITTEXT        IDC_HOST_PATTERN,65,5,100,15,ES_AUTOHSCROLL
@@ -221,7 +221,7 @@ END
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 300, 92
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "About TigerVNC Config for Windows"
+CAPTION "About TigerVNC config for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,245,70,47,15
@@ -459,17 +459,17 @@ BEGIN
         BLOCK "080904b0"
         BEGIN
             VALUE "Comments", "\0"
-            VALUE "CompanyName", "TigerVNC Project\0"
+            VALUE "CompanyName", "TigerVNC project\0"
             #ifdef WIN64
-            VALUE "FileDescription", "TigerVNC Server Configuration Applet for Win64\0"
-            VALUE "ProductName", "TigerVNC Server Configuration Applet for Win64\0"
+            VALUE "FileDescription", "TigerVNC server configuration applet for Win64\0"
+            VALUE "ProductName", "TigerVNC server configuration applet for Win64\0"
             #else
-            VALUE "FileDescription", "TigerVNC Server Configuration Applet for Win32\0"
-            VALUE "ProductName", "TigerVNC Server Configuration Applet for Win32\0"
+            VALUE "FileDescription", "TigerVNC server configuration applet for Win32\0"
+            VALUE "ProductName", "TigerVNC server configuration applet for Win32\0"
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "vncconfig\0"
-            VALUE "LegalCopyright", "Copyright (C) 1999-2024 TigerVNC Team and many others (see README.rst)\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2024 TigerVNC team and many others (see README.rst)\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncconfig.exe\0"
             VALUE "PrivateBuild", "\0"

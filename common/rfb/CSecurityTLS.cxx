@@ -316,7 +316,7 @@ void CSecurityTLS::checkSession()
 
   err = gnutls_certificate_verify_peers2(session, &status);
   if (err != 0) {
-    vlog.error("server certificate verification failed: %s", gnutls_strerror(err));
+    vlog.error("Server certificate verification failed: %s", gnutls_strerror(err));
     throw rdr::tls_error("server certificate verification()", err);
   }
 
