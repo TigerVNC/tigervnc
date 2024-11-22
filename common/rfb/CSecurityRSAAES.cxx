@@ -126,7 +126,9 @@ bool CSecurityRSAAES::processMsg()
       writeCredentials();
       return true;
   }
-  assert(!"unreachable");
+
+  throw std::logic_error("Invalid state");
+
   return false;
 }
 
