@@ -21,9 +21,9 @@
 #include <config.h>
 #endif
 
+#include <core/Configuration.h>
 #include <core/util.h>
 
-#include <rfb/Configuration.h>
 #include <rfb/SSecurityPlain.h>
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>
@@ -39,7 +39,7 @@
 
 using namespace rfb;
 
-StringParameter PasswordValidator::plainUsers
+core::StringParameter PasswordValidator::plainUsers
 ("PlainUsers",
  "Users permitted to access via Plain security type (including TLSPlain, X509Plain etc.)"
 #ifdef HAVE_NETTLE

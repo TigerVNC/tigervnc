@@ -25,10 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <core/Configuration.h>
 #include <core/util.h>
 
 #include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
 
 rfb::LogParameter rfb::logParams;
 

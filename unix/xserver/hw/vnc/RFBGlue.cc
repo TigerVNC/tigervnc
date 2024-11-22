@@ -24,11 +24,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <core/Configuration.h>
 #include <core/util.h>
 
 #include <network/TcpSocket.h>
 
-#include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/Logger_syslog.h>
@@ -46,7 +46,7 @@ void vncInitRFB(void)
   rfb::initStdIOLoggers();
   rfb::initSyslogLogger();
   rfb::LogWriter::setLogParams("*:stderr:30");
-  rfb::Configuration::enableServerParams();
+  core::Configuration::enableServerParams();
 }
 
 void vncLogError(const char *name, const char *format, ...)
@@ -100,10 +100,10 @@ void vncLogDebug(const char *name, const char *format, ...)
 int vncSetParam(const char *name, const char *value)
 {
   if (value != nullptr)
-    return rfb::Configuration::setParam(name, value);
+    return core::Configuration::setParam(name, value);
   else {
-    VoidParameter *param;
-    param = rfb::Configuration::getParam(name);
+    core::VoidParameter* param;
+    param = core::Configuration::getParam(name);
     if (param == nullptr)
       return false;
     return param->setParam();
@@ -112,18 +112,18 @@ int vncSetParam(const char *name, const char *value)
 
 int vncSetParamSimple(const char *nameAndValue)
 {
-  return rfb::Configuration::setParam(nameAndValue);
+  return core::Configuration::setParam(nameAndValue);
 }
 
 char* vncGetParam(const char *name)
 {
-  VoidParameter *param;
+  core::VoidParameter* param;
 
   // Hack to avoid exposing password!
   if (strcasecmp(name, "Password") == 0)
     return nullptr;
 
-  param = rfb::Configuration::getParam(name);
+  param = core::Configuration::getParam(name);
   if (param == nullptr)
     return nullptr;
 
@@ -132,9 +132,9 @@ char* vncGetParam(const char *name)
 
 const char* vncGetParamDesc(const char *name)
 {
-  rfb::VoidParameter *param;
+  core::VoidParameter* param;
 
-  param = rfb::Configuration::getParam(name);
+  param = core::Configuration::getParam(name);
   if (param == nullptr)
     return nullptr;
 
@@ -143,14 +143,14 @@ const char* vncGetParamDesc(const char *name)
 
 int vncIsParamBool(const char *name)
 {
-  VoidParameter *param;
-  BoolParameter *bparam;
+  core::VoidParameter* param;
+  core::BoolParameter* bparam;
 
-  param = rfb::Configuration::getParam(name);
+  param = core::Configuration::getParam(name);
   if (param == nullptr)
     return false;
 
-  bparam = dynamic_cast<BoolParameter*>(param);
+  bparam = dynamic_cast<core::BoolParameter*>(param);
   if (bparam == nullptr)
     return false;
 
@@ -162,7 +162,7 @@ int vncGetParamCount(void)
   int count;
 
   count = 0;
-  for (ParameterIterator i; i.param; i.next())
+  for (core::ParameterIterator i; i.param; i.next())
     count++;
 
   return count;
@@ -175,7 +175,7 @@ char *vncGetParamList(void)
 
   len = 0;
 
-  for (ParameterIterator i; i.param; i.next()) {
+  for (core::ParameterIterator i; i.param; i.next()) {
     int l = strlen(i.param->getName());
     if (l <= 255)
       len += l + 1;
@@ -186,7 +186,7 @@ char *vncGetParamList(void)
     return nullptr;
 
   ptr = data;
-  for (ParameterIterator i; i.param; i.next()) {
+  for (core::ParameterIterator i; i.param; i.next()) {
     int l = strlen(i.param->getName());
     if (l <= 255) {
       *ptr++ = l;
@@ -201,7 +201,7 @@ char *vncGetParamList(void)
 
 void vncListParams(int width, int nameWidth)
 {
-  rfb::Configuration::listParams(width, nameWidth);
+  core::Configuration::listParams(width, nameWidth);
 }
 
 int vncGetSocketPort(int fd)

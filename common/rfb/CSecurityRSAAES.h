@@ -29,14 +29,14 @@
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
 
+namespace core { class IntParameter; }
+
 namespace rdr {
   class InStream;
   class OutStream;
 }
 
 namespace rfb {
-
-  class IntParameter;
 
   class CSecurityRSAAES : public CSecurity {
   public:
@@ -47,7 +47,7 @@ namespace rfb {
     int getType() const override { return secType; }
     bool isSecure() const override { return secType == secTypeRA256; }
 
-    static IntParameter RSAKeyLength;
+    static core::IntParameter RSAKeyLength;
 
   private:
     void cleanup();

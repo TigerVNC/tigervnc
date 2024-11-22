@@ -40,9 +40,9 @@
 #include <X11/keysym.h>
 #include "vncExt.h"
 
+#include <core/Configuration.h>
 #include <core/Exception.h>
 
-#include <rfb/Configuration.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 
@@ -55,9 +55,9 @@ using namespace rfb;
 
 static LogWriter vlog("vncconfig");
 
-StringParameter displayname("display", "The X display", "");
-BoolParameter noWindow("nowin", "Don't display a window", 0);
-BoolParameter iconic("iconic", "Start with window iconified", 0);
+core::StringParameter displayname("display", "The X display", "");
+core::BoolParameter noWindow("nowin", "Don't display a window", 0);
+core::BoolParameter iconic("iconic", "Start with window iconified", 0);
 
 #define ACCEPT_CUT_TEXT "AcceptCutText"
 #define SEND_CUT_TEXT "SendCutText"
@@ -195,7 +195,7 @@ static void usage()
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n");
-  Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
   exit(1);
 }
 
@@ -217,11 +217,11 @@ int main(int argc, char** argv)
   // other arguments when we have the X display.
   int i;
   for (i = 1; i < argc; i++) {
-    if (Configuration::setParam(argv[i]))
+    if (core::Configuration::setParam(argv[i]))
       continue;
 
     if (argv[i][0] == '-' && i+1 < argc &&
-        Configuration::setParam(&argv[i][1], argv[i+1])) {
+        core::Configuration::setParam(&argv[i][1], argv[i+1])) {
       i++;
       continue;
     }

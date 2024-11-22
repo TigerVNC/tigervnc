@@ -53,12 +53,12 @@ using namespace rfb;
 
 static const char* configdirfn(const char* fn);
 
-StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
-                                     configdirfn("x509_ca.pem"),
-                                     ConfViewer);
-StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
-                                     configdirfn("x509_crl.pem"),
-                                     ConfViewer);
+core::StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
+                                           configdirfn("x509_ca.pem"),
+                                           core::ConfViewer);
+core::StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
+                                            configdirfn("x509_crl.pem"),
+                                            core::ConfViewer);
 
 static LogWriter vlog("TLS");
 

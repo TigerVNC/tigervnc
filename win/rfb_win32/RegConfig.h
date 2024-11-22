@@ -26,7 +26,8 @@
 
 #include <os/Thread.h>
 
-#include <rfb/Configuration.h>
+#include <core/Configuration.h>
+
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/EventManager.h>
 #include <rfb_win32/Handle.h>

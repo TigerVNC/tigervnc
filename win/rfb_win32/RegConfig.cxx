@@ -66,7 +66,7 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
       const char *name = key.getValueName(i++);
       if (!name) break;
       std::string value = key.getRepresentation(name);
-      if (!Configuration::setParam(name, value.c_str()))
+      if (!core::Configuration::setParam(name, value.c_str()))
         vlog.info("Unable to process %s", name);
     }
   } catch (core::win32_error& e) {

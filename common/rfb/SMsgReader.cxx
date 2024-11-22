@@ -25,6 +25,7 @@
 
 #include <vector>
 
+#include <core/Configuration.h>
 #include <core/util.h>
 
 #include <rdr/InStream.h>
@@ -38,14 +39,13 @@
 #include <rfb/ScreenSet.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SMsgReader.h>
-#include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 
 using namespace rfb;
 
 static LogWriter vlog("SMsgReader");
 
-static IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
+static core::IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
 
 SMsgReader::SMsgReader(SMsgHandler* handler_, rdr::InStream* is_)
   : handler(handler_), is(is_), state(MSGSTATE_IDLE)

@@ -23,10 +23,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <core/Configuration.h>
+
 #include <os/Mutex.h>
 
 #include <rfb/KeyRemapper.h>
-#include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 
 using namespace rfb;
@@ -83,15 +84,15 @@ uint32_t KeyRemapper::remapKey(uint32_t key) const {
 }
 
 
-class KeyMapParameter : public StringParameter {
+class KeyMapParameter : public core::StringParameter {
 public:
   KeyMapParameter()
-    : StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
+    : core::StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
     KeyRemapper::defInstance.setMapping("");
   }
   bool setParam(const char* v) override {
     KeyRemapper::defInstance.setMapping(v);
-    return StringParameter::setParam(v);
+    return core::StringParameter::setParam(v);
   }
 } defaultParam;
 

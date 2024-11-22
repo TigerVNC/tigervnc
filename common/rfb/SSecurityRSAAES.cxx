@@ -69,12 +69,12 @@ const size_t MaxKeyFileSize = 32 * 1024;
 
 using namespace rfb;
 
-StringParameter SSecurityRSAAES::keyFile
+core::StringParameter SSecurityRSAAES::keyFile
 ("RSAKey", "Path to the RSA key for the RSA-AES security types in "
-           "PEM format", "", ConfServer);
-BoolParameter SSecurityRSAAES::requireUsername
+           "PEM format", "", core::ConfServer);
+core::BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
- false, ConfServer);
+ false, core::ConfServer);
 
 SSecurityRSAAES::SSecurityRSAAES(SConnection* sc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)

@@ -478,7 +478,7 @@ static void usage(const char *programName)
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n");
-  Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
 
 #ifdef WIN32
   // Just wait for the user to kill the console window
@@ -661,7 +661,7 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  Configuration::enableViewerParams();
+  core::Configuration::enableViewerParams();
 
   /* Load the default parameter settings */
   char defaultServerName[VNCSERVERNAMELEN] = "";
@@ -679,11 +679,11 @@ int main(int argc, char** argv)
   for (int i = 1; i < argc;) {
     /* We need to resolve an ambiguity for booleans */
     if (argv[i][0] == '-' && i+1 < argc) {
-        VoidParameter *param;
+        core::VoidParameter* param;
 
-        param = Configuration::getParam(&argv[i][1]);
+        param = core::Configuration::getParam(&argv[i][1]);
         if ((param != nullptr) &&
-            (dynamic_cast<BoolParameter*>(param) != nullptr)) {
+            (dynamic_cast<core::BoolParameter*>(param) != nullptr)) {
           if ((strcasecmp(argv[i+1], "0") == 0) ||
               (strcasecmp(argv[i+1], "1") == 0) ||
               (strcasecmp(argv[i+1], "true") == 0) ||
@@ -697,14 +697,14 @@ int main(int argc, char** argv)
       }
     }
 
-    if (Configuration::setParam(argv[i])) {
+    if (core::Configuration::setParam(argv[i])) {
       i++;
       continue;
     }
 
     if (argv[i][0] == '-') {
       if (i+1 < argc) {
-        if (Configuration::setParam(&argv[i][1], argv[i+1])) {
+        if (core::Configuration::setParam(&argv[i][1], argv[i+1])) {
           i += 2;
           continue;
         }

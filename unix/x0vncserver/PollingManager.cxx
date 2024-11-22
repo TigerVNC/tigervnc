@@ -27,10 +27,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+
 #include <X11/Xlib.h>
+
+#include <core/Configuration.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/VNCServer.h>
-#include <rfb/Configuration.h>
 #include <rfb/ServerCore.h>
 
 #include <x0vncserver/PollingManager.h>

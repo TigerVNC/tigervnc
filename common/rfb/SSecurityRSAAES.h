@@ -26,10 +26,12 @@
 #include <nettle/rsa.h>
 #include <rfb/SSecurity.h>
 
-namespace rfb {
-
+namespace core {
   class BoolParameter;
   class StringParameter;
+}
+
+namespace rfb {
 
   class SSecurityRSAAES : public SSecurity {
   public:
@@ -44,8 +46,8 @@ namespace rfb {
       return accessRights;
     }
 
-    static StringParameter keyFile;
-    static BoolParameter requireUsername;
+    static core::StringParameter keyFile;
+    static core::BoolParameter requireUsername;
 
   private:
     void cleanup();

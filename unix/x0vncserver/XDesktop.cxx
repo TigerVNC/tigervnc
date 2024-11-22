@@ -65,15 +65,19 @@ extern const unsigned int code_map_qnum_to_xorgevdev_len;
 extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
-BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
-BoolParameter rawKeyboard("RawKeyboard",
-                          "Send keyboard events straight through and "
-                          "avoid mapping them to the current keyboard "
-                          "layout", false);
-IntParameter queryConnectTimeout("QueryConnectTimeout",
-                                 "Number of seconds to show the 'Accept connection' dialog before "
-                                 "rejecting the connection",
-                                 10);
+core::BoolParameter
+  useShm("UseSHM", "Use MIT-SHM extension if available", true);
+core::BoolParameter
+  rawKeyboard("RawKeyboard",
+              "Send keyboard events straight through and avoid "
+              "mapping them to the current keyboard layout",
+              false);
+core::IntParameter
+  queryConnectTimeout("QueryConnectTimeout",
+                      "Number of seconds to show the 'Accept "
+                      "connection' dialog before rejecting the "
+                      "connection",
+                      10);
 
 static rfb::LogWriter vlog("XDesktop");
 
