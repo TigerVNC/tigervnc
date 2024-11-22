@@ -58,7 +58,7 @@ std::string rfb::deobfuscate(const uint8_t *data, size_t len)
   char buf[9];
 
   if (len != 8)
-    throw std::invalid_argument("bad obfuscated password length");
+    throw std::invalid_argument("Bad obfuscated password length");
 
   assert(data != nullptr);
 

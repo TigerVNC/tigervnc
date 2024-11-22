@@ -68,7 +68,7 @@ bool AESInStream::fillBuffer()
     EAX_DIGEST(&eaxCtx256, aes256_encrypt, 16, macComputed);
   }
   if (memcmp(mac, macComputed, 16) != 0)
-    throw std::runtime_error("AESInStream: failed to authenticate message");
+    throw std::runtime_error("AESInStream: Failed to authenticate message");
   in->setptr(2 + length + 16);
   end += length;
 

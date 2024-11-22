@@ -159,18 +159,18 @@ void SSecurityRSAAES::loadPrivateKey()
 {
   FILE* file = fopen(keyFile, "rb");
   if (!file)
-    throw rdr::posix_error("failed to open key file", errno);
+    throw rdr::posix_error("Failed to open key file", errno);
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
     fclose(file);
-    throw std::runtime_error("size of key file is zero or too big");
+    throw std::runtime_error("Size of key file is zero or too big");
   }
   fseek(file, 0, SEEK_SET);
   std::vector<uint8_t> data(size);
   if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
-    throw rdr::posix_error("failed to read key", errno);
+    throw rdr::posix_error("Failed to read key", errno);
   }
   fclose(file);
 
@@ -187,7 +187,7 @@ void SSecurityRSAAES::loadPrivateKey()
     loadPKCS8Key(der.data(), der.size());
     return;
   }
-  throw std::runtime_error("failed to import key");
+  throw std::runtime_error("Failed to import key");
 }
 
 void SSecurityRSAAES::loadPKCS1Key(const uint8_t* data, size_t size)
@@ -198,7 +198,7 @@ void SSecurityRSAAES::loadPKCS1Key(const uint8_t* data, size_t size)
   if (!rsa_keypair_from_der(&pub, &serverKey, 0, size, data)) {
     rsa_private_key_clear(&serverKey);
     rsa_public_key_clear(&pub);
-    throw std::runtime_error("failed to import key");
+    throw std::runtime_error("Failed to import key");
   }
   serverKeyLength = serverKey.size * 8;
   serverKeyN = new uint8_t[serverKey.size];
@@ -238,7 +238,7 @@ void SSecurityRSAAES::loadPKCS8Key(const uint8_t* data, size_t size)
   loadPKCS1Key(i.data, i.length);
   return;
 failed:
-  throw std::runtime_error("failed to import key");
+  throw std::runtime_error("Failed to import key");
 }
 
 bool SSecurityRSAAES::processMsg()
@@ -299,9 +299,9 @@ bool SSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   clientKeyLength = is->readU32();
   if (clientKeyLength < MinKeyLength)
-    throw protocol_error("client key is too short");
+    throw protocol_error("Client key is too short");
   if (clientKeyLength > MaxKeyLength)
-    throw protocol_error("client key is too long");
+    throw protocol_error("Client key is too long");
   size_t size = (clientKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -314,7 +314,7 @@ bool SSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(clientKey.n, size, clientKeyN);
   nettle_mpz_set_str_256_u(clientKey.e, size, clientKeyE);
   if (!rsa_public_key_prepare(&clientKey))
-    throw protocol_error("client key is invalid");
+    throw protocol_error("Client key is invalid");
   return true;
 }
 
@@ -322,7 +322,7 @@ static void random_func(void* ctx, size_t length, uint8_t* dst)
 {
   rdr::RandomStream* rs = (rdr::RandomStream*)ctx;
   if (!rs->hasData(length))
-    throw std::runtime_error("failed to encrypt random");
+    throw std::runtime_error("Failed to encrypt random");
   rs->readBytes(dst, length);
 }
 
@@ -330,7 +330,7 @@ void SSecurityRSAAES::writeRandom()
 {
   rdr::OutStream* os = sc->getOutStream();
   if (!rs.hasData(keySize / 8))
-    throw std::runtime_error("failed to generate random");
+    throw std::runtime_error("Failed to generate random");
   rs.readBytes(serverRandom, keySize / 8);
   mpz_t x;
   mpz_init(x);
@@ -344,7 +344,7 @@ void SSecurityRSAAES::writeRandom()
   }
   if (!res) {
     mpz_clear(x);
-    throw std::runtime_error("failed to encrypt random");
+    throw std::runtime_error("Failed to encrypt random");
   }
   uint8_t* buffer = new uint8_t[clientKey.size];
   nettle_mpz_get_str_256(clientKey.size, buffer, x);
@@ -363,7 +363,7 @@ bool SSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != serverKey.size)
-    throw protocol_error("server key length doesn't match");
+    throw protocol_error("Server key length doesn't match");
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -376,7 +376,7 @@ bool SSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&serverKey, &randomSize, clientRandom, x) ||
     randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw protocol_error("failed to decrypt client random");
+    throw protocol_error("Failed to decrypt client random");
   }
   mpz_clear(x);
   return true;
@@ -505,7 +505,7 @@ bool SSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw protocol_error("hash doesn't match");
+    throw protocol_error("Hash doesn't match");
   return true;
 }
 

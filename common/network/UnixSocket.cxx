@@ -53,12 +53,12 @@ UnixSocket::UnixSocket(const char *path)
   socklen_t salen;
 
   if (strlen(path) >= sizeof(addr.sun_path))
-    throw socket_error("socket path is too long", ENAMETOOLONG);
+    throw socket_error("Socket path is too long", ENAMETOOLONG);
 
   // - Create a socket
   sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock == -1)
-    throw socket_error("unable to create socket", errno);
+    throw socket_error("Unable to create socket", errno);
 
   // - Attempt to connect
   memset(&addr, 0, sizeof(addr));
@@ -119,7 +119,7 @@ UnixListener::UnixListener(const char *path, int mode)
   int err, result;
 
   if (strlen(path) >= sizeof(addr.sun_path))
-    throw socket_error("socket path is too long", ENAMETOOLONG);
+    throw socket_error("Socket path is too long", ENAMETOOLONG);
 
   // - Create a socket
   if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)

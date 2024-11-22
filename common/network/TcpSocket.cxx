@@ -85,15 +85,15 @@ int network::findFreeTcpPort (void)
   addr.sin_addr.s_addr = INADDR_ANY;
 
   if ((sock = socket (AF_INET, SOCK_STREAM, 0)) < 0)
-    throw socket_error("unable to create socket", errorNumber);
+    throw socket_error("Unable to create socket", errorNumber);
 
   addr.sin_port = 0;
   if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) < 0)
-    throw socket_error("unable to find free port", errorNumber);
+    throw socket_error("Unable to find free port", errorNumber);
 
   socklen_t n = sizeof(addr);
   if (getsockname (sock, (struct sockaddr *)&addr, &n) < 0)
-    throw socket_error("unable to get port number", errorNumber);
+    throw socket_error("Unable to get port number", errorNumber);
 
   closesocket (sock);
   return ntohs(addr.sin_port);
@@ -137,7 +137,7 @@ TcpSocket::TcpSocket(const char *host, int port)
   hints.ai_next = nullptr;
 
   if ((result = getaddrinfo(host, nullptr, &hints, &ai)) != 0) {
-    throw getaddrinfo_error("unable to resolve host by name", result);
+    throw getaddrinfo_error("Unable to resolve host by name", result);
   }
 
   sock = -1;
@@ -178,7 +178,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (sock == -1) {
       err = errorNumber;
       freeaddrinfo(ai);
-      throw socket_error("unable to create socket", err);
+      throw socket_error("Unable to create socket", err);
     }
 
   /* Attempt to connect to the remote host */
@@ -205,7 +205,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (err == 0)
       throw std::runtime_error("No useful address for host");
     else
-      throw socket_error("unable to connect to socket", err);
+      throw socket_error("Unable to connect to socket", err);
   }
 
   // Take proper ownership of the socket
@@ -610,7 +610,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
   parts = rfb::split(&p[1], '/');
   if (parts.size() > 2)
-    throw std::invalid_argument("invalid filter specified");
+    throw std::invalid_argument("Invalid filter specified");
 
   if (parts[0].empty()) {
     // Match any address
@@ -658,7 +658,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
         pattern.prefixlen = 128;
         break;
       default:
-        throw std::runtime_error("unknown address family");
+        throw std::runtime_error("Unknown address family");
       }
     }
   }
@@ -666,7 +666,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   family = pattern.address.u.sa.sa_family;
 
   if (pattern.prefixlen > (family == AF_INET ? 32: 128))
-    throw std::invalid_argument(rfb::format("invalid prefix length for "
+    throw std::invalid_argument(rfb::format("Invalid prefix length for "
                                             "filter address: %u",
                                             pattern.prefixlen));
 

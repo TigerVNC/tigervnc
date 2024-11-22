@@ -112,7 +112,7 @@ void ZlibOutStream::deflate(int flush)
   int rc;
 
   if (!underlying)
-    throw std::runtime_error("ZlibOutStream: underlying OutStream has not been set");
+    throw std::runtime_error("ZlibOutStream: Underlying OutStream has not been set");
 
   if ((flush == Z_NO_FLUSH) && (zs->avail_in == 0))
     return;

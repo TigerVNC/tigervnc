@@ -49,7 +49,7 @@ void ZlibInStream::flushUnderlying()
 {
   while (bytesIn > 0) {
     if (!hasData(1))
-      throw std::runtime_error("ZlibInStream: failed to flush remaining stream data");
+      throw std::runtime_error("ZlibInStream: Failed to flush remaining stream data");
     skip(avail());
   }
 
@@ -91,7 +91,7 @@ void ZlibInStream::deinit()
 bool ZlibInStream::fillBuffer()
 {
   if (!underlying)
-    throw std::runtime_error("ZlibInStream overrun: no underlying stream");
+    throw std::runtime_error("ZlibInStream overrun: No underlying stream");
 
   zs->next_out = (uint8_t*)end;
   zs->avail_out = availSpace();

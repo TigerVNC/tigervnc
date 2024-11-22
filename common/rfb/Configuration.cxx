@@ -294,7 +294,7 @@ BoolParameter::setParam(const char* v) {
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
     setParam(false);
   else {
-    vlog.error("Bool parameter %s: invalid value '%s'", getName(), v);
+    vlog.error("Bool parameter %s: Invalid value '%s'", getName(), v);
     return false;
   }
 

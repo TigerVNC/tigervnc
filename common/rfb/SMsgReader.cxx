@@ -106,8 +106,8 @@ bool SMsgReader::readMsg()
     ret = readQEMUMessage();
     break;
   default:
-    vlog.error("unknown message type %d", currentMsgType);
-    throw protocol_error("unknown message type");
+    vlog.error("Unknown message type %d", currentMsgType);
+    throw protocol_error("Unknown message type");
   }
 
   if (ret)
@@ -485,7 +485,7 @@ bool SMsgReader::readQEMUMessage()
     ret = readQEMUKeyEvent();
     break;
   default:
-    throw protocol_error(format("unknown QEMU submessage type %d", subType));
+    throw protocol_error(format("Unknown QEMU submessage type %d", subType));
   }
 
   if (!ret) {

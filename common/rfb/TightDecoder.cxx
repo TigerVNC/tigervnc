@@ -104,14 +104,14 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
 
   // Quit on unsupported compression type.
   if (comp_ctl > tightMaxSubencoding)
-    throw protocol_error("TightDecoder: bad subencoding value received");
+    throw protocol_error("TightDecoder: Bad subencoding value received");
 
   // "Basic" compression type.
 
   int palSize = 0;
 
   if (r.width() > TIGHT_MAX_WIDTH)
-    throw protocol_error(format("TightDecoder: too large rectangle (%d pixels)", r.width()));
+    throw protocol_error(format("TightDecoder: Too large rectangle (%d pixels)", r.width()));
 
   // Possible palette
   if ((comp_ctl & tightExplicitFilter) != 0) {
@@ -143,12 +143,12 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
       break;
     case tightFilterGradient:
       if (server.pf().bpp == 8)
-        throw protocol_error("TightDecoder: invalid BPP for gradient filter");
+        throw protocol_error("TightDecoder: Invalid BPP for gradient filter");
       break;
     case tightFilterCopy:
       break;
     default:
-      throw protocol_error("TightDecoder: unknown filter code received");
+      throw protocol_error("TightDecoder: Unknown filter code received");
     }
   }
 

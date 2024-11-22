@@ -86,7 +86,7 @@ PixelFormat::PixelFormat(int b, int d, bool e, bool t,
     redShift(rs), greenShift(gs), blueShift(bs)
 {
   if (!isSane())
-    throw std::invalid_argument("invalid pixel format");
+    throw std::invalid_argument("Invalid pixel format");
 
   updateState();
 }
@@ -180,7 +180,7 @@ void PixelFormat::read(rdr::InStream* is)
   }
 
   if (!isSane())
-    throw protocol_error("invalid pixel format");
+    throw protocol_error("Invalid pixel format");
 
   updateState();
 }

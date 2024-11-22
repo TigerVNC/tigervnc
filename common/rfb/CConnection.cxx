@@ -147,11 +147,11 @@ bool CConnection::processMsg()
   case RFBSTATE_INITIALISATION:   return processInitMsg();           break;
   case RFBSTATE_NORMAL:           return reader_->readMsg();         break;
   case RFBSTATE_CLOSING:
-    throw std::logic_error("CConnection::processMsg: called while closing");
+    throw std::logic_error("CConnection::processMsg: Called while closing");
   case RFBSTATE_UNINITIALISED:
-    throw std::logic_error("CConnection::processMsg: not initialised yet?");
+    throw std::logic_error("CConnection::processMsg: Not initialised yet?");
   default:
-    throw std::logic_error("CConnection::processMsg: invalid state");
+    throw std::logic_error("CConnection::processMsg: Invalid state");
   }
 }
 
@@ -172,7 +172,7 @@ bool CConnection::processVersionMsg()
   if (sscanf(verStr, "RFB %03d.%03d\n",
              &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
-    throw protocol_error("reading version failed: not an RFB server?");
+    throw protocol_error("Reading version failed, not an RFB server?");
   }
 
   server.setVersion(majorVersion, minorVersion);

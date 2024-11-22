@@ -100,7 +100,7 @@ void CSecurityMSLogonII::writeCredentials()
 
   std::vector<uint8_t> bBytes(8);
   if (!rs.hasData(8))
-    throw std::runtime_error("failed to generate DH private key");
+    throw std::runtime_error("Failed to generate DH private key");
   rs.readBytes(bBytes.data(), bBytes.size());
   nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
@@ -122,14 +122,14 @@ void CSecurityMSLogonII::writeCredentials()
   }
 
   if (!rs.hasData(256 + 64))
-    throw std::runtime_error("failed to generate random padding");
+    throw std::runtime_error("Failed to generate random padding");
   rs.readBytes(user, 256);
   rs.readBytes(pass, 64);
   if (username.size() >= 256)
-    throw std::out_of_range("username is too long");
+    throw std::out_of_range("Username is too long");
   memcpy(user, username.c_str(), username.size() + 1);
   if (password.size() >= 64)
-    throw std::out_of_range("password is too long");
+    throw std::out_of_range("Password is too long");
   memcpy(pass, password.c_str(), password.size() + 1);
 
   // DES-CBC with the original key as IV, and the reversed one as the DES key
