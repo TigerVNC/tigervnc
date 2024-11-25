@@ -35,6 +35,8 @@
 #include "regionstr.h"
 #include "dixfontstr.h"
 #include "colormapst.h"
+#include "mipointer.h"
+#include "mipointrst.h"
 #include "picturestr.h"
 #include "randrstr.h"
 
@@ -59,11 +61,11 @@ typedef struct _vncHooksScreenRec {
   CreateGCProcPtr              CreateGC;
   CopyWindowProcPtr            CopyWindow;
   ClearToBackgroundProcPtr     ClearToBackground;
-  DisplayCursorProcPtr         DisplayCursor;
 #if XORG_AT_LEAST(1, 19, 0)
   CursorWarpedToProcPtr        CursorWarpedTo;
 #endif
   ScreenBlockHandlerProcPtr    BlockHandler;
+
   CompositeProcPtr             Composite;
   GlyphsProcPtr                Glyphs;
   CompositeRectsProcPtr        CompositeRects;
@@ -71,9 +73,12 @@ typedef struct _vncHooksScreenRec {
   TrianglesProcPtr             Triangles;
   TriStripProcPtr              TriStrip;
   TriFanProcPtr                TriFan;
+
   RRSetConfigProcPtr           rrSetConfig;
   RRScreenSetSizeProcPtr       rrScreenSetSize;
   RRCrtcSetProcPtr             rrCrtcSet;
+
+  miPointerSpriteFuncPtr       spriteFuncs;
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
 typedef struct _vncHooksGCRec {
@@ -110,8 +115,6 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                                RegionPtr pOldRegion);
 static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
                                       int h, Bool generateExposures);
-static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
-                                  ScreenPtr pScreen, CursorPtr cursor);
 #if XORG_AT_LEAST(1, 19, 0)
 static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
                                    ScreenPtr pScreen_, ClientPtr pClient,
@@ -153,6 +156,30 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
                                  RRModePtr mode, int x, int y,
                                  Rotation rotation, int numOutputs,
                                  RROutputPtr *outputs);
+
+// Sprite functions
+
+static Bool vncHooksRealizeCursor(DeviceIntPtr dev, ScreenPtr screen,
+                                  CursorPtr cursor);
+static Bool vncHooksUnrealizeCursor(DeviceIntPtr dev, ScreenPtr screen,
+                                    CursorPtr cursor);
+static void vncHooksSetCursor(DeviceIntPtr dev, ScreenPtr screen,
+                              CursorPtr cursor, int x, int y);
+static void vncHooksMoveCursor(DeviceIntPtr dev, ScreenPtr screen,
+                               int x, int y);
+static Bool vncHooksDeviceCursorInitialize(DeviceIntPtr dev,
+                                           ScreenPtr screen);
+static void vncHooksDeviceCursorCleanup(DeviceIntPtr dev,
+                                        ScreenPtr screen);
+
+static miPointerSpriteFuncRec vncHooksSpriteFuncs = {
+    vncHooksRealizeCursor,
+    vncHooksUnrealizeCursor,
+    vncHooksSetCursor,
+    vncHooksMoveCursor,
+    vncHooksDeviceCursorInitialize,
+    vncHooksDeviceCursorCleanup
+};
 
 // GC "funcs"
 
@@ -244,6 +271,7 @@ int vncHooksInit(int scrIdx)
 
   PictureScreenPtr ps;
   rrScrPrivPtr rp;
+  miPointerScreenPtr miPointerPriv;
 
   pScreen = screenInfo.screens[scrIdx];
 
@@ -271,11 +299,11 @@ int vncHooksInit(int scrIdx)
   wrap(vncHooksScreen, pScreen, CreateGC, vncHooksCreateGC);
   wrap(vncHooksScreen, pScreen, CopyWindow, vncHooksCopyWindow);
   wrap(vncHooksScreen, pScreen, ClearToBackground, vncHooksClearToBackground);
-  wrap(vncHooksScreen, pScreen, DisplayCursor, vncHooksDisplayCursor);
 #if XORG_AT_LEAST(1, 19, 0)
   wrap(vncHooksScreen, pScreen, CursorWarpedTo, vncHooksCursorWarpedTo);
 #endif
   wrap(vncHooksScreen, pScreen, BlockHandler, vncHooksBlockHandler);
+
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     wrap(vncHooksScreen, ps, Composite, vncHooksComposite);
@@ -286,6 +314,7 @@ int vncHooksInit(int scrIdx)
     wrap(vncHooksScreen, ps, TriStrip, vncHooksTriStrip);
     wrap(vncHooksScreen, ps, TriFan, vncHooksTriFan);
   }
+
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     /* Some RandR callbacks are optional */
@@ -295,6 +324,11 @@ int vncHooksInit(int scrIdx)
       wrap(vncHooksScreen, rp, rrScreenSetSize, vncHooksRandRScreenSetSize);
     if (rp->rrCrtcSet)
       wrap(vncHooksScreen, rp, rrCrtcSet, vncHooksRandRCrtcSet);
+  }
+
+  miPointerPriv = dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
+  if (miPointerPriv) {
+    wrap(vncHooksScreen, miPointerPriv, spriteFuncs, &vncHooksSpriteFuncs);
   }
 
   return TRUE;
@@ -411,14 +445,15 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 {
   PictureScreenPtr ps;
   rrScrPrivPtr rp;
+  miPointerScreenPtr miPointerPriv;
 
   SCREEN_PROLOGUE(pScreen_, CloseScreen);
 
   unwrap(vncHooksScreen, pScreen, CreateGC);
   unwrap(vncHooksScreen, pScreen, CopyWindow);
   unwrap(vncHooksScreen, pScreen, ClearToBackground);
-  unwrap(vncHooksScreen, pScreen, DisplayCursor);
   unwrap(vncHooksScreen, pScreen, BlockHandler);
+
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     unwrap(vncHooksScreen, ps, Composite);
@@ -429,11 +464,17 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
     unwrap(vncHooksScreen, ps, TriStrip);
     unwrap(vncHooksScreen, ps, TriFan);
   }
+
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     unwrap(vncHooksScreen, rp, rrSetConfig);
     unwrap(vncHooksScreen, rp, rrScreenSetSize);
     unwrap(vncHooksScreen, rp, rrCrtcSet);
+  }
+
+  miPointerPriv = dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
+  if (miPointerPriv) {
+    unwrap(vncHooksScreen, miPointerPriv, spriteFuncs);
   }
 
   DBGPRINT((stderr,"vncHooksCloseScreen: Unwrapped screen functions\n"));
@@ -547,97 +588,6 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
   RegionUninit(&reg);
 
   SCREEN_EPILOGUE(ClearToBackground);
-}
-
-// DisplayCursor - get the cursor shape
-
-static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
-                                  ScreenPtr pScreen_, CursorPtr cursor)
-{
-  Bool ret;
-
-  SCREEN_PROLOGUE(pScreen_, DisplayCursor);
-
-  ret = (*pScreen->DisplayCursor) (pDev, pScreen, cursor);
-
-  if (cursor == NullCursor) {
-    vncSetCursorSprite(0, 0, 0, 0, NULL);
-  } else {
-    int width, height;
-    int hotX, hotY;
-
-    unsigned char *rgbaData;
-
-    width = cursor->bits->width;
-    height = cursor->bits->height;
-
-    hotX = cursor->bits->xhot;
-    hotY = cursor->bits->yhot;
-
-    rgbaData = malloc(width * height * 4);
-    if (rgbaData == NULL)
-      goto out;
-
-    if (cursor->bits->argb) {
-      unsigned char *out;
-      CARD32 *in;
-      int i;
-
-      in = cursor->bits->argb;
-      out = rgbaData;
-      for (i = 0; i < width*height; i++) {
-        out[0] = (*in >> 16) & 0xff;
-        out[1] = (*in >>  8) & 0xff;
-        out[2] = (*in >>  0) & 0xff;
-        out[3] = (*in >> 24) & 0xff;
-        out += 4;
-        in++;
-      }
-    } else {
-      unsigned char *out;
-      int xMaskBytesPerRow;
-
-      xMaskBytesPerRow = BitmapBytePad(width);
-
-      out = rgbaData;
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          int byte = y * xMaskBytesPerRow + x / 8;
-#if (BITMAP_BIT_ORDER == MSBFirst)
-          int bit = 7 - x % 8;
-#else
-          int bit = x % 8;
-#endif
-
-          if (cursor->bits->source[byte] & (1 << bit)) {
-            out[0] = cursor->foreRed;
-            out[1] = cursor->foreGreen;
-            out[2] = cursor->foreBlue;
-          } else {
-            out[0] = cursor->backRed;
-            out[1] = cursor->backGreen;
-            out[2] = cursor->backBlue;
-          }
-
-          if (cursor->bits->mask[byte] & (1 << bit))
-            out[3] = 0xff;
-          else
-            out[3] = 0x00;
-
-          out += 4;
-        }
-      }
-    }
-
-    vncSetCursorSprite(width, height, hotX, hotY, rgbaData);
-
-    free(rgbaData);
-  }
-
-out:
-  SCREEN_EPILOGUE(DisplayCursor);
-
-  return ret;
 }
 
 // CursorWarpedTo - notify that the cursor was warped
@@ -1184,6 +1134,154 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
   vncRefreshScreenLayout(pScreen->myNum);
 
   return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Sprite functions
+//
+
+// Unwrap and rewrap helpers
+
+#define SPRITE_PROLOGUE(field)                                            \
+  miPointerScreenPtr miPointerPriv =                                      \
+    dixLookupPrivate(&screen->devPrivates, miPointerScreenKey);           \
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(screen);       \
+  unwrap(vncHooksScreen, miPointerPriv, spriteFuncs);                     \
+  DBGPRINT((stderr,"vncHooks" #field " called\n"));
+
+#define SPRITE_EPILOGUE(field)                                            \
+  wrap(vncHooksScreen, miPointerPriv, spriteFuncs, &vncHooksSpriteFuncs); \
+
+static Bool vncHooksRealizeCursor(DeviceIntPtr dev, ScreenPtr screen,
+                                  CursorPtr cursor)
+{
+  Bool ret;
+  SPRITE_PROLOGUE(RealizeCursor);
+  ret = (*miPointerPriv->spriteFuncs->RealizeCursor)(dev, screen, cursor);
+  SPRITE_EPILOGUE();
+  return ret;
+}
+
+static Bool vncHooksUnrealizeCursor(DeviceIntPtr dev, ScreenPtr screen,
+                                    CursorPtr cursor)
+{
+  Bool ret;
+  SPRITE_PROLOGUE(UnrealizeCursor);
+  ret = (*miPointerPriv->spriteFuncs->UnrealizeCursor)(dev, screen, cursor);
+  SPRITE_EPILOGUE();
+  return ret;
+}
+
+static void vncHooksSetCursor(DeviceIntPtr dev, ScreenPtr screen,
+                              CursorPtr cursor, int x, int y)
+{
+  SPRITE_PROLOGUE(SetCursor);
+
+  (*miPointerPriv->spriteFuncs->SetCursor)(dev, screen, cursor, x, y);
+
+  if (cursor == NullCursor) {
+    vncSetCursorSprite(0, 0, 0, 0, NULL);
+  } else {
+    int width, height;
+    int hotX, hotY;
+
+    unsigned char *rgbaData;
+
+    width = cursor->bits->width;
+    height = cursor->bits->height;
+
+    hotX = cursor->bits->xhot;
+    hotY = cursor->bits->yhot;
+
+    rgbaData = malloc(width * height * 4);
+    if (rgbaData == NULL)
+      goto out;
+
+    if (cursor->bits->argb) {
+      unsigned char *out;
+      CARD32 *in;
+      int i;
+
+      in = cursor->bits->argb;
+      out = rgbaData;
+      for (i = 0; i < width*height; i++) {
+        out[0] = (*in >> 16) & 0xff;
+        out[1] = (*in >>  8) & 0xff;
+        out[2] = (*in >>  0) & 0xff;
+        out[3] = (*in >> 24) & 0xff;
+        out += 4;
+        in++;
+      }
+    } else {
+      unsigned char *out;
+      int xMaskBytesPerRow;
+
+      xMaskBytesPerRow = BitmapBytePad(width);
+
+      out = rgbaData;
+      for (int sy = 0; sy < height; sy++) {
+        for (int sx = 0; sx < width; sx++) {
+          int byte = sy * xMaskBytesPerRow + sx / 8;
+#if (BITMAP_BIT_ORDER == MSBFirst)
+          int bit = 7 - sx % 8;
+#else
+          int bit = sx % 8;
+#endif
+
+          if (cursor->bits->source[byte] & (1 << bit)) {
+            out[0] = cursor->foreRed;
+            out[1] = cursor->foreGreen;
+            out[2] = cursor->foreBlue;
+          } else {
+            out[0] = cursor->backRed;
+            out[1] = cursor->backGreen;
+            out[2] = cursor->backBlue;
+          }
+
+          if (cursor->bits->mask[byte] & (1 << bit))
+            out[3] = 0xff;
+          else
+            out[3] = 0x00;
+
+          out += 4;
+        }
+      }
+    }
+
+    vncSetCursorSprite(width, height, hotX, hotY, rgbaData);
+
+    free(rgbaData);
+  }
+
+out:
+  SPRITE_EPILOGUE();
+}
+
+static void vncHooksMoveCursor(DeviceIntPtr dev, ScreenPtr screen,
+                               int x, int y)
+{
+  SPRITE_PROLOGUE(MoveCursor);
+  (*miPointerPriv->spriteFuncs->MoveCursor)(dev, screen, x, y);
+  SPRITE_EPILOGUE();
+}
+
+static Bool vncHooksDeviceCursorInitialize(DeviceIntPtr dev,
+                                           ScreenPtr screen)
+{
+  Bool ret;
+  SPRITE_PROLOGUE(DeviceCursorInitialize);
+  ret = (*miPointerPriv->spriteFuncs->DeviceCursorInitialize)(dev, screen);
+  SPRITE_EPILOGUE();
+  return ret;
+}
+
+static void vncHooksDeviceCursorCleanup(DeviceIntPtr dev,
+                                        ScreenPtr screen)
+{
+  SPRITE_PROLOGUE(DeviceCursorCleanup);
+  (*miPointerPriv->spriteFuncs->DeviceCursorCleanup)(dev, screen);
+  SPRITE_EPILOGUE();
 }
 
 /////////////////////////////////////////////////////////////////////////////
