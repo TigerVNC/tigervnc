@@ -24,19 +24,19 @@
 namespace rfb {
   class protocol_error : public std::runtime_error {
   public:
-    protocol_error(const char* what_arg) : std::runtime_error(what_arg) {}
-    protocol_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
+    protocol_error(const char* what_arg) noexcept : std::runtime_error(what_arg) {}
+    protocol_error(const std::string& what_arg) noexcept : std::runtime_error(what_arg) {}
   };
 
   class auth_error : public std::runtime_error {
   public:
-    auth_error(const char* reason) : std::runtime_error(reason) {}
-    auth_error(std::string& reason) : std::runtime_error(reason) {}
+    auth_error(const char* reason) noexcept : std::runtime_error(reason) {}
+    auth_error(std::string& reason) noexcept : std::runtime_error(reason) {}
   };
 
   class auth_cancelled : public std::runtime_error {
   public:
-    auth_cancelled()
+    auth_cancelled() noexcept
       : std::runtime_error("Authentication cancelled") {}
   };
 }

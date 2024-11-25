@@ -30,49 +30,49 @@ namespace rdr {
   class posix_error : public std::runtime_error {
   public:
     int err;
-    posix_error(const char* what_arg, int err_);
-    posix_error(const std::string& what_arg, int err_);
+    posix_error(const char* what_arg, int err_) noexcept;
+    posix_error(const std::string& what_arg, int err_) noexcept;
   private:
-    std::string strerror(int err_) const;
+    std::string strerror(int err_) const noexcept;
   };
 
 #ifdef WIN32
   class win32_error : public std::runtime_error {
   public:
     unsigned err;
-    win32_error(const char* what_arg, unsigned err_);
-    win32_error(const std::string& what_arg, unsigned err_);
+    win32_error(const char* what_arg, unsigned err_) noexcept;
+    win32_error(const std::string& what_arg, unsigned err_) noexcept;
   private:
-    std::string strerror(unsigned err_) const;
+    std::string strerror(unsigned err_) const noexcept;
   };
 #endif
 
 #ifdef WIN32
   class socket_error : public win32_error {
   public:
-    socket_error(const char* what_arg, unsigned err_) : win32_error(what_arg, err_) {}
-    socket_error(const std::string& what_arg, unsigned err_) : win32_error(what_arg, err_) {}
+    socket_error(const char* what_arg, unsigned err_) noexcept : win32_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) noexcept : win32_error(what_arg, err_) {}
   };
 #else
   class socket_error : public posix_error {
   public:
-    socket_error(const char* what_arg, unsigned err_) : posix_error(what_arg, err_) {}
-    socket_error(const std::string& what_arg, unsigned err_) : posix_error(what_arg, err_) {}
+    socket_error(const char* what_arg, unsigned err_) noexcept : posix_error(what_arg, err_) {}
+    socket_error(const std::string& what_arg, unsigned err_) noexcept : posix_error(what_arg, err_) {}
   };
 #endif
 
   class getaddrinfo_error : public std::runtime_error {
   public:
     int err;
-    getaddrinfo_error(const char* s, int err_);
-    getaddrinfo_error(const std::string& s, int err_);
+    getaddrinfo_error(const char* s, int err_) noexcept;
+    getaddrinfo_error(const std::string& s, int err_) noexcept;
   private:
-    std::string strerror(int err_) const;
+    std::string strerror(int err_) const noexcept;
   };
 
   class end_of_stream : public std::runtime_error {
   public:
-    end_of_stream() : std::runtime_error("End of stream") {}
+    end_of_stream() noexcept : std::runtime_error("End of stream") {}
   };
 
 }

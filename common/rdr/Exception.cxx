@@ -43,21 +43,22 @@
 using namespace rdr;
 
 
-getaddrinfo_error::getaddrinfo_error(const char* s, int err_)
+getaddrinfo_error::getaddrinfo_error(const char* s, int err_) noexcept
   : std::runtime_error(rfb::format("%s: %s (%d)", s,
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-getaddrinfo_error::getaddrinfo_error(const std::string& s, int err_)
+getaddrinfo_error::getaddrinfo_error(const std::string& s,
+                                     int err_) noexcept
   : std::runtime_error(rfb::format("%s: %s (%d)", s.c_str(),
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-std::string getaddrinfo_error::strerror(int err_) const
+std::string getaddrinfo_error::strerror(int err_) const noexcept
 {
 #ifdef _WIN32
   char str[256];
@@ -71,21 +72,21 @@ std::string getaddrinfo_error::strerror(int err_) const
 #endif
 }
 
-posix_error::posix_error(const char* what_arg, int err_)
+posix_error::posix_error(const char* what_arg, int err_) noexcept
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-posix_error::posix_error(const std::string& what_arg, int err_)
+posix_error::posix_error(const std::string& what_arg, int err_) noexcept
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-std::string posix_error::strerror(int err_) const
+std::string posix_error::strerror(int err_) const noexcept
 {
 #ifdef _WIN32
   char str[256];
@@ -100,21 +101,22 @@ std::string posix_error::strerror(int err_) const
 }
 
 #ifdef WIN32
-win32_error::win32_error(const char* what_arg, unsigned err_)
+win32_error::win32_error(const char* what_arg, unsigned err_) noexcept
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg,
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-win32_error::win32_error(const std::string& what_arg, unsigned err_)
+win32_error::win32_error(const std::string& what_arg,
+                         unsigned err_) noexcept
   : std::runtime_error(rfb::format("%s: %s (%d)", what_arg.c_str(),
                                    strerror(err_).c_str(), err_)),
     err(err_)
 {
 }
 
-std::string win32_error::strerror(unsigned err_) const
+std::string win32_error::strerror(unsigned err_) const noexcept
 {
   wchar_t wstr[256];
   char str[256];
