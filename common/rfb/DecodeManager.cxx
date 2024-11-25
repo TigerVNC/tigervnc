@@ -260,7 +260,7 @@ void DecodeManager::throwThreadException()
   if (threadException == nullptr)
     return;
 
-  std::exception e(*threadException);
+  std::runtime_error e(threadException->what());
 
   delete threadException;
   threadException = nullptr;

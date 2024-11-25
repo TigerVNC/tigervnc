@@ -64,7 +64,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
   } catch (std::exception& e) {
     vlog.error("Failure reading TLS data: %s", e.what());
     gnutls_transport_set_errno(self->session, EINVAL);
-    self->saved_exception = new std::exception(e);
+    self->saved_exception = new std::runtime_error(e.what());
     return -1;
   }
 
@@ -117,8 +117,12 @@ size_t TLSInStream::readTLS(uint8_t* buf, size_t len)
     break;
   };
 
-  if (n == GNUTLS_E_PULL_ERROR)
-    throw *saved_exception;
+  if (n == GNUTLS_E_PULL_ERROR) {
+    if (dynamic_cast<socket_error*>(saved_exception))
+      throw *dynamic_cast<socket_error*>(saved_exception);
+    else
+      throw std::runtime_error(saved_exception->what());
+  }
 
   if (n < 0)
     throw tls_error("readTLS", n);
