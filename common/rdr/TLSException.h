@@ -28,7 +28,7 @@ namespace rdr {
   class tls_error : public std::runtime_error {
   public:
     int err;
-    tls_error(const char* s, int err_);
+    tls_error(const char* s, int err_) noexcept;
   };
 
 }
