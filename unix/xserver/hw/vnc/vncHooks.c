@@ -560,11 +560,9 @@ static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
 
   ret = (*pScreen->DisplayCursor) (pDev, pScreen, cursor);
 
-  /*
-   * XXX DIX calls this function with NULL argument to remove cursor sprite from
-   * screen. Should we handle this in setCursor as well?
-   */
-  if (cursor != NullCursor) {
+  if (cursor == NullCursor) {
+    vncSetCursorSprite(0, 0, 0, 0, NULL);
+  } else {
     int width, height;
     int hotX, hotY;
 
