@@ -118,6 +118,7 @@ private:
 
 #ifdef WIN32
   bool altGrArmed;
+  uint32_t vkPacketHighSurrogate;
   unsigned int altGrCtrlTime;
 #endif
 
