@@ -190,7 +190,15 @@ int main(int argc, char** argv)
   fname[0] = '\0';
 
   for (int i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "-q") == 0) { // allowed for backwards compatibility
+    if ((strcmp(argv[i], "-h") == 0) ||
+        (strcmp(argv[i], "--help") == 0)) {
+      usage();
+    } else if ((strcmp(argv[i], "-v") == 0) ||
+               (strcmp(argv[i], "--version") == 0)) {
+      fprintf(stderr, "vncpasswd (TigerVNC) %s\n", PACKAGE_VERSION);
+      exit(0);
+    } else if (strcmp(argv[i], "-q") == 0) {
+      // allowed for backwards compatibility
     } else if (strncmp(argv[i], "-f", 2) == 0) {
       return encrypt_pipe();
     } else if (argv[i][0] == '-') {
