@@ -89,15 +89,6 @@ namespace rfb {
     // - Remove a parameter from this Configuration group
     bool remove(const char* param);
 
-    // - readFromFile
-    //   Read configuration parameters from the specified file.
-    void readFromFile(const char* filename);
-
-    // - writeConfigToFile
-    //   Write a new configuration parameters file, then mv it
-    //   over the old file.
-    void writeToFile(const char* filename);
-
 
     // - Get the Global Configuration object
     //   NB: This call does NOT lock the Configuration system.
