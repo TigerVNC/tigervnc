@@ -73,10 +73,6 @@ namespace rfb {
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
 
-    // - Set named parameter to value, with name truncated at len
-    bool set(const char* name, int len,
-                  const char* val, bool immutable);
-
     // - Get named parameter
     VoidParameter* get(const char* param);
 
@@ -106,10 +102,6 @@ namespace rfb {
     // - Container for process-wide Global parameters
     static bool setParam(const char* param, const char* value, bool immutable=false) {
       return global()->set(param, value, immutable);
-    }
-    static bool setParam(const char* name, int len,
-      const char* val, bool immutable) {
-      return global()->set(name, len, val, immutable);
     }
     static VoidParameter* getParam(const char* param) { return global()->get(param); }
     static void listParams(int width=79, int nameWidth=10) {

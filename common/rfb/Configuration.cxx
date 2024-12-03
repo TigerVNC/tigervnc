@@ -73,17 +73,12 @@ Configuration* Configuration::viewer() {
 
 // -=- Configuration implementation
 
-bool Configuration::set(const char* n, const char* v, bool immutable) {
-  return set(n, strlen(n), v, immutable);
-}
-
-bool Configuration::set(const char* paramName, int len,
-                             const char* val, bool immutable)
+bool Configuration::set(const char* paramName, const char* val,
+                        bool immutable)
 {
   VoidParameter* current = head;
   while (current) {
-    if ((int)strlen(current->getName()) == len &&
-        strncasecmp(current->getName(), paramName, len) == 0)
+    if (strcasecmp(current->getName(), paramName) == 0)
     {
       bool b = current->setParam(val);
       if (b && immutable) 
@@ -92,7 +87,7 @@ bool Configuration::set(const char* paramName, int len,
     }
     current = current->_next;
   }
-  return _next ? _next->set(paramName, len, val, immutable) : false;
+  return _next ? _next->set(paramName, val, immutable) : false;
 }
 
 VoidParameter* Configuration::get(const char* param)
