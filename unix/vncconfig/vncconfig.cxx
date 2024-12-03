@@ -222,6 +222,15 @@ int main(int argc, char** argv)
       continue;
     }
 
+    if (strcmp(argv[i], "-help") == 0) {
+      usage();
+    }
+
+    if (strcmp(argv[i], "-version") == 0) {
+      fprintf(stderr, "vncconfig (TigerVNC) %s\n", PACKAGE_VERSION);
+      exit(0);
+    }
+
     break;
   }
 

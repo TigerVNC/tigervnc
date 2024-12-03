@@ -683,6 +683,17 @@ int main(int argc, char** argv)
       continue;
     }
 
+    if (strcmp(argv[i], "-h") == 0 ||
+        strcmp(argv[i], "--help") == 0) {
+      usage(argv[0]);
+    }
+
+    if (strcmp(argv[i], "-v") == 0 ||
+        strcmp(argv[i], "--version") == 0) {
+      /* We already print version on every start */
+      return 0;
+    }
+
     if (argv[i][0] == '-')
       usage(argv[0]);
 

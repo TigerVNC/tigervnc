@@ -294,6 +294,12 @@ int main(int argc, char** argv)
       continue;
     }
 
+    if (strcmp(argv[i], "-h") == 0 ||
+        strcmp(argv[i], "-help") == 0 ||
+        strcmp(argv[i], "--help") == 0) {
+      usage();
+    }
+
     if (strcmp(argv[i], "-v") == 0 ||
         strcmp(argv[i], "-version") == 0 ||
         strcmp(argv[i], "--version") == 0) {
