@@ -202,7 +202,9 @@ int main(int argc, char** argv)
     } else if (strncmp(argv[i], "-f", 2) == 0) {
       return encrypt_pipe();
     } else if (argv[i][0] == '-') {
-      usage();
+      fprintf(stderr, "%s: Unrecognized option '%s'\n", prog, argv[i]);
+      fprintf(stderr, "See '%s --help' for more information.\n", prog);
+      exit(1);
     } else if (fname[0] == '\0') {
       if (strlen(argv[i]) >= sizeof(fname)) {
         fprintf(stderr, "Too long filename specified\n");
@@ -210,7 +212,9 @@ int main(int argc, char** argv)
       }
       strcpy(fname, argv[i]);
     } else {
-      usage();
+      fprintf(stderr, "%s: Extra argument '%s'\n", prog, argv[i]);
+      fprintf(stderr, "See '%s --help' for more information.\n", prog);
+      exit(1);
     }
   }
 

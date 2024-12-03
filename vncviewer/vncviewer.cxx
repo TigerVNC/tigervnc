@@ -694,11 +694,22 @@ int main(int argc, char** argv)
       return 0;
     }
 
-    if (argv[i][0] == '-')
-      usage(argv[0]);
+    if (argv[i][0] == '-') {
+      fprintf(stderr, "\n");
+      fprintf(stderr, _("%s: Unrecognized option '%s'\n"),
+              argv[0], argv[i]);
+      fprintf(stderr, _("See '%s --help' for more information.\n"),
+              argv[0]);
+      exit(1);
+    }
 
-    if (vncServerName[0] != '\0')
-      usage(argv[0]);
+    if (vncServerName[0] != '\0') {
+      fprintf(stderr, "\n");
+      fprintf(stderr, _("%s: Extra argument '%s'\n"), argv[0], argv[i]);
+      fprintf(stderr, _("See '%s --help' for more information.\n"),
+              argv[0]);
+      exit(0);
+    }
 
     strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
     vncServerName[VNCSERVERNAMELEN - 1] = '\0';

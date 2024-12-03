@@ -296,18 +296,34 @@ int main(int argc, char** argv)
         if (i >= argc) usage();
 
         char* equal = strchr(argv[i], '=');
-        if (!equal)
-          usage();
+        if (!equal) {
+          fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
+                  programName, argv[i]);
+          fprintf(stderr, "See '%s -help' for more information.\n",
+                  programName);
+          exit(1);
+        }
 
         std::string name(argv[i], equal-argv[i]);
         std::string value(equal+1);
 
         if (!XVncExtSetParam(dpy, name.c_str(), value.c_str()))
           fprintf(stderr, "Setting param %s failed\n",argv[i]);
+      } else if (argv[i][0] == '-') {
+        fprintf(stderr, "%s: Unrecognized option '%s'\n",
+                programName, argv[i]);
+        fprintf(stderr, "See '%s -help' for more information.\n",
+                programName);
+        exit(1);
       } else {
         char* equal = strchr(argv[i], '=');
-        if (!equal)
-          usage();
+        if (!equal) {
+          fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
+                  programName, argv[i]);
+          fprintf(stderr, "See '%s -help' for more information.\n",
+                  programName);
+          exit(1);
+        }
 
         std::string name(argv[i], equal-argv[i]);
         std::string value(equal+1);

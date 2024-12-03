@@ -307,7 +307,18 @@ int main(int argc, char** argv)
       return 0;
     }
 
-    usage();
+    if (argv[i][0] == '-') {
+      fprintf(stderr, "%s: Unrecognized option '%s'\n",
+              programName, argv[i]);
+      fprintf(stderr, "See '%s --help' for more information.\n",
+              programName);
+      exit(1);
+    }
+
+    fprintf(stderr, "%s: Extra argument '%s'\n", programName, argv[i]);
+    fprintf(stderr, "See '%s --help' for more information.\n",
+            programName);
+    exit(1);
   }
 
   if (!(dpy = XOpenDisplay(displayname))) {
