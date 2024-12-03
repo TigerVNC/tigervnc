@@ -697,6 +697,9 @@ int main(int argc, char** argv)
     if (argv[i][0] == '-')
       usage(argv[0]);
 
+    if (vncServerName[0] != '\0')
+      usage(argv[0]);
+
     strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
     vncServerName[VNCSERVERNAMELEN - 1] = '\0';
     i++;
