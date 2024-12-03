@@ -61,15 +61,12 @@ processParams(int argc, char* argv[]) {
     } else if (strcasecmp(argv[i], "-user") == 0) {
       configKey = HKEY_CURRENT_USER;
     } else {
-      // Try to process <option>=<value>, or -<bool>
-      if (Configuration::setParam(argv[i], true))
+      int ret;
+
+      ret = Configuration::handleParamArg(argc, argv, i);
+      if (ret > 0) {
+        i += ret - 1;
         continue;
-      // Try to process -<option> <value>
-      if ((argv[i][0] == '-') && (i+1 < argc)) {
-        if (Configuration::setParam(&argv[i][1], argv[i+1], true)) {
-          i++;
-          continue;
-        }
       }
     }
   }

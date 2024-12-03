@@ -213,15 +213,15 @@ int main(int argc, char** argv)
   // Process vncconfig's own parameters first, then we process the
   // other arguments when we have the X display.
   int i;
-  for (i = 1; i < argc; i++) {
-    if (Configuration::setParam(argv[i]))
-      continue;
+  for (i = 1; i < argc;) {
+    int ret;
 
-    if (argv[i][0] == '-' && i+1 < argc &&
-        Configuration::setParam(&argv[i][1], argv[i+1])) {
-      i++;
+    ret = Configuration::handleParamArg(argc, argv, i);
+    if (ret > 0) {
+      i += ret;
       continue;
     }
+
     break;
   }
 

@@ -73,9 +73,6 @@ namespace rfb {
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
 
-    // - Set parameter to value (separated by "=")
-    bool set(const char* config, bool immutable=false);
-
     // - Set named parameter to value, with name truncated at len
     bool set(const char* name, int len,
                   const char* val, bool immutable);
@@ -88,6 +85,11 @@ namespace rfb {
 
     // - Remove a parameter from this Configuration group
     bool remove(const char* param);
+
+    // - handleArg
+    //   Parse a command line argument into a parameter, returning how
+    //   many arguments were consumed
+    int handleArg(int argc, char* argv[], int index);
 
 
     // - Get the Global Configuration object
@@ -105,9 +107,6 @@ namespace rfb {
     static bool setParam(const char* param, const char* value, bool immutable=false) {
       return global()->set(param, value, immutable);
     }
-    static bool setParam(const char* config, bool immutable=false) { 
-      return global()->set(config, immutable);
-    }
     static bool setParam(const char* name, int len,
       const char* val, bool immutable) {
       return global()->set(name, len, val, immutable);
@@ -118,6 +117,9 @@ namespace rfb {
     }
     static bool removeParam(const char* param) {
       return global()->remove(param);
+    }
+    static int handleParamArg(int argc, char* argv[], int index) {
+      return global()->handleArg(argc, argv, index);
     }
 
   private:

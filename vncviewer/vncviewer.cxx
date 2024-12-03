@@ -675,41 +675,16 @@ int main(int argc, char** argv)
   }
 
   for (int i = 1; i < argc;) {
-    /* We need to resolve an ambiguity for booleans */
-    if (argv[i][0] == '-' && i+1 < argc) {
-        VoidParameter *param;
+    int ret;
 
-        param = Configuration::getParam(&argv[i][1]);
-        if ((param != nullptr) &&
-            (dynamic_cast<BoolParameter*>(param) != nullptr)) {
-          if ((strcasecmp(argv[i+1], "0") == 0) ||
-              (strcasecmp(argv[i+1], "1") == 0) ||
-              (strcasecmp(argv[i+1], "true") == 0) ||
-              (strcasecmp(argv[i+1], "false") == 0) ||
-              (strcasecmp(argv[i+1], "yes") == 0) ||
-              (strcasecmp(argv[i+1], "no") == 0)) {
-              param->setParam(argv[i+1]);
-              i += 2;
-              continue;
-          }
-      }
-    }
-
-    if (Configuration::setParam(argv[i])) {
-      i++;
+    ret = Configuration::handleParamArg(argc, argv, i);
+    if (ret > 0) {
+      i += ret;
       continue;
     }
 
-    if (argv[i][0] == '-') {
-      if (i+1 < argc) {
-        if (Configuration::setParam(&argv[i][1], argv[i+1])) {
-          i += 2;
-          continue;
-        }
-      }
-
+    if (argv[i][0] == '-')
       usage(argv[0]);
-    }
 
     strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
     vncServerName[VNCSERVERNAMELEN - 1] = '\0';

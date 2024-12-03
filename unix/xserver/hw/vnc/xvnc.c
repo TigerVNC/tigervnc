@@ -461,13 +461,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
         }
     }
 
-    if (vncSetParamSimple(argv[i]))
-        return 1;
+    int ret;
 
-    if (argv[i][0] == '-' && i + 1 < argc) {
-        if (vncSetParam(&argv[i][1], argv[i + 1]))
-            return 2;
-    }
+    ret = vncHandleParamArg(argc, argv, i);
+    if (ret != 0)
+        return ret;
 
     return 0;
 }

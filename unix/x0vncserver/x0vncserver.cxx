@@ -286,23 +286,19 @@ int main(int argc, char** argv)
     rfbport.setParam(-1);
 
   for (int i = 1; i < argc; i++) {
-    if (Configuration::setParam(argv[i]))
-      continue;
+    int ret;
 
-    if (argv[i][0] == '-') {
-      if (i+1 < argc) {
-        if (Configuration::setParam(&argv[i][1], argv[i+1])) {
-          i++;
-          continue;
-        }
-      }
-      if (strcmp(argv[i], "-v") == 0 ||
-          strcmp(argv[i], "-version") == 0 ||
-          strcmp(argv[i], "--version") == 0) {
-        printVersion(stdout);
-        return 0;
-      }
-      usage();
+    ret = Configuration::handleParamArg(argc, argv, i);
+    if (ret > 0) {
+      i += ret;
+      continue;
+    }
+
+    if (strcmp(argv[i], "-v") == 0 ||
+        strcmp(argv[i], "-version") == 0 ||
+        strcmp(argv[i], "--version") == 0) {
+      printVersion(stdout);
+      return 0;
     }
 
     usage();

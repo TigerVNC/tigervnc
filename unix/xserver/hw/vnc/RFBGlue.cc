@@ -107,11 +107,6 @@ int vncSetParam(const char *name, const char *value)
   }
 }
 
-int vncSetParamSimple(const char *nameAndValue)
-{
-  return rfb::Configuration::setParam(nameAndValue);
-}
-
 char* vncGetParam(const char *name)
 {
   VoidParameter *param;
@@ -199,6 +194,11 @@ char *vncGetParamList(void)
 void vncListParams(int width, int nameWidth)
 {
   rfb::Configuration::listParams(width, nameWidth);
+}
+
+int vncHandleParamArg(int argc, char* argv[], int index)
+{
+  return rfb::Configuration::handleParamArg(argc, argv, index);
 }
 
 int vncGetSocketPort(int fd)
