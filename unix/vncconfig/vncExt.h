@@ -40,7 +40,7 @@ extern "C" {
 #ifndef _VNCEXT_SERVER_
 
 Bool XVncExtQueryExtension(Display* dpy, int* event_basep, int* error_basep);
-Bool XVncExtSetParam(Display* dpy, const char* param);
+Bool XVncExtSetParam(Display* dpy, const char* param, const char* value);
 Bool XVncExtGetParam(Display* dpy, const char* param, char** value, int* len);
 char* XVncExtGetParamDesc(Display* dpy, const char* param);
 char** XVncExtListParams(Display* dpy, int* nParams);
@@ -70,9 +70,8 @@ typedef struct {
   CARD8 reqType;       /* always VncExtReqCode */
   CARD8 vncExtReqType; /* always VncExtSetParam */
   CARD16 length;
-  CARD8 paramLen;
-  CARD8 pad0;
-  CARD16 pad1;
+  CARD16 paramLen;
+  CARD16 valueLen;
 } xVncExtSetParamReq;
 #define sz_xVncExtSetParamReq 8
 

@@ -141,19 +141,19 @@ public:
   // TXCheckboxCallback method
   void checkboxSelect(TXCheckbox* checkbox) override {
     if (checkbox == &acceptClipboard) {
-      XVncExtSetParam(dpy, (acceptClipboard.checked()
-                            ? ACCEPT_CUT_TEXT "=1" : ACCEPT_CUT_TEXT "=0"));
+      XVncExtSetParam(dpy, ACCEPT_CUT_TEXT,
+                      acceptClipboard.checked() ? "1" : "0");
       setPrimaryCB.disabled(!acceptClipboard.checked());
     } else if (checkbox == &sendClipboard) {
-      XVncExtSetParam(dpy, (sendClipboard.checked()
-                            ? SEND_CUT_TEXT "=1" : SEND_CUT_TEXT "=0"));
+      XVncExtSetParam(dpy, SEND_CUT_TEXT,
+                      sendClipboard.checked() ? "1" : "0");
       sendPrimaryCB.disabled(!sendClipboard.checked());
     } else if (checkbox == &setPrimaryCB) {
-      XVncExtSetParam(dpy, (setPrimaryCB.checked()
-                            ? SET_PRIMARY "=1" : SET_PRIMARY "=0"));
+      XVncExtSetParam(dpy, SET_PRIMARY,
+                      setPrimaryCB.checked() ? "1" : "0");
     } else if (checkbox == &sendPrimaryCB) {
-      XVncExtSetParam(dpy, (sendPrimaryCB.checked()
-                            ? SEND_PRIMARY "=1" : SEND_PRIMARY "=0"));
+      XVncExtSetParam(dpy, SEND_PRIMARY,
+                      sendPrimaryCB.checked() ? "1" : "0");
     }
   }
 
@@ -285,13 +285,26 @@ int main(int argc, char** argv)
       } else if (strcmp(argv[i], "-set") == 0) {
         i++;
         if (i >= argc) usage();
-        if (!XVncExtSetParam(dpy, argv[i])) {
+
+        char* equal = strchr(argv[i], '=');
+        if (!equal)
+          usage();
+
+        std::string name(argv[i], equal-argv[i]);
+        std::string value(equal+1);
+
+        if (!XVncExtSetParam(dpy, name.c_str(), value.c_str()))
           fprintf(stderr, "Setting param %s failed\n",argv[i]);
-        }
-      } else if (XVncExtSetParam(dpy, argv[i])) {
-        fprintf(stderr, "Set parameter %s\n",argv[i]);
       } else {
-        usage();
+        char* equal = strchr(argv[i], '=');
+        if (!equal)
+          usage();
+
+        std::string name(argv[i], equal-argv[i]);
+        std::string value(equal+1);
+
+        if (!XVncExtSetParam(dpy, name.c_str(), value.c_str()))
+          fprintf(stderr, "Setting param %s failed\n",argv[i]);
       }
     }
 
