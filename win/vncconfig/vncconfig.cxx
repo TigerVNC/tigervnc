@@ -55,21 +55,20 @@ HKEY configKey = HKEY_CURRENT_USER;
 
 void
 processParams(int argc, char* argv[]) {
-  for (int i=1; i<argc; i++) {
+  for (int i=1; i<argc;) {
     if (strcasecmp(argv[i], "-service") == 0) {
       configKey = HKEY_LOCAL_MACHINE;
+      i++;
     } else if (strcasecmp(argv[i], "-user") == 0) {
       configKey = HKEY_CURRENT_USER;
+      i++;
     } else {
-      // Try to process <option>=<value>, or -<bool>
-      if (Configuration::setParam(argv[i], true))
+      int ret;
+
+      ret = Configuration::handleParamArg(argc, argv, i);
+      if (ret > 0) {
+        i += ret;
         continue;
-      // Try to process -<option> <value>
-      if ((argv[i][0] == '-') && (i+1 < argc)) {
-        if (Configuration::setParam(&argv[i][1], argv[i+1], true)) {
-          i++;
-          continue;
-        }
       }
     }
   }

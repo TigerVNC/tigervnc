@@ -73,13 +73,6 @@ namespace rfb {
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
 
-    // - Set parameter to value (separated by "=")
-    bool set(const char* config, bool immutable=false);
-
-    // - Set named parameter to value, with name truncated at len
-    bool set(const char* name, int len,
-                  const char* val, bool immutable);
-
     // - Get named parameter
     VoidParameter* get(const char* param);
 
@@ -89,14 +82,10 @@ namespace rfb {
     // - Remove a parameter from this Configuration group
     bool remove(const char* param);
 
-    // - readFromFile
-    //   Read configuration parameters from the specified file.
-    void readFromFile(const char* filename);
-
-    // - writeConfigToFile
-    //   Write a new configuration parameters file, then mv it
-    //   over the old file.
-    void writeToFile(const char* filename);
+    // - handleArg
+    //   Parse a command line argument into a parameter, returning how
+    //   many arguments were consumed
+    int handleArg(int argc, char* argv[], int index);
 
 
     // - Get the Global Configuration object
@@ -114,19 +103,15 @@ namespace rfb {
     static bool setParam(const char* param, const char* value, bool immutable=false) {
       return global()->set(param, value, immutable);
     }
-    static bool setParam(const char* config, bool immutable=false) { 
-      return global()->set(config, immutable);
-    }
-    static bool setParam(const char* name, int len,
-      const char* val, bool immutable) {
-      return global()->set(name, len, val, immutable);
-    }
     static VoidParameter* getParam(const char* param) { return global()->get(param); }
     static void listParams(int width=79, int nameWidth=10) {
       global()->list(width, nameWidth);
     }
     static bool removeParam(const char* param) {
       return global()->remove(param);
+    }
+    static int handleParamArg(int argc, char* argv[], int index) {
+      return global()->handleArg(argc, argv, index);
     }
 
   private:
