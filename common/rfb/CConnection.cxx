@@ -40,6 +40,10 @@
 #include <rfb/CConnection.h>
 #include <rfb/util.h>
 
+#define XK_MISCELLANY
+#define XK_XKB_KEYS
+#include <rfb/keysymdef.h>
+
 #include <rfb/LogWriter.h>
 
 #include <rdr/InStream.h>
@@ -693,6 +697,89 @@ void CConnection::sendClipboardData(const char* data)
   } else {
     writer()->writeClientCutText(data);
   }
+}
+
+void CConnection::sendKeyPress(int systemKeyCode,
+                               uint32_t keyCode, uint32_t keySym)
+{
+  // For the first few years, there wasn't a good consensus on what the
+  // Windows keys should be mapped to for X11. So we need to help out a
+  // bit and map all variants to the same key...
+  switch (keySym) {
+  case XK_Hyper_L:
+    keySym = XK_Super_L;
+    break;
+  case XK_Hyper_R:
+    keySym = XK_Super_R;
+    break;
+  // There has been several variants for Shift-Tab over the years.
+  // RFB states that we should always send a normal tab.
+  case XK_ISO_Left_Tab:
+    keySym = XK_Tab;
+    break;
+  }
+
+#ifdef __APPLE__
+  // Alt on OS X behaves more like AltGr on other systems, and to get
+  // sane behaviour we should translate things in that manner for the
+  // remote VNC server. However that means we lose the ability to use
+  // Alt as a shortcut modifier. Do what RealVNC does and hijack the
+  // left command key as an Alt replacement.
+  switch (keySym) {
+  case XK_Super_L:
+    keySym = XK_Alt_L;
+    break;
+  case XK_Super_R:
+    keySym = XK_Super_L;
+    break;
+  case XK_Alt_L:
+    keySym = XK_Mode_switch;
+    break;
+  case XK_Alt_R:
+    keySym = XK_ISO_Level3_Shift;
+    break;
+  }
+#endif
+
+  // Because of the way keyboards work, we cannot expect to have the same
+  // symbol on release as when pressed. This breaks the VNC protocol however,
+  // so we need to keep track of what keysym a key _code_ generated on press
+  // and send the same on release.
+  downKeys[systemKeyCode].keyCode = keyCode;
+  downKeys[systemKeyCode].keySym = keySym;
+
+  vlog.debug("Key pressed: %d => 0x%02x / XK_%s (0x%04x)",
+             systemKeyCode, keyCode, KeySymName(keySym), keySym);
+
+  writer()->writeKeyEvent(keySym, keyCode, true);
+}
+
+void CConnection::sendKeyRelease(int systemKeyCode)
+{
+  DownMap::iterator iter;
+
+  iter = downKeys.find(systemKeyCode);
+  if (iter == downKeys.end()) {
+    // These occur somewhat frequently so let's not spam them unless
+    // logging is turned up.
+    vlog.debug("Unexpected release of key code %d", systemKeyCode);
+    return;
+  }
+
+  vlog.debug("Key released: %d => 0x%02x / XK_%s (0x%04x)",
+             systemKeyCode, iter->second.keyCode,
+             KeySymName(iter->second.keySym), iter->second.keySym);
+
+  writer()->writeKeyEvent(iter->second.keySym,
+                          iter->second.keyCode, false);
+
+  downKeys.erase(iter);
+}
+
+void CConnection::releaseAllKeys()
+{
+  while (!downKeys.empty())
+    sendKeyRelease(downKeys.begin()->first);
 }
 
 void CConnection::refreshFramebuffer()
