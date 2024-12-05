@@ -16,26 +16,16 @@
  * USA.
  */
 
-// rfb::Rect and rfb::Point structures
+// core::Rect and core::Point structures
 
-#ifndef __RFB_RECT_INCLUDED__
-#define __RFB_RECT_INCLUDED__
+#ifndef __CORE_RECT_INCLUDED__
+#define __CORE_RECT_INCLUDED__
 
-// Some platforms (e.g. Windows) include max() and min() macros in their
-// standard headers, but they are also standard C++ template functions, so some
-// C++ headers will undefine them.  So we steer clear of the names min and max
-// and define __rfbmin and __rfbmax instead.
+#include <algorithm>
 
-#ifndef __rfbmax
-#define __rfbmax(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef __rfbmin
-#define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
-#endif
+namespace core {
 
-namespace rfb {
-
-  // rfb::Point
+  // core::Point
   //
   // Represents a point in 2D space, by X and Y coordinates.
   // Can also be used to represent a delta, or offset, between
@@ -61,7 +51,7 @@ namespace rfb {
     int x, y;
   };
 
-  // rfb::Rect
+  // core::Rect
   //
   // Represents a rectangular region defined by its top-left (tl)
   // and bottom-right (br) Points.
@@ -83,10 +73,10 @@ namespace rfb {
       __attribute__ ((warn_unused_result))
     {
       Rect result;
-      result.tl.x = __rfbmax(tl.x, r.tl.x);
-      result.tl.y = __rfbmax(tl.y, r.tl.y);
-      result.br.x = __rfbmax(__rfbmin(br.x, r.br.x), result.tl.x);
-      result.br.y = __rfbmax(__rfbmin(br.y, r.br.y), result.tl.y);
+      result.tl.x = std::max(tl.x, r.tl.x);
+      result.tl.y = std::max(tl.y, r.tl.y);
+      result.br.x = std::max(std::min(br.x, r.br.x), result.tl.x);
+      result.br.y = std::max(std::min(br.y, r.br.y), result.tl.y);
       return result;
     }
     inline Rect union_boundary(const Rect &r) const
@@ -95,10 +85,10 @@ namespace rfb {
       if (r.is_empty()) return *this;
       if (is_empty()) return r;
       Rect result;
-      result.tl.x = __rfbmin(tl.x, r.tl.x);
-      result.tl.y = __rfbmin(tl.y, r.tl.y);
-      result.br.x = __rfbmax(br.x, r.br.x);
-      result.br.y = __rfbmax(br.y, r.br.y);
+      result.tl.x = std::min(tl.x, r.tl.x);
+      result.tl.y = std::min(tl.y, r.tl.y);
+      result.br.x = std::max(br.x, r.br.x);
+      result.br.y = std::max(br.y, r.br.y);
       return result;
     }
     inline Rect translate(const Point &p) const
@@ -127,4 +117,4 @@ namespace rfb {
     Point br;
   };
 }
-#endif // __RFB_RECT_INCLUDED__
+#endif // __CORE_RECT_INCLUDED__

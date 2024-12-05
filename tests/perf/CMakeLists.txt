@@ -6,10 +6,10 @@ add_executable(convperf convperf.cxx)
 target_link_libraries(convperf test_util rfb)
 
 add_executable(decperf decperf.cxx)
-target_link_libraries(decperf test_util rfb)
+target_link_libraries(decperf test_util rdr rfb)
 
 add_executable(encperf encperf.cxx)
-target_link_libraries(encperf test_util rfb)
+target_link_libraries(encperf test_util core rdr rfb)
 
 if (BUILD_VIEWER)
   add_executable(fbperf
@@ -28,7 +28,7 @@ if (BUILD_VIEWER)
   endif()
   target_include_directories(fbperf SYSTEM PUBLIC ${FLTK_INCLUDE_DIR})
   target_include_directories(fbperf SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
-  target_link_libraries(fbperf test_util rfb ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+  target_link_libraries(fbperf test_util core rfb ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
   if(WIN32)
     target_link_libraries(fbperf msimg32)
   endif()

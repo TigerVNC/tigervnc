@@ -37,10 +37,14 @@
 #include <fcntl.h>
 #include <sys/utsname.h>
 
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+
+#include <rdr/FdOutStream.h>
+
 #include <network/Socket.h>
+
 #include <rfb/VNCServerST.h>
-#include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
 #include <rfb/ServerCore.h>
 
 #include "XserverDesktop.h"
@@ -56,20 +60,17 @@ void vncSetGlueContext(int screenIndex);
 void vncPresentMscEvent(uint64_t id, uint64_t msc);
 }
 
-using namespace rfb;
-using namespace network;
+static core::LogWriter vlog("XserverDesktop");
 
-static LogWriter vlog("XserverDesktop");
-
-BoolParameter rawKeyboard("RawKeyboard",
-                          "Send keyboard events straight through and "
-                          "avoid mapping them to the current keyboard "
-                          "layout", false);
-IntParameter queryConnectTimeout("QueryConnectTimeout",
-                                 "Number of seconds to show the "
-                                 "Accept connection dialog before "
-                                 "rejecting the connection",
-                                 10);
+core::BoolParameter
+  rawKeyboard("RawKeyboard",
+              "Send keyboard events straight through and avoid mapping "
+              "them to the current keyboard layout", false);
+core::IntParameter
+  queryConnectTimeout("QueryConnectTimeout",
+                      "Number of seconds to show the 'Accept "
+                      "connection' dialog before rejecting the "
+                      "connection", 10);
 
 
 XserverDesktop::XserverDesktop(int screenIndex_,
@@ -84,10 +85,10 @@ XserverDesktop::XserverDesktop(int screenIndex_,
 {
   format = pf;
 
-  server = new VNCServerST(name, this);
+  server = new rfb::VNCServerST(name, this);
   setFramebuffer(width, height, fbptr, stride_);
 
-  for (SocketListener* listener : listeners)
+  for (network::SocketListener* listener : listeners)
     vncSetNotifyFd(listener->getFd(), screenIndex, true, false);
 }
 
@@ -115,7 +116,7 @@ void XserverDesktop::unblockUpdates()
 
 void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride_)
 {
-  ScreenSet layout;
+  rfb::ScreenSet layout;
 
   if (shadowFramebuffer) {
     delete [] shadowFramebuffer;
@@ -265,7 +266,7 @@ void XserverDesktop::setCursor(int width, int height, int hotX, int hotY,
   }
 
   try {
-    server->setCursor(width, height, Point(hotX, hotY), cursorData);
+    server->setCursor(width, height, {hotX, hotY}, cursorData);
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::setCursor: %s",e.what());
   }
@@ -276,13 +277,13 @@ void XserverDesktop::setCursor(int width, int height, int hotX, int hotY,
 void XserverDesktop::setCursorPos(int x, int y, bool warped)
 {
   try {
-    server->setCursorPos(Point(x, y), warped);
+    server->setCursorPos({x, y}, warped);
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::setCursorPos: %s",e.what());
   }
 }
 
-void XserverDesktop::add_changed(const rfb::Region &region)
+void XserverDesktop::add_changed(const core::Region& region)
 {
   try {
     server->add_changed(region);
@@ -291,7 +292,8 @@ void XserverDesktop::add_changed(const rfb::Region &region)
   }
 }
 
-void XserverDesktop::add_copied(const rfb::Region &dest, const rfb::Point &delta)
+void XserverDesktop::add_copied(const core::Region& dest,
+                                const core::Point& delta)
 {
   try {
     server->add_copied(dest, delta);
@@ -318,10 +320,10 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
 }
 
 bool XserverDesktop::handleListenerEvent(int fd,
-                                         std::list<SocketListener*>* sockets,
-                                         VNCServer* sockserv)
+                                         std::list<network::SocketListener*>* sockets,
+                                         rfb::VNCServer* sockserv)
 {
-  std::list<SocketListener*>::iterator i;
+  std::list<network::SocketListener*>::iterator i;
 
   for (i = sockets->begin(); i != sockets->end(); i++) {
     if ((*i)->getFd() == fd)
@@ -331,7 +333,7 @@ bool XserverDesktop::handleListenerEvent(int fd,
   if (i == sockets->end())
     return false;
 
-  Socket* sock = (*i)->accept();
+  network::Socket* sock = (*i)->accept();
   vlog.debug("New client, sock %d", sock->getFd());
   sockserv->addSocket(sock);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
@@ -340,11 +342,11 @@ bool XserverDesktop::handleListenerEvent(int fd,
 }
 
 bool XserverDesktop::handleSocketEvent(int fd,
-                                       VNCServer* sockserv,
+                                       rfb::VNCServer* sockserv,
                                        bool read, bool write)
 {
-  std::list<Socket*> sockets;
-  std::list<Socket*>::iterator i;
+  std::list<network::Socket*> sockets;
+  std::list<network::Socket*>::iterator i;
 
   sockserv->getSockets(&sockets);
   for (i = sockets.begin(); i != sockets.end(); i++) {
@@ -373,8 +375,8 @@ void XserverDesktop::blockHandler(int* timeout)
   vncInitInputDevice();
 
   try {
-    std::list<Socket*> sockets;
-    std::list<Socket*>::iterator i;
+    std::list<network::Socket*> sockets;
+    std::list<network::Socket*>::iterator i;
     server->getSockets(&sockets);
     for (i = sockets.begin(); i != sockets.end(); i++) {
       int fd = (*i)->getFd();
@@ -402,7 +404,7 @@ void XserverDesktop::blockHandler(int* timeout)
     }
 
     // Trigger timers and check when the next will expire
-    int nextTimeout = Timer::checkTimeouts();
+    int nextTimeout = core::Timer::checkTimeouts();
     if (nextTimeout >= 0 && (*timeout == -1 || nextTimeout < *timeout))
       *timeout = nextTimeout;
   } catch (std::exception& e) {
@@ -410,10 +412,12 @@ void XserverDesktop::blockHandler(int* timeout)
   }
 }
 
-void XserverDesktop::addClient(Socket* sock, bool reverse, bool viewOnly)
+void XserverDesktop::addClient(network::Socket* sock,
+                               bool reverse, bool viewOnly)
 {
   vlog.debug("New client, sock %d reverse %d",sock->getFd(),reverse);
-  server->addSocket(sock, reverse, viewOnly ? AccessView : AccessDefault);
+  server->addSocket(sock, reverse,
+                    viewOnly ? rfb::AccessView : rfb::AccessDefault);
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 }
 
@@ -462,7 +466,8 @@ void XserverDesktop::terminate()
   kill(getpid(), SIGTERM);
 }
 
-void XserverDesktop::pointerEvent(const Point& pos, uint16_t buttonMask)
+void XserverDesktop::pointerEvent(const core::Point& pos,
+                                  uint16_t buttonMask)
 {
   vncPointerMove(pos.x + vncGetScreenX(screenIndex),
                  pos.y + vncGetScreenY(screenIndex));
@@ -515,13 +520,13 @@ void XserverDesktop::handleClipboardData(const char* data_)
   vncHandleClipboardData(data_);
 }
 
-void XserverDesktop::grabRegion(const rfb::Region& region)
+void XserverDesktop::grabRegion(const core::Region& region)
 {
   if (shadowFramebuffer == nullptr)
     return;
 
-  std::vector<rfb::Rect> rects;
-  std::vector<rfb::Rect>::iterator i;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::iterator i;
   region.get_rects(&rects);
   for (i = rects.begin(); i != rects.end(); i++) {
     uint8_t *buffer;
@@ -542,7 +547,7 @@ void XserverDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
   vncKeyboardEvent(keysym, keycode, down);
 }
 
-void XserverDesktop::handleTimeout(Timer* t)
+void XserverDesktop::handleTimeout(core::Timer* t)
 {
   if (t == &queryConnectTimer) {
     server->approveConnection(queryConnectSocket, false,

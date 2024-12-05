@@ -23,14 +23,16 @@
 
 #include <stdint.h>
 
-#include <os/Mutex.h>
-#include <rfb/Rect.h>
-#include <rfb/Decoder.h>
+#include <core/Rect.h>
+#include <core/Mutex.h>
 
 namespace rfb {
+
+  class ModifiablePixelBuffer;
+
   class H264DecoderContext {
     public:
-      static H264DecoderContext *createContext(const Rect &r);
+      static H264DecoderContext* createContext(const core::Rect& r);
 
       virtual ~H264DecoderContext() = 0;
 
@@ -39,19 +41,20 @@ namespace rfb {
                           ModifiablePixelBuffer* /*pb*/) {}
       void reset();
 
-      inline bool isEqualRect(const Rect &r) const { return r == rect; }
+      inline bool isEqualRect(const core::Rect& r) const { return r == rect; }
       bool isReady();
 
     protected:
-      os::Mutex mutex;
-      rfb::Rect rect;
+      core::Mutex mutex;
+      core::Rect rect;
       bool initialized;
 
-      H264DecoderContext(const Rect &r) : rect(r) { initialized = false; }
+      H264DecoderContext(const core::Rect& r) : rect(r) { initialized = false; }
 
       virtual bool initCodec() { return false; }
       virtual void freeCodec() {}
   };
+
 }
 
 #endif

@@ -28,9 +28,13 @@
 
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
+
 #include <gnutls/gnutls.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
   class CSecurityTLS : public CSecurity {
@@ -41,8 +45,8 @@ namespace rfb {
     int getType() const override { return anon ? secTypeTLSNone : secTypeX509None; }
     bool isSecure() const override { return !anon; }
 
-    static StringParameter X509CA;
-    static StringParameter X509CRL;
+    static core::StringParameter X509CA;
+    static core::StringParameter X509CRL;
 
   protected:
     void shutdown();

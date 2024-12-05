@@ -18,12 +18,13 @@
 
 // -=- LogWriter.h - The Log writer class.
 
-#ifndef __RFB_LOG_WRITER_H__
-#define __RFB_LOG_WRITER_H__
+#ifndef __CORE_LOG_WRITER_H__
+#define __CORE_LOG_WRITER_H__
 
 #include <stdarg.h>
-#include <rfb/Logger.h>
-#include <rfb/Configuration.h>
+
+#include <core/Configuration.h>
+#include <core/Logger.h>
 
 // Each log writer instance has a unique textual name,
 // and is attached to a particular Log instance and
@@ -46,9 +47,7 @@
     }                                      \
   }
 
-namespace rfb {
-
-  class LogWriter;
+namespace core {
 
   class LogWriter {
   public:
@@ -110,4 +109,4 @@ namespace rfb {
 
 };
 
-#endif // __RFB_LOG_WRITER_H__
+#endif // __CORE_LOG_WRITER_H__

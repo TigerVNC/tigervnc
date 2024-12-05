@@ -26,16 +26,18 @@
 
 #include <deque>
 
+#include <core/LogWriter.h>
+
 #include <rdr/MemInStream.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
-#include <rfb/LogWriter.h>
+
 #include <rfb/H264Decoder.h>
 #include <rfb/H264DecoderContext.h>
 
 using namespace rfb;
 
-static LogWriter vlog("H264Decoder");
+static core::LogWriter vlog("H264Decoder");
 
 enum rectFlags {
   resetContext       = 0x1,
@@ -53,22 +55,22 @@ H264Decoder::~H264Decoder()
 
 void H264Decoder::resetContexts()
 {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
   for (H264DecoderContext* context : contexts)
     delete context;
   contexts.clear();
 }
 
-H264DecoderContext* H264Decoder::findContext(const Rect& r)
+H264DecoderContext* H264Decoder::findContext(const core::Rect& r)
 {
-  os::AutoMutex m(&mutex);
+  core::AutoMutex m(&mutex);
   for (H264DecoderContext* context : contexts)
     if (context->isEqualRect(r))
       return context;
   return nullptr;
 }
 
-bool H264Decoder::readRect(const Rect& /*r*/,
+bool H264Decoder::readRect(const core::Rect& /*r*/,
                            rdr::InStream* is,
                            const ServerParams& /*server*/,
                            rdr::OutStream* os)
@@ -96,7 +98,7 @@ bool H264Decoder::readRect(const Rect& /*r*/,
   return true;
 }
 
-void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
+void H264Decoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
                              size_t buflen,
                              const ServerParams& /*server*/,
                              ModifiablePixelBuffer* pb)
@@ -118,7 +120,7 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
 
   if (!ctx)
   {
-    os::AutoMutex lock(&mutex);
+    core::AutoMutex lock(&mutex);
     if (contexts.size() >= MAX_H264_INSTANCES)
     {
       H264DecoderContext* excess_ctx = contexts.front();

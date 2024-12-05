@@ -1,4 +1,4 @@
-/* Copyright 2015 Pierre Ossman for Cendio AB
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,49 +16,24 @@
  * USA.
  */
 
-#ifndef __OS_MUTEX_H__
-#define __OS_MUTEX_H__
+// -=- Logger_stdio - standard output logger instances
 
-namespace os {
-  class Condition;
+#ifndef __CORE_LOGGER_STDIO_H__
+#define __CORE_LOGGER_STDIO_H__
 
-  class Mutex {
+#include <core/Logger_file.h>
+
+namespace core {
+
+  class Logger_StdIO : public Logger_File {
   public:
-    Mutex();
-    ~Mutex();
-
-    void lock();
-    void unlock();
-
-  private:
-    friend class Condition;
-
-    void* systemMutex;
+    Logger_StdIO(const char *name, FILE* file) : Logger_File(name) {
+      setFile(file);
+    }
   };
 
-  class AutoMutex {
-  public:
-    AutoMutex(Mutex* mutex) { m = mutex; m->lock(); }
-    ~AutoMutex() { m->unlock(); }
-  private:
-    Mutex* m;
-  };
+  bool initStdIOLoggers();
 
-  class Condition {
-  public:
-    Condition(Mutex* mutex);
-    ~Condition();
-
-    void wait();
-
-    void signal();
-    void broadcast();
-
-  private:
-    Mutex* mutex;
-    void* systemCondition;
-  };
-
-}
+};
 
 #endif

@@ -38,6 +38,11 @@
 
 namespace rdr {
 
+  class end_of_stream : public std::runtime_error {
+  public:
+    end_of_stream() noexcept : std::runtime_error("End of stream") {}
+  };
+
   class InStream {
 
   public:

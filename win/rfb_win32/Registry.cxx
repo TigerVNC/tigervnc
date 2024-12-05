@@ -22,14 +22,17 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Security.h>
+
 #include <rdr/MemOutStream.h>
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
+
 #include <stdlib.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 // These flags are required to control access control inheritance,
 // but are not defined by VC6's headers.  These definitions comes
@@ -42,6 +45,7 @@
 #endif
 
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -54,7 +58,7 @@ RegKey::RegKey() : key(nullptr), freeKey(false), valueName(nullptr), valueNameBu
 RegKey::RegKey(const HKEY k) : key(nullptr), freeKey(false), valueName(nullptr), valueNameBufLen(0) {
   LONG result = RegOpenKeyEx(k, nullptr, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegOpenKeyEx(HKEY)", result);
+    throw core::win32_error("RegOpenKeyEx(HKEY)", result);
   vlog.debug("Duplicated %p to %p", k, key);
   freeKey = true;
 }
@@ -62,7 +66,7 @@ RegKey::RegKey(const HKEY k) : key(nullptr), freeKey(false), valueName(nullptr),
 RegKey::RegKey(const RegKey& k) : key(nullptr), freeKey(false), valueName(nullptr), valueNameBufLen(0) {
   LONG result = RegOpenKeyEx(k.key, nullptr, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegOpenKeyEx(RegKey&)", result);
+    throw core::win32_error("RegOpenKeyEx(RegKey&)", result);
   vlog.debug("Duplicated %p to %p", k.key, key);
   freeKey = true;
 }
@@ -86,7 +90,7 @@ bool RegKey::createKey(const RegKey& root, const char* name) {
   LONG result = RegCreateKey(root.key, name, &key);
   if (result != ERROR_SUCCESS) {
     vlog.error("RegCreateKey(%p, %s): %lx", root.key, name, result);
-    throw rdr::win32_error("RegCreateKeyEx", result);
+    throw core::win32_error("RegCreateKeyEx", result);
   }
   vlog.debug("createKey(%p,%s) = %p", root.key, name, key);
   freeKey = true;
@@ -97,7 +101,7 @@ void RegKey::openKey(const RegKey& root, const char* name, bool readOnly) {
   close();
   LONG result = RegOpenKeyEx(root.key, name, 0, readOnly ? KEY_READ : KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegOpenKeyEx (open)", result);
+    throw core::win32_error("RegOpenKeyEx (open)", result);
   vlog.debug("openKey(%p,%s,%s) = %p", root.key, name,
 	         readOnly ? "ro" : "rw", key);
   freeKey = true;
@@ -109,7 +113,7 @@ void RegKey::setDACL(const PACL acl, bool inherit) {
     DACL_SECURITY_INFORMATION |
     (inherit ? UNPROTECTED_DACL_SECURITY_INFORMATION : PROTECTED_DACL_SECURITY_INFORMATION),
     nullptr, nullptr, acl, nullptr)) != ERROR_SUCCESS)
-    throw rdr::win32_error("RegKey::setDACL failed", result);
+    throw core::win32_error("RegKey::setDACL failed", result);
 }
 
 void RegKey::close() {
@@ -123,19 +127,19 @@ void RegKey::close() {
 void RegKey::deleteKey(const char* name) const {
   LONG result = RegDeleteKey(key, name);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegDeleteKey", result);
+    throw core::win32_error("RegDeleteKey", result);
 }
 
 void RegKey::deleteValue(const char* name) const {
   LONG result = RegDeleteValue(key, name);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegDeleteValue", result);
+    throw core::win32_error("RegDeleteValue", result);
 }
 
 void RegKey::awaitChange(bool watchSubTree, DWORD filter, HANDLE event) const {
   LONG result = RegNotifyChangeKeyValue(key, watchSubTree, filter, event, event != nullptr);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegNotifyChangeKeyValue", result);
+    throw core::win32_error("RegNotifyChangeKeyValue", result);
 }
 
 
@@ -144,22 +148,22 @@ RegKey::operator HKEY() const {return key;}
 
 void RegKey::setExpandString(const char* valname, const char* value) const {
   LONG result = RegSetValueEx(key, valname, 0, REG_EXPAND_SZ, (const BYTE*)value, (strlen(value)+1)*sizeof(char));
-  if (result != ERROR_SUCCESS) throw rdr::win32_error("setExpandString", result);
+  if (result != ERROR_SUCCESS) throw core::win32_error("setExpandString", result);
 }
 
 void RegKey::setString(const char* valname, const char* value) const {
   LONG result = RegSetValueEx(key, valname, 0, REG_SZ, (const BYTE*)value, (strlen(value)+1)*sizeof(char));
-  if (result != ERROR_SUCCESS) throw rdr::win32_error("setString", result);
+  if (result != ERROR_SUCCESS) throw core::win32_error("setString", result);
 }
 
 void RegKey::setBinary(const char* valname, const void* value, size_t length) const {
   LONG result = RegSetValueEx(key, valname, 0, REG_BINARY, (const BYTE*)value, length);
-  if (result != ERROR_SUCCESS) throw rdr::win32_error("setBinary", result);
+  if (result != ERROR_SUCCESS) throw core::win32_error("setBinary", result);
 }
 
 void RegKey::setInt(const char* valname, int value) const {
   LONG result = RegSetValueEx(key, valname, 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
-  if (result != ERROR_SUCCESS) throw rdr::win32_error("setInt", result);
+  if (result != ERROR_SUCCESS) throw core::win32_error("setInt", result);
 }
 
 void RegKey::setBool(const char* valname, bool value) const {
@@ -214,11 +218,11 @@ std::string RegKey::getRepresentation(const char* valname) const {
   DWORD type, length;
   LONG result = RegQueryValueEx(key, valname, nullptr, &type, nullptr, &length);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("Get registry value length", result);
+    throw core::win32_error("Get registry value length", result);
   std::vector<uint8_t> data(length);
   result = RegQueryValueEx(key, valname, nullptr, &type, (BYTE*)data.data(), &length);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("Get registry value", result);
+    throw core::win32_error("Get registry value", result);
 
   switch (type) {
   case REG_BINARY:
@@ -243,7 +247,7 @@ std::string RegKey::getRepresentation(const char* valname) const {
       std::string str((char*)data.data(), length);
       DWORD required = ExpandEnvironmentStrings(str.c_str(), nullptr, 0);
       if (required==0)
-        throw rdr::win32_error("ExpandEnvironmentStrings", GetLastError());
+        throw core::win32_error("ExpandEnvironmentStrings", GetLastError());
       std::vector<char> expanded(required);
       length = ExpandEnvironmentStrings(str.c_str(), expanded.data(), required);
       if (required<length)
@@ -271,7 +275,7 @@ const char* RegKey::getValueName(int i) {
   DWORD maxValueNameLen;
   LONG result = RegQueryInfoKey(key, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &maxValueNameLen, nullptr, nullptr, nullptr);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegQueryInfoKey", result);
+    throw core::win32_error("RegQueryInfoKey", result);
   if (valueNameBufLen < maxValueNameLen + 1) {
     valueNameBufLen = maxValueNameLen + 1;
     delete [] valueName;
@@ -281,7 +285,7 @@ const char* RegKey::getValueName(int i) {
   result = RegEnumValue(key, i, valueName, &length, nullptr, nullptr, nullptr, nullptr);
   if (result == ERROR_NO_MORE_ITEMS) return nullptr;
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegEnumValue", result);
+    throw core::win32_error("RegEnumValue", result);
   return valueName;
 }
 
@@ -289,7 +293,7 @@ const char* RegKey::getKeyName(int i) {
   DWORD maxValueNameLen;
   LONG result = RegQueryInfoKey(key, nullptr, nullptr, nullptr, nullptr, &maxValueNameLen, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegQueryInfoKey", result);
+    throw core::win32_error("RegQueryInfoKey", result);
   if (valueNameBufLen < maxValueNameLen + 1) {
     valueNameBufLen = maxValueNameLen + 1;
     delete [] valueName;
@@ -299,6 +303,6 @@ const char* RegKey::getKeyName(int i) {
   result = RegEnumKeyEx(key, i, valueName, &length, nullptr, nullptr, nullptr, nullptr);
   if (result == ERROR_NO_MORE_ITEMS) return nullptr;
   if (result != ERROR_SUCCESS)
-    throw rdr::win32_error("RegEnumKey", result);
+    throw core::win32_error("RegEnumKey", result);
   return valueName;
 }

@@ -21,9 +21,9 @@
 #ifndef __WINVNC_QUERY_CONNECT_DIALOG_H__
 #define __WINVNC_QUERY_CONNECT_DIALOG_H__
 
-#include <rfb_win32/Dialog.h>
+#include <core/Thread.h>
 
-namespace os { class Thread; }
+#include <rfb_win32/Dialog.h>
 
 namespace network { class Socket; }
 
@@ -31,7 +31,7 @@ namespace winvnc {
 
   class VNCServerWin32;
 
-  class QueryConnectDialog : public os::Thread, rfb::win32::Dialog {
+  class QueryConnectDialog : public core::Thread, rfb::win32::Dialog {
   public:
     QueryConnectDialog(network::Socket* sock, const char* userName, VNCServerWin32* s);
     virtual void startDialog();

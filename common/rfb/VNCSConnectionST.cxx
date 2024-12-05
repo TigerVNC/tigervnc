@@ -22,7 +22,12 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+#include <core/time.h>
+
+#include <rdr/FdInStream.h>
+#include <rdr/FdOutStream.h>
 
 #include <network/TcpSocket.h>
 
@@ -31,12 +36,12 @@
 #include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/VNCSConnectionST.h>
+#include <rfb/encodings.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/ledStates.h>
@@ -44,13 +49,12 @@
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
-static LogWriter vlog("VNCSConnST");
+static core::LogWriter vlog("VNCSConnST");
 
-static Cursor emptyCursor(0, 0, Point(0, 0), nullptr);
+static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse, AccessRights ar)
@@ -71,9 +75,9 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   if (rfb::Server::idleTimeout) {
     // minimum of 15 seconds while authenticating
     if (rfb::Server::idleTimeout < 15)
-      idleTimer.start(secsToMillis(15));
+      idleTimer.start(core::secsToMillis(15));
     else
-      idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+      idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
   }
 }
 
@@ -227,11 +231,11 @@ void VNCSConnectionST::pixelBufferChange()
       //updates.intersect(server->pb->getRect());
       //
       //if (server->pb->width() > client.width())
-      //  updates.add_changed(Rect(client.width(), 0, server->pb->width(),
-      //                           server->pb->height()));
+      //  updates.add_changed({client.width(), 0, server->pb->width(),
+      //                       server->pb->height()});
       //if (server->pb->height() > client.height())
-      //  updates.add_changed(Rect(0, client.height(), client.width(),
-      //                           server->pb->height()));
+      //  updates.add_changed({0, client.height(), client.width(),
+      //                       server->pb->height()});
 
       damagedCursorRegion.assign_intersect(server->getPixelBuffer()->getRect());
 
@@ -247,7 +251,7 @@ void VNCSConnectionST::pixelBufferChange()
       }
 
       // Drop any lossy tracking that is now outside the framebuffer
-      encodeManager.pruneLosslessRefresh(Region(server->getPixelBuffer()->getRect()));
+      encodeManager.pruneLosslessRefresh(server->getPixelBuffer()->getRect());
     }
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
@@ -432,7 +436,7 @@ void VNCSConnectionST::approveConnectionOrClose(bool accept,
 void VNCSConnectionST::authSuccess()
 {
   if (rfb::Server::idleTimeout)
-    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
 
   // - Set the connection parameters appropriately
   client.setDimensions(server->getPixelBuffer()->width(),
@@ -459,7 +463,7 @@ void VNCSConnectionST::queryConnection(const char* userName)
 void VNCSConnectionST::clientInit(bool shared)
 {
   if (rfb::Server::idleTimeout)
-    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
   if (!accessCheck(AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
@@ -476,10 +480,11 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
   setCursor();
 }
 
-void VNCSConnectionST::pointerEvent(const Point& pos, uint16_t buttonMask)
+void VNCSConnectionST::pointerEvent(const core::Point& pos,
+                                    uint16_t buttonMask)
 {
   if (rfb::Server::idleTimeout)
-    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
   pointerEventTime = time(nullptr);
   if (!accessCheck(AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
@@ -513,7 +518,7 @@ void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
   uint32_t lookup;
 
   if (rfb::Server::idleTimeout)
-    idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
   if (!accessCheck(AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
@@ -616,27 +621,28 @@ void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
   server->keyEvent(keysym, keycode, down);
 }
 
-void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
+void VNCSConnectionST::framebufferUpdateRequest(const core::Rect& r,
+                                                bool incremental)
 {
-  Rect safeRect;
+  core::Rect safeRect;
 
   if (!accessCheck(AccessView)) return;
 
   SConnection::framebufferUpdateRequest(r, incremental);
 
   // Check that the client isn't sending crappy requests
-  if (!r.enclosed_by(Rect(0, 0, client.width(), client.height()))) {
+  if (!r.enclosed_by({0, 0, client.width(), client.height()})) {
     vlog.error("FramebufferUpdateRequest %dx%d at %d,%d exceeds framebuffer %dx%d",
                r.width(), r.height(), r.tl.x, r.tl.y,
                client.width(), client.height());
-    safeRect = r.intersect(Rect(0, 0, client.width(), client.height()));
+    safeRect = r.intersect({0, 0, client.width(), client.height()});
   } else {
     safeRect = r;
   }
 
   // Just update the requested region.
   // Framebuffer update will be sent a bit later, see processMessages().
-  Region reqRgn(safeRect);
+  core::Region reqRgn(safeRect);
   if (!incremental || !continuousUpdates)
     requested.assign_union(reqRgn);
 
@@ -727,7 +733,7 @@ void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])
 void VNCSConnectionST::enableContinuousUpdates(bool enable,
                                                int x, int y, int w, int h)
 {
-  Rect rect;
+  core::Rect rect;
 
   if (!client.supportsFence() || !client.supportsContinuousUpdates())
     throw protocol_error("Client tried to enable continuous updates when not allowed");
@@ -801,7 +807,7 @@ void VNCSConnectionST::supportsLEDState()
   writer()->writeLEDState();
 }
 
-void VNCSConnectionST::handleTimeout(Timer* t)
+void VNCSConnectionST::handleTimeout(core::Timer* t)
 {
   try {
     if ((t == &congestionTimer) ||
@@ -932,7 +938,7 @@ void VNCSConnectionST::writeNoDataUpdate()
 
 void VNCSConnectionST::writeDataUpdate()
 {
-  Region req;
+  core::Region req;
   UpdateInfo ui;
   bool needNewUpdateInfo;
   const RenderedCursor *cursor;
@@ -957,7 +963,7 @@ void VNCSConnectionST::writeDataUpdate()
   // destination will be wrong, so add it to the changed region.
 
   if (!ui.copied.is_empty() && !damagedCursorRegion.is_empty()) {
-    Region bogusCopiedCursor;
+    core::Region bogusCopiedCursor;
 
     bogusCopiedCursor = damagedCursorRegion;
     bogusCopiedCursor.translate(ui.copy_delta);
@@ -1004,7 +1010,7 @@ void VNCSConnectionST::writeDataUpdate()
 
   cursor = nullptr;
   if (needRenderedCursor()) {
-    Rect renderedCursorRect;
+    core::Rect renderedCursorRect;
 
     cursor = server->getRenderedCursor();
     renderedCursorRect = cursor->getEffectiveRect();
@@ -1044,7 +1050,7 @@ void VNCSConnectionST::writeDataUpdate()
 
 void VNCSConnectionST::writeLosslessRefresh()
 {
-  Region req, pending;
+  core::Region req, pending;
   const RenderedCursor *cursor;
 
   int nextRefresh, nextUpdate;

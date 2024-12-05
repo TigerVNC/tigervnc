@@ -22,9 +22,11 @@
 #include <config.h>
 #endif
 
-#include <rfb_win32/SDisplayCorePolling.h>
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
 
+#include <rfb_win32/SDisplayCorePolling.h>
+
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -37,7 +39,9 @@ const unsigned int SDisplayCorePolling::pollTimerId = 1;
 SDisplayCorePolling::SDisplayCorePolling(SDisplay* d, UpdateTracker* ut, int pollInterval_)
   : MsgWindow("rfb::win32::SDisplayCorePolling"),
   pollTimer(getHandle(), pollTimerId), pollNextStrip(false), display(d), updateTracker(ut) {
-  pollInterval = __rfbmax(10, (pollInterval_ / POLLING_SEGMENTS));
+  pollInterval = pollInterval_ / POLLING_SEGMENTS;
+  if (pollInterval < 10)
+    pollInterval = 10;
   copyrect.setUpdateTracker(ut);
 }
 
@@ -78,7 +82,8 @@ void SDisplayCorePolling::flushUpdates() {
       // No.  Poll the next section
       pollrect.tl.y = pollNextY;
       pollNextY += pollIncrementY;
-      pollrect.br.y = __rfbmin(pollNextY, pollrect.br.y);
+      if (pollrect.br.y > pollNextY)
+        pollrect.br.y = pollNextY;
       updateTracker->add_changed(pollrect);
     }
   }

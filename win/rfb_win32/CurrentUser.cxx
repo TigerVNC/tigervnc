@@ -23,16 +23,19 @@
 #endif
 
 #include <stdlib.h>
-#include <rfb/LogWriter.h>
+
+#include <core/LogWriter.h>
+
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
+
 #include <lmcons.h>
 #include <wtsapi32.h>
 
 using namespace rfb;
 using namespace win32;
 
-static LogWriter vlog("CurrentUser");
+static core::LogWriter vlog("CurrentUser");
 
 
 const char* shellIconClass = "Shell_TrayWnd";
@@ -80,7 +83,7 @@ CurrentUserToken::CurrentUserToken() {
     if (!OpenProcessToken(GetCurrentProcess(), GENERIC_ALL, &h)) {
       DWORD err = GetLastError();
       if (err != ERROR_CALL_NOT_IMPLEMENTED)
-        throw rdr::win32_error("OpenProcessToken failed", err);
+        throw core::win32_error("OpenProcessToken failed", err);
       h = INVALID_HANDLE_VALUE;
     }
   }
@@ -96,7 +99,7 @@ ImpersonateCurrentUser::ImpersonateCurrentUser() {
   if (!ImpersonateLoggedOnUser(token)) {
     DWORD err = GetLastError();
     if (err != ERROR_CALL_NOT_IMPLEMENTED)
-      throw rdr::win32_error("Failed to impersonate user", GetLastError());
+      throw core::win32_error("Failed to impersonate user", GetLastError());
   }
 }
 
@@ -114,7 +117,7 @@ UserName::UserName() {
   char buf[UNLEN+1];
   DWORD len = UNLEN+1;
   if (!GetUserName(buf, &len))
-    throw rdr::win32_error("GetUserName failed", GetLastError());
+    throw core::win32_error("GetUserName failed", GetLastError());
   assign(buf);
 }
 
