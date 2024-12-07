@@ -240,7 +240,7 @@ DesktopWindow::DesktopWindow(int w, int h,
 
   combo = HotKeyHandler::comboPrefix(hotKeyCombo);
   if (combo[0] != '\0')
-    addOverlay(_("Press %sM to open the context menu"), combo);
+    addOverlayTip(_("Press %sM to open the context menu"), combo);
 
   // By default we get a slight delay when we warp the pointer, something
   // we don't want or we'll get jerky movement
@@ -727,13 +727,36 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   }
 }
 
-void DesktopWindow::addOverlay(const char* text, ...)
+void DesktopWindow::addOverlayTip(const char* text, ...)
+{
+  va_list ap;
+  char textbuf[1024];
+
+  va_start(ap, text);
+  vsnprintf(textbuf, sizeof(textbuf), text, ap);
+  textbuf[sizeof(textbuf)-1] = '\0';
+  va_end(ap);
+
+  addOverlay(textbuf, false);
+}
+
+void DesktopWindow::addOverlayError(const char* text, ...)
+{
+  va_list ap;
+  char textbuf[1024];
+
+  va_start(ap, text);
+  vsnprintf(textbuf, sizeof(textbuf), text, ap);
+  textbuf[sizeof(textbuf)-1] = '\0';
+  va_end(ap);
+
+  addOverlay(textbuf, true);
+}
+
+void DesktopWindow::addOverlay(const char *text, bool always)
 {
   const Fl_Fontsize fontsize = 16;
   const int margin = 10;
-
-  va_list ap;
-  char textbuf[1024];
 
   std::map<std::string, time_t>::iterator iter;
 
@@ -752,11 +775,6 @@ void DesktopWindow::addOverlay(const char* text, ...)
 
   struct Overlay overlay;
 
-  va_start(ap, text);
-  vsnprintf(textbuf, sizeof(textbuf), text, ap);
-  textbuf[sizeof(textbuf)-1] = '\0';
-  va_end(ap);
-
   // Purge all old entries
   for (iter = overlayTimes.begin(); iter != overlayTimes.end(); ) {
     if ((time(nullptr) - iter->second) >= OVERLAY_REPEAT_TIMEOUT)
@@ -765,11 +783,13 @@ void DesktopWindow::addOverlay(const char* text, ...)
       iter++;
   }
 
-  // Recently shown?
-  if (overlayTimes.count(textbuf) > 0)
-    return;
+  if (!always) {
+    // Recently shown?
+    if (overlayTimes.count(text) > 0)
+      return;
 
-  overlayTimes[textbuf] = time(nullptr);
+    overlayTimes[text] = time(nullptr);
+  }
 
 #if !defined(WIN32) && !defined(__APPLE__)
   // FLTK < 1.3.5 crashes if fl_gc is unset
@@ -779,7 +799,7 @@ void DesktopWindow::addOverlay(const char* text, ...)
 
   fl_font(FL_HELVETICA, fontsize);
   w = 0;
-  fl_measure(textbuf, w, h);
+  fl_measure(text, w, h);
 
   // Margins
   w += margin * 2 * 2;
@@ -792,7 +812,7 @@ void DesktopWindow::addOverlay(const char* text, ...)
 
   fl_font(FL_HELVETICA, fontsize);
   fl_color(FL_WHITE);
-  fl_draw(textbuf, 0, 0, w, h, FL_ALIGN_CENTER);
+  fl_draw(text, 0, 0, w, h, FL_ALIGN_CENTER);
 
   imageText = surface->image();
   delete surface;
@@ -895,7 +915,7 @@ int DesktopWindow::handle(int event)
 
       combo = HotKeyHandler::comboPrefix(hotKeyCombo);
       if (combo[0] != '\0')
-        addOverlay(_("Press %sEnter to leave full-screen mode"), combo);
+        addOverlayTip(_("Press %sEnter to leave full-screen mode"), combo);
     }
 
     // Automatically toggle keyboard grab?
@@ -1151,6 +1171,7 @@ void DesktopWindow::grabKeyboard()
   ret = win32_enable_lowlevel_keyboard(fl_xid(this));
   if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
+    addOverlayError(_("Failure grabbing keyboard"));
     return;
   }
 #elif defined(__APPLE__)
@@ -1159,6 +1180,7 @@ void DesktopWindow::grabKeyboard()
   ret = cocoa_tap_keyboard(this);
   if (!ret) {
     vlog.error(_("Failure grabbing keyboard"));
+    addOverlayError(_("Failure grabbing keyboard"));
     return;
   }
 #else
@@ -1184,6 +1206,7 @@ void DesktopWindow::grabKeyboard()
 
     if (ret) {
       vlog.error(_("Failure grabbing keyboard"));
+      addOverlayError(_("Failure grabbing keyboard"));
       return;
     }
   }
@@ -1198,7 +1221,7 @@ void DesktopWindow::grabKeyboard()
 
   combo = (char*)HotKeyHandler::comboPrefix(hotKeyCombo, true);
   if (combo[0] != '\0')
-    addOverlay(_("Press %s to release control from the session"), combo);
+    addOverlayTip(_("Press %s to release control from the session"), combo);
 }
 
 
