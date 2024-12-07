@@ -100,8 +100,9 @@ namespace rfb {
   protected:
     // Templated, optimised methods
     template<class T>
-    inline bool checkSolidTile(const Rect& r, const T,
-                               const PixelBuffer *pb);
+    inline bool checkSolidTile(int width, int height,
+                               const T* buffer, int stride,
+                               const T colourValue);
     template<class T>
     inline bool analyseRect(int width, int height,
                             const T* buffer, int stride,

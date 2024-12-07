@@ -881,13 +881,24 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
 bool EncodeManager::checkSolidTile(const Rect& r, const uint8_t* colourValue,
                                    const PixelBuffer *pb)
 {
+  const uint8_t* buffer;
+  int stride;
+
+  buffer = pb->getBuffer(r, &stride);
+
   switch (pb->getPF().bpp) {
   case 32:
-    return checkSolidTile(r, *(const uint32_t*)colourValue, pb);
+    return checkSolidTile(r.width(), r.height(),
+                          (const uint32_t*)buffer, stride,
+                          *(const uint32_t*)colourValue);
   case 16:
-    return checkSolidTile(r, *(const uint16_t*)colourValue, pb);
+    return checkSolidTile(r.width(), r.height(),
+                          (const uint16_t*)buffer, stride,
+                          *(const uint16_t*)colourValue);
   default:
-    return checkSolidTile(r, *(const uint8_t*)colourValue, pb);
+    return checkSolidTile(r.width(), r.height(),
+                          (const uint8_t*)buffer, stride,
+                          *(const uint8_t*)colourValue);
   }
 }
 
@@ -1058,23 +1069,17 @@ uint8_t* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /
 }
 
 template<class T>
-inline bool EncodeManager::checkSolidTile(const Rect& r,
-                                          const T colourValue,
-                                          const PixelBuffer *pb)
+inline bool EncodeManager::checkSolidTile(int width, int height,
+                                          const T* buffer, int stride,
+                                          const T colourValue)
 {
-  int w, h;
-  const T* buffer;
-  int stride, pad;
+  int pad;
 
-  w = r.width();
-  h = r.height();
+  pad = stride - width;
 
-  buffer = (const T*)pb->getBuffer(r, &stride);
-  pad = stride - w;
-
-  while (h--) {
-    int w_ = w;
-    while (w_--) {
+  while (height--) {
+    int width_ = width;
+    while (width_--) {
       if (*buffer != colourValue)
         return false;
       buffer++;
