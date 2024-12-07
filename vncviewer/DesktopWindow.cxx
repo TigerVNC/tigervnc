@@ -240,8 +240,8 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
     modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
 
   if (modifierMask)
-    addOverlay(_("Press %sM to open the context menu"),
-               ShortcutHandler::modifierPrefix(modifierMask));
+    addOverlayTip(_("Press %sM to open the context menu"),
+                  ShortcutHandler::modifierPrefix(modifierMask));
 
   // By default we get a slight delay when we warp the pointer, something
   // we don't want or we'll get jerky movement
@@ -722,30 +722,12 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   }
 }
 
-void DesktopWindow::addOverlay(const char* text, ...)
+void DesktopWindow::addOverlayTip(const char* text, ...)
 {
-  const Fl_Fontsize fontsize = 16;
-  const int margin = 10;
-
   va_list ap;
   char textbuf[1024];
 
   std::map<std::string, time_t>::iterator iter;
-
-  Fl_Image_Surface *surface;
-
-  Fl_RGB_Image* imageText;
-  Fl_RGB_Image* image;
-
-  unsigned char* buffer;
-
-  int x, y;
-  int w, h;
-
-  unsigned char* a;
-  const unsigned char* b;
-
-  struct Overlay overlay;
 
   va_start(ap, text);
   vsnprintf(textbuf, sizeof(textbuf), text, ap);
@@ -766,6 +748,42 @@ void DesktopWindow::addOverlay(const char* text, ...)
 
   overlayTimes[textbuf] = time(nullptr);
 
+  addOverlay(textbuf);
+}
+
+void DesktopWindow::addOverlayError(const char* text, ...)
+{
+  va_list ap;
+  char textbuf[1024];
+
+  va_start(ap, text);
+  vsnprintf(textbuf, sizeof(textbuf), text, ap);
+  textbuf[sizeof(textbuf)-1] = '\0';
+  va_end(ap);
+
+  addOverlay(textbuf);
+}
+
+void DesktopWindow::addOverlay(const char *text)
+{
+  const Fl_Fontsize fontsize = 16;
+  const int margin = 10;
+
+  Fl_Image_Surface *surface;
+
+  Fl_RGB_Image* imageText;
+  Fl_RGB_Image* image;
+
+  unsigned char* buffer;
+
+  int x, y;
+  int w, h;
+
+  unsigned char* a;
+  const unsigned char* b;
+
+  struct Overlay overlay;
+
 #if !defined(WIN32) && !defined(__APPLE__)
   // FLTK < 1.3.5 crashes if fl_gc is unset
   if (!fl_gc)
@@ -774,7 +792,7 @@ void DesktopWindow::addOverlay(const char* text, ...)
 
   fl_font(FL_HELVETICA, fontsize);
   w = 0;
-  fl_measure(textbuf, w, h);
+  fl_measure(text, w, h);
 
   // Margins
   w += margin * 2 * 2;
@@ -787,7 +805,7 @@ void DesktopWindow::addOverlay(const char* text, ...)
 
   fl_font(FL_HELVETICA, fontsize);
   fl_color(FL_WHITE);
-  fl_draw(textbuf, 0, 0, w, h, FL_ALIGN_CENTER);
+  fl_draw(text, 0, 0, w, h, FL_ALIGN_CENTER);
 
   imageText = surface->image();
   delete surface;
@@ -892,8 +910,8 @@ int DesktopWindow::handle(int event)
         modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
 
       if (modifierMask)
-        addOverlay(_("Press %sEnter to leave full-screen mode"),
-                   ShortcutHandler::modifierPrefix(modifierMask));
+        addOverlayTip(_("Press %sEnter to leave full-screen mode"),
+                      ShortcutHandler::modifierPrefix(modifierMask));
     }
 
 #ifdef __APPLE__
@@ -1176,7 +1194,8 @@ void DesktopWindow::grabKeyboard()
   
   ret = win32_enable_lowlevel_keyboard(fl_xid(this));
   if (ret != 0) {
-    vlog.error(_("Failure grabbing keyboard"));
+    vlog.error(_("Failure grabbing control of the keyboard"));
+    addOverlayError(_("Failure grabbing control of the keyboard"));
     return;
   }
 #elif defined(__APPLE__)
@@ -1184,7 +1203,8 @@ void DesktopWindow::grabKeyboard()
 
   ret = cocoa_tap_keyboard();
   if (!ret) {
-    vlog.error(_("Failure grabbing keyboard"));
+    vlog.error(_("Failure grabbing control of the keyboard"));
+    addOverlayError(_("Failure grabbing control of the keyboard"));
     return;
   }
 #else
@@ -1209,7 +1229,8 @@ void DesktopWindow::grabKeyboard()
     }
 
     if (ret) {
-      vlog.error(_("Failure grabbing keyboard"));
+      vlog.error(_("Failure grabbing control of the keyboard"));
+      addOverlayError(_("Failure grabbing control of the keyboard"));
       return;
     }
   }
@@ -1227,8 +1248,8 @@ void DesktopWindow::grabKeyboard()
     modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
 
   if (modifierMask)
-    addOverlay(_("Press %s to release keyboard control from the session"),
-               ShortcutHandler::modifierPrefix(modifierMask, true));
+    addOverlayTip(_("Press %s to release keyboard control from the session"),
+                  ShortcutHandler::modifierPrefix(modifierMask, true));
 }
 
 
