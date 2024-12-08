@@ -20,6 +20,8 @@
 #ifndef __PARAMETERS_H__
 #define __PARAMETERS_H__
 
+#include <set>
+
 #include <rfb/Configuration.h>
 #include "MonitorIndicesParameter.h"
 
@@ -70,7 +72,7 @@ extern rfb::BoolParameter sendPrimary;
 extern rfb::StringParameter display;
 #endif
 
-extern rfb::StringParameter menuKey;
+extern rfb::StringParameter hotKeyCombo;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
 extern rfb::BoolParameter alertOnFatalError;

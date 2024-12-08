@@ -95,6 +95,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
 
   if(sock == nullptr) {
     try {
+      // FIXME: This shouldn't block
 #ifndef WIN32
       if (strchr(vncServerName, '/') != nullptr) {
         sock = new network::UnixSocket(vncServerName);
@@ -307,7 +308,7 @@ void CConn::initDone()
   serverPF = server.pf();
 
   desktop = new DesktopWindow(server.width(), server.height(),
-                              server.name(), serverPF, this);
+                              serverPF, this);
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
@@ -343,7 +344,7 @@ void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
 void CConn::setName(const char* name)
 {
   CConnection::setName(name);
-  desktop->setName(name);
+  desktop->updateCaption();
 }
 
 // framebufferUpdateStart() is called at the beginning of an update.

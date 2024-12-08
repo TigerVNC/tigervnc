@@ -77,24 +77,38 @@ safely.
 Automatic selection can be turned off by setting the
 \fBAutoSelect\fP parameter to false, or from the options dialog.
 
-.SH POPUP MENU
-The viewer has a popup menu containing entries which perform various actions.
-It is usually brought up by pressing F8, but this can be configured with the
-MenuKey parameter.  Actions which the popup menu can perform include:
-.RS 2
-.IP * 2
-switching in and out of full-screen mode
-.IP *
-quitting the viewer
-.IP *
-generating key events, e.g. sending ctrl-alt-del
-.IP *
-accessing the options dialog and various other dialogs
-.RE
-.PP
-By default, key presses in the popup menu get sent to the VNC server and
-dismiss the popup.  So to get an F8 through to the VNC server simply press it
-twice.
+.SH HOT KEY COMBINATIONS
+
+The viewer can be controlled using certain key combinations, invoking special
+actions instead of passing the keyboard events on to the remote session. By
+default pressing Ctrl+Alt and something else will be interpreted as a viewer
+hot key, but this can be changed witht the \fBHotKeyCombo\fP parameter.
+
+The possible hot key combinations are:
+
+.TP
+Ctrl+Alt
+Releases control of the keyboard and allows system keys to be used locally.
+.
+.TP
+Ctrl+Alt+G
+Grabs control of the keyboard and allows system keys to be sent to the remote
+session.
+.
+.TP
+Ctrl+Alt+Enter
+Toggles full-screen mode.
+.
+.TP
+Ctrl+Alt+M
+Opens a popup menu that can perform various extra actions, such as quitting the
+viewer or opening the options dialog.
+.
+.TP
+Ctrl+Alt+Space
+Temporarily bypasses the hot key combinations, allowing the same combinations
+to be sent to the remote session.
+.
 
 .SH FULL-SCREEN MODE
 A full-screen mode is supported.  This is particularly useful when connecting
@@ -229,8 +243,8 @@ The default is "1".
 .
 .TP
 .B \-FullscreenSystemKeys
-Pass special keys (like Alt+Tab) directly to the server when in full-screen
-mode.
+Automatically grab control of the keyboard when entering full-screen and pass
+special keys (like Alt+Tab) directly to the server.
 .
 .TP
 .B \-DesktopSize \fIwidth\fPx\fIheight\fP
@@ -299,18 +313,19 @@ Emulate middle mouse button by pressing left and right mouse buttons
 simultaneously. Default is off.
 .
 .TP
+.B \-HotKeyCombo \fIkeys\fP
+This option specifies which key combination trigger special actions in the
+viewer instead of being sent to the remote session. Possible values are a
+combination of \fBCtrl\fP, \fBShift\fP, \fBAlt\fP, and \fBSuper\fP. Default is
+\fBCtrl,Alt\fP.
+.
+.TP
 .B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
 Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
 \fBstdout\fP, and \fIlevel\fP is between 0 and 100, 100 meaning most verbose
 output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can target a
 specific source file if you know the name of its "LogWriter".  Default is
 \fB*:stderr:30\fP.
-.
-.TP
-.B \-MenuKey \fIkeysym-name\fP
-This option specifies the key which brings up the popup menu. The currently
-supported list is: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Pause,
-Scroll_Lock, Escape, Insert, Delete, Home, Page_Up, Page_Down). Default is F8.
 .
 .TP
 \fB\-via\fR \fIgateway\fR
