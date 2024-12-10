@@ -511,15 +511,10 @@ void vncAbortMsc(int scrIdx, uint64_t id)
   }
 }
 
-int vncOverrideParam(const char *nameAndValue)
+int vncOverrideParam(const char *param, const char *value)
 {
-  const char* equalSign = strchr(nameAndValue, '=');
-  if (!equalSign)
+  if (allowOverrideSet.find(param) == allowOverrideSet.end())
     return 0;
 
-  std::string key(nameAndValue, equalSign);
-  if (allowOverrideSet.find(key) == allowOverrideSet.end())
-    return 0;
-
-  return rfb::Configuration::setParam(nameAndValue);
+  return rfb::Configuration::setParam(param, value);
 }

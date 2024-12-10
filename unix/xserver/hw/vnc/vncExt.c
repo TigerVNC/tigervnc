@@ -103,17 +103,27 @@ int vncNotifyQueryConnect(void)
 
 static int ProcVncExtSetParam(ClientPtr client)
 {
-  char *param;
+  char *param, *value;
   xVncExtSetParamReply rep;
 
   REQUEST(xVncExtSetParamReq);
-  REQUEST_FIXED_SIZE(xVncExtSetParamReq, stuff->paramLen);
+  REQUEST_FIXED_SIZE(xVncExtSetParamReq,
+                     ((stuff->paramLen + 3) & ~3) +
+                     ((stuff->valueLen + 3) & ~3));
 
   param = malloc(stuff->paramLen+1);
   if (param == NULL)
     return BadAlloc;
   strncpy(param, (char*)&stuff[1], stuff->paramLen);
   param[stuff->paramLen] = '\0';
+
+  value = malloc(stuff->valueLen+1);
+  if (value == NULL) {
+    free(param);
+    return BadAlloc;
+  }
+  strncpy(value, (char*)&stuff[1] + ((stuff->paramLen + 3) & ~3), stuff->valueLen);
+  value[stuff->valueLen] = '\0';
 
   rep.type = X_Reply;
   rep.length = 0;
@@ -124,21 +134,22 @@ static int ProcVncExtSetParam(ClientPtr client)
    * Prevent change of clipboard related parameters if clipboard is disabled.
    */
   if (vncNoClipboard &&
-      (strncasecmp(param, "SendCutText", 11) == 0 ||
-       strncasecmp(param, "AcceptCutText", 13) == 0))
+      (strcasecmp(param, "SendCutText") == 0 ||
+       strcasecmp(param, "AcceptCutText") == 0))
     goto deny;
 
-  if (!vncOverrideParam(param))
+  if (!vncOverrideParam(param, value))
     goto deny;
 
   rep.success = 1;
 
   // Send DesktopName update if desktop name has been changed
-  if (strncasecmp(param, "desktop", 7) == 0)
+  if (strcasecmp(param, "desktop") == 0)
     vncUpdateDesktopName();
 
 deny:
   free(param);
+  free(value);
 
   if (client->swapped) {
     swaps(&rep.sequenceNumber);

@@ -73,17 +73,12 @@ Configuration* Configuration::viewer() {
 
 // -=- Configuration implementation
 
-bool Configuration::set(const char* n, const char* v, bool immutable) {
-  return set(n, strlen(n), v, immutable);
-}
-
-bool Configuration::set(const char* paramName, int len,
-                             const char* val, bool immutable)
+bool Configuration::set(const char* paramName, const char* val,
+                        bool immutable)
 {
   VoidParameter* current = head;
   while (current) {
-    if ((int)strlen(current->getName()) == len &&
-        strncasecmp(current->getName(), paramName, len) == 0)
+    if (strcasecmp(current->getName(), paramName) == 0)
     {
       bool b = current->setParam(val);
       if (b && immutable) 
@@ -92,32 +87,7 @@ bool Configuration::set(const char* paramName, int len,
     }
     current = current->_next;
   }
-  return _next ? _next->set(paramName, len, val, immutable) : false;
-}
-
-bool Configuration::set(const char* config, bool immutable) {
-  bool hyphen = false;
-  if (config[0] == '-') {
-    hyphen = true;
-    config++;
-    if (config[0] == '-') config++; // allow gnu-style --<option>
-  }
-  const char* equal = strchr(config, '=');
-  if (equal) {
-    return set(config, equal-config, equal+1, immutable);
-  } else if (hyphen) {
-    VoidParameter* current = head;
-    while (current) {
-      if (strcasecmp(current->getName(), config) == 0) {
-        bool b = current->setParam();
-        if (b && immutable) 
-	  current->setImmutable();
-        return b;
-      }
-      current = current->_next;
-    }
-  }    
-  return _next ? _next->set(config, immutable) : false;
+  return _next ? _next->set(paramName, val, immutable) : false;
 }
 
 VoidParameter* Configuration::get(const char* param)
@@ -187,6 +157,70 @@ bool Configuration::remove(const char* param) {
   }
 
   return false;
+}
+
+int Configuration::handleArg(int argc, char* argv[], int index)
+{
+  std::string param, val;
+  const char* equal = strchr(argv[index], '=');
+
+  if (equal == argv[index])
+    return 0;
+
+  if (equal) {
+    param.assign(argv[index], equal-argv[index]);
+    val.assign(equal+1);
+  } else {
+    param.assign(argv[index]);
+  }
+
+  if ((param.length() > 0) && (param[0] == '-')) {
+    // allow gnu-style --<option>
+    if ((param.length() > 1) && (param[1] == '-'))
+      param = param.substr(2);
+    else
+      param = param.substr(1);
+  } else {
+    // All command line arguments need either an initial '-', or an '='
+    if (val.empty())
+      return 0;
+  }
+
+  if (!val.empty())
+    return set(param.c_str(), val.c_str()) ? 1 : 0;
+
+  VoidParameter* current = head;
+  while (current) {
+    if (strcasecmp(current->getName(), param.c_str()) != 0) {
+      current = current->_next;
+      continue;
+    }
+
+    // We need to resolve an ambiguity for booleans
+    if (dynamic_cast<BoolParameter*>(current) != nullptr) {
+      if (index+1 < argc) {
+        // FIXME: Should not duplicate the list of values here
+        if ((strcasecmp(argv[index+1], "0") == 0) ||
+            (strcasecmp(argv[index+1], "1") == 0) ||
+            (strcasecmp(argv[index+1], "true") == 0) ||
+            (strcasecmp(argv[index+1], "false") == 0) ||
+            (strcasecmp(argv[index+1], "yes") == 0) ||
+            (strcasecmp(argv[index+1], "no") == 0)) {
+            return current->setParam(argv[index+1]) ? 2 : 0;
+        }
+      }
+    }
+
+    if (current->setParam())
+      return 1;
+
+    if (index+1 >= argc)
+      return 0;
+
+    return current->setParam(argv[index+1]) ? 2 : 0;
+  }
+
+  return _next ? _next->handleArg(argc, argv, index) : 0;
 }
 
 
