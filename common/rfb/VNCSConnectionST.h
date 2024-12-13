@@ -127,7 +127,7 @@ namespace rfb {
 
     // These methods are invoked as callbacks from processMsg(
     void authSuccess() override;
-    void queryConnection(const char* userName) override;
+    void queryConnection() override;
     void clientReady(bool shared) override;
     void setPixelFormat(const PixelFormat& pf) override;
     void pointerEvent(const core::Point& pos,

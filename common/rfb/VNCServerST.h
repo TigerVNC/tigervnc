@@ -137,7 +137,7 @@ namespace rfb {
 
     // queryConnection() does some basic checks and then passes on the
     // request to the desktop.
-    void queryConnection(VNCSConnectionST* client, const char* userName);
+    void queryConnection(VNCSConnectionST* client);
 
     // clientReady() is called by a VNCSConnectionST instance when the
     // client has completed the handshake and is ready for normal
