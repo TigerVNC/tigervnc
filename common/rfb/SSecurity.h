@@ -59,8 +59,7 @@ namespace rfb {
 
     // getUserName() gets the name of the user attempting authentication.  The
     // storage is owned by the SSecurity object, so a copy must be taken if
-    // necessary.  Null may be returned to indicate that there is no user name
-    // for this security type.
+    // necessary.
     virtual const char* getUserName() const = 0;
 
     virtual AccessRights getAccessRights() const { return AccessDefault; }

@@ -194,7 +194,7 @@ namespace rfb {
     // queryConnection() is called when authentication has succeeded, but
     // before informing the client.  It can be overridden to query a local user
     // to accept the incoming connection, for example.  The userName argument
-    // is the name of the user making the connection, or null (note that the
+    // is the name of the user making the connection (note that the
     // storage for userName is owned by the caller).  The connection must be
     // accepted or rejected by calling approveConnection(), either directly
     // from queryConnection() or some time later.
