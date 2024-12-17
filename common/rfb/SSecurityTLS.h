@@ -40,6 +40,8 @@
 namespace rdr {
   class InStream;
   class OutStream;
+  class TLSInStream;
+  class TLSOutStream;
 }
 
 namespace rfb {
@@ -69,8 +71,8 @@ namespace rfb {
 
     bool anon;
 
-    rdr::InStream* tlsis;
-    rdr::OutStream* tlsos;
+    rdr::TLSInStream* tlsis;
+    rdr::TLSOutStream* tlsos;
 
     rdr::InStream* rawis;
     rdr::OutStream* rawos;

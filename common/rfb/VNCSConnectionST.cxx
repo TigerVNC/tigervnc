@@ -124,17 +124,6 @@ void VNCSConnectionST::close(const char* reason)
   else
     vlog.debug("Second close: %s (%s)", peerEndpoint.c_str(), reason);
 
-  try {
-    if (sock->outStream().hasBufferedData()) {
-      sock->outStream().cork(false);
-      sock->outStream().flush();
-      if (sock->outStream().hasBufferedData())
-        vlog.error("Failed to flush remaining socket data on close");
-    }
-  } catch (std::exception& e) {
-    vlog.error("Failed to flush remaining socket data on close: %s", e.what());
-  }
-
   // Just shutdown the socket and mark our state as closing.  Eventually the
   // calling code will call VNCServerST's removeSocket() method causing us to
   // be deleted.

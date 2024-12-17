@@ -43,7 +43,11 @@
 
 #include <network/Socket.h>
 
+#include <rfb/LogWriter.h>
+
 using namespace network;
+
+static rfb::LogWriter vlog("Socket");
 
 // -=- Socket initialisation
 static bool socketsInitialised = false;
@@ -98,6 +102,17 @@ Socket::~Socket()
 // if shutdown() is overridden then the override MUST call on to here
 void Socket::shutdown()
 {
+  try {
+    if (outstream->hasBufferedData()) {
+      outstream->cork(false);
+      outstream->flush();
+      if (outstream->hasBufferedData())
+        vlog.error("Failed to flush remaining socket data on close");
+    }
+  } catch (std::exception& e) {
+    vlog.error("Failed to flush remaining socket data on close: %s", e.what());
+  }
+
   isShutdown_ = true;
   ::shutdown(getFd(), SHUT_RDWR);
 }

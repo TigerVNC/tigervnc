@@ -34,6 +34,8 @@
 namespace rdr {
   class InStream;
   class OutStream;
+  class AESInStream;
+  class AESOutStream;
 }
 
 namespace rfb {
@@ -79,8 +81,8 @@ namespace rfb {
     uint8_t serverRandom[32];
     uint8_t clientRandom[32];
 
-    rdr::InStream* rais;
-    rdr::OutStream* raos;
+    rdr::AESInStream* rais;
+    rdr::AESOutStream* raos;
 
     rdr::InStream* rawis;
     rdr::OutStream* rawos;

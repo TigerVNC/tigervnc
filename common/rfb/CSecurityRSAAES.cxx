@@ -55,6 +55,8 @@ const int MaxKeyLength = 8192;
 
 using namespace rfb;
 
+static LogWriter vlog("CSecurityRSAAES");
+
 CSecurityRSAAES::CSecurityRSAAES(CConnection* cc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
   : CSecurity(cc_), state(ReadPublicKey),
@@ -74,6 +76,19 @@ CSecurityRSAAES::~CSecurityRSAAES()
 
 void CSecurityRSAAES::cleanup()
 {
+  if (raos) {
+    try {
+      if (raos->hasBufferedData()) {
+        raos->cork(false);
+        raos->flush();
+        if (raos->hasBufferedData())
+          vlog.error("Failed to flush remaining socket data on close");
+      }
+    } catch (std::exception& e) {
+      vlog.error("Failed to flush remaining socket data on close: %s", e.what());
+    }
+  }
+
   if (serverKeyN)
     delete[] serverKeyN;
   if (serverKeyE)

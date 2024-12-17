@@ -85,6 +85,19 @@ SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
 
 void SSecurityTLS::shutdown()
 {
+  if (tlsos) {
+    try {
+      if (tlsos->hasBufferedData()) {
+        tlsos->cork(false);
+        tlsos->flush();
+        if (tlsos->hasBufferedData())
+          vlog.error("Failed to flush remaining socket data on close");
+      }
+    } catch (std::exception& e) {
+      vlog.error("Failed to flush remaining socket data on close: %s", e.what());
+    }
+  }
+
   if (session) {
     int ret;
     // FIXME: We can't currently wait for the response, so we only send
