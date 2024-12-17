@@ -42,4 +42,6 @@
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-windows.jpg</image>
     </screenshot>
   </screenshots>
+  <developer_name>Pierre Ossman (Cendio AB) et al.</developer_name>
+  <url type="homepage">https://tigervnc.org</url>
 </component>
