@@ -31,7 +31,7 @@
 
 [Unit]
 Description=Remote desktop service (VNC)
-After=syslog.target network.target systemd-user-sessions.service
+After=network.target systemd-user-sessions.service
 
 [Service]
 Type=forking
