@@ -20,7 +20,7 @@ will fall back to polling the screen for changes.
 .SH OPTIONS
 .B x0vncserver
 interprets the command line as a list of parameters with optional values.
-Running \fBx0vncserver -h\fP will show a list of all valid parameters with
+Running \fBx0vncserver \-h\fP will show a list of all valid parameters with
 short descriptions.  All parameters are optional, but normally you would have
 to use the \fBPasswordFile\fP parameter (see its description below).
 .PP
