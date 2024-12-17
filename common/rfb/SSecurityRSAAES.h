@@ -24,10 +24,15 @@
 #endif
 
 #include <nettle/rsa.h>
+
 #include <rfb/SSecurity.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
+
 #include <rdr/RandomStream.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
 

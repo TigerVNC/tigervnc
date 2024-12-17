@@ -28,9 +28,13 @@
 
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
+
 #include <gnutls/gnutls.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
   class CSecurityTLS : public CSecurity {

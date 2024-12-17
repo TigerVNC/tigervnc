@@ -25,11 +25,16 @@
 #endif
 
 #include <nettle/rsa.h>
+
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
+
 #include <rdr/RandomStream.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
   class CSecurityRSAAES : public CSecurity {

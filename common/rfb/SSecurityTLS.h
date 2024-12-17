@@ -27,9 +27,7 @@
 #endif
 
 #include <rfb/SSecurity.h>
-#include <rfb/SSecurityVeNCrypt.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
+
 #include <gnutls/gnutls.h>
 
 /* In GnuTLS 3.6.0 DH parameter generation was deprecated. RFC7919 is used instead.
@@ -38,6 +36,11 @@
 #if GNUTLS_VERSION_NUMBER < 0x030600
 #define SSECURITYTLS__USE_DEPRECATED_DH
 #endif
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
 
