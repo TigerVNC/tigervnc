@@ -540,9 +540,9 @@ void SSecurityRSAAES::writeSubtype()
 
 bool SSecurityRSAAES::readCredentials()
 {
-  rais->setRestorePoint();
   if (!rais->hasData(1))
     return false;
+  rais->setRestorePoint();
   uint8_t lenUsername = rais->readU8();
   if (!rais->hasDataOrRestore(lenUsername + 1))
     return false;
