@@ -74,7 +74,7 @@ BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
  false, ConfServer);
 
-static LogWriter vlog("CSecurityRSAAES");
+static LogWriter vlog("SSecurityRSAAES");
 
 SSecurityRSAAES::SSecurityRSAAES(SConnection* sc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
