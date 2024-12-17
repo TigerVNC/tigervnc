@@ -765,12 +765,13 @@ vncRandRModeGet(int width, int height)
     xRRModeInfo modeInfo;
     char name[100];
     RRModePtr mode;
+#ifdef HAVE_LIBXCVT
+    struct libxcvt_mode_info *cvtMode;
+#endif
 
     memset(&modeInfo, 0, sizeof(modeInfo));
 
 #ifdef HAVE_LIBXCVT
-    struct libxcvt_mode_info *cvtMode;
-
     cvtMode = libxcvt_gen_mode_info(width, height, 60.0, false, false);
 
     modeInfo.width      = cvtMode->hdisplay;
