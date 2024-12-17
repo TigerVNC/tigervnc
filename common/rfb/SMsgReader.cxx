@@ -25,6 +25,10 @@
 
 #include <vector>
 
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
 
@@ -32,17 +36,16 @@
 #include <rfb/qemuTypes.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/Exception.h>
+#include <rfb/PixelFormat.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SMsgReader.h>
-#include <rfb/Configuration.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
-static LogWriter vlog("SMsgReader");
+static core::LogWriter vlog("SMsgReader");
 
-static IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
+static core::IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
 
 SMsgReader::SMsgReader(SMsgHandler* handler_, rdr::InStream* is_)
   : handler(handler_), is(is_), state(MSGSTATE_IDLE)
@@ -201,7 +204,7 @@ bool SMsgReader::readFramebufferUpdateRequest()
   int y = is->readU16();
   int w = is->readU16();
   int h = is->readU16();
-  handler->framebufferUpdateRequest(Rect(x, y, x+w, y+h), inc);
+  handler->framebufferUpdateRequest({x, y, x+w, y+h}, inc);
   return true;
 }
 
@@ -298,7 +301,7 @@ bool SMsgReader::readPointerEvent()
   }
 
   is->clearRestorePoint();
-  handler->pointerEvent(Point(x, y), mask);
+  handler->pointerEvent({x, y}, mask);
   return true;
 }
 
@@ -338,8 +341,8 @@ bool SMsgReader::readClientCutText()
   std::vector<char> ca(len);
   is->readBytes((uint8_t*)ca.data(), len);
 
-  std::string utf8(latin1ToUTF8(ca.data(), ca.size()));
-  std::string filtered(convertLF(utf8.data(), utf8.size()));
+  std::string utf8(core::latin1ToUTF8(ca.data(), ca.size()));
+  std::string filtered(core::convertLF(utf8.data(), utf8.size()));
 
   handler->clientCutText(filtered.c_str());
 
@@ -485,7 +488,7 @@ bool SMsgReader::readQEMUMessage()
     ret = readQEMUKeyEvent();
     break;
   default:
-    throw protocol_error(format("Unknown QEMU submessage type %d", subType));
+    throw protocol_error(core::format("Unknown QEMU submessage type %d", subType));
   }
 
   if (!ret) {

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+/* Copyright 2015 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,21 +16,43 @@
  * USA.
  */
 
-// -=- Logger_stdio.cxx - Logger instances for stderr and stdout
+#ifndef __CORE_THREAD_H__
+#define __CORE_THREAD_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <stddef.h>
+
+namespace core {
+  class Mutex;
+
+  class Thread {
+  public:
+    Thread();
+    virtual ~Thread();
+
+    void start();
+    void wait();
+
+    bool isRunning();
+
+  public:
+    static size_t getSystemCPUCount();
+
+  protected:
+    virtual void worker() = 0;
+
+  private:
+#ifdef WIN32
+    static long unsigned __stdcall startRoutine(void* data);
+#else
+    static void* startRoutine(void* data);
 #endif
 
-#include <rfb/Logger_stdio.h>
+  private:
+    Mutex *mutex;
+    bool running;
 
-using namespace rfb;
-
-static Logger_StdIO logStdErr("stderr", stderr);
-static Logger_StdIO logStdOut("stdout", stdout);
-
-bool rfb::initStdIOLoggers() {
-  logStdErr.registerLogger();
-  logStdOut.registerLogger();
-  return true;
+    void *threadId;
+  };
 }
+
+#endif

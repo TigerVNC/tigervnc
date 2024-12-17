@@ -22,14 +22,19 @@
 #include <config.h>
 #endif
 
+#include <core/Exception.h>
+#include <core/string.h>
+
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Handle.h>
+
 #include <rdr/HexOutStream.h>
-#include <rdr/Exception.h>
-#include <rfb/util.h>
+
 #include <stdio.h>
+
+using namespace core;
 
 namespace rfb {
 namespace win32 {
@@ -46,19 +51,19 @@ FileVersionInfo::FileVersionInfo(const char* filename) {
   {
     Handle file(CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
 	  if (file.h == INVALID_HANDLE_VALUE)
-      throw rdr::win32_error("Failed to open file", GetLastError());
+      throw core::win32_error("Failed to open file", GetLastError());
   }
 
   // Get version info size
   DWORD handle;
   int size = GetFileVersionInfoSize((char*)filename, &handle);
   if (!size)
-    throw rdr::win32_error("GetVersionInfoSize failed", GetLastError());
+    throw core::win32_error("GetVersionInfoSize failed", GetLastError());
 
   // Get version info
   buf = new char[size];
   if (!GetFileVersionInfo((char*)filename, handle, size, buf))
-    throw rdr::win32_error("GetVersionInfo failed", GetLastError());
+    throw core::win32_error("GetVersionInfo failed", GetLastError());
 }
 
 FileVersionInfo::~FileVersionInfo() {

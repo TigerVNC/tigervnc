@@ -27,14 +27,15 @@
 #include <wmcodecdsp.h>
 #define SAFE_RELEASE(obj) if (obj) { obj->Release(); obj = nullptr; }
 
-#include <os/Mutex.h>
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
+
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264WinDecoderContext.h>
 
 using namespace rfb;
 
-static LogWriter vlog("H264WinDecoderContext");
+static core::LogWriter vlog("H264WinDecoderContext");
 
 // Older MinGW lacks this definition
 #ifndef HAVE_VIDEO_PROCESSOR_MFT
@@ -42,7 +43,7 @@ static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7
 #endif
 
 bool H264WinDecoderContext::initCodec() {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
 
   if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE)))
   {
@@ -146,7 +147,7 @@ bool H264WinDecoderContext::initCodec() {
 }
 
 void H264WinDecoderContext::freeCodec() {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
 
   if (!initialized)
     return;
@@ -165,7 +166,7 @@ void H264WinDecoderContext::freeCodec() {
 void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
                                    uint32_t len,
                                    ModifiablePixelBuffer* pb) {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
   if (!initialized)
     return;
 

@@ -39,7 +39,6 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rdr/RandomStream.h>
-#include <os/os.h>
 
 using namespace rfb;
 

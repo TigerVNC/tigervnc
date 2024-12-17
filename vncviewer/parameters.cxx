@@ -32,13 +32,12 @@
 
 #include "parameters.h"
 
-#include <os/os.h>
+#include <core/Exception.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+#include <core/xdgdirs.h>
 
-#include <rdr/Exception.h>
-
-#include <rfb/LogWriter.h>
 #include <rfb/SecurityClient.h>
-#include <rfb/util.h>
 
 #include <FL/fl_utf8.h>
 
@@ -50,123 +49,172 @@
 
 #include "i18n.h"
 
-using namespace rfb;
-using namespace std;
+static core::LogWriter vlog("Parameters");
 
-static LogWriter vlog("Parameters");
+core::IntParameter
+  pointerEventInterval("PointerEventInterval",
+                       "Time in milliseconds to rate-limit successive "
+                       "pointer events",
+                       17);
+core::BoolParameter
+  emulateMiddleButton("EmulateMiddleButton",
+                      "Emulate middle mouse button by pressing left "
+                      "and right mouse buttons simultaneously",
+                      false);
+core::BoolParameter
+  dotWhenNoCursor("DotWhenNoCursor",
+                  "Show the dot cursor when the server sends an "
+                  "invisible cursor",
+                  false);
 
+core::BoolParameter
+  alertOnFatalError("AlertOnFatalError",
+                    "Give a dialog on connection problems rather than "
+                    "exiting immediately",
+                    true);
 
-IntParameter pointerEventInterval("PointerEventInterval",
-                                  "Time in milliseconds to rate-limit"
-                                  " successive pointer events", 17);
-BoolParameter emulateMiddleButton("EmulateMiddleButton",
-                                  "Emulate middle mouse button by pressing "
-                                  "left and right mouse buttons simultaneously",
-                                  false);
-BoolParameter dotWhenNoCursor("DotWhenNoCursor",
-                              "Show the dot cursor when the server sends an "
-                              "invisible cursor", false);
+core::BoolParameter
+  reconnectOnError("ReconnectOnError",
+                   "Give a dialog on connection problems rather than "
+                   "exiting immediately and ask for a reconnect.",
+                   true);
 
-BoolParameter alertOnFatalError("AlertOnFatalError",
-                                "Give a dialog on connection problems rather "
-                                "than exiting immediately", true);
+core::StringParameter
+  passwordFile("PasswordFile",
+               "Password file for VNC authentication",
+               "");
+core::AliasParameter
+  passwd("passwd", "Alias for PasswordFile", &passwordFile);
 
-BoolParameter reconnectOnError("ReconnectOnError",
-                               "Give a dialog on connection problems rather "
-                               "than exiting immediately and ask for a reconnect.", true);
+core::BoolParameter
+  autoSelect("AutoSelect",
+             "Auto select pixel format and encoding. Default if "
+             "PreferredEncoding and FullColor are not specified.",
+             true);
+core::BoolParameter
+  fullColour("FullColor", "Use full color", true);
+core::AliasParameter
+  fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
+core::IntParameter
+  lowColourLevel("LowColorLevel",
+                 "Color level to use on slow connections. "
+                 "0 = Very Low, 1 = Low, 2 = Medium",
+                 2);
+core::AliasParameter
+  lowColourLevelAlias("LowColourLevel",
+                      "Alias for LowColorLevel", &lowColourLevel);
+core::StringParameter
+  preferredEncoding("PreferredEncoding",
+                    "Preferred encoding to use (Tight, ZRLE, Hextile "
+                    "or Raw)",
+                    "Tight");
+core::BoolParameter
+  customCompressLevel("CustomCompressLevel",
+                      "Use custom compression level. Default if "
+                      "CompressLevel is specified.",
+                      false);
+core::IntParameter
+  compressLevel("CompressLevel",
+                "Use specified compression level 0 = Low, 9 = High",
+                2);
+core::BoolParameter
+  noJpeg("NoJPEG",
+         "Disable lossy JPEG compression in Tight encoding.",
+         false);
+core::IntParameter
+  qualityLevel("QualityLevel",
+               "JPEG quality level. 0 = Low, 9 = High",
+               8);
 
-StringParameter passwordFile("PasswordFile",
-                             "Password file for VNC authentication", "");
-AliasParameter passwd("passwd", "Alias for PasswordFile", &passwordFile);
+core::BoolParameter
+  maximize("Maximize", "Maximize viewer window", false);
+core::BoolParameter
+  fullScreen("FullScreen", "Enable full screen", false);
+core::StringParameter
+  fullScreenMode("FullScreenMode",
+                 "Specify which monitors to use when in full screen. "
+                 "Should be either Current, Selected or All",
+                 "Current");
+core::BoolParameter
+  fullScreenAllMonitors("FullScreenAllMonitors",
+                        "[DEPRECATED] Enable full screen over all "
+                        "monitors",
+                        false);
+MonitorIndicesParameter
+  fullScreenSelectedMonitors("FullScreenSelectedMonitors",
+                             "Use the given list of monitors in full "
+                             "screen when -FullScreenMode=Selected.",
+                             "1");
+core::StringParameter
+  desktopSize("DesktopSize",
+              "Reconfigure desktop size on the server on connect (if "
+              "possible)",
+              "");
+core::StringParameter
+  geometry("geometry",
+           "Specify size and position of viewer window",
+           "");
 
-BoolParameter autoSelect("AutoSelect",
-                         "Auto select pixel format and encoding. "
-                         "Default if PreferredEncoding and FullColor are not specified.", 
-                         true);
-BoolParameter fullColour("FullColor",
-                         "Use full color", true);
-AliasParameter fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
-IntParameter lowColourLevel("LowColorLevel",
-                            "Color level to use on slow connections. "
-                            "0 = Very Low, 1 = Low, 2 = Medium", 2);
-AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", &lowColourLevel);
-StringParameter preferredEncoding("PreferredEncoding",
-                                  "Preferred encoding to use (Tight, ZRLE, Hextile or"
-                                  " Raw)", "Tight");
-BoolParameter customCompressLevel("CustomCompressLevel",
-                                  "Use custom compression level. "
-                                  "Default if CompressLevel is specified.", false);
-IntParameter compressLevel("CompressLevel",
-                           "Use specified compression level 0 = Low, 9 = High",
-                           2);
-BoolParameter noJpeg("NoJPEG",
-                     "Disable lossy JPEG compression in Tight encoding.",
-                     false);
-IntParameter qualityLevel("QualityLevel",
-                          "JPEG quality level. 0 = Low, 9 = High",
-                          8);
+core::BoolParameter
+  listenMode("listen",
+             "Listen for connections from VNC servers",
+             false);
 
-BoolParameter maximize("Maximize", "Maximize viewer window", false);
-BoolParameter fullScreen("FullScreen", "Enable full screen", false);
-StringParameter fullScreenMode("FullScreenMode", "Specify which monitors to use when in full screen. "
-                                                 "Should be either Current, Selected or All",
-                                                 "Current");
-BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
-                                    "[DEPRECATED] Enable full screen over all monitors",
-                                    false);
-MonitorIndicesParameter fullScreenSelectedMonitors("FullScreenSelectedMonitors",
-                                         "Use the given list of monitors in full screen"
-                                         " when -FullScreenMode=Selected.",
-                                         "1");
-StringParameter desktopSize("DesktopSize",
-                            "Reconfigure desktop size on the server on "
-                            "connect (if possible)", "");
-StringParameter geometry("geometry",
-                         "Specify size and position of viewer window", "");
+core::BoolParameter
+  remoteResize("RemoteResize",
+               "Dynamically resize the remote desktop size as the size "
+               "of the local client window changes. (Does not work "
+               "with all servers)",
+               true);
 
-BoolParameter listenMode("listen", "Listen for connections from VNC servers", false);
+core::BoolParameter
+  viewOnly("ViewOnly",
+           "Don't send any mouse or keyboard events to the server",
+           false);
+core::BoolParameter
+  shared("Shared",
+         "Don't disconnect other viewers upon connection - "
+         "share the desktop instead",
+         false);
 
-BoolParameter remoteResize("RemoteResize",
-                           "Dynamically resize the remote desktop size as "
-                           "the size of the local client window changes. "
-                           "(Does not work with all servers)", true);
-
-BoolParameter viewOnly("ViewOnly",
-                       "Don't send any mouse or keyboard events to the server",
-                       false);
-BoolParameter shared("Shared",
-                     "Don't disconnect other viewers upon connection - "
-                     "share the desktop instead",
-                     false);
-
-BoolParameter acceptClipboard("AcceptClipboard",
-                              "Accept clipboard changes from the server",
-                              true);
-BoolParameter sendClipboard("SendClipboard",
-                            "Send clipboard changes to the server", true);
+core::BoolParameter
+  acceptClipboard("AcceptClipboard",
+                  "Accept clipboard changes from the server",
+                  true);
+core::BoolParameter
+  sendClipboard("SendClipboard",
+                "Send clipboard changes to the server",
+                true);
 #if !defined(WIN32) && !defined(__APPLE__)
-BoolParameter setPrimary("SetPrimary",
-                         "Set the primary selection as well as the "
-                         "clipboard selection", true);
-BoolParameter sendPrimary("SendPrimary",
-                          "Send the primary selection to the "
-                          "server as well as the clipboard selection",
-                          true);
-StringParameter display("display",
-			"Specifies the X display on which the VNC viewer window should appear.",
-			"");
+core::BoolParameter
+  setPrimary("SetPrimary",
+             "Set the primary selection as well as the clipboard "
+             "selection",
+             true);
+core::BoolParameter
+  sendPrimary("SendPrimary",
+              "Send the primary selection to the server as well as the "
+              "clipboard selection",
+              true);
+core::StringParameter
+  display("display",
+          "Specifies the X display on which the VNC viewer window "
+          "should appear.",
+          "");
 #endif
 
-StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
-                        "F8");
+core::StringParameter
+  menuKey("MenuKey", "The key which brings up the popup menu", "F8");
 
-BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
-                                   "Pass special keys (like Alt+Tab) directly "
-                                   "to the server when in full-screen mode.",
-                                   true);
+core::BoolParameter
+  fullscreenSystemKeys("FullscreenSystemKeys",
+                       "Pass special keys (like Alt+Tab) directly to "
+                       "the server when in full-screen mode.",
+                       true);
 
 #ifndef WIN32
-StringParameter via("via", "Gateway to tunnel via", "");
+core::StringParameter
+  via("via", "Gateway to tunnel via", "");
 #endif
 
 static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
@@ -175,13 +223,13 @@ static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0"
  * We only save the sub set of parameters that can be modified from
  * the graphical user interface
  */
-static VoidParameter* parameterArray[] = {
+static core::VoidParameter* parameterArray[] = {
   /* Security */
 #ifdef HAVE_GNUTLS
-  &CSecurityTLS::X509CA,
-  &CSecurityTLS::X509CRL,
+  &rfb::CSecurityTLS::X509CA,
+  &rfb::CSecurityTLS::X509CRL,
 #endif // HAVE_GNUTLS
-  &SecurityClient::secTypes,
+  &rfb::SecurityClient::secTypes,
   /* Misc. */
   &reconnectOnError,
   &shared,
@@ -212,7 +260,7 @@ static VoidParameter* parameterArray[] = {
   &fullscreenSystemKeys
 };
 
-static VoidParameter* readOnlyParameterArray[] = {
+static core::VoidParameter* readOnlyParameterArray[] = {
   &fullScreenAllMonitors
 };
 
@@ -320,7 +368,7 @@ static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_SZ, (BYTE*)&value, (wcslen(value)+1)*2);
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error("RegSetValueExW", res);
+    throw core::win32_error("RegSetValueExW", res);
 }
 
 
@@ -336,7 +384,7 @@ static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_DWORD, (BYTE*)&value, sizeof(DWORD));
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error("RegSetValueExW", res);
+    throw core::win32_error("RegSetValueExW", res);
 }
 
 
@@ -357,7 +405,7 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
   if (res != ERROR_SUCCESS){
     delete [] value;
     if (res != ERROR_FILE_NOT_FOUND)
-      throw rdr::win32_error("RegQueryValueExW", res);
+      throw core::win32_error("RegQueryValueExW", res);
     // The value does not exist, defaults will be used.
     return false;
   }
@@ -394,7 +442,7 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
   LONG res = RegQueryValueExW(*hKey, name, nullptr, nullptr, (LPBYTE)&value, &dwordsize);
   if (res != ERROR_SUCCESS){
     if (res != ERROR_FILE_NOT_FOUND)
-      throw rdr::win32_error("RegQueryValueExW", res);
+      throw core::win32_error("RegQueryValueExW", res);
     // The value does not exist, defaults will be used.
     return false;
   }
@@ -414,13 +462,14 @@ static void removeValue(const char* _name, HKEY* hKey) {
   LONG res = RegDeleteValueW(*hKey, name);
   if (res != ERROR_SUCCESS) {
     if (res != ERROR_FILE_NOT_FOUND)
-      throw rdr::win32_error("RegDeleteValueW", res);
+      throw core::win32_error("RegDeleteValueW", res);
     // The value does not exist, no need to remove it.
     return;
   }
 }
 
-void saveHistoryToRegKey(const list<string>& serverHistory) {
+void saveHistoryToRegKey(const std::list<std::string>& serverHistory)
+{
   HKEY hKey;
   LONG res = RegCreateKeyExW(HKEY_CURRENT_USER,
                              L"Software\\TigerVNC\\vncviewer\\history", 0, nullptr,
@@ -428,14 +477,14 @@ void saveHistoryToRegKey(const list<string>& serverHistory) {
                              &hKey, nullptr);
 
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error(_("Failed to create registry key"), res);
+    throw core::win32_error(_("Failed to create registry key"), res);
 
   unsigned index = 0;
   assert(SERVER_HISTORY_SIZE < 100);
   char indexString[3];
 
   try {
-    for (const string& entry : serverHistory) {
+    for (const std::string& entry : serverHistory) {
       if (index > SERVER_HISTORY_SIZE)
         break;
       snprintf(indexString, 3, "%d", index);
@@ -449,7 +498,7 @@ void saveHistoryToRegKey(const list<string>& serverHistory) {
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error(_("Failed to close registry key"), res);
+    throw core::win32_error(_("Failed to close registry key"), res);
 }
 
 static void saveToReg(const char* servername) {
@@ -461,57 +510,66 @@ static void saveToReg(const char* servername) {
                              REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr,
                              &hKey, nullptr);
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error(_("Failed to create registry key"), res);
+    throw core::win32_error(_("Failed to create registry key"), res);
 
   try {
     setKeyString("ServerName", servername, &hKey);
   } catch (std::exception& e) {
     RegCloseKey(hKey);
-    throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                    "ServerName", e.what()));
+    throw std::runtime_error(core::format(
+      _("Failed to save \"%s\": %s"), "ServerName", e.what()));
   }
 
-  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (core::VoidParameter* param : parameterArray) {
+    core::StringParameter* sparam;
+    core::IntParameter* iparam;
+    core::BoolParameter* bparam;
+
+    sparam = dynamic_cast<core::StringParameter*>(param);
+    iparam = dynamic_cast<core::IntParameter*>(param);
+    bparam = dynamic_cast<core::BoolParameter*>(param);
+
     try {
-      if (dynamic_cast<StringParameter*>(parameterArray[i]) != nullptr) {
-        setKeyString(parameterArray[i]->getName(), *(StringParameter*)parameterArray[i], &hKey);
-      } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
-        setKeyInt(parameterArray[i]->getName(), (int)*(IntParameter*)parameterArray[i], &hKey);
-      } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != nullptr) {
-        setKeyInt(parameterArray[i]->getName(), (int)*(BoolParameter*)parameterArray[i], &hKey);
+      if (sparam != nullptr) {
+        setKeyString(sparam->getName(), *(sparam), &hKey);
+      } else if (iparam != nullptr) {
+        setKeyInt(iparam->getName(), (int)*(iparam), &hKey);
+      } else if (bparam != nullptr) {
+        setKeyInt(bparam->getName(), (int)*(bparam), &hKey);
       } else {
         throw std::logic_error(_("Unknown parameter type"));
       }
     } catch (std::exception& e) {
       RegCloseKey(hKey);
-      throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                      parameterArray[i]->getName(),
-                                      e.what()));
+      throw std::runtime_error(
+        core::format(_("Failed to save \"%s\": %s"),
+                     param->getName(), e.what()));
     }
   }
 
   // Remove read-only parameters to replicate the behaviour of Linux/macOS when they
   // store a config to disk. If the parameter hasn't been migrated at this point it
   // will be lost.
-  for (size_t i = 0; i < sizeof(readOnlyParameterArray)/sizeof(VoidParameter*); i++) {
+  for (core::VoidParameter* param : readOnlyParameterArray) {
     try {
-      removeValue(readOnlyParameterArray[i]->getName(), &hKey);
+      removeValue(param->getName(), &hKey);
     } catch (std::exception& e) {
       RegCloseKey(hKey);
-      throw std::runtime_error(format(_("Failed to remove \"%s\": %s"),
-                                      readOnlyParameterArray[i]->getName(),
-                                      e.what()));
+      throw std::runtime_error(
+        core::format(_("Failed to remove \"%s\": %s"),
+                     param->getName(), e.what()));
     }
   }
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error(_("Failed to close registry key"), res);
+    throw core::win32_error(_("Failed to close registry key"), res);
 }
 
-list<string> loadHistoryFromRegKey() {
+std::list<std::string> loadHistoryFromRegKey()
+{
   HKEY hKey;
-  list<string> serverHistory;
+  std::list<std::string> serverHistory;
 
   LONG res = RegOpenKeyExW(HKEY_CURRENT_USER,
                            L"Software\\TigerVNC\\vncviewer\\history", 0,
@@ -522,7 +580,7 @@ list<string> loadHistoryFromRegKey() {
       return serverHistory;
     }
 
-    throw rdr::win32_error(_("Failed to open registry key"), res);
+    throw core::win32_error(_("Failed to open registry key"), res);
   }
 
   unsigned index;
@@ -549,29 +607,37 @@ list<string> loadHistoryFromRegKey() {
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error(_("Failed to close registry key"), res);
+    throw core::win32_error(_("Failed to close registry key"), res);
 
   return serverHistory;
 }
 
-static void getParametersFromReg(VoidParameter* parameters[],
+static void getParametersFromReg(core::VoidParameter* parameters[],
                                  size_t parameters_len, HKEY* hKey)
 {
   const size_t buffersize = 256;
   int intValue = 0;
   char stringValue[buffersize];
 
-  for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < parameters_len; i++) {
+    core::StringParameter* sparam;
+    core::IntParameter* iparam;
+    core::BoolParameter* bparam;
+
+    sparam = dynamic_cast<core::StringParameter*>(parameters[i]);
+    iparam = dynamic_cast<core::IntParameter*>(parameters[i]);
+    bparam = dynamic_cast<core::BoolParameter*>(parameters[i]);
+
     try {
-      if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-        if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
-          parameters[i]->setParam(stringValue);
-      } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
-        if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
-          ((IntParameter*)parameters[i])->setParam(intValue);
-      } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
-        if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
-          ((BoolParameter*)parameters[i])->setParam(intValue);
+      if (sparam != nullptr) {
+        if (getKeyString(sparam->getName(), stringValue, buffersize, hKey))
+          sparam->setParam(stringValue);
+      } else if (iparam != nullptr) {
+        if (getKeyInt(iparam->getName(), &intValue, hKey))
+          iparam->setParam(intValue);
+      } else if (bparam != nullptr) {
+        if (getKeyInt(bparam->getName(), &intValue, hKey))
+          bparam->setParam(intValue);
       } else {
         throw std::logic_error(_("Unknown parameter type"));
       }
@@ -596,7 +662,7 @@ static char* loadFromReg() {
       return nullptr;
     }
 
-    throw rdr::win32_error(_("Failed to open registry key"), res);
+    throw core::win32_error(_("Failed to open registry key"), res);
   }
 
   const size_t buffersize = 256;
@@ -612,13 +678,18 @@ static char* loadFromReg() {
     strcpy(servername, "");
   }
 
-  getParametersFromReg(parameterArray, sizeof(parameterArray), &hKey);
+  getParametersFromReg(parameterArray,
+                       sizeof(parameterArray) /
+                         sizeof(core::VoidParameter*),
+                       &hKey);
   getParametersFromReg(readOnlyParameterArray,
-                       sizeof(readOnlyParameterArray), &hKey);
+                       sizeof(readOnlyParameterArray) /
+                         sizeof(core::VoidParameter*),
+                       &hKey);
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS)
-    throw rdr::win32_error(_("Failed to close registry key"), res);
+    throw core::win32_error(_("Failed to close registry key"), res);
 
   return servername;
 }
@@ -639,7 +710,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
     return;
 #endif
     
-    const char* configDir = os::getvncconfigdir();
+    const char* configDir = core::getvncconfigdir();
     if (configDir == nullptr)
       throw std::runtime_error(_("Could not determine VNC config directory path"));
 
@@ -650,73 +721,86 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   /* Write parameters to file */
   FILE* f = fopen(filepath, "w+");
-  if (!f) {
-    std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
-  }
+  if (!f)
+    throw core::posix_error(
+      core::format(_("Could not open \"%s\""), filepath), errno);
 
   fprintf(f, "%s\n", IDENTIFIER_STRING);
   fprintf(f, "\n");
 
   if (!encodeValue(servername, encodingBuffer, buffersize)) {
     fclose(f);
-    throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                    "ServerName",
-                                    _("Could not encode parameter")));
+    throw std::runtime_error(
+      core::format(_("Failed to save \"%s\": %s"), "ServerName",
+                   _("Could not encode parameter")));
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
-  for (VoidParameter* param : parameterArray) {
-    if (dynamic_cast<StringParameter*>(param) != nullptr) {
-      if (!encodeValue(*(StringParameter*)param,
-          encodingBuffer, buffersize)) {
+  for (core::VoidParameter* param : parameterArray) {
+    core::StringParameter* sparam;
+    core::IntParameter* iparam;
+    core::BoolParameter* bparam;
+
+    sparam = dynamic_cast<core::StringParameter*>(param);
+    iparam = dynamic_cast<core::IntParameter*>(param);
+    bparam = dynamic_cast<core::BoolParameter*>(param);
+
+    if (sparam != nullptr) {
+      if (!encodeValue(*sparam, encodingBuffer, buffersize)) {
         fclose(f);
-        throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                        param->getName(),
-                                        _("Could not encode parameter")));
+        throw std::runtime_error(
+          core::format(_("Failed to save \"%s\": %s"), param->getName(),
+                       _("Could not encode parameter")));
       }
-      fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
-    } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((IntParameter*)param)->getName(), (int)*(IntParameter*)param);
-    } else if (dynamic_cast<BoolParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
+      fprintf(f, "%s=%s\n", sparam->getName(), encodingBuffer);
+    } else if (iparam != nullptr) {
+      fprintf(f, "%s=%d\n", iparam->getName(), (int)*iparam);
+    } else if (bparam != nullptr) {
+      fprintf(f, "%s=%d\n", bparam->getName(), (int)*bparam);
     } else {      
       fclose(f);
-      throw std::logic_error(format(_("Failed to save \"%s\": %s"),
-                                    param->getName(),
-                                    _("Unknown parameter type")));
+      throw std::logic_error(
+        core::format(_("Failed to save \"%s\": %s"), param->getName(),
+                     _("Unknown parameter type")));
     }
   }
   fclose(f);
 }
 
 static bool findAndSetViewerParameterFromValue(
-  VoidParameter* parameters[], size_t parameters_len,
+  core::VoidParameter* parameters[], size_t parameters_len,
   char* value, char* line)
 {
   const size_t buffersize = 256;
   char decodingBuffer[buffersize];
 
   // Find and set the correct parameter
-  for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < parameters_len; i++) {
+    core::StringParameter* sparam;
+    core::IntParameter* iparam;
+    core::BoolParameter* bparam;
 
-    if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((StringParameter*)parameters[i])->getName()) == 0) {
+    sparam = dynamic_cast<core::StringParameter*>(parameters[i]);
+    iparam = dynamic_cast<core::IntParameter*>(parameters[i]);
+    bparam = dynamic_cast<core::BoolParameter*>(parameters[i]);
+
+    if (sparam != nullptr) {
+      if (strcasecmp(line, sparam->getName()) == 0) {
         if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
           throw std::runtime_error(_("Invalid format or too large value"));
-        ((StringParameter*)parameters[i])->setParam(decodingBuffer);
+        sparam->setParam(decodingBuffer);
         return false;
       }
 
-    } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((IntParameter*)parameters[i])->getName()) == 0) {
-        ((IntParameter*)parameters[i])->setParam(atoi(value));
+    } else if (iparam != nullptr) {
+      if (strcasecmp(line, iparam->getName()) == 0) {
+        iparam->setParam(atoi(value));
         return false;
       }
 
-    } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((BoolParameter*)parameters[i])->getName()) == 0) {
-        ((BoolParameter*)parameters[i])->setParam(atoi(value));
+    } else if (bparam != nullptr) {
+      if (strcasecmp(line, bparam->getName()) == 0) {
+        bparam->setParam(atoi(value));
         return false;
       }
 
@@ -745,7 +829,7 @@ char* loadViewerParameters(const char *filename) {
     return loadFromReg();
 #endif
 
-    const char* configDir = os::getvncconfigdir();
+    const char* configDir = core::getvncconfigdir();
     if (configDir == nullptr)
       throw std::runtime_error(_("Could not determine VNC config directory path"));
 
@@ -759,10 +843,10 @@ char* loadViewerParameters(const char *filename) {
   if (!f) {
     if (!filename)
       return nullptr; // Use defaults.
-    std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
+    throw core::posix_error(
+      core::format(_("Could not open \"%s\""), filepath), errno);
   }
-  
+
   int lineNr = 0;
   while (!feof(f)) {
 
@@ -773,18 +857,19 @@ char* loadViewerParameters(const char *filename) {
         break;
 
       fclose(f);
-      std::string msg = format(_("Failed to read line %d in "
-                                 "file \"%s\""), lineNr, filepath);
-      throw rdr::posix_error(msg.c_str(), errno);
+      throw core::posix_error(
+        core::format(_("Failed to read line %d in file \"%s\""),
+                     lineNr, filepath),
+        errno);
     }
 
     if (strlen(line) == (sizeof(line) - 1)) {
       fclose(f);
-      throw std::runtime_error(format("%s: %s",
-                                      format(_("Failed to read line %d "
-                                               "in file \"%s\""),
-                                             lineNr, filepath).c_str(),
-                                      _("Line too long")));
+      throw std::runtime_error(core::format(
+        "%s: %s",
+        core::format(_("Failed to read line %d in file \"%s\""),
+                     lineNr, filepath).c_str(),
+        _("Line too long")));
     }
 
     // Make sure that the first line of the file has the file identifier string
@@ -793,11 +878,10 @@ char* loadViewerParameters(const char *filename) {
         continue;
 
       fclose(f);
-      throw std::runtime_error(format(_("Configuration file %s is in "
-                                        "an invalid format"),
-                                      filepath));
+      throw std::runtime_error(core::format(
+        _("Configuration file %s is in an invalid format"), filepath));
     }
-    
+
     // Skip empty lines and comments
     if ((line[0] == '\n') || (line[0] == '#') || (line[0] == '\r'))
       continue;
@@ -834,12 +918,17 @@ char* loadViewerParameters(const char *filename) {
         invalidParameterName = false;
 
       } else {
-        invalidParameterName = findAndSetViewerParameterFromValue(parameterArray, sizeof(parameterArray),
-                                                                  value, line);
+        invalidParameterName = findAndSetViewerParameterFromValue(
+          parameterArray,
+          sizeof(parameterArray) / sizeof(core::VoidParameter *),
+          value, line);
 
         if (invalidParameterName) {
-          invalidParameterName = findAndSetViewerParameterFromValue(readOnlyParameterArray, sizeof(readOnlyParameterArray),
-                                                                    value, line);
+          invalidParameterName = findAndSetViewerParameterFromValue(
+            readOnlyParameterArray,
+            sizeof(readOnlyParameterArray) /
+              sizeof(core::VoidParameter *),
+            value, line);
         }
       }
     } catch(std::exception& e) {

@@ -43,7 +43,7 @@ namespace rfb {
     protected:
       UpdateTracker* ut;
       void* fg_window;
-      Rect fg_window_rect;
+      core::Rect fg_window_rect;
     };
 
   };

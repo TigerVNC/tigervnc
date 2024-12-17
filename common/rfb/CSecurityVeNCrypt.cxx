@@ -29,16 +29,17 @@
 #include <algorithm>
 #include <list>
 
+#include <core/LogWriter.h>
+
 #include <rfb/Exception.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/CConnection.h>
 #include <rfb/CSecurityVeNCrypt.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("CVeNCrypt");
+static core::LogWriter vlog("CVeNCrypt");
 
 CSecurityVeNCrypt::CSecurityVeNCrypt(CConnection* cc_,
                                      SecurityClient* sec)

@@ -32,21 +32,19 @@
 
 #include <stdexcept>
 
-#include <os/Mutex.h>
-
-#include <rfb/util.h>
-#include <rfb/Configuration.h>
-#include <rfb/LogWriter.h>
-
-#define LOCK_CONFIG os::AutoMutex a(mutex)
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
+#include <core/string.h>
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
 
-using namespace rfb;
+using namespace core;
 
 static LogWriter vlog("Config");
 
+#define LOCK_CONFIG AutoMutex a(mutex)
 
 // -=- The Global/server/viewer Configuration objects
 Configuration* Configuration::global_ = nullptr;
@@ -210,7 +208,7 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_,
   _next = conf->head;
   conf->head = this;
 
-  mutex = new os::Mutex();
+  mutex = new Mutex();
 }
 
 VoidParameter::~VoidParameter() {

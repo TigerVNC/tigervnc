@@ -26,13 +26,16 @@
 
 #include <string>
 
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
+#include <core/Timer.h>
 
 #include <rfb/AccessRights.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SecurityServer.h>
-#include <rfb/Timer.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
 
@@ -132,7 +135,7 @@ namespace rfb {
     // framebufferUpdateRequest() is called when a FramebufferUpdateRequest
     // message is received.  The derived class must call on to
     // SConnection::framebufferUpdateRequest().
-    void framebufferUpdateRequest(const Rect& r, bool incremental) override;
+    void framebufferUpdateRequest(const core::Rect& r, bool incremental) override;
 
     // fence() is called when we get a fence request or response. By default
     // it responds directly to requests (stating it doesn't support any
@@ -243,7 +246,7 @@ namespace rfb {
     bool processSecurityFailure();
     bool processInitMsg();
 
-    void handleAuthFailureTimeout(Timer* t);
+    void handleAuthFailureTimeout(core::Timer* t);
 
     int defaultMajorVersion, defaultMinorVersion;
 
@@ -256,7 +259,7 @@ namespace rfb {
     SecurityServer security;
     SSecurity* ssecurity;
 
-    MethodTimer<SConnection> authFailureTimer;
+    core::MethodTimer<SConnection> authFailureTimer;
     std::string authFailureMsg;
 
     stateEnum state_;

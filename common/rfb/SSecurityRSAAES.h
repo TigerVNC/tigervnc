@@ -27,7 +27,10 @@
 
 #include <rfb/SSecurity.h>
 
-#include <rdr/RandomStream.h>
+namespace core {
+  class BoolParameter;
+  class StringParameter;
+}
 
 namespace rdr {
   class InStream;
@@ -51,8 +54,8 @@ namespace rfb {
       return accessRights;
     }
 
-    static StringParameter keyFile;
-    static BoolParameter requireUsername;
+    static core::StringParameter keyFile;
+    static core::BoolParameter requireUsername;
 
   private:
     void cleanup();
@@ -96,8 +99,6 @@ namespace rfb {
 
     rdr::InStream* rawis;
     rdr::OutStream* rawos;
-
-    rdr::RandomStream rs;
   };
 
 }

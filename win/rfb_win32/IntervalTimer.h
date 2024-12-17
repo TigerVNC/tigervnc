@@ -23,6 +23,8 @@
 #ifndef __RFB_WIN32_INTERVAL_TIMER_H__
 #define __RFB_WIN32_INTERVAL_TIMER_H__
 
+#include <core/Exception.h>
+
 namespace rfb {
 
   namespace win32 {
@@ -41,7 +43,7 @@ namespace rfb {
         if (!active || interval_ != interval) {
           interval = interval_;
           if (!SetTimer(hwnd, id, interval, nullptr))
-            throw rdr::win32_error("SetTimer", GetLastError());
+            throw core::win32_error("SetTimer", GetLastError());
           active = true;
         }
       }

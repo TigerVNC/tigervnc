@@ -22,35 +22,35 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
+
+#include <core/Configuration.h>
+#include <core/Logger_stdio.h>
+#include <core/Logger_syslog.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
 
 #include <network/TcpSocket.h>
-#include <rfb/Configuration.h>
-#include <rfb/LogWriter.h>
-#include <rfb/Logger_stdio.h>
-#include <rfb/Logger_syslog.h>
-#include <rfb/util.h>
 
 #include "RFBGlue.h"
 
-using namespace rfb;
-
 // Loggers used by C code must be created here
-static LogWriter inputLog("Input");
-static LogWriter selectionLog("Selection");
+static core::LogWriter inputLog("Input");
+static core::LogWriter selectionLog("Selection");
 
 void vncInitRFB(void)
 {
-  rfb::initStdIOLoggers();
-  rfb::initSyslogLogger();
-  rfb::LogWriter::setLogParams("*:stderr:30");
-  rfb::Configuration::enableServerParams();
+  core::initStdIOLoggers();
+  core::initSyslogLogger();
+  core::LogWriter::setLogParams("*:stderr:30");
+  core::Configuration::enableServerParams();
 }
 
 void vncLogError(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);
@@ -60,9 +60,9 @@ void vncLogError(const char *name, const char *format, ...)
 
 void vncLogStatus(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);
@@ -72,9 +72,9 @@ void vncLogStatus(const char *name, const char *format, ...)
 
 void vncLogInfo(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);
@@ -84,9 +84,9 @@ void vncLogInfo(const char *name, const char *format, ...)
 
 void vncLogDebug(const char *name, const char *format, ...)
 {
-  LogWriter *vlog;
+  core::LogWriter* vlog;
   va_list ap;
-  vlog = LogWriter::getLogWriter(name);
+  vlog = core::LogWriter::getLogWriter(name);
   if (vlog == nullptr)
     return;
   va_start(ap, format);
@@ -97,10 +97,10 @@ void vncLogDebug(const char *name, const char *format, ...)
 int vncSetParam(const char *name, const char *value)
 {
   if (value != nullptr)
-    return rfb::Configuration::setParam(name, value);
+    return core::Configuration::setParam(name, value);
   else {
-    VoidParameter *param;
-    param = rfb::Configuration::getParam(name);
+    core::VoidParameter* param;
+    param = core::Configuration::getParam(name);
     if (param == nullptr)
       return false;
     return param->setParam();
@@ -109,18 +109,18 @@ int vncSetParam(const char *name, const char *value)
 
 int vncSetParamSimple(const char *nameAndValue)
 {
-  return rfb::Configuration::setParam(nameAndValue);
+  return core::Configuration::setParam(nameAndValue);
 }
 
 char* vncGetParam(const char *name)
 {
-  VoidParameter *param;
+  core::VoidParameter* param;
 
   // Hack to avoid exposing password!
   if (strcasecmp(name, "Password") == 0)
     return nullptr;
 
-  param = rfb::Configuration::getParam(name);
+  param = core::Configuration::getParam(name);
   if (param == nullptr)
     return nullptr;
 
@@ -129,9 +129,9 @@ char* vncGetParam(const char *name)
 
 const char* vncGetParamDesc(const char *name)
 {
-  rfb::VoidParameter *param;
+  core::VoidParameter* param;
 
-  param = rfb::Configuration::getParam(name);
+  param = core::Configuration::getParam(name);
   if (param == nullptr)
     return nullptr;
 
@@ -140,14 +140,14 @@ const char* vncGetParamDesc(const char *name)
 
 int vncIsParamBool(const char *name)
 {
-  VoidParameter *param;
-  BoolParameter *bparam;
+  core::VoidParameter* param;
+  core::BoolParameter* bparam;
 
-  param = rfb::Configuration::getParam(name);
+  param = core::Configuration::getParam(name);
   if (param == nullptr)
     return false;
 
-  bparam = dynamic_cast<BoolParameter*>(param);
+  bparam = dynamic_cast<core::BoolParameter*>(param);
   if (bparam == nullptr)
     return false;
 
@@ -159,7 +159,7 @@ int vncGetParamCount(void)
   int count;
 
   count = 0;
-  for (ParameterIterator i; i.param; i.next())
+  for (core::ParameterIterator i; i.param; i.next())
     count++;
 
   return count;
@@ -172,7 +172,7 @@ char *vncGetParamList(void)
 
   len = 0;
 
-  for (ParameterIterator i; i.param; i.next()) {
+  for (core::ParameterIterator i; i.param; i.next()) {
     int l = strlen(i.param->getName());
     if (l <= 255)
       len += l + 1;
@@ -183,7 +183,7 @@ char *vncGetParamList(void)
     return nullptr;
 
   ptr = data;
-  for (ParameterIterator i; i.param; i.next()) {
+  for (core::ParameterIterator i; i.param; i.next()) {
     int l = strlen(i.param->getName());
     if (l <= 255) {
       *ptr++ = l;
@@ -198,7 +198,7 @@ char *vncGetParamList(void)
 
 void vncListParams(int width, int nameWidth)
 {
-  rfb::Configuration::listParams(width, nameWidth);
+  core::Configuration::listParams(width, nameWidth);
 }
 
 int vncGetSocketPort(int fd)
@@ -225,7 +225,7 @@ int vncIsTCPPortUsed(int port)
 char* vncConvertLF(const char* src, size_t bytes)
 {
   try {
-    return strdup(convertLF(src, bytes).c_str());
+    return strdup(core::convertLF(src, bytes).c_str());
   } catch (...) {
     return nullptr;
   }
@@ -234,7 +234,7 @@ char* vncConvertLF(const char* src, size_t bytes)
 char* vncLatin1ToUTF8(const char* src, size_t bytes)
 {
   try {
-    return strdup(latin1ToUTF8(src, bytes).c_str());
+    return strdup(core::latin1ToUTF8(src, bytes).c_str());
   } catch (...) {
     return nullptr;
   }
@@ -243,7 +243,7 @@ char* vncLatin1ToUTF8(const char* src, size_t bytes)
 char* vncUTF8ToLatin1(const char* src, size_t bytes)
 {
   try {
-    return strdup(utf8ToLatin1(src, bytes).c_str());
+    return strdup(core::utf8ToLatin1(src, bytes).c_str());
   } catch (...) {
     return nullptr;
   }
@@ -252,7 +252,7 @@ char* vncUTF8ToLatin1(const char* src, size_t bytes)
 int vncIsValidUTF8(const char* str, size_t bytes)
 {
   try {
-    return isValidUTF8(str, bytes);
+    return core::isValidUTF8(str, bytes);
   } catch (...) {
     return 0;
   }

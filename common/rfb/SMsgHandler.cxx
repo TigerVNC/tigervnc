@@ -21,17 +21,17 @@
 #include <config.h>
 #endif
 
-#include <rfb/Exception.h>
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb/SMsgHandler.h>
 #include <rfb/ScreenSet.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/encodings.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
-static LogWriter vlog("SMsgHandler");
+static core::LogWriter vlog("SMsgHandler");
 
 SMsgHandler::SMsgHandler()
 {
@@ -82,7 +82,7 @@ void SMsgHandler::keyEvent(uint32_t /*keysym*/, uint32_t /*keycode*/,
 {
 }
 
-void SMsgHandler::pointerEvent(const Point& /*pos*/,
+void SMsgHandler::pointerEvent(const core::Point& /*pos*/,
                                uint16_t /*buttonMask*/)
 {
 }
@@ -125,7 +125,7 @@ void SMsgHandler::handleClipboardCaps(uint32_t flags, const uint32_t* lengths)
         vlog.debug("    %s (only notify)", type);
       else {
         vlog.debug("    %s (automatically send up to %s)",
-                   type, iecPrefix(lengths[i], "B").c_str());
+                   type, core::iecPrefix(lengths[i], "B").c_str());
       }
     }
   }

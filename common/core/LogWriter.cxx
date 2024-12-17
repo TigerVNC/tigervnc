@@ -22,17 +22,16 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <string.h>
 
-#include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
-#include <rfb/util.h>
-#include <stdlib.h>
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
 
-rfb::LogParameter rfb::logParams;
+using namespace core;
 
-using namespace rfb;
-
+LogParameter core::logParams;
 
 LogWriter::LogWriter(const char* name)
   : m_name(name), m_level(0), m_log(nullptr), m_next(log_writers) {

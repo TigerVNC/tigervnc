@@ -25,10 +25,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <stdexcept>
+
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb/CMsgWriter.h>
-#include <rfb/LogWriter.h>
 #include <rfb/ledStates.h>
-#include <rfb/util.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
@@ -68,9 +71,7 @@
 #include "cocoa.h"
 #endif
 
-using namespace rfb;
-
-static rfb::LogWriter vlog("Viewport");
+static core::LogWriter vlog("Viewport");
 
 // Menu constants
 
@@ -126,7 +127,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
   OptionsDialog::addCallback(handleOptions, this);
 
   // Make sure we have an initial blank cursor set
-  setCursor(0, 0, rfb::Point(0, 0), nullptr);
+  setCursor(0, 0, {0, 0}, nullptr);
 }
 
 
@@ -166,7 +167,7 @@ const rfb::PixelFormat &Viewport::getPreferredPF()
 
 void Viewport::updateWindow()
 {
-  Rect r;
+  core::Rect r;
 
   r = frameBuffer->getDamage();
   damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
@@ -182,7 +183,8 @@ static const char * dotcursor_xpm[] = {
   " ... ",
   "     "};
 
-void Viewport::setCursor(int width, int height, const Point& hotspot,
+void Viewport::setCursor(int width, int height,
+                         const core::Point& hotspot,
                          const uint8_t* data)
 {
   int i;
@@ -292,29 +294,32 @@ void Viewport::pushLEDState()
   unsigned int ledState;
 
   // Server support?
-  if (cc->server.ledState() == ledUnknown)
+  if (cc->server.ledState() == rfb::ledUnknown)
     return;
 
   ledState = keyboard->getLEDState();
-  if (ledState == ledUnknown)
+  if (ledState == rfb::ledUnknown)
     return;
 
 #if defined(__APPLE__)
   // No support for Scroll Lock //
-  ledState |= (cc->server.ledState() & ledScrollLock);
+  ledState |= (cc->server.ledState() & rfb::ledScrollLock);
 #endif
 
-  if ((ledState & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
+  if ((ledState & rfb::ledCapsLock) !=
+      (cc->server.ledState() & rfb::ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
     handleKeyRelease(FAKE_KEY_CODE);
   }
-  if ((ledState & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
+  if ((ledState & rfb::ledNumLock) !=
+      (cc->server.ledState() & rfb::ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
     handleKeyRelease(FAKE_KEY_CODE);
   }
-  if ((ledState & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
+  if ((ledState & rfb::ledScrollLock) !=
+      (cc->server.ledState() & rfb::ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
     handleKeyRelease(FAKE_KEY_CODE);
@@ -370,12 +375,12 @@ int Viewport::handle(int event)
 
   switch (event) {
   case FL_PASTE:
-    if (!isValidUTF8(Fl::event_text(), Fl::event_length())) {
+    if (!core::isValidUTF8(Fl::event_text(), Fl::event_length())) {
       vlog.error("Invalid UTF-8 sequence in system clipboard");
       return 1;
     }
 
-    filtered = convertLF(Fl::event_text(), Fl::event_length());
+    filtered = core::convertLF(Fl::event_text(), Fl::event_length());
 
     vlog.debug("Sending clipboard data (%d bytes)", (int)filtered.size());
 
@@ -396,7 +401,7 @@ int Viewport::handle(int event)
   case FL_LEAVE:
     window()->cursor(FL_CURSOR_DEFAULT);
     // We want a last move event to help trigger edge stuff
-    handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), 0);
+    handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()}, 0);
     return 1;
 
   case FL_PUSH:
@@ -439,11 +444,11 @@ int Viewport::handle(int event)
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
-      handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()),
+      handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()},
                          buttonMask | wheelMask);
     } 
 
-    handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), buttonMask);
+    handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()}, buttonMask);
     return 1;
 
   case FL_FOCUS:
@@ -480,7 +485,8 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
-void Viewport::sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask)
+void Viewport::sendPointerEvent(const core::Point& pos,
+                                uint16_t buttonMask)
 {
   if (viewOnly)
       return;
@@ -570,7 +576,8 @@ void Viewport::flushPendingClipboard()
 }
 
 
-void Viewport::handlePointerEvent(const rfb::Point& pos, uint16_t buttonMask)
+void Viewport::handlePointerEvent(const core::Point& pos,
+                                  uint16_t buttonMask)
 {
   filterPointerEvent(pos, buttonMask);
 }

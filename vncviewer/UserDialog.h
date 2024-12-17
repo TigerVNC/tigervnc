@@ -19,8 +19,6 @@
 #ifndef __USERDIALOG_H__
 #define __USERDIALOG_H__
 
-#include <rfb/CConnection.h>
-
 class UserDialog
 {
 public:

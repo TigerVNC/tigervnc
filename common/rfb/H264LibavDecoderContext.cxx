@@ -33,16 +33,17 @@ extern "C" {
 #define FFMPEG_INIT_PACKET_DEPRECATED
 #endif
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264LibavDecoderContext.h>
 
 using namespace rfb;
 
-static LogWriter vlog("H264LibavDecoderContext");
+static core::LogWriter vlog("H264LibavDecoderContext");
 
 bool H264LibavDecoderContext::initCodec() {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
 
   sws = nullptr;
   h264WorkBuffer = nullptr;
@@ -93,7 +94,7 @@ bool H264LibavDecoderContext::initCodec() {
 }
 
 void H264LibavDecoderContext::freeCodec() {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
 
   if (!initialized)
     return;
@@ -130,7 +131,7 @@ uint8_t* H264LibavDecoderContext::makeH264WorkBuffer(const uint8_t* buffer, uint
 void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
                                      uint32_t len,
                                      ModifiablePixelBuffer* pb) {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
   if (!initialized)
     return;
   uint8_t* h264_work_buffer = makeH264WorkBuffer(h264_in_buffer, len);

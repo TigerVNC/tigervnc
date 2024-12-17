@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -75,7 +77,7 @@ ZRLEDecoder::~ZRLEDecoder()
 {
 }
 
-bool ZRLEDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
+bool ZRLEDecoder::readRect(const core::Rect& /*r*/, rdr::InStream* is,
                            const ServerParams& /*server*/,
                            rdr::OutStream* os)
 {
@@ -99,7 +101,7 @@ bool ZRLEDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
   return true;
 }
 
-void ZRLEDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
+void ZRLEDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
                              size_t buflen, const ServerParams& server,
                              ModifiablePixelBuffer* pb)
 {
@@ -113,13 +115,13 @@ void ZRLEDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
 }
 
 template<class T>
-void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
+void ZRLEDecoder::zrleDecode(const core::Rect& r, rdr::InStream* is,
                              const PixelFormat& pf,
                              ModifiablePixelBuffer* pb)
 {
   int length = is->readU32();
   zis.setUnderlying(is, length);
-  Rect t;
+  core::Rect t;
   T buf[64 * 64];
 
   Pixel maxPixel = pf.pixelFromRGB((uint16_t)-1, (uint16_t)-1, (uint16_t)-1);
@@ -134,11 +136,11 @@ void ZRLEDecoder::zrleDecode(const Rect& r, rdr::InStream* is,
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 64) {
 
-    t.br.y = __rfbmin(r.br.y, t.tl.y + 64);
+    t.br.y = std::min(r.br.y, t.tl.y + 64);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 64) {
 
-      t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
+      t.br.x = std::min(r.br.x, t.tl.x + 64);
 
       zlibHasData(&zis, 1);
       int mode = zis.readU8();
