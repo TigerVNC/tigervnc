@@ -176,11 +176,13 @@ ddxGiveUp(enum ExitCode error)
     vncFreeFramebufferMemory(&vncScreenInfo.fb);
 }
 
+#if XORG_OLDER_THAN(1, 21, 1)
 void
 AbortDDX(enum ExitCode error)
 {
     ddxGiveUp(error);
 }
+#endif
 
 void
 OsVendorInit(void)
@@ -278,12 +280,14 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (argv[i][0] == ':')
         displaySpecified = TRUE;
 
+#if XORG_OLDER_THAN(1, 21, 1)
 #define CHECK_FOR_REQUIRED_ARGUMENTS(num) \
     if (((i + num) >= argc) || (!argv[i + num])) {                      \
       ErrorF("Required argument to %s not specified\n", argv[i]);       \
       UseMsg();                                                         \
       FatalError("Required argument to %s not specified\n", argv[i]);   \
     }
+#endif
 
     if (strcmp(argv[i], "-pixdepths") == 0) {   /* -pixdepths list-of-depth */
         int depth, ret = 1;
@@ -1224,11 +1228,13 @@ DDXRingBell(int percent, int pitch, int duration)
         vncBell();
 }
 
+#if XORG_OLDER_THAN(1, 21, 1)
 Bool
 LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return TRUE;
 }
+#endif
 
 void
 ProcessInputEvents(void)
