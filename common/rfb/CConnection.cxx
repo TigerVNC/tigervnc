@@ -30,6 +30,7 @@
 #include <rfb/Exception.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/fenceTypes.h>
+#include <rfb/screenTypes.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
@@ -431,6 +432,11 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
   decoder.flush();
 
   CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
+
+  if ((reason == reasonClient) && (result != resultSuccess)) {
+    vlog.error("SetDesktopSize failed: %d", result);
+    return;
+  }
 
   if (continuousUpdates)
     writer()->writeEnableContinuousUpdates(true, 0, 0,
