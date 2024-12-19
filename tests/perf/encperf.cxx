@@ -98,7 +98,6 @@ public:
 
   void initDone() override {};
   void resizeFramebuffer() override;
-  void setCursorPos(const core::Point&) override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
   bool dataRect(const core::Rect&, int) override;
@@ -220,10 +219,6 @@ void CConn::resizeFramebuffer()
   pb = new rfb::ManagedPixelBuffer((bool)translate ? fbPF : server.pf(),
                                    server.width(), server.height());
   setFramebuffer(pb);
-}
-
-void CConn::setCursorPos(const core::Point&)
-{
 }
 
 void CConn::framebufferUpdateStart()

@@ -67,7 +67,6 @@ public:
   ~CConn();
 
   void initDone() override;
-  void setCursorPos(const core::Point&) override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
   void setColourMapEntries(int, int, uint16_t*) override;
@@ -137,10 +136,6 @@ void CConn::initDone()
   setFramebuffer(new rfb::ManagedPixelBuffer(filePF,
                                              server.width(),
                                              server.height()));
-}
-
-void CConn::setCursorPos(const core::Point&)
-{
 }
 
 void CConn::framebufferUpdateStart()
