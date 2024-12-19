@@ -37,6 +37,7 @@
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
+#include <rfb/Cursor.h>
 #include <rfb/Decoder.h>
 #include <rfb/KeysymStr.h>
 #include <rfb/PixelBuffer.h>
@@ -448,6 +449,14 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
   assert(framebuffer != nullptr);
   assert(framebuffer->width() == server.width());
   assert(framebuffer->height() == server.height());
+}
+
+void CConnection::setCursor(int width, int height,
+                            const core::Point& hotspot,
+                            const uint8_t* data)
+{
+  Cursor cursor(width, height, hotspot, data);
+  server.setCursor(cursor);
 }
 
 void CConnection::setName(const char* name)

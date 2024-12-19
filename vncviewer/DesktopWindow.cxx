@@ -410,11 +410,9 @@ void DesktopWindow::setDesktopSizeDone(unsigned result)
 }
 
 
-void DesktopWindow::setCursor(int width, int height,
-                              const core::Point& hotspot,
-                              const uint8_t* data)
+void DesktopWindow::setCursor()
 {
-  viewport->setCursor(width, height, hotspot, data);
+  viewport->setCursor();
 }
 
 

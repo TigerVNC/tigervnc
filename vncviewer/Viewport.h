@@ -49,8 +49,7 @@ public:
   void updateWindow();
 
   // New image for the locally rendered cursor
-  void setCursor(int width, int height, const core::Point& hotspot,
-                 const uint8_t* data);
+  void setCursor();
 
   // Change client LED state
   void setLEDState(unsigned int state);

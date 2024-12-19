@@ -57,8 +57,7 @@ public:
   void setDesktopSizeDone(unsigned result);
 
   // New image for the locally rendered cursor
-  void setCursor(int width, int height, const core::Point& hotspot,
-                 const uint8_t* data);
+  void setCursor();
 
   // Server-provided cursor position
   void setCursorPos(const core::Point& pos);

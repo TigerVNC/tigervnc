@@ -98,7 +98,6 @@ public:
 
   void initDone() override {};
   void resizeFramebuffer() override;
-  void setCursor(int, int, const core::Point&, const uint8_t*) override;
   void setCursorPos(const core::Point&) override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
@@ -221,10 +220,6 @@ void CConn::resizeFramebuffer()
   pb = new rfb::ManagedPixelBuffer((bool)translate ? fbPF : server.pf(),
                                    server.width(), server.height());
   setFramebuffer(pb);
-}
-
-void CConn::setCursor(int, int, const core::Point&, const uint8_t*)
-{
 }
 
 void CConn::setCursorPos(const core::Point&)
