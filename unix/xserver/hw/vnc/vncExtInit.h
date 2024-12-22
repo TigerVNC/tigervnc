@@ -91,7 +91,7 @@ uint64_t vncGetMsc(int scrIdx);
 void vncQueueMsc(int scrIdx, uint64_t id, uint64_t msc);
 void vncAbortMsc(int scrIdx, uint64_t id);
 
-int vncOverrideParam(const char *nameAndValue);
+int vncOverrideParam(const char *param, const char *value);
 
 #ifdef __cplusplus
 }

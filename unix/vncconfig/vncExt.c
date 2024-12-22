@@ -55,22 +55,26 @@ Bool XVncExtQueryExtension(Display* dpy, int* event_basep, int* error_basep)
   return True;
 }
 
-Bool XVncExtSetParam(Display* dpy, const char* param)
+Bool XVncExtSetParam(Display* dpy, const char* param, const char* value)
 {
   xVncExtSetParamReq* req;
   xVncExtSetParamReply rep;
 
   int paramLen = strlen(param);
-  if (paramLen > 255) return False;
+  if (paramLen > 65535) return False;
+  int valueLen = strlen(value);
+  if (valueLen > 65535) return False;
   if (!checkExtension(dpy)) return False;
 
   LockDisplay(dpy);
   GetReq(VncExtSetParam, req);
   req->reqType = codes->major_opcode;
   req->vncExtReqType = X_VncExtSetParam;
-  req->length += (paramLen + 3) >> 2;
+  req->length += ((paramLen + 3) >> 2) + ((valueLen + 3) >> 2);
   req->paramLen = paramLen;
+  req->valueLen = valueLen;
   Data(dpy, param, paramLen);
+  Data(dpy, value, valueLen);
   if (!_XReply(dpy, (xReply *)&rep, 0, xFalse)) {
     UnlockDisplay(dpy);
     SyncHandle();
