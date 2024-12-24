@@ -200,8 +200,8 @@ class Viewport extends JPanel implements ActionListener {
       Graphics2D g2 = tmp.createGraphics();
       g2.drawImage(cursor, 0, 0, cw, ch, 0, 0, width, height, null);
       g2.dispose();
-      x = (int) Math.min(Math.floor((float) x * (float) cw / (float) width), cw - 1);
-      y = (int) Math.min(Math.floor((float) y * (float) ch / (float) height), ch - 1);
+      x = (int) Math.min(Math.floor((float) x * (float) cw / (float) width), Math.max(cw - 1, 0));
+      y = (int) Math.min(Math.floor((float) y * (float) ch / (float) height), Math.max(ch - 1, 0));
       cursor = tmp;
     }
 
