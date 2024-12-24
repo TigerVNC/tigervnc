@@ -42,4 +42,10 @@
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-windows.jpg</image>
     </screenshot>
   </screenshots>
+  <!-- developer_name tag deprecated with Appstream 1.0 -->
+  <developer_name>The TigerVNC Team</developer_name>
+  <developer id="org.tigervnc">
+    <name>The TigerVNC Team</name>
+  </developer>
+  <url type="homepage">https://tigervnc.org</url>
 </component>
