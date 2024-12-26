@@ -38,13 +38,18 @@
 #ifndef __RFB_SDESKTOP_H__
 #define __RFB_SDESKTOP_H__
 
-#include <rfb/PixelBuffer.h>
-#include <rfb/VNCServer.h>
+#include <stdint.h>
+
 #include <rfb/screenTypes.h>
+
+namespace core { struct Point; }
 
 namespace network { class Socket; }
 
 namespace rfb {
+
+  struct ScreenSet;
+  class VNCServer;
 
   class SDesktop {
   public:
@@ -97,7 +102,7 @@ namespace rfb {
 
     // pointerEvent() is called whenever a client sends an event that
     // the pointer moved, or a button was pressed or released.
-    virtual void pointerEvent(const Point& /*pos*/,
+    virtual void pointerEvent(const core::Point& /*pos*/,
                               uint16_t /*buttonMask*/) {};
 
     // handleClipboardRequest() is called whenever a client requests
@@ -120,47 +125,6 @@ namespace rfb {
 
   protected:
     virtual ~SDesktop() {}
-  };
-
-  // -=- SStaticDesktop
-  //     Trivial implementation of the SDesktop interface, which provides
-  //     dummy input handlers and event processing routine, and exports
-  //     a plain black desktop of the specified format.
-  class SStaticDesktop : public SDesktop {
-  public:
-    SStaticDesktop(const Point& size)
-      : server(nullptr), buffer(nullptr)
-    {
-      PixelFormat pf;
-      const uint8_t black[4] = { 0, 0, 0, 0 };
-      buffer = new ManagedPixelBuffer(pf, size.x, size.y);
-      if (buffer)
-        buffer->fillRect(buffer->getRect(), black);
-    }
-    SStaticDesktop(const Point& size, const PixelFormat& pf)
-      : buffer(nullptr)
-    {
-      const uint8_t black[4] = { 0, 0, 0, 0 };
-      buffer = new ManagedPixelBuffer(pf, size.x, size.y);
-      if (buffer)
-        buffer->fillRect(buffer->getRect(), black);
-    }
-    virtual ~SStaticDesktop() {
-      if (buffer) delete buffer;
-    }
-
-    void init(VNCServer* vs) override {
-      server = vs;
-      server->setPixelBuffer(buffer);
-    }
-    void queryConnection(network::Socket* sock,
-                         const char* /*userName*/) override {
-      server->approveConnection(sock, true, nullptr);
-    }
-
-  protected:
-    VNCServer* server;
-    ManagedPixelBuffer* buffer;
   };
 
 };

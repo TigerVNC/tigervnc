@@ -3,7 +3,6 @@ add_library(rdr STATIC
   AESOutStream.cxx
   BufferedInStream.cxx
   BufferedOutStream.cxx
-  Exception.cxx
   FdInStream.cxx
   FdOutStream.cxx
   FileInStream.cxx
@@ -18,12 +17,8 @@ add_library(rdr STATIC
 
 target_include_directories(rdr PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rdr SYSTEM PUBLIC ${ZLIB_INCLUDE_DIRS})
-target_link_libraries(rdr ${ZLIB_LIBRARIES} os rfb)
-
-if(MSVC)
-  # undef min and max macro
-  target_compile_definitions(rfb PRIVATE NOMINMAX)
-endif()
+target_link_libraries(rdr core)
+target_link_libraries(rdr ${ZLIB_LIBRARIES})
 
 if(GNUTLS_FOUND)
   target_include_directories(rdr SYSTEM PUBLIC ${GNUTLS_INCLUDE_DIR})

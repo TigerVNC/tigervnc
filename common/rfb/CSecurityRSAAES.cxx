@@ -34,14 +34,17 @@
 #include <nettle/bignum.h>
 #include <nettle/sha1.h>
 #include <nettle/sha2.h>
+
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb/CSecurityRSAAES.h>
 #include <rfb/CConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-#include <rfb/util.h>
+
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
-#include <os/os.h>
+#include <rdr/RandomStream.h>
 
 enum {
   ReadPublicKey,
@@ -55,7 +58,7 @@ const int MaxKeyLength = 8192;
 
 using namespace rfb;
 
-static LogWriter vlog("CSecurityRSAAES");
+static core::LogWriter vlog("CSecurityRSAAES");
 
 CSecurityRSAAES::CSecurityRSAAES(CConnection* cc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
@@ -147,12 +150,12 @@ bool CSecurityRSAAES::processMsg()
   return false;
 }
 
-static void random_func(void* ctx, size_t length, uint8_t* dst)
+static void random_func(void*, size_t length, uint8_t* dst)
 {
-  rdr::RandomStream* rs = (rdr::RandomStream*)ctx;
-  if (!rs->hasData(length))
+  rdr::RandomStream rs;
+  if (!rs.hasData(length))
     throw std::runtime_error("Failed to generate random");
-  rs->readBytes(dst, length);
+  rs.readBytes(dst, length);
 }
 
 void CSecurityRSAAES::writePublicKey()
@@ -170,7 +173,7 @@ void CSecurityRSAAES::writePublicKey()
   // set e = 65537
   mpz_set_ui(clientPublicKey.e, 65537);
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
-                            &rs, random_func, nullptr, nullptr,
+                            nullptr, random_func, nullptr, nullptr,
                             clientKeyLength, 0))
     throw std::runtime_error("Failed to generate key");
   clientKeyN = new uint8_t[rsaKeySize];
@@ -226,7 +229,7 @@ void CSecurityRSAAES::verifyServer()
   sha1_update(&ctx, serverKey.size, serverKeyE);
   sha1_digest(&ctx, sizeof(f), f);
   const char *title = "Server key fingerprint";
-  std::string text = format(
+  std::string text = core::format(
     "The server has provided the following identifying information:\n"
     "Fingerprint: %02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n"
     "Please verify that the information is correct and press \"Yes\". "
@@ -237,6 +240,7 @@ void CSecurityRSAAES::verifyServer()
 
 void CSecurityRSAAES::writeRandom()
 {
+  rdr::RandomStream rs;
   rdr::OutStream* os = cc->getOutStream();
   if (!rs.hasData(keySize / 8))
     throw std::runtime_error("Failed to generate random");

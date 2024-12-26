@@ -24,8 +24,8 @@
 
 #include <stdexcept>
 
-#include <os/Mutex.h>
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
 
 #include <rfb/H264DecoderContext.h>
 
@@ -39,9 +39,9 @@
 
 using namespace rfb;
 
-static LogWriter vlog("H264DecoderContext");
+static core::LogWriter vlog("H264DecoderContext");
 
-H264DecoderContext *H264DecoderContext::createContext(const Rect &r)
+H264DecoderContext* H264DecoderContext::createContext(const core::Rect& r)
 {
   H264DecoderContext *ret = new H264DecoderContextType(r);
   if (!ret->initCodec())
@@ -58,7 +58,7 @@ H264DecoderContext::~H264DecoderContext()
 
 bool H264DecoderContext::isReady()
 {
-  os::AutoMutex lock(&mutex);
+  core::AutoMutex lock(&mutex);
   return initialized;
 }
 

@@ -24,9 +24,11 @@
 #define __XPIXELBUFFER_H__
 
 #include <rfb/PixelBuffer.h>
-#include <rfb/VNCServer.h>
+
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
+
+namespace rfb { class VNCServer; }
 
 //
 // XPixelBuffer is an Image-based implementation of FullFramePixelBuffer.
@@ -35,7 +37,7 @@
 class XPixelBuffer : public rfb::FullFramePixelBuffer
 {
 public:
-  XPixelBuffer(Display *dpy, ImageFactory &factory, const rfb::Rect &rect);
+  XPixelBuffer(Display* dpy, ImageFactory& factory, const core::Rect& rect);
   virtual ~XPixelBuffer();
 
   // Provide access to the underlying Image object.
@@ -45,7 +47,7 @@ public:
   inline void poll(rfb::VNCServer *server) { m_poller->poll(server); }
 
   // Override PixelBuffer::grabRegion().
-  void grabRegion(const rfb::Region& region) override;
+  void grabRegion(const core::Region& region) override;
 
 protected:
   PollingManager *m_poller;
@@ -57,7 +59,7 @@ protected:
 
   // Copy pixels from the screen to the pixel buffer,
   // for the specified rectangular area of the buffer.
-  inline void grabRect(const rfb::Rect &r) {
+  inline void grabRect(const core::Rect& r) {
     m_image->get(DefaultRootWindow(m_dpy),
 		 m_offsetLeft + r.tl.x, m_offsetTop + r.tl.y,
 		 r.width(), r.height(), r.tl.x, r.tl.y);

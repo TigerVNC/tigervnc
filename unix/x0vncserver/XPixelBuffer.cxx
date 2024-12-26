@@ -25,15 +25,17 @@
 #include <config.h>
 #endif
 
+#include <string.h>
 #include <vector>
-#include <rfb/Region.h>
+
 #include <X11/Xlib.h>
+
+#include <core/Region.h>
+
 #include <x0vncserver/XPixelBuffer.h>
 
-using namespace rfb;
-
 XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
-                           const Rect &rect)
+                           const core::Rect& rect)
   : FullFramePixelBuffer(),
     m_poller(nullptr),
     m_dpy(dpy),
@@ -42,16 +44,16 @@ XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
     m_offsetTop(rect.tl.y)
 {
   // Fill in the PixelFormat structure of the parent class.
-  format = PixelFormat(m_image->xim->bits_per_pixel,
-                       m_image->xim->depth,
-                       (m_image->xim->byte_order == MSBFirst),
-                       true,
-                       m_image->xim->red_mask   >> (ffs(m_image->xim->red_mask) - 1),
-                       m_image->xim->green_mask >> (ffs(m_image->xim->green_mask) - 1),
-                       m_image->xim->blue_mask  >> (ffs(m_image->xim->blue_mask) - 1),
-                       ffs(m_image->xim->red_mask) - 1,
-                       ffs(m_image->xim->green_mask) - 1,
-                       ffs(m_image->xim->blue_mask) - 1);
+  format = rfb::PixelFormat(m_image->xim->bits_per_pixel,
+                            m_image->xim->depth,
+                            (m_image->xim->byte_order == MSBFirst),
+                            true,
+                            m_image->xim->red_mask   >> (ffs(m_image->xim->red_mask) - 1),
+                            m_image->xim->green_mask >> (ffs(m_image->xim->green_mask) - 1),
+                            m_image->xim->blue_mask  >> (ffs(m_image->xim->blue_mask) - 1),
+                            ffs(m_image->xim->red_mask) - 1,
+                            ffs(m_image->xim->green_mask) - 1,
+                            ffs(m_image->xim->blue_mask) - 1);
 
   // Set up the remaining data of the parent class.
   setBuffer(rect.width(), rect.height(), (uint8_t *)m_image->xim->data,
@@ -72,10 +74,10 @@ XPixelBuffer::~XPixelBuffer()
 }
 
 void
-XPixelBuffer::grabRegion(const rfb::Region& region)
+XPixelBuffer::grabRegion(const core::Region& region)
 {
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator i;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::const_iterator i;
   region.get_rects(&rects);
   for (i = rects.begin(); i != rects.end(); i++) {
     grabRect(*i);

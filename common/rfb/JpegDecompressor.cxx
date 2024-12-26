@@ -23,9 +23,10 @@
 #include <config.h>
 #endif
 
+#include <core/Rect.h>
+
 #include <rfb/JpegDecompressor.h>
 #include <rfb/Exception.h>
-#include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 
 #include <stdio.h>
@@ -153,7 +154,8 @@ JpegDecompressor::~JpegDecompressor(void)
 void JpegDecompressor::decompress(const uint8_t *jpegBuf,
                                   int jpegBufLen, uint8_t *buf,
                                   volatile int stride,
-                                  const Rect& r, const PixelFormat& pf)
+                                  const core::Rect& r,
+                                  const PixelFormat& pf)
 {
   int w = r.width();
   int h = r.height();

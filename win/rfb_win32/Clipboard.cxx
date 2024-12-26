@@ -23,14 +23,15 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+
+#include <core/Exception.h>
 
 #include <rfb_win32/Clipboard.h>
 #include <rfb_win32/WMShatter.h>
-#include <rfb/util.h>
 
-#include <rfb/LogWriter.h>
-
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -129,7 +130,7 @@ Clipboard::setClipText(const char* text) {
 
     // - Firstly, we must open the clipboard
     if (!OpenClipboard(getHandle()))
-      throw rdr::win32_error("Unable to open Win32 clipboard", GetLastError());
+      throw core::win32_error("Unable to open Win32 clipboard", GetLastError());
 
     // - Convert the supplied clipboard text into UTF-16 format with CRLF
     std::string filtered(convertCRLF(text));
@@ -144,11 +145,11 @@ Clipboard::setClipText(const char* text) {
 
     // - Next, we must clear out any existing data
     if (!EmptyClipboard())
-      throw rdr::win32_error("Unable to empty Win32 clipboard", GetLastError());
+      throw core::win32_error("Unable to empty Win32 clipboard", GetLastError());
 
     // - Set the new clipboard data
     if (!SetClipboardData(CF_UNICODETEXT, clip_handle))
-      throw rdr::win32_error("Unable to set Win32 clipboard", GetLastError());
+      throw core::win32_error("Unable to set Win32 clipboard", GetLastError());
     clip_handle = nullptr;
 
     vlog.debug("Set clipboard");

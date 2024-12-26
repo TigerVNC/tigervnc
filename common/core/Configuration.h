@@ -41,8 +41,8 @@
 // NB: NO LOCKING is performed when linking Configurations to groups
 //     or when adding Parameters to Configurations.
 
-#ifndef __RFB_CONFIGURATION_H__
-#define __RFB_CONFIGURATION_H__
+#ifndef __CORE_CONFIGURATION_H__
+#define __CORE_CONFIGURATION_H__
 
 #include <limits.h>
 #include <stdint.h>
@@ -50,9 +50,9 @@
 #include <string>
 #include <vector>
 
-namespace os { class Mutex; }
+namespace core {
 
-namespace rfb {
+  class Mutex;
   class VoidParameter;
   struct ParameterIterator;
 
@@ -189,7 +189,7 @@ namespace rfb {
     const char* name;
     const char* description;
 
-    os::Mutex* mutex;
+    Mutex* mutex;
   };
 
   class AliasParameter : public VoidParameter {
@@ -297,4 +297,4 @@ namespace rfb {
 
 };
 
-#endif // __RFB_CONFIGURATION_H__
+#endif // __CORE_CONFIGURATION_H__

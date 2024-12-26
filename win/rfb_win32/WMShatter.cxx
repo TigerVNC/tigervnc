@@ -22,10 +22,11 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+
 #include <rfb_win32/WMShatter.h>
 
-#include <rfb/LogWriter.h>
-
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 

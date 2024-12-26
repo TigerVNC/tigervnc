@@ -25,14 +25,17 @@
 
 #include <stdlib.h>
 
+#include <core/LogWriter.h>
+#include <core/string.h>
+
+#include <rfb/Cursor.h>
 #include <rfb/EncodeManager.h>
 #include <rfb/Encoder.h>
 #include <rfb/Palette.h>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/UpdateTracker.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
+#include <rfb/encodings.h>
 
 #include <rfb/RawEncoder.h>
 #include <rfb/RREEncoder.h>
@@ -43,7 +46,7 @@
 
 using namespace rfb;
 
-static LogWriter vlog("EncodeManager");
+static core::LogWriter vlog("EncodeManager");
 
 // Split each rectangle into smaller ones no larger than this area,
 // and no wider than this width.
@@ -191,11 +194,11 @@ void EncodeManager::logStats()
     ratio = (double)copyStats.equivalent / copyStats.bytes;
 
     vlog.info("    %s: %s, %s", "Copies",
-              siPrefix(copyStats.rects, "rects").c_str(),
-              siPrefix(copyStats.pixels, "pixels").c_str());
+              core::siPrefix(copyStats.rects, "rects").c_str(),
+              core::siPrefix(copyStats.pixels, "pixels").c_str());
     vlog.info("    %*s  %s (1:%g ratio)",
               (int)strlen("Copies"), "",
-              iecPrefix(copyStats.bytes, "B").c_str(), ratio);
+              core::iecPrefix(copyStats.bytes, "B").c_str(), ratio);
   }
 
   for (i = 0;i < stats.size();i++) {
@@ -221,21 +224,21 @@ void EncodeManager::logStats()
       ratio = (double)stats[i][j].equivalent / stats[i][j].bytes;
 
       vlog.info("    %s: %s, %s", encoderTypeName((EncoderType)j),
-                siPrefix(stats[i][j].rects, "rects").c_str(),
-                siPrefix(stats[i][j].pixels, "pixels").c_str());
+                core::siPrefix(stats[i][j].rects, "rects").c_str(),
+                core::siPrefix(stats[i][j].pixels, "pixels").c_str());
       vlog.info("    %*s  %s (1:%g ratio)",
                 (int)strlen(encoderTypeName((EncoderType)j)), "",
-                iecPrefix(stats[i][j].bytes, "B").c_str(), ratio);
+                core::iecPrefix(stats[i][j].bytes, "B").c_str(), ratio);
     }
   }
 
   ratio = (double)equivalent / bytes;
 
   vlog.info("  Total: %s, %s",
-            siPrefix(rects, "rects").c_str(),
-            siPrefix(pixels, "pixels").c_str());
+            core::siPrefix(rects, "rects").c_str(),
+            core::siPrefix(pixels, "pixels").c_str());
   vlog.info("         %s (1:%g ratio)",
-            iecPrefix(bytes, "B").c_str(), ratio);
+            core::iecPrefix(bytes, "B").c_str(), ratio);
 }
 
 bool EncodeManager::supported(int encoding)
@@ -252,12 +255,12 @@ bool EncodeManager::supported(int encoding)
   }
 }
 
-bool EncodeManager::needsLosslessRefresh(const Region& req)
+bool EncodeManager::needsLosslessRefresh(const core::Region& req)
 {
   return !lossyRegion.intersect(req).is_empty();
 }
 
-int EncodeManager::getNextLosslessRefresh(const Region& req)
+int EncodeManager::getNextLosslessRefresh(const core::Region& req)
 {
   // Do we have something we can send right away?
   if (!pendingRefreshRegion.intersect(req).is_empty())
@@ -269,7 +272,7 @@ int EncodeManager::getNextLosslessRefresh(const Region& req)
   return recentChangeTimer.getNextTimeout();
 }
 
-void EncodeManager::pruneLosslessRefresh(const Region& limits)
+void EncodeManager::pruneLosslessRefresh(const core::Region& limits)
 {
   lossyRegion.assign_intersect(limits);
   pendingRefreshRegion.assign_intersect(limits);
@@ -286,15 +289,16 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
     recentChangeTimer.start(RecentChangeTimeout);
 }
 
-void EncodeManager::writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
+void EncodeManager::writeLosslessRefresh(const core::Region& req,
+                                         const PixelBuffer* pb,
                                          const RenderedCursor* renderedCursor,
                                          size_t maxUpdateSize)
 {
   doUpdate(false, getLosslessRefresh(req, maxUpdateSize),
-           Region(), Point(), pb, renderedCursor);
+           {}, {}, pb, renderedCursor);
 }
 
-void EncodeManager::handleTimeout(Timer* t)
+void EncodeManager::handleTimeout(core::Timer* t)
 {
   if (t == &recentChangeTimer) {
     // Any lossy region that wasn't recently updated can
@@ -308,13 +312,15 @@ void EncodeManager::handleTimeout(Timer* t)
   }
 }
 
-void EncodeManager::doUpdate(bool allowLossy, const Region& changed_,
-                             const Region& copied, const Point& copyDelta,
+void EncodeManager::doUpdate(bool allowLossy, const
+                             core::Region& changed_,
+                             const core::Region& copied,
+                             const core::Point& copyDelta,
                              const PixelBuffer* pb,
                              const RenderedCursor* renderedCursor)
 {
     int nRects;
-    Region changed, cursorRegion;
+    core::Region changed, cursorRegion;
 
     updates++;
 
@@ -475,19 +481,20 @@ void EncodeManager::prepareEncoders(bool allowLossy)
       encoder->setFineQualityLevel(conn->client.fineQualityLevel,
                                    conn->client.subsampling);
     } else {
-      int level = __rfbmax(conn->client.qualityLevel,
-                           encoder->losslessQuality);
-      encoder->setQualityLevel(level);
+      if (conn->client.qualityLevel < encoder->losslessQuality)
+        encoder->setQualityLevel(encoder->losslessQuality);
+      else
+        encoder->setQualityLevel(conn->client.qualityLevel);
       encoder->setFineQualityLevel(-1, subsampleUndefined);
     }
   }
 }
 
-Region EncodeManager::getLosslessRefresh(const Region& req,
-                                         size_t maxUpdateSize)
+core::Region EncodeManager::getLosslessRefresh(const core::Region& req,
+                                               size_t maxUpdateSize)
 {
-  std::vector<Rect> rects;
-  Region refresh;
+  std::vector<core::Rect> rects;
+  core::Region refresh;
   size_t area;
 
   // We make a conservative guess at the compression ratio at 2:1
@@ -500,7 +507,7 @@ Region EncodeManager::getLosslessRefresh(const Region& req,
   pendingRefreshRegion.intersect(req).get_rects(&rects);
   while (!rects.empty()) {
     size_t idx;
-    Rect rect;
+    core::Rect rect;
 
     // Grab a random rect so we don't keep damaging and restoring the
     // same rect over and over
@@ -514,17 +521,21 @@ Region EncodeManager::getLosslessRefresh(const Region& req,
       // Use the narrowest axis to avoid getting to thin rects
       if (rect.width() > rect.height()) {
         int width = (maxUpdateSize - area) / rect.height();
-        rect.br.x = rect.tl.x + __rfbmax(1, width);
+        if (width < 1)
+          width = 1;
+        rect.br.x = rect.tl.x + width;
       } else {
         int height = (maxUpdateSize - area) / rect.width();
-        rect.br.y = rect.tl.y + __rfbmax(1, height);
+        if (height < 1)
+          height = 1;
+        rect.br.y = rect.tl.y + height;
       }
-      refresh.assign_union(Region(rect));
+      refresh.assign_union(rect);
       break;
     }
 
     area += rect.area();
-    refresh.assign_union(Region(rect));
+    refresh.assign_union(rect);
 
     rects.erase(rects.begin() + idx);
   }
@@ -532,11 +543,11 @@ Region EncodeManager::getLosslessRefresh(const Region& req,
   return refresh;
 }
 
-int EncodeManager::computeNumRects(const Region& changed)
+int EncodeManager::computeNumRects(const core::Region& changed)
 {
   int numRects;
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator rect;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::const_iterator rect;
 
   numRects = 0;
   changed.get_rects(&rects);
@@ -566,7 +577,7 @@ int EncodeManager::computeNumRects(const Region& changed)
   return numRects;
 }
 
-Encoder *EncodeManager::startRect(const Rect& rect, int type)
+Encoder* EncodeManager::startRect(const core::Rect& rect, int type)
 {
   Encoder *encoder;
   int klass, equiv;
@@ -587,13 +598,13 @@ Encoder *EncodeManager::startRect(const Rect& rect, int type)
   if ((encoder->flags & EncoderLossy) &&
       ((encoder->losslessQuality == -1) ||
        (encoder->getQualityLevel() < encoder->losslessQuality)))
-    lossyRegion.assign_union(Region(rect));
+    lossyRegion.assign_union(rect);
   else
-    lossyRegion.assign_subtract(Region(rect));
+    lossyRegion.assign_subtract(rect);
 
   // This was either a rect getting refreshed, or a rect that just got
   // new content. Either way we should not try to refresh it anymore.
-  pendingRefreshRegion.assign_subtract(Region(rect));
+  pendingRefreshRegion.assign_subtract(rect);
 
   return encoder;
 }
@@ -611,12 +622,13 @@ void EncodeManager::endRect()
   stats[klass][activeType].bytes += length;
 }
 
-void EncodeManager::writeCopyRects(const Region& copied, const Point& delta)
+void EncodeManager::writeCopyRects(const core::Region& copied,
+                                   const core::Point& delta)
 {
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator rect;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::const_iterator rect;
 
-  Region lossyCopy;
+  core::Region lossyCopy;
 
   beforeLength = conn->getOutStream()->length();
 
@@ -645,20 +657,22 @@ void EncodeManager::writeCopyRects(const Region& copied, const Point& delta)
   pendingRefreshRegion.assign_subtract(copied);
 }
 
-void EncodeManager::writeSolidRects(Region *changed, const PixelBuffer* pb)
+void EncodeManager::writeSolidRects(core::Region* changed,
+                                    const PixelBuffer* pb)
 {
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator rect;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::const_iterator rect;
 
   changed->get_rects(&rects);
   for (rect = rects.begin(); rect != rects.end(); ++rect)
     findSolidRect(*rect, changed, pb);
 }
 
-void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
+void EncodeManager::findSolidRect(const core::Rect& rect,
+                                  core::Region* changed,
                                   const PixelBuffer* pb)
 {
-  Rect sr;
+  core::Rect sr;
   int dx, dy, dw, dh;
 
   // We start by finding a solid 16x16 block
@@ -677,11 +691,11 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
       if (dx + dw > rect.br.x)
         dw = rect.br.x - dx;
 
-      pb->getImage(colourValue, Rect(dx, dy, dx+1, dy+1));
+      pb->getImage(colourValue, {dx, dy, dx+1, dy+1});
 
       sr.setXYWH(dx, dy, dw, dh);
       if (checkSolidTile(sr, colourValue, pb)) {
-        Rect erb, erp;
+        core::Rect erb, erp;
 
         Encoder *encoder;
 
@@ -721,7 +735,7 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
         }
         endRect();
 
-        changed->assign_subtract(Region(erp));
+        changed->assign_subtract(erp);
 
         // Search remaining areas by recursion
         // FIXME: Is this the best way to divide things up?
@@ -752,15 +766,16 @@ void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
   }
 }
 
-void EncodeManager::writeRects(const Region& changed, const PixelBuffer* pb)
+void EncodeManager::writeRects(const core::Region& changed,
+                               const PixelBuffer* pb)
 {
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator rect;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::const_iterator rect;
 
   changed.get_rects(&rects);
   for (rect = rects.begin(); rect != rects.end(); ++rect) {
     int w, h, sw, sh;
-    Rect sr;
+    core::Rect sr;
 
     w = rect->width();
     h = rect->height();
@@ -794,7 +809,8 @@ void EncodeManager::writeRects(const Region& changed, const PixelBuffer* pb)
   }
 }
 
-void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
+void EncodeManager::writeSubRect(const core::Rect& rect,
+                                 const PixelBuffer* pb)
 {
   PixelBuffer *ppb;
 
@@ -878,7 +894,8 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
   endRect();
 }
 
-bool EncodeManager::checkSolidTile(const Rect& r, const uint8_t* colourValue,
+bool EncodeManager::checkSolidTile(const core::Rect& r,
+                                   const uint8_t* colourValue,
                                    const PixelBuffer *pb)
 {
   const uint8_t* buffer;
@@ -902,13 +919,14 @@ bool EncodeManager::checkSolidTile(const Rect& r, const uint8_t* colourValue,
   }
 }
 
-void EncodeManager::extendSolidAreaByBlock(const Rect& r,
+void EncodeManager::extendSolidAreaByBlock(const core::Rect& r,
                                            const uint8_t* colourValue,
-                                           const PixelBuffer *pb, Rect* er)
+                                           const PixelBuffer* pb,
+                                           core::Rect* er)
 {
   int dx, dy, dw, dh;
   int w_prev;
-  Rect sr;
+  core::Rect sr;
   int w_best = 0, h_best = 0;
 
   w_prev = r.width();
@@ -958,12 +976,14 @@ void EncodeManager::extendSolidAreaByBlock(const Rect& r,
   er->br.y = er->tl.y + h_best;
 }
 
-void EncodeManager::extendSolidAreaByPixel(const Rect& r, const Rect& sr,
+void EncodeManager::extendSolidAreaByPixel(const core::Rect& r,
+                                           const core::Rect& sr,
                                            const uint8_t* colourValue,
-                                           const PixelBuffer *pb, Rect* er)
+                                           const PixelBuffer* pb,
+                                           core::Rect* er)
 {
   int cx, cy;
-  Rect tr;
+  core::Rect tr;
 
   // Try to extend the area upwards.
   for (cy = sr.tl.y - 1; cy >= r.tl.y; cy--) {
@@ -998,7 +1018,7 @@ void EncodeManager::extendSolidAreaByPixel(const Rect& r, const Rect& sr,
   er->br.x = cx;
 }
 
-PixelBuffer* EncodeManager::preparePixelBuffer(const Rect& rect,
+PixelBuffer* EncodeManager::preparePixelBuffer(const core::Rect& rect,
                                                const PixelBuffer *pb,
                                                bool convert)
 {
@@ -1063,7 +1083,7 @@ void EncodeManager::OffsetPixelBuffer::update(const PixelFormat& pf,
   setBuffer(width, height, (uint8_t*)data_, stride_);
 }
 
-uint8_t* EncodeManager::OffsetPixelBuffer::getBufferRW(const Rect& /*r*/, int* /*stride*/)
+uint8_t* EncodeManager::OffsetPixelBuffer::getBufferRW(const core::Rect& /*r*/, int* /*stride*/)
 {
   throw std::logic_error("Invalid write attempt to OffsetPixelBuffer");
 }

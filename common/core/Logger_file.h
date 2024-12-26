@@ -16,23 +16,41 @@
  * USA.
  */
 
-// -=- Logger_stdio - standard output logger instances
+// -=- Logger_file - log to a file
 
-#ifndef __RFB_LOGGER_STDIO_H__
-#define __RFB_LOGGER_STDIO_H__
+#ifndef __CORE_LOGGER_FILE_H__
+#define __CORE_LOGGER_FILE_H__
 
-#include <rfb/Logger_file.h>
+#include <time.h>
+#include <limits.h>
 
-namespace rfb {
+#include <core/Logger.h>
 
-  class Logger_StdIO : public Logger_File {
+namespace core {
+
+  class Mutex;
+
+  class Logger_File : public Logger {
   public:
-    Logger_StdIO(const char *name, FILE* file) : Logger_File(name) {
-      setFile(file);
-    }
+    Logger_File(const char* loggerName);
+    ~Logger_File();
+
+    void write(int level, const char *logname, const char *message) override;
+    void setFilename(const char* filename);
+    void setFile(FILE* file);
+
+    int indent;
+    int width;
+
+  protected:
+    void closeFile();
+    char m_filename[PATH_MAX];
+    FILE* m_file;
+    time_t m_lastLogTime;
+    Mutex* mutex;
   };
 
-  bool initStdIOLoggers();
+  bool initFileLogger(const char* filename);
 
 };
 
