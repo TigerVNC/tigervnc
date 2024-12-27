@@ -95,6 +95,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
 
   if(sock == nullptr) {
     try {
+      // FIXME: This shouldn't block
 #ifndef WIN32
       if (strchr(vncServerName, '/') != nullptr) {
         sock = new network::UnixSocket(vncServerName);
