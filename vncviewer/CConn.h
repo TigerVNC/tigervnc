@@ -65,9 +65,6 @@ protected:
 
   void setName(const char* name) override;
 
-  void setColourMapEntries(int firstColour, int nColours,
-                           uint16_t* rgbs) override;
-
   void bell() override;
 
   void framebufferUpdateStart() override;

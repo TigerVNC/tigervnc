@@ -586,6 +586,13 @@ bool CConnection::dataRect(const core::Rect& r, int encoding)
   return decoder.decodeRect(r, encoding, framebuffer);
 }
 
+void CConnection::setColourMapEntries(int /*firstColour*/,
+                                      int /*nColours*/,
+                                      uint16_t* /*rgbs*/)
+{
+  vlog.error("Invalid SetColourMapEntries from server!");
+}
+
 void CConnection::serverCutText(const char* str)
 {
   hasLocalClipboard = false;

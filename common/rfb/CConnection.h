@@ -227,6 +227,9 @@ namespace rfb {
     void framebufferUpdateEnd() override;
     bool dataRect(const core::Rect& r, int encoding) override;
 
+    void setColourMapEntries(int firstColour, int nColours,
+                             uint16_t* rgbs) override;
+
     void serverCutText(const char* str) override;
 
     void setLEDState(unsigned int state) override;

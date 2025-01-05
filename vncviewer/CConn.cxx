@@ -392,12 +392,6 @@ void CConn::framebufferUpdateEnd()
 
 // The rest of the callbacks are fairly self-explanatory...
 
-void CConn::setColourMapEntries(int /*firstColour*/, int /*nColours*/,
-                                uint16_t* /*rgbs*/)
-{
-  vlog.error(_("Invalid SetColourMapEntries from server!"));
-}
-
 void CConn::bell()
 {
   fl_beep();
