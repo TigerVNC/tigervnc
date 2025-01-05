@@ -39,7 +39,7 @@ class Viewport : public Fl_Widget, protected EmulateMB,
                  protected KeyboardHandler {
 public:
 
-  Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_);
+  Viewport(int w, int h, CConn* cc_);
   ~Viewport();
 
   // Most efficient format (from Viewport's point of view)
