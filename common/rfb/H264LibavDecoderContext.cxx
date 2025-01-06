@@ -36,13 +36,10 @@ extern "C" {
 #define FFMPEG_INIT_PACKET_DEPRECATED
 #endif
 
-#include <rfb/LogWriter.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264LibavDecoderContext.h>
 
 using namespace rfb;
-
-static LogWriter vlog("H264LibavDecoderContext");
 
 H264LibavDecoderContext::H264LibavDecoderContext(const Rect& r)
   : H264DecoderContext(r)
@@ -131,19 +128,15 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
   while (len)
   {
     ret = av_parser_parse2(parser, avctx, &packet->data, &packet->size, h264_work_buffer, len, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0)
-    {
-      vlog.error("Error while parsing");
       break;
-    }
     // We need to slap on tv to make it work here (don't ask me why)
     if (!packet->size && len == static_cast<uint32_t>(ret))
       ret = av_parser_parse2(parser, avctx, &packet->data, &packet->size, h264_work_buffer, len, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0)
-    {
-      vlog.error("Error while parsing");
       break;
-    }
     h264_work_buffer += ret;
     len -= ret;
 
@@ -160,27 +153,21 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
 #ifndef FFMPEG_DECODE_VIDEO2_DEPRECATED
     int got_frame;
     ret = avcodec_decode_video2(avctx, frame, &got_frame, packet);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0 || !got_frame)
-    {
-      vlog.error("Error during decoding");
       break;
-    }
 #else
     ret = avcodec_send_packet(avctx, packet);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0)
-    {
-      vlog.error("Error sending a packet to decoding");
       break;
-    }
 
     ret = avcodec_receive_frame(avctx, frame);
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
       break;
-    else if (ret < 0)
-    {
-      vlog.error("Error during decoding");
+    // Silently ignore errors, hoping its a temporary encoding glitch
+    if (ret < 0)
       break;
-    }
 #endif
     frames_received++;
   }

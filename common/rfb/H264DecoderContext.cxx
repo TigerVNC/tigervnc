@@ -22,8 +22,6 @@
 #include <config.h>
 #endif
 
-#include <rfb/LogWriter.h>
-
 #include <rfb/H264DecoderContext.h>
 
 #ifdef H264_LIBAV
@@ -35,8 +33,6 @@
 #endif
 
 using namespace rfb;
-
-static LogWriter vlog("H264DecoderContext");
 
 H264DecoderContext *H264DecoderContext::createContext(const Rect &r)
 {
