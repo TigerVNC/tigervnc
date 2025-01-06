@@ -210,7 +210,7 @@ Xvnc supports reverse connections with a helper program called
 .B vncconfig.
 .
 .TP
-.B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
+.B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP[, ...]
 Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
 \fBstdout\fP, and \fIlevel\fP is between 0 and 100, 100 meaning most verbose
 output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can target a
