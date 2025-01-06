@@ -100,10 +100,13 @@ namespace core {
     LogWriter* m_next;
   };
 
-  class LogParameter : public StringParameter {
+  class LogParameter : public StringListParameter {
   public:
     LogParameter();
     bool setParam(const char* v) override;
+  protected:
+    // Prevent list being set directly as we want to parse the values
+    bool setParam(const ListType& v) override;
   };
   extern LogParameter logParams;
 
