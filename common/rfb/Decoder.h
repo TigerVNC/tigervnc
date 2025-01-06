@@ -19,6 +19,7 @@
 #ifndef __RFB_DECODER_H__
 #define __RFB_DECODER_H__
 
+#include <stddef.h>
 #include <stdint.h>
 
 namespace rdr {
