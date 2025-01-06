@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <stdexcept>
+
 #include <mfapi.h>
 #include <mferror.h>
 #include <wmcodecdsp.h>
@@ -40,18 +42,13 @@ static LogWriter vlog("H264WinDecoderContext");
 static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
 #endif
 
-bool H264WinDecoderContext::initCodec() {
+void H264WinDecoderContext::initCodec()
+{
   if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE)))
-  {
-    vlog.error("Could not initialize MediaFoundation");
-    return false;
-  }
+    throw std::runtime_error("Could not initialize MediaFoundation");
 
   if (FAILED(CoCreateInstance(CLSID_CMSH264DecoderMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&decoder)))
-  {
-    vlog.error("MediaFoundation H264 codec not found");
-    return false;
-  }
+    throw std::runtime_error("MediaFoundation H264 codec not found");
 
   if (FAILED(CoCreateInstance(CLSID_VideoProcessorMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
   {
@@ -59,8 +56,7 @@ bool H264WinDecoderContext::initCodec() {
     if (FAILED(CoCreateInstance(CLSID_CColorConvertDMO, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
     {
       decoder->Release();
-      vlog.error("ColorConvert DMO not found");
-      return false;
+      throw std::runtime_error("MediaFoundation H264 codec not found");
     }
   }
 
@@ -82,8 +78,7 @@ bool H264WinDecoderContext::initCodec() {
   {
     decoder->Release();
     converter->Release();
-    vlog.error("Could not create MF MediaType");
-    return false;
+    throw std::runtime_error("Could not create MF MediaType");
   }
   input_type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
   input_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_H264);
@@ -110,8 +105,7 @@ bool H264WinDecoderContext::initCodec() {
     decoder->Release();
     converter->Release();
     input_type->Release();
-    vlog.error("Could not start H264 decoder");
-    return false;
+    throw std::runtime_error("Could not start H264 decoder");
   }
 
   MFT_OUTPUT_STREAM_INFO info;
@@ -131,15 +125,13 @@ bool H264WinDecoderContext::initCodec() {
     SAFE_RELEASE(converted_sample);
     SAFE_RELEASE(input_buffer);
     SAFE_RELEASE(decoded_buffer);
-    vlog.error("Could not allocate media samples/buffers");
-    return false;
+    throw std::runtime_error("Could not allocate media samples/buffers");
   }
 
   input_sample->AddBuffer(input_buffer);
   decoded_sample->AddBuffer(decoded_buffer);
 
   initialized = true;
-  return true;
 }
 
 void H264WinDecoderContext::freeCodec() {

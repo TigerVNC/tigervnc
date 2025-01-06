@@ -47,8 +47,8 @@ namespace rfb {
 
       H264DecoderContext(const Rect &r) : rect(r) { initialized = false; }
 
-      virtual bool initCodec() { return false; }
-      virtual void freeCodec() {}
+      virtual void initCodec() = 0;
+      virtual void freeCodec() = 0;
   };
 }
 

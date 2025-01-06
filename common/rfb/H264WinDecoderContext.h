@@ -37,7 +37,7 @@ namespace rfb {
                   ModifiablePixelBuffer* pb) override;
 
     protected:
-      bool initCodec() override;
+      void initCodec() override;
       void freeCodec() override;
 
     private:

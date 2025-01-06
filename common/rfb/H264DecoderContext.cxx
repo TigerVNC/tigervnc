@@ -22,8 +22,6 @@
 #include <config.h>
 #endif
 
-#include <stdexcept>
-
 #include <rfb/LogWriter.h>
 
 #include <rfb/H264DecoderContext.h>
@@ -43,11 +41,7 @@ static LogWriter vlog("H264DecoderContext");
 H264DecoderContext *H264DecoderContext::createContext(const Rect &r)
 {
   H264DecoderContext *ret = new H264DecoderContextType(r);
-  if (!ret->initCodec())
-  {
-    throw std::runtime_error("H264DecoderContext: Unable to create context");
-  }
-
+  ret->initCodec();
   return ret;
 }
 

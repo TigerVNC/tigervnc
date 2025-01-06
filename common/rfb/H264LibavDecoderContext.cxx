@@ -22,6 +22,9 @@
 #include <config.h>
 #endif
 
+#include <new>
+#include <stdexcept>
+
 extern "C" {
 #include <libavutil/imgutils.h>
 #include <libavcodec/version.h>
@@ -41,31 +44,25 @@ using namespace rfb;
 
 static LogWriter vlog("H264LibavDecoderContext");
 
-bool H264LibavDecoderContext::initCodec() {
+void H264LibavDecoderContext::initCodec()
+{
   sws = nullptr;
   h264WorkBuffer = nullptr;
   h264WorkBufferLength = 0;
 
   const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
   if (!codec)
-  {
-    vlog.error("Codec not found");
-    return false;
-  }
+    throw std::runtime_error("Codec not found");
 
   parser = av_parser_init(codec->id);
   if (!parser)
-  {
-    vlog.error("Could not create H264 parser");
-    return false;
-  }
+    throw std::runtime_error("Could not create H264 parser");
 
   avctx = avcodec_alloc_context3(codec);
   if (!avctx)
   {
     av_parser_close(parser);
-    vlog.error("Could not allocate video codec context");
-    return false;
+    throw std::runtime_error("Could not allocate video codec context");
   }
 
   frame = av_frame_alloc();
@@ -73,8 +70,7 @@ bool H264LibavDecoderContext::initCodec() {
   {
     av_parser_close(parser);
     avcodec_free_context(&avctx);
-    vlog.error("Could not allocate video frame");
-    return false;
+    throw std::runtime_error("Could not allocate video frame");
   }
 
   if (avcodec_open2(avctx, codec, nullptr) < 0)
@@ -82,12 +78,10 @@ bool H264LibavDecoderContext::initCodec() {
     av_parser_close(parser);
     avcodec_free_context(&avctx);
     av_frame_free(&frame);
-    vlog.error("Could not open codec");
-    return false;
+    throw std::runtime_error("Could not open video codec");
   }
 
   initialized = true;
-  return true;
 }
 
 void H264LibavDecoderContext::freeCodec() {
