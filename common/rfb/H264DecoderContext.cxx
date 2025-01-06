@@ -24,7 +24,6 @@
 
 #include <stdexcept>
 
-#include <os/Mutex.h>
 #include <rfb/LogWriter.h>
 
 #include <rfb/H264DecoderContext.h>
@@ -58,7 +57,6 @@ H264DecoderContext::~H264DecoderContext()
 
 bool H264DecoderContext::isReady()
 {
-  os::AutoMutex lock(&mutex);
   return initialized;
 }
 

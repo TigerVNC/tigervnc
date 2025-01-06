@@ -23,7 +23,6 @@
 
 #include <stdint.h>
 
-#include <os/Mutex.h>
 #include <rfb/Rect.h>
 #include <rfb/Decoder.h>
 
@@ -43,7 +42,6 @@ namespace rfb {
       bool isReady();
 
     protected:
-      os::Mutex mutex;
       rfb::Rect rect;
       bool initialized;
 

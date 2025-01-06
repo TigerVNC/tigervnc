@@ -27,7 +27,6 @@
 #include <wmcodecdsp.h>
 #define SAFE_RELEASE(obj) if (obj) { obj->Release(); obj = nullptr; }
 
-#include <os/Mutex.h>
 #include <rfb/LogWriter.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264WinDecoderContext.h>
@@ -42,8 +41,6 @@ static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7
 #endif
 
 bool H264WinDecoderContext::initCodec() {
-  os::AutoMutex lock(&mutex);
-
   if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE)))
   {
     vlog.error("Could not initialize MediaFoundation");
@@ -146,8 +143,6 @@ bool H264WinDecoderContext::initCodec() {
 }
 
 void H264WinDecoderContext::freeCodec() {
-  os::AutoMutex lock(&mutex);
-
   if (!initialized)
     return;
   SAFE_RELEASE(decoder)
@@ -165,7 +160,6 @@ void H264WinDecoderContext::freeCodec() {
 void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
                                    uint32_t len,
                                    ModifiablePixelBuffer* pb) {
-  os::AutoMutex lock(&mutex);
   if (!initialized)
     return;
 
