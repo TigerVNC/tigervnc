@@ -40,16 +40,9 @@ static LogWriter vlog("H264DecoderContext");
 
 H264DecoderContext *H264DecoderContext::createContext(const Rect &r)
 {
-  H264DecoderContext *ret = new H264DecoderContextType(r);
-  ret->initCodec();
-  return ret;
+  return new H264DecoderContextType(r);
 }
 
 H264DecoderContext::~H264DecoderContext()
 {
-}
-
-bool H264DecoderContext::isReady()
-{
-  return initialized;
 }

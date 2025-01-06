@@ -38,16 +38,11 @@ namespace rfb {
                           ModifiablePixelBuffer* /*pb*/) {}
 
       inline bool isEqualRect(const Rect &r) const { return r == rect; }
-      bool isReady();
 
     protected:
       rfb::Rect rect;
-      bool initialized;
 
-      H264DecoderContext(const Rect &r) : rect(r) { initialized = false; }
-
-      virtual void initCodec() = 0;
-      virtual void freeCodec() = 0;
+      H264DecoderContext(const Rect &r) : rect(r) {}
   };
 }
 

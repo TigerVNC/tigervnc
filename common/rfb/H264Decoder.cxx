@@ -134,9 +134,6 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
     contexts.push_back(ctx);
   }
 
-  if (!ctx->isReady())
-    throw std::runtime_error("H264Decoder: Context is not ready");
-
   if (!len)
     return;
 

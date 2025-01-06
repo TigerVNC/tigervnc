@@ -44,7 +44,8 @@ using namespace rfb;
 
 static LogWriter vlog("H264LibavDecoderContext");
 
-void H264LibavDecoderContext::initCodec()
+H264LibavDecoderContext::H264LibavDecoderContext(const Rect& r)
+  : H264DecoderContext(r)
 {
   sws = nullptr;
   h264WorkBuffer = nullptr;
@@ -80,20 +81,16 @@ void H264LibavDecoderContext::initCodec()
     av_frame_free(&frame);
     throw std::runtime_error("Could not open video codec");
   }
-
-  initialized = true;
 }
 
-void H264LibavDecoderContext::freeCodec() {
-  if (!initialized)
-    return;
+H264LibavDecoderContext::~H264LibavDecoderContext()
+{
   av_parser_close(parser);
   avcodec_free_context(&avctx);
   av_frame_free(&rgbFrame);
   av_frame_free(&frame);
   sws_freeContext(sws);
   free(h264WorkBuffer);
-  initialized = false;
 }
 
 // We need to reallocate buffer because AVPacket uses non-const pointer.
@@ -120,8 +117,6 @@ uint8_t* H264LibavDecoderContext::makeH264WorkBuffer(const uint8_t* buffer, uint
 void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
                                      uint32_t len,
                                      ModifiablePixelBuffer* pb) {
-  if (!initialized)
-    return;
   uint8_t* h264_work_buffer = makeH264WorkBuffer(h264_in_buffer, len);
 
 #ifdef FFMPEG_INIT_PACKET_DEPRECATED

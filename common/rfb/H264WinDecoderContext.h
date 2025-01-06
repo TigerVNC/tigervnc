@@ -30,15 +30,11 @@
 namespace rfb {
   class H264WinDecoderContext : public H264DecoderContext {
     public:
-      H264WinDecoderContext(const Rect &r) : H264DecoderContext(r) {};
-      ~H264WinDecoderContext() { freeCodec(); }
+      H264WinDecoderContext(const Rect &r);
+      ~H264WinDecoderContext();
 
       void decode(const uint8_t* h264_buffer, uint32_t len,
                   ModifiablePixelBuffer* pb) override;
-
-    protected:
-      void initCodec() override;
-      void freeCodec() override;
 
     private:
       LONG stride;

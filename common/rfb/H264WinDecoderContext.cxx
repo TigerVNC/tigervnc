@@ -42,7 +42,8 @@ static LogWriter vlog("H264WinDecoderContext");
 static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
 #endif
 
-void H264WinDecoderContext::initCodec()
+H264WinDecoderContext::H264WinDecoderContext(const Rect &r)
+  : H264DecoderContext(r)
 {
   if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE)))
     throw std::runtime_error("Could not initialize MediaFoundation");
@@ -130,13 +131,9 @@ void H264WinDecoderContext::initCodec()
 
   input_sample->AddBuffer(input_buffer);
   decoded_sample->AddBuffer(decoded_buffer);
-
-  initialized = true;
 }
 
-void H264WinDecoderContext::freeCodec() {
-  if (!initialized)
-    return;
+H264WinDecoderContext::~H264WinDecoderContext() {
   SAFE_RELEASE(decoder)
   SAFE_RELEASE(converter)
   SAFE_RELEASE(input_sample)
@@ -146,15 +143,11 @@ void H264WinDecoderContext::freeCodec() {
   SAFE_RELEASE(decoded_buffer)
   SAFE_RELEASE(converted_buffer)
   MFShutdown();
-  initialized = false;
 }
 
 void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
                                    uint32_t len,
                                    ModifiablePixelBuffer* pb) {
-  if (!initialized)
-    return;
-
   if (FAILED(input_buffer->SetCurrentLength(len)))
   {
     input_buffer->Release();
