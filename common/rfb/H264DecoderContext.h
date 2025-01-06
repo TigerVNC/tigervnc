@@ -36,7 +36,6 @@ namespace rfb {
       virtual void decode(const uint8_t* /*h264_buffer*/,
                           uint32_t /*len*/,
                           ModifiablePixelBuffer* /*pb*/) {}
-      void reset();
 
       inline bool isEqualRect(const Rect &r) const { return r == rect; }
       bool isReady();

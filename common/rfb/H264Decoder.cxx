@@ -114,6 +114,12 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
     ctx = findContext(r);
   }
 
+  if (ctx && (reset & resetContext)) {
+    contexts.remove(ctx);
+    delete ctx;
+    ctx = nullptr;
+  }
+
   if (!ctx)
   {
     if (contexts.size() >= MAX_H264_INSTANCES)
@@ -130,9 +136,6 @@ void H264Decoder::decodeRect(const Rect& r, const uint8_t* buffer,
 
   if (!ctx->isReady())
     throw std::runtime_error("H264Decoder: Context is not ready");
-
-  if (reset & resetContext)
-    ctx->reset();
 
   if (!len)
     return;

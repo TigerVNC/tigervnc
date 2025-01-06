@@ -21,7 +21,7 @@
 #ifndef __RFB_H264DECODER_H__
 #define __RFB_H264DECODER_H__
 
-#include <deque>
+#include <list>
 
 #include <rfb/Decoder.h>
 
@@ -43,7 +43,7 @@ namespace rfb {
     void resetContexts();
     H264DecoderContext* findContext(const Rect& r);
 
-    std::deque<H264DecoderContext*> contexts;
+    std::list<H264DecoderContext*> contexts;
   };
 }
 

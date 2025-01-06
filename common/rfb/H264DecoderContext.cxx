@@ -53,9 +53,3 @@ bool H264DecoderContext::isReady()
 {
   return initialized;
 }
-
-void H264DecoderContext::reset()
-{
-  freeCodec();
-  initCodec();
-}
