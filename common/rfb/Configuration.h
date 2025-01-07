@@ -176,7 +176,6 @@ namespace rfb {
     virtual bool setParam();
     virtual std::string getDefaultStr() const = 0;
     virtual std::string getValueStr() const = 0;
-    virtual bool isBool() const;
 
     virtual void setImmutable();
 
@@ -200,7 +199,6 @@ namespace rfb {
     bool setParam() override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
-    bool isBool() const override;
     void setImmutable() override;
   private:
     VoidParameter* param;
@@ -215,7 +213,6 @@ namespace rfb {
     virtual void setParam(bool b);
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
-    bool isBool() const override;
     operator bool() const;
   protected:
     bool value;

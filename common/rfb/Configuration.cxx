@@ -231,10 +231,6 @@ bool VoidParameter::setParam() {
   return false;
 }
 
-bool VoidParameter::isBool() const {
-  return false;
-}
-
 void
 VoidParameter::setImmutable() {
   vlog.debug("Set immutable %s", getName());
@@ -263,10 +259,6 @@ std::string AliasParameter::getDefaultStr() const {
 
 std::string AliasParameter::getValueStr() const {
   return param->getValueStr();
-}
-
-bool AliasParameter::isBool() const {
-  return param->isBool();
 }
 
 void
@@ -318,10 +310,6 @@ std::string BoolParameter::getDefaultStr() const {
 
 std::string BoolParameter::getValueStr() const {
   return value ? "1" : "0";
-}
-
-bool BoolParameter::isBool() const {
-  return true;
 }
 
 BoolParameter::operator bool() const {
