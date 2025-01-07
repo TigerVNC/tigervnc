@@ -48,6 +48,7 @@
 #include <stdint.h>
 
 #include <list>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -197,6 +198,23 @@ namespace rfb {
   protected:
     std::string value;
     std::string def_value;
+  };
+
+  class EnumParameter : public VoidParameter {
+  public:
+    EnumParameter(const char* name_, const char* desc_,
+                  const std::set<std::string>& enums, const char* v);
+    bool setParam(const char* value) override;
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
+    bool operator==(const char* other) const;
+    bool operator==(const std::string& other) const;
+    bool operator!=(const char* other) const;
+    bool operator!=(const std::string& other) const;
+  protected:
+    std::string value;
+    std::string def_value;
+    std::set<std::string> enums;
   };
 
   class BinaryParameter : public VoidParameter {

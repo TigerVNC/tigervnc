@@ -230,6 +230,77 @@ static void test_string()
   printf("OK\n");
 }
 
+static void test_enum()
+{
+  bool ok;
+
+  printf("%s: ", __func__);
+
+  // Enum values
+  rfb::EnumParameter enums("enumparam", "", {"a", "b", "c"}, "a");
+  enums.setParam("b");
+  ASSERT_EQ_I(enums == "a", false);
+  ASSERT_EQ_I(enums == "b", true);
+  ASSERT_EQ_I(enums == "c", false);
+  ASSERT_EQ_I(enums == "foo", false);
+  ASSERT_EQ_I(enums != "b", false);
+  enums.setParam("c");
+  ASSERT_EQ_I(enums == "a", false);
+  ASSERT_EQ_I(enums == "b", false);
+  ASSERT_EQ_I(enums == "c", true);
+  ASSERT_EQ_I(enums == "foo", false);
+  ASSERT_EQ_I(enums != "b", true);
+
+  // Case insensitive
+  rfb::EnumParameter casecmp("enumparam", "", {"a", "b", "c"}, "a");
+  casecmp.setParam("B");
+  ASSERT_EQ_I(casecmp == "a", false);
+  ASSERT_EQ_I(casecmp == "b", true);
+  ASSERT_EQ_I(casecmp == "B", true);
+  ASSERT_EQ_I(casecmp == "c", false);
+  ASSERT_EQ_I(casecmp != "b", false);
+
+  // Validation
+  rfb::EnumParameter valid("enumparam", "", {"a", "b", "c"}, "a");
+  ASSERT_EQ_I(valid.setParam("b"), true);
+  ASSERT_EQ_I(valid == "b", true);
+  ASSERT_EQ_I(valid.setParam("foo"), false);
+  ASSERT_EQ_I(valid == "b", true);
+
+  // Valid default value
+  try {
+    rfb::EnumParameter defvalid("enumparam", "", {"a", "b", "c"}, "d");
+    ok = false;
+  } catch (std::exception&) {
+    ok = true;
+  }
+  ASSERT_EQ_I(ok, true);
+
+  // String encoding
+  rfb::EnumParameter encoding("enumparam", "", {"a", "b", "c"}, "a");
+  encoding.setParam("b");
+  ASSERT_EQ_S(encoding.getValueStr().c_str(), "b");
+  encoding.setParam("C");
+  ASSERT_EQ_S(encoding.getValueStr().c_str(), "c");
+
+  // Default value
+  rfb::EnumParameter def("enumparam", "", {"a", "b", "c"}, "a");
+  ASSERT_EQ_I(def.isDefault(), true);
+  def.setParam("b");
+  ASSERT_EQ_I(def.isDefault(), false);
+  def.setParam("A");
+  ASSERT_EQ_I(def.isDefault(), true);
+
+  // Immutable
+  rfb::EnumParameter immutable("enumparam", "", {"a", "b", "c"}, "a");
+  immutable.setImmutable();
+  immutable.setParam("b");
+  immutable.setParam("c");
+  ASSERT_EQ_I(immutable == "a", true);
+
+  printf("OK\n");
+}
+
 static void test_binary()
 {
   std::vector<uint8_t> data;
@@ -321,6 +392,7 @@ int main(int /*argc*/, char** /*argv*/)
   test_bool();
   test_int();
   test_string();
+  test_enum();
   test_binary();
 
   return 0;
