@@ -473,14 +473,12 @@ static void saveToReg(const char* servername) {
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     try {
-      if (dynamic_cast<StringParameter*>(parameterArray[i]) != nullptr) {
-        setKeyString(parameterArray[i]->getName(), *(StringParameter*)parameterArray[i], &hKey);
-      } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
+      if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
         setKeyInt(parameterArray[i]->getName(), (int)*(IntParameter*)parameterArray[i], &hKey);
       } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != nullptr) {
         setKeyInt(parameterArray[i]->getName(), (int)*(BoolParameter*)parameterArray[i], &hKey);
       } else {
-        throw std::logic_error(_("Unknown parameter type"));
+        setKeyString(parameterArray[i]->getName(), parameterArray[i]->getValueStr().c_str(), &hKey);
       }
     } catch (std::exception& e) {
       RegCloseKey(hKey);
@@ -563,17 +561,15 @@ static void getParametersFromReg(VoidParameter* parameters[],
 
   for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
     try {
-      if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-        if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
-          parameters[i]->setParam(stringValue);
-      } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
+      if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
         if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
           ((IntParameter*)parameters[i])->setParam(intValue);
       } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
         if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
           ((BoolParameter*)parameters[i])->setParam(intValue);
       } else {
-        throw std::logic_error(_("Unknown parameter type"));
+        if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
+          parameters[i]->setParam(stringValue);
       }
     } catch(std::exception& e) {
       // Just ignore this entry and continue with the rest
