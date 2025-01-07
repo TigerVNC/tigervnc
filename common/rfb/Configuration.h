@@ -177,6 +177,8 @@ namespace rfb {
     virtual std::string getDefaultStr() const = 0;
     virtual std::string getValueStr() const = 0;
 
+    virtual bool isDefault() const;
+
     virtual void setImmutable();
 
   protected:

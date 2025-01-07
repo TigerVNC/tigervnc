@@ -472,6 +472,18 @@ static void saveToReg(const char* servername) {
   }
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+    if (parameterArray[i]->isDefault()) {
+      try {
+        removeValue(parameterArray[i]->getName(), &hKey);
+      } catch (std::exception& e) {
+        RegCloseKey(hKey);
+        throw std::runtime_error(format(_("Failed to remove \"%s\": %s"),
+                                        parameterArray[i]->getName(),
+                                        e.what()));
+      }
+      continue;
+    }
+
     try {
       if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
         setKeyInt(parameterArray[i]->getName(), (int)*(IntParameter*)parameterArray[i], &hKey);
@@ -663,6 +675,8 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
   for (VoidParameter* param : parameterArray) {
+    if (param->isDefault())
+      continue;
     if (!encodeValue(param->getValueStr().c_str(),
                      encodingBuffer, buffersize)) {
       fclose(f);

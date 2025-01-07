@@ -231,6 +231,10 @@ bool VoidParameter::setParam() {
   return false;
 }
 
+bool VoidParameter::isDefault() const {
+  return getDefaultStr() == getValueStr();
+}
+
 void
 VoidParameter::setImmutable() {
   vlog.debug("Set immutable %s", getName());
