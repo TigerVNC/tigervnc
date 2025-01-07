@@ -1003,8 +1003,8 @@ int DesktopWindow::fltkHandle(int event)
 
 void DesktopWindow::fullscreen_on()
 {
-  bool allMonitors = !strcasecmp(fullScreenMode, "all");
-  bool selectedMonitors = !strcasecmp(fullScreenMode, "selected");
+  bool allMonitors = fullScreenMode == "all";
+  bool selectedMonitors = fullScreenMode == "selected";
   int top, bottom, left, right;
 
   if (not selectedMonitors and not allMonitors) {
