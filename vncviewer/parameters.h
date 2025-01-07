@@ -53,7 +53,7 @@ extern core::IntParameter qualityLevel;
 
 extern core::BoolParameter maximize;
 extern core::BoolParameter fullScreen;
-extern core::StringParameter fullScreenMode;
+extern core::EnumParameter fullScreenMode;
 extern core::BoolParameter fullScreenAllMonitors; // deprecated
 extern MonitorIndicesParameter fullScreenSelectedMonitors;
 extern core::StringParameter desktopSize;

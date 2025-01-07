@@ -140,11 +140,12 @@ core::BoolParameter
   maximize("Maximize", "Maximize viewer window", false);
 core::BoolParameter
   fullScreen("FullScreen", "Enable full screen", false);
-core::StringParameter
+core::EnumParameter
   fullScreenMode("FullScreenMode",
                  "Specify which monitors to use when in full screen. "
                  "Should be either Current, Selected or All",
-                 "Current");
+                 {"Current", "Selected", "All"}, "Current");
+
 core::BoolParameter
   fullScreenAllMonitors("FullScreenAllMonitors",
                         "[DEPRECATED] Enable full screen over all "
