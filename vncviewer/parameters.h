@@ -52,7 +52,7 @@ extern rfb::IntParameter qualityLevel;
 
 extern rfb::BoolParameter maximize;
 extern rfb::BoolParameter fullScreen;
-extern rfb::StringParameter fullScreenMode;
+extern rfb::EnumParameter fullScreenMode;
 extern rfb::BoolParameter fullScreenAllMonitors; // deprecated
 extern MonitorIndicesParameter fullScreenSelectedMonitors;
 extern rfb::StringParameter desktopSize;

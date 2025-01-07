@@ -117,9 +117,11 @@ IntParameter qualityLevel("QualityLevel",
 
 BoolParameter maximize("Maximize", "Maximize viewer window", false);
 BoolParameter fullScreen("FullScreen", "Enable full screen", false);
-StringParameter fullScreenMode("FullScreenMode", "Specify which monitors to use when in full screen. "
-                                                 "Should be either Current, Selected or All",
-                                                 "Current");
+EnumParameter fullScreenMode("FullScreenMode",
+                             "Specify which monitors to use when in "
+                             "full screen. Should be either Current, "
+                             "Selected or All",
+                             {"Current", "Selected", "All"}, "Current");
 BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
                                     "[DEPRECATED] Enable full screen over all monitors",
                                     false);
