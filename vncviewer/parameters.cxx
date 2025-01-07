@@ -667,25 +667,14 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
   for (VoidParameter* param : parameterArray) {
-    if (dynamic_cast<StringParameter*>(param) != nullptr) {
-      if (!encodeValue(*(StringParameter*)param,
-          encodingBuffer, buffersize)) {
-        fclose(f);
-        throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                        param->getName(),
-                                        _("Could not encode parameter")));
-      }
-      fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
-    } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((IntParameter*)param)->getName(), (int)*(IntParameter*)param);
-    } else if (dynamic_cast<BoolParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
-    } else {      
+    if (!encodeValue(param->getValueStr().c_str(),
+                     encodingBuffer, buffersize)) {
       fclose(f);
-      throw std::logic_error(format(_("Failed to save \"%s\": %s"),
-                                    param->getName(),
-                                    _("Unknown parameter type")));
+      throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
+                                      param->getName(),
+                                      _("Could not encode parameter")));
     }
+    fprintf(f, "%s=%s\n", param->getName(), encodingBuffer);
   }
   fclose(f);
 }
@@ -699,29 +688,11 @@ static bool findAndSetViewerParameterFromValue(
 
   // Find and set the correct parameter
   for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
-
-    if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((StringParameter*)parameters[i])->getName()) == 0) {
-        if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
-          throw std::runtime_error(_("Invalid format or too large value"));
-        ((StringParameter*)parameters[i])->setParam(decodingBuffer);
-        return false;
-      }
-
-    } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((IntParameter*)parameters[i])->getName()) == 0) {
-        ((IntParameter*)parameters[i])->setParam(atoi(value));
-        return false;
-      }
-
-    } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((BoolParameter*)parameters[i])->getName()) == 0) {
-        ((BoolParameter*)parameters[i])->setParam(atoi(value));
-        return false;
-      }
-
-    } else {
-      throw std::logic_error(_("Unknown parameter type"));
+    if (strcasecmp(line, parameters[i]->getName()) == 0) {
+      if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
+        throw std::runtime_error(_("Invalid format or too large value"));
+      parameters[i]->setParam(decodingBuffer);
+      return false;
     }
   }
 
