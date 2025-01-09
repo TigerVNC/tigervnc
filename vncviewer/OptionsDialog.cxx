@@ -867,6 +867,8 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
     fltk_menu_add(cursorTypeChoice, _("Dot"), 0, nullptr, nullptr, 0);
     fltk_menu_add(cursorTypeChoice, _("System"), 0, nullptr, nullptr, 0);
 
+    fltk_adjust_choice(cursorTypeChoice);
+
     ty += CHOICE_HEIGHT + TIGHT_MARGIN;
 
   }
@@ -903,6 +905,8 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
     fltk_menu_add(menuKeyChoice, _("None"), 0, nullptr, nullptr, FL_MENU_DIVIDER);
     for (int idx = 0; idx < getMenuKeySymbolCount(); idx++)
       fltk_menu_add(menuKeyChoice, getMenuKeySymbols()[idx].name, 0, nullptr, nullptr, 0);
+
+    fltk_adjust_choice(menuKeyChoice);
 
     ty += CHOICE_HEIGHT + TIGHT_MARGIN;
   }

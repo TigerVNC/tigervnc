@@ -24,6 +24,7 @@
 #ifndef __FLTK_LAYOUT_H__
 #define __FLTK_LAYOUT_H__
 
+#include <FL/Fl_Choice.H>
 #include <FL/fl_draw.H>
 
 /* Calculates the width of a string as printed by FLTK (pixels) */
@@ -36,6 +37,18 @@ static inline int gui_str_len(const char *str)
     len = fl_width(str);
 
     return (int)(len + 0.5f);
+}
+
+/* Adjusts an Fl_Choice so that all options are visible */
+static inline void fltk_adjust_choice(Fl_Choice *choice)
+{
+    int option_len;
+
+    option_len = 0;
+    for (int i = 0; i < choice->size(); i++)
+        option_len = std::max(option_len, gui_str_len(choice->text(i)));
+
+    choice->size(option_len + 30, choice->h());
 }
 
 /**** MARGINS ****/
