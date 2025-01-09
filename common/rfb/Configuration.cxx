@@ -207,6 +207,8 @@ int Configuration::handleArg(int argc, char* argv[], int index)
         // FIXME: Should not duplicate the list of values here
         if ((strcasecmp(argv[index+1], "0") == 0) ||
             (strcasecmp(argv[index+1], "1") == 0) ||
+            (strcasecmp(argv[index+1], "on") == 0) ||
+            (strcasecmp(argv[index+1], "off") == 0) ||
             (strcasecmp(argv[index+1], "true") == 0) ||
             (strcasecmp(argv[index+1], "false") == 0) ||
             (strcasecmp(argv[index+1], "yes") == 0) ||

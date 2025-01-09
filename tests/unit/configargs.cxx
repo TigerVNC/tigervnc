@@ -263,7 +263,7 @@ static void test_bool()
 
   // bool argument (single)
   boolparam.setParam(true);
-  argv = {"prog", "-boolparam", "false", "true"};
+  argv = {"prog", "-boolparam", "off", "on"};
   ret = rfb::Configuration::handleParamArg(argv.size(),
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 2);
@@ -271,7 +271,7 @@ static void test_bool()
 
   // bool argument (double)
   boolparam.setParam(true);
-  argv = {"prog", "--boolparam", "false", "true"};
+  argv = {"prog", "--boolparam", "off", "on"};
   ret = rfb::Configuration::handleParamArg(argv.size(),
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 2);
@@ -279,7 +279,7 @@ static void test_bool()
 
   // bool argument equals (single)
   boolparam.setParam(true);
-  argv = {"prog", "-boolparam=false", "true"};
+  argv = {"prog", "-boolparam=off", "on"};
   ret = rfb::Configuration::handleParamArg(argv.size(),
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 1);
@@ -287,7 +287,7 @@ static void test_bool()
 
   // bool argument equals (double)
   boolparam.setParam(true);
-  argv = {"prog", "--boolparam=false", "true"};
+  argv = {"prog", "--boolparam=off", "on"};
   ret = rfb::Configuration::handleParamArg(argv.size(),
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 1);
@@ -295,7 +295,7 @@ static void test_bool()
 
   // bool bad argument (single)
   boolparam.setParam(false);
-  argv = {"prog", "-boolparam", "foo", "false"};
+  argv = {"prog", "-boolparam", "foo", "off"};
   ret = rfb::Configuration::handleParamArg(argv.size(),
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 1);
@@ -303,7 +303,7 @@ static void test_bool()
 
   // bool bad argument (double)
   boolparam.setParam(false);
-  argv = {"prog", "--boolparam", "foo", "false"};
+  argv = {"prog", "--boolparam", "foo", "off"};
   ret = rfb::Configuration::handleParamArg(argv.size(),
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 1);
