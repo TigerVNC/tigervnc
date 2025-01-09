@@ -40,8 +40,18 @@ public class Parameters {
 
   public static BoolParameter dotWhenNoCursor
   = new BoolParameter("DotWhenNoCursor",
-    "Show the dot cursor when the server sends an invisible cursor",
+    "[DEPRECATED] Show the dot cursor when the server sends an invisible cursor",
     false);
+
+  public static BoolParameter alwaysCursor
+  = new BoolParameter("AlwaysCursor",
+    "Show the local cursor when the server sends an invisible cursor",
+    false);
+
+  public static StringParameter cursorType
+  = new StringParameter("CursorType",
+    "Specify which cursor type the local cursor should be. Should be either Dot or System",
+    "Dot");
 
   public static BoolParameter sendLocalUsername
   = new BoolParameter("SendLocalUsername",
@@ -282,7 +292,8 @@ public class Parameters {
     CSecurityTLS.X509CA,
     CSecurityTLS.X509CRL,
     SecurityClient.secTypes,
-    dotWhenNoCursor,
+    alwaysCursor,
+    cursorType,
     autoSelect,
     fullColor,
     lowColorLevel,
@@ -313,6 +324,10 @@ public class Parameters {
     extSSHArgs,
     sshConfig,
     sshKeyFile,
+  };
+
+  static VoidParameter[] readOnlyParameterArray = {
+    dotWhenNoCursor
   };
 
 
@@ -447,29 +462,35 @@ public class Parameters {
         invalidParameterName = false;
       } else {
         for (int i = 0; i < parameterArray.length; i++) {
-          if (parameterArray[i] instanceof StringParameter) {
-            if (line.substring(0,idx).trim().equalsIgnoreCase(parameterArray[i].getName())) {
+          VoidParameter parameter;
+          if (i < parameterArray.length) {
+            parameter = parameterArray[i];
+          } else {
+            parameter = readOnlyParameterArray[i - parameterArray.length];
+          }
+          if (parameter instanceof StringParameter) {
+            if (line.substring(0,idx).trim().equalsIgnoreCase(parameter.getName())) {
               if (value.length() > 256) {
                 vlog.error(String.format("Failed to read line %d in file %s: %s",
                            lineNr, filepath, "Invalid format or too large value"));
                 continue;
               }
-              ((StringParameter)parameterArray[i]).setParam(value);
+              ((StringParameter)parameter).setParam(value);
               invalidParameterName = false;
             }
-          } else if (parameterArray[i] instanceof IntParameter) {
-            if (line.substring(0,idx).trim().equalsIgnoreCase(parameterArray[i].getName())) {
-              ((IntParameter)parameterArray[i]).setParam(value);
+          } else if (parameter instanceof IntParameter) {
+            if (line.substring(0,idx).trim().equalsIgnoreCase(parameter.getName())) {
+              ((IntParameter)parameter).setParam(value);
               invalidParameterName = false;
             }
-          } else if (parameterArray[i] instanceof BoolParameter) {
-            if (line.substring(0,idx).trim().equalsIgnoreCase(parameterArray[i].getName())) {
-              ((BoolParameter)parameterArray[i]).setParam(value);
+          } else if (parameter instanceof BoolParameter) {
+            if (line.substring(0,idx).trim().equalsIgnoreCase(parameter.getName())) {
+              ((BoolParameter)parameter).setParam(value);
               invalidParameterName = false;
             }
           } else {
             vlog.error(String.format("Unknown parameter type for parameter %s",
-                       parameterArray[i].getName()));
+                       parameter.getName()));
 
           }
         }
@@ -517,6 +538,10 @@ public class Parameters {
       }
     }
 
+    for (int i = 0; i < readOnlyParameterArray.length; i++) {
+      UserPreferences.delete(hKey, readOnlyParameterArray[i].getName());
+    }
+
     UserPreferences.save(hKey);
   }
 
@@ -528,28 +553,34 @@ public class Parameters {
     if (servername == null)
       servername = "";
 
-    for (int i = 0; i < parameterArray.length; i++) {
-      if (parameterArray[i] instanceof StringParameter) {
-        if (UserPreferences.get(hKey, parameterArray[i].getName()) != null) {
+    for (int i = 0; i < parameterArray.length + readOnlyParameterArray.length; i++) {
+      VoidParameter parameter;
+      if (i < parameterArray.length) {
+        parameter = parameterArray[i];
+      } else {
+        parameter = readOnlyParameterArray[i - parameterArray.length];
+      }
+      if (parameter instanceof StringParameter) {
+        if (UserPreferences.get(hKey, parameter.getName()) != null) {
           String stringValue =
-            UserPreferences.get(hKey, parameterArray[i].getName());
-          ((StringParameter)parameterArray[i]).setParam(stringValue);
+            UserPreferences.get(hKey, parameter.getName());
+          ((StringParameter)parameter).setParam(stringValue);
         }
-      } else if (parameterArray[i] instanceof IntParameter) {
-        if (UserPreferences.get(hKey, parameterArray[i].getName()) != null) {
+      } else if (parameter instanceof IntParameter) {
+        if (UserPreferences.get(hKey, parameter.getName()) != null) {
           int intValue =
-            UserPreferences.getInt(hKey, parameterArray[i].getName());
-          ((IntParameter)parameterArray[i]).setParam(intValue);
+            UserPreferences.getInt(hKey, parameter.getName());
+          ((IntParameter)parameter).setParam(intValue);
         }
-      } else if (parameterArray[i] instanceof BoolParameter) {
-        if (UserPreferences.get(hKey, parameterArray[i].getName()) != null) {
+      } else if (parameter instanceof BoolParameter) {
+        if (UserPreferences.get(hKey, parameter.getName()) != null) {
           boolean booleanValue =
-            UserPreferences.getBool(hKey, parameterArray[i].getName());
-          ((BoolParameter)parameterArray[i]).setParam(booleanValue);
+            UserPreferences.getBool(hKey, parameter.getName());
+          ((BoolParameter)parameter).setParam(booleanValue);
         }
       } else {
         vlog.error(String.format("Unknown parameter type for parameter %s",
-                   parameterArray[i].getName()));
+                   parameter.getName()));
       }
     }
 
