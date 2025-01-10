@@ -212,16 +212,14 @@ static void processParams(int argc, char** argv) {
         break;
 
       } else {
-        // Try to process <option>=<value>, or -<bool>
-        if (Configuration::setParam(argv[i], true))
+        int ret;
+
+        ret = Configuration::handleParamArg(argc, argv, i);
+        if (ret > 0) {
+          i += ret - 1;
           continue;
-        // Try to process -<option> <value>
-        if ((argv[i][0] == '-') && (i+1 < argc)) {
-          if (Configuration::setParam(&argv[i][1], argv[i+1], true)) {
-            i++;
-            continue;
-          }
         }
+
         // Nope.  Show them usage and don't run the server
         runServer = false;
         programUsage();
@@ -259,8 +257,6 @@ int WINAPI WinMain(HINSTANCE /*inst*/, HINSTANCE /*prevInst*/, char* /*cmdLine*/
 	logParams.setParam("*:stderr:0");
 #endif
     rfb::win32::initEventLogLogger(VNCServerService::Name);
-
-	Configuration::enableServerParams();
 
     // - By default, just log errors to stderr
     

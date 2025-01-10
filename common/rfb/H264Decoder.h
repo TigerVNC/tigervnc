@@ -21,9 +21,8 @@
 #ifndef __RFB_H264DECODER_H__
 #define __RFB_H264DECODER_H__
 
-#include <deque>
+#include <list>
 
-#include <os/Mutex.h>
 #include <rfb/Decoder.h>
 
 namespace rfb {
@@ -44,8 +43,7 @@ namespace rfb {
     void resetContexts();
     H264DecoderContext* findContext(const Rect& r);
 
-    os::Mutex mutex;
-    std::deque<H264DecoderContext*> contexts;
+    std::list<H264DecoderContext*> contexts;
   };
 }
 

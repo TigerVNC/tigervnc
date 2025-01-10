@@ -115,94 +115,61 @@ This can be accessed from the popup menu or from the "Connection details"
 dialog box.
 
 .TP
-.B \-display \fIXdisplay\fP
-Specifies the X display on which the VNC viewer window should appear.
-.
-.TP
-.B \-geometry \fIgeometry\fP
-Initial position of the main VNC viewer window. The format is
-.B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
-, where `+' signs can be replaced with `\-' signs to specify offsets from the
-right and/or from the bottom of the screen.  Offsets are optional and the
-window will be placed by the window manager by default.
-.
-.TP
-.B \-listen \fI[port]\fP
-Causes vncviewer to listen on the given port (default 5500) for reverse
-connections from a VNC server.  WinVNC supports reverse connections initiated
-using the 'Add new client' menu option or the '\-connect' command-line option.
-Xvnc supports reverse connections with a helper program called
-.B vncconfig.
-.
-.TP
-.B \-SecurityTypes \fIsec-types\fP
-Specify which security schemes to attempt to use when authenticating with
-the server.  Valid values are a comma separated list of \fBNone\fP,
-\fBVncAuth\fP, \fBPlain\fP, \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP,
-\fBX509None\fP, \fBX509Vnc\fP, \fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP,
-\fBRA2_256\fP and \fBRA2ne_256\fP. Default is to attempt
-every supported scheme. 
-.
-.TP
-.B \-passwd, \-PasswordFile \fIpassword-file\fP
-If you are on a filesystem which gives you access to the password file used by
-the server, you can specify it here to avoid typing it in.  It will usually be
-\fI$XDG_CONFIG_HOME/tigervnc/passwd\fP, or \fI~/.config/tigervnc/passwd\fP
-if the former is unset.
-.
-.TP
-.B \-X509CA \fIpath\fP
-Path to CA certificate to use when authenticating remote servers using any
-of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
-format. Default is \fI$XDG_CONFIG_HOME/tigervnc/x509_ca.pem\fP, or
-\fI~/.config/tigervnc/x509_ca.pem\fP.
-.
-.TP
-.B \-X509CRL \fIpath\fP
-Path to certificate revocation list to use in conjunction with
-\fB-X509CA\fP. Must also be in PEM format. Default is
-\fI$XDG_CONFIG_HOME/tigervnc/x509_crl.pem\fP, or
-\fI~/.config/tigervnc/x509_crl.pem\fP.
-.
-.TP
-.B \-Shared
-When you make a connection to a VNC server, all other existing connections are
-normally closed.  This option requests that they be left open, allowing you to
-share the desktop with someone already using it.
-.
-.TP
-.B \-ViewOnly
-Specifies that no keyboard or mouse events should be sent to the server.
-Useful if you want to view a desktop without interfering; often needs to be
-combined with
-.B \-Shared.
-.
-.TP
 .B \-AcceptClipboard
 Accept clipboard changes from the server. Default is on.
 .
 .TP
-.B \-SetPrimary
-Set the primary selection as well as the clipboard selection.
-Default is on.
+.B \-AlertOnFatalError
+Display a dialog with any fatal error before exiting. Default is on.
 .
 .TP
-.B \-MaxCutText \fIbytes\fP
-The maximum size of a clipboard update that will be accepted from a server.
-Default is \fB262144\fP.
+.B \-AlwaysCursor
+Show a local cursor when the server sends an invisible cursor. Default is off.
 .
 .TP
-.B \-SendClipboard
-Send clipboard changes to the server. Default is on.
+.B \-AutoSelect
+Use automatic selection of encoding and pixel format (default is on).  Normally
+the viewer tests the speed of the connection to the server and chooses the
+encoding and pixel format appropriately.  Turn it off with \fB-AutoSelect=0\fP.
 .
 .TP
-.B \-SendPrimary
-Send the primary selection to the server as well as the clipboard
-selection. Default is on.
+.B \-CompressLevel \fIlevel\fP
+Use specified lossless compression level. 0 = Low, 9 = High. Default is 2.
 .
 .TP
-.B \-Maximize
-Maximize viewer window. 
+.B \-CursorType \fItype\fP
+Specify which cursor type to use when a local cursor is shown. It should be
+either "Dot", or "System". Ignored if AlwaysCursor is off.
+The default is "Dot".
+.
+.TP
+.B \-CustomCompressLevel
+Use custom compression level. Default if \fBCompressLevel\fP is specified.
+.
+.TP
+.B \-DesktopSize \fIwidth\fPx\fIheight\fP
+Instead of keeping the existing remote screen size, the client will attempt to
+switch to the specified since when connecting. If the server does not support
+the SetDesktopSize message then the screen will retain the original size.
+.
+.TP
+.B \-display \fIXdisplay\fP
+Specifies the X display on which the VNC viewer window should appear.
+.
+.TP
+.B \-DotWhenNoCursor (DEPRECATED)
+Show the dot cursor when the server sends an invisible cursor. Replaced by
+\fB-AlwaysCursor\fP and \fB-CursorType=Dot\fP
+.
+.TP
+.B \-EmulateMiddleButton
+Emulate middle mouse button by pressing left and right mouse buttons
+simultaneously. Default is off.
+.
+.TP
+.B \-FullColor, \-FullColour
+Tells the VNC server to send full-color pixels in the best format for this
+display.  This is default.
 .
 .TP
 .B \-FullScreen
@@ -216,7 +183,7 @@ full-screen mode. Replaced by \fB-FullScreenMode=all\fP
 .TP
 .B \-FullScreenMode \fImode\fP
 Specify which monitors to use when in full screen. It should be either "Current",
-"Selected" (specified by \fB-FullScreenSelectedMonitors\fP) or "All". 
+"Selected" (specified by \fB-FullScreenSelectedMonitors\fP) or "All".
 The default is "Current".
 .
 .TP
@@ -233,26 +200,33 @@ Pass special keys (like Alt+Tab) directly to the server when in full-screen
 mode.
 .
 .TP
-.B \-DesktopSize \fIwidth\fPx\fIheight\fP
-Instead of keeping the existing remote screen size, the client will attempt to
-switch to the specified since when connecting. If the server does not support
-the SetDesktopSize message then the screen will retain the original size.
+.B \-geometry \fIgeometry\fP
+Initial position of the main VNC viewer window. The format is
+.B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
+, where `+' signs can be replaced with `\-' signs to specify offsets from the
+right and/or from the bottom of the screen.  Offsets are optional and the
+window will be placed by the window manager by default.
 .
 .TP
-.B \-RemoteResize
-Dynamically resize the remote desktop size as the size of the local client
-window changes. Note that this may not work with all VNC servers.
+.B \-GnuTLSPriority \fIpriority\fP
+GnuTLS priority string that controls the TLS session’s handshake algorithms.
+See the GnuTLS manual for possible values. Default is \fBNORMAL\fP.
 .
 .TP
-.B \-AutoSelect
-Use automatic selection of encoding and pixel format (default is on).  Normally
-the viewer tests the speed of the connection to the server and chooses the
-encoding and pixel format appropriately.  Turn it off with \fB-AutoSelect=0\fP.
+.B \-listen \fI[port]\fP
+Causes vncviewer to listen on the given port (default 5500) for reverse
+connections from a VNC server.  WinVNC supports reverse connections initiated
+using the 'Add new client' menu option or the '\-connect' command-line option.
+Xvnc supports reverse connections with a helper program called
+.B vncconfig.
 .
 .TP
-.B \-FullColor, \-FullColour
-Tells the VNC server to send full-color pixels in the best format for this
-display.  This is default. 
+.B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP[, ...]
+Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
+\fBstdout\fP, and \fIlevel\fP is between 0 and 100, 100 meaning most verbose
+output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can target a
+specific source file if you know the name of its "LogWriter".  Default is
+\fB*:stderr:30\fP.
 .
 .TP
 .B \-LowColorLevel, \-LowColourLevel \fIlevel\fP
@@ -263,59 +237,13 @@ vncviewer. If you would like to force vncviewer to use reduced color level
 use \fB-AutoSelect=0\fP parameter.
 .
 .TP
-.B \-PreferredEncoding \fIencoding\fP
-This option specifies the preferred encoding to use from one of "Tight", "ZRLE",
-"hextile" or "raw".
+.B \-MaxCutText \fIbytes\fP
+The maximum size of a clipboard update that will be accepted from a server.
+Default is \fB262144\fP.
 .
 .TP
-.B \-NoJpeg
-Disable lossy JPEG compression in Tight encoding. Default is off.
-.
-.TP
-.B \-QualityLevel \fIlevel\fP
-JPEG quality level. 0 = Low, 9 = High. May be adjusted automatically if
-\fB-AutoSelect\fP is turned on. Default is 8.
-.
-.TP
-.B \-CompressLevel \fIlevel\fP
-Use specified lossless compression level. 0 = Low, 9 = High. Default is 2.
-.
-.TP
-.B \-CustomCompressLevel
-Use custom compression level. Default if \fBCompressLevel\fP is specified.
-.
-.TP
-.B \-DotWhenNoCursor (DEPRECATED)
-Show the dot cursor when the server sends an invisible cursor. Replaced by
-\fB-AlwaysCursor\fP and \fB-CursorType=Dot\fP
-.
-.TP
-.B \-AlwaysCursor
-Show a local cursor when the server sends an invisible cursor. Default is off.
-.
-.TP
-.B \-CursorType \fItype\fP
-Specify which cursor type to use when a local cursor is shown. It should be
-either "Dot", or "System". Ignored if AlwaysCursor is off.
-The default is "Dot".
-.
-.TP
-.B \-PointerEventInterval \fItime\fP
-Time in milliseconds to rate-limit successive pointer events. Default is
-17 ms (60 Hz).
-.
-.TP
-.B \-EmulateMiddleButton
-Emulate middle mouse button by pressing left and right mouse buttons
-simultaneously. Default is off.
-.
-.TP
-.B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
-Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
-\fBstdout\fP, and \fIlevel\fP is between 0 and 100, 100 meaning most verbose
-output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can target a
-specific source file if you know the name of its "LogWriter".  Default is
-\fB*:stderr:30\fP.
+.B \-Maximize
+Maximize viewer window.
 .
 .TP
 .B \-MenuKey \fIkeysym-name\fP
@@ -324,13 +252,87 @@ supported list is: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Pause,
 Scroll_Lock, Escape, Insert, Delete, Home, Page_Up, Page_Down). Default is F8.
 .
 .TP
+.B \-NoJpeg
+Disable lossy JPEG compression in Tight encoding. Default is off.
+.
+.TP
+.B \-passwd, \-PasswordFile \fIpassword-file\fP
+If you are on a filesystem which gives you access to the password file used by
+the server, you can specify it here to avoid typing it in.  It will usually be
+\fI$XDG_CONFIG_HOME/tigervnc/passwd\fP, or \fI~/.config/tigervnc/passwd\fP
+if the former is unset.
+.
+.TP
+.B \-PointerEventInterval \fItime\fP
+Time in milliseconds to rate-limit successive pointer events. Default is
+17 ms (60 Hz).
+.
+.TP
+.B \-PreferredEncoding \fIencoding\fP
+This option specifies the preferred encoding to use from one of "Tight", "ZRLE",
+"hextile" or "raw".
+.
+.TP
+.B \-QualityLevel \fIlevel\fP
+JPEG quality level. 0 = Low, 9 = High. May be adjusted automatically if
+\fB-AutoSelect\fP is turned on. Default is 8.
+.
+.TP
+.B \-ReconnectOnError
+Display a dialog with any error and offer the possibility to retry
+establishing the connection. In case this is off no dialog to
+re-connect will be offered. Default is on.
+.
+.TP
+.B \-RemoteResize
+Dynamically resize the remote desktop size as the size of the local client
+window changes. Note that this may not work with all VNC servers.
+.
+.TP
+.B \-SecurityTypes \fIsec-types\fP
+Specify which security schemes to attempt to use when authenticating with
+the server.  Valid values are a comma separated list of \fBNone\fP,
+\fBVncAuth\fP, \fBPlain\fP, \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP,
+\fBX509None\fP, \fBX509Vnc\fP, \fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP,
+\fBRA2_256\fP and \fBRA2ne_256\fP. Default is to attempt
+every supported scheme. 
+.
+.TP
+.B \-SendClipboard
+Send clipboard changes to the server. Default is on.
+.
+.TP
+.B \-SendPrimary
+Send the primary selection to the server as well as the clipboard
+selection. Default is on.
+.
+.TP
+.B \-SetPrimary
+Set the primary selection as well as the clipboard selection.
+Default is on.
+.
+.TP
+.B \-Shared
+When you make a connection to a VNC server, all other existing connections are
+normally closed.  This option requests that they be left open, allowing you to
+share the desktop with someone already using it.
+.
+.TP
+.B \-UseIPv4
+Use IPv4 for incoming and outgoing connections. Default is on.
+.
+.TP
+.B \-UseIPv6
+Use IPv6 for incoming and outgoing connections. Default is on.
+.
+.TP
 \fB\-via\fR \fIgateway\fR
 Automatically create encrypted TCP tunnel to the \fIgateway\fR machine
 before connection, connect to the \fIhost\fR through that tunnel
 (TigerVNC\-specific). By default, this option invokes SSH local port
 forwarding, assuming that SSH client binary can be accessed as
 /usr/bin/ssh. Note that when using the \fB\-via\fR option, the host
-machine name should be specified as known to the gateway machine, e.g. 
+machine name should be specified as known to the gateway machine, e.g.
 "localhost" denotes the \fIgateway\fR, not the machine where vncviewer
 was launched. The environment variable \fIVNC_VIA_CMD\fR can override
 the default tunnel command of
@@ -341,14 +343,25 @@ host, the port number on the remote host, and the gateway machine
 respectively.
 .
 .TP
-.B \-AlertOnFatalError
-Display a dialog with any fatal error before exiting. Default is on.
+.B \-ViewOnly
+Specifies that no keyboard or mouse events should be sent to the server.
+Useful if you want to view a desktop without interfering; often needs to be
+combined with
+.B \-Shared.
 .
 .TP
-.B \-ReconnectOnError
-Display a dialog with any error and offer the possibility to retry
-establishing the connection. In case this is off no dialog to
-re-connect will be offered. Default is on.
+.B \-X509CA \fIpath\fP
+Path to CA certificate to use when authenticating remote servers using any
+of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
+format. Default is \fI$XDG_CONFIG_HOME/tigervnc/x509_ca.pem\fP, or
+\fI~/.config/tigervnc/x509_ca.pem\fP.
+.
+.TP
+.B \-X509CRL \fIpath\fP
+Path to certificate revocation list to use in conjunction with
+\fB-X509CA\fP. Must also be in PEM format. Default is
+\fI$XDG_CONFIG_HOME/tigervnc/x509_crl.pem\fP, or
+\fI~/.config/tigervnc/x509_crl.pem\fP.
 
 .SH FILES
 .TP

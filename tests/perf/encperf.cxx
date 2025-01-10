@@ -433,18 +433,16 @@ int main(int argc, char **argv)
 
   fn = nullptr;
   for (i = 1; i < argc; i++) {
-    if (rfb::Configuration::setParam(argv[i]))
-      continue;
+    int ret;
 
-    if (argv[i][0] == '-') {
-      if (i + 1 < argc) {
-        if (rfb::Configuration::setParam(&argv[i][1], argv[i + 1])) {
-          i++;
-          continue;
-        }
-      }
-      usage(argv[0]);
+    ret = rfb::Configuration::handleParamArg(argc, argv, i);
+    if (ret > 0) {
+      i += ret;
+      continue;
     }
+
+    if (argv[i][0] == '-')
+      usage(argv[0]);
 
     if (fn != nullptr)
       usage(argv[0]);

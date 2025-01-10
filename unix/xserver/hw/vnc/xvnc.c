@@ -214,8 +214,6 @@ ddxInputThreadInit(void)
 void
 ddxUseMsg(void)
 {
-    vncPrintBanner();
-
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
     ErrorF("+/-render		   turn on/off RENDER extension support"
            "(default on)\n");
@@ -461,13 +459,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
         }
     }
 
-    if (vncSetParamSimple(argv[i]))
-        return 1;
+    int ret;
 
-    if (argv[i][0] == '-' && i + 1 < argc) {
-        if (vncSetParam(&argv[i][1], argv[i + 1]))
-            return 2;
-    }
+    ret = vncHandleParamArg(argc, argv, i);
+    if (ret != 0)
+        return ret;
 
     return 0;
 }
@@ -1260,4 +1256,12 @@ vncClientGone(int fd)
         ErrorF("inetdSock client gone\n");
         GiveUp(0);
     }
+}
+
+int
+main(int argc, char *argv[], char *envp[])
+{
+    vncPrintBanner();
+
+    return dix_main(argc, argv, envp);
 }

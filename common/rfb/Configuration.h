@@ -47,16 +47,12 @@
 #include <limits.h>
 #include <stdint.h>
 
+#include <list>
 #include <string>
 #include <vector>
 
-namespace os { class Mutex; }
-
 namespace rfb {
   class VoidParameter;
-  struct ParameterIterator;
-
-  enum ConfigurationObject { ConfGlobal, ConfServer, ConfViewer };
 
   // -=- Configuration
   //     Class used to access parameters.
@@ -64,21 +60,10 @@ namespace rfb {
   class Configuration {
   public:
     // - Create a new Configuration object
-    Configuration(const char* name_)
-      : name(name_), head(nullptr), _next(nullptr) {}
-
-    // - Return the buffer containing the Configuration's name
-    const char* getName() const { return name.c_str(); }
+    Configuration() {}
 
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
-
-    // - Set parameter to value (separated by "=")
-    bool set(const char* config, bool immutable=false);
-
-    // - Set named parameter to value, with name truncated at len
-    bool set(const char* name, int len,
-                  const char* val, bool immutable);
 
     // - Get named parameter
     VoidParameter* get(const char* param);
@@ -89,14 +74,15 @@ namespace rfb {
     // - Remove a parameter from this Configuration group
     bool remove(const char* param);
 
-    // - readFromFile
-    //   Read configuration parameters from the specified file.
-    void readFromFile(const char* filename);
+    // - handleArg
+    //   Parse a command line argument into a parameter, returning how
+    //   many arguments were consumed
+    int handleArg(int argc, char* argv[], int index);
 
-    // - writeConfigToFile
-    //   Write a new configuration parameters file, then mv it
-    //   over the old file.
-    void writeToFile(const char* filename);
+
+    // - Iterate over all parameters
+    std::list<VoidParameter*>::iterator begin() { return params.begin(); }
+    std::list<VoidParameter*>::iterator end() { return params.end(); }
 
 
     // - Get the Global Configuration object
@@ -106,20 +92,9 @@ namespace rfb {
     //       global() is called when only the main thread is running.
     static Configuration* global();
 
-    // Enable server/viewer specific parameters
-    static void enableServerParams() { global()->appendConfiguration(server()); }
-    static void enableViewerParams() { global()->appendConfiguration(viewer()); }
-
     // - Container for process-wide Global parameters
     static bool setParam(const char* param, const char* value, bool immutable=false) {
       return global()->set(param, value, immutable);
-    }
-    static bool setParam(const char* config, bool immutable=false) { 
-      return global()->set(config, immutable);
-    }
-    static bool setParam(const char* name, int len,
-      const char* val, bool immutable) {
-      return global()->set(name, len, val, immutable);
     }
     static VoidParameter* getParam(const char* param) { return global()->get(param); }
     static void listParams(int width=79, int nameWidth=10) {
@@ -128,38 +103,18 @@ namespace rfb {
     static bool removeParam(const char* param) {
       return global()->remove(param);
     }
+    static int handleParamArg(int argc, char* argv[], int index) {
+      return global()->handleArg(argc, argv, index);
+    }
 
   private:
     friend class VoidParameter;
-    friend struct ParameterIterator;
 
-    // Name for this Configuration
-    std::string name;
-
-    // - Pointer to first Parameter in this group
-    VoidParameter* head;
-
-    // Pointer to next Configuration in this group
-    Configuration* _next;
+    // - List of Parameters
+    std::list<VoidParameter*> params;
 
     // The process-wide, Global Configuration object
     static Configuration* global_;
-
-    // The server only Configuration object
-    static Configuration* server_;
-
-    // The viewer only Configuration object
-    static Configuration* viewer_;
-
-    // Get server/viewer specific configuration object
-    static Configuration* server();
-    static Configuration* viewer();
-
-    // Append configuration object to this instance.
-    // NOTE: conf instance can be only one configuration object
-    void appendConfiguration(Configuration *conf) {
-      conf->_next = _next; _next = conf;
-    }
   };
 
   // -=- VoidParameter
@@ -167,7 +122,7 @@ namespace rfb {
 
   class VoidParameter {
   public:
-    VoidParameter(const char* name_, const char* desc_, ConfigurationObject co=ConfGlobal);
+    VoidParameter(const char* name_, const char* desc_);
     virtual  ~VoidParameter();
     const char* getName() const;
     const char* getDescription() const;
@@ -176,31 +131,27 @@ namespace rfb {
     virtual bool setParam();
     virtual std::string getDefaultStr() const = 0;
     virtual std::string getValueStr() const = 0;
-    virtual bool isBool() const;
+
+    virtual bool isDefault() const;
 
     virtual void setImmutable();
 
   protected:
     friend class Configuration;
-    friend struct ParameterIterator;
 
     VoidParameter* _next;
     bool immutable;
     const char* name;
     const char* description;
-
-    os::Mutex* mutex;
   };
 
   class AliasParameter : public VoidParameter {
   public:
-    AliasParameter(const char* name_, const char* desc_,VoidParameter* param_,
-		   ConfigurationObject co=ConfGlobal);
+    AliasParameter(const char* name_, const char* desc_,VoidParameter* param_);
     bool setParam(const char* value) override;
     bool setParam() override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
-    bool isBool() const override;
     void setImmutable() override;
   private:
     VoidParameter* param;
@@ -208,14 +159,12 @@ namespace rfb {
 
   class BoolParameter : public VoidParameter {
   public:
-    BoolParameter(const char* name_, const char* desc_, bool v,
-		  ConfigurationObject co=ConfGlobal);
+    BoolParameter(const char* name_, const char* desc_, bool v);
     bool setParam(const char* value) override;
     bool setParam() override;
     virtual void setParam(bool b);
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
-    bool isBool() const override;
     operator bool() const;
   protected:
     bool value;
@@ -225,8 +174,7 @@ namespace rfb {
   class IntParameter : public VoidParameter {
   public:
     IntParameter(const char* name_, const char* desc_, int v,
-                 int minValue=INT_MIN, int maxValue=INT_MAX,
-		 ConfigurationObject co=ConfGlobal);
+                 int minValue=INT_MIN, int maxValue=INT_MAX);
     using VoidParameter::setParam;
     bool setParam(const char* value) override;
     virtual bool setParam(int v);
@@ -241,11 +189,7 @@ namespace rfb {
 
   class StringParameter : public VoidParameter {
   public:
-    // StringParameter contains a null-terminated string, which CANNOT
-    // be Null, and so neither can the default value!
-    StringParameter(const char* name_, const char* desc_, const char* v,
-		    ConfigurationObject co=ConfGlobal);
-    ~StringParameter() override;
+    StringParameter(const char* name_, const char* desc_, const char* v);
     bool setParam(const char* value) override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
@@ -258,8 +202,7 @@ namespace rfb {
   class BinaryParameter : public VoidParameter {
   public:
     BinaryParameter(const char* name_, const char* desc_,
-                    const uint8_t* v, size_t l,
-                    ConfigurationObject co=ConfGlobal);
+                    const uint8_t* v, size_t l);
     using VoidParameter::setParam;
     ~BinaryParameter() override;
     bool setParam(const char* value) override;
@@ -274,25 +217,6 @@ namespace rfb {
     size_t length;
     uint8_t* def_value;
     size_t def_length;
-  };
-
-  // -=- ParameterIterator
-  //     Iterates over all enabled parameters (global + server/viewer).
-  //     Current Parameter is accessed via param, the current Configuration
-  //     via config. The next() method moves on to the next Parameter.
-
-  struct ParameterIterator {
-    ParameterIterator() : config(Configuration::global()), param(config->head) {}
-    void next() {
-      param = param->_next;
-      while (!param) {
-        config = config->_next;
-        if (!config) break;
-        param = config->head;
-      }
-    }
-    Configuration* config;
-    VoidParameter* param;
   };
 
 };

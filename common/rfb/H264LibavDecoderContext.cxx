@@ -22,6 +22,9 @@
 #include <config.h>
 #endif
 
+#include <new>
+#include <stdexcept>
+
 extern "C" {
 #include <libavutil/imgutils.h>
 #include <libavcodec/version.h>
@@ -33,41 +36,31 @@ extern "C" {
 #define FFMPEG_INIT_PACKET_DEPRECATED
 #endif
 
-#include <rfb/LogWriter.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264LibavDecoderContext.h>
 
 using namespace rfb;
 
-static LogWriter vlog("H264LibavDecoderContext");
-
-bool H264LibavDecoderContext::initCodec() {
-  os::AutoMutex lock(&mutex);
-
+H264LibavDecoderContext::H264LibavDecoderContext(const Rect& r)
+  : H264DecoderContext(r)
+{
   sws = nullptr;
   h264WorkBuffer = nullptr;
   h264WorkBufferLength = 0;
 
   const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
   if (!codec)
-  {
-    vlog.error("Codec not found");
-    return false;
-  }
+    throw std::runtime_error("Codec not found");
 
   parser = av_parser_init(codec->id);
   if (!parser)
-  {
-    vlog.error("Could not create H264 parser");
-    return false;
-  }
+    throw std::runtime_error("Could not create H264 parser");
 
   avctx = avcodec_alloc_context3(codec);
   if (!avctx)
   {
     av_parser_close(parser);
-    vlog.error("Could not allocate video codec context");
-    return false;
+    throw std::runtime_error("Could not allocate video codec context");
   }
 
   frame = av_frame_alloc();
@@ -75,8 +68,7 @@ bool H264LibavDecoderContext::initCodec() {
   {
     av_parser_close(parser);
     avcodec_free_context(&avctx);
-    vlog.error("Could not allocate video frame");
-    return false;
+    throw std::runtime_error("Could not allocate video frame");
   }
 
   if (avcodec_open2(avctx, codec, nullptr) < 0)
@@ -84,26 +76,18 @@ bool H264LibavDecoderContext::initCodec() {
     av_parser_close(parser);
     avcodec_free_context(&avctx);
     av_frame_free(&frame);
-    vlog.error("Could not open codec");
-    return false;
+    throw std::runtime_error("Could not open video codec");
   }
-
-  initialized = true;
-  return true;
 }
 
-void H264LibavDecoderContext::freeCodec() {
-  os::AutoMutex lock(&mutex);
-
-  if (!initialized)
-    return;
+H264LibavDecoderContext::~H264LibavDecoderContext()
+{
   av_parser_close(parser);
   avcodec_free_context(&avctx);
   av_frame_free(&rgbFrame);
   av_frame_free(&frame);
   sws_freeContext(sws);
   free(h264WorkBuffer);
-  initialized = false;
 }
 
 // We need to reallocate buffer because AVPacket uses non-const pointer.
@@ -130,9 +114,6 @@ uint8_t* H264LibavDecoderContext::makeH264WorkBuffer(const uint8_t* buffer, uint
 void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
                                      uint32_t len,
                                      ModifiablePixelBuffer* pb) {
-  os::AutoMutex lock(&mutex);
-  if (!initialized)
-    return;
   uint8_t* h264_work_buffer = makeH264WorkBuffer(h264_in_buffer, len);
 
 #ifdef FFMPEG_INIT_PACKET_DEPRECATED
@@ -147,19 +128,15 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
   while (len)
   {
     ret = av_parser_parse2(parser, avctx, &packet->data, &packet->size, h264_work_buffer, len, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0)
-    {
-      vlog.error("Error while parsing");
       break;
-    }
     // We need to slap on tv to make it work here (don't ask me why)
     if (!packet->size && len == static_cast<uint32_t>(ret))
       ret = av_parser_parse2(parser, avctx, &packet->data, &packet->size, h264_work_buffer, len, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0)
-    {
-      vlog.error("Error while parsing");
       break;
-    }
     h264_work_buffer += ret;
     len -= ret;
 
@@ -176,27 +153,21 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
 #ifndef FFMPEG_DECODE_VIDEO2_DEPRECATED
     int got_frame;
     ret = avcodec_decode_video2(avctx, frame, &got_frame, packet);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0 || !got_frame)
-    {
-      vlog.error("Error during decoding");
       break;
-    }
 #else
     ret = avcodec_send_packet(avctx, packet);
+    // Silently ignore errors, hoping its a temporary encoding glitch
     if (ret < 0)
-    {
-      vlog.error("Error sending a packet to decoding");
       break;
-    }
 
     ret = avcodec_receive_frame(avctx, frame);
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
       break;
-    else if (ret < 0)
-    {
-      vlog.error("Error during decoding");
+    // Silently ignore errors, hoping its a temporary encoding glitch
+    if (ret < 0)
       break;
-    }
 #endif
     frames_received++;
   }

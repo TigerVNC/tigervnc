@@ -69,10 +69,10 @@ using namespace rfb;
 
 StringParameter SSecurityRSAAES::keyFile
 ("RSAKey", "Path to the RSA key for the RSA-AES security types in "
-           "PEM format", "", ConfServer);
+           "PEM format", "");
 BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
- false, ConfServer);
+ false);
 
 static LogWriter vlog("SSecurityRSAAES");
 

@@ -31,14 +31,23 @@ command-line, there are also "parameters" which can be set both via the
 command-line and through the \fBvncconfig\fP(1) program.
 
 .TP
-.B \-geometry \fIwidth\fPx\fIheight\fP
-Specify the size of the desktop to be created. Default is 1024x768.
-.
-.TP
 .B \-depth \fIdepth\fP
 Specify the pixel depth in bits of the desktop to be created. Default is 24,
 other possible values are 16 and 32. Anything else is likely to cause strange
 behaviour by applications and may prevent the server from starting at all.
+.
+.TP
+.B \-geometry \fIwidth\fPx\fIheight\fP
+Specify the size of the desktop to be created. Default is 1024x768.
+.
+.TP
+.B \-help
+List all the options and parameters
+.
+.TP
+.B \-inetd
+This significantly changes Xvnc's behaviour so that it can be launched from
+inetd.  See the section below on usage with inetd.
 .
 .TP
 .B \-pixelformat \fIformat\fP
@@ -50,19 +59,6 @@ depth 16 is RGB565 and for depth 24 and 32 is RGB888.
 DRM render node to use for DRI3 GPU acceleration. Specify an empty path to
 disable DRI3. Default is \fBauto\fP which makes \fBXvnc\fP pick a suitable
 available render node.
-.
-.TP
-.B \-interface \fIIP address\fP
-Listen on interface. By default Xvnc listens on all available interfaces.
-.
-.TP
-.B \-inetd 
-This significantly changes Xvnc's behaviour so that it can be launched from
-inetd.  See the section below on usage with inetd.
-.
-.TP
-.B \-help
-List all the options and parameters
 
 .SH PARAMETERS
 VNC parameters can be set both via the command-line and through the
@@ -76,82 +72,26 @@ Parameters can be turned on with -\fIparam\fP or off with
 case-insensitive.
 
 .TP
-.B \-desktop \fIdesktop-name\fP
-Each desktop has a name which may be displayed by the viewer. It defaults to
-"<user>@<hostname>".
-.
-.TP
-.B \-rfbport \fIport\fP
-Specifies the TCP port on which Xvnc listens for connections from viewers (the
-protocol used in VNC is called RFB - "remote framebuffer").  The default is
-5900 plus the display number. Specify \fB-1\fP to disable listening on a TCP
-port.
-.
-.TP
-.B \-UseIPv4
-Use IPv4 for incoming and outgoing connections. Default is on.
-.
-.TP
-.B \-UseIPv6
-Use IPv6 for incoming and outgoing connections. Default is on.
-.
-.TP
-.B \-rfbunixpath \fIpath\fP
-Specifies the path of a Unix domain socket on which Xvnc listens for
-connections from viewers.
-.
-.TP
-.B \-rfbunixmode \fImode\fP
-Specifies the mode of the Unix domain socket.  The default is 0600.
-.
-.TP
-.B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
-Password file for VNC authentication.  There is no default, you should
-specify the password file explicitly.  Password file should be created with
-the \fBvncpasswd\fP(1) utility.  The file is accessed each time a connection
-comes in, so it can be changed on the fly.
-.
-.TP
 .B \-AcceptCutText
 Accept clipboard updates from clients. Default is on.
-.
-.TP
-.B \-MaxCutText \fIbytes\fP
-The maximum size of a clipboard update that will be accepted from a client.
-Default is \fB262144\fP.
-.
-.TP
-.B \-SendCutText
-Send clipboard changes to clients. Default is on.
-.
-.TP
-.B \-SendPrimary
-Send the primary selection and cut buffer to the server as well as the
-clipboard selection. Default is on.
-.
-.TP
-.B \-AcceptPointerEvents
-Accept pointer movement and button events from clients. Default is on.
 .
 .TP
 .B \-AcceptKeyEvents
 Accept key press and release events from clients. Default is on.
 .
 .TP
+.B \-AcceptPointerEvents
+Accept pointer movement and button events from clients. Default is on.
+.
+.TP
 .B \-AcceptSetDesktopSize
 Accept requests to resize the size of the desktop. Default is on.
 .
 .TP
-.B \-DisconnectClients
-Disconnect existing clients if an incoming connection is non-shared. Default is
-on. If \fBDisconnectClients\fP is false, then a new non-shared connection will
-be refused while there is a client active.  When combined with
-\fBNeverShared\fP this means only one client is allowed at a time.
-.
-.TP
-.B \-NeverShared
-Never treat incoming connections as shared, regardless of the client-specified
-setting. Default is off.
+.B \-AllowOverride
+Comma separated list of parameters that can be modified using VNC extension.
+Parameters can be modified for example using \fBvncconfig\fP(1) program from
+inside a running session.
 .
 .TP
 .B \-AlwaysShared
@@ -159,85 +99,11 @@ Always treat incoming connections as shared, regardless of the client-specified
 setting. Default is off.
 .
 .TP
-.B \-Protocol3.3
-Always use protocol version 3.3 for backwards compatibility with badly-behaved
-clients. Default is off.
-.
-.TP
-.B \-FrameRate \fIfps\fP
-The maximum number of updates per second sent to each client. If the screen
-updates any faster then those changes will be aggregated and sent in a single
-update to the client. Note that this only controls the maximum rate and a
-client may get a lower rate when resources are limited. Default is \fB60\fP.
-.
-.TP
-.B \-CompareFB \fImode\fP
-Perform pixel comparison on framebuffer to reduce unnecessary updates. Can
-be either \fB0\fP (off), \fB1\fP (always) or \fB2\fP (auto). Default is
-\fB2\fP.
-.
-.TP
-.B \-ImprovedHextile
-Use improved compression algorithm for Hextile encoding which achieves better
-compression ratios by the cost of using slightly more CPU time.  Default is
-on.
-.
-.TP
-.B \-SecurityTypes \fIsec-types\fP
-Specify which security scheme to use for incoming connections.  Valid values
-are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
-\fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP,
-\fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP, \fBRA2_256\fP and \fBRA2ne_256\fP.
-Default is \fBTLSVnc,VncAuth\fP.
-.
-.TP
-.B \-Password \fIpassword\fP
-Obfuscated binary encoding of the password which clients must supply to
-access the server.  Using this parameter is insecure, use \fBPasswordFile\fP
-parameter instead.
-.
-.TP
-.B \-PlainUsers \fIuser-list\fP
-A comma separated list of user names that are allowed to authenticate via
-any of the "Plain" security types (Plain, TLSPlain, etc.). Specify \fB*\fP
-to allow any user to authenticate using this security type. Specify \fB%u\fP
-to allow the user of the server process. Default is to deny all users.
-.
-.TP
-.B \-pam_service \fIname\fP, \-PAMService \fIname\fP
-PAM service name to use when authentication users using any of the "Plain"
-security types. Default is \fBvnc\fP.
-.
-.TP
-.B \-X509Cert \fIpath\fP
-Path to a X509 certificate in PEM format to be used for all X509 based
-security types (X509None, X509Vnc, etc.).
-.
-.TP
-.B \-X509Key \fIpath\fP
-Private key counter part to the certificate given in \fBX509Cert\fP. Must
-also be in PEM format.
-.
-.TP
-.B \-GnuTLSPriority \fIpriority\fP
-GnuTLS priority string that controls the TLS session’s handshake algorithms.
-See the GnuTLS manual for possible values. For GnuTLS < 3.6.3 the default
-value will be \fBNORMAL\fP to use upstream default. For newer versions
-of GnuTLS system-wide crypto policy will be used.
-.
-.TP
-.B \-RSAKey \fIpath\fP
-Path to the RSA key for the RSA-AES security types (\fBRA2\fP, \fBRA2ne\fP,
-\fBRA2_256\fP and \fBRA2ne_256\fP) in PEM format.
-.
-.TP
-.B \-RequireUsername
-Require username for the RSA-AES security types. Default is off.
-.
-.TP
-.B \-UseBlacklist
-Temporarily reject connections from a host if it repeatedly fails to
-authenticate. Default is on.
+.B \-AvoidShiftNumLock
+Key affected by NumLock often require a fake Shift to be inserted in order
+for the correct symbol to be generated. Turning on this option avoids these
+extra fake Shift events but may result in a slightly different symbol
+(e.g. a Return instead of a keypad Enter).
 .
 .TP
 .B \-BlacklistThreshold \fIcount\fP
@@ -250,14 +116,64 @@ The initial timeout applied when a host is first black-listed.  The host
 cannot re-attempt a connection until the timeout expires.  Default is 10.
 .
 .TP
+.B \-CompareFB \fImode\fP
+Perform pixel comparison on framebuffer to reduce unnecessary updates. Can
+be either \fB0\fP (off), \fB1\fP (always) or \fB2\fP (auto). Default is
+\fB2\fP.
+.
+.TP
+.B \-desktop \fIdesktop-name\fP
+Each desktop has a name which may be displayed by the viewer. It defaults to
+"<user>@<hostname>".
+.
+.TP
+.B \-DisconnectClients
+Disconnect existing clients if an incoming connection is non-shared. Default is
+on. If \fBDisconnectClients\fP is false, then a new non-shared connection will
+be refused while there is a client active.  When combined with
+\fBNeverShared\fP this means only one client is allowed at a time.
+.
+.TP
+.B \-FrameRate \fIfps\fP
+The maximum number of updates per second sent to each client. If the screen
+updates any faster then those changes will be aggregated and sent in a single
+update to the client. Note that this only controls the maximum rate and a
+client may get a lower rate when resources are limited. Default is \fB60\fP.
+.
+.TP
+.B \-GnuTLSPriority \fIpriority\fP
+GnuTLS priority string that controls the TLS session’s handshake algorithms.
+See the GnuTLS manual for possible values. For GnuTLS < 3.6.3 the default
+value will be \fBNORMAL\fP to use upstream default. For newer versions
+of GnuTLS system-wide crypto policy will be used.
+.
+.TP
 .B \-IdleTimeout \fIseconds\fP
 The number of seconds after which an idle VNC connection will be dropped.
 Default is 0, which means that idle connections will never be dropped.
 .
 .TP
-.B \-MaxDisconnectionTime \fIseconds\fP
-Terminate when no client has been connected for \fIN\fP seconds.  Default is
-0.
+.B \-ImprovedHextile
+Use improved compression algorithm for Hextile encoding which achieves better
+compression ratios by the cost of using slightly more CPU time.  Default is
+on.
+.
+.TP
+.B \-interface \fIIP address\fP
+Listen on interface. By default Xvnc listens on all available interfaces.
+.
+.TP
+.B \-localhost
+Only allow connections from the same machine. Useful if you use SSH and want to
+stop non-SSH connections from any other hosts.
+.
+.TP
+.B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP[, ...]
+Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP,
+\fBstdout\fP or \fBsyslog\fP, and \fIlevel\fP is between 0 and 100, 100 meaning
+most verbose output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can
+target a specific source file if you know the name of its "LogWriter".  Default
+is \fB*:stderr:30\fP.
 .
 .TP
 .B \-MaxConnectionTime \fIseconds\fP
@@ -265,8 +181,53 @@ Terminate when a client has been connected for \fIN\fP seconds.  Default is
 0.
 .
 .TP
+.B \-MaxCutText \fIbytes\fP
+The maximum size of a clipboard update that will be accepted from a client.
+Default is \fB262144\fP.
+.
+.TP
+.B \-MaxDisconnectionTime \fIseconds\fP
+Terminate when no client has been connected for \fIN\fP seconds.  Default is
+0.
+.
+.TP
 .B \-MaxIdleTime \fIseconds\fP
 Terminate after \fIN\fP seconds of user inactivity.  Default is 0.
+.
+.TP
+.B \-NeverShared
+Never treat incoming connections as shared, regardless of the client-specified
+setting. Default is off.
+.
+.TP
+.B \-pam_service \fIname\fP, \-PAMService \fIname\fP
+PAM service name to use when authentication users using any of the "Plain"
+security types. Default is \fBvnc\fP.
+.
+.TP
+.B \-Password \fIpassword\fP
+Obfuscated binary encoding of the password which clients must supply to
+access the server.  Using this parameter is insecure, use \fBPasswordFile\fP
+parameter instead.
+.
+.TP
+.B \-PasswordFile \fIpasswd-file\fP, \-rfbauth \fIpasswd-file\fP
+Password file for VNC authentication.  There is no default, you should
+specify the password file explicitly.  Password file should be created with
+the \fBvncpasswd\fP(1) utility.  The file is accessed each time a connection
+comes in, so it can be changed on the fly.
+.
+.TP
+.B \-PlainUsers \fIuser-list\fP
+A comma separated list of user names that are allowed to authenticate via
+any of the "Plain" security types (Plain, TLSPlain, etc.). Specify \fB*\fP
+to allow any user to authenticate using this security type. Specify \fB%u\fP
+to allow the user of the server process. Default is to deny all users.
+.
+.TP
+.B \-Protocol3.3
+Always use protocol version 3.3 for backwards compatibility with badly-behaved
+clients. Default is off.
 .
 .TP
 .B \-QueryConnect
@@ -282,17 +243,11 @@ Number of seconds to show the Accept connection dialog before rejecting the
 connection.  Default is \fB10\fP.
 .
 .TP
-.B \-localhost
-Only allow connections from the same machine. Useful if you use SSH and want to
-stop non-SSH connections from any other hosts.
-.
-.TP
-.B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
-Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP,
-\fBstdout\fP or \fBsyslog\fP, and \fIlevel\fP is between 0 and 100, 100 meaning
-most verbose output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can
-target a specific source file if you know the name of its "LogWriter".  Default
-is \fB*:stderr:30\fP.
+.B \-RawKeyboard
+Send keyboard events straight through and avoid mapping them to the current
+keyboard layout. This effectively makes the keyboard behave according to the
+layout configured on the server instead of the layout configured on the
+client. Default is off.
 .
 .TP
 .B \-RemapKeys \fImapping
@@ -311,24 +266,74 @@ RemapKeys=0x22<>0x40
 .RE
 .
 .TP
-.B \-AvoidShiftNumLock
-Key affected by NumLock often require a fake Shift to be inserted in order
-for the correct symbol to be generated. Turning on this option avoids these
-extra fake Shift events but may result in a slightly different symbol
-(e.g. a Return instead of a keypad Enter).
+.B \-RequireUsername
+Require username for the RSA-AES security types. Default is off.
 .
 .TP
-.B \-RawKeyboard
-Send keyboard events straight through and avoid mapping them to the current
-keyboard layout. This effectively makes the keyboard behave according to the
-layout configured on the server instead of the layout configured on the
-client. Default is off.
+.B \-rfbport \fIport\fP
+Specifies the TCP port on which Xvnc listens for connections from viewers (the
+protocol used in VNC is called RFB - "remote framebuffer").  The default is
+5900 plus the display number. Specify \fB-1\fP to disable listening on a TCP
+port.
 .
 .TP
-.B \-AllowOverride
-Comma separated list of parameters that can be modified using VNC extension.
-Parameters can be modified for example using \fBvncconfig\fP(1) program from
-inside a running session.
+.B \-rfbunixmode \fImode\fP
+Specifies the mode of the Unix domain socket.  The default is 0600.
+.
+.TP
+.B \-rfbunixpath \fIpath\fP
+Specifies the path of a Unix domain socket on which Xvnc listens for
+connections from viewers.
+.
+.TP
+.B \-RSAKey \fIpath\fP
+Path to the RSA key for the RSA-AES security types (\fBRA2\fP, \fBRA2ne\fP,
+\fBRA2_256\fP and \fBRA2ne_256\fP) in PEM format.
+.
+.TP
+.B \-SecurityTypes \fIsec-types\fP
+Specify which security scheme to use for incoming connections.  Valid values
+are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
+\fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP,
+\fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP, \fBRA2_256\fP and \fBRA2ne_256\fP.
+Default is \fBTLSVnc,VncAuth\fP.
+.
+.TP
+.B \-SendCutText
+Send clipboard changes to clients. Default is on.
+.
+.TP
+.B \-SendPrimary
+Send the primary selection and cut buffer to the server as well as the
+clipboard selection. Default is on.
+.
+.TP
+.B \-SetPrimary
+Set the primary selection as well as the clipboard selection.
+Default is on.
+.
+.TP
+.B \-UseBlacklist
+Temporarily reject connections from a host if it repeatedly fails to
+authenticate. Default is on.
+.
+.TP
+.B \-UseIPv4
+Use IPv4 for incoming and outgoing connections. Default is on.
+.
+.TP
+.B \-UseIPv6
+Use IPv6 for incoming and outgoing connections. Default is on.
+.
+.TP
+.B \-X509Cert \fIpath\fP
+Path to a X509 certificate in PEM format to be used for all X509 based
+security types (X509None, X509Vnc, etc.).
+.
+.TP
+.B \-X509Key \fIpath\fP
+Private key counter part to the certificate given in \fBX509Cert\fP. Must
+also be in PEM format.
 
 Allowing override of parameters such as \fBPAMService\fP or \fBPasswordFile\fP
 can negatively impact security if Xvnc runs under different user than the

@@ -23,7 +23,6 @@
 
 #include <stdint.h>
 
-#include <os/Mutex.h>
 #include <rfb/Rect.h>
 #include <rfb/Decoder.h>
 
@@ -37,20 +36,13 @@ namespace rfb {
       virtual void decode(const uint8_t* /*h264_buffer*/,
                           uint32_t /*len*/,
                           ModifiablePixelBuffer* /*pb*/) {}
-      void reset();
 
       inline bool isEqualRect(const Rect &r) const { return r == rect; }
-      bool isReady();
 
     protected:
-      os::Mutex mutex;
       rfb::Rect rect;
-      bool initialized;
 
-      H264DecoderContext(const Rect &r) : rect(r) { initialized = false; }
-
-      virtual bool initCodec() { return false; }
-      virtual void freeCodec() {}
+      H264DecoderContext(const Rect &r) : rect(r) {}
   };
 }
 

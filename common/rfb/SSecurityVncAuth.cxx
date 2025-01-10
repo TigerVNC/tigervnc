@@ -45,9 +45,9 @@ using namespace rfb;
 static LogWriter vlog("SVncAuth");
 
 StringParameter SSecurityVncAuth::vncAuthPasswdFile
-("PasswordFile", "Password file for VNC authentication", "", ConfServer);
+("PasswordFile", "Password file for VNC authentication", "");
 AliasParameter rfbauth("rfbauth", "Alias for PasswordFile",
-		       &SSecurityVncAuth::vncAuthPasswdFile, ConfServer);
+		       &SSecurityVncAuth::vncAuthPasswdFile);
 VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 ("Password", "Obfuscated binary encoding of the password which clients must supply to "
  "access the server", &SSecurityVncAuth::vncAuthPasswdFile);
@@ -119,7 +119,7 @@ bool SSecurityVncAuth::processMsg()
 VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name_,
                                                const char* desc,
                                                StringParameter* passwdFile_)
-: BinaryParameter(name_, desc, nullptr, 0, ConfServer),
+: BinaryParameter(name_, desc, nullptr, 0),
   passwdFile(passwdFile_)
 {
 }

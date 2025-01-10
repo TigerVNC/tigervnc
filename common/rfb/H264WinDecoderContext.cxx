@@ -22,48 +22,38 @@
 #include <config.h>
 #endif
 
+#include <stdexcept>
+
 #include <mfapi.h>
 #include <mferror.h>
 #include <wmcodecdsp.h>
 #define SAFE_RELEASE(obj) if (obj) { obj->Release(); obj = nullptr; }
 
-#include <os/Mutex.h>
-#include <rfb/LogWriter.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264WinDecoderContext.h>
 
 using namespace rfb;
-
-static LogWriter vlog("H264WinDecoderContext");
 
 // Older MinGW lacks this definition
 #ifndef HAVE_VIDEO_PROCESSOR_MFT
 static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
 #endif
 
-bool H264WinDecoderContext::initCodec() {
-  os::AutoMutex lock(&mutex);
-
+H264WinDecoderContext::H264WinDecoderContext(const Rect &r)
+  : H264DecoderContext(r)
+{
   if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE)))
-  {
-    vlog.error("Could not initialize MediaFoundation");
-    return false;
-  }
+    throw std::runtime_error("Could not initialize MediaFoundation");
 
   if (FAILED(CoCreateInstance(CLSID_CMSH264DecoderMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&decoder)))
-  {
-    vlog.error("MediaFoundation H264 codec not found");
-    return false;
-  }
+    throw std::runtime_error("MediaFoundation H264 codec not found");
 
   if (FAILED(CoCreateInstance(CLSID_VideoProcessorMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
   {
-    vlog.error("Cannot create MediaFoundation Video Processor (available only on Windows 8+). Trying ColorConvert DMO.");
     if (FAILED(CoCreateInstance(CLSID_CColorConvertDMO, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
     {
       decoder->Release();
-      vlog.error("ColorConvert DMO not found");
-      return false;
+      throw std::runtime_error("MediaFoundation H264 codec not found");
     }
   }
 
@@ -72,10 +62,7 @@ bool H264WinDecoderContext::initCodec() {
   if (SUCCEEDED(decoder->GetAttributes(&attributes)))
   {
     GUID MF_LOW_LATENCY = { 0x9c27891a, 0xed7a, 0x40e1, { 0x88, 0xe8, 0xb2, 0x27, 0x27, 0xa0, 0x24, 0xee } };
-    if (SUCCEEDED(attributes->SetUINT32(MF_LOW_LATENCY, TRUE)))
-    {
-      vlog.info("Enabled low latency mode");
-    }
+    attributes->SetUINT32(MF_LOW_LATENCY, TRUE);
     attributes->Release();
   }
 
@@ -85,8 +72,7 @@ bool H264WinDecoderContext::initCodec() {
   {
     decoder->Release();
     converter->Release();
-    vlog.error("Could not create MF MediaType");
-    return false;
+    throw std::runtime_error("Could not create MF MediaType");
   }
   input_type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
   input_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_H264);
@@ -113,8 +99,7 @@ bool H264WinDecoderContext::initCodec() {
     decoder->Release();
     converter->Release();
     input_type->Release();
-    vlog.error("Could not start H264 decoder");
-    return false;
+    throw std::runtime_error("Could not start H264 decoder");
   }
 
   MFT_OUTPUT_STREAM_INFO info;
@@ -134,22 +119,14 @@ bool H264WinDecoderContext::initCodec() {
     SAFE_RELEASE(converted_sample);
     SAFE_RELEASE(input_buffer);
     SAFE_RELEASE(decoded_buffer);
-    vlog.error("Could not allocate media samples/buffers");
-    return false;
+    throw std::runtime_error("Could not allocate media samples/buffers");
   }
 
   input_sample->AddBuffer(input_buffer);
   decoded_sample->AddBuffer(decoded_buffer);
-
-  initialized = true;
-  return true;
 }
 
-void H264WinDecoderContext::freeCodec() {
-  os::AutoMutex lock(&mutex);
-
-  if (!initialized)
-    return;
+H264WinDecoderContext::~H264WinDecoderContext() {
   SAFE_RELEASE(decoder)
   SAFE_RELEASE(converter)
   SAFE_RELEASE(input_sample)
@@ -159,24 +136,16 @@ void H264WinDecoderContext::freeCodec() {
   SAFE_RELEASE(decoded_buffer)
   SAFE_RELEASE(converted_buffer)
   MFShutdown();
-  initialized = false;
 }
 
 void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
                                    uint32_t len,
                                    ModifiablePixelBuffer* pb) {
-  os::AutoMutex lock(&mutex);
-  if (!initialized)
-    return;
-
   if (FAILED(input_buffer->SetCurrentLength(len)))
   {
     input_buffer->Release();
     if (FAILED(MFCreateMemoryBuffer(len, &input_buffer)))
-    {
-      vlog.error("Could not allocate media buffer");
-      return;
-    }
+      throw std::runtime_error("Could not allocate media buffer");
     input_buffer->SetCurrentLength(len);
     input_sample->RemoveAllBuffers();
     input_sample->AddBuffer(input_buffer);
@@ -187,14 +156,12 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
   memcpy(locked, h264_buffer, len);
   input_buffer->Unlock();
 
-  vlog.debug("Received %u bytes, decoding", len);
-
   // extract actual size, including possible cropping
   ParseSPS(h264_buffer, len);
 
   if (FAILED(decoder->ProcessInput(0, input_sample, 0)))
   {
-    vlog.error("Error sending a packet to decoding");
+    // Silently ignore errors, hoping its a temporary encoding glitch
     return;
   }
 
@@ -219,7 +186,6 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
 
     if (SUCCEEDED(hr))
     {
-      vlog.debug("Frame decoded");
       // successfully decoded next frame
       // but do not exit loop, try again if there is next frame
       decoded = true;
@@ -259,7 +225,7 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
       UINT32 width, height;
       if FAILED(MFGetAttributeSize(output_type, MF_MT_FRAME_SIZE, &width, &height))
       {
-          vlog.error("Error getting output type size");
+          // Silently ignore errors, hoping its a temporary encoding glitch
           output_type->Release();
           break;
       }
@@ -279,13 +245,11 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
           crop_height = height;
       }
 
-      vlog.debug("Setting up decoded output with %ux%u size", crop_width, crop_height);
-
       // input type to converter, BGRX pixel format
       IMFMediaType* converted_type;
       if (FAILED(MFCreateMediaType(&converted_type)))
       {
-        vlog.error("Error creating media type");
+        // Silently ignore errors, hoping its a temporary encoding glitch
       }
       else
       {
@@ -310,7 +274,7 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
 
         if (FAILED(MFCreateMemoryBuffer(info.cbSize, &converted_buffer)))
         {
-          vlog.error("Error creating media buffer");
+          // Silently ignore errors, hoping its a temporary encoding glitch
         }
         else
         {
@@ -327,7 +291,7 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
   {
     if (FAILED(converter->ProcessInput(0, decoded_sample, 0)))
     {
-      vlog.error("Error sending a packet to converter");
+      // Silently ignore errors, hoping its a temporary encoding glitch
       return;
     }
 
@@ -343,12 +307,10 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
 
     if (FAILED(hr))
     {
-      vlog.error("Error converting to RGB");
+      // Silently ignore errors, hoping its a temporary encoding glitch
     }
     else
     {
-      vlog.debug("Frame converted to RGB");
-
       BYTE* out;
       DWORD buflen;
       converted_buffer->Lock(&out, nullptr, &buflen);
@@ -527,8 +489,6 @@ void H264WinDecoderContext::ParseSPS(const uint8_t* buffer, int length)
 
     offset_x = frame_crop_left_offset;
     offset_y = frame_crop_bottom_offset;
-
-    vlog.debug("SPS parsing - full=%dx%d, cropped=%dx%d, offset=%d,%d", full_width, full_height, crop_width, crop_height, offset_x, offset_y);
 
 #undef SKIP_BITS
 #undef SKIP_UE

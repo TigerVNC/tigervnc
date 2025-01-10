@@ -30,15 +30,12 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <algorithm>
 #include <stdexcept>
-
-#include <os/Mutex.h>
 
 #include <rfb/util.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
-
-#define LOCK_CONFIG os::AutoMutex a(mutex)
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
@@ -48,94 +45,42 @@ using namespace rfb;
 static LogWriter vlog("Config");
 
 
-// -=- The Global/server/viewer Configuration objects
+// -=- The Global Configuration object
 Configuration* Configuration::global_ = nullptr;
-Configuration* Configuration::server_ = nullptr;
-Configuration* Configuration::viewer_ = nullptr;
 
 Configuration* Configuration::global() {
   if (!global_)
-    global_ = new Configuration("Global");
+    global_ = new Configuration();
   return global_;
-}
-
-Configuration* Configuration::server() {
-  if (!server_)
-    server_ = new Configuration("Server");
-  return server_;
-}
-
-Configuration* Configuration::viewer() {
-  if (!viewer_)
-    viewer_ = new Configuration("Viewer");
-  return viewer_;
 }
 
 // -=- Configuration implementation
 
-bool Configuration::set(const char* n, const char* v, bool immutable) {
-  return set(n, strlen(n), v, immutable);
-}
-
-bool Configuration::set(const char* paramName, int len,
-                             const char* val, bool immutable)
+bool Configuration::set(const char* paramName, const char* val,
+                        bool immutable)
 {
-  VoidParameter* current = head;
-  while (current) {
-    if ((int)strlen(current->getName()) == len &&
-        strncasecmp(current->getName(), paramName, len) == 0)
-    {
+  for (VoidParameter* current: params) {
+    if (strcasecmp(current->getName(), paramName) == 0) {
       bool b = current->setParam(val);
       if (b && immutable) 
 	current->setImmutable();
       return b;
     }
-    current = current->_next;
   }
-  return _next ? _next->set(paramName, len, val, immutable) : false;
-}
-
-bool Configuration::set(const char* config, bool immutable) {
-  bool hyphen = false;
-  if (config[0] == '-') {
-    hyphen = true;
-    config++;
-    if (config[0] == '-') config++; // allow gnu-style --<option>
-  }
-  const char* equal = strchr(config, '=');
-  if (equal) {
-    return set(config, equal-config, equal+1, immutable);
-  } else if (hyphen) {
-    VoidParameter* current = head;
-    while (current) {
-      if (strcasecmp(current->getName(), config) == 0) {
-        bool b = current->setParam();
-        if (b && immutable) 
-	  current->setImmutable();
-        return b;
-      }
-      current = current->_next;
-    }
-  }    
-  return _next ? _next->set(config, immutable) : false;
+  return false;
 }
 
 VoidParameter* Configuration::get(const char* param)
 {
-  VoidParameter* current = head;
-  while (current) {
+  for (VoidParameter* current: params) {
     if (strcasecmp(current->getName(), param) == 0)
       return current;
-    current = current->_next;
   }
-  return _next ? _next->get(param) : nullptr;
+  return nullptr;
 }
 
 void Configuration::list(int width, int nameWidth) {
-  VoidParameter* current = head;
-
-  fprintf(stderr, "%s Parameters:\n", name.c_str());
-  while (current) {
+  for (VoidParameter* current: params) {
     std::string def_str = current->getDefaultStr();
     const char* desc = current->getDescription();
     fprintf(stderr,"  %-*s -", nameWidth, current->getName());
@@ -165,56 +110,107 @@ void Configuration::list(int width, int nameWidth) {
     } else {
       fprintf(stderr,"\n");
     }
-    current = current->_next;
   }
-
-  if (_next)
-    _next->list(width, nameWidth);
 }
 
 
 bool Configuration::remove(const char* param) {
-  VoidParameter *current = head;
-  VoidParameter **prevnext = &head;
+  std::list<VoidParameter*>::iterator iter;
 
-  while (current) {
-    if (strcasecmp(current->getName(), param) == 0) {
-      *prevnext = current->_next;
-      return true;
-    }
-    prevnext = &current->_next;
-    current = current->_next;
+  iter = std::find_if(params.begin(), params.end(),
+                      [param](VoidParameter* p) {
+                        return strcasecmp(p->getName(), param) == 0;
+                      });
+  if (iter != params.end())
+    return false;
+
+  params.erase(iter);
+  return true;
+}
+
+int Configuration::handleArg(int argc, char* argv[], int index)
+{
+  std::string param, val;
+  const char* equal = strchr(argv[index], '=');
+
+  if (equal == argv[index])
+    return 0;
+
+  if (equal) {
+    param.assign(argv[index], equal-argv[index]);
+    val.assign(equal+1);
+  } else {
+    param.assign(argv[index]);
   }
 
-  return false;
+  if ((param.length() > 0) && (param[0] == '-')) {
+    // allow gnu-style --<option>
+    if ((param.length() > 1) && (param[1] == '-'))
+      param = param.substr(2);
+    else
+      param = param.substr(1);
+  } else {
+    // All command line arguments need either an initial '-', or an '='
+    if (val.empty())
+      return 0;
+  }
+
+  if (!val.empty())
+    return set(param.c_str(), val.c_str()) ? 1 : 0;
+
+  for (VoidParameter* current: params) {
+    if (strcasecmp(current->getName(), param.c_str()) != 0)
+      continue;
+
+    // We need to resolve an ambiguity for booleans
+    if (dynamic_cast<BoolParameter*>(current) != nullptr) {
+      if (index+1 < argc) {
+        // FIXME: Should not duplicate the list of values here
+        if ((strcasecmp(argv[index+1], "0") == 0) ||
+            (strcasecmp(argv[index+1], "1") == 0) ||
+            (strcasecmp(argv[index+1], "on") == 0) ||
+            (strcasecmp(argv[index+1], "off") == 0) ||
+            (strcasecmp(argv[index+1], "true") == 0) ||
+            (strcasecmp(argv[index+1], "false") == 0) ||
+            (strcasecmp(argv[index+1], "yes") == 0) ||
+            (strcasecmp(argv[index+1], "no") == 0)) {
+            return current->setParam(argv[index+1]) ? 2 : 0;
+        }
+      }
+    }
+
+    if (current->setParam())
+      return 1;
+
+    if (index+1 >= argc)
+      return 0;
+
+    return current->setParam(argv[index+1]) ? 2 : 0;
+  }
+
+  return 0;
 }
 
 
 // -=- VoidParameter
 
-VoidParameter::VoidParameter(const char* name_, const char* desc_,
-			     ConfigurationObject co)
+VoidParameter::VoidParameter(const char* name_, const char* desc_)
   : immutable(false), name(name_), description(desc_)
 {
-  Configuration *conf = nullptr;
+  Configuration *conf;
 
-  switch (co) {
-  case ConfGlobal: conf = Configuration::global();
-    break;
-  case ConfServer: conf = Configuration::server();
-    break;
-  case ConfViewer: conf = Configuration::viewer();
-    break;
-  }
-
-  _next = conf->head;
-  conf->head = this;
-
-  mutex = new os::Mutex();
+  conf = Configuration::global();
+  conf->params.push_back(this);
+  conf->params.sort([](const VoidParameter* a, const VoidParameter* b) {
+    return strcasecmp(a->getName(), b->getName()) < 0;
+  });
 }
 
 VoidParameter::~VoidParameter() {
-  delete mutex;
+  Configuration *conf;
+
+  conf = Configuration::global();
+  conf->params.remove(this);
 }
 
 const char*
@@ -231,8 +227,8 @@ bool VoidParameter::setParam() {
   return false;
 }
 
-bool VoidParameter::isBool() const {
-  return false;
+bool VoidParameter::isDefault() const {
+  return getDefaultStr() == getValueStr();
 }
 
 void
@@ -244,8 +240,8 @@ VoidParameter::setImmutable() {
 // -=- AliasParameter
 
 AliasParameter::AliasParameter(const char* name_, const char* desc_,
-                               VoidParameter* param_, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), param(param_) {
+                               VoidParameter* param_)
+  : VoidParameter(name_, desc_), param(param_) {
 }
 
 bool
@@ -265,10 +261,6 @@ std::string AliasParameter::getValueStr() const {
   return param->getValueStr();
 }
 
-bool AliasParameter::isBool() const {
-  return param->isBool();
-}
-
 void
 AliasParameter::setImmutable() {
   vlog.debug("Set immutable %s (Alias)", getName());
@@ -278,9 +270,8 @@ AliasParameter::setImmutable() {
 
 // -=- BoolParameter
 
-BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v,
-			     ConfigurationObject co)
-: VoidParameter(name_, desc_, co), value(v), def_value(v) {
+BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v)
+: VoidParameter(name_, desc_), value(v), def_value(v) {
 }
 
 bool
@@ -309,19 +300,15 @@ bool BoolParameter::setParam() {
 void BoolParameter::setParam(bool b) {
   if (immutable) return;
   value = b;
-  vlog.debug("Set %s(Bool) to %d", getName(), value);
+  vlog.debug("Set %s(Bool) to %s", getName(), getValueStr().c_str());
 }
 
 std::string BoolParameter::getDefaultStr() const {
-  return def_value ? "1" : "0";
+  return def_value ? "on" : "off";
 }
 
 std::string BoolParameter::getValueStr() const {
-  return value ? "1" : "0";
-}
-
-bool BoolParameter::isBool() const {
-  return true;
+  return value ? "on" : "off";
 }
 
 BoolParameter::operator bool() const {
@@ -331,8 +318,8 @@ BoolParameter::operator bool() const {
 // -=- IntParameter
 
 IntParameter::IntParameter(const char* name_, const char* desc_, int v,
-                           int minValue_, int maxValue_, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), value(v), def_value(v),
+                           int minValue_, int maxValue_)
+  : VoidParameter(name_, desc_), value(v), def_value(v),
     minValue(minValue_), maxValue(maxValue_)
 {
 }
@@ -372,8 +359,8 @@ IntParameter::operator int() const {
 // -=- StringParameter
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
-                                 const char* v, ConfigurationObject co)
-  : VoidParameter(name_, desc_, co), value(v), def_value(v)
+                                 const char* v)
+  : VoidParameter(name_, desc_), value(v), def_value(v)
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
@@ -381,11 +368,7 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
   }
 }
 
-StringParameter::~StringParameter() {
-}
-
 bool StringParameter::setParam(const char* v) {
-  LOCK_CONFIG;
   if (immutable) return true;
   if (!v)
     throw std::invalid_argument("setParam(<null>) not allowed");
@@ -399,7 +382,6 @@ std::string StringParameter::getDefaultStr() const {
 }
 
 std::string StringParameter::getValueStr() const {
-  LOCK_CONFIG;
   return value;
 }
 
@@ -410,8 +392,8 @@ StringParameter::operator const char *() const {
 // -=- BinaryParameter
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
-				 const uint8_t* v, size_t l, ConfigurationObject co)
-: VoidParameter(name_, desc_, co),
+				 const uint8_t* v, size_t l)
+: VoidParameter(name_, desc_),
   value(nullptr), length(0), def_value(nullptr), def_length(0) {
   if (l) {
     assert(v);
@@ -438,7 +420,6 @@ bool BinaryParameter::setParam(const char* v) {
 }
 
 void BinaryParameter::setParam(const uint8_t* v, size_t len) {
-  LOCK_CONFIG;
   if (immutable) return; 
   vlog.debug("Set %s(Binary)", getName());
   delete [] value;
@@ -457,12 +438,10 @@ std::string BinaryParameter::getDefaultStr() const {
 }
 
 std::string BinaryParameter::getValueStr() const {
-  LOCK_CONFIG;
   return binToHex(value, length);
 }
 
 std::vector<uint8_t> BinaryParameter::getData() const {
-  LOCK_CONFIG;
   std::vector<uint8_t> out(length);
   memcpy(out.data(), value, length);
   return out;

@@ -22,11 +22,6 @@
 #include <config.h>
 #endif
 
-#include <stdexcept>
-
-#include <os/Mutex.h>
-#include <rfb/LogWriter.h>
-
 #include <rfb/H264DecoderContext.h>
 
 #ifdef H264_LIBAV
@@ -39,31 +34,11 @@
 
 using namespace rfb;
 
-static LogWriter vlog("H264DecoderContext");
-
 H264DecoderContext *H264DecoderContext::createContext(const Rect &r)
 {
-  H264DecoderContext *ret = new H264DecoderContextType(r);
-  if (!ret->initCodec())
-  {
-    throw std::runtime_error("H264DecoderContext: Unable to create context");
-  }
-
-  return ret;
+  return new H264DecoderContextType(r);
 }
 
 H264DecoderContext::~H264DecoderContext()
 {
-}
-
-bool H264DecoderContext::isReady()
-{
-  os::AutoMutex lock(&mutex);
-  return initialized;
-}
-
-void H264DecoderContext::reset()
-{
-  freeCodec();
-  initCodec();
 }

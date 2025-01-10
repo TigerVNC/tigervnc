@@ -51,11 +51,9 @@ using namespace rfb;
 static const char* configdirfn(const char* fn);
 
 StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
-                                     configdirfn("x509_ca.pem"),
-                                     ConfViewer);
+                                     configdirfn("x509_ca.pem"));
 StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
-                                     configdirfn("x509_crl.pem"),
-                                     ConfViewer);
+                                     configdirfn("x509_crl.pem"));
 
 static LogWriter vlog("TLS");
 

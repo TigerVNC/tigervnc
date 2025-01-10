@@ -141,19 +141,19 @@ public:
   // TXCheckboxCallback method
   void checkboxSelect(TXCheckbox* checkbox) override {
     if (checkbox == &acceptClipboard) {
-      XVncExtSetParam(dpy, (acceptClipboard.checked()
-                            ? ACCEPT_CUT_TEXT "=1" : ACCEPT_CUT_TEXT "=0"));
+      XVncExtSetParam(dpy, ACCEPT_CUT_TEXT,
+                      acceptClipboard.checked() ? "1" : "0");
       setPrimaryCB.disabled(!acceptClipboard.checked());
     } else if (checkbox == &sendClipboard) {
-      XVncExtSetParam(dpy, (sendClipboard.checked()
-                            ? SEND_CUT_TEXT "=1" : SEND_CUT_TEXT "=0"));
+      XVncExtSetParam(dpy, SEND_CUT_TEXT,
+                      sendClipboard.checked() ? "1" : "0");
       sendPrimaryCB.disabled(!sendClipboard.checked());
     } else if (checkbox == &setPrimaryCB) {
-      XVncExtSetParam(dpy, (setPrimaryCB.checked()
-                            ? SET_PRIMARY "=1" : SET_PRIMARY "=0"));
+      XVncExtSetParam(dpy, SET_PRIMARY,
+                      setPrimaryCB.checked() ? "1" : "0");
     } else if (checkbox == &sendPrimaryCB) {
-      XVncExtSetParam(dpy, (sendPrimaryCB.checked()
-                            ? SEND_PRIMARY "=1" : SEND_PRIMARY "=0"));
+      XVncExtSetParam(dpy, SEND_PRIMARY,
+                      sendPrimaryCB.checked() ? "1" : "0");
     }
   }
 
@@ -213,15 +213,24 @@ int main(int argc, char** argv)
   // Process vncconfig's own parameters first, then we process the
   // other arguments when we have the X display.
   int i;
-  for (i = 1; i < argc; i++) {
-    if (Configuration::setParam(argv[i]))
-      continue;
+  for (i = 1; i < argc;) {
+    int ret;
 
-    if (argv[i][0] == '-' && i+1 < argc &&
-        Configuration::setParam(&argv[i][1], argv[i+1])) {
-      i++;
+    ret = Configuration::handleParamArg(argc, argv, i);
+    if (ret > 0) {
+      i += ret;
       continue;
     }
+
+    if (strcmp(argv[i], "-help") == 0) {
+      usage();
+    }
+
+    if (strcmp(argv[i], "-version") == 0) {
+      fprintf(stderr, "vncconfig (TigerVNC) %s\n", PACKAGE_VERSION);
+      exit(0);
+    }
+
     break;
   }
 
@@ -285,13 +294,42 @@ int main(int argc, char** argv)
       } else if (strcmp(argv[i], "-set") == 0) {
         i++;
         if (i >= argc) usage();
-        if (!XVncExtSetParam(dpy, argv[i])) {
-          fprintf(stderr, "Setting param %s failed\n",argv[i]);
+
+        char* equal = strchr(argv[i], '=');
+        if (!equal) {
+          fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
+                  programName, argv[i]);
+          fprintf(stderr, "See '%s -help' for more information.\n",
+                  programName);
+          exit(1);
         }
-      } else if (XVncExtSetParam(dpy, argv[i])) {
-        fprintf(stderr, "Set parameter %s\n",argv[i]);
+
+        std::string name(argv[i], equal-argv[i]);
+        std::string value(equal+1);
+
+        if (!XVncExtSetParam(dpy, name.c_str(), value.c_str()))
+          fprintf(stderr, "Setting param %s failed\n",argv[i]);
+      } else if (argv[i][0] == '-') {
+        fprintf(stderr, "%s: Unrecognized option '%s'\n",
+                programName, argv[i]);
+        fprintf(stderr, "See '%s -help' for more information.\n",
+                programName);
+        exit(1);
       } else {
-        usage();
+        char* equal = strchr(argv[i], '=');
+        if (!equal) {
+          fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
+                  programName, argv[i]);
+          fprintf(stderr, "See '%s -help' for more information.\n",
+                  programName);
+          exit(1);
+        }
+
+        std::string name(argv[i], equal-argv[i]);
+        std::string value(equal+1);
+
+        if (!XVncExtSetParam(dpy, name.c_str(), value.c_str()))
+          fprintf(stderr, "Setting param %s failed\n",argv[i]);
       }
     }
 

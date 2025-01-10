@@ -279,33 +279,44 @@ int main(int argc, char** argv)
   programName = argv[0];
   Display* dpy;
 
-  Configuration::enableServerParams();
-
   // Assume different defaults when socket activated
   if (hasSystemdListeners())
     rfbport.setParam(-1);
 
   for (int i = 1; i < argc; i++) {
-    if (Configuration::setParam(argv[i]))
-      continue;
+    int ret;
 
-    if (argv[i][0] == '-') {
-      if (i+1 < argc) {
-        if (Configuration::setParam(&argv[i][1], argv[i+1])) {
-          i++;
-          continue;
-        }
-      }
-      if (strcmp(argv[i], "-v") == 0 ||
-          strcmp(argv[i], "-version") == 0 ||
-          strcmp(argv[i], "--version") == 0) {
-        printVersion(stdout);
-        return 0;
-      }
+    ret = Configuration::handleParamArg(argc, argv, i);
+    if (ret > 0) {
+      i += ret;
+      continue;
+    }
+
+    if (strcmp(argv[i], "-h") == 0 ||
+        strcmp(argv[i], "-help") == 0 ||
+        strcmp(argv[i], "--help") == 0) {
       usage();
     }
 
-    usage();
+    if (strcmp(argv[i], "-v") == 0 ||
+        strcmp(argv[i], "-version") == 0 ||
+        strcmp(argv[i], "--version") == 0) {
+      printVersion(stdout);
+      return 0;
+    }
+
+    if (argv[i][0] == '-') {
+      fprintf(stderr, "%s: Unrecognized option '%s'\n",
+              programName, argv[i]);
+      fprintf(stderr, "See '%s --help' for more information.\n",
+              programName);
+      exit(1);
+    }
+
+    fprintf(stderr, "%s: Extra argument '%s'\n", programName, argv[i]);
+    fprintf(stderr, "See '%s --help' for more information.\n",
+            programName);
+    exit(1);
   }
 
   if (!(dpy = XOpenDisplay(displayname))) {

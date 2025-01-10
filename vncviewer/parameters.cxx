@@ -481,15 +481,25 @@ static void saveToReg(const char* servername) {
   }
 
   for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+    if (parameterArray[i]->isDefault()) {
+      try {
+        removeValue(parameterArray[i]->getName(), &hKey);
+      } catch (std::exception& e) {
+        RegCloseKey(hKey);
+        throw std::runtime_error(format(_("Failed to remove \"%s\": %s"),
+                                        parameterArray[i]->getName(),
+                                        e.what()));
+      }
+      continue;
+    }
+
     try {
-      if (dynamic_cast<StringParameter*>(parameterArray[i]) != nullptr) {
-        setKeyString(parameterArray[i]->getName(), *(StringParameter*)parameterArray[i], &hKey);
-      } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
+      if (dynamic_cast<IntParameter*>(parameterArray[i]) != nullptr) {
         setKeyInt(parameterArray[i]->getName(), (int)*(IntParameter*)parameterArray[i], &hKey);
       } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != nullptr) {
         setKeyInt(parameterArray[i]->getName(), (int)*(BoolParameter*)parameterArray[i], &hKey);
       } else {
-        throw std::logic_error(_("Unknown parameter type"));
+        setKeyString(parameterArray[i]->getName(), parameterArray[i]->getValueStr().c_str(), &hKey);
       }
     } catch (std::exception& e) {
       RegCloseKey(hKey);
@@ -572,17 +582,15 @@ static void getParametersFromReg(VoidParameter* parameters[],
 
   for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
     try {
-      if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-        if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
-          parameters[i]->setParam(stringValue);
-      } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
+      if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
         if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
           ((IntParameter*)parameters[i])->setParam(intValue);
       } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
         if (getKeyInt(parameters[i]->getName(), &intValue, hKey))
           ((BoolParameter*)parameters[i])->setParam(intValue);
       } else {
-        throw std::logic_error(_("Unknown parameter type"));
+        if (getKeyString(parameters[i]->getName(), stringValue, buffersize, hKey))
+          parameters[i]->setParam(stringValue);
       }
     } catch(std::exception& e) {
       // Just ignore this entry and continue with the rest
@@ -676,25 +684,16 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
   for (VoidParameter* param : parameterArray) {
-    if (dynamic_cast<StringParameter*>(param) != nullptr) {
-      if (!encodeValue(*(StringParameter*)param,
-          encodingBuffer, buffersize)) {
-        fclose(f);
-        throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
-                                        param->getName(),
-                                        _("Could not encode parameter")));
-      }
-      fprintf(f, "%s=%s\n", ((StringParameter*)param)->getName(), encodingBuffer);
-    } else if (dynamic_cast<IntParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((IntParameter*)param)->getName(), (int)*(IntParameter*)param);
-    } else if (dynamic_cast<BoolParameter*>(param) != nullptr) {
-      fprintf(f, "%s=%d\n", ((BoolParameter*)param)->getName(), (int)*(BoolParameter*)param);
-    } else {      
+    if (param->isDefault())
+      continue;
+    if (!encodeValue(param->getValueStr().c_str(),
+                     encodingBuffer, buffersize)) {
       fclose(f);
-      throw std::logic_error(format(_("Failed to save \"%s\": %s"),
-                                    param->getName(),
-                                    _("Unknown parameter type")));
+      throw std::runtime_error(format(_("Failed to save \"%s\": %s"),
+                                      param->getName(),
+                                      _("Could not encode parameter")));
     }
+    fprintf(f, "%s=%s\n", param->getName(), encodingBuffer);
   }
   fclose(f);
 }
@@ -708,29 +707,11 @@ static bool findAndSetViewerParameterFromValue(
 
   // Find and set the correct parameter
   for (size_t i = 0; i < parameters_len/sizeof(VoidParameter*); i++) {
-
-    if (dynamic_cast<StringParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((StringParameter*)parameters[i])->getName()) == 0) {
-        if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
-          throw std::runtime_error(_("Invalid format or too large value"));
-        ((StringParameter*)parameters[i])->setParam(decodingBuffer);
-        return false;
-      }
-
-    } else if (dynamic_cast<IntParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((IntParameter*)parameters[i])->getName()) == 0) {
-        ((IntParameter*)parameters[i])->setParam(atoi(value));
-        return false;
-      }
-
-    } else if (dynamic_cast<BoolParameter*>(parameters[i]) != nullptr) {
-      if (strcasecmp(line, ((BoolParameter*)parameters[i])->getName()) == 0) {
-        ((BoolParameter*)parameters[i])->setParam(atoi(value));
-        return false;
-      }
-
-    } else {
-      throw std::logic_error(_("Unknown parameter type"));
+    if (strcasecmp(line, parameters[i]->getName()) == 0) {
+      if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
+        throw std::runtime_error(_("Invalid format or too large value"));
+      parameters[i]->setParam(decodingBuffer);
+      return false;
     }
   }
 

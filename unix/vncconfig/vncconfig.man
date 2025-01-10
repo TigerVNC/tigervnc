@@ -64,27 +64,27 @@ instead. The \fB-view-only\fP option specifies that the server must ignore all
 keyboard or mouse events sent by the client.
 .
 .TP
+.B \-desc \fIXvnc-param\fP
+Prints a short description of the given Xvnc parameter.
+.
+.TP
 .B \-disconnect
 This causes Xvnc to disconnect from all viewers so that the VNC desktop is not
 displayed anywhere.
-.
-.TP
-[\fB-set\fP] \fIXvnc-param\fP=\fIvalue\fP
-Sets an Xvnc parameter to the given value.  Note that some of Xvnc's parameters
-are read only once at startup so that changing them in this way may not have
-any effect.
-.
-.TP
-.B \-list
-Lists all the parameters supported by Xvnc.
 .
 .TP
 .B \-get \fIXvnc-param\fP
 Prints the current value of the given Xvnc parameter.
 .
 .TP
-.B \-desc \fIXvnc-param\fP
-Prints a short description of the given Xvnc parameter.
+.B \-list
+Lists all the parameters supported by Xvnc.
+.
+.TP
+[\fB-set\fP] \fIXvnc-param\fP=\fIvalue\fP
+Sets an Xvnc parameter to the given value.  Note that some of Xvnc's parameters
+are read only once at startup so that changing them in this way may not have
+any effect.
 
 .SH PARAMETERS
 .B vncconfig
@@ -102,12 +102,12 @@ Other valid forms are \fIparam\fP\fB=\fP\fIvalue\fP -\fIparam\fP=\fIvalue\fP
 Specifies the Xvnc server to control.
 .
 .TP
-.B \-nowin
-When run as a "helper" app, don't put up a window.
-.
-.TP
 .B \-iconic
 When run as a "helper" app, make the window iconified at startup.
+.
+.TP
+.B \-nowin
+When run as a "helper" app, don't put up a window.
 
 .SH SEE ALSO
 .BR vncpasswd (1),

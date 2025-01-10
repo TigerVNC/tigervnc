@@ -49,8 +49,7 @@ StringParameter SecurityServer::secTypes
 #ifdef HAVE_GNUTLS
  "TLSVnc,"
 #endif
- "VncAuth",
-ConfServer);
+ "VncAuth");
 
 SSecurity* SecurityServer::GetSSecurity(SConnection* sc, uint32_t secType)
 {
