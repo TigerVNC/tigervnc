@@ -446,7 +446,7 @@ static void usage(const char *programName)
   }
 #endif
 
-  fprintf(stderr,
+  fprintf(stderr, _(
           "\n"
           "Usage: %s [parameters] [host][:displayNum]\n"
           "       %s [parameters] [host][::port]\n"
@@ -454,7 +454,7 @@ static void usage(const char *programName)
           "       %s [parameters] [unix socket]\n"
 #endif
           "       %s [parameters] -listen [port]\n"
-          "       %s [parameters] [.tigervnc file]\n",
+          "       %s [parameters] [.tigervnc file]\n"),
           programName, programName,
 #ifndef WIN32
           programName,
@@ -462,20 +462,20 @@ static void usage(const char *programName)
           programName, programName);
 
 #if !defined(WIN32) && !defined(__APPLE__)
-  fprintf(stderr,"\n"
+  fprintf(stderr, _("\n"
           "Options:\n\n"
           "  -display Xdisplay  - Specifies the X display for the viewer window\n"
           "  -geometry geometry - Initial position of the main VNC viewer window. See the\n"
-          "                       man page for details.\n");
+          "                       man page for details.\n"));
 #endif
 
-  fprintf(stderr,"\n"
+  fprintf(stderr, _("\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
           "Parameters which take a value can be specified as "
           "-<param> <value>\n"
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
-          "Parameter names are case-insensitive.  The parameters are:\n\n");
+          "Parameter names are case-insensitive.  The parameters are:\n\n"));
   Configuration::listParams(79, 14);
 
 #ifdef WIN32
