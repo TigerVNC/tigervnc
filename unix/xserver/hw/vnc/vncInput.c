@@ -168,14 +168,21 @@ void vncPointerMove(int x, int y)
 void vncGetPointerPos(int *x, int *y)
 {
 	if (vncPointerDev != NULL) {
-		ScreenPtr ptrScreen;
+		/* Pointer position is not valid without pointer
+		 * screen, so validate pointer screen before obtaining
+		 * pointer position on screen. This is also important
+		 * to prevent miPointerGetPosition() from being called
+		 * when the pointer is disabled, as this could result
+		 * in a segmentation fault.
+		 */
+		ScreenPtr ptrScreen = miPointerGetScreen(vncPointerDev);
+		if (ptrScreen != NULL) {
+			miPointerGetPosition(vncPointerDev, &cursorPosX, &cursorPosY);
 
-		miPointerGetPosition(vncPointerDev, &cursorPosX, &cursorPosY);
-
-		/* Pointer coordinates are screen relative */
-		ptrScreen = miPointerGetScreen(vncPointerDev);
-		cursorPosX += ptrScreen->x;
-		cursorPosY += ptrScreen->y;
+			/* Pointer coordinates are screen relative */
+			cursorPosX += ptrScreen->x;
+			cursorPosY += ptrScreen->y;
+		}
 	}
 
 	*x = cursorPosX;
