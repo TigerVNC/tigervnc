@@ -442,7 +442,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     }
 
     if (!strcmp(argv[i], "-showconfig") || !strcmp(argv[i], "-version")) {
-        vncPrintBanner();
+        /* Already shown at start */
         exit(0);
     }
 
@@ -1165,8 +1165,6 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
 {
     int i;
     int NumFormats = 0;
-
-    vncPrintBanner();
 
     if (serverGeneration == 1)
         LoadExtensionList(vncExtensions, ARRAY_SIZE(vncExtensions), TRUE);
