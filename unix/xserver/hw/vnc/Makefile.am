@@ -1,5 +1,5 @@
 TIGERVNC_SRCDIR=${top_srcdir}/../..
-TIGERVNC_BUILDDIR=${TIGERVNC_SRCDIR}
+TIGERVNC_BUILDDIR=${top_builddir}/../..
 
 # FIXME: We add an extra / to the paths to trick libtool in to adding
 #        the libraries twice, to work around the dependency cycles we
