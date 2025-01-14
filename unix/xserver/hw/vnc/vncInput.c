@@ -167,7 +167,7 @@ void vncPointerMove(int x, int y)
 
 void vncGetPointerPos(int *x, int *y)
 {
-	if (vncPointerDev != NULL) {
+	if ((vncPointerDev != NULL) && (vncPointerDev->public.on)) {
 		ScreenPtr ptrScreen;
 
 		miPointerGetPosition(vncPointerDev, &cursorPosX, &cursorPosY);
