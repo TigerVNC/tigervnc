@@ -384,10 +384,9 @@ void ServerDialog::loadServerHistory()
 
     if (len == (sizeof(line) - 1)) {
       fclose(f);
-      throw std::runtime_error(format("%s: %s",
-                                      format(_("Failed to read line %d "
-                                               "in file %s"),
-                                             lineNr, filepath).c_str(),
+      std::string msg = format(_("Failed to read line %d in "
+                                 "file \"%s\""), lineNr, filepath);
+      throw std::runtime_error(format("%s: %s", msg.c_str(),
                                       _("Line too long")));
     }
 

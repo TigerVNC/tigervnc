@@ -770,10 +770,9 @@ char* loadViewerParameters(const char *filename) {
 
     if (strlen(line) == (sizeof(line) - 1)) {
       fclose(f);
-      throw std::runtime_error(format("%s: %s",
-                                      format(_("Failed to read line %d "
-                                               "in file \"%s\""),
-                                             lineNr, filepath).c_str(),
+      std::string msg = format(_("Failed to read line %d in "
+                                 "file \"%s\""), lineNr, filepath);
+      throw std::runtime_error(format("%s: %s", msg.c_str(),
                                       _("Line too long")));
     }
 
@@ -805,8 +804,9 @@ char* loadViewerParameters(const char *filename) {
     // Find the parameter value
     char *value = strchr(line, '=');
     if (value == nullptr) {
-      vlog.error(_("Failed to read line %d in file %s: %s"),
-                 lineNr, filepath, _("Invalid format"));
+      std::string msg = format(_("Failed to read line %d in "
+                                 "file \"%s\""), lineNr, filepath);
+      vlog.error("%s: %s", msg.c_str(), _("Invalid format"));
       continue;
     }
     *value = '\0'; // line only contains the parameter name below.
@@ -834,14 +834,17 @@ char* loadViewerParameters(const char *filename) {
       }
     } catch(std::exception& e) {
       // Just ignore this entry and continue with the rest
-      vlog.error(_("Failed to read line %d in file %s: %s"),
-                 lineNr, filepath, e.what());
+      std::string msg = format(_("Failed to read line %d in "
+                                 "file \"%s\""), lineNr, filepath);
+      vlog.error("%s: %s", msg.c_str(), e.what());
       continue;
     }
 
-    if (invalidParameterName)
-      vlog.error(_("Failed to read line %d in file %s: %s"),
-                 lineNr, filepath, _("Unknown parameter"));
+    if (invalidParameterName) {
+      std::string msg = format(_("Failed to read line %d in "
+                                 "file \"%s\""), lineNr, filepath);
+      vlog.error("%s: %s", msg.c_str(), _("Unknown parameter"));
+    }
   }
   fclose(f);
   f = nullptr;
