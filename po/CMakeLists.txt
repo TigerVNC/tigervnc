@@ -26,7 +26,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       --keyword=_
       --keyword=p_:1c,2
       --keyword=N_
-      "--copyright-holder=TigerVNC Team and many others \(see README.rst\)"
+      "--copyright-holder=TigerVNC team and many others \(see README.rst\)"
       --msgid-bugs-address=tigervnc-devel@googlegroups.com
       --sort-by-file
       --add-location
