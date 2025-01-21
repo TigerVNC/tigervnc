@@ -278,6 +278,7 @@ if(BUILD_VIEWER)
   set(FLTK_SKIP_OPENGL TRUE)
   set(FLTK_SKIP_FORMS TRUE)
   find_package(FLTK REQUIRED)
+
   if(UNIX AND NOT APPLE)
     # No proper handling for extra X11 libs that FLTK might need...
     if(X11_Xft_FOUND)
@@ -299,6 +300,19 @@ if(BUILD_VIEWER)
       set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xrender_LIB})
     endif()
   endif()
+
+  set(CMAKE_REQUIRED_FLAGS "-Wno-error")
+  set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
+  set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
+
+  check_cxx_source_compiles("#include <FL/Fl.H>\n#if FL_MAJOR_VERSION != 1 || FL_MINOR_VERSION != 3\n#error Wrong FLTK version\n#endif\nint main(int, char**) { return 0; }" OK_FLTK_VERSION)
+  if(NOT OK_FLTK_VERSION)
+    message(FATAL_ERROR "Incompatible version of FLTK")
+  endif()
+
+  set(CMAKE_REQUIRED_FLAGS)
+  set(CMAKE_REQUIRED_INCLUDES)
+  set(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 # Check for GNUTLS library
