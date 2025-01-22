@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,6 +198,11 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   }
 
   show();
+
+#ifdef __APPLE__
+  // FLTK does its own full screen, so disable the system one
+  cocoa_prevent_native_fullscreen(this);
+#endif
 
   // Full screen events are not sent out for a hidden window,
   // so send a fake one here to set up things properly.

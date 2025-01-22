@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,16 @@
 #include <rfb/Rect.h>
 
 static bool captured = false;
+
+void cocoa_prevent_native_fullscreen(Fl_Window *win)
+{
+  NSWindow *nsw;
+  nsw = (NSWindow*)fl_xid(win);
+  assert(nsw);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 100700
+  nsw.collectionBehavior |= NSWindowCollectionBehaviorFullScreenNone;
+#endif
+}
 
 int cocoa_get_level(Fl_Window *win)
 {
