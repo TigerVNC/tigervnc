@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 #define __VNCVIEWER_COCOA_H__
 
 class Fl_Window;
+
+void cocoa_prevent_native_fullscreen(Fl_Window *win);
 
 int cocoa_get_level(Fl_Window *win);
 void cocoa_set_level(Fl_Window *win, int level);
