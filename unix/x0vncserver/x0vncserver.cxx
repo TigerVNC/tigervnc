@@ -283,7 +283,7 @@ int main(int argc, char** argv)
   if (hasSystemdListeners())
     rfbport.setParam(-1);
 
-  for (int i = 1; i < argc; i++) {
+  for (int i = 1; i < argc;) {
     int ret;
 
     ret = Configuration::handleParamArg(argc, argv, i);
