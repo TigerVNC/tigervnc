@@ -121,7 +121,7 @@ bool Configuration::remove(const char* param) {
                       [param](VoidParameter* p) {
                         return strcasecmp(p->getName(), param) == 0;
                       });
-  if (iter != params.end())
+  if (iter == params.end())
     return false;
 
   params.erase(iter);
