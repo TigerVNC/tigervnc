@@ -545,7 +545,12 @@ void Viewport::handleClipboardChange(int source, void *data)
     vlog.debug("Got non-plain text in local clipboard, ignoring.");
     // Reset the state as if we don't have any clipboard data at all
     self->pendingClientClipboard = false;
-    self->cc->announceClipboard(false);
+    try {
+      self->cc->announceClipboard(false);
+    } catch (std::exception& e) {
+      vlog.error("%s", e.what());
+      abort_connection_with_unexpected_error(e);
+    }
     return;
   }
 
@@ -555,7 +560,12 @@ void Viewport::handleClipboardChange(int source, void *data)
     vlog.debug("Local clipboard changed whilst not focused, will notify server later");
     self->pendingClientClipboard = true;
     // Clear any older client clipboard from the server
-    self->cc->announceClipboard(false);
+    try {
+      self->cc->announceClipboard(false);
+    } catch (std::exception& e) {
+      vlog.error("%s", e.what());
+      abort_connection_with_unexpected_error(e);
+    }
     return;
   }
 
