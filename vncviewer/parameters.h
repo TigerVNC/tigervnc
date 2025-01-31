@@ -72,7 +72,7 @@ extern rfb::BoolParameter sendPrimary;
 extern rfb::StringParameter display;
 #endif
 
-extern rfb::StringParameter menuKey;
+extern rfb::EnumParameter menuKey;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
 extern rfb::BoolParameter alertOnFatalError;

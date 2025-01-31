@@ -713,9 +713,9 @@ void DesktopWindow::menuOverlay(void* data)
 
   self = (DesktopWindow*)data;
 
-  if (strcmp((const char*)menuKey, "") != 0) {
+  if ((menuKey != "") && (menuKey != "None")) {
     self->setOverlay(_("Press %s to open the context menu"),
-                     (const char*)menuKey);
+                     menuKey.getValueStr().c_str());
   }
 }
 
