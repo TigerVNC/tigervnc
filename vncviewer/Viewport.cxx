@@ -242,7 +242,7 @@ void Viewport::showCursor()
     return;
   }
 
-  if (cursorIsBlank && alwaysCursor && !strcasecmp("system", cursorType)) {
+  if (cursorIsBlank && alwaysCursor && (cursorType == "system")) {
     window()->cursor(FL_CURSOR_DEFAULT);
   } else {
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
