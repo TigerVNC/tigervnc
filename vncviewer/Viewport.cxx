@@ -762,7 +762,8 @@ void Viewport::initContextMenu()
 
   if (menuKeySym) {
     char sendMenuKey[64];
-    snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"), (const char *)menuKey);
+    snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"),
+             menuKey.getValueStr().c_str());
     fltk_menu_add(contextMenu, sendMenuKey, 0, nullptr, (void*)ID_MENUKEY, 0);
     fltk_menu_add(contextMenu, "Secret shortcut menu key",
                   menuKeyFLTK, nullptr,

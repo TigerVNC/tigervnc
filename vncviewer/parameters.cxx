@@ -222,8 +222,14 @@ core::StringParameter
           "");
 #endif
 
-core::StringParameter
-  menuKey("MenuKey", "The key which brings up the popup menu", "F8");
+// Empty string means None, for backward compatibility
+core::EnumParameter
+  menuKey("MenuKey",
+          "The key which brings up the popup menu",
+          {"", "None", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8",
+           "F9", "F10", "F11", "F12", "Pause", "Scroll_Lock", "Escape",
+           "Insert", "Delete", "Home", "Page_Up", "Page_Down"},
+          "F8");
 
 core::BoolParameter
   fullscreenSystemKeys("FullscreenSystemKeys",
