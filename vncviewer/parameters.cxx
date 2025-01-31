@@ -70,10 +70,10 @@ BoolParameter dotWhenNoCursor("DotWhenNoCursor",
 BoolParameter alwaysCursor("AlwaysCursor",
                            "Show the local cursor when the server sends an "
                            "invisible cursor", false);
-StringParameter cursorType("CursorType",
-                           "Specify which cursor type the local cursor should be. "
-                           "Should be either Dot or System",
-                           "Dot");
+EnumParameter cursorType("CursorType",
+                         "Specify which cursor type the local cursor should be. "
+                         "Should be either Dot or System",
+                         {"Dot", "System"}, "Dot");
 
 BoolParameter alertOnFatalError("AlertOnFatalError",
                                 "Give a dialog on connection problems rather "

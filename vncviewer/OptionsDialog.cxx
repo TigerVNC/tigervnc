@@ -353,7 +353,7 @@ void OptionsDialog::loadOptions(void)
   sharedCheckbox->value(shared);
   reconnectCheckbox->value(reconnectOnError);
   alwaysCursorCheckbox->value(alwaysCursor);
-  if (!strcasecmp(cursorType, "system")) {
+  if (cursorType == "system") {
     cursorTypeChoice->value(1);
   } else {
     // Default
