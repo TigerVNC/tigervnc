@@ -99,9 +99,18 @@ IntParameter lowColourLevel("LowColorLevel",
                             "0 = Very Low, 1 = Low, 2 = Medium",
                             2, 0, 2);
 AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", &lowColourLevel);
-StringParameter preferredEncoding("PreferredEncoding",
-                                  "Preferred encoding to use (Tight, ZRLE, Hextile or"
-                                  " Raw)", "Tight");
+EnumParameter preferredEncoding("PreferredEncoding",
+                                "Preferred encoding to use (Tight, "
+                                "ZRLE, Hextile, "
+#ifdef HAVE_H264
+                                "H.264, "
+#endif
+                                "or Raw)",
+                                {"Tight", "ZRLE", "Hextile",
+#ifdef HAVE_H264
+                                 "H.264",
+#endif
+                                 "Raw"}, "Tight");
 BoolParameter customCompressLevel("CustomCompressLevel",
                                   "Use custom compression level. "
                                   "Default if CompressLevel is specified.", false);

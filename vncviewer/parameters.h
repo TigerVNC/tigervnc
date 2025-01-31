@@ -44,7 +44,7 @@ extern rfb::BoolParameter fullColour;
 extern rfb::AliasParameter fullColourAlias;
 extern rfb::IntParameter lowColourLevel;
 extern rfb::AliasParameter lowColourLevelAlias;
-extern rfb::StringParameter preferredEncoding;
+extern rfb::EnumParameter preferredEncoding;
 extern rfb::BoolParameter customCompressLevel;
 extern rfb::IntParameter compressLevel;
 extern rfb::BoolParameter noJpeg;
