@@ -113,10 +113,18 @@ core::IntParameter
 core::AliasParameter
   lowColourLevelAlias("LowColourLevel",
                       "Alias for LowColorLevel", &lowColourLevel);
-core::StringParameter
+core::EnumParameter
   preferredEncoding("PreferredEncoding",
-                    "Preferred encoding to use (Tight, ZRLE, Hextile "
+                    "Preferred encoding to use (Tight, ZRLE, Hextile, "
+#ifdef HAVE_H264
+                    "H.264, "
+#endif
                     "or Raw)",
+                    {"Tight", "ZRLE", "Hextile",
+#ifdef HAVE_H264
+                     "H.264",
+#endif
+                     "Raw"},
                     "Tight");
 core::BoolParameter
   customCompressLevel("CustomCompressLevel",

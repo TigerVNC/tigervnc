@@ -269,8 +269,8 @@ Time in milliseconds to rate-limit successive pointer events. Default is
 .
 .TP
 .B \-PreferredEncoding \fIencoding\fP
-This option specifies the preferred encoding to use from one of "Tight", "ZRLE",
-"hextile" or "raw".
+This option specifies the preferred encoding to use from one of "Tight",
+"ZRLE", "Hextile", "H.264", or "Raw".
 .
 .TP
 .B \-QualityLevel \fIlevel\fP

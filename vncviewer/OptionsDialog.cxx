@@ -159,27 +159,18 @@ void OptionsDialog::loadOptions(void)
   /* Compression */
   autoselectCheckbox->value(autoSelect);
 
-  int encNum = rfb::encodingNum(preferredEncoding);
-
-  switch (encNum) {
-  case rfb::encodingTight:
+  if (preferredEncoding == "Tight")
     tightButton->setonly();
-    break;
-  case rfb::encodingZRLE:
+  else if (preferredEncoding == "ZRLE")
     zrleButton->setonly();
-    break;
-  case rfb::encodingHextile:
+  else if (preferredEncoding == "Hextile")
     hextileButton->setonly();
-    break;
 #ifdef HAVE_H264
-  case rfb::encodingH264:
+  else if (preferredEncoding == "H.264")
     h264Button->setonly();
-    break;
 #endif
-  case rfb::encodingRaw:
+  else if (preferredEncoding == "Raw")
     rawButton->setonly();
-    break;
-  }
 
   if (fullColour)
     fullcolorCheckbox->setonly();
