@@ -68,11 +68,8 @@ const MenuKeySymbol* getMenuKeySymbols()
 
 void getMenuKey(int *fltkcode, int *keycode, uint32_t *keysym)
 {
-  const char *menuKeyStr;
-
-  menuKeyStr = menuKey;
   for(int i = 0; i < getMenuKeySymbolCount(); i++) {
-    if (!strcmp(menuSymbols[i].name, menuKeyStr)) {
+    if (menuKey == menuSymbols[i].name) {
       *fltkcode = menuSymbols[i].fltkcode;
       *keycode = menuSymbols[i].keycode;
       *keysym = menuSymbols[i].keysym;

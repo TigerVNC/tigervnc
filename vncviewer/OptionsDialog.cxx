@@ -299,8 +299,6 @@ void OptionsDialog::loadOptions(void)
 #endif
 
   /* Input */
-  const char *menuKeyBuf;
-
   viewOnlyCheckbox->value(viewOnly);
   emulateMBCheckbox->value(emulateMiddleButton);
   acceptClipboardCheckbox->value(acceptClipboard);
@@ -315,9 +313,8 @@ void OptionsDialog::loadOptions(void)
 
   menuKeyChoice->value(0);
 
-  menuKeyBuf = menuKey;
   for (int idx = 0; idx < getMenuKeySymbolCount(); idx++)
-    if (!strcmp(getMenuKeySymbols()[idx].name, menuKeyBuf))
+    if (menuKey == getMenuKeySymbols()[idx].name)
       menuKeyChoice->value(idx + 1);
 
   /* Display */
