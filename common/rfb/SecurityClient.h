@@ -24,8 +24,6 @@
 
 #include <rfb/Security.h>
 
-namespace core { class StringParameter; }
-
 namespace rfb {
 
   class CConnection;
@@ -38,7 +36,7 @@ namespace rfb {
     /* Create client side CSecurity class instance */
     CSecurity* GetCSecurity(CConnection* cc, uint32_t secType);
 
-    static core::StringParameter secTypes;
+    static core::EnumListParameter secTypes;
   };
 
 }
