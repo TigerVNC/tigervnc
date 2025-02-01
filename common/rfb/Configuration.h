@@ -258,6 +258,7 @@ namespace rfb {
     virtual bool decodeEntry(const char* entry, ValueType* out) const = 0;
     virtual std::string encodeEntry(const ValueType& entry) const = 0;
     virtual bool validateEntry(const ValueType& entry) const;
+    virtual ValueType normaliseEntry(const ValueType& entry) const;
 
   protected:
     ListType value;
@@ -295,6 +296,45 @@ namespace rfb {
   protected:
     bool decodeEntry(const char* entry, std::string* out) const override;
     std::string encodeEntry(const std::string& entry) const override;
+  };
+
+  class EnumListEntry {
+  public:
+    EnumListEntry(const std::string& v);
+    std::string getValueStr() const;
+    bool operator==(const char* other) const;
+    bool operator==(const std::string& other) const;
+    bool operator!=(const char* other) const;
+    bool operator!=(const std::string& other) const;
+  protected:
+    std::string value;
+  };
+
+  class EnumListParameter : public ListParameter<std::string> {
+  public:
+    EnumListParameter(const char* name_, const char* desc_,
+                      const std::set<std::string>& enums,
+                      const ListType& v);
+
+
+    class const_iterator :  public ListType::const_iterator {
+    public:
+      const_iterator(const ListType::const_iterator& it) : ListType::const_iterator(it) {}
+      const EnumListEntry operator*() const { return EnumListEntry(ListType::const_iterator::operator*()); }
+      const EnumListEntry operator->() const { return EnumListEntry(*ListType::const_iterator::operator->()); }
+    };
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+  protected:
+    bool decodeEntry(const char* entry, std::string* out) const override;
+    std::string encodeEntry(const std::string& entry) const override;
+    bool validateEntry(const std::string& entry) const override;
+    std::string normaliseEntry(const std::string& entry) const override;
+
+  protected:
+    std::set<std::string> enums;
   };
 
 };

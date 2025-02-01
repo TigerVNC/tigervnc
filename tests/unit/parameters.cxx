@@ -519,6 +519,79 @@ static void test_string_list()
   printf("OK\n");
 }
 
+static void test_enum_list()
+{
+  bool ok;
+  std::list<std::string> data;
+
+  printf("%s: ", __func__);
+
+  // List values
+  rfb::EnumListParameter list("listparam", "", {"a", "b", "c"}, {"a"});
+  list.setParam({"a", "b", "c"});
+  data = {"a", "b", "c"};
+  ASSERT_EQ_I(std::distance(list.begin(), list.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(list.begin(), list.end(), data.begin()), true);
+
+  // Case insensitive
+  rfb::EnumListParameter casecmp("listparam", "", {"a", "b", "c"}, {"a"});
+  casecmp.setParam({"A", "B", "C"});
+  data = {"a", "B", "c"};
+  ASSERT_EQ_I(std::distance(casecmp.begin(), casecmp.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(casecmp.begin(), casecmp.end(), data.begin()), true);
+
+  // List strings
+  rfb::EnumListParameter strings("listparam", "", {"a", "b", "c"}, {"a"});
+  strings.setParam("a,b,c");
+  data = {"a", "b", "c"};
+  ASSERT_EQ_I(std::distance(strings.begin(), strings.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(strings.begin(), strings.end(), data.begin()), true);
+
+  // Validation
+  rfb::EnumListParameter valid("enumparam", "", {"a", "b", "c"}, {"a"});
+  ASSERT_EQ_I(valid.setParam({"a", "b", "c"}), true);
+  data = {"a", "b", "c"};
+  ASSERT_EQ_I(std::distance(valid.begin(), valid.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(valid.begin(), valid.end(), data.begin()), true);
+  ASSERT_EQ_I(valid.setParam({"a", "foo", "c"}), false);
+  data = {"a", "b", "c"};
+  ASSERT_EQ_I(std::distance(valid.begin(), valid.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(valid.begin(), valid.end(), data.begin()), true);
+
+  // Valid default value
+  try {
+    rfb::EnumListParameter defvalid("enumparam", "", {"a", "b", "c"}, {"d"});
+    ok = false;
+  } catch (std::exception&) {
+    ok = true;
+  }
+  ASSERT_EQ_I(ok, true);
+
+  // String encoding
+  rfb::EnumListParameter encoding("listparam", "", {"a", "b", "c"}, {"a"});
+  encoding.setParam({"a", "b", "C"});
+  ASSERT_EQ_S(encoding.getValueStr().c_str(), "a,b,c");
+
+  // Default value
+  rfb::EnumListParameter def("listparam", "", {"a", "b", "c"}, {"a"});
+  ASSERT_EQ_I(def.isDefault(), true);
+  def.setParam({"a", "b", "c"});
+  ASSERT_EQ_I(def.isDefault(), false);
+  def.setParam("A");
+  ASSERT_EQ_I(def.isDefault(), true);
+
+  // Immutable
+  rfb::EnumListParameter immutable("listparam", "", {"a", "b", "c"}, {"a"});
+  immutable.setImmutable();
+  immutable.setParam({"a", "b", "c"});
+  immutable.setParam("a,b,c");
+  data = {"a"};
+  ASSERT_EQ_I(std::distance(immutable.begin(), immutable.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(immutable.begin(), immutable.end(), data.begin()), true);
+
+  printf("OK\n");
+}
+
 int main(int /*argc*/, char** /*argv*/)
 {
   printf("Parameters test\n");
@@ -531,6 +604,7 @@ int main(int /*argc*/, char** /*argv*/)
 
   test_int_list();
   test_string_list();
+  test_enum_list();
 
   return 0;
 }
