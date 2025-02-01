@@ -40,7 +40,7 @@
 
 using namespace rfb;
 
-core::StringParameter SecurityServer::secTypes
+core::EnumListParameter SecurityServer::secTypes
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth, Plain"
 #ifdef HAVE_GNUTLS
@@ -50,10 +50,19 @@ core::StringParameter SecurityServer::secTypes
  ", RA2, RA2ne, RA2_256, RA2ne_256"
 #endif
  ")",
+ {
 #ifdef HAVE_GNUTLS
- "TLSVnc,"
+ "X509Plain", "TLSPlain", "X509Vnc", "TLSVnc", "X509None", "TLSNone",
 #endif
- "VncAuth");
+#ifdef HAVE_NETTLE
+ "RA2", "RA2_256", "RA2ne", "RA2ne_256", "DH", "MSLogonII",
+#endif
+ "VncAuth", "None"},
+ {
+#ifdef HAVE_GNUTLS
+ "TLSVnc",
+#endif
+ "VncAuth"});
 
 SSecurity* SecurityServer::GetSSecurity(SConnection* sc, uint32_t secType)
 {
