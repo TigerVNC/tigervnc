@@ -686,3 +686,43 @@ bool IntListParameter::validateEntry(const int& entry) const
 {
   return (entry >= minValue) && (entry <= maxValue);
 }
+
+// -=- StringListParameter
+
+template class core::ListParameter<std::string>;
+
+StringListParameter::StringListParameter(const char* name_,
+                                         const char* desc_,
+                                         const std::list<const char*>& v_)
+  : ListParameter<std::string>(name_, desc_, {})
+{
+  for (const char* v: v_) {
+    if (!v) {
+      vlog.error("Default value <null> for %s not allowed", name_);
+      throw std::invalid_argument("Default value <null> not allowed");
+    }
+    value.push_back(v);
+    def_value.push_back(v);
+  }
+}
+
+StringListParameter::const_iterator StringListParameter::begin() const
+{
+  return ListParameter<std::string>::begin();
+}
+
+StringListParameter::const_iterator StringListParameter::end() const
+{
+  return ListParameter<std::string>::end();
+}
+
+bool StringListParameter::decodeEntry(const char* entry, std::string* out) const
+{
+  *out = entry;
+  return true;
+}
+
+std::string StringListParameter::encodeEntry(const std::string& entry) const
+{
+  return entry;
+}

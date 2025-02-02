@@ -608,6 +608,70 @@ TEST(IntListParameter, immutable)
   EXPECT_TRUE(immutable.begin() == immutable.end());
 }
 
+TEST(StringListParameter, values)
+{
+  std::list<std::string> data;
+
+  core::StringListParameter list("listparam", "", {});
+
+  list.setParam({"1", "2", "3", "4"});
+  data = {"1", "2", "3", "4"};
+  EXPECT_EQ(list, data);
+}
+
+TEST(StringListParameter, strings)
+{
+  std::list<std::string> data;
+
+  core::StringListParameter strings("listparam", "", {});
+
+  strings.setParam("1,2,3,4");
+  data = {"1", "2", "3", "4"};
+  EXPECT_EQ(strings, data);
+}
+
+TEST(StringListParameter, null)
+{
+  // NULL default value
+  EXPECT_THROW({
+    core::StringListParameter defnull("enumparam", "", {nullptr});
+  }, std::invalid_argument);
+}
+
+TEST(StringListParameter, encoding)
+{
+  core::StringListParameter encoding("listparam", "", {});
+
+  encoding.setParam({"1", "2", "3", "4"});
+  EXPECT_EQ(encoding.getValueStr(), "1,2,3,4");
+}
+
+TEST(StringListParameter, default)
+{
+  core::StringListParameter def("listparam", "", {"1", "2", "3"});
+
+  EXPECT_TRUE(def.isDefault());
+
+  def.setParam({"4", "5", "6"});
+  EXPECT_FALSE(def.isDefault());
+
+  def.setParam({"1", "2", "3"});
+  EXPECT_TRUE(def.isDefault());
+}
+
+TEST(StringListParameter, immutable)
+{
+  std::list<std::string> data;
+
+  core::StringListParameter immutable("listparam", "", {"a", "b"});
+
+  immutable.setImmutable();
+  immutable.setParam({"1", "2", "3", "4"});
+  immutable.setParam("1,2,3,4");
+  data = {"a", "b"};
+  EXPECT_EQ(immutable, data);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
