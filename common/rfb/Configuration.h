@@ -278,6 +278,25 @@ namespace rfb {
     int minValue, maxValue;
   };
 
+  class StringListParameter : public ListParameter<std::string> {
+  public:
+    StringListParameter(const char* name_, const char* desc_,
+                        const ListType& v);
+
+    class const_iterator :  public ListType::const_iterator {
+    public:
+      const_iterator(const ListType::const_iterator& it) : ListType::const_iterator(it) {}
+      const char* operator*() const { return (ListType::const_iterator::operator*()).c_str(); }
+    };
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+  protected:
+    bool decodeEntry(const char* entry, std::string* out) const override;
+    std::string encodeEntry(const std::string& entry) const override;
+  };
+
 };
 
 #endif // __RFB_CONFIGURATION_H__

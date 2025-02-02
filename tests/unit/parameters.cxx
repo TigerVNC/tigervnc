@@ -476,6 +476,49 @@ static void test_int_list()
   printf("OK\n");
 }
 
+static void test_string_list()
+{
+  std::list<std::string> data;
+
+  printf("%s: ", __func__);
+
+  // List values
+  rfb::StringListParameter list("listparam", "", {});
+  list.setParam({"1", "2", "3", "4"});
+  data = {"1", "2", "3", "4"};
+  ASSERT_EQ_I(std::distance(list.begin(), list.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(list.begin(), list.end(), data.begin()), true);
+
+  // List strings
+  rfb::StringListParameter strings("listparam", "", {});
+  strings.setParam("1,2,3,4");
+  data = {"1", "2", "3", "4"};
+  ASSERT_EQ_I(std::distance(strings.begin(), strings.end()), std::distance(data.begin(), data.end()));
+  ASSERT_EQ_I(std::equal(strings.begin(), strings.end(), data.begin()), true);
+
+  // String encoding
+  rfb::StringListParameter encoding("listparam", "", {});
+  encoding.setParam({"1", "2", "3", "4"});
+  ASSERT_EQ_S(encoding.getValueStr().c_str(), "1,2,3,4");
+
+  // Default value
+  rfb::StringListParameter def("listparam", "", {"1", "2", "3"});
+  ASSERT_EQ_I(def.isDefault(), true);
+  def.setParam({"4", "5", "6"});
+  ASSERT_EQ_I(def.isDefault(), false);
+  def.setParam({"1", "2", "3"});
+  ASSERT_EQ_I(def.isDefault(), true);
+
+  // Immutable
+  rfb::StringListParameter immutable("listparam", "", {});
+  immutable.setImmutable();
+  immutable.setParam({"1", "2", "3", "4"});
+  immutable.setParam("1,2,3,4");
+  ASSERT_EQ_I(immutable.begin() == immutable.end(), true);
+
+  printf("OK\n");
+}
+
 int main(int /*argc*/, char** /*argv*/)
 {
   printf("Parameters test\n");
@@ -487,6 +530,7 @@ int main(int /*argc*/, char** /*argv*/)
   test_binary();
 
   test_int_list();
+  test_string_list();
 
   return 0;
 }
