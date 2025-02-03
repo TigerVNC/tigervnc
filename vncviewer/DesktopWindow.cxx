@@ -292,9 +292,39 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 
 void DesktopWindow::setName(const char *name)
 {
-  char windowNameStr[256];
+  char windowNameStr[100];
+  const char *labelFormat;
+  size_t maxNameSize;
+  char truncatedName[sizeof(windowNameStr)];
 
-  snprintf(windowNameStr, 256, "%.240s - TigerVNC", name);
+  labelFormat = "%s - TigerVNC";
+
+  // Ignore the length of '%s' since it is
+  // a format marker which won't take up space
+  maxNameSize = sizeof(windowNameStr) - 1 - strlen(labelFormat) + 2;
+
+  if (maxNameSize > strlen(name)) {
+    // Guaranteed to fit, no need to truncate
+    strcpy(truncatedName, name);
+  } else if (maxNameSize <= strlen("...")) {
+    // Even an ellipsis won't fit
+    truncatedName[0] = '\0';
+  } else {
+    int offset;
+
+    // We need to truncate, add an ellipsis
+    offset = maxNameSize - strlen("...");
+    strncpy(truncatedName, name, sizeof(truncatedName));
+    strcpy(truncatedName + offset, "...");
+  }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
+  snprintf(windowNameStr, sizeof(windowNameStr),
+           labelFormat, truncatedName);
+
+#pragma GCC diagnostic pop
 
   copy_label(windowNameStr);
 }
