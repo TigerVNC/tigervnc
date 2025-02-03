@@ -321,8 +321,11 @@ void DesktopWindow::setName(const char *name)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
-  snprintf(windowNameStr, sizeof(windowNameStr),
-           labelFormat, truncatedName);
+  if (snprintf(windowNameStr, sizeof(windowNameStr), "%s - TigerVNC",
+               truncatedName) >= (int)sizeof(windowNameStr)) {
+    // This is just to shut up the compiler, as we've already made sure
+    // we won't truncate anything
+  }
 
 #pragma GCC diagnostic pop
 
