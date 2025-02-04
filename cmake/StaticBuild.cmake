@@ -163,32 +163,14 @@ if(BUILD_STATIC)
 endif()
 
 if(BUILD_STATIC_GCC)
-  set(STATIC_BASE_LIBRARIES "")
-  if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lasan -Wl,-Bdynamic -ldl -lpthread")
+  set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} -static-libgcc")
+  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static-libstdc++ -static-libgcc")
+  if(ENABLE_ASAN)
+    set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} -static-libasan")
+    set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static-libasan")
   endif()
-  if(ENABLE_TSAN AND NOT WIN32 AND NOT APPLE AND CMAKE_SIZEOF_VOID_P MATCHES 8)
-    # libtsan redefines some C++ symbols which then conflict with a
-    # statically linked libstdc++. Work around this by allowing multiple
-    # definitions. The linker will pick the first one (i.e. the one
-    # from libtsan).
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-z -Wl,muldefs -Wl,-Bstatic -ltsan -Wl,-Bdynamic -ldl -lm")
+  if(ENABLE_TSAN)
+    set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} -static-libtsan")
+    set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static-libtsan")
   endif()
-  if(WIN32)
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
-    find_package(Threads)
-    if(CMAKE_USE_PTHREADS_INIT)
-      # pthread has to be statically linked after libraries above and before kernel32
-      set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lpthread -Wl,-Bdynamic")
-    endif()
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -luser32 -lkernel32 -ladvapi32 -lshell32")
-    # mingw has some fun circular dependencies that requires us to link
-    # these things again
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
-  else()
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lm -lgcc -lgcc_eh -lc")
-  endif()
-  # -nodefaultlibs ensures that we don't depend on libstdc++ or libgcc_s
-  set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_LINK_EXECUTABLE} -nodefaultlibs ${STATIC_BASE_LIBRARIES}")
-  set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic ${STATIC_BASE_LIBRARIES}")
 endif()
