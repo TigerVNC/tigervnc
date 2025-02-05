@@ -55,24 +55,28 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <core/LogWriter.h>
+#include <core/time.h>
+
+#include <rdr/FdOutStream.h>
+
 #include <network/Socket.h>
 
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
-#include <rfb/LogWriter.h>
+#include <rfb/SDesktop.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/VNCSConnectionST.h>
-#include <rfb/util.h>
 #include <rfb/ledStates.h>
 
 
 using namespace rfb;
 
-static LogWriter slog("VNCServerST");
-static LogWriter connectionsLog("Connections");
+static core::LogWriter slog("VNCServerST");
+static core::LogWriter connectionsLog("Connections");
 
 //
 // -=- VNCServerST Implementation
@@ -85,7 +89,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     blockCounter(0), pb(nullptr), ledState(ledUnknown),
     name(name_), pointerClient(nullptr), clipboardClient(nullptr),
     pointerClientTime(0),
-    comparer(nullptr), cursor(new Cursor(0, 0, Point(), nullptr)),
+    comparer(nullptr), cursor(new Cursor(0, 0, {}, nullptr)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
@@ -97,9 +101,9 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
 
   // FIXME: Do we really want to kick off these right away?
   if (rfb::Server::maxIdleTime)
-    idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
+    idleTimer.start(core::secsToMillis(rfb::Server::maxIdleTime));
   if (rfb::Server::maxDisconnectionTime)
-    disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
+    disconnectTimer.start(core::secsToMillis(rfb::Server::maxDisconnectionTime));
 }
 
 VNCServerST::~VNCServerST()
@@ -161,7 +165,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
 
   // Adjust the exit timers
   if (rfb::Server::maxConnectionTime && clients.empty())
-    connectTimer.start(secsToMillis(rfb::Server::maxConnectionTime));
+    connectTimer.start(core::secsToMillis(rfb::Server::maxConnectionTime));
   disconnectTimer.stop();
 
   VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
@@ -203,7 +207,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
       // Adjust the exit timers
       connectTimer.stop();
       if (rfb::Server::maxDisconnectionTime && clients.empty())
-        disconnectTimer.start(secsToMillis(rfb::Server::maxDisconnectionTime));
+        disconnectTimer.start(core::secsToMillis(rfb::Server::maxDisconnectionTime));
 
       return;
     }
@@ -313,7 +317,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 
   // Check that the screen layout is still valid
   if (pb_ && !layout.validate(pb_->width(), pb_->height())) {
-    Rect fbRect;
+    core::Rect fbRect;
     ScreenSet::iterator iter, iter_next;
 
     fbRect.setXYWH(0, 0, pb_->width(), pb_->height());
@@ -401,7 +405,7 @@ void VNCServerST::setName(const char* name_)
     (*ci)->setDesktopNameOrClose(name_);
 }
 
-void VNCServerST::add_changed(const Region& region)
+void VNCServerST::add_changed(const core::Region& region)
 {
   if (comparer == nullptr)
     return;
@@ -410,7 +414,8 @@ void VNCServerST::add_changed(const Region& region)
   startFrameClock();
 }
 
-void VNCServerST::add_copied(const Region& dest, const Point& delta)
+void VNCServerST::add_copied(const core::Region& dest,
+                             const core::Point& delta)
 {
   if (comparer == nullptr)
     return;
@@ -419,7 +424,8 @@ void VNCServerST::add_copied(const Region& dest, const Point& delta)
   startFrameClock();
 }
 
-void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
+void VNCServerST::setCursor(int width, int height,
+                            const core::Point& newHotspot,
                             const uint8_t* data)
 {
   delete cursor;
@@ -435,7 +441,7 @@ void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
   }
 }
 
-void VNCServerST::setCursorPos(const Point& pos, bool warped)
+void VNCServerST::setCursorPos(const core::Point& pos, bool warped)
 {
   if (cursorPos != pos) {
     cursorPos = pos;
@@ -467,7 +473,7 @@ void VNCServerST::setLEDState(unsigned int state)
 void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
   if (rfb::Server::maxIdleTime)
-    idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
+    idleTimer.start(core::secsToMillis(rfb::Server::maxIdleTime));
 
   // Remap the key if required
   if (keyRemapper) {
@@ -484,11 +490,12 @@ void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 }
 
 void VNCServerST::pointerEvent(VNCSConnectionST* client,
-                               const Point& pos, uint16_t buttonMask)
+                               const core::Point& pos,
+                               uint16_t buttonMask)
 {
   time_t now = time(nullptr);
   if (rfb::Server::maxIdleTime)
-    idleTimer.start(secsToMillis(rfb::Server::maxIdleTime));
+    idleTimer.start(core::secsToMillis(rfb::Server::maxIdleTime));
 
   // Let one client own the cursor whilst buttons are pressed in order
   // to provide a bit more sane user experience. But limit the time to
@@ -622,7 +629,7 @@ SConnection* VNCServerST::getConnection(network::Socket* sock) {
   return nullptr;
 }
 
-void VNCServerST::handleTimeout(Timer* t)
+void VNCServerST::handleTimeout(core::Timer* t)
 {
   if (t == &frameTimer) {
     int timeout;
@@ -822,7 +829,7 @@ int VNCServerST::msToNextUpdate()
 void VNCServerST::writeUpdate()
 {
   UpdateInfo ui;
-  Region toCheck;
+  core::Region toCheck;
 
   std::list<VNCSConnectionST*>::iterator ci;
 
@@ -834,9 +841,9 @@ void VNCServerST::writeUpdate()
   toCheck = ui.changed.union_(ui.copied);
 
   if (needRenderedCursor()) {
-    Rect clippedCursorRect = Rect(0, 0, cursor->width(), cursor->height())
-                             .translate(cursorPos.subtract(cursor->hotspot()))
-                             .intersect(pb->getRect());
+    core::Rect clippedCursorRect = core::Rect(0, 0, cursor->width(), cursor->height())
+                                   .translate(cursorPos.subtract(cursor->hotspot()))
+                                   .intersect(pb->getRect());
 
     if (!toCheck.intersect(clippedCursorRect).is_empty())
       renderedCursorInvalid = true;
@@ -864,7 +871,7 @@ void VNCServerST::writeUpdate()
 // checkUpdate() is called by clients to see if it is safe to read from
 // the framebuffer at this time.
 
-Region VNCServerST::getPendingRegion()
+core::Region VNCServerST::getPendingRegion()
 {
   UpdateInfo ui;
 
@@ -876,7 +883,7 @@ Region VNCServerST::getPendingRegion()
 
   // Block client from updating if there are pending updates
   if (comparer->is_empty())
-    return Region();
+    return {};
 
   comparer->getUpdateInfo(&ui, pb->getRect());
 

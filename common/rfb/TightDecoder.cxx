@@ -27,16 +27,18 @@
 
 #include <vector>
 
+#include <core/string.h>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 
 #include <rfb/ServerParams.h>
 #include <rfb/Exception.h>
+#include <rfb/JpegDecompressor.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/TightConstants.h>
 #include <rfb/TightDecoder.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -51,7 +53,7 @@ TightDecoder::~TightDecoder()
 {
 }
 
-bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
+bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
                             const ServerParams& server, rdr::OutStream* os)
 {
   uint8_t comp_ctl;
@@ -111,7 +113,8 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
   int palSize = 0;
 
   if (r.width() > TIGHT_MAX_WIDTH)
-    throw protocol_error(format("TightDecoder: Too large rectangle (%d pixels)", r.width()));
+    throw protocol_error(core::format(
+      "TightDecoder: Too large rectangle (%d pixels)", r.width()));
 
   // Possible palette
   if ((comp_ctl & tightExplicitFilter) != 0) {
@@ -192,10 +195,10 @@ bool TightDecoder::readRect(const Rect& r, rdr::InStream* is,
   return true;
 }
 
-bool TightDecoder::doRectsConflict(const Rect& /*rectA*/,
+bool TightDecoder::doRectsConflict(const core::Rect& /*rectA*/,
                                    const uint8_t* bufferA,
                                    size_t buflenA,
-                                   const Rect& /*rectB*/,
+                                   const core::Rect& /*rectB*/,
                                    const uint8_t* bufferB,
                                    size_t buflenB,
                                    const ServerParams& /*server*/)
@@ -220,7 +223,7 @@ bool TightDecoder::doRectsConflict(const Rect& /*rectA*/,
   return false;
 }
 
-void TightDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
+void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
                               size_t buflen, const ServerParams& server,
                               ModifiablePixelBuffer* pb)
 {
@@ -506,7 +509,7 @@ uint32_t TightDecoder::readCompact(rdr::InStream* is)
 void
 TightDecoder::FilterGradient24(const uint8_t *inbuf,
                                const PixelFormat& pf, uint32_t* outbuf,
-                               int stride, const Rect& r)
+                               int stride, const core::Rect& r)
 {
   int x, y, c;
   uint8_t prevRow[TIGHT_MAX_WIDTH*3];
@@ -552,7 +555,7 @@ TightDecoder::FilterGradient24(const uint8_t *inbuf,
 template<class T>
 void TightDecoder::FilterGradient(const uint8_t* inbuf,
                                   const PixelFormat& pf, T* outbuf,
-                                  int stride, const Rect& r)
+                                  int stride, const core::Rect& r)
 {
   int x, y, c;
   static uint8_t prevRow[TIGHT_MAX_WIDTH*3];
@@ -606,7 +609,7 @@ void TightDecoder::FilterGradient(const uint8_t* inbuf,
 template<class T>
 void TightDecoder::FilterPalette(const T* palette, int palSize,
                                  const uint8_t* inbuf, T* outbuf,
-                                 int stride, const Rect& r)
+                                 int stride, const core::Rect& r)
 {
   // Indexed color
   int x, h = r.height(), w = r.width(), b, pad = stride - w;

@@ -30,13 +30,16 @@
 
 #include <stdlib.h>
 
+#include <core/LogWriter.h>
+
 #include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
+
 #include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
+
 #include <gnutls/x509.h>
 
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
@@ -59,13 +62,13 @@ static const gnutls_datum_t ffdhe_pkcs3_param = {
 
 using namespace rfb;
 
-StringParameter SSecurityTLS::X509_CertFile
+core::StringParameter SSecurityTLS::X509_CertFile
 ("X509Cert", "Path to the X509 certificate in PEM format", "");
 
-StringParameter SSecurityTLS::X509_KeyFile
+core::StringParameter SSecurityTLS::X509_KeyFile
 ("X509Key", "Path to the key of the X509 certificate in PEM format", "");
 
-static LogWriter vlog("TLS");
+static core::LogWriter vlog("TLS");
 
 SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
   : SSecurity(sc_), session(nullptr), anon_cred(nullptr),

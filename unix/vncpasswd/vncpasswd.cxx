@@ -31,7 +31,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <os/os.h>
+
+#include <core/xdgdirs.h>
 
 #include <rfb/obfuscate.h>
 
@@ -40,8 +41,6 @@
 #ifdef HAVE_PWQUALITY
 #include <pwquality.h>
 #endif
-
-using namespace rfb;
 
 char* prog;
 
@@ -88,7 +87,7 @@ static int encrypt_pipe() {
     if (!result)
       break;
 
-    std::vector<uint8_t> obfuscated = obfuscate(result);
+    std::vector<uint8_t> obfuscated = rfb::obfuscate(result);
     if (fwrite(obfuscated.data(), obfuscated.size(), 1, stdout) != 1) {
       fprintf(stderr,"Writing to stdout failed\n");
       return 1;
@@ -177,7 +176,7 @@ static std::vector<uint8_t> readpassword() {
       continue;
     }
 
-    return obfuscate(first.c_str());
+    return rfb::obfuscate(first.c_str());
   }
 }
 
@@ -219,12 +218,12 @@ int main(int argc, char** argv)
   }
 
   if (fname[0] == '\0') {
-    const char *configDir = os::getvncconfigdir();
+    const char* configDir = core::getvncconfigdir();
     if (configDir == nullptr) {
       fprintf(stderr, "Could not determine VNC config directory path\n");
       exit(1);
     }
-    if (os::mkdir_p(configDir, 0777) == -1) {
+    if (core::mkdir_p(configDir, 0777) == -1) {
       if (errno != EEXIST) {
         fprintf(stderr, "Could not create VNC config directory \"%s\": %s\n",
                 configDir, strerror(errno));

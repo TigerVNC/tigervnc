@@ -23,22 +23,21 @@
 #include <assert.h>
 #include <string.h>
 
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
+#include <core/Region.h>
+#include <core/string.h>
+
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/Decoder.h>
 #include <rfb/Exception.h>
-#include <rfb/Region.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
 
-#include <rdr/Exception.h>
 #include <rdr/MemOutStream.h>
-
-#include <os/Mutex.h>
 
 using namespace rfb;
 
-static LogWriter vlog("DecodeManager");
+static core::LogWriter vlog("DecodeManager");
 
 DecodeManager::DecodeManager(CConnection *conn_) :
   conn(conn_), threadException(nullptr)
@@ -49,11 +48,11 @@ DecodeManager::DecodeManager(CConnection *conn_) :
 
   memset(stats, 0, sizeof(stats));
 
-  queueMutex = new os::Mutex();
-  producerCond = new os::Condition(queueMutex);
-  consumerCond = new os::Condition(queueMutex);
+  queueMutex = new core::Mutex();
+  producerCond = new core::Condition(queueMutex);
+  consumerCond = new core::Condition(queueMutex);
 
-  cpuCount = os::Thread::getSystemCPUCount();
+  cpuCount = core::Thread::getSystemCPUCount();
   if (cpuCount == 0) {
     vlog.error("Unable to determine the number of CPU cores on this system");
     cpuCount = 1;
@@ -101,7 +100,7 @@ DecodeManager::~DecodeManager()
     delete decoder;
 }
 
-bool DecodeManager::decodeRect(const Rect& r, int encoding,
+bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
                                ModifiablePixelBuffer* pb)
 {
   Decoder *decoder;
@@ -149,7 +148,7 @@ bool DecodeManager::decodeRect(const Rect& r, int encoding,
     if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
       return false;
   } catch (std::exception& e) {
-    throw std::runtime_error(format("Error reading rect: %s", e.what()));
+    throw std::runtime_error(core::format("Error reading rect: %s", e.what()));
   }
 
   stats[encoding].rects++;
@@ -227,35 +226,36 @@ void DecodeManager::logStats()
     ratio = (double)stats[i].equivalent / stats[i].bytes;
 
     vlog.info("    %s: %s, %s", encodingName(i),
-              siPrefix(stats[i].rects, "rects").c_str(),
-              siPrefix(stats[i].pixels, "pixels").c_str());
+              core::siPrefix(stats[i].rects, "rects").c_str(),
+              core::siPrefix(stats[i].pixels, "pixels").c_str());
     vlog.info("    %*s  %s (1:%g ratio)",
               (int)strlen(encodingName(i)), "",
-              iecPrefix(stats[i].bytes, "B").c_str(), ratio);
+              core::iecPrefix(stats[i].bytes, "B").c_str(), ratio);
   }
 
   ratio = (double)equivalent / bytes;
 
   vlog.info("  Total: %s, %s",
-            siPrefix(rects, "rects").c_str(),
-            siPrefix(pixels, "pixels").c_str());
+            core::siPrefix(rects, "rects").c_str(),
+            core::siPrefix(pixels, "pixels").c_str());
   vlog.info("         %s (1:%g ratio)",
-            iecPrefix(bytes, "B").c_str(), ratio);
+            core::iecPrefix(bytes, "B").c_str(), ratio);
 }
 
 void DecodeManager::setThreadException(const std::exception& e)
 {
-  os::AutoMutex a(queueMutex);
+  core::AutoMutex a(queueMutex);
 
   if (threadException != nullptr)
     return;
 
-  threadException = new std::runtime_error(format("Exception on worker thread: %s", e.what()));
+  threadException = new std::runtime_error(
+    core::format("Exception on worker thread: %s", e.what()));
 }
 
 void DecodeManager::throwThreadException()
 {
-  os::AutoMutex a(queueMutex);
+  core::AutoMutex a(queueMutex);
 
   if (threadException == nullptr)
     return;
@@ -282,7 +282,7 @@ DecodeManager::DecodeThread::~DecodeThread()
 
 void DecodeManager::DecodeThread::stop()
 {
-  os::AutoMutex a(manager->queueMutex);
+  core::AutoMutex a(manager->queueMutex);
 
   if (!isRunning())
     return;
@@ -344,7 +344,7 @@ void DecodeManager::DecodeThread::worker()
 
 DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
 {
-  Region lockedRegion;
+  core::Region lockedRegion;
 
   if (manager->workQueue.empty())
     return nullptr;

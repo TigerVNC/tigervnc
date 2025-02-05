@@ -40,7 +40,6 @@
 #include <rdr/OutStream.h>
 #include <rdr/RandomStream.h>
 #include <rfb/Exception.h>
-#include <os/os.h>
 
 using namespace rfb;
 

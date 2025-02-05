@@ -30,15 +30,15 @@
 #include <set>
 #include <string>
 
-#include <rfb/Configuration.h>
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
+#include <core/Configuration.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
+#include <core/Region.h>
+
 #include <rfb/ServerCore.h>
 #include <rdr/HexOutStream.h>
-#include <rfb/LogWriter.h>
-#include <rfb/Hostname.h>
-#include <rfb/Region.h>
 #include <rfb/ledStates.h>
+
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
 
@@ -55,9 +55,7 @@ extern "C" {
 void vncSetGlueContext(int screenIndex);
 }
 
-using namespace rfb;
-
-static rfb::LogWriter vlog("vncext");
+static core::LogWriter vlog("vncext");
 
 // We can't safely get this from Xorg
 #define MAXSCREENS 16
@@ -81,27 +79,39 @@ static ParamSet allowOverrideSet;
 
 static const char* defaultDesktopName();
 
-rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
-rfb::StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
-rfb::IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
-rfb::StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
-rfb::BoolParameter localhostOnly("localhost",
-                                 "Only allow connections from localhost",
-                                 false);
-rfb::StringParameter interface("interface",
-                               "Listen on the specified network address",
-                               "all");
-rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
-                                     "Avoid fake Shift presses for keys affected by NumLock.",
-                                     true);
-rfb::StringParameter allowOverride("AllowOverride",
-                                   "Comma separated list of parameters that can be modified using VNC extension.",
-                                   "desktop,AcceptPointerEvents,SendCutText,AcceptCutText,SendPrimary,SetPrimary");
-rfb::BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
-                              "as the CLIPBOARD selection", true);
-rfb::BoolParameter sendPrimary("SendPrimary",
-                               "Send the PRIMARY as well as the CLIPBOARD selection",
-                               true);
+core::IntParameter
+  rfbport("rfbport", "TCP port to listen for RFB protocol", 0);
+core::StringParameter
+  rfbunixpath("rfbunixpath",
+              "Unix socket to listen for RFB protocol", "");
+core::IntParameter
+  rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+core::StringParameter
+  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+core::BoolParameter
+  localhostOnly("localhost",
+                "Only allow connections from localhost", false);
+core::StringParameter
+  interface("interface",
+            "Listen on the specified network address", "all");
+core::BoolParameter
+  avoidShiftNumLock("AvoidShiftNumLock",
+                    "Avoid fake Shift presses for keys affected by "
+                    "NumLock.", true);
+core::StringParameter
+  allowOverride("AllowOverride",
+                "Comma separated list of parameters that can be "
+                "modified using VNC extension.",
+                "desktop,AcceptPointerEvents,SendCutText,AcceptCutText,"
+                "SendPrimary,SetPrimary");
+core::BoolParameter
+  setPrimary("SetPrimary",
+             "Set the PRIMARY as well as the CLIPBOARD selection",
+             true);
+core::BoolParameter
+  sendPrimary("SendPrimary",
+              "Send the PRIMARY as well as the CLIPBOARD selection",
+              true);
 
 static const char* defaultDesktopName()
 {
@@ -128,7 +138,7 @@ static const char* defaultDesktopName()
   return name;
 }
 
-static PixelFormat vncGetPixelFormat(int scrIdx)
+static rfb::PixelFormat vncGetPixelFormat(int scrIdx)
 {
   int depth, bpp;
   int trueColour, bigEndian;
@@ -152,9 +162,9 @@ static PixelFormat vncGetPixelFormat(int scrIdx)
   greenMax   = greenMask >> greenShift;
   blueMax    = blueMask  >> blueShift;
 
-  return PixelFormat(bpp, depth, bigEndian, trueColour,
-                     redMax, greenMax, blueMax,
-                     redShift, greenShift, blueShift);
+  return rfb::PixelFormat(bpp, depth, bigEndian, trueColour,
+                          redMax, greenMax, blueMax,
+                          redShift, greenShift, blueShift);
 }
 
 static void parseOverrideList(const char *text, ParamSet &out)
@@ -189,7 +199,7 @@ void vncExtensionInit(void)
 
   try {
     if (!initialised) {
-      rfb::initStdIOLoggers();
+      core::initStdIOLoggers();
 
       parseOverrideList(allowOverride, allowOverrideSet);
       allowOverride.setImmutable();
@@ -252,7 +262,7 @@ void vncExtensionInit(void)
         if (!inetd && listeners.empty())
           throw std::runtime_error("No path or port configured for incoming connections");
 
-        PixelFormat pf = vncGetPixelFormat(scr);
+        rfb::PixelFormat pf = vncGetPixelFormat(scr);
 
         vncSetGlueContext(scr);
         desktop[scr] = new XserverDesktop(scr,
@@ -358,7 +368,7 @@ int vncConnectClient(const char *addr, int viewOnly)
   std::string host;
   int port;
 
-  getHostAndPort(addr, &host, &port, 5500);
+  network::getHostAndPort(addr, &host, &port, 5500);
 
   try {
     network::Socket* sock = new network::TcpSocket(host.c_str(), port);
@@ -403,11 +413,11 @@ void vncSetLEDState(unsigned long leds)
 
   state = 0;
   if (leds & (1 << 0))
-    state |= ledCapsLock;
+    state |= rfb::ledCapsLock;
   if (leds & (1 << 1))
-    state |= ledNumLock;
+    state |= rfb::ledNumLock;
   if (leds & (1 << 2))
-    state |= ledScrollLock;
+    state |= rfb::ledScrollLock;
 
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
     desktop[scr]->setLEDState(state);
@@ -417,8 +427,8 @@ void vncAddChanged(int scrIdx, int nRects,
                    const struct UpdateRect *rects)
 {
   for (int i = 0;i < nRects;i++) {
-    desktop[scrIdx]->add_changed(Region(Rect(rects[i].x1, rects[i].y1,
-                                             rects[i].x2, rects[i].y2)));
+    desktop[scrIdx]->add_changed({{rects[i].x1, rects[i].y1,
+                                   rects[i].x2, rects[i].y2}});
   }
 }
 
@@ -427,9 +437,9 @@ void vncAddCopied(int scrIdx, int nRects,
                   int dx, int dy)
 {
   for (int i = 0;i < nRects;i++) {
-    desktop[scrIdx]->add_copied(Region(Rect(rects[i].x1, rects[i].y1,
-                                            rects[i].x2, rects[i].y2)),
-                                Point(dx, dy));
+    desktop[scrIdx]->add_copied({{rects[i].x1, rects[i].y1,
+                                  rects[i].x2, rects[i].y2}},
+                                {dx, dy});
   }
 }
 
@@ -471,7 +481,7 @@ void vncPostScreenResize(int scrIdx, int success, int width, int height)
 
   if (success) {
     // Mark entire screen as changed
-    desktop[scrIdx]->add_changed(Region(Rect(0, 0, width, height)));
+    desktop[scrIdx]->add_changed({{0, 0, width, height}});
   }
 }
 
@@ -516,5 +526,5 @@ int vncOverrideParam(const char *param, const char *value)
   if (allowOverrideSet.find(param) == allowOverrideSet.end())
     return 0;
 
-  return rfb::Configuration::setParam(param, value);
+  return core::Configuration::setParam(param, value);
 }

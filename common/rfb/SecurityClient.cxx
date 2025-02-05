@@ -25,12 +25,15 @@
 
 #include <stdexcept>
 
+#include <core/Configuration.h>
+
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/CSecurityPlain.h>
 #include <rfb/Security.h>
+#include <rfb/SecurityClient.h>
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
@@ -42,7 +45,7 @@
 
 using namespace rfb;
 
-StringParameter SecurityClient::secTypes
+core::StringParameter SecurityClient::secTypes
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth, Plain"
 #ifdef HAVE_GNUTLS

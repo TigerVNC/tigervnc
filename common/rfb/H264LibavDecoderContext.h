@@ -31,7 +31,7 @@ extern "C" {
 namespace rfb {
   class H264LibavDecoderContext : public H264DecoderContext {
     public:
-      H264LibavDecoderContext(const Rect &r);
+      H264LibavDecoderContext(const core::Rect &r);
       ~H264LibavDecoderContext();
 
       void decode(const uint8_t* h264_buffer, uint32_t len,

@@ -18,12 +18,12 @@
 
 // -=- Logger_stdio - standard output logger instances
 
-#ifndef __RFB_LOGGER_STDIO_H__
-#define __RFB_LOGGER_STDIO_H__
+#ifndef __CORE_LOGGER_STDIO_H__
+#define __CORE_LOGGER_STDIO_H__
 
-#include <rfb/Logger_file.h>
+#include <core/Logger_file.h>
 
-namespace rfb {
+namespace core {
 
   class Logger_StdIO : public Logger_File {
   public:

@@ -24,15 +24,17 @@
 
 #include <malloc.h>
 
+#include <core/LogWriter.h>
+
 #include <rfb_win32/RegConfig.h>
-#include <rfb/LogWriter.h>
+
 //#include <rdr/HexOutStream.h>
 
 using namespace rfb;
 using namespace rfb::win32;
 
 
-static LogWriter vlog("RegConfig");
+static core::LogWriter vlog("RegConfig");
 
 
 RegConfig::RegConfig(EventManager* em)
@@ -66,10 +68,10 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
       const char *name = key.getValueName(i++);
       if (!name) break;
       std::string value = key.getRepresentation(name);
-      if (!Configuration::setParam(name, value.c_str()))
+      if (!core::Configuration::setParam(name, value.c_str()))
         vlog.info("Unable to process %s", name);
     }
-  } catch (rdr::win32_error& e) {
+  } catch (core::win32_error& e) {
     if (e.err != ERROR_INVALID_HANDLE)
       vlog.error("%s", e.what());
   }
@@ -115,5 +117,5 @@ void RegConfigThread::worker() {
   thread_id = GetCurrentThreadId();
   while ((result = eventMgr.getMessage(&msg, nullptr, 0, 0)) > 0) {}
   if (result < 0)
-    throw rdr::win32_error("RegConfigThread failed", GetLastError());
+    throw core::win32_error("RegConfigThread failed", GetLastError());
 }

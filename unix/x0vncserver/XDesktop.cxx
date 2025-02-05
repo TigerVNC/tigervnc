@@ -28,9 +28,11 @@
 
 #include <algorithm>
 
+#include <core/LogWriter.h>
+
 #include <network/Socket.h>
 
-#include <rfb/LogWriter.h>
+#include <rfb/ScreenSet.h>
 
 #include <x0vncserver/XDesktop.h>
 
@@ -56,25 +58,27 @@ void vncSetGlueContext(Display *dpy, void *res);
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/XPixelBuffer.h>
 
-using namespace rfb;
-
 extern const unsigned short code_map_qnum_to_xorgevdev[];
 extern const unsigned int code_map_qnum_to_xorgevdev_len;
 
 extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
-BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
-BoolParameter rawKeyboard("RawKeyboard",
-                          "Send keyboard events straight through and "
-                          "avoid mapping them to the current keyboard "
-                          "layout", false);
-IntParameter queryConnectTimeout("QueryConnectTimeout",
-                                 "Number of seconds to show the 'Accept connection' dialog before "
-                                 "rejecting the connection",
-                                 10);
+core::BoolParameter
+  useShm("UseSHM", "Use MIT-SHM extension if available", true);
+core::BoolParameter
+  rawKeyboard("RawKeyboard",
+              "Send keyboard events straight through and avoid "
+              "mapping them to the current keyboard layout",
+              false);
+core::IntParameter
+  queryConnectTimeout("QueryConnectTimeout",
+                      "Number of seconds to show the 'Accept "
+                      "connection' dialog before rejecting the "
+                      "connection",
+                      10);
 
-static rfb::LogWriter vlog("XDesktop");
+static core::LogWriter vlog("XDesktop");
 
 // order is important as it must match RFB extension
 static const char * ledNames[XDESKTOP_N_LEDS] = {
@@ -234,12 +238,12 @@ void XDesktop::poll() {
                       &x, &y, &wx, &wy, &mask)) {
       x -= geometry->offsetLeft();
       y -= geometry->offsetTop();
-      server->setCursorPos(rfb::Point(x, y), false);
+      server->setCursorPos({x, y}, false);
     }
   }
 }
 
-void XDesktop::init(VNCServer* vs)
+void XDesktop::init(rfb::VNCServer* vs)
 {
   server = vs;
 }
@@ -347,7 +351,9 @@ void XDesktop::queryConnection(network::Socket* sock,
   queryConnectDialog->map();
 }
 
-void XDesktop::pointerEvent(const Point& pos, uint16_t buttonMask) {
+void XDesktop::pointerEvent(const core::Point& pos,
+                            uint16_t buttonMask)
+{
 #ifdef HAVE_XTEST
   if (!haveXtest) return;
   XTestFakeMotionEvent(dpy, DefaultScreen(dpy),
@@ -605,9 +611,9 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
 #endif
 }
 
-ScreenSet XDesktop::computeScreenLayout()
+rfb::ScreenSet XDesktop::computeScreenLayout()
 {
-  ScreenSet layout;
+  rfb::ScreenSet layout;
   char buffer[2048];
 
 #ifdef HAVE_XRANDR
@@ -622,8 +628,8 @@ ScreenSet XDesktop::computeScreenLayout()
   XRRFreeScreenResources(res);
 
   // Adjust the layout relative to the geometry
-  ScreenSet::iterator iter, iter_next;
-  Point offset(-geometry->offsetLeft(), -geometry->offsetTop());
+  rfb::ScreenSet::iterator iter, iter_next;
+  core::Point offset(-geometry->offsetLeft(), -geometry->offsetTop());
   for (iter = layout.begin();iter != layout.end();iter = iter_next) {
     iter_next = iter; ++iter_next;
     iter->dimensions = iter->dimensions.intersect(geometry->getRect());
@@ -705,9 +711,9 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
   } else {
     vlog.debug("Impossible layout - trying to adjust");
 
-    ScreenSet::const_iterator firstscreen = layout.begin();
+    rfb::ScreenSet::const_iterator firstscreen = layout.begin();
     adjustedLayout.add_screen(*firstscreen);
-    ScreenSet::iterator iter = adjustedLayout.begin();
+    rfb::ScreenSet::iterator iter = adjustedLayout.begin();
     RROutput outputId = None;
 
     for (int i = 0;i < vncRandRGetOutputCount();i++) {
@@ -861,15 +867,15 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 #ifdef HAVE_XDAMAGE
   } else if (ev->type == xdamageEventBase) {
     XDamageNotifyEvent* dev;
-    Rect rect;
+    core::Rect rect;
 
     if (!running)
       return true;
 
     dev = (XDamageNotifyEvent*)ev;
     rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
-    rect = rect.translate(Point(-geometry->offsetLeft(),
-                                -geometry->offsetTop()));
+    rect = rect.translate({-geometry->offsetLeft(),
+                           -geometry->offsetTop()});
     server->add_changed(rect);
 
     return true;
@@ -940,7 +946,7 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
       server->setPixelBuffer(pb, computeScreenLayout());
 
       // Mark entire screen as changed
-      server->add_changed(rfb::Region(Rect(0, 0, cev->width, cev->height)));
+      server->add_changed({{0, 0, cev->width, cev->height}});
     }
 
     return true;
@@ -985,7 +991,7 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
     if (cev->window == cev->root)
       return false;
 
-    server->setCursor(0, 0, Point(), nullptr);
+    server->setCursor(0, 0, {}, nullptr);
     return true;
 #endif
   }
@@ -1046,7 +1052,7 @@ bool XDesktop::setCursor()
   }
 
   try {
-    server->setCursor(cim->width, cim->height, Point(cim->xhot, cim->yhot),
+    server->setCursor(cim->width, cim->height, {cim->xhot, cim->yhot},
                       cursorData);
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::setCursor: %s",e.what());

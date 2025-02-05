@@ -24,14 +24,15 @@
 
 #include <stdexcept>
 
+#include <core/LogWriter.h>
+
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
-#include <rfb/LogWriter.h>
 
 #include "i18n.h"
 #include "Win32TouchHandler.h"
 
-static rfb::LogWriter vlog("Win32TouchHandler");
+static core::LogWriter vlog("Win32TouchHandler");
 
 static const DWORD MOUSEMOVE_FLAGS = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE |
                                      MOUSEEVENTF_VIRTUALDESK;

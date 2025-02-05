@@ -33,14 +33,14 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include <rfb/util.h>
-#include <rfb/Configuration.h>
-#include <rfb/LogWriter.h>
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
 
-using namespace rfb;
+using namespace core;
 
 static LogWriter vlog("Config");
 

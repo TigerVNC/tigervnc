@@ -25,27 +25,31 @@
 #include <config.h>
 #endif
 
+#include <core/LogWriter.h>
+
 #include <rfb/UpdateTracker.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("UpdateTracker");
+static core::LogWriter vlog("UpdateTracker");
 
 
 // -=- ClippingUpdateTracker
 
-void ClippingUpdateTracker::add_changed(const Region &region) {
+void ClippingUpdateTracker::add_changed(const core::Region& region)
+{
   ut->add_changed(region.intersect(clipRect));
 }
 
-void ClippingUpdateTracker::add_copied(const Region &dest, const Point &delta) {
+void ClippingUpdateTracker::add_copied(const core::Region& dest,
+                                       const core::Point& delta)
+{
   // Clip the destination to the display area
-  Region clipdest = dest.intersect(clipRect);
+  core::Region clipdest = dest.intersect(clipRect);
   if (clipdest.is_empty())  return;
 
   // Clip the source to the screen
-  Region tmp = clipdest;
+  core::Region tmp = clipdest;
   tmp.translate(delta.negate());
   tmp.assign_intersect(clipRect);
   if (!tmp.is_empty()) {
@@ -70,25 +74,28 @@ SimpleUpdateTracker::SimpleUpdateTracker() {
 SimpleUpdateTracker::~SimpleUpdateTracker() {
 }
 
-void SimpleUpdateTracker::add_changed(const Region &region) {
+void SimpleUpdateTracker::add_changed(const core::Region& region)
+{
   changed.assign_union(region);
 }
 
-void SimpleUpdateTracker::add_copied(const Region &dest, const Point &delta) {
+void SimpleUpdateTracker::add_copied(const core::Region& dest,
+                                     const core::Point& delta)
+{
   // Is there anything to do?
   if (dest.is_empty()) return;
 
   // Calculate whether any of this copy can be treated as a continuation
   // of an earlier one
-  Region src = dest;
+  core::Region src = dest;
   src.translate(delta.negate());
-  Region overlap = src.intersect(copied);
+  core::Region overlap = src.intersect(copied);
 
   if (overlap.is_empty()) {
     // There is no overlap
 
-    Rect newbr = dest.get_bounding_rect();
-    Rect oldbr = copied.get_bounding_rect();
+    core::Rect newbr = dest.get_bounding_rect();
+    core::Rect oldbr = copied.get_bounding_rect();
     if (oldbr.area() > newbr.area()) {
       // Old copyrect is (probably) bigger - use it
       changed.assign_union(dest);
@@ -97,7 +104,7 @@ void SimpleUpdateTracker::add_copied(const Region &dest, const Point &delta) {
       // Use the new one
       // But be careful not to copy stuff that still needs
       // to be updated.
-      Region invalid_src = src.intersect(changed);
+      core::Region invalid_src = src.intersect(changed);
       invalid_src.translate(delta);
       changed.assign_union(invalid_src);
       changed.assign_union(copied);
@@ -107,13 +114,13 @@ void SimpleUpdateTracker::add_copied(const Region &dest, const Point &delta) {
     return;
   }
 
-  Region invalid_src = overlap.intersect(changed);
+  core::Region invalid_src = overlap.intersect(changed);
   invalid_src.translate(delta);
   changed.assign_union(invalid_src);
   
   overlap.translate(delta);
 
-  Region nonoverlapped_copied = dest.union_(copied).subtract(overlap);
+  core::Region nonoverlapped_copied = dest.union_(copied).subtract(overlap);
   changed.assign_union(nonoverlapped_copied);
 
   copied = overlap;
@@ -122,12 +129,14 @@ void SimpleUpdateTracker::add_copied(const Region &dest, const Point &delta) {
   return;
 }
 
-void SimpleUpdateTracker::subtract(const Region& region) {
+void SimpleUpdateTracker::subtract(const core::Region& region)
+{
   copied.assign_subtract(region);
   changed.assign_subtract(region);
 }
 
-void SimpleUpdateTracker::getUpdateInfo(UpdateInfo* info, const Region& clip)
+void SimpleUpdateTracker::getUpdateInfo(UpdateInfo* info,
+                                        const core::Region& clip)
 {
   copied.assign_subtract(changed);
   info->changed = changed.intersect(clip);

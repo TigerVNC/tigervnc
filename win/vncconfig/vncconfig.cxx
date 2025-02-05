@@ -22,12 +22,15 @@
 #include <string.h>
 
 #include "resource.h"
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
+
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
+
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/RegConfig.h>
 #include <rfb_win32/CurrentUser.h>
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -120,7 +123,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
 
         // Set the DACL, and don't allow the key to inherit its parent's DACL
         rootKey.setDACL(acl, false);
-      } catch (rdr::win32_error& e) {
+      } catch (core::win32_error& e) {
         // Something weird happens on NT 4.0 SP5 but I can't reproduce it on other
         // NT 4.0 service pack revisions.
         if (e.err == ERROR_INVALID_PARAMETER) {
@@ -164,7 +167,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
 #else
       sheet.showPropSheet(nullptr, true, false);
 #endif
-    } catch (rdr::win32_error& e) {
+    } catch (core::win32_error& e) {
       switch (e.err) {
       case ERROR_ACCESS_DENIED:
         MsgBox(nullptr, "You do not have sufficient access rights to run the VNC Configuration applet",

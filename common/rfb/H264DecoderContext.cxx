@@ -34,7 +34,7 @@
 
 using namespace rfb;
 
-H264DecoderContext *H264DecoderContext::createContext(const Rect &r)
+H264DecoderContext *H264DecoderContext::createContext(const core::Rect &r)
 {
   return new H264DecoderContextType(r);
 }

@@ -35,7 +35,7 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-#include <os/winerrno.h>
+#include <core/winerrno.h>
 #include <direct.h>
 #endif
 
@@ -48,16 +48,18 @@
 #include <X11/XKBlib.h>
 #endif
 
-#include <rfb/Logger_stdio.h>
+#include <core/Exception.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
+#include <core/Timer.h>
+
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #endif
-#include <rfb/Hostname.h>
-#include <rfb/LogWriter.h>
-#include <rfb/Timer.h>
-#include <rdr/Exception.h>
+
+#include <core/xdgdirs.h>
+
 #include <network/TcpSocket.h>
-#include <os/os.h>
 
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Sys_Menu_Bar.H>
@@ -79,10 +81,7 @@
 #include "win32.h"
 #endif
 
-static rfb::LogWriter vlog("main");
-
-using namespace network;
-using namespace rfb;
+static core::LogWriter vlog("main");
 
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
@@ -187,7 +186,7 @@ static void mainloop(const char* vncserver, network::Socket* sock)
     while (!exitMainloop) {
       int next_timer;
 
-      next_timer = Timer::checkTimeouts();
+      next_timer = core::Timer::checkTimeouts();
       if (next_timer < 0)
         next_timer = INT_MAX;
 
@@ -476,7 +475,7 @@ static void usage(const char *programName)
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n"));
-  Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
 
 #ifdef WIN32
   // Just wait for the user to kill the console window
@@ -541,7 +540,7 @@ create_base_dirs()
 {
   const char *dir;
 
-  dir = os::getvncconfigdir();
+  dir = core::getvncconfigdir();
   if (dir == nullptr) {
     vlog.error(_("Could not determine VNC config directory path"));
     return;
@@ -557,31 +556,31 @@ create_base_dirs()
     vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
 #endif
 
-  if (os::mkdir_p(dir, 0755) == -1) {
+  if (core::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC config directory \"%s\": %s"),
                  dir, strerror(errno));
   }
 
-  dir = os::getvncdatadir();
+  dir = core::getvncdatadir();
   if (dir == nullptr) {
     vlog.error(_("Could not determine VNC data directory path"));
     return;
   }
 
-  if (os::mkdir_p(dir, 0755) == -1) {
+  if (core::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC data directory \"%s\": %s"),
                  dir, strerror(errno));
   }
 
-  dir = os::getvncstatedir();
+  dir = core::getvncstatedir();
   if (dir == nullptr) {
     vlog.error(_("Could not determine VNC state directory path"));
     return;
   }
 
-  if (os::mkdir_p(dir, 0755) == -1) {
+  if (core::mkdir_p(dir, 0755) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC state directory \"%s\": %s"),
                  dir, strerror(errno));
@@ -616,10 +615,10 @@ static void mktunnel()
 {
   const char *gatewayHost;
   std::string remoteHost;
-  int localPort = findFreeTcpPort();
+  int localPort = network::findFreeTcpPort();
   int remotePort;
 
-  getHostAndPort(vncServerName, &remoteHost, &remotePort);
+  network::getHostAndPort(vncServerName, &remoteHost, &remotePort);
   snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
   vncServerName[VNCSERVERNAMELEN - 1] = '\0';
   gatewayHost = (const char*)via;
@@ -651,13 +650,13 @@ int main(int argc, char** argv)
   bind_textdomain_codeset(PACKAGE_NAME, "UTF-8");
   bind_textdomain_codeset("libc", "UTF-8");
 
-  rfb::initStdIOLoggers();
+  core::initStdIOLoggers();
 #ifdef WIN32
-  rfb::initFileLogger("C:\\temp\\vncviewer.log");
+  core::initFileLogger("C:\\temp\\vncviewer.log");
 #else
-  rfb::initFileLogger("/tmp/vncviewer.log");
+  core::initFileLogger("/tmp/vncviewer.log");
 #endif
-  rfb::LogWriter::setLogParams("*:stderr:30");
+  core::LogWriter::setLogParams("*:stderr:30");
 
 #ifdef SIGHUP
   signal(SIGHUP, CleanupSignalHandler);
@@ -681,7 +680,7 @@ int main(int argc, char** argv)
   for (int i = 1; i < argc;) {
     int ret;
 
-    ret = Configuration::handleParamArg(argc, argv, i);
+    ret = core::Configuration::handleParamArg(argc, argv, i);
     if (ret > 0) {
       i += ret;
       continue;
@@ -738,7 +737,7 @@ int main(int argc, char** argv)
 
   create_base_dirs();
 
-  Socket *sock = nullptr;
+  network::Socket* sock = nullptr;
 
 #ifndef WIN32
   /* Specifying -via and -listen together is nonsense */
@@ -752,7 +751,7 @@ int main(int argc, char** argv)
 #endif
 
   if (listenMode) {
-    std::list<SocketListener*> listeners;
+    std::list<network::SocketListener*> listeners;
     try {
       int port = 5500;
       if (isdigit(vncServerName[0]))
@@ -768,7 +767,7 @@ int main(int argc, char** argv)
       while (sock == nullptr) {
         fd_set rfds;
         FD_ZERO(&rfds);
-        for (SocketListener* listener : listeners)
+        for (network::SocketListener* listener : listeners)
           FD_SET(listener->getFd(), &rfds);
 
         int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, nullptr);
@@ -777,11 +776,11 @@ int main(int argc, char** argv)
             vlog.debug("Interrupted select() system call");
             continue;
           } else {
-            throw rdr::socket_error("select", errno);
+            throw core::socket_error("select", errno);
           }
         }
 
-        for (SocketListener* listener : listeners)
+        for (network::SocketListener* listener : listeners)
           if (FD_ISSET(listener->getFd(), &rfds)) {
             sock = listener->accept();
             if (sock)

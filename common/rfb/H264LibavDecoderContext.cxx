@@ -41,7 +41,7 @@ extern "C" {
 
 using namespace rfb;
 
-H264LibavDecoderContext::H264LibavDecoderContext(const Rect& r)
+H264LibavDecoderContext::H264LibavDecoderContext(const core::Rect& r)
   : H264DecoderContext(r)
 {
   sws = nullptr;

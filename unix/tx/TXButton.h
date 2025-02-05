@@ -26,8 +26,9 @@
 #ifndef __TXBUTTON_H__
 #define __TXBUTTON_H__
 
+#include <algorithm>
+
 #include "TXWindow.h"
-#include <rfb/util.h>
 
 // TXButtonCallback's buttonActivate() method is called when a button is
 // activated.
@@ -63,8 +64,8 @@ public:
     text = text_;
     int textWidth = XTextWidth(defaultFS, text.data(), text.size());
     int textHeight = (defaultFS->ascent + defaultFS->descent);
-    int newWidth = __rfbmax(width(), textWidth + xPad*2 + bevel*2);
-    int newHeight = __rfbmax(height(), textHeight + yPad*2 + bevel*2);
+    int newWidth = std::max(width(), textWidth + xPad*2 + bevel*2);
+    int newHeight = std::max(height(), textHeight + yPad*2 + bevel*2);
     if (width() < newWidth || height() < newHeight) {
       resize(newWidth, newHeight);
     }
