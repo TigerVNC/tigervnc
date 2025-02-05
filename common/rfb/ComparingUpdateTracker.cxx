@@ -258,10 +258,12 @@ void ComparingUpdateTracker::logStats()
 
   ratio = (double)totalPixels / missedPixels;
 
-  vlog.info("%s in / %s out",
-            siPrefix(totalPixels, "pixels").c_str(),
-            siPrefix(missedPixels, "pixels").c_str());
-  vlog.info("(1:%g ratio)", ratio);
+  // FIXME: This gets spammed on each session resize, so we'll have to
+  //        keep it on a debug level for now
+  vlog.debug("%s in / %s out",
+             siPrefix(totalPixels, "pixels").c_str(),
+             siPrefix(missedPixels, "pixels").c_str());
+  vlog.debug("(1:%g ratio)", ratio);
 
   totalPixels = missedPixels = 0;
 }
