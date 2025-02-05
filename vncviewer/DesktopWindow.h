@@ -101,10 +101,9 @@ private:
 
   void maximizeWindow();
 
-  void handleDesktopSize();
   static void handleResizeTimeout(void *data);
   static void reconfigureFullscreen(void *data);
-  void remoteResize(int width, int height);
+  void remoteResize();
 
   void repositionWidgets();
 
@@ -131,7 +130,7 @@ private:
 
   bool firstUpdate;
   bool delayedFullscreen;
-  bool delayedDesktopSize;
+  bool sentDesktopSize;
 
   bool keyboardGrabbed;
   bool mouseGrabbed;
