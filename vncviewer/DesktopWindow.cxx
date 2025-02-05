@@ -84,6 +84,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
     firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
+    pendingRemoteResize(false), lastResize({0, 0}),
     keyboardGrabbed(false), mouseGrabbed(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(nullptr)
@@ -403,6 +404,19 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
+void DesktopWindow::setDesktopSizeDone(unsigned result)
+{
+  pendingRemoteResize = false;
+
+  if (result != 0)
+    return;
+
+  // We might have resized again whilst waiting for the previous
+  // request, so check if we are in sync
+  remoteResize();
+}
+
+
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
                               const uint8_t* data)
@@ -690,10 +704,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   Fl_Window::resize(x, y, w, h);
 
   if (resizing) {
-    // We delay updating the remote desktop as we tend to get a flood
-    // of resize events as the user is dragging the window.
-    Fl::remove_timeout(handleResizeTimeout, this);
-    Fl::add_timeout(0.5, handleResizeTimeout, this);
+    remoteResize();
 
     repositionWidgets();
   }
@@ -1308,6 +1319,18 @@ void DesktopWindow::remoteResize()
   if (delayedFullscreen)
     return;
 
+  // Rate limit to one pending resize at a time
+  if (pendingRemoteResize)
+    return;
+
+  // And no more than once every 100ms
+  if (msSince(&lastResize) < 100) {
+    Fl::remove_timeout(handleResizeTimeout, this);
+    Fl::add_timeout((100.0 - msSince(&lastResize)) / 1000.0,
+                    handleResizeTimeout, this);
+    return;
+  }
+
   width = w();
   height = h();
 
@@ -1438,6 +1461,8 @@ void DesktopWindow::remoteResize()
     vlog.debug("%s", buffer);
   }
 
+  pendingRemoteResize = true;
+  gettimeofday(&lastResize, nullptr);
   cc->writer()->writeSetDesktopSize(width, height, layout);
 }
 

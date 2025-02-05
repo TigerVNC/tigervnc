@@ -37,6 +37,7 @@
 #include <rfb/Security.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/Timer.h>
+#include <rfb/screenTypes.h>
 #include <network/TcpSocket.h>
 #ifndef WIN32
 #include <network/UnixSocket.h>
@@ -314,6 +315,16 @@ void CConn::initDone()
   int encNum = encodingNum(::preferredEncoding);
   if (encNum != -1)
     setPreferredEncoding(encNum);
+}
+
+void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
+                                   int w, int h,
+                                   const rfb::ScreenSet& layout)
+{
+  CConnection::setExtendedDesktopSize(reason, result, w, h, layout);
+
+  if (reason == reasonClient)
+    desktop->setDesktopSizeDone(result);
 }
 
 // setName() is called when the desktop name changes
