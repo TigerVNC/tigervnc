@@ -658,6 +658,11 @@ void Viewport::handleKeyPress(int systemKeyCode,
 {
   static bool menuRecursion = false;
 
+  // Right Ctrl
+  if (keySym == FL_Control_R) {
+    return;
+  }
+
   // Prevent recursion if the menu wants to send its own
   // activation key.
   if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
@@ -687,6 +692,12 @@ void Viewport::handleKeyRelease(int systemKeyCode,
 
   if (viewOnly)
     return;
+
+  // Right Ctrl
+  if (keySym == FL_Control_R) {
+    ((DesktopWindow*)window())->toggleForceGrab();
+    return;
+  }
 
   try {
     cc->sendKeyRelease(systemKeyCode);
