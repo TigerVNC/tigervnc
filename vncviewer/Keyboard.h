@@ -26,7 +26,8 @@ class KeyboardHandler
 public:
   virtual void handleKeyPress(int systemKeyCode,
                               uint32_t keyCode, uint32_t keySym) = 0;
-  virtual void handleKeyRelease(int systemKeyCode) = 0;
+  virtual void handleKeyRelease(int systemKeyCode,
+                                uint32_t keyCode, uint32_t keySym) = 0;
 };
 
 class Keyboard
