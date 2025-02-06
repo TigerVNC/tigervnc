@@ -292,7 +292,7 @@ bool KeyboardWin32::handleEvent(const void* event)
     case XK_Katakana:
     case XK_Hiragana:
     case XK_Romaji:
-      handler->handleKeyRelease(systemKeyCode);
+      handler->handleKeyRelease(systemKeyCode, keyCode, keySym);
     }
 
     // Shift key tracking, see below
@@ -335,7 +335,7 @@ bool KeyboardWin32::handleEvent(const void* event)
 
     keyCode = translateSystemKeyCode(systemKeyCode);
 
-    handler->handleKeyRelease(keyCode);
+    handler->handleKeyRelease(keyCode, keyCode, keySym);
 
     // Windows has a rather nasty bug where it won't send key release
     // events for a Shift button if the other Shift is still pressed
