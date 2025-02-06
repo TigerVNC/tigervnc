@@ -57,7 +57,6 @@ public:
 
   void initDone() override;
 
-  void setDesktopSize(int w, int h) override;
   void setExtendedDesktopSize(unsigned reason, unsigned result,
                               int w, int h,
                               const rfb::ScreenSet& layout) override;

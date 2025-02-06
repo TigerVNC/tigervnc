@@ -55,6 +55,9 @@ public:
   // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
 
+  // A previous call to writeSetDesktopSize() has completed
+  void setDesktopSizeDone(unsigned result);
+
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const uint8_t* data);
@@ -101,10 +104,9 @@ private:
 
   void maximizeWindow();
 
-  void handleDesktopSize();
   static void handleResizeTimeout(void *data);
   static void reconfigureFullscreen(void *data);
-  void remoteResize(int width, int height);
+  void remoteResize();
 
   void repositionWidgets();
 
@@ -131,7 +133,10 @@ private:
 
   bool firstUpdate;
   bool delayedFullscreen;
-  bool delayedDesktopSize;
+  bool sentDesktopSize;
+
+  bool pendingRemoteResize;
+  struct timeval lastResize;
 
   bool keyboardGrabbed;
   bool mouseGrabbed;
