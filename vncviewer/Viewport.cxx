@@ -228,6 +228,11 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 
 void Viewport::showCursor()
 {
+  if (viewOnly) {
+    window()->cursor(FL_CURSOR_DEFAULT);
+    return;
+  }
+
   if (cursorIsBlank && alwaysCursor && !strcasecmp("system", cursorType)) {
     window()->cursor(FL_CURSOR_DEFAULT);
   } else {
@@ -786,7 +791,7 @@ void Viewport::popupContextMenu()
   handle(FL_FOCUS);
 
   // Back to our proper mouse pointer.
-  if (Fl::belowmouse())
+  if (Fl::belowmouse() == this)
     showCursor();
 
   if (m == nullptr)
@@ -874,5 +879,6 @@ void Viewport::handleOptions(void *data)
   Viewport *self = (Viewport*)data;
 
   self->setMenuKey();
-  // FIXME: Need to recheck cursor for dotWhenNoCursor
+  if (Fl::belowmouse() == self)
+    self->showCursor();
 }
