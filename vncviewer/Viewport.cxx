@@ -237,11 +237,17 @@ void Viewport::showCursor()
 
 void Viewport::handleClipboardRequest()
 {
+  if (viewOnly)
+    return;
+
   Fl::paste(*this, clipboardSource);
 }
 
 void Viewport::handleClipboardAnnounce(bool available)
 {
+  if (viewOnly)
+    return;
+
   if (!acceptClipboard)
     return;
 
@@ -296,6 +302,9 @@ void Viewport::setLEDState(unsigned int ledState)
     return;
   }
 
+  if (viewOnly)
+    return;
+
   if (!hasFocus())
     return;
 
@@ -305,6 +314,9 @@ void Viewport::setLEDState(unsigned int ledState)
 void Viewport::pushLEDState()
 {
   unsigned int ledState;
+
+  if (viewOnly)
+    return;
 
   // Server support?
   if (cc->server.ledState() == ledUnknown)
@@ -532,6 +544,9 @@ void Viewport::handleClipboardChange(int source, void *data)
   Viewport *self = (Viewport *)data;
 
   assert(self);
+
+  if (viewOnly)
+    return;
 
   if (!sendClipboard)
     return;

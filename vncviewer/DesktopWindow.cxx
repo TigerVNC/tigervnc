@@ -1335,6 +1335,9 @@ void DesktopWindow::remoteResize(int width, int height)
   ScreenSet layout;
   ScreenSet::const_iterator iter;
 
+  if (viewOnly)
+    return;
+
   if (!fullscreen_active() || (width > w()) || (height > h())) {
     // In windowed mode (or the framebuffer is so large that we need
     // to scroll) we just report a single virtual screen that covers
