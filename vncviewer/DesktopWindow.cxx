@@ -84,7 +84,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
     firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
-    keyboardGrabbed(false), mouseGrabbed(false),
+    keyboardGrabbed(false), mouseGrabbed(false), forceGrabbed(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(nullptr)
 {
@@ -840,6 +840,17 @@ void DesktopWindow::updateOverlay(void *data)
   self->damage(FL_DAMAGE_USER1);
 }
 
+void DesktopWindow::toggleForceGrab() {
+  if (keyboardGrabbed && mouseGrabbed) {
+    ungrabPointer();
+    ungrabKeyboard();
+    forceGrabbed = false;
+  } else {
+    grabPointer();
+    grabKeyboard();
+    forceGrabbed = true;
+  }
+}
 
 int DesktopWindow::handle(int event)
 {
@@ -876,7 +887,9 @@ int DesktopWindow::handle(int event)
       // We don't get FL_LEAVE with a grabbed pointer, so check manually
       if ((Fl::event_x() < 0) || (Fl::event_x() >= w()) ||
           (Fl::event_y() < 0) || (Fl::event_y() >= h())) {
-        ungrabPointer();
+        if (!forceGrabbed) {
+          ungrabPointer();
+        }
       }
 #if !defined(WIN32) && !defined(__APPLE__)
       Window root, child;
@@ -887,7 +900,9 @@ int DesktopWindow::handle(int event)
       if (XQueryPointer(fl_display, fl_xid(this), &root, &child,
                         &x, &y, &wx, &wy, &mask) &&
           (root != XRootWindow(fl_display, fl_screen))) {
-        ungrabPointer();
+        if (!forceGrabbed) {
+          ungrabPointer();
+        }
       }
 #endif
     }
@@ -1170,6 +1185,7 @@ void DesktopWindow::ungrabKeyboard()
 {
   Fl::remove_timeout(handleGrab, this);
 
+  forceGrabbed = false;
   keyboardGrabbed = false;
 
   ungrabPointer();
@@ -1206,6 +1222,7 @@ void DesktopWindow::grabPointer()
 
 void DesktopWindow::ungrabPointer()
 {
+  forceGrabbed = false;
   mouseGrabbed = false;
 
 #if !defined(WIN32) && !defined(__APPLE__)

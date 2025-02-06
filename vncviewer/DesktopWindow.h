@@ -78,6 +78,8 @@ public:
 
   void fullscreen_on();
 
+  void toggleForceGrab();
+
 private:
   static void menuOverlay(void *data);
 
@@ -136,6 +138,7 @@ private:
 
   bool keyboardGrabbed;
   bool mouseGrabbed;
+  bool forceGrabbed;
 
   struct statsEntry {
     unsigned ups;
