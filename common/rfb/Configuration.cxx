@@ -151,11 +151,11 @@ int Configuration::handleArg(int argc, char* argv[], int index)
       param = param.substr(1);
   } else {
     // All command line arguments need either an initial '-', or an '='
-    if (val.empty())
+    if (!equal)
       return 0;
   }
 
-  if (!val.empty())
+  if (equal)
     return set(param.c_str(), val.c_str()) ? 1 : 0;
 
   for (VoidParameter* current: params) {
