@@ -105,6 +105,13 @@ static void test_none()
   ASSERT_EQ_I(ret, 1);
   ASSERT_EQ_S(strparam, "foo");
 
+  // empty string argument
+  argv = {"prog", "strparam=", "bar" };
+  ret = rfb::Configuration::handleParamArg(argv.size(),
+                                           (char**)argv.data(), 1);
+  ASSERT_EQ_I(ret, 1);
+  ASSERT_EQ_S(strparam, "");
+
   // Bad parameter
   argv = {"prog", "fooparam=123"};
   ret = rfb::Configuration::handleParamArg(argv.size(),
@@ -152,6 +159,13 @@ static void test_single()
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 1);
   ASSERT_EQ_S(strparam, "foo");
+
+  // empty string argument with equals
+  argv = {"prog", "-strparam=", "bar" };
+  ret = rfb::Configuration::handleParamArg(argv.size(),
+                                           (char**)argv.data(), 1);
+  ASSERT_EQ_I(ret, 1);
+  ASSERT_EQ_S(strparam, "");
 
   // Missing argument
   intparam.setParam(1);
@@ -214,6 +228,13 @@ static void test_double()
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 1);
   ASSERT_EQ_S(strparam, "foo");
+
+  // empty string argument with equals
+  argv = {"prog", "--strparam=", "bar" };
+  ret = rfb::Configuration::handleParamArg(argv.size(),
+                                           (char**)argv.data(), 1);
+  ASSERT_EQ_I(ret, 1);
+  ASSERT_EQ_S(strparam, "");
 
   // Missing argument
   intparam.setParam(1);
@@ -292,6 +313,22 @@ static void test_bool()
                                            (char**)argv.data(), 1);
   ASSERT_EQ_I(ret, 1);
   ASSERT_EQ_I(boolparam, false);
+
+  // empty bool argument equals (single)
+  boolparam.setParam(true);
+  argv = {"prog", "-boolparam=", "on"};
+  ret = rfb::Configuration::handleParamArg(argv.size(),
+                                           (char**)argv.data(), 1);
+  ASSERT_EQ_I(ret, 1);
+  ASSERT_EQ_I(boolparam, true);
+
+  // empty bool argument equals (double)
+  boolparam.setParam(true);
+  argv = {"prog", "--boolparam=", "on"};
+  ret = rfb::Configuration::handleParamArg(argv.size(),
+                                           (char**)argv.data(), 1);
+  ASSERT_EQ_I(ret, 1);
+  ASSERT_EQ_I(boolparam, true);
 
   // bool bad argument (single)
   boolparam.setParam(false);
