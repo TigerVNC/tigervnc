@@ -149,7 +149,7 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
   int x, y;
 
   win = new Fl_Window(410, 0, _("VNC authentication"));
-  win->callback(button_cb, 0);
+  win->callback(button_cb, 1);
 
   banner = new Fl_Box(0, 0, win->w(), 20);
   banner->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE|FL_ALIGN_IMAGE_NEXT_TO_TEXT);
