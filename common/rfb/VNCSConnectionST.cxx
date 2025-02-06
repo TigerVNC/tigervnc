@@ -718,6 +718,9 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 {
   Rect rect;
 
+  if (!accessCheck(AccessView))
+    return;
+
   if (!client.supportsFence() || !client.supportsContinuousUpdates())
     throw protocol_error("Client tried to enable continuous updates when not allowed");
 
