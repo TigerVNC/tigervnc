@@ -65,8 +65,16 @@ std::string UserDialog::savedPassword;
 static long ret_val = 0;
 
 static void button_cb(Fl_Widget *widget, long val) {
+  Fl_Window* win;
+
   ret_val = val;
-  widget->window()->hide();
+
+  assert(widget != nullptr);
+  win = dynamic_cast<Fl_Window*>(widget);
+  if (win == nullptr)
+    win = widget->window();
+  assert(win != nullptr);
+  win->hide();
 }
 
 UserDialog::UserDialog()
