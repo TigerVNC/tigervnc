@@ -31,6 +31,7 @@ type vnc_home_t;
 userdom_user_home_content(vnc_home_t)
 
 allow vnc_session_t self:capability { chown dac_override dac_read_search fowner kill setgid setuid sys_resource };
+allow vnc_session_t self:dir { create write setattr };
 allow vnc_session_t self:process { getcap setexec setrlimit setsched };
 allow vnc_session_t self:fifo_file rw_fifo_file_perms;
 
