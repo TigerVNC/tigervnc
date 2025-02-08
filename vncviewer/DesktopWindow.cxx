@@ -221,14 +221,6 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   // Adjust layout now that we're visible and know our final size
   repositionWidgets();
 
-  if (delayedFullscreen) {
-    // Hack: Fullscreen requests may be ignored, so we need a timeout for
-    // when we should stop waiting. We also really need to wait for the
-    // resize, which can come after the fullscreen event.
-    Fl::add_timeout(0.5, handleFullscreenTimeout, this);
-    fullscreen_on();
-  }
-
   // Throughput graph for debugging
   if (vlog.getLevel() >= LogWriter::LEVEL_DEBUG) {
     memset(&stats, 0, sizeof(stats));
@@ -918,6 +910,19 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
     case FL_UNFOCUS:
       if (fullscreenSystemKeys) {
         dw->ungrabKeyboard();
+      }
+      break;
+
+    case FL_SHOW:
+      // In this particular place, FL_SHOW means an actual MapNotify,
+      // which means we can continue enabling initial fullscreen.
+      if (dw->delayedFullscreen) {
+        // Hack: Fullscreen requests may be ignored, so we need a
+        // timeout for when we should stop waiting. We also really need
+        // to wait for the resize, which can come after the fullscreen
+        // event.
+        Fl::add_timeout(0.5, handleFullscreenTimeout, dw);
+        dw->fullscreen_on();
       }
       break;
 
