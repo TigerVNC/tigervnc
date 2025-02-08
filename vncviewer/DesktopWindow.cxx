@@ -856,6 +856,14 @@ int DesktopWindow::handle(int event)
     else
       ungrabKeyboard();
 
+    // The window manager respected our full screen request, so stop
+    // waiting and delaying the session resize
+    if (delayedFullscreen && fullscreen_active()) {
+      Fl::remove_timeout(handleFullscreenTimeout, this);
+      delayedFullscreen = false;
+      remoteResize();
+    }
+
     break;
 
   case FL_ENTER:
