@@ -339,17 +339,17 @@ void Viewport::pushLEDState()
   if ((ledState & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
   }
   if ((ledState & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
   }
   if ((ledState & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
   }
 }
 
@@ -655,6 +655,11 @@ void Viewport::handleKeyPress(int systemKeyCode,
 {
   static bool menuRecursion = false;
 
+  // Right Ctrl
+  if (keySym == FL_Control_R) {
+    return;
+  }
+
   // Prevent recursion if the menu wants to send its own
   // activation key.
   if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
@@ -676,10 +681,20 @@ void Viewport::handleKeyPress(int systemKeyCode,
 }
 
 
-void Viewport::handleKeyRelease(int systemKeyCode)
+void Viewport::handleKeyRelease(int systemKeyCode,
+                                uint32_t keyCode, uint32_t keySym)
 {
+  (void)keyCode; // unused
+  (void)keySym; // unused
+
   if (viewOnly)
     return;
+
+  // Right Ctrl
+  if (keySym == FL_Control_R) {
+    ((DesktopWindow*)window())->toggleForceGrab();
+    return;
+  }
 
   try {
     cc->sendKeyRelease(systemKeyCode);
@@ -825,28 +840,28 @@ void Viewport::popupContextMenu()
     if (m->value())
       handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     else
-      handleKeyRelease(FAKE_CTRL_KEY_CODE);
+      handleKeyRelease(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     menuCtrlKey = !menuCtrlKey;
     break;
   case ID_ALT:
     if (m->value())
       handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     else
-      handleKeyRelease(FAKE_ALT_KEY_CODE);
+      handleKeyRelease(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     menuAltKey = !menuAltKey;
     break;
   case ID_MENUKEY:
     handleKeyPress(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
     break;
   case ID_CTRLALTDEL:
     handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     handleKeyPress(FAKE_DEL_KEY_CODE, 0xd3, XK_Delete);
 
-    handleKeyRelease(FAKE_DEL_KEY_CODE);
-    handleKeyRelease(FAKE_ALT_KEY_CODE);
-    handleKeyRelease(FAKE_CTRL_KEY_CODE);
+    handleKeyRelease(FAKE_DEL_KEY_CODE, 0xd3, XK_Delete);
+    handleKeyRelease(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
+    handleKeyRelease(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
