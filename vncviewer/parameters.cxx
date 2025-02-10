@@ -58,7 +58,8 @@ static LogWriter vlog("Parameters");
 
 IntParameter pointerEventInterval("PointerEventInterval",
                                   "Time in milliseconds to rate-limit"
-                                  " successive pointer events", 17);
+                                  " successive pointer events",
+                                  17, 0, INT_MAX);
 BoolParameter emulateMiddleButton("EmulateMiddleButton",
                                   "Emulate middle mouse button by pressing "
                                   "left and right mouse buttons simultaneously",
@@ -95,7 +96,8 @@ BoolParameter fullColour("FullColor",
 AliasParameter fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
 IntParameter lowColourLevel("LowColorLevel",
                             "Color level to use on slow connections. "
-                            "0 = Very Low, 1 = Low, 2 = Medium", 2);
+                            "0 = Very Low, 1 = Low, 2 = Medium",
+                            2, 0, 2);
 AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", &lowColourLevel);
 StringParameter preferredEncoding("PreferredEncoding",
                                   "Preferred encoding to use (Tight, ZRLE, Hextile or"
@@ -105,13 +107,13 @@ BoolParameter customCompressLevel("CustomCompressLevel",
                                   "Default if CompressLevel is specified.", false);
 IntParameter compressLevel("CompressLevel",
                            "Use specified compression level 0 = Low, 9 = High",
-                           2);
+                           2, 0, 9);
 BoolParameter noJpeg("NoJPEG",
                      "Disable lossy JPEG compression in Tight encoding.",
                      false);
 IntParameter qualityLevel("QualityLevel",
                           "JPEG quality level. 0 = Low, 9 = High",
-                          8);
+                          8, 0, 9);
 
 BoolParameter maximize("Maximize", "Maximize viewer window", false);
 BoolParameter fullScreen("FullScreen", "Enable full screen", false);

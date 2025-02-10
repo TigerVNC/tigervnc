@@ -63,14 +63,17 @@ static const char* defaultDesktopName();
 
 IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
                           "cycle; actual interval may be dynamically "
-                          "adjusted to satisfy MaxProcessorUsage setting", 30);
+                          "adjusted to satisfy MaxProcessorUsage setting",
+                          30, 0, INT_MAX);
 IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
-                               "CPU time to be consumed", 35);
+                               "CPU time to be consumed", 35, 0, 100);
 StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
 StringParameter displayname("display", "The X display", "");
-IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
+IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",
+                     5900, -1, 65535);
 StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
-IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode",
+                         0600, 0000, 0777);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
 BoolParameter localhostOnly("localhost",
                             "Only allow connections from localhost",

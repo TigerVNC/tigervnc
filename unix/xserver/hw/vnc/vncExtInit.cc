@@ -81,9 +81,13 @@ static ParamSet allowOverrideSet;
 
 static const char* defaultDesktopName();
 
-rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
+rfb::IntParameter rfbport("rfbport",
+                          "TCP port to listen for RFB protocol",
+                          0, -1, 65535);
 rfb::StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
-rfb::IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+rfb::IntParameter rfbunixmode("rfbunixmode",
+                              "Unix socket access mode",
+                              0600, 0000, 0777);
 rfb::StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
 rfb::BoolParameter localhostOnly("localhost",
                                  "Only allow connections from localhost",
