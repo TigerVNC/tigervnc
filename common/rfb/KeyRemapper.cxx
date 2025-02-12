@@ -25,7 +25,6 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
-#include <core/Mutex.h>
 
 #include <rfb/KeyRemapper.h>
 
@@ -37,19 +36,14 @@ KeyRemapper KeyRemapper::defInstance;
 
 KeyRemapper::KeyRemapper(const char* m)
 {
-  mutex = new core::Mutex;
-
   setMapping(m);
 }
 
 KeyRemapper::~KeyRemapper()
 {
-  delete mutex;
 }
 
 void KeyRemapper::setMapping(const char* m) {
-  core::AutoMutex a(mutex);
-
   mapping.clear();
   while (m[0]) {
     int from, to;
@@ -74,8 +68,6 @@ void KeyRemapper::setMapping(const char* m) {
 }
 
 uint32_t KeyRemapper::remapKey(uint32_t key) const {
-  core::AutoMutex a(mutex);
-
   std::map<uint32_t,uint32_t>::const_iterator i = mapping.find(key);
   if (i != mapping.end())
     return i->second;
