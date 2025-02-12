@@ -31,9 +31,8 @@ namespace rfb {
       DesktopPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_DESKTOP)), regKey(rk) {}
       void initDialog() override {
-        const char *action(rfb::win32::SDisplay::disconnectAction);
-        bool disconnectLock = stricmp(action, "Lock") == 0;
-        bool disconnectLogoff = stricmp(action, "Logoff") == 0;
+        bool disconnectLock = rfb::win32::SDisplay::disconnectAction == "Lock";
+        bool disconnectLogoff = rfb::win32::SDisplay::disconnectAction == "Logoff";
         setItemChecked(IDC_DISCONNECT_LOGOFF, disconnectLogoff);
         setItemChecked(IDC_DISCONNECT_LOCK, disconnectLock);
         setItemChecked(IDC_DISCONNECT_NONE, !disconnectLock && !disconnectLogoff);
@@ -47,9 +46,8 @@ namespace rfb {
         case IDC_DISCONNECT_NONE:
         case IDC_REMOVE_WALLPAPER:
         case IDC_DISABLE_EFFECTS:
-          const char *action(rfb::win32::SDisplay::disconnectAction);
-          bool disconnectLock = stricmp(action, "Lock") == 0;
-          bool disconnectLogoff = stricmp(action, "Logoff") == 0;
+          bool disconnectLock = rfb::win32::SDisplay::disconnectAction == "Lock";
+          bool disconnectLogoff = rfb::win32::SDisplay::disconnectAction == "Logoff";
           setChanged((disconnectLogoff != isItemChecked(IDC_DISCONNECT_LOGOFF)) ||
                      (disconnectLock != isItemChecked(IDC_DISCONNECT_LOCK)) ||
                      (isItemChecked(IDC_REMOVE_WALLPAPER) != rfb::win32::SDisplay::removeWallpaper) ||

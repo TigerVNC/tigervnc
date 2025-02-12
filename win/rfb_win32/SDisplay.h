@@ -112,7 +112,7 @@ namespace rfb {
 
       static core::IntParameter updateMethod;
       static core::BoolParameter disableLocalInputs;
-      static core::StringParameter disconnectAction;
+      static core::EnumParameter disconnectAction;
       static core::BoolParameter removeWallpaper;
       static core::BoolParameter disableEffects;
 
