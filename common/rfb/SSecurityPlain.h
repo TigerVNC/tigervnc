@@ -23,13 +23,15 @@
 #include <rfb/Security.h>
 #include <rfb/SSecurity.h>
 
+namespace core { class StringListParameter; }
+
 namespace rfb {
 
   class PasswordValidator {
   public:
     bool validate(SConnection* sc, const char *username, const char *password)
       { return validUser(username) ? validateInternal(sc, username, password) : false; }
-    static core::StringParameter plainUsers;
+    static core::StringListParameter plainUsers;
 
     virtual ~PasswordValidator() { }
 
