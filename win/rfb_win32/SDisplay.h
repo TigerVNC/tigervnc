@@ -109,7 +109,7 @@ namespace rfb {
 
       static IntParameter updateMethod;
       static BoolParameter disableLocalInputs;
-      static StringParameter disconnectAction;
+      static EnumParameter disconnectAction;
       static BoolParameter removeWallpaper;
       static BoolParameter disableEffects;
 
