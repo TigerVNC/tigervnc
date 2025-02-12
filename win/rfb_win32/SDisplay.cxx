@@ -55,8 +55,9 @@ IntParameter rfb::win32::SDisplay::updateMethod("UpdateMethod",
   0, 0, 2);
 BoolParameter rfb::win32::SDisplay::disableLocalInputs("DisableLocalInputs",
   "Disable local keyboard and pointer input while the server is in use", false);
-StringParameter rfb::win32::SDisplay::disconnectAction("DisconnectAction",
-  "Action to perform when all clients have disconnected.  (None, Lock, Logoff)", "None");
+EnumParameter rfb::win32::SDisplay::disconnectAction("DisconnectAction",
+  "Action to perform when all clients have disconnected.  (None, Lock, Logoff)",
+  {"None", "Lock", "Logoff"}, "None");
 StringParameter displayDevice("DisplayDevice",
   "Display device name of the monitor to be remoted, or empty to export the whole desktop.", "");
 BoolParameter rfb::win32::SDisplay::removeWallpaper("RemoveWallpaper",
@@ -127,12 +128,12 @@ void SDisplay::stop()
   // If we successfully start()ed then perform the DisconnectAction
   if (core) {
     CurrentUserToken cut;
-    if (stricmp(disconnectAction, "Logoff") == 0) {
+    if (disconnectAction == "Logoff") {
       if (!cut.h)
         vlog.info("Ignoring DisconnectAction=Logoff - no current user");
       else
         ExitWindowsEx(EWX_LOGOFF, 0);
-    } else if (stricmp(disconnectAction, "Lock") == 0) {
+    } else if (disconnectAction == "Lock") {
       if (!cut.h) {
         vlog.info("Ignoring DisconnectAction=Lock - no current user");
       } else {
