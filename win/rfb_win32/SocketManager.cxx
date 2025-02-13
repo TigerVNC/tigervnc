@@ -27,13 +27,13 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/Timer.h>
 #include <core/util.h>
 
 #include <rdr/FdOutStream.h>
 
 #include <network/Socket.h>
 
-#include <rfb/Timer.h>
 #include <rfb/VNCServer.h>
 #include <rfb_win32/SocketManager.h>
 

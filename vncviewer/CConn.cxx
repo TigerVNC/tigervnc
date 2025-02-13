@@ -28,6 +28,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/Timer.h>
 #include <core/util.h>
 
 #include <rdr/FdInStream.h>
@@ -38,7 +39,6 @@
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/fenceTypes.h>
-#include <rfb/Timer.h>
 #include <rfb/screenTypes.h>
 
 #include <network/TcpSocket.h>
@@ -239,7 +239,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
       // Make sure that the FLTK handling and the timers gets some CPU
       // time in case of back to back messages
       Fl::check();
-      Timer::checkTimeouts();
+      core::Timer::checkTimeouts();
 
       // Also check if we need to stop reading and terminate
       if (should_disconnect())
