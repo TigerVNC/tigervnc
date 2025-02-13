@@ -117,7 +117,7 @@ void testNormalLeftPress()
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent({10, 20}, left);
   usleep(100000); // 0.1s
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.results.size(), 2);
 
@@ -159,7 +159,7 @@ void testNormalRightPress()
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent({0, 0}, right);
   usleep(100000); // 0.1s
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.results.size(), 2);
 
@@ -328,7 +328,7 @@ void testBothPressAfterLeftTimeout()
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent({10, 20}, left);
   usleep(100000); // 0.1s
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
   test.filterPointerEvent({10, 20}, both);
 
   ASSERT_EQ(test.results.size(), 3);
@@ -357,7 +357,7 @@ void testBothPressAfterRightTimeout()
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent({10, 20}, right);
   usleep(100000); // 0.1s
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
   test.filterPointerEvent({10, 20}, both);
 
   ASSERT_EQ(test.results.size(), 3);
@@ -386,7 +386,7 @@ void testTimeoutAndDrag()
   emulateMiddleButton.setParam(true);
   test.filterPointerEvent({0, 0}, left);
   usleep(100000); //0.1s
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
   test.filterPointerEvent({10, 10}, left);
 
   ASSERT_EQ(test.results.size(), 3);
@@ -416,7 +416,7 @@ void testDragAndTimeout()
   test.filterPointerEvent({10, 10}, left);
   test.filterPointerEvent({30, 30}, left);
   usleep(100000); //0.1s
-  rfb::Timer::checkTimeouts();
+  core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.results.size(), 3);
 

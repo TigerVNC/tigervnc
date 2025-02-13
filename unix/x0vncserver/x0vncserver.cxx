@@ -34,11 +34,11 @@
 #include <core/Configuration.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/Timer.h>
 
 #include <rdr/FdOutStream.h>
 
 #include <rfb/VNCServerST.h>
-#include <rfb/Timer.h>
 
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
@@ -445,7 +445,7 @@ int main(int argc, char** argv)
       }
 
       // Trigger timers and check when the next will expire
-      nextTimeout = Timer::checkTimeouts();
+      nextTimeout = core::Timer::checkTimeouts();
       if (nextTimeout >= 0 && (wait_ms == -1 || nextTimeout < wait_ms))
         wait_ms = nextTimeout;
 
@@ -479,7 +479,7 @@ int main(int argc, char** argv)
         }
       }
 
-      Timer::checkTimeouts();
+      core::Timer::checkTimeouts();
 
       // Client list could have been changed.
       server.getSockets(&sockets);

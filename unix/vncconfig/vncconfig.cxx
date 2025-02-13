@@ -50,8 +50,6 @@
 #include "TXLabel.h"
 #include "QueryConnectDialog.h"
 
-using namespace rfb;
-
 static core::LogWriter vlog("vncconfig");
 
 core::StringParameter displayname("display", "The X display", "");
@@ -352,7 +350,7 @@ int main(int argc, char** argv)
       TXWindow::handleXEvents(dpy);
       
       // Process expired timers and get the time until the next one
-      int timeoutMs = Timer::checkTimeouts();
+      int timeoutMs = core::Timer::checkTimeouts();
       if (timeoutMs >= 0) {
         tv.tv_sec = timeoutMs / 1000;
         tv.tv_usec = (timeoutMs % 1000) * 1000;

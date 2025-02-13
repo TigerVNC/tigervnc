@@ -323,7 +323,7 @@ bool GestureHandler::hasDetectedGesture()
   return true;
 }
 
-void GestureHandler::handleTimeout(rfb::Timer* t)
+void GestureHandler::handleTimeout(core::Timer* t)
 {
   if (t == &longpressTimer)
     longpressTimeout();

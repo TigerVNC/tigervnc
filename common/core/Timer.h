@@ -17,13 +17,13 @@
  * USA.
  */
 
-#ifndef __RFB_TIMER_H__
-#define __RFB_TIMER_H__
+#ifndef __CORE_TIMER_H__
+#define __CORE_TIMER_H__
 
 #include <list>
 #include <sys/time.h>
 
-namespace rfb {
+namespace core {
 
   /* Timer
 

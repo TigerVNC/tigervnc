@@ -25,9 +25,9 @@
 #include <stdint.h>
 
 #include <core/Region.h>
+#include <core/Timer.h>
 
 #include <rfb/PixelBuffer.h>
-#include <rfb/Timer.h>
 
 namespace rfb {
 
@@ -39,7 +39,7 @@ namespace rfb {
 
   struct RectInfo;
 
-  class EncodeManager : public Timer::Callback {
+  class EncodeManager : public core::Timer::Callback {
   public:
     EncodeManager(SConnection* conn);
     ~EncodeManager();
@@ -63,7 +63,7 @@ namespace rfb {
                               size_t maxUpdateSize);
 
   protected:
-    void handleTimeout(Timer* t) override;
+    void handleTimeout(core::Timer* t) override;
 
     void doUpdate(bool allowLossy, const core::Region& changed,
                   const core::Region& copied,
@@ -126,7 +126,7 @@ namespace rfb {
     core::Region recentlyChangedRegion;
     core::Region pendingRefreshRegion;
 
-    Timer recentChangeTimer;
+    core::Timer recentChangeTimer;
 
     struct EncoderStats {
       unsigned rects;
