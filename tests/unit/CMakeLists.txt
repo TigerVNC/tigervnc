@@ -15,7 +15,8 @@ add_executable(conv conv.cxx)
 target_link_libraries(conv rfb)
 
 add_executable(convertlf convertlf.cxx)
-target_link_libraries(convertlf rfb)
+target_link_libraries(convertlf rfb GTest::gtest_main)
+gtest_discover_tests(convertlf)
 
 add_executable(gesturehandler gesturehandler.cxx ../../vncviewer/GestureHandler.cxx)
 target_link_libraries(gesturehandler rfb)
