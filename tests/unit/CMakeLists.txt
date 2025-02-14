@@ -22,7 +22,8 @@ add_executable(gesturehandler gesturehandler.cxx ../../vncviewer/GestureHandler.
 target_link_libraries(gesturehandler rfb)
 
 add_executable(hostport hostport.cxx)
-target_link_libraries(hostport rfb)
+target_link_libraries(hostport rfb GTest::gtest_main)
+gtest_discover_tests(hostport)
 
 add_executable(pixelformat pixelformat.cxx)
 target_link_libraries(pixelformat rfb)
