@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2013-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,11 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+
+#include <list>
+
+#include <gtest/gtest.h>
 
 #include <rfb/PixelFormat.h>
 
@@ -61,7 +63,7 @@ void makePixel(const rfb::PixelFormat &pf,
   pf.bufferFromPixel(buffer, p);
 }
 
-bool verifyPixel(const rfb::PixelFormat &dstpf,
+void verifyPixel(const rfb::PixelFormat &dstpf,
                  const rfb::PixelFormat &srcpf,
                  const uint8_t *buffer)
 {
@@ -89,14 +91,23 @@ bool verifyPixel(const rfb::PixelFormat &dstpf,
   ge = (1 << (8 - min(dstpf.greenBits, srcpf.greenBits))) - 1;
   be = (1 << (8 - min(dstpf.blueBits, srcpf.blueBits))) - 1;
 
-  if (abs(r - pixelRed) > re)
-    return false;
-  if (abs(g - pixelGreen) > ge)
-    return false;
-  if (abs(b - pixelBlue) > be)
-    return false;
+  EXPECT_NEAR(r, pixelRed, re);
+  EXPECT_NEAR(g, pixelGreen, ge);
+  EXPECT_NEAR(b, pixelBlue, be);
+}
 
-  return true;
+}
+
+typedef std::pair<rfb::PixelFormat, rfb::PixelFormat> TestPair;
+typedef testing::TestWithParam<TestPair> Conv;
+
+namespace rfb {
+
+static std::ostream& operator<<(std::ostream& os, const PixelFormat& pf)
+{
+  char b[256];
+  pf.print(b, sizeof(b));
+  return os << b;
 }
 
 }
@@ -104,11 +115,13 @@ bool verifyPixel(const rfb::PixelFormat &dstpf,
 using rfb::makePixel;
 using rfb::verifyPixel;
 
-static bool testPixel(const rfb::PixelFormat &dstpf,
-                      const rfb::PixelFormat &srcpf)
+TEST_P(Conv, pixelFromPixel)
 {
   rfb::Pixel p;
   uint8_t buffer[4];
+
+  const rfb::PixelFormat &srcpf = GetParam().first;
+  const rfb::PixelFormat &dstpf = GetParam().second;
 
   makePixel(srcpf, buffer);
 
@@ -117,17 +130,16 @@ static bool testPixel(const rfb::PixelFormat &dstpf,
   memset(buffer, 0, sizeof(buffer));
   dstpf.bufferFromPixel(buffer, p);
 
-  if (!verifyPixel(dstpf, srcpf, buffer))
-    return false;
-
-  return true;
+  verifyPixel(dstpf, srcpf, buffer);
 }
 
-static bool testBuffer(const rfb::PixelFormat &dstpf,
-                       const rfb::PixelFormat &srcpf)
+TEST_P(Conv, bufferFromBuffer)
 {
   int i, x, y, unaligned;
   uint8_t bufIn[fbMalloc], bufOut[fbMalloc];
+
+  const rfb::PixelFormat &srcpf = GetParam().first;
+  const rfb::PixelFormat &dstpf = GetParam().second;
 
   // Once aligned, and once unaligned
   for (unaligned = 0;unaligned < 2;unaligned++) {
@@ -139,8 +151,9 @@ static bool testBuffer(const rfb::PixelFormat &dstpf,
                            bufIn + unaligned, fbArea);
 
     for (i = 0;i < fbArea;i++) {
-      if (!verifyPixel(dstpf, srcpf, bufOut + unaligned + i*dstpf.bpp/8))
-        return false;
+      verifyPixel(dstpf, srcpf, bufOut + unaligned + i*dstpf.bpp/8);
+      if (testing::Test::HasFailure())
+        return;
     }
 
     memset(bufIn, 0, sizeof(bufIn));
@@ -155,28 +168,28 @@ static bool testBuffer(const rfb::PixelFormat &dstpf,
 
     for (y = 0;y < fbHeight;y++) {
       for (x = 0;x < fbWidth;x++) {
+        const uint8_t* pixel;
+        pixel = bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8;
         if (x < fbWidth/2) {
-          if (!verifyPixel(dstpf, srcpf,
-                           bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8))
-            return false;
+          verifyPixel(dstpf, srcpf, pixel);
         } else {
           const uint8_t zero[4] = { 0, 0, 0, 0 };
-          if (memcmp(bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8, zero,
-                     dstpf.bpp/8) != 0)
-            return false;
+          EXPECT_EQ(memcmp(pixel, zero, dstpf.bpp/8), 0);
         }
+        if (testing::Test::HasFailure())
+          return;
       }
     }
   }
-
-  return true;
 }
 
-static bool testRGB(const rfb::PixelFormat &dstpf,
-                    const rfb::PixelFormat &srcpf)
+TEST_P(Conv, bufferToFromRGB)
 {
   int i, x, y, unaligned;
   uint8_t bufIn[fbMalloc], bufRGB[fbMalloc], bufOut[fbMalloc];
+
+  const rfb::PixelFormat &srcpf = GetParam().first;
+  const rfb::PixelFormat &dstpf = GetParam().second;
 
   // Once aligned, and once unaligned
   for (unaligned = 0;unaligned < 2;unaligned++) {
@@ -190,8 +203,9 @@ static bool testRGB(const rfb::PixelFormat &dstpf,
     dstpf.bufferFromRGB(bufOut + unaligned, bufRGB + unaligned, fbArea);
 
     for (i = 0;i < fbArea;i++) {
-      if (!verifyPixel(dstpf, srcpf, bufOut + unaligned + i*dstpf.bpp/8))
-        return false;
+      verifyPixel(dstpf, srcpf, bufOut + unaligned + i*dstpf.bpp/8);
+      if (testing::Test::HasFailure())
+        return;
     }
 
     memset(bufIn, 0, sizeof(bufIn));
@@ -210,30 +224,30 @@ static bool testRGB(const rfb::PixelFormat &dstpf,
 
     for (y = 0;y < fbHeight;y++) {
       for (x = 0;x < fbWidth;x++) {
+        const uint8_t* pixel;
+        pixel = bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8;
         if (x < fbWidth/2) {
-          if (!verifyPixel(dstpf, srcpf,
-                           bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8))
-            return false;
+          verifyPixel(dstpf, srcpf, pixel);
         } else {
           const uint8_t zero[4] = { 0, 0, 0, 0 };
-          if (memcmp(bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8, zero,
-                     dstpf.bpp/8) != 0)
-            return false;
+          EXPECT_EQ(memcmp(pixel, zero, dstpf.bpp/8), 0);
         }
+        if (testing::Test::HasFailure())
+          return;
       }
     }
   }
-
-  return true;
 }
 
-static bool testPixelRGB(const rfb::PixelFormat &dstpf,
-                         const rfb::PixelFormat &srcpf)
+TEST_P(Conv, pixelToFromRGB)
 {
   rfb::Pixel p;
   uint16_t r16, g16, b16;
   uint8_t r8, g8, b8;
   uint8_t buffer[4];
+
+  const rfb::PixelFormat &srcpf = GetParam().first;
+  const rfb::PixelFormat &dstpf = GetParam().second;
 
   makePixel(srcpf, buffer);
 
@@ -243,8 +257,7 @@ static bool testPixelRGB(const rfb::PixelFormat &dstpf,
   memset(buffer, 0, sizeof(buffer));
   dstpf.bufferFromPixel(buffer, p);
 
-  if (!verifyPixel(dstpf, srcpf, buffer))
-    return false;
+  verifyPixel(dstpf, srcpf, buffer);
 
   makePixel(srcpf, buffer);
 
@@ -254,112 +267,84 @@ static bool testPixelRGB(const rfb::PixelFormat &dstpf,
   memset(buffer, 0, sizeof(buffer));
   dstpf.bufferFromPixel(buffer, p);
 
-  if (!verifyPixel(dstpf, srcpf, buffer))
-    return false;
-
-  return true;
+  verifyPixel(dstpf, srcpf, buffer);
 }
 
-struct TestEntry tests[] = {
-  {"Pixel from pixel", testPixel},
-  {"Buffer from buffer", testBuffer},
-  {"Buffer to/from RGB", testRGB},
-  {"Pixel to/from RGB", testPixelRGB},
-};
-
-static void doTests(const rfb::PixelFormat &dstpf,
-                    const rfb::PixelFormat &srcpf)
+static std::list<TestPair> paramGenerator()
 {
-  size_t i;
-  char dstb[256], srcb[256];
-
-  dstpf.print(dstb, sizeof(dstb));
-  srcpf.print(srcb, sizeof(srcb));
-
-  printf("\n");
-  printf("%s to %s\n", srcb, dstb);
-  printf("\n");
-
-  for (i = 0;i < sizeof(tests)/sizeof(tests[0]);i++) {
-    printf("    %s: ", tests[i].label);
-    fflush(stdout);
-    if (tests[i].fn(dstpf, srcpf))
-      printf("OK");
-    else
-      printf("FAILED");
-    printf("\n");
-  }
-}
-
-int main(int /*argc*/, char** /*argv*/)
-{
+  std::list<TestPair> params;
   rfb::PixelFormat dstpf, srcpf;
-
-  printf("Pixel Conversion Correctness Test\n");
 
   /* rgb888 targets */
 
   dstpf.parse("rgb888");
 
   srcpf.parse("rgb888");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   srcpf.parse("bgr888");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   srcpf.parse("rgb565");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   srcpf.parse("rgb232");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   /* rgb565 targets */
 
   dstpf.parse("rgb565");
 
   srcpf.parse("rgb888");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   srcpf.parse("bgr565");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   srcpf.parse("rgb232");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   /* rgb232 targets */
 
   dstpf.parse("rgb232");
 
   srcpf.parse("rgb888");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   srcpf.parse("rgb565");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   srcpf.parse("bgr232");
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
 
   /* endian conversion (both ways) */
 
   dstpf = rfb::PixelFormat(32, 24, false, true, 255, 255, 255, 0, 8, 16);
   srcpf = rfb::PixelFormat(32, 24, true, true, 255, 255, 255, 0, 8, 16);
 
-  doTests(dstpf, srcpf);
-
-  doTests(srcpf, dstpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
+  params.push_back(std::make_pair(dstpf, srcpf));
 
   dstpf = rfb::PixelFormat(16, 16, false, true, 31, 63, 31, 0, 5, 11);
   srcpf = rfb::PixelFormat(16, 16, true, true, 31, 63, 31, 0, 5, 11);
 
-  doTests(dstpf, srcpf);
-
-  doTests(srcpf, dstpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
+  params.push_back(std::make_pair(dstpf, srcpf));
 
   // Pesky case that is very asymetrical
   dstpf = rfb::PixelFormat(32, 24, false, true, 255, 255, 255, 0, 8, 16);
   srcpf = rfb::PixelFormat(32, 24, true, true, 255, 255, 255, 0, 24, 8);
 
-  doTests(dstpf, srcpf);
+  params.push_back(std::make_pair(srcpf, dstpf));
+  params.push_back(std::make_pair(dstpf, srcpf));
 
-  doTests(srcpf, dstpf);
+  return params;
+}
+
+INSTANTIATE_TEST_SUITE_P(, Conv, testing::ValuesIn(paramGenerator()));
+
+int main(int argc, char** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
