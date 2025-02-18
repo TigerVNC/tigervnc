@@ -29,7 +29,8 @@ target_link_libraries(hostport network GTest::gtest_main)
 gtest_discover_tests(hostport)
 
 add_executable(pixelformat pixelformat.cxx)
-target_link_libraries(pixelformat rfb)
+target_link_libraries(pixelformat rfb GTest::gtest_main)
+gtest_discover_tests(pixelformat)
 
 add_executable(unicode unicode.cxx)
 target_link_libraries(unicode core)
