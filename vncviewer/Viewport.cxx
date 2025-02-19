@@ -107,6 +107,12 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
   // We need to intercept keyboard events early
   Fl::add_system_handler(handleSystemEvent, this);
 
+  // FIXME: We should only disable this whilst we have keyboard focus,
+  //        but we also need to keep it disabled when we lose focus to
+  //        any layout selector so it can properly filter out the
+  //        layouts we don't support
+  Fl::disable_im();
+
   frameBuffer = new PlatformPixelBuffer(w, h);
   assert(frameBuffer);
   cc->setFramebuffer(frameBuffer);
@@ -150,6 +156,7 @@ Viewport::~Viewport()
   }
 
   delete keyboard;
+  Fl::enable_im();
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -479,8 +486,6 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_FOCUS:
-    Fl::disable_im();
-
     flushPendingClipboard();
 
     // We may have gotten our lock keys out of sync with the server
@@ -499,8 +504,6 @@ int Viewport::handle(int event)
   case FL_UNFOCUS:
     // We won't get more key events, so reset our knowledge about keys
     resetKeyboard();
-
-    Fl::enable_im();
     return 1;
 
   case FL_KEYDOWN:
