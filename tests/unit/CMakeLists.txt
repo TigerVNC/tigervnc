@@ -33,7 +33,8 @@ target_link_libraries(pixelformat rfb GTest::gtest_main)
 gtest_discover_tests(pixelformat)
 
 add_executable(unicode unicode.cxx)
-target_link_libraries(unicode rfb)
+target_link_libraries(unicode rfb GTest::gtest_main)
+gtest_discover_tests(unicode)
 
 add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
 target_include_directories(emulatemb SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
