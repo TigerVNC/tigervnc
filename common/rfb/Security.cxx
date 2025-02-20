@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include <algorithm>
+#include <stdexcept>
 
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -43,9 +44,16 @@ Security::Security()
 {
 }
 
-Security::Security(StringParameter &secTypes)
+Security::Security(EnumListParameter &secTypes)
 {
-  enabledSecTypes = parseSecTypes(secTypes);
+  for (EnumListEntry type : secTypes) {
+    uint32_t typeNum = secTypeNum(type.getValueStr().c_str());
+    // Should have been filtered by EnumListParameter, but let's have
+    // a safety net
+    if (typeNum != secTypeInvalid)
+      throw std::logic_error("Unknown security type");
+    enabledSecTypes.push_back(typeNum);
+  }
 }
 
 const std::list<uint8_t> Security::GetEnabledSecTypes(void)
@@ -178,17 +186,4 @@ const char* rfb::secTypeName(uint32_t num)
   case secTypeX509Plain:  return "X509Plain";
   default:                return "[unknown secType]";
   }
-}
-
-std::list<uint32_t> rfb::parseSecTypes(const char* types_)
-{
-  std::list<uint32_t> result;
-  std::vector<std::string> types;
-  types = split(types_, ',');
-  for (size_t i = 0; i < types.size(); i++) {
-    uint32_t typeNum = secTypeNum(types[i].c_str());
-    if (typeNum != secTypeInvalid)
-      result.push_back(typeNum);
-  }
-  return result;
 }

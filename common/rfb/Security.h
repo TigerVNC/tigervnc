@@ -76,7 +76,7 @@ namespace rfb {
      * Create Security instance.
      */
     Security();
-    Security(StringParameter &secTypes);
+    Security(EnumListParameter &secTypes);
 
     /*
      * Note about security types.
@@ -114,7 +114,6 @@ namespace rfb {
 
   const char* secTypeName(uint32_t num);
   uint32_t secTypeNum(const char* name);
-  std::list<uint32_t> parseSecTypes(const char* types);
 }
 
 #endif

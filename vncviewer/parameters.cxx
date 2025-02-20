@@ -58,7 +58,8 @@ static LogWriter vlog("Parameters");
 
 IntParameter pointerEventInterval("PointerEventInterval",
                                   "Time in milliseconds to rate-limit"
-                                  " successive pointer events", 17);
+                                  " successive pointer events",
+                                  17, 0, INT_MAX);
 BoolParameter emulateMiddleButton("EmulateMiddleButton",
                                   "Emulate middle mouse button by pressing "
                                   "left and right mouse buttons simultaneously",
@@ -69,10 +70,10 @@ BoolParameter dotWhenNoCursor("DotWhenNoCursor",
 BoolParameter alwaysCursor("AlwaysCursor",
                            "Show the local cursor when the server sends an "
                            "invisible cursor", false);
-StringParameter cursorType("CursorType",
-                           "Specify which cursor type the local cursor should be. "
-                           "Should be either Dot or System",
-                           "Dot");
+EnumParameter cursorType("CursorType",
+                         "Specify which cursor type the local cursor should be. "
+                         "Should be either Dot or System",
+                         {"Dot", "System"}, "Dot");
 
 BoolParameter alertOnFatalError("AlertOnFatalError",
                                 "Give a dialog on connection problems rather "
@@ -95,36 +96,48 @@ BoolParameter fullColour("FullColor",
 AliasParameter fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
 IntParameter lowColourLevel("LowColorLevel",
                             "Color level to use on slow connections. "
-                            "0 = Very Low, 1 = Low, 2 = Medium", 2);
+                            "0 = Very Low, 1 = Low, 2 = Medium",
+                            2, 0, 2);
 AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", &lowColourLevel);
-StringParameter preferredEncoding("PreferredEncoding",
-                                  "Preferred encoding to use (Tight, ZRLE, Hextile or"
-                                  " Raw)", "Tight");
+EnumParameter preferredEncoding("PreferredEncoding",
+                                "Preferred encoding to use (Tight, "
+                                "ZRLE, Hextile, "
+#ifdef HAVE_H264
+                                "H.264, "
+#endif
+                                "or Raw)",
+                                {"Tight", "ZRLE", "Hextile",
+#ifdef HAVE_H264
+                                 "H.264",
+#endif
+                                 "Raw"}, "Tight");
 BoolParameter customCompressLevel("CustomCompressLevel",
                                   "Use custom compression level. "
                                   "Default if CompressLevel is specified.", false);
 IntParameter compressLevel("CompressLevel",
                            "Use specified compression level 0 = Low, 9 = High",
-                           2);
+                           2, 0, 9);
 BoolParameter noJpeg("NoJPEG",
                      "Disable lossy JPEG compression in Tight encoding.",
                      false);
 IntParameter qualityLevel("QualityLevel",
                           "JPEG quality level. 0 = Low, 9 = High",
-                          8);
+                          8, 0, 9);
 
 BoolParameter maximize("Maximize", "Maximize viewer window", false);
 BoolParameter fullScreen("FullScreen", "Enable full screen", false);
-StringParameter fullScreenMode("FullScreenMode", "Specify which monitors to use when in full screen. "
-                                                 "Should be either Current, Selected or All",
-                                                 "Current");
+EnumParameter fullScreenMode("FullScreenMode",
+                             "Specify which monitors to use when in "
+                             "full screen. Should be either Current, "
+                             "Selected or All",
+                             {"Current", "Selected", "All"}, "Current");
 BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
                                     "[DEPRECATED] Enable full screen over all monitors",
                                     false);
 MonitorIndicesParameter fullScreenSelectedMonitors("FullScreenSelectedMonitors",
                                          "Use the given list of monitors in full screen"
                                          " when -FullScreenMode=Selected.",
-                                         "1");
+                                         {1});
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
@@ -164,8 +177,12 @@ StringParameter display("display",
 			"");
 #endif
 
-StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
-                        "F8");
+// Empty string means None, for backward compatibility
+EnumParameter menuKey("MenuKey", "The key which brings up the popup menu",
+                      {"", "None", "F1", "F2", "F3", "F4", "F5", "F6",
+                       "F7", "F8", "F9", "F10", "F11", "F12", "Pause",
+                       "Scroll_Lock", "Escape", "Insert", "Delete",
+                       "Home", "Page_Up", "Page_Down"}, "F8");
 
 BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
                                    "Pass special keys (like Alt+Tab) directly "

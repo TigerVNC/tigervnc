@@ -29,7 +29,8 @@
 #include <network/TcpSocket.h>
 
 static rfb::IntParameter port_number("PortNumber",
-  "TCP/IP port on which the server will accept connections", 5900);
+  "TCP/IP port on which the server will accept connections",
+  5900, 0, 65535);
 static rfb::StringParameter hosts("Hosts",
   "Filter describing which hosts are allowed access to this server", "+");
 static rfb::BoolParameter localHost("LocalHost",

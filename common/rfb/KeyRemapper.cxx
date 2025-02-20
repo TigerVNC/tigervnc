@@ -23,8 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <os/Mutex.h>
-
 #include <rfb/KeyRemapper.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
@@ -35,47 +33,20 @@ static LogWriter vlog("KeyRemapper");
 
 KeyRemapper KeyRemapper::defInstance;
 
-KeyRemapper::KeyRemapper(const char* m)
+KeyRemapper::KeyRemapper()
 {
-  mutex = new os::Mutex;
-
-  setMapping(m);
 }
 
 KeyRemapper::~KeyRemapper()
 {
-  delete mutex;
 }
 
-void KeyRemapper::setMapping(const char* m) {
-  os::AutoMutex a(mutex);
-
-  mapping.clear();
-  while (m[0]) {
-    int from, to;
-    char bidi;
-    const char* nextComma = strchr(m, ',');
-    if (!nextComma)
-      nextComma = m + strlen(m);
-    if (sscanf(m, "0x%x%c>0x%x", &from,
-               &bidi, &to) == 3) {
-      if (bidi != '-' && bidi != '<')
-        vlog.error("Warning: Unknown operation %c>, assuming ->", bidi);
-      mapping[from] = to;
-      if (bidi == '<')
-        mapping[to] = from;
-    } else {
-      vlog.error("Warning: Bad mapping %.*s", (int)(nextComma-m), m);
-    }
-    m = nextComma;
-    if (nextComma[0])
-      m++;
-  }
+void KeyRemapper::setMapping(const std::map<uint32_t,uint32_t>& m)
+{
+  mapping = m;
 }
 
 uint32_t KeyRemapper::remapKey(uint32_t key) const {
-  os::AutoMutex a(mutex);
-
   std::map<uint32_t,uint32_t>::const_iterator i = mapping.find(key);
   if (i != mapping.end())
     return i->second;
@@ -83,15 +54,40 @@ uint32_t KeyRemapper::remapKey(uint32_t key) const {
 }
 
 
-class KeyMapParameter : public StringParameter {
+class KeyMapParameter : public StringListParameter {
 public:
   KeyMapParameter()
-    : StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
-    KeyRemapper::defInstance.setMapping("");
+    : StringListParameter("RemapKeys",
+                          "Comma-separated list of incoming keysyms to "
+                          "remap.  Mappings are expressed as two hex "
+                          "values, prefixed by 0x, and separated by ->",
+                          {}) {
+    KeyRemapper::defInstance.setMapping({});
   }
   bool setParam(const char* v) override {
-    KeyRemapper::defInstance.setMapping(v);
-    return StringParameter::setParam(v);
+    std::map<uint32_t,uint32_t> mapping;
+
+    if (!StringListParameter::setParam(v))
+      return false;
+
+    for (const char* m : *this) {
+      int from, to;
+      char bidi;
+      if (sscanf(m, "0x%x%c>0x%x", &from,
+                &bidi, &to) == 3) {
+        if (bidi != '-' && bidi != '<')
+          vlog.error("Warning: Unknown operation %c>, assuming ->", bidi);
+        mapping[from] = to;
+        if (bidi == '<')
+          mapping[to] = from;
+      } else {
+        vlog.error("Warning: Bad mapping %s", m);
+      }
+    }
+
+    KeyRemapper::defInstance.setMapping(mapping);
+
+    return true;
   }
 } defaultParam;
 

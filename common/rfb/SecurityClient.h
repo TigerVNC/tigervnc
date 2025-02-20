@@ -35,7 +35,7 @@ namespace rfb {
     /* Create client side CSecurity class instance */
     CSecurity* GetCSecurity(CConnection* cc, uint32_t secType);
 
-    static StringParameter secTypes;
+    static EnumListParameter secTypes;
   };
 
 }

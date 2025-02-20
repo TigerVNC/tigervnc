@@ -34,7 +34,9 @@ using namespace rfb;
 
 static LogWriter vlog("ZRLEEncoder");
 
-IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
+IntParameter zlibLevel("ZlibLevel",
+                       "[DEPRECATED] Zlib compression level",
+                       -1, -1, -1);
 
 ZRLEEncoder::ZRLEEncoder(SConnection* conn_)
   : Encoder(conn_, encodingZRLE, EncoderPlain, 127),

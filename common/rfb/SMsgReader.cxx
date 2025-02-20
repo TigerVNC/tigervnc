@@ -42,7 +42,10 @@ using namespace rfb;
 
 static LogWriter vlog("SMsgReader");
 
-static IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
+static IntParameter maxCutText("MaxCutText",
+                               "Maximum permitted length of an "
+                               "incoming clipboard update",
+                               256*1024, 0, INT_MAX);
 
 SMsgReader::SMsgReader(SMsgHandler* handler_, rdr::InStream* is_)
   : handler(handler_), is(is_), state(MSGSTATE_IDLE)

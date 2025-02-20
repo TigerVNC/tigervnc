@@ -35,7 +35,7 @@ extern rfb::IntParameter pointerEventInterval;
 extern rfb::BoolParameter emulateMiddleButton;
 extern rfb::BoolParameter dotWhenNoCursor; // deprecated
 extern rfb::BoolParameter alwaysCursor;
-extern rfb::StringParameter cursorType;
+extern rfb::EnumParameter cursorType;
 
 extern rfb::StringParameter passwordFile;
 
@@ -44,7 +44,7 @@ extern rfb::BoolParameter fullColour;
 extern rfb::AliasParameter fullColourAlias;
 extern rfb::IntParameter lowColourLevel;
 extern rfb::AliasParameter lowColourLevelAlias;
-extern rfb::StringParameter preferredEncoding;
+extern rfb::EnumParameter preferredEncoding;
 extern rfb::BoolParameter customCompressLevel;
 extern rfb::IntParameter compressLevel;
 extern rfb::BoolParameter noJpeg;
@@ -52,7 +52,7 @@ extern rfb::IntParameter qualityLevel;
 
 extern rfb::BoolParameter maximize;
 extern rfb::BoolParameter fullScreen;
-extern rfb::StringParameter fullScreenMode;
+extern rfb::EnumParameter fullScreenMode;
 extern rfb::BoolParameter fullScreenAllMonitors; // deprecated
 extern MonitorIndicesParameter fullScreenSelectedMonitors;
 extern rfb::StringParameter desktopSize;
@@ -72,7 +72,7 @@ extern rfb::BoolParameter sendPrimary;
 extern rfb::StringParameter display;
 #endif
 
-extern rfb::StringParameter menuKey;
+extern rfb::EnumParameter menuKey;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
 extern rfb::BoolParameter alertOnFatalError;

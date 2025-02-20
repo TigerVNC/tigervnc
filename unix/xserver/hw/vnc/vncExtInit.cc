@@ -27,7 +27,6 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include <set>
 #include <string>
 
 #include <rfb/Configuration.h>
@@ -70,20 +69,15 @@ int vncFbstride[MAXSCREENS];
 
 int vncInetdSock = -1;
 
-struct CaseInsensitiveCompare {
-  bool operator() (const std::string &a, const std::string &b) const {
-    return strcasecmp(a.c_str(), b.c_str()) < 0;
-  }
-};
-
-typedef std::set<std::string, CaseInsensitiveCompare> ParamSet;
-static ParamSet allowOverrideSet;
-
 static const char* defaultDesktopName();
 
-rfb::IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",0);
+rfb::IntParameter rfbport("rfbport",
+                          "TCP port to listen for RFB protocol",
+                          0, -1, 65535);
 rfb::StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
-rfb::IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+rfb::IntParameter rfbunixmode("rfbunixmode",
+                              "Unix socket access mode",
+                              0600, 0000, 0777);
 rfb::StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
 rfb::BoolParameter localhostOnly("localhost",
                                  "Only allow connections from localhost",
@@ -94,9 +88,14 @@ rfb::StringParameter interface("interface",
 rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
                                      "Avoid fake Shift presses for keys affected by NumLock.",
                                      true);
-rfb::StringParameter allowOverride("AllowOverride",
-                                   "Comma separated list of parameters that can be modified using VNC extension.",
-                                   "desktop,AcceptPointerEvents,SendCutText,AcceptCutText,SendPrimary,SetPrimary");
+rfb::StringListParameter allowOverride("AllowOverride",
+                                       "Comma separated list of "
+                                       "parameters that can be "
+                                       "modified using VNC extension.",
+                                       {"desktop",
+                                        "AcceptPointerEvents",
+                                        "SendCutText", "AcceptCutText",
+                                        "SendPrimary", "SetPrimary"});
 rfb::BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
                               "as the CLIPBOARD selection", true);
 rfb::BoolParameter sendPrimary("SendPrimary",
@@ -157,19 +156,6 @@ static PixelFormat vncGetPixelFormat(int scrIdx)
                      redShift, greenShift, blueShift);
 }
 
-static void parseOverrideList(const char *text, ParamSet &out)
-{
-  for (const char* iter = text; ; ++iter) {
-    if (*iter == ',' || *iter == '\0') {
-      out.insert(std::string(text, iter));
-      text = iter + 1;
-
-      if (*iter == '\0')
-        break;
-    }
-  }
-}
-
 void vncExtensionInit(void)
 {
   if (vncExtGeneration == vncGetServerGeneration()) {
@@ -191,7 +177,6 @@ void vncExtensionInit(void)
     if (!initialised) {
       rfb::initStdIOLoggers();
 
-      parseOverrideList(allowOverride, allowOverrideSet);
       allowOverride.setImmutable();
 
       initialised = true;
@@ -513,8 +498,10 @@ void vncAbortMsc(int scrIdx, uint64_t id)
 
 int vncOverrideParam(const char *param, const char *value)
 {
-  if (allowOverrideSet.find(param) == allowOverrideSet.end())
-    return 0;
+  for (const char* allowed : allowOverride) {
+    if (strcasecmp(allowed, param) == 0)
+      return rfb::Configuration::setParam(param, value);
+  }
 
-  return rfb::Configuration::setParam(param, value);
+  return 0;
 }
