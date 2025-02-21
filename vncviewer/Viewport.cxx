@@ -411,6 +411,14 @@ int Viewport::handle(int event)
   case FL_PASTE:
     if (!isValidUTF8(Fl::event_text(), Fl::event_length())) {
       vlog.error("Invalid UTF-8 sequence in system clipboard");
+      // Reset the state as if we don't have any clipboard data at all
+      this->pendingClientClipboard = false;
+      try {
+        this->cc->announceClipboard(false);
+      } catch (std::exception& e) {
+        vlog.error("%s", e.what());
+        abort_connection_with_unexpected_error(e);
+      }
       return 1;
     }
 
