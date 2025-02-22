@@ -37,7 +37,7 @@ class Fl_Scrollbar;
 class DesktopWindow : public Fl_Window {
 public:
 
-  DesktopWindow(int w, int h, const char *name,
+  DesktopWindow(int w, int h, const char *name_,
                 const rfb::PixelFormat& serverPF, CConn* cc_);
   ~DesktopWindow();
 
@@ -122,6 +122,8 @@ private:
 
   static void handleStatsTimeout(void *data);
 
+  void updateLabel();
+
 private:
   CConn* cc;
   Fl_Scrollbar *hscroll, *vscroll;
@@ -130,6 +132,8 @@ private:
   Surface *overlay;
   unsigned char overlayAlpha;
   struct timeval overlayStart;
+
+  char *name;
 
   bool firstUpdate;
   bool delayedFullscreen;
