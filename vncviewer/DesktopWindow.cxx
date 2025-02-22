@@ -79,11 +79,11 @@ static core::LogWriter vlog("DesktopWindow");
 // issue for Fl::event_dispatch.
 static std::set<DesktopWindow *> instances;
 
-DesktopWindow::DesktopWindow(int w, int h, const char *name,
+DesktopWindow::DesktopWindow(int w, int h, const char *name_,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
-    firstUpdate(true),
+    name(nullptr), firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
     keyboardGrabbed(false), mouseGrabbed(false), forceGrabbed(false),
@@ -110,7 +110,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   callback(handleClose, this);
 
-  setName(name);
+  setName(name_);
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -273,6 +273,8 @@ DesktopWindow::~DesktopWindow()
 
   Fl::event_dispatch(Fl::handle_);
 
+  free(name);
+
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
 }
@@ -283,53 +285,48 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
   return viewport->getPreferredPF();
 }
 
-
-void DesktopWindow::setName(const char *name)
+void DesktopWindow::setName(const char *new_name)
 {
-  char windowNameStr[100];
-  const char *labelFormat;
-  size_t maxNameSize;
-  char truncatedName[sizeof(windowNameStr)];
-
-  labelFormat = "%s - TigerVNC";
-
-  // Ignore the length of '%s' since it is
-  // a format marker which won't take up space
-  maxNameSize = sizeof(windowNameStr) - 1 - strlen(labelFormat) + 2;
-
-  if (maxNameSize > strlen(name)) {
-    // Guaranteed to fit, no need to truncate
-    strcpy(truncatedName, name);
-  } else if (maxNameSize <= strlen("...")) {
-    // Even an ellipsis won't fit
-    truncatedName[0] = '\0';
-  } else {
-    int offset;
-
-    // We need to truncate, add an ellipsis
-    offset = maxNameSize - strlen("...");
-    strncpy(truncatedName, name, sizeof(truncatedName));
-    strcpy(truncatedName + offset, "...");
+  free(name);
+  name = nullptr;
+  if (new_name) {
+    name = strdup(new_name);
   }
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-
-  if (snprintf(windowNameStr, sizeof(windowNameStr), labelFormat,
-               truncatedName) >= (int)sizeof(windowNameStr)) {
-    // This is just to shut up the compiler, as we've already made sure
-    // we won't truncate anything
-  }
-
-#pragma GCC diagnostic pop
-
-  copy_label(windowNameStr);
+  updateLabel();
 }
 
+void DesktopWindow::updateLabel() {
+  const char *strTitle = " - TigerVNC";
+  const char *strGrabbed = " [GRAB]";
+  const size_t maxNameLen = 100;
+
+  char *label = (char*)malloc(maxNameLen + strlen(strGrabbed) + strlen(strTitle) + 1);
+  strcpy(label, "");
+
+  if (name) {
+    if (strlen(name) <= maxNameLen) {
+      strcat(label, name);
+    } else {
+      strncat(label, name, maxNameLen - 3);
+      strcat(label, "...");
+    }
+  } else {
+    strcat(label, "unknown");
+  }
+
+  if (keyboardGrabbed || mouseGrabbed) {
+    strcat(label, strGrabbed);
+  }
+
+  strcat(label, strTitle);
+
+  copy_label(label);
+
+  free(label);
+}
 
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
-
 void DesktopWindow::updateWindow()
 {
   if (firstUpdate) {
@@ -1199,6 +1196,7 @@ void DesktopWindow::grabKeyboard()
 #endif
 
   keyboardGrabbed = true;
+  updateLabel();
 
   if (contains(Fl::belowmouse()))
     grabPointer();
@@ -1211,6 +1209,7 @@ void DesktopWindow::ungrabKeyboard()
 
   forceGrabbed = false;
   keyboardGrabbed = false;
+  updateLabel();
 
   ungrabPointer();
 
@@ -1253,6 +1252,7 @@ void DesktopWindow::grabPointer()
 #endif
 
   mouseGrabbed = true;
+  updateLabel();
 }
 
 
@@ -1260,6 +1260,7 @@ void DesktopWindow::ungrabPointer()
 {
   forceGrabbed = false;
   mouseGrabbed = false;
+  updateLabel();
 
 #if !defined(WIN32) && !defined(__APPLE__)
   x11_ungrab_pointer(fl_xid(this));
