@@ -108,7 +108,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
 
   callback(handleClose, this);
 
-  setName();
+  updateLabel();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -281,56 +281,40 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
   return viewport->getPreferredPF();
 }
 
+void DesktopWindow::updateLabel() {
+  const char *strTitle = " - TigerVNC";
+  const char *strGrabbed = " [GRABBED]";
+  const size_t maxNameLen = 100;
 
-void DesktopWindow::setName()
-{
-  char windowNameStr[100];
-  const char *labelFormat;
-  size_t maxNameSize;
-  const char* name;
-  char truncatedName[sizeof(windowNameStr)];
+  char *label = (char*)malloc(maxNameLen + strlen(strGrabbed) + strlen(strTitle) + 1);
+  strcpy(label, "");
 
-  labelFormat = "%s - TigerVNC";
+  const char* name = cc->server.name();
 
-  // Ignore the length of '%s' since it is
-  // a format marker which won't take up space
-  maxNameSize = sizeof(windowNameStr) - 1 - strlen(labelFormat) + 2;
-
-  name = cc->server.name();
-
-  if (maxNameSize > strlen(name)) {
-    // Guaranteed to fit, no need to truncate
-    strcpy(truncatedName, name);
-  } else if (maxNameSize <= strlen("...")) {
-    // Even an ellipsis won't fit
-    truncatedName[0] = '\0';
+  if (name) {
+    if (strlen(name) <= maxNameLen) {
+      strcat(label, name);
+    } else {
+      strncat(label, name, maxNameLen - 3);
+      strcat(label, "...");
+    }
   } else {
-    int offset;
-
-    // We need to truncate, add an ellipsis
-    offset = maxNameSize - strlen("...");
-    strncpy(truncatedName, name, sizeof(truncatedName));
-    strcpy(truncatedName + offset, "...");
+    strcat(label, "unknown");
   }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-
-  if (snprintf(windowNameStr, sizeof(windowNameStr), labelFormat,
-               truncatedName) >= (int)sizeof(windowNameStr)) {
-    // This is just to shut up the compiler, as we've already made sure
-    // we won't truncate anything
+  if (keyboardGrabbed || mouseGrabbed) {
+    strcat(label, strGrabbed);
   }
 
-#pragma GCC diagnostic pop
+  strcat(label, strTitle);
 
-  copy_label(windowNameStr);
+  copy_label(label);
+
+  free(label);
 }
-
 
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
-
 void DesktopWindow::updateWindow()
 {
   if (firstUpdate) {
@@ -1177,6 +1161,7 @@ void DesktopWindow::grabKeyboard()
 #endif
 
   keyboardGrabbed = true;
+  updateLabel();
 
   if (contains(Fl::belowmouse()))
     grabPointer();
@@ -1189,6 +1174,7 @@ void DesktopWindow::ungrabKeyboard()
 
   forceGrabbed = false;
   keyboardGrabbed = false;
+  updateLabel();
 
   ungrabPointer();
 
@@ -1219,6 +1205,7 @@ void DesktopWindow::grabPointer()
 #endif
 
   mouseGrabbed = true;
+  updateLabel();
 }
 
 
@@ -1226,6 +1213,7 @@ void DesktopWindow::ungrabPointer()
 {
   forceGrabbed = false;
   mouseGrabbed = false;
+  updateLabel();
 
 #if !defined(WIN32) && !defined(__APPLE__)
   x11_ungrab_pointer(fl_xid(this));
