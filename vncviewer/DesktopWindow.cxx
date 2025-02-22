@@ -108,7 +108,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
 
   callback(handleClose, this);
 
-  setName();
+  updateLabel();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -281,54 +281,40 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
   return viewport->getPreferredPF();
 }
 
+void DesktopWindow::updateLabel() {
+  const char *strTitle = " - TigerVNC";
+  const char *strGrabbed = " [GRABBED]";
+  const size_t maxNameLen = 100;
 
-void DesktopWindow::setName()
-{
-  const size_t maxLen = 100;
-  std::string windowName;
-  const char *labelFormat;
-  size_t maxNameSize;
-  std::string name;
+  char *label = (char*)malloc(maxNameLen + strlen(strGrabbed) + strlen(strTitle) + 1);
+  strcpy(label, "");
 
-  // FIXME: All of this consideres bytes, not characters
+  const char* name = cc->server.name();
 
-  labelFormat = "%s - TigerVNC";
-
-  // Ignore the length of '%s' since it is
-  // a format marker which won't take up space
-  maxNameSize = maxLen - strlen(labelFormat) + 2;
-
-  name = cc->server.name();
-
-  if (name.size() > maxNameSize) {
-    if (maxNameSize <= strlen("...")) {
-      // Even an ellipsis won't fit
-      name.clear();
+  if (name) {
+    if (strlen(name) <= maxNameLen) {
+      strcat(label, name);
+    } else {
+      strncat(label, name, maxNameLen - 3);
+      strcat(label, "...");
     }
-    else {
-      int offset;
-
-      // We need to truncate, add an ellipsis
-      offset = maxNameSize - strlen("...");
-      name.resize(offset);
-      name += "...";
-    }
+  } else {
+    strcat(label, "unknown");
   }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+  if (keyboardGrabbed || mouseGrabbed) {
+    strcat(label, strGrabbed);
+  }
 
-  windowName = core::format(labelFormat, name.c_str());
+  strcat(label, strTitle);
 
-#pragma GCC diagnostic pop
+  copy_label(label);
 
-  copy_label(windowName.c_str());
+  free(label);
 }
-
 
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
-
 void DesktopWindow::updateWindow()
 {
   if (firstUpdate) {
@@ -1175,6 +1161,7 @@ void DesktopWindow::grabKeyboard()
 #endif
 
   keyboardGrabbed = true;
+  updateLabel();
 
   if (contains(Fl::belowmouse()))
     grabPointer();
@@ -1187,6 +1174,7 @@ void DesktopWindow::ungrabKeyboard()
 
   forceGrabbed = false;
   keyboardGrabbed = false;
+  updateLabel();
 
   ungrabPointer();
 
@@ -1217,6 +1205,7 @@ void DesktopWindow::grabPointer()
 #endif
 
   mouseGrabbed = true;
+  updateLabel();
 }
 
 
@@ -1224,6 +1213,7 @@ void DesktopWindow::ungrabPointer()
 {
   forceGrabbed = false;
   mouseGrabbed = false;
+  updateLabel();
 
 #if !defined(WIN32) && !defined(__APPLE__)
   x11_ungrab_pointer(fl_xid(this));
