@@ -46,8 +46,8 @@ public:
   // Flush updates to screen
   void updateWindow();
 
-  // Updated session title
-  void setName();
+  // Update session title
+  void updateLabel();
 
   // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
