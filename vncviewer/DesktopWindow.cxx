@@ -838,6 +838,18 @@ void DesktopWindow::toggleForceGrab() {
   }
 }
 
+bool DesktopWindow::isKeyboardGrabbed() const {
+  return keyboardGrabbed;
+}
+
+bool DesktopWindow::isMouseGrabbed() const {
+  return mouseGrabbed;
+}
+
+bool DesktopWindow::isForceGrabbed() const {
+  return forceGrabbed;
+}
+
 int DesktopWindow::handle(int event)
 {
   switch (event) {
