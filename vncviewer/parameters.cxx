@@ -141,6 +141,15 @@ BoolParameter remoteResize("RemoteResize",
 BoolParameter viewOnly("ViewOnly",
                        "Don't send any mouse or keyboard events to the server",
                        false);
+BoolParameter grabOnlyKeyboard("GrabOnlyKeyboard",
+                       "Send keyboard events to the server only when keyboard grab is active.",
+                       false);
+BoolParameter grabOnlyMouse("GrabOnlyMouse",
+                       "Send mouse events to the server only when mouse grab is active.",
+                       false);
+BoolParameter grabOnly("GrabOnly",
+                       "Activates both GrabOnlyKeyboard and GrabOnlyMouse.",
+                       false);
 BoolParameter shared("Shared",
                      "Don't disconnect other viewers upon connection - "
                      "share the desktop instead",
@@ -207,6 +216,9 @@ static VoidParameter* parameterArray[] = {
   &fullScreenSelectedMonitors,
   /* Input */
   &viewOnly,
+  &grabOnlyKeyboard,
+  &grabOnlyMouse,
+  &grabOnly,
   &emulateMiddleButton,
   &alwaysCursor,
   &cursorType,
