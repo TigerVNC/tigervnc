@@ -80,6 +80,10 @@ public:
 
   void toggleForceGrab();
 
+  bool isKeyboardGrabbed() const;
+  bool isMouseGrabbed() const;
+  bool isForceGrabbed() const;
+
 private:
   static void menuOverlay(void *data);
 
