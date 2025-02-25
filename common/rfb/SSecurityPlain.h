@@ -20,18 +20,18 @@
 #ifndef __RFB_SSECURITYPLAIN_H__
 #define __RFB_SSECURITYPLAIN_H__
 
-#include <rfb/SConnection.h>
+#include <rfb/Security.h>
 #include <rfb/SSecurity.h>
-#include <rfb/SSecurityVeNCrypt.h>
-#include <rfb/Configuration.h>
 
 namespace rfb {
+
+  class StringParameter;
 
   class PasswordValidator {
   public:
     bool validate(SConnection* sc, const char *username, const char *password)
       { return validUser(username) ? validateInternal(sc, username, password) : false; }
-    static StringParameter plainUsers;
+    static core::StringParameter plainUsers;
 
     virtual ~PasswordValidator() { }
 

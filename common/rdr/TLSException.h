@@ -21,7 +21,7 @@
 #ifndef __RDR_TLSEXCEPTION_H__
 #define __RDR_TLSEXCEPTION_H__
 
-#include <rdr/Exception.h>
+#include <stdexcept>
 
 namespace rdr {
 

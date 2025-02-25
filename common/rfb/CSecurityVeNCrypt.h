@@ -28,9 +28,10 @@
 #include <stdint.h>
 
 #include <rfb/CSecurity.h>
-#include <rfb/SecurityClient.h>
 
 namespace rfb {
+
+  class SecurityClient;
 
   class CSecurityVeNCrypt : public CSecurity {
   public:

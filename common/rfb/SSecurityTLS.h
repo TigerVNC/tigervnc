@@ -26,6 +26,7 @@
 #error "This header should not be included without HAVE_GNUTLS defined"
 #endif
 
+#include <rfb/Security.h>
 #include <rfb/SSecurity.h>
 
 #include <gnutls/gnutls.h>
@@ -46,6 +47,8 @@ namespace rdr {
 
 namespace rfb {
 
+  class StringParameter;
+
   class SSecurityTLS : public SSecurity {
   public:
     SSecurityTLS(SConnection* sc, bool _anon);
@@ -54,8 +57,8 @@ namespace rfb {
     const char* getUserName() const override {return nullptr;}
     int getType() const override { return anon ? secTypeTLSNone : secTypeX509None;}
 
-    static StringParameter X509_CertFile;
-    static StringParameter X509_KeyFile;
+    static core::StringParameter X509_CertFile;
+    static core::StringParameter X509_KeyFile;
 
   protected:
     void shutdown();

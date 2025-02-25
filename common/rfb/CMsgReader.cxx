@@ -26,20 +26,24 @@
 
 #include <vector>
 
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
 
 #include <rfb/msgTypes.h>
 #include <rfb/clipboardTypes.h>
-#include <rfb/util.h>
 #include <rfb/Exception.h>
-#include <rfb/LogWriter.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/CMsgReader.h>
+#include <rfb/PixelBuffer.h>
+#include <rfb/ScreenSet.h>
+#include <rfb/encodings.h>
 
-static rfb::LogWriter vlog("CMsgReader");
+static core::LogWriter vlog("CMsgReader");
 
-static rfb::IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
+static core::IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
 
 using namespace rfb;
 
@@ -77,11 +81,11 @@ bool CMsgReader::readServerInit()
   is->readBytes((uint8_t*)name.data(), len);
   name[len] = '\0';
 
-  if (isValidUTF8(name.data()))
+  if (core::isValidUTF8(name.data()))
     handler->serverInit(width, height, pf, name.data());
   else
     handler->serverInit(width, height, pf,
-                        latin1ToUTF8(name.data()).c_str());
+                        core::latin1ToUTF8(name.data()).c_str());
 
   return true;
 }
@@ -119,7 +123,7 @@ bool CMsgReader::readMsg()
       ret = readEndOfContinuousUpdates();
       break;
     default:
-      throw protocol_error(format("Unknown message type %d", currentMsgType));
+      throw protocol_error(core::format("Unknown message type %d", currentMsgType));
     }
 
     if (ret)
@@ -288,8 +292,8 @@ bool CMsgReader::readServerCutText()
   std::vector<char> ca(len);
   is->readBytes((uint8_t*)ca.data(), len);
 
-  std::string utf8(latin1ToUTF8(ca.data(), ca.size()));
-  std::string filtered(convertLF(utf8.data(), utf8.size()));
+  std::string utf8(core::latin1ToUTF8(ca.data(), ca.size()));
+  std::string filtered(core::convertLF(utf8.data(), utf8.size()));
 
   handler->serverCutText(filtered.c_str());
 
@@ -470,7 +474,7 @@ bool CMsgReader::readFramebufferUpdate()
   return true;
 }
 
-bool CMsgReader::readRect(const Rect& r, int encoding)
+bool CMsgReader::readRect(const core::Rect& r, int encoding)
 {
   if ((r.br.x > handler->server.width()) ||
       (r.br.y > handler->server.height())) {
@@ -486,7 +490,8 @@ bool CMsgReader::readRect(const Rect& r, int encoding)
   return handler->dataRect(r, encoding);
 }
 
-bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetXCursor(int width, int height,
+                                const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw protocol_error("Too big cursor");
@@ -550,7 +555,8 @@ bool CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
   return true;
 }
 
-bool CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetCursor(int width, int height,
+                               const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw protocol_error("Too big cursor");
@@ -596,7 +602,8 @@ bool CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   return true;
 }
 
-bool CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetCursorWithAlpha(int width, int height,
+                                        const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw protocol_error("Too big cursor");
@@ -657,7 +664,8 @@ bool CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hots
   return true;
 }
 
-bool CMsgReader::readSetVMwareCursor(int width, int height, const Point& hotspot)
+bool CMsgReader::readSetVMwareCursor(int width, int height,
+                                     const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
     throw protocol_error("Too big cursor");
@@ -784,7 +792,7 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
     return true;
   }
 
-  if (!isValidUTF8(name.data())) {
+  if (!core::isValidUTF8(name.data())) {
     vlog.error("Ignoring DesktopName rect with invalid UTF-8 sequence");
     return true;
   }

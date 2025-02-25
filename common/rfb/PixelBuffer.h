@@ -25,12 +25,13 @@
 #ifndef __RFB_PIXEL_BUFFER_H__
 #define __RFB_PIXEL_BUFFER_H__
 
+#include <core/Rect.h>
+
 #include <rfb/PixelFormat.h>
-#include <rfb/Rect.h>
+
+namespace core { class Region; }
 
 namespace rfb {
-
-  class Region;
 
   class PixelBuffer {
   public:
@@ -52,9 +53,9 @@ namespace rfb {
 
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.
-    Rect getRect() const { return Rect(0, 0, width_, height_); }
-    Rect getRect(const Point& pos) const {
-      return Rect(pos, pos.translate(Point(width_, height_)));
+    core::Rect getRect() const { return {0, 0, width_, height_}; }
+    core::Rect getRect(const core::Point& pos) const {
+      return {pos, pos.translate({width_, height_})};
     }
 
     ///////////////////////////////////////////////
@@ -64,18 +65,20 @@ namespace rfb {
     // Get a pointer into the buffer
     //   The pointer is to the top-left pixel of the specified Rect.
     //   The buffer stride (in pixels) is returned.
-    virtual const uint8_t* getBuffer(const Rect& r, int* stride) const = 0;
+    virtual const uint8_t* getBuffer(const core::Rect& r,
+                                     int* stride) const = 0;
 
     // Get pixel data for a given part of the buffer
     //   Data is copied into the supplied buffer, with the specified
     //   stride. Try to avoid using this though as getBuffer() will in
     //   most cases avoid the extra memory copy.
-    void getImage(void* imageBuf, const Rect& r, int stride=0) const;
+    void getImage(void* imageBuf, const core::Rect& r,
+                  int stride=0) const;
     // Get pixel data in a given format
     //   Works just the same as getImage(), but guaranteed to be in a
     //   specific format.
     void getImage(const PixelFormat& pf, void* imageBuf,
-                  const Rect& r, int stride=0) const;
+                  const core::Rect& r, int stride=0) const;
 
     ///////////////////////////////////////////////
     // Framebuffer update methods
@@ -84,7 +87,7 @@ namespace rfb {
     // Ensure that the specified rectangle of buffer is up to date.
     //   Overridden by derived classes implementing framebuffer access
     //   to copy the required display data into place.
-    virtual void grabRegion(const Region& /*region*/) {}
+    virtual void grabRegion(const core::Region& /*region*/) {}
 
   protected:
     PixelBuffer();
@@ -110,32 +113,35 @@ namespace rfb {
     // Get a writeable pointer into the buffer
     //   Like getBuffer(), the pointer is to the top-left pixel of the
     //   specified Rect and the stride in pixels is returned.
-    virtual uint8_t* getBufferRW(const Rect& r, int* stride) = 0;
+    virtual uint8_t* getBufferRW(const core::Rect& r, int* stride) = 0;
     // Commit the modified contents
     //   Ensures that the changes to the specified Rect is properly
     //   stored away and any temporary buffers are freed. The Rect given
     //   here needs to match the Rect given to the earlier call to
     //   getBufferRW().
-    virtual void commitBufferRW(const Rect& r) = 0;
+    virtual void commitBufferRW(const core::Rect& r) = 0;
 
     ///////////////////////////////////////////////
     // Basic rendering operations
     // These operations DO NOT clip to the pixelbuffer area, or trap overruns.
 
     // Fill a rectangle
-    void fillRect(const Rect &dest, const void* pix);
+    void fillRect(const core::Rect& dest, const void* pix);
 
     // Copy pixel data to the buffer
-    void imageRect(const Rect &dest, const void* pixels, int stride=0);
+    void imageRect(const core::Rect& dest, const void* pixels,
+                   int stride=0);
 
     // Copy pixel data from one PixelBuffer location to another
-    void copyRect(const Rect &dest, const Point& move_by_delta);
+    void copyRect(const core::Rect& dest,
+                  const core::Point& move_by_delta);
 
     // Render in a specific format
     //   Does the exact same thing as the above methods, but the given
     //   pixel values are defined by the given PixelFormat.
-    void fillRect(const PixelFormat& pf, const Rect &dest, const void* pix);
-    void imageRect(const PixelFormat& pf, const Rect &dest,
+    void fillRect(const PixelFormat& pf, const core::Rect& dest,
+                  const void* pix);
+    void imageRect(const PixelFormat& pf, const core::Rect& dest,
                    const void* pixels, int stride=0);
 
   protected:
@@ -151,9 +157,10 @@ namespace rfb {
     virtual ~FullFramePixelBuffer();
 
   public:
-    const uint8_t* getBuffer(const Rect& r, int* stride) const override;
-    uint8_t* getBufferRW(const Rect& r, int* stride) override;
-    void commitBufferRW(const Rect& r) override;
+    const uint8_t* getBuffer(const core::Rect& r,
+                             int* stride) const override;
+    uint8_t* getBufferRW(const core::Rect& r, int* stride) override;
+    void commitBufferRW(const core::Rect& r) override;
 
   protected:
     FullFramePixelBuffer();

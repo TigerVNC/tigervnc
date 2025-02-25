@@ -40,7 +40,7 @@ RREDecoder::~RREDecoder()
 {
 }
 
-bool RREDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
+bool RREDecoder::readRect(const core::Rect& /*r*/, rdr::InStream* is,
                           const ServerParams& server, rdr::OutStream* os)
 {
   uint32_t numRects;
@@ -66,7 +66,7 @@ bool RREDecoder::readRect(const Rect& /*r*/, rdr::InStream* is,
   return true;
 }
 
-void RREDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
+void RREDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
                             size_t buflen, const ServerParams& server,
                             ModifiablePixelBuffer* pb)
 {
@@ -91,7 +91,7 @@ inline T RREDecoder::readPixel(rdr::InStream* is)
 }
 
 template<class T>
-void RREDecoder::rreDecode(const Rect& r, rdr::InStream* is,
+void RREDecoder::rreDecode(const core::Rect& r, rdr::InStream* is,
                            const PixelFormat& pf,
                            ModifiablePixelBuffer* pb)
 {
@@ -109,6 +109,6 @@ void RREDecoder::rreDecode(const Rect& r, rdr::InStream* is,
     if (((x+w) > r.width()) || ((y+h) > r.height()))
       throw protocol_error("RRE decode error");
 
-    pb->fillRect(pf, Rect(r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h), &pix);
+    pb->fillRect(pf, {r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h}, &pix);
   }
 }

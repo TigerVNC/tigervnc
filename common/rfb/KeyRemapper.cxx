@@ -23,21 +23,21 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <os/Mutex.h>
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
 
 #include <rfb/KeyRemapper.h>
-#include <rfb/Configuration.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("KeyRemapper");
+static core::LogWriter vlog("KeyRemapper");
 
 KeyRemapper KeyRemapper::defInstance;
 
 KeyRemapper::KeyRemapper(const char* m)
 {
-  mutex = new os::Mutex;
+  mutex = new core::Mutex;
 
   setMapping(m);
 }
@@ -48,7 +48,7 @@ KeyRemapper::~KeyRemapper()
 }
 
 void KeyRemapper::setMapping(const char* m) {
-  os::AutoMutex a(mutex);
+  core::AutoMutex a(mutex);
 
   mapping.clear();
   while (m[0]) {
@@ -74,7 +74,7 @@ void KeyRemapper::setMapping(const char* m) {
 }
 
 uint32_t KeyRemapper::remapKey(uint32_t key) const {
-  os::AutoMutex a(mutex);
+  core::AutoMutex a(mutex);
 
   std::map<uint32_t,uint32_t>::const_iterator i = mapping.find(key);
   if (i != mapping.end())
@@ -83,15 +83,15 @@ uint32_t KeyRemapper::remapKey(uint32_t key) const {
 }
 
 
-class KeyMapParameter : public StringParameter {
+class KeyMapParameter : public core::StringParameter {
 public:
   KeyMapParameter()
-    : StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
+    : core::StringParameter("RemapKeys", "Comma-separated list of incoming keysyms to remap.  Mappings are expressed as two hex values, prefixed by 0x, and separated by ->", "") {
     KeyRemapper::defInstance.setMapping("");
   }
   bool setParam(const char* v) override {
     KeyRemapper::defInstance.setMapping(v);
-    return StringParameter::setParam(v);
+    return core::StringParameter::setParam(v);
   }
 } defaultParam;
 

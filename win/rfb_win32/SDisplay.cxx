@@ -27,6 +27,8 @@
 
 #include <assert.h>
 
+#include <core/LogWriter.h>
+
 #include <rfb_win32/SDisplay.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/TsSessions.h>
@@ -35,10 +37,11 @@
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb_win32/SDisplayCoreWMHooks.h>
-#include <rfb/LogWriter.h>
+#include <rfb/VNCServer.h>
 #include <rfb/ledStates.h>
 
 
+using namespace core;
 using namespace rdr;
 using namespace rfb;
 using namespace rfb::win32;
@@ -460,8 +463,8 @@ SDisplay::recreatePixelBuffer(bool force) {
   Rect newScreenRect;
   if (strlen(displayDevice) > 0) {
     MonitorInfo info(displayDevice);
-    newScreenRect = Rect(info.rcMonitor.left, info.rcMonitor.top,
-                         info.rcMonitor.right, info.rcMonitor.bottom);
+    newScreenRect = {info.rcMonitor.left, info.rcMonitor.top,
+                     info.rcMonitor.right, info.rcMonitor.bottom};
   } else {
     newScreenRect = new_device->getClipBox();
   }

@@ -23,13 +23,18 @@
 #ifndef __RFB_VNCSERVER_H__
 #define __RFB_VNCSERVER_H__
 
+#include <list>
+
+#include <rfb/AccessRights.h>
 #include <rfb/UpdateTracker.h>
-#include <rfb/SSecurity.h>
-#include <rfb/ScreenSet.h>
 
 namespace network { class Socket; }
 
 namespace rfb {
+
+  class PixelBuffer;
+  class SConnection;
+  struct ScreenSet;
 
   class VNCServer : public UpdateTracker {
   public:
@@ -128,13 +133,14 @@ namespace rfb {
     // setCursor() tells the server that the cursor has changed.  The
     // cursorData argument contains width*height rgba quadruplets with
     // non-premultiplied alpha.
-    virtual void setCursor(int width, int height, const Point& hotspot,
+    virtual void setCursor(int width, int height,
+                           const core::Point& hotspot,
                            const uint8_t* cursorData) = 0;
 
     // setCursorPos() tells the server the current position of the cursor, and
     // whether the server initiated that change (e.g. through another X11
     // client calling XWarpPointer()).
-    virtual void setCursorPos(const Point& p, bool warped) = 0;
+    virtual void setCursorPos(const core::Point& p, bool warped) = 0;
 
     // setName() tells the server what desktop title to supply to clients
     virtual void setName(const char* name) = 0;

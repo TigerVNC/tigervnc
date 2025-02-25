@@ -23,16 +23,18 @@
 #include <config.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
+#include <core/LogWriter.h>
+
 #include <rdr/TLSException.h>
 #include <rdr/TLSOutStream.h>
-#include <rfb/LogWriter.h>
+
 #include <errno.h>
 
 #ifdef HAVE_GNUTLS
 using namespace rdr;
 
-static rfb::LogWriter vlog("TLSOutStream");
+static core::LogWriter vlog("TLSOutStream");
 
 ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
 				   size_t size)
@@ -46,10 +48,10 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
   try {
     out->writeBytes((const uint8_t*)data, size);
     out->flush();
-  } catch (socket_error& e) {
+  } catch (core::socket_error& e) {
     vlog.error("Failure sending TLS data: %s", e.what());
     gnutls_transport_set_errno(self->session, e.err);
-    self->saved_exception = new socket_error(e);
+    self->saved_exception = new core::socket_error(e);
     return -1;
   } catch (std::exception& e) {
     vlog.error("Failure sending TLS data: %s", e.what());
@@ -115,8 +117,8 @@ size_t TLSOutStream::writeTLS(const uint8_t* data, size_t length)
     return 0;
 
   if (n == GNUTLS_E_PUSH_ERROR) {
-    if (dynamic_cast<socket_error*>(saved_exception))
-      throw *dynamic_cast<socket_error*>(saved_exception);
+    if (dynamic_cast<core::socket_error*>(saved_exception))
+      throw *dynamic_cast<core::socket_error*>(saved_exception);
     else
       throw std::runtime_error(saved_exception->what());
   }

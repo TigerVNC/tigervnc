@@ -29,7 +29,7 @@
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
 
-#include <rdr/RandomStream.h>
+namespace core { class IntParameter; }
 
 namespace rdr {
   class InStream;
@@ -39,6 +39,7 @@ namespace rdr {
 }
 
 namespace rfb {
+
   class CSecurityRSAAES : public CSecurity {
   public:
     CSecurityRSAAES(CConnection* cc, uint32_t secType,
@@ -48,7 +49,7 @@ namespace rfb {
     int getType() const override { return secType; }
     bool isSecure() const override { return secType == secTypeRA256; }
 
-    static IntParameter RSAKeyLength;
+    static core::IntParameter RSAKeyLength;
 
   private:
     void cleanup();
@@ -86,9 +87,8 @@ namespace rfb {
 
     rdr::InStream* rawis;
     rdr::OutStream* rawos;
-
-    rdr::RandomStream rs;
   };
+
 }
 
 #endif

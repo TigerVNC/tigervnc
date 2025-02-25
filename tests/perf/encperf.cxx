@@ -37,34 +37,32 @@
 #include <math.h>
 #include <sys/time.h>
 
-#include <rdr/Exception.h>
+#include <core/Configuration.h>
+
 #include <rdr/OutStream.h>
 #include <rdr/FileInStream.h>
 
 #include <rfb/AccessRights.h>
-
 #include <rfb/PixelFormat.h>
-
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/UpdateTracker.h>
-
 #include <rfb/EncodeManager.h>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 
 #include "util.h"
 
-static rfb::IntParameter width("width", "Frame buffer width", 0);
-static rfb::IntParameter height("height", "Frame buffer height", 0);
-static rfb::IntParameter count("count", "Number of benchmark iterations", 9);
+static core::IntParameter width("width", "Frame buffer width", 0);
+static core::IntParameter height("height", "Frame buffer height", 0);
+static core::IntParameter count("count", "Number of benchmark iterations", 9);
 
-static rfb::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
+static core::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
-static rfb::BoolParameter translate("translate",
-                                    "Translate 8-bit and 16-bit datasets into 24-bit",
-                                    true);
+static core::BoolParameter translate("translate",
+                                     "Translate 8-bit and 16-bit datasets into 24-bit",
+                                     true);
 
 // The frame buffer (and output) is always this format
 static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
@@ -100,11 +98,11 @@ public:
 
   void initDone() override {};
   void resizeFramebuffer() override;
-  void setCursor(int, int, const rfb::Point&, const uint8_t*) override;
-  void setCursorPos(const rfb::Point&) override;
+  void setCursor(int, int, const core::Point&, const uint8_t*) override;
+  void setCursorPos(const core::Point&) override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
-  bool dataRect(const rfb::Rect&, int) override;
+  bool dataRect(const core::Rect&, int) override;
   void setColourMapEntries(int, int, uint16_t*) override;
   void bell() override;
   void serverCutText(const char*) override;
@@ -221,11 +219,11 @@ void CConn::resizeFramebuffer()
   setFramebuffer(pb);
 }
 
-void CConn::setCursor(int, int, const rfb::Point&, const uint8_t*)
+void CConn::setCursor(int, int, const core::Point&, const uint8_t*)
 {
 }
 
-void CConn::setCursorPos(const rfb::Point&)
+void CConn::setCursorPos(const core::Point&)
 {
 }
 
@@ -241,7 +239,7 @@ void CConn::framebufferUpdateEnd()
 {
   rfb::UpdateInfo ui;
   rfb::PixelBuffer* pb = getFramebuffer();
-  rfb::Region clip(pb->getRect());
+  core::Region clip(pb->getRect());
 
   CConnection::framebufferUpdateEnd();
 
@@ -258,13 +256,13 @@ void CConn::framebufferUpdateEnd()
   encodeTime += getCpuCounter();
 }
 
-bool CConn::dataRect(const rfb::Rect &r, int encoding)
+bool CConn::dataRect(const core::Rect& r, int encoding)
 {
   if (!CConnection::dataRect(r, encoding))
     return false;
 
   if (encoding != rfb::encodingCopyRect) // FIXME
-    updates.add_changed(rfb::Region(r));
+    updates.add_changed(r);
 
   return true;
 }
@@ -421,7 +419,7 @@ static void usage(const char *argv0)
 {
   fprintf(stderr, "Syntax: %s [options] <rfb file>\n", argv0);
   fprintf(stderr, "Options:\n");
-  rfb::Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
   exit(1);
 }
 
@@ -435,7 +433,7 @@ int main(int argc, char **argv)
   for (i = 1; i < argc; i++) {
     int ret;
 
-    ret = rfb::Configuration::handleParamArg(argc, argv, i);
+    ret = core::Configuration::handleParamArg(argc, argv, i);
     if (ret > 0) {
       i += ret;
       continue;

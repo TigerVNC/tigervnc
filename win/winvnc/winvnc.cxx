@@ -28,15 +28,18 @@
 #include <winvnc/VNCServerService.h>
 #include <winvnc/AddNewClientDialog.h>
 
-#include <rfb/Logger_stdio.h>
-#include <rfb/Logger_file.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
+#include <core/Logger_file.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb_win32/AboutDialog.h>
 #include <rfb_win32/MsgBox.h>
+
 #include <network/TcpSocket.h>
 
 using namespace winvnc;
+using namespace core;
 using namespace rfb;
 using namespace win32;
 
@@ -177,13 +180,13 @@ static void processParams(int argc, char** argv) {
         // Try to clean up earlier services we've had
         try {
           rfb::win32::unregisterService("WinVNC4");
-        } catch (rdr::win32_error&) {
+        } catch (core::win32_error&) {
           // Do nothing as we might fail simply because there was no
           // service to remove
         }
         try {
           rfb::win32::unregisterService("TigerVNC Server");
-        } catch (rdr::win32_error&) {
+        } catch (core::win32_error&) {
         }
 
         if (rfb::win32::registerService(VNCServerService::Name,

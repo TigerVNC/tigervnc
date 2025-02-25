@@ -24,11 +24,12 @@
 
 #include <stdint.h>
 
-#include <rfb/Configuration.h>
-
 #include <list>
 
+namespace core { class StringParameter; }
+
 namespace rfb {
+
   const uint8_t secTypeInvalid    = 0;
   const uint8_t secTypeNone       = 1;
   const uint8_t secTypeVncAuth    = 2;
@@ -76,7 +77,7 @@ namespace rfb {
      * Create Security instance.
      */
     Security();
-    Security(StringParameter &secTypes);
+    Security(core::StringParameter& secTypes);
 
     /*
      * Note about security types.
@@ -105,7 +106,7 @@ namespace rfb {
     char *ToString(void);
 
 #ifdef HAVE_GNUTLS
-    static StringParameter GnuTLSPriority;
+    static core::StringParameter GnuTLSPriority;
 #endif
 
   private:
@@ -115,6 +116,7 @@ namespace rfb {
   const char* secTypeName(uint32_t num);
   uint32_t secTypeNum(const char* name);
   std::list<uint32_t> parseSecTypes(const char* types);
+
 }
 
 #endif

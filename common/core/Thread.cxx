@@ -28,12 +28,11 @@
 #include <unistd.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
+#include <core/Mutex.h>
+#include <core/Thread.h>
 
-#include <os/Mutex.h>
-#include <os/Thread.h>
-
-using namespace os;
+using namespace core;
 
 Thread::Thread() : running(false), threadId(nullptr)
 {
@@ -66,7 +65,7 @@ void Thread::start()
 #ifdef WIN32
   *(HANDLE*)threadId = CreateThread(nullptr, 0, startRoutine, this, 0, nullptr);
   if (*(HANDLE*)threadId == nullptr)
-    throw rdr::win32_error("Failed to create thread", GetLastError());
+    throw win32_error("Failed to create thread", GetLastError());
 #else
   int ret;
   sigset_t all, old;
@@ -76,14 +75,14 @@ void Thread::start()
   sigfillset(&all);
   ret = pthread_sigmask(SIG_SETMASK, &all, &old);
   if (ret != 0)
-    throw rdr::posix_error("Failed to mask signals", ret);
+    throw posix_error("Failed to mask signals", ret);
 
   ret = pthread_create((pthread_t*)threadId, nullptr, startRoutine, this);
 
   pthread_sigmask(SIG_SETMASK, &old, nullptr);
 
   if (ret != 0)
-    throw rdr::posix_error("Failed to create thread", ret);
+    throw posix_error("Failed to create thread", ret);
 #endif
 
   running = true;
@@ -99,13 +98,13 @@ void Thread::wait()
 
   ret = WaitForSingleObject(*(HANDLE*)threadId, INFINITE);
   if (ret != WAIT_OBJECT_0)
-    throw rdr::win32_error("Failed to join thread", GetLastError());
+    throw win32_error("Failed to join thread", GetLastError());
 #else
   int ret;
 
   ret = pthread_join(*(pthread_t*)threadId, nullptr);
   if (ret != 0)
-    throw rdr::posix_error("Failed to join thread", ret);
+    throw posix_error("Failed to join thread", ret);
 #endif
 }
 

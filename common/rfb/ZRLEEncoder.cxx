@@ -21,20 +21,21 @@
 #include <config.h>
 #endif
 
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+
 #include <rdr/OutStream.h>
-#include <rfb/Exception.h>
 #include <rfb/encodings.h>
 #include <rfb/Palette.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/SConnection.h>
 #include <rfb/ZRLEEncoder.h>
-#include <rfb/Configuration.h>
-#include <rfb/LogWriter.h>
 
 using namespace rfb;
 
-static LogWriter vlog("ZRLEEncoder");
+static core::LogWriter vlog("ZRLEEncoder");
 
-IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
+core::IntParameter zlibLevel("ZlibLevel","[DEPRECATED] Zlib compression level",-1);
 
 ZRLEEncoder::ZRLEEncoder(SConnection* conn_)
   : Encoder(conn_, encodingZRLE, EncoderPlain, 127),
@@ -66,7 +67,7 @@ void ZRLEEncoder::setCompressLevel(int level)
 void ZRLEEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 {
   int x, y;
-  Rect tile;
+  core::Rect tile;
 
   rdr::OutStream* os;
 
@@ -132,7 +133,8 @@ void ZRLEEncoder::writeSolidRect(int width, int height,
   mos.clear();
 }
 
-void ZRLEEncoder::writePaletteTile(const Rect& tile, const PixelBuffer* pb,
+void ZRLEEncoder::writePaletteTile(const core::Rect& tile,
+                                   const PixelBuffer* pb,
                                    const Palette& palette)
 {
   const uint8_t* buffer;
@@ -158,7 +160,8 @@ void ZRLEEncoder::writePaletteTile(const Rect& tile, const PixelBuffer* pb,
   }
 }
 
-void ZRLEEncoder::writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
+void ZRLEEncoder::writePaletteRLETile(const core::Rect& tile,
+                                      const PixelBuffer* pb,
                                       const Palette& palette)
 {
   const uint8_t* buffer;
@@ -184,7 +187,8 @@ void ZRLEEncoder::writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
   }
 }
 
-void ZRLEEncoder::writeRawTile(const Rect& tile, const PixelBuffer* pb)
+void ZRLEEncoder::writeRawTile(const core::Rect& tile,
+                               const PixelBuffer* pb)
 {
   const uint8_t* buffer;
   int stride;

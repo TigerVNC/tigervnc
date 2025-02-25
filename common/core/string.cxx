@@ -26,11 +26,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
 
-#include <rfb/util.h>
+#include <core/string.h>
 
-namespace rfb {
+namespace core {
 
   std::string format(const char *fmt, ...)
   {
@@ -602,40 +601,6 @@ namespace rfb {
     }
 
     return true;
-  }
-
-  unsigned msBetween(const struct timeval *first,
-                     const struct timeval *second)
-  {
-    unsigned diff;
-
-    diff = (second->tv_sec - first->tv_sec) * 1000;
-
-    diff += second->tv_usec / 1000;
-    diff -= first->tv_usec / 1000;
-
-    return diff;
-  }
-
-  unsigned msSince(const struct timeval *then)
-  {
-    struct timeval now;
-
-    gettimeofday(&now, nullptr);
-
-    return msBetween(then, &now);
-  }
-
-  bool isBefore(const struct timeval *first,
-                const struct timeval *second)
-  {
-    if (first->tv_sec < second->tv_sec)
-      return true;
-    if (first->tv_sec > second->tv_sec)
-      return false;
-    if (first->tv_usec < second->tv_usec)
-      return true;
-    return false;
   }
 
   static std::string doPrefix(long long value, const char *unit,

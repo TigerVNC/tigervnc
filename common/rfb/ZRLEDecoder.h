@@ -30,16 +30,16 @@ namespace rfb {
   public:
     ZRLEDecoder();
     virtual ~ZRLEDecoder();
-    bool readRect(const Rect& r, rdr::InStream* is,
+    bool readRect(const core::Rect& r, rdr::InStream* is,
                   const ServerParams& server,
                   rdr::OutStream* os) override;
-    void decodeRect(const Rect& r, const uint8_t* buffer,
+    void decodeRect(const core::Rect& r, const uint8_t* buffer,
                     size_t buflen, const ServerParams& server,
                     ModifiablePixelBuffer* pb) override;
 
   private:
     template<class T>
-    void zrleDecode(const Rect& r, rdr::InStream* is,
+    void zrleDecode(const core::Rect& r, rdr::InStream* is,
                     const PixelFormat& pf, ModifiablePixelBuffer* pb);
 
   private:

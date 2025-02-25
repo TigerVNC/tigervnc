@@ -20,19 +20,22 @@
 
 #include <vector>
 
+#include <core/Configuration.h>
+#include <core/string.h>
+
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/ModuleFileName.h>
-#include <rfb/Configuration.h>
+
 #include <rfb/Blacklist.h>
-#include <rfb/util.h>
+
 #include <network/TcpSocket.h>
 
-static rfb::IntParameter port_number("PortNumber",
+static core::IntParameter port_number("PortNumber",
   "TCP/IP port on which the server will accept connections", 5900);
-static rfb::StringParameter hosts("Hosts",
+static core::StringParameter hosts("Hosts",
   "Filter describing which hosts are allowed access to this server", "+");
-static rfb::BoolParameter localHost("LocalHost",
+static core::BoolParameter localHost("LocalHost",
   "Only accept connections from via the local loop-back network interface", false);
 
 namespace rfb {
@@ -100,7 +103,7 @@ namespace rfb {
           SendMessage(listBox, LB_DELETESTRING, 0, 0);
 
         std::vector<std::string> hostv;
-        hostv = split(hosts, ',');
+        hostv = core::split(hosts, ',');
         for (size_t i = 0; i < hostv.size(); i++) {
           if (!hostv[i].empty())
             SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)hostv[i].c_str());

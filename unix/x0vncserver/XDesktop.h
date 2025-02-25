@@ -63,7 +63,8 @@ public:
   bool isRunning();
   void queryConnection(network::Socket* sock,
                        const char* userName) override;
-  void pointerEvent(const rfb::Point& pos, uint16_t buttonMask) override;
+  void pointerEvent(const core::Point& pos,
+                    uint16_t buttonMask) override;
   void keyEvent(uint32_t keysym, uint32_t xtcode, bool down) override;
   unsigned int setScreenLayout(int fb_width, int fb_height,
                                const rfb::ScreenSet& layout) override;

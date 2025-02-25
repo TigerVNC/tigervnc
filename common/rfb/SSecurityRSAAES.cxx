@@ -37,13 +37,15 @@
 #include <nettle/base64.h>
 #include <nettle/asn1.h>
 
+#include <core/Exception.h>
+#include <core/LogWriter.h>
+
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
-#include <rdr/Exception.h>
+#include <rdr/RandomStream.h>
 
 #include <rfb/SSecurityRSAAES.h>
 #include <rfb/SConnection.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <rfb/UnixPasswordValidator.h>
@@ -67,14 +69,14 @@ const size_t MaxKeyFileSize = 32 * 1024;
 
 using namespace rfb;
 
-StringParameter SSecurityRSAAES::keyFile
+core::StringParameter SSecurityRSAAES::keyFile
 ("RSAKey", "Path to the RSA key for the RSA-AES security types in "
            "PEM format", "");
-BoolParameter SSecurityRSAAES::requireUsername
+core::BoolParameter SSecurityRSAAES::requireUsername
 ("RequireUsername", "Require username for the RSA-AES security types",
  false);
 
-static LogWriter vlog("SSecurityRSAAES");
+static core::LogWriter vlog("SSecurityRSAAES");
 
 SSecurityRSAAES::SSecurityRSAAES(SConnection* sc_, uint32_t _secType,
                                  int _keySize, bool _isAllEncrypted)
@@ -174,7 +176,7 @@ void SSecurityRSAAES::loadPrivateKey()
 {
   FILE* file = fopen(keyFile, "rb");
   if (!file)
-    throw rdr::posix_error("Failed to open key file", errno);
+    throw core::posix_error("Failed to open key file", errno);
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
@@ -185,7 +187,7 @@ void SSecurityRSAAES::loadPrivateKey()
   std::vector<uint8_t> data(size);
   if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
-    throw rdr::posix_error("Failed to read key", errno);
+    throw core::posix_error("Failed to read key", errno);
   }
   fclose(file);
 
@@ -345,6 +347,7 @@ static void random_func(void* ctx, size_t length, uint8_t* dst)
 
 void SSecurityRSAAES::writeRandom()
 {
+  rdr::RandomStream rs;
   rdr::OutStream* os = sc->getOutStream();
   if (!rs.hasData(keySize / 8))
     throw std::runtime_error("Failed to generate random");

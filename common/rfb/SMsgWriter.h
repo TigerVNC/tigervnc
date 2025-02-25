@@ -25,8 +25,7 @@
 
 #include <stdint.h>
 
-#include <rfb/encodings.h>
-#include <rfb/ScreenSet.h>
+namespace core { struct Rect; }
 
 namespace rdr { class OutStream; }
 
@@ -117,11 +116,11 @@ namespace rfb {
     void writeFramebufferUpdateEnd();
 
     // There is no explicit encoder for CopyRect rects.
-    void writeCopyRect(const Rect& r, int srcX, int srcY);
+    void writeCopyRect(const core::Rect& r, int srcX, int srcY);
 
     // Encoders should call these to mark the start and stop of individual
     // rects.
-    void startRect(const Rect& r, int enc);
+    void startRect(const core::Rect& r, int enc);
     void endRect();
 
   protected:

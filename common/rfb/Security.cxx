@@ -25,16 +25,17 @@
 
 #include <algorithm>
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb/Security.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
-static LogWriter vlog("Security");
+static core::LogWriter vlog("Security");
 
 #ifdef HAVE_GNUTLS
-StringParameter Security::GnuTLSPriority("GnuTLSPriority",
+core::StringParameter Security::GnuTLSPriority("GnuTLSPriority",
   "GnuTLS priority string that controls the TLS session’s handshake algorithms",
   "");
 #endif
@@ -43,7 +44,7 @@ Security::Security()
 {
 }
 
-Security::Security(StringParameter &secTypes)
+Security::Security(core::StringParameter& secTypes)
 {
   enabledSecTypes = parseSecTypes(secTypes);
 }
@@ -184,7 +185,7 @@ std::list<uint32_t> rfb::parseSecTypes(const char* types_)
 {
   std::list<uint32_t> result;
   std::vector<std::string> types;
-  types = split(types_, ',');
+  types = core::split(types_, ',');
   for (size_t i = 0; i < types.size(); i++) {
     uint32_t typeNum = secTypeNum(types[i].c_str());
     if (typeNum != secTypeInvalid)

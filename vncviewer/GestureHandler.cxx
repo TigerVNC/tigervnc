@@ -24,12 +24,12 @@
 #include <assert.h>
 #include <math.h>
 
-#include <rfb/util.h>
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+#include <core/time.h>
 
 #include "GestureHandler.h"
 
-static rfb::LogWriter vlog("GestureHandler");
+static core::LogWriter vlog("GestureHandler");
 
 static const unsigned char GH_NOGESTURE = 0;
 static const unsigned char GH_ONETAP    = 1;
@@ -81,7 +81,7 @@ void GestureHandler::handleTouchBegin(int id, double x, double y)
   // Did it take too long between touches that we should no longer
   // consider this a single gesture?
   if ((tracked.size() > 0) &&
-      (rfb::msSince(&tracked.begin()->second.started) > GH_MULTITOUCH_TIMEOUT)) {
+      (core::msSince(&tracked.begin()->second.started) > GH_MULTITOUCH_TIMEOUT)) {
     state = GH_NOGESTURE;
     ignored.insert(id);
     return;
@@ -257,12 +257,12 @@ void GestureHandler::handleTouchEnd(int id)
   // Waiting for all touches to release? (i.e. some tap)
   if (waitingRelease) {
     // Were all touches released at roughly the same time?
-    if (rfb::msSince(&releaseStart) > GH_MULTITOUCH_TIMEOUT)
+    if (core::msSince(&releaseStart) > GH_MULTITOUCH_TIMEOUT)
       state = GH_NOGESTURE;
 
     // Did too long time pass between press and release?
     for (iter = tracked.begin(); iter != tracked.end(); ++iter) {
-      if (rfb::msSince(&iter->second.started) > GH_TAP_TIMEOUT) {
+      if (core::msSince(&iter->second.started) > GH_TAP_TIMEOUT) {
         state = GH_NOGESTURE;
         break;
       }
@@ -323,7 +323,7 @@ bool GestureHandler::hasDetectedGesture()
   return true;
 }
 
-void GestureHandler::handleTimeout(rfb::Timer* t)
+void GestureHandler::handleTimeout(core::Timer* t)
 {
   if (t == &longpressTimer)
     longpressTimeout();

@@ -18,8 +18,8 @@
 
 // -=- Logger.h - The Logger class.
 
-#ifndef __RFB_LOGGER_H__
-#define __RFB_LOGGER_H__
+#ifndef __CORE_LOGGER_H__
+#define __CORE_LOGGER_H__
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -28,7 +28,7 @@
 // and is attached to a particular Logger instance and
 // is assigned a particular log level.
 
-namespace rfb {
+namespace core {
 
   class Logger {
   public:
@@ -68,4 +68,4 @@ namespace rfb {
 
 };
 
-#endif // __RFB_LOGGER_H__
+#endif // __CORE_LOGGER_H__

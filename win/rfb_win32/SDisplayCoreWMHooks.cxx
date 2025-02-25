@@ -22,9 +22,11 @@
 #include <config.h>
 #endif
 
-#include <rfb_win32/SDisplayCoreWMHooks.h>
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
 
+#include <rfb_win32/SDisplayCoreWMHooks.h>
+
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 

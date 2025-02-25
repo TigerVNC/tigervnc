@@ -29,16 +29,17 @@
 
 #include <map>
 
+#include <core/Timer.h>
+
 #include <rfb/Congestion.h>
 #include <rfb/EncodeManager.h>
 #include <rfb/SConnection.h>
-#include <rfb/Timer.h>
 
 namespace rfb {
   class VNCServerST;
 
   class VNCSConnectionST : private SConnection,
-                           public Timer::Callback {
+                           public core::Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse,
                      AccessRights ar);
@@ -108,8 +109,8 @@ namespace rfb {
 
     // Change tracking
 
-    void add_changed(const Region& region) { updates.add_changed(region); }
-    void add_copied(const Region& dest, const Point& delta) {
+    void add_changed(const core::Region& region) { updates.add_changed(region); }
+    void add_copied(const core::Region& dest, const core::Point& delta) {
       updates.add_copied(dest, delta);
     }
 
@@ -123,10 +124,11 @@ namespace rfb {
     void queryConnection(const char* userName) override;
     void clientInit(bool shared) override;
     void setPixelFormat(const PixelFormat& pf) override;
-    void pointerEvent(const Point& pos, uint16_t buttonMask) override;
+    void pointerEvent(const core::Point& pos,
+                      uint16_t buttonMask) override;
     void keyEvent(uint32_t keysym, uint32_t keycode,
                   bool down) override;
-    void framebufferUpdateRequest(const Rect& r,
+    void framebufferUpdateRequest(const core::Rect& r,
                                   bool incremental) override;
     void setDesktopSize(int fb_width, int fb_height,
                         const ScreenSet& layout) override;
@@ -143,7 +145,7 @@ namespace rfb {
     void supportsLEDState() override;
 
     // Timer callbacks
-    void handleTimeout(Timer* t) override;
+    void handleTimeout(core::Timer* t) override;
 
     // Internal methods
 
@@ -180,24 +182,24 @@ namespace rfb {
     uint8_t *fenceData;
 
     Congestion congestion;
-    Timer congestionTimer;
-    Timer losslessTimer;
+    core::Timer congestionTimer;
+    core::Timer losslessTimer;
 
     VNCServerST* server;
     SimpleUpdateTracker updates;
-    Region requested;
+    core::Region requested;
     bool updateRenderedCursor, removeRenderedCursor;
-    Region damagedCursorRegion;
+    core::Region damagedCursorRegion;
     bool continuousUpdates;
-    Region cuRegion;
+    core::Region cuRegion;
     EncodeManager encodeManager;
 
     std::map<uint32_t, uint32_t> pressedKeys;
 
-    Timer idleTimer;
+    core::Timer idleTimer;
 
     time_t pointerEventTime;
-    Point pointerEventPos;
+    core::Point pointerEventPos;
     bool clientHasCursor;
 
     std::string closeReason;

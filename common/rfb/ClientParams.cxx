@@ -24,11 +24,14 @@
 
 #include <stdexcept>
 
+#include <core/string.h>
+
 #include <rfb/encodings.h>
 #include <rfb/ledStates.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/ClientParams.h>
-#include <rfb/util.h>
+#include <rfb/Cursor.h>
+#include <rfb/ScreenSet.h>
 
 using namespace rfb;
 
@@ -41,7 +44,11 @@ ClientParams::ClientParams()
 {
   setName("");
 
-  cursor_ = new Cursor(0, 0, Point(), nullptr);
+  screenLayout_ = new ScreenSet();
+
+  pf_ = new PixelFormat();
+
+  cursor_ = new Cursor(0, 0, {}, nullptr);
 
   clipFlags = clipboardUTF8 | clipboardRTF | clipboardHTML |
               clipboardRequest | clipboardNotify | clipboardProvide;
@@ -51,7 +58,9 @@ ClientParams::ClientParams()
 
 ClientParams::~ClientParams()
 {
+  delete screenLayout_;
   delete cursor_;
+  delete pf_;
 }
 
 void ClientParams::setDimensions(int width, int height)
@@ -68,12 +77,14 @@ void ClientParams::setDimensions(int width, int height, const ScreenSet& layout)
 
   width_ = width;
   height_ = height;
-  screenLayout_ = layout;
+  delete screenLayout_;
+  screenLayout_ = new ScreenSet(layout);
 }
 
 void ClientParams::setPF(const PixelFormat& pf)
 {
-  pf_ = pf;
+  delete pf_;
+  pf_ = new PixelFormat(pf);
 
   if (pf.bpp != 8 && pf.bpp != 16 && pf.bpp != 32)
     throw std::invalid_argument("setPF: Not 8, 16 or 32 bpp?");
@@ -90,7 +101,7 @@ void ClientParams::setCursor(const Cursor& other)
   cursor_ = new Cursor(other);
 }
 
-void ClientParams::setCursorPos(const Point& pos)
+void ClientParams::setCursorPos(const core::Point& pos)
 {
   cursorPos_ = pos;
 }
@@ -162,7 +173,7 @@ uint32_t ClientParams::clipboardSize(unsigned int format) const
       return clipSizes[i];
   }
 
-  throw std::invalid_argument(rfb::format("Invalid clipboard format 0x%x", format));
+  throw std::invalid_argument(core::format("Invalid clipboard format 0x%x", format));
 }
 
 void ClientParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)

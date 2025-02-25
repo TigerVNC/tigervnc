@@ -25,6 +25,11 @@
 #include <algorithm>
 #include <libgen.h>
 
+// FIXME: Workaround for FLTK including windows.h
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Input_Choice.H>
@@ -35,13 +40,12 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_File_Chooser.H>
 
-#include <os/os.h>
+#include <core/Exception.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+#include <core/xdgdirs.h>
 
-#include <rdr/Exception.h>
-
-#include <rfb/Hostname.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
+#include <network/TcpSocket.h>
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
@@ -51,11 +55,7 @@
 #include "vncviewer.h"
 #include "parameters.h"
 
-
-using namespace std;
-using namespace rfb;
-
-static LogWriter vlog("ServerDialog");
+static core::LogWriter vlog("ServerDialog");
 
 const char* SERVER_HISTORY="tigervnc.history";
 
@@ -139,7 +139,7 @@ void ServerDialog::run(const char* servername, char *newservername)
     dialog.loadServerHistory();
 
     dialog.serverName->clear();
-    for (const string& entry : dialog.serverHistory)
+    for (const std::string& entry : dialog.serverHistory)
       fltk_menu_add(dialog.serverName->menubutton(),
                     entry.c_str(), 0, nullptr);
   } catch (std::exception& e) {
@@ -170,7 +170,7 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
   ServerDialog *dialog = (ServerDialog*)data;
 
   if (dialog->usedDir.empty())
-    dialog->usedDir = os::getuserhomedir();
+    dialog->usedDir = core::getuserhomedir();
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
                                                       _("TigerVNC configuration (*.tigervnc)"),
@@ -210,7 +210,7 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
   const char* servername = dialog->serverName->value();
   const char* filename;
   if (dialog->usedDir.empty())
-    dialog->usedDir = os::getuserhomedir();
+    dialog->usedDir = core::getuserhomedir();
   
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
                                                       _("TigerVNC configuration (*.tigervnc)"),
@@ -309,19 +309,20 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
 }
 
 
-static bool same_server(const string& a, const string& b)
+static bool same_server(const std::string& a, const std::string& b)
 {
-  string hostA, hostB;
+  std::string hostA, hostB;
   int portA, portB;
 
 #ifndef WIN32
-  if ((a.find("/") != string::npos) || (b.find("/") != string::npos))
+  if ((a.find("/") != std::string::npos) ||
+      (b.find("/") != std::string::npos))
     return a == b;
 #endif
 
   try {
-    getHostAndPort(a.c_str(), &hostA, &portA);
-    getHostAndPort(b.c_str(), &hostB, &portB);
+    network::getHostAndPort(a.c_str(), &hostA, &portA);
+    network::getHostAndPort(b.c_str(), &hostB, &portB);
   } catch (std::exception& e) {
     return false;
   }
@@ -338,7 +339,7 @@ static bool same_server(const string& a, const string& b)
 
 void ServerDialog::loadServerHistory()
 {
-  list<string> rawHistory;
+  std::list<std::string> rawHistory;
 
   serverHistory.clear();
 
@@ -346,7 +347,7 @@ void ServerDialog::loadServerHistory()
   rawHistory = loadHistoryFromRegKey();
 #else
 
-  const char* stateDir = os::getvncstatedir();
+  const char* stateDir = core::getvncstatedir();
   if (stateDir == nullptr)
     throw std::runtime_error(_("Could not determine VNC state directory path"));
 
@@ -360,8 +361,8 @@ void ServerDialog::loadServerHistory()
       // no history file
       return;
     }
-    std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
+    throw core::posix_error(
+      core::format(_("Could not open \"%s\""), filepath), errno);
   }
 
   int lineNr = 0;
@@ -375,19 +376,21 @@ void ServerDialog::loadServerHistory()
         break;
 
       fclose(f);
-      std::string msg = format(_("Failed to read line %d in "
-                                 "file \"%s\""), lineNr, filepath);
-      throw rdr::posix_error(msg.c_str(), errno);
+      throw core::posix_error(
+        core::format(_("Failed to read line %d in file \"%s\""),
+                     lineNr, filepath),
+        errno);
     }
 
     int len = strlen(line);
 
     if (len == (sizeof(line) - 1)) {
       fclose(f);
-      std::string msg = format(_("Failed to read line %d in "
-                                 "file \"%s\""), lineNr, filepath);
-      throw std::runtime_error(format("%s: %s", msg.c_str(),
-                                      _("Line too long")));
+      std::string msg = core::format(_("Failed to read line %d in "
+                                       "file \"%s\""),
+                                     lineNr, filepath);
+      throw std::runtime_error(
+        core::format("%s: %s", msg.c_str(), _("Line too long")));
     }
 
     if ((len > 0) && (line[len-1] == '\n')) {
@@ -409,9 +412,11 @@ void ServerDialog::loadServerHistory()
 #endif
 
   // Filter out duplicates, even if they have different formats
-  for (const string& entry : rawHistory) {
+  for (const std::string& entry : rawHistory) {
     if (std::find_if(serverHistory.begin(), serverHistory.end(),
-                     [&entry](const string& s) { return same_server(s, entry); }) != serverHistory.end())
+                     [&entry](const std::string& s) {
+                       return same_server(s, entry);
+                     }) != serverHistory.end())
       continue;
     serverHistory.push_back(entry);
   }
@@ -424,7 +429,7 @@ void ServerDialog::saveServerHistory()
   return;
 #endif
 
-  const char* stateDir = os::getvncstatedir();
+  const char* stateDir = core::getvncstatedir();
   if (stateDir == nullptr)
     throw std::runtime_error(_("Could not determine VNC state directory path"));
 
@@ -434,13 +439,13 @@ void ServerDialog::saveServerHistory()
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");
   if (!f) {
-    std::string msg = format(_("Could not open \"%s\""), filepath);
-    throw rdr::posix_error(msg.c_str(), errno);
+    std::string msg = core::format(_("Could not open \"%s\""), filepath);
+    throw core::posix_error(msg.c_str(), errno);
   }
 
   // Save the last X elements to the config file.
   size_t count = 0;
-  for (const string& entry : serverHistory) {
+  for (const std::string& entry : serverHistory) {
     if (++count > SERVER_HISTORY_SIZE)
       break;
     fprintf(f, "%s\n", entry.c_str());

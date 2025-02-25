@@ -25,8 +25,8 @@
 
 #include <windows.h>
 #include <shellapi.h>
+
 #include <rfb_win32/MsgWindow.h>
-#include <rdr/Exception.h>
 
 namespace rfb {
 

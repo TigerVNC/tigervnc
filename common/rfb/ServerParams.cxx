@@ -24,9 +24,12 @@
 
 #include <stdexcept>
 
+#include <core/string.h>
+
 #include <rfb/ledStates.h>
+#include <rfb/Cursor.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/ServerParams.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -40,7 +43,11 @@ ServerParams::ServerParams()
 {
   setName("");
 
-  cursor_ = new Cursor(0, 0, Point(), nullptr);
+  screenLayout_ = new ScreenSet();
+
+  pf_ = new PixelFormat();
+
+  cursor_ = new Cursor(0, 0, {}, nullptr);
 
   clipFlags = 0;
   memset(clipSizes, 0, sizeof(clipSizes));
@@ -65,12 +72,14 @@ void ServerParams::setDimensions(int width, int height, const ScreenSet& layout)
 
   width_ = width;
   height_ = height;
-  screenLayout_ = layout;
+  delete screenLayout_;
+  screenLayout_ = new ScreenSet(layout);
 }
 
 void ServerParams::setPF(const PixelFormat& pf)
 {
-  pf_ = pf;
+  delete pf_;
+  pf_ = new PixelFormat(pf);
 
   if (pf.bpp != 8 && pf.bpp != 16 && pf.bpp != 32)
     throw std::invalid_argument("setPF: Not 8, 16 or 32 bpp?");
@@ -101,7 +110,8 @@ uint32_t ServerParams::clipboardSize(unsigned int format) const
       return clipSizes[i];
   }
 
-  throw std::invalid_argument(rfb::format("Invalid clipboard format 0x%x", format));
+  throw std::invalid_argument(
+    core::format("Invalid clipboard format 0x%x", format));
 }
 
 void ServerParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)

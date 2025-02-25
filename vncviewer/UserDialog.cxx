@@ -36,8 +36,9 @@
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Pixmap.H>
 
-#include <rdr/Exception.h>
+#include <core/Exception.h>
 
+#include <rfb/CConnection.h>
 #include <rfb/Exception.h>
 #include <rfb/obfuscate.h>
 
@@ -53,8 +54,6 @@
 #include "../media/secure.xpm"
 #include "../media/insecure.xpm"
 #pragma GCC diagnostic pop
-
-using namespace rfb;
 
 static Fl_Pixmap secure_icon(secure);
 static Fl_Pixmap insecure_icon(insecure);
@@ -128,12 +127,12 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
 
     fp = fopen(passwordFileName, "rb");
     if (!fp)
-      throw rdr::posix_error(_("Opening password file failed"), errno);
+      throw core::posix_error(_("Opening password file failed"), errno);
 
     obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
     fclose(fp);
 
-    *password = deobfuscate(obfPwd.data(), obfPwd.size());
+    *password = rfb::deobfuscate(obfPwd.data(), obfPwd.size());
 
     return;
   }
@@ -262,7 +261,8 @@ void UserDialog::getUserPasswd(bool secure_, std::string* user,
     throw rfb::auth_cancelled();
 }
 
-bool UserDialog::showMsgBox(MsgBoxFlags flags, const char* title, const char* text)
+bool UserDialog::showMsgBox(rfb::MsgBoxFlags flags,
+                            const char* title, const char* text)
 {
   char buffer[1024];
 
@@ -275,14 +275,14 @@ bool UserDialog::showMsgBox(MsgBoxFlags flags, const char* title, const char* te
   fl_message_title(title);
 
   switch (flags & 0xf) {
-  case M_OKCANCEL:
+  case rfb::M_OKCANCEL:
     return fl_choice("%s", nullptr, fl_ok, fl_cancel, buffer) == 1;
-  case M_YESNO:
+  case rfb::M_YESNO:
     return fl_choice("%s", nullptr, fl_yes, fl_no, buffer) == 1;
-  case M_OK:
+  case rfb::M_OK:
   default:
-    if (((flags & 0xf0) == M_ICONERROR) ||
-        ((flags & 0xf0) == M_ICONWARNING))
+    if (((flags & 0xf0) == rfb::M_ICONERROR) ||
+        ((flags & 0xf0) == rfb::M_ICONWARNING))
       fl_alert("%s", buffer);
     else
       fl_message("%s", buffer);

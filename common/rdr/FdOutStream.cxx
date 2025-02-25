@@ -28,7 +28,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #define errorNumber WSAGetLastError()
-#include <os/winerrno.h>
+#include <core/winerrno.h>
 #else
 #include <sys/types.h>
 #include <unistd.h>
@@ -44,10 +44,10 @@
 #include <sys/select.h>
 #endif
 
-#include <rdr/FdOutStream.h>
-#include <rdr/Exception.h>
-#include <rfb/util.h>
+#include <core/Exception.h>
+#include <core/time.h>
 
+#include <rdr/FdOutStream.h>
 
 using namespace rdr;
 
@@ -68,7 +68,7 @@ FdOutStream::~FdOutStream()
 
 unsigned FdOutStream::getIdleTime()
 {
-  return rfb::msSince(&lastWrite);
+  return core::msSince(&lastWrite);
 }
 
 void FdOutStream::cork(bool enable)
@@ -117,7 +117,7 @@ size_t FdOutStream::writeFd(const uint8_t* data, size_t length)
   } while (n < 0 && errorNumber == EINTR);
 
   if (n < 0)
-    throw socket_error("select", errorNumber);
+    throw core::socket_error("select", errorNumber);
 
   if (n == 0)
     return 0;
@@ -134,7 +134,7 @@ size_t FdOutStream::writeFd(const uint8_t* data, size_t length)
   } while (n < 0 && (errorNumber == EINTR));
 
   if (n < 0)
-    throw socket_error("write", errorNumber);
+    throw core::socket_error("write", errorNumber);
 
   gettimeofday(&lastWrite, nullptr);
 

@@ -20,16 +20,13 @@
 #define WINVNC_TRAYICON_H
 
 #include <winvnc/VNCServerWin32.h>
-#include <rfb/Configuration.h>
 
-namespace os {
-  class Mutex;
-  class Thread;
-}
+#include <core/Configuration.h>
+#include <core/Thread.h>
 
 namespace winvnc {
 
-  class STrayIconThread : os::Thread {
+  class STrayIconThread : core::Thread {
   public:
     STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon,
       UINT activeIcon, UINT dis_inactiveIcon, UINT dis_activeIcon, UINT menu);
@@ -37,14 +34,14 @@ namespace winvnc {
 
     void setToolTip(const char* text);
 
-    static rfb::BoolParameter disableOptions;
-    static rfb::BoolParameter disableClose;
+    static core::BoolParameter disableOptions;
+    static core::BoolParameter disableClose;
 
     friend class STrayIcon;
   protected:
     void worker() override;
 
-    os::Mutex* lock;
+    core::Mutex* lock;
     DWORD thread_id;
     HWND windowHandle;
     std::string toolTip;

@@ -1,4 +1,4 @@
-/* Copyright 2015 Pierre Ossman for Cendio AB
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,49 +16,38 @@
  * USA.
  */
 
-#ifndef __OS_MUTEX_H__
-#define __OS_MUTEX_H__
+// -=- Logger_file - log to a file
 
-namespace os {
-  class Condition;
+#ifndef __CORE_LOGGER_FILE_H__
+#define __CORE_LOGGER_FILE_H__
 
-  class Mutex {
+#include <time.h>
+#include <limits.h>
+
+#include <core/Logger.h>
+
+namespace core {
+
+  class Logger_File : public Logger {
   public:
-    Mutex();
-    ~Mutex();
+    Logger_File(const char* loggerName);
+    ~Logger_File();
 
-    void lock();
-    void unlock();
+    void write(int level, const char *logname, const char *message) override;
+    void setFilename(const char* filename);
+    void setFile(FILE* file);
 
-  private:
-    friend class Condition;
+    int indent;
+    int width;
 
-    void* systemMutex;
+  protected:
+    void closeFile();
+    char m_filename[PATH_MAX];
+    FILE* m_file;
+    time_t m_lastLogTime;
   };
 
-  class AutoMutex {
-  public:
-    AutoMutex(Mutex* mutex) { m = mutex; m->lock(); }
-    ~AutoMutex() { m->unlock(); }
-  private:
-    Mutex* m;
-  };
-
-  class Condition {
-  public:
-    Condition(Mutex* mutex);
-    ~Condition();
-
-    void wait();
-
-    void signal();
-    void broadcast();
-
-  private:
-    Mutex* mutex;
-    void* systemCondition;
-  };
-
-}
+  bool initFileLogger(const char* filename);
+};
 
 #endif

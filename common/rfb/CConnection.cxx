@@ -27,6 +27,9 @@
 
 #include <algorithm>
 
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb/Exception.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/fenceTypes.h>
@@ -36,23 +39,21 @@
 #include <rfb/CSecurity.h>
 #include <rfb/Decoder.h>
 #include <rfb/KeysymStr.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
-#include <rfb/util.h>
 
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
-
-#include <rfb/LogWriter.h>
 
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 
 using namespace rfb;
 
-static LogWriter vlog("CConnection");
+static core::LogWriter vlog("CConnection");
 
 CConnection::CConnection()
   : csecurity(nullptr),
@@ -99,7 +100,7 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
   }
 
   if ((framebuffer != nullptr) && (fb != nullptr)) {
-    Rect rect;
+    core::Rect rect;
 
     const uint8_t* data;
     int stride;
@@ -108,9 +109,8 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
 
     // Copy still valid area
 
-    rect.setXYWH(0, 0,
-                 __rfbmin(fb->width(), framebuffer->width()),
-                 __rfbmin(fb->height(), framebuffer->height()));
+    rect = fb->getRect();
+    rect = rect.intersect(framebuffer->getRect());
     data = framebuffer->getBuffer(framebuffer->getRect(), &stride);
     fb->imageRect(rect, data, stride);
 
@@ -190,10 +190,9 @@ bool CConnection::processVersionMsg()
     vlog.error("Server gave unsupported RFB protocol version %d.%d",
                server.majorVersion, server.minorVersion);
     state_ = RFBSTATE_INVALID;
-    throw protocol_error(format("Server gave unsupported RFB protocol "
-                                "version %d.%d",
-                                server.majorVersion,
-                                server.minorVersion));
+    throw protocol_error(
+      core::format("Server gave unsupported RFB protocol version %d.%d",
+                   server.majorVersion, server.minorVersion));
   } else if (server.beforeVersion(3,7)) {
     server.setVersion(3,3);
   } else if (server.afterVersion(3,8)) {
@@ -492,7 +491,7 @@ void CConnection::serverInit(int width, int height,
   }
 }
 
-bool CConnection::readAndDecodeRect(const Rect& r, int encoding,
+bool CConnection::readAndDecodeRect(const core::Rect& r, int encoding,
                                     ModifiablePixelBuffer* pb)
 {
   if (!decoder.decodeRect(r, encoding, pb))
@@ -539,7 +538,7 @@ void CConnection::framebufferUpdateEnd()
   }
 }
 
-bool CConnection::dataRect(const Rect& r, int encoding)
+bool CConnection::dataRect(const core::Rect& r, int encoding)
 {
   return decoder.decodeRect(r, encoding, framebuffer);
 }
@@ -610,11 +609,11 @@ void CConnection::handleClipboardProvide(uint32_t flags,
   }
 
   // FIXME: This conversion magic should be in CMsgReader
-  if (!isValidUTF8((const char*)data[0], lengths[0])) {
+  if (!core::isValidUTF8((const char*)data[0], lengths[0])) {
     vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
     return;
   }
-  serverClipboard = convertLF((const char*)data[0], lengths[0]);
+  serverClipboard = core::convertLF((const char*)data[0], lengths[0]);
   hasRemoteClipboard = true;
 
   // FIXME: Should probably verify that this data was actually requested
@@ -685,7 +684,7 @@ void CConnection::sendClipboardData(const char* data)
 {
   if (server.clipboardFlags() & rfb::clipboardProvide) {
     // FIXME: This conversion magic should be in CMsgWriter
-    std::string filtered(convertCRLF(data));
+    std::string filtered(core::convertCRLF(data));
     size_t sizes[1] = { filtered.size() + 1 };
     const uint8_t* datas[1] = { (const uint8_t*)filtered.c_str() };
 
@@ -839,6 +838,11 @@ void CConnection::setPF(const PixelFormat& pf)
   formatChange = true;
 }
 
+bool CConnection::isSecure() const
+{
+  return csecurity ? csecurity->isSecure() : false;
+}
+
 void CConnection::fence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   CMsgHandler::fence(flags, len, data);
@@ -890,9 +894,9 @@ void CConnection::requestNewUpdate()
 
   if (forceNonincremental || !continuousUpdates) {
     pendingUpdate = true;
-    writer()->writeFramebufferUpdateRequest(Rect(0, 0,
-                                                 server.width(),
-                                                 server.height()),
+    writer()->writeFramebufferUpdateRequest({0, 0,
+                                             server.width(),
+                                             server.height()},
                                             !forceNonincremental);
   }
 

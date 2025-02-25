@@ -31,13 +31,18 @@
 #include <errno.h>
 #include <pwd.h>
 
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
+#include <core/Configuration.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
+#include <core/Timer.h>
+
+#include <rdr/FdOutStream.h>
+
 #include <rfb/VNCServerST.h>
-#include <rfb/Configuration.h>
-#include <rfb/Timer.h>
+
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
+
 #ifdef HAVE_LIBSYSTEMD
 #  include <systemd/sd-daemon.h>
 #endif
@@ -54,30 +59,38 @@
 
 extern char buildtime[];
 
-using namespace rfb;
-using namespace network;
-
-static LogWriter vlog("Main");
+static core::LogWriter vlog("Main");
 
 static const char* defaultDesktopName();
 
-IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
-                          "cycle; actual interval may be dynamically "
-                          "adjusted to satisfy MaxProcessorUsage setting", 30);
-IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
-                               "CPU time to be consumed", 35);
-StringParameter desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
-StringParameter displayname("display", "The X display", "");
-IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
-StringParameter rfbunixpath("rfbunixpath", "Unix socket to listen for RFB protocol", "");
-IntParameter rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
-StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
-BoolParameter localhostOnly("localhost",
-                            "Only allow connections from localhost",
-                            false);
-StringParameter interface("interface",
-                          "Listen on the specified network address",
-                          "all");
+core::IntParameter
+  pollingCycle("PollingCycle",
+               "Milliseconds per one polling cycle; actual interval "
+               "may be dynamically adjusted to satisfy "
+               "MaxProcessorUsage setting", 30);
+core::IntParameter
+  maxProcessorUsage("MaxProcessorUsage",
+                    "Maximum percentage of CPU time to be consumed",
+                    35);
+core::StringParameter
+  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+core::StringParameter
+  displayname("display", "The X display", "");
+core::IntParameter
+  rfbport("rfbport", "TCP port to listen for RFB protocol", 5900);
+core::StringParameter
+  rfbunixpath("rfbunixpath",
+              "Unix socket to listen for RFB protocol", "");
+core::IntParameter
+  rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+core::StringParameter
+  hostsFile("HostsFile", "File with IP access control rules", "");
+core::BoolParameter
+  localhostOnly("localhost",
+                "Only allow connections from localhost", false);
+core::StringParameter
+  interface("interface",
+            "Listen on the specified network address", "all");
 
 static const char* defaultDesktopName()
 {
@@ -127,7 +140,7 @@ static bool hasSystemdListeners()
 #endif
 }
 
-static int createSystemdListeners(std::list<SocketListener*> *listeners)
+static int createSystemdListeners(std::list<network::SocketListener*> *listeners)
 {
 #ifdef HAVE_LIBSYSTEMD
   int count = sd_listen_fds(0);
@@ -138,7 +151,7 @@ static int createSystemdListeners(std::list<SocketListener*> *listeners)
   }
 
   for (int i = 0; i < count; ++i)
-      listeners->push_back(new TcpListener(SD_LISTEN_FDS_START + i));
+      listeners->push_back(new network::TcpListener(SD_LISTEN_FDS_START + i));
 
   return count;
 #else
@@ -148,7 +161,7 @@ static int createSystemdListeners(std::list<SocketListener*> *listeners)
 }
 
 
-class FileTcpFilter : public TcpFilter
+class FileTcpFilter : public network::TcpFilter
 {
 
 public:
@@ -166,7 +179,7 @@ public:
       free(fileName);
   }
 
-  bool verifyConnection(Socket* s) override
+  bool verifyConnection(network::Socket* s) override
   {
     if (!reloadRules()) {
       vlog.error("Could not read IP filtering rules, rejecting all clients");
@@ -267,14 +280,14 @@ static void usage()
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n");
-  Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
   exit(1);
 }
 
 int main(int argc, char** argv)
 {
-  initStdIOLoggers();
-  LogWriter::setLogParams("*:stderr:30");
+  core::initStdIOLoggers();
+  core::LogWriter::setLogParams("*:stderr:30");
 
   programName = argv[0];
   Display* dpy;
@@ -286,7 +299,7 @@ int main(int argc, char** argv)
   for (int i = 1; i < argc;) {
     int ret;
 
-    ret = Configuration::handleParamArg(argc, argv, i);
+    ret = core::Configuration::handleParamArg(argc, argv, i);
     if (ret > 0) {
       i += ret;
       continue;
@@ -330,7 +343,7 @@ int main(int argc, char** argv)
   signal(SIGINT, CleanupSignalHandler);
   signal(SIGTERM, CleanupSignalHandler);
 
-  std::list<SocketListener*> listeners;
+  std::list<network::SocketListener*> listeners;
 
   try {
     TXWindow::init(dpy,"x0vncserver");
@@ -342,7 +355,7 @@ int main(int argc, char** argv)
     }
     XDesktop desktop(dpy, &geo);
 
-    VNCServerST server(desktopName, &desktop);
+    rfb::VNCServerST server(desktopName, &desktop);
 
     if (createSystemdListeners(&listeners) > 0) {
       // When systemd is in charge of listeners, do not listen to anything else
@@ -374,7 +387,7 @@ int main(int argc, char** argv)
 
       FileTcpFilter fileTcpFilter(hostsFile);
       if (strlen(hostsFile) != 0)
-        for (SocketListener* listener : listeners)
+        for (network::SocketListener* listener : listeners)
           listener->setFilter(&fileTcpFilter);
     }
 
@@ -389,8 +402,8 @@ int main(int argc, char** argv)
       int wait_ms, nextTimeout;
       struct timeval tv;
       fd_set rfds, wfds;
-      std::list<Socket*> sockets;
-      std::list<Socket*>::iterator i;
+      std::list<network::Socket*> sockets;
+      std::list<network::Socket*>::iterator i;
 
       // Process any incoming X events
       TXWindow::handleXEvents(dpy);
@@ -399,7 +412,7 @@ int main(int argc, char** argv)
       FD_ZERO(&wfds);
 
       FD_SET(ConnectionNumber(dpy), &rfds);
-      for (SocketListener* listener : listeners)
+      for (network::SocketListener* listener : listeners)
         FD_SET(listener->getFd(), &rfds);
 
       server.getSockets(&sockets);
@@ -429,7 +442,7 @@ int main(int argc, char** argv)
       }
 
       // Trigger timers and check when the next will expire
-      nextTimeout = Timer::checkTimeouts();
+      nextTimeout = core::Timer::checkTimeouts();
       if (nextTimeout >= 0 && (wait_ms == -1 || nextTimeout < wait_ms))
         wait_ms = nextTimeout;
 
@@ -447,14 +460,14 @@ int main(int argc, char** argv)
           vlog.debug("Interrupted select() system call");
           continue;
         } else {
-          throw rdr::socket_error("select", errno);
+          throw core::socket_error("select", errno);
         }
       }
 
       // Accept new VNC connections
-      for (SocketListener* listener : listeners) {
+      for (network::SocketListener* listener : listeners) {
         if (FD_ISSET(listener->getFd(), &rfds)) {
-          Socket* sock = listener->accept();
+          network::Socket* sock = listener->accept();
           if (sock) {
             server.addSocket(sock);
           } else {
@@ -463,7 +476,7 @@ int main(int argc, char** argv)
         }
       }
 
-      Timer::checkTimeouts();
+      core::Timer::checkTimeouts();
 
       // Client list could have been changed.
       server.getSockets(&sockets);
@@ -494,7 +507,7 @@ int main(int argc, char** argv)
   TXWindow::handleXEvents(dpy);
 
   // Run listener destructors; remove UNIX sockets etc
-  for (SocketListener* listener : listeners)
+  for (network::SocketListener* listener : listeners)
     delete listener;
 
   vlog.info("Terminated");

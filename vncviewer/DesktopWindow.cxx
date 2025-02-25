@@ -28,9 +28,12 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+#include <core/time.h>
+
 #include <rfb/CMsgWriter.h>
-#include <rfb/util.h>
+#include <rfb/ScreenSet.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
@@ -70,9 +73,7 @@ static int edge_scroll_size_y = 96;
 // default: roughly 60 fps for smooth motion
 #define EDGE_SCROLL_SECONDS_PER_FRAME 0.016666
 
-using namespace rfb;
-
-static rfb::LogWriter vlog("DesktopWindow");
+static core::LogWriter vlog("DesktopWindow");
 
 // Global due to http://www.fltk.org/str.php?L2177 and the similar
 // issue for Fl::event_dispatch.
@@ -223,7 +224,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   repositionWidgets();
 
   // Throughput graph for debugging
-  if (vlog.getLevel() >= LogWriter::LEVEL_DEBUG) {
+  if (vlog.getLevel() >= core::LogWriter::LEVEL_DEBUG) {
     memset(&stats, 0, sizeof(stats));
     Fl::add_timeout(0, handleStatsTimeout, this);
   }
@@ -410,14 +411,14 @@ void DesktopWindow::setDesktopSizeDone(unsigned result)
 
 
 void DesktopWindow::setCursor(int width, int height,
-                              const rfb::Point& hotspot,
+                              const core::Point& hotspot,
                               const uint8_t* data)
 {
   viewport->setCursor(width, height, hotspot, data);
 }
 
 
-void DesktopWindow::setCursorPos(const rfb::Point& pos)
+void DesktopWindow::setCursorPos(const core::Point& pos)
 {
   if (!mouseGrabbed) {
     // Do nothing if we do not have the mouse captured.
@@ -544,7 +545,7 @@ void DesktopWindow::draw()
     if (fullscreen_active()) {
       assert(Fl::screen_count() >= 1);
 
-      rfb::Rect windowRect, screenRect;
+      core::Rect windowRect, screenRect;
       windowRect.setXYWH(x(), y(), w(), h());
 
       bool foundEnclosedScreen = false;
@@ -822,7 +823,7 @@ void DesktopWindow::updateOverlay(void *data)
 
   self = (DesktopWindow*)data;
 
-  elapsed = msSince(&self->overlayStart);
+  elapsed = core::msSince(&self->overlayStart);
 
   if (elapsed < 500) {
     self->overlayAlpha = (unsigned)255 * elapsed / 500;
@@ -1323,8 +1324,8 @@ void DesktopWindow::reconfigureFullscreen(void* /*data*/)
 void DesktopWindow::remoteResize()
 {
   int width, height;
-  ScreenSet layout;
-  ScreenSet::const_iterator iter;
+  rfb::ScreenSet layout;
+  rfb::ScreenSet::const_iterator iter;
 
   if (viewOnly)
     return;
@@ -1343,9 +1344,9 @@ void DesktopWindow::remoteResize()
     return;
 
   // And no more than once every 100ms
-  if (msSince(&lastResize) < 100) {
+  if (core::msSince(&lastResize) < 100) {
     Fl::remove_timeout(handleResizeTimeout, this);
-    Fl::add_timeout((100.0 - msSince(&lastResize)) / 1000.0,
+    Fl::add_timeout((100.0 - core::msSince(&lastResize)) / 1000.0,
                     handleResizeTimeout, this);
     return;
   }
@@ -1396,7 +1397,7 @@ void DesktopWindow::remoteResize()
   } else {
     uint32_t id;
     int sx, sy, sw, sh;
-    rfb::Rect viewport_rect, screen_rect;
+    core::Rect viewport_rect, screen_rect;
 
     // In full screen we report all screens that are fully covered.
 
@@ -1707,7 +1708,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
   updates = self->cc->getUpdateCount();
   pixels = self->cc->getPixelCount();
   pos = self->cc->getPosition();
-  elapsed = msSince(&self->statsLastTime);
+  elapsed = core::msSince(&self->statsLastTime);
   if (elapsed < 1)
     elapsed = 1;
 
@@ -1782,11 +1783,11 @@ void DesktopWindow::handleStatsTimeout(void *data)
   fl_draw(buffer, 5, statsHeight - 5);
 
   fl_color(FL_YELLOW);
-  fl_draw(siPrefix(self->stats[statsCount-1].pps, "pix/s").c_str(),
+  fl_draw(core::siPrefix(self->stats[statsCount-1].pps, "pix/s").c_str(),
           5 + (statsWidth-10)/3, statsHeight - 5);
 
   fl_color(FL_RED);
-  fl_draw(siPrefix(self->stats[statsCount-1].bps * 8, "bps").c_str(),
+  fl_draw(core::siPrefix(self->stats[statsCount-1].bps * 8, "bps").c_str(),
           5 + (statsWidth-10)*2/3, statsHeight - 5);
 
   image = surface->image();

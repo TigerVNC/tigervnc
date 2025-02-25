@@ -24,21 +24,22 @@
 
 #include <stdint.h>
 
+#include <core/Region.h>
+#include <core/Timer.h>
+
 #include <rfb/PixelBuffer.h>
-#include <rfb/Region.h>
-#include <rfb/Timer.h>
 
 namespace rfb {
+
   class SConnection;
   class Encoder;
   class UpdateInfo;
   class PixelBuffer;
   class RenderedCursor;
-  struct Rect;
 
   struct RectInfo;
 
-  class EncodeManager : public Timer::Callback {
+  class EncodeManager : public core::Timer::Callback {
   public:
     EncodeManager(SConnection* conn);
     ~EncodeManager();
@@ -48,51 +49,58 @@ namespace rfb {
     // Hack to let ConnParams calculate the client's preferred encoding
     static bool supported(int encoding);
 
-    bool needsLosslessRefresh(const Region& req);
-    int getNextLosslessRefresh(const Region& req);
+    bool needsLosslessRefresh(const core::Region& req);
+    int getNextLosslessRefresh(const core::Region& req);
 
-    void pruneLosslessRefresh(const Region& limits);
+    void pruneLosslessRefresh(const core::Region& limits);
 
     void writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
                      const RenderedCursor* renderedCursor);
 
-    void writeLosslessRefresh(const Region& req, const PixelBuffer* pb,
+    void writeLosslessRefresh(const core::Region& req,
+                              const PixelBuffer* pb,
                               const RenderedCursor* renderedCursor,
                               size_t maxUpdateSize);
 
   protected:
-    void handleTimeout(Timer* t) override;
+    void handleTimeout(core::Timer* t) override;
 
-    void doUpdate(bool allowLossy, const Region& changed,
-                  const Region& copied, const Point& copy_delta,
+    void doUpdate(bool allowLossy, const core::Region& changed,
+                  const core::Region& copied,
+                  const core::Point& copy_delta,
                   const PixelBuffer* pb,
                   const RenderedCursor* renderedCursor);
     void prepareEncoders(bool allowLossy);
 
-    Region getLosslessRefresh(const Region& req, size_t maxUpdateSize);
+    core::Region getLosslessRefresh(const core::Region& req,
+                                    size_t maxUpdateSize);
 
-    int computeNumRects(const Region& changed);
+    int computeNumRects(const core::Region& changed);
 
-    Encoder *startRect(const Rect& rect, int type);
+    Encoder* startRect(const core::Rect& rect, int type);
     void endRect();
 
-    void writeCopyRects(const Region& copied, const Point& delta);
-    void writeSolidRects(Region *changed, const PixelBuffer* pb);
-    void findSolidRect(const Rect& rect, Region *changed, const PixelBuffer* pb);
-    void writeRects(const Region& changed, const PixelBuffer* pb);
+    void writeCopyRects(const core::Region& copied,
+                        const core::Point& delta);
+    void writeSolidRects(core::Region* changed, const PixelBuffer* pb);
+    void findSolidRect(const core::Rect& rect, core::Region* changed,
+                       const PixelBuffer* pb);
+    void writeRects(const core::Region& changed, const PixelBuffer* pb);
 
-    void writeSubRect(const Rect& rect, const PixelBuffer *pb);
+    void writeSubRect(const core::Rect& rect, const PixelBuffer* pb);
 
-    bool checkSolidTile(const Rect& r, const uint8_t* colourValue,
+    bool checkSolidTile(const core::Rect& r, const uint8_t* colourValue,
                         const PixelBuffer *pb);
-    void extendSolidAreaByBlock(const Rect& r, const uint8_t* colourValue,
-                                const PixelBuffer *pb, Rect* er);
-    void extendSolidAreaByPixel(const Rect& r, const Rect& sr,
+    void extendSolidAreaByBlock(const core::Rect& r,
                                 const uint8_t* colourValue,
-                                const PixelBuffer *pb, Rect* er);
+                                const PixelBuffer* pb, core::Rect* er);
+    void extendSolidAreaByPixel(const core::Rect& r,
+                                const core::Rect& sr,
+                                const uint8_t* colourValue,
+                                const PixelBuffer* pb, core::Rect* er);
 
-    PixelBuffer* preparePixelBuffer(const Rect& rect,
-                                    const PixelBuffer *pb, bool convert);
+    PixelBuffer* preparePixelBuffer(const core::Rect& rect,
+                                    const PixelBuffer* pb, bool convert);
 
     bool analyseRect(const PixelBuffer *pb,
                      struct RectInfo *info, int maxColours);
@@ -114,11 +122,11 @@ namespace rfb {
     std::vector<Encoder*> encoders;
     std::vector<int> activeEncoders;
 
-    Region lossyRegion;
-    Region recentlyChangedRegion;
-    Region pendingRefreshRegion;
+    core::Region lossyRegion;
+    core::Region recentlyChangedRegion;
+    core::Region pendingRefreshRegion;
 
-    Timer recentChangeTimer;
+    core::Timer recentChangeTimer;
 
     struct EncoderStats {
       unsigned rects;
@@ -143,12 +151,13 @@ namespace rfb {
                   const uint8_t* data_, int stride);
 
     private:
-      uint8_t* getBufferRW(const Rect& r, int* stride) override;
+      uint8_t* getBufferRW(const core::Rect& r, int* stride) override;
     };
 
     OffsetPixelBuffer offsetPixelBuffer;
     ManagedPixelBuffer convertedPixelBuffer;
   };
+
 }
 
 #endif

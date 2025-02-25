@@ -26,11 +26,11 @@
 
 #include <sys/time.h>
 
-#include <rfb/SDesktop.h>
+#include <core/Timer.h>
+
 #include <rfb/VNCServer.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
-#include <rfb/Timer.h>
 #include <rfb/ScreenSet.h>
 
 namespace rfb {
@@ -40,9 +40,10 @@ namespace rfb {
   class ListConnInfo;
   class PixelBuffer;
   class KeyRemapper;
+  class SDesktop;
 
   class VNCServerST : public VNCServer,
-                      public Timer::Callback {
+                      public core::Timer::Callback {
   public:
     // -=- Constructors
 
@@ -95,11 +96,12 @@ namespace rfb {
     void closeClients(const char* reason) override {closeClients(reason, nullptr);}
     SConnection* getConnection(network::Socket* sock) override;
 
-    void add_changed(const Region &region) override;
-    void add_copied(const Region &dest, const Point &delta) override;
-    void setCursor(int width, int height, const Point& hotspot,
+    void add_changed(const core::Region& region) override;
+    void add_copied(const core::Region& dest,
+                    const core::Point& delta) override;
+    void setCursor(int width, int height, const core::Point& hotspot,
                    const uint8_t* data) override;
-    void setCursorPos(const Point& p, bool warped) override;
+    void setCursorPos(const core::Point& p, bool warped) override;
     void setName(const char* name_) override;
     void setLEDState(unsigned state) override;
 
@@ -111,13 +113,14 @@ namespace rfb {
 
     const ScreenSet& getScreenLayout() const { return screenLayout; }
     const Cursor* getCursor() const { return cursor; }
-    const Point& getCursorPos() const { return cursorPos; }
+    const core::Point& getCursorPos() const { return cursorPos; }
     const char* getName() const { return name.c_str(); }
     unsigned getLEDState() const { return ledState; }
 
     // Event handlers
     void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
-    void pointerEvent(VNCSConnectionST* client, const Point& pos, uint16_t buttonMask);
+    void pointerEvent(VNCSConnectionST* client,
+                      const core::Point& pos, uint16_t buttonMask);
 
     void handleClipboardRequest(VNCSConnectionST* client);
     void handleClipboardAnnounce(VNCSConnectionST* client, bool available);
@@ -146,7 +149,7 @@ namespace rfb {
 
     // Part of the framebuffer that has been modified but is not yet
     // ready to be sent to clients
-    Region getPendingRegion();
+    core::Region getPendingRegion();
 
     // getRenderedCursor() returns an up to date version of the server
     // side rendered cursor buffer
@@ -155,7 +158,7 @@ namespace rfb {
   protected:
 
     // Timer callbacks
-    void handleTimeout(Timer* t) override;
+    void handleTimeout(core::Timer* t) override;
 
     // - Internal methods
 
@@ -195,19 +198,19 @@ namespace rfb {
 
     ComparingUpdateTracker* comparer;
 
-    Point cursorPos;
+    core::Point cursorPos;
     Cursor* cursor;
     RenderedCursor renderedCursor;
     bool renderedCursorInvalid;
 
     KeyRemapper* keyRemapper;
 
-    Timer idleTimer;
-    Timer disconnectTimer;
-    Timer connectTimer;
+    core::Timer idleTimer;
+    core::Timer disconnectTimer;
+    core::Timer connectTimer;
 
     uint64_t msc, queuedMsc;
-    Timer frameTimer;
+    core::Timer frameTimer;
   };
 
 };

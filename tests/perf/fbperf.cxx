@@ -28,8 +28,8 @@
 #include <FL/fl_draw.H>
 #include <FL/x.H>
 
-#include <rdr/Exception.h>
-#include <rfb/util.h>
+#include <core/string.h>
+#include <core/time.h>
 
 #include "../vncviewer/PlatformPixelBuffer.h"
 
@@ -155,7 +155,7 @@ void TestWindow::flush()
 
 void TestWindow::update()
 {
-  rfb::Rect r;
+  core::Rect r;
 
   startTimeCounter();
 
@@ -194,7 +194,7 @@ void TestWindow::timer(void* data)
 
 void PartialTestWindow::changefb()
 {
-  rfb::Rect r;
+  core::Rect r;
   uint32_t pixel;
 
   r = fb->getRect();
@@ -300,7 +300,7 @@ static void dosubtest(TestWindow* win, int width, int height,
   win->start(width, height);
 
   gettimeofday(&start, nullptr);
-  while (rfb::msSince(&start) < 3000)
+  while (core::msSince(&start) < 3000)
     Fl::wait();
 
   win->stop();
@@ -370,7 +370,7 @@ static void dotest(TestWindow* win)
   fprintf(stderr, "Rendering delay: %g ms/frame\n", delay * 1000.0);
   fprintf(stderr, "Rendering rate: %s\n",
           (rate == 0.0) ? "N/A pixels/s" :
-                          rfb::siPrefix(1.0 / rate, "pixels/s").c_str());
+                          core::siPrefix(1.0 / rate, "pixels/s").c_str());
   fprintf(stderr, "Maximum FPS: %g fps @ 1920x1080\n",
           1.0 / (delay + rate * 1920 * 1080));
 }

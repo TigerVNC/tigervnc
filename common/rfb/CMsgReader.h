@@ -26,14 +26,13 @@
 
 #include <stdint.h>
 
-#include <rfb/Rect.h>
-#include <rfb/encodings.h>
+#include <core/Rect.h>
 
 namespace rdr { class InStream; }
 
 namespace rfb {
+
   class CMsgHandler;
-  struct Rect;
 
   class CMsgReader {
   public:
@@ -59,12 +58,16 @@ namespace rfb {
 
     bool readFramebufferUpdate();
 
-    bool readRect(const Rect& r, int encoding);
+    bool readRect(const core::Rect& r, int encoding);
 
-    bool readSetXCursor(int width, int height, const Point& hotspot);
-    bool readSetCursor(int width, int height, const Point& hotspot);
-    bool readSetCursorWithAlpha(int width, int height, const Point& hotspot);
-    bool readSetVMwareCursor(int width, int height, const Point& hotspot);
+    bool readSetXCursor(int width, int height,
+                        const core::Point& hotspot);
+    bool readSetCursor(int width, int height,
+                       const core::Point& hotspot);
+    bool readSetCursorWithAlpha(int width, int height,
+                                const core::Point& hotspot);
+    bool readSetVMwareCursor(int width, int height,
+                             const core::Point& hotspot);
     bool readSetDesktopName(int x, int y, int w, int h);
     bool readExtendedDesktopSize(int x, int y, int w, int h);
     bool readLEDState();
@@ -85,12 +88,14 @@ namespace rfb {
 
     uint8_t currentMsgType;
     int nUpdateRectsLeft;
-    Rect dataRect;
+    core::Rect dataRect;
     int rectEncoding;
 
     int cursorEncoding;
 
     static const int maxCursorSize = 256;
   };
+
 }
+
 #endif

@@ -26,11 +26,10 @@
 #include <winvnc/VNCServerService.h>
 #include <winvnc/resource.h>
 
-#include <os/Mutex.h>
-#include <os/Thread.h>
-
-#include <rfb/LogWriter.h>
-#include <rfb/Configuration.h>
+#include <core/Configuration.h>
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
+#include <core/Thread.h>
 
 #include <rfb_win32/LaunchProcess.h>
 #include <rfb_win32/TrayIcon.h>
@@ -41,6 +40,7 @@
 
 #include <winvnc/ControlPanel.h>
 
+using namespace core;
 using namespace rfb;
 using namespace win32;
 using namespace winvnc;
@@ -217,7 +217,7 @@ public:
 
     case WM_SET_TOOLTIP:
       {
-        os::AutoMutex a(thread.lock);
+        AutoMutex a(thread.lock);
         if (!thread.toolTip.empty())
           setToolTip(thread.toolTip.c_str());
       }
@@ -243,7 +243,7 @@ STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT ac
   inactiveIcon(inactiveIcon_), activeIcon(activeIcon_),
   dis_inactiveIcon(dis_inactiveIcon_), dis_activeIcon(dis_activeIcon_),
   menu(menu_), runTrayIcon(true) {
-  lock = new os::Mutex;
+  lock = new Mutex;
   start();
   while (thread_id == (DWORD)-1)
     Sleep(0);
@@ -277,7 +277,7 @@ void STrayIconThread::worker() {
 
 void STrayIconThread::setToolTip(const char* text) {
   if (!windowHandle) return;
-  os::AutoMutex a(lock);
+  AutoMutex a(lock);
   toolTip = text;
   PostMessage(windowHandle, WM_SET_TOOLTIP, 0, 0);
 }

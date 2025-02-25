@@ -26,19 +26,22 @@
 
 #include <vector>
 
+#include <core/Rect.h>
+
 #include <rfb/PixelBuffer.h>
 
 namespace rfb {
 
   class Cursor {
   public:
-    Cursor(int width, int height, const Point& hotspot, const uint8_t* data);
+    Cursor(int width, int height, const core::Point& hotspot,
+           const uint8_t* data);
     Cursor(const Cursor& other);
     ~Cursor();
 
     int width() const { return width_; };
     int height() const { return height_; };
-    const Point& hotspot() const { return hotspot_; };
+    const core::Point& hotspot() const { return hotspot_; };
     const uint8_t* getBuffer() const { return data; };
 
     // getBitmap() returns a monochrome version of the cursor
@@ -52,7 +55,7 @@ namespace rfb {
 
   protected:
     int width_, height_;
-    Point hotspot_;
+    core::Point hotspot_;
     uint8_t* data;
   };
 
@@ -60,15 +63,16 @@ namespace rfb {
   public:
     RenderedCursor();
 
-    Rect getEffectiveRect() const { return buffer.getRect(offset); }
+    core::Rect getEffectiveRect() const { return buffer.getRect(offset); }
 
-    const uint8_t* getBuffer(const Rect& r, int* stride) const override;
+    const uint8_t* getBuffer(const core::Rect& r, int* stride) const override;
 
-    void update(PixelBuffer* framebuffer, Cursor* cursor, const Point& pos);
+    void update(PixelBuffer* framebuffer, Cursor* cursor,
+                const core::Point& pos);
 
   protected:
     ManagedPixelBuffer buffer;
-    Point offset;
+    core::Point offset;
   };
 
 }

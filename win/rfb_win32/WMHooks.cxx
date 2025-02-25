@@ -22,17 +22,18 @@
 #include <config.h>
 #endif
 
-#include <os/Mutex.h>
-#include <os/Thread.h>
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
+#include <core/Thread.h>
 
 #include <rfb_win32/WMHooks.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/IntervalTimer.h>
-#include <rfb/LogWriter.h>
 
 #include <list>
 
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -114,7 +115,7 @@ error:
 }
 
 
-class WMHooksThread : public os::Thread {
+class WMHooksThread : public Thread {
 public:
   WMHooksThread() : active(true), thread_id(-1) { }
   void stop();
@@ -128,7 +129,7 @@ protected:
 
 static WMHooksThread* hook_mgr = nullptr;
 static std::list<WMHooks*> hooks;
-static os::Mutex hook_mgr_lock;
+static Mutex hook_mgr_lock;
 
 
 static bool StartHookThread() {
@@ -166,7 +167,7 @@ static void StopHookThread() {
 
 static bool AddHook(WMHooks* hook) {
   vlog.debug("Adding hook");
-  os::AutoMutex a(&hook_mgr_lock);
+  AutoMutex a(&hook_mgr_lock);
   if (!StartHookThread())
     return false;
   hooks.push_back(hook);
@@ -176,7 +177,7 @@ static bool AddHook(WMHooks* hook) {
 static bool RemHook(WMHooks* hook) {
   {
     vlog.debug("Removing hook");
-    os::AutoMutex a(&hook_mgr_lock);
+    AutoMutex a(&hook_mgr_lock);
     hooks.remove(hook);
   }
   StopHookThread();
@@ -184,7 +185,7 @@ static bool RemHook(WMHooks* hook) {
 }
 
 static void NotifyHooksRegion(const Region& r) {
-  os::AutoMutex a(&hook_mgr_lock);
+  AutoMutex a(&hook_mgr_lock);
   std::list<WMHooks*>::iterator i;
   for (i=hooks.begin(); i!=hooks.end(); i++)
     (*i)->NotifyHooksRegion(r);
@@ -236,8 +237,8 @@ WMHooksThread::worker() {
       hwnd = (HWND) msg.lParam;
       if (IsWindow(hwnd) && IsWindowVisible(hwnd) && !IsIconic(hwnd) &&
         GetWindowRect(hwnd, &wrect) && !IsRectEmpty(&wrect)) {
-          updates[activeRgn].assign_union(Rect(wrect.left, wrect.top,
-                                               wrect.right, wrect.bottom));
+          updates[activeRgn].assign_union({{wrect.left, wrect.top,
+                                            wrect.right, wrect.bottom}});
           updateDelayTimer.start(updateDelayMs);
       }
 
@@ -249,8 +250,8 @@ WMHooksThread::worker() {
       {
         POINT pt = {0,0};
         if (ClientToScreen(hwnd, &pt)) {
-          updates[activeRgn].assign_union(Rect(wrect.left+pt.x, wrect.top+pt.y,
-                                               wrect.right+pt.x, wrect.bottom+pt.y));
+          updates[activeRgn].assign_union({{wrect.left+pt.x, wrect.top+pt.y,
+                                            wrect.right+pt.x, wrect.bottom+pt.y}});
           updateDelayTimer.start(updateDelayMs);
         }
       }
@@ -260,14 +261,14 @@ WMHooksThread::worker() {
       if (IsWindow(hwnd) && IsWindowVisible(hwnd) && !IsIconic(hwnd) &&
           GetWindowRect(hwnd, &wrect) && !IsRectEmpty(&wrect))
       {
-        Region changed(Rect(wrect.left, wrect.top, wrect.right, wrect.bottom));
+        Region changed({wrect.left, wrect.top, wrect.right, wrect.bottom});
         RECT crect;
         POINT pt = {0,0};
         if (GetClientRect(hwnd, &crect) && ClientToScreen(hwnd, &pt) &&
             !IsRectEmpty(&crect))
         {
-          changed.assign_subtract(Rect(crect.left+pt.x, crect.top+pt.y,
-                                       crect.right+pt.x, crect.bottom+pt.y));
+          changed.assign_subtract({{crect.left+pt.x, crect.top+pt.y,
+                                    crect.right+pt.x, crect.bottom+pt.y}});
         }
         if (!changed.is_empty()) {
           updates[activeRgn].assign_union(changed);
@@ -275,8 +276,8 @@ WMHooksThread::worker() {
         }
       }
     } else if (msg.message == rectangleMsg) {
-      Rect r = Rect(LOWORD(msg.wParam), HIWORD(msg.wParam),
-                    LOWORD(msg.lParam), HIWORD(msg.lParam));
+      Rect r(LOWORD(msg.wParam), HIWORD(msg.wParam),
+             LOWORD(msg.lParam), HIWORD(msg.lParam));
       if (!r.is_empty()) {
         updates[activeRgn].assign_union(r);
         updateDelayTimer.start(updateDelayMs);
@@ -323,7 +324,7 @@ bool rfb::win32::WMHooks::setEvent(HANDLE ue) {
 
 bool rfb::win32::WMHooks::getUpdates(UpdateTracker* ut) {
   if (!updatesReady) return false;
-  os::AutoMutex a(&hook_mgr_lock);
+  AutoMutex a(&hook_mgr_lock);
   updates.copyTo(ut);
   updates.clear();
   updatesReady = false;
@@ -375,12 +376,12 @@ static bool blockRealInputs(bool block_) {
   return block_ == blocking;
 }
 
-static os::Mutex blockMutex;
+static Mutex blockMutex;
 static int blockCount = 0;
 
 bool rfb::win32::WMBlockInput::blockInputs(bool on) {
   if (active == on) return true;
-  os::AutoMutex a(&blockMutex);
+  AutoMutex a(&blockMutex);
   int newCount = on ? blockCount+1 : blockCount-1;
   if (!blockRealInputs(newCount > 0))
     return false;

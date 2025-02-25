@@ -22,8 +22,6 @@
 
 #include <stdint.h>
 
-#include <rfb/Rect.h>
-
 namespace rfb {
   class SConnection;
   class PixelBuffer;

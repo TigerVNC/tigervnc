@@ -40,11 +40,13 @@ namespace rfb {
                         const uint8_t* colour) override;
 
   protected:
-    void writePaletteTile(const Rect& tile, const PixelBuffer* pb,
+    void writePaletteTile(const core::Rect& tile,
+                          const PixelBuffer* pb,
                           const Palette& palette);
-    void writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
+    void writePaletteRLETile(const core::Rect& tile,
+                             const PixelBuffer* pb,
                              const Palette& palette);
-    void writeRawTile(const Rect& tile, const PixelBuffer* pb);
+    void writeRawTile(const core::Rect& tile, const PixelBuffer* pb);
 
     void writePalette(const PixelFormat& pf, const Palette& palette);
 

@@ -24,6 +24,9 @@
 
 #include <stdio.h>
 
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rdr/OutStream.h>
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
@@ -32,16 +35,17 @@
 #include <rfb/fenceTypes.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/ClientParams.h>
+#include <rfb/Cursor.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/Encoder.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/SMsgWriter.h>
-#include <rfb/LogWriter.h>
+#include <rfb/encodings.h>
 #include <rfb/ledStates.h>
-#include <rfb/util.h>
 
 using namespace rfb;
 
-static LogWriter vlog("SMsgWriter");
+static core::LogWriter vlog("SMsgWriter");
 
 SMsgWriter::SMsgWriter(ClientParams* client_, rdr::OutStream* os_)
   : client(client_), os(os_),
@@ -95,7 +99,7 @@ void SMsgWriter::writeServerCutText(const char* str)
   if (strchr(str, '\r') != nullptr)
     throw std::invalid_argument("Invalid carriage return in clipboard data");
 
-  std::string latin1(utf8ToLatin1(str));
+  std::string latin1(core::utf8ToLatin1(str));
 
   startMsg(msgTypeServerCutText);
   os->pad(3);
@@ -405,7 +409,7 @@ void SMsgWriter::writeFramebufferUpdateEnd()
   endMsg();
 }
 
-void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)
+void SMsgWriter::writeCopyRect(const core::Rect& r, int srcX, int srcY)
 {
   startRect(r,encodingCopyRect);
   os->writeU16(srcX);
@@ -413,7 +417,7 @@ void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)
   endRect();
 }
 
-void SMsgWriter::startRect(const Rect& r, int encoding)
+void SMsgWriter::startRect(const core::Rect& r, int encoding)
 {
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw std::logic_error("SMsgWriter::startRect: nRects out of sync");
@@ -488,7 +492,7 @@ void SMsgWriter::writePseudoRects()
   }
 
   if (needCursorPos) {
-    const Point& cursorPos = client->cursorPos();
+    const core::Point& cursorPos = client->cursorPos();
 
     if (client->supportsEncoding(pseudoEncodingVMwareCursorPosition)) {
       writeSetVMwareCursorPositionRect(cursorPos.x, cursorPos.y);

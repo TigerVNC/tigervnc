@@ -22,11 +22,14 @@
 #include <config.h>
 #endif
 
-#include <rfb_win32/WMCursor.h>
-#include <rfb/Exception.h>
-#include <rfb/LogWriter.h>
+#include <core/Exception.h>
+#include <core/LogWriter.h>
 
-using namespace rdr;
+#include <rfb_win32/WMCursor.h>
+
+#include <rfb/Exception.h>
+
+using namespace core;
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -45,9 +48,9 @@ WMCursor::getCursorInfo() {
   CURSORINFO info;
   info.cbSize = sizeof(CURSORINFO);
   if (!GetCursorInfo(&info))
-    throw rdr::win32_error("GetCursorInfo failed", GetLastError());
+    throw core::win32_error("GetCursorInfo failed", GetLastError());
   result.cursor = info.hCursor;
-  result.position = Point(info.ptScreenPos.x, info.ptScreenPos.y);
+  result.position = {info.ptScreenPos.x, info.ptScreenPos.y};
   result.visible = info.flags & CURSOR_SHOWING;
   return result;
 }

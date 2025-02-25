@@ -29,7 +29,13 @@
 
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
+#include <rfb/PixelFormat.h>
 #include <rfb/SecurityClient.h>
+
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
 
@@ -114,12 +120,12 @@ namespace rfb {
     void serverInit(int width, int height, const PixelFormat& pf,
                     const char* name) override;
 
-    bool readAndDecodeRect(const Rect& r, int encoding,
+    bool readAndDecodeRect(const core::Rect& r, int encoding,
                            ModifiablePixelBuffer* pb) override;
 
     void framebufferUpdateStart() override;
     void framebufferUpdateEnd() override;
-    bool dataRect(const Rect& r, int encoding) override;
+    bool dataRect(const core::Rect& r, int encoding) override;
 
     void serverCutText(const char* str) override;
 
@@ -237,7 +243,7 @@ namespace rfb {
     // Identities, to determine the unique(ish) name of the server.
     const char* getServerName() const { return serverName.c_str(); }
 
-    bool isSecure() const { return csecurity ? csecurity->isSecure() : false; }
+    bool isSecure() const;
 
     enum stateEnum {
       RFBSTATE_UNINITIALISED,

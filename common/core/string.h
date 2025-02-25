@@ -18,21 +18,18 @@
  */
 
 //
-// util.h - miscellaneous useful bits
+// string.h - string utility functions
 //
 
-#ifndef __RFB_UTIL_H__
-#define __RFB_UTIL_H__
+#ifndef __CORE_STRING_H__
+#define __CORE_STRING_H__
 
-#include <limits.h>
 #include <stdint.h>
 
 #include <string>
 #include <vector>
 
-struct timeval;
-
-namespace rfb {
+namespace core {
 
   // Formats according to printf(), with a dynamic allocation
   std::string format(const char *fmt, ...)
@@ -71,41 +68,13 @@ namespace rfb {
   bool isValidUTF8(const char* str, size_t bytes = (size_t)-1);
   bool isValidUTF16(const wchar_t* wstr, size_t units = (size_t)-1);
 
-  // HELPER functions for timeout handling
-
-  // secsToMillis() turns seconds into milliseconds, capping the value so it
-  //   can't wrap round and become -ve
-  inline int secsToMillis(int secs) {
-    return (secs < 0 || secs > (INT_MAX/1000) ? INT_MAX : secs * 1000);
-  }
-
-  // Returns time elapsed between two moments in milliseconds.
-  unsigned msBetween(const struct timeval *first,
-                     const struct timeval *second);
-
-  // Returns time elapsed since given moment in milliseconds.
-  unsigned msSince(const struct timeval *then);
-
-  // Returns true if first happened before seconds
-  bool isBefore(const struct timeval *first,
-                const struct timeval *second);
+  // Convert a value to a string using the correct prefix to reduce
+  // the length of the string
 
   std::string siPrefix(long long value, const char *unit,
                        int precision=6);
   std::string iecPrefix(long long value, const char *unit,
                         int precision=6);
 }
-
-// Some platforms (e.g. Windows) include max() and min() macros in their
-// standard headers, but they are also standard C++ template functions, so some
-// C++ headers will undefine them.  So we steer clear of the names min and max
-// and define __rfbmin and __rfbmax instead.
-
-#ifndef __rfbmax
-#define __rfbmax(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef __rfbmin
-#define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
-#endif
 
 #endif

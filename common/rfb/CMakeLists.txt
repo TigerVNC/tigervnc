@@ -12,7 +12,6 @@ add_library(rfb STATIC
   CSecurityVncAuth.cxx
   ClientParams.cxx
   ComparingUpdateTracker.cxx
-  Configuration.cxx
   CopyRectDecoder.cxx
   Cursor.cxx
   DecodeManager.cxx
@@ -26,17 +25,12 @@ add_library(rfb STATIC
   JpegDecompressor.cxx
   KeyRemapper.cxx
   KeysymStr.c
-  LogWriter.cxx
-  Logger.cxx
-  Logger_file.cxx
-  Logger_stdio.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
   RREEncoder.cxx
   RREDecoder.cxx
   RawDecoder.cxx
   RawEncoder.cxx
-  Region.cxx
   SConnection.cxx
   SMsgHandler.cxx
   SMsgReader.cxx
@@ -50,7 +44,6 @@ add_library(rfb STATIC
   SSecurityStack.cxx
   SSecurityVncAuth.cxx
   SSecurityVeNCrypt.cxx
-  Timer.cxx
   TightDecoder.cxx
   TightEncoder.cxx
   TightJPEGEncoder.cxx
@@ -60,15 +53,12 @@ add_library(rfb STATIC
   ZRLEEncoder.cxx
   ZRLEDecoder.cxx
   encodings.cxx
-  obfuscate.cxx
-  util.cxx)
+  obfuscate.cxx)
 
 target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
-target_include_directories(rfb SYSTEM PUBLIC ${PIXMAN_INCLUDE_DIRS})
-target_link_libraries(rfb os rdr network)
+target_link_libraries(rfb core rdr network)
 target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
-target_link_directories(rfb PUBLIC ${PIXMAN_LIBRARY_DIRS})
 
 if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   target_sources(rfb PRIVATE H264Decoder.cxx H264DecoderContext.cxx)
@@ -80,10 +70,6 @@ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   target_include_directories(rfb SYSTEM PUBLIC ${H264_INCLUDE_DIRS})
   target_link_libraries(rfb ${H264_LIBRARIES})
   target_link_directories(rfb PUBLIC ${H264_LIBRARY_DIRS})
-endif()
-
-if(UNIX)
-  target_sources(rfb PRIVATE Logger_syslog.cxx)
 endif()
 
 if(WIN32)

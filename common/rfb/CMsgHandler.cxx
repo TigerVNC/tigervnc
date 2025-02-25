@@ -23,14 +23,14 @@
 
 #include <stdio.h>
 
-#include <rfb/Exception.h>
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
+
 #include <rfb/CMsgHandler.h>
 #include <rfb/clipboardTypes.h>
 #include <rfb/screenTypes.h>
-#include <rfb/util.h>
 
-static rfb::LogWriter vlog("CMsgHandler");
+static core::LogWriter vlog("CMsgHandler");
 
 using namespace rfb;
 
@@ -141,7 +141,7 @@ void CMsgHandler::handleClipboardCaps(uint32_t flags, const uint32_t* lengths)
         vlog.debug("    %s (only notify)", type);
       else {
         vlog.debug("    %s (automatically send up to %s)",
-                   type, iecPrefix(lengths[i], "B").c_str());
+                   type, core::iecPrefix(lengths[i], "B").c_str());
       }
     }
   }

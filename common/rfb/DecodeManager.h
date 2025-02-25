@@ -21,14 +21,15 @@
 
 #include <list>
 
-#include <os/Thread.h>
+#include <core/Region.h>
+#include <core/Thread.h>
 
-#include <rfb/Region.h>
 #include <rfb/encodings.h>
 
-namespace os {
+namespace core {
   class Condition;
   class Mutex;
+  struct Rect;
 }
 
 namespace rdr {
@@ -36,17 +37,17 @@ namespace rdr {
 }
 
 namespace rfb {
+
   class CConnection;
   class Decoder;
   class ModifiablePixelBuffer;
-  struct Rect;
 
   class DecodeManager {
   public:
     DecodeManager(CConnection *conn);
     ~DecodeManager();
 
-    bool decodeRect(const Rect& r, int encoding,
+    bool decodeRect(const core::Rect& r, int encoding,
                     ModifiablePixelBuffer* pb);
 
     void flush();
@@ -72,24 +73,24 @@ namespace rfb {
 
     struct QueueEntry {
       bool active;
-      Rect rect;
+      core::Rect rect;
       int encoding;
       Decoder* decoder;
       const ServerParams* server;
       ModifiablePixelBuffer* pb;
       rdr::MemOutStream* bufferStream;
-      Region affectedRegion;
+      core::Region affectedRegion;
     };
 
     std::list<rdr::MemOutStream*> freeBuffers;
     std::list<QueueEntry*> workQueue;
 
-    os::Mutex* queueMutex;
-    os::Condition* producerCond;
-    os::Condition* consumerCond;
+    core::Mutex* queueMutex;
+    core::Condition* producerCond;
+    core::Condition* consumerCond;
 
   private:
-    class DecodeThread : public os::Thread {
+    class DecodeThread : public core::Thread {
     public:
       DecodeThread(DecodeManager* manager);
       ~DecodeThread();
@@ -109,6 +110,7 @@ namespace rfb {
     std::list<DecodeThread*> threads;
     std::exception *threadException;
   };
+
 }
 
 #endif

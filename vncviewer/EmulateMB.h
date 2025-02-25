@@ -19,22 +19,24 @@
 #ifndef __EMULATEMB__
 #define __EMULATEMB__
 
-#include <rfb/Timer.h>
-#include <rfb/Rect.h>
+#include <core/Rect.h>
+#include <core/Timer.h>
 
-class EmulateMB : public rfb::Timer::Callback {
+class EmulateMB : public core::Timer::Callback {
 public:
   EmulateMB();
 
-  void filterPointerEvent(const rfb::Point& pos, uint16_t buttonMask);
+  void filterPointerEvent(const core::Point& pos, uint16_t buttonMask);
 
 protected:
-  virtual void sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask)=0;
+  virtual void sendPointerEvent(const core::Point& pos,
+                                uint16_t buttonMask)=0;
 
-  void handleTimeout(rfb::Timer *t) override;
+  void handleTimeout(core::Timer* t) override;
 
 private:
-  void sendAction(const rfb::Point& pos, uint16_t buttonMask, int action);
+  void sendAction(const core::Point& pos, uint16_t buttonMask,
+                  int action);
 
   int createButtonMask(uint16_t buttonMask);
 
@@ -42,8 +44,8 @@ private:
   int state;
   uint16_t emulatedButtonMask;
   uint16_t lastButtonMask;
-  rfb::Point lastPos, origPos;
-  rfb::Timer timer;
+  core::Point lastPos, origPos;
+  core::Timer timer;
 };
 
 #endif

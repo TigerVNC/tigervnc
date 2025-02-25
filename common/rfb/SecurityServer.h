@@ -20,7 +20,6 @@
 #ifndef __RFB_SECURITYSERVER_H__
 #define __RFB_SECURITYSERVER_H__
 
-#include <rfb/Configuration.h>
 #include <rfb/Security.h>
 
 namespace rfb {
@@ -35,7 +34,7 @@ namespace rfb {
     /* Create server side SSecurity class instance */
     SSecurity* GetSSecurity(SConnection* sc, uint32_t secType);
 
-    static StringParameter secTypes;
+    static core::StringParameter secTypes;
   };
 
 }

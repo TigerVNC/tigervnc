@@ -22,17 +22,18 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#include <algorithm>
 #include <vector>
 
-#include <rfb/Exception.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
+#include <core/LogWriter.h>
+#include <core/string.h>
 
 #include <rfb/ComparingUpdateTracker.h>
 
 using namespace rfb;
 
-static LogWriter vlog("ComparingUpdateTracker");
+static core::LogWriter vlog("ComparingUpdateTracker");
 
 ComparingUpdateTracker::ComparingUpdateTracker(PixelBuffer* buffer)
   : fb(buffer), oldFb(fb->getPF(), 0, 0), firstCompare(true),
@@ -50,8 +51,8 @@ ComparingUpdateTracker::~ComparingUpdateTracker()
 
 bool ComparingUpdateTracker::compare()
 {
-  std::vector<Rect> rects;
-  std::vector<Rect>::iterator i;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect>::iterator i;
 
   if (!enabled)
     return false;
@@ -62,7 +63,7 @@ bool ComparingUpdateTracker::compare()
     oldFb.setSize(fb->width(), fb->height());
 
     for (int y=0; y<fb->height(); y+=BLOCK_SIZE) {
-      Rect pos(0, y, fb->width(), __rfbmin(fb->height(), y+BLOCK_SIZE));
+      core::Rect pos(0, y, fb->width(), std::min(fb->height(), y+BLOCK_SIZE));
       int srcStride;
       const uint8_t* srcData = fb->getBuffer(pos, &srcStride);
       oldFb.imageRect(pos, srcData, srcStride);
@@ -79,7 +80,7 @@ bool ComparingUpdateTracker::compare()
 
   changed.get_rects(&rects);
 
-  Region newChanged;
+  core::Region newChanged;
   for (i = rects.begin(); i != rects.end(); i++)
     compareRect(*i, &newChanged);
 
@@ -111,10 +112,11 @@ void ComparingUpdateTracker::disable()
   firstCompare = true;
 }
 
-void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
+void ComparingUpdateTracker::compareRect(const core::Rect& r,
+                                         core::Region* newChanged)
 {
   if (!r.enclosed_by(fb->getRect())) {
-    Rect safe;
+    core::Rect safe;
     // Crop the rect and try again
     safe = r.intersect(fb->getRect());
     if (!safe.is_empty())
@@ -134,20 +136,20 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
   for (int blockTop = r.tl.y; blockTop < r.br.y; blockTop += BLOCK_SIZE)
   {
     // Get a strip of the source buffer
-    Rect pos(r.tl.x, blockTop, r.br.x, __rfbmin(r.br.y, blockTop+BLOCK_SIZE));
+    core::Rect pos(r.tl.x, blockTop, r.br.x, std::min(r.br.y, blockTop+BLOCK_SIZE));
     int fbStride;
     const uint8_t* newBlockPtr = fb->getBuffer(pos, &fbStride);
     int newStrideBytes = fbStride * bytesPerPixel;
 
     uint8_t* oldBlockPtr = oldData;
-    int blockBottom = __rfbmin(blockTop+BLOCK_SIZE, r.br.y);
+    int blockBottom = std::min(blockTop+BLOCK_SIZE, r.br.y);
 
     for (int blockLeft = r.tl.x; blockLeft < r.br.x; blockLeft += BLOCK_SIZE)
     {
       const uint8_t* newPtr = newBlockPtr;
       uint8_t* oldPtr = oldBlockPtr;
 
-      int blockRight = __rfbmin(blockLeft+BLOCK_SIZE, r.br.x);
+      int blockRight = std::min(blockLeft+BLOCK_SIZE, r.br.x);
       int blockWidthInBytes = (blockRight-blockLeft) * bytesPerPixel;
 
       // Scan the block top to bottom, to identify the first row of change
@@ -223,8 +225,10 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
           }
         endOfChangeRight:
 
-          // Block change extends from (changeLeft, y) to (changeRight, y + changeHeight)
-          newChanged->assign_union(Region(Rect(changeLeft, y, changeRight, y + changeHeight)));
+          // Block change extends from (changeLeft, y) to (changeRight,
+          // y + changeHeight)
+          newChanged->assign_union({{changeLeft, y,
+                                     changeRight, y + changeHeight}});
 
           // Copy the change from fb to oldFb to allow future changes to be identified
           for (int row = 0; row < changeHeight; row++)
@@ -261,8 +265,8 @@ void ComparingUpdateTracker::logStats()
   // FIXME: This gets spammed on each session resize, so we'll have to
   //        keep it on a debug level for now
   vlog.debug("%s in / %s out",
-             siPrefix(totalPixels, "pixels").c_str(),
-             siPrefix(missedPixels, "pixels").c_str());
+             core::siPrefix(totalPixels, "pixels").c_str(),
+             core::siPrefix(missedPixels, "pixels").c_str());
   vlog.debug("(1:%g ratio)", ratio);
 
   totalPixels = missedPixels = 0;

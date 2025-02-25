@@ -27,17 +27,20 @@
 #include <unistd.h>
 #endif
 
-#include <rdr/Exception.h>
+#include <core/LogWriter.h>
+#include <core/Timer.h>
+#include <core/string.h>
+
+#include <rdr/FdInStream.h>
+#include <rdr/FdOutStream.h>
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Exception.h>
-#include <rfb/Hostname.h>
-#include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/fenceTypes.h>
-#include <rfb/Timer.h>
 #include <rfb/screenTypes.h>
+
 #include <network/TcpSocket.h>
 #ifndef WIN32
 #include <network/UnixSocket.h>
@@ -58,19 +61,17 @@
 #include "win32.h"
 #endif
 
-using namespace rfb;
-
-static rfb::LogWriter vlog("CConn");
+static core::LogWriter vlog("CConn");
 
 // 8 colours (1 bit per component)
-static const PixelFormat verylowColourPF(8, 3,false, true,
-                                         1, 1, 1, 2, 1, 0);
+static const rfb::PixelFormat verylowColourPF(8, 3,false, true,
+                                              1, 1, 1, 2, 1, 0);
 // 64 colours (2 bits per component)
-static const PixelFormat lowColourPF(8, 6, false, true,
-                                     3, 3, 3, 4, 2, 0);
+static const rfb::PixelFormat lowColourPF(8, 6, false, true,
+                                          3, 3, 3, 4, 2, 0);
 // 256 colours (2-3 bits per component)
-static const PixelFormat mediumColourPF(8, 8, false, true,
-                                        7, 7, 3, 5, 2, 0);
+static const rfb::PixelFormat mediumColourPF(8, 8, false, true,
+                                             7, 7, 3, 5, 2, 0);
 
 // Time new bandwidth estimates are weighted against (in ms)
 static const unsigned bpsEstimateWindow = 1000;
@@ -103,7 +104,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
       } else
 #endif
       {
-        getHostAndPort(vncServerName, &serverHost, &serverPort);
+        network::getHostAndPort(vncServerName, &serverHost, &serverPort);
 
         sock = new network::TcpSocket(serverHost.c_str(), serverPort);
         vlog.info(_("Connected to host %s port %d"),
@@ -148,46 +149,46 @@ std::string CConn::connectionInfo()
 
   char pfStr[100];
 
-  infoText += format(_("Desktop name: %.80s"), server.name());
+  infoText += core::format(_("Desktop name: %.80s"), server.name());
   infoText += "\n";
 
-  infoText += format(_("Host: %.80s port: %d"),
-                     serverHost.c_str(), serverPort);
+  infoText += core::format(_("Host: %.80s port: %d"),
+                           serverHost.c_str(), serverPort);
   infoText += "\n";
 
-  infoText += format(_("Size: %d x %d"),
-                     server.width(), server.height());
+  infoText += core::format(_("Size: %d x %d"),
+                           server.width(), server.height());
   infoText += "\n";
 
   // TRANSLATORS: Will be filled in with a string describing the
   // protocol pixel format in a fairly language neutral way
   server.pf().print(pfStr, 100);
-  infoText += format(_("Pixel format: %s"), pfStr);
+  infoText += core::format(_("Pixel format: %s"), pfStr);
   infoText += "\n";
 
   // TRANSLATORS: Similar to the earlier "Pixel format" string
   serverPF.print(pfStr, 100);
-  infoText += format(_("(server default %s)"), pfStr);
+  infoText += core::format(_("(server default %s)"), pfStr);
   infoText += "\n";
 
-  infoText += format(_("Requested encoding: %s"),
-                     encodingName(getPreferredEncoding()));
+  infoText += core::format(_("Requested encoding: %s"),
+                           rfb::encodingName(getPreferredEncoding()));
   infoText += "\n";
 
-  infoText += format(_("Last used encoding: %s"),
-                     encodingName(lastServerEncoding));
+  infoText += core::format(_("Last used encoding: %s"),
+                           rfb::encodingName(lastServerEncoding));
   infoText += "\n";
 
-  infoText += format(_("Line speed estimate: %d kbit/s"),
-                     (int)(bpsEstimate / 1000));
+  infoText += core::format(_("Line speed estimate: %d kbit/s"),
+                           (int)(bpsEstimate / 1000));
   infoText += "\n";
 
-  infoText += format(_("Protocol version: %d.%d"),
-                     server.majorVersion, server.minorVersion);
+  infoText += core::format(_("Protocol version: %d.%d"),
+                           server.majorVersion, server.minorVersion);
   infoText += "\n";
 
-  infoText += format(_("Security method: %s"),
-                     secTypeName(csecurity->getType()));
+  infoText += core::format(_("Security method: %s"),
+                           rfb::secTypeName(csecurity->getType()));
   infoText += "\n";
 
   return infoText;
@@ -236,7 +237,7 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
       // Make sure that the FLTK handling and the timers gets some CPU
       // time in case of back to back messages
       Fl::check();
-      Timer::checkTimeouts();
+      core::Timer::checkTimeouts();
 
       // Also check if we need to stop reading and terminate
       if (should_disconnect())
@@ -282,7 +283,7 @@ void CConn::resetPassword()
 
 ////////////////////// CConnection callback methods //////////////////////
 
-bool CConn::showMsgBox(MsgBoxFlags flags, const char *title,
+bool CConn::showMsgBox(rfb::MsgBoxFlags flags, const char *title,
                        const char *text)
 {
     return dlg.showMsgBox(flags, title, text);
@@ -312,7 +313,7 @@ void CConn::initDone()
 
   // Force a switch to the format and encoding we'd like
   updatePixelFormat();
-  int encNum = encodingNum(::preferredEncoding);
+  int encNum = rfb::encodingNum(::preferredEncoding);
   if (encNum != -1)
     setPreferredEncoding(encNum);
 }
@@ -323,7 +324,7 @@ void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
 {
   CConnection::setExtendedDesktopSize(reason, result, w, h, layout);
 
-  if (reason == reasonClient)
+  if (reason == rfb::reasonClient)
     desktop->setDesktopSizeDone(result);
 }
 
@@ -401,11 +402,11 @@ void CConn::bell()
   fl_beep();
 }
 
-bool CConn::dataRect(const Rect& r, int encoding)
+bool CConn::dataRect(const core::Rect& r, int encoding)
 {
   bool ret;
 
-  if (encoding != encodingCopyRect)
+  if (encoding != rfb::encodingCopyRect)
     lastServerEncoding = encoding;
 
   ret = CConnection::dataRect(r, encoding);
@@ -416,13 +417,13 @@ bool CConn::dataRect(const Rect& r, int encoding)
   return ret;
 }
 
-void CConn::setCursor(int width, int height, const Point& hotspot,
+void CConn::setCursor(int width, int height, const core::Point& hotspot,
                       const uint8_t* data)
 {
   desktop->setCursor(width, height, hotspot, data);
 }
 
-void CConn::setCursorPos(const Point& pos)
+void CConn::setCursorPos(const core::Point& pos)
 {
   desktop->setCursorPos(pos);
 }
@@ -431,9 +432,10 @@ void CConn::fence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   CMsgHandler::fence(flags, len, data);
 
-  if (flags & fenceFlagRequest) {
+  if (flags & rfb::fenceFlagRequest) {
     // We handle everything synchronously so we trivially honor these modes
-    flags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter);
+    flags = flags & (rfb::fenceFlagBlockBefore |
+                     rfb::fenceFlagBlockAfter);
 
     writer()->writeFence(flags, len, data);
     return;
@@ -491,7 +493,7 @@ void CConn::autoSelectFormatAndEncoding()
   int newQualityLevel = ::qualityLevel;
 
   // Always use Tight
-  setPreferredEncoding(encodingTight);
+  setPreferredEncoding(rfb::encodingTight);
 
   // Select appropriate quality level
   if (!noJpeg) {
@@ -537,7 +539,7 @@ void CConn::autoSelectFormatAndEncoding()
 // format and encoding appropriately.
 void CConn::updatePixelFormat()
 {
-  PixelFormat pf;
+  rfb::PixelFormat pf;
 
   if (fullColour) {
     pf = fullColourPF;
@@ -565,7 +567,7 @@ void CConn::handleOptions(void *data)
   // list is cheap. Avoid overriding what the auto logic has selected
   // though.
   if (!autoSelect) {
-    int encNum = encodingNum(::preferredEncoding);
+    int encNum = rfb::encodingNum(::preferredEncoding);
 
     if (encNum != -1)
       self->setPreferredEncoding(encNum);

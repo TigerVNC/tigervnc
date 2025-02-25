@@ -27,15 +27,18 @@
 #include <winvnc/ListConnInfo.h>
 #include <winvnc/STrayIcon.h>
 
-#include <os/Mutex.h>
+#include <core/LogWriter.h>
+#include <core/Mutex.h>
+
+#include <network/TcpSocket.h>
 
 #include <rfb_win32/ComputerName.h>
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
 
-#include <rfb/Hostname.h>
-#include <rfb/LogWriter.h>
+#include <rfb/SConnection.h>
 
+using namespace core;
 using namespace rfb;
 using namespace win32;
 using namespace winvnc;
@@ -69,10 +72,10 @@ VNCServerWin32::VNCServerWin32()
     config(&sockMgr), rfbSock(&sockMgr), trayIcon(nullptr),
     queryConnectDialog(nullptr)
 {
-  commandLock = new os::Mutex;
-  commandSig = new os::Condition(commandLock);
+  commandLock = new Mutex;
+  commandSig = new Condition(commandLock);
 
-  runLock = new os::Mutex;
+  runLock = new Mutex;
 
   // Initialise the desktop
   desktop.setStatusLocation(&isDesktopStarted);
@@ -158,7 +161,7 @@ void VNCServerWin32::regConfigChanged() {
 
 int VNCServerWin32::run() {
   {
-    os::AutoMutex a(runLock);
+    AutoMutex a(runLock);
     thread_id = GetCurrentThreadId();
     runServer = true;
   }
@@ -188,7 +191,7 @@ int VNCServerWin32::run() {
     while (runServer) {
       result = sockMgr.getMessage(&msg, nullptr, 0, 0);
       if (result < 0)
-        throw rdr::win32_error("getMessage", GetLastError());
+        throw core::win32_error("getMessage", GetLastError());
       if (!isServiceProcess() && (result == 0))
         break;
       TranslateMessage(&msg);
@@ -196,7 +199,7 @@ int VNCServerWin32::run() {
     }
 
     vlog.debug("Server exited cleanly");
-  } catch (rdr::win32_error &s) {
+  } catch (core::win32_error &s) {
     vlog.error("%s", s.what());
     result = s.err;
   } catch (std::exception &e) {
@@ -204,7 +207,7 @@ int VNCServerWin32::run() {
   }
 
   {
-    os::AutoMutex a(runLock);
+    AutoMutex a(runLock);
     runServer = false;
     thread_id = (DWORD)-1;
   }
@@ -213,7 +216,7 @@ int VNCServerWin32::run() {
 }
 
 void VNCServerWin32::stop() {
-  os::AutoMutex a(runLock);
+  AutoMutex a(runLock);
   runServer = false;
   if (thread_id != (DWORD)-1)
     PostThreadMessage(thread_id, WM_QUIT, 0, 0);
@@ -270,7 +273,7 @@ void VNCServerWin32::queryConnectionComplete() {
 
 
 bool VNCServerWin32::queueCommand(Command cmd, const void* data, int len, bool wait) {
-  os::AutoMutex a(commandLock);
+  AutoMutex a(commandLock);
   while (command != NoCommand)
     commandSig->wait();
   command = cmd;
@@ -291,7 +294,7 @@ void VNCServerWin32::processEvent(HANDLE event_) {
   if (event_ == commandEvent.h) {
     // If there is no command queued then return immediately
     {
-      os::AutoMutex a(commandLock);
+      AutoMutex a(commandLock);
       if (command == NoCommand)
         return;
     }
@@ -332,7 +335,7 @@ void VNCServerWin32::processEvent(HANDLE event_) {
 
     // Clear the command and signal completion
     {
-      os::AutoMutex a(commandLock);
+      AutoMutex a(commandLock);
       command = NoCommand;
       commandSig->signal();
     }

@@ -33,11 +33,11 @@
 #include <FL/Fl.H>
 #include <FL/x.H>
 
-#include <rfb/LogWriter.h>
+#include <core/LogWriter.h>
 
 #include "PlatformPixelBuffer.h"
 
-static rfb::LogWriter vlog("PlatformPixelBuffer");
+static core::LogWriter vlog("PlatformPixelBuffer");
 
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
@@ -91,17 +91,17 @@ PlatformPixelBuffer::~PlatformPixelBuffer()
 #endif
 }
 
-void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
+void PlatformPixelBuffer::commitBufferRW(const core::Rect& r)
 {
   FullFramePixelBuffer::commitBufferRW(r);
   mutex.lock();
-  damage.assign_union(rfb::Region(r));
+  damage.assign_union(r);
   mutex.unlock();
 }
 
-rfb::Rect PlatformPixelBuffer::getDamage(void)
+core::Rect PlatformPixelBuffer::getDamage(void)
 {
-  rfb::Rect r;
+  core::Rect r;
 
   mutex.lock();
   r = damage.get_bounding_rect();

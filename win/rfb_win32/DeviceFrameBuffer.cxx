@@ -27,12 +27,16 @@
 #endif
 
 #include <vector>
+
+#include <core/LogWriter.h>
+
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/IconInfo.h>
-#include <rfb/VNCServer.h>
-#include <rfb/LogWriter.h>
 
+#include <rfb/VNCServer.h>
+
+using namespace core;
 using namespace rfb;
 using namespace win32;
 
@@ -102,7 +106,7 @@ DeviceFrameBuffer::grabRect(const Rect &rect) {
     if (ignoreGrabErrors)
       vlog.error("BitBlt failed:%ld", GetLastError());
     else
-      throw rdr::win32_error("BitBlt failed", GetLastError());
+      throw core::win32_error("BitBlt failed", GetLastError());
   }
 }
 
@@ -123,7 +127,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
   // - If hCursor is null then there is no cursor - clear the old one
 
   if (hCursor == nullptr) {
-    server->setCursor(0, 0, Point(), nullptr);
+    server->setCursor(0, 0, {}, nullptr);
     return;
   }
 
@@ -138,7 +142,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     BITMAP maskInfo;
     if (!GetObject(iconInfo.hbmMask, sizeof(BITMAP), &maskInfo))
-      throw rdr::win32_error("GetObject() failed", GetLastError());
+      throw core::win32_error("GetObject() failed", GetLastError());
     if (maskInfo.bmPlanes != 1)
       throw std::invalid_argument("Unsupported multi-plane cursor");
     if (maskInfo.bmBitsPixel != 1)
@@ -151,7 +155,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     buffer.resize(width * height * 4);
 
-    Point hotspot = Point(iconInfo.xHotspot, iconInfo.yHotspot);
+    Point hotspot(iconInfo.xHotspot, iconInfo.yHotspot);
 
     if (iconInfo.hbmColor) {
       // Colour cursor
@@ -174,7 +178,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
       if (!GetDIBits(dc, iconInfo.hbmColor, 0, height,
                      buffer.data(), (LPBITMAPINFO)&bi, DIB_RGB_COLORS))
-        throw rdr::win32_error("GetDIBits", GetLastError());
+        throw core::win32_error("GetDIBits", GetLastError());
 
       // We may not get the RGBA order we want, so shuffle things around
       int ridx, gidx, bidx, aidx;
@@ -217,7 +221,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
       if (!GetBitmapBits(iconInfo.hbmMask,
                          maskInfo.bmWidthBytes * maskInfo.bmHeight, mask.data()))
-        throw rdr::win32_error("GetBitmapBits", GetLastError());
+        throw core::win32_error("GetBitmapBits", GetLastError());
 
       bool doOutline = false;
       uint8_t* rwbuffer = buffer.data();

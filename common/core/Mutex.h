@@ -1,40 +1,64 @@
-/* Copyright (C) 2015 TigerVNC
- *
+/* Copyright 2015 Pierre Ossman for Cendio AB
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
 
-// -=- Logger_syslog - log to syslog
+#ifndef __CORE_MUTEX_H__
+#define __CORE_MUTEX_H__
 
-#ifndef __RFB_LOGGER_SYSLOG_H__
-#define __RFB_LOGGER_SYSLOG_H__
+namespace core {
+  class Condition;
 
-#include <time.h>
-#include <rfb/Logger.h>
-
-namespace rfb {
-
-  class Logger_Syslog : public Logger {
+  class Mutex {
   public:
-    Logger_Syslog(const char* loggerName);
-    virtual ~Logger_Syslog();
+    Mutex();
+    ~Mutex();
 
-    void write(int level, const char *logname, const char *message) override;
+    void lock();
+    void unlock();
+
+  private:
+    friend class Condition;
+
+    void* systemMutex;
   };
 
-  void initSyslogLogger();
-};
+  class AutoMutex {
+  public:
+    AutoMutex(Mutex* mutex) { m = mutex; m->lock(); }
+    ~AutoMutex() { m->unlock(); }
+  private:
+    Mutex* m;
+  };
+
+  class Condition {
+  public:
+    Condition(Mutex* mutex);
+    ~Condition();
+
+    void wait();
+
+    void signal();
+    void broadcast();
+
+  private:
+    Mutex* mutex;
+    void* systemCondition;
+  };
+
+}
 
 #endif

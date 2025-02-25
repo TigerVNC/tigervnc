@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -41,10 +43,10 @@ HextileDecoder::~HextileDecoder()
 {
 }
 
-bool HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
+bool HextileDecoder::readRect(const core::Rect& r, rdr::InStream* is,
                               const ServerParams& server, rdr::OutStream* os)
 {
-  Rect t;
+  core::Rect t;
   size_t bytesPerPixel;
 
   is->setRestorePoint();
@@ -53,12 +55,12 @@ bool HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
-    t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
+    t.br.y = std::min(r.br.y, t.tl.y + 16);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
       uint8_t tileType;
 
-      t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
+      t.br.x = std::min(r.br.x, t.tl.x + 16);
 
       if (!is->hasDataOrRestore(1))
         return false;
@@ -113,7 +115,7 @@ bool HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
   return true;
 }
 
-void HextileDecoder::decodeRect(const Rect& r, const uint8_t* buffer,
+void HextileDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
                                 size_t buflen, const ServerParams& server,
                                 ModifiablePixelBuffer* pb)
 {
@@ -138,22 +140,22 @@ inline T HextileDecoder::readPixel(rdr::InStream* is)
 }
 
 template<class T>
-void HextileDecoder::hextileDecode(const Rect& r, rdr::InStream* is,
+void HextileDecoder::hextileDecode(const core::Rect& r, rdr::InStream* is,
                                    const PixelFormat& pf,
                                    ModifiablePixelBuffer* pb)
 {
-  Rect t;
+  core::Rect t;
   T bg = 0;
   T fg = 0;
   T buf[16 * 16];
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
-    t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
+    t.br.y = std::min(r.br.y, t.tl.y + 16);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
 
-      t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
+      t.br.x = std::min(r.br.x, t.tl.x + 16);
 
       int tileType = is->readU8();
 

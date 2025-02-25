@@ -23,10 +23,13 @@
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/resource.h>
+
+#include <core/LogWriter.h>
+
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/Service.h>
-#include <rfb/LogWriter.h>
 
+using namespace core;
 using namespace rfb;
 using namespace win32;
 using namespace winvnc;
@@ -74,7 +77,7 @@ void QueryConnectDialog::worker() {
 
 void QueryConnectDialog::initDialog() {
   if (!SetTimer(handle, 1, 1000, nullptr))
-    throw rdr::win32_error("SetTimer", GetLastError());
+    throw core::win32_error("SetTimer", GetLastError());
   setItemString(IDC_QUERY_HOST, peerIp.c_str());
   if (userName.empty())
     userName = "(anonymous)";

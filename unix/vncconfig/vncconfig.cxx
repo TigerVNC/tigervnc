@@ -39,22 +39,22 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include "vncExt.h"
-#include <rdr/Exception.h>
-#include <rfb/Configuration.h>
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
+
+#include <core/Configuration.h>
+#include <core/Exception.h>
+#include <core/Logger_stdio.h>
+#include <core/LogWriter.h>
+
 #include "TXWindow.h"
 #include "TXCheckbox.h"
 #include "TXLabel.h"
 #include "QueryConnectDialog.h"
 
-using namespace rfb;
+static core::LogWriter vlog("vncconfig");
 
-static LogWriter vlog("vncconfig");
-
-StringParameter displayname("display", "The X display", "");
-BoolParameter noWindow("nowin", "Don't display a window", 0);
-BoolParameter iconic("iconic", "Start with window iconified", 0);
+core::StringParameter displayname("display", "The X display", "");
+core::BoolParameter noWindow("nowin", "Don't display a window", 0);
+core::BoolParameter iconic("iconic", "Start with window iconified", 0);
 
 #define ACCEPT_CUT_TEXT "AcceptCutText"
 #define SEND_CUT_TEXT "SendCutText"
@@ -192,7 +192,7 @@ static void usage()
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n");
-  Configuration::listParams(79, 14);
+  core::Configuration::listParams(79, 14);
   exit(1);
 }
 
@@ -207,8 +207,8 @@ void removeArgs(int* argc, char** argv, int first, int n)
 int main(int argc, char** argv)
 {
   programName = argv[0];
-  rfb::initStdIOLoggers();
-  rfb::LogWriter::setLogParams("*:stderr:30");
+  core::initStdIOLoggers();
+  core::LogWriter::setLogParams("*:stderr:30");
 
   // Process vncconfig's own parameters first, then we process the
   // other arguments when we have the X display.
@@ -216,7 +216,7 @@ int main(int argc, char** argv)
   for (i = 1; i < argc;) {
     int ret;
 
-    ret = Configuration::handleParamArg(argc, argv, i);
+    ret = core::Configuration::handleParamArg(argc, argv, i);
     if (ret > 0) {
       i += ret;
       continue;
@@ -350,7 +350,7 @@ int main(int argc, char** argv)
       TXWindow::handleXEvents(dpy);
       
       // Process expired timers and get the time until the next one
-      int timeoutMs = Timer::checkTimeouts();
+      int timeoutMs = core::Timer::checkTimeouts();
       if (timeoutMs >= 0) {
         tv.tv_sec = timeoutMs / 1000;
         tv.tv_usec = (timeoutMs % 1000) * 1000;
@@ -368,7 +368,7 @@ int main(int argc, char** argv)
       FD_ZERO(&rfds);
       FD_SET(ConnectionNumber(dpy), &rfds);
       int n = select(FD_SETSIZE, &rfds, nullptr, nullptr, tvp);
-      if (n < 0) throw rdr::socket_error("select", errno);
+      if (n < 0) throw core::socket_error("select", errno);
     }
 
     XCloseDisplay(dpy);
