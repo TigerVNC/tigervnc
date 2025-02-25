@@ -391,6 +391,8 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
+find_package(GTest)
+
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
