@@ -235,7 +235,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 
 void Viewport::showCursor()
 {
-  if (viewOnly) {
+  if (viewOnly || ungrabbedGrabOnlyMouse()) {
     window()->cursor(FL_CURSOR_DEFAULT);
     return;
   }
@@ -314,7 +314,7 @@ void Viewport::setLEDState(unsigned int ledState)
     return;
   }
 
-  if (viewOnly)
+  if (viewOnly || ungrabbedGrabOnlyKeyboard())
     return;
 
   if (!hasFocus())
@@ -327,7 +327,7 @@ void Viewport::pushLEDState()
 {
   unsigned int ledState;
 
-  if (viewOnly)
+  if (viewOnly || ungrabbedGrabOnlyKeyboard())
     return;
 
   // Server support?
@@ -346,17 +346,17 @@ void Viewport::pushLEDState()
   if ((ledState & ledCapsLock) != (cc->server.ledState() & ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
   }
   if ((ledState & ledNumLock) != (cc->server.ledState() & ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
   }
   if ((ledState & ledScrollLock) != (cc->server.ledState() & ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
   }
 }
 
@@ -525,7 +525,7 @@ int Viewport::handle(int event)
 
 void Viewport::sendPointerEvent(const rfb::Point& pos, uint16_t buttonMask)
 {
-  if (viewOnly)
+  if (viewOnly || ungrabbedGrabOnlyMouse())
       return;
 
   if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
@@ -666,6 +666,11 @@ void Viewport::handleKeyPress(int systemKeyCode,
 {
   static bool menuRecursion = false;
 
+  // Right Ctrl
+  if (keySym == FL_Control_R) {
+    return;
+  }
+
   // Prevent recursion if the menu wants to send its own
   // activation key.
   if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
@@ -675,7 +680,7 @@ void Viewport::handleKeyPress(int systemKeyCode,
     return;
   }
 
-  if (viewOnly)
+  if (viewOnly || ungrabbedGrabOnlyKeyboard())
     return;
 
   try {
@@ -687,9 +692,23 @@ void Viewport::handleKeyPress(int systemKeyCode,
 }
 
 
-void Viewport::handleKeyRelease(int systemKeyCode)
+void Viewport::handleKeyRelease(int systemKeyCode,
+                                uint32_t keyCode, uint32_t keySym)
 {
+  (void)keyCode; // unused
+  (void)keySym; // unused
+
   if (viewOnly)
+    return;
+
+  // Right Ctrl
+  if (keySym == FL_Control_R) {
+    ((DesktopWindow*)window())->toggleForceGrab();
+    showCursor();
+    return;
+  }
+
+  if (ungrabbedGrabOnlyKeyboard())
     return;
 
   try {
@@ -817,6 +836,7 @@ void Viewport::popupContextMenu()
       window()->fullscreen_off();
     else
       ((DesktopWindow*)window())->fullscreen_on();
+    showCursor();
     break;
   case ID_MINIMIZE:
 #ifdef __APPLE__
@@ -836,28 +856,28 @@ void Viewport::popupContextMenu()
     if (m->value())
       handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     else
-      handleKeyRelease(FAKE_CTRL_KEY_CODE);
+      handleKeyRelease(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     menuCtrlKey = !menuCtrlKey;
     break;
   case ID_ALT:
     if (m->value())
       handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     else
-      handleKeyRelease(FAKE_ALT_KEY_CODE);
+      handleKeyRelease(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     menuAltKey = !menuAltKey;
     break;
   case ID_MENUKEY:
     handleKeyPress(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
     break;
   case ID_CTRLALTDEL:
     handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     handleKeyPress(FAKE_DEL_KEY_CODE, 0xd3, XK_Delete);
 
-    handleKeyRelease(FAKE_DEL_KEY_CODE);
-    handleKeyRelease(FAKE_ALT_KEY_CODE);
-    handleKeyRelease(FAKE_CTRL_KEY_CODE);
+    handleKeyRelease(FAKE_DEL_KEY_CODE, 0xd3, XK_Delete);
+    handleKeyRelease(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
+    handleKeyRelease(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
@@ -892,4 +912,18 @@ void Viewport::handleOptions(void *data)
   self->setMenuKey();
   if (Fl::belowmouse() == self)
     self->showCursor();
+}
+
+bool Viewport::ungrabbedGrabOnlyKeyboard() const {
+  if (grabOnly || grabOnlyKeyboard) {
+    return !((DesktopWindow*)window())->isKeyboardGrabbed();
+  }
+  return false;
+}
+
+bool Viewport::ungrabbedGrabOnlyMouse() const {
+  if (grabOnly || grabOnlyMouse) {
+    return !((DesktopWindow*)window())->isMouseGrabbed();
+  }
+  return false;
 }

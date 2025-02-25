@@ -62,6 +62,9 @@ extern rfb::BoolParameter remoteResize;
 extern rfb::BoolParameter listenMode;
 
 extern rfb::BoolParameter viewOnly;
+extern rfb::BoolParameter grabOnlyKeyboard;
+extern rfb::BoolParameter grabOnlyMouse;
+extern rfb::BoolParameter grabOnly;
 extern rfb::BoolParameter shared;
 
 extern rfb::BoolParameter acceptClipboard;
