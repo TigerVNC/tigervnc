@@ -34,6 +34,14 @@ allow vnc_session_t self:capability { chown dac_override dac_read_search fowner 
 allow vnc_session_t self:process { getcap setexec setrlimit setsched };
 allow vnc_session_t self:fifo_file rw_fifo_file_perms;
 
+optional_policy(`
+        gen_require(`
+                type sysctl_fs_t;
+        ')
+        allow vnc_session_t sysctl_fs_t:dir search;
+        allow vnc_session_t sysctl_fs_t:file { getattr open read };
+')
+
 allow vnc_session_t vnc_session_var_run_t:file manage_file_perms;
 files_pid_filetrans(vnc_session_t, vnc_session_var_run_t, file)
 
