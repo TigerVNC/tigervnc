@@ -1,4 +1,4 @@
-/* Copyright 2020 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2020-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,10 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
 #include <string.h>
 #include <wchar.h>
+
+#include <gtest/gtest.h>
 
 #include <core/string.h>
 
@@ -112,149 +113,138 @@ const wchar_t *invalidutf16[] = {
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(*a))
 
-int main(int /*argc*/, char** /*argv*/)
+TEST(Unicode, ucs4ToUTF8)
 {
-    int failures;
-    size_t i;
-
-    unsigned ucs4;
-    char utf8[5];
-    wchar_t utf16[3];
-    std::string out;
-    std::wstring wout;
+  size_t i;
+  for (i = 0;i < ARRAY_SIZE(ucs4utf8);i++) {
     size_t len;
+    char utf8[5];
 
-    failures = 0;
+    /* Expected failure? */
+    if (ucs4utf8[i].ucs4 == 0xfffd)
+      continue;
 
-    for (i = 0;i < ARRAY_SIZE(ucs4utf8);i++) {
-        /* Expected failure? */
-        if (ucs4utf8[i].ucs4 == 0xfffd)
-            continue;
+    len = core::ucs4ToUTF8(ucs4utf8[i].ucs4, utf8);
+    EXPECT_STREQ(utf8, ucs4utf8[i].utf8);
+    EXPECT_EQ(len, strlen(utf8));
+  }
+}
 
-        len = core::ucs4ToUTF8(ucs4utf8[i].ucs4, utf8);
-        if ((len != strlen(utf8)) ||
-            (strcmp(utf8, ucs4utf8[i].utf8) != 0)) {
-            printf("FAILED: ucs4ToUTF8() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+TEST(Unicode, utf8ToUCS4)
+{
+  size_t i;
+  for (i = 0;i < ARRAY_SIZE(ucs4utf8);i++) {
+    size_t len;
+    unsigned ucs4;
 
-    for (i = 0;i < ARRAY_SIZE(ucs4utf8);i++) {
-        /* Expected failure? */
-        if (strcmp(ucs4utf8[i].utf8, "\xef\xbf\xbd") == 0)
-            continue;
+    /* Expected failure? */
+    if (strcmp(ucs4utf8[i].utf8, "\xef\xbf\xbd") == 0)
+      continue;
 
-        len = core::utf8ToUCS4(ucs4utf8[i].utf8, strlen(ucs4utf8[i].utf8), &ucs4);
-        if ((len != strlen(ucs4utf8[i].utf8)) ||
-            (ucs4 != ucs4utf8[i].ucs4)) {
-            printf("FAILED: utf8ToUCS4() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+    len = core::utf8ToUCS4(ucs4utf8[i].utf8, strlen(ucs4utf8[i].utf8), &ucs4);
+    EXPECT_EQ(ucs4, ucs4utf8[i].ucs4);
+    EXPECT_EQ(len, strlen(ucs4utf8[i].utf8));
+  }
+}
 
-    for (i = 0;i < ARRAY_SIZE(ucs4utf16);i++) {
-        /* Expected failure? */
-        if (ucs4utf16[i].ucs4 == 0xfffd)
-            continue;
+TEST(Unicode, ucs4ToUTF16)
+{
+  size_t i;
+  for (i = 0;i < ARRAY_SIZE(ucs4utf16);i++) {
+    size_t len;
+    wchar_t utf16[3];
 
-        len = core::ucs4ToUTF16(ucs4utf16[i].ucs4, utf16);
-        if ((len != wcslen(utf16)) ||
-            (wcscmp(utf16, ucs4utf16[i].utf16) != 0)) {
-            printf("FAILED: ucs4ToUTF16() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+    /* Expected failure? */
+    if (ucs4utf16[i].ucs4 == 0xfffd)
+        continue;
 
-    for (i = 0;i < ARRAY_SIZE(ucs4utf16);i++) {
-        /* Expected failure? */
-        if (wcscmp(ucs4utf16[i].utf16, L"\xfffd") == 0)
-            continue;
+    len = core::ucs4ToUTF16(ucs4utf16[i].ucs4, utf16);
+    EXPECT_STREQ(utf16, ucs4utf16[i].utf16);
+    EXPECT_EQ(len, wcslen(utf16));
+  }
+}
 
-        len = core::utf16ToUCS4(ucs4utf16[i].utf16, wcslen(ucs4utf16[i].utf16), &ucs4);
-        if ((len != wcslen(ucs4utf16[i].utf16)) ||
-            (ucs4 != ucs4utf16[i].ucs4)) {
-            printf("FAILED: utf16ToUCS4() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+TEST(Unicode, utf16ToUCS4)
+{
+  size_t i;
+  for (i = 0;i < ARRAY_SIZE(ucs4utf16);i++) {
+    size_t len;
+    unsigned ucs4;
 
-    for (i = 0;i < ARRAY_SIZE(latin1utf8);i++) {
-        /* Expected failure? */
-        if (strchr(latin1utf8[i].latin1, '?') != nullptr)
-            continue;
+    /* Expected failure? */
+    if (wcscmp(ucs4utf16[i].utf16, L"\xfffd") == 0)
+        continue;
 
-        out = core::latin1ToUTF8(latin1utf8[i].latin1);
-        if (out != latin1utf8[i].utf8) {
-            printf("FAILED: latin1ToUTF8() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+    len = core::utf16ToUCS4(ucs4utf16[i].utf16, wcslen(ucs4utf16[i].utf16), &ucs4);
+    EXPECT_EQ(ucs4, ucs4utf16[i].ucs4);
+    EXPECT_EQ(len, wcslen(ucs4utf16[i].utf16));
+  }
+}
 
-    for (i = 0;i < ARRAY_SIZE(latin1utf8);i++) {
-        out = core::utf8ToLatin1(latin1utf8[i].utf8);
-        if (out != latin1utf8[i].latin1) {
-            printf("FAILED: utf8ToLatin1() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+TEST(Unicode, latin1ToUTF8)
+{
+  size_t i;
 
-    for (i = 0;i < ARRAY_SIZE(utf8utf16);i++) {
-        /* Expected failure? */
-        if (wcscmp(utf8utf16[i].utf16, L"\xfffd") == 0)
-            continue;
+  for (i = 0; i < ARRAY_SIZE(latin1utf8); i++) {
+    /* Expected failure? */
+    if (strchr(latin1utf8[i].latin1, '?') != nullptr)
+      continue;
 
-        out = core::utf16ToUTF8(utf8utf16[i].utf16);
-        if (out != utf8utf16[i].utf8) {
-            printf("FAILED: utf16ToUTF8() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+    EXPECT_EQ(core::latin1ToUTF8(latin1utf8[i].latin1), latin1utf8[i].utf8);
+  }
+}
 
-    for (i = 0;i < ARRAY_SIZE(utf8utf16);i++) {
-        /* Expected failure? */
-        if (strstr(utf8utf16[i].utf8, "\xef\xbf\xbd") != nullptr)
-            continue;
+TEST(Unicode, utf8ToLatin1)
+{
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(latin1utf8); i++)
+    EXPECT_EQ(core::utf8ToLatin1(latin1utf8[i].utf8), latin1utf8[i].latin1);
+}
 
-        wout = core::utf8ToUTF16(utf8utf16[i].utf8);
-        if (wout != utf8utf16[i].utf16) {
-            printf("FAILED: utf8ToUTF16() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+TEST(Unicode, utf16ToUTF8)
+{
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(utf8utf16); i++) {
+    /* Expected failure? */
+    if (wcscmp(utf8utf16[i].utf16, L"\xfffd") == 0)
+      continue;
 
-    for (i = 0;i < ARRAY_SIZE(validutf8);i++) {
-        if (!core::isValidUTF8(validutf8[i])) {
-            printf("FAILED: isValidUTF8() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+    EXPECT_EQ(core::utf16ToUTF8(utf8utf16[i].utf16), utf8utf16[i].utf8);
+  }
+}
 
-    for (i = 0;i < ARRAY_SIZE(invalidutf8);i++) {
-        if (core::isValidUTF8(invalidutf8[i])) {
-            printf("FAILED: ! isValidUTF8() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+TEST(Unicode, utf8ToUTF16)
+{
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(utf8utf16); i++) {
+    /* Expected failure? */
+    if (strstr(utf8utf16[i].utf8, "\xef\xbf\xbd") != nullptr)
+      continue;
 
-    for (i = 0;i < ARRAY_SIZE(validutf16);i++) {
-        if (!core::isValidUTF16(validutf16[i])) {
-            printf("FAILED: isValidUTF16() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+    EXPECT_EQ(core::utf8ToUTF16(utf8utf16[i].utf8), utf8utf16[i].utf16);
+  }
+}
 
-    for (i = 0;i < ARRAY_SIZE(invalidutf16);i++) {
-        if (core::isValidUTF16(invalidutf16[i])) {
-            printf("FAILED: ! isValidUTF16() #%d\n", (int)i+1);
-            failures++;
-        }
-    }
+TEST(Unicode, isValidUTF8)
+{
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(validutf8); i++)
+    EXPECT_TRUE(core::isValidUTF8(validutf8[i]));
+  for (i = 0; i < ARRAY_SIZE(invalidutf8); i++)
+    EXPECT_FALSE(core::isValidUTF8(invalidutf8[i]));
+}
 
-    if (failures == 0) {
-        printf("OK\n");
-    } else {
-        printf("FAIL: %d failures\n", failures);
-    }
+TEST(Unicode, isValidUTF16)
+{
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(validutf16); i++)
+    EXPECT_TRUE(core::isValidUTF16(validutf16[i]));
+  for (i = 0; i < ARRAY_SIZE(invalidutf16); i++)
+    EXPECT_FALSE(core::isValidUTF16(invalidutf16[i]));
+}
 
-    return 0;
+int main(int argc, char** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

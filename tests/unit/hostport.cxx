@@ -1,4 +1,4 @@
-/* Copyright 2016 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2016-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,75 +20,108 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
+#include <gtest/gtest.h>
 
 #include <network/TcpSocket.h>
 
-static void doTest(const char* hostAndPort,
-                   const char* expectedHost, int expectedPort)
+struct result {
+  std::string host;
+  int port;
+};
+
+static bool operator==(const result& a, const result& b)
 {
-    std::string host;
-    int port;
-
-    printf("\"%s\": ", hostAndPort);
-
-    network::getHostAndPort(hostAndPort, &host, &port);
-
-    if (host != expectedHost)
-        printf("FAILED (\"%s\" != \"%s\")", host.c_str(), expectedHost);
-    else if (port != expectedPort)
-        printf("FAILED (%d != %d)", port, expectedPort);
-    else
-        printf("OK");
-    printf("\n");
-    fflush(stdout);
+  return a.host == b.host && a.port == b.port;
 }
 
-int main(int /*argc*/, char** /*argv*/)
+static std::ostream& operator<<(std::ostream& os, const result& r)
 {
-    doTest(":5", "localhost", 5905);
+  return os << r.host << ":" << r.port;
+}
 
-    doTest("1.2.3.4", "1.2.3.4", 5900);
+static result getHostAndPort(const char* hostAndPort)
+{
+  std::string host;
+  int port;
+  network::getHostAndPort(hostAndPort, &host, &port);
+  return {host, port};
+}
 
-    doTest("1.2.3.4:5", "1.2.3.4", 5905);
-    doTest("1.2.3.4:99", "1.2.3.4", 5999);
-    doTest("1.2.3.4:100", "1.2.3.4", 100);
-    doTest("1.2.3.4:5901", "1.2.3.4", 5901);
+TEST(HostPost, localDisplay)
+{
+  EXPECT_EQ(getHostAndPort(":5"), result({"localhost", 5905}));
+}
 
-    doTest("1.2.3.4::5", "1.2.3.4", 5);
-    doTest("1.2.3.4::99", "1.2.3.4", 99);
-    doTest("1.2.3.4::5901", "1.2.3.4", 5901);
+TEST(HostPost, noDisplay)
+{
+  EXPECT_EQ(getHostAndPort("1.2.3.4"), result({"1.2.3.4", 5900}));
+}
 
-    doTest("[1.2.3.4]", "1.2.3.4", 5900);
-    doTest("[1.2.3.4]:5", "1.2.3.4", 5905);
-    doTest("[1.2.3.4]:100", "1.2.3.4", 100);
-    doTest("[1.2.3.4]::5", "1.2.3.4", 5);
-    doTest("[1.2.3.4]::100", "1.2.3.4", 100);
+TEST(HostPost, display)
+{
+  EXPECT_EQ(getHostAndPort("1.2.3.4:5"), result({"1.2.3.4", 5905}));
+  EXPECT_EQ(getHostAndPort("1.2.3.4:99"), result({"1.2.3.4", 5999}));
+  EXPECT_EQ(getHostAndPort("1.2.3.4:100"), result({"1.2.3.4", 100}));
+  EXPECT_EQ(getHostAndPort("1.2.3.4:5901"), result({"1.2.3.4", 5901}));
+}
 
-    // Ambigiuous. For now we'll keep the old behaviour...
-    doTest("::1", "localhost", 1);
+TEST(HostPost, port)
+{
+  EXPECT_EQ(getHostAndPort("1.2.3.4::5"), result({"1.2.3.4", 5}));
+  EXPECT_EQ(getHostAndPort("1.2.3.4::99"), result({"1.2.3.4", 99}));
+  EXPECT_EQ(getHostAndPort("1.2.3.4::5901"), result({"1.2.3.4", 5901}));
+}
 
-    doTest("2001:1234::20:1", "2001:1234::20:1", 5900);
+TEST(HostPost, bracketedIpv4)
+{
+  EXPECT_EQ(getHostAndPort("[1.2.3.4]"), result({"1.2.3.4", 5900}));
+  EXPECT_EQ(getHostAndPort("[1.2.3.4]:5"), result({"1.2.3.4", 5905}));
+  EXPECT_EQ(getHostAndPort("[1.2.3.4]:100"), result({"1.2.3.4", 100}));
+  EXPECT_EQ(getHostAndPort("[1.2.3.4]::5"), result({"1.2.3.4", 5}));
+  EXPECT_EQ(getHostAndPort("[1.2.3.4]::100"), result({"1.2.3.4", 100}));
+}
 
-    doTest("[::1]", "::1", 5900);
-    doTest("[2001:1234::20:1]", "2001:1234::20:1", 5900);
+TEST(HostPost, portOne)
+{
+  // Ambigiuous. For now we'll keep the old behaviour...
+  EXPECT_EQ(getHostAndPort("::1"), result({"localhost", 1}));
+}
 
-    doTest("[2001:1234::20:1]:5", "2001:1234::20:1", 5905);
-    doTest("[2001:1234::20:1]:99", "2001:1234::20:1", 5999);
-    doTest("[2001:1234::20:1]:100", "2001:1234::20:1", 100);
-    doTest("[2001:1234::20:1]:5901", "2001:1234::20:1", 5901);
+TEST(HostPost, bareIpv6)
+{
+  EXPECT_EQ(getHostAndPort("2001:1234::20:1"), result({"2001:1234::20:1", 5900}));
+}
 
-    doTest("    1.2.3.4    ", "1.2.3.4", 5900);
-    doTest("    1.2.3.4:5901    ", "1.2.3.4", 5901);
-    doTest("    1.2.3.4:   5901    ", "1.2.3.4", 5901);
-    doTest("    1.2.3.4    :5901    ", "1.2.3.4", 5901);
-    doTest("    [1.2.3.4]:5902    ", "1.2.3.4", 5902);
-    doTest("    :5903    ", "localhost", 5903);
-    doTest("    ::4    ", "localhost", 4);
-    doTest("    [::1]    ", "::1", 5900);
-    doTest("    2001:1234::20:1    ", "2001:1234::20:1", 5900);
-    doTest("    [2001:1234::20:1]    ", "2001:1234::20:1", 5900);
-    doTest("    [2001:1234::20:1]:5905    ", "2001:1234::20:1", 5905);
+TEST(HostPost, bracketedIpv6)
+{
+  EXPECT_EQ(getHostAndPort("[::1]"), result({"::1", 5900}));
+  EXPECT_EQ(getHostAndPort("[2001:1234::20:1]"), result({"2001:1234::20:1", 5900}));
+}
 
-    return 0;
+TEST(HostPost, ipv6WithDisplay)
+{
+  EXPECT_EQ(getHostAndPort("[2001:1234::20:1]:5"), result({"2001:1234::20:1", 5905}));
+  EXPECT_EQ(getHostAndPort("[2001:1234::20:1]:99"), result({"2001:1234::20:1", 5999}));
+  EXPECT_EQ(getHostAndPort("[2001:1234::20:1]:100"), result({"2001:1234::20:1", 100}));
+  EXPECT_EQ(getHostAndPort("[2001:1234::20:1]:5901"), result({"2001:1234::20:1", 5901}));
+}
+
+TEST(HostPort, padding)
+{
+  EXPECT_EQ(getHostAndPort("    1.2.3.4    "), result({"1.2.3.4", 5900}));
+  EXPECT_EQ(getHostAndPort("    1.2.3.4:5901    "), result({"1.2.3.4", 5901}));
+  EXPECT_EQ(getHostAndPort("    1.2.3.4    :5901    "), result({"1.2.3.4", 5901}));
+  EXPECT_EQ(getHostAndPort("    [1.2.3.4]:5902    "), result({"1.2.3.4", 5902}));
+  EXPECT_EQ(getHostAndPort("    :5903    "), result({"localhost", 5903}));
+  EXPECT_EQ(getHostAndPort("    ::4    "), result({"localhost", 4}));
+  EXPECT_EQ(getHostAndPort("    [::1]    "), result({"::1", 5900}));
+  EXPECT_EQ(getHostAndPort("    2001:1234::20:1    "), result({"2001:1234::20:1", 5900}));
+  EXPECT_EQ(getHostAndPort("    [2001:1234::20:1]    "), result({"2001:1234::20:1", 5900}));
+  EXPECT_EQ(getHostAndPort("    [2001:1234::20:1]:5905    "), result({"2001:1234::20:1", 5905}));
+}
+
+int main(int argc, char** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

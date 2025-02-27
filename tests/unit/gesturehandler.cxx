@@ -1,4 +1,4 @@
-/* Copyright 2020 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2020-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,11 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
 #include <unistd.h>
 
 #include <vector>
+
+#include <gtest/gtest.h>
 
 #include "../../vncviewer/GestureHandler.h"
 
@@ -41,17 +42,9 @@ void TestClass::handleGestureEvent(const GestureEvent& event)
   events.push_back(event);
 }
 
-// FIXME: handle doubles
-#define ASSERT_EQ(expr, val) if ((expr) != (val)) { \
-  printf("FAILED on line %d (%s equals %d, expected %d)\n", __LINE__, #expr, (int)(expr), (int)(val)); \
-  return; \
-}
-
-void testOneTapNormal()
+TEST(GestureHandler, oneTapNormal)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
@@ -61,24 +54,20 @@ void testOneTapNormal()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureOneTap);
-  ASSERT_EQ(test.events[0].eventX, 20.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureOneTap);
+  EXPECT_EQ(test.events[0].eventX, 20.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
 
-  ASSERT_EQ(test.events[1].type, GestureEnd);
-  ASSERT_EQ(test.events[1].gesture, GestureOneTap);
-  ASSERT_EQ(test.events[1].eventX, 20.0);
-  ASSERT_EQ(test.events[1].eventY, 30.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureEnd);
+  EXPECT_EQ(test.events[1].gesture, GestureOneTap);
+  EXPECT_EQ(test.events[1].eventX, 20.0);
+  EXPECT_EQ(test.events[1].eventY, 30.0);
 }
 
-void testTwoTapNormal()
+TEST(GestureHandler, twoTapNormal)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -93,24 +82,20 @@ void testTwoTapNormal()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoTap);
-  ASSERT_EQ(test.events[0].eventX, 25.0);
-  ASSERT_EQ(test.events[0].eventY, 40.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoTap);
+  EXPECT_EQ(test.events[0].eventX, 25.0);
+  EXPECT_EQ(test.events[0].eventY, 40.0);
 
-  ASSERT_EQ(test.events[1].type, GestureEnd);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoTap);
-  ASSERT_EQ(test.events[1].eventX, 25.0);
-  ASSERT_EQ(test.events[1].eventY, 40.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureEnd);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoTap);
+  EXPECT_EQ(test.events[1].eventX, 25.0);
+  EXPECT_EQ(test.events[1].eventY, 40.0);
 }
 
-void testTwoTapSlowBegin()
+TEST(GestureHandler, twoTapSlowBegin)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
@@ -122,15 +107,11 @@ void testTwoTapSlowBegin()
   test.handleTouchEnd(2);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testTwoTapSlowEnd()
+TEST(GestureHandler, twoTapSlowEnd)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -142,15 +123,11 @@ void testTwoTapSlowEnd()
   test.handleTouchEnd(2);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testTwoTapTimeout()
+TEST(GestureHandler, twoTapTimeout)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -162,15 +139,11 @@ void testTwoTapTimeout()
   test.handleTouchEnd(2);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testThreeTapNormal()
+TEST(GestureHandler, threeTapNormal)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -190,24 +163,20 @@ void testThreeTapNormal()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureThreeTap);
-  ASSERT_EQ(test.events[0].eventX, 30.0);
-  ASSERT_EQ(test.events[0].eventY, 40.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureThreeTap);
+  EXPECT_EQ(test.events[0].eventX, 30.0);
+  EXPECT_EQ(test.events[0].eventY, 40.0);
 
-  ASSERT_EQ(test.events[1].type, GestureEnd);
-  ASSERT_EQ(test.events[1].gesture, GestureThreeTap);
-  ASSERT_EQ(test.events[1].eventX, 30.0);
-  ASSERT_EQ(test.events[1].eventY, 40.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureEnd);
+  EXPECT_EQ(test.events[1].gesture, GestureThreeTap);
+  EXPECT_EQ(test.events[1].eventX, 30.0);
+  EXPECT_EQ(test.events[1].eventY, 40.0);
 }
 
-void testThreeTapSlowBegin()
+TEST(GestureHandler, threeTapSlowBegin)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -221,15 +190,11 @@ void testThreeTapSlowBegin()
   test.handleTouchEnd(3);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testThreeTapSlowEnd()
+TEST(GestureHandler, threeTapSlowEnd)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -243,15 +208,11 @@ void testThreeTapSlowEnd()
   test.handleTouchEnd(3);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testThreeTapDrag()
+TEST(GestureHandler, threeTapDrag)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -266,15 +227,11 @@ void testThreeTapDrag()
   test.handleTouchEnd(3);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testThreeTapTimeout()
+TEST(GestureHandler, threeTapTimeout)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 50.0);
@@ -288,15 +245,11 @@ void testThreeTapTimeout()
   test.handleTouchEnd(3);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testDragHoriz()
+TEST(GestureHandler, dragHoriz)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
@@ -310,15 +263,15 @@ void testDragHoriz()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 20.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 20.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureDrag);
-  ASSERT_EQ(test.events[1].eventX, 80.0);
-  ASSERT_EQ(test.events[1].eventY, 30.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureDrag);
+  EXPECT_EQ(test.events[1].eventX, 80.0);
+  EXPECT_EQ(test.events[1].eventY, 30.0);
 
   test.events.clear();
 
@@ -326,19 +279,15 @@ void testDragHoriz()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 80.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 80.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
 }
 
-void testDragVert()
+TEST(GestureHandler, dragVert)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
@@ -352,15 +301,15 @@ void testDragVert()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 20.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 20.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureDrag);
-  ASSERT_EQ(test.events[1].eventX, 20.0);
-  ASSERT_EQ(test.events[1].eventY, 90.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureDrag);
+  EXPECT_EQ(test.events[1].eventX, 20.0);
+  EXPECT_EQ(test.events[1].eventY, 90.0);
 
   test.events.clear();
 
@@ -368,19 +317,15 @@ void testDragVert()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 20.0);
-  ASSERT_EQ(test.events[0].eventY, 90.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 20.0);
+  EXPECT_EQ(test.events[0].eventY, 90.0);
 }
 
-void testDragDiag()
+TEST(GestureHandler, dragDiag)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 120.0, 130.0);
 
@@ -394,15 +339,15 @@ void testDragDiag()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 120.0);
-  ASSERT_EQ(test.events[0].eventY, 130.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 120.0);
+  EXPECT_EQ(test.events[0].eventY, 130.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureDrag);
-  ASSERT_EQ(test.events[1].eventX, 60.0);
-  ASSERT_EQ(test.events[1].eventY, 70.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureDrag);
+  EXPECT_EQ(test.events[1].eventX, 60.0);
+  EXPECT_EQ(test.events[1].eventY, 70.0);
 
   test.events.clear();
 
@@ -410,19 +355,15 @@ void testDragDiag()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 60.0);
-  ASSERT_EQ(test.events[0].eventY, 70.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 60.0);
+  EXPECT_EQ(test.events[0].eventY, 70.0);
 }
 
-void testLongPressNormal()
+TEST(GestureHandler, longPressNormal)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
@@ -433,10 +374,10 @@ void testLongPressNormal()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureLongPress);
-  ASSERT_EQ(test.events[0].eventX, 20.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureLongPress);
+  EXPECT_EQ(test.events[0].eventX, 20.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
 
   test.events.clear();
 
@@ -444,19 +385,15 @@ void testLongPressNormal()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureLongPress);
-  ASSERT_EQ(test.events[0].eventX, 20.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureLongPress);
+  EXPECT_EQ(test.events[0].eventX, 20.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
 }
 
-void testLongPressDrag()
+TEST(GestureHandler, longPressDrag)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
@@ -467,10 +404,10 @@ void testLongPressDrag()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureLongPress);
-  ASSERT_EQ(test.events[0].eventX, 20.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureLongPress);
+  EXPECT_EQ(test.events[0].eventX, 20.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
 
   test.events.clear();
 
@@ -478,10 +415,10 @@ void testLongPressDrag()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureUpdate);
-  ASSERT_EQ(test.events[0].gesture, GestureLongPress);
-  ASSERT_EQ(test.events[0].eventX, 120.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
+  EXPECT_EQ(test.events[0].type, GestureUpdate);
+  EXPECT_EQ(test.events[0].gesture, GestureLongPress);
+  EXPECT_EQ(test.events[0].eventX, 120.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
 
   test.events.clear();
 
@@ -489,19 +426,15 @@ void testLongPressDrag()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureLongPress);
-  ASSERT_EQ(test.events[0].eventX, 120.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureLongPress);
+  EXPECT_EQ(test.events[0].eventX, 120.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
 }
 
-void testTwoDragFastDistinctHoriz()
+TEST(GestureHandler, twoDragFastDistinctHoriz)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 30.0);
@@ -521,19 +454,19 @@ void testTwoDragFastDistinctHoriz()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 25.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 25.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[1].eventX, 25.0);
-  ASSERT_EQ(test.events[1].eventY, 30.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 60.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 0.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[1].eventX, 25.0);
+  EXPECT_EQ(test.events[1].eventY, 30.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 60.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 0.0);
 
   test.events.clear();
 
@@ -541,21 +474,17 @@ void testTwoDragFastDistinctHoriz()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 25.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 60.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 25.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 60.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 }
 
-void testTwoDragFastDistinctVert()
+TEST(GestureHandler, twoDragFastDistinctVert)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 30.0);
@@ -574,19 +503,19 @@ void testTwoDragFastDistinctVert()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 25.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 25.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[1].eventX, 25.0);
-  ASSERT_EQ(test.events[1].eventY, 30.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 65.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[1].eventX, 25.0);
+  EXPECT_EQ(test.events[1].eventY, 30.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 65.0);
 
   test.events.clear();
 
@@ -594,21 +523,17 @@ void testTwoDragFastDistinctVert()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 25.0);
-  ASSERT_EQ(test.events[0].eventY, 30.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 65.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 25.0);
+  EXPECT_EQ(test.events[0].eventY, 30.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 65.0);
 }
 
-void testTwoDragFastDistinctDiag()
+TEST(GestureHandler, twoDragFastDistinctDiag)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 120.0, 130.0);
   test.handleTouchBegin(2, 130.0, 130.0);
@@ -627,19 +552,19 @@ void testTwoDragFastDistinctDiag()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 125.0);
-  ASSERT_EQ(test.events[0].eventY, 130.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 125.0);
+  EXPECT_EQ(test.events[0].eventY, 130.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[1].eventX, 125.0);
-  ASSERT_EQ(test.events[1].eventY, 130.0);
-  ASSERT_EQ(test.events[1].magnitudeX, -55.0);
-  ASSERT_EQ(test.events[1].magnitudeY, -50.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[1].eventX, 125.0);
+  EXPECT_EQ(test.events[1].eventY, 130.0);
+  EXPECT_EQ(test.events[1].magnitudeX, -55.0);
+  EXPECT_EQ(test.events[1].magnitudeY, -50.0);
 
   test.events.clear();
 
@@ -647,21 +572,17 @@ void testTwoDragFastDistinctDiag()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 125.0);
-  ASSERT_EQ(test.events[0].eventY, 130.0);
-  ASSERT_EQ(test.events[0].magnitudeX, -55.0);
-  ASSERT_EQ(test.events[0].magnitudeY, -50.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 125.0);
+  EXPECT_EQ(test.events[0].eventY, 130.0);
+  EXPECT_EQ(test.events[0].magnitudeX, -55.0);
+  EXPECT_EQ(test.events[0].magnitudeY, -50.0);
 }
 
-void testTwoDragFastAlmost()
+TEST(GestureHandler, twoDragFastAlmost)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 30.0);
@@ -676,15 +597,11 @@ void testTwoDragFastAlmost()
   core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testTwoDragSlowHoriz()
+TEST(GestureHandler, twoDragSlowHoriz)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 50.0, 40.0);
   test.handleTouchBegin(2, 60.0, 40.0);
@@ -697,28 +614,25 @@ void testTwoDragSlowHoriz()
   core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 55.0);
-  ASSERT_EQ(test.events[0].eventY, 40.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[1].eventX, 55.0);
-  ASSERT_EQ(test.events[1].eventY, 40.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 40.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 0.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 55.0);
+  EXPECT_EQ(test.events[0].eventY, 40.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[1].eventX, 55.0);
+  EXPECT_EQ(test.events[1].eventY, 40.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 40.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 0.0);
 }
 
-void testTwoDragSlowVert()
+TEST(GestureHandler, twoDragSlowVert)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 40.0, 40.0);
   test.handleTouchBegin(2, 40.0, 60.0);
@@ -731,28 +645,25 @@ void testTwoDragSlowVert()
   core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 40.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[1].eventX, 40.0);
-  ASSERT_EQ(test.events[1].eventY, 50.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 40.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 40.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[1].eventX, 40.0);
+  EXPECT_EQ(test.events[1].eventY, 50.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 40.0);
 }
 
-void testTwoDragSlowDiag()
+TEST(GestureHandler, twoDragSlowDiag)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 50.0, 40.0);
   test.handleTouchBegin(2, 40.0, 60.0);
@@ -765,28 +676,25 @@ void testTwoDragSlowDiag()
   core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 2);
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[0].eventX, 45.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 0.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoDrag);
-  ASSERT_EQ(test.events[1].eventX, 45.0);
-  ASSERT_EQ(test.events[1].eventY, 50.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 35.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 35.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].eventX, 45.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 0.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[1].eventX, 45.0);
+  EXPECT_EQ(test.events[1].eventY, 50.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 35.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 35.0);
 }
 
-void testTwoDragTooSlow()
+TEST(GestureHandler, twoDragTooSlow)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
 
@@ -798,15 +706,11 @@ void testTwoDragTooSlow()
   test.handleTouchUpdate(1, 80.0, 30.0);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testPinchFastDistinctIn()
+TEST(GestureHandler, pinchFastDistinctIn)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 0.0, 0.0);
   test.handleTouchBegin(2, 130.0, 130.0);
@@ -822,19 +726,19 @@ void testPinchFastDistinctIn()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GesturePinch);
-  ASSERT_EQ(test.events[0].eventX, 65.0);
-  ASSERT_EQ(test.events[0].eventY, 65.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 130.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 130.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GesturePinch);
+  EXPECT_EQ(test.events[0].eventX, 65.0);
+  EXPECT_EQ(test.events[0].eventY, 65.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 130.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 130.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GesturePinch);
-  ASSERT_EQ(test.events[1].eventX, 65.0);
-  ASSERT_EQ(test.events[1].eventY, 65.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 10.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 30.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GesturePinch);
+  EXPECT_EQ(test.events[1].eventX, 65.0);
+  EXPECT_EQ(test.events[1].eventY, 65.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 10.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 30.0);
 
   test.events.clear();
 
@@ -842,21 +746,17 @@ void testPinchFastDistinctIn()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GesturePinch);
-  ASSERT_EQ(test.events[0].eventX, 65.0);
-  ASSERT_EQ(test.events[0].eventY, 65.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 10.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 30.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GesturePinch);
+  EXPECT_EQ(test.events[0].eventX, 65.0);
+  EXPECT_EQ(test.events[0].eventY, 65.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 10.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 30.0);
 }
 
-void testPinchFastDistinctOut()
+TEST(GestureHandler, pinchFastDistinctOut)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 100.0, 100.0);
   test.handleTouchBegin(2, 110.0, 100.0);
@@ -872,19 +772,19 @@ void testPinchFastDistinctOut()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GesturePinch);
-  ASSERT_EQ(test.events[0].eventX, 105.0);
-  ASSERT_EQ(test.events[0].eventY, 100.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 10.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GesturePinch);
+  EXPECT_EQ(test.events[0].eventX, 105.0);
+  EXPECT_EQ(test.events[0].eventY, 100.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 10.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GesturePinch);
-  ASSERT_EQ(test.events[1].eventX, 105.0);
-  ASSERT_EQ(test.events[1].eventY, 100.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 180.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 180.0);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GesturePinch);
+  EXPECT_EQ(test.events[1].eventX, 105.0);
+  EXPECT_EQ(test.events[1].eventY, 100.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 180.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 180.0);
 
   test.events.clear();
 
@@ -892,21 +792,17 @@ void testPinchFastDistinctOut()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GesturePinch);
-  ASSERT_EQ(test.events[0].eventX, 105.0);
-  ASSERT_EQ(test.events[0].eventY, 100.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 180.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 180.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GesturePinch);
+  EXPECT_EQ(test.events[0].eventX, 105.0);
+  EXPECT_EQ(test.events[0].eventY, 100.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 180.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 180.0);
 }
 
-void testPinchFastAlmost()
+TEST(GestureHandler, pinchFastAlmost)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 130.0, 130.0);
@@ -920,15 +816,11 @@ void testPinchFastAlmost()
   core::Timer::checkTimeouts();
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testPinchSlowIn()
+TEST(GestureHandler, pinchSlowIn)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 0.0, 0.0);
   test.handleTouchBegin(2, 130.0, 130.0);
@@ -945,28 +837,24 @@ void testPinchSlowIn()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GesturePinch);
-  ASSERT_EQ(test.events[0].eventX, 65.0);
-  ASSERT_EQ(test.events[0].eventY, 65.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 130.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 130.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GesturePinch);
+  EXPECT_EQ(test.events[0].eventX, 65.0);
+  EXPECT_EQ(test.events[0].eventY, 65.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 130.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 130.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GesturePinch);
-  ASSERT_EQ(test.events[1].eventX, 65.0);
-  ASSERT_EQ(test.events[1].eventY, 65.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 50.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 90.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GesturePinch);
+  EXPECT_EQ(test.events[1].eventX, 65.0);
+  EXPECT_EQ(test.events[1].eventY, 65.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 50.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 90.0);
 }
 
-void testPinchSlowOut()
+TEST(GestureHandler, pinchSlowOut)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 100.0, 130.0);
   test.handleTouchBegin(2, 110.0, 130.0);
@@ -982,28 +870,24 @@ void testPinchSlowOut()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GesturePinch);
-  ASSERT_EQ(test.events[0].eventX, 105.0);
-  ASSERT_EQ(test.events[0].eventY, 130.0);
-  ASSERT_EQ(test.events[0].magnitudeX, 10.0);
-  ASSERT_EQ(test.events[0].magnitudeY, 0.0);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GesturePinch);
+  EXPECT_EQ(test.events[0].eventX, 105.0);
+  EXPECT_EQ(test.events[0].eventY, 130.0);
+  EXPECT_EQ(test.events[0].magnitudeX, 10.0);
+  EXPECT_EQ(test.events[0].magnitudeY, 0.0);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GesturePinch);
-  ASSERT_EQ(test.events[1].eventX, 105.0);
-  ASSERT_EQ(test.events[1].eventY, 130.0);
-  ASSERT_EQ(test.events[1].magnitudeX, 100.0);
-  ASSERT_EQ(test.events[1].magnitudeY, 0.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GesturePinch);
+  EXPECT_EQ(test.events[1].eventX, 105.0);
+  EXPECT_EQ(test.events[1].eventY, 130.0);
+  EXPECT_EQ(test.events[1].magnitudeX, 100.0);
+  EXPECT_EQ(test.events[1].magnitudeY, 0.0);
 }
 
-void testPinchTooSlow()
+TEST(GestureHandler, pinchTooSlow)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 0.0, 0.0);
 
@@ -1015,15 +899,11 @@ void testPinchTooSlow()
   test.handleTouchUpdate(1, 50.0, 40.0);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testExtraIgnore()
+TEST(GestureHandler, extraIgnore)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchUpdate(1, 40.0, 30.0);
@@ -1031,11 +911,11 @@ void testExtraIgnore()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureDrag);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureDrag);
 
   test.events.clear();
 
@@ -1047,10 +927,10 @@ void testExtraIgnore()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureUpdate);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 100.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
+  EXPECT_EQ(test.events[0].type, GestureUpdate);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 100.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
 
   test.events.clear();
 
@@ -1058,19 +938,15 @@ void testExtraIgnore()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 100.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 100.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
 }
 
-void testIgnoreWhenAwaitingGestureEnd()
+TEST(GestureHandler, ignoreWhenAwaitingGestureEnd)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchBegin(2, 30.0, 30.0);
@@ -1080,11 +956,11 @@ void testIgnoreWhenAwaitingGestureEnd()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureTwoDrag);
 
   test.events.clear();
 
@@ -1092,8 +968,8 @@ void testIgnoreWhenAwaitingGestureEnd()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureTwoDrag);
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureTwoDrag);
 
   test.events.clear();
 
@@ -1101,15 +977,11 @@ void testIgnoreWhenAwaitingGestureEnd()
   test.handleTouchEnd(3);
 
   ASSERT_EQ(test.events.size(), 0);
-
-  printf("OK\n");
 }
 
-void testIgnoreAfterGesture()
+TEST(GestureHandler, ignoreAfterGesture)
 {
   TestClass test;
-
-  printf("%s: ", __func__);
 
   test.handleTouchBegin(1, 20.0, 30.0);
   test.handleTouchUpdate(1, 40.0, 30.0);
@@ -1117,11 +989,11 @@ void testIgnoreAfterGesture()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
 
-  ASSERT_EQ(test.events[1].type, GestureUpdate);
-  ASSERT_EQ(test.events[1].gesture, GestureDrag);
+  EXPECT_EQ(test.events[1].type, GestureUpdate);
+  EXPECT_EQ(test.events[1].gesture, GestureDrag);
 
   test.events.clear();
 
@@ -1134,10 +1006,10 @@ void testIgnoreAfterGesture()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureUpdate);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 100.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
+  EXPECT_EQ(test.events[0].type, GestureUpdate);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 100.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
 
   test.events.clear();
 
@@ -1145,10 +1017,10 @@ void testIgnoreAfterGesture()
 
   ASSERT_EQ(test.events.size(), 1);
 
-  ASSERT_EQ(test.events[0].type, GestureEnd);
-  ASSERT_EQ(test.events[0].gesture, GestureDrag);
-  ASSERT_EQ(test.events[0].eventX, 100.0);
-  ASSERT_EQ(test.events[0].eventY, 50.0);
+  EXPECT_EQ(test.events[0].type, GestureEnd);
+  EXPECT_EQ(test.events[0].gesture, GestureDrag);
+  EXPECT_EQ(test.events[0].eventX, 100.0);
+  EXPECT_EQ(test.events[0].eventY, 50.0);
 
   // End ignored event
   test.handleTouchEnd(2);
@@ -1161,88 +1033,14 @@ void testIgnoreAfterGesture()
 
   ASSERT_EQ(test.events.size(), 2);
 
-  ASSERT_EQ(test.events[0].type, GestureBegin);
-  ASSERT_EQ(test.events[0].gesture, GestureOneTap);
-  ASSERT_EQ(test.events[1].type, GestureEnd);
-  ASSERT_EQ(test.events[1].gesture, GestureOneTap);
-
-  printf("OK\n");
+  EXPECT_EQ(test.events[0].type, GestureBegin);
+  EXPECT_EQ(test.events[0].gesture, GestureOneTap);
+  EXPECT_EQ(test.events[1].type, GestureEnd);
+  EXPECT_EQ(test.events[1].gesture, GestureOneTap);
 }
 
-void testOneTap()
+int main(int argc, char** argv)
 {
-  testOneTapNormal();
-}
-
-void testTwoTap()
-{
-  testTwoTapNormal();
-  testTwoTapSlowBegin();
-  testTwoTapSlowEnd();
-  testTwoTapTimeout();
-}
-
-void testThreeTap()
-{
-  testThreeTapNormal();
-  testThreeTapSlowBegin();
-  testThreeTapSlowEnd();
-  testThreeTapDrag();
-  testThreeTapTimeout();
-}
-
-void testDrag()
-{
-  testDragHoriz();
-  testDragVert();
-  testDragDiag();
-}
-
-void testLongPress()
-{
-  testLongPressNormal();
-  testLongPressDrag();
-}
-
-void testTwoDrag()
-{
-  testTwoDragFastDistinctHoriz();
-  testTwoDragFastDistinctVert();
-  testTwoDragFastDistinctDiag();
-  testTwoDragFastAlmost();
-  testTwoDragSlowHoriz();
-  testTwoDragSlowVert();
-  testTwoDragSlowDiag();
-  testTwoDragTooSlow();
-}
-
-void testPinch()
-{
-  testPinchFastDistinctIn();
-  testPinchFastDistinctOut();
-  testPinchFastAlmost();
-  testPinchSlowIn();
-  testPinchSlowOut();
-  testPinchTooSlow();
-}
-
-void testIgnore()
-{
-  testExtraIgnore();
-  testIgnoreWhenAwaitingGestureEnd();
-  testIgnoreAfterGesture();
-}
-
-int main(int /*argc*/, char** /*argv*/)
-{
-  testOneTap();
-  testTwoTap();
-  testThreeTap();
-  testDrag();
-  testLongPress();
-  testTwoDrag();
-  testPinch();
-  testIgnore();
-
-  return 0;
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

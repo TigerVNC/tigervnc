@@ -1,4 +1,4 @@
-/* Copyright 2019 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2019-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,105 +20,56 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
+#include <gtest/gtest.h>
 
 #include <core/string.h>
 
-static const char* escape(const char* input)
+TEST(ConvertLF, convertLF)
 {
-    static char output[4096];
+  EXPECT_EQ(core::convertLF(""), "");
+  EXPECT_EQ(core::convertLF("no EOL"), "no EOL");
 
-    const char* in;
-    char* out;
+  EXPECT_EQ(core::convertLF("\n"), "\n");
+  EXPECT_EQ(core::convertLF("already correct\n"), "already correct\n");
+  EXPECT_EQ(core::convertLF("multiple\nlines\n"), "multiple\nlines\n");
+  EXPECT_EQ(core::convertLF("empty lines\n\n"), "empty lines\n\n");
+  EXPECT_EQ(core::convertLF("\ninitial line"), "\ninitial line");
 
-    in = input;
-    out = output;
-    do {
-        if (*in == '\r') {
-            *out++ = '\\';
-            *out++ = 'r';
-        } else if (*in == '\n') {
-            *out++ = '\\';
-            *out++ = 'n';
-        } else {
-            *out++ = *in;
-        }
-    } while (*in++ != '\0');
+  EXPECT_EQ(core::convertLF("\r\n"), "\n");
+  EXPECT_EQ(core::convertLF("one line\r\n"), "one line\n");
+  EXPECT_EQ(core::convertLF("multiple\r\nlines\r\n"), "multiple\nlines\n");
+  EXPECT_EQ(core::convertLF("empty lines\r\n\r\n"), "empty lines\n\n");
+  EXPECT_EQ(core::convertLF("\r\ninitial line"), "\ninitial line");
+  EXPECT_EQ(core::convertLF("mixed\r\nlines\n"), "mixed\nlines\n");
 
-    return output;
+  EXPECT_EQ(core::convertLF("cropped\r"), "cropped\n");
+  EXPECT_EQ(core::convertLF("old\rmac\rformat"), "old\nmac\nformat");
 }
 
-static void testLF(const char* input, const char* expected)
+TEST(ConvertLF, convertCRLF)
 {
-    std::string output;
+  EXPECT_EQ(core::convertCRLF(""), "");
+  EXPECT_EQ(core::convertCRLF("no EOL"), "no EOL");
 
-    printf("convertLF(\"%s\"): ", escape(input));
+  EXPECT_EQ(core::convertCRLF("\r\n"), "\r\n");
+  EXPECT_EQ(core::convertCRLF("already correct\r\n"), "already correct\r\n");
+  EXPECT_EQ(core::convertCRLF("multiple\r\nlines\r\n"), "multiple\r\nlines\r\n");
+  EXPECT_EQ(core::convertCRLF("empty lines\r\n\r\n"), "empty lines\r\n\r\n");
+  EXPECT_EQ(core::convertCRLF("\r\ninitial line"), "\r\ninitial line");
 
-    output = core::convertLF(input);
+  EXPECT_EQ(core::convertCRLF("\n"), "\r\n");
+  EXPECT_EQ(core::convertCRLF("one line\n"), "one line\r\n");
+  EXPECT_EQ(core::convertCRLF("multiple\nlines\n"), "multiple\r\nlines\r\n");
+  EXPECT_EQ(core::convertCRLF("empty lines\n\n"), "empty lines\r\n\r\n");
+  EXPECT_EQ(core::convertCRLF("\ninitial line"), "\r\ninitial line");
+  EXPECT_EQ(core::convertCRLF("mixed\r\nlines\n"), "mixed\r\nlines\r\n");
 
-    if (output != expected)
-        printf("FAILED: got \"%s\"", escape(output.c_str()));
-    else
-        printf("OK");
-    printf("\n");
-    fflush(stdout);
+  EXPECT_EQ(core::convertCRLF("cropped\r"), "cropped\r\n");
+  EXPECT_EQ(core::convertCRLF("old\rmac\rformat"), "old\r\nmac\r\nformat");
 }
 
-static void testCRLF(const char* input, const char* expected)
+int main(int argc, char** argv)
 {
-    std::string output;
-
-    printf("convertCRLF(\"%s\"): ", escape(input));
-
-    output = core::convertCRLF(input);
-
-    if (output != expected)
-        printf("FAILED: got \"%s\"", escape(output.c_str()));
-    else
-        printf("OK");
-    printf("\n");
-    fflush(stdout);
-}
-
-int main(int /*argc*/, char** /*argv*/)
-{
-    testLF("", "");
-    testLF("no EOL", "no EOL");
-
-    testLF("\n", "\n");
-    testLF("already correct\n", "already correct\n");
-    testLF("multiple\nlines\n", "multiple\nlines\n");
-    testLF("empty lines\n\n", "empty lines\n\n");
-    testLF("\ninitial line", "\ninitial line");
-
-    testLF("\r\n", "\n");
-    testLF("one line\r\n", "one line\n");
-    testLF("multiple\r\nlines\r\n", "multiple\nlines\n");
-    testLF("empty lines\r\n\r\n", "empty lines\n\n");
-    testLF("\r\ninitial line", "\ninitial line");
-    testLF("mixed\r\nlines\n", "mixed\nlines\n");
-
-    testLF("cropped\r", "cropped\n");
-    testLF("old\rmac\rformat", "old\nmac\nformat");
-
-    testCRLF("", "");
-    testCRLF("no EOL", "no EOL");
-
-    testCRLF("\r\n", "\r\n");
-    testCRLF("already correct\r\n", "already correct\r\n");
-    testCRLF("multiple\r\nlines\r\n", "multiple\r\nlines\r\n");
-    testCRLF("empty lines\r\n\r\n", "empty lines\r\n\r\n");
-    testCRLF("\r\ninitial line", "\r\ninitial line");
-
-    testCRLF("\n", "\r\n");
-    testCRLF("one line\n", "one line\r\n");
-    testCRLF("multiple\nlines\n", "multiple\r\nlines\r\n");
-    testCRLF("empty lines\n\n", "empty lines\r\n\r\n");
-    testCRLF("\ninitial line", "\r\ninitial line");
-    testCRLF("mixed\r\nlines\n", "mixed\r\nlines\r\n");
-
-    testCRLF("cropped\r", "cropped\r\n");
-    testCRLF("old\rmac\rformat", "old\r\nmac\r\nformat");
-
-    return 0;
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
