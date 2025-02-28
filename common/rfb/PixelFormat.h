@@ -136,7 +136,7 @@ namespace rfb {
 
     /* Only for testing this class */
     friend void makePixel(const rfb::PixelFormat &, uint8_t *);
-    friend bool verifyPixel(const rfb::PixelFormat &,
+    friend void verifyPixel(const rfb::PixelFormat &,
                             const rfb::PixelFormat &,
                             const uint8_t *);
   };

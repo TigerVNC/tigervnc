@@ -6,4 +6,6 @@ endif()
 add_subdirectory(perf)
 
 # Unit tests
-add_subdirectory(unit)
+if(GTest_FOUND)
+  add_subdirectory(unit)
+endif()
