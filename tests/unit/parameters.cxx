@@ -264,6 +264,108 @@ TEST(StringParameter, immutable)
   EXPECT_STREQ(immutable, "");
 }
 
+TEST(EnumParameter, values)
+{
+  core::EnumParameter enums("enumparam", "", {"a", "b", "c"}, "a");
+
+  enums.setParam("b");
+  EXPECT_FALSE(enums == "a");
+  EXPECT_TRUE(enums == "b");
+  EXPECT_FALSE(enums == "c");
+  EXPECT_FALSE(enums == "foo");
+  EXPECT_FALSE(enums != "b");
+  EXPECT_TRUE(enums != "c");
+
+  enums.setParam("c");
+  EXPECT_FALSE(enums == "a");
+  EXPECT_FALSE(enums == "b");
+  EXPECT_TRUE(enums == "c");
+  EXPECT_FALSE(enums == "foo");
+  EXPECT_TRUE(enums != "b");
+  EXPECT_FALSE(enums != "c");
+}
+
+TEST(EnumParameter, caseinsensitive)
+{
+  core::EnumParameter casecmp("enumparam", "", {"a", "b", "c"}, "a");
+
+  casecmp.setParam("B");
+  EXPECT_FALSE(casecmp == "a");
+  EXPECT_TRUE(casecmp == "b");
+  EXPECT_TRUE(casecmp == "B");
+  EXPECT_FALSE(casecmp == "c");
+  EXPECT_FALSE(casecmp != "b");
+  EXPECT_TRUE(casecmp != "c");
+}
+
+TEST(EnumParameter, validation)
+{
+  core::EnumParameter valid("enumparam", "", {"a", "b", "c"}, "a");
+
+  EXPECT_TRUE(valid.setParam("b"));
+  EXPECT_EQ(valid.getValueStr(), "b");
+  EXPECT_FALSE(valid.setParam("foo"));
+  EXPECT_EQ(valid.getValueStr(), "b");
+
+  // Valid default value
+  EXPECT_THROW({
+    core::EnumParameter defvalid("enumparam", "", {"a", "b", "c"}, "d");
+  }, std::invalid_argument);
+}
+
+TEST(EnumParameter, null)
+{
+  // NULL value
+  core::EnumParameter null("enumparam", "", {"a", "b", "c"}, "a");
+  EXPECT_THROW({
+    null.setParam(nullptr);
+  }, std::invalid_argument);
+
+  // NULL default value
+  EXPECT_THROW({
+    core::EnumParameter defnull("enumparam", "", {""}, nullptr);
+  }, std::invalid_argument);
+
+  // NULL enum value
+  EXPECT_THROW({
+    core::EnumParameter nullenum("enumparam", "", {"a", nullptr, "b"}, "a");
+  }, std::invalid_argument);
+}
+
+TEST(EnumParameter, encoding)
+{
+  core::EnumParameter encoding("enumparam", "", {"a", "b", "c"}, "a");
+
+  encoding.setParam("b");
+  EXPECT_EQ(encoding.getValueStr(), "b");
+
+  encoding.setParam("C");
+  EXPECT_EQ(encoding.getValueStr(), "c");
+}
+
+TEST(EnumParameter, default)
+{
+  core::EnumParameter def("enumparam", "", {"a", "b", "c"}, "a");
+
+  EXPECT_TRUE(def.isDefault());
+
+  def.setParam("b");
+  EXPECT_FALSE(def.isDefault());
+
+  def.setParam("A");
+  EXPECT_TRUE(def.isDefault());
+}
+
+TEST(EnumParameter, immutable)
+{
+  core::EnumParameter immutable("enumparam", "", {"a", "b", "c"}, "a");
+
+  immutable.setImmutable();
+  immutable.setParam("b");
+  immutable.setParam("c");
+  EXPECT_EQ(immutable.getValueStr(), "a");
+}
+
 TEST(BinaryParameter, values)
 {
   std::vector<uint8_t> data;

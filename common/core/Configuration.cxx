@@ -402,6 +402,82 @@ StringParameter::operator const char *() const {
   return value.c_str();
 }
 
+// -=- EnumParameter
+
+EnumParameter::EnumParameter(const char* name_, const char* desc_,
+                             const std::set<const char*>& enums_,
+                             const char* v)
+  : VoidParameter(name_, desc_), value(v?v:""), def_value(v?v:"")
+{
+  if (!v) {
+    vlog.error("Default value <null> for %s not allowed", name_);
+    throw std::invalid_argument("Default value <null> not allowed");
+  }
+
+  for (const char* e: enums_) {
+    if (!e) {
+      vlog.error("Enumeration <null> for %s not allowed", name_);
+      throw std::invalid_argument("Enumeration <null> not allowed");
+    }
+    enums.insert(e);
+  }
+
+  if (std::find(enums.begin(), enums.end(), def_value) == enums.end()) {
+    vlog.error("Default value %s for %s is not in list of valid values",
+               def_value.c_str(), name_);
+    throw std::invalid_argument("Default value is not in list of valid values");
+  }
+}
+
+bool EnumParameter::setParam(const char* v)
+{
+  std::set<std::string>::const_iterator iter;
+  if (immutable) return true;
+  if (!v)
+    throw std::invalid_argument("setParam(<null>) not allowed");
+  iter = std::find_if(enums.begin(), enums.end(),
+                      [v](const std::string& e) {
+                        return strcasecmp(e.c_str(), v) == 0;
+                      });
+  if (iter == enums.end()) {
+    vlog.error("Enum parameter %s: Invalid value '%s'", getName(), v);
+    return false;
+  }
+  vlog.debug("Set %s(Enum) to %s", getName(), iter->c_str());
+  value = *iter;
+  return true;
+}
+
+std::string EnumParameter::getDefaultStr() const
+{
+  return def_value;
+}
+
+std::string EnumParameter::getValueStr() const
+{
+  return value;
+}
+
+bool EnumParameter::operator==(const char* other) const
+{
+  return strcasecmp(value.c_str(), other) == 0;
+}
+
+bool EnumParameter::operator==(const std::string& other) const
+{
+  return *this == other.c_str();
+}
+
+bool EnumParameter::operator!=(const char* other) const
+{
+  return strcasecmp(value.c_str(), other) != 0;
+}
+
+bool EnumParameter::operator!=(const std::string& other) const
+{
+  return *this != other.c_str();
+}
+
 // -=- BinaryParameter
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
