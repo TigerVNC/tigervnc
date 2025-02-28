@@ -76,7 +76,7 @@ core::IntParameter
                       "Number of seconds to show the 'Accept "
                       "connection' dialog before rejecting the "
                       "connection",
-                      10);
+                      10, 0, INT_MAX);
 
 static core::LogWriter vlog("XDesktop");
 

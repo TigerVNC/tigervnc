@@ -32,28 +32,28 @@ core::IntParameter rfb::Server::idleTimeout
 ("IdleTimeout",
  "The number of seconds after which an idle VNC connection will be dropped "
  "(zero means no timeout)",
- 0, 0);
+ 0, 0, INT_MAX);
 core::IntParameter rfb::Server::maxDisconnectionTime
 ("MaxDisconnectionTime",
  "Terminate when no client has been connected for s seconds", 
- 0, 0);
+ 0, 0, INT_MAX);
 core::IntParameter rfb::Server::maxConnectionTime
 ("MaxConnectionTime",
  "Terminate when a client has been connected for s seconds", 
- 0, 0);
+ 0, 0, INT_MAX);
 core::IntParameter rfb::Server::maxIdleTime
 ("MaxIdleTime",
  "Terminate after s seconds of user inactivity", 
- 0, 0);
+ 0, 0, INT_MAX);
 core::IntParameter rfb::Server::compareFB
 ("CompareFB",
  "Perform pixel comparison on framebuffer to reduce unnecessary updates "
  "(0: never, 1: always, 2: auto)",
- 2);
+ 2, 0, 2);
 core::IntParameter rfb::Server::frameRate
 ("FrameRate",
  "The maximum number of updates per second sent to each client",
- 60);
+ 60, 0, INT_MAX);
 core::BoolParameter rfb::Server::protocol3_3
 ("Protocol3.3",
  "Always use protocol version 3.3 for backwards compatibility with "

@@ -55,7 +55,7 @@ core::IntParameter
   pointerEventInterval("PointerEventInterval",
                        "Time in milliseconds to rate-limit successive "
                        "pointer events",
-                       17);
+                       17, 0, INT_MAX);
 core::BoolParameter
   emulateMiddleButton("EmulateMiddleButton",
                       "Emulate middle mouse button by pressing left "
@@ -109,7 +109,7 @@ core::IntParameter
   lowColourLevel("LowColorLevel",
                  "Color level to use on slow connections. "
                  "0 = Very Low, 1 = Low, 2 = Medium",
-                 2);
+                 2, 0, 2);
 core::AliasParameter
   lowColourLevelAlias("LowColourLevel",
                       "Alias for LowColorLevel", &lowColourLevel);
@@ -126,7 +126,7 @@ core::BoolParameter
 core::IntParameter
   compressLevel("CompressLevel",
                 "Use specified compression level 0 = Low, 9 = High",
-                2);
+                2, 0, 9);
 core::BoolParameter
   noJpeg("NoJPEG",
          "Disable lossy JPEG compression in Tight encoding.",
@@ -134,7 +134,7 @@ core::BoolParameter
 core::IntParameter
   qualityLevel("QualityLevel",
                "JPEG quality level. 0 = Low, 9 = High",
-               8);
+               8, 0, 9);
 
 core::BoolParameter
   maximize("Maximize", "Maximize viewer window", false);
