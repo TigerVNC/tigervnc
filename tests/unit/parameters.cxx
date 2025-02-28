@@ -26,6 +26,24 @@
 
 #include <core/Configuration.h>
 
+namespace core {
+
+// Generic comparison for our list parameters types that preserves
+// the type (doesn't use any common base class)
+template<typename IterL, typename IterR,
+         std::enable_if_t<std::is_member_function_pointer<decltype(&IterL::begin)>::value, bool> = true>
+static bool operator==(const IterL& lhs, const IterR& rhs)
+{
+  if (std::distance(lhs.begin(), lhs.end()) !=
+      std::distance(rhs.begin(), rhs.end()))
+    return false;
+  if (!std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()))
+    return false;
+  return true;
+}
+
+}
+
 TEST(BoolParameter, values)
 {
   core::BoolParameter bools("boolparam", "", false);
@@ -476,6 +494,118 @@ TEST(BinaryParameter, immutable)
   immutable.setParam(data.data(), data.size());
   immutable.setParam("deadbeef");
   EXPECT_EQ(immutable.getData().size(), 0);
+}
+
+TEST(IntListParameter, values)
+{
+  std::list<int> data;
+
+  core::IntListParameter list("listparam", "", {});
+
+  list.setParam({1, 2, 3, 4});
+  data = {1, 2, 3, 4};
+  EXPECT_EQ(list, data);
+}
+
+TEST(IntListParameter, strings)
+{
+  std::list<int> data;
+
+  core::IntListParameter strings("listparam", "", {});
+
+  strings.setParam("1,2,3,4");
+  data = {1, 2, 3, 4};
+  EXPECT_EQ(strings, data);
+}
+
+TEST(IntListParameter, minmax)
+{
+  std::list<int> data;
+
+  core::IntListParameter bounds("listparam", "", {}, 20, 100);
+
+  EXPECT_TRUE(bounds.setParam({57, 73}));
+  data = {57, 73};
+  EXPECT_EQ(bounds, data);
+
+  EXPECT_FALSE(bounds.setParam({57, 123}));
+  data = {57, 73};
+  EXPECT_EQ(bounds, data);
+
+  EXPECT_FALSE(bounds.setParam("57,123"));
+  data = {57, 73};
+  EXPECT_EQ(bounds, data);
+
+  EXPECT_FALSE(bounds.setParam({57, -30}));
+  data = {57, 73};
+  EXPECT_EQ(bounds, data);
+
+  EXPECT_FALSE(bounds.setParam("57,-30"));
+  data = {57, 73};
+  EXPECT_EQ(bounds, data);
+}
+
+TEST(IntListParameter, minmaxdefault)
+{
+  EXPECT_THROW({
+    core::IntListParameter defbounds("listparam", "", {10}, 20, 100);
+  }, std::invalid_argument);
+}
+
+TEST(IntListParameter, validation)
+{
+  std::list<int> data;
+
+  core::IntListParameter valid("listparam", "", {});
+
+  EXPECT_TRUE(valid.setParam("1,2,3,4"));
+  data = {1, 2, 3, 4};
+  EXPECT_EQ(valid, data);
+
+  EXPECT_FALSE(valid.setParam("foo"));
+  data = {1, 2, 3, 4};
+  EXPECT_EQ(valid, data);
+
+  EXPECT_FALSE(valid.setParam("1,2,x,4"));
+  data = {1, 2, 3, 4};
+  EXPECT_EQ(valid, data);
+}
+
+TEST(IntListParameter, encoding)
+{
+  std::list<int> data;
+
+  core::IntListParameter encoding("listparam", "", {});
+
+  encoding.setParam({1, 2, 3, 4});
+  EXPECT_EQ(encoding.getValueStr(), "1,2,3,4");
+}
+
+TEST(IntListParameter, default)
+{
+  std::list<int> data;
+
+  core::IntListParameter def("listparam", "", {1, 2, 3});
+
+  EXPECT_TRUE(def.isDefault());
+
+  def.setParam({4, 5, 6});
+  EXPECT_FALSE(def.isDefault());
+
+  def.setParam({1, 2, 3});
+  EXPECT_TRUE(def.isDefault());
+}
+
+TEST(IntListParameter, immutable)
+{
+  std::list<int> data;
+
+  core::IntListParameter immutable("listparam", "", {});
+
+  immutable.setImmutable();
+  immutable.setParam({1, 2, 3, 4});
+  immutable.setParam("1,2,3,4");
+  EXPECT_TRUE(immutable.begin() == immutable.end());
 }
 
 int main(int argc, char** argv)
