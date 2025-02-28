@@ -80,12 +80,14 @@ static ParamSet allowOverrideSet;
 static const char* defaultDesktopName();
 
 core::IntParameter
-  rfbport("rfbport", "TCP port to listen for RFB protocol", 0);
+  rfbport("rfbport",
+          "TCP port to listen for RFB protocol", 0, -1, 65535);
 core::StringParameter
   rfbunixpath("rfbunixpath",
               "Unix socket to listen for RFB protocol", "");
 core::IntParameter
-  rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+  rfbunixmode("rfbunixmode",
+              "Unix socket access mode", 0600, 0000, 0777);
 core::StringParameter
   desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
 core::BoolParameter

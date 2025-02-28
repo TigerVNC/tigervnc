@@ -51,7 +51,8 @@ static LogWriter vlog("SDisplay");
 // - SDisplay-specific configuration options
 
 IntParameter rfb::win32::SDisplay::updateMethod("UpdateMethod",
-  "How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - Driver hooking.", 0);
+  "How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - Driver hooking.",
+  0, 0, 2);
 BoolParameter rfb::win32::SDisplay::disableLocalInputs("DisableLocalInputs",
   "Disable local keyboard and pointer input while the server is in use", false);
 StringParameter rfb::win32::SDisplay::disconnectAction("DisconnectAction",

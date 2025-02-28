@@ -67,22 +67,24 @@ core::IntParameter
   pollingCycle("PollingCycle",
                "Milliseconds per one polling cycle; actual interval "
                "may be dynamically adjusted to satisfy "
-               "MaxProcessorUsage setting", 30);
+               "MaxProcessorUsage setting", 30, 0, INT_MAX);
 core::IntParameter
   maxProcessorUsage("MaxProcessorUsage",
                     "Maximum percentage of CPU time to be consumed",
-                    35);
+                    35, 0, 100);
 core::StringParameter
   desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
 core::StringParameter
   displayname("display", "The X display", "");
 core::IntParameter
-  rfbport("rfbport", "TCP port to listen for RFB protocol", 5900);
+  rfbport("rfbport",
+          "TCP port to listen for RFB protocol", 5900, -1, 65535);
 core::StringParameter
   rfbunixpath("rfbunixpath",
               "Unix socket to listen for RFB protocol", "");
 core::IntParameter
-  rfbunixmode("rfbunixmode", "Unix socket access mode", 0600);
+  rfbunixmode("rfbunixmode",
+              "Unix socket access mode", 0600, 0000, 0777);
 core::StringParameter
   hostsFile("HostsFile", "File with IP access control rules", "");
 core::BoolParameter

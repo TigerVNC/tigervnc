@@ -32,7 +32,8 @@
 #include <network/TcpSocket.h>
 
 static core::IntParameter port_number("PortNumber",
-  "TCP/IP port on which the server will accept connections", 5900);
+  "TCP/IP port on which the server will accept connections",
+  5900, 0, 65535);
 static core::StringParameter hosts("Hosts",
   "Filter describing which hosts are allowed access to this server", "+");
 static core::BoolParameter localHost("LocalHost",
