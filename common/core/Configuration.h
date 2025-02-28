@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2022 Pierre Ossman for Cendio AB
+ * Copyright 2011-2025 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -238,6 +238,47 @@ namespace core {
     size_t length;
     uint8_t* def_value;
     size_t def_length;
+  };
+
+  template<typename ValueType>
+  class ListParameter : public VoidParameter {
+  public:
+    typedef std::list<ValueType> ListType;
+    typedef typename ListType::const_iterator const_iterator;
+
+    ListParameter(const char* name_, const char* desc_,
+                  const ListType& v);
+    using VoidParameter::setParam;
+    bool setParam(const char* value) override;
+    virtual bool setParam(const ListType& v);
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+  protected:
+    virtual bool decodeEntry(const char* entry, ValueType* out) const = 0;
+    virtual std::string encodeEntry(const ValueType& entry) const = 0;
+    virtual bool validateEntry(const ValueType& entry) const;
+
+  protected:
+    ListType value;
+    ListType def_value;
+  };
+
+  class IntListParameter : public ListParameter<int> {
+  public:
+    IntListParameter(const char* name_, const char* desc_,
+                     const ListType& v,
+                     int minValue=INT_MIN, int maxValue=INT_MAX);
+  protected:
+    bool decodeEntry(const char* entry, int* out) const override;
+    std::string encodeEntry(const int& entry) const override;
+    bool validateEntry(const int& entry) const override;
+
+  protected:
+    int minValue, maxValue;
   };
 
 };
