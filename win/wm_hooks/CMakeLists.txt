@@ -10,4 +10,5 @@ target_include_directories(wm_hooks PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 install(TARGETS wm_hooks
   RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+    COMPONENT Runtime
 )

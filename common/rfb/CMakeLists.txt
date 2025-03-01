@@ -1,4 +1,10 @@
-add_library(rfb STATIC
+file(GLOB HEAD_FILES *.h)
+set(INSTALL_HEAD_FILES ${HEAD_FILES})
+file(GLOB HEAD_FILES *.inl)
+list(APPEND INSTALL_HEAD_FILES ${HEAD_FILES})
+
+add_library(rfb OBJECT
+  ${INSTALL_HEAD_FILES}
   AccessRights.cxx
   Blacklist.cxx
   Congestion.cxx
@@ -55,8 +61,10 @@ add_library(rfb STATIC
   encodings.cxx
   obfuscate.cxx)
 
-target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
+target_include_directories(rfb PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/common>
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+target_include_directories(rfb SYSTEM PRIVATE ${JPEG_INCLUDE_DIR})
 target_link_libraries(rfb core rdr network)
 target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
 
@@ -67,13 +75,13 @@ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   elseif(H264_LIBS STREQUAL "WIN")
     target_sources(rfb PRIVATE H264WinDecoderContext.cxx)
   endif()
-  target_include_directories(rfb SYSTEM PUBLIC ${H264_INCLUDE_DIRS})
+  target_include_directories(rfb SYSTEM PRIVATE ${H264_INCLUDE_DIRS})
   target_link_libraries(rfb ${H264_LIBRARIES})
   target_link_directories(rfb PUBLIC ${H264_LIBRARY_DIRS})
 endif()
 
 if(WIN32)
-  target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/win)
+  target_include_directories(rfb PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/win>)
   target_sources(rfb PRIVATE WinPasswdValidator.cxx)
 endif(WIN32)
 
@@ -84,7 +92,7 @@ endif()
 
 if(GNUTLS_FOUND)
   target_sources(rfb PRIVATE CSecurityTLS.cxx SSecurityTLS.cxx)
-  target_include_directories(rfb SYSTEM PUBLIC ${GNUTLS_INCLUDE_DIR})
+  target_include_directories(rfb SYSTEM PRIVATE ${GNUTLS_INCLUDE_DIR})
   target_link_libraries(rfb ${GNUTLS_LIBRARIES})
   # FIXME: Hack to block it marking gnutls_free() as dllimport
   if(WIN32 AND BUILD_STATIC)
@@ -95,7 +103,7 @@ endif()
 if (NETTLE_FOUND)
   target_sources(rfb PRIVATE CSecurityDH.cxx CSecurityMSLogonII.cxx
                  CSecurityRSAAES.cxx SSecurityRSAAES.cxx)
-  target_include_directories(rfb SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS}
+  target_include_directories(rfb SYSTEM PRIVATE ${NETTLE_INCLUDE_DIRS}
                              ${GMP_INCLUDE_DIRS})
   target_link_libraries(rfb ${HOGWEED_LIBRARIES}
                         ${NETTLE_LIBRARIES} ${GMP_LIBRARIES})
@@ -106,3 +114,14 @@ endif()
 if(UNIX)
   libtool_create_control_file(rfb)
 endif()
+
+# Set install head files
+set_target_properties(rfb PROPERTIES
+  PUBLIC_HEADER "${INSTALL_HEAD_FILES}")
+# Install head files
+INSTALL(TARGETS rfb
+  EXPORT tigervncConfig
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tigervnc/rfb
+    COMPONENT Development
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tigervnc
+  )

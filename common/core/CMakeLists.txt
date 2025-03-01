@@ -1,4 +1,7 @@
-add_library(core STATIC
+file(GLOB HEAD_FILES *.h)
+set(INSTALL_HEAD_FILES ${HEAD_FILES})
+add_library(core OBJECT
+  ${INSTALL_HEAD_FILES}
   Configuration.cxx
   Exception.cxx
   Logger.cxx
@@ -13,8 +16,10 @@ add_library(core STATIC
   time.cxx
   xdgdirs.cxx)
 
-target_include_directories(core PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_include_directories(core SYSTEM PUBLIC ${PIXMAN_INCLUDE_DIRS})
+target_include_directories(core PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/common>
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+target_include_directories(core PRIVATE ${PIXMAN_INCLUDE_DIRS})
 target_link_libraries(core ${PIXMAN_LIBRARIES})
 target_link_directories(core PUBLIC ${PIXMAN_LIBRARY_DIRS})
 
@@ -34,3 +39,14 @@ endif()
 if(UNIX)
   libtool_create_control_file(core)
 endif()
+
+# Set install head files
+set_target_properties(core PROPERTIES
+  PUBLIC_HEADER "${INSTALL_HEAD_FILES}")
+# Install head files
+INSTALL(TARGETS core
+  EXPORT tigervncConfig
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tigervnc/core
+    COMPONENT Development
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tigervnc
+  )

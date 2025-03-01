@@ -1,7 +1,9 @@
+build*/
 *.[ao]
 *.mo
 *.la
 *.lo
+*.user
 .deps
 .libs
 

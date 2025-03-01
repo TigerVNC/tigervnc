@@ -20,7 +20,7 @@ target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix/common)
 target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix/tx)
 target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/unix)
 target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(x0vncserver core tx rfb network rdr unixcommon)
+target_link_libraries(x0vncserver tx tigervnc unixcommon)
 
 # systemd support (socket activation)
 if (LIBSYSTEMD_FOUND)
@@ -53,5 +53,5 @@ endif()
 
 target_link_libraries(x0vncserver ${X11_LIBRARIES})
 
-install(TARGETS x0vncserver DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(FILES x0vncserver.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 RENAME x0vncserver.1)
+install(TARGETS x0vncserver DESTINATION ${CMAKE_INSTALL_FULL_BINDIR} COMPONENT Runtime)
+install(FILES x0vncserver.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 COMPONENT Runtime RENAME x0vncserver.1)

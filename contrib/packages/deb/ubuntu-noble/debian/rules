@@ -57,11 +57,12 @@ config-stamp: xorg-source-stamp
 		-DBUILD_STATIC=off \
 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
 		-DCMAKE_INSTALL_LIBEXECDIR:PATH=lib/$(DEB_HOST_MULTIARCH) \
-		-DCMAKE_INSTALL_UNITDIR:PATH=/lib/systemd/system
+		-DCMAKE_INSTALL_UNITDIR:PATH=/lib/systemd/system \
+		-DCMAKE_VERBOSE_MAKEFILE=TRUE
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
-  patch -p1 -i ../../debian/xorg-source-patches/debian_libtool.patch; \
+	patch -p1 -i ../../debian/xorg-source-patches/debian_libtool.patch; \
 	./configure --prefix=/usr \
 		--disable-silent-rules \
 		--disable-static \
@@ -162,7 +163,8 @@ install: build
 	dh_prep
 	dh_installdirs
 	# Add here commands to install the package into debian/vnc.
-	make install DESTDIR=$(CURDIR)/debian/tigervncserver
+	#make install DESTDIR=$(CURDIR)/debian/tigervncserver
+	cmake --install . --component Runtime --prefix=$(CURDIR)/debian/tigervncserver
 	(cd unix/xserver/hw/vnc; make install DESTDIR=$(CURDIR)/debian/tigervncserver)
 	# rename server files to tigervnc specific names
 	mv $(CURDIR)/debian/tigervncserver/usr/bin/Xvnc \

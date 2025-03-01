@@ -15,6 +15,9 @@ include(CheckTypeSize)
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
 include(CheckCSourceRuns)
+include(CMakePackageConfigHelpers)
+include(CMakeParseArguments)
+include(GenerateExportHeader)
 
 include(CMakeMacroLibtoolFile)
 
