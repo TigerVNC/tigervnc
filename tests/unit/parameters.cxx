@@ -42,6 +42,12 @@ static bool operator==(const IterL& lhs, const IterR& rhs)
   return true;
 }
 
+static std::ostream& operator<<(std::ostream& os,
+                                const core::EnumListEntry& e)
+{
+  return os << '"' << e.getValueStr() << '"';
+}
+
 }
 
 TEST(BoolParameter, values)
@@ -669,6 +675,108 @@ TEST(StringListParameter, immutable)
   immutable.setParam({"1", "2", "3", "4"});
   immutable.setParam("1,2,3,4");
   data = {"a", "b"};
+  EXPECT_EQ(immutable, data);
+}
+
+TEST(EnumListParameter, values)
+{
+  std::list<std::string> data;
+
+  core::EnumListParameter list("listparam", "", {"a", "b", "c"}, {"a"});
+
+  list.setParam({"a", "b", "c"});
+  data = {"a", "b", "c"};
+  EXPECT_EQ(list, data);
+}
+
+TEST(EnumListParameter, caseinsensitive)
+{
+  std::list<std::string> data;
+
+  core::EnumListParameter casecmp("listparam", "", {"a", "b", "c"}, {"a"});
+
+  casecmp.setParam({"A", "B", "C"});
+  data = {"a", "B", "c"};
+  EXPECT_EQ(casecmp, data);
+}
+
+TEST(EnumListParameter, strings)
+{
+  std::list<std::string> data;
+
+  core::EnumListParameter strings("listparam", "", {"a", "b", "c"}, {"a"});
+
+  strings.setParam("a,b,c");
+  data = {"a", "b", "c"};
+  EXPECT_EQ(strings, data);
+}
+
+TEST(EnumListParameter, validation)
+{
+  std::list<std::string> data;
+
+  core::EnumListParameter valid("enumparam", "", {"a", "b", "c"}, {"a"});
+
+  EXPECT_TRUE(valid.setParam({"a", "b", "c"}));
+  data = {"a", "b", "c"};
+  EXPECT_EQ(valid, data);
+
+  EXPECT_FALSE(valid.setParam({"a", "foo", "c"}));
+  data = {"a", "b", "c"};
+  EXPECT_EQ(valid, data);
+}
+
+TEST(EnumListParameter, validdefault)
+{
+  EXPECT_THROW({
+    core::EnumListParameter defvalid("enumparam", "", {"a", "b", "c"}, {"d"});
+  }, std::invalid_argument);
+}
+
+TEST(EnumListParameter, null)
+{
+  // NULL default value
+  EXPECT_THROW({
+    core::EnumListParameter defnull("enumparam", "", {""}, {nullptr});
+  }, std::invalid_argument);
+
+  // NULL enum value
+  EXPECT_THROW({
+    core::EnumListParameter nullenum("enumparam", "", {"a", nullptr, "b"}, {"a"});
+  }, std::invalid_argument);
+}
+
+TEST(EnumListParameter, encoding)
+{
+  core::EnumListParameter encoding("listparam", "", {"a", "b", "c"}, {"a"});
+
+  encoding.setParam({"a", "b", "C"});
+  EXPECT_EQ(encoding.getValueStr(), "a,b,c");
+}
+
+TEST(EnumListParameter, default)
+{
+  core::EnumListParameter def("listparam", "", {"a", "b", "c"}, {"a"});
+
+  EXPECT_TRUE(def.isDefault());
+
+  def.setParam({"a", "b", "c"});
+  EXPECT_FALSE(def.isDefault());
+
+  def.setParam("A");
+  EXPECT_TRUE(def.isDefault());
+}
+
+TEST(EnumListParameter, immutable)
+{
+  std::list<std::string> data;
+
+  core::EnumListParameter immutable("listparam", "", {"a", "b", "c"}, {"a"});
+
+  immutable.setImmutable();
+  immutable.setParam({"a", "b", "c"});
+  immutable.setParam("a,b,c");
+  data = {"a"};
   EXPECT_EQ(immutable, data);
 }
 
