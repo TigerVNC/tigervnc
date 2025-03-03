@@ -39,32 +39,30 @@
 
 using namespace rfb;
 
-core::StringParameter PasswordValidator::plainUsers
+core::StringListParameter PasswordValidator::plainUsers
 ("PlainUsers",
  "Users permitted to access via Plain security type (including TLSPlain, X509Plain etc.)"
 #ifdef HAVE_NETTLE
  " or RSA-AES security types (RA2, RA2ne, RA2_256, RA2ne_256)"
 #endif
  ,
- "");
+ {});
 
 bool PasswordValidator::validUser(const char* username)
 {
-  std::vector<std::string> users;
-
-  users = core::split(plainUsers, ',');
-
-  for (size_t i = 0; i < users.size(); i++) {
-    if (users[i] == "*")
+  for (const char* user : plainUsers) {
+    if (strcmp(user, "*") == 0)
       return true;
 #if !defined(WIN32) && !defined(__APPLE__)
-    if (users[i] == "%u") {
+    if (strcmp(user, "%u") == 0) {
       struct passwd *pw = getpwnam(username);
       if (pw && pw->pw_uid == getuid())
         return true;
     }
 #endif
-    if (users[i] == username)
+    // FIXME: We should compare uid, as the usernames might not be case
+    //        sensitive, or have other normalisation
+    if (strcmp(user, username) == 0)
       return true;
   }
   return false;

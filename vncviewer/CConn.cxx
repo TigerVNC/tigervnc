@@ -313,7 +313,7 @@ void CConn::initDone()
 
   // Force a switch to the format and encoding we'd like
   updatePixelFormat();
-  int encNum = rfb::encodingNum(::preferredEncoding);
+  int encNum = rfb::encodingNum(::preferredEncoding.getValueStr().c_str());
   if (encNum != -1)
     setPreferredEncoding(encNum);
 }
@@ -567,7 +567,7 @@ void CConn::handleOptions(void *data)
   // list is cheap. Avoid overriding what the auto logic has selected
   // though.
   if (!autoSelect) {
-    int encNum = rfb::encodingNum(::preferredEncoding);
+    int encNum = rfb::encodingNum(::preferredEncoding.getValueStr().c_str());
 
     if (encNum != -1)
       self->setPreferredEncoding(encNum);

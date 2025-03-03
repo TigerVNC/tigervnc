@@ -36,7 +36,7 @@ extern core::IntParameter pointerEventInterval;
 extern core::BoolParameter emulateMiddleButton;
 extern core::BoolParameter dotWhenNoCursor; // deprecated
 extern core::BoolParameter alwaysCursor;
-extern core::StringParameter cursorType;
+extern core::EnumParameter cursorType;
 
 extern core::StringParameter passwordFile;
 
@@ -45,7 +45,7 @@ extern core::BoolParameter fullColour;
 extern core::AliasParameter fullColourAlias;
 extern core::IntParameter lowColourLevel;
 extern core::AliasParameter lowColourLevelAlias;
-extern core::StringParameter preferredEncoding;
+extern core::EnumParameter preferredEncoding;
 extern core::BoolParameter customCompressLevel;
 extern core::IntParameter compressLevel;
 extern core::BoolParameter noJpeg;
@@ -53,7 +53,7 @@ extern core::IntParameter qualityLevel;
 
 extern core::BoolParameter maximize;
 extern core::BoolParameter fullScreen;
-extern core::StringParameter fullScreenMode;
+extern core::EnumParameter fullScreenMode;
 extern core::BoolParameter fullScreenAllMonitors; // deprecated
 extern MonitorIndicesParameter fullScreenSelectedMonitors;
 extern core::StringParameter desktopSize;
@@ -73,7 +73,7 @@ extern core::BoolParameter sendPrimary;
 extern core::StringParameter display;
 #endif
 
-extern core::StringParameter menuKey;
+extern core::EnumParameter menuKey;
 
 extern core::BoolParameter fullscreenSystemKeys;
 extern core::BoolParameter alertOnFatalError;
