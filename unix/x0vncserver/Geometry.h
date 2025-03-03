@@ -25,7 +25,7 @@
 
 #include <core/Rect.h>
 
-namespace rfb { class StringParameter; }
+namespace core { class StringParameter; }
 
 class Geometry
 {

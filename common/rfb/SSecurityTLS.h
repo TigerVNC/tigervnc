@@ -47,8 +47,6 @@ namespace rdr {
 
 namespace rfb {
 
-  class StringParameter;
-
   class SSecurityTLS : public SSecurity {
   public:
     SSecurityTLS(SConnection* sc, bool _anon);

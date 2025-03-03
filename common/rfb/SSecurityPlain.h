@@ -25,8 +25,6 @@
 
 namespace rfb {
 
-  class StringParameter;
-
   class PasswordValidator {
   public:
     bool validate(SConnection* sc, const char *username, const char *password)
