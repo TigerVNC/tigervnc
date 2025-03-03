@@ -577,6 +577,7 @@ bool ListParameter<ValueType>::setParam(const char* v)
 template<typename ValueType>
 bool ListParameter<ValueType>::setParam(const ListType& v)
 {
+  ListType vnorm;
   if (immutable)
     return true;
   for (const ValueType& entry : v) {
@@ -585,8 +586,9 @@ bool ListParameter<ValueType>::setParam(const ListType& v)
                  encodeEntry(entry).c_str());
       return false;
     }
+    vnorm.push_back(normaliseEntry(entry));
   }
-  value = v;
+  value = vnorm;
   vlog.debug("set %s(List) to %s", getName(), getValueStr().c_str());
   return true;
 }
@@ -635,6 +637,12 @@ template<typename ValueType>
 bool ListParameter<ValueType>::validateEntry(const ValueType& /*entry*/) const
 {
   return true;
+}
+
+template<typename ValueType>
+ValueType ListParameter<ValueType>::normaliseEntry(const ValueType& entry) const
+{
+  return entry;
 }
 
 // -=- IntListParameter
@@ -725,4 +733,109 @@ bool StringListParameter::decodeEntry(const char* entry, std::string* out) const
 std::string StringListParameter::encodeEntry(const std::string& entry) const
 {
   return entry;
+}
+
+// -=- EnumListEntry
+
+EnumListEntry::EnumListEntry(const std::string& v)
+  : value(v)
+{
+}
+
+std::string EnumListEntry::getValueStr() const
+{
+  return value;
+}
+
+bool EnumListEntry::operator==(const char* other) const
+{
+  return strcasecmp(value.c_str(), other) == 0;
+}
+
+bool EnumListEntry::operator==(const std::string& other) const
+{
+  return *this == other.c_str();
+}
+
+bool EnumListEntry::operator!=(const char* other) const
+{
+  return strcasecmp(value.c_str(), other) != 0;
+}
+
+bool EnumListEntry::operator!=(const std::string& other) const
+{
+  return *this != other.c_str();
+}
+
+// -=- EnumListParameter
+
+EnumListParameter::EnumListParameter(const char* name_,
+                                     const char* desc_,
+                                     const std::set<const char*>& enums_,
+                                     const std::list<const char*>& v_)
+  : ListParameter<std::string>(name_, desc_, {})
+{
+  for (const char* v: v_) {
+    if (!v) {
+      vlog.error("Default value <null> for %s not allowed", name_);
+      throw std::invalid_argument("Default value <null> not allowed");
+    }
+    value.push_back(v);
+    def_value.push_back(v);
+  }
+
+  for (const char* e: enums_) {
+    if (!e) {
+      vlog.error("Enumeration <null> for %s not allowed", name_);
+      throw std::invalid_argument("Enumeration <null> not allowed");
+    }
+    enums.insert(e);
+  }
+
+  for (const std::string& def_entry : def_value) {
+    if (std::find(enums.begin(), enums.end(), def_entry) == enums.end()) {
+      vlog.error("Default value %s for %s is not in list of valid values",
+                 def_entry.c_str(), name_);
+      throw std::invalid_argument("Default value is not in list of valid values");
+    }
+  }
+}
+
+EnumListParameter::const_iterator EnumListParameter::begin() const
+{
+  return ListParameter<std::string>::begin();
+}
+
+EnumListParameter::const_iterator EnumListParameter::end() const
+{
+  return ListParameter<std::string>::end();
+}
+
+bool EnumListParameter::decodeEntry(const char* entry, std::string* out) const
+{
+  *out = entry;
+  return true;
+}
+
+std::string EnumListParameter::encodeEntry(const std::string& entry) const
+{
+  return entry;
+}
+
+bool EnumListParameter::validateEntry(const std::string& entry) const
+{
+  for (const std::string& e : enums) {
+    if (strcasecmp(e.c_str(), entry.c_str()) == 0)
+      return true;
+  }
+  return false;
+}
+
+std::string EnumListParameter::normaliseEntry(const std::string& entry) const
+{
+  for (const std::string& e : enums) {
+    if (strcasecmp(e.c_str(), entry.c_str()) == 0)
+      return e;
+  }
+  throw std::logic_error("Entry is not in list of valid values");
 }
