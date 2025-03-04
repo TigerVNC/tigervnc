@@ -360,7 +360,7 @@ IntParameter::operator int() const {
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
                                  const char* v)
-  : VoidParameter(name_, desc_), value(v), def_value(v)
+  : VoidParameter(name_, desc_), value(v?v:""), def_value(v?v:"")
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
