@@ -176,7 +176,7 @@ make
 popd
 
 %install
-%cmake3_install
+%cmake3_install --component Runtime
 
 pushd unix/xserver/hw/vnc
 %make_install
