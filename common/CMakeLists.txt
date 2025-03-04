@@ -18,7 +18,7 @@ add_library(tigervnc STATIC
     $<TARGET_OBJECTS:rdr>
     $<TARGET_OBJECTS:network>
     $<TARGET_OBJECTS:rfb>)
-target_link_libraries(tigervnc PUBLIC core rdr network rfb)
+target_link_libraries(tigervnc PUBLIC rfb)
 
 # cmake version configure file
 write_basic_package_version_file(

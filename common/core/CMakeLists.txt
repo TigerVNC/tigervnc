@@ -36,10 +36,6 @@ if(UNIX)
   target_sources(core PRIVATE Logger_syslog.cxx)
 endif()
 
-if(UNIX)
-  libtool_create_control_file(core)
-endif()
-
 # Set install head files
 set_target_properties(core PROPERTIES
   PUBLIC_HEADER "${INSTALL_HEAD_FILES}")

@@ -41,10 +41,6 @@ if(WIN32)
 	target_link_libraries(rdr ws2_32)
 endif()
 
-if(UNIX)
-  libtool_create_control_file(rdr)
-endif()
-
 # Set install head files
 set_target_properties(rdr PROPERTIES
   PUBLIC_HEADER "${INSTALL_HEAD_FILES}")

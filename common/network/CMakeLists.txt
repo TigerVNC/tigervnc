@@ -13,14 +13,10 @@ endif()
 target_include_directories(network PRIVATE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/common>
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
-target_link_libraries(network core rdr)
+target_link_libraries(network rdr)
 
 if(WIN32)
   target_link_libraries(network ws2_32)
-endif()
-
-if(UNIX)
-  libtool_create_control_file(network)
 endif()
 
 # Set install head files

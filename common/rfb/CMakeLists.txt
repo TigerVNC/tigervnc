@@ -65,7 +65,7 @@ target_include_directories(rfb PRIVATE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/common>
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
 target_include_directories(rfb SYSTEM PRIVATE ${JPEG_INCLUDE_DIR})
-target_link_libraries(rfb core rdr network)
+target_link_libraries(rfb network)
 target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
 
 if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
@@ -109,10 +109,6 @@ if (NETTLE_FOUND)
                         ${NETTLE_LIBRARIES} ${GMP_LIBRARIES})
   target_link_directories(rfb PUBLIC ${HOGWEED_LIBRARY_DIRS}
                           ${NETTLE_LIBRARY_DIRS} ${GMP_LIBRARY_DIRS})
-endif()
-
-if(UNIX)
-  libtool_create_control_file(rfb)
 endif()
 
 # Set install head files
