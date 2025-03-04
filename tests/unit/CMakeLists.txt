@@ -9,34 +9,34 @@ include_directories(${CMAKE_SOURCE_DIR}/common)
 include_directories(${CMAKE_SOURCE_DIR}/vncviewer)
 
 add_executable(configargs configargs.cxx)
-target_link_libraries(configargs rfb GTest::gtest_main)
+target_link_libraries(configargs tigervnc GTest::gtest_main)
 gtest_discover_tests(configargs)
 
 add_executable(conv conv.cxx)
-target_link_libraries(conv rfb GTest::gtest_main)
+target_link_libraries(conv tigervnc GTest::gtest_main)
 gtest_discover_tests(conv)
 
 add_executable(convertlf convertlf.cxx)
-target_link_libraries(convertlf core GTest::gtest_main)
+target_link_libraries(convertlf tigervnc GTest::gtest_main)
 gtest_discover_tests(convertlf)
 
 add_executable(gesturehandler gesturehandler.cxx ../../vncviewer/GestureHandler.cxx)
-target_link_libraries(gesturehandler core GTest::gtest_main)
+target_link_libraries(gesturehandler tigervnc GTest::gtest_main)
 gtest_discover_tests(gesturehandler)
 
 add_executable(hostport hostport.cxx)
-target_link_libraries(hostport network GTest::gtest_main)
+target_link_libraries(hostport tigervnc GTest::gtest_main)
 gtest_discover_tests(hostport)
 
 add_executable(pixelformat pixelformat.cxx)
-target_link_libraries(pixelformat rfb GTest::gtest_main)
+target_link_libraries(pixelformat tigervnc GTest::gtest_main)
 gtest_discover_tests(pixelformat)
 
 add_executable(unicode unicode.cxx)
-target_link_libraries(unicode core GTest::gtest_main)
+target_link_libraries(unicode tigervnc GTest::gtest_main)
 gtest_discover_tests(unicode)
 
 add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
 target_include_directories(emulatemb SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
-target_link_libraries(emulatemb core ${GETTEXT_LIBRARIES} GTest::gtest_main)
+target_link_libraries(emulatemb tigervnc ${GETTEXT_LIBRARIES} GTest::gtest_main)
 gtest_discover_tests(emulatemb)

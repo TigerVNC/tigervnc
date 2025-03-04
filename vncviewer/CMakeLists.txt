@@ -51,7 +51,7 @@ endif()
 target_include_directories(vncviewer SYSTEM PUBLIC ${FLTK_INCLUDE_DIR})
 target_include_directories(vncviewer SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
 target_include_directories(vncviewer PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(vncviewer core rfb network rdr)
+target_link_libraries(vncviewer tigervnc)
 target_link_libraries(vncviewer ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
 if(WIN32)
@@ -68,9 +68,15 @@ else()
   endif()
 endif()
 
-install(TARGETS vncviewer DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(TARGETS vncviewer
+  DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+    COMPONENT Runtime)
 if(UNIX)
-  install(FILES vncviewer.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 RENAME vncviewer.1)
+  install(FILES vncviewer.man
+    DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1
+      COMPONENT Runtime
+    RENAME vncviewer.1
+    )
 
   file(STRINGS ${CMAKE_SOURCE_DIR}/po/LINGUAS LINGUAS)
   set(po_FILES "")
@@ -107,7 +113,9 @@ if(UNIX)
     )
   endif()
   add_custom_target(desktop ALL DEPENDS vncviewer.desktop)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.desktop DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/applications)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.desktop
+    DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/applications
+      COMPONENT Runtime)
 
   if("${GETTEXT_VERSION_STRING}" VERSION_GREATER 0.19.6)
     add_custom_command(OUTPUT org.tigervnc.vncviewer.metainfo.xml
@@ -137,10 +145,18 @@ if(UNIX)
     )
   endif()
   add_custom_target(appstream ALL DEPENDS org.tigervnc.vncviewer.metainfo.xml)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.tigervnc.vncviewer.metainfo.xml DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/metainfo)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.tigervnc.vncviewer.metainfo.xml
+    DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/metainfo
+      COMPONENT Runtime)
 
   foreach(res 16 22 24 32 48 64 128)
-    install(FILES ../media/icons/tigervnc_${res}.png DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/${res}x${res}/apps RENAME tigervnc.png)
+    install(FILES ../media/icons/tigervnc_${res}.png
+      DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/${res}x${res}/apps
+      COMPONENT Runtime
+      RENAME tigervnc.png
+      )
   endforeach()
-  install(FILES ../media/icons/tigervnc.svg DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/scalable/apps)
+  install(FILES ../media/icons/tigervnc.svg
+    DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/scalable/apps
+    COMPONENT Runtime)
 endif()
