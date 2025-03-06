@@ -522,6 +522,14 @@ TEST(IntListParameter, strings)
   strings.setParam("1,2,3,4");
   data = {1, 2, 3, 4};
   EXPECT_EQ(strings, data);
+
+  strings.setParam("5 ,   6 , 7,8");
+  data = {5, 6, 7, 8};
+  EXPECT_EQ(strings, data);
+
+  strings.setParam("9,\n10,\t11,\t12");
+  data = {9, 10, 11, 12};
+  EXPECT_EQ(strings, data);
 }
 
 TEST(IntListParameter, minmax)
@@ -634,6 +642,14 @@ TEST(StringListParameter, strings)
   strings.setParam("1,2,3,4");
   data = {"1", "2", "3", "4"};
   EXPECT_EQ(strings, data);
+
+  strings.setParam("5 ,   6 , 7,8");
+  data = {"5", "6", "7", "8"};
+  EXPECT_EQ(strings, data);
+
+  strings.setParam("9,\n10,\t11,\t12");
+  data = {"9", "10", "11", "12"};
+  EXPECT_EQ(strings, data);
 }
 
 TEST(StringListParameter, null)
@@ -708,6 +724,14 @@ TEST(EnumListParameter, strings)
 
   strings.setParam("a,b,c");
   data = {"a", "b", "c"};
+  EXPECT_EQ(strings, data);
+
+  strings.setParam("c ,   b , a,a");
+  data = {"c", "b", "a", "a"};
+  EXPECT_EQ(strings, data);
+
+  strings.setParam("b,\na,\tc,\tb");
+  data = {"b", "a", "c", "b"};
   EXPECT_EQ(strings, data);
 }
 
