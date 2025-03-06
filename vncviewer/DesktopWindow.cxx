@@ -197,6 +197,11 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 #else
     delayedFullscreen = true;
 #endif
+
+    // Full screen events are not sent out for a hidden window,
+    // so send a fake one here to set up things properly.
+    if (fullscreen_active())
+      handle(FL_FULLSCREEN);
   }
 
   show();
@@ -205,11 +210,6 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   // FLTK does its own full screen, so disable the system one
   cocoa_prevent_native_fullscreen(this);
 #endif
-
-  // Full screen events are not sent out for a hidden window,
-  // so send a fake one here to set up things properly.
-  if (fullscreen_active())
-    handle(FL_FULLSCREEN);
 
   // Unfortunately, current FLTK does not allow us to set the
   // maximized property on Windows and X11 before showing the window.
@@ -258,6 +258,8 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleStatsTimeout, this);
   Fl::remove_timeout(menuOverlay, this);
   Fl::remove_timeout(updateOverlay, this);
+
+  ungrabKeyboard();
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -701,10 +703,6 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 
     repositionWidgets();
   }
-
-  // Some systems require a grab after the window size has been changed.
-  // Otherwise they might hold on to displays, resulting in them being unusable.
-  maybeGrabKeyboard();
 }
 
 
@@ -847,6 +845,7 @@ int DesktopWindow::handle(int event)
 {
   switch (event) {
   case FL_FULLSCREEN:
+    vlog.error("FL_FULLSCREEN");
     fullScreen.setParam(fullscreen_active());
 
     // Update scroll bars
@@ -940,9 +939,11 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
     // all monitors and the user clicked on another application.
     // Make sure we update our grabs with the focus changes.
     case FL_FOCUS:
+      vlog.error("FL_FOCUS");
       dw->maybeGrabKeyboard();
       break;
     case FL_UNFOCUS:
+      vlog.error("FL_UNFOCUS");
       if (fullscreenSystemKeys) {
         dw->ungrabKeyboard();
       }
@@ -986,14 +987,6 @@ int DesktopWindow::fltkHandle(int event)
     // not be resized to cover the new screen. A timer makes sense
     // also on other systems, to make sure that whatever desktop
     // environment has a chance to deal with things before we do.
-    // Please note that when using FullscreenSystemKeys on macOS, the
-    // display configuration cannot be changed: macOS will not detect
-    // added or removed screens and there will be no
-    // FL_SCREEN_CONFIGURATION_CHANGED event. This is by design:
-    // "When you capture a display, you have exclusive use of the
-    // display. Other applications and system services are not allowed
-    // to use the display or change its configuration. In addition,
-    // they are not notified of display changes"
     Fl::remove_timeout(reconfigureFullscreen);
     Fl::add_timeout(0.5, reconfigureFullscreen);
   }
@@ -1071,17 +1064,18 @@ void DesktopWindow::fullscreen_on()
   }
 #ifdef __APPLE__
   // This is a workaround for a bug in FLTK, see: https://github.com/fltk/fltk/pull/277
-  int savedLevel = -1;
-  if (shown())
-    savedLevel = cocoa_get_level(this);
+  // FIXME: Does this still happen? Maybe side effect of releasing displays
+  //int savedLevel = -1;
+  //if (shown())
+  //  savedLevel = cocoa_get_level(this);
 #endif
   fullscreen_screens(top, bottom, left, right);
 #ifdef __APPLE__
   // This is a workaround for a bug in FLTK, see: https://github.com/fltk/fltk/pull/277
-  if (savedLevel != -1) {
-    if (cocoa_get_level(this) != savedLevel)
-      cocoa_set_level(this, savedLevel);
-  }
+  //if (savedLevel != -1) {
+  //  if (cocoa_get_level(this) != savedLevel)
+  //    cocoa_set_level(this, savedLevel);
+  //}
 #endif
 
   if (!fullscreen_active())
@@ -1143,10 +1137,10 @@ void DesktopWindow::grabKeyboard()
     return;
   }
 #elif defined(__APPLE__)
-  int ret;
-  
-  ret = cocoa_capture_displays(this);
-  if (ret != 0) {
+  bool ret;
+
+  ret = cocoa_tap_keyboard(this);
+  if (!ret) {
     vlog.error(_("Failure grabbing keyboard"));
     return;
   }
@@ -1201,7 +1195,7 @@ void DesktopWindow::ungrabKeyboard()
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
 #elif defined(__APPLE__)
-  cocoa_release_displays(this);
+  cocoa_untap_keyboard();
 #else
   // FLTK has a grab so lets not mess with it
   if (Fl::grab())
