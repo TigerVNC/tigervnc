@@ -88,19 +88,17 @@ void Configuration::list(int width, int nameWidth) {
     if (column < nameWidth) column = nameWidth;
     column += 4;
     while (true) {
-      const char* s = strchr(desc, ' ');
-      int wordLen;
-      if (s) wordLen = s-desc;
-      else wordLen = strlen(desc);
+      int wordLen = strcspn(desc, " \f\n\r\t\v");
 
       if (column + wordLen + 1 > width) {
         fprintf(stderr,"\n%*s",nameWidth+4,"");
         column = nameWidth+4;
       }
       fprintf(stderr," %.*s",wordLen,desc);
+      if (desc[wordLen] == '\0')
+        break;
       column += wordLen + 1;
       desc += wordLen + 1;
-      if (!s) break;
     }
 
     if (!def_str.empty()) {
