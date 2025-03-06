@@ -227,7 +227,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
     Fl::add_timeout(0, handleStatsTimeout, this);
   }
 
-  // Show hint about menu key
+  // Show hint about menu shortcut
   Fl::add_timeout(0.5, menuOverlay, this);
 
   // By default we get a slight delay when we warp the pointer, something
@@ -704,14 +704,17 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 void DesktopWindow::menuOverlay(void* data)
 {
   DesktopWindow *self;
+  unsigned modifierMask;
+
+  modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+  if (!modifierMask)
+    return;
 
   self = (DesktopWindow*)data;
-
-  // Empty string means None, for backward compatibility
-  if ((menuKey != "") && (menuKey != "None")) {
-    self->setOverlay(_("Press %s to open the context menu"),
-                     menuKey.getValueStr().c_str());
-  }
+  self->setOverlay(_("Press %sM to open the context menu"),
+                   ShortcutHandler::modifierPrefix(modifierMask));
 }
 
 void DesktopWindow::setOverlay(const char* text, ...)

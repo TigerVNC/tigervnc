@@ -1,4 +1,4 @@
-/* Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <list>
 
+#include <core/string.h>
+
 #include <rfb/encodings.h>
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
@@ -35,8 +37,8 @@
 #endif
 
 #include "OptionsDialog.h"
+#include "ShortcutHandler.h"
 #include "i18n.h"
-#include "menukey.h"
 #include "parameters.h"
 
 #include "fltk/layout.h"
@@ -49,11 +51,13 @@
 #endif
 
 #include <FL/Fl.H>
+#include <FL/Fl_Box.H>
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Round_Button.H>
+#include <FL/Fl_Toggle_Button.H>
 #include <FL/Fl_Int_Input.H>
 #include <FL/Fl_Choice.H>
 
@@ -86,6 +90,7 @@ OptionsDialog::OptionsDialog()
     createCompressionPage(tx, ty, tw, th);
     createSecurityPage(tx, ty, tw, th);
     createInputPage(tx, ty, tw, th);
+    createShortcutsPage(tx, ty, tw, th);
     createDisplayPage(tx, ty, tw, th);
     createMiscPage(tx, ty, tw, th);
   }
@@ -315,11 +320,19 @@ void OptionsDialog::loadOptions(void)
 #endif
   systemKeysCheckbox->value(fullscreenSystemKeys);
 
-  menuKeyChoice->value(0);
+  /* Keyboard shortcuts */
+  unsigned modifierMask;
 
-  for (int idx = 0; idx < getMenuKeySymbolCount(); idx++)
-    if (menuKey == getMenuKeySymbols()[idx].name)
-      menuKeyChoice->value(idx + 1);
+  modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+  ctrlButton->value(modifierMask & ShortcutHandler::Control);
+  shiftButton->value(modifierMask & ShortcutHandler::Shift);
+  altButton->value(modifierMask & ShortcutHandler::Alt);
+  superButton->value(modifierMask & ShortcutHandler::Super);
+
+  handleModifier(nullptr, this);
 
   /* Display */
   if (!fullScreen) {
@@ -456,11 +469,23 @@ void OptionsDialog::storeOptions(void)
 #endif
   fullscreenSystemKeys.setParam(systemKeysCheckbox->value());
 
-  if (menuKeyChoice->value() == 0)
-    menuKey.setParam("None");
-  else {
-    menuKey.setParam(menuKeyChoice->text());
-  }
+  /* Keyboard shortcuts */
+  std::list<std::string> modifierList;
+
+  if (ctrlButton->value())
+    modifierList.push_back(
+      ShortcutHandler::modifierString(ShortcutHandler::Control));
+  if (shiftButton->value())
+    modifierList.push_back(
+      ShortcutHandler::modifierString(ShortcutHandler::Shift));
+  if (altButton->value())
+    modifierList.push_back(
+      ShortcutHandler::modifierString(ShortcutHandler::Alt));
+  if (superButton->value())
+    modifierList.push_back(
+      ShortcutHandler::modifierString(ShortcutHandler::Super));
+
+  shortcutModifiers.setParam(modifierList);
 
   /* Display */
   if (windowedButton->value()) {
@@ -889,16 +914,6 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                       _("Pass system keys directly to server (full screen)")));
     systemKeysCheckbox->callback(handleSystemKeys, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
-
-    menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
-
-    fltk_menu_add(menuKeyChoice, _("None"), 0, nullptr, nullptr, FL_MENU_DIVIDER);
-    for (int idx = 0; idx < getMenuKeySymbolCount(); idx++)
-      fltk_menu_add(menuKeyChoice, getMenuKeySymbols()[idx].name, 0, nullptr, nullptr, 0);
-
-    fltk_adjust_choice(menuKeyChoice);
-
-    ty += CHOICE_HEIGHT + TIGHT_MARGIN;
   }
   ty -= TIGHT_MARGIN;
 
@@ -962,6 +977,76 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   /* Back to normal */
   tx = orig_tx;
   ty += INNER_MARGIN;
+
+  group->end();
+}
+
+
+void OptionsDialog::createShortcutsPage(int tx, int ty, int tw, int th)
+{
+  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Keyboard shortcuts"));
+
+  tx += OUTER_MARGIN;
+  ty += OUTER_MARGIN;
+
+  Fl_Box *intro = new Fl_Box(tx, ty, tw - OUTER_MARGIN * 2, INPUT_HEIGHT);
+  intro->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
+  intro->label(_("Modifier keys for keyboard shortcuts:"));
+
+  ty += INPUT_HEIGHT + INNER_MARGIN;
+
+  int width;
+
+  width = (tw - OUTER_MARGIN * 2 - INNER_MARGIN * 3) / 4;
+
+  ctrlButton = new Fl_Toggle_Button(tx, ty,
+                                    /*
+                                     * TRANSLATORS: This refers to the
+                                     * keyboard key
+                                     * */
+                                    width, BUTTON_HEIGHT, _("Ctrl"));
+  ctrlButton->selection_color(FL_SELECTION_COLOR);
+  ctrlButton->callback(handleModifier, this);
+  shiftButton = new Fl_Toggle_Button(tx + width + INNER_MARGIN, ty,
+                                     /*
+                                      * TRANSLATORS: This refers to the
+                                      * keyboard key
+                                      * */
+                                     width, BUTTON_HEIGHT, _("Shift"));
+  shiftButton->selection_color(FL_SELECTION_COLOR);
+  shiftButton->callback(handleModifier, this);
+  altButton = new Fl_Toggle_Button(tx + width * 2 + INNER_MARGIN * 2, ty,
+                                    /*
+                                     * TRANSLATORS: This refers to the
+                                     * keyboard key
+                                     * */
+                                   width, BUTTON_HEIGHT, _("Alt"));
+  altButton->selection_color(FL_SELECTION_COLOR);
+  altButton->callback(handleModifier, this);
+  superButton = new Fl_Toggle_Button(tx + width * 3 + INNER_MARGIN * 3, ty,
+                                     /*
+                                      * TRANSLATORS: This refers to the
+                                      * keyboard key
+                                      * */
+                                     width, BUTTON_HEIGHT, _("Win"));
+  superButton->selection_color(FL_SELECTION_COLOR);
+  superButton->callback(handleModifier, this);
+
+#ifdef __APPLE__
+  /* TRANSLATORS: This refers to the keyboard key */
+  ctrlButton->label(_("⌃ Ctrl"));
+  /* TRANSLATORS: This refers to the keyboard key */
+  shiftButton->label(_("⇧ Shift"));
+  /* TRANSLATORS: This refers to the keyboard key */
+  altButton->label(_("⌥ Option"));
+  /* TRANSLATORS: This refers to the keyboard key */
+  superButton->label(_("⌘ Cmd"));
+#endif
+
+  ty += BUTTON_HEIGHT + INNER_MARGIN;
+
+  shortcutsText = new Fl_Box(tx, ty, tw - OUTER_MARGIN * 2, th - ty - OUTER_MARGIN);
+  shortcutsText->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE|FL_ALIGN_WRAP);
 
   group->end();
 }
@@ -1164,6 +1249,38 @@ void OptionsDialog::handleClipboard(Fl_Widget* /*widget*/, void *data)
   else
     dialog->sendPrimaryCheckbox->deactivate();
 #endif
+}
+
+void OptionsDialog::handleModifier(Fl_Widget* /*widget*/, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+  unsigned mask;
+
+  mask = 0;
+  if (dialog->ctrlButton->value())
+    mask |= ShortcutHandler::Control;
+  if (dialog->shiftButton->value())
+    mask |= ShortcutHandler::Shift;
+  if (dialog->altButton->value())
+    mask |= ShortcutHandler::Alt;
+  if (dialog->superButton->value())
+    mask |= ShortcutHandler::Super;
+
+  if (mask == 0) {
+    dialog->shortcutsText->copy_label(
+      _("All keyboard shortcuts are disabled."));
+  } else {
+    char prefix[256];
+
+    std::string label;
+
+    strcpy(prefix, ShortcutHandler::modifierPrefix(mask));
+
+    label = core::format(
+      _("To open the session context menu, press %sM."), prefix);
+
+    dialog->shortcutsText->copy_label(label.c_str());
+  }
 }
 
 void OptionsDialog::handleFullScreenMode(Fl_Widget* /*widget*/, void *data)
