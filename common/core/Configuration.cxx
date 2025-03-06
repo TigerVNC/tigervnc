@@ -562,6 +562,9 @@ bool ListParameter<ValueType>::setParam(const char* v)
   for (std::string& entry : entries) {
     ValueType e;
 
+    entry.erase(0, entry.find_first_not_of(" \f\n\r\t\v"));
+    entry.erase(entry.find_last_not_of(" \f\n\r\t\v")+1);
+
     if (!decodeEntry(entry.c_str(), &e)) {
       vlog.error("List parameter %s: Invalid value '%s'",
                  getName(), entry.c_str());
@@ -599,6 +602,8 @@ std::string ListParameter<ValueType>::getDefaultStr() const
   std::string result;
 
   for (ValueType entry : def_value) {
+    // FIXME: Might want to add a space here as well for readability,
+    //        but this would sacrifice backward compatibility
     if (!result.empty())
       result += ',';
     result += encodeEntry(entry);
@@ -613,6 +618,8 @@ std::string ListParameter<ValueType>::getValueStr() const
   std::string result;
 
   for (ValueType entry : value) {
+    // FIXME: Might want to add a space here as well for readability,
+    //        but this would sacrifice backward compatibility
     if (!result.empty())
       result += ',';
     result += encodeEntry(entry);
