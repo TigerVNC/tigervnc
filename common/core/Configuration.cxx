@@ -82,7 +82,10 @@ VoidParameter* Configuration::get(const char* param)
 void Configuration::list(int width, int nameWidth) {
   for (VoidParameter* current: params) {
     std::string def_str = current->getDefaultStr();
-    const char* desc = current->getDescription();
+    std::string desc_str = current->getDescription();
+    if (!def_str.empty())
+      desc_str += " (default=" + def_str + ")";
+    const char* desc = desc_str.c_str();
     fprintf(stderr,"  %-*s -", nameWidth, current->getName());
     int column = strlen(current->getName());
     if (column < nameWidth) column = nameWidth;
@@ -100,14 +103,7 @@ void Configuration::list(int width, int nameWidth) {
       column += wordLen + 1;
       desc += wordLen + 1;
     }
-
-    if (!def_str.empty()) {
-      if (column + (int)def_str.size() + 11 > width)
-        fprintf(stderr,"\n%*s",nameWidth+4,"");
-      fprintf(stderr," (default=%s)\n",def_str.c_str());
-    } else {
-      fprintf(stderr,"\n");
-    }
+    fprintf(stderr,"\n");
   }
 }
 
