@@ -214,7 +214,10 @@ core::StringParameter
 #endif
 
 core::StringParameter
-  menuKey("MenuKey", "The key which brings up the popup menu", "F8");
+  hotKeyCombo("HotKeyCombo",
+              "The key combination that triggers special actions in "
+              "the viewer",
+              "Ctrl,Alt");
 
 core::BoolParameter
   fullscreenSystemKeys("FullscreenSystemKeys",
@@ -267,8 +270,9 @@ static core::VoidParameter* parameterArray[] = {
   &sendPrimary,
   &setPrimary,
 #endif
-  &menuKey,
-  &fullscreenSystemKeys
+  &fullscreenSystemKeys,
+  /* Hot keys */
+  &hotKeyCombo,
 };
 
 static core::VoidParameter* readOnlyParameterArray[] = {

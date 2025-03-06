@@ -28,6 +28,7 @@ public:
   virtual ~KeyboardWin32();
 
   bool handleEvent(const void* event) override;
+  std::list<uint32_t> translateToKeySyms(int systemKeyCode) override;
 
   void reset() override;
 
@@ -38,7 +39,8 @@ protected:
   uint32_t translateSystemKeyCode(int systemKeyCode);
   uint32_t lookupVKeyMap(unsigned vkey, bool extended,
                          const UINT map[][3], size_t size);
-  uint32_t translateVKey(unsigned vkey, bool extended);
+  uint32_t translateVKey(unsigned vkey, bool extended,
+                         const unsigned char state[256]);
 
   bool hasAltGr();
   static void handleAltGrTimeout(void *data);
