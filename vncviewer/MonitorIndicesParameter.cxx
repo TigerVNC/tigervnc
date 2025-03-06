@@ -39,14 +39,14 @@
 
 static core::LogWriter vlog("MonitorIndicesParameter");
 
-MonitorIndicesParameter::MonitorIndicesParameter(const char* name_, const char* desc_, const char* v)
-: StringParameter(name_, desc_, v) {}
+MonitorIndicesParameter::MonitorIndicesParameter(const char* name_,
+                                                 const char* desc_,
+                                                 const ListType& v)
+: IntListParameter(name_, desc_, v, 1, INT_MAX) {}
 
-std::set<int> MonitorIndicesParameter::getParam()
+std::set<int> MonitorIndicesParameter::getMonitors() const
 {
-    bool valid = false;
     std::set<int> indices;
-    std::set<int> configIndices;
     std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <= 0) {
@@ -54,18 +54,9 @@ std::set<int> MonitorIndicesParameter::getParam()
         return indices;
     }
 
-    valid = parseIndices(value.c_str(), &configIndices);
-    if (!valid) {
-        return indices;
-    }
-
-    if (configIndices.size() <= 0) {
-        return indices;
-    }
-
     // Go through the monitors and see what indices are present in the config.
     for (int i = 0; i < ((int) monitors.size()); i++) {
-        if (std::find(configIndices.begin(), configIndices.end(), i) != configIndices.end())
+        if (std::find(begin(), end(), i+1) != end())
             indices.insert(monitors[i].fltkIndex);
     }
 
@@ -74,27 +65,20 @@ std::set<int> MonitorIndicesParameter::getParam()
 
 bool MonitorIndicesParameter::setParam(const char* v)
 {
-    std::set<int> indices;
-
-    if (!parseIndices(v, &indices, true)) {
-        vlog.error(_("Invalid configuration specified for %s"), name);
+    if (!IntListParameter::setParam(v))
         return false;
-    }
 
-    for (int index : indices) {
-        index += 1;
+    for (int index : value) {
         if (index <= 0 || index > Fl::screen_count())
             vlog.error(_("Monitor index %d does not exist"), index);
     }
 
-    return StringParameter::setParam(v);
+    return true;
 }
 
-bool MonitorIndicesParameter::setParam(std::set<int> indices)
+void MonitorIndicesParameter::setMonitors(const std::set<int>& indices)
 {
-    static const int BUF_MAX_LEN = 1024;
-    char buf[BUF_MAX_LEN] = {0};
-    std::set<int> configIndices;
+    std::list<int> configIndices;
     std::vector<MonitorIndicesParameter::Monitor> monitors = fetchMonitors();
 
     if (monitors.size() <=  0) {
@@ -104,88 +88,10 @@ bool MonitorIndicesParameter::setParam(std::set<int> indices)
 
     for (int i = 0; i < ((int) monitors.size()); i++) {
         if (std::find(indices.begin(), indices.end(), monitors[i].fltkIndex) != indices.end())
-            configIndices.insert(i);
+            configIndices.push_back(i+1);
     }
 
-    int bytesWritten = 0;
-    char const * separator = "";
-
-    for (int configIndex : configIndices)
-    {
-        bytesWritten += snprintf(
-            buf+bytesWritten,
-            BUF_MAX_LEN-bytesWritten,
-            "%s%u",
-            separator,
-            configIndex+1
-        );
-
-        separator = ",";
-    }
-
-    return setParam(buf);
-}
-
-static bool parseNumber(std::string number, std::set<int> *indices)
-{
-    if (number.size() <= 0)
-        return false;
-
-    int v = strtol(number.c_str(), nullptr, 0);
-
-    if (v <= 0)
-        return false;
-
-    if (v > INT_MAX)
-        return false;
-
-    indices->insert(v-1);
-    return true;
-}
-
-bool MonitorIndicesParameter::parseIndices(const char* value,
-                                           std::set<int> *indices,
-                                           bool complain)
-{
-    char d;
-    std::string current;
-
-    for (size_t i = 0; i < strlen(value); i++) {
-        d = value[i];
-
-        if (d == ' ')
-            continue;
-        else if (d >= '0' && d <= '9')
-            current.push_back(d);
-        else if (d == ',') {
-            if (!parseNumber(current, indices)) {
-                if (complain)
-                    vlog.error(_("Invalid monitor index '%s'"),
-                               current.c_str());
-                return false;
-            }
-
-            current.clear();
-        } else {
-            if (complain)
-                vlog.error(_("Unexpected character '%c'"), d);
-            return false;
-        }
-    }
-
-    // If we have nothing left to parse we are in a valid state.
-    if (current.size() == 0)
-        return true;
-
-    // Parsing anything we have left.
-    if (!parseNumber(current, indices)) {
-        if (complain)
-            vlog.error(_("Invalid monitor index '%s'"),
-                       current.c_str());
-        return false;
-    }
-
-    return true;
+    IntListParameter::setParam(configIndices);
 }
 
 std::vector<MonitorIndicesParameter::Monitor> MonitorIndicesParameter::fetchMonitors()

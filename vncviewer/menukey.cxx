@@ -70,7 +70,7 @@ void getMenuKey(int *fltkcode, int *keycode, uint32_t *keysym)
 {
   const char *menuKeyStr;
 
-  menuKeyStr = menuKey;
+  menuKeyStr = menuKey.getValueStr().c_str();
   for(int i = 0; i < getMenuKeySymbolCount(); i++) {
     if (!strcmp(menuSymbols[i].name, menuKeyStr)) {
       *fltkcode = menuSymbols[i].fltkcode;
