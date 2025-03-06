@@ -61,7 +61,7 @@ core::StringParameter SecurityClient::secTypes
 #ifdef HAVE_NETTLE
  "RA2,RA2_256,RA2ne,RA2ne_256,DH,MSLogonII,"
 #endif
- "VncAuth,None");
+ "Plain,VncAuth,None");
 
 CSecurity* SecurityClient::GetCSecurity(CConnection* cc, uint32_t secType)
 {
