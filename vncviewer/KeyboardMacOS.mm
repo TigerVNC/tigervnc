@@ -22,6 +22,8 @@
 
 #include <assert.h>
 
+#include <algorithm>
+
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 
@@ -54,7 +56,7 @@ extern const unsigned int code_map_osx_to_qnum_len;
 
 static core::LogWriter vlog("KeyboardMacOS");
 
-static const int kvk_map[][2] = {
+static const unsigned kvk_map[][2] = {
   { kVK_Return,         XK_Return },
   { kVK_Tab,            XK_Tab },
   { kVK_Space,          XK_space },
@@ -174,10 +176,25 @@ bool KeyboardMacOS::handleEvent(const void* event)
   if (isKeyPress(nsevent)) {
     uint32_t keyCode;
     uint32_t keySym;
+    unsigned modifiers;
 
     keyCode = translateSystemKeyCode(systemKeyCode);
 
-    keySym = translateEventKeysym(nsevent);
+    // We want a "normal" symbol out of the event, which basically means
+    // we only respect the shift and alt/altgr modifiers. Cocoa can help
+    // us if we only wanted shift, but as we also want alt/altgr, we'll
+    // have to do some lookup ourselves. This matches our behaviour on
+    // other platforms.
+
+    modifiers = 0;
+    if ([nsevent modifierFlags] & NSAlphaShiftKeyMask)
+      modifiers |= alphaLock;
+    if ([nsevent modifierFlags] & NSShiftKeyMask)
+      modifiers |= shiftKey;
+    if ([nsevent modifierFlags] & NSAlternateKeyMask)
+      modifiers |= optionKey;
+
+    keySym = translateToKeySym([nsevent keyCode], modifiers);
     if (keySym == NoSymbol) {
       vlog.error(_("No symbol for key code 0x%02x (in the current state)"),
                  systemKeyCode);
@@ -194,6 +211,51 @@ bool KeyboardMacOS::handleEvent(const void* event)
   }
 
   return true;
+}
+
+std::list<uint32_t> KeyboardMacOS::translateToKeySyms(int systemKeyCode)
+{
+  std::list<uint32_t> keySyms;
+  unsigned mods;
+
+  uint32_t ks;
+
+  // Start with no modifiers
+  ks = translateToKeySym(systemKeyCode, 0);
+  if (ks != NoSymbol)
+    keySyms.push_back(ks);
+
+  // Next just a single modifier at a time
+  for (mods = cmdKey; mods <= controlKey; mods <<= 1) {
+    std::list<uint32_t>::const_iterator iter;
+
+    ks = translateToKeySym(systemKeyCode, mods);
+    if (ks == NoSymbol)
+      continue;
+
+    iter = std::find(keySyms.begin(), keySyms.end(), ks);
+    if (iter != keySyms.end())
+      continue;
+
+    keySyms.push_back(ks);
+  }
+
+  // Finally everything
+  for (mods = cmdKey; mods < (controlKey << 1); mods += cmdKey) {
+    std::list<uint32_t>::const_iterator iter;
+
+    ks = translateToKeySym(systemKeyCode, mods);
+    if (ks == NoSymbol)
+      continue;
+
+    iter = std::find(keySyms.begin(), keySyms.end(), ks);
+    if (iter != keySyms.end())
+      continue;
+
+    keySyms.push_back(ks);
+  }
+
+  return keySyms;
 }
 
 unsigned KeyboardMacOS::getLEDState()
@@ -339,30 +401,35 @@ uint32_t KeyboardMacOS::translateSystemKeyCode(int systemKeyCode)
   return code_map_osx_to_qnum[systemKeyCode];
 }
 
-NSString* KeyboardMacOS::keyTranslate(unsigned keyCode,
-                                      unsigned modifierFlags)
+uint32_t KeyboardMacOS::translateToKeySym(unsigned keyCode,
+                                          unsigned modifierFlags)
 {
   const UCKeyboardLayout *layout;
   OSStatus err;
 
-  layout = nullptr;
-
   TISInputSourceRef keyboard;
   CFDataRef uchr;
+
+  UInt32 dead_state;
+  UniCharCount max_len, actual_len;
+  UniChar string[255];
+
+  // Start with keys that either don't generate a symbol, or
+  // generate the same symbol as some other key.
+  for (size_t i = 0;i < sizeof(kvk_map)/sizeof(kvk_map[0]);i++) {
+    if (keyCode == kvk_map[i][0])
+      return kvk_map[i][1];
+  }
 
   keyboard = TISCopyCurrentKeyboardLayoutInputSource();
   uchr = (CFDataRef)TISGetInputSourceProperty(keyboard,
                                               kTISPropertyUnicodeKeyLayoutData);
   if (uchr == nullptr)
-    return nil;
+    return NoSymbol;
 
   layout = (const UCKeyboardLayout*)CFDataGetBytePtr(uchr);
   if (layout == nullptr)
-    return nil;
-
-  UInt32 dead_state;
-  UniCharCount max_len, actual_len;
-  UniChar string[255];
+    return NoSymbol;
 
   dead_state = 0;
   max_len = sizeof(string)/sizeof(*string);
@@ -373,10 +440,12 @@ NSString* KeyboardMacOS::keyTranslate(unsigned keyCode,
                        LMGetKbdType(), 0, &dead_state, max_len, &actual_len,
                        string);
   if (err != noErr)
-    return nil;
+    return NoSymbol;
 
   // Dead key?
   if (dead_state != 0) {
+    unsigned combining;
+
     // We have no fool proof way of asking what dead key this is.
     // Assume we get a spacing equivalent if we press the
     // same key again, and try to deduce something from that.
@@ -384,34 +453,28 @@ NSString* KeyboardMacOS::keyTranslate(unsigned keyCode,
                          LMGetKbdType(), 0, &dead_state, max_len, &actual_len,
                          string);
     if (err != noErr)
-      return nil;
+      return NoSymbol;
+
+    // FIXME: Some dead keys are given as NBSP + combining character
+    if (actual_len != 1)
+      return NoSymbol;
+
+    combining = ucs2combining(string[0]);
+    if (combining == (unsigned)-1)
+      return NoSymbol;
+
+    return ucs2keysym(combining);
   }
 
-  return [NSString stringWithCharacters:string length:actual_len];
-}
-
-uint32_t KeyboardMacOS::translateEventKeysym(const NSEvent* nsevent)
-{
-  UInt16 key_code;
-  size_t i;
-
-  NSString *chars;
-  UInt32 modifiers;
-
-  key_code = [nsevent keyCode];
-
-  // Start with keys that either don't generate a symbol, or
-  // generate the same symbol as some other key.
-  for (i = 0;i < sizeof(kvk_map)/sizeof(kvk_map[0]);i++) {
-    if (key_code == kvk_map[i][0])
-      return kvk_map[i][1];
-  }
+  // Sanity check
+  if (actual_len != 1)
+    return NoSymbol;
 
   // OS X always sends the same key code for the decimal key on the
   // num pad, but X11 wants different keysyms depending on if it should
   // be a comma or full stop.
-  if (key_code == 0x41) {
-    switch ([[nsevent charactersIgnoringModifiers] UTF8String][0]) {
+  if (keyCode == 0x41) {
+    switch (string[0]) {
     case ',':
       return XK_KP_Separator;
     case '.':
@@ -421,33 +484,7 @@ uint32_t KeyboardMacOS::translateEventKeysym(const NSEvent* nsevent)
     }
   }
 
-  // We want a "normal" symbol out of the event, which basically means
-  // we only respect the shift and alt/altgr modifiers. Cocoa can help
-  // us if we only wanted shift, but as we also want alt/altgr, we'll
-  // have to do some lookup ourselves. This matches our behaviour on
-  // other platforms.
-
-  modifiers = 0;
-  if ([nsevent modifierFlags] & NSAlphaShiftKeyMask)
-    modifiers |= alphaLock;
-  if ([nsevent modifierFlags] & NSShiftKeyMask)
-    modifiers |= shiftKey;
-  if ([nsevent modifierFlags] & NSAlternateKeyMask)
-    modifiers |= optionKey;
-
-  chars = keyTranslate(key_code, modifiers);
-  if (chars == nil)
-    return NoSymbol;
-
-  // FIXME: Some dead keys are given as NBSP + combining character
-  if ([chars length] != 1)
-    return NoSymbol;
-
-  // Dead key?
-  if ([[nsevent characters] length] == 0)
-    return ucs2keysym(ucs2combining([chars characterAtIndex:0]));
-
-  return ucs2keysym([chars characterAtIndex:0]);
+  return ucs2keysym(string[0]);
 }
 
 int KeyboardMacOS::openHID(unsigned int* ioc)
