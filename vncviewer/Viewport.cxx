@@ -531,8 +531,21 @@ int Viewport::handle(int event)
 void Viewport::sendPointerEvent(const core::Point& pos,
                                 uint16_t buttonMask)
 {
-  if (viewOnly || ungrabbedGrabOnlyMouse())
-      return;
+  if (viewOnly)
+    return;
+
+  if (grabWithMouseClick > 0) {
+    if ((buttonMask != lastButtonMask) && (buttonMask & 0x1)) {
+      if (((DesktopWindow*)window())->forceGrab()) {
+        showCursor();
+        if (grabWithMouseClick == 2)
+          return;
+      }
+    }
+  }
+
+  if (ungrabbedGrabOnlyMouse())
+    return;
 
   if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
     try {
