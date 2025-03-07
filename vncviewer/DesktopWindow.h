@@ -80,6 +80,8 @@ public:
 
   void fullscreen_on();
 
+  bool forceGrab();
+  bool forceUngrab();
   void toggleForceGrab();
 
   bool isKeyboardGrabbed() const;
