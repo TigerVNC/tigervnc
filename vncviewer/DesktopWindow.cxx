@@ -826,15 +826,31 @@ void DesktopWindow::updateOverlay(void *data)
   self->damage(FL_DAMAGE_USER1);
 }
 
+bool DesktopWindow::forceGrab() {
+  if (keyboardGrabbed && mouseGrabbed && forceGrabbed) {
+    return false;
+  }
+  grabPointer();
+  grabKeyboard();
+  forceGrabbed = true;
+  return true;
+}
+
+bool DesktopWindow::forceUngrab() {
+  if (!keyboardGrabbed && !mouseGrabbed && !forceGrabbed) {
+    return false;
+  }
+  ungrabPointer();
+  ungrabKeyboard();
+  forceGrabbed = false;
+  return true;
+}
+
 void DesktopWindow::toggleForceGrab() {
   if (keyboardGrabbed && mouseGrabbed) {
-    ungrabPointer();
-    ungrabKeyboard();
-    forceGrabbed = false;
+    forceUngrab();
   } else {
-    grabPointer();
-    grabKeyboard();
-    forceGrabbed = true;
+    forceGrab();
   }
 }
 

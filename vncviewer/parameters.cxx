@@ -203,6 +203,11 @@ core::BoolParameter
   grabOnly("GrabOnly",
            "Activates both GrabOnlyKeyboard and GrabOnlyMouse.",
            false);
+core::IntParameter
+  grabWithMouseClick("GrabWithMouseClick",
+                     "Grab mouse and keyboard by left-clicking on the window. "
+                     "0 = Off, 1 = On, 2 = On but suppress the click event",
+                     0);
 
 core::BoolParameter
   shared("Shared",
@@ -291,6 +296,7 @@ static core::VoidParameter* parameterArray[] = {
   &grabOnlyKeyboard,
   &grabOnlyMouse,
   &grabOnly,
+  &grabWithMouseClick,
   &emulateMiddleButton,
   &alwaysCursor,
   &cursorType,

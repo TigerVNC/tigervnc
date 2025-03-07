@@ -643,6 +643,16 @@ void Viewport::flushPendingClipboard()
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
+  if (!viewOnly && grabWithMouseClick > 0) {
+    if (buttonMask & 0x1) {
+      if (((DesktopWindow*)window())->forceGrab()) {
+        showCursor();
+        if (grabWithMouseClick == 2)
+          return;
+      }
+    }
+  }
+
   filterPointerEvent(pos, buttonMask);
 }
 
