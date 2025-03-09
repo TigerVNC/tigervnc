@@ -181,6 +181,35 @@ core::BoolParameter
   viewOnly("ViewOnly",
            "Don't send any mouse or keyboard events to the server",
            false);
+
+core::BoolParameter
+  grabOnlyKeyboard("GrabOnlyKeyboard",
+                   "Send keyboard events to the server only when keyboard grab is active.",
+                   false);
+core::BoolParameter
+  grabOnlyMouse("GrabOnlyMouse",
+                "Send mouse events to the server only when mouse grab is active.",
+                false);
+core::BoolParameter
+  grabOnly("GrabOnly",
+           "Activates both GrabOnlyKeyboard and GrabOnlyMouse.",
+           false);
+core::BoolParameter
+  grabToggleWithRightCtrl("GrabToggleWithRightCtrl",
+                          "Toggle mouse and keyboard grab by "
+                          "pressing the Right Ctrl key.",
+                          true);
+core::BoolParameter
+  grabToggleWithMiddleButton("GrabToggleWithMiddleButton",
+                             "Toggle mouse and keyboard grab by "
+                             "middle-clicking on the window.",
+                             false);
+core::IntParameter
+  grabWithMouseClick("GrabWithMouseClick",
+                     "Grab mouse and keyboard by left-clicking on the window. "
+                     "0 = Off, 1 = On, 2 = On but suppress the click event",
+                     0);
+
 core::BoolParameter
   shared("Shared",
          "Don't disconnect other viewers upon connection - "
@@ -195,6 +224,7 @@ core::BoolParameter
   sendClipboard("SendClipboard",
                 "Send clipboard changes to the server",
                 true);
+
 #if !defined(WIN32) && !defined(__APPLE__)
 core::BoolParameter
   setPrimary("SetPrimary",
@@ -258,6 +288,12 @@ static core::VoidParameter* parameterArray[] = {
   &fullScreenSelectedMonitors,
   /* Input */
   &viewOnly,
+  &grabOnlyKeyboard,
+  &grabOnlyMouse,
+  &grabOnly,
+  &grabToggleWithRightCtrl,
+  &grabToggleWithMiddleButton,
+  &grabWithMouseClick,
   &emulateMiddleButton,
   &alwaysCursor,
   &cursorType,
