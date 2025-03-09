@@ -534,6 +534,14 @@ void Viewport::sendPointerEvent(const core::Point& pos,
   if (viewOnly)
     return;
 
+  if (grabToggleWithMiddleButton) {
+    if ((buttonMask != lastButtonMask) && (buttonMask & 0x2)) {
+      ((DesktopWindow*)window())->toggleForceGrab();
+      showCursor();
+      return;
+    }
+  }
+
   if (grabWithMouseClick > 0) {
     if ((buttonMask != lastButtonMask) && (buttonMask & 0x1)) {
       if (((DesktopWindow*)window())->forceGrab()) {
