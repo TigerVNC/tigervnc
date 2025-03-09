@@ -695,7 +695,7 @@ void Viewport::handleKeyPress(int systemKeyCode,
   static bool menuRecursion = false;
 
   // Right Ctrl
-  if (keySym == FL_Control_R) {
+  if (grabToggleWithRightCtrl && keySym == FL_Control_R) {
     return;
   }
 
@@ -730,7 +730,7 @@ void Viewport::handleKeyRelease(int systemKeyCode,
     return;
 
   // Right Ctrl
-  if (keySym == FL_Control_R) {
+  if (grabToggleWithRightCtrl && keySym == FL_Control_R) {
     ((DesktopWindow*)window())->toggleForceGrab();
     showCursor();
     return;
