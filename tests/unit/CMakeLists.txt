@@ -28,6 +28,10 @@ add_executable(hostport hostport.cxx)
 target_link_libraries(hostport network GTest::gtest_main)
 gtest_discover_tests(hostport)
 
+add_executable(hotkeyhandler hotkeyhandler.cxx ../../vncviewer/HotKeyHandler.cxx)
+target_link_libraries(hotkeyhandler core ${GETTEXT_LIBRARIES} GTest::gtest_main)
+gtest_discover_tests(hotkeyhandler)
+
 add_executable(pixelformat pixelformat.cxx)
 target_link_libraries(pixelformat rfb GTest::gtest_main)
 gtest_discover_tests(pixelformat)

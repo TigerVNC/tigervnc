@@ -35,8 +35,8 @@
 #endif
 
 #include "OptionsDialog.h"
+#include "HotKeyHandler.h"
 #include "i18n.h"
-#include "menukey.h"
 #include "parameters.h"
 
 #include "fltk/layout.h"
@@ -44,12 +44,18 @@
 #include "fltk/Fl_Monitor_Arrangement.h"
 #include "fltk/Fl_Navigation.h"
 
+#ifdef __APPLE__
+#include "cocoa.h"
+#endif
+
 #include <FL/Fl.H>
+#include <FL/Fl_Box.H>
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Round_Button.H>
+#include <FL/Fl_Toggle_Button.H>
 #include <FL/Fl_Int_Input.H>
 #include <FL/Fl_Choice.H>
 
@@ -82,6 +88,7 @@ OptionsDialog::OptionsDialog()
     createCompressionPage(tx, ty, tw, th);
     createSecurityPage(tx, ty, tw, th);
     createInputPage(tx, ty, tw, th);
+    createHotKeysPage(tx, ty, tw, th);
     createDisplayPage(tx, ty, tw, th);
     createMiscPage(tx, ty, tw, th);
   }
@@ -308,8 +315,6 @@ void OptionsDialog::loadOptions(void)
 #endif
 
   /* Input */
-  const char *menuKeyBuf;
-
   viewOnlyCheckbox->value(viewOnly);
   emulateMBCheckbox->value(emulateMiddleButton);
   acceptClipboardCheckbox->value(acceptClipboard);
@@ -322,12 +327,17 @@ void OptionsDialog::loadOptions(void)
 #endif
   systemKeysCheckbox->value(fullscreenSystemKeys);
 
-  menuKeyChoice->value(0);
+  /* Hot Keys */
+  unsigned comboMask;
 
-  menuKeyBuf = menuKey;
-  for (int idx = 0; idx < getMenuKeySymbolCount(); idx++)
-    if (!strcmp(getMenuKeySymbols()[idx].name, menuKeyBuf))
-      menuKeyChoice->value(idx + 1);
+  comboMask = HotKeyHandler::parseHotKeyCombo(hotKeyCombo);
+
+  ctrlButton->value(comboMask & HotKeyHandler::Control);
+  shiftButton->value(comboMask & HotKeyHandler::Shift);
+  altButton->value(comboMask & HotKeyHandler::Alt);
+  superButton->value(comboMask & HotKeyHandler::Super);
+
+  handleHotKey(nullptr, this);
 
   /* Display */
   if (!fullScreen) {
@@ -464,11 +474,20 @@ void OptionsDialog::storeOptions(void)
 #endif
   fullscreenSystemKeys.setParam(systemKeysCheckbox->value());
 
-  if (menuKeyChoice->value() == 0)
-    menuKey.setParam("");
-  else {
-    menuKey.setParam(menuKeyChoice->text());
-  }
+  /* Hot Keys */
+  unsigned comboMask;
+
+  comboMask = 0;
+  if (ctrlButton->value())
+    comboMask |= HotKeyHandler::Control;
+  if (shiftButton->value())
+    comboMask |= HotKeyHandler::Shift;
+  if (altButton->value())
+    comboMask |= HotKeyHandler::Alt;
+  if (superButton->value())
+    comboMask |= HotKeyHandler::Super;
+
+  hotKeyCombo.setParam(HotKeyHandler::hotKeyComboString(comboMask));
 
   /* Display */
   if (windowedButton->value()) {
@@ -894,18 +913,9 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
     systemKeysCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                       CHECK_MIN_WIDTH,
                                                       CHECK_HEIGHT,
-                                                      _("Pass system keys directly to server (full screen)")));
+                                                      _("Always grab control in full screen")));
+    systemKeysCheckbox->callback(handleSystemKeys, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
-
-    menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
-
-    fltk_menu_add(menuKeyChoice, _("None"), 0, nullptr, nullptr, FL_MENU_DIVIDER);
-    for (int idx = 0; idx < getMenuKeySymbolCount(); idx++)
-      fltk_menu_add(menuKeyChoice, getMenuKeySymbols()[idx].name, 0, nullptr, nullptr, 0);
-
-    fltk_adjust_choice(menuKeyChoice);
-
-    ty += CHOICE_HEIGHT + TIGHT_MARGIN;
   }
   ty -= TIGHT_MARGIN;
 
@@ -969,6 +979,76 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   /* Back to normal */
   tx = orig_tx;
   ty += INNER_MARGIN;
+
+  group->end();
+}
+
+
+void OptionsDialog::createHotKeysPage(int tx, int ty, int tw, int th)
+{
+  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Hot Keys"));
+
+  tx += OUTER_MARGIN;
+  ty += OUTER_MARGIN;
+
+  Fl_Box *intro = new Fl_Box(tx, ty, tw - OUTER_MARGIN * 2, INPUT_HEIGHT);
+  intro->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
+  intro->label(_("Currently active hot keys:"));
+
+  ty += INPUT_HEIGHT + INNER_MARGIN;
+
+  int width;
+
+  width = (tw - OUTER_MARGIN * 2 - INNER_MARGIN * 3) / 4;
+
+  ctrlButton = new Fl_Toggle_Button(tx, ty,
+                                    /*
+                                     * TRANSLATORS: This refers to the
+                                     * keyboard key
+                                     * */
+                                    width, BUTTON_HEIGHT, _("Ctrl"));
+  ctrlButton->selection_color(FL_SELECTION_COLOR);
+  ctrlButton->callback(handleHotKey, this);
+  shiftButton = new Fl_Toggle_Button(tx + width + INNER_MARGIN, ty,
+                                     /*
+                                      * TRANSLATORS: This refers to the
+                                      * keyboard key
+                                      * */
+                                     width, BUTTON_HEIGHT, _("Shift"));
+  shiftButton->selection_color(FL_SELECTION_COLOR);
+  shiftButton->callback(handleHotKey, this);
+  altButton = new Fl_Toggle_Button(tx + width * 2 + INNER_MARGIN * 2, ty,
+                                    /*
+                                     * TRANSLATORS: This refers to the
+                                     * keyboard key
+                                     * */
+                                   width, BUTTON_HEIGHT, _("Alt"));
+  altButton->selection_color(FL_SELECTION_COLOR);
+  altButton->callback(handleHotKey, this);
+  superButton = new Fl_Toggle_Button(tx + width * 3 + INNER_MARGIN * 3, ty,
+                                     /*
+                                      * TRANSLATORS: This refers to the
+                                      * keyboard key
+                                      * */
+                                     width, BUTTON_HEIGHT, _("Win"));
+  superButton->selection_color(FL_SELECTION_COLOR);
+  superButton->callback(handleHotKey, this);
+
+#ifdef __APPLE__
+  /* TRANSLATORS: This refers to the keyboard key */
+  ctrlButton->label(_("⌃ Ctrl"));
+  /* TRANSLATORS: This refers to the keyboard key */
+  shiftButton->label(_("⇧ Shift"));
+  /* TRANSLATORS: This refers to the keyboard key */
+  altButton->label(_("⌥ Option"));
+  /* TRANSLATORS: This refers to the keyboard key */
+  superButton->label(_("⌘ Cmd"));
+#endif
+
+  ty += BUTTON_HEIGHT + INNER_MARGIN;
+
+  hotKeyText = new Fl_Box(tx, ty, tw - OUTER_MARGIN * 2, th - ty - OUTER_MARGIN);
+  hotKeyText->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
 
   group->end();
 }
@@ -1142,6 +1222,20 @@ void OptionsDialog::handleRSAAES(Fl_Widget* /*widget*/, void *data)
 }
 
 
+void OptionsDialog::handleSystemKeys(Fl_Widget* /*widget*/, void* data)
+{
+#ifdef __APPLE__
+  OptionsDialog* dialog = (OptionsDialog*)data;
+
+  // Pop up the access dialog if needed
+  if (dialog->systemKeysCheckbox->value())
+    cocoa_is_trusted(true);
+#else
+  (void)data;
+#endif
+}
+
+
 void OptionsDialog::handleClipboard(Fl_Widget* /*widget*/, void *data)
 {
   (void)data;
@@ -1157,6 +1251,75 @@ void OptionsDialog::handleClipboard(Fl_Widget* /*widget*/, void *data)
   else
     dialog->sendPrimaryCheckbox->deactivate();
 #endif
+}
+
+void OptionsDialog::handleHotKey(Fl_Widget* /*widget*/, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+  unsigned mask;
+
+  mask = 0;
+  if (dialog->ctrlButton->value())
+    mask |= HotKeyHandler::Control;
+  if (dialog->shiftButton->value())
+    mask |= HotKeyHandler::Shift;
+  if (dialog->altButton->value())
+    mask |= HotKeyHandler::Alt;
+  if (dialog->superButton->value())
+    mask |= HotKeyHandler::Super;
+
+  if (mask == 0) {
+    snprintf(dialog->hotKeyTextBuffer,
+             sizeof(dialog->hotKeyTextBuffer), "%s",
+             _("All hot key combinations are disabled."));
+  } else {
+    char combo[256];
+    char combo_noplus[256];
+
+    strcpy(combo, HotKeyHandler::comboPrefix(mask));
+    strcpy(combo_noplus, HotKeyHandler::comboPrefix(mask, true));
+
+    snprintf(dialog->hotKeyTextBuffer,
+             sizeof(dialog->hotKeyTextBuffer),
+             _("To release control from the session, press %s.\n"
+               "\n"
+               "To grab control to the session, press %sG.\n"
+               "\n"
+               "To toggle full-screen mode, press %sEnter.\n"
+               "\n"
+               "To open session context menu, press %sM.\n"
+               "\n"
+               "To send a key combination that includes %s directly to the session, "
+               "press %sSpace, release the space bar without releasing %s, and "
+               "press the desired key."),
+             combo_noplus, combo, combo, combo,
+             combo_noplus, combo, combo_noplus);
+  }
+
+  /* FLTK can't reflow labels, so we'll have to do it manually */
+
+  char *prevdiv, *curdiv;
+  int maxw;
+
+  maxw = dialog->hotKeyText->w();
+  fl_font(FL_HELVETICA, FL_NORMAL_SIZE);
+  prevdiv = curdiv = strchr(dialog->hotKeyTextBuffer, ' ');
+  while (curdiv != nullptr) {
+    int w, h;
+
+    *curdiv = '\0';
+    w = h = 0;
+    fl_measure(dialog->hotKeyTextBuffer, w, h);
+    *curdiv = ' ';
+
+    if (w > maxw)
+      *prevdiv = '\n';
+
+    prevdiv = curdiv;
+    curdiv = strchr(curdiv + 1, ' ');
+  }
+
+  dialog->hotKeyText->label(dialog->hotKeyTextBuffer);
 }
 
 void OptionsDialog::handleFullScreenMode(Fl_Widget* /*widget*/, void *data)
