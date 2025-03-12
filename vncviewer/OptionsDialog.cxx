@@ -456,7 +456,7 @@ void OptionsDialog::storeOptions(void)
   fullscreenSystemKeys.setParam(systemKeysCheckbox->value());
 
   if (menuKeyChoice->value() == 0)
-    menuKey.setParam("");
+    menuKey.setParam("None");
   else {
     menuKey.setParam(menuKeyChoice->text());
   }
