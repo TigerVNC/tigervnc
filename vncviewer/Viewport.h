@@ -91,7 +91,8 @@ private:
 
   void handleKeyPress(int systemKeyCode,
                       uint32_t keyCode, uint32_t keySym) override;
-  void handleKeyRelease(int systemKeyCode) override;
+  void handleKeyRelease(int systemKeyCode,
+                        uint32_t keyCode, uint32_t keySym) override;
 
   static int handleSystemEvent(void *event, void *data);
 
@@ -103,6 +104,9 @@ private:
   void setMenuKey();
 
   static void handleOptions(void *data);
+
+  bool ungrabbedGrabOnlyKeyboard() const;
+  bool ungrabbedGrabOnlyMouse() const;
 
 private:
   CConn* cc;

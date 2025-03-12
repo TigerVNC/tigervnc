@@ -63,6 +63,14 @@ extern core::BoolParameter remoteResize;
 extern core::BoolParameter listenMode;
 
 extern core::BoolParameter viewOnly;
+
+extern core::BoolParameter grabOnlyKeyboard;
+extern core::BoolParameter grabOnlyMouse;
+extern core::BoolParameter grabOnly;
+extern core::BoolParameter grabToggleWithRightCtrl;
+extern core::BoolParameter grabToggleWithMiddleButton;
+extern core::IntParameter grabWithMouseClick;
+
 extern core::BoolParameter shared;
 
 extern core::BoolParameter acceptClipboard;
