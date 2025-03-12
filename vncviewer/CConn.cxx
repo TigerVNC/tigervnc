@@ -584,6 +584,8 @@ void CConn::handleOptions(void *data)
     self->setQualityLevel(-1);
 
   self->updatePixelFormat();
+
+  self->refreshFramebuffer();
 }
 
 void CConn::handleUpdateTimeout(void *data)
