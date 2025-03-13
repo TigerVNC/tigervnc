@@ -312,10 +312,8 @@ void CConn::initDone()
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
+  updateEncoding();
   updatePixelFormat();
-  int encNum = rfb::encodingNum(::preferredEncoding.getValueStr().c_str());
-  if (encNum != -1)
-    setPreferredEncoding(encNum);
 }
 
 void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
@@ -385,8 +383,11 @@ void CConn::framebufferUpdateEnd()
   desktop->updateWindow();
 
   // Compute new settings based on updated bandwidth values
-  if (autoSelect)
-    autoSelectFormatAndEncoding();
+  if (autoSelect) {
+    updateEncoding();
+    updateQualityLevel();
+    updatePixelFormat();
+  }
 }
 
 // The rest of the callbacks are fairly self-explanatory...
@@ -472,31 +473,35 @@ void CConn::resizeFramebuffer()
   desktop->resizeFramebuffer(server.width(), server.height());
 }
 
-// autoSelectFormatAndEncoding() chooses the format and encoding appropriate
-// to the connection speed:
-//
-//   First we wait for at least one second of bandwidth measurement.
-//
-//   Above 16Mbps (i.e. LAN), we choose the second highest JPEG quality,
-//   which should be perceptually lossless.
-//
-//   If the bandwidth is below that, we choose a more lossy JPEG quality.
-//
-//   If the bandwidth drops below 256 Kbps, we switch to palette mode.
-//
-//   Note: The system here is fairly arbitrary and should be replaced
-//         with something more intelligent at the server end.
-//
-void CConn::autoSelectFormatAndEncoding()
+void CConn::updateEncoding()
 {
-  bool newFullColour = fullColour;
-  int newQualityLevel = ::qualityLevel;
+  int encNum;
 
-  // Always use Tight
-  setPreferredEncoding(rfb::encodingTight);
+  if (autoSelect)
+    encNum = rfb::encodingTight;
+  else
+    encNum = rfb::encodingNum(::preferredEncoding.getValueStr().c_str());
 
-  // Select appropriate quality level
-  if (!noJpeg) {
+  if (encNum != -1)
+    setPreferredEncoding(encNum);
+}
+
+void CConn::updateCompressLevel()
+{
+  if (customCompressLevel)
+    setCompressLevel(::compressLevel);
+  else
+    setCompressLevel(-1);
+}
+
+void CConn::updateQualityLevel()
+{
+  // Above 16Mbps (i.e. LAN), we choose the second highest JPEG quality,
+  // which should be perceptually lossless. If the bandwidth is below
+  // that, we choose a more lossy JPEG quality.
+  if (autoSelect && !noJpeg) {
+    int newQualityLevel;
+
     if (bpsEstimate > 16000000)
       newQualityLevel = 8;
     else
@@ -506,9 +511,18 @@ void CConn::autoSelectFormatAndEncoding()
       vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
                 (int)(bpsEstimate/1000), newQualityLevel);
       ::qualityLevel.setParam(newQualityLevel);
-      setQualityLevel(newQualityLevel);
     }
   }
+
+  if (!noJpeg)
+    setQualityLevel(::qualityLevel);
+  else
+    setQualityLevel(-1);
+}
+
+void CConn::updatePixelFormat()
+{
+  rfb::PixelFormat pf;
 
   if (server.beforeVersion(3, 8)) {
     // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
@@ -520,26 +534,22 @@ void CConn::autoSelectFormatAndEncoding()
     // old servers.
     return;
   }
-  
-  // Select best color level
-  newFullColour = (bpsEstimate > 256000);
-  if (newFullColour != fullColour) {
-    if (newFullColour)
-      vlog.info(_("Throughput %d kbit/s - full color is now enabled"),
-                (int)(bpsEstimate/1000));
-    else
-      vlog.info(_("Throughput %d kbit/s - full color is now disabled"),
-                (int)(bpsEstimate/1000));
-    fullColour.setParam(newFullColour);
-    updatePixelFormat();
-  } 
-}
 
-// requestNewUpdate() requests an update from the server, having set the
-// format and encoding appropriately.
-void CConn::updatePixelFormat()
-{
-  rfb::PixelFormat pf;
+  // If the bandwidth drops below 256 Kbps, we switch to palette mode.
+  if (autoSelect) {
+    bool newFullColour;
+
+    newFullColour = (bpsEstimate > 256000);
+    if (newFullColour != fullColour) {
+      if (newFullColour)
+        vlog.info(_("Throughput %d kbit/s - full color is now enabled"),
+                  (int)(bpsEstimate/1000));
+      else
+        vlog.info(_("Throughput %d kbit/s - full color is now disabled"),
+                  (int)(bpsEstimate/1000));
+      fullColour.setParam(newFullColour);
+    }
+  } 
 
   if (fullColour) {
     pf = fullColourPF;
@@ -564,27 +574,9 @@ void CConn::handleOptions(void *data)
 {
   CConn *self = (CConn*)data;
 
-  // Checking all the details of the current set of encodings is just
-  // a pain. Assume something has changed, as resending the encoding
-  // list is cheap. Avoid overriding what the auto logic has selected
-  // though.
-  if (!autoSelect) {
-    int encNum = rfb::encodingNum(::preferredEncoding.getValueStr().c_str());
-
-    if (encNum != -1)
-      self->setPreferredEncoding(encNum);
-  }
-
-  if (customCompressLevel)
-    self->setCompressLevel(::compressLevel);
-  else
-    self->setCompressLevel(-1);
-
-  if (!noJpeg && !autoSelect)
-    self->setQualityLevel(::qualityLevel);
-  else
-    self->setQualityLevel(-1);
-
+  self->updateEncoding();
+  self->updateCompressLevel();
+  self->updateQualityLevel();
   self->updatePixelFormat();
 }
 
