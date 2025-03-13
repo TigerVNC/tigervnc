@@ -51,7 +51,8 @@ const char* winvnc::VNCServerWin32::RegConfigPath = "Software\\TigerVNC\\WinVNC4
 
 
 static IntParameter port_number("PortNumber",
-  "TCP/IP port on which the server will accept connections", 5900);
+  "TCP/IP port on which the server will accept connections",
+  5900, 0, 65535);
 static StringParameter hosts("Hosts",
   "Filter describing which hosts are allowed access to this server", "+");
 static BoolParameter localHost("LocalHost",

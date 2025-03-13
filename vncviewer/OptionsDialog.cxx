@@ -159,27 +159,18 @@ void OptionsDialog::loadOptions(void)
   /* Compression */
   autoselectCheckbox->value(autoSelect);
 
-  int encNum = rfb::encodingNum(preferredEncoding);
-
-  switch (encNum) {
-  case rfb::encodingTight:
+  if (preferredEncoding == "Tight")
     tightButton->setonly();
-    break;
-  case rfb::encodingZRLE:
+  else if (preferredEncoding == "ZRLE")
     zrleButton->setonly();
-    break;
-  case rfb::encodingHextile:
+  else if (preferredEncoding == "Hextile")
     hextileButton->setonly();
-    break;
 #ifdef HAVE_H264
-  case rfb::encodingH264:
+  else if (preferredEncoding == "H.264")
     h264Button->setonly();
-    break;
 #endif
-  case rfb::encodingRaw:
+  else if (preferredEncoding == "Raw")
     rawButton->setonly();
-    break;
-  }
 
   if (fullColour)
     fullcolorCheckbox->setonly();
@@ -308,8 +299,6 @@ void OptionsDialog::loadOptions(void)
 #endif
 
   /* Input */
-  const char *menuKeyBuf;
-
   viewOnlyCheckbox->value(viewOnly);
   emulateMBCheckbox->value(emulateMiddleButton);
   acceptClipboardCheckbox->value(acceptClipboard);
@@ -324,25 +313,24 @@ void OptionsDialog::loadOptions(void)
 
   menuKeyChoice->value(0);
 
-  menuKeyBuf = menuKey;
   for (int idx = 0; idx < getMenuKeySymbolCount(); idx++)
-    if (!strcmp(getMenuKeySymbols()[idx].name, menuKeyBuf))
+    if (menuKey == getMenuKeySymbols()[idx].name)
       menuKeyChoice->value(idx + 1);
 
   /* Display */
   if (!fullScreen) {
     windowedButton->setonly();
   } else {
-    if (!strcasecmp(fullScreenMode, "all")) {
+    if (fullScreenMode == "all") {
       allMonitorsButton->setonly();
-    } else if (!strcasecmp(fullScreenMode, "selected")) {
+    } else if (fullScreenMode == "selected") {
       selectedMonitorsButton->setonly();
     } else {
       currentMonitorButton->setonly();
     }
   }
 
-  monitorArrangement->value(fullScreenSelectedMonitors.getParam());
+  monitorArrangement->value(fullScreenSelectedMonitors.getMonitors());
 
   handleFullScreenMode(selectedMonitorsButton, this);
 
@@ -350,7 +338,7 @@ void OptionsDialog::loadOptions(void)
   sharedCheckbox->value(shared);
   reconnectCheckbox->value(reconnectOnError);
   alwaysCursorCheckbox->value(alwaysCursor);
-  if (!strcasecmp(cursorType, "system")) {
+  if (cursorType == "system") {
     cursorTypeChoice->value(1);
   } else {
     // Default
@@ -465,7 +453,7 @@ void OptionsDialog::storeOptions(void)
   fullscreenSystemKeys.setParam(systemKeysCheckbox->value());
 
   if (menuKeyChoice->value() == 0)
-    menuKey.setParam("");
+    menuKey.setParam("None");
   else {
     menuKey.setParam(menuKeyChoice->text());
   }
@@ -485,7 +473,7 @@ void OptionsDialog::storeOptions(void)
     }
   }
 
-  fullScreenSelectedMonitors.setParam(monitorArrangement->value());
+  fullScreenSelectedMonitors.setMonitors(monitorArrangement->value());
 
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
@@ -1209,7 +1197,7 @@ void OptionsDialog::handleScreenConfigTimeout(void *data)
 
     assert(self);
 
-    self->monitorArrangement->value(fullScreenSelectedMonitors.getParam());
+    self->monitorArrangement->value(fullScreenSelectedMonitors.getMonitors());
 }
 
 void OptionsDialog::handleAlwaysCursor(Fl_Widget* /*widget*/, void *data)

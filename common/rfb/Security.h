@@ -26,7 +26,10 @@
 
 #include <list>
 
-namespace core { class StringParameter; }
+namespace core {
+  class EnumListParameter;
+  class StringParameter;
+}
 
 namespace rfb {
 
@@ -77,7 +80,7 @@ namespace rfb {
      * Create Security instance.
      */
     Security();
-    Security(core::StringParameter& secTypes);
+    Security(core::EnumListParameter& secTypes);
 
     /*
      * Note about security types.
@@ -115,7 +118,6 @@ namespace rfb {
 
   const char* secTypeName(uint32_t num);
   uint32_t secTypeNum(const char* name);
-  std::list<uint32_t> parseSecTypes(const char* types);
 
 }
 

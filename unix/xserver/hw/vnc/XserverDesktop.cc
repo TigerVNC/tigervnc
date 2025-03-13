@@ -70,7 +70,7 @@ core::IntParameter
   queryConnectTimeout("QueryConnectTimeout",
                       "Number of seconds to show the 'Accept "
                       "connection' dialog before rejecting the "
-                      "connection", 10);
+                      "connection", 10, 0, INT_MAX);
 
 
 XserverDesktop::XserverDesktop(int screenIndex_,

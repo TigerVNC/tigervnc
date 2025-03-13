@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2022 Pierre Ossman for Cendio AB
+ * Copyright 2011-2025 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 #include <stdint.h>
 
 #include <list>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -200,6 +201,25 @@ namespace core {
     std::string def_value;
   };
 
+  class EnumParameter : public VoidParameter {
+  public:
+    EnumParameter(const char* name_, const char* desc_,
+                  const std::set<const char*>& enums, const char* v);
+    bool setParam(const char* value) override;
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
+    bool operator==(const char* other) const;
+    bool operator==(const std::string& other) const;
+    bool operator!=(const char* other) const;
+    bool operator!=(const std::string& other) const;
+    // operator const char*() omitted on purpose to force usage of above
+    // comparison operators
+  protected:
+    std::string value;
+    std::string def_value;
+    std::set<std::string> enums;
+  };
+
   class BinaryParameter : public VoidParameter {
   public:
     BinaryParameter(const char* name_, const char* desc_,
@@ -218,6 +238,107 @@ namespace core {
     size_t length;
     uint8_t* def_value;
     size_t def_length;
+  };
+
+  template<typename ValueType>
+  class ListParameter : public VoidParameter {
+  public:
+    typedef std::list<ValueType> ListType;
+    typedef typename ListType::const_iterator const_iterator;
+
+    ListParameter(const char* name_, const char* desc_,
+                  const ListType& v);
+    using VoidParameter::setParam;
+    bool setParam(const char* value) override;
+    virtual bool setParam(const ListType& v);
+    std::string getDefaultStr() const override;
+    std::string getValueStr() const override;
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+  protected:
+    virtual bool decodeEntry(const char* entry, ValueType* out) const = 0;
+    virtual std::string encodeEntry(const ValueType& entry) const = 0;
+    virtual bool validateEntry(const ValueType& entry) const;
+    virtual ValueType normaliseEntry(const ValueType& entry) const;
+
+  protected:
+    ListType value;
+    ListType def_value;
+  };
+
+  class IntListParameter : public ListParameter<int> {
+  public:
+    IntListParameter(const char* name_, const char* desc_,
+                     const ListType& v,
+                     int minValue=INT_MIN, int maxValue=INT_MAX);
+  protected:
+    bool decodeEntry(const char* entry, int* out) const override;
+    std::string encodeEntry(const int& entry) const override;
+    bool validateEntry(const int& entry) const override;
+
+  protected:
+    int minValue, maxValue;
+  };
+
+  class StringListParameter : public ListParameter<std::string> {
+  public:
+    StringListParameter(const char* name_, const char* desc_,
+                        const std::list<const char*>& v);
+
+    class const_iterator :  public ListType::const_iterator {
+    public:
+      const_iterator(const ListType::const_iterator& it) : ListType::const_iterator(it) {}
+      const char* operator*() const { return (ListType::const_iterator::operator*()).c_str(); }
+    };
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+  protected:
+    bool decodeEntry(const char* entry, std::string* out) const override;
+    std::string encodeEntry(const std::string& entry) const override;
+  };
+
+  class EnumListEntry {
+  public:
+    EnumListEntry(const std::string& v);
+    std::string getValueStr() const;
+    bool operator==(const char* other) const;
+    bool operator==(const std::string& other) const;
+    bool operator!=(const char* other) const;
+    bool operator!=(const std::string& other) const;
+    // operator const char*() omitted on purpose to force usage of above
+    // comparison operators
+  protected:
+    std::string value;
+  };
+
+  class EnumListParameter : public ListParameter<std::string> {
+  public:
+    EnumListParameter(const char* name_, const char* desc_,
+                      const std::set<const char*>& enums,
+                      const std::list<const char*>& v);
+
+    class const_iterator :  public ListType::const_iterator {
+    public:
+      const_iterator(const ListType::const_iterator& it) : ListType::const_iterator(it) {}
+      const EnumListEntry operator*() const { return EnumListEntry(ListType::const_iterator::operator*()); }
+      const EnumListEntry operator->() const { return EnumListEntry(*ListType::const_iterator::operator->()); }
+    };
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+  protected:
+    bool decodeEntry(const char* entry, std::string* out) const override;
+    std::string encodeEntry(const std::string& entry) const override;
+    bool validateEntry(const std::string& entry) const override;
+    std::string normaliseEntry(const std::string& entry) const override;
+
+  protected:
+    std::set<std::string> enums;
   };
 
 };

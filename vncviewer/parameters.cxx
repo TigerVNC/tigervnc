@@ -55,7 +55,7 @@ core::IntParameter
   pointerEventInterval("PointerEventInterval",
                        "Time in milliseconds to rate-limit successive "
                        "pointer events",
-                       17);
+                       17, 0, INT_MAX);
 core::BoolParameter
   emulateMiddleButton("EmulateMiddleButton",
                       "Emulate middle mouse button by pressing left "
@@ -71,11 +71,11 @@ core::BoolParameter
                "Show the local cursor when the server sends an "
                "invisible cursor",
                false);
-core::StringParameter
+core::EnumParameter
   cursorType("CursorType",
              "Specify which cursor type the local cursor should be. "
              "Should be either Dot or System",
-             "Dot");
+             {"Dot", "System"}, "Dot");
 
 core::BoolParameter
   alertOnFatalError("AlertOnFatalError",
@@ -109,14 +109,22 @@ core::IntParameter
   lowColourLevel("LowColorLevel",
                  "Color level to use on slow connections. "
                  "0 = Very Low, 1 = Low, 2 = Medium",
-                 2);
+                 2, 0, 2);
 core::AliasParameter
   lowColourLevelAlias("LowColourLevel",
                       "Alias for LowColorLevel", &lowColourLevel);
-core::StringParameter
+core::EnumParameter
   preferredEncoding("PreferredEncoding",
-                    "Preferred encoding to use (Tight, ZRLE, Hextile "
+                    "Preferred encoding to use (Tight, ZRLE, Hextile, "
+#ifdef HAVE_H264
+                    "H.264, "
+#endif
                     "or Raw)",
+                    {"Tight", "ZRLE", "Hextile",
+#ifdef HAVE_H264
+                     "H.264",
+#endif
+                     "Raw"},
                     "Tight");
 core::BoolParameter
   customCompressLevel("CustomCompressLevel",
@@ -126,7 +134,7 @@ core::BoolParameter
 core::IntParameter
   compressLevel("CompressLevel",
                 "Use specified compression level 0 = Low, 9 = High",
-                2);
+                2, 0, 9);
 core::BoolParameter
   noJpeg("NoJPEG",
          "Disable lossy JPEG compression in Tight encoding.",
@@ -134,17 +142,18 @@ core::BoolParameter
 core::IntParameter
   qualityLevel("QualityLevel",
                "JPEG quality level. 0 = Low, 9 = High",
-               8);
+               8, 0, 9);
 
 core::BoolParameter
   maximize("Maximize", "Maximize viewer window", false);
 core::BoolParameter
   fullScreen("FullScreen", "Enable full screen", false);
-core::StringParameter
+core::EnumParameter
   fullScreenMode("FullScreenMode",
                  "Specify which monitors to use when in full screen. "
                  "Should be either Current, Selected or All",
-                 "Current");
+                 {"Current", "Selected", "All"}, "Current");
+
 core::BoolParameter
   fullScreenAllMonitors("FullScreenAllMonitors",
                         "[DEPRECATED] Enable full screen over all "
@@ -154,7 +163,7 @@ MonitorIndicesParameter
   fullScreenSelectedMonitors("FullScreenSelectedMonitors",
                              "Use the given list of monitors in full "
                              "screen when -FullScreenMode=Selected.",
-                             "1");
+                             {1});
 core::StringParameter
   desktopSize("DesktopSize",
               "Reconfigure desktop size on the server on connect (if "
@@ -213,8 +222,14 @@ core::StringParameter
           "");
 #endif
 
-core::StringParameter
-  menuKey("MenuKey", "The key which brings up the popup menu", "F8");
+// Empty string means None, for backward compatibility
+core::EnumParameter
+  menuKey("MenuKey",
+          "The key which brings up the popup menu",
+          {"", "None", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8",
+           "F9", "F10", "F11", "F12", "Pause", "Scroll_Lock", "Escape",
+           "Insert", "Delete", "Home", "Page_Up", "Page_Down"},
+          "F8");
 
 core::BoolParameter
   fullscreenSystemKeys("FullscreenSystemKeys",

@@ -112,23 +112,23 @@ bool LogWriter::setLogParams(const char* params) {
 
 
 LogParameter::LogParameter()
-  : StringParameter("Log",
+  : StringListParameter("Log",
     "Specifies which log output should be directed to "
     "which target logger, and the level of output to log. "
     "Format is <log>:<target>:<level>[, ...].",
-    "") {
+    {})
+{
 }
 
 bool LogParameter::setParam(const char* v) {
   if (immutable) return true;
   LogWriter::setLogParams("*::0");
-  StringParameter::setParam(v);
-  std::vector<std::string> parts;
-  parts = split(v, ',');
-  for (size_t i = 0; i < parts.size(); i++) {
-    if (parts[i].empty())
+  if (!StringListParameter::setParam(v))
+    return false;
+  for (const char* part : *this) {
+    if (part[0] == '\0')
         continue;
-    if (!LogWriter::setLogParams(parts[i].c_str()))
+    if (!LogWriter::setLogParams(part))
       return false;
   }
   return true;

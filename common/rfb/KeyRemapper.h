@@ -23,20 +23,17 @@
 
 #include <stdint.h>
 
-namespace core { class Mutex; }
-
 namespace rfb {
 
   class KeyRemapper {
   public:
-    KeyRemapper(const char* m="");
+    KeyRemapper();
     ~KeyRemapper();
-    void setMapping(const char* m);
+    void setMapping(const std::map<uint32_t,uint32_t>& m);
     uint32_t remapKey(uint32_t key) const;
     static KeyRemapper defInstance;
   private:
     std::map<uint32_t,uint32_t> mapping;
-    core::Mutex* mutex;
   };
 
 };

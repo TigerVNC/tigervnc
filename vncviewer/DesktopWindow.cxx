@@ -714,9 +714,10 @@ void DesktopWindow::menuOverlay(void* data)
 
   self = (DesktopWindow*)data;
 
-  if (strcmp((const char*)menuKey, "") != 0) {
+  // Empty string means None, for backward compatibility
+  if ((menuKey != "") && (menuKey != "None")) {
     self->setOverlay(_("Press %s to open the context menu"),
-                     (const char*)menuKey);
+                     menuKey.getValueStr().c_str());
   }
 }
 
@@ -1003,8 +1004,8 @@ int DesktopWindow::fltkHandle(int event)
 
 void DesktopWindow::fullscreen_on()
 {
-  bool allMonitors = !strcasecmp(fullScreenMode, "all");
-  bool selectedMonitors = !strcasecmp(fullScreenMode, "selected");
+  bool allMonitors = fullScreenMode == "all";
+  bool selectedMonitors = fullScreenMode == "selected";
   int top, bottom, left, right;
 
   if (not selectedMonitors and not allMonitors) {
@@ -1017,7 +1018,7 @@ void DesktopWindow::fullscreen_on()
     std::set<int> monitors;
 
     if (selectedMonitors and not allMonitors) {
-      std::set<int> selected = fullScreenSelectedMonitors.getParam();
+      std::set<int> selected = fullScreenSelectedMonitors.getMonitors();
       monitors.insert(selected.begin(), selected.end());
     } else {
       for (int idx = 0; idx < Fl::screen_count(); idx++)
