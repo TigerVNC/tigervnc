@@ -84,6 +84,8 @@ private:
 
   void flushPendingClipboard();
 
+  static void handleMenuClosed(void *data);
+
   void handlePointerEvent(const core::Point& pos, uint16_t buttonMask);
   static void handlePointerTimeout(void *data);
 
@@ -123,6 +125,7 @@ private:
   uint32_t menuKeySym;
   int menuKeyCode, menuKeyFLTK;
   Fl_Menu_Button *contextMenu;
+  bool menuOpened;
 
   bool menuCtrlKey;
   bool menuAltKey;
