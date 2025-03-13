@@ -51,7 +51,7 @@ Security::Security(core::EnumListParameter &secTypes)
     uint32_t typeNum = secTypeNum(type.getValueStr().c_str());
     // Should have been filtered by EnumListParameter, but let's have
     // a safety net
-    if (typeNum != secTypeInvalid)
+    if (typeNum == secTypeInvalid)
       throw std::logic_error("Unknown security type");
     enabledSecTypes.push_back(typeNum);
   }
