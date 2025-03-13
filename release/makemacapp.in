@@ -29,8 +29,6 @@ BUILD=@BUILD@
 SRCDIR=@CMAKE_SOURCE_DIR@
 BINDIR=@CMAKE_BINARY_DIR@
 
-cd $BINDIR
-
 if [ -f $PACKAGE_NAME.dmg ]; then
 	rm -f $PACKAGE_NAME.dmg
 fi
@@ -41,13 +39,13 @@ APPROOT="$TMPDIR/dmg/TigerVNC viewer $VERSION.app"
 mkdir -p "$APPROOT/Contents/MacOS"
 mkdir -p "$APPROOT/Contents/Resources"
 
-install -m 755 vncviewer/vncviewer "$APPROOT/Contents/MacOS/TigerVNC viewer"
+install -m 755 $BINDIR/vncviewer/vncviewer "$APPROOT/Contents/MacOS/TigerVNC viewer"
 install -m 644 $SRCDIR/media/icons/tigervnc.icns "$APPROOT/Contents/Resources/"
-install -m 644 release/Info.plist "$APPROOT/Contents/"
+install -m 644 $BINDIR/release/Info.plist "$APPROOT/Contents/"
 
 for lang in `cat "$SRCDIR/po/LINGUAS"`; do
 	mkdir -p "$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES"
-	install -m 644 po/$lang.mo \
+	install -m 644 $BINDIR/po/$lang.mo \
 		"$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES/tigervnc.mo"
 done
 

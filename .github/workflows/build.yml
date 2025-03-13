@@ -107,7 +107,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: macOS
-          path: build/TigerVNC-*.dmg
+          path: build/release/TigerVNC-*.dmg
       - name: Test
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
