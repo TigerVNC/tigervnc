@@ -607,7 +607,9 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
   cmd2 = strdup(cmd);
   while ((percent = strchr(cmd2, '%')) != nullptr)
     *percent = '$';
-  system(cmd2);
+  int res = system(cmd2);
+  if (res != 0)
+    fprintf(stderr, "Failed to create tunnel: '%s' returned %d\n", cmd2, res);
   free(cmd2);
 }
 
