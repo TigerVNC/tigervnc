@@ -10,7 +10,7 @@
   <id>org.tigervnc.vncviewer</id>
   <metadata_license>FSFAP</metadata_license>
   <project_license>GPL-2.0-or-later</project_license>
-  <name>TigerVNC Viewer</name>
+  <name>TigerVNC</name>
   <summary>Connect to VNC server and display remote desktop</summary>
   <content_rating type="oars-1.1"/>
   <description>
@@ -30,15 +30,15 @@
   <launchable type="desktop-id">vncviewer.desktop</launchable>
   <screenshots>
     <screenshot type="default">
-      <caption>TigerVNC viewer connection to a CentOS machine</caption>
+      <caption>TigerVNC connection to a CentOS machine</caption>
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-linux.jpg</image>
     </screenshot>
     <screenshot>
-      <caption>TigerVNC viewer connection to a macOS machine</caption>
+      <caption>TigerVNC connection to a macOS machine</caption>
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-macos.jpg</image>
     </screenshot>
     <screenshot>
-      <caption>TigerVNC viewer connection to a Windows machine</caption>
+      <caption>TigerVNC connection to a Windows machine</caption>
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-windows.jpg</image>
     </screenshot>
   </screenshots>
