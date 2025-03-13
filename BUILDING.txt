@@ -327,9 +327,9 @@ make tarball
 
   Create a binary tarball containing the TigerVNC viewer
 
-make servertarball
 
-  Create a binary tarball containing both the TigerVNC server and viewer
+macOS
+-----
 
 make dmg
 
