@@ -42,21 +42,20 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
   TLSOutStream* self= (TLSOutStream*) str;
   OutStream *out = self->out;
 
-  delete self->saved_exception;
   self->saved_exception = nullptr;
 
   try {
     out->writeBytes((const uint8_t*)data, size);
     out->flush();
-  } catch (core::socket_error& e) {
-    vlog.error("Failure sending TLS data: %s", e.what());
-    gnutls_transport_set_errno(self->session, e.err);
-    self->saved_exception = new core::socket_error(e);
-    return -1;
   } catch (std::exception& e) {
+    core::socket_error* se;
     vlog.error("Failure sending TLS data: %s", e.what());
-    gnutls_transport_set_errno(self->session, EINVAL);
-    self->saved_exception = new std::runtime_error(e.what());
+    se = dynamic_cast<core::socket_error*>(&e);
+    if (se)
+      gnutls_transport_set_errno(self->session, se->err);
+    else
+      gnutls_transport_set_errno(self->session, EINVAL);
+    self->saved_exception = std::current_exception();
     return -1;
   }
 
@@ -64,7 +63,7 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
 }
 
 TLSOutStream::TLSOutStream(OutStream* _out, gnutls_session_t _session)
-  : session(_session), out(_out), saved_exception(nullptr)
+  : session(_session), out(_out)
 {
   gnutls_transport_ptr_t recv, send;
 
@@ -82,8 +81,6 @@ TLSOutStream::~TLSOutStream()
   }
 #endif
   gnutls_transport_set_push_function(session, nullptr);
-
-  delete saved_exception;
 }
 
 void TLSOutStream::flush()
@@ -116,12 +113,8 @@ size_t TLSOutStream::writeTLS(const uint8_t* data, size_t length)
   if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
     return 0;
 
-  if (n == GNUTLS_E_PUSH_ERROR) {
-    if (dynamic_cast<core::socket_error*>(saved_exception))
-      throw *dynamic_cast<core::socket_error*>(saved_exception);
-    else
-      throw std::runtime_error(saved_exception->what());
-  }
+  if (n == GNUTLS_E_PUSH_ERROR)
+    std::rethrow_exception(saved_exception);
 
   if (n < 0)
     throw tls_error("writeTLS", n);

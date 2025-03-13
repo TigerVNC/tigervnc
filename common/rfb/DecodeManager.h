@@ -19,6 +19,7 @@
 #ifndef __RFB_DECODEMANAGER_H__
 #define __RFB_DECODEMANAGER_H__
 
+#include <exception>
 #include <list>
 
 #include <core/Region.h>
@@ -55,7 +56,7 @@ namespace rfb {
   private:
     void logStats();
 
-    void setThreadException(const std::exception& e);
+    void setThreadException();
     void throwThreadException();
 
   private:
@@ -108,7 +109,7 @@ namespace rfb {
     };
 
     std::list<DecodeThread*> threads;
-    std::exception *threadException;
+    std::exception_ptr threadException;
   };
 
 }

@@ -42,7 +42,7 @@ namespace rdr {
     gnutls_session_t session;
     OutStream* out;
 
-    std::exception* saved_exception;
+    std::exception_ptr saved_exception;
   };
 };
 

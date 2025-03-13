@@ -42,7 +42,6 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
   InStream *in = self->in;
 
   self->streamEmpty = false;
-  delete self->saved_exception;
   self->saved_exception = nullptr;
 
   try {
@@ -58,15 +57,15 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
     in->readBytes((uint8_t*)data, size);
   } catch (end_of_stream&) {
     return 0;
-  } catch (core::socket_error& e) {
-    vlog.error("Failure reading TLS data: %s", e.what());
-    gnutls_transport_set_errno(self->session, e.err);
-    self->saved_exception = new core::socket_error(e);
-    return -1;
   } catch (std::exception& e) {
+    core::socket_error* se;
     vlog.error("Failure reading TLS data: %s", e.what());
-    gnutls_transport_set_errno(self->session, EINVAL);
-    self->saved_exception = new std::runtime_error(e.what());
+    se = dynamic_cast<core::socket_error*>(&e);
+    if (se)
+      gnutls_transport_set_errno(self->session, se->err);
+    else
+      gnutls_transport_set_errno(self->session, EINVAL);
+    self->saved_exception = std::current_exception();
     return -1;
   }
 
@@ -74,7 +73,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr_t str, void* data, size_t size)
 }
 
 TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
-  : session(_session), in(_in), saved_exception(nullptr)
+  : session(_session), in(_in)
 {
   gnutls_transport_ptr_t recv, send;
 
@@ -86,8 +85,6 @@ TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
 TLSInStream::~TLSInStream()
 {
   gnutls_transport_set_pull_function(session, nullptr);
-
-  delete saved_exception;
 }
 
 bool TLSInStream::fillBuffer()
@@ -119,12 +116,8 @@ size_t TLSInStream::readTLS(uint8_t* buf, size_t len)
     break;
   };
 
-  if (n == GNUTLS_E_PULL_ERROR) {
-    if (dynamic_cast<core::socket_error*>(saved_exception))
-      throw *dynamic_cast<core::socket_error*>(saved_exception);
-    else
-      throw std::runtime_error(saved_exception->what());
-  }
+  if (n == GNUTLS_E_PULL_ERROR)
+    std::rethrow_exception(saved_exception);
 
   if (n < 0)
     throw tls_error("readTLS", n);

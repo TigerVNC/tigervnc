@@ -85,8 +85,6 @@ DecodeManager::~DecodeManager()
     threads.pop_back();
   }
 
-  delete threadException;
-
   while (!freeBuffers.empty()) {
     delete freeBuffers.back();
     freeBuffers.pop_back();
@@ -242,30 +240,29 @@ void DecodeManager::logStats()
             core::iecPrefix(bytes, "B").c_str(), ratio);
 }
 
-void DecodeManager::setThreadException(const std::exception& e)
+void DecodeManager::setThreadException()
 {
   core::AutoMutex a(queueMutex);
 
-  if (threadException != nullptr)
+  if (threadException)
     return;
 
-  threadException = new std::runtime_error(
-    core::format("Exception on worker thread: %s", e.what()));
+  threadException = std::current_exception();
 }
 
 void DecodeManager::throwThreadException()
 {
   core::AutoMutex a(queueMutex);
 
-  if (threadException == nullptr)
+  if (!threadException)
     return;
 
-  std::runtime_error e(threadException->what());
-
-  delete threadException;
-  threadException = nullptr;
-
-  throw e;
+  try {
+    std::rethrow_exception(threadException);
+  } catch (...) {
+    threadException = nullptr;
+    throw;
+  }
 }
 
 DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager_)
@@ -319,7 +316,7 @@ void DecodeManager::DecodeThread::worker()
                                  entry->bufferStream->length(),
                                  *entry->server, entry->pb);
     } catch (std::exception& e) {
-      manager->setThreadException(e);
+      manager->setThreadException();
     } catch(...) {
       assert(false);
     }
