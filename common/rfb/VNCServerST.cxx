@@ -168,9 +168,15 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     connectTimer.start(core::secsToMillis(rfb::Server::maxConnectionTime));
   disconnectTimer.stop();
 
-  VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
-  clients.push_front(client);
-  client->init();
+  try {
+    VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
+    clients.push_front(client);
+    client->init();
+  } catch (std::exception& e) {
+    connectionsLog.error("Error accepting client: %s", e.what());
+    sock->shutdown();
+    closingSockets.push_back(sock);
+  }
 }
 
 void VNCServerST::removeSocket(network::Socket* sock) {
