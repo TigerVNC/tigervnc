@@ -142,12 +142,8 @@ bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
 
   // Read the rect
   bufferStream->clear();
-  try {
-    if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
-      return false;
-  } catch (std::exception& e) {
-    throw std::runtime_error(core::format("Error reading rect: %s", e.what()));
-  }
+  if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
+    return false;
 
   stats[encoding].rects++;
   stats[encoding].bytes += 12 + bufferStream->length();
