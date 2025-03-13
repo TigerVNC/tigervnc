@@ -7,7 +7,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>TigerVNC viewer</string>
 	<key>CFBundleExecutable</key>
-	<string>TigerVNC viewer</string>
+	<string>vncviewer</string>
 	<key>NSHighResolutionCapable</key>
 	<false/>
 	<key>CFBundleGetInfoString</key>
