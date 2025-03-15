@@ -228,10 +228,9 @@ See the GnuTLS manual for possible values. Default is \fBNORMAL\fP.
 .
 .TP
 .B \-HotKeyCombo \fIkeys\fP
-This option specifies which key combination trigger special actions in the
-viewer instead of being sent to the remote session. Possible values are a
-combination of \fBCtrl\fP, \fBShift\fP, \fBAlt\fP, and \fBSuper\fP. Default is
-\fBCtrl,Alt\fP.
+This key combination that triggers special actions in the viewer instead of
+being sent to the remote session. Possible values are a combination of
+\fBCtrl\fP, \fBShift\fP, \fBAlt\fP, and \fBSuper\fP. Default is \fBCtrl,Alt\fP.
 .
 .TP
 .B \-listen \fI[port]\fP
