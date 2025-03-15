@@ -1,4 +1,4 @@
-/* Copyright 2011-2021 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -321,7 +321,9 @@ void OptionsDialog::loadOptions(void)
   /* Hot Keys */
   unsigned comboMask;
 
-  comboMask = HotKeyHandler::parseHotKeyCombo(hotKeyCombo);
+  comboMask = 0;
+  for (core::EnumListEntry key : hotKeyCombo)
+    comboMask |= HotKeyHandler::parseHotKey(key.getValueStr().c_str());
 
   ctrlButton->value(comboMask & HotKeyHandler::Control);
   shiftButton->value(comboMask & HotKeyHandler::Shift);
@@ -466,19 +468,18 @@ void OptionsDialog::storeOptions(void)
   fullscreenSystemKeys.setParam(systemKeysCheckbox->value());
 
   /* Hot Keys */
-  unsigned comboMask;
+  std::list<std::string> comboList;
 
-  comboMask = 0;
   if (ctrlButton->value())
-    comboMask |= HotKeyHandler::Control;
+    comboList.push_back(HotKeyHandler::hotKeyString(HotKeyHandler::Control));
   if (shiftButton->value())
-    comboMask |= HotKeyHandler::Shift;
+    comboList.push_back(HotKeyHandler::hotKeyString(HotKeyHandler::Shift));
   if (altButton->value())
-    comboMask |= HotKeyHandler::Alt;
+    comboList.push_back(HotKeyHandler::hotKeyString(HotKeyHandler::Alt));
   if (superButton->value())
-    comboMask |= HotKeyHandler::Super;
+    comboList.push_back(HotKeyHandler::hotKeyString(HotKeyHandler::Super));
 
-  hotKeyCombo.setParam(HotKeyHandler::hotKeyComboString(comboMask));
+  hotKeyCombo.setParam(comboList);
 
   /* Display */
   if (windowedButton->value()) {

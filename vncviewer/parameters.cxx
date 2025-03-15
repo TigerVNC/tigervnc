@@ -222,11 +222,15 @@ core::StringParameter
           "");
 #endif
 
-core::StringParameter
+// Keep list of valid values in sync with HotKeyHandler
+core::EnumListParameter
   hotKeyCombo("HotKeyCombo",
               "The key combination that triggers special actions in "
-              "the viewer",
-              "Ctrl,Alt");
+              "the viewer instead of being sent to the remote session. "
+              "Possible values are a combination of Ctrl, Shift, Alt, "
+              "and Super.",
+              {"Ctrl", "Shift", "Alt", "Super", "Win", "Option", "Cmd"},
+              {"Ctrl", "Alt"});
 
 core::BoolParameter
   fullscreenSystemKeys("FullscreenSystemKeys",
