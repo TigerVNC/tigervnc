@@ -233,11 +233,14 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   }
 
   // Show hint about menu hot key
-  const char *combo;
+  unsigned comboMask = 0;
+  for (core::EnumListEntry key : hotKeyCombo)
+    comboMask |= HotKeyHandler::parseHotKey(key.getValueStr().c_str());
 
-  combo = HotKeyHandler::comboPrefix(hotKeyCombo);
-  if (combo[0] != '\0')
-    addOverlayTip(_("Press %sM to open the context menu"), combo);
+  if (comboMask) {
+    addOverlayTip(_("Press %sM to open the context menu"),
+                  HotKeyHandler::comboPrefix(comboMask));
+  }
 
   // By default we get a slight delay when we warp the pointer, something
   // we don't want or we'll get jerky movement
@@ -903,11 +906,16 @@ int DesktopWindow::handle(int event)
 
     // Show how to get out of full screen
     if (fullscreen_active()) {
-      const char *combo;
+      unsigned comboMask;
 
-      combo = HotKeyHandler::comboPrefix(hotKeyCombo);
-      if (combo[0] != '\0')
-        addOverlayTip(_("Press %sEnter to leave full-screen mode"), combo);
+      comboMask = 0;
+      for (core::EnumListEntry key : hotKeyCombo)
+        comboMask |= HotKeyHandler::parseHotKey(key.getValueStr().c_str());
+
+      if (comboMask) {
+        addOverlayTip(_("Press %sEnter to leave full-screen mode"),
+                      HotKeyHandler::comboPrefix(comboMask));
+      }
     }
 
 #ifdef __APPLE__
@@ -1165,7 +1173,7 @@ bool DesktopWindow::hasFocus()
 
 void DesktopWindow::grabKeyboard()
 {
-  const char *combo;
+  unsigned comboMask;
 
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
   // correct widget regardless of which low level window got the system
@@ -1230,9 +1238,14 @@ void DesktopWindow::grabKeyboard()
 
   updateCaption();
 
-  combo = (char*)HotKeyHandler::comboPrefix(hotKeyCombo, true);
-  if (combo[0] != '\0')
-    addOverlayTip(_("Press %s to release control from the session"), combo);
+  comboMask = 0;
+  for (core::EnumListEntry key : hotKeyCombo)
+    comboMask |= HotKeyHandler::parseHotKey(key.getValueStr().c_str());
+
+  if (comboMask) {
+    addOverlayTip(_("Press %s to release control from the session"),
+                  HotKeyHandler::comboPrefix(comboMask, true));
+  }
 }
 
 

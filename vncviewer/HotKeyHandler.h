@@ -1,4 +1,4 @@
-/* Copyright 2021 Pierre Ossman for Cendio AB
+/* Copyright 2021-2025 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ class HotKeyHandler {
 public:
   HotKeyHandler();
 
-  void setHotKeyCombo(const char* combo);
+  void setHotKeyCombo(unsigned mask);
 
   enum KeyAction {
     KeyNormal,
@@ -50,10 +50,9 @@ public:
     Super =   (1<<3),
   };
 
-  static unsigned parseHotKeyCombo(const char* combo);
-  static const char* hotKeyComboString(unsigned mask);
+  static unsigned parseHotKey(const char* key);
+  static const char* hotKeyString(unsigned key);
 
-  static const char* comboPrefix(const char* combo, bool justCombo=false);
   static const char* comboPrefix(unsigned mask, bool justCombo=false);
 
 private:

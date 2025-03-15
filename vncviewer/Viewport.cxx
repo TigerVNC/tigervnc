@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2021 Pierre Ossman for Cendio AB
+ * Copyright 2011-2025 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,7 +135,11 @@ Viewport::Viewport(int w, int h, CConn* cc_)
   // reparenting to the current window works for most cases.
   window()->add(contextMenu);
 
-  hotKeyHandler.setHotKeyCombo(hotKeyCombo);
+  unsigned comboMask = 0;
+  for (core::EnumListEntry key : hotKeyCombo)
+    comboMask |= HotKeyHandler::parseHotKey(key.getValueStr().c_str());
+
+  hotKeyHandler.setHotKeyCombo(comboMask);
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -1033,8 +1037,14 @@ void Viewport::popupContextMenu()
 void Viewport::handleOptions(void *data)
 {
   Viewport *self = (Viewport*)data;
+  unsigned comboMask;
 
-  self->hotKeyHandler.setHotKeyCombo(hotKeyCombo);
+  comboMask = 0;
+  for (core::EnumListEntry key : hotKeyCombo)
+    comboMask |= HotKeyHandler::parseHotKey(key.getValueStr().c_str());
+
+  self->hotKeyHandler.setHotKeyCombo(comboMask);
+
   if (Fl::belowmouse() == self)
     self->showCursor();
 }

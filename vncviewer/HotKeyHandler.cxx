@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Pierre Ossman for Cendio AB
+/* Copyright 2021-2025 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,6 @@
 #include <config.h>
 #endif
 
-#include <core/string.h>
-
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
 
@@ -33,9 +31,9 @@ HotKeyHandler::HotKeyHandler() :
 {
 }
 
-void HotKeyHandler::setHotKeyCombo(const char* combo)
+void HotKeyHandler::setHotKeyCombo(unsigned mask)
 {
-  comboMask = parseHotKeyCombo(combo);
+  comboMask = mask;
   reset();
 }
 
@@ -162,65 +160,39 @@ void HotKeyHandler::reset()
   pressedKeys.clear();
 }
 
-unsigned HotKeyHandler::parseHotKeyCombo(const char* combo)
+// Keep list of valid values in sync with hotKeyCombo
+unsigned HotKeyHandler::parseHotKey(const char* key)
 {
-  unsigned comboMask;
-  std::vector<std::string> keys;
-
-  comboMask = 0;
-  keys = core::split(combo, ',');
-  for (size_t i = 0; i < keys.size(); i++) {
-    if (strcasecmp(keys[i].c_str(), "Ctrl") == 0)
-      comboMask |= Control;
-    else if (strcasecmp(keys[i].c_str(), "Shift") == 0)
-      comboMask |= Shift;
-    else if (strcasecmp(keys[i].c_str(), "Alt") == 0)
-      comboMask |= Alt;
-    else if (strcasecmp(keys[i].c_str(), "Win") == 0)
-      comboMask |= Super;
-    else if (strcasecmp(keys[i].c_str(), "Super") == 0)
-      comboMask |= Super;
-    else if (strcasecmp(keys[i].c_str(), "Option") == 0)
-      comboMask |= Alt;
-    else if (strcasecmp(keys[i].c_str(), "Cmd") == 0)
-      comboMask |= Super;
-    else
-      continue;
-  }
-
-  return comboMask;
+  if (strcasecmp(key, "Ctrl") == 0)
+    return Control;
+  else if (strcasecmp(key, "Shift") == 0)
+    return Shift;
+  else if (strcasecmp(key, "Alt") == 0)
+    return Alt;
+  else if (strcasecmp(key, "Win") == 0)
+    return Super;
+  else if (strcasecmp(key, "Super") == 0)
+    return Super;
+  else if (strcasecmp(key, "Option") == 0)
+    return Alt;
+  else if (strcasecmp(key, "Cmd") == 0)
+    return Super;
+  else
+    return 0;
 }
 
-const char* HotKeyHandler::hotKeyComboString(unsigned mask)
+const char* HotKeyHandler::hotKeyString(unsigned key)
 {
-  static char buffer[1024];
+  if (key == Control)
+    return "Ctrl";
+  if (key == Shift)
+    return "Shift";
+  if (key == Alt)
+    return "Alt";
+  if (key == Super)
+    return "Super";
 
-  buffer[0] = '\0';
-
-  if (mask & Control)
-    strcat(buffer, "Ctrl");
-  if (mask & Shift) {
-    if (buffer[0] != '\0')
-      strcat(buffer, ",");
-    strcat(buffer, "Shift");
-  }
-  if (mask & Alt) {
-    if (buffer[0] != '\0')
-      strcat(buffer, ",");
-    strcat(buffer, "Alt");
-  }
-  if (mask & Super) {
-    if (buffer[0] != '\0')
-      strcat(buffer, ",");
-    strcat(buffer, "Super");
-  }
-
-  return buffer;
-}
-
-const char* HotKeyHandler::comboPrefix(const char* combo, bool justCombo)
-{
-  return comboPrefix(parseHotKeyCombo(combo), justCombo);
+  return "";
 }
 
 const char* HotKeyHandler::comboPrefix(unsigned mask, bool justCombo)
