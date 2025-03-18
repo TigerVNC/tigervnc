@@ -848,8 +848,12 @@ int DesktopWindow::handle(int event)
 
 #ifdef __APPLE__
     // Complain to the user if we won't have permission to grab keyboard
-    if (fullscreenSystemKeys && fullscreen_active())
-      cocoa_is_trusted(true);
+    if (fullscreenSystemKeys && fullscreen_active()) {
+      // FIXME: There is some race during initial full screen where we
+      //        fail to give focus to the popup, but we can work around
+      //        it using a timer
+      Fl::add_timeout(0, [](void*) { cocoa_is_trusted(true); }, nullptr);
+    }
 #endif
 
     if (fullscreen_active())

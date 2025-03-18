@@ -87,6 +87,64 @@ bool cocoa_is_trusted(bool prompt)
   trusted = AXIsProcessTrustedWithOptions(options);
   CFRelease(options);
 
+  // For some reason, the authentication popups isn't set as active and
+  // is hidden behind our window(s). Try to find it and manually switch
+  // to it.
+  if (!trusted && prompt) {
+    long long pid;
+
+    pid = 0;
+    for (int attempt = 0; attempt < 5; attempt++) {
+      CFArrayRef windowList;
+
+      windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly,
+                                              kCGNullWindowID);
+      for (int i = 0; i < CFArrayGetCount(windowList); i++) {
+        CFDictionaryRef window;
+        CFStringRef owner;
+        CFNumberRef cfpid;
+
+        window = (CFDictionaryRef)CFArrayGetValueAtIndex(windowList, i);
+        assert(window != nullptr);
+        owner = (CFStringRef)CFDictionaryGetValue(window,
+                                                  kCGWindowOwnerName);
+        if (owner == nullptr)
+          continue;
+
+        // FIXME: Unknown how stable this identifier is
+        CFStringRef authOwner = CFSTR("universalAccessAuthWarn");
+        if (CFStringCompare(owner, authOwner, 0) != kCFCompareEqualTo)
+          continue;
+
+        cfpid = (CFNumberRef)CFDictionaryGetValue(window,
+                                                  kCGWindowOwnerPID);
+        if (cfpid == nullptr)
+          continue;
+
+        CFNumberGetValue(cfpid, kCFNumberLongLongType, &pid);
+        break;
+      }
+
+      CFRelease(windowList);
+
+      if (pid != 0)
+        break;
+
+      usleep(100000);
+    }
+
+    if (pid != 0) {
+      NSRunningApplication* authApp;
+
+      authApp = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+      if (authApp != nil) {
+        // Seems to work fine even without yieldActivationToApplication,
+        // or NSApplicationActivateIgnoringOtherApps
+        [authApp activateWithOptions:0];
+      }
+    }
+  }
+
   return trusted;
 }
 
