@@ -126,7 +126,7 @@ build-arch-stamp:
 	# Add here command to compile/build the package.
 	# Build first things.
 	# Build Xvnc
-	make $(NUMJOBS) LDFLAGS="-lpng"
+	make $(NUMJOBS) LDFLAGS="-lpng" VERBOSE=1
 	make $(NUMJOBS) -C unix/xserver
 
 	touch build-arch-stamp
