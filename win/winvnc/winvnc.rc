@@ -76,7 +76,7 @@ BEGIN
         BLOCK "080904b0"
         BEGIN
             VALUE "Comments", "\0"
-            VALUE "CompanyName", "TigerVNC project\0"
+            VALUE "CompanyName", "TigerVNC team\0"
             VALUE "FileDescription", "TigerVNC server\0"
             VALUE "ProductName", "TigerVNC server\0"
             VALUE "FileVersion", __RCVERSIONSTR

@@ -5,7 +5,7 @@ ArchitecturesInstallIn64BitMode=x64
 AppName=TigerVNC
 AppVerName=TigerVNC @VERSION@ (@BUILD@)
 AppVersion=@VERSION@
-AppPublisher=TigerVNC project
+AppPublisher=TigerVNC team
 AppPublisherURL=https://tigervnc.org
 DefaultDirName={pf}\TigerVNC
 DefaultGroupName=TigerVNC
@@ -25,8 +25,8 @@ Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 #for {LINGUAS = FileOpen("@CMAKE_SOURCE_DIR@\po\LINGUAS"); !FileEof(LINGUAS); ""} AddLanguage
 
 [Icons]
-Name: "{group}\TigerVNC Viewer"; FileName: "{app}\vncviewer.exe";
-Name: "{group}\Listening TigerVNC Viewer"; FileName: "{app}\vncviewer.exe"; Parameters: "-listen";
+Name: "{group}\TigerVNC"; FileName: "{app}\vncviewer.exe";
+Name: "{group}\Listening TigerVNC"; FileName: "{app}\vncviewer.exe"; Parameters: "-listen";
 
 Name: "{group}\License"; FileName: "write.exe"; Parameters: "LICENCE.TXT"; WorkingDir: "{app}"; Flags: "useapppaths"
 Name: "{group}\Read Me"; FileName: "write.exe"; Parameters: "README.rst"; WorkingDir: "{app}"; Flags: "useapppaths"
