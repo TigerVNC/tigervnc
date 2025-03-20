@@ -278,6 +278,13 @@ void EncodeManager::pruneLosslessRefresh(const core::Region& limits)
   pendingRefreshRegion.assign_intersect(limits);
 }
 
+void EncodeManager::forceRefresh(const core::Region& req)
+{
+  lossyRegion.assign_union(req);
+  if (!recentChangeTimer.isStarted())
+    pendingRefreshRegion.assign_union(req);
+}
+
 void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
                                 const RenderedCursor* renderedCursor)
 {

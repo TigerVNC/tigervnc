@@ -467,6 +467,7 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
   pf.print(buffer, 256);
   vlog.info("Client pixel format %s", buffer);
   setCursor();
+  encodeManager.forceRefresh(server->getPixelBuffer()->getRect());
 }
 
 void VNCSConnectionST::pointerEvent(const core::Point& pos,
