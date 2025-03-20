@@ -104,9 +104,9 @@ private:
 
   static void handleOptions(void *data);
 
-  bool ungrabbedGrabOnlyKeyboard() const;
-  bool ungrabbedGrabOnlyMouse() const;
-  bool ungrabbedGrabOnlyClipboard() const;
+  bool ungrabbedOnlyWhileGrabbedKeyboard() const;
+  bool ungrabbedOnlyWhileGrabbedMouse() const;
+  bool ungrabbedOnlyWhileGrabbedClipboard() const;
 
 private:
   CConn* cc;

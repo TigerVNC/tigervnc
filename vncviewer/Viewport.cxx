@@ -245,7 +245,7 @@ void Viewport::setCursor()
 
 void Viewport::showCursor()
 {
-  if (viewOnly || ungrabbedGrabOnlyMouse()) {
+  if (viewOnly || ungrabbedOnlyWhileGrabbedMouse()) {
     window()->cursor(FL_CURSOR_DEFAULT);
     return;
   }
@@ -259,7 +259,7 @@ void Viewport::showCursor()
 
 void Viewport::handleClipboardRequest()
 {
-  if (viewOnly || ungrabbedGrabOnlyClipboard())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   Fl::paste(*this, clipboardSource);
@@ -267,7 +267,7 @@ void Viewport::handleClipboardRequest()
 
 void Viewport::handleClipboardAnnounce(bool available)
 {
-  if (viewOnly || ungrabbedGrabOnlyClipboard())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   if (!acceptClipboard)
@@ -293,7 +293,7 @@ void Viewport::handleClipboardData(const char* data)
 {
   size_t len;
 
-  if (viewOnly || ungrabbedGrabOnlyClipboard())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   if (!hasFocus())
@@ -327,7 +327,7 @@ void Viewport::setLEDState(unsigned int ledState)
     return;
   }
 
-  if (viewOnly || ungrabbedGrabOnlyKeyboard())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   if (!hasFocus())
@@ -340,7 +340,7 @@ void Viewport::pushLEDState()
 {
   unsigned int ledState;
 
-  if (viewOnly || ungrabbedGrabOnlyKeyboard())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   // Server support?
@@ -425,7 +425,7 @@ int Viewport::handle(int event)
 
   switch (event) {
   case FL_PASTE:
-    if (viewOnly || ungrabbedGrabOnlyClipboard())
+    if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
       return 1;
 
     if (!core::isValidUTF8(Fl::event_text(), Fl::event_length())) {
@@ -545,7 +545,7 @@ int Viewport::handle(int event)
 void Viewport::sendPointerEvent(const core::Point& pos,
                                 uint16_t buttonMask)
 {
-  if (viewOnly || ungrabbedGrabOnlyMouse())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedMouse())
     return;
 
   if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
@@ -581,7 +581,7 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   assert(self);
 
-  if (viewOnly || self->ungrabbedGrabOnlyClipboard())
+  if (viewOnly || self->ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   if (!sendClipboard)
@@ -632,7 +632,7 @@ void Viewport::handleClipboardChange(int source, void *data)
 
 void Viewport::flushPendingClipboard()
 {
-  if (viewOnly || ungrabbedGrabOnlyClipboard())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   if (pendingClientClipboard) {
@@ -652,22 +652,26 @@ void Viewport::flushPendingClipboard()
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
-  if (!viewOnly && grabWithMouseClick > 0) {
-    if (buttonMask & 0x1) {
-      if (((DesktopWindow*)window())->forceGrab()) {
-        showCursor();
-        if (grabWithMouseClick == 2)
-          return;
+  if (!viewOnly) {
+
+    if (grabWithFlags & (core::grabWithMouseClick | core::grabWithMouseClickSuppressed)) {
+      if (buttonMask & 0x1) {
+        if (((DesktopWindow*)window())->forceGrab()) {
+          showCursor();
+          if (grabWithFlags & core::grabWithMouseClickSuppressed)
+            return;
+        }
       }
     }
-  }
 
-  if (!viewOnly && grabToggleWithMiddleButton) {
-    if (buttonMask & 0x2) {
-      ((DesktopWindow*)window())->toggleForceGrab();
-      showCursor();
-      return;
+    if (grabWithFlags & core::grabWithMouseMiddleButton) {
+      if (buttonMask & 0x2) {
+        ((DesktopWindow*)window())->toggleForceGrab();
+        showCursor();
+        return;
+      }
     }
+
   }
 
   filterPointerEvent(pos, buttonMask);
@@ -709,7 +713,7 @@ void Viewport::handleKeyPress(int systemKeyCode,
   static bool menuRecursion = false;
 
   // Right Ctrl
-  if (grabToggleWithRightCtrl && keySym == FL_Control_R) {
+  if ((grabWithFlags & core::grabWithRightCtrl) && (keySym == FL_Control_R)) {
     return;
   }
 
@@ -722,7 +726,7 @@ void Viewport::handleKeyPress(int systemKeyCode,
     return;
   }
 
-  if (viewOnly || ungrabbedGrabOnlyKeyboard())
+  if (viewOnly || ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   try {
@@ -744,13 +748,13 @@ void Viewport::handleKeyRelease(int systemKeyCode,
     return;
 
   // Right Ctrl
-  if (grabToggleWithRightCtrl && keySym == FL_Control_R) {
+  if ((grabWithFlags & core::grabWithRightCtrl) && (keySym == FL_Control_R)) {
     ((DesktopWindow*)window())->toggleForceGrab();
     showCursor();
     return;
   }
 
-  if (ungrabbedGrabOnlyKeyboard())
+  if (ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   try {
@@ -955,22 +959,22 @@ void Viewport::handleOptions(void *data)
     self->showCursor();
 }
 
-bool Viewport::ungrabbedGrabOnlyKeyboard() const {
-  if (grabOnly || grabOnlyKeyboard) {
+bool Viewport::ungrabbedOnlyWhileGrabbedKeyboard() const {
+  if (onlyWhileGrabbedFlags & core::onlyWhileGrabbedKeyboard) {
     return !((DesktopWindow*)window())->isKeyboardGrabbed();
   }
   return false;
 }
 
-bool Viewport::ungrabbedGrabOnlyMouse() const {
-  if (grabOnly || grabOnlyMouse) {
+bool Viewport::ungrabbedOnlyWhileGrabbedMouse() const {
+  if (onlyWhileGrabbedFlags & core::onlyWhileGrabbedMouse) {
     return !((DesktopWindow*)window())->isMouseGrabbed();
   }
   return false;
 }
 
-bool Viewport::ungrabbedGrabOnlyClipboard() const {
-  if (grabOnly || grabOnlyClipboard) {
+bool Viewport::ungrabbedOnlyWhileGrabbedClipboard() const {
+  if (onlyWhileGrabbedFlags & core::onlyWhileGrabbedClipboard) {
     return !((DesktopWindow*)window())->isKeyboardGrabbed();
   }
   return false;

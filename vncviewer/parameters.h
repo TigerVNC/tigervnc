@@ -31,6 +31,17 @@
 
 #define SERVER_HISTORY_SIZE 20
 
+namespace core {
+  const uint8_t grabWithRightCtrl            = 1;
+  const uint8_t grabWithMouseMiddleButton    = 2;
+  const uint8_t grabWithMouseClick           = 4;
+  const uint8_t grabWithMouseClickSuppressed = 8;
+
+  const uint8_t onlyWhileGrabbedKeyboard  = 1;
+  const uint8_t onlyWhileGrabbedMouse     = 2;
+  const uint8_t onlyWhileGrabbedClipboard = 4;
+  const uint8_t onlyWhileGrabbedAll       = 1 | 2 | 4;
+}
 
 extern core::IntParameter pointerEventInterval;
 extern core::BoolParameter emulateMiddleButton;
@@ -64,13 +75,10 @@ extern core::BoolParameter listenMode;
 
 extern core::BoolParameter viewOnly;
 
-extern core::BoolParameter grabOnlyKeyboard;
-extern core::BoolParameter grabOnlyMouse;
-extern core::BoolParameter grabOnlyClipboard;
-extern core::BoolParameter grabOnly;
-extern core::BoolParameter grabToggleWithRightCtrl;
-extern core::BoolParameter grabToggleWithMiddleButton;
-extern core::IntParameter grabWithMouseClick;
+extern core::EnumListParameter grabWith;
+extern uint8_t grabWithFlags;
+extern core::EnumListParameter onlyWhileGrabbed;
+extern uint8_t onlyWhileGrabbedFlags;
 
 extern core::BoolParameter shared;
 
@@ -99,5 +107,9 @@ char* loadViewerParameters(const char *filename);
 std::list<std::string> loadHistoryFromRegKey();
 void saveHistoryToRegKey(const std::list<std::string>& serverHistory);
 #endif
+
+void parseOptionsFlags();
+uint8_t parseGrabWithFlags();
+uint8_t parseOnlyWhileGrabbedFlags();
 
 #endif

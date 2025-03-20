@@ -191,37 +191,21 @@ core::BoolParameter
            "Don't send any mouse or keyboard events to the server",
            false);
 
-core::BoolParameter
-  grabOnlyKeyboard("GrabOnlyKeyboard",
-                   "Send keyboard events to the server only when keyboard grab is active.",
-                   false);
-core::BoolParameter
-  grabOnlyMouse("GrabOnlyMouse",
-                "Send mouse events to the server only when mouse grab is active.",
-                false);
-core::BoolParameter
-  grabOnlyClipboard("GrabOnlyClipboard",
-                    "Allow clipboard operations only when keyboard grab is active.",
-                    false);
-core::BoolParameter
-  grabOnly("GrabOnly",
-           "Activates GrabOnlyKeyboard, GrabOnlyMouse and GrabOnlyClipboard.",
-           false);
-core::BoolParameter
-  grabToggleWithRightCtrl("GrabToggleWithRightCtrl",
-                          "Toggle mouse and keyboard grab by "
-                          "pressing the Right Ctrl key.",
-                          true);
-core::BoolParameter
-  grabToggleWithMiddleButton("GrabToggleWithMiddleButton",
-                             "Toggle mouse and keyboard grab by "
-                             "middle-clicking on the window.",
-                             false);
-core::IntParameter
-  grabWithMouseClick("GrabWithMouseClick",
-                     "Grab mouse and keyboard by left-clicking on the window. "
-                     "0 = Off, 1 = On, 2 = On but suppress the click event",
-                     0);
+core::EnumListParameter
+  grabWith("GrabWith",
+           "Choose ways to grab the keyboard and mouse with: "
+           "None, RightCtrl, MouseMiddleButton, MouseClick, MouseClickSuppressed",
+           {"None", "RightCtrl", "MouseMiddleButton", "MouseClick", "MouseClickSuppressed"},
+           {"RightCtrl"});
+uint8_t grabWithFlags;
+core::EnumListParameter
+  onlyWhileGrabbed("OnlyWhileGrabbed",
+                   "Input types that should be allowed only while the "
+                   "keyboard and mouse are grabbed: "
+                   "None, Keyboard, Mouse, Clipboard, All",
+                   {"None", "Keyboard", "Mouse", "Clipboard", "All"},
+                   {"None"});
+uint8_t onlyWhileGrabbedFlags;
 
 core::BoolParameter
   shared("Shared",
@@ -307,13 +291,8 @@ static core::VoidParameter* parameterArray[] = {
   &fullScreenSelectedMonitors,
   /* Input */
   &viewOnly,
-  &grabOnlyKeyboard,
-  &grabOnlyMouse,
-  &grabOnlyClipboard,
-  &grabOnly,
-  &grabToggleWithRightCtrl,
-  &grabToggleWithMiddleButton,
-  &grabWithMouseClick,
+  &grabWith,
+  &onlyWhileGrabbed,
   &emulateMiddleButton,
   &alwaysCursor,
   &cursorType,
@@ -984,4 +963,34 @@ char* loadViewerParameters(const char *filename) {
   f = nullptr;
 
   return servername;
+}
+
+
+void parseOptionsFlags() {
+  grabWithFlags = parseGrabWithFlags();
+  onlyWhileGrabbedFlags = parseOnlyWhileGrabbedFlags();
+}
+
+uint8_t parseGrabWithFlags() {
+  uint8_t flags = 0;
+  for (core::EnumListEntry entry : grabWith) {
+    std::string str = entry.getValueStr();
+    if (strcasecmp(str.c_str(), "RightCtrl") == 0)            { flags |= core::grabWithRightCtrl;            continue; }
+    if (strcasecmp(str.c_str(), "MouseMiddleButton") == 0)    { flags |= core::grabWithMouseMiddleButton;    continue; }
+    if (strcasecmp(str.c_str(), "MouseClick") == 0)           { flags |= core::grabWithMouseClick;           continue; }
+    if (strcasecmp(str.c_str(), "MouseClickSuppressed") == 0) { flags |= core::grabWithMouseClickSuppressed; continue; }
+  }
+  return flags;
+}
+
+uint8_t parseOnlyWhileGrabbedFlags() {
+  uint8_t flags = 0;
+  for (core::EnumListEntry entry : onlyWhileGrabbed) {
+    std::string str = entry.getValueStr();
+    if (strcasecmp(str.c_str(), "Keyboard") == 0)  { flags |= core::onlyWhileGrabbedKeyboard;  continue; }
+    if (strcasecmp(str.c_str(), "Mouse") == 0)     { flags |= core::onlyWhileGrabbedMouse;     continue; }
+    if (strcasecmp(str.c_str(), "Clipboard") == 0) { flags |= core::onlyWhileGrabbedClipboard; continue; }
+    if (strcasecmp(str.c_str(), "All") == 0)       { flags |= core::onlyWhileGrabbedAll;       continue; }
+  }
+  return flags;
 }
