@@ -106,6 +106,7 @@ private:
 
   bool ungrabbedGrabOnlyKeyboard() const;
   bool ungrabbedGrabOnlyMouse() const;
+  bool ungrabbedGrabOnlyClipboard() const;
 
 private:
   CConn* cc;
