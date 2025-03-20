@@ -191,37 +191,18 @@ core::BoolParameter
            "Don't send any mouse or keyboard events to the server",
            false);
 
-core::BoolParameter
-  grabOnlyKeyboard("GrabOnlyKeyboard",
-                   "Send keyboard events to the server only when keyboard grab is active.",
-                   false);
-core::BoolParameter
-  grabOnlyMouse("GrabOnlyMouse",
-                "Send mouse events to the server only when mouse grab is active.",
-                false);
-core::BoolParameter
-  grabOnlyClipboard("GrabOnlyClipboard",
-                    "Allow clipboard operations only when keyboard grab is active.",
-                    false);
-core::BoolParameter
+core::EnumListParameter
+  grabWith("GrabWith",
+           "Choose ways to grab the keyboard and mouse with: "
+           "None, RightCtrl, MouseMiddleButton, MouseClick, MouseClickSuppressed",
+           {"None", "RightCtrl", "MouseMiddleButton", "MouseClick", "MouseClickSuppressed"},
+           {"RightCtrl"});
+core::EnumListParameter
   grabOnly("GrabOnly",
-           "Activates GrabOnlyKeyboard, GrabOnlyMouse and GrabOnlyClipboard.",
-           false);
-core::BoolParameter
-  grabToggleWithRightCtrl("GrabToggleWithRightCtrl",
-                          "Toggle mouse and keyboard grab by "
-                          "pressing the Right Ctrl key.",
-                          true);
-core::BoolParameter
-  grabToggleWithMiddleButton("GrabToggleWithMiddleButton",
-                             "Toggle mouse and keyboard grab by "
-                             "middle-clicking on the window.",
-                             false);
-core::IntParameter
-  grabWithMouseClick("GrabWithMouseClick",
-                     "Grab mouse and keyboard by left-clicking on the window. "
-                     "0 = Off, 1 = On, 2 = On but suppress the click event",
-                     0);
+           "Input that should be allowed only when the keyboard and mouse are grabbed: "
+           "None, Keyboard, Mouse, Clipboard, All",
+           {"None", "Keyboard", "Mouse", "Clipboard", "All"},
+           {"None"});
 
 core::BoolParameter
   shared("Shared",
@@ -307,13 +288,8 @@ static core::VoidParameter* parameterArray[] = {
   &fullScreenSelectedMonitors,
   /* Input */
   &viewOnly,
-  &grabOnlyKeyboard,
-  &grabOnlyMouse,
-  &grabOnlyClipboard,
+  &grabWith,
   &grabOnly,
-  &grabToggleWithRightCtrl,
-  &grabToggleWithMiddleButton,
-  &grabWithMouseClick,
   &emulateMiddleButton,
   &alwaysCursor,
   &cursorType,

@@ -136,6 +136,9 @@ Viewport::Viewport(int w, int h, CConn* cc_)
 
   // Make sure we have an initial blank cursor set
   setCursor();
+
+  grabWithFlags = parseGrabWithFlags();
+  grabOnlyFlags = parseGrabOnlyFlags();
 }
 
 
@@ -162,6 +165,32 @@ Viewport::~Viewport()
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
+}
+
+
+uint8_t Viewport::parseGrabWithFlags() const {
+  uint8_t flags = 0;
+  for (core::EnumListEntry entry : grabWith) {
+    std::string str = entry.getValueStr();
+    if (strcasecmp(str.c_str(), "RightCtrl") == 0)            { flags |= core::grabWithRightCtrl;            continue; }
+    if (strcasecmp(str.c_str(), "MouseMiddleButton") == 0)    { flags |= core::grabWithMouseMiddleButton;    continue; }
+    if (strcasecmp(str.c_str(), "MouseClick") == 0)           { flags |= core::grabWithMouseClick;           continue; }
+    if (strcasecmp(str.c_str(), "MouseClickSuppressed") == 0) { flags |= core::grabWithMouseClickSuppressed; continue; }
+  }
+  return flags;
+}
+
+
+uint8_t Viewport::parseGrabOnlyFlags() const {
+  uint8_t flags = 0;
+  for (core::EnumListEntry entry : grabOnly) {
+    std::string str = entry.getValueStr();
+    if (strcasecmp(str.c_str(), "Keyboard") == 0)  { flags |= core::grabOnlyKeyboard;  continue; }
+    if (strcasecmp(str.c_str(), "Mouse") == 0)     { flags |= core::grabOnlyMouse;     continue; }
+    if (strcasecmp(str.c_str(), "Clipboard") == 0) { flags |= core::grabOnlyClipboard; continue; }
+    if (strcasecmp(str.c_str(), "All") == 0)       { flags |= core::grabOnlyAll;       continue; }
+  }
+  return flags;
 }
 
 
@@ -652,22 +681,26 @@ void Viewport::flushPendingClipboard()
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
-  if (!viewOnly && grabWithMouseClick > 0) {
-    if (buttonMask & 0x1) {
-      if (((DesktopWindow*)window())->forceGrab()) {
-        showCursor();
-        if (grabWithMouseClick == 2)
-          return;
+  if (!viewOnly) {
+
+    if (grabWithFlags & (core::grabWithMouseClick | core::grabWithMouseClickSuppressed)) {
+      if (buttonMask & 0x1) {
+        if (((DesktopWindow*)window())->forceGrab()) {
+          showCursor();
+          if (grabWithFlags & core::grabWithMouseClickSuppressed)
+            return;
+        }
       }
     }
-  }
 
-  if (!viewOnly && grabToggleWithMiddleButton) {
-    if (buttonMask & 0x2) {
-      ((DesktopWindow*)window())->toggleForceGrab();
-      showCursor();
-      return;
+    if (grabWithFlags & core::grabWithMouseMiddleButton) {
+      if (buttonMask & 0x2) {
+        ((DesktopWindow*)window())->toggleForceGrab();
+        showCursor();
+        return;
+      }
     }
+
   }
 
   filterPointerEvent(pos, buttonMask);
@@ -709,7 +742,7 @@ void Viewport::handleKeyPress(int systemKeyCode,
   static bool menuRecursion = false;
 
   // Right Ctrl
-  if (grabToggleWithRightCtrl && keySym == FL_Control_R) {
+  if ((grabWithFlags & core::grabWithRightCtrl) && (keySym == FL_Control_R)) {
     return;
   }
 
@@ -744,7 +777,7 @@ void Viewport::handleKeyRelease(int systemKeyCode,
     return;
 
   // Right Ctrl
-  if (grabToggleWithRightCtrl && keySym == FL_Control_R) {
+  if ((grabWithFlags & core::grabWithRightCtrl) && (keySym == FL_Control_R)) {
     ((DesktopWindow*)window())->toggleForceGrab();
     showCursor();
     return;
@@ -956,21 +989,21 @@ void Viewport::handleOptions(void *data)
 }
 
 bool Viewport::ungrabbedGrabOnlyKeyboard() const {
-  if (grabOnly || grabOnlyKeyboard) {
+  if (grabOnlyFlags & core::grabOnlyKeyboard) {
     return !((DesktopWindow*)window())->isKeyboardGrabbed();
   }
   return false;
 }
 
 bool Viewport::ungrabbedGrabOnlyMouse() const {
-  if (grabOnly || grabOnlyMouse) {
+  if (grabOnlyFlags & core::grabOnlyMouse) {
     return !((DesktopWindow*)window())->isMouseGrabbed();
   }
   return false;
 }
 
 bool Viewport::ungrabbedGrabOnlyClipboard() const {
-  if (grabOnly || grabOnlyClipboard) {
+  if (grabOnlyFlags & core::grabOnlyClipboard) {
     return !((DesktopWindow*)window())->isKeyboardGrabbed();
   }
   return false;
