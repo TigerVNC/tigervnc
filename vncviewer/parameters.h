@@ -63,6 +63,10 @@ extern core::BoolParameter remoteResize;
 extern core::BoolParameter listenMode;
 
 extern core::BoolParameter viewOnly;
+
+extern core::EnumListParameter grabWith;
+extern core::EnumListParameter grabOnly;
+
 extern core::BoolParameter shared;
 
 extern core::BoolParameter acceptClipboard;
