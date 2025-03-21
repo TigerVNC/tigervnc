@@ -92,7 +92,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& /*serverPF*/, CConn* cc
     lastPointerPos(0, 0), lastButtonMask(0),
     keyboard(nullptr),
     firstLEDState(true), pendingClientClipboard(false),
-    menuCtrlKey(false), menuAltKey(false), cursor(nullptr),
+    menuOpened(false), menuCtrlKey(false), menuAltKey(false), cursor(nullptr),
     cursorIsBlank(false)
 {
 #if defined(WIN32)
@@ -464,6 +464,20 @@ int Viewport::handle(int event)
     if (Fl::event_button3())
       buttonMask |= 1 << 2;
 
+    // Suppress handling of mouse events until the context popup menu is closed.
+    // This prevents a situation when closing the context menu by clicking
+    // somewhere on the TigerVNC viewer's window causes a mouse click event
+    // to be sent to the server.
+    if (menuOpened) {
+      if (buttonMask != 0) {
+        vlog.debug("Ignored mouse event %d,(%d,%d),%d while closing the menu.",
+                   event, Fl::event_x(), Fl::event_y(), buttonMask);
+        return 1;
+      }
+      vlog.debug("Allowed mouse event %d,(%d,%d),%d while closing the menu.",
+                 event, Fl::event_x(), Fl::event_y(), buttonMask);
+    }
+
   // The back/forward buttons are not supported by FTLK 1.3 and require
   // a patch which adds these buttons to the FLTK API. These buttons
   // will be part of the upcoming 1.4 API:
@@ -632,6 +646,14 @@ void Viewport::flushPendingClipboard()
 }
 
 
+void Viewport::handleMenuClosed(void *data)
+{
+  Viewport *self = (Viewport *)data;
+  assert(self);
+  self->menuOpened = false;
+}
+
+
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
@@ -671,14 +693,10 @@ void Viewport::resetKeyboard()
 void Viewport::handleKeyPress(int systemKeyCode,
                               uint32_t keyCode, uint32_t keySym)
 {
-  static bool menuRecursion = false;
-
   // Prevent recursion if the menu wants to send its own
   // activation key.
-  if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
-    menuRecursion = true;
+  if (menuKeySym && (keySym == menuKeySym) && !menuOpened) {
     popupContextMenu();
-    menuRecursion = false;
     return;
   }
 
@@ -805,7 +823,9 @@ void Viewport::popupContextMenu()
   // FLTK also doesn't switch focus properly for menus
   handle(FL_UNFOCUS);
 
+  menuOpened = true;
   m = contextMenu->popup();
+  Fl::add_timeout(0.0, handleMenuClosed, this);
 
   handle(FL_FOCUS);
 
