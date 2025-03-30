@@ -79,7 +79,7 @@ static core::LogWriter vlog("DesktopWindow");
 // issue for Fl::event_dispatch.
 static std::set<DesktopWindow *> instances;
 
-DesktopWindow::DesktopWindow(int w, int h, const char *name,
+DesktopWindow::DesktopWindow(int w, int h,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
@@ -110,7 +110,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   callback(handleClose, this);
 
-  setName(name);
+  setName();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -284,11 +284,12 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 }
 
 
-void DesktopWindow::setName(const char *name)
+void DesktopWindow::setName()
 {
   char windowNameStr[100];
   const char *labelFormat;
   size_t maxNameSize;
+  const char* name;
   char truncatedName[sizeof(windowNameStr)];
 
   labelFormat = "%s - TigerVNC";
@@ -296,6 +297,8 @@ void DesktopWindow::setName(const char *name)
   // Ignore the length of '%s' since it is
   // a format marker which won't take up space
   maxNameSize = sizeof(windowNameStr) - 1 - strlen(labelFormat) + 2;
+
+  name = cc->server.name();
 
   if (maxNameSize > strlen(name)) {
     // Guaranteed to fit, no need to truncate
