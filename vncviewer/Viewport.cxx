@@ -136,6 +136,9 @@ Viewport::Viewport(int w, int h, CConn* cc_)
 
   // Make sure we have an initial blank cursor set
   setCursor();
+
+  grabWithFlags = parseGrabWithFlags();
+  onlyWhileGrabbedFlags = parseOnlyWhileGrabbedFlags();
 }
 
 
@@ -162,6 +165,32 @@ Viewport::~Viewport()
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
+}
+
+
+uint8_t Viewport::parseGrabWithFlags() const {
+  uint8_t flags = 0;
+  for (core::EnumListEntry entry : grabWith) {
+    std::string str = entry.getValueStr();
+    if (strcasecmp(str.c_str(), "RightCtrl") == 0)            { flags |= core::grabWithRightCtrl;            continue; }
+    if (strcasecmp(str.c_str(), "MouseMiddleButton") == 0)    { flags |= core::grabWithMouseMiddleButton;    continue; }
+    if (strcasecmp(str.c_str(), "MouseClick") == 0)           { flags |= core::grabWithMouseClick;           continue; }
+    if (strcasecmp(str.c_str(), "MouseClickSuppressed") == 0) { flags |= core::grabWithMouseClickSuppressed; continue; }
+  }
+  return flags;
+}
+
+
+uint8_t Viewport::parseOnlyWhileGrabbedFlags() const {
+  uint8_t flags = 0;
+  for (core::EnumListEntry entry : onlyWhileGrabbed) {
+    std::string str = entry.getValueStr();
+    if (strcasecmp(str.c_str(), "Keyboard") == 0)  { flags |= core::onlyWhileGrabbedKeyboard;  continue; }
+    if (strcasecmp(str.c_str(), "Mouse") == 0)     { flags |= core::onlyWhileGrabbedMouse;     continue; }
+    if (strcasecmp(str.c_str(), "Clipboard") == 0) { flags |= core::onlyWhileGrabbedClipboard; continue; }
+    if (strcasecmp(str.c_str(), "All") == 0)       { flags |= core::onlyWhileGrabbedAll;       continue; }
+  }
+  return flags;
 }
 
 
@@ -245,7 +274,7 @@ void Viewport::setCursor()
 
 void Viewport::showCursor()
 {
-  if (viewOnly) {
+  if (viewOnly || ungrabbedOnlyWhileGrabbedMouse()) {
     window()->cursor(FL_CURSOR_DEFAULT);
     return;
   }
@@ -259,7 +288,7 @@ void Viewport::showCursor()
 
 void Viewport::handleClipboardRequest()
 {
-  if (viewOnly)
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   Fl::paste(*this, clipboardSource);
@@ -267,7 +296,7 @@ void Viewport::handleClipboardRequest()
 
 void Viewport::handleClipboardAnnounce(bool available)
 {
-  if (viewOnly)
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   if (!acceptClipboard)
@@ -292,6 +321,9 @@ void Viewport::handleClipboardAnnounce(bool available)
 void Viewport::handleClipboardData(const char* data)
 {
   size_t len;
+
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
+    return;
 
   if (!hasFocus())
     return;
@@ -324,7 +356,7 @@ void Viewport::setLEDState(unsigned int ledState)
     return;
   }
 
-  if (viewOnly)
+  if (viewOnly || ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   if (!hasFocus())
@@ -337,7 +369,7 @@ void Viewport::pushLEDState()
 {
   unsigned int ledState;
 
-  if (viewOnly)
+  if (viewOnly || ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   // Server support?
@@ -357,19 +389,19 @@ void Viewport::pushLEDState()
       (cc->server.ledState() & rfb::ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x3a, XK_Caps_Lock);
   }
   if ((ledState & rfb::ledNumLock) !=
       (cc->server.ledState() & rfb::ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x45, XK_Num_Lock);
   }
   if ((ledState & rfb::ledScrollLock) !=
       (cc->server.ledState() & rfb::ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
     handleKeyPress(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, 0x46, XK_Scroll_Lock);
   }
 }
 
@@ -422,6 +454,9 @@ int Viewport::handle(int event)
 
   switch (event) {
   case FL_PASTE:
+    if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
+      return 1;
+
     if (!core::isValidUTF8(Fl::event_text(), Fl::event_length())) {
       vlog.error("Invalid UTF-8 sequence in system clipboard");
       // Reset the state as if we don't have any clipboard data at all
@@ -539,8 +574,8 @@ int Viewport::handle(int event)
 void Viewport::sendPointerEvent(const core::Point& pos,
                                 uint16_t buttonMask)
 {
-  if (viewOnly)
-      return;
+  if (viewOnly || ungrabbedOnlyWhileGrabbedMouse())
+    return;
 
   if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
     try {
@@ -575,7 +610,7 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   assert(self);
 
-  if (viewOnly)
+  if (viewOnly || self->ungrabbedOnlyWhileGrabbedClipboard())
     return;
 
   if (!sendClipboard)
@@ -626,6 +661,9 @@ void Viewport::handleClipboardChange(int source, void *data)
 
 void Viewport::flushPendingClipboard()
 {
+  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
+    return;
+
   if (pendingClientClipboard) {
     vlog.debug("Focus regained after local clipboard change, notifying server");
     try {
@@ -643,6 +681,28 @@ void Viewport::flushPendingClipboard()
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
+  if (!viewOnly) {
+
+    if (grabWithFlags & (core::grabWithMouseClick | core::grabWithMouseClickSuppressed)) {
+      if (buttonMask & 0x1) {
+        if (((DesktopWindow*)window())->forceGrab()) {
+          showCursor();
+          if (grabWithFlags & core::grabWithMouseClickSuppressed)
+            return;
+        }
+      }
+    }
+
+    if (grabWithFlags & core::grabWithMouseMiddleButton) {
+      if (buttonMask & 0x2) {
+        ((DesktopWindow*)window())->toggleForceGrab();
+        showCursor();
+        return;
+      }
+    }
+
+  }
+
   filterPointerEvent(pos, buttonMask);
 }
 
@@ -681,6 +741,11 @@ void Viewport::handleKeyPress(int systemKeyCode,
 {
   static bool menuRecursion = false;
 
+  // Right Ctrl
+  if ((grabWithFlags & core::grabWithRightCtrl) && (keySym == FL_Control_R)) {
+    return;
+  }
+
   // Prevent recursion if the menu wants to send its own
   // activation key.
   if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
@@ -690,7 +755,7 @@ void Viewport::handleKeyPress(int systemKeyCode,
     return;
   }
 
-  if (viewOnly)
+  if (viewOnly || ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   try {
@@ -702,9 +767,23 @@ void Viewport::handleKeyPress(int systemKeyCode,
 }
 
 
-void Viewport::handleKeyRelease(int systemKeyCode)
+void Viewport::handleKeyRelease(int systemKeyCode,
+                                uint32_t keyCode, uint32_t keySym)
 {
+  (void)keyCode; // unused
+  (void)keySym; // unused
+
   if (viewOnly)
+    return;
+
+  // Right Ctrl
+  if ((grabWithFlags & core::grabWithRightCtrl) && (keySym == FL_Control_R)) {
+    ((DesktopWindow*)window())->toggleForceGrab();
+    showCursor();
+    return;
+  }
+
+  if (ungrabbedOnlyWhileGrabbedKeyboard())
     return;
 
   try {
@@ -831,6 +910,7 @@ void Viewport::popupContextMenu()
       window()->fullscreen_off();
     else
       ((DesktopWindow*)window())->fullscreen_on();
+    showCursor();
     break;
   case ID_MINIMIZE:
 #ifdef __APPLE__
@@ -850,28 +930,28 @@ void Viewport::popupContextMenu()
     if (m->value())
       handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     else
-      handleKeyRelease(FAKE_CTRL_KEY_CODE);
+      handleKeyRelease(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     menuCtrlKey = !menuCtrlKey;
     break;
   case ID_ALT:
     if (m->value())
       handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     else
-      handleKeyRelease(FAKE_ALT_KEY_CODE);
+      handleKeyRelease(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     menuAltKey = !menuAltKey;
     break;
   case ID_MENUKEY:
     handleKeyPress(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
-    handleKeyRelease(FAKE_KEY_CODE);
+    handleKeyRelease(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
     break;
   case ID_CTRLALTDEL:
     handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
     handleKeyPress(FAKE_DEL_KEY_CODE, 0xd3, XK_Delete);
 
-    handleKeyRelease(FAKE_DEL_KEY_CODE);
-    handleKeyRelease(FAKE_ALT_KEY_CODE);
-    handleKeyRelease(FAKE_CTRL_KEY_CODE);
+    handleKeyRelease(FAKE_DEL_KEY_CODE, 0xd3, XK_Delete);
+    handleKeyRelease(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
+    handleKeyRelease(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
@@ -906,4 +986,25 @@ void Viewport::handleOptions(void *data)
   self->setMenuKey();
   if (Fl::belowmouse() == self)
     self->showCursor();
+}
+
+bool Viewport::ungrabbedOnlyWhileGrabbedKeyboard() const {
+  if (onlyWhileGrabbedFlags & core::onlyWhileGrabbedKeyboard) {
+    return !((DesktopWindow*)window())->isKeyboardGrabbed();
+  }
+  return false;
+}
+
+bool Viewport::ungrabbedOnlyWhileGrabbedMouse() const {
+  if (onlyWhileGrabbedFlags & core::onlyWhileGrabbedMouse) {
+    return !((DesktopWindow*)window())->isMouseGrabbed();
+  }
+  return false;
+}
+
+bool Viewport::ungrabbedOnlyWhileGrabbedClipboard() const {
+  if (onlyWhileGrabbedFlags & core::onlyWhileGrabbedClipboard) {
+    return !((DesktopWindow*)window())->isKeyboardGrabbed();
+  }
+  return false;
 }

@@ -322,7 +322,7 @@ void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
 void CConn::setName(const char* name)
 {
   CConnection::setName(name);
-  desktop->setName();
+  desktop->updateLabel();
 }
 
 // framebufferUpdateStart() is called at the beginning of an update.
