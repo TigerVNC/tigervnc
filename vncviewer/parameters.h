@@ -65,7 +65,7 @@ extern core::BoolParameter listenMode;
 extern core::BoolParameter viewOnly;
 
 extern core::EnumListParameter grabWith;
-extern core::EnumListParameter grabOnly;
+extern core::EnumListParameter onlyWhileGrabbed;
 
 extern core::BoolParameter shared;
 
