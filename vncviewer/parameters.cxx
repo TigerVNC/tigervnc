@@ -198,11 +198,12 @@ core::EnumListParameter
            {"None", "RightCtrl", "MouseMiddleButton", "MouseClick", "MouseClickSuppressed"},
            {"RightCtrl"});
 core::EnumListParameter
-  grabOnly("GrabOnly",
-           "Input that should be allowed only when the keyboard and mouse are grabbed: "
-           "None, Keyboard, Mouse, Clipboard, All",
-           {"None", "Keyboard", "Mouse", "Clipboard", "All"},
-           {"None"});
+  onlyWhileGrabbed("OnlyWhileGrabbed",
+                   "Input types that should be allowed only while the "
+                   "keyboard and mouse are grabbed: "
+                   "None, Keyboard, Mouse, Clipboard, All",
+                   {"None", "Keyboard", "Mouse", "Clipboard", "All"},
+                   {"None"});
 
 core::BoolParameter
   shared("Shared",
@@ -289,7 +290,7 @@ static core::VoidParameter* parameterArray[] = {
   /* Input */
   &viewOnly,
   &grabWith,
-  &grabOnly,
+  &onlyWhileGrabbed,
   &emulateMiddleButton,
   &alwaysCursor,
   &cursorType,

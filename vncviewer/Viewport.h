@@ -41,10 +41,10 @@ namespace core {
   const uint8_t grabWithMouseClick           = 4;
   const uint8_t grabWithMouseClickSuppressed = 8;
 
-  const uint8_t grabOnlyKeyboard  = 1;
-  const uint8_t grabOnlyMouse     = 2;
-  const uint8_t grabOnlyClipboard = 4;
-  const uint8_t grabOnlyAll       = 1 | 2 | 4;
+  const uint8_t onlyWhileGrabbedKeyboard  = 1;
+  const uint8_t onlyWhileGrabbedMouse     = 2;
+  const uint8_t onlyWhileGrabbedClipboard = 4;
+  const uint8_t onlyWhileGrabbedAll       = 1 | 2 | 4;
 }
 
 class Viewport : public Fl_Widget, protected EmulateMB,
@@ -117,11 +117,11 @@ private:
   static void handleOptions(void *data);
 
   uint8_t parseGrabWithFlags() const;
-  uint8_t parseGrabOnlyFlags() const;
+  uint8_t parseOnlyWhileGrabbedFlags() const;
 
-  bool ungrabbedGrabOnlyKeyboard() const;
-  bool ungrabbedGrabOnlyMouse() const;
-  bool ungrabbedGrabOnlyClipboard() const;
+  bool ungrabbedOnlyWhileGrabbedKeyboard() const;
+  bool ungrabbedOnlyWhileGrabbedMouse() const;
+  bool ungrabbedOnlyWhileGrabbedClipboard() const;
 
 private:
   CConn* cc;
@@ -151,7 +151,7 @@ private:
   bool cursorIsBlank;
 
   uint8_t grabWithFlags;
-  uint8_t grabOnlyFlags;
+  uint8_t onlyWhileGrabbedFlags;
 };
 
 #endif
