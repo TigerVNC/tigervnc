@@ -310,6 +310,9 @@ void Win32TouchHandler::fakeButtonEvent(bool press, int button,
   LPARAM lParam;
   int delta;
 
+  // Needed to silence false positive that this is used uninitialized
+  delta = 0;
+
   switch (button) {
 
   case 1: // left mousebutton
