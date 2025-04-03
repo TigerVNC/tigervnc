@@ -70,6 +70,10 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
   add_definitions(-D_DEBUG)
 ENDIF()
 
+# Enable debug friendly optimizations for debug builds
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
+
 # Make sure we get a sane C and C++ version
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
