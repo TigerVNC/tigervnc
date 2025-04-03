@@ -284,47 +284,45 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 
 void DesktopWindow::setName()
 {
-  char windowNameStr[100];
+  const size_t maxLen = 100;
+  std::string windowName;
   const char *labelFormat;
   size_t maxNameSize;
-  const char* name;
-  char truncatedName[sizeof(windowNameStr)];
+  std::string name;
+
+  // FIXME: All of this consideres bytes, not characters
 
   labelFormat = "%s - TigerVNC";
 
   // Ignore the length of '%s' since it is
   // a format marker which won't take up space
-  maxNameSize = sizeof(windowNameStr) - 1 - strlen(labelFormat) + 2;
+  maxNameSize = maxLen - strlen(labelFormat) + 2;
 
   name = cc->server.name();
 
-  if (maxNameSize > strlen(name)) {
-    // Guaranteed to fit, no need to truncate
-    strcpy(truncatedName, name);
-  } else if (maxNameSize <= strlen("...")) {
-    // Even an ellipsis won't fit
-    truncatedName[0] = '\0';
-  } else {
-    int offset;
+  if (name.size() > maxNameSize) {
+    if (maxNameSize <= strlen("...")) {
+      // Even an ellipsis won't fit
+      name.clear();
+    }
+    else {
+      int offset;
 
-    // We need to truncate, add an ellipsis
-    offset = maxNameSize - strlen("...");
-    strncpy(truncatedName, name, sizeof(truncatedName));
-    strcpy(truncatedName + offset, "...");
+      // We need to truncate, add an ellipsis
+      offset = maxNameSize - strlen("...");
+      name.resize(offset);
+      name += "...";
+    }
   }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
-  if (snprintf(windowNameStr, sizeof(windowNameStr), labelFormat,
-               truncatedName) >= (int)sizeof(windowNameStr)) {
-    // This is just to shut up the compiler, as we've already made sure
-    // we won't truncate anything
-  }
+  windowName = core::format(labelFormat, name.c_str());
 
 #pragma GCC diagnostic pop
 
-  copy_label(windowNameStr);
+  copy_label(windowName.c_str());
 }
 
 
