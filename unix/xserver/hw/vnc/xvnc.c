@@ -446,7 +446,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     }
 
     if (!strcmp(argv[i], "-showconfig") || !strcmp(argv[i], "-version")) {
-        /* Already shown at start */
+        vncPrintBanner();
         exit(0);
     }
 
@@ -1171,8 +1171,11 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
     int i;
     int NumFormats = 0;
 
-    if (serverGeneration == 1)
+    if (serverGeneration == 1) {
+        vncPrintBanner();
+
         LoadExtensionList(vncExtensions, ARRAY_SIZE(vncExtensions), TRUE);
+    }
 
 #if XORG_AT_LEAST(1, 20, 0)
     xorgGlxCreateVendor();
@@ -1266,7 +1269,5 @@ vncClientGone(int fd)
 int
 main(int argc, char *argv[], char *envp[])
 {
-    vncPrintBanner();
-
     return dix_main(argc, argv, envp);
 }
