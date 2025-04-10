@@ -5,13 +5,13 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>TigerVNC viewer</string>
+	<string>TigerVNC</string>
 	<key>CFBundleExecutable</key>
-	<string>TigerVNC viewer</string>
+	<string>vncviewer</string>
 	<key>NSHighResolutionCapable</key>
 	<false/>
 	<key>CFBundleGetInfoString</key>
-	<string>@VERSION@, Copyright © 1998-2025 [many holders]</string>
+	<string>@VERSION@, Copyright (C) 1999-2025 TigerVNC team and many others (see README.rst)</string>
 	<key>CFBundleIconFile</key>
 	<string>tigervnc.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -19,9 +19,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>
-	<string>TigerVNC viewer @VERSION@</string>
+	<string>TigerVNC @VERSION@</string>
 	<key>CFBundleName</key>
-	<string>TigerVNC viewer</string>
+	<string>TigerVNC</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -31,6 +31,6 @@
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 1998-2025 [many holders]</string>
+	<string>Copyright (C) 1999-2025 TigerVNC team and many others (see README.rst)</string>
 </dict>
 </plist>

@@ -786,7 +786,7 @@ void Viewport::initContextMenu()
                 0, nullptr, (void*)ID_OPTIONS, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
                 0, nullptr, (void*)ID_INFO, 0);
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC viewer..."),
+  fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC..."),
                 0, nullptr, (void*)ID_ABOUT, 0);
 }
 #pragma GCC diagnostic pop

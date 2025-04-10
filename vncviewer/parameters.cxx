@@ -217,7 +217,7 @@ core::BoolParameter
               true);
 core::StringParameter
   display("display",
-          "Specifies the X display on which the VNC viewer window "
+          "Specifies the X display on which the TigerVNC window "
           "should appear.",
           "");
 #endif
