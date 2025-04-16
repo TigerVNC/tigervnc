@@ -84,7 +84,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
     firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
-    keyboardGrabbed(false), mouseGrabbed(false),
+    keyboardGrabbed(false), mouseGrabbed(false), forceGrabbed(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(nullptr)
 {
@@ -108,7 +108,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
 
   callback(handleClose, this);
 
-  setName();
+  updateLabel();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -281,54 +281,40 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
   return viewport->getPreferredPF();
 }
 
+void DesktopWindow::updateLabel() {
+  const char *strTitle = " - TigerVNC";
+  const char *strGrabbed = " [GRABBED]";
+  const size_t maxNameLen = 100;
 
-void DesktopWindow::setName()
-{
-  const size_t maxLen = 100;
-  std::string windowName;
-  const char *labelFormat;
-  size_t maxNameSize;
-  std::string name;
+  char *label = (char*)malloc(maxNameLen + strlen(strGrabbed) + strlen(strTitle) + 1);
+  strcpy(label, "");
 
-  // FIXME: All of this consideres bytes, not characters
+  const char* name = cc->server.name();
 
-  labelFormat = "%s - TigerVNC";
-
-  // Ignore the length of '%s' since it is
-  // a format marker which won't take up space
-  maxNameSize = maxLen - strlen(labelFormat) + 2;
-
-  name = cc->server.name();
-
-  if (name.size() > maxNameSize) {
-    if (maxNameSize <= strlen("...")) {
-      // Even an ellipsis won't fit
-      name.clear();
+  if (name) {
+    if (strlen(name) <= maxNameLen) {
+      strcat(label, name);
+    } else {
+      strncat(label, name, maxNameLen - 3);
+      strcat(label, "...");
     }
-    else {
-      int offset;
-
-      // We need to truncate, add an ellipsis
-      offset = maxNameSize - strlen("...");
-      name.resize(offset);
-      name += "...";
-    }
+  } else {
+    strcat(label, "unknown");
   }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+  if (keyboardGrabbed || mouseGrabbed) {
+    strcat(label, strGrabbed);
+  }
 
-  windowName = core::format(labelFormat, name.c_str());
+  strcat(label, strTitle);
 
-#pragma GCC diagnostic pop
+  copy_label(label);
 
-  copy_label(windowName.c_str());
+  free(label);
 }
-
 
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
-
 void DesktopWindow::updateWindow()
 {
   if (firstUpdate) {
@@ -840,6 +826,45 @@ void DesktopWindow::updateOverlay(void *data)
   self->damage(FL_DAMAGE_USER1);
 }
 
+bool DesktopWindow::forceGrab() {
+  if (keyboardGrabbed && mouseGrabbed && forceGrabbed) {
+    return false;
+  }
+  grabPointer();
+  grabKeyboard();
+  forceGrabbed = true;
+  return true;
+}
+
+bool DesktopWindow::forceUngrab() {
+  if (!keyboardGrabbed && !mouseGrabbed && !forceGrabbed) {
+    return false;
+  }
+  ungrabPointer();
+  ungrabKeyboard();
+  forceGrabbed = false;
+  return true;
+}
+
+void DesktopWindow::toggleForceGrab() {
+  if (keyboardGrabbed && mouseGrabbed) {
+    forceUngrab();
+  } else {
+    forceGrab();
+  }
+}
+
+bool DesktopWindow::isKeyboardGrabbed() const {
+  return keyboardGrabbed;
+}
+
+bool DesktopWindow::isMouseGrabbed() const {
+  return mouseGrabbed;
+}
+
+bool DesktopWindow::isForceGrabbed() const {
+  return forceGrabbed;
+}
 
 int DesktopWindow::handle(int event)
 {
@@ -876,7 +901,9 @@ int DesktopWindow::handle(int event)
       // We don't get FL_LEAVE with a grabbed pointer, so check manually
       if ((Fl::event_x() < 0) || (Fl::event_x() >= w()) ||
           (Fl::event_y() < 0) || (Fl::event_y() >= h())) {
-        ungrabPointer();
+        if (!forceGrabbed) {
+          ungrabPointer();
+        }
       }
 #if !defined(WIN32) && !defined(__APPLE__)
       Window root, child;
@@ -887,7 +914,9 @@ int DesktopWindow::handle(int event)
       if (XQueryPointer(fl_display, fl_xid(this), &root, &child,
                         &x, &y, &wx, &wy, &mask) &&
           (root != XRootWindow(fl_display, fl_screen))) {
-        ungrabPointer();
+        if (!forceGrabbed) {
+          ungrabPointer();
+        }
       }
 #endif
     }
@@ -1160,6 +1189,7 @@ void DesktopWindow::grabKeyboard()
 #endif
 
   keyboardGrabbed = true;
+  updateLabel();
 
   if (contains(Fl::belowmouse()))
     grabPointer();
@@ -1170,7 +1200,9 @@ void DesktopWindow::ungrabKeyboard()
 {
   Fl::remove_timeout(handleGrab, this);
 
+  forceGrabbed = false;
   keyboardGrabbed = false;
+  updateLabel();
 
   ungrabPointer();
 
@@ -1201,12 +1233,15 @@ void DesktopWindow::grabPointer()
 #endif
 
   mouseGrabbed = true;
+  updateLabel();
 }
 
 
 void DesktopWindow::ungrabPointer()
 {
+  forceGrabbed = false;
   mouseGrabbed = false;
+  updateLabel();
 
 #if !defined(WIN32) && !defined(__APPLE__)
   x11_ungrab_pointer(fl_xid(this));

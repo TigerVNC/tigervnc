@@ -190,6 +190,21 @@ core::BoolParameter
   viewOnly("ViewOnly",
            "Don't send any mouse or keyboard events to the server",
            false);
+
+core::EnumListParameter
+  grabWith("GrabWith",
+           "Choose ways to grab the keyboard and mouse with: "
+           "None, RightCtrl, MouseMiddleButton, MouseClick, MouseClickSuppressed",
+           {"None", "RightCtrl", "MouseMiddleButton", "MouseClick", "MouseClickSuppressed"},
+           {"RightCtrl"});
+core::EnumListParameter
+  onlyWhileGrabbed("OnlyWhileGrabbed",
+                   "Input types that should be allowed only while the "
+                   "keyboard and mouse are grabbed: "
+                   "None, Keyboard, Mouse, Clipboard, All",
+                   {"None", "Keyboard", "Mouse", "Clipboard", "All"},
+                   {"None"});
+
 core::BoolParameter
   shared("Shared",
          "Don't disconnect other viewers upon connection - "
@@ -204,6 +219,7 @@ core::BoolParameter
   sendClipboard("SendClipboard",
                 "Send clipboard changes to the server",
                 true);
+
 #if !defined(WIN32) && !defined(__APPLE__)
 core::BoolParameter
   setPrimary("SetPrimary",
@@ -273,6 +289,8 @@ static core::VoidParameter* parameterArray[] = {
   &fullScreenSelectedMonitors,
   /* Input */
   &viewOnly,
+  &grabWith,
+  &onlyWhileGrabbed,
   &emulateMiddleButton,
   &alwaysCursor,
   &cursorType,

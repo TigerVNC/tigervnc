@@ -163,6 +163,8 @@ bool KeyboardMacOS::handleEvent(const void* event)
 {
   const NSEvent* nsevent = (NSEvent*)event;
   unsigned systemKeyCode;
+  uint32_t keyCode;
+  uint32_t keySym;
 
   assert(event);
 
@@ -170,14 +172,10 @@ bool KeyboardMacOS::handleEvent(const void* event)
     return false;
 
   systemKeyCode = getSystemKeyCode(nsevent);
+  keyCode = translateSystemKeyCode(systemKeyCode);
+  keySym = translateEventKeysym(nsevent);
 
   if (isKeyPress(nsevent)) {
-    uint32_t keyCode;
-    uint32_t keySym;
-
-    keyCode = translateSystemKeyCode(systemKeyCode);
-
-    keySym = translateEventKeysym(nsevent);
     if (keySym == NoSymbol) {
       vlog.error(_("No symbol for key code 0x%02x (in the current state)"),
                  systemKeyCode);
@@ -188,9 +186,9 @@ bool KeyboardMacOS::handleEvent(const void* event)
     // We don't get any release events for CapsLock, so we have to
     // send the release right away.
     if (keySym == XK_Caps_Lock)
-      handler->handleKeyRelease(systemKeyCode);
+      handler->handleKeyRelease(systemKeyCode, keyCode, keySym);
   } else {
-    handler->handleKeyRelease(systemKeyCode);
+    handler->handleKeyRelease(systemKeyCode, keyCode, keySym);
   }
 
   return true;

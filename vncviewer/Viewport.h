@@ -35,6 +35,18 @@ class Keyboard;
 class PlatformPixelBuffer;
 class Surface;
 
+namespace core {
+  const uint8_t grabWithRightCtrl            = 1;
+  const uint8_t grabWithMouseMiddleButton    = 2;
+  const uint8_t grabWithMouseClick           = 4;
+  const uint8_t grabWithMouseClickSuppressed = 8;
+
+  const uint8_t onlyWhileGrabbedKeyboard  = 1;
+  const uint8_t onlyWhileGrabbedMouse     = 2;
+  const uint8_t onlyWhileGrabbedClipboard = 4;
+  const uint8_t onlyWhileGrabbedAll       = 1 | 2 | 4;
+}
+
 class Viewport : public Fl_Widget, protected EmulateMB,
                  protected KeyboardHandler {
 public:
@@ -90,7 +102,8 @@ private:
 
   void handleKeyPress(int systemKeyCode,
                       uint32_t keyCode, uint32_t keySym) override;
-  void handleKeyRelease(int systemKeyCode) override;
+  void handleKeyRelease(int systemKeyCode,
+                        uint32_t keyCode, uint32_t keySym) override;
 
   static int handleSystemEvent(void *event, void *data);
 
@@ -102,6 +115,13 @@ private:
   void setMenuKey();
 
   static void handleOptions(void *data);
+
+  uint8_t parseGrabWithFlags() const;
+  uint8_t parseOnlyWhileGrabbedFlags() const;
+
+  bool ungrabbedOnlyWhileGrabbedKeyboard() const;
+  bool ungrabbedOnlyWhileGrabbedMouse() const;
+  bool ungrabbedOnlyWhileGrabbedClipboard() const;
 
 private:
   CConn* cc;
@@ -129,6 +149,9 @@ private:
   Fl_RGB_Image *cursor;
   core::Point cursorHotspot;
   bool cursorIsBlank;
+
+  uint8_t grabWithFlags;
+  uint8_t onlyWhileGrabbedFlags;
 };
 
 #endif
