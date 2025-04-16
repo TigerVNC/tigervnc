@@ -958,6 +958,9 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
       break;
 
     case FL_SHOW:
+      if (updateOnlyWhenVisible) {
+        dw->cc->setUpdatesEnabled(true);
+      }
       // In this particular place, FL_SHOW means an actual MapNotify,
       // which means we can continue enabling initial fullscreen.
       if (dw->delayedFullscreen) {
@@ -967,6 +970,11 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
         // event.
         Fl::add_timeout(0.5, handleFullscreenTimeout, dw);
         dw->fullscreen_on();
+      }
+      break;
+    case FL_HIDE:
+      if (updateOnlyWhenVisible) {
+        dw->cc->setUpdatesEnabled(false);
       }
       break;
 
