@@ -242,6 +242,12 @@ core::StringParameter
   via("via", "Gateway to tunnel via", "");
 #endif
 
+core::BoolParameter
+  updateOnlyWhenVisible("UpdateOnlyWhenVisible",
+                        "Do not request screen updates while the window is "
+                        "not visible, e.g. minimized.",
+                        false);
+
 static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
 
 /*

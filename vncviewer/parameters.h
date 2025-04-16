@@ -83,6 +83,8 @@ extern core::BoolParameter reconnectOnError;
 extern core::StringParameter via;
 #endif
 
+extern core::BoolParameter updateOnlyWhenVisible;
+
 void saveViewerParameters(const char *filename, const char *servername=nullptr);
 char* loadViewerParameters(const char *filename);
 
