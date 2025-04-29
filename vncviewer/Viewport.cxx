@@ -267,7 +267,7 @@ void Viewport::handleClipboardRequest()
 
 void Viewport::handleClipboardAnnounce(bool available)
 {
-  if (viewOnly || ungrabbedOnlyWhileGrabbedClipboard())
+  if (viewOnly)
     return;
 
   if (!acceptClipboard)
@@ -278,8 +278,8 @@ void Viewport::handleClipboardAnnounce(bool available)
     return;
   }
 
-  if (!hasFocus()) {
-    vlog.debug("Got notification of new clipboard on server whilst not focused, ignoring");
+  if (!hasFocus() || ungrabbedOnlyWhileGrabbedClipboard()) {
+    vlog.debug("Got notification of new clipboard on server whilst not focused/grabbed, ignoring");
     return;
   }
 
@@ -581,7 +581,7 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   assert(self);
 
-  if (viewOnly || self->ungrabbedOnlyWhileGrabbedClipboard())
+  if (viewOnly)
     return;
 
   if (!sendClipboard)
@@ -607,8 +607,8 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   self->clipboardSource = source;
 
-  if (!self->hasFocus()) {
-    vlog.debug("Local clipboard changed whilst not focused, will notify server later");
+  if (!self->hasFocus() || self->ungrabbedOnlyWhileGrabbedClipboard()) {
+    vlog.debug("Local clipboard changed whilst not focused/grabbed, will notify server later");
     self->pendingClientClipboard = true;
     // Clear any older client clipboard from the server
     try {

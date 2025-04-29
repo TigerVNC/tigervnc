@@ -1193,6 +1193,12 @@ void DesktopWindow::grabKeyboard()
 
   if (contains(Fl::belowmouse()))
     grabPointer();
+
+  if (onlyWhileGrabbedFlags & core::onlyWhileGrabbedClipboard) {
+    if (isKeyboardGrabbed()) {
+      viewport->flushPendingClipboard();
+    }
+  }
 }
 
 
