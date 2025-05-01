@@ -31,6 +31,7 @@
 
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Scroll.H>
+#include <FL/fl_draw.H>
 
 #include "Fl_Navigation.h"
 
@@ -154,14 +155,21 @@ void Fl_Navigation::update_labels()
   for (i = 0;i < pages->children();i++) {
     Fl_Widget *page;
     Fl_Button *btn;
+    int w, h;
 
     page = pages->child(i);
 
+    w = labels->w() - page->labelsize() * 2;
+    fl_font(page->labelfont(), page->labelsize());
+    fl_measure(page->label(), w, h);
+    h += page->labelsize() * 2;
+
     btn = new Fl_Button(labels->x(), labels->y() + offset,
-                        labels->w(), page->labelsize() * 3,
+                        labels->w(), h,
                         page->label());
     btn->box(FL_FLAT_BOX);
     btn->type(FL_RADIO_BUTTON);
+    btn->align(btn->align() | FL_ALIGN_WRAP);
     btn->color(FL_BACKGROUND2_COLOR);
     btn->selection_color(FL_SELECTION_COLOR);
     btn->labelsize(page->labelsize());
@@ -171,7 +179,7 @@ void Fl_Navigation::update_labels()
     btn->callback(label_pressed, this);
 
     labels->add(btn);
-    offset += page->labelsize() * 3;
+    offset += h;
   }
   labels->size(labels->w(), offset);
 
