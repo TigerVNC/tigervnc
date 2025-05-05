@@ -15,18 +15,18 @@ endif()
 
 configure_file(tigervnc.iss.in tigervnc.iss)
 
-add_custom_target(installer
-  iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION} tigervnc.iss
-  DEPENDS vncviewer
-  SOURCES ${CMAKE_CURRENT_BINARY_DIR}/tigervnc.iss)
+add_custom_command(OUTPUT ${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION}.exe
+  COMMAND iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION} tigervnc.iss
+  DEPENDS vncviewer tigervnc.iss)
+add_custom_target(installer DEPENDS ${CMAKE_PROJECT_NAME}${INST_SUFFIX}-${VERSION}.exe)
 
 if(BUILD_WINVNC)
   configure_file(winvnc.iss.in winvnc.iss)
 
-  add_custom_target(winvnc_installer
-    iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-winvnc-${VERSION} winvnc.iss
-    DEPENDS winvnc4 wm_hooks vncconfig
-    SOURCES ${CMAKE_CURRENT_BINARY_DIR}/winvnc.iss)
+  add_custom_command(OUTPUT ${CMAKE_PROJECT_NAME}${INST_SUFFIX}-winvnc-${VERSION}.exe
+    COMMAND iscc -o. ${INST_DEFS} -F${CMAKE_PROJECT_NAME}${INST_SUFFIX}-winvnc-${VERSION} winvnc.iss
+    DEPENDS winvnc4 wm_hooks vncconfig winvnc.iss)
+  add_custom_target(winvnc_installer DEPENDS ${CMAKE_PROJECT_NAME}${INST_SUFFIX}-winvnc-${VERSION}.exe)
 endif()
 
 endif() # WIN32
@@ -41,9 +41,10 @@ if(APPLE)
 configure_file(makemacapp.in makemacapp)
 configure_file(Info.plist.in Info.plist)
 
-add_custom_target(dmg sh makemacapp
-  DEPENDS vncviewer
-  SOURCES makemacapp)
+add_custom_command(OUTPUT TigerVNC-${VERSION}.dmg
+  COMMAND sh makemacapp
+  DEPENDS vncviewer makemacapp Info.plist)
+add_custom_target(dmg DEPENDS TigerVNC-${VERSION}.dmg)
 
 endif() # APPLE
 
@@ -56,16 +57,16 @@ if(UNIX)
 
 configure_file(maketarball.in maketarball)
 
-set(TARBALL_DEPENDS vncviewer vncpasswd vncconfig)
+set(PACKAGE_FILE ${CMAKE_PROJECT_NAME}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-${VERSION}.tar.gz)
+add_custom_command(OUTPUT ${PACKAGE_FILE}
+  COMMAND bash maketarball
+  DEPENDS maketarball vncviewer vncpasswd vncconfig)
+
 if(BUILD_JAVA)
-  set(TARBALL_DEPENDS ${TARBALL_DEPENDS} java)
+  add_dependencies(${PACKAGE_FILE} java)
 endif()
 
-add_custom_target(tarball bash maketarball
-  DEPENDS ${TARBALL_DEPENDS})
-
-add_custom_target(servertarball bash maketarball server
-  DEPENDS ${TARBALL_DEPENDS})
+add_custom_target(tarball DEPENDS ${PACKAGE_FILE})
 
 endif() #UNIX
 

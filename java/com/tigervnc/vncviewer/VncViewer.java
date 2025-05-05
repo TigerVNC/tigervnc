@@ -361,7 +361,7 @@ public class VncViewer implements Runnable {
     JOptionPane op =
       new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
                       JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon, options);
-    JDialog dlg = op.createDialog(parent, "About TigerVNC viewer for Java");
+    JDialog dlg = op.createDialog(parent, "About TigerVNC");
     dlg.setIconImage(VncViewer.frameIcon);
     dlg.setAlwaysOnTop(true);
     dlg.setVisible(true);
@@ -380,7 +380,7 @@ public class VncViewer implements Runnable {
   void reportException(java.lang.Exception e) {
     String title, msg = e.getMessage();
     int msgType = JOptionPane.ERROR_MESSAGE;
-    title = "TigerVNC viewer : Error";
+    title = "TigerVNC : Error";
     e.printStackTrace();
     JOptionPane.showMessageDialog(null, msg, title, msgType);
   }

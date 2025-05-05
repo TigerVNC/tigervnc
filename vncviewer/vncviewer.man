@@ -154,7 +154,7 @@ the SetDesktopSize message then the screen will retain the original size.
 .
 .TP
 .B \-display \fIXdisplay\fP
-Specifies the X display on which the VNC viewer window should appear.
+Specifies the X display on which the TigerVNC window should appear.
 .
 .TP
 .B \-DotWhenNoCursor (DEPRECATED)
@@ -201,7 +201,7 @@ mode.
 .
 .TP
 .B \-geometry \fIgeometry\fP
-Initial position of the main VNC viewer window. The format is
+Initial position of the main TigerVNC window. The format is
 .B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
 , where `+' signs can be replaced with `\-' signs to specify offsets from the
 right and/or from the bottom of the screen.  Offsets are optional and the

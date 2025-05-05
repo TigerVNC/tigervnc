@@ -47,7 +47,7 @@ class ServerDialog extends Dialog implements Runnable {
     super(true);
     this.vncServerName = vncServerName;
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    setTitle("VNC viewer: Connection details");
+    setTitle("TigerVNC");
     setResizable(false);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -258,7 +258,7 @@ class ServerDialog extends Dialog implements Runnable {
       JOptionPane op =
         new JOptionPane(msg, JOptionPane.QUESTION_MESSAGE,
                         JOptionPane.OK_CANCEL_OPTION, null, options, options[1]);
-      JDialog dlg = op.createDialog(this, "TigerVNC Viewer");
+      JDialog dlg = op.createDialog(this, "TigerVNC");
       dlg.setIconImage(VncViewer.frameIcon);
       dlg.setAlwaysOnTop(true);
       dlg.setVisible(true);
