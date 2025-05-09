@@ -53,6 +53,8 @@ Portal::Portal()
       clean_unque_name[i-1] = unique_name[i];
   }
 
+  clean_unque_name[strlen(unique_name)-1] = '\0';
+
   unique_name_ = clean_unque_name;
 }
 
