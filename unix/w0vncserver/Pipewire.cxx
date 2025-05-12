@@ -287,6 +287,7 @@ void Pipewire::on_process(void *data) {
   PipeWireSource *source;
   pw_buffer *pw_buf;
   spa_buffer* buf;
+  spa_meta_region* damage;
   size_t buf_size;
   uint32_t width, height;
 
@@ -323,6 +324,13 @@ void Pipewire::on_process(void *data) {
 
   buf = pw_buf->buffer;
   buf_size = buf->datas->chunk->size;
+  //  Damage
+  if ((damage = (spa_meta_region *)spa_buffer_find_meta_data(
+      buf, SPA_META_VideoDamage, sizeof(*damage))) &&
+      spa_meta_region_is_valid(damage)) {
+        assert(damage->region.size.width != 0);
+        assert(damage->region.size.height != 0);
+  }
 
   src_bits = (uint32_t*)buf[0].datas[0].data;
   dst_bits = (uint32_t*)source->data->buffer;
@@ -333,8 +341,6 @@ void Pipewire::on_process(void *data) {
 
   width = source->data->size.width;
   height = source->data->size.height;
-
-  // FIXME: Look at VideoDamage
 
   // Accelerated copy
   ret = pixman_blt(src_bits, dst_bits, src_stride, dst_stride,
@@ -351,9 +357,15 @@ void Pipewire::on_process(void *data) {
     source->desktop_->setPixelBuffer(pb);
   }
 
-  core::Rect r{0, 0, (int)(width), (int)height};
-  core::Region region(r);
-  source->desktop_->add_changed(region);
+  if (damage) {
+    core::Rect r{damage->region.position.x, damage->region.position.y,
+                (int)damage->region.size.width,
+                (int)damage->region.size.height};
+    source->desktop_->add_changed(core::Region(r));
+  } else {
+    core::Rect r{0, 0, (int)width, (int)height};
+    source->desktop_->add_changed(core::Region(r));
+  }
 
   pw_stream_queue_buffer(source->stream, pw_buf);
 }
