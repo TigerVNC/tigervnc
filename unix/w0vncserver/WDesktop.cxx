@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "WDesktop.h"
 #include "Pipewire.h"
 #include <rfb/ScreenSet.h>

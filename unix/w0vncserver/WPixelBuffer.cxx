@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "WPixelBuffer.h"
 #include "rfb/PixelBuffer.h"
 #include <core/Region.h>

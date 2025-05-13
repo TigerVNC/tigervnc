@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "Portal.h"
 #include "gio/gio.h"
 #include "glib.h"

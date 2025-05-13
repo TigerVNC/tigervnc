@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "WSocketMonitor.h"
 #include <rdr/FdOutStream.h>
 #include <core/LogWriter.h>

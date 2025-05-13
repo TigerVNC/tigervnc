@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "Pipewire.h"
 #include "pipewire/loop.h"
 #include "pipewire/properties.h"

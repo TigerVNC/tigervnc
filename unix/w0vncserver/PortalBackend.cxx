@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "PortalBackend.h"
 #include "Pipewire.h"
 #include "glib-unix.h"
