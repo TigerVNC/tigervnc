@@ -482,25 +482,32 @@ rd_stream* RemoteDesktop::parse_stream(GVariant *stream) {
 
   g_variant_get(stream, "(u@a{sv})", &key, &dictionary);
 
-  // FIXME: This doesn't work for virtual displays
+  // None of these are *strictly* necessary when selecting a single
+  // *real* monitor
 
-  if (!dictionary || !g_variant_is_of_type(dictionary, G_VARIANT_TYPE("a{sv}"))) {
+  if (!dictionary || !g_variant_is_of_type(dictionary, G_VARIANT_TYPE("a{sv}")))
     throw std::runtime_error("Failed to parse dictionary from stream");
-  }
+
   if (!g_variant_lookup(dictionary, "id", "&s", &id)) {
-    throw std::runtime_error("Failed to parse 'id'");
+    vlog.debug("Failed to parse 'id'");
+    id = nullptr;
   }
-  if (!g_variant_lookup(dictionary, "source_type", "u", &source_type)) {
-    throw std::runtime_error("Failed to parse 'id'");
-  }
+
+  if (!g_variant_lookup(dictionary, "source_type", "u", &source_type))
+    vlog.debug("Failed to parse 'source_type'");
+
   if (!g_variant_lookup(dictionary, "position", "(ii)", &x, &y)) {
-    throw std::runtime_error("Failed to parse 'position'");
+    vlog.debug("Failed to parse 'position'");
+    x = -1;
+    y = -1;
   }
-  if (!g_variant_lookup(dictionary, "size", "(ii)", &width, &height)) {
-    throw std::runtime_error("Failed to parse 'size'");
-  }
+
+  if (!g_variant_lookup(dictionary, "size", "(ii)", &width, &height))
+    vlog.debug("Failed to parse 'size'");
+
   if (!g_variant_lookup(dictionary, "mapping_id", "&s", &mapping_id)) {
-    throw std::runtime_error("Failed to parse 'mapping_id'");
+    vlog.debug("Failed to parse 'mapping_id'");
+    mapping_id = nullptr;
   }
 
   s = new rd_stream();
@@ -511,6 +518,8 @@ rd_stream* RemoteDesktop::parse_stream(GVariant *stream) {
   s->width = width;
   s->height = height;
   s->mapping_id = mapping_id;
+
+  g_variant_unref(dictionary);
 
   return s;
 }
