@@ -125,7 +125,7 @@ void Screencast::select_sources()
   g_variant_builder_add(&options_builder, "{sv}", "types",
                         g_variant_new_uint32(SRC_MONITOR));
   g_variant_builder_add(&options_builder, "{sv}", "cursor_mode",
-                        g_variant_new_uint32(CUR_EMBEDDED));
+                        g_variant_new_uint32(CUR_METADATA));
   g_variant_builder_add(&options_builder, "{sv}", "multiple",
                          g_variant_new_boolean(true));
 

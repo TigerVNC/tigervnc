@@ -34,6 +34,53 @@ void WDesktop::add_changed(const core::Region& region)
   server->add_changed(region);
 }
 
+void WDesktop::setCursor(int width, int height, int hotX, int hotY,
+  const unsigned char *rgbaData)
+{
+  // Copied from XserverDesktop.cc
+  uint8_t* cursorData;
+
+  uint8_t *out;
+  const unsigned char *in;
+
+  cursorData = new uint8_t[width * height * 4];
+
+  // Un-premultiply alpha
+  in = rgbaData;
+  out = cursorData;
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      uint8_t alpha;
+
+      alpha = in[3];
+      if (alpha == 0)
+        alpha = 1; // Avoid division by zero
+
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = *in++;
+    }
+  }
+
+  try {
+    server->setCursor(width, height, {hotX, hotY}, cursorData);
+  } catch (std::exception& e) {
+    vlog.error("XserverDesktop::setCursor: %s",e.what());
+  }
+
+  delete [] cursorData;
+}
+
+void WDesktop::setCursorPos(int x, int y)
+{
+  try {
+    server->setCursorPos({x, y}, false);
+  } catch (std::exception& e) {
+    vlog.error("XserverDesktop::setCursorPos: %s",e.what());
+  }
+}
+
 void WDesktop::queryConnection(network::Socket* sock,
                                const char* userName)
 {

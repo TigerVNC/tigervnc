@@ -20,6 +20,17 @@ struct pw_data {
     uint32_t h;
   };
 
+  struct cursor {
+    uint32_t w;
+    uint32_t h;
+    int32_t x;
+    int32_t y;
+    int32_t hotspot_x;
+    int32_t hotspot_y;
+    int32_t stride;
+    uint8_t *data;
+  };
+
   spa_io_position* position;
   spa_io_clock* clock;
 
@@ -29,6 +40,7 @@ struct pw_data {
   rect rect;
 
   uint8_t* buffer;
+  cursor cursor;
 };
 
 typedef struct _PipeWireSource

@@ -36,6 +36,9 @@ public:
   WPixelBuffer* pixelBuffer() const { return pb_; }
   void setPixelBuffer(WPixelBuffer* pb) { pb_ = pb; }
   void add_changed(const core::Region& region);
+  void setCursor(int width, int height, int hotX, int hotY,
+                 const unsigned char *rgbaData);
+  void setCursorPos(int x, int y);;
 
 protected:
   rfb::VNCServer* server;
