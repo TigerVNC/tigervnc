@@ -240,19 +240,19 @@ void Pipewire::on_stream_param_changed(void *_data, uint32_t id,
   n_params = 0;
   /* a SPA_TYPE_OBJECT_ParamBuffers object defines the acceptable size,
    * number, stride etc of the buffers */
-  params[n_params++] = (spa_pod*)spa_pod_builder_add_object(
-  &b, SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
-  SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(8, 2, MAX_BUFFERS),
-  SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1), SPA_PARAM_BUFFERS_size,
-  SPA_POD_Int(size * mult), SPA_PARAM_BUFFERS_stride,
-  SPA_POD_Int(source->data->stride * mult), SPA_PARAM_BUFFERS_dataType,
-  SPA_POD_CHOICE_FLAGS_Int((1 << SPA_DATA_MemPtr)));
+  params[n_params++] = (spa_pod*)spa_pod_builder_add_object(&b,
+    SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
+    SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(8, 2, MAX_BUFFERS),
+    SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1),
+    SPA_PARAM_BUFFERS_size, SPA_POD_Int(size * mult),
+    SPA_PARAM_BUFFERS_stride, SPA_POD_Int(source->data->stride * mult),
+    SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int((1 << SPA_DATA_MemPtr)));
 
   /* a header metadata with timing information */
-  params[n_params++] = (spa_pod *)spa_pod_builder_add_object(
-    &b, SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta, SPA_PARAM_META_type,
-    SPA_POD_Id(SPA_META_Header), SPA_PARAM_META_size,
-    SPA_POD_Int(sizeof(struct spa_meta_header)));
+  params[n_params++] = (spa_pod *)spa_pod_builder_add_object(&b,
+    SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta,
+    SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Header),
+    SPA_PARAM_META_size, SPA_POD_Int(sizeof(struct spa_meta_header)));
 
   /* video cropping information */
   params[n_params++] = (spa_pod *)spa_pod_builder_add_object(
@@ -265,12 +265,13 @@ void Pipewire::on_stream_param_changed(void *_data, uint32_t id,
    w * h * 4)
 
   /* cursor information */
-  params[n_params++] = (spa_pod *)spa_pod_builder_add_object(
-    &b, SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta, SPA_PARAM_META_type,
-    SPA_POD_Id(SPA_META_Cursor), SPA_PARAM_META_size,
-    SPA_POD_CHOICE_RANGE_Int(CURSOR_META_SIZE(64, 64),
+  params[n_params++] = (spa_pod *)spa_pod_builder_add_object(&b,
+    SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta,
+    SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Cursor),
+    SPA_PARAM_META_size, SPA_POD_CHOICE_RANGE_Int(
+                             CURSOR_META_SIZE(64, 64),
                              CURSOR_META_SIZE(1, 1),
-                             CURSOR_META_SIZE(256, 256)));
+                             CURSOR_META_SIZE(512, 512)));
 
   /* Damage information */
   params[n_params++] = (spa_pod *)spa_pod_builder_add_object(
