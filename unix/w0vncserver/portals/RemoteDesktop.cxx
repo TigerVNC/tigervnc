@@ -193,6 +193,9 @@ void RemoteDesktop::handle_scroll_wheel(int32_t button)
   case WHEEL_HORIZONTAL_RIGHT:
     axis = 1;
     steps = 1;
+    break;
+  default:
+    assert(false);
   }
 
   g_variant_builder_init(&options_builder, G_VARIANT_TYPE("a{sv}"));
