@@ -2,9 +2,10 @@
 #include <config.h>
 #endif
 
-#include "WPixelBuffer.h"
-#include "rfb/PixelBuffer.h"
+#include <rfb/PixelBuffer.h>
 #include <core/Region.h>
+
+#include "WPixelBuffer.h"
 
 static const rfb::PixelFormat pfBGRX(32, 24, false, true, 255, 255, 255,
                                      16, 8, 0);

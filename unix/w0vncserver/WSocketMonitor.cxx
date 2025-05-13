@@ -2,13 +2,15 @@
 #include <config.h>
 #endif
 
-#include "WSocketMonitor.h"
-#include <rdr/FdOutStream.h>
-#include <core/LogWriter.h>
+#include <assert.h>
 
 #include "glib.h"
 
-#include <assert.h>
+#include <rdr/FdOutStream.h>
+#include <core/LogWriter.h>
+
+#include "WSocketMonitor.h"
+
 
 static core::LogWriter vlog("gsocketlistener");
 

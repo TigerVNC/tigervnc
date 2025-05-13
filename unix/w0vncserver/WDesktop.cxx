@@ -2,13 +2,15 @@
 #include <config.h>
 #endif
 
-#include "WDesktop.h"
-#include "Pipewire.h"
-#include <rfb/ScreenSet.h>
-#include "WaylandBackend.h"
-#include <rfb/VNCServerST.h>
 #include <assert.h>
+
+#include <rfb/ScreenSet.h>
+#include <rfb/VNCServerST.h>
 #include <core/LogWriter.h>
+
+#include "WaylandBackend.h"
+#include "Pipewire.h"
+#include "WDesktop.h"
 
 static core::LogWriter vlog("WDesktop");
 

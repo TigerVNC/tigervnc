@@ -2,12 +2,14 @@
 #include <config.h>
 #endif
 
-#include "RFBTimerSource.h"
+#include <assert.h>
+
 #include <glib.h>
 
-#include <assert.h>
 #include <rfb/ServerCore.h>
 #include <core/Timer.h>
+
+#include "RFBTimerSource.h"
 
 RFBTimerSource::RFBTimerSource()
 {

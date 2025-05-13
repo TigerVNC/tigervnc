@@ -2,22 +2,22 @@
 #include <config.h>
 #endif
 
-#include "Screencast.h"
-#include "glib-object.h"
-#include "../PortalBackend.h"
-#include "RemoteDesktop.h"
-
-#include <core/LogWriter.h>
-#include <core/string.h>
+#include <assert.h>
 
 #include <stdexcept>
 
 #include <gio/gio.h>
 #include <glib.h>
-#include <assert.h>
+#include "glib-object.h"
+
+#include <core/LogWriter.h>
+#include <core/string.h>
+
+#include "Screencast.h"
+#include "RemoteDesktop.h"
+#include "../PortalBackend.h"
 
 static core::LogWriter vlog("Screencast");
-
 
 Screencast::Screencast(GDBusConnection* connection,
                        PortalBackend* remote)

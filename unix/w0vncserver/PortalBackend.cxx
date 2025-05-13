@@ -2,13 +2,15 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
+
+#include "glib-unix.h"
+
+#include <rfb/VNCServerST.h>
+
+#include "portals/RemoteDesktop.h"
 #include "PortalBackend.h"
 #include "Pipewire.h"
-#include "glib-unix.h"
-#include "portals/RemoteDesktop.h"
-
-#include <assert.h>
-#include <rfb/VNCServerST.h>
 
 int CleanupSignalHandler(void* data)
 {

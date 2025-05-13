@@ -2,29 +2,32 @@
 #include <config.h>
 #endif
 
-#include "Pipewire.h"
-#include "pipewire/loop.h"
-#include "pipewire/properties.h"
-#include "pipewire/stream.h"
-#include "spa/buffer/buffer.h"
-#include "spa/buffer/meta.h"
-#include "spa/param/video/raw.h"
-#include "spa/pod/builder.h"
-#include "spa/pod/pod.h"
-#include "spa/utils/defs.h"
-#include "spa/utils/type.h"
+#include <assert.h>
+
+#include <stdexcept>
+
+#include <pipewire/pipewire.h>
+#include <pipewire/loop.h>
+#include <pipewire/properties.h>
+#include <pipewire/stream.h>
+
+#include <spa/buffer/buffer.h>
+#include <spa/buffer/meta.h>
+#include <spa/param/video/raw.h>
 #include <spa/param/latency-utils.h>
+#include <spa/pod/builder.h>
+#include <spa/pod/pod.h>
+#include <spa/utils/defs.h>
+#include <spa/utils/type.h>
 #include <spa/debug/format.h>
 #include <spa/debug/pod.h>
 
-#include <pipewire/pipewire.h>
-#include <stdexcept>
-#include <assert.h>
+#include <pixman.h>
+
 #include <core/LogWriter.h>
 
 #include "WDesktop.h"
-
-#include <pixman.h>
+#include "Pipewire.h"
 
 #define MAX_BUFFERS 64
 

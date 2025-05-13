@@ -2,8 +2,7 @@
 #include <config.h>
 #endif
 
-#include "PortalBackend.h"
-// #include "portals/Screencast.h"
+#include <assert.h>
 
 #include <glib.h>
 #include <glib-unix.h>
@@ -12,11 +11,10 @@
 #include <rfb/VNCServerST.h>
 #include <rfb/ServerCore.h>
 #include <rdr/FdOutStream.h>
-
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 
-#include <assert.h>
+#include "PortalBackend.h"
 
 
 core::IntParameter

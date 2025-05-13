@@ -2,16 +2,19 @@
 #include <config.h>
 #endif
 
-#include "Portal.h"
+#include <assert.h>
+#include <string.h>
+#include <uuid/uuid.h>
+
+#include <stdexcept>
+
 #include "gio/gio.h"
 #include "glib.h"
 
 #include <core/LogWriter.h>
 
-#include <assert.h>
-#include <stdexcept>
-#include <string.h>
-#include <uuid/uuid.h>
+#include "Portal.h"
+
 
 static core::LogWriter vlog("Portal");
 

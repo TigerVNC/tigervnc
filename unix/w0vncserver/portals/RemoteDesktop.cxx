@@ -2,21 +2,23 @@
 #include <config.h>
 #endif
 
-#include "RemoteDesktop.h"
-#include "Portal.h"
+#include <stdint.h>
+#include <assert.h>
+#include <sys/select.h>
+#include <string.h>
+
+#include <stdexcept>
+#include <vector>
+
 #include "glib.h"
-#include "../WDesktop.h"
-#include "../PortalBackend.h"
 
 #include <core/LogWriter.h>
 #include <core/string.h>
 
-#include <assert.h>
-#include <cstdint>
-#include <stdexcept>
-#include <string>
-#include <sys/select.h>
-#include <vector>
+#include "RemoteDesktop.h"
+#include "Portal.h"
+#include "../WDesktop.h"
+#include "../PortalBackend.h"
 
 static core::LogWriter vlog("RemoteDesktop");
 
