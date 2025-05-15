@@ -203,3 +203,63 @@ void Portal::on_call_cb(GDBusProxy *source, GAsyncResult *res,
 
   g_variant_unref(response);
 }
+
+bool Portal::check_interfaces(std::vector<std::string>& interfaces)
+{
+  GError* error = nullptr;
+  GDBusConnection* connection;
+  GVariant* result;
+  GDBusNodeInfo* node_info;
+  GDBusInterfaceInfo *interface_info;
+  const char* introspection_xml;
+  bool interface_missing;
+
+  connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
+
+  if (error) {
+    std::string error_message(error->message);
+    g_error_free(error);
+    throw std::runtime_error(error_message);
+  }
+
+  result = g_dbus_connection_call_sync(connection,
+                              "org.freedesktop.portal.Desktop",
+                              "/org/freedesktop/portal/desktop",
+                              "org.freedesktop.DBus.Introspectable",
+                              "Introspect",
+                              nullptr,
+                              G_VARIANT_TYPE("(s)"),
+                              G_DBUS_CALL_FLAGS_NONE,
+                              3000,
+                              nullptr,
+                              &error);
+
+  if (error) {
+    std::string error_message(error->message);
+    g_error_free(error);
+    throw std::runtime_error("Introspect call failed: " + error_message);
+  }
+
+  g_variant_get(result, "(&s)", &introspection_xml);
+
+  node_info = g_dbus_node_info_new_for_xml(introspection_xml, &error);
+  g_variant_unref(result);
+
+  if (error) {
+    std::string error_message(error->message);
+    g_error_free(error);
+    throw std::runtime_error(error_message);
+  }
+
+  interface_missing = false;
+  for (std::string interface : interfaces) {
+    interface_info = g_dbus_node_info_lookup_interface(node_info,
+                                                       interface.c_str());
+    if (!interface_info) {
+      vlog.debug("Interface '%s' not found", interface.c_str());
+      interface_missing = true;
+    }
+  }
+
+  return !interface_missing;
+}

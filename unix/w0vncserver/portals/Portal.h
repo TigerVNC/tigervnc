@@ -2,6 +2,10 @@
 #define __PORTAL_H__
 
 #include <stdint.h>
+
+#include <string>
+#include <vector>
+
 #include "gio/gio.h"
 
 // FIXME: Maybe Portal classes should be namespaced
@@ -9,6 +13,8 @@ class Portal {
 public:
   Portal();
   virtual ~Portal();
+
+  static bool check_interfaces(std::vector<std::string>& interfaces);
 
   GDBusConnection* connection() { return connection_; }
 

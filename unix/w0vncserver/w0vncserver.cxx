@@ -91,8 +91,15 @@ int main(int argc, char** argv)
   }
 
   try {
-    // FIXME: Check if there is a RemoteDesktop portal implementation
-    // available
+    std::vector<std::string> interfaces;
+    interfaces.push_back("org.freedesktop.portal.RemoteDesktop");
+    interfaces.push_back("org.freedesktop.portal.ScreenCast");
+
+    if (!Portal::check_interfaces(interfaces)) {
+      fprintf(stderr, "No RemoteDesktop portal implementation found\n");
+      exit(-1);
+    }
+
     PortalBackend remote{rfbport};
     remote.init();
 
