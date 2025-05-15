@@ -17,6 +17,9 @@
 #include "RemoteDesktop.h"
 #include "../PortalBackend.h"
 
+core::BoolParameter localcursor("localcursor", "Render cursor locally",
+                                 false);
+
 static core::LogWriter vlog("Screencast");
 
 Screencast::Screencast(GDBusConnection* connection,
@@ -122,14 +125,17 @@ void Screencast::select_sources()
   GVariantBuilder options_builder;
   char* handle_token;
   char* request_handle;
+  int cursor_mode;
 
   new_request_handle(&request_handle, &handle_token);
+
+  cursor_mode = localcursor ? CUR_METADATA : CUR_EMBEDDED;
 
   g_variant_builder_init(&options_builder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add(&options_builder, "{sv}", "types",
                         g_variant_new_uint32(SRC_MONITOR));
   g_variant_builder_add(&options_builder, "{sv}", "cursor_mode",
-                        g_variant_new_uint32(CUR_METADATA));
+                        g_variant_new_uint32(cursor_mode));
   g_variant_builder_add(&options_builder, "{sv}", "multiple",
                          g_variant_new_boolean(true));
 
