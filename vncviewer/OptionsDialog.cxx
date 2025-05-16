@@ -44,6 +44,10 @@
 #include "fltk/Fl_Monitor_Arrangement.h"
 #include "fltk/Fl_Navigation.h"
 
+#ifdef __APPLE__
+#include "cocoa.h"
+#endif
+
 #include <FL/Fl.H>
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Button.H>
@@ -883,6 +887,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                       CHECK_MIN_WIDTH,
                                                       CHECK_HEIGHT,
                                                       _("Pass system keys directly to server (full screen)")));
+    systemKeysCheckbox->callback(handleSystemKeys, this);
     ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
     menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
@@ -1127,6 +1132,20 @@ void OptionsDialog::handleRSAAES(Fl_Widget* /*widget*/, void *data)
     dialog->authVncCheckbox->value(true);
     dialog->authPlainCheckbox->value(true);
   }
+}
+
+
+void OptionsDialog::handleSystemKeys(Fl_Widget* /*widget*/, void* data)
+{
+#ifdef __APPLE__
+  OptionsDialog* dialog = (OptionsDialog*)data;
+
+  // Pop up the access dialog if needed
+  if (dialog->systemKeysCheckbox->value())
+    cocoa_is_trusted(true);
+#else
+  (void)data;
+#endif
 }
 
 

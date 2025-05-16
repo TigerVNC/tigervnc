@@ -23,11 +23,10 @@ class Fl_Window;
 
 void cocoa_prevent_native_fullscreen(Fl_Window *win);
 
-int cocoa_get_level(Fl_Window *win);
-void cocoa_set_level(Fl_Window *win, int level);
+bool cocoa_is_trusted(bool prompt=false);
 
-int cocoa_capture_displays(Fl_Window *win);
-void cocoa_release_displays(Fl_Window *win);
+bool cocoa_tap_keyboard();
+void cocoa_untap_keyboard();
 
 typedef struct CGColorSpace *CGColorSpaceRef;
 
