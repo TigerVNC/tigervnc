@@ -31,9 +31,9 @@ void ControlPanel::initDialog()
   SendCommand(4, -1);
 }
 
-bool ControlPanel::onCommand(int cmd)
+bool ControlPanel::onCommand(int item, int /*cmd*/)
 {
-  switch (cmd) {
+  switch (item) {
   case IDC_PROPERTIES:
     SendMessage(m_hSTIcon, WM_COMMAND, ID_OPTIONS, 0);
     return false;
@@ -122,7 +122,7 @@ BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM /*lPara
       EndDialog(hwnd, 0);
       return TRUE;
     default:
-      return onCommand(LOWORD(wParam));
+      return onCommand(LOWORD(wParam), HIWORD(wParam));
     }
   }
   return FALSE;

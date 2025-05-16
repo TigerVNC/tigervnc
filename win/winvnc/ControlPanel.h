@@ -26,7 +26,7 @@ namespace winvnc {
     };
     virtual bool showDialog();
     void initDialog() override;
-    virtual bool onCommand(int cmd);
+    bool onCommand(int item, int cmd) override;
     void UpdateListView(ListConnInfo* LCInfo);
     HWND GetHandle() {return handle;};
     void SendCommand(DWORD command, int data);
