@@ -23,10 +23,8 @@
 
 #ifdef __OBJC__
 @class NSEvent;
-@class NSString;
 #else
 class NSEvent;
-class NSString;
 #endif
 
 class KeyboardMacOS : public Keyboard
@@ -38,6 +36,7 @@ public:
   bool isKeyboardReset(const void* event) override;
 
   bool handleEvent(const void* event) override;
+  std::list<uint32_t> translateToKeySyms(int systemKeyCode) override;
 
   unsigned getLEDState() override;
   void setLEDState(unsigned state) override;
@@ -48,8 +47,7 @@ protected:
   uint32_t translateSystemKeyCode(int systemKeyCode);
   unsigned getSystemKeyCode(const NSEvent* nsevent);
 
-  NSString* keyTranslate(unsigned keyCode, unsigned modifierFlags);
-  uint32_t translateEventKeysym(const NSEvent* nsevent);
+  uint32_t translateToKeySym(unsigned keyCode, unsigned modifierFlags);
 
   int openHID(unsigned int* ioc);
   int getModifierLockState(int modifier, bool* on);

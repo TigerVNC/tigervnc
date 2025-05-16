@@ -30,12 +30,20 @@ public:
   bool isKeyboardReset(const void* event) override;
 
   bool handleEvent(const void* event) override;
+  std::list<uint32_t> translateToKeySyms(int systemKeyCode) override;
 
   unsigned getLEDState() override;
   void setLEDState(unsigned state) override;
 
 protected:
   unsigned getModifierMask(uint32_t keysym);
+
+private:
+  void translateToKeySyms(int systemKeyCode, unsigned char group,
+                          std::list<uint32_t>* keySyms);
+  void translateToKeySyms(int systemKeyCode,
+                          unsigned char group, unsigned char mods,
+                          std::list<uint32_t>* keySyms);
 
 private:
   int code_map_keycode_to_qnum[256];

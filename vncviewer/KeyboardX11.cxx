@@ -22,6 +22,7 @@
 
 #include <assert.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <X11/XKBlib.h>
@@ -134,6 +135,31 @@ bool KeyboardX11::handleEvent(const void* event)
   return false;
 }
 
+std::list<uint32_t> KeyboardX11::translateToKeySyms(int systemKeyCode)
+{
+  Status status;
+  XkbStateRec state;
+  std::list<uint32_t> keySyms;
+  unsigned char group;
+
+  status = XkbGetState(fl_display, XkbUseCoreKbd, &state);
+  if (status != Success)
+    return keySyms;
+
+  // Start with the currently used group
+  translateToKeySyms(systemKeyCode, state.group, &keySyms);
+
+  // Then all other groups
+  for (group = 0; group < XkbNumKbdGroups; group++) {
+    if (group == state.group)
+      continue;
+
+    translateToKeySyms(systemKeyCode, group, &keySyms);
+  }
+
+  return keySyms;
+}
+
 unsigned KeyboardX11::getLEDState()
 {
   unsigned state;
@@ -236,4 +262,41 @@ out:
   XkbFreeKeyboard(xkb, XkbAllComponentsMask, True);
 
   return mask;
+}
+
+void KeyboardX11::translateToKeySyms(int systemKeyCode,
+                                     unsigned char group,
+                                     std::list<uint32_t>* keySyms)
+{
+  unsigned int mods;
+
+  // Start with no modifiers
+  translateToKeySyms(systemKeyCode, group, 0, keySyms);
+
+  // Next just a single modifier at a time
+  for (mods = 1; mods < (Mod5Mask+1); mods <<= 1)
+    translateToKeySyms(systemKeyCode, group, mods, keySyms);
+
+  // Finally everything
+  for (mods = 0; mods < (Mod5Mask<<1); mods++)
+    translateToKeySyms(systemKeyCode, group, mods, keySyms);
+}
+
+void KeyboardX11::translateToKeySyms(int systemKeyCode,
+                                     unsigned char group,
+                                     unsigned char mods,
+                                     std::list<uint32_t>* keySyms)
+{
+  KeySym ks;
+  std::list<uint32_t>::const_iterator iter;
+
+  ks = XkbKeycodeToKeysym(fl_display, systemKeyCode, group, mods);
+  if (ks == NoSymbol)
+    return;
+
+  iter = std::find(keySyms->begin(), keySyms->end(), ks);
+  if (iter != keySyms->end())
+    return;
+
+  keySyms->push_back(ks);
 }
