@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,6 +78,10 @@ public:
 
   void fullscreen_on();
 
+  // Grab keyboard events from desktop environment
+  void grabKeyboard();
+  void ungrabKeyboard();
+
 private:
   static void menuOverlay(void *data);
 
@@ -90,9 +94,6 @@ private:
 
   bool hasFocus();
 
-  void maybeGrabKeyboard();
-  void grabKeyboard();
-  void ungrabKeyboard();
   void grabPointer();
   void ungrabPointer();
 
