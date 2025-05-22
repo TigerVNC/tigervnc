@@ -1110,6 +1110,9 @@ void DesktopWindow::grabKeyboard()
 
   // FIXME: Push this stuff into FLTK.
 
+  if (keyboardGrabbed)
+    return;
+
   if (!hasFocus())
     return;
 
