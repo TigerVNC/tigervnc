@@ -20,6 +20,7 @@
 #define __PIPEWIRE_PIXEL_BUFFER_H__
 
 #include <rfb/PixelBuffer.h>
+#include <core/Region.h>
 
 #include "PipeWireStream.h"
 
@@ -38,9 +39,11 @@ private:
 
 protected:
   void processFrame(spa_buffer* buffer);
+  void processDamage(spa_buffer* buffer);
 
 private:
   rfb::VNCServer* server;
   rfb::PixelFormat pipewirePixelFormat;
+  core::Region accumulatedDamage;
 };
 #endif // __PIPEWIRE_PIXEL_BUFFER_H__

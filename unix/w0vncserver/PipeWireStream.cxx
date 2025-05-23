@@ -239,6 +239,13 @@ void PipeWireStream::handleStreamParamChanged(uint32_t id,
     SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Header),
     SPA_PARAM_META_size, SPA_POD_Int(sizeof(spa_meta_header)));
 
+  params[nParams++] = (spa_pod*)spa_pod_builder_add_object(&builder,
+    SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta, SPA_PARAM_META_type,
+    SPA_POD_Id(SPA_META_VideoDamage), SPA_PARAM_META_size,
+    SPA_POD_CHOICE_RANGE_Int(sizeof(struct spa_meta_region) * 16,
+                            sizeof(struct spa_meta_region) * 1,
+                            sizeof(struct spa_meta_region) * 16));
+
   pw_stream_update_params(stream, params, nParams);
 }
 

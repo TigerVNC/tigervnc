@@ -60,6 +60,7 @@ void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
 
   spaBuffer = buffer->buffer;
 
+  processDamage(spaBuffer);
   processFrame(spaBuffer);
 }
 
@@ -80,6 +81,7 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
   spa_chunk* chunk;
   uint8_t* dstBuffer;
   pixman_bool_t ret;
+  core::Rect rect;
 
   chunk = buffer->datas[0].chunk;
 
@@ -92,17 +94,47 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
     return;
   }
 
+  rect = accumulatedDamage.get_bounding_rect();
+
+  // Clamp damage outside of framebuffer
+  if (!rect.enclosed_by(getRect()))
+    rect = rect.intersect(getRect());
+
   srcBuffer = (uint8_t*)buffer->datas[0].data;
   srcStride = chunk->stride / (pipewirePixelFormat.bpp / 8);
   dstBuffer = getBufferRW(getRect(), &dstStride);
 
   ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
                    srcStride, dstStride, pipewirePixelFormat.bpp,
-                   getPF().bpp, 0, 0, 0, 0, width(), height());
-  commitBufferRW(getRect());
+                   getPF().bpp, rect.tl.x, rect.tl.y, rect.tl.x,
+                   rect.tl.y, rect.width(), rect.height());
+  commitBufferRW(rect);
 
   if (!ret)
-    imageRect(pipewirePixelFormat, getRect(), srcBuffer, srcStride);
+    imageRect(pipewirePixelFormat, rect, srcBuffer, srcStride);
 
-  server->add_changed(getRect());
+  server->add_changed(rect);
+  accumulatedDamage.clear();
+}
+
+void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
+{
+  spa_meta* damage;
+  core::Region damagedRegion;
+  spa_meta_region* metaRegion;
+
+  damage = spa_buffer_find_meta(buffer, SPA_META_VideoDamage);
+
+  if (!damage)
+    return;
+
+  spa_meta_for_each(metaRegion, damage) {
+    core::Point tl{metaRegion->region.position.x,
+                   metaRegion->region.position.y};
+    core::Point br{static_cast<int>(tl.x + metaRegion->region.size.width),
+                   static_cast<int>(tl.y + metaRegion->region.size.height)};
+    damagedRegion.assign_union({{tl, br}});
+  }
+
+  accumulatedDamage.assign_union(damagedRegion);
 }
