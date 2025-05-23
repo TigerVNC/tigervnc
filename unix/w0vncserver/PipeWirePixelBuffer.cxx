@@ -37,21 +37,33 @@
 #include "PipeWireSource.h"
 #include "PipeWirePixelBuffer.h"
 
-
 static core::LogWriter vlog("PipewirePixelBuffer");
+
+struct PipeWirecursor {
+  uint32_t w;
+  uint32_t h;
+  int32_t x;
+  int32_t y;
+  int32_t hotspotX;
+  int32_t hotspotY;
+  int32_t stride;
+};
 
 PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
                                          uint32_t pipewireId,
                                          rfb::VNCServer* server)
-  : pipewireFd_(pipewireFd), pipewireId_(pipewireId), server_(server)
+  : pipewireFd_(pipewireFd), pipewireId_(pipewireId), server_(server),
+    cursor(nullptr)
 {
 
   source = new PipeWireSource(this);
+  cursor = new PipeWirecursor();
 }
 
 PipeWirePixelBuffer::~PipeWirePixelBuffer()
 {
    delete source;
+   delete cursor;
    close(pipewireFd_);
 }
 
@@ -100,6 +112,47 @@ void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
   }
 }
 
+void PipeWirePixelBuffer::processCursor(pw_buffer* buf)
+{
+  spa_meta_cursor* mcs;
+  spa_meta_bitmap* mb;
+  uint8_t* src;
+
+  mcs = (spa_meta_cursor *)spa_buffer_find_meta_data(buf->buffer,
+                                                     SPA_META_Cursor,
+                                                     sizeof(*mcs));
+  if(!mcs){
+    vlog.error("Could not find cursor metadata");
+    return;
+  }
+
+  cursor->x = mcs->position.x;
+  cursor->y = mcs->position.y;
+  cursor->hotspotX = mcs->hotspot.x;
+  cursor->hotspotY = mcs->hotspot.y;
+
+  server_->setCursorPos({cursor->x, cursor->y}, true);
+
+  // No new cursor bitmap
+  if (!mcs->bitmap_offset)
+    return;
+
+  mb = SPA_PTROFF(mcs, mcs->bitmap_offset, struct spa_meta_bitmap);
+  if (!supportedCursorPixelformat(mb->format))
+    return;
+
+  src = SPA_PTROFF(mb, mb->offset, uint8_t);
+
+  cursor->w = mb->size.width;
+  cursor->h = mb->size.height;
+  cursor->stride = mb->stride;
+
+  setCursor(cursor->w, cursor->h, cursor->hotspotX,
+            cursor->hotspotY, src);
+}
+
+
+
 rfb::PixelFormat PipeWirePixelBuffer::convertPixelformat(int format_)
 {
   switch (format_) {
@@ -128,4 +181,63 @@ rfb::PixelFormat PipeWirePixelBuffer::convertPixelformat(int format_)
   default:
     throw std::runtime_error("Unsupported pixel format");
   }
+}
+
+void PipeWirePixelBuffer::setCursor(int width, int height, int hotX,
+                                    int hotY,
+                                    const unsigned char* rgbaData)
+{
+  // Copied from XserverDesktop.cc
+  uint8_t* cursorData;
+
+  uint8_t *out;
+  const unsigned char *in;
+
+  cursorData = new uint8_t[width * height * 4];
+
+  // Un-premultiply alpha
+  in = rgbaData;
+  out = cursorData;
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      uint8_t alpha;
+
+      alpha = in[3];
+      if (alpha == 0)
+        alpha = 1; // Avoid division by zero
+
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = *in++;
+    }
+  }
+
+  try {
+    server_->setCursor(width, height, {hotX, hotY}, cursorData);
+  } catch (std::exception& e) {
+    vlog.error("PipewirePixelBuffer::setCursor: %s",e.what());
+  }
+
+  delete [] cursorData;
+}
+
+bool PipeWirePixelBuffer::hasCursorData(pw_buffer* buf)
+{
+  spa_meta_cursor* mcs;
+
+  if ((mcs = (spa_meta_cursor *)spa_buffer_find_meta_data(
+    buf->buffer, SPA_META_Cursor, sizeof(*mcs))) &&
+    spa_meta_cursor_is_valid(mcs)) {
+      // We got new cursor position / new cursor bitmap
+      return true;
+    }
+
+  return false;
+}
+
+bool PipeWirePixelBuffer::supportedCursorPixelformat(int format_)
+{
+  return format_ == SPA_VIDEO_FORMAT_RGBx ||
+         format_ == SPA_VIDEO_FORMAT_RGBA;
 }

@@ -11,6 +11,7 @@
 namespace rfb { class VNCServer; class PixelFormat;}
 
 class PipeWireSource;
+struct PipeWirecursor;
 
 class PipeWirePixelBuffer : public rfb::ManagedPixelBuffer {
 public:
@@ -19,8 +20,13 @@ public:
   ~PipeWirePixelBuffer();
 
   void processBuffer(pw_buffer* buffer);
+  void processCursor(pw_buffer* buffer);
   void updatePixelbuffer(int width, int height, rfb::PixelFormat pf);
   rfb::PixelFormat convertPixelformat(int format_);
+  void setCursor(int width, int height, int hotX, int hotY,
+                 const unsigned char* rgbaData);
+  bool hasCursorData(pw_buffer* buf);
+  bool supportedCursorPixelformat(int format_);
 
   int fd() const { return pipewireFd_; }
   int id() const { return pipewireId_; }
@@ -31,5 +37,7 @@ private:
 
   rfb::VNCServer* server_;
   PipeWireSource* source;
+  PipeWirecursor* cursor;
+
 };
 #endif // __PIPEWIRE_PIXEL_BUFFER_H__
