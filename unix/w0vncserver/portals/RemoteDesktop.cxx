@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <sys/select.h>
+#include <linux/input-event-codes.h>
 
 #include <glib.h>
 #include <gio/gunixfdlist.h>
@@ -35,16 +36,47 @@
 #include "RemoteDesktop.h"
 #include "PortalProxy.h"
 
+// Maximum number of buttons
+#define BUTTONS 9
+
+// Scroll wheel events
+#define WHEEL_VERTICAL_DOWN    3
+#define WHEEL_VERTICAL_UP      4
+#define WHEEL_HORIZONTAL_LEFT  5
+#define WHEEL_HORIZONTAL_RIGHT 6
+
 static core::LogWriter vlog("RemoteDesktop");
+
+static int getInputCode(uint32_t button)
+{
+  switch (button) {
+  case 0x0:
+    return BTN_LEFT;
+  case 0x1:
+    return BTN_MIDDLE;
+  case 0x2:
+    return BTN_RIGHT;
+  case 0x7:
+    return BTN_SIDE;
+  case 0x8:
+    return BTN_EXTRA;
+  default:
+    assert(false);
+  }
+}
 
 RemoteDesktop::RemoteDesktop(std::function<void(int fd, uint32_t nodeId)>
                                startPipewireCb_,
                              std::function<void(const char*)>
                                cancelStartCb_)
-  : sessionStarted(false), sessionHandle(""), screenCast(nullptr),
+  : sessionStarted(false), oldButtonMask(0), selectedDevices(0),
+    sessionHandle(""), remoteDesktop(nullptr), screenCast(nullptr),
     session(nullptr), startPipewireCb(startPipewireCb_),
     cancelStartCb(cancelStartCb_)
 {
+  remoteDesktop = new PortalProxy("org.freedesktop.portal.Desktop",
+                                  "/org/freedesktop/portal/desktop",
+                                  "org.freedesktop.portal.RemoteDesktop");
   screenCast = new PortalProxy("org.freedesktop.portal.Desktop",
                                "/org/freedesktop/portal/desktop",
                                "org.freedesktop.portal.ScreenCast");
@@ -55,6 +87,111 @@ RemoteDesktop::~RemoteDesktop()
   closeSession();
   delete session;
   delete screenCast;
+  delete remoteDesktop;
+}
+
+void RemoteDesktop::keyEvent(uint32_t keysym, uint32_t /* keycode */,
+                             bool down)
+{
+  GVariantBuilder optionsBuilder;
+  GVariant* params;
+  uint32_t state;
+
+  if (!(selectedDevices & DEV_KEYBOARD))
+    return;
+
+  // FIXME: Make use of keycodes?
+
+  state = down ? 1 : 0;
+
+  g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
+  params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
+                         &optionsBuilder, keysym, state);
+  remoteDesktop->call("NotifyKeyboardKeysym", params);
+}
+
+void RemoteDesktop::pointerEvent(int x, int y, uint16_t buttonMask)
+{
+  GVariantBuilder optionsBuilder;
+  GVariant* params;
+
+  if (!(selectedDevices & DEV_POINTER))
+    return;
+
+  g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
+  params = g_variant_new("(oa{sv}udd)", sessionHandle.c_str(),
+                         &optionsBuilder, pipewireNodeId,
+                         (double)x,(double)y);
+
+  remoteDesktop->call("NotifyPointerMotionAbsolute", params);
+
+  if (buttonMask == oldButtonMask)
+    return;
+
+  for (int32_t i = 0; i < BUTTONS; i++) {
+    if ((buttonMask ^ oldButtonMask) & (1 << i)) {
+      if (i > 2 && i < 7)
+        handleScrollWheel(i);
+      else
+        handleButton(i, buttonMask & (1 << i));
+    }
+  }
+  oldButtonMask = buttonMask;
+}
+
+void RemoteDesktop::handleButton(int32_t button, bool down)
+{
+  GVariantBuilder optionsBuilder;
+  GVariant* params;
+
+  assert(selectedDevices & DEV_POINTER);
+
+  button = getInputCode(button);
+
+  g_variant_builder_init(&optionsBuilder,
+                         G_VARIANT_TYPE("a{sv}"));
+  params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
+                          &optionsBuilder, button, down);
+
+  remoteDesktop->call("NotifyPointerButton", params);
+}
+
+void RemoteDesktop::handleScrollWheel(int32_t button)
+{
+  GVariantBuilder optionsBuilder;
+  GVariant* params;
+  int32_t axis;
+  int steps;
+
+  assert(button > 2 && button < 7);
+  assert(selectedDevices & DEV_POINTER);
+
+  switch (button) {
+  case WHEEL_VERTICAL_DOWN:
+    axis = 0;
+    steps = -1;
+    break;
+  case WHEEL_VERTICAL_UP:
+    axis = 0;
+    steps = 1;
+    break;
+  case WHEEL_HORIZONTAL_LEFT:
+    axis = 1;
+    steps = -1;
+    break;
+  case WHEEL_HORIZONTAL_RIGHT:
+    axis = 1;
+    steps = 1;
+    break;
+  default:
+    assert(false);
+  }
+
+  g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
+  params = g_variant_new("(oa{sv}ui)", sessionHandle.c_str(),
+                         &optionsBuilder, axis, steps);
+
+  remoteDesktop->call("NotifyPointerAxisDiscrete", params);
 }
 
 void RemoteDesktop::createSession()
@@ -64,8 +201,8 @@ void RemoteDesktop::createSession()
   GVariantBuilder optionsBuilder;
   GVariant* params;
 
-  requestHandleToken = screenCast->newHandle();
-  sessionHandleToken = screenCast->newHandle();
+  requestHandleToken = remoteDesktop->newHandle();
+  sessionHandleToken = remoteDesktop->newHandle();
 
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add(&optionsBuilder, "{sv}", "handle_token",
@@ -75,15 +212,42 @@ void RemoteDesktop::createSession()
 
   params = g_variant_new("(a{sv})", &optionsBuilder);
 
-  screenCast->call("CreateSession", params, requestHandleToken.c_str(),
-                   std::bind(&RemoteDesktop::handleCreateSession,
-                             this, std::placeholders::_1));
+  remoteDesktop->call("CreateSession", params,
+                      requestHandleToken.c_str(),
+                      std::bind(&RemoteDesktop::handleCreateSession,
+                                this, std::placeholders::_1));
 }
 
 void RemoteDesktop::closeSession()
 {
   if (session && sessionStarted)
     session->call("Close", nullptr, nullptr, nullptr);
+}
+
+void RemoteDesktop::selectDevices()
+{
+  std::string requestHandleToken;
+  GVariantBuilder optionsBuilder;
+  GVariant *params;
+
+  requestHandleToken = remoteDesktop->newHandle();
+
+  g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add(&optionsBuilder, "{sv}", "types",
+                        g_variant_new_uint32(DEV_KEYBOARD | DEV_POINTER));
+  g_variant_builder_add(&optionsBuilder, "{sv}", "persist_mode",
+                        g_variant_new_uint32(0));
+
+  // FIXME: Do we want restore_token?
+
+  g_variant_builder_add(&optionsBuilder, "{sv}", "handle_token",
+                        g_variant_new_string(requestHandleToken.c_str()));
+
+  params = g_variant_new("(oa{sv})", sessionHandle.c_str(), &optionsBuilder);
+
+  remoteDesktop->call("SelectDevices", params, requestHandleToken.c_str(),
+                      std::bind(&RemoteDesktop::handleSelectDevices,
+                                this, std::placeholders::_1));
 }
 
 void RemoteDesktop::selectSources()
@@ -119,7 +283,7 @@ void RemoteDesktop::start()
   GVariantBuilder optionsBuilder;
   GVariant *params;
 
-  requestHandleToken = screenCast->newHandle();
+  requestHandleToken = remoteDesktop->newHandle();
 
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add(&optionsBuilder, "{sv}", "handle_token",
@@ -128,9 +292,9 @@ void RemoteDesktop::start()
   params = g_variant_new("(osa{sv})", sessionHandle.c_str(), "",
                          &optionsBuilder);
 
-  screenCast->call("Start", params, requestHandleToken.c_str(),
-                   std::bind(&RemoteDesktop::handleStart,
-                             this, std::placeholders::_1));
+  remoteDesktop->call("Start", params, requestHandleToken.c_str(),
+                      std::bind(&RemoteDesktop::handleStart,
+                                this, std::placeholders::_1));
 }
 
 void RemoteDesktop::openPipewireRemote()
@@ -173,11 +337,11 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   g_variant_get(parameters, "(u@a{sv})", &response, &result);
 
   if (response == 1)  {
-    cancelStartCb("RemoteDesktop::handleCreateSession(): ScreenCast.CreateSession was cancelled");
+    cancelStartCb("RemoteDesktop::handleCreateSession(): RemoteDesktop.CreateSession was cancelled");
     return;
   }
   else if (response == 2) {
-    cancelStartCb("RemoteDesktop::handleCreateSession(): ScreenCast.CreateSession failed");
+    cancelStartCb("RemoteDesktop::handleCreateSession(): RemoteDesktop.CreateSession failed");
     return;
   }
 
@@ -193,7 +357,7 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
                             sessionHandle.c_str(),
                             "org.freedesktop.portal.Session");
 
-  selectSources();
+  selectDevices();
 }
 
 void RemoteDesktop::handleStart(GVariant* parameters)
@@ -201,6 +365,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   uint32_t responseCode;
   GVariant* result;
   GVariant* streams_;
+  GVariant* devices;
 
   assert(!sessionStarted);
 
@@ -218,11 +383,15 @@ void RemoteDesktop::handleStart(GVariant* parameters)
     return;
   } else if (responseCode == 2) {
     g_variant_unref(result);
-    cancelStartCb("RemoteDesktop::handleStart(): ScreenCast.Start failed");
+    cancelStartCb("RemoteDesktop::handleStart(): RemoteDesktop.Start failed");
     return;
   }
 
   sessionStarted = true;
+
+  devices = g_variant_lookup_value(result, "devices", G_VARIANT_TYPE_UINT32);
+  selectedDevices = g_variant_get_uint32(devices);
+  g_variant_unref(devices);
 
   streams_ = g_variant_lookup_value(result, "streams",
                                     G_VARIANT_TYPE_ARRAY);
@@ -241,6 +410,11 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 void RemoteDesktop::handleSelectSources(GVariant* /* parameters */)
 {
   start();
+}
+
+void RemoteDesktop::handleSelectDevices(GVariant* /* parameters */)
+{
+  selectSources();
 }
 
 void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,

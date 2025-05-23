@@ -29,4 +29,9 @@ static const int CUR_HIDDEN =   (1 << 0);
 static const int CUR_EMBEDDED = (1 << 1);
 static const int CUR_METADATA = (1 << 2);
 
+// Devices types
+static const int DEV_KEYBOARD =    (1 << 0);
+static const int DEV_POINTER =     (1 << 1);
+static const int DEV_TOUCHSCREEN = (1 << 2);
+
 #endif // __PORTAL_CONSTANTS_H__

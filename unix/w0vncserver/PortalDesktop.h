@@ -44,6 +44,9 @@ public:
   void terminate() override;
   unsigned int setScreenLayout(int fb_width, int fb_height,
                                const rfb::ScreenSet& layout) override;
+  void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
+  void pointerEvent(const core::Point& pos,
+                    uint16_t buttonMask) override;
 
   // Check if portals implementations are available
   static bool available();
