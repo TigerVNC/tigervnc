@@ -809,11 +809,11 @@ void Viewport::popupContextMenu()
     window()->cursor(FL_CURSOR_DEFAULT);
 
   // FLTK also doesn't switch focus properly for menus
-  handle(FL_UNFOCUS);
+  Fl::handle(FL_UNFOCUS, window());
 
   m = contextMenu->popup();
 
-  handle(FL_FOCUS);
+  Fl::handle(FL_FOCUS, window());
 
   // Back to our proper mouse pointer.
   if (Fl::belowmouse() == this)
