@@ -74,6 +74,7 @@ void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
 
   spaBuffer = buffer->buffer;
 
+  processDamage(spaBuffer);
   processFrame(spaBuffer);
 }
 
@@ -94,6 +95,10 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
   spa_chunk* chunk;
   uint8_t* dstBuffer;
   pixman_bool_t ret;
+  int x;
+  int y;
+  int w;
+  int h;
 
   chunk = buffer->datas[0].chunk;
 
@@ -106,20 +111,56 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
     return;
   }
 
+  // Clamp values as they can be outside of the buffer
+  x = std::max(0, accumulatedDamage.get_bounding_rect().tl.x);
+  y = std::max(0, accumulatedDamage.get_bounding_rect().tl.y);
+  w = accumulatedDamage.get_bounding_rect().width();
+  h = accumulatedDamage.get_bounding_rect().height();
+
+  if (x + w > width())
+    w = width() - x;
+  if (y + h > height())
+    h = height() - y;
+
   srcBuffer = (uint8_t*)buffer->datas[0].data;
   srcStride = chunk->stride / (pipewirePixelFormat.bpp / 8);
   dstBuffer = getBufferRW({0, 0, width(), height()}, &dstStride);
 
   ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
                    srcStride, dstStride, pipewirePixelFormat.bpp,
-                   getPF().bpp, 0, 0, 0, 0, width(), height());
+                   getPF().bpp, x, y, x, y, w, h);
 
   if (ret)
-    commitBufferRW({0, 0, width(), height()});
+    commitBufferRW({x, y, x + w, y + h});
   else
-    imageRect(pipewirePixelFormat, {0, 0, width(), height()}, srcBuffer, srcStride);
+    imageRect(pipewirePixelFormat, {x, y, x + w, y + h}, srcBuffer, srcStride);
 
-  server->add_changed({{0, 0, width(), height()}});
+  server->add_changed({{x, y, x + w, y + h}});
+  accumulatedDamage.clear();
+}
+
+void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
+{
+  spa_meta* damage;
+  core::Region damagedRegion;
+  spa_meta_region* metaRegion;
+
+  damage = spa_buffer_find_meta(buffer, SPA_META_VideoDamage);
+
+  if (!damage)
+    return;
+
+  spa_meta_for_each(metaRegion, damage) {
+    core::Point tl{metaRegion->region.position.x,
+                    metaRegion->region.position.y};
+    core::Point br{static_cast<int>
+                      (tl.x + metaRegion->region.size.width),
+                    static_cast<int>
+                      (tl.y + metaRegion->region.size.height)};
+    damagedRegion.assign_union({{tl, br}});
+  }
+
+  accumulatedDamage.assign_union(damagedRegion);
 }
 
 rfb::PixelFormat PipeWirePixelBuffer::convertPixelformat(int spaFormat)
