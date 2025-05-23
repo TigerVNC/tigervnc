@@ -41,6 +41,15 @@
 #include "PipeWireStream.h"
 #include "PipeWirePixelBuffer.h"
 
+struct PipeWireCursor {
+  uint32_t w;
+  uint32_t h;
+  int32_t x;
+  int32_t y;
+  int32_t hotspotX;
+  int32_t hotspotY;
+};
+
 static core::LogWriter vlog("PipewirePixelBuffer");
 
 PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
@@ -48,10 +57,12 @@ PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
                                          rfb::VNCServer* server_)
   : PipeWireStream(pipewireFd, pipewireId), server(server_)
 {
+  cursor = new PipeWireCursor();
 }
 
 PipeWirePixelBuffer::~PipeWirePixelBuffer()
 {
+  delete cursor;
 }
 
 void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
@@ -61,6 +72,7 @@ void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
   spaBuffer = buffer->buffer;
 
   processDamage(spaBuffer);
+  processCursor(spaBuffer);
   processFrame(spaBuffer);
 }
 
@@ -117,6 +129,45 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
   accumulatedDamage.clear();
 }
 
+void PipeWirePixelBuffer::processCursor(spa_buffer* buffer)
+{
+  spa_meta_cursor* cursorData;
+  spa_meta_bitmap* cursorBitmap;
+  uint8_t* cursorBuffer;
+
+  if (!hasCursorData(buffer))
+    return;
+
+  cursorData = (spa_meta_cursor*)spa_buffer_find_meta_data(buffer,
+                                                           SPA_META_Cursor,
+                                                           sizeof(*cursorData));
+  assert(cursorData);
+
+  cursor->x = cursorData->position.x;
+  cursor->y = cursorData->position.y;
+  cursor->hotspotX = cursorData->hotspot.x;
+  cursor->hotspotY = cursorData->hotspot.y;
+
+  server->setCursorPos({cursor->x, cursor->y}, true);
+
+  // No new cursor bitmap
+  if (!cursorData->bitmap_offset)
+    return;
+
+  cursorBitmap = SPA_MEMBER(cursorData, cursorData->bitmap_offset,
+                            struct spa_meta_bitmap);
+  if (!supportedCursorPixelformat(cursorBitmap->format))
+    return;
+
+  cursorBuffer = SPA_MEMBER(cursorBitmap, cursorBitmap->offset, uint8_t);
+
+  cursor->w = cursorBitmap->size.width;
+  cursor->h = cursorBitmap->size.height;
+
+  setCursor(cursor->w, cursor->h, cursor->hotspotX,
+            cursor->hotspotY, cursorBuffer);
+}
+
 void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
 {
   spa_meta* damage;
@@ -137,4 +188,65 @@ void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
   }
 
   accumulatedDamage.assign_union(damagedRegion);
+}
+
+bool PipeWirePixelBuffer::hasCursorData(spa_buffer* buffer)
+{
+  spa_meta_cursor* mcs;
+
+  mcs = (spa_meta_cursor*)spa_buffer_find_meta_data(buffer,
+                                                    SPA_META_Cursor,
+                                                    sizeof(*mcs));
+
+  if (mcs && spa_meta_cursor_is_valid(mcs)) {
+      // We got new cursor position / new cursor bitmap
+      return true;
+    }
+
+  return false;
+}
+
+void PipeWirePixelBuffer::setCursor(int width, int height, int hotX,
+                                    int hotY,
+                                    const unsigned char* rgbaData)
+{
+  // Copied from XserverDesktop.cc
+  uint8_t* cursorData;
+
+  uint8_t *out;
+  const unsigned char *in;
+
+  cursorData = new uint8_t[width * height * 4];
+
+  // Un-premultiply alpha
+  in = rgbaData;
+  out = cursorData;
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      uint8_t alpha;
+
+      alpha = in[3];
+      if (alpha == 0)
+        alpha = 1; // Avoid division by zero
+
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = *in++;
+    }
+  }
+
+  try {
+    server->setCursor(width, height, {hotX, hotY}, cursorData);
+  } catch (std::exception& e) {
+    vlog.error("PipewirePixelBuffer::setCursor: %s",e.what());
+  }
+
+  delete [] cursorData;
+}
+
+bool PipeWirePixelBuffer::supportedCursorPixelformat(int format_)
+{
+  return format_ == SPA_VIDEO_FORMAT_RGBx ||
+         format_ == SPA_VIDEO_FORMAT_RGBA;
 }
