@@ -117,6 +117,10 @@ bool KeyboardX11::handleEvent(const void* event)
     char str;
     KeySym keysym;
 
+    // FLTK likes to use this instead of CurrentTime, so we need to keep
+    // it updated now that we steal this event
+    fl_event_time = xevent->xkey.time;
+
     keycode = code_map_keycode_to_qnum[xevent->xkey.keycode];
 
     XLookupString((XKeyEvent*)&xevent->xkey, &str, 1, &keysym, nullptr);
@@ -128,6 +132,7 @@ bool KeyboardX11::handleEvent(const void* event)
     handler->handleKeyPress(xevent->xkey.keycode, keycode, keysym);
     return true;
   } else if (xevent->type == KeyRelease) {
+    fl_event_time = xevent->xkey.time;
     handler->handleKeyRelease(xevent->xkey.keycode);
     return true;
   }
