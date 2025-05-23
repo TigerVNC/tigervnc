@@ -82,6 +82,112 @@ static pw_stream_events streamEvents {
   .trigger_done = nullptr
 };
 
+void setCursor(int width, int height, int hotX, int hotY,
+               const unsigned char *rgbaData, rfb::VNCServer* server)
+{
+  // Copied from XserverDesktop.cc
+  uint8_t* cursorData;
+
+  uint8_t *out;
+  const unsigned char *in;
+
+  cursorData = new uint8_t[width * height * 4];
+
+  // Un-premultiply alpha
+  in = rgbaData;
+  out = cursorData;
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      uint8_t alpha;
+
+      alpha = in[3];
+      if (alpha == 0)
+        alpha = 1; // Avoid division by zero
+
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = *in++;
+    }
+  }
+
+  try {
+    server->setCursor(width, height, {hotX, hotY}, cursorData);
+  } catch (std::exception& e) {
+    vlog.error("XserverDesktop::setCursor: %s",e.what());
+  }
+
+  delete [] cursorData;
+}
+
+static void processCursor(PipeWireSource *source, pw_buffer* buf)
+{
+  spa_meta_cursor* mcs;
+  spa_meta_bitmap* mb;
+  uint8_t* src;
+
+  mcs = (spa_meta_cursor *)spa_buffer_find_meta_data(buf->buffer,
+                                                     SPA_META_Cursor,
+                                                     sizeof(*mcs));
+
+  assert(mcs);
+
+  source->data->cursor.x = mcs->position.x;
+  source->data->cursor.y = mcs->position.y;
+  source->data->cursor.hotspotX = mcs->hotspot.x;
+  source->data->cursor.hotspotY = mcs->hotspot.y;
+
+  source->server->setCursorPos({source->data->cursor.x,
+                                source->data->cursor.y}, false);
+
+  // No new cursor bitmap
+  if (!mcs->bitmap_offset)
+    return;
+
+  mb = SPA_PTROFF(mcs, mcs->bitmap_offset, struct spa_meta_bitmap);
+
+  // If cursor size has changed
+  if (mb->size.width != source->data->cursor.w ||
+      mb->size.height != source->data->cursor.h ||
+      mb->stride != source->data->cursor.stride) {
+    uint32_t cursor_size;
+
+    delete [] source->data->cursor.data;
+    source->data->cursor.data = nullptr;
+
+    cursor_size = mb->stride * mb->size.height;
+    source->data->cursor.data = new uint8_t[cursor_size];
+  }
+
+  src = SPA_PTROFF(mb, mb->offset, uint8_t);
+  memcpy(source->data->cursor.data, src, mb->stride * mb->size.height);
+
+  source->data->cursor.w = mb->size.width;
+  source->data->cursor.h = mb->size.height;
+  source->data->cursor.stride = mb->stride;
+
+  setCursor(source->data->cursor.w,
+            source->data->cursor.h,
+            source->data->cursor.hotspotX,
+            source->data->cursor.hotspotY,
+            source->data->cursor.data, source->server);
+}
+
+static bool hasCursorData(pw_buffer* buf)
+{
+  spa_meta_cursor* mcs;
+
+  if ((mcs = (spa_meta_cursor *)spa_buffer_find_meta_data(
+    buf->buffer, SPA_META_Cursor, sizeof(*mcs))) &&
+    spa_meta_cursor_is_valid(mcs)) {
+      // We got new cursor position / new cursor bitmap
+      return true;
+    }
+
+  return false;
+}
+
+
 static const rfb::PixelFormat pfBGRX(32, 24, false, true, 255, 255, 255,
                                      16, 8, 0);
 
@@ -114,6 +220,7 @@ PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
 
   source->data = new PipeWireData;
   source->data->buffer = nullptr;
+  source->data->cursor.data = nullptr;
   source->server = server;
   source->instance = this;
 
@@ -123,6 +230,7 @@ PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
 PipeWirePixelBuffer::~PipeWirePixelBuffer()
 {
   // FIXME: There's some cleanup missing here
+  delete source->data->cursor.data;
   delete source->data;
   pw_loop_leave(loop);
   pw_loop_destroy(loop);
@@ -276,12 +384,26 @@ void onStreamParamChanged(void *_data, uint32_t id,
                              sizeof(struct spa_meta_region) * 1,
                              sizeof(struct spa_meta_region) * 16));
 
+  #define CURSOR_META_SIZE(w, h)                                         \
+  (sizeof(struct spa_meta_cursor) + sizeof(struct spa_meta_bitmap) +   \
+   w * h * 4)
+
+  /* cursor information */
+  params[nParams++] = (spa_pod *)spa_pod_builder_add_object(&b,
+    SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta,
+    SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Cursor),
+    SPA_PARAM_META_size, SPA_POD_CHOICE_RANGE_Int(
+                             CURSOR_META_SIZE(64, 64),
+                             CURSOR_META_SIZE(1, 1),
+                             CURSOR_META_SIZE(512, 512)));
+
   pw_stream_update_params(stream, params, nParams);
 }
 
 void onProcess(void *data) {
   PipeWireSource *source;
-  pw_buffer* buffer;
+  pw_buffer* lastFrameBuf;
+  pw_buffer* lastCursorBuf;
   spa_buffer* buf;
   spa_meta_region* damage;
   size_t bufSize;
@@ -298,35 +420,84 @@ void onProcess(void *data) {
   source = (PipeWireSource*)data;
   assert(source);
 
-  buffer = nullptr;
+  lastFrameBuf = nullptr;
+  lastCursorBuf = nullptr;
+  // Pipewire can handle sending cursor metadata in the same stream as
+  // the framebuffer data. With cursor metadata enabled,
+  // we need to check whether:
+  // 1. The buffer has frame data & cursor data
+  // 2. The buffer has frame data & no cursor data
+  // 3. The buffer has no frame data & cursor data
+  // 4. The buffer has no frame data & no cursor data (corrupted)
+  // We only care about the most up-to-date buffer containing frame or
+  // cursor data
   while (true) {
-    pw_buffer *next_buf;
+    pw_buffer *nextBuf;
+    spa_meta_header *header;
 
-    next_buf = pw_stream_dequeue_buffer(source->stream);
+    nextBuf = pw_stream_dequeue_buffer(source->stream);
 
-    if (!next_buf)
+    if (!nextBuf)
       break;
-    if (buffer)
-      pw_stream_queue_buffer(source->stream, buffer);
 
-    buffer = next_buf;
+    header = (spa_meta_header *)spa_buffer_find_meta_data(nextBuf->buffer,
+                                                          SPA_META_Header,
+                                                          sizeof(*header));
+    // Corrupted buffers contain no frame or cursor data
+    if (header && header->flags & SPA_META_HEADER_FLAG_CORRUPTED) {
+      pw_stream_queue_buffer(source->stream, nextBuf);
+      continue;
+    }
+
+    if (hasCursorData(nextBuf)) {
+      if (lastCursorBuf == lastFrameBuf)
+        lastCursorBuf = nullptr;
+
+      if (lastCursorBuf)
+        pw_stream_queue_buffer(source->stream, lastCursorBuf);
+      lastCursorBuf = nextBuf;
+    }
+
+    // Frame data available
+    if (!(nextBuf->buffer->datas[0].chunk->flags &
+        SPA_CHUNK_FLAG_CORRUPTED)) {
+      if (lastCursorBuf == lastFrameBuf)
+        lastFrameBuf = nullptr;
+
+      if (lastFrameBuf)
+        pw_stream_queue_buffer(source->stream, lastFrameBuf);
+      lastFrameBuf = nextBuf;
+    }
+
+    if (nextBuf != lastCursorBuf && nextBuf != lastFrameBuf)
+          pw_stream_queue_buffer(source->stream, nextBuf);
   }
 
-  if (!buffer) {
-    vlog.debug("Out of buffers");
+  // No new data available
+  if (!lastCursorBuf && !lastFrameBuf) {
     return;
   }
 
-  assert(buffer->buffer->datas[0].chunk->size > 0);
+  if (lastCursorBuf) {
+    processCursor(source, lastCursorBuf);
+    if (lastCursorBuf != lastFrameBuf) {
+      pw_stream_queue_buffer(source->stream, lastCursorBuf);
+    }
+  }
 
-  bufSize = buffer->buffer->datas[0].chunk->size;
+  if (!lastFrameBuf)
+    return;
+
+  assert(lastFrameBuf->buffer->datas[0].chunk->size > 0);
+
+  bufSize = lastFrameBuf->buffer->datas[0].chunk->size;
   if (bufSize == 0) {
-    pw_stream_queue_buffer(source->stream, buffer);
+    pw_stream_queue_buffer(source->stream, lastFrameBuf);
     vlog.debug("Skipping empty buffer");
     return;
   }
 
-  buf = buffer->buffer;
+  buf = lastFrameBuf->buffer;
 
   if ((damage = (spa_meta_region *)spa_buffer_find_meta_data(
       buf, SPA_META_VideoDamage, sizeof(*damage))) &&
@@ -362,7 +533,7 @@ void onProcess(void *data) {
     source->server->add_changed(core::Region(r));
   }
 
-  pw_stream_queue_buffer(source->stream, buffer);
+  pw_stream_queue_buffer(source->stream, lastFrameBuf);
 }
 
 void PipeWirePixelBuffer::start()
