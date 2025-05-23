@@ -21,6 +21,7 @@
 
 #include <rfb/PixelBuffer.h>
 #include <core/Region.h>
+#include <spa/buffer/buffer.h>
 
 #include "PipeWireStream.h"
 
@@ -28,6 +29,7 @@ namespace rfb { class VNCServer; class PixelFormat;}
 
 struct pw_buffer;
 class PipeWireStream;
+struct PipeWireCursor;
 
 class PipeWirePixelBuffer : public rfb::ManagedPixelBuffer,
                             public PipeWireStream {
@@ -40,13 +42,20 @@ public:
   virtual void setParameters(int width, int height, rfb::PixelFormat pf) override;
 
   void processFrame(spa_buffer* buffer);
+  void processCursor(spa_buffer* buffer);
   void processDamage(spa_buffer* buffer);
 
+  bool hasCursorData(spa_buffer* buffer);
+
   rfb::PixelFormat convertPixelformat(int spaFormat);
+  void setCursor(int width, int height, int hotX, int hotY,
+                 const unsigned char* rgbaData);
+  bool supportedCursorPixelformat(int format_);
 
 private:
   rfb::VNCServer* server;
   rfb::PixelFormat pipewirePixelFormat;
   core::Region accumulatedDamage;
+  PipeWireCursor* cursor;
 };
 #endif // __PIPEWIRE_PIXEL_BUFFER_H__

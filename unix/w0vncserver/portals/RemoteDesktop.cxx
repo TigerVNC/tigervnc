@@ -63,7 +63,13 @@ static const int DEV_POINTER =     (1 << 1);
 // Cursor modes
 // static const int CUR_HIDDEN =    (1 << 0);
 static const int CUR_EMBEDDED = (1 << 1);
-// static const int CUR_METADATA = (1 << 2);
+static const int CUR_METADATA = (1 << 2);
+
+// This feature is disabled by default as it doesn't work properly on
+// GNOME. https://gitlab.gnome.org/GNOME/mutter/-/issues/4135
+core::BoolParameter localCursor("experimentalPortalLocalCursor",
+                                "[EXPERIMENTAL] Render cursor locally",
+                                false);
 
 static core::LogWriter vlog("RemoteDesktop");
 
@@ -273,14 +279,17 @@ void RemoteDesktop::selectSources()
   GVariant* params;
   GVariantBuilder optionsBuilder;
   std::string requestHandleToken;
+  int cursorMode;
 
   requestHandleToken = screenCast->newHandle();
+
+  cursorMode = localCursor ? CUR_METADATA : CUR_EMBEDDED;
 
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add(&optionsBuilder, "{sv}", "types",
                         g_variant_new_uint32(SRC_MONITOR));
   g_variant_builder_add(&optionsBuilder, "{sv}", "cursor_mode",
-                        g_variant_new_uint32(CUR_EMBEDDED));
+                        g_variant_new_uint32(cursorMode));
   g_variant_builder_add(&optionsBuilder, "{sv}", "multiple",
                          g_variant_new_boolean(false));
 

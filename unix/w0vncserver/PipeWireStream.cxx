@@ -246,6 +246,18 @@ void PipeWireStream::handleStreamParamChanged(uint32_t id,
                             sizeof(struct spa_meta_region) * 1,
                             sizeof(struct spa_meta_region) * 16));
 
+  #define CURSOR_META_SIZE(w, h)                                       \
+    (sizeof(struct spa_meta_cursor) + sizeof(struct spa_meta_bitmap) + \
+            w * h * 4)
+
+  params[nParams++] = (spa_pod*)spa_pod_builder_add_object(&builder,
+    SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta,
+    SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Cursor),
+    SPA_PARAM_META_size, SPA_POD_CHOICE_RANGE_Int(
+                             CURSOR_META_SIZE(64, 64),
+                             CURSOR_META_SIZE(1, 1),
+                             CURSOR_META_SIZE(512, 512)));
+
   pw_stream_update_params(stream, params, nParams);
 }
 
