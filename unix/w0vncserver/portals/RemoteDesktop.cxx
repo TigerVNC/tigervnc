@@ -20,6 +20,9 @@
 
 static core::LogWriter vlog("RemoteDesktop");
 
+core::BoolParameter localCursor(
+  "experimentalLocalCursor", "[EXPERIMENTAL] Render cursor locally", false);
+
 static void onCreateSession(GDBusConnection *connection,
                             const char *sender, const char *objectPath,
                             const char *interfaceName,
@@ -390,6 +393,7 @@ void RemoteDesktop::selectSources()
   GVariantBuilder optionsBuilder;
   char* handleToken;
   char* requestHandle;
+  int cursorMode;
 
   vlog.debug("selectSources()");
 
@@ -399,11 +403,13 @@ void RemoteDesktop::selectSources()
     throw std::runtime_error("Invalid request handle");
   }
 
+  cursorMode = localCursor ? CUR_METADATA : CUR_EMBEDDED;
+
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add(&optionsBuilder, "{sv}", "types",
                         g_variant_new_uint32(SRC_MONITOR));
   g_variant_builder_add(&optionsBuilder, "{sv}", "cursor_mode",
-                        g_variant_new_uint32(CUR_EMBEDDED));
+                        g_variant_new_uint32(cursorMode));
   g_variant_builder_add(&optionsBuilder, "{sv}", "multiple",
                          g_variant_new_boolean(false));
 

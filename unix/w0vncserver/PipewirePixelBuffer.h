@@ -20,12 +20,24 @@ struct PipeWireData {
     uint32_t h;
   };
 
+  struct Cursor {
+    uint32_t w;
+    uint32_t h;
+    int32_t x;
+    int32_t y;
+    int32_t hotspotX;
+    int32_t hotspotY;
+    int32_t stride;
+    uint8_t *data;
+  };
+
   spa_video_info format;
   int32_t stride;
   spa_rectangle size;
   Rect rect;
 
   uint8_t *buffer;
+  Cursor cursor;
 };
 
 namespace rfb { class VNCServer; }
