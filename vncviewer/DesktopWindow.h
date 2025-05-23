@@ -138,6 +138,8 @@ private:
   bool keyboardGrabbed;
   bool mouseGrabbed;
 
+  bool regrabOnFocus;
+
   struct statsEntry {
     unsigned ups;
     unsigned pps;

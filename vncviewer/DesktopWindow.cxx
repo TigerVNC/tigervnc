@@ -84,7 +84,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
     firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
-    keyboardGrabbed(false), mouseGrabbed(false),
+    keyboardGrabbed(false), mouseGrabbed(false), regrabOnFocus(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(nullptr)
 {
@@ -961,10 +961,16 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
     // another application. Make sure we update our grabs with the focus
     // changes.
     case FL_FOCUS:
-      if (fullscreenSystemKeys && dw->fullscreen_active())
+      if (dw->regrabOnFocus ||
+          (fullscreenSystemKeys && dw->fullscreen_active()))
         dw->grabKeyboard();
+      dw->regrabOnFocus = false;
       break;
     case FL_UNFOCUS:
+      // If the grab is active when we lose focus, the user likely wants
+      // the grab to remain once we regain focus
+      if (dw->keyboardGrabbed)
+        dw->regrabOnFocus = true;
       dw->ungrabKeyboard();
       break;
 
