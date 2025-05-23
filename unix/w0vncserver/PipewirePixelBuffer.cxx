@@ -292,6 +292,14 @@ void onStreamParamChanged(void *_data, uint32_t id,
     SPA_POD_Id(SPA_META_VideoCrop), SPA_PARAM_META_size,
     SPA_POD_Int(sizeof(struct spa_meta_region)));
 
+  /* Damage information */
+  params[nParams++] = (spa_pod *)spa_pod_builder_add_object(
+    &b, SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta, SPA_PARAM_META_type,
+    SPA_POD_Id(SPA_META_VideoDamage), SPA_PARAM_META_size,
+    SPA_POD_CHOICE_RANGE_Int(sizeof(struct spa_meta_region) * 16,
+                             sizeof(struct spa_meta_region) * 1,
+                             sizeof(struct spa_meta_region) * 16));
+
   pw_stream_update_params(stream, params, nParams);
 }
 
@@ -299,6 +307,7 @@ void onProcess(void *data) {
   PipeWireSource *source;
   pw_buffer* buffer;
   spa_buffer* buf;
+  spa_meta_region* damage;
   size_t bufSize;
   uint32_t width, height;
 
@@ -343,6 +352,13 @@ void onProcess(void *data) {
 
   buf = buffer->buffer;
 
+  if ((damage = (spa_meta_region *)spa_buffer_find_meta_data(
+      buf, SPA_META_VideoDamage, sizeof(*damage))) &&
+      spa_meta_region_is_valid(damage)) {
+        assert(damage->region.size.width != 0);
+        assert(damage->region.size.height != 0);
+  }
+
   srcBits = (uint32_t*)buf[0].datas[0].data;
   dstBits = (uint32_t*)source->data->buffer;
   srcStride = buf->datas->chunk->stride / 4;
@@ -354,13 +370,21 @@ void onProcess(void *data) {
   height = source->data->size.height;
 
   // Accelerated copy
+  // FIXME: Only copy damaged region
   ret = pixman_blt(srcBits, dstBits, srcStride, dstStride,
                   srcBpp, dstBpp, 0, 0, 0, 0, width, height);
   if (!ret)
     memcpy(source->data->buffer, buf[0].datas[0].data, bufSize);
 
-  core::Rect r{0, 0, (int)width, (int)height};
-  source->server->add_changed(core::Region(r));
+  if (damage) {
+    core::Rect r{damage->region.position.x, damage->region.position.y,
+                (int)damage->region.size.width,
+                (int)damage->region.size.height};
+    source->server->add_changed(core::Region(r));
+  } else {
+    core::Rect r{0, 0, (int)width, (int)height};
+    source->server->add_changed(core::Region(r));
+  }
 
   pw_stream_queue_buffer(source->stream, buffer);
 }
