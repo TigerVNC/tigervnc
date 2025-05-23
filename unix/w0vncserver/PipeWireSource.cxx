@@ -118,7 +118,7 @@ PipeWireSource::PipeWireSource(PipeWirePixelBuffer* pb_)
   g_source_attach (&source->base, nullptr);
 
   context = pw_context_new(loop, nullptr, 0);
-  core = pw_context_connect_fd(context, pb_->fd(), nullptr, 0);
+  core = pw_context_connect_fd(context, pb->fd(), nullptr, 0);
   if (!core)
     throw std::runtime_error("Failed to connect to PipeWire FD");
 
@@ -325,42 +325,101 @@ void PipeWireSource::handleStreamParamChanged(uint32_t id,
                               sizeof(struct spa_meta_region) * 16));
   }
 
+  #define CURSOR_META_SIZE(w, h)                                       \
+  (sizeof(struct spa_meta_cursor) + sizeof(struct spa_meta_bitmap) +   \
+   w * h * 4)
+
+  /* cursor information */
+  params[nParams++] = (spa_pod *)spa_pod_builder_add_object(&builder,
+    SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta,
+    SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Cursor),
+    SPA_PARAM_META_size, SPA_POD_CHOICE_RANGE_Int(
+                             CURSOR_META_SIZE(64, 64),
+                             CURSOR_META_SIZE(1, 1),
+                             CURSOR_META_SIZE(512, 512)));
+
   pw_stream_update_params(stream, params, nParams);
 }
 
 void PipeWireSource::handleProcess()
 {
-  pw_buffer* buffer;
+  pw_buffer* lastFrameBuf;
+  pw_buffer* lastCursorBuf;
   size_t bufSize;
 
-  buffer = nullptr;
+  lastFrameBuf = nullptr;
+  lastCursorBuf = nullptr;
+  // Pipewire can handle sending cursor metadata in the same stream as
+  // the framebuffer data. With cursor metadata enabled,
+  // we need to check whether:
+  // 1. The buffer has frame data & cursor data
+  // 2. The buffer has frame data & no cursor data
+  // 3. The buffer has no frame data & cursor data
+  // 4. The buffer has no frame data & no cursor data (corrupted)
+  // We only care about the most up-to-date buffer containing frame or
+  // cursor data
   while (true) {
     pw_buffer *nextBuf;
+    spa_meta_header *header;
 
     nextBuf = pw_stream_dequeue_buffer(stream);
 
     if (!nextBuf)
       break;
-    if (buffer)
-      pw_stream_queue_buffer(stream, buffer);
 
-    buffer = nextBuf;
+    header = (spa_meta_header *)spa_buffer_find_meta_data(nextBuf->buffer,
+                                                          SPA_META_Header,
+                                                          sizeof(*header));
+    // Corrupted buffers contain no frame or cursor data
+    if (header && header->flags & SPA_META_HEADER_FLAG_CORRUPTED) {
+      pw_stream_queue_buffer(stream, nextBuf);
+      continue;
+    }
+
+    if (pb->hasCursorData(nextBuf)) {
+      if (lastCursorBuf == lastFrameBuf)
+        lastCursorBuf = nullptr;
+
+      if (lastCursorBuf)
+        pw_stream_queue_buffer(stream, lastCursorBuf);
+      lastCursorBuf = nextBuf;
+    }
+
+    // Frame data available
+    if (!(nextBuf->buffer->datas[0].chunk->flags &
+        SPA_CHUNK_FLAG_CORRUPTED)) {
+      if (lastCursorBuf == lastFrameBuf)
+        lastFrameBuf = nullptr;
+
+      if (lastFrameBuf)
+        pw_stream_queue_buffer(stream, lastFrameBuf);
+      lastFrameBuf = nextBuf;
+    }
+
+    if (nextBuf != lastCursorBuf && nextBuf != lastFrameBuf)
+          pw_stream_queue_buffer(stream, nextBuf);
   }
 
-  if (!buffer) {
+  if (lastCursorBuf) {
+    pb->processCursor(lastCursorBuf);
+    if (lastCursorBuf != lastFrameBuf) {
+      pw_stream_queue_buffer(stream, lastCursorBuf);
+    }
+  }
+
+  if (!lastFrameBuf)
     return;
-  }
 
-  assert(buffer->buffer->datas[0].chunk->size > 0);
+  assert(lastFrameBuf->buffer->datas[0].chunk->size > 0);
 
-  bufSize = buffer->buffer->datas[0].chunk->size;
+  bufSize = lastFrameBuf->buffer->datas[0].chunk->size;
   if (bufSize == 0) {
-    pw_stream_queue_buffer(stream, buffer);
+    pw_stream_queue_buffer(stream, lastFrameBuf);
     vlog.debug("Skipping empty buffer");
     return;
   }
 
-  pb->processBuffer(buffer);
+  pb->processBuffer(lastFrameBuf);
 
-  pw_stream_queue_buffer(stream, buffer);
+  pw_stream_queue_buffer(stream, lastFrameBuf);
 }
