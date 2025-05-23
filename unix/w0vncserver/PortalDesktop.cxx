@@ -83,6 +83,17 @@ unsigned int PortalDesktop::setScreenLayout(int fb_width, int fb_height,
   return rfb::resultProhibited;
 }
 
+void PortalDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
+{
+  remoteDesktop_->keyEvent(keysym, keycode, down);
+}
+
+void PortalDesktop::pointerEvent(const core::Point& pos,
+                            uint16_t buttonMask)
+{
+  remoteDesktop_->pointerEvent(pos.x, pos.y, buttonMask);
+}
+
 bool PortalDesktop::available()
 {
   GError* error = nullptr;
@@ -93,6 +104,7 @@ bool PortalDesktop::available()
   const char* introspectionXml;
   bool interfaceMissing;
   std::vector<std::string> interfaces = {
+    "org.freedesktop.portal.RemoteDesktop",
     "org.freedesktop.portal.ScreenCast",
   };
 

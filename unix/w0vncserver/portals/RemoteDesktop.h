@@ -26,6 +26,11 @@
 #define WHEEL_HORIZONTAL_LEFT  5
 #define WHEEL_HORIZONTAL_RIGHT 6
 
+// Devices types
+static const int DEV_KEYBOARD =    (1 << 0);
+static const int DEV_POINTER =     (1 << 1);
+static const int DEV_TOUCHSCREEN = (1 << 2);
+
 // Source types
 static const int SRC_MONITOR = (1 << 0);
 static const int SRC_WINDOW =  (1 << 1);
@@ -59,9 +64,10 @@ public:
   void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
   void pointerEvent(int32_t x, int32_t y, uint16_t buttonMask);
 
- private:
+private:
   void start();
   void createSession();
+  void selectDevices();
   void selectSources();
   void openPipewireRemote();
 
@@ -70,7 +76,6 @@ public:
 
   void setSessionHandle(char* handle);
 
-  char* sessionHandle() { return sessionHandle_; }
   std::vector<PipeWireStreamData*> pipewireStreams() { return streams_; }
 
   // Portal signal callbacks
@@ -82,12 +87,17 @@ public:
 
   PipeWireStreamData* parseStream(GVariant* stream);
 
+  void handleButton(int32_t button, bool down);
+  void handleScrollWheel(int32_t button);
+
 private:
+  uint16_t oldButtonMask;
   bool pipewireStarted;
   rfb::VNCServer* server_;
 
   std::vector<PipeWireStreamData*> streams_;
 
+  GDBusProxy *remoteDesktopProxy_;
   GDBusProxy *screencastProxy_;
 
   std::function<void(int fd, uint32_t nodeId)> startPipewireCb_;
