@@ -26,6 +26,11 @@
 #define WHEEL_HORIZONTAL_LEFT  5
 #define WHEEL_HORIZONTAL_RIGHT 6
 
+// Devices types
+static const int DEV_KEYBOARD =    (1 << 0);
+static const int DEV_POINTER =     (1 << 1);
+static const int DEV_TOUCHSCREEN = (1 << 2);
+
 // Source types
 static const int SRC_MONITOR = (1 << 0);
 static const int SRC_WINDOW =  (1 << 1);
@@ -57,8 +62,12 @@ public:
   RemoteDesktop(rfb::VNCServer* server, GSignalWrapper* signalWrapper);
   ~RemoteDesktop();
 
+  void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
+  void pointerEvent(int32_t x, int32_t y, uint16_t buttonMask);
+
   void start();
   void createSession();
+  void selectDevices();
   void selectSources();
   void openPipewireRemote();
 
@@ -73,15 +82,20 @@ public:
 private:
   PipeWireStreamData* parseStream(GVariant* stream);
 
+  void handlePointerEvent(uint16_t buttonMask);
+  void handleButtonPress(uint16_t buttonMask, int32_t button);
+  void handleScrollWheel(int32_t button);
+
 private:
+  uint16_t oldButtonMask;
   bool pipewireStarted;
   rfb::VNCServer* server_;
 
   std::vector<PipeWireStreamData*> streams_;
 
+  GDBusProxy *remoteDesktopProxy_;
   GDBusProxy *screencastProxy_;
   GSignalWrapper* signalWrapper_;
-
 };
 
 #endif

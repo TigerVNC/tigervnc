@@ -80,16 +80,13 @@ unsigned int PortalDesktop::setScreenLayout(int fb_width, int fb_height,
 
 void PortalDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
-  (void) keysym;
-  (void) keycode;
-  (void) down;
+  remoteDesktop_->keyEvent(keysym, keycode, down);
 }
 
 void PortalDesktop::pointerEvent(const core::Point& pos,
                             uint16_t buttonMask)
 {
-  (void) pos;
-  (void) buttonMask;
+  remoteDesktop_->pointerEvent(pos.x, pos.y, buttonMask);
 }
 
 void PortalDesktop::handleClipboardRequest()
@@ -121,6 +118,7 @@ bool PortalDesktop::portalsAvailable()
   const char* introspectionXml;
   bool interfaceMissing;
   std::vector<std::string> interfaces = {
+    "org.freedesktop.portal.RemoteDesktop",
     "org.freedesktop.portal.ScreenCast",
   };
 
