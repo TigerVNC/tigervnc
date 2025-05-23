@@ -43,6 +43,11 @@
 #define WHEEL_HORIZONTAL_LEFT  5
 #define WHEEL_HORIZONTAL_RIGHT 6
 
+// Devices types
+static const int DEV_KEYBOARD =    (1 << 0);
+static const int DEV_POINTER =     (1 << 1);
+static const int DEV_TOUCHSCREEN = (1 << 2);
+
 // Source types
 static const int SRC_MONITOR = (1 << 0);
 static const int SRC_WINDOW =  (1 << 1);
@@ -72,12 +77,14 @@ public:
   RemoteDesktop(std::function<void(int fd, uint32_t nodeId)> startPipewireCb);
   ~RemoteDesktop();
 
+  // Called from SDesktop
   void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
   void pointerEvent(int32_t x, int32_t y, uint16_t buttonMask);
 
   void createSession();
 private:
   void closeSession();
+  void selectDevices();
   void selectSources();
   void start();
   void openPipewireRemote();
@@ -87,8 +94,13 @@ private:
   // Portal signal callbacks
   void handleCreateSession(GVariant *parameters);
   void handleStart(GVariant *parameters);
+  void handleSelectDevices(GVariant *parameters);
   void handleSelectSources(GVariant *parameters);
   void handleOpenPipewireRemote(GObject *proxy, GAsyncResult *res);
+
+  // pointerEvent help functions
+  void handleButton(int32_t button, bool down);
+  void handleScrollWheel(int32_t button);
 
   // Parses ScreenCast streams. Returns false on error
   bool parseStreams(GVariant* streams);
@@ -97,10 +109,14 @@ private:
   std::vector<PipeWireStreamData*> pipewireStreams() { return streams; }
 
 private:
+  uint16_t oldButtonMask;
+  uint32_t selectedDevices;
   bool pipewireStarted;
   std::string sessionHandle;
 
   std::vector<PipeWireStreamData*> streams;
+
+  Portal* remoteDesktopProxy;
   Portal* screencastProxy;
 
   std::function<void(int fd, uint32_t nodeId)> startPipewireCb;
