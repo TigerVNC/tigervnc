@@ -84,6 +84,7 @@ void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
 {
   pixman_bool_t ret;
   spa_buffer* buf;
+  spa_meta_region* damage;
   int srcStride;
   int dstStride;
   uint8_t* srcBuffer;
@@ -102,6 +103,17 @@ void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
     imageRect(getPF(), {0, 0, width(), height()}, srcBuffer, srcStride);
 
   server->add_changed({{0, 0, width(), height()}});
+  damage = (spa_meta_region *)spa_buffer_find_meta_data(buf,
+                                                        SPA_META_VideoDamage,
+                                                        sizeof(*damage));
+  if (damage) {
+    core::Point tl{damage->region.position.x, damage->region.position.y};
+    core::Point br{static_cast<int>(damage->region.position.x + damage->region.size.width),
+                   static_cast<int>(damage->region.position.y + damage->region.size.height)};
+    server->add_changed({{tl, br}});
+  } else {
+    server->add_changed({{0, 0, width(), height()}});
+  }
 }
 
 rfb::PixelFormat PipeWirePixelBuffer::convertPixelformat(int spaFormat)
