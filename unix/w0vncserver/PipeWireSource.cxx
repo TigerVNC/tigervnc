@@ -30,6 +30,10 @@
 #include "PipeWirePixelBuffer.h"
 #include "PipeWireSource.h"
 
+core::BoolParameter
+  damageEnabled("experimentalDamageEnabled",
+                "Enable framebuffer damage tracking", false);
+
 #define MAX_BUFFERS 64
 
 static core::LogWriter vlog("PipewireSource");
@@ -301,6 +305,16 @@ void PipeWireSource::handleStreamParamChanged(void *_data, uint32_t id,
     SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta,
     SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Header),
     SPA_PARAM_META_size, SPA_POD_Int(sizeof(spa_meta_header)));
+
+  if (damageEnabled) {
+    /* Damage information */
+    params[nParams++] = (spa_pod *)spa_pod_builder_add_object(
+      &b, SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta, SPA_PARAM_META_type,
+      SPA_POD_Id(SPA_META_VideoDamage), SPA_PARAM_META_size,
+      SPA_POD_CHOICE_RANGE_Int(sizeof(struct spa_meta_region) * 16,
+                              sizeof(struct spa_meta_region) * 1,
+                              sizeof(struct spa_meta_region) * 16));
+  }
 
   pw_stream_update_params(stream, params, nParams);
 }
