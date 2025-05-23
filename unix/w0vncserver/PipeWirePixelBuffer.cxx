@@ -1,0 +1,125 @@
+/* Copyright 2025 Adam Halim for Cendio AB
+ *
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+ * USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <assert.h>
+#include <stdint.h>
+
+#include <stdexcept>
+
+#include <glib.h>
+#include <glib-object.h>
+
+#include <pipewire/pipewire.h>
+#include <pipewire/loop.h>
+#include <pipewire/properties.h>
+#include <pipewire/stream.h>
+
+#include <spa/buffer/buffer.h>
+#include <spa/buffer/meta.h>
+#include <spa/param/video/raw.h>
+#include <spa/param/latency-utils.h>
+#include <spa/param/video/format-utils.h>
+#include <spa/pod/builder.h>
+#include <spa/pod/pod.h>
+#include <spa/utils/defs.h>
+#include <spa/utils/type.h>
+#include <spa/debug/format.h>
+#include <spa/debug/pod.h>
+
+#include <core/LogWriter.h>
+#include <core/string.h>
+#include <rfb/VNCServer.h>
+#include <rfb/PixelFormat.h>
+
+#include "PipeWireSource.h"
+#include "PipeWirePixelBuffer.h"
+
+static core::LogWriter vlog("PipewirePixelBuffer");
+
+PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd_,
+                                         uint32_t pipewireId_,
+                                         rfb::VNCServer* server_)
+  : pipewireFd(pipewireFd_), pipewireId(pipewireId_), server(server_)
+{
+
+  source = new PipeWireSource(this);
+}
+
+PipeWirePixelBuffer::~PipeWirePixelBuffer()
+{
+   delete source;
+   close(pipewireFd);
+}
+
+void PipeWirePixelBuffer::updatePixelbuffer(int width, int height,
+                                            rfb::PixelFormat pf)
+{
+  setSize(width, height);
+  setPF(pf);
+  server->setPixelBuffer(this);
+}
+
+void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
+{
+  spa_buffer* buf;
+  int srcStride;
+  uint8_t* srcBuffer;
+
+  buf = buffer->buffer;
+  srcBuffer = (uint8_t*)buf->datas[0].data;
+  srcStride = buf->datas[0].chunk->stride / (getPF().bpp / 8);
+
+  imageRect(getPF(), {0, 0, width(), height()}, srcBuffer, srcStride);
+
+  server->add_changed({{0, 0, width(), height()}});
+}
+
+rfb::PixelFormat PipeWirePixelBuffer::convertPixelformat(int spaFormat)
+{
+  switch (spaFormat) {
+  case SPA_VIDEO_FORMAT_BGRx:
+  case SPA_VIDEO_FORMAT_BGRA:
+    return rfb::PixelFormat(32, 24, true, true, 255, 255, 255,
+                            8, 16, 24);
+  case SPA_VIDEO_FORMAT_RGBx:
+  case SPA_VIDEO_FORMAT_RGBA:
+    return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
+                            24, 16, 8);
+  case SPA_VIDEO_FORMAT_xBGR:
+  case SPA_VIDEO_FORMAT_ABGR:
+    return rfb::PixelFormat(32, 24, true, true, 255, 255, 255,
+                            0, 8, 16);
+  case SPA_VIDEO_FORMAT_xRGB:
+  case SPA_VIDEO_FORMAT_ARGB:
+    return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
+                            16, 8, 0);
+  case SPA_VIDEO_FORMAT_RGB:
+    return rfb::PixelFormat(24, 24, false, true, 255, 255, 255,
+                            16, 8, 0);
+  case SPA_VIDEO_FORMAT_BGR:
+    return rfb::PixelFormat(24, 24, true, true, 255, 255, 255,
+                            0, 8, 16);
+  default:
+    throw std::runtime_error(core::format("format %d not supported",
+                                          spaFormat));
+  }
+}
