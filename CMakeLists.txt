@@ -390,6 +390,33 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
+# check for libraries needed for wayland support
+if(UNIX AND NOT APPLE)
+  trioption(ENABLE_WAYLAND "Enable wayland support")
+  if(ENABLE_WAYLAND STREQUAL "AUTO")
+    find_package(GLib)
+    find_package(Gio)
+    find_package(Gobject)
+
+    # Portals specific
+    find_package(PipeWire)
+    find_package(Uuid)
+  else()
+    find_package(GLib REQUIRED)
+    find_package(Gio REQUIRED)
+    find_package(Gobject REQUIRED)
+
+    # Portals specific
+    find_package(PipeWire REQUIRED)
+    find_package(Uuid REQUIRED)
+  endif()
+  if(NOT GLIB_FOUND OR NOT GIO_FOUND OR NOT GOBJECT_FOUND OR NOT PIPEWIRE_FOUND
+     OR NOT UUID_FOUND)
+    set(ENABLE_WAYLAND 0)
+    message(WARNING "GLib, Gio, Gobject, PipeWire or Uuid NOT found. w0vncserver disabled.")
+  endif()
+endif()
+
 find_package(GTest)
 
 # Generate config.h and make sure the source finds it
