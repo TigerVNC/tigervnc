@@ -359,6 +359,8 @@ int main(int argc, char** argv)
 
     rfb::VNCServerST server(desktopName, &desktop);
 
+    FileTcpFilter fileTcpFilter(hostsFile);
+
     if (createSystemdListeners(&listeners) > 0) {
       // When systemd is in charge of listeners, do not listen to anything else
       vlog.info("Listening on systemd sockets");
@@ -387,7 +389,6 @@ int main(int argc, char** argv)
                   (int)rfbport);
       }
 
-      FileTcpFilter fileTcpFilter(hostsFile);
       if (strlen(hostsFile) != 0)
         for (network::SocketListener* listener : listeners)
           listener->setFilter(&fileTcpFilter);
