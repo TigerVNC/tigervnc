@@ -138,7 +138,11 @@ export CFLAGS="$RPM_OPT_FLAGS -fpic"
 %endif
 export CXXFLAGS="$CFLAGS -std=c++11"
 
-%cmake
+%cmake \
+  -DENABLE_NLS=ON \
+  -DENABLE_GNUTLS=ON \
+  -DENABLE_NETTLE=ON \
+  -DBUILD_VIEWER=ON
 
 %cmake_build
 
