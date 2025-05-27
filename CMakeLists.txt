@@ -278,13 +278,22 @@ if(BUILD_JAVA)
   add_subdirectory(java)
 endif()
 
-option(BUILD_VIEWER "Build TigerVNC viewer" ON)
+trioption(BUILD_VIEWER "Build TigerVNC viewer")
 if(BUILD_VIEWER)
   # Check for FLTK
   set(FLTK_SKIP_FLUID TRUE)
   set(FLTK_SKIP_OPENGL TRUE)
   set(FLTK_SKIP_FORMS TRUE)
-  find_package(FLTK REQUIRED)
+  if(BUILD_VIEWER STREQUAL "AUTO")
+    find_package(FLTK)
+  else()
+    find_package(FLTK REQUIRED)
+  endif()
+
+  if(NOT FLTK_FOUND)
+    message(WARNING "FLTK NOT found. TigerVNC viewer disabled.")
+    set(BUILD_VIEWER 0)
+  endif()
 
   if(UNIX AND NOT APPLE)
     # No proper handling for extra X11 libs that FLTK might need...
@@ -308,18 +317,20 @@ if(BUILD_VIEWER)
     endif()
   endif()
 
-  set(CMAKE_REQUIRED_FLAGS "-Wno-error")
-  set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
-  set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
+  if(FLTK_FOUND)
+    set(CMAKE_REQUIRED_FLAGS "-Wno-error")
+    set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
+    set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
 
-  check_cxx_source_compiles("#include <FL/Fl.H>\n#if FL_MAJOR_VERSION != 1 || FL_MINOR_VERSION != 3\n#error Wrong FLTK version\n#endif\nint main(int, char**) { return 0; }" OK_FLTK_VERSION)
-  if(NOT OK_FLTK_VERSION)
-    message(FATAL_ERROR "Incompatible version of FLTK")
+    check_cxx_source_compiles("#include <FL/Fl.H>\n#if FL_MAJOR_VERSION != 1 || FL_MINOR_VERSION != 3\n#error Wrong FLTK version\n#endif\nint main(int, char**) { return 0; }" OK_FLTK_VERSION)
+    if(NOT OK_FLTK_VERSION)
+      message(FATAL_ERROR "Incompatible version of FLTK")
+    endif()
+
+    set(CMAKE_REQUIRED_FLAGS)
+    set(CMAKE_REQUIRED_INCLUDES)
+    set(CMAKE_REQUIRED_LIBRARIES)
   endif()
-
-  set(CMAKE_REQUIRED_FLAGS)
-  set(CMAKE_REQUIRED_INCLUDES)
-  set(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 # Check for GNUTLS library
