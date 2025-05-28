@@ -222,14 +222,16 @@ core::StringParameter
           "");
 #endif
 
-// Empty string means None, for backward compatibility
-core::EnumParameter
-  menuKey("MenuKey",
-          "The key which brings up the popup menu",
-          {"", "None", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8",
-           "F9", "F10", "F11", "F12", "Pause", "Scroll_Lock", "Escape",
-           "Insert", "Delete", "Home", "Page_Up", "Page_Down"},
-          "F8");
+// Keep list of valid values in sync with ShortcutHandler
+core::EnumListParameter
+  shortcutModifiers("ShortcutModifiers",
+                    "The combination of modifier keys that triggers "
+                    "special actions in the viewer instead of being "
+                    "sent to the remote session. Possible values are a "
+                    "combination of Ctrl, Shift, Alt, and Super.",
+                    {"Ctrl", "Shift", "Alt", "Super",
+                     "Win", "Option", "Cmd"},
+                    {"Ctrl", "Alt"});
 
 core::BoolParameter
   fullscreenSystemKeys("FullscreenSystemKeys",
@@ -282,8 +284,9 @@ static core::VoidParameter* parameterArray[] = {
   &sendPrimary,
   &setPrimary,
 #endif
-  &menuKey,
-  &fullscreenSystemKeys
+  &fullscreenSystemKeys,
+  /* Keyboard shortcuts */
+  &shortcutModifiers,
 };
 
 static core::VoidParameter* readOnlyParameterArray[] = {
