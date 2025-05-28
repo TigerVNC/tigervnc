@@ -54,7 +54,11 @@ Portal::Portal() : sessionHandle_(nullptr)
   uniqueName = g_dbus_connection_get_unique_name(connection_);
   cleanUniqueName = (char*)malloc(strlen(uniqueName));
 
-  // Replace '.' with '_'
+  /* https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Request.html#org-freedesktop-portal-request
+   * From the documentation: the caller's unique name should have its
+   * initial ':' removed, and all '.' replaced by '_'.
+   * e.g. :15759.1 -> 15759_1
+   */
   for (uint i = 1; i < strlen(uniqueName); i++) {
     if (uniqueName[i] == '.')
       cleanUniqueName[i-1] = '_';
