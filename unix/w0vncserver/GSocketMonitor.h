@@ -15,10 +15,10 @@ struct sock_event_ctx {
 };
 
 
-class WSocketMonitor {
+class GSocketMonitor {
 public:
-  WSocketMonitor(char* address, int rfbport);
-  ~WSocketMonitor();
+  GSocketMonitor(char* address, int rfbport);
+  ~GSocketMonitor();
 
   void listen(rfb::VNCServer* server);
 

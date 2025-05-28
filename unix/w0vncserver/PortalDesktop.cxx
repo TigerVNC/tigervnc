@@ -159,7 +159,7 @@ void PortalDesktop::startPipewire(int fd, uint32_t nodeId)
 void PortalDesktop::listen()
 {
   assert(!running);
-  monitor_ = new WSocketMonitor(nullptr, rfbport_);
+  monitor_ = new GSocketMonitor(nullptr, rfbport_);
   timerSource_ = new RFBTimerSource();
 
   monitor_->listen(server_);

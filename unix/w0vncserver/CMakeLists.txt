@@ -5,7 +5,7 @@ endif()
 add_executable(w0vncserver
   w0vncserver.cxx
   RFBTimerSource.cxx
-  WSocketMonitor.cxx
+  GSocketMonitor.cxx
   portals/Portal.cxx
   portals/RemoteDesktop.cxx
   PipewirePixelBuffer.cxx

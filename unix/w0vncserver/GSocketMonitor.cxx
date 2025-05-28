@@ -9,18 +9,18 @@
 #include <rdr/FdOutStream.h>
 #include <core/LogWriter.h>
 
-#include "WSocketMonitor.h"
+#include "GSocketMonitor.h"
 
 
 static core::LogWriter vlog("gsocketlistener");
 
 
-WSocketMonitor::WSocketMonitor(char* address, int rfbport)
+GSocketMonitor::GSocketMonitor(char* address, int rfbport)
 {
   network::createTcpListeners(&listeners, address, rfbport);
 }
 
-WSocketMonitor::~WSocketMonitor()
+GSocketMonitor::~GSocketMonitor()
 {
   for (network::SocketListener* listener : listeners)
     delete listener;
@@ -29,7 +29,7 @@ WSocketMonitor::~WSocketMonitor()
     g_io_channel_unref(channel);
 }
 
-void WSocketMonitor::listen(rfb::VNCServer* server)
+void GSocketMonitor::listen(rfb::VNCServer* server)
 {
   for (network::SocketListener* listener : listeners) {
     int fd;
@@ -51,7 +51,7 @@ void WSocketMonitor::listen(rfb::VNCServer* server)
   }
 }
 
-int WSocketMonitor::sockProcess(GIOChannel* source,
+int GSocketMonitor::sockProcess(GIOChannel* source,
                                 GIOCondition condition, void* data)
 {
   (void) condition;
@@ -76,7 +76,7 @@ int WSocketMonitor::sockProcess(GIOChannel* source,
   return true;
 }
 
-int WSocketMonitor::acceptConnection(GIOChannel* source,
+int GSocketMonitor::acceptConnection(GIOChannel* source,
                                      GIOCondition condition, void* data)
 {
   (void) source;
@@ -104,6 +104,5 @@ int WSocketMonitor::acceptConnection(GIOChannel* source,
   g_io_add_watch(channel,(GIOCondition)G_IO_IN, sockProcess, data_);
 
   vlog.debug("added sock %d", sock->getFd());
-  core::Timer::checkTimeouts();
   return true;
 }
