@@ -540,12 +540,11 @@ void onProcess(void *data) {
 
   buf = lastFrameBuf->buffer;
 
-  if ((damage = (spa_meta_region *)spa_buffer_find_meta_data(
-      buf, SPA_META_VideoDamage, sizeof(*damage))) &&
-      spa_meta_region_is_valid(damage)) {
-        assert(damage->region.size.width != 0);
-        assert(damage->region.size.height != 0);
-  }
+  damage = (spa_meta_region *)spa_buffer_find_meta_data(
+    buf, SPA_META_VideoDamage, sizeof(*damage));
+
+  if (!damage || !spa_meta_region_is_valid(damage))
+    damage = nullptr;
 
   srcBits = (uint32_t*)buf[0].datas[0].data;
   dstBits = (uint32_t*)source->data->buffer;
