@@ -47,7 +47,7 @@ protected:
   RFBTimerSource* timerSource_;
   GSocketMonitor* monitor_;
   RemoteDesktop* remoteDesktop_;
-  PipeWirePixelBuffer* pipewire_;
+  PipewirePixelBuffer* pipewire_;
 
 private:
   int rfbport_;

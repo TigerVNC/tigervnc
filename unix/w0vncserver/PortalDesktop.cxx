@@ -150,7 +150,7 @@ bool PortalDesktop::available()
 
 void PortalDesktop::startPipewire(int fd, uint32_t nodeId)
 {
-  pipewire_ = new PipeWirePixelBuffer(fd, nodeId, server_);
+  pipewire_ = new PipewirePixelBuffer(fd, nodeId, server_);
   pipewire_->start();
 
   listen();

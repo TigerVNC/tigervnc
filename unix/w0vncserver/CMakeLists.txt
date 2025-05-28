@@ -8,8 +8,8 @@ add_executable(w0vncserver
   GSocketMonitor.cxx
   portals/Portal.cxx
   portals/RemoteDesktop.cxx
-  PipewirePixelBuffer.cxx
   PortalDesktop.cxx
+  PipewirePixelBuffer.cxx
 )
 
 set(WAYLAND_LIBRARIES ${GLIB_LIBRARIES} ${GIO_LIBRARIES} ${PIPEWIRE_LIBRARIES} ${UUID_LIBRARIES})

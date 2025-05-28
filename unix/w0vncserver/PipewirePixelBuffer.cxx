@@ -66,7 +66,6 @@ struct PipeWireData {
   spa_rectangle size;
   Rect rect;
 
-  uint8_t *buffer;
   Cursor cursor;
 };
 
@@ -76,7 +75,7 @@ struct PipeWireSource {
   pw_stream* stream;
   PipeWireData* data;
   rfb::VNCServer* server;
-  PipeWirePixelBuffer* instance;
+  PipewirePixelBuffer* instance;
 
   void setBuffer(int width, int height, uint8_t* data, int stride);
   void setFormat(rfb::PixelFormat format);
@@ -232,7 +231,7 @@ static bool hasCursorData(pw_buffer* buf)
 static const rfb::PixelFormat pfBGRX(32, 24, false, true, 255, 255, 255,
                                      16, 8, 0);
 
-PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
+PipewirePixelBuffer::PipewirePixelBuffer(int32_t pipewireFd,
                                          uint32_t pipewireId,
                                          rfb::VNCServer* server)
   : pipewireFd_(pipewireFd), pipewireId_(pipewireId)
@@ -260,7 +259,6 @@ PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
   registry = pw_core_get_registry(core, PW_VERSION_REGISTRY, 0);
 
   source->data = new PipeWireData;
-  source->data->buffer = nullptr;
   source->data->cursor.data = nullptr;
   source->server = server;
   source->instance = this;
@@ -268,7 +266,7 @@ PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
   pw_loop_enter(loop);
 }
 
-PipeWirePixelBuffer::~PipeWirePixelBuffer()
+PipewirePixelBuffer::~PipewirePixelBuffer()
 {
   // FIXME: There's some cleanup missing here
   delete source->data->cursor.data;
@@ -276,17 +274,6 @@ PipeWirePixelBuffer::~PipeWirePixelBuffer()
   pw_loop_leave(loop);
   pw_loop_destroy(loop);
   pw_deinit();
-}
-
-void PipeWireSource::setBuffer(int width, int height, uint8_t *buffer,
-                               int stride)
-{
-  instance->setBuffer(width, height, buffer, stride);
-}
-
-void PipeWireSource::setFormat(rfb::PixelFormat format)
-{
-  instance->format = format;
 }
 
 void onStreamStateChanged(void *_data, enum pw_stream_state old,
@@ -327,6 +314,7 @@ void onStreamParamChanged(void *_data, uint32_t id,
   int nParams;
   const spa_pod *params[5];
   int32_t mult, size;
+  rfb::PixelFormat pf;
 
   vlog.debug("onStreamParamChanged");
 
@@ -361,7 +349,7 @@ void onStreamParamChanged(void *_data, uint32_t id,
     if (source->data->format.info.raw.format == SPA_VIDEO_FORMAT_BGRx) {
       mult = 4;
       source->data->stride = source->data->format.info.raw.size.width * mult;
-      source->setFormat(pfBGRX);
+      pf = pfBGRX;
     } else {
       throw std::runtime_error("unsupported pixel format :" +
         std::to_string(source->data->format.info.raw.format));
@@ -386,13 +374,10 @@ void onStreamParamChanged(void *_data, uint32_t id,
   source->data->rect.w = source->data->size.width;
   source->data->rect.h = source->data->size.height;
 
-  // FIXME: Handle resize
-  if (!source->data->buffer) {
-    source->data->buffer = (uint8_t*)malloc(size);
-    source->setBuffer(source->data->size.width,
-                      source->data->size.height, source->data->buffer,
-                      source->data->stride / mult);
-  }
+  source->instance->setSize(source->data->size.width,
+                            source->data->size.height);
+  source->instance->setPF(pf);
+  source->server->setPixelBuffer(source->instance);
 
   nParams = 0;
   /* a SPA_TYPE_OBJECT_ParamBuffers object defines the acceptable size,
@@ -443,20 +428,18 @@ void onStreamParamChanged(void *_data, uint32_t id,
 
 void onProcess(void *data) {
   PipeWireSource *source;
+  rfb::ManagedPixelBuffer* pb;
+  pixman_bool_t ret;
   pw_buffer* lastFrameBuf;
   pw_buffer* lastCursorBuf;
   spa_buffer* buf;
   spa_meta_region* damage;
   size_t bufSize;
-  uint32_t width, height;
-
-  pixman_bool_t ret;
-  uint32_t* srcBits;
-  uint32_t* dstBits;
   int srcStride;
   int dstStride;
-  int srcBpp;
-  int dstBpp;
+  uint8_t* srcBuffer;
+  uint8_t* dstBuffer;
+  uint32_t width, height;
 
   source = (PipeWireSource*)data;
   assert(source);
@@ -546,22 +529,24 @@ void onProcess(void *data) {
   if (!damage || !spa_meta_region_is_valid(damage))
     damage = nullptr;
 
-  srcBits = (uint32_t*)buf[0].datas[0].data;
-  dstBits = (uint32_t*)source->data->buffer;
-  srcStride = buf->datas->chunk->stride / 4;
-  dstStride = source->data->stride / 4;
-  srcBpp = 32;
-  dstBpp = 32;
-
   width = source->data->size.width;
   height = source->data->size.height;
 
-  // Accelerated copy
-  // FIXME: Only copy damaged region
-  ret = pixman_blt(srcBits, dstBits, srcStride, dstStride,
-                  srcBpp, dstBpp, 0, 0, 0, 0, width, height);
-  if (!ret)
-    memcpy(source->data->buffer, buf[0].datas[0].data, bufSize);
+  pb = source->instance;
+
+  srcBuffer = (uint8_t*)buf->datas[0].data;
+  // FIXME: This assumes the framebuffer has the same format as
+  // we're getting from pipewire (BGRX).
+  srcStride = buf->datas[0].chunk->stride / (pfBGRX.bpp / 8);
+  dstBuffer = pb->getBufferRW({0, 0, (int)width, (int)height}, &dstStride);
+  ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
+                   srcStride, dstStride, pfBGRX.bpp, pb->getPF().bpp,
+                   0, 0, 0, 0, width, height);
+
+  if (!ret) {
+    pb->imageRect(pfBGRX, {0, 0, (int)width, (int)height}, srcBuffer,
+                  srcStride);
+  }
 
   if (damage) {
     source->server->add_changed({{damage->region.position.x,
@@ -575,7 +560,7 @@ void onProcess(void *data) {
   pw_stream_queue_buffer(source->stream, lastFrameBuf);
 }
 
-void PipeWirePixelBuffer::start()
+void PipewirePixelBuffer::start()
 {
   uint8_t buffer[4096];
   struct spa_pod_builder b;

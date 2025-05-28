@@ -1,5 +1,5 @@
-#ifndef __PIPEWIRE_PIXEL_BUFFER_H__
-#define __PIPEWIRE_PIXEL_BUFFER_H__
+#ifndef __PIPEWIRE_STREAMER_H__
+#define __PIPEWIRE_STREAMER_H__
 
 #include <stdint.h>
 
@@ -13,14 +13,13 @@
 
 namespace rfb { class VNCServer; }
 
-class PipeWirePixelBuffer;
 struct PipeWireSource;
 
-class PipeWirePixelBuffer : public rfb::FullFramePixelBuffer {
+class PipewirePixelBuffer : public rfb::ManagedPixelBuffer {
 public:
-  PipeWirePixelBuffer(int32_t pipewireFd, uint32_t pipewireId,
+  PipewirePixelBuffer(int32_t pipewireFd, uint32_t pipewireId,
                       rfb::VNCServer* server);
-  ~PipeWirePixelBuffer();
+  ~PipewirePixelBuffer();
 
   void start();
 
@@ -38,4 +37,4 @@ private:
   pw_properties* props;
   spa_hook streamListener;
 };
-#endif // __PIPEWIRE_PIXEL_BUFFER_H__
+#endif // __PIPEWIRE_STREAMER_H__
