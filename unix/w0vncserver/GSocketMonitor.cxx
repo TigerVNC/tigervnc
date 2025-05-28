@@ -65,7 +65,7 @@ int GSocketMonitor::sockProcess(GIOChannel* source,
   if (sock->isShutdown()) {
     data_->server->removeSocket(sock);
     g_io_channel_unref(source);
-    return false;
+    return FALSE;
   }
 
   data_->server->processSocketReadEvent(sock);
@@ -73,7 +73,7 @@ int GSocketMonitor::sockProcess(GIOChannel* source,
   if (sock->outStream().hasBufferedData())
     data_->server->processSocketWriteEvent(sock);
 
-  return true;
+  return TRUE;
 }
 
 int GSocketMonitor::acceptConnection(GIOChannel* source,
@@ -93,7 +93,7 @@ int GSocketMonitor::acceptConnection(GIOChannel* source,
   if (!sock) {
     vlog.status("Client connection rejected");
     delete data_;
-    return false;
+    return FALSE;
   }
 
   data_->server->addSocket(sock);
@@ -104,5 +104,5 @@ int GSocketMonitor::acceptConnection(GIOChannel* source,
   g_io_add_watch(channel,(GIOCondition)G_IO_IN, sockProcess, data_);
 
   vlog.debug("added sock %d", sock->getFd());
-  return true;
+  return TRUE;
 }
