@@ -570,6 +570,10 @@ bool ListParameter<ValueType>::setParam(const char* v)
     entry.erase(0, entry.find_first_not_of(" \f\n\r\t\v"));
     entry.erase(entry.find_last_not_of(" \f\n\r\t\v")+1);
 
+    // Special case, entire v was just whitespace
+    if (entry.empty() && (entries.size() == 1))
+      break;
+
     if (!decodeEntry(entry.c_str(), &e)) {
       vlog.error("List parameter %s: Invalid value '%s'",
                  getName(), entry.c_str());
