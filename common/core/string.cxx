@@ -64,6 +64,9 @@ namespace core {
     std::vector<std::string> out;
     const char *start, *stop;
 
+    if (src[0] == '\0')
+      return out;
+
     start = src;
     do {
       stop = strchr(start, delimiter);
