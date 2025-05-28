@@ -555,12 +555,12 @@ void PipeWirePixelBuffer::start()
                          &streamEvents, source);
 
   // FIXME: This is a bit ugly
-  struct spa_rectangle rDef{1280,720};
-  struct spa_rectangle rMin{1,1};
-  struct spa_rectangle rMax{4096,4096};
-  struct spa_fraction fDef{25,1};
-  struct spa_fraction fMin{0,1};
-  struct spa_fraction fMax{60,1};
+  spa_rectangle defaultVideoSize{1280,720};
+  spa_rectangle minVideoSize{1,1};
+  spa_rectangle maxVideoSize{4096,4096};
+  spa_fraction defaultFramerate{25,1};
+  spa_fraction minFramerate{0,1};
+  spa_fraction maxFramerate{60,1};
 
   params[0] = (spa_pod *)spa_pod_builder_add_object(
     &b, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
@@ -570,9 +570,11 @@ void PipeWirePixelBuffer::start()
                                                     SPA_VIDEO_FORMAT_RGBx,
                                                     SPA_VIDEO_FORMAT_BGRx),
     SPA_FORMAT_VIDEO_size,
-    SPA_POD_CHOICE_RANGE_Rectangle(&rDef, &rMin, &rMax),
+    SPA_POD_CHOICE_RANGE_Rectangle(&defaultVideoSize, &minVideoSize,
+                                   &maxVideoSize),
     SPA_FORMAT_VIDEO_framerate,
-    SPA_POD_CHOICE_RANGE_Fraction(&fDef, &fMin,&fMax));
+    SPA_POD_CHOICE_RANGE_Fraction(&defaultFramerate, &minFramerate,
+                                  &maxFramerate));
 
   if (pw_stream_connect(stream, PW_DIRECTION_INPUT, pipewireId_,
                         (pw_stream_flags)(PW_STREAM_FLAG_AUTOCONNECT |
