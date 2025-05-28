@@ -254,10 +254,10 @@ void RemoteDesktop::createSession()
 {
   assert(remoteDesktopProxy_);
 
-  char* handleToken;
-  char* sessionHandleToken;
+  const char* handleToken;
+  const char* sessionHandleToken;
   GVariantBuilder optionsBuilder;
-  char* requestHandle;
+  const char* requestHandle;
 
   newRequestHandle(&requestHandle, &handleToken);
   sessionHandleToken = newSessionHandle();
@@ -331,8 +331,8 @@ void RemoteDesktop::selectDevices()
 {
   assert(remoteDesktopProxy_);
 
-  char* handleToken;
-  char* requestHandle;
+  const char* handleToken;
+  const char* requestHandle;
   GVariantBuilder optionsBuilder;
   GVariant *params;
 
@@ -391,8 +391,8 @@ void RemoteDesktop::selectSources()
 {
   GVariant* params;
   GVariantBuilder optionsBuilder;
-  char* handleToken;
-  char* requestHandle;
+  const char* handleToken;
+  const char* requestHandle;
   int cursorMode;
 
   vlog.debug("selectSources()");
@@ -434,8 +434,8 @@ void RemoteDesktop::selectSources()
 
 void RemoteDesktop::start()
 {
-  char* handletoken;
-  char* requestHandle;
+  const char* handletoken;
+  const char* requestHandle;
   GVariantBuilder optionsBuilder;
   GVariant *params;
 
