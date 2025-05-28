@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 
   try {
     GMainLoop* loop;
-    if (!PortalDesktop::portalsAvailable()) {
+    if (!PortalDesktop::available()) {
       fprintf(stderr, "No ScreenCast portal implementation found\n");
       exit(-1);
     }
