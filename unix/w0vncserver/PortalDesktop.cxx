@@ -23,13 +23,11 @@ PortalDesktop::PortalDesktop(GMainLoop* loop, int rfbport)
     monitor_(nullptr), remoteDesktop_(nullptr), pipewire_(nullptr),
     rfbport_(rfbport), running(false), loop_(loop)
 {
-  server_ = new rfb::VNCServerST("PortalDesktop", this);
 }
 
 PortalDesktop::~PortalDesktop()
 {
   delete remoteDesktop_;
-  delete server_;
 }
 
 void PortalDesktop::init(rfb::VNCServer* vs)
