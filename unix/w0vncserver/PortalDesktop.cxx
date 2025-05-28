@@ -86,7 +86,7 @@ void PortalDesktop::run()
   remoteDesktop_->createSession();
 }
 
-bool PortalDesktop::portalsAvailable()
+bool PortalDesktop::available()
 {
   GError* error = nullptr;
   GDBusConnection* connection;

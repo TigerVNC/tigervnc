@@ -33,7 +33,7 @@ public:
   void run();
 
   // Check if portals implementations are available
-  static bool portalsAvailable();
+  static bool available();
 
 private:
   // Start listening for incoming connections
