@@ -565,13 +565,12 @@ void onProcess(void *data) {
     memcpy(source->data->buffer, buf[0].datas[0].data, bufSize);
 
   if (damage) {
-    core::Rect r{damage->region.position.x, damage->region.position.y,
-                (int)damage->region.size.width,
-                (int)damage->region.size.height};
-    source->server->add_changed(core::Region(r));
+    source->server->add_changed({{damage->region.position.x,
+                                  damage->region.position.y,
+                                  (int)damage->region.size.width,
+                                  (int)damage->region.size.height}});
   } else {
-    core::Rect r{0, 0, (int)width, (int)height};
-    source->server->add_changed(core::Region(r));
+    source->server->add_changed({{0, 0, (int)width, (int)height}});
   }
 
   pw_stream_queue_buffer(source->stream, lastFrameBuf);
