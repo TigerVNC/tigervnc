@@ -116,6 +116,7 @@ int main(int argc, char** argv)
 
 
     PortalDesktop remote(loop, rfbport);
+    rfb::VNCServerST server("w0vncserver", &remote);
     remote.run();
 
     g_main_loop_run(loop);
