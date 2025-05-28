@@ -88,6 +88,32 @@ KeyboardX11::~KeyboardX11()
 {
 }
 
+struct GrabInfo {
+  Window window;
+  bool found;
+};
+
+static Bool is_same_window(Display*, XEvent* event, XPointer arg)
+{
+  GrabInfo* info = (GrabInfo*)arg;
+
+  assert(info);
+
+  // Focus is returned to our window
+  if ((event->type == FocusIn) &&
+      (event->xfocus.window == info->window)) {
+    info->found = true;
+  }
+
+  // Focus got stolen yet again
+  if ((event->type == FocusOut) &&
+      (event->xfocus.window == info->window)) {
+    info->found = false;
+  }
+
+  return False;
+}
+
 bool KeyboardX11::isKeyboardReset(const void* event)
 {
   const XEvent* xevent = (const XEvent*)event;
@@ -96,9 +122,22 @@ bool KeyboardX11::isKeyboardReset(const void* event)
 
   if (xevent->type == FocusOut) {
     if (xevent->xfocus.mode == NotifyGrab) {
-      // Something grabbed the keyboard, but we don't know who. Might be
-      // us, but might be the window manager. Be cautious and assume the
-      // latter and report that the keyboard state was reset.
+      GrabInfo info;
+      XEvent dummy;
+
+      // Something grabbed the keyboard, but we don't know if it was to
+      // ourselves or someone else
+
+      // Make sure we have all the queued events from the X server
+      XSync(fl_display, False);
+
+      // Check if we'll get the focus back right away
+      info.window = xevent->xfocus.window;
+      info.found = false;
+      XCheckIfEvent(fl_display, &dummy, is_same_window, (XPointer)&info);
+      if (info.found)
+        return false;
+
       return true;
     }
   }
