@@ -11,50 +11,10 @@
 
 #include <rfb/PixelBuffer.h>
 
-struct PipeWireData {
-  // FIXME: Create a destructor for PipeWireData
-  struct Rect {
-    uint32_t x;
-    uint32_t y;
-    uint32_t w;
-    uint32_t h;
-  };
-
-  struct Cursor {
-    uint32_t w;
-    uint32_t h;
-    int32_t x;
-    int32_t y;
-    int32_t hotspotX;
-    int32_t hotspotY;
-    int32_t stride;
-    uint8_t *data;
-  };
-
-  spa_video_info format;
-  int32_t stride;
-  spa_rectangle size;
-  Rect rect;
-
-  uint8_t *buffer;
-  Cursor cursor;
-};
-
 namespace rfb { class VNCServer; }
 
 class PipeWirePixelBuffer;
-
-struct PipeWireSource {
-  GSource base;
-  pw_loop* loop;
-  pw_stream* stream;
-  PipeWireData* data;
-  rfb::VNCServer* server;
-  PipeWirePixelBuffer* instance;
-
-  void setBuffer(int width, int height, uint8_t* data, int stride);
-  void setFormat(rfb::PixelFormat format);
-};
+struct PipeWireSource;
 
 class PipeWirePixelBuffer : public rfb::FullFramePixelBuffer {
 public:
