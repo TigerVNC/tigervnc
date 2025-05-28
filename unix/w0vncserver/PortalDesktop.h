@@ -7,7 +7,7 @@
 
 #include "PipewirePixelBuffer.h"
 #include "RFBTimerSource.h"
-#include "WSocketMonitor.h"
+#include "GSocketMonitor.h"
 
 namespace rfb { class VNCServer; }
 class RemoteDesktop;
@@ -45,7 +45,7 @@ protected:
   rfb::VNCServer* server_;
 
   RFBTimerSource* timerSource_;
-  WSocketMonitor* monitor_;
+  GSocketMonitor* monitor_;
   RemoteDesktop* remoteDesktop_;
   PipeWirePixelBuffer* pipewire_;
 
