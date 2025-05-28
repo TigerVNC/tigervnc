@@ -86,7 +86,8 @@ void Portal::newRequestHandle(const char** requestHandle,
   uuid_generate(uuid);
   uuid_unparse(uuid, uuidStr);
 
-  // replace all "-" with "_"
+  // Valid DBus object paths may only contain
+  // the ASCII characters "[A-Z][a-z][0-9]_"
   for (char *p = uuidStr; *p; ++p) {
     if (*p == '-')
       *p = '_';
@@ -110,7 +111,8 @@ const char* Portal::newSessionHandle()
   uuid_generate(uuid);
   uuid_unparse(uuid, uuidStr);
 
-  // replace all "-" with "_"
+  // Valid DBus object paths may only contain
+  // the ASCII characters "[A-Z][a-z][0-9]_"
   for (char *p = uuidStr; *p; ++p) {
     if (*p == '-')
       *p = '_';
