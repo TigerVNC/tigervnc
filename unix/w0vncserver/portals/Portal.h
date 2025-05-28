@@ -15,8 +15,9 @@ public:
                        void* userData);
 
 protected:
-  void newRequestHandle(char** requestHandle, char** handleToken);
-  char* newSessionHandle();
+  void newRequestHandle(const char** requestHandle,
+                        const char** handleToken);
+  const char* newSessionHandle();
 
   static void onSignalResponse(GDBusConnection *connection,
                                  const char *senderName,

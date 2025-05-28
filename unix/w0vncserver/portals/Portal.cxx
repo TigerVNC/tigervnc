@@ -12,6 +12,8 @@
 #include <glib.h>
 
 #include <core/LogWriter.h>
+#include <core/string.h>
+
 
 #include "Portal.h"
 
@@ -71,10 +73,9 @@ Portal::~Portal() {
   free(uniqueName_);
 }
 
-void Portal::newRequestHandle(char** requestHandle, char** handleToken) {
-  char* requestHandle_;
-  char* handleToken_;
-  size_t len;
+void Portal::newRequestHandle(const char** requestHandle,
+                              const char** handleToken)
+{
   uuid_t uuid;
   char uuidStr[37];
 
@@ -87,30 +88,18 @@ void Portal::newRequestHandle(char** requestHandle, char** handleToken) {
       *p = '_';
   }
 
-  // Two slashes + null terminator, hence the + 3
-  len = strlen("/org/freedesktop/portal/desktop/request") +
-        strlen(uniqueName_) + strlen("w0vncserver_") + strlen(uuidStr) + 3;
-  requestHandle_ = (char*)malloc(len);
+  *requestHandle = strdup(core::format("/org/freedesktop/portal/desktop/request/%s/w0vncserver_%s",
+                          uniqueName_, uuidStr).c_str());
 
-  snprintf(requestHandle_, len, "%s/%s/w0vncserver_%s",
-           "/org/freedesktop/portal/desktop/request", uniqueName_,
-           uuidStr);
+  *handleToken = strdup(core::format("w0vncserver_%s", uuidStr).c_str());
 
-  *requestHandle = requestHandle_;
-
-  len = strlen("w0vncserver_") + strlen(uuidStr) + 1;
-  handleToken_ = (char*)malloc(len);
-  snprintf(handleToken_, len, "w0vncserver_%s", uuidStr);
-
-  *handleToken = handleToken_;
-  vlog.debug("new request handle: %s", requestHandle_);
-  vlog.debug("new handle token: %s", handleToken_);
+  vlog.debug("new request handle: %s", *requestHandle);
+  vlog.debug("new handle token: %s", *handleToken);
 }
 
-char* Portal::newSessionHandle()
+const char* Portal::newSessionHandle()
 {
-  char* sessionHandle;
-  size_t len;
+  const char* sessionHandle;
   uuid_t uuid;
   char uuidStr[37];
 
@@ -123,9 +112,7 @@ char* Portal::newSessionHandle()
       *p = '_';
   }
 
-  len = strlen("w0vncserver_") + strlen(uuidStr) + 1;
-  sessionHandle = (char*)malloc(len);
-  snprintf(sessionHandle, len + 1, "w0vncserver_%s", uuidStr);
+  sessionHandle = strdup(core::format("w0vncserver_%s", uuidStr).c_str());
 
   vlog.debug("new session handle: %s", sessionHandle);
 
