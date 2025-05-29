@@ -737,6 +737,8 @@ int main(int argc, char** argv)
 
   migrateDeprecatedOptions();
 
+  parseOptionsFlags();
+
   create_base_dirs();
 
   network::Socket* sock = nullptr;
