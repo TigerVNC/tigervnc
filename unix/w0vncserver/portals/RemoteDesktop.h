@@ -81,7 +81,6 @@ public:
 private:
   PipeWireStreamData* parseStream(GVariant* stream);
 
-  void handlePointerEvent(uint16_t buttonMask);
   void handleButtonPress(uint16_t buttonMask, int32_t button);
   void handleScrollWheel(int32_t button);
 

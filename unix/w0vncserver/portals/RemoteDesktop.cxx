@@ -164,11 +164,6 @@ void RemoteDesktop::pointerEvent(int x, int y, uint16_t buttonMask)
   if (buttonMask == oldButtonMask)
     return;
 
-  handlePointerEvent(buttonMask);
-}
-
-void RemoteDesktop::handlePointerEvent(uint16_t buttonMask)
-{
   for (int32_t i = 0; i < BUTTONS; i++) {
     if ((buttonMask ^ oldButtonMask) & (1 << i)) {
       if (i > 2 && i < 7)
