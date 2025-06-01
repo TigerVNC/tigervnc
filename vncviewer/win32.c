@@ -30,26 +30,6 @@ static HHOOK hook = 0;
 static BYTE kbd_state[256];
 static HWND target_wnd = 0;
 
-static int is_system_hotkey(int vkCode) {
-  switch (vkCode) {
-  case VK_LWIN:
-  case VK_RWIN:
-  case VK_SNAPSHOT:
-    return 1;
-  case VK_TAB:
-    if (GetAsyncKeyState(VK_MENU) & 0x8000)
-      return 1;
-    break;
-  case VK_ESCAPE:
-    if (GetAsyncKeyState(VK_MENU) & 0x8000)
-      return 1;
-    if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
-      return 1;
-    break;
-  }
-  return 0;
-}
-
 static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
 {
   if (nCode >= 0) {
@@ -89,13 +69,9 @@ static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
         (kbd_state[msgInfo->vkCode] & 0x80)) {
       kbd_state[msgInfo->vkCode] &= ~0x80;
     } else {
-      // Grabbing everything seems to mess up some keyboard state that
-      // FLTK relies on, so just grab the keys that we normally cannot.
-      if (is_system_hotkey(msgInfo->vkCode)) {
-        PostMessage(target_wnd, wParam, vkey,
-                    scanCode << 16 | flags << 24);
-        return 1;
-      }
+      PostMessage(target_wnd, wParam, vkey,
+                  scanCode << 16 | flags << 24);
+      return 1;
     }
   }
 
