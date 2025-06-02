@@ -34,6 +34,10 @@
 
 static core::LogWriter vlog("Pipewire");
 
+core::BoolParameter
+  damageEnabled("experimentalDamageEnabled",
+                "Enable framebuffer damage tracking", false);
+
 static void onStreamStateChanged(void *_data, enum pw_stream_state old,
                                  enum pw_stream_state state,
                                  const char *error);
@@ -402,6 +406,7 @@ void onStreamParamChanged(void *_data, uint32_t id,
     SPA_POD_Id(SPA_META_VideoCrop), SPA_PARAM_META_size,
     SPA_POD_Int(sizeof(struct spa_meta_region)));
 
+if (damageEnabled) {
   /* Damage information */
   params[nParams++] = (spa_pod *)spa_pod_builder_add_object(
     &b, SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta, SPA_PARAM_META_type,
@@ -409,6 +414,7 @@ void onStreamParamChanged(void *_data, uint32_t id,
     SPA_POD_CHOICE_RANGE_Int(sizeof(struct spa_meta_region) * 16,
                              sizeof(struct spa_meta_region) * 1,
                              sizeof(struct spa_meta_region) * 16));
+}
 
   #define CURSOR_META_SIZE(w, h)                                         \
   (sizeof(struct spa_meta_cursor) + sizeof(struct spa_meta_bitmap) +   \
