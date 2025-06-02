@@ -698,7 +698,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   if (parts.size() > 2)
     throw std::invalid_argument("Invalid filter specified");
 
-  if (parts[0].empty()) {
+  if (parts.empty() || parts[0].empty()) {
     // Match any address
     memset (&pattern.address, 0, sizeof (pattern.address));
     pattern.address.u.sa.sa_family = AF_UNSPEC;
