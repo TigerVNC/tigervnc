@@ -105,14 +105,8 @@ void RemoteDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
   params = g_variant_new("(oa{sv}iu)", sessionHandle_,
                          &optionsBuilder, keysym, state);
-  g_dbus_proxy_call(remoteDesktopProxy_,
-                    "NotifyKeyboardKeysym",
-                    params,
-                    G_DBUS_CALL_FLAGS_NONE,
-                    3000, /* timeout */
-                    nullptr, /* cancellable */
-                    (GAsyncReadyCallback)(onCallCb),
-                    nullptr);
+  call(remoteDesktopProxy_, "NotifyKeyboardKeysym", params,
+       G_DBUS_CALL_FLAGS_NONE, nullptr, nullptr, nullptr);
 }
 
 static int getInputCode(uint32_t button)
@@ -152,14 +146,8 @@ void RemoteDesktop::pointerEvent(int x, int y, uint16_t buttonMask)
                          &optionsBuilder, pwNodeId,
                          (double)x,(double)y);
 
-  g_dbus_proxy_call(remoteDesktopProxy_,
-                    "NotifyPointerMotionAbsolute",
-                    params,
-                    G_DBUS_CALL_FLAGS_NONE,
-                    3000, /* timeout */
-                    nullptr, /* cancellable */
-                    (GAsyncReadyCallback)(onCallCb),
-                    nullptr);
+  call(remoteDesktopProxy_, "NotifyPointerMotionAbsolute", params,
+       G_DBUS_CALL_FLAGS_NONE, nullptr, nullptr, nullptr);
 
   if (buttonMask == oldButtonMask)
     return;
@@ -190,14 +178,8 @@ void RemoteDesktop::handleButtonPress(uint16_t buttonMask,
   params = g_variant_new("(oa{sv}iu)", sessionHandle_,
                           &optionsBuilder, button, down);
 
-  g_dbus_proxy_call(remoteDesktopProxy_,
-                    "NotifyPointerButton",
-                    params,
-                    G_DBUS_CALL_FLAGS_NONE,
-                    3000, /* timeout */
-                    nullptr, /* cancellable */
-                    (GAsyncReadyCallback)(onCallCb),
-                    nullptr);
+  call(remoteDesktopProxy_, "NotifyPointerButton", params,
+       G_DBUS_CALL_FLAGS_NONE, nullptr, nullptr, nullptr);
 }
 
 void RemoteDesktop::handleScrollWheel(int32_t button)
@@ -235,14 +217,8 @@ void RemoteDesktop::handleScrollWheel(int32_t button)
   params = g_variant_new("(oa{sv}ui)", sessionHandle_,
                          &optionsBuilder, axis, steps);
 
-  g_dbus_proxy_call(remoteDesktopProxy_,
-                    "NotifyPointerAxisDiscrete",
-                    params,
-                    G_DBUS_CALL_FLAGS_NONE,
-                    3000, /* timeout */
-                    nullptr, /* cancellable */
-                    (GAsyncReadyCallback)(onCallCb),
-                    nullptr);
+  call(remoteDesktopProxy_, "NotifyPointerAxisDiscrete", params,
+       G_DBUS_CALL_FLAGS_NONE, nullptr, nullptr, nullptr);
 }
 
 void RemoteDesktop::createSession()
@@ -253,6 +229,7 @@ void RemoteDesktop::createSession()
   const char* sessionHandleToken;
   GVariantBuilder optionsBuilder;
   const char* requestHandle;
+  GVariant* params;
 
   newRequestHandle(&requestHandle, &handleToken);
   sessionHandleToken = newSessionHandle();
@@ -268,16 +245,10 @@ void RemoteDesktop::createSession()
 
   vlog.debug("request_handle: %s", requestHandle);
 
-  signalSubscribe(requestHandle, onCreateSession, this);
-  g_dbus_proxy_call(remoteDesktopProxy_,
-                    "CreateSession",
-                    g_variant_new("(a{sv})", &optionsBuilder),
-                    G_DBUS_CALL_FLAGS_NONE,
-                    3000,
-                    nullptr,
-                    (GAsyncReadyCallback)onCallCb,
-                    nullptr);
+  params = g_variant_new("(a{sv})", &optionsBuilder);
 
+  call(remoteDesktopProxy_, "CreateSession", params,
+       G_DBUS_CALL_FLAGS_NONE, onCreateSession, requestHandle, this);
 }
 
 void onCreateSession(GDBusConnection *connection, const char *sender,
@@ -348,16 +319,9 @@ void RemoteDesktop::selectDevices()
 
   params = g_variant_new("(oa{sv})", sessionHandle(), &optionsBuilder);
 
-  signalSubscribe(requestHandle, onSelectDevices, this);
+  call(remoteDesktopProxy_, "SelectDevices", params,
+       G_DBUS_CALL_FLAGS_NONE, onSelectDevices, requestHandle, this);
 
-  g_dbus_proxy_call(remoteDesktopProxy_,
-    "SelectDevices",
-    params,
-    G_DBUS_CALL_FLAGS_NONE,
-    3000, /* timeout */
-    nullptr, /* cancellable */
-    (GAsyncReadyCallback)(onCallCb),
-    nullptr);
 }
 
 void onSelectDevices(GDBusConnection *connection, const char *sender,
@@ -414,16 +378,9 @@ void RemoteDesktop::selectSources()
   params = g_variant_new("(oa{sv})", sessionHandle_,
                          &optionsBuilder);
 
-  signalSubscribe(requestHandle, onSelectSources, this);
-
-  g_dbus_proxy_call(screencastProxy_,
-                    "SelectSources",
-                    params,
-                    G_DBUS_CALL_FLAGS_NO_AUTO_START,
-                    3000, /* timeout */
-                    nullptr, /* cancellable */
-                    (GAsyncReadyCallback)(onCallCb),
-                    nullptr);
+  call(screencastProxy_, "SelectSources", params,
+       G_DBUS_CALL_FLAGS_NO_AUTO_START, onSelectSources, requestHandle,
+       this);
 }
 
 
@@ -447,16 +404,8 @@ void RemoteDesktop::start()
   params = g_variant_new("(osa{sv})", sessionHandle_, "",
                          &optionsBuilder);
 
-  signalSubscribe(requestHandle, onStart, this);
-
-  g_dbus_proxy_call(remoteDesktopProxy_,
-    "Start",
-    params,
-    G_DBUS_CALL_FLAGS_NO_AUTO_START,
-    3000, /* timeout */
-    nullptr, /* cancellable */
-    (GAsyncReadyCallback)(onCallCb),
-    nullptr);
+  call(remoteDesktopProxy_, "Start", params,
+       G_DBUS_CALL_FLAGS_NO_AUTO_START, onStart, requestHandle, this);
 }
 
 void onStart(GDBusConnection *connection, const char *sender,

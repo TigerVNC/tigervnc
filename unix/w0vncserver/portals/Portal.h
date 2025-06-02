@@ -11,10 +11,12 @@ public:
   Portal();
   virtual ~Portal();
 
-  void signalSubscribe(const char* path, GDBusSignalCallback cb,
-                       void* userData);
-
 protected:
+
+  void call(GDBusProxy* proxy, const char* method, GVariant* parameters,
+            GDBusCallFlags flags, GDBusSignalCallback signalCallback,
+            const char* requestHandle, void* userData);
+
   void newRequestHandle(const char** requestHandle,
                         const char** handleToken);
   const char* newSessionHandle();
@@ -28,7 +30,9 @@ protected:
                                  void *userData);
   static void onCallCb(GDBusProxy *source, GAsyncResult *res,
                        void *userData);
-
+private:
+  void signalSubscribe(const char* path, GDBusSignalCallback cb,
+                       void* userData);
 protected:
   GDBusConnection* connection_;
   char* sessionHandle_;

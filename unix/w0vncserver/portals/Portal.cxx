@@ -154,6 +154,24 @@ void Portal::signalSubscribe(const char* path, GDBusSignalCallback cb,
 
 }
 
+void Portal::call(GDBusProxy* proxy, const char* method,
+                  GVariant* parameters, GDBusCallFlags flags,
+                  GDBusSignalCallback signalCallback,
+                  const char* requestHandle, void* userData)
+{
+  if (signalCallback)
+    signalSubscribe(requestHandle, signalCallback, userData);
+
+  g_dbus_proxy_call(proxy,
+                    method,
+                    parameters,
+                    flags,
+                    3000,
+                    nullptr,
+                    (GAsyncReadyCallback)onCallCb,
+                    userData);
+}
+
 void Portal::onSignalResponse(GDBusConnection *connection,
                               const char *senderName,
                               const char *objectPath,
