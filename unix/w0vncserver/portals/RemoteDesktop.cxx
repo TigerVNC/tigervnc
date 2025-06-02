@@ -161,13 +161,13 @@ void RemoteDesktop::pointerEvent(int x, int y, uint16_t buttonMask)
       if (i > 2 && i < 7)
         handleScrollWheel(i);
       else
-        handleButtonPress(buttonMask, i);
+        handleButton(buttonMask, i);
     }
   }
   oldButtonMask = buttonMask;
 }
 
-void RemoteDesktop::handleButtonPress(uint16_t buttonMask,
+void RemoteDesktop::handleButton(uint16_t buttonMask,
                                         int32_t button)
 {
   GVariantBuilder optionsBuilder;
