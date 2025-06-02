@@ -23,27 +23,31 @@ static core::LogWriter vlog("RemoteDesktop");
 core::BoolParameter localCursor(
   "experimentalLocalCursor", "[EXPERIMENTAL] Render cursor locally", false);
 
-static void onCreateSession(GDBusConnection *connection,
-                            const char *sender, const char *objectPath,
-                            const char *interfaceName,
-                            const char *signalName,
-                            GVariant *parameters, void *userData);
-static void onStart(GDBusConnection *connection, const char *sender,
-                    const char *objectPath, const char *interfaceName,
-                    const char *signalName, GVariant *parameters,
-                    void *userData);
-static void onSelectSources(GDBusConnection *connection,
-                            const char *sender, const char *objectPath,
-                            const char *interfaceName,
-                            const char *signalName,
-                            GVariant *parameters, void *userData);
-static void onSelectDevices(GDBusConnection *connection,
-                            const char *sender, const char *objectPath,
-                            const char *interfaceName,
-                            const char *signalName,
-                            GVariant *parameters, void *userData);
-static void onOpenPipewireRemote(GDBusProxy *proxy, GAsyncResult *res,
-                                 void *userData);
+static void handleCreateSession(GDBusConnection *connection,
+                                const char *sender,
+                                const char *objectPath,
+                                const char *interfaceName,
+                                const char *signalName,
+                                GVariant *parameters, void *userData);
+static void handleStart(GDBusConnection *connection, const char *sender,
+                        const char *objectPath,
+                        const char *interfaceName,
+                        const char *signalName, GVariant *parameters,
+                        void *userData);
+static void handleSelectSources(GDBusConnection *connection,
+                                const char *sender,
+                                const char *objectPath,
+                                const char *interfaceName,
+                                const char *signalName,
+                                GVariant *parameters, void *userData);
+static void handleSelectDevices(GDBusConnection *connection,
+                                const char *sender,
+                                const char *objectPath,
+                                const char *interfaceName,
+                                const char *signalName,
+                                GVariant *parameters, void *userData);
+static void handleOpenPipewireRemote(GDBusProxy *proxy,
+                                     GAsyncResult *res, void *userData);
 
 RemoteDesktop::RemoteDesktop(rfb::VNCServer* server,
                              std::function<void(int fd, uint32_t nodeId)> startPipewireCb)
@@ -248,10 +252,10 @@ void RemoteDesktop::createSession()
   params = g_variant_new("(a{sv})", &optionsBuilder);
 
   call(remoteDesktopProxy_, "CreateSession", params,
-       G_DBUS_CALL_FLAGS_NONE, onCreateSession, requestHandle, this);
+       G_DBUS_CALL_FLAGS_NONE, handleCreateSession, requestHandle, this);
 }
 
-void onCreateSession(GDBusConnection *connection, const char *sender,
+void handleCreateSession(GDBusConnection *connection, const char *sender,
                      const char *objectPath,
                      const char *interfaceName,
                      const char *signalName, GVariant *parameters,
@@ -320,11 +324,11 @@ void RemoteDesktop::selectDevices()
   params = g_variant_new("(oa{sv})", sessionHandle(), &optionsBuilder);
 
   call(remoteDesktopProxy_, "SelectDevices", params,
-       G_DBUS_CALL_FLAGS_NONE, onSelectDevices, requestHandle, this);
+       G_DBUS_CALL_FLAGS_NONE, handleSelectDevices, requestHandle, this);
 
 }
 
-void onSelectDevices(GDBusConnection *connection, const char *sender,
+void handleSelectDevices(GDBusConnection *connection, const char *sender,
                      const char *objectPath,
                      const char *interfaceName,
                      const char *signalName, GVariant *parameters,
@@ -379,7 +383,7 @@ void RemoteDesktop::selectSources()
                          &optionsBuilder);
 
   call(screencastProxy_, "SelectSources", params,
-       G_DBUS_CALL_FLAGS_NO_AUTO_START, onSelectSources, requestHandle,
+       G_DBUS_CALL_FLAGS_NO_AUTO_START, handleSelectSources, requestHandle,
        this);
 }
 
@@ -405,10 +409,10 @@ void RemoteDesktop::start()
                          &optionsBuilder);
 
   call(remoteDesktopProxy_, "Start", params,
-       G_DBUS_CALL_FLAGS_NO_AUTO_START, onStart, requestHandle, this);
+       G_DBUS_CALL_FLAGS_NO_AUTO_START, handleStart, requestHandle, this);
 }
 
-void onStart(GDBusConnection *connection, const char *sender,
+void handleStart(GDBusConnection *connection, const char *sender,
              const char *objectPath, const char *interfaceName,
              const char *signalName, GVariant *parameters,
              void *userData)
@@ -476,11 +480,11 @@ void RemoteDesktop::openPipewireRemote()
                                       nullptr, /* fd_list */
                                       nullptr, /* cancellable */
                                       (GAsyncReadyCallback)
-                                      onOpenPipewireRemote,
+                                      handleOpenPipewireRemote,
                                       this);
 }
 
-void onSelectSources(GDBusConnection *connection,
+void handleSelectSources(GDBusConnection *connection,
                                    const char *sender,
                                    const char *objectPath,
                                    const char *interfaceName,
@@ -506,7 +510,7 @@ void onSelectSources(GDBusConnection *connection,
 }
 
 
-void onOpenPipewireRemote(GDBusProxy *proxy, GAsyncResult *res,
+void handleOpenPipewireRemote(GDBusProxy *proxy, GAsyncResult *res,
                           void *userData)
 {
   RemoteDesktop *self = static_cast<RemoteDesktop*>(userData);

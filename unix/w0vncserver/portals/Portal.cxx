@@ -158,16 +158,16 @@ void Portal::call(GDBusProxy* proxy, const char* method,
                       requestHandle,
                       nullptr,
                       G_DBUS_SIGNAL_FLAGS_NONE,
-                      onSignalResponse,
+                      handleSignalResponse,
                       call,
                       nullptr);
   }
 
   g_dbus_proxy_call(proxy, method, parameters, flags, 3000, nullptr,
-                    (GAsyncReadyCallback)onCallCb, userData);
+                    (GAsyncReadyCallback)handleCallCb, userData);
 }
 
-void Portal::onSignalResponse(GDBusConnection *connection,
+void Portal::handleSignalResponse(GDBusConnection *connection,
                               const char *senderName,
                               const char *objectPath,
                               const char *interfaceName,
@@ -190,7 +190,7 @@ void Portal::onSignalResponse(GDBusConnection *connection,
   delete call;
 }
 
-void Portal::onCallCb(GDBusProxy *source, GAsyncResult *res,
+void Portal::handleCallCb(GDBusProxy *source, GAsyncResult *res,
                       void *userData)
 {
   (void) userData;

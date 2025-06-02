@@ -38,12 +38,13 @@ core::BoolParameter
   damageEnabled("experimentalDamageEnabled",
                 "Enable framebuffer damage tracking", false);
 
-static void onStreamStateChanged(void *_data, enum pw_stream_state old,
-                                 enum pw_stream_state state,
-                                 const char *error);
-static void onStreamParamChanged(void *_data, uint32_t id,
-                                 const struct spa_pod *param);
-static void onProcess(void *_data);
+static void handleStreamStateChanged(void *_data,
+                                     enum pw_stream_state old,
+                                     enum pw_stream_state state,
+                                     const char *error);
+static void handleStreamParamChanged(void *_data, uint32_t id,
+                                     const struct spa_pod *param);
+static void handleProcess(void *_data);
 
 struct PipeWireData {
   // FIXME: Create a destructor for PipeWireData
@@ -114,13 +115,13 @@ static GSourceFuncs pipewireSourceFuncs {
 static pw_stream_events streamEvents {
   .version = PW_VERSION_STREAM_EVENTS,
   .destroy = nullptr,
-  .state_changed = onStreamStateChanged,
+  .state_changed = handleStreamStateChanged,
   .control_info = nullptr,
   .io_changed = nullptr,
-  .param_changed = onStreamParamChanged,
+  .param_changed = handleStreamParamChanged,
   .add_buffer = nullptr,
   .remove_buffer = nullptr,
-  .process = onProcess,
+  .process = handleProcess,
   .drained = nullptr,
   .command = nullptr,
   .trigger_done = nullptr
@@ -280,8 +281,9 @@ PipewirePixelBuffer::~PipewirePixelBuffer()
   pw_deinit();
 }
 
-void onStreamStateChanged(void *_data, enum pw_stream_state old,
-                          enum pw_stream_state state, const char *error)
+void handleStreamStateChanged(void *_data, enum pw_stream_state old,
+                              enum pw_stream_state state,
+                              const char *error)
 {
   (void)old;
   PipeWireSource* source;
@@ -308,8 +310,8 @@ void onStreamStateChanged(void *_data, enum pw_stream_state old,
   }
 }
 
-void onStreamParamChanged(void *_data, uint32_t id,
-                          const struct spa_pod *param)
+void handleStreamParamChanged(void *_data, uint32_t id,
+                              const struct spa_pod *param)
 {
   PipeWireSource* source;
   pw_stream *stream;
@@ -432,7 +434,7 @@ if (damageEnabled) {
   pw_stream_update_params(stream, params, nParams);
 }
 
-void onProcess(void *data) {
+void handleProcess(void *data) {
   PipeWireSource *source;
   rfb::ManagedPixelBuffer* pb;
   pixman_bool_t ret;
