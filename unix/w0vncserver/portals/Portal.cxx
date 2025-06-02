@@ -21,13 +21,21 @@
 static core::LogWriter vlog("Portal");
 
 struct PortalCall {
+  PortalCall();
   ~PortalCall();
   GDBusSignalCallback callback;
   void* userData;
   char* requestHandle;
+  const char* method;
   uint32_t signalId;
   GDBusConnection* connection;
 };
+
+PortalCall::PortalCall()
+  : callback(nullptr), userData(nullptr), requestHandle(nullptr),
+    method(nullptr), signalId(0), connection(nullptr)
+{
+}
 
 PortalCall::~PortalCall()
 {
@@ -125,51 +133,38 @@ const char* Portal::newSessionHandle()
   return sessionHandle;
 }
 
-void Portal::signalSubscribe(const char* path, GDBusSignalCallback cb,
-                             void* userData)
-{
-  PortalCall* call;
-
-  vlog.debug("signal_subscribe(%s)", path);
-
-  call = new PortalCall();
-  call->requestHandle = strdup(path);
-  call->callback = cb;
-  call->userData = userData;
-  call->connection = connection_;
-
-  // FIXME: Handle cancellation
-
-  call->signalId = g_dbus_connection_signal_subscribe(
-                      connection_,
-                      "org.freedesktop.portal.Desktop",
-                      "org.freedesktop.portal.Request",
-                      "Response",
-                      call->requestHandle,
-                      nullptr,
-                      G_DBUS_SIGNAL_FLAGS_NONE,
-                      onSignalResponse,
-                      call,
-                      nullptr);
-
-}
-
 void Portal::call(GDBusProxy* proxy, const char* method,
                   GVariant* parameters, GDBusCallFlags flags,
                   GDBusSignalCallback signalCallback,
                   const char* requestHandle, void* userData)
 {
-  if (signalCallback)
-    signalSubscribe(requestHandle, signalCallback, userData);
+  PortalCall* call;
 
-  g_dbus_proxy_call(proxy,
-                    method,
-                    parameters,
-                    flags,
-                    3000,
-                    nullptr,
-                    (GAsyncReadyCallback)onCallCb,
-                    userData);
+  call = new PortalCall();
+  call->callback = signalCallback;
+  call->userData = userData;
+  call->connection = connection_;
+  call->method = method;
+
+  if (requestHandle)
+    call->requestHandle = strdup(requestHandle);
+
+  if (signalCallback) {
+    call->signalId = g_dbus_connection_signal_subscribe(
+                      connection_,
+                      "org.freedesktop.portal.Desktop",
+                      "org.freedesktop.portal.Request",
+                      "Response",
+                      requestHandle,
+                      nullptr,
+                      G_DBUS_SIGNAL_FLAGS_NONE,
+                      onSignalResponse,
+                      call,
+                      nullptr);
+  }
+
+  g_dbus_proxy_call(proxy, method, parameters, flags, 3000, nullptr,
+                    (GAsyncReadyCallback)onCallCb, userData);
 }
 
 void Portal::onSignalResponse(GDBusConnection *connection,

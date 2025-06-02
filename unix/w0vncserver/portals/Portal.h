@@ -30,9 +30,6 @@ protected:
                                  void *userData);
   static void onCallCb(GDBusProxy *source, GAsyncResult *res,
                        void *userData);
-private:
-  void signalSubscribe(const char* path, GDBusSignalCallback cb,
-                       void* userData);
 protected:
   GDBusConnection* connection_;
   char* sessionHandle_;
