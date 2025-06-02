@@ -65,6 +65,10 @@ int main(int argc, char** argv)
   core::initStdIOLoggers();
   core::LogWriter::setLogParams("*:stderr:30");
 
+  core::Configuration::removeParam("AcceptCutText");
+  core::Configuration::removeParam("SendCutText");
+  core::Configuration::removeParam("MaxCutText");
+
   for (int i = 1; i < argc;) {
     int ret;
 
