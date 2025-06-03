@@ -63,7 +63,6 @@ struct PipeWireData {
     int32_t hotspotX;
     int32_t hotspotY;
     int32_t stride;
-    uint8_t *data;
   };
 
   spa_video_info format;
@@ -190,22 +189,7 @@ static void processCursor(PipeWireSource *source, pw_buffer* buf)
     return;
 
   mb = SPA_PTROFF(mcs, mcs->bitmap_offset, struct spa_meta_bitmap);
-
-  // If cursor size has changed
-  if (mb->size.width != source->data->cursor.w ||
-      mb->size.height != source->data->cursor.h ||
-      mb->stride != source->data->cursor.stride) {
-    uint32_t cursor_size;
-
-    delete [] source->data->cursor.data;
-    source->data->cursor.data = nullptr;
-
-    cursor_size = mb->stride * mb->size.height;
-    source->data->cursor.data = new uint8_t[cursor_size];
-  }
-
   src = SPA_PTROFF(mb, mb->offset, uint8_t);
-  memcpy(source->data->cursor.data, src, mb->stride * mb->size.height);
 
   source->data->cursor.w = mb->size.width;
   source->data->cursor.h = mb->size.height;
@@ -215,7 +199,7 @@ static void processCursor(PipeWireSource *source, pw_buffer* buf)
             source->data->cursor.h,
             source->data->cursor.hotspotX,
             source->data->cursor.hotspotY,
-            source->data->cursor.data, source->server);
+            src, source->server);
 }
 
 static bool hasCursorData(pw_buffer* buf)
@@ -264,7 +248,6 @@ PipewirePixelBuffer::PipewirePixelBuffer(int32_t pipewireFd,
   registry = pw_core_get_registry(core, PW_VERSION_REGISTRY, 0);
 
   source->data = new PipeWireData;
-  source->data->cursor.data = nullptr;
   source->server = server;
   source->instance = this;
 
@@ -274,7 +257,6 @@ PipewirePixelBuffer::PipewirePixelBuffer(int32_t pipewireFd,
 PipewirePixelBuffer::~PipewirePixelBuffer()
 {
   // FIXME: There's some cleanup missing here
-  delete source->data->cursor.data;
   delete source->data;
   pw_loop_leave(loop);
   pw_loop_destroy(loop);
