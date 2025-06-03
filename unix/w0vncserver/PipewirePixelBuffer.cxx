@@ -66,6 +66,7 @@ struct PipeWireData {
   };
 
   spa_video_info format;
+  rfb::PixelFormat pf;
   int32_t stride;
   spa_rectangle size;
   Rect rect;
@@ -302,7 +303,6 @@ void handleStreamParamChanged(void *_data, uint32_t id,
   int nParams;
   const spa_pod *params[5];
   int32_t mult, size;
-  rfb::PixelFormat pf;
 
   vlog.debug("onStreamParamChanged");
 
@@ -337,7 +337,7 @@ void handleStreamParamChanged(void *_data, uint32_t id,
     if (source->data->format.info.raw.format == SPA_VIDEO_FORMAT_BGRx) {
       mult = 4;
       source->data->stride = source->data->format.info.raw.size.width * mult;
-      pf = pfBGRX;
+      source->data->pf = pfBGRX;
     } else {
       throw std::runtime_error("unsupported pixel format :" +
         std::to_string(source->data->format.info.raw.format));
@@ -364,7 +364,7 @@ void handleStreamParamChanged(void *_data, uint32_t id,
 
   source->instance->setSize(source->data->size.width,
                             source->data->size.height);
-  source->instance->setPF(pf);
+  source->instance->setPF(source->data->pf);
   source->server->setPixelBuffer(source->instance);
 
   nParams = 0;
@@ -525,13 +525,12 @@ void handleProcess(void *data) {
   pb = source->instance;
 
   srcBuffer = (uint8_t*)buf->datas[0].data;
-  // FIXME: This assumes the framebuffer has the same format as
-  // we're getting from pipewire (BGRX).
-  srcStride = buf->datas[0].chunk->stride / (pfBGRX.bpp / 8);
+  srcStride = buf->datas[0].chunk->stride / (source->data->pf.bpp / 8);
   dstBuffer = pb->getBufferRW({0, 0, (int)width, (int)height}, &dstStride);
+
   ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
-                   srcStride, dstStride, pfBGRX.bpp, pb->getPF().bpp,
-                   0, 0, 0, 0, width, height);
+                   srcStride, dstStride, source->data->pf.bpp,
+                   pb->getPF().bpp, 0, 0, 0, 0, width, height);
 
   if (!ret) {
     pb->imageRect(pfBGRX, {0, 0, (int)width, (int)height}, srcBuffer,
