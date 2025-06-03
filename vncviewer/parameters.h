@@ -73,7 +73,7 @@ extern core::BoolParameter sendPrimary;
 extern core::StringParameter display;
 #endif
 
-extern core::EnumParameter menuKey;
+extern core::EnumListParameter shortcutModifiers;
 
 extern core::BoolParameter fullscreenSystemKeys;
 extern core::BoolParameter alertOnFatalError;

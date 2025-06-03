@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011-2021 Pierre Ossman for Cendio AB
+ * Copyright 2011-2025 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,12 +32,18 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/Cursor.h>
+#include <rfb/KeysymStr.h>
 #include <rfb/ledStates.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
+#define XK_LATIN1
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
+#endif
+
+#ifndef NoSymbol
+#define NoSymbol 0
 #endif
 
 #include "fltk/layout.h"
@@ -48,7 +54,6 @@
 #include "DesktopWindow.h"
 #include "i18n.h"
 #include "parameters.h"
-#include "menukey.h"
 #include "vncviewer.h"
 
 #include "PlatformPixelBuffer.h"
@@ -77,7 +82,7 @@ static core::LogWriter vlog("Viewport");
 // Menu constants
 
 enum { ID_DISCONNECT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
-       ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
+       ID_CTRL, ID_ALT, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT };
 
 // Used for fake key presses from the menu
@@ -91,7 +96,7 @@ static const int FAKE_KEY_CODE = 0xffff;
 Viewport::Viewport(int w, int h, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
     lastPointerPos(0, 0), lastButtonMask(0),
-    keyboard(nullptr),
+    keyboard(nullptr), shortcutBypass(false), shortcutActive(false),
     firstLEDState(true), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(nullptr),
     cursorIsBlank(false)
@@ -130,7 +135,11 @@ Viewport::Viewport(int w, int h, CConn* cc_)
   // reparenting to the current window works for most cases.
   window()->add(contextMenu);
 
-  setMenuKey();
+  unsigned modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+  shortcutHandler.setModifiers(modifierMask);
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -673,22 +682,121 @@ void Viewport::resetKeyboard()
   }
 
   keyboard->reset();
+
+  shortcutHandler.reset();
+  shortcutBypass = false;
+  shortcutActive = false;
+  pressedKeys.clear();
 }
 
 
 void Viewport::handleKeyPress(int systemKeyCode,
                               uint32_t keyCode, uint32_t keySym)
 {
-  static bool menuRecursion = false;
+  pressedKeys.insert(systemKeyCode);
 
-  // Prevent recursion if the menu wants to send its own
-  // activation key.
-  if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
-    menuRecursion = true;
-    popupContextMenu();
-    menuRecursion = false;
-    return;
+  // Possible keyboard shortcut?
+
+  if (!shortcutBypass) {
+    ShortcutHandler::KeyAction action;
+
+    action = shortcutHandler.handleKeyPress(systemKeyCode, keySym);
+
+    if (action == ShortcutHandler::KeyIgnore) {
+      vlog.debug("Ignoring key press %d => 0x%02x / XK_%s (0x%04x)",
+                 systemKeyCode, keyCode, KeySymName(keySym), keySym);
+      return;
+    }
+
+    if (action == ShortcutHandler::KeyShortcut) {
+      std::list<uint32_t> keySyms;
+      std::list<uint32_t>::const_iterator iter;
+
+      // Modifiers can change the KeySym that's been resolved, so we
+      // need to check all possible KeySyms for this physical key, not
+      // just the current one
+      keySyms = keyboard->translateToKeySyms(systemKeyCode);
+
+      // Then we pick the one that matches first
+      keySym = NoSymbol;
+      for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
+        bool found;
+
+        switch (*iter) {
+        case XK_space:
+        case XK_G:
+        case XK_g:
+        case XK_M:
+        case XK_m:
+        case XK_KP_Enter:
+        case XK_Return:
+          keySym = *iter;
+          found = true;
+          break;
+        default:
+          found = false;
+          break;
+        }
+
+        if (found)
+          break;
+      }
+
+      vlog.debug("Detected shortcut %d => 0x%02x / XK_%s (0x%04x)",
+                 systemKeyCode, keyCode, KeySymName(keySym), keySym);
+
+      // Special case which we need to handle first
+      if (keySym == XK_space) {
+        // If another shortcut has already fired, then we're too late as
+        // we've already released the modifier keys
+        if (!shortcutActive) {
+          shortcutBypass = true;
+          shortcutHandler.reset();
+        }
+        return;
+      }
+
+      shortcutActive = true;
+
+      // The remote session won't see any more keys, so release the ones
+      // currently down
+      try {
+        cc->releaseAllKeys();
+      } catch (std::exception& e) {
+        vlog.error("%s", e.what());
+        abort_connection(_("An unexpected error occurred when communicating "
+                           "with the server:\n\n%s"), e.what());
+      }
+
+      switch (keySym) {
+      case XK_G:
+      case XK_g:
+        ((DesktopWindow*)window())->grabKeyboard();
+        break;
+      case XK_M:
+      case XK_m:
+        popupContextMenu();
+        break;
+      case XK_KP_Enter:
+      case XK_Return:
+        if (window()->fullscreen_active()) {
+          fullScreen.setParam(false);
+          window()->fullscreen_off();
+        } else {
+          fullScreen.setParam(true);
+          ((DesktopWindow*)window())->fullscreen_on();
+        }
+        break;
+      default:
+        // Unknown/Unused keyboard shortcut
+        break;
+      }
+
+      return;
+    }
   }
+
+  // Normal key, so send to server...
 
   if (viewOnly)
     return;
@@ -704,6 +812,54 @@ void Viewport::handleKeyPress(int systemKeyCode,
 
 void Viewport::handleKeyRelease(int systemKeyCode)
 {
+  pressedKeys.erase(systemKeyCode);
+
+  if (pressedKeys.empty())
+    shortcutActive = false;
+
+  // Possible keyboard shortcut?
+
+  if (!shortcutBypass) {
+    ShortcutHandler::KeyAction action;
+
+    action = shortcutHandler.handleKeyRelease(systemKeyCode);
+
+    if (action == ShortcutHandler::KeyIgnore) {
+      vlog.debug("Ignoring key release %d", systemKeyCode);
+      return;
+    }
+
+    if (action == ShortcutHandler::KeyShortcut) {
+      vlog.debug("Shortcut release %d", systemKeyCode);
+      return;
+    }
+
+    if (action == ShortcutHandler::KeyUnarm) {
+      DesktopWindow *win;
+
+      vlog.debug("Detected shortcut to release grab");
+
+      try {
+        cc->releaseAllKeys();
+      } catch (std::exception& e) {
+        vlog.error("%s", e.what());
+        abort_connection(_("An unexpected error occurred when communicating "
+                           "with the server:\n\n%s"), e.what());
+      }
+
+      win = dynamic_cast<DesktopWindow*>(window());
+      assert(win);
+      win->ungrabKeyboard();
+
+      return;
+    }
+  }
+
+  if (pressedKeys.empty())
+    shortcutBypass = false;
+
+  // Normal key, so send to server...
+
   if (viewOnly)
     return;
 
@@ -765,16 +921,6 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Alt"),
                 0, nullptr, (void*)ID_ALT,
                 FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
-
-  if (menuKeySym) {
-    char sendMenuKey[64];
-    snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"),
-             menuKey.getValueStr().c_str());
-    fltk_menu_add(contextMenu, sendMenuKey, 0, nullptr, (void*)ID_MENUKEY, 0);
-    fltk_menu_add(contextMenu, "Secret shortcut menu key",
-                  menuKeyFLTK, nullptr,
-                  (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
-  }
 
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Send Ctrl-Alt-&Del"),
                 0, nullptr, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
@@ -860,10 +1006,6 @@ void Viewport::popupContextMenu()
       handleKeyRelease(FAKE_ALT_KEY_CODE);
     menuAltKey = !menuAltKey;
     break;
-  case ID_MENUKEY:
-    handleKeyPress(FAKE_KEY_CODE, menuKeyCode, menuKeySym);
-    handleKeyRelease(FAKE_KEY_CODE);
-    break;
   case ID_CTRLALTDEL:
     handleKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
     handleKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
@@ -892,18 +1034,17 @@ void Viewport::popupContextMenu()
   }
 }
 
-
-void Viewport::setMenuKey()
-{
-  getMenuKey(&menuKeyFLTK, &menuKeyCode, &menuKeySym);
-}
-
-
 void Viewport::handleOptions(void *data)
 {
   Viewport *self = (Viewport*)data;
+  unsigned modifierMask;
 
-  self->setMenuKey();
+  modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+  self->shortcutHandler.setModifiers(modifierMask);
+
   if (Fl::belowmouse() == self)
     self->showCursor();
 }

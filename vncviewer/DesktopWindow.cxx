@@ -26,6 +26,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 #include <sys/time.h>
 
 #include <core/LogWriter.h>
@@ -73,6 +75,9 @@ static int edge_scroll_size_y = 96;
 // default: roughly 60 fps for smooth motion
 #define EDGE_SCROLL_SECONDS_PER_FRAME 0.016666
 
+// Time before we show an overlay tip again
+const time_t OVERLAY_REPEAT_TIMEOUT = 600;
+
 static core::LogWriter vlog("DesktopWindow");
 
 // Global due to http://www.fltk.org/str.php?L2177 and the similar
@@ -80,11 +85,11 @@ static core::LogWriter vlog("DesktopWindow");
 static std::set<DesktopWindow *> instances;
 
 DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
+  : Fl_Window(w, h), cc(cc_), offscreen(nullptr),
     firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
-    keyboardGrabbed(false), mouseGrabbed(false),
+    keyboardGrabbed(false), mouseGrabbed(false), regrabOnFocus(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(nullptr)
 {
@@ -108,7 +113,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
 
   callback(handleClose, this);
 
-  setName();
+  updateCaption();
 
   OptionsDialog::addCallback(handleOptions, this);
 
@@ -227,8 +232,16 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
     Fl::add_timeout(0, handleStatsTimeout, this);
   }
 
-  // Show hint about menu key
-  Fl::add_timeout(0.5, menuOverlay, this);
+  // Show hint about menu shortcut
+  unsigned modifierMask;
+
+  modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+  if (modifierMask)
+    addOverlayTip(_("Press %sM to open the context menu"),
+                  ShortcutHandler::modifierPrefix(modifierMask));
 
   // By default we get a slight delay when we warp the pointer, something
   // we don't want or we'll get jerky movement
@@ -249,17 +262,18 @@ DesktopWindow::~DesktopWindow()
 
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
-  Fl::remove_timeout(handleGrab, this);
   Fl::remove_timeout(handleResizeTimeout, this);
   Fl::remove_timeout(handleFullscreenTimeout, this);
   Fl::remove_timeout(handleEdgeScroll, this);
   Fl::remove_timeout(handleStatsTimeout, this);
-  Fl::remove_timeout(menuOverlay, this);
   Fl::remove_timeout(updateOverlay, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
-  delete overlay;
+  while (!overlays.empty()) {
+    delete overlays.front().surface;
+    overlays.pop_front();
+  }
   delete offscreen;
 
   delete statsGraph;
@@ -282,7 +296,7 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 }
 
 
-void DesktopWindow::setName()
+void DesktopWindow::updateCaption()
 {
   const size_t maxLen = 100;
   std::string windowName;
@@ -292,7 +306,10 @@ void DesktopWindow::setName()
 
   // FIXME: All of this consideres bytes, not characters
 
-  labelFormat = "%s - TigerVNC";
+  if (keyboardGrabbed)
+    labelFormat = _("%s - TigerVNC (keyboard grabbed)");
+  else
+    labelFormat = _("%s - TigerVNC");
 
   // Ignore the length of '%s' since it is
   // a format marker which won't take up space
@@ -533,9 +550,12 @@ void DesktopWindow::draw()
   }
 
   // Overlay (if active)
-  if (overlay) {
+  if (!overlays.empty()) {
     int ox, oy, ow, oh;
     int sx, sy, sw, sh;
+    struct Overlay overlay;
+
+    overlay = overlays.front();
 
     // Make sure it's properly seen by adjusting it relative to the
     // primary screen rather than the entire window
@@ -573,18 +593,20 @@ void DesktopWindow::draw()
       sw = w();
     }
 
-    ox = X = sx + (sw - overlay->width()) / 2;
+    ox = X = sx + (sw - overlay.surface->width()) / 2;
     oy = Y = sy + 50;
-    ow = overlay->width();
-    oh = overlay->height();
+    ow = overlay.surface->width();
+    oh = overlay.surface->height();
 
     fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
 
     if ((ow != 0) && (oh != 0)) {
       if (offscreen)
-        overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+        overlay.surface->blend(offscreen, ox - X, oy - Y,
+                               ox, oy, ow, oh, overlay.alpha);
       else
-        overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+        overlay.surface->blend(ox - X, oy - Y,
+                               ox, oy, ow, oh, overlay.alpha);
     }
   }
 
@@ -700,27 +722,52 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   }
 }
 
-
-void DesktopWindow::menuOverlay(void* data)
+void DesktopWindow::addOverlayTip(const char* text, ...)
 {
-  DesktopWindow *self;
+  va_list ap;
+  char textbuf[1024];
 
-  self = (DesktopWindow*)data;
+  std::map<std::string, time_t>::iterator iter;
 
-  // Empty string means None, for backward compatibility
-  if ((menuKey != "") && (menuKey != "None")) {
-    self->setOverlay(_("Press %s to open the context menu"),
-                     menuKey.getValueStr().c_str());
+  va_start(ap, text);
+  vsnprintf(textbuf, sizeof(textbuf), text, ap);
+  textbuf[sizeof(textbuf)-1] = '\0';
+  va_end(ap);
+
+  // Purge all old entries
+  for (iter = overlayTimes.begin(); iter != overlayTimes.end(); ) {
+    if ((time(nullptr) - iter->second) >= OVERLAY_REPEAT_TIMEOUT)
+      overlayTimes.erase(iter++);
+    else
+      iter++;
   }
+
+  // Recently shown?
+  if (overlayTimes.count(textbuf) > 0)
+    return;
+
+  overlayTimes[textbuf] = time(nullptr);
+
+  addOverlay(textbuf);
 }
 
-void DesktopWindow::setOverlay(const char* text, ...)
+void DesktopWindow::addOverlayError(const char* text, ...)
+{
+  va_list ap;
+  char textbuf[1024];
+
+  va_start(ap, text);
+  vsnprintf(textbuf, sizeof(textbuf), text, ap);
+  textbuf[sizeof(textbuf)-1] = '\0';
+  va_end(ap);
+
+  addOverlay(textbuf);
+}
+
+void DesktopWindow::addOverlay(const char *text)
 {
   const Fl_Fontsize fontsize = 16;
   const int margin = 10;
-
-  va_list ap;
-  char textbuf[1024];
 
   Fl_Image_Surface *surface;
 
@@ -735,13 +782,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
   unsigned char* a;
   const unsigned char* b;
 
-  delete overlay;
-  Fl::remove_timeout(updateOverlay, this);
-
-  va_start(ap, text);
-  vsnprintf(textbuf, sizeof(textbuf), text, ap);
-  textbuf[sizeof(textbuf)-1] = '\0';
-  va_end(ap);
+  struct Overlay overlay;
 
 #if !defined(WIN32) && !defined(__APPLE__)
   // FLTK < 1.3.5 crashes if fl_gc is unset
@@ -751,7 +792,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   fl_font(FL_HELVETICA, fontsize);
   w = 0;
-  fl_measure(textbuf, w, h);
+  fl_measure(text, w, h);
 
   // Margins
   w += margin * 2 * 2;
@@ -764,7 +805,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   fl_font(FL_HELVETICA, fontsize);
   fl_color(FL_WHITE);
-  fl_draw(textbuf, 0, 0, w, h, FL_ALIGN_CENTER);
+  fl_draw(text, 0, 0, w, h, FL_ALIGN_CENTER);
 
   imageText = surface->image();
   delete surface;
@@ -800,39 +841,53 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   delete imageText;
 
-  overlay = new Surface(image);
-  overlayAlpha = 0;
-  gettimeofday(&overlayStart, nullptr);
+  overlay.surface = new Surface(image);
+  overlay.alpha = 0;
+  memset(&overlay.start, 0, sizeof(overlay.start));
+  overlays.push_back(overlay);
 
   delete image;
   delete [] buffer;
 
-  Fl::add_timeout(1.0/60, updateOverlay, this);
+  if (overlays.size() == 1)
+    Fl::add_timeout(0.5, updateOverlay, this);
 }
 
 void DesktopWindow::updateOverlay(void *data)
 {
   DesktopWindow *self;
+  struct Overlay* overlay;
   unsigned elapsed;
 
   self = (DesktopWindow*)data;
 
-  elapsed = core::msSince(&self->overlayStart);
+  if (self->overlays.empty())
+    return;
+
+  overlay = &self->overlays.front();
+
+  if (overlay->start.tv_sec == 0)
+    gettimeofday(&overlay->start, nullptr);
+
+  elapsed = core::msSince(&overlay->start);
 
   if (elapsed < 500) {
-    self->overlayAlpha = (unsigned)255 * elapsed / 500;
+    overlay->alpha = (unsigned)255 * elapsed / 500;
     Fl::add_timeout(1.0/60, updateOverlay, self);
   } else if (elapsed < 3500) {
-    self->overlayAlpha = 255;
+    overlay->alpha = 255;
     Fl::add_timeout(3.0, updateOverlay, self);
   } else if (elapsed < 4000) {
-    self->overlayAlpha = (unsigned)255 * (4000 - elapsed) / 500;
+    overlay->alpha = (unsigned)255 * (4000 - elapsed) / 500;
     Fl::add_timeout(1.0/60, updateOverlay, self);
   } else {
-    delete self->overlay;
-    self->overlay = nullptr;
+    delete overlay->surface;
+    self->overlays.pop_front();
+    if (!self->overlays.empty())
+      Fl::add_timeout(0.5, updateOverlay, self);
   }
 
+  // FIXME: Only damage relevant area
   self->damage(FL_DAMAGE_USER1);
 }
 
@@ -846,6 +901,19 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
+    // Show how to get out of full screen
+    if (fullscreen_active()) {
+      unsigned modifierMask;
+
+      modifierMask = 0;
+      for (core::EnumListEntry key : shortcutModifiers)
+        modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+      if (modifierMask)
+        addOverlayTip(_("Press %sEnter to leave full-screen mode"),
+                      ShortcutHandler::modifierPrefix(modifierMask));
+    }
+
 #ifdef __APPLE__
     // Complain to the user if we won't have permission to grab keyboard
     if (fullscreenSystemKeys && fullscreen_active()) {
@@ -856,10 +924,13 @@ int DesktopWindow::handle(int event)
     }
 #endif
 
-    if (fullscreen_active())
-      maybeGrabKeyboard();
-    else
-      ungrabKeyboard();
+    // Automatically toggle keyboard grab?
+    if (fullscreenSystemKeys) {
+      if (fullscreen_active())
+        grabKeyboard();
+      else
+        ungrabKeyboard();
+    }
 
     // The window manager respected our full screen request, so stop
     // waiting and delaying the session resize
@@ -951,16 +1022,21 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
   if (dw) {
     switch (event) {
     // Focus might not stay with us just because we have grabbed the
-    // keyboard. E.g. we might have sub windows, or we're not using
-    // all monitors and the user clicked on another application.
-    // Make sure we update our grabs with the focus changes.
+    // keyboard. E.g. we might have sub windows, or the user clicked on
+    // another application. Make sure we update our grabs with the focus
+    // changes.
     case FL_FOCUS:
-      dw->maybeGrabKeyboard();
+      if (dw->regrabOnFocus ||
+          (fullscreenSystemKeys && dw->fullscreen_active()))
+        dw->grabKeyboard();
+      dw->regrabOnFocus = false;
       break;
     case FL_UNFOCUS:
-      if (fullscreenSystemKeys) {
-        dw->ungrabKeyboard();
-      }
+      // If the grab is active when we lose focus, the user likely wants
+      // the grab to remain once we regain focus
+      if (dw->keyboardGrabbed)
+        dw->regrabOnFocus = true;
+      dw->ungrabKeyboard();
       break;
 
     case FL_SHOW:
@@ -1097,26 +1173,29 @@ bool DesktopWindow::hasFocus()
   return focus->window() == this;
 }
 
-void DesktopWindow::maybeGrabKeyboard()
-{
-  if (fullscreenSystemKeys && fullscreen_active() && hasFocus())
-    grabKeyboard();
-}
-
 void DesktopWindow::grabKeyboard()
 {
+  unsigned modifierMask;
+
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
   // correct widget regardless of which low level window got the system
   // event.
 
   // FIXME: Push this stuff into FLTK.
 
+  if (keyboardGrabbed)
+    return;
+
+  if (!hasFocus())
+    return;
+
 #if defined(WIN32)
   int ret;
   
   ret = win32_enable_lowlevel_keyboard(fl_xid(this));
   if (ret != 0) {
-    vlog.error(_("Failure grabbing keyboard"));
+    vlog.error(_("Failure grabbing control of the keyboard"));
+    addOverlayError(_("Failure grabbing control of the keyboard"));
     return;
   }
 #elif defined(__APPLE__)
@@ -1124,7 +1203,8 @@ void DesktopWindow::grabKeyboard()
 
   ret = cocoa_tap_keyboard();
   if (!ret) {
-    vlog.error(_("Failure grabbing keyboard"));
+    vlog.error(_("Failure grabbing control of the keyboard"));
+    addOverlayError(_("Failure grabbing control of the keyboard"));
     return;
   }
 #else
@@ -1134,14 +1214,25 @@ void DesktopWindow::grabKeyboard()
                       GrabModeAsync, GrabModeAsync, CurrentTime);
   if (ret) {
     if (ret == AlreadyGrabbed) {
-      // It seems like we can race with the WM in some cases.
-      // Try again in a bit.
-      if (!Fl::has_timeout(handleGrab, this))
-        Fl::add_timeout(0.500, handleGrab, this);
-    } else {
-      vlog.error(_("Failure grabbing keyboard"));
+      // It seems like we can race with the WM in some cases, e.g. when
+      // the WM holds the keyboard as part of handling Alt+Tab.
+      // Repeat the request a few times and see if we get it...
+      for (int attempt = 0; attempt < 5; attempt++) {
+        usleep(100000);
+        // Also throttle based on how busy the X server is
+        XSync(fl_display, False);
+        ret = XGrabKeyboard(fl_display, fl_xid(this), True,
+                            GrabModeAsync, GrabModeAsync, CurrentTime);
+        if (ret != AlreadyGrabbed)
+          break;
+      }
     }
-    return;
+
+    if (ret) {
+      vlog.error(_("Failure grabbing control of the keyboard"));
+      addOverlayError(_("Failure grabbing control of the keyboard"));
+      return;
+    }
   }
 #endif
 
@@ -1149,16 +1240,26 @@ void DesktopWindow::grabKeyboard()
 
   if (contains(Fl::belowmouse()))
     grabPointer();
+
+  updateCaption();
+
+  modifierMask = 0;
+  for (core::EnumListEntry key : shortcutModifiers)
+    modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
+
+  if (modifierMask)
+    addOverlayTip(_("Press %s to release keyboard control from the session"),
+                  ShortcutHandler::modifierPrefix(modifierMask, true));
 }
 
 
 void DesktopWindow::ungrabKeyboard()
 {
-  Fl::remove_timeout(handleGrab, this);
-
   keyboardGrabbed = false;
 
   ungrabPointer();
+
+  updateCaption();
 
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
@@ -1197,16 +1298,6 @@ void DesktopWindow::ungrabPointer()
 #if !defined(WIN32) && !defined(__APPLE__)
   x11_ungrab_pointer(fl_xid(this));
 #endif
-}
-
-
-void DesktopWindow::handleGrab(void *data)
-{
-  DesktopWindow *self = (DesktopWindow*)data;
-
-  assert(self);
-
-  self->maybeGrabKeyboard();
 }
 
 
@@ -1532,11 +1623,6 @@ void DesktopWindow::handleClose(Fl_Widget* /*wnd*/, void* /*data*/)
 void DesktopWindow::handleOptions(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
-
-  if (fullscreenSystemKeys)
-    self->maybeGrabKeyboard();
-  else
-    self->ungrabKeyboard();
 
   // Call fullscreen_on even if active since it handles
   // fullScreenMode
