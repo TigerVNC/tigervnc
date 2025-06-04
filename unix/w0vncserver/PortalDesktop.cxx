@@ -15,13 +15,17 @@
 
 #include "portals/RemoteDesktop.h"
 #include "PortalDesktop.h"
+#include "RFBTimerSource.h"
+#include "GSocketMonitor.h"
 
 static core::LogWriter vlog("PortalDesktop");
 
-PortalDesktop::PortalDesktop(GMainLoop* loop, int rfbport)
-  : server_(nullptr), timerSource_(nullptr),
-    monitor_(nullptr), remoteDesktop_(nullptr), pipewire_(nullptr),
-    rfbport_(rfbport), running(false), loop_(loop)
+PortalDesktop::PortalDesktop(GMainLoop* loop,
+                             RFBTimerSource* timerSource,
+                             GSocketMonitor* monitor)
+  : server_(nullptr), timerSource_(timerSource),
+    monitor_(monitor), remoteDesktop_(nullptr), pipewire_(nullptr),
+    running(false), loop_(loop)
 {
 }
 
@@ -159,10 +163,11 @@ void PortalDesktop::startPipewire(int fd, uint32_t nodeId)
 void PortalDesktop::listen()
 {
   assert(!running);
-  monitor_ = new GSocketMonitor(nullptr, rfbport_);
-  timerSource_ = new RFBTimerSource();
 
   monitor_->listen(server_);
+
   timerSource_->attach(g_main_loop_get_context(loop_));
+  monitor_->attach(g_main_loop_get_context(loop_));
+
   running = true;
 }

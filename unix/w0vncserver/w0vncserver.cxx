@@ -8,18 +8,33 @@
 #include <glib-unix.h>
 
 #include <network/TcpSocket.h>
+#include <network/UnixSocket.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/ServerCore.h>
 #include <rdr/FdOutStream.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 
+#include "GSocketMonitor.h"
+#include "RFBTimerSource.h"
 #include "PortalDesktop.h"
 
 
 core::IntParameter
   rfbport("rfbport",
           "TCP port to listen for RFB protocol", 5900, -1, 65535);
+core::StringParameter
+  rfbunixpath("rfbunixpath",
+              "Unix socket to listen for RFB protocol", "");
+core::IntParameter
+  rfbunixmode("rfbunixmode",
+              "Unix socket access mode", 0600, 0000, 0777);
+core::BoolParameter
+  localhostOnly("localhost",
+                "Only allow connections from localhost", false);
+core::StringParameter
+  interface("interface",
+            "Listen on the specified network address", "all");
 
 
 static core::LogWriter vlog("w0vncserver");
@@ -107,6 +122,32 @@ int main(int argc, char** argv)
 
   try {
     GMainLoop* loop;
+    std::list<network::SocketListener*> listeners;
+
+    if (rfbunixpath.getValueStr()[0] != '\0') {
+      listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
+      vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
+    }
+
+    if ((int)rfbport != -1) {
+      std::list<network::SocketListener*> tcp_listeners;
+      const char *addr = interface;
+
+      if (strcasecmp(addr, "all") == 0)
+        addr = nullptr;
+      if (localhostOnly)
+        createLocalTcpListeners(&tcp_listeners, (int)rfbport);
+      else
+        createTcpListeners(&tcp_listeners, addr, (int)rfbport);
+
+      if (!tcp_listeners.empty()) {
+        listeners.splice (listeners.end(), tcp_listeners);
+        vlog.info("Listening for VNC connections on %s interface(s), port %d",
+                  localhostOnly ? "local" : (const char*)interface,
+                  (int)rfbport);
+      }
+    }
+
     if (!PortalDesktop::available()) {
       fprintf(stderr, "No ScreenCast portal implementation found\n");
       exit(-1);
@@ -119,7 +160,9 @@ int main(int argc, char** argv)
     g_unix_signal_add(SIGHUP, CleanupSignalHandler, loop);
 
 
-    PortalDesktop remote(loop, rfbport);
+    GSocketMonitor monitor(&listeners);
+    RFBTimerSource source;
+    PortalDesktop remote(loop, &source, &monitor);
     rfb::VNCServerST server("w0vncserver", &remote);
     remote.run();
 

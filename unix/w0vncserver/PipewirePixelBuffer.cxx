@@ -98,7 +98,7 @@ static int sourceLoopDispatch(GSource* source, GSourceFunc callback,
   if (result < 0)
     vlog.error("pipewire_loop_iterate failed: %s", g_strerror (result));
 
-  return true;
+  return G_SOURCE_CONTINUE;
 }
 
 static GSourceFuncs pipewireSourceFuncs {

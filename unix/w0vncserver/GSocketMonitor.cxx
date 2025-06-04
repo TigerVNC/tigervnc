@@ -6,103 +6,214 @@
 
 #include <glib.h>
 
-#include <rdr/FdOutStream.h>
+#include <network/TcpSocket.h>
 #include <core/LogWriter.h>
+#include <rfb/VNCServerST.h>
+#include <rdr/FdOutStream.h>
+
+#include <map>
 
 #include "GSocketMonitor.h"
 
+static core::LogWriter vlog("GSocketMonitor");
 
-static core::LogWriter vlog("gsocketlistener");
+struct ListenerReadyEvent {
+  GSocketSource* source;
+  network::SocketListener* listener;
+};
 
+struct SocketState {
+  void* tag;
+  bool prevHadBufferedData;
+};
 
-GSocketMonitor::GSocketMonitor(char* address, int rfbport)
+struct GSocketSource {
+  GSource base;
+  GIOCondition previousCondition;
+  rfb::VNCServer* server;
+  std::map<int, SocketState> fdMap;
+};
+
+static int prepare(GSource* source, int* timeout);
+static int dispatch(GSource* source, GSourceFunc callback,
+                    void* userData);
+static int handleListenerReady(GIOChannel* source,
+                               GIOCondition condition, void* data);
+
+static GSourceFuncs sourceFuncs {
+  .prepare = prepare,
+  .check = nullptr,
+  .dispatch = dispatch,
+  .finalize = nullptr,
+  .closure_callback = nullptr,
+  .closure_marshal = nullptr
+};
+
+static int prepare(GSource* source, int* timeout)
 {
-  network::createTcpListeners(&listeners, address, rfbport);
-}
+  GSocketSource* data;
+  std::list<network::Socket*> sockets;
 
-GSocketMonitor::~GSocketMonitor()
-{
-  for (network::SocketListener* listener : listeners)
-    delete listener;
+  data = (GSocketSource*)source;
+  data->server->getSockets(&sockets);
 
-  for (GIOChannel* channel : channels)
-    g_io_channel_unref(channel);
-}
+  *timeout = -1;
 
-void GSocketMonitor::listen(rfb::VNCServer* server)
-{
-  for (network::SocketListener* listener : listeners) {
+  for (network::Socket* sock : sockets) {
     int fd;
-    GIOChannel* channel;
-    sock_event_ctx* data;
+    SocketState state;
 
-    // FIXME: This data should be freed
-    data = new sock_event_ctx;
-    data->server = server;
-    data->listener = listener;
+    fd = sock->getFd();
+    state = data->fdMap[fd];
+    assert(state.tag);
 
-    fd = listener->getFd();
-    channel = g_io_channel_unix_new(fd);
-    g_io_add_watch(channel,
-                  (GIOCondition)(G_IO_IN | G_IO_ERR | G_IO_HUP),
-                  acceptConnection, data);
+    if (sock->isShutdown()) {
+      vlog.debug("Client gone, sock %d", fd);
+      g_source_remove_unix_fd(source, state.tag);
+      data->server->removeSocket(sock);
+      delete sock;
+      assert(data->fdMap.erase(fd));
+      return FALSE;
+    }
 
-    channels.push_back(channel);
-  }
-}
+    if (state.prevHadBufferedData != sock->outStream().hasBufferedData()) {
+      // FIXME: Calling g_source_modify_unix_fd() will cause the main
+      // loop to wake up immediately if it is currently blocked.
+      // Calling it while we are in prepare() will skip polling FDs
+      // and just dispatch() instead, essentially causing a busy wait.
+      // To circumvent this, we only modify which events we want to
+      // listen for if they differ from the last event loop iteration.
+      GIOCondition newEvents = static_cast<GIOCondition>(G_IO_IN | G_IO_HUP | G_IO_ERR);
+      if (sock->outStream().hasBufferedData())
+        newEvents = static_cast<GIOCondition>(newEvents | G_IO_OUT);
+      g_source_modify_unix_fd(source, state.tag, newEvents);
+    }
 
-int GSocketMonitor::sockProcess(GIOChannel* source,
-                                GIOCondition condition, void* data)
-{
-  (void) condition;
-  sock_event_ctx* data_;
-  network::Socket* sock;
-
-  data_ = (sock_event_ctx*)data;
-  assert(data_->sock);
-  sock = data_->sock;
-
-  if (sock->isShutdown()) {
-    data_->server->removeSocket(sock);
-    g_io_channel_unref(source);
-    return FALSE;
+    state.prevHadBufferedData = sock->outStream().hasBufferedData();
   }
 
-  data_->server->processSocketReadEvent(sock);
-
-  if (sock->outStream().hasBufferedData())
-    data_->server->processSocketWriteEvent(sock);
-
-  return TRUE;
+  return FALSE;
 }
 
-int GSocketMonitor::acceptConnection(GIOChannel* source,
-                                     GIOCondition condition, void* data)
-{
-  (void) source;
-  (void) condition;
-  sock_event_ctx* data_;
+static int dispatch(GSource * source, GSourceFunc /* callback */,
+                    void* /* userData */) {
+  GSocketSource* data;
+  std::list<network::Socket*> sockets;
+
+  data = (GSocketSource*)source;
+  data->server->getSockets(&sockets);
+
+  for (network::Socket* sock : sockets) {
+    GIOCondition events;
+    int fd;
+    SocketState state;
+
+    fd = sock->getFd();
+    state = data->fdMap[fd];
+    assert(state.tag);
+
+    events = g_source_query_unix_fd(source, state.tag);
+
+    if (events & G_IO_HUP || events & G_IO_ERR) {
+      vlog.debug("Client gone, sock %d", fd);
+      g_source_remove_unix_fd(source, state.tag);
+      data->server->removeSocket(sock);
+      delete sock;
+      assert(data->fdMap.erase(fd));
+      return G_SOURCE_CONTINUE;
+    }
+
+    if (events & G_IO_IN)
+      data->server->processSocketReadEvent(sock);
+    if (events & G_IO_OUT)
+      data->server->processSocketWriteEvent(sock);
+  }
+
+  return G_SOURCE_CONTINUE;
+}
+
+int handleListenerReady(GIOChannel* /* source */,
+                        GIOCondition condition , void* data) {
+  ListenerReadyEvent* event;
   network::Socket* sock;
-  GIOChannel* channel;
+  SocketState state;
   int fd;
+  void* tag;
 
-  data_ = (sock_event_ctx*)data;
-  assert(data_);
+  event = static_cast<ListenerReadyEvent*>(data);
+  assert(event);
 
-  sock = data_->listener->accept();
+  if (condition & G_IO_ERR || condition & G_IO_HUP) {
+    vlog.status("Client connection error");
+    return G_SOURCE_CONTINUE;
+  }
+
+  sock = event->listener->accept();
   if (!sock) {
     vlog.status("Client connection rejected");
-    delete data_;
-    return FALSE;
+    return G_SOURCE_CONTINUE;
   }
 
-  data_->server->addSocket(sock);
-  data_->sock = sock;
-
+  event->source->server->addSocket(sock);
   fd = sock->getFd();
-  channel = g_io_channel_unix_new(fd);
-  g_io_add_watch(channel,(GIOCondition)G_IO_IN, sockProcess, data_);
+  tag = g_source_add_unix_fd((GSource*)event->source, fd,
+                              static_cast<GIOCondition>((G_IO_IN | G_IO_HUP | G_IO_ERR)));
+  state.tag = tag;
+  state.prevHadBufferedData = false;
 
-  vlog.debug("added sock %d", sock->getFd());
-  return TRUE;
+  event->source->fdMap[fd] = state;
+
+  return G_SOURCE_CONTINUE;
+}
+
+GSocketMonitor::GSocketMonitor(std::list<network::SocketListener*>
+                               *listeners)
+  : listeners_(listeners)
+  {
+    source = (GSocketSource*)g_source_new(&sourceFuncs, sizeof(GSocketSource));
+    source->server = nullptr;
+    source->previousCondition = G_IO_IN;
+
+    // glib won't initialize our map
+    new (&source->fdMap) std::map<int, void*>();
+}
+
+GSocketMonitor::~GSocketMonitor() {
+  for (ListenerReadyEvent* event : readyEvents)
+    delete event;
+  for (GIOChannel* channel : channels)
+    g_io_channel_unref(channel);
+
+  source->fdMap.~map();
+
+  // GLib will take care of the monitored FDs on our source
+  g_source_unref((GSource*)source);
+}
+
+void GSocketMonitor::attach(GMainContext * context) {
+  assert(source);
+
+  g_source_attach((GSource*)source, context);
+}
+
+void GSocketMonitor::listen(rfb::VNCServer * server) {
+  for (network::SocketListener* listener : *listeners_) {
+    GIOChannel* channel;
+    int fd;
+    ListenerReadyEvent* event;
+
+    event = new ListenerReadyEvent();
+    fd = listener->getFd();
+    source->server = server;
+
+    event->listener = listener;
+    event->source = source;
+    readyEvents.push_back(event);
+
+    channel = g_io_channel_unix_new(fd);
+    channels.push_back(channel);
+    g_io_add_watch(channel,
+                    static_cast<GIOCondition>((G_IO_IN | G_IO_ERR | G_IO_HUP)),
+                    handleListenerReady, event);
+  }
 }

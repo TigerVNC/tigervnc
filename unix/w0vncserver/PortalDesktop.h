@@ -6,15 +6,17 @@
 #include <rfb/SDesktop.h>
 
 #include "PipewirePixelBuffer.h"
-#include "RFBTimerSource.h"
-#include "GSocketMonitor.h"
 
 namespace rfb { class VNCServer; }
+
 class RemoteDesktop;
+class GSocketMonitor;
+class RFBTimerSource;
 class PortalDesktop : public rfb::SDesktop
 {
 public:
-  PortalDesktop(GMainLoop* loop, int rfbport);
+  PortalDesktop(GMainLoop* loop, RFBTimerSource* timerSource,
+                GSocketMonitor* monitor);
   virtual ~PortalDesktop();
 
   // -=- SDesktop interface

@@ -1,36 +1,29 @@
-#ifndef __W_SOCKET_MONITOR__H
-#define __W_SOCKET_MONITOR__H
+#ifndef __G_SOCKET_MONITOR__H
+#define __G_SOCKET_MONITOR__H
 
 #include <list>
 
 #include <glib.h>
 
-#include <network/TcpSocket.h>
-#include <rfb/VNCServerST.h>
+#include <vector>
 
-struct sock_event_ctx {
-  rfb::VNCServer* server;
-  network::SocketListener* listener;
-  network::Socket* sock;
-};
-
+namespace rfb { class VNCServer; }
+namespace network { class SocketListener; }
+struct GSocketSource;
+struct ListenerReadyEvent;
 
 class GSocketMonitor {
 public:
-  GSocketMonitor(char* address, int rfbport);
+  GSocketMonitor(std::list<network::SocketListener*> *listeners);
   ~GSocketMonitor();
 
+  void attach(GMainContext* context);
   void listen(rfb::VNCServer* server);
-
 private:
-  static int sockProcess(GIOChannel* source, GIOCondition condition,
-                         void* data);
-  static int acceptConnection(GIOChannel* source,
-                              GIOCondition condition, void* data);
-
-private:
-  std::list<network::SocketListener*> listeners;
+  GSocketSource* source;
+  std::list<network::SocketListener*>* listeners_;
+  std::vector<ListenerReadyEvent*> readyEvents;
   std::list<GIOChannel*> channels;
 };
 
-#endif // __W_SOCKET_MONITOR__H
+#endif // __G_SOCKET_MONITOR__H
