@@ -111,7 +111,7 @@ bool KeyboardX11::handleEvent(const void* event)
 
   assert(event);
 
-  if (xevent->type == KeyPress) {
+  if (xevent->type == KeyPress || xevent->type == KeyRelease) {
     int keycode;
     char str;
     KeySym keysym;
@@ -124,10 +124,11 @@ bool KeyboardX11::handleEvent(const void* event)
                  (int)xevent->xkey.keycode);
     }
 
-    handler->handleKeyPress(xevent->xkey.keycode, keycode, keysym);
-    return true;
-  } else if (xevent->type == KeyRelease) {
-    handler->handleKeyRelease(xevent->xkey.keycode);
+    if (xevent->type == KeyPress) {
+      handler->handleKeyPress(xevent->xkey.keycode, keycode, keysym);
+    } else if (xevent->type == KeyRelease) {
+      handler->handleKeyRelease(xevent->xkey.keycode, keycode, keysym);
+    }
     return true;
   }
 
