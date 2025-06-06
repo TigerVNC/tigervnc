@@ -69,6 +69,8 @@ from the X Consortium.
 #include "dpmsproc.h"
 #endif
 #include <X11/keysym.h>
+#include <rfb/UnixPasswordValidator.h>
+
 extern char buildtime[];
 
 #include "version-config.h"
@@ -277,8 +279,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
         vncInitRFB();
     }
 
-    if (argv[i][0] == ':')
+    if (argv[i][0] == ':') {
         displaySpecified = TRUE;
+        setDisplayByName(argv[i]);
+    }
 
 #if XORG_OLDER_THAN(1, 21, 1)
 #define CHECK_FOR_REQUIRED_ARGUMENTS(num) \
@@ -403,6 +407,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
             display = displayNumStr;
             sprintf(displayNumStr, "%d", displayNum);
+            setDisplayByNumber(displayNum);
         }
 
         return 1;

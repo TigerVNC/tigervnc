@@ -40,6 +40,19 @@ core::AliasParameter pam_service("pam_service", "Alias for PAMService",
 
 extern "C" {
 
+static char displayStr[32] = "";
+
+void setDisplayByName(const char *display)
+{
+    strncpy(displayStr, display, 31);
+    displayStr[31] = '\0';
+}
+
+void setDisplayByNumber(int displayNum)
+{
+    sprintf(displayStr, ":%d", displayNum);
+}
+
 typedef struct
 {
   const char *username;
@@ -104,6 +117,17 @@ bool UnixPasswordValidator::validateInternal(SConnection * /*sc*/,
     vlog.error("pam_start(%s) failed: %d", (const char *) pamService, ret);
     return false;
   }
+#ifdef PAM_XDISPLAY
+  if (strlen(displayStr) > 0) {
+    /* Pass the display name to PAM modules but PAM_XDISPLAY may not be
+     * recognized by modules built with old versions of PAM */
+    ret = pam_set_item(pamh, PAM_XDISPLAY, displayStr);
+    if (ret != PAM_SUCCESS && ret != PAM_BAD_ITEM) {
+      vlog.error("pam_set_item(PAM_XDISPLAY) failed: %d (%s)", ret, pam_strerror(pamh, ret));
+      goto error;
+    }
+  }
+#endif
   ret = pam_authenticate(pamh, 0);
   if (ret != PAM_SUCCESS) {
     vlog.error("pam_authenticate() failed: %d (%s)", ret, pam_strerror(pamh, ret));

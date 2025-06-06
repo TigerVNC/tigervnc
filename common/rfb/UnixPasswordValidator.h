@@ -21,7 +21,12 @@
 #ifndef __PASSWORD_VALIDATOR_H__
 #define __PASSWORD_VALIDATOR_H__
 
+#ifdef __cplusplus
+
 #include <rfb/SSecurityPlain.h>
+
+extern "C" void setDisplayByName(const char *display);
+extern "C" void setDisplayByNumber(int displayNum);
 
 namespace rfb
 {
@@ -31,5 +36,12 @@ namespace rfb
 			   const char *password) override;
   };
 }
+
+#else
+
+extern void setDisplayByName(const char *display);
+extern void setDisplayByNumber(int displayNum);
+
+#endif /* __cplusplus */
 
 #endif
