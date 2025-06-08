@@ -150,13 +150,7 @@ int vncIsParamBool(const char *name)
 
 int vncGetParamCount(void)
 {
-  int count;
-
-  count = 0;
-  for (core::VoidParameter *param: *core::Configuration::global())
-    count++;
-
-  return count;
+  return core::Configuration::global()->size();
 }
 
 char *vncGetParamList(void)
