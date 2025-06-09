@@ -6,48 +6,51 @@
 
 #include <glib.h>
 
-#include <rfb/ServerCore.h>
 #include <core/Timer.h>
 
 #include "RFBTimerSource.h"
 
+static int prepare(GSource* source, gint* timeout);
+static int check(GSource* source);
+static int dispatch(GSource* source, GSourceFunc callback, void* userData);
+
 RFBTimerSource::RFBTimerSource()
 {
-  sourceFuncs.prepare = RFBTimerSource::prepare;
-  sourceFuncs.check = RFBTimerSource::check;
-  sourceFuncs.dispatch = RFBTimerSource::dispatch;
+  sourceFuncs.prepare = prepare;
+  sourceFuncs.check = check;
+  sourceFuncs.dispatch = dispatch;
 
   source = g_source_new(&sourceFuncs, sizeof(GSource));
 }
 
-RFBTimerSource::~RFBTimerSource() {
+RFBTimerSource::~RFBTimerSource()
+{
   assert(source);
 
   g_source_destroy(source);
 }
 
-void RFBTimerSource::attach(GMainContext* context) {
+void RFBTimerSource::attach(GMainContext* context)
+{
   assert(source);
 
   g_source_attach(source, context);
 }
 
-int RFBTimerSource::prepare(GSource* source, gint* timeout) {
+int prepare(GSource* source, gint* timeout)
+{
   (void)source;
   int nextTimeout;
 
-  *timeout = 1000/ rfb::Server::frameRate;
-
   nextTimeout = core::Timer::getNextTimeout();
 
-  if (nextTimeout >= 0 && (*timeout == -1 || nextTimeout < *timeout)) {
+  if (nextTimeout >= 0 && (*timeout == -1 || nextTimeout < *timeout))
     *timeout = nextTimeout;
-  }
 
-  return false;
+  return FALSE;
 }
 
-int RFBTimerSource::check(GSource* source)
+int check(GSource* source)
 {
   (void)source;
   int nextTimeout;
@@ -55,14 +58,12 @@ int RFBTimerSource::check(GSource* source)
   nextTimeout = core::Timer::getNextTimeout();
 
   if (nextTimeout < 0)
-    return false;
+    return FALSE;
 
-  return true;
+  return TRUE;
 }
 
-int RFBTimerSource::dispatch(GSource* source,
-                             GSourceFunc callback,
-                             void* userData)
+int dispatch(GSource* source, GSourceFunc callback, void* userData)
 {
   (void)source;
   (void)callback;
@@ -70,5 +71,5 @@ int RFBTimerSource::dispatch(GSource* source,
 
   core::Timer::checkTimeouts();
 
-  return true;
+  return G_SOURCE_CONTINUE;
 }
