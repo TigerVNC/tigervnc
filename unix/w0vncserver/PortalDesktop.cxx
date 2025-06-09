@@ -46,11 +46,12 @@ void PortalDesktop::start()
 }
 
 void PortalDesktop::queryConnection(network::Socket* sock,
-                               const char* userName)
+                                    const char* userName)
 {
   (void)sock;
   (void)userName;
   // FIXME: Implement this.
+  server_->approveConnection(sock, false);
 }
 
 void PortalDesktop::terminate()
