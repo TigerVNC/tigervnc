@@ -38,6 +38,7 @@ core::BoolParameter
   damageEnabled("experimentalDamageEnabled",
                 "Enable framebuffer damage tracking", false);
 
+static bool supportedCursorPixelformat(int format);
 static void handleStreamStateChanged(void *_data,
                                      enum pw_stream_state old,
                                      enum pw_stream_state state,
@@ -127,6 +128,12 @@ static pw_stream_events streamEvents {
   .trigger_done = nullptr
 };
 
+static bool supportedCursorPixelformat(int format)
+{
+  return format == SPA_VIDEO_FORMAT_RGBx ||
+         format == SPA_VIDEO_FORMAT_RGBA;
+}
+
 void setCursor(int width, int height, int hotX, int hotY,
                const unsigned char *rgbaData, rfb::VNCServer* server)
 {
@@ -183,13 +190,16 @@ static void processCursor(PipeWireSource *source, pw_buffer* buf)
   source->data->cursor.hotspotY = mcs->hotspot.y;
 
   source->server->setCursorPos({source->data->cursor.x,
-                                source->data->cursor.y}, false);
+                                source->data->cursor.y}, true);
 
   // No new cursor bitmap
   if (!mcs->bitmap_offset)
     return;
 
   mb = SPA_PTROFF(mcs, mcs->bitmap_offset, struct spa_meta_bitmap);
+  if (!supportedCursorPixelformat(mb->format))
+    return;
+
   src = SPA_PTROFF(mb, mb->offset, uint8_t);
 
   source->data->cursor.w = mb->size.width;
@@ -579,8 +589,9 @@ void PipewirePixelBuffer::start()
     &b, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
     SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
     SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
-    SPA_FORMAT_VIDEO_format, SPA_POD_CHOICE_ENUM_Id(2,
+    SPA_FORMAT_VIDEO_format, SPA_POD_CHOICE_ENUM_Id(3,
                                                     SPA_VIDEO_FORMAT_RGBx,
+                                                    SPA_VIDEO_FORMAT_RGBA,
                                                     SPA_VIDEO_FORMAT_BGRx),
     SPA_FORMAT_VIDEO_size,
     SPA_POD_CHOICE_RANGE_Rectangle(&defaultVideoSize, &minVideoSize,
