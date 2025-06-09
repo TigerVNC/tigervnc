@@ -12,10 +12,15 @@ add_executable(w0vncserver
   PipewirePixelBuffer.cxx
 )
 
-set(WAYLAND_LIBRARIES ${GLIB_LIBRARIES} ${GIO_LIBRARIES} ${PIPEWIRE_LIBRARIES} ${UUID_LIBRARIES})
-set(WAYLAND_LIBRARY_DIRS ${GLIB_INCLUDE_DIRS} ${GIO_INCLUDE_DIRS} ${PIPEWIRE_INCLUDE_DIRS})
-
-target_include_directories(w0vncserver SYSTEM PUBLIC ${WAYLAND_LIBRARY_DIRS})
+target_include_directories(w0vncserver SYSTEM PUBLIC ${GLIB_INCLUDE_DIRS})
+target_include_directories(w0vncserver SYSTEM PUBLIC ${GIO_INCLUDE_DIRS})
+target_include_directories(w0vncserver SYSTEM PUBLIC ${PIXMAN_INCLUDE_DIRS})
+target_include_directories(w0vncserver SYSTEM PUBLIC ${PIPEWIRE_INCLUDE_DIRS})
+target_include_directories(w0vncserver SYSTEM PUBLIC ${UUID_INCLUDE_DIRS})
 
 target_link_libraries(w0vncserver core rfb network rdr unixcommon)
-target_link_libraries(w0vncserver ${WAYLAND_LIBRARIES})
+target_link_libraries(w0vncserver ${GLIB_LIBRARIES})
+target_link_libraries(w0vncserver ${GIO_LIBRARIES})
+target_link_libraries(w0vncserver ${PIXMAN_LIBRARIES})
+target_link_libraries(w0vncserver ${PIPEWIRE_LIBRARIES})
+target_link_libraries(w0vncserver ${UUID_LIBRARIES})
