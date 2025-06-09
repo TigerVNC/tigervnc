@@ -3,6 +3,7 @@
 #endif
 
 #include <assert.h>
+#include <pwd.h>
 
 #include <glib.h>
 #include <glib-unix.h>
@@ -19,6 +20,7 @@
 #include "RFBTimerSource.h"
 #include "PortalDesktop.h"
 
+static const char* defaultDesktopName();
 
 core::IntParameter
   rfbport("rfbport",
@@ -33,9 +35,35 @@ core::BoolParameter
   localhostOnly("localhost",
                 "Only allow connections from localhost", false);
 core::StringParameter
+  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+core::StringParameter
   interface("interface",
             "Listen on the specified network address", "all");
 
+static const char* defaultDesktopName()
+{
+  long host_max = sysconf(_SC_HOST_NAME_MAX);
+  if (host_max < 0)
+    return "";
+
+  std::vector<char> hostname(host_max + 1);
+  if (gethostname(hostname.data(), hostname.size()) == -1)
+    return "";
+
+  struct passwd* pwent = getpwuid(getuid());
+  if (pwent == nullptr)
+    return "";
+
+  int len = snprintf(nullptr, 0, "%s@%s", pwent->pw_name, hostname.data());
+  if (len < 0)
+    return "";
+
+  char* name = new char[len + 1];
+
+  snprintf(name, len + 1, "%s@%s", pwent->pw_name, hostname.data());
+
+  return name;
+}
 
 static core::LogWriter vlog("w0vncserver");
 
@@ -163,7 +191,7 @@ int main(int argc, char** argv)
     GSocketMonitor monitor(&listeners);
     RFBTimerSource source;
     PortalDesktop remote(loop, &source, &monitor);
-    rfb::VNCServerST server("w0vncserver", &remote);
+    rfb::VNCServerST server(desktopName, &remote);
     remote.run();
 
     g_main_loop_run(loop);
