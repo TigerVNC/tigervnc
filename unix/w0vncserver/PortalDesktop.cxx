@@ -130,6 +130,7 @@ bool PortalDesktop::available()
   }
 
   g_variant_get(result, "(&s)", &introspectionXml);
+  g_object_unref(connection);
 
   nodeInfo = g_dbus_node_info_new_for_xml(introspectionXml, &error);
   g_variant_unref(result);
