@@ -463,13 +463,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
         }
     }
 
-    int ret;
-
-    ret = vncHandleParamArg(argc, argv, i);
-    if (ret != 0)
-        return ret;
-
-    return 0;
+    return vncHandleParamArg(argc, argv, i);
 }
 
 static Bool

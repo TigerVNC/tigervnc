@@ -86,6 +86,8 @@ namespace core {
     std::list<VoidParameter*>::iterator begin() { return params.begin(); }
     std::list<VoidParameter*>::iterator end() { return params.end(); }
 
+    // - Returns the number of parameters
+    int size() { return params.size(); }
 
     // - Get the Global Configuration object
     //   NB: This call does NOT lock the Configuration system.
