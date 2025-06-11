@@ -52,19 +52,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: msys2/setup-msys2@v2
+        with:
+          update: true
       - name: Install dependencies
         run: |
           pacman --sync --noconfirm --needed \
             make mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
           pacman --sync --noconfirm --needed \
-            mingw-w64-x86_64-libjpeg-turbo \
+            mingw-w64-x86_64-fltk1.3 mingw-w64-x86_64-libjpeg-turbo \
             mingw-w64-x86_64-gnutls mingw-w64-x86_64-pixman \
             mingw-w64-x86_64-nettle mingw-w64-x86_64-gmp \
             mingw-w64-x86_64-gtest
-          # MSYS2 only packages FLTK 1.4 now:
-          # https://github.com/msys2/MINGW-packages/issues/22769
-          pacman --upgrade --noconfirm --needed \
-            https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-fltk-1.3.9-2-any.pkg.tar.zst
       - name: Configure
         run: cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -S . -B build
       - name: Build
