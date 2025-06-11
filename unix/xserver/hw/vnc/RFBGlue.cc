@@ -132,22 +132,6 @@ const char* vncGetParamDesc(const char *name)
   return param->getDescription();
 }
 
-int vncIsParamBool(const char *name)
-{
-  core::VoidParameter* param;
-  core::BoolParameter* bparam;
-
-  param = core::Configuration::getParam(name);
-  if (param == nullptr)
-    return false;
-
-  bparam = dynamic_cast<core::BoolParameter*>(param);
-  if (bparam == nullptr)
-    return false;
-
-  return true;
-}
-
 int vncGetParamCount(void)
 {
   return core::Configuration::global()->size();
