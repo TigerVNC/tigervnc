@@ -99,6 +99,8 @@ private:
   void initContextMenu();
   void popupContextMenu();
 
+  static void handleMenuClosed(void *data);
+
   void setMenuKey();
 
   static void handleOptions(void *data);
@@ -122,6 +124,7 @@ private:
   uint32_t menuKeySym;
   int menuKeyCode, menuKeyFLTK;
   Fl_Menu_Button *contextMenu;
+  bool menuOpened;
 
   bool menuCtrlKey;
   bool menuAltKey;
