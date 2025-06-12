@@ -110,7 +110,6 @@ static VncScreenInfo vncScreenInfo = {
 static Bool vncPixmapDepths[33];
 static Bool Render = TRUE;
 
-static Bool displaySpecified = FALSE;
 static char displayNumStr[16];
 
 static int vncVerbose = 0;
@@ -278,7 +277,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     }
 
     if (argv[i][0] == ':')
-        displaySpecified = TRUE;
+        return 0;
 
 #if XORG_OLDER_THAN(1, 21, 1)
 #define CHECK_FOR_REQUIRED_ARGUMENTS(num) \
@@ -386,7 +385,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
         dup2(nullfd, 2);
         close(nullfd);
 
-        if (!displaySpecified) {
+        if (!explicit_display) {
             int port = vncGetSocketPort(vncInetdSock);
             int displayNum = port - 5900;
 
@@ -400,9 +399,9 @@ ddxProcessArgument(int argc, char *argv[], int i)
                     FatalError
                         ("Xvnc error: No free display number for -inetd\n");
             }
-
-            display = displayNumStr;
             sprintf(displayNumStr, "%d", displayNum);
+            display = displayNumStr;
+            explicit_display = TRUE;
         }
 
         return 1;
