@@ -21,25 +21,97 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include <string.h>
+#include <security/pam_appl.h>
 
 #include <core/Configuration.h>
+#include <core/LogWriter.h>
 
 #include <rfb/UnixPasswordValidator.h>
-#include <rfb/pam.h>
 
 using namespace rfb;
+
+static core::LogWriter vlog("UnixPasswordValidator");
 
 static core::StringParameter pamService
   ("PAMService", "Service name for PAM password validation", "vnc");
 core::AliasParameter pam_service("pam_service", "Alias for PAMService",
                                  &pamService);
 
-int do_pam_auth(const char *service, const char *username,
-	        const char *password);
+typedef struct
+{
+  const char *username;
+  const char *password;
+} AuthData;
+
+#if defined(__sun)
+static int pam_callback(int count, struct pam_message **in,
+                        struct pam_response **out, void *ptr)
+#else
+static int pam_callback(int count, const struct pam_message **in,
+                        struct pam_response **out, void *ptr)
+#endif
+{
+  int i;
+  AuthData *auth = (AuthData *) ptr;
+  struct pam_response *resp =
+    (struct pam_response *) malloc (sizeof (struct pam_response) * count);
+
+  if (!resp && count)
+    return PAM_CONV_ERR;
+
+  for (i = 0; i < count; i++) {
+    resp[i].resp_retcode = PAM_SUCCESS;
+    switch (in[i]->msg_style) {
+    case PAM_TEXT_INFO:
+    case PAM_ERROR_MSG:
+      resp[i].resp = nullptr;
+      break;
+    case PAM_PROMPT_ECHO_ON:	/* Send Username */
+      resp[i].resp = strdup(auth->username);
+      break;
+    case PAM_PROMPT_ECHO_OFF:	/* Send Password */
+      resp[i].resp = strdup(auth->password);
+      break;
+    default:
+      free(resp);
+      return PAM_CONV_ERR;
+    }
+  }
+
+  *out = resp;
+  return PAM_SUCCESS;
+}
 
 bool UnixPasswordValidator::validateInternal(SConnection * /*sc*/,
 					     const char *username,
 					     const char *password)
 {
-  return do_pam_auth(pamService, username, password);
+  int ret;
+  AuthData auth = { username, password };
+  struct pam_conv conv = {
+    pam_callback,
+    &auth
+  };
+  pam_handle_t *pamh = nullptr;
+  ret = pam_start(pamService, username, &conv, &pamh);
+  if (ret != PAM_SUCCESS) {
+    /* Can't call pam_strerror() here because the content of pamh undefined */
+    vlog.error("pam_start(%s) failed: %d", (const char *) pamService, ret);
+    return false;
+  }
+  ret = pam_authenticate(pamh, 0);
+  if (ret != PAM_SUCCESS) {
+    vlog.error("pam_authenticate() failed: %d (%s)", ret, pam_strerror(pamh, ret));
+    goto error;
+  }
+  ret = pam_acct_mgmt(pamh, 0);
+  if (ret != PAM_SUCCESS) {
+    vlog.error("pam_acct_mgmt() failed: %d (%s)", ret, pam_strerror(pamh, ret));
+    goto error;
+  }
+  return true;
+error:
+  pam_end(pamh, ret);
+  return false;
 }
