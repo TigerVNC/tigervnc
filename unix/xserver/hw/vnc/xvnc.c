@@ -186,6 +186,9 @@ AbortDDX(enum ExitCode error)
 void
 OsVendorInit(void)
 {
+    /* At this point, display has been set, so we can use it to
+     * initialize UnixPasswordValidator */
+    vncSetDisplayName(display);
 }
 
 void

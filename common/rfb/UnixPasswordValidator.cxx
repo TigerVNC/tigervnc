@@ -21,6 +21,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <assert.h>
 #include <string.h>
 #include <security/pam_appl.h>
 
@@ -37,6 +39,8 @@ static core::StringParameter pamService
   ("PAMService", "Service name for PAM password validation", "vnc");
 core::AliasParameter pam_service("pam_service", "Alias for PAMService",
                                  &pamService);
+
+std::string UnixPasswordValidator::displayName;
 
 typedef struct
 {
@@ -108,6 +112,17 @@ bool UnixPasswordValidator::validateInternal(SConnection * /* sc */,
     vlog.error("pam_start(%s) failed: %d", (const char *) pamService, ret);
     return false;
   }
+#ifdef PAM_XDISPLAY
+  /* At this point, displayName should never be empty */
+  assert(displayName.length() > 0);
+  /* Pass the display name to PAM modules but PAM_XDISPLAY may not be
+   * recognized by modules built with old versions of PAM */
+  ret = pam_set_item(pamh, PAM_XDISPLAY, displayName.c_str());
+  if (ret != PAM_SUCCESS && ret != PAM_BAD_ITEM) {
+    vlog.error("pam_set_item(PAM_XDISPLAY) failed: %d (%s)", ret, pam_strerror(pamh, ret));
+    goto error;
+  }
+#endif
   ret = pam_authenticate(pamh, 0);
   if (ret != PAM_SUCCESS) {
     vlog.error("pam_authenticate() failed: %d (%s)", ret, pam_strerror(pamh, ret));
