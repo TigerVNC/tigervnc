@@ -48,7 +48,8 @@ QueryConnectDialog::QueryConnectDialog(network::Socket* sock_,
                                        const char* userName_,
                                        VNCServerWin32* s)
 : Dialog(GetModuleHandle(nullptr)),
-  sock(sock_), peerIp(sock->getPeerAddress()), userName(userName_),
+  sock(sock_), peerIp(sock->getPeerAddress()),
+  userName(userName_?userName_:""),
   approve(false), server(s) {
 }
 
