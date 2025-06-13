@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include <list>
+
 class KeyboardHandler
 {
 public:
@@ -38,6 +40,7 @@ public:
   virtual bool isKeyboardReset(const void* event) { (void)event; return false; }
 
   virtual bool handleEvent(const void* event) = 0;
+  virtual std::list<uint32_t> translateToKeySyms(int systemKeyCode) = 0;
 
   virtual void reset() {};
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,9 @@
 #ifndef __DESKTOPWINDOW_H__
 #define __DESKTOPWINDOW_H__
 
+#include <list>
 #include <map>
+#include <string>
 
 #include <sys/time.h>
 
@@ -47,7 +49,7 @@ public:
   void updateWindow();
 
   // Updated session title
-  void setName();
+  void updateCaption();
 
   // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
@@ -78,11 +80,16 @@ public:
 
   void fullscreen_on();
 
-private:
-  static void menuOverlay(void *data);
+  // Grab keyboard events from desktop environment
+  void grabKeyboard();
+  void ungrabKeyboard();
 
-  void setOverlay(const char *text, ...)
+private:
+  void addOverlayTip(const char *text, ...)
     __attribute__((__format__ (__printf__, 2, 3)));
+  void addOverlayError(const char *text, ...)
+    __attribute__((__format__ (__printf__, 2, 3)));
+  void addOverlay(const char *text);
   static void updateOverlay(void *data);
 
   static int fltkDispatch(int event, Fl_Window *win);
@@ -90,13 +97,8 @@ private:
 
   bool hasFocus();
 
-  void maybeGrabKeyboard();
-  void grabKeyboard();
-  void ungrabKeyboard();
   void grabPointer();
   void ungrabPointer();
-
-  static void handleGrab(void *data);
 
   void maximizeWindow();
 
@@ -123,9 +125,15 @@ private:
   Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
   Surface *offscreen;
-  Surface *overlay;
-  unsigned char overlayAlpha;
-  struct timeval overlayStart;
+
+  struct Overlay {
+    Surface *surface;
+    unsigned char alpha;
+    struct timeval start;
+  };
+
+  std::list<Overlay> overlays;
+  std::map<std::string, time_t> overlayTimes;
 
   bool firstUpdate;
   bool delayedFullscreen;
@@ -136,6 +144,8 @@ private:
 
   bool keyboardGrabbed;
   bool mouseGrabbed;
+
+  bool regrabOnFocus;
 
   struct statsEntry {
     unsigned ups;

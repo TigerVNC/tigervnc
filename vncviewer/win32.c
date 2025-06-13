@@ -27,39 +27,50 @@ static HANDLE thread;
 static DWORD thread_id;
 
 static HHOOK hook = 0;
+static BYTE kbd_state[256];
 static HWND target_wnd = 0;
-
-static int is_system_hotkey(int vkCode) {
-  switch (vkCode) {
-  case VK_LWIN:
-  case VK_RWIN:
-  case VK_SNAPSHOT:
-    return 1;
-  case VK_TAB:
-    if (GetAsyncKeyState(VK_MENU) & 0x8000)
-      return 1;
-    break;
-  case VK_ESCAPE:
-    if (GetAsyncKeyState(VK_MENU) & 0x8000)
-      return 1;
-    if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
-      return 1;
-    break;
-  }
-  return 0;
-}
 
 static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
 {
   if (nCode >= 0) {
     KBDLLHOOKSTRUCT* msgInfo = (KBDLLHOOKSTRUCT*)lParam;
 
-    // Grabbing everything seems to mess up some keyboard state that
-    // FLTK relies on, so just grab the keys that we normally cannot.
-    if (is_system_hotkey(msgInfo->vkCode)) {
-      PostMessage(target_wnd, wParam, msgInfo->vkCode,
-                  (msgInfo->scanCode & 0xff) << 16 |
-                  (msgInfo->flags & 0xff) << 24);
+    BYTE vkey;
+    BYTE scanCode;
+    BYTE flags;
+
+    vkey = msgInfo->vkCode;
+    scanCode = msgInfo->scanCode;
+    flags = msgInfo->flags;
+
+    // We get the low level vkeys here, but the application code
+    // expects this to have been translated to the generic ones
+    switch (vkey) {
+    case VK_LSHIFT:
+    case VK_RSHIFT:
+      vkey = VK_SHIFT;
+      // The extended bit is also always missing for right shift
+      flags &= ~0x01;
+      break;
+    case VK_LCONTROL:
+    case VK_RCONTROL:
+      vkey = VK_CONTROL;
+      break;
+    case VK_LMENU:
+    case VK_RMENU:
+      vkey = VK_MENU;
+      break;
+    }
+
+    // If the key was pressed before the grab was activated, then we
+    // need to avoid intercepting the release event or Windows will get
+    // confused about the state of the key
+    if (((wParam == WM_KEYUP) || (wParam == WM_SYSKEYUP)) &&
+        (kbd_state[msgInfo->vkCode] & 0x80)) {
+      kbd_state[msgInfo->vkCode] &= ~0x80;
+    } else {
+      PostMessage(target_wnd, wParam, vkey,
+                  scanCode << 16 | flags << 24);
       return 1;
     }
   }
@@ -75,6 +86,9 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
 
   // Make sure a message queue is created
   PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE | PM_NOYIELD);
+
+  // We need to know which keys are currently pressed
+  GetKeyboardState(kbd_state);
 
   hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(0), 0);
   // If something goes wrong then there is not much we can do.
