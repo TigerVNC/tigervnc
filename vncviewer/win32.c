@@ -54,12 +54,38 @@ static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
   if (nCode >= 0) {
     KBDLLHOOKSTRUCT* msgInfo = (KBDLLHOOKSTRUCT*)lParam;
 
+    BYTE vkey;
+    BYTE scanCode;
+    BYTE flags;
+
+    vkey = msgInfo->vkCode;
+    scanCode = msgInfo->scanCode;
+    flags = msgInfo->flags;
+
+    // We get the low level vkeys here, but the application code
+    // expects this to have been translated to the generic ones
+    switch (vkey) {
+    case VK_LSHIFT:
+    case VK_RSHIFT:
+      vkey = VK_SHIFT;
+      // The extended bit is also always missing for right shift
+      flags &= ~0x01;
+      break;
+    case VK_LCONTROL:
+    case VK_RCONTROL:
+      vkey = VK_CONTROL;
+      break;
+    case VK_LMENU:
+    case VK_RMENU:
+      vkey = VK_MENU;
+      break;
+    }
+
     // Grabbing everything seems to mess up some keyboard state that
     // FLTK relies on, so just grab the keys that we normally cannot.
     if (is_system_hotkey(msgInfo->vkCode)) {
-      PostMessage(target_wnd, wParam, msgInfo->vkCode,
-                  (msgInfo->scanCode & 0xff) << 16 |
-                  (msgInfo->flags & 0xff) << 24);
+      PostMessage(target_wnd, wParam, vkey,
+                  scanCode << 16 | flags << 24);
       return 1;
     }
   }
