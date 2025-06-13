@@ -27,6 +27,7 @@ static HANDLE thread;
 static DWORD thread_id;
 
 static HHOOK hook = 0;
+static BYTE kbd_state[256];
 static HWND target_wnd = 0;
 
 static int is_system_hotkey(int vkCode) {
@@ -81,12 +82,20 @@ static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
       break;
     }
 
-    // Grabbing everything seems to mess up some keyboard state that
-    // FLTK relies on, so just grab the keys that we normally cannot.
-    if (is_system_hotkey(msgInfo->vkCode)) {
-      PostMessage(target_wnd, wParam, vkey,
-                  scanCode << 16 | flags << 24);
-      return 1;
+    // If the key was pressed before the grab was activated, then we
+    // need to avoid intercepting the release event or Windows will get
+    // confused about the state of the key
+    if (((wParam == WM_KEYUP) || (wParam == WM_SYSKEYUP)) &&
+        (kbd_state[msgInfo->vkCode] & 0x80)) {
+      kbd_state[msgInfo->vkCode] &= ~0x80;
+    } else {
+      // Grabbing everything seems to mess up some keyboard state that
+      // FLTK relies on, so just grab the keys that we normally cannot.
+      if (is_system_hotkey(msgInfo->vkCode)) {
+        PostMessage(target_wnd, wParam, vkey,
+                    scanCode << 16 | flags << 24);
+        return 1;
+      }
     }
   }
 
@@ -101,6 +110,9 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
 
   // Make sure a message queue is created
   PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE | PM_NOYIELD);
+
+  // We need to know which keys are currently pressed
+  GetKeyboardState(kbd_state);
 
   hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(0), 0);
   // If something goes wrong then there is not much we can do.
