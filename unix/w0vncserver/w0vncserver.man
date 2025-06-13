@@ -8,10 +8,11 @@ w0vncserver \- TigerVNC server for Wayland compositors
 .B w0vncserver -version
 .SH DESCRIPTION
 .B w0vncserver
-is a TigerVNC server which makes a Wayland compositor with the RemoteDesktop
-portal implemented remotely accessible via VNC, TigerVNC or compatible viewers.
-It does not create a virtual display, instead, it shares an existing display
-(typically, that one connected to the physical screen).
+is a TigerVNC server which makes a Wayland compositor that is based on
+wlroots, or has the RemoteDesktop portal implemented, remotely
+accessible via VNC, TigerVNC or compatible viewers. It does not create
+a virtual display, instead, it shares an existing display (typically,
+hat one connected to the physical screen).
 
 .SH OPTIONS
 .B w0vncserver
