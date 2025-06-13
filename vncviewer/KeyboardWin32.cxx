@@ -139,6 +139,8 @@ static const UINT vkey_map[][3] = {
   { VK_MEDIA_STOP,          NoSymbol,       XF86XK_AudioStop },
   { VK_MEDIA_PLAY_PAUSE,    NoSymbol,       XF86XK_AudioPlay },
   { VK_LAUNCH_MAIL,         NoSymbol,       XF86XK_Mail },
+  { VK_LAUNCH_MEDIA_SELECT, NoSymbol,       XF86XK_AudioMedia },
+  { VK_LAUNCH_APP1,         NoSymbol,       XF86XK_MyComputer },
   { VK_LAUNCH_APP2,         NoSymbol,       XF86XK_Calculator },
 };
 
