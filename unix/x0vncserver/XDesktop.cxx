@@ -33,6 +33,7 @@
 #include <network/Socket.h>
 
 #include <rfb/ScreenSet.h>
+#include <rfb/ServerCore.h>
 
 #include <x0vncserver/XDesktop.h>
 
@@ -323,6 +324,13 @@ void XDesktop::queryConnection(network::Socket* sock,
                                const char* userName)
 {
   assert(isRunning());
+
+  // - Are we configured to do queries?
+  if (!rfb::Server::queryConnect &&
+      !sock->requiresQuery()) {
+    server->approveConnection(sock, true, nullptr);
+    return;
+  }
 
   // Someone already querying?
   if (queryConnectSock) {
