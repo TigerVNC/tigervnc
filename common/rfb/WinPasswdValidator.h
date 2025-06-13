@@ -21,6 +21,7 @@
 #ifndef __RFB_WINPASSWDVALIDATOR_H__
 #define __RFB_WINPASSWDVALIDATOR_H__
 
+#include <string>
 #include <rfb/SSecurityPlain.h>
 
 namespace rfb
@@ -30,7 +31,10 @@ namespace rfb
     WinPasswdValidator() {};
     virtual ~WinPasswdValidator() {};
   protected:
-    bool validateInternal(SConnection *sc, const char* username, const char* password) override;
+    bool validateInternal(SConnection *sc,
+                          const char *username,
+                          const char *password,
+                          std::string &msg) override;
   };
 }
 

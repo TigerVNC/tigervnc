@@ -42,6 +42,7 @@ typedef struct
 {
   const char *username;
   const char *password;
+  std::string &msg;
 } AuthData;
 
 #if defined(__sun)
@@ -64,7 +65,13 @@ static int pam_callback(int count, const struct pam_message **in,
     resp[i].resp_retcode = PAM_SUCCESS;
     switch (in[i]->msg_style) {
     case PAM_TEXT_INFO:
+      vlog.info("%s info: %s", (const char *) pamService, in[i]->msg);
+      auth->msg = in[i]->msg;
+      resp[i].resp = nullptr;
+      break;
     case PAM_ERROR_MSG:
+      vlog.error("%s error: %s", (const char *) pamService, in[i]->msg);
+      auth->msg = in[i]->msg;
       resp[i].resp = nullptr;
       break;
     case PAM_PROMPT_ECHO_ON:	/* Send Username */
@@ -83,12 +90,13 @@ static int pam_callback(int count, const struct pam_message **in,
   return PAM_SUCCESS;
 }
 
-bool UnixPasswordValidator::validateInternal(SConnection * /*sc*/,
+bool UnixPasswordValidator::validateInternal(SConnection * /* sc */,
 					     const char *username,
-					     const char *password)
+					     const char *password,
+					     std::string &msg)
 {
   int ret;
-  AuthData auth = { username, password };
+  AuthData auth = { username, password, msg };
   struct pam_conv conv = {
     pam_callback,
     &auth

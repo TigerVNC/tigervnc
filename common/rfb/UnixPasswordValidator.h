@@ -27,8 +27,11 @@ namespace rfb
 {
   class UnixPasswordValidator: public PasswordValidator {
   protected:
-    bool validateInternal(SConnection * sc, const char *username,
-			   const char *password) override;
+    bool validateInternal(SConnection *sc,
+                          const char *username,
+                          const char *password,
+                          std::string &msg) override;
+
   };
 }
 
