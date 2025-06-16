@@ -35,26 +35,33 @@
 #include "../w0vncserver.h"
 #include "objects/Display.h"
 #include "objects/Output.h"
+#include "objects/Seat.h"
+#include "objects/VirtualPointer.h"
 #include "GWaylandSource.h"
 #include "WaylandPixelBuffer.h"
 #include "WaylandDesktop.h"
 
 static core::LogWriter vlog("WaylandDesktop");
 
+#define BUTTONS 9
+
 WaylandDesktop::WaylandDesktop(GMainLoop* loop_)
   : server(nullptr), pb(nullptr), loop(loop_), waylandSource(nullptr),
-    display(nullptr), seat(nullptr)
+    display(nullptr), seat(nullptr), virtualPointer(nullptr)
 {
   assert(available());
 
   display = new wayland::Display();
   output = new wayland::Output(display);
+  seat = new wayland::Seat(display);
 }
 
 WaylandDesktop::~WaylandDesktop()
 {
   delete pb;
   delete waylandSource;
+  delete virtualPointer;
+  delete seat;
   delete output;
   delete display;
 }
@@ -67,6 +74,8 @@ void WaylandDesktop::init(rfb::VNCServer* vs)
 void WaylandDesktop::start()
 {
   std::function<void()> desktopReadyCb = [this]() {
+    virtualPointer = new wayland::VirtualPointer(display, seat);
+
     server->setPixelBuffer(pb);
   };
 
@@ -83,8 +92,30 @@ void WaylandDesktop::stop()
   delete waylandSource;
   waylandSource = nullptr;
 
+  delete virtualPointer;
+  virtualPointer = nullptr;
+
   delete pb;
   pb = nullptr;
+}
+
+void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
+{
+  virtualPointer->motionAbsolute(pos.x, pos.y, pb->width(), pb->height());
+
+  if (buttonMask == oldButtonMask)
+    return;
+
+  for (int32_t i = 0; i < BUTTONS; i++) {
+    if ((buttonMask ^ oldButtonMask) & (1 << i)) {
+      if (i > 2 && i < 7)
+        virtualPointer->axisDiscrete(i);
+      else
+        virtualPointer->button(i, buttonMask & (1 << i));
+    }
+  }
+
+  oldButtonMask = buttonMask;
 }
 
 void WaylandDesktop::queryConnection(network::Socket* sock,
@@ -104,5 +135,6 @@ bool WaylandDesktop::available()
 {
   wayland::Display display;
 
-  return display.interfaceAvailable("zwlr_screencopy_manager_v1");
+  return display.interfaceAvailable("zwlr_screencopy_manager_v1") &&
+         display.interfaceAvailable("zwlr_virtual_pointer_manager_v1");
 }

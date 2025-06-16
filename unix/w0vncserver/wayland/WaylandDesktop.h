@@ -20,6 +20,7 @@
 #define __WAYLAND_DESKTOP_H__
 
 #include <glib.h>
+#include <stdint.h>
 
 #include <rfb/SDesktop.h>
 
@@ -29,6 +30,7 @@ namespace wayland {
   class Output;
   class Display;
   class Seat;
+  class VirtualPointer;
 };
 
 class WaylandPixelBuffer;
@@ -43,6 +45,8 @@ public:
   void init(rfb::VNCServer* vs) override;
   void start() override;
   virtual void stop() override;
+  virtual void pointerEvent(const core::Point& pos,
+                            uint16_t buttonMask) override;
   void queryConnection(network::Socket* sock,
                         const char* userName) override;
   void terminate() override;
@@ -61,5 +65,6 @@ private:
   wayland::Display* display;
   wayland::Seat* seat;
   wayland::Output* output;
+  wayland::VirtualPointer* virtualPointer;
 };
 #endif // __WAYLAND_DESKTOP_H__

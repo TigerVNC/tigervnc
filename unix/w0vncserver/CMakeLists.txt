@@ -14,8 +14,10 @@ add_executable(w0vncserver
   wayland/objects/Output.cxx
   wayland/objects/Object.cxx
   wayland/objects/Display.cxx
+  wayland/objects/Seat.cxx
   wayland/objects/Shm.cxx
   wayland/objects/ShmPool.cxx
+  wayland/objects/VirtualPointer.cxx
   wayland/objects/ScreencopyManager.cxx
   wayland/WaylandDesktop.cxx
   wayland/WaylandPixelBuffer.cxx
@@ -28,6 +30,7 @@ add_executable(w0vncserver
 set(GEN_WAYLAND_SRCS "")
 set(WAYLAND_PROTOCOLS
   wlr-screencopy-unstable-v1
+  wlr-virtual-pointer-unstable-v1
 )
 
 foreach(P ${WAYLAND_PROTOCOLS})
