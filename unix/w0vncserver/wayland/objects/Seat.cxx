@@ -24,6 +24,7 @@
 #include <wayland-client-protocol.h>
 
 #include "Display.h"
+#include "Keyboard.h"
 #include "Seat.h"
 
 using namespace wayland;
@@ -40,7 +41,7 @@ const wl_seat_listener Seat::listener = {
 
 Seat::Seat(Display* display_)
   : Object(display_, "wl_seat", &wl_seat_interface),
-    seat(nullptr), display(display_)
+    seat(nullptr), display(display_), keyboard(nullptr)
 {
   seat = (wl_seat*)boundObject;
 
@@ -52,8 +53,15 @@ Seat::~Seat()
 {
   if (seat)
     wl_seat_destroy(seat);
+
+  delete keyboard;
 }
 
-void Seat::seatCapabilities(uint32_t /* capabilities */ )
+void Seat::seatCapabilities(uint32_t capabilities)
 {
+  if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
+    vlog.debug("Keyboard detected");
+    delete keyboard;
+    keyboard = new Keyboard(display, this);
+  }
 }

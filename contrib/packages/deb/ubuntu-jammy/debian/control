@@ -31,6 +31,7 @@ Build-Depends:
  libglib2.0-dev,
  libpipewire-0.3-dev,
  libwayland-dev,
+ libxkbcommon-dev,
 # Xorg dependencies
 # debhelper-compat (= 12),
  po-debconf,

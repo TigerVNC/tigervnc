@@ -16,35 +16,32 @@
  * USA.
  */
 
-#ifndef __WAYLAND_SEAT_H__
-#define __WAYLAND_SEAT_H__
+#ifndef __WAYLAND_VIRTUAL_KEYBOARD_H__
+#define __WAYLAND_VIRTUAL_KEYBOARD_H__
+
+#include <stdint.h>
 
 #include "Object.h"
 
-struct wl_seat;
-struct wl_seat_listener;
+struct zwp_virtual_keyboard_v1;
+struct zwp_virtual_keyboard_manager_v1;
 
 namespace wayland {
   class Display;
-  class Keyboard;
+  class Seat;
 
-  class Seat : public Object {
+  class VirtualKeyboard : public Object {
   public:
-    Seat(Display* display);
-    ~Seat();
+    VirtualKeyboard(Display* display, Seat* seat);
+    ~VirtualKeyboard();
 
-    wl_seat* getSeat() const { return seat; }
-    Keyboard* getKeyboard() const { return keyboard; }
-
-  private:
-    void seatCapabilities(uint32_t capabilities);
+    void key(uint32_t keysym, uint32_t keycode, bool down);
 
   private:
-    wl_seat* seat;
-    Display* display;
-    Keyboard* keyboard;
-    static const wl_seat_listener listener;
+    zwp_virtual_keyboard_manager_v1* manager;
+    zwp_virtual_keyboard_v1* keyboard;
+    Seat* seat;
   };
 };
 
-#endif // __WAYLAND_SEAT_H__
+#endif // __WAYLAND_VIRTUAL_KEYBOARD_H__

@@ -37,6 +37,7 @@
 #include "objects/Output.h"
 #include "objects/Seat.h"
 #include "objects/VirtualPointer.h"
+#include "objects/VirtualKeyboard.h"
 #include "GWaylandSource.h"
 #include "WaylandPixelBuffer.h"
 #include "WaylandDesktop.h"
@@ -47,7 +48,8 @@ static core::LogWriter vlog("WaylandDesktop");
 
 WaylandDesktop::WaylandDesktop(GMainLoop* loop_)
   : server(nullptr), pb(nullptr), loop(loop_), waylandSource(nullptr),
-    display(nullptr), seat(nullptr), virtualPointer(nullptr)
+    display(nullptr), seat(nullptr), virtualPointer(nullptr),
+    virtualKeyboard(nullptr)
 {
   assert(available());
 
@@ -61,6 +63,7 @@ WaylandDesktop::~WaylandDesktop()
   delete pb;
   delete waylandSource;
   delete virtualPointer;
+  delete virtualKeyboard;
   delete seat;
   delete output;
   delete display;
@@ -75,6 +78,7 @@ void WaylandDesktop::start()
 {
   std::function<void()> desktopReadyCb = [this]() {
     virtualPointer = new wayland::VirtualPointer(display, seat);
+    virtualKeyboard = new wayland::VirtualKeyboard(display, seat);
 
     server->setPixelBuffer(pb);
   };
@@ -88,6 +92,9 @@ void WaylandDesktop::start()
 void WaylandDesktop::stop()
 {
   server->setPixelBuffer(nullptr);
+
+  delete virtualKeyboard;
+  virtualKeyboard = nullptr;
 
   delete waylandSource;
   waylandSource = nullptr;
@@ -118,6 +125,11 @@ void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
   oldButtonMask = buttonMask;
 }
 
+void WaylandDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
+{
+  virtualKeyboard->key(keysym, keycode, down);
+}
+
 void WaylandDesktop::queryConnection(network::Socket* sock,
                                      const char* /* userName */)
 {
@@ -136,5 +148,6 @@ bool WaylandDesktop::available()
   wayland::Display display;
 
   return display.interfaceAvailable("zwlr_screencopy_manager_v1") &&
-         display.interfaceAvailable("zwlr_virtual_pointer_manager_v1");
+         display.interfaceAvailable("zwlr_virtual_pointer_manager_v1") &&
+         display.interfaceAvailable("zwp_virtual_keyboard_manager_v1");
 }
