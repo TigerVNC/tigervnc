@@ -61,6 +61,28 @@ TLSSocket::~TLSSocket()
   gnutls_transport_set_ptr(session, nullptr);
 }
 
+void TLSSocket::shutdown()
+{
+  int ret;
+
+  try {
+    if (tlsout.hasBufferedData()) {
+      tlsout.cork(false);
+      tlsout.flush();
+      if (tlsout.hasBufferedData())
+        vlog.error("Failed to flush remaining socket data on close");
+    }
+  } catch (std::exception& e) {
+    vlog.error("Failed to flush remaining socket data on close: %s", e.what());
+  }
+
+  // FIXME: We can't currently wait for the response, so we only send
+  //        our close and hope for the best
+  ret = gnutls_bye(session, GNUTLS_SHUT_WR);
+  if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION))
+    vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
+}
+
 size_t TLSSocket::readTLS(uint8_t* buf, size_t len)
 {
   int n;

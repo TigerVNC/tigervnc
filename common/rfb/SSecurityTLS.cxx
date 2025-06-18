@@ -87,27 +87,8 @@ SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
 
 void SSecurityTLS::shutdown()
 {
-  if (tlssock) {
-    try {
-      if (tlssock->outStream().hasBufferedData()) {
-        tlssock->outStream().cork(false);
-        tlssock->outStream().flush();
-        if (tlssock->outStream().hasBufferedData())
-          vlog.error("Failed to flush remaining socket data on close");
-      }
-    } catch (std::exception& e) {
-      vlog.error("Failed to flush remaining socket data on close: %s", e.what());
-    }
-  }
-
-  if (session) {
-    int ret;
-    // FIXME: We can't currently wait for the response, so we only send
-    //        our close and hope for the best
-    ret = gnutls_bye(session, GNUTLS_SHUT_WR);
-    if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION))
-      vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
-  }
+  if (tlssock)
+    tlssock->shutdown();
 
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
   if (dh_params) {

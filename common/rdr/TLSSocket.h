@@ -46,6 +46,8 @@ namespace rdr {
     TLSInStream& inStream() { return tlsin; }
     TLSOutStream& outStream() { return tlsout; }
 
+    void shutdown();
+
   protected:
     /* Used by the stream classes */
     size_t readTLS(uint8_t* buf, size_t len);
