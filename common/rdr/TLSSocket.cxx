@@ -43,8 +43,14 @@ TLSSocket::TLSSocket(InStream* in_, OutStream* out_,
                      gnutls_session_t session_)
   : session(session_), in(in_), out(out_), tlsin(this), tlsout(this)
 {
-  gnutls_transport_set_pull_function(session, pull);
-  gnutls_transport_set_push_function(session, push);
+  gnutls_transport_set_pull_function(
+    session, [](gnutls_transport_ptr_t sock, void* data, size_t size) {
+      return ((TLSSocket*)sock)->pull(data, size);
+    });
+  gnutls_transport_set_push_function(
+    session, [](gnutls_transport_ptr_t sock, const void* data, size_t size) {
+      return ((TLSSocket*)sock)->push(data, size);
+    });
   gnutls_transport_set_ptr(session, this);
 }
 
@@ -103,19 +109,15 @@ size_t TLSSocket::writeTLS(const uint8_t* data, size_t length)
   return n;
 }
 
-ssize_t TLSSocket::pull(gnutls_transport_ptr_t sock, void* data,
-                        size_t size)
+ssize_t TLSSocket::pull(void* data, size_t size)
 {
-  TLSSocket* self= (TLSSocket*) sock;
-  InStream *in = self->in;
-
-  self->streamEmpty = false;
-  self->saved_exception = nullptr;
+  streamEmpty = false;
+  saved_exception = nullptr;
 
   try {
     if (!in->hasData(1)) {
-      self->streamEmpty = true;
-      gnutls_transport_set_errno(self->session, EAGAIN);
+      streamEmpty = true;
+      gnutls_transport_set_errno(session, EAGAIN);
       return -1;
     }
 
@@ -130,23 +132,19 @@ ssize_t TLSSocket::pull(gnutls_transport_ptr_t sock, void* data,
     vlog.error("Failure reading TLS data: %s", e.what());
     se = dynamic_cast<core::socket_error*>(&e);
     if (se)
-      gnutls_transport_set_errno(self->session, se->err);
+      gnutls_transport_set_errno(session, se->err);
     else
-      gnutls_transport_set_errno(self->session, EINVAL);
-    self->saved_exception = std::current_exception();
+      gnutls_transport_set_errno(session, EINVAL);
+    saved_exception = std::current_exception();
     return -1;
   }
 
   return size;
 }
 
-ssize_t TLSSocket::push(gnutls_transport_ptr_t sock, const void* data,
-                        size_t size)
+ssize_t TLSSocket::push(const void* data, size_t size)
 {
-  TLSSocket* self = (TLSSocket*) sock;
-  OutStream *out = self->out;
-
-  self->saved_exception = nullptr;
+  saved_exception = nullptr;
 
   try {
     out->writeBytes((const uint8_t*)data, size);
@@ -156,10 +154,10 @@ ssize_t TLSSocket::push(gnutls_transport_ptr_t sock, const void* data,
     vlog.error("Failure sending TLS data: %s", e.what());
     se = dynamic_cast<core::socket_error*>(&e);
     if (se)
-      gnutls_transport_set_errno(self->session, se->err);
+      gnutls_transport_set_errno(session, se->err);
     else
-      gnutls_transport_set_errno(self->session, EINVAL);
-    self->saved_exception = std::current_exception();
+      gnutls_transport_set_errno(session, EINVAL);
+    saved_exception = std::current_exception();
     return -1;
   }
 

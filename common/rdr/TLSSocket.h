@@ -55,10 +55,8 @@ namespace rdr {
     friend TLSOutStream;
 
   private:
-    static ssize_t pull(gnutls_transport_ptr_t str, void* data,
-                        size_t size);
-    static ssize_t push(gnutls_transport_ptr_t str, const void* data,
-                        size_t size);
+    ssize_t pull(void* data, size_t size);
+    ssize_t push(const void* data, size_t size);
 
     gnutls_session_t session;
 
