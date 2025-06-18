@@ -245,6 +245,10 @@ void CSecurityTLS::setParam()
 
     vlog.debug("Anonymous session has been set");
   } else {
+    const char* hostname;
+    size_t len;
+    bool valid;
+
     ret = gnutls_certificate_allocate_credentials(&cert_cred);
     if (ret != GNUTLS_E_SUCCESS)
       throw rdr::tls_error("gnutls_certificate_allocate_credentials()", ret);
@@ -262,10 +266,22 @@ void CSecurityTLS::setParam()
     if (ret != GNUTLS_E_SUCCESS)
       throw rdr::tls_error("gnutls_credentials_set()", ret);
 
-    if (gnutls_server_name_set(session, GNUTLS_NAME_DNS,
-                               client->getServerName(),
-                               strlen(client->getServerName())) != GNUTLS_E_SUCCESS)
-      vlog.error("Failed to configure the server name for TLS handshake");
+    // Only DNS hostnames are allowed, and some servers will reject the
+    // connection if we provide anything else (e.g. an IPv6 address)
+    hostname = client->getServerName();
+    len = strlen(hostname);
+    valid = true;
+    for (size_t i = 0; i < len; i++) {
+      if (!isalnum(hostname[i]) && hostname[i] != '.')
+        valid = false;
+    }
+
+    if (valid) {
+      if (gnutls_server_name_set(session, GNUTLS_NAME_DNS,
+                                 client->getServerName(),
+                                 strlen(client->getServerName())) != GNUTLS_E_SUCCESS)
+        vlog.error("Failed to configure the server name for TLS handshake");
+    }
 
     vlog.debug("X509 session has been set");
   }
