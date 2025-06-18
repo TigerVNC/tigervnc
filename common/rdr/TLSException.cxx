@@ -35,11 +35,28 @@
 using namespace rdr;
 
 #ifdef HAVE_GNUTLS
-tls_error::tls_error(const char* s, int err_) noexcept
+tls_error::tls_error(const char* s, int err_, int alert_) noexcept
   : std::runtime_error(core::format("%s: %s (%d)", s,
-                                    gnutls_strerror(err_), err_)),
-    err(err_)
+                                    strerror(err_, alert_), err_)),
+    err(err_), alert(alert_)
 {
+}
+
+const char* tls_error::strerror(int err_, int alert_) const noexcept
+{
+  const char* msg;
+
+  msg = nullptr;
+
+  if ((alert_ != -1) &&
+      ((err_ == GNUTLS_E_WARNING_ALERT_RECEIVED) ||
+       (err_ == GNUTLS_E_FATAL_ALERT_RECEIVED)))
+    msg = gnutls_alert_get_name((gnutls_alert_description_t)alert_);
+
+  if (msg == nullptr)
+    msg = gnutls_strerror(err_);
+
+  return msg;
 }
 #endif /* HAVE_GNUTLS */
 

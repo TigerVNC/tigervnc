@@ -67,16 +67,29 @@ bool TLSSocket::handshake()
 
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
+    gnutls_alert_description_t alert;
+    const char* msg;
+
     if ((err == GNUTLS_E_PULL_ERROR) || (err == GNUTLS_E_PUSH_ERROR))
       std::rethrow_exception(saved_exception);
 
+    alert = gnutls_alert_get(session);
+    msg = nullptr;
+
+    if ((err == GNUTLS_E_WARNING_ALERT_RECEIVED) ||
+        (err == GNUTLS_E_FATAL_ALERT_RECEIVED))
+      msg = gnutls_alert_get_name(alert);
+
+    if (msg == nullptr)
+      msg = gnutls_strerror(err);
+
     if (!gnutls_error_is_fatal(err)) {
-      vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
+      vlog.debug("Deferring completion of TLS handshake: %s", msg);
       return false;
     }
 
-    vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
-    throw rdr::tls_error("TLS Handshake failed", err);
+    vlog.error("TLS Handshake failed: %s\n", msg);
+    throw rdr::tls_error("TLS Handshake failed", err, alert);
   }
 
   return true;
@@ -127,7 +140,7 @@ size_t TLSSocket::readTLS(uint8_t* buf, size_t len)
     std::rethrow_exception(saved_exception);
 
   if (n < 0)
-    throw tls_error("readTLS", n);
+    throw tls_error("readTLS", n, gnutls_alert_get(session));
 
   if (n == 0)
     throw end_of_stream();
@@ -147,7 +160,7 @@ size_t TLSSocket::writeTLS(const uint8_t* data, size_t length)
     std::rethrow_exception(saved_exception);
 
   if (n < 0)
-    throw tls_error("writeTLS", n);
+    throw tls_error("writeTLS", n, gnutls_alert_get(session));
 
   return n;
 }
