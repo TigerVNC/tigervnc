@@ -187,9 +187,7 @@ namespace rdr {
   private:
 
     const uint8_t* restorePoint;
-#ifdef RFB_INSTREAM_CHECK
     size_t checkedBytes;
-#endif
 
     inline void check(size_t bytes) {
 #ifdef RFB_INSTREAM_CHECK
@@ -209,11 +207,7 @@ namespace rdr {
 
   protected:
 
-    InStream() : restorePoint(nullptr)
-#ifdef RFB_INSTREAM_CHECK
-      ,checkedBytes(0)
-#endif
-     {}
+    InStream() : restorePoint(nullptr), checkedBytes(0) {}
     const uint8_t* ptr;
     const uint8_t* end;
   };

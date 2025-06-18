@@ -21,14 +21,16 @@
 #define __RDR_TLSOUTSTREAM_H__
 
 #ifdef HAVE_GNUTLS
-#include <gnutls/gnutls.h>
+
 #include <rdr/BufferedOutStream.h>
 
 namespace rdr {
 
+  class TLSSocket;
+
   class TLSOutStream : public BufferedOutStream {
   public:
-    TLSOutStream(OutStream* out, gnutls_session_t session);
+    TLSOutStream(TLSSocket* out);
     virtual ~TLSOutStream();
 
     void flush() override;
@@ -36,15 +38,12 @@ namespace rdr {
 
   private:
     bool flushBuffer() override;
-    size_t writeTLS(const uint8_t* data, size_t length);
-    static ssize_t push(gnutls_transport_ptr_t str, const void* data, size_t size);
 
-    gnutls_session_t session;
-    OutStream* out;
-
-    std::exception_ptr saved_exception;
+    TLSSocket* sock;
   };
-};
+
+}
 
 #endif
+
 #endif

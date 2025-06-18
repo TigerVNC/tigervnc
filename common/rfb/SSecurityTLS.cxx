@@ -2,7 +2,7 @@
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2012-2021 Pierre Ossman for Cendio AB
+ * Copyright 2012-2025 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,7 @@
 #include <rfb/Exception.h>
 
 #include <rdr/TLSException.h>
-#include <rdr/TLSInStream.h>
-#include <rdr/TLSOutStream.h>
+#include <rdr/TLSSocket.h>
 
 #include <gnutls/x509.h>
 
@@ -72,7 +71,7 @@ static core::LogWriter vlog("TLS");
 
 SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
   : SSecurity(sc_), session(nullptr), anon_cred(nullptr),
-    cert_cred(nullptr), anon(_anon), tlsis(nullptr), tlsos(nullptr),
+    cert_cred(nullptr), anon(_anon), tlssock(nullptr),
     rawis(nullptr), rawos(nullptr)
 {
   int ret;
@@ -88,27 +87,8 @@ SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
 
 void SSecurityTLS::shutdown()
 {
-  if (tlsos) {
-    try {
-      if (tlsos->hasBufferedData()) {
-        tlsos->cork(false);
-        tlsos->flush();
-        if (tlsos->hasBufferedData())
-          vlog.error("Failed to flush remaining socket data on close");
-      }
-    } catch (std::exception& e) {
-      vlog.error("Failed to flush remaining socket data on close: %s", e.what());
-    }
-  }
-
-  if (session) {
-    int ret;
-    // FIXME: We can't currently wait for the response, so we only send
-    //        our close and hope for the best
-    ret = gnutls_bye(session, GNUTLS_SHUT_WR);
-    if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION))
-      vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
-  }
+  if (tlssock)
+    tlssock->shutdown();
 
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
   if (dh_params) {
@@ -133,13 +113,9 @@ void SSecurityTLS::shutdown()
     rawos = nullptr;
   }
 
-  if (tlsis) {
-    delete tlsis;
-    tlsis = nullptr;
-  }
-  if (tlsos) {
-    delete tlsos;
-    tlsos = nullptr;
+  if (tlssock) {
+    delete tlssock;
+    tlssock = nullptr;
   }
 
   if (session) {
@@ -185,30 +161,24 @@ bool SSecurityTLS::processMsg()
     os->writeU8(1);
     os->flush();
 
-    // Create these early as they set up the push/pull functions
-    // for GnuTLS
-    tlsis = new rdr::TLSInStream(is, session);
-    tlsos = new rdr::TLSOutStream(os, session);
+    tlssock = new rdr::TLSSocket(is, os, session);
 
     rawis = is;
     rawos = os;
   }
 
-  err = gnutls_handshake(session);
-  if (err != GNUTLS_E_SUCCESS) {
-    if (!gnutls_error_is_fatal(err)) {
-      vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
+  try {
+    if (!tlssock->handshake())
       return false;
-    }
-    vlog.error("TLS Handshake failed: %s", gnutls_strerror (err));
+  } catch (std::exception&) {
     shutdown();
-    throw rdr::tls_error("TLS Handshake failed", err);
+    throw;
   }
 
   vlog.debug("TLS handshake completed with %s",
              gnutls_session_get_desc(session));
 
-  sc->setStreams(tlsis, tlsos);
+  sc->setStreams(&tlssock->inStream(), &tlssock->outStream());
 
   return true;
 }

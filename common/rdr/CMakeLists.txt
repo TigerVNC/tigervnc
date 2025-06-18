@@ -12,6 +12,7 @@ add_library(rdr STATIC
   TLSException.cxx
   TLSInStream.cxx
   TLSOutStream.cxx
+  TLSSocket.cxx
   ZlibInStream.cxx
   ZlibOutStream.cxx)
 

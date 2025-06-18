@@ -36,6 +36,7 @@
 #include <core/LogWriter.h>
 #include <core/Timer.h>
 
+#include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
 #include <rfb/VNCServerST.h>
@@ -421,15 +422,10 @@ int main(int argc, char** argv)
       server.getSockets(&sockets);
       int clients_connected = 0;
       for (i = sockets.begin(); i != sockets.end(); i++) {
-        if ((*i)->isShutdown()) {
-          server.removeSocket(*i);
-          delete (*i);
-        } else {
-          FD_SET((*i)->getFd(), &rfds);
-          if ((*i)->outStream().hasBufferedData())
-            FD_SET((*i)->getFd(), &wfds);
-          clients_connected++;
-        }
+        FD_SET((*i)->getFd(), &rfds);
+        if ((*i)->outStream().hasBufferedData())
+          FD_SET((*i)->getFd(), &wfds);
+        clients_connected++;
       }
 
       if (!clients_connected)
@@ -494,6 +490,29 @@ int main(int argc, char** argv)
           server.processSocketReadEvent(*i);
         if (FD_ISSET((*i)->getFd(), &wfds))
           server.processSocketWriteEvent(*i);
+
+        // Do a graceful close by waiting for the peer to close their
+        // end
+        if ((*i)->isShutdown()) {
+          bool done;
+
+          done = false;
+          while (true) {
+            try {
+              (*i)->inStream().skip((*i)->inStream().avail());
+              if (!(*i)->inStream().hasData(1))
+                break;
+            } catch (std::exception&) {
+              done = true;
+              break;
+            }
+          }
+
+          if (done) {
+            server.removeSocket(*i);
+            delete (*i);
+          }
+        }
       }
 
       if (desktop.isRunning() && sched.goodTimeToPoll()) {

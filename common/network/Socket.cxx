@@ -120,7 +120,7 @@ void Socket::shutdown()
   }
 
   isShutdown_ = true;
-  ::shutdown(getFd(), SHUT_RDWR);
+  ::shutdown(getFd(), SHUT_WR);
 }
 
 bool Socket::isShutdown() const
