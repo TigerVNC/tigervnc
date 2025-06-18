@@ -292,12 +292,16 @@ void CSecurityTLS::checkSession()
   if (anon)
     return;
 
-  if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509)
+  if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509) {
+    gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                      GNUTLS_A_UNSUPPORTED_CERTIFICATE);
     throw protocol_error("Unsupported certificate type");
+  }
 
   err = gnutls_certificate_verify_peers2(session, &status);
   if (err != 0) {
     vlog.error("Server certificate verification failed: %s", gnutls_strerror(err));
+    gnutls_alert_send_appropriate(session, err);
     throw rdr::tls_error("Server certificate verification()", err);
   }
 
@@ -314,13 +318,17 @@ void CSecurityTLS::checkSession()
                                                          GNUTLS_CRT_X509,
                                                          &status_str,
                                                          0);
-      if (err != GNUTLS_E_SUCCESS)
+      if (err != GNUTLS_E_SUCCESS) {
+        gnutls_alert_send_appropriate(session, err);
         throw rdr::tls_error("Failed to get certificate error description", err);
+      }
 
       error = (const char*)status_str.data;
 
       gnutls_free(status_str.data);
 
+      gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                        GNUTLS_A_BAD_CERTIFICATE);
       throw protocol_error(
         core::format("Invalid server certificate: %s", error.c_str()));
     }
@@ -329,8 +337,10 @@ void CSecurityTLS::checkSession()
                                                        GNUTLS_CRT_X509,
                                                        &status_str,
                                                        0);
-    if (err != GNUTLS_E_SUCCESS)
+    if (err != GNUTLS_E_SUCCESS) {
+      gnutls_alert_send_appropriate(session, err);
       throw rdr::tls_error("Failed to get certificate error description", err);
+    }
 
     vlog.info("Server certificate errors: %s", status_str.data);
 
@@ -340,16 +350,21 @@ void CSecurityTLS::checkSession()
   /* Process overridable errors later */
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
-  if (!cert_list_size)
+  if (!cert_list_size) {
+    gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                      GNUTLS_A_UNSUPPORTED_CERTIFICATE);
     throw protocol_error("Empty certificate chain");
+  }
 
   /* Process only server's certificate, not issuer's certificate */
   gnutls_x509_crt_t crt;
   gnutls_x509_crt_init(&crt);
 
   err = gnutls_x509_crt_import(crt, &cert_list[0], GNUTLS_X509_FMT_DER);
-  if (err != GNUTLS_E_SUCCESS)
+  if (err != GNUTLS_E_SUCCESS) {
+    gnutls_alert_send_appropriate(session, err);
     throw rdr::tls_error("Failed to decode server certificate", err);
+  }
 
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
     vlog.info("Server certificate doesn't match given server name");
@@ -388,12 +403,15 @@ void CSecurityTLS::checkSession()
 
   if ((known != GNUTLS_E_NO_CERTIFICATE_FOUND) &&
       (known != GNUTLS_E_CERTIFICATE_KEY_MISMATCH)) {
+    gnutls_alert_send_appropriate(session, known);
     throw rdr::tls_error("Could not load known hosts database", known);
   }
 
   err = gnutls_x509_crt_print(crt, GNUTLS_CRT_PRINT_ONELINE, &info);
-  if (err != GNUTLS_E_SUCCESS)
+  if (err != GNUTLS_E_SUCCESS) {
+    gnutls_alert_send_appropriate(session, known);
     throw rdr::tls_error("Could not find certificate to display", err);
+  }
 
   len = strlen((char*)info.data);
   for (size_t i = 0; i < len - 1; i++) {
@@ -424,8 +442,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unknown certificate issuer",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_UNKNOWN_CA);
         throw auth_cancelled();
+      }
 
       status &= ~(GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
@@ -446,8 +467,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Certificate is not yet valid",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
 
       status &= ~GNUTLS_CERT_NOT_ACTIVATED;
     }
@@ -466,8 +490,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Expired certificate",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
 
       status &= ~GNUTLS_CERT_EXPIRED;
     }
@@ -486,14 +513,19 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Insecure certificate algorithm",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
 
       status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
     }
 
     if (status != 0) {
       vlog.error("Unhandled certificate problems: 0x%x", status);
+      gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                        GNUTLS_A_BAD_CERTIFICATE);
       throw std::logic_error("Unhandled certificate problems");
     }
 
@@ -512,8 +544,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Certificate hostname mismatch",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
     }
   } else if (known == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
@@ -539,8 +574,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_UNKNOWN_CA);
         throw auth_cancelled();
+      }
 
       status &= ~(GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
@@ -562,8 +600,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
 
       status &= ~GNUTLS_CERT_NOT_ACTIVATED;
     }
@@ -583,8 +624,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
 
       status &= ~GNUTLS_CERT_EXPIRED;
     }
@@ -604,14 +648,19 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
 
       status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
     }
 
     if (status != 0) {
       vlog.error("Unhandled certificate problems: 0x%x", status);
+      gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                        GNUTLS_A_BAD_CERTIFICATE);
       throw std::logic_error("Unhandled certificate problems");
     }
 
@@ -631,8 +680,11 @@ void CSecurityTLS::checkSession()
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
                            "Unexpected server certificate",
-                           text.c_str()))
+                           text.c_str())) {
+        gnutls_alert_send(session, GNUTLS_AL_FATAL,
+                          GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
+      }
     }
   }
 
