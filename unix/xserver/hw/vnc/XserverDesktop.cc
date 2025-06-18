@@ -40,6 +40,7 @@
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
 
+#include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
 #include <network/Socket.h>
@@ -363,6 +364,31 @@ bool XserverDesktop::handleSocketEvent(int fd,
   if (write)
     sockserv->processSocketWriteEvent(*i);
 
+  // Do a graceful close by waiting for the peer to close their end
+  if ((*i)->isShutdown()) {
+    bool done;
+
+    done = false;
+    while (true) {
+      try {
+        (*i)->inStream().skip((*i)->inStream().avail());
+        if (!(*i)->inStream().hasData(1))
+          break;
+      } catch (std::exception&) {
+        done = true;
+        break;
+      }
+    }
+
+    if (done) {
+      vlog.debug("Client gone, sock %d",fd);
+      vncRemoveNotifyFd(fd);
+      sockserv->removeSocket(*i);
+      vncClientGone(fd);
+      delete (*i);
+    }
+  }
+
   return true;
 }
 
@@ -380,16 +406,8 @@ void XserverDesktop::blockHandler(int* timeout)
     server->getSockets(&sockets);
     for (i = sockets.begin(); i != sockets.end(); i++) {
       int fd = (*i)->getFd();
-      if ((*i)->isShutdown()) {
-        vlog.debug("Client gone, sock %d",fd);
-        vncRemoveNotifyFd(fd);
-        server->removeSocket(*i);
-        vncClientGone(fd);
-        delete (*i);
-      } else {
-        /* Update existing NotifyFD to listen for write (or not) */
-        vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().hasBufferedData());
-      }
+      /* Update existing NotifyFD to listen for write (or not) */
+      vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().hasBufferedData());
     }
 
     // We are responsible for propagating mouse movement between clients

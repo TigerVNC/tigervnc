@@ -30,6 +30,7 @@
 #include <core/LogWriter.h>
 #include <core/Timer.h>
 #include <core/string.h>
+#include <core/time.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -130,6 +131,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
 
 CConn::~CConn()
 {
+  struct timeval now;
+
   close();
 
   OptionsDialog::removeCallback(handleOptions);
@@ -139,6 +142,34 @@ CConn::~CConn()
     delete desktop;
 
   sock->shutdown();
+
+  // Do a graceful close by waiting for the peer (up to 250 ms)
+  // FIXME: should do this asynchronously
+  gettimeofday(&now, nullptr);
+  while (core::msSince(&now) < 250) {
+    bool done;
+
+    done = false;
+    while (true) {
+      try {
+        sock->inStream().skip(sock->inStream().avail());
+        if (!sock->inStream().hasData(1))
+          break;
+      } catch (std::exception&) {
+        done = true;
+        break;
+      }
+    }
+
+    if (done)
+      break;
+
+#ifdef WIN32
+    Sleep(10);
+#else
+    usleep(10000);
+#endif
+  }
 
   if (sock)
     Fl::remove_fd(sock->getFd());
