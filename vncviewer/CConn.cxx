@@ -138,6 +138,8 @@ CConn::~CConn()
   if (desktop)
     delete desktop;
 
+  sock->shutdown();
+
   if (sock)
     Fl::remove_fd(sock->getFd());
   delete sock;
