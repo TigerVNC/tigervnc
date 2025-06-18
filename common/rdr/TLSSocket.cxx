@@ -67,6 +67,9 @@ bool TLSSocket::handshake()
 
   err = gnutls_handshake(session);
   if (err != GNUTLS_E_SUCCESS) {
+    if ((err == GNUTLS_E_PULL_ERROR) || (err == GNUTLS_E_PUSH_ERROR))
+      std::rethrow_exception(saved_exception);
+
     if (!gnutls_error_is_fatal(err)) {
       vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
       return false;
