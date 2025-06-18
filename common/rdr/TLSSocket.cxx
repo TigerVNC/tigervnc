@@ -61,6 +61,24 @@ TLSSocket::~TLSSocket()
   gnutls_transport_set_ptr(session, nullptr);
 }
 
+bool TLSSocket::handshake()
+{
+  int err;
+
+  err = gnutls_handshake(session);
+  if (err != GNUTLS_E_SUCCESS) {
+    if (!gnutls_error_is_fatal(err)) {
+      vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
+      return false;
+    }
+
+    vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
+    throw rdr::tls_error("TLS Handshake failed", err);
+  }
+
+  return true;
+}
+
 void TLSSocket::shutdown()
 {
   int ret;

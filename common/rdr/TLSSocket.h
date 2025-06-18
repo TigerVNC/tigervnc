@@ -46,6 +46,7 @@ namespace rdr {
     TLSInStream& inStream() { return tlsin; }
     TLSOutStream& outStream() { return tlsout; }
 
+    bool handshake();
     void shutdown();
 
   protected:

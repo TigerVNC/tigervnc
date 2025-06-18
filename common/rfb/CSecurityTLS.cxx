@@ -147,25 +147,18 @@ bool CSecurityTLS::processMsg()
 
     setParam();
 
-    // Create this early as it sets up the push/pull functions for
-    // GnuTLS
     tlssock = new rdr::TLSSocket(is, os, session);
 
     rawis = is;
     rawos = os;
   }
 
-  int err;
-  err = gnutls_handshake(session);
-  if (err != GNUTLS_E_SUCCESS) {
-    if (!gnutls_error_is_fatal(err)) {
-      vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
+  try {
+    if (!tlssock->handshake())
       return false;
-    }
-
-    vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
+  } catch (std::exception&) {
     shutdown();
-    throw rdr::tls_error("TLS Handshake failed", err);
+    throw;
   }
 
   vlog.debug("TLS handshake completed with %s",
