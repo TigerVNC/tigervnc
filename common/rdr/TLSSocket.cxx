@@ -1,0 +1,169 @@
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2005 Martin Koegler
+ * Copyright (C) 2010 TigerVNC Team
+ * Copyright (C) 2012-2025 Pierre Ossman for Cendio AB
+ *
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+ * USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <core/Exception.h>
+#include <core/LogWriter.h>
+
+#include <rdr/InStream.h>
+#include <rdr/OutStream.h>
+#include <rdr/TLSException.h>
+#include <rdr/TLSSocket.h>
+
+#include <errno.h>
+
+#ifdef HAVE_GNUTLS
+
+using namespace rdr;
+
+static core::LogWriter vlog("TLSSocket");
+
+TLSSocket::TLSSocket(InStream* in_, OutStream* out_,
+                     gnutls_session_t session_)
+  : session(session_), in(in_), out(out_), tlsin(this), tlsout(this)
+{
+  gnutls_transport_set_pull_function(session, pull);
+  gnutls_transport_set_push_function(session, push);
+  gnutls_transport_set_ptr(session, this);
+}
+
+TLSSocket::~TLSSocket()
+{
+  gnutls_transport_set_pull_function(session, nullptr);
+  gnutls_transport_set_push_function(session, nullptr);
+  gnutls_transport_set_ptr(session, nullptr);
+}
+
+size_t TLSSocket::readTLS(uint8_t* buf, size_t len)
+{
+  int n;
+
+  while (true) {
+    streamEmpty = false;
+    n = gnutls_record_recv(session, (void *) buf, len);
+    if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN) {
+      // GnuTLS returns GNUTLS_E_AGAIN for a bunch of other scenarios
+      // other than the pull function returning EAGAIN, so we have to
+      // double check that the underlying stream really is empty
+      if (!streamEmpty)
+        continue;
+      else
+        return 0;
+    }
+    break;
+  };
+
+  if (n == GNUTLS_E_PULL_ERROR)
+    std::rethrow_exception(saved_exception);
+
+  if (n < 0)
+    throw tls_error("readTLS", n);
+
+  if (n == 0)
+    throw end_of_stream();
+
+  return n;
+}
+
+size_t TLSSocket::writeTLS(const uint8_t* data, size_t length)
+{
+  int n;
+
+  n = gnutls_record_send(session, data, length);
+  if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
+    return 0;
+
+  if (n == GNUTLS_E_PUSH_ERROR)
+    std::rethrow_exception(saved_exception);
+
+  if (n < 0)
+    throw tls_error("writeTLS", n);
+
+  return n;
+}
+
+ssize_t TLSSocket::pull(gnutls_transport_ptr_t sock, void* data,
+                        size_t size)
+{
+  TLSSocket* self= (TLSSocket*) sock;
+  InStream *in = self->in;
+
+  self->streamEmpty = false;
+  self->saved_exception = nullptr;
+
+  try {
+    if (!in->hasData(1)) {
+      self->streamEmpty = true;
+      gnutls_transport_set_errno(self->session, EAGAIN);
+      return -1;
+    }
+
+    if (in->avail() < size)
+      size = in->avail();
+
+    in->readBytes((uint8_t*)data, size);
+  } catch (end_of_stream&) {
+    return 0;
+  } catch (std::exception& e) {
+    core::socket_error* se;
+    vlog.error("Failure reading TLS data: %s", e.what());
+    se = dynamic_cast<core::socket_error*>(&e);
+    if (se)
+      gnutls_transport_set_errno(self->session, se->err);
+    else
+      gnutls_transport_set_errno(self->session, EINVAL);
+    self->saved_exception = std::current_exception();
+    return -1;
+  }
+
+  return size;
+}
+
+ssize_t TLSSocket::push(gnutls_transport_ptr_t sock, const void* data,
+                        size_t size)
+{
+  TLSSocket* self = (TLSSocket*) sock;
+  OutStream *out = self->out;
+
+  self->saved_exception = nullptr;
+
+  try {
+    out->writeBytes((const uint8_t*)data, size);
+    out->flush();
+  } catch (std::exception& e) {
+    core::socket_error* se;
+    vlog.error("Failure sending TLS data: %s", e.what());
+    se = dynamic_cast<core::socket_error*>(&e);
+    if (se)
+      gnutls_transport_set_errno(self->session, se->err);
+    else
+      gnutls_transport_set_errno(self->session, EINVAL);
+    self->saved_exception = std::current_exception();
+    return -1;
+  }
+
+  return size;
+}
+
+#endif

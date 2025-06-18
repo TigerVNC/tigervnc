@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
  * Copyright (C) 2010 m-privacy GmbH
- * Copyright (C) 2012-2021 Pierre Ossman for Cendio AB
+ * Copyright 2012-2025 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,8 +43,7 @@
 #include <rfb/Exception.h>
 
 #include <rdr/TLSException.h>
-#include <rdr/TLSInStream.h>
-#include <rdr/TLSOutStream.h>
+#include <rdr/TLSSocket.h>
 
 #include <gnutls/x509.h>
 
@@ -75,7 +74,7 @@ static const char* configdirfn(const char* fn)
 CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon)
   : CSecurity(cc_), session(nullptr),
     anon_cred(nullptr), cert_cred(nullptr),
-    anon(_anon), tlsis(nullptr), tlsos(nullptr),
+    anon(_anon), tlssock(nullptr),
     rawis(nullptr), rawos(nullptr)
 {
   int err = gnutls_global_init();
@@ -85,12 +84,12 @@ CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon)
 
 void CSecurityTLS::shutdown()
 {
-  if (tlsos) {
+  if (tlssock) {
     try {
-      if (tlsos->hasBufferedData()) {
-        tlsos->cork(false);
-        tlsos->flush();
-        if (tlsos->hasBufferedData())
+      if (tlssock->outStream().hasBufferedData()) {
+        tlssock->outStream().cork(false);
+        tlssock->outStream().flush();
+        if (tlssock->outStream().hasBufferedData())
           vlog.error("Failed to flush remaining socket data on close");
       }
     } catch (std::exception& e) {
@@ -123,13 +122,9 @@ void CSecurityTLS::shutdown()
     rawos = nullptr;
   }
 
-  if (tlsis) {
-    delete tlsis;
-    tlsis = nullptr;
-  }
-  if (tlsos) {
-    delete tlsos;
-    tlsos = nullptr;
+  if (tlssock) {
+    delete tlssock;
+    tlssock = nullptr;
   }
 
   if (session) {
@@ -171,10 +166,9 @@ bool CSecurityTLS::processMsg()
 
     setParam();
 
-    // Create these early as they set up the push/pull functions
-    // for GnuTLS
-    tlsis = new rdr::TLSInStream(is, session);
-    tlsos = new rdr::TLSOutStream(os, session);
+    // Create this early as it sets up the push/pull functions for
+    // GnuTLS
+    tlssock = new rdr::TLSSocket(is, os, session);
 
     rawis = is;
     rawos = os;
@@ -198,7 +192,7 @@ bool CSecurityTLS::processMsg()
 
   checkSession();
 
-  cc->setStreams(tlsis, tlsos);
+  cc->setStreams(&tlssock->inStream(), &tlssock->outStream());
 
   return true;
 }

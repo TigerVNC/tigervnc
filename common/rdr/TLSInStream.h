@@ -1,5 +1,6 @@
 /* Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright 2012-2025 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,28 +23,25 @@
 
 #ifdef HAVE_GNUTLS
 
-#include <gnutls/gnutls.h>
 #include <rdr/BufferedInStream.h>
 
 namespace rdr {
 
+  class TLSSocket;
+
   class TLSInStream : public BufferedInStream {
   public:
-    TLSInStream(InStream* in, gnutls_session_t session);
+    TLSInStream(TLSSocket* sock);
     virtual ~TLSInStream();
 
   private:
     bool fillBuffer() override;
-    size_t readTLS(uint8_t* buf, size_t len);
-    static ssize_t pull(gnutls_transport_ptr_t str, void* data, size_t size);
 
-    gnutls_session_t session;
-    InStream* in;
-
-    bool streamEmpty;
-    std::exception_ptr saved_exception;
+    TLSSocket* sock;
   };
-};
+
+}
 
 #endif
+
 #endif
