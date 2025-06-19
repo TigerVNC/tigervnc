@@ -409,6 +409,29 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
+# check for libraries needed for wayland support
+if(UNIX AND NOT APPLE)
+  trioption(ENABLE_WAYLAND "Enable wayland support")
+  if(ENABLE_WAYLAND STREQUAL "AUTO")
+    find_package(GLib)
+    find_package(Gio)
+    find_package(Pipewire)
+
+    find_library(UUID_LIBRARIES uuid)
+    find_path(UUID_INCLUDE_DIRS uuid/uuid.h)
+  else()
+    find_package(GLib REQUIRED)
+    find_package(Gio REQUIRED)
+    find_package(Pipewire REQUIRED)
+
+    find_library(UUID_LIBRARIES uuid REQUIRED)
+    find_path(UUID_INCLUDE_DIRS uuid/uuid.h REQUIRED)
+  endif()
+  if(GLIB_FOUND AND GIO_FOUND AND PIPEWIRE_FOUND)
+    set(ENABLE_WAYLAND 1)
+  endif()
+endif()
+
 find_package(GTest)
 
 # Generate config.h and make sure the source finds it
