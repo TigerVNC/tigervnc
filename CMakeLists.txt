@@ -278,6 +278,7 @@ if(BUILD_JAVA)
   add_subdirectory(java)
 endif()
 
+trioption(BUILD_SERVER "Build TigerVNC server")
 trioption(BUILD_VIEWER "Build TigerVNC viewer")
 if(BUILD_VIEWER)
   # Check for FLTK
@@ -359,7 +360,7 @@ if (ENABLE_NETTLE)
 endif()
 
 # Check for PAM library
-if(UNIX AND NOT APPLE)
+if(BUILD_SERVER AND UNIX AND NOT APPLE)
   check_include_files(security/pam_appl.h HAVE_PAM_H)
   set(CMAKE_REQUIRED_LIBRARIES -lpam)
   check_function_exists(pam_start HAVE_PAM_START)
