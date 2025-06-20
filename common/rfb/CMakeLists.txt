@@ -75,7 +75,7 @@ if(WIN32)
   target_sources(rfb PRIVATE WinPasswdValidator.cxx)
 endif(WIN32)
 
-if(UNIX AND NOT APPLE)
+if(BUILD_SERVER AND UNIX AND NOT APPLE)
   target_sources(rfb PRIVATE UnixPasswordValidator.cxx pam.c)
   target_link_libraries(rfb ${PAM_LIBS})
 endif()
