@@ -123,9 +123,6 @@ SecurityPage::onOk() {
   bool vnc_loaded = false;
   list<uint32_t> secTypes;
 
-  /* Keep same priorities as in common/rfb/SecurityClient::secTypes */
-  secTypes.push_back(secTypeVeNCrypt);
-
 #ifdef HAVE_GNUTLS
   /* X509Plain */
   if (authMethodEnabled(IDC_ENC_X509, IDC_AUTH_PLAIN)) {
