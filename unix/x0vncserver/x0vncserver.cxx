@@ -39,6 +39,7 @@
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
+#include <rfb/UnixPasswordValidator.h>
 #include <rfb/VNCServerST.h>
 
 #include <network/TcpSocket.h>
@@ -335,12 +336,14 @@ int main(int argc, char** argv)
     exit(1);
   }
 
+  const char *displayName = XDisplayName(displayname);
   if (!(dpy = XOpenDisplay(displayname))) {
     // FIXME: Why not vlog.error(...)?
     fprintf(stderr,"%s: Unable to open display \"%s\"\r\n",
-            programName, XDisplayName(displayname));
+            programName, displayName);
     exit(1);
   }
+  rfb::UnixPasswordValidator::setDisplayName(displayName);
 
   signal(SIGHUP, CleanupSignalHandler);
   signal(SIGINT, CleanupSignalHandler);
