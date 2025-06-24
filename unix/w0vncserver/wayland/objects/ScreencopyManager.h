@@ -53,6 +53,9 @@ namespace wayland {
     // Called when the buffer is safe to read from, the frame is ready.
     virtual void captureFrameDone() = 0;
 
+    // Called when the remote output is resized
+    virtual void resize() = 0;
+
     rfb::PixelFormat getPixelFormat();
 
   private:

@@ -35,6 +35,7 @@ namespace wayland {
 
     wl_shm_pool* getShmPool() { return pool; }
     uint8_t* getData() { return data; }
+    size_t getSize() { return size; }
 
     wl_buffer* createBuffer(int32_t offset, int32_t width, int32_t height,
                             int32_t stride, uint32_t format);

@@ -43,6 +43,7 @@ public:
 protected:
   virtual void captureFrame() override;
   virtual void captureFrameDone() override;
+  virtual void resize() override;
 
 private:
   // Sync the shadow framebuffer to the actual framebuffer

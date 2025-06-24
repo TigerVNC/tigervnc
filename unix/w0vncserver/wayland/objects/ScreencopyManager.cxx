@@ -143,6 +143,22 @@ void ScreencopyManager::captureFrameDone()
   frame = nullptr;
 }
 
+void ScreencopyManager::resize()
+{
+  if (frame)
+    zwlr_screencopy_frame_v1_destroy(frame);
+  frame = nullptr;
+
+  if (buffer)
+    wl_buffer_destroy(buffer);
+  buffer = nullptr;
+
+  delete pool;
+  pool = nullptr;
+
+  initBuffers(output->getWidth() * output->getHeight() * 4);
+}
+
 void ScreencopyManager::initBuffers(size_t size)
 {
   int fd;
@@ -189,6 +205,13 @@ void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
                                                uint32_t height,
                                                uint32_t stride)
 {
+  if (output->getHeight() != height || output->getWidth() != width) {
+    vlog.debug("Detected resize, destroying frame");
+    zwlr_screencopy_frame_v1_destroy(frame);
+    frame = nullptr;
+    return;
+  }
+
   delete info;
 
   info = new BufferInfo {
@@ -248,6 +271,12 @@ void ScreencopyManager::handleScreencopyLinuxDmabuf(uint32_t /* format */,
 
 void ScreencopyManager::handleScreencopyBufferDone()
 {
+  if (pool->getSize() != output->getWidth() * output->getHeight() * 4) {
+    vlog.debug("Detected resize, aborting capture");
+    captureFrameDone();
+    return;
+  }
+
   if (!buffer) {
     // FIXME: Check if buffer paramters have changed
     // FIXME: Sanity check with BufferInfo

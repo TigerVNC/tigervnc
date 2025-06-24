@@ -58,6 +58,14 @@ WaylandPixelBuffer::~WaylandPixelBuffer()
 
 void WaylandPixelBuffer::captureFrame()
 {
+  if (output->getWidth() != (uint32_t)width() ||
+      output->getHeight() != (uint32_t)height()) {
+    if (!firstFrame) {
+      vlog.debug("Detected resize, calling resize()");
+      resize();
+    }
+  }
+
   ScreencopyManager::captureFrame();
 }
 
@@ -93,6 +101,22 @@ void WaylandPixelBuffer::captureFrameDone()
   server->add_changed(getRect());
 
   captureFrame();
+}
+
+void WaylandPixelBuffer::resize()
+{
+  ScreencopyManager::resize();
+
+  delete [] shadowFramebuffer;
+
+  shadowFramebuffer = new uint8_t[output->getWidth() *
+                                  output->getHeight() * (format.bpp / 8)];
+
+  setSize(output->getWidth(), output->getHeight());
+
+  syncBuffers();
+
+  server->setPixelBuffer(this);
 }
 
 void WaylandPixelBuffer::syncBuffers()
