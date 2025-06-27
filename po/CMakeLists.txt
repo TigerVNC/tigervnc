@@ -23,6 +23,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       "--directory=${PROJECT_SOURCE_DIR}"
       "--output=${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot"
       --default-domain=tigervnc
+      --from-code=UTF-8
       --keyword=_
       --keyword=p_:1c,2
       --keyword=N_
