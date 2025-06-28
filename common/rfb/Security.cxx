@@ -27,6 +27,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/Security.h>
@@ -52,7 +53,7 @@ Security::Security(core::EnumListParameter &secTypes)
     // Should have been filtered by EnumListParameter, but let's have
     // a safety net
     if (typeNum == secTypeInvalid)
-      throw std::logic_error("Unknown security type");
+      throw std::logic_error(_("Unknown security type"));
     enabledSecTypes.push_back(typeNum);
   }
 }
