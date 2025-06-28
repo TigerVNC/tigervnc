@@ -467,19 +467,16 @@ void CSecurityTLS::checkSession()
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
       text = core::format(
-        "This certificate has been signed by an unknown authority:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate has been signed by an unknown authority:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Unknown certificate issuer",
-                           text.c_str())) {
+                          _("Unknown certificate issuer"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_UNKNOWN_CA);
         throw auth_cancelled();
@@ -492,19 +489,16 @@ void CSecurityTLS::checkSession()
 
     if (status & GNUTLS_CERT_NOT_ACTIVATED) {
       text = core::format(
-        "This certificate is not yet valid:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate is not yet valid:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Certificate is not yet valid",
-                           text.c_str())) {
+                          _("Certificate is not yet valid"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
@@ -515,19 +509,16 @@ void CSecurityTLS::checkSession()
 
     if (status & GNUTLS_CERT_EXPIRED) {
       text = core::format(
-        "This certificate has expired:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate has expired:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Expired certificate",
-                           text.c_str())) {
+                          _("Expired certificate"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
@@ -538,19 +529,16 @@ void CSecurityTLS::checkSession()
 
     if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
       text = core::format(
-        "This certificate uses an insecure algorithm:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate uses an insecure algorithm:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Insecure certificate algorithm",
-                           text.c_str())) {
+                          _("Insecure certificate algorithm"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
@@ -568,20 +556,19 @@ void CSecurityTLS::checkSession()
 
     if (!hostname_match) {
       text = core::format(
-        "The specified hostname \"%s\" does not match the certificate "
-        "provided by the server:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        client->getServerName(), info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        core::format(
+          _("The specified hostname \"%s\" does not match the "
+            "certificate provided by the server:"),
+          client->getServerName()).c_str(),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Certificate hostname mismatch",
-                           text.c_str())) {
+                          _("Certificate hostname mismatch"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
@@ -597,21 +584,18 @@ void CSecurityTLS::checkSession()
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
       text = core::format(
-        "This host is previously known with a different certificate, "
-        "and the new certificate has been signed by an unknown "
-        "authority:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate has been signed by an unknown "
+          "authority:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Unexpected server certificate",
-                           text.c_str())) {
+                          _("Unexpected server certificate"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_UNKNOWN_CA);
         throw auth_cancelled();
@@ -624,20 +608,17 @@ void CSecurityTLS::checkSession()
 
     if (status & GNUTLS_CERT_NOT_ACTIVATED) {
       text = core::format(
-        "This host is previously known with a different certificate, "
-        "and the new certificate is not yet valid:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate is not yet valid:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Unexpected server certificate",
-                           text.c_str())) {
+                          _("Unexpected server certificate"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
@@ -648,20 +629,17 @@ void CSecurityTLS::checkSession()
 
     if (status & GNUTLS_CERT_EXPIRED) {
       text = core::format(
-        "This host is previously known with a different certificate, "
-        "and the new certificate has expired:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate has expired:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Unexpected server certificate",
-                           text.c_str())) {
+                          _("Unexpected server certificate"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
@@ -672,20 +650,17 @@ void CSecurityTLS::checkSession()
 
     if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
       text = core::format(
-        "This host is previously known with a different certificate, "
-        "and the new certificate uses an insecure algorithm:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate uses an insecure algorithm:"),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Unexpected server certificate",
-                           text.c_str())) {
+                          _("Unexpected server certificate"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
@@ -703,21 +678,20 @@ void CSecurityTLS::checkSession()
 
     if (!hostname_match) {
       text = core::format(
-        "This host is previously known with a different certificate, "
-        "and the specified hostname \"%s\" does not match the new "
-        "certificate provided by the server:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?",
-        client->getServerName(), info.data);
+        "%s\n\n%s\n\n%s\n\n%s",
+        core::format(
+          _("This host is previously known with a different "
+            "certificate, and the specified hostname \"%s\" does not "
+            "match the new certificate provided by the server:"),
+          client->getServerName()).c_str(),
+        info.data,
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       if (!cc->showMsgBox(MsgBoxFlags::M_YESNO,
-                           "Unexpected server certificate",
-                           text.c_str())) {
+                          _("Unexpected server certificate"),
+                          text.c_str())) {
         gnutls_alert_send(session, GNUTLS_AL_FATAL,
                           GNUTLS_A_BAD_CERTIFICATE);
         throw auth_cancelled();
