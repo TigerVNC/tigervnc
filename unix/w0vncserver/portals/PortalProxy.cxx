@@ -46,7 +46,8 @@ PortalProxy::PortalProxy(const char* name, const char* objectPath,
   connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
 
   if (error) {
-    std::string error_message(error->message);
+    std::string error_message =
+      core::format(_("Failed to connect to D-Bus: %s"), error->message);
     g_error_free(error);
     throw std::runtime_error(error_message);
   }
@@ -56,7 +57,10 @@ PortalProxy::PortalProxy(const char* name, const char* objectPath,
                                 interfaceName, nullptr, &error);
 
   if (error) {
-    std::string error_message(error->message);
+    std::string error_message =
+      core::format(_("Failed to connect to D-Bus interface \"%s\" at "
+                     "\"%s\" from \"%s\": %s"),
+                   interfaceName, objectPath, name, error->message);
     g_error_free(error);
     throw std::runtime_error(error_message);
   }
@@ -131,9 +135,11 @@ void PortalProxy::call(const char* method, GVariant* parameters,
     g_variant_unref(result);
 
   if (error) {
-    std::string msg(error->message);
+    std::string error_message =
+      core::format(_("Failed to call D-Bus method \"%s\": %s"),
+                   method, error->message);
     g_error_free(error);
-    throw std::runtime_error(msg);
+    throw std::runtime_error(error_message);
   }
 }
 
@@ -215,7 +221,8 @@ bool PortalProxy::interfacesAvailable(std::vector<std::string> interfaces)
   connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
 
   if (error) {
-    std::string error_message(error->message);
+    std::string error_message =
+      core::format(_("Failed to connect to D-Bus: %s"), error->message);
     g_error_free(error);
     throw std::runtime_error(error_message);
   }
@@ -233,9 +240,10 @@ bool PortalProxy::interfacesAvailable(std::vector<std::string> interfaces)
                               &error);
 
   if (error) {
-    std::string error_message(error->message);
+    std::string error_message = core::format(
+      _("Failed to enumerate desktop portals: %s"), error->message);
     g_error_free(error);
-    throw std::runtime_error("Introspect call failed: " + error_message);
+    throw std::runtime_error(error_message);
   }
 
   g_variant_get(result, "(&s)", &introspectionXml);
@@ -244,7 +252,8 @@ bool PortalProxy::interfacesAvailable(std::vector<std::string> interfaces)
   g_variant_unref(result);
 
   if (error) {
-    std::string error_message(error->message);
+    std::string error_message = core::format(
+      _("Failed to enumerate desktop portals: %s"), error->message);
     g_error_free(error);
     throw std::runtime_error(error_message);
   }

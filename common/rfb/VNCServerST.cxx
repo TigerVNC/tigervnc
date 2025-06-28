@@ -643,7 +643,8 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
 
   // Sanity check
   if (screenLayout != layout)
-    throw std::runtime_error("Desktop configured a different screen layout than requested");
+    throw std::runtime_error(
+      _("Desktop configured a different screen layout than requested"));
 
   // Notify other clients
   for (ci = clients.begin(); ci != clients.end(); ++ci) {

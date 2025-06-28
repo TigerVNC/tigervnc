@@ -78,7 +78,7 @@ void ImageCopyCaptureManager::createSession()
   sessionHandle =
     ext_image_copy_capture_manager_v1_create_session(manager, source->getSource(), 0);
   if (!sessionHandle)
-    throw std::runtime_error("Unable to create image copy capture session");
+    throw std::runtime_error(_("Failed to create screen capture session"));
 
   session = new ImageCopyCaptureSession(display, sessionHandle,
                                         bufferEventCb, stoppedCb);

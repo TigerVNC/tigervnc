@@ -25,6 +25,7 @@
 #include <winvnc/resource.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/Service.h>
@@ -72,7 +73,7 @@ void QueryConnectDialog::worker() {
   countdown = timeout;
   try {
     if (desktopChangeRequired() && !changeDesktop())
-      throw std::runtime_error("changeDesktop failed");
+      throw std::runtime_error(_("Failed to change to active desktop"));
     approve = Dialog::showDialog(MAKEINTRESOURCE(IDD_QUERY_CONNECT));
     server->queryConnectionComplete();
   } catch (...) {

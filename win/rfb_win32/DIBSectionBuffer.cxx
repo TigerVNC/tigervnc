@@ -88,7 +88,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
 
     if (!new_bitmap) {
       int err = GetLastError();
-      throw core::win32_error("Unable to create DIB section", err);
+      throw core::win32_error(_("Failed to create bitmap"), err);
     }
 
     vlog.debug("recreateBuffer()");
@@ -161,7 +161,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
       bits = bits >> 1;
     }
     if (depth > bpp)
-      throw std::runtime_error("Bad DIBSection format (depth exceeds bpp)");
+      throw std::runtime_error(_("Depth exceeds bits per pixel"));
 
     format = PixelFormat(bpp, depth, false, true,
                          redMax, greenMax, blueMax,

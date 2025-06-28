@@ -347,5 +347,5 @@ uint32_t ImageCopyCaptureSession::preferredFormat()
       return shmFormat;
   }
 
-  throw std::runtime_error("No supported shm format found");
+  throw std::runtime_error(_("No supported Wayland pixel format"));
 }

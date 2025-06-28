@@ -23,6 +23,7 @@
 
 #include <assert.h>
 
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/BufferedInStream.h>
@@ -64,9 +65,8 @@ void BufferedInStream::ensureSpace(size_t needed)
     uint8_t* newBuffer;
 
     if (needed > MAX_BUF_SIZE)
-      throw std::out_of_range(core::format(
-        "BufferedInStream overrun: requested size of %lu bytes exceeds "
-        "maximum of %lu bytes",
+      throw std::runtime_error(core::format(
+        _("Buffer size of %lu bytes exceeds maximum of %lu bytes"),
         (long unsigned)needed, (long unsigned)MAX_BUF_SIZE));
 
     newSize = DEFAULT_BUF_SIZE;

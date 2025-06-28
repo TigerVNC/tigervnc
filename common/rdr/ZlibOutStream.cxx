@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/ZlibOutStream.h>
 
@@ -46,7 +47,7 @@ ZlibOutStream::ZlibOutStream(OutStream* os, int compressLevel)
   zs->avail_in  = 0;
   if (deflateInit(zs, compressLevel) != Z_OK) {
     delete zs;
-    throw std::runtime_error("ZlibOutStream: deflateInit failed");
+    throw std::runtime_error(_("Failed to initialize zlib"));
   }
 }
 
@@ -113,7 +114,7 @@ void ZlibOutStream::deflate(int flush)
   int rc;
 
   if (!underlying)
-    throw std::runtime_error("ZlibOutStream: Underlying OutStream has not been set");
+    throw std::logic_error("ZlibOutStream: Underlying OutStream has not been set");
 
   if ((flush == Z_NO_FLUSH) && (zs->avail_in == 0))
     return;
@@ -134,7 +135,7 @@ void ZlibOutStream::deflate(int flush)
       if ((rc == Z_BUF_ERROR) && (flush != Z_NO_FLUSH))
         break;
 
-      throw std::runtime_error("ZlibOutStream: deflate failed");
+      throw std::runtime_error(_("Failed to compress data"));
     }
 
 #ifdef ZLIBOUT_DEBUG
@@ -168,7 +169,7 @@ void ZlibOutStream::checkCompressionLevel()
       // explicit flush we did above. It should be safe to ignore though
       // as the first flush should have left things in a stable state...
       if (rc != Z_BUF_ERROR)
-        throw std::runtime_error("ZlibOutStream: deflateParams failed");
+        throw std::runtime_error(_("Failed to compress data"));
     }
 
     compressionLevel = newLevel;

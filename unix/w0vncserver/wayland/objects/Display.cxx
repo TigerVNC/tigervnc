@@ -55,12 +55,12 @@ Display::Display(const char* name)
 {
   display = wl_display_connect(name);
   if (!display)
-    throw std::runtime_error("Failed to connect to wayland display");
+    throw std::runtime_error(_("Failed to connect to Wayland server"));
 
   registry = wl_display_get_registry(display);
   if (!registry) {
     wl_display_disconnect(display);
-    throw std::runtime_error("Failed to get registry");
+    throw std::runtime_error(_("Failed to get Wayland registry"));
   }
 
   wl_registry_add_listener(registry, &listener, this);

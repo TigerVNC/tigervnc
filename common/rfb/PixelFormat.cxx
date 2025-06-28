@@ -26,8 +26,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+
+#include <core/i18n.h>
+
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
+
 #include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 
@@ -180,7 +184,7 @@ void PixelFormat::read(rdr::InStream* is)
   }
 
   if (!isSane())
-    throw protocol_error("Invalid pixel format");
+    throw protocol_error(_("Invalid pixel format"));
 
   updateState();
 }

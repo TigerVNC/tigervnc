@@ -27,6 +27,7 @@
 #endif
 
 #include <core/Configuration.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/SSecurityPlain.h>
@@ -98,11 +99,11 @@ bool SSecurityPlain::processMsg()
 
     ulen = is->readU32();
     if (ulen >= sizeof(username))
-      throw auth_error("Too long username");
+      throw auth_error(_("Username is too long"));
 
     plen = is->readU32();
     if (plen >= sizeof(password))
-      throw auth_error("Too long password");
+      throw auth_error(_("Password is too long"));
 
     state = 1;
   }

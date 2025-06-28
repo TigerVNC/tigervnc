@@ -29,6 +29,7 @@
 #include <wlr-virtual-pointer-unstable-v1.h>
 
 #include <core/Rect.h>
+#include <core/i18n.h>
 
 #include "Seat.h"
 #include "Display.h"
@@ -56,7 +57,7 @@ static int getInputCode(uint32_t button)
   case 0x8:
     return BTN_EXTRA;
   default:
-    throw std::runtime_error("Unknown mouse button");
+    throw std::runtime_error(_("Unknown mouse button"));
   }
 }
 
@@ -69,7 +70,7 @@ VirtualPointer::VirtualPointer(Display* display, Seat* seat)
   cursor = zwlr_virtual_pointer_manager_v1_create_virtual_pointer(manager,
                                                                   seat->getSeat());
   if (!cursor)
-    throw std::runtime_error("Failed to create virtual pointer");
+    throw std::runtime_error(_("Failed to create virtual pointer"));
 
   zwlr_virtual_pointer_v1_axis_source(cursor, WL_POINTER_AXIS_SOURCE_WHEEL);
 }

@@ -29,6 +29,8 @@
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
+
 #include <rfb/KeysymStr.h>
 #include <rfb/ledStates.h>
 
@@ -54,7 +56,7 @@ VirtualKeyboard::VirtualKeyboard(Display* display, Seat* seat_)
   keyboard = zwp_virtual_keyboard_manager_v1_create_virtual_keyboard(manager,
                                                                      seat->getSeat());
   if (!keyboard)
-    throw std::runtime_error("Failed to create virtual keyboard");
+    throw std::runtime_error(_("Failed to create virtual keyboard"));
 
   if (seat->getKeyboard() && seat->getKeyboard()->hasKeymap())
     setupKeyboard();

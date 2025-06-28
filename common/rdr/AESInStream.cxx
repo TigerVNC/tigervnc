@@ -24,6 +24,8 @@
 
 #include <stdexcept>
 
+#include <core/i18n.h>
+
 #include <rdr/AESInStream.h>
 
 #ifdef HAVE_NETTLE
@@ -41,7 +43,7 @@ AESInStream::AESInStream(InStream* _in, const uint8_t* key,
   else if (keySize == 256)
     EAX_SET_KEY(&eaxCtx256, aes256_set_encrypt_key, aes256_encrypt, key);
   else
-    throw std::out_of_range("Incorrect key size");
+    throw std::out_of_range("Invalid key size");
 }
 
 AESInStream::~AESInStream() {}
@@ -81,7 +83,7 @@ bool AESInStream::fillBuffer()
 #endif
   }
   if (memcmp(mac, macComputed, EAX_DIGEST_SIZE) != 0)
-    throw std::runtime_error("AESInStream: Failed to authenticate message");
+    throw std::runtime_error(_("Corrupted message received"));
   in->setptr(2 + length + EAX_DIGEST_SIZE);
   end += length;
 

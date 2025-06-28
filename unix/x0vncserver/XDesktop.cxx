@@ -102,7 +102,7 @@ XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
   if (!XkbQueryExtension(dpy, &xkbOpcode, &xkbEventBase,
                          &xkbErrorBase, &major, &minor)) {
     vlog.error(_("XKEYBOARD extension not present"));
-    throw std::runtime_error("XKEYBOARD extension not present");
+    throw std::runtime_error(_("XKEYBOARD extension not present"));
   }
 
   XkbSelectEvents(dpy, XkbUseCoreKbd, XkbIndicatorStateNotifyMask,

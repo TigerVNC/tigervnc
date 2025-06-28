@@ -32,6 +32,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+#include <stdexcept>
+
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 
@@ -81,10 +83,8 @@ void Image::Init(int width, int height)
 {
   Visual* vis = DefaultVisual(dpy, DefaultScreen(dpy));
 
-  if (vis->c_class != TrueColor) {
-    vlog.error("Pseudocolour not supported");
-    exit(1);
-  }
+  if (vis->c_class != TrueColor)
+    throw std::runtime_error(_("Pseudocolour is not supported"));
 
   xim = XCreateImage(dpy, vis, DefaultDepth(dpy, DefaultScreen(dpy)),
                      ZPixmap, 0, nullptr, width, height,
@@ -248,10 +248,8 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
     depth = vinfo->depth;
   }
 
-  if (visual->c_class != TrueColor) {
-    vlog.error("Pseudocolour not supported");
-    exit(1);
-  }
+  if (visual->c_class != TrueColor)
+    throw std::runtime_error(_("Pseudocolour is not supported"));
 
   shminfo = new XShmSegmentInfo;
 

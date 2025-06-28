@@ -125,7 +125,7 @@ DataControl::DataControl(Display* display, Seat* seat,
   device = ext_data_control_manager_v1_get_data_device(manager, seat->getSeat());
 
   if (!device)
-    throw std::runtime_error("Failed to get data device");
+    throw std::runtime_error(_("Failed to create clipboard data device"));
 
   ext_data_control_device_v1_add_listener(device, &deviceListener, this);
 
@@ -558,7 +558,7 @@ ext_data_control_source_v1* DataControl::createDataSource()
 
   source = ext_data_control_manager_v1_create_data_source(manager);
   if (!source)
-    throw std::runtime_error("Failed to create data source");
+    throw std::runtime_error(_("Failed to create clipboard data source"));
 
   ext_data_control_source_v1_add_listener(source, &sourceListener, this);
 

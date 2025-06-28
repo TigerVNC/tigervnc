@@ -435,7 +435,7 @@ bool CConn::verifyCertificate(unsigned int status,
   (void)status;
   (void)certificate;
   (void)length;
-  throw std::logic_error(_("TLS support not enabled"));
+  throw std::logic_error("TLS support not enabled");
 #else
   const unsigned allowed_errors =
     GNUTLS_CERT_INVALID |
@@ -643,7 +643,7 @@ bool CConn::verifyCertificate(unsigned int status,
     if (status != 0) {
       vlog.error("Unhandled server certificate problems: 0x%x",
                  status);
-      throw std::logic_error(_("Unhandled server certificate problems"));
+      throw std::logic_error("Unhandled server certificate problems");
     }
   } else if (known == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
@@ -752,7 +752,7 @@ bool CConn::verifyCertificate(unsigned int status,
     if (status != 0) {
       vlog.error("Unhandled server certificate problems: 0x%x",
                  status);
-      throw std::logic_error(_("Unhandled server certificate problems"));
+      throw std::logic_error("Unhandled server certificate problems");
     }
   }
 

@@ -382,16 +382,16 @@ static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
   wchar_t name[buffersize];
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::invalid_argument(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   char encodingBuffer[buffersize];
   if (!encodeValue(_value, encodingBuffer, buffersize))
-    throw std::invalid_argument(_("The parameter is too large"));
+    throw std::length_error("The parameter is too large");
 
   wchar_t value[buffersize];
   size = fl_utf8towc(encodingBuffer, strlen(encodingBuffer)+1, value, buffersize);
   if (size >= buffersize)
-    throw std::invalid_argument(_("The parameter is too large"));
+    throw std::length_error("The parameter is too large");
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_SZ, (BYTE*)&value, (wcslen(value)+1)*2);
   if (res != ERROR_SUCCESS)
@@ -407,7 +407,7 @@ static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_DWORD, (BYTE*)&value, sizeof(DWORD));
   if (res != ERROR_SUCCESS)
@@ -424,7 +424,7 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   value = new WCHAR[destSize];
   valuesize = destSize;
@@ -442,14 +442,14 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
   delete [] value;
   if (size >= destSize) {
     delete [] utf8val;
-    throw std::out_of_range(_("The parameter is too large"));
+    throw std::length_error("The parameter is too large");
   }
 
   bool ret = decodeValue(utf8val, dest, destSize);
   delete [] utf8val;
 
   if (!ret)
-    throw std::invalid_argument(_("Invalid format or too large value"));
+    throw std::invalid_argument("Invalid format or too large value");
 
   return true;
 }
@@ -464,7 +464,7 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   LONG res = RegQueryValueExW(*hKey, name, nullptr, nullptr, (LPBYTE)&value, &dwordsize);
   if (res != ERROR_SUCCESS){
@@ -484,7 +484,7 @@ static void removeValue(const char* _name, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   LONG res = RegDeleteValueW(*hKey, name);
   if (res != ERROR_SUCCESS) {

@@ -25,6 +25,7 @@
 #include <ext-image-capture-source-v1.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include "Display.h"
 #include "Output.h"
@@ -49,7 +50,7 @@ OutputImageCaptureSource::OutputImageCaptureSource(Display* display,
   source = ext_output_image_capture_source_manager_v1_create_source(manager, output->getOutput());
   if (!source) {
     ext_output_image_capture_source_manager_v1_destroy(manager);
-    throw std::runtime_error("Failed to create capture source");
+    throw std::runtime_error(_("Failed to create screen capture source"));
   }
 }
 
@@ -70,7 +71,7 @@ ForeignToplevelImageCaptureSource::ForeignToplevelImageCaptureSource(Display* di
   source = ext_foreign_toplevel_image_capture_source_manager_v1_create_source(manager, toplevel);
   if (!source) {
     ext_foreign_toplevel_image_capture_source_manager_v1_destroy(manager);
-    throw std::runtime_error("Failed to create capture source");
+    throw std::runtime_error(_("Failed to create screen capture source"));
   }
 }
 

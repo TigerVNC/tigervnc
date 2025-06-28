@@ -26,6 +26,7 @@
 
 #include <wayland-client-protocol.h>
 
+#include <core/Exception.h>
 #include <core/LogWriter.h>
 
 #include "../../w0vncserver.h"
@@ -40,7 +41,7 @@ ShmPool::ShmPool(Shm* shm, int fd, size_t size_)
   data = (uint8_t*)mmap(nullptr, size, PROT_READ | PROT_WRITE,
                         MAP_SHARED, fd, 0);
   if (data == MAP_FAILED)
-    throw std::runtime_error("Failed to mmap shm");
+    throw core::posix_error("mmap", errno);
 
   pool = wl_shm_create_pool(shm->getShm(), fd, size);
 }

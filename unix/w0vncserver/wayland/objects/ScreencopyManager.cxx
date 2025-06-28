@@ -104,9 +104,7 @@ ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
 
   size = output_->getWidth() * output_->getHeight() * 4;
   if (!size) {
-    throw std::runtime_error(core::format("Invalid output size %dx%d",
-                                          output_->getWidth(),
-                                          output_->getHeight()));
+    throw std::invalid_argument("Output with zero width or height");
   }
 
   initBuffers(size);
@@ -196,11 +194,13 @@ void ScreencopyManager::initBuffers(size_t size)
 
   fd = memfd_create("w0vncserver-shm", FD_CLOEXEC);
   if (fd < 0)
-    throw std::runtime_error(core::format("Failed to allocate shm: %s", strerror(errno)));
+    throw std::runtime_error(core::format(
+      _("Failed to create shared memory pool: %s"), strerror(errno)));
 
   if (ftruncate(fd, size) < 0) {
     close(fd);
-    throw std::runtime_error(core::format("Failed to truncate shm: %s", strerror(errno)));
+    throw std::runtime_error(core::format(
+      _("Failed to create shared memory pool: %s"), strerror(errno)));
   }
 
 
