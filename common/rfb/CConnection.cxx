@@ -372,7 +372,10 @@ bool CConnection::processSecurityReasonMsg()
   reason[len] = '\0';
 
   state_ = RFBSTATE_INVALID;
-  throw auth_error(reason.data());
+  if (core::isValidUTF8(reason.data()))
+    throw auth_error(reason.data());
+  else
+    throw auth_error(core::latin1ToUTF8(reason.data()));
 }
 
 bool CConnection::processInitMsg()
