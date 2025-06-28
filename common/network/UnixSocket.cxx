@@ -106,7 +106,7 @@ const char* UnixSocket::getPeerAddress() {
 
   // socketpair() will create unnamed sockets
 
-  return "(unnamed UNIX socket)";
+  return _("(unnamed UNIX socket)");
 }
 
 const char* UnixSocket::getPeerEndpoint() {
