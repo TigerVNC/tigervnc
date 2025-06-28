@@ -314,7 +314,7 @@ const char* TcpSocket::getPeerAddress() {
 
   if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
     vlog.error(_("Failed to get peer name for socket"));
-    return "(N/A)";
+    return _("(N/A)");
   }
 
   if (sa.u.sa.sa_family == AF_INET6) {
@@ -328,7 +328,7 @@ const char* TcpSocket::getPeerAddress() {
                       NI_NUMERICHOST);
     if (ret != 0) {
       vlog.error(_("Failed to convert peer name to a string"));
-      return "(N/A)";
+      return _("(N/A)");
     }
 
     strcat(buffer, "]");
@@ -342,14 +342,14 @@ const char* TcpSocket::getPeerAddress() {
     name = inet_ntoa(sa.u.sin.sin_addr);
     if (name == nullptr) {
       vlog.error(_("Failed to convert peer name to a string"));
-      return "(N/A)";
+      return _("(N/A)");
     }
 
     return name;
   }
 
   vlog.error(_("Unknown address family"));
-  return "";
+  return _("(N/A)");
 }
 
 const char* TcpSocket::getPeerEndpoint() {

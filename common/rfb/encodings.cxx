@@ -21,6 +21,9 @@
 #endif
 
 #include <string.h>
+
+#include <core/i18n.h>
+
 #include <rfb/encodings.h>
 
 int rfb::encodingNum(const char* name)
@@ -49,6 +52,6 @@ const char* rfb::encodingName(int num)
   case encodingTight:    return "Tight";
   case encodingJPEG:     return "JPEG";
   case encodingH264:     return "H.264";
-  default:               return "[unknown encoding]";
+  default:               return _("[unknown]");
   }
 }
