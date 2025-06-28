@@ -105,14 +105,14 @@ bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
 
     if (!Decoder::supported(encoding)) {
       vlog.error(_("Unknown encoding %d"), encoding);
-      throw protocol_error("Unknown encoding");
+      throw protocol_error(_("Unknown encoding"));
     }
 
     if (!decoders[encoding]) {
       decoders[encoding] = Decoder::createDecoder(encoding);
       if (!decoders[encoding]) {
         vlog.error(_("Unknown encoding %d"), encoding);
-        throw protocol_error("Unknown encoding");
+        throw protocol_error(_("Unknown encoding"));
       }
     }
 

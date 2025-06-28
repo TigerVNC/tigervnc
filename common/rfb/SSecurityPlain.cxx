@@ -22,6 +22,7 @@
 #endif
 
 #include <core/Configuration.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/SSecurityPlain.h>
@@ -87,7 +88,7 @@ bool SSecurityPlain::processMsg()
   char password[1024];
 
   if (!valid)
-    throw std::logic_error("No password validator configured");
+    throw std::logic_error(_("No password database configured"));
 
   if (state == 0) {
     if (!is->hasData(8))

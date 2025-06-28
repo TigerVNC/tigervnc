@@ -25,6 +25,7 @@
 #include <assert.h>
 
 #include <core/Rect.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/OutStream.h>
@@ -79,7 +80,7 @@ void CMsgWriter::writeSetDesktopSize(int width, int height,
                                      const ScreenSet& layout)
 {
   if (!server->supportsSetDesktopSize)
-    throw std::logic_error("Server does not support SetDesktopSize");
+    throw std::logic_error(_("Resizing the desktop is not supported"));
 
   startMsg(msgTypeSetDesktopSize);
   os->pad(1);
@@ -119,7 +120,7 @@ void CMsgWriter::writeEnableContinuousUpdates(bool enable,
                                               int x, int y, int w, int h)
 {
   if (!server->supportsContinuousUpdates)
-    throw std::logic_error("Server does not support continuous updates");
+    throw std::logic_error(_("Continuous updates are not supported"));
 
   startMsg(msgTypeEnableContinuousUpdates);
 
@@ -136,11 +137,11 @@ void CMsgWriter::writeEnableContinuousUpdates(bool enable,
 void CMsgWriter::writeFence(uint32_t flags, unsigned len, const uint8_t data[])
 {
   if (!server->supportsFence)
-    throw std::logic_error("Server does not support fences");
+    throw std::logic_error(_("Fences are not supported"));
   if (len > 64)
-    throw std::out_of_range("Too large fence payload");
+    throw std::out_of_range(_("Fence payload is too large"));
   if ((flags & ~fenceFlagsSupported) != 0)
-    throw std::invalid_argument("Unknown fence flags");
+    throw std::invalid_argument(_("Unknown fence flags"));
 
   startMsg(msgTypeClientFence);
   os->pad(3);
@@ -225,7 +226,8 @@ void CMsgWriter::writePointerEvent(const core::Point& pos,
 void CMsgWriter::writeClientCutText(const char* str)
 {
   if (strchr(str, '\r') != nullptr)
-    throw std::invalid_argument("Invalid carriage return in clipboard data");
+    throw std::invalid_argument(
+      _("Invalid carriage return in clipboard data"));
 
   std::string latin1(core::utf8ToLatin1(str));
 
@@ -242,7 +244,8 @@ void CMsgWriter::writeClipboardCaps(uint32_t caps,
   size_t i, count;
 
   if (!(server->clipboardFlags() & clipboardCaps))
-    throw std::logic_error("Server does not support clipboard \"caps\" action");
+    throw std::logic_error(
+      _("Clipboard \"caps\" action is not supported"));
 
   count = 0;
   for (i = 0;i < 16;i++) {
@@ -268,7 +271,8 @@ void CMsgWriter::writeClipboardCaps(uint32_t caps,
 void CMsgWriter::writeClipboardRequest(uint32_t flags)
 {
   if (!(server->clipboardFlags() & clipboardRequest))
-    throw std::logic_error("Server does not support clipboard \"request\" action");
+    throw std::logic_error(
+      _("Clipboard \"request\" action is not supported"));
 
   startMsg(msgTypeClientCutText);
   os->pad(3);
@@ -280,7 +284,8 @@ void CMsgWriter::writeClipboardRequest(uint32_t flags)
 void CMsgWriter::writeClipboardPeek(uint32_t flags)
 {
   if (!(server->clipboardFlags() & clipboardPeek))
-    throw std::logic_error("Server does not support clipboard \"peek\" action");
+    throw std::logic_error(
+      _("Clipboard \"peek\" action is not supported"));
 
   startMsg(msgTypeClientCutText);
   os->pad(3);
@@ -292,7 +297,8 @@ void CMsgWriter::writeClipboardPeek(uint32_t flags)
 void CMsgWriter::writeClipboardNotify(uint32_t flags)
 {
   if (!(server->clipboardFlags() & clipboardNotify))
-    throw std::logic_error("Server does not support clipboard \"notify\" action");
+    throw std::logic_error(
+      _("Clipboard \"notify\" action is not supported"));
 
   startMsg(msgTypeClientCutText);
   os->pad(3);
@@ -311,7 +317,8 @@ void CMsgWriter::writeClipboardProvide(uint32_t flags,
   int i, count;
 
   if (!(server->clipboardFlags() & clipboardProvide))
-    throw std::logic_error("Server does not support clipboard \"provide\" action");
+    throw std::logic_error(
+      _("Clipboard \"provide\" action is not supported"));
 
   zos.setUnderlying(&mos);
 

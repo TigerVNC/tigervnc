@@ -91,7 +91,7 @@ bool TLSSocket::handshake()
 
     vlog.error(_("TLS handshake failed: %s"), msg);
     gnutls_alert_send_appropriate(session, err);
-    throw rdr::tls_error("TLS Handshake failed", err, alert);
+    throw rdr::tls_error(_("TLS handshake failed"), err, alert);
   }
 
   return true;
@@ -145,7 +145,8 @@ size_t TLSSocket::readTLS(uint8_t* buf, size_t len)
 
   if (n < 0) {
     gnutls_alert_send_appropriate(session, n);
-    throw tls_error("readTLS", n, gnutls_alert_get(session));
+    throw tls_error(_("Failed receiving TLS data"), n,
+                    gnutls_alert_get(session));
   }
 
   if (n == 0)
@@ -167,7 +168,8 @@ size_t TLSSocket::writeTLS(const uint8_t* data, size_t length)
 
   if (n < 0) {
     gnutls_alert_send_appropriate(session, n);
-    throw tls_error("writeTLS", n, gnutls_alert_get(session));
+    throw tls_error(_("Failed sending TLS data"), n,
+                    gnutls_alert_get(session));
   }
 
   return n;

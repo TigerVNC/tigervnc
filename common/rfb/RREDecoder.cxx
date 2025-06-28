@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <core/i18n.h>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -107,7 +109,7 @@ void RREDecoder::rreDecode(const core::Rect& r, rdr::InStream* is,
     int h = is->readU16();
 
     if (((x+w) > r.width()) || ((y+h) > r.height()))
-      throw protocol_error("RRE decode error");
+      throw protocol_error(_("Invalid RRE coordinates"));
 
     pb->fillRect(pf, {r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h}, &pix);
   }

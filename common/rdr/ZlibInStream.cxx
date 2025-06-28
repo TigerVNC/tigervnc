@@ -22,6 +22,8 @@
 
 #include <assert.h>
 
+#include <core/i18n.h>
+
 #include <rdr/ZlibInStream.h>
 #include <zlib.h>
 
@@ -49,7 +51,8 @@ void ZlibInStream::flushUnderlying()
 {
   while (bytesIn > 0) {
     if (!hasData(1))
-      throw std::runtime_error("ZlibInStream: Failed to flush remaining stream data");
+      throw std::runtime_error(
+        _("Failed to flush remaining stream data"));
     skip(avail());
   }
 
@@ -75,7 +78,7 @@ void ZlibInStream::init()
   if (inflateInit(zs) != Z_OK) {
     delete zs;
     zs = nullptr;
-    throw std::runtime_error("ZlibInStream: inflateInit failed");
+    throw std::runtime_error(_("Failed to initialize zlib"));
   }
 }
 
@@ -91,7 +94,7 @@ void ZlibInStream::deinit()
 bool ZlibInStream::fillBuffer()
 {
   if (!underlying)
-    throw std::runtime_error("ZlibInStream overrun: No underlying stream");
+    throw std::logic_error("ZlibInStream overrun: No underlying stream");
 
   zs->next_out = (uint8_t*)end;
   zs->avail_out = availSpace();
@@ -106,7 +109,7 @@ bool ZlibInStream::fillBuffer()
 
   int rc = inflate(zs, Z_SYNC_FLUSH);
   if (rc < 0) {
-    throw std::runtime_error("ZlibInStream: inflate failed");
+    throw std::runtime_error(_("Failed to decompress data"));
   }
 
   bytesIn -= length - zs->avail_in;

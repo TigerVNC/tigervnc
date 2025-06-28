@@ -48,7 +48,7 @@ struct ActiveDesktop {
     HRESULT result = CoCreateInstance(CLSID_ActiveDesktop, nullptr, CLSCTX_INPROC_SERVER,
                                       IID_IActiveDesktop, (PVOID*)&handle);
     if (result != S_OK)
-      throw core::win32_error("Failed to contact Active Desktop", HRESULT_CODE(result));
+      throw core::win32_error(_("Failed to contact Active Desktop"), HRESULT_CODE(result));
   }
   ~ActiveDesktop() {
     if (handle)

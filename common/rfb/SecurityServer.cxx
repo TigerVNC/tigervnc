@@ -23,6 +23,8 @@
 
 #include <stdexcept>
 
+#include <core/i18n.h>
+
 #include <rfb/Security.h>
 #include <rfb/SecurityServer.h>
 
@@ -101,6 +103,6 @@ SSecurity* SecurityServer::GetSSecurity(SConnection* sc, uint32_t secType)
   }
 
 bail:
-  throw std::invalid_argument("Security type not supported");
+  throw std::invalid_argument(_("Security type is not supported"));
 }
 

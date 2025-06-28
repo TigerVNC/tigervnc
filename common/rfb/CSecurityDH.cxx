@@ -34,6 +34,9 @@
 #include <nettle/aes.h>
 #include <nettle/md5.h>
 #include <nettle/bignum.h>
+
+#include <core/i18n.h>
+
 #include <rfb/CSecurityDH.h>
 #include <rfb/CConnection.h>
 #include <rdr/InStream.h>
@@ -85,9 +88,9 @@ bool CSecurityDH::readKey()
   uint16_t gen = is->readU16();
   keyLength = is->readU16();
   if (keyLength < MinKeyLength)
-    throw protocol_error("DH key is too short");
+    throw protocol_error(_("Received Diffie-Hellman key is too short"));
   if (keyLength > MaxKeyLength)
-    throw protocol_error("DH key is too long");
+    throw protocol_error(_("Received Diffie-Hellman key is too long"));
   if (!is->hasDataOrRestore(keyLength * 2))
     return false;
   is->clearRestorePoint();
@@ -111,7 +114,7 @@ void CSecurityDH::writeCredentials()
 
   std::vector<uint8_t> bBytes(keyLength);
   if (!rs.hasData(keyLength))
-    throw std::runtime_error("Failed to generate DH private key");
+    throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(bBytes.data(), bBytes.size());
   nettle_mpz_set_str_256_u(b, bBytes.size(), bBytes.data());
   mpz_powm(k, A, b, p);
@@ -131,13 +134,13 @@ void CSecurityDH::writeCredentials()
 
   uint8_t buf[128];
   if (!rs.hasData(128))
-    throw std::runtime_error("Failed to generate random padding");
+    throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(buf, 128);
   if (username.size() >= 64)
-    throw std::out_of_range("Username is too long");
+    throw std::out_of_range(_("Username is too long"));
   memcpy(buf, username.c_str(), username.size() + 1);
   if (password.size() >= 64)
-    throw std::out_of_range("Password is too long");
+    throw std::out_of_range(_("Password is too long"));
   memcpy(buf + 64, password.c_str(), password.size() + 1);
   aes128_encrypt(&aesCtx, 128, buf, buf);
 

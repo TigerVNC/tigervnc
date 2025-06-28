@@ -240,7 +240,7 @@ void VNCServerST::processSocketReadEvent(network::Socket* sock)
     if ((*si) == sock)
       return;
   }
-  throw std::invalid_argument("Invalid Socket in VNCServerST");
+  throw std::invalid_argument(_("Unknown socket"));
 }
 
 void VNCServerST::processSocketWriteEvent(network::Socket* sock)
@@ -253,7 +253,7 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
       return;
     }
   }
-  throw std::invalid_argument("Invalid Socket in VNCServerST");
+  throw std::invalid_argument(_("Unknown socket"));
 }
 
 void VNCServerST::blockUpdates()
@@ -300,13 +300,13 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
     screenLayout = ScreenSet();
 
     if (desktopStarted)
-      throw std::logic_error("setPixelBuffer: Null PixelBuffer when desktopStarted?");
+      throw std::logic_error(_("No pixel buffer configured"));
 
     return;
   }
 
   if (!layout.validate(pb->width(), pb->height()))
-    throw std::invalid_argument("setPixelBuffer: Invalid screen layout");
+    throw std::invalid_argument(_("Invalid screen layout"));
 
   screenLayout = layout;
 
@@ -367,9 +367,9 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 void VNCServerST::setScreenLayout(const ScreenSet& layout)
 {
   if (!pb)
-    throw std::logic_error("setScreenLayout: New screen layout without a PixelBuffer");
+    throw std::logic_error(_("No pixel buffer configured"));
   if (!layout.validate(pb->width(), pb->height()))
-    throw std::invalid_argument("setScreenLayout: Invalid screen layout");
+    throw std::invalid_argument(_("Invalid screen layout"));
 
   screenLayout = layout;
 
@@ -412,7 +412,8 @@ void VNCServerST::sendClipboardData(const char* data)
     return;
 
   if (strchr(data, '\r') != nullptr)
-    throw std::invalid_argument("Invalid carriage return in clipboard data");
+    throw std::invalid_argument(
+      _("Invalid carriage return in clipboard data"));
 
   for (ci = clipboardRequestors.begin();
        ci != clipboardRequestors.end(); ++ci)
@@ -436,7 +437,7 @@ void VNCServerST::checkDesktopReady()
 void VNCServerST::desktopReady()
 {
   if (!pb)
-      throw std::logic_error("desktopReady: Null PixelBuffer when desktop is ready");
+      throw std::logic_error(_("No pixel buffer configured"));
 
   desktopStarted = true;
   // The tracker might have accumulated changes whilst we were
@@ -654,7 +655,8 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
 
   // Sanity check
   if (screenLayout != layout)
-    throw std::runtime_error("Desktop configured a different screen layout than requested");
+    throw std::runtime_error(
+      _("Desktop configured a different screen layout than requested"));
 
   // Notify other clients
   for (ci = clients.begin(); ci != clients.end(); ++ci) {

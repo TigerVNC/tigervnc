@@ -27,6 +27,7 @@
 
 #include <vector>
 
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/InStream.h>
@@ -70,7 +71,7 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
 
     // Quit on unsupported compression type.
     if (comp_ctl > tightMaxSubencoding)
-      throw protocol_error("TightDecoder: Bad subencoding value received");
+      throw protocol_error(_("Bad Tight subencoding value received"));
 
     if (comp_ctl == tightFill)
       readState = FILL;
@@ -104,8 +105,7 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
   //        servers until 1.16.0 were buggy and sent larger rects for
   //        fill type rectangles.
   if (r.width() > TIGHT_MAX_WIDTH)
-    throw protocol_error(core::format(
-      "TightDecoder: Too large rectangle (%d pixels)", r.width()));
+    throw protocol_error(_("Too large Tight rectangle"));
 
   // "JPEG" compression type.
   if (readState == JPEG) {
@@ -149,14 +149,15 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
       break;
     case tightFilterGradient:
       if (server.pf().bpp == 8)
-        throw protocol_error("TightDecoder: Invalid BPP for gradient filter");
+        throw protocol_error(
+          _("Invalid bits per pixel for gradient filter"));
       readState = PIXELS;
       break;
     case tightFilterCopy:
       readState = PIXELS;
       break;
     default:
-      throw protocol_error("TightDecoder: Unknown filter code received");
+      throw protocol_error(_("Invalid Tight filter code received"));
     }
   }
 
@@ -422,7 +423,7 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
     netbuf = new uint8_t[dataSize];
 
     if (!zis[streamId].hasData(dataSize))
-      throw protocol_error("Tight decode error");
+      throw protocol_error(_("Failed to decode Tight rectangle"));
     zis[streamId].readBytes(netbuf, dataSize);
 
     zis[streamId].flushUnderlying();

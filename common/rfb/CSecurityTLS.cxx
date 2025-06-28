@@ -80,7 +80,7 @@ CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon)
 {
   int err = gnutls_global_init();
   if (err != GNUTLS_E_SUCCESS)
-    throw rdr::tls_error("gnutls_global_init()", err);
+    throw rdr::tls_error(_("Failed to initialize GnuTLS"), err);
 }
 
 void CSecurityTLS::shutdown()
@@ -136,15 +136,18 @@ bool CSecurityTLS::processMsg()
       return false;
 
     if (is->readU8() == 0)
-      throw protocol_error("Server failed to initialize TLS session");
+      throw protocol_error(
+        _("Server failed to initialize TLS session"));
 
     ret = gnutls_init(&session, GNUTLS_CLIENT);
     if (ret != GNUTLS_E_SUCCESS)
-      throw rdr::tls_error("gnutls_init()", ret);
+      throw rdr::tls_error(_("Failed to initialize GnuTLS session"),
+                           ret);
 
     ret = gnutls_set_default_priority(session);
     if (ret != GNUTLS_E_SUCCESS)
-      throw rdr::tls_error("gnutls_set_default_priority()", ret);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
 
     setParam();
 
@@ -194,7 +197,8 @@ void CSecurityTLS::setParam()
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error(_("Syntax error in GnuTLS priority string: %s"),
                    err);
-      throw rdr::tls_error("gnutls_set_priority_direct()", ret);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
   } else if (anon) {
     const char *err;
@@ -205,7 +209,8 @@ void CSecurityTLS::setParam()
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error(_("Syntax error in GnuTLS priority string: %s"),
                    err);
-      throw rdr::tls_error("gnutls_set_default_priority_append()", ret);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
 #else
     std::string prio;
@@ -221,7 +226,8 @@ void CSecurityTLS::setParam()
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error(_("Syntax error in GnuTLS priority string: %s"),
                    err);
-      throw rdr::tls_error("gnutls_set_priority_direct()", ret);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
 #endif
   }
@@ -304,7 +310,7 @@ void CSecurityTLS::checkSession()
   if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509) {
     gnutls_alert_send(session, GNUTLS_AL_FATAL,
                       GNUTLS_A_UNSUPPORTED_CERTIFICATE);
-    throw protocol_error("Unsupported certificate type");
+    throw protocol_error(_("Unsupported certificate type"));
   }
 
   err = gnutls_certificate_verify_peers2(session, &status);
@@ -312,7 +318,8 @@ void CSecurityTLS::checkSession()
     vlog.error(_("Server certificate verification failed: %s"),
                gnutls_strerror(err));
     gnutls_alert_send_appropriate(session, err);
-    throw rdr::tls_error("Server certificate verification()", err);
+    throw rdr::tls_error(_("Server certificate verification failed"),
+                         err);
   }
 
   if (status != 0) {
@@ -330,7 +337,8 @@ void CSecurityTLS::checkSession()
                                                          0);
       if (err != GNUTLS_E_SUCCESS) {
         gnutls_alert_send_appropriate(session, err);
-        throw rdr::tls_error("Failed to get certificate error description", err);
+        throw rdr::tls_error(
+          _("Failed to get certificate error description"), err);
       }
 
       error = (const char*)status_str.data;
@@ -339,8 +347,8 @@ void CSecurityTLS::checkSession()
 
       gnutls_alert_send(session, GNUTLS_AL_FATAL,
                         GNUTLS_A_BAD_CERTIFICATE);
-      throw protocol_error(
-        core::format("Invalid server certificate: %s", error.c_str()));
+      throw protocol_error(core::format(
+        _("Invalid server certificate: %s"), error.c_str()));
     }
 
     err = gnutls_certificate_verification_status_print(status,
@@ -349,7 +357,8 @@ void CSecurityTLS::checkSession()
                                                        0);
     if (err != GNUTLS_E_SUCCESS) {
       gnutls_alert_send_appropriate(session, err);
-      throw rdr::tls_error("Failed to get certificate error description", err);
+      throw rdr::tls_error(
+        _("Failed to get certificate error description"), err);
     }
 
     vlog.info(_("Server certificate errors: %s"), status_str.data);
@@ -363,7 +372,7 @@ void CSecurityTLS::checkSession()
   if (!cert_list_size) {
     gnutls_alert_send(session, GNUTLS_AL_FATAL,
                       GNUTLS_A_UNSUPPORTED_CERTIFICATE);
-    throw protocol_error("Empty certificate chain");
+    throw protocol_error(_("Empty certificate chain"));
   }
 
   /* Process only server's certificate, not issuer's certificate */
@@ -373,7 +382,7 @@ void CSecurityTLS::checkSession()
   err = gnutls_x509_crt_import(crt, &cert_list[0], GNUTLS_X509_FMT_DER);
   if (err != GNUTLS_E_SUCCESS) {
     gnutls_alert_send_appropriate(session, err);
-    throw rdr::tls_error("Failed to decode server certificate", err);
+    throw rdr::tls_error(_("Failed to decode server certificate"), err);
   }
 
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
@@ -393,8 +402,8 @@ void CSecurityTLS::checkSession()
 
   hostsDir = core::getvncstatedir();
   if (hostsDir == nullptr) {
-    throw std::runtime_error("Could not obtain VNC state directory "
-                             "path for known hosts storage");
+    throw std::runtime_error(
+      _("Could not determine VNC state directory path"));
   }
 
   std::string dbPath;
@@ -414,13 +423,14 @@ void CSecurityTLS::checkSession()
   if ((known != GNUTLS_E_NO_CERTIFICATE_FOUND) &&
       (known != GNUTLS_E_CERTIFICATE_KEY_MISMATCH)) {
     gnutls_alert_send_appropriate(session, known);
-    throw rdr::tls_error("Could not load known hosts database", known);
+    throw rdr::tls_error(_("Could not load known hosts database"), known);
   }
 
   err = gnutls_x509_crt_print(crt, GNUTLS_CRT_PRINT_ONELINE, &info);
   if (err != GNUTLS_E_SUCCESS) {
     gnutls_alert_send_appropriate(session, known);
-    throw rdr::tls_error("Could not find certificate to display", err);
+    throw rdr::tls_error(
+      _("Could not format server certificate for display"), err);
   }
 
   len = strlen((char*)info.data);
@@ -541,7 +551,8 @@ void CSecurityTLS::checkSession()
                                                         0);
       if (err != GNUTLS_E_SUCCESS) {
         gnutls_alert_send_appropriate(session, err);
-        throw rdr::tls_error("Failed to get certificate error description", err);
+        throw rdr::tls_error(
+          _("Failed to get certificate error description"), err);
       }
 
       vlog.error(_("Unhandled certificate problems: %s"),
@@ -550,7 +561,7 @@ void CSecurityTLS::checkSession()
 
       gnutls_alert_send(session, GNUTLS_AL_FATAL,
                         GNUTLS_A_BAD_CERTIFICATE);
-      throw std::logic_error("Unhandled certificate problems");
+      throw std::logic_error(_("Invalid server certificate"));
     }
 
     if (!hostname_match) {
@@ -690,7 +701,8 @@ void CSecurityTLS::checkSession()
                                                         0);
       if (err != GNUTLS_E_SUCCESS) {
         gnutls_alert_send_appropriate(session, err);
-        throw rdr::tls_error("Failed to get certificate error description", err);
+        throw rdr::tls_error(
+          _("Failed to get certificate error description"), err);
       }
 
       vlog.error(_("Unhandled certificate problems: %s"),
@@ -699,7 +711,7 @@ void CSecurityTLS::checkSession()
 
       gnutls_alert_send(session, GNUTLS_AL_FATAL,
                         GNUTLS_A_BAD_CERTIFICATE);
-      throw std::logic_error("Unhandled certificate problems");
+      throw std::logic_error(_("Invalid server certificate"));
     }
 
     if (!hostname_match) {
