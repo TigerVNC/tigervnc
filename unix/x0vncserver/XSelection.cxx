@@ -20,6 +20,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <x0vncserver/XSelection.h>
@@ -73,12 +74,12 @@ void XSelection::handleClientClipboardData(const char* data)
   Time time = getXServerTime();
   ownSelection(xaCLIPBOARD, time);
   if (!selectionOwner(xaCLIPBOARD))
-    vlog.error("Unable to own CLIPBOARD selection");
+    vlog.error(_("Could not set CLIPBOARD selection"));
 
   if (setPrimary) {
     ownSelection(XA_PRIMARY, time);
     if (!selectionOwner(XA_PRIMARY))
-      vlog.error("Unable to own PRIMARY selection");
+      vlog.error(_("Could not set PRIMARY selection"));
   }
 
   if (selectionOwner(xaCLIPBOARD) || selectionOwner(XA_PRIMARY))

@@ -23,6 +23,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb_win32/DeviceContext.h>
@@ -139,7 +140,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
     if (bytesPerRow % 4) {
       bytesPerRow += 4 - (bytesPerRow % 4);
       new_stride = (bytesPerRow * 8) / format.bpp;
-      vlog.info("Adjusting DIB stride: %d to %d", w, new_stride);
+      vlog.debug("Adjusting DIB stride: %d to %d", w, new_stride);
     }
 
     setBuffer(w, h, new_data, new_stride);

@@ -25,6 +25,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
@@ -88,7 +89,7 @@ bool TLSSocket::handshake()
       return false;
     }
 
-    vlog.error("TLS Handshake failed: %s\n", msg);
+    vlog.error(_("TLS handshake failed: %s"), msg);
     gnutls_alert_send_appropriate(session, err);
     throw rdr::tls_error("TLS Handshake failed", err, alert);
   }
@@ -105,17 +106,19 @@ void TLSSocket::shutdown()
       tlsout.cork(false);
       tlsout.flush();
       if (tlsout.hasBufferedData())
-        vlog.error("Failed to flush remaining socket data on close");
+        vlog.error(_("Failed to flush remaining socket data on close"));
     }
   } catch (std::exception& e) {
-    vlog.error("Failed to flush remaining socket data on close: %s", e.what());
+    vlog.error(_("Failed to flush remaining socket data on close: %s"),
+               e.what());
   }
 
   // FIXME: We can't currently wait for the response, so we only send
   //        our close and hope for the best
   ret = gnutls_bye(session, GNUTLS_SHUT_WR);
   if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION))
-    vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
+    vlog.error(_("Failed to terminate TLS cleanly: %s"),
+               gnutls_strerror(ret));
 }
 
 size_t TLSSocket::readTLS(uint8_t* buf, size_t len)
@@ -190,7 +193,7 @@ ssize_t TLSSocket::pull(void* data, size_t size)
     return 0;
   } catch (std::exception& e) {
     core::socket_error* se;
-    vlog.error("Failure reading TLS data: %s", e.what());
+    vlog.error(_("Failed receiving TLS data: %s"), e.what());
     se = dynamic_cast<core::socket_error*>(&e);
     if (se)
       gnutls_transport_set_errno(session, se->err);
@@ -212,7 +215,7 @@ ssize_t TLSSocket::push(const void* data, size_t size)
     out->flush();
   } catch (std::exception& e) {
     core::socket_error* se;
-    vlog.error("Failure sending TLS data: %s", e.what());
+    vlog.error(_("Failed sending TLS data: %s"), e.what());
     se = dynamic_cast<core::socket_error*>(&e);
     if (se)
       gnutls_transport_set_errno(session, se->err);

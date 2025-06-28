@@ -554,7 +554,8 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
     *percent = '$';
   int res = system(cmd2);
   if (res != 0)
-    fprintf(stderr, "Failed to create tunnel: '%s' returned %d\n", cmd2, res);
+    vlog.error(_("Failed to create tunnel: '%s' returned %d"),
+               cmd2, res);
   free(cmd2);
 }
 

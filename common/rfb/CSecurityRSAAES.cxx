@@ -36,6 +36,7 @@
 #include <nettle/sha2.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/CSecurityRSAAES.h>
@@ -85,10 +86,13 @@ void CSecurityRSAAES::cleanup()
         raos->cork(false);
         raos->flush();
         if (raos->hasBufferedData())
-          vlog.error("Failed to flush remaining socket data on close");
+          vlog.error(
+            _("Failed to flush remaining socket data on close"));
       }
     } catch (std::exception& e) {
-      vlog.error("Failed to flush remaining socket data on close: %s", e.what());
+      vlog.error(
+        _("Failed to flush remaining socket data on close: %s"),
+        e.what());
     }
   }
 

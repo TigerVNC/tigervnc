@@ -28,6 +28,7 @@
 #include <assert.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/SDisplay.h>
 #include <rfb_win32/Service.h>
@@ -130,12 +131,12 @@ void SDisplay::stop()
     CurrentUserToken cut;
     if (disconnectAction == "Logoff") {
       if (!cut.h)
-        vlog.info("Ignoring DisconnectAction=Logoff - no current user");
+        vlog.info(_("Ignoring DisconnectAction=Logoff - no current user"));
       else
         ExitWindowsEx(EWX_LOGOFF, 0);
     } else if (disconnectAction == "Lock") {
       if (!cut.h) {
-        vlog.info("Ignoring DisconnectAction=Lock - no current user");
+        vlog.info(_("Ignoring DisconnectAction=Lock - no current user"));
       } else {
         LockWorkStation();
       }
@@ -209,7 +210,7 @@ void SDisplay::startCore() {
       vlog.error("%s", e.what());
     }
   }
-  vlog.info("Started %s", core->methodName());
+  vlog.debug("Started %s", core->methodName());
 
   // Start display monitor, clipboard handler and input handlers
   monitor = new WMMonitor;
@@ -237,7 +238,7 @@ void SDisplay::startCore() {
 
 void SDisplay::stopCore() {
   if (core)
-    vlog.info("Stopping %s", core->methodName());
+    vlog.debug("Stopping %s", core->methodName());
   delete core; core = nullptr;
   delete pb; pb = nullptr;
   delete device; device = nullptr;
@@ -283,14 +284,14 @@ bool SDisplay::isRestartRequired() {
 
 
 void SDisplay::restartCore() {
-  vlog.info("Restarting");
+  vlog.debug("Restarting");
 
   // Stop the existing Core  related resources
   stopCore();
   try {
     // Start a new Core if possible
     startCore();
-    vlog.info("Restarted");
+    vlog.debug("Restarted");
   } catch (std::exception& e) {
     // If startCore() fails then we MUST disconnect all clients,
     // to cause the server to stop() the desktop.
@@ -374,7 +375,7 @@ SDisplay::notifyDisplayEvent(WMMonitor::Notifier::DisplayEventType evt) {
     recreatePixelBuffer();
     break;
   default:
-    vlog.error("Unknown display event received");
+    vlog.error(_("Unknown display event received"));
   }
 }
 
@@ -386,7 +387,7 @@ SDisplay::processEvent(HANDLE event) {
 
     // - If the SDisplay isn't even started then quit now
     if (!core) {
-      vlog.error("Not start()ed");
+      vlog.error(_("Desktop not started"));
       return;
     }
 
@@ -453,11 +454,11 @@ SDisplay::recreatePixelBuffer(bool force) {
   //   systems for some reason.
   DeviceContext* new_device = nullptr;
   if (strlen(displayDevice) > 0) {
-    vlog.info("Attaching to device %s", (const char*)displayDevice);
+    vlog.info(_("Attaching to device %s"), (const char*)displayDevice);
     new_device = new DeviceDC(displayDevice);
   }
   if (!new_device) {
-    vlog.info("Attaching to virtual desktop");
+    vlog.info(_("Attaching to virtual desktop"));
     new_device = new WindowDC(nullptr);
   }
 

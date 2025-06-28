@@ -24,6 +24,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb_win32/Service.h>
@@ -49,19 +50,19 @@ bool runAsService = false;
 VOID WINAPI serviceHandler(DWORD control) {
   switch (control) {
   case SERVICE_CONTROL_INTERROGATE:
-    vlog.info("CMD: Report status");
+    vlog.info(_("Command: Report status"));
     service->setStatus();
     return;
   case SERVICE_CONTROL_PARAMCHANGE:
-    vlog.info("CMD: Param change");
+    vlog.info(_("Command: Parameters changed"));
     service->readParams();
     return;
   case SERVICE_CONTROL_SHUTDOWN:
-    vlog.info("CMD: OS shutdown");
+    vlog.info(_("Command: OS shutdown"));
     service->osShuttingDown();
     return;
   case SERVICE_CONTROL_STOP:
-    vlog.info("CMD: Stop");
+    vlog.info(_("Command: Stop"));
     service->setStatus(SERVICE_STOP_PENDING);
     service->stop();
     return;
@@ -74,11 +75,11 @@ VOID WINAPI serviceHandler(DWORD control) {
 
 VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
   vlog.debug("Entering %s serviceProc", service->getName());
-  vlog.info("Registering handler...");
+  vlog.info(_("Registering handler..."));
   service->status_handle = RegisterServiceCtrlHandler(service->getName(), serviceHandler);
   if (!service->status_handle) {
     DWORD err = GetLastError();
-    vlog.error("Failed to register handler: %lu", err);
+    vlog.error(_("Failed to register handler: %lu"), err);
     ExitProcess(err);
   }
   vlog.debug("Registered handler (%p)", service->status_handle);
@@ -113,7 +114,7 @@ Service::start() {
   entry[1].lpServiceProc = nullptr;
   vlog.debug("Entering dispatcher");
   if (!SetProcessShutdownParameters(0x100, 0))
-    vlog.error("Unable to set shutdown parameters: %lu", GetLastError());
+    vlog.error(_("Unable to set shutdown parameters: %lu"), GetLastError());
   service = this;
   if (!StartServiceCtrlDispatcher(entry))
     throw win32_error("Unable to start service", GetLastError());
@@ -135,7 +136,7 @@ Service::setStatus(DWORD state) {
   if (!SetServiceStatus(status_handle, &status)) {
     status.dwCurrentState = SERVICE_STOPPED;
     status.dwWin32ExitCode = GetLastError();
-    vlog.error("Unable to set service status:%lu", status.dwWin32ExitCode);
+    vlog.error(_("Unable to set service status: %lu"), status.dwWin32ExitCode);
   }
   vlog.debug("Set status to %lu(%lu)", state, status.dwCheckPoint);
 }
@@ -268,7 +269,7 @@ public:
   Logger_EventLog(const char* srcname) : Logger("EventLog") {
     eventlog = RegisterEventSource(nullptr, srcname);
     if (!eventlog)
-      printf("Unable to open event log:%ld\n", GetLastError());
+      printf(_("Unable to open event log: %ld\n"), GetLastError());
   }
   ~Logger_EventLog() {
     if (eventlog)
@@ -282,7 +283,7 @@ public:
     if (level == 0) type = EVENTLOG_ERROR_TYPE;
     if (!ReportEvent(eventlog, type, 0, VNC4LogMessage, nullptr, 2, 0, strings, nullptr)) {
       // *** It's not at all clear what is the correct behaviour if this fails...
-      printf("ReportEvent failed:%ld\n", GetLastError());
+      printf(_("Failed to write to event log: %ld\n"), GetLastError());
     }
   }
 

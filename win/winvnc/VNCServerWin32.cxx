@@ -28,6 +28,7 @@
 #include <winvnc/STrayIcon.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <network/TcpSocket.h>
 
@@ -130,7 +131,7 @@ void VNCServerWin32::processAddressChange() {
   }
   
   // Pass the new tip to the tray icon
-  vlog.info("Refreshing tray icon");
+  vlog.info(_("Refreshing system tray icon"));
   trayIcon->setToolTip(toolTip.c_str());
 }
 
@@ -317,7 +318,7 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       break;
 
     default:
-      vlog.error("Unknown command %d queued", command);
+      vlog.error(_("Unknown command %d queued"), command);
     };
 
     // Clear the command and signal completion
