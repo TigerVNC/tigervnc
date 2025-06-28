@@ -70,12 +70,14 @@ const size_t MaxKeyFileSize = 32 * 1024;
 
 using namespace rfb;
 
-core::StringParameter SSecurityRSAAES::keyFile
-("RSAKey", "Path to the RSA key for the RSA-AES security types in "
-           "PEM format", "");
-core::BoolParameter SSecurityRSAAES::requireUsername
-("RequireUsername", "Require username for the RSA-AES security types",
- false);
+core::StringParameter SSecurityRSAAES::keyFile(
+  "RSAKey",
+  _("Path to the RSA key for the RSA-AES security types"),
+  "");
+core::BoolParameter SSecurityRSAAES::requireUsername(
+  "RequireUsername",
+  _("Require a username for the RSA-AES security types"),
+  false);
 
 static core::LogWriter vlog("SSecurityRSAAES");
 

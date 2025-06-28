@@ -74,8 +74,12 @@ using namespace network;
 
 static core::LogWriter vlog("TcpSocket");
 
-static core::BoolParameter UseIPv4("UseIPv4", "Use IPv4 for incoming and outgoing connections.", true);
-static core::BoolParameter UseIPv6("UseIPv6", "Use IPv6 for incoming and outgoing connections.", true);
+static core::BoolParameter
+  UseIPv4("UseIPv4",
+          _("Use IPv4 for incoming and outgoing connections"), true);
+static core::BoolParameter
+  UseIPv6("UseIPv6",
+          _("Use IPv6 for incoming and outgoing connections"), true);
 
 /* Tunnelling support. */
 int network::findFreeTcpPort (void)

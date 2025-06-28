@@ -47,9 +47,12 @@ using namespace winvnc;
 
 static LogWriter vlog("STrayIcon");
 
-BoolParameter STrayIconThread::disableOptions("DisableOptions", "Disable the Options entry in the VNC server tray menu.", false);
-BoolParameter STrayIconThread::disableClose("DisableClose", "Disable the Close entry in the VNC server tray menu.", false);
-
+BoolParameter STrayIconThread::disableOptions(
+  "DisableOptions",
+  _("Disable the Options entry in the VNC server tray menu"), false);
+BoolParameter STrayIconThread::disableClose(
+  "DisableClose",
+  _("Disable the Close entry in the VNC server tray menu"), false);
 
 //
 // -=- AboutDialog global values
