@@ -27,6 +27,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/Security.h>
@@ -36,8 +37,10 @@ using namespace rfb;
 static core::LogWriter vlog("Security");
 
 #ifdef HAVE_GNUTLS
-core::StringParameter Security::GnuTLSPriority("GnuTLSPriority",
-  "GnuTLS priority string that controls the TLS session’s handshake algorithms",
+core::StringParameter Security::GnuTLSPriority(
+  "GnuTLSPriority",
+  _("GnuTLS priority string that controls the TLS session's handshake "
+    "algorithms"),
   "");
 #endif
 

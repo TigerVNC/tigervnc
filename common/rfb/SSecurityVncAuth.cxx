@@ -50,12 +50,12 @@ using namespace rfb;
 static core::LogWriter vlog("SVncAuth");
 
 core::StringParameter SSecurityVncAuth::vncAuthPasswdFile
-("PasswordFile", "Password file for VNC authentication", "");
-core::AliasParameter rfbauth("rfbauth", "Alias for PasswordFile",
+("PasswordFile", _("Password file for VNC authentication"), "");
+core::AliasParameter rfbauth("rfbauth", _("Alias for PasswordFile"),
 		       &SSecurityVncAuth::vncAuthPasswdFile);
 VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
-("Password", "Obfuscated binary encoding of the password which clients must supply to "
- "access the server", &SSecurityVncAuth::vncAuthPasswdFile);
+("Password", _("Obfuscated binary encoding of the password for VNC "
+ "authentication"), &SSecurityVncAuth::vncAuthPasswdFile);
 
 SSecurityVncAuth::SSecurityVncAuth(SConnection* sc_)
   : SSecurity(sc_), sentChallenge(false),
@@ -118,7 +118,7 @@ bool SSecurityVncAuth::processMsg()
     return true;
   }
 
-  throw auth_error("Authentication failed");
+  throw auth_error(_("Authentication failed"));
 }
 
 VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name_,

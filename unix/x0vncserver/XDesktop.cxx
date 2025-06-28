@@ -66,17 +66,17 @@ extern const unsigned short code_map_qnum_to_xorgkbd[];
 extern const unsigned int code_map_qnum_to_xorgkbd_len;
 
 core::BoolParameter
-  useShm("UseSHM", "Use MIT-SHM extension if available", true);
+  useShm("UseSHM", _("Use MIT-SHM extension if available"), true);
 core::BoolParameter
   rawKeyboard("RawKeyboard",
-              "Send keyboard events straight through and avoid "
-              "mapping them to the current keyboard layout",
+              _("Send keyboard events straight through and avoid "
+                "mapping them to the current keyboard layout"),
               false);
 core::IntParameter
   queryConnectTimeout("QueryConnectTimeout",
-                      "Number of seconds to show the 'Accept "
-                      "connection' dialog before rejecting the "
-                      "connection",
+                      _("Number of seconds to show the 'Accept "
+                        "connection' dialog before rejecting the "
+                        "connection"),
                       10, 0, INT_MAX);
 
 static core::LogWriter vlog("XDesktop");

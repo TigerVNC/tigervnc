@@ -90,7 +90,8 @@ void Configuration::list(int width, int nameWidth) {
     std::string def_str = current->getDefaultStr();
     std::string desc_str = current->getDescription();
     if (!def_str.empty())
-      desc_str += " (default=" + def_str + ")";
+      desc_str = format("%s (%s=%s)", desc_str.c_str(), _("default"),
+                        def_str.c_str());
     const char* desc = desc_str.c_str();
     fprintf(stderr,"  %-*s -", nameWidth, current->getName());
     int column = strlen(current->getName());

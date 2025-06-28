@@ -29,6 +29,7 @@
 #include <vector>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/DeviceContext.h>
@@ -43,7 +44,8 @@ using namespace win32;
 static LogWriter vlog("DeviceFrameBuffer");
 
 BoolParameter DeviceFrameBuffer::useCaptureBlt("UseCaptureBlt",
-  "Use a slower capture method that ensures that alpha blended windows appear correctly",
+  _("Use a slower capture method that ensures that alpha blended "
+    "windows will appear correctly"),
   true);
 
 

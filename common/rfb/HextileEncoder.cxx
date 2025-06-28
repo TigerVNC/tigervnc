@@ -25,6 +25,7 @@
 #include <algorithm>
 
 #include <core/Configuration.h>
+#include <core/i18n.h>
 
 #include <rdr/OutStream.h>
 
@@ -37,13 +38,12 @@
 
 using namespace rfb;
 
-core::BoolParameter improvedHextile("ImprovedHextile",
-                                    "Use improved compression "
-                                    "algorithm for Hextile encoding "
-                                    "which achieves better compression "
-                                    "ratios by the cost of using more "
-                                    "CPU time",
-                                    true);
+core::BoolParameter
+  improvedHextile("ImprovedHextile",
+                  _("Use improved compression algorithm for Hextile "
+                    "encoding which achieves better compression ratios "
+                    "at the cost of using more CPU time"),
+                  true);
 
 HextileEncoder::HextileEncoder(SConnection* conn_) :
   Encoder(conn_, encodingHextile, EncoderPlain)

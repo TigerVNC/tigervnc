@@ -63,7 +63,11 @@ core::BoolParameter
 
 core::EnumParameter
   rememberDisplayChoice("RememberDisplayChoice",
-                        "Remember display choice when user connects (Always, Never, Session)",
+                        core::format(
+                          "%s (%s)",
+                          _("Remember display choice when user "
+                            "connects"),
+                          "Always, Never, Session").c_str(),
                         {"Always", "Never", "Session"}, "Session");
 
 // Sync with w0vncserver-forget

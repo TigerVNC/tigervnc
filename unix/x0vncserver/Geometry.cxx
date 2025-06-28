@@ -35,10 +35,9 @@
 static core::LogWriter vlog("Geometry");
 
 core::StringParameter Geometry::m_geometryParam("Geometry",
-  "Screen area shown to VNC clients. "
-  "Format is <width>x<height>+<offset_x>+<offset_y>, "
-  "more information in man X, section GEOMETRY SPECIFICATIONS. "
-  "If the argument is empty, full screen is shown to VNC clients.",
+  _("Screen area shown to VNC clients in the format "
+    "<width>x<height>+<offset_x>+<offset_y>, or empty to show the "
+    "whole screen"),
   "");
 
 Geometry::Geometry(int fullWidth, int fullHeight)

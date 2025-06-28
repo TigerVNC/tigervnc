@@ -114,9 +114,9 @@ bool LogWriter::setLogParams(const char* params) {
 
 LogParameter::LogParameter()
   : StringListParameter("Log",
-    "Specifies which log output should be directed to "
-    "which target logger, and the level of output to log. "
-    "Format is <log>:<target>:<level>[, ...].",
+    _("Specifies which log output should be directed to "
+      "which target logger, and the level of output to log, "
+      "in the format <log>:<target>:<level>[, ...]"),
     {})
 {
 }
