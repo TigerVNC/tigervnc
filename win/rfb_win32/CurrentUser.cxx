@@ -84,7 +84,7 @@ CurrentUserToken::CurrentUserToken() {
     if (!OpenProcessToken(GetCurrentProcess(), GENERIC_ALL, &h)) {
       DWORD err = GetLastError();
       if (err != ERROR_CALL_NOT_IMPLEMENTED)
-        throw core::win32_error("OpenProcessToken failed", err);
+        throw core::win32_error(_("Failed to get current user token"), err);
       h = INVALID_HANDLE_VALUE;
     }
   }
@@ -96,11 +96,11 @@ ImpersonateCurrentUser::ImpersonateCurrentUser() {
   if (!isServiceProcess())
     return;
   if (!token.canImpersonate())
-    throw std::runtime_error("Cannot impersonate unsafe or null token");
+    throw std::runtime_error(_("Cannot impersonate unsafe or null token"));
   if (!ImpersonateLoggedOnUser(token)) {
     DWORD err = GetLastError();
     if (err != ERROR_CALL_NOT_IMPLEMENTED)
-      throw core::win32_error("Failed to impersonate user", GetLastError());
+      throw core::win32_error(_("Failed to impersonate user"), GetLastError());
   }
 }
 
@@ -118,7 +118,7 @@ UserName::UserName() {
   char buf[UNLEN+1];
   DWORD len = UNLEN+1;
   if (!GetUserName(buf, &len))
-    throw core::win32_error("GetUserName failed", GetLastError());
+    throw core::win32_error(_("Failed to get current username"), GetLastError());
   assign(buf);
 }
 

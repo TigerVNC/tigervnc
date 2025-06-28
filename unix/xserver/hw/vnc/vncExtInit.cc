@@ -246,7 +246,8 @@ void vncExtensionInit(void)
         }
 
         if (!inetd && listeners.empty())
-          throw std::runtime_error("No path or port configured for incoming connections");
+          throw std::runtime_error(
+            _("No path or port configured for incoming connections"));
 
         rfb::PixelFormat pf = vncGetPixelFormat(scr);
 

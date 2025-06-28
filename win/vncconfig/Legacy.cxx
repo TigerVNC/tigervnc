@@ -88,7 +88,7 @@ void LegacyPage::LoadPrefs()
                     if (bits)
                       strcat(pattern, ".");
                     if (parts[j].size() > 3)
-                      throw std::invalid_argument("Invalid IP address part");
+                      throw std::invalid_argument(_("Invalid IP address"));
                     if (!parts[j].empty()) {
                       strcat(pattern, parts[j].c_str());
                       bits += 8;

@@ -158,7 +158,7 @@ static void random_func(void*, size_t length, uint8_t* dst)
 {
   rdr::RandomStream rs;
   if (!rs.hasData(length))
-    throw std::runtime_error("Failed to generate random");
+    throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(dst, length);
 }
 
@@ -179,7 +179,7 @@ void CSecurityRSAAES::writePublicKey()
   if (!rsa_generate_keypair(&clientPublicKey, &clientKey,
                             nullptr, random_func, nullptr, nullptr,
                             clientKeyLength, 0))
-    throw std::runtime_error("Failed to generate key");
+    throw std::runtime_error(_("Failed to generate encryption key"));
   clientKeyN = new uint8_t[rsaKeySize];
   clientKeyE = new uint8_t[rsaKeySize];
   nettle_mpz_get_str_256(rsaKeySize, clientKeyN, clientPublicKey.n);
@@ -198,9 +198,9 @@ bool CSecurityRSAAES::readPublicKey()
   is->setRestorePoint();
   serverKeyLength = is->readU32();
   if (serverKeyLength < MinKeyLength)
-    throw protocol_error("Server key is too short");
+    throw protocol_error(_("Server encryption key is too short"));
   if (serverKeyLength > MaxKeyLength)
-    throw protocol_error("Server key is too long");
+    throw protocol_error(_("Server encryption key is too long"));
   size_t size = (serverKeyLength + 7) / 8;
   if (!is->hasDataOrRestore(size * 2))
     return false;
@@ -213,7 +213,7 @@ bool CSecurityRSAAES::readPublicKey()
   nettle_mpz_set_str_256_u(serverKey.n, size, serverKeyN);
   nettle_mpz_set_str_256_u(serverKey.e, size, serverKeyE);
   if (!rsa_public_key_prepare(&serverKey))
-    throw protocol_error("Server key is invalid");
+    throw protocol_error(_("Server encryption key is invalid"));
   return true;
 }
 
@@ -247,7 +247,7 @@ void CSecurityRSAAES::writeRandom()
   rdr::RandomStream rs;
   rdr::OutStream* os = cc->getOutStream();
   if (!rs.hasData(keySize / 8))
-    throw std::runtime_error("Failed to generate random");
+    throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(clientRandom, keySize / 8);
   mpz_t x;
   mpz_init(x);
@@ -261,7 +261,7 @@ void CSecurityRSAAES::writeRandom()
   }
   if (!res) {
     mpz_clear(x);
-    throw std::runtime_error("Failed to encrypt random");
+    throw std::runtime_error(_("Failed to encrypt data"));
   }
   uint8_t* buffer = new uint8_t[serverKey.size];
   nettle_mpz_get_str_256(serverKey.size, buffer, x);
@@ -280,7 +280,8 @@ bool CSecurityRSAAES::readRandom()
   is->setRestorePoint();
   size_t size = is->readU16();
   if (size != clientKey.size)
-    throw protocol_error("Client key length doesn't match");
+    throw protocol_error(
+      _("Client key length doesn't match length of random data"));
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
@@ -293,7 +294,7 @@ bool CSecurityRSAAES::readRandom()
   if (!rsa_decrypt(&clientKey, &randomSize, serverRandom, x) ||
       randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
-    throw protocol_error("Failed to decrypt server random");
+    throw protocol_error(_("Failed to decrypt data"));
   }
   mpz_clear(x);
   return true;
@@ -422,7 +423,7 @@ bool CSecurityRSAAES::readHash()
     sha256_digest(&ctx, hashSize, realHash);
   }
   if (memcmp(hash, realHash, hashSize) != 0)
-    throw protocol_error("Hash doesn't match");
+    throw protocol_error(_("Incorrect hash received"));
   return true;
 }
 
@@ -452,7 +453,7 @@ bool CSecurityRSAAES::readSubtype()
     return false;
   subtype = rais->readU8();
   if (subtype != secTypeRA2UserPass && subtype != secTypeRA2Pass)
-    throw protocol_error("Unknown RSA-AES subtype");
+    throw protocol_error(_("Unknown RSA-AES subtype"));
   return true;
 }
 
@@ -468,7 +469,7 @@ void CSecurityRSAAES::writeCredentials()
 
   if (subtype == secTypeRA2UserPass) {
     if (username.size() > 255)
-      throw std::out_of_range("Username is too long");
+      throw std::out_of_range(_("Username is too long"));
     raos->writeU8(username.size());
     raos->writeBytes((const uint8_t*)username.data(), username.size());
   } else {
@@ -476,7 +477,7 @@ void CSecurityRSAAES::writeCredentials()
   }
 
   if (password.size() > 255)
-    throw std::out_of_range("Password is too long");
+    throw std::out_of_range(_("Password is too long"));
   raos->writeU8(password.size());
   raos->writeBytes((const uint8_t*)password.data(), password.size());
   raos->flush();

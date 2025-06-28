@@ -60,7 +60,7 @@ namespace win32 {
     ConsoleSessionId console;
     vlog.info(_("Console session is %lu"), console.id);
     if (!WTSConnectSession(sessionId, console.id, (PTSTR)"", 0))
-      throw core::win32_error("Unable to connect session to Console", GetLastError());
+      throw core::win32_error(_("Unable to connect session to Console"), GetLastError());
 
     // Lock the newly connected session, for security
     LockWorkStation();

@@ -107,7 +107,8 @@ bool CSecurityVeNCrypt::processMsg()
       os->writeU8(0);
       os->writeU8(0);
       os->flush();
-      throw protocol_error("The server reported an unsupported VeNCrypt version");
+      throw protocol_error(
+        _("The server reported an unsupported VeNCrypt version"));
      }
 
      haveSentVersion = true;
@@ -119,8 +120,8 @@ bool CSecurityVeNCrypt::processMsg()
       return false;
 
     if (is->readU8())
-      throw protocol_error("The server reported it could not "
-                           "support the VeNCrypt version");
+      throw protocol_error(_("The server reported that it could not "
+                             "support the client's VeNCrypt version"));
 
     haveAgreedVersion = true;
   }
@@ -133,13 +134,14 @@ bool CSecurityVeNCrypt::processMsg()
     nAvailableTypes = is->readU8();
 
     if (!nAvailableTypes)
-      throw protocol_error("The server reported no VeNCrypt sub-types");
+      throw protocol_error(
+        _("The server reported no VeNCrypt sub-types"));
 
     availableTypes = new uint32_t[nAvailableTypes];
     haveNumberOfTypes = true;
   }
 
-  if (nAvailableTypes) {
+  if (haveNumberOfTypes) {
     /* read in the types possible */
     if (!haveListOfTypes) {
       if (!is->hasData(4 * nAvailableTypes))
@@ -174,7 +176,7 @@ bool CSecurityVeNCrypt::processMsg()
 
       /* Set up the stack according to the chosen type: */
       if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
-        throw protocol_error("No valid VeNCrypt sub-type");
+        throw protocol_error(_("No valid VeNCrypt sub-type"));
 
       vlog.info(_("Choosing security type %s (%d)"),
                 secTypeName(chosenType), chosenType);
@@ -187,13 +189,6 @@ bool CSecurityVeNCrypt::processMsg()
 
       haveChosenType = true;
     }
-  } else {
-    /*
-     * Server told us that there are 0 types it can support - this should not
-     * happen, since if the server supports 0 sub-types, it doesn't support
-     * this security type
-     */
-    throw protocol_error("The server reported 0 VeNCrypt sub-types");
   }
 
   return csecurity->processMsg();

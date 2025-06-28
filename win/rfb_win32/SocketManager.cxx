@@ -73,7 +73,7 @@ void SocketManager::addListener(network::SocketListener* sock_,
     flags |= FD_ADDRESS_LIST_CHANGE;
   try {
     if (event && (WSAEventSelect(sock_->getFd(), event, flags) == SOCKET_ERROR))
-      throw core::socket_error("Unable to select on listener", WSAGetLastError());
+      throw core::socket_error(_("Unable to select on listening socket"), WSAGetLastError());
 
     // requestAddressChangeEvents MUST happen after WSAEventSelect, so that the socket is non-blocking
     if (acn)
@@ -81,7 +81,7 @@ void SocketManager::addListener(network::SocketListener* sock_,
 
     // addEvent is the last thing we do, so that the event is NOT registered if previous steps fail
     if (!event || !addEvent(event, this))
-      throw std::runtime_error("Unable to add listener");
+      throw std::runtime_error(_("Unable to add listening socket"));
   } catch (std::exception& e) {
     if (event)
       WSACloseEvent(event);
@@ -109,7 +109,7 @@ void SocketManager::remListener(network::SocketListener* sock) {
       return;
     }
   }
-  throw std::runtime_error("Listener not registered");
+  throw std::runtime_error(_("Listening socket is not registered"));
 }
 
 
@@ -142,7 +142,7 @@ void SocketManager::remSocket(network::Socket* sock_) {
       return;
     }
   }
-  throw std::runtime_error("Socket not registered");
+  throw std::runtime_error(_("Socket is not registered"));
 }
 
 bool SocketManager::getDisable(VNCServer* srvr)
@@ -153,7 +153,7 @@ bool SocketManager::getDisable(VNCServer* srvr)
       return i->second.disable;
     }
   }
-  throw std::runtime_error("Listener not registered");
+  throw std::runtime_error(_("Listening socket is not registered"));
 }
 
 void SocketManager::setDisable(VNCServer* srvr, bool disable)
@@ -169,7 +169,7 @@ void SocketManager::setDisable(VNCServer* srvr, bool disable)
     }
   }
   if (!found)
-    throw std::runtime_error("Listener not registered");
+    throw std::runtime_error(_("Listening socket is not registered"));
 }
 
 int SocketManager::checkTimeouts() {
@@ -190,7 +190,7 @@ int SocketManager::checkTimeouts() {
       if (j->second.sock->outStream().hasBufferedData())
         eventMask |= FD_WRITE;
       if (WSAEventSelect(j->second.sock->getFd(), j->first, eventMask) == SOCKET_ERROR)
-        throw core::socket_error("unable to adjust WSAEventSelect:%u", WSAGetLastError());
+        throw core::socket_error(_("Unable to adjust socket event mask"), WSAGetLastError());
     }
   }
 
@@ -240,11 +240,11 @@ void SocketManager::processEvent(HANDLE event) {
 
       // Fetch why this event notification triggered
       if (WSAEnumNetworkEvents(ci.sock->getFd(), event, &network_events) == SOCKET_ERROR)
-        throw core::socket_error("Unable to get WSAEnumNetworkEvents:%u", WSAGetLastError());
+        throw core::socket_error(_("Unable to get socket events"), WSAGetLastError());
 
       // Cancel event notification for this socket
       if (WSAEventSelect(ci.sock->getFd(), event, 0) == SOCKET_ERROR)
-        throw core::socket_error("unable to disable WSAEventSelect:%u", WSAGetLastError());
+        throw core::socket_error(_("Unable to disable socket events"), WSAGetLastError());
 
       // Reset the event object
       WSAResetEvent(event);
@@ -272,7 +272,7 @@ void SocketManager::processEvent(HANDLE event) {
       if (ci.sock->outStream().hasBufferedData())
         eventMask |= FD_WRITE;
       if (WSAEventSelect(ci.sock->getFd(), event, eventMask) == SOCKET_ERROR)
-        throw core::socket_error("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
+        throw core::socket_error(_("Unable to re-enable socket events"), WSAGetLastError());
     } catch (std::exception& e) {
       vlog.error("%s", e.what());
       remSocket(ci.sock);

@@ -26,6 +26,7 @@
 #include <stdexcept>
 
 #include <core/Configuration.h>
+#include <core/i18n.h>
 
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
@@ -123,5 +124,5 @@ CSecurity* SecurityClient::GetCSecurity(CConnection* cc, uint32_t secType)
   }
 
 bail:
-  throw std::invalid_argument("Security type not supported");
+  throw std::invalid_argument(_("Security type is not supported"));
 }

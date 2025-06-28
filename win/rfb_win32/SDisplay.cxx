@@ -177,12 +177,12 @@ void SDisplay::startCore() {
   // Currently, we just check whether we're in the console session, and
   //   fail if not
   if (!inConsoleSession())
-    throw std::runtime_error("Console is not session zero - oreconnect to restore Console sessin");
+    throw std::runtime_error(_("Console is not session zero - reconnect to restore Console session"));
   
   // Switch to the current input desktop
   if (rfb::win32::desktopChangeRequired()) {
     if (!rfb::win32::changeDesktop())
-      throw std::runtime_error("Unable to switch into input desktop");
+      throw std::runtime_error(_("Unable to switch into input desktop"));
   }
 
   // Initialise the change tracker and clipper
@@ -205,7 +205,7 @@ void SDisplay::startCore() {
     } catch (std::exception& e) {
       delete core; core = nullptr;
       if (tryMethod == 0)
-        throw std::runtime_error("Unable to access desktop");
+        throw std::runtime_error(_("Unable to access desktop"));
       tryMethod--;
       vlog.error("%s", e.what());
     }
