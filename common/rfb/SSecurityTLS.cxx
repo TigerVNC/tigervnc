@@ -62,11 +62,15 @@ static const gnutls_datum_t ffdhe_pkcs3_param = {
 
 using namespace rfb;
 
-core::StringParameter SSecurityTLS::X509_CertFile
-("X509Cert", "Path to the X509 certificate in PEM format", "");
+core::StringParameter SSecurityTLS::X509_CertFile(
+  "X509Cert",
+  _("Path to the server's X.509 certificate"),
+  "");
 
-core::StringParameter SSecurityTLS::X509_KeyFile
-("X509Key", "Path to the key of the X509 certificate in PEM format", "");
+core::StringParameter SSecurityTLS::X509_KeyFile(
+  "X509Key",
+  _("Path to the private key of the server's X.509 certificate"),
+  "");
 
 static core::LogWriter vlog("TLS");
 

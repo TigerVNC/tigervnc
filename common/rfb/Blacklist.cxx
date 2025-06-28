@@ -22,24 +22,24 @@
 
 #include <rfb/Blacklist.h>
 #include <core/Configuration.h>
+#include <core/i18n.h>
 
 using namespace rfb;
 
 core::BoolParameter enabled("UseBlacklist",
-                            "Temporarily reject connections from a "
-                            "host if it repeatedly fails to "
-                            "authenticate.",
+                            _("Temporarily reject connections from a "
+                              "host if it repeatedly fails to "
+                              "authenticate"),
                             true);
 core::IntParameter threshold("BlacklistThreshold",
-                             "The number of unauthenticated connection "
-                             "attempts allowed from any individual "
-                             "host before that host is black-listed",
+                             _("The number of unauthenticated "
+                               "connection attempts allowed from any "
+                               "individual host before that host is "
+                               "black-listed"),
                              5, 0, INT_MAX);
 core::IntParameter initialTimeout("BlacklistTimeout",
-                                  "The initial timeout applied when a "
-                                  "host is first black-listed. The "
-                                  "host cannot re-attempt a connection "
-                                  "until the timeout expires.",
+                                  _("The initial timeout applied when "
+                                    "a host is first black-listed"),
                                   10, 0, INT_MAX);
 
 

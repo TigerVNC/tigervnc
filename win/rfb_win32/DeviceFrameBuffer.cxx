@@ -44,7 +44,8 @@ using namespace win32;
 static LogWriter vlog("DeviceFrameBuffer");
 
 BoolParameter DeviceFrameBuffer::useCaptureBlt("UseCaptureBlt",
-  "Use a slower capture method that ensures that alpha blended windows appear correctly",
+  _("Use a slower capture method that ensures that alpha blended "
+    "windows will appear correctly"),
   true);
 
 

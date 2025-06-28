@@ -70,12 +70,14 @@ const size_t MaxKeyFileSize = 32 * 1024;
 
 using namespace rfb;
 
-core::StringParameter SSecurityRSAAES::keyFile
-("RSAKey", "Path to the RSA key for the RSA-AES security types in "
-           "PEM format", "");
-core::BoolParameter SSecurityRSAAES::requireUsername
-("RequireUsername", "Require username for the RSA-AES security types",
- false);
+core::StringParameter SSecurityRSAAES::keyFile(
+  "RSAKey",
+  _("Path to the RSA key for the RSA-AES security types"),
+  "");
+core::BoolParameter SSecurityRSAAES::requireUsername(
+  "RequireUsername",
+  _("Require a username for the RSA-AES security types"),
+  false);
 
 static core::LogWriter vlog("SSecurityRSAAES");
 
@@ -589,7 +591,7 @@ void SSecurityRSAAES::verifyUserPass()
 #elif !defined(__APPLE__)
   UnixPasswordValidator *valid = new UnixPasswordValidator();
 #endif
-  std::string msg = "Authentication failed";
+  std::string msg = _("Authentication failed");
   if (!valid->validate(sc, username, password, msg)) {
     delete valid;
     throw auth_error(msg);
@@ -619,7 +621,7 @@ void SSecurityRSAAES::verifyPass()
     return;
   }
 
-  throw auth_error("Authentication failed");
+  throw auth_error(_("Authentication failed"));
 }
 
 const char* SSecurityRSAAES::getUserName() const

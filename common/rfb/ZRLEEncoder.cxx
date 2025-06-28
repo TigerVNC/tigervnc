@@ -37,7 +37,7 @@ using namespace rfb;
 static core::LogWriter vlog("ZRLEEncoder");
 
 core::IntParameter zlibLevel("ZlibLevel",
-                             "[DEPRECATED] Zlib compression level",
+                             _("[DEPRECATED] Zlib compression level"),
                              -1, -1, -1);
 
 ZRLEEncoder::ZRLEEncoder(SConnection* conn_)

@@ -140,11 +140,11 @@ win32::SPointer::pointerEvent(const Point& pos, uint16_t buttonmask)
 //
 
 BoolParameter rfb::win32::SKeyboard::deadKeyAware("DeadKeyAware",
-  "Whether to assume the viewer has already interpreted dead key sequences "
-  "into latin-1 characters", true);
+  _("Whether to assume the viewer has already interpreted dead key "
+    "sequences into latin-1 characters"), true);
 BoolParameter rfb::win32::SKeyboard::rawKeyboard("RawKeyboard",
-  "Send keyboard events straight through and avoid mapping them to the "
-  "current keyboard layout", false);
+  _("Send keyboard events straight through and avoid mapping them to "
+    "the current keyboard layout"), false);
 
 // The keysymToAscii table transforms a couple of awkward keysyms into their
 // ASCII equivalents.

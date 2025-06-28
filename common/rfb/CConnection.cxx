@@ -58,7 +58,7 @@ using namespace rfb;
 static core::LogWriter vlog("CConnection");
 
 core::BoolParameter
-  CConnection::noJpeg("NoJPEG", "Disable lossy JPEG compression.",
+  CConnection::noJpeg("NoJPEG", _("Disable lossy JPEG compression"),
                       false);
 
 CConnection::CConnection()

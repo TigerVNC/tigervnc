@@ -27,11 +27,17 @@
 
 core::BoolParameter
   setPrimary("SetPrimary",
-             "Set the PRIMARY as well as the CLIPBOARD selection",
+             // TRANSLATORS: This refers to the two different X11
+             //              clipboards
+             _("Set the primary selection as well as the clipboard "
+               "selection"),
              true);
 core::BoolParameter
   sendPrimary("SendPrimary",
-              "Send the PRIMARY as well as the CLIPBOARD selection",
+              // TRANSLATORS: This refers to the two different X11
+              //              clipboards
+              _("Send the primary selection to the client as well as "
+                "the clipboard selection"),
               true);
 
 static core::LogWriter vlog("XSelection");

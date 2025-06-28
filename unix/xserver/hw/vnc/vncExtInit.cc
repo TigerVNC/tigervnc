@@ -72,38 +72,45 @@ static const char* defaultDesktopName();
 
 core::IntParameter
   rfbport("rfbport",
-          "TCP port to listen for RFB protocol", 0, -1, 65535);
+          _("TCP port to listen for RFB protocol"), 0, -1, 65535);
 core::StringParameter
   rfbunixpath("rfbunixpath",
-              "Unix socket to listen for RFB protocol", "");
+              _("UNIX socket path to listen for RFB protocol"), "");
 core::IntParameter
   rfbunixmode("rfbunixmode",
-              "Unix socket access mode", 0600, 0000, 0777);
+              _("UNIX socket access mode"), 0600, 0000, 0777);
 core::StringParameter
-  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+  desktopName("desktop",
+              _("Name of VNC desktop"), defaultDesktopName());
 core::BoolParameter
   localhostOnly("localhost",
-                "Only allow connections from localhost", false);
+                _("Only allow connections from localhost"), false);
 core::StringParameter
   interface("interface",
-            "Listen on the specified network address", "all");
+            _("Listen on the specified network address"), "all");
 core::BoolParameter
   avoidShiftNumLock("AvoidShiftNumLock",
-                    "Avoid fake Shift presses for keys affected by "
-                    "NumLock.", true);
+                    _("Avoid fake Shift presses for keys affected by "
+                      "NumLock"), true);
 core::StringListParameter
   allowOverride("AllowOverride",
-                "Comma separated list of parameters that can be "
-                "modified using VNC extension.",
+                _("Comma separated list of parameters that are allowed "
+                  "to be modified after startup"),
                 {"desktop", "AcceptPointerEvents", "SendCutText",
                  "AcceptCutText", "SendPrimary", "SetPrimary"});
 core::BoolParameter
   setPrimary("SetPrimary",
-             "Set the PRIMARY as well as the CLIPBOARD selection",
+             // TRANSLATORS: This refers to the two different X11
+             //              clipboards
+             _("Set the primary selection as well as the clipboard "
+               "selection"),
              true);
 core::BoolParameter
   sendPrimary("SendPrimary",
-              "Send the PRIMARY as well as the CLIPBOARD selection",
+              // TRANSLATORS: This refers to the two different X11
+              //              clipboards
+              _("Send the primary selection to the client as well as "
+                "the clipboard selection"),
               true);
 
 static const char* defaultDesktopName()
