@@ -25,6 +25,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/KeyRemapper.h>
 
@@ -78,12 +79,12 @@ public:
       if (sscanf(m, "0x%x%c>0x%x", &from,
                 &bidi, &to) == 3) {
         if (bidi != '-' && bidi != '<')
-          vlog.error("Warning: Unknown operation %c>, assuming ->", bidi);
+          vlog.error(_("Unknown operation %c>, assuming ->"), bidi);
         mapping[from] = to;
         if (bidi == '<')
           mapping[to] = from;
       } else {
-        vlog.error("Warning: Bad mapping %s", m);
+        vlog.error(_("Invalid mapping %s"), m);
       }
     }
 

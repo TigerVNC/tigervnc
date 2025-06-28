@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/InStream.h>
@@ -288,7 +289,7 @@ bool CMsgReader::readServerCutText()
 
   if (len > (size_t)maxCutText) {
     is->skip(len);
-    vlog.error("Cut text too long (%d bytes) - ignoring",len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     return true;
   }
 
@@ -314,7 +315,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
   if (len < 4)
     throw protocol_error("Invalid extended clipboard message");
   if (len > maxCutText) {
-    vlog.error("Extended clipboard message too long (%d bytes) - ignoring", len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     is->skip(len);
     return true;
   }
@@ -364,7 +365,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
       lengths[num] = zis.readU32();
 
       if (lengths[num] > (size_t)maxCutText) {
-        vlog.error("Extended clipboard data too long (%d bytes) - ignoring",
+        vlog.error(_("Clipboard too large (%d bytes) - ignoring"),
                    (unsigned)lengths[num]);
 
         // Slowly (safely) drain away the data
@@ -447,7 +448,7 @@ bool CMsgReader::readFence()
   is->clearRestorePoint();
 
   if (len > sizeof(data)) {
-    vlog.error("Ignoring fence with too large payload");
+    vlog.error(_("Ignoring fence with too large payload"));
     is->skip(len);
     return true;
   }
@@ -481,14 +482,15 @@ bool CMsgReader::readRect(const core::Rect& r, int encoding)
 {
   if ((r.br.x > handler->server.width()) ||
       (r.br.y > handler->server.height())) {
-    vlog.error("Rect too big: %dx%d at %d,%d exceeds %dx%d",
-	    r.width(), r.height(), r.tl.x, r.tl.y,
-            handler->server.width(), handler->server.height());
+    vlog.error(
+      _("Invalid rectangle received: %dx%d at %d,%d exceeds %dx%d"),
+      r.width(), r.height(), r.tl.x, r.tl.y,
+      handler->server.width(), handler->server.height());
     throw protocol_error("Rect too big");
   }
 
   if (r.is_empty())
-    vlog.error("Zero size rect");
+    vlog.error(_("Empty rectangle received"));
 
   return handler->dataRect(r, encoding);
 }
@@ -791,12 +793,12 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
   name[len] = '\0';
 
   if (x || y || w || h) {
-    vlog.error("Ignoring DesktopName rect with non-zero position/size");
+    vlog.error(_("Invalid desktop name received"));
     return true;
   }
 
   if (!core::isValidUTF8(name.data())) {
-    vlog.error("Ignoring DesktopName rect with invalid UTF-8 sequence");
+    vlog.error(_("Invalid desktop name received"));
     return true;
   }
 

@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>
@@ -207,7 +208,8 @@ void SSecurityTLS::setParams()
 
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
       throw rdr::tls_error("gnutls_set_priority_direct()", ret);
     }
   } else if (anon) {
@@ -219,7 +221,8 @@ void SSecurityTLS::setParams()
     ret = gnutls_set_default_priority_append(session, kx_anon_priority + 1, &err, 0);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
       throw rdr::tls_error("gnutls_set_default_priority_append()", ret);
     }
 #else
@@ -240,7 +243,8 @@ void SSecurityTLS::setParams()
 
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
       throw rdr::tls_error("gnutls_set_priority_direct()", ret);
     }
 #endif
