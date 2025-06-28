@@ -21,6 +21,9 @@
 #endif
 
 #include <string.h>
+
+#include <core/i18n.h>
+
 #include <rfb/encodings.h>
 
 int rfb::encodingNum(const char* name)
@@ -51,6 +54,6 @@ const char* rfb::encodingName(int num)
 #ifdef HAVE_H264
   case encodingH264:     return "H.264";
 #endif
-  default:               return "[unknown encoding]";
+  default:               return _("[unknown]");
   }
 }

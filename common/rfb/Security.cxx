@@ -188,6 +188,6 @@ const char* rfb::secTypeName(uint32_t num)
   case secTypeX509None:   return "X509None";
   case secTypeX509Vnc:    return "X509Vnc";
   case secTypeX509Plain:  return "X509Plain";
-  default:                return "[unknown secType]";
+  default:                return _("[unknown]");
   }
 }
