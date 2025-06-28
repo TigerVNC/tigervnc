@@ -31,7 +31,7 @@ namespace rfb {
   class auth_error : public std::runtime_error {
   public:
     auth_error(const char* reason) noexcept : std::runtime_error(reason) {}
-    auth_error(std::string& reason) noexcept : std::runtime_error(reason) {}
+    auth_error(const std::string& reason) noexcept : std::runtime_error(reason) {}
   };
 
   class auth_cancelled : public std::runtime_error {
