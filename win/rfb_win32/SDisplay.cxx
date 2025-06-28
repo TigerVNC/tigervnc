@@ -52,19 +52,19 @@ static LogWriter vlog("SDisplay");
 // - SDisplay-specific configuration options
 
 IntParameter rfb::win32::SDisplay::updateMethod("UpdateMethod",
-  "How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - Driver hooking.",
+  _("How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - Driver hooking"),
   0, 0, 2);
 BoolParameter rfb::win32::SDisplay::disableLocalInputs("DisableLocalInputs",
-  "Disable local keyboard and pointer input while the server is in use", false);
+  _("Disable local keyboard and pointer input while the server is in use"), false);
 EnumParameter rfb::win32::SDisplay::disconnectAction("DisconnectAction",
-  "Action to perform when all clients have disconnected.  (None, Lock, Logoff)",
+  _("Action to perform when all clients have disconnected; None, Lock, Logoff"),
   {"None", "Lock", "Logoff"}, "None");
 StringParameter displayDevice("DisplayDevice",
-  "Display device name of the monitor to be remoted, or empty to export the whole desktop.", "");
+  _("Display device name of the monitor to be remoted, or empty to export the whole desktop"), "");
 BoolParameter rfb::win32::SDisplay::removeWallpaper("RemoveWallpaper",
-  "Remove the desktop wallpaper when the server is in use.", false);
+  _("Remove the desktop wallpaper when the server is in use"), false);
 BoolParameter rfb::win32::SDisplay::disableEffects("DisableEffects",
-  "Disable desktop user interface effects when the server is in use.", false);
+  _("Disable desktop user interface effects when the server is in use"), false);
 
 
 //////////////////////////////////////////////////////////////////////////////

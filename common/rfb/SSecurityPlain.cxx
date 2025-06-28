@@ -42,11 +42,7 @@ using namespace rfb;
 
 core::StringListParameter PasswordValidator::plainUsers
 ("PlainUsers",
- "Users permitted to access via Plain security type (including TLSPlain, X509Plain etc.)"
-#ifdef HAVE_NETTLE
- " or RSA-AES security types (RA2, RA2ne, RA2_256, RA2ne_256)"
-#endif
- ,
+ _("Users permitted to access the server"),
  {});
 
 bool PasswordValidator::validUser(const char* username)

@@ -18,9 +18,13 @@
 #ifndef WINVNCCONF_CONNECTIONS
 #define WINVNCCONF_CONNECTIONS
 
+// FIXME: The implementation should be moved to Connections.cxx so we
+//        don't have all of these #includes polluting everything
+
 #include <vector>
 
 #include <core/Configuration.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb_win32/Registry.h>
@@ -32,12 +36,12 @@
 #include <network/TcpSocket.h>
 
 static core::IntParameter port_number("PortNumber",
-  "TCP/IP port on which the server will accept connections",
+  _("TCP port to listen for RFB protocol"),
   5900, 0, 65535);
 static core::StringParameter hosts("Hosts",
-  "Filter describing which hosts are allowed access to this server", "+");
+  _("Filter describing which hosts are allowed access to this server"), "+");
 static core::BoolParameter localHost("LocalHost",
-  "Only accept connections from via the local loop-back network interface", false);
+  _("Only allow connections from localhost"), false);
 
 namespace rfb {
 

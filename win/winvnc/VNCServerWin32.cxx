@@ -51,16 +51,19 @@ const char* winvnc::VNCServerWin32::RegConfigPath = "Software\\TigerVNC\\WinVNC4
 
 
 static IntParameter port_number("PortNumber",
-  "TCP/IP port on which the server will accept connections",
+  _("TCP/IP port on which the server will accept connections"),
   5900, 0, 65535);
 static StringParameter hosts("Hosts",
-  "Filter describing which hosts are allowed access to this server", "+");
+  _("Filter describing which hosts are allowed access to this server"),
+  "+");
 static BoolParameter localHost("LocalHost",
-  "Only accept connections from via the local loop-back network interface", false);
+  _("Only accept connections from via the local loop-back network interface"),
+  false);
 static BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
-  "Only prompt for a local user to accept incoming connections if there is a user logged on", false);
+  _("Only prompt for a local user to accept incoming connections if there is a user logged on"),
+  false);
 static BoolParameter showTrayIcon("ShowTrayIcon",
-  "Show the configuration applet in the system tray icon", true);
+  _("Show the configuration applet in the system tray"), true);
 
 
 VNCServerWin32::VNCServerWin32()

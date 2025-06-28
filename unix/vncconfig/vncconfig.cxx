@@ -53,9 +53,9 @@
 
 static core::LogWriter vlog("vncconfig");
 
-core::StringParameter displayname("display", "The X display", "");
-core::BoolParameter noWindow("nowin", "Don't display a window", 0);
-core::BoolParameter iconic("iconic", "Start with window iconified", 0);
+core::StringParameter displayname("display", _("The X display to use"), "");
+core::BoolParameter noWindow("nowin", _("Don't display a window"), 0);
+core::BoolParameter iconic("iconic", _("Start with window iconified"), 0);
 
 #define ACCEPT_CUT_TEXT "AcceptCutText"
 #define SEND_CUT_TEXT "SendCutText"

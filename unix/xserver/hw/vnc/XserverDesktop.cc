@@ -66,13 +66,15 @@ static core::LogWriter vlog("XserverDesktop");
 
 core::BoolParameter
   rawKeyboard("RawKeyboard",
-              "Send keyboard events straight through and avoid mapping "
-              "them to the current keyboard layout", false);
+              _("Send keyboard events straight through and avoid "
+                "mapping them to the current keyboard layout"),
+              false);
 core::IntParameter
   queryConnectTimeout("QueryConnectTimeout",
-                      "Number of seconds to show the 'Accept "
-                      "connection' dialog before rejecting the "
-                      "connection", 10, 0, INT_MAX);
+                      _("Number of seconds to show the 'Accept "
+                        "connection' dialog before rejecting the "
+                        "connection"),
+                      10, 0, INT_MAX);
 
 
 XserverDesktop::XserverDesktop(int screenIndex_,

@@ -68,34 +68,42 @@ static const char* defaultDesktopName();
 
 core::IntParameter
   pollingCycle("PollingCycle",
-               "Milliseconds per one polling cycle; actual interval "
-               "may be dynamically adjusted to satisfy "
-               "MaxProcessorUsage setting", 30, 0, INT_MAX);
+               _("Milliseconds per one polling cycle; actual interval "
+                 "may be dynamically adjusted to satisfy "
+                 "MaxProcessorUsage setting"),
+               30, 0, INT_MAX);
 core::IntParameter
   maxProcessorUsage("MaxProcessorUsage",
-                    "Maximum percentage of CPU time to be consumed",
+                    _("Maximum percentage of CPU time to be consumed"),
                     35, 0, 100);
 core::StringParameter
-  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+  desktopName("desktop",
+              _("Name of VNC desktop"),
+              defaultDesktopName());
 core::StringParameter
-  displayname("display", "The X display", "");
+  displayname("display", _("The X display to use"), "");
 core::IntParameter
   rfbport("rfbport",
-          "TCP port to listen for RFB protocol", 5900, -1, 65535);
+          _("TCP port to listen for RFB protocol"),
+          5900, -1, 65535);
 core::StringParameter
   rfbunixpath("rfbunixpath",
-              "Unix socket to listen for RFB protocol", "");
+              _("UNIX socket path to listen for RFB protocol"),
+              "");
 core::IntParameter
   rfbunixmode("rfbunixmode",
-              "Unix socket access mode", 0600, 0000, 0777);
+              _("UNIX socket access mode"),
+              0600, 0000, 0777);
 core::StringParameter
-  hostsFile("HostsFile", "File with IP access control rules", "");
+  hostsFile("HostsFile", _("File with IP access control rules"), "");
 core::BoolParameter
   localhostOnly("localhost",
-                "Only allow connections from localhost", false);
+                _("Only allow connections from localhost"),
+                false);
 core::StringParameter
   interface("interface",
-            "Listen on the specified network address", "all");
+            _("Listen on the specified network address"),
+            "all");
 
 static const char* defaultDesktopName()
 {

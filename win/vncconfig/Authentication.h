@@ -18,10 +18,16 @@
 #ifndef WINVNCCONF_AUTHENTICATION
 #define WINVNCCONF_AUTHENTICATION
 
+// FIXME: The implementation should be moved to Authentication.cxx so we
+//        don't have all of these #includes polluting everything
+
 #include <windows.h>
 #include <commctrl.h>
 
 #include <vncconfig/PasswordDialog.h>
+
+#include <core/i18n.h>
+
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/SecurityPage.h>
 #include <rfb_win32/MsgBox.h>
@@ -34,7 +40,7 @@
 #endif
 
 static core::BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
-  "Only prompt for a local user to accept incoming connections if there is a user logged on", false);
+  _("Only prompt for a local user to accept incoming connections if there is a user logged on"), false);
 
 namespace rfb {
 

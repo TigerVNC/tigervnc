@@ -60,10 +60,11 @@ class KeyMapParameter : public core::StringListParameter {
 public:
   KeyMapParameter()
     : core::StringListParameter("RemapKeys",
-                                "Comma-separated list of incoming "
-                                "keysyms to remap.  Mappings are "
-                                "expressed as two hex values, prefixed "
-                                "by 0x, and separated by ->",
+                                _("Comma-separated list of incoming "
+                                  "keysyms to remap.  Mappings are "
+                                  "expressed as two hex values, "
+                                  "prefixed by 0x, and separated by "
+                                  "->"),
                                 {}) {
     KeyRemapper::defInstance.setMapping({});
   }

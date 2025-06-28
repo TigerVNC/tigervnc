@@ -38,8 +38,9 @@ using namespace winvnc;
 static LogWriter vlog("QueryConnectDialog");
 
 static IntParameter timeout("QueryConnectTimeout",
-                            "Number of seconds to show the Accept connection dialog before "
-                            "rejecting the connection",
+                            _("Number of seconds to show the 'Accept "
+                              "connection' dialog before rejecting the "
+                              "connection"),
                             10, 0, INT_MAX);
 
 
