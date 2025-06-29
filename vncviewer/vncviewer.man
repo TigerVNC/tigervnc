@@ -160,7 +160,8 @@ The default is "Dot".
 .
 .TP
 .B \-CustomCompressLevel
-Use custom compression level. Default if \fBCompressLevel\fP is specified.
+Use custom compression level as specified by \fBCompressLevel\fP. Default is
+off.
 .
 .TP
 .B \-DesktopSize \fIwidth\fPx\fIheight\fP
