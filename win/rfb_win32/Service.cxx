@@ -461,12 +461,12 @@ DWORD rfb::win32::getServiceState(const char* name) {
 
 const char* rfb::win32::serviceStateName(DWORD state) {
   switch (state) {
-  case SERVICE_RUNNING: return "Running";
-  case SERVICE_STOPPED: return "Stopped";
-  case SERVICE_STOP_PENDING: return "Stopping";
+  case SERVICE_RUNNING: return _("Running");
+  case SERVICE_STOPPED: return _("Stopped");
+  case SERVICE_STOP_PENDING: return _("Stopping");
   };
   static char tmp[32];
-  sprintf(tmp, "Unknown (%lu)", state);
+  sprintf(tmp, _("Unknown (%lu)"), state);
   return tmp;
 }
 

@@ -118,7 +118,7 @@ void LegacyPage::LoadPrefs()
               // Finally, save the Hosts value
               regKey.setString("Hosts", newHosts.c_str());
             } catch (std::exception&) {
-              MsgBox(nullptr, "Unable to convert AuthHosts setting to Hosts format.",
+              MsgBox(nullptr, _("Unable to convert AuthHosts setting to Hosts format."),
                      MB_ICONWARNING | MB_OK);
             }
           } else {
@@ -184,8 +184,8 @@ void LegacyPage::LoadPrefs()
       {
         regKey.setInt("PortNumber", key.getBool("SocketConnect") ? key.getInt("PortNumber", 5900) : 0);
         if (key.getBool("AutoPortSelect", false)) {
-          MsgBox(nullptr, "The AutoPortSelect setting is not supported by this release."
-                    "The port number will default to 5900.",
+          MsgBox(nullptr, _("The AutoPortSelect setting is not supported by this release."
+                    "The port number will default to 5900."),
                     MB_ICONWARNING | MB_OK);
           regKey.setInt("PortNumber", 5900);
         }
@@ -196,8 +196,8 @@ void LegacyPage::LoadPrefs()
 
         if (key.getInt("QuerySetting", 2) != 2) {
           regKey.setBool("QueryConnect", key.getInt("QuerySetting") > 2);
-          MsgBox(nullptr, "The QuerySetting option has been replaced by QueryConnect."
-                 "Please see the documentation for details of the QueryConnect option.",
+          MsgBox(nullptr, _("The QuerySetting option has been replaced by QueryConnect."
+                 "Please see the documentation for details of the QueryConnect option."),
                  MB_ICONWARNING | MB_OK);
         }
         regKey.setInt("QueryTimeout", key.getInt("QueryTimeout", 10));
@@ -225,9 +225,9 @@ void LegacyPage::LoadPrefs()
         regKey.setBool("UseHooks", !key.getBool("PollFullScreen", false));
 
         if (key.isValue("AllowShutdown"))
-          MsgBox(nullptr, "The AllowShutdown option is not supported by this release.", MB_ICONWARNING | MB_OK);
+          MsgBox(nullptr, _("The AllowShutdown option is not supported by this release."), MB_ICONWARNING | MB_OK);
         if (key.isValue("AllowEditClients"))
-          MsgBox(nullptr, "The AllowEditClients option is not supported by this release.", MB_ICONWARNING | MB_OK);
+          MsgBox(nullptr, _("The AllowEditClients option is not supported by this release."), MB_ICONWARNING | MB_OK);
 
         allowProperties = key.getBool("AllowProperties", allowProperties);
       }
