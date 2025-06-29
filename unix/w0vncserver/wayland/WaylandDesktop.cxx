@@ -185,7 +185,8 @@ void WaylandDesktop::queryConnection(network::Socket* sock,
 {
   // FIXME: Implement this.
   server->approveConnection(sock, false,
-                            "Unable to query the local user to accept the connection.");
+                            _("Unable to query the local user to "
+                              "accept the connection."));
 }
 
 void WaylandDesktop::terminate()

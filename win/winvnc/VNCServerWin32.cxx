@@ -247,7 +247,7 @@ void VNCServerWin32::queryConnection(network::Socket* sock,
     return;
   }
   if (queryConnectDialog) {
-    vncServer.approveConnection(sock, false, "Another connection is currently being queried.");
+    vncServer.approveConnection(sock, false, _("Another connection is currently being queried."));
     return;
   }
   queryConnectDialog = new QueryConnectDialog(sock, userName, this);
@@ -310,7 +310,7 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       // Get the result, then clean it up
       vncServer.approveConnection(queryConnectDialog->getSock(),
                                   queryConnectDialog->isAccepted(),
-                                  "Connection rejected by user");
+                                  _("Connection rejected by local user"));
       delete queryConnectDialog;
       queryConnectDialog = nullptr;
       break;

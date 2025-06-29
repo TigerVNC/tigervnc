@@ -113,7 +113,7 @@ bool SSecurityPlain::processMsg()
     password[plen] = 0;
     username[ulen] = 0;
     plen = 0;
-    std::string msg = "Authentication failed";
+    std::string msg = _("Authentication failed");
     if (!valid->validate(sc, username, password, msg))
       throw auth_error(msg);
   }
