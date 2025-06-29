@@ -54,9 +54,10 @@ add_library(rfb STATIC
   obfuscate.cxx)
 
 target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
+target_include_directories(rfb SYSTEM PUBLIC ${GETTEXT_INCLUDE_DIR})
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
 target_link_libraries(rfb core rdr network)
-target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
+target_link_libraries(rfb ${GETTEXT_LIBRARIES} ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
 
 if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   target_sources(rfb PRIVATE H264Decoder.cxx H264DecoderContext.cxx)
@@ -99,6 +100,10 @@ if (NETTLE_FOUND)
                         ${NETTLE_LIBRARIES} ${GMP_LIBRARIES})
   target_link_directories(rfb PUBLIC ${HOGWEED_LIBRARY_DIRS}
                           ${NETTLE_LIBRARY_DIRS} ${GMP_LIBRARY_DIRS})
+endif()
+
+if(APPLE)
+  target_link_libraries(rfb "-framework Carbon")
 endif()
 
 if(UNIX)

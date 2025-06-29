@@ -37,6 +37,7 @@
 #include <FL/Fl_Pixmap.H>
 
 #include <core/Exception.h>
+#include <core/i18n.h>
 
 #include <rfb/CConnection.h>
 #include <rfb/Exception.h>
@@ -44,7 +45,6 @@
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
-#include "i18n.h"
 #include "parameters.h"
 #include "UserDialog.h"
 

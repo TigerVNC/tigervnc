@@ -27,6 +27,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 using namespace core;
@@ -79,7 +80,7 @@ bool LogWriter::setLogParams(const char* params) {
   std::vector<std::string> parts;
   parts = split(params, ':');
   if (parts.size() != 3) {
-    fprintf(stderr, "Failed to parse log params:%s\n",params);
+    fprintf(stderr, _("Failed to parse log parameter: %s\n"),params);
     return false;
   }
   int level = atoi(parts[2].c_str());
@@ -87,7 +88,7 @@ bool LogWriter::setLogParams(const char* params) {
   if (!parts[1].empty()) {
     logger = Logger::getLogger(parts[1].c_str());
     if (!logger)
-      fprintf(stderr, "No logger found! %s\n", parts[1].c_str());
+      fprintf(stderr, _("Invalid log target: %s\n"), parts[1].c_str());
   }
   if (parts[0] == "*") {
     LogWriter* current = log_writers;
@@ -100,7 +101,7 @@ bool LogWriter::setLogParams(const char* params) {
   } else {
     LogWriter* logwriter = getLogWriter(parts[0].c_str());
     if (!logwriter) {
-      fprintf(stderr, "No logwriter found! %s\n", parts[0].c_str());
+      fprintf(stderr, _("Invalid log name: %s\n"), parts[0].c_str());
     } else {
       logwriter->setLog(logger);
       logwriter->setLevel(level);
@@ -113,9 +114,9 @@ bool LogWriter::setLogParams(const char* params) {
 
 LogParameter::LogParameter()
   : StringListParameter("Log",
-    "Specifies which log output should be directed to "
-    "which target logger, and the level of output to log. "
-    "Format is <log>:<target>:<level>[, ...].",
+    _("Specifies which log output should be directed to "
+      "which target logger, and the level of output to log, "
+      "in the format <log>:<target>:<level>[, ...]"),
     {})
 {
 }

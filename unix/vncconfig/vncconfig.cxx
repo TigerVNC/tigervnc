@@ -207,6 +207,9 @@ void removeArgs(int* argc, char** argv, int first, int n)
 int main(int argc, char** argv)
 {
   programName = argv[0];
+
+  setlocale(LC_ALL, "");
+
   core::initStdIOLoggers();
   core::LogWriter::setLogParams("*:stderr:30");
 

@@ -31,6 +31,7 @@
 #include <sys/time.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
 
@@ -39,7 +40,6 @@
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
-#include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
 #include "CConn.h"

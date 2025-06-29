@@ -42,6 +42,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
@@ -51,7 +52,6 @@
 #include "fltk/util.h"
 #include "ServerDialog.h"
 #include "OptionsDialog.h"
-#include "i18n.h"
 #include "vncviewer.h"
 #include "parameters.h"
 

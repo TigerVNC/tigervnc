@@ -20,11 +20,12 @@
 #include <config.h>
 #endif
 
+#include <core/i18n.h>
+
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
 
 #include "ShortcutHandler.h"
-#include "i18n.h"
 
 ShortcutHandler::ShortcutHandler() :
   modifierMask(0), state(Idle)

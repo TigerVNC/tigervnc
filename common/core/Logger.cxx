@@ -28,6 +28,7 @@
 
 #include <core/Logger.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 using namespace core;
 

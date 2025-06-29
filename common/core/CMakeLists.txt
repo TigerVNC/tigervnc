@@ -9,6 +9,7 @@ add_library(core STATIC
   Region.cxx
   Timer.cxx
   Thread.cxx
+  i18n.cxx
   string.cxx
   time.cxx
   xdgdirs.cxx)

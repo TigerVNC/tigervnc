@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/InStream.h>
@@ -44,8 +45,8 @@
 static core::LogWriter vlog("CMsgReader");
 
 static core::IntParameter maxCutText("MaxCutText",
-                                     "Maximum permitted length of an "
-                                     "incoming clipboard update",
+                                     _("Maximum permitted length of an "
+                                       "incoming clipboard update"),
                                      256*1024, 0, INT_MAX);
 
 using namespace rfb;
@@ -126,7 +127,8 @@ bool CMsgReader::readMsg()
       ret = readEndOfContinuousUpdates();
       break;
     default:
-      throw protocol_error(core::format("Unknown message type %d", currentMsgType));
+      throw protocol_error(
+        core::format(_("Unknown message type %d"), currentMsgType));
     }
 
     if (ret)
@@ -288,7 +290,7 @@ bool CMsgReader::readServerCutText()
 
   if (len > (size_t)maxCutText) {
     is->skip(len);
-    vlog.error("Cut text too long (%d bytes) - ignoring",len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     return true;
   }
 
@@ -312,9 +314,9 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
     return false;
 
   if (len < 4)
-    throw protocol_error("Invalid extended clipboard message");
+    throw protocol_error(_("Invalid extended clipboard message"));
   if (len > maxCutText) {
-    vlog.error("Extended clipboard message too long (%d bytes) - ignoring", len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     is->skip(len);
     return true;
   }
@@ -334,7 +336,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
     }
 
     if (len < (int32_t)(4 + 4*num))
-      throw protocol_error("Invalid extended clipboard message");
+      throw protocol_error(_("Invalid extended clipboard message"));
 
     num = 0;
     for (i = 0;i < 16;i++) {
@@ -359,12 +361,12 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
         continue;
 
       if (!zis.hasData(4))
-        throw protocol_error("Extended clipboard decode error");
+        throw protocol_error(_("Invalid extended clipboard message"));
 
       lengths[num] = zis.readU32();
 
       if (lengths[num] > (size_t)maxCutText) {
-        vlog.error("Extended clipboard data too long (%d bytes) - ignoring",
+        vlog.error(_("Clipboard too large (%d bytes) - ignoring"),
                    (unsigned)lengths[num]);
 
         // Slowly (safely) drain away the data
@@ -372,7 +374,8 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
           size_t chunk;
 
           if (!zis.hasData(1))
-            throw protocol_error("Extended clipboard decode error");
+            throw protocol_error(
+              _("Invalid extended clipboard message"));
 
           chunk = zis.avail();
           if (chunk > lengths[num])
@@ -388,7 +391,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
       }
 
       if (!zis.hasData(lengths[num]))
-        throw protocol_error("Extended clipboard decode error");
+        throw protocol_error(_("Invalid extended clipboard message"));
 
       buffers[num] = new uint8_t[lengths[num]];
       zis.readBytes(buffers[num], lengths[num]);
@@ -418,7 +421,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
       handler->handleClipboardNotify(flags);
       break;
     default:
-      throw protocol_error("Invalid extended clipboard action");
+      throw protocol_error(_("Invalid extended clipboard message"));
     }
   }
 
@@ -447,7 +450,7 @@ bool CMsgReader::readFence()
   is->clearRestorePoint();
 
   if (len > sizeof(data)) {
-    vlog.error("Ignoring fence with too large payload");
+    vlog.error(_("Ignoring fence with too large payload"));
     is->skip(len);
     return true;
   }
@@ -481,14 +484,15 @@ bool CMsgReader::readRect(const core::Rect& r, int encoding)
 {
   if ((r.br.x > handler->server.width()) ||
       (r.br.y > handler->server.height())) {
-    vlog.error("Rect too big: %dx%d at %d,%d exceeds %dx%d",
-	    r.width(), r.height(), r.tl.x, r.tl.y,
-            handler->server.width(), handler->server.height());
-    throw protocol_error("Rect too big");
+    vlog.error(
+      _("Invalid rectangle received: %dx%d at %d,%d exceeds %dx%d"),
+      r.width(), r.height(), r.tl.x, r.tl.y,
+      handler->server.width(), handler->server.height());
+    throw protocol_error(_("Invalid rectangle received"));
   }
 
   if (r.is_empty())
-    vlog.error("Zero size rect");
+    vlog.error(_("Empty rectangle received"));
 
   return handler->dataRect(r, encoding);
 }
@@ -497,7 +501,7 @@ bool CMsgReader::readSetXCursor(int width, int height,
                                 const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
-    throw protocol_error("Too big cursor");
+    throw protocol_error(_("Received cursor is too large"));
 
   std::vector<uint8_t> rgba(width*height*4);
 
@@ -562,7 +566,7 @@ bool CMsgReader::readSetCursor(int width, int height,
                                const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
-    throw protocol_error("Too big cursor");
+    throw protocol_error(_("Received cursor is too large"));
 
   int data_len = width * height * (handler->server.pf().bpp/8);
   int mask_len = ((width+7)/8) * height;
@@ -609,7 +613,7 @@ bool CMsgReader::readSetCursorWithAlpha(int width, int height,
                                         const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
-    throw protocol_error("Too big cursor");
+    throw protocol_error(_("Received cursor is too large"));
 
   const PixelFormat rgbaPF(32, 32, false, true, 255, 255, 255, 16, 8, 0);
   ManagedPixelBuffer pb(rgbaPF, width, height);
@@ -671,7 +675,7 @@ bool CMsgReader::readSetVMwareCursor(int width, int height,
                                      const core::Point& hotspot)
 {
   if (width > maxCursorSize || height > maxCursorSize)
-    throw protocol_error("Too big cursor");
+    throw protocol_error(_("Received cursor is too large"));
 
   uint8_t type;
 
@@ -765,7 +769,7 @@ bool CMsgReader::readSetVMwareCursor(int width, int height,
 
     handler->setCursor(width, height, hotspot, data.data());
   } else {
-    throw protocol_error("Unknown cursor type");
+    throw protocol_error(_("Unknown cursor type"));
   }
 
   return true;
@@ -791,12 +795,12 @@ bool CMsgReader::readSetDesktopName(int x, int y, int w, int h)
   name[len] = '\0';
 
   if (x || y || w || h) {
-    vlog.error("Ignoring DesktopName rect with non-zero position/size");
+    vlog.error(_("Invalid desktop name received"));
     return true;
   }
 
   if (!core::isValidUTF8(name.data())) {
-    vlog.error("Ignoring DesktopName rect with invalid UTF-8 sequence");
+    vlog.error(_("Invalid desktop name received"));
     return true;
   }
 
