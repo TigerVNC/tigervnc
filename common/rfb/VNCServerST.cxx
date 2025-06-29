@@ -151,7 +151,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
       // Shortest possible way to tell a client it is not welcome
       os.writeBytes((const uint8_t*)"RFB 003.003\n", 12);
       os.writeU32(0);
-      const char* reason = "Too many security failures";
+      const char* reason = _("Too many security failures");
       os.writeU32(strlen(reason));
       os.writeBytes((const uint8_t*)reason, strlen(reason));
       os.flush();
@@ -769,7 +769,7 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
       !rfb::Server::disconnectClients &&
       authClientCount() > 0) {
     approveConnection(client->getSock(), false,
-                      "The server is already in use");
+                      _("The server is already in use"));
     return;
   }
 

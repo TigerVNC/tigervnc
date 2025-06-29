@@ -141,7 +141,7 @@ bool SConnection::processVersionMsg()
   if (client.majorVersion != 3) {
     // unknown protocol version
     failConnection(core::format(
-      "Client needs protocol version %d.%d, server has %d.%d",
+      _("Client needs protocol version %d.%d, server has %d.%d"),
       client.majorVersion, client.minorVersion,
       defaultMajorVersion, defaultMinorVersion));
   }
@@ -172,7 +172,7 @@ bool SConnection::processVersionMsg()
     }
     if (i == secTypes.end()) {
       failConnection(
-        core::format("No supported security type for %d.%d client",
+        core::format(_("No supported security type for %d.%d client"),
                      client.majorVersion, client.minorVersion));
     }
 
@@ -186,7 +186,7 @@ bool SConnection::processVersionMsg()
   // list supported security types for >=3.7 clients
 
   if (secTypes.empty())
-    failConnection("No supported security types");
+    failConnection(_("No supported security types"));
 
   os->writeU8(secTypes.size());
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
@@ -565,7 +565,7 @@ void SConnection::approveConnection(bool accept, const char* reason)
       os->writeU32(secResultFailed);
       if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
         if (!reason)
-          reason = "Connection rejected";
+          reason = _("Connection rejected");
         os->writeU32(strlen(reason));
         os->writeBytes((const uint8_t*)reason, strlen(reason));
       }
