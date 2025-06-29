@@ -131,7 +131,7 @@ static void processParams(int argc, char** argv) {
           copyData.lpData = (void*)host;
           printf(_("Sending connect request to VNC Server...\n"));
           if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
-            MsgBoxOrLog("Connection failed.", true);
+            MsgBoxOrLog(_("Connection failed."), true);
         }
       } else if (strcasecmp(argv[i], "-disconnect") == 0) {
         runServer = false;
@@ -144,23 +144,23 @@ static void processParams(int argc, char** argv) {
         copyData.cbData = 0;
         printf(_("Sending disconnect request to VNC Server...\n"));
         if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
-          MsgBoxOrLog("Failed to disconnect clients.", true);
+          MsgBoxOrLog(_("Failed to disconnect clients."), true);
       } else if (strcasecmp(argv[i], "-start") == 0) {
         printf(_("Attempting to start service...\n"));
         runServer = false;
         if (rfb::win32::startService(VNCServerService::Name))
-          MsgBoxOrLog("Started service successfully");
+          MsgBoxOrLog(_("Started service successfully"));
       } else if (strcasecmp(argv[i], "-stop") == 0) {
         printf(_("Attempting to stop service...\n"));
         runServer = false;
         if (rfb::win32::stopService(VNCServerService::Name))
-          MsgBoxOrLog("Stopped service successfully");
+          MsgBoxOrLog(_("Stopped service successfully"));
       } else if (strcasecmp(argv[i], "-status") == 0) {
         printf(_("Querying service status...\n"));
         runServer = false;
         std::string result;
         DWORD state = rfb::win32::getServiceState(VNCServerService::Name);
-        result = format("The %s service is in the %s state.",
+        result = format(_("The service \"%s\" is in the state: %s"),
                         VNCServerService::Name,
                         rfb::win32::serviceStateName(state));
         MsgBoxOrLog(result.c_str());
@@ -195,12 +195,12 @@ static void processParams(int argc, char** argv) {
                                         "TigerVNC Server",
                                         "Provides remote access to this machine via the VNC/RFB protocol.",
                                         argc-(j+1), &argv[j+1]))
-          MsgBoxOrLog("Registered service successfully");
+          MsgBoxOrLog(_("Registered service successfully"));
       } else if (strcasecmp(argv[i], "-unregister") == 0) {
         printf(_("Attempting to unregister service...\n"));
         runServer = false;
         if (rfb::win32::unregisterService(VNCServerService::Name))
-          MsgBoxOrLog("Unregistered service successfully");
+          MsgBoxOrLog(_("Unregistered service successfully"));
 
       } else if (strcasecmp(argv[i], "-noconsole") == 0) {
         close_console = true;

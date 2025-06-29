@@ -107,16 +107,16 @@ void VNCServerWin32::processAddressChange() {
     return;
 
   // Tool-tip prefix depends on server mode
-  const char* prefix = "VNC server (user):";
+  const char* prefix = _("VNC server (user):");
   if (isServiceProcess())
-    prefix = "VNC server (service):";
+    prefix = _("VNC server (service):");
 
   // Fetch the list of addresses
   std::list<std::string> addrs;
   if (rfbSock.isListening())
     addrs = TcpListener::getMyAddresses();
   else
-    addrs.push_front("Not accepting connections");
+    addrs.push_front(_("Not accepting connections"));
 
   // Build the new tip
   std::list<std::string>::iterator i, next_i;
