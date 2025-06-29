@@ -175,13 +175,17 @@ void XserverDesktop::queryConnection(network::Socket* sock,
   int count;
 
   if (queryConnectTimer.isStarted()) {
-    server->approveConnection(sock, false, "Another connection is currently being queried.");
+    server->approveConnection(sock, false,
+                              _("Another connection is currently being "
+                                "queried."));
     return;
   }
 
   count = vncNotifyQueryConnect();
   if (count == 0) {
-    server->approveConnection(sock, false, "Unable to query the local user to accept the connection.");
+    server->approveConnection(sock, false,
+                              _("Unable to query the local user to "
+                                "accept the connection."));
     return;
   }
 
@@ -572,7 +576,7 @@ void XserverDesktop::handleTimeout(core::Timer* t)
 {
   if (t == &queryConnectTimer) {
     server->approveConnection(queryConnectSocket, false,
-                              "The attempt to prompt the user to "
-                              "accept the connection failed");
+                              _("The attempt to prompt the user to "
+                                "accept the connection failed"));
   }
 }

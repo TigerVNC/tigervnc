@@ -92,11 +92,11 @@ bool SSecurityPlain::processMsg()
 
     ulen = is->readU32();
     if (ulen >= sizeof(username))
-      throw auth_error("Too long username");
+      throw auth_error(_("Username is too long"));
 
     plen = is->readU32();
     if (plen >= sizeof(password))
-      throw auth_error("Too long password");
+      throw auth_error(_("Password is too long"));
 
     state = 1;
   }
@@ -110,7 +110,7 @@ bool SSecurityPlain::processMsg()
     password[plen] = 0;
     username[ulen] = 0;
     plen = 0;
-    std::string msg = "Authentication failed";
+    std::string msg = _("Authentication failed");
     if (!valid->validate(sc, username, password, msg))
       throw auth_error(msg);
   }

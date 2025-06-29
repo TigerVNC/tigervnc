@@ -392,7 +392,8 @@ void vncApproveConnection(uint32_t opaqueId, int approve)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++) {
     desktop[scr]->approveConnection(opaqueId, approve,
-                                    "Connection rejected by local user");
+                                    _("Connection rejected by local "
+                                      "user"));
   }
 }
 

@@ -333,7 +333,9 @@ void XDesktop::queryConnection(network::Socket* sock,
     server->getSockets(&sockets);
     if (std::find(sockets.begin(), sockets.end(),
                   queryConnectSock) != sockets.end()) {
-      server->approveConnection(sock, false, "Another connection is currently being queried.");
+      server->approveConnection(sock, false,
+                                _("Another connection is currently "
+                                  "being queried."));
       return;
     }
   }
@@ -1013,7 +1015,7 @@ void XDesktop::queryRejected()
 {
   assert(isRunning());
   server->approveConnection(queryConnectSock, false,
-                            "Connection rejected by local user");
+                            _("Connection rejected by local user"));
   queryConnectSock = nullptr;
 }
 
