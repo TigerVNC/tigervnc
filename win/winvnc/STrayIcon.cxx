@@ -30,6 +30,7 @@
 #include <core/LogWriter.h>
 #include <core/Mutex.h>
 #include <core/Thread.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/LaunchProcess.h>
 #include <rfb_win32/TrayIcon.h>
@@ -157,7 +158,7 @@ public:
         thread.server.disconnectClients("tray menu disconnect");
         break;
       case ID_CLOSE:
-        if (MsgBox(nullptr, "Are you sure you want to close the server?",
+        if (MsgBox(nullptr, _("Are you sure you want to close the server?"),
                    MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2) == IDYES) {
           if (isServiceProcess()) {
             try {
