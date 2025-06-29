@@ -128,8 +128,11 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
         // Something weird happens on NT 4.0 SP5 but I can't reproduce it on other
         // NT 4.0 service pack revisions.
         if (e.err == ERROR_INVALID_PARAMETER) {
-          MsgBox(nullptr, "Windows reported an error trying to secure the VNC server settings for this user.  "
-                    "Your settings may not be secure!", MB_ICONWARNING | MB_OK);
+          MsgBox(nullptr,
+                 _("Windows reported an error trying to secure the VNC "
+                   "server settings for this user. Your settings may "
+                   "not be secure!"),
+                 MB_ICONWARNING | MB_OK);
         } else if (e.err != ERROR_CALL_NOT_IMPLEMENTED &&
                    e.err != ERROR_NOT_LOGGED_ON) {
           // If the call is not implemented, ignore the error and continue
@@ -157,9 +160,9 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
       HICON icon = (HICON)LoadImage(inst, MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_SHARED);
 
       // Create the PropertySheet handler
-      const char* propSheetTitle = "VNC server properties (service-mode)";
+      const char* propSheetTitle = _("VNC server properties (service-mode)");
       if (configKey == HKEY_CURRENT_USER)
-        propSheetTitle = "VNC server properties (user-mode)";
+        propSheetTitle = _("VNC server properties (user-mode)");
       PropSheet sheet(inst, propSheetTitle, pages, icon);
 
 #ifdef _DEBUG
@@ -171,7 +174,9 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
     } catch (core::win32_error& e) {
       switch (e.err) {
       case ERROR_ACCESS_DENIED:
-        MsgBox(nullptr, "You do not have sufficient access rights to run the VNC Configuration applet",
+        MsgBox(nullptr,
+               _("You do not have sufficient access rights to run the "
+                 "VNC Configuration applet"),
                MB_ICONSTOP | MB_OK);
         return 1;
       };
