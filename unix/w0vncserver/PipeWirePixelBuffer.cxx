@@ -45,6 +45,8 @@
 #include <spa/debug/format.h>
 #include <spa/debug/pod.h>
 
+#include <pixman.h>
+
 #include <core/LogWriter.h>
 #include <core/string.h>
 #include <rfb/VNCServer.h>
@@ -80,15 +82,24 @@ void PipeWirePixelBuffer::updatePixelbuffer(int width, int height,
 
 void PipeWirePixelBuffer::processBuffer(pw_buffer* buffer)
 {
+  pixman_bool_t ret;
   spa_buffer* buf;
   int srcStride;
+  int dstStride;
   uint8_t* srcBuffer;
+  uint8_t* dstBuffer;
 
   buf = buffer->buffer;
   srcBuffer = (uint8_t*)buf->datas[0].data;
   srcStride = buf->datas[0].chunk->stride / (getPF().bpp / 8);
+  dstBuffer = getBufferRW({0, 0, width(), height()}, &dstStride);
 
-  imageRect(getPF(), {0, 0, width(), height()}, srcBuffer, srcStride);
+  ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
+                   srcStride, dstStride, getPF().bpp,
+                   getPF().bpp, 0, 0, 0, 0, width(), height());
+
+  if (!ret)
+    imageRect(getPF(), {0, 0, width(), height()}, srcBuffer, srcStride);
 
   server->add_changed({{0, 0, width(), height()}});
 }
