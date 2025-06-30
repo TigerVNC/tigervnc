@@ -20,7 +20,15 @@ jobs:
           sudo apt-get install -y libavcodec-dev libavutil-dev libswscale-dev
           sudo apt-get install -y libgtest-dev
       - name: Configure
-        run: cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+        run: |
+          cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_NLS=ON \
+            -DENABLE_H264=ON \
+            -DENABLE_GNUTLS=ON \
+            -DENABLE_NETTLE=ON \
+            -DBUILD_VIEWER=ON \
+            -S . -B build
       - name: Build
         working-directory: build
         run: make
@@ -64,7 +72,16 @@ jobs:
             mingw-w64-x86_64-nettle mingw-w64-x86_64-gmp \
             mingw-w64-x86_64-gtest
       - name: Configure
-        run: cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Debug -S . -B build
+        run: |
+          cmake \
+            -G "MSYS Makefiles" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_NLS=ON \
+            -DENABLE_H264=ON \
+            -DENABLE_GNUTLS=ON \
+            -DENABLE_NETTLE=ON \
+            -DBUILD_VIEWER=ON \
+            -S . -B build
       - name: Build
         working-directory: build
         run: make
@@ -101,7 +118,15 @@ jobs:
           brew install googletest
           brew link fltk@1.3
       - name: Configure
-        run: cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+        run: |
+          cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_NLS=ON \
+            -DENABLE_H264=ON \
+            -DENABLE_GNUTLS=ON \
+            -DENABLE_NETTLE=ON \
+            -DBUILD_VIEWER=ON \
+            -S . -B build
       - name: Build
         working-directory: build
         run: make
