@@ -23,6 +23,13 @@ Source: "@CMAKE_BINARY_DIR@\win\vncconfig\vncconfig.exe"; DestDir: "{app}"; Flag
 Source: "@CMAKE_SOURCE_DIR@\README.rst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 
+#define LINGUAS
+#define Lang
+#sub AddLanguage
+  #define Lang = FileRead(LINGUAS)
+  Source: "@CMAKE_BINARY_DIR@\po\{#Lang}.mo"; DestDir: "{app}\locale\{#Lang}\LC_MESSAGES"; DestName: "tigervnc.mo"; Flags: ignoreversion
+#endsub
+#for {LINGUAS = FileOpen("@CMAKE_SOURCE_DIR@\po\LINGUAS"); !FileEof(LINGUAS); ""} AddLanguage
 
 [Icons]
 Name: "{group}\VNC server (User-Mode)\Run VNC server"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole";
