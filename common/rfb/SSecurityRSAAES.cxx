@@ -583,9 +583,10 @@ void SSecurityRSAAES::verifyUserPass()
 #elif !defined(__APPLE__)
   UnixPasswordValidator *valid = new UnixPasswordValidator();
 #endif
-  if (!valid->validate(sc, username, password)) {
+  std::string msg = "Authentication failed";
+  if (!valid->validate(sc, username, password, msg)) {
     delete valid;
-    throw auth_error("Authentication failed");
+    throw auth_error(msg);
   }
   delete valid;
 #else

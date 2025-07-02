@@ -32,6 +32,8 @@
 
 #include <network/TcpSocket.h>
 
+#include <rfb/UnixPasswordValidator.h>
+
 #include "RFBGlue.h"
 
 // Loggers used by C code must be created here
@@ -233,4 +235,11 @@ int vncIsValidUTF8(const char* str, size_t bytes)
   } catch (...) {
     return 0;
   }
+}
+
+void vncSetDisplayName(const char *displayNumStr)
+{
+  std::string displayName(":");
+  displayName += displayNumStr;
+  rfb::UnixPasswordValidator::setDisplayName(displayName);
 }

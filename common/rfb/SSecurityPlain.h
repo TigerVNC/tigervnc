@@ -29,14 +29,20 @@ namespace rfb {
 
   class PasswordValidator {
   public:
-    bool validate(SConnection* sc, const char *username, const char *password)
-      { return validUser(username) ? validateInternal(sc, username, password) : false; }
+    bool validate(SConnection* sc,
+                  const char *username,
+                  const char *password,
+                  std::string &msg)
+      { return validUser(username) ? validateInternal(sc, username, password, msg) : false; }
     static core::StringListParameter plainUsers;
 
     virtual ~PasswordValidator() { }
 
   protected:
-    virtual bool validateInternal(SConnection* sc, const char *username, const char *password)=0;
+    virtual bool validateInternal(SConnection* sc,
+                                  const char *username,
+                                  const char *password,
+                                  std::string &msg) = 0;
     static bool validUser(const char* username);
   };
 

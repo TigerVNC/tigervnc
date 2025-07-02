@@ -26,9 +26,19 @@
 namespace rfb
 {
   class UnixPasswordValidator: public PasswordValidator {
+  public:
+    static void setDisplayName(const std::string& display) {
+      displayName = display;
+    }
+
   protected:
-    bool validateInternal(SConnection * sc, const char *username,
-			   const char *password) override;
+    bool validateInternal(SConnection *sc,
+                          const char *username,
+                          const char *password,
+                          std::string &msg) override;
+
+  private:
+    static std::string displayName;
   };
 }
 

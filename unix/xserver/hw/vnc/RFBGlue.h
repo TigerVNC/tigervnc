@@ -55,6 +55,8 @@ char* vncUTF8ToLatin1(const char* src, size_t bytes);
 
 int vncIsValidUTF8(const char* str, size_t bytes);
 
+void vncSetDisplayName(const char *displayNumStr);
+
 #ifdef __cplusplus
 }
 #endif
