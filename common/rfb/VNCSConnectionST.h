@@ -105,6 +105,8 @@ namespace rfb {
     // or because the current cursor position has not been set by this client.
     bool needRenderedCursor();
 
+    void desktopReady() override;
+
     network::Socket* getSock() { return sock; }
 
     // Change tracking
@@ -122,7 +124,7 @@ namespace rfb {
     // These methods are invoked as callbacks from processMsg(
     void authSuccess() override;
     void queryConnection(const char* userName) override;
-    void clientInit(bool shared) override;
+    void clientReady(bool shared) override;
     void setPixelFormat(const PixelFormat& pf) override;
     void pointerEvent(const core::Point& pos,
                       uint16_t buttonMask) override;

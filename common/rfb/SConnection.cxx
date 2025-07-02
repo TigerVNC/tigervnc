@@ -99,6 +99,9 @@ bool SConnection::processMsg()
   case RFBSTATE_QUERYING:
     throw std::logic_error("SConnection::processMsg: Bogus data from "
                            "client while querying");
+  case RFBSTATE_CLIENT_READY:
+    throw std::logic_error("SConnection::processMsg: Bogus data from "
+                           "client while waiting for desktop");
   case RFBSTATE_CLOSING:
     throw std::logic_error("SConnection::processMsg: Called while closing");
   case RFBSTATE_UNINITIALISED:
@@ -275,7 +278,15 @@ bool SConnection::processSecurityFailure()
 bool SConnection::processInitMsg()
 {
   vlog.debug("Reading client initialisation");
-  return reader_->readClientInit();
+  if (!reader_->readClientInit())
+    return false;
+
+  // If the desktop is ready right away then we can continue
+  if (state_ == RFBSTATE_NORMAL)
+    return true;
+
+  // Otherwise we need to wait
+  return false;
 }
 
 void SConnection::handleAuthFailureTimeout(core::Timer* /*t*/)
@@ -339,6 +350,12 @@ bool SConnection::accessCheck(AccessRights ar) const
     throw std::logic_error("SConnection::accessCheck: Invalid state");
 
   return (accessRights & ar) == ar;
+}
+
+void SConnection::clientInit(bool shared)
+{
+  state_ = RFBSTATE_CLIENT_READY;
+  clientReady(shared);
 }
 
 void SConnection::setEncodings(int nEncodings, const int32_t* encodings)
@@ -529,6 +546,11 @@ void SConnection::queryConnection(const char* /*userName*/)
   approveConnection(true);
 }
 
+void SConnection::clientReady(bool /*shared*/)
+{
+  desktopReady();
+}
+
 void SConnection::approveConnection(bool accept, const char* reason)
 {
   if (state_ != RFBSTATE_QUERYING)
@@ -563,8 +585,10 @@ void SConnection::approveConnection(bool accept, const char* reason)
   }
 }
 
-void SConnection::clientInit(bool /*shared*/)
+void SConnection::desktopReady()
 {
+  if (state() != RFBSTATE_CLIENT_READY)
+    return;
   writer_->writeServerInit(client.width(), client.height(),
                            client.pf(), client.name());
   state_ = RFBSTATE_NORMAL;
