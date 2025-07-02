@@ -401,6 +401,27 @@ bool VNCSConnectionST::needRenderedCursor()
   return false;
 }
 
+void VNCSConnectionST::desktopReady()
+{
+  // - Set the connection parameters appropriately
+  client.setDimensions(server->getPixelBuffer()->width(),
+                       server->getPixelBuffer()->height(),
+                       server->getScreenLayout());
+  client.setName(server->getName());
+  client.setLEDState(server->getLEDState());
+  
+  // - Set the default pixel format
+  client.setPF(server->getPixelBuffer()->getPF());
+  char buffer[256];
+  client.pf().print(buffer, 256);
+  vlog.info("Server default pixel format %s", buffer);
+
+  // - Mark the entire display as "dirty"
+  updates.add_changed(server->getPixelBuffer()->getRect());
+
+  SConnection::desktopReady();
+}
+
 
 void VNCSConnectionST::approveConnectionOrClose(bool accept,
                                                 const char* reason)
@@ -420,22 +441,6 @@ void VNCSConnectionST::authSuccess()
 {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
-
-  // - Set the connection parameters appropriately
-  client.setDimensions(server->getPixelBuffer()->width(),
-                       server->getPixelBuffer()->height(),
-                       server->getScreenLayout());
-  client.setName(server->getName());
-  client.setLEDState(server->getLEDState());
-  
-  // - Set the default pixel format
-  client.setPF(server->getPixelBuffer()->getPF());
-  char buffer[256];
-  client.pf().print(buffer, 256);
-  vlog.info("Server default pixel format %s", buffer);
-
-  // - Mark the entire display as "dirty"
-  updates.add_changed(server->getPixelBuffer()->getRect());
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -445,6 +450,11 @@ void VNCSConnectionST::queryConnection(const char* userName)
 
 void VNCSConnectionST::clientInit(bool shared)
 {
+  if (!server->isDesktopReady())
+    return;
+
+  desktopReady();
+
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;

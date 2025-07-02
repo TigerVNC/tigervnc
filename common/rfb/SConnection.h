@@ -192,6 +192,10 @@ namespace rfb {
     // from queryConnection() or some time later.
     virtual void queryConnection(const char* userName);
 
+    // desktopReady() is called when the desktop has finished
+    // initializing and is ready for a client.
+    virtual void desktopReady();
+
     // clientInit() is called when the ClientInit message is received.  The
     // derived class must call on to SConnection::clientInit().
     void clientInit(bool shared) override;

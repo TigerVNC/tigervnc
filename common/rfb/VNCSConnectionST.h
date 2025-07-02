@@ -105,6 +105,8 @@ namespace rfb {
     // or because the current cursor position has not been set by this client.
     bool needRenderedCursor();
 
+    void desktopReady() override;
+
     network::Socket* getSock() { return sock; }
 
     // Change tracking

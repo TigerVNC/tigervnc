@@ -524,6 +524,13 @@ void SConnection::authSuccess()
 {
 }
 
+void SConnection::desktopReady()
+{
+  writer_->writeServerInit(client.width(), client.height(),
+                           client.pf(), client.name());
+  state_ = RFBSTATE_NORMAL;
+}
+
 void SConnection::queryConnection(const char* /*userName*/)
 {
   approveConnection(true);
@@ -565,9 +572,6 @@ void SConnection::approveConnection(bool accept, const char* reason)
 
 void SConnection::clientInit(bool /*shared*/)
 {
-  writer_->writeServerInit(client.width(), client.height(),
-                           client.pf(), client.name());
-  state_ = RFBSTATE_NORMAL;
 }
 
 void SConnection::close(const char* /*reason*/)
