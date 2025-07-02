@@ -80,6 +80,10 @@ namespace rfb {
     // appropriately by the caller.
     void approveConnection(bool accept, const char* reason=nullptr);
 
+    // desktopReady() is called when the desktop has finished
+    // initializing and is ready for a client.
+    virtual void desktopReady();
+
 
     // Methods to terminate the connection
 
@@ -114,6 +118,7 @@ namespace rfb {
     // authenticated() returns true if the client has authenticated
     // successfully.
     bool authenticated() { return (state_ == RFBSTATE_INITIALISATION ||
+                                   state_ == RFBSTATE_CLIENT_READY ||
                                    state_ == RFBSTATE_NORMAL); }
 
     SMsgReader* reader() { return reader_; }
@@ -130,6 +135,7 @@ namespace rfb {
       RFBSTATE_SECURITY_FAILURE,
       RFBSTATE_QUERYING,
       RFBSTATE_INITIALISATION,
+      RFBSTATE_CLIENT_READY,
       RFBSTATE_NORMAL,
       RFBSTATE_CLOSING,
       RFBSTATE_INVALID
@@ -142,6 +148,8 @@ namespace rfb {
   protected:
 
     // Overridden from SMsgHandler
+
+    void clientInit(bool shared) override;
 
     void setEncodings(int nEncodings, const int32_t* encodings) override;
 
@@ -192,9 +200,12 @@ namespace rfb {
     // from queryConnection() or some time later.
     virtual void queryConnection(const char* userName);
 
-    // clientInit() is called when the ClientInit message is received.  The
-    // derived class must call on to SConnection::clientInit().
-    void clientInit(bool shared) override;
+    // clientReady() is called when the client has fully completed
+    // initialization. This can be overridden if the desktop needs more
+    // time to get ready (i.e. provide a framebuffer and name). Once the
+    // desktop is ready, the derived class must call on to
+    // SConnection::desktopReady().
+    virtual void clientReady(bool shared);
 
     // setPixelFormat() is called when a SetPixelFormat message is received.
     // The derived class must call on to SConnection::setPixelFormat().
