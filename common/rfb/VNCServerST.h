@@ -116,6 +116,7 @@ namespace rfb {
     const core::Point& getCursorPos() const { return cursorPos; }
     const char* getName() const { return name.c_str(); }
     unsigned getLEDState() const { return ledState; }
+    bool getDesktopStartupInProgress() const { return desktopStartupInProgress; }
 
     // Event handlers
     void keyEvent(uint32_t keysym, uint32_t keycode, bool down);
@@ -164,6 +165,7 @@ namespace rfb {
 
     void startDesktop();
     void stopDesktop();
+    void desktopReady();
 
     // - Check how many of the clients are authenticated.
     int authClientCount();
@@ -181,6 +183,7 @@ namespace rfb {
 
     SDesktop* desktop;
     bool desktopStarted;
+    bool desktopStartupInProgress;
     int blockCounter;
     PixelBuffer* pb;
     ScreenSet screenLayout;

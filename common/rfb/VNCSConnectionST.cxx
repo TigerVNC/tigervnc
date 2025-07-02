@@ -66,7 +66,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     losslessTimer(this), server(server_),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), idleTimer(this),
-    pointerEventTime(0), clientHasCursor(false)
+    pointerEventTime(0), clientHasCursor(false), shared_(false)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint = sock->getPeerEndpoint();
@@ -401,6 +401,14 @@ bool VNCSConnectionST::needRenderedCursor()
   return false;
 }
 
+void VNCSConnectionST::updateState()
+{
+  if (state() != RFBSTATE_INITIALISATION)
+    return;
+
+  clientInit(shared_);
+}
+
 
 void VNCSConnectionST::approveConnectionOrClose(bool accept,
                                                 const char* reason)
@@ -420,6 +428,25 @@ void VNCSConnectionST::authSuccess()
 {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
+}
+
+void VNCSConnectionST::queryConnection(const char* userName)
+{
+  server->queryConnection(this, userName);
+}
+
+void VNCSConnectionST::clientInit(bool shared)
+{
+  shared_ = shared;
+
+  if (server->getDesktopStartupInProgress())
+    return;
+
+  if (rfb::Server::idleTimeout)
+    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
+  if (rfb::Server::alwaysShared || reverseConnection) shared = true;
+  if (!accessCheck(AccessNonShared)) shared = true;
+  if (rfb::Server::neverShared) shared = false;
 
   // - Set the connection parameters appropriately
   client.setDimensions(server->getPixelBuffer()->width(),
@@ -436,20 +463,7 @@ void VNCSConnectionST::authSuccess()
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->getPixelBuffer()->getRect());
-}
 
-void VNCSConnectionST::queryConnection(const char* userName)
-{
-  server->queryConnection(this, userName);
-}
-
-void VNCSConnectionST::clientInit(bool shared)
-{
-  if (rfb::Server::idleTimeout)
-    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
-  if (rfb::Server::alwaysShared || reverseConnection) shared = true;
-  if (!accessCheck(AccessNonShared)) shared = true;
-  if (rfb::Server::neverShared) shared = false;
   SConnection::clientInit(shared);
   server->clientReady(this, shared);
 }

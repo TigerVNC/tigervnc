@@ -116,6 +116,8 @@ namespace rfb {
 
     const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
 
+    void updateState();
+
   private:
     // SConnection callbacks
 
@@ -203,6 +205,8 @@ namespace rfb {
     bool clientHasCursor;
 
     std::string closeReason;
+
+    bool shared_;
   };
 }
 #endif
