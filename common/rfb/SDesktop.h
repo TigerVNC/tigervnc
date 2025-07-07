@@ -52,7 +52,11 @@ namespace rfb {
   class VNCServer;
 
   class SDesktop {
+  protected:
+    SDesktop() {};
   public:
+    virtual ~SDesktop() {}
+
     // init() is called immediately when the VNCServer gets a reference
     // to the SDesktop, so that a reverse reference can be set up.
     virtual void init(rfb::VNCServer* vs) = 0;
@@ -123,8 +127,6 @@ namespace rfb {
     // when the client received the request.
     virtual void handleClipboardData(const char* /*data*/) {}
 
-  protected:
-    virtual ~SDesktop() {}
   };
 
 };
