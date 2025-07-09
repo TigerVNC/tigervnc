@@ -475,7 +475,7 @@ int main(int argc, char** argv)
           if (sock) {
             server.addSocket(sock);
           } else {
-            vlog.status("Client connection rejected");
+            vlog.info("Client connection rejected");
           }
         }
       }
