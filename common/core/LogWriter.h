@@ -72,12 +72,10 @@ namespace core {
     }
 
     static const int LEVEL_ERROR  = 0;
-    static const int LEVEL_STATUS = 10;
     static const int LEVEL_INFO   = 30;
     static const int LEVEL_DEBUG  = 100;
 
     DEF_LOGFUNCTION(error, LEVEL_ERROR)
-    DEF_LOGFUNCTION(status, LEVEL_STATUS)
     DEF_LOGFUNCTION(info, LEVEL_INFO)
     DEF_LOGFUNCTION(debug, LEVEL_DEBUG)
 

@@ -486,7 +486,7 @@ int main(int argc, char** argv)
             if (!server.addSocket(sock))
               delete sock;
           } else {
-            vlog.status("Client connection rejected");
+            vlog.info("Client connection rejected");
           }
         }
       }

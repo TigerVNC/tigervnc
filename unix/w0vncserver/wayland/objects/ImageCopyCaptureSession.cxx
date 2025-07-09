@@ -223,7 +223,7 @@ void ImageCopyCaptureSession::handleDone()
 
 void ImageCopyCaptureSession::handleStopped()
 {
-  vlog.status("Capture session stopped");
+  vlog.info("Capture session stopped");
 
   if (frame) {
     ext_image_copy_capture_frame_v1_destroy(frame);

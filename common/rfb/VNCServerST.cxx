@@ -159,7 +159,7 @@ bool VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     return false;
   }
 
-  connectionsLog.status("Accepted: %s", sock->getPeerEndpoint());
+  connectionsLog.info("Accepted: %s", sock->getPeerEndpoint());
 
   try {
     VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
@@ -195,7 +195,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
 
       clients.remove(*ci);
 
-      connectionsLog.status("Closed: %s", peer.c_str());
+      connectionsLog.info("Closed: %s", peer.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
