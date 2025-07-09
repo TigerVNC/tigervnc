@@ -161,7 +161,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     return;
   }
 
-  connectionsLog.status("Accepted: %s", sock->getPeerEndpoint());
+  connectionsLog.info("Accepted: %s", sock->getPeerEndpoint());
 
   // Adjust the exit timers
   if (rfb::Server::maxConnectionTime && clients.empty())
@@ -201,7 +201,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
 
       clients.remove(*ci);
 
-      connectionsLog.status("Closed: %s", peer.c_str());
+      connectionsLog.info("Closed: %s", peer.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
