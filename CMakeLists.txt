@@ -383,7 +383,7 @@ if(ENABLE_PAM)
 endif()
 
 # Check for SELinux library
-if(UNIX AND NOT APPLE)
+if(LINUX)
   check_include_files(selinux/selinux.h HAVE_SELINUX_H)
   if(HAVE_SELINUX_H)
     set(CMAKE_REQUIRED_LIBRARIES -lselinux)
@@ -396,7 +396,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # check for systemd support (socket activation)
-if(UNIX AND NOT APPLE)
+if(LINUX)
   find_package(PkgConfig)
   if (PKG_CONFIG_FOUND)
     pkg_check_modules(LIBSYSTEMD libsystemd)
