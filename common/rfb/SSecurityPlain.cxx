@@ -28,7 +28,7 @@
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>
 #include <rdr/InStream.h>
-#if !defined(WIN32) && !defined(__APPLE__)
+#if defined(HAVE_PAM)
 #include <rfb/UnixPasswordValidator.h>
 #include <unistd.h>
 #include <pwd.h>
@@ -53,7 +53,7 @@ bool PasswordValidator::validUser(const char* username)
   for (const char* user : plainUsers) {
     if (strcmp(user, "*") == 0)
       return true;
-#if !defined(WIN32) && !defined(__APPLE__)
+#if defined(HAVE_PAM)
     if (strcmp(user, "%u") == 0) {
       struct passwd *pw = getpwnam(username);
       if (pw && pw->pw_uid == getuid())
@@ -72,7 +72,7 @@ SSecurityPlain::SSecurityPlain(SConnection* sc_) : SSecurity(sc_)
 {
 #ifdef WIN32
   valid = new WinPasswdValidator();
-#elif !defined(__APPLE__)
+#elif defined(HAVE_PAM)
   valid = new UnixPasswordValidator();
 #else
   valid = nullptr;
