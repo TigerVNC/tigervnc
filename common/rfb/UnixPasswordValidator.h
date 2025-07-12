@@ -21,6 +21,8 @@
 #ifndef __PASSWORD_VALIDATOR_H__
 #define __PASSWORD_VALIDATOR_H__
 
+#ifdef HAVE_PAM
+
 #include <rfb/SSecurityPlain.h>
 
 namespace rfb
@@ -41,5 +43,7 @@ namespace rfb
     static std::string displayName;
   };
 }
+
+#endif
 
 #endif

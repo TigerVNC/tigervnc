@@ -21,6 +21,11 @@
 #include <config.h>
 #endif
 
+#if !defined(WIN32) && !defined(__APPLE__)
+#include <unistd.h>
+#include <pwd.h>
+#endif
+
 #include <core/Configuration.h>
 #include <core/string.h>
 
@@ -28,10 +33,8 @@
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>
 #include <rdr/InStream.h>
-#if !defined(WIN32) && !defined(__APPLE__)
+#ifdef HAVE_PAM
 #include <rfb/UnixPasswordValidator.h>
-#include <unistd.h>
-#include <pwd.h>
 #endif
 #ifdef WIN32
 #include <rfb/WinPasswdValidator.h>
@@ -72,7 +75,7 @@ SSecurityPlain::SSecurityPlain(SConnection* sc_) : SSecurity(sc_)
 {
 #ifdef WIN32
   valid = new WinPasswdValidator();
-#elif !defined(__APPLE__)
+#elif defined(HAVE_PAM)
   valid = new UnixPasswordValidator();
 #else
   valid = nullptr;

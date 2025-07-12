@@ -33,7 +33,9 @@
 
 #include <network/TcpSocket.h>
 
+#ifdef HAVE_PAM
 #include <rfb/UnixPasswordValidator.h>
+#endif
 
 #include "RFBGlue.h"
 
@@ -240,7 +242,9 @@ int vncIsValidUTF8(const char* str, size_t bytes)
 
 void vncSetDisplayName(const char *displayNumStr)
 {
+#ifdef HAVE_PAM
   std::string displayName(":");
   displayName += displayNumStr;
   rfb::UnixPasswordValidator::setDisplayName(displayName);
+#endif
 }

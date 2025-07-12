@@ -39,7 +39,9 @@
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
+#ifdef HAVE_PAM
 #include <rfb/UnixPasswordValidator.h>
+#endif
 #include <rfb/VNCServerST.h>
 
 #include <network/TcpSocket.h>
@@ -343,7 +345,10 @@ int main(int argc, char** argv)
             programName, displayName);
     exit(1);
   }
+
+#ifdef HAVE_PAM
   rfb::UnixPasswordValidator::setDisplayName(displayName);
+#endif
 
   signal(SIGHUP, CleanupSignalHandler);
   signal(SIGINT, CleanupSignalHandler);

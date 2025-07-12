@@ -22,6 +22,8 @@
 
 #cmakedefine HAVE_NETTLE
 
+#cmakedefine HAVE_PAM
+
 #cmakedefine HAVE_SELINUX
 
 #cmakedefine HAVE_LIBSYSTEMD

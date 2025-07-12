@@ -331,7 +331,19 @@ endif()
 
 # Check for PAM library
 if(UNIX AND NOT APPLE)
-  find_package(PAM REQUIRED)
+  trioption(ENABLE_PAM "Enable authentication using PAM")
+  if(ENABLE_PAM)
+    if(ENABLE_PAM STREQUAL "AUTO")
+      find_package(PAM)
+    else()
+      find_package(PAM REQUIRED)
+    endif()
+    if(PAM_FOUND)
+      set(HAVE_PAM 1)
+    else()
+      message(WARNING "PAM NOT found. vncserver and PAM authentication disabled.")
+    endif()
+  endif()
 endif()
 
 # Check for SELinux library

@@ -88,7 +88,7 @@ if(WIN32)
   target_sources(rfb PRIVATE WinPasswdValidator.cxx)
 endif(WIN32)
 
-if(UNIX AND NOT APPLE)
+if(PAM_FOUND)
   target_sources(rfb PRIVATE UnixPasswordValidator.cxx)
   target_include_directories(rfb SYSTEM PRIVATE ${PAM_INCLUDE_DIRS})
   target_link_libraries(rfb ${PAM_LIBRARIES})
