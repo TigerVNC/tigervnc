@@ -93,7 +93,7 @@ void SSecurityTLS::shutdown()
 #if defined (SSECURITYTLS__USE_DEPRECATED_DH)
   if (dh_params) {
     gnutls_dh_params_deinit(dh_params);
-    dh_params = 0;
+    dh_params = nullptr;
   }
 #endif
 
