@@ -86,9 +86,9 @@ static core::LogWriter connectionsLog("Connections");
 
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
-    blockCounter(0), pb(nullptr), ledState(ledUnknown),
-    name(name_), pointerClient(nullptr), clipboardClient(nullptr),
-    pointerClientTime(0),
+    desktopStarting(false), blockCounter(0), pb(nullptr),
+    ledState(ledUnknown), name(name_), pointerClient(nullptr),
+    clipboardClient(nullptr), pointerClientTime(0),
     comparer(nullptr), cursor(new Cursor(0, 0, {}, nullptr)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
@@ -315,6 +315,10 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
     // Since the new pixel buffer means an ExtendedDesktopSize needs to
     // be sent anyway, we don't need to call screenLayoutChange.
   }
+
+  // The desktop is considered ready after the pixelbuffer is set
+  if (desktopStarting)
+    desktopReady();
 }
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
@@ -403,6 +407,31 @@ void VNCServerST::sendClipboardData(const char* data)
     (*ci)->sendClipboardDataOrClose(data);
 
   clipboardRequestors.clear();
+}
+
+void VNCServerST::desktopReady()
+{
+  desktopStarting = false;
+
+  if (!pb)
+      throw std::logic_error("desktopReady: Null PixelBuffer when desktop is ready");
+
+  desktopStarted = true;
+  // The tracker might have accumulated changes whilst we were
+  // stopped, so flush those out
+  assert(comparer != nullptr);
+  if (!comparer->is_empty())
+    writeUpdate();
+  // If the frame clock is running, then it will be running slowly,
+  // so give it a kick to run at normal speed right away
+  if (frameTimer.isStarted()) {
+    stopFrameClock();
+    startFrameClock();
+  }
+
+  // Now that the desktop is ready, client connections can continue
+  for (VNCSConnectionST* client : clients)
+    client->desktopReady();
 }
 
 void VNCServerST::bell()
@@ -760,31 +789,19 @@ void VNCServerST::clientReady(VNCSConnectionST* client, bool shared)
 
 void VNCServerST::startDesktop()
 {
-  if (!desktopStarted) {
+  if (!desktopStarted && !desktopStarting) {
     slog.debug("Starting desktop");
+    desktopStarting = true;
     desktop->start();
-    if (!pb)
-      throw std::logic_error("SDesktop::start() did not set a valid PixelBuffer");
-    desktopStarted = true;
-    // The tracker might have accumulated changes whilst we were
-    // stopped, so flush those out
-    assert(comparer != nullptr);
-    if (!comparer->is_empty())
-      writeUpdate();
-    // If the frame clock is running, then it will be running slowly,
-    // so give it a kick to run at normal speed right away
-    if (frameTimer.isStarted()) {
-      stopFrameClock();
-      startFrameClock();
-    }
   }
 }
 
 void VNCServerST::stopDesktop()
 {
-  if (desktopStarted) {
+  if (desktopStarted || desktopStarting) {
     slog.debug("Stopping desktop");
     desktopStarted = false;
+    desktopStarting = false;
     desktop->stop();
   }
 }

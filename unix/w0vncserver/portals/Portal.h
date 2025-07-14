@@ -1,0 +1,73 @@
+/* Copyright 2025 Adam Halim for Cendio AB
+ *
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+ * USA.
+ */
+
+#ifndef __PORTAL_H__
+#define __PORTAL_H__
+
+#include <stdint.h>
+
+#include <functional>
+#include <string>
+#include <vector>
+#include <list>
+
+#include <gio/gio.h>
+
+class Portal {
+public:
+  Portal(std::string name, std::string objectPath,
+         std::string interfaceName);
+  ~Portal();
+
+  // Call a DBUS method.
+  void call(std::string method, GVariant* parameters,
+            std::string token = "",
+            std::function<void(GVariant* parameters)>
+              signalCallback = nullptr,
+            GDBusCallFlags flags = G_DBUS_CALL_FLAGS_NONE);
+
+  GVariant* callSync(std::string busName, std::string objectPath,
+                     std::string interface, std::string method,
+                     GError** error = nullptr,
+                     GVariant* parameters = nullptr,
+                     const GVariantType* replyType = nullptr,
+                     GDBusCallFlags flags = G_DBUS_CALL_FLAGS_NONE,
+                     int timeout = -1,
+                     GCancellable* cancellable = nullptr);
+
+  // Generates a token that can be used to create handles
+  static std::string newToken();
+  // Creates a handle from a token
+  static std::string newHandle(std::string token);
+
+  // Checks if passed interfaces are available
+  static bool interfacesAvailable(std::vector<std::string> interfaces);
+
+  GDBusProxy* getProxy() const { return proxy; }
+
+private:
+  // Generates a request handle from a token.
+  std::string newRequestHandle(std::string token);
+
+private:
+  GDBusConnection* connection;
+  GDBusProxy* proxy;
+  std::list<uint32_t> pendingCalls;
+};
+
+#endif // __PORTAL_H__
