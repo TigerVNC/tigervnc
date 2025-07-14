@@ -18,6 +18,7 @@ jobs:
           sudo apt-get install -y libgnutls28-dev nettle-dev libgmp-dev
           sudo apt-get install -y libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev libpam-dev
           sudo apt-get install -y libavcodec-dev libavutil-dev libswscale-dev
+          sudo apt-get install -y uuid-dev libglib2.0-dev libpipewire-0.3-dev
           sudo apt-get install -y libgtest-dev
       - name: Configure
         run: |
@@ -125,6 +126,7 @@ jobs:
             -DENABLE_H264=ON \
             -DENABLE_GNUTLS=ON \
             -DENABLE_NETTLE=ON \
+            -DENABLE_WAYLAND=ON \
             -DBUILD_VIEWER=ON \
             -S . -B build
       - name: Build
