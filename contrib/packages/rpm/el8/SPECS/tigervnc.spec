@@ -23,6 +23,7 @@ BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  freetype-devel, libjpeg-turbo-devel, pam-devel
 BuildRequires:  gnutls-devel, nettle-devel, gmp-devel
 BuildRequires:  zlib-devel
+BuildRequires:  libuuid-devel, glib2-devel, pipewire-devel
 # X11/graphics dependencies
 BuildRequires: xorg-x11-server-source
 BuildRequires: libXext-devel, libX11-devel, libXi-devel, libXfixes-devel
@@ -143,6 +144,7 @@ export CXXFLAGS="$CFLAGS -std=c++11"
   -DENABLE_NLS=ON \
   -DENABLE_GNUTLS=ON \
   -DENABLE_NETTLE=ON \
+  -DENABLE_WAYLAND=ON \
   -DBUILD_VIEWER=ON
 
 %cmake_build
