@@ -47,7 +47,7 @@
 #include <rfb/SSecurityRSAAES.h>
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>
-#if !defined(WIN32) && !defined(__APPLE__)
+#if defined(HAVE_PAM)
 #include <rfb/UnixPasswordValidator.h>
 #endif
 #ifdef WIN32
@@ -577,10 +577,10 @@ bool SSecurityRSAAES::readCredentials()
 
 void SSecurityRSAAES::verifyUserPass()
 {
-#ifndef __APPLE__
+#if defined(HAVE_PAM) || defined(WIN32)
 #ifdef WIN32
   WinPasswdValidator* valid = new WinPasswdValidator();
-#elif !defined(__APPLE__)
+#elif defined(HAVE_PAM)
   UnixPasswordValidator *valid = new UnixPasswordValidator();
 #endif
   std::string msg = "Authentication failed";
