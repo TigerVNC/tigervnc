@@ -185,26 +185,22 @@ bool SSecurityTLS::processMsg()
 
 void SSecurityTLS::setParams()
 {
-  static const char kx_anon_priority[] = ":+ANON-ECDH:+ANON-DH";
+  static const char kx_anon_priority[] = "+ANON-ECDH:+ANON-DH";
 
   int ret;
 
   // Custom priority string specified?
   if (strcmp(Security::GnuTLSPriority, "") != 0) {
-    char *prio;
+    std::string prio;
     const char *err;
 
-    prio = new char[strlen(Security::GnuTLSPriority) +
-                    strlen(kx_anon_priority) + 1];
+    prio = (const char*)Security::GnuTLSPriority;
+    if (anon) {
+      prio += ":";
+      prio += kx_anon_priority;
+    }
 
-    strcpy(prio, Security::GnuTLSPriority);
-    if (anon)
-      strcat(prio, kx_anon_priority);
-
-    ret = gnutls_priority_set_direct(session, prio, &err);
-
-    delete [] prio;
-
+    ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error("GnuTLS priority syntax error at: %s", err);
@@ -214,30 +210,22 @@ void SSecurityTLS::setParams()
     const char *err;
 
 #if GNUTLS_VERSION_NUMBER >= 0x030603
-    // gnutls_set_default_priority_appends() expects a normal priority string that
-    // doesn't start with ":".
-    ret = gnutls_set_default_priority_append(session, kx_anon_priority + 1, &err, 0);
+    ret = gnutls_set_default_priority_append(session, kx_anon_priority, &err, 0);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error("GnuTLS priority syntax error at: %s", err);
       throw rdr::tls_error("gnutls_set_default_priority_append()", ret);
     }
 #else
+    std::string prio;
+
     // We don't know what the system default priority is, so we guess
     // it's what upstream GnuTLS has
-    static const char gnutls_default_priority[] = "NORMAL";
-    char *prio;
+    prio = "NORMAL";
+    prio += ":";
+    prio += kx_anon_priority;
 
-    prio = new char[strlen(gnutls_default_priority) +
-                    strlen(kx_anon_priority) + 1];
-
-    strcpy(prio, gnutls_default_priority);
-    strcat(prio, kx_anon_priority);
-
-    ret = gnutls_priority_set_direct(session, prio, &err);
-
-    delete [] prio;
-
+    ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
         vlog.error("GnuTLS priority syntax error at: %s", err);
