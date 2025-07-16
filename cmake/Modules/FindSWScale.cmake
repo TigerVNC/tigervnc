@@ -10,7 +10,7 @@ Result variables
 This module will set the following variables if found:
 
 ``SWSCALE_INCLUDE_DIRS``
-  where to find swscale.h, etc.
+  where to find libswscale/swscale.h, etc.
 ``SWSCALE_LIBRARIES``
   the libraries to link against to use swscale.
 ``SWSCALE_FOUND``
@@ -23,7 +23,7 @@ find_package(PkgConfig)
 if (PKG_CONFIG_FOUND)
 	pkg_check_modules(SWSCALE libswscale)
 else()
-	find_path(SWSCALE_INCLUDE_DIRS NAMES swscale.h PATH_SUFFIXES libswscale)
+	find_path(SWSCALE_INCLUDE_DIRS NAMES libswscale/swscale.h)
 	find_library(SWSCALE_LIBRARIES NAMES swscale)
 	find_package_handle_standard_args(SWSCALE DEFAULT_MSG SWSCALE_LIBRARIES SWSCALE_INCLUDE_DIRS)
 endif()
