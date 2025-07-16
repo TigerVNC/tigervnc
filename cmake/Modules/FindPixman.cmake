@@ -18,16 +18,32 @@ This module will set the following variables if found:
 
 #]=======================================================================]
 
-find_package(PkgConfig)
-
-if (PKG_CONFIG_FOUND)
-	pkg_check_modules(PIXMAN pixman-1)
-else()
-	find_path(PIXMAN_INCLUDE_DIRS NAMES pixman.h PATH_SUFFIXES pixman-1)
-	find_library(PIXMAN_LIBRARIES NAMES pixman-1)
-	find_package_handle_standard_args(PIXMAN DEFAULT_MSG PIXMAN_LIBRARIES PIXMAN_INCLUDE_DIRS)
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(PC_Pixman QUIET pixman-1)
 endif()
 
-if(Pixman_FIND_REQUIRED AND NOT PIXMAN_FOUND)
-	message(FATAL_ERROR "Could not find Pixman")
+find_path(Pixman_INCLUDE_DIR NAMES pixman.h
+  PATH_SUFFIXES
+    pixman-1
+  HINTS
+    ${PC_Pixman_INCLUDE_DIRS}
+)
+mark_as_advanced(Pixman_INCLUDE_DIR)
+
+find_library(Pixman_LIBRARY NAMES pixman-1
+  HINTS
+    ${PC_Pixman_LIBRARY_DIRS}
+)
+mark_as_advanced(Pixman_LIBRARY)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Pixman
+  REQUIRED_VARS
+    Pixman_LIBRARY Pixman_INCLUDE_DIR
+)
+
+if(Pixman_FOUND)
+  set(PIXMAN_INCLUDE_DIRS ${Pixman_INCLUDE_DIR})
+  set(PIXMAN_LIBRARIES ${Pixman_LIBRARY})
 endif()

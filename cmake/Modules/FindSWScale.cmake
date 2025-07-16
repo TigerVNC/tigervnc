@@ -18,16 +18,30 @@ This module will set the following variables if found:
 
 #]=======================================================================]
 
-find_package(PkgConfig)
-
-if (PKG_CONFIG_FOUND)
-	pkg_check_modules(SWSCALE libswscale)
-else()
-	find_path(SWSCALE_INCLUDE_DIRS NAMES libswscale/swscale.h)
-	find_library(SWSCALE_LIBRARIES NAMES swscale)
-	find_package_handle_standard_args(SWSCALE DEFAULT_MSG SWSCALE_LIBRARIES SWSCALE_INCLUDE_DIRS)
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(PC_SWScale QUIET libswscale)
 endif()
 
-if(SWScale_FIND_REQUIRED AND NOT SWSCALE_FOUND)
-	message(FATAL_ERROR "Could not find libswscale")
+find_path(SWScale_INCLUDE_DIR NAMES libswscale/swscale.h
+  HINTS
+    ${PC_SWScale_INCLUDE_DIRS}
+)
+mark_as_advanced(SWScale_INCLUDE_DIR)
+
+find_library(SWScale_LIBRARY NAMES swscale
+  HINTS
+    ${PC_SWScale_LIBRARY_DIRS}
+)
+mark_as_advanced(SWScale_LIBRARY)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(SWScale
+  REQUIRED_VARS
+    SWScale_LIBRARY SWScale_INCLUDE_DIR
+)
+
+if(SWScale_FOUND)
+  set(SWSCALE_INCLUDE_DIRS ${SWScale_INCLUDE_DIR})
+  set(SWSCALE_LIBRARIES ${SWScale_LIBRARY})
 endif()

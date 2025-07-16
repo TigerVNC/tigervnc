@@ -18,20 +18,30 @@ This module will set the following variables if found:
 
 #]=======================================================================]
 
-find_package(PkgConfig)
-
-if (PKG_CONFIG_FOUND)
-  pkg_check_modules(GMP gmp)
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(PC_GMP QUIET gmp)
 endif()
 
-# Only very recent versions of gmp has pkg-config support, so we have to
-# fall back on a more classical search
-if(NOT GMP_FOUND)
-  find_path(GMP_INCLUDE_DIRS NAMES gmp.h)
-  find_library(GMP_LIBRARIES NAMES gmp)
-  find_package_handle_standard_args(GMP DEFAULT_MSG GMP_LIBRARIES GMP_INCLUDE_DIRS)
-endif()
+find_path(GMP_INCLUDE_DIR NAMES gmp.h
+  HINTS
+    ${PC_GMP_INCLUDE_DIRS}
+)
+mark_as_advanced(GMP_INCLUDE_DIR)
 
-if(GMP_FIND_REQUIRED AND NOT GMP_FOUND)
-	message(FATAL_ERROR "Could not find GMP")
+find_library(GMP_LIBRARY NAMES gmp
+  HINTS
+    ${PC_GMP_LIBRARY_DIRS}
+)
+mark_as_advanced(GMP_LIBRARY)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GMP
+  REQUIRED_VARS
+    GMP_LIBRARY GMP_INCLUDE_DIR
+)
+
+if(GMP_FOUND)
+  set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIR})
+  set(GMP_LIBRARIES ${GMP_LIBRARY})
 endif()

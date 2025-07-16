@@ -18,8 +18,6 @@ include(CheckCSourceRuns)
 
 include(CMakeMacroLibtoolFile)
 
-include(cmake/TargetLinkDirectories.cmake)
-
 project(tigervnc)
 set(VERSION 1.15.80)
 
@@ -229,7 +227,6 @@ if(ENABLE_H264)
     if (AVCODEC_FOUND AND AVUTIL_FOUND AND SWSCALE_FOUND)
       set(H264_INCLUDE_DIRS ${AVCODEC_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
       set(H264_LIBRARIES ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${SWSCALE_LIBRARIES})
-      set(H264_LIBRARY_DIRS ${AVCODEC_LIBRARY_DIRS} ${AVUTIL_LIBRARY_DIRS} ${SWSCALE_LIBRARY_DIRS})
       add_definitions("-D__STDC_CONSTANT_MACROS")
       add_definitions("-DHAVE_H264")
       set(H264_LIBS "LIBAV")

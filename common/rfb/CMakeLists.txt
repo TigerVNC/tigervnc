@@ -67,7 +67,6 @@ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   endif()
   target_include_directories(rfb SYSTEM PUBLIC ${H264_INCLUDE_DIRS})
   target_link_libraries(rfb ${H264_LIBRARIES})
-  target_link_directories(rfb PUBLIC ${H264_LIBRARY_DIRS})
 endif()
 
 if(WIN32)
@@ -95,8 +94,6 @@ if (NETTLE_FOUND)
                  CSecurityRSAAES.cxx SSecurityRSAAES.cxx)
   target_include_directories(rfb SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS})
   target_link_libraries(rfb ${HOGWEED_LIBRARIES} ${NETTLE_LIBRARIES})
-  target_link_directories(rfb PUBLIC ${HOGWEED_LIBRARY_DIRS}
-                          ${NETTLE_LIBRARY_DIRS})
 endif()
 
 if(UNIX)

@@ -18,16 +18,30 @@ This module will set the following variables if found:
 
 #]=======================================================================]
 
-find_package(PkgConfig)
-
-if (PKG_CONFIG_FOUND)
-	pkg_check_modules(AVCODEC libavcodec)
-else()
-	find_path(AVCODEC_INCLUDE_DIRS NAMES libavcodec/avcodec.h)
-	find_library(AVCODEC_LIBRARIES NAMES avcodec)
-	find_package_handle_standard_args(AVCODEC DEFAULT_MSG AVCODEC_LIBRARIES AVCODEC_INCLUDE_DIRS)
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(PC_AVCodec QUIET libavcodec)
 endif()
 
-if(AVCodec_FIND_REQUIRED AND NOT AVCODEC_FOUND)
-	message(FATAL_ERROR "Could not find libavcodec")
+find_path(AVCodec_INCLUDE_DIR NAMES libavcodec/avcodec.h
+  HINTS
+    ${PC_AVCodec_INCLUDE_DIRS}
+)
+mark_as_advanced(AVCodec_INCLUDE_DIR)
+
+find_library(AVCodec_LIBRARY NAMES avcodec
+  HINTS
+    ${PC_AVCodec_LIBRARY_DIRS}
+)
+mark_as_advanced(AVCodec_LIBRARY)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(AVCodec
+  REQUIRED_VARS
+    AVCodec_LIBRARY AVCodec_INCLUDE_DIR
+)
+
+if(AVCodec_FOUND)
+  set(AVCODEC_INCLUDE_DIRS ${AVCodec_INCLUDE_DIR})
+  set(AVCODEC_LIBRARIES ${AVCodec_LIBRARY})
 endif()

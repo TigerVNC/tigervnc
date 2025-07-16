@@ -18,16 +18,30 @@ This module will set the following variables if found:
 
 #]=======================================================================]
 
-find_package(PkgConfig)
-
-if (PKG_CONFIG_FOUND)
-	pkg_check_modules(AVUTIL libavutil)
-else()
-	find_path(AVUTIL_INCLUDE_DIRS NAMES libavutil/avutil.h)
-	find_library(AVUTIL_LIBRARIES NAMES avutil)
-	find_package_handle_standard_args(AVUTIL DEFAULT_MSG AVUTIL_LIBRARIES AVUTIL_INCLUDE_DIRS)
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(PC_AVUtil QUIET libavutil)
 endif()
 
-if(AVUtil_FIND_REQUIRED AND NOT AVUTIL_FOUND)
-	message(FATAL_ERROR "Could not find libavutil")
+find_path(AVUtil_INCLUDE_DIR NAMES libavutil/avutil.h
+  HINTS
+    ${PC_AVUtil_INCLUDE_DIRS}
+)
+mark_as_advanced(AVUtil_INCLUDE_DIR)
+
+find_library(AVUtil_LIBRARY NAMES avutil
+  HINTS
+    ${PC_AVUtil_LIBRARY_DIRS}
+)
+mark_as_advanced(AVUtil_LIBRARY)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(AVUtil
+  REQUIRED_VARS
+    AVUtil_LIBRARY AVUtil_INCLUDE_DIR
+)
+
+if(AVUtil_FOUND)
+  set(AVUTIL_INCLUDE_DIRS ${AVUtil_INCLUDE_DIR})
+  set(AVUTIL_LIBRARIES ${AVUtil_LIBRARY})
 endif()
