@@ -1,13 +1,27 @@
 # From: http://gitorious.org/gammu/mainline/blobs/master/cmake/FindIconv.cmake
 
-# - Try to find Iconv 
-# Once done this will define 
-# 
-#  ICONV_FOUND - system has Iconv 
-#  ICONV_INCLUDE_DIR - the Iconv include directory 
-#  ICONV_LIBRARIES - Link these to use Iconv 
-#  ICONV_SECOND_ARGUMENT_IS_CONST - the second argument for iconv() is const
-# 
+#[=======================================================================[.rst:
+FindIconv
+---------
+
+Find the iconv libraries
+
+Result variables
+^^^^^^^^^^^^^^^^
+
+This module will set the following variables if found:
+
+``ICONV_INCLUDE_DIR``
+  where to find iconv.h, etc.
+``ICONV_LIBRARIES``
+  the libraries to link against to use iconv.
+``ICONV_SECOND_ARGUMENT_IS_CONST``
+  the second argument for iconv() is const
+``ICONV_FOUND``
+  TRUE if found
+
+#]=======================================================================]
+
 include(CheckCCompilerFlag)
 include(CheckCXXSourceCompiles)
 

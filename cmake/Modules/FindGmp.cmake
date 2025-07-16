@@ -1,3 +1,23 @@
+#[=======================================================================[.rst:
+FindGmp
+-------
+
+Find the GNU MP bignum library
+
+Result variables
+^^^^^^^^^^^^^^^^
+
+This module will set the following variables if found:
+
+``GMP_INCLUDE_DIRS``
+  where to find gmp.h, etc.
+``GMP_LIBRARIES``
+  the libraries to link against to use GMP.
+``GMP_FOUND``
+  TRUE if found
+
+#]=======================================================================]
+
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)

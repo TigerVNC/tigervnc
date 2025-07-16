@@ -1,3 +1,35 @@
+#[=======================================================================[.rst:
+FindFfmpeg
+----------
+
+Find the FFmpeg libraries
+
+Result variables
+^^^^^^^^^^^^^^^^
+
+This module will set the following variables if found:
+
+``AVCODEC_INCLUDE_DIRS``
+  where to find avcodec.h, etc.
+``AVUTIL_INCLUDE_DIRS``
+  where to find avutil.h, etc.
+``SWSCALE_INCLUDE_DIRS``
+  where to find swscale.h, etc.
+``AVCODEC_LIBRARIES``
+  the libraries to link against to use avcodec.
+``AVUTIL_LIBRARIES``
+  the libraries to link against to use avutil.
+``SWSCALE_LIBRARIES``
+  the libraries to link against to use swscale.
+``AVCODEC_FOUND``
+  TRUE if found
+``AVUTIL_FOUND``
+  TRUE if found
+``SWSCALE_FOUND``
+  TRUE if found
+
+#]=======================================================================]
+
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)

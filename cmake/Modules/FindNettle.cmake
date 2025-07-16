@@ -1,3 +1,25 @@
+#[=======================================================================[.rst:
+FindNettle
+----------
+
+Find the Nettle and Hogweed libraries
+
+Result variables
+^^^^^^^^^^^^^^^^
+
+This module will set the following variables if found:
+
+``NETTLE_INCLUDE_DIRS``
+  where to find eax.h, etc.
+``NETTLE_LIBRARIES``
+  the libraries to link against to use Nettle.
+``HOGWEED_LIBRARIES``
+  the libraries to link against to use Hogweed.
+``NETTLE_FOUND``
+  TRUE if found
+
+#]=======================================================================]
+
 find_package(Gmp)
 find_package(PkgConfig)
 
