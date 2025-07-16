@@ -76,7 +76,8 @@ endif(WIN32)
 
 if(UNIX AND NOT APPLE)
   target_sources(rfb PRIVATE UnixPasswordValidator.cxx)
-  target_link_libraries(rfb ${PAM_LIBS})
+  target_include_directories(rfb SYSTEM PRIVATE ${PAM_INCLUDE_DIRS})
+  target_link_libraries(rfb ${PAM_LIBRARIES})
 endif()
 
 if(GNUTLS_FOUND)
