@@ -24,8 +24,7 @@ if(BUILD_STATIC)
 
   # gettext is included in libc on many unix systems
   if(NOT LIBC_HAS_DGETTEXT)
-    FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring
-      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+    FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring)
 
     set(GETTEXT_LIBRARIES "-Wl,-Bstatic -lintl -liconv")
 
