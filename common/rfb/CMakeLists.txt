@@ -93,12 +93,10 @@ endif()
 if (NETTLE_FOUND)
   target_sources(rfb PRIVATE CSecurityDH.cxx CSecurityMSLogonII.cxx
                  CSecurityRSAAES.cxx SSecurityRSAAES.cxx)
-  target_include_directories(rfb SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS}
-                             ${GMP_INCLUDE_DIRS})
-  target_link_libraries(rfb ${HOGWEED_LIBRARIES}
-                        ${NETTLE_LIBRARIES} ${GMP_LIBRARIES})
+  target_include_directories(rfb SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS})
+  target_link_libraries(rfb ${HOGWEED_LIBRARIES} ${NETTLE_LIBRARIES})
   target_link_directories(rfb PUBLIC ${HOGWEED_LIBRARY_DIRS}
-                          ${NETTLE_LIBRARY_DIRS} ${GMP_LIBRARY_DIRS})
+                          ${NETTLE_LIBRARY_DIRS})
 endif()
 
 if(UNIX)
