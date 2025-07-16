@@ -28,13 +28,11 @@ if(BUILD_STATIC)
 
     set(GETTEXT_LIBRARIES "-Wl,-Bstatic -lintl -liconv")
 
-    set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -Wl,-Bdynamic")
-
-    # FIXME: MSYS2 doesn't include a static version of this library, so
-    #        we'll have to link it dynamically for now
     if(UNISTRING_LIBRARY)
       set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lunistring")
     endif()
+
+    set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -Wl,-Bdynamic")
 
     if(APPLE)
       set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -framework Carbon")
