@@ -260,16 +260,6 @@ with MinGW for Windows and can be built from source on OS X and other
 Unix variants. However, GnuTLS versions > 2.12.x && < 3.3.x should be
 avoided because of potential incompatibilities during initial handshaking.
 
-You can override the GNUTLS_LIBRARY and GNUTLS_INCLUDE_DIR CMake variables
-to specify the locations of libgnutls and any dependencies.  For instance,
-adding
-
-  -DGNUTLS_INCLUDE_DIR=/usr/local/include \
-  -DGNUTLS_LIBRARY=/usr/local/lib/libgnutls.a
-
-to the CMake command line would link TigerVNC against a static version of
-libgnutls located under /usr/local.
-
 
 ======================================
 Building native language support (NLS)
@@ -278,23 +268,6 @@ Building native language support (NLS)
 NLS requires gettext, which is supplied with most Linux distributions and
 with MinGW for Windows and which can easily be built from source on OS X and
 other Unix variants.
-
-You can override the ICONV_LIBRARIES and LIBINTL_LIBRARY CMake variables to
-specify the locations of libiconv and libintl, respectively.  For instance,
-adding
-
-  -DLIBINTL_LIBRARY=/opt/gettext/lib/libintl.a
-
-to the CMake command line would link TigerVNC against a static version of
-libintl located under /opt/gettext.  Adding
-
-  -DICONV_INCLUDE_DIR=/mingw/include \
-    -DICONV_LIBRARIES=/mingw/lib/libiconv.a \
-    -DGETTEXT_INCLUDE_DIR=/mingw/include \
-    -DLIBINTL_LIBRARY=/mingw/lib/libintl.a
-
-to the CMake command line would link TigerVNC against the static versions of
-libiconv and libintl included in the MinGW Developer Toolkit.
 
 
 ===================
