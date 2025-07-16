@@ -20,7 +20,7 @@ This module will set the following variables if found:
 
 #]=======================================================================]
 
-find_package(Gmp)
+find_package(GMP)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)

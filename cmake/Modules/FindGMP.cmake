@@ -1,5 +1,5 @@
 #[=======================================================================[.rst:
-FindGmp
+FindGMP
 -------
 
 Find the GNU MP bignum library
@@ -32,6 +32,6 @@ if(NOT GMP_FOUND)
   find_package_handle_standard_args(GMP DEFAULT_MSG GMP_LIBRARIES GMP_INCLUDE_DIRS)
 endif()
 
-if(Gmp_FIND_REQUIRED AND NOT GMP_FOUND)
+if(GMP_FIND_REQUIRED AND NOT GMP_FOUND)
 	message(FATAL_ERROR "Could not find GMP")
 endif()
