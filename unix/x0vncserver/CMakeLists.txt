@@ -23,8 +23,9 @@ target_include_directories(x0vncserver PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_link_libraries(x0vncserver core tx rfb network rdr unixcommon)
 
 # systemd support (socket activation)
-if (LIBSYSTEMD_FOUND)
-  target_link_libraries(x0vncserver ${LIBSYSTEMD_LIBRARIES})
+if (SYSTEMD_FOUND)
+  target_include_directories(x0vncserver SYSTEM PRIVATE ${SYSTEMD_INCLUDE_DIRS})
+  target_link_libraries(x0vncserver ${SYSTEMD_LIBRARIES})
 endif()
 
 if(X11_XTest_LIB)
