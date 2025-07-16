@@ -33,7 +33,8 @@ BuildRequires: xorg-x11-util-macros, xorg-x11-xtrans-devel, libXtst-devel
 BuildRequires: xorg-x11-font-utils
 BuildRequires:  libXfont2-devel
 # SELinux
-BuildRequires:  libselinux-devel, selinux-policy-devel, systemd
+BuildRequires:  libselinux-devel, selinux-policy-devel
+BuildRequires:  systemd-devel
 
 # TigerVNC 1.4.x requires fltk 1.3.3 for keyboard handling support
 # See https://github.com/TigerVNC/tigervnc/issues/8, also bug #1208814
@@ -143,6 +144,8 @@ export CXXFLAGS="$CFLAGS -std=c++11"
   -DENABLE_NLS=ON \
   -DENABLE_GNUTLS=ON \
   -DENABLE_NETTLE=ON \
+  -DENABLE_SELINUX=ON \
+  -DENABLE_SYSTEMD=ON \
   -DBUILD_VIEWER=ON
 
 %cmake_build
