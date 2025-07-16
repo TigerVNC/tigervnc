@@ -5,7 +5,8 @@ target_include_directories(vncpasswd PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_link_libraries(vncpasswd core tx rfb)
 
 if(PWQUALITY_FOUND)
-  target_link_libraries(vncpasswd pwquality)
+  target_include_directories(vncpasswd SYSTEM PRIVATE ${PWQUALITY_INCLUDE_DIRS})
+  target_link_libraries(vncpasswd ${PWQUALITY_LIBRARIES})
 endif()
 
 install(TARGETS vncpasswd DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
