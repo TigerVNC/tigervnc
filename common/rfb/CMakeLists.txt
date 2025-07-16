@@ -67,7 +67,6 @@ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
   endif()
   target_include_directories(rfb SYSTEM PUBLIC ${H264_INCLUDE_DIRS})
   target_link_libraries(rfb ${H264_LIBRARIES})
-  target_link_directories(rfb PUBLIC ${H264_LIBRARY_DIRS})
 endif()
 
 if(WIN32)
@@ -77,7 +76,8 @@ endif(WIN32)
 
 if(UNIX AND NOT APPLE)
   target_sources(rfb PRIVATE UnixPasswordValidator.cxx)
-  target_link_libraries(rfb ${PAM_LIBS})
+  target_include_directories(rfb SYSTEM PRIVATE ${PAM_INCLUDE_DIRS})
+  target_link_libraries(rfb ${PAM_LIBRARIES})
 endif()
 
 if(GNUTLS_FOUND)
@@ -93,12 +93,8 @@ endif()
 if (NETTLE_FOUND)
   target_sources(rfb PRIVATE CSecurityDH.cxx CSecurityMSLogonII.cxx
                  CSecurityRSAAES.cxx SSecurityRSAAES.cxx)
-  target_include_directories(rfb SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS}
-                             ${GMP_INCLUDE_DIRS})
-  target_link_libraries(rfb ${HOGWEED_LIBRARIES}
-                        ${NETTLE_LIBRARIES} ${GMP_LIBRARIES})
-  target_link_directories(rfb PUBLIC ${HOGWEED_LIBRARY_DIRS}
-                          ${NETTLE_LIBRARY_DIRS} ${GMP_LIBRARY_DIRS})
+  target_include_directories(rfb SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS})
+  target_link_libraries(rfb ${HOGWEED_LIBRARIES} ${NETTLE_LIBRARIES})
 endif()
 
 if(UNIX)

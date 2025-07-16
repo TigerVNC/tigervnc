@@ -23,34 +23,20 @@ if(BUILD_STATIC)
   set(PIXMAN_LIBRARIES "-Wl,-Bstatic -lpixman-1 -Wl,-Bdynamic")
 
   # gettext is included in libc on many unix systems
+  check_function_exists(dgettext LIBC_HAS_DGETTEXT)
   if(NOT LIBC_HAS_DGETTEXT)
-    FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring
-      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
-    FIND_LIBRARY(INTL_LIBRARY NAMES intl libintl
-      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
-    FIND_LIBRARY(ICONV_LIBRARY NAMES iconv libiconv
-      HINTS ${PC_GETTEXT_LIBDIR} ${PC_GETTEXT_LIBRARY_DIRS})
+    FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring)
 
-    set(GETTEXT_LIBRARIES "-Wl,-Bstatic")
+    set(Intl_LIBRARIES "-Wl,-Bstatic -lintl -liconv")
 
-    if(INTL_LIBRARY)
-      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lintl")
-    endif()
-    
-    if(ICONV_LIBRARY)
-      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -liconv")
-    endif()
-
-    set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -Wl,-Bdynamic")
-
-    # FIXME: MSYS2 doesn't include a static version of this library, so
-    #        we'll have to link it dynamically for now
     if(UNISTRING_LIBRARY)
-      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -lunistring")
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -lunistring")
     endif()
+
+    set(Intl_LIBRARIES "${Intl_LIBRARIES} -Wl,-Bdynamic")
 
     if(APPLE)
-      set(GETTEXT_LIBRARIES "${GETTEXT_LIBRARIES} -framework Carbon")
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -framework Carbon")
     endif()
   endif()
 
@@ -107,7 +93,7 @@ if(BUILD_STATIC)
     # GnuTLS uses gettext and zlib, so make sure those are always
     # included and in the proper order
     set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} ${ZLIB_LIBRARIES}")
-    set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} ${GETTEXT_LIBRARIES}")
+    set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} ${Intl_LIBRARIES}")
 
     # The last variables might introduce whitespace, which CMake
     # throws a hissy fit about
@@ -116,8 +102,7 @@ if(BUILD_STATIC)
 
   if(NETTLE_FOUND)
     set(NETTLE_LIBRARIES "-Wl,-Bstatic -lnettle -Wl,-Bdynamic")
-    set(HOGWEED_LIBRARIES "-Wl,-Bstatic -lhogweed -lnettle -Wl,-Bdynamic")
-    set(GMP_LIBRARIES "-Wl,-Bstatic -lgmp -Wl,-Bdynamic")
+    set(HOGWEED_LIBRARIES "-Wl,-Bstatic -lhogweed -lnettle -lgmp -Wl,-Bdynamic")
   endif()
 
   if(DEFINED FLTK_LIBRARIES)
