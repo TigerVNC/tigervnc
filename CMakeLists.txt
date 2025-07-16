@@ -340,14 +340,9 @@ endif()
 
 # Check for SELinux library
 if(UNIX AND NOT APPLE)
-  check_include_files(selinux/selinux.h HAVE_SELINUX_H)
-  if(HAVE_SELINUX_H)
-    set(CMAKE_REQUIRED_LIBRARIES -lselinux)
-    set(CMAKE_REQUIRED_LIBRARIES)
-    set(SELINUX_LIBS selinux)
+  find_package(SELinux)
+  if(SELINUX_FOUND)
     add_definitions("-DHAVE_SELINUX")
-  else()
-    message(WARNING "Could not find SELinux development files")
   endif()
 endif()
 
