@@ -33,8 +33,10 @@ class DesktopWindow;
 class CConn : public rfb::CConnection
 {
 public:
-  CConn(const char* vncServerName, network::Socket* sock);
+  CConn();
   ~CConn();
+
+  void connect(const char* vncServerName, network::Socket* sock=nullptr);
 
   std::string connectionInfo();
 

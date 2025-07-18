@@ -77,12 +77,12 @@ static const rfb::PixelFormat mediumColourPF(8, 8, false, true,
 // Time new bandwidth estimates are weighted against (in ms)
 static const unsigned bpsEstimateWindow = 1000;
 
-CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
-  : serverPort(0), desktop(nullptr), updateCount(0), pixelCount(0),
+CConn::CConn()
+  : serverPort(0), sock(nullptr), desktop(nullptr),
+    updateCount(0), pixelCount(0),
     lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
   setShared(::shared);
-  sock = socket;
 
   supportsLocalCursor = true;
   supportsCursorPosition = true;
@@ -94,37 +94,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
 
   if (!noJpeg)
     setQualityLevel(::qualityLevel);
-
-  if(sock == nullptr) {
-    try {
-#ifndef WIN32
-      if (strchr(vncServerName, '/') != nullptr) {
-        sock = new network::UnixSocket(vncServerName);
-        serverHost = sock->getPeerAddress();
-        vlog.info(_("Connected to socket %s"), serverHost.c_str());
-      } else
-#endif
-      {
-        network::getHostAndPort(vncServerName, &serverHost, &serverPort);
-
-        sock = new network::TcpSocket(serverHost.c_str(), serverPort);
-        vlog.info(_("Connected to host %s port %d"),
-                  serverHost.c_str(), serverPort);
-      }
-    } catch (std::exception& e) {
-      vlog.error("%s", e.what());
-      abort_connection(_("Failed to connect to \"%s\":\n\n%s"),
-                       vncServerName, e.what());
-      return;
-    }
-  }
-
-  Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
-
-  setServerName(serverHost.c_str());
-  setStreams(&sock->inStream(), &sock->outStream());
-
-  initialiseProtocol();
 
   OptionsDialog::addCallback(handleOptions, this);
 }
@@ -176,6 +145,41 @@ CConn::~CConn()
 
     delete sock;
   }
+}
+
+void CConn::connect(const char* vncServerName, network::Socket* socket)
+{
+  sock = socket;
+  if(sock == nullptr) {
+    try {
+#ifndef WIN32
+      if (strchr(vncServerName, '/') != nullptr) {
+        sock = new network::UnixSocket(vncServerName);
+        serverHost = sock->getPeerAddress();
+        vlog.info(_("Connected to socket %s"), serverHost.c_str());
+      } else
+#endif
+      {
+        network::getHostAndPort(vncServerName, &serverHost, &serverPort);
+
+        sock = new network::TcpSocket(serverHost.c_str(), serverPort);
+        vlog.info(_("Connected to host %s port %d"),
+                  serverHost.c_str(), serverPort);
+      }
+    } catch (std::exception& e) {
+      vlog.error("%s", e.what());
+      abort_connection(_("Failed to connect to \"%s\":\n\n%s"),
+                       vncServerName, e.what());
+      return;
+    }
+  }
+
+  Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
+
+  setServerName(serverHost.c_str());
+  setStreams(&sock->inStream(), &sock->outStream());
+
+  initialiseProtocol();
 }
 
 std::string CConn::connectionInfo()

@@ -181,7 +181,8 @@ static void mainloop(const char* vncserver, network::Socket* sock)
 
     exitMainloop = false;
 
-    cc = new CConn(vncserver, sock);
+    cc = new CConn();
+    cc->connect(vncserver, sock);
 
     while (!exitMainloop) {
       int next_timer;
