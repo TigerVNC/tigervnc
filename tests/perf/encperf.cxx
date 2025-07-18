@@ -432,7 +432,7 @@ int main(int argc, char **argv)
   const char *fn;
 
   fn = nullptr;
-  for (i = 1; i < argc; i++) {
+  for (i = 1; i < argc;) {
     int ret;
 
     ret = core::Configuration::handleParamArg(argc, argv, i);
@@ -448,6 +448,7 @@ int main(int argc, char **argv)
       usage(argv[0]);
 
     fn = argv[i];
+    i++;
   }
 
   int runCount = count;
