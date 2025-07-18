@@ -324,8 +324,13 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 {
   ScreenSet layout = screenLayout;
 
+  if (!pb_) {
+    setPixelBuffer(nullptr, ScreenSet());
+    return;
+  }
+
   // Check that the screen layout is still valid
-  if (pb_ && !layout.validate(pb_->width(), pb_->height())) {
+  if (!layout.validate(pb_->width(), pb_->height())) {
     core::Rect fbRect;
     ScreenSet::iterator iter, iter_next;
 
