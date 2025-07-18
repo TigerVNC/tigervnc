@@ -46,12 +46,21 @@ namespace rfb {
     JpegCompressor(int bufferLen = 128*1024);
     virtual ~JpegCompressor();
 
+    void setQualityLevel(int level);
+    void setFineQualityLevel(int quality, int subsampling);
+
+    int getQualityLevel();
+
     void compress(const uint8_t*, int, const core::Rect&,
-                  const PixelFormat&, int, int);
+                  const PixelFormat&);
 
     void writeBytes(const uint8_t*, int);
 
   private:
+
+    int qualityLevel;
+    int fineQuality;
+    int fineSubsampling;
 
     struct jpeg_compress_struct *cinfo;
 

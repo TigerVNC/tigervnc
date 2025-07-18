@@ -47,10 +47,6 @@ namespace rfb {
 
   protected:
     JpegCompressor jc;
-
-    int qualityLevel;
-    int fineQuality;
-    int fineSubsampling;
   };
 }
 #endif
