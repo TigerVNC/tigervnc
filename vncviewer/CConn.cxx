@@ -131,8 +131,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
 
 CConn::~CConn()
 {
-  struct timeval now;
-
   close();
 
   OptionsDialog::removeCallback(handleOptions);
@@ -141,39 +139,43 @@ CConn::~CConn()
   if (desktop)
     delete desktop;
 
-  sock->shutdown();
+  if (sock) {
+    struct timeval now;
 
-  // Do a graceful close by waiting for the peer (up to 250 ms)
-  // FIXME: should do this asynchronously
-  gettimeofday(&now, nullptr);
-  while (core::msSince(&now) < 250) {
-    bool done;
+    sock->shutdown();
 
-    done = false;
-    while (true) {
-      try {
-        sock->inStream().skip(sock->inStream().avail());
-        if (!sock->inStream().hasData(1))
+    // Do a graceful close by waiting for the peer (up to 250 ms)
+    // FIXME: should do this asynchronously
+    gettimeofday(&now, nullptr);
+    while (core::msSince(&now) < 250) {
+      bool done;
+
+      done = false;
+      while (true) {
+        try {
+          sock->inStream().skip(sock->inStream().avail());
+          if (!sock->inStream().hasData(1))
+            break;
+        } catch (std::exception&) {
+          done = true;
           break;
-      } catch (std::exception&) {
-        done = true;
-        break;
+        }
       }
+
+      if (done)
+        break;
+
+  #ifdef WIN32
+      Sleep(10);
+  #else
+      usleep(10000);
+  #endif
     }
 
-    if (done)
-      break;
-
-#ifdef WIN32
-    Sleep(10);
-#else
-    usleep(10000);
-#endif
-  }
-
-  if (sock)
     Fl::remove_fd(sock->getFd());
-  delete sock;
+
+    delete sock;
+  }
 }
 
 std::string CConn::connectionInfo()
