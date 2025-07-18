@@ -206,7 +206,8 @@ void VNCSConnectionST::flushSocket()
 void VNCSConnectionST::pixelBufferChange()
 {
   try {
-    if (!authenticated()) return;
+    if (state() != RFBSTATE_NORMAL)
+      return;
     if (client.width() && client.height() &&
         (server->getPixelBuffer()->width() != client.width() ||
          server->getPixelBuffer()->height() != client.height()))
@@ -420,6 +421,17 @@ void VNCSConnectionST::authSuccess()
 {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
+}
+
+void VNCSConnectionST::queryConnection(const char* userName)
+{
+  server->queryConnection(this, userName);
+}
+
+void VNCSConnectionST::clientInit(bool shared)
+{
+  if (rfb::Server::idleTimeout)
+    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
 
   // - Set the connection parameters appropriately
   client.setDimensions(server->getPixelBuffer()->width(),
@@ -436,17 +448,7 @@ void VNCSConnectionST::authSuccess()
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->getPixelBuffer()->getRect());
-}
 
-void VNCSConnectionST::queryConnection(const char* userName)
-{
-  server->queryConnection(this, userName);
-}
-
-void VNCSConnectionST::clientInit(bool shared)
-{
-  if (rfb::Server::idleTimeout)
-    idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
   if (!accessCheck(AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
@@ -1107,14 +1109,11 @@ void VNCSConnectionST::writeLosslessRefresh()
 
 void VNCSConnectionST::screenLayoutChange(uint16_t reason)
 {
-  if (!authenticated())
+  if (state() != RFBSTATE_NORMAL)
     return;
 
   client.setDimensions(client.width(), client.height(),
                        server->getScreenLayout());
-
-  if (state() != RFBSTATE_NORMAL)
-    return;
 
   writer()->writeDesktopSize(reason);
 }
