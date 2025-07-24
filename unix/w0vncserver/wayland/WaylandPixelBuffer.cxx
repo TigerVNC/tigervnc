@@ -29,6 +29,7 @@
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 
+#include <core/Region.h>
 #include <core/LogWriter.h>
 #include <rfb/VNCServerST.h>
 
@@ -98,7 +99,7 @@ void WaylandPixelBuffer::captureFrameDone()
 
   ScreencopyManager::captureFrameDone();
 
-  server->add_changed(getRect());
+  server->add_changed(getDamage());
 
   captureFrame();
 }
@@ -126,16 +127,32 @@ void WaylandPixelBuffer::syncBuffers()
   uint8_t* srcBuffer;
   uint8_t* dstBuffer;
   pixman_bool_t ret;
+  core::Region region;
+  std::vector<core::Rect> rects;
+
+  region = getDamage();
+
+  if (region.is_empty())
+    region = getRect();
 
   srcBuffer = getBufferData();
   srcStride = width();
-  dstBuffer = getBufferRW(getRect(), &dstStride);
 
-  ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
-                    srcStride, dstStride, format.bpp,
-                    format.bpp, 0, 0, 0, 0, width(), height());
-  commitBufferRW(getRect());
+  region.get_rects(&rects);
+  for (core::Rect &rect : rects) {
+    dstBuffer = getBufferRW(getRect(), &dstStride);
+    ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
+                     srcStride, dstStride, format.bpp, format.bpp,
+                     rect.tl.x, rect.tl.y, rect.tl.x, rect.tl.y,
+                     rect.width(), rect.height());
+    commitBufferRW(rect);
 
-  if (!ret)
-    imageRect(format, {0, 0, width(), height()}, srcBuffer, srcStride);
+    if (!ret) {
+      uint8_t* damagedBuffer;
+
+      damagedBuffer = &srcBuffer[(format.bpp / 8) *
+                                 (rect.tl.y * srcStride + rect.tl.x)];
+      imageRect(rect, damagedBuffer, srcStride);
+    }
+  }
 }

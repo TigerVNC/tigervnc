@@ -33,6 +33,7 @@
 #include <core/LogWriter.h>
 #include <core/string.h>
 #include <rfb/PixelFormat.h>
+#include <core/Rect.h>
 
 #include "../../w0vncserver.h"
 #include "Display.h"
@@ -125,6 +126,8 @@ uint8_t* ScreencopyManager::getBufferData()
 void ScreencopyManager::captureFrame()
 {
   assert(frame == nullptr);
+
+  accumulatedDamage.clear();
 
   // FIXME: Handle multiple outputs
   // FIXME: This will render the cursor as part of the stream.
@@ -254,12 +257,18 @@ void ScreencopyManager::handleScreencopyFailed()
   captureFrameDone();
 }
 
-void ScreencopyManager::handleScreencopyDamage(uint32_t /* x */,
-                                               uint32_t /* y */,
-                                               uint32_t /* width */,
-                                               uint32_t /* height */)
+void ScreencopyManager::handleScreencopyDamage(uint32_t x,
+                                               uint32_t y,
+                                               uint32_t width,
+                                               uint32_t height)
 {
-  // FIXME: Implement damage.
+  core::Point tl;
+  core::Point br;
+
+  tl = {static_cast<int>(x), static_cast<int>(y)};
+  br = {static_cast<int>(x + width), static_cast<int>(y + height)};
+
+  accumulatedDamage.assign_union({{tl, br}});
 }
 
 void ScreencopyManager::handleScreencopyLinuxDmabuf(uint32_t /* format */,
@@ -284,5 +293,5 @@ void ScreencopyManager::handleScreencopyBufferDone()
                                 output->getWidth() * 4, info->format);
   }
 
-  zwlr_screencopy_frame_v1_copy(frame, buffer);
+  zwlr_screencopy_frame_v1_copy_with_damage(frame, buffer);
 }

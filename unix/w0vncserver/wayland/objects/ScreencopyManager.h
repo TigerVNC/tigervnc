@@ -21,6 +21,8 @@
 
 #include <stddef.h>
 
+#include <core/Region.h>
+
 #include "Object.h"
 
 namespace rfb { class PixelFormat; }
@@ -58,6 +60,8 @@ namespace wayland {
 
     rfb::PixelFormat getPixelFormat();
 
+    core::Region getDamage() { return accumulatedDamage; }
+
   private:
     void initBuffers(size_t size);
     rfb::PixelFormat convertPixelformat(uint32_t format);
@@ -84,6 +88,7 @@ namespace wayland {
     Shm* shm;
     ShmPool* pool;
     wl_buffer* buffer;
+    core::Region accumulatedDamage;
     static const zwlr_screencopy_frame_v1_listener listener;
   };
 };
