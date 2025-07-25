@@ -85,6 +85,7 @@ namespace rfb {
 
     std::list<rdr::MemOutStream*> freeBuffers;
     std::list<QueueEntry*> workQueue;
+    QueueEntry* partialEntry;
 
     core::Mutex* queueMutex;
     core::Condition* producerCond;

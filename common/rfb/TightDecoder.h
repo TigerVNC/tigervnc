@@ -58,6 +58,16 @@ namespace rfb {
                        int stride, const core::Rect& r);
 
   private:
+    enum {
+      IDLE,
+      FILL,
+      JPEG,
+      FILTER,
+      PALETTE,
+      PIXELS,
+    } readState;
+    int readPalSize;
+
     rdr::ZlibInStream zis[4];
   };
 }

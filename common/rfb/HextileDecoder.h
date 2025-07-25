@@ -42,6 +42,9 @@ namespace rfb {
     void hextileDecode(const core::Rect& r, rdr::InStream* is,
                        const PixelFormat& pf,
                        ModifiablePixelBuffer* pb);
+
+  private:
+    core::Point readTile;
   };
 }
 #endif
