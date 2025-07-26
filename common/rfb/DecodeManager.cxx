@@ -149,6 +149,8 @@ bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
     partialEntry->server = &conn->server;
     partialEntry->pb = pb;
     partialEntry->bufferStream = bufferStream;
+
+    beforePos = conn->getInStream()->pos();
   } else {
     assert(partialEntry->rect == r);
     assert(partialEntry->encoding == encoding);
@@ -170,7 +172,7 @@ bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
     &partialEntry->affectedRegion);
 
   stats[encoding].rects++;
-  stats[encoding].bytes += 12 + partialEntry->bufferStream->length();
+  stats[encoding].bytes += 12 + conn->getInStream()->pos() - beforePos;
   stats[encoding].pixels += r.area();
   equiv = 12 + r.area() * (conn->server.pf().bpp/8);
   stats[encoding].equivalent += equiv;
