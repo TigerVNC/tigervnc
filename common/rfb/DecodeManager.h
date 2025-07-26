@@ -71,6 +71,7 @@ namespace rfb {
     };
 
     DecoderStats stats[encodingMax+1];
+    size_t beforePos;
 
     struct QueueEntry {
       bool active;
