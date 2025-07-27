@@ -664,34 +664,73 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   tx = orig_tx;
   ty = (col1_ty > col2_ty ? col1_ty : col2_ty) + INNER_MARGIN;
 
-  /* Checkboxes */
+  /* Compression */
   compressionCheckbox = new Fl_Check_Button(LBLRIGHT_B(tx, ty,
                                                        CHECK_MIN_WIDTH,
                                                        CHECK_HEIGHT,
-                                                       _("Custom compression level:")));
+                                                       _("Custom compression level")));
   compressionCheckbox->labelfont(FL_BOLD);
   compressionCheckbox->callback(handleCompression, this);
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  ty += CHECK_HEIGHT;
+  compressionGroup = new Fl_Group(tx, ty, full_width, 0);
+  compressionGroup->box(FL_FLAT_BOX);
 
-  compressionInput = new Fl_Int_Input(tx + INDENT, ty,
-                                      INPUT_HEIGHT, INPUT_HEIGHT,
-                                      _("level (0=fast, 9=best)"));
-  compressionInput->align(FL_ALIGN_RIGHT);
-  ty += INPUT_HEIGHT + INNER_MARGIN;
+  {
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
+    compressionInput = new Fl_Int_Input(tx, ty,
+                                        INPUT_HEIGHT, INPUT_HEIGHT,
+                                        _("level (0=fast, 9=best)"));
+    compressionInput->align(FL_ALIGN_RIGHT);
+    ty += INPUT_HEIGHT + INNER_MARGIN;
+  }
+
+  ty -= INNER_MARGIN;
+
+  compressionGroup->end();
+  /* Needed for resize to work sanely */
+  compressionGroup->resizable(nullptr);
+  compressionGroup->size(compressionGroup->w(),
+                         ty - compressionGroup->y());
+
+  /* Back to normal */
+  tx = orig_tx;
+  ty += INNER_MARGIN;
+
+  /* Quality */
   jpegCheckbox = new Fl_Check_Button(LBLRIGHT_B(tx, ty,
                                                 CHECK_MIN_WIDTH,
                                                 CHECK_HEIGHT,
-                                                _("Allow JPEG compression:")));
+                                                _("Allow JPEG compression")));
   jpegCheckbox->labelfont(FL_BOLD);
   jpegCheckbox->callback(handleJpeg, this);
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  ty += CHECK_HEIGHT;
+  qualityGroup = new Fl_Group(tx, ty, full_width, 0);
+  qualityGroup->box(FL_FLAT_BOX);
 
-  jpegInput = new Fl_Int_Input(tx + INDENT, ty,
-                               INPUT_HEIGHT, INPUT_HEIGHT,
-                               _("quality (0=poor, 9=best)"));
-  jpegInput->align(FL_ALIGN_RIGHT);
-  ty += INPUT_HEIGHT + INNER_MARGIN;
+  {
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
+
+    jpegInput = new Fl_Int_Input(tx, ty,
+                                 INPUT_HEIGHT, INPUT_HEIGHT,
+                                 _("quality (0=poor, 9=best)"));
+    jpegInput->align(FL_ALIGN_RIGHT);
+    ty += INPUT_HEIGHT + INNER_MARGIN;
+  }
+
+  ty -= INNER_MARGIN;
+
+  qualityGroup->end();
+  /* Needed for resize to work sanely */
+  qualityGroup->resizable(nullptr);
+  qualityGroup->size(qualityGroup->w(),
+                     ty - qualityGroup->y());
+
+  /* Back to normal */
+  tx = orig_tx;
+  ty += INNER_MARGIN;
 
   group->end();
 }

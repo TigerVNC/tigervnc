@@ -100,9 +100,11 @@ protected:
   Fl_Round_Button *lowcolorCheckbox;
   Fl_Round_Button *verylowcolorCheckbox;
 
+  Fl_Group *compressionGroup;
   Fl_Check_Button *compressionCheckbox;
   Fl_Check_Button *jpegCheckbox;
   Fl_Int_Input *compressionInput;
+  Fl_Group *qualityGroup;
   Fl_Int_Input *jpegInput;
 
   /* Security */
