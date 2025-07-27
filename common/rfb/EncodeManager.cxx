@@ -380,16 +380,12 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   enum EncoderClass solid, bitmap, bitmapRLE;
   enum EncoderClass indexed, indexedRLE, fullColour;
 
-  bool allowJPEG;
-
   int32_t preferred;
 
   std::vector<int>::iterator iter;
 
   solid = bitmap = bitmapRLE = encoderRaw;
   indexed = indexedRLE = fullColour = encoderRaw;
-
-  allowJPEG = conn->client.pf().bpp >= 16;
 
   // Try to respect the client's wishes
   preferred = conn->getPreferredEncoding();
@@ -403,7 +399,7 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     bitmapRLE = indexedRLE = fullColour = encoderHextile;
     break;
   case encodingTight:
-    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
+    if (encoders[encoderTightJPEG]->isSupported())
       fullColour = encoderTightJPEG;
     else
       fullColour = encoderTight;

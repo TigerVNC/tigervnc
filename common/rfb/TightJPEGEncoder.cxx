@@ -84,6 +84,11 @@ bool TightJPEGEncoder::isSupported()
   if (!conn->client.supportsEncoding(encodingTight))
     return false;
 
+  // JPEG doesn't really care about the pixel format, but the
+  // specification requires it to be at least 16bpp
+  if (conn->client.pf().bpp < 16)
+    return false;
+
   // Any one of these indicates support for JPEG
   if (conn->client.qualityLevel != -1)
     return true;
