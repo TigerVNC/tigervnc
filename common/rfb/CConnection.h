@@ -27,6 +27,8 @@
 #include <map>
 #include <string>
 
+#include <core/Configuration.h>
+
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/PixelFormat.h>
@@ -60,6 +62,10 @@ namespace rfb {
 
     CConnection();
     virtual ~CConnection();
+
+    // Settings that control the connection
+
+    static core::BoolParameter noJpeg;
 
     // Methods to initialise the connection
 

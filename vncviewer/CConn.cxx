@@ -92,8 +92,7 @@ CConn::CConn()
   if (customCompressLevel)
     setCompressLevel(::compressLevel);
 
-  if (!noJpeg)
-    setQualityLevel(::qualityLevel);
+  setQualityLevel(::qualityLevel);
 
   OptionsDialog::addCallback(handleOptions, this);
 }
@@ -511,9 +510,7 @@ void CConn::updateQualityLevel()
 {
   int newQualityLevel;
 
-  if (noJpeg)
-    newQualityLevel = -1;
-  else if (!autoSelect)
+  if (!autoSelect)
     newQualityLevel = ::qualityLevel;
   else {
     // Above 16Mbps (i.e. LAN), we choose the second highest JPEG

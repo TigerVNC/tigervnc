@@ -263,7 +263,7 @@ Maximize viewer window.
 .
 .TP
 .B \-NoJpeg
-Disable lossy JPEG compression in Tight encoding. Default is off.
+Disable lossy JPEG compression. Default is off.
 .
 .TP
 .B \-passwd, \-PasswordFile \fIpassword-file\fP

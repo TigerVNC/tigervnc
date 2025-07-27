@@ -37,6 +37,7 @@
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
+#include <rfb/CConnection.h>
 #include <rfb/SecurityClient.h>
 
 #include <FL/fl_utf8.h>
@@ -135,10 +136,6 @@ core::IntParameter
   compressLevel("CompressLevel",
                 "Use specified compression level 0 = Low, 9 = High",
                 2, 0, 9);
-core::BoolParameter
-  noJpeg("NoJPEG",
-         "Disable lossy JPEG compression in Tight encoding.",
-         false);
 core::IntParameter
   qualityLevel("QualityLevel",
                "JPEG quality level. 0 = Low, 9 = High",
@@ -267,7 +264,7 @@ static core::VoidParameter* parameterArray[] = {
   &preferredEncoding,
   &customCompressLevel,
   &compressLevel,
-  &noJpeg,
+  &rfb::CConnection::noJpeg,
   &qualityLevel,
   /* Display */
   &fullScreen,

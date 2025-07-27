@@ -28,6 +28,7 @@
 
 #include <rfb/encodings.h>
 
+#include <rfb/CConnection.h>
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
@@ -167,6 +168,7 @@ void OptionsDialog::loadOptions(void)
 {
   /* Compression */
   autoselectCheckbox->value(autoSelect);
+  jpegCheckbox->value(!rfb::CConnection::noJpeg);
 
   if (preferredEncoding == "Tight")
     tightButton->setonly();
@@ -200,7 +202,6 @@ void OptionsDialog::loadOptions(void)
   char digit[2] = "0";
 
   compressionCheckbox->value(customCompressLevel);
-  jpegCheckbox->value(!noJpeg);
   digit[0] = '0' + compressLevel;
   compressionInput->value(digit);
   digit[0] = '0' + qualityLevel;
@@ -208,7 +209,6 @@ void OptionsDialog::loadOptions(void)
 
   handleAutoselect(autoselectCheckbox, this);
   handleCompression(compressionCheckbox, this);
-  handleJpeg(jpegCheckbox, this);
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   /* Security */
@@ -369,6 +369,7 @@ void OptionsDialog::storeOptions(void)
 {
   /* Compression */
   autoSelect.setParam(autoselectCheckbox->value());
+  rfb::CConnection::noJpeg.setParam(!jpegCheckbox->value());
 
   if (tightButton->value())
     preferredEncoding.setParam(rfb::encodingName(rfb::encodingTight));
@@ -392,7 +393,6 @@ void OptionsDialog::storeOptions(void)
     lowColourLevel.setParam(2);
 
   customCompressLevel.setParam(compressionCheckbox->value());
-  noJpeg.setParam(!jpegCheckbox->value());
   compressLevel.setParam(atoi(compressionInput->value()));
   qualityLevel.setParam(atoi(jpegInput->value()));
 
@@ -537,12 +537,19 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   full_width = tw - OUTER_MARGIN * 2;
   half_width = (full_width - INNER_MARGIN) / 2;
 
-  /* AutoSelect checkbox */
+  /* Checkboxes */
+
   autoselectCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
                                                      _("Auto select")));
   autoselectCheckbox->callback(handleAutoselect, this);
+  ty += CHECK_HEIGHT + INNER_MARGIN;
+
+  jpegCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                              CHECK_MIN_WIDTH,
+                                              CHECK_HEIGHT,
+                                              _("Allow JPEG compression")));
   ty += CHECK_HEIGHT + INNER_MARGIN;
 
   /* Two columns */
@@ -699,15 +706,11 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   ty += INNER_MARGIN;
 
   /* Quality */
-  jpegCheckbox = new Fl_Check_Button(LBLRIGHT_B(tx, ty,
-                                                CHECK_MIN_WIDTH,
-                                                CHECK_HEIGHT,
-                                                _("Allow JPEG compression")));
-  jpegCheckbox->labelfont(FL_BOLD);
-  jpegCheckbox->callback(handleJpeg, this);
-  ty += CHECK_HEIGHT;
-  qualityGroup = new Fl_Group(tx, ty, full_width, 0);
+  ty += GROUP_LABEL_OFFSET;
+  qualityGroup = new Fl_Group(tx, ty, full_width, 0, _("Quality level"));
+  qualityGroup->labelfont(FL_BOLD);
   qualityGroup->box(FL_FLAT_BOX);
+  qualityGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
   {
     tx += INDENT;
@@ -1200,13 +1203,12 @@ void OptionsDialog::handleAutoselect(Fl_Widget* /*widget*/, void *data)
   if (dialog->autoselectCheckbox->value()) {
     dialog->encodingGroup->deactivate();
     dialog->colorlevelGroup->deactivate();
+    dialog->qualityGroup->deactivate();
   } else {
     dialog->encodingGroup->activate();
     dialog->colorlevelGroup->activate();
+    dialog->qualityGroup->activate();
   }
-
-  // JPEG setting is also affected by autoselection
-  dialog->handleJpeg(dialog->jpegCheckbox, dialog);
 }
 
 
@@ -1218,18 +1220,6 @@ void OptionsDialog::handleCompression(Fl_Widget* /*widget*/, void *data)
     dialog->compressionInput->activate();
   else
     dialog->compressionInput->deactivate();
-}
-
-
-void OptionsDialog::handleJpeg(Fl_Widget* /*widget*/, void *data)
-{
-  OptionsDialog *dialog = (OptionsDialog*)data;
-
-  if (dialog->jpegCheckbox->value() &&
-      !dialog->autoselectCheckbox->value())
-    dialog->jpegInput->activate();
-  else
-    dialog->jpegInput->deactivate();
 }
 
 

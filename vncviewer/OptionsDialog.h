@@ -62,7 +62,6 @@ protected:
 
   static void handleAutoselect(Fl_Widget *widget, void *data);
   static void handleCompression(Fl_Widget *widget, void *data);
-  static void handleJpeg(Fl_Widget *widget, void *data);
   static void handleAlwaysCursor(Fl_Widget *widget, void *data);
 
   static void handleX509(Fl_Widget *widget, void *data);
@@ -84,6 +83,7 @@ protected:
 
   /* Compression */
   Fl_Check_Button *autoselectCheckbox;
+  Fl_Check_Button *jpegCheckbox;
 
   Fl_Group *encodingGroup;
   Fl_Round_Button *tightButton;
@@ -102,7 +102,6 @@ protected:
 
   Fl_Group *compressionGroup;
   Fl_Check_Button *compressionCheckbox;
-  Fl_Check_Button *jpegCheckbox;
   Fl_Int_Input *compressionInput;
   Fl_Group *qualityGroup;
   Fl_Int_Input *jpegInput;
