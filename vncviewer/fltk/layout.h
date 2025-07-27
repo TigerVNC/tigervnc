@@ -28,11 +28,14 @@
 #include <FL/fl_draw.H>
 
 /* Calculates the width of a string as printed by FLTK (pixels) */
-static inline int gui_str_len(const char *str)
+static inline int gui_str_len(const char *str, bool bold=false)
 {
     float len;
 
-    fl_font(FL_HELVETICA, FL_NORMAL_SIZE);
+    if (bold)
+        fl_font(FL_HELVETICA_BOLD, FL_NORMAL_SIZE);
+    else
+        fl_font(FL_HELVETICA, FL_NORMAL_SIZE);
 
     len = fl_width(str);
 
@@ -95,10 +98,15 @@ static inline void fltk_adjust_choice(Fl_Choice *choice)
 /* Use this when the text extends to the right (e.g. checkboxes) */
 #define LBLRIGHT(x, y, w, h, str) \
     (x), (y), (w) + gui_str_len(str) + TEXT_PADDING, (h), (str)
+#define LBLRIGHT_B(x, y, w, h, str) \
+    (x), (y), (w) + gui_str_len(str, true) + TEXT_PADDING, (h), (str)
 
 /* Use this when the space for the label is taken from the left (e.g. input) */
 #define LBLLEFT(x, y, w, h, str) \
     (x) + (gui_str_len(str) + TEXT_PADDING), (y), \
     (w) - (gui_str_len(str) + TEXT_PADDING), (h), (str)
+#define LBLLEFT_B(x, y, w, h, str) \
+    (x) + (gui_str_len(str, true) + TEXT_PADDING), (y), \
+    (w) - (gui_str_len(str, true) + TEXT_PADDING), (h), (str)
 
 #endif

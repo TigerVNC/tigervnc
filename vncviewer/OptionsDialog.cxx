@@ -665,10 +665,10 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   ty = (col1_ty > col2_ty ? col1_ty : col2_ty) + INNER_MARGIN;
 
   /* Checkboxes */
-  compressionCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                     CHECK_MIN_WIDTH,
-                                                     CHECK_HEIGHT,
-                                                     _("Custom compression level:")));
+  compressionCheckbox = new Fl_Check_Button(LBLRIGHT_B(tx, ty,
+                                                       CHECK_MIN_WIDTH,
+                                                       CHECK_HEIGHT,
+                                                       _("Custom compression level:")));
   compressionCheckbox->labelfont(FL_BOLD);
   compressionCheckbox->callback(handleCompression, this);
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
@@ -679,10 +679,10 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   compressionInput->align(FL_ALIGN_RIGHT);
   ty += INPUT_HEIGHT + INNER_MARGIN;
 
-  jpegCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                              CHECK_MIN_WIDTH,
-                                              CHECK_HEIGHT,
-                                              _("Allow JPEG compression:")));
+  jpegCheckbox = new Fl_Check_Button(LBLRIGHT_B(tx, ty,
+                                                CHECK_MIN_WIDTH,
+                                                CHECK_HEIGHT,
+                                                _("Allow JPEG compression:")));
   jpegCheckbox->labelfont(FL_BOLD);
   jpegCheckbox->callback(handleJpeg, this);
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
