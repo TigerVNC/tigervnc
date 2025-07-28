@@ -201,7 +201,7 @@ if [ $1 -eq 0 ]; then
 fi
 
 
-%files -f %{name}.lang
+%files
 %doc %{_docdir}/%{name}/README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
@@ -235,7 +235,7 @@ fi
 %{_mandir}/man1/vncpasswd.1*
 %{_mandir}/man1/vncconfig.1*
 
-%files common
+%files common -f %{name}.lang
 %doc %{_docdir}/%{name}/LICENCE.TXT
 %{_datadir}/icons/hicolor/*/apps/*
 
