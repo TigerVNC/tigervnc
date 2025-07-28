@@ -208,9 +208,12 @@ install: build
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
 	mv $(CURDIR)/debian/tigervncserver/usr/share/applications \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/
-	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
+	# move shared files to common package
+	mkdir -p $(CURDIR)/debian/tigervnccommon/usr/share
 	mv $(CURDIR)/debian/tigervncserver/usr/share/icons \
-		$(CURDIR)/debian/xtigervncviewer/usr/share/
+		$(CURDIR)/debian/tigervnccommon/usr/share/
+	mv $(CURDIR)/debian/tigervncserver/usr/share/locale \
+		$(CURDIR)/debian/tigervnccommon/usr/share/
 	# tigervnc-java
 	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
 	#(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
@@ -218,6 +221,9 @@ install: build
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer
 	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer/
+	mkdir -p $(CURDIR)/debian/tigervnccommon/usr/share/doc/tigervnccommon
+	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
+		$(CURDIR)/debian/tigervnccommon/usr/share/doc/tigervnccommon/
 	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java
 	#cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
 		#$(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java/

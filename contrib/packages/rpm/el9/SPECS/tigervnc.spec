@@ -209,7 +209,7 @@ if [ $1 -eq 0 ]; then
 fi
 
 
-%files -f %{name}.lang
+%files
 %doc %{_docdir}/%{name}/README.rst
 %{_bindir}/vncviewer
 %{_datadir}/applications/*
@@ -247,7 +247,7 @@ fi
 %{_libdir}/xorg/modules/extensions/libvnc.so
 %config(noreplace) %{_sysconfdir}/X11/xorg.conf.d/10-libvnc.conf
 
-%files common
+%files common -f %{name}.lang
 %doc %{_docdir}/%{name}/LICENCE.TXT
 %{_datadir}/icons/hicolor/*/apps/*
 
