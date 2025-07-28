@@ -76,16 +76,15 @@ bool H264Decoder::readRect(const core::Rect& /*r*/,
   is->setRestorePoint();
 
   len = is->readU32();
-  os->writeU32(len);
   uint32_t reset = is->readU32();
-
-  os->writeU32(reset);
 
   if (!is->hasDataOrRestore(len))
     return false;
 
   is->clearRestorePoint();
 
+  os->writeU32(len);
+  os->writeU32(reset);
   os->copyBytes(is, len);
 
   return true;

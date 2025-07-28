@@ -38,6 +38,42 @@ extern "C" {
 
 using namespace rfb;
 
+struct JPEGConfiguration {
+    int quality;
+    int subsampling;
+};
+
+// NOTE:  The JPEG quality and subsampling levels below were obtained
+// experimentally by the VirtualGL project.  They represent the approximate
+// average compression ratios listed below, as measured across the set of
+// every 10th frame in the SPECviewperf 9 benchmark suite.
+//
+// 9 = JPEG quality 100, no subsampling (ratio ~= 10:1)
+//     [this should be lossless, except for round-off error]
+// 8 = JPEG quality 92,  no subsampling (ratio ~= 20:1)
+//     [this should be perceptually lossless, based on current research]
+// 7 = JPEG quality 86,  no subsampling (ratio ~= 25:1)
+// 6 = JPEG quality 79,  no subsampling (ratio ~= 30:1)
+// 5 = JPEG quality 77,  4:2:2 subsampling (ratio ~= 40:1)
+// 4 = JPEG quality 62,  4:2:2 subsampling (ratio ~= 50:1)
+// 3 = JPEG quality 42,  4:2:2 subsampling (ratio ~= 60:1)
+// 2 = JPEG quality 41,  4:2:0 subsampling (ratio ~= 70:1)
+// 1 = JPEG quality 29,  4:2:0 subsampling (ratio ~= 80:1)
+// 0 = JPEG quality 15,  4:2:0 subsampling (ratio ~= 100:1)
+
+static const struct JPEGConfiguration conf[10] = {
+  {  15, subsample4X }, // 0
+  {  29, subsample4X }, // 1
+  {  41, subsample4X }, // 2
+  {  42, subsample2X }, // 3
+  {  62, subsample2X }, // 4
+  {  77, subsample2X }, // 5
+  {  79, subsampleNone }, // 6
+  {  86, subsampleNone }, // 7
+  {  92, subsampleNone }, // 8
+  { 100, subsampleNone }  // 9
+};
+
 //
 // Special formats that libjpeg can have optimised code paths for
 //
@@ -117,7 +153,9 @@ JpegTermDestination(j_compress_ptr cinfo)
   jc->setptr(dest->chunkSize - dest->pub.free_in_buffer);
 }
 
-JpegCompressor::JpegCompressor(int bufferLen) : MemOutStream(bufferLen)
+JpegCompressor::JpegCompressor(int bufferLen) :
+  MemOutStream(bufferLen),
+  qualityLevel(-1), fineQuality(-1), fineSubsampling(subsampleUndefined)
 {
   cinfo = new jpeg_compress_struct;
 
@@ -157,17 +195,47 @@ JpegCompressor::~JpegCompressor(void)
   delete cinfo;
 }
 
+void JpegCompressor::setQualityLevel(int level)
+{
+  qualityLevel = level;
+}
+
+void JpegCompressor::setFineQualityLevel(int quality, int subsampling)
+{
+  fineQuality = quality;
+  fineSubsampling = subsampling;
+}
+
+int JpegCompressor::getQualityLevel()
+{
+  return qualityLevel;
+}
+
 void JpegCompressor::compress(const uint8_t *buf, volatile int stride,
                               const core::Rect& r,
-                              const PixelFormat& pf,
-                              int quality, int subsamp)
+                              const PixelFormat& pf)
 {
+  int quality, subsampling;
   int w = r.width();
   int h = r.height();
   int pixelsize;
   uint8_t * volatile srcBuf = nullptr;
   volatile bool srcBufIsTemp = false;
   JSAMPROW * volatile rowPointer = nullptr;
+
+  if (qualityLevel >= 0 && qualityLevel <= 9) {
+    quality = conf[qualityLevel].quality;
+    subsampling = conf[qualityLevel].subsampling;
+  } else {
+    quality = -1;
+    subsampling = subsampleUndefined;
+  }
+
+  // Fine settings trump level
+  if (fineQuality != -1)
+    quality = fineQuality;
+  if (fineSubsampling != subsampleUndefined)
+    subsampling = fineSubsampling;
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
@@ -222,7 +290,7 @@ void JpegCompressor::compress(const uint8_t *buf, volatile int stride,
       cinfo->dct_method = JDCT_FASTEST;
   }
 
-  switch (subsamp) {
+  switch (subsampling) {
   case subsample16X:
   case subsample8X:
     // FIXME (fall through)

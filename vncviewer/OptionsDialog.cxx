@@ -28,6 +28,7 @@
 
 #include <rfb/encodings.h>
 
+#include <rfb/CConnection.h>
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
@@ -167,9 +168,12 @@ void OptionsDialog::loadOptions(void)
 {
   /* Compression */
   autoselectCheckbox->value(autoSelect);
+  jpegCheckbox->value(!rfb::CConnection::noJpeg);
 
   if (preferredEncoding == "Tight")
     tightButton->setonly();
+  else if (preferredEncoding == "JPEG")
+    jpegButton->setonly();
   else if (preferredEncoding == "ZRLE")
     zrleButton->setonly();
   else if (preferredEncoding == "Hextile")
@@ -200,7 +204,6 @@ void OptionsDialog::loadOptions(void)
   char digit[2] = "0";
 
   compressionCheckbox->value(customCompressLevel);
-  jpegCheckbox->value(!noJpeg);
   digit[0] = '0' + compressLevel;
   compressionInput->value(digit);
   digit[0] = '0' + qualityLevel;
@@ -208,7 +211,6 @@ void OptionsDialog::loadOptions(void)
 
   handleAutoselect(autoselectCheckbox, this);
   handleCompression(compressionCheckbox, this);
-  handleJpeg(jpegCheckbox, this);
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   /* Security */
@@ -369,9 +371,12 @@ void OptionsDialog::storeOptions(void)
 {
   /* Compression */
   autoSelect.setParam(autoselectCheckbox->value());
+  rfb::CConnection::noJpeg.setParam(!jpegCheckbox->value());
 
   if (tightButton->value())
     preferredEncoding.setParam(rfb::encodingName(rfb::encodingTight));
+  else if (jpegButton->value())
+    preferredEncoding.setParam(rfb::encodingName(rfb::encodingJPEG));
   else if (zrleButton->value())
     preferredEncoding.setParam(rfb::encodingName(rfb::encodingZRLE));
   else if (hextileButton->value())
@@ -392,7 +397,6 @@ void OptionsDialog::storeOptions(void)
     lowColourLevel.setParam(2);
 
   customCompressLevel.setParam(compressionCheckbox->value());
-  noJpeg.setParam(!jpegCheckbox->value());
   compressLevel.setParam(atoi(compressionInput->value()));
   qualityLevel.setParam(atoi(jpegInput->value()));
 
@@ -537,12 +541,19 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   full_width = tw - OUTER_MARGIN * 2;
   half_width = (full_width - INNER_MARGIN) / 2;
 
-  /* AutoSelect checkbox */
+  /* Checkboxes */
+
   autoselectCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
                                                      _("Auto select")));
   autoselectCheckbox->callback(handleAutoselect, this);
+  ty += CHECK_HEIGHT + INNER_MARGIN;
+
+  jpegCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                              CHECK_MIN_WIDTH,
+                                              CHECK_HEIGHT,
+                                              _("Allow JPEG compression")));
   ty += CHECK_HEIGHT + INNER_MARGIN;
 
   /* Two columns */
@@ -566,6 +577,13 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
                                                RADIO_HEIGHT,
                                                "Tight"));
     tightButton->type(FL_RADIO_BUTTON);
+    ty += RADIO_HEIGHT + TIGHT_MARGIN;
+
+    jpegButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
+                                              RADIO_MIN_WIDTH,
+                                              RADIO_HEIGHT,
+                                              "JPEG"));
+    jpegButton->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     zrleButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
@@ -664,34 +682,69 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   tx = orig_tx;
   ty = (col1_ty > col2_ty ? col1_ty : col2_ty) + INNER_MARGIN;
 
-  /* Checkboxes */
-  compressionCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                     CHECK_MIN_WIDTH,
-                                                     CHECK_HEIGHT,
-                                                     _("Custom compression level:")));
+  /* Compression */
+  compressionCheckbox = new Fl_Check_Button(LBLRIGHT_B(tx, ty,
+                                                       CHECK_MIN_WIDTH,
+                                                       CHECK_HEIGHT,
+                                                       _("Custom compression level")));
   compressionCheckbox->labelfont(FL_BOLD);
   compressionCheckbox->callback(handleCompression, this);
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  ty += CHECK_HEIGHT;
+  compressionGroup = new Fl_Group(tx, ty, full_width, 0);
+  compressionGroup->box(FL_FLAT_BOX);
 
-  compressionInput = new Fl_Int_Input(tx + INDENT, ty,
-                                      INPUT_HEIGHT, INPUT_HEIGHT,
-                                      _("level (0=fast, 9=best)"));
-  compressionInput->align(FL_ALIGN_RIGHT);
-  ty += INPUT_HEIGHT + INNER_MARGIN;
+  {
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
 
-  jpegCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                              CHECK_MIN_WIDTH,
-                                              CHECK_HEIGHT,
-                                              _("Allow JPEG compression:")));
-  jpegCheckbox->labelfont(FL_BOLD);
-  jpegCheckbox->callback(handleJpeg, this);
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+    compressionInput = new Fl_Int_Input(tx, ty,
+                                        INPUT_HEIGHT, INPUT_HEIGHT,
+                                        _("level (0=fast, 9=best)"));
+    compressionInput->align(FL_ALIGN_RIGHT);
+    ty += INPUT_HEIGHT + INNER_MARGIN;
+  }
 
-  jpegInput = new Fl_Int_Input(tx + INDENT, ty,
-                               INPUT_HEIGHT, INPUT_HEIGHT,
-                               _("quality (0=poor, 9=best)"));
-  jpegInput->align(FL_ALIGN_RIGHT);
-  ty += INPUT_HEIGHT + INNER_MARGIN;
+  ty -= INNER_MARGIN;
+
+  compressionGroup->end();
+  /* Needed for resize to work sanely */
+  compressionGroup->resizable(nullptr);
+  compressionGroup->size(compressionGroup->w(),
+                         ty - compressionGroup->y());
+
+  /* Back to normal */
+  tx = orig_tx;
+  ty += INNER_MARGIN;
+
+  /* Quality */
+  ty += GROUP_LABEL_OFFSET;
+  qualityGroup = new Fl_Group(tx, ty, full_width, 0, _("Quality level"));
+  qualityGroup->labelfont(FL_BOLD);
+  qualityGroup->box(FL_FLAT_BOX);
+  qualityGroup->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+
+  {
+    tx += INDENT;
+    ty += TIGHT_MARGIN;
+
+    jpegInput = new Fl_Int_Input(tx, ty,
+                                 INPUT_HEIGHT, INPUT_HEIGHT,
+                                 _("quality (0=poor, 9=best)"));
+    jpegInput->align(FL_ALIGN_RIGHT);
+    ty += INPUT_HEIGHT + INNER_MARGIN;
+  }
+
+  ty -= INNER_MARGIN;
+
+  qualityGroup->end();
+  /* Needed for resize to work sanely */
+  qualityGroup->resizable(nullptr);
+  qualityGroup->size(qualityGroup->w(),
+                     ty - qualityGroup->y());
+
+  /* Back to normal */
+  tx = orig_tx;
+  ty += INNER_MARGIN;
 
   group->end();
 }
@@ -1161,13 +1214,12 @@ void OptionsDialog::handleAutoselect(Fl_Widget* /*widget*/, void *data)
   if (dialog->autoselectCheckbox->value()) {
     dialog->encodingGroup->deactivate();
     dialog->colorlevelGroup->deactivate();
+    dialog->qualityGroup->deactivate();
   } else {
     dialog->encodingGroup->activate();
     dialog->colorlevelGroup->activate();
+    dialog->qualityGroup->activate();
   }
-
-  // JPEG setting is also affected by autoselection
-  dialog->handleJpeg(dialog->jpegCheckbox, dialog);
 }
 
 
@@ -1179,18 +1231,6 @@ void OptionsDialog::handleCompression(Fl_Widget* /*widget*/, void *data)
     dialog->compressionInput->activate();
   else
     dialog->compressionInput->deactivate();
-}
-
-
-void OptionsDialog::handleJpeg(Fl_Widget* /*widget*/, void *data)
-{
-  OptionsDialog *dialog = (OptionsDialog*)data;
-
-  if (dialog->jpegCheckbox->value() &&
-      !dialog->autoselectCheckbox->value())
-    dialog->jpegInput->activate();
-  else
-    dialog->jpegInput->deactivate();
 }
 
 

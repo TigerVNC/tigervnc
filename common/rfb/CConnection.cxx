@@ -56,6 +56,10 @@ using namespace rfb;
 
 static core::LogWriter vlog("CConnection");
 
+core::BoolParameter
+  CConnection::noJpeg("NoJPEG", "Disable lossy JPEG compression.",
+                      false);
+
 CConnection::CConnection()
   : csecurity(nullptr),
     supportsLocalCursor(false), supportsCursorPosition(false),
@@ -1021,20 +1025,27 @@ void CConnection::updateEncodings()
   encodings.push_back(pseudoEncodingExtendedMouseButtons);
 
   if (Decoder::supported(preferredEncoding)) {
-    encodings.push_back(preferredEncoding);
+    if (!noJpeg || preferredEncoding != encodingJPEG)
+      encodings.push_back(preferredEncoding);
   }
 
   encodings.push_back(encodingCopyRect);
 
   for (int i = encodingMax; i >= 0; i--) {
-    if ((i != preferredEncoding) && Decoder::supported(i))
+    if ((i != preferredEncoding) && Decoder::supported(i)) {
+      if (noJpeg && i == encodingJPEG)
+        continue;
       encodings.push_back(i);
+    }
   }
 
   if (compressLevel >= 0 && compressLevel <= 9)
       encodings.push_back(pseudoEncodingCompressLevel0 + compressLevel);
-  if (qualityLevel >= 0 && qualityLevel <= 9)
+  // Tight JPEG is enabled by setting a quality level
+  if (!noJpeg) {
+    if (qualityLevel >= 0 && qualityLevel <= 9)
       encodings.push_back(pseudoEncodingQualityLevel0 + qualityLevel);
+  }
 
   writer()->writeSetEncodings(encodings);
 }

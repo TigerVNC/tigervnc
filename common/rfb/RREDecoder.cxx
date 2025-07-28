@@ -52,7 +52,6 @@ bool RREDecoder::readRect(const core::Rect& /*r*/, rdr::InStream* is,
   is->setRestorePoint();
 
   numRects = is->readU32();
-  os->writeU32(numRects);
 
   len = server.pf().bpp/8 + numRects * (server.pf().bpp/8 + 8);
 
@@ -61,6 +60,7 @@ bool RREDecoder::readRect(const core::Rect& /*r*/, rdr::InStream* is,
 
   is->clearRestorePoint();
 
+  os->writeU32(numRects);
   os->copyBytes(is, len);
 
   return true;
