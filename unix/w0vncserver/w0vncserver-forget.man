@@ -1,0 +1,28 @@
+.TH w0vncserver-forget 1 "" "TigerVNC" "TigerVNC Manual"
+.SH NAME
+w0vncserver-forget \- forget w0vncserver display choice
+.SH SYNOPSIS
+.B w0vncserver-forget
+.SH DESCRIPTION
+.B w0vncserver-forget
+is a utility for \fBw0vncserver\fP(1) which will forget the stored
+display choice configuration.
+
+.SH FILES
+.TP
+\fI$XDG_STATE_HOME/tigervnc/restoretoken\fP
+Default location of the restoretoken file.
+
+.SH SEE ALSO
+.BR w0vncserver (1),
+.br
+https://www.tigervnc.org/
+
+.SH AUTHOR
+TigerVNC Team
+
+VNC was originally developed by the RealVNC team while at Olivetti
+Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
+implemented by Constantin Kaplinsky. Many other people have since
+participated in development, testing and support. This manual is part
+of the TigerVNC software suite.

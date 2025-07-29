@@ -22,13 +22,12 @@
 
 #include <assert.h>
 
-#include <exception>
-
 #include <gio/gio.h>
 
 #include <rfb/ScreenSet.h>
 #include <rfb/VNCServerST.h>
 #include <core/LogWriter.h>
+#include <core/xdgdirs.h>
 
 #include "../w0vncserver.h"
 #include "RemoteDesktop.h"
@@ -39,7 +38,8 @@
 static core::LogWriter vlog("PortalDesktop");
 
 PortalDesktop::PortalDesktop()
-  : server(nullptr), remoteDesktop(nullptr), pb(nullptr)
+  : server(nullptr), remoteDesktop(nullptr), pb(nullptr),
+    restoreToken("")
 {
 }
 
@@ -72,7 +72,7 @@ void PortalDesktop::start()
     server->closeClients(reason);
   };
 
-  remoteDesktop = new RemoteDesktop(startPipewire, cancelStart);
+  remoteDesktop = new RemoteDesktop(restoreToken, startPipewire, cancelStart);
   remoteDesktop->createSession();
 }
 
@@ -83,6 +83,7 @@ void PortalDesktop::stop()
   delete pb;
   pb = nullptr;
 
+  restoreToken = remoteDesktop->getRestoreToken();
   delete remoteDesktop;
   remoteDesktop = nullptr;
 }

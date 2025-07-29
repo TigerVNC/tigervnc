@@ -28,6 +28,10 @@ add_executable(w0vncserver
   RFBTimerSource.cxx
 )
 
+add_executable(w0vncserver-forget
+  w0vncserver-forget.cxx
+)
+
 # Generate protocol headers
 set(GEN_WAYLAND_SRCS "")
 set(WAYLAND_PROTOCOLS
@@ -78,5 +82,8 @@ target_link_libraries(w0vncserver ${UUID_LIBRARIES})
 target_link_libraries(w0vncserver ${XKBCOMMON_LIBRARIES})
 target_link_libraries(w0vncserver ${WAYLAND_LIBRARIES})
 
-install(TARGETS w0vncserver DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+target_link_libraries(w0vncserver-forget core)
+
+install(TARGETS w0vncserver w0vncserver-forget DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 install(FILES w0vncserver.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 RENAME w0vncserver.1)
+install(FILES w0vncserver-forget.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 RENAME w0vncserver-forget.1)

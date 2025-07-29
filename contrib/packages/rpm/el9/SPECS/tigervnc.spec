@@ -226,11 +226,13 @@ fi
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
 %{_bindir}/w0vncserver
+%{_bindir}/w0vncserver-forget
 %{_sbindir}/vncsession
 %{_libexecdir}/vncserver
 %{_libexecdir}/vncsession-start
 %{_mandir}/man1/x0vncserver.1*
 %{_mandir}/man1/w0vncserver.1*
+%{_mandir}/man1/w0vncserver-forget.1*
 %{_mandir}/man8/vncserver.8*
 %{_mandir}/man8/vncsession.8*
 %doc %{_docdir}/%{name}/HOWTO.md
