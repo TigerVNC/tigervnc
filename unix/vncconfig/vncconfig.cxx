@@ -83,10 +83,10 @@ class VncConfigWindow : public TXWindow, public TXEventHandler,
 public:
   VncConfigWindow(Display* dpy_)
     : TXWindow(dpy_, 300, 100),
-      acceptClipboard(dpy_, "Accept clipboard from viewers", this, false, this),
-      setPrimaryCB(dpy_, "Also set primary selection", this, false, this),
-      sendClipboard(dpy_, "Send clipboard to viewers", this, false, this),
-      sendPrimaryCB(dpy_, "Send primary selection to viewers", this,false,this),
+      acceptClipboard(dpy_, _("Accept clipboard from viewers"), this, false, this),
+      setPrimaryCB(dpy_, _("Also set primary selection"), this, false, this),
+      sendClipboard(dpy_, _("Send clipboard to viewers"), this, false, this),
+      sendPrimaryCB(dpy_, _("Send primary selection to viewers"), this,false,this),
       queryConnectDialog(nullptr)
   {
     int y = yPad;
@@ -105,7 +105,7 @@ public:
     sendPrimaryCB.disabled(!sendClipboard.checked());
     y += sendPrimaryCB.height();
     setEventHandler(this);
-    toplevel("VNC config", this, 0, nullptr, nullptr, iconic);
+    toplevel(_("VNC config"), this, 0, nullptr, nullptr, iconic);
     XVncExtSelectInput(dpy, win(), VncExtQueryConnectMask);
   }
 
