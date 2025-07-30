@@ -22,9 +22,10 @@
 #include <config.h>
 #endif
 
+#include <mutex>
+#include <thread>
+
 #include <core/LogWriter.h>
-#include <core/Mutex.h>
-#include <core/Thread.h>
 
 #include <rfb_win32/WMHooks.h>
 #include <rfb_win32/Service.h>
@@ -115,21 +116,23 @@ error:
 }
 
 
-class WMHooksThread : public Thread {
+class WMHooksThread {
 public:
-  WMHooksThread() : active(true), thread_id(-1) { }
+  WMHooksThread() : active(true), thread(WMHooksThread::worker, this),
+                    thread_id(-1) { }
   void stop();
   DWORD getThreadId() { return thread_id; }
 protected:
-  void worker() override;
+  void worker();
 protected:
   bool active;
+  std::thread thread;
   DWORD thread_id;
 };
 
 static WMHooksThread* hook_mgr = nullptr;
 static std::list<WMHooks*> hooks;
-static Mutex hook_mgr_lock;
+static std::mutex hook_mgr_lock;
 
 
 static bool StartHookThread() {
@@ -139,7 +142,6 @@ static bool StartHookThread() {
     return false;
   vlog.debug("Creating thread");
   hook_mgr = new WMHooksThread();
-  hook_mgr->start();
   while (hook_mgr->getThreadId() == (DWORD)-1)
     Sleep(0);
   vlog.debug("Installing hooks");
@@ -167,7 +169,7 @@ static void StopHookThread() {
 
 static bool AddHook(WMHooks* hook) {
   vlog.debug("Adding hook");
-  AutoMutex a(&hook_mgr_lock);
+  const std::lock_guard<std::mutex> lock(hook_mgr_lock);
   if (!StartHookThread())
     return false;
   hooks.push_back(hook);
@@ -177,7 +179,7 @@ static bool AddHook(WMHooks* hook) {
 static bool RemHook(WMHooks* hook) {
   {
     vlog.debug("Removing hook");
-    AutoMutex a(&hook_mgr_lock);
+    const std::lock_guard<std::mutex> lock(hook_mgr_lock);
     hooks.remove(hook);
   }
   StopHookThread();
@@ -185,7 +187,7 @@ static bool RemHook(WMHooks* hook) {
 }
 
 static void NotifyHooksRegion(const Region& r) {
-  AutoMutex a(&hook_mgr_lock);
+  const std::lock_guard<std::mutex> lock(hook_mgr_lock);
   std::list<WMHooks*>::iterator i;
   for (i=hooks.begin(); i!=hooks.end(); i++)
     (*i)->NotifyHooksRegion(r);
@@ -302,7 +304,7 @@ WMHooksThread::stop() {
   active = false;
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);
   vlog.debug("Waiting for WMHooks thread");
-  wait();
+  thread.join();
 }
 
 // -=- WMHooks class
@@ -324,7 +326,7 @@ bool rfb::win32::WMHooks::setEvent(HANDLE ue) {
 
 bool rfb::win32::WMHooks::getUpdates(UpdateTracker* ut) {
   if (!updatesReady) return false;
-  AutoMutex a(&hook_mgr_lock);
+  const std::lock_guard<std::mutex> lock(hook_mgr_lock);
   updates.copyTo(ut);
   updates.clear();
   updatesReady = false;
@@ -376,12 +378,12 @@ static bool blockRealInputs(bool block_) {
   return block_ == blocking;
 }
 
-static Mutex blockMutex;
+static std::mutex blockMutex;
 static int blockCount = 0;
 
 bool rfb::win32::WMBlockInput::blockInputs(bool on) {
   if (active == on) return true;
-  AutoMutex a(&blockMutex);
+  const std::lock_guard<std::mutex> lock(blockMutex);
   int newCount = on ? blockCount+1 : blockCount-1;
   if (!blockRealInputs(newCount > 0))
     return false;

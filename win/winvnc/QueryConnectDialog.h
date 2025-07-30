@@ -21,7 +21,7 @@
 #ifndef __WINVNC_QUERY_CONNECT_DIALOG_H__
 #define __WINVNC_QUERY_CONNECT_DIALOG_H__
 
-#include <core/Thread.h>
+#include <thread>
 
 #include <rfb_win32/Dialog.h>
 
@@ -31,15 +31,16 @@ namespace winvnc {
 
   class VNCServerWin32;
 
-  class QueryConnectDialog : public core::Thread, rfb::win32::Dialog {
+  class QueryConnectDialog : rfb::win32::Dialog {
   public:
     QueryConnectDialog(network::Socket* sock, const char* userName, VNCServerWin32* s);
+    ~QueryConnectDialog();
     virtual void startDialog();
     network::Socket* getSock() {return sock;}
     bool isAccepted() const {return approve;}
   protected:
     // Thread methods
-    void worker() override;
+    void worker();
 
     // Dialog methods (protected)
     void initDialog() override;
@@ -48,6 +49,7 @@ namespace winvnc {
     // Custom internal methods
     void setCountdownLabel();
 
+    std::thread* thread;
     int countdown;
     network::Socket* sock;
     std::string peerIp;

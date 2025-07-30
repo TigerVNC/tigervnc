@@ -24,7 +24,7 @@
 #ifndef __RFB_WIN32_REG_CONFIG_H__
 #define __RFB_WIN32_REG_CONFIG_H__
 
-#include <core/Thread.h>
+#include <thread>
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/EventManager.h>
@@ -63,7 +63,7 @@ namespace rfb {
       RegKey key;
     };
 
-    class RegConfigThread : core::Thread {
+    class RegConfigThread {
     public:
       RegConfigThread();
       ~RegConfigThread();
@@ -71,9 +71,10 @@ namespace rfb {
       // Start the thread, reading from the specified key
       bool start(const HKEY rootkey, const char* keyname);
     protected:
-      void worker() override;
+      void worker();
       EventManager eventMgr;
       RegConfig config;
+      std::thread* thread;
       DWORD thread_id;
     };
 

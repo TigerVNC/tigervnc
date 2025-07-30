@@ -27,8 +27,8 @@
 #endif
 
 #include <list>
+#include <mutex>
 
-#include <core/Mutex.h>
 #include <core/Region.h>
 
 #include <rfb/PixelBuffer.h>
@@ -48,7 +48,7 @@ public:
   using rfb::FullFramePixelBuffer::height;
 
 protected:
-  core::Mutex mutex;
+  std::mutex mutex;
   core::Region damage;
 
 #if !defined(WIN32) && !defined(__APPLE__)

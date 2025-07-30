@@ -19,6 +19,9 @@
 #ifndef __VNCSERVER_WIN32_H__
 #define __VNCSERVER_WIN32_H__
 
+#include <condition_variable>
+#include <mutex>
+
 #include <winsock2.h>
 #include <network/TcpSocket.h>
 #include <rfb/VNCServerST.h>
@@ -29,8 +32,6 @@
 #include <winvnc/ManagedListener.h>
 
 namespace core {
-    class Mutex;
-    class Condition;
     class Thread;
 }
 
@@ -106,15 +107,15 @@ namespace winvnc {
     Command command;
     const void* commandData;
     int commandDataLen;
-    core::Mutex* commandLock;
-    core::Condition* commandSig;
+    std::mutex commandLock;
+    std::condition_variable commandSig;
     rfb::win32::Handle commandEvent;
     rfb::win32::Handle sessionEvent;
 
     // VNCServerWin32 Server-internal state
     rfb::win32::SDisplay desktop;
     rfb::VNCServerST vncServer;
-    core::Mutex* runLock;
+    std::mutex runLock;
     DWORD thread_id;
     bool runServer;
     bool isDesktopStarted;

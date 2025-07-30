@@ -93,17 +93,21 @@ void RegConfig::processEvent(HANDLE /*event*/) {
 }
 
 
-RegConfigThread::RegConfigThread() : config(&eventMgr), thread_id(-1) {
+RegConfigThread::RegConfigThread() : config(&eventMgr), thread(nullptr),
+                                     thread_id(-1) {
 }
 
 RegConfigThread::~RegConfigThread() {
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);
-  wait();
+  if (thread != nullptr) {
+    thread->join();
+    delete thread;
+  }
 }
 
 bool RegConfigThread::start(const HKEY rootKey, const char* keyname) {
   if (config.setKey(rootKey, keyname)) {
-    Thread::start();
+    thread = new std::thread(&RegConfigThread::worker, this);
     while (thread_id == (DWORD)-1)
       Sleep(0);
     return true;

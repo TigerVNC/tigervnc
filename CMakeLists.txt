@@ -112,6 +112,13 @@ if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
 endif()
 
+# libstdc++ doesn't implicitly include this, although it is very much
+# required when using any of the C++ threading features (at least on
+# systems where pthread is a separate library, e.g. glibc < 2.34)
+if(UNIX)
+  link_libraries(pthread)
+endif()
+
 # Minimum version is Windows 7
 if(WIN32)
   add_definitions(-D_WIN32_WINNT=0x0601)

@@ -19,17 +19,17 @@
 #ifndef __RFB_DECODEMANAGER_H__
 #define __RFB_DECODEMANAGER_H__
 
+#include <condition_variable>
 #include <exception>
 #include <list>
+#include <mutex>
+#include <thread>
 
 #include <core/Region.h>
-#include <core/Thread.h>
 
 #include <rfb/encodings.h>
 
 namespace core {
-  class Condition;
-  class Mutex;
   struct Rect;
 }
 
@@ -86,25 +86,27 @@ namespace rfb {
     std::list<rdr::MemOutStream*> freeBuffers;
     std::list<QueueEntry*> workQueue;
 
-    core::Mutex* queueMutex;
-    core::Condition* producerCond;
-    core::Condition* consumerCond;
+    std::mutex queueMutex;
+    std::condition_variable producerCond;
+    std::condition_variable consumerCond;
 
   private:
-    class DecodeThread : public core::Thread {
+    class DecodeThread {
     public:
       DecodeThread(DecodeManager* manager);
       ~DecodeThread();
 
+      void start();
       void stop();
 
     protected:
-      void worker() override;
+      void worker();
       DecodeManager::QueueEntry* findEntry();
 
     private:
       DecodeManager* manager;
 
+      std::thread* thread;
       bool stopRequested;
     };
 
