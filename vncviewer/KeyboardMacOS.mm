@@ -196,7 +196,7 @@ bool KeyboardMacOS::handleEvent(const void* event)
 
     keySym = translateToKeySym([nsevent keyCode], modifiers);
     if (keySym == NoSymbol) {
-      vlog.error(_("No symbol for key code 0x%02x (in the current state)"),
+      vlog.error(_("No symbol for key code %d (in the current state)"),
                  systemKeyCode);
     }
 
