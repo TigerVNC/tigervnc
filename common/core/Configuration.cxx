@@ -212,8 +212,9 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_)
   // Check and warn for conflicts
   for (VoidParameter* param: conf->params) {
     // FIXME: This generally runs before any loggers are set up
-    if (strcasecmp(param->getName(), name) == 0)
-      fprintf(stderr, "Error: Multiple parameters named %s\n", name);
+    if (strcasecmp(param->getName(), name.c_str()) == 0)
+      fprintf(stderr, "Error: Multiple parameters named %s\n",
+              name.c_str());
   }
 
   conf->params.push_back(this);
@@ -231,12 +232,12 @@ VoidParameter::~VoidParameter() {
 
 const char*
 VoidParameter::getName() const {
-  return name;
+  return name.c_str();
 }
 
 const char*
 VoidParameter::getDescription() const {
-  return description;
+  return description.c_str();
 }
 
 bool VoidParameter::setParam() {

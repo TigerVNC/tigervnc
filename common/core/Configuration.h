@@ -145,8 +145,8 @@ namespace core {
 
     VoidParameter* _next;
     bool immutable;
-    const char* name;
-    const char* description;
+    std::string name;
+    std::string description;
   };
 
   class AliasParameter : public VoidParameter {
