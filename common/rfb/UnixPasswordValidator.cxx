@@ -41,7 +41,7 @@ static core::StringParameter
              _("Service name for PAM password validation"),
              "vnc");
 core::AliasParameter
-  pam_service("pam_service", _("Alias for PAMService"), &pamService);
+  pam_service("pam_service", &pamService);
 
 std::string UnixPasswordValidator::displayName;
 

@@ -51,7 +51,7 @@ static core::LogWriter vlog("SVncAuth");
 
 core::StringParameter SSecurityVncAuth::vncAuthPasswdFile
 ("PasswordFile", _("Password file for VNC authentication"), "");
-core::AliasParameter rfbauth("rfbauth", _("Alias for PasswordFile"),
+core::AliasParameter rfbauth("rfbauth",
 		       &SSecurityVncAuth::vncAuthPasswdFile);
 VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 ("Password", _("Obfuscated binary encoding of the password for VNC "
