@@ -245,9 +245,11 @@ VoidParameter::setImmutable() {
 
 // -=- AliasParameter
 
-AliasParameter::AliasParameter(const char* name_, const char* desc_,
-                               VoidParameter* param_)
-  : VoidParameter(name_, desc_), param(param_) {
+AliasParameter::AliasParameter(const char* name_, VoidParameter* param_)
+  : VoidParameter(name_,
+                  format(_("Alias for %s"), param_->getName()).c_str()),
+    param(param_)
+{
 }
 
 bool

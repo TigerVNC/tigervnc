@@ -95,7 +95,7 @@ core::StringParameter
                _("Password file for VNC authentication"),
                "");
 core::AliasParameter
-  passwd("passwd", _("Alias for PasswordFile"), &passwordFile);
+  passwd("passwd", &passwordFile);
 
 core::BoolParameter
   autoSelect("AutoSelect",
@@ -104,15 +104,14 @@ core::BoolParameter
 core::BoolParameter
   fullColour("FullColor", _("Use all available colors"), true);
 core::AliasParameter
-  fullColourAlias("FullColour", _("Alias for FullColor"), &fullColour);
+  fullColourAlias("FullColour", &fullColour);
 core::IntParameter
   lowColourLevel("LowColorLevel",
                  _("Color level to use on slow connections, "
                    "0 = Very Low, 1 = Low, 2 = Medium"),
                  2, 0, 2);
 core::AliasParameter
-  lowColourLevelAlias("LowColourLevel",
-                      _("Alias for LowColorLevel"), &lowColourLevel);
+  lowColourLevelAlias("LowColourLevel", &lowColourLevel);
 core::EnumParameter
   preferredEncoding("PreferredEncoding",
                     core::format(
