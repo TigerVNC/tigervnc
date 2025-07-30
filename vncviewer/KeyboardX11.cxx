@@ -260,7 +260,7 @@ void KeyboardX11::setLEDState(unsigned state)
 
   ret = XkbLockModifiers(fl_display, XkbUseCoreKbd, affect, values);
   if (!ret)
-    vlog.error(_("Failed to update keyboard LED state"));
+    vlog.error(_("Failed to update keyboard LED state: %d"), ret);
 }
 
 unsigned KeyboardX11::getModifierMask(uint32_t keysym)
