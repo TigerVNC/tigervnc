@@ -225,11 +225,15 @@ int main(int argc, char** argv)
       continue;
     }
 
-    if (strcmp(argv[i], "-help") == 0) {
+    if (strcmp(argv[i], "-h") == 0 ||
+        strcmp(argv[i], "-help") == 0 ||
+        strcmp(argv[i], "--help") == 0) {
       usage();
     }
 
-    if (strcmp(argv[i], "-version") == 0) {
+    if (strcmp(argv[i], "-v") == 0 ||
+        strcmp(argv[i], "-version") == 0 ||
+        strcmp(argv[i], "--version") == 0) {
       fprintf(stderr, "vncconfig (TigerVNC) %s\n", PACKAGE_VERSION);
       exit(0);
     }
@@ -302,7 +306,7 @@ int main(int argc, char** argv)
         if (!equal) {
           fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
                   programName, argv[i]);
-          fprintf(stderr, "See '%s -help' for more information.\n",
+          fprintf(stderr, "See '%s --help' for more information.\n",
                   programName);
           exit(1);
         }
@@ -315,7 +319,7 @@ int main(int argc, char** argv)
       } else if (argv[i][0] == '-') {
         fprintf(stderr, "%s: Unrecognized option '%s'\n",
                 programName, argv[i]);
-        fprintf(stderr, "See '%s -help' for more information.\n",
+        fprintf(stderr, "See '%s --help' for more information.\n",
                 programName);
         exit(1);
       } else {
@@ -323,7 +327,7 @@ int main(int argc, char** argv)
         if (!equal) {
           fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
                   programName, argv[i]);
-          fprintf(stderr, "See '%s -help' for more information.\n",
+          fprintf(stderr, "See '%s --help' for more information.\n",
                   programName);
           exit(1);
         }
