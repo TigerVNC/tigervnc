@@ -221,12 +221,12 @@ VoidParameter::~VoidParameter() {
 
 const char*
 VoidParameter::getName() const {
-  return name;
+  return name.c_str();
 }
 
 const char*
 VoidParameter::getDescription() const {
-  return description;
+  return description.c_str();
 }
 
 bool VoidParameter::setParam() {
