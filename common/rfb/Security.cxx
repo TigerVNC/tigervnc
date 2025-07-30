@@ -27,6 +27,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/Security.h>
@@ -36,8 +37,10 @@ using namespace rfb;
 static core::LogWriter vlog("Security");
 
 #ifdef HAVE_GNUTLS
-core::StringParameter Security::GnuTLSPriority("GnuTLSPriority",
-  "GnuTLS priority string that controls the TLS session’s handshake algorithms",
+core::StringParameter Security::GnuTLSPriority(
+  "GnuTLSPriority",
+  _("GnuTLS priority string that controls the TLS session's handshake "
+    "algorithms"),
   "");
 #endif
 
@@ -52,7 +55,7 @@ Security::Security(core::EnumListParameter &secTypes)
     // Should have been filtered by EnumListParameter, but let's have
     // a safety net
     if (typeNum == secTypeInvalid)
-      throw std::logic_error("Unknown security type");
+      throw std::logic_error(_("Unknown security type"));
     enabledSecTypes.push_back(typeNum);
   }
 }
@@ -185,6 +188,6 @@ const char* rfb::secTypeName(uint32_t num)
   case secTypeX509None:   return "X509None";
   case secTypeX509Vnc:    return "X509Vnc";
   case secTypeX509Plain:  return "X509Plain";
-  default:                return "[unknown secType]";
+  default:                return _("[unknown]");
   }
 }

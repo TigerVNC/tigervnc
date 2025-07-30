@@ -25,6 +25,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/encodings.h>
@@ -81,7 +82,7 @@ void ClientParams::setDimensions(int width, int height, const ScreenSet& layout)
     layout.print(buffer, sizeof(buffer));
     vlog.debug("%s", buffer);
 
-    throw std::invalid_argument("Attempted to configure an invalid screen layout");
+    throw std::invalid_argument(_("Invalid screen layout"));
   }
 
   width_ = width;
@@ -96,7 +97,8 @@ void ClientParams::setPF(const PixelFormat& pf)
   pf_ = new PixelFormat(pf);
 
   if (pf.bpp != 8 && pf.bpp != 16 && pf.bpp != 32)
-    throw std::invalid_argument("setPF: Not 8, 16 or 32 bpp?");
+    throw std::invalid_argument(
+      core::format(_("Invalid number of bits per pixel: %d"), pf.bpp));
 }
 
 void ClientParams::setName(const char* name)
@@ -182,7 +184,8 @@ uint32_t ClientParams::clipboardSize(unsigned int format) const
       return clipSizes[i];
   }
 
-  throw std::invalid_argument(core::format("Invalid clipboard format 0x%x", format));
+  throw std::invalid_argument(
+    core::format(_("Invalid clipboard format: 0x%x"), format));
 }
 
 void ClientParams::setClipboardCaps(uint32_t flags, const uint32_t* lengths)

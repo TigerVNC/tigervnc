@@ -23,6 +23,7 @@
 
 #include <algorithm>
 
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/HexInStream.h>
@@ -47,7 +48,7 @@ bool HexInStream::fillBuffer() {
   uint8_t* optr = (uint8_t*) end;
   for (size_t i=0; i<length; i++) {
     if (!core::hexToBin((const char*)&iptr[i*2], 2, &optr[i], 1))
-      throw std::runtime_error("HexInStream: Invalid input data");
+      throw std::runtime_error(_("Input data is not hexadecimal"));
   }
 
   in_stream.setptr(length*2);

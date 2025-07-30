@@ -24,19 +24,20 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <string.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <x0vncserver/Geometry.h>
 
 static core::LogWriter vlog("Geometry");
 
 core::StringParameter Geometry::m_geometryParam("Geometry",
-  "Screen area shown to VNC clients. "
-  "Format is <width>x<height>+<offset_x>+<offset_y>, "
-  "more information in man X, section GEOMETRY SPECIFICATIONS. "
-  "If the argument is empty, full screen is shown to VNC clients.",
+  _("Screen area shown to VNC clients in the format "
+    "<width>x<height>+<offset_x>+<offset_y>, or empty to show the "
+    "whole screen"),
   "");
 
 Geometry::Geometry(int fullWidth, int fullHeight)
@@ -57,12 +58,12 @@ void Geometry::recalc(int fullWidth, int fullHeight)
     m_rect = parseString(param);
   }
   if (m_rect.is_empty()) {
-    vlog.info("Desktop geometry is invalid");
+    vlog.info(_("Specified desktop geometry is invalid"));
     return;                     // further processing does not make sense
   }
 
   // Everything went good so far.
-  vlog.info("Desktop geometry is set to %dx%d+%d+%d",
+  vlog.info(_("Desktop geometry is set to %dx%d+%d+%d"),
             width(), height(), offsetLeft(), offsetTop());
 }
 
@@ -85,14 +86,15 @@ core::Rect Geometry::parseString(const char* arg) const
       core::Rect partRect(x, y, x + w, y + h);
       result = partRect.intersect(m_rect);
       if (result.area() <= 0) {
-        vlog.error("Requested area is out of the desktop boundaries");
+        vlog.error(_("Requested area is outsize of the desktop "
+                     "boundaries"));
         result.clear();
       }
     } else {
-      vlog.error("Wrong argument format");
+      vlog.error(_("Specified desktop geometry is invalid"));
     }
   } else {
-    vlog.error("Missing argument");
+    assert(false);
   }
 
   return result;

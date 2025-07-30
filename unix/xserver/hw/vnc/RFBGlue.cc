@@ -59,18 +59,6 @@ void vncLogError(const char *name, const char *format, ...)
   va_end(ap);
 }
 
-void vncLogStatus(const char *name, const char *format, ...)
-{
-  core::LogWriter* vlog;
-  va_list ap;
-  vlog = core::LogWriter::getLogWriter(name);
-  if (vlog == nullptr)
-    return;
-  va_start(ap, format);
-  vlog->vstatus(format, ap);
-  va_end(ap);
-}
-
 void vncLogInfo(const char *name, const char *format, ...)
 {
   core::LogWriter* vlog;

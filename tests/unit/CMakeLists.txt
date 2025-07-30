@@ -45,6 +45,5 @@ target_link_libraries(unicode core GTest::gtest_main)
 gtest_discover_tests(unicode)
 
 add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
-target_include_directories(emulatemb SYSTEM PUBLIC ${Intl_INCLUDE_DIR})
-target_link_libraries(emulatemb core ${Intl_LIBRARIES} GTest::gtest_main)
+target_link_libraries(emulatemb core GTest::gtest_main)
 gtest_discover_tests(emulatemb)

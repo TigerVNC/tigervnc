@@ -23,6 +23,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb_win32/DeviceContext.h>
@@ -58,7 +59,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
   uint8_t* new_data = nullptr;
 
   if (!pf.trueColour)
-    throw std::invalid_argument("Palette format not supported");
+    throw std::invalid_argument(_("Palette format not supported"));
 
   format = pf;
 
@@ -87,7 +88,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
 
     if (!new_bitmap) {
       int err = GetLastError();
-      throw core::win32_error("Unable to create DIB section", err);
+      throw core::win32_error(_("Failed to create bitmap"), err);
     }
 
     vlog.debug("recreateBuffer()");
@@ -139,7 +140,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
     if (bytesPerRow % 4) {
       bytesPerRow += 4 - (bytesPerRow % 4);
       new_stride = (bytesPerRow * 8) / format.bpp;
-      vlog.info("Adjusting DIB stride: %d to %d", w, new_stride);
+      vlog.debug("Adjusting DIB stride: %d to %d", w, new_stride);
     }
 
     setBuffer(w, h, new_data, new_stride);
@@ -160,7 +161,7 @@ void DIBSectionBuffer::initBuffer(const PixelFormat& pf, int w, int h) {
       bits = bits >> 1;
     }
     if (depth > bpp)
-      throw std::runtime_error("Bad DIBSection format (depth exceeds bpp)");
+      throw std::runtime_error(_("Depth exceeds bits per pixel"));
 
     format = PixelFormat(bpp, depth, false, true,
                          redMax, greenMax, blueMax,

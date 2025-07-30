@@ -28,6 +28,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/UnixPasswordValidator.h>
 
@@ -35,10 +36,12 @@ using namespace rfb;
 
 static core::LogWriter vlog("UnixPasswordValidator");
 
-static core::StringParameter pamService
-  ("PAMService", "Service name for PAM password validation", "vnc");
-core::AliasParameter pam_service("pam_service", "Alias for PAMService",
-                                 &pamService);
+static core::StringParameter
+  pamService("PAMService",
+             _("Service name for PAM password validation"),
+             "vnc");
+core::AliasParameter
+  pam_service("pam_service", &pamService);
 
 std::string UnixPasswordValidator::displayName;
 

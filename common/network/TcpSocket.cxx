@@ -44,6 +44,7 @@
 #include <core/Configuration.h>
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <network/TcpSocket.h>
@@ -73,8 +74,12 @@ using namespace network;
 
 static core::LogWriter vlog("TcpSocket");
 
-static core::BoolParameter UseIPv4("UseIPv4", "Use IPv4 for incoming and outgoing connections.", true);
-static core::BoolParameter UseIPv6("UseIPv6", "Use IPv6 for incoming and outgoing connections.", true);
+static core::BoolParameter
+  UseIPv4("UseIPv4",
+          _("Use IPv4 for incoming and outgoing connections"), true);
+static core::BoolParameter
+  UseIPv6("UseIPv6",
+          _("Use IPv6 for incoming and outgoing connections"), true);
 
 /* Tunnelling support. */
 int network::findFreeTcpPort (void)
@@ -86,15 +91,15 @@ int network::findFreeTcpPort (void)
   addr.sin_addr.s_addr = INADDR_ANY;
 
   if ((sock = socket (AF_INET, SOCK_STREAM, 0)) < 0)
-    throw core::socket_error("Unable to create socket", errorNumber);
+    throw core::socket_error(_("Failed to create socket"), errorNumber);
 
   addr.sin_port = 0;
   if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) < 0)
-    throw core::socket_error("Unable to find free port", errorNumber);
+    throw core::socket_error(_("Failed to find free port"), errorNumber);
 
   socklen_t n = sizeof(addr);
   if (getsockname (sock, (struct sockaddr *)&addr, &n) < 0)
-    throw core::socket_error("Unable to get port number", errorNumber);
+    throw core::socket_error(_("Failed to get port number"), errorNumber);
 
   closesocket (sock);
   return ntohs(addr.sin_port);
@@ -132,7 +137,7 @@ void network::getHostAndPort(const char* hi, std::string* host,
     hostStart = &hi[1];
     hostEnd = strchr(hostStart, ']');
     if (hostEnd == nullptr)
-      throw std::invalid_argument("Unmatched [ in host");
+      throw std::invalid_argument(_("Unmatched [ in hostname"));
 
     portStart = hostEnd + 1;
     if (isAllSpace(portStart))
@@ -171,14 +176,14 @@ void network::getHostAndPort(const char* hi, std::string* host,
     char* end;
 
     if (portStart[0] != ':')
-      throw std::invalid_argument("Invalid port specified");
+      throw std::invalid_argument(_("Invalid port specified"));
 
     if (portStart[1] != ':')
       *port = strtol(portStart + 1, &end, 10);
     else
       *port = strtol(portStart + 2, &end, 10);
     if (*end != '\0' && ! isAllSpace(end))
-      throw std::invalid_argument("Invalid port specified");
+      throw std::invalid_argument(_("Invalid port specified"));
 
     if ((portStart[1] != ':') && (*port < 100))
       *port += basePort;
@@ -223,7 +228,8 @@ TcpSocket::TcpSocket(const char *host, int port)
   hints.ai_next = nullptr;
 
   if ((result = getaddrinfo(host, nullptr, &hints, &ai)) != 0) {
-    throw core::getaddrinfo_error("Unable to resolve host by name", result);
+    throw core::getaddrinfo_error(_("Failed get address for hostname"),
+                                  result);
   }
 
   sock = -1;
@@ -264,7 +270,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     if (sock == -1) {
       err = errorNumber;
       freeaddrinfo(ai);
-      throw core::socket_error("Unable to create socket", err);
+      throw core::socket_error(_("Failed to create socket"), err);
     }
 
   /* Attempt to connect to the remote host */
@@ -289,9 +295,10 @@ TcpSocket::TcpSocket(const char *host, int port)
 
   if (sock == -1) {
     if (err == 0)
-      throw std::runtime_error("No useful address for host");
+      throw std::runtime_error(
+        _("No useful address found for hostname"));
     else
-      throw core::socket_error("Unable to connect to socket", err);
+      throw core::socket_error(_("Failed to connect to host"), err);
   }
 
   // Take proper ownership of the socket
@@ -306,8 +313,8 @@ const char* TcpSocket::getPeerAddress() {
   socklen_t sa_size = sizeof(sa);
 
   if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
-    vlog.error("Unable to get peer name for socket");
-    return "(N/A)";
+    vlog.error(_("Failed to get peer name for socket"));
+    return _("(N/A)");
   }
 
   if (sa.u.sa.sa_family == AF_INET6) {
@@ -320,8 +327,8 @@ const char* TcpSocket::getPeerAddress() {
                       buffer + 1, sizeof(buffer) - 2, nullptr, 0,
                       NI_NUMERICHOST);
     if (ret != 0) {
-      vlog.error("Unable to convert peer name to a string");
-      return "(N/A)";
+      vlog.error(_("Failed to convert peer name to a string"));
+      return _("(N/A)");
     }
 
     strcat(buffer, "]");
@@ -334,15 +341,15 @@ const char* TcpSocket::getPeerAddress() {
 
     name = inet_ntoa(sa.u.sin.sin_addr);
     if (name == nullptr) {
-      vlog.error("Unable to convert peer name to a string");
-      return "(N/A)";
+      vlog.error(_("Failed to convert peer name to a string"));
+      return _("(N/A)");
     }
 
     return name;
   }
 
-  vlog.error("Unknown address family for socket");
-  return "";
+  vlog.error(_("Unknown address family"));
+  return _("(N/A)");
 }
 
 const char* TcpSocket::getPeerEndpoint() {
@@ -370,7 +377,7 @@ bool TcpSocket::enableNagles(bool enable) {
   if (setsockopt(getFd(), IPPROTO_TCP, TCP_NODELAY,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
-    vlog.error("Unable to setsockopt TCP_NODELAY: %d", e);
+    vlog.error(_("Failed to set TCP_NODELAY: %d"), e);
     return false;
   }
   return true;
@@ -388,7 +395,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   int sock;
 
   if ((sock = socket (listenaddr->sa_family, SOCK_STREAM, 0)) < 0)
-    throw core::socket_error("Unable to create listening socket", errorNumber);
+    throw core::socket_error(_("Failed to create socket"), errorNumber);
 
   memcpy (&sa, listenaddr, listenaddrlen);
 #ifdef IPV6_V6ONLY
@@ -396,7 +403,7 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
     if (setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&one, sizeof(one))) {
       int e = errorNumber;
       closesocket(sock);
-      throw core::socket_error("Unable to set IPV6_V6ONLY", e);
+      throw core::socket_error(_("Failed to set IPV6_V6ONLY"), e);
     }
   }
 #endif /* defined(IPV6_V6ONLY) */
@@ -414,14 +421,14 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     closesocket(sock);
-    throw core::socket_error("Unable to create listening socket", e);
+    throw core::socket_error(_("Failed to set SO_REUSEADDR"), e);
   }
 #endif
 
   if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
     int e = errorNumber;
     closesocket(sock);
-    throw core::socket_error("Failed to bind socket", e);
+    throw core::socket_error(_("Failed to set socket address"), e);
   }
 
   listen(sock);
@@ -532,7 +539,8 @@ void network::createTcpListeners(std::list<SocketListener*> *listeners,
   snprintf (service, sizeof (service) - 1, "%d", port);
   service[sizeof (service) - 1] = '\0';
   if ((result = getaddrinfo(addr, service, &hints, &ai)) != 0)
-    throw core::getaddrinfo_error("Unable to resolve listening address", result);
+    throw core::getaddrinfo_error(
+      _("Failed to get address for hostname"), result);
 
   try {
     createTcpListeners(listeners, ai);
@@ -696,7 +704,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
   parts = core::split(&p[1], '/');
   if (parts.size() > 2)
-    throw std::invalid_argument("Invalid filter specified");
+    throw std::invalid_argument(_("Invalid filter specified"));
 
   if (parts.empty() || parts[0].empty()) {
     // Match any address
@@ -719,7 +727,8 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     }
 
     if ((result = getaddrinfo (parts[0].c_str(), nullptr, &hints, &ai)) != 0) {
-      throw core::getaddrinfo_error("Unable to resolve host by name", result);
+      throw core::getaddrinfo_error(
+        _("Failed to get address for hostname"), result);
     }
 
     memcpy (&pattern.address.u.sa, ai->ai_addr, ai->ai_addrlen);
@@ -730,8 +739,9 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     if (parts.size() > 1) {
       if (family == AF_INET &&
           (parts[1].find('.') != std::string::npos)) {
-        throw std::invalid_argument("Mask no longer supported for "
-                                    "filter, use prefix instead");
+        throw std::invalid_argument(
+          _("A mask is no longer supported for filters, use a prefix "
+            "instead"));
       }
 
       pattern.prefixlen = (unsigned int) atoi(parts[1].c_str());
@@ -744,7 +754,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
         pattern.prefixlen = 128;
         break;
       default:
-        throw std::runtime_error("Unknown address family");
+        throw std::runtime_error(_("Unknown address family"));
       }
     }
   }
@@ -753,7 +763,7 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
   if (pattern.prefixlen > (family == AF_INET ? 32: 128))
     throw std::invalid_argument(
-      core::format("Invalid prefix length for filter address: %u",
+      core::format(_("Invalid prefix length for filter: %u"),
                    pattern.prefixlen));
 
   // Compute mask from address and prefix length

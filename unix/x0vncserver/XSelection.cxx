@@ -20,17 +20,24 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <x0vncserver/XSelection.h>
 
 core::BoolParameter
   setPrimary("SetPrimary",
-             "Set the PRIMARY as well as the CLIPBOARD selection",
+             // TRANSLATORS: This refers to the two different X11
+             //              clipboards
+             _("Set the primary selection as well as the clipboard "
+               "selection"),
              true);
 core::BoolParameter
   sendPrimary("SendPrimary",
-              "Send the PRIMARY as well as the CLIPBOARD selection",
+              // TRANSLATORS: This refers to the two different X11
+              //              clipboards
+              _("Send the primary selection to the client as well as "
+                "the clipboard selection"),
               true);
 
 static core::LogWriter vlog("XSelection");
@@ -73,12 +80,12 @@ void XSelection::handleClientClipboardData(const char* data)
   Time time = getXServerTime();
   ownSelection(xaCLIPBOARD, time);
   if (!selectionOwner(xaCLIPBOARD))
-    vlog.error("Unable to own CLIPBOARD selection");
+    vlog.error(_("Could not set CLIPBOARD selection"));
 
   if (setPrimary) {
     ownSelection(XA_PRIMARY, time);
     if (!selectionOwner(XA_PRIMARY))
-      vlog.error("Unable to own PRIMARY selection");
+      vlog.error(_("Could not set PRIMARY selection"));
   }
 
   if (selectionOwner(xaCLIPBOARD) || selectionOwner(XA_PRIMARY))

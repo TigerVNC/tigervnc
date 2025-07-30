@@ -145,13 +145,13 @@ namespace core {
 
     VoidParameter* _next;
     bool immutable;
-    const char* name;
-    const char* description;
+    std::string name;
+    std::string description;
   };
 
   class AliasParameter : public VoidParameter {
   public:
-    AliasParameter(const char* name_, const char* desc_,VoidParameter* param_);
+    AliasParameter(const char* name_, VoidParameter* param_);
     bool setParam(const char* value) override;
     bool setParam() override;
     std::string getDefaultStr() const override;

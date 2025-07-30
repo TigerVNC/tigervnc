@@ -29,11 +29,10 @@
 #include <stdlib.h>
 #include <stdexcept>
 
-#include "i18n.h"
-
 #include <FL/Fl.H>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include "MonitorIndicesParameter.h"
 

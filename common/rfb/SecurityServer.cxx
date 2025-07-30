@@ -23,6 +23,9 @@
 
 #include <stdexcept>
 
+#include <core/i18n.h>
+#include <core/string.h>
+
 #include <rfb/Security.h>
 #include <rfb/SecurityServer.h>
 
@@ -42,14 +45,17 @@ using namespace rfb;
 
 core::EnumListParameter SecurityServer::secTypes
 ("SecurityTypes",
- "Specify which security scheme to use (None, VncAuth, Plain"
+ core::format(
+  "%s (%s)",
+  _("Specify which security scheme to use"),
+  "None, VncAuth, Plain"
 #ifdef HAVE_GNUTLS
- ", TLSNone, TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain"
+   ", TLSNone, TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain"
 #endif
 #ifdef HAVE_NETTLE
- ", RA2, RA2ne, RA2_256, RA2ne_256"
+   ", RA2, RA2ne, RA2_256, RA2ne_256"
 #endif
- ")",
+   ).c_str(),
  { "None", "VncAuth", "Plain",
 #ifdef HAVE_GNUTLS
  "TLSNone", "TLSVnc", "TLSPlain", "X509None", "X509Vnc", "X509Plain",
@@ -101,6 +107,6 @@ SSecurity* SecurityServer::GetSSecurity(SConnection* sc, uint32_t secType)
   }
 
 bail:
-  throw std::invalid_argument("Security type not supported");
+  throw std::invalid_argument(_("Security type is not supported"));
 }
 

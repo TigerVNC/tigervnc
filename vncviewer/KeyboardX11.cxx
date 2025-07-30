@@ -29,10 +29,10 @@
 #include <FL/x.H>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/ledStates.h>
 
-#include "i18n.h"
 #include "KeyboardX11.h"
 
 extern const struct _code_map_xkb_to_qnum {
@@ -260,7 +260,7 @@ void KeyboardX11::setLEDState(unsigned state)
 
   ret = XkbLockModifiers(fl_display, XkbUseCoreKbd, affect, values);
   if (!ret)
-    vlog.error(_("Failed to update keyboard LED state"));
+    vlog.error(_("Failed to update keyboard LED state: %d"), ret);
 }
 
 unsigned KeyboardX11::getModifierMask(uint32_t keysym)

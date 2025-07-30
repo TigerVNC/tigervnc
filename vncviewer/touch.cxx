@@ -37,8 +37,8 @@
 #include <FL/x.H>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
-#include "i18n.h"
 #include "vncviewer.h"
 #include "BaseTouchHandler.h"
 #if defined(WIN32)

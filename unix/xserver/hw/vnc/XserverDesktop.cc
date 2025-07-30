@@ -39,6 +39,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -65,13 +66,15 @@ static core::LogWriter vlog("XserverDesktop");
 
 core::BoolParameter
   rawKeyboard("RawKeyboard",
-              "Send keyboard events straight through and avoid mapping "
-              "them to the current keyboard layout", false);
+              _("Send keyboard events straight through and avoid "
+                "mapping them to the current keyboard layout"),
+              false);
 core::IntParameter
   queryConnectTimeout("QueryConnectTimeout",
-                      "Number of seconds to show the 'Accept "
-                      "connection' dialog before rejecting the "
-                      "connection", 10, 0, INT_MAX);
+                      _("Number of seconds to show the 'Accept "
+                        "connection' dialog before rejecting the "
+                        "connection"),
+                      10, 0, INT_MAX);
 
 
 XserverDesktop::XserverDesktop(int screenIndex_,
@@ -172,19 +175,23 @@ void XserverDesktop::queryConnection(network::Socket* sock,
   int count;
 
   if (queryConnectTimer.isStarted()) {
-    server->approveConnection(sock, false, "Another connection is currently being queried.");
+    server->approveConnection(sock, false,
+                              _("Another connection is currently being "
+                                "queried."));
     return;
   }
 
   count = vncNotifyQueryConnect();
   if (count == 0) {
-    server->approveConnection(sock, false, "Unable to query the local user to accept the connection.");
+    server->approveConnection(sock, false,
+                              _("Unable to query the local user to "
+                                "accept the connection."));
     return;
   }
 
   queryConnectAddress = sock->getPeerAddress();
   if (!userName)
-    userName = "(anonymous)";
+    userName = _("(anonymous)");
   queryConnectUsername = userName;
   queryConnectId = (uint32_t)(intptr_t)sock;
   queryConnectSocket = sock;
@@ -314,7 +321,7 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
     if (handleSocketEvent(fd, server, read, write))
       return;
 
-    vlog.error("Cannot find file descriptor for socket event");
+    vlog.error(_("Cannot find file descriptor for socket event"));
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::handleSocketEvent: %s",e.what());
   }
@@ -442,7 +449,7 @@ void XserverDesktop::addClient(network::Socket* sock,
 void XserverDesktop::disconnectClients()
 {
   vlog.debug("Disconnecting all clients");
-  return server->closeClients("Disconnection from server end");
+  return server->closeClients(_("User requested disconnection"));
 }
 
 
@@ -569,7 +576,7 @@ void XserverDesktop::handleTimeout(core::Timer* t)
 {
   if (t == &queryConnectTimer) {
     server->approveConnection(queryConnectSocket, false,
-                              "The attempt to prompt the user to "
-                              "accept the connection failed");
+                              _("The attempt to prompt the user to "
+                                "accept the connection failed"));
   }
 }
