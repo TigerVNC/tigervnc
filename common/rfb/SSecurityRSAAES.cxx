@@ -40,6 +40,7 @@
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/i18n.h>
+#include <core/string.h>
 
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
@@ -182,7 +183,9 @@ void SSecurityRSAAES::loadPrivateKey()
 {
   FILE* file = fopen(keyFile, "rb");
   if (!file)
-    throw core::posix_error(_("Failed to open RSA key"), errno);
+    throw core::posix_error(
+      core::format(_("Failed to open \"%s\""), (const char*)keyFile),
+      errno);
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
   if (size == 0 || size > MaxKeyFileSize) {
@@ -193,7 +196,10 @@ void SSecurityRSAAES::loadPrivateKey()
   std::vector<uint8_t> data(size);
   if (fread(data.data(), 1, data.size(), file) != size) {
     fclose(file);
-    throw core::posix_error(_("Failed to read RSA key"), errno);
+    throw core::posix_error(
+      core::format(_("Failed reading from \"%s\""),
+                   (const char*)keyFile),
+      errno);
   }
   fclose(file);
 

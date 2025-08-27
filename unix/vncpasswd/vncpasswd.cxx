@@ -261,22 +261,25 @@ int main(int argc, char** argv)
 
     FILE* fp = fopen(fname,"w");
     if (!fp) {
-      fprintf(stderr, _("Couldn't open %s for writing: %s\n"),
+      fprintf(stderr, _("Failed to open \"%s\": %s"),
               fname, strerror(errno));
+      fprintf(stderr, "\n");
       exit(1);
     }
     chmod(fname, S_IRUSR|S_IWUSR);
 
     if (fwrite(obfuscated.data(), obfuscated.size(), 1, fp) != 1) {
-      fprintf(stderr, _("Writing to %s failed: %s\n"),
+      fprintf(stderr, _("Failed writing to \"%s\": %s"),
               fname, strerror(errno));
+      fprintf(stderr, "\n");
       exit(1);
     }
 
     if (!obfuscatedReadOnly.empty()) {
       if (fwrite(obfuscatedReadOnly.data(), obfuscatedReadOnly.size(), 1, fp) != 1) {
-        fprintf(stderr, _("Writing to %s failed: %s\n"),
+        fprintf(stderr, _("Failed writing to \"%s\": %s"),
                 fname, strerror(errno));
+        fprintf(stderr, "\n");
         exit(1);
       }
     }

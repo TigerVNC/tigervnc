@@ -759,7 +759,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   FILE* f = fopen(filepath, "w+");
   if (!f)
     throw core::posix_error(
-      core::format(_("Could not open \"%s\""), filepath), errno);
+      core::format(_("Failed to open \"%s\""), filepath), errno);
 
   fprintf(f, "%s\n", IDENTIFIER_STRING);
   fprintf(f, "\n");
@@ -839,7 +839,7 @@ char* loadViewerParameters(const char *filename) {
     if (!filename)
       return nullptr; // Use defaults.
     throw core::posix_error(
-      core::format(_("Could not open \"%s\""), filepath), errno);
+      core::format(_("Failed to open \"%s\""), filepath), errno);
   }
 
   int lineNr = 0;

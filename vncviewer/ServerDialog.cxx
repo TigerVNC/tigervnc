@@ -361,7 +361,7 @@ void ServerDialog::loadServerHistory()
       return;
     }
     throw core::posix_error(
-      core::format(_("Could not open \"%s\""), filepath), errno);
+      core::format(_("Failed to open \"%s\""), filepath), errno);
   }
 
   int lineNr = 0;
@@ -438,7 +438,7 @@ void ServerDialog::saveServerHistory()
   /* Write server history to file */
   FILE* f = fopen(filepath, "w+");
   if (!f) {
-    std::string msg = core::format(_("Could not open \"%s\""), filepath);
+    std::string msg = core::format(_("Failed to open \"%s\""), filepath);
     throw core::posix_error(msg.c_str(), errno);
   }
 

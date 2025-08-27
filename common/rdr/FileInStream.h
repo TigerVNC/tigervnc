@@ -22,6 +22,8 @@
 
 #include <stdio.h>
 
+#include <string>
+
 #include <rdr/BufferedInStream.h>
 
 namespace rdr {
@@ -38,6 +40,7 @@ namespace rdr {
 
   private:
     FILE *file;
+    std::string fileName;
   };
 
 } // end of namespace rdr

@@ -141,7 +141,8 @@ void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string
 
       FILE* fp = fopen(fname, "r");
       if (!fp) {
-        vlog.error(_("Opening password file '%s' failed"), fname);
+        vlog.error(_("Failed to open \"%s\": %s"), fname,
+                   strerror(errno));
         return;
       }
 
