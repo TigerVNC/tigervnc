@@ -372,7 +372,9 @@ void CConn::getUserPasswd(bool secure, std::string *user,
 
     fp = fopen(passwordFileName, "rb");
     if (!fp)
-      throw core::posix_error(_("Opening password file failed"), errno);
+      throw core::posix_error(
+        core::format(_("Failed to open \"%s\""), passwordFileName),
+        errno);
 
     obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
     fclose(fp);

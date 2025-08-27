@@ -758,8 +758,7 @@ bool RemoteDesktop::storeRestoreToken(const char* newToken)
 
   f = fopen(filepath, "w");
   if (!f) {
-    vlog.error(_("Failed to save restore store token to \"%s\": %s"),
-               filepath, strerror(errno));
+    vlog.error(_("Failed to open \"%s\": %s"), filepath, strerror(errno));
     return false;
   }
 
