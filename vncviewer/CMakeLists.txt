@@ -4,6 +4,9 @@ endif()
 
 add_executable(vncviewer
   fltk/Fl_Monitor_Arrangement.cxx
+  fltk/Fl_Suggestion_Item_.cxx
+  fltk/Fl_Suggestion_Window_.cxx
+  fltk/Fl_Suggestion_Input.cxx
   fltk/Fl_Navigation.cxx
   fltk/event_dispatch_handler.cxx
   fltk/theme.cxx
