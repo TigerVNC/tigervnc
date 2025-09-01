@@ -307,6 +307,7 @@ bool rfb::win32::registerService(const char* name,
                                  const char* display,
                                  const char* desc,
                                  int argc, char** argv) {
+  int i;
 
   // - Initialise the default service parameters
   const char* defaultcmdline;
@@ -314,13 +315,6 @@ bool rfb::win32::registerService(const char* name,
 
   // - Get the full pathname of our executable
   ModuleFileName buffer;
-
-  // - Calculate the command-line length
-  int cmdline_len = strlen(buffer.buf) + 4;
-  int i;
-  for (i=0; i<argc; i++) {
-    cmdline_len += strlen(argv[i]) + 3;
-  }
 
   // - Add the supplied extra parameters to the command line
   std::string cmdline;

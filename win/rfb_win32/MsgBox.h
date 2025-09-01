@@ -47,8 +47,6 @@ namespace rfb {
       else if (tflags == MB_ICONASTERISK)
         msgType = "Information";
       flags |= MB_TOPMOST | MB_SETFOREGROUND;
-      int len = strlen(AppName) + 1;
-      if (msgType) len += strlen(msgType) + 3;
       std::string title = AppName;
       if (msgType) {
         title += " : ";

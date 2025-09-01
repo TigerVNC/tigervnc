@@ -114,13 +114,8 @@ void VNCServerWin32::processAddressChange() {
   else
     addrs.push_front("Not accepting connections");
 
-  // Allocate space for the new tip
-  std::list<std::string>::iterator i, next_i;
-  int length = strlen(prefix)+1;
-  for (i=addrs.begin(); i!= addrs.end(); i++)
-    length += i->size() + 1;
-
   // Build the new tip
+  std::list<std::string>::iterator i, next_i;
   std::string toolTip(prefix);
   for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
     next_i = i; next_i ++;
