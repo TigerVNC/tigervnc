@@ -37,7 +37,7 @@ namespace core {
 
 namespace winvnc {
 
-  class ListConnInfo;
+  struct ListConnInfo;
   class STrayIconThread;
 
   class VNCServerWin32 : rfb::win32::QueryConnectionHandler,
