@@ -118,7 +118,7 @@ error:
 
 class WMHooksThread {
 public:
-  WMHooksThread() : active(true), thread(WMHooksThread::worker, this),
+  WMHooksThread() : active(true), thread(&WMHooksThread::worker, this),
                     thread_id(-1) { }
   void stop();
   DWORD getThreadId() { return thread_id; }
