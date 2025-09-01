@@ -110,7 +110,7 @@ static void processParams(int argc, char** argv) {
 
       if (strcasecmp(argv[i], "-connect") == 0) {
         runServer = false;
-        const char *host = NULL;
+        const char *host = nullptr;
         if (i+1 < argc) {
           host = argv[i+1];
           i++;
