@@ -23,6 +23,7 @@ BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  freetype-devel, libjpeg-turbo-devel, pam-devel
 BuildRequires:  gnutls-devel, nettle-devel, gmp-devel
 BuildRequires:  zlib-devel
+BuildRequires:  libuuid-devel, glib2-devel, pipewire-devel
 # X11/graphics dependencies
 BuildRequires: xorg-x11-server-source
 BuildRequires: libXext-devel, libX11-devel, libXi-devel, libXfixes-devel
@@ -145,6 +146,7 @@ export CXXFLAGS="$CFLAGS -std=c++11"
   -DENABLE_NETTLE=ON \
   -DENABLE_SELINUX=ON \
   -DENABLE_SYSTEMD=ON \
+  -DENABLE_WAYLAND=ON \
   -DBUILD_VIEWER=ON
 
 %cmake_build
@@ -222,10 +224,12 @@ fi
 %config(noreplace) %{_sysconfdir}/tigervnc/vncserver.users
 %{_unitdir}/vncserver@.service
 %{_bindir}/x0vncserver
+%{_bindir}/w0vncserver
 %{_sbindir}/vncsession
 %{_libexecdir}/vncserver
 %{_libexecdir}/vncsession-start
 %{_mandir}/man1/x0vncserver.1*
+%{_mandir}/man1/w0vncserver.1*
 %{_mandir}/man8/vncserver.8*
 %{_mandir}/man8/vncsession.8*
 %doc %{_docdir}/%{name}/HOWTO.md

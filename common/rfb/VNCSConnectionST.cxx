@@ -206,7 +206,8 @@ void VNCSConnectionST::flushSocket()
 void VNCSConnectionST::pixelBufferChange()
 {
   try {
-    if (!authenticated()) return;
+    if (state() != RFBSTATE_NORMAL)
+      return;
     if (client.width() && client.height() &&
         (server->getPixelBuffer()->width() != client.width() ||
          server->getPixelBuffer()->height() != client.height()))
@@ -340,6 +341,16 @@ void VNCSConnectionST::sendClipboardDataOrClose(const char* data)
   }
 }
 
+void VNCSConnectionST::desktopReadyOrClose()
+{
+  try {
+    if (state() != RFBSTATE_CLIENT_READY) return;
+    desktopReady();
+  } catch(std::exception& e) {
+    close(e.what());
+  }
+}
+
 bool VNCSConnectionST::getComparerState()
 {
   // We interpret a low compression level as an indication that the client
@@ -401,6 +412,30 @@ bool VNCSConnectionST::needRenderedCursor()
   return false;
 }
 
+void VNCSConnectionST::desktopReady()
+{
+  if (state() != RFBSTATE_CLIENT_READY)
+    return;
+
+  // - Set the connection parameters appropriately
+  client.setDimensions(server->getPixelBuffer()->width(),
+                       server->getPixelBuffer()->height(),
+                       server->getScreenLayout());
+  client.setName(server->getName());
+  client.setLEDState(server->getLEDState());
+  
+  // - Set the default pixel format
+  client.setPF(server->getPixelBuffer()->getPF());
+  char buffer[256];
+  client.pf().print(buffer, 256);
+  vlog.info("Server default pixel format %s", buffer);
+
+  // - Mark the entire display as "dirty"
+  updates.add_changed(server->getPixelBuffer()->getRect());
+
+  SConnection::desktopReady();
+}
+
 
 void VNCSConnectionST::approveConnectionOrClose(bool accept,
                                                 const char* reason)
@@ -420,22 +455,6 @@ void VNCSConnectionST::authSuccess()
 {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
-
-  // - Set the connection parameters appropriately
-  client.setDimensions(server->getPixelBuffer()->width(),
-                       server->getPixelBuffer()->height(),
-                       server->getScreenLayout());
-  client.setName(server->getName());
-  client.setLEDState(server->getLEDState());
-  
-  // - Set the default pixel format
-  client.setPF(server->getPixelBuffer()->getPF());
-  char buffer[256];
-  client.pf().print(buffer, 256);
-  vlog.info("Server default pixel format %s", buffer);
-
-  // - Mark the entire display as "dirty"
-  updates.add_changed(server->getPixelBuffer()->getRect());
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -443,15 +462,18 @@ void VNCSConnectionST::queryConnection(const char* userName)
   server->queryConnection(this, userName);
 }
 
-void VNCSConnectionST::clientInit(bool shared)
+void VNCSConnectionST::clientReady(bool shared)
 {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
+
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
   if (!accessCheck(AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
-  SConnection::clientInit(shared);
   server->clientReady(this, shared);
+
+  if (server->isDesktopReady())
+    desktopReady();
 }
 
 void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
@@ -1107,14 +1129,11 @@ void VNCSConnectionST::writeLosslessRefresh()
 
 void VNCSConnectionST::screenLayoutChange(uint16_t reason)
 {
-  if (!authenticated())
+  if (state() != RFBSTATE_NORMAL)
     return;
 
   client.setDimensions(client.width(), client.height(),
                        server->getScreenLayout());
-
-  if (state() != RFBSTATE_NORMAL)
-    return;
 
   writer()->writeDesktopSize(reason);
 }

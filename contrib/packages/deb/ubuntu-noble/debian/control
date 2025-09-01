@@ -29,6 +29,9 @@ Build-Depends:
  xorg-server-source,
  xserver-xorg-dev,
  openjdk-8-jdk,
+ uuid-dev,
+ libglib2.0-dev,
+ libpipewire-0.3-dev,
 # Xorg dependencies
 # debhelper-compat (= 12),
  quilt,

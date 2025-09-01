@@ -82,6 +82,7 @@ namespace rfb {
     void requestClipboardOrClose();
     void announceClipboardOrClose(bool available);
     void sendClipboardDataOrClose(const char* data);
+    void desktopReadyOrClose();
 
     // The following methods never throw exceptions
 
@@ -122,7 +123,7 @@ namespace rfb {
     // These methods are invoked as callbacks from processMsg(
     void authSuccess() override;
     void queryConnection(const char* userName) override;
-    void clientInit(bool shared) override;
+    void clientReady(bool shared) override;
     void setPixelFormat(const PixelFormat& pf) override;
     void pointerEvent(const core::Point& pos,
                       uint16_t buttonMask) override;
@@ -168,6 +169,7 @@ namespace rfb {
     void setCursorPos();
     void setDesktopName(const char *name);
     void setLEDState(unsigned int state);
+    void desktopReady() override;
 
   private:
     network::Socket* sock;
