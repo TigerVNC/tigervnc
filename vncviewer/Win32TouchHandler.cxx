@@ -34,9 +34,6 @@
 
 static core::LogWriter vlog("Win32TouchHandler");
 
-static const DWORD MOUSEMOVE_FLAGS = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE |
-                                     MOUSEEVENTF_VIRTUALDESK;
-
 static const unsigned SINGLE_PAN_THRESHOLD = 50;
 
 Win32TouchHandler::Win32TouchHandler(HWND hWnd_) :
