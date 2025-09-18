@@ -63,6 +63,19 @@ public class DesktopWindow extends JFrame
     scroll = new JScrollPane(new Viewport(w, h, serverPF, cc));
     viewport = (Viewport)scroll.getViewport().getView();
     scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+    if (disableArrowScroll.getValue()) {
+      InputMap im = scroll.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+      if (im != null) {
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), "none");
+      }
+    }
     getContentPane().add(scroll);
 
     setName(name);

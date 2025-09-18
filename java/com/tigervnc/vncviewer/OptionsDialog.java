@@ -135,6 +135,7 @@ class OptionsDialog extends Dialog {
   JCheckBox viewOnlyCheckbox;
   JCheckBox acceptClipboardCheckbox;
   JCheckBox sendClipboardCheckbox;
+  JCheckBox disableArrowScrollCheckbox;
   JComboBox menuKeyChoice;
 
   /* Screen */
@@ -417,6 +418,7 @@ class OptionsDialog extends Dialog {
     viewOnlyCheckbox.setSelected(viewOnly.getValue());
     acceptClipboardCheckbox.setSelected(acceptClipboard.getValue());
     sendClipboardCheckbox.setSelected(sendClipboard.getValue());
+    disableArrowScrollCheckbox.setSelected(disableArrowScroll.getValue());
 
     menuKeyChoice.setSelectedIndex(0);
 
@@ -592,6 +594,7 @@ class OptionsDialog extends Dialog {
     viewOnly.setParam(viewOnlyCheckbox.isSelected());
     acceptClipboard.setParam(acceptClipboardCheckbox.isSelected());
     sendClipboard.setParam(sendClipboardCheckbox.isSelected());
+    disableArrowScroll.setParam(disableArrowScrollCheckbox.isSelected());
 
     String menuKeyStr =
       MenuKey.getMenuKeySymbols()[menuKeyChoice.getSelectedIndex()].name;
@@ -1006,6 +1009,7 @@ class OptionsDialog extends Dialog {
     viewOnlyCheckbox = new JCheckBox("View only (ignore mouse and keyboard)");
     acceptClipboardCheckbox = new JCheckBox("Accept clipboard from server");
     sendClipboardCheckbox = new JCheckBox("Send clipboard to server");
+    disableArrowScrollCheckbox = new JCheckBox("Disable arrow-key scrolling when scrollbars visible");
     JLabel menuKeyLabel = new JLabel("Menu key");
     String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()];
     //menuKeys[0] = "None";
@@ -1034,15 +1038,22 @@ class OptionsDialog extends Dialog {
                                           LINE_START, NONE,
                                           new Insets(0, 0, 4, 0),
                                           NONE, NONE));
-    inputPanel.add(menuKeyLabel,
+    inputPanel.add(disableArrowScrollCheckbox,
                    new GridBagConstraints(0, 3,
+                                          REMAINDER, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, 0, 4, 0),
+                                          NONE, NONE));
+    inputPanel.add(menuKeyLabel,
+                   new GridBagConstraints(0, 4,
                                           1, 1,
                                           LIGHT, LIGHT,
                                           LINE_START, NONE,
                                           new Insets(0, 0, 0, 0),
                                           NONE, NONE));
     inputPanel.add(menuKeyChoice,
-                   new GridBagConstraints(1, 3,
+                   new GridBagConstraints(1, 4,
                                           1, 1,
                                           HEAVY, LIGHT,
                                           LINE_START, NONE,
