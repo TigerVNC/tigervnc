@@ -613,7 +613,7 @@ class OptionsDialog extends Dialog {
 
     String scaleStr =
       ((String)scalingFactorInput.getSelectedItem()).replace("%", "");
-    scaleStr.replace("Fixed Aspect Ratio", "FixedRatio");
+    scaleStr = scaleStr.replace("Fixed Aspect Ratio", "FixedRatio");
     scalingFactor.setParam(scaleStr);
 
     /* Misc. */
