@@ -39,9 +39,10 @@ const wl_seat_listener Seat::listener = {
   .name = [](void*, wl_seat*, const char*) {},
 };
 
-Seat::Seat(Display* display_)
+Seat::Seat(Display* display_, std::function<void(unsigned int)> setLEDstate_)
   : Object(display_, "wl_seat", &wl_seat_interface),
-    seat(nullptr), display(display_), keyboard(nullptr)
+    seat(nullptr), display(display_), keyboard(nullptr),
+    setLEDstate(setLEDstate_)
 {
   seat = (wl_seat*)boundObject;
 
@@ -62,6 +63,6 @@ void Seat::seatCapabilities(uint32_t capabilities)
   if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
     vlog.debug("Keyboard detected");
     delete keyboard;
-    keyboard = new Keyboard(display, this);
+    keyboard = new Keyboard(display, this, setLEDstate);
   }
 }

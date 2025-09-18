@@ -40,7 +40,8 @@ static core::LogWriter vlog("WaylandVirtualKeyboard");
 
 VirtualKeyboard::VirtualKeyboard(Display* display, Seat* seat_)
   : Object(display, "zwp_virtual_keyboard_manager_v1",
-           &zwp_virtual_keyboard_manager_v1_interface), seat(seat_)
+           &zwp_virtual_keyboard_manager_v1_interface),
+    manager(nullptr), keyboard(nullptr), seat(seat_)
 {
   if (!seat->getKeyboard()->getSize()) {
     fatal_error("Keyboard keymap is not set");
@@ -70,13 +71,23 @@ VirtualKeyboard::~VirtualKeyboard()
     zwp_virtual_keyboard_v1_destroy(keyboard);
 }
 
+unsigned int VirtualKeyboard::getLEDState()
+{
+  return seat->getKeyboard()->getLEDState();
+}
+
 void VirtualKeyboard::key(uint32_t keysym,
                           uint32_t /* xtcode */, bool down)
 {
   timespec ts;
   uint32_t time;
+  bool updated;
   int keyCode;
   Keyboard* wKeyboard;
+  uint32_t modsDepressed;
+  uint32_t modsLatched;
+  uint32_t modsLocked;
+  uint32_t group;
 
   wKeyboard = seat->getKeyboard();
 
@@ -98,4 +109,11 @@ void VirtualKeyboard::key(uint32_t keysym,
     zwp_virtual_keyboard_v1_key(keyboard, time, keyCode - 8, down);
   else
     zwp_virtual_keyboard_v1_key(keyboard, time, keyCode, down);
+
+  updated = wKeyboard->updateState(keyCode, down, &modsDepressed,
+                                   &modsLatched, &modsLocked, &group);
+  if (updated) {
+    zwp_virtual_keyboard_v1_modifiers(keyboard, modsDepressed,
+                                      modsLatched, modsLocked, group);
+  }
 }

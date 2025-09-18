@@ -19,6 +19,8 @@
 #ifndef __WAYLAND_SEAT_H__
 #define __WAYLAND_SEAT_H__
 
+#include <functional>
+
 #include "Object.h"
 
 struct wl_seat;
@@ -30,7 +32,7 @@ namespace wayland {
 
   class Seat : public Object {
   public:
-    Seat(Display* display);
+    Seat(Display* display, std::function<void(unsigned int)> setLEDstate);
     ~Seat();
 
     wl_seat* getSeat() const { return seat; }
@@ -44,6 +46,7 @@ namespace wayland {
     Display* display;
     Keyboard* keyboard;
     static const wl_seat_listener listener;
+    std::function<void(unsigned int)> setLEDstate;
   };
 };
 

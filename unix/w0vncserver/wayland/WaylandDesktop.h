@@ -57,6 +57,9 @@ public:
   // Check if necessary wayland protocols are available
   static bool available();
 
+private:
+  void setLEDState(unsigned int state);
+
 protected:
   rfb::VNCServer* server;
 

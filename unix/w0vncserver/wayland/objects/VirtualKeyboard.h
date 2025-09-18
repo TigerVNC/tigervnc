@@ -35,6 +35,8 @@ namespace wayland {
     VirtualKeyboard(Display* display, Seat* seat);
     ~VirtualKeyboard();
 
+    unsigned int getLEDState();
+
     void key(uint32_t keysym, uint32_t keycode, bool down);
 
   private:

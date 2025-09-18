@@ -27,6 +27,7 @@
 #include <wayland-client-protocol.h>
 
 #include <core/LogWriter.h>
+#include <rfb/ledStates.h>
 
 #include "../../w0vncserver.h"
 #include "Display.h"
@@ -64,9 +65,11 @@ struct XkbContext {
   xkb_keymap* keymap;
 };
 
-Keyboard::Keyboard(Display* display, Seat* seat)
+Keyboard::Keyboard(Display* display, Seat* seat,
+                   std::function<void(unsigned int)> setLEDstate_)
   : keyboardFormat(0), keyboardFd(0), keyboardSize(0),
-    keyboard(nullptr), keyMap(nullptr), context(new XkbContext())
+    keyboard(nullptr), keyMap(nullptr), context(new XkbContext()),
+    setLEDstate(setLEDstate_)
 {
   xkb_context* ctx;
 
@@ -96,6 +99,27 @@ Keyboard::~Keyboard()
     xkb_keymap_unref(context->keymap);
     delete context;
   }
+}
+
+bool Keyboard::updateState(uint32_t keycode, bool down,
+                           uint32_t* modsDepressed,
+                           uint32_t* modsLatched, uint32_t* modsLocked,
+                           uint32_t* group)
+{
+  xkb_state_component changed;
+
+  changed = xkb_state_update_key(context->state, keycode,
+                                 down ? XKB_KEY_DOWN : XKB_KEY_UP);
+
+  *modsDepressed = xkb_state_serialize_mods(context->state, XKB_STATE_MODS_DEPRESSED);
+  *modsLatched = xkb_state_serialize_mods(context->state, XKB_STATE_MODS_LATCHED);
+  *modsLocked = xkb_state_serialize_mods(context->state, XKB_STATE_MODS_LOCKED);
+  *group = xkb_state_serialize_mods(context->state, XKB_STATE_LAYOUT_EFFECTIVE);
+
+  if (changed)
+    setLEDstate(getLEDState());
+
+  return changed != 0;
 }
 
 void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
@@ -182,10 +206,30 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
 }
 
 void Keyboard::handleModifiers(uint32_t /* serial */,
-                               uint32_t /* modsDepressed */,
-                               uint32_t /* modsLatched */,
-                               uint32_t /* modsLocked */,
-                               uint32_t /* group */)
+                               uint32_t modsDepressed,
+                               uint32_t modsLatched,
+                               uint32_t modsLocked, uint32_t group)
 {
-  // FIXME: handle modifiers
+  xkb_state_component changed;
+  // FIXME: What do we set the latched/locked layouts to?
+  changed = xkb_state_update_mask(context->state, modsDepressed, modsLatched,
+                        modsLocked, group, 0, 0);
+
+  if (changed & XKB_STATE_LEDS)
+    setLEDstate(getLEDState());
+}
+
+unsigned int Keyboard::getLEDState()
+{
+  unsigned int ledState;
+
+  ledState = 0;
+  if (xkb_state_led_name_is_active(context->state, XKB_LED_NAME_SCROLL))
+    ledState |= rfb::ledScrollLock;
+  if (xkb_state_led_name_is_active(context->state, XKB_LED_NAME_NUM))
+    ledState |= rfb::ledNumLock;
+  if (xkb_state_led_name_is_active(context->state, XKB_LED_NAME_CAPS))
+    ledState |= rfb::ledCapsLock;
+
+  return ledState;
 }
