@@ -56,7 +56,8 @@ class Viewport extends JPanel implements ActionListener {
 
   enum ID { EXIT, FULLSCREEN, MINIMIZE, RESIZE, NEWVIEWER,
             CTRL, ALT, MENUKEY, CTRLALTDEL, CLIPBOARD,
-            REFRESH, OPTIONS, INFO, ABOUT, DISMISS }
+            REFRESH, OPTIONS, INFO, ABOUT, DISMISS,
+            ZOOM_IN, ZOOM_OUT, ZOOM_RESET, ZOOM_TO_FIT }
 
   enum MENU { INACTIVE, TOGGLE, VALUE, RADIO,
               INVISIBLE, SUBMENU_POINTER, SUBMENU, DIVIDER }
@@ -650,6 +651,15 @@ class Viewport extends JPanel implements ActionListener {
     menu_add(contextMenu, "About TigerVNC...", KeyEvent.VK_T,
              this, ID.ABOUT, EnumSet.of(MENU.DIVIDER));
 
+    menu_add(contextMenu, "Zoom in", KeyEvent.VK_EQUALS,
+             this, ID.ZOOM_IN, EnumSet.noneOf(MENU.class));
+    menu_add(contextMenu, "Zoom out", KeyEvent.VK_MINUS,
+             this, ID.ZOOM_OUT, EnumSet.noneOf(MENU.class));
+    menu_add(contextMenu, "Reset zoom", KeyEvent.VK_0,
+             this, ID.ZOOM_RESET, EnumSet.noneOf(MENU.class));
+    menu_add(contextMenu, "Zoom to fit (fixed aspect)", KeyEvent.VK_F,
+             this, ID.ZOOM_TO_FIT, EnumSet.of(MENU.DIVIDER));
+
     menu_add(contextMenu, "Dismiss menu", KeyEvent.VK_M,
              this, ID.DISMISS, EnumSet.noneOf(MENU.class));
   }
@@ -767,6 +777,18 @@ class Viewport extends JPanel implements ActionListener {
       break;
     case ABOUT:
       VncViewer.about_vncviewer(cc.desktop);
+      break;
+    case ZOOM_IN:
+      if (!remoteResize.getValue()) window().adjustRelativeScalePercent(5);
+      break;
+    case ZOOM_OUT:
+      if (!remoteResize.getValue()) window().adjustRelativeScalePercent(-5);
+      break;
+    case ZOOM_RESET:
+      if (!remoteResize.getValue()) window().resetZoomToDefault();
+      break;
+    case ZOOM_TO_FIT:
+      if (!remoteResize.getValue()) window().setZoomToFit();
       break;
     case DISMISS:
       break;

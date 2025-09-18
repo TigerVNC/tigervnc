@@ -625,6 +625,52 @@ public class DesktopWindow extends JFrame
     }
   }
 
+  // Compute current effective scale from the viewport ratio
+  public int getCurrentScalePercent()
+  {
+    return (int)Math.round(viewport.scaleRatioX * 100.0f);
+  }
+
+  public void setNumericScalePercent(int percent)
+  {
+    if (remoteResize.getValue())
+      return;
+
+    int clamped = Math.max(1, percent);
+    scalingFactor.setParam(Integer.toString(clamped));
+    handleOptions();
+  }
+
+  public void adjustRelativeScalePercent(int deltaPercent)
+  {
+    if (remoteResize.getValue())
+      return;
+
+    String scaleString = scalingFactor.getValue();
+    int current;
+    if (scaleString.matches("^[0-9]+$")) {
+      current = Integer.parseInt(scaleString);
+    } else {
+      current = getCurrentScalePercent();
+    }
+    setNumericScalePercent(current + deltaPercent);
+  }
+
+  public void resetZoomToDefault()
+  {
+    if (remoteResize.getValue())
+      return;
+    setNumericScalePercent(100);
+  }
+
+  public void setZoomToFit()
+  {
+    if (remoteResize.getValue())
+      return;
+    scalingFactor.setParam("FixedRatio");
+    handleOptions();
+  }
+
   public void handleFullscreenTimeout()
   {
     DesktopWindow self = (DesktopWindow)this;
