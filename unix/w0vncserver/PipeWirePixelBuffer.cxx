@@ -122,8 +122,13 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
                    rect.tl.y, rect.width(), rect.height());
   commitBufferRW(rect);
 
-  if (!ret)
-    imageRect(pipewirePixelFormat, rect, srcBuffer, srcStride);
+  if (!ret) {
+    uint8_t* damagedBuffer;
+
+    damagedBuffer = &srcBuffer[(pipewirePixelFormat.bpp / 8) *
+                               (rect.tl.y * srcStride + rect.tl.x)];
+    imageRect(pipewirePixelFormat, rect, damagedBuffer, srcStride);
+  }
 
   server->add_changed(rect);
   accumulatedDamage.clear();
