@@ -92,9 +92,9 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
   int dstStride;
   uint8_t* srcBuffer;
   spa_chunk* chunk;
-  uint8_t* dstBuffer;
   pixman_bool_t ret;
-  core::Rect rect;
+  core::Region region;
+  std::vector<core::Rect> rects;
   spa_meta_header* header;
   bool frameDropped;
 
@@ -119,31 +119,35 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
   frameDropped = (header->seq != lastSequence + 1);
   lastSequence = header->seq;
 
-  rect = frameDropped ? getRect() : accumulatedDamage.get_bounding_rect();
+  region = frameDropped ? getRect() : accumulatedDamage;
 
   // Clamp damage outside of framebuffer
-  if (!rect.enclosed_by(getRect()))
-    rect = rect.intersect(getRect());
+  region = region.intersect(getRect());
 
   srcBuffer = (uint8_t*)buffer->datas[0].data;
   srcStride = chunk->stride / (pipewirePixelFormat.bpp / 8);
-  dstBuffer = getBufferRW(getRect(), &dstStride);
 
-  ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
-                   srcStride, dstStride, pipewirePixelFormat.bpp,
-                   getPF().bpp, rect.tl.x, rect.tl.y, rect.tl.x,
-                   rect.tl.y, rect.width(), rect.height());
-  commitBufferRW(rect);
+  region.get_rects(&rects);
+  for (core::Rect &rect : rects) {
+    uint8_t* dstBuffer;
 
-  if (!ret) {
-    uint8_t* damagedBuffer;
+    dstBuffer = getBufferRW(getRect(), &dstStride);
+    ret = pixman_blt((uint32_t*)srcBuffer, (uint32_t*)dstBuffer,
+                     srcStride, dstStride, pipewirePixelFormat.bpp,
+                     getPF().bpp, rect.tl.x, rect.tl.y, rect.tl.x,
+                     rect.tl.y, rect.width(), rect.height());
+    commitBufferRW(rect);
 
-    damagedBuffer = &srcBuffer[(pipewirePixelFormat.bpp / 8) *
-                               (rect.tl.y * srcStride + rect.tl.x)];
-    imageRect(pipewirePixelFormat, rect, damagedBuffer, srcStride);
+    if (!ret) {
+      uint8_t* damagedBuffer;
+
+      damagedBuffer = &srcBuffer[(pipewirePixelFormat.bpp / 8) *
+                                (rect.tl.y * srcStride + rect.tl.x)];
+      imageRect(pipewirePixelFormat, rect, damagedBuffer, srcStride);
+    }
   }
 
-  server->add_changed(rect);
+  server->add_changed(region);
   accumulatedDamage.clear();
 }
 
