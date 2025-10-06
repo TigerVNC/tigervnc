@@ -33,7 +33,7 @@
 #include "w0vncserver.h"
 #include "portals/RemoteDesktop.h"
 #include "portals/PortalProxy.h"
-#include "PipeWirePixelBuffer.h"
+#include "pipewire/PipeWirePixelBuffer.h"
 #include "PortalDesktop.h"
 
 static core::LogWriter vlog("PortalDesktop");

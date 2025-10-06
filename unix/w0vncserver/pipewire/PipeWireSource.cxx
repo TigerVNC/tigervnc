@@ -29,8 +29,8 @@
 
 #include <core/LogWriter.h>
 
+#include "../w0vncserver.h"
 #include "PipeWireSource.h"
-#include "w0vncserver.h"
 
 static core::LogWriter vlog("PipewireSource");
 

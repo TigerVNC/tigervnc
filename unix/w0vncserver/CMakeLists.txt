@@ -8,9 +8,9 @@ add_executable(w0vncserver
   portals/RemoteDesktop.cxx
   w0vncserver.cxx
   GSocketSource.cxx
-  PipeWirePixelBuffer.cxx
-  PipeWireSource.cxx
-  PipeWireStream.cxx
+  pipewire/PipeWirePixelBuffer.cxx
+  pipewire/PipeWireSource.cxx
+  pipewire/PipeWireStream.cxx
   PortalDesktop.cxx
   RFBTimerSource.cxx
 )
