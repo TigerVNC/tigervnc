@@ -34,4 +34,9 @@ static const int DEV_KEYBOARD =    (1 << 0);
 static const int DEV_POINTER =     (1 << 1);
 static const int DEV_TOUCHSCREEN = (1 << 2);
 
+// Persist modes
+static const int DO_NOT_PERSIST = 0;
+static const int PERSIST_WHILE_RUNNING = 1;
+static const int PERSIST_UNTIL_REVOKED = 2;
+
 #endif // __PORTAL_CONSTANTS_H__
