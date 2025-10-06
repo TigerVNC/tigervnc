@@ -6,12 +6,12 @@ add_executable(w0vncserver
   portals/portalConstants.h
   portals/PortalProxy.cxx
   portals/RemoteDesktop.cxx
-  w0vncserver.cxx
-  GSocketSource.cxx
+  portals/PortalDesktop.cxx
   pipewire/PipeWirePixelBuffer.cxx
   pipewire/PipeWireSource.cxx
   pipewire/PipeWireStream.cxx
-  PortalDesktop.cxx
+  w0vncserver.cxx
+  GSocketSource.cxx
   RFBTimerSource.cxx
 )
 

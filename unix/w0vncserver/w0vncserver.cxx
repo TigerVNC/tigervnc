@@ -37,7 +37,7 @@
 
 #include "GSocketSource.h"
 #include "RFBTimerSource.h"
-#include "PortalDesktop.h"
+#include "portals/PortalDesktop.h"
 
 static core::LogWriter vlog("main");
 
