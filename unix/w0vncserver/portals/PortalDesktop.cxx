@@ -109,13 +109,13 @@ unsigned int PortalDesktop::setScreenLayout(int /* fb_width */,
 
 void PortalDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
-  remoteDesktop->keyEvent(keysym, keycode, down);
+  remoteDesktop->notifyKeyboardKeysym(keysym, keycode, down);
 }
 
 void PortalDesktop::pointerEvent(const core::Point& pos,
                             uint16_t buttonMask)
 {
-  remoteDesktop->pointerEvent(pos.x, pos.y, buttonMask);
+  remoteDesktop->notifyPointerMotionAbsolute(pos.x, pos.y, buttonMask);
 }
 
 bool PortalDesktop::available()

@@ -96,8 +96,9 @@ RemoteDesktop::~RemoteDesktop()
   delete remoteDesktop;
 }
 
-void RemoteDesktop::keyEvent(uint32_t keysym, uint32_t /* keycode */,
-                             bool down)
+void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym,
+                                         uint32_t /* keycode */,
+                                         bool down)
 {
   GVariantBuilder optionsBuilder;
   GVariant* params;
@@ -116,7 +117,8 @@ void RemoteDesktop::keyEvent(uint32_t keysym, uint32_t /* keycode */,
   remoteDesktop->call("NotifyKeyboardKeysym", params);
 }
 
-void RemoteDesktop::pointerEvent(int x, int y, uint16_t buttonMask)
+void RemoteDesktop::notifyPointerMotionAbsolute(int x, int y,
+                                                uint16_t buttonMask)
 {
   GVariantBuilder optionsBuilder;
   GVariant* params;
@@ -137,15 +139,15 @@ void RemoteDesktop::pointerEvent(int x, int y, uint16_t buttonMask)
   for (int32_t i = 0; i < BUTTONS; i++) {
     if ((buttonMask ^ oldButtonMask) & (1 << i)) {
       if (i > 2 && i < 7)
-        handleScrollWheel(i);
+        notifyPointerAxisDiscrete(i);
       else
-        handleButton(i, buttonMask & (1 << i));
+        notifyPointerButton(i, buttonMask & (1 << i));
     }
   }
   oldButtonMask = buttonMask;
 }
 
-void RemoteDesktop::handleButton(int32_t button, bool down)
+void RemoteDesktop::notifyPointerButton(int32_t button, bool down)
 {
   GVariantBuilder optionsBuilder;
   GVariant* params;
@@ -162,7 +164,7 @@ void RemoteDesktop::handleButton(int32_t button, bool down)
   remoteDesktop->call("NotifyPointerButton", params);
 }
 
-void RemoteDesktop::handleScrollWheel(int32_t button)
+void RemoteDesktop::notifyPointerAxisDiscrete(int32_t button)
 {
   GVariantBuilder optionsBuilder;
   GVariant* params;
