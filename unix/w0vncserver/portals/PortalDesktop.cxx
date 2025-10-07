@@ -30,10 +30,10 @@
 #include <rfb/VNCServerST.h>
 #include <core/LogWriter.h>
 
-#include "w0vncserver.h"
-#include "portals/RemoteDesktop.h"
-#include "portals/PortalProxy.h"
-#include "PipeWirePixelBuffer.h"
+#include "../w0vncserver.h"
+#include "RemoteDesktop.h"
+#include "PortalProxy.h"
+#include "../pipewire/PipeWirePixelBuffer.h"
 #include "PortalDesktop.h"
 
 static core::LogWriter vlog("PortalDesktop");

@@ -29,9 +29,9 @@
 #include <core/string.h>
 #include <rfb/PixelFormat.h>
 
+#include "../w0vncserver.h"
 #include "PipeWireSource.h"
 #include "PipeWireStream.h"
-#include "w0vncserver.h"
 
 static core::LogWriter vlog("PipeWireStream");
 

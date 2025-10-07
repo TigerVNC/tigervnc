@@ -37,7 +37,8 @@
 
 #include "GSocketSource.h"
 #include "RFBTimerSource.h"
-#include "PortalDesktop.h"
+#include "portals/PortalDesktop.h"
+#include "wayland/WaylandDesktop.h"
 
 static core::LogWriter vlog("main");
 
@@ -234,6 +235,8 @@ int main(int argc, char** argv)
   try {
     if (PortalDesktop::available()) {
       desktop = new PortalDesktop();
+    } else if (WaylandDesktop::available()) {
+      desktop = new WaylandDesktop(loop);
     } else {
       fprintf(stderr, "No remote desktop implementation found.\n");
       return -1;
