@@ -21,7 +21,6 @@
 #endif
 
 #include <assert.h>
-#include <pwd.h>
 
 #include <glib.h>
 #include <glib-unix.h>
@@ -35,32 +34,13 @@
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 
+#include "parameters.h"
 #include "GSocketSource.h"
 #include "RFBTimerSource.h"
 #include "portals/PortalDesktop.h"
 #include "wayland/WaylandDesktop.h"
 
 static core::LogWriter vlog("main");
-
-static const char* defaultDesktopName();
-
-core::IntParameter
-  rfbport("rfbport",
-          "TCP port to listen for RFB protocol", 5900, -1, 65535);
-core::StringParameter
-  rfbunixpath("rfbunixpath",
-              "Unix socket to listen for RFB protocol", "");
-core::IntParameter
-  rfbunixmode("rfbunixmode",
-              "Unix socket access mode", 0600, 0000, 0777);
-core::BoolParameter
-  localhostOnly("localhost",
-                "Only allow connections from localhost", false);
-core::StringParameter
-  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
-core::StringParameter
-  interface("interface",
-            "Listen on the specified network address", "all");
 
 char* programName;
 static GMainLoop* loop = nullptr;
@@ -86,31 +66,6 @@ void fatal_error(const char *error, ...) {
 
   assert(loop);
   g_main_loop_quit(loop);
-}
-
-static const char* defaultDesktopName()
-{
-  long host_max = sysconf(_SC_HOST_NAME_MAX);
-  if (host_max < 0)
-    return "";
-
-  std::vector<char> hostname(host_max + 1);
-  if (gethostname(hostname.data(), hostname.size()) == -1)
-    return "";
-
-  struct passwd* pwent = getpwuid(getuid());
-  if (pwent == nullptr)
-    return "";
-
-  int len = snprintf(nullptr, 0, "%s@%s", pwent->pw_name, hostname.data());
-  if (len < 0)
-    return "";
-
-  char* name = new char[len + 1];
-
-  snprintf(name, len + 1, "%s@%s", pwent->pw_name, hostname.data());
-
-  return name;
 }
 
 static void printVersion(FILE *fp)
