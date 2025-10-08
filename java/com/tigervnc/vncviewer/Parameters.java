@@ -145,6 +145,11 @@ public class Parameters {
     "Send clipboard changes to the server",
     true);
 
+  public static BoolParameter disableArrowScroll
+  = new BoolParameter("DisableArrowScroll",
+    "Disable arrow-key scrolling of the viewer when scrollbars are visible",
+    false);
+
   public static IntParameter maxCutText
   = new IntParameter("MaxCutText",
     "Maximum permitted length of an outgoing clipboard update",
@@ -311,6 +316,7 @@ public class Parameters {
     shared,
     acceptClipboard,
     sendClipboard,
+    disableArrowScroll,
     menuKey,
     noLionFS,
     sendLocalUsername,

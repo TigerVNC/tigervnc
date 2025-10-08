@@ -63,6 +63,19 @@ public class DesktopWindow extends JFrame
     scroll = new JScrollPane(new Viewport(w, h, serverPF, cc));
     viewport = (Viewport)scroll.getViewport().getView();
     scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+    if (disableArrowScroll.getValue()) {
+      InputMap im = scroll.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+      if (im != null) {
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), "none");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), "none");
+      }
+    }
     getContentPane().add(scroll);
 
     setName(name);
@@ -610,6 +623,52 @@ public class DesktopWindow extends JFrame
       toFront();
       requestFocus();
     }
+  }
+
+  // Compute current effective scale from the viewport ratio
+  public int getCurrentScalePercent()
+  {
+    return (int)Math.round(viewport.scaleRatioX * 100.0f);
+  }
+
+  public void setNumericScalePercent(int percent)
+  {
+    if (remoteResize.getValue())
+      return;
+
+    int clamped = Math.max(1, percent);
+    scalingFactor.setParam(Integer.toString(clamped));
+    handleOptions();
+  }
+
+  public void adjustRelativeScalePercent(int deltaPercent)
+  {
+    if (remoteResize.getValue())
+      return;
+
+    String scaleString = scalingFactor.getValue();
+    int current;
+    if (scaleString.matches("^[0-9]+$")) {
+      current = Integer.parseInt(scaleString);
+    } else {
+      current = getCurrentScalePercent();
+    }
+    setNumericScalePercent(current + deltaPercent);
+  }
+
+  public void resetZoomToDefault()
+  {
+    if (remoteResize.getValue())
+      return;
+    setNumericScalePercent(100);
+  }
+
+  public void setZoomToFit()
+  {
+    if (remoteResize.getValue())
+      return;
+    scalingFactor.setParam("FixedRatio");
+    handleOptions();
   }
 
   public void handleFullscreenTimeout()
