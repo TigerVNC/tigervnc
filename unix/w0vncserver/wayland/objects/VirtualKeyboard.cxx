@@ -29,6 +29,7 @@
 #include <rfb/KeysymStr.h>
 
 #include "../../w0vncserver.h"
+#include "../../parameters.h"
 #include "Display.h"
 #include "Seat.h"
 #include "Keyboard.h"
@@ -76,8 +77,7 @@ unsigned int VirtualKeyboard::getLEDState()
   return seat->getKeyboard()->getLEDState();
 }
 
-void VirtualKeyboard::key(uint32_t keysym,
-                          uint32_t /* xtcode */, bool down)
+void VirtualKeyboard::key(uint32_t keysym, uint32_t xtcode, bool down)
 {
   timespec ts;
   uint32_t time;
@@ -91,11 +91,15 @@ void VirtualKeyboard::key(uint32_t keysym,
 
   wKeyboard = seat->getKeyboard();
 
-  keyCode = wKeyboard->keysymToKeycode(keysym);
-  if ((unsigned int)keyCode == XKB_KEYCODE_INVALID) {
-    vlog.debug("Unable to map keysym XK_%s (0x%04x), ignoring key press",
-               KeySymName(keysym), keysym);
-    return;
+  if (!rawKeyboard) {
+    keyCode = wKeyboard->keysymToKeycode(keysym);
+    if ((unsigned int)keyCode == XKB_KEYCODE_INVALID) {
+      vlog.debug("Unable to map keysym XK_%s (0x%04x), ignoring key press",
+                 KeySymName(keysym), keysym);
+      return;
+    }
+  } else {
+    keyCode = xtcode;
   }
 
   clock_gettime(CLOCK_MONOTONIC, &ts);

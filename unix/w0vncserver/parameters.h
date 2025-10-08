@@ -27,5 +27,6 @@ extern core::IntParameter rfbunixmode;
 extern core::BoolParameter localhostOnly;
 extern core::StringParameter desktopName;
 extern core::StringParameter interface;
+extern core::BoolParameter rawKeyboard;
 
 #endif // __W0VNCSERVER_PARAMETERS_H__

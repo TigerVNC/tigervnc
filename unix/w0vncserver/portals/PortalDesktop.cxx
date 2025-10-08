@@ -31,10 +31,14 @@
 #include <core/LogWriter.h>
 
 #include "../w0vncserver.h"
+#include "../parameters.h"
 #include "RemoteDesktop.h"
 #include "PortalProxy.h"
 #include "../pipewire/PipeWirePixelBuffer.h"
 #include "PortalDesktop.h"
+
+extern const unsigned short code_map_qnum_to_xorgevdev[];
+extern const unsigned int code_map_qnum_to_xorgevdev_len;
 
 static core::LogWriter vlog("PortalDesktop");
 
@@ -107,9 +111,19 @@ unsigned int PortalDesktop::setScreenLayout(int /* fb_width */,
   return rfb::resultProhibited;
 }
 
-void PortalDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
+void PortalDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down)
 {
-  remoteDesktop->notifyKeyboardKeysym(keysym, keycode, down);
+  if (rawKeyboard) {
+    if (xtcode >= code_map_qnum_to_xorgevdev_len) {
+      vlog.error("Could not map key event to evdev key code");
+      return;
+    }
+
+    xtcode = code_map_qnum_to_xorgevdev[xtcode];
+    remoteDesktop->notifyKeyboardKeycode(xtcode, down);
+  } else {
+    remoteDesktop->notifyKeyboardKeysym(keysym, down);
+  }
 }
 
 void PortalDesktop::pointerEvent(const core::Point& pos,

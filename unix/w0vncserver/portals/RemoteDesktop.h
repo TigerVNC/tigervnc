@@ -39,7 +39,9 @@ public:
   // Methods called from SDesktop
 
   // keyEvent
-  void notifyKeyboardKeysym(uint32_t keysym, uint32_t keycode, bool down);
+  void notifyKeyboardKeysym(uint32_t keysym, bool down);
+  // keyEvent using rawKeyboard
+  void notifyKeyboardKeycode(uint32_t xtcode, bool down);
   // pointerEvent
   void notifyPointerMotionAbsolute(int32_t x, int32_t y, uint16_t buttonMask);
 
