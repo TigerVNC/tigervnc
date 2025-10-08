@@ -189,6 +189,13 @@ Prompts the user of the desktop to explicitly accept or reject incoming
 connections. Default is off.
 .
 .TP
+.B \-RawKeyboard
+Send keyboard events straight through and avoid mapping them to the current
+keyboard layout. This effectively makes the keyboard behave according to the
+layout configured on the server instead of the layout configured on the
+client. Default is off.
+.
+.TP
 .B \-RemapKeys \fImapping
 Sets up a keyboard mapping.
 .I mapping

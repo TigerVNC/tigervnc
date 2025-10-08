@@ -41,6 +41,12 @@ core::StringParameter
   interface("interface",
             "Listen on the specified network address", "all");
 
+core::BoolParameter
+  rawKeyboard("RawKeyboard",
+              "Send keyboard events straight through and avoid mapping "
+              "them to the current keyboard layout", false);
+
+
 static const char* defaultDesktopName()
 {
   long host_max = sysconf(_SC_HOST_NAME_MAX);

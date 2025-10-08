@@ -96,9 +96,7 @@ RemoteDesktop::~RemoteDesktop()
   delete remoteDesktop;
 }
 
-void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym,
-                                         uint32_t /* keycode */,
-                                         bool down)
+void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym, bool down)
 {
   GVariantBuilder optionsBuilder;
   GVariant* params;
@@ -107,14 +105,36 @@ void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym,
   if (!(selectedDevices & DEV_KEYBOARD))
     return;
 
-  // FIXME: Make use of keycodes?
-
   state = down ? 1 : 0;
 
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
   params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
                          &optionsBuilder, keysym, state);
   remoteDesktop->call("NotifyKeyboardKeysym", params);
+}
+
+void RemoteDesktop::notifyKeyboardKeycode(uint32_t keycode, bool down)
+{
+  GVariantBuilder optionsBuilder;
+  GVariant* params;
+  uint32_t state;
+
+  if (!(selectedDevices & DEV_KEYBOARD))
+    return;
+
+  state = down ? 1 : 0;
+
+  // FIXME: We should probably verify that xkv_v1 is used, but it seems
+  // like most compositors (mutter/kwin etc.) use xkb_v1.
+  // The Wayland documentation states that:
+  //   "clients must add 8 to the key event keycode"
+  // when format xkb_v1 is used. Subtract 8 to get the correct keycode.
+  keycode -= 8;
+
+  g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
+  params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
+                         &optionsBuilder, keycode, state);
+  remoteDesktop->call("NotifyKeyboardKeycode", params);
 }
 
 void RemoteDesktop::notifyPointerMotionAbsolute(int x, int y,
