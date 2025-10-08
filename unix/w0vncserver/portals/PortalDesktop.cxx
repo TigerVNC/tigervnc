@@ -31,6 +31,7 @@
 #include <core/LogWriter.h>
 
 #include "../w0vncserver.h"
+#include "../parameters.h"
 #include "RemoteDesktop.h"
 #include "PortalProxy.h"
 #include "../pipewire/PipeWirePixelBuffer.h"
@@ -107,9 +108,12 @@ unsigned int PortalDesktop::setScreenLayout(int /* fb_width */,
   return rfb::resultProhibited;
 }
 
-void PortalDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
+void PortalDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down)
 {
-  remoteDesktop->notifyKeyboardKeysym(keysym, keycode, down);
+  if (rawKeyboard)
+    remoteDesktop->notifyKeyboardKeycode(xtcode, down);
+  else
+    remoteDesktop->notifyKeyboardKeysym(keysym, down);
 }
 
 void PortalDesktop::pointerEvent(const core::Point& pos,

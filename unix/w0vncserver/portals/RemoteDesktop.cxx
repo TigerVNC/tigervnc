@@ -96,9 +96,7 @@ RemoteDesktop::~RemoteDesktop()
   delete remoteDesktop;
 }
 
-void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym,
-                                         uint32_t /* keycode */,
-                                         bool down)
+void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym, bool down)
 {
   GVariantBuilder optionsBuilder;
   GVariant* params;
@@ -107,14 +105,29 @@ void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym,
   if (!(selectedDevices & DEV_KEYBOARD))
     return;
 
-  // FIXME: Make use of keycodes?
-
   state = down ? 1 : 0;
 
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
   params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
                          &optionsBuilder, keysym, state);
   remoteDesktop->call("NotifyKeyboardKeysym", params);
+}
+
+void RemoteDesktop::notifyKeyboardKeycode(uint32_t xtcode, bool down)
+{
+  GVariantBuilder optionsBuilder;
+  GVariant* params;
+  uint32_t state;
+
+  if (!(selectedDevices & DEV_KEYBOARD))
+    return;
+
+  state = down ? 1 : 0;
+
+  g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
+  params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
+                         &optionsBuilder, xtcode, state);
+  remoteDesktop->call("NotifyKeyboardKeycode", params);
 }
 
 void RemoteDesktop::notifyPointerMotionAbsolute(int x, int y,
