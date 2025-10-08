@@ -24,6 +24,7 @@ add_executable(w0vncserver
   wayland/WaylandDesktop.cxx
   wayland/WaylandPixelBuffer.cxx
   w0vncserver.cxx
+  parameters.cxx
   GSocketSource.cxx
   RFBTimerSource.cxx
 )
