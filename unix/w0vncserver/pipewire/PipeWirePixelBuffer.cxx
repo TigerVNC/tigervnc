@@ -189,7 +189,6 @@ void PipeWirePixelBuffer::processCursor(spa_buffer* buffer)
 void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
 {
   spa_meta* damage;
-  core::Region damagedRegion;
   spa_meta_region* metaRegion;
 
   damage = spa_buffer_find_meta(buffer, SPA_META_VideoDamage);
@@ -198,14 +197,15 @@ void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
     return;
 
   spa_meta_for_each(metaRegion, damage) {
+    if (!spa_meta_region_is_valid(metaRegion))
+      continue;
+
     core::Point tl{metaRegion->region.position.x,
                    metaRegion->region.position.y};
     core::Point br{static_cast<int>(tl.x + metaRegion->region.size.width),
                    static_cast<int>(tl.y + metaRegion->region.size.height)};
-    damagedRegion.assign_union({{tl, br}});
+    accumulatedDamage.assign_union({{tl, br}});
   }
-
-  accumulatedDamage.assign_union(damagedRegion);
 }
 
 bool PipeWirePixelBuffer::hasCursorData(spa_buffer* buffer)
