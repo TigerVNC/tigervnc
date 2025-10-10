@@ -56,5 +56,6 @@ private:
   rfb::PixelFormat pipewirePixelFormat;
   core::Region accumulatedDamage;
   PipeWireCursor* cursor;
+  uint64_t lastSequence;
 };
 #endif // __PIPEWIRE_PIXEL_BUFFER_H__
