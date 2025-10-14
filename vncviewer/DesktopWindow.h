@@ -92,6 +92,7 @@ private:
   void addOverlay(const char *text);
   static void updateOverlay(void *data);
 
+  static int dispatch_helper(int event, Fl_Window *w, void *data);
   static int fltkDispatch(int event, Fl_Window *win);
   static int fltkHandle(int event);
 
