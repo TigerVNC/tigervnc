@@ -46,6 +46,7 @@
 #include "Surface.h"
 #include "Viewport.h"
 #include "touch.h"
+#include "fltk/event_dispatch_handler.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Image_Surface.H>
@@ -123,7 +124,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   instances.insert(this);
 
   // Hack. See below...
-  Fl::event_dispatch(fltkDispatch);
+  fl_add_event_dispatch(fltkDispatch, this);
 
   // Support for -geometry option. Note that although we do support
   // negative coordinates, we do not support -XOFF-YOFF (ie
@@ -284,7 +285,7 @@ DesktopWindow::~DesktopWindow()
   if (instances.size() == 0)
     Fl::remove_handler(fltkHandle);
 
-  Fl::event_dispatch(Fl::handle_);
+  fl_remove_event_dispatch(fltkDispatch, this);
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -990,10 +991,8 @@ int DesktopWindow::handle(int event)
 }
 
 
-int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
+int DesktopWindow::fltkDispatch(int event, Fl_Window *win, void *)
 {
-  int ret;
-
   // FLTK keeps spamming bogus FL_MOVE events if _any_ X event is
   // received with the mouse pointer outside our windows
   // https://github.com/fltk/fltk/issues/76
@@ -1010,8 +1009,6 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
       return 0;
   }
 #endif
-
-  ret = Fl::handle_(event, win);
 
   DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
 
@@ -1051,7 +1048,7 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
     }
   }
 
-  return ret;
+  return 0;
 }
 
 int DesktopWindow::fltkHandle(int event)
