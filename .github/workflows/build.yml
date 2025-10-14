@@ -190,6 +190,7 @@ jobs:
         target:
           - rocky8
           - rocky9
+          - rocky10
           - jammy
           - noble
       fail-fast: false
