@@ -55,7 +55,8 @@ static core::LogWriter vlog("PipewirePixelBuffer");
 PipeWirePixelBuffer::PipeWirePixelBuffer(int32_t pipewireFd,
                                          uint32_t pipewireId,
                                          rfb::VNCServer* server_)
-  : PipeWireStream(pipewireFd, pipewireId), server(server_)
+  : PipeWireStream(pipewireFd, pipewireId), server(server_),
+    lastSequence(0)
 {
   cursor = new PipeWireCursor();
 }
@@ -94,6 +95,8 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
   uint8_t* dstBuffer;
   pixman_bool_t ret;
   core::Rect rect;
+  spa_meta_header* header;
+  bool frameDropped;
 
   chunk = buffer->datas[0].chunk;
 
@@ -106,7 +109,17 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
     return;
   }
 
-  rect = accumulatedDamage.get_bounding_rect();
+  header = (spa_meta_header*)spa_buffer_find_meta_data(buffer,
+                                                       SPA_META_Header,
+                                                       sizeof(*header));
+
+  // Detect dropped frames. We can't rely on the damage events we've
+  // gotten and have to mark the entire frame as damaged
+  // https://bugs.kde.org/show_bug.cgi?id=510561
+  frameDropped = (header->seq != lastSequence + 1);
+  lastSequence = header->seq;
+
+  rect = frameDropped ? getRect() : accumulatedDamage.get_bounding_rect();
 
   // Clamp damage outside of framebuffer
   if (!rect.enclosed_by(getRect()))
@@ -176,7 +189,6 @@ void PipeWirePixelBuffer::processCursor(spa_buffer* buffer)
 void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
 {
   spa_meta* damage;
-  core::Region damagedRegion;
   spa_meta_region* metaRegion;
 
   damage = spa_buffer_find_meta(buffer, SPA_META_VideoDamage);
@@ -185,14 +197,15 @@ void PipeWirePixelBuffer::processDamage(spa_buffer* buffer)
     return;
 
   spa_meta_for_each(metaRegion, damage) {
+    if (!spa_meta_region_is_valid(metaRegion))
+      continue;
+
     core::Point tl{metaRegion->region.position.x,
                    metaRegion->region.position.y};
     core::Point br{static_cast<int>(tl.x + metaRegion->region.size.width),
                    static_cast<int>(tl.y + metaRegion->region.size.height)};
-    damagedRegion.assign_union({{tl, br}});
+    accumulatedDamage.assign_union({{tl, br}});
   }
-
-  accumulatedDamage.assign_union(damagedRegion);
 }
 
 bool PipeWirePixelBuffer::hasCursorData(spa_buffer* buffer)
