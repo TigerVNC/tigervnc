@@ -1,4 +1,4 @@
-FROM rockylinux:8
+FROM rockylinux/rockylinux:8
 
 RUN dnf -y group install 'Development Tools'
 RUN dnf -y install sudo
