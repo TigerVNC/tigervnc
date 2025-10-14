@@ -106,7 +106,7 @@ var
 function InitializeSetup: Boolean;
 begin
   GetWindowsVersionEx(OSVersion);
-  MsgBox('TigerVNC Windows server is currently unmaintained and may not function correctly.', mbError, MB_OK);
+  SuppressibleMsgBox('TigerVNC Windows server is currently unmaintained and may not function correctly.', mbError, MB_OK, IDOK);
   Result := True;
 end;
 
