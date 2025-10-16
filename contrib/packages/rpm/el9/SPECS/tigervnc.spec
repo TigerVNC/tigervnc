@@ -66,8 +66,9 @@ Requires:       xorg-x11-xinit
 The VNC system allows you to access the same desktop from a wide
 variety of platforms.  This package includes set of utilities
 which make usage of TigerVNC server more user friendly. It also
-contains x0vncserver program which can export your active
-X session.
+contains the x0vncserver program which can export your active
+X session, and the w0vncserver program which can export your active
+Wayland session.
 
 %package server-minimal
 Summary:        A minimal installation of TigerVNC server
