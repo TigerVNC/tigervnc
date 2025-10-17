@@ -23,6 +23,8 @@
 #include <string>
 #include <list>
 
+#include "fltk/Fl_Suggestion_Input.h"
+
 class Fl_Widget;
 class Fl_Input_Choice;
 
@@ -47,8 +49,11 @@ private:
   void saveServerHistory();
   void updateUsedDir(const char* filename);
 
+  static void onServerHistoryRemove(Fl_Widget*, std::string s, void* data);
+  static std::string serverHistoryNormalize(const std::string s);
+
 protected:
-  Fl_Input_Choice *serverName;
+  Fl_Suggestion_Input *serverName;
   std::list<std::string> serverHistory;
   std::string usedDir;
 };

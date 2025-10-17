@@ -49,6 +49,7 @@
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
+#include "fltk/Fl_Suggestion_Input.h"
 #include "ServerDialog.h"
 #include "OptionsDialog.h"
 #include "i18n.h"
@@ -69,10 +70,12 @@ ServerDialog::ServerDialog()
   x = OUTER_MARGIN;
   y = OUTER_MARGIN;
 
-  serverName = new Fl_Input_Choice(LBLLEFT(x, y, w() - OUTER_MARGIN*2,
-                                   INPUT_HEIGHT, _("VNC server:")));
-  // Bug fix for wrong background
-  serverName->color(FL_BACKGROUND2_COLOR);
+  serverName = new Fl_Suggestion_Input(
+    LBLLEFT(x, y, w() - OUTER_MARGIN*2, INPUT_HEIGHT, _("VNC server:")), {}
+  );
+  serverName->call_on_remove(onServerHistoryRemove, this);
+  serverName->call_to_normalize(serverHistoryNormalize);
+
   y += INPUT_HEIGHT + INNER_MARGIN;
 
   x2 = x;
@@ -137,11 +140,7 @@ void ServerDialog::run(const char* servername, char *newservername)
 
   try {
     dialog.loadServerHistory();
-
-    dialog.serverName->clear();
-    for (const std::string& entry : dialog.serverHistory)
-      fltk_menu_add(dialog.serverName->menubutton(),
-                    entry.c_str(), 0, nullptr);
+    dialog.serverName->set_suggestions(dialog.serverHistory);
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
     fl_alert(_("Unable to load the server history:\n\n%s"),
@@ -459,4 +458,19 @@ void ServerDialog::updateUsedDir(const char* filename)
   char * name = strdup(filename);
   usedDir = dirname(name);
   free(name);
+}
+
+void ServerDialog::onServerHistoryRemove(Fl_Widget*, std::string s, void* data)
+{
+  ServerDialog *dialog = (ServerDialog*)data;
+  dialog->serverHistory.remove(s);
+  dialog->saveServerHistory();
+}
+
+std::string ServerDialog::serverHistoryNormalize(const std::string s)
+{
+  // Convert to lowercase for case-insensitity
+  std::string result = s;
+  transform(result.begin(), result.end(), result.begin(), ::tolower);
+  return result;
 }

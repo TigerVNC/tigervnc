@@ -46,6 +46,7 @@
 #include "Surface.h"
 #include "Viewport.h"
 #include "touch.h"
+#include "fltk/event_dispatch_handler.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Image_Surface.H>
@@ -123,7 +124,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   instances.insert(this);
 
   // Hack. See below...
-  Fl::event_dispatch(fltkDispatch);
+  fl_add_event_dispatch(dispatch_helper, this);
 
   // Support for -geometry option. Note that although we do support
   // negative coordinates, we do not support -XOFF-YOFF (ie
@@ -283,7 +284,7 @@ DesktopWindow::~DesktopWindow()
   if (instances.size() == 0)
     Fl::remove_handler(fltkHandle);
 
-  Fl::event_dispatch(Fl::handle_);
+  fl_remove_event_dispatch(dispatch_helper, this);
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -988,6 +989,12 @@ int DesktopWindow::handle(int event)
   return Fl_Window::handle(event);
 }
 
+
+int DesktopWindow::dispatch_helper(int event, Fl_Window *w, void *data)
+{
+    DesktopWindow *self = (DesktopWindow*) data;
+    return self->fltkDispatch(event, w);
+}
 
 int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
 {
