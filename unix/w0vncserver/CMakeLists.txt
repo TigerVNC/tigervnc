@@ -23,7 +23,9 @@ add_executable(w0vncserver
   wayland/objects/ScreencopyManager.cxx
   wayland/WaylandDesktop.cxx
   wayland/WaylandPixelBuffer.cxx
+  qnum_to_xorgevdev.c
   w0vncserver.cxx
+  parameters.cxx
   GSocketSource.cxx
   RFBTimerSource.cxx
 )

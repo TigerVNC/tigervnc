@@ -32,6 +32,7 @@
 #include <core/LogWriter.h>
 #include <rfb/VNCServerST.h>
 
+#include "../parameters.h"
 #include "../w0vncserver.h"
 #include "objects/Display.h"
 #include "objects/Output.h"
@@ -41,6 +42,9 @@
 #include "GWaylandSource.h"
 #include "WaylandPixelBuffer.h"
 #include "WaylandDesktop.h"
+
+extern const unsigned short code_map_qnum_to_xorgevdev[];
+extern const unsigned int code_map_qnum_to_xorgevdev_len;
 
 static core::LogWriter vlog("WaylandDesktop");
 
@@ -129,6 +133,14 @@ void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
 
 void WaylandDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
+  if (rawKeyboard) {
+    if (keycode >= code_map_qnum_to_xorgevdev_len) {
+      vlog.error("Could not map key event to evdev key code");
+      return;
+    }
+    keycode = code_map_qnum_to_xorgevdev[keycode];
+  }
+
   virtualKeyboard->key(keysym, keycode, down);
 }
 
