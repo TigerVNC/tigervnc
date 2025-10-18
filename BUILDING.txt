@@ -51,6 +51,13 @@ Build requirements (Unix)
 -- If building x0vncserver with socket activation support:
    * libsystemd
 
+-- If building w0vncserver:
+   * GLib (Gio + GObject)
+   * libpipewire
+   * libuuuid
+   * libwayland-client
+   * libxkbcommon
+
 -- Optional ffmpeg development kit support (libav)
    * You might have to enable additional repositories for this. E.g.,
      on RHEL, EPEL and RPMFusion (free + nonfree) need to be enabled.
