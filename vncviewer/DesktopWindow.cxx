@@ -267,6 +267,7 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleEdgeScroll, this);
   Fl::remove_timeout(handleStatsTimeout, this);
   Fl::remove_timeout(updateOverlay, this);
+  Fl::remove_idle(checkFocus, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -1012,31 +1013,17 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
 
   ret = Fl::handle_(event, win);
 
-  // This is hackish and the result of the dodgy focus handling in FLTK.
-  // The basic problem is that FLTK's view of focus and the system's tend
-  // to differ, and as a result we do not see all the FL_FOCUS events we
-  // need. Fortunately we can grab them here...
-
   DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
 
   if (dw) {
     switch (event) {
-    // Focus might not stay with us just because we have grabbed the
-    // keyboard. E.g. we might have sub windows, or the user clicked on
-    // another application. Make sure we update our grabs with the focus
-    // changes.
+    // This is hackish and the result of the dodgy focus handling in FLTK.
+    // The basic problem is that FLTK's view of focus and the system's tend
+    // to differ, and as a result we do not see all the FL_FOCUS events we
+    // need. Fortunately we can grab them here...
     case FL_FOCUS:
-      if (dw->regrabOnFocus ||
-          (fullscreenSystemKeys && dw->fullscreen_active()))
-        dw->grabKeyboard();
-      dw->regrabOnFocus = false;
-      break;
     case FL_UNFOCUS:
-      // If the grab is active when we lose focus, the user likely wants
-      // the grab to remain once we regain focus
-      if (dw->keyboardGrabbed)
-        dw->regrabOnFocus = true;
-      dw->ungrabKeyboard();
+      Fl::add_idle(checkFocus, dw);
       break;
 
     case FL_SHOW:
@@ -1171,6 +1158,29 @@ bool DesktopWindow::hasFocus()
     return false;
 
   return focus->window() == this;
+}
+
+void DesktopWindow::checkFocus(void *data)
+{
+  Fl::remove_idle(checkFocus, data);
+
+  DesktopWindow *dw = (DesktopWindow*)data;
+  // Focus might not stay with us just because we have grabbed the
+  // keyboard. E.g. we might have sub windows, or the user clicked on
+  // another application. Make sure we update our grabs with the focus
+  // changes.
+  if (!dw->hasFocus()) {
+    // If the grab is active when we lose focus, the user likely wants
+    // the grab to remain once we regain focus
+    if (dw->keyboardGrabbed)
+      dw->regrabOnFocus = true;
+    dw->ungrabKeyboard();
+  } else {
+    if (dw->regrabOnFocus ||
+        (fullscreenSystemKeys && dw->fullscreen_active()))
+      dw->grabKeyboard();
+    dw->regrabOnFocus = false;
+  }
 }
 
 void DesktopWindow::grabKeyboard()

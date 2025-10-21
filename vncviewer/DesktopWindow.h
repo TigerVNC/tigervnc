@@ -96,6 +96,7 @@ private:
   static int fltkHandle(int event);
 
   bool hasFocus();
+  static void checkFocus(void *data);
 
   void grabPointer();
   void ungrabPointer();
