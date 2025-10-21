@@ -91,6 +91,9 @@ The Unix/Linux version of TigerVNC contains the following programs:
                 display, allowing it to be controlled via VNC.  It is intended
                 mainly as a demonstration of a simple VNC server.
 
+* w0vncserver - a VNC server for Wayland compositors which gives control
+                over your local Wayland session.
+
 It also contains the following systemd service:
 
 * vncserver@.service - a service to start a user session with Xvnc and one of
