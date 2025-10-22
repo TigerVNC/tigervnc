@@ -21,6 +21,8 @@
 
 #include <glib.h>
 
+#include <string>
+
 #include <rfb/SDesktop.h>
 
 class PipeWirePixelBuffer;
@@ -56,6 +58,9 @@ protected:
 
   RemoteDesktop* remoteDesktop;
   PipeWirePixelBuffer* pb;
+
+private:
+  std::string restoreToken;
 };
 
 #endif // __PORTAL_DESKTOP_H__

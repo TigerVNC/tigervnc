@@ -21,15 +21,21 @@
 #endif
 
 #include <stdint.h>
+#include <stdio.h>
 #include <assert.h>
 #include <sys/select.h>
+#include <uuid/uuid.h>
 #include <linux/input-event-codes.h>
+
+#include <string>
 
 #include <glib.h>
 #include <gio/gunixfdlist.h>
 
+#include <core/Configuration.h>
 #include <core/LogWriter.h>
 #include <core/string.h>
+#include <core/xdgdirs.h>
 
 #include "../w0vncserver.h"
 #include "portalConstants.h"
@@ -47,9 +53,18 @@
 
 // This feature is disabled by default as it doesn't work properly on
 // GNOME. https://gitlab.gnome.org/GNOME/mutter/-/issues/4135
-core::BoolParameter localCursor("experimentalPortalLocalCursor",
-                                "[EXPERIMENTAL] Render cursor locally",
-                                false);
+core::BoolParameter
+  localCursor("experimentalPortalLocalCursor",
+              "[EXPERIMENTAL] Render cursor locally",
+              false);
+
+core::EnumParameter
+  askDisplayChoice("AskDisplayChoice",
+                   "Ask which displays to share when user connects (Always, Once, Never)",
+                   {"Always", "Once", "Never"}, "Once");
+
+// Sync with w0vncserver-forget
+static const char* RESTORE_TOKEN_FILENAME =  "restoretoken";
 
 static core::LogWriter vlog("RemoteDesktop");
 
@@ -71,13 +86,15 @@ static int getInputCode(uint32_t button)
   }
 }
 
-RemoteDesktop::RemoteDesktop(std::function<void(int fd, uint32_t nodeId)>
+RemoteDesktop::RemoteDesktop(std::string restoreToken_,
+                             std::function<void(int fd, uint32_t nodeId)>
                                startPipewireCb_,
                              std::function<void(const char*)>
                                cancelStartCb_)
   : sessionStarted(false), oldButtonMask(0), selectedDevices(0),
     sessionHandle(""), remoteDesktop(nullptr), screenCast(nullptr),
-    session(nullptr), startPipewireCb(startPipewireCb_),
+    session(nullptr), restoreToken(restoreToken_),
+    startPipewireCb(startPipewireCb_),
     cancelStartCb(cancelStartCb_)
 {
   remoteDesktop = new PortalProxy("org.freedesktop.portal.Desktop",
@@ -241,13 +258,19 @@ void RemoteDesktop::selectDevices()
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add(&optionsBuilder, "{sv}", "types",
                         g_variant_new_uint32(DEV_KEYBOARD | DEV_POINTER));
-  g_variant_builder_add(&optionsBuilder, "{sv}", "persist_mode",
-                        g_variant_new_uint32(0));
 
-  // FIXME: Do we want restore_token?
+  if (askDisplayChoice != "Always") {
+    g_variant_builder_add(&optionsBuilder, "{sv}", "persist_mode",
+                          g_variant_new_uint32(PERSIST_UNTIL_REVOKED));
+  }
 
   g_variant_builder_add(&optionsBuilder, "{sv}", "handle_token",
                         g_variant_new_string(requestHandleToken.c_str()));
+
+  if (loadRestoreToken()) {
+    g_variant_builder_add(&optionsBuilder, "{sv}", "restore_token",
+                          g_variant_new_string(restoreToken.c_str()));
+  }
 
   params = g_variant_new("(oa{sv})", sessionHandle.c_str(), &optionsBuilder);
 
@@ -375,6 +398,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   GVariant* result;
   GVariant* streams_;
   GVariant* devices;
+  GVariant* newRestoreToken;
 
   assert(!sessionStarted);
 
@@ -411,6 +435,13 @@ void RemoteDesktop::handleStart(GVariant* parameters)
     fatal_error("Failed to parse streams");
     return;
   }
+
+  newRestoreToken = g_variant_lookup_value(result, "restore_token",
+                                         G_VARIANT_TYPE_STRING);
+
+  storeRestoreToken(g_variant_get_string(newRestoreToken, nullptr));
+
+  g_variant_unref(newRestoreToken);
 
   openPipewireRemote();
   g_variant_unref(streams_);
@@ -499,3 +530,108 @@ bool RemoteDesktop::parseStreams(GVariant* streams)
 
   return true;
 }
+
+bool RemoteDesktop::loadRestoreToken()
+{
+  char filepath[PATH_MAX];
+  FILE* f;
+  const char* stateDir;
+  char restoreToken_[37];
+
+  if (askDisplayChoice == "Always")
+    return false;
+
+  // restoreToken will be empty the first time, we want to prompt the user
+  if (askDisplayChoice == "Once")
+    return !restoreToken.empty();
+
+  assert(askDisplayChoice == "Never");
+
+  // Only load from disk the first time
+  if (!restoreToken.empty())
+    return true;
+
+  stateDir = core::getvncstatedir();
+  if (!stateDir) {
+    vlog.error("Could not get state directory");
+    return false;
+  }
+
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, RESTORE_TOKEN_FILENAME);
+  f = fopen(filepath, "r");
+  if (!f) {
+    if (errno != ENOENT)
+      vlog.error("Could not open \"%s\": %s", filepath, strerror(errno));
+
+    return false;
+  }
+
+  if (fgets(restoreToken_, sizeof(restoreToken_), f)) {
+    uuid_t uuid;
+
+    fclose(f);
+    if (uuid_parse(restoreToken_, uuid) < 0) {
+      vlog.error("Invalid restore token, not a valid UUID string \"%s\"", restoreToken_);
+      return false;
+    }
+
+    restoreToken = restoreToken_;
+    return true;
+  }
+  fclose(f);
+
+  vlog.error("Could not read restore token from \"%s\"", filepath);
+  return false;
+}
+
+bool RemoteDesktop::storeRestoreToken(const char* newToken)
+{
+  char filepath[PATH_MAX];
+  FILE* f;
+  const char* stateDir;
+
+  if (!newToken)
+    return false;
+
+  // Don't store anything
+  if (askDisplayChoice == "Always")
+    return true;
+
+  // Store token in memory
+  restoreToken = newToken;
+
+  if (askDisplayChoice == "Once")
+    return true;
+
+  assert(askDisplayChoice == "Never");
+
+  // Store token to file so it can be re-used on next startup
+  stateDir = core::getvncstatedir();
+  if (!stateDir) {
+    vlog.error("Could not determine VNC state directory path, cannot store restore token");
+    return false;
+  }
+
+  if (core::mkdir_p(stateDir, 0755) == -1) {
+    if (errno != EEXIST) {
+      vlog.error("Could not create VNC config directory \"%s\": %s",
+                  stateDir, strerror(errno));
+      return false;
+    }
+  }
+
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir,
+           RESTORE_TOKEN_FILENAME);
+
+  f = fopen(filepath, "w");
+  if (!f) {
+    vlog.error("Could not store token to \"%s\": %s", filepath, strerror(errno));
+    return false;
+  }
+
+  fprintf(f, "%s", newToken);
+  fclose(f);
+
+  return true;
+}
+

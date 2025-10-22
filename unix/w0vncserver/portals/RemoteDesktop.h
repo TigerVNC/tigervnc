@@ -32,7 +32,8 @@ class PortalProxy;
 
 class RemoteDesktop {
 public:
-  RemoteDesktop(std::function<void(int fd, uint32_t nodeId)> startPipewireCb,
+  RemoteDesktop(std::string restoreToken,
+                std::function<void(int fd, uint32_t nodeId)> startPipewireCb,
                 std::function<void(const char*)> cancelStartCb);
   ~RemoteDesktop();
 
@@ -42,6 +43,8 @@ public:
 
   // Create a Portal session
   void createSession();
+
+  std::string getRestoreToken() const { return restoreToken; }
 
 private:
   // Portal methods
@@ -65,6 +68,13 @@ private:
   // Parses ScreenCast streams. Returns false on error
   bool parseStreams(GVariant* streams);
 
+  // Loads the restore token, returns false on error
+  bool loadRestoreToken();
+  // Stores the restore token, returns false on error
+  bool storeRestoreToken(const char* restoreToken);
+  // Resets the restore token, returns false on error
+  bool clearRestoreToken();
+
 private:
   bool sessionStarted;
   uint16_t oldButtonMask;
@@ -75,6 +85,8 @@ private:
   PortalProxy* remoteDesktop;
   PortalProxy* screenCast;
   PortalProxy* session;
+
+  std::string restoreToken;
 
   std::function<void(int fd, uint32_t nodeId)> startPipewireCb;
   std::function<void(const char* reason)> cancelStartCb;

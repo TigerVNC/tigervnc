@@ -57,6 +57,16 @@ Always treat incoming connections as shared, regardless of the client-specified
 setting. Default is off.
 .
 .TP
+.B \-AskDisplayChoice \fImode\fP
+Ask which displays to share when a user connects. Can be either
+\fBAlways\fP, \fBOnce\fP, or \fBNever\fP. Choosing \fBAlways\fP means a
+prompt dialog will be be shown every time a user connects to the server.
+\fBOnce\fP means a prompt will be shown only once during the program's
+lifetime. When choosing \fBNever\fP, the choice you make will be
+remembered and persist. To reset your choice, see
+\fBw0vncserver-forget\fP(1). Default is \fBOnce\fP.
+.
+.TP
 .B \-BlacklistThreshold \fIcount\fP
 The number of unauthenticated connection attempts allowed from any individual
 host before that host is black-listed.  Default is 5.
@@ -262,6 +272,7 @@ Private key counter part to the certificate given in \fBX509Cert\fP. Must
 also be in PEM format.
 
 .SH SEE ALSO
+.BR w0vncserver-forget (1),
 .BR x0vncserver (1),
 .BR Xvnc (1),
 .BR vncpasswd (1),
