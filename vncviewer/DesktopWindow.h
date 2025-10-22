@@ -92,10 +92,11 @@ private:
   void addOverlay(const char *text);
   static void updateOverlay(void *data);
 
-  static int fltkDispatch(int event, Fl_Window *win);
+  static int fltkDispatch(int event, Fl_Window *win, void *);
   static int fltkHandle(int event);
 
   bool hasFocus();
+  static void checkFocus(void *data);
 
   void grabPointer();
   void ungrabPointer();

@@ -46,6 +46,7 @@
 #include "Surface.h"
 #include "Viewport.h"
 #include "touch.h"
+#include "fltk/event_dispatch_handler.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Image_Surface.H>
@@ -123,7 +124,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   instances.insert(this);
 
   // Hack. See below...
-  Fl::event_dispatch(fltkDispatch);
+  fl_add_event_dispatch(fltkDispatch, this);
 
   // Support for -geometry option. Note that although we do support
   // negative coordinates, we do not support -XOFF-YOFF (ie
@@ -267,6 +268,7 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleEdgeScroll, this);
   Fl::remove_timeout(handleStatsTimeout, this);
   Fl::remove_timeout(updateOverlay, this);
+  Fl::remove_idle(checkFocus, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -283,7 +285,7 @@ DesktopWindow::~DesktopWindow()
   if (instances.size() == 0)
     Fl::remove_handler(fltkHandle);
 
-  Fl::event_dispatch(Fl::handle_);
+  fl_remove_event_dispatch(fltkDispatch, this);
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -989,10 +991,8 @@ int DesktopWindow::handle(int event)
 }
 
 
-int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
+int DesktopWindow::fltkDispatch(int event, Fl_Window *win, void *)
 {
-  int ret;
-
   // FLTK keeps spamming bogus FL_MOVE events if _any_ X event is
   // received with the mouse pointer outside our windows
   // https://github.com/fltk/fltk/issues/76
@@ -1010,33 +1010,17 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
   }
 #endif
 
-  ret = Fl::handle_(event, win);
-
-  // This is hackish and the result of the dodgy focus handling in FLTK.
-  // The basic problem is that FLTK's view of focus and the system's tend
-  // to differ, and as a result we do not see all the FL_FOCUS events we
-  // need. Fortunately we can grab them here...
-
   DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
 
   if (dw) {
     switch (event) {
-    // Focus might not stay with us just because we have grabbed the
-    // keyboard. E.g. we might have sub windows, or the user clicked on
-    // another application. Make sure we update our grabs with the focus
-    // changes.
+    // This is hackish and the result of the dodgy focus handling in FLTK.
+    // The basic problem is that FLTK's view of focus and the system's tend
+    // to differ, and as a result we do not see all the FL_FOCUS events we
+    // need. Fortunately we can grab them here...
     case FL_FOCUS:
-      if (dw->regrabOnFocus ||
-          (fullscreenSystemKeys && dw->fullscreen_active()))
-        dw->grabKeyboard();
-      dw->regrabOnFocus = false;
-      break;
     case FL_UNFOCUS:
-      // If the grab is active when we lose focus, the user likely wants
-      // the grab to remain once we regain focus
-      if (dw->keyboardGrabbed)
-        dw->regrabOnFocus = true;
-      dw->ungrabKeyboard();
+      Fl::add_idle(checkFocus, dw);
       break;
 
     case FL_SHOW:
@@ -1064,7 +1048,7 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win)
     }
   }
 
-  return ret;
+  return 0;
 }
 
 int DesktopWindow::fltkHandle(int event)
@@ -1171,6 +1155,29 @@ bool DesktopWindow::hasFocus()
     return false;
 
   return focus->window() == this;
+}
+
+void DesktopWindow::checkFocus(void *data)
+{
+  Fl::remove_idle(checkFocus, data);
+
+  DesktopWindow *dw = (DesktopWindow*)data;
+  // Focus might not stay with us just because we have grabbed the
+  // keyboard. E.g. we might have sub windows, or the user clicked on
+  // another application. Make sure we update our grabs with the focus
+  // changes.
+  if (!dw->hasFocus()) {
+    // If the grab is active when we lose focus, the user likely wants
+    // the grab to remain once we regain focus
+    if (dw->keyboardGrabbed)
+      dw->regrabOnFocus = true;
+    dw->ungrabKeyboard();
+  } else {
+    if (dw->regrabOnFocus ||
+        (fullscreenSystemKeys && dw->fullscreen_active()))
+      dw->grabKeyboard();
+    dw->regrabOnFocus = false;
+  }
 }
 
 void DesktopWindow::grabKeyboard()
