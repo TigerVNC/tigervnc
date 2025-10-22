@@ -23,6 +23,8 @@
 #include <assert.h>
 #include <sys/mman.h>
 
+#include <string.h>
+
 #include <xkbcommon/xkbcommon.h>
 #include <wayland-client-protocol.h>
 
@@ -34,7 +36,12 @@
 #include "Seat.h"
 #include "Keyboard.h"
 
+#define XKB_KEY_NAME_MAX_LEN 4
+
 using namespace wayland;
+
+extern const unsigned int code_map_qnum_to_xkb_len;
+extern const char* code_map_qnum_to_xkb[];
 
 static core::LogWriter vlog("Keyboard");
 
@@ -84,6 +91,8 @@ Keyboard::Keyboard(Display* display, Seat* seat,
   keyboard = wl_seat_get_keyboard(seat->getSeat());
   wl_keyboard_add_listener(keyboard, &listener, this);
   display->roundtrip();
+
+  memset(code_map_qnum_to_keycode, 0, sizeof(code_map_qnum_to_keycode));
 }
 
 Keyboard::~Keyboard()
@@ -125,6 +134,8 @@ bool Keyboard::updateState(uint32_t keycode, bool down,
 void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
 {
   assert(context->ctx);
+
+  memset(code_map_qnum_to_keycode, 0, sizeof(code_map_qnum_to_keycode));
 
   if (keyMap)
     munmap(keyMap, keyboardSize);
@@ -175,6 +186,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     context->state = state;
 
     vlog.debug("Keymap updated");
+    generateKeycodeMap();
   } else {
     vlog.error("Unsupported keymap format");
     if (keyMap) {
@@ -205,6 +217,11 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
   return XKB_KEYCODE_INVALID;
 }
 
+int Keyboard::rfbcodeToKeycode(int rfbcode)
+{
+  return code_map_qnum_to_keycode[rfbcode];
+}
+
 void Keyboard::handleModifiers(uint32_t /* serial */,
                                uint32_t modsDepressed,
                                uint32_t modsLatched,
@@ -232,4 +249,44 @@ unsigned int Keyboard::getLEDState()
     ledState |= rfb::ledCapsLock;
 
   return ledState;
+}
+
+void Keyboard::generateKeycodeMap()
+{
+  xkb_keycode_t min;
+  xkb_keycode_t max;
+
+  assert(sizeof(code_map_qnum_to_keycode) >= code_map_qnum_to_xkb_len);
+
+  memset(code_map_qnum_to_keycode, 0, sizeof(code_map_qnum_to_keycode));
+
+  min = xkb_keymap_min_keycode(context->keymap);
+  max = xkb_keymap_max_keycode(context->keymap);
+
+  for (unsigned int i = 0; i < code_map_qnum_to_xkb_len; i++) {
+    xkb_keycode_t keycode;
+    bool match;
+    const char* qnumKeyName;
+
+    match = false;
+    qnumKeyName = code_map_qnum_to_xkb[i];
+    if (!qnumKeyName)
+      continue;
+
+    keycode = 0;
+    for (keycode = min; keycode <= max; keycode++) {
+      const char* xkbKeyName;
+
+      xkbKeyName = xkb_keymap_key_get_name(context->keymap, keycode);
+      if (xkbKeyName && !strncmp(xkbKeyName, qnumKeyName, XKB_KEY_NAME_MAX_LEN)) {
+        match = true;
+        break;
+      }
+    }
+
+    if (match)
+      code_map_qnum_to_keycode[i] = keycode;
+    else
+      vlog.debug("No mapping for key %.4s ", qnumKeyName);
+  }
 }

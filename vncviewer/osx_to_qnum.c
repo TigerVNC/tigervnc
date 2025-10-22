@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated from keymaps.csv
- * Database checksum sha256(277b04f9dd721dd7942235d6ff107f992d95a083b651e73814ac3bb12f9c56d5)
+ * Database checksum sha256(900a7de50a691fe005bd3abac06fc471b00d16adf373e7ca0ee908fbf00fa7d0)
  * To re-generate, run:
  *   keymap-gen code-map --lang=stdc keymaps.csv osx qnum
 */

@@ -49,12 +49,15 @@ namespace wayland {
                      uint32_t* group);
 
     uint32_t keysymToKeycode(int keycode);
+    int rfbcodeToKeycode(int rfbcode);
 
   private:
     void handleKeyMap(uint32_t format, int32_t fd, uint32_t size);
     void handleModifiers(uint32_t serial, uint32_t modsDepressed,
                          uint32_t modsLatched, uint32_t modsLocked,
                          uint32_t group);
+    void generateKeycodeMap();
+
   private:
     uint32_t keyboardFormat;
     int keyboardFd;
@@ -65,6 +68,7 @@ namespace wayland {
     XkbContext* context;
     // Called when the LED state has changed
     std::function<void(unsigned int)> setLEDstate;
+    int code_map_qnum_to_keycode[256];
   };
 };
 

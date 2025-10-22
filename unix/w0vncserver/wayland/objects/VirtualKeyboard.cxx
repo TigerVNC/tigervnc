@@ -29,6 +29,7 @@
 #include <rfb/KeysymStr.h>
 
 #include "../../w0vncserver.h"
+#include "../../parameters.h"
 #include "Display.h"
 #include "Seat.h"
 #include "Keyboard.h"
@@ -76,13 +77,12 @@ unsigned int VirtualKeyboard::getLEDState()
   return seat->getKeyboard()->getLEDState();
 }
 
-void VirtualKeyboard::key(uint32_t keysym,
-                          uint32_t /* xtcode */, bool down)
+void VirtualKeyboard::key(uint32_t keysym, uint32_t keycode, bool down)
 {
   timespec ts;
   uint32_t time;
   bool updated;
-  int keyCode;
+  int key;
   Keyboard* wKeyboard;
   uint32_t modsDepressed;
   uint32_t modsLatched;
@@ -91,11 +91,15 @@ void VirtualKeyboard::key(uint32_t keysym,
 
   wKeyboard = seat->getKeyboard();
 
-  keyCode = wKeyboard->keysymToKeycode(keysym);
-  if ((unsigned int)keyCode == XKB_KEYCODE_INVALID) {
-    vlog.debug("Unable to map keysym XK_%s (0x%04x), ignoring key press",
-               KeySymName(keysym), keysym);
-    return;
+  if (!rawKeyboard) {
+    key = wKeyboard->keysymToKeycode(keysym);
+    if ((unsigned int)key == XKB_KEYCODE_INVALID) {
+      vlog.debug("Unable to map keysym XK_%s (0x%04x), ignoring key press",
+                 KeySymName(keysym), keysym);
+      return;
+    }
+  } else {
+    key = wKeyboard->rfbcodeToKeycode(keycode);
   }
 
   clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -106,11 +110,11 @@ void VirtualKeyboard::key(uint32_t keysym,
   //   "clients must add 8 to the key event keycode"
   // when format xkb_v1 is used. Subtract 8 to get the correct keycode.
   if (wKeyboard->getFormat() == XKB_KEYMAP_FORMAT_TEXT_V1)
-    zwp_virtual_keyboard_v1_key(keyboard, time, keyCode - 8, down);
+    zwp_virtual_keyboard_v1_key(keyboard, time, key - 8, down);
   else
-    zwp_virtual_keyboard_v1_key(keyboard, time, keyCode, down);
+    zwp_virtual_keyboard_v1_key(keyboard, time, key, down);
 
-  updated = wKeyboard->updateState(keyCode, down, &modsDepressed,
+  updated = wKeyboard->updateState(key, down, &modsDepressed,
                                    &modsLatched, &modsLocked, &group);
   if (updated) {
     zwp_virtual_keyboard_v1_modifiers(keyboard, modsDepressed,
