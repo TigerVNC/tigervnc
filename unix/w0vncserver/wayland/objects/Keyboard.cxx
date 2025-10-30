@@ -23,6 +23,8 @@
 #include <assert.h>
 #include <sys/mman.h>
 
+#include <string.h>
+
 #include <xkbcommon/xkbcommon.h>
 #include <wayland-client-protocol.h>
 
@@ -35,6 +37,12 @@
 #include "Keyboard.h"
 
 using namespace wayland;
+
+extern const unsigned int code_map_xkb_to_qnum_len;
+extern const struct _code_map_xkb_to_qnum {
+  const char* from;
+  const unsigned short to;
+} code_map_xkb_to_qnum[];
 
 static core::LogWriter vlog("Keyboard");
 
@@ -84,6 +92,8 @@ Keyboard::Keyboard(Display* display, Seat* seat,
   keyboard = wl_seat_get_keyboard(seat->getSeat());
   wl_keyboard_add_listener(keyboard, &listener, this);
   display->roundtrip();
+
+  memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
 }
 
 Keyboard::~Keyboard()
@@ -125,6 +135,8 @@ bool Keyboard::updateState(uint32_t keycode, bool down,
 void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
 {
   assert(context->ctx);
+
+  memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
 
   if (keyMap)
     munmap(keyMap, keyboardSize);
@@ -175,6 +187,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     context->state = state;
 
     vlog.debug("Keymap updated");
+    generateKeycodeMap();
   } else {
     vlog.error("Unsupported keymap format");
     if (keyMap) {
@@ -205,6 +218,15 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
   return XKB_KEYCODE_INVALID;
 }
 
+uint32_t Keyboard::rfbcodeToKeycode(uint32_t rfbcode)
+{
+  if (rfbcode >= sizeof(codeMapQnumToKeyCode)) {
+    vlog.error("Invalid RFB keycode: %d", rfbcode);
+    return 0;
+  }
+  return codeMapQnumToKeyCode[rfbcode];
+}
+
 void Keyboard::handleModifiers(uint32_t /* serial */,
                                uint32_t modsDepressed,
                                uint32_t modsLatched,
@@ -232,4 +254,51 @@ unsigned int Keyboard::getLEDState()
     ledState |= rfb::ledCapsLock;
 
   return ledState;
+}
+
+void Keyboard::generateKeycodeMap()
+{
+  memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
+
+  /* Here, we generate a mapping from qnumcode (RFB) to our keyboard's
+   * configured keycodes. We iterate through code_map_xkb_to_qnum in
+   * reverse and try to find matches between the keycodemap and our
+   * keymap.
+   *
+   * Note that we have to iterate through the xkb_to_qnum map in reverse
+   * (instead of using a qnum_to_xkb map) since the mapping between
+   * keycodes and keynames is one-to-many. This means that the same
+   * keycode may be mapped by multiple keynames (such as TLDE and AB00
+   * both mapping to 0x29).
+   *
+   * The only exception to this rule is SYRQ, which for historical
+   * reasons is mapped by both 0x54 and 0xb7.
+   */
+
+  for (unsigned int rfbcode = 1; rfbcode < 255; rfbcode++) {
+    unsigned int xkbKeyCode;
+    bool rfbFound;
+
+    xkbKeyCode = 0;
+    rfbFound = false;
+    for (unsigned int j = 0; j < code_map_xkb_to_qnum_len; j++) {
+      const char* keyName;
+
+      if (code_map_xkb_to_qnum[j].to != rfbcode)
+        continue;
+
+      rfbFound = true;
+      keyName = code_map_xkb_to_qnum[j].from;
+      assert(keyName);
+
+      xkbKeyCode = xkb_keymap_key_by_name(context->keymap, keyName);
+      if (xkbKeyCode != XKB_KEYCODE_INVALID)
+        break;
+    }
+
+    if (xkbKeyCode != 0)
+      codeMapQnumToKeyCode[rfbcode] = xkbKeyCode;
+    else if (rfbFound)
+      vlog.debug("No mapping found for key 0x%04x", rfbcode);
+  }
 }
