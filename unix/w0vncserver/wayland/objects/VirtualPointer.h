@@ -21,7 +21,7 @@
 
 #include "Object.h"
 
-namespace core { class Point; }
+namespace core { struct Point; }
 
 struct zwlr_virtual_pointer_manager_v1;
 struct zwlr_virtual_pointer_v1;
