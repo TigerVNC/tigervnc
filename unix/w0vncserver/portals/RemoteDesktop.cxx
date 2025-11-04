@@ -54,7 +54,7 @@
 // This feature is disabled by default as it doesn't work properly on
 // GNOME. https://gitlab.gnome.org/GNOME/mutter/-/issues/4135
 core::BoolParameter
-  localCursor("experimentalPortalLocalCursor",
+  localCursor("experimentalLocalCursor",
               "[EXPERIMENTAL] Render cursor locally",
               false);
 
