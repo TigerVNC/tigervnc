@@ -89,13 +89,13 @@ bool ZRLEDecoder::readRect(const core::Rect& /*r*/, rdr::InStream* is,
   is->setRestorePoint();
 
   len = is->readU32();
-  os->writeU32(len);
 
   if (!is->hasDataOrRestore(len))
     return false;
 
   is->clearRestorePoint();
 
+  os->writeU32(len);
   os->copyBytes(is, len);
 
   return true;

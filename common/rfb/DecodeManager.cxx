@@ -39,7 +39,7 @@ using namespace rfb;
 static core::LogWriter vlog("DecodeManager");
 
 DecodeManager::DecodeManager(CConnection *conn_) :
-  conn(conn_), threadException(nullptr)
+  conn(conn_), partialEntry(nullptr), threadException(nullptr)
 {
   size_t cpuCount;
 
@@ -87,83 +87,97 @@ DecodeManager::~DecodeManager()
 
   for (Decoder* decoder : decoders)
     delete decoder;
+
+  delete partialEntry;
 }
 
 bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
                                ModifiablePixelBuffer* pb)
 {
-  Decoder *decoder;
-  rdr::MemOutStream *bufferStream;
   int equiv;
-
-  QueueEntry *entry;
 
   assert(pb != nullptr);
 
-  if (!Decoder::supported(encoding)) {
-    vlog.error("Unknown encoding %d", encoding);
-    throw protocol_error("Unknown encoding");
-  }
+  if (partialEntry == nullptr) {
+    Decoder *decoder;
+    rdr::MemOutStream *bufferStream;
 
-  if (!decoders[encoding]) {
-    decoders[encoding] = Decoder::createDecoder(encoding);
-    if (!decoders[encoding]) {
+    if (!Decoder::supported(encoding)) {
       vlog.error("Unknown encoding %d", encoding);
       throw protocol_error("Unknown encoding");
     }
+
+    if (!decoders[encoding]) {
+      decoders[encoding] = Decoder::createDecoder(encoding);
+      if (!decoders[encoding]) {
+        vlog.error("Unknown encoding %d", encoding);
+        throw protocol_error("Unknown encoding");
+      }
+    }
+
+    decoder = decoders[encoding];
+
+    // Wait for an available memory buffer
+    std::unique_lock<std::mutex> lock(queueMutex);
+
+    // FIXME: Should we return and let other things run here?
+    while (freeBuffers.empty())
+      producerCond.wait(lock);
+
+    // Don't pop the buffer as we don't know if we'll finish filling it
+    // in a single round
+    bufferStream = freeBuffers.front();
+    bufferStream->clear();
+
+    lock.unlock();
+
+    partialEntry = new QueueEntry();
+
+    partialEntry->active = false;
+    partialEntry->rect = r;
+    partialEntry->encoding = encoding;
+    partialEntry->decoder = decoder;
+    partialEntry->server = &conn->server;
+    partialEntry->pb = pb;
+    partialEntry->bufferStream = bufferStream;
+
+    beforePos = conn->getInStream()->pos();
+  } else {
+    assert(partialEntry->rect == r);
+    assert(partialEntry->encoding == encoding);
+    assert(partialEntry->pb == pb);
   }
-
-  decoder = decoders[encoding];
-
-  // Wait for an available memory buffer
-  std::unique_lock<std::mutex> lock(queueMutex);
-
-  // FIXME: Should we return and let other things run here?
-  while (freeBuffers.empty())
-    producerCond.wait(lock);
-
-  // Don't pop the buffer in case we throw an exception
-  // whilst reading
-  bufferStream = freeBuffers.front();
-
-  lock.unlock();
 
   // First check if any thread has encountered a problem
   throwThreadException();
 
   // Read the rect
-  bufferStream->clear();
-  if (!decoder->readRect(r, conn->getInStream(), conn->server, bufferStream))
+  if (!partialEntry->decoder->readRect(
+        partialEntry->rect, conn->getInStream(), conn->server,
+        partialEntry->bufferStream))
     return false;
 
+  partialEntry->decoder->getAffectedRegion(
+    r, partialEntry->bufferStream->data(),
+    partialEntry->bufferStream->length(), conn->server,
+    &partialEntry->affectedRegion);
+
   stats[encoding].rects++;
-  stats[encoding].bytes += 12 + bufferStream->length();
+  stats[encoding].bytes += 12 + conn->getInStream()->pos() - beforePos;
   stats[encoding].pixels += r.area();
   equiv = 12 + r.area() * (conn->server.pf().bpp/8);
   stats[encoding].equivalent += equiv;
 
   // Then try to put it on the queue
-  entry = new QueueEntry;
 
-  entry->active = false;
-  entry->rect = r;
-  entry->encoding = encoding;
-  entry->decoder = decoder;
-  entry->server = &conn->server;
-  entry->pb = pb;
-  entry->bufferStream = bufferStream;
-
-  decoder->getAffectedRegion(r, bufferStream->data(),
-                             bufferStream->length(), conn->server,
-                             &entry->affectedRegion);
-
-  lock.lock();
+  std::unique_lock<std::mutex> lock(queueMutex);
 
   // The workers add buffers to the end so it's safe to assume
   // the front is still the same buffer
   freeBuffers.pop_front();
 
-  workQueue.push_back(entry);
+  workQueue.push_back(partialEntry);
+  partialEntry = nullptr;
 
   // We only put a single entry on the queue so waking a single
   // thread is sufficient

@@ -35,7 +35,8 @@
 
 using namespace rfb;
 
-HextileDecoder::HextileDecoder() : Decoder(DecoderPlain)
+HextileDecoder::HextileDecoder()
+  : Decoder(DecoderPlain), readTile(0, 0)
 {
 }
 
@@ -46,71 +47,88 @@ HextileDecoder::~HextileDecoder()
 bool HextileDecoder::readRect(const core::Rect& r, rdr::InStream* is,
                               const ServerParams& server, rdr::OutStream* os)
 {
-  core::Rect t;
   size_t bytesPerPixel;
-
-  is->setRestorePoint();
 
   bytesPerPixel = server.pf().bpp/8;
 
-  for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
+  for (; readTile.y < r.height(); readTile.y += 16) {
+    int height;
 
-    t.br.y = std::min(r.br.y, t.tl.y + 16);
+    height = std::min(r.height() - readTile.y, 16);
 
-    for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
+    for (; readTile.x < r.width(); readTile.x += 16) {
+      int width;
+
       uint8_t tileType;
+      uint8_t bg[4], fg[4];
+      uint8_t nSubrects;
 
-      t.br.x = std::min(r.br.x, t.tl.x + 16);
+      width = std::min(r.width() - readTile.x, 16);
 
-      if (!is->hasDataOrRestore(1))
+      if (!is->hasData(1))
         return false;
 
+      is->setRestorePoint();
+
       tileType = is->readU8();
-      os->writeU8(tileType);
 
       if (tileType & hextileRaw) {
-        if (!is->hasDataOrRestore(t.area() * bytesPerPixel))
+        if (!is->hasDataOrRestore(width * height * bytesPerPixel))
           return false;
-        os->copyBytes(is, t.area() * bytesPerPixel);
+        os->writeU8(tileType);
+        os->copyBytes(is, width * height * bytesPerPixel);
+        is->clearRestorePoint();
         continue;
       }
-
 
       if (tileType & hextileBgSpecified) {
         if (!is->hasDataOrRestore(bytesPerPixel))
           return false;
-        os->copyBytes(is, bytesPerPixel);
+        is->readBytes(bg, bytesPerPixel);
       }
 
       if (tileType & hextileFgSpecified) {
         if (!is->hasDataOrRestore(bytesPerPixel))
           return false;
-        os->copyBytes(is, bytesPerPixel);
+        is->readBytes(fg, bytesPerPixel);
       }
 
+      nSubrects = 0;
       if (tileType & hextileAnySubrects) {
-        uint8_t nSubrects;
-
         if (!is->hasDataOrRestore(1))
           return false;
 
         nSubrects = is->readU8();
-        os->writeU8(nSubrects);
 
         if (tileType & hextileSubrectsColoured) {
           if (!is->hasDataOrRestore(nSubrects * (bytesPerPixel + 2)))
             return false;
-          os->copyBytes(is, nSubrects * (bytesPerPixel + 2));
         } else {
           if (!is->hasDataOrRestore(nSubrects * 2))
             return false;
-          os->copyBytes(is, nSubrects * 2);
         }
       }
+
+      os->writeU8(tileType);
+      if (tileType & hextileBgSpecified)
+        os->writeBytes(bg, bytesPerPixel);
+      if (tileType & hextileFgSpecified)
+        os->writeBytes(fg, bytesPerPixel);
+      if (tileType & hextileAnySubrects) {
+        os->writeU8(nSubrects);
+        if (tileType & hextileSubrectsColoured)
+          os->copyBytes(is, nSubrects * (bytesPerPixel + 2));
+        else
+          os->copyBytes(is, nSubrects * 2);
+      }
+
+      is->clearRestorePoint();
     }
+
+    readTile.x = 0;
   }
 
-  is->clearRestorePoint();
+  readTile.y = 0;
 
   return true;
 }

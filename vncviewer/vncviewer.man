@@ -264,7 +264,7 @@ Maximize viewer window.
 .
 .TP
 .B \-NoJpeg
-Disable lossy JPEG compression in Tight encoding. Default is off.
+Disable lossy JPEG compression. Default is off.
 .
 .TP
 .B \-passwd, \-PasswordFile \fIpassword-file\fP
@@ -281,7 +281,7 @@ Time in milliseconds to rate-limit successive pointer events. Default is
 .TP
 .B \-PreferredEncoding \fIencoding\fP
 This option specifies the preferred encoding to use from one of "Tight",
-"ZRLE", "Hextile", "H.264", or "Raw".
+"JPEG", "ZRLE", "Hextile", "H.264", or "Raw".
 .
 .TP
 .B \-QualityLevel \fIlevel\fP

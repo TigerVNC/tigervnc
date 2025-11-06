@@ -432,7 +432,7 @@ int main(int argc, char **argv)
   const char *fn;
 
   fn = nullptr;
-  for (i = 1; i < argc; i++) {
+  for (i = 1; i < argc;) {
     int ret;
 
     ret = core::Configuration::handleParamArg(argc, argv, i);
@@ -441,13 +441,34 @@ int main(int argc, char **argv)
       continue;
     }
 
-    if (argv[i][0] == '-')
+    if (strcmp(argv[i], "-h") == 0 ||
+        strcmp(argv[i], "--help") == 0) {
       usage(argv[0]);
+    }
 
-    if (fn != nullptr)
-      usage(argv[0]);
+    if (strcmp(argv[i], "-v") == 0 ||
+        strcmp(argv[i], "--version") == 0) {
+      fprintf(stderr, "encperf (TigerVNC) %s\n", PACKAGE_VERSION);
+      exit(0);
+    }
+
+    if (argv[i][0] == '-') {
+      fprintf(stderr, "%s: Unrecognized option '%s'\n",
+              argv[0], argv[i]);
+      fprintf(stderr, "See '%s --help' for more information.\n",
+              argv[0]);
+      exit(1);
+    }
+
+    if (fn != nullptr) {
+      fprintf(stderr, "%s: Extra argument '%s'\n", argv[0], argv[i]);
+      fprintf(stderr, "See '%s --help' for more information.\n",
+              argv[0]);
+      exit(1);
+    }
 
     fn = argv[i];
+    i++;
   }
 
   int runCount = count;

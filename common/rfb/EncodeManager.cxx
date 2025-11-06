@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2014-2022 Pierre Ossman for Cendio AB
+ * Copyright 2014-2025 Pierre Ossman for Cendio AB
  * Copyright 2018 Peter Astrand for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
@@ -40,6 +40,7 @@
 #include <rfb/RawEncoder.h>
 #include <rfb/RREEncoder.h>
 #include <rfb/HextileEncoder.h>
+#include <rfb/JPEGEncoder.h>
 #include <rfb/ZRLEEncoder.h>
 #include <rfb/TightEncoder.h>
 #include <rfb/TightJPEGEncoder.h>
@@ -71,6 +72,7 @@ enum EncoderClass {
   encoderTight,
   encoderTightJPEG,
   encoderZRLE,
+  encoderJPEG,
   encoderClassMax,
 };
 
@@ -106,6 +108,8 @@ static const char *encoderClassName(EncoderClass klass)
     return "Tight (JPEG)";
   case encoderZRLE:
     return "ZRLE";
+  case encoderJPEG:
+    return "JPEG";
   case encoderClassMax:
     break;
   }
@@ -149,6 +153,7 @@ EncodeManager::EncodeManager(SConnection* conn_)
   encoders[encoderTight] = new TightEncoder(conn);
   encoders[encoderTightJPEG] = new TightJPEGEncoder(conn);
   encoders[encoderZRLE] = new ZRLEEncoder(conn);
+  encoders[encoderJPEG] = new JPEGEncoder(conn);
 
   updates = 0;
   memset(&copyStats, 0, sizeof(copyStats));
@@ -247,6 +252,7 @@ bool EncodeManager::supported(int encoding)
   case encodingRaw:
   case encodingRRE:
   case encodingHextile:
+  case encodingJPEG:
   case encodingZRLE:
   case encodingTight:
     return true;
@@ -380,20 +386,12 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   enum EncoderClass solid, bitmap, bitmapRLE;
   enum EncoderClass indexed, indexedRLE, fullColour;
 
-  bool allowJPEG;
-
   int32_t preferred;
 
   std::vector<int>::iterator iter;
 
   solid = bitmap = bitmapRLE = encoderRaw;
   indexed = indexedRLE = fullColour = encoderRaw;
-
-  allowJPEG = conn->client.pf().bpp >= 16;
-  if (!allowLossy) {
-    if (encoders[encoderTightJPEG]->losslessQuality == -1)
-      allowJPEG = false;
-  }
 
   // Try to respect the client's wishes
   preferred = conn->getPreferredEncoding();
@@ -407,7 +405,10 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     bitmapRLE = indexedRLE = fullColour = encoderHextile;
     break;
   case encodingTight:
-    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
+    // Prefer the plain JPEG encoder as it compresses better
+    if (encoders[encoderJPEG]->isSupported())
+      fullColour = encoderJPEG;
+    else if (encoders[encoderTightJPEG]->isSupported())
       fullColour = encoderTightJPEG;
     else
       fullColour = encoderTight;
@@ -419,12 +420,55 @@ void EncodeManager::prepareEncoders(bool allowLossy)
     bitmapRLE = indexedRLE = encoderZRLE;
     bitmap = indexed = encoderZRLE;
     break;
+  case encodingJPEG:
+    fullColour = encoderJPEG;
+    break;
+  }
+
+  // JPEG is the only encoder that can reduce things to grayscale
+  if ((conn->client.subsampling == subsampleGray) && allowLossy) {
+    if (encoders[encoderJPEG]->isSupported()) {
+      solid = bitmap = bitmapRLE = encoderJPEG;
+      indexed = indexedRLE = fullColour = encoderJPEG;
+    } else if (encoders[encoderTightJPEG]->isSupported()) {
+      solid = bitmap = bitmapRLE = encoderTightJPEG;
+      indexed = indexedRLE = fullColour = encoderTightJPEG;
+    }
+  }
+
+  // Can't use lossy encoders for lossless refresh
+  if (!allowLossy) {
+    if ((fullColour != encoderRaw) &&
+        (encoders[fullColour]->flags & EncoderLossy) &&
+        (encoders[fullColour]->losslessQuality == -1))
+      fullColour = encoderRaw;
+    if ((indexed != encoderRaw) &&
+        (encoders[indexed]->flags & EncoderLossy) &&
+        (encoders[indexed]->losslessQuality == -1))
+      indexed = encoderRaw;
+    if ((indexedRLE != encoderRaw) &&
+        (encoders[indexedRLE]->flags & EncoderLossy) &&
+        (encoders[indexedRLE]->losslessQuality == -1))
+      indexedRLE = encoderRaw;
+    if ((bitmap != encoderRaw) &&
+        (encoders[bitmap]->flags & EncoderLossy) &&
+        (encoders[bitmap]->losslessQuality == -1))
+      bitmap = encoderRaw;
+    if ((bitmapRLE != encoderRaw) &&
+        (encoders[bitmapRLE]->flags & EncoderLossy) &&
+        (encoders[bitmapRLE]->losslessQuality == -1))
+      bitmapRLE = encoderRaw;
   }
 
   // Any encoders still unassigned?
 
   if (fullColour == encoderRaw) {
-    if (encoders[encoderTightJPEG]->isSupported() && allowJPEG)
+    if (encoders[encoderJPEG]->isSupported() &&
+        (allowLossy || encoders[encoderJPEG]->losslessQuality != -1))
+      fullColour = encoderJPEG;
+    else if (encoders[encoderTightJPEG]->isSupported() &&
+             (allowLossy ||
+              encoders[encoderTightJPEG]->losslessQuality != -1))
       fullColour = encoderTightJPEG;
     else if (encoders[encoderZRLE]->isSupported())
       fullColour = encoderZRLE;
@@ -460,13 +504,6 @@ void EncodeManager::prepareEncoders(bool allowLossy)
       solid = encoderZRLE;
     else if (encoders[encoderHextile]->isSupported())
       solid = encoderHextile;
-  }
-
-  // JPEG is the only encoder that can reduce things to grayscale
-  if ((conn->client.subsampling == subsampleGray) &&
-      encoders[encoderTightJPEG]->isSupported() && allowLossy) {
-    solid = bitmap = bitmapRLE = encoderTightJPEG;
-    indexed = indexedRLE = fullColour = encoderTightJPEG;
   }
 
   activeEncoders[encoderSolid] = solid;
@@ -844,7 +881,8 @@ void EncodeManager::writeSubRect(const core::Rect& rect,
   maxColours = rect.area()/divisor;
 
   // Special exception inherited from the Tight encoder
-  if (activeEncoders[encoderFullColour] == encoderTightJPEG) {
+  if ((activeEncoders[encoderFullColour] == encoderTightJPEG) ||
+      (activeEncoders[encoderFullColour] == encoderJPEG)) {
     if ((conn->client.compressLevel != -1) && (conn->client.compressLevel < 2))
       maxColours = 24;
     else

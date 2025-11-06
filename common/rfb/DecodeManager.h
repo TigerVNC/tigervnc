@@ -71,6 +71,7 @@ namespace rfb {
     };
 
     DecoderStats stats[encodingMax+1];
+    size_t beforePos;
 
     struct QueueEntry {
       bool active;
@@ -85,6 +86,7 @@ namespace rfb {
 
     std::list<rdr::MemOutStream*> freeBuffers;
     std::list<QueueEntry*> workQueue;
+    QueueEntry* partialEntry;
 
     std::mutex queueMutex;
     std::condition_variable producerCond;

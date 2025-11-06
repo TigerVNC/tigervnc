@@ -45,7 +45,8 @@ using namespace rfb;
 static const int TIGHT_MAX_WIDTH = 2048;
 static const int TIGHT_MIN_TO_COMPRESS = 12;
 
-TightDecoder::TightDecoder() : Decoder(DecoderPartiallyOrdered)
+TightDecoder::TightDecoder()
+  : Decoder(DecoderPartiallyOrdered), readState(IDLE)
 {
 }
 
@@ -56,71 +57,84 @@ TightDecoder::~TightDecoder()
 bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
                             const ServerParams& server, rdr::OutStream* os)
 {
-  uint8_t comp_ctl;
+  if (readState == IDLE) {
+    uint8_t comp_ctl;
 
-  if (!is->hasData(1))
-    return false;
+    if (r.width() > TIGHT_MAX_WIDTH)
+      throw protocol_error(core::format(
+        "TightDecoder: Too large rectangle (%d pixels)", r.width()));
 
-  is->setRestorePoint();
+    if (!is->hasData(1))
+      return false;
 
-  comp_ctl = is->readU8();
-  os->writeU8(comp_ctl);
+    comp_ctl = is->readU8();
+    os->writeU8(comp_ctl);
 
-  comp_ctl >>= 4;
+    comp_ctl >>= 4;
+
+    // Quit on unsupported compression type.
+    if (comp_ctl > tightMaxSubencoding)
+      throw protocol_error("TightDecoder: Bad subencoding value received");
+
+    if (comp_ctl == tightFill)
+      readState = FILL;
+    else if (comp_ctl == tightJpeg)
+      readState = JPEG;
+    else {
+      readPalSize = 0;
+      if ((comp_ctl & tightExplicitFilter) != 0)
+        readState = FILTER;
+      else
+        readState = PIXELS;
+    }
+  }
 
   // "Fill" compression type.
-  if (comp_ctl == tightFill) {
+  if (readState == FILL) {
     if (server.pf().is888()) {
-      if (!is->hasDataOrRestore(3))
+      if (!is->hasData(3))
         return false;
       os->copyBytes(is, 3);
     } else {
-      if (!is->hasDataOrRestore(server.pf().bpp/8))
+      if (!is->hasData(server.pf().bpp/8))
         return false;
       os->copyBytes(is, server.pf().bpp/8);
     }
-    is->clearRestorePoint();
+    readState = IDLE;
     return true;
   }
 
   // "JPEG" compression type.
-  if (comp_ctl == tightJpeg) {
+  if (readState == JPEG) {
     uint32_t len;
 
     // FIXME: Might be less than 3 bytes
-    if (!is->hasDataOrRestore(3))
+    if (!is->hasData(3))
       return false;
 
+    is->setRestorePoint();
+
     len = readCompact(is);
-    os->writeOpaque32(len);
 
     if (!is->hasDataOrRestore(len))
       return false;
 
+    os->writeOpaque32(len);
     os->copyBytes(is, len);
 
     is->clearRestorePoint();
 
+    readState = IDLE;
     return true;
   }
 
-  // Quit on unsupported compression type.
-  if (comp_ctl > tightMaxSubencoding)
-    throw protocol_error("TightDecoder: Bad subencoding value received");
-
   // "Basic" compression type.
 
-  int palSize = 0;
-
-  if (r.width() > TIGHT_MAX_WIDTH)
-    throw protocol_error(core::format(
-      "TightDecoder: Too large rectangle (%d pixels)", r.width()));
-
   // Possible palette
-  if ((comp_ctl & tightExplicitFilter) != 0) {
+  if (readState == FILTER) {
     uint8_t filterId;
 
-    if (!is->hasDataOrRestore(1))
+    if (!is->hasData(1))
       return false;
 
     filterId = is->readU8();
@@ -128,37 +142,52 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
 
     switch (filterId) {
     case tightFilterPalette:
-      if (!is->hasDataOrRestore(1))
-        return false;
-
-      palSize = is->readU8() + 1;
-      os->writeU8(palSize - 1);
-
-      if (server.pf().is888()) {
-        if (!is->hasDataOrRestore(palSize * 3))
-          return false;
-        os->copyBytes(is, palSize * 3);
-      } else {
-        if (!is->hasDataOrRestore(palSize * server.pf().bpp/8))
-          return false;
-        os->copyBytes(is, palSize * server.pf().bpp/8);
-      }
+      readState = PALETTE;
       break;
     case tightFilterGradient:
       if (server.pf().bpp == 8)
         throw protocol_error("TightDecoder: Invalid BPP for gradient filter");
+      readState = PIXELS;
       break;
     case tightFilterCopy:
+      readState = PIXELS;
       break;
     default:
       throw protocol_error("TightDecoder: Unknown filter code received");
     }
   }
 
+  if (readState == PALETTE) {
+    if (!is->hasData(1))
+      return false;
+
+    is->setRestorePoint();
+
+    readPalSize = is->readU8() + 1;
+
+    if (server.pf().is888()) {
+      if (!is->hasDataOrRestore(readPalSize * 3))
+        return false;
+      os->writeU8(readPalSize - 1);
+      os->copyBytes(is, readPalSize * 3);
+    } else {
+      if (!is->hasDataOrRestore(readPalSize * server.pf().bpp/8))
+        return false;
+      os->writeU8(readPalSize - 1);
+      os->copyBytes(is, readPalSize * server.pf().bpp/8);
+    }
+
+    is->clearRestorePoint();
+
+    readState = PIXELS;
+  }
+
+  assert(readState == PIXELS);
+
   size_t rowSize, dataSize;
 
-  if (palSize != 0) {
-    if (palSize <= 2)
+  if (readPalSize != 0) {
+    if (readPalSize <= 2)
       rowSize = (r.width() + 7) / 8;
     else
       rowSize = r.width();
@@ -171,27 +200,30 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
   dataSize = r.height() * rowSize;
 
   if (dataSize < TIGHT_MIN_TO_COMPRESS) {
-    if (!is->hasDataOrRestore(dataSize))
+    if (!is->hasData(dataSize))
       return false;
     os->copyBytes(is, dataSize);
   } else {
     uint32_t len;
 
     // FIXME: Might be less than 3 bytes
-    if (!is->hasDataOrRestore(3))
+    if (!is->hasData(3))
       return false;
 
+    is->setRestorePoint();
+
     len = readCompact(is);
-    os->writeOpaque32(len);
 
     if (!is->hasDataOrRestore(len))
       return false;
 
+    os->writeOpaque32(len);
     os->copyBytes(is, len);
+
+    is->clearRestorePoint();
   }
 
-  is->clearRestorePoint();
-
+  readState = IDLE;
   return true;
 }
 

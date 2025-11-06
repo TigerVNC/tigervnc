@@ -1,6 +1,7 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014-2022 Pierre Ossman for Cendio AB
- * 
+/* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2009-2025 Pierre Ossman for Cendio AB
+ *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,35 +17,42 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_HEXTILEDECODER_H__
-#define __RFB_HEXTILEDECODER_H__
+#ifndef __RFB_JPEGDECODER_H__
+#define __RFB_JPEGDECODER_H__
+
+#include <vector>
 
 #include <rfb/Decoder.h>
+#include <rfb/JpegDecompressor.h>
 
 namespace rfb {
 
-  class PixelFormat;
+  class JPEGDecoder : public Decoder {
 
-  class HextileDecoder : public Decoder {
   public:
-    HextileDecoder();
-    virtual ~HextileDecoder();
+    JPEGDecoder();
+    virtual ~JPEGDecoder();
     bool readRect(const core::Rect& r, rdr::InStream* is,
                   const ServerParams& server,
                   rdr::OutStream* os) override;
     void decodeRect(const core::Rect& r, const uint8_t* buffer,
                     size_t buflen, const ServerParams& server,
                     ModifiablePixelBuffer* pb) override;
-  private:
-    template<class T>
-    inline T readPixel(rdr::InStream* is);
-    template<class T>
-    void hextileDecode(const core::Rect& r, rdr::InStream* is,
-                       const PixelFormat& pf,
-                       ModifiablePixelBuffer* pb);
 
   private:
-    core::Point readTile;
+    bool readSegment(rdr::InStream* is, rdr::OutStream* os);
+    bool readStream(rdr::InStream* is, rdr::OutStream* os);
+
+  private:
+    enum {
+      IDLE,
+      SEGMENT,
+      STREAM,
+    } state;
+    bool seenHuffman, seenQuant;
+    std::vector< std::vector<uint8_t> > lastHuffmanTables;
+    std::vector< std::vector<uint8_t> > lastQuantTables;
   };
 }
+
 #endif

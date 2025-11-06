@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2023 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,18 +17,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_TIGHTJPEGENCODER_H__
-#define __RFB_TIGHTJPEGENCODER_H__
+#ifndef __RFB_JPEGENCODER_H__
+#define __RFB_JPEGENCODER_H__
+
+#include <vector>
 
 #include <rfb/Encoder.h>
 #include <rfb/JpegCompressor.h>
 
 namespace rfb {
 
-  class TightJPEGEncoder : public Encoder {
+  class JPEGEncoder : public Encoder {
   public:
-    TightJPEGEncoder(SConnection* conn);
-    virtual ~TightJPEGEncoder();
+    JPEGEncoder(SConnection* conn);
+    virtual ~JPEGEncoder();
 
     bool isSupported() override;
 
@@ -43,10 +45,10 @@ namespace rfb {
                         const uint8_t* colour) override;
 
   protected:
-    void writeCompact(uint32_t value, rdr::OutStream* os);
-
-  protected:
     JpegCompressor jc;
+
+    std::vector<uint8_t> lastHuffmanTables;
+    std::vector<uint8_t> lastQuantTables;
   };
 }
 #endif

@@ -48,7 +48,6 @@ extern core::AliasParameter lowColourLevelAlias;
 extern core::EnumParameter preferredEncoding;
 extern core::BoolParameter customCompressLevel;
 extern core::IntParameter compressLevel;
-extern core::BoolParameter noJpeg;
 extern core::IntParameter qualityLevel;
 
 extern core::BoolParameter maximize;
