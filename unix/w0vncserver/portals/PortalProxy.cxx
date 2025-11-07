@@ -219,8 +219,6 @@ bool PortalProxy::interfacesAvailable(std::vector<std::string> interfaces)
   }
 
   g_dbus_node_info_unref(nodeInfo);
-
-  g_dbus_connection_close_sync(connection, nullptr, nullptr);
   g_object_unref(connection);
 
   return !interfaceMissing;
