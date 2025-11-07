@@ -419,9 +419,9 @@ if(UNIX AND NOT APPLE)
     find_package(Xkbcommon REQUIRED)
   endif()
   if(NOT GLIB_FOUND OR NOT GIO_FOUND OR NOT GOBJECT_FOUND OR NOT PIPEWIRE_FOUND
-     OR NOT UUID_FOUND OR NOT WAYLAND_FOUND OR NOT XKBCOMMON_FOUND)
+     OR NOT UUID_FOUND OR NOT WAYLANDCLIENT_FOUND OR NOT XKBCOMMON_FOUND)
     set(ENABLE_WAYLAND 0)
-    message(WARNING "GLib, Gio, Gobject, PipeWire, Uuid, Wayland or Xkbcommon NOT found. w0vncserver disabled.")
+    message(WARNING "GLib, Gio, Gobject, PipeWire, Uuid, WaylandClient or Xkbcommon NOT found. w0vncserver disabled.")
   endif()
 endif()
 
