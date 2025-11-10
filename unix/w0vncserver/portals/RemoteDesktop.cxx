@@ -40,6 +40,7 @@
 #include "../w0vncserver.h"
 #include "portalConstants.h"
 #include "RemoteDesktop.h"
+#include "Clipboard.h"
 #include "PortalProxy.h"
 
 // Maximum number of buttons
@@ -90,12 +91,18 @@ RemoteDesktop::RemoteDesktop(std::string restoreToken_,
                              std::function<void(int fd, uint32_t nodeId)>
                                startPipewireCb_,
                              std::function<void(const char*)>
-                               cancelStartCb_)
+                               cancelStartCb_,
+                              std::function<void(const char* data)>
+                                sendClipboardDataCb_,
+                              std::function<void(bool available)>
+                                clipboardAnnounceCb_)
   : sessionStarted(false), oldButtonMask(0), selectedDevices(0),
-    sessionHandle(""), remoteDesktop(nullptr), screenCast(nullptr),
-    session(nullptr), restoreToken(restoreToken_),
-    startPipewireCb(startPipewireCb_),
-    cancelStartCb(cancelStartCb_)
+    clipboardEnabled(false), sessionHandle(""), remoteDesktop(nullptr),
+    screenCast(nullptr), clipboard(nullptr), session(nullptr),
+    restoreToken(restoreToken_), startPipewireCb(startPipewireCb_),
+    cancelStartCb(cancelStartCb_),
+    sendClipboardDataCb(sendClipboardDataCb_),
+    clipboardAnnounceCb(clipboardAnnounceCb_)
 {
   remoteDesktop = new PortalProxy("org.freedesktop.portal.Desktop",
                                   "/org/freedesktop/portal/desktop",
@@ -111,6 +118,7 @@ RemoteDesktop::~RemoteDesktop()
   delete session;
   delete screenCast;
   delete remoteDesktop;
+  delete clipboard;
 }
 
 void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym, bool down)
@@ -263,6 +271,18 @@ void RemoteDesktop::createSession()
                                 this, std::placeholders::_1));
 }
 
+void RemoteDesktop::setSelection(const char* data)
+{
+  if (clipboard && clipboardEnabled)
+    clipboard->setSelection(data);
+}
+
+void RemoteDesktop::requestClipboard()
+{
+  if (clipboard && clipboardEnabled)
+    clipboard->selectionRead();
+}
+
 void RemoteDesktop::closeSession()
 {
   if (session && sessionStarted)
@@ -292,6 +312,7 @@ void RemoteDesktop::selectDevices()
   if (loadRestoreToken()) {
     g_variant_builder_add(&optionsBuilder, "{sv}", "restore_token",
                           g_variant_new_string(restoreToken.c_str()));
+    // FIXME: Check if clipboard enabled?????
   }
 
   params = g_variant_new("(oa{sv})", sessionHandle.c_str(), &optionsBuilder);
@@ -404,6 +425,7 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   g_variant_unref(result);
 
   sessionHandle = g_variant_get_string(sessionHandleVariant, nullptr);
+
   g_variant_unref(sessionHandleVariant);
 
   // This proxy is used to to close the session.
@@ -421,6 +443,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   GVariant* streams_;
   GVariant* devices;
   GVariant* newRestoreToken;
+  GVariant* clipboardEnabled_;
 
   assert(!sessionStarted);
 
@@ -452,6 +475,16 @@ void RemoteDesktop::handleStart(GVariant* parameters)
                                     G_VARIANT_TYPE_ARRAY);
   g_variant_unref(result);
 
+  clipboardEnabled_ = g_variant_lookup_value(result,"clipboard_enabled",
+                                             G_VARIANT_TYPE_BOOLEAN);
+  if (clipboardEnabled_) {
+    clipboardEnabled = g_variant_get_boolean(clipboardEnabled_);
+    g_variant_unref(clipboardEnabled_);
+  }
+
+  if (clipboardEnabled)
+    clipboard->subscribe();
+
   if (!parseStreams(streams_)) {
     g_variant_unref(streams_);
     fatal_error("Failed to parse streams");
@@ -471,6 +504,11 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
 void RemoteDesktop::handleSelectSources(GVariant* /* parameters */)
 {
+  if (Clipboard::available()) {
+    clipboard = new Clipboard(sessionHandle, sendClipboardDataCb, clipboardAnnounceCb);
+    clipboard->requestClipboard();
+  }
+
   start();
 }
 

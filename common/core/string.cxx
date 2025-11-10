@@ -606,6 +606,20 @@ namespace core {
     return true;
   }
 
+  bool isValidAscii(const char* str, size_t bytes)
+  {
+    if (str == nullptr || bytes == 0)
+      return false;
+
+    while(*str != '\0' && bytes-- > 0) {
+      if (!isascii(*str))
+        return false;
+     str++;
+    }
+
+    return true;
+  }
+
   static std::string doPrefix(long long value, const char *unit,
                               unsigned divisor, const char **prefixes,
                               size_t prefixCount, int precision) {

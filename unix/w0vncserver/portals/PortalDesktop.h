@@ -49,6 +49,9 @@ public:
   void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
   void pointerEvent(const core::Point& pos,
                     uint16_t buttonMask) override;
+  void handleClipboardRequest() override;
+  void handleClipboardAnnounce(bool available) override;
+  void handleClipboardData(const char* data) override;
 
   // Check if portals implementations are available
   static bool available();

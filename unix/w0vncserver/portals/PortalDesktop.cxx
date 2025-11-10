@@ -76,7 +76,17 @@ void PortalDesktop::start()
     server->closeClients(reason);
   };
 
-  remoteDesktop = new RemoteDesktop(restoreToken, startPipewire, cancelStart);
+  std::function<void(const char*)> sendClipboardData = [this](const char* data) {
+    server->sendClipboardData(data);
+  };
+
+  std::function<void(bool available)> clipboardAnnounceCb = [this](bool available) {
+    server->announceClipboard(available);
+  };
+
+  remoteDesktop = new RemoteDesktop(restoreToken, startPipewire,
+                                    cancelStart, sendClipboardData,
+                                    clipboardAnnounceCb);
   remoteDesktop->createSession();
 }
 
@@ -138,6 +148,22 @@ void PortalDesktop::pointerEvent(const core::Point& pos,
                             uint16_t buttonMask)
 {
   remoteDesktop->notifyPointerMotionAbsolute(pos.x, pos.y, buttonMask);
+}
+
+void PortalDesktop::handleClipboardRequest()
+{
+  remoteDesktop->requestClipboard();
+}
+
+void PortalDesktop::handleClipboardAnnounce(bool available)
+{
+  if (available)
+    server->requestClipboard();
+}
+
+void PortalDesktop::handleClipboardData(const char* data)
+{
+  if (data) remoteDesktop->setSelection(data);
 }
 
 bool PortalDesktop::available()
