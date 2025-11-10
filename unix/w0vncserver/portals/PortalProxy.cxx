@@ -68,6 +68,8 @@ PortalProxy::~PortalProxy() {
   if (connection) {
     for (uint32_t pendingCall : pendingCalls)
       g_dbus_connection_signal_unsubscribe(connection, pendingCall);
+    for (uint32_t signalId : subscribedSignals)
+      g_dbus_connection_signal_unsubscribe(connection, signalId);
 
     g_object_unref(connection);
   }
@@ -133,6 +135,45 @@ void PortalProxy::call(const char* method, GVariant* parameters,
   }
 
   g_variant_unref(result);
+}
+
+void PortalProxy::subscribe(const char* member,
+                            std::function<void(GVariant* parameters)>
+                              signalCallback)
+{
+  struct Callback {
+    std::function<void(GVariant* parameters)> callback;
+  };
+
+  Callback* callback;
+  uint32_t signalId;
+
+  callback = new Callback;
+  callback->callback = signalCallback;
+
+  signalId = g_dbus_connection_signal_subscribe(
+               connection,
+               "org.freedesktop.portal.Desktop",
+               g_dbus_proxy_get_interface_name(proxy),
+               member, "/org/freedesktop/portal/desktop",
+               nullptr,
+               G_DBUS_SIGNAL_FLAGS_NONE,
+               [](GDBusConnection*, const char*, const char*,
+                 const char*, const char*,
+                 GVariant* parameters, void* userData) {
+                   ((Callback*)userData)->callback(parameters);
+               },
+               callback, [](void* userData) {
+                   delete (Callback*)userData;
+               });
+
+  subscribedSignals.push_back(signalId);
+}
+
+void PortalProxy::unsubscribe(uint32_t signalId)
+{
+  g_dbus_connection_signal_unsubscribe(connection, signalId);
+  subscribedSignals.remove(signalId);
 }
 
 std::string PortalProxy::newToken()
