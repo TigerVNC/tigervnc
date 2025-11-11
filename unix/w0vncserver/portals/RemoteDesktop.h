@@ -55,6 +55,7 @@ public:
 
   std::string getRestoreToken() const { return restoreToken; }
   std::string getSessionHandle() const { return sessionHandle; }
+  bool getClipboardEnabled() const { return clipboardEnabled; }
 
 private:
   // Portal methods
@@ -86,10 +87,14 @@ private:
   // Stores the restore token, returns false on error
   bool storeRestoreToken(const char* restoreToken);
 
+  bool loadClipboardPreference();
+  bool storeClipboardPreference(bool clipboardPreference);
+
 private:
   bool sessionStarted;
   uint16_t oldButtonMask;
   uint32_t selectedDevices;
+  bool enableClipboard;
   bool clipboardEnabled;
   std::string sessionHandle;
 

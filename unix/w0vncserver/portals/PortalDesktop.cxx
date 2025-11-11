@@ -177,20 +177,31 @@ void PortalDesktop::pointerEvent(const core::Point& pos,
 
 void PortalDesktop::handleClipboardRequest()
 {
-  if (clipboard)
-    clipboard->selectionRead();
+  if (!remoteDesktop->getClipboardEnabled())
+    return;
+
+  assert(clipboard);
+
+  clipboard->selectionRead();
 }
 
 void PortalDesktop::handleClipboardAnnounce(bool available)
 {
+  if (!remoteDesktop->getClipboardEnabled())
+    return;
+
   if (available)
     clipboard->setSelection();
 }
 
 void PortalDesktop::handleClipboardData(const char* data)
 {
-  if (clipboard)
-    clipboard->handleClipboardData(data);
+  if (!remoteDesktop->getClipboardEnabled())
+    return;
+
+  assert(clipboard);
+
+  clipboard->handleClipboardData(data);
 }
 bool PortalDesktop::available()
 {
