@@ -66,6 +66,7 @@ core::EnumParameter
 
 // Sync with w0vncserver-forget
 static const char* RESTORE_TOKEN_FILENAME =  "restoretoken";
+static const char* CLIPBOARD_PREFERENCE_FILENAME =  "clipboard";
 
 static core::LogWriter vlog("RemoteDesktop");
 
@@ -309,10 +310,16 @@ void RemoteDesktop::selectDevices()
   g_variant_builder_add(&optionsBuilder, "{sv}", "handle_token",
                         g_variant_new_string(requestHandleToken.c_str()));
 
+
+  enableClipboard = true;
+
   if (loadRestoreToken()) {
     g_variant_builder_add(&optionsBuilder, "{sv}", "restore_token",
                           g_variant_new_string(restoreToken.c_str()));
-    // FIXME: Check if clipboard enabled?????
+    // Even if our previous session had clipboard enabled, we still have
+    // to explicitly request for it before we call RemoteDesktop.start
+    // again.
+    enableClipboard = loadClipboardPreference();
   }
 
   params = g_variant_new("(oa{sv})", sessionHandle.c_str(), &optionsBuilder);
@@ -484,6 +491,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   if (clipboardEnabled)
     clipboard->subscribe();
+  storeClipboardPreference(clipboardEnabled);
 
   if (!parseStreams(streams_)) {
     g_variant_unref(streams_);
@@ -504,7 +512,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
 void RemoteDesktop::handleSelectSources(GVariant* /* parameters */)
 {
-  if (Clipboard::available()) {
+  if (Clipboard::available() && enableClipboard) {
     clipboard = new Clipboard(sessionHandle, sendClipboardDataCb, clipboardAnnounceCb);
     clipboard->requestClipboard();
   }
@@ -695,3 +703,71 @@ bool RemoteDesktop::storeRestoreToken(const char* newToken)
   return true;
 }
 
+bool RemoteDesktop::loadClipboardPreference()
+{
+  char filepath[PATH_MAX];
+  FILE* f;
+  const char* stateDir;
+  char clipboardPreference[2];
+
+  stateDir = core::getvncstatedir();
+  if (!stateDir) {
+    vlog.error("Could not get state directory");
+    return false;
+  }
+
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, CLIPBOARD_PREFERENCE_FILENAME);
+  f = fopen(filepath, "r");
+  if (!f) {
+    if (errno != ENOENT)
+      vlog.error("Could not open \"%s\": %s", filepath, strerror(errno));
+
+    return false;
+  }
+
+  if (fgets(clipboardPreference, sizeof(clipboardPreference), f)) {
+    fclose(f);
+    clipboardEnabled = strcmp(clipboardPreference, "1") == 0;
+    return clipboardEnabled;
+  }
+  fclose(f);
+
+  vlog.error("Could not read clipboard preference from \"%s\"", filepath);
+  return false;
+}
+
+bool RemoteDesktop::storeClipboardPreference(bool clipboardPreference)
+{
+  char filepath[PATH_MAX];
+  FILE* f;
+  const char* stateDir;
+
+  // Store clipboard preference to file so it can be re-used on next startup
+  stateDir = core::getvncstatedir();
+  if (!stateDir) {
+    vlog.error("Could not determine VNC state directory path, cannot store clipboard preference");
+    return false;
+  }
+
+  if (core::mkdir_p(stateDir, 0755) == -1) {
+    if (errno != EEXIST) {
+      vlog.error("Could not create VNC config directory \"%s\": %s",
+                  stateDir, strerror(errno));
+      return false;
+    }
+  }
+
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir,
+           CLIPBOARD_PREFERENCE_FILENAME);
+
+  f = fopen(filepath, "w");
+  if (!f) {
+    vlog.error("Could not store clipboard preference to \"%s\": %s", filepath, strerror(errno));
+    return false;
+  }
+
+  fprintf(f, "%d", clipboardPreference);
+  fclose(f);
+
+  return true;
+}
