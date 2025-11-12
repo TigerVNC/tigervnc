@@ -77,8 +77,6 @@ private:
   bool loadRestoreToken();
   // Stores the restore token, returns false on error
   bool storeRestoreToken(const char* restoreToken);
-  // Resets the restore token, returns false on error
-  bool clearRestoreToken();
 
 private:
   bool sessionStarted;
