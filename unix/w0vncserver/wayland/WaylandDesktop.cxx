@@ -33,7 +33,9 @@
 #include <rfb/VNCServerST.h>
 
 #include "../w0vncserver.h"
+#include "../parameters.h"
 #include "objects/Display.h"
+#include "objects/DataControl.h"
 #include "objects/Output.h"
 #include "objects/Seat.h"
 #include "objects/VirtualPointer.h"
@@ -49,7 +51,7 @@ static core::LogWriter vlog("WaylandDesktop");
 WaylandDesktop::WaylandDesktop(GMainLoop* loop_)
   : server(nullptr), pb(nullptr), loop(loop_), waylandSource(nullptr),
     display(nullptr), seat(nullptr), virtualPointer(nullptr),
-    virtualKeyboard(nullptr)
+    virtualKeyboard(nullptr), dataControl(nullptr)
 {
   assert(available());
 
@@ -81,6 +83,25 @@ void WaylandDesktop::start()
     virtualPointer = new wayland::VirtualPointer(display, seat);
     virtualKeyboard = new wayland::VirtualKeyboard(display, seat);
 
+    if (display->interfaceAvailable("ext_data_control_manager_v1")) {
+      std::function<void(bool available)> clipboardAnnounceCb = [this](bool available) {
+        server->announceClipboard(available);
+      };
+      std::function<void(const char* data)> sendClipboardData = [this](const char* data) {
+        server->sendClipboardData(data);
+      };
+      std::function<void()> clipboardRequestCb = [this]() {
+        server->requestClipboard();
+      };
+
+      dataControl = new wayland::DataControl(display, seat,
+                                             clipboardAnnounceCb,
+                                             clipboardRequestCb,
+                                             sendClipboardData);
+    } else {
+      vlog.info("ext-data-control-v1 not available, Clipboard disabled");
+    }
+
     server->setPixelBuffer(pb);
     server->setLEDState(virtualKeyboard->getLEDState());
   };
@@ -106,6 +127,9 @@ void WaylandDesktop::stop()
 
   delete pb;
   pb = nullptr;
+
+  delete dataControl;
+  dataControl = nullptr;
 }
 
 void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
@@ -143,6 +167,38 @@ void WaylandDesktop::queryConnection(network::Socket* sock,
 void WaylandDesktop::terminate()
 {
   kill(getpid(), SIGTERM);
+}
+
+void WaylandDesktop::handleClipboardRequest()
+{
+  if (!dataControl)
+    return;
+
+  dataControl->receive();
+}
+
+void WaylandDesktop::handleClipboardAnnounce(bool available)
+{
+  if (!dataControl)
+    return;
+
+  if (available) {
+    dataControl->setSelection();
+    if (setPrimary)
+      dataControl->setPrimarySelection();
+  } else {
+    dataControl->clearSelection();
+    if (setPrimary)
+      dataControl->clearPrimarySelection();
+  }
+}
+
+void WaylandDesktop::handleClipboardData(const char* data)
+{
+  if (!dataControl)
+    return;
+
+  dataControl->writePending(data);
 }
 
 bool WaylandDesktop::available()

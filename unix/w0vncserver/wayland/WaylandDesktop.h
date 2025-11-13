@@ -32,6 +32,7 @@ namespace wayland {
   class Seat;
   class VirtualPointer;
   class VirtualKeyboard;
+  class DataControl;
 };
 
 class WaylandPixelBuffer;
@@ -54,6 +55,10 @@ public:
                         const char* userName) override;
   void terminate() override;
 
+  virtual void handleClipboardRequest() override;
+  virtual void handleClipboardAnnounce(bool available) override;
+  virtual void handleClipboardData(const char* data) override;
+
   // Check if necessary wayland protocols are available
   static bool available();
 
@@ -73,5 +78,6 @@ private:
   wayland::Output* output;
   wayland::VirtualPointer* virtualPointer;
   wayland::VirtualKeyboard* virtualKeyboard;
+  wayland::DataControl* dataControl;
 };
 #endif // __WAYLAND_DESKTOP_H__
