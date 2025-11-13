@@ -1,14 +1,14 @@
 # Hebrew translation of TigerVNC.
 # Copyright (C) 2019 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
-# Yaron Shahrabani <sh.yaron@gmail.com>, 2021-2023.
+# Yaron Shahrabani <sh.yaron@gmail.com>, 2025
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc-1.14.90\n"
+"Project-Id-Version: tigervnc-1.15.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2025-01-14 16:15+0100\n"
-"PO-Revision-Date: 2025-09-29 15:43+0300\n"
+"POT-Creation-Date: 2025-11-07 10:53+0100\n"
+"PO-Revision-Date: 2025-11-13 18:22+0200\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <heb-bugzap@hamakor.org.il>\n"
 "Language: he\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n==2 ? 1 : n>10 && n%10==0 ? 2 : 3);\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.8\n"
 
-#: vncviewer/CConn.cxx:102
+#: vncviewer/CConn.cxx:158
 #, c-format
 msgid "Connected to socket %s"
 msgstr "מחובר לשקע %s"
 
-#: vncviewer/CConn.cxx:109
+#: vncviewer/CConn.cxx:165
 #, c-format
 msgid "Connected to host %s port %d"
 msgstr "מחובר למארח %s פתחה %d"
 
-#: vncviewer/CConn.cxx:114
+#: vncviewer/CConn.cxx:170
 #, c-format
 msgid ""
 "Failed to connect to \"%s\":\n"
@@ -42,66 +42,61 @@ msgstr ""
 "‬\n"
 "‏‫%s"
 
-#: vncviewer/CConn.cxx:151
+#: vncviewer/CConn.cxx:190
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "שם שולחן העבודה %.80s"
 
-#: vncviewer/CConn.cxx:154
+#: vncviewer/CConn.cxx:193
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "מארח: %.80s פתחה: %d"
 
-#: vncviewer/CConn.cxx:158
+#: vncviewer/CConn.cxx:197
 #, c-format
 msgid "Size: %d x %d"
 msgstr "גודל: %d x %d"
 
-#: vncviewer/CConn.cxx:165
+#: vncviewer/CConn.cxx:204
 #, c-format
 msgid "Pixel format: %s"
 msgstr "תצורת פיקסלים: %s"
 
-#: vncviewer/CConn.cxx:170
-#, c-format
-msgid "(server default %s)"
-msgstr "(בררת המחדל של השרת %s)"
-
-#: vncviewer/CConn.cxx:173
+#: vncviewer/CConn.cxx:207
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "קידוד נדרש: %s"
 
-#: vncviewer/CConn.cxx:177
+#: vncviewer/CConn.cxx:211
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "קידוד אחרון: %s"
 
-#: vncviewer/CConn.cxx:181
+#: vncviewer/CConn.cxx:215
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "הערכת מהירות הקו: %d קסל״ש"
 
-#: vncviewer/CConn.cxx:185
+#: vncviewer/CConn.cxx:219
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "גרסת פרוטוקול: %d.%d"
 
-#: vncviewer/CConn.cxx:189
+#: vncviewer/CConn.cxx:223
 #, c-format
 msgid "Security method: %s"
 msgstr "שיטת אבטחה: %s"
 
-#: vncviewer/CConn.cxx:250 vncviewer/CConn.cxx:252
+#: vncviewer/CConn.cxx:284 vncviewer/CConn.cxx:286
 msgid "The connection was dropped by the server before the session could be established."
 msgstr "החיבור נקטע מצד השרת בטרם יצירת החיבור הראשוני."
 
-#: vncviewer/CConn.cxx:262
+#: vncviewer/CConn.cxx:296
 #, c-format
 msgid "Authentication failed: %s"
 msgstr "האימות נכשל: %s"
 
-#: vncviewer/CConn.cxx:263
+#: vncviewer/CConn.cxx:297
 #, c-format
 msgid ""
 "Failed to authenticate with the server. Reason given by the server:\n"
@@ -112,366 +107,442 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/CConn.cxx:335
-#, c-format
-msgid "SetDesktopSize failed: %d"
-msgstr "‫SetDesktopSize נכשלה: %d"
-
-#: vncviewer/CConn.cxx:408
-msgid "Invalid SetColourMapEntries from server!"
-msgstr "‫SetColourMapEntries שגוי מהשרת!"
-
-#: vncviewer/CConn.cxx:516
+#: vncviewer/CConn.cxx:526
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "תפוקה %d קסל״ש - האיכות תוחלף לכדי %d"
 
-#: vncviewer/CConn.cxx:538
+#: vncviewer/CConn.cxx:557
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "‫תפוקה %d קסל״ש - צבע מלא פעיל מעתה"
 
-#: vncviewer/CConn.cxx:541
+#: vncviewer/CConn.cxx:560
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
 msgstr "‫תפוקה %d קסל״ש - צבע מלא מושבת מעתה"
 
-#: vncviewer/CConn.cxx:567
+#: vncviewer/CConn.cxx:579
 #, c-format
 msgid "Using pixel format %s"
 msgstr "נעשה שימוש בתצורת פיקסלים %s"
 
-#: vncviewer/DesktopWindow.cxx:146
+#: vncviewer/DesktopWindow.cxx:152
 msgid "Invalid geometry specified!"
 msgstr "הממדים שצוינו שגויים!"
 
-#: vncviewer/DesktopWindow.cxx:167
+#: vncviewer/DesktopWindow.cxx:173
 msgid "Reducing window size to fit on current monitor"
 msgstr "החלון מוקטן כדי להתאים לגודל המסך הנוכחי"
 
-#: vncviewer/DesktopWindow.cxx:646
+#: vncviewer/DesktopWindow.cxx:244
+#, c-format
+msgid "Press %sM to open the context menu"
+msgstr "לחיצה על %sM תפתח את תפריט ההקשר"
+
+#: vncviewer/DesktopWindow.cxx:312
+#, c-format
+msgid "%s - TigerVNC (keyboard grabbed)"
+msgstr "%s - TigerVNC (מקלדת לכודה)"
+
+#: vncviewer/DesktopWindow.cxx:314
+#, c-format
+msgid "%s - TigerVNC"
+msgstr "%s - TigerVNC"
+
+#: vncviewer/DesktopWindow.cxx:705
 msgid "Adjusting window size to avoid accidental full-screen request"
 msgstr "Adjusting window size to avoid accidental full-screen request"
 
-#: vncviewer/DesktopWindow.cxx:694
+#: vncviewer/DesktopWindow.cxx:915
 #, c-format
-msgid "Press %s to open the context menu"
-msgstr "לחיצה על %s תפתח את תפריט ההקשר"
+msgid "Press %sEnter to leave full-screen mode"
+msgstr "לחיצה על %sEnter תקטין את המסך"
 
-#: vncviewer/DesktopWindow.cxx:1094 vncviewer/DesktopWindow.cxx:1102
-#: vncviewer/DesktopWindow.cxx:1122
-msgid "Failure grabbing keyboard"
-msgstr "לכידת המקלדת נכשלה"
+#: vncviewer/DesktopWindow.cxx:1204 vncviewer/DesktopWindow.cxx:1205
+#: vncviewer/DesktopWindow.cxx:1213 vncviewer/DesktopWindow.cxx:1214
+#: vncviewer/DesktopWindow.cxx:1239 vncviewer/DesktopWindow.cxx:1240
+msgid "Failure grabbing control of the keyboard"
+msgstr "לכידת השליטה במקלדת נכשלה"
 
-#: vncviewer/DesktopWindow.cxx:1411
+#: vncviewer/DesktopWindow.cxx:1258
+#, c-format
+msgid "Press %s to release keyboard control from the session"
+msgstr "לחיצה על %s תשחרר את שליטת המקלדת מההפעלה"
+
+#: vncviewer/DesktopWindow.cxx:1525
 msgid "Invalid screen layout computed for resize request!"
 msgstr "חושבה פריסת מסך שגויה לבקשת שינוי הגודל!"
 
-#: vncviewer/EmulateMB.cxx:226 vncviewer/EmulateMB.cxx:289
+#: vncviewer/EmulateMB.cxx:227 vncviewer/EmulateMB.cxx:290
 msgid "Invalid state for 3 button emulation"
 msgstr "מצב שגוי להדמיית 3 כפתורים"
 
-#: vncviewer/KeyboardWin32.cxx:242
+#: vncviewer/KeyboardWin32.cxx:248
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "אין קוד סריקה למקש הווירטואלי המורחב 0x%02x"
 
-#: vncviewer/KeyboardWin32.cxx:244
+#: vncviewer/KeyboardWin32.cxx:250
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "‫אין קוד סריקה למקש הווירטואלי 0x%02x"
 
-#: vncviewer/KeyboardWin32.cxx:250
+#: vncviewer/KeyboardWin32.cxx:256
 #, c-format
 msgid "Invalid scan code 0x%02x"
 msgstr "קוד סריקה שגוי 0x%02x"
 
-#: vncviewer/KeyboardWin32.cxx:262
+#: vncviewer/KeyboardWin32.cxx:284
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "אין סימן למקש הווירטואלי המורחב 0x%02x"
 
-#: vncviewer/KeyboardWin32.cxx:264
+#: vncviewer/KeyboardWin32.cxx:286
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "אין סימן למקש הווירטואלי 0x%02x"
 
-#: vncviewer/KeyboardWin32.cxx:423
+#: vncviewer/KeyboardWin32.cxx:553
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
 msgstr "עדכון מצב נורית המקלדת נכשל: %lu"
 
-#: vncviewer/KeyboardX11.cxx:104
+#: vncviewer/KeyboardX11.cxx:167
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "אין סימן לקוד המקש %d (במצב הנוכחי)"
 
-#: vncviewer/KeyboardX11.cxx:129
+#: vncviewer/KeyboardX11.cxx:218
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
 msgstr "קבלת מצב נורית המקלדת נכשלה: %d"
 
-#: vncviewer/KeyboardX11.cxx:174
+#: vncviewer/KeyboardX11.cxx:263
 msgid "Failed to update keyboard LED state"
 msgstr "עדכון מצב נורית המקלדת נכשל"
 
-#: vncviewer/MonitorIndicesParameter.cxx:52
-#: vncviewer/MonitorIndicesParameter.cxx:100
+#: vncviewer/MonitorIndicesParameter.cxx:53
+#: vncviewer/MonitorIndicesParameter.cxx:85
 msgid "Failed to get system monitor configuration"
 msgstr "קבלת הגדרות צג המערכת נכשלה"
 
-#: vncviewer/MonitorIndicesParameter.cxx:79
-#, c-format
-msgid "Invalid configuration specified for %s"
-msgstr "צוינו הגדרות שגויות עבור %s"
-
-#: vncviewer/MonitorIndicesParameter.cxx:86
+#: vncviewer/MonitorIndicesParameter.cxx:73
 #, c-format
 msgid "Monitor index %d does not exist"
 msgstr "מפתח צג %d לא קיים"
 
-#: vncviewer/MonitorIndicesParameter.cxx:162
-#: vncviewer/MonitorIndicesParameter.cxx:182
-#, c-format
-msgid "Invalid monitor index '%s'"
-msgstr "מפתח הצג ‚%s’ שגוי"
-
-#: vncviewer/MonitorIndicesParameter.cxx:170
-#, c-format
-msgid "Unexpected character '%c'"
-msgstr "התו ‚%c’ אינו צפוי"
-
-#: vncviewer/OptionsDialog.cxx:64
+#: vncviewer/OptionsDialog.cxx:70
 msgid "TigerVNC options"
 msgstr "אפשרויות TigerVNC"
 
-#: vncviewer/OptionsDialog.cxx:97 vncviewer/ServerDialog.cxx:107
+#: vncviewer/OptionsDialog.cxx:104 vncviewer/ServerDialog.cxx:110
 #: vncviewer/vncviewer.cxx:397
 msgid "Cancel"
 msgstr "ביטול"
 
-#: vncviewer/OptionsDialog.cxx:102 vncviewer/vncviewer.cxx:396
+#: vncviewer/OptionsDialog.cxx:109 vncviewer/vncviewer.cxx:396
 msgid "OK"
 msgstr "אישור"
 
-#: vncviewer/OptionsDialog.cxx:514
+#: vncviewer/OptionsDialog.cxx:532
 msgid "Compression"
 msgstr "דחיסה"
 
-#: vncviewer/OptionsDialog.cxx:530
+#: vncviewer/OptionsDialog.cxx:549
 msgid "Auto select"
 msgstr "בחירה אוטומטית"
 
-#: vncviewer/OptionsDialog.cxx:541
+#: vncviewer/OptionsDialog.cxx:556
+msgid "Allow JPEG compression"
+msgstr "לאפשר דחיסת JPEG"
+
+#: vncviewer/OptionsDialog.cxx:566
 msgid "Preferred encoding"
 msgstr "קידוד מועדף"
 
-#: vncviewer/OptionsDialog.cxx:602
+#: vncviewer/OptionsDialog.cxx:634
 msgid "Color level"
 msgstr "רמת צבע"
 
-#: vncviewer/OptionsDialog.cxx:614
+#: vncviewer/OptionsDialog.cxx:646
 msgid "Full"
 msgstr "מלאה"
 
-#: vncviewer/OptionsDialog.cxx:621
+#: vncviewer/OptionsDialog.cxx:653
 msgid "Medium"
 msgstr "בינונית"
 
-#: vncviewer/OptionsDialog.cxx:628
+#: vncviewer/OptionsDialog.cxx:660
 msgid "Low"
 msgstr "נמוכה"
 
-#: vncviewer/OptionsDialog.cxx:635
+#: vncviewer/OptionsDialog.cxx:667
 msgid "Very low"
 msgstr "נמוכה מאוד"
 
-#: vncviewer/OptionsDialog.cxx:657
-msgid "Custom compression level:"
-msgstr "רמת דחיבה מותאמת אישית:"
+#: vncviewer/OptionsDialog.cxx:689
+msgid "Custom compression level"
+msgstr "רמת דחיסה מותאמת אישית"
 
-#: vncviewer/OptionsDialog.cxx:664
+#: vncviewer/OptionsDialog.cxx:702
 msgid "level (0=fast, 9=best)"
 msgstr "רמה (0=מהירה, 9=מיטבית)"
 
-#: vncviewer/OptionsDialog.cxx:671
-msgid "Allow JPEG compression:"
-msgstr "לאפשר דחיסת JPEG:"
+#: vncviewer/OptionsDialog.cxx:721
+msgid "Quality level"
+msgstr "רמת איכות"
 
-#: vncviewer/OptionsDialog.cxx:678
+#: vncviewer/OptionsDialog.cxx:732
 msgid "quality (0=poor, 9=best)"
 msgstr "איכות (0=עלובה, 9=מיטבית)"
 
-#: vncviewer/OptionsDialog.cxx:689
+#: vncviewer/OptionsDialog.cxx:756
 msgid "Security"
 msgstr "אבטחה"
 
-#: vncviewer/OptionsDialog.cxx:703
+#: vncviewer/OptionsDialog.cxx:770
 msgid "Encryption"
 msgstr "הצפנה"
 
-#: vncviewer/OptionsDialog.cxx:715 vncviewer/OptionsDialog.cxx:782
-#: vncviewer/OptionsDialog.cxx:905
+#: vncviewer/OptionsDialog.cxx:782 vncviewer/OptionsDialog.cxx:849
 msgid "None"
 msgstr "ללא"
 
-#: vncviewer/OptionsDialog.cxx:722
+#: vncviewer/OptionsDialog.cxx:789
 msgid "TLS with anonymous certificates"
 msgstr "‫TLS עם אישורים אלמוניים"
 
-#: vncviewer/OptionsDialog.cxx:728
+#: vncviewer/OptionsDialog.cxx:795
 msgid "TLS with X509 certificates"
 msgstr "‫TLS עם אישורי X509"
 
-#: vncviewer/OptionsDialog.cxx:735
+#: vncviewer/OptionsDialog.cxx:802
 msgid "Path to X509 CA certificate"
 msgstr "נתיב לאישורי X509 של רשות אישורים"
 
-#: vncviewer/OptionsDialog.cxx:742
+#: vncviewer/OptionsDialog.cxx:809
 msgid "Path to X509 CRL file"
 msgstr "נתיב לקובץ X509 CRL"
 
-#: vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:837
 msgid "Authentication"
 msgstr "אימות"
 
-#: vncviewer/OptionsDialog.cxx:788
+#: vncviewer/OptionsDialog.cxx:855
 msgid "Standard VNC (insecure without encryption)"
 msgstr "רגיל של VNC (בלתי מאובטח וללא הצפנה)"
 
-#: vncviewer/OptionsDialog.cxx:794
+#: vncviewer/OptionsDialog.cxx:861
 msgid "Username and password (insecure without encryption)"
 msgstr "שם משתמש וססמה (בלתי מאובטח וללא הצפנה)"
 
-#: vncviewer/OptionsDialog.cxx:822
+#: vncviewer/OptionsDialog.cxx:889
 msgid "Input"
 msgstr "קלט"
 
-#: vncviewer/OptionsDialog.cxx:835
+#: vncviewer/OptionsDialog.cxx:902
 msgid "View only (ignore mouse and keyboard)"
 msgstr "להציג בלבד (להתעלם מהעכבר ומהמקלדת)"
 
-#: vncviewer/OptionsDialog.cxx:842
+#: vncviewer/OptionsDialog.cxx:909
 msgid "Mouse"
 msgstr "עכבר"
 
-#: vncviewer/OptionsDialog.cxx:854
+#: vncviewer/OptionsDialog.cxx:921
 msgid "Emulate middle mouse button"
 msgstr "הדמיית כפתור עכבר אמצעי"
 
-#: vncviewer/OptionsDialog.cxx:860
+#: vncviewer/OptionsDialog.cxx:927
 msgid "Show local cursor when not provided by server"
 msgstr "להציג את הסמן המקומי כשהשרת לא מספק כזה"
 
-#: vncviewer/OptionsDialog.cxx:865
+#: vncviewer/OptionsDialog.cxx:932
 msgid "Cursor type"
 msgstr "סוג סמן"
 
-#: vncviewer/OptionsDialog.cxx:867
+#: vncviewer/OptionsDialog.cxx:934
 msgid "Dot"
 msgstr "נקודה"
 
-#: vncviewer/OptionsDialog.cxx:868
+#: vncviewer/OptionsDialog.cxx:935
 msgid "System"
 msgstr "כמו המערכת"
 
-#: vncviewer/OptionsDialog.cxx:888
+#: vncviewer/OptionsDialog.cxx:955
 msgid "Keyboard"
 msgstr "מקלדת"
 
-#: vncviewer/OptionsDialog.cxx:900
-msgid "Pass system keys directly to server (full screen)"
-msgstr "להעביר את מקשי המערכת ישירות לשרת (מסך מלא)"
+#: vncviewer/OptionsDialog.cxx:966
+msgid "Always send all keyboard input in full screen"
+msgstr "תמיד לשלוח את כל קלט המקלדת במסך מלא"
 
-#: vncviewer/OptionsDialog.cxx:903
-msgid "Menu key"
-msgstr "מקש תפריט"
-
-#: vncviewer/OptionsDialog.cxx:926
+#: vncviewer/OptionsDialog.cxx:983
 msgid "Clipboard"
 msgstr "לוח גזירים"
 
-#: vncviewer/OptionsDialog.cxx:938
+#: vncviewer/OptionsDialog.cxx:995
 msgid "Accept clipboard from server"
 msgstr "לקבל לוח גזירים מהשרת"
 
-#: vncviewer/OptionsDialog.cxx:946
+#: vncviewer/OptionsDialog.cxx:1003
 msgid "Also set primary selection"
 msgstr "להגדיר גם את הבחירה העיקרית"
 
-#: vncviewer/OptionsDialog.cxx:953
+#: vncviewer/OptionsDialog.cxx:1010
 msgid "Send clipboard to server"
 msgstr "לשלוח לוח גזירים לשרת"
 
-#: vncviewer/OptionsDialog.cxx:961
+#: vncviewer/OptionsDialog.cxx:1018
 msgid "Send primary selection as clipboard"
 msgstr "לשלוח את הבחירה העיקרית כלוח כזירים"
 
-#: vncviewer/OptionsDialog.cxx:982
+#: vncviewer/OptionsDialog.cxx:1039
+msgid "Keyboard shortcuts"
+msgstr "קיצורי מקשים"
+
+#: vncviewer/OptionsDialog.cxx:1046
+msgid "Modifier keys for keyboard shortcuts:"
+msgstr "מקשי החלפה לקיצורי מקלדת:"
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1059 vncviewer/ShortcutHandler.cxx:209
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1067 vncviewer/ShortcutHandler.cxx:217
+msgid "Shift"
+msgstr "Shift"
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1075 vncviewer/ShortcutHandler.cxx:225
+msgid "Alt"
+msgstr "Alt"
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1083 vncviewer/ShortcutHandler.cxx:233
+msgid "Win"
+msgstr "Win"
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1089
+msgid "⌃ Ctrl"
+msgstr "⌃ Ctrl"
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1091
+msgid "⇧ Shift"
+msgstr "⇧ Shift"
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1093
+msgid "⌥ Option"
+msgstr "⌥ Option"
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1095
+msgid "⌘ Cmd"
+msgstr "⌘ Cmd"
+
+#: vncviewer/OptionsDialog.cxx:1109
 msgid "Display"
 msgstr "תצוגה"
 
-#: vncviewer/OptionsDialog.cxx:996
+#: vncviewer/OptionsDialog.cxx:1123
 msgid "Display mode"
 msgstr "מצב תצוגה"
 
-#: vncviewer/OptionsDialog.cxx:1009
+#: vncviewer/OptionsDialog.cxx:1136
 msgid "Windowed"
 msgstr "בחלון"
 
-#: vncviewer/OptionsDialog.cxx:1017
+#: vncviewer/OptionsDialog.cxx:1144
 msgid "Full screen on current monitor"
 msgstr "מסך מלא בצג הנוכחי"
 
-#: vncviewer/OptionsDialog.cxx:1025
+#: vncviewer/OptionsDialog.cxx:1152
 msgid "Full screen on all monitors"
 msgstr "מסך מלא על כל הצגים"
 
-#: vncviewer/OptionsDialog.cxx:1033
+#: vncviewer/OptionsDialog.cxx:1160
 msgid "Full screen on selected monitor(s)"
 msgstr "מסך מלא בצגים נבחרים"
 
-#: vncviewer/OptionsDialog.cxx:1062
+#: vncviewer/OptionsDialog.cxx:1189
 msgid "Miscellaneous"
 msgstr "שונות"
 
-#: vncviewer/OptionsDialog.cxx:1070
+#: vncviewer/OptionsDialog.cxx:1197
 msgid "Shared (don't disconnect other viewers)"
 msgstr "משותף (לא לנתק צופים אחרים)"
 
-#: vncviewer/OptionsDialog.cxx:1076
+#: vncviewer/OptionsDialog.cxx:1203
 msgid "Ask to reconnect on connection errors"
 msgstr "לבקש להתחבר מחדש כשיש תקלות חיבור"
 
-#: vncviewer/ServerDialog.cxx:63
-msgid "VNC viewer: Connection details"
-msgstr "מציג VNC: פרטי התחברות"
+#: vncviewer/OptionsDialog.cxx:1310
+msgid "All keyboard shortcuts are disabled."
+msgstr "כל קיצורי המקלדת מושבתים."
 
-#: vncviewer/ServerDialog.cxx:73
+#: vncviewer/OptionsDialog.cxx:1321
+#, c-format
+msgid "To release keyboard control from the session, press %s."
+msgstr "כדי לשחרר שליטה על המקלדת מההפעלה, יש ללחוץ על %s."
+
+#: vncviewer/OptionsDialog.cxx:1326
+#, c-format
+msgid "To pass all keyboard input to the session, press %sG."
+msgstr "כדי להעביר את כל קלט המקלדת להפעלה, יש ללחוץ על %sG."
+
+#: vncviewer/OptionsDialog.cxx:1331
+#, c-format
+msgid "To toggle full-screen mode, press %sEnter."
+msgstr "כדי להגדיל/להקטן מסך מלא, יש ללחוץ על %sEnter."
+
+#: vncviewer/OptionsDialog.cxx:1335
+#, c-format
+msgid "To open the session context menu, press %sM."
+msgstr "כדי לפתוח את תפריט ההקשר של ההפעלה, יש ללחוץ על %sM."
+
+#: vncviewer/OptionsDialog.cxx:1339
+#, c-format
+msgid "To send a key combination that includes %s directly to the session, press %sSpace, release the space bar without releasing %s, and press the desired key."
+msgstr "כדי לשלוח צירוף מקשים שכולל את %s ישירות להפעלה, יש ללחוץ על %sרווח, לשחרר את מקש הרווח מבלי לשחרר את %s וללחוץ על המקש הרצוי."
+
+#: vncviewer/ServerDialog.cxx:74
 msgid "VNC server:"
 msgstr "שרת VNC:"
 
-#: vncviewer/ServerDialog.cxx:80
+#: vncviewer/ServerDialog.cxx:83
 msgid "Options..."
 msgstr "אפשרויות…"
 
-#: vncviewer/ServerDialog.cxx:84
+#: vncviewer/ServerDialog.cxx:87
 msgid "Load..."
 msgstr "לטעון…"
 
-#: vncviewer/ServerDialog.cxx:88
+#: vncviewer/ServerDialog.cxx:91
 msgid "Save as..."
 msgstr "לשמור בשם…"
 
-#: vncviewer/ServerDialog.cxx:102
+#: vncviewer/ServerDialog.cxx:105
 msgid "About..."
 msgstr "על אודות…"
 
-#: vncviewer/ServerDialog.cxx:111
+#: vncviewer/ServerDialog.cxx:114
 msgid "Connect"
 msgstr "התחברות"
 
-#: vncviewer/ServerDialog.cxx:147
+#: vncviewer/ServerDialog.cxx:146
 #, c-format
 msgid ""
 "Unable to load the server history:\n"
@@ -484,15 +555,15 @@ msgstr ""
 "‬\n"
 "‏‫%s"
 
-#: vncviewer/ServerDialog.cxx:176 vncviewer/ServerDialog.cxx:216
+#: vncviewer/ServerDialog.cxx:175 vncviewer/ServerDialog.cxx:215
 msgid "TigerVNC configuration (*.tigervnc)"
 msgstr "הגדרות TigerVNC‏ (‎*.tigervnc)"
 
-#: vncviewer/ServerDialog.cxx:177
+#: vncviewer/ServerDialog.cxx:176
 msgid "Select a TigerVNC configuration file"
 msgstr "נא לבחור קובץ הגדרות של TigerVNC"
 
-#: vncviewer/ServerDialog.cxx:199 vncviewer/vncviewer.cxx:517
+#: vncviewer/ServerDialog.cxx:198 vncviewer/vncviewer.cxx:517
 #, c-format
 msgid ""
 "Unable to load the specified configuration file:\n"
@@ -505,24 +576,24 @@ msgstr ""
 "‬\n"
 "‏‫%s"
 
-#: vncviewer/ServerDialog.cxx:217
+#: vncviewer/ServerDialog.cxx:216
 msgid "Save the TigerVNC configuration to file"
 msgstr "לשמור את הגדרות ה־TigerVNC לקובץ"
 
-#: vncviewer/ServerDialog.cxx:243
+#: vncviewer/ServerDialog.cxx:242
 #, c-format
 msgid "%s already exists. Do you want to overwrite?"
 msgstr "‫%s כבר קיים. לשכתב עליו?"
 
-#: vncviewer/ServerDialog.cxx:244 vncviewer/vncviewer.cxx:394
+#: vncviewer/ServerDialog.cxx:243 vncviewer/vncviewer.cxx:394
 msgid "No"
 msgstr "לא"
 
-#: vncviewer/ServerDialog.cxx:244
+#: vncviewer/ServerDialog.cxx:243
 msgid "Overwrite"
 msgstr "לשכתב"
 
-#: vncviewer/ServerDialog.cxx:260
+#: vncviewer/ServerDialog.cxx:259
 #, c-format
 msgid ""
 "Unable to save the specified configuration file:\n"
@@ -535,7 +606,7 @@ msgstr ""
 "‬\n"
 "‏‫%s"
 
-#: vncviewer/ServerDialog.cxx:294
+#: vncviewer/ServerDialog.cxx:293
 #, c-format
 msgid ""
 "Unable to save the default configuration:\n"
@@ -548,7 +619,7 @@ msgstr ""
 "‬\n"
 "‏‫%s"
 
-#: vncviewer/ServerDialog.cxx:306
+#: vncviewer/ServerDialog.cxx:305
 #, c-format
 msgid ""
 "Unable to save the server history:\n"
@@ -561,172 +632,181 @@ msgstr ""
 "‬\n"
 "‏‫%s"
 
-#: vncviewer/ServerDialog.cxx:351 vncviewer/ServerDialog.cxx:429
+#: vncviewer/ServerDialog.cxx:351 vncviewer/ServerDialog.cxx:433
 #: vncviewer/vncviewer.cxx:580
 msgid "Could not determine VNC state directory path"
 msgstr "לא ניתן לקבוע מה נתיב תיקיית המצב"
 
-#: vncviewer/ServerDialog.cxx:363 vncviewer/ServerDialog.cxx:437
-#: vncviewer/parameters.cxx:671 vncviewer/parameters.cxx:752
+#: vncviewer/ServerDialog.cxx:364 vncviewer/ServerDialog.cxx:441
+#: vncviewer/parameters.cxx:758 vncviewer/parameters.cxx:838
 #, c-format
 msgid "Could not open \"%s\""
 msgstr "לא ניתן לפתוח את „%s”"
 
-#: vncviewer/ServerDialog.cxx:378 vncviewer/ServerDialog.cxx:387
-#: vncviewer/parameters.cxx:766 vncviewer/parameters.cxx:773
-#: vncviewer/parameters.cxx:807 vncviewer/parameters.cxx:837
-#: vncviewer/parameters.cxx:844
+#: vncviewer/ServerDialog.cxx:379 vncviewer/ServerDialog.cxx:388
+#: vncviewer/parameters.cxx:852 vncviewer/parameters.cxx:859
+#: vncviewer/parameters.cxx:893 vncviewer/parameters.cxx:929
+#: vncviewer/parameters.cxx:937
 #, c-format
 msgid "Failed to read line %d in file \"%s\""
 msgstr "קריאת השורה %d בקובץ „%s” נכשלה"
 
-#: vncviewer/ServerDialog.cxx:390 vncviewer/parameters.cxx:776
+#: vncviewer/ServerDialog.cxx:392 vncviewer/parameters.cxx:863
 msgid "Line too long"
 msgstr "השורה ארוכה מדי"
 
-#: vncviewer/UserDialog.cxx:123
+#: vncviewer/UserDialog.cxx:130
 msgid "Opening password file failed"
 msgstr "פתיחת קובץ הססמה נכשלה"
 
-#: vncviewer/UserDialog.cxx:143
+#: vncviewer/UserDialog.cxx:150
 msgid "VNC authentication"
 msgstr "אימות VNC"
 
-#: vncviewer/UserDialog.cxx:150
+#: vncviewer/UserDialog.cxx:157
 msgid "This connection is secure"
 msgstr "החיבור מאובטח"
 
-#: vncviewer/UserDialog.cxx:154
+#: vncviewer/UserDialog.cxx:161
 msgid "This connection is not secure"
 msgstr "החיבור אינו מאובטח"
 
-#: vncviewer/UserDialog.cxx:176
+#: vncviewer/UserDialog.cxx:183
 msgid "Username:"
 msgstr "שם משתמש:"
 
-#: vncviewer/UserDialog.cxx:189
+#: vncviewer/UserDialog.cxx:196
 msgid "Password:"
 msgstr "ססמה:"
 
-#: vncviewer/UserDialog.cxx:197
+#: vncviewer/UserDialog.cxx:204
 msgid "Keep password for reconnect"
 msgstr "לשמור את הסיסמה להתחברות מחדש"
 
-#: vncviewer/Viewport.cxx:695
+#: vncviewer/Viewport.cxx:767 vncviewer/Viewport.cxx:846
+#: vncviewer/vncviewer.cxx:157
+#, c-format
+msgid ""
+"An unexpected error occurred when communicating with the server:\n"
+"\n"
+"%s"
+msgstr ""
+"אירעה שגיאה בלתי צפויה בעת ההתקשרות עם השרת:\n"
+"‬\n"
+"‏‫\n"
+"‬\n"
+"‏‫%s"
+
+#: vncviewer/Viewport.cxx:905
 msgctxt "ContextMenu|"
 msgid "Disconn&ect"
 msgstr "&ניתוק"
 
-#: vncviewer/Viewport.cxx:698
+#: vncviewer/Viewport.cxx:908
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "מ&סך מלא"
 
-#: vncviewer/Viewport.cxx:701
+#: vncviewer/Viewport.cxx:911
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "מ&זעור"
 
-#: vncviewer/Viewport.cxx:703
+#: vncviewer/Viewport.cxx:913
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "שינוי &גודל החלון להפעלה"
 
-#: vncviewer/Viewport.cxx:708
+#: vncviewer/Viewport.cxx:918
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:711
+#: vncviewer/Viewport.cxx:921
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:717
-#, c-format
-msgctxt "ContextMenu|"
-msgid "Send %s"
-msgstr "לשלוח %s"
-
-#: vncviewer/Viewport.cxx:724
+#: vncviewer/Viewport.cxx:925
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "לשלוח Ctrl-Alt-&Del"
 
-#: vncviewer/Viewport.cxx:727
+#: vncviewer/Viewport.cxx:928
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&רענון המסך"
 
-#: vncviewer/Viewport.cxx:730
+#: vncviewer/Viewport.cxx:931
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "&אפשרויות…"
 
-#: vncviewer/Viewport.cxx:732
+#: vncviewer/Viewport.cxx:933
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "&פרטי ההתחברות…"
 
-#: vncviewer/Viewport.cxx:734
+#: vncviewer/Viewport.cxx:935
 msgctxt "ContextMenu|"
-msgid "About &TigerVNC viewer..."
-msgstr "&על המציג TigerVNC…"
+msgid "About &TigerVNC..."
+msgstr "&על TigerVNC…"
 
-#: vncviewer/Viewport.cxx:830
+#: vncviewer/Viewport.cxx:1027
 msgid "VNC connection info"
 msgstr "פרטי חיבור VNC"
 
-#: vncviewer/Win32TouchHandler.cxx:48
+#: vncviewer/Win32TouchHandler.cxx:46
 msgid "Window is registered for touch instead of gestures"
 msgstr "החלון רשום למגע במקום למחוות"
 
-#: vncviewer/Win32TouchHandler.cxx:83
+#: vncviewer/Win32TouchHandler.cxx:81
 #, c-format
 msgid "Failed to set gesture configuration (error 0x%x)"
 msgstr "קביעת הגדרות המחוות נכשלה (שגיאה 0x%x)"
 
-#: vncviewer/Win32TouchHandler.cxx:95
+#: vncviewer/Win32TouchHandler.cxx:93
 #, c-format
 msgid "Failed to get gesture information (error 0x%x)"
 msgstr "קבלת פרטי המחווה נכשלה (שגיאה 0x%x)"
 
-#: vncviewer/Win32TouchHandler.cxx:360
+#: vncviewer/Win32TouchHandler.cxx:361
 #, c-format
 msgid "Invalid mouse button %d, must be a number between 1 and 7."
 msgstr "כפתור העכבר %d שגוי, חייב להיות מספר בין 1 ל־7."
 
-#: vncviewer/Win32TouchHandler.cxx:425
+#: vncviewer/Win32TouchHandler.cxx:426
 #, c-format
 msgid "Unhandled key 0x%x - can't generate keyboard event."
 msgstr "מקש 0x%x לא מטופל - לא ניתן לייצר אירוע מקלדת."
 
-#: vncviewer/XInputTouchHandler.cxx:102 vncviewer/touch.cxx:107
+#: vncviewer/XInputTouchHandler.cxx:103 vncviewer/touch.cxx:107
 #, c-format
 msgid "Unable to get X Input 2 event mask for window 0x%08lx"
 msgstr "לא ניתן לקבל מסכת אירועים של X Input 2 לחלון 0x%08lx"
 
-#: vncviewer/XInputTouchHandler.cxx:104
+#: vncviewer/XInputTouchHandler.cxx:105
 #, c-format
 msgid "Window 0x%08lx has no X Input 2 event mask"
 msgstr "לחלון 0x%08lx אין מסכת אירועים של X Input 2"
 
-#: vncviewer/XInputTouchHandler.cxx:112 vncviewer/touch.cxx:114
+#: vncviewer/XInputTouchHandler.cxx:113 vncviewer/touch.cxx:114
 #, c-format
 msgid "Window 0x%08lx has more than one X Input 2 event mask"
 msgstr "לחלון 0x%08lx יש יותר ממסכת אירועים אחת של X Input 2"
 
-#: vncviewer/XInputTouchHandler.cxx:143
+#: vncviewer/XInputTouchHandler.cxx:144
 #, c-format
 msgid "Failure grabbing device %i"
 msgstr "לכידת ההתקן %i נכשלה"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
-msgid "TigerVNC Viewer"
-msgstr "המציג TigerVNC"
+#: vncviewer/vncviewer.desktop.in.in:2
+msgid "TigerVNC"
+msgstr "TigerVNC"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
-#: vncviewer/vncviewer.desktop.in.in:5
+#: vncviewer/vncviewer.desktop.in.in:4
 msgid "Connect to VNC server and display remote desktop"
 msgstr "התחברות לשרת VNC והצגת שולחן עבודה מרוחק"
 
@@ -739,16 +819,16 @@ msgid "TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org 
 msgstr "שTigerVNC היא גרסה מהירה של VNC שמבוססת ביסודה על קוד המקור של RealVNC ושל X.Org. מיזם TigerVNC החל כמאמץ פיתוח לדור הבא של TightVNC לפלטפורמות יוניקס ולינוקס אך הוא פוצל ממיזם ההורה שלו בתחילת 2009 כדי לאפשר ל־TightVNC להתמקד בתמיכה ב־Windows. ב־TigerVNC יש תמיכה במגוון של הצפנות Tight שמואצות על ידי השימוש במפענח JPEG בשם libjpeg-turbo."
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:33
-msgid "TigerVNC viewer connection to a CentOS machine"
-msgstr "חיבור מציג TigerVNC למכונת CentOS"
+msgid "TigerVNC connection to a CentOS machine"
+msgstr "חיבור TigerVNC למכונת CentOS"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:37
-msgid "TigerVNC viewer connection to a macOS machine"
-msgstr "חיבור מציג TigerVNC למכונת macOS"
+msgid "TigerVNC connection to a macOS machine"
+msgstr "חיבור TigerVNC למכונת macOS"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:41
-msgid "TigerVNC viewer connection to a Windows machine"
-msgstr "חיבור מציג TigerVNC למכונת Windows"
+msgid "TigerVNC connection to a Windows machine"
+msgstr "חיבור TigerVNC למכונת Windows"
 
 #. developer_name tag deprecated with Appstream 1.0
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:46
@@ -756,75 +836,75 @@ msgstr "חיבור מציג TigerVNC למכונת Windows"
 msgid "The TigerVNC team"
 msgstr "צוות TigerVNC"
 
-#: vncviewer/parameters.cxx:319 vncviewer/parameters.cxx:344
-#: vncviewer/parameters.cxx:361 vncviewer/parameters.cxx:401
-#: vncviewer/parameters.cxx:421
+#: vncviewer/parameters.cxx:386 vncviewer/parameters.cxx:411
+#: vncviewer/parameters.cxx:428 vncviewer/parameters.cxx:468
+#: vncviewer/parameters.cxx:488
 msgid "The name of the parameter is too large"
 msgstr "שם המשתנה גדול מדי"
 
-#: vncviewer/parameters.cxx:323 vncviewer/parameters.cxx:328
-#: vncviewer/parameters.cxx:379
+#: vncviewer/parameters.cxx:390 vncviewer/parameters.cxx:395
+#: vncviewer/parameters.cxx:446
 msgid "The parameter is too large"
 msgstr "המשתנה גדול מדי"
 
-#: vncviewer/parameters.cxx:386 vncviewer/parameters.cxx:712
-#: vncviewer/parameters.cxx:822
+#: vncviewer/parameters.cxx:453 vncviewer/parameters.cxx:797
+#: vncviewer/parameters.cxx:909
 msgid "Invalid format or too large value"
 msgstr "תצורה שגויה או שהערך גדול מדי"
 
-#: vncviewer/parameters.cxx:440 vncviewer/parameters.cxx:473
+#: vncviewer/parameters.cxx:508 vncviewer/parameters.cxx:541
 msgid "Failed to create registry key"
 msgstr "יצירת המפתח ברשומות נכשלה"
 
-#: vncviewer/parameters.cxx:461 vncviewer/parameters.cxx:528
-#: vncviewer/parameters.cxx:571 vncviewer/parameters.cxx:638
+#: vncviewer/parameters.cxx:529 vncviewer/parameters.cxx:602
+#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:724
 msgid "Failed to close registry key"
 msgstr "סגירת מפתח הרשומות נכשלה"
 
-#: vncviewer/parameters.cxx:479 vncviewer/parameters.cxx:506
-#: vncviewer/parameters.cxx:680 vncviewer/parameters.cxx:692
+#: vncviewer/parameters.cxx:548 vncviewer/parameters.cxx:581
+#: vncviewer/parameters.cxx:766 vncviewer/parameters.cxx:778
 #, c-format
 msgid "Failed to save \"%s\": %s"
 msgstr "השמירה של „%s” נכשלה: %s"
 
-#: vncviewer/parameters.cxx:489 vncviewer/parameters.cxx:520
+#: vncviewer/parameters.cxx:561 vncviewer/parameters.cxx:595
 #, c-format
 msgid "Failed to remove \"%s\": %s"
 msgstr "ההסרה של „%s” נכשלה: %s"
 
-#: vncviewer/parameters.cxx:544 vncviewer/parameters.cxx:616
+#: vncviewer/parameters.cxx:619 vncviewer/parameters.cxx:697
 msgid "Failed to open registry key"
 msgstr "פתיחת מפתח הרשומות נכשלה"
 
-#: vncviewer/parameters.cxx:561
+#: vncviewer/parameters.cxx:636
 #, c-format
 msgid "Failed to read server history entry %d: %s"
 msgstr "קריאת רשומה %d בהיסטוריית השרת נכשלה: %s"
 
-#: vncviewer/parameters.cxx:597 vncviewer/parameters.cxx:627
+#: vncviewer/parameters.cxx:678 vncviewer/parameters.cxx:708
 #, c-format
 msgid "Failed to read parameter \"%s\": %s"
 msgstr "קריאת המשתנה „%s” נכשלה: %s"
 
-#: vncviewer/parameters.cxx:661 vncviewer/parameters.cxx:740
+#: vncviewer/parameters.cxx:747 vncviewer/parameters.cxx:825
 #: vncviewer/vncviewer.cxx:546
 msgid "Could not determine VNC config directory path"
 msgstr "לא ניתן לקבוע מה נתיב תיקיית ההגדרות"
 
-#: vncviewer/parameters.cxx:682 vncviewer/parameters.cxx:694
+#: vncviewer/parameters.cxx:767 vncviewer/parameters.cxx:779
 msgid "Could not encode parameter"
 msgstr "לא ניתן לקודד את המשתנים"
 
-#: vncviewer/parameters.cxx:785
+#: vncviewer/parameters.cxx:873
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "המבנה של קובץ ההגדרות %s שגוי"
 
-#: vncviewer/parameters.cxx:809
+#: vncviewer/parameters.cxx:896
 msgid "Invalid format"
 msgstr "תצורה שגויה"
 
-#: vncviewer/parameters.cxx:846
+#: vncviewer/parameters.cxx:940
 msgid "Unknown parameter"
 msgstr "משתנה לא ידוע"
 
@@ -868,35 +948,22 @@ msgstr "‫X Input 2 (ומעלה) אינו זמין."
 msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
 msgstr "‫X Input 2.2 (ומעלה) אינו זמין. לא תהיה תמיכה במחוות מגע."
 
-#: vncviewer/vncviewer.cxx:104
+#: vncviewer/vncviewer.cxx:103
 #, c-format
 msgid ""
-"TigerVNC viewer v%s\n"
+"TigerVNC v%s\n"
 "Built on: %s\n"
 "Copyright (C) 1999-%d TigerVNC team and many others (see README.rst)\n"
 "See https://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"מציג TigerVNC‏ גרסה %s\n"
+"‏TigerVNC‏ גרסה %s\n"
 "‫נבנה על גבי: %s\n"
 "‫כל הזכויות שמורות (C) 1999‏-%d לצוות TigerVNC ועוד רבים וטובים (ניתן לעיין ב־README.rst)\n"
 "‬‫למידע על TigerVNC מומלץ לפנות אל https://www.tigervnc.org."
 
-#: vncviewer/vncviewer.cxx:158
-#, c-format
-msgid ""
-"An unexpected error occurred when communicating with the server:\n"
-"\n"
-"%s"
-msgstr ""
-"אירעה שגיאה בלתי צפויה בעת ההתקשרות עם השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
-
-#: vncviewer/vncviewer.cxx:174
-msgid "About TigerVNC Viewer"
-msgstr "על אודות המציג TigerVNC"
+#: vncviewer/vncviewer.cxx:173
+msgid "About TigerVNC"
+msgstr "על TigerVNC"
 
 #: vncviewer/vncviewer.cxx:195
 msgid "Internal FLTK error. Exiting."
@@ -917,17 +984,13 @@ msgstr ""
 
 #: vncviewer/vncviewer.cxx:245 vncviewer/vncviewer.cxx:257
 #, c-format
-msgid "Error starting new TigerVNC Viewer: %s"
-msgstr "שגיאה בהצגת מציג TigerVNC חדש: %s"
+msgid "Error starting new connection: %s"
+msgstr "שגיאה בהקמת חיבור חדש: %s"
 
 #: vncviewer/vncviewer.cxx:266
 #, c-format
-msgid "Termination signal %d has been received. TigerVNC viewer will now exit."
-msgstr "התקבל אות חיסול %d. מציג TigerVNC יסתיים כעת."
-
-#: vncviewer/vncviewer.cxx:391 vncviewer/vncviewer.desktop.in.in:3
-msgid "TigerVNC viewer"
-msgstr "מציג TigerVNC"
+msgid "Termination signal %d has been received. TigerVNC will now exit."
+msgstr "התקבל אות חיסול %d.‏ TigerVNC יסתיים כעת."
 
 #: vncviewer/vncviewer.cxx:395
 msgid "Yes"
@@ -995,14 +1058,14 @@ msgid ""
 "Options:\n"
 "\n"
 "  -display Xdisplay  - Specifies the X display for the viewer window\n"
-"  -geometry geometry - Initial position of the main VNC viewer window. See the\n"
+"  -geometry geometry - Initial position of the main TigerVNC window. See the\n"
 "                       man page for details.\n"
 msgstr ""
 "\n"
 "אפשרויות:\n"
 "\n"
 "‏  ‎-display Xdisplay  - בחירת תצוגת ה־X לחלון המציג\n"
-"‏  ‎-geometry geometry - המקום ההתחלתי לחלון המציג הראשי של VNC. בהנחיות שב־man\n"
+"‏  ‎-geometry geometry - המקום ההתחלתי לחלון המציג הראשי של TigerVNC. בהנחיות שב־man\n"
 "                       יש פרטים נוספים.\n"
 
 #: vncviewer/vncviewer.cxx:472
@@ -1058,37 +1121,37 @@ msgstr "לא ניתן ליצור תיקיית נתונים של VNC‏ „%s”:
 msgid "Could not create VNC state directory \"%s\": %s"
 msgstr "לא ניתן ליצור תיקיית מצב של VNC ‏„%s”:‏ %s"
 
-#: vncviewer/vncviewer.cxx:703
+#: vncviewer/vncviewer.cxx:705
 #, c-format
 msgid "%s: Unrecognized option '%s'\n"
 msgstr "%s: האפשרות ‚%s’ לא מזוהה\n"
 
-#: vncviewer/vncviewer.cxx:705 vncviewer/vncviewer.cxx:713
+#: vncviewer/vncviewer.cxx:707 vncviewer/vncviewer.cxx:715
 #, c-format
 msgid "See '%s --help' for more information.\n"
 msgstr "יש להקליד ‚‎%s --help’ למידע נוסף.\n"
 
-#: vncviewer/vncviewer.cxx:712
+#: vncviewer/vncviewer.cxx:714
 #, c-format
 msgid "%s: Extra argument '%s'\n"
 msgstr "%s: ארגומנט נוסף ‚%s’\n"
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:748 vncviewer/vncviewer.cxx:749
+#: vncviewer/vncviewer.cxx:750 vncviewer/vncviewer.cxx:751
 msgid "Parameters -listen and -via are incompatible"
 msgstr "המשתנים ‎-listen ו־‎-via לא מתאימים יחד"
 
-#: vncviewer/vncviewer.cxx:763
+#: vncviewer/vncviewer.cxx:765
 msgid "Unable to listen for incoming connections"
 msgstr "לא ניתן להאזין לחיבורים נכנסים"
 
-#: vncviewer/vncviewer.cxx:765
+#: vncviewer/vncviewer.cxx:767
 #, c-format
 msgid "Listening on port %d"
 msgstr "בהאזנה בפתחה %d"
 
-#: vncviewer/vncviewer.cxx:794
+#: vncviewer/vncviewer.cxx:796
 #, c-format
 msgid ""
 "Failure waiting for incoming VNC connection:\n"
@@ -1101,7 +1164,7 @@ msgstr ""
 "‬\n"
 "‏‫%s"
 
-#: vncviewer/vncviewer.cxx:815
+#: vncviewer/vncviewer.cxx:817
 #, c-format
 msgid ""
 "Failure setting up encrypted tunnel:\n"
@@ -1112,9 +1175,49 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/vncviewer.desktop.in.in:4
+#: vncviewer/vncviewer.desktop.in.in:3
 msgid "Remote desktop viewer"
 msgstr "מציג שולחנות עבודה מרוחקים"
+
+#, c-format
+#~ msgid "(server default %s)"
+#~ msgstr "(בררת המחדל של השרת %s)"
+
+#, c-format
+#~ msgid "SetDesktopSize failed: %d"
+#~ msgstr "‫SetDesktopSize נכשלה: %d"
+
+#~ msgid "Invalid SetColourMapEntries from server!"
+#~ msgstr "‫SetColourMapEntries שגוי מהשרת!"
+
+#, c-format
+#~ msgid "Invalid configuration specified for %s"
+#~ msgstr "צוינו הגדרות שגויות עבור %s"
+
+#, c-format
+#~ msgid "Invalid monitor index '%s'"
+#~ msgstr "מפתח הצג ‚%s’ שגוי"
+
+#, c-format
+#~ msgid "Unexpected character '%c'"
+#~ msgstr "התו ‚%c’ אינו צפוי"
+
+#~ msgid "Pass system keys directly to server (full screen)"
+#~ msgstr "להעביר את מקשי המערכת ישירות לשרת (מסך מלא)"
+
+#~ msgid "Menu key"
+#~ msgstr "מקש תפריט"
+
+#~ msgid "VNC viewer: Connection details"
+#~ msgstr "מציג VNC: פרטי התחברות"
+
+#, c-format
+#~ msgctxt "ContextMenu|"
+#~ msgid "Send %s"
+#~ msgstr "לשלוח %s"
+
+#~ msgid "TigerVNC viewer"
+#~ msgstr "מציג TigerVNC"
 
 #~ msgid "Show dot when no cursor"
 #~ msgstr "להציג נקודה כשאין סמן"
