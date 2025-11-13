@@ -258,6 +258,15 @@ Default is \fBTLSVnc,VncAuth\fP.
 .B \-SendCutText
 Send clipboard changes to clients. Default is on.
 .
+.B \-SendPrimary
+Send the primary as well as the selection clipboard to clients. Note
+that this does not work on all compositors. Default is on.
+.
+.TP
+.B \-SetPrimary
+Set the primary as well as the selection clipboard. Note that this does
+not work on all compositors. Default is on.
+.
 .TP
 .B \-UseBlacklist
 Temporarily reject connections from a host if it repeatedly fails to
