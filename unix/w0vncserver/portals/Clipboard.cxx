@@ -34,10 +34,10 @@
 
 static core::LogWriter vlog("Clipboard");
 
-const char* MIME_TEXT_PLAIN = "text/plain";
-const char* MIME_TEXT_PLAIN_UTF8 = "text/plain;charset=utf-8";
+static const char* MIME_TEXT_PLAIN = "text/plain";
+static const char* MIME_TEXT_PLAIN_UTF8 = "text/plain;charset=utf-8";
 
-const char* MIME_TYPES[] {
+static const char* MIME_TYPES[] {
   MIME_TEXT_PLAIN_UTF8,
   MIME_TEXT_PLAIN,
 };
