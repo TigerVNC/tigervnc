@@ -572,6 +572,55 @@ namespace core {
     return out;
   }
 
+  std::string utf8ToAscii(const char* src, size_t bytes) {
+    std::string out;
+
+    const char* in;
+    size_t in_len;
+
+    out.reserve(bytes);
+    in = src;
+    in_len = bytes;
+
+    while (in_len > 0) {
+      unsigned char ascii;
+
+      ascii = (unsigned char)*in;
+      if (ascii <= 0x7f) {
+        out += ascii;
+        in++;
+        in_len--;
+        continue;
+      }
+
+      out += "?";
+
+      if (ascii >= 0xc2 && ascii <= 0xdf) {
+        if (in_len < 2)
+          break;
+        in += 2;
+        in_len -= 2;
+      } else if (ascii >= 0xe0 && ascii <= 0xef) {
+        if (in_len < 3)
+          break;
+        in += 3;
+        in_len -= 3;
+      } else if (ascii >= 0xf0 && ascii <= 0xf4) {
+        if (in_len < 4)
+          break;
+        in += 4;
+        in_len -= 4;
+      } else {
+        // Malformed utf-8
+        assert(false);
+      }
+    }
+
+    out.shrink_to_fit();
+
+    return out;
+  };
+
   bool isValidUTF8(const char* str, size_t bytes)
   {
     while ((bytes > 0) && (*str != '\0')) {
