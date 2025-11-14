@@ -49,7 +49,7 @@ Clipboard::Clipboard(std::string sessionHandle_,
                         clipboardAnnounceCb_)
   : clipboard(nullptr), sessionHandle(sessionHandle_),
     selectionOwner(true), readInProgress(false),
-    pendingReadMimeType(nullptr),readStream(nullptr),
+    pendingReadMimeType(nullptr), readStream(nullptr),
     readCancellable(nullptr),
     sendClipboardDataCb(sendClipboardDataCb_),
     clipboardAnnounceCb(clipboardAnnounceCb_)
@@ -104,7 +104,8 @@ void Clipboard::setSelection(const char* data)
   GVariant* mimeTypes;
 
   clientData = data;
-  mimeTypes = g_variant_new_strv(&MIME_TEXT_PLAIN_UTF8, 1);
+  mimeTypes = g_variant_new_strv(MIME_TYPES, sizeof(MIME_TYPES) /
+                                             sizeof(MIME_TYPES[0]));
 
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add(&optionsBuilder, "{sv}", "mime_types", mimeTypes);
@@ -114,28 +115,82 @@ void Clipboard::setSelection(const char* data)
   clipboard->call("SetSelection", params);
 }
 
-void Clipboard::selectionWrite(uint32_t serial)
+void Clipboard::selectionWrite(uint32_t serial, const char* mimeType)
 {
   GError* error = nullptr;
+  GUnixFDList* fdList = nullptr;
   GVariant* params;
+  GVariant* response;
+  int32_t fdIndex;
+  int fd;
+  size_t remaining;
+  ssize_t written;
+  const char* data;
+  std::string ascii;
 
   params = g_variant_new("(ou)", sessionHandle.c_str(), serial);
 
-  pendingSerials.push(serial);
-
-  g_dbus_proxy_call_with_unix_fd_list(
-    clipboard->getProxy(),
-    "SelectionWrite", params, G_DBUS_CALL_FLAGS_NONE, 3000,
-    nullptr, nullptr,
-    [](GObject* proxy, GAsyncResult* res, void* userData) {
-      ((Clipboard*)(userData))->handleSelectionWrite(proxy, res);
-     }, this);
+  response = g_dbus_proxy_call_with_unix_fd_list_sync(
+               clipboard->getProxy(), "SelectionWrite", params,
+               G_DBUS_CALL_FLAGS_NONE, 3000, nullptr, &fdList, nullptr,
+               &error);
 
   if (error) {
-    vlog.error("Clipboard.SelectionWrite failed: %s", error->message);
+    vlog.error("SelectionWrite() failed: %s", error->message);
+    g_variant_unref(response);
     g_error_free(error);
     return;
   }
+
+  g_variant_get(response, "(h)", &fdIndex);
+  g_variant_unref(response);
+
+  // FIXME: Can we always assume index 0?
+  fd = g_unix_fd_list_get(fdList, 0, &error);
+  if (error) {
+    g_object_unref(fdList);
+    vlog.error("%s", error->message);
+    g_error_free(error);
+    return;
+  }
+
+  if (strcmp(mimeType, MIME_TEXT_PLAIN) == 0) {
+    ascii = core::utf8ToAscii(clientData.c_str(), clientData.size());
+    data = ascii.c_str();
+    remaining = ascii.size();
+  } else if (strcmp(mimeType, MIME_TEXT_PLAIN_UTF8) == 0) {
+    data = clientData.c_str();
+    remaining = clientData.size();
+  } else {
+    assert(false);
+  }
+
+  // FIXME: Include null-terminator. It doesn't work on KDE without it.
+  remaining++;
+
+  while (remaining > 0) {
+    written = write(fd, data, remaining);
+
+    if (written < 0) {
+      vlog.error("SelectionWrite() failed to write to fd: %s", strerror(errno));
+      selectionWriteDone(serial, false);
+      g_object_unref(fdList);
+      close(fd);
+      return;
+    }
+
+    remaining -= written;
+    data += written;
+  }
+
+  if (close(fd) != 0) {
+    vlog.error("SelectionWrite() failed to close fd: %s", strerror(errno));
+    selectionWriteDone(serial, false);
+  } else {
+    selectionWriteDone(serial, true);
+  }
+
+  g_object_unref(fdList);
 }
 
 void Clipboard::selectionWriteDone(uint32_t serial, bool success)
@@ -152,7 +207,7 @@ void Clipboard::selectionWriteDone(uint32_t serial, bool success)
                                   G_DBUS_CALL_FLAGS_NONE, 3000,
                                   nullptr, &error);
   if (error) {
-    vlog.error("Clipboard.SelectionWriteDone failed: %s", error->message);
+    vlog.error("SelectionWriteDone() failed: %s", error->message);
     g_error_free(error);
     return;
   }
@@ -162,6 +217,11 @@ void Clipboard::selectionWriteDone(uint32_t serial, bool success)
 
 void Clipboard::selectionRead()
 {
+  GError* error = nullptr;
+  GUnixFDList* fdList = nullptr;
+  GVariant* response;
+  int32_t fdIndex;
+  int fd;
   GVariant* params;
   const char* mimeType;
 
@@ -193,39 +253,13 @@ void Clipboard::selectionRead()
 
   params = g_variant_new("(os)", sessionHandle.c_str(), mimeType);
 
-  g_dbus_proxy_call_with_unix_fd_list(
-    clipboard->getProxy(),
-    "SelectionRead",
-    params,
-    G_DBUS_CALL_FLAGS_NONE,
-    3000,
-    nullptr,
-    nullptr,
-    [](GObject* proxy, GAsyncResult* res, void* userData) {
-      Clipboard* self = (Clipboard*)(userData);
-      self->handleSelectionRead(proxy, res);
-    },
-    this);
-}
-
-void Clipboard::handleSelectionRead(GObject* proxy, GAsyncResult* res)
-{
-  GError* error = nullptr;
-  GUnixFDList* fdList = nullptr;
-  GVariant* response;
-  int32_t fdIndex;
-  int fd;
-
-  assert(G_IS_DBUS_PROXY(proxy));
-
-  response = g_dbus_proxy_call_with_unix_fd_list_finish(G_DBUS_PROXY(proxy),
-                                                        &fdList, res,
-                                                        &error);
+  response = g_dbus_proxy_call_with_unix_fd_list_sync(
+      clipboard->getProxy(), "SelectionRead", params,
+      G_DBUS_CALL_FLAGS_NONE, 3000, nullptr, &fdList, nullptr, &error);
 
   if (error) {
-    std::string msg(error->message);
+    vlog.error("%s", error->message);
     g_error_free(error);
-    vlog.error("%s", msg.c_str());
     readInProgress = false;
     return;
   }
@@ -233,7 +267,7 @@ void Clipboard::handleSelectionRead(GObject* proxy, GAsyncResult* res)
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
     g_variant_unref(response);
     g_object_unref(fdList);
-    vlog.error("Clipboard::handleSelectionRead: invalid response type: %s, expected (h)",
+    vlog.error("selectionRead(): invalid response type: %s, expected (h)",
                 g_variant_get_type_string(response));
     readInProgress = false;
     return;
@@ -246,10 +280,9 @@ void Clipboard::handleSelectionRead(GObject* proxy, GAsyncResult* res)
   g_object_unref(fdList);
 
   if (error || fd == -1) {
-    std::string msg(error->message);
-    g_error_free(error);
     readInProgress = false;
-    vlog.error("Error getting fd:  %s", msg.c_str());
+    vlog.error("selectionRead(): error getting fd:  %s", error->message);
+    g_error_free(error);
     return;
   }
 
@@ -273,86 +306,29 @@ void Clipboard::handleSelectionTransfer(GVariant* parameters)
   uint32_t serial;
   char* sessionHandle_; // ignored
   char* mimeType;
+  bool validMimeType;
 
   g_variant_get(parameters, "(osu)", &sessionHandle_, &mimeType, &serial);
 
-  // Always write UTF-8
-  if (strcmp(mimeType, MIME_TEXT_PLAIN_UTF8) != 0) {
-    vlog.error("Unsupported mime type %s", mimeType);
-    return;
-  }
-
   free(sessionHandle_);
-  free(mimeType);
 
-  selectionWrite(serial);
-}
-
-void Clipboard::handleSelectionWrite(GObject* proxy,
-                                     GAsyncResult* res)
-{
-  GError* error = nullptr;
-  GUnixFDList* fdList = nullptr;
-  GVariant* response;
-  int fd;
-  size_t remaining;
-  ssize_t written;
-  const char* data;
-  uint32_t serial;
-
-  assert(G_IS_DBUS_PROXY(proxy));
-
-  response = g_dbus_proxy_call_with_unix_fd_list_finish(G_DBUS_PROXY(proxy),
-                                                        &fdList, res, &error);
-  g_variant_unref(response);
-
-  if (error) {
-    std::string msg(error->message);
-    g_error_free(error);
-    vlog.error("%s", msg.c_str());
-    return;
-  }
-
-  // FIXME: Can we always assume index 0?
-  fd = g_unix_fd_list_get(fdList, 0, &error);
-  if (error) {
-    std::string msg(error->message);
-    g_error_free(error);
-    g_object_unref(fdList);
-    vlog.error("%s", msg.c_str());
-    return;
-  }
-
-  serial = pendingSerials.front();
-  pendingSerials.pop();
-  data = clientData.c_str();
-
-  remaining = clientData.length() + 1;
-  written = 0;
-  // FIXME: Should this write be async as well?
-  while (remaining > 0) {
-    written = write(fd, data, remaining);
-
-    if (written < 0) {
-      vlog.error("handleSelectionWrite: write() failed: %s", strerror(errno));
-      selectionWriteDone(serial, false);
-      g_object_unref(fdList);
-      close(fd);
-      return;
+  validMimeType = false;
+  for (uint i = 0; i < sizeof(MIME_TYPES) / sizeof(MIME_TYPES[0]); i++) {
+    if (strcmp(mimeType, MIME_TYPES[i]) == 0) {
+      validMimeType = true;
+      break;
     }
-
-    remaining -= written;
-    data += written;
   }
 
-  if (close(fd) != 0) {
-    vlog.error("Failed to close fd: %s", strerror(errno));
+  if (!validMimeType) {
+    vlog.error("handleSelectionTransfer(): unsupported mime type %s", mimeType);
     selectionWriteDone(serial, false);
-  } else {
-    selectionWriteDone(serial, true);
+    free(mimeType);
+    return;
   }
 
-  g_object_unref(fdList);
+  selectionWrite(serial, mimeType);
+  free(mimeType);
 }
 
 void Clipboard::handleSelectionOwnerChanged(GVariant* parameters)
@@ -366,8 +342,7 @@ void Clipboard::handleSelectionOwnerChanged(GVariant* parameters)
 
   g_variant_unref(sessionHandle_);
 
-  mimeTypes = g_variant_lookup_value(options, "mime_types",
-                                     G_VARIANT_TYPE("(as)"));
+  mimeTypes = g_variant_lookup_value(options, "mime_types", nullptr);
   sessionIsOwner = g_variant_lookup_value(options, "session_is_owner",
                                           G_VARIANT_TYPE_BOOLEAN);
   g_variant_unref(options);
@@ -394,13 +369,24 @@ void Clipboard::handleSelectionOwnerChanged(GVariant* parameters)
     return;
   }
 
-  // Clear any pending writes
-  while (!pendingSerials.empty())
-    pendingSerials.pop();
-
   if (mimeTypes) {
     char** mimeTypeArray;
-    g_variant_get(mimeTypes, "(^as)", &mimeTypeArray);
+    bool wrappedMimeTypes;
+
+    // The specification says that mime_types is of type "as", but GNOME
+    // incorrectly uses "(as)", so we have to double check here.
+    // https://gitlab.gnome.org/GNOME/xdg-desktop-portal-gnome/-/issues/136
+    if (g_variant_is_of_type(mimeTypes, G_VARIANT_TYPE("as"))) {
+      wrappedMimeTypes = false;
+    } else if (g_variant_is_of_type(mimeTypes, G_VARIANT_TYPE("(as)"))) {
+      wrappedMimeTypes = true;
+    } else {
+      vlog.error("Invalid mime types variant: %s", g_variant_print(mimeTypes, true));
+      g_variant_unref(mimeTypes);
+      return;
+    }
+
+    g_variant_get(mimeTypes, wrappedMimeTypes ?  "(^as)" : "^as", &mimeTypeArray);
 
     for (int i = 0; mimeTypeArray[i] != nullptr; i++) {
       for (uint j = 0; j < sizeof(MIME_TYPES) / sizeof(MIME_TYPES[0]); j++) {
@@ -445,34 +431,33 @@ void Clipboard::handleReadDataCallback(GAsyncResult* res)
 
   // Zero is returned on EOF, we are finished reading
   if (bytesRead == 0) {
-    sendClipboardDataCb(readBuffer.c_str());
-
     g_object_unref(readStream);
     g_object_unref(readCancellable);
     readStream = nullptr;
     readCancellable = nullptr;
     readInProgress = false;
-    readBuffer.clear();
-
     g_bytes_unref(bytes);
+
+    if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN) == 0) {
+      if (!core::isValidAscii(readBuffer.c_str(), readBuffer.size())) {
+        vlog.error("Invalid ASCII sequence in clipboard - ignoring");
+        readBuffer.clear();
+        return;
+      }
+    } else if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN_UTF8) == 0) {
+      if (!core::isValidUTF8(readBuffer.c_str(), readBuffer.size())) {
+        vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+        readBuffer.clear();
+        return;
+      }
+    }
+
+    sendClipboardDataCb(readBuffer.c_str());
+    readBuffer.clear();
     return;
   }
 
   data = (const char*)g_bytes_get_data(bytes, &dataSize);
-
-  if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN) == 0) {
-    if (!core::isValidAscii(data, dataSize)) {
-      vlog.error("Invalid ASCII sequence in clipboard - ignoring");
-      g_cancellable_cancel(readCancellable);
-      return;
-    }
-  } else if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN_UTF8) == 0) {
-    if (!core::isValidUTF8(data, dataSize)) {
-      vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
-      g_cancellable_cancel(readCancellable);
-      return;
-    }
-  }
 
   readBuffer.append(data, dataSize);
   g_bytes_unref(bytes);

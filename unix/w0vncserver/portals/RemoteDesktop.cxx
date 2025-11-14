@@ -322,6 +322,8 @@ void RemoteDesktop::selectDevices()
     enableClipboard = loadClipboardPreference();
   }
 
+  enableClipboard = true;
+
   params = g_variant_new("(oa{sv})", sessionHandle.c_str(), &optionsBuilder);
 
   remoteDesktop->call("SelectDevices", params, requestHandleToken.c_str(),

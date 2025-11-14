@@ -171,6 +171,7 @@ void PortalProxy::subscribe(const char* member,
 
 void PortalProxy::unsubscribe(uint32_t signalId)
 {
+  // FIXME: The callback should be removed here as well.
   g_dbus_connection_signal_unsubscribe(connection, signalId);
   subscribedSignals.remove(signalId);
 }

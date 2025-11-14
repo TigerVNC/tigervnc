@@ -51,7 +51,7 @@ public:
 
 private:
   // Portal methods
-  void selectionWrite(uint32_t serial);
+  void selectionWrite(uint32_t serial, const char* mimeType);
   void selectionWriteDone(uint32_t serial, bool success);
 
   // Portal method callbacks
@@ -71,7 +71,6 @@ private:
   PortalProxy* clipboard;
   std::string sessionHandle;
   std::string clientData;
-  std::queue<uint32_t> pendingSerials;
   gboolean selectionOwner;
   bool readInProgress;
 
