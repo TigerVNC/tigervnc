@@ -46,13 +46,21 @@ if(BUILD_STATIC)
   if(NOT LIBC_HAS_DGETTEXT)
     FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring)
 
-    set(Intl_LIBRARIES "-Wl,-Bstatic -lintl -liconv")
+    set(Intl_LIBRARIES "-Wl,-Bstatic -lintl")
 
     if(UNISTRING_LIBRARY)
       set(Intl_LIBRARIES "${Intl_LIBRARIES} -lunistring")
     endif()
 
     set(Intl_LIBRARIES "${Intl_LIBRARIES} -Wl,-Bdynamic")
+
+    if(APPLE)
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -liconv")
+    else()
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -Wl,-Bstatic")
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -liconv")
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -Wl,-Bdynamic")
+    endif()
 
     if(APPLE)
       set(Intl_LIBRARIES "${Intl_LIBRARIES} -framework Carbon")
