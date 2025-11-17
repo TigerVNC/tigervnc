@@ -65,8 +65,11 @@ namespace core {
   std::string utf16ToUTF8(const wchar_t* src, size_t units = (size_t)-1);
   std::wstring utf8ToUTF16(const char* src, size_t bytes = (size_t)-1);
 
+  std::string utf8ToAscii(const char* src, size_t bytes = (size_t)-1);
+
   bool isValidUTF8(const char* str, size_t bytes = (size_t)-1);
   bool isValidUTF16(const wchar_t* wstr, size_t units = (size_t)-1);
+  bool isValidAscii(const char* str, size_t bytes = (size_t)-1);
 
   // Convert a value to a string using the correct prefix to reduce
   // the length of the string
