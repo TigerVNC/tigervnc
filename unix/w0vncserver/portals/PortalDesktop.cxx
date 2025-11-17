@@ -32,6 +32,7 @@
 #include "../w0vncserver.h"
 #include "../parameters.h"
 #include "RemoteDesktop.h"
+#include "Clipboard.h"
 #include "PortalProxy.h"
 #include "../pipewire/PipeWirePixelBuffer.h"
 #include "PortalDesktop.h"
@@ -42,14 +43,15 @@ extern const unsigned int code_map_qnum_to_xorgevdev_len;
 static core::LogWriter vlog("PortalDesktop");
 
 PortalDesktop::PortalDesktop()
-  : server(nullptr), remoteDesktop(nullptr), pb(nullptr),
-    restoreToken("")
+  : server(nullptr), remoteDesktop(nullptr), clipboard(nullptr),
+    pb(nullptr), restoreToken("")
 {
 }
 
 PortalDesktop::~PortalDesktop()
 {
   delete remoteDesktop;
+  delete clipboard;
 }
 
 void PortalDesktop::init(rfb::VNCServer* vs)
@@ -76,7 +78,38 @@ void PortalDesktop::start()
     server->closeClients(reason);
   };
 
-  remoteDesktop = new RemoteDesktop(restoreToken, startPipewire, cancelStart);
+  std::function<void(const char*)> sendClipboardData = [this](const char* data) {
+    server->sendClipboardData(data);
+  };
+
+  std::function<void(bool available)> clipboardAnnounceCb = [this](bool available) {
+    server->announceClipboard(available);
+  };
+
+  std::function<void()> clipboardRequestCb = [this]() {
+    server->requestClipboard();
+  };
+
+  std::function<void()> initClipboard = [this, sendClipboardData,
+                                         clipboardAnnounceCb,
+                                         clipboardRequestCb]() {
+    assert(remoteDesktop);
+
+    clipboard = new Clipboard(remoteDesktop->getSessionHandle(),
+                              sendClipboardData, clipboardAnnounceCb,
+                              clipboardRequestCb);
+    clipboard->requestClipboard();
+  };
+
+  std::function<void()> clipboardSubscribe = [this]() {
+    assert(clipboard);
+
+    clipboard->subscribe();
+  };
+
+  remoteDesktop = new RemoteDesktop(restoreToken, startPipewire,
+                                    cancelStart, initClipboard,
+                                    clipboardSubscribe);
   remoteDesktop->createSession();
 }
 
@@ -90,6 +123,8 @@ void PortalDesktop::stop()
   restoreToken = remoteDesktop->getRestoreToken();
   delete remoteDesktop;
   remoteDesktop = nullptr;
+  delete clipboard;
+  clipboard = nullptr;
 }
 
 void PortalDesktop::queryConnection(network::Socket* sock,
@@ -140,6 +175,23 @@ void PortalDesktop::pointerEvent(const core::Point& pos,
   remoteDesktop->notifyPointerMotionAbsolute(pos.x, pos.y, buttonMask);
 }
 
+void PortalDesktop::handleClipboardRequest()
+{
+  if (clipboard)
+    clipboard->selectionRead();
+}
+
+void PortalDesktop::handleClipboardAnnounce(bool available)
+{
+  if (available)
+    clipboard->setSelection();
+}
+
+void PortalDesktop::handleClipboardData(const char* data)
+{
+  if (clipboard)
+    clipboard->handleClipboardData(data);
+}
 bool PortalDesktop::available()
 {
   std::vector<std::string> interfaces = {
