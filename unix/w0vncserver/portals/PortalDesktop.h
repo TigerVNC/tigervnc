@@ -26,6 +26,7 @@
 #include <rfb/SDesktop.h>
 
 class PipeWirePixelBuffer;
+class Clipboard;
 
 namespace rfb { class VNCServer; }
 
@@ -49,6 +50,9 @@ public:
   void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
   void pointerEvent(const core::Point& pos,
                     uint16_t buttonMask) override;
+  void handleClipboardRequest() override;
+  void handleClipboardAnnounce(bool available) override;
+  void handleClipboardData(const char* data) override;
 
   // Check if portals implementations are available
   static bool available();
@@ -57,10 +61,12 @@ protected:
   rfb::VNCServer* server;
 
   RemoteDesktop* remoteDesktop;
+  Clipboard* clipboard;
   PipeWirePixelBuffer* pb;
 
 private:
   std::string restoreToken;
+  bool clipboardAccess;
 };
 
 #endif // __PORTAL_DESKTOP_H__

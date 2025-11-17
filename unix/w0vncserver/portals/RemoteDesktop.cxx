@@ -41,6 +41,7 @@
 #include "../w0vncserver.h"
 #include "portalConstants.h"
 #include "RemoteDesktop.h"
+#include "Clipboard.h"
 #include "PortalProxy.h"
 
 // Maximum number of buttons
@@ -91,12 +92,15 @@ RemoteDesktop::RemoteDesktop(std::string restoreToken_,
                              std::function<void(int fd, uint32_t nodeId)>
                                startPipewireCb_,
                              std::function<void(const char*)>
-                               cancelStartCb_)
+                               cancelStartCb_,
+                             std::function<void()> initClipboardCb_,
+                             std::function<void()> clipboardSubscribeCb_)
   : sessionStarted(false), oldButtonMask(0), selectedDevices(0),
-    sessionHandle(""), remoteDesktop(nullptr), screenCast(nullptr),
-    session(nullptr), restoreToken(restoreToken_),
-    startPipewireCb(startPipewireCb_),
-    cancelStartCb(cancelStartCb_)
+    clipboardEnabled(false), sessionHandle(""), remoteDesktop(nullptr),
+    screenCast(nullptr), session(nullptr), restoreToken(restoreToken_),
+    startPipewireCb(startPipewireCb_), cancelStartCb(cancelStartCb_),
+    initClipboardCb(initClipboardCb_),
+    clipboardSubscribeCb(clipboardSubscribeCb_)
 {
   remoteDesktop = new PortalProxy("org.freedesktop.portal.Desktop",
                                   "/org/freedesktop/portal/desktop",
@@ -478,6 +482,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   GVariant* streams;
   GVariant* devices;
   GVariant* newRestoreToken;
+  GVariant* clipboardEnabled_;
 
   assert(!sessionStarted);
 
@@ -526,6 +531,16 @@ void RemoteDesktop::handleStart(GVariant* parameters)
     return;
   }
 
+  clipboardEnabled_ = g_variant_lookup_value(result,"clipboard_enabled",
+                                             G_VARIANT_TYPE_BOOLEAN);
+  if (clipboardEnabled_) {
+    clipboardEnabled = g_variant_get_boolean(clipboardEnabled_);
+    g_variant_unref(clipboardEnabled_);
+  }
+
+  if (clipboardEnabled)
+    clipboardSubscribeCb();
+
   if (!parseStreams(streams)) {
     vlog.error("Failed to parse streams");
     cancelStartCb("Failed to start remote desktop session");
@@ -549,6 +564,9 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
 void RemoteDesktop::handleSelectSources(GVariant* /* parameters */)
 {
+  if (Clipboard::available())
+    initClipboardCb();
+
   start();
 }
 
@@ -736,4 +754,3 @@ bool RemoteDesktop::storeRestoreToken(const char* newToken)
 
   return true;
 }
-

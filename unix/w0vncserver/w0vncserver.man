@@ -44,6 +44,10 @@ arbitrary.
 .SH PARAMETERS
 
 .TP
+.B \-AcceptCutText
+Accept clipboard updates from clients. Default is on.
+.
+.TP
 .B \-AcceptKeyEvents
 Accept key press and release events from clients. Default is on.
 .
@@ -128,6 +132,11 @@ is \fB*:stderr:30\fP.
 .B \-MaxConnectionTime \fIseconds\fP
 Terminate when a client has been connected for \fIN\fP seconds.  Default is
 0.
+.TP
+.B \-MaxCutText \fIbytes\fP
+The maximum permitted size of an incoming clipboard update.
+Default is \fB262144\fP.
+.
 .
 .TP
 .B \-MaxDisconnectionTime \fIseconds\fP
@@ -244,6 +253,10 @@ are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
 \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP,
 \fBX509Plain\fP, \fBRA2\fP, \fBRA2ne\fP, \fBRA2_256\fP and \fBRA2ne_256\fP.
 Default is \fBTLSVnc,VncAuth\fP.
+.
+.TP
+.B \-SendCutText
+Send clipboard changes to clients. Default is on.
 .
 .TP
 .B \-UseBlacklist
