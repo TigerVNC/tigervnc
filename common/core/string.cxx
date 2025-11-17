@@ -572,6 +572,52 @@ namespace core {
     return out;
   }
 
+  std::string utf8ToAscii(const char* src, size_t bytes)
+  {
+    std::string out;
+    size_t sz;
+
+    const char* in;
+    size_t in_len;
+
+    // Compute output size
+    sz = 0;
+    in = src;
+    in_len = bytes;
+    while ((in_len > 0) && (*in != '\0')) {
+      size_t len;
+      unsigned ucs;
+
+      len = utf8ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+      sz++;
+    }
+
+    // Reserve space
+    out.reserve(sz);
+
+    // And convert
+    in = src;
+    in_len = bytes;
+    while (in_len > 0 && *in != '\0') {
+      size_t len;
+      unsigned ucs;
+
+      len = utf8ToUCS4(in, in_len, &ucs);
+      in += len;
+      in_len -= len;
+
+      if (ucs <= 0x7f) {
+        out += (unsigned char)ucs;
+      } else {
+        out += "?";
+      }
+    }
+
+    return out;
+  };
+
   bool isValidUTF8(const char* str, size_t bytes)
   {
     while ((bytes > 0) && (*str != '\0')) {
@@ -601,6 +647,17 @@ namespace core {
 
       if (ucs == 0xfffd)
         return false;
+    }
+
+    return true;
+  }
+
+  bool isValidAscii(const char *str, size_t bytes)
+  {
+    while ((bytes > 0) && (*str != '\0')) {
+      if (!isascii(*str))
+        return false;
+      str++;
     }
 
     return true;
