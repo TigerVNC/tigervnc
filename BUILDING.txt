@@ -378,6 +378,54 @@ MinGW build on Linux
   make
 
 
+ARM64 (aarch64) build
+---------------------
+
+TigerVNC can be compiled natively on ARM64 systems or cross-compiled from
+x86_64 or other architectures.
+
+Native ARM64 build:
+
+  cd {build_directory}
+  cmake -G "Unix Makefiles" {source_directory}
+  make
+
+Cross-compiling for ARM64 from x86_64:
+
+First, install the ARM64 cross-compilation toolchain. On Debian/Ubuntu:
+
+  sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+You'll also need ARM64 versions of the required libraries. On Debian/Ubuntu,
+you can install them using:
+
+  sudo dpkg --add-architecture arm64
+  sudo apt-get update
+  sudo apt-get install zlib1g-dev:arm64 libpixman-1-dev:arm64 \
+    libjpeg-turbo8-dev:arm64 libgnutls28-dev:arm64 libfltk1.3-dev:arm64
+
+Then build using the provided toolchain file:
+
+  cd {build_directory}
+  cmake -G "Unix Makefiles" \
+    -DCMAKE_TOOLCHAIN_FILE={source_directory}/cmake/Toolchains/aarch64-linux-gnu.cmake \
+    {source_directory}
+  make
+
+Alternatively, you can manually specify the cross-compiler:
+
+  cd {build_directory}
+  CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ \
+    cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Linux \
+    -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+    {source_directory}
+  make
+
+Note: TigerVNC is architecturally portable and contains no ARM-specific
+assembly code. All dependencies (libjpeg-turbo, pixman, FLTK, etc.) have
+mature ARM64 support with hardware-accelerated optimizations (e.g., NEON).
+
+
 ===============================
 Distribution-specific packaging
 ===============================
