@@ -426,6 +426,67 @@ assembly code. All dependencies (libjpeg-turbo, pixman, FLTK, etc.) have
 mature ARM64 support with hardware-accelerated optimizations (e.g., NEON).
 
 
+Apple Silicon (macOS ARM64) build
+----------------------------------
+
+TigerVNC fully supports Apple Silicon Macs (M1, M2, M3, etc.). You can build
+natively on Apple Silicon or cross-compile from an Intel Mac.
+
+Native build on Apple Silicon Mac:
+
+  cd {build_directory}
+  cmake -G "Unix Makefiles" {source_directory}
+  make
+
+To explicitly build for ARM64 on Apple Silicon:
+
+  cd {build_directory}
+  cmake -G "Unix Makefiles" \
+    -DCMAKE_OSX_ARCHITECTURES=arm64 \
+    {source_directory}
+  make
+
+Cross-compiling for Apple Silicon from an Intel Mac:
+
+First, ensure you have Xcode Command Line Tools installed:
+
+  xcode-select --install
+
+You'll need ARM64 versions of dependencies. The easiest way is to use Homebrew:
+
+  # If on Intel Mac, install Homebrew for ARM64
+  arch -arm64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+  # Install dependencies for ARM64
+  arch -arm64 /opt/homebrew/bin/brew install fltk pixman gnutls libjpeg-turbo
+
+Then build using the provided toolchain file:
+
+  cd {build_directory}
+  cmake -G "Unix Makefiles" \
+    -DCMAKE_TOOLCHAIN_FILE={source_directory}/cmake/Toolchains/apple-arm64.cmake \
+    {source_directory}
+  make
+
+Building a Universal Binary (x86_64 + ARM64):
+
+To create a single binary that runs on both Intel and Apple Silicon Macs:
+
+  cd {build_directory}
+  cmake -G "Unix Makefiles" \
+    -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+    {source_directory}
+  make
+
+Note: Universal binaries require dependencies built for both architectures.
+
+Testing ARM64 binaries on Intel Mac:
+
+ARM64 binaries will not run natively on Intel Macs. You can test them using
+Rosetta 2 in reverse is not supported. Cross-compilation testing requires an
+actual Apple Silicon device or VM.
+
+
 ===============================
 Distribution-specific packaging
 ===============================
