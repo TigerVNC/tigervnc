@@ -102,7 +102,7 @@ if(BUILD_STATIC)
         HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
 
       # GnuTLS uses various crypto-api stuff
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32 -lncrypt")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32 -lncrypt -lbcrypt")
       # And sockets
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lws2_32")
 
