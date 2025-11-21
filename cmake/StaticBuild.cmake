@@ -46,13 +46,21 @@ if(BUILD_STATIC)
   if(NOT LIBC_HAS_DGETTEXT)
     FIND_LIBRARY(UNISTRING_LIBRARY NAMES unistring libunistring)
 
-    set(Intl_LIBRARIES "-Wl,-Bstatic -lintl -liconv")
+    set(Intl_LIBRARIES "-Wl,-Bstatic -lintl")
 
     if(UNISTRING_LIBRARY)
       set(Intl_LIBRARIES "${Intl_LIBRARIES} -lunistring")
     endif()
 
     set(Intl_LIBRARIES "${Intl_LIBRARIES} -Wl,-Bdynamic")
+
+    if(APPLE)
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -liconv")
+    else()
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -Wl,-Bstatic")
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -liconv")
+      set(Intl_LIBRARIES "${Intl_LIBRARIES} -Wl,-Bdynamic")
+    endif()
 
     if(APPLE)
       set(Intl_LIBRARIES "${Intl_LIBRARIES} -framework Carbon")
@@ -67,6 +75,8 @@ if(BUILD_STATIC)
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
     FIND_LIBRARY(IDN2_LIBRARY NAMES idn2 libidn2
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
+    FIND_LIBRARY(ZSTD_LIBRARY NAMES zstd libzstd
+      HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
 
     set(GNUTLS_LIBRARIES "-Wl,-Bstatic -lgnutls")
 
@@ -79,6 +89,9 @@ if(BUILD_STATIC)
     if(IDN2_LIBRARY)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lidn2")
     endif()
+    if(ZSTD_LIBRARY)
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lzstd")
+    endif()
 
     set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -Wl,-Bdynamic")
 
@@ -89,7 +102,7 @@ if(BUILD_STATIC)
         HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
 
       # GnuTLS uses various crypto-api stuff
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32 -lncrypt")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32 -lncrypt -lbcrypt")
       # And sockets
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lws2_32")
 
