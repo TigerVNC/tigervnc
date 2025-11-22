@@ -397,41 +397,41 @@ bool KeyboardWin32::handleEvent(const void* event)
     if ((ucsCode & 0xfc00) == 0xd800) {
       // We have received a high surrogate code unit. Remember it and wait for
       // the low surrogate which should come immediately after.
-      if (self->vkPacketHighSurrogate) {
+      if (vkPacketHighSurrogate) {
         vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
                      "codes: 0x%04x, 0x%04x"),
-                   self->vkPacketHighSurrogate, ucsCode);
+                   vkPacketHighSurrogate, ucsCode);
       }
-      self->vkPacketHighSurrogate = ucsCode;
+      vkPacketHighSurrogate = ucsCode;
       return true;
     }
     uint32_t codePoint = 0;
     if ((ucsCode & 0xfc00) == 0xdc00) {
       // We have received a low surrogate code unit. We should have a high
       // surrogate saved that we can use to calculate the code point.
-      if (!self->vkPacketHighSurrogate) {
+      if (!vkPacketHighSurrogate) {
         vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
                      "code: 0x%04x"),
                    ucsCode);
         return true;
       }
-      codePoint = (((self->vkPacketHighSurrogate & 0x03ff) << 10) |
+      codePoint = (((vkPacketHighSurrogate & 0x03ff) << 10) |
                    (ucsCode & 0x03ff)) + 0x010000;
     } else {
       // BMP character. Unicode characters in this range are encoded as a
       // single UTF-16 code unit.
-      if (self->vkPacketHighSurrogate) {
+      if (vkPacketHighSurrogate) {
         vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
                      "codes: 0x%04x, U+%04x"),
-                   self->vkPacketHighSurrogate, ucsCode);
-        self->vkPacketHighSurrogate = 0;
+                   vkPacketHighSurrogate, ucsCode);
+        vkPacketHighSurrogate = 0;
       }
       codePoint = ucsCode;
     }
     uint32_t keySym = ucs2keysym(codePoint);
     uint32_t keyCode = 0x100 + keySym; // Fake key code
-    self->handleKeyPress(keyCode, keySym);
-    self->handleKeyRelease(keyCode);
+    handler->handleKeyPress(keyCode, keyCode, keySym);
+    handler->handleKeyRelease(keyCode);
     return true;
   }
 
