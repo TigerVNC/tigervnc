@@ -40,6 +40,7 @@
 #include "../w0vncserver.h"
 #include "portalConstants.h"
 #include "RemoteDesktop.h"
+#include "Clipboard.h"
 #include "PortalProxy.h"
 
 // Maximum number of buttons
@@ -65,6 +66,7 @@ core::EnumParameter
 
 // Sync with w0vncserver-forget
 static const char* RESTORE_TOKEN_FILENAME =  "restoretoken";
+static const char* CLIPBOARD_PREFERENCE_FILENAME =  "clipboard";
 
 static core::LogWriter vlog("RemoteDesktop");
 
@@ -90,12 +92,15 @@ RemoteDesktop::RemoteDesktop(std::string restoreToken_,
                              std::function<void(int fd, uint32_t nodeId)>
                                startPipewireCb_,
                              std::function<void(const char*)>
-                               cancelStartCb_)
+                               cancelStartCb_,
+                             std::function<void()> initClipboardCb_,
+                             std::function<void()> clipboardSubscribeCb_)
   : sessionStarted(false), oldButtonMask(0), selectedDevices(0),
-    sessionHandle(""), remoteDesktop(nullptr), screenCast(nullptr),
-    session(nullptr), restoreToken(restoreToken_),
-    startPipewireCb(startPipewireCb_),
-    cancelStartCb(cancelStartCb_)
+    clipboardEnabled(false), sessionHandle(""), remoteDesktop(nullptr),
+    screenCast(nullptr), session(nullptr), restoreToken(restoreToken_),
+    startPipewireCb(startPipewireCb_), cancelStartCb(cancelStartCb_),
+    initClipboardCb(initClipboardCb_),
+    clipboardSubscribeCb(clipboardSubscribeCb_)
 {
   remoteDesktop = new PortalProxy("org.freedesktop.portal.Desktop",
                                   "/org/freedesktop/portal/desktop",
@@ -289,9 +294,16 @@ void RemoteDesktop::selectDevices()
   g_variant_builder_add(&optionsBuilder, "{sv}", "handle_token",
                         g_variant_new_string(requestHandleToken.c_str()));
 
+
+  enableClipboard = true;
+
   if (loadRestoreToken()) {
     g_variant_builder_add(&optionsBuilder, "{sv}", "restore_token",
                           g_variant_new_string(restoreToken.c_str()));
+    // Even if our previous session had clipboard enabled, we still have
+    // to explicitly request for it before we call RemoteDesktop.start
+    // again.
+    enableClipboard = loadClipboardPreference();
   }
 
   params = g_variant_new("(oa{sv})", sessionHandle.c_str(), &optionsBuilder);
@@ -404,6 +416,7 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   g_variant_unref(result);
 
   sessionHandle = g_variant_get_string(sessionHandleVariant, nullptr);
+
   g_variant_unref(sessionHandleVariant);
 
   // This proxy is used to to close the session.
@@ -421,6 +434,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   GVariant* streams_;
   GVariant* devices;
   GVariant* newRestoreToken;
+  GVariant* clipboardEnabled_;
 
   assert(!sessionStarted);
 
@@ -452,6 +466,18 @@ void RemoteDesktop::handleStart(GVariant* parameters)
                                     G_VARIANT_TYPE_ARRAY);
   g_variant_unref(result);
 
+  clipboardEnabled_ = g_variant_lookup_value(result,"clipboard_enabled",
+                                             G_VARIANT_TYPE_BOOLEAN);
+  if (clipboardEnabled_) {
+    clipboardEnabled = g_variant_get_boolean(clipboardEnabled_);
+    g_variant_unref(clipboardEnabled_);
+  }
+
+  if (clipboardEnabled)
+    clipboardSubscribeCb();
+
+  storeClipboardPreference(clipboardEnabled);
+
   if (!parseStreams(streams_)) {
     g_variant_unref(streams_);
     fatal_error("Failed to parse streams");
@@ -471,6 +497,9 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
 void RemoteDesktop::handleSelectSources(GVariant* /* parameters */)
 {
+  if (Clipboard::available() && enableClipboard)
+    initClipboardCb();
+
   start();
 }
 
@@ -657,3 +686,71 @@ bool RemoteDesktop::storeRestoreToken(const char* newToken)
   return true;
 }
 
+bool RemoteDesktop::loadClipboardPreference()
+{
+  char filepath[PATH_MAX];
+  FILE* f;
+  const char* stateDir;
+  char clipboardPreference[2];
+
+  stateDir = core::getvncstatedir();
+  if (!stateDir) {
+    vlog.error("Could not get state directory");
+    return false;
+  }
+
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, CLIPBOARD_PREFERENCE_FILENAME);
+  f = fopen(filepath, "r");
+  if (!f) {
+    if (errno != ENOENT)
+      vlog.error("Could not open \"%s\": %s", filepath, strerror(errno));
+
+    return false;
+  }
+
+  if (fgets(clipboardPreference, sizeof(clipboardPreference), f)) {
+    fclose(f);
+    clipboardEnabled = strcmp(clipboardPreference, "1") == 0;
+    return clipboardEnabled;
+  }
+  fclose(f);
+
+  vlog.error("Could not read clipboard preference from \"%s\"", filepath);
+  return false;
+}
+
+bool RemoteDesktop::storeClipboardPreference(bool clipboardPreference)
+{
+  char filepath[PATH_MAX];
+  FILE* f;
+  const char* stateDir;
+
+  // Store clipboard preference to file so it can be re-used on next startup
+  stateDir = core::getvncstatedir();
+  if (!stateDir) {
+    vlog.error("Could not determine VNC state directory path, cannot store clipboard preference");
+    return false;
+  }
+
+  if (core::mkdir_p(stateDir, 0755) == -1) {
+    if (errno != EEXIST) {
+      vlog.error("Could not create VNC config directory \"%s\": %s",
+                  stateDir, strerror(errno));
+      return false;
+    }
+  }
+
+  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir,
+           CLIPBOARD_PREFERENCE_FILENAME);
+
+  f = fopen(filepath, "w");
+  if (!f) {
+    vlog.error("Could not store clipboard preference to \"%s\": %s", filepath, strerror(errno));
+    return false;
+  }
+
+  fprintf(f, "%d", clipboardPreference);
+  fclose(f);
+
+  return true;
+}

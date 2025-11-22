@@ -5,6 +5,7 @@ endif()
 add_executable(w0vncserver
   portals/portalConstants.h
   portals/PortalProxy.cxx
+  portals/Clipboard.cxx
   portals/RemoteDesktop.cxx
   portals/PortalDesktop.cxx
   pipewire/PipeWirePixelBuffer.cxx

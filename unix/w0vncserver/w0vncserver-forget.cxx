@@ -31,6 +31,10 @@
 
 // Sync with RemoteDesktop.cxx
 static const char* RESTORE_TOKEN_FILENAME =  "restoretoken";
+static const char* CLIPBOARD_PREFERENCE_FILENAME =  "clipboard";
+
+const char* filepaths[] = { RESTORE_TOKEN_FILENAME,
+                            CLIPBOARD_PREFERENCE_FILENAME };
 
 char* programName = nullptr;
 
@@ -48,8 +52,8 @@ static void usage()
 
 int main(int argc, char** argv)
 {
-  char filepath[PATH_MAX];
   const char* stateDir;
+  int ret;
 
   programName = argv[0];
 
@@ -75,14 +79,20 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, RESTORE_TOKEN_FILENAME);
+  ret = 0;
+  for (uint i = 0; i < sizeof(filepaths) / sizeof(filepaths[0]); i++) {
+    char filepath[PATH_MAX];
 
-  if (remove(filepath) != 0) {
-    if (errno != ENOENT) {
-      fprintf(stderr, "Could not remove restore token from \"%s\": %s", filepath, strerror(errno));
-      return 1;
+    snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, filepaths[i]);
+
+    if (remove(filepath) != 0) {
+      if (errno != ENOENT) {
+        fprintf(stderr, "Could not remove preference from \"%s\": %s",
+                filepath, strerror(errno));
+       ret = 1;
+      }
     }
   }
 
-  return 0;
+  return ret;
 }
