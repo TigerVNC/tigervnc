@@ -299,6 +299,7 @@ bool KeyboardWin32::handleEvent(const void* event)
         }
         uint32_t codePoint = (((vkPacketHighSurrogate & 0x03ff) << 10) |
                               (ucsCode & 0x03ff)) + 0x010000;
+        vkPacketHighSurrogate = 0;
         keySym = ucs2keysym(codePoint);
         keyCode = 0x01000000 | codePoint; // Fake key code
         handler->handleKeyPress(systemKeyCode, keyCode, keySym);
