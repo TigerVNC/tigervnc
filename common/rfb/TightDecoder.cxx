@@ -42,7 +42,7 @@
 
 using namespace rfb;
 
-static const int TIGHT_MAX_WIDTH = 2048;
+static const int TIGHT_MAX_WIDTH = 8192;
 static const int TIGHT_MIN_TO_COMPRESS = 12;
 
 TightDecoder::TightDecoder()

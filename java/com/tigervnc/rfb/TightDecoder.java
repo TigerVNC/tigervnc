@@ -37,7 +37,7 @@ import javax.imageio.stream.*;
 
 public class TightDecoder extends Decoder {
 
-  final static int TIGHT_MAX_WIDTH = 2048;
+  final static int TIGHT_MAX_WIDTH = 8192;
   final static int TIGHT_MIN_TO_COMPRESS = 12;
 
   // Compression control
