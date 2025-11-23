@@ -37,7 +37,7 @@ import javax.imageio.stream.*;
 
 public class TightDecoder extends Decoder {
 
-  final static int TIGHT_MAX_WIDTH = 8192;
+  final static int TIGHT_MAX_WIDTH = 32768;
   final static int TIGHT_MIN_TO_COMPRESS = 12;
 
   // Compression control
@@ -411,15 +411,15 @@ public class TightDecoder extends Decoder {
                                       PixelFormat pf, ByteBuffer outbuf,
                                       int stride, Rect r)
   {
-    int x, y, c;
-    byte[] prevRow = new byte[TIGHT_MAX_WIDTH*3];
-    byte[] thisRow = new byte[TIGHT_MAX_WIDTH*3];
-    ByteBuffer pix = ByteBuffer.allocate(3);
-    int[] est = new int[3];
-
     // Set up shortcut variables
     int rectHeight = r.height();
     int rectWidth = r.width();
+
+    int x, y, c;
+    byte[] prevRow = new byte[rectWidth*3];
+    byte[] thisRow = new byte[rectWidth*3];
+    ByteBuffer pix = ByteBuffer.allocate(3);
+    int[] est = new int[3];
 
     for (y = 0; y < rectHeight; y++) {
       for (x = 0; x < rectWidth; x++) {
@@ -454,15 +454,15 @@ public class TightDecoder extends Decoder {
                                     PixelFormat pf, ByteBuffer outbuf,
                                     int stride, Rect r)
   {
-    int x, y, c;
-    byte[] prevRow = new byte[TIGHT_MAX_WIDTH*3];
-    byte[] thisRow = new byte[TIGHT_MAX_WIDTH*3];
-    ByteBuffer pix = ByteBuffer.allocate(3);
-    int[] est = new int[3];
-
     // Set up shortcut variables
     int rectHeight = r.height();
     int rectWidth = r.width();
+
+    int x, y, c;
+    byte[] prevRow = new byte[rectWidth*3];
+    byte[] thisRow = new byte[rectWidth*3];
+    ByteBuffer pix = ByteBuffer.allocate(3);
+    int[] est = new int[3];
 
     for (y = 0; y < rectHeight; y++) {
       for (x = 0; x < rectWidth; x++) {

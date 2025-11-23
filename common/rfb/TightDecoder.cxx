@@ -42,7 +42,7 @@
 
 using namespace rfb;
 
-static const int TIGHT_MAX_WIDTH = 8192;
+static const int TIGHT_MAX_WIDTH = 32768;
 static const int TIGHT_MIN_TO_COMPRESS = 12;
 
 TightDecoder::TightDecoder()
@@ -549,11 +549,11 @@ TightDecoder::FilterGradient24(const uint8_t *inbuf,
   uint8_t pix[3]; 
   int est[3]; 
 
-  memset(prevRow, 0, sizeof(prevRow));
-
   // Set up shortcut variables
   int rectHeight = r.height();
   int rectWidth = r.width();
+
+  memset(prevRow, 0, rectWidth * sizeof(prevRow[0]) * 3);
 
   for (y = 0; y < rectHeight; y++) {
     for (x = 0; x < rectWidth; x++) {
@@ -580,7 +580,7 @@ TightDecoder::FilterGradient24(const uint8_t *inbuf,
       pf.bufferFromRGB((uint8_t*)&outbuf[y*stride+x], pix, 1);
     }
 
-    memcpy(prevRow, thisRow, sizeof(prevRow));
+    memcpy(prevRow, thisRow, rectWidth * sizeof(prevRow[0]) * 3);
   }
 }
 
@@ -595,11 +595,11 @@ void TightDecoder::FilterGradient(const uint8_t* inbuf,
   uint8_t pix[3]; 
   int est[3]; 
 
-  memset(prevRow, 0, sizeof(prevRow));
-
   // Set up shortcut variables
   int rectHeight = r.height();
   int rectWidth = r.width();
+
+  memset(prevRow, 0, rectWidth * sizeof(prevRow[0]) * 3);
 
   for (y = 0; y < rectHeight; y++) {
     for (x = 0; x < rectWidth; x++) {
@@ -634,7 +634,7 @@ void TightDecoder::FilterGradient(const uint8_t* inbuf,
       pf.bufferFromRGB((uint8_t*)&outbuf[y*stride+x], pix, 1);
     }
 
-    memcpy(prevRow, thisRow, sizeof(prevRow));
+    memcpy(prevRow, thisRow, rectWidth * sizeof(prevRow[0]) * 3);
   }
 }
 
