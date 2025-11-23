@@ -455,8 +455,8 @@ public class TightDecoder extends Decoder {
                                     int stride, Rect r)
   {
     int x, y, c;
-    byte[] prevRow = new byte[TIGHT_MAX_WIDTH];
-    byte[] thisRow = new byte[TIGHT_MAX_WIDTH];
+    byte[] prevRow = new byte[TIGHT_MAX_WIDTH*3];
+    byte[] thisRow = new byte[TIGHT_MAX_WIDTH*3];
     ByteBuffer pix = ByteBuffer.allocate(3);
     int[] est = new int[3];
 
