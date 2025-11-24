@@ -34,6 +34,8 @@
 
 using namespace rfb;
 
+static const int TIGHT_MAX_WIDTH = 2048;
+
 struct TightConf {
   int idxZlibLevel, monoZlibLevel, rawZlibLevel;
 };
@@ -87,6 +89,8 @@ void TightEncoder::setCompressLevel(int level)
 
 void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 {
+  assert(pb->width() <= TIGHT_MAX_WIDTH);
+
   switch (palette.size()) {
   case 0:
     writeFullColourRect(pb);
@@ -102,11 +106,13 @@ void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
   }
 }
 
-void TightEncoder::writeSolidRect(int /*width*/, int /*height*/,
+void TightEncoder::writeSolidRect(int width, int /*height*/,
                                   const PixelFormat& pf,
                                   const uint8_t* colour)
 {
   rdr::OutStream* os;
+
+  assert(width <= TIGHT_MAX_WIDTH);
 
   os = conn->getOutStream();
 

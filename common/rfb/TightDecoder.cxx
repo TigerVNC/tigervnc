@@ -60,10 +60,6 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
   if (readState == IDLE) {
     uint8_t comp_ctl;
 
-    if (r.width() > TIGHT_MAX_WIDTH)
-      throw protocol_error(core::format(
-        "TightDecoder: Too large rectangle (%d pixels)", r.width()));
-
     if (!is->hasData(1))
       return false;
 
@@ -103,6 +99,13 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
     readState = IDLE;
     return true;
   }
+
+  // FIXME: This check should be for all Tight types, but TigerVNC
+  //        servers until 1.16.0 were buggy and sent larger rects for
+  //        fill type rectangles.
+  if (r.width() > TIGHT_MAX_WIDTH)
+    throw protocol_error(core::format(
+      "TightDecoder: Too large rectangle (%d pixels)", r.width()));
 
   // "JPEG" compression type.
   if (readState == JPEG) {
