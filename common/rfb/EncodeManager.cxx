@@ -762,6 +762,13 @@ void EncodeManager::findSolidRect(const core::Rect& rect,
           extendSolidAreaByPixel(rect, erb, colourValue, pb, &erp);
         }
 
+        // FIXME: This should ideally be done whilst scanning to avoid
+        //        scanning the same area twice.
+        if (erp.width() > SubRectMaxWidth)
+          erp.br.x = erp.tl.x + SubRectMaxWidth;
+        if (erp.area() > SubRectMaxArea)
+          erp.br.y = erp.tl.y + SubRectMaxArea/erp.width();
+
         // Send solid-color rectangle.
         encoder = startRect(erp, encoderSolid);
         if (encoder->flags & EncoderUseNativePF) {
