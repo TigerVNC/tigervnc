@@ -393,35 +393,37 @@ endif()
 # check for libraries needed for wayland support
 if(UNIX AND NOT APPLE)
   trioption(ENABLE_WAYLAND "Enable wayland support")
-  if(ENABLE_WAYLAND STREQUAL "AUTO")
-    find_package(GLib)
-    find_package(Gio)
-    find_package(Gobject)
+  if(ENABLE_WAYLAND)
+    if(ENABLE_WAYLAND STREQUAL "AUTO")
+      find_package(GLib)
+      find_package(Gio)
+      find_package(Gobject)
 
-    # Portals specific
-    find_package(PipeWire)
-    find_package(Uuid)
+      # Portals specific
+      find_package(PipeWire)
+      find_package(Uuid)
 
-    # wlroots specific
-    find_package(WaylandClient)
-    find_package(Xkbcommon)
-  else()
-    find_package(GLib REQUIRED)
-    find_package(Gio REQUIRED)
-    find_package(Gobject REQUIRED)
+      # wlroots specific
+      find_package(WaylandClient)
+      find_package(Xkbcommon)
+    else()
+      find_package(GLib REQUIRED)
+      find_package(Gio REQUIRED)
+      find_package(Gobject REQUIRED)
 
-    # Portals specific
-    find_package(PipeWire REQUIRED)
-    find_package(Uuid REQUIRED)
+      # Portals specific
+      find_package(PipeWire REQUIRED)
+      find_package(Uuid REQUIRED)
 
-    # wlroots specific
-    find_package(WaylandClient REQUIRED)
-    find_package(Xkbcommon REQUIRED)
-  endif()
-  if(NOT GLIB_FOUND OR NOT GIO_FOUND OR NOT GOBJECT_FOUND OR NOT PIPEWIRE_FOUND
-     OR NOT UUID_FOUND OR NOT WAYLANDCLIENT_FOUND OR NOT XKBCOMMON_FOUND)
-    set(ENABLE_WAYLAND 0)
-    message(WARNING "GLib, Gio, Gobject, PipeWire, Uuid, WaylandClient or Xkbcommon NOT found. w0vncserver disabled.")
+      # wlroots specific
+      find_package(WaylandClient REQUIRED)
+      find_package(Xkbcommon REQUIRED)
+    endif()
+    if(NOT GLIB_FOUND OR NOT GIO_FOUND OR NOT GOBJECT_FOUND OR NOT PIPEWIRE_FOUND
+       OR NOT UUID_FOUND OR NOT WAYLANDCLIENT_FOUND OR NOT XKBCOMMON_FOUND)
+      set(ENABLE_WAYLAND 0)
+      message(WARNING "GLib, Gio, Gobject, PipeWire, Uuid, WaylandClient or Xkbcommon NOT found. w0vncserver disabled.")
+    endif()
   endif()
 endif()
 
