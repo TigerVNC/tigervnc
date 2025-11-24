@@ -198,6 +198,8 @@ namespace rfb {
     virtual bool showMsgBox(MsgBoxFlags flags, const char *title,
                             const char *text) = 0;
 
+    void enableUpdates(bool enabled);
+
   protected:
 
     // Methods overridden from CMsgHandler
@@ -324,6 +326,8 @@ namespace rfb {
     stateEnum state_;
 
     std::string serverName;
+
+    bool updatesEnabled;
 
     bool pendingPFChange;
     rfb::PixelFormat pendingPF;
