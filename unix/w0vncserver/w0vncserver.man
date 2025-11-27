@@ -102,16 +102,6 @@ update to the client. Note that this only controls the maximum rate and a
 client may get a lower rate when resources are limited. Default is \fB60\fP.
 .
 .TP
-.B \-Geometry \fIgeometry\fP
-This option specifies the screen area that will be shown to VNC clients.  The
-format is
-.B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
-, where `+' signs can be replaced with `\-' signs to specify offsets from the
-right and/or from the bottom of the screen.  Offsets are optional, +0+0 is
-assumed by default (top left corner).  If the argument is empty, full screen
-is shown to VNC clients (this is the default).
-.
-.TP
 .B \-GnuTLSPriority \fIpriority\fP
 GnuTLS priority string that controls the TLS session’s handshake algorithms.
 See the GnuTLS manual for possible values. Default is \fBNORMAL\fP.
