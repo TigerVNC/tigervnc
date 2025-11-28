@@ -6,12 +6,15 @@ w0vncserver-forget \- forget w0vncserver display choice
 .SH DESCRIPTION
 .B w0vncserver-forget
 is a utility for \fBw0vncserver\fP(1) which will forget the stored
-display choice configuration.
+display choice and clipboard configuration.
 
 .SH FILES
 .TP
 \fI$XDG_STATE_HOME/tigervnc/restoretoken\fP
 Default location of the restoretoken file.
+.TP
+\fI$XDG_STATE_HOME/tigervnc/clipboard\fP
+Default location of the clipboard preference file.
 
 .SH SEE ALSO
 .BR w0vncserver (1),
