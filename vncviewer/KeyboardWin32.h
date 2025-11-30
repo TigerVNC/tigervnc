@@ -51,6 +51,7 @@ private:
   HKL currentLayout;
 
   bool altGrArmed;
+  uint32_t vkPacketHighSurrogate;
   unsigned int altGrCtrlTime;
 
   bool leftShiftDown;
