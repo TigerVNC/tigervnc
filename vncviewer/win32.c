@@ -71,6 +71,40 @@ static LRESULT CALLBACK message_hook(int nCode, WPARAM wParam, LPARAM lParam)
         (msg->message == WM_SYSKEYDOWN) ||
         (msg->message == WM_KEYUP) ||
         (msg->message == WM_SYSKEYUP)) {
+      int down;
+      BYTE state[256];
+
+      // Windows stops updating our local keyboard state when we do a
+      // low-level intercept of events, so we need to do that manually
+
+      GetKeyboardState(state);
+
+      // First the key itself
+      down = !(msg->lParam & (1<<31));
+      if (down)
+        state[msg->wParam] |= 0x80;
+      else
+        state[msg->wParam] &= ~0x80;
+
+      // Then the combined fake vkeys for the modifiers
+
+      if ((state[VK_LSHIFT] & 0x80) || (state[VK_RSHIFT] & 0x80))
+        state[VK_SHIFT] |= 0x80;
+      else
+        state[VK_SHIFT] &= ~0x80;
+
+      if ((state[VK_LCONTROL] & 0x80) || (state[VK_RCONTROL] & 0x80))
+        state[VK_CONTROL] |= 0x80;
+      else
+        state[VK_CONTROL] &= ~0x80;
+
+      if ((state[VK_LMENU] & 0x80) || (state[VK_RMENU] & 0x80))
+        state[VK_MENU] |= 0x80;
+      else
+        state[VK_MENU] &= ~0x80;
+
+      SetKeyboardState(state);
+
       // We get the low level vkeys here, but the application code
       // expects this to have been translated to the generic ones
       switch (msg->wParam) {
