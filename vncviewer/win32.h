@@ -25,10 +25,15 @@
 #define snprintf(str, n, format, ...) _snprintf_s(str, n, _TRUNCATE, format, __VA_ARGS__)
 #endif
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 int win32_enable_lowlevel_keyboard(HWND hwnd);
 void win32_disable_lowlevel_keyboard(HWND hwnd);
+
+#ifdef __cplusplus
 };
+#endif
 
 #endif
