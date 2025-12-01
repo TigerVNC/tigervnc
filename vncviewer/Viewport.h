@@ -91,7 +91,10 @@ private:
 
   void handleKeyPress(int systemKeyCode,
                       uint32_t keyCode, uint32_t keySym) override;
+  void sendKeyPress(int systemKeyCode,
+                    uint32_t keyCode, uint32_t keySym);
   void handleKeyRelease(int systemKeyCode) override;
+  void sendKeyRelease(int systemKeyCode);
 
   static int handleSystemEvent(void *event, void *data);
 
