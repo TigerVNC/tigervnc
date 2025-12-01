@@ -23,6 +23,8 @@
 
 #include <windows.h>
 
+#include "win32.h"
+
 static HANDLE thread;
 static DWORD thread_id;
 
