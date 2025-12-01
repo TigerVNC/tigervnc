@@ -28,7 +28,8 @@
 static HANDLE thread;
 static DWORD thread_id;
 
-static HHOOK hook = 0;
+static HHOOK kbd_hook = 0;
+static HHOOK msg_hook = 0;
 static BYTE kbd_state[256];
 static HWND target_wnd = 0;
 
@@ -45,25 +46,6 @@ static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
     scanCode = msgInfo->scanCode;
     flags = msgInfo->flags;
 
-    // We get the low level vkeys here, but the application code
-    // expects this to have been translated to the generic ones
-    switch (vkey) {
-    case VK_LSHIFT:
-    case VK_RSHIFT:
-      vkey = VK_SHIFT;
-      // The extended bit is also always missing for right shift
-      flags &= ~0x01;
-      break;
-    case VK_LCONTROL:
-    case VK_RCONTROL:
-      vkey = VK_CONTROL;
-      break;
-    case VK_LMENU:
-    case VK_RMENU:
-      vkey = VK_MENU;
-      break;
-    }
-
     // If the key was pressed before the grab was activated, then we
     // need to avoid intercepting the release event or Windows will get
     // confused about the state of the key
@@ -77,7 +59,40 @@ static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
     }
   }
 
-  return CallNextHookEx(hook, nCode, wParam, lParam);
+  return CallNextHookEx(kbd_hook, nCode, wParam, lParam);
+}
+
+static LRESULT CALLBACK message_hook(int nCode, WPARAM wParam, LPARAM lParam)
+{
+  if (nCode >= 0) {
+    MSG* msg = (MSG*)lParam;
+
+    if ((msg->message == WM_KEYDOWN) ||
+        (msg->message == WM_SYSKEYDOWN) ||
+        (msg->message == WM_KEYUP) ||
+        (msg->message == WM_SYSKEYUP)) {
+      // We get the low level vkeys here, but the application code
+      // expects this to have been translated to the generic ones
+      switch (msg->wParam) {
+      case VK_LSHIFT:
+      case VK_RSHIFT:
+        msg->wParam = VK_SHIFT;
+        // The extended bit is also always missing for right shift
+        msg->lParam &= ~(1 << 24);
+        break;
+      case VK_LCONTROL:
+      case VK_RCONTROL:
+        msg->wParam = VK_CONTROL;
+        break;
+      case VK_LMENU:
+      case VK_RMENU:
+        msg->wParam = VK_MENU;
+        break;
+      }
+    }
+  }
+
+  return CallNextHookEx(msg_hook, nCode, wParam, lParam);
 }
 
 static DWORD WINAPI keyboard_thread(LPVOID data)
@@ -92,14 +107,15 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
   // We need to know which keys are currently pressed
   GetKeyboardState(kbd_state);
 
-  hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(0), 0);
+  kbd_hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(0), 0);
+
   // If something goes wrong then there is not much we can do.
   // Just sit around and wait for WM_QUIT...
 
   while (GetMessage(&msg, NULL, 0, 0));
 
-  if (hook)
-    UnhookWindowsHookEx(hook);
+  if (kbd_hook)
+    UnhookWindowsHookEx(kbd_hook);
 
   target_wnd = 0;
 
@@ -122,6 +138,12 @@ int win32_enable_lowlevel_keyboard(HWND hwnd)
   if (thread == NULL)
     return 1;
 
+  msg_hook = SetWindowsHookEx(WH_GETMESSAGE, message_hook, 0, GetCurrentThreadId());
+  if (msg_hook == NULL) {
+    win32_disable_lowlevel_keyboard(hwnd);
+    return 1;
+  }
+
   return 0;
 }
 
@@ -134,4 +156,8 @@ void win32_disable_lowlevel_keyboard(HWND hwnd)
 
   CloseHandle(thread);
   thread = NULL;
+
+  if (msg_hook)
+    UnhookWindowsHookEx(msg_hook);
+  msg_hook = NULL;
 }
