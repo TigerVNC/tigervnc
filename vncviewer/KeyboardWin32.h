@@ -36,6 +36,7 @@ public:
   void setLEDState(unsigned state) override;
 
 protected:
+  int fixSystemKeyCode(int systemKeyCode);
   uint32_t translateSystemKeyCode(int systemKeyCode);
   uint32_t lookupVKeyMap(unsigned vkey, bool extended,
                          const UINT map[][3], size_t size);
