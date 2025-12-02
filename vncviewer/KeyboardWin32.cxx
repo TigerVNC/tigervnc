@@ -260,6 +260,7 @@ bool KeyboardWin32::handleEvent(const void* event)
     if (isExtended)
       systemKeyCode |= 0x80;
 
+    systemKeyCode = fixSystemKeyCode(systemKeyCode);
     keyCode = translateSystemKeyCode(systemKeyCode);
 
     GetKeyboardState(state);
@@ -354,6 +355,8 @@ bool KeyboardWin32::handleEvent(const void* event)
       systemKeyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
     if (isExtended)
       systemKeyCode |= 0x80;
+
+    systemKeyCode = fixSystemKeyCode(systemKeyCode);
 
     handler->handleKeyRelease(systemKeyCode);
 
@@ -551,6 +554,22 @@ void KeyboardWin32::setLEDState(unsigned state)
     vlog.error(_("Failed to update keyboard LED state: %lu"), GetLastError());
 }
 
+int KeyboardWin32::fixSystemKeyCode(int systemKeyCode)
+{
+  // We need stable key codes for everything, but Windows changes the
+  // key code for some keys depending on modifiers
+
+  // Break (Ctrl+Pause) to normal Pause
+  if (systemKeyCode == 0xc6)
+    return 0x45;
+
+  // SysRq (Alt+PrintScreen) to PrintScreen
+  if (systemKeyCode == 0xb7)
+    return 0x54;
+
+  return systemKeyCode;
+}
+
 uint32_t KeyboardWin32::translateSystemKeyCode(int systemKeyCode)
 {
   // Fortunately RFB and Windows use the same scan code set (mostly),
@@ -566,11 +585,6 @@ uint32_t KeyboardWin32::translateSystemKeyCode(int systemKeyCode)
   // And NumLock incorrectly has the extended bit set
   if (systemKeyCode == 0xc5)
     return 0x45;
-
-  // And Alt+PrintScreen (i.e. SysRq) sends a different code than
-  // PrintScreen
-  if (systemKeyCode == 0xb7)
-    return 0x54;
 
   return systemKeyCode;
 }
