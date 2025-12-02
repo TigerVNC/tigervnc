@@ -327,7 +327,7 @@ bool KeyboardWin32::handleEvent(const void* event)
   } else if ((msg->message == WM_KEYUP) || (msg->message == WM_SYSKEYUP)) {
     UINT vKey;
     bool isExtended;
-    int systemKeyCode, keyCode;
+    int systemKeyCode;
 
     vKey = msg->wParam;
     isExtended = (msg->lParam & (1 << 24)) != 0;
@@ -355,9 +355,7 @@ bool KeyboardWin32::handleEvent(const void* event)
     if (isExtended)
       systemKeyCode |= 0x80;
 
-    keyCode = translateSystemKeyCode(systemKeyCode);
-
-    handler->handleKeyRelease(keyCode);
+    handler->handleKeyRelease(systemKeyCode);
 
     // Windows has a rather nasty bug where it won't send key release
     // events for a Shift button if the other Shift is still pressed
