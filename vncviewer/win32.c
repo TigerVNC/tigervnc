@@ -42,17 +42,36 @@ static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
     BYTE scanCode;
     BYTE flags;
 
+    int intercept;
+
     vkey = msgInfo->vkCode;
     scanCode = msgInfo->scanCode;
     flags = msgInfo->flags;
 
-    // If the key was pressed before the grab was activated, then we
-    // need to avoid intercepting the release event or Windows will get
-    // confused about the state of the key
+    // Windows stops updating the global keyboard state if we intercept
+    // the key events. So we need to let some of them through to not
+    // break things too badly.
+
+    intercept = 1;
+
+    // Keys that were pressed when we started intercepting things must
+    // be allowed to return to their neutral state
     if (((wParam == WM_KEYUP) || (wParam == WM_SYSKEYUP)) &&
         (kbd_state[msgInfo->vkCode] & 0x80)) {
+      intercept = 0;
+      // This key has been handled, so intercept further events
       kbd_state[msgInfo->vkCode] &= ~0x80;
-    } else {
+    }
+
+    // We can't modify the global lock key state, so we have no choice
+    // but to let these through
+    if ((msgInfo->vkCode == VK_CAPITAL) ||
+        (msgInfo->vkCode == VK_NUMLOCK) ||
+        (msgInfo->vkCode == VK_SCROLL)) {
+      intercept = 0;
+    }
+
+    if (intercept) {
       PostMessage(target_wnd, wParam, vkey,
                   scanCode << 16 | flags << 24);
       return 1;
