@@ -167,6 +167,10 @@ static CGEventRef cocoa_event_tap(CGEventTapProxy /*proxy*/,
   if (err != noErr)
     return event;
 
+  // FIXME: macOS refuses to pass events on with the repeat flag set.
+  //        Fortunately, we don't actually care about the flag.
+  CGEventSetIntegerValueField(event, kCGKeyboardEventAutorepeat, 0);
+
   // FIXME: CGEventPostToPid() in macOS 10.11+
   CGEventPostToPSN(&psn, event);
 
