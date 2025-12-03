@@ -207,7 +207,10 @@ namespace rdr {
 
   protected:
 
-    InStream() : restorePoint(nullptr), checkedBytes(0) {}
+    InStream() : restorePoint(nullptr), checkedBytes(0)
+    {
+      (void)checkedBytes;
+    }
     const uint8_t* ptr;
     const uint8_t* end;
   };
