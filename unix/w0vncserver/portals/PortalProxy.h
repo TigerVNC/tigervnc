@@ -38,6 +38,7 @@ public:
   // signalCallback() when a response signal is received. A
   // requestHandleToken must be set to link the response signal.
   // signalCallback can be set to nullptr is no response is expected.
+  // Throws an exception if the call fails
   void call(const char* method, GVariant* parameters,
             const char* requestHandleToken = nullptr,
             std::function<void(GVariant* parameters)>

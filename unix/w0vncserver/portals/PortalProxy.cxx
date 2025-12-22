@@ -126,15 +126,14 @@ void PortalProxy::call(const char* method, GVariant* parameters,
   result = g_dbus_proxy_call_sync(proxy, method, parameters,
                                   flags, 3000, nullptr, &error);
 
-  if (error) {
-    // FIXME: We probably want to improve the error handling here
-    vlog.error("call(): error calling %s: %s", method,
-               error->message);
-    g_error_free(error);
-    return;
-  }
+  if (result)
+    g_variant_unref(result);
 
-  g_variant_unref(result);
+  if (error) {
+    std::string msg(error->message);
+    g_error_free(error);
+    throw std::runtime_error(msg);
+  }
 }
 
 void PortalProxy::subscribe(const char* member,

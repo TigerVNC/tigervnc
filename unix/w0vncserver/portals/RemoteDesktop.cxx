@@ -37,6 +37,7 @@
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
+#include <rfb/KeysymStr.h>
 #include "../w0vncserver.h"
 #include "portalConstants.h"
 #include "RemoteDesktop.h"
@@ -127,7 +128,12 @@ void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym, bool down)
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
   params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
                          &optionsBuilder, keysym, state);
-  remoteDesktop->call("NotifyKeyboardKeysym", params);
+  try {
+    remoteDesktop->call("NotifyKeyboardKeysym", params);
+  } catch (const std::exception& e) {
+    vlog.error("Could not handle keysym XK_%s (0x%04x): %s",
+               KeySymName(keysym), keysym, e.what());
+  }
 }
 
 void RemoteDesktop::notifyKeyboardKeycode(uint32_t keycode, bool down)
@@ -151,7 +157,11 @@ void RemoteDesktop::notifyKeyboardKeycode(uint32_t keycode, bool down)
   g_variant_builder_init(&optionsBuilder, G_VARIANT_TYPE("a{sv}"));
   params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
                          &optionsBuilder, keycode, state);
-  remoteDesktop->call("NotifyKeyboardKeycode", params);
+  try {
+    remoteDesktop->call("NotifyKeyboardKeycode", params);
+  } catch (const std::exception& e) {
+    vlog.error("Could not handle key %d: %s", keycode, e.what());
+  }
 }
 
 void RemoteDesktop::notifyPointerMotionAbsolute(int x, int y,
@@ -168,7 +178,11 @@ void RemoteDesktop::notifyPointerMotionAbsolute(int x, int y,
                          &optionsBuilder, pipewireNodeId,
                          (double)x,(double)y);
 
-  remoteDesktop->call("NotifyPointerMotionAbsolute", params);
+  try {
+    remoteDesktop->call("NotifyPointerMotionAbsolute", params);
+  } catch (const std::exception& e) {
+    vlog.error("Could not move pointer: %s", e.what());
+  }
 
   if (buttonMask == oldButtonMask)
     return;
@@ -198,7 +212,11 @@ void RemoteDesktop::notifyPointerButton(int32_t button, bool down)
   params = g_variant_new("(oa{sv}iu)", sessionHandle.c_str(),
                           &optionsBuilder, button, down);
 
-  remoteDesktop->call("NotifyPointerButton", params);
+  try {
+    remoteDesktop->call("NotifyPointerButton", params);
+  } catch (const std::exception& e) {
+    vlog.error("Could not handle mouse button: %s", e.what());
+  }
 }
 
 void RemoteDesktop::notifyPointerAxisDiscrete(int32_t button)
@@ -236,7 +254,11 @@ void RemoteDesktop::notifyPointerAxisDiscrete(int32_t button)
   params = g_variant_new("(oa{sv}ui)", sessionHandle.c_str(),
                          &optionsBuilder, axis, steps);
 
-  remoteDesktop->call("NotifyPointerAxisDiscrete", params);
+  try {
+    remoteDesktop->call("NotifyPointerAxisDiscrete", params);
+  } catch (const std::exception& e) {
+    vlog.error("Could not handle mouse scroll: %s", e.what());
+  }
 }
 
 void RemoteDesktop::createSession()
@@ -257,16 +279,28 @@ void RemoteDesktop::createSession()
 
   params = g_variant_new("(a{sv})", &optionsBuilder);
 
-  remoteDesktop->call("CreateSession", params,
-                      requestHandleToken.c_str(),
-                      std::bind(&RemoteDesktop::handleCreateSession,
-                                this, std::placeholders::_1));
+  try {
+    remoteDesktop->call("CreateSession", params,
+                        requestHandleToken.c_str(),
+                        std::bind(&RemoteDesktop::handleCreateSession,
+                                  this, std::placeholders::_1));
+  } catch (const std::exception& e) {
+    vlog.error("Could not create session: %s", e.what());
+    cancelStartCb("Failed to start remote desktop session");
+  }
 }
 
 void RemoteDesktop::closeSession()
 {
-  if (session && sessionStarted)
-    session->call("Close", nullptr, nullptr, nullptr);
+  if (session && sessionStarted) {
+    try {
+      session->call("Close", nullptr, nullptr, nullptr);
+    } catch (const std::exception& e) {
+      // This is not necessarily unexpected, as the session can be
+      // closed by the compositor.
+      vlog.info("Could not close session: %s", e.what());
+    }
+  }
 }
 
 void RemoteDesktop::selectDevices()
@@ -296,9 +330,14 @@ void RemoteDesktop::selectDevices()
 
   params = g_variant_new("(oa{sv})", sessionHandle.c_str(), &optionsBuilder);
 
-  remoteDesktop->call("SelectDevices", params, requestHandleToken.c_str(),
-                      std::bind(&RemoteDesktop::handleSelectDevices,
-                                this, std::placeholders::_1));
+  try {
+    remoteDesktop->call("SelectDevices", params, requestHandleToken.c_str(),
+                        std::bind(&RemoteDesktop::handleSelectDevices,
+                        this, std::placeholders::_1));
+  } catch (const std::exception& e) {
+    vlog.error("Could not select devices: %s", e.what());
+    cancelStartCb("Failed to start remote desktop session");
+  }
 }
 
 void RemoteDesktop::selectSources()
@@ -326,9 +365,14 @@ void RemoteDesktop::selectSources()
   params = g_variant_new("(oa{sv})", sessionHandle.c_str(),
                          &optionsBuilder);
 
-  screenCast->call("SelectSources", params, requestHandleToken.c_str(),
-                   std::bind(&RemoteDesktop::handleSelectSources,
-                             this, std::placeholders::_1));
+  try {
+    screenCast->call("SelectSources", params, requestHandleToken.c_str(),
+                     std::bind(&RemoteDesktop::handleSelectSources,
+                     this, std::placeholders::_1));
+  } catch (const std::exception& e) {
+    vlog.error("Could not select sources: %s", e.what());
+    cancelStartCb("Failed to start remote desktop session");
+  }
 }
 
 void RemoteDesktop::start()
@@ -345,10 +389,14 @@ void RemoteDesktop::start()
 
   params = g_variant_new("(osa{sv})", sessionHandle.c_str(), "",
                          &optionsBuilder);
-
-  remoteDesktop->call("Start", params, requestHandleToken.c_str(),
-                      std::bind(&RemoteDesktop::handleStart,
-                                this, std::placeholders::_1));
+  try {
+    remoteDesktop->call("Start", params, requestHandleToken.c_str(),
+                        std::bind(&RemoteDesktop::handleStart,
+                        this, std::placeholders::_1));
+  } catch (const std::exception& e) {
+    vlog.error("Could not start session: %s", e.what());
+    cancelStartCb("Failed to start remote desktop session");
+  }
 }
 
 void RemoteDesktop::openPipewireRemote()
