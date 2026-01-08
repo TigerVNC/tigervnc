@@ -722,7 +722,7 @@ msgstr "Strg-Alt-E&ntf senden"
 #: vncviewer/Viewport.cxx:928
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
-msgstr "Bildschirm &aktualisieren"
+msgstr "&Bildschirm aktualisieren"
 
 #: vncviewer/Viewport.cxx:931
 msgctxt "ContextMenu|"
@@ -732,12 +732,12 @@ msgstr "&Optionen …"
 #: vncviewer/Viewport.cxx:933
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
-msgstr "Verbindungs&informationen …"
+msgstr "Verbind&ungsinformationen …"
 
 #: vncviewer/Viewport.cxx:935
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC..."
-msgstr "Info zu &TigerVNC …"
+msgstr "Info &zu TigerVNC …"
 
 #: vncviewer/Viewport.cxx:1027
 msgid "VNC connection info"

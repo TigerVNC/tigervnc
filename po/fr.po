@@ -620,7 +620,7 @@ msgstr "Redimensionner la &fenêtre pour la session"
 #: vncviewer/Viewport.cxx:1260
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
-msgstr "&Ctrl"
+msgstr "Ctr&l"
 
 #: vncviewer/Viewport.cxx:1263
 msgctxt "ContextMenu|"
@@ -641,7 +641,7 @@ msgstr "Envoyer Ctrl-Alt-&Sup"
 #: vncviewer/Viewport.cxx:1278
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
-msgstr "R&afraîchir l’écran"
+msgstr "Rafraîc&hir l’écran"
 
 #: vncviewer/Viewport.cxx:1281
 msgctxt "ContextMenu|"
