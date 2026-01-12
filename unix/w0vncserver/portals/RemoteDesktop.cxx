@@ -59,9 +59,9 @@ core::BoolParameter
               false);
 
 core::EnumParameter
-  askDisplayChoice("AskDisplayChoice",
-                   "Ask which displays to share when user connects (Always, Once, Never)",
-                   {"Always", "Once", "Never"}, "Once");
+  rememberDisplayChoice("RememberDisplayChoice",
+                        "Remember display choice when user connects (Always, Never, Session)",
+                        {"Always", "Never", "Session"}, "Session");
 
 // Sync with w0vncserver-forget
 static const char* RESTORE_TOKEN_FILENAME =  "restoretoken";
@@ -281,7 +281,7 @@ void RemoteDesktop::selectDevices()
   g_variant_builder_add(&optionsBuilder, "{sv}", "types",
                         g_variant_new_uint32(DEV_KEYBOARD | DEV_POINTER));
 
-  if (askDisplayChoice != "Always") {
+  if (rememberDisplayChoice != "Never") {
     g_variant_builder_add(&optionsBuilder, "{sv}", "persist_mode",
                           g_variant_new_uint32(PERSIST_UNTIL_REVOKED));
   }
@@ -560,14 +560,14 @@ bool RemoteDesktop::loadRestoreToken()
   const char* stateDir;
   char restoreToken_[37];
 
-  if (askDisplayChoice == "Always")
+  if (rememberDisplayChoice == "Never")
     return false;
 
   // restoreToken will be empty the first time, we want to prompt the user
-  if (askDisplayChoice == "Once")
+  if (rememberDisplayChoice == "Session")
     return !restoreToken.empty();
 
-  assert(askDisplayChoice == "Never");
+  assert(rememberDisplayChoice == "Always");
 
   // Only load from disk the first time
   if (!restoreToken.empty())
@@ -616,16 +616,16 @@ bool RemoteDesktop::storeRestoreToken(const char* newToken)
     return false;
 
   // Don't store anything
-  if (askDisplayChoice == "Always")
+  if (rememberDisplayChoice == "Never")
     return true;
 
   // Store token in memory
   restoreToken = newToken;
 
-  if (askDisplayChoice == "Once")
+  if (rememberDisplayChoice == "Session")
     return true;
 
-  assert(askDisplayChoice == "Never");
+  assert(rememberDisplayChoice == "Always");
 
   // Store token to file so it can be re-used on next startup
   stateDir = core::getvncstatedir();

@@ -57,16 +57,6 @@ Always treat incoming connections as shared, regardless of the client-specified
 setting. Default is off.
 .
 .TP
-.B \-AskDisplayChoice \fImode\fP
-Ask which displays to share when a user connects. Can be either
-\fBAlways\fP, \fBOnce\fP, or \fBNever\fP. Choosing \fBAlways\fP means a
-prompt dialog will be be shown every time a user connects to the server.
-\fBOnce\fP means a prompt will be shown only once during the program's
-lifetime. When choosing \fBNever\fP, the choice you make will be
-remembered and persist. To reset your choice, see
-\fBw0vncserver-forget\fP(1). Default is \fBOnce\fP.
-.
-.TP
 .B \-BlacklistThreshold \fIcount\fP
 The number of unauthenticated connection attempts allowed from any individual
 host before that host is black-listed.  Default is 5.
@@ -210,6 +200,16 @@ is a hexadecimal keysym. For example, to exchange the " and @ symbols you would 
 .RS 10
 RemapKeys=0x22<>0x40
 .RE
+.
+.TP
+.B \-RememberDisplayChoice \fImode\fP
+Remember display choice when a user connects. Can be either
+\fBAlways\fP, \fBNever\fP, or \fBSession\fP. Choosing \fBNever\fP means
+a prompt dialog will be be shown every time a user connects to the
+server. \fBSession\fP means a prompt will be shown only once during the
+program's lifetime. When choosing \fBAlways\fP, the choice you make will
+be remembered and persist. To reset your choice, see
+\fBw0vncserver-forget\fP(1). Default is \fBSession\fP.
 .
 .TP
 .B \-RequireUsername
