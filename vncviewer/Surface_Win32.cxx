@@ -147,8 +147,6 @@ void Surface::alloc()
 {
   BITMAPINFOHEADER bih;
 
-  data = new RGBQUAD[width() * height()];
-
   memset(&bih, 0, sizeof(bih));
 
   bih.biSize         = sizeof(BITMAPINFOHEADER);
