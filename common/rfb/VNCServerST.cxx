@@ -233,6 +233,12 @@ void VNCServerST::processSocketReadEvent(network::Socket* sock)
       return;
     }
   }
+  // Might be a socket we're trying to get rid of
+  std::list<network::Socket*>::iterator si;
+  for (si = closingSockets.begin(); si != closingSockets.end(); si++) {
+    if ((*si) == sock)
+      return;
+  }
   throw std::invalid_argument("Invalid Socket in VNCServerST");
 }
 
