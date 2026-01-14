@@ -368,7 +368,7 @@ bool XserverDesktop::handleSocketEvent(int fd,
     sockserv->processSocketWriteEvent(*i);
 
   // Do a graceful close by waiting for the peer to close their end
-  if ((*i)->isShutdown()) {
+  if ((*i)->isShutdownWrite()) {
     bool done;
 
     done = false;

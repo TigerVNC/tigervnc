@@ -79,7 +79,8 @@ bool network::isSocketListening(int sock)
 
 Socket::Socket(int fd)
   : instream(nullptr), outstream(nullptr),
-    isShutdown_(false), queryConnection(false)
+    isShutdownRead_(false), isShutdownWrite_(false),
+    queryConnection(false)
 {
   initSockets();
   setFd(fd);
@@ -87,7 +88,8 @@ Socket::Socket(int fd)
 
 Socket::Socket()
   : instream(nullptr), outstream(nullptr),
-    isShutdown_(false), queryConnection(false)
+    isShutdownRead_(false), isShutdownWrite_(false),
+    queryConnection(false)
 {
   initSockets();
 }
@@ -105,8 +107,16 @@ int Socket::getFd()
   return outstream->getFd();
 }
 
-// if shutdown() is overridden then the override MUST call on to here
-void Socket::shutdown()
+void Socket::shutdownRead()
+{
+  instream->skip(instream->avail());
+
+  isShutdownRead_ = true;
+  ::shutdown(getFd(), SHUT_RD);
+}
+
+// if shutdownWrite() is overridden then the override MUST call on to here
+void Socket::shutdownWrite()
 {
   try {
     if (outstream->hasBufferedData()) {
@@ -119,13 +129,18 @@ void Socket::shutdown()
     vlog.error("Failed to flush remaining socket data on close: %s", e.what());
   }
 
-  isShutdown_ = true;
+  isShutdownWrite_ = true;
   ::shutdown(getFd(), SHUT_WR);
 }
 
-bool Socket::isShutdown() const
+bool Socket::isShutdownRead() const
 {
-  return isShutdown_;
+  return isShutdownRead_;
+}
+
+bool Socket::isShutdownWrite() const
+{
+  return isShutdownWrite_;
 }
 
 void Socket::cork(bool enable)
@@ -153,7 +168,8 @@ void Socket::setFd(int fd)
 
   instream = new rdr::FdInStream(fd);
   outstream = new rdr::FdOutStream(fd);
-  isShutdown_ = false;
+  isShutdownRead_ = false;
+  isShutdownWrite_ = false;
 }
 
 SocketListener::SocketListener(int fd_)

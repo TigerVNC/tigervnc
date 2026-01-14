@@ -153,7 +153,7 @@ int GSocketSource::prepare(int* timeout)
     state = &fdMap[fd];
     assert(state->tag);
 
-    if (sock->isShutdown()) {
+    if (sock->isShutdownWrite()) {
       vlog.debug("Client gone, sock %d", fd);
       g_source_remove_unix_fd(source, state->tag);
       server->removeSocket(sock);

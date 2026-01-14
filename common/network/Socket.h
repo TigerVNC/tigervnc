@@ -45,8 +45,10 @@ namespace network {
     rdr::FdOutStream &outStream() {return *outstream;}
     int getFd();
 
-    void shutdown();
-    bool isShutdown() const;
+    void shutdownRead();
+    void shutdownWrite();
+    bool isShutdownRead() const;
+    bool isShutdownWrite() const;
 
     void cork(bool enable);
 
@@ -66,7 +68,7 @@ namespace network {
   private:
     rdr::FdInStream* instream;
     rdr::FdOutStream* outstream;
-    bool isShutdown_;
+    bool isShutdownRead_, isShutdownWrite_;
     bool queryConnection;
   };
 

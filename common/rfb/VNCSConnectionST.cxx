@@ -131,7 +131,7 @@ void VNCSConnectionST::close(const char* reason)
   // Just shutdown the socket and mark our state as closing.  Eventually the
   // calling code will call VNCServerST's removeSocket() method causing us to
   // be deleted.
-  sock->shutdown();
+  sock->shutdownWrite();
 }
 
 
