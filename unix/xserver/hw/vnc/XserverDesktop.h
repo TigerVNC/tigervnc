@@ -111,12 +111,8 @@ public:
   void grabRegion(const core::Region& r) override;
 
 protected:
-  bool handleListenerEvent(int fd,
-                           std::list<network::SocketListener*>* sockets,
-                           rfb::VNCServer* sockserv);
-  bool handleSocketEvent(int fd,
-                         rfb::VNCServer* sockserv,
-                         bool read, bool write);
+  bool handleListenerEvent(int fd);
+  bool handleSocketReadWrite(int fd, bool read, bool write);
 
   void handleTimeout(core::Timer* t) override;
 
