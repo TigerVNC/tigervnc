@@ -471,7 +471,8 @@ int main(int argc, char** argv)
         if (FD_ISSET(listener->getFd(), &rfds)) {
           network::Socket* sock = listener->accept();
           if (sock) {
-            server.addSocket(sock);
+            if (!server.addSocket(sock))
+              delete sock;
           } else {
             vlog.status("Client connection rejected");
           }

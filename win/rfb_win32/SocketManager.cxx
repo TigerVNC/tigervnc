@@ -122,11 +122,16 @@ void SocketManager::addSocket(network::Socket* sock_, VNCServer* srvr, bool outg
     vlog.error("Unable to add connection");
     return;
   }
+  if (!srvr->addSocket(sock_, outgoing)) {
+    removeEvent(event);
+    WSACloseEvent(event);
+    delete sock_;
+    return;
+  }
   ConnInfo ci;
   ci.sock = sock_;
   ci.server = srvr;
   connections[event] = ci;
-  srvr->addSocket(sock_, outgoing);
 }
 
 void SocketManager::remSocket(network::Socket* sock_) {

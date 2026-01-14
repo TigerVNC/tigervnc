@@ -77,7 +77,7 @@ public:
   void add_copied(const core::Region& dest, const core::Point& delta);
   void handleSocketEvent(int fd, bool read, bool write);
   void blockHandler(int* timeout);
-  void addClient(network::Socket* sock, bool reverse, bool viewOnly);
+  bool addClient(network::Socket* sock, bool reverse, bool viewOnly);
   void disconnectClients();
 
   // QueryConnect methods called from X server code

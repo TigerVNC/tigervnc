@@ -238,7 +238,11 @@ int GSocketSource::handleListenerReady(ListenerReadyEvent* event)
     return G_SOURCE_CONTINUE;
   }
 
-  server->addSocket(sock);
+  if (!server->addSocket(sock)) {
+    delete sock;
+    return G_SOURCE_CONTINUE;
+  }
+
   fd = sock->getFd();
   tag = g_source_add_unix_fd(source, fd,
                              static_cast<GIOCondition>((G_IO_IN | G_IO_HUP | G_IO_ERR)));

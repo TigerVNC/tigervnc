@@ -45,7 +45,10 @@ namespace rfb {
     //   to another host, or false if the socket was created by accept()ing
     //   an incoming connection.
     //   accessRights allows to set the access rights to the server.
-    virtual void addSocket(network::Socket* sock, bool outgoing=false,
+    //   Returns true if the socket was successfully added, and false if
+    //   something went wrong. The socket is in an unknown state at this
+    //   point and should be closed.
+    virtual bool addSocket(network::Socket* sock, bool outgoing=false,
                            AccessRights accessRights = AccessDefault) = 0;
 
     // removeSocket() tells the server to stop serving the Socket.  The

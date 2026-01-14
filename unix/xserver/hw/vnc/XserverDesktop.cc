@@ -336,7 +336,10 @@ bool XserverDesktop::handleListenerEvent(int fd,
 
   network::Socket* sock = (*i)->accept();
   vlog.debug("New client, sock %d", sock->getFd());
-  sockserv->addSocket(sock);
+  if (!sockserv->addSocket(sock)) {
+    delete sock;
+    return true;
+  }
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 
   return true;
@@ -430,13 +433,20 @@ void XserverDesktop::blockHandler(int* timeout)
   }
 }
 
-void XserverDesktop::addClient(network::Socket* sock,
+bool XserverDesktop::addClient(network::Socket* sock,
                                bool reverse, bool viewOnly)
 {
+  rfb::AccessRights rights;
+
   vlog.debug("New client, sock %d reverse %d",sock->getFd(),reverse);
-  server->addSocket(sock, reverse,
-                    viewOnly ? rfb::AccessView : rfb::AccessDefault);
+
+  rights = viewOnly ? rfb::AccessView : rfb::AccessDefault;
+  if (!server->addSocket(sock, reverse, rights))
+    return false;
+
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
+
+  return true;
 }
 
 void XserverDesktop::disconnectClients()
