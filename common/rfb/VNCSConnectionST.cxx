@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
+
 #include <core/LogWriter.h>
 #include <core/string.h>
 #include <core/time.h>
@@ -151,7 +153,31 @@ bool VNCSConnectionST::init()
 
 void VNCSConnectionST::processSocketReadEvent()
 {
-  if (state() == RFBSTATE_CLOSING) return;
+  // Are we flushing remaining incoming data?
+  if (state() == RFBSTATE_CLOSING) {
+    assert(getSock()->isShutdownWrite());
+
+    // Shouldn't really get called if we've already finished reading,
+    // but let's be lenient
+    if (getSock()->isShutdownRead())
+      return;
+
+    // Do a graceful close by waiting for the peer to close their end
+    while (true) {
+      try {
+        getInStream()->skip(getInStream()->avail());
+        if (!getInStream()->hasData(1))
+          break;
+      } catch (std::exception&) {
+        // Handle both graceful close and resets
+        getSock()->shutdownRead();
+        break;
+      }
+    }
+
+    return;
+  }
+
   try {
     inProcessMessages = true;
 

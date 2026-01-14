@@ -363,31 +363,6 @@ bool XserverDesktop::handleSocketReadWrite(int fd, bool read, bool write)
   if (write)
     server->processSocketWriteEvent(*i);
 
-  // Do a graceful close by waiting for the peer to close their end
-  if ((*i)->isShutdownWrite()) {
-    bool done;
-
-    done = false;
-    while (true) {
-      try {
-        (*i)->inStream().skip((*i)->inStream().avail());
-        if (!(*i)->inStream().hasData(1))
-          break;
-      } catch (std::exception&) {
-        done = true;
-        break;
-      }
-    }
-
-    if (done) {
-      vlog.debug("Client gone, sock %d",fd);
-      vncRemoveNotifyFd(fd);
-      server->removeSocket(*i);
-      vncClientGone(fd);
-      delete (*i);
-    }
-  }
-
   return true;
 }
 
@@ -405,6 +380,15 @@ void XserverDesktop::blockHandler(int* timeout)
     server->getSockets(&sockets);
     for (i = sockets.begin(); i != sockets.end(); i++) {
       int fd = (*i)->getFd();
+
+      if ((*i)->isShutdownRead()) {
+        vlog.debug("Client gone, sock %d",fd);
+        vncRemoveNotifyFd(fd);
+        server->removeSocket(*i);
+        vncClientGone(fd);
+        delete (*i);
+      }
+
       /* Update existing NotifyFD to listen for write (or not) */
       vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().hasBufferedData());
     }
