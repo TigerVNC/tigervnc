@@ -59,14 +59,16 @@ namespace rfb {
     // returns false, and close() will have been called.
     bool init();
 
-    // processMessages() processes incoming messages from the client, invoking
-    // various callbacks as a result.  It continues to process messages until
-    // reading might block.  shutdown() will be called on the connection's
-    // Socket if an error occurs, via the close() call.
-    void processMessages();
+    // processSocketReadEvent() processes incoming messages from the
+    // client, invoking various callbacks as a result.  It continues to
+    // process messages until reading might block.  shutdown() will be
+    // called on the connection's Socket if an error occurs, via the
+    // close() call.
+    void processSocketReadEvent();
 
-    // flushSocket() pushes any unwritten data on to the network.
-    void flushSocket();
+    // processSocketWriteEvent() pushes any unwritten data on to the
+    // network.
+    void processSocketWriteEvent();
 
     // Called when the underlying pixelbuffer is resized or replaced.
     void pixelBufferChange();

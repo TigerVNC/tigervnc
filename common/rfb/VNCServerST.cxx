@@ -227,7 +227,7 @@ void VNCServerST::processSocketReadEvent(network::Socket* sock)
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
-      (*ci)->processMessages();
+      (*ci)->processSocketReadEvent();
       return;
     }
   }
@@ -240,7 +240,7 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
-      (*ci)->flushSocket();
+      (*ci)->processSocketWriteEvent();
       return;
     }
   }

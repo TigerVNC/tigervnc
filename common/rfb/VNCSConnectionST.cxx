@@ -149,7 +149,7 @@ bool VNCSConnectionST::init()
 }
 
 
-void VNCSConnectionST::processMessages()
+void VNCSConnectionST::processSocketReadEvent()
 {
   if (state() == RFBSTATE_CLOSING) return;
   try {
@@ -189,7 +189,7 @@ void VNCSConnectionST::processMessages()
   }
 }
 
-void VNCSConnectionST::flushSocket()
+void VNCSConnectionST::processSocketWriteEvent()
 {
   if (state() == RFBSTATE_CLOSING) return;
   try {
