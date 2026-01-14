@@ -85,7 +85,7 @@ static core::LogWriter connectionsLog("Connections");
 // -=- Constructors/Destructor
 
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
-  : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
+  : desktop(desktop_), desktopStarted(false),
     desktopStarting(false), blockCounter(0), pb(nullptr),
     ledState(ledUnknown), name(name_), pointerClient(nullptr),
     clipboardClient(nullptr), pointerClientTime(0),
@@ -142,7 +142,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
   // - Check the connection isn't black-marked
   // *** do this in getSecurity instead?
   const char *address = sock->getPeerAddress();
-  if (blHosts->isBlackmarked(address)) {
+  if (blacklist.isBlackmarked(address)) {
     connectionsLog.error("Blacklisted: %s", address);
     try {
       rdr::OutStream& os = sock->outStream();
@@ -748,7 +748,7 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
                                   const char* userName)
 {
   // - Authentication succeeded - clear from blacklist
-  blHosts->clearBlackmark(client->getSock()->getPeerAddress());
+  blacklist.clearBlackmark(client->getSock()->getPeerAddress());
 
   // - Prepare the desktop for that the client will start requiring
   // resources after this

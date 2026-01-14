@@ -180,7 +180,6 @@ namespace rfb {
 
   protected:
     Blacklist blacklist;
-    Blacklist* blHosts;
 
     SDesktop* desktop;
     bool desktopStarted;
