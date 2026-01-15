@@ -383,19 +383,19 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   assert(sessionHandle.empty());
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    cancelStartCb(core::format("RemoteDesktop::handleCreateSession: Unexpected parameters: %s",
-                  g_variant_print(parameters, true)).c_str());
+    cancelStartCb(core::format("Could not create session: unexpected parameters: %s",
+                               g_variant_print(parameters, true)).c_str());
     return;
   }
 
   g_variant_get(parameters, "(u@a{sv})", &response, &result);
 
   if (response == 1)  {
-    cancelStartCb("RemoteDesktop::handleCreateSession(): RemoteDesktop.CreateSession was cancelled");
+    cancelStartCb("Session was cancelled");
     return;
   }
   else if (response == 2) {
-    cancelStartCb("RemoteDesktop::handleCreateSession(): RemoteDesktop.CreateSession failed");
+    cancelStartCb("Failed to create session");
     return;
   }
 
@@ -425,7 +425,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   assert(!sessionStarted);
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    cancelStartCb(core::format("RemoteDesktop::handleStart: Unexpected parameters %s",
+    cancelStartCb(core::format("Could not start remote desktop: unexpected parameters %s",
                                g_variant_get_type_string(parameters)).c_str());
     return;
   }
@@ -434,11 +434,11 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   if (responseCode == 1) {
     g_variant_unref(result);
-    cancelStartCb("RemoteDesktop::handleStart(): Local user denied the connection.");
+    cancelStartCb("Could not start remote desktop - local user denied the connection.");
     return;
   } else if (responseCode == 2) {
     g_variant_unref(result);
-    cancelStartCb("RemoteDesktop::handleStart(): RemoteDesktop.Start failed");
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
@@ -502,7 +502,7 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
 
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
     g_variant_unref(response);
-    cancelStartCb(core::format("RemoteDesktop.handleOpenPipewireRemote: invalid response type: %s, expected (h)",
+    cancelStartCb(core::format("Could not start PipeWire: invalid response type: %s",
                                g_variant_get_type_string(response)).c_str());
     return;
   }
@@ -514,7 +514,7 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
   g_object_unref(fdList);
 
   if (error) {
-    cancelStartCb(core::format("ScreenCast: error getting fd list:  %s",
+    cancelStartCb(core::format("Could not start PipeWire remote: error getting fd list:  %s",
                                error->message).c_str());
     g_error_free(error);
     return;
@@ -534,12 +534,12 @@ bool RemoteDesktop::parseStreams(GVariant* streams)
   n_streams = g_variant_iter_n_children(&iter);
 
   if (n_streams  < 1) {
-    cancelStartCb("RemoteDesktop.Start: could not find streams to parse");
+    cancelStartCb("Could not find streams to parse");
     return false;
   }
 
   if (n_streams != 1) {
-    vlog.error("RemoteDesktop.Start: only one stream supported, got %d",
+    vlog.error("Only one stream supported, got %d",
                n_streams);
   }
 
