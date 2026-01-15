@@ -22,6 +22,7 @@
 
 #include <assert.h>
 
+#include <exception>
 #include <map>
 
 #include <glib.h>
@@ -29,6 +30,7 @@
 #include <network/TcpSocket.h>
 #include <core/LogWriter.h>
 #include <rfb/VNCServerST.h>
+#include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
 #include "w0vncserver.h"
@@ -154,12 +156,28 @@ int GSocketSource::prepare(int* timeout)
     assert(state->tag);
 
     if (sock->isShutdown()) {
-      vlog.debug("Client gone, sock %d", fd);
-      g_source_remove_unix_fd(source, state->tag);
-      server->removeSocket(sock);
-      delete sock;
-      assert(fdMap.erase(fd));
-      return FALSE;
+      bool done;
+
+      done = false;
+      while (true) {
+        try {
+          sock->inStream().skip(sock->inStream().avail());
+          if(!sock->inStream().hasData(1))
+            break;
+        } catch (std::exception&) {
+          done = true;
+          break;
+        }
+      }
+
+      if (done) {
+        vlog.debug("Client gone, sock %d", fd);
+        g_source_remove_unix_fd(source, state->tag);
+        server->removeSocket(sock);
+        delete sock;
+        assert(fdMap.erase(fd));
+      }
+      continue;
     }
 
     if (state->prevHadBufferedData != sock->outStream().hasBufferedData()) {
@@ -203,7 +221,7 @@ int GSocketSource::dispatch()
       server->removeSocket(sock);
       delete sock;
       assert(fdMap.erase(fd));
-      return G_SOURCE_CONTINUE;
+      continue;
     }
 
     if (events & G_IO_IN)
