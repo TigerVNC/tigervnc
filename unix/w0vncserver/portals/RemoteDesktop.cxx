@@ -406,6 +406,12 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
                                                 G_VARIANT_TYPE_STRING);
   g_variant_unref(result);
 
+  if (!sessionHandleVariant) {
+    vlog.error("Failed to create session: no session handle");
+    cancelStartCb("Failed to start remote desktop session");
+    return;
+  }
+
   sessionHandle = g_variant_get_string(sessionHandleVariant, nullptr);
   g_variant_unref(sessionHandleVariant);
 
@@ -421,7 +427,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 {
   uint32_t responseCode;
   GVariant* result;
-  GVariant* streams_;
+  GVariant* streams;
   GVariant* devices;
   GVariant* newRestoreToken;
 
@@ -451,29 +457,46 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   sessionStarted = true;
 
   devices = g_variant_lookup_value(result, "devices", G_VARIANT_TYPE_UINT32);
-  selectedDevices = g_variant_get_uint32(devices);
-  g_variant_unref(devices);
 
-  streams_ = g_variant_lookup_value(result, "streams",
-                                    G_VARIANT_TYPE_ARRAY);
-  g_variant_unref(result);
-
-  if (!parseStreams(streams_)) {
-    g_variant_unref(streams_);
-    vlog.error("Failed to parse streams");
+  if (!devices) {
+    g_variant_unref(result);
+    vlog.error("Failed to get devices");
     cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
+  selectedDevices = g_variant_get_uint32(devices);
+  g_variant_unref(devices);
+
+  streams = g_variant_lookup_value(result, "streams",
+                                    G_VARIANT_TYPE_ARRAY);
+  g_variant_unref(result);
+
+  if (!streams) {
+    vlog.error("Failed to start remote desktop session");
+    cancelStartCb("Failed to get streams");
+    return;
+  }
+
+  if (!parseStreams(streams)) {
+    vlog.error("Failed to parse streams");
+    cancelStartCb("Failed to start remote desktop session");
+    g_variant_unref(streams);
+    return;
+  }
+  g_variant_unref(streams);
+
   newRestoreToken = g_variant_lookup_value(result, "restore_token",
                                          G_VARIANT_TYPE_STRING);
 
-  storeRestoreToken(g_variant_get_string(newRestoreToken, nullptr));
-
-  g_variant_unref(newRestoreToken);
+  if (newRestoreToken) {
+    storeRestoreToken(g_variant_get_string(newRestoreToken, nullptr));
+    g_variant_unref(newRestoreToken);
+  } else {
+    vlog.info("Could not get restore token - display choice will not be saved");
+  }
 
   openPipewireRemote();
-  g_variant_unref(streams_);
 }
 
 void RemoteDesktop::handleSelectSources(GVariant* /* parameters */)
@@ -546,7 +569,6 @@ bool RemoteDesktop::parseStreams(GVariant* streams)
 
   if (n_streams  < 1) {
     vlog.error("Could not find streams to parse");
-    cancelStartCb("Failed to start remote desktop session");
     return false;
   }
 
