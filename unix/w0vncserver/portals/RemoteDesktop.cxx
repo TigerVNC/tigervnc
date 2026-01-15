@@ -383,8 +383,8 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   assert(sessionHandle.empty());
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    fatal_error("%s", core::format("RemoteDesktop::handleCreateSession: Unexpected parameters: %s",
-                g_variant_print(parameters, true)).c_str());
+    cancelStartCb(core::format("RemoteDesktop::handleCreateSession: Unexpected parameters: %s",
+                  g_variant_print(parameters, true)).c_str());
     return;
   }
 
@@ -425,8 +425,8 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   assert(!sessionStarted);
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    fatal_error("%s", core::format("RemoteDesktop::handleStart: Unexpected parameters %s",
-                                   g_variant_get_type_string(parameters)).c_str());
+    cancelStartCb(core::format("RemoteDesktop::handleStart: Unexpected parameters %s",
+                               g_variant_get_type_string(parameters)).c_str());
     return;
   }
 
@@ -454,7 +454,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   if (!parseStreams(streams_)) {
     g_variant_unref(streams_);
-    fatal_error("Failed to parse streams");
+    cancelStartCb("Failed to parse streams");
     return;
   }
 
@@ -495,16 +495,15 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
                                                         &error);
 
   if (error) {
-    std::string msg(error->message);
+    cancelStartCb(error->message);
     g_error_free(error);
-    fatal_error("%s", msg.c_str());
     return;
   }
 
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
     g_variant_unref(response);
-    fatal_error("%s", core::format("RemoteDesktop.handleOpenPipewireRemote: invalid response type: %s, expected (h)",
-                                   g_variant_get_type_string(response)).c_str());
+    cancelStartCb(core::format("RemoteDesktop.handleOpenPipewireRemote: invalid response type: %s, expected (h)",
+                               g_variant_get_type_string(response)).c_str());
     return;
   }
 
@@ -515,10 +514,9 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
   g_object_unref(fdList);
 
   if (error) {
-    std::string msg(error->message);
+    cancelStartCb(core::format("ScreenCast: error getting fd list:  %s",
+                               error->message).c_str());
     g_error_free(error);
-    fatal_error("%s", core::format("ScreenCast: error getting fd list:  %s",
-                                   msg.c_str()).c_str());
     return;
   }
 
@@ -536,7 +534,7 @@ bool RemoteDesktop::parseStreams(GVariant* streams)
   n_streams = g_variant_iter_n_children(&iter);
 
   if (n_streams  < 1) {
-    fatal_error("RemoteDesktop.Start: could not find streams to parse");
+    cancelStartCb("RemoteDesktop.Start: could not find streams to parse");
     return false;
   }
 
