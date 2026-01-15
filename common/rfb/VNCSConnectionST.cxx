@@ -54,6 +54,9 @@
 
 using namespace rfb;
 
+// Number of seconds allowed for authentication
+static const unsigned LOGIN_GRACE_TIME = 120;
+
 static core::LogWriter vlog("VNCSConnST");
 
 static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
@@ -61,7 +64,7 @@ static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse, AccessRights ar)
   : SConnection(ar),
-    sock(s), reverseConnection(reverse),
+    sock(s), socketTimer(this), reverseConnection(reverse),
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(nullptr), congestionTimer(this),
@@ -70,6 +73,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     continuousUpdates(false), encodeManager(this), idleTimer(this),
     pointerEventTime(0), clientHasCursor(false)
 {
+  socketTimer.start(core::secsToMillis(LOGIN_GRACE_TIME));
+
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint = sock->getPeerEndpoint();
 
@@ -479,6 +484,8 @@ void VNCSConnectionST::approveConnectionOrClose(bool accept,
 
 void VNCSConnectionST::authSuccess()
 {
+  socketTimer.stop();
+
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
 }
@@ -839,6 +846,10 @@ void VNCSConnectionST::supportsLEDState()
 
 void VNCSConnectionST::handleTimeout(core::Timer* t)
 {
+  if (t == &socketTimer) {
+    close("Authentication timeout");
+  }
+
   try {
     if ((t == &congestionTimer) ||
         (t == &losslessTimer))
