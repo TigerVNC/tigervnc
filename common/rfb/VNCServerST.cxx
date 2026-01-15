@@ -210,9 +210,11 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         comparer->logStats();
 
       // Adjust the exit timers
-      connectTimer.stop();
-      if (rfb::Server::maxDisconnectionTime && clients.empty())
-        disconnectTimer.start(core::secsToMillis(rfb::Server::maxDisconnectionTime));
+      if (clients.empty()) {
+        connectTimer.stop();
+        if (rfb::Server::maxDisconnectionTime)
+          disconnectTimer.start(core::secsToMillis(rfb::Server::maxDisconnectionTime));
+      }
 
       return;
     }
