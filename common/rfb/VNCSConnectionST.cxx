@@ -56,6 +56,8 @@ using namespace rfb;
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
+// Number of seconds allowed to flush a closing socket
+static const unsigned CLOSE_GRACE_TIME = 5;
 
 static core::LogWriter vlog("VNCSConnST");
 
@@ -130,6 +132,7 @@ void VNCSConnectionST::close(const char* reason)
   // calling code will call VNCServerST's removeSocket() method causing us to
   // be deleted.
   sock->shutdownWrite();
+  socketTimer.start(core::secsToMillis(CLOSE_GRACE_TIME));
 }
 
 
@@ -838,7 +841,10 @@ void VNCSConnectionST::supportsLEDState()
 void VNCSConnectionST::handleTimeout(core::Timer* t)
 {
   if (t == &socketTimer) {
-    close("Authentication timeout");
+    if (state() == RFBSTATE_CLOSING)
+      getSock()->shutdownRead();
+    else
+      close("Authentication timeout");
   }
 
   try {
