@@ -383,19 +383,22 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   assert(sessionHandle.empty());
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    cancelStartCb(core::format("Could not create session: unexpected parameters: %s",
-                               g_variant_print(parameters, true)).c_str());
+    vlog.error("Could not create session: unexpected parameters: %s",
+               g_variant_print(parameters, true));
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
   g_variant_get(parameters, "(u@a{sv})", &response, &result);
 
   if (response == 1)  {
-    cancelStartCb("Session was cancelled");
+    vlog.error("Session was cancelled");
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
   else if (response == 2) {
-    cancelStartCb("Failed to create session");
+    vlog.error("Failed to create session");
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
@@ -425,8 +428,9 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   assert(!sessionStarted);
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    cancelStartCb(core::format("Could not start remote desktop: unexpected parameters %s",
-                               g_variant_get_type_string(parameters)).c_str());
+    vlog.error("Could not start remote desktop: unexpected parameters %s",
+               g_variant_get_type_string(parameters));
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
@@ -434,10 +438,12 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   if (responseCode == 1) {
     g_variant_unref(result);
-    cancelStartCb("Could not start remote desktop - local user denied the connection.");
+    vlog.error("Could not start remote desktop - local user denied the connection.");
+    cancelStartCb("Failed to start remote desktop session");
     return;
   } else if (responseCode == 2) {
     g_variant_unref(result);
+    vlog.error("Failed to start remote desktop session");
     cancelStartCb("Failed to start remote desktop session");
     return;
   }
@@ -454,7 +460,8 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   if (!parseStreams(streams_)) {
     g_variant_unref(streams_);
-    cancelStartCb("Failed to parse streams");
+    vlog.error("Failed to parse streams");
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
@@ -495,15 +502,17 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
                                                         &error);
 
   if (error) {
-    cancelStartCb(error->message);
+    vlog.error("Could not start PipeWire remote: %s", error->message);
     g_error_free(error);
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
     g_variant_unref(response);
-    cancelStartCb(core::format("Could not start PipeWire: invalid response type: %s",
-                               g_variant_get_type_string(response)).c_str());
+    vlog.error("Could not start PipeWire: invalid response type: %s",
+               g_variant_get_type_string(response));
+    cancelStartCb("Failed to start remote desktop session");
     return;
   }
 
@@ -514,9 +523,11 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
   g_object_unref(fdList);
 
   if (error) {
-    cancelStartCb(core::format("Could not start PipeWire remote: error getting fd list:  %s",
-                               error->message).c_str());
+    vlog.error("Could not start PipeWire remote: error getting fd list:  %s",
+               error->message);
     g_error_free(error);
+    cancelStartCb("Failed to start remote desktop session");
+
     return;
   }
 
@@ -534,7 +545,8 @@ bool RemoteDesktop::parseStreams(GVariant* streams)
   n_streams = g_variant_iter_n_children(&iter);
 
   if (n_streams  < 1) {
-    cancelStartCb("Could not find streams to parse");
+    vlog.error("Could not find streams to parse");
+    cancelStartCb("Failed to start remote desktop session");
     return false;
   }
 
