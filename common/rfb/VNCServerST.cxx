@@ -161,11 +161,6 @@ bool VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
 
   connectionsLog.status("Accepted: %s", sock->getPeerEndpoint());
 
-  // Adjust the exit timers
-  if (rfb::Server::maxConnectionTime && clients.empty())
-    connectTimer.start(core::secsToMillis(rfb::Server::maxConnectionTime));
-  disconnectTimer.stop();
-
   try {
     VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
     clients.push_front(client);
@@ -210,7 +205,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         comparer->logStats();
 
       // Adjust the exit timers
-      if (clients.empty()) {
+      if (authClientCount() == 0) {
         connectTimer.stop();
         if (rfb::Server::maxDisconnectionTime)
           disconnectTimer.start(core::secsToMillis(rfb::Server::maxDisconnectionTime));
@@ -778,6 +773,11 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
 
 void VNCServerST::clientReady(VNCSConnectionST* client, bool shared)
 {
+  // Adjust the exit timers
+  if (rfb::Server::maxConnectionTime && !connectTimer.isStarted())
+    connectTimer.start(core::secsToMillis(rfb::Server::maxConnectionTime));
+  disconnectTimer.stop();
+
   if (!shared) {
     if (rfb::Server::disconnectClients &&
         client->accessCheck(AccessNonShared)) {
