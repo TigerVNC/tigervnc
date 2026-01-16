@@ -59,6 +59,7 @@ namespace wayland {
                          uint32_t modsLatched, uint32_t modsLocked,
                          uint32_t group);
     void generateKeycodeMap();
+    void clearKeyMap();
 
   private:
     uint32_t keyboardFormat;
