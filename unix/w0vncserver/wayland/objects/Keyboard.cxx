@@ -101,15 +101,8 @@ Keyboard::~Keyboard()
 {
   if (keyboard)
     wl_keyboard_destroy(keyboard);
-  if(keyMap)
-    munmap(keyMap, keyboardSize);
-
-  if (context) {
-    xkb_context_unref(context->ctx);
-    xkb_state_unref(context->state);
-    xkb_keymap_unref(context->keymap);
-    delete context;
-  }
+  clearKeyMap();
+  delete context;
 }
 
 bool Keyboard::updateState(uint32_t keycode, bool down,
@@ -161,6 +154,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
                          keyboardFd, 0);
     if (!keyMap) {
       vlog.error("Failed to map keymap");
+      clearKeyMap();
       return;
     }
 
@@ -170,8 +164,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
                                      XKB_KEYMAP_COMPILE_NO_FLAGS);
     if (!map) {
       vlog.error("Failed to create xkb keymap");
-      munmap(keyMap, keyboardSize);
-      keyMap = nullptr;
+      clearKeyMap();
       return;
     }
 
@@ -182,8 +175,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     state = xkb_state_new(context->keymap);
     if (!state) {
       vlog.error("Failed to create xkb state");
-      munmap(keyMap, keyboardSize);
-      keyMap = nullptr;
+      clearKeyMap();
       return;
     }
 
@@ -195,10 +187,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     generateKeycodeMap();
   } else {
     vlog.error("Unsupported keymap format");
-    if (keyMap) {
-      munmap(keyMap, keyboardSize);
-      keyMap = nullptr;
-    }
+    clearKeyMap();
   }
 }
 
@@ -317,5 +306,29 @@ void Keyboard::generateKeycodeMap()
       codeMapQnumToKeyCode[rfbcode] = xkbKeyCode;
     else if (rfbFound)
       vlog.debug("No mapping found for key 0x%04x", rfbcode);
+  }
+}
+
+void Keyboard::clearKeyMap()
+{
+  memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
+
+  if (keyMap) {
+    munmap(keyMap, keyboardSize);
+    keyMap = nullptr;
+    keyboardFd = -1;
+    keyboardSize = 0;
+  }
+
+  if (context) {
+    if (context->state)
+      xkb_state_unref(context->state);
+    context->state = nullptr;
+    if (context->keymap)
+      xkb_keymap_unref(context->keymap);
+    context->keymap = nullptr;
+    if (context->ctx)
+      xkb_context_unref(context->ctx);
+    context->ctx = nullptr;
   }
 }
