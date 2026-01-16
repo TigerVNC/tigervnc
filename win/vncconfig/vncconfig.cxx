@@ -25,6 +25,7 @@
 
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/RegConfig.h>
@@ -87,7 +88,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE /*prev*/, char* /*cmdLine*/, int /*
   setbuf(stderr, nullptr);
   initStdIOLoggers();
   logParams.setParam("*:stderr:100");
-  vlog.info("Starting vncconfig applet");
+  vlog.info(_("Starting vncconfig applet"));
 #endif
 
   try {

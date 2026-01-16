@@ -30,6 +30,7 @@
 
 #include <core/LogWriter.h>
 #include <core/Timer.h>
+#include <core/i18n.h>
 #include <core/time.h>
 
 using namespace core;
@@ -73,11 +74,10 @@ int Timer::getNextTimeout() {
 
   if (toWait > pending.front()->timeoutMs) {
     if (toWait - pending.front()->timeoutMs < 1000) {
-      vlog.info("gettimeofday is broken...");
+      // We're getting a weird jitter from gettimeofday()
       return toWait;
     }
     // Time has jumped backwards!
-    vlog.info("Time has moved backwards!");
     pending.front()->dueTime = now;
     toWait = 0;
   }
@@ -111,12 +111,12 @@ void Timer::repeat(int timeoutMs_) {
   gettimeofday(&now, nullptr);
 
   if (isStarted()) {
-    vlog.error("Incorrectly repeating already running timer");
+    vlog.error(_("Incorrectly repeating an already running timer"));
     stop();
   }
 
   if (msBetween(&lastDueTime, &dueTime) != 0)
-    vlog.error("Timer incorrectly modified whilst repeating");
+    vlog.error(_("Timer was incorrectly modified whilst repeating"));
 
   if (timeoutMs_ != -1)
     timeoutMs = timeoutMs_;

@@ -30,6 +30,9 @@
 
 #include "xorg-version.h"
 
+/* This is a C header, so safe to include */
+#include <core/i18n.h>
+
 #include "vncExtInit.h"
 #include "vncSelection.h"
 #include "RFBGlue.h"
@@ -133,12 +136,12 @@ void vncHandleClipboardAnnounce(int available)
     if (vncGetSetPrimary()) {
       rc = vncOwnSelection(xaPRIMARY);
       if (rc != Success)
-        LOG_ERROR("Could not set PRIMARY selection");
+        LOG_ERROR(_("Could not set PRIMARY selection"));
     }
 
     rc = vncOwnSelection(xaCLIPBOARD);
     if (rc != Success)
-      LOG_ERROR("Could not set CLIPBOARD selection");
+      LOG_ERROR(_("Could not set CLIPBOARD selection"));
   } else {
     struct VncDataTarget* next;
 
@@ -612,7 +615,7 @@ static void vncHandleSelection(Atom selection, Atom target,
       return;
 
     if (!vncIsValidUTF8(prop->data, prop->size)) {
-      LOG_ERROR("Invalid UTF-8 sequence in clipboard");
+      LOG_ERROR(_("Invalid UTF-8 sequence in clipboard"));
       return;
     }
 

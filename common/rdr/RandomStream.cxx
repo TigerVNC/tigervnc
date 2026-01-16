@@ -22,6 +22,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/RandomStream.h>
 
@@ -52,11 +53,9 @@ RandomStream::RandomStream()
     if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(&provider, nullptr, nullptr,
                                PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
-        vlog.error("Unable to create keyset");
         provider = 0;
       }
     } else {
-      vlog.error("Unable to acquire context");
       provider = 0;
     }
   }
@@ -71,7 +70,7 @@ RandomStream::RandomStream()
   {
 #endif
 #endif
-    vlog.error("No OS supplied random source, using rand()");
+    vlog.error(_("No system random source available"));
     seed += (unsigned int) time(nullptr) + getpid() + getpid() * 987654 + rand();
     srand(seed);
   }

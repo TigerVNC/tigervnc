@@ -35,6 +35,7 @@
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
+#include <core/i18n.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -149,7 +150,7 @@ static int createSystemdListeners(std::list<network::SocketListener*> *listeners
 #ifdef HAVE_LIBSYSTEMD
   int count = sd_listen_fds(0);
   if (count < 0) {
-    vlog.error("Error getting listening sockets from systemd: %s",
+    vlog.error(_("Error getting listening sockets from systemd: %s"),
                strerror(-count));
     return count;
   }
@@ -186,7 +187,8 @@ public:
   bool verifyConnection(network::Socket* s) override
   {
     if (!reloadRules()) {
-      vlog.error("Could not read IP filtering rules, rejecting all clients");
+      vlog.error(_("Could not read IP filtering rules, "
+                   "rejecting all clients"));
       filter.clear();
       filter.push_back(parsePattern("-"));
       return false;
@@ -268,22 +270,26 @@ char* programName;
 
 static void printVersion(FILE *fp)
 {
-  fprintf(fp, "TigerVNC server version %s, built %s\n",
+  fprintf(fp, _("TigerVNC server version %s, built %s\n"),
           PACKAGE_VERSION, buildtime);
 }
 
 static void usage()
 {
   printVersion(stderr);
-  fprintf(stderr, "\nUsage: %s [<parameters>]\n", programName);
-  fprintf(stderr, "       %s --version\n", programName);
-  fprintf(stderr,"\n"
-          "Parameters can be turned on with -<param> or off with -<param>=0\n"
-          "Parameters which take a value can be specified as "
-          "-<param> <value>\n"
-          "Other valid forms are <param>=<value> -<param>=<value> "
-          "--<param>=<value>\n"
-          "Parameter names are case-insensitive.  The parameters are:\n\n");
+  fprintf(stderr,
+          _("\n"
+            "Usage: %s [<parameters>]\n"
+            "       %s --version\n"),
+          programName, programName);
+  fprintf(stderr,
+          _("\n"
+            "Parameters can be turned on with -<param> or off with -<param>=0\n"
+            "Parameters which take a value can be specified as "
+            "-<param> <value>\n"
+            "Other valid forms are <param>=<value> -<param>=<value> "
+            "--<param>=<value>\n"
+            "Parameter names are case-insensitive.  The parameters are:\n\n"));
   core::Configuration::listParams(79, 14);
   exit(1);
 }
@@ -325,15 +331,15 @@ int main(int argc, char** argv)
     }
 
     if (argv[i][0] == '-') {
-      fprintf(stderr, "%s: Unrecognized option '%s'\n",
+      fprintf(stderr, _("%s: Unrecognized option '%s'\n"),
               programName, argv[i]);
-      fprintf(stderr, "See '%s --help' for more information.\n",
+      fprintf(stderr, _("See '%s --help' for more information.\n"),
               programName);
       exit(1);
     }
 
-    fprintf(stderr, "%s: Extra argument '%s'\n", programName, argv[i]);
-    fprintf(stderr, "See '%s --help' for more information.\n",
+    fprintf(stderr, _("%s: Extra argument '%s'\n"), programName, argv[i]);
+    fprintf(stderr, _("See '%s --help' for more information.\n"),
             programName);
     exit(1);
   }
@@ -341,7 +347,7 @@ int main(int argc, char** argv)
   const char *displayName = XDisplayName(displayname);
   if (!(dpy = XOpenDisplay(displayname))) {
     // FIXME: Why not vlog.error(...)?
-    fprintf(stderr,"%s: Unable to open display \"%s\"\r\n",
+    fprintf(stderr, _("%s: Unable to open display \"%s\"\n"),
             programName, displayName);
     exit(1);
   }
@@ -358,7 +364,7 @@ int main(int argc, char** argv)
     Geometry geo(DisplayWidth(dpy, DefaultScreen(dpy)),
                  DisplayHeight(dpy, DefaultScreen(dpy)));
     if (geo.getRect().is_empty()) {
-      vlog.error("Exiting with error");
+      vlog.error(_("Invalid geometry"));
       return 1;
     }
     XDesktop desktop(dpy, &geo);
@@ -369,12 +375,13 @@ int main(int argc, char** argv)
 
     if (createSystemdListeners(&listeners) > 0) {
       // When systemd is in charge of listeners, do not listen to anything else
-      vlog.info("Listening on systemd sockets");
+      vlog.info(_("Listening for VNC connections on systemd sockets"));
     }
 
     if (rfbunixpath.getValueStr()[0] != '\0') {
       listeners.push_back(new network::UnixListener(rfbunixpath, rfbunixmode));
-      vlog.info("Listening on %s (mode %04o)", (const char*)rfbunixpath, (int)rfbunixmode);
+      vlog.info(_("Listening for VNC connections on %s (mode %04o)"),
+                (const char*)rfbunixpath, (int)rfbunixmode);
     }
 
     if ((int)rfbport != -1) {
@@ -390,9 +397,13 @@ int main(int argc, char** argv)
 
       if (!tcp_listeners.empty()) {
         listeners.splice (listeners.end(), tcp_listeners);
-        vlog.info("Listening for VNC connections on %s interface(s), port %d",
-                  localhostOnly ? "local" : (const char*)interface,
-                  (int)rfbport);
+        if (localhostOnly)
+          vlog.info(_("Listening for VNC connections on local "
+                      "interfaces, port %d"), (int)rfbport);
+        else
+          vlog.info(_("Listening for VNC connections on interface %s, "
+                      "port %d"),
+                    (const char*)interface, (int)rfbport);
       }
 
       if (strlen(hostsFile) != 0)
@@ -401,7 +412,8 @@ int main(int argc, char** argv)
     }
 
     if (listeners.empty()) {
-      vlog.error("No path or port configured for incoming connections");
+      vlog.error(
+        _("No path or port configured for incoming connections"));
       return -1;
     }
 
@@ -475,7 +487,7 @@ int main(int argc, char** argv)
           if (sock) {
             server.addSocket(sock);
           } else {
-            vlog.info("Client connection rejected");
+            vlog.info(_("Client connection rejected"));
           }
         }
       }
@@ -537,6 +549,6 @@ int main(int argc, char** argv)
   for (network::SocketListener* listener : listeners)
     delete listener;
 
-  vlog.info("Terminated");
+  vlog.info(_("Terminated"));
   return 0;
 }

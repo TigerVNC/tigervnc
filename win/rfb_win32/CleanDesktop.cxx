@@ -28,6 +28,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/CleanDesktop.h>
 #include <rfb_win32/CurrentUser.h>
@@ -62,10 +63,8 @@ struct ActiveDesktop {
     item.dwSize = sizeof(item);
 
     HRESULT hr = handle->GetDesktopItem(i, &item, 0);
-    if (hr != S_OK) {
-      vlog.error("Unable to GetDesktopItem %d: %ld", i, hr);
+    if (hr != S_OK)
       return false;
-    }
     item.fChecked = enable_;
 
     hr = handle->ModifyDesktopItem(&item, COMP_ELEM_CHECKED);
@@ -107,7 +106,7 @@ struct ActiveDesktop {
     if (hr == S_OK)
       modifyComponents = (adOptions.fActiveDesktop==0) != (enable_==false);
     if (hr != S_OK) {
-      vlog.error("Failed to get/set Active Desktop options: %ld", hr);
+      vlog.error(_("Failed to modify Active Desktop options: %ld"), hr);
       return false;
     }
 
@@ -124,7 +123,7 @@ struct ActiveDesktop {
       int itemCount = 0;
       hr = handle->GetDesktopItemCount(&itemCount, 0);
       if (hr != S_OK) {
-        vlog.error("Failed to get desktop item count: %ld", hr);
+        vlog.error(_("Failed to get desktop item count: %ld"), hr);
         return false;
       }
       for (int i=0; i<itemCount; i++) {

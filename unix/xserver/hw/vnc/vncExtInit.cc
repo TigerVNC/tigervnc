@@ -33,6 +33,7 @@
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 #include <core/Region.h>
+#include <core/i18n.h>
 
 #include <rfb/ServerCore.h>
 #include <rdr/HexOutStream.h>
@@ -143,7 +144,8 @@ static rfb::PixelFormat vncGetPixelFormat(int scrIdx)
                      &redMask, &greenMask, &blueMask);
 
   if (!trueColour) {
-    vlog.error("Pseudocolour not supported");
+    // TRANSLATORS: This is a X11 term
+    vlog.error(_("Pseudocolour is not supported"));
     abort();
   }
 
@@ -162,19 +164,20 @@ static rfb::PixelFormat vncGetPixelFormat(int scrIdx)
 void vncExtensionInit(void)
 {
   if (vncExtGeneration == vncGetServerGeneration()) {
-    vlog.error("vncExtensionInit: Called twice in same generation?");
+    vlog.error(_("VNC extension incorrectly initialized twice in same "
+                 "generation"));
     return;
   }
   vncExtGeneration = vncGetServerGeneration();
 
   if (vncGetScreenCount() > MAXSCREENS)
-    vncFatalError("vncExtensionInit: Too many screens\n");
+    vncFatalError(_("Too many screens for VNC extension\n"));
 
   vncAddExtension();
 
   vncSelectionInit();
 
-  vlog.info("VNC extension running!");
+  vlog.info(_("VNC extension running"));
 
   try {
     if (!initialised) {
@@ -195,7 +198,8 @@ void vncExtensionInit(void)
           if (network::isSocketListening(vncInetdSock))
           {
             listeners.push_back(new network::TcpListener(vncInetdSock));
-            vlog.info("inetd wait");
+            vlog.info(
+              _("Listening for VNC connections on inetd socket"));
           }
         }
 
@@ -212,8 +216,8 @@ void vncExtensionInit(void)
 
           listeners.push_back(new network::UnixListener(path, mode));
 
-          vlog.info("Listening for VNC connections on %s (mode %04o)",
-                    path, mode);
+          vlog.info(_("Listening for VNC connections on %s "
+                      "(mode %04o)"), path, mode);
         }
 
         if (!inetd && rfbport != -1) {
@@ -231,9 +235,13 @@ void vncExtensionInit(void)
 
           if (!tcp_listeners.empty()) {
             listeners.splice (listeners.end(), tcp_listeners);
-            vlog.info("Listening for VNC connections on %s interface(s), port %d",
-                      localhostOnly ? "local" : (const char*)interface,
-                      port);
+            if (localhostOnly)
+              vlog.info(_("Listening for VNC connections on local "
+                          "interfaces, port %d"), port);
+            else
+              vlog.info(_("Listening for VNC connections on "
+                          "interface %s, port %d"),
+                        (const char*)interface, port);
           }
         }
 
@@ -251,12 +259,12 @@ void vncExtensionInit(void)
                                           vncGetScreenHeight(),
                                           vncFbptr[scr],
                                           vncFbstride[scr]);
-        vlog.info("Created VNC server for screen %d", scr);
+        vlog.info(_("Created VNC server for screen %d"), scr);
 
         if (scr == 0 && vncInetdSock != -1 && listeners.empty()) {
           network::Socket* sock = new network::TcpSocket(vncInetdSock);
           desktop[scr]->addClient(sock, false, false);
-          vlog.info("Added inetd sock");
+          vlog.info(_("Listening for VNC connections on inetd socket"));
         }
       }
 
@@ -337,7 +345,7 @@ int vncConnectClient(const char *addr, int viewOnly)
     try {
       desktop[0]->disconnectClients();
     } catch (std::exception& e) {
-      vlog.error("Disconnecting all clients: %s", e.what());
+      vlog.error(_("Failed to disconnect clients: %s"), e.what());
       return -1;
     }
     return 0;
@@ -350,11 +358,12 @@ int vncConnectClient(const char *addr, int viewOnly)
 
   try {
     network::Socket* sock = new network::TcpSocket(host.c_str(), port);
-    vlog.info("Reverse connection: %s:%d%s", host.c_str(), port,
-              viewOnly ? " (view only)" : "");
+    vlog.info(_("Reverse connection: %s:%d%s"), host.c_str(), port,
+              viewOnly ? _(" (view only)") : "");
     desktop[0]->addClient(sock, true, (bool)viewOnly);
   } catch (std::exception& e) {
-    vlog.error("Reverse connection: %s", e.what());
+    vlog.error(_("Failed to establish reverse connection: %s"),
+               e.what());
     return -1;
   }
 

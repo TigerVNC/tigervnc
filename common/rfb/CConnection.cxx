@@ -28,6 +28,7 @@
 #include <algorithm>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/Exception.h>
@@ -187,12 +188,12 @@ bool CConnection::processVersionMsg()
 
   server.setVersion(majorVersion, minorVersion);
 
-  vlog.info("Server supports RFB protocol version %d.%d",
+  vlog.info(_("Server supports RFB protocol version %d.%d"),
             server.majorVersion, server.minorVersion);
 
   // The only official RFB protocol versions are currently 3.3, 3.7 and 3.8
   if (server.beforeVersion(3,3)) {
-    vlog.error("Server gave unsupported RFB protocol version %d.%d",
+    vlog.error(_("Server gave unsupported RFB protocol version %d.%d"),
                server.majorVersion, server.minorVersion);
     state_ = RFBSTATE_INVALID;
     throw protocol_error(
@@ -211,7 +212,7 @@ bool CConnection::processVersionMsg()
 
   state_ = RFBSTATE_SECURITY_TYPES;
 
-  vlog.info("Using RFB protocol version %d.%d",
+  vlog.info(_("Using RFB protocol version %d.%d"),
             server.majorVersion, server.minorVersion);
 
   return true;
@@ -243,7 +244,7 @@ bool CConnection::processSecurityTypesMsg()
                     secType) == secTypes.end())
         secType = secTypeInvalid;
     } else {
-      vlog.error("Unknown 3.3 security type %d", secType);
+      vlog.error(_("Unknown 3.3 security type %d"), secType);
       throw protocol_error("Unknown 3.3 security type");
     }
 
@@ -287,13 +288,14 @@ bool CConnection::processSecurityTypesMsg()
     if (secType != secTypeInvalid) {
       os->writeU8(secType);
       os->flush();
-      vlog.info("Choosing security type %s(%d)",secTypeName(secType),secType);
+      vlog.info(_("Choosing security type %s (%d)"),
+                secTypeName(secType), secType);
     }
   }
 
   if (secType == secTypeInvalid) {
     state_ = RFBSTATE_INVALID;
-    vlog.error("No matching security types");
+    vlog.error(_("No matching security types"));
     throw protocol_error("No matching security types");
   }
 
@@ -440,7 +442,7 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
     server.setDimensions(w, h, layout);
 
   if ((reason == reasonClient) && (result != resultSuccess)) {
-    vlog.error("SetDesktopSize failed: %d", result);
+    vlog.error(_("Failed to resize remote session: %d"), result);
     return;
   }
 
@@ -574,7 +576,7 @@ void CConnection::framebufferUpdateEnd()
 
   if (firstUpdate) {
     if (server.supportsContinuousUpdates) {
-      vlog.info("Enabling continuous updates");
+      vlog.info(_("Enabling continuous updates"));
       continuousUpdates = true;
       writer()->writeEnableContinuousUpdates(true, 0, 0,
                                              server.width(),
@@ -594,7 +596,7 @@ void CConnection::setColourMapEntries(int /*firstColour*/,
                                       int /*nColours*/,
                                       uint16_t* /*rgbs*/)
 {
-  vlog.error("Invalid SetColourMapEntries from server!");
+  vlog.error(_("Invalid SetColourMapEntries from server!"));
 }
 
 void CConnection::serverCutText(const char* str)
@@ -705,7 +707,7 @@ void CConnection::handleClipboardProvide(uint32_t flags,
 
   // FIXME: This conversion magic should be in CMsgReader
   if (!core::isValidUTF8((const char*)data[0], lengths[0])) {
-    vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+    vlog.error(_("Invalid UTF-8 sequence in clipboard - ignoring"));
     return;
   }
   serverClipboard = core::convertLF((const char*)data[0], lengths[0]);

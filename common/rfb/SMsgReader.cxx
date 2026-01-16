@@ -27,6 +27,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/InStream.h>
@@ -112,7 +113,7 @@ bool SMsgReader::readMsg()
     ret = readQEMUMessage();
     break;
   default:
-    vlog.error("Unknown message type %d", currentMsgType);
+    vlog.error(_("Unknown message type %d"), currentMsgType);
     throw protocol_error("Unknown message type");
   }
 
@@ -253,7 +254,7 @@ bool SMsgReader::readFence()
   is->clearRestorePoint();
 
   if (len > sizeof(data)) {
-    vlog.error("Ignoring fence with too large payload");
+    vlog.error(_("Ignoring fence with too large payload"));
     is->skip(len);
     return true;
   }
@@ -337,7 +338,7 @@ bool SMsgReader::readClientCutText()
 
   if (len > (size_t)maxCutText) {
     is->skip(len);
-    vlog.error("Cut text too long (%d bytes) - ignoring", len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     return true;
   }
 
@@ -363,7 +364,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
   if (len < 4)
     throw protocol_error("Invalid extended clipboard message");
   if (len > maxCutText) {
-    vlog.error("Extended clipboard message too long (%d bytes) - ignoring", len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     is->skip(len);
     return true;
   }
@@ -413,7 +414,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
       lengths[num] = zis.readU32();
 
       if (lengths[num] > (size_t)maxCutText) {
-        vlog.error("Extended clipboard data too long (%d bytes) - ignoring",
+        vlog.error(_("Clipboard too large (%d bytes) - ignoring"),
                    (unsigned)lengths[num]);
 
         // Slowly (safely) drain away the data
@@ -511,7 +512,7 @@ bool SMsgReader::readQEMUKeyEvent()
   uint32_t keysym = is->readU32();
   uint32_t keycode = is->readU32();
   if (!keycode) {
-    vlog.error("Key event without keycode - ignoring");
+    vlog.error(_("Key event without keycode - ignoring"));
     return true;
   }
   handler->keyEvent(keysym, keycode, down);

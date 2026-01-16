@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/Cursor.h>
@@ -114,29 +115,29 @@ static const char *encoderClassName(EncoderClass klass)
     break;
   }
 
-  return "Unknown Encoder Class";
+  return _("Unknown encoder class");
 }
 
 static const char *encoderTypeName(EncoderType type)
 {
   switch (type) {
   case encoderSolid:
-    return "Solid";
+    return _("Solid");
   case encoderBitmap:
-    return "Bitmap";
+    return _("Bitmap");
   case encoderBitmapRLE:
-    return "Bitmap RLE";
+    return _("Bitmap RLE");
   case encoderIndexed:
-    return "Indexed";
+    return _("Indexed");
   case encoderIndexedRLE:
-    return "Indexed RLE";
+    return _("Indexed RLE");
   case encoderFullColour:
-    return "Full Colour";
+    return _("Full color");
   case encoderTypeMax:
     break;
   }
 
-  return "Unknown Encoder Type";
+  return _("Unknown encoder type");
 }
 
 EncodeManager::EncodeManager(SConnection* conn_)
@@ -186,7 +187,7 @@ void EncodeManager::logStats()
   rects = 0;
   pixels = bytes = equivalent = 0;
 
-  vlog.info("Framebuffer updates: %u", updates);
+  vlog.info(_("Framebuffer updates: %u"), updates);
 
   if (copyStats.rects != 0) {
     vlog.info("  %s:", "CopyRect");
@@ -198,12 +199,16 @@ void EncodeManager::logStats()
 
     ratio = (double)copyStats.equivalent / copyStats.bytes;
 
-    vlog.info("    %s: %s, %s", "Copies",
-              core::siPrefix(copyStats.rects, "rects").c_str(),
-              core::siPrefix(copyStats.pixels, "pixels").c_str());
-    vlog.info("    %*s  %s (1:%g ratio)",
-              (int)strlen("Copies"), "",
-              core::iecPrefix(copyStats.bytes, "B").c_str(), ratio);
+    vlog.info("    %s: %s, %s", _("Copies"),
+              // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+              core::siPrefix(copyStats.rects, _("rects")).c_str(),
+              // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+              core::siPrefix(copyStats.pixels, _("pixels")).c_str());
+    vlog.info("    %*s  %s (1:%g %s)",
+              (int)strlen(_("Copies")), "",
+              // TRANSLATORS: Short form of bytes
+              core::iecPrefix(copyStats.bytes, _("B")).c_str(),
+              ratio, _("ratio"));
   }
 
   for (i = 0;i < stats.size();i++) {
@@ -229,21 +234,30 @@ void EncodeManager::logStats()
       ratio = (double)stats[i][j].equivalent / stats[i][j].bytes;
 
       vlog.info("    %s: %s, %s", encoderTypeName((EncoderType)j),
-                core::siPrefix(stats[i][j].rects, "rects").c_str(),
-                core::siPrefix(stats[i][j].pixels, "pixels").c_str());
-      vlog.info("    %*s  %s (1:%g ratio)",
+                // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+                core::siPrefix(stats[i][j].rects, _("rects")).c_str(),
+                // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+                core::siPrefix(stats[i][j].pixels, _("pixels")).c_str());
+      vlog.info("    %*s  %s (1:%g %s)",
                 (int)strlen(encoderTypeName((EncoderType)j)), "",
-                core::iecPrefix(stats[i][j].bytes, "B").c_str(), ratio);
+                // TRANSLATORS: Short form of bytes
+                core::iecPrefix(stats[i][j].bytes, _("B")).c_str(),
+                ratio, _("ratio"));
     }
   }
 
   ratio = (double)equivalent / bytes;
 
-  vlog.info("  Total: %s, %s",
-            core::siPrefix(rects, "rects").c_str(),
-            core::siPrefix(pixels, "pixels").c_str());
-  vlog.info("         %s (1:%g ratio)",
-            core::iecPrefix(bytes, "B").c_str(), ratio);
+  vlog.info("  %s: %s, %s", _("Total:"),
+            // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+            core::siPrefix(rects, _("rects")).c_str(),
+            // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+            core::siPrefix(pixels, _("pixels")).c_str());
+  vlog.info("  %*s %s (1:%g %s)",
+            (int)strlen(_("Total:")), "",
+            // TRANSLATORS: Short form of bytes
+            core::iecPrefix(bytes, _("B")).c_str(),
+            ratio, _("ratio"));
 }
 
 bool EncodeManager::supported(int encoding)

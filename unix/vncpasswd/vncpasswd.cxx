@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <core/i18n.h>
 #include <core/xdgdirs.h>
 
 #include <rfb/obfuscate.h>
@@ -46,8 +47,10 @@ char* prog;
 
 static void usage()
 {
-  fprintf(stderr,"Usage: %s [file]\n", prog);
-  fprintf(stderr,"       %s -f\n", prog);
+  fprintf(stderr,
+          _("Usage: %s [file]\n"
+            "       %s -f\n"),
+          prog, prog);
   exit(1);
 }
 
@@ -89,7 +92,8 @@ static int encrypt_pipe() {
 
     std::vector<uint8_t> obfuscated = rfb::obfuscate(result);
     if (fwrite(obfuscated.data(), obfuscated.size(), 1, stdout) != 1) {
-      fprintf(stderr,"Writing to stdout failed\n");
+      fprintf(stderr, _("%s: Writing VNC password to stdout failed\n"),
+              prog);
       return 1;
     }
   }
@@ -112,7 +116,7 @@ static int check_passwd_pwquality(const char *password)
 		return -EINVAL;
 	r = pwquality_read_config(pwq, NULL, &auxerror);
 	if (r) {
-		printf("Cannot check password quality: %s \n",
+		fprintf(stderr, _("Cannot check password quality: %s\n"),
 			pwquality_strerror(NULL, 0, r, auxerror));
 		pwquality_free_settings(pwq);
 		return -EINVAL;
@@ -120,7 +124,8 @@ static int check_passwd_pwquality(const char *password)
 
 	r = pwquality_check(pwq, password, NULL, NULL, &auxerror);
 	if (r < 0) {
-		printf("Password quality check failed:\n %s \n",
+		fprintf(stderr, _("Password quality check failed:\n"));
+    fprintf(stderr, "    %s\n",
 			pwquality_strerror(NULL, 0, r, auxerror));
 		r = -EPERM;
 	}
@@ -133,7 +138,7 @@ static int check_passwd_pwquality(const char *password)
 
 static std::vector<uint8_t> readpassword() {
   while (true) {
-    const char *passwd = getpassword("Password:");
+    const char *passwd = getpassword(_("Password:"));
     if (passwd == nullptr) {
       perror("getpassword error");
       exit(1);
@@ -142,37 +147,35 @@ static std::vector<uint8_t> readpassword() {
     std::string first = passwd;
 
     if (first.empty()) {
-      fprintf(stderr,"Password not changed\n");
+      fprintf(stderr, _("Password not changed\n"));
       exit(1);
     }
 
     if (first.size() > 8) {
-      fprintf(stderr,"Password should not be greater than 8 characters\nBecause only 8 valid characters are used - try again\n");
+      fprintf(stderr, _("Password can not be longer than 8 characters - try again\n"));
       continue;
     }
 
 #ifdef HAVE_PWQUALITY
     //the function return score of password quality
     int r = check_passwd_pwquality(passwd);
-    if (r < 0){
-      printf("Password quality check failed, please set it correctly.\n");
+    if (r < 0)
       continue;
-    }
 #else
     if (first.size() < 6) {
-      fprintf(stderr,"Password must be at least 6 characters - try again\n");
+      fprintf(stderr, _("Password must be at least 6 characters - try again\n"));
       continue;
     }
 #endif
 
-    passwd = getpassword("Verify:");
+    passwd = getpassword(_("Verify:"));
     if (passwd == nullptr) {
       perror("getpass error");
       exit(1);
     }
     std::string second = passwd;
     if (first != second) {
-      fprintf(stderr,"Passwords don't match - try again\n");
+      fprintf(stderr, _("Passwords don't match - try again\n"));
       continue;
     }
 
@@ -203,18 +206,20 @@ int main(int argc, char** argv)
     } else if (strncmp(argv[i], "-f", 2) == 0) {
       return encrypt_pipe();
     } else if (argv[i][0] == '-') {
-      fprintf(stderr, "%s: Unrecognized option '%s'\n", prog, argv[i]);
-      fprintf(stderr, "See '%s --help' for more information.\n", prog);
+      fprintf(stderr, _("%s: Unrecognized option '%s'\n"),
+              prog, argv[i]);
+      fprintf(stderr, _("See '%s --help' for more information.\n"),
+              prog);
       exit(1);
     } else if (fname[0] == '\0') {
       if (strlen(argv[i]) >= sizeof(fname)) {
-        fprintf(stderr, "Too long filename specified\n");
+        fprintf(stderr, _("%s: Too long filename specified\n"), prog);
         return -1;
       }
       strcpy(fname, argv[i]);
     } else {
-      fprintf(stderr, "%s: Extra argument '%s'\n", prog, argv[i]);
-      fprintf(stderr, "See '%s --help' for more information.\n", prog);
+      fprintf(stderr, _("%s: Extra argument '%s'\n"), prog, argv[i]);
+      fprintf(stderr, _("See '%s --help' for more information.\n"), prog);
       exit(1);
     }
   }
@@ -222,13 +227,16 @@ int main(int argc, char** argv)
   if (fname[0] == '\0') {
     const char* configDir = core::getvncconfigdir();
     if (configDir == nullptr) {
-      fprintf(stderr, "Could not determine VNC config directory path\n");
+      fprintf(stderr,
+              _("%s: Could not determine VNC config directory path\n"),
+              prog);
       exit(1);
     }
     if (core::mkdir_p(configDir, 0777) == -1) {
       if (errno != EEXIST) {
-        fprintf(stderr, "Could not create VNC config directory \"%s\": %s\n",
-                configDir, strerror(errno));
+        fprintf(stderr,
+                _("%s: Could not create VNC config directory \"%s\": %s\n"),
+                prog, configDir, strerror(errno));
         exit(1);
       }
     }
@@ -239,29 +247,36 @@ int main(int argc, char** argv)
     std::vector<uint8_t> obfuscated = readpassword();
     std::vector<uint8_t> obfuscatedReadOnly;
 
-    fprintf(stderr, "Would you like to enter a view-only password (y/n)? ");
+    fprintf(stderr,
+            _("Would you like to enter a view-only password (y/n)? "));
     char yesno[3];
-    if (fgets(yesno, 3, stdin) != nullptr && (yesno[0] == 'y' || yesno[0] == 'Y')) {
+    if (fgets(yesno, 3, stdin) != nullptr &&
+        (strchr("yY", yesno[0]) != nullptr ||
+         // TRANSLATORS: Should be character used to abbreviate "yes" above
+         strchr(_("yY"), yesno[0]) != nullptr)) {
       obfuscatedReadOnly = readpassword();
     } else {
-      fprintf(stderr, "A view-only password is not used\n");
+      fprintf(stderr, _("A view-only password is not used\n"));
     }
 
     FILE* fp = fopen(fname,"w");
     if (!fp) {
-      fprintf(stderr,"Couldn't open %s for writing\n",fname);
+      fprintf(stderr, _("Couldn't open %s for writing: %s\n"),
+              fname, strerror(errno));
       exit(1);
     }
     chmod(fname, S_IRUSR|S_IWUSR);
 
     if (fwrite(obfuscated.data(), obfuscated.size(), 1, fp) != 1) {
-      fprintf(stderr,"Writing to %s failed\n",fname);
+      fprintf(stderr, _("Writing to %s failed: %s\n"),
+              fname, strerror(errno));
       exit(1);
     }
 
     if (!obfuscatedReadOnly.empty()) {
       if (fwrite(obfuscatedReadOnly.data(), obfuscatedReadOnly.size(), 1, fp) != 1) {
-        fprintf(stderr,"Writing to %s failed\n",fname);
+        fprintf(stderr, _("Writing to %s failed: %s\n"),
+                fname, strerror(errno));
         exit(1);
       }
     }

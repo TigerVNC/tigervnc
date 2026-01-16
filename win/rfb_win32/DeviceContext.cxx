@@ -23,6 +23,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/CompatibleBitmap.h>
@@ -74,7 +75,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
       switch (bi.bmiHeader.biBitCount) {
       case 16:
         // RGB 555 - High Colour
-        vlog.info("16-bit High Colour");
+        vlog.info(_("16-bit high colour"));
         rMask = 0x7c00;
         bMask = 0x001f;
         gMask = 0x03e0;
@@ -82,13 +83,13 @@ PixelFormat DeviceContext::getPF(HDC dc) {
       case 24:
       case 32:
         // RGB 888 - True Colour
-        vlog.info("24/32-bit High Colour");
+        vlog.info(_("24/32-bit high colour"));
         rMask = 0xff0000;
         gMask = 0x00ff00;
         bMask = 0x0000ff;
         break;
       default:
-        vlog.error("Bits per pixel %u not supported", bi.bmiHeader.biBitCount);
+        vlog.error(_("Bits per pixel %u not supported"), bi.bmiHeader.biBitCount);
         throw std::invalid_argument("Unknown bits per pixel specified");
       };
       break;
@@ -97,7 +98,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
       rMask = bi.mask.red;
       gMask = bi.mask.green;
       bMask = bi.mask.blue;
-      vlog.info("%d-bit BitFields: (%lx, %lx, %lx)",
+      vlog.info(_("%d-bit with masks: (%lx, %lx, %lx)"),
                  bi.bmiHeader.biBitCount, rMask, gMask, bMask);
       break;
     };
@@ -117,7 +118,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
 
     // Check that the depth & bpp are valid
     if (depth > bpp) {
-      vlog.error("Depth exceeds bits per pixel!");
+      vlog.error(_("Depth exceeds bits per pixel!"));
       bpp = depth;
     }
 
@@ -132,7 +133,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
     depth = bpp;
     if (bpp < 8)
       bpp = 8;
-    vlog.info("%d-colour palettised", 1<<depth);
+    vlog.info(_("%d-colour palettised"), 1<<depth);
     // Aren't really used, but set them to keep the compiler happy
     redMax = redShift = 0;
     greenMax = greenShift = 0;

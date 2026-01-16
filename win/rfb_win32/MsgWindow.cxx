@@ -25,6 +25,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/WMShatter.h>
@@ -64,7 +65,7 @@ LRESULT CALLBACK MsgWindowProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
   try {
     result = _this->processMessage(msg, wParam, lParam);
   } catch (std::exception& e) {
-    vlog.error("Untrapped: %s", e.what());
+    vlog.error("%s", e.what());
   }
 
   return result;

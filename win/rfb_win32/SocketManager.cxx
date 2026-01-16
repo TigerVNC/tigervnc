@@ -28,6 +28,7 @@
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
+#include <core/i18n.h>
 #include <core/time.h>
 
 #include <rdr/FdOutStream.h>
@@ -58,7 +59,7 @@ static void requestAddressChangeEvents(network::SocketListener* sock_) {
   if (WSAIoctl(sock_->getFd(), SIO_ADDRESS_LIST_CHANGE, nullptr, 0, nullptr, 0, &dummy, nullptr, nullptr) == SOCKET_ERROR) {
     DWORD err = WSAGetLastError();
     if (err != WSAEWOULDBLOCK)
-      vlog.error("Unable to track address changes: 0x%08x", (unsigned)err);
+      vlog.error(_("Unable to track socket address changes: 0x%08x"), (unsigned)err);
   }
 }
 
@@ -119,7 +120,7 @@ void SocketManager::addSocket(network::Socket* sock_, VNCServer* srvr, bool outg
     if (event)
       WSACloseEvent(event);
     delete sock_;
-    vlog.error("Unable to add connection");
+    vlog.error(_("Unable to add connection"));
     return;
   }
   ConnInfo ci;
@@ -220,13 +221,13 @@ void SocketManager::processEvent(HANDLE event) {
       if (new_sock)
         addSocket(new_sock, li.server, false);
     } else if (network_events.lNetworkEvents & FD_CLOSE) {
-      vlog.info("Deleting listening socket");
+      vlog.info(_("Deleting listening socket"));
       remListener(li.sock);
     } else if (network_events.lNetworkEvents & FD_ADDRESS_LIST_CHANGE) {
       li.notifier->processAddressChange();
       requestAddressChangeEvents(li.sock);
     } else {
-      vlog.error("Unknown listener event: %lx", network_events.lNetworkEvents);
+      vlog.error(_("Unknown socket event: %lx"), network_events.lNetworkEvents);
     }
   } else if (connections.count(event)) {
     ConnInfo ci = connections[event];

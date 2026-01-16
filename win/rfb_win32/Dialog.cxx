@@ -278,12 +278,12 @@ bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bo
     if ((handle == nullptr) || (handle == (HWND)-1))
       throw core::win32_error("PropertySheet failed", GetLastError());
     centerWindow(handle, owner_);
-    plog.info("Created %p", handle);
+    plog.debug("Created %p", handle);
 
     (void)capture;
 #ifdef _DIALOG_CAPTURE
     if (capture) {
-      plog.info("Capturing \"%s\"", title.c_str());
+      plog.debug("Capturing \"%s\"", title.c_str());
       char* tmpdir = getenv("TEMP");
       HDC dc = GetWindowDC(handle);
       DeviceFrameBuffer fb(dc);
@@ -336,7 +336,7 @@ bool PropSheet::showPropSheet(HWND owner_, bool showApply, bool showCtxtHelp, bo
     }
 #endif
 
-    plog.info("Finished %p", handle);
+    plog.debug("Finished %p", handle);
 
     DestroyWindow(handle);
     handle = nullptr;

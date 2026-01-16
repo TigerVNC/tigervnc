@@ -27,6 +27,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/SConnection.h>
 #include <rfb/SecurityServer.h>
@@ -163,8 +164,8 @@ bool SSecurityVeNCrypt::processMsg()
     if (!haveChosenType)
       chosenType = secTypeInvalid;
 
-    vlog.info("Client requests security type %s (%d)", secTypeName(chosenType),
-	       chosenType);
+    vlog.info(_("Client requests security type %s (%d)"),
+              secTypeName(chosenType), chosenType);
 
     /* Set up the stack according to the chosen type */
     if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)

@@ -56,6 +56,7 @@
 #include <stdlib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/time.h>
 
 #include <rdr/FdOutStream.h>
@@ -111,7 +112,7 @@ VNCServerST::~VNCServerST()
   slog.debug("Shutting down server %s", name.c_str());
 
   // Close any active clients, with appropriate logging & cleanup
-  closeClients("Server shutdown");
+  closeClients(_("Server shutting down"));
 
   // Stop trying to render things
   stopFrameClock();
@@ -143,7 +144,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
   // *** do this in getSecurity instead?
   const char *address = sock->getPeerAddress();
   if (blacklist.isBlackmarked(address)) {
-    connectionsLog.error("Blacklisted: %s", address);
+    connectionsLog.error(_("Blacklisted: %s"), address);
     try {
       rdr::OutStream& os = sock->outStream();
 
@@ -161,7 +162,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     return;
   }
 
-  connectionsLog.info("Accepted: %s", sock->getPeerEndpoint());
+  connectionsLog.info(_("Accepted: %s"), sock->getPeerEndpoint());
 
   // Adjust the exit timers
   if (rfb::Server::maxConnectionTime && clients.empty())
@@ -173,7 +174,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     clients.push_front(client);
     client->init();
   } catch (std::exception& e) {
-    connectionsLog.error("Error accepting client: %s", e.what());
+    connectionsLog.error(_("Error accepting client: %s"), e.what());
     sock->shutdown();
     closingSockets.push_back(sock);
   }
@@ -201,7 +202,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
 
       clients.remove(*ci);
 
-      connectionsLog.info("Closed: %s", peer.c_str());
+      connectionsLog.info(_("Closed: %s"), peer.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
@@ -348,7 +349,8 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
           continue;
       iter->dimensions = iter->dimensions.intersect(fbRect);
       if (iter->dimensions.is_empty()) {
-        slog.info("Removing screen %d (%x) as it is completely outside the new framebuffer",
+        slog.info(_("Removing screen %d (%x) as it is completely "
+                    "outside the new framebuffer"),
                   (int)iter->id, (unsigned)iter->id);
         layout.remove_screen(iter->id);
       }
@@ -633,13 +635,13 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
   // We can't handle a framebuffer larger than this, so don't let a
   // client set one (see PixelBuffer.cxx)
   if ((fb_width > 16384) || (fb_height > 16384)) {
-    slog.error("Rejecting too large framebuffer resize request");
+    slog.error(_("Rejecting too large resize request"));
     return resultProhibited;
   }
 
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height)) {
-    slog.error("Invalid screen layout requested by client");
+    slog.error(_("Invalid screen layout requested by client"));
     return resultInvalid;
   }
 
@@ -739,13 +741,13 @@ void VNCServerST::handleTimeout(core::Timer* t)
     msc++;
     desktop->frameTick(msc);
   } else if (t == &idleTimer) {
-    slog.info("MaxIdleTime reached, exiting");
+    slog.info(_("Maximum idle time reached, exiting"));
     desktop->terminate();
   } else if (t == &disconnectTimer) {
-    slog.info("MaxDisconnectionTime reached, exiting");
+    slog.info(_("Maximum disconnected time reached, exiting"));
     desktop->terminate();
   } else if (t == &connectTimer) {
-    slog.info("MaxConnectionTime reached, exiting");
+    slog.info(_("Maximum connected time reached, exiting"));
     desktop->terminate();
   }
 }
@@ -793,12 +795,12 @@ void VNCServerST::clientReady(VNCSConnectionST* client, bool shared)
         client->accessCheck(AccessNonShared)) {
       // - Close all the other connected clients
       slog.debug("Non-shared connection - closing clients");
-      closeClients("Non-shared connection requested", client->getSock());
+      closeClients(_("Non-shared connection requested"), client->getSock());
     } else {
       // - Refuse this connection if there are existing clients, in addition to
       // this one
       if (authClientCount() > 1) {
-        client->close("Server is already in use");
+        client->close(_("Server is already in use"));
         return;
       }
     }

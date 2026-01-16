@@ -44,6 +44,7 @@
 #include <core/Configuration.h>
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <network/TcpSocket.h>
@@ -306,7 +307,7 @@ const char* TcpSocket::getPeerAddress() {
   socklen_t sa_size = sizeof(sa);
 
   if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
-    vlog.error("Unable to get peer name for socket");
+    vlog.error(_("Failed to get peer name for socket"));
     return "(N/A)";
   }
 
@@ -320,7 +321,7 @@ const char* TcpSocket::getPeerAddress() {
                       buffer + 1, sizeof(buffer) - 2, nullptr, 0,
                       NI_NUMERICHOST);
     if (ret != 0) {
-      vlog.error("Unable to convert peer name to a string");
+      vlog.error(_("Failed to convert peer name to a string"));
       return "(N/A)";
     }
 
@@ -334,14 +335,14 @@ const char* TcpSocket::getPeerAddress() {
 
     name = inet_ntoa(sa.u.sin.sin_addr);
     if (name == nullptr) {
-      vlog.error("Unable to convert peer name to a string");
+      vlog.error(_("Failed to convert peer name to a string"));
       return "(N/A)";
     }
 
     return name;
   }
 
-  vlog.error("Unknown address family for socket");
+  vlog.error(_("Unknown address family"));
   return "";
 }
 
@@ -370,7 +371,7 @@ bool TcpSocket::enableNagles(bool enable) {
   if (setsockopt(getFd(), IPPROTO_TCP, TCP_NODELAY,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
-    vlog.error("Unable to setsockopt TCP_NODELAY: %d", e);
+    vlog.error(_("Failed to set TCP_NODELAY: %d"), e);
     return false;
   }
   return true;

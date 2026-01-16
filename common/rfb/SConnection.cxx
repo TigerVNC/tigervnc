@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/OutStream.h>
@@ -133,7 +134,7 @@ bool SConnection::processVersionMsg()
 
   client.setVersion(majorVersion, minorVersion);
 
-  vlog.info("Client needs protocol version %d.%d",
+  vlog.info(_("Client needs protocol version %d.%d"),
             client.majorVersion, client.minorVersion);
 
   if (client.majorVersion != 3) {
@@ -145,7 +146,7 @@ bool SConnection::processVersionMsg()
   }
 
   if (client.minorVersion != 3 && client.minorVersion != 7 && client.minorVersion != 8) {
-    vlog.error("Client uses unofficial protocol version %d.%d",
+    vlog.error(_("Client uses unofficial protocol version %d.%d"),
                client.majorVersion,client.minorVersion);
     if (client.minorVersion >= 8)
       client.minorVersion = 8;
@@ -153,7 +154,7 @@ bool SConnection::processVersionMsg()
       client.minorVersion = 7;
     else
       client.minorVersion = 3;
-    vlog.error("Assuming compatibility with version %d.%d",
+    vlog.error(_("Assuming compatibility with version %d.%d"),
                client.majorVersion,client.minorVersion);
   }
 
@@ -220,7 +221,7 @@ void SConnection::processSecurityType(int secType)
                 secType) == secTypes.end())
     throw protocol_error("Requested security type not available");
 
-  vlog.info("Client requests security type %s(%d)",
+  vlog.info(_("Client requests security type %s (%d)"),
             secTypeName(secType),secType);
 
   try {
@@ -238,7 +239,7 @@ bool SConnection::processSecurityMsg()
     if (!ssecurity->processMsg())
       return false;
   } catch (auth_error& e) {
-    vlog.error("Authentication error: %s", e.what());
+    vlog.error(_("Authentication error: %s"), e.what());
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
@@ -314,7 +315,7 @@ void SConnection::handleAuthFailureTimeout(core::Timer* /*t*/)
 
 void SConnection::failConnection(const char* message)
 {
-  vlog.info("Connection failed: %s", message);
+  vlog.info(_("Connection failed: %s"), message);
 
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (client.majorVersion == 3 && client.minorVersion == 3) {
@@ -508,7 +509,7 @@ void SConnection::handleClipboardProvide(uint32_t flags,
 
   // FIXME: This conversion magic should be in SMsgReader
   if (!core::isValidUTF8((const char*)data[0], lengths[0])) {
-    vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+    vlog.error(_("Invalid UTF-8 sequence in clipboard - ignoring"));
     return;
   }
   clientClipboard = core::convertLF((const char*)data[0], lengths[0]);
