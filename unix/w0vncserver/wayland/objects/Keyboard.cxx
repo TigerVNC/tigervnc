@@ -76,18 +76,19 @@ struct XkbContext {
 Keyboard::Keyboard(Display* display, Seat* seat,
                    std::function<void(unsigned int)> setLEDstate_)
   : keyboardFormat(0), keyboardFd(0), keyboardSize(0),
-    keyboard(nullptr), keyMap(nullptr), context(new XkbContext()),
+    keyboard(nullptr), keyMap(nullptr), context(nullptr),
     setLEDstate(setLEDstate_)
 {
   xkb_context* ctx;
 
   ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-  if (!ctx)  {
+  if (ctx)  {
+    context = new XkbContext();
+    context->ctx = ctx;
+  } else {
     // FIXME: fallback?
-    fatal_error("Failed to create xkb context");
-    return;
+    vlog.error("Failed to create xkb context - keyboard will not work");
   }
-  context->ctx = ctx;
 
   keyboard = wl_seat_get_keyboard(seat->getSeat());
   wl_keyboard_add_listener(keyboard, &listener, this);
@@ -118,6 +119,9 @@ bool Keyboard::updateState(uint32_t keycode, bool down,
 {
   xkb_state_component changed;
 
+  if (!context || !context->state)
+    return false;
+
   changed = xkb_state_update_key(context->state, keycode,
                                  down ? XKB_KEY_DOWN : XKB_KEY_UP);
 
@@ -134,7 +138,8 @@ bool Keyboard::updateState(uint32_t keycode, bool down,
 
 void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
 {
-  assert(context->ctx);
+  if (!context || !context->ctx)
+    return;
 
   memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
 
@@ -202,7 +207,7 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
   xkb_keycode_t min;
   xkb_keycode_t max;
 
-  if (keyMap == nullptr)
+  if (!context || !context->keymap)
     return XKB_KEYCODE_INVALID;
 
   min = xkb_keymap_min_keycode(context->keymap);
@@ -220,6 +225,8 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
 
 uint32_t Keyboard::rfbcodeToKeycode(uint32_t rfbcode)
 {
+  if (!context)
+    return XKB_KEYCODE_INVALID;
   if (rfbcode >= sizeof(codeMapQnumToKeyCode))
     return XKB_KEYCODE_INVALID;
   if (codeMapQnumToKeyCode[rfbcode] == 0)
@@ -233,6 +240,10 @@ void Keyboard::handleModifiers(uint32_t /* serial */,
                                uint32_t modsLocked, uint32_t group)
 {
   xkb_state_component changed;
+
+  if (!context || !context->state)
+    return;
+
   // FIXME: What do we set the latched/locked layouts to?
   changed = xkb_state_update_mask(context->state, modsDepressed, modsLatched,
                         modsLocked, group, 0, 0);
@@ -244,6 +255,9 @@ void Keyboard::handleModifiers(uint32_t /* serial */,
 unsigned int Keyboard::getLEDState()
 {
   unsigned int ledState;
+
+  if (!context || !context->state)
+    return 0;
 
   ledState = 0;
   if (xkb_state_led_name_is_active(context->state, XKB_LED_NAME_SCROLL))
@@ -258,6 +272,9 @@ unsigned int Keyboard::getLEDState()
 
 void Keyboard::generateKeycodeMap()
 {
+  if (!context || !context->keymap)
+    return;
+
   memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
 
   /* Here, we generate a mapping from qnumcode (RFB) to our keyboard's
