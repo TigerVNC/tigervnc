@@ -38,6 +38,8 @@ namespace wayland {
     uint32_t getFormat() const { return keyboardFormat; }
     int getFd() const { return keyboardFd; }
     int getSize() const { return keyboardSize; }
+    bool hasKeymap() const { return keyMap != nullptr; }
+
     // Get the current LED state
     unsigned int getLEDState();
 
