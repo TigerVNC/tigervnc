@@ -146,28 +146,6 @@ vncBitsPerPixel(int depth)
 
 static void vncFreeFramebufferMemory(VncFramebufferInfoPtr pfb);
 
-#ifdef DPMSExtension
-#if XORG_OLDER_THAN(1, 20, 0)
-    /* Why support DPMS? Because stupid modern desktop environments
-       such as Unity 2D on Ubuntu 11.10 crashes if DPMS is not
-       available. (DPMSSet is called by dpms.c, but the return value
-       is ignored.) */
-int
-DPMSSet(ClientPtr client, int level)
-{
-    return Success;
-}
-
-Bool
-DPMSSupported(void)
-{
-    /* Causes DPMSCapable to return false, meaning no devices are DPMS
-       capable */
-    return FALSE;
-}
-#endif
-#endif
-
 void
 ddxGiveUp(enum ExitCode error)
 {
@@ -1133,19 +1111,8 @@ vncClientStateChange(CallbackListPtr *a, void *b, void *c)
     }
 }
 
-#ifdef GLXEXT
-#if XORG_OLDER_THAN(1, 20, 0)
-extern void GlxExtensionInit(void);
-#endif
-#endif
-
 static const ExtensionModule vncExtensions[] = {
     {vncExtensionInit, "TIGERVNC", NULL},
-#ifdef GLXEXT
-#if XORG_OLDER_THAN(1, 20, 0)
-    { GlxExtensionInit, "GLX", &noGlxExtension },
-#endif
-#endif
 };
 
 void
@@ -1160,9 +1127,7 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
         LoadExtensionList(vncExtensions, ARRAY_SIZE(vncExtensions), TRUE);
     }
 
-#if XORG_AT_LEAST(1, 20, 0)
     xorgGlxCreateVendor();
-#endif
 
     /* initialize pixmap formats */
 

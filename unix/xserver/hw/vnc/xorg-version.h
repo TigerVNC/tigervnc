@@ -31,8 +31,8 @@
 #define XORG_OLDER_THAN(major, minor, patch) \
     (VENDOR_RELEASE < ((major * 10000000) + (minor * 100000) + (patch * 1000)))
 
-#if XORG_OLDER_THAN(1, 16, 0)
-#error "X.Org older than 1.16 is not supported"
+#if XORG_OLDER_THAN(1, 20, 0)
+#error "X.Org older than 1.20 is not supported"
 #endif
 
 #if XORG_AT_LEAST(1, 22, 0)

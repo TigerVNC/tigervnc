@@ -61,9 +61,7 @@ typedef struct _vncHooksScreenRec {
   CreateGCProcPtr              CreateGC;
   CopyWindowProcPtr            CopyWindow;
   ClearToBackgroundProcPtr     ClearToBackground;
-#if XORG_AT_LEAST(1, 19, 0)
   CursorWarpedToProcPtr        CursorWarpedTo;
-#endif
   ScreenBlockHandlerProcPtr    BlockHandler;
 
   CompositeProcPtr             Composite;
@@ -115,18 +113,11 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                                RegionPtr pOldRegion);
 static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
                                       int h, Bool generateExposures);
-#if XORG_AT_LEAST(1, 19, 0)
 static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
                                    ScreenPtr pScreen_, ClientPtr pClient,
                                    WindowPtr pWindow, SpritePtr pSprite,
                                    int x, int y);
-#endif
-#if XORG_AT_LEAST(1, 19, 0)
 static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout);
-#else
-static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout,
-                                 void * pReadmask);
-#endif
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
 			      PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
 			      INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
@@ -299,9 +290,7 @@ int vncHooksInit(int scrIdx)
   wrap(vncHooksScreen, pScreen, CreateGC, vncHooksCreateGC);
   wrap(vncHooksScreen, pScreen, CopyWindow, vncHooksCopyWindow);
   wrap(vncHooksScreen, pScreen, ClearToBackground, vncHooksClearToBackground);
-#if XORG_AT_LEAST(1, 19, 0)
   wrap(vncHooksScreen, pScreen, CursorWarpedTo, vncHooksCursorWarpedTo);
-#endif
   wrap(vncHooksScreen, pScreen, BlockHandler, vncHooksBlockHandler);
 
   ps = GetPictureScreenIfSet(pScreen);
@@ -592,7 +581,6 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
 
 // CursorWarpedTo - notify that the cursor was warped
 
-#if XORG_AT_LEAST(1, 19, 0)
 static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
                                    ScreenPtr pScreen_, ClientPtr pClient,
                                    WindowPtr pWindow, SpritePtr pSprite,
@@ -607,27 +595,17 @@ static void vncHooksCursorWarpedTo(DeviceIntPtr pDev,
 
   SCREEN_EPILOGUE(CursorWarpedTo);
 }
-#endif
 
 // BlockHandler - ignore any changes during the block handler - it's likely
 // these are just drawing the cursor.
 
-#if XORG_AT_LEAST(1, 19, 0)
 static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout)
-#else
-static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
-                                 void * pReadmask)
-#endif
 {
   SCREEN_PROLOGUE(pScreen_, BlockHandler);
 
   vncHooksScreen->ignoreHooks++;
 
-#if XORG_AT_LEAST(1, 19, 0)
   (*pScreen->BlockHandler) (pScreen, pTimeout);
-#else
-  (*pScreen->BlockHandler) (pScreen, pTimeout, pReadmask);
-#endif
 
   vncHooksScreen->ignoreHooks--;
 

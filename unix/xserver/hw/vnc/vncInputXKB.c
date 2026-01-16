@@ -43,10 +43,6 @@
 #define KEYBOARD_OR_FLOAT MASTER_KEYBOARD
 #endif
 
-#if XORG_OLDER_THAN(1, 18, 0)
-#define GetMaster(dev, type) ((dev)->master)
-#endif
-
 extern DeviceIntPtr vncKeyboardDev;
 
 static const KeyCode fakeKeys[] = {
