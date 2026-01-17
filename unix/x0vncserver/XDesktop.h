@@ -61,8 +61,7 @@ public:
   void stop() override;
   void terminate() override;
   bool isRunning();
-  void queryConnection(network::Socket* sock,
-                       const char* userName) override;
+  void queryConnection(rfb::SConnection* conn) override;
   void pointerEvent(const core::Point& pos,
                     uint16_t buttonMask) override;
   void keyEvent(uint32_t keysym, uint32_t xtcode, bool down) override;
@@ -89,7 +88,7 @@ protected:
   XPixelBuffer* pb;
   rfb::VNCServer* server;
   QueryConnectDialog* queryConnectDialog;
-  network::Socket* queryConnectSock;
+  rfb::SConnection* pendingQuery;
   XSelection selection;
   uint16_t oldButtonMask;
   bool haveXtest;

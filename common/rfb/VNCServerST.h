@@ -91,7 +91,7 @@ namespace rfb {
     void announceClipboard(bool available) override;
     void sendClipboardData(const char* data) override;
 
-    void approveConnection(network::Socket* sock, bool accept,
+    void approveConnection(SConnection* conn, bool accept,
                            const char* reason) override;
     void closeClients(const char* reason) override {closeClients(reason, nullptr);}
     SConnection* getConnection(network::Socket* sock) override;

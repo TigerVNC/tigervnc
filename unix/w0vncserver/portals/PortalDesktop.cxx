@@ -149,11 +149,10 @@ void PortalDesktop::stop()
   clipboardAccess = false;
 }
 
-void PortalDesktop::queryConnection(network::Socket* sock,
-                                    const char* /* userName */)
+void PortalDesktop::queryConnection(rfb::SConnection* conn)
 {
   // FIXME: Implement this.
-  server->approveConnection(sock, false,
+  server->approveConnection(conn, false,
                             _("Unable to query the local user to "
                               "accept the connection."));
 }

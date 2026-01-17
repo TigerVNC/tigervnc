@@ -161,17 +161,16 @@ void SDisplay::terminate()
 }
 
 
-void SDisplay::queryConnection(network::Socket* sock,
-                               const char* userName)
+void SDisplay::queryConnection(rfb::SConnection* conn)
 {
   assert(server != nullptr);
 
   if (queryConnectionHandler) {
-    queryConnectionHandler->queryConnection(sock, userName);
+    queryConnectionHandler->queryConnection(conn);
     return;
   }
 
-  server->approveConnection(sock, true);
+  server->approveConnection(conn, true);
 }
 
 
