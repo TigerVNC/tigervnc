@@ -51,8 +51,7 @@ public:
                         bool down) override;
   virtual void pointerEvent(const core::Point& pos,
                             uint16_t buttonMask) override;
-  void queryConnection(network::Socket* sock,
-                        const char* userName) override;
+  void queryConnection(rfb::SConnection* conn) override;
   void terminate() override;
 
   virtual void handleClipboardRequest() override;

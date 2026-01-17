@@ -44,10 +44,9 @@
 
 namespace core { struct Point; }
 
-namespace network { class Socket; }
-
 namespace rfb {
 
+  class SConnection;
   struct ScreenSet;
   class VNCServer;
 
@@ -74,12 +73,10 @@ namespace rfb {
     virtual void stop() {}
 
     // queryConnection() is called when a connection has been
-    // successfully authenticated.  The sock and userName arguments
-    // identify the socket and the name of the authenticated user, if
-    // any. At some point later VNCServer::approveConnection() should
-    // be called to either accept or reject the client.
-    virtual void queryConnection(network::Socket* sock,
-                                 const char* userName) = 0;
+    // successfully authenticated. At some point later
+    // VNCServer::approveConnection() should be called to either accept
+    // or reject the client.
+    virtual void queryConnection(rfb::SConnection* conn) = 0;
 
     // terminate() is called by the server when it wishes to terminate
     // itself, e.g. because it was configured to terminate when no one is

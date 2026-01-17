@@ -25,7 +25,7 @@
 
 #include <rfb_win32/Dialog.h>
 
-namespace network { class Socket; }
+namespace rfb { class SConnection; }
 
 namespace winvnc {
 
@@ -33,10 +33,10 @@ namespace winvnc {
 
   class QueryConnectDialog : rfb::win32::Dialog {
   public:
-    QueryConnectDialog(network::Socket* sock, const char* userName, VNCServerWin32* s);
+    QueryConnectDialog(rfb::SConnection* conn, VNCServerWin32* s);
     ~QueryConnectDialog();
     virtual void startDialog();
-    network::Socket* getSock() {return sock;}
+    rfb::SConnection* getConn() {return conn;}
     bool isAccepted() const {return approve;}
   protected:
     // Thread methods
@@ -51,9 +51,7 @@ namespace winvnc {
 
     std::thread* thread;
     int countdown;
-    network::Socket* sock;
-    std::string peerIp;
-    std::string userName;
+    rfb::SConnection* conn;
     bool approve;
     VNCServerWin32* server;
   };

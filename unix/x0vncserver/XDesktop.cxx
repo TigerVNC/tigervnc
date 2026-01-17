@@ -33,6 +33,7 @@
 
 #include <network/Socket.h>
 
+#include <rfb/SConnection.h>
 #include <rfb/ScreenSet.h>
 
 #include <X11/XKBlib.h>
@@ -88,7 +89,7 @@ static const char * ledNames[XDESKTOP_N_LEDS] = {
 
 XDesktop::XDesktop(Display* dpy_, Geometry *geometry_)
   : dpy(dpy_), geometry(geometry_), pb(nullptr), server(nullptr),
-    queryConnectDialog(nullptr), queryConnectSock(nullptr), selection(dpy_, this),
+    queryConnectDialog(nullptr), pendingQuery(nullptr), selection(dpy_, this),
     oldButtonMask(0), haveXtest(false), haveDamage(false),
     maxButtons(0), running(false), ledMasks(), ledState(0),
     codeMap(nullptr), codeMapLen(0)
@@ -320,37 +321,41 @@ bool XDesktop::isRunning() {
   return running;
 }
 
-void XDesktop::queryConnection(network::Socket* sock,
-                               const char* userName)
+void XDesktop::queryConnection(rfb::SConnection* conn)
 {
+  const char* userName;
+
   assert(isRunning());
 
   // Someone already querying?
-  if (queryConnectSock) {
+  if (pendingQuery) {
     std::list<network::Socket*> sockets;
 
-    // Check if this socket is still valid
+    // Check if this connection is still valid
     server->getSockets(&sockets);
-    if (std::find(sockets.begin(), sockets.end(),
-                  queryConnectSock) != sockets.end()) {
-      server->approveConnection(sock, false,
+    if (std::find_if(sockets.begin(), sockets.end(),
+                     [this](network::Socket* sock) {
+                       return server->getConnection(sock) ==
+                              pendingQuery;
+                     }) != sockets.end()) {
+      server->approveConnection(conn, false,
                                 _("Another connection is currently "
                                   "being queried."));
       return;
     }
   }
 
+  userName = conn->getUserName();
+
   if (userName[0] == '\0')
     userName = _("(anonymous)");
 
-  queryConnectSock = sock;
+  pendingQuery = conn;
 
   delete queryConnectDialog;
-  queryConnectDialog = new QueryConnectDialog(dpy,
-                                              sock->getPeerAddress(),
-                                              userName,
-                                              queryConnectTimeout,
-                                              this);
+  queryConnectDialog =
+    new QueryConnectDialog(dpy, conn->getSock()->getPeerAddress(),
+                           userName, queryConnectTimeout, this);
   queryConnectDialog->map();
 }
 
@@ -1007,16 +1012,16 @@ bool XDesktop::handleGlobalEvent(XEvent* ev) {
 void XDesktop::queryApproved()
 {
   assert(isRunning());
-  server->approveConnection(queryConnectSock, true, nullptr);
-  queryConnectSock = nullptr;
+  server->approveConnection(pendingQuery, true, nullptr);
+  pendingQuery = nullptr;
 }
 
 void XDesktop::queryRejected()
 {
   assert(isRunning());
-  server->approveConnection(queryConnectSock, false,
+  server->approveConnection(pendingQuery, false,
                             _("Connection rejected by local user"));
-  queryConnectSock = nullptr;
+  pendingQuery = nullptr;
 }
 
 #ifdef HAVE_XFIXES

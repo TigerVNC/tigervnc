@@ -42,8 +42,7 @@ public:
   void init(rfb::VNCServer* vs) override;
   void start() override;
   void stop() override;
-  void queryConnection(network::Socket* sock,
-                       const char* userName) override;
+  void queryConnection(rfb::SConnection* conn) override;
   void terminate() override;
   unsigned int setScreenLayout(int fb_width, int fb_height,
                                const rfb::ScreenSet& layout) override;
