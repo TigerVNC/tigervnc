@@ -69,12 +69,10 @@ static int pam_callback(int count, const struct pam_message **in,
     resp[i].resp_retcode = PAM_SUCCESS;
     switch (in[i]->msg_style) {
     case PAM_TEXT_INFO:
-      vlog.info("%s info: %s", (const char *) pamService, in[i]->msg);
       auth->msg = in[i]->msg;
       resp[i].resp = nullptr;
       break;
     case PAM_ERROR_MSG:
-      vlog.error("%s error: %s", (const char *) pamService, in[i]->msg);
       auth->msg = in[i]->msg;
       resp[i].resp = nullptr;
       break;
