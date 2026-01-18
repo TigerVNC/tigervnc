@@ -25,6 +25,7 @@
 #include <core/Configuration.h>
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/WMPoller.h>
 
@@ -35,7 +36,7 @@ using namespace rfb::win32;
 static LogWriter vlog("WMPoller");
 
 BoolParameter rfb::win32::WMPoller::poll_console_windows("PollConsoleWindows",
-  "Server should poll console windows for updates", true);
+  _("Server should poll console windows for updates"), true);
 
 // -=- WMPoller class
 

@@ -29,6 +29,7 @@
 #include <vector>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/DeviceContext.h>
@@ -43,7 +44,8 @@ using namespace win32;
 static LogWriter vlog("DeviceFrameBuffer");
 
 BoolParameter DeviceFrameBuffer::useCaptureBlt("UseCaptureBlt",
-  "Use a slower capture method that ensures that alpha blended windows appear correctly",
+  _("Use a slower capture method that ensures that alpha blended "
+    "windows will appear correctly"),
   true);
 
 
@@ -58,10 +60,10 @@ DeviceFrameBuffer::DeviceFrameBuffer(HDC deviceContext, const Rect& wRect)
 
   int capabilities = GetDeviceCaps(device, RASTERCAPS);
   if (!(capabilities & RC_BITBLT)) {
-    throw std::invalid_argument("Device does not support BitBlt");
+    throw std::invalid_argument(_("Device does not support BitBlt()"));
   }
   if (!(capabilities & RC_DI_BITMAP)) {
-    throw std::invalid_argument("Device does not support GetDIBits");
+    throw std::invalid_argument(_("Device does not support GetDIBits()"));
   }
   /*
   if (GetDeviceCaps(device, PLANES) != 1) {
@@ -104,9 +106,9 @@ DeviceFrameBuffer::grabRect(const Rect &rect) {
                 rect.width(), rect.height(), device, src.x, src.y,
                 useCaptureBlt ? (CAPTUREBLT | SRCCOPY) : SRCCOPY)) {
     if (ignoreGrabErrors)
-      vlog.error("BitBlt failed:%ld", GetLastError());
+      vlog.error(_("BitBlt() failed: %ld"), GetLastError());
     else
-      throw core::win32_error("BitBlt failed", GetLastError());
+      throw core::win32_error(_("BitBlt() failed"), GetLastError());
   }
 }
 
@@ -142,11 +144,11 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     BITMAP maskInfo;
     if (!GetObject(iconInfo.hbmMask, sizeof(BITMAP), &maskInfo))
-      throw core::win32_error("GetObject() failed", GetLastError());
+      throw core::win32_error(_("GetObject() failed"), GetLastError());
     if (maskInfo.bmPlanes != 1)
-      throw std::invalid_argument("Unsupported multi-plane cursor");
+      throw std::invalid_argument(_("Unsupported multi-plane cursor"));
     if (maskInfo.bmBitsPixel != 1)
-      throw std::invalid_argument("Unsupported cursor mask format");
+      throw std::invalid_argument(_("Unsupported cursor mask format"));
 
     width = maskInfo.bmWidth;
     height = maskInfo.bmHeight;
@@ -192,7 +194,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
       if ((bi.bV5RedMask != ((unsigned)0xff << ridx*8)) ||
           (bi.bV5GreenMask != ((unsigned)0xff << gidx*8)) ||
           (bi.bV5BlueMask != ((unsigned)0xff << bidx*8)))
-        throw std::invalid_argument("Unsupported cursor colour format");
+        throw std::invalid_argument(_("Unsupported cursor colour format"));
 
       uint8_t* rwbuffer = buffer.data();
       for (int y = 0; y < height; y++) {

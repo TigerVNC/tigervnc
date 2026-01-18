@@ -33,6 +33,7 @@
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
 #include <core/Region.h>
+#include <core/i18n.h>
 
 #include <rfb/ServerCore.h>
 #include <rdr/HexOutStream.h>
@@ -71,38 +72,45 @@ static const char* defaultDesktopName();
 
 core::IntParameter
   rfbport("rfbport",
-          "TCP port to listen for RFB protocol", 0, -1, 65535);
+          _("TCP port to listen for RFB protocol"), 0, -1, 65535);
 core::StringParameter
   rfbunixpath("rfbunixpath",
-              "Unix socket to listen for RFB protocol", "");
+              _("UNIX socket path to listen for RFB protocol"), "");
 core::IntParameter
   rfbunixmode("rfbunixmode",
-              "Unix socket access mode", 0600, 0000, 0777);
+              _("UNIX socket access mode"), 0600, 0000, 0777);
 core::StringParameter
-  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+  desktopName("desktop",
+              _("Name of VNC desktop"), defaultDesktopName());
 core::BoolParameter
   localhostOnly("localhost",
-                "Only allow connections from localhost", false);
+                _("Only allow connections from localhost"), false);
 core::StringParameter
   interface("interface",
-            "Listen on the specified network address", "all");
+            _("Listen on the specified network address"), "all");
 core::BoolParameter
   avoidShiftNumLock("AvoidShiftNumLock",
-                    "Avoid fake Shift presses for keys affected by "
-                    "NumLock.", true);
+                    _("Avoid fake Shift presses for keys affected by "
+                      "NumLock"), true);
 core::StringListParameter
   allowOverride("AllowOverride",
-                "Comma separated list of parameters that can be "
-                "modified using VNC extension.",
+                _("Comma separated list of parameters that are allowed "
+                  "to be modified after startup"),
                 {"desktop", "AcceptPointerEvents", "SendCutText",
                  "AcceptCutText", "SendPrimary", "SetPrimary"});
 core::BoolParameter
   setPrimary("SetPrimary",
-             "Set the PRIMARY as well as the CLIPBOARD selection",
+             // TRANSLATORS: This refers to the two different X11
+             //              clipboards
+             _("Set the primary selection as well as the clipboard "
+               "selection"),
              true);
 core::BoolParameter
   sendPrimary("SendPrimary",
-              "Send the PRIMARY as well as the CLIPBOARD selection",
+              // TRANSLATORS: This refers to the two different X11
+              //              clipboards
+              _("Send the primary selection to the client as well as "
+                "the clipboard selection"),
               true);
 
 static const char* defaultDesktopName()
@@ -143,7 +151,8 @@ static rfb::PixelFormat vncGetPixelFormat(int scrIdx)
                      &redMask, &greenMask, &blueMask);
 
   if (!trueColour) {
-    vlog.error("Pseudocolour not supported");
+    // TRANSLATORS: This is a X11 term
+    vlog.error(_("Pseudocolour is not supported"));
     abort();
   }
 
@@ -162,19 +171,20 @@ static rfb::PixelFormat vncGetPixelFormat(int scrIdx)
 void vncExtensionInit(void)
 {
   if (vncExtGeneration == vncGetServerGeneration()) {
-    vlog.error("vncExtensionInit: Called twice in same generation?");
+    vlog.error(_("VNC extension incorrectly initialized twice in same "
+                 "generation"));
     return;
   }
   vncExtGeneration = vncGetServerGeneration();
 
   if (vncGetScreenCount() > MAXSCREENS)
-    vncFatalError("vncExtensionInit: Too many screens\n");
+    vncFatalError(_("Too many screens for VNC extension\n"));
 
   vncAddExtension();
 
   vncSelectionInit();
 
-  vlog.info("VNC extension running!");
+  vlog.info(_("VNC extension running"));
 
   try {
     if (!initialised) {
@@ -195,7 +205,8 @@ void vncExtensionInit(void)
           if (network::isSocketListening(vncInetdSock))
           {
             listeners.push_back(new network::TcpListener(vncInetdSock));
-            vlog.info("inetd wait");
+            vlog.info(
+              _("Listening for VNC connections on inetd socket"));
           }
         }
 
@@ -212,8 +223,8 @@ void vncExtensionInit(void)
 
           listeners.push_back(new network::UnixListener(path, mode));
 
-          vlog.info("Listening for VNC connections on %s (mode %04o)",
-                    path, mode);
+          vlog.info(_("Listening for VNC connections on %s "
+                      "(mode %04o)"), path, mode);
         }
 
         if (!inetd && rfbport != -1) {
@@ -231,14 +242,19 @@ void vncExtensionInit(void)
 
           if (!tcp_listeners.empty()) {
             listeners.splice (listeners.end(), tcp_listeners);
-            vlog.info("Listening for VNC connections on %s interface(s), port %d",
-                      localhostOnly ? "local" : (const char*)interface,
-                      port);
+            if (localhostOnly)
+              vlog.info(_("Listening for VNC connections on local "
+                          "interfaces, port %d"), port);
+            else
+              vlog.info(_("Listening for VNC connections on "
+                          "interface %s, port %d"),
+                        (const char*)interface, port);
           }
         }
 
         if (!inetd && listeners.empty())
-          throw std::runtime_error("No path or port configured for incoming connections");
+          throw std::runtime_error(
+            _("No path or port configured for incoming connections"));
 
         rfb::PixelFormat pf = vncGetPixelFormat(scr);
 
@@ -251,12 +267,12 @@ void vncExtensionInit(void)
                                           vncGetScreenHeight(),
                                           vncFbptr[scr],
                                           vncFbstride[scr]);
-        vlog.info("Created VNC server for screen %d", scr);
+        vlog.info(_("Created VNC server for screen %d"), scr);
 
         if (scr == 0 && vncInetdSock != -1 && listeners.empty()) {
           network::Socket* sock = new network::TcpSocket(vncInetdSock);
           desktop[scr]->addClient(sock, false, false);
-          vlog.info("Added inetd sock");
+          vlog.info(_("Listening for VNC connections on inetd socket"));
         }
       }
 
@@ -337,7 +353,7 @@ int vncConnectClient(const char *addr, int viewOnly)
     try {
       desktop[0]->disconnectClients();
     } catch (std::exception& e) {
-      vlog.error("Disconnecting all clients: %s", e.what());
+      vlog.error(_("Failed to disconnect clients: %s"), e.what());
       return -1;
     }
     return 0;
@@ -350,11 +366,12 @@ int vncConnectClient(const char *addr, int viewOnly)
 
   try {
     network::Socket* sock = new network::TcpSocket(host.c_str(), port);
-    vlog.info("Reverse connection: %s:%d%s", host.c_str(), port,
-              viewOnly ? " (view only)" : "");
+    vlog.info(_("Reverse connection: %s:%d%s"), host.c_str(), port,
+              viewOnly ? _(" (view only)") : "");
     desktop[0]->addClient(sock, true, (bool)viewOnly);
   } catch (std::exception& e) {
-    vlog.error("Reverse connection: %s", e.what());
+    vlog.error(_("Failed to establish reverse connection: %s"),
+               e.what());
     return -1;
   }
 
@@ -375,7 +392,8 @@ void vncApproveConnection(uint32_t opaqueId, int approve)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++) {
     desktop[scr]->approveConnection(opaqueId, approve,
-                                    "Connection rejected by local user");
+                                    _("Connection rejected by local "
+                                      "user"));
   }
 }
 

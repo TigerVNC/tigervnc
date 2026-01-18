@@ -30,6 +30,8 @@
 
 #include <stdexcept>
 
+#include <core/i18n.h>
+
 extern "C" {
 #include <rfb/d3des.h>
 }
@@ -58,7 +60,7 @@ std::string rfb::deobfuscate(const uint8_t *data, size_t len)
   char buf[9];
 
   if (len != 8)
-    throw std::invalid_argument("Bad obfuscated password length");
+    throw std::invalid_argument(_("Invalid password length"));
 
   assert(data != nullptr);
 

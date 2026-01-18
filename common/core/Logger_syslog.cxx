@@ -51,8 +51,6 @@ void Logger_Syslog::write(int level, const char *logname, const char *message)
     priority = LOG_DEBUG;
   } else if (level >= LogWriter::LEVEL_INFO) {
     priority = LOG_INFO;
-  } else if (level >= LogWriter::LEVEL_STATUS) {
-    priority = LOG_NOTICE;
   } else {
     priority = LOG_ERR;
   }

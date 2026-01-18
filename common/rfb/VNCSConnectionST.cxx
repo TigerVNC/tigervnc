@@ -23,6 +23,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
 
@@ -86,7 +87,7 @@ VNCSConnectionST::~VNCSConnectionST()
 {
   // If we reach here then VNCServerST is deleting us!
   if (!closeReason.empty())
-    vlog.info("Closing %s: %s", peerEndpoint.c_str(),
+    vlog.info(_("Closing %s: %s"), peerEndpoint.c_str(),
               closeReason.c_str());
 
   // Release any keys the client still had pressed
@@ -183,7 +184,7 @@ void VNCSConnectionST::processMessages()
     // higher priority to user actions such as keyboard and pointer events.
     writeFramebufferUpdate();
   } catch (rdr::end_of_stream&) {
-    close("Clean disconnection");
+    close(_("Clean disconnection"));
   } catch (std::exception& e) {
     close(e.what());
   }
@@ -234,7 +235,7 @@ void VNCSConnectionST::pixelBufferChange()
                            server->getScreenLayout());
       if (state() == RFBSTATE_NORMAL) {
         if (!client.supportsDesktopSize()) {
-          close("Client does not support desktop resize");
+          close(_("Client does not support resizing the desktop"));
           return;
         }
         writer()->writeDesktopSize(reasonServer);
@@ -428,7 +429,7 @@ void VNCSConnectionST::desktopReady()
   client.setPF(server->getPixelBuffer()->getPF());
   char buffer[256];
   client.pf().print(buffer, 256);
-  vlog.info("Server default pixel format %s", buffer);
+  vlog.info(_("Server default pixel format: %s"), buffer);
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->getPixelBuffer()->getRect());
@@ -481,7 +482,7 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
   SConnection::setPixelFormat(pf);
   char buffer[256];
   pf.print(buffer, 256);
-  vlog.info("Client pixel format %s", buffer);
+  vlog.info(_("Client pixel format: %s"), buffer);
   setCursor();
   encodeManager.forceRefresh(server->getPixelBuffer()->getRect());
 }
@@ -639,7 +640,8 @@ void VNCSConnectionST::framebufferUpdateRequest(const core::Rect& r,
 
   // Check that the client isn't sending crappy requests
   if (!r.enclosed_by({0, 0, client.width(), client.height()})) {
-    vlog.error("FramebufferUpdateRequest %dx%d at %d,%d exceeds framebuffer %dx%d",
+    vlog.error(_("Update request %dx%d at %d,%d exceeds "
+                 "framebuffer %dx%d"),
                r.width(), r.height(), r.tl.x, r.tl.y,
                client.width(), client.height());
     safeRect = r.intersect({0, 0, client.width(), client.height()});
@@ -718,7 +720,7 @@ void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])
   }
 
   if (len < 1) {
-    vlog.error("Fence response of unexpected size received");
+    vlog.error(_("Fence response of unexpected size received"));
     return;
   }
 
@@ -732,7 +734,7 @@ void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])
     congestion.gotPong();
     break;
   default:
-    vlog.error("Fence response of unexpected type received");
+    vlog.error(_("Fence response of unexpected type received"));
   }
 }
 
@@ -745,7 +747,8 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
     return;
 
   if (!client.supportsFence() || !client.supportsContinuousUpdates())
-    throw protocol_error("Client tried to enable continuous updates when not allowed");
+    throw protocol_error(
+      _("Client tried to enable continuous updates when not allowed"));
 
   continuousUpdates = enable;
 
@@ -822,7 +825,7 @@ void VNCSConnectionST::handleTimeout(core::Timer* t)
   }
 
   if (t == &idleTimer)
-    close("Idle timeout");
+    close(_("Idle for too long"));
 }
 
 bool VNCSConnectionST::isShiftPressed()

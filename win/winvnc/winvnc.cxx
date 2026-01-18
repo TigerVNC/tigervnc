@@ -31,6 +31,7 @@
 #include <core/Logger_file.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb_win32/AboutDialog.h>
@@ -60,7 +61,7 @@ static bool close_console = false;
 
 static void programInfo() {
   win32::FileVersionInfo inf;
-  printf("%s - %s, Version %s\n",
+  printf(_("%s - %s, version %s\n"),
     inf.getVerString("ProductName"),
     inf.getVerString("FileDescription"),
     inf.getVerString("FileVersion"));
@@ -69,23 +70,24 @@ static void programInfo() {
 }
 
 static void programUsage() {
-  printf("Command-line options:\n");
-  printf("  -connect [<host[::port]>]            - Connect an existing WinVNC server to a listening viewer.\n");
-  printf("  -disconnect                          - Disconnect all clients from an existing WinVNC server.\n");
-  printf("  -register <options...>               - Register WinVNC server as a system service.\n");
-  printf("  -unregister                          - Remove WinVNC server from the list of system services.\n");
-  printf("  -start                               - Start the WinVNC server system service.\n");
-  printf("  -stop                                - Stop the WinVNC server system service.\n");
-  printf("  -status                              - Query the WinVNC service status.\n");
-  printf("  -help                                - Provide usage information.\n");
-  printf("  -noconsole                           - Run without a console (i.e. no stderr/stdout)\n");
-  printf("  <setting>=<value>                    - Set the named configuration parameter.\n");
-  printf("    (Parameter values specified on the command-line override those specified by other configuration methods.)\n");
-  printf("\nLog names:\n");
+  printf(_(
+    "Command-line options:\n"
+    "  -connect [<host[::port]>]            - Connect an existing WinVNC server to a listening viewer.\n"
+    "  -disconnect                          - Disconnect all clients from an existing WinVNC server.\n"
+    "  -register <options...>               - Register WinVNC server as a system service.\n"
+    "  -unregister                          - Remove WinVNC server from the list of system services.\n"
+    "  -start                               - Start the WinVNC server system service.\n"
+    "  -stop                                - Stop the WinVNC server system service.\n"
+    "  -status                              - Query the WinVNC service status.\n"
+    "  -help                                - Provide usage information.\n"
+    "  -noconsole                           - Run without a console (i.e. no stderr/stdout)\n"
+    "  <setting>=<value>                    - Set the named configuration parameter.\n"
+    "    (Parameter values specified on the command-line override those specified by other configuration methods.)\n"));
+  printf("\n%s\n", _("Log names:"));
   LogWriter::listLogWriters();
-  printf("\nLog destinations:\n");
+  printf("\n%s\n", _("Log destinations:"));
   Logger::listLoggers();
-  printf("\nAvailable configuration parameters:\n");
+  printf("\n%s\n", _("Available configuration parameters:"));
   Configuration::listParams(79, 14);
 }
 
@@ -122,57 +124,57 @@ static void processParams(int argc, char** argv) {
         if (host != nullptr) {
           HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
           if (!hwnd)
-            throw std::runtime_error("Unable to locate existing VNC Server.");
+            throw std::runtime_error(_("Unable to locate existing VNC Server"));
           COPYDATASTRUCT copyData;
           copyData.dwData = 1; // *** AddNewClient
           copyData.cbData = strlen(host);
           copyData.lpData = (void*)host;
-          printf("Sending connect request to VNC Server...\n");
+          printf(_("Sending connect request to VNC Server...\n"));
           if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
-            MsgBoxOrLog("Connection failed.", true);
+            MsgBoxOrLog(_("Connection failed."), true);
         }
       } else if (strcasecmp(argv[i], "-disconnect") == 0) {
         runServer = false;
         HWND hwnd = FindWindow(nullptr, "winvnc::IPC_Interface");
         if (!hwnd)
-          throw std::runtime_error("Unable to locate existing VNC Server.");
+          throw std::runtime_error(_("Unable to locate existing VNC Server"));
         COPYDATASTRUCT copyData;
         copyData.dwData = 2; // *** DisconnectClients
         copyData.lpData = nullptr;
         copyData.cbData = 0;
-        printf("Sending disconnect request to VNC Server...\n");
+        printf(_("Sending disconnect request to VNC Server...\n"));
         if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
-          MsgBoxOrLog("Failed to disconnect clients.", true);
+          MsgBoxOrLog(_("Failed to disconnect clients."), true);
       } else if (strcasecmp(argv[i], "-start") == 0) {
-        printf("Attempting to start service...\n");
+        printf(_("Attempting to start service...\n"));
         runServer = false;
         if (rfb::win32::startService(VNCServerService::Name))
-          MsgBoxOrLog("Started service successfully");
+          MsgBoxOrLog(_("Started service successfully"));
       } else if (strcasecmp(argv[i], "-stop") == 0) {
-        printf("Attempting to stop service...\n");
+        printf(_("Attempting to stop service...\n"));
         runServer = false;
         if (rfb::win32::stopService(VNCServerService::Name))
-          MsgBoxOrLog("Stopped service successfully");
+          MsgBoxOrLog(_("Stopped service successfully"));
       } else if (strcasecmp(argv[i], "-status") == 0) {
-        printf("Querying service status...\n");
+        printf(_("Querying service status...\n"));
         runServer = false;
         std::string result;
         DWORD state = rfb::win32::getServiceState(VNCServerService::Name);
-        result = format("The %s service is in the %s state.",
+        result = format(_("The service \"%s\" is in the state: %s"),
                         VNCServerService::Name,
                         rfb::win32::serviceStateName(state));
         MsgBoxOrLog(result.c_str());
       } else if (strcasecmp(argv[i], "-service") == 0) {
-        printf("Run in service mode\n");
+        printf(_("Run in service mode\n"));
         runServer = false;
         runAsService = true;
 
       } else if (strcasecmp(argv[i], "-service_run") == 0) {
-        printf("Run in service mode\n");
+        printf(_("Run in service mode\n"));
         runAsService = true;
 
       } else if (strcasecmp(argv[i], "-register") == 0) {
-        printf("Attempting to register service...\n");
+        printf(_("Attempting to register service...\n"));
         runServer = false;
         int j = i;
         i = argc;
@@ -193,18 +195,18 @@ static void processParams(int argc, char** argv) {
                                         "TigerVNC Server",
                                         "Provides remote access to this machine via the VNC/RFB protocol.",
                                         argc-(j+1), &argv[j+1]))
-          MsgBoxOrLog("Registered service successfully");
+          MsgBoxOrLog(_("Registered service successfully"));
       } else if (strcasecmp(argv[i], "-unregister") == 0) {
-        printf("Attempting to unregister service...\n");
+        printf(_("Attempting to unregister service...\n"));
         runServer = false;
         if (rfb::win32::unregisterService(VNCServerService::Name))
-          MsgBoxOrLog("Unregistered service successfully");
+          MsgBoxOrLog(_("Unregistered service successfully"));
 
       } else if (strcasecmp(argv[i], "-noconsole") == 0) {
         close_console = true;
-        vlog.info("Closing console");
+        vlog.info(_("Closing console"));
         if (!FreeConsole())
-          vlog.info("Unable to close console:%lu", GetLastError());
+          vlog.info(_("Unable to close console: %lu"), GetLastError());
 
       } else if ((strcasecmp(argv[i], "-help") == 0) ||
         (strcasecmp(argv[i], "--help") == 0) ||

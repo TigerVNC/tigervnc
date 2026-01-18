@@ -28,6 +28,7 @@
 #include <assert.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/SDisplay.h>
 #include <rfb_win32/Service.h>
@@ -51,19 +52,19 @@ static LogWriter vlog("SDisplay");
 // - SDisplay-specific configuration options
 
 IntParameter rfb::win32::SDisplay::updateMethod("UpdateMethod",
-  "How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - Driver hooking.",
+  _("How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - Driver hooking"),
   0, 0, 2);
 BoolParameter rfb::win32::SDisplay::disableLocalInputs("DisableLocalInputs",
-  "Disable local keyboard and pointer input while the server is in use", false);
+  _("Disable local keyboard and pointer input while the server is in use"), false);
 EnumParameter rfb::win32::SDisplay::disconnectAction("DisconnectAction",
-  "Action to perform when all clients have disconnected.  (None, Lock, Logoff)",
+  _("Action to perform when all clients have disconnected; None, Lock, Logoff"),
   {"None", "Lock", "Logoff"}, "None");
 StringParameter displayDevice("DisplayDevice",
-  "Display device name of the monitor to be remoted, or empty to export the whole desktop.", "");
+  _("Display device name of the monitor to be remoted, or empty to export the whole desktop"), "");
 BoolParameter rfb::win32::SDisplay::removeWallpaper("RemoveWallpaper",
-  "Remove the desktop wallpaper when the server is in use.", false);
+  _("Remove the desktop wallpaper when the server is in use"), false);
 BoolParameter rfb::win32::SDisplay::disableEffects("DisableEffects",
-  "Disable desktop user interface effects when the server is in use.", false);
+  _("Disable desktop user interface effects when the server is in use"), false);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -130,12 +131,12 @@ void SDisplay::stop()
     CurrentUserToken cut;
     if (disconnectAction == "Logoff") {
       if (!cut.h)
-        vlog.info("Ignoring DisconnectAction=Logoff - no current user");
+        vlog.info(_("Ignoring DisconnectAction=Logoff - no current user"));
       else
         ExitWindowsEx(EWX_LOGOFF, 0);
     } else if (disconnectAction == "Lock") {
       if (!cut.h) {
-        vlog.info("Ignoring DisconnectAction=Lock - no current user");
+        vlog.info(_("Ignoring DisconnectAction=Lock - no current user"));
       } else {
         LockWorkStation();
       }
@@ -176,12 +177,12 @@ void SDisplay::startCore() {
   // Currently, we just check whether we're in the console session, and
   //   fail if not
   if (!inConsoleSession())
-    throw std::runtime_error("Console is not session zero - oreconnect to restore Console sessin");
+    throw std::runtime_error(_("Console is not session zero - reconnect to restore Console session"));
   
   // Switch to the current input desktop
   if (rfb::win32::desktopChangeRequired()) {
     if (!rfb::win32::changeDesktop())
-      throw std::runtime_error("Unable to switch into input desktop");
+      throw std::runtime_error(_("Unable to switch into input desktop"));
   }
 
   // Initialise the change tracker and clipper
@@ -204,12 +205,12 @@ void SDisplay::startCore() {
     } catch (std::exception& e) {
       delete core; core = nullptr;
       if (tryMethod == 0)
-        throw std::runtime_error("Unable to access desktop");
+        throw std::runtime_error(_("Unable to access desktop"));
       tryMethod--;
       vlog.error("%s", e.what());
     }
   }
-  vlog.info("Started %s", core->methodName());
+  vlog.debug("Started %s", core->methodName());
 
   // Start display monitor, clipboard handler and input handlers
   monitor = new WMMonitor;
@@ -237,7 +238,7 @@ void SDisplay::startCore() {
 
 void SDisplay::stopCore() {
   if (core)
-    vlog.info("Stopping %s", core->methodName());
+    vlog.debug("Stopping %s", core->methodName());
   delete core; core = nullptr;
   delete pb; pb = nullptr;
   delete device; device = nullptr;
@@ -283,14 +284,14 @@ bool SDisplay::isRestartRequired() {
 
 
 void SDisplay::restartCore() {
-  vlog.info("Restarting");
+  vlog.debug("Restarting");
 
   // Stop the existing Core  related resources
   stopCore();
   try {
     // Start a new Core if possible
     startCore();
-    vlog.info("Restarted");
+    vlog.debug("Restarted");
   } catch (std::exception& e) {
     // If startCore() fails then we MUST disconnect all clients,
     // to cause the server to stop() the desktop.
@@ -374,7 +375,7 @@ SDisplay::notifyDisplayEvent(WMMonitor::Notifier::DisplayEventType evt) {
     recreatePixelBuffer();
     break;
   default:
-    vlog.error("Unknown display event received");
+    vlog.error(_("Unknown display event received"));
   }
 }
 
@@ -386,7 +387,7 @@ SDisplay::processEvent(HANDLE event) {
 
     // - If the SDisplay isn't even started then quit now
     if (!core) {
-      vlog.error("Not start()ed");
+      vlog.error(_("Desktop not started"));
       return;
     }
 
@@ -453,11 +454,11 @@ SDisplay::recreatePixelBuffer(bool force) {
   //   systems for some reason.
   DeviceContext* new_device = nullptr;
   if (strlen(displayDevice) > 0) {
-    vlog.info("Attaching to device %s", (const char*)displayDevice);
+    vlog.info(_("Attaching to device %s"), (const char*)displayDevice);
     new_device = new DeviceDC(displayDevice);
   }
   if (!new_device) {
-    vlog.info("Attaching to virtual desktop");
+    vlog.info(_("Attaching to virtual desktop"));
     new_device = new WindowDC(nullptr);
   }
 

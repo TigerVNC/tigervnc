@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/OutStream.h>
@@ -128,24 +129,25 @@ bool SConnection::processVersionMsg()
   if (sscanf(verStr, "RFB %03d.%03d\n",
              &majorVersion, &minorVersion) != 2) {
     state_ = RFBSTATE_INVALID;
-    throw protocol_error("Reading version failed, not an RFB client?");
+    throw protocol_error(
+      _("Reading version failed, not an RFB client?"));
   }
 
   client.setVersion(majorVersion, minorVersion);
 
-  vlog.info("Client needs protocol version %d.%d",
+  vlog.info(_("Client needs protocol version %d.%d"),
             client.majorVersion, client.minorVersion);
 
   if (client.majorVersion != 3) {
     // unknown protocol version
     failConnection(core::format(
-      "Client needs protocol version %d.%d, server has %d.%d",
+      _("Client needs protocol version %d.%d, server has %d.%d"),
       client.majorVersion, client.minorVersion,
       defaultMajorVersion, defaultMinorVersion));
   }
 
   if (client.minorVersion != 3 && client.minorVersion != 7 && client.minorVersion != 8) {
-    vlog.error("Client uses unofficial protocol version %d.%d",
+    vlog.error(_("Client uses unofficial protocol version %d.%d"),
                client.majorVersion,client.minorVersion);
     if (client.minorVersion >= 8)
       client.minorVersion = 8;
@@ -153,7 +155,7 @@ bool SConnection::processVersionMsg()
       client.minorVersion = 7;
     else
       client.minorVersion = 3;
-    vlog.error("Assuming compatibility with version %d.%d",
+    vlog.error(_("Assuming compatibility with version %d.%d"),
                client.majorVersion,client.minorVersion);
   }
 
@@ -170,7 +172,7 @@ bool SConnection::processVersionMsg()
     }
     if (i == secTypes.end()) {
       failConnection(
-        core::format("No supported security type for %d.%d client",
+        core::format(_("No supported security type for %d.%d client"),
                      client.majorVersion, client.minorVersion));
     }
 
@@ -184,7 +186,7 @@ bool SConnection::processVersionMsg()
   // list supported security types for >=3.7 clients
 
   if (secTypes.empty())
-    failConnection("No supported security types");
+    failConnection(_("No supported security types"));
 
   os->writeU8(secTypes.size());
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
@@ -218,9 +220,9 @@ void SConnection::processSecurityType(int secType)
   secTypes = security.GetEnabledSecTypes();
   if (std::find(secTypes.begin(), secTypes.end(),
                 secType) == secTypes.end())
-    throw protocol_error("Requested security type not available");
+    throw protocol_error(_("Requested security type is not available"));
 
-  vlog.info("Client requests security type %s(%d)",
+  vlog.info(_("Client requests security type %s (%d)"),
             secTypeName(secType),secType);
 
   try {
@@ -238,7 +240,7 @@ bool SConnection::processSecurityMsg()
     if (!ssecurity->processMsg())
       return false;
   } catch (auth_error& e) {
-    vlog.error("Authentication error: %s", e.what());
+    vlog.error(_("Authentication error: %s"), e.what());
     state_ = RFBSTATE_SECURITY_FAILURE;
     // Introduce a slight delay of the authentication failure response
     // to make it difficult to brute force a password
@@ -314,7 +316,7 @@ void SConnection::handleAuthFailureTimeout(core::Timer* /*t*/)
 
 void SConnection::failConnection(const char* message)
 {
-  vlog.info("Connection failed: %s", message);
+  vlog.info(_("Connection failed: %s"), message);
 
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (client.majorVersion == 3 && client.minorVersion == 3) {
@@ -508,7 +510,7 @@ void SConnection::handleClipboardProvide(uint32_t flags,
 
   // FIXME: This conversion magic should be in SMsgReader
   if (!core::isValidUTF8((const char*)data[0], lengths[0])) {
-    vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+    vlog.error(_("Invalid UTF-8 sequence in clipboard - ignoring"));
     return;
   }
   clientClipboard = core::convertLF((const char*)data[0], lengths[0]);
@@ -563,7 +565,7 @@ void SConnection::approveConnection(bool accept, const char* reason)
       os->writeU32(secResultFailed);
       if (!client.beforeVersion(3,8)) { // 3.8 onwards have failure message
         if (!reason)
-          reason = "Connection rejected";
+          reason = _("Connection rejected");
         os->writeU32(strlen(reason));
         os->writeBytes((const uint8_t*)reason, strlen(reason));
       }
@@ -581,7 +583,7 @@ void SConnection::approveConnection(bool accept, const char* reason)
     if (reason)
       throw auth_error(reason);
     else
-      throw auth_error("Connection rejected");
+      throw auth_error(_("Connection rejected"));
   }
 }
 

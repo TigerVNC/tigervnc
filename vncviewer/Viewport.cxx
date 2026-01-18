@@ -28,6 +28,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/CMsgWriter.h>
@@ -52,7 +53,6 @@
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
-#include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
 
@@ -432,7 +432,7 @@ int Viewport::handle(int event)
   switch (event) {
   case FL_PASTE:
     if (!core::isValidUTF8(Fl::event_text(), Fl::event_length())) {
-      vlog.error("Invalid UTF-8 sequence in system clipboard");
+      vlog.error(_("Invalid UTF-8 sequence in clipboard"));
       // Reset the state as if we don't have any clipboard data at all
       this->pendingClientClipboard = false;
       try {
@@ -913,37 +913,37 @@ void Viewport::initContextMenu()
 {
   contextMenu->clear();
 
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Disconn&ect"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "Disconn&ect"),
                 0, nullptr, (void*)ID_DISCONNECT, FL_MENU_DIVIDER);
 
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "&Full screen"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "&Full screen"),
                 0, nullptr, (void*)ID_FULLSCREEN,
                 FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Minimi&ze"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "Minimi&ze"),
                 0, nullptr, (void*)ID_MINIMIZE, 0);
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Resize &window to session"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "Resize &window to session"),
                 0, nullptr, (void*)ID_RESIZE,
                 (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
                 FL_MENU_DIVIDER);
 
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "&Ctrl"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "&Ctrl"),
                 0, nullptr, (void*)ID_CTRL,
                 FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "&Alt"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "&Alt"),
                 0, nullptr, (void*)ID_ALT,
                 FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
 
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Send Ctrl-Alt-&Del"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "Send Ctrl-Alt-&Del"),
                 0, nullptr, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "&Refresh screen"),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "&Refresh screen"),
                 0, nullptr, (void*)ID_REFRESH, FL_MENU_DIVIDER);
 
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "&Options..."),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "&Options..."),
                 0, nullptr, (void*)ID_OPTIONS, 0);
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Connection &info..."),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "Connection &info..."),
                 0, nullptr, (void*)ID_INFO, 0);
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "About &TigerVNC..."),
+  fltk_menu_add(contextMenu, C_("ContextMenu|", "About &TigerVNC..."),
                 0, nullptr, (void*)ID_ABOUT, 0);
 }
 #pragma GCC diagnostic pop

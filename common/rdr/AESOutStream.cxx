@@ -24,6 +24,8 @@
 
 #include <stdexcept>
 
+#include <core/i18n.h>
+
 #include <rdr/AESOutStream.h>
 
 #ifdef HAVE_NETTLE
@@ -41,7 +43,7 @@ AESOutStream::AESOutStream(OutStream* _out, const uint8_t* key,
   else if (keySize == 256)
     EAX_SET_KEY(&eaxCtx256, aes256_set_encrypt_key, aes256_encrypt, key);
   else
-    throw std::out_of_range("Incorrect key size");
+    throw std::out_of_range(_("Invalid key size"));
 }
 
 AESOutStream::~AESOutStream()

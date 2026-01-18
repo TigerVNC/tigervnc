@@ -35,6 +35,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/HexOutStream.h>
@@ -220,12 +221,12 @@ VoidParameter::~VoidParameter() {
 
 const char*
 VoidParameter::getName() const {
-  return name;
+  return name.c_str();
 }
 
 const char*
 VoidParameter::getDescription() const {
-  return description;
+  return description.c_str();
 }
 
 bool VoidParameter::setParam() {
@@ -244,9 +245,11 @@ VoidParameter::setImmutable() {
 
 // -=- AliasParameter
 
-AliasParameter::AliasParameter(const char* name_, const char* desc_,
-                               VoidParameter* param_)
-  : VoidParameter(name_, desc_), param(param_) {
+AliasParameter::AliasParameter(const char* name_, VoidParameter* param_)
+  : VoidParameter(name_,
+                  format(_("Alias for %s"), param_->getName()).c_str()),
+    param(param_)
+{
 }
 
 bool
@@ -290,7 +293,7 @@ BoolParameter::setParam(const char* v) {
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
     setParam(false);
   else {
-    vlog.error("Bool parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
 
@@ -328,8 +331,8 @@ IntParameter::IntParameter(const char* name_, const char* desc_, int v,
     minValue(minValue_), maxValue(maxValue_)
 {
   if (v < minValue || v > maxValue) {
-    vlog.error("Invalid default value %d for %s", v, getName());
-    throw std::invalid_argument("Invalid default value");
+    vlog.error(_("Invalid default value %d for %s"), v, getName());
+    throw std::invalid_argument(_("Invalid default value"));
   }
 }
 
@@ -340,7 +343,7 @@ IntParameter::setParam(const char* v) {
   if (immutable) return true;
   n = strtol(v, &end, 0);
   if ((*end != 0) || (n < INT_MIN) || (n > INT_MAX)) {
-    vlog.error("Int parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
   return setParam(n);
@@ -350,7 +353,7 @@ bool
 IntParameter::setParam(int v) {
   if (immutable) return true;
   if (v < minValue || v > maxValue) {
-    vlog.error("Int parameter %s: Invalid value '%d'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%d'"), getName(), v);
     return false;
   }
   vlog.debug("Set %s(Int) to %d", getName(), v);
@@ -381,15 +384,15 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
   : VoidParameter(name_, desc_), value(v?v:""), def_value(v?v:"")
 {
   if (!v) {
-    vlog.error("Default value <null> for %s not allowed",name_);
-    throw std::invalid_argument("Default value <null> not allowed");
+    vlog.error(_("Invalid default value %s for %s"), "<null>", name_);
+    throw std::invalid_argument(_("Invalid default value"));
   }
 }
 
 bool StringParameter::setParam(const char* v) {
   if (immutable) return true;
   if (!v)
-    throw std::invalid_argument("setParam(<null>) not allowed");
+    throw std::invalid_argument(_("Invalid parameter value"));
   vlog.debug("Set %s(String) to %s", getName(), v);
   value = v;
   return true;
@@ -415,22 +418,25 @@ EnumParameter::EnumParameter(const char* name_, const char* desc_,
   : VoidParameter(name_, desc_), value(v?v:""), def_value(v?v:"")
 {
   if (!v) {
-    vlog.error("Default value <null> for %s not allowed", name_);
-    throw std::invalid_argument("Default value <null> not allowed");
+    vlog.error(_("Invalid default value %s for %s"), "<null>", name_);
+    throw std::invalid_argument(_("Invalid default value"));
   }
 
   for (const char* e: enums_) {
     if (!e) {
-      vlog.error("Enumeration <null> for %s not allowed", name_);
-      throw std::invalid_argument("Enumeration <null> not allowed");
+      vlog.error(_("Invalid enumeration value %s for %s"), "<null>",
+                 name_);
+      throw std::invalid_argument(_("Invalid enumeration value"));
     }
     enums.insert(e);
   }
 
   if (std::find(enums.begin(), enums.end(), def_value) == enums.end()) {
-    vlog.error("Default value %s for %s is not in list of valid values",
-               def_value.c_str(), name_);
-    throw std::invalid_argument("Default value is not in list of valid values");
+    vlog.error(
+      _("Default value %s for %s is not in list of valid values"),
+      def_value.c_str(), name_);
+    throw std::invalid_argument(
+      _("Default value is not in list of valid values"));
   }
 }
 
@@ -439,13 +445,13 @@ bool EnumParameter::setParam(const char* v)
   std::set<std::string>::const_iterator iter;
   if (immutable) return true;
   if (!v)
-    throw std::invalid_argument("setParam(<null>) not allowed");
+    throw std::invalid_argument(_("Invalid parameter value"));
   iter = std::find_if(enums.begin(), enums.end(),
                       [v](const std::string& e) {
                         return strcasecmp(e.c_str(), v) == 0;
                       });
   if (iter == enums.end()) {
-    vlog.error("Enum parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
   vlog.debug("Set %s(Enum) to %s", getName(), iter->c_str());
@@ -575,7 +581,7 @@ bool ListParameter<ValueType>::setParam(const char* v)
       break;
 
     if (!decodeEntry(entry.c_str(), &e)) {
-      vlog.error("List parameter %s: Invalid value '%s'",
+      vlog.error(_("Parameter %s: Invalid value '%s'"),
                  getName(), entry.c_str());
       return false;
     }
@@ -594,7 +600,7 @@ bool ListParameter<ValueType>::setParam(const ListType& v)
     return true;
   for (const ValueType& entry : v) {
     if (!validateEntry(entry)) {
-      vlog.error("List parameter %s: Invalid value '%s'", getName(),
+      vlog.error(_("Parameter %s: Invalid value '%s'"), getName(),
                  encodeEntry(entry).c_str());
       return false;
     }
@@ -673,8 +679,9 @@ IntListParameter::IntListParameter(const char* name_, const char* desc_,
 {
   for (int entry : v) {
     if (!validateEntry(entry)) {
-      vlog.error("Invalid default value %d for %s", entry, getName());
-      throw std::invalid_argument("Invalid default value");
+      vlog.error(_("Invalid default value %d for %s"), entry,
+                 getName());
+      throw std::invalid_argument(_("Invalid default value"));
     }
   }
 }
@@ -722,8 +729,8 @@ StringListParameter::StringListParameter(const char* name_,
 {
   for (const char* v: v_) {
     if (!v) {
-      vlog.error("Default value <null> for %s not allowed", name_);
-      throw std::invalid_argument("Default value <null> not allowed");
+      vlog.error(_("Invalid default value %s for %s"), "<null>", name_);
+      throw std::invalid_argument(_("Invalid default value"));
     }
     value.push_back(v);
     def_value.push_back(v);
@@ -793,8 +800,8 @@ EnumListParameter::EnumListParameter(const char* name_,
 {
   for (const char* v: v_) {
     if (!v) {
-      vlog.error("Default value <null> for %s not allowed", name_);
-      throw std::invalid_argument("Default value <null> not allowed");
+      vlog.error(_("Invalid default value %s for %s"), "<null>", name_);
+      throw std::invalid_argument(_("Invalid default value"));
     }
     value.push_back(v);
     def_value.push_back(v);
@@ -802,17 +809,20 @@ EnumListParameter::EnumListParameter(const char* name_,
 
   for (const char* e: enums_) {
     if (!e) {
-      vlog.error("Enumeration <null> for %s not allowed", name_);
-      throw std::invalid_argument("Enumeration <null> not allowed");
+      vlog.error(_("Invalid enumeration value %s for %s"), "<null>",
+                 name_);
+      throw std::invalid_argument(_("Invalid enumeration value"));
     }
     enums.insert(e);
   }
 
   for (const std::string& def_entry : def_value) {
     if (std::find(enums.begin(), enums.end(), def_entry) == enums.end()) {
-      vlog.error("Default value %s for %s is not in list of valid values",
-                 def_entry.c_str(), name_);
-      throw std::invalid_argument("Default value is not in list of valid values");
+      vlog.error(
+        _("Default value %s for %s is not in list of valid values"),
+        def_entry.c_str(), name_);
+      throw std::invalid_argument(
+        _("Default value is not in list of valid values"));
     }
   }
 }

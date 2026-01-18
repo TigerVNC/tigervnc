@@ -32,7 +32,10 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+#include <stdexcept>
+
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <x0vncserver/Image.h>
 
@@ -80,20 +83,16 @@ void Image::Init(int width, int height)
 {
   Visual* vis = DefaultVisual(dpy, DefaultScreen(dpy));
 
-  if (vis->c_class != TrueColor) {
-    vlog.error("Pseudocolour not supported");
-    exit(1);
-  }
+  if (vis->c_class != TrueColor)
+    throw std::runtime_error(_("Pseudocolour is not supported"));
 
   xim = XCreateImage(dpy, vis, DefaultDepth(dpy, DefaultScreen(dpy)),
                      ZPixmap, 0, nullptr, width, height,
                      BitmapPad(dpy), 0);
 
   xim->data = (char *)malloc(xim->bytes_per_line * xim->height);
-  if (xim->data == nullptr) {
-    vlog.error("malloc() failed");
-    exit(1);
-  }
+  if (xim->data == nullptr)
+    throw std::bad_alloc();
 }
 
 Image::~Image()
@@ -235,10 +234,8 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
   int major, minor;
   Bool pixmaps;
 
-  if (!XShmQueryVersion(dpy, &major, &minor, &pixmaps)) {
-    vlog.error("XShmQueryVersion() failed");
+  if (!XShmQueryVersion(dpy, &major, &minor, &pixmaps))
     return;
-  }
 
   Visual *visual;
   int depth;
@@ -251,17 +248,14 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
     depth = vinfo->depth;
   }
 
-  if (visual->c_class != TrueColor) {
-    vlog.error("Pseudocolour not supported");
-    exit(1);
-  }
+  if (visual->c_class != TrueColor)
+    throw std::runtime_error(_("Pseudocolour is not supported"));
 
   shminfo = new XShmSegmentInfo;
 
   xim = XShmCreateImage(dpy, visual, depth, ZPixmap, nullptr, shminfo,
 			width, height);
   if (xim == nullptr) {
-    vlog.error("XShmCreateImage() failed");
     delete shminfo;
     shminfo = nullptr;
     return;
@@ -271,9 +265,6 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
                           xim->bytes_per_line * xim->height,
                           IPC_CREAT|0777);
   if (shminfo->shmid == -1) {
-    perror("shmget");
-    vlog.error("shmget() failed (%d bytes requested)",
-               int(xim->bytes_per_line * xim->height));
     XDestroyImage(xim);
     xim = nullptr;
     delete shminfo;
@@ -283,9 +274,6 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
 
   shminfo->shmaddr = xim->data = (char *)shmat(shminfo->shmid, nullptr, 0);
   if (shminfo->shmaddr == (char *)-1) {
-    perror("shmat");
-    vlog.error("shmat() failed (%d bytes requested)",
-               int(xim->bytes_per_line * xim->height));
     shmctl(shminfo->shmid, IPC_RMID, nullptr);
     XDestroyImage(xim);
     xim = nullptr;
@@ -301,7 +289,6 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
   XSync(dpy, False);
   XSetErrorHandler(oldHdlr);
   if (caughtShmError) {
-    vlog.error("XShmAttach() failed");
     shmdt(shminfo->shmaddr);
     shmctl(shminfo->shmid, IPC_RMID, nullptr);
     XDestroyImage(xim);
@@ -367,7 +354,8 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
     }
 
     delete image;
-    vlog.error("Failed to create SHM image, falling back to Xlib image");
+    vlog.error(_("Failed to create shared memory image, falling back "
+                 "to Xlib image"));
   }
 
   // Fall back to Xlib image.

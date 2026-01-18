@@ -24,6 +24,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb_win32/Service.h>
@@ -49,19 +50,19 @@ bool runAsService = false;
 VOID WINAPI serviceHandler(DWORD control) {
   switch (control) {
   case SERVICE_CONTROL_INTERROGATE:
-    vlog.info("CMD: Report status");
+    vlog.info(_("Command: Report status"));
     service->setStatus();
     return;
   case SERVICE_CONTROL_PARAMCHANGE:
-    vlog.info("CMD: Param change");
+    vlog.info(_("Command: Parameters changed"));
     service->readParams();
     return;
   case SERVICE_CONTROL_SHUTDOWN:
-    vlog.info("CMD: OS shutdown");
+    vlog.info(_("Command: OS shutdown"));
     service->osShuttingDown();
     return;
   case SERVICE_CONTROL_STOP:
-    vlog.info("CMD: Stop");
+    vlog.info(_("Command: Stop"));
     service->setStatus(SERVICE_STOP_PENDING);
     service->stop();
     return;
@@ -74,11 +75,11 @@ VOID WINAPI serviceHandler(DWORD control) {
 
 VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
   vlog.debug("Entering %s serviceProc", service->getName());
-  vlog.info("Registering handler...");
+  vlog.info(_("Registering handler..."));
   service->status_handle = RegisterServiceCtrlHandler(service->getName(), serviceHandler);
   if (!service->status_handle) {
     DWORD err = GetLastError();
-    vlog.error("Failed to register handler: %lu", err);
+    vlog.error(_("Failed to register handler: %lu"), err);
     ExitProcess(err);
   }
   vlog.debug("Registered handler (%p)", service->status_handle);
@@ -113,10 +114,10 @@ Service::start() {
   entry[1].lpServiceProc = nullptr;
   vlog.debug("Entering dispatcher");
   if (!SetProcessShutdownParameters(0x100, 0))
-    vlog.error("Unable to set shutdown parameters: %lu", GetLastError());
+    vlog.error(_("Unable to set shutdown parameters: %lu"), GetLastError());
   service = this;
   if (!StartServiceCtrlDispatcher(entry))
-    throw win32_error("Unable to start service", GetLastError());
+    throw win32_error(_("Unable to start service"), GetLastError());
 }
 
 void
@@ -135,7 +136,7 @@ Service::setStatus(DWORD state) {
   if (!SetServiceStatus(status_handle, &status)) {
     status.dwCurrentState = SERVICE_STOPPED;
     status.dwWin32ExitCode = GetLastError();
-    vlog.error("Unable to set service status:%lu", status.dwWin32ExitCode);
+    vlog.error(_("Unable to set service status: %lu"), status.dwWin32ExitCode);
   }
   vlog.debug("Set status to %lu(%lu)", state, status.dwCheckPoint);
 }
@@ -268,7 +269,7 @@ public:
   Logger_EventLog(const char* srcname) : Logger("EventLog") {
     eventlog = RegisterEventSource(nullptr, srcname);
     if (!eventlog)
-      printf("Unable to open event log:%ld\n", GetLastError());
+      printf(_("Unable to open event log: %ld\n"), GetLastError());
   }
   ~Logger_EventLog() {
     if (eventlog)
@@ -282,7 +283,7 @@ public:
     if (level == 0) type = EVENTLOG_ERROR_TYPE;
     if (!ReportEvent(eventlog, type, 0, VNC4LogMessage, nullptr, 2, 0, strings, nullptr)) {
       // *** It's not at all clear what is the correct behaviour if this fails...
-      printf("ReportEvent failed:%ld\n", GetLastError());
+      printf(_("Failed to write to event log: %ld\n"), GetLastError());
     }
   }
 
@@ -330,7 +331,7 @@ bool rfb::win32::registerService(const char* name,
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CREATE_SERVICE);
   if (!scm)
-    throw core::win32_error("Unable to open Service Control Manager", GetLastError());
+    throw core::win32_error(_("Unable to open Service Control Manager"), GetLastError());
 
   // - Add the service
   ServiceHandle handle = CreateService(scm,
@@ -339,7 +340,7 @@ bool rfb::win32::registerService(const char* name,
     SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
     cmdline.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
   if (!handle)
-    throw core::win32_error("Unable to create service", GetLastError());
+    throw core::win32_error(_("Unable to create service"), GetLastError());
 
   // - Set a description
   SERVICE_DESCRIPTION sdesc = {(LPTSTR)desc};
@@ -375,14 +376,14 @@ bool rfb::win32::unregisterService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CREATE_SERVICE);
   if (!scm)
-    throw core::win32_error("Unable to open Service Control Manager", GetLastError());
+    throw core::win32_error(_("Unable to open Service Control Manager"), GetLastError());
 
   // - Create the service
   ServiceHandle handle = OpenService(scm, name, SC_MANAGER_ALL_ACCESS);
   if (!handle)
-    throw core::win32_error("Unable to locate the service", GetLastError());
+    throw core::win32_error(_("Unable to locate the service"), GetLastError());
   if (!DeleteService(handle))
-    throw core::win32_error("Unable to remove the service", GetLastError());
+    throw core::win32_error(_("Unable to remove the service"), GetLastError());
 
   // - Register the event log source
   RegKey hk;
@@ -402,16 +403,16 @@ bool rfb::win32::startService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
-    throw core::win32_error("Unable to open Service Control Manager", GetLastError());
+    throw core::win32_error(_("Unable to open Service Control Manager"), GetLastError());
 
   // - Locate the service
   ServiceHandle handle = OpenService(scm, name, SERVICE_START);
   if (!handle)
-    throw core::win32_error("Unable to open the service", GetLastError());
+    throw core::win32_error(_("Unable to open the service"), GetLastError());
 
   // - Start the service
   if (!StartService(handle, 0, nullptr))
-    throw core::win32_error("Unable to start the service", GetLastError());
+    throw core::win32_error(_("Unable to start the service"), GetLastError());
 
   Sleep(500);
 
@@ -422,17 +423,17 @@ bool rfb::win32::stopService(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
-    throw core::win32_error("Unable to open Service Control Manager", GetLastError());
+    throw core::win32_error(_("Unable to open Service Control Manager"), GetLastError());
 
   // - Locate the service
   ServiceHandle handle = OpenService(scm, name, SERVICE_STOP);
   if (!handle)
-    throw core::win32_error("Unable to open the service", GetLastError());
+    throw core::win32_error(_("Unable to open the service"), GetLastError());
 
   // - Start the service
   SERVICE_STATUS status;
   if (!ControlService(handle, SERVICE_CONTROL_STOP, &status))
-    throw core::win32_error("Unable to stop the service", GetLastError());
+    throw core::win32_error(_("Unable to stop the service"), GetLastError());
 
   Sleep(500);
 
@@ -443,29 +444,29 @@ DWORD rfb::win32::getServiceState(const char* name) {
   // - Open the SCM
   ServiceHandle scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (!scm)
-    throw core::win32_error("Unable to open Service Control Manager", GetLastError());
+    throw core::win32_error(_("Unable to open Service Control Manager"), GetLastError());
 
   // - Locate the service
   ServiceHandle handle = OpenService(scm, name, SERVICE_INTERROGATE);
   if (!handle)
-    throw core::win32_error("Unable to open the service", GetLastError());
+    throw core::win32_error(_("Unable to open the service"), GetLastError());
 
   // - Get the service status
   SERVICE_STATUS status;
   if (!ControlService(handle, SERVICE_CONTROL_INTERROGATE, (SERVICE_STATUS*)&status))
-    throw core::win32_error("Unable to query the service", GetLastError());
+    throw core::win32_error(_("Unable to query the service"), GetLastError());
 
   return status.dwCurrentState;
 }
 
 const char* rfb::win32::serviceStateName(DWORD state) {
   switch (state) {
-  case SERVICE_RUNNING: return "Running";
-  case SERVICE_STOPPED: return "Stopped";
-  case SERVICE_STOP_PENDING: return "Stopping";
+  case SERVICE_RUNNING: return _("Running");
+  case SERVICE_STOPPED: return _("Stopped");
+  case SERVICE_STOP_PENDING: return _("Stopping");
   };
   static char tmp[32];
-  sprintf(tmp, "Unknown (%lu)", state);
+  sprintf(tmp, _("Unknown (%lu)"), state);
   return tmp;
 }
 

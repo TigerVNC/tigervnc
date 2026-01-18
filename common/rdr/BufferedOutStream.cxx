@@ -22,6 +22,7 @@
 #include <config.h>
 #endif
 
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/BufferedOutStream.h>
@@ -139,8 +140,7 @@ void BufferedOutStream::overrun(size_t needed)
 
   if (totalNeeded > MAX_BUF_SIZE)
     throw std::out_of_range(core::format(
-      "BufferedOutStream overrun: requested size of %lu bytes exceeds "
-      "maximum of %lu bytes",
+      _("Buffer size of %lu bytes exceeds maximum of %lu bytes"),
       (long unsigned)totalNeeded, (long unsigned)MAX_BUF_SIZE));
 
   newSize = DEFAULT_BUF_SIZE;

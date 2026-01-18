@@ -25,6 +25,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/KeyRemapper.h>
 
@@ -59,10 +60,11 @@ class KeyMapParameter : public core::StringListParameter {
 public:
   KeyMapParameter()
     : core::StringListParameter("RemapKeys",
-                                "Comma-separated list of incoming "
-                                "keysyms to remap.  Mappings are "
-                                "expressed as two hex values, prefixed "
-                                "by 0x, and separated by ->",
+                                _("Comma-separated list of incoming "
+                                  "keysyms to remap.  Mappings are "
+                                  "expressed as two hex values, "
+                                  "prefixed by 0x, and separated by "
+                                  "->"),
                                 {}) {
     KeyRemapper::defInstance.setMapping({});
   }
@@ -78,12 +80,12 @@ public:
       if (sscanf(m, "0x%x%c>0x%x", &from,
                 &bidi, &to) == 3) {
         if (bidi != '-' && bidi != '<')
-          vlog.error("Warning: Unknown operation %c>, assuming ->", bidi);
+          vlog.error(_("Unknown operation %c>, assuming ->"), bidi);
         mapping[from] = to;
         if (bidi == '<')
           mapping[to] = from;
       } else {
-        vlog.error("Warning: Bad mapping %s", m);
+        vlog.error(_("Invalid mapping %s"), m);
       }
     }
 

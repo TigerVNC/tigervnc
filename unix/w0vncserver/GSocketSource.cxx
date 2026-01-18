@@ -228,13 +228,13 @@ int GSocketSource::handleListenerReady(ListenerReadyEvent* event)
   condition = event->condition;
 
   if (condition & G_IO_ERR || condition & G_IO_HUP) {
-    vlog.status("Client connection error");
+    vlog.error("Client connection error");
     return G_SOURCE_CONTINUE;
   }
 
   sock = listener->accept();
   if (!sock) {
-    vlog.status("Client connection rejected");
+    vlog.error("Client connection rejected");
     return G_SOURCE_CONTINUE;
   }
 

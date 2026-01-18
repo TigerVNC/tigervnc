@@ -23,6 +23,8 @@
 
 #include <algorithm>
 
+#include <core/i18n.h>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -209,7 +211,7 @@ void HextileDecoder::hextileDecode(const core::Rect& r, rdr::InStream* is,
           int w = ((wh >> 4) & 15) + 1;
           int h = (wh & 15) + 1;
           if (x + w > 16 || y + h > 16) {
-            throw protocol_error("HEXTILE_DECODE: Hextile out of bounds");
+            throw protocol_error(_("Invalid Hextile coordinates"));
           }
           ptr = buf + y * t.width() + x;
           int rowAdd = t.width() - w;

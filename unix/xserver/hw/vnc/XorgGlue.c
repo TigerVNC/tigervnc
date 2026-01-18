@@ -23,6 +23,9 @@
 
 #include <assert.h>
 
+/* This is a C header, so safe to include */
+#include <core/i18n.h>
+
 #include "scrnintstr.h"
 #ifdef RANDR
 #include "randrstr.h"
@@ -82,7 +85,7 @@ void vncGetScreenFormat(int scrIdx, int *depth, int *bpp,
   }
 
   if (i == screenInfo.numPixmapFormats)
-    FatalError("No pixmap format for root depth\n");
+    FatalError(_("No pixmap format that matches the root window depth\n"));
 
   *bigEndian = (screenInfo.imageByteOrder == MSBFirst);
 
@@ -95,7 +98,7 @@ void vncGetScreenFormat(int scrIdx, int *depth, int *bpp,
   }
 
   if (i == screenInfo.screens[scrIdx]->numVisuals)
-    FatalError("No visual record for root visual\n");
+    FatalError(_("No visual that matches the root window visual\n"));
 
   *trueColour = (vis->class == TrueColor);
 

@@ -23,6 +23,8 @@
 
 #include <algorithm>
 
+#include <core/i18n.h>
+
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
@@ -66,7 +68,7 @@ static inline T readPixel(rdr::ZlibInStream* zis)
 static inline void zlibHasData(rdr::ZlibInStream* zis, size_t length)
 {
   if (!zis->hasData(length))
-    throw protocol_error("ZRLE decode error");
+    throw protocol_error(_("Failed to decode ZRLE rectangle"));
 }
 
 ZRLEDecoder::ZRLEDecoder() : Decoder(DecoderOrdered)
@@ -244,7 +246,7 @@ void ZRLEDecoder::zrleDecode(const core::Rect& r, rdr::InStream* is,
             } while (b == 255);
 
             if (end - ptr < len) {
-              throw protocol_error("ZRLE decode error");
+              throw protocol_error(_("Failed to decode ZRLE rectangle"));
             }
 
             while (len-- > 0) *ptr++ = pix;
@@ -269,7 +271,7 @@ void ZRLEDecoder::zrleDecode(const core::Rect& r, rdr::InStream* is,
               } while (b == 255);
 
               if (end - ptr < len) {
-                throw protocol_error("ZRLE decode error");
+                throw protocol_error(_("Failed to decode ZRLE rectangle"));
               }
             }
 

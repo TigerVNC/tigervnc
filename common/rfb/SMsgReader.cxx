@@ -27,6 +27,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/InStream.h>
@@ -45,10 +46,10 @@ using namespace rfb;
 
 static core::LogWriter vlog("SMsgReader");
 
-static core::IntParameter maxCutText("MaxCutText",
-                                     "Maximum permitted length of an "
-                                     "incoming clipboard update",
-                                     256*1024, 0, INT_MAX);
+static core::IntParameter maxCutText(
+  "MaxCutText",
+  _("Maximum permitted length of an incoming clipboard update"),
+  256*1024, 0, INT_MAX);
 
 SMsgReader::SMsgReader(SMsgHandler* handler_, rdr::InStream* is_)
   : handler(handler_), is(is_), state(MSGSTATE_IDLE)
@@ -112,8 +113,8 @@ bool SMsgReader::readMsg()
     ret = readQEMUMessage();
     break;
   default:
-    vlog.error("Unknown message type %d", currentMsgType);
-    throw protocol_error("Unknown message type");
+    vlog.error(_("Unknown message type %d"), currentMsgType);
+    throw protocol_error(_("Unknown message type"));
   }
 
   if (ret)
@@ -253,7 +254,7 @@ bool SMsgReader::readFence()
   is->clearRestorePoint();
 
   if (len > sizeof(data)) {
-    vlog.error("Ignoring fence with too large payload");
+    vlog.error(_("Ignoring fence with too large payload"));
     is->skip(len);
     return true;
   }
@@ -337,7 +338,7 @@ bool SMsgReader::readClientCutText()
 
   if (len > (size_t)maxCutText) {
     is->skip(len);
-    vlog.error("Cut text too long (%d bytes) - ignoring", len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     return true;
   }
 
@@ -361,9 +362,9 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
     return false;
 
   if (len < 4)
-    throw protocol_error("Invalid extended clipboard message");
+    throw protocol_error(_("Invalid extended clipboard message"));
   if (len > maxCutText) {
-    vlog.error("Extended clipboard message too long (%d bytes) - ignoring", len);
+    vlog.error(_("Clipboard too large (%d bytes) - ignoring"), len);
     is->skip(len);
     return true;
   }
@@ -383,7 +384,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
     }
 
     if (len < (int32_t)(4 + 4*num))
-      throw protocol_error("Invalid extended clipboard message");
+      throw protocol_error(_("Invalid extended clipboard message"));
 
     num = 0;
     for (i = 0;i < 16;i++) {
@@ -408,12 +409,12 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
         continue;
 
       if (!zis.hasData(4))
-        throw protocol_error("Extended clipboard decode error");
+        throw protocol_error(_("Invalid extended clipboard message"));
 
       lengths[num] = zis.readU32();
 
       if (lengths[num] > (size_t)maxCutText) {
-        vlog.error("Extended clipboard data too long (%d bytes) - ignoring",
+        vlog.error(_("Clipboard too large (%d bytes) - ignoring"),
                    (unsigned)lengths[num]);
 
         // Slowly (safely) drain away the data
@@ -421,7 +422,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
           size_t chunk;
 
           if (!zis.hasData(1))
-            throw protocol_error("Extended clipboard decode error");
+            throw protocol_error(_("Invalid extended clipboard message"));
 
           chunk = zis.avail();
           if (chunk > lengths[num])
@@ -437,7 +438,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
       }
 
       if (!zis.hasData(lengths[num]))
-        throw protocol_error("Extended clipboard decode error");
+        throw protocol_error(_("Invalid extended clipboard message"));
 
       buffers[num] = new uint8_t[lengths[num]];
       zis.readBytes(buffers[num], lengths[num]);
@@ -467,7 +468,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
       handler->handleClipboardNotify(flags);
       break;
     default:
-      throw protocol_error("Invalid extended clipboard action");
+      throw protocol_error(_("Invalid extended clipboard message"));
     }
   }
 
@@ -491,7 +492,8 @@ bool SMsgReader::readQEMUMessage()
     ret = readQEMUKeyEvent();
     break;
   default:
-    throw protocol_error(core::format("Unknown QEMU submessage type %d", subType));
+    throw protocol_error(
+      core::format(_("Unknown QEMU submessage type %d"), subType));
   }
 
   if (!ret) {
@@ -511,7 +513,7 @@ bool SMsgReader::readQEMUKeyEvent()
   uint32_t keysym = is->readU32();
   uint32_t keycode = is->readU32();
   if (!keycode) {
-    vlog.error("Key event without keycode - ignoring");
+    vlog.error(_("Key event without keycode - ignoring"));
     return true;
   }
   handler->keyEvent(keysym, keycode, down);

@@ -19,6 +19,7 @@
 #include <vncconfig/Legacy.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb_win32/CurrentUser.h>
@@ -87,7 +88,7 @@ void LegacyPage::LoadPrefs()
                     if (bits)
                       strcat(pattern, ".");
                     if (parts[j].size() > 3)
-                      throw std::invalid_argument("Invalid IP address part");
+                      throw std::invalid_argument(_("Invalid IP address"));
                     if (!parts[j].empty()) {
                       strcat(pattern, parts[j].c_str());
                       bits += 8;
@@ -117,7 +118,7 @@ void LegacyPage::LoadPrefs()
               // Finally, save the Hosts value
               regKey.setString("Hosts", newHosts.c_str());
             } catch (std::exception&) {
-              MsgBox(nullptr, "Unable to convert AuthHosts setting to Hosts format.",
+              MsgBox(nullptr, _("Unable to convert AuthHosts setting to Hosts format."),
                      MB_ICONWARNING | MB_OK);
             }
           } else {
@@ -145,10 +146,10 @@ void LegacyPage::LoadPrefs()
         try {
           RegKey userKey;
           userKey.openKey(winvnc3, "Default");
-          vlog.info("Loading default prefs");
+          vlog.info(_("Loading default settings"));
           LoadUserPrefs(userKey);
         } catch(std::exception& e) {
-          vlog.error("Error reading Default settings:%s", e.what());
+          vlog.error(_("Error reading default settings: %s"), e.what());
         }
 
         // Open the local, user-specific settings
@@ -156,10 +157,10 @@ void LegacyPage::LoadPrefs()
           try {
             RegKey userKey;
             userKey.openKey(winvnc3, username.c_str());
-            vlog.info("Loading local user prefs");
+            vlog.info(_("Loading local user settings"));
             LoadUserPrefs(userKey);
           } catch(std::exception& e) {
-            vlog.error("Error reading local User settings:%s", e.what());
+            vlog.error(_("Error reading local user settings: %s"), e.what());
           }
 
           // Open the user's own settings
@@ -167,10 +168,10 @@ void LegacyPage::LoadPrefs()
             try {
               RegKey userKey;
               userKey.openKey(HKEY_CURRENT_USER, "Software\\ORL\\WinVNC3");
-              vlog.info("Loading global user prefs");
+              vlog.info(_("Loading global user settings"));
               LoadUserPrefs(userKey);
             } catch(std::exception& e) {
-              vlog.error("Error reading global User settings:%s", e.what());
+              vlog.error(_("Error reading global user settings: %s"), e.what());
             }
           }
         }
@@ -183,8 +184,8 @@ void LegacyPage::LoadPrefs()
       {
         regKey.setInt("PortNumber", key.getBool("SocketConnect") ? key.getInt("PortNumber", 5900) : 0);
         if (key.getBool("AutoPortSelect", false)) {
-          MsgBox(nullptr, "The AutoPortSelect setting is not supported by this release."
-                    "The port number will default to 5900.",
+          MsgBox(nullptr, _("The AutoPortSelect setting is not supported by this release."
+                    "The port number will default to 5900."),
                     MB_ICONWARNING | MB_OK);
           regKey.setInt("PortNumber", 5900);
         }
@@ -195,8 +196,8 @@ void LegacyPage::LoadPrefs()
 
         if (key.getInt("QuerySetting", 2) != 2) {
           regKey.setBool("QueryConnect", key.getInt("QuerySetting") > 2);
-          MsgBox(nullptr, "The QuerySetting option has been replaced by QueryConnect."
-                 "Please see the documentation for details of the QueryConnect option.",
+          MsgBox(nullptr, _("The QuerySetting option has been replaced by QueryConnect."
+                 "Please see the documentation for details of the QueryConnect option."),
                  MB_ICONWARNING | MB_OK);
         }
         regKey.setInt("QueryTimeout", key.getInt("QueryTimeout", 10));
@@ -224,9 +225,9 @@ void LegacyPage::LoadPrefs()
         regKey.setBool("UseHooks", !key.getBool("PollFullScreen", false));
 
         if (key.isValue("AllowShutdown"))
-          MsgBox(nullptr, "The AllowShutdown option is not supported by this release.", MB_ICONWARNING | MB_OK);
+          MsgBox(nullptr, _("The AllowShutdown option is not supported by this release."), MB_ICONWARNING | MB_OK);
         if (key.isValue("AllowEditClients"))
-          MsgBox(nullptr, "The AllowEditClients option is not supported by this release.", MB_ICONWARNING | MB_OK);
+          MsgBox(nullptr, _("The AllowEditClients option is not supported by this release."), MB_ICONWARNING | MB_OK);
 
         allowProperties = key.getBool("AllowProperties", allowProperties);
       }

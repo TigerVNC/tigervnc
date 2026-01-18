@@ -31,13 +31,13 @@
 #include <FL/x.H>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #ifndef XK_MISCELLANY
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
 #endif
 
-#include "i18n.h"
 #include "XInputTouchHandler.h"
 
 static core::LogWriter vlog("XInputTouchHandler");

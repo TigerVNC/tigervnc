@@ -73,6 +73,9 @@ extern char buildtime[];
 
 #include "version-config.h"
 
+/* This is a C header, so safe to include */
+#include <core/i18n.h>
+
 #define XVNCVERSION "TigerVNC 1.16.80"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2025 TigerVNC team and many others (see README.rst)\n" \
                        "See https://www.tigervnc.org for information on TigerVNC.\n")
@@ -117,8 +120,11 @@ static int vncVerbose = 0;
 static void
 vncPrintBanner(void)
 {
-    ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
-    ErrorF("Underlying X server release %d\n\n", VENDOR_RELEASE);
+    ErrorF("\n");
+    ErrorF(_("Xvnc %s - built %s\n"), XVNCVERSION, buildtime);
+    ErrorF("%s", XVNCCOPYRIGHT);
+    ErrorF(_("Underlying X server release %d\n"), VENDOR_RELEASE);
+    ErrorF("\n");
 }
 
 static void
@@ -212,15 +218,17 @@ ddxUseMsg(void)
     ErrorF("-verbose [n]           verbose startup messages\n");
     ErrorF("-quiet                 minimal startup messages\n");
     ErrorF("-version               show the server version\n");
-    ErrorF("\nVNC parameters:\n");
+    ErrorF("\n");
 
-    fprintf(stderr, "\n"
+    ErrorF(_("VNC parameters:\n"));
+
+    fprintf(stderr, _("\n"
             "Parameters can be turned on with -<param> or off with -<param>=0\n"
             "Parameters which take a value can be specified as "
             "-<param> <value>\n"
             "Other valid forms are <param>=<value> -<param>=<value> "
             "--<param>=<value>\n"
-            "Parameter names are case-insensitive.  The parameters are:\n\n");
+            "Parameter names are case-insensitive.  The parameters are:\n\n"));
     vncListParams(79, 14);
 }
 
@@ -276,9 +284,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
         ++i;
         while ((i < argc) && (depth = atoi(argv[i++])) != 0) {
             if (depth < 0 || depth > 32) {
-                ErrorF("Invalid pixmap depth %d\n", depth);
+                ErrorF(_("Invalid pixmap depth %d passed to -pixdepths\n"),
+                       depth);
                 UseMsg();
-                FatalError("Invalid pixmap depth %d passed to -pixdepths\n",
+                FatalError(_("Invalid pixmap depth %d passed to -pixdepths\n"),
                            depth);
             }
             vncPixmapDepths[depth] = TRUE;
@@ -302,9 +311,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
         ++i;
         if (sscanf(argv[i], "%dx%d", &vncScreenInfo.fb.width,
                    &vncScreenInfo.fb.height) != 2) {
-            ErrorF("Invalid geometry %s\n", argv[i]);
+            ErrorF(_("Invalid geometry %s passed to -geometry\n"),
+                   argv[i]);
             UseMsg();
-            FatalError("Invalid geometry %s passed to -geometry\n",
+            FatalError(_("Invalid geometry %s passed to -geometry\n"),
                        argv[i]);
         }
         return 2;
@@ -324,9 +334,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
         CHECK_FOR_REQUIRED_ARGUMENTS(1);
         ++i;
         if (sscanf(argv[i], "%3s%1d%1d%1d", rgbbgr, &bits1, &bits2, &bits3) < 4) {
-            ErrorF("Invalid pixel format %s\n", argv[i]);
+            ErrorF(_("Invalid pixel format %s passed to -pixelformat\n"),
+                   argv[i]);
             UseMsg();
-            FatalError("Invalid pixel format %s passed to -pixelformat\n",
+            FatalError(_("Invalid pixel format %s passed to -pixelformat\n"),
                        argv[i]);
         }
 
@@ -342,9 +353,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
             vncScreenInfo.redBits = bits1;
             vncScreenInfo.blueBits = bits3;
         } else {
-            ErrorF("Invalid pixel format %s\n", argv[i]);
+            ErrorF(_("Invalid pixel format %s passed to -pixelformat\n"),
+                   argv[i]);
             UseMsg();
-            FatalError("Invalid pixel format %s passed to -pixelformat\n",
+            FatalError(_("Invalid pixel format %s passed to -pixelformat\n"),
                        argv[i]);
         }
 
@@ -355,9 +367,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
         int nullfd;
 
         if ((vncInetdSock = dup(0)) == -1)
-            FatalError
-                ("Xvnc error: Failed to allocate a new file descriptor for -inetd: %s\n", strerror(errno));
-
+            FatalError(_("Failed to allocate a new file descriptor for "
+                         "-inetd: %s\n"), strerror(errno));
 
         /* Avoid xserver >= 1.19's epoll-fd becoming fd 2 / stderr only to be
            replaced by /dev/null by OsInit() because the pollfd is not
@@ -377,8 +388,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
                         break;
 
                 if (displayNum == 100)
-                    FatalError
-                        ("Xvnc error: No free display number for -inetd\n");
+                    FatalError(_("No free display number for -inetd\n"));
             }
             sprintf(displayNumStr, "%d", displayNum);
             display = displayNumStr;
@@ -646,14 +656,15 @@ vncRandRScreenSetSize(ScreenPtr pScreen,
             ret = vncRandRCrtcSet(pScreen, crtc, NULL,
                                   crtc->x, crtc->y, crtc->rotation, 0, NULL);
             if (!ret)
-                ErrorF("Warning: Unable to disable CRTC that is outside of new screen dimensions\n");
+                ErrorF(_("Unable to disable a CRTC that is outside of "
+                         "the new screen dimensions\n"));
             continue;
         }
 
         /* Just needs to be resized to a temporary mode */
         mode = vncRandRModeGet(width - crtc->x, height - crtc->y);
         if (mode == NULL) {
-            ErrorF("Warning: Unable to create custom mode for %dx%d\n",
+            ErrorF(_("Unable to create a custom display mode for %dx%d\n"),
                    width - crtc->x, height - crtc->y);
             continue;
         }
@@ -663,7 +674,7 @@ vncRandRScreenSetSize(ScreenPtr pScreen,
                               crtc->numOutputs, crtc->outputs);
         RRModeDestroy(mode);
         if (!ret)
-            ErrorF("Warning: Unable to crop CRTC to new screen dimensions\n");
+            ErrorF(_("Unable to crop CRTC to new screen dimensions\n"));
     }
 
     return TRUE;
@@ -1088,12 +1099,12 @@ vncScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     ret = vncPresentInit(pScreen);
     if (!ret)
-        ErrorF("Failed to initialize Present extension\n");
+        ErrorF(_("Failed to initialize Present extension\n"));
 
 #ifdef DRI3
     ret = vncDRI3Init(pScreen);
     if (!ret)
-        ErrorF("Failed to initialize DRI3 extension\n");
+        ErrorF(_("Failed to initialize DRI3 extension\n"));
 #endif
 
     return TRUE;
@@ -1104,7 +1115,8 @@ static void
 vncClientStateChange(CallbackListPtr *a, void *b, void *c)
 {
     if (dispatchException & DE_RESET) {
-        ErrorF("Warning: VNC extension does not support -reset, terminating instead. Use -noreset to prevent termination.\n");
+        ErrorF(_("VNC extension does not support -reset, terminating "
+                 "instead. Use -noreset to prevent termination.\n"));
 
         dispatchException |= DE_TERMINATE;
         dispatchException &= ~DE_RESET;
@@ -1148,7 +1160,7 @@ InitOutput(ScreenInfo * scrInfo, int argc, char **argv)
     for (i = 1; i <= 32; i++) {
         if (vncPixmapDepths[i]) {
             if (NumFormats >= MAXFORMATS)
-                FatalError("MAXFORMATS is too small for this server\n");
+                FatalError(_("MAXFORMATS is too small for this server\n"));
             scrInfo->formats[NumFormats].depth = i;
             scrInfo->formats[NumFormats].bitsPerPixel = vncBitsPerPixel(i);
             scrInfo->formats[NumFormats].scanlinePad = BITMAP_SCANLINE_PAD;
@@ -1209,7 +1221,7 @@ void
 vncClientGone(int fd)
 {
     if (fd == vncInetdSock) {
-        ErrorF("inetdSock client gone\n");
+        ErrorF(_("inetd client gone. Terminating...\n"));
         GiveUp(0);
     }
 }

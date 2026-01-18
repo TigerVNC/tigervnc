@@ -17,16 +17,10 @@
  * USA.
  */
 
-#ifndef _I18N_H
-#define _I18N_H 1
+#ifndef __RFB_I18N_H__
+#define __RFB_I18N_H__
 
-/* Need to tell gcc that pgettext() doesn't screw up format strings */
-#ifdef __GNUC__
-static const char *
-pgettext_aux (const char *domain,
-              const char *msg_ctxt_id, const char *msgid,
-              int category) __attribute__ ((format_arg (3)));
-#endif
+#define DEFAULT_TEXT_DOMAIN "tigervnc"
 
 /*
  * LC_MESSAGES is only in POSIX, and hence missing on Windows. libintl
@@ -65,7 +59,56 @@ extern int swprintf (wchar_t *, size_t, const wchar_t *, ...)
 #endif
 
 #define _(String) gettext (String)
-#define p_(Context, String) pgettext (Context, String)
+#define C_(Context, String) pgettext (Context, String)
 #define N_(String) gettext_noop (String)
+#define NC_(Context, String) gettext_noop (String)
 
-#endif /* _I18N_H */
+#undef dgettext
+#undef dcgettext
+#undef dngettext
+#undef dcngettext
+#undef pgettext_aux
+#undef npgettext_aux
+#define dgettext dgettext_rfb
+#define dcgettext dcgettext_rfb
+#define dngettext dngettext_rfb
+#define dcngettext dcngettext_rfb
+#define pgettext_aux pgettext_rfb
+#define npgettext_aux npgettext_rfb
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+const char *dgettext_rfb(const char *domainname, const char *msgid)
+                         __attribute__ ((format_arg (2)));
+const char *dcgettext_rfb(const char *domainname, const char *msgid,
+                          int category)
+                          __attribute__ ((format_arg (2)));
+const char *dngettext_rfb(const char *domainname, const char *msgid,
+                          const char *msgid_plural,
+                          unsigned long int n)
+                          __attribute__ ((format_arg (2)))
+                          __attribute__ ((format_arg (3)));
+const char *dcngettext_rfb(const char *domainname, const char *msgid,
+                           const char *msgid_plural,
+                           unsigned long int n, int category)
+                          __attribute__ ((format_arg (2)))
+                          __attribute__ ((format_arg (3)));
+
+const char *pgettext_rfb(const char *domain,
+                         const char *msg_ctxt_id, const char *msgid,
+                         int category)
+                         __attribute__ ((format_arg (3)));
+const char *npgettext_rfb(const char *domain,
+                          const char *msg_ctxt_id, const char *msgid,
+                          const char *msgid_plural,
+                          unsigned long int n, int category)
+                          __attribute__ ((format_arg (3)))
+                          __attribute__ ((format_arg (4)));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
