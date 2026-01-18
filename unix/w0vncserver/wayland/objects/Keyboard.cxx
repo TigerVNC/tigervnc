@@ -220,10 +220,8 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
 
 uint32_t Keyboard::rfbcodeToKeycode(uint32_t rfbcode)
 {
-  if (rfbcode >= sizeof(codeMapQnumToKeyCode)) {
-    vlog.error("Invalid RFB keycode: %d", rfbcode);
+  if (rfbcode >= sizeof(codeMapQnumToKeyCode))
     return 0;
-  }
   return codeMapQnumToKeyCode[rfbcode];
 }
 
