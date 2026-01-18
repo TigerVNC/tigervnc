@@ -119,19 +119,16 @@ void PortalDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
   //        xkbcommon keysyms.
   //        Using the Portals for input is not recommended. We should
   //        switch over to using libei entirely instead.
-  if (rawKeyboard) {
+  if (rawKeyboard && (keycode < code_map_qnum_to_xorgevdev_len)) {
     int evdevKeycode;
-
-    if (keycode >= code_map_qnum_to_xorgevdev_len) {
-      vlog.error("Could not map keycode %d to evdev key code", keycode);
+    evdevKeycode = code_map_qnum_to_xorgevdev[keycode];
+    if (evdevKeycode) {
+      remoteDesktop->notifyKeyboardKeycode(evdevKeycode, down);
       return;
     }
-
-    evdevKeycode = code_map_qnum_to_xorgevdev[keycode];
-    remoteDesktop->notifyKeyboardKeycode(evdevKeycode, down);
-  } else {
-    remoteDesktop->notifyKeyboardKeysym(keysym, down);
   }
+
+  remoteDesktop->notifyKeyboardKeysym(keysym, down);
 }
 
 void PortalDesktop::pointerEvent(const core::Point& pos,
