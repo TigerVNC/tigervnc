@@ -221,7 +221,9 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
 uint32_t Keyboard::rfbcodeToKeycode(uint32_t rfbcode)
 {
   if (rfbcode >= sizeof(codeMapQnumToKeyCode))
-    return 0;
+    return XKB_KEYCODE_INVALID;
+  if (codeMapQnumToKeyCode[rfbcode] == 0)
+    return XKB_KEYCODE_INVALID;
   return codeMapQnumToKeyCode[rfbcode];
 }
 
