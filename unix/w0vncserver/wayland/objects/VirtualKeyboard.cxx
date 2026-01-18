@@ -91,17 +91,16 @@ void VirtualKeyboard::key(uint32_t keysym, uint32_t keycode, bool down)
 
   wKeyboard = seat->getKeyboard();
 
-  if (!rawKeyboard) {
+  key = XKB_KEYCODE_INVALID;
+
+  if (rawKeyboard)
+    key = wKeyboard->rfbcodeToKeycode(keycode);
+
+  if (key == XKB_KEYCODE_INVALID) {
     key = wKeyboard->keysymToKeycode(keysym);
     if ((unsigned int)key == XKB_KEYCODE_INVALID) {
       vlog.debug("Unable to map keysym XK_%s (0x%04x), ignoring key press",
                  KeySymName(keysym), keysym);
-      return;
-    }
-  } else {
-    key = wKeyboard->rfbcodeToKeycode(keycode);
-    if (key == XKB_KEYCODE_INVALID) {
-      vlog.error("Unable to map keycode %d, ignoring key press", keycode);
       return;
     }
   }
