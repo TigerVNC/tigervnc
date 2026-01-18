@@ -100,7 +100,7 @@ void VirtualKeyboard::key(uint32_t keysym, uint32_t keycode, bool down)
     }
   } else {
     key = wKeyboard->rfbcodeToKeycode(keycode);
-    if (!key) {
+    if (key == XKB_KEYCODE_INVALID) {
       vlog.error("Unable to map keycode %d, ignoring key press", keycode);
       return;
     }
