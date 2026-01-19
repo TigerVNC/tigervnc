@@ -199,7 +199,6 @@ ssize_t TLSSocket::pull(void* data, size_t size)
     return 0;
   } catch (std::exception& e) {
     core::socket_error* se;
-    vlog.error("Failure reading TLS data: %s", e.what());
     se = dynamic_cast<core::socket_error*>(&e);
     if (se)
       gnutls_transport_set_errno(session, se->err);
@@ -221,7 +220,6 @@ ssize_t TLSSocket::push(const void* data, size_t size)
     out->flush();
   } catch (std::exception& e) {
     core::socket_error* se;
-    vlog.error("Failure sending TLS data: %s", e.what());
     se = dynamic_cast<core::socket_error*>(&e);
     if (se)
       gnutls_transport_set_errno(session, se->err);
