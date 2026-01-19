@@ -114,8 +114,17 @@ void TLSSocket::shutdown()
   // FIXME: We can't currently wait for the response, so we only send
   //        our close and hope for the best
   ret = gnutls_bye(session, GNUTLS_SHUT_WR);
-  if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION))
-    vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
+  if ((ret != GNUTLS_E_SUCCESS) && (ret != GNUTLS_E_INVALID_SESSION)) {
+    if ((ret == GNUTLS_E_PULL_ERROR) || (ret == GNUTLS_E_PUSH_ERROR)) {
+      try {
+        std::rethrow_exception(saved_exception);
+      } catch (std::exception& e) {
+        vlog.error("TLS shutdown failed: %s", e.what());
+      }
+    } else {
+      vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
+    }
+  }
 }
 
 size_t TLSSocket::readTLS(uint8_t* buf, size_t len)
