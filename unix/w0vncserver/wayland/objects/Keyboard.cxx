@@ -134,32 +134,36 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
   if (!context || !context->ctx)
     return;
 
-  memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
-
-  if (keyMap)
-    munmap(keyMap, keyboardSize);
-  keyboardFormat = format;
-  keyboardFd = fd;
-  keyboardSize = size;
-
   // https://wayland.app/protocols/wayland#wl_keyboard:enum:keymap_format
   // Format is either:
   //  no_keymap 0, or
   //  xkb_v1    1
-  if (keyboardFormat == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1) {
+  if (format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1) {
     xkb_keymap* map;
     xkb_state* state;
+    char* newKeyMap;
 
-    keyMap = (char*)mmap(nullptr, keyboardSize, PROT_READ, MAP_PRIVATE,
-                         keyboardFd, 0);
-    if (!keyMap) {
+    newKeyMap = (char*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (!newKeyMap) {
       vlog.error("Failed to map keymap");
       clearKeyMap();
       return;
     }
 
+    if (keyMap && strcmp(keyMap, newKeyMap) == 0) {
+      // Keymap unchanged, no need to update anything.
+      // This is a workaround for where zwp_virtual_keyboard_v1_keymap()
+      // will trigger a keymap event with the same keymap as before
+      return;
+    }
+
+    if (keyMap)
+      munmap(keyMap, keyboardSize);
+
+    keyMap = newKeyMap;
+
     map = xkb_keymap_new_from_buffer(context->ctx, keyMap,
-                                     keyboardSize,
+                                     size,
                                      XKB_KEYMAP_FORMAT_TEXT_V1,
                                      XKB_KEYMAP_COMPILE_NO_FLAGS);
     if (!map) {
@@ -184,6 +188,9 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     context->state = state;
 
     vlog.debug("Keymap updated");
+    keyboardFormat = format;
+    keyboardFd = fd;
+    keyboardSize = size;
     generateKeycodeMap();
   } else {
     vlog.error("Unsupported keymap format");
