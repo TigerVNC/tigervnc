@@ -28,6 +28,7 @@
 #include <rfb/VNCServerST.h>
 #include <core/LogWriter.h>
 #include <core/xdgdirs.h>
+#include <core/string.h>
 
 #include "../w0vncserver.h"
 #include "../parameters.h"
@@ -65,7 +66,8 @@ void PortalDesktop::start()
     try {
       pb = new PipeWirePixelBuffer(fd, id, server);
     } catch (std::exception& e) {
-      fatal_error("error initializing PipeWirePixelBuffer: %s", e.what());
+      server->closeClients(core::format("error initializing PipeWirePixelBuffer: %s",
+                                        e.what()).c_str());
     }
   };
 
