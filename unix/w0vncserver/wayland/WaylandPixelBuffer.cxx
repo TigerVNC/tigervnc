@@ -21,24 +21,23 @@
 #endif
 
 #include <assert.h>
-#include <unistd.h>
-
 #include <stdexcept>
 
 #include <pixman.h>
-#include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
-#include <wayland-client.h>
 
 #include <core/Region.h>
 #include <core/string.h>
 #include <core/LogWriter.h>
+#include <core/Rect.h>
 #include <rfb/VNCServerST.h>
 
 #include "../w0vncserver.h"
 #include "objects/Output.h"
 #include "objects/Display.h"
 #include "objects/ScreencopyManager.h"
+#include "objects/ImageCaptureSource.h"
+#include "objects/ImageCopyCaptureManager.h"
 #include "WaylandPixelBuffer.h"
 
 static core::LogWriter vlog("WaylandPixelBuffer");
@@ -48,7 +47,9 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
                                        rfb::VNCServer* server_,
                                        std::function<void()> desktopReadyCallback_)
   : firstFrame(true), desktopReadyCallback(desktopReadyCallback_),
-    server(server_), output(output_), resized(false)
+    server(server_), output(output_), screencopyManager(nullptr),
+    imageCaptureSource(nullptr), imageCopyCaptureManager(nullptr),
+    resized(false)
 {
   std::function<void(uint8_t*, core::Region, uint32_t)> bufferEventCb =
     std::bind(&WaylandPixelBuffer::bufferEvent, this, std::placeholders::_1,
@@ -58,14 +59,26 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
     server->closeClients("The remote session stopped");
   };
 
-  screencopyManager = new wayland::ScreencopyManager(display, output_,
-                                                     bufferEventCb,
-                                                     stoppedCb);
+  if (display->interfaceAvailable("ext_image_copy_capture_manager_v1") &&
+      display->interfaceAvailable("ext_output_image_capture_source_manager_v1")) {
+    imageCaptureSource = new wayland::OutputImageCaptureSource(display, output_);
+
+    imageCopyCaptureManager = new wayland::ImageCopyCaptureManager(display,
+                                                                   imageCaptureSource,
+                                                                   bufferEventCb,
+                                                                   stoppedCb);
+    imageCopyCaptureManager->createSession();
+  } else {
+    screencopyManager = new wayland::ScreencopyManager(display, output_,
+                                                       bufferEventCb, stoppedCb);
+  }
 }
 
 WaylandPixelBuffer::~WaylandPixelBuffer()
 {
   delete screencopyManager;
+  delete imageCopyCaptureManager;
+  delete imageCaptureSource;
 }
 
 void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
@@ -74,9 +87,9 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
   if (output->getWidth() != (uint32_t)width() ||
       output->getHeight() != (uint32_t)height()) {
     if (!firstFrame && !resized) {
-      vlog.debug("Detected resize, calling resize()");
-      screencopyManager->resize();
       resized = true;
+      if (screencopyManager)
+        screencopyManager->resize();
       return;
     }
   }

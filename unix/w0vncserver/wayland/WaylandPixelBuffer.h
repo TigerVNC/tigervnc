@@ -23,13 +23,14 @@
 
 #include <rfb/PixelBuffer.h>
 
-#include "objects/ScreencopyManager.h"
-
 namespace rfb { class VNCServer; class PixelFormat; }
 
 namespace wayland {
   class Output;
   class Display;
+  class ScreencopyManager;
+  class ImageCaptureSource;
+  class ImageCopyCaptureManager;
 };
 
 class WaylandPixelBuffer : public rfb::ManagedPixelBuffer {
@@ -55,7 +56,14 @@ private:
   std::function<void()> desktopReadyCallback;
   rfb::VNCServer* server;
   wayland::Output* output;
+
+  // wlr-screencopy
   wayland::ScreencopyManager* screencopyManager;
+
+  // ext-image-copy-capture-v1
+  wayland::ImageCaptureSource* imageCaptureSource;
+  wayland::ImageCopyCaptureManager* imageCopyCaptureManager;
+
   bool resized;
 };
 
