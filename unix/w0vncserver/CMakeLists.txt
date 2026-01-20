@@ -40,6 +40,7 @@ add_executable(w0vncserver-forget
 # Generate protocol headers
 set(GEN_WAYLAND_SRCS "")
 set(WAYLAND_PROTOCOLS
+  ext-foreign-toplevel-list-v1
   wlr-screencopy-unstable-v1
   wlr-virtual-pointer-unstable-v1
   virtual-keyboard-unstable-v1
