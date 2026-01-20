@@ -36,8 +36,10 @@ namespace wayland {
     ~Keyboard();
 
     uint32_t getFormat() const { return keyboardFormat; }
-    int getFd() const { return keyboardFd; }
-    int getSize() const { return keyboardSize; }
+    int32_t getFd() const { return keyboardFd; }
+    uint32_t getSize() const { return keyboardSize; }
+    bool hasKeymap() const { return keyMap != nullptr; }
+
     // Get the current LED state
     unsigned int getLEDState();
 
@@ -57,11 +59,12 @@ namespace wayland {
                          uint32_t modsLatched, uint32_t modsLocked,
                          uint32_t group);
     void generateKeycodeMap();
+    void clearKeyMap();
 
   private:
     uint32_t keyboardFormat;
-    int keyboardFd;
-    int keyboardSize;
+    int32_t keyboardFd;
+    uint32_t keyboardSize;
     wl_keyboard* keyboard;
     char* keyMap;
     static const wl_keyboard_listener listener;

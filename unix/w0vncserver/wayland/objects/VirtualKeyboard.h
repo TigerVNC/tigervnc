@@ -40,9 +40,14 @@ namespace wayland {
     void key(uint32_t keysym, uint32_t keycode, bool down);
 
   private:
+    bool keymapUpdated();
+    void setupKeyboard();
+
+  private:
     zwp_virtual_keyboard_manager_v1* manager;
     zwp_virtual_keyboard_v1* keyboard;
     Seat* seat;
+    int keyboardFd;
   };
 };
 

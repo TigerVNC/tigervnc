@@ -22,11 +22,14 @@
 
 #include <time.h>
 
+#include <stdexcept>
+
 #include <virtual-keyboard-unstable-v1.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #include <core/LogWriter.h>
 #include <rfb/KeysymStr.h>
+#include <rfb/ledStates.h>
 
 #include "../../w0vncserver.h"
 #include "../../parameters.h"
@@ -42,26 +45,20 @@ static core::LogWriter vlog("WaylandVirtualKeyboard");
 VirtualKeyboard::VirtualKeyboard(Display* display, Seat* seat_)
   : Object(display, "zwp_virtual_keyboard_manager_v1",
            &zwp_virtual_keyboard_manager_v1_interface),
-    manager(nullptr), keyboard(nullptr), seat(seat_)
+    manager(nullptr), keyboard(nullptr), seat(seat_),
+    keyboardFd(0)
 {
-  if (!seat->getKeyboard()->getSize()) {
-    fatal_error("Keyboard keymap is not set");
-    return;
-  }
-
   manager = (zwp_virtual_keyboard_manager_v1*) boundObject;
 
   keyboard = zwp_virtual_keyboard_manager_v1_create_virtual_keyboard(manager,
                                                                      seat->getSeat());
-  if (!keyboard) {
-    fatal_error("Failed to create virtual keyboard");
-    return;
-  }
+  if (!keyboard)
+    throw std::runtime_error("Failed to create virtual keyboard");
 
-  zwp_virtual_keyboard_v1_keymap(keyboard,
-                                 seat->getKeyboard()->getFormat(),
-                                 seat->getKeyboard()->getFd(),
-                                 seat->getKeyboard()->getSize());
+  if (seat->getKeyboard()->hasKeymap())
+    setupKeyboard();
+  else
+    vlog.debug("Keyboard keymap is not set - keyboard will not work until it is set");
 }
 
 VirtualKeyboard::~VirtualKeyboard()
@@ -74,6 +71,12 @@ VirtualKeyboard::~VirtualKeyboard()
 
 unsigned int VirtualKeyboard::getLEDState()
 {
+  if (!keyboardFd)
+    return rfb::ledUnknown;
+
+  if (keymapUpdated())
+    setupKeyboard();
+
   return seat->getKeyboard()->getLEDState();
 }
 
@@ -88,6 +91,12 @@ void VirtualKeyboard::key(uint32_t keysym, uint32_t keycode, bool down)
   uint32_t modsLatched;
   uint32_t modsLocked;
   uint32_t group;
+
+  if (keymapUpdated())
+    setupKeyboard();
+
+  if (!keyboardFd)
+    return;
 
   wKeyboard = seat->getKeyboard();
 
@@ -123,4 +132,22 @@ void VirtualKeyboard::key(uint32_t keysym, uint32_t keycode, bool down)
     zwp_virtual_keyboard_v1_modifiers(keyboard, modsDepressed,
                                       modsLatched, modsLocked, group);
   }
+}
+
+bool VirtualKeyboard::keymapUpdated()
+{
+  return keyboardFd != seat->getKeyboard()->getFd();
+}
+
+void VirtualKeyboard::setupKeyboard()
+{
+  if (!keyboardFd)
+    vlog.debug("Keymap set - keyboard will now work");
+
+  zwp_virtual_keyboard_v1_keymap(keyboard,
+                                 seat->getKeyboard()->getFormat(),
+                                 seat->getKeyboard()->getFd(),
+                                 seat->getKeyboard()->getSize());
+
+  keyboardFd = seat->getKeyboard()->getFd();
 }

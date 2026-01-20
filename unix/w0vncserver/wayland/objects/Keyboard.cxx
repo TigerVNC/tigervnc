@@ -76,18 +76,19 @@ struct XkbContext {
 Keyboard::Keyboard(Display* display, Seat* seat,
                    std::function<void(unsigned int)> setLEDstate_)
   : keyboardFormat(0), keyboardFd(0), keyboardSize(0),
-    keyboard(nullptr), keyMap(nullptr), context(new XkbContext()),
+    keyboard(nullptr), keyMap(nullptr), context(nullptr),
     setLEDstate(setLEDstate_)
 {
   xkb_context* ctx;
 
   ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-  if (!ctx)  {
+  if (ctx)  {
+    context = new XkbContext();
+    context->ctx = ctx;
+  } else {
     // FIXME: fallback?
-    fatal_error("Failed to create xkb context");
-    return;
+    vlog.error("Failed to create xkb context - keyboard will not work");
   }
-  context->ctx = ctx;
 
   keyboard = wl_seat_get_keyboard(seat->getSeat());
   wl_keyboard_add_listener(keyboard, &listener, this);
@@ -100,15 +101,8 @@ Keyboard::~Keyboard()
 {
   if (keyboard)
     wl_keyboard_destroy(keyboard);
-  if(keyMap)
-    munmap(keyMap, keyboardSize);
-
-  if (context) {
-    xkb_context_unref(context->ctx);
-    xkb_state_unref(context->state);
-    xkb_keymap_unref(context->keymap);
-    delete context;
-  }
+  clearKeyMap();
+  delete context;
 }
 
 bool Keyboard::updateState(uint32_t keycode, bool down,
@@ -117,6 +111,9 @@ bool Keyboard::updateState(uint32_t keycode, bool down,
                            uint32_t* group)
 {
   xkb_state_component changed;
+
+  if (!context || !context->state)
+    return false;
 
   changed = xkb_state_update_key(context->state, keycode,
                                  down ? XKB_KEY_DOWN : XKB_KEY_UP);
@@ -134,39 +131,44 @@ bool Keyboard::updateState(uint32_t keycode, bool down,
 
 void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
 {
-  assert(context->ctx);
-
-  memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
-
-  if (keyMap)
-    munmap(keyMap, keyboardSize);
-  keyboardFormat = format;
-  keyboardFd = fd;
-  keyboardSize = size;
+  if (!context || !context->ctx)
+    return;
 
   // https://wayland.app/protocols/wayland#wl_keyboard:enum:keymap_format
   // Format is either:
   //  no_keymap 0, or
   //  xkb_v1    1
-  if (keyboardFormat == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1) {
+  if (format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1) {
     xkb_keymap* map;
     xkb_state* state;
+    char* newKeyMap;
 
-    keyMap = (char*)mmap(nullptr, keyboardSize, PROT_READ, MAP_PRIVATE,
-                         keyboardFd, 0);
-    if (!keyMap) {
+    newKeyMap = (char*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (!newKeyMap) {
       vlog.error("Failed to map keymap");
+      clearKeyMap();
       return;
     }
 
+    if (keyMap && strcmp(keyMap, newKeyMap) == 0) {
+      // Keymap unchanged, no need to update anything.
+      // This is a workaround for where zwp_virtual_keyboard_v1_keymap()
+      // will trigger a keymap event with the same keymap as before
+      return;
+    }
+
+    if (keyMap)
+      munmap(keyMap, keyboardSize);
+
+    keyMap = newKeyMap;
+
     map = xkb_keymap_new_from_buffer(context->ctx, keyMap,
-                                     keyboardSize,
+                                     size,
                                      XKB_KEYMAP_FORMAT_TEXT_V1,
                                      XKB_KEYMAP_COMPILE_NO_FLAGS);
     if (!map) {
       vlog.error("Failed to create xkb keymap");
-      munmap(keyMap, keyboardSize);
-      keyMap = nullptr;
+      clearKeyMap();
       return;
     }
 
@@ -177,8 +179,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     state = xkb_state_new(context->keymap);
     if (!state) {
       vlog.error("Failed to create xkb state");
-      munmap(keyMap, keyboardSize);
-      keyMap = nullptr;
+      clearKeyMap();
       return;
     }
 
@@ -187,13 +188,13 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     context->state = state;
 
     vlog.debug("Keymap updated");
+    keyboardFormat = format;
+    keyboardFd = fd;
+    keyboardSize = size;
     generateKeycodeMap();
   } else {
     vlog.error("Unsupported keymap format");
-    if (keyMap) {
-      munmap(keyMap, keyboardSize);
-      keyMap = nullptr;
-    }
+    clearKeyMap();
   }
 }
 
@@ -202,7 +203,7 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
   xkb_keycode_t min;
   xkb_keycode_t max;
 
-  if (keyMap == nullptr)
+  if (!context || !context->keymap)
     return XKB_KEYCODE_INVALID;
 
   min = xkb_keymap_min_keycode(context->keymap);
@@ -220,6 +221,8 @@ uint32_t Keyboard::keysymToKeycode(int keysym)
 
 uint32_t Keyboard::rfbcodeToKeycode(uint32_t rfbcode)
 {
+  if (!context)
+    return XKB_KEYCODE_INVALID;
   if (rfbcode >= sizeof(codeMapQnumToKeyCode))
     return XKB_KEYCODE_INVALID;
   if (codeMapQnumToKeyCode[rfbcode] == 0)
@@ -233,6 +236,10 @@ void Keyboard::handleModifiers(uint32_t /* serial */,
                                uint32_t modsLocked, uint32_t group)
 {
   xkb_state_component changed;
+
+  if (!context || !context->state)
+    return;
+
   // FIXME: What do we set the latched/locked layouts to?
   changed = xkb_state_update_mask(context->state, modsDepressed, modsLatched,
                         modsLocked, group, 0, 0);
@@ -244,6 +251,9 @@ void Keyboard::handleModifiers(uint32_t /* serial */,
 unsigned int Keyboard::getLEDState()
 {
   unsigned int ledState;
+
+  if (!context || !context->state)
+    return 0;
 
   ledState = 0;
   if (xkb_state_led_name_is_active(context->state, XKB_LED_NAME_SCROLL))
@@ -258,6 +268,9 @@ unsigned int Keyboard::getLEDState()
 
 void Keyboard::generateKeycodeMap()
 {
+  if (!context || !context->keymap)
+    return;
+
   memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
 
   /* Here, we generate a mapping from qnumcode (RFB) to our keyboard's
@@ -300,5 +313,29 @@ void Keyboard::generateKeycodeMap()
       codeMapQnumToKeyCode[rfbcode] = xkbKeyCode;
     else if (rfbFound)
       vlog.debug("No mapping found for key 0x%04x", rfbcode);
+  }
+}
+
+void Keyboard::clearKeyMap()
+{
+  memset(codeMapQnumToKeyCode, 0, sizeof(codeMapQnumToKeyCode));
+
+  if (keyMap) {
+    munmap(keyMap, keyboardSize);
+    keyMap = nullptr;
+    keyboardFd = -1;
+    keyboardSize = 0;
+  }
+
+  if (context) {
+    if (context->state)
+      xkb_state_unref(context->state);
+    context->state = nullptr;
+    if (context->keymap)
+      xkb_keymap_unref(context->keymap);
+    context->keymap = nullptr;
+    if (context->ctx)
+      xkb_context_unref(context->ctx);
+    context->ctx = nullptr;
   }
 }
