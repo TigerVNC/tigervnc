@@ -116,9 +116,16 @@ void PortalDesktop::start()
     clipboard->subscribe();
   };
 
-  remoteDesktop = new RemoteDesktop(restoreToken, startPipewire,
-                                    cancelStart, initClipboard,
-                                    clipboardSubscribe);
+  try {
+    remoteDesktop = new RemoteDesktop(restoreToken, startPipewire,
+                                      cancelStart, initClipboard,
+                                      clipboardSubscribe);
+  } catch (std::exception& e) {
+    vlog.error("error initializing RemoteDesktop: %s", e.what());
+    server->closeClients("Failed to start remote desktop session");
+    return;
+  }
+
   remoteDesktop->createSession();
 }
 
