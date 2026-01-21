@@ -22,6 +22,8 @@
 
 #include <assert.h>
 
+#include <stdexcept>
+
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
@@ -50,11 +52,13 @@ Display::Display(const char* name)
 {
   display = wl_display_connect(name);
   if (!display)
-    fatal_error("Failed to connect to wayland display");
+    throw std::runtime_error("Failed to connect to wayland display");
 
   registry = wl_display_get_registry(display);
-  if (!registry)
-    fatal_error("Failed to get registry");
+  if (!registry) {
+    wl_display_disconnect(display);
+    throw std::runtime_error("Failed to get registry");
+  }
 
   wl_registry_add_listener(registry, &listener, this);
   wl_display_roundtrip(display);

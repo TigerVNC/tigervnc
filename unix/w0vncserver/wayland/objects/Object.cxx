@@ -18,8 +18,12 @@
 
 #include <assert.h>
 
+#include <stdexcept>
+
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
+
+#include <core/string.h>
 
 #include "../../w0vncserver.h"
 #include "Display.h"
@@ -43,8 +47,6 @@ Object::Object(Display* display, const char* interfaceName,
                                             interface,
                                             objectInfo->version);
 
-  if (!boundObject) {
-    fatal_error("Failed to bind to %s ", interfaceName);
-    return;
-  }
+  if (!boundObject)
+    throw std::runtime_error(core::format("Failed to bind to %s ", interfaceName));
 }

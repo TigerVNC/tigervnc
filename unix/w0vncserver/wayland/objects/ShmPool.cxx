@@ -22,6 +22,8 @@
 
 #include <sys/mman.h>
 
+#include <stdexcept>
+
 #include <wayland-client-protocol.h>
 
 #include <core/LogWriter.h>
@@ -39,10 +41,8 @@ ShmPool::ShmPool(Shm* shm, int fd, size_t size_)
 {
   data = (uint8_t*)mmap(nullptr, size, PROT_READ | PROT_WRITE,
                         MAP_SHARED, fd, 0);
-  if (data == MAP_FAILED) {
-    fatal_error("Failed to map shm");
-    return;
-  }
+  if (data == MAP_FAILED)
+    throw std::runtime_error("Failed to mmap shm");
 
   pool = wl_shm_create_pool(shm->getShm(), fd, size);
 }
