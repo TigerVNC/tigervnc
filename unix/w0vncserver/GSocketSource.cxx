@@ -175,7 +175,7 @@ int GSocketSource::prepare(int* timeout)
         g_source_remove_unix_fd(source, state->tag);
         server->removeSocket(sock);
         delete sock;
-        assert(fdMap.erase(fd));
+        fdMap.erase(fd);
       }
       continue;
     }
@@ -220,7 +220,7 @@ int GSocketSource::dispatch()
       g_source_remove_unix_fd(source, state.tag);
       server->removeSocket(sock);
       delete sock;
-      assert(fdMap.erase(fd));
+      fdMap.erase(fd);
       continue;
     }
 
