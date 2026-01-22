@@ -425,9 +425,16 @@ int main(int argc, char** argv)
       server.getSockets(&sockets);
       int clients_connected = 0;
       for (i = sockets.begin(); i != sockets.end(); i++) {
+        if ((*i)->isShutdownRead()) {
+          server.removeSocket(*i);
+          delete (*i);
+          continue;
+        }
+
         FD_SET((*i)->getFd(), &rfds);
         if ((*i)->outStream().hasBufferedData())
           FD_SET((*i)->getFd(), &wfds);
+
         clients_connected++;
       }
 
@@ -471,7 +478,8 @@ int main(int argc, char** argv)
         if (FD_ISSET(listener->getFd(), &rfds)) {
           network::Socket* sock = listener->accept();
           if (sock) {
-            server.addSocket(sock);
+            if (!server.addSocket(sock))
+              delete sock;
           } else {
             vlog.status("Client connection rejected");
           }
@@ -493,29 +501,6 @@ int main(int argc, char** argv)
           server.processSocketReadEvent(*i);
         if (FD_ISSET((*i)->getFd(), &wfds))
           server.processSocketWriteEvent(*i);
-
-        // Do a graceful close by waiting for the peer to close their
-        // end
-        if ((*i)->isShutdown()) {
-          bool done;
-
-          done = false;
-          while (true) {
-            try {
-              (*i)->inStream().skip((*i)->inStream().avail());
-              if (!(*i)->inStream().hasData(1))
-                break;
-            } catch (std::exception&) {
-              done = true;
-              break;
-            }
-          }
-
-          if (done) {
-            server.removeSocket(*i);
-            delete (*i);
-          }
-        }
       }
 
       if (desktop.isRunning() && sched.goodTimeToPoll()) {

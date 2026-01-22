@@ -110,7 +110,7 @@ CConn::~CConn()
   if (sock) {
     struct timeval now;
 
-    sock->shutdown();
+    sock->shutdownWrite();
 
     // Do a graceful close by waiting for the peer (up to 250 ms)
     // FIXME: should do this asynchronously

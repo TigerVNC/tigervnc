@@ -122,11 +122,16 @@ void SocketManager::addSocket(network::Socket* sock_, VNCServer* srvr, bool outg
     vlog.error("Unable to add connection");
     return;
   }
+  if (!srvr->addSocket(sock_, outgoing)) {
+    removeEvent(event);
+    WSACloseEvent(event);
+    delete sock_;
+    return;
+  }
   ConnInfo ci;
   ci.sock = sock_;
   ci.server = srvr;
   connections[event] = ci;
-  srvr->addSocket(sock_, outgoing);
 }
 
 void SocketManager::remSocket(network::Socket* sock_) {
@@ -182,7 +187,7 @@ int SocketManager::checkTimeouts() {
   std::map<HANDLE,ConnInfo>::iterator j, j_next;
   for (j=connections.begin(); j!=connections.end(); j=j_next) {
     j_next = j; j_next++;
-    if (j->second.sock->isShutdown())
+    if (j->second.sock->isShutdownRead())
       shutdownSocks.push_back(j->second.sock);
     else {
       long eventMask = FD_READ | FD_CLOSE;
@@ -252,17 +257,9 @@ void SocketManager::processEvent(HANDLE event) {
       // Call the socket server to process the event
       if (network_events.lNetworkEvents & FD_WRITE) {
         ci.server->processSocketWriteEvent(ci.sock);
-        if (ci.sock->isShutdown()) {
-          remSocket(ci.sock);
-          return;
-        }
       }
       if (network_events.lNetworkEvents & (FD_READ | FD_CLOSE)) {
         ci.server->processSocketReadEvent(ci.sock);
-        if (ci.sock->isShutdown()) {
-          remSocket(ci.sock);
-          return;
-        }
       }
 
       // Re-instate the required socket event

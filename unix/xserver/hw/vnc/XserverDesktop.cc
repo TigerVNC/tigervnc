@@ -307,11 +307,11 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
 {
   try {
     if (read) {
-      if (handleListenerEvent(fd, &listeners, server))
+      if (handleListenerEvent(fd))
         return;
     }
 
-    if (handleSocketEvent(fd, server, read, write))
+    if (handleSocketReadWrite(fd, read, write))
       return;
 
     vlog.error("Cannot find file descriptor for socket event");
@@ -320,36 +320,35 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
   }
 }
 
-bool XserverDesktop::handleListenerEvent(int fd,
-                                         std::list<network::SocketListener*>* sockets,
-                                         rfb::VNCServer* sockserv)
+bool XserverDesktop::handleListenerEvent(int fd)
 {
   std::list<network::SocketListener*>::iterator i;
 
-  for (i = sockets->begin(); i != sockets->end(); i++) {
+  for (i = listeners.begin(); i != listeners.end(); i++) {
     if ((*i)->getFd() == fd)
       break;
   }
 
-  if (i == sockets->end())
+  if (i == listeners.end())
     return false;
 
   network::Socket* sock = (*i)->accept();
   vlog.debug("New client, sock %d", sock->getFd());
-  sockserv->addSocket(sock);
+  if (!server->addSocket(sock)) {
+    delete sock;
+    return true;
+  }
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 
   return true;
 }
 
-bool XserverDesktop::handleSocketEvent(int fd,
-                                       rfb::VNCServer* sockserv,
-                                       bool read, bool write)
+bool XserverDesktop::handleSocketReadWrite(int fd, bool read, bool write)
 {
   std::list<network::Socket*> sockets;
   std::list<network::Socket*>::iterator i;
 
-  sockserv->getSockets(&sockets);
+  server->getSockets(&sockets);
   for (i = sockets.begin(); i != sockets.end(); i++) {
     if ((*i)->getFd() == fd)
       break;
@@ -359,35 +358,10 @@ bool XserverDesktop::handleSocketEvent(int fd,
     return false;
 
   if (read)
-    sockserv->processSocketReadEvent(*i);
+    server->processSocketReadEvent(*i);
 
   if (write)
-    sockserv->processSocketWriteEvent(*i);
-
-  // Do a graceful close by waiting for the peer to close their end
-  if ((*i)->isShutdown()) {
-    bool done;
-
-    done = false;
-    while (true) {
-      try {
-        (*i)->inStream().skip((*i)->inStream().avail());
-        if (!(*i)->inStream().hasData(1))
-          break;
-      } catch (std::exception&) {
-        done = true;
-        break;
-      }
-    }
-
-    if (done) {
-      vlog.debug("Client gone, sock %d",fd);
-      vncRemoveNotifyFd(fd);
-      sockserv->removeSocket(*i);
-      vncClientGone(fd);
-      delete (*i);
-    }
-  }
+    server->processSocketWriteEvent(*i);
 
   return true;
 }
@@ -406,6 +380,15 @@ void XserverDesktop::blockHandler(int* timeout)
     server->getSockets(&sockets);
     for (i = sockets.begin(); i != sockets.end(); i++) {
       int fd = (*i)->getFd();
+
+      if ((*i)->isShutdownRead()) {
+        vlog.debug("Client gone, sock %d",fd);
+        vncRemoveNotifyFd(fd);
+        server->removeSocket(*i);
+        vncClientGone(fd);
+        delete (*i);
+      }
+
       /* Update existing NotifyFD to listen for write (or not) */
       vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().hasBufferedData());
     }
@@ -430,13 +413,20 @@ void XserverDesktop::blockHandler(int* timeout)
   }
 }
 
-void XserverDesktop::addClient(network::Socket* sock,
+bool XserverDesktop::addClient(network::Socket* sock,
                                bool reverse, bool viewOnly)
 {
+  rfb::AccessRights rights;
+
   vlog.debug("New client, sock %d reverse %d",sock->getFd(),reverse);
-  server->addSocket(sock, reverse,
-                    viewOnly ? rfb::AccessView : rfb::AccessDefault);
+
+  rights = viewOnly ? rfb::AccessView : rfb::AccessDefault;
+  if (!server->addSocket(sock, reverse, rights))
+    return false;
+
   vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
+
+  return true;
 }
 
 void XserverDesktop::disconnectClients()

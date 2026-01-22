@@ -155,28 +155,12 @@ int GSocketSource::prepare(int* timeout)
     state = &fdMap[fd];
     assert(state->tag);
 
-    if (sock->isShutdown()) {
-      bool done;
-
-      done = false;
-      while (true) {
-        try {
-          sock->inStream().skip(sock->inStream().avail());
-          if(!sock->inStream().hasData(1))
-            break;
-        } catch (std::exception&) {
-          done = true;
-          break;
-        }
-      }
-
-      if (done) {
-        vlog.debug("Client gone, sock %d", fd);
-        g_source_remove_unix_fd(source, state->tag);
-        server->removeSocket(sock);
-        delete sock;
-        fdMap.erase(fd);
-      }
+    if (sock->isShutdownRead()) {
+      vlog.debug("Client gone, sock %d", fd);
+      g_source_remove_unix_fd(source, state->tag);
+      server->removeSocket(sock);
+      delete sock;
+      fdMap.erase(fd);
       continue;
     }
 
@@ -256,7 +240,11 @@ int GSocketSource::handleListenerReady(ListenerReadyEvent* event)
     return G_SOURCE_CONTINUE;
   }
 
-  server->addSocket(sock);
+  if (!server->addSocket(sock)) {
+    delete sock;
+    return G_SOURCE_CONTINUE;
+  }
+
   fd = sock->getFd();
   tag = g_source_add_unix_fd(source, fd,
                              static_cast<GIOCondition>((G_IO_IN | G_IO_HUP | G_IO_ERR)));

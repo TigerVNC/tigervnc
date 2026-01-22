@@ -57,7 +57,7 @@ namespace rfb {
     // addSocket
     //   Causes the server to allocate an RFB-protocol management
     //   structure for the socket & initialise it.
-    void addSocket(network::Socket* sock, bool outgoing=false,
+    bool addSocket(network::Socket* sock, bool outgoing=false,
                    AccessRights ar=AccessDefault) override;
 
     // removeSocket
@@ -195,7 +195,6 @@ namespace rfb {
     VNCSConnectionST* pointerClient;
     VNCSConnectionST* clipboardClient;
     std::list<VNCSConnectionST*> clipboardRequestors;
-    std::list<network::Socket*> closingSockets;
 
     time_t pointerClientTime;
 

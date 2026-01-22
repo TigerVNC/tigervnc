@@ -255,7 +255,10 @@ void vncExtensionInit(void)
 
         if (scr == 0 && vncInetdSock != -1 && listeners.empty()) {
           network::Socket* sock = new network::TcpSocket(vncInetdSock);
-          desktop[scr]->addClient(sock, false, false);
+          if (!desktop[scr]->addClient(sock, false, false)) {
+            delete sock;
+            throw std::runtime_error("Failed to add inetd socket");
+          }
           vlog.info("Added inetd sock");
         }
       }
@@ -352,7 +355,10 @@ int vncConnectClient(const char *addr, int viewOnly)
     network::Socket* sock = new network::TcpSocket(host.c_str(), port);
     vlog.info("Reverse connection: %s:%d%s", host.c_str(), port,
               viewOnly ? " (view only)" : "");
-    desktop[0]->addClient(sock, true, (bool)viewOnly);
+    if (!desktop[0]->addClient(sock, true, (bool)viewOnly)) {
+      delete sock;
+      throw std::runtime_error("Failed to add reverse connection socket");
+    }
   } catch (std::exception& e) {
     vlog.error("Reverse connection: %s", e.what());
     return -1;

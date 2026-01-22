@@ -137,7 +137,7 @@ VNCServerST::~VNCServerST()
 
 // VNCServer methods
 
-void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights accessRights)
+bool VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights accessRights)
 {
   // - Check the connection isn't black-marked
   // *** do this in getSecurity instead?
@@ -156,9 +156,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
       os.flush();
     } catch (std::exception&) {
     }
-    sock->shutdown();
-    closingSockets.push_back(sock);
-    return;
+    return false;
   }
 
   connectionsLog.status("Accepted: %s", sock->getPeerEndpoint());
@@ -174,9 +172,10 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     client->init();
   } catch (std::exception& e) {
     connectionsLog.error("Error accepting client: %s", e.what());
-    sock->shutdown();
-    closingSockets.push_back(sock);
+    return false;
   }
+
+  return true;
 }
 
 void VNCServerST::removeSocket(network::Socket* sock) {
@@ -219,8 +218,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
     }
   }
 
-  // - If the Socket has no resources, it may have been a closingSocket
-  closingSockets.remove(sock);
+  throw std::invalid_argument("Invalid Socket in VNCServerST");
 }
 
 void VNCServerST::processSocketReadEvent(network::Socket* sock)
@@ -229,15 +227,9 @@ void VNCServerST::processSocketReadEvent(network::Socket* sock)
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
-      (*ci)->processMessages();
+      (*ci)->processSocketReadEvent();
       return;
     }
-  }
-  // Might be a socket we're trying to get rid of
-  std::list<network::Socket*>::iterator si;
-  for (si = closingSockets.begin(); si != closingSockets.end(); si++) {
-    if ((*si) == sock)
-      return;
   }
   throw std::invalid_argument("Invalid Socket in VNCServerST");
 }
@@ -248,7 +240,7 @@ void VNCServerST::processSocketWriteEvent(network::Socket* sock)
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
-      (*ci)->flushSocket();
+      (*ci)->processSocketWriteEvent();
       return;
     }
   }
@@ -693,10 +685,6 @@ void VNCServerST::getSockets(std::list<network::Socket*>* sockets)
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     sockets->push_back((*ci)->getSock());
-  }
-  std::list<network::Socket*>::iterator si;
-  for (si = closingSockets.begin(); si != closingSockets.end(); si++) {
-    sockets->push_back(*si);
   }
 }
 
