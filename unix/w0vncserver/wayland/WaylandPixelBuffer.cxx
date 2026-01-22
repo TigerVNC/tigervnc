@@ -45,70 +45,49 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
                                        wayland::Output* output_,
                                        rfb::VNCServer* server_,
                                        std::function<void()> desktopReadyCallback_)
-  : wayland::ScreencopyManager(display, output_), firstFrame(true),
-    desktopReadyCallback(desktopReadyCallback_), server(server_)
+  : firstFrame(true), desktopReadyCallback(desktopReadyCallback_),
+    server(server_), output(output_), resized(false)
 {
-  captureFrame();
+  std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> bufferEventCb =
+    std::bind(&WaylandPixelBuffer::bufferEvent, this, std::placeholders::_1,
+              std::placeholders::_2, std::placeholders::_3);
+
+  screencopyManager = new wayland::ScreencopyManager(display, output_,
+                                                     bufferEventCb);
 }
 
 WaylandPixelBuffer::~WaylandPixelBuffer()
 {
+  delete screencopyManager;
 }
 
-void WaylandPixelBuffer::captureFrame()
+void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage, rfb::PixelFormat pf)
 {
   if (output->getWidth() != (uint32_t)width() ||
       output->getHeight() != (uint32_t)height()) {
-    if (!firstFrame) {
+    if (!firstFrame && !resized) {
       vlog.debug("Detected resize, calling resize()");
-      resize();
+      screencopyManager->resize();
+      resized = true;
+      return;
     }
   }
 
-  ScreencopyManager::captureFrame();
-}
-
-void WaylandPixelBuffer::captureFrameDone()
-{
   // We need to capture our first frame before we know which format
   // the display is using.
   // FIXME: Can we query the compositor instead of doing this?
   if (firstFrame) {
-    try {
-      format = getPixelFormat();
-    } catch (std::runtime_error& e) {
-      fatal_error("Failed to get pixel format: %s", e.what());
-      return;
-    }
-
+    format = pf;
     setSize(output->getWidth(), output->getHeight());
-
     desktopReadyCallback();
   }
 
   firstFrame = false;
 
-  syncBuffers();
-
-  ScreencopyManager::captureFrameDone();
-
-  server->add_changed(getDamage());
-
-  captureFrame();
+  syncBuffers(buffer, damage);
 }
 
-void WaylandPixelBuffer::resize()
-{
-  ScreencopyManager::resize();
-
-  setSize(output->getWidth(), output->getHeight());
-
-  syncBuffers();
-
-  server->setPixelBuffer(this);
-}
-
-void WaylandPixelBuffer::syncBuffers()
+void WaylandPixelBuffer::syncBuffers(uint8_t* buffer, core::Region damage)
 {
   int srcStride;
   int dstStride;
@@ -118,12 +97,19 @@ void WaylandPixelBuffer::syncBuffers()
   core::Region region;
   std::vector<core::Rect> rects;
 
-  region = getDamage();
+  if (resized) {
+    setSize(output->getWidth(), output->getHeight());
+    server->setPixelBuffer(this);
+    damage = getRect();
+    resized = false;
+  }
+
+  region = damage;
 
   if (region.is_empty())
     region = getRect();
 
-  srcBuffer = getBufferData();
+  srcBuffer = buffer;
   srcStride = width();
 
   region.get_rects(&rects);
@@ -143,4 +129,6 @@ void WaylandPixelBuffer::syncBuffers()
       imageRect(rect, damagedBuffer, srcStride);
     }
   }
+
+  server->add_changed(damage);
 }

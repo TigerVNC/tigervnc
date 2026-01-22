@@ -83,12 +83,16 @@ struct BufferInfo {
   uint32_t stride;
 };
 
-ScreencopyManager::ScreencopyManager(Display* display,
-                                           Output* output_)
+ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
+                                     std::function<void(uint8_t*,
+                                                        core::Region,
+                                                        rfb::PixelFormat)>
+                                                          bufferEventCb_)
  : Object(display, "zwlr_screencopy_manager_v1",
            &zwlr_screencopy_manager_v1_interface),
    output(output_), screencopyManager(nullptr), frame(nullptr),
-   info(nullptr), shm(nullptr), pool(nullptr), buffer(nullptr)
+   info(nullptr), shm(nullptr), pool(nullptr), buffer(nullptr),
+   bufferEventCb(bufferEventCb_)
 {
   size_t size;
 
@@ -102,6 +106,8 @@ ScreencopyManager::ScreencopyManager(Display* display,
   assert(size);
 
   initBuffers(size);
+
+  captureFrame();
 }
 
 ScreencopyManager::~ScreencopyManager()
@@ -144,6 +150,10 @@ void ScreencopyManager::captureFrameDone()
 
   zwlr_screencopy_frame_v1_destroy(frame);
   frame = nullptr;
+
+  bufferEventCb(getBufferData(), accumulatedDamage, getPixelFormat());
+
+  captureFrame();
 }
 
 void ScreencopyManager::resize()
@@ -244,8 +254,8 @@ rfb::PixelFormat ScreencopyManager::getPixelFormat()
 
   try {
     pf = convertPixelformat(info->format);
-  } catch (std::runtime_error& e) {
-    fatal_error("Failed to get pixelformat: %s", e.what());
+  } catch (std::exception &e) {
+    fatal_error("Could not convert pixelformat: %s", e.what());
   }
 
   return pf;

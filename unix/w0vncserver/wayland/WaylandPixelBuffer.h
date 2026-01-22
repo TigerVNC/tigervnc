@@ -25,15 +25,14 @@
 
 #include "objects/ScreencopyManager.h"
 
-namespace rfb { class VNCServer; }
+namespace rfb { class VNCServer; class PixelFormat; }
 
 namespace wayland {
   class Output;
   class Display;
 };
 
-class WaylandPixelBuffer : public rfb::ManagedPixelBuffer,
-                           public wayland::ScreencopyManager {
+class WaylandPixelBuffer : public rfb::ManagedPixelBuffer {
 public:
   WaylandPixelBuffer(wayland::Display* display, wayland::Output* output,
                      rfb::VNCServer* server,
@@ -41,18 +40,20 @@ public:
   ~WaylandPixelBuffer();
 
 protected:
-  virtual void captureFrame() override;
-  virtual void captureFrameDone() override;
-  virtual void resize() override;
+  // Called when there is pixel data available to read
+  void bufferEvent(uint8_t* buffer, core::Region damage, rfb::PixelFormat pf);
 
 private:
   // Sync the shadow framebuffer to the actual framebuffer
-  void syncBuffers();
+  void syncBuffers(uint8_t* buffer, core::Region damage);
 
 private:
   bool firstFrame;
   std::function<void()> desktopReadyCallback;
   rfb::VNCServer* server;
+  wayland::Output* output;
+  wayland::ScreencopyManager* screencopyManager;
+  bool resized;
 };
 
 #endif // __WAYLAND_PIXELBUFFER_H__
