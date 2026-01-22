@@ -227,7 +227,6 @@ void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
     .height = height,
     .stride = stride
   };
-
 }
 
 void ScreencopyManager::handleScreencopyFlags(uint32_t /* flags */)

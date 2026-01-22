@@ -1,4 +1,4 @@
-/* Copyright 2025 Adam Halim for Cendio AB
+/* Copyright 2026 Adam Halim for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,34 +21,37 @@
 #endif
 
 #include <assert.h>
-#include <unistd.h>
-
 #include <stdexcept>
 
 #include <pixman.h>
-#include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
-#include <wayland-client.h>
 
 #include <core/Region.h>
 #include <core/string.h>
 #include <core/LogWriter.h>
+#include <core/Rect.h>
 #include <rfb/VNCServerST.h>
 
 #include "../w0vncserver.h"
 #include "objects/Output.h"
 #include "objects/Display.h"
 #include "objects/ScreencopyManager.h"
+#include "objects/ImageCaptureSource.h"
+#include "objects/ImageCopyCaptureManager.h"
 #include "WaylandPixelBuffer.h"
+
+using namespace wayland;
 
 static core::LogWriter vlog("WaylandPixelBuffer");
 
-WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
-                                       wayland::Output* output_,
+WaylandPixelBuffer::WaylandPixelBuffer(Display* display_,
+                                       Output* output_,
                                        rfb::VNCServer* server_,
                                        std::function<void()> desktopReadyCallback_)
   : firstFrame(true), desktopReadyCallback(desktopReadyCallback_),
-    server(server_), output(output_), resized(false)
+    server(server_), output(output_), screencopyManager(nullptr),
+    imageCaptureSource(nullptr), imageCopyCaptureManager(nullptr),
+    resized(false)
 {
   std::function<void(uint8_t*, core::Region, uint32_t)> bufferEventCb =
     std::bind(&WaylandPixelBuffer::bufferEvent, this, std::placeholders::_1,
@@ -58,14 +61,26 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
     server->closeClients("The remote session stopped");
   };
 
-  screencopyManager = new wayland::ScreencopyManager(display, output_,
-                                                     bufferEventCb,
-                                                     stoppedCb);
+  if (display_->interfaceAvailable("ext_image_copy_capture_manager_v1") &&
+      display_->interfaceAvailable("ext_output_image_capture_source_manager_v1")) {
+    imageCaptureSource = new OutputImageCaptureSource(display_, output_);
+
+    imageCopyCaptureManager = new ImageCopyCaptureManager(display_,
+                                                          imageCaptureSource,
+                                                          bufferEventCb,
+                                                          stoppedCb);
+    imageCopyCaptureManager->createSession();
+  } else {
+    screencopyManager = new ScreencopyManager(display_, output_,
+                                              bufferEventCb, stoppedCb);
+  }
 }
 
 WaylandPixelBuffer::~WaylandPixelBuffer()
 {
   delete screencopyManager;
+  delete imageCopyCaptureManager;
+  delete imageCaptureSource;
 }
 
 void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
@@ -74,9 +89,9 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
   if (output->getWidth() != (uint32_t)width() ||
       output->getHeight() != (uint32_t)height()) {
     if (!firstFrame && !resized) {
-      vlog.debug("Detected resize, calling resize()");
-      screencopyManager->resize();
       resized = true;
+      if (screencopyManager)
+        screencopyManager->resize();
       return;
     }
   }

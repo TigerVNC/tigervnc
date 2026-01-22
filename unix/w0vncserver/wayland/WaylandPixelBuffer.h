@@ -1,4 +1,4 @@
-/* Copyright 2025 Adam Halim for Cendio AB
+/* Copyright 2026 Adam Halim for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,14 @@
 
 #include <rfb/PixelBuffer.h>
 
-#include "objects/ScreencopyManager.h"
-
 namespace rfb { class VNCServer; class PixelFormat; }
 
 namespace wayland {
   class Output;
   class Display;
+  class ScreencopyManager;
+  class ImageCaptureSource;
+  class ImageCopyCaptureManager;
 };
 
 class WaylandPixelBuffer : public rfb::ManagedPixelBuffer {
@@ -55,7 +56,14 @@ private:
   std::function<void()> desktopReadyCallback;
   rfb::VNCServer* server;
   wayland::Output* output;
+
+  // wlr-screencopy
   wayland::ScreencopyManager* screencopyManager;
+
+  // ext-image-copy-capture-v1
+  wayland::ImageCaptureSource* imageCaptureSource;
+  wayland::ImageCopyCaptureManager* imageCopyCaptureManager;
+
   bool resized;
 };
 
