@@ -175,6 +175,7 @@ namespace rfb {
 
   private:
     network::Socket* sock;
+    core::Timer socketTimer;
     std::string peerEndpoint;
     bool reverseConnection;
 
