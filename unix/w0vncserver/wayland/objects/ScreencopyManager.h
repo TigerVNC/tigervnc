@@ -24,10 +24,9 @@
 #include <functional>
 
 #include <core/Region.h>
+#include <rfb/PixelFormat.h>
 
 #include "Object.h"
-
-namespace rfb { class PixelFormat; }
 
 struct wl_buffer;
 struct zwlr_screencopy_manager_v1;
@@ -49,8 +48,6 @@ namespace wayland {
 
     // Called when the remote output is resized
     void resize();
-
-    rfb::PixelFormat getPixelFormat();
 
     uint8_t* getBufferData();
 
@@ -90,6 +87,7 @@ namespace wayland {
     ShmPool* pool;
     wl_buffer* buffer;
     core::Region accumulatedDamage;
+    rfb::PixelFormat pf;
     std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> bufferEventCb;
     static const zwlr_screencopy_frame_v1_listener listener;
   };

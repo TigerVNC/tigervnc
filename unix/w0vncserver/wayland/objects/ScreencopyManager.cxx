@@ -151,7 +151,7 @@ void ScreencopyManager::captureFrameDone()
   zwlr_screencopy_frame_v1_destroy(frame);
   frame = nullptr;
 
-  bufferEventCb(getBufferData(), accumulatedDamage, getPixelFormat());
+  bufferEventCb(getBufferData(), accumulatedDamage, pf);
 
   captureFrame();
 }
@@ -233,6 +233,12 @@ void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
     .height = height,
     .stride = stride
   };
+
+  try {
+    pf = convertPixelformat(info->format);
+  } catch (const std::exception& e) {
+    fatal_error("Failed to convert pixelformat: %s", e.what());
+  }
 }
 
 void ScreencopyManager::handleScreencopyFlags(uint32_t /* flags */)
@@ -244,21 +250,6 @@ void ScreencopyManager::handleScreencopyFlags(uint32_t /* flags */)
 void ScreencopyManager::handleScreencopyReady()
 {
   captureFrameDone();
-}
-
-rfb::PixelFormat ScreencopyManager::getPixelFormat()
-{
-  assert(info);
-
-  rfb::PixelFormat pf;
-
-  try {
-    pf = convertPixelformat(info->format);
-  } catch (std::exception &e) {
-    fatal_error("Could not convert pixelformat: %s", e.what());
-  }
-
-  return pf;
 }
 
 void ScreencopyManager::handleScreencopyFailed()
