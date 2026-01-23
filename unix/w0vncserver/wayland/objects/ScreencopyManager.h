@@ -21,11 +21,12 @@
 
 #include <stddef.h>
 
+#include <functional>
+
 #include <core/Region.h>
+#include <rfb/PixelFormat.h>
 
 #include "Object.h"
-
-namespace rfb { class PixelFormat; }
 
 struct wl_buffer;
 struct zwlr_screencopy_manager_v1;
@@ -41,26 +42,23 @@ namespace wayland {
 
   class ScreencopyManager : public Object {
   public:
-    ScreencopyManager(Display* display, Output* output);
+    ScreencopyManager(Display* display, Output* output,
+                      std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> readyCallback);
     virtual ~ScreencopyManager();
+
+    // Called when the remote output is resized
+    void resize();
 
     uint8_t* getBufferData();
 
+  private:
     // Capture the next frame. This function is asynchronous.
     // Framebuffer data is available after handleScreencopyReady() has
     // been called, in which case captureFrameDone() will be called.
-    virtual void captureFrame() = 0;
+    void captureFrame();
 
-  protected:
     // Called when the buffer is safe to read from, the frame is ready.
-    virtual void captureFrameDone() = 0;
-
-    // Called when the remote output is resized
-    virtual void resize() = 0;
-
-    rfb::PixelFormat getPixelFormat();
-
-    core::Region getDamage() { return accumulatedDamage; }
+    void captureFrameDone();
 
   private:
     void initBuffers(size_t size);
@@ -89,6 +87,8 @@ namespace wayland {
     ShmPool* pool;
     wl_buffer* buffer;
     core::Region accumulatedDamage;
+    rfb::PixelFormat pf;
+    std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> bufferEventCb;
     static const zwlr_screencopy_frame_v1_listener listener;
   };
 };
