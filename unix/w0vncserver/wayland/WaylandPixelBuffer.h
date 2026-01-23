@@ -51,7 +51,6 @@ private:
 
 private:
   bool firstFrame;
-  uint8_t* shadowFramebuffer;
   std::function<void()> desktopReadyCallback;
   rfb::VNCServer* server;
 };

@@ -46,7 +46,6 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
                                        rfb::VNCServer* server_,
                                        std::function<void()> desktopReadyCallback_)
   : wayland::ScreencopyManager(display, output_), firstFrame(true),
-    shadowFramebuffer(nullptr),
     desktopReadyCallback(desktopReadyCallback_), server(server_)
 {
   captureFrame();
@@ -54,7 +53,6 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
 
 WaylandPixelBuffer::~WaylandPixelBuffer()
 {
-  delete [] shadowFramebuffer;
 }
 
 void WaylandPixelBuffer::captureFrame()
@@ -83,11 +81,6 @@ void WaylandPixelBuffer::captureFrameDone()
       return;
     }
 
-    // Utilize a shadow framebuffer, as we have no way of accessing
-    // the screen contents directly.
-    shadowFramebuffer = new uint8_t[output->getWidth() *
-                                    output->getHeight() * (format.bpp / 8)];
-
     setSize(output->getWidth(), output->getHeight());
 
     desktopReadyCallback();
@@ -107,11 +100,6 @@ void WaylandPixelBuffer::captureFrameDone()
 void WaylandPixelBuffer::resize()
 {
   ScreencopyManager::resize();
-
-  delete [] shadowFramebuffer;
-
-  shadowFramebuffer = new uint8_t[output->getWidth() *
-                                  output->getHeight() * (format.bpp / 8)];
 
   setSize(output->getWidth(), output->getHeight());
 
