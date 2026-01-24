@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: tigervnc 1.15.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2025-11-07 10:53+0100\n"
-"PO-Revision-Date: 2025-12-24 07:19+0100\n"
+"PO-Revision-Date: 2026-01-24 10:48+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <(nothing)>\n"
 "Language: ka\n"
@@ -514,7 +514,7 @@ msgstr "სესიის კონტექსტური მენიუს 
 #: vncviewer/OptionsDialog.cxx:1339
 #, c-format
 msgid "To send a key combination that includes %s directly to the session, press %sSpace, release the space bar without releasing %s, and press the desired key."
-msgstr ""
+msgstr "%s-ის შემცველი ღილაკების კომბინაციის პირდაპირ სესიაში გასაგზავნად დააჭირეთ %sჰაეს, აუშვით ჰარეს %s-ის გაშვების გარეშე და დააჭირეთ სასურველ ღილაკს."
 
 #: vncviewer/ServerDialog.cxx:74
 msgid "VNC server:"
@@ -769,17 +769,17 @@ msgstr "უცნობი ღილაკი 0x%x - კლავიატურ
 #: vncviewer/XInputTouchHandler.cxx:103 vncviewer/touch.cxx:107
 #, c-format
 msgid "Unable to get X Input 2 event mask for window 0x%08lx"
-msgstr ""
+msgstr "X Input 2-ის მოვლენის ნიღბის მიღება შეუძლებელია ფანჯრისთვის 0x%08lx"
 
 #: vncviewer/XInputTouchHandler.cxx:105
 #, c-format
 msgid "Window 0x%08lx has no X Input 2 event mask"
-msgstr ""
+msgstr "ფანჯარას 0x%08lx X Input 2 მოვლენის ნიღაბი არ აქვს"
 
 #: vncviewer/XInputTouchHandler.cxx:113 vncviewer/touch.cxx:114
 #, c-format
 msgid "Window 0x%08lx has more than one X Input 2 event mask"
-msgstr ""
+msgstr "ფანჯარას 0x%08lx ერთზე მეტი X Input 2 მოვლენის ნიღაბი აქვს"
 
 #: vncviewer/XInputTouchHandler.cxx:144
 #, c-format
@@ -794,7 +794,7 @@ msgstr "TigerVNC"
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
 #: vncviewer/vncviewer.desktop.in.in:4
 msgid "Connect to VNC server and display remote desktop"
-msgstr ""
+msgstr "დაუკავშირდით VNC სერვერს და აჩვენეთ დაშორებული ეკრანი"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
 msgid "Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network. Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device. This package contains a client which will enable you to connect to other desktops running a VNC server. VNC is platform-independent and supports various operating systems and architectures as both servers and clients."
@@ -897,12 +897,12 @@ msgstr "უცნობი პარამეტრი"
 #: vncviewer/touch.cxx:75
 #, c-format
 msgid "Got message (0x%x) for an unhandled window"
-msgstr ""
+msgstr "მიღებულია შეტყობინება (0x%x) დაუმუშავებელი ფანჯრისთვის"
 
 #: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
 #, c-format
 msgid "Invalid window 0x%08lx specified for pointer grab"
-msgstr ""
+msgstr "არასწორი ფანჯარა 0x%08lx მაჩვენებლის ჩასაჭერად"
 
 #: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
 #, c-format
@@ -912,7 +912,7 @@ msgstr "ვერ შევქმენი შეხების დამმუ
 #: vncviewer/touch.cxx:188
 #, c-format
 msgid "Couldn't attach event handler to window (error 0x%x)"
-msgstr ""
+msgstr "მოვლენების დამმუშავებლის ფანჯარაზე მიმაგრება შეუძლებელია (შეცდომა 0x%x)"
 
 #: vncviewer/touch.cxx:215
 msgid "Failed to get event data for X Input event"
@@ -942,6 +942,10 @@ msgid ""
 "Copyright (C) 1999-%d TigerVNC team and many others (see README.rst)\n"
 "See https://www.tigervnc.org for information on TigerVNC."
 msgstr ""
+"TigerVNC v%s\n"
+"აგების თარიღი: %s\n"
+"Copyright (C) 1999-%d TigerVNC-ის გუნდი და მრავალი სხვა (იხ README.rst)\n"
+"მეტი ინფორმაციისთვის TigerVNC-ის შესახებ იხილეთ https://www.tigervnc.org ."
 
 #: vncviewer/vncviewer.cxx:173
 msgid "About TigerVNC"
@@ -970,7 +974,7 @@ msgstr "ახალი კავშირის გაშვების შე
 #: vncviewer/vncviewer.cxx:266
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC will now exit."
-msgstr ""
+msgstr "მიღებულია შეწყვეტის სიგნალი %d. TigerVNC მუშაობას დაასრულებს."
 
 #: vncviewer/vncviewer.cxx:395
 msgid "Yes"
@@ -1024,6 +1028,12 @@ msgid ""
 "       %s [parameters] -listen [port]\n"
 "       %s [parameters] [.tigervnc file]\n"
 msgstr ""
+"\n"
+"გამოყენება: %s [პარამეტრები] [ჰოსტი][:ეკრანისნომ]\n"
+"       %s [პარამეტრები] [ჰოსტი][::პორტი]\n"
+"       %s [პარამეტრები] [unix სოკეტი]\n"
+"       %s [პარამეტრები] -listen [პორტი]\n"
+"       %s [პარამეტრები] [.tigervnc ფაილი]\n"
 
 #: vncviewer/vncviewer.cxx:465
 #, c-format
@@ -1035,6 +1045,12 @@ msgid ""
 "  -geometry geometry - Initial position of the main TigerVNC window. See the\n"
 "                       man page for details.\n"
 msgstr ""
+"\n"
+"პარამეტრები:\n"
+"\n"
+"  -display Xdisplay  - მიუთითებს X-ის ეკრანს მნახველის ფანჯრისთვის\n"
+"  -geometry geometry - TigerVNC-ის მთავარი ფანჯრის საწყისი მდებარეობა. დეტალებისთვის\n"
+"                       იხილეთ სახელმძღვანელო.\n"
 
 #: vncviewer/vncviewer.cxx:472
 #, c-format
@@ -1049,11 +1065,11 @@ msgstr ""
 
 #: vncviewer/vncviewer.cxx:527
 msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
-msgstr ""
+msgstr "FullScreenAllMonitors მოძველებულია. სამაგიეროდ დააყენეთ FullScreenMode მნიშვნელობაზე 'all'"
 
 #: vncviewer/vncviewer.cxx:532
 msgid "DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' instead"
-msgstr ""
+msgstr "DotWhenNoCursor მოძველებულია. სამაგიეროდ დააყენეთ AlwaysCursor მნიშვნელობაზე 1 და CursorType მნიშვნელობაზე 'Dot'"
 
 #: vncviewer/vncviewer.cxx:553
 msgid "~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."
