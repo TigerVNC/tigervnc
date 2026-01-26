@@ -29,12 +29,16 @@
 namespace rfb { class VNCServer; }
 
 class PortalProxy;
+class Clipboard;
+struct PendingData;
 
 class RemoteDesktop {
 public:
   RemoteDesktop(std::string restoreToken,
                 std::function<void(int fd, uint32_t nodeId)> startPipewireCb,
-                std::function<void(const char*)> cancelStartCb);
+                std::function<void(const char*)> cancelStartCb,
+                std::function<void()> initClipboardCb,
+                std::function<void()> clipboardSubscribeCb);
   ~RemoteDesktop();
 
   // Methods called from SDesktop
@@ -50,9 +54,13 @@ public:
   void createSession();
 
   std::string getRestoreToken() const { return restoreToken; }
+  std::string getSessionHandle() const { return sessionHandle; }
+  bool getClipboardEnabled() const { return clipboardEnabled; }
 
 private:
   // Portal methods
+  void selectionWrite(uint32_t serial);
+  void selectionWriteDone(uint32_t serial, bool success);
   void closeSession();
   void selectDevices();
   void selectSources();
@@ -60,11 +68,12 @@ private:
   void openPipewireRemote();
 
   // Portal signal callbacks
-  void handleCreateSession(GVariant* parameters);
-  void handleStart(GVariant* parameters);
-  void handleSelectDevices(GVariant* parameters);
-  void handleSelectSources(GVariant* parameters);
-  void handleOpenPipewireRemote(GObject* proxy, GAsyncResult* res);
+  void handleCreateSession(GVariant *parameters);
+  void handleStart(GVariant *parameters);
+  void handleSelectDevices(GVariant *parameters);
+  void handleSelectSources(GVariant *parameters);
+  void handleRequestClipboard(GVariant *parameters);
+  void handleOpenPipewireRemote(GObject *proxy, GAsyncResult *res);
 
   // pointerEvent help functions
   void notifyPointerButton(int32_t button, bool down);
@@ -77,13 +86,12 @@ private:
   bool loadRestoreToken();
   // Stores the restore token, returns false on error
   bool storeRestoreToken(const char* restoreToken);
-  // Resets the restore token, returns false on error
-  bool clearRestoreToken();
 
 private:
   bool sessionStarted;
   uint16_t oldButtonMask;
   uint32_t selectedDevices;
+  bool clipboardEnabled;
   std::string sessionHandle;
 
   uint32_t pipewireNodeId;
@@ -95,6 +103,8 @@ private:
 
   std::function<void(int fd, uint32_t nodeId)> startPipewireCb;
   std::function<void(const char* reason)> cancelStartCb;
+  std::function<void()> initClipboardCb;
+  std::function<void()> clipboardSubscribeCb;
 };
 
 #endif // __REMOTE_DESKTOP_H__

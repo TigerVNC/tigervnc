@@ -38,11 +38,19 @@ public:
   // signalCallback() when a response signal is received. A
   // requestHandleToken must be set to link the response signal.
   // signalCallback can be set to nullptr is no response is expected.
+  // Throws an exception if the call fails
   void call(const char* method, GVariant* parameters,
             const char* requestHandleToken = nullptr,
             std::function<void(GVariant* parameters)>
               signalCallback = nullptr,
             GDBusCallFlags flags = G_DBUS_CALL_FLAGS_NONE);
+  // Subscribe to a DBUS signal. signalCallback() is run whenever
+  // the signal is emitted
+  void subscribe(const char* member,
+                 std::function<void(GVariant* parameters)>
+                   signalCallback);
+  // Unsubscribe from a DBUS signal
+  void unsubscribe(uint32_t signalId);
 
   // Generates a unique request token
   static std::string newToken();
@@ -62,6 +70,7 @@ private:
   GDBusConnection* connection;
   GDBusProxy* proxy;
   std::list<uint32_t> pendingCalls;
+  std::list<uint32_t> subscribedSignals;
 };
 
 #endif // __PORTAL_PROXY_H__

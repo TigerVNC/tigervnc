@@ -46,6 +46,10 @@ struct _utf8utf16 {
     const char *utf8;
     const wchar_t *utf16;
 };
+struct _utf8ascii {
+    const char *utf8;
+    const char *ascii;
+};
 
 struct _ucs4utf8 ucs4utf8[] = {
     { 0x0061, "a" },
@@ -89,6 +93,12 @@ struct _utf8utf16 utf8utf16[] = {
     { "\xed\xa1\xbf",                                       L"\xfffd" },
 };
 
+struct _utf8ascii utf8ascii[] = {
+    { "abc", "abc" },
+    { "ab\xc3\xb6", "ab?" },
+    {"\xf0\x9f\x94\xa5", "?" },
+};
+
 const char *validutf8[] = {
     "abc",
     "\xc3\xa5\xc3\xa4\xc3\xb6",
@@ -109,6 +119,15 @@ const wchar_t *validutf16[] = {
 
 const wchar_t *invalidutf16[] = {
     L"\xdc40\xdc12",
+};
+
+const char *validascii[] = {
+  "abc",
+  "123",
+};
+
+const char *invalidascii[] = {
+  "\x80\xa5",
 };
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(*a))
@@ -201,6 +220,13 @@ TEST(Unicode, utf8ToLatin1)
     EXPECT_EQ(core::utf8ToLatin1(latin1utf8[i].utf8), latin1utf8[i].latin1);
 }
 
+TEST(Unicode, utf8ToAscii)
+{
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(utf8ascii); i++)
+    EXPECT_EQ(core::utf8ToAscii(utf8ascii[i].utf8), (utf8ascii[i].ascii));
+}
+
 TEST(Unicode, utf16ToUTF8)
 {
   size_t i;
@@ -242,6 +268,15 @@ TEST(Unicode, isValidUTF16)
   for (i = 0; i < ARRAY_SIZE(invalidutf16); i++)
     EXPECT_FALSE(core::isValidUTF16(invalidutf16[i]));
 }
+
+TEST(Unicode, isValidAscii)
+{
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(validascii); i++)
+    EXPECT_TRUE(core::isValidAscii(validascii[i]));
+  for (i = 0; i < ARRAY_SIZE(invalidascii); i++)
+    EXPECT_FALSE(core::isValidAscii(invalidascii[i]));
+};
 
 int main(int argc, char** argv)
 {
