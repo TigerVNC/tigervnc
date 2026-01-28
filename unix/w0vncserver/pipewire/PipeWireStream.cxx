@@ -62,14 +62,22 @@ const pw_stream_events PipeWireStream::streamEventsHandler {
 };
 
 PipeWireStream::PipeWireStream(int pipeWireFd_, int nodeId)
-  : pipeWireFd(pipeWireFd_)
+  : pipeWireFd(pipeWireFd_), active(true)
 {
   source = new PipeWireSource();
 
   context = pw_context_new(source->getLoop(), nullptr, 0);
+  if (!context) {
+    delete source;
+    throw std::runtime_error("Failed to create PipeWire context");
+  }
+
   core = pw_context_connect_fd(context, pipeWireFd_, nullptr, 0);
-  if (!core)
+  if (!core) {
+    pw_context_destroy(context);
+    delete source;
     throw std::runtime_error("Failed to connect to PipeWire FD");
+  }
 
   start(nodeId);
 }
@@ -141,19 +149,26 @@ void PipeWireStream::start(int nodeId)
   }
 }
 
-void PipeWireStream::handleStreamStateChanged(enum pw_stream_state /* old */,
+void PipeWireStream::handleStreamStateChanged(enum pw_stream_state old,
                                               enum pw_stream_state state,
                                               const char* error)
 {
+  if (!active)
+    return;
+
   switch (state) {
   case PW_STREAM_STATE_UNCONNECTED:
     vlog.debug("PipeWire stream disconnected");
     break;
   case PW_STREAM_STATE_PAUSED:
-    pw_stream_set_active(stream, true);
+    // This can happen if the compositor shuts down the session, e.g.
+    // a user logs out.
+    if (old == PW_STREAM_STATE_STREAMING)
+      stopped();
     break;
   case PW_STREAM_STATE_ERROR:
-    fatal_error("%s", error);
+    vlog.error("PipeWire stream error: %s", error);
+    stopped();
     return;
   default:
     vlog.debug("Unhandled stream state: %d", state);
@@ -173,6 +188,9 @@ void PipeWireStream::handleStreamParamChanged(uint32_t id,
   spa_rectangle fbSize;
   int32_t fbStride;
   rfb::PixelFormat pf;
+
+  if (!active)
+    return;
 
   if (param == nullptr || id != SPA_PARAM_Format) {
     vlog.debug("clear format");
@@ -266,6 +284,9 @@ void PipeWireStream::handleProcess()
   pw_buffer* buffer;
   spa_meta_header* header;
 
+  if (!active)
+    return;
+
   buffer = pw_stream_dequeue_buffer(stream);
 
   if (!buffer)
@@ -285,6 +306,11 @@ void PipeWireStream::handleProcess()
   processBuffer(buffer);
 
   pw_stream_queue_buffer(stream, buffer);
+}
+
+void PipeWireStream::stopped()
+{
+  active = false;
 }
 
 rfb::PixelFormat PipeWireStream::convertPixelformat(int spaFormat)
