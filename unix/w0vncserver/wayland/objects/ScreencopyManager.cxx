@@ -314,6 +314,11 @@ void ScreencopyManager::handleScreencopyBufferDone()
     // FIXME: Sanity check with BufferInfo
     buffer = pool->createBuffer(0, output->getWidth(), output->getHeight(),
                                 output->getWidth() * 4, info->format);
+    if (!buffer) {
+      vlog.error("Cannot capture frame - failed to create buffer");
+      stopped();
+      return;
+    }
   }
 
   zwlr_screencopy_frame_v1_copy_with_damage(frame, buffer);
