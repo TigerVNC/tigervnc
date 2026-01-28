@@ -87,12 +87,13 @@ ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
                                      std::function<void(uint8_t*,
                                                         core::Region,
                                                         rfb::PixelFormat)>
-                                                          bufferEventCb_)
+                                                          bufferEventCb_,
+                                     std::function<void()> stoppedCb_)
  : Object(display, "zwlr_screencopy_manager_v1",
            &zwlr_screencopy_manager_v1_interface),
    output(output_), screencopyManager(nullptr), frame(nullptr),
    info(nullptr), shm(nullptr), pool(nullptr), buffer(nullptr),
-   bufferEventCb(bufferEventCb_)
+   bufferEventCb(bufferEventCb_), stoppedCb(stoppedCb_)
 {
   size_t size;
 
@@ -103,9 +104,19 @@ ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
   shm = new Shm(display);
 
   size = output_->getWidth() * output_->getHeight() * 4;
-  assert(size);
+  if (!size) {
+    delete shm;
+    throw std::runtime_error(core::format("Invalid output size %dx%d",
+                                          output_->getWidth(),
+                                          output_->getHeight()));
+  }
 
-  initBuffers(size);
+  try {
+    initBuffers(size);
+  } catch (std::exception&) {
+    delete shm;
+    throw;
+  }
 
   captureFrame();
 }
@@ -131,6 +142,9 @@ uint8_t* ScreencopyManager::getBufferData()
 
 void ScreencopyManager::captureFrame()
 {
+  if (!active)
+    return;
+
   assert(frame == nullptr);
 
   accumulatedDamage.clear();
@@ -146,6 +160,9 @@ void ScreencopyManager::captureFrame()
 
 void ScreencopyManager::captureFrameDone()
 {
+  if (!active)
+    return;
+
   assert(frame != nullptr);
 
   zwlr_screencopy_frame_v1_destroy(frame);
@@ -158,6 +175,9 @@ void ScreencopyManager::captureFrameDone()
 
 void ScreencopyManager::resize()
 {
+  if (!active)
+    return;
+
   if (frame)
     zwlr_screencopy_frame_v1_destroy(frame);
   frame = nullptr;
@@ -169,7 +189,18 @@ void ScreencopyManager::resize()
   delete pool;
   pool = nullptr;
 
-  initBuffers(output->getWidth() * output->getHeight() * 4);
+  try {
+    initBuffers(output->getWidth() * output->getHeight() * 4);
+  } catch (std::runtime_error& e) {
+    vlog.error("Failed to resize: %s", e.what());
+    stopped();
+  }
+}
+
+void ScreencopyManager::stopped()
+{
+  active = false;
+  stoppedCb();
 }
 
 void ScreencopyManager::initBuffers(size_t size)
@@ -177,15 +208,12 @@ void ScreencopyManager::initBuffers(size_t size)
   int fd;
 
   fd = memfd_create("w0vncserver-shm", FD_CLOEXEC);
-  if (fd < 0) {
-    fatal_error("Failed to allocate shm: %s", strerror(errno));
-    return;
-  }
+  if (fd < 0)
+    throw std::runtime_error(core::format("Failed to allocate shm: %s", strerror(errno)));
 
-  if (ftruncate(fd, size) < 0) {
-    fatal_error("Failed to truncate shm: %s", strerror(errno));
-    return;
-  }
+  if (ftruncate(fd, size) < 0)
+    throw std::runtime_error(core::format("Failed to truncate shm: %s", strerror(errno)));
+
 
   pool = new ShmPool(shm, fd, size);
 
@@ -218,6 +246,9 @@ void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
                                                uint32_t height,
                                                uint32_t stride)
 {
+  if (!active)
+    return;
+
   if (output->getHeight() != height || output->getWidth() != width) {
     vlog.debug("Detected resize, destroying frame");
     zwlr_screencopy_frame_v1_destroy(frame);
@@ -237,23 +268,33 @@ void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
   try {
     pf = convertPixelformat(info->format);
   } catch (const std::exception& e) {
-    fatal_error("Failed to convert pixelformat: %s", e.what());
+    vlog.error("Failed to convert pixelformat: %s", e.what());
+    stopped();
   }
 }
 
 void ScreencopyManager::handleScreencopyFlags(uint32_t /* flags */)
 {
+  if (!active)
+    return;
+
   // FIXME: This tells us if the contents are y-inverted.
   //        Should probably handle this.
 }
 
 void ScreencopyManager::handleScreencopyReady()
 {
+  if (!active)
+    return;
+
   captureFrameDone();
 }
 
 void ScreencopyManager::handleScreencopyFailed()
 {
+  if (!active)
+    return;
+
   vlog.error("Frame could not be copied");
   captureFrameDone();
 }
@@ -266,6 +307,9 @@ void ScreencopyManager::handleScreencopyDamage(uint32_t x,
   core::Point tl;
   core::Point br;
 
+  if (!active)
+    return;
+
   tl = {static_cast<int>(x), static_cast<int>(y)};
   br = {static_cast<int>(x + width), static_cast<int>(y + height)};
 
@@ -276,11 +320,17 @@ void ScreencopyManager::handleScreencopyLinuxDmabuf(uint32_t /* format */,
                                                     uint32_t /* width */,
                                                     uint32_t /* height */)
 {
+  if (!active)
+    return;
+
   // FIXME: Implement this?
 }
 
 void ScreencopyManager::handleScreencopyBufferDone()
 {
+  if (!active)
+    return;
+
   if (pool->getSize() != output->getWidth() * output->getHeight() * 4) {
     vlog.debug("Detected resize, aborting capture");
     captureFrameDone();
