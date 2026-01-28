@@ -87,12 +87,13 @@ ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
                                      std::function<void(uint8_t*,
                                                         core::Region,
                                                         rfb::PixelFormat)>
-                                                          bufferEventCb_)
+                                                          bufferEventCb_,
+                                     std::function<void()> stoppedCb_)
  : Object(display, "zwlr_screencopy_manager_v1",
            &zwlr_screencopy_manager_v1_interface),
-   output(output_), screencopyManager(nullptr), frame(nullptr),
-   info(nullptr), shm(nullptr), pool(nullptr), buffer(nullptr),
-   bufferEventCb(bufferEventCb_)
+   output(output_), active(true), screencopyManager(nullptr),
+   frame(nullptr), info(nullptr), shm(display), pool(nullptr),
+   buffer(nullptr), bufferEventCb(bufferEventCb_), stoppedCb(stoppedCb_)
 {
   size_t size;
 
@@ -100,10 +101,12 @@ ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
 
   display->roundtrip();
 
-  shm = new Shm(display);
-
   size = output_->getWidth() * output_->getHeight() * 4;
-  assert(size);
+  if (!size) {
+    throw std::runtime_error(core::format("Invalid output size %dx%d",
+                                          output_->getWidth(),
+                                          output_->getHeight()));
+  }
 
   initBuffers(size);
 
@@ -120,7 +123,6 @@ ScreencopyManager::~ScreencopyManager()
     wl_buffer_destroy(buffer);
 
   delete info;
-  delete shm;
   delete pool;
 }
 
@@ -131,6 +133,9 @@ uint8_t* ScreencopyManager::getBufferData()
 
 void ScreencopyManager::captureFrame()
 {
+  if (!active)
+    return;
+
   assert(frame == nullptr);
 
   accumulatedDamage.clear();
@@ -169,7 +174,18 @@ void ScreencopyManager::resize()
   delete pool;
   pool = nullptr;
 
-  initBuffers(output->getWidth() * output->getHeight() * 4);
+  try {
+    initBuffers(output->getWidth() * output->getHeight() * 4);
+  } catch (std::runtime_error& e) {
+    vlog.error("Failed to resize: %s", e.what());
+    stopped();
+  }
+}
+
+void ScreencopyManager::stopped()
+{
+  active = false;
+  stoppedCb();
 }
 
 void ScreencopyManager::initBuffers(size_t size)
@@ -177,17 +193,16 @@ void ScreencopyManager::initBuffers(size_t size)
   int fd;
 
   fd = memfd_create("w0vncserver-shm", FD_CLOEXEC);
-  if (fd < 0) {
-    fatal_error("Failed to allocate shm: %s", strerror(errno));
-    return;
-  }
+  if (fd < 0)
+    throw std::runtime_error(core::format("Failed to allocate shm: %s", strerror(errno)));
 
   if (ftruncate(fd, size) < 0) {
-    fatal_error("Failed to truncate shm: %s", strerror(errno));
-    return;
+    close(fd);
+    throw std::runtime_error(core::format("Failed to truncate shm: %s", strerror(errno)));
   }
 
-  pool = new ShmPool(shm, fd, size);
+
+  pool = new ShmPool(&shm, fd, size);
 
   close(fd);
 }
@@ -237,7 +252,8 @@ void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
   try {
     pf = convertPixelformat(info->format);
   } catch (const std::exception& e) {
-    fatal_error("Failed to convert pixelformat: %s", e.what());
+    vlog.error("Failed to convert pixelformat: %s", e.what());
+    stopped();
   }
 }
 

@@ -21,7 +21,6 @@
 #endif
 
 #include <assert.h>
-#include <stdexcept>
 #include <unistd.h>
 
 #include <pixman.h>
@@ -52,8 +51,13 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
     std::bind(&WaylandPixelBuffer::bufferEvent, this, std::placeholders::_1,
               std::placeholders::_2, std::placeholders::_3);
 
+  std::function<void()> stoppedCb = [this]() {
+    server->closeClients("The remote session stopped");
+  };
+
   screencopyManager = new wayland::ScreencopyManager(display, output_,
-                                                     bufferEventCb);
+                                                     bufferEventCb,
+                                                     stoppedCb);
 }
 
 WaylandPixelBuffer::~WaylandPixelBuffer()

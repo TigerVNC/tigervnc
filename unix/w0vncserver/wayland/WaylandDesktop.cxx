@@ -85,7 +85,12 @@ void WaylandDesktop::start()
     server->setLEDState(virtualKeyboard->getLEDState());
   };
 
-  pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+  try {
+    pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+  } catch (std::exception& e) {
+    vlog.error("Error initializing pixel buffer: %s", e.what());
+    server->closeClients("Failed to start remote desktop session");
+  }
 
   waylandSource = new GWaylandSource(display);
   waylandSource->attach(g_main_loop_get_context(loop));
