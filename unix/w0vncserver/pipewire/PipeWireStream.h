@@ -32,6 +32,9 @@ public:
   PipeWireStream(int pipeWireFd, int nodeId);
   virtual ~PipeWireStream();
 
+protected:
+  virtual void stopped();
+
 private:
   void start(int nodeId);
 
@@ -48,6 +51,7 @@ private:
 
 private:
   int pipeWireFd;
+  bool active;
 
   PipeWireSource* source;
   pw_core* core;
