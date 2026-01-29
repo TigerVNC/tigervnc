@@ -222,12 +222,18 @@ TEST(FLTK, RGBImage)
 // This is important for FLTK 1.4's improved HiDPI support
 TEST(FLTK, ScalingAwareness)
 {
-  // Get the current scaling factor
+#if FL_MAJOR_VERSION > 1 || (FL_MAJOR_VERSION == 1 && FL_MINOR_VERSION >= 4)
+  // FLTK 1.4+ has screen_scale() for per-monitor scaling
   float scaling = Fl::screen_scale(0);
   EXPECT_GT(scaling, 0.0f);
   EXPECT_LT(scaling, 10.0f); // Sanity check
+#else
+  // FLTK 1.3.x doesn't have screen_scale, just verify it compiles
+  // Screen scaling in 1.3 is handled via system DPI settings
+  SUCCEED() << "FLTK 1.3.x - screen_scale() not available";
+#endif
   
-  // Verify screen dimensions are reasonable
+  // Verify screen dimensions are reasonable (works in both 1.3 and 1.4)
   int x, y, w, h;
   Fl::screen_xywh(x, y, w, h);
   EXPECT_GT(w, 0);
