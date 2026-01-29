@@ -17,7 +17,7 @@ Development kits for the following packages:
 
 -- pixman
 
--- FLTK 1.3.3 or later
+-- FLTK 1.3.3 or later (1.4.x also supported)
 
 -- If building TLS support:
    * GnuTLS 3.x
