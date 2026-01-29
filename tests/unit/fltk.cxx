@@ -34,6 +34,21 @@
 #include <FL/Fl_Image_Surface.H>
 #include <FL/fl_draw.H>
 
+#ifdef __unix__
+#include <FL/x.H>
+#endif
+
+// Helper to check if we can use display functions
+static bool canUseDisplay() {
+#ifdef __unix__
+  // On Unix, check if we have X display available
+  return (fl_display != nullptr);
+#else
+  // On Windows/macOS, assume display is available
+  return true;
+#endif
+}
+
 // Test that FLTK version detection works correctly
 TEST(FLTK, VersionDetection)
 {
@@ -49,6 +64,10 @@ TEST(FLTK, VersionDetection)
 // Test that Fl_Image_Surface works as expected (used for overlays and stats)
 TEST(FLTK, ImageSurfaceBasic)
 {
+  if (!canUseDisplay()) {
+    GTEST_SKIP() << "No display available (headless environment)";
+  }
+
   const int width = 100;
   const int height = 100;
   
@@ -82,6 +101,10 @@ TEST(FLTK, ImageSurfaceBasic)
 // Test Fl_Image_Surface with text rendering (used for overlay text)
 TEST(FLTK, ImageSurfaceText)
 {
+  if (!canUseDisplay()) {
+    GTEST_SKIP() << "No display available (headless environment)";
+  }
+
   const int width = 200;
   const int height = 50;
   
@@ -111,6 +134,10 @@ TEST(FLTK, ImageSurfaceText)
 // Test drawing primitives used in TigerVNC theming and stats
 TEST(FLTK, DrawingPrimitives)
 {
+  if (!canUseDisplay()) {
+    GTEST_SKIP() << "No display available (headless environment)";
+  }
+
   const int width = 100;
   const int height = 100;
   
@@ -170,6 +197,10 @@ TEST(FLTK, ColorFunctions)
 // Test clipping (used in DesktopWindow drawing)
 TEST(FLTK, ClippingRegions)
 {
+  if (!canUseDisplay()) {
+    GTEST_SKIP() << "No display available (headless environment)";
+  }
+
   const int width = 100;
   const int height = 100;
   
@@ -222,6 +253,10 @@ TEST(FLTK, RGBImage)
 // This is important for FLTK 1.4's improved HiDPI support
 TEST(FLTK, ScalingAwareness)
 {
+  if (!canUseDisplay()) {
+    GTEST_SKIP() << "No display available (headless environment)";
+  }
+
 #if FL_MAJOR_VERSION > 1 || (FL_MAJOR_VERSION == 1 && FL_MINOR_VERSION >= 4)
   // FLTK 1.4+ has screen_scale() for per-monitor scaling
   float scaling = Fl::screen_scale(0);
