@@ -270,8 +270,14 @@ void ScreencopyManager::handleScreencopyReady()
 
 void ScreencopyManager::handleScreencopyFailed()
 {
-  vlog.error("Frame could not be copied");
-  captureFrameDone();
+  // We will get a failure if the output size has changed, which is
+  // expected during a resize.
+  if (output->getWidth() != info->width || output->getHeight() != info->height) {
+    captureFrameDone();
+  } else {
+    vlog.error("Frame could not be copied");
+    stopped();
+  }
 }
 
 void ScreencopyManager::handleScreencopyDamage(uint32_t x,
