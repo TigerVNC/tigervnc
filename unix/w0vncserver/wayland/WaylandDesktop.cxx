@@ -78,14 +78,27 @@ void WaylandDesktop::init(rfb::VNCServer* vs)
 void WaylandDesktop::start()
 {
   std::function<void()> desktopReadyCb = [this]() {
-    virtualPointer = new wayland::VirtualPointer(display, seat);
-    virtualKeyboard = new wayland::VirtualKeyboard(display, seat);
+    try {
+      virtualPointer = new wayland::VirtualPointer(display, seat);
+    } catch (std::exception& e) {
+      vlog.error("%s - pointer will be disabled", e.what());
+    }
+    try {
+      virtualKeyboard = new wayland::VirtualKeyboard(display, seat);
+    } catch (std::exception& e) {
+      vlog.error("%s - keyboard will be disabled", e.what());
+    }
 
     server->setPixelBuffer(pb);
     server->setLEDState(virtualKeyboard->getLEDState());
   };
 
-  pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+  try {
+    pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+  } catch (std::exception& e) {
+    vlog.error("Error initializing pixel buffer: %s", e.what());
+    server->closeClients("Failed to start remote desktop session");
+  }
 
   waylandSource = new GWaylandSource(display);
   waylandSource->attach(g_main_loop_get_context(loop));
@@ -110,6 +123,9 @@ void WaylandDesktop::stop()
 
 void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
 {
+  if (!virtualPointer)
+    return;
+
   virtualPointer->motionAbsolute(pos.x, pos.y, pb->width(), pb->height());
 
   if (buttonMask == oldButtonMask)
@@ -129,6 +145,9 @@ void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
 
 void WaylandDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
+  if (!virtualKeyboard)
+    return;
+
   virtualKeyboard->key(keysym, keycode, down);
 }
 

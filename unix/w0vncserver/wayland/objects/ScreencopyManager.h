@@ -43,7 +43,8 @@ namespace wayland {
   class ScreencopyManager : public Object {
   public:
     ScreencopyManager(Display* display, Output* output,
-                      std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> readyCallback);
+                      std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> readyCallback,
+                      std::function<void()> stoppedCb);
     virtual ~ScreencopyManager();
 
     // Called when the remote output is resized
@@ -59,6 +60,8 @@ namespace wayland {
 
     // Called when the buffer is safe to read from, the frame is ready.
     void captureFrameDone();
+
+    void stopped();
 
   private:
     void initBuffers(size_t size);
@@ -78,6 +81,7 @@ namespace wayland {
 
   protected:
     Output* output;
+    bool active;
 
   private:
     zwlr_screencopy_manager_v1* screencopyManager;
@@ -89,6 +93,7 @@ namespace wayland {
     core::Region accumulatedDamage;
     rfb::PixelFormat pf;
     std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> bufferEventCb;
+    std::function<void()> stoppedCb;
     static const zwlr_screencopy_frame_v1_listener listener;
   };
 };
