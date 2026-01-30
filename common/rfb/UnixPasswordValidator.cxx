@@ -111,14 +111,15 @@ bool UnixPasswordValidator::validateInternal(SConnection * /* sc */,
     return false;
   }
 #ifdef PAM_XDISPLAY
-  /* At this point, displayName should never be empty */
-  assert(displayName.length() > 0);
-  /* Pass the display name to PAM modules but PAM_XDISPLAY may not be
-   * recognized by modules built with old versions of PAM */
-  ret = pam_set_item(pamh, PAM_XDISPLAY, displayName.c_str());
-  if (ret != PAM_SUCCESS && ret != PAM_BAD_ITEM) {
-    vlog.error("pam_set_item(PAM_XDISPLAY) failed: %d (%s)", ret, pam_strerror(pamh, ret));
-    goto error;
+  /* displayName set set for X but not Wayland sessions */
+  if (displayName.length() > 0) {
+    /* Pass the display name to PAM modules but PAM_XDISPLAY may not be
+    * recognized by modules built with old versions of PAM */
+    ret = pam_set_item(pamh, PAM_XDISPLAY, displayName.c_str());
+    if (ret != PAM_SUCCESS && ret != PAM_BAD_ITEM) {
+      vlog.error("pam_set_item(PAM_XDISPLAY) failed: %d (%s)", ret, pam_strerror(pamh, ret));
+      goto error;
+    }
   }
 #endif
   ret = pam_authenticate(pamh, 0);
