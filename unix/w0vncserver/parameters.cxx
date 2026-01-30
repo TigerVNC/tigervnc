@@ -45,6 +45,14 @@ core::BoolParameter
   rawKeyboard("RawKeyboard",
               "Send keyboard events straight through and avoid mapping "
               "them to the current keyboard layout", false);
+core::BoolParameter
+  setPrimary("SetPrimary",
+             "Set the primary as well as the selection clipboard",
+             true);
+core::BoolParameter
+  sendPrimary("SendPrimary",
+              "Send the primary as well as the selection clipboard",
+              true);
 
 
 static const char* defaultDesktopName()
