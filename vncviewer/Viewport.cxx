@@ -742,8 +742,22 @@ void Viewport::handleKeyPress(int systemKeyCode,
           break;
       }
 
-      vlog.debug("Detected shortcut %d => 0x%02x / XK_%s (0x%04x)",
-                 systemKeyCode, keyCode, KeySymName(keySym), keySym);
+      if (keySym != NoSymbol) {
+        vlog.debug("Detected shortcut %d => 0x%02x / XK_%s (0x%04x)",
+                  systemKeyCode, keyCode, KeySymName(keySym), keySym);
+      } else {
+        std::string names;
+
+        for (iter = keySyms.begin(); iter != keySyms.end(); iter++) {
+          if (!names.empty())
+            names += ", ";
+          names += core::format("XK_%s (0x%04x)",
+                                KeySymName(*iter), *iter);
+        }
+
+        vlog.debug("Detected unknown shortcut %d => 0x%02x / %s",
+                   systemKeyCode, keyCode, names.c_str());
+      }
 
       // Special case which we need to handle first
       if (keySym == XK_space) {
