@@ -993,12 +993,6 @@ int DesktopWindow::handle(int event)
 
 int DesktopWindow::fltkDispatch(int event, Fl_Window *win, void *)
 {
-  // FLTK keeps spamming bogus FL_MOVE events if _any_ X event is
-  // received with the mouse pointer outside our windows
-  // https://github.com/fltk/fltk/issues/76
-  if ((event == FL_MOVE) && (win == nullptr))
-    return 0;
-
 #if !defined(WIN32) && !defined(__APPLE__)
   // FLTK passes through the fake grab focus events that can cause us
   // to end up in an infinite loop
