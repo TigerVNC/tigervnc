@@ -1000,7 +1000,7 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win, void *)
   if ((event == FL_FOCUS) || (event == FL_UNFOCUS)) {
     const XFocusChangeEvent* xfocus = &fl_xevent->xfocus;
     if ((xfocus->mode == NotifyGrab) || (xfocus->mode == NotifyUngrab))
-      return 0;
+      return 1;
   }
 #endif
 
