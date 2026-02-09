@@ -88,7 +88,7 @@ static std::set<DesktopWindow *> instances;
 DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr),
     firstUpdate(true),
-    delayedFullscreen(false), hasResized(false), sentDesktopSize(false),
+    delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
     keyboardGrabbed(false), mouseGrabbed(false), regrabOnFocus(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
@@ -718,8 +718,6 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   Fl_Window::resize(x, y, w, h);
 
   if (resizing) {
-    hasResized = true;
-
     remoteResize();
 
     repositionWidgets();
@@ -936,14 +934,11 @@ int DesktopWindow::handle(int event)
         ungrabKeyboard();
     }
 
-    // The window manager respected our full screen request, so stop
-    // waiting and delaying the session resize
+    // The window manager respected our full screen request, but we
+    // still need to wait a bit long for it to finish resizing us
     if (delayedFullscreen && fullscreen_active()) {
-      delayedFullscreen = false;
-      if (hasResized) {
-        Fl::remove_timeout(handleFullscreenTimeout, this);
-        remoteResize();
-      }
+      Fl::remove_timeout(handleFullscreenTimeout, this);
+      Fl::add_timeout(0.1, handleFullscreenTimeout, this);
     }
 
     break;
@@ -1029,7 +1024,6 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win, void *)
         // timeout for when we should stop waiting. We also need to wait
         // for the resize, which can come after the fullscreen event.
         Fl::add_timeout(0.5, handleFullscreenTimeout, dw);
-        dw->hasResized = false;
         dw->fullscreen_on();
       }
       break;
@@ -1382,6 +1376,9 @@ void DesktopWindow::remoteResize()
     return;
 
   // Don't pester the server with a resize until we have our final size
+  // FIXME: Some window managers (e.g. mutter) will do multiple resizes
+  //        every time we enter or leave full screen, which we'd also
+  //        like to avoid
   if (delayedFullscreen)
     return;
 
@@ -1643,8 +1640,9 @@ void DesktopWindow::handleFullscreenTimeout(void *data)
 
   assert(self);
 
-  // We are here because we got tired of waiting for either the
-  // full-screen state, or the resize notification
+  // We are here because we got tired of waiting for the window manager
+  // to finish switching to fullscreen mode, or because we are waiting
+  // for all resize events so we get our final position
 
   self->delayedFullscreen = false;
   self->remoteResize();
