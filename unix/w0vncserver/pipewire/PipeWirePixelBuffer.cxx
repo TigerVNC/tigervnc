@@ -86,6 +86,13 @@ void PipeWirePixelBuffer::setParameters(int width, int height,
   server->setPixelBuffer(this);
 }
 
+void PipeWirePixelBuffer::stopped()
+{
+  server->closeClients("Session stopped unexpectedly");
+
+  PipeWireStream::stopped();
+}
+
 void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
 {
   int srcStride;

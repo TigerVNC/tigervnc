@@ -21,12 +21,14 @@
 #endif
 
 #include <assert.h>
+#include <string.h>
 
 #include <stdexcept>
 
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
+#include <core/string.h>
 #include <core/LogWriter.h>
 
 #include "../../w0vncserver.h"
@@ -78,7 +80,12 @@ bool Display::interfaceAvailable(const char* interface)
 
 void Display::roundtrip()
 {
-  wl_display_roundtrip(display);
+  // Display errors are fatal, the display can no longer be used
+  if (wl_display_roundtrip(display) < 0) {
+    if (wl_display_get_error(display))
+      fatal_error("Failed to roundtrip: %s",
+                  strerror(wl_display_get_error(display)));
+  }
 }
 
 ObjectInfo* Display::getObjectInfo(const char* interface)

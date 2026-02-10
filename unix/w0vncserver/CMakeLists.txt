@@ -14,6 +14,7 @@ add_executable(w0vncserver
   wayland/GWaylandSource.cxx
   wayland/objects/Output.cxx
   wayland/objects/Object.cxx
+  wayland/objects/DataControl.cxx
   wayland/objects/Display.cxx
   wayland/objects/Keyboard.cxx
   wayland/objects/Seat.cxx
@@ -42,6 +43,7 @@ set(WAYLAND_PROTOCOLS
   wlr-screencopy-unstable-v1
   wlr-virtual-pointer-unstable-v1
   virtual-keyboard-unstable-v1
+  ext-data-control-v1
 )
 
 foreach(P ${WAYLAND_PROTOCOLS})

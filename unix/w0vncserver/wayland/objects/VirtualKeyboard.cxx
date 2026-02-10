@@ -21,6 +21,7 @@
 #endif
 
 #include <time.h>
+#include <assert.h>
 
 #include <stdexcept>
 
@@ -55,7 +56,7 @@ VirtualKeyboard::VirtualKeyboard(Display* display, Seat* seat_)
   if (!keyboard)
     throw std::runtime_error("Failed to create virtual keyboard");
 
-  if (seat->getKeyboard()->hasKeymap())
+  if (seat->getKeyboard() && seat->getKeyboard()->hasKeymap())
     setupKeyboard();
   else
     vlog.debug("Keyboard keymap is not set - keyboard will not work until it is set");
@@ -136,11 +137,16 @@ void VirtualKeyboard::key(uint32_t keysym, uint32_t keycode, bool down)
 
 bool VirtualKeyboard::keymapUpdated()
 {
+  if (!seat->getKeyboard())
+    return false;
+
   return keyboardFd != seat->getKeyboard()->getFd();
 }
 
 void VirtualKeyboard::setupKeyboard()
 {
+  assert(seat->getKeyboard());
+
   if (!keyboardFd)
     vlog.debug("Keymap set - keyboard will now work");
 

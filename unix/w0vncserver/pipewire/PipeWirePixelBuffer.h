@@ -39,6 +39,7 @@ public:
 private:
   virtual void processBuffer(pw_buffer* buffer) override;
   virtual void setParameters(int width, int height, rfb::PixelFormat pf) override;
+  virtual void stopped() override;
 
 protected:
   void processFrame(spa_buffer* buffer);

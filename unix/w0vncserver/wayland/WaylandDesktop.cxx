@@ -33,7 +33,9 @@
 #include <rfb/VNCServerST.h>
 
 #include "../w0vncserver.h"
+#include "../parameters.h"
 #include "objects/Display.h"
+#include "objects/DataControl.h"
 #include "objects/Output.h"
 #include "objects/Seat.h"
 #include "objects/VirtualPointer.h"
@@ -49,7 +51,7 @@ static core::LogWriter vlog("WaylandDesktop");
 WaylandDesktop::WaylandDesktop(GMainLoop* loop_)
   : server(nullptr), pb(nullptr), loop(loop_), waylandSource(nullptr),
     display(nullptr), seat(nullptr), virtualPointer(nullptr),
-    virtualKeyboard(nullptr)
+    virtualKeyboard(nullptr), dataControl(nullptr)
 {
   assert(available());
 
@@ -78,14 +80,46 @@ void WaylandDesktop::init(rfb::VNCServer* vs)
 void WaylandDesktop::start()
 {
   std::function<void()> desktopReadyCb = [this]() {
-    virtualPointer = new wayland::VirtualPointer(display, seat);
-    virtualKeyboard = new wayland::VirtualKeyboard(display, seat);
+    try {
+      virtualPointer = new wayland::VirtualPointer(display, seat);
+    } catch (std::exception& e) {
+      vlog.error("%s - pointer will be disabled", e.what());
+    }
+    try {
+      virtualKeyboard = new wayland::VirtualKeyboard(display, seat);
+    } catch (std::exception& e) {
+      vlog.error("%s - keyboard will be disabled", e.what());
+    }
+
+    if (display->interfaceAvailable("ext_data_control_manager_v1")) {
+      std::function<void(bool available)> clipboardAnnounceCb = [this](bool available) {
+        server->announceClipboard(available);
+      };
+      std::function<void(const char* data)> sendClipboardData = [this](const char* data) {
+        server->sendClipboardData(data);
+      };
+      std::function<void()> clipboardRequestCb = [this]() {
+        server->requestClipboard();
+      };
+
+      dataControl = new wayland::DataControl(display, seat,
+                                             clipboardAnnounceCb,
+                                             clipboardRequestCb,
+                                             sendClipboardData);
+    } else {
+      vlog.info("ext-data-control-v1 not available, Clipboard disabled");
+    }
 
     server->setPixelBuffer(pb);
     server->setLEDState(virtualKeyboard->getLEDState());
   };
 
-  pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+  try {
+    pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+  } catch (std::exception& e) {
+    vlog.error("Error initializing pixel buffer: %s", e.what());
+    server->closeClients("Failed to start remote desktop session");
+  }
 
   waylandSource = new GWaylandSource(display);
   waylandSource->attach(g_main_loop_get_context(loop));
@@ -106,10 +140,16 @@ void WaylandDesktop::stop()
 
   delete pb;
   pb = nullptr;
+
+  delete dataControl;
+  dataControl = nullptr;
 }
 
 void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
 {
+  if (!virtualPointer)
+    return;
+
   virtualPointer->motionAbsolute(pos.x, pos.y, pb->width(), pb->height());
 
   if (buttonMask == oldButtonMask)
@@ -129,6 +169,9 @@ void WaylandDesktop::pointerEvent(const core::Point& pos, uint16_t buttonMask)
 
 void WaylandDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
 {
+  if (!virtualKeyboard)
+    return;
+
   virtualKeyboard->key(keysym, keycode, down);
 }
 
@@ -143,6 +186,38 @@ void WaylandDesktop::queryConnection(network::Socket* sock,
 void WaylandDesktop::terminate()
 {
   kill(getpid(), SIGTERM);
+}
+
+void WaylandDesktop::handleClipboardRequest()
+{
+  if (!dataControl)
+    return;
+
+  dataControl->receive();
+}
+
+void WaylandDesktop::handleClipboardAnnounce(bool available)
+{
+  if (!dataControl)
+    return;
+
+  if (available) {
+    dataControl->setSelection();
+    if (setPrimary)
+      dataControl->setPrimarySelection();
+  } else {
+    dataControl->clearSelection();
+    if (setPrimary)
+      dataControl->clearPrimarySelection();
+  }
+}
+
+void WaylandDesktop::handleClipboardData(const char* data)
+{
+  if (!dataControl)
+    return;
+
+  dataControl->writePending(data);
 }
 
 bool WaylandDesktop::available()

@@ -28,5 +28,7 @@ extern core::BoolParameter localhostOnly;
 extern core::StringParameter desktopName;
 extern core::StringParameter interface;
 extern core::BoolParameter rawKeyboard;
+extern core::BoolParameter setPrimary;
+extern core::BoolParameter sendPrimary;
 
 #endif // __W0VNCSERVER_PARAMETERS_H__
