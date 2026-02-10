@@ -23,12 +23,15 @@
 #include <assert.h>
 #include <unistd.h>
 
+#include <stdexcept>
+
 #include <pixman.h>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 
 #include <core/Region.h>
+#include <core/string.h>
 #include <core/LogWriter.h>
 #include <rfb/VNCServerST.h>
 
@@ -47,7 +50,7 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
   : firstFrame(true), desktopReadyCallback(desktopReadyCallback_),
     server(server_), output(output_), resized(false)
 {
-  std::function<void(uint8_t*, core::Region, rfb::PixelFormat)> bufferEventCb =
+  std::function<void(uint8_t*, core::Region, uint32_t)> bufferEventCb =
     std::bind(&WaylandPixelBuffer::bufferEvent, this, std::placeholders::_1,
               std::placeholders::_2, std::placeholders::_3);
 
@@ -65,7 +68,8 @@ WaylandPixelBuffer::~WaylandPixelBuffer()
   delete screencopyManager;
 }
 
-void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage, rfb::PixelFormat pf)
+void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
+                                     uint32_t shmFormat)
 {
   if (output->getWidth() != (uint32_t)width() ||
       output->getHeight() != (uint32_t)height()) {
@@ -81,7 +85,13 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage, rfb::
   // the display is using.
   // FIXME: Can we query the compositor instead of doing this?
   if (firstFrame) {
-    format = pf;
+    try {
+      format = convertPixelformat(shmFormat);
+    } catch (std::exception& e) {
+      vlog.error("Failed to convert pixelformat: %s", e.what());
+      server->closeClients("Failed to start remote session");
+      return;
+    }
     setSize(output->getWidth(), output->getHeight());
     desktopReadyCallback();
   }
@@ -135,4 +145,25 @@ void WaylandPixelBuffer::syncBuffers(uint8_t* buffer, core::Region damage)
   }
 
   server->add_changed(damage);
+}
+
+rfb::PixelFormat WaylandPixelBuffer::convertPixelformat(uint32_t shmFormat)
+{
+  switch (shmFormat) {
+    case WL_SHM_FORMAT_XRGB8888:
+    case WL_SHM_FORMAT_ARGB8888:
+      return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
+                              16, 8, 0);
+    case WL_SHM_FORMAT_RGBX8888:
+    case WL_SHM_FORMAT_RGBA8888:
+      return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
+                              24, 16, 8);
+    case WL_SHM_FORMAT_XBGR8888:
+    case WL_SHM_FORMAT_ABGR8888:
+      return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
+                              0, 8, 16);
+    default:
+      throw std::runtime_error(core::format("format %d not supported",
+                                            shmFormat));
+  }
 }

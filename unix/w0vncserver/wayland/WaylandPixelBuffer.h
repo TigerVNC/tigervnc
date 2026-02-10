@@ -41,11 +41,14 @@ public:
 
 protected:
   // Called when there is pixel data available to read
-  void bufferEvent(uint8_t* buffer, core::Region damage, rfb::PixelFormat pf);
+  void bufferEvent(uint8_t* buffer, core::Region damage, uint32_t format);
 
 private:
   // Sync the shadow framebuffer to the actual framebuffer
   void syncBuffers(uint8_t* buffer, core::Region damage);
+
+  // Convert from wl_shm_format to rfb::PixelFormat
+  rfb::PixelFormat convertPixelformat(uint32_t format);
 
 private:
   bool firstFrame;
