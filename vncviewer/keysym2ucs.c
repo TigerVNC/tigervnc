@@ -167,8 +167,18 @@ unsigned ucs2keysym(unsigned ucs)
   if (keysym != NoSymbol)
     return keysym;
 
-  /* us the directly encoded 24-bit UCS character */
-  if ((ucs & 0xff000000) == 0)
+  /* surrogates? */
+  if (0xd800 <= ucs && ucs <= 0xdfff)
+    return NoSymbol;
+
+  /* private use? */
+  if ((0xe000 <= ucs && ucs <= 0xf8ff) ||
+      (0x0f0000 <= ucs && ucs <= 0x0ffffd) ||
+      (0x100000 <= ucs && ucs <= 0x10fffd))
+    return NoSymbol;
+
+  /* ucs is a directly encoded 21-bit Unicode character */
+  if (ucs <= 0x10ffff)
     return ucs | 0x01000000;
 
   /* no matching keysym value found */
