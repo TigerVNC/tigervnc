@@ -17,6 +17,7 @@ add_executable(w0vncserver
   wayland/objects/DataControl.cxx
   wayland/objects/Display.cxx
   wayland/objects/Keyboard.cxx
+  wayland/objects/Pointer.cxx
   wayland/objects/Seat.cxx
   wayland/objects/Shm.cxx
   wayland/objects/ShmPool.cxx
@@ -25,6 +26,7 @@ add_executable(w0vncserver
   wayland/objects/ImageCaptureSource.cxx
   wayland/objects/ImageCopyCaptureManager.cxx
   wayland/objects/ImageCopyCaptureSession.cxx
+  wayland/objects/ImageCopyCaptureCursorSession.cxx
   wayland/objects/ScreencopyManager.cxx
   wayland/WaylandDesktop.cxx
   wayland/WaylandPixelBuffer.cxx

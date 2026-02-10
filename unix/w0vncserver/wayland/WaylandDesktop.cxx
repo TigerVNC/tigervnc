@@ -115,7 +115,7 @@ void WaylandDesktop::start()
   };
 
   try {
-    pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+    pb = new WaylandPixelBuffer(display, output, seat, server, desktopReadyCb);
   } catch (std::exception& e) {
     vlog.error("Error initializing pixel buffer: %s", e.what());
     server->closeClients("Failed to start remote desktop session");
