@@ -25,6 +25,7 @@
 
 #include "Display.h"
 #include "Keyboard.h"
+#include "Pointer.h"
 #include "Seat.h"
 
 using namespace wayland;
@@ -42,7 +43,7 @@ const wl_seat_listener Seat::listener = {
 Seat::Seat(Display* display_, std::function<void(unsigned int)> setLEDstate_)
   : Object(display_, "wl_seat", &wl_seat_interface),
     seat(nullptr), display(display_), keyboard(nullptr),
-    setLEDstate(setLEDstate_)
+    pointer(nullptr), setLEDstate(setLEDstate_)
 {
   seat = (wl_seat*)boundObject;
 
@@ -56,6 +57,7 @@ Seat::~Seat()
     wl_seat_destroy(seat);
 
   delete keyboard;
+  delete pointer;
 }
 
 void Seat::seatCapabilities(uint32_t capabilities)
@@ -64,5 +66,10 @@ void Seat::seatCapabilities(uint32_t capabilities)
     vlog.debug("Keyboard detected");
     delete keyboard;
     keyboard = new Keyboard(display, this, setLEDstate);
+  }
+
+  if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
+      delete pointer;
+      pointer = new Pointer(display, this);
   }
 }
