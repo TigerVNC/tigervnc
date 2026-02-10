@@ -28,9 +28,11 @@
 #include <core/string.h>
 
 #include "Display.h"
+#include "Pointer.h"
 #include "Seat.h"
 #include "ImageCaptureSource.h"
 #include "ImageCopyCaptureSession.h"
+#include "ImageCopyCaptureCursorSession.h"
 #include "ImageCopyCaptureManager.h"
 
 using namespace wayland;
@@ -39,21 +41,28 @@ static core::LogWriter vlog("WaylandImageCopyCaptureManager");
 
 ImageCopyCaptureManager::ImageCopyCaptureManager(Display* display_,
                                                  ImageCaptureSource* source_,
+                                                 Seat* seat_,
                                                  std::function<void(uint8_t*, core::Region, uint32_t)>
                                                    bufferEventCb_,
+                                                 std::function<void(int, int, const core::Point&, uint32_t,const uint8_t*)>
+                                                   cursorImageCb_,
+                                                 std::function<void(const core::Point&)>
+                                                   cursorPosCb_,
                                                  std::function<void()>
                                                    stoppedCb_)
   : Object(display_, "ext_image_copy_capture_manager_v1",
            &ext_image_copy_capture_manager_v1_interface),
     manager(nullptr), display(display_), source(source_),
-    session(nullptr), bufferEventCb(bufferEventCb_),
-    stoppedCb(stoppedCb_)
+    session(nullptr), seat(seat_), cursorSession(nullptr),
+    bufferEventCb(bufferEventCb_), cursorImageCb(cursorImageCb_),
+    cursorPosCb(cursorPosCb_), stoppedCb(stoppedCb_)
 {
   manager = (ext_image_copy_capture_manager_v1*)boundObject;
 }
 
 ImageCopyCaptureManager::~ImageCopyCaptureManager()
 {
+  delete cursorSession;
   delete session;
   if (manager)
     ext_image_copy_capture_manager_v1_destroy(manager);
@@ -62,14 +71,37 @@ ImageCopyCaptureManager::~ImageCopyCaptureManager()
 void ImageCopyCaptureManager::createSession()
 {
   ext_image_copy_capture_session_v1* sessionHandle;
+  ext_image_copy_capture_cursor_session_v1* cursorSessionHandle;
+  Pointer* pointer;
 
   sessionHandle =
-    ext_image_copy_capture_manager_v1_create_session(manager, source->getSource(),
-                                                     EXT_IMAGE_COPY_CAPTURE_MANAGER_V1_OPTIONS_PAINT_CURSORS);
+    ext_image_copy_capture_manager_v1_create_session(manager, source->getSource(), 0);
   if (!sessionHandle)
     throw std::runtime_error("Unable to create image copy capture session");
 
   session = new ImageCopyCaptureSession(display, sessionHandle,
                                         bufferEventCb, stoppedCb);
-}
 
+  pointer = seat->getPointer();
+  // FIXME: Make it possible to re-enable this if a cursor is added in
+  // the future like we do in VirtualKeyboard
+  if (!pointer) {
+    vlog.error("Unable to create cursor capture session: no pointer found - cursor will be invisible");
+    return;
+  }
+
+  cursorSessionHandle =
+    ext_image_copy_capture_manager_v1_create_pointer_cursor_session(manager,
+                                                                    source->getSource(),
+                                                                    pointer->getPointer());
+  if (!cursorSessionHandle) {
+    vlog.error("Unable to create image copy capture session - cursor will be invisible");
+    return;
+  }
+
+  cursorSession = new ImageCopyCaptureCursorSession(display,
+                                                    cursorSessionHandle,
+                                                    cursorImageCb,
+                                                    cursorPosCb,
+                                                    stoppedCb);
+}
