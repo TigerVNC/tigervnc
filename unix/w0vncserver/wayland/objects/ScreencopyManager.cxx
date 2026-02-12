@@ -86,7 +86,7 @@ struct BufferInfo {
 ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
                                      std::function<void(uint8_t*,
                                                         core::Region,
-                                                        rfb::PixelFormat)>
+                                                        uint32_t)>
                                                           bufferEventCb_,
                                      std::function<void()> stoppedCb_)
  : Object(display, "zwlr_screencopy_manager_v1",
@@ -156,7 +156,7 @@ void ScreencopyManager::captureFrameDone()
   zwlr_screencopy_frame_v1_destroy(frame);
   frame = nullptr;
 
-  bufferEventCb(getBufferData(), accumulatedDamage, pf);
+  bufferEventCb(getBufferData(), accumulatedDamage, info->format);
 
   captureFrame();
 }
@@ -207,27 +207,6 @@ void ScreencopyManager::initBuffers(size_t size)
   close(fd);
 }
 
-rfb::PixelFormat ScreencopyManager::convertPixelformat(uint32_t format)
-{
-  switch (format) {
-    case WL_SHM_FORMAT_XRGB8888:
-    case WL_SHM_FORMAT_ARGB8888:
-      return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
-                              16, 8, 0);
-    case WL_SHM_FORMAT_RGBX8888:
-    case WL_SHM_FORMAT_RGBA8888:
-      return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
-                              24, 16, 8);
-    case WL_SHM_FORMAT_XBGR8888:
-    case WL_SHM_FORMAT_ABGR8888:
-      return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
-                              0, 8, 16);
-    default:
-      throw std::runtime_error(core::format("format %d not supported",
-                                            format));
-  }
-}
-
 void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
                                                uint32_t width,
                                                uint32_t height,
@@ -248,13 +227,6 @@ void ScreencopyManager::handleScreencopyBuffer(uint32_t format,
     .height = height,
     .stride = stride
   };
-
-  try {
-    pf = convertPixelformat(info->format);
-  } catch (const std::exception& e) {
-    vlog.error("Failed to convert pixelformat: %s", e.what());
-    stopped();
-  }
 }
 
 void ScreencopyManager::handleScreencopyFlags(uint32_t /* flags */)

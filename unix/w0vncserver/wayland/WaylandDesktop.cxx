@@ -115,7 +115,7 @@ void WaylandDesktop::start()
   };
 
   try {
-    pb = new WaylandPixelBuffer(display, output, server, desktopReadyCb);
+    pb = new WaylandPixelBuffer(display, output, seat, server, desktopReadyCb);
   } catch (std::exception& e) {
     vlog.error("Error initializing pixel buffer: %s", e.what());
     server->closeClients("Failed to start remote desktop session");
@@ -224,7 +224,12 @@ bool WaylandDesktop::available()
 {
   wayland::Display display;
 
-  return display.interfaceAvailable("zwlr_screencopy_manager_v1") &&
+  // We need either wlr-screencopy OR ext-image-copy-capture
+  return (display.interfaceAvailable("zwlr_screencopy_manager_v1") ||
+         (
+            display.interfaceAvailable("ext_image_copy_capture_manager_v1") &&
+            display.interfaceAvailable("ext_output_image_capture_source_manager_v1")
+         )) &&
          display.interfaceAvailable("zwlr_virtual_pointer_manager_v1") &&
          display.interfaceAvailable("zwp_virtual_keyboard_manager_v1");
 }
