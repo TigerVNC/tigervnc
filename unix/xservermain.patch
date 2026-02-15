@@ -1,0 +1,40 @@
+diff --git a/hw/meson.build b/hw/meson.build
+index f9605a5b7..359b622dd 100644
+--- a/hw/meson.build
++++ b/hw/meson.build
+@@ -1,3 +1,7 @@
++if get_option('tigervnc_builddir') != ''
++  subdir('vnc')
++endif
++
+ if build_xephyr
+     subdir('kdrive')
+ endif
+diff --git a/meson.build b/meson.build
+index 1556491eb..680d23e51 100644
+--- a/meson.build
++++ b/meson.build
+@@ -1,4 +1,4 @@
+-project('xserver', 'c',
++project('xserver', ['c', 'cpp'],
+         default_options: [
+             'buildtype=debugoptimized',
+             'c_std=gnu99',
+@@ -8,7 +8,7 @@ project('xserver', 'c',
+ )
+ release_date = '2021-07-05'
+ 
+-add_project_arguments('-DHAVE_DIX_CONFIG_H', language: ['c', 'objc'])
++add_project_arguments('-DHAVE_DIX_CONFIG_H', language: ['c', 'objc', 'cpp'])
+ cc = meson.get_compiler('c')
+ 
+ add_project_arguments('-fno-strict-aliasing', language : 'c')
+diff --git a/meson_options.txt b/meson_options.txt
+index 94698f218..616686299 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -1,3 +1,4 @@
++option('tigervnc_builddir', type: 'string', description: 'tigervncbuild dir', value: '')
+ option('xorg', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+        description: 'Enable Xorg X Server')
+ option('xephyr', type: 'boolean', value: false,
