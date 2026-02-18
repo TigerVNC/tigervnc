@@ -21,6 +21,7 @@
 #endif
 
 #include <assert.h>
+#include <limits.h>
 #include <unistd.h>
 
 #include <FL/x.H>
@@ -28,6 +29,65 @@
 #include "x11.h"
 
 #define _NET_WM_STATE_ADD           1  /* add/set property */
+
+bool x11_has_wm()
+{
+  Window* wmWindow;
+
+  Atom actual_type;
+  int actual_format;
+  unsigned long nitems, bytes_after;
+
+  XGetWindowProperty(fl_display, XRootWindow(fl_display, fl_screen),
+                     XInternAtom(fl_display, "_NET_SUPPORTING_WM_CHECK", False),
+                     0, 1, False, XA_WINDOW,
+                     &actual_type, &actual_format, &nitems,
+                     &bytes_after, (unsigned char**)&wmWindow);
+  if ((actual_type != XA_WINDOW) || (actual_format != 32) ||
+      (nitems != 1) || (bytes_after != 0))
+    return false;
+
+  // Confirm WM is alive
+  XGetWindowProperty(fl_display, *wmWindow,
+                     XInternAtom(fl_display, "_NET_SUPPORTING_WM_CHECK", False),
+                     0, 1, False, XA_WINDOW,
+                     &actual_type, &actual_format, &nitems,
+                     &bytes_after, (unsigned char**)&wmWindow);
+  if ((actual_type != XA_WINDOW) || (actual_format != 32) ||
+      (nitems != 1) || (bytes_after != 0))
+    return false;
+
+  return true;
+}
+
+bool x11_wm_supports(const char* atom)
+{
+  Atom* supported;
+  Atom desired;
+
+  Atom actual_type;
+  int actual_format;
+  unsigned long nitems, bytes_after;
+
+  if (!x11_has_wm())
+    return false;
+
+  XGetWindowProperty(fl_display, XRootWindow(fl_display, fl_screen),
+                     XInternAtom(fl_display, "_NET_SUPPORTED", False),
+                     0, LONG_MAX, False, XA_ATOM,
+                     &actual_type, &actual_format, &nitems,
+                     &bytes_after, (unsigned char**)&supported);
+  if ((actual_type != XA_ATOM) || (actual_format != 32))
+    return false;
+
+  desired = XInternAtom(fl_display, atom, False);
+  for (unsigned long n = 0; n < nitems; n++) {
+    if (supported[n] == desired)
+      return true;
+  }
+
+  return false;
+}
 
 void x11_win_maximize(Fl_Window* win)
 {

@@ -51,6 +51,10 @@
 #include "cocoa.h"
 #endif
 
+#if !defined(WIN32) && !defined(__APPLE__)
+#include "x11.h"
+#endif
+
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Tabs.H>
@@ -1165,9 +1169,53 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
     monitorArrangement = new Fl_Monitor_Arrangement(
                               tx + INDENT, ty,
                               width - INDENT, 150);
-    ty += 150 + TIGHT_MARGIN;
+    ty += 150 + INNER_MARGIN;
+
+    bool supportsMultihead;
+
+#if defined(WIN32)
+    supportsMultihead = true;
+#elif defined(__APPLE__)
+    supportsMultihead = !cocoa_screens_have_separate_spaces();
+#else
+    // FLTK will emulate multihead support without a WM
+    if (!x11_has_wm())
+      supportsMultihead = true;
+    else
+      supportsMultihead =
+        x11_wm_supports("_NET_WM_FULLSCREEN_MONITORS");
+#endif
+
+    if (!supportsMultihead) {
+      Fl_Box* box;
+      const char* label;
+      int w, h;
+
+      allMonitorsButton->deactivate();
+      selectedMonitorsButton->deactivate();
+      monitorArrangement->deactivate();
+
+#if defined(WIN32)
+      assert(false);
+#elif defined(__APPLE__)
+      label = _("Full screen on multiple monitors is not supported when "
+                "the system setting \"Displays have separate Spaces\" "
+                "is enabled");
+#else
+      label = _("Full screen on multiple monitors is not supported by "
+                "the current desktop environment");
+#endif
+
+      fl_font(FL_HELVETICA, FL_NORMAL_SIZE);
+      w = width;
+      fl_measure(label, w, h);
+
+      box = new Fl_Box(tx, ty, w, h, label);
+      box->align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);
+      ty += h + INNER_MARGIN;
+    }
   }
-  ty -= TIGHT_MARGIN;
+  ty -= INNER_MARGIN;
 
   displayModeGroup->end();
   /* Needed for resize to work sanely */

@@ -21,6 +21,9 @@
 
 class Fl_Window;
 
+bool x11_has_wm();
+bool x11_wm_supports(const char* atom);
+
 void x11_win_maximize(Fl_Window* win);
 bool x11_win_is_maximized(Fl_Window* win);
 

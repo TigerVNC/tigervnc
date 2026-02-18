@@ -227,6 +227,11 @@ void cocoa_untap_keyboard()
   event_tap = nullptr;
 }
 
+bool cocoa_screens_have_separate_spaces()
+{
+  return [NSScreen screensHaveSeparateSpaces];
+}
+
 CGColorSpaceRef cocoa_win_color_space(Fl_Window *win)
 {
   NSWindow *nsw;

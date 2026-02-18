@@ -28,6 +28,8 @@ bool cocoa_is_trusted(bool prompt=false);
 bool cocoa_tap_keyboard();
 void cocoa_untap_keyboard();
 
+bool cocoa_screens_have_separate_spaces();
+
 typedef struct CGColorSpace *CGColorSpaceRef;
 
 CGColorSpaceRef cocoa_win_color_space(Fl_Window *win);
