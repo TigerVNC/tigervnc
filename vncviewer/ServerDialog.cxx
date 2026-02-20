@@ -142,9 +142,7 @@ void ServerDialog::run(const char* servername, char *newservername)
     dialog.loadServerHistory();
     dialog.serverName->set_suggestions(dialog.serverHistory);
   } catch (std::exception& e) {
-    vlog.error("%s", e.what());
-    fl_alert(_("Unable to load the server history:\n\n%s"),
-             e.what());
+    vlog.error(_("Unable to load the server history: %s"), e.what());
   }
 
   while (dialog.shown()) Fl::wait();
@@ -289,9 +287,8 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
   try {
     saveViewerParameters(nullptr, servername);
   } catch (std::exception& e) {
-    vlog.error("%s", e.what());
-    fl_alert(_("Unable to save the default configuration:\n\n%s"),
-             e.what());
+    vlog.error(_("Unable to save the default configuration: %s"),
+               e.what());
   }
 
   // avoid duplicates in the history
@@ -301,9 +298,7 @@ void ServerDialog::handleConnect(Fl_Widget* /*widget*/, void *data)
   try {
     dialog->saveServerHistory();
   } catch (std::exception& e) {
-    vlog.error("%s", e.what());
-    fl_alert(_("Unable to save the server history:\n\n%s"),
-             e.what());
+    vlog.error(_("Unable to save the server history: %s"), e.what());
   }
 }
 
