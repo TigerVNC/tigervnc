@@ -90,4 +90,6 @@ std::list<std::string> loadHistoryFromRegKey();
 void saveHistoryToRegKey(const std::list<std::string>& serverHistory);
 #endif
 
+void migrateDeprecatedOptions();
+
 #endif

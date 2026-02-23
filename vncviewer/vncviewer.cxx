@@ -517,22 +517,6 @@ potentiallyLoadConfigurationFile(const char *filename)
 }
 
 static void
-migrateDeprecatedOptions()
-{
-  if (fullScreenAllMonitors) {
-    vlog.info(_("FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"));
-
-    fullScreenMode.setParam("all");
-  }
-  if (dotWhenNoCursor) {
-    vlog.info(_("DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' instead"));
-
-    alwaysCursor.setParam(true);
-    cursorType.setParam("Dot");
-  }
-}
-
-static void
 create_base_dirs()
 {
   const char *dir;
@@ -731,6 +715,9 @@ int main(int argc, char** argv)
     i++;
   }
 
+  // Handle any old settings specified on the command line
+  migrateDeprecatedOptions();
+
 #if !defined(WIN32) && !defined(__APPLE__)
   if (strcmp(display, "") != 0) {
     Fl::display(display);
@@ -744,8 +731,6 @@ int main(int argc, char** argv)
 
   // Check if the server name in reality is a configuration file
   potentiallyLoadConfigurationFile(vncServerName);
-
-  migrateDeprecatedOptions();
 
   create_base_dirs();
 
