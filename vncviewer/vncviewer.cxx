@@ -43,11 +43,6 @@
 #include <Carbon/Carbon.h>
 #endif
 
-#if !defined(WIN32) && !defined(__APPLE__)
-#include <X11/Xlib.h>
-#include <X11/XKBlib.h>
-#endif
-
 #include <core/Exception.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
@@ -65,7 +60,6 @@
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/fl_ask.H>
-#include <FL/x.H>
 
 #include "fltk/theme.h"
 #include "fltk/util.h"
@@ -721,7 +715,6 @@ int main(int argc, char** argv)
     Fl::display(display);
   }
   fl_open_display();
-  XkbSetDetectableAutoRepeat(fl_display, True, nullptr);
 #endif
 
   init_fltk();
