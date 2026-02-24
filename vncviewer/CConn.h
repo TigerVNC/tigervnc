@@ -57,6 +57,9 @@ protected:
                   const char *text) override;
   void getUserPasswd(bool secure, std::string *user,
                      std::string *password) override;
+  bool verifyCertificate(unsigned int status,
+                         const uint8_t* certificate,
+                         size_t length) override;
 
   void initDone() override;
 

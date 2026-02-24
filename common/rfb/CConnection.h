@@ -193,6 +193,13 @@ namespace rfb {
     virtual void getUserPasswd(bool secure, std::string* user,
                                std::string* password) = 0;
 
+    // verifyCertificate() is called when a certificate is received from
+    // the server. Return true if the certificate should be accepted,
+    // and false if it should be rejected.
+    virtual bool verifyCertificate(unsigned int status,
+                                   const uint8_t* certificate,
+                                   size_t length) = 0;
+
     // showMsgBox() displays a message box with the specified style and
     // contents.  The return value is true if the user clicked OK/Yes.
     virtual bool showMsgBox(MsgBoxFlags flags, const char *title,

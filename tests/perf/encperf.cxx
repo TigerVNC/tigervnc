@@ -105,6 +105,9 @@ public:
   void bell() override;
   void serverCutText(const char*) override;
   virtual void getUserPasswd(bool secure, std::string *user, std::string *password) override;
+  bool verifyCertificate(unsigned int status,
+                         const uint8_t* certificate,
+                         size_t length) override;
   virtual bool showMsgBox(rfb::MsgBoxFlags flags, const char *title, const char *text) override;
 
 public:
@@ -275,6 +278,11 @@ void CConn::serverCutText(const char*)
 
 void CConn::getUserPasswd(bool, std::string *, std::string *)
 {
+}
+
+bool CConn::verifyCertificate(unsigned int, const uint8_t*, size_t)
+{
+  return true;
 }
 
 bool CConn::showMsgBox(rfb::MsgBoxFlags, const char *, const char *)
