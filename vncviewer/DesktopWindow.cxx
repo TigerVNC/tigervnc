@@ -984,6 +984,13 @@ int DesktopWindow::handle(int event)
     }
     // Continue processing so that the viewport also gets mouse events
     break;
+
+  case FL_SHOW:
+    cc->enableUpdates(true);
+    break;
+  case FL_HIDE:
+    cc->enableUpdates(false);
+    break;
   }
 
   return Fl_Window::handle(event);
