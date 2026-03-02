@@ -102,17 +102,17 @@ namespace rfb {
     // requestClipboard() will result in a request to the server to
     // transfer its clipboard data. A call to handleClipboardData()
     // will be made once the data is available.
-    virtual void requestClipboard();
+    void requestClipboard();
 
     // announceClipboard() informs the server of changes to the
     // clipboard on the client. The server may later request the
     // clipboard data via handleClipboardRequest().
-    virtual void announceClipboard(bool available);
+    void announceClipboard(bool available);
 
     // sendClipboardData() transfers the clipboard data to the server
     // and should be called whenever the server has requested the
     // clipboard via handleClipboardRequest().
-    virtual void sendClipboardData(const char* data);
+    void sendClipboardData(const char* data);
 
     // sendKeyPress()/sendKeyRelease() send keyboard events to the
     // server
