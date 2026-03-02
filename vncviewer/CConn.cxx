@@ -325,7 +325,7 @@ void CConn::processNextMsg(core::Timer*)
                        "given by the server:\n\n%s"), e.what());
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
-    abort_connection_with_unexpected_error(e);
+    abort_connection_unexpected(e);
   }
 
   recursing = false;

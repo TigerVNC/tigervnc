@@ -142,7 +142,8 @@ void abort_connection(const char *error, ...)
   exitMainloop = true;
 }
 
-void abort_connection_with_unexpected_error(const std::exception &e) {
+void abort_connection_unexpected(const std::exception &e)
+{
   abort_connection(_("An unexpected error occurred when communicating "
                      "with the server:\n\n%s"), e.what());
 }
