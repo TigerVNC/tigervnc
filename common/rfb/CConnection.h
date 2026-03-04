@@ -200,6 +200,12 @@ namespace rfb {
                                    const uint8_t* certificate,
                                    size_t length) = 0;
 
+    // verifyHostKey() is called when a host authentication key is
+    // received from the server. Return true if the key should be
+    // accepted, and false if it should be rejected.
+    virtual bool verifyHostKey(const uint8_t* key, size_t length,
+                               const char* fingerprint) = 0;
+
     // showMsgBox() displays a message box with the specified style and
     // contents.  The return value is true if the user clicked OK/Yes.
     virtual bool showMsgBox(MsgBoxFlags flags, const char *title,

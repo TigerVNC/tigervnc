@@ -60,6 +60,8 @@ protected:
   bool verifyCertificate(unsigned int status,
                          const uint8_t* certificate,
                          size_t length) override;
+  bool verifyHostKey(const uint8_t* key, size_t length,
+                     const char* fingerprint) override;
 
   void initDone() override;
 

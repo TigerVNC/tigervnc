@@ -44,6 +44,7 @@
 
 #include <rdr/AESInStream.h>
 #include <rdr/AESOutStream.h>
+#include <rdr/MemOutStream.h>
 #include <rdr/RandomStream.h>
 
 enum {
@@ -215,26 +216,27 @@ bool CSecurityRSAAES::readPublicKey()
 
 void CSecurityRSAAES::verifyServer()
 {
-  uint8_t lenServerKey[4] = {
-    (uint8_t)((serverKeyLength & 0xff000000) >> 24),
-    (uint8_t)((serverKeyLength & 0xff0000) >> 16),
-    (uint8_t)((serverKeyLength & 0xff00) >> 8),
-    (uint8_t)(serverKeyLength & 0xff)
-  };
+  rdr::MemOutStream key(4 + serverKey.size * 2);
+
   uint8_t f[8];
   struct sha1_ctx ctx;
+  std::string fingerprint;
+
+  key.writeU32(serverKeyLength);
+  key.writeBytes(serverKeyN, serverKey.size);
+  key.writeBytes(serverKeyE, serverKey.size);
+
   sha1_init(&ctx);
-  sha1_update(&ctx, 4, lenServerKey);
-  sha1_update(&ctx, serverKey.size, serverKeyN);
-  sha1_update(&ctx, serverKey.size, serverKeyE);
+  sha1_update(&ctx, key.length(), key.data());
   sha1_digest(&ctx, sizeof(f), f);
-  const char *title = "Server key fingerprint";
-  std::string text = core::format(
-    "The server has provided the following identifying information:\n"
-    "Fingerprint: %02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n"
-    "Please verify that the information is correct and press \"Yes\". "
-    "Otherwise press \"No\"", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
-  if (!cc->showMsgBox(MsgBoxFlags::M_YESNO, title, text.c_str()))
+
+  // This is the format used by RealVNC, so use the same so users can
+  // compare
+  fingerprint =
+    core::format("%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x",
+                 f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
+
+  if (!cc->verifyHostKey(key.data(), key.length(), fingerprint.c_str()))
     throw auth_cancelled();
 }
 
