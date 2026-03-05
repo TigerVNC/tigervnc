@@ -45,18 +45,6 @@ namespace rfb {
   class CMsgWriter;
   class CSecurity;
 
-  enum MsgBoxFlags{
-      M_OK = 0,
-      M_OKCANCEL = 1,
-      M_YESNO = 4,
-      M_ICONERROR = 0x10,
-      M_ICONQUESTION = 0x20,
-      M_ICONWARNING = 0x30,
-      M_ICONINFORMATION = 0x40,
-      M_DEFBUTTON1 = 0,
-      M_DEFBUTTON2 = 0x100
-  };
-
   class CConnection : public CMsgHandler {
   public:
 
@@ -205,11 +193,6 @@ namespace rfb {
     // accepted, and false if it should be rejected.
     virtual bool verifyHostKey(const uint8_t* key, size_t length,
                                const char* fingerprint) = 0;
-
-    // showMsgBox() displays a message box with the specified style and
-    // contents.  The return value is true if the user clicked OK/Yes.
-    virtual bool showMsgBox(MsgBoxFlags flags, const char *title,
-                            const char *text) = 0;
 
   protected:
 

@@ -53,8 +53,6 @@ protected:
 
   // CConnection callback methods
 
-  bool showMsgBox(rfb::MsgBoxFlags flags, const char *title,
-                  const char *text) override;
   void getUserPasswd(bool secure, std::string *user,
                      std::string *password) override;
   bool verifyCertificate(unsigned int status,
