@@ -687,14 +687,15 @@ static void GetSmallerMode(XRRScreenResources *res,
 }
 #endif /* HAVE_XRANDR */
 
-unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
-                                       const rfb::ScreenSet& layout)
+void XDesktop::setScreenLayout(int fb_width, int fb_height,
+                               const rfb::ScreenSet& layout)
 {
 #ifdef HAVE_XRANDR
   XRRScreenResources *res = XRRGetScreenResources(dpy, DefaultRootWindow(dpy));
   if (!res) {
     vlog.error("XRRGetScreenResources failed");
-    return rfb::resultProhibited;
+    server->setScreenLayoutDone(rfb::resultProhibited);
+    return;
   }
   vncSetGlueContext(dpy, res);
 
@@ -741,26 +742,30 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
     if (outputId == None) {
       vlog.debug("Resize adjust: Could not find corresponding screen");
       XRRFreeScreenResources(res);
-      return rfb::resultInvalid;
+      server->setScreenLayoutDone(rfb::resultInvalid);
+      return;
     }
     XRROutputInfo *output = XRRGetOutputInfo(dpy, res, outputId);
     if (!output) {
       vlog.debug("Resize adjust: XRRGetOutputInfo failed");
       XRRFreeScreenResources(res);
-      return rfb::resultInvalid;
+      server->setScreenLayoutDone(rfb::resultInvalid);
+      return;
     }
     if (!output->crtc) {
       vlog.debug("Resize adjust: Selected output has no CRTC");
       XRRFreeScreenResources(res);
       XRRFreeOutputInfo(output);
-      return rfb::resultInvalid;
+      server->setScreenLayoutDone(rfb::resultInvalid);
+      return;
     }
     XRRCrtcInfo *crtc = XRRGetCrtcInfo(dpy, res, output->crtc);
     if (!crtc) {
       vlog.debug("Resize adjust: XRRGetCrtcInfo failed");
       XRRFreeScreenResources(res);
       XRRFreeOutputInfo(output);
-      return rfb::resultInvalid;
+      server->setScreenLayoutDone(rfb::resultInvalid);
+      return;
     }
 
     unsigned int swidth = iter->dimensions.width();
@@ -797,7 +802,8 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
     } else {
       vlog.error("Failed to find smaller or equal screen size");
       XRRFreeScreenResources(res);
-      return rfb::resultInvalid;
+      server->setScreenLayoutDone(rfb::resultInvalid);
+      return;
     }
   }
 
@@ -827,20 +833,22 @@ unsigned int XDesktop::setScreenLayout(int fb_width, int fb_height,
      VNCSConnectionST::setDesktopSize. Another ExtendedDesktopSize
      with reason=0 will be sent in response to the changes seen by the
      event handler. */
-  if (adjustedLayout != layout)
-    return rfb::resultInvalid;
+  if (adjustedLayout != layout) {
+    server->setScreenLayoutDone(rfb::resultInvalid);
+    return;
+  }
 
   // Explicitly update the server state with the result as there
   // can be corner cases where we don't get feedback from the X server
   server->setScreenLayout(computeScreenLayout());
 
-  return ret;
+  server->setScreenLayoutDone(ret);
 
 #else
   (void)fb_width;
   (void)fb_height;
   (void)layout;
-  return rfb::resultProhibited;
+  server->setScreenLayoutDone(rfb::resultProhibited);
 #endif /* HAVE_XRANDR */
 }
 

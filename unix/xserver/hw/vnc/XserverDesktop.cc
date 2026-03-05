@@ -482,8 +482,8 @@ void XserverDesktop::pointerEvent(const core::Point& pos,
   vncPointerButtonAction(buttonMask);
 }
 
-unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
-                                             const rfb::ScreenSet& layout)
+void XserverDesktop::setScreenLayout(int fb_width, int fb_height,
+                                     const rfb::ScreenSet& layout)
 {
   unsigned int result;
 
@@ -494,7 +494,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   // can be corner cases where we don't get feedback from the X core
   refreshScreenLayout();
 
-  return result;
+  server->setScreenLayoutDone(result);
 }
 
 void XserverDesktop::frameTick(uint64_t msc)
