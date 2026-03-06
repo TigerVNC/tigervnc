@@ -42,23 +42,35 @@ std::list<Timer*> Timer::pending;
 
 int Timer::checkTimeouts() {
   timeval start;
+  std::list<Timer*> ready;
 
   if (pending.empty())
     return -1;
 
-  gettimeofday(&start, nullptr);
-  while (pending.front()->isBefore(start)) {
-    Timer* timer;
+  // Convoluted logic to handle changes to the list as we iterate
 
-    timer = pending.front();
-    pending.pop_front();
+  gettimeofday(&start, nullptr);
+  for (Timer* timer : pending) {
+    if (!timer->isBefore(start))
+      break;
+    ready.push_back(timer);
+  }
+
+  for (Timer* timer : ready) {
+    // Still alive?
+    if (std::find(pending.begin(), pending.end(), timer) == pending.end())
+      continue;
+
+    // Changed timeout?
+    if (!timer->isBefore(start))
+      continue;
+
+    pending.remove(timer);
 
     timer->lastDueTime = timer->dueTime;
     timer->cb->handleTimeout(timer);
-
-    if (pending.empty())
-      return -1;
   }
+
   return getNextTimeout();
 }
 
