@@ -242,7 +242,10 @@ $ENV{XAUTHORITY} = $xauthorityFile;
 
 @cmd = ("xinit");
 
-push(@cmd, $Xsession, $session{'Exec'});
+push(@cmd, $Xsession);
+foreach my $word (split(/\s+/, $session{'Exec'})) {
+  push(@cmd, $word);
+}
 
 push(@cmd, '--');
 
