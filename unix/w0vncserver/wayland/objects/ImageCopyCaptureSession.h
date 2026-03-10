@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <core/Region.h>
+#include <wayland-client-protocol.h>
 
 #include "Object.h"
 
@@ -52,6 +53,7 @@ namespace wayland {
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getFormat() const { return format; }
+    wl_output_transform getTransform() const { return (wl_output_transform)transform; }
 
   private:
     void handleBufferSize(uint32_t width, uint32_t height);
@@ -84,6 +86,7 @@ namespace wayland {
     uint32_t width;
     uint32_t height;
     uint32_t format;
+    uint32_t transform;
     std::function<void()> stoppedCb;
     std::vector<uint32_t> formatsPending;
     std::vector<uint32_t> formats;

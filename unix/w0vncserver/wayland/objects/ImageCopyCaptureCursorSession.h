@@ -42,6 +42,8 @@ namespace wayland {
                                   std::function<void()> stoppedCb);
     ~ImageCopyCaptureCursorSession();
 
+    ImageCopyCaptureSession* getCaptureSession() { return captureSession; }
+
   private:
     void handleEnter();
     void handleLeave();

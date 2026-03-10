@@ -108,7 +108,7 @@ ImageCopyCaptureSession::ImageCopyCaptureSession(Display* display_,
                                                    stoppedCb_)
   : display(display_), bufferEventCb(bufferEventCb_), session(session_),
     frame(nullptr), shm(nullptr), pool(nullptr), buffer(nullptr),
-    width(0), height(0), stoppedCb(stoppedCb_)
+    width(0), height(0), transform(0), stoppedCb(stoppedCb_)
 {
   ext_image_copy_capture_session_v1_add_listener(session, &listener, this);
 }
@@ -235,8 +235,9 @@ void ImageCopyCaptureSession::handleStopped()
   stoppedCb();
 }
 
-void ImageCopyCaptureSession::handleFrameTransform(uint32_t /* transform */)
+void ImageCopyCaptureSession::handleFrameTransform(uint32_t transform_)
 {
+  transform = transform_;
 }
 
 void ImageCopyCaptureSession::handleFrameDamage(int32_t x, int32_t y,

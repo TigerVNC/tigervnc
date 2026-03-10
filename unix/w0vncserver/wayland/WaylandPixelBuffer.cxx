@@ -37,6 +37,8 @@
 #include "objects/Display.h"
 #include "objects/ScreencopyManager.h"
 #include "objects/ImageCaptureSource.h"
+#include "objects/ImageCopyCaptureSession.h"
+#include "objects/ImageCopyCaptureCursorSession.h"
 #include "objects/ImageCopyCaptureManager.h"
 #include "WaylandPixelBuffer.h"
 
@@ -100,17 +102,33 @@ void WaylandPixelBuffer::cursorImageEvent(int width, int height,
                                           uint32_t shmFormat,
                                           const uint8_t* src)
 {
+  const uint8_t* cursorSrc;
   uint8_t* cursorData;
+  uint8_t* transformedCursorData;
 
   cursorData = nullptr;
+  transformedCursorData = nullptr;
+  cursorSrc = src;
   try {
-    cursorData = convertCursorBuffer(src, shmFormat, width, height);
+    if (imageCopyCaptureManager) {
+      wl_output_transform transform;
+
+      transform = imageCopyCaptureManager->getCursorSession()->getCaptureSession()->getTransform();
+      if (transform != WL_OUTPUT_TRANSFORM_NORMAL) {
+        transformedCursorData = undoTransformation(src, width, height,
+                                                   width * 4, shmFormat,
+                                                   transform);
+        cursorSrc = transformedCursorData;
+      }
+    }
+    cursorData = convertCursorBuffer(cursorSrc, shmFormat, width, height);
     server->setCursor(width, height, hotspot, cursorData);
   } catch (std::exception& e) {
     vlog.error("Failed to set cursor: %s", e.what());
   }
 
-  delete cursorData;
+  delete [] cursorData;
+  delete [] transformedCursorData;
 }
 
 void WaylandPixelBuffer::cursorPosEvent(const core::Point& pos)
@@ -121,8 +139,34 @@ void WaylandPixelBuffer::cursorPosEvent(const core::Point& pos)
 void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
                                      uint32_t shmFormat)
 {
-  if (output->getWidth() != (uint32_t)width() ||
-      output->getHeight() != (uint32_t)height()) {
+  uint32_t bufferWidth;
+  uint32_t bufferHeight;
+  bool transformed;
+  bool rotated;
+
+  bufferWidth = output->getWidth();
+  bufferHeight = output->getHeight();
+  transformed = false;
+  rotated = false;
+
+  if (imageCopyCaptureManager) {
+    wl_output_transform transform;
+
+    transform = imageCopyCaptureManager->getSession()->getTransform();
+    transformed = transform != WL_OUTPUT_TRANSFORM_NORMAL;
+
+    rotated = transform == WL_OUTPUT_TRANSFORM_90 ||
+              transform == WL_OUTPUT_TRANSFORM_270 ||
+              transform == WL_OUTPUT_TRANSFORM_FLIPPED_90 ||
+              transform == WL_OUTPUT_TRANSFORM_FLIPPED_270;
+
+    if (rotated) {
+      bufferWidth = output->getHeight();
+      bufferHeight = output->getWidth();
+    }
+  }
+
+  if (bufferWidth != (uint32_t)width() || bufferHeight != (uint32_t)height()) {
     if (!firstFrame && !resized) {
       resized = true;
       if (screencopyManager)
@@ -136,19 +180,35 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
   // FIXME: Can we query the compositor instead of doing this?
   if (firstFrame) {
     try {
-      format = convertPixelformat(shmFormat);
+      format = shmToRfbFormat(shmFormat);
     } catch (std::exception& e) {
       vlog.error("Failed to convert pixelformat: %s", e.what());
       server->closeClients("Failed to start remote session");
       return;
     }
-    setSize(output->getWidth(), output->getHeight());
+
+    if (rotated) {
+      setSize(output->getHeight(), output->getWidth());
+    } else {
+      setSize(output->getWidth(), output->getHeight());
+    }
+
     desktopReadyCallback();
   }
 
   firstFrame = false;
 
-  syncBuffers(buffer, damage);
+  if (transformed) {
+    try {
+      syncBuffersTransformed(buffer, damage);
+    } catch (std::exception& e) {
+      vlog.error("Failed to sync transformed buffers: %s", e.what());
+      server->closeClients("Failed to start remote session");
+      return;
+    }
+  } else {
+    syncBuffers(buffer, damage);
+  }
 }
 
 void WaylandPixelBuffer::syncBuffers(uint8_t* buffer, core::Region damage)
@@ -160,6 +220,8 @@ void WaylandPixelBuffer::syncBuffers(uint8_t* buffer, core::Region damage)
   pixman_bool_t ret;
   core::Region region;
   std::vector<core::Rect> rects;
+
+  assert(imageCopyCaptureManager->getSession()->getTransform() == WL_OUTPUT_TRANSFORM_NORMAL);
 
   if (resized) {
     setSize(output->getWidth(), output->getHeight());
@@ -195,6 +257,160 @@ void WaylandPixelBuffer::syncBuffers(uint8_t* buffer, core::Region damage)
   }
 
   server->add_changed(damage);
+}
+
+void WaylandPixelBuffer::syncBuffersTransformed(uint8_t* buffer, core::Region damage)
+{
+  int srcWidth;
+  int srcHeight;
+  int dstWidth;
+  int dstHeight;
+  bool wasResized;
+  core::Region region;
+  std::vector<core::Rect> rects;
+  std::vector<core::Rect> transformedRects;
+  wl_output_transform wlTransform;
+  core::Region transformedDamage;
+  bool rotated;
+  pixman_format_code_t pixmanFormat;
+  pixman_image_t* srcImg;
+
+  assert(imageCopyCaptureManager->getSession());
+
+  wlTransform = imageCopyCaptureManager->getSession()->getTransform();
+  assert(wlTransform != WL_OUTPUT_TRANSFORM_NORMAL);
+
+  rotated = wlTransform == WL_OUTPUT_TRANSFORM_90 ||
+            wlTransform == WL_OUTPUT_TRANSFORM_270 ||
+            wlTransform == WL_OUTPUT_TRANSFORM_FLIPPED_90 ||
+            wlTransform == WL_OUTPUT_TRANSFORM_FLIPPED_270;
+
+  wasResized = resized;
+  if (resized) {
+    if (rotated)
+      setSize(output->getHeight(), output->getWidth());
+    else
+      setSize(output->getWidth(), output->getHeight());
+    server->setPixelBuffer(this);
+    resized = false;
+  }
+
+  region = damage;
+
+  if (region.is_empty())
+    region = getRect();
+
+  dstWidth = width();
+  dstHeight = height();
+  if (rotated) {
+    srcWidth = dstHeight;
+    srcHeight = dstWidth;
+  } else {
+    srcWidth = dstWidth;
+    srcHeight = dstHeight;
+  }
+
+  region.get_rects(&rects);
+
+  if (!wasResized) {
+    // Transform the damage rects
+    for (core::Rect &rect : rects) {
+      int x;
+      int y;
+      int w;
+      int h;
+      int dx;
+      int dy;
+      int dw;
+      int dh;
+
+      x = rect.tl.x;
+      y = rect.tl.y;
+      w = rect.width();
+      h = rect.height();
+
+      switch (wlTransform) {
+      case WL_OUTPUT_TRANSFORM_NORMAL:
+        dx = x;
+        dy = y;
+        break;
+      case WL_OUTPUT_TRANSFORM_90:
+        dx = srcHeight - y - h;
+        dy = x;
+        break;
+      case WL_OUTPUT_TRANSFORM_180:
+        dx = srcWidth - x - w;
+        dy = srcHeight - y - h;
+        break;
+      case WL_OUTPUT_TRANSFORM_270:
+        dx = y;
+        dy = srcWidth - x - w;
+        break;
+      case WL_OUTPUT_TRANSFORM_FLIPPED:
+        dx = srcWidth - x - w;
+        dy = y;
+        break;
+      case WL_OUTPUT_TRANSFORM_FLIPPED_90:
+        dx = y;
+        dy = x;
+        break;
+      case WL_OUTPUT_TRANSFORM_FLIPPED_180:
+        dx = x;
+        dy = srcHeight - y - h;
+        break;
+      case WL_OUTPUT_TRANSFORM_FLIPPED_270:
+        dx = srcHeight - y - h;
+        dy = srcWidth - x - w;
+        break;
+      default:
+        throw std::runtime_error(core::format("Unknown transform: %d", wlTransform));
+      }
+
+      if (rotated) {
+        dw = h;
+        dh = w;
+      } else {
+        dw = w;
+        dh = h;
+      }
+
+      transformedDamage.assign_union({{dx, dy, dx + dw, dy + dh}});
+    }
+  } else {
+    // Mark entire screen as dirty when we resize
+    transformedDamage = getRect();
+  }
+
+  pixmanFormat = shmToPixmanFormat(imageCopyCaptureManager->getSession()->getFormat());
+
+  srcImg = pixman_image_create_bits(pixmanFormat, srcWidth, srcHeight,
+                                   (uint32_t*)(buffer), srcWidth * 4);
+
+  transformedDamage.get_rects(&transformedRects);
+  for (core::Rect &rect : transformedRects) {
+    uint8_t* dstBuffer;
+    int dstStride;
+    pixman_image_t* dstImg;
+    pixman_transform_t inverseTransform;
+
+    dstBuffer = getBufferRW(getRect(), &dstStride);
+
+    dstImg = pixman_image_create_bits(pixmanFormat, dstWidth, dstHeight,
+                                     (uint32_t*)(dstBuffer), dstStride * 4);
+
+    inverseTransform = wlToPixmanInverseTransform(wlTransform, srcWidth, srcHeight);
+    pixman_image_set_transform(srcImg, &inverseTransform);
+
+    pixman_image_composite32(PIXMAN_OP_SRC, srcImg, nullptr, dstImg,
+                             rect.tl.x, rect.tl.y, 0, 0, rect.tl.x,
+                             rect.tl.y, rect.width(), rect.height());
+
+    pixman_image_unref(dstImg);
+    commitBufferRW(rect);
+  }
+
+  pixman_image_unref(srcImg);
+  server->add_changed(transformedDamage);
 }
 
 uint8_t* WaylandPixelBuffer::convertCursorBuffer(const uint8_t* src,
@@ -283,7 +499,7 @@ uint8_t* WaylandPixelBuffer::convertCursorBuffer(const uint8_t* src,
   return cursorData;
 }
 
-rfb::PixelFormat WaylandPixelBuffer::convertPixelformat(uint32_t shmFormat)
+rfb::PixelFormat WaylandPixelBuffer::shmToRfbFormat(uint32_t shmFormat)
 {
   switch (shmFormat) {
     case WL_SHM_FORMAT_XRGB8888:
@@ -301,5 +517,118 @@ rfb::PixelFormat WaylandPixelBuffer::convertPixelformat(uint32_t shmFormat)
     default:
       throw std::runtime_error(core::format("format %d not supported",
                                             shmFormat));
+  }
+}
+
+pixman_format_code_t WaylandPixelBuffer::shmToPixmanFormat(uint32_t shmFormat)
+{
+  switch (shmFormat) {
+    case WL_SHM_FORMAT_XRGB8888:
+      return PIXMAN_x8r8g8b8;
+    case WL_SHM_FORMAT_ARGB8888:
+      return PIXMAN_a8r8g8b8;
+    case WL_SHM_FORMAT_RGBX8888:
+      return PIXMAN_r8g8b8x8;
+    case WL_SHM_FORMAT_RGBA8888:
+      return PIXMAN_r8g8b8a8;
+    case WL_SHM_FORMAT_XBGR8888:
+      return PIXMAN_x8b8g8r8;
+    case WL_SHM_FORMAT_ABGR8888:
+      return PIXMAN_a8b8g8r8;
+   default:
+    throw std::runtime_error(core::format("format %d not supported", shmFormat));
+  }
+}
+
+uint8_t* WaylandPixelBuffer::undoTransformation(const uint8_t* srcBuffer,
+                                                int srcWidth,
+                                                int srcHeight,
+                                                int srcStride,
+                                                uint32_t shmFormat,
+                                                wl_output_transform transform)
+{
+  pixman_image_t* srcImg;
+  pixman_image_t* dstImg;
+  pixman_format_code_t pixmanFormat;
+  pixman_transform_t pxTransform;
+  uint8_t* dstBuffer;
+  int dstWidth;
+  int dstHeight;
+  int dstStride;
+
+  if (transform == WL_OUTPUT_TRANSFORM_NORMAL ||
+      transform == WL_OUTPUT_TRANSFORM_FLIPPED) {
+    dstWidth = srcWidth;
+    dstHeight = srcHeight;
+  } else {
+    dstWidth = srcHeight;
+    dstHeight = srcWidth;
+  }
+
+  dstStride = dstWidth * 4;
+  dstBuffer = new uint8_t[dstHeight * dstStride];
+
+  pixmanFormat = shmToPixmanFormat(shmFormat);
+  srcImg = pixman_image_create_bits(pixmanFormat, srcWidth, srcHeight,
+                                   (uint32_t*)(srcBuffer), srcStride);
+  dstImg = pixman_image_create_bits(pixmanFormat, dstWidth, dstHeight,
+                                   (uint32_t*)(dstBuffer), dstStride);
+
+  pxTransform = wlToPixmanInverseTransform(transform, srcWidth, srcHeight);
+  pixman_image_set_transform(srcImg, &pxTransform);
+
+  pixman_image_composite32(PIXMAN_OP_SRC, srcImg, nullptr, dstImg,
+                           0, 0, 0, 0, 0, 0, dstWidth, dstHeight);
+
+  pixman_image_unref(srcImg);
+  pixman_image_unref(dstImg);
+
+  return dstBuffer;
+}
+
+pixman_transform_t WaylandPixelBuffer::wlToPixmanInverseTransform(wl_output_transform transform,
+                                                                  int srcWidth, int srcHeight)
+{
+  pixman_fixed_t w;
+  pixman_fixed_t h;
+
+  w = srcWidth * pixman_fixed_1;
+  h = srcHeight * pixman_fixed_1;
+
+  switch (transform) {
+  case WL_OUTPUT_TRANSFORM_NORMAL:
+    return {{{pixman_fixed_1, 0, 0},
+             {0, pixman_fixed_1, 0},
+             {0, 0, pixman_fixed_1}}};
+  case WL_OUTPUT_TRANSFORM_90:
+    return {{{0, pixman_fixed_1, 0},
+             {-pixman_fixed_1, 0, h},
+             {0, 0, pixman_fixed_1}}};
+  case WL_OUTPUT_TRANSFORM_180:
+    return {{{-pixman_fixed_1, 0, w},
+             {0, -pixman_fixed_1, h},
+             {0, 0, pixman_fixed_1}}};
+  case WL_OUTPUT_TRANSFORM_270:
+    return {{{0, -pixman_fixed_1, w},
+             {pixman_fixed_1, 0, 0},
+             {0, 0, pixman_fixed_1}}};
+  case WL_OUTPUT_TRANSFORM_FLIPPED:
+    return {{{-pixman_fixed_1, 0, w},
+             {0, pixman_fixed_1, 0},
+             {0, 0, pixman_fixed_1}}};
+  case WL_OUTPUT_TRANSFORM_FLIPPED_90:
+    return {{{0, pixman_fixed_1, 0},
+             {pixman_fixed_1, 0, 0},
+             {0, 0, pixman_fixed_1}}};
+  case WL_OUTPUT_TRANSFORM_FLIPPED_180:
+    return {{{pixman_fixed_1, 0, 0},
+             {0, -pixman_fixed_1, h},
+             {0, 0, pixman_fixed_1}}};
+  case WL_OUTPUT_TRANSFORM_FLIPPED_270:
+    return {{{0, -pixman_fixed_1, w},
+             {-pixman_fixed_1, 0, h},
+             {0, 0, pixman_fixed_1}}};
+  default:
+    assert(false);
   }
 }

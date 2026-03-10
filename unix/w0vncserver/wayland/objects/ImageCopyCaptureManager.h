@@ -51,6 +51,9 @@ namespace wayland {
     void createSession();
     void createPointerCursorSession();
 
+    ImageCopyCaptureSession* getSession() { return session; }
+    ImageCopyCaptureCursorSession* getCursorSession() { return cursorSession; }
+
   private:
     ext_image_copy_capture_manager_v1* manager;
     Display* display;
