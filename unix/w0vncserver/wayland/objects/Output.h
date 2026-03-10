@@ -36,6 +36,17 @@ namespace wayland {
     int32_t refresh;
   };
 
+  struct Geometry {
+    int32_t x;
+    int32_t y;
+    int32_t physical_width;
+    int32_t physical_height;
+    int32_t subpixel;
+    std::string make;
+    std::string model;
+    int32_t transform;
+  };
+
   class Output : public Object {
   public:
     Output(Display* display);
@@ -44,6 +55,7 @@ namespace wayland {
     wl_output* getOutput() const { return output; }
     uint32_t getWidth() const { return mode.width; }
     uint32_t getHeight() const { return mode.height; }
+    int32_t getTransform() const { return geometry.transform; }
 
   private:
     void handleGeometry(int32_t x, int32_t y, int32_t physical_width,
@@ -60,6 +72,7 @@ namespace wayland {
   private:
     wl_output* output;
     Mode mode;
+    Geometry geometry;
     std::string name;
     std::string description;
     static const wl_output_listener listener;

@@ -21,6 +21,8 @@
 
 #include <functional>
 
+#include <pixman.h>
+
 #include <rfb/PixelBuffer.h>
 
 namespace rfb { class VNCServer; class PixelFormat; }
@@ -43,17 +45,19 @@ public:
 
 protected:
   // Called when there is pixel data available to read
-  void bufferEvent(uint8_t* buffer, core::Region damage, uint32_t format);
+  void bufferEvent(uint8_t* buffer, core::Region damage, uint32_t format,
+                   uint32_t transform);
 
 private:
   // Called when the cursor image is updated
   void cursorImageEvent(int width, int height, const core::Point& hotspot,
-                        uint32_t shmFormat, const uint8_t* src);
+                        uint32_t shmFormat, uint32_t transform, const uint8_t* src);
   // Called when the cursor position is updated
   void cursorPosEvent(const core::Point& pos);
 
   // Sync the shadow framebuffer to the actual framebuffer
   void syncBuffers(uint8_t* buffer, core::Region damage);
+  void syncBuffersTransformed(uint8_t* buffer, core::Region damage, uint32_t shmFormat, uint32_t transform);
 
   // Convert from wl_shm_format to RGB. Will un-premultiply alpha when
   // applicable. Caller owns returned buffer
@@ -61,7 +65,21 @@ private:
                                uint32_t width, uint32_t height);
 
   // Convert from wl_shm_format to rfb::PixelFormat
-  rfb::PixelFormat convertPixelformat(uint32_t format);
+  rfb::PixelFormat shmToRfbFormat(uint32_t shmFormat);
+
+  // Converts a wl_shm_format to a pixman format
+  pixman_format_code_t shmToPixmanFormat(uint32_t shmFormat);
+
+  // Takes a transformed buffer and will return a new buffer that has
+  // undone the transformation
+  uint8_t* undoTransformation(const uint8_t* srcBuffer, int srcWidth, int srcHeight,
+                              int srcStride, uint32_t shmFormat,
+                              uint32_t transform);
+
+  // Returns an inverse pixman transform for the given wayland transform.
+  // The inverse transform can be used to undo the transform
+  pixman_transform_t wlToPixmanInverseTransform(uint32_t transform,
+                                                int srcWidth, int srcHeight);
 
 private:
   bool firstFrame;

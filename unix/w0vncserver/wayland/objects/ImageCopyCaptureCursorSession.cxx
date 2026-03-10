@@ -54,7 +54,7 @@ ImageCopyCaptureCursorSession::listener = {
 
 ImageCopyCaptureCursorSession::ImageCopyCaptureCursorSession(Display* display_,
                                                              ext_image_copy_capture_cursor_session_v1* session_,
-                                                             std::function<void(int, int, const core::Point&, uint32_t,const uint8_t*)>
+                                                             std::function<void(int, int, const core::Point&, uint32_t, uint32_t, const uint8_t*)>
                                                                cursorFrameCb_,
                                                              std::function<void(const core::Point&)>
                                                                cursorPosCb_,
@@ -74,11 +74,12 @@ ImageCopyCaptureCursorSession::ImageCopyCaptureCursorSession(Display* display_,
     throw std::runtime_error("Could not create cursor capture session");
   }
 
-  std::function<void(uint8_t*, core::Region, uint32_t)> bufferEventCb =
-    [this](uint8_t*, core::Region, uint32_t) {
+  std::function<void(uint8_t*, core::Region, uint32_t, uint32_t)> bufferEventCb =
+    [this](uint8_t*, core::Region, uint32_t, uint32_t) {
       cursorFrameCb(captureSession->getWidth(),
                     captureSession->getHeight(),
                     hotspot, captureSession->getFormat(),
+                    captureSession->getTransform(),
                     captureSession->getBufferData());
   };
 

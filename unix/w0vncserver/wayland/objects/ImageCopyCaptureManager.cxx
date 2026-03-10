@@ -42,9 +42,9 @@ static core::LogWriter vlog("WaylandImageCopyCaptureManager");
 ImageCopyCaptureManager::ImageCopyCaptureManager(Display* display_,
                                                  ImageCaptureSource* source_,
                                                  Seat* seat_,
-                                                 std::function<void(uint8_t*, core::Region, uint32_t)>
+                                                 std::function<void(uint8_t*, core::Region, uint32_t, uint32_t)>
                                                    bufferEventCb_,
-                                                 std::function<void(int, int, const core::Point&, uint32_t,const uint8_t*)>
+                                                 std::function<void(int, int, const core::Point&, uint32_t, uint32_t, const uint8_t*)>
                                                    cursorImageCb_,
                                                  std::function<void(const core::Point&)>
                                                    cursorPosCb_,

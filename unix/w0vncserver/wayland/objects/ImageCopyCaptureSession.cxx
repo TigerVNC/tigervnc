@@ -102,13 +102,14 @@ const ext_image_copy_capture_frame_v1_listener ImageCopyCaptureSession::frameLis
 
 ImageCopyCaptureSession::ImageCopyCaptureSession(Display* display_,
                                                  ext_image_copy_capture_session_v1* session_,
-                                                 std::function<void(uint8_t*, core::Region, uint32_t)>
+                                                 std::function<void(uint8_t*, core::Region, uint32_t, uint32_t)>
                                                    bufferEventCb_,
                                                  std::function<void()>
                                                    stoppedCb_)
   : display(display_), bufferEventCb(bufferEventCb_), session(session_),
     frame(nullptr), shm(nullptr), pool(nullptr), buffer(nullptr),
-    firstCapture(true), width(0), height(0), stoppedCb(stoppedCb_)
+    firstCapture(true), width(0), height(0), transform(0),
+    stoppedCb(stoppedCb_)
 {
   ext_image_copy_capture_session_v1_add_listener(session, &listener, this);
 }
@@ -235,8 +236,9 @@ void ImageCopyCaptureSession::handleStopped()
   stoppedCb();
 }
 
-void ImageCopyCaptureSession::handleFrameTransform(uint32_t /* transform */)
+void ImageCopyCaptureSession::handleFrameTransform(uint32_t transform_)
 {
+  transform = transform_;
 }
 
 void ImageCopyCaptureSession::handleFrameDamage(int32_t x, int32_t y,
@@ -259,7 +261,7 @@ void ImageCopyCaptureSession::handleFrameReady()
 {
   assert(frame);
 
-  bufferEventCb(pool->getData(), damage, format);
+  bufferEventCb(pool->getData(), damage, format, transform);
 
   ext_image_copy_capture_frame_v1_destroy(frame);
   frame = nullptr;

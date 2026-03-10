@@ -43,7 +43,7 @@ namespace wayland {
   public:
     ImageCopyCaptureSession(Display* display,
                             ext_image_copy_capture_session_v1* session,
-                            std::function<void(uint8_t*, core::Region, uint32_t)>
+                            std::function<void(uint8_t*, core::Region, uint32_t, uint32_t)>
                               bufferEventCb,
                             std::function<void()> stoppedCb);
     ~ImageCopyCaptureSession();
@@ -52,6 +52,7 @@ namespace wayland {
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getFormat() const { return format; }
+    uint32_t getTransform() const { return transform; }
 
   private:
     void handleBufferSize(uint32_t width, uint32_t height);
@@ -75,7 +76,7 @@ namespace wayland {
 
   private:
     Display* display;
-    std::function<void(uint8_t*, core::Region, uint32_t)> bufferEventCb;
+    std::function<void(uint8_t*, core::Region, uint32_t, uint32_t)> bufferEventCb;
     ext_image_copy_capture_session_v1* session;
     ext_image_copy_capture_frame_v1* frame;
     Shm* shm;
@@ -85,6 +86,7 @@ namespace wayland {
     uint32_t width;
     uint32_t height;
     uint32_t format;
+    uint32_t transform;
     std::function<void()> stoppedCb;
     std::vector<uint32_t> formatsPending;
     std::vector<uint32_t> formats;

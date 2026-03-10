@@ -86,7 +86,7 @@ struct BufferInfo {
 ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
                                      std::function<void(uint8_t*,
                                                         core::Region,
-                                                        uint32_t)>
+                                                        uint32_t, uint32_t)>
                                                           bufferEventCb_,
                                      std::function<void()> stoppedCb_)
  : Object(display, "zwlr_screencopy_manager_v1",
@@ -156,7 +156,8 @@ void ScreencopyManager::captureFrameDone()
   zwlr_screencopy_frame_v1_destroy(frame);
   frame = nullptr;
 
-  bufferEventCb(getBufferData(), accumulatedDamage, info->format);
+  bufferEventCb(getBufferData(), accumulatedDamage, info->format,
+                output->getTransform());
 
   captureFrame();
 }
