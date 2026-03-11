@@ -274,7 +274,8 @@ void init_theme()
   const int PY = 2;
 
   // FLTK lacks a bounds check
-  assert(THEME_ROUND_DOWN_BOX < 256);
+  assert(THEME_ROUND_DOWN_BOX > FL_FREE_BOXTYPE);
+  assert((int)THEME_ROUND_DOWN_BOX < 256);
 
   Fl::set_boxtype(THEME_UP_FRAME, theme_up_frame, PX, PY, PX*2, PY*2);
   Fl::set_boxtype(THEME_DOWN_FRAME, theme_down_frame, PX, PY, PX*2, PY*2);
