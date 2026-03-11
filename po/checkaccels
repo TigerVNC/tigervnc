@@ -1,0 +1,37 @@
+#!/usr/bin/python3
+
+import polib
+import sys
+
+ok = True
+for f in sys.argv[1:]:
+    strings = {}
+    for msg in polib.pofile(f):
+        if msg.msgctxt is None:
+            continue
+        if msg.msgctxt not in strings:
+            strings[msg.msgctxt] = set()
+        strings[msg.msgctxt].add(msg)
+
+    for msgctxt in strings:
+        accels = set()
+        for msg in strings[msgctxt]:
+            if "&" not in msg.msgstr:
+                if "&" in msg.msgid:
+                    print("%s: No accelerator in \"%s\"" % (f, msg.msgstr))
+                    ok = False
+                continue
+            if msg.msgstr.count("&") > 1:
+                print("%s: Multiple accelerators in \"%s\"" % (f, msg.msgstr))
+                ok = False
+                continue
+
+            accel = msg.msgstr[msg.msgstr.find("&")+1]
+            if accel in accels:
+                print("%s: Duplicate accelerator \"%s\" in \"%s\"" %
+                      (f, accel, msg.msgstr))
+                ok = False
+            accels.add(accel)
+
+if not ok:
+    sys.exit(1)
