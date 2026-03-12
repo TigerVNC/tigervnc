@@ -24,7 +24,7 @@
 
 #include <rfb/SDesktop.h>
 
-namespace rfb { class VNCServer; }
+namespace rfb { class VNCServer; struct ScreenSet; }
 
 namespace wayland {
   class Output;
@@ -54,6 +54,9 @@ public:
   void queryConnection(network::Socket* sock,
                         const char* userName) override;
   void terminate() override;
+
+  void setScreenLayout(int fb_width, int fb_height,
+                       const rfb::ScreenSet& layout) override;
 
   virtual void handleClipboardRequest() override;
   virtual void handleClipboardAnnounce(bool available) override;
