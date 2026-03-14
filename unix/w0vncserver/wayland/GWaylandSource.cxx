@@ -89,8 +89,6 @@ void GWaylandSource::attach(GMainContext* context) {
 
 int GWaylandSource::prepare(int* timeout)
 {
-  wl_display_flush(display->getDisplay());
-
   *timeout = -1;
 
   if (prepared)
@@ -99,12 +97,10 @@ int GWaylandSource::prepare(int* timeout)
   // We only want to call wl_display_prepare_read() once
   prepared = true;
 
-  if (wl_display_prepare_read(display->getDisplay()) != 0) {
-    if (wl_display_dispatch_pending(display->getDisplay()) < 0) {
-      // FIXME: Stop here?
-      vlog.error("Failed to flush wl_display: %s", strerror(errno));
-    }
-  }
+  while (wl_display_prepare_read(display->getDisplay()) != 0)
+    wl_display_dispatch_pending(display->getDisplay());
+
+  wl_display_flush(display->getDisplay());
 
   return FALSE;
 }
