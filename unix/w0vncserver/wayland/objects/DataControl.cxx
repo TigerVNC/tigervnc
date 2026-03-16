@@ -294,6 +294,7 @@ void DataControl::writePending(const char* data)
     } else {
       // FIXME: This shouldn't be possible
       vlog.error("Could not write to clipboard: unsupported mime type %s", mimeType);
+      close(fd);
       return;
     }
 
