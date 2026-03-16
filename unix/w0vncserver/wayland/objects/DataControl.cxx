@@ -293,6 +293,9 @@ void DataControl::writePending(const char* data)
     const char* mimeType;
     uint32_t fd;
     std::string clientData;
+    size_t remaining;
+    const char* buf;
+
 
     pending = pendingWrites.front();
     pendingWrites.pop();
@@ -310,9 +313,22 @@ void DataControl::writePending(const char* data)
       continue;
     }
 
-    if (write(fd, clientData.c_str(), clientData.size()) == -1)
-      vlog.error("Could not write to clipboard: %s", strerror(errno));
+    remaining = clientData.size();
+    buf = clientData.c_str();
+    while (remaining > 0) {
+      ssize_t written;
 
+      written = write(fd, buf, remaining);
+      if (written == -1) {
+        if (errno == EINTR)
+          continue;
+        vlog.error("Could not write to clipboard: %s", strerror(errno));
+        close(fd);
+        break;
+      }
+      remaining -= written;
+      buf += written;
+    }
     close(fd);
   }
 }
