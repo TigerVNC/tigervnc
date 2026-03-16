@@ -49,6 +49,11 @@ static const char* MIME_TYPES[] {
   MIME_TEXT_PLAIN,
 };
 
+struct ReadContext {
+  DataControl* instance;
+  bool isAlive;
+};
+
 /* FIXME: There is currently no way of knowing if it is us or some
 *  other application that owns the clipboard. This means we can't
 *  distinguish if a clipboard change was initiated by us, or by
@@ -109,7 +114,7 @@ DataControl::DataControl(Display* display, Seat* seat,
           &ext_data_control_manager_v1_interface),
    manager(nullptr), device(nullptr), lastOffer(nullptr),
    selectionSource(nullptr), primarySource(nullptr),
-   readInProgress(false), pendingReadMimeType(nullptr),
+   readContext(nullptr), pendingReadMimeType(nullptr),
    readStream(nullptr), readCancellable(nullptr), readBuffer(""),
    clipboardAnnounceCb(clipboardAnnounceCb_),
    clipboardRequestCb(clipboardRequestCb_),
@@ -139,8 +144,10 @@ DataControl::~DataControl()
   if (primarySource)
     ext_data_control_source_v1_destroy(primarySource);
 
-  if (readInProgress)
+  if (readContext) {
+    readContext->isAlive = false;
     g_cancellable_cancel(readCancellable);
+  }
 
   if (readStream)
     g_object_unref(readStream);
@@ -156,7 +163,7 @@ DataControl::~DataControl()
 void DataControl::setSelection()
 {
   clearPendingWrites();
-  if (readInProgress)
+  if (readContext)
     g_cancellable_cancel(readCancellable);
 
   if (selectionSource)
@@ -176,7 +183,7 @@ void DataControl::setSelection()
 void DataControl::setPrimarySelection()
 {
   clearPendingWrites();
-  if (readInProgress)
+  if (readContext)
     g_cancellable_cancel(readCancellable);
 
   if (primarySource)
@@ -202,7 +209,7 @@ void DataControl::clearSelection()
   ext_data_control_device_v1_set_selection(device, nullptr);
 
   clearPendingWrites();
-  if (readInProgress)
+  if (readContext)
     g_cancellable_cancel(readCancellable);
 }
 
@@ -215,7 +222,7 @@ void DataControl::clearPrimarySelection()
   ext_data_control_device_v1_set_primary_selection(device, nullptr);
 
   clearPendingWrites();
-  if (readInProgress)
+  if (readContext)
     g_cancellable_cancel(readCancellable);
 }
 
@@ -228,7 +235,7 @@ void DataControl::receive()
   if (!lastOffer)
     return;
 
-  if (readInProgress)
+  if (readContext)
     return;
 
   mimeType = nullptr;
@@ -247,7 +254,7 @@ void DataControl::receive()
     return;
   }
 
-  readInProgress = true;
+  readContext = new ReadContext{this, true};
   pendingReadMimeType = mimeType;
 
   ext_data_control_offer_v1_receive(lastOffer, mimeType, pipeFd[1]);
@@ -263,9 +270,14 @@ void DataControl::receive()
     G_PRIORITY_DEFAULT,
     readCancellable,
     [](GObject *, GAsyncResult* res, void* userData) {
-      ((DataControl*)userData)->handleReadDataCallback(res);
+      ReadContext* ctx = (ReadContext*)userData;
+      if (ctx->isAlive) {
+        ctx->instance->handleReadDataCallback(res);
+      } else {
+        delete ctx;
+      }
     },
-    this);
+    readContext);
 }
 
 void DataControl::writePending(const char* data)
@@ -315,7 +327,7 @@ void DataControl::handleDataOffer(ext_data_control_offer_v1* offer)
   availableMimeTypes.clear();
 
   clearPendingWrites();
-  if (readInProgress)
+  if (readContext)
     g_cancellable_cancel(readCancellable);
   clipboardAnnounceCb(false);
 }
@@ -456,7 +468,8 @@ void DataControl::handleReadDataCallback(GAsyncResult* res)
     g_object_unref(readCancellable);
     readStream = nullptr;
     readCancellable = nullptr;
-    readInProgress = false;
+    delete readContext;
+    readContext = nullptr;
     return;
   }
 
@@ -470,14 +483,14 @@ void DataControl::handleReadDataCallback(GAsyncResult* res)
     g_object_unref(readCancellable);
     readStream = nullptr;
     readCancellable = nullptr;
-    readInProgress = false;
     g_bytes_unref(bytes);
 
     if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN) == 0) {
       if (!core::isValidAscii(readBuffer.c_str(), readBuffer.size())) {
         vlog.error("Invalid ASCII sequence in clipboard - ignoring");
         readBuffer.clear();
-        readInProgress = false;
+        delete readContext;
+        readContext = nullptr;
         return;
       }
 
@@ -487,13 +500,16 @@ void DataControl::handleReadDataCallback(GAsyncResult* res)
       if (!core::isValidUTF8(readBuffer.c_str(), readBuffer.size())) {
         vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
         readBuffer.clear();
-        readInProgress = false;
+        delete readContext;
+        readContext = nullptr;
         return;
       }
     }
 
     sendClipboardDataCb(readBuffer.c_str());
     readBuffer.clear();
+    delete readContext;
+    readContext = nullptr;
     return;
   }
 
@@ -506,8 +522,12 @@ void DataControl::handleReadDataCallback(GAsyncResult* res)
   g_input_stream_read_bytes_async(
     readStream, 4096, G_PRIORITY_DEFAULT, readCancellable,
     [](GObject*, GAsyncResult* result, void* userData) {
-      ((DataControl*)userData)->handleReadDataCallback(result);
-    }, this);
+      ReadContext* ctx = (ReadContext*)userData;
+      if (ctx->isAlive)
+        ctx->instance->handleReadDataCallback(result);
+      else
+        delete ctx;
+    }, readContext);
 }
 
 ext_data_control_source_v1* DataControl::createDataSource()
