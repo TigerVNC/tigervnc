@@ -178,8 +178,8 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
 
   // FIXME: Can we always assume index 0?
   fd = g_unix_fd_list_get(fdList, 0, &error);
+  g_object_unref(fdList);
   if (error) {
-    g_object_unref(fdList);
     vlog.error("Error writing to clipboard: %s", error->message);
     g_error_free(error);
     selectionWriteDone(serial, false);
@@ -205,7 +205,6 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
     if (written < 0) {
       vlog.error("Error writing to clipboard: %s", strerror(errno));
       selectionWriteDone(serial, false);
-      g_object_unref(fdList);
       close(fd);
       return;
     }
@@ -220,8 +219,6 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
   } else {
     selectionWriteDone(serial, true);
   }
-
-  g_object_unref(fdList);
 }
 
 void Clipboard::clearSelection()
