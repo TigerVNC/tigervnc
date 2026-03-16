@@ -314,11 +314,11 @@ void Clipboard::selectionRead()
   }
 
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
-    g_variant_unref(response);
     g_object_unref(fdList);
     vlog.error("Could not read clipboard: invalid response type: %s, "
                "expected (h)", g_variant_get_type_string(response));
     readInProgress = false;
+    g_variant_unref(response);
     return;
   }
 
