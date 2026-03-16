@@ -470,9 +470,8 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   streams = g_variant_lookup_value(result, "streams",
                                     G_VARIANT_TYPE_ARRAY);
-  g_variant_unref(result);
-
   if (!streams) {
+    g_variant_unref(result);
     vlog.error("Failed to start remote desktop session");
     cancelStartCb("Failed to get streams");
     return;
@@ -481,6 +480,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   if (!parseStreams(streams)) {
     vlog.error("Failed to parse streams");
     cancelStartCb("Failed to start remote desktop session");
+    g_variant_unref(result);
     g_variant_unref(streams);
     return;
   }
@@ -488,6 +488,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   newRestoreToken = g_variant_lookup_value(result, "restore_token",
                                          G_VARIANT_TYPE_STRING);
+  g_variant_unref(result);
 
   if (newRestoreToken) {
     storeRestoreToken(g_variant_get_string(newRestoreToken, nullptr));
