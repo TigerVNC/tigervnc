@@ -306,6 +306,9 @@ void DataControl::writePending(const char* data)
 
 void DataControl::handleDataOffer(ext_data_control_offer_v1* offer)
 {
+  if (lastOffer)
+    ext_data_control_offer_v1_destroy(lastOffer);
+
   ext_data_control_offer_v1_add_listener(offer, &offerListener, this);
   lastOffer = offer;
   availableMimeTypes.clear();
@@ -388,6 +391,9 @@ void DataControl::handleFinished()
 void DataControl::handleSend(const char* mimeType, int32_t fd)
 {
   bool validMimeType;
+
+  if (lastOffer)
+    ext_data_control_offer_v1_destroy(lastOffer);
 
   lastOffer = nullptr;
   validMimeType = false;
