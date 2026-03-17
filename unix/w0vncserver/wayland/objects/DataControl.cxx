@@ -282,12 +282,6 @@ void DataControl::receive()
 
 void DataControl::writePending(const char* data)
 {
-  if (!core::isValidUTF8(data)) {
-    vlog.error("Could not write to clipboard: invalid UTF-8");
-    clearPendingWrites();
-    return;
-  }
-
   while (!pendingWrites.empty()) {
     PendingData pending;
     const char* mimeType;
