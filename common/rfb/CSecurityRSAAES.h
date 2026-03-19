@@ -29,8 +29,6 @@
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
 
-namespace core { class IntParameter; }
-
 namespace rdr {
   class InStream;
   class OutStream;
@@ -48,8 +46,6 @@ namespace rfb {
     bool processMsg() override;
     int getType() const override { return secType; }
     bool isSecure() const override { return secType == secTypeRA256; }
-
-    static core::IntParameter RSAKeyLength;
 
   private:
     void cleanup();
