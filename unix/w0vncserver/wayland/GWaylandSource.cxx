@@ -30,6 +30,7 @@
 
 #include <core/LogWriter.h>
 
+#include "../w0vncserver.h"
 #include "objects/Display.h"
 #include "GWaylandSource.h"
 
@@ -125,6 +126,10 @@ int GWaylandSource::dispatch()
 
   wl_display_dispatch_pending(display->getDisplay());
   prepared = false;
+
+  if (wl_display_get_error(display->getDisplay()))
+    fatal_error("Failed to communicate with Wayland server: %s",
+                strerror(wl_display_get_error(display->getDisplay())));
 
   return G_SOURCE_CONTINUE;
 }
