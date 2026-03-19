@@ -63,7 +63,7 @@ static core::LogWriter vlog("WOutput");
 
 Output::Output(Display* display)
   : Object(display, "wl_output", &wl_output_interface), output(nullptr),
-    mode({0, 0, 0, 0})
+    mode({0, 0, 0, 0}), geometry({0, 0, 0, 0, 0, "", "", 0})
 {
   output = (wl_output*) boundObject;
 
@@ -76,17 +76,22 @@ Output::~Output()
   wl_output_destroy(output);
 }
 
-void Output::handleGeometry(int32_t /* x */, int32_t /* y */,
-                            int32_t /* physical_width */,
-                            int32_t /* physical_height */,
-                            int32_t /* subpixel */,
-                            const char* /* make */,
-                            const char*  /* model */,
-                            int32_t /* transform */)
+void Output::handleGeometry(int32_t x, int32_t y,
+                            int32_t physical_width,
+                            int32_t physical_height,
+                            int32_t subpixel, const char* make,
+                            const char* model, int32_t transform)
 {
-  // FIXME: This gives us the position/size etc. of the output
-  // (presumably a screen). Keep track of this when we want to
-  // handle multiple monitors.
+  geometry = {
+    .x = x,
+    .y = y,
+    .physical_width = physical_width,
+    .physical_height = physical_height,
+    .subpixel = subpixel,
+    .make = make,
+    .model = model,
+    .transform = transform
+  };
 }
 
 void Output::handleMode(uint32_t flags, int32_t width, int32_t height,

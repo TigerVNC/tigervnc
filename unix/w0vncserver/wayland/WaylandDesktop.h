@@ -1,4 +1,4 @@
-/* Copyright 2025 Adam Halim for Cendio AB
+/* Copyright 2025-2026 Adam Halim for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
