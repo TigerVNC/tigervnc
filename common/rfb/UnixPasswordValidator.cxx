@@ -28,6 +28,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/UnixPasswordValidator.h>
 
@@ -107,7 +108,7 @@ bool UnixPasswordValidator::validateInternal(SConnection * /* sc */,
   ret = pam_start(pamService, username, &conv, &pamh);
   if (ret != PAM_SUCCESS) {
     /* Can't call pam_strerror() here because the content of pamh undefined */
-    vlog.error("pam_start(%s) failed: %d", (const char *) pamService, ret);
+    vlog.error(_("Failed to initialized PAM: %d"), ret);
     return false;
   }
 #ifdef PAM_XDISPLAY
@@ -117,19 +118,22 @@ bool UnixPasswordValidator::validateInternal(SConnection * /* sc */,
     * recognized by modules built with old versions of PAM */
     ret = pam_set_item(pamh, PAM_XDISPLAY, displayName.c_str());
     if (ret != PAM_SUCCESS && ret != PAM_BAD_ITEM) {
-      vlog.error("pam_set_item(PAM_XDISPLAY) failed: %d (%s)", ret, pam_strerror(pamh, ret));
+      vlog.error(_("Failed to set PAM_XDISPLAY: %s (%d)"),
+                pam_strerror(pamh, ret), ret);
       goto error;
     }
   }
 #endif
   ret = pam_authenticate(pamh, 0);
   if (ret != PAM_SUCCESS) {
-    vlog.error("pam_authenticate() failed: %d (%s)", ret, pam_strerror(pamh, ret));
+    vlog.error(_("PAM authentication failed: %s (%d)"),
+               pam_strerror(pamh, ret), ret);
     goto error;
   }
   ret = pam_acct_mgmt(pamh, 0);
   if (ret != PAM_SUCCESS) {
-    vlog.error("pam_acct_mgmt() failed: %d (%s)", ret, pam_strerror(pamh, ret));
+    vlog.error(_("PAM authorization failed: %s (%d)"),
+               pam_strerror(pamh, ret), ret);
     goto error;
   }
   return true;

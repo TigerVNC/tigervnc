@@ -85,11 +85,10 @@ int Timer::getNextTimeout() {
 
   if (toWait > pending.front()->timeoutMs) {
     if (toWait - pending.front()->timeoutMs < 1000) {
-      vlog.info("gettimeofday is broken...");
+      // We're getting a weird jitter from gettimeofday()
       return toWait;
     }
     // Time has jumped backwards!
-    vlog.info("Time has moved backwards!");
     pending.front()->dueTime = now;
     toWait = 0;
   }

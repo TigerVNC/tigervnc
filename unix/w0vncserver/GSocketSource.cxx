@@ -29,6 +29,7 @@
 
 #include <network/TcpSocket.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <rfb/VNCServerST.h>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -230,13 +231,13 @@ int GSocketSource::handleListenerReady(ListenerReadyEvent* event)
   condition = event->condition;
 
   if (condition & G_IO_ERR || condition & G_IO_HUP) {
-    vlog.error("Client connection error");
+    /* Not sure how this can happen on a listening socket */
     return G_SOURCE_CONTINUE;
   }
 
   sock = listener->accept();
   if (!sock) {
-    vlog.error("Client connection rejected");
+    vlog.error(_("Client connection rejected"));
     return G_SOURCE_CONTINUE;
   }
 

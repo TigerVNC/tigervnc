@@ -31,6 +31,7 @@
 #include <ext-image-copy-capture-v1.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include "Shm.h"
@@ -168,7 +169,7 @@ void ImageCopyCaptureSession::handleDone()
   assert(!buffer);
 
   if (formatsPending.empty()) {
-    vlog.error("No shm formats available");
+    vlog.error(_("No Wayland pixel formats provided"));
     stoppedCb();
     return;
   }
@@ -180,21 +181,23 @@ void ImageCopyCaptureSession::handleDone()
   try {
     format = preferredFormat();
   } catch (std::exception& e) {
-    vlog.error("Failed to pick shm format: %s", e.what());
+    vlog.error("%s", e.what());
     stoppedCb();
     return;
   }
 
   fd = memfd_create("w0vncserver-image-copy-shm", FD_CLOEXEC);
   if (fd < 0) {
-    vlog.error("Failed to allocate shm: %s", strerror(errno));
+    vlog.error(_("Failed to create shared memory pool: %s"),
+               strerror(errno));
     stoppedCb();
     return;
   }
 
   size = width * height * 4;
   if (ftruncate(fd, size) < 0) {
-    vlog.error("Failed to truncate shm: %s", strerror(errno));
+    vlog.error(_("Failed to create shared memory pool: %s"),
+               strerror(errno));
     close(fd);
     return;
   }
@@ -203,7 +206,7 @@ void ImageCopyCaptureSession::handleDone()
     shm = new Shm(display);
     pool = new ShmPool(shm, fd, size);
   } catch (std::exception& e) {
-    vlog.error("Failed to create shm pool: %s", e.what());
+    vlog.error(_("Failed to create shared memory pool: %s"), e.what());
     close(fd);
     stoppedCb();
     return;
@@ -213,7 +216,7 @@ void ImageCopyCaptureSession::handleDone()
 
   buffer = pool->createBuffer(0, width, height, width * 4, format);
   if (!buffer) {
-    vlog.error("Failed to create buffer");
+    vlog.error(_("Failed to create Wayland buffer object"));
     stoppedCb();
     return;
   }
@@ -223,8 +226,6 @@ void ImageCopyCaptureSession::handleDone()
 
 void ImageCopyCaptureSession::handleStopped()
 {
-  vlog.info("Capture session stopped");
-
   if (frame) {
     ext_image_copy_capture_frame_v1_destroy(frame);
     frame = nullptr;
@@ -277,19 +278,23 @@ void ImageCopyCaptureSession::handleFrameFailed(uint32_t reason)
   }
 
   if (reason == EXT_IMAGE_COPY_CAPTURE_FRAME_V1_FAILURE_REASON_UNKNOWN) {
-    vlog.error("Could not capture frame: unknown reason - trying again");
+    vlog.error(_("Failed to capture screen contents: %s"),
+               _("Uknown reason"));
     createFrame();
   } else if (reason == EXT_IMAGE_COPY_CAPTURE_FRAME_V1_FAILURE_REASON_BUFFER_CONSTRAINTS) {
     // FIXME: The specification says that we should re-allocate our
     // buffers and try again. Not sure if that is the right thing to do.
     // For now, just stop the capture.
-    vlog.error("Invalid buffer constraints, stopping capture session");
+    vlog.error(_("Failed to capture screen contents: %s"),
+               _("Invalid buffer constraints"));
     stoppedCb();
   } else if (reason == EXT_IMAGE_COPY_CAPTURE_FRAME_V1_FAILURE_REASON_STOPPED) {
-    vlog.error("Could not capture frame, stopping capture session");
+    vlog.error(_("Failed to capture screen contents: %s"),
+               _("Stopped"));
     stoppedCb();
   } else {
-    vlog.error("Could not capture frame: invalid failure reason %d", reason);
+    vlog.error(_("Failed to capture screen contents: %s"),
+               core::format(_("Unknown reason %d"), reason).c_str());
     stoppedCb();
   }
 }

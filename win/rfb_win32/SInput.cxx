@@ -32,6 +32,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/SInput.h>
 #include <rfb_win32/MonitorInfo.h>
@@ -93,7 +94,9 @@ win32::SPointer::pointerEvent(const Point& pos, uint16_t buttonmask)
       if (buttonmask & (1<<i)) {
         flags |= buttonDownMapping[i];
         if (buttonDataMapping[i]) {
-          if (data) vlog.info("Warning: Two buttons set mouse_event data field");
+          if (data)
+            vlog.info(_(
+              "Warning: Two mouse buttons pressed in the same event"));
           data = buttonDataMapping[i];
         }
       } else {
@@ -414,8 +417,8 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
           SHORT dc = VkKeyScan(keysym);
           if (dc != -1) {
             if (down) {
-              vlog.info("Latin-1 dead key: 0x%x vkCode 0x%x mod 0x%x "
-                        "followed by space", keysym, LOBYTE(dc), HIBYTE(dc));
+              vlog.debug("Latin-1 dead key: 0x%x vkCode 0x%x mod 0x%x "
+                         "followed by space", keysym, LOBYTE(dc), HIBYTE(dc));
               doKeyEventWithModifiers(LOBYTE(dc), HIBYTE(dc), true);
               doKeyEventWithModifiers(LOBYTE(dc), HIBYTE(dc), false);
               doKeyEventWithModifiers(VK_SPACE, 0, true);
@@ -440,10 +443,10 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
                 SHORT dc = VkKeyScan(latin1ToDeadChars[j].deadChar);
                 SHORT bc = VkKeyScan(latin1ToDeadChars[j].baseChar);
                 if (dc != -1 && bc != -1) {
-                  vlog.info("Latin-1 key: 0x%x dead key vkCode 0x%x mod 0x%x "
-                            "followed by vkCode 0x%x mod 0x%x",
-                            keysym, LOBYTE(dc), HIBYTE(dc),
-                            LOBYTE(bc), HIBYTE(bc));
+                  vlog.debug("Latin-1 key: 0x%x dead key vkCode 0x%x mod 0x%x "
+                             "followed by vkCode 0x%x mod 0x%x",
+                             keysym, LOBYTE(dc), HIBYTE(dc),
+                             LOBYTE(bc), HIBYTE(bc));
                   doKeyEventWithModifiers(LOBYTE(dc), HIBYTE(dc), true);
                   doKeyEventWithModifiers(LOBYTE(dc), HIBYTE(dc), false);
                   doKeyEventWithModifiers(LOBYTE(bc), HIBYTE(bc), true);
@@ -456,7 +459,7 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
             break;
           }
         }
-        vlog.info("Ignoring unrecognised Latin-1 keysym 0x%x",keysym);
+        vlog.info(_("Ignoring unrecognised Latin-1 keysym 0x%x"), keysym);
       }
       return;
     }
@@ -472,7 +475,7 @@ void win32::SKeyboard::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
     // see if it's a recognised keyboard key, otherwise ignore it
 
     if (vkMap.find(keysym) == vkMap.end()) {
-      vlog.info("Ignoring unknown keysym 0x%x",keysym);
+      vlog.info(_("Ignoring unknown keysym 0x%x"), keysym);
       return;
     }
     BYTE vkCode = vkMap[keysym];

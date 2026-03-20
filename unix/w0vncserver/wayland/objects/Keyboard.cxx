@@ -29,6 +29,8 @@
 #include <wayland-client-protocol.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
+
 #include <rfb/ledStates.h>
 
 #include "../../w0vncserver.h"
@@ -82,13 +84,11 @@ Keyboard::Keyboard(Display* display, Seat* seat,
   xkb_context* ctx;
 
   ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-  if (ctx)  {
-    context = new XkbContext();
-    context->ctx = ctx;
-  } else {
-    // FIXME: fallback?
-    vlog.error("Failed to create xkb context - keyboard will not work");
-  }
+  if (!ctx)
+    throw std::bad_alloc();
+
+  context = new XkbContext();
+  context->ctx = ctx;
 
   keyboard = wl_seat_get_keyboard(seat->getSeat());
   wl_keyboard_add_listener(keyboard, &listener, this);
@@ -144,8 +144,9 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     char* newKeyMap;
 
     newKeyMap = (char*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (!newKeyMap) {
-      vlog.error("Failed to map keymap");
+    if (newKeyMap == MAP_FAILED) {
+      vlog.error(_("Failed to access keyboard layout: %s"),
+                 strerror(errno));
       clearKeyMap();
       return;
     }
@@ -167,7 +168,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
                                      XKB_KEYMAP_FORMAT_TEXT_V1,
                                      XKB_KEYMAP_COMPILE_NO_FLAGS);
     if (!map) {
-      vlog.error("Failed to create xkb keymap");
+      vlog.error(_("Failed to parse keyboard layout"));
       clearKeyMap();
       return;
     }
@@ -178,7 +179,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
 
     state = xkb_state_new(context->keymap);
     if (!state) {
-      vlog.error("Failed to create xkb state");
+      vlog.error(_("Failed to allocate keyboard state"));
       clearKeyMap();
       return;
     }
@@ -193,7 +194,7 @@ void Keyboard::handleKeyMap(uint32_t format, int32_t fd, uint32_t size)
     keyboardSize = size;
     generateKeycodeMap();
   } else {
-    vlog.error("Unsupported keymap format");
+    vlog.error(_("Unsupported keymap format: %d"), format);
     clearKeyMap();
   }
 }

@@ -30,6 +30,7 @@
 #include <list>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/Exception.h>
 #include <rdr/InStream.h>
@@ -175,8 +176,8 @@ bool CSecurityVeNCrypt::processMsg()
       if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
         throw protocol_error("No valid VeNCrypt sub-type");
 
-      vlog.info("Choosing security type %s (%d)", secTypeName(chosenType),
-		 chosenType);
+      vlog.info(_("Choosing security type %s (%d)"),
+                secTypeName(chosenType), chosenType);
 
       csecurity = security->GetCSecurity(cc, chosenType);
 

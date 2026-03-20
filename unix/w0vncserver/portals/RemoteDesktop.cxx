@@ -34,6 +34,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
@@ -135,8 +136,7 @@ void RemoteDesktop::notifyKeyboardKeysym(uint32_t keysym, bool down)
   try {
     remoteDesktop->call("NotifyKeyboardKeysym", params);
   } catch (const std::exception& e) {
-    vlog.error("Could not handle keysym XK_%s (0x%04x): %s",
-               KeySymName(keysym), keysym, e.what());
+    vlog.error(_("Failed to send keyboard event: %s"), e.what());
   }
 }
 
@@ -164,7 +164,7 @@ void RemoteDesktop::notifyKeyboardKeycode(uint32_t keycode, bool down)
   try {
     remoteDesktop->call("NotifyKeyboardKeycode", params);
   } catch (const std::exception& e) {
-    vlog.error("Could not handle key %d: %s", keycode, e.what());
+    vlog.error(_("Failed to send keyboard event: %s"), e.what());
   }
 }
 
@@ -185,7 +185,7 @@ void RemoteDesktop::notifyPointerMotionAbsolute(int x, int y,
   try {
     remoteDesktop->call("NotifyPointerMotionAbsolute", params);
   } catch (const std::exception& e) {
-    vlog.error("Could not move pointer: %s", e.what());
+    vlog.error(_("Failed to send pointer motion event: %s"), e.what());
   }
 
   if (buttonMask == oldButtonMask)
@@ -219,7 +219,7 @@ void RemoteDesktop::notifyPointerButton(int32_t button, bool down)
   try {
     remoteDesktop->call("NotifyPointerButton", params);
   } catch (const std::exception& e) {
-    vlog.error("Could not handle mouse button: %s", e.what());
+    vlog.error(_("Failed to send pointer button event: %s"), e.what());
   }
 }
 
@@ -261,7 +261,7 @@ void RemoteDesktop::notifyPointerAxisDiscrete(int32_t button)
   try {
     remoteDesktop->call("NotifyPointerAxisDiscrete", params);
   } catch (const std::exception& e) {
-    vlog.error("Could not handle mouse scroll: %s", e.what());
+    vlog.error(_("Failed to send pointer scroll event: %s"), e.what());
   }
 }
 
@@ -289,7 +289,8 @@ void RemoteDesktop::createSession()
                         std::bind(&RemoteDesktop::handleCreateSession,
                                   this, std::placeholders::_1));
   } catch (const std::exception& e) {
-    vlog.error("Could not create session: %s", e.what());
+    vlog.error(_("Failed to start remote desktop session: %s"),
+               e.what());
     cancelStartCb("Failed to start remote desktop session");
   }
 }
@@ -302,7 +303,8 @@ void RemoteDesktop::closeSession()
     } catch (const std::exception& e) {
       // This is not necessarily unexpected, as the session can be
       // closed by the compositor.
-      vlog.info("Could not close session: %s", e.what());
+      vlog.info(_("Failed to close remote desktop session: %s"),
+                e.what());
     }
   }
 }
@@ -339,7 +341,8 @@ void RemoteDesktop::selectDevices()
                         std::bind(&RemoteDesktop::handleSelectDevices,
                         this, std::placeholders::_1));
   } catch (const std::exception& e) {
-    vlog.error("Could not select devices: %s", e.what());
+    vlog.error(_("Failed to request control of input devices: %s"),
+               e.what());
     cancelStartCb("Failed to start remote desktop session");
   }
 }
@@ -374,7 +377,7 @@ void RemoteDesktop::selectSources()
                      std::bind(&RemoteDesktop::handleSelectSources,
                      this, std::placeholders::_1));
   } catch (const std::exception& e) {
-    vlog.error("Could not select sources: %s", e.what());
+    vlog.error(_("Failed to request monitors to share: %s"), e.what());
     cancelStartCb("Failed to start remote desktop session");
   }
 }
@@ -398,7 +401,8 @@ void RemoteDesktop::start()
                         std::bind(&RemoteDesktop::handleStart,
                         this, std::placeholders::_1));
   } catch (const std::exception& e) {
-    vlog.error("Could not start session: %s", e.what());
+    vlog.error(_("Failed to start remote desktop session: %s"),
+               e.what());
     cancelStartCb("Failed to start remote desktop session");
   }
 }
@@ -435,22 +439,24 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   assert(sessionHandle.empty());
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    vlog.error("Could not create session: unexpected parameters: %s",
+    vlog.debug("Unexpected variant data: %s",
                g_variant_print(parameters, true));
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.error(_("Invalid response to request \"%s\""),
+               "CreateSession");
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
   g_variant_get(parameters, "(u@a{sv})", &response, &result);
 
   if (response == 1)  {
-    vlog.error("Session was cancelled");
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.error(_("Connection to local session was cancelled"));
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
   else if (response == 2) {
-    vlog.error("Failed to create session");
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.error(_("Failed to connect to local session"));
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -459,8 +465,8 @@ void RemoteDesktop::handleCreateSession(GVariant *parameters)
   g_variant_unref(result);
 
   if (!sessionHandleVariant) {
-    vlog.error("Failed to create session: no session handle");
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.error(_("Failed to get handle to local session"));
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -487,9 +493,10 @@ void RemoteDesktop::handleStart(GVariant* parameters)
   assert(!sessionStarted);
 
   if (!g_variant_is_of_type(parameters, G_VARIANT_TYPE("(ua{sv})"))) {
-    vlog.error("Could not start remote desktop: unexpected parameters %s",
-               g_variant_get_type_string(parameters));
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.debug("Unexpected variant data: %s",
+               g_variant_print(parameters, true));
+    vlog.error(_("Invalid response to request \"%s\""), "Start");
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -497,13 +504,13 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   if (responseCode == 1) {
     g_variant_unref(result);
-    vlog.error("Could not start remote desktop - local user denied the connection.");
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.error(_("Connection rejected by local user"));
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   } else if (responseCode == 2) {
     g_variant_unref(result);
-    vlog.error("Failed to start remote desktop session");
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.error(_("Failed to start remote desktop session"));
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -513,8 +520,8 @@ void RemoteDesktop::handleStart(GVariant* parameters)
 
   if (!devices) {
     g_variant_unref(result);
-    vlog.error("Failed to get devices");
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.error(_("Failed to get input devices"));
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -525,8 +532,8 @@ void RemoteDesktop::handleStart(GVariant* parameters)
                                     G_VARIANT_TYPE_ARRAY);
   if (!streams) {
     g_variant_unref(result);
-    vlog.error("Failed to start remote desktop session");
-    cancelStartCb("Failed to get streams");
+    vlog.error(_("Failed to get image streams for local session"));
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -541,7 +548,6 @@ void RemoteDesktop::handleStart(GVariant* parameters)
     clipboardSubscribeCb();
 
   if (!parseStreams(streams)) {
-    vlog.error("Failed to parse streams");
     cancelStartCb("Failed to start remote desktop session");
     g_variant_unref(result);
     g_variant_unref(streams);
@@ -557,7 +563,7 @@ void RemoteDesktop::handleStart(GVariant* parameters)
     storeRestoreToken(g_variant_get_string(newRestoreToken, nullptr));
     g_variant_unref(newRestoreToken);
   } else {
-    vlog.info("Could not get restore token - display choice will not be saved");
+    vlog.info(_("Display choice restore token was not provided"));
   }
 
   openPipewireRemote();
@@ -592,17 +598,19 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
                                                         &error);
 
   if (error) {
-    vlog.error("Could not start PipeWire remote: %s", error->message);
+    vlog.error(_("Failed to connect to PipeWire: %s"), error->message);
     g_error_free(error);
-    cancelStartCb("Failed to start remote desktop session");
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
     g_variant_unref(response);
-    vlog.error("Could not start PipeWire: invalid response type: %s",
-               g_variant_get_type_string(response));
-    cancelStartCb("Failed to start remote desktop session");
+    vlog.debug("Unexpected variant data: %s",
+               g_variant_print(response, true));
+    vlog.error(_("Invalid response to request \"%s\""),
+               "OpenPipewireRemote");
+    cancelStartCb(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -613,10 +621,10 @@ void RemoteDesktop::handleOpenPipewireRemote(GObject *proxy,
   g_object_unref(fdList);
 
   if (error) {
-    vlog.error("Could not start PipeWire remote: error getting fd list:  %s",
+    vlog.error(_("Failed to get PipeWire file descriptors: %s"),
                error->message);
     g_error_free(error);
-    cancelStartCb("Failed to start remote desktop session");
+    cancelStartCb(_("Failed to start remote desktop session"));
 
     return;
   }
@@ -635,12 +643,12 @@ bool RemoteDesktop::parseStreams(GVariant* streams)
   n_streams = g_variant_iter_n_children(&iter);
 
   if (n_streams  < 1) {
-    vlog.error("Could not find streams to parse");
+    vlog.error(_("No image streams provided for the session"));
     return false;
   }
 
   if (n_streams != 1) {
-    vlog.error("Only one stream supported, got %d",
+    vlog.error(_("Only one image stream supported, got %d"),
                n_streams);
   }
 
@@ -674,7 +682,7 @@ bool RemoteDesktop::loadRestoreToken()
 
   stateDir = core::getvncstatedir();
   if (!stateDir) {
-    vlog.error("Could not get state directory");
+    vlog.error(_("Could not determine VNC state directory path"));
     return false;
   }
 
@@ -682,7 +690,7 @@ bool RemoteDesktop::loadRestoreToken()
   f = fopen(filepath, "r");
   if (!f) {
     if (errno != ENOENT)
-      vlog.error("Could not open \"%s\": %s", filepath, strerror(errno));
+      vlog.error(_("Failed to open \"%s\": %s"), filepath, strerror(errno));
 
     return false;
   }
@@ -692,7 +700,7 @@ bool RemoteDesktop::loadRestoreToken()
 
     fclose(f);
     if (uuid_parse(restoreToken_, uuid) < 0) {
-      vlog.error("Invalid restore token, not a valid UUID string \"%s\"", restoreToken_);
+      vlog.error(_("Invalid restore token \"%s\""), restoreToken_);
       return false;
     }
 
@@ -701,7 +709,7 @@ bool RemoteDesktop::loadRestoreToken()
   }
   fclose(f);
 
-  vlog.error("Could not read restore token from \"%s\"", filepath);
+  vlog.error(_("Failed to load restore token from \"%s\""), filepath);
   return false;
 }
 
@@ -729,13 +737,13 @@ bool RemoteDesktop::storeRestoreToken(const char* newToken)
   // Store token to file so it can be re-used on next startup
   stateDir = core::getvncstatedir();
   if (!stateDir) {
-    vlog.error("Could not determine VNC state directory path, cannot store restore token");
+    vlog.error(_("Could not determine VNC state directory path"));
     return false;
   }
 
   if (core::mkdir_p(stateDir, 0755) == -1) {
     if (errno != EEXIST) {
-      vlog.error("Could not create VNC config directory \"%s\": %s",
+      vlog.error(_("Could not create VNC state directory \"%s\": %s"),
                   stateDir, strerror(errno));
       return false;
     }
@@ -746,7 +754,8 @@ bool RemoteDesktop::storeRestoreToken(const char* newToken)
 
   f = fopen(filepath, "w");
   if (!f) {
-    vlog.error("Could not store token to \"%s\": %s", filepath, strerror(errno));
+    vlog.error(_("Failed to save restore store token to \"%s\": %s"),
+               filepath, strerror(errno));
     return false;
   }
 

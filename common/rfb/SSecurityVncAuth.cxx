@@ -27,6 +27,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/OutStream.h>
 
@@ -135,14 +136,12 @@ void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string
   if (obfuscated.size() == 0) {
     if (passwdFile) {
       const char *fname = *passwdFile;
-      if (!fname[0]) {
-        vlog.info("Neither %s nor %s params set", getName(), passwdFile->getName());
+      if (!fname[0])
         return;
-      }
 
       FILE* fp = fopen(fname, "r");
       if (!fp) {
-        vlog.error("Opening password file '%s' failed", fname);
+        vlog.error(_("Opening password file '%s' failed"), fname);
         return;
       }
 
@@ -153,7 +152,7 @@ void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string
       obfuscatedReadOnly.resize(fread(obfuscatedReadOnly.data(), 1, 8, fp));
       fclose(fp);
     } else {
-      vlog.info("%s parameter not set", getName());
+      return;
     }
   }
 

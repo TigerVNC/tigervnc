@@ -641,7 +641,7 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status != 0) {
-      vlog.error(_("Unhandled server certificate problems: 0x%x"),
+      vlog.error("Unhandled server certificate problems: 0x%x",
                  status);
       throw std::logic_error(_("Unhandled server certificate problems"));
     }
@@ -750,7 +750,7 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status != 0) {
-      vlog.error(_("Unhandled server certificate problems: 0x%x"),
+      vlog.error("Unhandled server certificate problems: 0x%x",
                  status);
       throw std::logic_error(_("Unhandled server certificate problems"));
     }

@@ -31,6 +31,7 @@
 #include <wlr-screencopy-unstable-v1.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <rfb/PixelFormat.h>
 #include <core/Rect.h>
@@ -178,7 +179,7 @@ void ScreencopyManager::resize()
   try {
     initBuffers(output->getWidth() * output->getHeight() * 4);
   } catch (std::runtime_error& e) {
-    vlog.error("Failed to resize: %s", e.what());
+    vlog.error(_("Failed to create framebuffer: %s"), e.what());
     stopped();
   }
 }
@@ -249,7 +250,7 @@ void ScreencopyManager::handleScreencopyFailed()
   if (output->getWidth() != info->width || output->getHeight() != info->height) {
     captureFrameDone();
   } else {
-    vlog.error("Frame could not be copied");
+    vlog.error(_("Failed to capture screen contents"));
     stopped();
   }
 }
@@ -289,7 +290,7 @@ void ScreencopyManager::handleScreencopyBufferDone()
     buffer = pool->createBuffer(0, output->getWidth(), output->getHeight(),
                                 output->getWidth() * 4, info->format);
     if (!buffer) {
-      vlog.error("Cannot capture frame - failed to create buffer");
+      vlog.error(_("Failed to create Wayland buffer object"));
       stopped();
       return;
     }

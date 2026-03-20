@@ -34,7 +34,9 @@
 #include <pixman.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
+
 #include <rfb/VNCServer.h>
 #include <rfb/PixelFormat.h>
 
@@ -88,7 +90,7 @@ void PipeWirePixelBuffer::setParameters(int width, int height,
 
 void PipeWirePixelBuffer::stopped()
 {
-  server->closeClients("Session stopped unexpectedly");
+  server->closeClients(_("Remote desktop session stopped"));
 
   PipeWireStream::stopped();
 }
@@ -99,6 +101,7 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
   int dstStride;
   uint8_t* srcBuffer;
   spa_chunk* chunk;
+  uint32_t expected;
   pixman_bool_t ret;
   core::Region region;
   std::vector<core::Rect> rects;
@@ -111,8 +114,10 @@ void PipeWirePixelBuffer::processFrame(spa_buffer* buffer)
     return;
 
   // Check size
-  if (chunk->size != (uint32_t) (width() * height() * (pipewirePixelFormat.bpp / 8))) {
-    vlog.error("Invalid chunk size: %d", chunk->size);
+  expected = width() * height() * (pipewirePixelFormat.bpp / 8);
+  if (chunk->size != expected) {
+    vlog.error(_("Invalid PipeWire chunk size: %d instead of %d"),
+               chunk->size, expected);
     return;
   }
 
@@ -268,7 +273,7 @@ void PipeWirePixelBuffer::setCursor(int width, int height, int hotX,
   try {
     server->setCursor(width, height, {hotX, hotY}, cursorData);
   } catch (std::exception& e) {
-    vlog.error("PipewirePixelBuffer::setCursor: %s",e.what());
+    vlog.error(_("Failed to update cursor image: %s"), e.what());
   }
 
   delete [] cursorData;

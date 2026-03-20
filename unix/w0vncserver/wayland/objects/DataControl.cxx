@@ -31,6 +31,7 @@
 #include <gio/gio.h>
 #include <ext-data-control-v1.h>
 
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/LogWriter.h>
 
@@ -173,7 +174,7 @@ void DataControl::setSelection()
   try {
     selectionSource = createDataSource();
   } catch (const std::exception& e) {
-    vlog.error("Could not set selection: %s", e.what());
+    vlog.error(_("Failed to update the clipboard: %s"), e.what());
     return;
   }
 
@@ -193,7 +194,7 @@ void DataControl::setPrimarySelection()
   try {
     primarySource = createDataSource();
   } catch (const std::exception& e) {
-    vlog.error("Could not set primary selection: %s", e.what());
+    vlog.error(_("Failed to update the clipboard: %s"), e.what());
     return;
   }
 
@@ -250,7 +251,8 @@ void DataControl::receive()
     return;
 
   if (pipe2(pipeFd, O_NONBLOCK) == -1) {
-    vlog.error("Failed to read clipboard data: %s", strerror(errno));
+    vlog.error(_("Failed to retrieve the clipboard: %s"),
+               strerror(errno));
     return;
   }
 
@@ -302,7 +304,9 @@ void DataControl::writePending(const char* data)
       clientData = core::utf8ToAscii(data, strlen(data));
     } else {
       // FIXME: This shouldn't be possible
-      vlog.error("Could not write to clipboard: unsupported mime type %s", mimeType);
+      vlog.error(_("Failed to update the clipboard: %s"),
+                core::format(_("Unsupported mime type '%s'"),
+                              mimeType).c_str());
       close(fd);
       continue;
     }
@@ -316,7 +320,8 @@ void DataControl::writePending(const char* data)
       if (written == -1) {
         if (errno == EINTR)
           continue;
-        vlog.error("Could not write to clipboard: %s", strerror(errno));
+        vlog.error(_("Failed to update the clipboard: %s"),
+                  strerror(errno));
         close(fd);
         break;
       }
@@ -352,7 +357,7 @@ void DataControl::handleSelection(ext_data_control_offer_v1* offer)
   }
 
   if (offer != lastOffer) {
-    vlog.error("Got unexpected clipboard offer - ignoring");
+    vlog.debug("Got unexpected clipboard offer - ignoring");
     return;
   }
 
@@ -385,7 +390,7 @@ void DataControl::handlePrimarySelection(ext_data_control_offer_v1* offer)
   }
 
   if (offer != lastOffer) {
-    vlog.error("Got unexpected clipboard offer - ignoring");
+    vlog.debug("Got unexpected clipboard offer - ignoring");
     return;
   }
 
@@ -430,9 +435,12 @@ void DataControl::handleSend(const char* mimeType, int32_t fd)
 
   // FIXME: There doesn't seem to be a way to indicate a failure properly
   if (!validMimeType) {
-    vlog.error("Could not write to clipboard: unsupported mime type %s", mimeType);
+    vlog.error(_("Failed to update the clipboard: %s"),
+               core::format(_("Unsupported mime type '%s'"),
+                            mimeType).c_str());
     if (close(fd) == -1)
-      vlog.error("Could not write to clipboard: %s", strerror(errno));
+      vlog.error(_("Failed to update the clipboard: %s"),
+                 strerror(errno));
     return;
   }
 
@@ -469,9 +477,11 @@ void DataControl::handleReadDataCallback(GAsyncResult* res)
 
   if (error) {
     if (error->code == G_IO_ERROR_CANCELLED)
-      vlog.error("Cancelled reading clipboard data");
+      vlog.error(_("Failed to retrieve the clipboard: %s"),
+                 _("Cancelled"));
     else
-      vlog.error("Failed to read clipboard data: %s", error->message);
+      vlog.error(_("Failed to retrieve the clipboard: %s"),
+                 error->message);
 
     g_error_free(error);
     g_object_unref(readStream);
@@ -497,7 +507,7 @@ void DataControl::handleReadDataCallback(GAsyncResult* res)
 
     if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN) == 0) {
       if (!core::isValidAscii(readBuffer.c_str(), readBuffer.size())) {
-        vlog.error("Invalid ASCII sequence in clipboard - ignoring");
+        vlog.error(_("Non-ASCII character in clipboard"));
         readBuffer.clear();
         delete readContext;
         readContext = nullptr;
@@ -508,7 +518,7 @@ void DataControl::handleReadDataCallback(GAsyncResult* res)
       readBuffer = utf8string;
     } else if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN_UTF8) == 0) {
       if (!core::isValidUTF8(readBuffer.c_str(), readBuffer.size())) {
-        vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+        vlog.error(_("Invalid UTF-8 sequence in clipboard"));
         readBuffer.clear();
         delete readContext;
         readContext = nullptr;

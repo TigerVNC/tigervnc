@@ -58,7 +58,7 @@ LRESULT SDisplayCorePolling::processMessage(UINT msg, WPARAM wParam, LPARAM lPar
 }
 
 void SDisplayCorePolling::setScreenRect(const Rect& screenRect_) {
-  vlog.info("setScreenRect");
+  vlog.debug("setScreenRect");
   screenRect = screenRect_;
   pollIncrementY = (screenRect.height()+POLLING_SEGMENTS-1)/POLLING_SEGMENTS;
   pollNextY = screenRect.tl.y;

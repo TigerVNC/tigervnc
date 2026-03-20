@@ -28,6 +28,7 @@
 #include <pipewire/stream.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include "../w0vncserver.h"
 #include "PipeWireSource.h"
@@ -86,7 +87,7 @@ int PipeWireSource::sourceLoopDispatch()
 
   result = pw_loop_iterate (loop, 0);
   if (result < 0)
-    vlog.error("pipewire_loop_iterate failed: %s", g_strerror (result));
+    vlog.error(_("PipeWire loop failed: %s"), g_strerror(result));
 
   return G_SOURCE_CONTINUE;
 }

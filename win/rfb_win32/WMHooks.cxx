@@ -26,6 +26,7 @@
 #include <thread>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/WMHooks.h>
 #include <rfb_win32/Service.h>
@@ -146,7 +147,7 @@ static bool StartHookThread() {
     Sleep(0);
   vlog.debug("Installing hooks");
   if (!WM_Hooks_Install(hook_mgr->getThreadId(), 0)) {
-    vlog.error("Failed to initialise hooks");
+    vlog.error(_("Failed to initialise hooks"));
     hook_mgr->stop();
     delete hook_mgr;
     hook_mgr = nullptr;

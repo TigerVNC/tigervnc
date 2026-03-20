@@ -34,6 +34,8 @@
 #include <core/string.h>
 #include <core/LogWriter.h>
 #include <core/Rect.h>
+#include <core/i18n.h>
+
 #include <rfb/VNCServerST.h>
 
 #include "../w0vncserver.h"
@@ -70,7 +72,7 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
     std::bind(&WaylandPixelBuffer::cursorPosEvent, this, std::placeholders::_1);
 
   std::function<void()> stoppedCb = [this]() {
-    server->closeClients("The remote session stopped");
+    server->closeClients(_("Remote desktop session stopped"));
   };
 
   if (display->interfaceAvailable("ext_image_copy_capture_manager_v1") &&
@@ -121,7 +123,7 @@ void WaylandPixelBuffer::cursorImageEvent(int width, int height,
     cursorData = convertCursorBuffer(cursorSrc, shmFormat, width, height);
     server->setCursor(width, height, hotspot, cursorData);
   } catch (std::exception& e) {
-    vlog.error("Failed to set cursor: %s", e.what());
+    vlog.error(_("Failed to set cursor: %s"), e.what());
   }
 
   delete [] cursorData;
@@ -174,8 +176,9 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
     try {
       format = shmToRfbFormat(shmFormat);
     } catch (std::exception& e) {
-      vlog.error("Failed to convert pixelformat: %s", e.what());
-      server->closeClients("Failed to start remote session");
+      vlog.error(_("Cannot handle Wayland pixel format %d: %s"),
+                 shmFormat, e.what());
+      server->closeClients(_("Failed to start remote desktop session"));
       return;
     }
 
@@ -193,8 +196,8 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
     try {
       syncBuffersTransformed(buffer, damage, shmFormat, transform);
     } catch (std::exception& e) {
-      vlog.error("Failed to sync transformed buffers: %s", e.what());
-      server->closeClients("Error copying buffers");
+      vlog.error(_("Failed to handle screen update: %s"), e.what());
+      server->closeClients(_("Failed to handle screen update"));
       return;
     }
   } else {

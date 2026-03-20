@@ -104,7 +104,7 @@ DeviceFrameBuffer::grabRect(const Rect &rect) {
                 rect.width(), rect.height(), device, src.x, src.y,
                 useCaptureBlt ? (CAPTUREBLT | SRCCOPY) : SRCCOPY)) {
     if (ignoreGrabErrors)
-      vlog.error("BitBlt failed:%ld", GetLastError());
+      vlog.debug("BitBlt failed:%ld", GetLastError());
     else
       throw core::win32_error("BitBlt failed", GetLastError());
   }

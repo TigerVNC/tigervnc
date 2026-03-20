@@ -25,6 +25,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
@@ -89,7 +90,7 @@ bool TLSSocket::handshake()
       return false;
     }
 
-    vlog.error("TLS Handshake failed: %s\n", msg);
+    vlog.error(_("TLS handshake failed: %s"), msg);
     gnutls_alert_send_appropriate(session, err);
     throw rdr::tls_error("TLS Handshake failed", err, alert);
   }
@@ -111,10 +112,11 @@ void TLSSocket::shutdown()
       tlsout.cork(false);
       tlsout.flush();
       if (tlsout.hasBufferedData())
-        vlog.error("Failed to flush remaining socket data on close");
+        vlog.error(_("Failed to flush remaining socket data on close"));
     }
   } catch (std::exception& e) {
-    vlog.error("Failed to flush remaining socket data on close: %s", e.what());
+    vlog.error(_("Failed to flush remaining socket data on close: %s"),
+               e.what());
   }
 
   // FIXME: We can't currently wait for the response, so we only send
@@ -126,10 +128,11 @@ void TLSSocket::shutdown()
       try {
         std::rethrow_exception(saved_exception);
       } catch (std::exception& e) {
-        vlog.error("TLS shutdown failed: %s", e.what());
+        vlog.error(_("Failed to terminate TLS cleanly: %s"), e.what());
       }
     } else {
-      vlog.error("TLS shutdown failed: %s", gnutls_strerror(ret));
+      vlog.error(_("Failed to terminate TLS cleanly: %s"),
+                 gnutls_strerror(ret));
     }
   }
 }

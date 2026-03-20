@@ -30,6 +30,7 @@
 #include <spa/debug/pod.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <rfb/PixelFormat.h>
 
@@ -171,7 +172,7 @@ void PipeWireStream::handleStreamStateChanged(enum pw_stream_state old,
       stopped();
     break;
   case PW_STREAM_STATE_ERROR:
-    vlog.error("PipeWire stream error: %s", error);
+    vlog.error(_("Error communicating with PipeWire: %s"), error);
     stopped();
     return;
   default:

@@ -25,6 +25,7 @@
 #include <ext-image-copy-capture-v1.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include "Display.h"
@@ -86,7 +87,7 @@ void ImageCopyCaptureManager::createSession()
   // FIXME: Make it possible to re-enable this if a cursor is added in
   // the future like we do in VirtualKeyboard
   if (!pointer) {
-    vlog.error("Unable to create cursor capture session: no pointer found - cursor will be invisible");
+    vlog.error(_("No pointer available for desktop session"));
     return;
   }
 
@@ -95,7 +96,7 @@ void ImageCopyCaptureManager::createSession()
                                                                     source->getSource(),
                                                                     pointer->getPointer());
   if (!cursorSessionHandle) {
-    vlog.error("Unable to create image copy capture session - cursor will be invisible");
+    vlog.error(_("Failed to create cursor capture session"));
     return;
   }
 

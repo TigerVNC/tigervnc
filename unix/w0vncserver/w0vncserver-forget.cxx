@@ -28,6 +28,7 @@
 
 #include <core/xdgdirs.h>
 #include <core/Configuration.h>
+#include <core/i18n.h>
 
 // Sync with RemoteDesktop.cxx
 static const char* RESTORE_TOKEN_FILENAME =  "restoretoken";
@@ -36,13 +37,16 @@ char* programName = nullptr;
 
 static void printVersion(FILE *fp)
 {
-  fprintf(fp, "TigerVNC server version %s\n", PACKAGE_VERSION);
+  fprintf(fp, _("TigerVNC server version %s\n"), PACKAGE_VERSION);
 }
 
 static void usage()
 {
   printVersion(stderr);
-  fprintf(stderr,"Usage: %s\n", programName);
+  fprintf(stderr,
+          _("\n"
+            "Usage: %s\n"),
+          programName);
   exit(1);
 }
 
@@ -64,8 +68,8 @@ int main(int argc, char** argv)
       printVersion(stderr);
       exit(0);
     } else {
-      fprintf(stderr, "%s: Extra argument '%s'\n", programName, argv[i]);
-      fprintf(stderr, "See '%s --help' for more information.\n",
+      fprintf(stderr, _("%s: Extra argument '%s'\n"), programName, argv[i]);
+      fprintf(stderr, _("See '%s --help' for more information.\n"),
               programName);
       exit(1);
     }
@@ -73,7 +77,7 @@ int main(int argc, char** argv)
 
   stateDir = core::getvncstatedir();
   if (!stateDir) {
-    fprintf(stderr, "Could not get state directory");
+    fprintf(stderr, _("Could not determine VNC state directory path"));
     return 1;
   }
 
@@ -81,7 +85,8 @@ int main(int argc, char** argv)
 
   if (remove(filepath) != 0) {
     if (errno != ENOENT) {
-      fprintf(stderr, "Could not remove restore token from \"%s\": %s", filepath, strerror(errno));
+      fprintf(stderr, _("Failed to remove \"%s\": %s"), filepath,
+              strerror(errno));
       return 1;
     }
   }

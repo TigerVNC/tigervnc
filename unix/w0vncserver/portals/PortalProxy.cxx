@@ -29,6 +29,7 @@
 #include <glib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include "../w0vncserver.h"

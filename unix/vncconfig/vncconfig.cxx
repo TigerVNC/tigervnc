@@ -44,6 +44,7 @@
 #include <core/Exception.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include "TXWindow.h"
 #include "TXCheckbox.h"
@@ -175,23 +176,23 @@ private:
 
 static void usage()
 {
-  fprintf(stderr,"Usage: %s [parameters]\n",
-          programName);
-  fprintf(stderr,"       %s [parameters] -connect "
-          "[-view-only] <host>[:<port>]\n", programName);
-  fprintf(stderr,"       %s [parameters] -disconnect\n", programName);
-  fprintf(stderr,"       %s [parameters] [-set] <Xvnc-param>=<value> ...\n",
-          programName);
-  fprintf(stderr,"       %s [parameters] -list\n", programName);
-  fprintf(stderr,"       %s [parameters] -get <param>\n", programName);
-  fprintf(stderr,"       %s [parameters] -desc <param>\n",programName);
-  fprintf(stderr,"\n"
+  fprintf(stderr,
+          _("Usage: %s [parameters]\n"
+            "       %s [parameters] -connect [-view-only] <host>[:<port>]\n"
+            "       %s [parameters] -disconnect\n"
+            "       %s [parameters] [-set] <Xvnc-param>=<value> ...\n"
+            "       %s [parameters] -list\n"
+            "       %s [parameters] -get <param>\n"
+            "       %s [parameters] -desc <param>\n"),
+          programName, programName, programName, programName, programName,
+          programName, programName);
+  fprintf(stderr, _("\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
           "Parameters which take a value can be specified as "
           "-<param> <value>\n"
           "Other valid forms are <param>=<value> -<param>=<value> "
           "--<param>=<value>\n"
-          "Parameter names are case-insensitive.  The parameters are:\n\n");
+          "Parameter names are case-insensitive.  The parameters are:\n\n"));
   core::Configuration::listParams(79, 14);
   exit(1);
 }
@@ -242,14 +243,14 @@ int main(int argc, char** argv)
   }
 
   if (!(dpy = XOpenDisplay(displayname))) {
-    fprintf(stderr,"%s: unable to open display \"%s\"\n",
+    fprintf(stderr, _("%s: Unable to open display \"%s\"\n"),
             programName, XDisplayName(displayname));
     exit(1);
   }
 
   if (!XVncExtQueryExtension(dpy, &vncExtEventBase, &vncExtErrorBase)) {
-    fprintf(stderr,"No VNC extension on display %s\n",
-            XDisplayName(displayname));
+    fprintf(stderr, _("%s: No VNC extension on display \"%s\"\n"),
+            programName, XDisplayName(displayname));
     exit(1);
   }
 
@@ -264,11 +265,13 @@ int main(int argc, char** argv)
         }
         if (i >= argc) usage();
         if (!XVncExtConnect(dpy, argv[i], viewOnly)) {
-          fprintf(stderr, "Connecting to %s failed\n",argv[i]);
+          fprintf(stderr, _("%s: Connecting to %s failed\n"),
+                  programName, argv[i]);
         }
       } else if (strcmp(argv[i], "-disconnect") == 0) {
         if (!XVncExtConnect(dpy, "", False)) {
-          fprintf(stderr, "Disconnecting all clients failed\n");
+          fprintf(stderr, _("%s: Disconnecting all clients failed\n"),
+                  programName);
         }
       } else if (strcmp(argv[i], "-get") == 0) {
         i++;
@@ -278,7 +281,9 @@ int main(int argc, char** argv)
         if (XVncExtGetParam(dpy, argv[i], &data, &len)) {
           printf("%.*s\n",len,data);
         } else {
-          fprintf(stderr, "Getting param %s failed\n",argv[i]);
+          fprintf(stderr,
+                  _("%s: Getting the value of parameter %s failed\n"),
+                  programName, argv[i]);
         }
         XFree(data);
       } else if (strcmp(argv[i], "-desc") == 0) {
@@ -288,7 +293,9 @@ int main(int argc, char** argv)
         if (desc) {
           printf("%s\n",desc);
         } else {
-          fprintf(stderr, "Getting description for param %s failed\n",argv[i]);
+          fprintf(stderr,
+                  _("%s: Getting the description for parameter %s failed\n"),
+                  programName, argv[i]);
         }
         XFree(desc);
       } else if (strcmp(argv[i], "-list") == 0) {
@@ -304,9 +311,9 @@ int main(int argc, char** argv)
 
         char* equal = strchr(argv[i], '=');
         if (!equal) {
-          fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
+          fprintf(stderr, _("%s: Invalid parameter syntax '%s'\n"),
                   programName, argv[i]);
-          fprintf(stderr, "See '%s --help' for more information.\n",
+          fprintf(stderr, _("See '%s --help' for more information.\n"),
                   programName);
           exit(1);
         }
@@ -315,19 +322,20 @@ int main(int argc, char** argv)
         std::string value(equal+1);
 
         if (!XVncExtSetParam(dpy, name.c_str(), value.c_str()))
-          fprintf(stderr, "Setting param %s failed\n",argv[i]);
+          fprintf(stderr, _("%s: Setting the parameter %s failed\n"),
+                  programName, argv[i]);
       } else if (argv[i][0] == '-') {
-        fprintf(stderr, "%s: Unrecognized option '%s'\n",
+        fprintf(stderr, _("%s: Unrecognized option '%s'\n"),
                 programName, argv[i]);
-        fprintf(stderr, "See '%s --help' for more information.\n",
+        fprintf(stderr, _("See '%s --help' for more information.\n"),
                 programName);
         exit(1);
       } else {
         char* equal = strchr(argv[i], '=');
         if (!equal) {
-          fprintf(stderr, "%s: Invalid parameter syntax '%s'\n",
+          fprintf(stderr, _("%s: Invalid parameter syntax '%s'\n"),
                   programName, argv[i]);
-          fprintf(stderr, "See '%s --help' for more information.\n",
+          fprintf(stderr, _("See '%s --help' for more information.\n"),
                   programName);
           exit(1);
         }
@@ -336,7 +344,8 @@ int main(int argc, char** argv)
         std::string value(equal+1);
 
         if (!XVncExtSetParam(dpy, name.c_str(), value.c_str()))
-          fprintf(stderr, "Setting param %s failed\n",argv[i]);
+          fprintf(stderr, _("%s: Setting the parameter %s failed\n"),
+                  programName, argv[i]);
       }
     }
 

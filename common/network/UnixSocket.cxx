@@ -32,6 +32,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <network/UnixSocket.h>
 
@@ -86,7 +87,7 @@ const char* UnixSocket::getPeerAddress() {
 
   salen = sizeof(addr);
   if (getpeername(getFd(), (struct sockaddr *)&addr, &salen) != 0) {
-    vlog.error("Unable to get peer name for socket");
+    vlog.error(_("Failed to get peer name for socket"));
     return "";
   }
 
@@ -95,7 +96,7 @@ const char* UnixSocket::getPeerAddress() {
 
   salen = sizeof(addr);
   if (getsockname(getFd(), (struct sockaddr *)&addr, &salen) != 0) {
-    vlog.error("Unable to get local name for socket");
+    vlog.error(_("Failed to get local name for socket"));
     return "";
   }
 

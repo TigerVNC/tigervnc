@@ -27,6 +27,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 using namespace core;
@@ -78,16 +79,16 @@ LogWriter::getLogWriter(const char* name) {
 bool LogWriter::setLogParams(const char* params) {
   std::vector<std::string> parts;
   parts = split(params, ':');
-  if (parts.size() != 3) {
-    fprintf(stderr, "Failed to parse log params:%s\n",params);
+  if (parts.size() != 3)
     return false;
-  }
   int level = atoi(parts[2].c_str());
   Logger* logger = nullptr;
   if (!parts[1].empty()) {
     logger = Logger::getLogger(parts[1].c_str());
-    if (!logger)
-      fprintf(stderr, "No logger found! %s\n", parts[1].c_str());
+    if (!logger) {
+      fprintf(stderr, _("Invalid log target: %s\n"), parts[1].c_str());
+      return false;
+    }
   }
   if (parts[0] == "*") {
     LogWriter* current = log_writers;
@@ -100,7 +101,7 @@ bool LogWriter::setLogParams(const char* params) {
   } else {
     LogWriter* logwriter = getLogWriter(parts[0].c_str());
     if (!logwriter) {
-      fprintf(stderr, "No logwriter found! %s\n", parts[0].c_str());
+      fprintf(stderr, _("Invalid log name: %s\n"), parts[0].c_str());
     } else {
       logwriter->setLog(logger);
       logwriter->setLevel(level);
@@ -128,8 +129,12 @@ bool LogParameter::setParam(const char* v) {
   for (const char* part : *this) {
     if (part[0] == '\0')
         continue;
-    if (!LogWriter::setLogParams(part))
+    if (!LogWriter::setLogParams(part)) {
+      fprintf(stderr, _("Parameter %s: Invalid value '%s'"),
+              getName(), v);
+      fprintf(stderr, "\n");
       return false;
+    }
   }
   return true;
 }

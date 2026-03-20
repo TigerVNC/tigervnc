@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
@@ -64,12 +65,12 @@ BOOL CALLBACK enumDesktops(LPTSTR lpszDesktop, LPARAM lParam) {
   HDESK desktop = OpenDesktop(lpszDesktop, 0, FALSE, DESKTOP_ENUMERATE);
   vlog.debug("Opening \"%s\"", lpszDesktop);
   if (!desktop) {
-    vlog.info("Desktop \"%s\" inaccessible", lpszDesktop);
+    vlog.info(_("Desktop \"%s\" inaccessible"), lpszDesktop);
     return TRUE;
   }
   BOOL result = EnumDesktopWindows(desktop, enumWindows, lParam);
   if (!CloseDesktop(desktop))
-    vlog.info("Unable to close desktop: %ld", GetLastError());
+    vlog.info(_("Unable to close desktop: %ld"), GetLastError());
   return result;
 }
 

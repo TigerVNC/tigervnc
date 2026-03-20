@@ -37,6 +37,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -312,7 +313,7 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
     if (handleSocketReadWrite(fd, read, write))
       return;
 
-    vlog.error("Cannot find file descriptor for socket event");
+    vlog.error(_("Cannot find file descriptor for socket event"));
   } catch (std::exception& e) {
     vlog.error("XserverDesktop::handleSocketEvent: %s",e.what());
   }
@@ -431,7 +432,7 @@ bool XserverDesktop::addClient(network::Socket* sock,
 void XserverDesktop::disconnectClients()
 {
   vlog.debug("Disconnecting all clients");
-  return server->closeClients("Disconnection from server end");
+  return server->closeClients(_("User requested disconnection"));
 }
 
 

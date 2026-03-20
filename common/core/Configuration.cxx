@@ -35,6 +35,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/HexOutStream.h>
@@ -300,7 +301,7 @@ BoolParameter::setParam(const char* v) {
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
     setParam(false);
   else {
-    vlog.error("Bool parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
 
@@ -350,7 +351,7 @@ IntParameter::setParam(const char* v) {
   if (immutable) return true;
   n = strtol(v, &end, 0);
   if ((*end != 0) || (n < INT_MIN) || (n > INT_MAX)) {
-    vlog.error("Int parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
   return setParam(n);
@@ -360,7 +361,7 @@ bool
 IntParameter::setParam(int v) {
   if (immutable) return true;
   if (v < minValue || v > maxValue) {
-    vlog.error("Int parameter %s: Invalid value '%d'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%d'"), getName(), v);
     return false;
   }
   vlog.debug("Set %s(Int) to %d", getName(), v);
@@ -455,7 +456,7 @@ bool EnumParameter::setParam(const char* v)
                         return strcasecmp(e.c_str(), v) == 0;
                       });
   if (iter == enums.end()) {
-    vlog.error("Enum parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
   vlog.debug("Set %s(Enum) to %s", getName(), iter->c_str());
@@ -585,7 +586,7 @@ bool ListParameter<ValueType>::setParam(const char* v)
       break;
 
     if (!decodeEntry(entry.c_str(), &e)) {
-      vlog.error("List parameter %s: Invalid value '%s'",
+      vlog.error(_("Parameter %s: Invalid value '%s'"),
                  getName(), entry.c_str());
       return false;
     }
@@ -604,7 +605,7 @@ bool ListParameter<ValueType>::setParam(const ListType& v)
     return true;
   for (const ValueType& entry : v) {
     if (!validateEntry(entry)) {
-      vlog.error("List parameter %s: Invalid value '%s'", getName(),
+      vlog.error(_("Parameter %s: Invalid value '%s'"), getName(),
                  encodeEntry(entry).c_str());
       return false;
     }

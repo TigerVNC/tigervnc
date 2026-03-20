@@ -28,6 +28,7 @@
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/LogWriter.h>
 
@@ -83,7 +84,7 @@ void Display::roundtrip()
   // Display errors are fatal, the display can no longer be used
   if (wl_display_roundtrip(display) < 0) {
     if (wl_display_get_error(display))
-      fatal_error("Failed to roundtrip: %s",
+      fatal_error(_("Failed to communicate with Wayland server: %s"),
                   strerror(wl_display_get_error(display)));
   }
 }

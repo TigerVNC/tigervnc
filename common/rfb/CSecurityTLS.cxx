@@ -35,6 +35,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
@@ -191,7 +192,8 @@ void CSecurityTLS::setParam()
     ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
       throw rdr::tls_error("gnutls_set_priority_direct()", ret);
     }
   } else if (anon) {
@@ -201,7 +203,8 @@ void CSecurityTLS::setParam()
     ret = gnutls_set_default_priority_append(session, kx_anon_priority, &err, 0);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
       throw rdr::tls_error("gnutls_set_default_priority_append()", ret);
     }
 #else
@@ -216,7 +219,8 @@ void CSecurityTLS::setParam()
     ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
       throw rdr::tls_error("gnutls_set_priority_direct()", ret);
     }
 #endif
@@ -242,13 +246,13 @@ void CSecurityTLS::setParam()
       throw rdr::tls_error("gnutls_certificate_allocate_credentials()", ret);
 
     if (gnutls_certificate_set_x509_system_trust(cert_cred) < 1)
-      vlog.error("Could not load system certificate trust store");
+      vlog.error(_("Failed to load the system certificate trust store"));
 
     if (gnutls_certificate_set_x509_trust_file(cert_cred, X509CA, GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error("Could not load user specified certificate authority");
+      vlog.error(_("Failed to load the user specified certificate authority"));
 
     if (gnutls_certificate_set_x509_crl_file(cert_cred, X509CRL, GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error("Could not load user specified certificate revocation list");
+      vlog.error(_("Failed to load the user specified certificate revocation list"));
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
     if (ret != GNUTLS_E_SUCCESS)
@@ -268,7 +272,8 @@ void CSecurityTLS::setParam()
       if (gnutls_server_name_set(session, GNUTLS_NAME_DNS,
                                  client->getServerName(),
                                  strlen(client->getServerName())) != GNUTLS_E_SUCCESS)
-        vlog.error("Failed to configure the server name for TLS handshake");
+        vlog.error(_("Failed to configure the server name for TLS "
+                     "handshake"));
     }
 
     vlog.debug("X509 session has been set");
@@ -296,7 +301,8 @@ void CSecurityTLS::checkSession()
                                          client->getServerName(),
                                          &status);
   if (err != 0) {
-    vlog.error("Server certificate verification failed: %s", gnutls_strerror(err));
+    vlog.error(_("Server certificate verification failed: %s"),
+               gnutls_strerror(err));
     gnutls_alert_send_appropriate(session, err);
     throw rdr::tls_error("Server certificate verification()", err);
   }

@@ -22,6 +22,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/TsSessions.h>
 
@@ -57,7 +58,7 @@ namespace win32 {
 
     // Try to reconnect our session to the console
     ConsoleSessionId console;
-    vlog.info("Console session is %lu", console.id);
+    vlog.info(_("Console session is %lu"), console.id);
     if (!WTSConnectSession(sessionId, console.id, (PTSTR)"", 0))
       throw core::win32_error("Unable to connect session to Console", GetLastError());
 

@@ -24,6 +24,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <core/Exception.h>
@@ -64,7 +65,7 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     else if (next_window != nullptr)
       SendMessage(next_window, msg, wParam, lParam);
     else
-      vlog.error("Bad clipboard chain change!");
+      vlog.error(_("Bad clipboard chain change!"));
     break;
 
   case WM_DRAWCLIPBOARD:

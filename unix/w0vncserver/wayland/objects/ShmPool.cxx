@@ -34,8 +34,6 @@
 
 using namespace wayland;
 
-static core::LogWriter vlog("WShmPool");
-
 ShmPool::ShmPool(Shm* shm, int fd, size_t size_)
   : pool(nullptr), data(nullptr), size(size_)
 {
@@ -49,10 +47,7 @@ ShmPool::ShmPool(Shm* shm, int fd, size_t size_)
 
 ShmPool::~ShmPool()
 {
-  if (munmap(data, size) < 0) {
-    // FIXME: fatal_error?
-    vlog.error("Failed to munmap shm");
-  }
+  munmap(data, size);
   wl_shm_pool_destroy(pool);
 }
 
