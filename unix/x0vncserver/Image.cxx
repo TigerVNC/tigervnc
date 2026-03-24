@@ -269,7 +269,7 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
 
   shminfo->shmid = shmget(IPC_PRIVATE,
                           xim->bytes_per_line * xim->height,
-                          IPC_CREAT|0777);
+                          IPC_CREAT|0600);
   if (shminfo->shmid == -1) {
     perror("shmget");
     vlog.error("shmget() failed (%d bytes requested)",
