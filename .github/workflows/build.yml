@@ -42,14 +42,30 @@ jobs:
           name: Linux (Ubuntu)
           path: build/tigervnc-*.tar.gz
       - name: Test
+        continue-on-error: true
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: test-results-linux
           path: build/tests/unit/test-results.xml
+
+  report-linux:
+    name: Unit tests (Linux)
+    runs-on: ubuntu-latest
+    needs: build-linux
+    if: always()
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: test-results-linux
+      - uses: dorny/test-reporter@v3
+        with:
+          artifact: test-results-linux
+          name: FIXME not used, but required
+          path: '*.xml'
+          reporter: java-junit
 
   build-windows:
     runs-on: windows-latest
@@ -97,14 +113,27 @@ jobs:
           name: Windows
           path: build/release/tigervnc*.exe
       - name: Test
+        continue-on-error: true
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: test-results-windows
           path: build/tests/unit/test-results.xml
+
+  report-windows:
+    name: Unit tests (Windows)
+    runs-on: ubuntu-latest
+    needs: build-windows
+    if: always()
+    steps:
+      - uses: dorny/test-reporter@v3
+        with:
+          artifact: test-results-windows
+          name: FIXME not used, but required
+          path: '*.xml'
+          reporter: java-junit
 
   build-macos:
     runs-on: macos-latest
@@ -141,14 +170,27 @@ jobs:
           name: macOS
           path: build/release/TigerVNC-*.dmg
       - name: Test
+        continue-on-error: true
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: test-results-macos
           path: build/tests/unit/test-results.xml
+
+  report-macos:
+    name: Unit tests (macOS)
+    runs-on: ubuntu-latest
+    needs: build-macos
+    if: always()
+    steps:
+      - uses: dorny/test-reporter@v3
+        with:
+          artifact: test-results-macos
+          name: FIXME not used, but required
+          path: '*.xml'
+          reporter: java-junit
 
   build-java:
     runs-on: ubuntu-latest
