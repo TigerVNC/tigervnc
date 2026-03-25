@@ -44,12 +44,13 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
+      - name: Test report
+        uses: dorny/test-reporter@v3
         if: always()
         with:
-          name: test-results-linux
+          name: Unit tests (Linux)
           path: build/tests/unit/test-results.xml
+          reporter: java-junit
 
   build-windows:
     runs-on: windows-latest
@@ -99,12 +100,13 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
+      - name: Test report
+        uses: dorny/test-reporter@v3
         if: always()
         with:
-          name: test-results-windows
+          name: Unit tests (Windows)
           path: build/tests/unit/test-results.xml
+          reporter: java-junit
 
   build-macos:
     runs-on: macos-latest
@@ -143,12 +145,13 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
+      - name: Test report
+        uses: dorny/test-reporter@v3
         if: always()
         with:
-          name: test-results-macos
+          name: Unit tests (macOS)
           path: build/tests/unit/test-results.xml
+          reporter: java-junit
 
   build-java:
     runs-on: ubuntu-latest
