@@ -965,7 +965,6 @@ void Viewport::initContextMenu()
 void Viewport::popupContextMenu()
 {
   const Fl_Menu_Item *m;
-  char buffer[1024];
 
   // Make sure the menu is reset to its initial state between goes or
   // it will start up highlighting the previously selected entry.
@@ -1047,11 +1046,8 @@ void Viewport::popupContextMenu()
     OptionsDialog::showDialog();
     break;
   case ID_INFO:
-    if (fltk_escape(cc->connectionInfo().c_str(),
-                    buffer, sizeof(buffer)) < sizeof(buffer)) {
-      fl_message_title(_("VNC connection info"));
-      fl_message("%s", buffer);
-    }
+    fl_message_title(_("VNC connection info"));
+    fl_message("%s", fltk_escape(cc->connectionInfo().c_str()).c_str());
     break;
   case ID_ABOUT:
     about_vncviewer();

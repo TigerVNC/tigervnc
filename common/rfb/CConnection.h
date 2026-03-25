@@ -45,18 +45,6 @@ namespace rfb {
   class CMsgWriter;
   class CSecurity;
 
-  enum MsgBoxFlags{
-      M_OK = 0,
-      M_OKCANCEL = 1,
-      M_YESNO = 4,
-      M_ICONERROR = 0x10,
-      M_ICONQUESTION = 0x20,
-      M_ICONWARNING = 0x30,
-      M_ICONINFORMATION = 0x40,
-      M_DEFBUTTON1 = 0,
-      M_DEFBUTTON2 = 0x100
-  };
-
   class CConnection : public CMsgHandler {
   public:
 
@@ -114,17 +102,17 @@ namespace rfb {
     // requestClipboard() will result in a request to the server to
     // transfer its clipboard data. A call to handleClipboardData()
     // will be made once the data is available.
-    virtual void requestClipboard();
+    void requestClipboard();
 
     // announceClipboard() informs the server of changes to the
     // clipboard on the client. The server may later request the
     // clipboard data via handleClipboardRequest().
-    virtual void announceClipboard(bool available);
+    void announceClipboard(bool available);
 
     // sendClipboardData() transfers the clipboard data to the server
     // and should be called whenever the server has requested the
     // clipboard via handleClipboardRequest().
-    virtual void sendClipboardData(const char* data);
+    void sendClipboardData(const char* data);
 
     // sendKeyPress()/sendKeyRelease() send keyboard events to the
     // server
@@ -193,10 +181,18 @@ namespace rfb {
     virtual void getUserPasswd(bool secure, std::string* user,
                                std::string* password) = 0;
 
-    // showMsgBox() displays a message box with the specified style and
-    // contents.  The return value is true if the user clicked OK/Yes.
-    virtual bool showMsgBox(MsgBoxFlags flags, const char *title,
-                            const char *text) = 0;
+    // verifyCertificate() is called when a certificate is received from
+    // the server. Return true if the certificate should be accepted,
+    // and false if it should be rejected.
+    virtual bool verifyCertificate(unsigned int status,
+                                   const uint8_t* certificate,
+                                   size_t length) = 0;
+
+    // verifyHostKey() is called when a host authentication key is
+    // received from the server. Return true if the key should be
+    // accepted, and false if it should be rejected.
+    virtual bool verifyHostKey(const uint8_t* key, size_t length,
+                               const char* fingerprint) = 0;
 
   protected:
 

@@ -105,7 +105,11 @@ public:
   void bell() override;
   void serverCutText(const char*) override;
   virtual void getUserPasswd(bool secure, std::string *user, std::string *password) override;
-  virtual bool showMsgBox(rfb::MsgBoxFlags flags, const char *title, const char *text) override;
+  bool verifyCertificate(unsigned int status,
+                         const uint8_t* certificate,
+                         size_t length) override;
+  bool verifyHostKey(const uint8_t* key, size_t length,
+                     const char* fingerprint) override;
 
 public:
   double decodeTime;
@@ -277,9 +281,14 @@ void CConn::getUserPasswd(bool, std::string *, std::string *)
 {
 }
 
-bool CConn::showMsgBox(rfb::MsgBoxFlags, const char *, const char *)
+bool CConn::verifyCertificate(unsigned int, const uint8_t*, size_t)
 {
-    return true;
+  return true;
+}
+
+bool CConn::verifyHostKey(const uint8_t*, size_t, const char*)
+{
+  return true;
 }
 
 Manager::Manager(class rfb::SConnection *conn_) :

@@ -94,17 +94,17 @@ namespace rfb {
     // requestClipboard() will result in a request to the client to
     // transfer its clipboard data. A call to handleClipboardData()
     // will be made once the data is available.
-    virtual void requestClipboard();
+    void requestClipboard();
 
     // announceClipboard() informs the client of changes to the
     // clipboard on the server. The client may later request the
     // clipboard data via handleClipboardRequest().
-    virtual void announceClipboard(bool available);
+    void announceClipboard(bool available);
 
     // sendClipboardData() transfers the clipboard data to the client
     // and should be called whenever the client has requested the
     // clipboard via handleClipboardRequest().
-    virtual void sendClipboardData(const char* data);
+    void sendClipboardData(const char* data);
 
     // getAccessRights() returns the access rights of a SConnection to the server.
     AccessRights getAccessRights() { return accessRights; }

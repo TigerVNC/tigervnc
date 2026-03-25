@@ -26,8 +26,6 @@
 
 #include <rfb/CConnection.h>
 
-#include "UserDialog.h"
-
 namespace network { class Socket; }
 
 class DesktopWindow;
@@ -53,15 +51,15 @@ protected:
 
   void processNextMsg(core::Timer*);
 
-  // Forget any saved password
-  void resetPassword();
-
   // CConnection callback methods
 
-  bool showMsgBox(rfb::MsgBoxFlags flags, const char *title,
-                  const char *text) override;
   void getUserPasswd(bool secure, std::string *user,
                      std::string *password) override;
+  bool verifyCertificate(unsigned int status,
+                         const uint8_t* certificate,
+                         size_t length) override;
+  bool verifyHostKey(const uint8_t* key, size_t length,
+                     const char* fingerprint) override;
 
   void initDone() override;
 
@@ -119,7 +117,8 @@ private:
   size_t updateStartPos;
   unsigned long long bpsEstimate;
 
-  UserDialog dlg;
+  static std::string savedUsername;
+  static std::string savedPassword;
 };
 
 #endif

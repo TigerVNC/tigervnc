@@ -73,7 +73,6 @@
 #include "parameters.h"
 #include "CConn.h"
 #include "ServerDialog.h"
-#include "UserDialog.h"
 #include "touch.h"
 #include "vncviewer.h"
 
@@ -413,16 +412,15 @@ static void init_fltk()
   fl_mac_set_about(about_callback, nullptr);
 
   Fl_Sys_Menu_Bar *menubar;
-  char buffer[1024];
   menubar = new Fl_Sys_Menu_Bar(0, 0, 500, 25);
   // Fl_Sys_Menu_Bar overrides methods without them being virtual,
   // which means we cannot use our generic Fl_Menu_ helpers.
-  if (fltk_menu_escape(p_("SysMenu|", "&File"),
-                       buffer, sizeof(buffer)) < sizeof(buffer))
-      menubar->add(buffer, 0, nullptr, nullptr, FL_SUBMENU);
-  if (fltk_menu_escape(p_("SysMenu|File|", "&New Connection"),
-                       buffer, sizeof(buffer)) < sizeof(buffer))
-      menubar->insert(1, buffer, FL_COMMAND | 'n', new_connection_cb);
+  menubar->add(
+    fltk_menu_escape(p_("SysMenu|", "&File")).c_str(),
+    0, nullptr, nullptr, FL_SUBMENU);
+  menubar->insert(
+    1, fltk_menu_escape(p_("SysMenu|File|", "&New Connection")).c_str(),
+    FL_COMMAND | 'n', new_connection_cb);
 #endif
 }
 

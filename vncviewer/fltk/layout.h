@@ -24,6 +24,8 @@
 #ifndef __FLTK_LAYOUT_H__
 #define __FLTK_LAYOUT_H__
 
+#include <algorithm>
+
 #include <FL/Fl_Choice.H>
 #include <FL/fl_draw.H>
 
