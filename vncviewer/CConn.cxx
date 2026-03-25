@@ -587,9 +587,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Unknown certificate issuer"),
-                      text.c_str()))
+      fl_message_title(_("Unknown certificate issuer"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~(GNUTLS_CERT_INVALID |
@@ -609,9 +609,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Certificate is not yet valid"),
-                      text.c_str()))
+      fl_message_title(_("Certificate is not yet valid"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_NOT_ACTIVATED;
@@ -629,9 +629,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Expired certificate"),
-                      text.c_str()))
+      fl_message_title(_("Expired certificate"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_EXPIRED;
@@ -649,9 +649,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Insecure certificate algorithm"),
-                      text.c_str()))
+      fl_message_title(_("Insecure certificate algorithm"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
@@ -670,9 +670,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         getServerName(), info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Certificate hostname mismatch"),
-                      text.c_str()))
+      fl_message_title(_("Certificate hostname mismatch"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_UNEXPECTED_OWNER;
@@ -705,9 +705,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Unexpected server certificate"),
-                      text.c_str()))
+      fl_message_title(_("Unexpected server certificate"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~(GNUTLS_CERT_INVALID |
@@ -728,9 +728,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Unexpected server certificate"),
-                      text.c_str()))
+      fl_message_title(_("Unexpected server certificate"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_NOT_ACTIVATED;
@@ -749,9 +749,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Unexpected server certificate"),
-                      text.c_str()))
+      fl_message_title(_("Unexpected server certificate"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_EXPIRED;
@@ -770,9 +770,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Unexpected server certificate"),
-                      text.c_str()))
+      fl_message_title(_("Unexpected server certificate"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_INSECURE_ALGORITHM;
@@ -792,9 +792,9 @@ bool CConn::verifyCertificate(unsigned int status,
         "Do you want to make an exception for this server?"),
         getServerName(), info.c_str());
 
-      if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO,
-                      _("Unexpected server certificate"),
-                      text.c_str()))
+      fl_message_title(_("Unexpected server certificate"));
+      if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
+                    fltk_escape(text).c_str()) != 2)
         return false;
 
       status &= ~GNUTLS_CERT_UNEXPECTED_OWNER;
@@ -822,7 +822,6 @@ bool CConn::verifyCertificate(unsigned int status,
 bool CConn::verifyHostKey(const uint8_t* key, size_t length,
                           const char* fingerprint)
 {
-  const char *title = _("Verify server key");
   std::string text = core::format(
     _("The server has provided the following identifying information:\n"
       "\n"
@@ -830,7 +829,9 @@ bool CConn::verifyHostKey(const uint8_t* key, size_t length,
       "\n"
       "Do you want to continue connecting to this server?"),
     fingerprint);
-  if (!showMsgBox(rfb::MsgBoxFlags::M_YESNO, title, text.c_str()))
+  fl_message_title(_("Verify server key"));
+  if (fl_choice("%s", nullptr, fl_cancel, _("Continue"),
+                fltk_escape(text).c_str()) != 2)
     return false;
 
   // FIXME: Should save this for TOFU
