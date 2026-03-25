@@ -337,11 +337,6 @@ void CConn::processNextMsg(core::Timer*)
 bool CConn::showMsgBox(rfb::MsgBoxFlags flags, const char *title,
                        const char *text)
 {
-  char buffer[1024];
-
-  if (fltk_escape(text, buffer, sizeof(buffer)) >= sizeof(buffer))
-    return 0;
-
   // FLTK doesn't give us a flexible choice of the icon, so we ignore those
   // bits for now.
 
@@ -349,16 +344,18 @@ bool CConn::showMsgBox(rfb::MsgBoxFlags flags, const char *title,
 
   switch (flags & 0xf) {
   case rfb::M_OKCANCEL:
-    return fl_choice("%s", nullptr, fl_ok, fl_cancel, buffer) == 1;
+    return fl_choice("%s", nullptr, fl_ok, fl_cancel,
+                     fltk_escape(text).c_str()) == 1;
   case rfb::M_YESNO:
-    return fl_choice("%s", nullptr, fl_yes, fl_no, buffer) == 1;
+    return fl_choice("%s", nullptr, fl_yes, fl_no,
+                     fltk_escape(text).c_str()) == 1;
   case rfb::M_OK:
   default:
     if (((flags & 0xf0) == rfb::M_ICONERROR) ||
         ((flags & 0xf0) == rfb::M_ICONWARNING))
-      fl_alert("%s", buffer);
+      fl_alert("%s", fltk_escape(text).c_str());
     else
-      fl_message("%s", buffer);
+      fl_message("%s", fltk_escape(text).c_str());
     return true;
   }
 

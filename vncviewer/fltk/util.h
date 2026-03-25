@@ -24,74 +24,38 @@
 #ifndef __FLTK_UTIL_H__
 #define __FLTK_UTIL_H__
 
+#include <string>
+
 #include <FL/Fl_Menu_.H>
 
 /* Escapes all @ in text as those have special meaning in labels */
-static inline size_t fltk_escape(const char *in, char *out, size_t maxlen)
+static inline std::string fltk_escape(const std::string& in)
 {
-    size_t len;
+    std::string out;
 
-    len = 0;
-
-    while (*in != '\0') {
-        if (*in == '@') {
-            if (maxlen >= 3) {
-                *out++ = '@';
-                *out++ = '@';
-                maxlen -= 2;
-            }
-
-            len += 2;
-        } else {
-            if (maxlen >= 2) {
-                *out++ = *in;
-                maxlen--;
-            }
-
-            len += 1;
-        }
-
-        in++;
+    for (char ch : in) {
+        if (ch == '@')
+            out.append("@@");
+        else
+            out.append(1, ch);
     }
 
-    if (maxlen)
-        *out = '\0';
-
-    return len;
+    return out;
 }
 
 /* Filter out unsafe characters for menu entries */
-static inline size_t fltk_menu_escape(const char *in, char *out, size_t maxlen)
+static inline std::string fltk_menu_escape(const std::string& in)
 {
-    size_t len;
+    std::string out;
 
-    len = 0;
-
-    while (*in != '\0') {
-        if (*in == '/') {
-            if (maxlen >= 3) {
-                *out++ = '\\';
-                *out++ = '/';
-                maxlen -= 2;
-            }
-
-            len += 2;
-        } else {
-            if (maxlen >= 2) {
-                *out++ = *in;
-                maxlen--;
-            }
-
-            len += 1;
-        }
-
-        in++;
+    for (char ch : in) {
+        if (ch == '/')
+            out.append("\\/");
+        else
+            out.append(1, ch);
     }
 
-    if (maxlen)
-        *out = '\0';
-
-    return len;
+    return out;
 }
 
 /* Helper to add menu entries safely */
@@ -99,12 +63,7 @@ static inline void fltk_menu_add(Fl_Menu_ *menu, const char *text,
                                  int shortcut, Fl_Callback *cb,
                                  void *data=nullptr, int flags=0)
 {
-    char buffer[1024];
-
-    if (fltk_menu_escape(text, buffer, sizeof(buffer)) >= sizeof(buffer))
-        return;
-
-    menu->add(buffer, shortcut, cb, data, flags);
+    menu->add(fltk_menu_escape(text).c_str(), shortcut, cb, data, flags);
 }
 
 #endif
