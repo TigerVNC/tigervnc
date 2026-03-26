@@ -1144,6 +1144,7 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
 // Unwrap and rewrap helpers
 
 #define SPRITE_PROLOGUE(field)                                            \
+  input_lock();                                                           \
   miPointerScreenPtr miPointerPriv =                                      \
     dixLookupPrivate(&screen->devPrivates, miPointerScreenKey);           \
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(screen);       \
@@ -1152,6 +1153,7 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
 
 #define SPRITE_EPILOGUE(field)                                            \
   wrap(vncHooksScreen, miPointerPriv, spriteFuncs, &vncHooksSpriteFuncs); \
+  input_unlock();
 
 static Bool vncHooksRealizeCursor(DeviceIntPtr dev, ScreenPtr screen,
                                   CursorPtr cursor)
