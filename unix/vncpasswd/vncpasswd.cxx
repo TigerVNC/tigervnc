@@ -223,7 +223,7 @@ int main(int argc, char** argv)
       fprintf(stderr, "Could not determine VNC config directory path\n");
       exit(1);
     }
-    if (core::mkdir_p(configDir, 0777) == -1) {
+    if (core::mkdir_p(configDir, 0755) == -1) {
       if (errno != EEXIST) {
         fprintf(stderr, "Could not create VNC config directory \"%s\": %s\n",
                 configDir, strerror(errno));
