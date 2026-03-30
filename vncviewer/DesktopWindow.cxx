@@ -1256,7 +1256,6 @@ void DesktopWindow::maximizeWindow()
     return;
   cocoa_win_zoom(this);
 #else
-  fl_open_display();
   x11_win_maximize(this);
 #endif
 }
