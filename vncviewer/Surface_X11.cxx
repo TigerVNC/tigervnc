@@ -121,9 +121,6 @@ void Surface::alloc()
   XRenderPictFormat templ;
   XRenderPictFormat* format;
 
-  // Might not be open at this point
-  fl_open_display();
-
   pixmap = XCreatePixmap(fl_display, XDefaultRootWindow(fl_display),
                          width(), height(), 32);
 

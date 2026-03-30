@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 #include <sys/time.h>
 
 #include <core/LogWriter.h>
@@ -54,13 +53,13 @@
 #include <FL/fl_draw.H>
 #include <FL/x.H>
 
-#ifdef WIN32
+#if defined(WIN32)
 #include "win32.h"
-#endif
-
-#ifdef __APPLE__
+#elif defined(__APPLE__)
 #include "cocoa.h"
 #include <Carbon/Carbon.h>
+#else
+#include "x11.h"
 #endif
 
 // width of each "edge" region where scrolling happens,
@@ -379,26 +378,8 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   if (cocoa_win_is_zoomed(this))
     maximized = true;
 #else
-  Atom net_wm_state = XInternAtom (fl_display, "_NET_WM_STATE", 0);
-  Atom net_wm_state_maximized_vert = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_VERT", 0);
-  Atom net_wm_state_maximized_horz = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_HORZ", 0);
-
-  Atom type;
-  int format;
-  unsigned long nitems, remain;
-  Atom *atoms;
-
-  XGetWindowProperty(fl_display, fl_xid(this), net_wm_state, 0, 1024, False, XA_ATOM, &type, &format, &nitems, &remain, (unsigned char**)&atoms);
-
-  for (unsigned long n = 0;n < nitems;n++) {
-    if ((atoms[n] == net_wm_state_maximized_vert) ||
-        (atoms[n] == net_wm_state_maximized_horz)) {
-      maximized = true;
-      break;
-    }
-  }
-
-  XFree(atoms);
+  if (x11_win_is_maximized(this))
+    maximized = true;
 #endif
 
   // If we're letting the viewport match the window perfectly, then
@@ -449,10 +430,8 @@ void DesktopWindow::setCursorPos(const core::Point& pos)
   new_pos.y = pos.y + y_root() + viewport->y();
   CGWarpMouseCursorPosition(new_pos);
 #else // Assume this is Xlib
-  Window rootwindow = DefaultRootWindow(fl_display);
-  XWarpPointer(fl_display, rootwindow, rootwindow, 0, 0, 0, 0,
-               pos.x + x_root() + viewport->x(),
-               pos.y + y_root() + viewport->y());
+  x11_warp_pointer(pos.x + x_root() + viewport->x(),
+                   pos.y + y_root() + viewport->y());
 #endif
 }
 
@@ -462,19 +441,8 @@ void DesktopWindow::show()
   Fl_Window::show();
 
 #if !defined(WIN32) && !defined(__APPLE__)
-  XEvent e;
-
   // Request ability to grab keyboard under Xwayland
-  e.xany.type = ClientMessage;
-  e.xany.window = fl_xid(this);
-  e.xclient.message_type = XInternAtom (fl_display, "_XWAYLAND_MAY_GRAB_KEYBOARD", 0);
-  e.xclient.format = 32;
-  e.xclient.data.l[0] = 1;
-  e.xclient.data.l[1] = 0;
-  e.xclient.data.l[2] = 0;
-  e.xclient.data.l[3] = 0;
-  e.xclient.data.l[4] = 0;
-  XSendEvent(fl_display, RootWindow(fl_display, fl_screen), 0, SubstructureNotifyMask | SubstructureRedirectMask, &e);
+  x11_win_may_grab(this);
 #endif
 }
 
@@ -672,17 +640,12 @@ void DesktopWindow::resize(int x, int y, int w, int h)
     else {
       // Otherwise we need to get the real window coordinates to tell
       // the difference
-      XWindowAttributes actual;
-      Window cr;
-      int wx, wy;
+      int wx, wy, ww, wh;
 
-      XGetWindowAttributes(fl_display, fl_xid(this), &actual);
-      XTranslateCoordinates(fl_display, fl_xid(this), actual.root,
-                            0, 0, &wx, &wy, &cr);
+      x11_win_get_coords(this, &wx, &wy, &ww, &wh);
 
       // Actual resize request?
-      if ((wx != x) || (wy != y) ||
-          (actual.width != w) || (actual.height != h))
+      if ((wx != x) || (wy != y) || (ww != w) || (wh != h))
         resize_req = true;
       else
         resize_req = false;
@@ -957,16 +920,9 @@ int DesktopWindow::handle(int event)
         ungrabPointer();
       }
 #if !defined(WIN32) && !defined(__APPLE__)
-      Window root, child;
-      int x, y, wx, wy;
-      unsigned int mask;
-
       // We also don't get sensible coordinates on zaphod setups
-      if (XQueryPointer(fl_display, fl_xid(this), &root, &child,
-                        &x, &y, &wx, &wy, &mask) &&
-          (root != XRootWindow(fl_display, fl_screen))) {
+      if (!x11_is_pointer_on_same_screen(this))
         ungrabPointer();
-      }
 #endif
     }
     if (fullscreen_active()) {
@@ -1207,31 +1163,13 @@ void DesktopWindow::grabKeyboard()
     return;
   }
 #else
-  int ret;
+  bool ret;
 
-  ret = XGrabKeyboard(fl_display, fl_xid(this), True,
-                      GrabModeAsync, GrabModeAsync, CurrentTime);
-  if (ret) {
-    if (ret == AlreadyGrabbed) {
-      // It seems like we can race with the WM in some cases, e.g. when
-      // the WM holds the keyboard as part of handling Alt+Tab.
-      // Repeat the request a few times and see if we get it...
-      for (int attempt = 0; attempt < 5; attempt++) {
-        usleep(100000);
-        // Also throttle based on how busy the X server is
-        XSync(fl_display, False);
-        ret = XGrabKeyboard(fl_display, fl_xid(this), True,
-                            GrabModeAsync, GrabModeAsync, CurrentTime);
-        if (ret != AlreadyGrabbed)
-          break;
-      }
-    }
-
-    if (ret) {
-      vlog.error(_("Failure grabbing control of the keyboard"));
-      addOverlayError(_("Failure grabbing control of the keyboard"));
-      return;
-    }
+  ret = x11_grab_keyboard(this);
+  if (!ret) {
+    vlog.error(_("Failure grabbing control of the keyboard"));
+    addOverlayError(_("Failure grabbing control of the keyboard"));
+    return;
   }
 #endif
 
@@ -1269,7 +1207,7 @@ void DesktopWindow::ungrabKeyboard()
   if (Fl::grab())
     return;
 
-  XUngrabKeyboard(fl_display, CurrentTime);
+  x11_ungrab_keyboard();
 #endif
 }
 
@@ -1300,7 +1238,6 @@ void DesktopWindow::ungrabPointer()
 }
 
 
-#define _NET_WM_STATE_ADD           1  /* add/set property */
 void DesktopWindow::maximizeWindow()
 {
 #if defined(WIN32)
@@ -1319,23 +1256,7 @@ void DesktopWindow::maximizeWindow()
     return;
   cocoa_win_zoom(this);
 #else
-  // X11
-  fl_open_display();
-  Atom net_wm_state = XInternAtom (fl_display, "_NET_WM_STATE", 0);
-  Atom net_wm_state_maximized_vert = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_VERT", 0);
-  Atom net_wm_state_maximized_horz = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_HORZ", 0);
-
-  XEvent e;
-  e.xany.type = ClientMessage;
-  e.xany.window = fl_xid(this);
-  e.xclient.message_type = net_wm_state;
-  e.xclient.format = 32;
-  e.xclient.data.l[0] = _NET_WM_STATE_ADD;
-  e.xclient.data.l[1] = net_wm_state_maximized_vert;
-  e.xclient.data.l[2] = net_wm_state_maximized_horz;
-  e.xclient.data.l[3] = 0;
-  e.xclient.data.l[4] = 0;
-  XSendEvent(fl_display, RootWindow(fl_display, fl_screen), 0, SubstructureNotifyMask | SubstructureRedirectMask, &e);
+  x11_win_maximize(this);
 #endif
 }
 

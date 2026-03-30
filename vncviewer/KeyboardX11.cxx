@@ -49,6 +49,8 @@ KeyboardX11::KeyboardX11(KeyboardHandler* handler_)
   XkbDescPtr xkb;
   Status status;
 
+  XkbSetDetectableAutoRepeat(fl_display, True, nullptr);
+
   xkb = XkbGetMap(fl_display, 0, XkbUseCoreKbd);
   if (!xkb)
     throw std::runtime_error("XkbGetMap");

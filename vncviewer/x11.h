@@ -1,4 +1,4 @@
-/* Copyright 2011-2025 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2026 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,25 +16,26 @@
  * USA.
  */
 
-#ifndef __VNCVIEWER_COCOA_H__
-#define __VNCVIEWER_COCOA_H__
+#ifndef __X11_H__
+#define __X11_H__
 
 class Fl_Window;
 
-void cocoa_prevent_native_fullscreen(Fl_Window *win);
+bool x11_has_wm();
+bool x11_wm_supports(const char* atom);
 
-bool cocoa_is_trusted(bool prompt=false);
+void x11_win_maximize(Fl_Window* win);
+bool x11_win_is_maximized(Fl_Window* win);
 
-bool cocoa_tap_keyboard();
-void cocoa_untap_keyboard();
+void x11_win_get_coords(Fl_Window* win, int* x, int* y, int* w, int* h);
 
-bool cocoa_screens_have_separate_spaces();
+void x11_win_may_grab(Fl_Window* win);
 
-typedef struct CGColorSpace *CGColorSpaceRef;
+bool x11_grab_keyboard(Fl_Window* win);
+void x11_ungrab_keyboard();
 
-CGColorSpaceRef cocoa_win_color_space(Fl_Window *win);
+void x11_warp_pointer(unsigned x, unsigned y);
 
-bool cocoa_win_is_zoomed(Fl_Window *win);
-void cocoa_win_zoom(Fl_Window *win);
+bool x11_is_pointer_on_same_screen(Fl_Window* win);
 
 #endif

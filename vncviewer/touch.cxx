@@ -248,8 +248,6 @@ void enable_touch()
   int ev, err;
   int major_ver, minor_ver;
 
-  fl_open_display();
-
   if (!XQueryExtension(fl_display, "XInputExtension", &xi_major, &ev, &err)) {
     abort_vncviewer(_("X Input extension not available."));
     return; // Not reached
