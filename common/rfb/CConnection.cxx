@@ -66,7 +66,7 @@ CConnection::CConnection()
     supportsDesktopResize(false), supportsLEDState(false),
     is(nullptr), os(nullptr), reader_(nullptr), writer_(nullptr),
     shared(false),
-    state_(RFBSTATE_UNINITIALISED),
+    state_(RFBSTATE_UNINITIALISED), updatesEnabled(true),
     pendingPFChange(false), preferredEncoding(encodingTight),
     compressLevel(2), qualityLevel(-1),
     formatChange(false), encodingChange(false),
@@ -944,10 +944,35 @@ bool CConnection::isSecure() const
   return csecurity ? csecurity->isSecure() : false;
 }
 
+void CConnection::enableUpdates(bool enabled) {
+  if (updatesEnabled == enabled)
+    return;
+
+  updatesEnabled = enabled;
+
+  if (enabled) {
+    if (continuousUpdates)
+      writer()->writeEnableContinuousUpdates(true, 0, 0,
+                                             server.width(),
+                                             server.height());
+    pendingUpdate = true;
+    writer()->writeFramebufferUpdateRequest({0, 0,
+                                             server.width(),
+                                             server.height()},
+                                            !forceNonincremental);
+  } else {
+    if (continuousUpdates)
+      writer()->writeEnableContinuousUpdates(false, 0, 0, 0, 0);
+  }
+}
+
 // requestNewUpdate() requests an update from the server, having set the
 // format and encoding appropriately.
 void CConnection::requestNewUpdate()
 {
+  if (!updatesEnabled)
+    return;
+
   if (formatChange && !pendingPFChange) {
     /* Catch incorrect requestNewUpdate calls */
     assert(!pendingUpdate || continuousUpdates);
