@@ -47,6 +47,11 @@ struct PendingData {
   std::string mimeType;
 };
 
+struct ReadContext {
+  Clipboard* instance;
+  bool isAlive;
+};
+
 Clipboard::Clipboard(std::string sessionHandle_,
                      std::function<void(const char* data)>
                        sendClipboardDataCb_,
@@ -54,7 +59,7 @@ Clipboard::Clipboard(std::string sessionHandle_,
                         clipboardAnnounceCb_,
                      std::function<void()> clipboardRequestCb_)
   : clipboard(nullptr), sessionHandle(sessionHandle_),
-    selectionOwner(true), readInProgress(false),
+    selectionOwner(true), readContext(nullptr),
     pendingReadMimeType(nullptr), readStream(nullptr),
     readCancellable(nullptr),
     sendClipboardDataCb(sendClipboardDataCb_),
@@ -75,9 +80,13 @@ Clipboard::~Clipboard()
 
   delete clipboard;
 
+  if (readContext) {
+    readContext->isAlive = false;
+    g_cancellable_cancel(readCancellable);
+  }
+
   if (readStream)
     g_object_unref(readStream);
-  // FIXME: Do we cancel a pending read here?
   if (readCancellable)
     g_object_unref(readCancellable);
 }
@@ -178,8 +187,8 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
 
   // FIXME: Can we always assume index 0?
   fd = g_unix_fd_list_get(fdList, 0, &error);
+  g_object_unref(fdList);
   if (error) {
-    g_object_unref(fdList);
     vlog.error("Error writing to clipboard: %s", error->message);
     g_error_free(error);
     selectionWriteDone(serial, false);
@@ -205,7 +214,6 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
     if (written < 0) {
       vlog.error("Error writing to clipboard: %s", strerror(errno));
       selectionWriteDone(serial, false);
-      g_object_unref(fdList);
       close(fd);
       return;
     }
@@ -220,8 +228,6 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
   } else {
     selectionWriteDone(serial, true);
   }
-
-  g_object_unref(fdList);
 }
 
 void Clipboard::clearSelection()
@@ -279,7 +285,7 @@ void Clipboard::selectionRead()
   if (selectionOwner)
     return;
 
-  if (readInProgress) {
+  if (readContext) {
     // FIXME: Do we cancel our current read and read again?
     return;
   }
@@ -296,8 +302,8 @@ void Clipboard::selectionRead()
     return;
 
   assert(!selectionOwner);
-  assert(!readInProgress);
-  readInProgress = true;
+  assert(!readContext);
+  readContext = new ReadContext{this, true};
   pendingReadMimeType = mimeType;
 
   params = g_variant_new("(os)", sessionHandle.c_str(), mimeType);
@@ -309,16 +315,18 @@ void Clipboard::selectionRead()
   if (error) {
     vlog.error("Could not read clipboard: %s", error->message);
     g_error_free(error);
-    readInProgress = false;
+    delete readContext;
+    readContext = nullptr;
     return;
   }
 
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
-    g_variant_unref(response);
     g_object_unref(fdList);
     vlog.error("Could not read clipboard: invalid response type: %s, "
                "expected (h)", g_variant_get_type_string(response));
-    readInProgress = false;
+    delete readContext;
+    readContext = nullptr;
+    g_variant_unref(response);
     return;
   }
 
@@ -329,7 +337,8 @@ void Clipboard::selectionRead()
   g_object_unref(fdList);
 
   if (error || fd == -1) {
-    readInProgress = false;
+    delete readContext;
+    readContext = nullptr;
     vlog.error("Could not read clipboard: %s", error->message);
     g_error_free(error);
     return;
@@ -345,9 +354,13 @@ void Clipboard::selectionRead()
     G_PRIORITY_DEFAULT,
     readCancellable,
     [](GObject*, GAsyncResult* result, void* userData) {
-      ((Clipboard*)userData)->handleReadDataCallback(result);
+      ReadContext* ctx = (ReadContext*)userData;
+      if (ctx->isAlive)
+        ctx->instance->handleReadDataCallback(result);
+      else
+        delete ctx;
     },
-    this);
+    readContext);
 }
 
 void Clipboard::handleSelectionTransfer(GVariant* parameters)
@@ -402,7 +415,8 @@ void Clipboard::handleSelectionOwnerChanged(GVariant* parameters)
   g_variant_unref(options);
 
   if (!sessionIsOwner) {
-    readInProgress = false;
+    delete readContext;
+    readContext = nullptr;
     availableMimeTypes.clear();
     clipboardAnnounceCb(false);
     clearPendingSerials();
@@ -489,7 +503,8 @@ void Clipboard::handleReadDataCallback(GAsyncResult* res)
     g_object_unref(readCancellable);
     readStream = nullptr;
     readCancellable = nullptr;
-    readInProgress = false;
+    delete readContext;
+    readContext = nullptr;
     return;
   }
 
@@ -501,27 +516,31 @@ void Clipboard::handleReadDataCallback(GAsyncResult* res)
     g_object_unref(readCancellable);
     readStream = nullptr;
     readCancellable = nullptr;
-    readInProgress = false;
     g_bytes_unref(bytes);
 
     if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN) == 0) {
       if (!core::isValidAscii(readBuffer.c_str(), readBuffer.size())) {
         vlog.error("Invalid ASCII sequence in clipboard - ignoring");
         readBuffer.clear();
-        readInProgress = false;
+        delete readContext;
+        readContext = nullptr;
         return;
       }
+
     } else if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN_UTF8) == 0) {
       if (!core::isValidUTF8(readBuffer.c_str(), readBuffer.size())) {
         vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
         readBuffer.clear();
-        readInProgress = false;
+        delete readContext;
+        readContext = nullptr;
         return;
       }
     }
 
     sendClipboardDataCb(readBuffer.c_str());
     readBuffer.clear();
+    delete readContext;
+    readContext = nullptr;
     return;
   }
 
@@ -534,8 +553,12 @@ void Clipboard::handleReadDataCallback(GAsyncResult* res)
   g_input_stream_read_bytes_async(
     readStream, 4096, G_PRIORITY_DEFAULT, readCancellable,
     [](GObject*, GAsyncResult* result, void* userData) {
-      ((Clipboard*)userData)->handleReadDataCallback(result);
-    }, this);
+      ReadContext* ctx = (ReadContext*)userData;
+      if (ctx->isAlive)
+        ctx->instance->handleReadDataCallback(result);
+      else
+        delete ctx;
+    }, readContext);
 }
 
 void Clipboard::clearPendingSerials()

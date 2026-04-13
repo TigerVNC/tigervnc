@@ -37,6 +37,7 @@ struct ext_data_control_offer_v1_listener;
 #include "Object.h"
 
 struct PendingData;
+struct ReadContext;
 
 namespace wayland {
   class Seat;
@@ -92,12 +93,11 @@ namespace wayland {
     ext_data_control_source_v1* selectionSource;
     ext_data_control_source_v1* primarySource;
 
-    bool readInProgress;
+    ReadContext* readContext;
     const char* pendingReadMimeType;
     GInputStream* readStream;
     GCancellable* readCancellable;
     std::string readBuffer;
-
 
     std::set<std::string> availableMimeTypes;
     std::queue<PendingData> pendingWrites;

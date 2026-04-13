@@ -29,6 +29,7 @@
 #include <gio/gio.h>
 
 struct PendingData;
+struct ReadContext;
 class PortalProxy;
 
 class Clipboard {
@@ -79,7 +80,7 @@ private:
   PortalProxy* clipboard;
   std::string sessionHandle;
   gboolean selectionOwner;
-  bool readInProgress;
+  ReadContext* readContext;
 
   const char* pendingReadMimeType;
   GInputStream* readStream;
