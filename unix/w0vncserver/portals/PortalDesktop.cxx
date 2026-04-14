@@ -158,11 +158,11 @@ void PortalDesktop::terminate()
   kill(getpid(), SIGTERM);
 }
 
-unsigned int PortalDesktop::setScreenLayout(int /* fb_width */,
-                                            int /* fb_height */,
-                                            const rfb::ScreenSet& /*  layout */)
+void PortalDesktop::setScreenLayout(int /* fb_width */,
+                                    int /* fb_height */,
+                                    const rfb::ScreenSet& /*  layout */)
 {
-  return rfb::resultProhibited;
+  server->setScreenLayoutDone(rfb::resultProhibited);
 }
 
 void PortalDesktop::keyEvent(uint32_t keysym, uint32_t keycode, bool down)
