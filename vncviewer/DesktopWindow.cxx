@@ -1468,7 +1468,12 @@ void DesktopWindow::remoteResize()
   lastResizeWidth = width;
   lastResizeHeight = height;
   lastResizeLayout = layout;
-  cc->requestScreenLayout(width, height, layout);
+  try {
+    cc->requestScreenLayout(width, height, layout);
+  } catch (std::exception& e) {
+    vlog.error("%s", e.what());
+    abort_connection_unexpected(e);
+  }
 }
 
 
