@@ -89,7 +89,7 @@ int vncSetParam(const char *name, const char *value)
   if (value != nullptr)
     return core::Configuration::setParam(name, value);
   else {
-    core::VoidParameter* param;
+    core::Parameter* param;
     param = core::Configuration::getParam(name);
     if (param == nullptr)
       return false;
@@ -99,7 +99,7 @@ int vncSetParam(const char *name, const char *value)
 
 char* vncGetParam(const char *name)
 {
-  core::VoidParameter* param;
+  core::Parameter* param;
 
   // Hack to avoid exposing password!
   if (strcasecmp(name, "Password") == 0)
@@ -114,7 +114,7 @@ char* vncGetParam(const char *name)
 
 const char* vncGetParamDesc(const char *name)
 {
-  core::VoidParameter* param;
+  core::Parameter* param;
 
   param = core::Configuration::getParam(name);
   if (param == nullptr)
@@ -135,7 +135,7 @@ char *vncGetParamList(void)
 
   len = 0;
 
-  for (core::VoidParameter *param: *core::Configuration::global()) {
+  for (core::Parameter *param: *core::Configuration::global()) {
     int l = strlen(param->getName());
     if (l <= 255)
       len += l + 1;
@@ -146,7 +146,7 @@ char *vncGetParamList(void)
     return nullptr;
 
   ptr = data;
-  for (core::VoidParameter *param: *core::Configuration::global()) {
+  for (core::Parameter *param: *core::Configuration::global()) {
     int l = strlen(param->getName());
     if (l <= 255) {
       *ptr++ = l;

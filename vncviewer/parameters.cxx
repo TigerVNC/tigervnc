@@ -262,7 +262,7 @@ static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0"
  * We only save the sub set of parameters that can be modified from
  * the graphical user interface
  */
-static core::VoidParameter* parameterArray[] = {
+static core::Parameter* parameterArray[] = {
   /* Security */
 #ifdef HAVE_GNUTLS
   &rfb::CSecurityTLS::X509CA,
@@ -304,7 +304,7 @@ static core::VoidParameter* parameterArray[] = {
   &shortcutModifiers,
 };
 
-static core::VoidParameter* readOnlyParameterArray[] = {
+static core::Parameter* readOnlyParameterArray[] = {
   &fullScreenAllMonitors,
   &dotWhenNoCursor
 };
@@ -565,7 +565,7 @@ static void saveToReg(const char* servername) {
       _("Failed to save \"%s\": %s"), "ServerName", e.what()));
   }
 
-  for (core::VoidParameter* param : parameterArray) {
+  for (core::Parameter* param : parameterArray) {
     core::IntParameter* iparam;
     core::BoolParameter* bparam;
 
@@ -603,7 +603,7 @@ static void saveToReg(const char* servername) {
   // Remove read-only parameters to replicate the behaviour of Linux/macOS when they
   // store a config to disk. If the parameter hasn't been migrated at this point it
   // will be lost.
-  for (core::VoidParameter* param : readOnlyParameterArray) {
+  for (core::Parameter* param : readOnlyParameterArray) {
     try {
       removeValue(param->getName(), &hKey);
     } catch (std::exception& e) {
@@ -665,7 +665,7 @@ std::list<std::string> loadHistoryFromRegKey()
   return serverHistory;
 }
 
-static void getParametersFromReg(core::VoidParameter* parameters[],
+static void getParametersFromReg(core::Parameter* parameters[],
                                  size_t parameters_len, HKEY* hKey)
 {
   const size_t buffersize = 256;
@@ -729,11 +729,11 @@ static char* loadFromReg() {
 
   getParametersFromReg(parameterArray,
                        sizeof(parameterArray) /
-                         sizeof(core::VoidParameter*),
+                         sizeof(core::Parameter*),
                        &hKey);
   getParametersFromReg(readOnlyParameterArray,
                        sizeof(readOnlyParameterArray) /
-                         sizeof(core::VoidParameter*),
+                         sizeof(core::Parameter*),
                        &hKey);
 
   res = RegCloseKey(hKey);
@@ -787,7 +787,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
-  for (core::VoidParameter* param : parameterArray) {
+  for (core::Parameter* param : parameterArray) {
     if (param->isDefault())
       continue;
     if (!encodeValue(param->getValueStr().c_str(),
@@ -803,7 +803,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
 }
 
 static bool findAndSetViewerParameterFromValue(
-  core::VoidParameter* parameters[], size_t parameters_len,
+  core::Parameter* parameters[], size_t parameters_len,
   char* value, char* line)
 {
   const size_t buffersize = 256;
@@ -935,14 +935,14 @@ char* loadViewerParameters(const char *filename) {
       } else {
         invalidParameterName = findAndSetViewerParameterFromValue(
           parameterArray,
-          sizeof(parameterArray) / sizeof(core::VoidParameter *),
+          sizeof(parameterArray) / sizeof(core::Parameter *),
           value, line);
 
         if (invalidParameterName) {
           invalidParameterName = findAndSetViewerParameterFromValue(
             readOnlyParameterArray,
             sizeof(readOnlyParameterArray) /
-              sizeof(core::VoidParameter *),
+              sizeof(core::Parameter *),
             value, line);
         }
       }
