@@ -50,6 +50,43 @@ static std::ostream& operator<<(std::ostream& os,
 
 }
 
+TEST(AliasParameter, values)
+{
+  core::IntParameter realparam("stringparam", "", 0);
+  core::AliasParameter strings("aliasparam", &realparam);
+
+  strings.setParam("123");
+  EXPECT_EQ(realparam, 123);
+
+  strings.setParam("-456");
+  EXPECT_EQ(realparam, -456);
+}
+
+TEST(AliasParameter, encoding)
+{
+  core::IntParameter realparam("intparam", "", 0);
+  core::AliasParameter encoding("aliasparam", &realparam);
+
+  realparam.setParam(123);
+  EXPECT_EQ(encoding.getValueStr(), "123");
+
+  realparam.setParam(-456);
+  EXPECT_EQ(encoding.getValueStr(), "-456");
+}
+
+TEST(AliasParameter, immutable)
+{
+  core::IntParameter realparam("intparam", "", 0);
+  core::AliasParameter immutable("aliasparam", &realparam);
+
+  immutable.setImmutable();
+  immutable.setParam("123");
+  immutable.setParam("-456");
+  realparam.setParam(123);
+  EXPECT_EQ(immutable.getValueStr(), "0");
+  EXPECT_EQ(realparam.getValueStr(), "0");
+}
+
 TEST(BoolParameter, values)
 {
   core::BoolParameter bools("boolparam", "", false);
