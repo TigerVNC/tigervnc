@@ -218,7 +218,7 @@ void CSecurityRSAAES::verifyServer()
 {
   rdr::MemOutStream key(4 + serverKey.size * 2);
 
-  uint8_t f[8];
+  uint8_t f[SHA1_DIGEST_SIZE];
   struct sha1_ctx ctx;
   std::string fingerprint;
 
@@ -228,7 +228,7 @@ void CSecurityRSAAES::verifyServer()
 
   sha1_init(&ctx);
   sha1_update(&ctx, key.length(), key.data());
-  sha1_digest(&ctx, sizeof(f), f);
+  sha1_digest(&ctx, SHA1_DIGEST_SIZE, f);
 
   // This is the format used by RealVNC, so use the same so users can
   // compare
@@ -301,31 +301,31 @@ void CSecurityRSAAES::setCipher()
 {
   rawis = cc->getInStream();
   rawos = cc->getOutStream();
-  uint8_t key[32];
+  uint8_t key[SHA256_DIGEST_SIZE];
   memset(key, 0, sizeof(key));
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
     sha1_update(&ctx, 16, clientRandom);
     sha1_update(&ctx, 16, serverRandom);
-    sha1_digest(&ctx, 16, key);
+    sha1_digest(&ctx, SHA1_DIGEST_SIZE, key);
     rais = new rdr::AESInStream(rawis, key, 128);
     sha1_init(&ctx);
     sha1_update(&ctx, 16, serverRandom);
     sha1_update(&ctx, 16, clientRandom);
-    sha1_digest(&ctx, 16, key);
+    sha1_digest(&ctx, SHA1_DIGEST_SIZE, key);
     raos = new rdr::AESOutStream(rawos, key, 128);
   } else {
     struct sha256_ctx ctx;
     sha256_init(&ctx);
     sha256_update(&ctx, 32, clientRandom);
     sha256_update(&ctx, 32, serverRandom);
-    sha256_digest(&ctx, 32, key);
+    sha256_digest(&ctx, SHA256_DIGEST_SIZE, key);
     rais = new rdr::AESInStream(rawis, key, 256);
     sha256_init(&ctx);
     sha256_update(&ctx, 32, serverRandom);
     sha256_update(&ctx, 32, clientRandom);
-    sha256_digest(&ctx, 32, key);
+    sha256_digest(&ctx, SHA256_DIGEST_SIZE, key);
     raos = new rdr::AESOutStream(rawos, key, 256);
   }
   if (isAllEncrypted)
@@ -334,7 +334,7 @@ void CSecurityRSAAES::setCipher()
 
 void CSecurityRSAAES::writeHash()
 {
-  uint8_t hash[32];
+  uint8_t hash[SHA256_DIGEST_SIZE];
   memset(hash, 0, sizeof(hash));
   size_t len = serverKeyLength;
   uint8_t lenServerKey[4] = {
@@ -352,7 +352,7 @@ void CSecurityRSAAES::writeHash()
   };
   int hashSize;
   if (keySize == 128) {
-    hashSize = 20;
+    hashSize = SHA1_DIGEST_SIZE;
     struct sha1_ctx ctx;
     sha1_init(&ctx);
     sha1_update(&ctx, 4, lenClientKey);
@@ -363,7 +363,7 @@ void CSecurityRSAAES::writeHash()
     sha1_update(&ctx, serverKey.size, serverKeyE);
     sha1_digest(&ctx, hashSize, hash);
   } else {
-    hashSize = 32;
+    hashSize = SHA256_DIGEST_SIZE;
     struct sha256_ctx ctx;
     sha256_init(&ctx);
     sha256_update(&ctx, 4, lenClientKey);
@@ -380,11 +380,17 @@ void CSecurityRSAAES::writeHash()
 
 bool CSecurityRSAAES::readHash()
 {
-  uint8_t hash[32];
-  uint8_t realHash[32];
+  uint8_t hash[SHA256_DIGEST_SIZE];
+  uint8_t realHash[SHA256_DIGEST_SIZE];
   memset(hash, 0, sizeof(hash));
   memset(realHash, 0, sizeof(realHash));
-  int hashSize = keySize == 128 ? 20 : 32;
+  int hashSize;
+  if (keySize == 128) {
+    hashSize = SHA1_DIGEST_SIZE;
+  } else {
+    hashSize = SHA256_DIGEST_SIZE;
+  }
+
   if (!rais->hasData(hashSize))
     return false;
   rais->readBytes(hash, hashSize);

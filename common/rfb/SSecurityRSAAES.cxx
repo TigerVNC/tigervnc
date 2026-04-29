@@ -406,31 +406,31 @@ void SSecurityRSAAES::setCipher()
 {
   rawis = sc->getInStream();
   rawos = sc->getOutStream();
-  uint8_t key[32];
+  uint8_t key[SHA256_DIGEST_SIZE];
   memset(key, 0, sizeof(key));
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
     sha1_update(&ctx, 16, serverRandom);
     sha1_update(&ctx, 16, clientRandom);
-    sha1_digest(&ctx, 16, key);
+    sha1_digest(&ctx, SHA1_DIGEST_SIZE, key);
     rais = new rdr::AESInStream(rawis, key, 128);
     sha1_init(&ctx);
     sha1_update(&ctx, 16, clientRandom);
     sha1_update(&ctx, 16, serverRandom);
-    sha1_digest(&ctx, 16, key);
+    sha1_digest(&ctx, SHA1_DIGEST_SIZE, key);
     raos = new rdr::AESOutStream(rawos, key, 128);
   } else {
     struct sha256_ctx ctx;
     sha256_init(&ctx);
     sha256_update(&ctx, 32, serverRandom);
     sha256_update(&ctx, 32, clientRandom);
-    sha256_digest(&ctx, 32, key);
+    sha256_digest(&ctx, SHA256_DIGEST_SIZE, key);
     rais = new rdr::AESInStream(rawis, key, 256);
     sha256_init(&ctx);
     sha256_update(&ctx, 32, clientRandom);
     sha256_update(&ctx, 32, serverRandom);
-    sha256_digest(&ctx, 32, key);
+    sha256_digest(&ctx, SHA256_DIGEST_SIZE, key);
     raos = new rdr::AESOutStream(rawos, key, 256);
   }
   if (isAllEncrypted)
@@ -456,7 +456,7 @@ void SSecurityRSAAES::writeHash()
   };
   int hashSize;
   if (keySize == 128) {
-    hashSize = 20;
+    hashSize = SHA1_DIGEST_SIZE;
     struct sha1_ctx ctx;
     sha1_init(&ctx);
     sha1_update(&ctx, 4, lenServerKey);
@@ -467,7 +467,7 @@ void SSecurityRSAAES::writeHash()
     sha1_update(&ctx, clientKey.size, clientKeyE);
     sha1_digest(&ctx, hashSize, hash);
   } else {
-    hashSize = 32;
+    hashSize = SHA256_DIGEST_SIZE;
     struct sha256_ctx ctx;
     sha256_init(&ctx);
     sha256_update(&ctx, 4, lenServerKey);
@@ -484,11 +484,17 @@ void SSecurityRSAAES::writeHash()
 
 bool SSecurityRSAAES::readHash()
 {
-  uint8_t hash[32];
-  uint8_t realHash[32];
+  uint8_t hash[SHA256_DIGEST_SIZE];
+  uint8_t realHash[SHA256_DIGEST_SIZE];
   memset(hash, 0, sizeof(hash));
   memset(realHash, 0, sizeof(realHash));
-  int hashSize = keySize == 128 ? 20 : 32;
+  int hashSize;
+  if (keySize == 128) {
+    hashSize = SHA1_DIGEST_SIZE;
+  } else {
+    hashSize = SHA256_DIGEST_SIZE;
+  }
+
   if (!rais->hasData(hashSize))
     return false;
   rais->readBytes(hash, hashSize);

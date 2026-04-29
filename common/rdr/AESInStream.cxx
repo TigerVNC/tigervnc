@@ -49,29 +49,29 @@ bool AESInStream::fillBuffer()
     return false;
   const uint8_t* buf = in->getptr(2);
   size_t length = ((int)buf[0] << 8) | (int)buf[1];
-  if (!in->hasData(2 + length + 16))
+  if (!in->hasData(2 + length + EAX_DIGEST_SIZE))
     return false;
   ensureSpace(length);
-  buf = in->getptr(2 + length + 16);
+  buf = in->getptr(2 + length + EAX_DIGEST_SIZE);
   const uint8_t* ad = buf;
   const uint8_t* data = buf + 2;
   const uint8_t* mac = buf + 2 + length;
-  uint8_t macComputed[16];
+  uint8_t macComputed[EAX_DIGEST_SIZE];
 
   if (keySize == 128) {
     EAX_SET_NONCE(&eaxCtx128, aes128_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx128, aes128_encrypt, 2, ad);
     EAX_DECRYPT(&eaxCtx128, aes128_encrypt, length, (uint8_t*)end, data);
-    EAX_DIGEST(&eaxCtx128, aes128_encrypt, 16, macComputed);
+    EAX_DIGEST(&eaxCtx128, aes128_encrypt, EAX_DIGEST_SIZE, macComputed);
   } else {
     EAX_SET_NONCE(&eaxCtx256, aes256_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx256, aes256_encrypt, 2, ad);
     EAX_DECRYPT(&eaxCtx256, aes256_encrypt, length, (uint8_t*)end, data);
-    EAX_DIGEST(&eaxCtx256, aes256_encrypt, 16, macComputed);
+    EAX_DIGEST(&eaxCtx256, aes256_encrypt, EAX_DIGEST_SIZE, macComputed);
   }
-  if (memcmp(mac, macComputed, 16) != 0)
+  if (memcmp(mac, macComputed, EAX_DIGEST_SIZE) != 0)
     throw std::runtime_error("AESInStream: Failed to authenticate message");
-  in->setptr(2 + length + 16);
+  in->setptr(2 + length + EAX_DIGEST_SIZE);
   end += length;
 
   // Update nonce by incrementing the counter as a

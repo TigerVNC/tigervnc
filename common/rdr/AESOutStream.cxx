@@ -83,14 +83,14 @@ void AESOutStream::writeMessage(const uint8_t* data, size_t length)
     EAX_SET_NONCE(&eaxCtx128, aes128_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx128, aes128_encrypt, 2, msg);
     EAX_ENCRYPT(&eaxCtx128, aes128_encrypt, length, msg + 2, data);
-    EAX_DIGEST(&eaxCtx128, aes128_encrypt, 16, msg + 2 + length);
+    EAX_DIGEST(&eaxCtx128, aes128_encrypt, EAX_DIGEST_SIZE, msg + 2 + length);
   } else {
     EAX_SET_NONCE(&eaxCtx256, aes256_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx256, aes256_encrypt, 2, msg);
     EAX_ENCRYPT(&eaxCtx256, aes256_encrypt, length, msg + 2, data);
-    EAX_DIGEST(&eaxCtx256, aes256_encrypt, 16, msg + 2 + length);
+    EAX_DIGEST(&eaxCtx256, aes256_encrypt, EAX_DIGEST_SIZE, msg + 2 + length);
   }
-  out->writeBytes(msg, 2 + length + 16);
+  out->writeBytes(msg, 2 + length + EAX_DIGEST_SIZE);
   out->flush();
 
   // Update nonce by incrementing the counter as a
