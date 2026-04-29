@@ -27,6 +27,9 @@
 #include <rdr/AESInStream.h>
 
 #ifdef HAVE_NETTLE
+
+#include <nettle/version.h>
+
 using namespace rdr;
 
 AESInStream::AESInStream(InStream* _in, const uint8_t* key,
@@ -62,12 +65,20 @@ bool AESInStream::fillBuffer()
     EAX_SET_NONCE(&eaxCtx128, aes128_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx128, aes128_encrypt, 2, ad);
     EAX_DECRYPT(&eaxCtx128, aes128_encrypt, length, (uint8_t*)end, data);
+#if NETTLE_VERSION_MAJOR >= 4
+    EAX_DIGEST(&eaxCtx128, aes128_encrypt, macComputed);
+#else
     EAX_DIGEST(&eaxCtx128, aes128_encrypt, EAX_DIGEST_SIZE, macComputed);
+#endif
   } else {
     EAX_SET_NONCE(&eaxCtx256, aes256_encrypt, 16, counter);
     EAX_UPDATE(&eaxCtx256, aes256_encrypt, 2, ad);
     EAX_DECRYPT(&eaxCtx256, aes256_encrypt, length, (uint8_t*)end, data);
+#if NETTLE_VERSION_MAJOR >= 4
+    EAX_DIGEST(&eaxCtx256, aes256_encrypt, macComputed);
+#else
     EAX_DIGEST(&eaxCtx256, aes256_encrypt, EAX_DIGEST_SIZE, macComputed);
+#endif
   }
   if (memcmp(mac, macComputed, EAX_DIGEST_SIZE) != 0)
     throw std::runtime_error("AESInStream: Failed to authenticate message");

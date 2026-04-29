@@ -34,6 +34,7 @@
 #include <nettle/aes.h>
 #include <nettle/md5.h>
 #include <nettle/bignum.h>
+#include <nettle/version.h>
 #include <rfb/CSecurityDH.h>
 #include <rfb/CConnection.h>
 #include <rdr/InStream.h>
@@ -125,7 +126,11 @@ void CSecurityDH::writeCredentials()
   struct md5_ctx md5Ctx;
   md5_init(&md5Ctx);
   md5_update(&md5Ctx, sharedSecret.size(), sharedSecret.data());
+#if NETTLE_VERSION_MAJOR >= 4
+  md5_digest(&md5Ctx, key);
+#else
   md5_digest(&md5Ctx, MD5_DIGEST_SIZE, key);
+#endif
   struct aes128_ctx aesCtx;
   aes128_set_encrypt_key(&aesCtx, key);
 
