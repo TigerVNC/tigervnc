@@ -302,6 +302,7 @@ void CSecurityRSAAES::setCipher()
   rawis = cc->getInStream();
   rawos = cc->getOutStream();
   uint8_t key[32];
+  memset(key, 0, sizeof(key));
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
@@ -334,6 +335,7 @@ void CSecurityRSAAES::setCipher()
 void CSecurityRSAAES::writeHash()
 {
   uint8_t hash[32];
+  memset(hash, 0, sizeof(hash));
   size_t len = serverKeyLength;
   uint8_t lenServerKey[4] = {
     (uint8_t)((len & 0xff000000) >> 24),
@@ -380,6 +382,8 @@ bool CSecurityRSAAES::readHash()
 {
   uint8_t hash[32];
   uint8_t realHash[32];
+  memset(hash, 0, sizeof(hash));
+  memset(realHash, 0, sizeof(realHash));
   int hashSize = keySize == 128 ? 20 : 32;
   if (!rais->hasData(hashSize))
     return false;

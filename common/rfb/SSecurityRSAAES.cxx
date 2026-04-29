@@ -407,6 +407,7 @@ void SSecurityRSAAES::setCipher()
   rawis = sc->getInStream();
   rawos = sc->getOutStream();
   uint8_t key[32];
+  memset(key, 0, sizeof(key));
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
@@ -485,6 +486,8 @@ bool SSecurityRSAAES::readHash()
 {
   uint8_t hash[32];
   uint8_t realHash[32];
+  memset(hash, 0, sizeof(hash));
+  memset(realHash, 0, sizeof(realHash));
   int hashSize = keySize == 128 ? 20 : 32;
   if (!rais->hasData(hashSize))
     return false;
