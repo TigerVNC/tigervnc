@@ -34,6 +34,7 @@
 #include <nettle/bignum.h>
 #include <nettle/sha1.h>
 #include <nettle/sha2.h>
+#include <nettle/version.h>
 
 #include <core/LogWriter.h>
 #include <core/string.h>
@@ -218,7 +219,7 @@ void CSecurityRSAAES::verifyServer()
 {
   rdr::MemOutStream key(4 + serverKey.size * 2);
 
-  uint8_t f[8];
+  uint8_t f[SHA1_DIGEST_SIZE];
   struct sha1_ctx ctx;
   std::string fingerprint;
 
@@ -228,7 +229,11 @@ void CSecurityRSAAES::verifyServer()
 
   sha1_init(&ctx);
   sha1_update(&ctx, key.length(), key.data());
-  sha1_digest(&ctx, sizeof(f), f);
+#if NETTLE_VERSION_MAJOR >= 4
+  sha1_digest(&ctx, f);
+#else
+  sha1_digest(&ctx, SHA1_DIGEST_SIZE, f);
+#endif
 
   // This is the format used by RealVNC, so use the same so users can
   // compare
@@ -301,30 +306,47 @@ void CSecurityRSAAES::setCipher()
 {
   rawis = cc->getInStream();
   rawos = cc->getOutStream();
-  uint8_t key[32];
+  uint8_t key[SHA256_DIGEST_SIZE];
+  memset(key, 0, sizeof(key));
   if (keySize == 128) {
     struct sha1_ctx ctx;
     sha1_init(&ctx);
     sha1_update(&ctx, 16, clientRandom);
     sha1_update(&ctx, 16, serverRandom);
-    sha1_digest(&ctx, 16, key);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha1_digest(&ctx, key);
+#else
+    sha1_digest(&ctx, SHA1_DIGEST_SIZE, key);
+#endif
     rais = new rdr::AESInStream(rawis, key, 128);
     sha1_init(&ctx);
     sha1_update(&ctx, 16, serverRandom);
     sha1_update(&ctx, 16, clientRandom);
-    sha1_digest(&ctx, 16, key);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha1_digest(&ctx, key);
+#else
+    sha1_digest(&ctx, SHA1_DIGEST_SIZE, key);
+#endif
     raos = new rdr::AESOutStream(rawos, key, 128);
   } else {
     struct sha256_ctx ctx;
     sha256_init(&ctx);
     sha256_update(&ctx, 32, clientRandom);
     sha256_update(&ctx, 32, serverRandom);
-    sha256_digest(&ctx, 32, key);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha256_digest(&ctx, key);
+#else
+    sha256_digest(&ctx, SHA256_DIGEST_SIZE, key);
+#endif
     rais = new rdr::AESInStream(rawis, key, 256);
     sha256_init(&ctx);
     sha256_update(&ctx, 32, serverRandom);
     sha256_update(&ctx, 32, clientRandom);
-    sha256_digest(&ctx, 32, key);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha256_digest(&ctx, key);
+#else
+    sha256_digest(&ctx, SHA256_DIGEST_SIZE, key);
+#endif
     raos = new rdr::AESOutStream(rawos, key, 256);
   }
   if (isAllEncrypted)
@@ -333,7 +355,8 @@ void CSecurityRSAAES::setCipher()
 
 void CSecurityRSAAES::writeHash()
 {
-  uint8_t hash[32];
+  uint8_t hash[SHA256_DIGEST_SIZE];
+  memset(hash, 0, sizeof(hash));
   size_t len = serverKeyLength;
   uint8_t lenServerKey[4] = {
     (uint8_t)((len & 0xff000000) >> 24),
@@ -350,7 +373,7 @@ void CSecurityRSAAES::writeHash()
   };
   int hashSize;
   if (keySize == 128) {
-    hashSize = 20;
+    hashSize = SHA1_DIGEST_SIZE;
     struct sha1_ctx ctx;
     sha1_init(&ctx);
     sha1_update(&ctx, 4, lenClientKey);
@@ -359,9 +382,13 @@ void CSecurityRSAAES::writeHash()
     sha1_update(&ctx, 4, lenServerKey);
     sha1_update(&ctx, serverKey.size, serverKeyN);
     sha1_update(&ctx, serverKey.size, serverKeyE);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha1_digest(&ctx, hash);
+#else
     sha1_digest(&ctx, hashSize, hash);
+#endif
   } else {
-    hashSize = 32;
+    hashSize = SHA256_DIGEST_SIZE;
     struct sha256_ctx ctx;
     sha256_init(&ctx);
     sha256_update(&ctx, 4, lenClientKey);
@@ -370,7 +397,11 @@ void CSecurityRSAAES::writeHash()
     sha256_update(&ctx, 4, lenServerKey);
     sha256_update(&ctx, serverKey.size, serverKeyN);
     sha256_update(&ctx, serverKey.size, serverKeyE);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha256_digest(&ctx, hash);
+#else
     sha256_digest(&ctx, hashSize, hash);
+#endif
   }
   raos->writeBytes(hash, hashSize);
   raos->flush();
@@ -378,9 +409,17 @@ void CSecurityRSAAES::writeHash()
 
 bool CSecurityRSAAES::readHash()
 {
-  uint8_t hash[32];
-  uint8_t realHash[32];
-  int hashSize = keySize == 128 ? 20 : 32;
+  uint8_t hash[SHA256_DIGEST_SIZE];
+  uint8_t realHash[SHA256_DIGEST_SIZE];
+  memset(hash, 0, sizeof(hash));
+  memset(realHash, 0, sizeof(realHash));
+  int hashSize;
+  if (keySize == 128) {
+    hashSize = SHA1_DIGEST_SIZE;
+  } else {
+    hashSize = SHA256_DIGEST_SIZE;
+  }
+
   if (!rais->hasData(hashSize))
     return false;
   rais->readBytes(hash, hashSize);
@@ -407,7 +446,11 @@ bool CSecurityRSAAES::readHash()
     sha1_update(&ctx, 4, lenClientKey);
     sha1_update(&ctx, clientKey.size, clientKeyN);
     sha1_update(&ctx, clientKey.size, clientKeyE);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha1_digest(&ctx, realHash);
+#else
     sha1_digest(&ctx, hashSize, realHash);
+#endif
   } else {
     struct sha256_ctx ctx;
     sha256_init(&ctx);
@@ -417,7 +460,11 @@ bool CSecurityRSAAES::readHash()
     sha256_update(&ctx, 4, lenClientKey);
     sha256_update(&ctx, clientKey.size, clientKeyN);
     sha256_update(&ctx, clientKey.size, clientKeyE);
+#if NETTLE_VERSION_MAJOR >= 4
+    sha256_digest(&ctx, realHash);
+#else
     sha256_digest(&ctx, hashSize, realHash);
+#endif
   }
   if (memcmp(hash, realHash, hashSize) != 0)
     throw protocol_error("Hash doesn't match");
