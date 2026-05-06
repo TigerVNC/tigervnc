@@ -359,11 +359,13 @@ void H264WinDecoderContext::ParseSPS(const uint8_t* buffer, int length)
 #define SKIP_UE() do { \
     unsigned var;      \
     GET_UE(var);       \
+    (void)var;         \
 } while (0)
 
 #define SKIP_BITS(bits) do { \
     unsigned var;            \
     GET_BITS(bits, var);     \
+    (void)var;               \
 } while (0)
 
     // check for NAL header
@@ -384,13 +386,12 @@ void H264WinDecoderContext::ParseSPS(const uint8_t* buffer, int length)
     uint8_t byte_ = 0;
 
     unsigned profile_idc;
-    unsigned seq_parameter_set_id;
 
     GET_BITS(8, profile_idc);
     SKIP_BITS(6); // constraint_set0..5_flag
     SKIP_BITS(2); // reserved_zero_2bits
     SKIP_BITS(8); // level_idc
-    GET_UE(seq_parameter_set_id);
+    SKIP_UE(); // seq_parameter_set_id
 
     unsigned chroma_format_idc = 1;
     if (profile_idc == 100 || profile_idc == 110 ||
@@ -425,8 +426,7 @@ void H264WinDecoderContext::ParseSPS(const uint8_t* buffer, int length)
         }
     }
 
-    unsigned log2_max_frame_num_minus4;
-    GET_UE(log2_max_frame_num_minus4); // log2_max_frame_num_minus4
+    SKIP_UE(); // log2_max_frame_num_minus4
     unsigned pic_order_cnt_type;
     GET_UE(pic_order_cnt_type);
     if (pic_order_cnt_type == 0)
