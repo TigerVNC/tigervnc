@@ -30,7 +30,7 @@ namespace rdr {
     int err, alert;
     tls_error(const char* s, int err_, int alert_=-1) noexcept;
   private:
-    const char* strerror(int err_, int alert_) const noexcept;
+    static const char* strerror(int err_, int alert_) noexcept;
   };
 
 }

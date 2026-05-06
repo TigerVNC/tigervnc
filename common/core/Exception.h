@@ -33,7 +33,7 @@ namespace core {
     posix_error(const char* what_arg, int err_) noexcept;
     posix_error(const std::string& what_arg, int err_) noexcept;
   private:
-    std::string strerror(int err_) const noexcept;
+    static std::string strerror(int err_) noexcept;
   };
 
 #ifdef WIN32
@@ -43,7 +43,7 @@ namespace core {
     win32_error(const char* what_arg, unsigned err_) noexcept;
     win32_error(const std::string& what_arg, unsigned err_) noexcept;
   private:
-    std::string strerror(unsigned err_) const noexcept;
+    static std::string strerror(unsigned err_) noexcept;
   };
 #endif
 
@@ -67,7 +67,7 @@ namespace core {
     getaddrinfo_error(const char* s, int err_) noexcept;
     getaddrinfo_error(const std::string& s, int err_) noexcept;
   private:
-    std::string strerror(int err_) const noexcept;
+    static std::string strerror(int err_) noexcept;
   };
 
 }

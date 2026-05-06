@@ -42,7 +42,7 @@ tls_error::tls_error(const char* s, int err_, int alert_) noexcept
 {
 }
 
-const char* tls_error::strerror(int err_, int alert_) const noexcept
+const char* tls_error::strerror(int err_, int alert_) noexcept
 {
   const char* msg;
 

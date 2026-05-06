@@ -57,7 +57,7 @@ getaddrinfo_error::getaddrinfo_error(const std::string& s,
 {
 }
 
-std::string getaddrinfo_error::strerror(int err_) const noexcept
+std::string getaddrinfo_error::strerror(int err_) noexcept
 {
 #ifdef _WIN32
   char str[256];
@@ -85,7 +85,7 @@ posix_error::posix_error(const std::string& what_arg, int err_) noexcept
 {
 }
 
-std::string posix_error::strerror(int err_) const noexcept
+std::string posix_error::strerror(int err_) noexcept
 {
 #ifdef _WIN32
   char str[256];
@@ -115,7 +115,7 @@ win32_error::win32_error(const std::string& what_arg,
 {
 }
 
-std::string win32_error::strerror(unsigned err_) const noexcept
+std::string win32_error::strerror(unsigned err_) noexcept
 {
   wchar_t wstr[256];
   char str[256];
