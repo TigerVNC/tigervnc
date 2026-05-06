@@ -85,6 +85,7 @@ namespace rfb {
     void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout) override;
     void setPixelBuffer(PixelBuffer* pb) override;
     void setScreenLayout(const ScreenSet& layout) override;
+    void setScreenLayoutDone(uint16_t result) override;
     const PixelBuffer* getPixelBuffer() const override { return pb; }
 
     void requestClipboard() override;
@@ -127,9 +128,9 @@ namespace rfb {
     void handleClipboardAnnounce(VNCSConnectionST* client, bool available);
     void handleClipboardData(VNCSConnectionST* client, const char* data);
 
-    unsigned int setDesktopSize(VNCSConnectionST* requester,
-                                int fb_width, int fb_height,
-                                const ScreenSet& layout);
+    void setDesktopSizeRequest(VNCSConnectionST* requester,
+                               int fb_width, int fb_height,
+                               const ScreenSet& layout);
 
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
@@ -194,6 +195,7 @@ namespace rfb {
     std::list<VNCSConnectionST*> clients;
     VNCSConnectionST* pointerClient;
     VNCSConnectionST* clipboardClient;
+    VNCSConnectionST* resizeClient;
     std::list<VNCSConnectionST*> clipboardRequestors;
 
     time_t pointerClientTime;
@@ -210,6 +212,7 @@ namespace rfb {
     core::Timer idleTimer;
     core::Timer disconnectTimer;
     core::Timer connectTimer;
+    core::Timer resizeTimer;
 
     uint64_t msc, queuedMsc;
     core::Timer frameTimer;

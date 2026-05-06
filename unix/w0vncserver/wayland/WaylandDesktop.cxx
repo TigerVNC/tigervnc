@@ -188,6 +188,12 @@ void WaylandDesktop::terminate()
   kill(getpid(), SIGTERM);
 }
 
+void WaylandDesktop::setScreenLayout(int /*fb_width*/, int /*fb_height*/,
+                                     const rfb::ScreenSet& /*layout*/)
+{
+  server->setScreenLayoutDone(rfb::resultProhibited);
+}
+
 void WaylandDesktop::handleClipboardRequest()
 {
   if (!dataControl)

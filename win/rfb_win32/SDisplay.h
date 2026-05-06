@@ -79,6 +79,8 @@ namespace rfb {
       void terminate() override;
       void queryConnection(network::Socket* sock,
                            const char* userName) override;
+      void setScreenLayout(int fb_width, int fb_height,
+                           const ScreenSet& layout) override;
       void handleClipboardRequest() override;
       void handleClipboardAnnounce(bool available) override;
       void handleClipboardData(const char* data) override;
