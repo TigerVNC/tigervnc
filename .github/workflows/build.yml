@@ -63,6 +63,7 @@ jobs:
       - uses: dorny/test-reporter@v3
         with:
           artifact: test-results-linux
+          name: FIXME not used
           path: '*.xml'
           reporter: java-junit
 
@@ -130,6 +131,7 @@ jobs:
       - uses: dorny/test-reporter@v3
         with:
           artifact: test-results-windows
+          name: FIXME not used
           path: '*.xml'
           reporter: java-junit
 
@@ -186,6 +188,7 @@ jobs:
       - uses: dorny/test-reporter@v3
         with:
           artifact: test-results-macos
+          name: FIXME not used
           path: '*.xml'
           reporter: java-junit
 
