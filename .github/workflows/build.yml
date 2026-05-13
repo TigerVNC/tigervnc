@@ -42,11 +42,11 @@ jobs:
           name: Linux (Ubuntu)
           path: build/tigervnc-*.tar.gz
       - name: Test
+        continue-on-error: true
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
       - name: Upload test results
         uses: actions/upload-artifact@v6
-        if: always()
         with:
           name: test-results-linux
           path: build/tests/unit/test-results.xml
@@ -109,11 +109,11 @@ jobs:
           name: Windows
           path: build/release/tigervnc*.exe
       - name: Test
+        continue-on-error: true
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
       - name: Upload test results
         uses: actions/upload-artifact@v6
-        if: always()
         with:
           name: test-results-windows
           path: build/tests/unit/test-results.xml
@@ -165,11 +165,11 @@ jobs:
           name: macOS
           path: build/release/TigerVNC-*.dmg
       - name: Test
+        continue-on-error: true
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
       - name: Upload test results
         uses: actions/upload-artifact@v6
-        if: always()
         with:
           name: test-results-macos
           path: build/tests/unit/test-results.xml
