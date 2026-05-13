@@ -57,6 +57,9 @@ jobs:
     needs: build-linux
     if: always()
     steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: test-results-linux
       - uses: dorny/test-reporter@v3
         with:
           artifact: test-results-linux
