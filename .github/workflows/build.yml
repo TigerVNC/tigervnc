@@ -44,13 +44,12 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
-      - name: Test report
-        uses: dorny/test-reporter@v3
+      - name: Upload test results
+        uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: Unit tests (Linux)
+          name: test-results-linux
           path: build/tests/unit/test-results.xml
-          reporter: java-junit
 
   build-windows:
     runs-on: windows-latest
@@ -100,13 +99,12 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
-      - name: Test report
-        uses: dorny/test-reporter@v3
+      - name: Upload test results
+        uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: Unit tests (Windows)
+          name: test-results-windows
           path: build/tests/unit/test-results.xml
-          reporter: java-junit
 
   build-macos:
     runs-on: macos-latest
@@ -145,13 +143,12 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --test-dir tests/unit/ --output-junit test-results.xml
-      - name: Test report
-        uses: dorny/test-reporter@v3
+      - name: Upload test results
+        uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: Unit tests (macOS)
+          name: test-results-macos
           path: build/tests/unit/test-results.xml
-          reporter: java-junit
 
   build-java:
     runs-on: ubuntu-latest
@@ -178,6 +175,20 @@ jobs:
         with:
           name: Java (${{ matrix.java }})
           path: java/build/VncViewer.jar
+
+  report:
+    runs-on: ubuntu-latest
+    needs:
+      - build-linux
+      - build-windows
+      - build-macos
+    steps:
+      - uses: dorny/test-reporter@v3
+        with:
+          artifact: /test-results-(.*)/
+          name: Unit tests ($1)
+          path: '*.xml'
+          reporter: java-junit
 
   build-packages:
     timeout-minutes: 20
