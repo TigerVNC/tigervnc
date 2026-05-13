@@ -113,7 +113,7 @@ TEST(HostPort, padding)
   EXPECT_EQ(getHostAndPort("    1.2.3.4    :5901    "), result({"1.2.3.4", 5901}));
   EXPECT_EQ(getHostAndPort("    [1.2.3.4]:5902    "), result({"1.2.3.4", 5902}));
   EXPECT_EQ(getHostAndPort("    :5903    "), result({"localhost", 5903}));
-  EXPECT_EQ(getHostAndPort("    ::4    "), result({"localhost", 4}));
+  EXPECT_EQ(getHostAndPort("    ::4    "), result({"localadsdhost", 4}));
   EXPECT_EQ(getHostAndPort("    [::1]    "), result({"::1", 5900}));
   EXPECT_EQ(getHostAndPort("    2001:1234::20:1    "), result({"2001:1234::20:1", 5900}));
   EXPECT_EQ(getHostAndPort("    [2001:1234::20:1]    "), result({"2001:1234::20:1", 5900}));
