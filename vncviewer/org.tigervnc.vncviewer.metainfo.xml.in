@@ -15,14 +15,16 @@
   <content_rating type="oars-1.1"/>
   <description>
     <p>
-      Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network.
+      Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment 
+      running on another computer on the network.
       Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device.
       This package contains a client which will enable you to connect to other desktops running a VNC server.
       VNC is platform-independent and supports various operating systems and architectures as both servers and clients.
     </p>
     <p>
       TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code bases.
-      TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project in early 2009 so that TightVNC could focus on Windows platforms.
+      TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project 
+      in early 2009 so that TightVNC could focus on Windows platforms.
       TigerVNC supports a variant of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo JPEG codec.
     </p>
   </description>
@@ -42,10 +44,29 @@
       <image>https://raw.githubusercontent.com/TigerVNC/tigervnc/741d3edbfab65eda6f033078bc06347fe244ea6a/vncviewer/metainfo/tigervnc-connection-windows.jpg</image>
     </screenshot>
   </screenshots>
-  <!-- developer_name tag deprecated with Appstream 1.0 -->
-  <developer_name>The TigerVNC team</developer_name>
   <developer id="org.tigervnc">
     <name>The TigerVNC team</name>
   </developer>
   <url type="homepage">https://tigervnc.org</url>
+  <url type="bugtracker">https://github.com/TigerVNC/tigervnc/issues</url>
+  <url type="vcs-browser">https://github.com/TigerVNC/tigervnc</url>
+  <releases>
+    <release version="1.16.2" date="2026-03-26">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.16.2</url>
+    </release>
+    <release version="1.16.1" date="2026-03-25">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.16.1</url>
+    </release>
+    <release version="1.16.0" date="2026-01-27">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.16.0</url>
+    </release>
+    <release version="1.15.0" date="2025-02-17">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.15.0</url>
+    </release>
+    <release version="1.14.0" date="2024-07-24">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.14.0</url>
+    </release>
+    <release version="1.13.0" date="2023-02-08"/>
+    <release version="1.12.0" date="2021-11-10"/>
+  </releases>
 </component>
