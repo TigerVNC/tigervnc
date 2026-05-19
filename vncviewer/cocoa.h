@@ -37,4 +37,8 @@ void cocoa_win_zoom(Fl_Window *win);
 
 void cocoa_enable_minimize(Fl_Window *win);
 
+void cocoa_event_delay(double seconds);
+
+void cocoa_set_cursor_pos(int x, int y);
+
 #endif
