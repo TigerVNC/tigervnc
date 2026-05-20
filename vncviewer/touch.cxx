@@ -130,9 +130,12 @@ static void x11_change_touch_ownership(bool enable)
   }
 }
 
-bool x11_grab_pointer(Window window)
+bool x11_grab_pointer(Fl_Window* win)
 {
+  Window window;
   bool ret;
+
+  window = fl_xid(win);
 
   if (handlers.count(window) == 0) {
     vlog.error(_("Invalid window 0x%08lx specified for pointer grab"), window);
@@ -154,8 +157,12 @@ bool x11_grab_pointer(Window window)
   return ret;
 }
 
-void x11_ungrab_pointer(Window window)
+void x11_ungrab_pointer(Fl_Window* win)
 {
+  Window window;
+
+  window = fl_xid(win);
+
   if (handlers.count(window) == 0) {
     vlog.error(_("Invalid window 0x%08lx specified for pointer grab"), window);
     return;

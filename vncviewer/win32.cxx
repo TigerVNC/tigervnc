@@ -23,6 +23,8 @@
 
 #include <windows.h>
 
+#include <FL/x.H>
+
 #include "win32.h"
 
 static HANDLE thread;
@@ -175,8 +177,12 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
   return 0;
 }
 
-int win32_enable_lowlevel_keyboard(HWND hwnd)
+int win32_enable_lowlevel_keyboard(Fl_Window* win)
 {
+  HWND hwnd;
+
+  hwnd = fl_xid(win);
+
   // Only one target at a time for now
   if (thread != NULL) {
     if (hwnd == target_wnd)
@@ -193,16 +199,16 @@ int win32_enable_lowlevel_keyboard(HWND hwnd)
 
   msg_hook = SetWindowsHookEx(WH_GETMESSAGE, message_hook, nullptr, GetCurrentThreadId());
   if (msg_hook == NULL) {
-    win32_disable_lowlevel_keyboard(hwnd);
+    win32_disable_lowlevel_keyboard(win);
     return 1;
   }
 
   return 0;
 }
 
-void win32_disable_lowlevel_keyboard(HWND hwnd)
+void win32_disable_lowlevel_keyboard(Fl_Window* win)
 {
-  if (hwnd != target_wnd)
+  if (fl_xid(win) != target_wnd)
     return;
 
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);

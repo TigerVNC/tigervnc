@@ -1134,7 +1134,7 @@ void DesktopWindow::grabKeyboard()
 #if defined(WIN32)
   int ret;
   
-  ret = win32_enable_lowlevel_keyboard(fl_xid(this));
+  ret = win32_enable_lowlevel_keyboard(this);
   if (ret != 0) {
     vlog.error(_("Failure grabbing control of the keyboard"));
     addOverlayError(_("Failure grabbing control of the keyboard"));
@@ -1186,7 +1186,7 @@ void DesktopWindow::ungrabKeyboard()
   updateCaption();
 
 #if defined(WIN32)
-  win32_disable_lowlevel_keyboard(fl_xid(this));
+  win32_disable_lowlevel_keyboard(this);
 #elif defined(__APPLE__)
   cocoa_untap_keyboard();
 #else
@@ -1207,7 +1207,7 @@ void DesktopWindow::grabPointer()
 
   // Having a button pressed prevents us from grabbing, we make
   // a new attempt in fltkHandle()
-  if (!x11_grab_pointer(fl_xid(this)))
+  if (!x11_grab_pointer(this))
     return;
 #endif
 
@@ -1220,7 +1220,7 @@ void DesktopWindow::ungrabPointer()
   mouseGrabbed = false;
 
 #if !defined(WIN32) && !defined(__APPLE__)
-  x11_ungrab_pointer(fl_xid(this));
+  x11_ungrab_pointer(this);
 #endif
 }
 
