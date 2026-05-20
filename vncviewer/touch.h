@@ -19,12 +19,14 @@
 #ifndef __TOUCH_H__
 #define __TOUCH_H__
 
+class Fl_Window;
+
 void enable_touch();
 void disable_touch();
 
 #if !defined(WIN32) && !defined(__APPLE__)
-bool x11_grab_pointer(Window window);
-void x11_ungrab_pointer(Window window);
+bool x11_grab_pointer(Fl_Window* win);
+void x11_ungrab_pointer(Fl_Window* win);
 #endif
 
 #endif
