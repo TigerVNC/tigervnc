@@ -608,7 +608,7 @@ void DesktopWindow::handleClipboardData(const char* data)
 
 void DesktopWindow::resize(int x, int y, int w, int h)
 {
-  bool resizing;
+  bool moving, resizing;
 
 #if ! (defined(WIN32) || defined(__APPLE__))
   // X11 window managers will treat a resize to cover the entire
@@ -656,13 +656,19 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   }
 #endif
 
+  moving = resizing = false;
+  if ((this->x() != x) || (this->y() != y))
+    moving = true;
   if ((this->w() != w) || (this->h() != h))
     resizing = true;
-  else
-    resizing = false;
 
   Fl_Window::resize(x, y, w, h);
 
+  if (moving) {
+    // We might be overlapping a different set of monitors now, even if
+    // our size is the same
+    remoteResize();
+  }
   if (resizing) {
     remoteResize();
 
