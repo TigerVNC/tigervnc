@@ -1011,6 +1011,14 @@ void DesktopWindow::fullscreen_on()
   bool selectedMonitors = fullScreenMode == "selected";
   int top, bottom, left, right;
 
+#ifdef __APPLE__
+  // Avoid surprises if we cannot do proper multiheaded full screen
+  if (cocoa_screens_have_separate_spaces()) {
+    allMonitors = false;
+    selectedMonitors = false;
+  }
+#endif
+
   if (not selectedMonitors and not allMonitors) {
     top = bottom = left = right = Fl::screen_num(x(), y(), w(), h());
   } else {
