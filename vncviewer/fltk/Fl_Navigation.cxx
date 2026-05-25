@@ -138,6 +138,14 @@ void Fl_Navigation::end()
   pages->end();
   Fl_Group::end();
 
+  // We don't want labels on the pages, they should be on the buttons
+  for (int i = 0;i < pages->children();i++) {
+    Fl_Widget *page;
+
+    page = pages->child(i);
+    page->labeltype(FL_NO_LABEL);
+  }
+
   update_labels();
 }
 
