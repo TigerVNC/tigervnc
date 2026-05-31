@@ -29,9 +29,18 @@
 
 #include <IOKit/hidsystem/IOHIDLib.h>
 #include <IOKit/hidsystem/IOHIDParameter.h>
+#include <AvailabilityMacros.h>
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1060
+#define kIOHIDCapsLockState 0
+#define kIOHIDNumLockState 1
+static inline kern_return_t IOHIDGetModifierLockState(io_connect_t, int, bool*) { return KERN_FAILURE; }
+static inline kern_return_t IOHIDSetModifierLockState(io_connect_t, int, bool) { return KERN_FAILURE; }
+#define TIGERVNC_NO_IOHID_MODIFIER_LOCK_STATE
+#endif
 
 // This wasn't added until 10.12
-#if !defined(MAC_OS_X_VERSION_10_12) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_12
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 101200
 const int kVK_RightCommand = 0x36;
 #endif
 // And this is still missing
@@ -260,6 +269,9 @@ std::list<uint32_t> KeyboardMacOS::translateToKeySyms(int systemKeyCode)
 
 unsigned KeyboardMacOS::getLEDState()
 {
+#ifdef TIGERVNC_NO_IOHID_MODIFIER_LOCK_STATE
+  return rfb::ledUnknown;
+#else
   unsigned state;
   int ret;
   bool on;
@@ -285,10 +297,15 @@ unsigned KeyboardMacOS::getLEDState()
   // No support for Scroll Lock //
 
   return state;
+#endif
 }
 
 void KeyboardMacOS::setLEDState(unsigned state)
 {
+#ifdef TIGERVNC_NO_IOHID_MODIFIER_LOCK_STATE
+  (void)state;
+  return;
+#else
   int ret;
 
   ret = setModifierLockState(kIOHIDCapsLockState, state & rfb::ledCapsLock);
@@ -304,6 +321,7 @@ void KeyboardMacOS::setLEDState(unsigned state)
   }
 
   // No support for Scroll Lock //
+#endif
 }
 
 bool KeyboardMacOS::isKeyboardEvent(const NSEvent* nsevent)
