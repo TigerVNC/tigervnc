@@ -26,6 +26,8 @@
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
 
+#include <AvailabilityMacros.h>
+
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
 
@@ -39,7 +41,7 @@ void cocoa_prevent_native_fullscreen(Fl_Window *win)
   NSWindow *nsw;
   nsw = (NSWindow*)fl_xid(win);
   assert(nsw);
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 100700
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   nsw.collectionBehavior |= NSWindowCollectionBehaviorFullScreenNone;
 #endif
 }
@@ -52,8 +54,7 @@ bool cocoa_is_trusted(bool prompt)
 
   Boolean trusted;
 
-#if !defined(MAC_OS_X_VERSION_10_9) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_9
-  // FIXME: Raise system requirements so this isn't needed
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1090
   void *lib;
   typedef Boolean (*AXIsProcessTrustedWithOptionsRef)(CFDictionaryRef);
   AXIsProcessTrustedWithOptionsRef AXIsProcessTrustedWithOptions;
