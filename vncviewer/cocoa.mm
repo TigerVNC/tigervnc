@@ -31,6 +31,10 @@
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1060
+#include <Carbon/Carbon.h>
+#endif
+
 #include "cocoa.h"
 
 static CFMachPortRef event_tap;
@@ -135,6 +139,7 @@ bool cocoa_is_trusted(bool prompt)
     }
 
     if (pid != 0) {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
       NSRunningApplication* authApp;
 
       authApp = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
@@ -143,6 +148,12 @@ bool cocoa_is_trusted(bool prompt)
         // or NSApplicationActivateIgnoringOtherApps
         [authApp activateWithOptions:0];
       }
+#else
+      ProcessSerialNumber psn = {0, kNoProcess};
+      if (GetProcessForPID((pid_t)pid, &psn) == noErr) {
+        SetFrontProcess(&psn);
+      }
+#endif
     }
   }
 
