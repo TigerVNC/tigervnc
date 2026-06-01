@@ -1,3 +1,7 @@
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  message(FATAL_ERROR "cmake must be invoked with the top level directory")
+endif()
+
 add_subdirectory(core)
 add_subdirectory(rdr)
 add_subdirectory(network)

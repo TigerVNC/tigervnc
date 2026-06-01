@@ -1,3 +1,7 @@
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  message(FATAL_ERROR "cmake must be invoked with the top level directory")
+endif()
+
 add_library(rfb_win32 STATIC
   AboutDialog.cxx
   Clipboard.cxx

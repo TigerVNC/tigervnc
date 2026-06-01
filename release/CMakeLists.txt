@@ -1,6 +1,6 @@
-# This file is included from the top-level CMakeLists.txt.  We just store it
-# here to avoid cluttering up that file.
-
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  message(FATAL_ERROR "cmake must be invoked with the top level directory")
+endif()
 
 #
 # Windows installer (Inno Setup)

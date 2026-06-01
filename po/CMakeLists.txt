@@ -1,5 +1,9 @@
 # Gettext support - mostly borrowed from the Licq project
 
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  message(FATAL_ERROR "cmake must be invoked with the top level directory")
+endif()
+
 file(STRINGS LINGUAS po_FILES)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS LINGUAS)
 
