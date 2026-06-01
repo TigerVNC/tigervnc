@@ -48,4 +48,29 @@
     <name>The TigerVNC team</name>
   </developer>
   <url type="homepage">https://tigervnc.org</url>
+  <url type="bugtracker">https://github.com/TigerVNC/tigervnc/issues</url>
+  <url type="vcs-browser">https://github.com/TigerVNC/tigervnc</url>
+  <releases>
+    <release version="1.16.2" date="2026-03-26">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.16.2</url>
+    </release>
+    <release version="1.16.1" date="2026-03-25">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.16.1</url>
+    </release>
+    <release version="1.16.0" date="2026-01-27">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.16.0</url>
+    </release>
+    <release version="1.15.0" date="2025-02-17">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.15.0</url>
+    </release>
+    <release version="1.14.0" date="2024-07-24">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.14.0</url>
+    </release>
+    <release version="1.13.0" date="2023-02-08">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.13.0</url>
+    </release>
+    <release version="1.12.0" date="2021-11-10">
+      <url>https://github.com/TigerVNC/tigervnc/releases/tag/v1.12.0</url>
+    </release>
+  </releases>
 </component>
