@@ -16,9 +16,14 @@ AM_CPPFLAGS = \
 
 AM_CXXFLAGS = -std=gnu++11
 
+BUILT_SOURCES = vncconfig.h
+CLEANFILES = vncconfig.h
+vncconfig.h: $(TIGERVNC_BUILDDIR)/config.h
+	cp "$<" "$@"
+
 noinst_LTLIBRARIES = libvnccommon.la
 
-HDRS = vncExtInit.h vncHooks.h \
+HDRS = vncconfig.h vncExtInit.h vncHooks.h \
 	vncBlockHandler.h vncPresent.h vncSelection.h \
 	XorgGlue.h XserverDesktop.h xorg-version.h \
 	vncInput.h RFBGlue.h
