@@ -24,19 +24,23 @@
 
 #include <rfb/H264DecoderContext.h>
 
-#ifdef H264_LIBAV
+#ifdef HAVE_LIBAV
 #include <rfb/H264LibavDecoderContext.h>
-#define H264DecoderContextType H264LibavDecoderContext
-#elif H264_WIN
+#endif
+#ifdef WIN32
 #include <rfb/H264WinDecoderContext.h>
-#define H264DecoderContextType H264WinDecoderContext
 #endif
 
 using namespace rfb;
 
 H264DecoderContext *H264DecoderContext::createContext(const core::Rect &r)
 {
-  return new H264DecoderContextType(r);
+#ifdef HAVE_LIBAV
+  return new H264LibavDecoderContext(r);
+#endif
+#ifdef WIN32
+  return new H264WinDecoderContext(r);
+#endif
 }
 
 H264DecoderContext::~H264DecoderContext()

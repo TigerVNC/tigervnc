@@ -1,3 +1,7 @@
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  message(FATAL_ERROR "cmake must be invoked with the top level directory")
+endif()
+
 add_executable(vncsession vncsession.c)
 target_include_directories(vncsession SYSTEM PRIVATE ${PAM_INCLUDE_DIRS})
 target_include_directories(vncsession SYSTEM PRIVATE ${SELINUX_INCLUDE_DIRS})

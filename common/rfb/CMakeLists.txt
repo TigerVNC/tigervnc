@@ -1,3 +1,7 @@
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  message(FATAL_ERROR "cmake must be invoked with the top level directory")
+endif()
+
 add_library(rfb STATIC
   AccessRights.cxx
   Blacklist.cxx
@@ -60,12 +64,20 @@ target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
 target_link_libraries(rfb core rdr network)
 target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
 
-if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
+if(ENABLE_H264)
   target_sources(rfb PRIVATE H264Decoder.cxx H264DecoderContext.cxx)
-  if(H264_LIBS STREQUAL "LIBAV")
+  if (AVCODEC_FOUND AND AVUTIL_FOUND AND SWSCALE_FOUND)
     target_sources(rfb PRIVATE H264LibavDecoderContext.cxx)
-  elseif(H264_LIBS STREQUAL "WIN")
+    target_include_directories(rfb SYSTEM PUBLIC
+                               ${AVCODEC_INCLUDE_DIRS}
+                               ${AVUTIL_INCLUDE_DIRS}
+                               ${SWSCALE_INCLUDE_DIRS})
+    target_link_libraries(rfb ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES}
+                          ${SWSCALE_LIBRARIES})
+  endif()
+  if(WIN32)
     target_sources(rfb PRIVATE H264WinDecoderContext.cxx)
+    target_link_libraries(rfb ole32 mfplat mfuuid wmcodecdspuuid)
   endif()
   target_include_directories(rfb SYSTEM PUBLIC ${H264_INCLUDE_DIRS})
   target_link_libraries(rfb ${H264_LIBRARIES})
@@ -76,7 +88,7 @@ if(WIN32)
   target_sources(rfb PRIVATE WinPasswdValidator.cxx)
 endif(WIN32)
 
-if(UNIX AND NOT APPLE)
+if(PAM_FOUND)
   target_sources(rfb PRIVATE UnixPasswordValidator.cxx)
   target_include_directories(rfb SYSTEM PRIVATE ${PAM_INCLUDE_DIRS})
   target_link_libraries(rfb ${PAM_LIBRARIES})

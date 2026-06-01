@@ -1,3 +1,7 @@
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  message(FATAL_ERROR "cmake must be invoked with the top level directory")
+endif()
+
 set(LINUX_ICON_SIZES 16 22 24 32 48 64 128)
 set(WINDOWS_ICON_SIZES 16 24 32 48 256)
 set(MACOS_ICON_SIZES 16 32 128 256 512)

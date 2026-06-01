@@ -6,8 +6,11 @@ add_subdirectory(tx)
 add_subdirectory(common)
 add_subdirectory(vncconfig)
 add_subdirectory(vncpasswd)
-add_subdirectory(vncserver)
 add_subdirectory(x0vncserver)
+
+if(PAM_FOUND)
+  add_subdirectory(vncserver)
+endif()
 
 if (ENABLE_WAYLAND)
   add_subdirectory(w0vncserver)
