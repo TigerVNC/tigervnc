@@ -24,6 +24,7 @@ set(JAVA_PKCS11_PROVIDER_CLASS "sun.security.pkcs11.SunPKCS11" CACHE STRING "PKC
 set(JAVA_PKCS11_PROVIDER_ARG NOTFOUND CACHE STRING "Path to the PKCS11 security provider class config file")
 set(JAVA_TSA_URL NOTFOUND CACHE STRING "URL of Time Stamping Authority (TSA)")
 set(JAVA_CERT_CHAIN NOTFOUND CACHE STRING "Path to CA certificate chain file")
+option(JAVA_SIGN_JAR "Sign Java viewer jar" ON)
 
 if(NOT BUILD)
 	STRING(TIMESTAMP BUILD "%Y%m%d" UTC)
@@ -142,6 +143,25 @@ endif()
 string(REGEX REPLACE "jar" "" Java_PATH ${Java_JAR_EXECUTABLE})
 string(REGEX REPLACE ".exe" "" Java_PATH ${Java_PATH})
 
+set(SIGN_JAR_COMMAND)
+if(JAVA_SIGN_JAR)
+  set(SIGN_JAR_COMMAND
+    COMMAND ${CMAKE_COMMAND}
+    ARGS -DJava_PATH=${Java_PATH} -DJAR_FILE=${BINDIR}/VncViewer.jar
+      -DJAVA_KEYSTORE=${JAVA_KEYSTORE}
+      -DJAVA_KEYSTORE_TYPE=${JAVA_KEYSTORE_TYPE}
+      -DJAVA_STOREPASS=${JAVA_STOREPASS}
+      -DJAVA_PKCS11_PROVIDER_CLASS=${JAVA_PKCS11_PROVIDER_CLASS}
+      -DJAVA_PKCS11_PROVIDER_ARG=${JAVA_PKCS11_PROVIDER_ARG}
+      -DJAVA_KEYPASS=${JAVA_KEYPASS}
+      -DJAVA_KEY_ALIAS=${JAVA_KEY_ALIAS}
+      -DJAVA_TSA_URL=${JAVA_TSA_URL}
+      -DJAVA_CERT_CHAIN=${JAVA_CERT_CHAIN}
+      -P ${SRCDIR}/cmake/SignJar.cmake)
+else()
+  message(STATUS "Java viewer jar signing disabled")
+endif()
+
 add_custom_command(OUTPUT VncViewer.jar
   DEPENDS ${JAVA_CLASSES}
     ${SRCDIR}/${CLASSPATH}/MANIFEST.MF
@@ -164,17 +184,6 @@ add_custom_command(OUTPUT VncViewer.jar
     com/jcraft/jsch/*.class
     com/tigervnc/vncviewer/*.png
     com/tigervnc/vncviewer/tigervnc.ico
-  COMMAND ${CMAKE_COMMAND}
-  ARGS -DJava_PATH=${Java_PATH} -DJAR_FILE=${BINDIR}/VncViewer.jar
-    -DJAVA_KEYSTORE=${JAVA_KEYSTORE}
-    -DJAVA_KEYSTORE_TYPE=${JAVA_KEYSTORE_TYPE}
-    -DJAVA_STOREPASS=${JAVA_STOREPASS}
-    -DJAVA_PKCS11_PROVIDER_CLASS=${JAVA_PKCS11_PROVIDER_CLASS}
-    -DJAVA_PKCS11_PROVIDER_ARG=${JAVA_PKCS11_PROVIDER_ARG}
-    -DJAVA_KEYPASS=${JAVA_KEYPASS}
-    -DJAVA_KEY_ALIAS=${JAVA_KEY_ALIAS}
-    -DJAVA_TSA_URL=${JAVA_TSA_URL}
-    -DJAVA_CERT_CHAIN=${JAVA_CERT_CHAIN}
-    -P ${SRCDIR}/cmake/SignJar.cmake)
+  ${SIGN_JAR_COMMAND})
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)
