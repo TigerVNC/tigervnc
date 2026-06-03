@@ -388,6 +388,7 @@ void XserverDesktop::blockHandler(int* timeout)
         server->removeSocket(*i);
         vncClientGone(fd);
         delete (*i);
+        continue;
       }
 
       /* Update existing NotifyFD to listen for write (or not) */
