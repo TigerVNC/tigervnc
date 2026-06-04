@@ -205,6 +205,14 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_)
   Configuration *conf;
 
   conf = Configuration::global();
+
+  // Check and warn for conflicts
+  for (VoidParameter* param: conf->params) {
+    // FIXME: This generally runs before any loggers are set up
+    if (strcasecmp(param->getName(), name) == 0)
+      fprintf(stderr, "Error: Multiple parameters named %s\n", name);
+  }
+
   conf->params.push_back(this);
   conf->params.sort([](const VoidParameter* a, const VoidParameter* b) {
     return strcasecmp(a->getName(), b->getName()) < 0;
