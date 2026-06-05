@@ -59,15 +59,14 @@ Configuration* Configuration::global() {
 bool Configuration::set(const char* paramName, const char* val,
                         bool immutable)
 {
-  for (VoidParameter* current: params) {
-    if (strcasecmp(current->getName(), paramName) == 0) {
-      bool b = current->setParam(val);
-      if (b && immutable) 
-	current->setImmutable();
-      return b;
-    }
-  }
-  return false;
+  VoidParameter* current = get(paramName);
+  if (!current)
+    return false;
+
+  bool b = current->setParam(val);
+  if (b && immutable)
+    current->setImmutable();
+  return b;
 }
 
 VoidParameter* Configuration::get(const char* param)
@@ -163,37 +162,34 @@ int Configuration::handleArg(int argc, char* argv[], int index)
   if (equal)
     return set(param.c_str(), val.c_str()) ? 1 : 0;
 
-  for (VoidParameter* current: params) {
-    if (strcasecmp(current->getName(), param.c_str()) != 0)
-      continue;
+  VoidParameter* current = get(param.c_str());
+  if (!current)
+    return 0;
 
-    // We need to resolve an ambiguity for booleans
-    if (dynamic_cast<BoolParameter*>(current) != nullptr) {
-      if (index+1 < argc) {
-        // FIXME: Should not duplicate the list of values here
-        if ((strcasecmp(argv[index+1], "0") == 0) ||
-            (strcasecmp(argv[index+1], "1") == 0) ||
-            (strcasecmp(argv[index+1], "on") == 0) ||
-            (strcasecmp(argv[index+1], "off") == 0) ||
-            (strcasecmp(argv[index+1], "true") == 0) ||
-            (strcasecmp(argv[index+1], "false") == 0) ||
-            (strcasecmp(argv[index+1], "yes") == 0) ||
-            (strcasecmp(argv[index+1], "no") == 0)) {
-            return current->setParam(argv[index+1]) ? 2 : 0;
-        }
+  // We need to resolve an ambiguity for booleans
+  if (dynamic_cast<BoolParameter*>(current) != nullptr) {
+    if (index+1 < argc) {
+      // FIXME: Should not duplicate the list of values here
+      if ((strcasecmp(argv[index+1], "0") == 0) ||
+          (strcasecmp(argv[index+1], "1") == 0) ||
+          (strcasecmp(argv[index+1], "on") == 0) ||
+          (strcasecmp(argv[index+1], "off") == 0) ||
+          (strcasecmp(argv[index+1], "true") == 0) ||
+          (strcasecmp(argv[index+1], "false") == 0) ||
+          (strcasecmp(argv[index+1], "yes") == 0) ||
+          (strcasecmp(argv[index+1], "no") == 0)) {
+          return current->setParam(argv[index+1]) ? 2 : 0;
       }
     }
-
-    if (current->setParam())
-      return 1;
-
-    if (index+1 >= argc)
-      return 0;
-
-    return current->setParam(argv[index+1]) ? 2 : 0;
   }
 
-  return 0;
+  if (current->setParam())
+    return 1;
+
+  if (index+1 >= argc)
+    return 0;
+
+  return current->setParam(argv[index+1]) ? 2 : 0;
 }
 
 
