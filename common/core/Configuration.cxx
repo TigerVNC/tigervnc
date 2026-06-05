@@ -71,11 +71,17 @@ bool Configuration::set(const char* paramName, const char* val,
 
 VoidParameter* Configuration::get(const char* param)
 {
+  VoidParameter* found;
+  found = nullptr;
   for (VoidParameter* current: params) {
-    if (strcasecmp(current->getName(), param) == 0)
-      return current;
+    if (strcasecmp(current->getName(), param) == 0) {
+      if (found != nullptr)
+        throw std::logic_error("Invalid access of ambigious "
+                               "parameter name");
+      found = current;
+    }
   }
-  return nullptr;
+  return found;
 }
 
 void Configuration::list(int width, int nameWidth) {
