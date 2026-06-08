@@ -2,7 +2,7 @@
 %global selinuxtype targeted
 %global modulename vncsession
 
-%global xorgversion 21.1.18
+%global xorgversion 21.1.23
 
 Name:           tigervnc
 Version:        @VERSION@

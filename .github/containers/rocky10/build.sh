@@ -31,7 +31,8 @@ sed -i "s/@VERSION@/${VERSION}/" ${CURDIR}/rpmbuild/SPECS/tigervnc.spec
 
 ## Download the xorg-server source code
 
-curl -L https://xorg.freedesktop.org/releases/individual/xserver/xorg-server-21.1.18.tar.xz > ${CURDIR}/rpmbuild/SOURCES/xorg-server-21.1.18.tar.xz
+XORGVERSION=21.1.23
+curl -L https://xorg.freedesktop.org/releases/individual/xserver/xorg-server-${XORGVERSION}.tar.xz > ${CURDIR}/rpmbuild/SOURCES/xorg-server-${XORGVERSION}.tar.xz
 
 ## Start the build
 
