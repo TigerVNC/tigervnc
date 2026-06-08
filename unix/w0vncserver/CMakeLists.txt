@@ -86,7 +86,7 @@ target_include_directories(w0vncserver SYSTEM PUBLIC ${UUID_INCLUDE_DIRS})
 target_include_directories(w0vncserver SYSTEM PUBLIC ${WAYLANDCLIENT_INCLUDE_DIRS})
 target_include_directories(w0vncserver SYSTEM PUBLIC ${XKBCOMMON_INCLUDE_DIRS})
 
-target_link_libraries(w0vncserver core rfb network rdr)
+target_link_libraries(w0vncserver rfbserver rfb network rdr core)
 target_link_libraries(w0vncserver ${GLIB_LIBRARIES})
 target_link_libraries(w0vncserver ${GIO_LIBRARIES})
 target_link_libraries(w0vncserver ${GOBJECT_LIBRARIES})

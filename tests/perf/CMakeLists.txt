@@ -10,10 +10,10 @@ add_executable(convperf convperf.cxx)
 target_link_libraries(convperf test_util rfb)
 
 add_executable(decperf decperf.cxx)
-target_link_libraries(decperf test_util rdr rfb)
+target_link_libraries(decperf test_util rdr rfb rfbclient)
 
 add_executable(encperf encperf.cxx)
-target_link_libraries(encperf test_util core rdr rfb)
+target_link_libraries(encperf test_util core rdr rfb rfbclient rfbserver)
 
 if (BUILD_VIEWER)
   add_executable(fbperf

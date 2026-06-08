@@ -2,11 +2,12 @@ TIGERVNC_SRCDIR=$(abspath ${top_srcdir}/../..)
 TIGERVNC_BUILDDIR=$(abspath ${top_builddir}/../..)
 
 RFB_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfb.la
+RFBSERVER_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfbserver.la
 RDR_LIB=$(TIGERVNC_BUILDDIR)/common/rdr/librdr.la
 OS_LIB=$(TIGERVNC_BUILDDIR)/common/os/libos.la
 NETWORK_LIB=$(TIGERVNC_BUILDDIR)/common/network/libnetwork.la
 UNIXCOMMON_LIB=$(TIGERVNC_BUILDDIR)/unix/common/libunixcommon.la
-COMMON_LIBS=$(UNIXCOMMON_LIB) $(RFB_LIB) $(NETWORK_LIB) $(RDR_LIB) $(CORE_LIB)
+COMMON_LIBS=$(UNIXCOMMON_LIB) $(RFBSERVER_LIB) $(RFB_LIB) $(NETWORK_LIB) $(RDR_LIB) $(CORE_LIB)
 
 AM_CPPFLAGS = \
 	-I$(TIGERVNC_BUILDDIR) \
