@@ -40,5 +40,5 @@ endif()
 
 target_include_directories(rfb_win32 PUBLIC ${CMAKE_SOURCE_DIR}/win)
 
-target_link_libraries(rfb_win32 rfbserver rfb network rdr core)
-target_link_libraries(rfb_win32 user32.lib comctl32.lib wtsapi32.lib version.lib)
+target_link_libraries(rfb_win32 PRIVATE rfbserver rfb network rdr core)
+target_link_libraries(rfb_win32 PRIVATE user32.lib comctl32.lib wtsapi32.lib version.lib)
