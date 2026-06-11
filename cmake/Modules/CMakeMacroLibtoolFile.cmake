@@ -49,6 +49,11 @@ function(libtool_generate_control_file _target)
                PROPERTY INTERFACE_LINK_DIRECTORIES)
 
   foreach(library ${target_libs})
+    # PRIVATE dependencies are wrapped in this generator
+    if("${library}" MATCHES "^\\$<LINK_ONLY:.+>$")
+      string(REGEX REPLACE "^\\$<LINK_ONLY:(.+)>$" "\\1" library "${library}")
+    endif()
+
     if(FRAMEWORK)
       set(_target_dependency_libs "${_target_dependency_libs} -framework ${library}")
       set(FRAMEWORK OFF)
