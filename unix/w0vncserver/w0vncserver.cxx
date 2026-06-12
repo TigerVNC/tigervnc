@@ -178,6 +178,11 @@ int main(int argc, char** argv)
     return -1;
   }
 
+  if (listeners.empty()) {
+    vlog.error("No path or port configured for incoming connections");
+    return -1;
+  }
+
   loop = g_main_loop_new(nullptr, false);
   sigintTag = g_unix_signal_add(SIGINT, CleanupSignalHandler, nullptr);
   sigtermTag = g_unix_signal_add(SIGTERM, CleanupSignalHandler, nullptr);

@@ -30,6 +30,7 @@
 
 #include <core/LogWriter.h>
 
+#include "../w0vncserver.h"
 #include "objects/Display.h"
 #include "GWaylandSource.h"
 
@@ -89,8 +90,6 @@ void GWaylandSource::attach(GMainContext* context) {
 
 int GWaylandSource::prepare(int* timeout)
 {
-  wl_display_flush(display->getDisplay());
-
   *timeout = -1;
 
   if (prepared)
@@ -99,12 +98,10 @@ int GWaylandSource::prepare(int* timeout)
   // We only want to call wl_display_prepare_read() once
   prepared = true;
 
-  if (wl_display_prepare_read(display->getDisplay()) != 0) {
-    if (wl_display_dispatch_pending(display->getDisplay()) < 0) {
-      // FIXME: Stop here?
-      vlog.error("Failed to flush wl_display: %s", strerror(errno));
-    }
-  }
+  while (wl_display_prepare_read(display->getDisplay()) != 0)
+    wl_display_dispatch_pending(display->getDisplay());
+
+  wl_display_flush(display->getDisplay());
 
   return FALSE;
 }
@@ -129,6 +126,10 @@ int GWaylandSource::dispatch()
 
   wl_display_dispatch_pending(display->getDisplay());
   prepared = false;
+
+  if (wl_display_get_error(display->getDisplay()))
+    fatal_error("Failed to communicate with Wayland server: %s",
+                strerror(wl_display_get_error(display->getDisplay())));
 
   return G_SOURCE_CONTINUE;
 }
