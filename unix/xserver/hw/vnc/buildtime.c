@@ -16,9 +16,6 @@
  * USA.
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#include "vncconfig.h"
-#endif
 
 char buildtime[] = BUILD_TIMESTAMP;
