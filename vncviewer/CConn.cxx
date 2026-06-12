@@ -551,16 +551,13 @@ bool CConn::verifyCertificate(unsigned int status,
     if (status & (GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
-      text = core::format(_(
-        "This certificate has been signed by an unknown authority:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate has been signed by an unknown authority:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Unknown certificate issuer"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -573,16 +570,13 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_NOT_ACTIVATED) {
-      text = core::format(_(
-        "This certificate is not yet valid:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate is not yet valid:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Certificate is not yet valid"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -593,16 +587,13 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
-      text = core::format(_(
-        "This certificate has expired:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate has expired:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Expired certificate"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -613,16 +604,13 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
-      text = core::format(_(
-        "This certificate uses an insecure algorithm:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This certificate uses an insecure algorithm:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Insecure certificate algorithm"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -633,17 +621,16 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_UNEXPECTED_OWNER) {
-      text = core::format(_(
-        "The specified hostname \"%s\" does not match the certificate "
-        "provided by the server:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        getServerName(), info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        core::format(
+          _("The specified hostname \"%s\" does not match the "
+            "certificate provided by the server:"),
+          getServerName()).c_str(),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Certificate hostname mismatch"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -667,18 +654,15 @@ bool CConn::verifyCertificate(unsigned int status,
     if (status & (GNUTLS_CERT_INVALID |
                   GNUTLS_CERT_SIGNER_NOT_FOUND |
                   GNUTLS_CERT_SIGNER_NOT_CA)) {
-      text = core::format(_(
-        "This host is previously known with a different certificate, "
-        "and the new certificate has been signed by an unknown "
-        "authority:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate has been signed by an unknown "
+          "authority:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Unexpected server certificate"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -691,17 +675,14 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_NOT_ACTIVATED) {
-      text = core::format(_(
-        "This host is previously known with a different certificate, "
-        "and the new certificate is not yet valid:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate is not yet valid:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Unexpected server certificate"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -712,17 +693,14 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_EXPIRED) {
-      text = core::format(_(
-        "This host is previously known with a different certificate, "
-        "and the new certificate has expired:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate has expired:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Unexpected server certificate"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -733,17 +711,14 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_INSECURE_ALGORITHM) {
-      text = core::format(_(
-        "This host is previously known with a different certificate, "
-        "and the new certificate uses an insecure algorithm:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        _("This host is previously known with a different certificate, "
+          "and the new certificate uses an insecure algorithm:"),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Unexpected server certificate"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
@@ -754,18 +729,17 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status & GNUTLS_CERT_UNEXPECTED_OWNER) {
-      text = core::format(_(
-        "This host is previously known with a different certificate, "
-        "and the specified hostname \"%s\" does not match the new "
-        "certificate provided by the server:\n"
-        "\n"
-        "%s\n"
-        "\n"
-        "Someone could be trying to impersonate the site and you "
-        "should not continue.\n"
-        "\n"
-        "Do you want to make an exception for this server?"),
-        getServerName(), info.c_str());
+      text = core::format(
+        "%s\n\n%s\n\n%s\n\n%s",
+        core::format(
+          _("This host is previously known with a different "
+            "certificate, and the specified hostname \"%s\" does not "
+            "match the new certificate provided by the server:"),
+          getServerName()).c_str(),
+        info.c_str(),
+        _("Someone could be trying to impersonate the site and you "
+          "should not continue."),
+        _("Do you want to make an exception for this server?"));
 
       fl_message_title(_("Unexpected server certificate"));
       if (fl_choice("%s", nullptr, fl_cancel, _("Add exception"),
