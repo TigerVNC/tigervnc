@@ -23,8 +23,6 @@
 
 #include <rfb_win32/Dialog.h>
 
-extern const char* buildTime;
-
 namespace rfb {
 
   namespace win32 {

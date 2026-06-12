@@ -61,8 +61,6 @@
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingScheduler.h>
 
-extern char buildtime[];
-
 static core::LogWriter vlog("Main");
 
 static const char* defaultDesktopName();
@@ -271,7 +269,7 @@ char* programName;
 static void printVersion(FILE *fp)
 {
   fprintf(fp, "TigerVNC server version %s, built %s\n",
-          PACKAGE_VERSION, buildtime);
+          PACKAGE_VERSION, BUILD_TIMESTAMP);
 }
 
 static void usage()

@@ -42,7 +42,7 @@ bool AboutDialog::showDialog() {
 
 void AboutDialog::initDialog() {
   // Set the build time field
-  SetWindowText(GetDlgItem(handle, BuildTime), buildTime);
+  SetWindowText(GetDlgItem(handle, BuildTime), BUILD_TIMESTAMP);
 
   // Get our executable's version info
   FileVersionInfo verInfo;

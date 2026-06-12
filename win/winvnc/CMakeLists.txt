@@ -3,7 +3,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 endif()
 
 add_executable(winvnc4 WIN32
-  buildTime.cxx
   ControlPanel.cxx
   ManagedListener.cxx
   QueryConnectDialog.cxx

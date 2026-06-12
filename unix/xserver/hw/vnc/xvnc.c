@@ -31,6 +31,7 @@ from the X Consortium.
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
+#include <config.h>
 
 #include "vncExtInit.h"
 #include "RFBGlue.h"
@@ -69,7 +70,6 @@ from the X Consortium.
 #include "dpmsproc.h"
 #endif
 #include <X11/keysym.h>
-extern char buildtime[];
 
 #include "version-config.h"
 
@@ -117,7 +117,7 @@ static int vncVerbose = 0;
 static void
 vncPrintBanner(void)
 {
-    ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
+    ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, BUILD_TIMESTAMP, XVNCCOPYRIGHT);
     ErrorF("Underlying X server release %d\n\n", VENDOR_RELEASE);
 }
 

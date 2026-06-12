@@ -64,7 +64,7 @@ static void programInfo() {
     inf.getVerString("ProductName"),
     inf.getVerString("FileDescription"),
     inf.getVerString("FileVersion"));
-  printf("%s\n", buildTime);
+  printf("Built on %s\n", BUILD_TIMESTAMP);
   printf("%s\n\n", inf.getVerString("LegalCopyright"));
 }
 

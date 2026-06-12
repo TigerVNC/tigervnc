@@ -3,7 +3,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 endif()
 
 add_executable(x0vncserver
-  buildtime.c
   Geometry.cxx
   Image.cxx
   PollingManager.cxx
