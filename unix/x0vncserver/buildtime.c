@@ -15,4 +15,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-char buildtime[] = __DATE__ " " __TIME__;
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+char buildtime[] = BUILD_TIMESTAMP;
