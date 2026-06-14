@@ -170,6 +170,10 @@ void SDisplay::queryConnection(network::Socket* sock,
   server->approveConnection(sock, true);
 }
 
+void SDisplay::setScreenLayout(int /*fb_width*/, int /*fb_height*/,
+                              const rfb::ScreenSet& /*layout*/) {
+  server->setScreenLayoutDone(rfb::resultProhibited);
+}
 
 void SDisplay::startCore() {
 

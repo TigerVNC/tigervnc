@@ -95,6 +95,9 @@ namespace rfb {
     // the pixelbuffer. Clients will be notified of the new layout.
     virtual void setScreenLayout(const ScreenSet& layout) = 0;
 
+    // FIXME: Change code comments above
+    virtual void setScreenLayoutDone(uint16_t result) = 0;
+
     // getPixelBuffer() returns a pointer to the PixelBuffer object.
     virtual const PixelBuffer* getPixelBuffer() const = 0;
 

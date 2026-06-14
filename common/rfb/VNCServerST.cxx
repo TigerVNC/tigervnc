@@ -88,12 +88,12 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : desktop(desktop_), desktopStarted(false),
     desktopStarting(false), blockCounter(0), pb(nullptr),
     ledState(ledUnknown), name(name_), pointerClient(nullptr),
-    clipboardClient(nullptr), pointerClientTime(0),
-    comparer(nullptr), cursor(new Cursor(0, 0, {}, nullptr)),
-    renderedCursorInvalid(false),
+    clipboardClient(nullptr), resizeClient(nullptr),
+    pointerClientTime(0), comparer(nullptr),
+    cursor(new Cursor(0, 0, {}, nullptr)), renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
     idleTimer(this), disconnectTimer(this), connectTimer(this),
-    msc(0), queuedMsc(0), frameTimer(this)
+    resizeTimer(this), msc(0), queuedMsc(0), frameTimer(this)
 {
   slog.debug("Creating single-threaded server %s", name.c_str());
 
@@ -607,50 +607,79 @@ void VNCServerST::handleClipboardData(VNCSConnectionST* client,
   desktop->handleClipboardData(data);
 }
 
-unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
-                                         int fb_width, int fb_height,
-                                         const ScreenSet& layout)
+void VNCServerST::setDesktopSizeRequest(VNCSConnectionST* requester,
+                                        int fb_width, int fb_height,
+                                        const ScreenSet& layout)
 {
-  unsigned int result;
-  std::list<VNCSConnectionST*>::iterator ci;
+
+  if (resizeClient) {
+    slog.debug("Rejecting concurrent framebuffer resize request");
+    requester->setDesktopSizeDoneOrClose(resultNoResources);
+    return;
+  }
 
   if (!rfb::Server::acceptSetDesktopSize) {
     slog.debug("Rejecting unauthorized framebuffer resize request");
-    return resultProhibited;
+    requester->setDesktopSizeDoneOrClose(resultNoResources);
+    return;
   }
 
   // We can't handle a framebuffer larger than this, so don't let a
   // client set one (see PixelBuffer.cxx)
   if ((fb_width > 16384) || (fb_height > 16384)) {
     slog.error("Rejecting too large framebuffer resize request");
-    return resultProhibited;
+    requester->setDesktopSizeDoneOrClose(resultNoResources);
+    return;
   }
 
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height)) {
     slog.error("Invalid screen layout requested by client");
-    return resultInvalid;
+    requester->setDesktopSizeDoneOrClose(resultNoResources);
+    return;
   }
 
   // FIXME: the desktop will call back to VNCServerST and an extra set
   // of ExtendedDesktopSize messages will be sent. This is okay
   // protocol-wise, but unnecessary.
-  result = desktop->setScreenLayout(fb_width, fb_height, layout);
-  if (result != resultSuccess)
-    return result;
+  resizeClient = requester;
+  resizeTimer.start(2000);
+  desktop->setScreenLayout(fb_width, fb_height, layout);
+}
+
+void VNCServerST::setScreenLayoutDone(uint16_t result)
+{
+  std::list<VNCSConnectionST*>::iterator ci;
+
+  // This means we've timed out
+  // FIXME: This doesn't feel robust...
+  if (!resizeClient)
+    return;
+
+  if (result != resultSuccess) {
+    resizeClient->setDesktopSizeDoneOrClose(result);
+    resizeClient = nullptr;
+    resizeTimer.stop();
+    return;
+  }
 
   // Sanity check
-  if (screenLayout != layout)
+  if (screenLayout != getScreenLayout()) {
+    resizeClient = nullptr;
+    resizeTimer.stop();
     throw std::runtime_error("Desktop configured a different screen layout than requested");
+  }
 
   // Notify other clients
   for (ci = clients.begin(); ci != clients.end(); ++ci) {
-    if ((*ci) == requester)
+    if ((*ci) == resizeClient)
       continue;
     (*ci)->screenLayoutChangeOrClose(reasonOtherClient);
   }
 
-  return resultSuccess;
+  resizeClient->setDesktopSizeDoneOrClose(result);
+  resizeClient = nullptr;
+  resizeTimer.stop();
 }
 
 // Other public methods
@@ -732,6 +761,11 @@ void VNCServerST::handleTimeout(core::Timer* t)
   } else if (t == &connectTimer) {
     slog.info("MaxConnectionTime reached, exiting");
     desktop->terminate();
+  } else if (t == &resizeTimer) {
+    assert(resizeClient);
+    // FIXME: This is not robust.
+    resizeClient->setDesktopSizeDoneOrClose(resultNoResources);
+    resizeClient = nullptr;
   }
 }
 

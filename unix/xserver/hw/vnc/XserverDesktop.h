@@ -100,8 +100,8 @@ public:
   void pointerEvent(const core::Point& pos,
                     uint16_t buttonMask) override;
   void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
-  unsigned int setScreenLayout(int fb_width, int fb_height,
-                               const rfb::ScreenSet& layout) override;
+  void setScreenLayout(int fb_width, int fb_height,
+                       const rfb::ScreenSet& layout) override;
   void frameTick(uint64_t msc) override;
   void handleClipboardRequest() override;
   void handleClipboardAnnounce(bool available) override;

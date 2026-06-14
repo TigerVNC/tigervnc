@@ -376,6 +376,16 @@ void VNCSConnectionST::desktopReadyOrClose()
   }
 }
 
+void VNCSConnectionST::setDesktopSizeDoneOrClose(uint16_t result)
+{
+  try {
+    if (state() != RFBSTATE_NORMAL) return;
+    setDesktopSizeDone(result);
+  } catch(std::exception& e) {
+    close(e.what());
+  }
+}
+
 bool VNCSConnectionST::getComparerState()
 {
   // We interpret a low compression level as an indication that the client
@@ -461,6 +471,10 @@ void VNCSConnectionST::desktopReady()
   SConnection::desktopReady();
 }
 
+void VNCSConnectionST::setDesktopSizeDone(uint16_t result)
+{
+  writer()->writeDesktopSize(reasonClient, result);
+}
 
 void VNCSConnectionST::approveConnectionOrClose(bool accept,
                                                 const char* reason)
@@ -699,7 +713,6 @@ void VNCSConnectionST::framebufferUpdateRequest(const core::Rect& r,
 void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
                                       const ScreenSet& layout)
 {
-  unsigned int result;
   char buffer[2048];
 
   vlog.debug("Got request for framebuffer resize to %dx%d",
@@ -709,12 +722,10 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 
   if (!accessCheck(AccessSetDesktopSize)) {
     vlog.debug("Rejecting unauthorized framebuffer resize request");
-    result = resultProhibited;
+    setDesktopSizeDoneOrClose(resultProhibited);
   } else {
-    result = server->setDesktopSize(this, fb_width, fb_height, layout);
+    server->setDesktopSizeRequest(this, fb_width, fb_height, layout);
   }
-
-  writer()->writeDesktopSize(reasonClient, result);
 }
 
 void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])

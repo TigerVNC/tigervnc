@@ -89,11 +89,9 @@ namespace rfb {
 
     // setScreenLayout() requests to reconfigure the framebuffer and/or
     // the layout of screens.
-    virtual unsigned int setScreenLayout(int /*fb_width*/,
-                                         int /*fb_height*/,
-                                         const ScreenSet& /*layout*/) {
-      return resultProhibited;
-    }
+    virtual void setScreenLayout(int /*fb_width*/,
+                                 int /*fb_height*/,
+                                 const ScreenSet& /*layout*/) = 0;
 
     // frameTick() is called whenever a frame update has been processed,
     // signalling that a good time to render new data
