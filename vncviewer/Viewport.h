@@ -103,6 +103,8 @@ private:
   void initContextMenu();
   void popupContextMenu();
 
+  static void handleMenuClosed(void *data);
+
   static void handleOptions(void *data);
 
 private:
@@ -126,6 +128,7 @@ private:
   int clipboardSource;
 
   Fl_Menu_Button *contextMenu;
+  bool menuOpened;
 
   bool menuCtrlKey;
   bool menuAltKey;
