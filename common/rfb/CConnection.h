@@ -194,6 +194,8 @@ namespace rfb {
     virtual bool verifyHostKey(const uint8_t* key, size_t length,
                                const char* fingerprint) = 0;
 
+    void enableUpdates(bool enabled);
+
   protected:
 
     // Methods overridden from CMsgHandler
@@ -320,6 +322,8 @@ namespace rfb {
     stateEnum state_;
 
     std::string serverName;
+
+    bool updatesEnabled;
 
     bool pendingPFChange;
     rfb::PixelFormat pendingPF;
