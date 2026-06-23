@@ -170,60 +170,97 @@ install: build
 	dh_prep
 	dh_installdirs
 	# Add here commands to install the package into debian/vnc.
-	make install DESTDIR=$(CURDIR)/debian/tigervncserver
-	(cd unix/xserver/hw/vnc; make install DESTDIR=$(CURDIR)/debian/tigervncserver)
-	# rename server files to tigervnc specific names
-	mv $(CURDIR)/debian/tigervncserver/usr/bin/Xvnc \
+	make install DESTDIR=$(CURDIR)/debian/tmp
+	(cd unix/xserver/hw/vnc; make install DESTDIR=$(CURDIR)/debian/tmp)
+	# move server files to server package, rename on the fly
+	mkdir -p $(CURDIR)/debian/tigervncserver/etc/pam.d
+	mv $(CURDIR)/debian/tmp/etc/pam.d \
+		$(CURDIR)/debian/tigervncserver/etc/pam.d/tigervnc
+	mkdir -p $(CURDIR)/debian/tigervncserver/etc/tigervnc
+	mv $(CURDIR)/debian/tmp/etc/tigervnc/vncserver-config-defaults \
+		$(CURDIR)/debian/tigervncserver/etc/tigervnc/vncserver-config-defaults
+	mv $(CURDIR)/debian/tmp/etc/tigervnc/vncserver-config-mandatory \
+		$(CURDIR)/debian/tigervncserver/etc/tigervnc/vncserver-config-mandatory
+	mv $(CURDIR)/debian/tmp/etc/tigervnc/vncserver.users \
+		$(CURDIR)/debian/tigervncserver/etc/tigervnc/vncserver.users
+	mkdir -p $(CURDIR)/debian/tigervncserver/lib/systemd/system
+	mv $(CURDIR)/debian/tmp/lib/systemd/system/vncserver@.service \
+		$(CURDIR)/debian/tigervncserver/lib/systemd/system/vncserver@.service
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/bin
+	mv $(CURDIR)/debian/tmp/usr/bin/Xvnc \
 		$(CURDIR)/debian/tigervncserver/usr/bin/Xtigervnc
-	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncconfig \
+	mv $(CURDIR)/debian/tmp/usr/bin/vncconfig \
 		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncconfig
-	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncpasswd \
+	mv $(CURDIR)/debian/tmp/usr/bin/vncpasswd \
 		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncpasswd
-	mv $(CURDIR)/debian/tigervncserver/usr/bin/x0vncserver \
+	mv $(CURDIR)/debian/tmp/usr/bin/w0vncserver \
+		$(CURDIR)/debian/tigervncserver/usr/bin/w0vncserver
+	mv $(CURDIR)/debian/tmp/usr/bin/w0vncserver-forget \
+		$(CURDIR)/debian/tigervncserver/usr/bin/w0vncserver-forget
+	mv $(CURDIR)/debian/tmp/usr/bin/x0vncserver \
 		$(CURDIR)/debian/tigervncserver/usr/bin/x0tigervncserver
-	mv $(CURDIR)/debian/tigervncserver/usr/sbin/vncsession \
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/sbin
+	mv $(CURDIR)/debian/tmp/usr/sbin/vncsession \
 		$(CURDIR)/debian/tigervncserver/usr/sbin/tigervncsession
-	mv $(CURDIR)/debian/tigervncserver/usr/lib/$(DEB_HOST_MULTIARCH)/vncserver \
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/lib/$(DEB_HOST_MULTIARCH)
+	mv $(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/vncserver \
 		$(CURDIR)/debian/tigervncserver/usr/lib/$(DEB_HOST_MULTIARCH)/tigervncserver
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncconfig.1 \
+	mv $(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/vncsession-start \
+		$(CURDIR)/debian/tigervncserver/usr/lib/$(DEB_HOST_MULTIARCH)/vncsession-start
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions
+	mv $(CURDIR)/debian/tmp/usr/lib/xorg/modules/extensions/libvnc.so \
+		$(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions/libvnc.so
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share
+	mv $(CURDIR)/debian/tmp/usr/share/locale \
+		$(CURDIR)/debian/tigervncserver/usr/share/
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/metainfo
+	mv $(CURDIR)/debian/tmp/usr/share/metainfo/org.tigervnc.vncviewer.metainfo.xml \
+		$(CURDIR)/debian/tigervncserver/usr/share/metainfo/org.tigervnc.vncviewer.metainfo.xml
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/man/man1
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/vncconfig.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncconfig.1
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncpasswd.1 \
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/vncpasswd.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncpasswd.1
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/x0vncserver.1 \
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/w0vncserver.1 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/w0vncserver.1
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/w0vncserver-forget.1 \
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/w0vncserver-forget.1
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/x0vncserver.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/x0tigervncserver.1
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/Xvnc.1 \
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/Xvnc.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/Xtigervnc.1
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man8/vncsession.8 \
+	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/man/man8
+	mv $(CURDIR)/debian/tmp/usr/share/man/man8/vncsession.8 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man8/tigervncsession.8
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man8/vncserver.8 \
+	mv $(CURDIR)/debian/tmp/usr/share/man/man8/vncserver.8 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man8/tigervncserver.8
 	# delete development files
-	rm -f $(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions/libvnc.la
+	rm -f $(CURDIR)/debian/tmp/usr/lib/xorg/modules/extensions/libvnc.la
 	# move viewer files to viewer package, rename on the fly
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/bin
-	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncviewer \
+	mv $(CURDIR)/debian/tmp/usr/bin/vncviewer \
 		$(CURDIR)/debian/xtigervncviewer/usr/bin/xtigervncviewer
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/man/man1
-	mv $(CURDIR)/debian/tigervncserver/usr/share/man/man1/vncviewer.1 \
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/vncviewer.1 \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/man/man1/xtigervncviewer.1
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
-	mv $(CURDIR)/debian/tigervncserver/usr/share/applications \
+	mv $(CURDIR)/debian/tmp/usr/share/applications \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
-	mv $(CURDIR)/debian/tigervncserver/usr/share/icons \
+	mv $(CURDIR)/debian/tmp/usr/share/icons \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/
 	# tigervnc-java
 	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
 	#(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
 	# install additional license files
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer
-	cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
+	cp $(CURDIR)/debian/tmp/usr/share/doc/tigervnc/* \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/doc/xtigervncviewer/
 	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java
-	#cp $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc/* \
+	#cp $(CURDIR)/debian/tmp/usr/share/doc/tigervnc/* \
 		#$(CURDIR)/debian/tigervnc-java/usr/share/doc/tigervnc-java/
 	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
-	mv $(CURDIR)/debian/tigervncserver/usr/share/doc/tigervnc \
+	mv $(CURDIR)/debian/tmp/usr/share/doc/tigervnc \
 		$(CURDIR)/debian/tigervncserver/usr/share/doc/tigervncserver
 #	dh_movefiles
 	sed 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g' \
