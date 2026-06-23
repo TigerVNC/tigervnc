@@ -153,6 +153,10 @@ Recommends:
 Suggests:
  tigervncserver,
  ssh
+Replaces:
+ tigervncserver (<< 1.16.80)
+Breaks:
+ tigervncserver (<< 1.16.80)
 Description: virtual network computing client software for X
  Virtual Network Computing (VNC) is a remote display system which allows you to
  view and interact with a virtual desktop environment that is running on another

@@ -210,12 +210,6 @@ install: build
 	mkdir -p $(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions
 	mv $(CURDIR)/debian/tmp/usr/lib/xorg/modules/extensions/libvnc.so \
 		$(CURDIR)/debian/tigervncserver/usr/lib/xorg/modules/extensions/libvnc.so
-	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share
-	mv $(CURDIR)/debian/tmp/usr/share/locale \
-		$(CURDIR)/debian/tigervncserver/usr/share/
-	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/metainfo
-	mv $(CURDIR)/debian/tmp/usr/share/metainfo/org.tigervnc.vncviewer.metainfo.xml \
-		$(CURDIR)/debian/tigervncserver/usr/share/metainfo/org.tigervnc.vncviewer.metainfo.xml
 	mkdir -p $(CURDIR)/debian/tigervncserver/usr/share/man/man1
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/vncconfig.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncconfig.1
@@ -246,9 +240,13 @@ install: build
 	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
 	mv $(CURDIR)/debian/tmp/usr/share/applications \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/
-	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share
 	mv $(CURDIR)/debian/tmp/usr/share/icons \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/
+	mv $(CURDIR)/debian/tmp/usr/share/locale \
+		$(CURDIR)/debian/xtigervncviewer/usr/share/
+	mkdir -p $(CURDIR)/debian/xtigervncviewer/usr/share/metainfo
+	mv $(CURDIR)/debian/tmp/usr/share/metainfo/org.tigervnc.vncviewer.metainfo.xml \
+		$(CURDIR)/debian/xtigervncviewer/usr/share/metainfo/org.tigervnc.vncviewer.metainfo.xml
 	# tigervnc-java
 	#mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
 	#(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)
