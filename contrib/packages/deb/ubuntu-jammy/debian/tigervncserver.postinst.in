@@ -16,6 +16,14 @@ if [ "$1" = "configure" ]; then
        --slave \
        $MAN/man8/vncserver.8.gz  vncserver.8.gz  $MAN/man8/tigervncserver.8.gz
     update-alternatives --install \
+       $BIN/w0vncserver           w0vncserver     $BIN/w0tigervncserver 74 \
+       --slave \
+       $BIN/w0vncserver-forget    w0vncserver-forget $BIN/w0tigervncserver-forget \
+       --slave \
+       $MAN/man1/w0vncserver.1.gz w0vncserver.1.gz $MAN/man1/w0tigervncserver.1.gz \
+       --slave \
+       $MAN/man1/w0vncserver-forget.1.gz w0vncserver-forget.1.gz $MAN/man1/w0tigervncserver-forget.1.gz
+    update-alternatives --install \
        $BIN/Xvnc            Xvnc            $BIN/Xtigervnc 74 \
        --slave \
        $MAN/man1/Xvnc.1.gz  Xvnc.1.gz       $MAN/man1/Xtigervnc.1.gz

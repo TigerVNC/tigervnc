@@ -194,9 +194,9 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/bin/vncpasswd \
 		$(CURDIR)/debian/tigervncserver/usr/bin/tigervncpasswd
 	mv $(CURDIR)/debian/tmp/usr/bin/w0vncserver \
-		$(CURDIR)/debian/tigervncserver/usr/bin/w0vncserver
+		$(CURDIR)/debian/tigervncserver/usr/bin/w0tigervncserver
 	mv $(CURDIR)/debian/tmp/usr/bin/w0vncserver-forget \
-		$(CURDIR)/debian/tigervncserver/usr/bin/w0vncserver-forget
+		$(CURDIR)/debian/tigervncserver/usr/bin/w0tigervncserver-forget
 	mv $(CURDIR)/debian/tmp/usr/bin/x0vncserver \
 		$(CURDIR)/debian/tigervncserver/usr/bin/x0tigervncserver
 	mkdir -p $(CURDIR)/debian/tigervncserver/usr/sbin
@@ -222,9 +222,9 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/vncpasswd.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/tigervncpasswd.1
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/w0vncserver.1 \
-		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/w0vncserver.1
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/w0tigervncserver.1
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/w0vncserver-forget.1 \
-		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/w0vncserver-forget.1
+		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/w0tigervncserver-forget.1
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/x0vncserver.1 \
 		$(CURDIR)/debian/tigervncserver/usr/share/man/man1/x0tigervncserver.1
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/Xvnc.1 \
