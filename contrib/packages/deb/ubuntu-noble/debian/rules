@@ -265,6 +265,7 @@ install: build
 #	dh_movefiles
 	sed 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g' \
 		debian/tigervncserver.postinst.in > debian/tigervncserver.postinst
+	dh_missing --sourcedir=$(CURDIR)/debian/tmp --fail-missing
 
 # Build architecture-independent files here.
 # Pass -i to all debhelper commands in this target to reduce clutter.
