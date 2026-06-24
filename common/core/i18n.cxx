@@ -119,6 +119,12 @@ static void initTranslations()
     setlocale(LC_MESSAGES, "");
 
   bindtextdomain(DEFAULT_TEXT_DOMAIN, localedir);
+
+  // Set gettext codeset to what our GUI toolkit uses. Since we are
+  // passing strings from strerror/gai_strerror to the GUI, these must
+  // be in GUI codeset as well.
+  bind_textdomain_codeset(DEFAULT_TEXT_DOMAIN, "UTF-8");
+  bind_textdomain_codeset("libc", "UTF-8");
 }
 
 const char *dgettext_rfb(const char *domainname, const char *msgid)

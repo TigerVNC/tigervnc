@@ -551,14 +551,7 @@ int main(int argc, char** argv)
 
   setlocale(LC_ALL, "");
 
-  // Write about text to console, still using normal locale codeset
   fprintf(stderr,"\n%s\n", about_text());
-
-  // Set gettext codeset to what our GUI toolkit uses. Since we are
-  // passing strings from strerror/gai_strerror to the GUI, these must
-  // be in GUI codeset as well.
-  bind_textdomain_codeset(DEFAULT_TEXT_DOMAIN, "UTF-8");
-  bind_textdomain_codeset("libc", "UTF-8");
 
   core::initStdIOLoggers();
 #ifdef WIN32
