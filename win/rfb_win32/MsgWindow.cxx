@@ -25,6 +25,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/WMShatter.h>
@@ -64,7 +65,7 @@ LRESULT CALLBACK MsgWindowProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
   try {
     result = _this->processMessage(msg, wParam, lParam);
   } catch (std::exception& e) {
-    vlog.error("Untrapped: %s", e.what());
+    vlog.error("%s", e.what());
   }
 
   return result;
@@ -84,7 +85,7 @@ MsgWindowClass::MsgWindowClass() : classAtom(0) {
   wndClass.lpszClassName = "rfb::win32::MsgWindowClass";
   classAtom = RegisterClass(&wndClass);
   if (!classAtom) {
-    throw core::win32_error("Unable to register MsgWindow window class", GetLastError());
+    throw core::win32_error(_("Unable to register MsgWindow window class"), GetLastError());
   }
 }
 
@@ -106,7 +107,7 @@ MsgWindow::MsgWindow(const char* name_) : name(name_), handle(nullptr) {
                         name.c_str(), WS_OVERLAPPED, 0, 0, 10, 10,
                         nullptr, nullptr, baseClass.instance, this);
   if (!handle) {
-    throw core::win32_error("Unable to create WMNotifier window instance", GetLastError());
+    throw core::win32_error(_("Unable to create WMNotifier window instance"), GetLastError());
   }
   vlog.debug("Created window \"%s\" (%p)", name.c_str(), handle);
 }

@@ -56,6 +56,7 @@
 #include <stdlib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/time.h>
 
 #include <rdr/FdOutStream.h>
@@ -111,7 +112,7 @@ VNCServerST::~VNCServerST()
   slog.debug("Shutting down server %s", name.c_str());
 
   // Close any active clients, with appropriate logging & cleanup
-  closeClients("Server shutdown");
+  closeClients(_("Server shutting down"));
 
   // Stop trying to render things
   stopFrameClock();
@@ -143,14 +144,14 @@ bool VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
   // *** do this in getSecurity instead?
   const char *address = sock->getPeerAddress();
   if (blacklist.isBlackmarked(address)) {
-    connectionsLog.error("Blacklisted: %s", address);
+    connectionsLog.error(_("Blacklisted: %s"), address);
     try {
       rdr::OutStream& os = sock->outStream();
 
       // Shortest possible way to tell a client it is not welcome
       os.writeBytes((const uint8_t*)"RFB 003.003\n", 12);
       os.writeU32(0);
-      const char* reason = "Too many security failures";
+      const char* reason = _("Too many security failures");
       os.writeU32(strlen(reason));
       os.writeBytes((const uint8_t*)reason, strlen(reason));
       os.flush();
@@ -159,14 +160,14 @@ bool VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     return false;
   }
 
-  connectionsLog.status("Accepted: %s", sock->getPeerEndpoint());
+  connectionsLog.info(_("Accepted: %s"), sock->getPeerEndpoint());
 
   try {
     VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing, accessRights);
     clients.push_front(client);
     client->init();
   } catch (std::exception& e) {
-    connectionsLog.error("Error accepting client: %s", e.what());
+    connectionsLog.error(_("Error accepting client: %s"), e.what());
     return false;
   }
 
@@ -195,7 +196,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
 
       clients.remove(*ci);
 
-      connectionsLog.status("Closed: %s", peer.c_str());
+      connectionsLog.info(_("Closed: %s"), peer.c_str());
 
       // - Check that the desktop object is still required
       if (authClientCount() == 0)
@@ -337,7 +338,8 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
           continue;
       iter->dimensions = iter->dimensions.intersect(fbRect);
       if (iter->dimensions.is_empty()) {
-        slog.info("Removing screen %d (%x) as it is completely outside the new framebuffer",
+        slog.info(_("Removing screen %d (%x) as it is completely "
+                    "outside the new framebuffer"),
                   (int)iter->id, (unsigned)iter->id);
         layout.remove_screen(iter->id);
       }
@@ -622,13 +624,13 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
   // We can't handle a framebuffer larger than this, so don't let a
   // client set one (see PixelBuffer.cxx)
   if ((fb_width > 16384) || (fb_height > 16384)) {
-    slog.error("Rejecting too large framebuffer resize request");
+    slog.error(_("Rejecting too large resize request"));
     return resultProhibited;
   }
 
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height)) {
-    slog.error("Invalid screen layout requested by client");
+    slog.error(_("Invalid screen layout requested by client"));
     return resultInvalid;
   }
 
@@ -641,7 +643,8 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
 
   // Sanity check
   if (screenLayout != layout)
-    throw std::runtime_error("Desktop configured a different screen layout than requested");
+    throw std::runtime_error(
+      _("Desktop configured a different screen layout than requested"));
 
   // Notify other clients
   for (ci = clients.begin(); ci != clients.end(); ++ci) {
@@ -724,13 +727,13 @@ void VNCServerST::handleTimeout(core::Timer* t)
     msc++;
     desktop->frameTick(msc);
   } else if (t == &idleTimer) {
-    slog.info("MaxIdleTime reached, exiting");
+    slog.info(_("Maximum idle time reached, exiting"));
     desktop->terminate();
   } else if (t == &disconnectTimer) {
-    slog.info("MaxDisconnectionTime reached, exiting");
+    slog.info(_("Maximum disconnected time reached, exiting"));
     desktop->terminate();
   } else if (t == &connectTimer) {
-    slog.info("MaxConnectionTime reached, exiting");
+    slog.info(_("Maximum connected time reached, exiting"));
     desktop->terminate();
   }
 }
@@ -750,7 +753,7 @@ void VNCServerST::queryConnection(VNCSConnectionST* client,
       !rfb::Server::disconnectClients &&
       authClientCount() > 0) {
     approveConnection(client->getSock(), false,
-                      "The server is already in use");
+                      _("The server is already in use"));
     return;
   }
 
@@ -783,12 +786,12 @@ void VNCServerST::clientReady(VNCSConnectionST* client, bool shared)
         client->accessCheck(AccessNonShared)) {
       // - Close all the other connected clients
       slog.debug("Non-shared connection - closing clients");
-      closeClients("Non-shared connection requested", client->getSock());
+      closeClients(_("Non-shared connection requested"), client->getSock());
     } else {
       // - Refuse this connection if there are existing clients, in addition to
       // this one
       if (authClientCount() > 1) {
-        client->close("Server is already in use");
+        client->close(_("Server is already in use"));
         return;
       }
     }

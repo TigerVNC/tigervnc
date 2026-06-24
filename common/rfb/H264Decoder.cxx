@@ -26,9 +26,12 @@
 
 #include <deque>
 
+#include <core/i18n.h>
+
 #include <rdr/MemInStream.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
+
 #include <rfb/H264Decoder.h>
 #include <rfb/H264DecoderContext.h>
 
@@ -126,7 +129,7 @@ void H264Decoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
     }
     ctx = H264DecoderContext::createContext(r);
     if (!ctx)
-      throw std::runtime_error("H264Decoder: Context not be created");
+      throw std::runtime_error(_("Failed to create H.264 context"));
     contexts.push_back(ctx);
   }
 

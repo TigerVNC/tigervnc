@@ -32,6 +32,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/VNCServer.h>
 #include <rfb/ServerCore.h>
@@ -80,7 +81,7 @@ PollingManager::PollingManager(Display *dpy, const Image *image,
   const char *columnImgClass = m_columnImage->className();
   if (strcmp(rowImgClass, primaryImgClass) != 0 ||
       strcmp(columnImgClass, primaryImgClass) != 0) {
-    vlog.error("Image types do not match (%s, %s, %s)",
+    vlog.error(_("Image types do not match (%s, %s, %s)"),
                primaryImgClass, rowImgClass, columnImgClass);
   }
 

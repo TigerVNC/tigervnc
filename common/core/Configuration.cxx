@@ -35,6 +35,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rdr/HexOutStream.h>
@@ -89,7 +90,8 @@ void Configuration::list(int width, int nameWidth) {
     std::string def_str = current->getDefaultStr();
     std::string desc_str = current->getDescription();
     if (!def_str.empty())
-      desc_str += " (default=" + def_str + ")";
+      desc_str = format("%s (%s=%s)", desc_str.c_str(), _("default"),
+                        def_str.c_str());
     const char* desc = desc_str.c_str();
     fprintf(stderr,"  %-*s -", nameWidth, current->getName());
     int column = strlen(current->getName());
@@ -211,8 +213,9 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_)
   // Check and warn for conflicts
   for (VoidParameter* param: conf->params) {
     // FIXME: This generally runs before any loggers are set up
-    if (strcasecmp(param->getName(), name) == 0)
-      fprintf(stderr, "Error: Multiple parameters named %s\n", name);
+    if (strcasecmp(param->getName(), name.c_str()) == 0)
+      fprintf(stderr, "Error: Multiple parameters named %s\n",
+              name.c_str());
   }
 
   conf->params.push_back(this);
@@ -230,12 +233,12 @@ VoidParameter::~VoidParameter() {
 
 const char*
 VoidParameter::getName() const {
-  return name;
+  return name.c_str();
 }
 
 const char*
 VoidParameter::getDescription() const {
-  return description;
+  return description.c_str();
 }
 
 bool VoidParameter::setParam() {
@@ -254,9 +257,11 @@ VoidParameter::setImmutable() {
 
 // -=- AliasParameter
 
-AliasParameter::AliasParameter(const char* name_, const char* desc_,
-                               VoidParameter* param_)
-  : VoidParameter(name_, desc_), param(param_) {
+AliasParameter::AliasParameter(const char* name_, VoidParameter* param_)
+  : VoidParameter(name_,
+                  format(_("Alias for %s"), param_->getName()).c_str()),
+    param(param_)
+{
 }
 
 bool
@@ -300,7 +305,7 @@ BoolParameter::setParam(const char* v) {
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
     setParam(false);
   else {
-    vlog.error("Bool parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
 
@@ -350,7 +355,7 @@ IntParameter::setParam(const char* v) {
   if (immutable) return true;
   n = strtol(v, &end, 0);
   if ((*end != 0) || (n < INT_MIN) || (n > INT_MAX)) {
-    vlog.error("Int parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
   return setParam(n);
@@ -360,7 +365,7 @@ bool
 IntParameter::setParam(int v) {
   if (immutable) return true;
   if (v < minValue || v > maxValue) {
-    vlog.error("Int parameter %s: Invalid value '%d'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%d'"), getName(), v);
     return false;
   }
   vlog.debug("Set %s(Int) to %d", getName(), v);
@@ -455,7 +460,7 @@ bool EnumParameter::setParam(const char* v)
                         return strcasecmp(e.c_str(), v) == 0;
                       });
   if (iter == enums.end()) {
-    vlog.error("Enum parameter %s: Invalid value '%s'", getName(), v);
+    vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
   vlog.debug("Set %s(Enum) to %s", getName(), iter->c_str());
@@ -585,7 +590,7 @@ bool ListParameter<ValueType>::setParam(const char* v)
       break;
 
     if (!decodeEntry(entry.c_str(), &e)) {
-      vlog.error("List parameter %s: Invalid value '%s'",
+      vlog.error(_("Parameter %s: Invalid value '%s'"),
                  getName(), entry.c_str());
       return false;
     }
@@ -604,7 +609,7 @@ bool ListParameter<ValueType>::setParam(const ListType& v)
     return true;
   for (const ValueType& entry : v) {
     if (!validateEntry(entry)) {
-      vlog.error("List parameter %s: Invalid value '%s'", getName(),
+      vlog.error(_("Parameter %s: Invalid value '%s'"), getName(),
                  encodeEntry(entry).c_str());
       return false;
     }

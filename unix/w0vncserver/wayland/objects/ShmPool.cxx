@@ -26,6 +26,7 @@
 
 #include <wayland-client-protocol.h>
 
+#include <core/Exception.h>
 #include <core/LogWriter.h>
 
 #include "../../w0vncserver.h"
@@ -34,25 +35,20 @@
 
 using namespace wayland;
 
-static core::LogWriter vlog("WShmPool");
-
 ShmPool::ShmPool(Shm* shm, int fd, size_t size_)
   : pool(nullptr), data(nullptr), size(size_)
 {
   data = (uint8_t*)mmap(nullptr, size, PROT_READ | PROT_WRITE,
                         MAP_SHARED, fd, 0);
   if (data == MAP_FAILED)
-    throw std::runtime_error("Failed to mmap shm");
+    throw core::posix_error("mmap", errno);
 
   pool = wl_shm_create_pool(shm->getShm(), fd, size);
 }
 
 ShmPool::~ShmPool()
 {
-  if (munmap(data, size) < 0) {
-    // FIXME: fatal_error?
-    vlog.error("Failed to munmap shm");
-  }
+  munmap(data, size);
   wl_shm_pool_destroy(pool);
 }
 

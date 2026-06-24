@@ -25,16 +25,20 @@
 #include <errno.h>
 
 #include <core/Exception.h>
+#include <core/i18n.h>
+#include <core/string.h>
 
 #include <rdr/FileInStream.h>
 
 using namespace rdr;
 
-FileInStream::FileInStream(const char *fileName)
+FileInStream::FileInStream(const char *fileName_) : fileName(fileName_)
 {
-  file = fopen(fileName, "rb");
+  file = fopen(fileName.c_str(), "rb");
   if (!file)
-    throw core::posix_error("fopen", errno);
+    throw core::posix_error(
+      core::format(_("Failed to open \"%s\""), fileName.c_str()),
+      errno);
 }
 
 FileInStream::~FileInStream(void) {
@@ -49,7 +53,9 @@ bool FileInStream::fillBuffer()
   size_t n = fread((uint8_t*)end, 1, availSpace(), file);
   if (n == 0) {
     if (ferror(file))
-      throw core::posix_error("fread", errno);
+      throw core::posix_error(
+        core::format(_("Failed reading from \"%s\""), fileName.c_str()),
+        errno);
     if (feof(file))
       throw end_of_stream();
     return false;

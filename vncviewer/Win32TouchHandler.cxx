@@ -25,11 +25,11 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #define XK_MISCELLANY
 #include <rfb/keysymdef.h>
 
-#include "i18n.h"
 #include "Win32TouchHandler.h"
 
 static core::LogWriter vlog("Win32TouchHandler");

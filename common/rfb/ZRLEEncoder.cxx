@@ -23,6 +23,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
@@ -36,7 +37,7 @@ using namespace rfb;
 static core::LogWriter vlog("ZRLEEncoder");
 
 core::IntParameter zlibLevel("ZlibLevel",
-                             "[DEPRECATED] Zlib compression level",
+                             _("[DEPRECATED] Zlib compression level"),
                              -1, -1, -1);
 
 ZRLEEncoder::ZRLEEncoder(SConnection* conn_)
@@ -44,9 +45,9 @@ ZRLEEncoder::ZRLEEncoder(SConnection* conn_)
   zos(nullptr, 2), mos(129*1024)
 {
   if (zlibLevel != -1) {
-    vlog.info("Warning: The ZlibLevel option is deprecated and is "
-              "ignored by the server. The compression level can be set "
-              "by the client instead.");
+    vlog.info(_("Warning: The ZlibLevel option is deprecated and is "
+                "ignored by the server. The compression level can be "
+                "set by the client instead."));
   }
   zos.setUnderlying(&mos);
 }

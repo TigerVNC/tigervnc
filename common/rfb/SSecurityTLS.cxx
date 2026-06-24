@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>
@@ -61,11 +62,15 @@ static const gnutls_datum_t ffdhe_pkcs3_param = {
 
 using namespace rfb;
 
-core::StringParameter SSecurityTLS::X509_CertFile
-("X509Cert", "Path to the X509 certificate in PEM format", "");
+core::StringParameter SSecurityTLS::X509_CertFile(
+  "X509Cert",
+  _("Path to the server's X.509 certificate"),
+  "");
 
-core::StringParameter SSecurityTLS::X509_KeyFile
-("X509Key", "Path to the key of the X509 certificate in PEM format", "");
+core::StringParameter SSecurityTLS::X509_KeyFile(
+  "X509Key",
+  _("Path to the private key of the server's X.509 certificate"),
+  "");
 
 static core::LogWriter vlog("TLS");
 
@@ -82,7 +87,7 @@ SSecurityTLS::SSecurityTLS(SConnection* sc_, bool _anon)
 
   ret = gnutls_global_init();
   if (ret != GNUTLS_E_SUCCESS)
-    throw rdr::tls_error("gnutls_global_init()", ret);
+    throw rdr::tls_error(_("Failed to initialize GnuTLS"), ret);
 }
 
 void SSecurityTLS::shutdown()
@@ -144,11 +149,13 @@ bool SSecurityTLS::processMsg()
 
     err = gnutls_init(&session, GNUTLS_SERVER);
     if (err != GNUTLS_E_SUCCESS)
-      throw rdr::tls_error("gnutls_init()", err);
+      throw rdr::tls_error(_("Failed to initialize GnuTLS session"),
+                           err);
 
     err = gnutls_set_default_priority(session);
     if (err != GNUTLS_E_SUCCESS)
-      throw rdr::tls_error("gnutls_set_default_priority()", err);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           err);
 
     try {
       setParams();
@@ -203,8 +210,10 @@ void SSecurityTLS::setParams()
     ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw rdr::tls_error("gnutls_set_priority_direct()", ret);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
   } else if (anon) {
     const char *err;
@@ -213,8 +222,10 @@ void SSecurityTLS::setParams()
     ret = gnutls_set_default_priority_append(session, kx_anon_priority, &err, 0);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw rdr::tls_error("gnutls_set_default_priority_append()", ret);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
 #else
     std::string prio;
@@ -228,8 +239,10 @@ void SSecurityTLS::setParams()
     ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw rdr::tls_error("gnutls_set_priority_direct()", ret);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
 #endif
   }
@@ -273,7 +286,9 @@ void SSecurityTLS::setParams()
                                                X509_KeyFile,
                                                GNUTLS_X509_FMT_PEM);
     if (ret != GNUTLS_E_SUCCESS)
-      throw rdr::tls_error("Failed to load certificate and key", ret);
+      throw rdr::tls_error(
+        _("Failed to load the server certificate and private key"),
+        ret);
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
     if (ret != GNUTLS_E_SUCCESS)

@@ -35,6 +35,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
@@ -51,10 +52,15 @@ using namespace rfb;
 
 static const char* configdirfn(const char* fn);
 
-core::StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate",
-                                           configdirfn("x509_ca.pem"));
-core::StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file",
-                                            configdirfn("x509_crl.pem"));
+core::StringParameter CSecurityTLS::X509CA(
+  "X509CA",
+  _("Path to the X.509 certificate for the trusted certificate "
+    "authority"),
+  configdirfn("x509_ca.pem"));
+core::StringParameter CSecurityTLS::X509CRL(
+  "X509CRL",
+  _("Path to the X.509 certificate revocation list"),
+  configdirfn("x509_crl.pem"));
 
 static core::LogWriter vlog("TLS");
 
@@ -79,7 +85,7 @@ CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon)
 {
   int err = gnutls_global_init();
   if (err != GNUTLS_E_SUCCESS)
-    throw rdr::tls_error("gnutls_global_init()", err);
+    throw rdr::tls_error(_("Failed to initialize GnuTLS"), err);
 }
 
 void CSecurityTLS::shutdown()
@@ -135,15 +141,18 @@ bool CSecurityTLS::processMsg()
       return false;
 
     if (is->readU8() == 0)
-      throw protocol_error("Server failed to initialize TLS session");
+      throw protocol_error(
+        _("Server failed to initialize TLS session"));
 
     ret = gnutls_init(&session, GNUTLS_CLIENT);
     if (ret != GNUTLS_E_SUCCESS)
-      throw rdr::tls_error("gnutls_init()", ret);
+      throw rdr::tls_error(_("Failed to initialize GnuTLS session"),
+                           ret);
 
     ret = gnutls_set_default_priority(session);
     if (ret != GNUTLS_E_SUCCESS)
-      throw rdr::tls_error("gnutls_set_default_priority()", ret);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
 
     setParam();
 
@@ -191,8 +200,10 @@ void CSecurityTLS::setParam()
     ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw rdr::tls_error("gnutls_set_priority_direct()", ret);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
   } else if (anon) {
     const char *err;
@@ -201,8 +212,10 @@ void CSecurityTLS::setParam()
     ret = gnutls_set_default_priority_append(session, kx_anon_priority, &err, 0);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw rdr::tls_error("gnutls_set_default_priority_append()", ret);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
 #else
     std::string prio;
@@ -216,8 +229,10 @@ void CSecurityTLS::setParam()
     ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
       if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw rdr::tls_error("gnutls_set_priority_direct()", ret);
+        vlog.error(_("Syntax error in GnuTLS priority string: %s"),
+                   err);
+      throw rdr::tls_error(_("Failed to configure GnuTLS priority"),
+                           ret);
     }
 #endif
   }
@@ -242,13 +257,13 @@ void CSecurityTLS::setParam()
       throw rdr::tls_error("gnutls_certificate_allocate_credentials()", ret);
 
     if (gnutls_certificate_set_x509_system_trust(cert_cred) < 1)
-      vlog.error("Could not load system certificate trust store");
+      vlog.error(_("Failed to load the system certificate trust store"));
 
     if (gnutls_certificate_set_x509_trust_file(cert_cred, X509CA, GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error("Could not load user specified certificate authority");
+      vlog.error(_("Failed to load the user specified certificate authority"));
 
     if (gnutls_certificate_set_x509_crl_file(cert_cred, X509CRL, GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error("Could not load user specified certificate revocation list");
+      vlog.error(_("Failed to load the user specified certificate revocation list"));
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
     if (ret != GNUTLS_E_SUCCESS)
@@ -268,7 +283,8 @@ void CSecurityTLS::setParam()
       if (gnutls_server_name_set(session, GNUTLS_NAME_DNS,
                                  client->getServerName(),
                                  strlen(client->getServerName())) != GNUTLS_E_SUCCESS)
-        vlog.error("Failed to configure the server name for TLS handshake");
+        vlog.error(_("Failed to configure the server name for TLS "
+                     "handshake"));
     }
 
     vlog.debug("X509 session has been set");
@@ -289,16 +305,18 @@ void CSecurityTLS::checkSession()
   if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509) {
     gnutls_alert_send(session, GNUTLS_AL_FATAL,
                       GNUTLS_A_UNSUPPORTED_CERTIFICATE);
-    throw protocol_error("Unsupported certificate type");
+    throw protocol_error(_("Unsupported certificate type"));
   }
 
   err = gnutls_certificate_verify_peers3(session,
                                          client->getServerName(),
                                          &status);
   if (err != 0) {
-    vlog.error("Server certificate verification failed: %s", gnutls_strerror(err));
+    vlog.error(_("Server certificate verification failed: %s"),
+               gnutls_strerror(err));
     gnutls_alert_send_appropriate(session, err);
-    throw rdr::tls_error("Server certificate verification()", err);
+    throw rdr::tls_error(_("Server certificate verification failed"),
+                         err);
   }
 
   /* Everything green? */
@@ -309,7 +327,7 @@ void CSecurityTLS::checkSession()
   if (!cert_list_size) {
     gnutls_alert_send(session, GNUTLS_AL_FATAL,
                       GNUTLS_A_UNSUPPORTED_CERTIFICATE);
-    throw protocol_error("Empty certificate chain");
+    throw protocol_error(_("Empty certificate chain"));
   }
 
   try {

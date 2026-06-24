@@ -34,6 +34,7 @@
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
 #include <core/xdgdirs.h>
@@ -65,7 +66,6 @@
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
 #include "PlatformPixelBuffer.h"
-#include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
 
@@ -372,7 +372,9 @@ void CConn::getUserPasswd(bool secure, std::string *user,
 
     fp = fopen(passwordFileName, "rb");
     if (!fp)
-      throw core::posix_error(_("Opening password file failed"), errno);
+      throw core::posix_error(
+        core::format(_("Failed to open \"%s\""), passwordFileName),
+        errno);
 
     obfPwd.resize(fread(obfPwd.data(), 1, obfPwd.size(), fp));
     fclose(fp);
@@ -435,7 +437,7 @@ bool CConn::verifyCertificate(unsigned int status,
   (void)status;
   (void)certificate;
   (void)length;
-  throw std::logic_error(_("TLS support not enabled"));
+  throw std::logic_error("TLS support not enabled");
 #else
   const unsigned allowed_errors =
     GNUTLS_CERT_INVALID |
@@ -641,9 +643,9 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status != 0) {
-      vlog.error(_("Unhandled server certificate problems: 0x%x"),
+      vlog.error("Unhandled server certificate problems: 0x%x",
                  status);
-      throw std::logic_error(_("Unhandled server certificate problems"));
+      throw std::logic_error("Unhandled server certificate problems");
     }
   } else if (known == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     std::string text;
@@ -750,9 +752,9 @@ bool CConn::verifyCertificate(unsigned int status,
     }
 
     if (status != 0) {
-      vlog.error(_("Unhandled server certificate problems: 0x%x"),
+      vlog.error("Unhandled server certificate problems: 0x%x",
                  status);
-      throw std::logic_error(_("Unhandled server certificate problems"));
+      throw std::logic_error("Unhandled server certificate problems");
     }
   }
 

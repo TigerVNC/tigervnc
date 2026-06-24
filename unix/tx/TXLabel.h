@@ -58,13 +58,14 @@ public:
     do {
       i++;
       if (i >= text.size() || text[i] == '\n') {
-        int tw = XTextWidth(defaultFS, &text[lineStart], i-lineStart);
+        int tw = Xutf8TextEscapement(defaultFS, &text[lineStart], i-lineStart);
         if (tw > textWidth) textWidth = tw;
         lineStart = i+1;
         lines++;
       }
     } while (i < text.size());
-    int textHeight = ((defaultFS->ascent + defaultFS->descent + lineSpacing)
+    XFontSetExtents* extents = XExtentsOfFontSet(defaultFS);
+    int textHeight = ((extents->max_ink_extent.height + lineSpacing)
                       * lines);
     int newWidth = std::max(width(), textWidth + xPad*2);
     int newHeight = std::max(height(), textHeight + yPad*2);
@@ -84,10 +85,11 @@ private:
   }
 
   int yOffset(int lineNum) {
-    int textHeight = ((defaultFS->ascent + defaultFS->descent + lineSpacing)
+    XFontSetExtents* extents = XExtentsOfFontSet(defaultFS);
+    int textHeight = ((extents->max_ink_extent.height + lineSpacing)
                       * lines);
-    int lineOffset = ((defaultFS->ascent + defaultFS->descent + lineSpacing)
-                      * lineNum + defaultFS->ascent);
+    int lineOffset = ((extents->max_ink_extent.height + lineSpacing)
+                      * lineNum + extents->max_ink_extent.y);
     switch (valign) {
     case top:    return yPad + lineOffset;
     case bottom: return height() - yPad - textHeight + lineOffset;
@@ -102,9 +104,10 @@ private:
     do {
       i++;
       if (i >= text.size() || text[i] == '\n') {
-        int tw = XTextWidth(defaultFS, &text[lineStart], i-lineStart);
-        XDrawString(dpy, win(), defaultGC, xOffset(tw), yOffset(lineNum),
-                    &text[lineStart], i-lineStart);
+        int tw = Xutf8TextEscapement(defaultFS, &text[lineStart], i-lineStart);
+        Xutf8DrawString(dpy, win(), defaultFS, defaultGC,
+                        xOffset(tw), yOffset(lineNum),
+                        &text[lineStart], i-lineStart);
         lineStart = i+1;
         lineNum++;
       }

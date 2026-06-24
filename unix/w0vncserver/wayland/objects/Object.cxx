@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 
 #include <stdexcept>
@@ -23,6 +27,7 @@
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include "../../w0vncserver.h"
@@ -48,5 +53,6 @@ Object::Object(Display* display, const char* interfaceName,
                                             objectInfo->version);
 
   if (!boundObject)
-    throw std::runtime_error(core::format("Failed to bind to %s ", interfaceName));
+    throw std::runtime_error(core::format(
+      _("Failed to bind to Wayland object %s"), interfaceName));
 }

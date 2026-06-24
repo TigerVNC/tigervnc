@@ -30,6 +30,8 @@
 #include <wayland-client-protocol.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
+
 #include <rfb/VNCServerST.h>
 
 #include "../w0vncserver.h"
@@ -83,12 +85,14 @@ void WaylandDesktop::start()
     try {
       virtualPointer = new wayland::VirtualPointer(display, seat);
     } catch (std::exception& e) {
-      vlog.error("%s - pointer will be disabled", e.what());
+      vlog.error(_("Failed to create virtual pointer device: %s"),
+                 e.what());
     }
     try {
       virtualKeyboard = new wayland::VirtualKeyboard(display, seat);
     } catch (std::exception& e) {
-      vlog.error("%s - keyboard will be disabled", e.what());
+      vlog.error(_("Failed to create virtual keyboard device: %s"),
+                 e.what());
     }
 
     if (display->interfaceAvailable("ext_data_control_manager_v1")) {
@@ -107,7 +111,7 @@ void WaylandDesktop::start()
                                              clipboardRequestCb,
                                              sendClipboardData);
     } else {
-      vlog.info("ext-data-control-v1 not available, Clipboard disabled");
+      vlog.info(_("Desktop does not support clipboard control"));
     }
 
     server->setPixelBuffer(pb);
@@ -117,8 +121,8 @@ void WaylandDesktop::start()
   try {
     pb = new WaylandPixelBuffer(display, output, seat, server, desktopReadyCb);
   } catch (std::exception& e) {
-    vlog.error("Error initializing pixel buffer: %s", e.what());
-    server->closeClients("Failed to start remote desktop session");
+    vlog.error(_("Failed to create framebuffer: %s"), e.what());
+    server->closeClients(_("Failed to start remote desktop session"));
     return;
   }
 
@@ -181,7 +185,8 @@ void WaylandDesktop::queryConnection(network::Socket* sock,
 {
   // FIXME: Implement this.
   server->approveConnection(sock, false,
-                            "Unable to query the local user to accept the connection.");
+                            _("Unable to query the local user to "
+                              "accept the connection."));
 }
 
 void WaylandDesktop::terminate()

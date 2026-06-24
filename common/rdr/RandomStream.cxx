@@ -22,6 +22,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rdr/RandomStream.h>
 
@@ -52,11 +53,9 @@ RandomStream::RandomStream()
     if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(&provider, nullptr, nullptr,
                                PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
-        vlog.error("Unable to create keyset");
         provider = 0;
       }
     } else {
-      vlog.error("Unable to acquire context");
       provider = 0;
     }
   }
@@ -71,7 +70,7 @@ RandomStream::RandomStream()
   {
 #endif
 #endif
-    vlog.error("No OS supplied random source, using rand()");
+    vlog.error(_("No system random source available"));
     seed += (unsigned int) time(nullptr) + getpid() + getpid() * 987654 + rand();
     srand(seed);
   }
@@ -91,7 +90,7 @@ bool RandomStream::fillBuffer() {
 #ifdef RFB_HAVE_WINCRYPT
   if (provider) {
     if (!CryptGenRandom(provider, availSpace(), (uint8_t*)end))
-      throw core::win32_error("Unable to CryptGenRandom", GetLastError());
+      throw core::win32_error(_("Failed to generate random data"), GetLastError());
     end += availSpace();
   } else {
 #else
@@ -99,8 +98,7 @@ bool RandomStream::fillBuffer() {
   if (fp) {
     size_t n = fread((uint8_t*)end, 1, availSpace(), fp);
     if (n <= 0)
-      throw core::posix_error(
-        "Reading /dev/urandom or /dev/random failed", errno);
+      throw core::posix_error(_("Failed to generate random data"), errno);
     end += n;
   } else {
 #else

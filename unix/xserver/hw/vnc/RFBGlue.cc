@@ -27,6 +27,7 @@
 #include <core/Logger_syslog.h>
 #include <core/LogWriter.h>
 #include <core/string.h>
+#include <core/i18n.h>
 
 #include <network/TcpSocket.h>
 
@@ -56,18 +57,6 @@ void vncLogError(const char *name, const char *format, ...)
     return;
   va_start(ap, format);
   vlog->verror(format, ap);
-  va_end(ap);
-}
-
-void vncLogStatus(const char *name, const char *format, ...)
-{
-  core::LogWriter* vlog;
-  va_list ap;
-  vlog = core::LogWriter::getLogWriter(name);
-  if (vlog == nullptr)
-    return;
-  va_start(ap, format);
-  vlog->vstatus(format, ap);
   va_end(ap);
 }
 
@@ -199,6 +188,11 @@ int vncIsTCPPortUsed(int port)
     return 1;
   }
   return 0;
+}
+
+const char* vncGettext(const char* msgid)
+{
+  return gettext(msgid);
 }
 
 char* vncConvertLF(const char* src, size_t bytes)

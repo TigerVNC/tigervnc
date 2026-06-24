@@ -34,6 +34,8 @@
 #include <core/string.h>
 #include <core/LogWriter.h>
 #include <core/Rect.h>
+#include <core/i18n.h>
+
 #include <rfb/VNCServerST.h>
 
 #include "../w0vncserver.h"
@@ -70,7 +72,7 @@ WaylandPixelBuffer::WaylandPixelBuffer(wayland::Display* display,
     std::bind(&WaylandPixelBuffer::cursorPosEvent, this, std::placeholders::_1);
 
   std::function<void()> stoppedCb = [this]() {
-    server->closeClients("The remote session stopped");
+    server->closeClients(_("Remote desktop session stopped"));
   };
 
   if (display->interfaceAvailable("ext_image_copy_capture_manager_v1") &&
@@ -121,7 +123,7 @@ void WaylandPixelBuffer::cursorImageEvent(int width, int height,
     cursorData = convertCursorBuffer(cursorSrc, shmFormat, width, height);
     server->setCursor(width, height, hotspot, cursorData);
   } catch (std::exception& e) {
-    vlog.error("Failed to set cursor: %s", e.what());
+    vlog.error(_("Failed to set cursor: %s"), e.what());
   }
 
   delete [] cursorData;
@@ -174,8 +176,9 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
     try {
       format = shmToRfbFormat(shmFormat);
     } catch (std::exception& e) {
-      vlog.error("Failed to convert pixelformat: %s", e.what());
-      server->closeClients("Failed to start remote session");
+      vlog.error(_("Cannot handle Wayland pixel format %d: %s"),
+                 shmFormat, e.what());
+      server->closeClients(_("Failed to start remote desktop session"));
       return;
     }
 
@@ -193,8 +196,8 @@ void WaylandPixelBuffer::bufferEvent(uint8_t* buffer, core::Region damage,
     try {
       syncBuffersTransformed(buffer, damage, shmFormat, transform);
     } catch (std::exception& e) {
-      vlog.error("Failed to sync transformed buffers: %s", e.what());
-      server->closeClients("Error copying buffers");
+      vlog.error(_("Failed to handle screen update: %s"), e.what());
+      server->closeClients(_("Failed to handle screen update"));
       return;
     }
   } else {
@@ -351,7 +354,8 @@ void WaylandPixelBuffer::syncBuffersTransformed(uint8_t* buffer,
         dy = srcWidth - x - w;
         break;
       default:
-        throw std::runtime_error(core::format("Unknown transform: %d", transform));
+        throw std::runtime_error(core::format(
+          _("Cannot handle Wayland transform %d"), transform));
       }
 
       if (rotated) {
@@ -462,7 +466,8 @@ uint8_t* WaylandPixelBuffer::convertCursorBuffer(const uint8_t* src,
           a = 0xff;
           break;
         default:
-          throw std::runtime_error("Unsupported cursor format");
+          throw std::runtime_error(core::format(
+            _("Cannot handle Wayland pixel format %d"), shmFormat));
       }
 
       if (hasAlpha) {
@@ -503,8 +508,8 @@ rfb::PixelFormat WaylandPixelBuffer::shmToRfbFormat(uint32_t shmFormat)
       return rfb::PixelFormat(32, 24, false, true, 255, 255, 255,
                               0, 8, 16);
     default:
-      throw std::runtime_error(core::format("format %d not supported",
-                                            shmFormat));
+      throw std::runtime_error(core::format(
+        _("Cannot handle Wayland pixel format %d"), shmFormat));
   }
 }
 
@@ -524,7 +529,8 @@ pixman_format_code_t WaylandPixelBuffer::shmToPixmanFormat(uint32_t shmFormat)
     case WL_SHM_FORMAT_ABGR8888:
       return PIXMAN_a8b8g8r8;
    default:
-    throw std::runtime_error(core::format("format %d not supported", shmFormat));
+     throw std::runtime_error(core::format(
+       _("Cannot handle Wayland pixel format %d"), shmFormat));
   }
 }
 
@@ -617,6 +623,7 @@ pixman_transform_t WaylandPixelBuffer::wlToPixmanInverseTransform(uint32_t trans
              {-pixman_fixed_1, 0, h},
              {0, 0, pixman_fixed_1}}};
   default:
-    assert(false);
+    throw std::runtime_error(
+      core::format(_("Cannot handle Wayland transform %d"), transform));
   }
 }

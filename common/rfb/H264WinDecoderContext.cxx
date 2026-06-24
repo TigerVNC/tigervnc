@@ -29,6 +29,8 @@
 #include <wmcodecdsp.h>
 #define SAFE_RELEASE(obj) if (obj) { obj->Release(); obj = nullptr; }
 
+#include <core/i18n.h>
+
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264WinDecoderContext.h>
 
@@ -43,17 +45,17 @@ H264WinDecoderContext::H264WinDecoderContext(const core::Rect &r)
   : H264DecoderContext(r)
 {
   if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE)))
-    throw std::runtime_error("Could not initialize MediaFoundation");
+    throw std::runtime_error(_("Could not initialize MediaFoundation"));
 
   if (FAILED(CoCreateInstance(CLSID_CMSH264DecoderMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&decoder)))
-    throw std::runtime_error("MediaFoundation H264 codec not found");
+    throw std::runtime_error(_("Could not find video codec"));
 
   if (FAILED(CoCreateInstance(CLSID_VideoProcessorMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
   {
     if (FAILED(CoCreateInstance(CLSID_CColorConvertDMO, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
     {
       decoder->Release();
-      throw std::runtime_error("MediaFoundation H264 codec not found");
+      throw std::runtime_error(_("Could not find video codec"));
     }
   }
 
@@ -72,7 +74,7 @@ H264WinDecoderContext::H264WinDecoderContext(const core::Rect &r)
   {
     decoder->Release();
     converter->Release();
-    throw std::runtime_error("Could not create MF MediaType");
+    throw std::bad_alloc();
   }
   input_type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
   input_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_H264);
@@ -99,7 +101,7 @@ H264WinDecoderContext::H264WinDecoderContext(const core::Rect &r)
     decoder->Release();
     converter->Release();
     input_type->Release();
-    throw std::runtime_error("Could not start H264 decoder");
+    throw std::runtime_error(_("Could not start video decoder"));
   }
 
   MFT_OUTPUT_STREAM_INFO info;
@@ -119,7 +121,7 @@ H264WinDecoderContext::H264WinDecoderContext(const core::Rect &r)
     SAFE_RELEASE(converted_sample);
     SAFE_RELEASE(input_buffer);
     SAFE_RELEASE(decoded_buffer);
-    throw std::runtime_error("Could not allocate media samples/buffers");
+    throw std::bad_alloc();
   }
 
   input_sample->AddBuffer(input_buffer);
@@ -145,7 +147,7 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
   {
     input_buffer->Release();
     if (FAILED(MFCreateMemoryBuffer(len, &input_buffer)))
-      throw std::runtime_error("Could not allocate media buffer");
+      throw std::bad_alloc();
     input_buffer->SetCurrentLength(len);
     input_sample->RemoveAllBuffers();
     input_sample->AddBuffer(input_buffer);

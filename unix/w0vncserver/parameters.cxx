@@ -16,8 +16,14 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <pwd.h>
 #include <unistd.h>
+
+#include <core/i18n.h>
 
 #include "parameters.h"
 
@@ -25,33 +31,40 @@ static const char* defaultDesktopName();
 
 core::IntParameter
   rfbport("rfbport",
-          "TCP port to listen for RFB protocol", 5900, -1, 65535);
+          _("TCP port to listen for RFB protocol"), 5900, -1, 65535);
 core::StringParameter
   rfbunixpath("rfbunixpath",
-              "Unix socket to listen for RFB protocol", "");
+              _("UNIX socket path to listen for RFB protocol"), "");
 core::IntParameter
   rfbunixmode("rfbunixmode",
-              "Unix socket access mode", 0600, 0000, 0777);
+              _("UNIX socket access mode"), 0600, 0000, 0777);
 core::BoolParameter
   localhostOnly("localhost",
-                "Only allow connections from localhost", false);
+                _("Only allow connections from localhost"), false);
 core::StringParameter
-  desktopName("desktop", "Name of VNC desktop", defaultDesktopName());
+  desktopName("desktop",
+              _("Name of VNC desktop"), defaultDesktopName());
 core::StringParameter
   interface("interface",
-            "Listen on the specified network address", "all");
+            _("Listen on the specified network address"), "all");
 
 core::BoolParameter
   rawKeyboard("RawKeyboard",
-              "Send keyboard events straight through and avoid mapping "
-              "them to the current keyboard layout", false);
+              _("Send keyboard events straight through and avoid "
+                "mapping them to the current keyboard layout"), false);
 core::BoolParameter
   setPrimary("SetPrimary",
-             "Set the primary as well as the selection clipboard",
+             // TRANSLATORS: This refers to the two different X11
+             //              clipboards
+             _("Set the primary selection as well as the clipboard "
+               "selection"),
              true);
 core::BoolParameter
   sendPrimary("SendPrimary",
-              "Send the primary as well as the selection clipboard",
+              // TRANSLATORS: This refers to the two different X11
+              //              clipboards
+              _("Send the primary selection to the client as well as "
+                "the clipboard selection"),
               true);
 
 

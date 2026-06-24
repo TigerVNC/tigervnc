@@ -28,6 +28,7 @@
 
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/LaunchProcess.h>
 #include <rfb_win32/TrayIcon.h>
@@ -45,9 +46,12 @@ using namespace winvnc;
 
 static LogWriter vlog("STrayIcon");
 
-BoolParameter STrayIconThread::disableOptions("DisableOptions", "Disable the Options entry in the VNC server tray menu.", false);
-BoolParameter STrayIconThread::disableClose("DisableClose", "Disable the Close entry in the VNC server tray menu.", false);
-
+BoolParameter STrayIconThread::disableOptions(
+  "DisableOptions",
+  _("Disable the Options entry in the VNC server tray menu"), false);
+BoolParameter STrayIconThread::disableClose(
+  "DisableClose",
+  _("Disable the Close entry in the VNC server tray menu"), false);
 
 //
 // -=- AboutDialog global values
@@ -152,7 +156,7 @@ public:
         thread.server.disconnectClients("tray menu disconnect");
         break;
       case ID_CLOSE:
-        if (MsgBox(nullptr, "Are you sure you want to close the server?",
+        if (MsgBox(nullptr, _("Are you sure you want to close the server?"),
                    MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2) == IDYES) {
           if (isServiceProcess()) {
             try {

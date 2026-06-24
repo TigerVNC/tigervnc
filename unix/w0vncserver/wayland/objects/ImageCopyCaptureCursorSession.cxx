@@ -26,6 +26,7 @@
 
 #include <core/LogWriter.h>
 #include <core/Rect.h>
+#include <core/i18n.h>
 
 #include "ImageCopyCaptureSession.h"
 #include "ImageCopyCaptureCursorSession.h"
@@ -71,7 +72,7 @@ ImageCopyCaptureCursorSession::ImageCopyCaptureCursorSession(Display* display_,
 
   if (!captureSessionHandle) {
     ext_image_copy_capture_cursor_session_v1_destroy(session);
-    throw std::runtime_error("Could not create cursor capture session");
+    throw std::runtime_error(_("Failed to create cursor capture session"));
   }
 
   std::function<void(uint8_t*, core::Region, uint32_t, uint32_t)> bufferEventCb =

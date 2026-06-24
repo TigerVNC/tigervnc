@@ -24,6 +24,7 @@
 #endif
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <core/Exception.h>
@@ -64,7 +65,7 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     else if (next_window != nullptr)
       SendMessage(next_window, msg, wParam, lParam);
     else
-      vlog.error("Bad clipboard chain change!");
+      vlog.error(_("Bad clipboard chain change!"));
     break;
 
   case WM_DRAWCLIPBOARD:
@@ -130,7 +131,7 @@ Clipboard::setClipText(const char* text) {
 
     // - Firstly, we must open the clipboard
     if (!OpenClipboard(getHandle()))
-      throw core::win32_error("Unable to open Win32 clipboard", GetLastError());
+      throw core::win32_error(_("Unable to open clipboard"), GetLastError());
 
     // - Convert the supplied clipboard text into UTF-16 format with CRLF
     std::string filtered(convertCRLF(text));
@@ -145,11 +146,11 @@ Clipboard::setClipText(const char* text) {
 
     // - Next, we must clear out any existing data
     if (!EmptyClipboard())
-      throw core::win32_error("Unable to empty Win32 clipboard", GetLastError());
+      throw core::win32_error(_("Unable to empty clipboard"), GetLastError());
 
     // - Set the new clipboard data
     if (!SetClipboardData(CF_UNICODETEXT, clip_handle))
-      throw core::win32_error("Unable to set Win32 clipboard", GetLastError());
+      throw core::win32_error(_("Unable to set clipboard"), GetLastError());
     clip_handle = nullptr;
 
     vlog.debug("Set clipboard");

@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <sys/stat.h>
 
@@ -26,6 +30,7 @@
 #include <glib.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include "../w0vncserver.h"
@@ -145,7 +150,7 @@ void Clipboard::setSelection()
   try  {
     clipboard->call("SetSelection", params);
   } catch (std::exception& e) {
-    vlog.error("Could not set selection: %s", e.what());
+    vlog.error(_("Failed to update the clipboard: %s"), e.what());
   }
 }
 
@@ -175,7 +180,7 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
                &error);
 
   if (error) {
-    vlog.error("Error writing to clipboard: %s", error->message);
+    vlog.error(_("Failed to update the clipboard: %s"), error->message);
     g_variant_unref(response);
     g_error_free(error);
     selectionWriteDone(serial, false);
@@ -189,7 +194,7 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
   fd = g_unix_fd_list_get(fdList, 0, &error);
   g_object_unref(fdList);
   if (error) {
-    vlog.error("Error writing to clipboard: %s", error->message);
+    vlog.error(_("Failed to update the clipboard: %s"), error->message);
     g_error_free(error);
     selectionWriteDone(serial, false);
     return;
@@ -203,7 +208,9 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
     buf = data;
     remaining = strlen(data);
   } else {
-    vlog.error("Error writing to clipboard: unsupported mime type: '%s'", mimeType);
+    vlog.error(_("Failed to update the clipboard: %s"),
+               core::format(_("Unsupported mime type '%s'"),
+                            mimeType).c_str());
     selectionWriteDone(serial, false);
     return;
   }
@@ -212,7 +219,8 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
     written = write(fd, buf, remaining);
 
     if (written < 0) {
-      vlog.error("Error writing to clipboard: %s", strerror(errno));
+      vlog.error(_("Failed to update the clipboard: %s"),
+                 strerror(errno));
       selectionWriteDone(serial, false);
       close(fd);
       return;
@@ -223,7 +231,8 @@ void Clipboard::selectionWrite(PendingData pendingData, const char* data)
   }
 
   if (close(fd) != 0) {
-    vlog.error("Error writing to clipboard: %s", strerror(errno));
+    vlog.error(_("Failed to update the clipboard: %s"),
+               strerror(errno));
     selectionWriteDone(serial, false);
   } else {
     selectionWriteDone(serial, true);
@@ -243,7 +252,8 @@ void Clipboard::clearSelection()
   try {
     clipboard->call("SetSelection", params);
   } catch (std::exception& e) {
-    vlog.error("Could not remove clipboard ownership: %s", e.what());
+    vlog.error(_("Failed to release clipboard ownership: %s"),
+               e.what());
   }
 
   clearPendingSerials();
@@ -264,7 +274,7 @@ void Clipboard::selectionWriteDone(uint32_t serial, bool success)
                                   G_DBUS_CALL_FLAGS_NONE, 3000,
                                   nullptr, &error);
   if (error) {
-    vlog.error("Error writing to clipboard: %s", error->message);
+    vlog.error(_("Failed to update the clipboard: %s"), error->message);
     g_error_free(error);
     return;
   }
@@ -313,7 +323,8 @@ void Clipboard::selectionRead()
       G_DBUS_CALL_FLAGS_NONE, 3000, nullptr, &fdList, nullptr, &error);
 
   if (error) {
-    vlog.error("Could not read clipboard: %s", error->message);
+    vlog.error(_("Failed to retrieve the clipboard: %s"),
+               error->message);
     g_error_free(error);
     delete readContext;
     readContext = nullptr;
@@ -322,8 +333,10 @@ void Clipboard::selectionRead()
 
   if (!g_variant_is_of_type(response, G_VARIANT_TYPE("(h)"))) {
     g_object_unref(fdList);
-    vlog.error("Could not read clipboard: invalid response type: %s, "
-               "expected (h)", g_variant_get_type_string(response));
+    vlog.debug("Unexpected variant type: %s",
+               g_variant_get_type_string(response));
+    vlog.error(_("Invalid response to request \"%s\""),
+               "SelectionRead");
     delete readContext;
     readContext = nullptr;
     g_variant_unref(response);
@@ -339,7 +352,8 @@ void Clipboard::selectionRead()
   if (error || fd == -1) {
     delete readContext;
     readContext = nullptr;
-    vlog.error("Could not read clipboard: %s", error->message);
+    vlog.error(_("Failed to retrieve the clipboard: %s"),
+               error->message);
     g_error_free(error);
     return;
   }
@@ -383,7 +397,7 @@ void Clipboard::handleSelectionTransfer(GVariant* parameters)
   }
 
   if (!validMimeType) {
-    vlog.error("Unsupported mime type: %s - ignoring", mimeType);
+    vlog.error(_("Unsupported mime type '%s'"), mimeType);
     selectionWriteDone(serial, false);
     free(mimeType);
     return;
@@ -459,7 +473,8 @@ void Clipboard::handleSelectionOwnerChanged(GVariant* parameters)
     char* mimeTypeString;
 
     mimeTypeString = g_variant_print(mimeTypes, true);
-    vlog.error("Invalid mime types variant: %s", mimeTypeString);
+    vlog.error(_("Invalid response to request \"%s\""),
+               "SelectionOwnerChanged");
     free(mimeTypeString);
     g_variant_unref(mimeTypes);
     clipboardAnnounceCb(false);
@@ -494,9 +509,11 @@ void Clipboard::handleReadDataCallback(GAsyncResult* res)
 
   if (error) {
     if (error->code == G_IO_ERROR_CANCELLED)
-      vlog.error("Cancelled reading clipboard data");
+      vlog.error(_("Failed to retrieve the clipboard: %s"),
+                 _("Cancelled"));
     else
-      vlog.error("Could not read clipboard data: %s", error->message);
+      vlog.error(_("Failed to retrieve the clipboard: %s"),
+                 error->message);
 
     g_error_free(error);
     g_object_unref(readStream);
@@ -520,7 +537,7 @@ void Clipboard::handleReadDataCallback(GAsyncResult* res)
 
     if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN) == 0) {
       if (!core::isValidAscii(readBuffer.c_str(), readBuffer.size())) {
-        vlog.error("Invalid ASCII sequence in clipboard - ignoring");
+        vlog.error(_("Non-ASCII character in clipboard"));
         readBuffer.clear();
         delete readContext;
         readContext = nullptr;
@@ -529,7 +546,7 @@ void Clipboard::handleReadDataCallback(GAsyncResult* res)
 
     } else if (strcmp(pendingReadMimeType, MIME_TEXT_PLAIN_UTF8) == 0) {
       if (!core::isValidUTF8(readBuffer.c_str(), readBuffer.size())) {
-        vlog.error("Invalid UTF-8 sequence in clipboard - ignoring");
+        vlog.error(_("Invalid UTF-8 sequence in clipboard"));
         readBuffer.clear();
         delete readContext;
         readContext = nullptr;

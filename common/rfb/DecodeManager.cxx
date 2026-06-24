@@ -25,6 +25,7 @@
 
 #include <core/LogWriter.h>
 #include <core/Region.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/CConnection.h>
@@ -49,17 +50,17 @@ DecodeManager::DecodeManager(CConnection *conn_) :
 
   cpuCount = std::thread::hardware_concurrency();
   if (cpuCount == 0) {
-    vlog.error("Unable to determine the number of CPU cores on this system");
+    vlog.error(_("Unable to determine the number of CPU cores on this system"));
     cpuCount = 1;
   } else {
-    vlog.info("Detected %d CPU core(s)", (int)cpuCount);
+    vlog.info(_("Detected %d CPU core(s)"), (int)cpuCount);
     // No point creating more threads than this, they'll just end up
     // wasting CPU fighting for locks
     if (cpuCount > 4)
       cpuCount = 4;
   }
 
-  vlog.info("Creating %d decoder thread(s)", (int)cpuCount);
+  vlog.info(_("Creating %d decoder thread(s)"), (int)cpuCount);
 
   while (cpuCount--) {
     // Twice as many possible entries in the queue as there
@@ -103,15 +104,15 @@ bool DecodeManager::decodeRect(const core::Rect& r, int encoding,
     rdr::MemOutStream *bufferStream;
 
     if (!Decoder::supported(encoding)) {
-      vlog.error("Unknown encoding %d", encoding);
-      throw protocol_error("Unknown encoding");
+      vlog.error(_("Unknown encoding %d"), encoding);
+      throw protocol_error(_("Unknown encoding"));
     }
 
     if (!decoders[encoding]) {
       decoders[encoding] = Decoder::createDecoder(encoding);
       if (!decoders[encoding]) {
-        vlog.error("Unknown encoding %d", encoding);
-        throw protocol_error("Unknown encoding");
+        vlog.error(_("Unknown encoding %d"), encoding);
+        throw protocol_error(_("Unknown encoding"));
       }
     }
 
@@ -225,20 +226,29 @@ void DecodeManager::logStats()
     ratio = (double)stats[i].equivalent / stats[i].bytes;
 
     vlog.info("    %s: %s, %s", encodingName(i),
-              core::siPrefix(stats[i].rects, "rects").c_str(),
-              core::siPrefix(stats[i].pixels, "pixels").c_str());
-    vlog.info("    %*s  %s (1:%g ratio)",
+              // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+              core::siPrefix(stats[i].rects, _("rects")).c_str(),
+              // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+              core::siPrefix(stats[i].pixels, _("pixels")).c_str());
+    vlog.info("    %*s  %s (1:%g %s)",
               (int)strlen(encodingName(i)), "",
-              core::iecPrefix(stats[i].bytes, "B").c_str(), ratio);
+              // TRANSLATORS: Short form of bytes
+              core::iecPrefix(stats[i].bytes, _("B")).c_str(),
+              ratio, _("ratio"));
   }
 
   ratio = (double)equivalent / bytes;
 
-  vlog.info("  Total: %s, %s",
-            core::siPrefix(rects, "rects").c_str(),
-            core::siPrefix(pixels, "pixels").c_str());
-  vlog.info("         %s (1:%g ratio)",
-            core::iecPrefix(bytes, "B").c_str(), ratio);
+  vlog.info("  %s %s, %s", _("Total:"),
+            // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+            core::siPrefix(rects, _("rects")).c_str(),
+            // TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+            core::siPrefix(pixels, _("pixels")).c_str());
+  vlog.info("  %*s %s (1:%g %s)",
+            (int)strlen(_("Total:")), "",
+            // TRANSLATORS: Short form of bytes
+            core::iecPrefix(bytes, _("B")).c_str(),
+            ratio, _("ratio"));
 }
 
 void DecodeManager::setThreadException()

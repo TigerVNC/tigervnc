@@ -29,6 +29,7 @@
 #include <vector>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/DeviceContext.h>
@@ -43,7 +44,8 @@ using namespace win32;
 static LogWriter vlog("DeviceFrameBuffer");
 
 BoolParameter DeviceFrameBuffer::useCaptureBlt("UseCaptureBlt",
-  "Use a slower capture method that ensures that alpha blended windows appear correctly",
+  _("Use a slower capture method that ensures that alpha blended "
+    "windows will appear correctly"),
   true);
 
 
@@ -104,9 +106,9 @@ DeviceFrameBuffer::grabRect(const Rect &rect) {
                 rect.width(), rect.height(), device, src.x, src.y,
                 useCaptureBlt ? (CAPTUREBLT | SRCCOPY) : SRCCOPY)) {
     if (ignoreGrabErrors)
-      vlog.error("BitBlt failed:%ld", GetLastError());
+      vlog.debug("BitBlt failed:%ld", GetLastError());
     else
-      throw core::win32_error("BitBlt failed", GetLastError());
+      throw core::win32_error("BitBlt", GetLastError());
   }
 }
 
@@ -142,7 +144,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     BITMAP maskInfo;
     if (!GetObject(iconInfo.hbmMask, sizeof(BITMAP), &maskInfo))
-      throw core::win32_error("GetObject() failed", GetLastError());
+      throw core::win32_error("GetObject", GetLastError());
     if (maskInfo.bmPlanes != 1)
       throw std::invalid_argument("Unsupported multi-plane cursor");
     if (maskInfo.bmBitsPixel != 1)

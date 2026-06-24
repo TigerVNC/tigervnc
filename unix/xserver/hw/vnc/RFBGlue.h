@@ -28,8 +28,6 @@ void vncInitRFB(void);
 
 void vncLogError(const char *name, const char *format, ...)
         __attribute__((__format__ (__printf__, 2, 3)));
-void vncLogStatus(const char *name, const char *format, ...)
-        __attribute__((__format__ (__printf__, 2, 3)));
 void vncLogInfo(const char *name, const char *format, ...)
         __attribute__((__format__ (__printf__, 2, 3)));
 void vncLogDebug(const char *name, const char *format, ...)
@@ -47,6 +45,9 @@ int vncHandleParamArg(int argc, char* argv[], int index);
 
 int vncGetSocketPort(int fd);
 int vncIsTCPPortUsed(int port);
+
+const char* vncGettext(const char* msgid)
+        __attribute__((format_arg(1)));
 
 char* vncConvertLF(const char* src, size_t bytes);
 

@@ -26,76 +26,81 @@
 #endif
 
 #include <string.h>
+
+#include <core/i18n.h>
+
 #include <rfb/ServerCore.h>
 
 core::IntParameter rfb::Server::idleTimeout
 ("IdleTimeout",
- "The number of seconds after which an idle VNC connection will be dropped "
- "(zero means no timeout)",
+ _("The number of seconds after which an idle VNC connection will be "
+   "dropped (zero means no timeout)"),
  0, 0, INT_MAX);
 core::IntParameter rfb::Server::maxDisconnectionTime
 ("MaxDisconnectionTime",
- "Terminate when no client has been connected for s seconds", 
+ _("Terminate when no client has been connected for the specified "
+   "number of seconds (zero means no timeout)"),
  0, 0, INT_MAX);
 core::IntParameter rfb::Server::maxConnectionTime
 ("MaxConnectionTime",
- "Terminate when a client has been connected for s seconds", 
+ _("Terminate when a client has been connected for the specified "
+   "number of seconds (zero means no timeout)"),
  0, 0, INT_MAX);
 core::IntParameter rfb::Server::maxIdleTime
 ("MaxIdleTime",
- "Terminate after s seconds of user inactivity", 
+ _("Terminate after the specified number of seconds of user "
+   "inactivity (zero means no timeout)"),
  0, 0, INT_MAX);
 core::IntParameter rfb::Server::compareFB
 ("CompareFB",
- "Perform pixel comparison on framebuffer to reduce unnecessary updates "
- "(0: never, 1: always, 2: auto)",
+ _("Perform pixel comparison on framebuffer to reduce unnecessary "
+   "updates (0: never, 1: always, 2: auto)"),
  2, 0, 2);
 core::IntParameter rfb::Server::frameRate
 ("FrameRate",
- "The maximum number of updates per second sent to each client",
+ _("The maximum number of updates per second sent to each client"),
  60, 0, INT_MAX);
 core::BoolParameter rfb::Server::protocol3_3
 ("Protocol3.3",
- "Always use protocol version 3.3 for backwards compatibility with "
- "badly-behaved clients",
+ _("Always use protocol version 3.3 for backwards compatibility with "
+   "badly-behaved clients"),
  false);
 core::BoolParameter rfb::Server::alwaysShared
 ("AlwaysShared",
- "Always treat incoming connections as shared, regardless of the client-"
- "specified setting",
+ _("Always treat incoming connections as shared, regardless of the "
+   "client-specified setting"),
  false);
 core::BoolParameter rfb::Server::neverShared
 ("NeverShared",
- "Never treat incoming connections as shared, regardless of the client-"
- "specified setting",
+ _("Never treat incoming connections as shared, regardless of the "
+   "client-specified setting"),
  false);
 core::BoolParameter rfb::Server::disconnectClients
 ("DisconnectClients",
- "Disconnect existing clients if an incoming connection is non-shared. "
- "If combined with NeverShared then new connections will be refused "
- "while there is a client active",
+ _("Disconnect existing clients if an incoming connection is "
+   "not shared"),
  true);
 core::BoolParameter rfb::Server::acceptKeyEvents
 ("AcceptKeyEvents",
- "Accept key press and release events from clients.",
+ _("Accept key events from clients"),
  true);
 core::BoolParameter rfb::Server::acceptPointerEvents
 ("AcceptPointerEvents",
- "Accept pointer movement and button events from clients.",
+ _("Accept pointer events from clients"),
  true);
 core::BoolParameter rfb::Server::acceptCutText
 ("AcceptCutText",
- "Accept clipboard updates from clients.",
+ _("Accept clipboard changes from clients"),
  true);
 core::BoolParameter rfb::Server::sendCutText
 ("SendCutText",
- "Send clipboard changes to clients.",
+ _("Send clipboard changes to clients"),
  true);
 core::BoolParameter rfb::Server::acceptSetDesktopSize
 ("AcceptSetDesktopSize",
- "Accept set desktop size events from clients.",
+ _("Accept session size changes from clients"),
  true);
 core::BoolParameter rfb::Server::queryConnect
 ("QueryConnect",
- "Prompt the local user to accept or reject incoming connections.",
+ _("Prompt the local user to accept or reject incoming connections"),
  false);

@@ -30,6 +30,7 @@
 #endif
 
 #include "vncDRI3.h"
+#include "i18n.h"
 #include <dri3.h>
 #include <fb.h>
 #include <misyncshm.h>
@@ -108,7 +109,7 @@ static uint32_t gbm_format_for_depth(CARD8 depth)
   case 30:
     return GBM_FORMAT_ARGB2101010;
   default:
-    ErrorF("unexpected depth: %d\n", depth);
+    ErrorF(_("Unsupported pixel depth: %d\n"), depth);
   case 32:
     return GBM_FORMAT_ARGB8888;
   }
@@ -129,12 +130,12 @@ static PixmapPtr vncPixmapFromFd(ScreenPtr screen, int fd,
   PixmapPtr pixmap;
 
   if (bpp != sizeof(FbBits)*8) {
-    ErrorF("Incompatible bits per pixel given for GPU buffer\n");
+    ErrorF(_("Incompatible bits per pixel for GPU buffer\n"));
     return NULL;
   }
 
   if ((stride % sizeof(FbBits)) != 0) {
-    ErrorF("Incompatible stride given for GPU buffer\n");
+    ErrorF(_("Incompatible stride for GPU buffer\n"));
     return NULL;
   }
 
@@ -207,7 +208,7 @@ static int vncFdFromPixmap(ScreenPtr screen, PixmapPtr pixmap,
   vncDRI3PixmapPrivatePtr pixmapPriv = vncDRI3PixmapPrivate(pixmap);
 
   if (pixmap->drawable.bitsPerPixel != sizeof(FbBits)*8) {
-    ErrorF("Incompatible bits per pixel given for pixmap\n");
+    ErrorF(_("Incompatible bits per pixel for pixmap\n"));
     return -1;
   }
 
@@ -219,12 +220,12 @@ static int vncFdFromPixmap(ScreenPtr screen, PixmapPtr pixmap,
                                    gbm_format_for_depth(pixmap->drawable.depth),
                                    GBM_BO_USE_RENDERING | GBM_BO_USE_LINEAR);
     if (pixmapPriv->bo == NULL) {
-      ErrorF("Failed to create GPU buffer: %s\n", strerror(errno));
+      ErrorF(_("Failed to create GPU buffer: %s\n"), strerror(errno));
       return -1;
     }
 
     if ((gbm_bo_get_stride(pixmapPriv->bo) % sizeof(FbBits)) != 0) {
-      ErrorF("Incompatible stride for created GPU buffer\n");
+      ErrorF(_("Incompatible stride for GPU buffer\n"));
       gbm_bo_destroy(pixmapPriv->bo);
       pixmapPriv->bo = NULL;
       return -1;
@@ -297,7 +298,7 @@ Bool vncDRI3SyncPixmapToGPU(PixmapPtr pixmap)
   bo_data = gbm_bo_map(pixmapPriv->bo, 0, 0, width, height,
                        GBM_BO_TRANSFER_WRITE, &bo_stride, &map_data);
   if (bo_data == NULL) {
-    ErrorF("Could not map GPU buffer: %s\n", strerror(errno));
+    ErrorF(_("Could not map GPU buffer: %s\n"), strerror(errno));
     return FALSE;
   }
 
@@ -358,7 +359,7 @@ Bool vncDRI3SyncPixmapFromGPU(PixmapPtr pixmap)
   bo_data = gbm_bo_map(pixmapPriv->bo, 0, 0, width, height,
                        GBM_BO_TRANSFER_READ, &bo_stride, &map_data);
   if (bo_data == NULL) {
-    ErrorF("Could not map GPU buffer: %s\n", strerror(errno));
+    ErrorF(_("Could not map GPU buffer: %s\n"), strerror(errno));
     return FALSE;
   }
 
@@ -461,7 +462,7 @@ Bool vncDRI3Init(ScreenPtr screen)
 
   if ((renderNode[0] != '/') &&
       (strcasecmp(renderNode, "auto") != 0)) {
-    ErrorF("Invalid render node path \"%s\"\n", renderNode);
+    ErrorF(_("Invalid render node path: %s\n"), renderNode);
     return FALSE;
   }
 
@@ -484,11 +485,11 @@ Bool vncDRI3Init(ScreenPtr screen)
 
     ret = glob("/dev/dri/renderD*", 0, NULL, &globbuf);
     if (ret == GLOB_NOMATCH) {
-      ErrorF("Could not find any render nodes\n");
+      ErrorF(_("Could not find any available render nodes\n"));
       return FALSE;
     }
     if (ret != 0) {
-      ErrorF("Failure enumerating render nodes\n");
+      ErrorF(_("Failed to enumerate render nodes\n"));
       return FALSE;
     }
 
@@ -503,7 +504,7 @@ Bool vncDRI3Init(ScreenPtr screen)
     globfree(&globbuf);
 
     if (screenPriv->devicePath == NULL) {
-      ErrorF("Could not find any available render nodes\n");
+      ErrorF(_("Could not find any available render nodes\n"));
       return FALSE;
     }
   } else {
@@ -512,8 +513,9 @@ Bool vncDRI3Init(ScreenPtr screen)
 
   screenPriv->fd = open(screenPriv->devicePath, O_RDWR|O_CLOEXEC);
   if (screenPriv->fd < 0) {
-    ErrorF("Failed to open \"%s\": %s\n",
+    ErrorF(_("Failed to open \"%s\": %s"),
            screenPriv->devicePath, strerror(errno));
+    ErrorF("\n");
     return FALSE;
   }
 
@@ -521,11 +523,11 @@ Bool vncDRI3Init(ScreenPtr screen)
   if (screenPriv->device == NULL) {
     close(screenPriv->fd);
     screenPriv->fd = -1;
-    ErrorF("Could create GPU render device\n");
+    ErrorF(_("Could not create GPU render device\n"));
     return FALSE;
   }
 #else
-  ErrorF("Built without GBM support\n");
+  ErrorF(_("Built without GPU render support\n"));
   return FALSE;
 #endif
 

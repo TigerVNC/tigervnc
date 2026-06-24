@@ -24,7 +24,6 @@
 
 #include <assert.h>
 #include <string.h>
-#include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -39,10 +38,6 @@
 #include <direct.h>
 #endif
 
-#ifdef __APPLE__
-#include <Carbon/Carbon.h>
-#endif
-
 #include <core/Exception.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
@@ -53,6 +48,7 @@
 #include <rfb/CSecurityTLS.h>
 #endif
 
+#include <core/i18n.h>
 #include <core/xdgdirs.h>
 
 #include <network/TcpSocket.h>
@@ -63,7 +59,6 @@
 
 #include "fltk/theme.h"
 #include "fltk/util.h"
-#include "i18n.h"
 #include "parameters.h"
 #include "CConn.h"
 #include "ServerDialog.h"
@@ -256,57 +251,6 @@ static void CleanupSignalHandler(int sig)
   exit(1);
 }
 
-static const char* getlocaledir()
-{
-#if defined(WIN32)
-  static char localebuf[PATH_MAX];
-  char *slash;
-
-  GetModuleFileName(nullptr, localebuf, sizeof(localebuf));
-
-  slash = strrchr(localebuf, '\\');
-  if (slash == nullptr)
-    return nullptr;
-
-  *slash = '\0';
-
-  if ((strlen(localebuf) + strlen("\\locale")) >= sizeof(localebuf))
-    return nullptr;
-
-  strcat(localebuf, "\\locale");
-
-  return localebuf;
-#elif defined(__APPLE__)
-  CFBundleRef bundle;
-  CFURLRef localeurl;
-  CFStringRef localestr;
-  Boolean ret;
-
-  static char localebuf[PATH_MAX];
-
-  bundle = CFBundleGetMainBundle();
-  if (bundle == nullptr)
-    return nullptr;
-
-  localeurl = CFBundleCopyResourceURL(bundle, CFSTR("locale"),
-                                      nullptr, nullptr);
-  if (localeurl == nullptr)
-    return nullptr;
-
-  localestr = CFURLCopyFileSystemPath(localeurl, kCFURLPOSIXPathStyle);
-
-  CFRelease(localeurl);
-
-  ret = CFStringGetCString(localestr, localebuf, sizeof(localebuf),
-                           kCFStringEncodingUTF8);
-  if (!ret)
-    return nullptr;
-
-  return localebuf;
-#else
-  return CMAKE_INSTALL_FULL_LOCALEDIR;
-#endif
-}
 static void init_fltk()
 {
   // Adjust look of FLTK
@@ -410,10 +354,10 @@ static void init_fltk()
   // Fl_Sys_Menu_Bar overrides methods without them being virtual,
   // which means we cannot use our generic Fl_Menu_ helpers.
   menubar->add(
-    fltk_menu_escape(p_("SysMenu|", "&File")).c_str(),
+    fltk_menu_escape(C_("SysMenu|", "&File")).c_str(),
     0, nullptr, nullptr, FL_SUBMENU);
   menubar->insert(
-    1, fltk_menu_escape(p_("SysMenu|File|", "&New Connection")).c_str(),
+    1, fltk_menu_escape(C_("SysMenu|File|", "&New Connection")).c_str(),
     FL_COMMAND | 'n', new_connection_cb);
 #endif
 }
@@ -582,7 +526,8 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
     *percent = '$';
   int res = system(cmd2);
   if (res != 0)
-    fprintf(stderr, "Failed to create tunnel: '%s' returned %d\n", cmd2, res);
+    vlog.error(_("Failed to create tunnel: '%s' returned %d"),
+               cmd2, res);
   free(cmd2);
 }
 
@@ -603,27 +548,11 @@ static void mktunnel()
 
 int main(int argc, char** argv)
 {
-  const char *localedir;
-
   argv0 = argv[0];
 
   setlocale(LC_ALL, "");
 
-  localedir = getlocaledir();
-  if (localedir == nullptr)
-    fprintf(stderr, "Failed to determine locale directory\n");
-  else
-    bindtextdomain(PACKAGE_NAME, localedir);
-  textdomain(PACKAGE_NAME);
-
-  // Write about text to console, still using normal locale codeset
   fprintf(stderr,"\n%s\n", about_text());
-
-  // Set gettext codeset to what our GUI toolkit uses. Since we are
-  // passing strings from strerror/gai_strerror to the GUI, these must
-  // be in GUI codeset as well.
-  bind_textdomain_codeset(PACKAGE_NAME, "UTF-8");
-  bind_textdomain_codeset("libc", "UTF-8");
 
   core::initStdIOLoggers();
 #ifdef WIN32

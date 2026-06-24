@@ -28,6 +28,7 @@
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/LogWriter.h>
 
@@ -54,12 +55,12 @@ Display::Display(const char* name)
 {
   display = wl_display_connect(name);
   if (!display)
-    throw std::runtime_error("Failed to connect to wayland display");
+    throw std::runtime_error(_("Failed to connect to Wayland server"));
 
   registry = wl_display_get_registry(display);
   if (!registry) {
     wl_display_disconnect(display);
-    throw std::runtime_error("Failed to get registry");
+    throw std::runtime_error(_("Failed to get Wayland registry"));
   }
 
   wl_registry_add_listener(registry, &listener, this);
@@ -83,7 +84,7 @@ void Display::roundtrip()
   // Display errors are fatal, the display can no longer be used
   if (wl_display_roundtrip(display) < 0) {
     if (wl_display_get_error(display))
-      fatal_error("Failed to roundtrip: %s",
+      fatal_error(_("Failed to communicate with Wayland server: %s"),
                   strerror(wl_display_get_error(display)));
   }
 }

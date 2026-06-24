@@ -36,6 +36,8 @@ extern "C" {
 #define FFMPEG_INIT_PACKET_DEPRECATED
 #endif
 
+#include <core/i18n.h>
+
 #include <rfb/PixelBuffer.h>
 #include <rfb/H264LibavDecoderContext.h>
 
@@ -50,17 +52,17 @@ H264LibavDecoderContext::H264LibavDecoderContext(const core::Rect& r)
 
   const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
   if (!codec)
-    throw std::runtime_error("Codec not found");
+    throw std::runtime_error(_("Could not find video codec"));
 
   parser = av_parser_init(codec->id);
   if (!parser)
-    throw std::runtime_error("Could not create H264 parser");
+    throw std::runtime_error(_("Could not create video parser"));
 
   avctx = avcodec_alloc_context3(codec);
   if (!avctx)
   {
     av_parser_close(parser);
-    throw std::runtime_error("Could not allocate video codec context");
+    throw std::runtime_error(_("Could not allocate video codec context"));
   }
 
   frame = av_frame_alloc();
@@ -68,7 +70,7 @@ H264LibavDecoderContext::H264LibavDecoderContext(const core::Rect& r)
   {
     av_parser_close(parser);
     avcodec_free_context(&avctx);
-    throw std::runtime_error("Could not allocate video frame");
+    throw std::runtime_error(_("Could not allocate video frame"));
   }
 
   if (avcodec_open2(avctx, codec, nullptr) < 0)
@@ -76,7 +78,7 @@ H264LibavDecoderContext::H264LibavDecoderContext(const core::Rect& r)
     av_parser_close(parser);
     avcodec_free_context(&avctx);
     av_frame_free(&frame);
-    throw std::runtime_error("Could not open video codec");
+    throw std::runtime_error(_("Could not open video codec"));
   }
 }
 

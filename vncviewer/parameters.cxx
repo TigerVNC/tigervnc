@@ -34,6 +34,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
@@ -48,80 +49,80 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "i18n.h"
-
 static core::LogWriter vlog("Parameters");
 
 core::IntParameter
   pointerEventInterval("PointerEventInterval",
-                       "Time in milliseconds to rate-limit successive "
-                       "pointer events",
+                       _("Time in milliseconds to rate-limit "
+                         "successive pointer events"),
                        17, 0, INT_MAX);
 core::BoolParameter
   emulateMiddleButton("EmulateMiddleButton",
-                      "Emulate middle mouse button by pressing left "
-                      "and right mouse buttons simultaneously",
+                      _("Emulate middle mouse button by pressing left "
+                        "and right mouse buttons simultaneously"),
                       false);
 core::BoolParameter
   dotWhenNoCursor("DotWhenNoCursor",
-                  "[DEPRECATED] Show the dot cursor when the server "
-                  "sends an invisible cursor",
+                  _("[DEPRECATED] Show a dot cursor when the server "
+                    "sends an invisible cursor"),
                   false);
 core::BoolParameter
   alwaysCursor("AlwaysCursor",
-               "Show the local cursor when the server sends an "
-               "invisible cursor",
+               _("Show local cursor when not provided by the server"),
                false);
 core::EnumParameter
   cursorType("CursorType",
-             "Specify which cursor type the local cursor should be. "
-             "Should be either Dot or System",
+             core::format(
+               "%s (%s)",
+               _("Specify which local cursor type should be used when "
+                 "AlwaysCursor is active"), ("Dot, System")).c_str(),
              {"Dot", "System"}, "Dot");
 
 core::BoolParameter
   alertOnFatalError("AlertOnFatalError",
-                    "Give a dialog on connection problems rather than "
-                    "exiting immediately",
+                    _("Show an error dialog on connection problems, "
+                      "rather than exiting immediately"),
                     true);
 
 core::BoolParameter
   reconnectOnError("ReconnectOnError",
-                   "Give a dialog on connection problems rather than "
-                   "exiting immediately and ask for a reconnect.",
+                   _("Show an error dialog on connection problems, "
+                     "rather than exiting immediately, and allow the "
+                     "user to reconnect"),
                    true);
 
 core::StringParameter
   passwordFile("PasswordFile",
-               "Password file for VNC authentication",
+               _("Password file for VNC authentication"),
                "");
 core::AliasParameter
-  passwd("passwd", "Alias for PasswordFile", &passwordFile);
+  passwd("passwd", &passwordFile);
 
 core::BoolParameter
   autoSelect("AutoSelect",
-             "Auto select pixel format and encoding. Default if "
-             "PreferredEncoding and FullColor are not specified.",
+             _("Auto select pixel format and encoding"),
              true);
 core::BoolParameter
-  fullColour("FullColor", "Use full color", true);
+  fullColour("FullColor", _("Use all available colors"), true);
 core::AliasParameter
-  fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
+  fullColourAlias("FullColour", &fullColour);
 core::IntParameter
   lowColourLevel("LowColorLevel",
-                 "Color level to use on slow connections. "
-                 "0 = Very Low, 1 = Low, 2 = Medium",
+                 _("Color level to use on slow connections, "
+                   "0 = Very Low, 1 = Low, 2 = Medium"),
                  2, 0, 2);
 core::AliasParameter
-  lowColourLevelAlias("LowColourLevel",
-                      "Alias for LowColorLevel", &lowColourLevel);
+  lowColourLevelAlias("LowColourLevel", &lowColourLevel);
 core::EnumParameter
   preferredEncoding("PreferredEncoding",
-                    "Preferred encoding to use (Tight, JPEG, ZRLE, "
-                    "Hextile, "
+                    core::format(
+                      "%s (%s)",
+                      _("Preferred encoding to use"),
+                      "Tight, JPEG, ZRLE, Hextile, "
 #ifdef HAVE_H264
-                    "H.264, "
+                      "H.264, "
 #endif
-                    "or Raw)",
+                      "Raw)").c_str(),
                     {"Tight", "JPEG", "ZRLE", "Hextile",
 #ifdef HAVE_H264
                      "H.264",
@@ -130,116 +131,122 @@ core::EnumParameter
                     "Tight");
 core::BoolParameter
   customCompressLevel("CustomCompressLevel",
-                      "Use custom compression level. Default if "
-                      "CompressLevel is specified.",
+                      _("Use custom compression level as specified by "
+                        "CompressLevel"),
                       false);
 core::IntParameter
   compressLevel("CompressLevel",
-                "Use specified compression level 0 = Low, 9 = High",
+                _("Use specified compression level, 0 = Low, 9 = High"),
                 2, 0, 9);
 core::IntParameter
   qualityLevel("QualityLevel",
-               "JPEG quality level. 0 = Low, 9 = High",
+               _("JPEG quality level, 0 = Low, 9 = High"),
                8, 0, 9);
 
 core::BoolParameter
-  maximize("Maximize", "Maximize viewer window", false);
+  maximize("Maximize", _("Maximize viewer window"), false);
 core::BoolParameter
-  fullScreen("FullScreen", "Enable full screen", false);
+  fullScreen("FullScreen",
+             _("Enable full screen as specified by FullScreenMode"),
+             false);
 core::EnumParameter
   fullScreenMode("FullScreenMode",
-                 "Specify which monitors to use when in full screen. "
-                 "Should be either Current, Selected or All",
+                 core::format(
+                   "%s (%s)",
+                   _("Specify which monitors to use when in "
+                     "full screen"), "Current, Selected, All").c_str(),
                  {"Current", "Selected", "All"}, "Current");
 
 core::BoolParameter
   fullScreenAllMonitors("FullScreenAllMonitors",
-                        "[DEPRECATED] Enable full screen over all "
-                        "monitors",
+                        _("[DEPRECATED] Enable full screen over all "
+                          "monitors"),
                         false);
 MonitorIndicesParameter
   fullScreenSelectedMonitors("FullScreenSelectedMonitors",
-                             "Use the given list of monitors in full "
-                             "screen when -FullScreenMode=Selected.",
+                             _("Use the given list of monitors in full "
+                               "screen when FullScreenMode is set to "
+                               "Selected"),
                              {1});
 core::StringParameter
   desktopSize("DesktopSize",
-              "Reconfigure desktop size on the server on connect (if "
-              "possible)",
+              _("Reconfigure the desktop size on the server to the "
+                "specified size when connecting"),
               "");
 core::StringParameter
   geometry("geometry",
-           "Specify size and position of viewer window",
+           _("Specify size and position of viewer window"),
            "");
 
 core::BoolParameter
   listenMode("listen",
-             "Listen for connections from VNC servers",
+             _("Listen for incoming connections from VNC servers"),
              false);
 
 core::BoolParameter
   remoteResize("RemoteResize",
-               "Dynamically resize the remote desktop size as the size "
-               "of the local client window changes. (Does not work "
-               "with all servers)",
+               _("Dynamically resize the remote desktop size as the "
+                 "size of the local client window changes"),
                true);
 
 core::BoolParameter
   viewOnly("ViewOnly",
-           "Don't send any mouse or keyboard events to the server",
+           _("Don't send any mouse or keyboard events to the server"),
            false);
 core::BoolParameter
   shared("Shared",
-         "Don't disconnect other viewers upon connection - "
-         "share the desktop instead",
+         _("Don't disconnect other viewers upon connection"),
          false);
 
 core::BoolParameter
   acceptClipboard("AcceptClipboard",
-                  "Accept clipboard changes from the server",
+                  _("Accept clipboard changes from the server"),
                   true);
 core::BoolParameter
   sendClipboard("SendClipboard",
-                "Send clipboard changes to the server",
+                _("Send clipboard changes to the server"),
                 true);
 #if !defined(WIN32) && !defined(__APPLE__)
 core::BoolParameter
   setPrimary("SetPrimary",
-             "Set the primary selection as well as the clipboard "
-             "selection",
+             // TRANSLATORS: This refers to the two different X11
+             //              clipboards
+             _("Set the primary selection as well as the clipboard "
+               "selection"),
              true);
 core::BoolParameter
   sendPrimary("SendPrimary",
-              "Send the primary selection to the server as well as the "
-              "clipboard selection",
+              // TRANSLATORS: This refers to the two different X11
+              //              clipboards
+              _("Send the primary selection to the server as well as "
+                "the clipboard selection"),
               true);
 core::StringParameter
-  display("display",
-          "Specifies the X display on which the TigerVNC window "
-          "should appear.",
-          "");
+  display("display", _("The X display to use"), "");
 #endif
 
 // Keep list of valid values in sync with ShortcutHandler
 core::EnumListParameter
   shortcutModifiers("ShortcutModifiers",
-                    "The combination of modifier keys that triggers "
-                    "special actions in the viewer instead of being "
-                    "sent to the remote session. Possible values are a "
-                    "combination of Ctrl, Shift, Alt, and Super.",
+                    // TRANSLATORS: The key names must be specified in
+                    //              English
+                    _("The combination of modifier keys that triggers "
+                      "special actions in the viewer instead of being "
+                      "sent to the remote session (possible keys are a "
+                      "combination of Ctrl, Shift, Alt, and Super)"),
                     {"Ctrl", "Shift", "Alt", "Super",
                      "Win", "Option", "Cmd"},
                     {"Ctrl", "Alt"});
 
 core::BoolParameter
   fullscreenSystemKeys("FullscreenSystemKeys",
-                       "Pass special keys (like Alt+Tab) directly to "
-                       "the server when in full-screen mode.",
+                       _("Pass special keys (like Alt+Tab) directly to "
+                         "the server when in full-screen mode"),
                        true);
 
 #ifndef WIN32
 core::StringParameter
-  via("via", "Gateway to tunnel via", "");
+  via("via", _("SSH gateway to tunnel the connection via"), "");
 #endif
 
 static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
@@ -383,16 +390,16 @@ static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
   wchar_t name[buffersize];
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::invalid_argument(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   char encodingBuffer[buffersize];
   if (!encodeValue(_value, encodingBuffer, buffersize))
-    throw std::invalid_argument(_("The parameter is too large"));
+    throw std::length_error("The parameter is too large");
 
   wchar_t value[buffersize];
   size = fl_utf8towc(encodingBuffer, strlen(encodingBuffer)+1, value, buffersize);
   if (size >= buffersize)
-    throw std::invalid_argument(_("The parameter is too large"));
+    throw std::length_error("The parameter is too large");
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_SZ, (BYTE*)&value, (wcslen(value)+1)*2);
   if (res != ERROR_SUCCESS)
@@ -408,7 +415,7 @@ static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_DWORD, (BYTE*)&value, sizeof(DWORD));
   if (res != ERROR_SUCCESS)
@@ -425,7 +432,7 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   value = new WCHAR[destSize];
   valuesize = destSize;
@@ -443,14 +450,14 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
   delete [] value;
   if (size >= destSize) {
     delete [] utf8val;
-    throw std::out_of_range(_("The parameter is too large"));
+    throw std::length_error("The parameter is too large");
   }
 
   bool ret = decodeValue(utf8val, dest, destSize);
   delete [] utf8val;
 
   if (!ret)
-    throw std::invalid_argument(_("Invalid format or too large value"));
+    throw std::invalid_argument("Invalid format or too large value");
 
   return true;
 }
@@ -465,7 +472,7 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   LONG res = RegQueryValueExW(*hKey, name, nullptr, nullptr, (LPBYTE)&value, &dwordsize);
   if (res != ERROR_SUCCESS){
@@ -485,7 +492,7 @@ static void removeValue(const char* _name, HKEY* hKey) {
 
   unsigned size = fl_utf8towc(_name, strlen(_name)+1, name, buffersize);
   if (size >= buffersize)
-    throw std::out_of_range(_("The name of the parameter is too large"));
+    throw std::length_error("The name of the parameter is too large");
 
   LONG res = RegDeleteValueW(*hKey, name);
   if (res != ERROR_SUCCESS) {
@@ -757,7 +764,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   FILE* f = fopen(filepath, "w+");
   if (!f)
     throw core::posix_error(
-      core::format(_("Could not open \"%s\""), filepath), errno);
+      core::format(_("Failed to open \"%s\""), filepath), errno);
 
   fprintf(f, "%s\n", IDENTIFIER_STRING);
   fprintf(f, "\n");
@@ -837,7 +844,7 @@ char* loadViewerParameters(const char *filename) {
     if (!filename)
       return nullptr; // Use defaults.
     throw core::posix_error(
-      core::format(_("Could not open \"%s\""), filepath), errno);
+      core::format(_("Failed to open \"%s\""), filepath), errno);
   }
 
   int lineNr = 0;

@@ -31,6 +31,7 @@
 #include <wlr-screencopy-unstable-v1.h>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <rfb/PixelFormat.h>
 #include <core/Rect.h>
@@ -103,9 +104,7 @@ ScreencopyManager::ScreencopyManager(Display* display, Output* output_,
 
   size = output_->getWidth() * output_->getHeight() * 4;
   if (!size) {
-    throw std::runtime_error(core::format("Invalid output size %dx%d",
-                                          output_->getWidth(),
-                                          output_->getHeight()));
+    throw std::invalid_argument("Output with zero width or height");
   }
 
   initBuffers(size);
@@ -178,7 +177,7 @@ void ScreencopyManager::resize()
   try {
     initBuffers(output->getWidth() * output->getHeight() * 4);
   } catch (std::runtime_error& e) {
-    vlog.error("Failed to resize: %s", e.what());
+    vlog.error(_("Failed to create framebuffer: %s"), e.what());
     stopped();
   }
 }
@@ -195,11 +194,13 @@ void ScreencopyManager::initBuffers(size_t size)
 
   fd = memfd_create("w0vncserver-shm", FD_CLOEXEC);
   if (fd < 0)
-    throw std::runtime_error(core::format("Failed to allocate shm: %s", strerror(errno)));
+    throw std::runtime_error(core::format(
+      _("Failed to create shared memory pool: %s"), strerror(errno)));
 
   if (ftruncate(fd, size) < 0) {
     close(fd);
-    throw std::runtime_error(core::format("Failed to truncate shm: %s", strerror(errno)));
+    throw std::runtime_error(core::format(
+      _("Failed to create shared memory pool: %s"), strerror(errno)));
   }
 
 
@@ -249,7 +250,7 @@ void ScreencopyManager::handleScreencopyFailed()
   if (output->getWidth() != info->width || output->getHeight() != info->height) {
     captureFrameDone();
   } else {
-    vlog.error("Frame could not be copied");
+    vlog.error(_("Failed to capture screen contents"));
     stopped();
   }
 }
@@ -289,7 +290,7 @@ void ScreencopyManager::handleScreencopyBufferDone()
     buffer = pool->createBuffer(0, output->getWidth(), output->getHeight(),
                                 output->getWidth() * 4, info->format);
     if (!buffer) {
-      vlog.error("Cannot capture frame - failed to create buffer");
+      vlog.error(_("Failed to create Wayland buffer object"));
       stopped();
       return;
     }
