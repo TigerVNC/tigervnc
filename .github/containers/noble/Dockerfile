@@ -3,7 +3,7 @@ FROM ubuntu:noble
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN apt-get -y install packaging-dev equivs
+RUN apt-get -y install build-essential devscripts sudo equivs
 
 RUN useradd -s /bin/bash -m deb
 RUN echo >> /etc/sudoers
