@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <winsock2.h>
 #include <windows.h>
 #include <commctrl.h>

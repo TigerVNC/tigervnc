@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <vncconfig/Legacy.h>
 
 #include <core/LogWriter.h>

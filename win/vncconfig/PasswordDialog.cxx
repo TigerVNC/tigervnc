@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <vncconfig/resource.h>
 #include <vncconfig/PasswordDialog.h>
 #include <rfb_win32/MsgBox.h>
