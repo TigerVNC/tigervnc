@@ -1,6 +1,7 @@
 TIGERVNC_SRCDIR=$(abspath ${top_srcdir}/../..)
 TIGERVNC_BUILDDIR=$(abspath ${top_builddir}/../..)
 
+CORE_LIB=$(TIGERVNC_BUILDDIR)/common/core/libcore.la
 RFB_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfb.la
 RFBSERVER_LIB=$(TIGERVNC_BUILDDIR)/common/rfb/librfbserver.la
 RDR_LIB=$(TIGERVNC_BUILDDIR)/common/rdr/librdr.la
