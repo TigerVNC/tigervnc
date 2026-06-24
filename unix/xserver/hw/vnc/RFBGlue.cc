@@ -27,6 +27,7 @@
 #include <core/Logger_syslog.h>
 #include <core/LogWriter.h>
 #include <core/string.h>
+#include <core/i18n.h>
 
 #include <network/TcpSocket.h>
 
@@ -199,6 +200,11 @@ int vncIsTCPPortUsed(int port)
     return 1;
   }
   return 0;
+}
+
+const char* vncGettext(const char* msgid)
+{
+  return gettext(msgid);
 }
 
 char* vncConvertLF(const char* src, size_t bytes)
