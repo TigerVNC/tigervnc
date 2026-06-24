@@ -193,8 +193,7 @@ public:
   static unsigned long scrollbarBg;
   static GC defaultGC;
   static Colormap cmap;
-  static Font defaultFont;
-  static XFontStruct* defaultFS;
+  static XFontSet defaultFS;
   static Time cutBufferTime;
   static Pixmap dot, tick;
   static const int dotSize, tickSize;

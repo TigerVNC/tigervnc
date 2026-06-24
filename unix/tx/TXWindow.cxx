@@ -45,8 +45,7 @@ unsigned long TXWindow::enabledBg;
 unsigned long TXWindow::scrollbarBg;
 Colormap TXWindow::cmap = 0;
 GC TXWindow::defaultGC = nullptr;
-Font TXWindow::defaultFont = 0;
-XFontStruct* TXWindow::defaultFS = nullptr;
+XFontSet TXWindow::defaultFS = nullptr;
 Time TXWindow::cutBufferTime = 0;
 Pixmap TXWindow::dot = 0, TXWindow::tick = 0;
 const int TXWindow::dotSize = 4, TXWindow::tickSize = 8;
@@ -82,19 +81,17 @@ void TXWindow::init(Display* dpy, const char* defaultWindowClass_)
   scrollbarBg = cols[4].pixel;
   white = enabledBg = cols[5].pixel;
   defaultGC = XCreateGC(dpy, DefaultRootWindow(dpy), 0, nullptr);
-  defaultFS
-    = XLoadQueryFont(dpy, "-*-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*");
+  char** missing_charset_list;
+  int missing_charset_count;
+  defaultFS = XCreateFontSet(
+    dpy, "-*-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*,fixed",
+    &missing_charset_list, &missing_charset_count, nullptr);
   if (!defaultFS) {
-    defaultFS = XLoadQueryFont(dpy, "fixed");
-    if (!defaultFS) {
-      fprintf(stderr,"Failed to load any font\n");
-      exit(1);
-    }
+    fprintf(stderr,"Failed to load any font\n");
+    exit(1);
   }
-  defaultFont = defaultFS->fid;
   XSetForeground(dpy, defaultGC, defaultFg);
   XSetBackground(dpy, defaultGC, defaultBg);
-  XSetFont(dpy, defaultGC, defaultFont);
   XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
 
   static unsigned char dotBits[] = { 0x06, 0x0f, 0x0f, 0x06};

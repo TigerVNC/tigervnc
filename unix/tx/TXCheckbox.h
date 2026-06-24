@@ -58,7 +58,6 @@ public:
     setEventHandler(this);
     setText(text_);
     gc = XCreateGC(dpy, win(), 0, nullptr);
-    XSetFont(dpy, gc, defaultFont);
     addEventMask(ExposureMask| ButtonPressMask | ButtonReleaseMask);
   }
 
@@ -71,8 +70,10 @@ public:
   void setText(const char* text_) {
     if (text) free(text);
     text = strdup((char*)text_);
-    int textWidth = XTextWidth(defaultFS, text, strlen(text));
-    int textHeight = (defaultFS->ascent + defaultFS->descent);
+    XRectangle textExtents;
+    Xutf8TextExtents(defaultFS, text, strlen(text), &textExtents, nullptr);
+    int textWidth = textExtents.width;
+    int textHeight = textExtents.height;
     int newWidth = std::max(width(), textWidth + xPad*2 + boxPad*2 + boxSize);
     int newHeight = std::max(height(), textHeight + yPad*2);
     if (width() < newWidth || height() < newHeight) {
@@ -106,9 +107,11 @@ private:
                  xPad + boxPad + (boxSize - iconSize) / 2,
                  (height() - iconSize) / 2, 1);
     }
-    XDrawString(dpy, win(), gc, xPad + boxSize + boxPad*2,
-                (height() + defaultFS->ascent - defaultFS->descent) / 2,
-                text, strlen(text));
+    XRectangle textExtents;
+    Xutf8TextExtents(defaultFS, text, strlen(text), &textExtents, nullptr);
+    Xutf8DrawString(dpy, win(), defaultFS, gc, xPad + boxSize + boxPad*2,
+                    height() - (height() - textExtents.height) / 2,
+                    text, strlen(text));
   }
 
   void handleEvent(TXWindow* /*w*/, XEvent* ev) override {

@@ -51,7 +51,6 @@ public:
     setEventHandler(this);
     setText(text_);
     gc = XCreateGC(dpy, win(), 0, nullptr);
-    XSetFont(dpy, gc, defaultFont);
     addEventMask(ExposureMask | ButtonPressMask | ButtonReleaseMask);
   }
 
@@ -62,8 +61,11 @@ public:
   // setText() changes the text in the button.
   void setText(const char* text_) {
     text = text_;
-    int textWidth = XTextWidth(defaultFS, text.data(), text.size());
-    int textHeight = (defaultFS->ascent + defaultFS->descent);
+    XRectangle textExtents;
+    Xutf8TextExtents(defaultFS, text.data(), text.size(),
+                     &textExtents, nullptr);
+    int textWidth = textExtents.width;
+    int textHeight = textExtents.height;
     int newWidth = std::max(width(), textWidth + xPad*2 + bevel*2);
     int newHeight = std::max(height(), textHeight + yPad*2 + bevel*2);
     if (width() < newWidth || height() < newHeight) {
@@ -79,9 +81,11 @@ public:
 private:
 
   void paint() {
-    int tw = XTextWidth(defaultFS, text.data(), text.size());
-    int startx = (width() - tw) / 2;
-    int starty = (height() + defaultFS->ascent - defaultFS->descent) / 2;
+    XRectangle textExtents;
+    Xutf8TextExtents(defaultFS, text.data(), text.size(),
+                     &textExtents, nullptr);
+    int startx = (width() - textExtents.width) / 2;
+    int starty = height() - (height() - textExtents.height) / 2;
     if (down || disabled_) {
       drawBevel(gc, 0, 0, width(), height(), bevel, defaultBg, darkBg,lightBg);
       startx++; starty++;
@@ -90,7 +94,7 @@ private:
     }
 
     XSetForeground(dpy, gc, disabled_ ? disabledFg : defaultFg);
-    XDrawString(dpy, win(), gc, startx, starty, text.data(), text.size());
+    Xutf8DrawString(dpy, win(), defaultFS, gc, startx, starty, text.data(), text.size());
   }
 
   void handleEvent(TXWindow* /*w*/, XEvent* ev) override {
