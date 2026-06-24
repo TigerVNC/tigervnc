@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <locale.h>
 #include <stdio.h>
 
 #ifdef WIN32
@@ -96,6 +97,7 @@ static const char* getlocaledir()
 static void initTranslations()
 {
   const char* localedir;
+  const char* curlocale;
 
   if (initialized)
     return;
@@ -104,10 +106,19 @@ static void initTranslations()
   initialized = true;
 
   localedir = getlocaledir();
-  if (localedir == nullptr)
+  if (localedir == nullptr) {
     fprintf(stderr, "Failed to determine locale directory\n");
-  else
-    bindtextdomain(DEFAULT_TEXT_DOMAIN, localedir);
+    return;
+  }
+
+  // We translate things in global object constructors, which means that
+  // we need to figure out the locale before main() has had a chance to
+  // run setlocale()
+  curlocale = setlocale(LC_MESSAGES, NULL);
+  if (strcmp(curlocale, "C") == 0)
+    setlocale(LC_MESSAGES, "");
+
+  bindtextdomain(DEFAULT_TEXT_DOMAIN, localedir);
 }
 
 const char *dgettext_rfb(const char *domainname, const char *msgid)
