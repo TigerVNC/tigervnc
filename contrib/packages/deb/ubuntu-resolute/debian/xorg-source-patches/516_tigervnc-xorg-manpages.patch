@@ -1,0 +1,10 @@
+--- a/unix/xserver/man/Makefile.am	2013-03-30 17:51:01.707258746 -0400
++++ b/unix/xserver/man/Makefile.am	2013-03-30 17:51:47.606569692 -0400
+@@ -2,5 +2,7 @@
+ # (i.e. those handled in the os/utils.c options processing instead of in
+ #  the DDX-level options processing)
+ 
++if ENABLE_DOCS
+ include $(top_srcdir)/manpages.am
+ appman_PRE = Xserver.man
++endif ENABLE_DOCS 

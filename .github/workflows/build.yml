@@ -228,6 +228,7 @@ jobs:
           - rocky10
           - jammy
           - noble
+          - resolute
       fail-fast: false
     runs-on: ubuntu-latest
     env:

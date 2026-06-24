@@ -1,0 +1,5 @@
+?package(xtigervncviewer):needs="x11" \
+  section="Applications/Network/Communication" \
+  hints="VNC,remote-control"\
+  title="xtigervncviewer" \
+  command="/usr/bin/xtigervncviewer"

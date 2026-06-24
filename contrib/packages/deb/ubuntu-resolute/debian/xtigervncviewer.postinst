@@ -1,0 +1,18 @@
+#!/bin/sh -e
+
+if [ "$1" = "configure" ]; then
+    MAN=/usr/share/man/man1
+    BIN=/usr/bin
+    update-alternatives --install \
+       $BIN/vncviewer       vncviewer       $BIN/xtigervncviewer 74 \
+       --slave \
+       $MAN/vncviewer.1.gz  vncviewer.1.gz  $MAN/xtigervncviewer.1.gz \
+       --slave \
+       $MAN/xvncviewer.1.gz xvncviewer.1.gz $MAN/xtigervncviewer.1.gz \
+       --slave \
+       $BIN/xvncviewer      xvncviewer      $BIN/xtigervncviewer
+fi
+
+#DEBHELPER#
+
+exit 0
