@@ -244,6 +244,7 @@ bool KeyboardWin32::handleEvent(const void* event)
     }
 
     if (vKey == VK_PACKET) {
+      assert(systemKeyCode == 0);
       systemKeyCode = SCAN_VK_PACKET;
     }
 
