@@ -289,6 +289,7 @@ bool KeyboardWin32::handleEvent(const void* event)
         // We have received a high surrogate code unit. Remember it and wait for
         // the low surrogate which should come immediately after.
         if (vkPacketHighSurrogate) {
+          // High surrogate followed by another high surrogate
           vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
                        "codes: 0x%04x, 0x%04x"),
                      vkPacketHighSurrogate, ucsCode);
@@ -301,6 +302,7 @@ bool KeyboardWin32::handleEvent(const void* event)
         // We have received a low surrogate code unit. We should have a high
         // surrogate saved that we can use to calculate the code point.
         if (!vkPacketHighSurrogate) {
+          // Low surrogate not directly preceded by a high surrogate
           vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
                        "code: 0x%04x"),
                      ucsCode);
@@ -312,6 +314,7 @@ bool KeyboardWin32::handleEvent(const void* event)
         keySym = ucs2keysym(codePoint);
       }
     } else if (vkPacketHighSurrogate) {
+      // High surrogate not directly followed by a low surrogate
       vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
                    "code: 0x%04x"),
                  vkPacketHighSurrogate);
