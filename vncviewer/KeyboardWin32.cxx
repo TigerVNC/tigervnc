@@ -309,8 +309,6 @@ bool KeyboardWin32::handleEvent(const void* event)
                               (ucsCode & 0x03ff)) + 0x010000;
         vkPacketHighSurrogate = 0;
         keySym = ucs2keysym(codePoint);
-        handler->handleKeyPress(systemKeyCode, keyCode, keySym);
-        return true;
       }
     } else if (vkPacketHighSurrogate) {
       vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
@@ -353,6 +351,11 @@ bool KeyboardWin32::handleEvent(const void* event)
     }
 
     handler->handleKeyPress(systemKeyCode, keyCode, keySym);
+
+    // While VK_PACKET does deliver a key release immediately after key down, we
+    // gain nothing from relying on it.
+    if (systemKeyCode == SCAN_VK_PACKET)
+      handler->handleKeyRelease(systemKeyCode);
 
     // We don't get reliable WM_KEYUP for these
     switch (keySym) {
@@ -398,7 +401,8 @@ bool KeyboardWin32::handleEvent(const void* event)
     }
 
     if (vKey == VK_PACKET) {
-      systemKeyCode = SCAN_VK_PACKET;
+      // Release of VK_PACKET handled in WM_KEYDOWN branch above.
+      return true;
     }
 
     if (systemKeyCode == 0x00)
