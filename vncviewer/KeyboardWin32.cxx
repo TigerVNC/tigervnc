@@ -53,6 +53,9 @@
 // Used to detect fake input (0xaa is not a real key)
 static const WORD SCAN_FAKE = 0xaa;
 
+// Fake scan code to represent VK_PACKET
+static const int SCAN_VK_PACKET = 0x1ff;
+
 static core::LogWriter vlog("KeyboardWin32");
 
 // Layout independent keys
@@ -240,9 +243,13 @@ bool KeyboardWin32::handleEvent(const void* event)
       return true;
     }
 
+    if (vKey == VK_PACKET) {
+      systemKeyCode = SCAN_VK_PACKET;
+    }
+
     // Windows sets the scan code to 0x00 for multimedia keys, so we
     // have to do a reverse lookup based on the vKey.
-    if (systemKeyCode == 0x00 && vKey != VK_PACKET) {
+    if (systemKeyCode == 0x00) {
       systemKeyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
       if (systemKeyCode == 0x00) {
         if (isExtended)
@@ -253,7 +260,7 @@ bool KeyboardWin32::handleEvent(const void* event)
       }
     }
 
-    if (systemKeyCode & ~0x7f) {
+    if (systemKeyCode != SCAN_VK_PACKET && (systemKeyCode & ~0x7f)) {
       vlog.error(_("Invalid scan code 0x%02x"), (int)systemKeyCode);
       return true;
     }
@@ -302,7 +309,6 @@ bool KeyboardWin32::handleEvent(const void* event)
                               (ucsCode & 0x03ff)) + 0x010000;
         vkPacketHighSurrogate = 0;
         keySym = ucs2keysym(codePoint);
-        keyCode = 0x01000000 | codePoint; // Fake key code
         handler->handleKeyPress(systemKeyCode, keyCode, keySym);
         return true;
       }
@@ -389,6 +395,10 @@ bool KeyboardWin32::handleEvent(const void* event)
     if (systemKeyCode == SCAN_FAKE) {
       vlog.debug("Ignoring fake key release (virtual key 0x%02x)", vKey);
       return 1;
+    }
+
+    if (vKey == VK_PACKET) {
+      systemKeyCode = SCAN_VK_PACKET;
     }
 
     if (systemKeyCode == 0x00)
@@ -625,6 +635,11 @@ uint32_t KeyboardWin32::translateSystemKeyCode(int systemKeyCode)
   // And NumLock incorrectly has the extended bit set
   if (systemKeyCode == 0xc5)
     return 0x45;
+
+  // VK_PACKET only has a fake key code, and should be sent to server as 0.
+  if (systemKeyCode == SCAN_VK_PACKET) {
+    return 0;
+  }
 
   return systemKeyCode;
 }
