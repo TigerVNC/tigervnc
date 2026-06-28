@@ -23,9 +23,16 @@
 #endif
 
 #include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/stat.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+
+#include <fstream>
+#include <vector>
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/x509.h>
@@ -77,6 +84,174 @@ std::string CConn::savedPassword;
 #endif
 
 static core::LogWriter vlog("CConn");
+
+// Persistent per-server password storage. Passwords are stored
+// obfuscated (the same weak scheme used by PasswordFile) under the VNC
+// config directory, keyed by server host and port. This is convenience,
+// not strong security: anyone with read access to the files can recover
+// the password.
+
+static std::string credentialKey(const std::string& host, int port)
+{
+  std::string key;
+
+  for (char c : host) {
+    if (isalnum((unsigned char)c) || (c == '.') || (c == '-'))
+      key += c;
+    else
+      key += '_';
+  }
+  if (port != 0)
+    key += core::format("_%d", port);
+
+  return key;
+}
+
+static std::string credentialBase(const std::string& host, int port)
+{
+  const char* configDir = core::getvncconfigdir();
+  if (configDir == nullptr)
+    return "";
+  return std::string(configDir) + "/saved-passwords/" +
+         credentialKey(host, port);
+}
+
+// rfb::obfuscate() only handles the 8 bytes used by classic VNC auth.
+// Process the password in 8-byte blocks so passwords of any length (e.g.
+// for VeNCrypt/RSA-AES username+password auth) survive a round-trip. A
+// single 8-byte file (the previous format) still decodes correctly.
+
+static std::vector<uint8_t> obfuscatePassword(const std::string& password)
+{
+  std::vector<uint8_t> out;
+
+  for (size_t i = 0; i < password.size(); i += 8) {
+    std::vector<uint8_t> block = rfb::obfuscate(password.c_str() + i);
+    out.insert(out.end(), block.begin(), block.end());
+  }
+
+  return out;
+}
+
+static std::string deobfuscatePassword(const std::vector<uint8_t>& data)
+{
+  std::string result;
+
+  // Each block deobfuscates to up to 8 characters, terminating early on
+  // the zero padding of the final block (passwords contain no NUL bytes).
+  for (size_t i = 0; i < data.size(); i += 8)
+    result += rfb::deobfuscate(data.data() + i, 8);
+
+  return result;
+}
+
+static bool loadSavedCredentials(const std::string& host, int port,
+                                 bool wantUser, std::string* user,
+                                 std::string* password)
+{
+  std::string base;
+  FILE* fp;
+  std::vector<uint8_t> obfPwd;
+  uint8_t buf[8];
+  size_t n;
+
+  base = credentialBase(host, port);
+  if (base.empty())
+    return false;
+
+  fp = fopen((base + ".passwd").c_str(), "rb");
+  if (!fp)
+    return false;
+  while ((n = fread(buf, 1, sizeof(buf), fp)) > 0)
+    obfPwd.insert(obfPwd.end(), buf, buf + n);
+  fclose(fp);
+
+  if ((obfPwd.size() == 0) || ((obfPwd.size() % 8) != 0))
+    return false;
+
+  try {
+    *password = deobfuscatePassword(obfPwd);
+  } catch (std::exception&) {
+    return false;
+  }
+
+  if (wantUser && user) {
+    fp = fopen((base + ".user").c_str(), "r");
+    if (fp) {
+      char userBuf[256];
+      if (fgets(userBuf, sizeof(userBuf), fp)) {
+        size_t len = strlen(userBuf);
+        while ((len > 0) &&
+               ((userBuf[len-1] == '\n') || (userBuf[len-1] == '\r')))
+          userBuf[--len] = '\0';
+        *user = userBuf;
+      }
+      fclose(fp);
+    }
+  }
+
+  return true;
+}
+
+static void clearSavedCredentials(const std::string& host, int port)
+{
+  std::string base;
+
+  base = credentialBase(host, port);
+  if (base.empty())
+    return;
+
+  remove((base + ".passwd").c_str());
+  remove((base + ".user").c_str());
+}
+
+static void saveCredentials(const std::string& host, int port,
+                            const std::string* user,
+                            const std::string& password)
+{
+  const char* configDir;
+  std::string dir, base;
+  std::vector<uint8_t> obfPwd;
+  FILE* fp;
+
+  configDir = core::getvncconfigdir();
+  if (configDir == nullptr) {
+    vlog.error(_("Could not determine VNC config directory path"));
+    return;
+  }
+
+  dir = std::string(configDir) + "/saved-passwords";
+  if ((core::mkdir_p(dir.c_str(), 0700) == -1) && (errno != EEXIST)) {
+    vlog.error(_("Failed to create directory \"%s\": %s"),
+               dir.c_str(), strerror(errno));
+    return;
+  }
+
+  base = dir + "/" + credentialKey(host, port);
+
+  obfPwd = obfuscatePassword(password);
+  fp = fopen((base + ".passwd").c_str(), "wb");
+  if (!fp) {
+    vlog.error(_("Failed to open \"%s\": %s"),
+               (base + ".passwd").c_str(), strerror(errno));
+    return;
+  }
+  fwrite(obfPwd.data(), 1, obfPwd.size(), fp);
+  fclose(fp);
+  chmod((base + ".passwd").c_str(), 0600);
+
+  if (user && !user->empty()) {
+    fp = fopen((base + ".user").c_str(), "w");
+    if (fp) {
+      fprintf(fp, "%s\n", user->c_str());
+      fclose(fp);
+      chmod((base + ".user").c_str(), 0600);
+    }
+  } else {
+    // No username for this server; make sure a stale one doesn't linger
+    remove((base + ".user").c_str());
+  }
+}
 
 // 8 colours (1 bit per component)
 static const rfb::PixelFormat verylowColourPF(8, 3,false, true,
@@ -306,6 +481,9 @@ void CConn::processNextMsg(core::Timer*)
   } catch (rfb::auth_error& e) {
     savedUsername.clear();
     savedPassword.clear();
+    // The stored password (if any) was rejected, so discard it to avoid
+    // getting stuck reusing bad credentials on the next connection
+    clearSavedCredentials(serverHost, serverPort);
     vlog.error(_("Authentication failed: %s"), e.what());
     abort_connection(_("Failed to authenticate with the server. Reason "
                        "given by the server:\n\n%s"), e.what());
@@ -384,7 +562,28 @@ void CConn::getUserPasswd(bool secure, std::string *user,
     return;
   }
 
-  AuthDialog d(secure, user != nullptr, password != nullptr);
+  // Saved to disk during a previous session for this specific server?
+  {
+    std::string diskUser, diskPwd;
+    if (loadSavedCredentials(serverHost, serverPort,
+                             user != nullptr, &diskUser, &diskPwd)) {
+      // Only reuse silently if we have everything the server needs
+      if (!user || !diskUser.empty()) {
+        if (user)
+          *user = diskUser;
+        *password = diskPwd;
+        return;
+      }
+    }
+  }
+
+  // Pre-check the "remember" box if we already have something saved for
+  // this server (e.g. we're re-prompting after a password change)
+  std::string tmpPwd;
+  bool hadSaved = loadSavedCredentials(serverHost, serverPort, false,
+                                       nullptr, &tmpPwd);
+
+  AuthDialog d(secure, user != nullptr, password != nullptr, hadSaved);
   d.show();
   while (d.shown())
     Fl::wait();
@@ -406,6 +605,15 @@ void CConn::getUserPasswd(bool secure, std::string *user,
     *password = d.getPassword();
     if (keepPasswd)
       savedPassword = d.getPassword();
+
+    if (d.getSavePassword()) {
+      std::string savedUser = user ? *user : "";
+      saveCredentials(serverHost, serverPort,
+                      user ? &savedUser : nullptr, *password);
+    } else {
+      // Unchecked: drop any credentials saved for this server before
+      clearSavedCredentials(serverHost, serverPort);
+    }
   }
 
   if (ret_val != 1)
@@ -770,24 +978,157 @@ bool CConn::verifyCertificate(unsigned int status,
 #endif
 }
 
+// Trust-on-first-use storage for non-X.509 server keys (e.g. the RSA key
+// used by the RSA-AES security types). The accepted key is remembered so
+// the user isn't asked to verify the same fingerprint on every connection,
+// much like SSH's known_hosts. Stored as "<servername> <hexkey>" lines.
+
+static std::string hostKeyPath()
+{
+  const char* stateDir = core::getvncstatedir();
+  if (stateDir == nullptr)
+    return "";
+  return std::string(stateDir) + "/known_host_keys";
+}
+
+static std::string hexEncode(const uint8_t* data, size_t length)
+{
+  static const char digits[] = "0123456789abcdef";
+  std::string out;
+
+  out.reserve(length * 2);
+  for (size_t i = 0; i < length; i++) {
+    out += digits[(data[i] >> 4) & 0xf];
+    out += digits[data[i] & 0xf];
+  }
+
+  return out;
+}
+
+// 0 = host not known, 1 = known and key matches, -1 = known but key differs
+static int lookupHostKey(const std::string& serverName,
+                         const std::string& keyHex)
+{
+  std::string path;
+  std::ifstream f;
+  std::string line;
+
+  path = hostKeyPath();
+  if (path.empty())
+    return 0;
+
+  f.open(path);
+  if (!f.is_open())
+    return 0;
+
+  while (std::getline(f, line)) {
+    size_t sep = line.find(' ');
+    if (sep == std::string::npos)
+      continue;
+    if (line.substr(0, sep) == serverName)
+      return (line.substr(sep + 1) == keyHex) ? 1 : -1;
+  }
+
+  return 0;
+}
+
+static void storeHostKey(const std::string& serverName,
+                         const std::string& keyHex)
+{
+  const char* stateDir;
+  std::string path;
+  std::vector<std::string> lines;
+
+  stateDir = core::getvncstatedir();
+  if (stateDir == nullptr) {
+    vlog.error(_("Could not determine VNC state directory path"));
+    return;
+  }
+
+  if ((core::mkdir_p(stateDir, 0700) == -1) && (errno != EEXIST)) {
+    vlog.error(_("Failed to create directory \"%s\": %s"),
+               stateDir, strerror(errno));
+    return;
+  }
+
+  path = std::string(stateDir) + "/known_host_keys";
+
+  // Preserve other hosts, dropping any previous entry for this server
+  {
+    std::ifstream in(path);
+    std::string line;
+    while (std::getline(in, line)) {
+      size_t sep = line.find(' ');
+      if (sep == std::string::npos)
+        continue;
+      if (line.substr(0, sep) == serverName)
+        continue;
+      lines.push_back(line);
+    }
+  }
+  lines.push_back(serverName + " " + keyHex);
+
+  std::ofstream out(path, std::ios::trunc);
+  if (!out.is_open()) {
+    vlog.error(_("Failed to open \"%s\": %s"), path.c_str(),
+               strerror(errno));
+    return;
+  }
+  for (const std::string& line : lines)
+    out << line << "\n";
+  out.close();
+
+  chmod(path.c_str(), 0600);
+}
+
 bool CConn::verifyHostKey(const uint8_t* key, size_t length,
                           const char* fingerprint)
 {
-  std::string text = core::format(
-    _("The server has provided the following identifying information:\n"
-      "\n"
-      "Fingerprint: %s\n"
-      "\n"
-      "Do you want to continue connecting to this server?"),
-    fingerprint);
-  fl_message_title(_("Verify server key"));
+  std::string keyHex;
+  std::string text;
+  int known;
+
+  keyHex = hexEncode(key, length);
+  known = lookupHostKey(getServerName(), keyHex);
+
+  /* Previously accepted and unchanged? */
+  if (known == 1) {
+    vlog.info(_("Server has an existing security exception"));
+    return true;
+  }
+
+  if (known == -1) {
+    /* Key has changed since last time - this could be an attack */
+    text = core::format(
+      _("The server has changed its key since you last connected:\n"
+        "\n"
+        "Fingerprint: %s\n"
+        "\n"
+        "Someone could be trying to impersonate the server and you "
+        "should not continue unless you know the key was changed "
+        "intentionally.\n"
+        "\n"
+        "Do you want to trust the new key and continue connecting?"),
+      fingerprint);
+    fl_message_title(_("Unexpected server key"));
+  } else {
+    text = core::format(
+      _("The server has provided the following identifying information:\n"
+        "\n"
+        "Fingerprint: %s\n"
+        "\n"
+        "Do you want to continue connecting to this server?"),
+      fingerprint);
+    fl_message_title(_("Verify server key"));
+  }
+
   if (fl_choice("%s", nullptr, fl_cancel, _("Continue"),
                 fltk_escape(text).c_str()) != 2)
     return false;
 
-  // FIXME: Should save this for TOFU
-  (void)key;
-  (void)length;
+  // Trust on first use: remember the key so we don't ask again
+  storeHostKey(getServerName(), keyHex);
+  vlog.info(_("Security exception added for server host"));
 
   return true;
 }

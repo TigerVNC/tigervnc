@@ -49,7 +49,8 @@
 static Fl_Pixmap secure_icon(secure);
 static Fl_Pixmap insecure_icon(insecure);
 
-AuthDialog::AuthDialog(bool secure_, bool needsUser, bool needsPassword)
+AuthDialog::AuthDialog(bool secure_, bool needsUser, bool needsPassword,
+                       bool savePassword)
   : Fl_Window(410, 0, _("VNC authentication"))
 {
   int x, y;
@@ -113,9 +114,17 @@ AuthDialog::AuthDialog(bool secure_, bool needsUser, bool needsPassword)
     } else {
       keepPasswdCheckbox = nullptr;
     }
+
+    savePasswdCheckbox = new Fl_Check_Button(LBLRIGHT(x, y,
+                                                      CHECK_MIN_WIDTH,
+                                                      CHECK_HEIGHT,
+                                                      _("Remember password for this server")));
+    savePasswdCheckbox->value(savePassword);
+    y += CHECK_HEIGHT + INNER_MARGIN;
   } else {
     passwd = nullptr;
     keepPasswdCheckbox = nullptr;
+    savePasswdCheckbox = nullptr;
   }
 
   x = w() - OUTER_MARGIN;
@@ -169,6 +178,13 @@ bool AuthDialog::getKeepPassword()
 {
   if (keepPasswdCheckbox)
     return keepPasswdCheckbox->value();
+  return false;
+}
+
+bool AuthDialog::getSavePassword()
+{
+  if (savePasswdCheckbox)
+    return savePasswdCheckbox->value();
   return false;
 }
 

@@ -33,7 +33,8 @@ class CConn;
 class AuthDialog : public Fl_Window
 {
 public:
-  AuthDialog(bool secure, bool needsUser, bool needsPassword);
+  AuthDialog(bool secure, bool needsUser, bool needsPassword,
+             bool savePassword=false);
   ~AuthDialog();
 
   int result();
@@ -41,12 +42,14 @@ public:
   std::string getUser();
   std::string getPassword();
   bool getKeepPassword();
+  bool getSavePassword();
 
 private:
   static void button_cb(Fl_Widget *w, long val);
 
 private:
   Fl_Check_Button* keepPasswdCheckbox;
+  Fl_Check_Button* savePasswdCheckbox;
   Fl_Input* username;
   Fl_Secret_Input* passwd;
 
