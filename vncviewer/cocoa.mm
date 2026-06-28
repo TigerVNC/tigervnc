@@ -270,3 +270,11 @@ void cocoa_win_zoom(Fl_Window *win)
   assert(nsw);
   [nsw zoom:nsw];
 }
+
+void cocoa_enable_minimize(Fl_Window *win)
+{
+  NSWindow *nsw;
+  nsw = (NSWindow*)fl_xid(win);
+  assert(nsw);
+  nsw.styleMask |= NSWindowStyleMaskMiniaturizable;
+}

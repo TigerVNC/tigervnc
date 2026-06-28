@@ -37,4 +37,6 @@ CGColorSpaceRef cocoa_win_color_space(Fl_Window *win);
 bool cocoa_win_is_zoomed(Fl_Window *win);
 void cocoa_win_zoom(Fl_Window *win);
 
+void cocoa_enable_minimize(Fl_Window *win);
+
 #endif
