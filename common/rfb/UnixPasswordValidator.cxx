@@ -72,11 +72,9 @@ static int pam_callback(int count, const struct pam_message **in,
     resp[i].resp_retcode = PAM_SUCCESS;
     switch (in[i]->msg_style) {
     case PAM_TEXT_INFO:
-      auth->msg = in[i]->msg;
       resp[i].resp = nullptr;
       break;
     case PAM_ERROR_MSG:
-      auth->msg = in[i]->msg;
       resp[i].resp = nullptr;
       break;
     case PAM_PROMPT_ECHO_ON:	/* Send Username */
