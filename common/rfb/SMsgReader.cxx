@@ -167,7 +167,7 @@ bool SMsgReader::readSetDesktopSize()
   ScreenSet layout;
 
   if (!is->hasData(1 + 2 + 2 + 1 + 1))
-    return true;
+    return false;
 
   is->setRestorePoint();
 
