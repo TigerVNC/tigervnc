@@ -197,6 +197,7 @@ namespace rfb {
     std::list<VNCSConnectionST*> clipboardRequestors;
 
     time_t pointerClientTime;
+    time_t lastSetDesktopSizeTime;
 
     ComparingUpdateTracker* comparer;
 

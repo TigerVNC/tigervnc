@@ -90,6 +90,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     desktopStarting(false), blockCounter(0), pb(nullptr),
     ledState(ledUnknown), name(name_), pointerClient(nullptr),
     clipboardClient(nullptr), pointerClientTime(0),
+    lastSetDesktopSizeTime(0),
     comparer(nullptr), cursor(new Cursor(0, 0, {}, nullptr)),
     renderedCursorInvalid(false),
     keyRemapper(&KeyRemapper::defInstance),
@@ -619,6 +620,16 @@ unsigned int VNCServerST::setDesktopSize(VNCSConnectionST* requester,
   if (!rfb::Server::acceptSetDesktopSize) {
     slog.debug("Rejecting unauthorized framebuffer resize request");
     return resultProhibited;
+  }
+
+  // Rate limit resize requests to prevent memory exhaustion DoS
+  {
+    time_t now = time(nullptr);
+    if (now - lastSetDesktopSizeTime < 1) {
+      slog.debug("Rate limiting framebuffer resize request");
+      return resultProhibited;
+    }
+    lastSetDesktopSizeTime = now;
   }
 
   // We can't handle a framebuffer larger than this, so don't let a
