@@ -29,6 +29,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include <core/Configuration.h>
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 #include <core/string.h>
@@ -37,6 +38,7 @@
 #include <rfb/CMsgWriter.h>
 
 #include "DesktopWindow.h"
+#include "MonitorIndicesParameter.h"
 #include "OptionsDialog.h"
 #include "parameters.h"
 #include "vncviewer.h"
