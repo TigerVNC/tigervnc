@@ -56,7 +56,8 @@ SConnection::SConnection(AccessRights accessRights_)
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
     accessRights(accessRights_), hasRemoteClipboard(false),
     hasLocalClipboard(false),
-    unsolicitedClipboardAttempt(false)
+    unsolicitedClipboardAttempt(false),
+    pendingClipboardRequest(false)
 {
   defaultMajorVersion = 3;
   defaultMinorVersion = 8;
@@ -408,13 +409,13 @@ void SConnection::setEncodings(int nEncodings, const int32_t* encodings)
 
 void SConnection::clientCutText(const char* str)
 {
+  if (!accessCheck(AccessCutText))
+    return;
+
   hasLocalClipboard = false;
 
   clientClipboard = str;
   hasRemoteClipboard = true;
-
-  if (!accessCheck(AccessCutText))
-    return;
 
   handleClipboardAnnounce(true);
 }
@@ -485,6 +486,7 @@ void SConnection::handleClipboardPeek()
 void SConnection::handleClipboardNotify(uint32_t flags)
 {
   hasRemoteClipboard = false;
+  pendingClipboardRequest = false;
 
   if (flags & rfb::clipboardUTF8) {
     hasLocalClipboard = false;
@@ -513,13 +515,19 @@ void SConnection::handleClipboardProvide(uint32_t flags,
     vlog.error(_("Invalid UTF-8 sequence in clipboard"));
     return;
   }
-  clientClipboard = core::convertLF((const char*)data[0], lengths[0]);
-  hasRemoteClipboard = true;
 
   if (!accessCheck(AccessCutText))
     return;
 
-  // FIXME: Should probably verify that this data was actually requested
+  if (!pendingClipboardRequest) {
+    vlog.debug("Ignoring unsolicited clipboard provide");
+    return;
+  }
+  pendingClipboardRequest = false;
+
+  clientClipboard = core::convertLF((const char*)data[0], lengths[0]);
+  hasRemoteClipboard = true;
+
   handleClipboardData(clientClipboard.c_str());
 }
 
@@ -662,8 +670,10 @@ void SConnection::requestClipboard()
   }
 
   if (client.supportsEncoding(pseudoEncodingExtendedClipboard) &&
-      (client.clipboardFlags() & rfb::clipboardRequest))
+      (client.clipboardFlags() & rfb::clipboardRequest)) {
     writer()->writeClipboardRequest(rfb::clipboardUTF8);
+    pendingClipboardRequest = true;
+  }
 }
 
 void SConnection::announceClipboard(bool available)

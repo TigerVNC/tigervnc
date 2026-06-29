@@ -293,6 +293,7 @@ namespace rfb {
     bool hasRemoteClipboard;
     bool hasLocalClipboard;
     bool unsolicitedClipboardAttempt;
+    bool pendingClipboardRequest;
   };
 }
 #endif
