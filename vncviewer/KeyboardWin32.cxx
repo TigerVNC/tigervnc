@@ -53,6 +53,9 @@
 // Used to detect fake input (0xaa is not a real key)
 static const WORD SCAN_FAKE = 0xaa;
 
+// Fake scan code to represent VK_PACKET
+static const int SCAN_VK_PACKET = 0x1ff;
+
 static core::LogWriter vlog("KeyboardWin32");
 
 // Layout independent keys
@@ -171,7 +174,8 @@ static const UINT vkey_map_ko[][3] = {
 
 KeyboardWin32::KeyboardWin32(KeyboardHandler* handler_)
   : Keyboard(handler_), cachedHasAltGr(false), currentLayout(nullptr),
-    altGrArmed(false), leftShiftDown(false), rightShiftDown(false)
+    altGrArmed(false), vkPacketHighSurrogate(0), leftShiftDown(false),
+    rightShiftDown(false)
 {
 }
 
@@ -239,6 +243,11 @@ bool KeyboardWin32::handleEvent(const void* event)
       return true;
     }
 
+    if (vKey == VK_PACKET) {
+      assert(systemKeyCode == 0);
+      systemKeyCode = SCAN_VK_PACKET;
+    }
+
     // Windows sets the scan code to 0x00 for multimedia keys, so we
     // have to do a reverse lookup based on the vKey.
     if (systemKeyCode == 0x00) {
@@ -252,7 +261,7 @@ bool KeyboardWin32::handleEvent(const void* event)
       }
     }
 
-    if (systemKeyCode & ~0x7f) {
+    if (systemKeyCode != SCAN_VK_PACKET && (systemKeyCode & ~0x7f)) {
       vlog.error(_("Invalid scan code 0x%02x"), (int)systemKeyCode);
       return true;
     }
@@ -272,6 +281,45 @@ bool KeyboardWin32::handleEvent(const void* event)
       state[VK_CONTROL] = state[VK_LCONTROL] = state[VK_RCONTROL] = 0;
 
     keySym = translateVKey(vKey, isExtended, state);
+
+    // VK_PACKET Surrogate pair handling
+    if (vKey == VK_PACKET && ((keySym | 0x7ff) == 0x0100dfff)) {
+      unsigned ucsCode = keySym & 0xffff;
+      if ((ucsCode & 0xfc00) == 0xd800) {
+        // We have received a high surrogate code unit. Remember it and wait for
+        // the low surrogate which should come immediately after.
+        if (vkPacketHighSurrogate) {
+          // High surrogate followed by another high surrogate
+          vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
+                       "codes: 0x%04x, 0x%04x"),
+                     vkPacketHighSurrogate, ucsCode);
+        }
+        vkPacketHighSurrogate = ucsCode;
+        return true;
+      }
+      else {
+        assert((ucsCode & 0xfc00) == 0xdc00);
+        // We have received a low surrogate code unit. We should have a high
+        // surrogate saved that we can use to calculate the code point.
+        if (!vkPacketHighSurrogate) {
+          // Low surrogate not directly preceded by a high surrogate
+          vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
+                       "code: 0x%04x"),
+                     ucsCode);
+          return true;
+        }
+        uint32_t codePoint = (((vkPacketHighSurrogate & 0x03ff) << 10) |
+                              (ucsCode & 0x03ff)) + 0x010000;
+        vkPacketHighSurrogate = 0;
+        keySym = ucs2keysym(codePoint);
+      }
+    } else if (vkPacketHighSurrogate) {
+      // High surrogate not directly followed by a low surrogate
+      vlog.error(_("Unmatched UTF-16 surrogate pair through VK_PACKET, "
+                   "code: 0x%04x"),
+                 vkPacketHighSurrogate);
+      vkPacketHighSurrogate = 0;
+    }
 
     if (keySym == NoSymbol) {
       // Most Ctrl+Alt combinations will fail to produce a symbol, so
@@ -307,6 +355,11 @@ bool KeyboardWin32::handleEvent(const void* event)
     }
 
     handler->handleKeyPress(systemKeyCode, keyCode, keySym);
+
+    // While VK_PACKET does deliver a key release immediately after key down, we
+    // gain nothing from relying on it.
+    if (systemKeyCode == SCAN_VK_PACKET)
+      handler->handleKeyRelease(systemKeyCode);
 
     // We don't get reliable WM_KEYUP for these
     switch (keySym) {
@@ -349,6 +402,11 @@ bool KeyboardWin32::handleEvent(const void* event)
     if (systemKeyCode == SCAN_FAKE) {
       vlog.debug("Ignoring fake key release (virtual key 0x%02x)", vKey);
       return 1;
+    }
+
+    if (vKey == VK_PACKET) {
+      // Release of VK_PACKET handled in WM_KEYDOWN branch above.
+      return true;
     }
 
     if (systemKeyCode == 0x00)
@@ -586,6 +644,11 @@ uint32_t KeyboardWin32::translateSystemKeyCode(int systemKeyCode)
   if (systemKeyCode == 0xc5)
     return 0x45;
 
+  // VK_PACKET only has a fake key code, and should be sent to server as 0.
+  if (systemKeyCode == SCAN_VK_PACKET) {
+    return 0;
+  }
+
   return systemKeyCode;
 }
 
@@ -669,6 +732,13 @@ uint32_t KeyboardWin32::translateVKey(unsigned vkey, bool extended,
   // FIXME: Multi character results, like U+0644 U+0627
   //        on Arabic layout
   ret = ToUnicode(vkey, 0, state, wstr, sizeof(wstr)/sizeof(wstr[0]), 0);
+
+  if (vkey == VK_PACKET && ret == 1 && ((wstr[0] | 0x7ff) == 0xdfff)) {
+    // ucs2keysym correctly refuses to translate surrogate code units. They are
+    // invalid code points and invalid keysyms. Here, they are used only as
+    // intermediate values to be picked up by handleEvent().
+    return (unsigned)wstr[0] | 0x01000000;
+  }
 
   if (ret == 1)
     return ucs2keysym(wstr[0]);
