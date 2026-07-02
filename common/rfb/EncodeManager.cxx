@@ -922,6 +922,29 @@ void EncodeManager::writeSubRect(const core::Rect& rect,
 
   ppb = preparePixelBuffer(rect, pb, true);
 
+  // Draw red border arround damage
+  // TODO: Remove this after testing
+  //____________________________________
+  if (ppb != &convertedPixelBuffer) {
+    const uint8_t *src;
+    int stride;
+
+    convertedPixelBuffer.setPF(ppb->getPF());
+    convertedPixelBuffer.setSize(ppb->width(), ppb->height());
+    src = ppb->getBuffer(ppb->getRect(), &stride);
+    convertedPixelBuffer.imageRect(ppb->getPF(), convertedPixelBuffer.getRect(),
+                                   src, stride);
+    ppb = &convertedPixelBuffer;
+  }
+
+  uint32_t red = ppb->getPF().pixelFromRGB((uint8_t)255, (uint8_t)0, (uint8_t)0);
+  int w = ppb->width(), h = ppb->height();
+  convertedPixelBuffer.fillRect(core::Rect(0, 0, w, 1),   &red);  // top
+  convertedPixelBuffer.fillRect(core::Rect(0, h-1, w, h), &red);  // bottom
+  convertedPixelBuffer.fillRect(core::Rect(0, 0, 1, h),   &red);  // left
+  convertedPixelBuffer.fillRect(core::Rect(w-1, 0, w, h), &red);  // right
+  //________________________________________
+
   if (!analyseRect(ppb, &info, maxColours))
     info.palette.clear();
 

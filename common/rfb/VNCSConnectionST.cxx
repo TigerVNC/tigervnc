@@ -28,6 +28,7 @@
 #include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
+#include "core/Rect.h"
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -48,6 +49,7 @@
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/ledStates.h>
+#include "rfb/PixelBuffer.h"
 #define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
@@ -1078,7 +1080,32 @@ void VNCSConnectionST::writeDataUpdate()
 
   writeRTTPing();
 
-  encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  // Adds watermark to the framebuffer
+  //______________________________________
+  const PixelBuffer *ppb = server->getPixelBuffer();
+  
+  ManagedPixelBuffer convertedPixelBuffer;
+  const uint8_t *src;
+  int stride;
+
+  core::Rect rectSize = core::Rect(0,0,30,30);
+  
+  convertedPixelBuffer.setPF(ppb->getPF());
+  convertedPixelBuffer.setSize(ppb->width(), ppb->height());
+  src = ppb->getBuffer(ppb->getRect(), &stride);
+  convertedPixelBuffer.imageRect(ppb->getPF(), convertedPixelBuffer.getRect(),
+                                   src, stride);
+  // fill a small rect in the top-left with red
+  const uint8_t red[3] = { 255,0,0};
+
+  if(convertedPixelBuffer.width() >= rectSize.width() && convertedPixelBuffer.height() >= rectSize.height()){
+    convertedPixelBuffer.fillRect(rectSize, &red);  // top
+  }
+  
+  
+  encodeManager.writeUpdate(ui, &convertedPixelBuffer, cursor);
+//___________________________________________
+  
 
   writeRTTPing();
 
