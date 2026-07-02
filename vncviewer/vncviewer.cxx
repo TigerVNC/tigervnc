@@ -198,7 +198,8 @@ static void mainloop(const char* vncserver, network::Socket* sock)
       int ret;
       ret = fl_choice(_("%s\n\n"
                         "Attempt to reconnect?"),
-                      nullptr, fl_yes, fl_no, exitError.c_str());
+                      nullptr, _("Reconnect"), fl_close,
+                      exitError.c_str());
       exitError.clear();
       if (ret == 1)
         continue;
