@@ -74,6 +74,26 @@ TEST(AliasParameter, encoding)
   EXPECT_EQ(encoding.getValueStr(), "-456");
 }
 
+TEST(AliasParameter, default)
+{
+  core::IntParameter realparam("intparam", "", 30);
+  core::AliasParameter def("aliasparam", &realparam);
+
+  EXPECT_TRUE(def.isDefault());
+
+  def.setParam("123");
+  EXPECT_FALSE(def.isDefault());
+
+  def.setParam("30");
+  EXPECT_TRUE(def.isDefault());
+
+  realparam.setParam(123);
+  EXPECT_FALSE(def.isDefault());
+
+  realparam.setParam(30);
+  EXPECT_TRUE(def.isDefault());
+}
+
 TEST(AliasParameter, immutable)
 {
   core::IntParameter realparam("intparam", "", 0);
