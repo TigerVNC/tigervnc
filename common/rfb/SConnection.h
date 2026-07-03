@@ -37,6 +37,10 @@ namespace rdr {
   class OutStream;
 }
 
+namespace network {
+  class Socket;
+}
+
 namespace rfb {
 
   class SMsgReader;
@@ -46,13 +50,13 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection(AccessRights accessRights);
+    SConnection(network::Socket* s, AccessRights accessRights);
     virtual ~SConnection();
 
     // Methods to initialise the connection
 
-    // setStreams() sets the streams to be used for the connection.  These must
-    // be set before initialiseProtocol() and processMsg() are called.  The
+    // setStreams() sets the streams to be used for the connection.
+    // These default to using the socket input and output stream. The
     // SSecurity object may call setStreams() again to provide alternative
     // streams over which the RFB protocol is sent (i.e. encrypting/decrypting
     // streams).  Ownership of the streams remains with the caller
@@ -125,6 +129,10 @@ namespace rfb {
     // authentication. The storage is owned by the SConnection object,
     // so a copy must be taken if necessary.
     virtual const char* getUserName() const;
+
+    network::Socket* getSock() { return sock; }
+
+    const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
 
     SMsgReader* reader() { return reader_; }
     SMsgWriter* writer() { return writer_; }
@@ -272,9 +280,14 @@ namespace rfb {
     bool processSecurityFailure();
     bool processInitMsg();
 
+    void handleSocketTimeout(core::Timer* t);
     void handleAuthFailureTimeout(core::Timer* t);
 
     int defaultMajorVersion, defaultMinorVersion;
+
+    network::Socket* sock;
+    core::MethodTimer<SConnection> socketTimer;
+    std::string peerEndpoint;
 
     rdr::InStream* is;
     rdr::OutStream* os;

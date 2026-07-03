@@ -106,16 +106,12 @@ namespace rfb {
     // or because the current cursor position has not been set by this client.
     bool needRenderedCursor();
 
-    network::Socket* getSock() { return sock; }
-
     // Change tracking
 
     void add_changed(const core::Region& region) { updates.add_changed(region); }
     void add_copied(const core::Region& dest, const core::Point& delta) {
       updates.add_copied(dest, delta);
     }
-
-    const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
 
   private:
     using SConnection::approveConnection;
@@ -177,9 +173,6 @@ namespace rfb {
     void desktopReady() override;
 
   private:
-    network::Socket* sock;
-    core::Timer socketTimer;
-    std::string peerEndpoint;
     bool reverseConnection;
 
     bool inProcessMessages;

@@ -29,8 +29,12 @@
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 #include <core/string.h>
+#include <core/time.h>
 
-#include <rdr/OutStream.h>
+#include <rdr/FdInStream.h>
+#include <rdr/FdOutStream.h>
+
+#include <network/Socket.h>
 
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
@@ -47,10 +51,17 @@
 
 using namespace rfb;
 
+// Number of seconds allowed for authentication
+static const unsigned LOGIN_GRACE_TIME = 120;
+// Number of seconds allowed to flush a closing socket
+static const unsigned CLOSE_GRACE_TIME = 5;
+
 static core::LogWriter vlog("SConnection");
 
-SConnection::SConnection(AccessRights accessRights_)
-  : readyForSetColourMapEntries(false), is(nullptr), os(nullptr),
+SConnection::SConnection(network::Socket* s, AccessRights accessRights_)
+  : readyForSetColourMapEntries(false), sock(s),
+    socketTimer(this, &SConnection::handleSocketTimeout),
+    is(nullptr), os(nullptr),
     reader_(nullptr), writer_(nullptr), ssecurity(nullptr),
     authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
     state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
@@ -64,6 +75,11 @@ SConnection::SConnection(AccessRights accessRights_)
     defaultMinorVersion = 3;
 
   client.setVersion(defaultMajorVersion, defaultMinorVersion);
+
+  socketTimer.start(core::secsToMillis(LOGIN_GRACE_TIME));
+
+  setStreams(&sock->inStream(), &sock->outStream());
+  peerEndpoint = sock->getPeerEndpoint();
 }
 
 SConnection::~SConnection()
@@ -291,6 +307,14 @@ bool SConnection::processInitMsg()
 
   // Otherwise we need to wait
   return false;
+}
+
+void SConnection::handleSocketTimeout(core::Timer* /*t*/)
+{
+  if (state() == RFBSTATE_CLOSING)
+    getSock()->shutdownRead();
+  else
+    close(_("Authentication timeout"));
 }
 
 void SConnection::handleAuthFailureTimeout(core::Timer* /*t*/)
@@ -584,6 +608,7 @@ void SConnection::approveConnection(bool accept, const char* reason)
     state_ = RFBSTATE_INITIALISATION;
     reader_ = new SMsgReader(this, is);
     writer_ = new SMsgWriter(&client, os);
+    socketTimer.stop();
     authSuccess();
   } else {
     state_ = RFBSTATE_INVALID;
@@ -607,6 +632,8 @@ void SConnection::close(const char* /*reason*/)
 {
   state_ = RFBSTATE_CLOSING;
   cleanup();
+  sock->shutdownWrite();
+  socketTimer.start(core::secsToMillis(CLOSE_GRACE_TIME));
 }
 
 void SConnection::setPixelFormat(const PixelFormat& pf)
