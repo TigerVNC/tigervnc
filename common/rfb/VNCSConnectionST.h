@@ -27,6 +27,7 @@
 #ifndef __RFB_VNCSCONNECTIONST_H__
 #define __RFB_VNCSCONNECTIONST_H__
 
+#include "core/Configuration.h"
 #include <map>
 
 #include <core/Timer.h>
@@ -45,6 +46,7 @@ namespace rfb {
                      AccessRights ar);
     virtual ~VNCSConnectionST();
 
+    static core::StringParameter overlayRect;
     // SConnection methods
 
     bool accessCheck(AccessRights ar) const override;

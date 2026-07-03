@@ -18,6 +18,7 @@
  * USA.
  */
 
+#include "core/Configuration.h"
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -56,6 +57,9 @@
 #include <rfb/keysymdef.h>
 
 using namespace rfb;
+
+//  To this:
+core::StringParameter VNCSConnectionST::overlayRect("OverlayRect", "Overlay rectangle", "0,0,0,0");
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
@@ -1088,7 +1092,10 @@ void VNCSConnectionST::writeDataUpdate()
   const uint8_t *src;
   int stride;
 
-  core::Rect rectSize = core::Rect(0,0,30,30);
+  //TODO: do checks that the passed in value is valid
+  int overlayRectArray[4] = {0,0,0,0};
+  sscanf(overlayRect.getValueStr().c_str(), "%d,%d,%d,%d", &overlayRectArray[0], &overlayRectArray[1], &overlayRectArray[2], &overlayRectArray[3]);
+  core::Rect rectSize = core::Rect(overlayRectArray[0], overlayRectArray[1], overlayRectArray[2], overlayRectArray[3]);
   
   convertedPixelBuffer.setPF(ppb->getPF());
   convertedPixelBuffer.setSize(ppb->width(), ppb->height());
