@@ -77,7 +77,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(nullptr), congestionTimer(this),
-    losslessTimer(this), server(server_),
+    losslessTimer(this), server(server_), overlayBuffer(nullptr),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), idleTimer(this),
     pointerEventTime(0), clientHasCursor(false)
@@ -86,6 +86,12 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
 
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint = sock->getPeerEndpoint();
+
+  //Initialize the overlay buffer
+  int overlayRectArray[4] = {0,0,0,0};
+  sscanf(overlayRect.getValueStr().c_str(), "%d,%d,%d,%d", &overlayRectArray[0], &overlayRectArray[1], &overlayRectArray[2], &overlayRectArray[3]);
+  core::Rect _overlayRect = core::Rect(overlayRectArray[0], overlayRectArray[1], overlayRectArray[2], overlayRectArray[3]);
+  overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), _overlayRect);
 }
 
 
@@ -1084,34 +1090,12 @@ void VNCSConnectionST::writeDataUpdate()
 
   writeRTTPing();
 
-  // Adds watermark to the framebuffer
-  //______________________________________
-  const PixelBuffer *ppb = server->getPixelBuffer();
   
-  ManagedPixelBuffer convertedPixelBuffer;
-  const uint8_t *src;
-  int stride;
-
-  //TODO: do checks that the passed in value is valid
-  int overlayRectArray[4] = {0,0,0,0};
-  sscanf(overlayRect.getValueStr().c_str(), "%d,%d,%d,%d", &overlayRectArray[0], &overlayRectArray[1], &overlayRectArray[2], &overlayRectArray[3]);
-  core::Rect rectSize = core::Rect(overlayRectArray[0], overlayRectArray[1], overlayRectArray[2], overlayRectArray[3]);
-  
-  convertedPixelBuffer.setPF(ppb->getPF());
-  convertedPixelBuffer.setSize(ppb->width(), ppb->height());
-  src = ppb->getBuffer(ppb->getRect(), &stride);
-  convertedPixelBuffer.imageRect(ppb->getPF(), convertedPixelBuffer.getRect(),
-                                   src, stride);
-  // fill a small rect in the top-left with red
-  const uint8_t red[3] = { 255,0,0};
-
-  if(convertedPixelBuffer.width() >= rectSize.width() && convertedPixelBuffer.height() >= rectSize.height()){
-    convertedPixelBuffer.fillRect(rectSize, &red);  // top
+  if(overlayBuffer){
+    encodeManager.writeUpdate(ui, overlayBuffer, nullptr);
+  }else{
+    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
   }
-  
-  
-  encodeManager.writeUpdate(ui, &convertedPixelBuffer, cursor);
-//___________________________________________
   
 
   writeRTTPing();

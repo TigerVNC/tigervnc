@@ -38,6 +38,7 @@
 
 namespace rfb {
   class VNCServerST;
+  class OverlayBuffer;
 
   class VNCSConnectionST : private SConnection,
                            public core::Timer::Callback {
@@ -193,6 +194,7 @@ namespace rfb {
     core::Timer losslessTimer;
 
     VNCServerST* server;
+    OverlayPixelBuffer* overlayBuffer;
     SimpleUpdateTracker updates;
     core::Region requested;
     bool updateRenderedCursor, removeRenderedCursor;

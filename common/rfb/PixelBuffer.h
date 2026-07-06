@@ -192,6 +192,20 @@ namespace rfb {
     unsigned long datasize;
   };
 
+  class OverlayPixelBuffer : public ManagedPixelBuffer {
+  public:
+    OverlayPixelBuffer(const PixelBuffer* parentBuf, const core::Rect& overlayRect);
+    virtual ~OverlayPixelBuffer();
+
+    virtual const uint8_t* getBuffer(const core::Rect& r, int* stride) const override;
+    void placeOverlay(const core::Rect& r) const;
+
+  private:
+    const PixelBuffer* parent;
+    uint8_t* overlayBuffer;
+    core ::Rect _overlayRect;
+  };
+
 };
 
 #endif // __RFB_PIXEL_BUFFER_H__

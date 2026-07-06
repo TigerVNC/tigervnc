@@ -35,6 +35,8 @@
 
 #include <rfb/PixelBuffer.h>
 
+#include <pixman.h>
+
 using namespace rfb;
 
 static core::LogWriter vlog("PixelBuffer");
@@ -441,4 +443,94 @@ void ManagedPixelBuffer::setSize(int w, int h)
   }
 
   setBuffer(w, h, data_, w);
+}
+
+OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const core::Rect& overlayRect)
+  : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(), parentBuf->height()),
+    parent(parentBuf),
+    overlayBuffer(new uint8_t[width() * height() * (format.bpp/8)]),
+    _overlayRect(overlayRect)
+{
+}
+
+OverlayPixelBuffer::~OverlayPixelBuffer()
+{
+  delete[] overlayBuffer;
+}
+
+
+void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
+{
+  vlog.debug("Placing overlay at %d,%d with size %dx%d using Pixman", rect.tl.x, rect.tl.y, rect.width(), rect.height());
+
+  // 1. Map the buffer's bits-per-pixel (bpp) to a corresponding Pixman format
+  pixman_format_code_t pixmanFormat;
+  switch (format.bpp)
+  {
+    case 32: pixmanFormat = PIXMAN_a8r8g8b8; break; // Use your system's exact format (e.g., PIXMAN_a8b8g8r8) if colors appear swapped
+    case 24: pixmanFormat = PIXMAN_r8g8b8;   break;
+    case 16: pixmanFormat = PIXMAN_r5g6b5;   break;
+    case 8:  pixmanFormat = PIXMAN_a8;       break;
+    default:
+      vlog.error("Unsupported bits-per-pixel (%d) for Pixman wrapper", format.bpp);
+      return;
+  }
+
+  // 2. Define the fill color (Pixman uses 16-bit channels: 0x0000 to 0xffff)
+  pixman_color_t blueColor;
+  blueColor.red   = 0x0000;
+  blueColor.green = 0x0000;
+  blueColor.blue  = 0xffff; // Full intensity Blue
+  blueColor.alpha = 0x7fff; // Fully opaque
+
+  // 3. Define the destination rectangle geometry
+  pixman_rectangle16_t pixmanRect;
+  pixmanRect.x      = static_cast<int16_t>(rect.tl.x);
+  pixmanRect.y      = static_cast<int16_t>(rect.tl.y);
+  pixmanRect.width  = static_cast<uint16_t>(rect.width());
+  pixmanRect.height = static_cast<uint16_t>(rect.height());
+
+  // 4. Calculate row stride in bytes
+  int bytesPerPixel = format.bpp / 8;
+  int rowStrideBytes = width() * bytesPerPixel;
+
+  // 5. Wrap the raw overlayBuffer inside a pixman image view
+  // Note: const_cast is used because placeOverlay is marked const, but we are writing data to the target buffer
+  pixman_image_t* destImage = pixman_image_create_bits(
+    pixmanFormat,
+    width(),
+    height(),
+    reinterpret_cast<uint32_t*>(const_cast<uint8_t*>(overlayBuffer)),
+    rowStrideBytes
+  );
+
+  if (!destImage)
+  {
+    vlog.error("Failed to create Pixman image surface wrapper.");
+    return;
+  }
+
+  // 6. Perform the fill operation (PIXMAN_OP_SRC overwrites the target area completely)
+  // Pixman automatically clips the coordinates if they exceed the image bounds.
+  pixman_image_fill_rectangles(PIXMAN_OP_OVER, destImage, &blueColor, 1, &pixmanRect);
+
+  // 7. Clean up the Pixman wrapper (this does not free your underlying overlayBuffer)
+  pixman_image_unref(destImage);
+}
+
+
+const uint8_t* OverlayPixelBuffer::getBuffer(const core::Rect& r,
+                                           int* stride_) const
+{
+  int parentStride;
+  const uint8_t* parentData = parent->getBuffer(parent->getRect(), &parentStride);
+  
+  // Copy parent buffer into overlayBuffer
+  int bytesPerPixel = format.bpp / 8;
+  memcpy(overlayBuffer, parentData, parent->width() * parent->height() * bytesPerPixel);
+
+  placeOverlay(_overlayRect);
+
+  *stride_ = width();
+  return overlayBuffer + (r.tl.y * width() + r.tl.x) * bytesPerPixel;
 }
