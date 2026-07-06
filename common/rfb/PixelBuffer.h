@@ -28,6 +28,7 @@
 #include <core/Rect.h>
 
 #include <rfb/PixelFormat.h>
+#include <string>
 
 namespace core { class Region; }
 
@@ -194,16 +195,18 @@ namespace rfb {
 
   class OverlayPixelBuffer : public ManagedPixelBuffer {
   public:
-    OverlayPixelBuffer(const PixelBuffer* parentBuf, const core::Rect& overlayRect);
+    OverlayPixelBuffer(const PixelBuffer* parentBuf, const char* overlayPos);
     virtual ~OverlayPixelBuffer();
 
     virtual const uint8_t* getBuffer(const core::Rect& r, int* stride) const override;
     void placeOverlay(const core::Rect& r) const;
+    void setOverlayRect(const char* overlayPos);
 
   private:
     const PixelBuffer* parent;
     uint8_t* overlayBuffer;
     core ::Rect _overlayRect;
+    std::string _overlayPos;
   };
 
 };

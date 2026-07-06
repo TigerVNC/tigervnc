@@ -47,7 +47,7 @@ namespace rfb {
                      AccessRights ar);
     virtual ~VNCSConnectionST();
 
-    static core::StringParameter overlayRect;
+    static core::StringParameter overlayPos; // Overlay position (tl, tr, bl, br, c)
     // SConnection methods
 
     bool accessCheck(AccessRights ar) const override;

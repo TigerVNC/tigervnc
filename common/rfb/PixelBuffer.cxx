@@ -445,12 +445,15 @@ void ManagedPixelBuffer::setSize(int w, int h)
   setBuffer(w, h, data_, w);
 }
 
-OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const core::Rect& overlayRect)
+OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const char* overlayPos)
   : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(), parentBuf->height()),
     parent(parentBuf),
     overlayBuffer(new uint8_t[width() * height() * (format.bpp/8)]),
-    _overlayRect(overlayRect)
+    _overlayRect(0,0,0,0),
+    _overlayPos(overlayPos)
 {
+  vlog.debug("Setting overlay position to: %s", overlayPos);
+  setOverlayRect(overlayPos);
 }
 
 OverlayPixelBuffer::~OverlayPixelBuffer()
@@ -458,6 +461,35 @@ OverlayPixelBuffer::~OverlayPixelBuffer()
   delete[] overlayBuffer;
 }
 
+void OverlayPixelBuffer::setOverlayRect(const char* overlayPos)
+{
+  int boxWidth  = width() / 4;
+  int boxHeight = height() / 4;
+
+  if (strcmp(overlayPos, "tl") == 0) {
+      // Top-Left corner
+      _overlayRect = core::Rect(0, 0, boxWidth, boxHeight);
+  } else if (strcmp(overlayPos, "tr") == 0) {
+      // Top-Right corner
+      _overlayRect = core::Rect(width() - boxWidth, 0, width(), boxHeight);
+  } else if (strcmp(overlayPos, "bl") == 0) {
+      // Bottom-Left corner
+      _overlayRect = core::Rect(0, height() - boxHeight, boxWidth, height());
+  } else if (strcmp(overlayPos, "br") == 0) {
+      // Bottom-Right corner
+      _overlayRect = core::Rect(width() - boxWidth, height() - boxHeight, width(), height());
+  } else if (strcmp(overlayPos, "c") == 0) {
+      // Centered box
+      int x1 = (width() / 2) - (boxWidth / 2);
+      int y1 = (height() / 2) - (boxHeight / 2);
+      int x2 = (width() / 2) + (boxWidth / 2);
+      int y2 = (height() / 2) + (boxHeight / 2);
+      _overlayRect = core::Rect(x1, y1, x2, y2);
+  } else {
+      vlog.error("Invalid overlay position specified: %s", overlayPos);
+      _overlayRect = core::Rect(0, 0, 0, 0); // Default to no overlay
+  }
+}
 
 void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
 {
@@ -522,6 +554,8 @@ void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
 const uint8_t* OverlayPixelBuffer::getBuffer(const core::Rect& r,
                                            int* stride_) const
 {
+ //TODO: Get buffer ska bara ha de två sista raderna
+ 
   int parentStride;
   const uint8_t* parentData = parent->getBuffer(parent->getRect(), &parentStride);
   

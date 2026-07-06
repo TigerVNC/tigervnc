@@ -59,7 +59,7 @@
 using namespace rfb;
 
 //  To this:
-core::StringParameter VNCSConnectionST::overlayRect("OverlayRect", "Overlay rectangle", "0,0,0,0");
+core::StringParameter VNCSConnectionST::overlayPos("OverlayPos", "Overlay position (tl, tr, bl, br, c)", "tl, tr, bl, br, c");
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
@@ -88,10 +88,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   peerEndpoint = sock->getPeerEndpoint();
 
   //Initialize the overlay buffer
-  int overlayRectArray[4] = {0,0,0,0};
-  sscanf(overlayRect.getValueStr().c_str(), "%d,%d,%d,%d", &overlayRectArray[0], &overlayRectArray[1], &overlayRectArray[2], &overlayRectArray[3]);
-  core::Rect _overlayRect = core::Rect(overlayRectArray[0], overlayRectArray[1], overlayRectArray[2], overlayRectArray[3]);
-  overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), _overlayRect);
+  overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str());
 }
 
 
@@ -1089,7 +1086,8 @@ void VNCSConnectionST::writeDataUpdate()
   // We have something to send, so let's get to it
 
   writeRTTPing();
-
+  //Kanske lägga in syncBuffers
+  //Kopiera syncbuffers
   
   if(overlayBuffer){
     encodeManager.writeUpdate(ui, overlayBuffer, nullptr);
