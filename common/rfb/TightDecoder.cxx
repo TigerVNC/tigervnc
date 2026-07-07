@@ -46,6 +46,10 @@ using namespace rfb;
 static const int TIGHT_MAX_WIDTH = 2048;
 static const int TIGHT_MIN_TO_COMPRESS = 12;
 
+// Keep temporary decompression and pixel translation buffers bounded.
+// This matches the size limit used by BufferedOutStream.
+static const uint64_t TIGHT_MAX_DATA_SIZE = 32 * 1024 * 1024;
+
 TightDecoder::TightDecoder()
   : Decoder(DecoderPartiallyOrdered), readState(IDLE)
 {
@@ -104,7 +108,9 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
   // FIXME: This check should be for all Tight types, but TigerVNC
   //        servers until 1.16.0 were buggy and sent larger rects for
   //        fill type rectangles.
-  if (r.width() > TIGHT_MAX_WIDTH)
+  if ((r.width() > TIGHT_MAX_WIDTH) ||
+      ((uint64_t)r.width() * r.height() >
+       TIGHT_MAX_DATA_SIZE / (server.pf().bpp / 8)))
     throw protocol_error(_("Too large Tight rectangle"));
 
   // "JPEG" compression type.
