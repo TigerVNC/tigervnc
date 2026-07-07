@@ -241,6 +241,10 @@ void VNCSConnectionST::processSocketWriteEvent()
 void VNCSConnectionST::pixelBufferChange()
 {
   try {
+    // If the pixelbuffer has changed, we need to set a new parent for the overlay buffer.
+    if (overlayBuffer)
+      overlayBuffer->setParent(server->getPixelBuffer());
+
     if (state() != RFBSTATE_NORMAL)
       return;
     if (client.width() && client.height() &&
@@ -1086,10 +1090,10 @@ void VNCSConnectionST::writeDataUpdate()
   // We have something to send, so let's get to it
 
   writeRTTPing();
-  //Kanske lägga in syncBuffers
-  //Kopiera syncbuffers
-  
+
+  //if we have a overlay buffer, then we need to sync it with the main pixel buffer before sending the update
   if(overlayBuffer){
+    overlayBuffer->syncBuffers(ui.changed.union_(ui.copied));
     encodeManager.writeUpdate(ui, overlayBuffer, nullptr);
   }else{
     encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
@@ -1171,8 +1175,15 @@ void VNCSConnectionST::writeLosslessRefresh()
 
   writeRTTPing();
 
-  encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
-                                     cursor, maxUpdateSize);
+  // If we have an overlay buffer, then we need to sync it with the main pixel buffer before sending the update
+  if (overlayBuffer) {
+    overlayBuffer->syncBuffers(req);
+    encodeManager.writeLosslessRefresh(req, overlayBuffer,
+                                       cursor, maxUpdateSize);
+  } else {
+    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
+                                       cursor, maxUpdateSize);
+  }
 
   writeRTTPing();
 

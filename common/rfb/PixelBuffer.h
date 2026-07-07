@@ -201,6 +201,11 @@ namespace rfb {
     virtual const uint8_t* getBuffer(const core::Rect& r, int* stride) const override;
     void placeOverlay(const core::Rect& r) const;
     void setOverlayRect(const char* overlayPos);
+    //Synchronize the overlay buffer with the parent buffer over the specified damaged regions.
+    void syncBuffers(const core::Region& r);
+    //Set a new parent, will have to be called on each resize of the parent buffer.
+    void setParent(const PixelBuffer* parentBuf);
+    void setSize(int w, int h) override;
 
   private:
     const PixelBuffer* parent;

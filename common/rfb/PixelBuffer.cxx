@@ -29,8 +29,10 @@
 #include <string.h>
 
 #include <stdexcept>
+#include <vector>
 
 #include <core/LogWriter.h>
+#include <core/Region.h>
 #include <core/string.h>
 
 #include <rfb/PixelBuffer.h>
@@ -454,6 +456,31 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const char*
 {
   vlog.debug("Setting overlay position to: %s", overlayPos);
   setOverlayRect(overlayPos);
+  syncBuffers(getRect());
+}
+
+void OverlayPixelBuffer::setParent(const PixelBuffer* parentBuf)
+{
+  parent = parentBuf;
+
+  // If the parent buffer has changed size, resize the overlay buffer to match
+  if ((width() != parent->width()) || (height() != parent->height()))
+    // syncBuffers() is called later in setSize()
+    setSize(parent->width(), parent->height());
+  else
+    syncBuffers(getRect());
+}
+
+void OverlayPixelBuffer::setSize(int w, int h)
+{
+  ManagedPixelBuffer::setSize(w, h);
+
+  delete [] overlayBuffer;
+  overlayBuffer = new uint8_t[width() * height() * (format.bpp/8)];
+  
+  //Computes a new overlay rectangle position based on the new size
+  setOverlayRect(_overlayPos.c_str());
+  syncBuffers(getRect());
 }
 
 OverlayPixelBuffer::~OverlayPixelBuffer()
@@ -550,20 +577,41 @@ void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
   pixman_image_unref(destImage);
 }
 
+void OverlayPixelBuffer::syncBuffers(const core::Region& r)
+{
+  std::vector<core::Rect> rects;
+  int bytesPerPixel = format.bpp / 8;
+
+  r.get_rects(&rects);
+
+  for (const core::Rect& rect : rects) {
+    core::Rect clipped = rect.intersect(parent->getRect());
+    if (clipped.is_empty())
+      continue;
+
+    int parentStride;
+    const uint8_t* src = parent->getBuffer(clipped, &parentStride);
+    uint8_t* dst = overlayBuffer +
+      (clipped.tl.y * width() + clipped.tl.x) * bytesPerPixel;
+
+    int rowBytes = clipped.width() * bytesPerPixel;
+    int h = clipped.height();
+    while (h--) {
+      memcpy(dst, src, rowBytes);
+      dst += width() * bytesPerPixel;
+      src += parentStride * bytesPerPixel;
+    }
+  }
+
+  // Only redraw the overlay if the damage is within the overlay rectangle
+  if (!r.intersect(_overlayRect).is_empty())
+    placeOverlay(_overlayRect);
+}
 
 const uint8_t* OverlayPixelBuffer::getBuffer(const core::Rect& r,
                                            int* stride_) const
 {
- //TODO: Get buffer ska bara ha de två sista raderna
- 
-  int parentStride;
-  const uint8_t* parentData = parent->getBuffer(parent->getRect(), &parentStride);
-  
-  // Copy parent buffer into overlayBuffer
   int bytesPerPixel = format.bpp / 8;
-  memcpy(overlayBuffer, parentData, parent->width() * parent->height() * bytesPerPixel);
-
-  placeOverlay(_overlayRect);
 
   *stride_ = width();
   return overlayBuffer + (r.tl.y * width() + r.tl.x) * bytesPerPixel;

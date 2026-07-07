@@ -925,6 +925,7 @@ void EncodeManager::writeSubRect(const core::Rect& rect,
   // Draw red border arround damage
   // TODO: Remove this after testing
   //____________________________________
+  /*
   if (ppb != &convertedPixelBuffer) {
     const uint8_t *src;
     int stride;
@@ -944,7 +945,7 @@ void EncodeManager::writeSubRect(const core::Rect& rect,
   convertedPixelBuffer.fillRect(core::Rect(0, 0, 1, h),   &red);  // left
   convertedPixelBuffer.fillRect(core::Rect(w-1, 0, w, h), &red);  // right
   //________________________________________
-
+  */
   if (!analyseRect(ppb, &info, maxColours))
     info.palette.clear();
 
