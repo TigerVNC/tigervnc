@@ -195,7 +195,8 @@ namespace rfb {
 
   class OverlayPixelBuffer : public ManagedPixelBuffer {
   public:
-    OverlayPixelBuffer(const PixelBuffer* parentBuf, const char* overlayPos);
+    OverlayPixelBuffer(const PixelBuffer* parentBuf, const char* overlayPos,
+                        const char* overlayText);
     virtual ~OverlayPixelBuffer();
 
     virtual const uint8_t* getBuffer(const core::Rect& r, int* stride) const override;
@@ -208,10 +209,13 @@ namespace rfb {
     void setSize(int w, int h) override;
 
   private:
+    void renderText(const core::Rect& rect, void* destImage) const;
     const PixelBuffer* parent;
     uint8_t* overlayBuffer;
     core ::Rect _overlayRect;
     std::string _overlayPos;
+    std::string _overlayText;
+    int _overlayFontSize;
   };
 
 };

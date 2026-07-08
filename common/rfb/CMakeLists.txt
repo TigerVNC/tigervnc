@@ -22,8 +22,10 @@ add_library(rfb STATIC
 
 target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
+target_include_directories(rfb SYSTEM PUBLIC ${FREETYPE_INCLUDE_DIRS})
 target_link_libraries(rfb core rdr)
 target_link_libraries(rfb ${JPEG_LIBRARIES})
+target_link_libraries(rfb ${FREETYPE_LIBRARIES})
 
 add_library(rfbserver STATIC
   ClientParams.cxx

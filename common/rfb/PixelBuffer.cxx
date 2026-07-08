@@ -26,8 +26,10 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <string.h>
 
+#include <algorithm>
 #include <stdexcept>
 #include <vector>
 
@@ -38,6 +40,9 @@
 #include <rfb/PixelBuffer.h>
 
 #include <pixman.h>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 using namespace rfb;
 
@@ -447,12 +452,15 @@ void ManagedPixelBuffer::setSize(int w, int h)
   setBuffer(w, h, data_, w);
 }
 
-OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const char* overlayPos)
+OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const char* overlayPos,
+                                       const char* overlayText)
   : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(), parentBuf->height()),
     parent(parentBuf),
     overlayBuffer(new uint8_t[width() * height() * (format.bpp/8)]),
     _overlayRect(0,0,0,0),
-    _overlayPos(overlayPos)
+    _overlayPos(overlayPos),
+    _overlayText(overlayText),
+    _overlayFontSize(12)
 {
   vlog.debug("Setting overlay position to: %s", overlayPos);
   setOverlayRect(overlayPos);
@@ -573,8 +581,126 @@ void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
   // Pixman automatically clips the coordinates if they exceed the image bounds.
   pixman_image_fill_rectangles(PIXMAN_OP_OVER, destImage, &blueColor, 1, &pixmanRect);
 
-  // 7. Clean up the Pixman wrapper (this does not free your underlying overlayBuffer)
+  // 7. Draw the watermark text on top of the box, if any was configured
+  if (!_overlayText.empty())
+    renderText(rect, destImage);
+
+  // 8. Clean up the Pixman wrapper (this does not free your underlying overlayBuffer)
   pixman_image_unref(destImage);
+}
+
+// Return a path for a usable font file for text overlay
+static const char* findFontFile()
+{
+  static const char* candidates[] = {
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/google-noto/NotoSans-Bold.ttf",
+    "/usr/share/fonts/liberation-sans/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+  };
+
+  for (const char* path : candidates) {
+    FILE* f = fopen(path, "rb");
+    if (f) {
+      fclose(f);
+      vlog.debug("Found usable font for overlay text: %s", path);
+      return path;
+    }
+  }
+  vlog.debug("No usable font could be found");
+  return nullptr;
+}
+
+// Initializes FreeType and loads the watermark font once.
+static FT_Face getOverlayFont()
+{
+  static FT_Library library = nullptr;
+  static FT_Face face = nullptr;
+  static bool initialized = false;
+
+  if (initialized)
+    return face;
+  initialized = true;
+
+  if (FT_Init_FreeType(&library) != 0) {
+    vlog.error("Failed to initialize FreeType");
+    return nullptr;
+  }
+
+  const char* fontFile = findFontFile();
+  if (!fontFile) {
+    vlog.error("No usable font found for overlay text");
+    return nullptr;
+  }
+
+  if (FT_New_Face(library, fontFile, 0, &face) != 0) {
+    vlog.error("Failed to load font %s for overlay text", fontFile);
+    return nullptr;
+  }
+
+  return face;
+}
+
+// Renders the overlay text into the specified rectangle of the destination image.
+void OverlayPixelBuffer::renderText(const core::Rect& rect, void* destImagePtr) const
+{
+  pixman_image_t* destImage = static_cast<pixman_image_t*>(destImagePtr);
+
+  FT_Face face = getOverlayFont();
+  if (!face)
+    return;
+
+  
+  FT_UInt pixelSize = static_cast<FT_UInt>(_overlayFontSize);
+  int padding = std::max(1, static_cast<int>(pixelSize / 2));
+  FT_Set_Pixel_Sizes(face, 0, pixelSize);
+
+  pixman_color_t whiteColor = {0xffff, 0xffff, 0xffff, 0xffff};
+  pixman_image_t* textColor = pixman_image_create_solid_fill(&whiteColor);
+
+  int penX = rect.tl.x + padding;
+  int baselineY = rect.br.y - padding;
+
+  for (size_t i = 0; i < _overlayText.size(); i++) {
+    if (FT_Load_Char(face, static_cast<FT_ULong>(_overlayText[i]), FT_LOAD_RENDER) != 0)
+      continue;
+
+    FT_GlyphSlot glyph = face->glyph;
+    FT_Bitmap& bitmap = glyph->bitmap;
+
+    int glyphX = penX + glyph->bitmap_left;
+    int glyphY = baselineY - glyph->bitmap_top;
+
+    // Only render the glyph if it fits within the overlay rectangle
+    if ((bitmap.width > 0) && (bitmap.rows > 0) && (glyphX + (int)bitmap.width <= rect.br.x)) {
+      // Pixman requires the stride to be a multiple of 4 bytes, which
+      // FreeType's tightly-packed 8-bit bitmaps rarely are.
+      int alignedStride = (bitmap.width + 3) & ~3;
+      std::vector<uint8_t> maskBuffer(alignedStride * bitmap.rows, 0);
+      for (unsigned int row = 0; row < bitmap.rows; row++)
+        memcpy(&maskBuffer[row * alignedStride],
+               bitmap.buffer + row * bitmap.pitch, bitmap.width);
+
+      pixman_image_t* mask = pixman_image_create_bits(
+        PIXMAN_a8, bitmap.width, bitmap.rows,
+        reinterpret_cast<uint32_t*>(maskBuffer.data()), alignedStride);
+
+      if (mask) {
+        pixman_image_composite(PIXMAN_OP_OVER, textColor, mask, destImage,
+                                0, 0, 0, 0, glyphX, glyphY,
+                                bitmap.width, bitmap.rows);
+        pixman_image_unref(mask);
+      }
+    }
+
+    penX += glyph->advance.x >> 6;
+    if (penX >= rect.br.x)
+      break;
+  }
+
+  pixman_image_unref(textColor);
 }
 
 void OverlayPixelBuffer::syncBuffers(const core::Region& r)

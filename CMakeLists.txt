@@ -244,6 +244,9 @@ if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "Warning: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
+# Check for freetype
+find_package(Freetype REQUIRED)
+
 option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
 if(BUILD_JAVA)
   add_subdirectory(java)

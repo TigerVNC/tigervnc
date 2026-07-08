@@ -60,6 +60,7 @@ using namespace rfb;
 
 //  To this:
 core::StringParameter VNCSConnectionST::overlayPos("OverlayPos", "Overlay position (tl, tr, bl, br, c)", "tl, tr, bl, br, c");
+core::StringParameter VNCSConnectionST::overlayText("OverlayText", "Text to render on the overlay", "");
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
@@ -88,7 +89,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   peerEndpoint = sock->getPeerEndpoint();
 
   //Initialize the overlay buffer
-  overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str());
+  overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str(),
+                                         overlayText.getValueStr().c_str());
 }
 
 
