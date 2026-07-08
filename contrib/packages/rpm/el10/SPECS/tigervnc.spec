@@ -128,13 +128,6 @@ patch -p1 -b --suffix .vnc < ../xserver21.patch
 popd
 
 %build
-%ifarch sparcv9 sparc64 s390 s390x
-export CFLAGS="$RPM_OPT_FLAGS -fPIC"
-%else
-export CFLAGS="$RPM_OPT_FLAGS -fpic"
-%endif
-export CXXFLAGS="$CFLAGS -std=c++11"
-
 %cmake \
   -DENABLE_NLS=ON \
   -DENABLE_GNUTLS=ON \
