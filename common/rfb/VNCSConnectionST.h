@@ -84,6 +84,7 @@ namespace rfb {
     void bellOrClose();
     void setDesktopNameOrClose(const char *name);
     void setLEDStateOrClose(unsigned int state);
+    void updateOverlayOrClose();
     void approveConnectionOrClose(bool accept, const char* reason);
     void requestClipboardOrClose();
     void announceClipboardOrClose(bool available);
@@ -175,6 +176,7 @@ namespace rfb {
     void setCursorPos();
     void setDesktopName(const char *name);
     void setLEDState(unsigned int state);
+    void updateOverlay();
     void desktopReady() override;
 
   private:

@@ -467,6 +467,17 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const char*
   syncBuffers(getRect());
 }
 
+void OverlayPixelBuffer::updateOverlay(const char* overlayPos, const char* overlayText)
+{
+  vlog.debug("Updating overlay to position %s, text %s", overlayPos, overlayText);
+
+  _overlayPos = overlayPos;
+  _overlayText = overlayText;
+
+  setOverlayRect(overlayPos);
+  syncBuffers(getRect());
+}
+
 void OverlayPixelBuffer::setParent(const PixelBuffer* parentBuf)
 {
   parent = parentBuf;
@@ -488,6 +499,7 @@ void OverlayPixelBuffer::setSize(int w, int h)
   
   //Computes a new overlay rectangle position based on the new size
   setOverlayRect(_overlayPos.c_str());
+  vlog.debug("Overlay position after resize: %s", _overlayPos.c_str());
   syncBuffers(getRect());
 }
 

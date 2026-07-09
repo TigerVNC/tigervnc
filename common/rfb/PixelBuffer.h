@@ -207,6 +207,10 @@ namespace rfb {
     //Set a new parent, will have to be called on each resize of the parent buffer.
     void setParent(const PixelBuffer* parentBuf);
     void setSize(int w, int h) override;
+    //Update the overlay position/text and redraw, e.g. after a runtime config change.
+    void updateOverlay(const char* overlayPos, const char* overlayText);
+    //Current area covered by the overlay box, e.g. to mark it as changed.
+    core::Rect getOverlayRect() const { return _overlayRect; }
 
   private:
     void renderText(const core::Rect& rect, void* destImage) const;

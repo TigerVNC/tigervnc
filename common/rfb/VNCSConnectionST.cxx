@@ -352,6 +352,16 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
   }
 }
 
+void VNCSConnectionST::updateOverlayOrClose()
+{
+  try {
+    updateOverlay();
+    writeFramebufferUpdate();
+  } catch(std::exception& e) {
+    close(e.what());
+  }
+}
+
 void VNCSConnectionST::requestClipboardOrClose()
 {
   try {
@@ -1262,4 +1272,22 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
 
   if (client.supportsLEDState())
     writer()->writeLEDState();
+}
+
+void VNCSConnectionST::updateOverlay()
+{
+  core::Rect oldRect;
+
+  if (!overlayBuffer)
+    return;
+
+  oldRect = overlayBuffer->getOverlayRect();
+
+  overlayBuffer->updateOverlay(overlayPos.getValueStr().c_str(),
+                               overlayText.getValueStr().c_str());
+
+  // Both the area the overlay used to cover and the area it covers now
+  // need to be resent, so the old position is cleared and the new one
+  // is drawn.
+  add_changed(core::Region(oldRect).union_(overlayBuffer->getOverlayRect()));
 }
