@@ -197,6 +197,7 @@ namespace rfb {
   public:
     OverlayPixelBuffer(const PixelBuffer* parentBuf, const char* overlayPos,
                         const char* overlayText);
+    OverlayPixelBuffer(const PixelBuffer* parentBuf);
     virtual ~OverlayPixelBuffer();
 
     virtual const uint8_t* getBuffer(const core::Rect& r, int* stride) const override;
@@ -211,6 +212,9 @@ namespace rfb {
     void updateOverlay(const char* overlayPos, const char* overlayText);
     //Current area covered by the overlay box, e.g. to mark it as changed.
     core::Rect getOverlayRect() const { return _overlayRect; }
+    //Size (width, height) the overlay text takes up when rendered at the
+    //current font size, excluding padding.
+    core::Point getTextSize() const;
 
   private:
     void renderText(const core::Rect& rect, void* destImage) const;
@@ -220,6 +224,7 @@ namespace rfb {
     std::string _overlayPos;
     std::string _overlayText;
     int _overlayFontSize;
+    int _overlayPadding;
   };
 
 };

@@ -22,6 +22,7 @@
 // The PixelBuffer class encapsulates the PixelFormat and dimensions
 // of a block of pixel data.
 
+#include "core/Rect.h"
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -460,10 +461,19 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf, const char*
     _overlayRect(0,0,0,0),
     _overlayPos(overlayPos),
     _overlayText(overlayText),
-    _overlayFontSize(12)
+    _overlayFontSize(12),
+    _overlayPadding(10)
 {
   vlog.debug("Setting overlay position to: %s", overlayPos);
   setOverlayRect(overlayPos);
+  syncBuffers(getRect());
+}
+
+OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf)
+  : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(), parentBuf->height()),
+    parent(parentBuf),
+    overlayBuffer(new uint8_t[width() * height() * (format.bpp/8)])
+{
   syncBuffers(getRect());
 }
 
@@ -510,8 +520,10 @@ OverlayPixelBuffer::~OverlayPixelBuffer()
 
 void OverlayPixelBuffer::setOverlayRect(const char* overlayPos)
 {
-  int boxWidth  = width() / 4;
-  int boxHeight = height() / 4;
+  core::Point rectSize = getTextSize();
+  int boxWidth  = rectSize.x+_overlayPadding;
+  int boxHeight = rectSize.y+_overlayPadding;
+  
 
   if (strcmp(overlayPos, "tl") == 0) {
       // Top-Left corner
@@ -666,14 +678,13 @@ void OverlayPixelBuffer::renderText(const core::Rect& rect, void* destImagePtr) 
 
   
   FT_UInt pixelSize = static_cast<FT_UInt>(_overlayFontSize);
-  int padding = std::max(1, static_cast<int>(pixelSize / 2));
   FT_Set_Pixel_Sizes(face, 0, pixelSize);
 
   pixman_color_t whiteColor = {0xffff, 0xffff, 0xffff, 0xffff};
   pixman_image_t* textColor = pixman_image_create_solid_fill(&whiteColor);
 
-  int penX = rect.tl.x + padding;
-  int baselineY = rect.br.y - padding;
+  int penX = rect.tl.x + _overlayPadding/2;
+  int baselineY = rect.br.y - _overlayPadding/2;
 
   for (size_t i = 0; i < _overlayText.size(); i++) {
     if (FT_Load_Char(face, static_cast<FT_ULong>(_overlayText[i]), FT_LOAD_RENDER) != 0)
@@ -713,6 +724,34 @@ void OverlayPixelBuffer::renderText(const core::Rect& rect, void* destImagePtr) 
   }
 
   pixman_image_unref(textColor);
+}
+
+// Measures how large _overlayText will be once rendered at the current
+// font size, without rasterizing any glyphs.
+core::Point OverlayPixelBuffer::getTextSize() const
+{
+  FT_Face face;
+  FT_UInt pixelSize;
+  int width;
+
+  if (_overlayText.empty())
+    return {0, 0};
+
+  face = getOverlayFont();
+  if (!face)
+    return {0, 0};
+
+  pixelSize = static_cast<FT_UInt>(_overlayFontSize);
+  FT_Set_Pixel_Sizes(face, 0, pixelSize);
+
+  width = 0;
+  for (size_t i = 0; i < _overlayText.size(); i++) {
+    if (FT_Load_Char(face, static_cast<FT_ULong>(_overlayText[i]), FT_LOAD_DEFAULT) != 0)
+      continue;
+    width += face->glyph->advance.x >> 6;
+  }
+
+  return {width, static_cast<int>(pixelSize)};
 }
 
 void OverlayPixelBuffer::syncBuffers(const core::Region& r)
