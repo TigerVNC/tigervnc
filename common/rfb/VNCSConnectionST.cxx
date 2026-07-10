@@ -59,7 +59,7 @@
 using namespace rfb;
 
 //  To this:
-core::StringParameter VNCSConnectionST::overlayPos("OverlayPos", "Overlay position (tl, tr, bl, br, c)", "tl, tr, bl, br, c");
+core::StringParameter VNCSConnectionST::overlayPos("OverlayPos", "Overlay position (tl, tr, bl, br, c)", "tl");
 core::StringParameter VNCSConnectionST::overlayText("OverlayText", "Text to render on the overlay", "");
 
 // Number of seconds allowed for authentication
