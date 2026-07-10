@@ -89,8 +89,9 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   peerEndpoint = sock->getPeerEndpoint();
 
   //Initialize the overlay buffer
-  overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str(),
-                                         overlayText.getValueStr().c_str());
+  if(overlayText.getValueStr() != ""){
+    overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str(), overlayText.getValueStr().c_str());
+  }
 }
 
 
@@ -1105,9 +1106,11 @@ void VNCSConnectionST::writeDataUpdate()
 
   //if we have a overlay buffer, then we need to sync it with the main pixel buffer before sending the update
   if(overlayBuffer){
+    vlog.debug("Using: OverlayBuffer");
     overlayBuffer->syncBuffers(ui.changed.union_(ui.copied));
     encodeManager.writeUpdate(ui, overlayBuffer, nullptr);
   }else{
+    vlog.debug("Using: PixelBuffer");
     encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
   }
   
