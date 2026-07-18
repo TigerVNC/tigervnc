@@ -115,8 +115,6 @@ private:
   unsigned updateCount;
   unsigned pixelCount;
 
-  rfb::PixelFormat fullColourPF;
-
   int lastServerEncoding;
 
   struct timeval updateStartTime;
