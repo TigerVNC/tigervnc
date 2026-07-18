@@ -431,7 +431,6 @@ void CConn::getUserPasswd(std::string *user, std::string *password)
 void CConn::initDone()
 {
   desktop = new DesktopWindow(server.width(), server.height(), this);
-  fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
   updateEncoding();
@@ -1012,9 +1011,11 @@ void CConn::updateQualityLevel()
 void CConn::updatePixelFormat()
 {
   bool useFullColour;
-  rfb::PixelFormat pf;
+  rfb::PixelFormat pf, fullColourPF;
 
   useFullColour = fullColour;
+
+  fullColourPF = getFramebuffer()->getPF();
 
   // If the bandwidth drops below 256 Kbps, we switch to palette mode.
   if (autoSelect) {

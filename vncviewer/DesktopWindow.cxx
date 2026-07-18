@@ -292,12 +292,6 @@ DesktopWindow::~DesktopWindow()
 }
 
 
-const rfb::PixelFormat &DesktopWindow::getPreferredPF()
-{
-  return viewport->getPreferredPF();
-}
-
-
 void DesktopWindow::updateCaption()
 {
   const size_t maxLen = 100;

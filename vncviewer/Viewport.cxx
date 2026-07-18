@@ -174,12 +174,6 @@ Viewport::~Viewport()
 }
 
 
-const rfb::PixelFormat &Viewport::getPreferredPF()
-{
-  return frameBuffer->getPF();
-}
-
-
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
 
