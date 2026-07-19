@@ -1027,6 +1027,17 @@ int CConnection::getQualityLevel()
 
 void CConnection::setPF(const PixelFormat& pf)
 {
+  if (server.beforeVersion(3, 8)) {
+    // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
+    // cursors "asynchronously". If this happens in the middle of a
+    // pixel format change, the server will encode the cursor with
+    // the old format, but the client will try to decode it
+    // according to the new format. This will lead to a
+    // crash. Therefore, we do not allow automatic format change for
+    // old servers.
+    return;
+  }
+
   if (server.pf() == pf && !formatChange)
     return;
 
