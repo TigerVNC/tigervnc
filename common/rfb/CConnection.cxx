@@ -78,7 +78,7 @@ CConnection::CConnection()
     shared(false),
     state_(RFBSTATE_UNINITIALISED),
     pendingPFChange(false), preferredEncoding(encodingTight),
-    compressLevel(2), qualityLevel(-1),
+    compressLevel(-1), qualityLevel(-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
