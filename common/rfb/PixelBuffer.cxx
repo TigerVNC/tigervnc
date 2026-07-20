@@ -568,11 +568,11 @@ void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
   }
 
   // 2. Define the fill color (Pixman uses 16-bit channels: 0x0000 to 0xffff)
-  pixman_color_t blueColor;
-  blueColor.red   = 0x0000;
-  blueColor.green = 0x0000;
-  blueColor.blue  = 0xffff; // Full intensity Blue
-  blueColor.alpha = 0x7fff; // Fully opaque
+  pixman_color_t backgroundColor;
+  backgroundColor.red   = 0x0000;
+  backgroundColor.green = 0x0000;
+  backgroundColor.blue  = 0x0000; 
+  backgroundColor.alpha = 0x7fff; // 50% transparent
 
   // 3. Define the destination rectangle geometry
   pixman_rectangle16_t pixmanRect;
@@ -603,7 +603,7 @@ void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
 
   // 6. Perform the fill operation (PIXMAN_OP_SRC overwrites the target area completely)
   // Pixman automatically clips the coordinates if they exceed the image bounds.
-  pixman_image_fill_rectangles(PIXMAN_OP_OVER, destImage, &blueColor, 1, &pixmanRect);
+  pixman_image_fill_rectangles(PIXMAN_OP_OVER, destImage, &backgroundColor, 1, &pixmanRect);
 
   // 7. Draw the watermark text on top of the box, if any was configured
   if (!_overlayText.empty())
