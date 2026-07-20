@@ -23,6 +23,7 @@
 // of a block of pixel data.
 
 #include "core/Rect.h"
+#include <string>
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -44,6 +45,8 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+#include <fontconfig/fontconfig.h>
 
 using namespace rfb;
 
@@ -614,27 +617,35 @@ void OverlayPixelBuffer::placeOverlay(const core::Rect& rect) const
 }
 
 // Return a path for a usable font file for text overlay
-static const char* findFontFile()
-{
-  static const char* candidates[] = {
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-    "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
-    "/usr/share/fonts/google-noto/NotoSans-Bold.ttf",
-    "/usr/share/fonts/liberation-sans/LiberationSans-Bold.ttf",
-    "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
-    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-  };
-
-  for (const char* path : candidates) {
-    FILE* f = fopen(path, "rb");
-    if (f) {
-      fclose(f);
-      vlog.debug("Found usable font for overlay text: %s", path);
-      return path;
+std::string findFontFile(const std::string& fontPattern = "") {
+    if (!FcInit()) {
+        return "";
     }
-  }
-  vlog.debug("No usable font could be found");
-  return nullptr;
+
+    FcPattern* pattern = FcNameParse(reinterpret_cast<const FcChar8*>(fontPattern.c_str()));
+    if (!pattern) {
+        return "";
+    }
+
+    FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    FcResult result;
+    FcPattern* font = FcFontMatch(nullptr, pattern, &result);
+
+    std::string fontPath = "";
+    if (font) {
+        FcChar8* file = nullptr;
+        
+        if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch) {
+            fontPath = reinterpret_cast<char*>(file);
+        }
+        FcPatternDestroy(font); 
+    }
+
+    FcPatternDestroy(pattern); 
+
+    return fontPath;
 }
 
 // Initializes FreeType and loads the watermark font once.
@@ -653,14 +664,15 @@ static FT_Face getOverlayFont()
     return nullptr;
   }
 
-  const char* fontFile = findFontFile();
-  if (!fontFile) {
+  //TODO: Send in parameter for font
+  const std::string fontFile = findFontFile();
+  if (!fontFile.c_str()) {
     vlog.error("No usable font found for overlay text");
     return nullptr;
   }
 
-  if (FT_New_Face(library, fontFile, 0, &face) != 0) {
-    vlog.error("Failed to load font %s for overlay text", fontFile);
+  if (FT_New_Face(library, fontFile.c_str(), 0, &face) != 0) {
+    vlog.error("Failed to load font %s for overlay text", fontFile.c_str());
     return nullptr;
   }
 

@@ -247,6 +247,9 @@ endif()
 # Check for freetype
 find_package(Freetype REQUIRED)
 
+# Check for fontconfig (used to locate a system font for the overlay text)
+find_package(Fontconfig REQUIRED)
+
 option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
 if(BUILD_JAVA)
   add_subdirectory(java)
