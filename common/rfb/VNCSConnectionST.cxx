@@ -51,6 +51,7 @@
 #include <rfb/fenceTypes.h>
 #include <rfb/ledStates.h>
 #include "rfb/PixelBuffer.h"
+#include "rfb/OverlayPixelBuffer.h"
 #define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS

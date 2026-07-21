@@ -38,7 +38,7 @@
 
 namespace rfb {
   class VNCServerST;
-  class OverlayBuffer;
+  class OverlayPixelBuffer;
 
   class VNCSConnectionST : private SConnection,
                            public core::Timer::Callback {
