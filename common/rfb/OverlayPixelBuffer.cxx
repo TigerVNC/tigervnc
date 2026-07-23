@@ -50,18 +50,11 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
                          parentBuf->height()),
       parent(parentBuf),
       overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]),
+      _textBuffer(nullptr),
       _overlayRect(0, 0, 0, 0), _overlayPos(overlayPos),
-      _overlayText(overlayText), _overlayFontSize(12), _overlayPadding(10) {
+      _overlayText(overlayText), _overlayFontSize(12), _overlayPadding(10), _overlayAlpha(0.5) {
   vlog.debug("Setting overlay position to: %s", overlayPos);
-  setOverlayRect(overlayPos);
-  syncBuffers(getRect());
-}
-
-OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf)
-    : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(),
-                         parentBuf->height()),
-      parent(parentBuf),
-      overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]) {
+  renderOverlay();
   syncBuffers(getRect());
 }
 
@@ -73,7 +66,7 @@ void OverlayPixelBuffer::updateOverlay(const char *overlayPos,
   _overlayPos = overlayPos;
   _overlayText = overlayText;
 
-  setOverlayRect(overlayPos);
+  renderOverlay();
   syncBuffers(getRect());
 }
 
@@ -95,47 +88,76 @@ void OverlayPixelBuffer::setSize(int w, int h) {
   overlayBuffer = new uint8_t[width() * height() * (format.bpp / 8)];
 
   // Computes a new overlay rectangle position based on the new size
-  setOverlayRect(_overlayPos.c_str());
+  renderOverlay();
   vlog.debug("Overlay position after resize: %s", _overlayPos.c_str());
   syncBuffers(getRect());
 }
 
-OverlayPixelBuffer::~OverlayPixelBuffer() { delete[] overlayBuffer; }
+OverlayPixelBuffer::~OverlayPixelBuffer() {
+  delete[] overlayBuffer;
+  delete[] _textBuffer;
+}
 
-void OverlayPixelBuffer::setOverlayRect(const char *overlayPos) {
-  core::Point rectSize = getTextSize();
-  int boxWidth = rectSize.x + _overlayPadding;
-  int boxHeight = rectSize.y + _overlayPadding;
+core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
+                                             int contentWidth,
+                                             int contentHeight) const {
+  int x, y;
 
   if (strcmp(overlayPos, "tl") == 0) {
     // Top-Left corner
-    _overlayRect = core::Rect(0, 0, boxWidth, boxHeight);
+    x = _overlayPadding;
+    y = _overlayPadding;
   } else if (strcmp(overlayPos, "tr") == 0) {
     // Top-Right corner
-    _overlayRect = core::Rect(width() - boxWidth, 0, width(), boxHeight);
+    x = width() - contentWidth - _overlayPadding;
+    y = _overlayPadding;
   } else if (strcmp(overlayPos, "bl") == 0) {
     // Bottom-Left corner
-    _overlayRect = core::Rect(0, height() - boxHeight, boxWidth, height());
+    x = _overlayPadding;
+    y = height() - contentHeight - _overlayPadding;
   } else if (strcmp(overlayPos, "br") == 0) {
     // Bottom-Right corner
-    _overlayRect =
-        core::Rect(width() - boxWidth, height() - boxHeight, width(), height());
+    x = width() - contentWidth - _overlayPadding;
+    y = height() - contentHeight - _overlayPadding;
   } else if (strcmp(overlayPos, "c") == 0) {
-    // Centered box
-    int x1 = (width() / 2) - (boxWidth / 2);
-    int y1 = (height() / 2) - (boxHeight / 2);
-    int x2 = (width() / 2) + (boxWidth / 2);
-    int y2 = (height() / 2) + (boxHeight / 2);
-    _overlayRect = core::Rect(x1, y1, x2, y2);
+    // Centered
+    x = (width() - contentWidth) / 2;
+    y = (height() - contentHeight) / 2;
   } else {
     vlog.error("Invalid overlay position specified: %s", overlayPos);
-    _overlayRect = core::Rect(0, 0, 0, 0); // Default to no overlay
+    return core::Point(0, 0);
   }
+
+  return core::Point(x, y);
 }
 
-void OverlayPixelBuffer::placeOverlay(const core::Rect &rect) const {
-  vlog.debug("Placing overlay at %d,%d with size %dx%d using Pixman", rect.tl.x,
-             rect.tl.y, rect.width(), rect.height());
+void OverlayPixelBuffer::renderOverlay() {
+  delete[] _textBuffer;
+  _textBuffer = nullptr;
+  _textWidth = _textHeight = 0;
+  _overlayRect = core::Rect(0, 0, 0, 0);
+
+  if (_overlayText.empty())
+    return;
+
+  _textBuffer = generateTextOverlayBuffer(_overlayText, _overlayFontSize,
+                                 &_textWidth, &_textHeight);
+  if (!_textBuffer)
+    return;
+
+  _textPos = calcOverlayPosition(_overlayPos.c_str(), _textWidth, _textHeight);
+  _overlayRect = core::Rect(_textPos.x, _textPos.y, _textPos.x + _textWidth,
+                            _textPos.y + _textHeight);
+}
+
+void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
+                                     int bufHeight, const core::Point &pos,
+                                     double alpha) const {
+  if (!buf)
+    return;
+
+  vlog.debug("Blending %dx%d overlay buffer at %d,%d with alpha %.2f",
+             bufWidth, bufHeight, pos.x, pos.y, alpha);
 
   // 1. Map the buffer's bits-per-pixel (bpp) to a corresponding Pixman format
   pixman_format_code_t pixmanFormat;
@@ -159,49 +181,56 @@ void OverlayPixelBuffer::placeOverlay(const core::Rect &rect) const {
     return;
   }
 
-  // 2. Define the fill color (Pixman uses 16-bit channels: 0x0000 to 0xffff)
-  pixman_color_t backgroundColor;
-  backgroundColor.red = 0x0000;
-  backgroundColor.green = 0x0000;
-  backgroundColor.blue = 0x0000;
-  backgroundColor.alpha = 0x7fff; // 50% transparent
-
-  // 3. Define the destination rectangle geometry
-  pixman_rectangle16_t pixmanRect;
-  pixmanRect.x = static_cast<int16_t>(rect.tl.x);
-  pixmanRect.y = static_cast<int16_t>(rect.tl.y);
-  pixmanRect.width = static_cast<uint16_t>(rect.width());
-  pixmanRect.height = static_cast<uint16_t>(rect.height());
-
-  // 4. Calculate row stride in bytes
+  // 2. Calculate row stride in bytes
   int bytesPerPixel = format.bpp / 8;
   int rowStrideBytes = width() * bytesPerPixel;
 
-  // 5. Wrap the raw overlayBuffer inside a pixman image view
-  // Note: const_cast is used because placeOverlay is marked const, but we are
+  // 3. Wrap the raw overlayBuffer inside a pixman image view
+  // Note: const_cast is used because blendBuffer is marked const, but we are
   // writing data to the target buffer
   pixman_image_t *destImage = pixman_image_create_bits(
       pixmanFormat, width(), height(),
       reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(overlayBuffer)),
       rowStrideBytes);
-
   if (!destImage) {
     vlog.error("Failed to create Pixman image surface wrapper.");
     return;
   }
 
-  // 6. Perform the fill operation (PIXMAN_OP_SRC overwrites the target area
-  // completely) Pixman automatically clips the coordinates if they exceed the
-  // image bounds.
-  pixman_image_fill_rectangles(PIXMAN_OP_OVER, destImage, &backgroundColor, 1,
-                               &pixmanRect);
+  // 4. Wrap the source (text) buffer, which is always tightly packed ARGB32
+  pixman_image_t *srcImage = pixman_image_create_bits(
+      PIXMAN_a8r8g8b8, bufWidth, bufHeight,
+      reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(buf)),
+      bufWidth * 4);
+  if (!srcImage) {
+    vlog.error("Failed to create Pixman image surface wrapper for overlay.");
+    pixman_image_unref(destImage);
+    return;
+  }
 
-  // 7. Draw the watermark text on top of the box, if any was configured
-  if (!_overlayText.empty())
-    renderText(rect, destImage);
+  // 5. A solid alpha mask that multiplies the source's own per-pixel alpha
+  // by the requested overall alpha, giving the watermark its translucency.
+  if (alpha < 0.0)
+    alpha = 0.0;
+  else if (alpha > 1.0)
+    alpha = 1.0;
 
-  // 8. Clean up the Pixman wrapper (this does not free your underlying
-  // overlayBuffer)
+  pixman_color_t alphaColor;
+  alphaColor.red = alphaColor.green = alphaColor.blue = 0;
+  alphaColor.alpha = static_cast<uint16_t>(alpha * 0xffff);
+  pixman_image_t *alphaMask = pixman_image_create_solid_fill(&alphaColor);
+
+  // 6. Composite the source onto the destination at the given position
+  pixman_image_composite(PIXMAN_OP_OVER, srcImage, alphaMask, destImage, 0, 0,
+                         0, 0, static_cast<int16_t>(pos.x),
+                         static_cast<int16_t>(pos.y),
+                         static_cast<uint16_t>(bufWidth),
+                         static_cast<uint16_t>(bufHeight));
+
+  // 7. Clean up the Pixman wrappers (this does not free the underlying
+  // buffers)
+  pixman_image_unref(alphaMask);
+  pixman_image_unref(srcImage);
   pixman_image_unref(destImage);
 }
 
@@ -254,7 +283,7 @@ static FT_Face getOverlayFont() {
   }
 
   // TODO: Send in parameter for font
-  const std::string fontFile = findFontFile();
+  const std::string fontFile = findFontFile("cursive");
   if (fontFile.empty()) {
     vlog.error("No usable font found for overlay text");
     return nullptr;
@@ -268,28 +297,61 @@ static FT_Face getOverlayFont() {
   return face;
 }
 
-// Renders the overlay text into the specified rectangle of the destination
-// image.
-void OverlayPixelBuffer::renderText(const core::Rect &rect,
-                                    void *destImagePtr) const {
-  pixman_image_t *destImage = static_cast<pixman_image_t *>(destImagePtr);
+// Renders text at the given pixel font size into a freshly allocated
+// ARGB32 buffer sized exactly to fit the rendered glyphs. Returns nullptr
+// if text is empty or no usable font is found.
+uint8_t *OverlayPixelBuffer::generateTextOverlayBuffer(const std::string &text,
+                                              int size,
+                                              int *outWidth, int *outHeight) {
+  *outWidth = *outHeight = 0;
+
+  if (text.empty())
+    return nullptr;
 
   FT_Face face = getOverlayFont();
   if (!face)
-    return;
+    return nullptr;
 
-  FT_UInt pixelSize = static_cast<FT_UInt>(_overlayFontSize);
+  FT_UInt pixelSize = static_cast<FT_UInt>(size);
   FT_Set_Pixel_Sizes(face, 0, pixelSize);
+
+  // First pass: measure the extents so we can allocate a tightly fitting
+  // buffer before rendering any glyphs.
+  int textWidth = 0;
+  for (size_t i = 0; i < text.size(); i++) {
+    if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]), FT_LOAD_DEFAULT) !=
+        0)
+      continue;
+    textWidth += face->glyph->advance.x >> 6;
+  }
+  int ascent = face->size->metrics.ascender >> 6;
+  int descent = -(face->size->metrics.descender >> 6);
+  int textHeight = ascent + descent;
+
+  if ((textWidth <= 0) || (textHeight <= 0))
+    return nullptr;
+
+  int stride = textWidth * 4;
+  uint8_t *buf = new uint8_t[stride * textHeight]();
+
+  pixman_image_t *destImage = pixman_image_create_bits(
+      PIXMAN_a8r8g8b8, textWidth, textHeight,
+      reinterpret_cast<uint32_t *>(buf), stride);
+  if (!destImage) {
+    vlog.error("Failed to create Pixman image surface wrapper for text.");
+    delete[] buf;
+    return nullptr;
+  }
 
   pixman_color_t whiteColor = {0xffff, 0xffff, 0xffff, 0xffff};
   pixman_image_t *textColor = pixman_image_create_solid_fill(&whiteColor);
 
-  int penX = rect.tl.x + _overlayPadding / 2;
-  int baselineY = rect.br.y - _overlayPadding / 2;
+  int penX = 0;
+  int baselineY = ascent;
 
-  for (size_t i = 0; i < _overlayText.size(); i++) {
-    if (FT_Load_Char(face, static_cast<FT_ULong>(_overlayText[i]),
-                     FT_LOAD_RENDER) != 0)
+  for (size_t i = 0; i < text.size(); i++) {
+    if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]), FT_LOAD_RENDER) !=
+        0)
       continue;
 
     FT_GlyphSlot glyph = face->glyph;
@@ -298,9 +360,7 @@ void OverlayPixelBuffer::renderText(const core::Rect &rect,
     int glyphX = penX + glyph->bitmap_left;
     int glyphY = baselineY - glyph->bitmap_top;
 
-    // Only render the glyph if it fits within the overlay rectangle
-    if ((bitmap.width > 0) && (bitmap.rows > 0) &&
-        (glyphX + (int)bitmap.width <= rect.br.x)) {
+    if ((bitmap.width > 0) && (bitmap.rows > 0)) {
       // Pixman requires the stride to be a multiple of 4 bytes, which
       // FreeType's tightly-packed 8-bit bitmaps rarely are.
       int alignedStride = (bitmap.width + 3) & ~3;
@@ -314,46 +374,22 @@ void OverlayPixelBuffer::renderText(const core::Rect &rect,
           reinterpret_cast<uint32_t *>(maskBuffer.data()), alignedStride);
 
       if (mask) {
-        pixman_image_composite(PIXMAN_OP_OVER, textColor, mask, destImage, 0, 0,
-                               0, 0, glyphX, glyphY, bitmap.width, bitmap.rows);
+        pixman_image_composite(PIXMAN_OP_OVER, textColor, mask, destImage, 0,
+                               0, 0, 0, glyphX, glyphY, bitmap.width,
+                               bitmap.rows);
         pixman_image_unref(mask);
       }
     }
 
     penX += glyph->advance.x >> 6;
-    if (penX >= rect.br.x)
-      break;
   }
 
   pixman_image_unref(textColor);
-}
+  pixman_image_unref(destImage);
 
-// Measures how large _overlayText will be once rendered at the current
-// font size, without rasterizing any glyphs.
-core::Point OverlayPixelBuffer::getTextSize() const {
-  FT_Face face;
-  FT_UInt pixelSize;
-  int width;
-
-  if (_overlayText.empty())
-    return {0, 0};
-
-  face = getOverlayFont();
-  if (!face)
-    return {0, 0};
-
-  pixelSize = static_cast<FT_UInt>(_overlayFontSize);
-  FT_Set_Pixel_Sizes(face, 0, pixelSize);
-
-  width = 0;
-  for (size_t i = 0; i < _overlayText.size(); i++) {
-    if (FT_Load_Char(face, static_cast<FT_ULong>(_overlayText[i]),
-                     FT_LOAD_DEFAULT) != 0)
-      continue;
-    width += face->glyph->advance.x >> 6;
-  }
-
-  return {width, static_cast<int>(pixelSize)};
+  *outWidth = textWidth;
+  *outHeight = textHeight;
+  return buf;
 }
 
 void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
@@ -383,7 +419,8 @@ void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
 
   // Only redraw the overlay if the damage is within the overlay rectangle
   if (!r.intersect(_overlayRect).is_empty())
-    placeOverlay(_overlayRect);
+    blendBuffer(_textBuffer, _textWidth, _textHeight, _textPos,
+               _overlayAlpha);
 }
 
 const uint8_t *OverlayPixelBuffer::getBuffer(const core::Rect &r,
