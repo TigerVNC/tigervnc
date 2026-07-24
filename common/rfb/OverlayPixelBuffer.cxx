@@ -22,6 +22,7 @@
 // The PixelBuffer class encapsulates the PixelFormat and dimensions
 // of a block of pixel data.
 
+#include <cstring>
 #include <string>
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -34,11 +35,6 @@
 
 #include <pixman.h>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
-#include <fontconfig/fontconfig.h>
-
 using namespace rfb;
 
 static core::LogWriter vlog("OverlayPixelBuffer");
@@ -50,7 +46,7 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
                          parentBuf->height()),
       parent(parentBuf),
       overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]),
-      _textBuffer(nullptr),
+      _content(nullptr),
       _overlayRect(0, 0, 0, 0), _overlayPos(overlayPos),
       _overlayText(overlayText), _overlayFontSize(12), _overlayPadding(10), _overlayAlpha(0.5) {
   vlog.debug("Setting overlay position to: %s", overlayPos);
@@ -95,7 +91,7 @@ void OverlayPixelBuffer::setSize(int w, int h) {
 
 OverlayPixelBuffer::~OverlayPixelBuffer() {
   delete[] overlayBuffer;
-  delete[] _textBuffer;
+  delete _content;
 }
 
 core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
@@ -132,22 +128,25 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
 }
 
 void OverlayPixelBuffer::renderOverlay() {
-  delete[] _textBuffer;
-  _textBuffer = nullptr;
-  _textWidth = _textHeight = 0;
+  delete _content;
+  _content = nullptr;
   _overlayRect = core::Rect(0, 0, 0, 0);
 
   if (_overlayText.empty())
     return;
 
-  _textBuffer = generateTextOverlayBuffer(_overlayText, _overlayFontSize,
-                                 &_textWidth, &_textHeight);
-  if (!_textBuffer)
+  _content = new OverlayContentText(_overlayText, _overlayFontSize);
+  if (!_content->getContentPixelBuffer()) {
+    delete _content;
+    _content = nullptr;
     return;
+  }
 
-  _textPos = calcOverlayPosition(_overlayPos.c_str(), _textWidth, _textHeight);
-  _overlayRect = core::Rect(_textPos.x, _textPos.y, _textPos.x + _textWidth,
-                            _textPos.y + _textHeight);
+  _textPos = calcOverlayPosition(_overlayPos.c_str(), _content->getWidth(),
+                                 _content->getHeight());
+  _overlayRect = core::Rect(_textPos.x, _textPos.y,
+                            _textPos.x + _content->getWidth(),
+                            _textPos.y + _content->getHeight());
 }
 
 void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
@@ -234,164 +233,6 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   pixman_image_unref(destImage);
 }
 
-// Return a path for a usable font file for text overlay
-static std::string findFontFile(const std::string &fontPattern = "") {
-  if (!FcInit()) {
-    return "";
-  }
-
-  FcPattern *pattern =
-      FcNameParse(reinterpret_cast<const FcChar8 *>(fontPattern.c_str()));
-  if (!pattern) {
-    return "";
-  }
-
-  FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
-  FcDefaultSubstitute(pattern);
-
-  FcResult result;
-  FcPattern *font = FcFontMatch(nullptr, pattern, &result);
-
-  std::string fontPath;
-  if (font) {
-    FcChar8 *file = nullptr;
-
-    if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch) {
-      fontPath = reinterpret_cast<char *>(file);
-    }
-    FcPatternDestroy(font);
-  }
-
-  FcPatternDestroy(pattern);
-
-  return fontPath;
-}
-
-// Initializes FreeType and loads the watermark font once.
-static FT_Face getOverlayFont() {
-  static FT_Library library = nullptr;
-  static FT_Face face = nullptr;
-  static bool initialized = false;
-
-  if (initialized)
-    return face;
-  initialized = true;
-
-  if (FT_Init_FreeType(&library) != 0) {
-    vlog.error("Failed to initialize FreeType");
-    return nullptr;
-  }
-
-  // TODO: Send in parameter for font
-  const std::string fontFile = findFontFile("cursive");
-  if (fontFile.empty()) {
-    vlog.error("No usable font found for overlay text");
-    return nullptr;
-  }
-
-  if (FT_New_Face(library, fontFile.c_str(), 0, &face) != 0) {
-    vlog.error("Failed to load font %s for overlay text", fontFile.c_str());
-    return nullptr;
-  }
-
-  return face;
-}
-
-// Renders text at the given pixel font size into a freshly allocated
-// ARGB32 buffer sized exactly to fit the rendered glyphs. Returns nullptr
-// if text is empty or no usable font is found.
-uint8_t *OverlayPixelBuffer::generateTextOverlayBuffer(const std::string &text,
-                                              int size,
-                                              int *outWidth, int *outHeight) {
-  *outWidth = *outHeight = 0;
-
-  if (text.empty())
-    return nullptr;
-
-  FT_Face face = getOverlayFont();
-  if (!face)
-    return nullptr;
-
-  FT_UInt pixelSize = static_cast<FT_UInt>(size);
-  FT_Set_Pixel_Sizes(face, 0, pixelSize);
-
-  // First pass: measure the extents so we can allocate a tightly fitting
-  // buffer before rendering any glyphs.
-  int textWidth = 0;
-  for (size_t i = 0; i < text.size(); i++) {
-    if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]), FT_LOAD_DEFAULT) !=
-        0)
-      continue;
-    textWidth += face->glyph->advance.x >> 6;
-  }
-  int ascent = face->size->metrics.ascender >> 6;
-  int descent = -(face->size->metrics.descender >> 6);
-  int textHeight = ascent + descent;
-
-  if ((textWidth <= 0) || (textHeight <= 0))
-    return nullptr;
-
-  int stride = textWidth * 4;
-  uint8_t *buf = new uint8_t[stride * textHeight]();
-
-  pixman_image_t *destImage = pixman_image_create_bits(
-      PIXMAN_a8r8g8b8, textWidth, textHeight,
-      reinterpret_cast<uint32_t *>(buf), stride);
-  if (!destImage) {
-    vlog.error("Failed to create Pixman image surface wrapper for text.");
-    delete[] buf;
-    return nullptr;
-  }
-
-  pixman_color_t whiteColor = {0xffff, 0xffff, 0xffff, 0xffff};
-  pixman_image_t *textColor = pixman_image_create_solid_fill(&whiteColor);
-
-  int penX = 0;
-  int baselineY = ascent;
-
-  for (size_t i = 0; i < text.size(); i++) {
-    if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]), FT_LOAD_RENDER) !=
-        0)
-      continue;
-
-    FT_GlyphSlot glyph = face->glyph;
-    FT_Bitmap &bitmap = glyph->bitmap;
-
-    int glyphX = penX + glyph->bitmap_left;
-    int glyphY = baselineY - glyph->bitmap_top;
-
-    if ((bitmap.width > 0) && (bitmap.rows > 0)) {
-      // Pixman requires the stride to be a multiple of 4 bytes, which
-      // FreeType's tightly-packed 8-bit bitmaps rarely are.
-      int alignedStride = (bitmap.width + 3) & ~3;
-      std::vector<uint8_t> maskBuffer(alignedStride * bitmap.rows, 0);
-      for (unsigned int row = 0; row < bitmap.rows; row++)
-        memcpy(&maskBuffer[row * alignedStride],
-               bitmap.buffer + row * bitmap.pitch, bitmap.width);
-
-      pixman_image_t *mask = pixman_image_create_bits(
-          PIXMAN_a8, bitmap.width, bitmap.rows,
-          reinterpret_cast<uint32_t *>(maskBuffer.data()), alignedStride);
-
-      if (mask) {
-        pixman_image_composite(PIXMAN_OP_OVER, textColor, mask, destImage, 0,
-                               0, 0, 0, glyphX, glyphY, bitmap.width,
-                               bitmap.rows);
-        pixman_image_unref(mask);
-      }
-    }
-
-    penX += glyph->advance.x >> 6;
-  }
-
-  pixman_image_unref(textColor);
-  pixman_image_unref(destImage);
-
-  *outWidth = textWidth;
-  *outHeight = textHeight;
-  return buf;
-}
-
 void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
   std::vector<core::Rect> rects;
   int bytesPerPixel = format.bpp / 8;
@@ -418,9 +259,9 @@ void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
   }
 
   // Only redraw the overlay if the damage is within the overlay rectangle
-  if (!r.intersect(_overlayRect).is_empty())
-    blendBuffer(_textBuffer, _textWidth, _textHeight, _textPos,
-               _overlayAlpha);
+  if (_content && !r.intersect(_overlayRect).is_empty())
+    blendBuffer(_content->getContentPixelBuffer(), _content->getWidth(),
+               _content->getHeight(), _textPos, _overlayAlpha);
 }
 
 const uint8_t *OverlayPixelBuffer::getBuffer(const core::Rect &r,

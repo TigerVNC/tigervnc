@@ -7,6 +7,7 @@
 
 #include <core/Rect.h>
 
+#include <rfb/OverlayContentText.h>
 #include <rfb/PixelBuffer.h>
 
 namespace rfb {
@@ -33,9 +34,6 @@ public:
   core::Rect getOverlayRect() const { return _overlayRect; }
 
 private:
-  // Renders text at the given pixel font size into a new buffer
-  static uint8_t *generateTextOverlayBuffer(const std::string &text, int size,
-                                   int *outWidth, int *outHeight);
   // Blends overlaybuffer with the parents buffer
   void blendBuffer(const uint8_t *buf, int bufWidth, int bufHeight,
                    const core::Point &pos, double alpha) const;
@@ -46,8 +44,7 @@ private:
 
   const PixelBuffer *parent;
   uint8_t *overlayBuffer;
-  uint8_t *_textBuffer;
-  int _textWidth, _textHeight;
+  OverlayContentText *_content;
   core::Point _textPos;
   core ::Rect _overlayRect;
   std::string _overlayPos;

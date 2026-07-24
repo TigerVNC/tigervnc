@@ -13,6 +13,7 @@ add_library(rfb STATIC
   JpegDecompressor.cxx
   KeyRemapper.cxx
   KeysymStr.c
+  OverlayContentText.cxx
   OverlayPixelBuffer.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
