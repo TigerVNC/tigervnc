@@ -41,26 +41,30 @@ static core::LogWriter vlog("OverlayPixelBuffer");
 
 OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
                                        const char *overlayPos,
-                                       const char *overlayText)
+                                       const char *overlayText,
+                                       int overlayFontSize)
     : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(),
                          parentBuf->height()),
       parent(parentBuf),
       overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]),
       _content(nullptr),
       _overlayRect(0, 0, 0, 0), _overlayPos(overlayPos),
-      _overlayText(overlayText), _overlayFontSize(12), _overlayPadding(10), _overlayAlpha(0.5) {
+      _overlayText(overlayText), _overlayFontSize(overlayFontSize),
+      _overlayPadding(10), _overlayAlpha(0.5) {
   vlog.debug("Setting overlay position to: %s", overlayPos);
   renderOverlay();
   syncBuffers(getRect());
 }
 
 void OverlayPixelBuffer::updateOverlay(const char *overlayPos,
-                                       const char *overlayText) {
-  vlog.debug("Updating overlay to position %s, text %s", overlayPos,
-             overlayText);
+                                       const char *overlayText,
+                                       int overlayFontSize) {
+  vlog.debug("Updating overlay to position %s, text %s, font size %d",
+             overlayPos, overlayText, overlayFontSize);
 
   _overlayPos = overlayPos;
   _overlayText = overlayText;
+  _overlayFontSize = overlayFontSize;
 
   renderOverlay();
   syncBuffers(getRect());

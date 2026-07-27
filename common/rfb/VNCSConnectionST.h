@@ -49,6 +49,7 @@ namespace rfb {
 
     static core::StringParameter overlayPos; // Overlay position (tl, tr, bl, br, c)
     static core::StringParameter overlayText; // Overlay text to display
+    static core::IntParameter overlayTextSize; // Overlay text font size
     // SConnection methods
 
     bool accessCheck(AccessRights ar) const override;

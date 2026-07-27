@@ -6,6 +6,7 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
 #include <cstring>
 #include <vector>
 
@@ -98,6 +99,8 @@ static FT_Face getOverlayFont() {
 // Renders text at the given pixel font size into a freshly allocated
 // ARGB32 buffer sized exactly to fit the rendered glyphs. Returns nullptr
 // if text is empty or no usable font is found.
+
+//TODO: Rewrite/Comment
 uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
                                                 int size, int *outWidth,
                                                 int *outHeight) {
@@ -114,13 +117,28 @@ uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
   FT_Set_Pixel_Sizes(face, 0, pixelSize);
 
   // First pass: measure the extents so we can allocate a tightly fitting
-  // buffer before rendering any glyphs.
+  // buffer before rendering any glyphs. Cursive/italic glyphs can render
+  // wider than their own advance (connecting flourishes, negative right
+  // side bearing), so the buffer must fit the rendered ink, not just the
+  // sum of advances, or the render pass below gets clipped on the right.
   int textWidth = 0;
-  for (size_t i = 0; i < text.size(); i++) {
-    if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]), FT_LOAD_DEFAULT) !=
-        0)
-      continue;
-    textWidth += face->glyph->advance.x >> 6;
+  int maxInkExtent = 0;
+  {
+    int penX = 0;
+    for (size_t i = 0; i < text.size(); i++) {
+      if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]),
+                       FT_LOAD_RENDER) != 0)
+        continue;
+
+      FT_GlyphSlot glyph = face->glyph;
+      int inkExtent = penX + glyph->bitmap_left +
+                      static_cast<int>(glyph->bitmap.width);
+      if (inkExtent > maxInkExtent)
+        maxInkExtent = inkExtent;
+
+      penX += glyph->advance.x >> 6;
+    }
+    textWidth = std::max(penX, maxInkExtent);
   }
   int ascent = face->size->metrics.ascender >> 6;
   int descent = -(face->size->metrics.descender >> 6);
