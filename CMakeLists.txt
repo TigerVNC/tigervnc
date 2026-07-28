@@ -250,6 +250,9 @@ find_package(Freetype REQUIRED)
 # Check for fontconfig (used to locate a system font for the overlay text)
 find_package(Fontconfig REQUIRED)
 
+# Check for libpng (used to decode PNG overlay content)
+find_package(PNG REQUIRED)
+
 option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
 if(BUILD_JAVA)
   add_subdirectory(java)

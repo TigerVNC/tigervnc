@@ -13,6 +13,7 @@ add_library(rfb STATIC
   JpegDecompressor.cxx
   KeyRemapper.cxx
   KeysymStr.c
+  OverlayContentPng.cxx
   OverlayContentText.cxx
   OverlayPixelBuffer.cxx
   PixelBuffer.cxx
@@ -26,10 +27,12 @@ target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
 target_include_directories(rfb SYSTEM PUBLIC ${FREETYPE_INCLUDE_DIRS})
 target_include_directories(rfb SYSTEM PUBLIC ${Fontconfig_INCLUDE_DIRS})
+target_include_directories(rfb SYSTEM PUBLIC ${PNG_INCLUDE_DIRS})
 target_link_libraries(rfb core rdr)
 target_link_libraries(rfb ${JPEG_LIBRARIES})
 target_link_libraries(rfb ${FREETYPE_LIBRARIES})
 target_link_libraries(rfb ${Fontconfig_LIBRARIES})
+target_link_libraries(rfb ${PNG_LIBRARIES})
 
 add_library(rfbserver STATIC
   ClientParams.cxx

@@ -7,7 +7,7 @@
 
 #include <core/Rect.h>
 
-#include <rfb/OverlayContentText.h>
+#include <rfb/OverlayContent.h>
 #include <rfb/PixelBuffer.h>
 
 namespace rfb {
@@ -45,7 +45,7 @@ private:
 
   const PixelBuffer *parent;
   uint8_t *overlayBuffer;
-  OverlayContentText *_content;
+  OverlayContent *_content;
   core::Point _textPos;
   core ::Rect _overlayRect;
   std::string _overlayPos;

@@ -32,6 +32,8 @@
 #include <core/Region.h>
 
 #include <rfb/OverlayPixelBuffer.h>
+#include "rfb/OverlayContentPng.h"
+#include "rfb/OverlayContentText.h"
 
 #include <pixman.h>
 
@@ -139,7 +141,9 @@ void OverlayPixelBuffer::renderOverlay() {
   if (_overlayText.empty())
     return;
 
+  //TODO: select which type of content needs to be generated
   _content = new OverlayContentText(_overlayText, _overlayFontSize);
+  //_content = new OverlayContentPng("/home/eskbr/Downloads/cendio.png");
   if (!_content->getContentPixelBuffer()) {
     delete _content;
     _content = nullptr;
