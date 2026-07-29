@@ -45,14 +45,14 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
                                        const char *overlayPos,
                                        const char *overlayInput,
                                        const int overlayAlpha,
-                                       int overlayFontSize)
+                                       int overlaySize)
     : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(),
                          parentBuf->height()),
       parent(parentBuf),
       overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]),
       _content(nullptr),
       _overlayRect(0, 0, 0, 0), _overlayPos(overlayPos),
-      _overlayInput(overlayInput), _overlayFontSize(overlayFontSize),
+      _overlayInput(overlayInput), _overlaySize(overlaySize),
       _overlayPadding(10), _overlayAlpha(overlayAlpha) {
   vlog.debug("Setting overlay position to: %s", overlayPos);
   renderOverlay();
@@ -62,14 +62,14 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
 void OverlayPixelBuffer::updateOverlay(const char *overlayPos,
                                        const char *overlayInput,
                                        const int overlayAlpha,
-                                       int overlayFontSize) {
+                                       int overlaySize) {
   vlog.debug("Updating overlay to position %s, text %s, font size %d",
-             overlayPos, overlayInput, overlayFontSize);
+             overlayPos, overlayInput, overlaySize);
 
   _overlayPos = overlayPos;
   _overlayInput = overlayInput;
   _overlayAlpha = overlayAlpha;
-  _overlayFontSize = overlayFontSize;
+  _overlaySize = overlaySize;
 
   renderOverlay();
   syncBuffers(getRect());
@@ -145,7 +145,7 @@ void OverlayPixelBuffer::renderOverlay() {
     return;
 
   //TODO: select which type of content needs to be generated
-  _content = new OverlayContentText(_overlayInput, _overlayFontSize);
+  _content = new OverlayContentText(_overlayInput, _overlaySize);
   //_content = new OverlayContentPng("/home/eskbr/Downloads/cendio.png");
   if (!_content->getContentPixelBuffer()) {
     delete _content;
