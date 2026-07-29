@@ -50,6 +50,7 @@ namespace rfb {
     static core::StringParameter overlayType; // Overlay type (text, png, qr-code)
     static core::StringParameter overlayPos; // Overlay position (tl, tr, bl, br, c)
     static core::StringParameter overlayInput; // Overlay text to display
+    static core::IntParameter overlayAlpha; // % transparency of the overlay
     static core::IntParameter overlaySize; // Size of overlay (text->fontsize, qrcode/png->height)
     // SConnection methods
 

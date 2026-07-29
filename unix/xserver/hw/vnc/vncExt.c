@@ -148,6 +148,7 @@ static int ProcVncExtSetParam(ClientPtr client)
     vncUpdateDesktopName();
   else if (strcasecmp(param, "overlaypos") == 0 ||
            strcasecmp(param, "overlayinput") == 0 ||
+           strcasecmp(param, "overlayalpha") == 0 ||
            strcasecmp(param, "overlaysize") == 0)
     vncUpdateOverlay();
 

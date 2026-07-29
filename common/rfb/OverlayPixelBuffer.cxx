@@ -44,6 +44,7 @@ static core::LogWriter vlog("OverlayPixelBuffer");
 OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
                                        const char *overlayPos,
                                        const char *overlayInput,
+                                       const int overlayAlpha,
                                        int overlayFontSize)
     : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(),
                          parentBuf->height()),
@@ -52,7 +53,7 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
       _content(nullptr),
       _overlayRect(0, 0, 0, 0), _overlayPos(overlayPos),
       _overlayInput(overlayInput), _overlayFontSize(overlayFontSize),
-      _overlayPadding(10), _overlayAlpha(0.5) {
+      _overlayPadding(10), _overlayAlpha(overlayAlpha) {
   vlog.debug("Setting overlay position to: %s", overlayPos);
   renderOverlay();
   syncBuffers(getRect());
@@ -60,12 +61,14 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
 
 void OverlayPixelBuffer::updateOverlay(const char *overlayPos,
                                        const char *overlayInput,
+                                       const int overlayAlpha,
                                        int overlayFontSize) {
   vlog.debug("Updating overlay to position %s, text %s, font size %d",
              overlayPos, overlayInput, overlayFontSize);
 
   _overlayPos = overlayPos;
   _overlayInput = overlayInput;
+  _overlayAlpha = overlayAlpha;
   _overlayFontSize = overlayFontSize;
 
   renderOverlay();
@@ -217,6 +220,9 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
 
   // 5. A solid alpha mask that multiplies the source's own per-pixel alpha
   // by the requested overall alpha, giving the watermark its translucency.
+  // alpha arrives as a 0-100 percentage (OverlayAlpha), so convert it to a
+  // 0.0-1.0 fraction before clamping.
+  alpha /= 100.0;
   if (alpha < 0.0)
     alpha = 0.0;
   else if (alpha > 1.0)
