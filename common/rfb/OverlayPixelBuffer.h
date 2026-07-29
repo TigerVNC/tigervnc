@@ -14,7 +14,7 @@ namespace rfb {
 
 class OverlayPixelBuffer : public ManagedPixelBuffer {
 public:
-  OverlayPixelBuffer(const PixelBuffer *parentBuf, const char *overlayPos,
+  OverlayPixelBuffer(const PixelBuffer *parentBuf, const char *overlayType, const char *overlayPos,
                      const char *overlayInput, const int overlayAlpha, int overlaySize);
   virtual ~OverlayPixelBuffer();
 
@@ -29,7 +29,7 @@ public:
   void setSize(int w, int h) override;
   // Update the overlay position/text and redraw, e.g. after a runtime config
   // change.
-  void updateOverlay(const char *overlayPos, const char *overlayInput, const int overlayAlpha,
+  void updateOverlay(const char *overlayType, const char *overlayPos, const char *overlayInput, const int overlayAlpha,
                      int overlaySize);
   // Current area covered by the overlay text, e.g. to mark it as changed.
   core::Rect getOverlayRect() const { return _overlayRect; }
@@ -46,6 +46,7 @@ private:
   const PixelBuffer *parent;
   uint8_t *overlayBuffer;
   OverlayContent *_content;
+  std::string _overlayType;
   core::Point _textPos;
   core ::Rect _overlayRect;
   std::string _overlayPos;

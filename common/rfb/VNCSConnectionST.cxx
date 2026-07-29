@@ -93,7 +93,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
 
   //Initialize the overlay buffer
   if(overlayInput.getValueStr() != ""){
-    overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str(), overlayInput.getValueStr().c_str(), overlayAlpha, overlaySize);
+    overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayType.getValueStr().c_str(), overlayPos.getValueStr().c_str(), overlayInput.getValueStr().c_str(), overlayAlpha, overlaySize);
   }
 }
 
@@ -1289,7 +1289,8 @@ void VNCSConnectionST::updateOverlay()
 
   oldRect = overlayBuffer->getOverlayRect();
 
-  overlayBuffer->updateOverlay(overlayPos.getValueStr().c_str(),
+  overlayBuffer->updateOverlay(overlayType.getValueStr().c_str(),
+                               overlayPos.getValueStr().c_str(),
                                overlayInput.getValueStr().c_str(),
                                overlayAlpha,
                                overlaySize);
