@@ -152,7 +152,7 @@ namespace rfb {
     // state is
     virtual void setLEDState(unsigned int state) = 0;
 
-    // updateOverlay() tells the server to re-read the OverlayPos/OverlayInput/OverlayTextSize
+    // updateOverlay() tells the server to re-read the OverlayPos/OverlayInput/OverlaySize
     // configuration and push the change out to all connected clients
     virtual void updateOverlay() = 0;
   };

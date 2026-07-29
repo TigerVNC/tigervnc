@@ -62,7 +62,7 @@ using namespace rfb;
 core::StringParameter VNCSConnectionST::overlayType("OverlayType", "Overlay type (text, png, qr-code)", "");
 core::StringParameter VNCSConnectionST::overlayPos("OverlayPos", "Overlay position (tl, tr, bl, br, c)", "tl");
 core::StringParameter VNCSConnectionST::overlayInput("OverlayInput", "Input for specified overlay type (text->text, qr->data, png->filepath)", "");
-core::IntParameter VNCSConnectionST::overlayTextSize("OverlayTextSize", "Font size for the overlay text", 12, 1, 500);
+core::IntParameter VNCSConnectionST::overlaySize("OverlaySize", "Size of overlay (text->fontsize, qrcode/png->height)", 12, 1, 500);
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
@@ -92,7 +92,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
 
   //Initialize the overlay buffer
   if(overlayInput.getValueStr() != ""){
-    overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str(), overlayInput.getValueStr().c_str(), overlayTextSize);
+    overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayPos.getValueStr().c_str(), overlayInput.getValueStr().c_str(), overlaySize);
   }
 }
 
@@ -1290,7 +1290,7 @@ void VNCSConnectionST::updateOverlay()
 
   overlayBuffer->updateOverlay(overlayPos.getValueStr().c_str(),
                                overlayInput.getValueStr().c_str(),
-                               overlayTextSize);
+                               overlaySize);
 
   // Both the area the overlay used to cover and the area it covers now
   // need to be resent, so the old position is cleared and the new one
