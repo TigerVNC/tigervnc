@@ -63,7 +63,7 @@ core::StringParameter VNCSConnectionST::overlayType("OverlayType", "Overlay type
 core::StringParameter VNCSConnectionST::overlayPos("OverlayPos", "Overlay position (tl, tr, bl, br, c)", "tl");
 core::StringParameter VNCSConnectionST::overlayInput("OverlayInput", "Input for specified overlay type (text->text, qr->data, png->filepath)", "");
 core::IntParameter VNCSConnectionST::overlayAlpha("OverlayAlpha", "% transparency of the overlay", 50, 0, 100);
-core::IntParameter VNCSConnectionST::overlaySize("OverlaySize", "Size of overlay (text->fontsize, qrcode/png->height)", 12, 1, 500);
+core::IntParameter VNCSConnectionST::overlaySize("OverlaySize", "% of framebuffer height the overlay should occupy", 12, 1, 100);
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;

@@ -9,16 +9,15 @@ namespace rfb {
 
 class OverlayContentPng : public OverlayContent {
 public:
-  OverlayContentPng(const std::string &filePath);
+  OverlayContentPng(const std::string &filePath, int height);
   virtual ~OverlayContentPng();
 
   virtual uint8_t *getContentPixelBuffer() override { return _buffer; }
 
 private:
   // Decodes the PNG file at filePath into a freshly allocated ARGB32
-  // buffer sized exactly to the image dimensions.
-  static uint8_t *loadPngBuffer(const std::string &filePath, int *outWidth,
-                                int *outHeight);
+  static uint8_t *loadPngBuffer(const std::string &filePath, int height,
+                                int *outWidth, int *outHeight);
 
   uint8_t *_buffer;
 };

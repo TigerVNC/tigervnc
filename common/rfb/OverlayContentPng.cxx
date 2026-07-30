@@ -6,6 +6,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 
 #include <core/LogWriter.h>
@@ -13,22 +15,57 @@
 #include <rfb/OverlayContentPng.h>
 
 #include <png.h>
+#include <pixman.h>
 
 using namespace rfb;
 
 static core::LogWriter vlog("OverlayContentPng");
 
-OverlayContentPng::OverlayContentPng(const std::string &filePath)
+// Scales a tightly packed ARGB32 buffer with a given height, keeps the original aspect ratio
+static uint8_t *scaleArgbBuffer(const uint8_t *srcBuffer, int srcWidth,
+                                int srcHeight, int dstWidth, int dstHeight) {
+  uint8_t *dstBuffer = new uint8_t[dstWidth * dstHeight * 4];
+  
+  pixman_image_t *srcImage = pixman_image_create_bits(
+      PIXMAN_a8r8g8b8, srcWidth, srcHeight,
+      reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(srcBuffer)),
+      srcWidth * 4);
+  pixman_image_t *dstImage = pixman_image_create_bits(
+      PIXMAN_a8r8g8b8, dstWidth, dstHeight,
+      reinterpret_cast<uint32_t *>(dstBuffer),
+      dstWidth * 4);
+
+  pixman_transform_t transform;
+  pixman_transform_init_scale(
+      &transform,
+      pixman_double_to_fixed(static_cast<double>(srcWidth) / dstWidth),
+      pixman_double_to_fixed(static_cast<double>(srcHeight) / dstHeight));
+  pixman_image_set_transform(srcImage, &transform);
+  pixman_image_set_filter(srcImage, PIXMAN_FILTER_BILINEAR, nullptr, 0);
+
+  pixman_image_composite(PIXMAN_OP_SRC, srcImage, nullptr, dstImage, 0, 0, 0,
+                         0, 0, 0, static_cast<uint16_t>(dstWidth),
+                         static_cast<uint16_t>(dstHeight));
+
+  pixman_image_unref(srcImage);
+  pixman_image_unref(dstImage);
+
+  return dstBuffer;
+}
+
+OverlayContentPng::OverlayContentPng(const std::string &filePath, int height)
     : _buffer(nullptr) {
   _width = _height = 0;
-  _buffer = loadPngBuffer(filePath, &_width, &_height);
+  _buffer = loadPngBuffer(filePath, height, &_width, &_height);
 }
 
 OverlayContentPng::~OverlayContentPng() { delete[] _buffer; }
 
-// Decodes the PNG file at filePath into a new pixelbuffer
+// Decodes the PNG file at filePath into a new pixelbuffer, scaled to the
+// given height while preserving the image's own aspect ratio.
 uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
-                                          int *outWidth, int *outHeight) {
+                                          int height, int *outWidth,
+                                          int *outHeight) {
   *outWidth = *outHeight = 0;
 
   if (filePath.empty())
@@ -66,9 +103,25 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
     p[2] = static_cast<uint8_t>((p[2] * alpha) / 255);
   }
 
-  *outWidth = static_cast<int>(image.width);
-  *outHeight = static_cast<int>(image.height);
+  int width = static_cast<int>(image.width);
+  int origHeight = static_cast<int>(image.height);
 
   png_image_free(&image);
+
+  if (height > 0 && height != origHeight) {
+    int scaledWidth = std::max(
+        1, static_cast<int>(std::lround(static_cast<double>(width) *
+                                        height / origHeight)));
+    uint8_t *scaled =
+        scaleArgbBuffer(buffer, width, origHeight, scaledWidth, height);
+    delete[] buffer;
+    buffer = scaled;
+    width = scaledWidth;
+    origHeight = height;
+  }
+
+  *outWidth = width;
+  *outHeight = origHeight;
+
   return buffer;
 }

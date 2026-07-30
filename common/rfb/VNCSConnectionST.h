@@ -51,7 +51,7 @@ namespace rfb {
     static core::StringParameter overlayPos; // Overlay position (tl, tr, bl, br, c)
     static core::StringParameter overlayInput; // Overlay text to display
     static core::IntParameter overlayAlpha; // % transparency of the overlay
-    static core::IntParameter overlaySize; // Size of overlay (text->fontsize, qrcode/png->height)
+    static core::IntParameter overlaySize; // % of framebuffer height the overlay should occupy
     // SConnection methods
 
     bool accessCheck(AccessRights ar) const override;

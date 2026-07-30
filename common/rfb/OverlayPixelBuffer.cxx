@@ -22,6 +22,8 @@
 // The PixelBuffer class encapsulates the PixelFormat and dimensions
 // of a block of pixel data.
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <string>
 #ifdef HAVE_CONFIG_H
@@ -149,10 +151,14 @@ void OverlayPixelBuffer::renderOverlay() {
   if (_overlayInput.empty())
     return;
 
+  // calculate the height of the overlay
+  int targetHeight = std::max(
+      1, static_cast<int>(std::lround(_overlaySize / 100.0 * height())));
+
   if (_overlayType == "png")
-    _content = new OverlayContentPng(_overlayInput);
+    _content = new OverlayContentPng(_overlayInput, targetHeight);
   else
-    _content = new OverlayContentText(_overlayInput, _overlaySize);
+    _content = new OverlayContentText(_overlayInput, targetHeight);
 
   if (!_content->getContentPixelBuffer()) {
     delete _content;
