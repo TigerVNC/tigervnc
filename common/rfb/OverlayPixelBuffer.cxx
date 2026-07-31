@@ -35,6 +35,7 @@
 
 #include <rfb/OverlayPixelBuffer.h>
 #include "rfb/OverlayContentPng.h"
+#include "rfb/OverlayContentQr.h"
 #include "rfb/OverlayContentText.h"
 
 #include <pixman.h>
@@ -157,6 +158,8 @@ void OverlayPixelBuffer::renderOverlay() {
 
   if (_overlayType == "png")
     _content = new OverlayContentPng(_overlayInput, targetHeight);
+  else if (_overlayType == "qr")
+    _content = new OverlayContentQr(_overlayInput, targetHeight);
   else
     _content = new OverlayContentText(_overlayInput, targetHeight);
 

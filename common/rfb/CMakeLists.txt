@@ -14,6 +14,7 @@ add_library(rfb STATIC
   KeyRemapper.cxx
   KeysymStr.c
   OverlayContentPng.cxx
+  OverlayContentQr.cxx
   OverlayContentText.cxx
   OverlayPixelBuffer.cxx
   PixelBuffer.cxx
@@ -21,7 +22,8 @@ add_library(rfb STATIC
   Security.cxx
   UpdateTracker.cxx
   encodings.cxx
-  obfuscate.cxx)
+  obfuscate.cxx
+  ${CMAKE_SOURCE_DIR}/common/qrcodegen/qrcodegen.cpp)
 
 target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
