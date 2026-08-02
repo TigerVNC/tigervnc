@@ -52,6 +52,13 @@ abstract public class CConnection extends CMsgHandler {
     security = new SecurityClient();
   }
 
+  public void close() {
+    if (decoder != null) {
+      decoder.stop();
+      decoder = null;
+    }
+  }
+
   // Methods to initialise the connection
 
   // setServerName() is used to provide a unique(ish) name for the server to

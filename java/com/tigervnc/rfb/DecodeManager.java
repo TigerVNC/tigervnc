@@ -68,13 +68,19 @@ public class DecodeManager {
       // Twice as many possible entries in the queue as there
       // are worker threads to make sure they don't stall
       try {
-      freeBuffers.addLast(new MemOutStream());
-      freeBuffers.addLast(new MemOutStream());
-
-      threads.add(new DecodeThread(this));
+        freeBuffers.addLast(new MemOutStream());
+        freeBuffers.addLast(new MemOutStream());
+        threads.add(new DecodeThread(this));
       } catch (IllegalStateException e) { }
     }
+  }
 
+  public void stop() {
+    if (threads != null) {
+      for (DecodeThread t : threads) {
+        t.stop();
+      }
+    }
   }
 
   public void decodeRect(Rect r, int encoding,

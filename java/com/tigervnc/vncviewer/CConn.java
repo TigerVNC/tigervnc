@@ -488,6 +488,7 @@ public class CConn extends CConnection implements
         f.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
     }
     shuttingDown = true;
+    super.close();
     try {
       if (sock != null)
         sock.shutdown();
