@@ -32,93 +32,22 @@ endif()
 STRING(TIMESTAMP JAVA_DATE "%Y-%m-%d" UTC)
 STRING(TIMESTAMP JAVA_TIME "%H:%M:%S" UTC)
 
-set(JAVA_SOURCES "")
-set(JAVA_CLASSES "")
-
-set(JSCH_CLASSNAMES
-  DH
-  DHEC256
-  DHEC384
-  DHEC521
-  DHECN
-  DHGEX256
-  DHG1
-  DHG14
-  DHGEX
-  ECDH
-  JSch
-  Session
-  UserAuth
-  UserAuthKeyboardInteractive
-  UserAuthPassword
-  UserAuthPublicKey
-  UserAuthNone
-  jce/AES128CBC
-  jce/AES128CTR
-  jce/AES192CBC
-  jce/AES192CTR
-  jce/AES256CBC
-  jce/AES256CTR
-  jce/ARCFOUR
-  jce/ARCFOUR128
-  jce/ARCFOUR256
-  jce/BlowfishCBC
-  jce/DH
-	jce/ECDH256
-	jce/ECDH384
-	jce/ECDH521
-	jce/ECDHN
-  jce/HMAC
-  jce/HMACMD5
-  jce/HMACMD596
-  jce/HMACSHA1
-  jce/HMACSHA196
-  jce/HMACSHA256
-  jce/HMACSHA512
-  jce/KeyPairGenDSA
-  jce/KeyPairGenECDSA
-  jce/KeyPairGenRSA
-  jce/MD5
-  jce/PBKDF
-  jce/Random
-  jce/SHA1
-  jce/SHA256
-  jce/SHA384
-  jce/SHA512
-  jce/SignatureDSA
-  jce/SignatureECDSA
-  jce/SignatureRSA
-  jce/TripleDESCBC
-  jce/TripleDESCTR
-  jcraft/Compression
-  jcraft/HMAC
-  jcraft/HMACMD596
-  jcraft/HMACMD5
-  jcraft/HMACSHA196
-  jcraft/HMACSHA1)
-
-foreach(class ${JSCH_CLASSNAMES})
-  set(JAVA_SOURCES ${JAVA_SOURCES} com/jcraft/jsch/${class}.java)
-  set(JAVA_CLASSES ${JAVA_CLASSES}
-    ${BINDIR}/com/jcraft/jsch/${class}.class)
-endforeach()
-
-file(GLOB DEPEND_SOURCES
+file(GLOB_RECURSE DEPEND_SOURCES
   ${SRCDIR}/${CLASSPATH}/*.java
   ${SRCDIR}/com/tigervnc/rfb/*.java
   ${SRCDIR}/com/tigervnc/rdr/*.java
   ${SRCDIR}/com/tigervnc/network/*.java
   ${SRCDIR}/com/jcraft/jsch/*.java
-  ${SRCDIR}/com/jcraft/jsch/jcraft/*.java
-  ${SRCDIR}/com/jcraft/jsch/jgss/*.java
   ${SRCDIR}/com/jcraft/jzlib/*.java)
+
+set(JAVA_CLASSES ${BINDIR}/${CLASSPATH}/VncViewer.class)
 
 string(REGEX REPLACE " " ";" JAVACFLAGS "${JAVACFLAGS}")
 add_custom_command(OUTPUT ${JAVA_CLASSES}
-  DEPENDS ${JAVA_SOURCES} ${DEPEND_SOURCES}
+  DEPENDS ${DEPEND_SOURCES}
   COMMAND ${JAVA_COMPILE}
   ARGS ${JAVACFLAGS} -sourcepath ${SRCDIR} -d ${BINDIR} 
-    ${CLASSPATH}/VncViewer.java ${JAVA_SOURCES}
+    ${CLASSPATH}/VncViewer.java
 	WORKING_DIRECTORY ${SRCDIR})
 
 configure_file(${CLASSPATH}/timestamp.in ${CLASSPATH}/timestamp)
@@ -179,9 +108,8 @@ add_custom_command(OUTPUT VncViewer.jar
     com/tigervnc/rdr/*.class
     com/tigervnc/network/*.class
     com/jcraft/jzlib/*.class
-    com/jcraft/jsch/jcraft/*.class
-    com/jcraft/jsch/jce/*.class
     com/jcraft/jsch/*.class
+    com/jcraft/jsch/*/*.class
     com/tigervnc/vncviewer/*.png
     com/tigervnc/vncviewer/tigervnc.ico
   ${SIGN_JAR_COMMAND})
