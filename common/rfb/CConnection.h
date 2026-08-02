@@ -217,6 +217,8 @@ namespace rfb {
 
     void supportsQEMUKeyEvent() override;
 
+    void supportsQEMUAudio() override;
+
     void supportsExtendedMouseButtons() override;
 
     void serverInit(int width, int height, const PixelFormat& pf,
@@ -243,6 +245,10 @@ namespace rfb {
     void handleClipboardNotify(uint32_t flags) override;
     void handleClipboardProvide(uint32_t flags, const size_t* lengths,
                                 const uint8_t* const* data) override;
+
+    void audioBegin() override;
+    void audioEnd() override;
+    void audioData(const uint8_t* data, size_t length) override;
 
 
     // Methods to be overridden in a derived class
@@ -278,6 +284,18 @@ namespace rfb {
     // server received the request.
     virtual void handleClipboardData(const char* data);
 
+    // handleAudioBegin() and handleAudioEnd() are called when the
+    // server starts and stops sending audio. There may be many such
+    // periods in a single session, as the server only sends audio
+    // whilst something is playing.
+    virtual void handleAudioBegin();
+    virtual void handleAudioEnd();
+
+    // handleAudioData() is called with a chunk of samples, in the
+    // format previously agreed. Note that a chunk is not aligned to
+    // anything in particular, and may even be empty.
+    virtual void handleAudioData(const uint8_t* data, size_t length);
+
   protected:
     CSecurity *csecurity;
     SecurityClient security;
@@ -297,6 +315,7 @@ namespace rfb {
     bool supportsCursorPosition;
     bool supportsDesktopResize;
     bool supportsLEDState;
+    bool supportsAudio;
 
   private:
     bool processVersionMsg();
@@ -308,6 +327,7 @@ namespace rfb {
     void throwAuthError();
     void securityCompleted();
 
+    void requestAudio();
     void requestNewUpdate();
     void updateEncodings();
 
@@ -345,6 +365,8 @@ namespace rfb {
     bool hasRemoteClipboard;
     bool hasLocalClipboard;
     bool unsolicitedClipboardAttempt;
+
+    bool audioRequested;
 
     struct DownKey {
         uint32_t keyCode;

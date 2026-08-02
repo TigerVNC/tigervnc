@@ -56,6 +56,7 @@ namespace rfb {
                        const uint8_t data[]) = 0;
     virtual void endOfContinuousUpdates() = 0;
     virtual void supportsQEMUKeyEvent() = 0;
+    virtual void supportsQEMUAudio() = 0;
     virtual void supportsExtendedMouseButtons() = 0;
     virtual void serverInit(int width, int height,
                             const PixelFormat& pf,
@@ -83,6 +84,10 @@ namespace rfb {
     virtual void handleClipboardProvide(uint32_t flags,
                                         const size_t* lengths,
                                         const uint8_t* const* data) = 0;
+
+    virtual void audioBegin() = 0;
+    virtual void audioEnd() = 0;
+    virtual void audioData(const uint8_t* data, size_t length) = 0;
 
     ServerParams server;
   };

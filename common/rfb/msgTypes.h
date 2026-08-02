@@ -47,5 +47,7 @@ namespace rfb {
   const int msgTypeSetDesktopSize = 251;
 
   const int msgTypeQEMUClientMessage = 255;
+
+  const int msgTypeQEMUServerMessage = 255;
 }
 #endif

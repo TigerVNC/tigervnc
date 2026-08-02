@@ -69,6 +69,10 @@ namespace rfb {
     void writeClipboardProvide(uint32_t flags, const size_t* lengths,
                                const uint8_t* const* data);
 
+    void writeQEMUAudioEnable(bool enable);
+    void writeQEMUAudioSetFormat(uint8_t sampleFormat, uint8_t channels,
+                                 uint32_t frequency);
+
   protected:
     void startMsg(int type);
     void endMsg();
