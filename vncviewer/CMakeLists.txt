@@ -30,10 +30,28 @@ if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   set_target_properties(vncviewer PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
+option(ENABLE_DPI_AWARE "Declare the viewer DPI-aware on Windows (sharp 1:1 rendering; see vncviewer.exe.manifest)" ON)
+
 if(WIN32)
   # Since vncviewer.rc is generated, local includes will be looking
   # in the wrong directory. We need to help it out.
   target_include_directories(vncviewer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+  # The application manifest carries the DPI-awareness declaration. MSVC's
+  # linker synthesises its own manifest, so a second RT_MANIFEST resource
+  # compiled in via the .rc would collide with it; CMake instead merges a
+  # .manifest listed as a source (via /MANIFESTINPUT). MinGW's linker does
+  # no such synthesis, so there the manifest has to go through the .rc.
+  set(VNCVIEWER_MANIFEST_RC "")
+  if(ENABLE_DPI_AWARE)
+    if(MSVC)
+      target_sources(vncviewer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vncviewer.exe.manifest)
+    else()
+      # 1 = CREATEPROCESS_MANIFEST_RESOURCE_ID, 24 = RT_MANIFEST
+      set(VNCVIEWER_MANIFEST_RC "1 24 \"${CMAKE_CURRENT_SOURCE_DIR}/vncviewer.exe.manifest\"")
+    endif()
+  endif()
+
   configure_file(vncviewer.rc.in vncviewer.rc)
   target_sources(vncviewer PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.rc)
 endif()

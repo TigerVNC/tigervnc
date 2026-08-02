@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity
+     type="win32"
+     name="TigerVNC.vncviewer.exe"
+     version="1.0.0.0"
+  />
+  <description>TigerVNC Viewer</description>
+
+  <!--
+    Declare DPI awareness so Windows hands us the real pixel grid instead of
+    rendering to a virtualized logical desktop and bitmap stretching the
+    result. Without this, on a 200% display a 3270x2180 panel is reported as
+    1635x1090: a 1920x1200 remote framebuffer no longer fits (DesktopWindow
+    logs "Reducing window size to fit on current monitor") and every pixel we
+    draw is upscaled 2x by the compositor, which is exactly the blur you do
+    not want on a remote desktop.
+
+    "true" is system DPI awareness, deliberately not PerMonitorV2.
+    Per-monitor awareness requires the app to rescale itself on WM_DPICHANGED
+    when moved between differently scaled monitors. FLTK 1.3 has no HiDPI
+    support at all (Fl::screen_scale() arrived in 1.4, and TigerVNC hard
+    requires 1.3; see the FL_MINOR_VERSION check in the top level
+    CMakeLists.txt), so we cannot honour that contract. Claiming PerMonitorV2
+    we cannot implement would give a wrongly sized window on a secondary
+    monitor; system awareness lets Windows fall back to bitmap scaling there,
+    which is the correct degradation.
+  -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>
+    </windowsSettings>
+  </application>
+
+  <!-- Without an explicit supportedOS list Windows applies legacy
+       compatibility shims, which can re-enable DPI virtualization. -->
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
+      <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/>
+      <supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/>
+      <supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/>
+    </application>
+  </compatibility>
+</assembly>
