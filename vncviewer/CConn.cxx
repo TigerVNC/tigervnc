@@ -61,6 +61,7 @@
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
+#include "AudioOutput.h"
 #include "AuthDialog.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
@@ -94,6 +95,7 @@ static const unsigned bpsEstimateWindow = 1000;
 CConn::CConn()
   : serverPort(0), sock(nullptr),
     msgTimer(this, &CConn::processNextMsg), desktop(nullptr),
+    audioOutput(nullptr),
     updateCount(0), pixelCount(0),
     lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
@@ -103,6 +105,14 @@ CConn::CConn()
   supportsCursorPosition = true;
   supportsDesktopResize = true;
   supportsLEDState = true;
+
+  // Only ask the server to send audio if there is a device that can
+  // play it. Opening that device is deferred until the server actually
+  // has something for us.
+  if (playAudio) {
+    audioOutput = AudioOutput::create();
+    supportsAudio = audioOutput != nullptr;
+  }
 
   if (customCompressLevel)
     setCompressLevel(::compressLevel);
@@ -121,6 +131,8 @@ CConn::~CConn()
 
   if (desktop)
     delete desktop;
+
+  delete audioOutput;
 
   if (sock) {
     struct timeval now;
@@ -921,6 +933,30 @@ void CConn::handleClipboardAnnounce(bool available)
 void CConn::handleClipboardData(const char* data)
 {
   desktop->handleClipboardData(data);
+}
+
+void CConn::handleAudioBegin()
+{
+  if (audioOutput == nullptr)
+    return;
+
+  audioOutput->start();
+}
+
+void CConn::handleAudioEnd()
+{
+  if (audioOutput == nullptr)
+    return;
+
+  audioOutput->stop();
+}
+
+void CConn::handleAudioData(const uint8_t* data, size_t length)
+{
+  if (audioOutput == nullptr)
+    return;
+
+  audioOutput->play(data, length);
 }
 
 

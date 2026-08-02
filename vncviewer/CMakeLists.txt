@@ -10,6 +10,7 @@ add_executable(vncviewer
   fltk/Fl_Navigation.cxx
   fltk/event_dispatch_handler.cxx
   fltk/theme.cxx
+  AudioOutput.cxx
   AuthDialog.cxx
   BaseTouchHandler.cxx
   CConn.cxx
@@ -42,6 +43,7 @@ if(WIN32)
   target_sources(vncviewer PRIVATE Win32TouchHandler.cxx win32.c)
   target_sources(vncviewer PRIVATE KeyboardWin32.cxx keysym2ucs.c)
   target_sources(vncviewer PRIVATE Surface_Win32.cxx)
+  target_sources(vncviewer PRIVATE AudioOutputWin32.cxx)
 elseif(APPLE)
   target_sources(vncviewer PRIVATE cocoa.mm)
   target_sources(vncviewer PRIVATE KeyboardMacOS.mm osx_to_qnum.c keysym2ucs.c)
@@ -68,7 +70,7 @@ if(GNUTLS_FOUND)
 endif()
 
 if(WIN32)
-  target_link_libraries(vncviewer msimg32)
+  target_link_libraries(vncviewer msimg32 winmm)
 elseif(APPLE)
   target_link_libraries(vncviewer "-framework Cocoa")
   target_link_libraries(vncviewer "-framework Carbon")

@@ -158,6 +158,7 @@ protected:
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
   Fl_Check_Button *reconnectCheckbox;
+  Fl_Check_Button *audioCheckbox;
 
 private:
   static int fltk_event_handler(int event);

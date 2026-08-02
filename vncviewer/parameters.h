@@ -64,6 +64,8 @@ extern core::BoolParameter listenMode;
 extern core::BoolParameter viewOnly;
 extern core::BoolParameter shared;
 
+extern core::BoolParameter playAudio;
+
 extern core::BoolParameter acceptClipboard;
 extern core::BoolParameter setPrimary;
 extern core::BoolParameter sendClipboard;
