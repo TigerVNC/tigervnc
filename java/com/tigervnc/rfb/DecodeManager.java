@@ -76,10 +76,17 @@ public class DecodeManager {
   }
 
   public void stop() {
-    if (threads != null) {
-      for (DecodeThread t : threads) {
-        t.stop();
+    queueMutex.lock();
+    try {
+      if (threads != null) {
+        for (DecodeThread t : threads) {
+          t.stop();
+        }
       }
+      producerCond.signalAll();
+      consumerCond.signalAll();
+    } finally {
+      queueMutex.unlock();
     }
   }
 
@@ -179,9 +186,9 @@ public class DecodeManager {
     queueMutex.lock();
 
     try {
-      while (!workQueue.isEmpty())
+      while (!workQueue.isEmpty() && threadException == null)
         try {
-        producerCond.await();
+          producerCond.await();
         } catch (InterruptedException e) { }
     } finally {
       queueMutex.unlock();
@@ -192,7 +199,6 @@ public class DecodeManager {
 
   private void setThreadException(Exception e)
   {
-    //os::AutoMutex a(queueMutex);
     queueMutex.lock();
 
     try {
@@ -201,6 +207,7 @@ public class DecodeManager {
 
       threadException =
         new Exception("Exception on worker thread: "+e.getMessage());
+      producerCond.signalAll();
     } finally {
       queueMutex.unlock();
     }
