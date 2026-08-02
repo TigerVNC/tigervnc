@@ -57,6 +57,7 @@ config-stamp: xorg-source-stamp
 		-DBUILD_STATIC=off \
 		-DENABLE_NLS=ON \
 		-DENABLE_H264=ON \
+		-DENABLE_AUDIO=ON \
 		-DENABLE_GNUTLS=ON \
 		-DENABLE_NETTLE=ON \
 		-DENABLE_PAM=ON \

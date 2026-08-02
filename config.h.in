@@ -14,6 +14,8 @@
 #cmakedefine HAVE_XRANDR
 #cmakedefine HAVE_XTEST
 
+#cmakedefine HAVE_AUDIO
+
 #cmakedefine HAVE_H264
 #cmakedefine HAVE_VIDEO_PROCESSOR_MFT
 #cmakedefine HAVE_LIBAV
