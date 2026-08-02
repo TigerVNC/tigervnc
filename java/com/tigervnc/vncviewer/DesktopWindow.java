@@ -111,7 +111,14 @@ public class DesktopWindow extends JFrame
     addWindowStateListener(new WindowAdapter() {
       public void windowStateChanged(WindowEvent e) {
         int state = e.getNewState();
-        if ((state & JFrame.MAXIMIZED_BOTH) != JFrame.MAXIMIZED_BOTH) {
+        if ((state & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
+          if (fullScreenAllMonitors.getValue()) {
+            java.awt.EventQueue.invokeLater(() -> {
+              setExtendedState(JFrame.NORMAL);
+              setBounds(getMaximizedScreenBounds());
+            });
+          }
+        } else {
           Rectangle b = getGraphicsConfiguration().getBounds();
           if (!b.contains(getLocationOnScreen()))
             setLocation((int)b.getX(), (int)b.getY());
@@ -237,8 +244,12 @@ public class DesktopWindow extends JFrame
       else
         setVisible(true);
 
-      if (maximize.getValue())
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+      if (maximize.getValue()) {
+        if (fullScreenAllMonitors.getValue())
+          setBounds(getMaximizedScreenBounds());
+        else
+          setExtendedState(JFrame.MAXIMIZED_BOTH);
+      }
 
       if (cc.server.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
         // Hack: Wait until we're in the proper mode and position until
@@ -556,6 +567,29 @@ public class DesktopWindow extends JFrame
       r = gc.getBounds();
     }
     return r;
+  }
+
+  public Rectangle getMaximizedScreenBounds() {
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    Rectangle virtualBounds = new Rectangle();
+    if (fullScreenAllMonitors.getValue()) {
+      for (GraphicsDevice gd : ge.getScreenDevices()) {
+        for (GraphicsConfiguration gc : gd.getConfigurations()) {
+          Rectangle b = gc.getBounds();
+          Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+          b.x += insets.left;
+          b.y += insets.top;
+          b.width -= (insets.left + insets.right);
+          b.height -= (insets.top + insets.bottom);
+          virtualBounds = virtualBounds.union(b);
+        }
+      }
+    } else {
+      GraphicsConfiguration gc = getGraphicsConfiguration();
+      virtualBounds = gc.getBounds();
+    }
+    return virtualBounds;
   }
 
   public static Window getFullScreenWindow() {
