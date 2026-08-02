@@ -22,7 +22,9 @@
 //
 
 package com.tigervnc.rdr;
-import com.jcraft.jzlib.*;
+
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 
 public class ZlibInStream extends InStream {
 
@@ -71,24 +73,16 @@ public class ZlibInStream extends InStream {
 
   public void init()
   {
-    assert(zs == null);
-
-    zs = new ZStream();
-    zs.next_in = null;
-    zs.next_in_index = 0;
-    zs.avail_in = 0;
-    if (zs.inflateInit() != JZlib.Z_OK) {
-      zs = null;
-      throw new Exception("ZlinInStream: inflateInit failed");
-    }
+    assert(inflater == null);
+    inflater = new Inflater();
   }
 
   public void deinit()
   {
-    assert(zs != null);
+    assert(inflater != null);
     setUnderlying(null, 0);
-    zs.inflateEnd();
-    zs = null;
+    inflater.end();
+    inflater = null;
   }
 
   protected int overrun(int itemSize, int nItems, boolean wait)
@@ -126,33 +120,35 @@ public class ZlibInStream extends InStream {
     if (underlying == null)
       throw new Exception("ZlibInStream overrun: no underlying stream");
 
-    zs.next_out = b;
-    zs.next_out_index = end;
-    zs.avail_out = start + bufSize - end;
-
     int n = underlying.check(1, 1, wait);
     if (n == 0) return false;
-    zs.next_in = underlying.getbuf();
-    zs.next_in_index = underlying.getptr();
-    zs.avail_in = underlying.getend() - underlying.getptr();
-    if (zs.avail_in > bytesIn)
-      zs.avail_in = bytesIn;
 
-    int rc = zs.inflate(JZlib.Z_SYNC_FLUSH);
-    if (rc != JZlib.Z_OK) {
-      throw new Exception("ZlibInStream: inflate failed");
+    byte[] inBuf = underlying.getbuf();
+    int inPtr = underlying.getptr();
+    int inAvail = underlying.getend() - inPtr;
+    if (inAvail > bytesIn)
+      inAvail = bytesIn;
+
+    inflater.setInput(inBuf, inPtr, inAvail);
+
+    try {
+      int bytesInflated = inflater.inflate(b, end, start + bufSize - end);
+      int bytesConsumed = inAvail - inflater.getRemaining();
+
+      bytesIn -= bytesConsumed;
+      end += bytesInflated;
+      underlying.setptr(inPtr + bytesConsumed);
+    } catch (DataFormatException e) {
+      throw new Exception("ZlibInStream: inflate failed: " + e.getMessage());
     }
 
-    bytesIn -= zs.next_in_index - underlying.getptr();
-    end = zs.next_out_index;
-    underlying.setptr(zs.next_in_index);
     return true;
   }
 
   private InStream underlying;
   private int bufSize;
   private int offset;
-  private com.jcraft.jzlib.ZStream zs;
+  private Inflater inflater;
   private int bytesIn;
   private int start;
 }

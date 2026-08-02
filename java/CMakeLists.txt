@@ -37,8 +37,7 @@ file(GLOB_RECURSE DEPEND_SOURCES
   ${SRCDIR}/com/tigervnc/rfb/*.java
   ${SRCDIR}/com/tigervnc/rdr/*.java
   ${SRCDIR}/com/tigervnc/network/*.java
-  ${SRCDIR}/com/jcraft/jsch/*.java
-  ${SRCDIR}/com/jcraft/jzlib/*.java)
+  ${SRCDIR}/com/jcraft/jsch/*.java)
 
 set(JAVA_CLASSES ${BINDIR}/${CLASSPATH}/VncViewer.class)
 
@@ -107,7 +106,6 @@ add_custom_command(OUTPUT VncViewer.jar
     com/tigervnc/rfb/*.class
     com/tigervnc/rdr/*.class
     com/tigervnc/network/*.class
-    com/jcraft/jzlib/*.class
     com/jcraft/jsch/*.class
     com/jcraft/jsch/*/*.class
     com/tigervnc/vncviewer/*.png
