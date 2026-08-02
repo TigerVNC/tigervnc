@@ -168,9 +168,9 @@ public class FdInStream extends InStream {
         Integer tv;
 
         if (!wait) {
-          tv = new Integer(0);
+          tv = Integer.valueOf(0);
         } else if (timeoutms != -1) {
-          tv = new Integer(timeoutms);
+          tv = Integer.valueOf(timeoutms);
         } else {
           tv = null;
         }

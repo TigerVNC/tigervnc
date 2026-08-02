@@ -137,7 +137,7 @@ public class FdOutStream extends OutStream {
 
       Integer tv;
       if (timeoutms != -1) {
-        tv = new Integer(timeoutms);
+        tv = Integer.valueOf(timeoutms);
       } else {
         tv = null;
       }

@@ -135,6 +135,9 @@ public class ZlibInStream extends InStream {
       int bytesInflated = inflater.inflate(b, end, start + bufSize - end);
       int bytesConsumed = inAvail - inflater.getRemaining();
 
+      if (bytesInflated == 0 && bytesConsumed == 0)
+        return false;
+
       bytesIn -= bytesConsumed;
       end += bytesInflated;
       underlying.setptr(inPtr + bytesConsumed);

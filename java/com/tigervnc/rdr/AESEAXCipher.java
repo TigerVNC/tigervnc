@@ -58,7 +58,7 @@ public class AESEAXCipher {
         subKey1[i] = (byte)(((subKey1[i + 1] & 0xff) >>> 7) |
                             ((subKey1[i] & 0xff) << 1));
       }
-      subKey2[14] ^= v >>> 1;
+      subKey2[14] = (byte)(subKey2[14] ^ (v >>> 1));
       subKey2[15] = (byte)(((subKey1[15] & 0xff) << 2) ^ lut[v]);
       subKey1[15] = (byte)(((subKey1[15] & 0xff) << 1) ^ lut[v >>> 1]);
     } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
@@ -92,12 +92,12 @@ public class AESEAXCipher {
     
     if (r == 0) {
       for (int i = 0; i < 16; i++) {
-        cbcData[n * 16 + i] ^= subKey1[i] & 0xff;
+        cbcData[n * 16 + i] = (byte)(cbcData[n * 16 + i] ^ subKey1[i]);
       }
     } else {
       cbcData[(n + 1) * 16 + r] = (byte)0x80;
       for (int i = 0; i < 16; i++) {
-        cbcData[(n + 1) * 16 + i] ^= subKey2[i] & 0xff;
+        cbcData[(n + 1) * 16 + i] = (byte)(cbcData[(n + 1) * 16 + i] ^ subKey2[i]);
       }
     }
     try {

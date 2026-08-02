@@ -48,6 +48,9 @@ public class FileUtils {
       vlog.error("Cannot access os.name system property:"+e.getMessage());
     }
 
+    if (homeDir == null)
+      homeDir = System.getProperty("user.home");
+
     return homeDir + getFileSeparator();
   }
 
