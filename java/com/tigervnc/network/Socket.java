@@ -40,6 +40,12 @@ abstract public class Socket {
   public FdInStream inStream() {return instream;}
   public FdOutStream outStream() {return outstream;}
   public FileDescriptor getFd() {return outstream.getFd();}
+  public SelectableChannel getChannel() {
+    FileDescriptor fd = getFd();
+    if (fd instanceof SocketDescriptor)
+      return ((SocketDescriptor)fd).channel;
+    return null;
+  }
 
   // if shutdown() is overridden then the override MUST call on to here
   public void shutdown() {isShutdown_ = true;}

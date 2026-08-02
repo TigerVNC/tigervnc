@@ -57,6 +57,11 @@ public class FdOutStream extends OutStream {
     return offset + ptr - sentUpTo;
   }
 
+  public boolean hasBufferedData()
+  {
+    return length() > 0;
+  }
+
   int bufferUsage()
   {
     return ptr - sentUpTo;

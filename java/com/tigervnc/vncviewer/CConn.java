@@ -38,6 +38,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.Toolkit;
+import java.nio.channels.SelectableChannel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -544,6 +545,38 @@ public class CConn extends CConnection implements
   private PixelFormat fullColorPF;
 
   private int lastServerEncoding;
+
+  public static void socketEvent(SelectableChannel channel, int mask, Object cbdata)
+  {
+    CConn cc = (CConn)cbdata;
+    Fl.remove_fd(channel);
+    cc.processNextMsg();
+  }
+
+  public void processNextMsg()
+  {
+    int when;
+
+    try {
+      if (sock != null && sock.outStream() != null)
+        sock.outStream().flush();
+
+      processMsg();
+    } catch (com.tigervnc.rdr.EndOfStream e) {
+      vlog.info(e.getMessage());
+      close();
+    } catch (java.lang.Exception e) {
+      vlog.error(e.getMessage());
+      close();
+    }
+
+    when = Fl.READ | Fl.EXCEPT;
+    if (sock != null && sock.outStream() != null && sock.outStream().hasBufferedData())
+      when |= Fl.WRITE;
+
+    if (sock != null && sock.getChannel() != null)
+      Fl.add_fd(sock.getChannel(), when, CConn::socketEvent, this);
+  }
 
   public ActionListener closeListener = null;
 
