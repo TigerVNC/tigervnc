@@ -1,5 +1,5 @@
 /* Copyright (C) 2012,2014 Brian P. Hinz
- * Copyright (C) 2012 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2012,2026 D. R. Commander.  All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,7 @@ import javax.net.ssl.SSLEngineResult.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import com.tigervnc.rdr.EndOfStream;
 import com.tigervnc.rdr.FdInStream;
 import com.tigervnc.rdr.FdOutStream;
 
@@ -143,7 +144,7 @@ public class SSLEngineManager {
 
       case CLOSED:
         engine.closeInbound();
-        break;
+        throw new EndOfStream();
 
     }
     return 0;
@@ -171,7 +172,7 @@ public class SSLEngineManager {
 
         case CLOSED:
           engine.closeOutbound();
-          break;
+          throw new EndOfStream();
       }
     }
     return n;
