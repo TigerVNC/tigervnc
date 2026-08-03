@@ -66,9 +66,9 @@ public class JSch {
     config.put("cipher.c2s", Util.getSystemProperty("jsch.cipher",
         "aes128-ctr,aes192-ctr,aes256-ctr,chacha20-poly1305@openssh.com,aes128-gcm@openssh.com,aes256-gcm@openssh.com"));
     config.put("mac.s2c", Util.getSystemProperty("jsch.mac",
-        "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1"));
+        "hmac-sha2-256,hmac-sha2-512,hmac-sha1,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com"));
     config.put("mac.c2s", Util.getSystemProperty("jsch.mac",
-        "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1"));
+        "hmac-sha2-256,hmac-sha2-512,hmac-sha1,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com"));
     config.put("compression.s2c", Util.getSystemProperty("jsch.compression", "none"));
     config.put("compression.c2s", Util.getSystemProperty("jsch.compression", "none"));
 
