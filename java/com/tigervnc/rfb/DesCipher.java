@@ -103,7 +103,7 @@ public class DesCipher
     private int[] decryptKeys = new int[32];
 
     /// Set the key.
-    public void setKey( byte[] key )
+    public final void setKey( byte[] key )
 	{
 	deskey( key, true, encryptKeys );
 	deskey( key, false, decryptKeys );

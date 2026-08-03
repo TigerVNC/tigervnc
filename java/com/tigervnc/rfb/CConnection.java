@@ -48,7 +48,7 @@ abstract public class CConnection extends CMsgHandler {
     formatChange = false; encodingChange = false;
     firstUpdate = true; pendingUpdate = false; continuousUpdates = false;
     forceNonincremental = true;
-    framebuffer = null; decoder = new DecodeManager(this);
+    framebuffer = null; decoder = null;
     security = new SecurityClient();
   }
 
@@ -79,6 +79,8 @@ abstract public class CConnection extends CMsgHandler {
   {
     is = is_;
     os = os_;
+    if (decoder == null)
+      decoder = new DecodeManager(this);
   }
 
   // setShared sets the value of the shared flag which will be sent to the

@@ -71,7 +71,7 @@ public class ZlibInStream extends InStream {
     init();
   }
 
-  public void init()
+  public final void init()
   {
     assert(inflater == null);
     inflater = new Inflater();

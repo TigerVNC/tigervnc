@@ -120,14 +120,7 @@ public class TcpSocket extends Socket {
     ownStreams = true;
   }
 
-  protected void finalize() throws Exception {
-    if (closeFd)
-      try {
-        ((SocketDescriptor)getFd()).close();
-      } catch (IOException e) {
-        throw new Exception(e.getMessage());
-      }
-  }
+
 
   public int getMyPort() {
     return getSockPort();

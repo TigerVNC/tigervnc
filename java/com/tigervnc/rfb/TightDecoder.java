@@ -170,9 +170,9 @@ public class TightDecoder extends Decoder {
 
     // Resets or use of zlib pose the same problem, so merge them
     if ((comp_ctl_a & 0x80) == 0x00)
-      comp_ctl_a |= 1 << ((comp_ctl_a >> 4) & 0x03);
+      comp_ctl_a |= (byte)(1 << ((comp_ctl_a >> 4) & 0x03));
     if ((comp_ctl_b & 0x80) == 0x00)
-      comp_ctl_b |= 1 << ((comp_ctl_b >> 4) & 0x03);
+      comp_ctl_b |= (byte)(1 << ((comp_ctl_b >> 4) & 0x03));
 
     if (((comp_ctl_a & 0x0f) & (comp_ctl_b & 0x0f)) != 0)
       return true;

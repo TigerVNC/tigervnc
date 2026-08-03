@@ -41,7 +41,7 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
 import static com.tigervnc.vncviewer.Parameters.*;
 
-public class DesktopWindow extends JFrame
+public final class DesktopWindow extends JFrame
 {
 
   static LogWriter vlog = new LogWriter("DesktopWindow");

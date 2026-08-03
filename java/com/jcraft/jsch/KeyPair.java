@@ -1562,12 +1562,6 @@ public abstract class KeyPair {
 
   public void dispose() {}
 
-  @SuppressWarnings("deprecation")
-  @Override
-  public void finalize() {
-    dispose();
-  }
-
   public static byte[] extractX509SubjectPublicKeyInfo(byte[] x509SubjectPublicKeyInfo,
       byte[] algorithmIdentifier, int keyLen) throws JSchException {
     // SubjectPublicKeyInfo ::= SEQUENCE {

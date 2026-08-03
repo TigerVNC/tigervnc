@@ -38,9 +38,7 @@ public abstract class PixelBuffer {
 
   public PixelBuffer(PixelFormat pf, int w, int h) {
     format = pf;
-    width_ = w;
-    height_= h;
-    setSize(w, h);
+    setSizeInternal(w, h);
   }
 
   protected PixelBuffer() { width_ = 0; height_ = 0; }
@@ -80,7 +78,7 @@ public abstract class PixelBuffer {
   //                const Rect& r, int stride=0) const;
   public Image getImage() { return image; }
 
-  public void setSize(int width, int height)
+  private void setSizeInternal(int width, int height)
   {
     if ((width < 0) || (width > maxPixelBufferWidth))
       throw new Exception("Invalid PixelBuffer width of "+width+" pixels requested");
@@ -89,6 +87,11 @@ public abstract class PixelBuffer {
 
     width_ = width;
     height_ = height;
+  }
+
+  public void setSize(int width, int height)
+  {
+    setSizeInternal(width, height);
   }
 
   ///////////////////////////////////////////////

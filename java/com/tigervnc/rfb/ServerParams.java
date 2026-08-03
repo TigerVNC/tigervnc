@@ -102,7 +102,7 @@ public class ServerParams {
   }
 
   public String name() { return name_; }
-  public void setName(String name)
+  public final void setName(String name)
   {
     name_ = name;
   }
