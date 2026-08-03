@@ -1316,7 +1316,8 @@ public class Session {
           buf.buffer = foo;
         }
 
-        if ((j % s2ccipher_size) != 0) {
+        int align = isEtM ? 8 : s2ccipher_size;
+        if ((j % align) != 0) {
           String message = "Bad packet length " + j;
           if (getLogger().isEnabled(Logger.FATAL)) {
             getLogger().log(Logger.FATAL, message);
