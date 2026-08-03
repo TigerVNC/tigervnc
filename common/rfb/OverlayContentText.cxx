@@ -100,7 +100,7 @@ static FT_Face getOverlayFont() {
 // ARGB32 buffer sized exactly to fit the rendered glyphs. Returns nullptr
 // if text is empty or no usable font is found.
 
-//TODO: Rewrite/Comment
+// TODO: Rewrite/Comment
 uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
                                                 int size, int *outWidth,
                                                 int *outHeight) {
@@ -123,26 +123,39 @@ uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
   // sum of advances, or the render pass below gets clipped on the right.
   int textWidth = 0;
   int maxInkExtent = 0;
+  int nrOfRows = std::count(text.begin(), text.end(), '\n') + 1;
+  int tempMaxRowWidth = 0;
+  vlog.debug("Number of rows: %i", nrOfRows);
   {
     int penX = 0;
     for (size_t i = 0; i < text.size(); i++) {
-      if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]),
-                       FT_LOAD_RENDER) != 0)
+      if (text[i] == '\n') {
+        if (penX > tempMaxRowWidth)
+          tempMaxRowWidth = penX;
+        penX = 0;
+        continue;
+      }
+      if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]), FT_LOAD_RENDER) !=
+          0)
         continue;
 
       FT_GlyphSlot glyph = face->glyph;
-      int inkExtent = penX + glyph->bitmap_left +
-                      static_cast<int>(glyph->bitmap.width);
+      int inkExtent =
+          penX + glyph->bitmap_left + static_cast<int>(glyph->bitmap.width);
       if (inkExtent > maxInkExtent)
         maxInkExtent = inkExtent;
 
       penX += glyph->advance.x >> 6;
     }
-    textWidth = std::max(penX, maxInkExtent);
+    textWidth = std::max({penX, maxInkExtent, tempMaxRowWidth});
   }
   int ascent = face->size->metrics.ascender >> 6;
   int descent = -(face->size->metrics.descender >> 6);
-  int textHeight = ascent + descent;
+
+  // Adjust line spacing to avoid to much space between lines
+  const float lineSpacing = 0.75f;
+  int rowHeight = static_cast<int>((ascent + descent) * lineSpacing);
+  int textHeight = ascent + descent + (nrOfRows - 1) * rowHeight;
 
   if ((textWidth <= 0) || (textHeight <= 0))
     return nullptr;
@@ -166,6 +179,12 @@ uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
   int baselineY = ascent;
 
   for (size_t i = 0; i < text.size(); i++) {
+    if (text[i] == '\n') {
+      penX = 0;
+      baselineY += rowHeight;
+      continue;
+    }
+
     if (FT_Load_Char(face, static_cast<FT_ULong>(text[i]), FT_LOAD_RENDER) != 0)
       continue;
 
