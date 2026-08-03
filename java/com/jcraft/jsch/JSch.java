@@ -214,8 +214,8 @@ public class JSch {
     config.put("userauth.gssapi-with-mic", "com.jcraft.jsch.UserAuthGSSAPIWithMIC");
     config.put("gssapi-with-mic.krb5", "com.jcraft.jsch.jgss.GSSContextKrb5");
 
-    config.put("zlib", "com.jcraft.jsch.jzlib.Compression");
-    config.put("zlib@openssh.com", "com.jcraft.jsch.jzlib.Compression");
+    config.put("zlib", "com.jcraft.jsch.juz.Compression");
+    config.put("zlib@openssh.com", "com.jcraft.jsch.juz.Compression");
 
     config.put("pbkdf2", "com.jcraft.jsch.jce.PBKDF2");
     config.put("bcrypt", "com.jcraft.jsch.jbcrypt.JBCrypt");
