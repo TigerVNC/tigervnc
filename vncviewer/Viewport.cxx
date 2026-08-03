@@ -1007,7 +1007,7 @@ void Viewport::popupContextMenu()
     // FIXME: Workaround for not being able to minimize in fullscreen
     // https://github.com/TigerVNC/tigervnc/pull/1813
     if (window()->fullscreen_active())
-      window()->fullscreen_off();
+      cocoa_enable_minimize(window());
 #endif
     window()->iconize();
     break;
