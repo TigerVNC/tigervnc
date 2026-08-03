@@ -181,42 +181,71 @@ class OptionsDialog extends Dialog {
     setTitle("TigerVNC options");
     setResizable(false);
 
-    getContentPane().setLayout(
-      new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
-
-    JTabbedPane tabPane = new JTabbedPane();
-    tabPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+    getContentPane().setLayout(new BorderLayout());
 
     encodingGroup = new ButtonGroup();
     colorlevelGroup = new ButtonGroup();
 
-    // tabPane
-    tabPane.addTab("Compression", createCompressionPanel());
-    tabPane.addTab("Security", createSecurityPanel());
-    tabPane.addTab("Input", createInputPanel());
-    tabPane.addTab("Screen", createScreenPanel());
-    tabPane.addTab("Misc", createMiscPanel());
-    tabPane.addTab("SSH", createSshPanel());
-    tabPane.setBorder(BorderFactory.createEmptyBorder());
-    // Resize the tabPane if necessary to prevent scrolling
-    int minWidth = 0;
-    Object tpi = UIManager.get("TabbedPane:TabbedPaneTabArea.contentMargins");
-    if (tpi != null)
-      minWidth += ((Insets)tpi).left + ((Insets)tpi).right;
-    for (int i = 0; i < tabPane.getTabCount(); i++)
-      minWidth += tabPane.getBoundsAt(i).width;
-    int minHeight = tabPane.getPreferredSize().height;
-    if (tabPane.getPreferredSize().width < minWidth)
-      tabPane.setPreferredSize(new Dimension(minWidth, minHeight));
+    String[] navItems = { "Compression", "Security", "Input", "Screen", "Misc", "SSH" };
+    final JList<String> navList = new JList<String>(navItems);
+    navList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    navList.setSelectedIndex(0);
+    navList.setBackground(Color.WHITE);
+    navList.setFixedCellHeight(36);
+    navList.setPreferredSize(new Dimension(150, 370));
+    navList.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(180, 180, 180)));
+
+    navList.setCellRenderer(new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                    int index, boolean isSelected,
+                                                    boolean cellHasFocus) {
+        JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        label.setOpaque(true);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16));
+        if (isSelected) {
+          label.setBackground(new Color(0x33, 0x85, 0xFF)); // FLTK blue
+          label.setForeground(Color.WHITE);
+        } else {
+          label.setBackground(Color.WHITE);
+          label.setForeground(new Color(0x33, 0x33, 0x33));
+        }
+        return label;
+      }
+    });
+
+    final CardLayout cardLayout = new CardLayout();
+    final JPanel cardPanel = new JPanel(cardLayout);
+    cardPanel.add(createCompressionPanel(), "Compression");
+    cardPanel.add(createSecurityPanel(), "Security");
+    cardPanel.add(createInputPanel(), "Input");
+    cardPanel.add(createScreenPanel(), "Screen");
+    cardPanel.add(createMiscPanel(), "Misc");
+    cardPanel.add(createSshPanel(), "SSH");
+
+    navList.addListSelectionListener(e -> {
+      if (!e.getValueIsAdjusting()) {
+        String sel = navList.getSelectedValue();
+        if (sel != null) {
+          cardLayout.show(cardPanel, sel);
+        }
+      }
+    });
+
+    JPanel centerPane = new JPanel(new BorderLayout());
+    centerPane.add(navList, BorderLayout.WEST);
+    centerPane.add(cardPanel, BorderLayout.CENTER);
 
     // button pane
-    JButton okButton = new JButton("OK  \u21B5");
+    JButton okButton = new JButton("OK");
     okButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         storeOptions();
         endDialog();
       }
     });
+    getRootPane().setDefaultButton(okButton);
     JButton cancelButton = new JButton("Cancel");
     cancelButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -224,16 +253,17 @@ class OptionsDialog extends Dialog {
       }
     });
 
-    JPanel buttonPane = new JPanel(new GridLayout(1, 5, 10, 10));
-    buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
-    buttonPane.add(Box.createRigidArea(new Dimension()));
-    buttonPane.add(Box.createRigidArea(new Dimension()));
-    buttonPane.add(Box.createRigidArea(new Dimension()));
+    JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
+    buttonPane.setBorder(BorderFactory.createCompoundBorder(
+      BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(180, 180, 180)),
+      BorderFactory.createEmptyBorder(4, 10, 6, 10)
+    ));
     buttonPane.add(cancelButton);
     buttonPane.add(okButton);
 
-    this.add(tabPane);
-    this.add(buttonPane);
+    this.add(centerPane, BorderLayout.CENTER);
+    this.add(buttonPane, BorderLayout.SOUTH);
+    getContentPane().setPreferredSize(new Dimension(580, 420));
     addListeners(this);
     pack();
   }
@@ -791,15 +821,8 @@ class OptionsDialog extends Dialog {
   }
 
   private JPanel createSecurityPanel() {
-    JPanel SecPanel = new JPanel();
-    SecPanel.setLayout(new BoxLayout(SecPanel,
-                                     BoxLayout.PAGE_AXIS));
+    JPanel SecPanel = new JPanel(new GridBagLayout());
     SecPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
-
-    JPanel vencryptPane = new JPanel();
-    vencryptPane.setLayout(new BoxLayout(vencryptPane,
-                                         BoxLayout.LINE_AXIS));
-    vencryptPane.setBorder(BorderFactory.createEmptyBorder(0,0,5,0));
 
     JPanel encrPanel = new JPanel(new GridBagLayout());
     encrPanel.setBorder(BorderFactory.createTitledBorder("Encryption"));
@@ -811,7 +834,7 @@ class OptionsDialog extends Dialog {
         handleX509();
       }
     });
-    JLabel caLabel = new JLabel("X.509 CA Certificate");
+    JLabel caLabel = new JLabel("Path to X509 CA certificate");
     caInput = new JTextField();
     caChooser = new JButton("Browse");
     caChooser.addActionListener(new ActionListener() {
@@ -825,7 +848,7 @@ class OptionsDialog extends Dialog {
           caInput.setText(f.getAbsolutePath());
       }
     });
-    JLabel crlLabel = new JLabel("X.509 CRL file");
+    JLabel crlLabel = new JLabel("Path to X509 CRL file");
     crlInput = new JTextField();
     crlChooser = new JButton("Browse");
     crlChooser.addActionListener(new ActionListener() {
@@ -850,71 +873,70 @@ class OptionsDialog extends Dialog {
                                          REMAINDER, 1,
                                          HEAVY, LIGHT,
                                          LINE_START, NONE,
-                                         new Insets(0, 0, 4, 0),
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
     encrPanel.add(encTLSCheckbox,
                   new GridBagConstraints(0, 1,
                                          REMAINDER, 1,
                                          HEAVY, LIGHT,
                                          LINE_START, NONE,
-                                         new Insets(0, 0, 4, 0),
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
     encrPanel.add(encX509Checkbox,
                   new GridBagConstraints(0, 2,
-                                         3, 1,
+                                         REMAINDER, 1,
                                          HEAVY, LIGHT,
                                          LINE_START, NONE,
-                                         new Insets(0, 0, 0, 0),
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
-    int indent = getButtonLabelInset(encX509Checkbox);
     encrPanel.add(caLabel,
                   new GridBagConstraints(0, 3,
-                                         1, 1,
-                                         LIGHT, LIGHT,
-                                         LINE_END, NONE,
-                                         new Insets(0, indent, 5, 0),
+                                         REMAINDER, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(2, 20, 2, 0),
                                          0, 0));
     encrPanel.add(caInput,
-                  new GridBagConstraints(1, 3,
-                                         1, 1,
+                  new GridBagConstraints(0, 4,
+                                         2, 1,
                                          HEAVY, LIGHT,
                                          LINE_START, HORIZONTAL,
-                                         new Insets(0, 5, 5, 0),
+                                         new Insets(0, 20, 4, 5),
                                          0, 0));
     encrPanel.add(caChooser,
-                  new GridBagConstraints(2, 3,
-                                         1, 1,
-                                         LIGHT, LIGHT,
-                                         LINE_START, VERTICAL,
-                                         new Insets(0, 5, 5, 0),
-                                         0, 0));
-    encrPanel.add(crlLabel,
-                  new GridBagConstraints(0, 4,
-                                         1, 1,
-                                         LIGHT, LIGHT,
-                                         LINE_END, NONE,
-                                         new Insets(0, indent, 0, 0),
-                                         0, 0));
-    encrPanel.add(crlInput,
-                  new GridBagConstraints(1, 4,
-                                         1, 1,
-                                         HEAVY, LIGHT,
-                                         LINE_START, HORIZONTAL,
-                                         new Insets(0, 5, 0, 0),
-                                         0, 0));
-    encrPanel.add(crlChooser,
                   new GridBagConstraints(2, 4,
                                          1, 1,
                                          LIGHT, LIGHT,
-                                         LINE_START, VERTICAL,
-                                         new Insets(0, 5, 0, 0),
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
                                          0, 0));
-    encrPanel.add(encRSAAESCheckbox,
+    encrPanel.add(crlLabel,
                   new GridBagConstraints(0, 5,
                                          REMAINDER, 1,
                                          HEAVY, LIGHT,
                                          LINE_START, NONE,
+                                         new Insets(2, 20, 2, 0),
+                                         0, 0));
+    encrPanel.add(crlInput,
+                  new GridBagConstraints(0, 6,
+                                         2, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, HORIZONTAL,
+                                         new Insets(0, 20, 4, 5),
+                                         0, 0));
+    encrPanel.add(crlChooser,
+                  new GridBagConstraints(2, 6,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
+                                         0, 0));
+    encrPanel.add(encRSAAESCheckbox,
+                  new GridBagConstraints(0, 7,
+                                         REMAINDER, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
 
     JPanel authPanel = new JPanel(new GridBagLayout());
@@ -938,62 +960,55 @@ class OptionsDialog extends Dialog {
     authPanel.add(authNoneCheckbox,
                   new GridBagConstraints(0, 0,
                                          REMAINDER, 1,
-                                         LIGHT, LIGHT,
+                                         HEAVY, LIGHT,
                                          LINE_START, NONE,
-                                         new Insets(0, 0, 4, 0),
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
     authPanel.add(authVncCheckbox,
                   new GridBagConstraints(0, 1,
                                          REMAINDER, 1,
-                                         LIGHT, LIGHT,
+                                         HEAVY, LIGHT,
                                          LINE_START, NONE,
-                                         new Insets(0, 0, 4, 0),
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
     authPanel.add(authPlainCheckbox,
                   new GridBagConstraints(0, 2,
                                          1, 1,
                                          LIGHT, LIGHT,
                                          LINE_START, NONE,
-                                         new Insets(0, 0, 2, 0),
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
     authPanel.add(authIdentCheckbox,
                   new GridBagConstraints(0, 3,
                                          1, 1,
                                          LIGHT, LIGHT,
                                          LINE_START, NONE,
-                                         new Insets(2, 0, 0, 0),
+                                         new Insets(2, 0, 2, 0),
                                          NONE, NONE));
     authPanel.add(sendLocalUsernameCheckbox,
                   new GridBagConstraints(1, 2,
-                                         1, 2,
+                                         REMAINDER, 2,
                                          HEAVY, LIGHT,
                                          LINE_START, NONE,
                                          new Insets(2, 20, 2, 0),
                                          NONE, NONE));
 
-    SecPanel.add(vencryptPane,
+    SecPanel.add(encrPanel,
                  new GridBagConstraints(0, 0,
                                         REMAINDER, 1,
-                                        LIGHT, LIGHT,
-                                        LINE_START, HORIZONTAL,
-                                        new Insets(0, 0, 4, 0),
-                                        NONE, NONE));
-    SecPanel.add(encrPanel,
-                 new GridBagConstraints(0, 1,
-                                        REMAINDER, 1,
-                                        LIGHT, LIGHT,
+                                        HEAVY, LIGHT,
                                         LINE_START, HORIZONTAL,
                                         new Insets(0, 0, 4, 0),
                                         NONE, NONE));
     SecPanel.add(authPanel,
-                 new GridBagConstraints(0, 2,
+                 new GridBagConstraints(0, 1,
                                         REMAINDER, 1,
-                                        LIGHT, LIGHT,
+                                        HEAVY, LIGHT,
                                         LINE_START, HORIZONTAL,
                                         new Insets(0, 0, 4, 0),
                                         NONE, NONE));
-    SecPanel.add(Box.createRigidArea(new Dimension(0,0)),
-                 new GridBagConstraints(0, RELATIVE,
+    SecPanel.add(Box.createRigidArea(new Dimension(0, 0)),
+                 new GridBagConstraints(0, 2,
                                         REMAINDER, REMAINDER,
                                         HEAVY, HEAVY,
                                         LINE_START, BOTH,
@@ -1007,15 +1022,59 @@ class OptionsDialog extends Dialog {
     inputPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
     viewOnlyCheckbox = new JCheckBox("View only (ignore mouse and keyboard)");
+
+    JPanel mousePanel = new JPanel(new GridBagLayout());
+    mousePanel.setBorder(BorderFactory.createTitledBorder("Mouse"));
+
     acceptClipboardCheckbox = new JCheckBox("Accept clipboard from server");
     sendClipboardCheckbox = new JCheckBox("Send clipboard to server");
+
+    mousePanel.add(acceptClipboardCheckbox,
+                   new GridBagConstraints(0, 0,
+                                          REMAINDER, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(2, 0, 2, 0),
+                                          NONE, NONE));
+    mousePanel.add(sendClipboardCheckbox,
+                   new GridBagConstraints(0, 1,
+                                          REMAINDER, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(2, 0, 2, 0),
+                                          NONE, NONE));
+
+    JPanel keyboardPanel = new JPanel(new GridBagLayout());
+    keyboardPanel.setBorder(BorderFactory.createTitledBorder("Keyboard"));
+
     disableArrowScrollCheckbox = new JCheckBox("Disable arrow-key scrolling when scrollbars visible");
     JLabel menuKeyLabel = new JLabel("Menu key");
     String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()];
-    //menuKeys[0] = "None";
     for (int i = 0; i < MenuKey.getMenuKeySymbolCount(); i++)
       menuKeys[i] = MenuKey.getKeyText(MenuKey.getMenuKeySymbols()[i]);
     menuKeyChoice = new JComboBox(menuKeys);
+
+    keyboardPanel.add(disableArrowScrollCheckbox,
+                      new GridBagConstraints(0, 0,
+                                             REMAINDER, 1,
+                                             HEAVY, LIGHT,
+                                             LINE_START, NONE,
+                                             new Insets(2, 0, 2, 0),
+                                             NONE, NONE));
+    keyboardPanel.add(menuKeyLabel,
+                      new GridBagConstraints(0, 1,
+                                             1, 1,
+                                             LIGHT, LIGHT,
+                                             LINE_START, NONE,
+                                             new Insets(4, 4, 2, 0),
+                                             NONE, NONE));
+    keyboardPanel.add(menuKeyChoice,
+                      new GridBagConstraints(1, 1,
+                                             1, 1,
+                                             HEAVY, LIGHT,
+                                             LINE_START, NONE,
+                                             new Insets(4, 5, 2, 0),
+                                             NONE, NONE));
 
     inputPanel.add(viewOnlyCheckbox,
                    new GridBagConstraints(0, 0,
@@ -1024,43 +1083,22 @@ class OptionsDialog extends Dialog {
                                           LINE_START, NONE,
                                           new Insets(0, 0, 4, 0),
                                           NONE, NONE));
-    inputPanel.add(acceptClipboardCheckbox,
+    inputPanel.add(mousePanel,
                    new GridBagConstraints(0, 1,
                                           REMAINDER, 1,
                                           HEAVY, LIGHT,
-                                          LINE_START, NONE,
+                                          LINE_START, HORIZONTAL,
                                           new Insets(0, 0, 4, 0),
                                           NONE, NONE));
-    inputPanel.add(sendClipboardCheckbox,
+    inputPanel.add(keyboardPanel,
                    new GridBagConstraints(0, 2,
                                           REMAINDER, 1,
                                           HEAVY, LIGHT,
-                                          LINE_START, NONE,
+                                          LINE_START, HORIZONTAL,
                                           new Insets(0, 0, 4, 0),
                                           NONE, NONE));
-    inputPanel.add(disableArrowScrollCheckbox,
+    inputPanel.add(Box.createRigidArea(new Dimension(0, 0)),
                    new GridBagConstraints(0, 3,
-                                          REMAINDER, 1,
-                                          HEAVY, LIGHT,
-                                          LINE_START, NONE,
-                                          new Insets(0, 0, 4, 0),
-                                          NONE, NONE));
-    inputPanel.add(menuKeyLabel,
-                   new GridBagConstraints(0, 4,
-                                          1, 1,
-                                          LIGHT, LIGHT,
-                                          LINE_START, NONE,
-                                          new Insets(0, 0, 0, 0),
-                                          NONE, NONE));
-    inputPanel.add(menuKeyChoice,
-                   new GridBagConstraints(1, 4,
-                                          1, 1,
-                                          HEAVY, LIGHT,
-                                          LINE_START, NONE,
-                                          new Insets(0, 5, 0, 0),
-                                          NONE, NONE));
-    inputPanel.add(Box.createRigidArea(new Dimension(5, 0)),
-                   new GridBagConstraints(0, 4,
                                           REMAINDER, REMAINDER,
                                           HEAVY, HEAVY,
                                           LINE_START, BOTH,

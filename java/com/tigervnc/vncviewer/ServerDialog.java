@@ -129,12 +129,13 @@ class ServerDialog extends Dialog implements Runnable {
         handleCancel();
       }
     });
-    connectButton = new JButton("Connect   \u21B5");
+    connectButton = new JButton("Connect");
     connectButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         handleConnect();
       }
     });
+    getRootPane().setDefaultButton(connectButton);
 
     contentPane.add(icon,
                     new GridBagConstraints(0, 0,
