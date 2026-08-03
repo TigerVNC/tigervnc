@@ -82,7 +82,7 @@ static FT_Face getOverlayFont() {
   }
 
   // TODO: Send in parameter for font
-  const std::string fontFile = findFontFile("cursive");
+  const std::string fontFile = findFontFile("sans-serif");
   if (fontFile.empty()) {
     vlog.error("No usable font found for overlay text");
     return nullptr;

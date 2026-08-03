@@ -152,7 +152,7 @@ void OverlayPixelBuffer::renderOverlay() {
   if (_overlayInput.empty())
     return;
 
-  // calculate the height of the overlay
+  // calculate the pixel-height of the overlay
   int targetHeight = std::max(
       1, static_cast<int>(std::lround(_overlaySize / 100.0 * height())));
 
