@@ -25,6 +25,7 @@
 
 package com.tigervnc.vncviewer;
 
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -32,6 +33,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
@@ -208,6 +211,51 @@ public class Tunnel {
                                       String pattern) throws Exception {
     String cmd = fillCmdPattern(pattern, gatewayHost, remoteHost,
                                 remotePort, localPort);
+
+    if (!GraphicsEnvironment.isHeadless()) {
+      int[] result = new int[] { JOptionPane.NO_OPTION };
+      try {
+        if (SwingUtilities.isEventDispatchThread()) {
+          result[0] = JOptionPane.showOptionDialog(
+            null,
+            "SECURITY WARNING:\n\n" +
+            "The connection profile is attempting to execute an external SSH command:\n\n" +
+            "  " + cmd + "\n\n" +
+            "Executing external commands may pose a security risk.\n" +
+            "Do you want to allow this external command to run?",
+            "Security Warning - External Command Execution",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE,
+            null,
+            new Object[]{"Yes", "No"},
+            "No"
+          );
+        } else {
+          SwingUtilities.invokeAndWait(() -> {
+            result[0] = JOptionPane.showOptionDialog(
+              null,
+              "SECURITY WARNING:\n\n" +
+              "The connection profile is attempting to execute an external SSH command:\n\n" +
+              "  " + cmd + "\n\n" +
+              "Executing external commands from configuration files or quick-start profiles may pose a security risk.\n" +
+              "Do you want to allow this external command to run?",
+              "Security Warning - External Command Execution",
+              JOptionPane.YES_NO_OPTION,
+              JOptionPane.WARNING_MESSAGE,
+              null,
+              new Object[]{"Yes", "No"},
+              "No"
+            );
+          });
+        }
+      } catch (java.lang.Exception e) {
+        throw new Exception("Security confirmation prompt failed: " + e.getMessage());
+      }
+      if (result[0] != JOptionPane.YES_OPTION) {
+        throw new Exception("Execution of external SSH command was cancelled by the user.");
+      }
+    }
+
     try {
       Thread t = new Thread(new ExtProcess(cmd, vlog, true));
       t.start();
