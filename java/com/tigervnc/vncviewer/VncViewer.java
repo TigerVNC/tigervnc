@@ -436,19 +436,30 @@ public class VncViewer implements Runnable {
       }
     }
 
-    try {
-      cc = new CConn(vncServerName.toString(), sock);
-      while (!cc.shuttingDown)
-        cc.processMsg();
-      exit(0);
-    } catch (java.lang.Exception e) {
-      if (cc == null || !cc.shuttingDown) {
-        reportException(e);
-        if (cc != null)
-          cc.close();
+    mainloop(vncServerName.toString(), sock);
+  }
+
+  public static boolean exitMainloop = false;
+
+  private void mainloop(String vncserver, Socket sock) {
+    while (!exitMainloop) {
+      try {
+        cc = new CConn(vncserver, sock);
+        while (!exitMainloop && !cc.shuttingDown) {
+          Fl.wait(0.1);
+        }
+        cc.close();
+        break;
+      } catch (java.lang.Exception e) {
+        if (cc == null || !cc.shuttingDown) {
+          reportException(e);
+          if (cc != null)
+            cc.close();
+        }
+        exit(1);
       }
-      exit(1);
     }
+    exit(0);
   }
 
   static void migrateDeprecatedOptions() {

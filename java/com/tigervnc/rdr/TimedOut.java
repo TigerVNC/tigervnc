@@ -19,7 +19,7 @@
 
 package com.tigervnc.rdr;
 
-class TimedOut extends Exception {
+public class TimedOut extends Exception {
   public TimedOut() {
     super("Timed out");
   }

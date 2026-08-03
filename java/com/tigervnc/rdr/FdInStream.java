@@ -196,7 +196,8 @@ public class FdInStream extends InStream {
       throw new SystemException("read:"+e.toString());
     }
 
-    if (n == 0) throw new EndOfStream();
+    if (n < 0) throw new EndOfStream();
+    if (n == 0) return 0;
 
     if (timing) {
       long after = System.nanoTime();

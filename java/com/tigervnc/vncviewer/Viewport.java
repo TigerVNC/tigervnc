@@ -117,12 +117,6 @@ class Viewport extends JPanel implements ActionListener {
     setFocusable(true);
 
     setMenuKey();
-
-    // Send a fake pointer event so that the server will stop rendering
-    // a server-side cursor. Ideally we'd like to send the actual pointer
-    // position, but we can't really tell when the window manager is done
-    // placing us so we don't have a good time for that.
-    handlePointerEvent(new Point(w/2, h/2), 0);
   }
 
   // Most efficient format (from Viewport's point of view)
@@ -142,9 +136,9 @@ class Viewport extends JPanel implements ActionListener {
         t.scale((double)scaleRatioX, (double)scaleRatioY);
         Rectangle s = new Rectangle(r.tl.x, r.tl.y, r.width(), r.height());
         s = t.createTransformedShape(s).getBounds();
-        paintImmediately(s.x, s.y, s.width, s.height);
+        repaint(s.x, s.y, s.width, s.height);
       } else {
-        paintImmediately(r.tl.x, r.tl.y, r.width(), r.height());
+        repaint(r.tl.x, r.tl.y, r.width(), r.height());
       }
     }
   }
@@ -325,7 +319,6 @@ class Viewport extends JPanel implements ActionListener {
         g2.drawImage(frameBuffer.getImage(), 0, 0, null);
       }
     }
-    g2.dispose();
   }
 
   public void setScaledSize(int width, int height)

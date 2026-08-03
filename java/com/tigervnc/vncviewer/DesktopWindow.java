@@ -237,6 +237,11 @@ public class DesktopWindow extends JFrame
 
   public void updateWindow()
   {
+    if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+      javax.swing.SwingUtilities.invokeLater(this::updateWindow);
+      return;
+    }
+
     if (firstUpdate) {
       pack();
       if (fullScreen.getValue())

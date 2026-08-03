@@ -106,7 +106,8 @@ public class SocketDescriptor implements FileDescriptor {
   public int write(ByteBuffer buf, int len) throws Exception {
     try {
       int n = channel.write((ByteBuffer)buf.slice().limit(len));
-      buf.position(buf.position()+n);
+      if (n > 0)
+        buf.position(buf.position()+n);
       return n;
     } catch (java.io.IOException e) {
       throw new Exception(e.getMessage());
@@ -116,8 +117,9 @@ public class SocketDescriptor implements FileDescriptor {
   public int read(ByteBuffer buf, int len) throws Exception {
     try {
       int n = channel.read((ByteBuffer)buf.slice().limit(len));
-      buf.position(buf.position()+n);
-      return (n < 0) ? 0 : n;
+      if (n > 0)
+        buf.position(buf.position()+n);
+      return n;
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }

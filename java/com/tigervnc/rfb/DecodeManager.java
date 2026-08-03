@@ -61,13 +61,13 @@ public class DecodeManager {
         vlog.info("Creating "+cpuCount+" decoder thread(s)");
     }
 
-    freeBuffers = new ArrayDeque<MemOutStream>(cpuCount*2);
-    workQueue = new ArrayDeque<QueueEntry>(cpuCount);
+    freeBuffers = new ArrayDeque<MemOutStream>(cpuCount*4);
+    workQueue = new ArrayDeque<QueueEntry>(cpuCount*2);
     threads = new ArrayList<DecodeThread>(cpuCount);
     while (cpuCount-- > 0) {
-      // Twice as many possible entries in the queue as there
-      // are worker threads to make sure they don't stall
       try {
+        freeBuffers.addLast(new MemOutStream());
+        freeBuffers.addLast(new MemOutStream());
         freeBuffers.addLast(new MemOutStream());
         freeBuffers.addLast(new MemOutStream());
         threads.add(new DecodeThread(this));
@@ -173,9 +173,7 @@ public class DecodeManager {
 
       workQueue.addLast(entry);
 
-      // We only put a single entry on the queue so waking a single
-      // thread is sufficient
-      consumerCond.signal();
+      consumerCond.signalAll();
     } finally {
       queueMutex.unlock();
     }

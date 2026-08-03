@@ -138,6 +138,15 @@ public class CConn extends CConnection implements
     initialiseProtocol();
 
     OptionsDialog.addCallback("handleOptions", this);
+
+    int when = Fl.READ | Fl.EXCEPT;
+    if (sock != null && sock.outStream() != null && sock.outStream().hasBufferedData())
+      when |= Fl.WRITE;
+
+    if (sock != null && sock.getChannel() != null) {
+      Fl.add_fd(sock.getChannel(), when, CConn::socketEvent, this);
+      processNextMsg();
+    }
   }
 
   public String connectionInfo() {
@@ -205,15 +214,29 @@ public class CConn extends CConnection implements
 
     serverPF = server.pf();
 
-    desktop = new DesktopWindow(server.width(), server.height(),
-                                server.name(), serverPF, this);
+    if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+      desktop = new DesktopWindow(server.width(), server.height(),
+                                  server.name(), serverPF, this);
+    } else {
+      try {
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+          public void run() {
+            desktop = new DesktopWindow(server.width(), server.height(),
+                                        server.name(), serverPF, CConn.this);
+          }
+        });
+      } catch (java.lang.Exception e) {
+        desktop = new DesktopWindow(server.width(), server.height(),
+                                    server.name(), serverPF, this);
+      }
+    }
     fullColorPF = desktop.getPreferredPF();
 
     // Force a switch to the format and encoding we'd like
-    updatePixelFormat();
     int encNum = Encodings.encodingNum(preferredEncoding.getValue());
     if (encNum != -1)
       setPreferredEncoding(encNum);
+    updatePixelFormat();
   }
 
   // setDesktopSize() is called when the desktop size changes (including when
@@ -266,15 +289,26 @@ public class CConn extends CConnection implements
       desktop.setName(name);
   }
 
+  private javax.swing.Timer updateTimeoutTimer = null;
+
+  public void handleUpdateTimeout() {
+    if (desktop != null)
+      desktop.updateWindow();
+  }
+
   // framebufferUpdateStart() is called at the beginning of an update.
   // Here we try to send out a new framebuffer update request so that the
   // next update can be sent out in parallel with us decoding the current
   // one.
   public void framebufferUpdateStart()
   {
-
     super.framebufferUpdateStart();
 
+    if (updateTimeoutTimer == null) {
+      updateTimeoutTimer = new javax.swing.Timer(1000, (e) -> handleUpdateTimeout());
+      updateTimeoutTimer.setRepeats(true);
+    }
+    updateTimeoutTimer.restart();
   }
 
   // framebufferUpdateEnd() is called at the end of an update.
@@ -283,11 +317,16 @@ public class CConn extends CConnection implements
   // appropriately, and then request another incremental update.
   public void framebufferUpdateEnd()
   {
+    if (updateTimeoutTimer != null) {
+      updateTimeoutTimer.stop();
+    }
+
     super.framebufferUpdateEnd();
 
     updateCount++;
 
-    desktop.updateWindow();
+    if (desktop != null)
+      desktop.updateWindow();
 
     // Compute new settings based on updated bandwidth values
     if (autoSelect.getValue())
@@ -482,6 +521,10 @@ public class CConn extends CConnection implements
 
   // close() shuts down the socket, thus waking up the RFB thread.
   public void close() {
+    if (updateTimeoutTimer != null) {
+      updateTimeoutTimer.stop();
+      updateTimeoutTimer = null;
+    }
     if (closeListener != null) {
       JFrame f =
         (JFrame)SwingUtilities.getAncestorOfClass(JFrame.class, desktop);
@@ -558,16 +601,26 @@ public class CConn extends CConnection implements
     int when;
 
     try {
-      if (sock != null && sock.outStream() != null)
-        sock.outStream().flush();
+      if (sock != null && sock.outStream() != null) {
+        synchronized (sock.outStream()) {
+          sock.outStream().flush();
+        }
+      }
 
-      processMsg();
+      do {
+        processMsg();
+      } while (sock != null && sock.inStream() != null && sock.inStream().checkNoWait(1));
+    } catch (com.tigervnc.rdr.TimedOut e) {
+      // Non-fatal socket timeout while waiting for remaining bytes
     } catch (com.tigervnc.rdr.EndOfStream e) {
-      vlog.info(e.getMessage());
+      vlog.info("Server disconnected: " + e.getMessage());
       close();
+      return;
     } catch (java.lang.Exception e) {
-      vlog.error(e.getMessage());
+      vlog.error("Error in processNextMsg: " + e.getMessage());
+      e.printStackTrace();
       close();
+      return;
     }
 
     when = Fl.READ | Fl.EXCEPT;
