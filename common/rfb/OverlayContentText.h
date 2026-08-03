@@ -14,12 +14,13 @@ public:
 
   virtual uint8_t *getContentPixelBuffer() override { return _buffer; }
 
-private:
   // Renders text at the given pixel font size into a freshly allocated
   // ARGB32 buffer sized exactly to fit the rendered glyphs.
+  // Moved to public to allow for reuse in OverlayContentQr, which uses text to render error messages.
   static uint8_t *generateTextBuffer(const std::string &text, int size,
                                      int *outWidth, int *outHeight);
 
+private:
   uint8_t *_buffer;
 };
 

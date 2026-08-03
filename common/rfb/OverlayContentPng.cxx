@@ -13,6 +13,7 @@
 #include <core/LogWriter.h>
 
 #include <rfb/OverlayContentPng.h>
+#include <rfb/OverlayContentText.h>
 
 #include <png.h>
 #include <pixman.h>
@@ -20,6 +21,9 @@
 using namespace rfb;
 
 static core::LogWriter vlog("OverlayContentPng");
+
+int ERROR_MSG_SIZE = 20; // Size of the error message buffer for PNG load failures
+std::string ERROR_MSG = "PNG file could not be found/opened"; // Error message for PNG load failures
 
 // Scales a tightly packed ARGB32 buffer with a given height, keeps the original aspect ratio
 static uint8_t *scaleArgbBuffer(const uint8_t *srcBuffer, int srcWidth,
@@ -78,7 +82,8 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
   if (!png_image_begin_read_from_file(&image, filePath.c_str())) {
     vlog.error("Failed to read PNG file %s: %s", filePath.c_str(),
                image.message);
-    return nullptr;
+    return OverlayContentText::generateTextBuffer(
+        ERROR_MSG, ERROR_MSG_SIZE, outWidth, outHeight);
   }
 
   //Pixman format
@@ -91,7 +96,8 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
                image.message);
     delete[] buffer;
     png_image_free(&image);
-    return nullptr;
+    return OverlayContentText::generateTextBuffer(
+        ERROR_MSG, ERROR_MSG_SIZE, outWidth, outHeight);
   }
 
   size_t pixelCount = static_cast<size_t>(image.width) * image.height;
