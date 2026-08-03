@@ -39,10 +39,7 @@ uint8_t *OverlayContentQr::generateQrBuffer(const std::string &data,
 
   qrcodegen::QrCode qr = qrcodegen::QrCode::encodeText(data.c_str(), qrcodegen::QrCode::Ecc::MEDIUM);
 
-  // Nearest-neighbour scale straight into the output buffer: each output
-  // pixel maps back to a single module (or the quiet zone), and getModule()
-  // already returns light (false) for out-of-bounds coordinates, so the
-  // quiet zone falls out for free.
+
   int nativeSize = qr.getSize() + quietZone * 2;
   uint8_t *buffer = new uint8_t[height * height * 4];
 
