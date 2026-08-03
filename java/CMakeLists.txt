@@ -32,21 +32,28 @@ endif()
 STRING(TIMESTAMP JAVA_DATE "%Y-%m-%d" UTC)
 STRING(TIMESTAMP JAVA_TIME "%H:%M:%S" UTC)
 
-file(GLOB_RECURSE DEPEND_SOURCES
+file(GLOB DEPEND_SOURCES
   ${SRCDIR}/${CLASSPATH}/*.java
   ${SRCDIR}/com/tigervnc/rfb/*.java
   ${SRCDIR}/com/tigervnc/rdr/*.java
   ${SRCDIR}/com/tigervnc/network/*.java
   ${SRCDIR}/com/jcraft/jsch/*.java)
 
+file(GLOB PROVIDER_SOURCES
+  ${SRCDIR}/com/jcraft/jsch/jce/*.java
+  ${SRCDIR}/com/jcraft/jsch/bc/*.java
+  ${SRCDIR}/com/jcraft/jsch/jgss/*.java
+  ${SRCDIR}/com/jcraft/jsch/juz/*.java
+  ${SRCDIR}/com/jcraft/jsch/jbcrypt/*.java)
+
 set(JAVA_CLASSES ${BINDIR}/${CLASSPATH}/VncViewer.class)
 
 string(REGEX REPLACE " " ";" JAVACFLAGS "${JAVACFLAGS}")
 add_custom_command(OUTPUT ${JAVA_CLASSES}
-  DEPENDS ${DEPEND_SOURCES}
+  DEPENDS ${DEPEND_SOURCES} ${PROVIDER_SOURCES}
   COMMAND ${JAVA_COMPILE}
   ARGS ${JAVACFLAGS} -sourcepath ${SRCDIR} -d ${BINDIR} 
-    ${CLASSPATH}/VncViewer.java
+    ${CLASSPATH}/VncViewer.java ${PROVIDER_SOURCES}
 	WORKING_DIRECTORY ${SRCDIR})
 
 configure_file(${CLASSPATH}/timestamp.in ${CLASSPATH}/timestamp)
