@@ -101,8 +101,14 @@ public final class CConn extends CConnection implements
       setQualityLevel(qualityLevel.getValue());
 
     if (sock == null) {
-      setServerName(Hostname.getHost(vncServerName));
-      setServerPort(Hostname.getPort(vncServerName));
+      boolean isUnixSocket = Hostname.isUnixSocket(vncServerName);
+      if (isUnixSocket) {
+        setServerName(Hostname.getHost(vncServerName));
+        setServerPort(0);
+      } else {
+        setServerName(Hostname.getHost(vncServerName));
+        setServerPort(Hostname.getPort(vncServerName));
+      }
       try {
         if (tunnel.getValue() || !via.getValue().isEmpty()) {
           int localPort = TcpSocket.findFreeTcpPort();
@@ -110,12 +116,20 @@ public final class CConn extends CConnection implements
             throw new Exception("Could not obtain free TCP port");
           String gatewayHost = Tunnel.getSshHost();
           if (gatewayHost.isEmpty())
-            gatewayHost = getServerName();
-          Tunnel.createTunnel(gatewayHost, getServerName(),
+            gatewayHost = (isUnixSocket ? (vncServerName.startsWith("/") ? "localhost" : Hostname.getHost(vncServerName)) : getServerName());
+
+          String remoteTarget = isUnixSocket ? Hostname.getSocketPath(vncServerName) : getServerName();
+          Tunnel.createTunnel(gatewayHost, remoteTarget,
                               getServerPort(), localPort);
           sock = new TcpSocket("localhost", localPort);
-          vlog.info("Connected to localhost port "+localPort);
+          if (isUnixSocket)
+            vlog.info("Connected to localhost port "+localPort+" (tunneled to Unix domain socket "+remoteTarget+")");
+          else
+            vlog.info("Connected to localhost port "+localPort);
         } else {
+          if (isUnixSocket) {
+            throw new Exception("Connecting to a Unix domain socket directly is only supported via SSH tunnel (-via or -tunnel)");
+          }
           sock = new TcpSocket(getServerName(), getServerPort());
           vlog.info("Connected to host "+getServerName()+" port "+getServerPort());
         }

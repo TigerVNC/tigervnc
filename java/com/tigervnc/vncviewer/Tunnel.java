@@ -197,10 +197,14 @@ public class Tunnel {
       if (session.getConfig("StrictHostKeyChecking") == null)
         session.setConfig("StrictHostKeyChecking", "ask");
       session.connect();
-      if (gatewayHost.equals(remoteHost))
+      if (remoteHost.startsWith("/") || remotePort == 0) {
+        session.setSocketForwardingL("127.0.0.1", localPort, remoteHost, null, 0);
+        vlog.info("Opened SSH tunnel to Unix domain socket " + remoteHost + " on local port " + localPort);
+      } else if (gatewayHost.equals(remoteHost)) {
         session.setPortForwardingL(localPort, new String("localhost"), remotePort);
-      else
+      } else {
         session.setPortForwardingL(localPort, remoteHost, remotePort);
+      }
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage()); 
     }
@@ -335,7 +339,8 @@ public class Tunnel {
     if (pattern.length() > 1024)
       throw new Exception("Tunneling command is too long.");
 
-    if (!H_found || !R_found || !L_found)
+    boolean isUnixSocket = remoteHost.startsWith("/") || remotePort == 0;
+    if (!H_found || (!isUnixSocket && !R_found) || !L_found)
       throw new Exception("%H, %R or %L absent in tunneling command template.");
 
     if (!tunnel.getValue() && !G_found)

@@ -290,6 +290,8 @@ public class VncViewer implements Runnable {
                                 (serverName.indexOf('\\')) != -1);
 
     if (hasPathSeparator) {
+      if (com.tigervnc.rfb.Hostname.isUnixSocket(serverName))
+        return;
       try {
         serverName = loadViewerParameters(vncServerName.toString());
         if (serverName == "") {
@@ -299,6 +301,8 @@ public class VncViewer implements Runnable {
         vncServerName.clear();
         vncServerName.put(serverName).flip();
       } catch (com.tigervnc.rfb.Exception e) {
+        if (com.tigervnc.rfb.Hostname.isUnixSocket(vncServerName.toString()))
+          return;
         vlog.info(e.getMessage());
         System.exit(1);
       }

@@ -20,7 +20,28 @@ package com.tigervnc.rfb;
 
 public class Hostname {
 
+  public static boolean isUnixSocket(String vncServerName) {
+    if (vncServerName == null || vncServerName.isEmpty())
+      return false;
+    if (vncServerName.startsWith("/"))
+      return true;
+    int colonPos = vncServerName.indexOf(':');
+    if (colonPos != -1 && colonPos < vncServerName.length() - 1) {
+      if (vncServerName.charAt(colonPos + 1) == '/')
+        return true;
+    }
+    return false;
+  }
+
   public static String getHost(String vncServerName) {
+    if (isUnixSocket(vncServerName)) {
+      if (vncServerName.startsWith("/"))
+        return vncServerName;
+      int colonPos = vncServerName.indexOf(':');
+      if (colonPos > 0)
+        return vncServerName.substring(0, colonPos);
+      return vncServerName;
+    }
     int colonPos = vncServerName.indexOf(':');
     if (colonPos == 0)
       return "localhost";
@@ -29,7 +50,21 @@ public class Hostname {
     return vncServerName.substring(0, colonPos);
   }
 
+  public static String getSocketPath(String vncServerName) {
+    if (vncServerName == null)
+      return "";
+    if (vncServerName.startsWith("/"))
+      return vncServerName;
+    int colonPos = vncServerName.indexOf(':');
+    if (colonPos != -1 && colonPos < vncServerName.length() - 1 && vncServerName.charAt(colonPos + 1) == '/') {
+      return vncServerName.substring(colonPos + 1);
+    }
+    return vncServerName;
+  }
+
   public static int getPort(String vncServerName) {
+    if (isUnixSocket(vncServerName))
+      return 0;
     int colonPos = vncServerName.indexOf(':');
     if (colonPos == -1 || colonPos == vncServerName.length()-1)
       return 5900;
