@@ -186,7 +186,7 @@ class OptionsDialog extends Dialog {
     encodingGroup = new ButtonGroup();
     colorlevelGroup = new ButtonGroup();
 
-    String[] navItems = { "Compression", "Security", "Input", "Screen", "Misc", "SSH" };
+    String[] navItems = { "Compression", "Security", "Input", "Screen", "Miscellaneous", "SSH" };
     final JList<String> navList = new JList<String>(navItems);
     navList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     navList.setSelectedIndex(0);
@@ -221,7 +221,7 @@ class OptionsDialog extends Dialog {
     cardPanel.add(createSecurityPanel(), "Security");
     cardPanel.add(createInputPanel(), "Input");
     cardPanel.add(createScreenPanel(), "Screen");
-    cardPanel.add(createMiscPanel(), "Misc");
+    cardPanel.add(createMiscPanel(), "Miscellaneous");
     cardPanel.add(createSshPanel(), "SSH");
 
     navList.addListSelectionListener(e -> {
