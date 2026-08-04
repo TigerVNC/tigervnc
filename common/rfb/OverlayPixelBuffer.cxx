@@ -67,7 +67,7 @@ void OverlayPixelBuffer::updateOverlay(const char *overlayType,
                                        const char *overlayInput,
                                        const int overlayAlpha,
                                        int overlaySize) {
-  vlog.debug("Updating overlay to position %s, text %s, font size %d",
+  vlog.debug("Updating overlay to position %s, input %s, size %d",
              overlayPos, overlayInput, overlaySize);
 
   _overlayType = overlayType;

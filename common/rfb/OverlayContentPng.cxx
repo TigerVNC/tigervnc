@@ -22,9 +22,9 @@ using namespace rfb;
 
 static core::LogWriter vlog("OverlayContentPng");
 
-int ERROR_MSG_SIZE =
+static const int ERROR_MSG_SIZE =
     20; // Size of the error message buffer for PNG load failures
-std::string ERROR_MSG =
+static const std::string ERROR_MSG =
     "PNG file could not be found/opened"; // Error message for PNG load failures
 
 // Scales a tightly packed ARGB32 buffer with a given height, keeps the original
