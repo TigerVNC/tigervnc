@@ -1026,22 +1026,37 @@ class OptionsDialog extends Dialog {
     JPanel mousePanel = new JPanel(new GridBagLayout());
     mousePanel.setBorder(BorderFactory.createTitledBorder("Mouse"));
 
-    acceptClipboardCheckbox = new JCheckBox("Accept clipboard from server");
-    sendClipboardCheckbox = new JCheckBox("Send clipboard to server");
+    alwaysCursorCheckbox = new JCheckBox("Show local cursor when not provided by server");
+    alwaysCursorCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleAlwaysCursor();
+      }
+    });
+    JLabel cursorTypeLabel = new JLabel("Cursor type:");
+    String[] cursorTypes = {"Dot", "System"};
+    cursorTypeChoice = new MyJComboBox(cursorTypes);
+    cursorTypeChoice.setPrototypeDisplayValue("System.");
 
-    mousePanel.add(acceptClipboardCheckbox,
+    mousePanel.add(alwaysCursorCheckbox,
                    new GridBagConstraints(0, 0,
                                           REMAINDER, 1,
                                           HEAVY, LIGHT,
                                           LINE_START, NONE,
                                           new Insets(2, 0, 2, 0),
                                           NONE, NONE));
-    mousePanel.add(sendClipboardCheckbox,
+    mousePanel.add(cursorTypeLabel,
                    new GridBagConstraints(0, 1,
-                                          REMAINDER, 1,
+                                          1, 1,
+                                          LIGHT, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(2, 4, 2, 0),
+                                          NONE, NONE));
+    mousePanel.add(cursorTypeChoice,
+                   new GridBagConstraints(1, 1,
+                                          1, 1,
                                           HEAVY, LIGHT,
                                           LINE_START, NONE,
-                                          new Insets(2, 0, 2, 0),
+                                          new Insets(2, 5, 2, 0),
                                           NONE, NONE));
 
     JPanel keyboardPanel = new JPanel(new GridBagLayout());
@@ -1076,6 +1091,27 @@ class OptionsDialog extends Dialog {
                                              new Insets(4, 5, 2, 0),
                                              NONE, NONE));
 
+    JPanel clipboardPanel = new JPanel(new GridBagLayout());
+    clipboardPanel.setBorder(BorderFactory.createTitledBorder("Clipboard"));
+
+    acceptClipboardCheckbox = new JCheckBox("Accept clipboard from server");
+    sendClipboardCheckbox = new JCheckBox("Send clipboard to server");
+
+    clipboardPanel.add(acceptClipboardCheckbox,
+                       new GridBagConstraints(0, 0,
+                                              REMAINDER, 1,
+                                              HEAVY, LIGHT,
+                                              LINE_START, NONE,
+                                              new Insets(2, 0, 2, 0),
+                                              NONE, NONE));
+    clipboardPanel.add(sendClipboardCheckbox,
+                       new GridBagConstraints(0, 1,
+                                              REMAINDER, 1,
+                                              HEAVY, LIGHT,
+                                              LINE_START, NONE,
+                                              new Insets(2, 0, 2, 0),
+                                              NONE, NONE));
+
     inputPanel.add(viewOnlyCheckbox,
                    new GridBagConstraints(0, 0,
                                           REMAINDER, 1,
@@ -1097,8 +1133,15 @@ class OptionsDialog extends Dialog {
                                           LINE_START, HORIZONTAL,
                                           new Insets(0, 0, 4, 0),
                                           NONE, NONE));
-    inputPanel.add(Box.createRigidArea(new Dimension(0, 0)),
+    inputPanel.add(clipboardPanel,
                    new GridBagConstraints(0, 3,
+                                          REMAINDER, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, HORIZONTAL,
+                                          new Insets(0, 0, 4, 0),
+                                          NONE, NONE));
+    inputPanel.add(Box.createRigidArea(new Dimension(0, 0)),
+                   new GridBagConstraints(0, 4,
                                           REMAINDER, REMAINDER,
                                           HEAVY, HEAVY,
                                           LINE_START, BOTH,
@@ -1228,16 +1271,6 @@ class OptionsDialog extends Dialog {
     MiscPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
     sharedCheckbox =
       new JCheckBox("Shared (don't disconnect other viewers)");
-    alwaysCursorCheckbox = new JCheckBox("Show local cursor when not provided by server");
-    alwaysCursorCheckbox.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        handleAlwaysCursor();
-      }
-    });
-    JLabel cursorTypeLabel = new JLabel("Cursor type:");
-    String[] cursorTypes = {"Dot", "System"};
-    cursorTypeChoice = new MyJComboBox(cursorTypes);
-    cursorTypeChoice.setPrototypeDisplayValue("System.");
     acceptBellCheckbox = new JCheckBox("Beep when requested by the server");
     MiscPanel.add(sharedCheckbox,
                   new GridBagConstraints(0, 0,
@@ -1246,36 +1279,15 @@ class OptionsDialog extends Dialog {
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(alwaysCursorCheckbox,
+    MiscPanel.add(acceptBellCheckbox,
                   new GridBagConstraints(0, 1,
                                          REMAINDER, 1,
                                          LIGHT, LIGHT,
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(cursorTypeLabel,
-                  new GridBagConstraints(0, 2,
-                                         1, 1,
-                                         LIGHT, LIGHT,
-                                         LINE_START, NONE,
-                                         new Insets(0, 0, 4, 0),
-                                         NONE, NONE));
-    MiscPanel.add(cursorTypeChoice,
-                  new GridBagConstraints(1, 2,
-                                         1, 1,
-                                         LIGHT, LIGHT,
-                                         LINE_START, NONE,
-                                         new Insets(0, 5, 4, 0),
-                                         NONE, NONE));
-    MiscPanel.add(acceptBellCheckbox,
-                  new GridBagConstraints(0, 3,
-                                         REMAINDER, 1,
-                                         LIGHT, LIGHT,
-                                         LINE_START, NONE,
-                                         new Insets(0, 0, 4, 0),
-                                         NONE, NONE));
     MiscPanel.add(Box.createRigidArea(new Dimension(5, 0)),
-                  new GridBagConstraints(0, 4,
+                  new GridBagConstraints(0, 2,
                                          REMAINDER, REMAINDER,
                                          HEAVY, HEAVY,
                                          LINE_START, BOTH,
