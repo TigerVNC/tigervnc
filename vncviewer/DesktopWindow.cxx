@@ -35,7 +35,6 @@
 #include <core/time.h>
 
 #include <rfb/CMsgWriter.h>
-#include <rfb/ScreenSet.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
@@ -396,12 +395,9 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
-void DesktopWindow::setDesktopSizeDone(unsigned result)
+void DesktopWindow::setDesktopSizeDone(unsigned /*result*/)
 {
   pendingRemoteResize = false;
-
-  if (result != 0)
-    return;
 
   // We might have resized again whilst waiting for the previous
   // request, so check if we are in sync
@@ -1432,6 +1428,31 @@ void DesktopWindow::remoteResize()
       (layout == cc->server.screenLayout()))
     return;
 
+  // Have we already requested this size?
+  if ((width == lastResizeWidth) &&
+      (height == lastResizeHeight) &&
+      (layout.num_screens() == lastResizeLayout.num_screens())) {
+    // We can't compare the layouts directly, as we allocate random ids
+    // on each attempt
+    bool same = true;
+    for (const rfb::Screen& s1 : layout) {
+      bool found = false;
+      for (const rfb::Screen& s2 : lastResizeLayout) {
+        if ((s1.dimensions == s2.dimensions) &&
+            (s1.flags == s2.flags)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        same = false;
+        break;
+      }
+    }
+    if (same)
+      return;
+  }
+
   vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
              cc->server.width(), cc->server.height(), width, height);
 
@@ -1447,6 +1468,9 @@ void DesktopWindow::remoteResize()
 
   pendingRemoteResize = true;
   gettimeofday(&lastResize, nullptr);
+  lastResizeWidth = width;
+  lastResizeHeight = height;
+  lastResizeLayout = layout;
   cc->writer()->writeSetDesktopSize(width, height, layout);
 }
 
