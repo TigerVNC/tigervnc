@@ -5,6 +5,8 @@
 #ifndef __RFB_OVERLAY_PIXEL_BUFFER_H__
 #define __RFB_OVERLAY_PIXEL_BUFFER_H__
 
+#include <vector>
+
 #include <core/Rect.h>
 
 #include <rfb/OverlayContent.h>
@@ -14,8 +16,9 @@ namespace rfb {
 
 class OverlayPixelBuffer : public ManagedPixelBuffer {
 public:
-  OverlayPixelBuffer(const PixelBuffer *parentBuf, const char *overlayType, const char *overlayPos,
-                     const char *overlayInput, const int overlayAlpha, int overlaySize);
+  OverlayPixelBuffer(const PixelBuffer *parentBuf, const char *overlayType,
+                     const char *overlayPos, const char *overlayInput,
+                     const int overlayAlpha, int overlaySize);
   virtual ~OverlayPixelBuffer();
 
   virtual const uint8_t *getBuffer(const core::Rect &r,
@@ -29,10 +32,13 @@ public:
   void setSize(int w, int h) override;
   // Update the overlay position/text and redraw, e.g. after a runtime config
   // change.
-  void updateOverlay(const char *overlayType, const char *overlayPos, const char *overlayInput, const int overlayAlpha,
+  void updateOverlay(const char *overlayType, const char *overlayPos,
+                     const char *overlayInput, const int overlayAlpha,
                      int overlaySize);
-  // Current area covered by the overlay text, e.g. to mark it as changed.
-  core::Rect getOverlayRect() const { return _overlayRect; }
+  // Current areas covered by the overlay content
+  const std::vector<core::Rect> &getOverlayRects() const {
+    return _overlayRects;
+  }
 
 private:
   // Blends overlaybuffer with the parents buffer
@@ -40,15 +46,18 @@ private:
                    const core::Point &pos, double alpha) const;
   // Calculates the absolute top-left position of the watermark
   core::Point calcOverlayPosition(const char *overlayPos, int contentWidth,
-                           int contentHeight) const;
+                                  int contentHeight) const;
+  // Calculates positions for multiple overlays
+  std::vector<core::Rect> calcOverlayPositions(const char *overlayPos,
+                                               int contentWidth,
+                                               int contentHeight) const;
   void renderOverlay();
 
   const PixelBuffer *parent;
   uint8_t *overlayBuffer;
   OverlayContent *_content;
   std::string _overlayType;
-  core::Point _textPos;
-  core ::Rect _overlayRect;
+  std::vector<core::Rect> _overlayRects;
   std::string _overlayPos;
   std::string _overlayInput;
   int _overlaySize;

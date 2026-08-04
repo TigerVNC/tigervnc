@@ -1,17 +1,17 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * Copyright 2018 Peter Astrand for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -25,33 +25,33 @@
 
 #include <assert.h>
 
+#include "core/Rect.h"
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
-#include "core/Rect.h"
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
 #include <network/TcpSocket.h>
 
+#include "rfb/OverlayPixelBuffer.h"
+#include "rfb/PixelBuffer.h"
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Encoder.h>
 #include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
+#include <rfb/SMsgWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
-#include <rfb/SMsgWriter.h>
-#include <rfb/VNCServerST.h>
 #include <rfb/VNCSConnectionST.h>
+#include <rfb/VNCServerST.h>
 #include <rfb/encodings.h>
-#include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/ledStates.h>
-#include "rfb/PixelBuffer.h"
-#include "rfb/OverlayPixelBuffer.h"
+#include <rfb/screenTypes.h>
 #define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
@@ -59,11 +59,23 @@
 
 using namespace rfb;
 
-core::StringParameter VNCSConnectionST::overlayType("OverlayType", "Overlay type (text, png, qr-code)", "");
-core::StringParameter VNCSConnectionST::overlayPos("OverlayPos", "Overlay position (tl, tr, bl, br, c)", "tl");
-core::StringParameter VNCSConnectionST::overlayInput("OverlayInput", "Input for specified overlay type (text->text, qr->data, png->filepath)", "");
-core::IntParameter VNCSConnectionST::overlayAlpha("OverlayAlpha", "% transparency of the overlay", 50, 0, 100);
-core::IntParameter VNCSConnectionST::overlaySize("OverlaySize", "% of framebuffer height the overlay should occupy", 12, 1, 100);
+core::StringParameter
+    VNCSConnectionST::overlayType("OverlayType",
+                                  "Overlay type (text, png, qr-code)", "");
+core::StringParameter VNCSConnectionST::overlayPos(
+    "OverlayPos",
+    "Overlay position(s) (tl, tr, bl, br, c), comma-separated for multiple",
+    "tl");
+core::StringParameter VNCSConnectionST::overlayInput(
+    "OverlayInput",
+    "Input for specified overlay type (text->text, qr->data, png->filepath)",
+    "");
+core::IntParameter
+    VNCSConnectionST::overlayAlpha("OverlayAlpha",
+                                   "% transparency of the overlay", 50, 0, 100);
+core::IntParameter VNCSConnectionST::overlaySize(
+    "OverlaySize", "% of framebuffer height the overlay should occupy", 12, 1,
+    100);
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
@@ -74,36 +86,33 @@ static core::LogWriter vlog("VNCSConnST");
 
 static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 
-VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
+VNCSConnectionST::VNCSConnectionST(VNCServerST *server_, network::Socket *s,
                                    bool reverse, AccessRights ar)
-  : SConnection(ar),
-    sock(s), socketTimer(this), reverseConnection(reverse),
-    inProcessMessages(false),
-    pendingSyncFence(false), syncFence(false), fenceFlags(0),
-    fenceDataLen(0), fenceData(nullptr), congestionTimer(this),
-    losslessTimer(this), server(server_), overlayBuffer(nullptr),
-    updateRenderedCursor(false), removeRenderedCursor(false),
-    continuousUpdates(false), encodeManager(this), idleTimer(this),
-    pointerEventTime(0), clientHasCursor(false)
-{
+    : SConnection(ar), sock(s), socketTimer(this), reverseConnection(reverse),
+      inProcessMessages(false), pendingSyncFence(false), syncFence(false),
+      fenceFlags(0), fenceDataLen(0), fenceData(nullptr), congestionTimer(this),
+      losslessTimer(this), server(server_), overlayBuffer(nullptr),
+      updateRenderedCursor(false), removeRenderedCursor(false),
+      continuousUpdates(false), encodeManager(this), idleTimer(this),
+      pointerEventTime(0), clientHasCursor(false) {
   socketTimer.start(core::secsToMillis(LOGIN_GRACE_TIME));
 
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint = sock->getPeerEndpoint();
 
-  //Initialize the overlay buffer
-  if(overlayInput.getValueStr() != ""){
-    overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(), overlayType.getValueStr().c_str(), overlayPos.getValueStr().c_str(), overlayInput.getValueStr().c_str(), overlayAlpha, overlaySize);
+  // Initialize the overlay buffer
+  if (overlayInput.getValueStr() != "") {
+    overlayBuffer = new OverlayPixelBuffer(
+        server->getPixelBuffer(), overlayType.getValueStr().c_str(),
+        overlayPos.getValueStr().c_str(), overlayInput.getValueStr().c_str(),
+        overlayAlpha, overlaySize);
   }
 }
 
-
-VNCSConnectionST::~VNCSConnectionST()
-{
+VNCSConnectionST::~VNCSConnectionST() {
   // If we reach here then VNCServerST is deleting us!
   if (!closeReason.empty())
-    vlog.info(_("Closing %s: %s"), peerEndpoint.c_str(),
-              closeReason.c_str());
+    vlog.info(_("Closing %s: %s"), peerEndpoint.c_str(), closeReason.c_str());
 
   // Release any keys the client still had pressed
   while (!pressedKeys.empty()) {
@@ -118,14 +127,12 @@ VNCSConnectionST::~VNCSConnectionST()
     server->keyEvent(keysym, keycode, false);
   }
   delete overlayBuffer;
-  delete [] fenceData;
+  delete[] fenceData;
 }
-
 
 // SConnection methods
 
-bool VNCSConnectionST::accessCheck(AccessRights ar) const
-{
+bool VNCSConnectionST::accessCheck(AccessRights ar) const {
   // Reverse connections are user initiated, so they are implicitly
   // allowed to bypass the query
   if (reverseConnection)
@@ -134,8 +141,7 @@ bool VNCSConnectionST::accessCheck(AccessRights ar) const
   return SConnection::accessCheck(ar);
 }
 
-void VNCSConnectionST::close(const char* reason)
-{
+void VNCSConnectionST::close(const char *reason) {
   SConnection::close(reason);
 
   // Log the reason for the close
@@ -151,23 +157,19 @@ void VNCSConnectionST::close(const char* reason)
   socketTimer.start(core::secsToMillis(CLOSE_GRACE_TIME));
 }
 
-
 // Methods called from VNCServerST
 
-bool VNCSConnectionST::init()
-{
+bool VNCSConnectionST::init() {
   try {
     initialiseProtocol();
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
     return false;
   }
   return true;
 }
 
-
-void VNCSConnectionST::processSocketReadEvent()
-{
+void VNCSConnectionST::processSocketReadEvent() {
   // Are we flushing remaining incoming data?
   if (state() == RFBSTATE_CLOSING) {
     assert(getSock()->isShutdownWrite());
@@ -183,7 +185,7 @@ void VNCSConnectionST::processSocketReadEvent()
         getInStream()->skip(getInStream()->avail());
         if (!getInStream()->hasData(1))
           break;
-      } catch (std::exception&) {
+      } catch (std::exception &) {
         // Handle both graceful close and resets
         getSock()->shutdownRead();
         break;
@@ -220,34 +222,34 @@ void VNCSConnectionST::processSocketReadEvent()
     inProcessMessages = false;
 
     // If there were anything requiring an update, try to send it here.
-    // We wait until now with this to aggregate responses and to give 
+    // We wait until now with this to aggregate responses and to give
     // higher priority to user actions such as keyboard and pointer events.
     writeFramebufferUpdate();
-  } catch (rdr::end_of_stream&) {
+  } catch (rdr::end_of_stream &) {
     close(_("Clean disconnection"));
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::processSocketWriteEvent()
-{
-  if (state() == RFBSTATE_CLOSING) return;
+void VNCSConnectionST::processSocketWriteEvent() {
+  if (state() == RFBSTATE_CLOSING)
+    return;
   try {
     sock->outStream().flush();
     // Flushing the socket might release an update that was previously
     // delayed because of congestion.
     if (!sock->outStream().hasBufferedData())
       writeFramebufferUpdate();
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::pixelBufferChange()
-{
+void VNCSConnectionST::pixelBufferChange() {
   try {
-    // If the pixelbuffer has changed, we need to set a new parent for the overlay buffer.
+    // If the pixelbuffer has changed, we need to set a new parent for the
+    // overlay buffer.
     if (overlayBuffer)
       overlayBuffer->setParent(server->getPixelBuffer());
 
@@ -255,22 +257,21 @@ void VNCSConnectionST::pixelBufferChange()
       return;
     if (client.width() && client.height() &&
         (server->getPixelBuffer()->width() != client.width() ||
-         server->getPixelBuffer()->height() != client.height()))
-    {
+         server->getPixelBuffer()->height() != client.height())) {
       // We need to clip the next update to the new size, but also add any
       // extra bits if it's bigger.  If we wanted to do this exactly, something
       // like the code below would do it, but at the moment we just update the
       // entire new size.  However, we do need to clip the damagedCursorRegion
       // because that might be added to updates in writeFramebufferUpdate().
 
-      //updates.intersect(server->pb->getRect());
+      // updates.intersect(server->pb->getRect());
       //
-      //if (server->pb->width() > client.width())
-      //  updates.add_changed({client.width(), 0, server->pb->width(),
-      //                       server->pb->height()});
-      //if (server->pb->height() > client.height())
-      //  updates.add_changed({0, client.height(), client.width(),
-      //                       server->pb->height()});
+      // if (server->pb->width() > client.width())
+      //   updates.add_changed({client.width(), 0, server->pb->width(),
+      //                        server->pb->height()});
+      // if (server->pb->height() > client.height())
+      //   updates.add_changed({0, client.height(), client.width(),
+      //                        server->pb->height()});
 
       damagedCursorRegion.assign_intersect(server->getPixelBuffer()->getRect());
 
@@ -293,135 +294,127 @@ void VNCSConnectionST::pixelBufferChange()
     updates.clear();
     updates.add_changed(server->getPixelBuffer()->getRect());
     writeFramebufferUpdate();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::writeFramebufferUpdateOrClose()
-{
+void VNCSConnectionST::writeFramebufferUpdateOrClose() {
   try {
     writeFramebufferUpdate();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::screenLayoutChangeOrClose(uint16_t reason)
-{
+void VNCSConnectionST::screenLayoutChangeOrClose(uint16_t reason) {
   try {
     screenLayoutChange(reason);
     writeFramebufferUpdate();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::bellOrClose()
-{
+void VNCSConnectionST::bellOrClose() {
   try {
-    if (state() == RFBSTATE_NORMAL) writer()->writeBell();
-  } catch(std::exception& e) {
+    if (state() == RFBSTATE_NORMAL)
+      writer()->writeBell();
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::setDesktopNameOrClose(const char *name)
-{
+void VNCSConnectionST::setDesktopNameOrClose(const char *name) {
   try {
     setDesktopName(name);
     writeFramebufferUpdate();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::setCursorOrClose()
-{
+void VNCSConnectionST::setCursorOrClose() {
   try {
     setCursor();
     writeFramebufferUpdate();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
-{
+void VNCSConnectionST::setLEDStateOrClose(unsigned int state) {
   try {
     setLEDState(state);
     writeFramebufferUpdate();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::updateOverlayOrClose()
-{
+void VNCSConnectionST::updateOverlayOrClose() {
   try {
     updateOverlay();
     writeFramebufferUpdate();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::requestClipboardOrClose()
-{
+void VNCSConnectionST::requestClipboardOrClose() {
   try {
-    if (state() != RFBSTATE_NORMAL) return;
+    if (state() != RFBSTATE_NORMAL)
+      return;
     requestClipboard();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::announceClipboardOrClose(bool available)
-{
+void VNCSConnectionST::announceClipboardOrClose(bool available) {
   try {
-    if (state() != RFBSTATE_NORMAL) return;
+    if (state() != RFBSTATE_NORMAL)
+      return;
     announceClipboard(available);
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::sendClipboardDataOrClose(const char* data)
-{
+void VNCSConnectionST::sendClipboardDataOrClose(const char *data) {
   try {
-    if (state() != RFBSTATE_NORMAL) return;
+    if (state() != RFBSTATE_NORMAL)
+      return;
     sendClipboardData(data);
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-void VNCSConnectionST::desktopReadyOrClose()
-{
+void VNCSConnectionST::desktopReadyOrClose() {
   try {
-    if (state() != RFBSTATE_CLIENT_READY) return;
+    if (state() != RFBSTATE_CLIENT_READY)
+      return;
     desktopReady();
-  } catch(std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-bool VNCSConnectionST::getComparerState()
-{
+bool VNCSConnectionST::getComparerState() {
   // We interpret a low compression level as an indication that the client
   // wants to prioritise CPU usage over bandwidth, and hence disable the
   // comparing update tracker.
   return (client.compressLevel == -1) || (client.compressLevel > 1);
 }
 
-
 // renderedCursorChange() is called whenever the server-side rendered cursor
 // changes shape or position.  It ensures that the next update will clean up
 // the old rendered cursor and if necessary draw the new rendered cursor.
 
-void VNCSConnectionST::renderedCursorChange()
-{
-  if (state() != RFBSTATE_NORMAL) return;
+void VNCSConnectionST::renderedCursorChange() {
+  if (state() != RFBSTATE_NORMAL)
+    return;
   // Are we switching between client-side and server-side cursor?
   if (clientHasCursor == needRenderedCursor())
     setCursorOrClose();
@@ -438,10 +431,7 @@ void VNCSConnectionST::renderedCursorChange()
 // the server.  If the client supports being informed about these changes then
 // it will arrange for the new cursor position to be sent to the client.
 
-void VNCSConnectionST::cursorPositionChange()
-{
-  setCursorPos();
-}
+void VNCSConnectionST::cursorPositionChange() { setCursorPos(); }
 
 // needRenderedCursor() returns true if this client needs the server-side
 // rendered cursor.  This may be because it does not support local cursor or
@@ -453,8 +443,7 @@ void VNCSConnectionST::cursorPositionChange()
 // second).  [ Ideally we should do finer-grained timing here and make the time
 // configurable, but I don't think it's that important. ]
 
-bool VNCSConnectionST::needRenderedCursor()
-{
+bool VNCSConnectionST::needRenderedCursor() {
   if (state() != RFBSTATE_NORMAL)
     return false;
 
@@ -467,8 +456,7 @@ bool VNCSConnectionST::needRenderedCursor()
   return false;
 }
 
-void VNCSConnectionST::desktopReady()
-{
+void VNCSConnectionST::desktopReady() {
   if (state() != RFBSTATE_CLIENT_READY)
     return;
 
@@ -478,7 +466,7 @@ void VNCSConnectionST::desktopReady()
                        server->getScreenLayout());
   client.setName(server->getName());
   client.setLEDState(server->getLEDState());
-  
+
   // - Set the default pixel format
   client.setPF(server->getPixelBuffer()->getPF());
   char buffer[256];
@@ -491,50 +479,45 @@ void VNCSConnectionST::desktopReady()
   SConnection::desktopReady();
 }
 
-
 void VNCSConnectionST::approveConnectionOrClose(bool accept,
-                                                const char* reason)
-{
+                                                const char *reason) {
   try {
     approveConnection(accept, reason);
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 }
 
-
-
 // -=- Callbacks from SConnection
 
-void VNCSConnectionST::authSuccess()
-{
+void VNCSConnectionST::authSuccess() {
   socketTimer.stop();
 
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
 }
 
-void VNCSConnectionST::queryConnection(const char* userName)
-{
+void VNCSConnectionST::queryConnection(const char *userName) {
   server->queryConnection(this, userName);
 }
 
-void VNCSConnectionST::clientReady(bool shared)
-{
+void VNCSConnectionST::clientReady(bool shared) {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
 
-  if (rfb::Server::alwaysShared || reverseConnection) shared = true;
-  if (!accessCheck(AccessNonShared)) shared = true;
-  if (rfb::Server::neverShared) shared = false;
+  if (rfb::Server::alwaysShared || reverseConnection)
+    shared = true;
+  if (!accessCheck(AccessNonShared))
+    shared = true;
+  if (rfb::Server::neverShared)
+    shared = false;
   server->clientReady(this, shared);
 
   if (server->isDesktopReady())
     desktopReady();
 }
 
-void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
-{
+void VNCSConnectionST::setPixelFormat(const PixelFormat &pf) {
   SConnection::setPixelFormat(pf);
   char buffer[256];
   pf.print(buffer, 256);
@@ -543,22 +526,21 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
   encodeManager.forceRefresh(server->getPixelBuffer()->getRect());
 }
 
-void VNCSConnectionST::pointerEvent(const core::Point& pos,
-                                    uint16_t buttonMask)
-{
+void VNCSConnectionST::pointerEvent(const core::Point &pos,
+                                    uint16_t buttonMask) {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
   pointerEventTime = time(nullptr);
-  if (!accessCheck(AccessPtrEvents)) return;
+  if (!accessCheck(AccessPtrEvents))
+    return;
   pointerEventPos = pos;
   server->pointerEvent(this, pointerEventPos, buttonMask);
 }
 
-
 class VNCSConnectionSTShiftPresser {
 public:
-  VNCSConnectionSTShiftPresser(VNCServerST* server_)
-    : server(server_), pressed(false) {}
+  VNCSConnectionSTShiftPresser(VNCServerST *server_)
+      : server(server_), pressed(false) {}
   ~VNCSConnectionSTShiftPresser() {
     if (pressed) {
       vlog.debug("Releasing fake Shift_L");
@@ -570,7 +552,7 @@ public:
     server->keyEvent(XK_Shift_L, 0x2a, true);
     pressed = true;
   }
-  VNCServerST* server;
+  VNCServerST *server;
   bool pressed;
 };
 
@@ -581,22 +563,23 @@ void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
 
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
-  if (!accessCheck(AccessKeyEvents)) return;
+  if (!accessCheck(AccessKeyEvents))
+    return;
   // FIXME: This check isn't strictly needed, but we get a lot of
   //        confusing debug logging without it
-  if (!rfb::Server::acceptKeyEvents) return;
+  if (!rfb::Server::acceptKeyEvents)
+    return;
 
   if (down)
-    vlog.debug("Key pressed: 0x%04x / XK_%s (0x%04x)",
-               keycode, KeySymName(keysym), keysym);
+    vlog.debug("Key pressed: 0x%04x / XK_%s (0x%04x)", keycode,
+               KeySymName(keysym), keysym);
   else
-    vlog.debug("Key released: 0x%04x / XK_%s (0x%04x)",
-               keycode, KeySymName(keysym), keysym);
+    vlog.debug("Key released: 0x%04x / XK_%s (0x%04x)", keycode,
+               KeySymName(keysym), keysym);
 
   // Avoid lock keys if we don't know the server state
   if ((server->getLEDState() == ledUnknown) &&
-      ((keysym == XK_Caps_Lock) ||
-       (keysym == XK_Num_Lock))) {
+      ((keysym == XK_Caps_Lock) || (keysym == XK_Num_Lock))) {
     vlog.debug("Ignoring lock key (e.g. caps lock)");
     return;
   }
@@ -632,7 +615,7 @@ void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
         bool number, shift, lock;
 
         number = ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
-                  (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
+                 (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
         shift = isShiftPressed();
         lock = server->getLEDState() & ledNumLock;
 
@@ -685,12 +668,12 @@ void VNCSConnectionST::keyEvent(uint32_t keysym, uint32_t keycode, bool down) {
   server->keyEvent(keysym, keycode, down);
 }
 
-void VNCSConnectionST::framebufferUpdateRequest(const core::Rect& r,
-                                                bool incremental)
-{
+void VNCSConnectionST::framebufferUpdateRequest(const core::Rect &r,
+                                                bool incremental) {
   core::Rect safeRect;
 
-  if (!accessCheck(AccessView)) return;
+  if (!accessCheck(AccessView))
+    return;
 
   SConnection::framebufferUpdateRequest(r, incremental);
 
@@ -698,8 +681,8 @@ void VNCSConnectionST::framebufferUpdateRequest(const core::Rect& r,
   if (!r.enclosed_by({0, 0, client.width(), client.height()})) {
     vlog.error(_("Update request %dx%d at %d,%d exceeds "
                  "framebuffer %dx%d"),
-               r.width(), r.height(), r.tl.x, r.tl.y,
-               client.width(), client.height());
+               r.width(), r.height(), r.tl.x, r.tl.y, client.width(),
+               client.height());
     safeRect = r.intersect({0, 0, client.width(), client.height()});
   } else {
     safeRect = r;
@@ -728,13 +711,12 @@ void VNCSConnectionST::framebufferUpdateRequest(const core::Rect& r,
 }
 
 void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
-                                      const ScreenSet& layout)
-{
+                                      const ScreenSet &layout) {
   unsigned int result;
   char buffer[2048];
 
-  vlog.debug("Got request for framebuffer resize to %dx%d",
-             fb_width, fb_height);
+  vlog.debug("Got request for framebuffer resize to %dx%d", fb_width,
+             fb_height);
   layout.print(buffer, sizeof(buffer));
   vlog.debug("%s", buffer);
 
@@ -748,17 +730,18 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   writer()->writeDesktopSize(reasonClient, result);
 }
 
-void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])
-{
+void VNCSConnectionST::fence(uint32_t flags, unsigned len,
+                             const uint8_t data[]) {
   uint8_t type;
 
   if (flags & fenceFlagRequest) {
     if (flags & fenceFlagSyncNext) {
       pendingSyncFence = true;
 
-      fenceFlags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter | fenceFlagSyncNext);
+      fenceFlags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter |
+                            fenceFlagSyncNext);
       fenceDataLen = len;
-      delete [] fenceData;
+      delete[] fenceData;
       fenceData = nullptr;
       if (len > 0) {
         fenceData = new uint8_t[len];
@@ -794,9 +777,8 @@ void VNCSConnectionST::fence(uint32_t flags, unsigned len, const uint8_t data[])
   }
 }
 
-void VNCSConnectionST::enableContinuousUpdates(bool enable,
-                                               int x, int y, int w, int h)
-{
+void VNCSConnectionST::enableContinuousUpdates(bool enable, int x, int y, int w,
+                                               int h) {
   core::Rect rect;
 
   if (!accessCheck(AccessView))
@@ -804,7 +786,7 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
   if (!client.supportsFence() || !client.supportsContinuousUpdates())
     throw protocol_error(
-      _("Client tried to enable continuous updates when not allowed"));
+        _("Client tried to enable continuous updates when not allowed"));
 
   continuousUpdates = enable;
 
@@ -818,42 +800,36 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
   }
 }
 
-void VNCSConnectionST::handleClipboardRequest()
-{
+void VNCSConnectionST::handleClipboardRequest() {
   server->handleClipboardRequest(this);
 }
 
-void VNCSConnectionST::handleClipboardAnnounce(bool available)
-{
+void VNCSConnectionST::handleClipboardAnnounce(bool available) {
   server->handleClipboardAnnounce(this, available);
 }
 
-void VNCSConnectionST::handleClipboardData(const char* data)
-{
+void VNCSConnectionST::handleClipboardData(const char *data) {
   server->handleClipboardData(this, data);
 }
 
 // supportsLocalCursor() is called whenever the status of
-// client.supportsLocalCursor() has changed.  If the client does now support local
-// cursor, we make sure that the old server-side rendered cursor is cleaned up
-// and the cursor is sent to the client.
+// client.supportsLocalCursor() has changed.  If the client does now support
+// local cursor, we make sure that the old server-side rendered cursor is
+// cleaned up and the cursor is sent to the client.
 
-void VNCSConnectionST::supportsLocalCursor()
-{
+void VNCSConnectionST::supportsLocalCursor() {
   bool hasRenderedCursor = !damagedCursorRegion.is_empty();
   if (hasRenderedCursor && !needRenderedCursor())
     removeRenderedCursor = true;
   setCursor();
 }
 
-void VNCSConnectionST::supportsFence()
-{
+void VNCSConnectionST::supportsFence() {
   uint8_t type = 0;
   writer()->writeFence(fenceFlagRequest, sizeof(type), &type);
 }
 
-void VNCSConnectionST::supportsContinuousUpdates()
-{
+void VNCSConnectionST::supportsContinuousUpdates() {
   // We refuse to use continuous updates if we cannot monitor the buffer
   // usage using fences.
   if (!client.supportsFence())
@@ -862,16 +838,14 @@ void VNCSConnectionST::supportsContinuousUpdates()
   writer()->writeEndOfContinuousUpdates();
 }
 
-void VNCSConnectionST::supportsLEDState()
-{
+void VNCSConnectionST::supportsLEDState() {
   if (client.ledState() == ledUnknown)
     return;
 
   writer()->writeLEDState();
 }
 
-void VNCSConnectionST::handleTimeout(core::Timer* t)
-{
+void VNCSConnectionST::handleTimeout(core::Timer *t) {
   if (t == &socketTimer) {
     if (state() == RFBSTATE_CLOSING)
       getSock()->shutdownRead();
@@ -880,10 +854,9 @@ void VNCSConnectionST::handleTimeout(core::Timer* t)
   }
 
   try {
-    if ((t == &congestionTimer) ||
-        (t == &losslessTimer))
+    if ((t == &congestionTimer) || (t == &losslessTimer))
       writeFramebufferUpdate();
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     close(e.what());
   }
 
@@ -891,22 +864,20 @@ void VNCSConnectionST::handleTimeout(core::Timer* t)
     close(_("Idle for too long"));
 }
 
-bool VNCSConnectionST::isShiftPressed()
-{
-    std::map<uint32_t, uint32_t>::const_iterator iter;
+bool VNCSConnectionST::isShiftPressed() {
+  std::map<uint32_t, uint32_t>::const_iterator iter;
 
-    for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
-      if (iter->second == XK_Shift_L)
-        return true;
-      if (iter->second == XK_Shift_R)
-        return true;
-    }
+  for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
+    if (iter->second == XK_Shift_L)
+      return true;
+    if (iter->second == XK_Shift_R)
+      return true;
+  }
 
   return false;
 }
 
-void VNCSConnectionST::writeRTTPing()
-{
+void VNCSConnectionST::writeRTTPing() {
   uint8_t type;
 
   if (!client.supportsFence())
@@ -918,14 +889,13 @@ void VNCSConnectionST::writeRTTPing()
   // time we get the response back. This allows us to reliably throttle
   // back on client overload, as well as network overload.
   type = 1;
-  writer()->writeFence(fenceFlagRequest | fenceFlagBlockBefore,
-                       sizeof(type), &type);
+  writer()->writeFence(fenceFlagRequest | fenceFlagBlockBefore, sizeof(type),
+                       &type);
 
   congestion.sentPing();
 }
 
-bool VNCSConnectionST::isCongested()
-{
+bool VNCSConnectionST::isCongested() {
   int eta;
 
   congestionTimer.stop();
@@ -950,9 +920,7 @@ bool VNCSConnectionST::isCongested()
   return true;
 }
 
-
-void VNCSConnectionST::writeFramebufferUpdate()
-{
+void VNCSConnectionST::writeFramebufferUpdate() {
   congestion.updatePosition(sock->outStream().length());
 
   // We're in the middle of processing a command that's supposed to be
@@ -995,8 +963,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   congestion.updatePosition(sock->outStream().length());
 }
 
-void VNCSConnectionST::writeNoDataUpdate()
-{
+void VNCSConnectionST::writeNoDataUpdate() {
   if (!writer()->needNoDataUpdate())
     return;
 
@@ -1006,8 +973,7 @@ void VNCSConnectionST::writeNoDataUpdate()
   requested.clear();
 }
 
-void VNCSConnectionST::writeDataUpdate()
-{
+void VNCSConnectionST::writeDataUpdate() {
   core::Region req;
   UpdateInfo ui;
   bool needNewUpdateInfo;
@@ -1107,16 +1073,16 @@ void VNCSConnectionST::writeDataUpdate()
 
   writeRTTPing();
 
-  //if we have a overlay buffer, then we need to sync it with the main pixel buffer before sending the update
-  if(overlayBuffer){
+  // if we have a overlay buffer, then we need to sync it with the main pixel
+  // buffer before sending the update
+  if (overlayBuffer) {
     vlog.debug("Using: OverlayBuffer");
     overlayBuffer->syncBuffers(ui.changed.union_(ui.copied));
     encodeManager.writeUpdate(ui, overlayBuffer, nullptr);
-  }else{
+  } else {
     vlog.debug("Using: PixelBuffer");
     encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
   }
-  
 
   writeRTTPing();
 
@@ -1127,8 +1093,7 @@ void VNCSConnectionST::writeDataUpdate()
   requested.clear();
 }
 
-void VNCSConnectionST::writeLosslessRefresh()
-{
+void VNCSConnectionST::writeLosslessRefresh() {
   core::Region req, pending;
   const RenderedCursor *cursor;
 
@@ -1193,14 +1158,15 @@ void VNCSConnectionST::writeLosslessRefresh()
 
   writeRTTPing();
 
-  // If we have an overlay buffer, then we need to sync it with the main pixel buffer before sending the update
+  // If we have an overlay buffer, then we need to sync it with the main pixel
+  // buffer before sending the update
   if (overlayBuffer) {
     overlayBuffer->syncBuffers(req);
-    encodeManager.writeLosslessRefresh(req, overlayBuffer,
-                                       cursor, maxUpdateSize);
+    encodeManager.writeLosslessRefresh(req, overlayBuffer, cursor,
+                                       maxUpdateSize);
   } else {
-    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
-                                       cursor, maxUpdateSize);
+    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(), cursor,
+                                       maxUpdateSize);
   }
 
   writeRTTPing();
@@ -1208,9 +1174,7 @@ void VNCSConnectionST::writeLosslessRefresh()
   requested.clear();
 }
 
-
-void VNCSConnectionST::screenLayoutChange(uint16_t reason)
-{
+void VNCSConnectionST::screenLayoutChange(uint16_t reason) {
   if (state() != RFBSTATE_NORMAL)
     return;
 
@@ -1220,13 +1184,11 @@ void VNCSConnectionST::screenLayoutChange(uint16_t reason)
   writer()->writeDesktopSize(reason);
 }
 
-
 // setCursor() is called whenever the cursor has changed shape or pixel format.
 // If the client supports local cursor then it will arrange for the cursor to
 // be sent to the client.
 
-void VNCSConnectionST::setCursor()
-{
+void VNCSConnectionST::setCursor() {
   if (state() != RFBSTATE_NORMAL)
     return;
 
@@ -1247,8 +1209,7 @@ void VNCSConnectionST::setCursor()
 // server.  If the client supports being informed about these changes then it
 // will arrange for the new cursor position to be sent to the client.
 
-void VNCSConnectionST::setCursorPos()
-{
+void VNCSConnectionST::setCursorPos() {
   if (state() != RFBSTATE_NORMAL)
     return;
 
@@ -1258,8 +1219,7 @@ void VNCSConnectionST::setCursorPos()
   }
 }
 
-void VNCSConnectionST::setDesktopName(const char *name)
-{
+void VNCSConnectionST::setDesktopName(const char *name) {
   client.setName(name);
 
   if (state() != RFBSTATE_NORMAL)
@@ -1269,8 +1229,7 @@ void VNCSConnectionST::setDesktopName(const char *name)
     writer()->writeSetDesktopName();
 }
 
-void VNCSConnectionST::setLEDState(unsigned int ledstate)
-{
+void VNCSConnectionST::setLEDState(unsigned int ledstate) {
   if (state() != RFBSTATE_NORMAL)
     return;
 
@@ -1280,23 +1239,24 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
     writer()->writeLEDState();
 }
 
-void VNCSConnectionST::updateOverlay()
-{
-  core::Rect oldRect;
+void VNCSConnectionST::updateOverlay() {
+  std::vector<core::Rect> oldRects;
+  core::Region changed;
 
   if (!overlayBuffer)
     return;
 
-  oldRect = overlayBuffer->getOverlayRect();
+  oldRects = overlayBuffer->getOverlayRects();
 
-  overlayBuffer->updateOverlay(overlayType.getValueStr().c_str(),
-                               overlayPos.getValueStr().c_str(),
-                               overlayInput.getValueStr().c_str(),
-                               overlayAlpha,
-                               overlaySize);
+  overlayBuffer->updateOverlay(
+      overlayType.getValueStr().c_str(), overlayPos.getValueStr().c_str(),
+      overlayInput.getValueStr().c_str(), overlayAlpha, overlaySize);
 
-  // Both the area the overlay used to cover and the area it covers now
-  // need to be resent, so the old position is cleared and the new one
-  // is drawn.
-  add_changed(core::Region(oldRect).union_(overlayBuffer->getOverlayRect()));
+  // Updates both the old and new areas where the overlay where drawn.
+  for (const core::Rect &rect : oldRects)
+    changed.assign_union(core::Region(rect));
+  for (const core::Rect &rect : overlayBuffer->getOverlayRects())
+    changed.assign_union(core::Region(rect));
+
+  add_changed(changed);
 }

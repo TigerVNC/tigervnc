@@ -32,6 +32,7 @@
 
 #include <core/LogWriter.h>
 #include <core/Region.h>
+#include <core/string.h>
 
 #include <rfb/OverlayPixelBuffer.h>
 #include "rfb/OverlayContentPng.h"
@@ -56,7 +57,6 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
       overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]),
       _content(nullptr),
       _overlayType(overlayType),
-      _overlayRect(0, 0, 0, 0),
       _overlayPos(overlayPos),
       _overlayInput(overlayInput), _overlaySize(overlaySize),
       _overlayPadding(10), _overlayAlpha(overlayAlpha) {
@@ -144,10 +144,26 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
   return core::Point(x, y);
 }
 
+std::vector<core::Rect>
+OverlayPixelBuffer::calcOverlayPositions(const char *overlayPos,
+                                         int contentWidth,
+                                         int contentHeight) const {
+  std::vector<core::Rect> rects;
+
+  for (const std::string &pos : core::split(overlayPos, ',')) {
+    core::Point singleOverlayPos = calcOverlayPosition(pos.c_str(), contentWidth,
+                                         contentHeight);
+    rects.push_back(core::Rect(singleOverlayPos.x, singleOverlayPos.y, singleOverlayPos.x + contentWidth,
+                               singleOverlayPos.y + contentHeight));
+  }
+
+  return rects;
+}
+
 void OverlayPixelBuffer::renderOverlay() {
   delete _content;
   _content = nullptr;
-  _overlayRect = core::Rect(0, 0, 0, 0);
+  _overlayRects.clear();
 
   if (_overlayInput.empty())
     return;
@@ -169,11 +185,9 @@ void OverlayPixelBuffer::renderOverlay() {
     return;
   }
 
-  _textPos = calcOverlayPosition(_overlayPos.c_str(), _content->getWidth(),
-                                 _content->getHeight());
-  _overlayRect = core::Rect(_textPos.x, _textPos.y,
-                            _textPos.x + _content->getWidth(),
-                            _textPos.y + _content->getHeight());
+  _overlayRects = calcOverlayPositions(_overlayPos.c_str(),
+                                       _content->getWidth(),
+                                       _content->getHeight());
 }
 
 void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
@@ -288,10 +302,15 @@ void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
     }
   }
 
-  // Only redraw the overlay if the damage is within the overlay rectangle
-  if (_content && !r.intersect(_overlayRect).is_empty())
-    blendBuffer(_content->getContentPixelBuffer(), _content->getWidth(),
-               _content->getHeight(), _textPos, _overlayAlpha);
+  // Only redraw a position if the damage is within its overlay rectangle
+  if (!_content)
+    return;
+
+  for (const core::Rect &overlayRect : _overlayRects) {
+    if (!r.intersect(overlayRect).is_empty())
+      blendBuffer(_content->getContentPixelBuffer(), _content->getWidth(),
+                 _content->getHeight(), overlayRect.tl, _overlayAlpha);
+  }
 }
 
 const uint8_t *OverlayPixelBuffer::getBuffer(const core::Rect &r,
