@@ -15,7 +15,8 @@ public:
   virtual uint8_t *getContentPixelBuffer() override { return _buffer; }
 
 private:
-  // Encodes data into a QR code and renders it into a freshly allocated ARGB32 buffer
+  // Encodes data into a QR code and renders it into a freshly allocated ARGB32
+  // buffer
   static uint8_t *generateQrBuffer(const std::string &data, int height,
                                    int *outWidth, int *outHeight);
 

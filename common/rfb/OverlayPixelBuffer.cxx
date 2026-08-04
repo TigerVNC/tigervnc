@@ -34,10 +34,10 @@
 #include <core/Region.h>
 #include <core/string.h>
 
-#include <rfb/OverlayPixelBuffer.h>
 #include "rfb/OverlayContentPng.h"
 #include "rfb/OverlayContentQr.h"
 #include "rfb/OverlayContentText.h"
+#include <rfb/OverlayPixelBuffer.h>
 
 #include <pixman.h>
 
@@ -49,15 +49,12 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
                                        const char *overlayType,
                                        const char *overlayPos,
                                        const char *overlayInput,
-                                       const int overlayAlpha,
-                                       int overlaySize)
+                                       const int overlayAlpha, int overlaySize)
     : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(),
                          parentBuf->height()),
       parent(parentBuf),
       overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]),
-      _content(nullptr),
-      _overlayType(overlayType),
-      _overlayPos(overlayPos),
+      _content(nullptr), _overlayType(overlayType), _overlayPos(overlayPos),
       _overlayInput(overlayInput), _overlaySize(overlaySize),
       _overlayPadding(10), _overlayAlpha(overlayAlpha) {
   vlog.debug("Setting overlay position to: %s", overlayPos);
@@ -112,8 +109,8 @@ OverlayPixelBuffer::~OverlayPixelBuffer() {
 }
 
 core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
-                                             int contentWidth,
-                                             int contentHeight) const {
+                                                    int contentWidth,
+                                                    int contentHeight) const {
   int x, y;
 
   if (strcmp(overlayPos, "tl") == 0) {
@@ -144,16 +141,15 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
   return core::Point(x, y);
 }
 
-std::vector<core::Rect>
-OverlayPixelBuffer::calcOverlayPositions(const char *overlayPos,
-                                         int contentWidth,
-                                         int contentHeight) const {
+std::vector<core::Rect> OverlayPixelBuffer::calcOverlayPositions(
+    const char *overlayPos, int contentWidth, int contentHeight) const {
   std::vector<core::Rect> rects;
 
   for (const std::string &pos : core::split(overlayPos, ',')) {
-    core::Point singleOverlayPos = calcOverlayPosition(pos.c_str(), contentWidth,
-                                         contentHeight);
-    rects.push_back(core::Rect(singleOverlayPos.x, singleOverlayPos.y, singleOverlayPos.x + contentWidth,
+    core::Point singleOverlayPos =
+        calcOverlayPosition(pos.c_str(), contentWidth, contentHeight);
+    rects.push_back(core::Rect(singleOverlayPos.x, singleOverlayPos.y,
+                               singleOverlayPos.x + contentWidth,
                                singleOverlayPos.y + contentHeight));
   }
 
@@ -185,9 +181,8 @@ void OverlayPixelBuffer::renderOverlay() {
     return;
   }
 
-  _overlayRects = calcOverlayPositions(_overlayPos.c_str(),
-                                       _content->getWidth(),
-                                       _content->getHeight());
+  _overlayRects = calcOverlayPositions(
+      _overlayPos.c_str(), _content->getWidth(), _content->getHeight());
 }
 
 void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
@@ -196,8 +191,8 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   if (!buf)
     return;
 
-  vlog.debug("Blending %dx%d overlay buffer at %d,%d with alpha %.2f",
-             bufWidth, bufHeight, pos.x, pos.y, alpha);
+  vlog.debug("Blending %dx%d overlay buffer at %d,%d with alpha %.2f", bufWidth,
+             bufHeight, pos.x, pos.y, alpha);
 
   // 1. Map the buffer's bits-per-pixel (bpp) to a corresponding Pixman format
   pixman_format_code_t pixmanFormat;
@@ -240,8 +235,7 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   // 4. Wrap the source (text) buffer, which is always tightly packed ARGB32
   pixman_image_t *srcImage = pixman_image_create_bits(
       PIXMAN_a8r8g8b8, bufWidth, bufHeight,
-      reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(buf)),
-      bufWidth * 4);
+      reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(buf)), bufWidth * 4);
   if (!srcImage) {
     vlog.error("Failed to create Pixman image surface wrapper for overlay.");
     pixman_image_unref(destImage);
@@ -264,11 +258,10 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   pixman_image_t *alphaMask = pixman_image_create_solid_fill(&alphaColor);
 
   // 6. Composite the source onto the destination at the given position
-  pixman_image_composite(PIXMAN_OP_OVER, srcImage, alphaMask, destImage, 0, 0,
-                         0, 0, static_cast<int16_t>(pos.x),
-                         static_cast<int16_t>(pos.y),
-                         static_cast<uint16_t>(bufWidth),
-                         static_cast<uint16_t>(bufHeight));
+  pixman_image_composite(
+      PIXMAN_OP_OVER, srcImage, alphaMask, destImage, 0, 0, 0, 0,
+      static_cast<int16_t>(pos.x), static_cast<int16_t>(pos.y),
+      static_cast<uint16_t>(bufWidth), static_cast<uint16_t>(bufHeight));
 
   // 7. Clean up the Pixman wrappers (this does not free the underlying
   // buffers)
@@ -309,7 +302,7 @@ void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
   for (const core::Rect &overlayRect : _overlayRects) {
     if (!r.intersect(overlayRect).is_empty())
       blendBuffer(_content->getContentPixelBuffer(), _content->getWidth(),
-                 _content->getHeight(), overlayRect.tl, _overlayAlpha);
+                  _content->getHeight(), overlayRect.tl, _overlayAlpha);
   }
 }
 

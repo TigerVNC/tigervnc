@@ -20,7 +20,7 @@ public:
   virtual uint8_t *getContentPixelBuffer() = 0;
 
   uint8_t getAlpha() { return _alpha; }
-  void setAlpha(uint8_t alpha) {_alpha = alpha; }
+  void setAlpha(uint8_t alpha) { _alpha = alpha; }
 
   int getWidth() const { return _width; }
   int getHeight() const { return _height; }

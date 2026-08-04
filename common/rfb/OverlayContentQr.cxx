@@ -1,6 +1,7 @@
 // -=- OverlayContentQr.cxx
 //
-// Encodes data into a QR code and renders it as a pixel buffer for use as watermark overlay content.
+// Encodes data into a QR code and renders it as a pixel buffer for use as
+// watermark overlay content.
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -29,16 +30,15 @@ OverlayContentQr::~OverlayContentQr() { delete[] _buffer; }
 
 // Encodes data into a QR code, rendered into a new pixelbuffer scaled to the
 // given height (QR codes are square, so width matches height).
-uint8_t *OverlayContentQr::generateQrBuffer(const std::string &data,
-                                            int height, int *outWidth,
-                                            int *outHeight) {
+uint8_t *OverlayContentQr::generateQrBuffer(const std::string &data, int height,
+                                            int *outWidth, int *outHeight) {
   *outWidth = *outHeight = 0;
 
   if (data.empty() || (height <= 0))
     return nullptr;
 
-  qrcodegen::QrCode qr = qrcodegen::QrCode::encodeText(data.c_str(), qrcodegen::QrCode::Ecc::MEDIUM);
-
+  qrcodegen::QrCode qr = qrcodegen::QrCode::encodeText(
+      data.c_str(), qrcodegen::QrCode::Ecc::MEDIUM);
 
   int nativeSize = qr.getSize() + quietZone * 2;
   uint8_t *buffer = new uint8_t[height * height * 4];

@@ -15,29 +15,31 @@
 #include <rfb/OverlayContentPng.h>
 #include <rfb/OverlayContentText.h>
 
-#include <png.h>
 #include <pixman.h>
+#include <png.h>
 
 using namespace rfb;
 
 static core::LogWriter vlog("OverlayContentPng");
 
-int ERROR_MSG_SIZE = 20; // Size of the error message buffer for PNG load failures
-std::string ERROR_MSG = "PNG file could not be found/opened"; // Error message for PNG load failures
+int ERROR_MSG_SIZE =
+    20; // Size of the error message buffer for PNG load failures
+std::string ERROR_MSG =
+    "PNG file could not be found/opened"; // Error message for PNG load failures
 
-// Scales a tightly packed ARGB32 buffer with a given height, keeps the original aspect ratio
+// Scales a tightly packed ARGB32 buffer with a given height, keeps the original
+// aspect ratio
 static uint8_t *scaleArgbBuffer(const uint8_t *srcBuffer, int srcWidth,
                                 int srcHeight, int dstWidth, int dstHeight) {
   uint8_t *dstBuffer = new uint8_t[dstWidth * dstHeight * 4];
-  
+
   pixman_image_t *srcImage = pixman_image_create_bits(
       PIXMAN_a8r8g8b8, srcWidth, srcHeight,
       reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(srcBuffer)),
       srcWidth * 4);
   pixman_image_t *dstImage = pixman_image_create_bits(
       PIXMAN_a8r8g8b8, dstWidth, dstHeight,
-      reinterpret_cast<uint32_t *>(dstBuffer),
-      dstWidth * 4);
+      reinterpret_cast<uint32_t *>(dstBuffer), dstWidth * 4);
 
   pixman_transform_t transform;
   pixman_transform_init_scale(
@@ -47,8 +49,8 @@ static uint8_t *scaleArgbBuffer(const uint8_t *srcBuffer, int srcWidth,
   pixman_image_set_transform(srcImage, &transform);
   pixman_image_set_filter(srcImage, PIXMAN_FILTER_BILINEAR, nullptr, 0);
 
-  pixman_image_composite(PIXMAN_OP_SRC, srcImage, nullptr, dstImage, 0, 0, 0,
-                         0, 0, 0, static_cast<uint16_t>(dstWidth),
+  pixman_image_composite(PIXMAN_OP_SRC, srcImage, nullptr, dstImage, 0, 0, 0, 0,
+                         0, 0, static_cast<uint16_t>(dstWidth),
                          static_cast<uint16_t>(dstHeight));
 
   pixman_image_unref(srcImage);
@@ -82,11 +84,11 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
   if (!png_image_begin_read_from_file(&image, filePath.c_str())) {
     vlog.error("Failed to read PNG file %s: %s", filePath.c_str(),
                image.message);
-    return OverlayContentText::generateTextBuffer(
-        ERROR_MSG, ERROR_MSG_SIZE, outWidth, outHeight);
+    return OverlayContentText::generateTextBuffer(ERROR_MSG, ERROR_MSG_SIZE,
+                                                  outWidth, outHeight);
   }
 
-  //Pixman format
+  // Pixman format
   image.format = PNG_FORMAT_BGRA;
 
   uint8_t *buffer = new uint8_t[PNG_IMAGE_SIZE(image)];
@@ -96,8 +98,8 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
                image.message);
     delete[] buffer;
     png_image_free(&image);
-    return OverlayContentText::generateTextBuffer(
-        ERROR_MSG, ERROR_MSG_SIZE, outWidth, outHeight);
+    return OverlayContentText::generateTextBuffer(ERROR_MSG, ERROR_MSG_SIZE,
+                                                  outWidth, outHeight);
   }
 
   size_t pixelCount = static_cast<size_t>(image.width) * image.height;
@@ -115,9 +117,9 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
   png_image_free(&image);
 
   if (height > 0 && height != origHeight) {
-    int scaledWidth = std::max(
-        1, static_cast<int>(std::lround(static_cast<double>(width) *
-                                        height / origHeight)));
+    int scaledWidth =
+        std::max(1, static_cast<int>(std::lround(static_cast<double>(width) *
+                                                 height / origHeight)));
     uint8_t *scaled =
         scaleArgbBuffer(buffer, width, origHeight, scaledWidth, height);
     delete[] buffer;

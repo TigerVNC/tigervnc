@@ -16,7 +16,8 @@ public:
 
   // Renders text at the given pixel font size into a freshly allocated
   // ARGB32 buffer sized exactly to fit the rendered glyphs.
-  // Moved to public to allow for reuse in OverlayContentQr, which uses text to render error messages.
+  // Moved to public to allow for reuse in OverlayContentQr, which uses text to
+  // render error messages.
   static uint8_t *generateTextBuffer(const std::string &text, int size,
                                      int *outWidth, int *outHeight);
 
