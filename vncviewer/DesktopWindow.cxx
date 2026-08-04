@@ -1420,6 +1420,14 @@ void DesktopWindow::remoteResize()
     // end up with no screens in the layout. Add a fake one...
     if (layout.num_screens() == 0)
       layout.add_screen(rfb::Screen(0, 0, 0, width, height, 0));
+
+    // Try to be kind to servers in the simple case of toggling between
+    // windowed and full screen by retaining the same screen
+    if ((layout.num_screens() == 1) &&
+        (cc->server.screenLayout().num_screens() == 1)) {
+      layout.begin()->id = cc->server.screenLayout().begin()->id;
+      layout.begin()->flags = cc->server.screenLayout().begin()->flags;
+    }
   }
 
   // Do we actually change anything?
