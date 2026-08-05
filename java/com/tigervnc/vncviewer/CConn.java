@@ -280,6 +280,8 @@ public final class CConn extends CConnection implements
   public void clientRedirect(int port, String host, String x509subject)
   {
     try {
+      if (sock != null && sock.getChannel() != null)
+        Fl.remove_fd(sock.getChannel());
       sock.close();
       sock = new TcpSocket(host, port);
       vlog.info("Redirected to "+host+":"+port);
@@ -287,9 +289,20 @@ public final class CConn extends CConnection implements
       setServerPort(port);
       sock.inStream().setBlockCallback(this);
       setStreams(sock.inStream(), sock.outStream());
-      if (desktop != null)
+      if (desktop != null) {
         desktop.dispose();
+        desktop = null;
+      }
       initialiseProtocol();
+
+      int when = Fl.READ | Fl.EXCEPT;
+      if (sock != null && sock.outStream() != null && sock.outStream().hasBufferedData())
+        when |= Fl.WRITE;
+
+      if (sock != null && sock.getChannel() != null) {
+        Fl.add_fd(sock.getChannel(), when, CConn::socketEvent, this);
+        processNextMsg();
+      }
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }

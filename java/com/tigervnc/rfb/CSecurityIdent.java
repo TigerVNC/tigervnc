@@ -33,13 +33,14 @@ public class CSecurityIdent extends CSecurity {
     upg.getUserPasswd(cc.isSecure(), username, null);
 
     // Return the response to the server
-    os.writeU32(username.length());
+    byte[] utf8str;
     try {
-      byte[] utf8str = username.toString().getBytes("UTF8");
-      os.writeBytes(utf8str, 0, username.length());
+      utf8str = username.toString().getBytes("UTF-8");
     } catch(java.io.UnsupportedEncodingException e) {
-      e.printStackTrace();
+      utf8str = username.toString().getBytes();
     }
+    os.writeU32(utf8str.length);
+    os.writeBytes(utf8str, 0, utf8str.length);
     os.flush();
     return true;
   }
