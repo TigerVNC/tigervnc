@@ -123,15 +123,39 @@ public class SSLEngineManager {
   private void executeTasks() {
     Runnable task;
     while ((task = engine.getDelegatedTask()) != null) {
-      executor.execute(task);
+      task.run();
+    }
+  }
+
+  private void processHandshakeStatus(SSLEngineResult.HandshakeStatus hs) throws IOException {
+    while (hs == SSLEngineResult.HandshakeStatus.NEED_TASK ||
+           hs == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
+      if (hs == SSLEngineResult.HandshakeStatus.NEED_TASK) {
+        executeTasks();
+      } else if (hs == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
+        ByteBuffer empty = ByteBuffer.allocate(0);
+        SSLEngineResult wrapRes = engine.wrap(empty, myNetData);
+        if (wrapRes.getStatus() == SSLEngineResult.Status.OK) {
+          myNetData.flip();
+          os.writeBytes(myNetData, myNetData.remaining());
+          os.flush();
+          myNetData.compact();
+        }
+      }
+      hs = engine.getHandshakeStatus();
     }
   }
 
   public int read(ByteBuffer data, int length) throws IOException {
+    processHandshakeStatus(engine.getHandshakeStatus());
+
     // Read SSL/TLS encoded data from peer
     peerNetData.flip();
     SSLEngineResult res = engine.unwrap(peerNetData, data);
     peerNetData.compact();
+
+    processHandshakeStatus(res.getHandshakeStatus());
+
     switch (res.getStatus()) {
       case OK :
         return res.bytesProduced();
@@ -143,6 +167,8 @@ public class SSLEngineManager {
         break;
 
       case CLOSED:
+        if (res.bytesProduced() > 0)
+          return res.bytesProduced();
         engine.closeInbound();
         throw new EndOfStream();
 
@@ -153,8 +179,10 @@ public class SSLEngineManager {
   public int write(ByteBuffer data, int length) throws IOException {
     int n = 0;
     while (data.hasRemaining()) {
+      processHandshakeStatus(engine.getHandshakeStatus());
       SSLEngineResult res = engine.wrap(data, myNetData);
       n += res.bytesConsumed();
+      processHandshakeStatus(res.getHandshakeStatus());
       switch (res.getStatus()) {
         case OK:
           myNetData.flip();
