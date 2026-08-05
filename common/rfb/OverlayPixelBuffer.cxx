@@ -115,7 +115,7 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
 
   if (strlen(overlayPos) != 2) {
     vlog.error("Invalid overlay position specified: %s", overlayPos);
-    return core::Point(0, 0);
+    return core::Point(-1, -1);
   }
 
   switch (overlayPos[0]) {
@@ -130,7 +130,7 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
     break;
   default:
     vlog.error("Invalid overlay position specified: %s", overlayPos);
-    return core::Point(0, 0);
+    return core::Point(-1, -1);
   }
 
   switch (overlayPos[1]) {
@@ -145,7 +145,7 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
     break;
   default:
     vlog.error("Invalid overlay position specified: %s", overlayPos);
-    return core::Point(0, 0);
+    return core::Point(-1, -1);
   }
 
   return core::Point(x, y);
@@ -158,9 +158,11 @@ std::vector<core::Rect> OverlayPixelBuffer::calcOverlayPositions(
   for (const std::string &pos : core::split(overlayPos, ',')) {
     core::Point singleOverlayPos =
         calcOverlayPosition(pos.c_str(), contentWidth, contentHeight);
-    rects.push_back(core::Rect(singleOverlayPos.x, singleOverlayPos.y,
-                               singleOverlayPos.x + contentWidth,
-                               singleOverlayPos.y + contentHeight));
+    if (singleOverlayPos.x >= 0 && singleOverlayPos.y >= 0) {
+      rects.push_back(core::Rect(singleOverlayPos.x, singleOverlayPos.y,
+                                 singleOverlayPos.x + contentWidth,
+                                 singleOverlayPos.y + contentHeight));
+    }
   }
 
   return rects;
