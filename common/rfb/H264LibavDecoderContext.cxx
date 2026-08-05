@@ -97,7 +97,7 @@ H264LibavDecoderContext::~H264LibavDecoderContext()
 // Also avcodec requires a right padded buffer
 uint8_t* H264LibavDecoderContext::makeH264WorkBuffer(const uint8_t* buffer, uint32_t len)
 {
-  uint32_t reserve_len = len + len % AV_INPUT_BUFFER_PADDING_SIZE;
+  uint32_t reserve_len = len + AV_INPUT_BUFFER_PADDING_SIZE;
 
   if (!h264WorkBuffer || reserve_len > h264WorkBufferLength)
   {
