@@ -185,7 +185,7 @@ void H264LibavDecoderContext::decode(const uint8_t* h264_in_buffer,
   if (!frames_received)
     return;
 
-  if (!frame->height)
+  if ((frame->width < rect.width()) || (frame->height < rect.height()))
     return;
 
   sws = sws_getCachedContext(sws, frame->width, frame->height, avctx->pix_fmt,

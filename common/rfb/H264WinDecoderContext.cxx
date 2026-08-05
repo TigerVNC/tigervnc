@@ -310,15 +310,20 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
     if (FAILED(hr))
     {
       // Silently ignore errors, hoping its a temporary encoding glitch
+      return;
     }
-    else
-    {
-      BYTE* out;
-      DWORD buflen;
-      converted_buffer->Lock(&out, nullptr, &buflen);
-      pb->imageRect(rect, out + offset_y * stride + offset_x * 4, (int)stride / 4);
-      converted_buffer->Unlock();
-    }
+
+    if ((offset_x >= full_width) || (offset_y >= full_height))
+      return;
+    if (((full_width - offset_x) < (uint32_t)rect.width()) ||
+        ((full_height - offset_y) < (uint32_t)rect.height()))
+      return;
+
+    BYTE* out;
+    DWORD buflen;
+    converted_buffer->Lock(&out, nullptr, &buflen);
+    pb->imageRect(rect, out + offset_y * stride + offset_x * 4, (int)stride / 4);
+    converted_buffer->Unlock();
   }
 }
 
