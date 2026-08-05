@@ -118,7 +118,7 @@ void ManagedListener::refresh() {
       for (iter2 = sockets.begin(); iter2 != iter; ++iter2)
         manager->remListener(*iter2);
       for (; iter2 != sockets.end(); ++iter2)
-        delete *iter;
+        delete *iter2;
       sockets.clear();
       throw;
     }
