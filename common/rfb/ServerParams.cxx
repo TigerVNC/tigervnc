@@ -59,6 +59,8 @@ ServerParams::ServerParams()
 ServerParams::~ServerParams()
 {
   delete cursor_;
+  delete pf_;
+  delete screenLayout_;
 }
 
 void ServerParams::setDimensions(int width, int height)
