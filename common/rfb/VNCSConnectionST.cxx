@@ -64,8 +64,9 @@ core::StringParameter
                                   "Overlay type (text, png, qr-code)", "");
 core::StringParameter VNCSConnectionST::overlayPos(
     "OverlayPos",
-    "Overlay position(s) (tl, tr, bl, br, c), comma-separated for multiple",
-    "tl");
+    "Overlay position(s) (tl, tc, tr, cl, cc, cr, bl, bc, br), "
+    "comma-separated for multiple",
+    "");
 core::StringParameter VNCSConnectionST::overlayInput(
     "OverlayInput",
     "Input for specified overlay type (text->text, qr->data, png->filepath)",

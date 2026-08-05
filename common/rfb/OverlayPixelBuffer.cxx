@@ -113,27 +113,37 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
                                                     int contentHeight) const {
   int x, y;
 
-  if (strcmp(overlayPos, "tl") == 0) {
-    // Top-Left corner
-    x = _overlayPadding;
+  if (strlen(overlayPos) != 2) {
+    vlog.error("Invalid overlay position specified: %s", overlayPos);
+    return core::Point(0, 0);
+  }
+
+  switch (overlayPos[0]) {
+  case 't':
     y = _overlayPadding;
-  } else if (strcmp(overlayPos, "tr") == 0) {
-    // Top-Right corner
-    x = width() - contentWidth - _overlayPadding;
-    y = _overlayPadding;
-  } else if (strcmp(overlayPos, "bl") == 0) {
-    // Bottom-Left corner
-    x = _overlayPadding;
-    y = height() - contentHeight - _overlayPadding;
-  } else if (strcmp(overlayPos, "br") == 0) {
-    // Bottom-Right corner
-    x = width() - contentWidth - _overlayPadding;
-    y = height() - contentHeight - _overlayPadding;
-  } else if (strcmp(overlayPos, "c") == 0) {
-    // Centered
-    x = (width() - contentWidth) / 2;
+    break;
+  case 'c':
     y = (height() - contentHeight) / 2;
-  } else {
+    break;
+  case 'b':
+    y = height() - contentHeight - _overlayPadding;
+    break;
+  default:
+    vlog.error("Invalid overlay position specified: %s", overlayPos);
+    return core::Point(0, 0);
+  }
+
+  switch (overlayPos[1]) {
+  case 'l':
+    x = _overlayPadding;
+    break;
+  case 'c':
+    x = (width() - contentWidth) / 2;
+    break;
+  case 'r':
+    x = width() - contentWidth - _overlayPadding;
+    break;
+  default:
     vlog.error("Invalid overlay position specified: %s", overlayPos);
     return core::Point(0, 0);
   }
