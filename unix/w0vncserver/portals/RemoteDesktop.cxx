@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <sys/select.h>
-#include <uuid/uuid.h>
 #include <linux/input-event-codes.h>
 
 #include <string>
@@ -669,7 +668,7 @@ bool RemoteDesktop::loadRestoreToken()
   char filepath[PATH_MAX];
   FILE* f;
   const char* stateDir;
-  char restoreToken_[37];
+  char restoreToken_[128];
 
   if (rememberDisplayChoice == "Never")
     return false;
@@ -700,14 +699,7 @@ bool RemoteDesktop::loadRestoreToken()
   }
 
   if (fgets(restoreToken_, sizeof(restoreToken_), f)) {
-    uuid_t uuid;
-
     fclose(f);
-    if (uuid_parse(restoreToken_, uuid) < 0) {
-      vlog.error(_("Invalid restore token \"%s\""), restoreToken_);
-      return false;
-    }
-
     restoreToken = restoreToken_;
     return true;
   }
