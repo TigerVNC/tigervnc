@@ -119,7 +119,7 @@ public final class DesktopWindow extends JFrame
             });
           }
         } else {
-          Rectangle b = getGraphicsConfiguration().getBounds();
+          Rectangle b = getScreenBounds();
           if (!b.contains(getLocationOnScreen()))
             setLocation((int)b.getX(), (int)b.getY());
         }
@@ -562,39 +562,42 @@ public final class DesktopWindow extends JFrame
   public Rectangle getScreenBounds() {
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
-    Rectangle r = new Rectangle();
+    Rectangle r = null;
     if (fullScreenAllMonitors.getValue()) {
-      for (GraphicsDevice gd : ge.getScreenDevices())
-        for (GraphicsConfiguration gc : gd.getConfigurations())
-          r = r.union(gc.getBounds());
+      for (GraphicsDevice gd : ge.getScreenDevices()) {
+        for (GraphicsConfiguration gc : gd.getConfigurations()) {
+          if (r == null)
+            r = new Rectangle(gc.getBounds());
+          else
+            r = r.union(gc.getBounds());
+        }
+      }
     } else {
       GraphicsConfiguration gc = getGraphicsConfiguration();
       r = gc.getBounds();
     }
-    return r;
+    return r != null ? r : new Rectangle(0, 0, 800, 600);
   }
 
   public Rectangle getMaximizedScreenBounds() {
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
-    Rectangle virtualBounds = new Rectangle();
+    Rectangle virtualBounds = null;
     if (fullScreenAllMonitors.getValue()) {
       for (GraphicsDevice gd : ge.getScreenDevices()) {
         for (GraphicsConfiguration gc : gd.getConfigurations()) {
-          Rectangle b = gc.getBounds();
-          Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-          b.x += insets.left;
-          b.y += insets.top;
-          b.width -= (insets.left + insets.right);
-          b.height -= (insets.top + insets.bottom);
-          virtualBounds = virtualBounds.union(b);
+          Rectangle b = new Rectangle(gc.getBounds());
+          if (virtualBounds == null)
+            virtualBounds = b;
+          else
+            virtualBounds = virtualBounds.union(b);
         }
       }
     } else {
       GraphicsConfiguration gc = getGraphicsConfiguration();
       virtualBounds = gc.getBounds();
     }
-    return virtualBounds;
+    return virtualBounds != null ? virtualBounds : new Rectangle(0, 0, 800, 600);
   }
 
   public static Window getFullScreenWindow() {
