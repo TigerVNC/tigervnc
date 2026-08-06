@@ -1,6 +1,6 @@
 // -=- OverlayPixelBuffer.h
 //
-// The an extension of a pixelbuffer whith the capability to add an overlay
+// The extension of a managed pixelbuffer whith the capability to add an overlay
 
 #ifndef __RFB_OVERLAY_PIXEL_BUFFER_H__
 #define __RFB_OVERLAY_PIXEL_BUFFER_H__

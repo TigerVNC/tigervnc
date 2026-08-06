@@ -1,3 +1,7 @@
+// -=- OverlayContentPng.h
+//
+// An overlay content implementation that renders a PNG image into a pixel buffer.
+
 #ifndef __RFB_OVERLAY_CONTENT_PNG_H__
 #define __RFB_OVERLAY_CONTENT_PNG_H__
 

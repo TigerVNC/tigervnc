@@ -1,3 +1,7 @@
+// -=- OverlayContentQr.h
+//
+// An overlay content implementation that renders a QR code into a pixel buffer.
+
 #ifndef __RFB_OVERLAY_CONTENT_QR_H__
 #define __RFB_OVERLAY_CONTENT_QR_H__
 

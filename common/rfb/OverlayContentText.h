@@ -1,3 +1,7 @@
+// -=- OverlayContentText.h
+//
+// An overlay content implementation that renders text into a pixel buffer.
+
 #ifndef __RFB_OVERLAY_CONTENT_TEXT_H__
 #define __RFB_OVERLAY_CONTENT_TEXT_H__
 
