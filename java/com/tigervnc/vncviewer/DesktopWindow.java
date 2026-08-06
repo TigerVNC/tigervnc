@@ -479,6 +479,16 @@ public final class DesktopWindow extends JFrame
         // end up with no screens in the layout. Add a fake one...
         if (layout.num_screens() == 0)
           layout.add_screen(new Screen(0, 0, 0, width, height, 0));
+
+        // Try to be kind to servers in the simple case of toggling between
+        // windowed and full screen by retaining the same screen
+        if ((layout.num_screens() == 1) &&
+            (cc.server.screenLayout().num_screens() == 1)) {
+          Screen newScr = (Screen)layout.begin().next();
+          Screen oldScr = (Screen)cc.server.screenLayout().begin().next();
+          newScr.id = oldScr.id;
+          newScr.flags = oldScr.flags;
+        }
       }
     }
 
