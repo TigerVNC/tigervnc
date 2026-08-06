@@ -206,7 +206,6 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   vlog.debug("Blending %dx%d overlay buffer at %d,%d with alpha %.2f", bufWidth,
              bufHeight, pos.x, pos.y, alpha);
 
-  // 1. Map the buffer's bits-per-pixel (bpp) to a corresponding Pixman format
   pixman_format_code_t pixmanFormat;
   switch (format.bpp) {
   case 32:
@@ -228,13 +227,10 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
     return;
   }
 
-  // 2. Calculate row stride in bytes
   int bytesPerPixel = format.bpp / 8;
   int rowStrideBytes = width() * bytesPerPixel;
 
-  // 3. Wrap the raw overlayBuffer inside a pixman image view
-  // Note: const_cast is used because blendBuffer is marked const, but we are
-  // writing data to the target buffer
+  // Create a Pixman image surface wrapper for the destination (parent) buffer
   pixman_image_t *destImage = pixman_image_create_bits(
       pixmanFormat, width(), height(),
       reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(overlayBuffer)),
@@ -244,7 +240,7 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
     return;
   }
 
-  // 4. Wrap the source (text) buffer, which is always tightly packed ARGB32
+  // Create a Pixman image surface wrapper for the source (overlay) buffer
   pixman_image_t *srcImage = pixman_image_create_bits(
       PIXMAN_a8r8g8b8, bufWidth, bufHeight,
       reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(buf)), bufWidth * 4);
@@ -254,10 +250,7 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
     return;
   }
 
-  // 5. A solid alpha mask that multiplies the source's own per-pixel alpha
-  // by the requested overall alpha, giving the watermark its translucency.
-  // alpha arrives as a 0-100 percentage (OverlayAlpha), so convert it to a
-  // 0.0-1.0 fraction before clamping.
+  // Creates a alpha mask based on the specified alpha value
   alpha /= 100.0;
   if (alpha < 0.0)
     alpha = 0.0;
@@ -269,14 +262,13 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   alphaColor.alpha = static_cast<uint16_t>(alpha * 0xffff);
   pixman_image_t *alphaMask = pixman_image_create_solid_fill(&alphaColor);
 
-  // 6. Composite the source onto the destination at the given position
+  // Merge the source and destination images using the alpha mask
   pixman_image_composite(
       PIXMAN_OP_OVER, srcImage, alphaMask, destImage, 0, 0, 0, 0,
       static_cast<int16_t>(pos.x), static_cast<int16_t>(pos.y),
       static_cast<uint16_t>(bufWidth), static_cast<uint16_t>(bufHeight));
 
-  // 7. Clean up the Pixman wrappers (this does not free the underlying
-  // buffers)
+  // Cleanup
   pixman_image_unref(alphaMask);
   pixman_image_unref(srcImage);
   pixman_image_unref(destImage);
