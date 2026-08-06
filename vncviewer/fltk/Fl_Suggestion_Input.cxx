@@ -96,6 +96,8 @@ Fl_Suggestion_Input::Fl_Suggestion_Input(
 
 Fl_Suggestion_Input::~Fl_Suggestion_Input()
 {
+    delete dropdown_window;
+
     Fl::remove_idle(show_suggestions_soon, this);
     Fl::remove_timeout(hide_suggestions_soon, this);
     Fl::remove_idle(hide_suggestions_if_unfocused, this);
