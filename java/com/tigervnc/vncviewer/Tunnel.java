@@ -55,7 +55,7 @@ public class Tunnel {
   private final static String DEFAULT_TUNNEL_TEMPLATE
     = "-f -L %L:localhost:%R %H sleep 20";
   private final static String DEFAULT_VIA_TEMPLATE
-    = "-f -L %L:%H:%R %G sleep 20";
+    = "-f -L %L:%H:%R -- %G sleep 20";
 
   public static void createTunnel(String gatewayHost,
                                   String remoteHost,
