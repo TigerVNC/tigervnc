@@ -88,14 +88,14 @@ abstract public class OutStream {
   // writeString() writes a string - a U32 length followed by the data.
 
   public final void writeString(String str) {
-    int len = str.length();
-    writeU32(len);
+    byte[] utf8str;
     try {
-      byte[] utf8str = str.getBytes("UTF8");
-      writeBytes(utf8str, 0, len);
+      utf8str = str.getBytes("UTF-8");
     } catch(java.io.UnsupportedEncodingException e) {
-      e.printStackTrace();
+      utf8str = str.getBytes();
     }
+    writeU32(utf8str.length);
+    writeBytes(utf8str, 0, utf8str.length);
   }
 
   public final void pad(int bytes) {

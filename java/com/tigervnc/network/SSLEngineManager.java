@@ -54,7 +54,7 @@ public class SSLEngineManager {
     peerNetData = ByteBuffer.allocate(pktBufSize);
   }
 
-  public void doHandshake() throws Exception {
+  public synchronized void doHandshake() throws Exception {
 
     // Begin handshake
     engine.beginHandshake();
@@ -146,7 +146,7 @@ public class SSLEngineManager {
     }
   }
 
-  public int read(ByteBuffer data, int length) throws IOException {
+  public synchronized int read(ByteBuffer data, int length) throws IOException {
     processHandshakeStatus(engine.getHandshakeStatus());
 
     // Read SSL/TLS encoded data from peer
@@ -176,7 +176,7 @@ public class SSLEngineManager {
     return 0;
   }
 
-  public int write(ByteBuffer data, int length) throws IOException {
+  public synchronized int write(ByteBuffer data, int length) throws IOException {
     int n = 0;
     while (data.hasRemaining()) {
       processHandshakeStatus(engine.getHandshakeStatus());
