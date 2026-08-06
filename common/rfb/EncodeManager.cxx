@@ -922,7 +922,6 @@ void EncodeManager::writeSubRect(const core::Rect& rect,
 
   ppb = preparePixelBuffer(rect, pb, true);
 
-
   if (!analyseRect(ppb, &info, maxColours))
     info.palette.clear();
 

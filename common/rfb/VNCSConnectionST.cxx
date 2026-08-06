@@ -18,7 +18,6 @@
  * USA.
  */
 
-#include "core/Configuration.h"
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -30,6 +29,7 @@
 #include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
+#include "core/Configuration.h"
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -43,15 +43,15 @@
 #include <rfb/Exception.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
-#include <rfb/SMsgWriter.h>
 #include <rfb/Security.h>
 #include <rfb/ServerCore.h>
-#include <rfb/VNCSConnectionST.h>
+#include <rfb/SMsgWriter.h>
 #include <rfb/VNCServerST.h>
+#include <rfb/VNCSConnectionST.h>
 #include <rfb/encodings.h>
+#include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/ledStates.h>
-#include <rfb/screenTypes.h>
 #define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS

@@ -27,10 +27,10 @@
 #ifndef __RFB_VNCSCONNECTIONST_H__
 #define __RFB_VNCSCONNECTIONST_H__
 
-#include "core/Configuration.h"
 #include <map>
 
 #include <core/Timer.h>
+#include "core/Configuration.h"
 
 #include <rfb/Congestion.h>
 #include <rfb/EncodeManager.h>

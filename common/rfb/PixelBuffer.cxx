@@ -22,14 +22,13 @@
 // The PixelBuffer class encapsulates the PixelFormat and dimensions
 // of a block of pixel data.
 
-#include "core/Rect.h"
-#include <string>
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <stdio.h>
 #include <string.h>
+#include <string>
 
 #include <algorithm>
 #include <stdexcept>
@@ -38,14 +37,12 @@
 #include <core/LogWriter.h>
 #include <core/Region.h>
 #include <core/string.h>
-
+#include "core/Rect.h"
 #include <rfb/PixelBuffer.h>
 
 #include <pixman.h>
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
 #include <fontconfig/fontconfig.h>
 
 using namespace rfb;

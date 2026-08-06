@@ -25,10 +25,10 @@
 #ifndef __RFB_PIXEL_BUFFER_H__
 #define __RFB_PIXEL_BUFFER_H__
 
-#include <core/Rect.h>
-
-#include <rfb/PixelFormat.h>
 #include <string>
+
+#include <core/Rect.h>
+#include <rfb/PixelFormat.h>
 
 namespace core { class Region; }
 
