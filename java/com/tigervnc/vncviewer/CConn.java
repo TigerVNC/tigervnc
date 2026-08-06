@@ -289,6 +289,7 @@ public final class CConn extends CConnection implements
       setServerPort(port);
       sock.inStream().setBlockCallback(this);
       setStreams(sock.inStream(), sock.outStream());
+      csecurity = null;
       if (desktop != null) {
         desktop.dispose();
         desktop = null;

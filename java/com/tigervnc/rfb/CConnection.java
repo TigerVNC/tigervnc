@@ -142,6 +142,7 @@ abstract public class CConnection extends CMsgHandler {
   public final void initialiseProtocol()
   {
     state_ = stateEnum.RFBSTATE_PROTOCOL_VERSION;
+    csecurity = null;
   }
 
   // processMsg() should be called whenever there is data to read on the
