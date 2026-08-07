@@ -146,32 +146,37 @@ public class SSLEngineManager {
     }
   }
 
-  public synchronized int read(ByteBuffer data, int length) throws IOException {
-    processHandshakeStatus(engine.getHandshakeStatus());
+  public int read(ByteBuffer data, int length) throws IOException {
+    synchronized(this) {
+      processHandshakeStatus(engine.getHandshakeStatus());
 
-    // Read SSL/TLS encoded data from peer
-    peerNetData.flip();
-    SSLEngineResult res = engine.unwrap(peerNetData, data);
-    peerNetData.compact();
+      // Read SSL/TLS encoded data from peer
+      peerNetData.flip();
+      SSLEngineResult res = engine.unwrap(peerNetData, data);
+      peerNetData.compact();
 
-    processHandshakeStatus(res.getHandshakeStatus());
+      processHandshakeStatus(res.getHandshakeStatus());
 
-    switch (res.getStatus()) {
-      case OK :
+      if (res.getStatus() == SSLEngineResult.Status.OK) {
         return res.bytesProduced();
-
-      case BUFFER_UNDERFLOW:
-        // attempt to drain the underlying buffer first
-        int need = peerNetData.remaining();
-        in.readBytes(peerNetData, in.check(1, need, true));
-        break;
-
-      case CLOSED:
+      } else if (res.getStatus() == SSLEngineResult.Status.CLOSED) {
         if (res.bytesProduced() > 0)
           return res.bytesProduced();
         engine.closeInbound();
         throw new EndOfStream();
+      }
+    }
 
+    // BUFFER_UNDERFLOW: Perform blocking network read OUTSIDE synchronized block!
+    int need;
+    synchronized(this) {
+      need = peerNetData.remaining();
+    }
+    int avail = in.check(1, need, true);
+    if (avail > 0) {
+      synchronized(this) {
+        in.readBytes(peerNetData, avail);
+      }
     }
     return 0;
   }
