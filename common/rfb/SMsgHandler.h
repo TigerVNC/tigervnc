@@ -58,14 +58,14 @@ namespace rfb {
 
     virtual void clientCutText(const char* str) = 0;
 
-    virtual void handleClipboardCaps(uint32_t flags,
-                                     const uint32_t* lengths) = 0;
-    virtual void handleClipboardRequest(uint32_t flags) = 0;
-    virtual void handleClipboardPeek() = 0;
-    virtual void handleClipboardNotify(uint32_t flags) = 0;
-    virtual void handleClipboardProvide(uint32_t flags,
-                                        const size_t* lengths,
-                                        const uint8_t* const* data) = 0;
+    virtual void clipboardCaps(uint32_t flags,
+                               const uint32_t* lengths) = 0;
+    virtual void clipboardRequest(uint32_t flags) = 0;
+    virtual void clipboardPeek() = 0;
+    virtual void clipboardNotify(uint32_t flags) = 0;
+    virtual void clipboardProvide(uint32_t flags,
+                                  const size_t* lengths,
+                                  const uint8_t* const* data) = 0;
 
     ClientParams client;
   };
