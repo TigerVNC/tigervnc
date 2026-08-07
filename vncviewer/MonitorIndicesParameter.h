@@ -29,6 +29,7 @@ public:
     MonitorIndicesParameter(const char* name_, const char* desc_,
                             const ListType& v);
     std::set<int> getMonitors() const;
+    using IntListParameter::setParam;
     bool setParam(const char* value) override;
     void setMonitors(const std::set<int>& v);
 private:

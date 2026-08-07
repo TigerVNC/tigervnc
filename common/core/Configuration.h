@@ -196,6 +196,7 @@ namespace core {
   class StringParameter : public Parameter {
   public:
     StringParameter(const char* name_, const char* desc_, const char* v);
+    using Parameter::setParam;
     bool setParam(const char* value) override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
@@ -209,6 +210,7 @@ namespace core {
   public:
     EnumParameter(const char* name_, const char* desc_,
                   const std::set<const char*>& enums, const char* v);
+    using Parameter::setParam;
     bool setParam(const char* value) override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
