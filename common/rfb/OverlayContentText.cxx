@@ -25,8 +25,8 @@ using namespace rfb;
 
 static core::LogWriter vlog("OverlayContentText");
 
-OverlayContentText::OverlayContentText(const std::string &text, int fontSize,
-                                       const std::string &font)
+OverlayContentText::OverlayContentText(const std::string& text, int fontSize,
+                                       const std::string& font)
     : _buffer(nullptr) {
   _width = _height = 0;
   _buffer = generateTextBuffer(text, fontSize, &_width, &_height, font);
@@ -35,13 +35,13 @@ OverlayContentText::OverlayContentText(const std::string &text, int fontSize,
 OverlayContentText::~OverlayContentText() { delete[] _buffer; }
 
 // Return a path for a usable font file for text overlay
-static std::string findFontFile(const std::string &fontPattern = "") {
+static std::string findFontFile(const std::string& fontPattern = "") {
   if (!FcInit()) {
     return "";
   }
 
-  FcPattern *pattern =
-      FcNameParse(reinterpret_cast<const FcChar8 *>(fontPattern.c_str()));
+  FcPattern* pattern =
+      FcNameParse(reinterpret_cast<const FcChar8*>(fontPattern.c_str()));
   if (!pattern) {
     return "";
   }
@@ -50,14 +50,14 @@ static std::string findFontFile(const std::string &fontPattern = "") {
   FcDefaultSubstitute(pattern);
 
   FcResult result;
-  FcPattern *font = FcFontMatch(nullptr, pattern, &result);
+  FcPattern* font = FcFontMatch(nullptr, pattern, &result);
 
   std::string fontPath;
   if (font) {
-    FcChar8 *file = nullptr;
+    FcChar8* file = nullptr;
 
     if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch) {
-      fontPath = reinterpret_cast<char *>(file);
+      fontPath = reinterpret_cast<char*>(file);
     }
     FcPatternDestroy(font);
   }
@@ -69,7 +69,7 @@ static std::string findFontFile(const std::string &fontPattern = "") {
 
 // Initializes FreeType and loads the watermark font, reloading it whenever
 // Is able to find new font during runtime config changes.
-static FT_Face getOverlayFont(const std::string &font) {
+static FT_Face getOverlayFont(const std::string& font) {
   static FT_Library library = nullptr;
   static FT_Face face = nullptr;
   static std::string loadedFont;
@@ -109,10 +109,10 @@ static FT_Face getOverlayFont(const std::string &font) {
 // if text is empty or no usable font is found.
 
 // TODO: Rewrite/Comment
-uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
-                                                int size, int *outWidth,
-                                                int *outHeight,
-                                                const std::string &font) {
+uint8_t* OverlayContentText::generateTextBuffer(const std::string& text,
+                                                int size, int* outWidth,
+                                                int* outHeight,
+                                                const std::string& font) {
   *outWidth = *outHeight = 0;
 
   if (text.empty())
@@ -170,11 +170,11 @@ uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
     return nullptr;
 
   int stride = textWidth * 4;
-  uint8_t *buf = new uint8_t[stride * textHeight]();
+  uint8_t* buf = new uint8_t[stride * textHeight]();
 
-  pixman_image_t *destImage =
+  pixman_image_t* destImage =
       pixman_image_create_bits(PIXMAN_a8r8g8b8, textWidth, textHeight,
-                               reinterpret_cast<uint32_t *>(buf), stride);
+                               reinterpret_cast<uint32_t*>(buf), stride);
   if (!destImage) {
     vlog.error("Failed to create Pixman image surface wrapper for text.");
     delete[] buf;
@@ -182,7 +182,7 @@ uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
   }
 
   pixman_color_t whiteColor = {0xffff, 0xffff, 0xffff, 0xffff};
-  pixman_image_t *textColor = pixman_image_create_solid_fill(&whiteColor);
+  pixman_image_t* textColor = pixman_image_create_solid_fill(&whiteColor);
 
   int penX = 0;
   int baselineY = ascent;
@@ -198,7 +198,7 @@ uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
       continue;
 
     FT_GlyphSlot glyph = face->glyph;
-    FT_Bitmap &bitmap = glyph->bitmap;
+    FT_Bitmap& bitmap = glyph->bitmap;
 
     int glyphX = penX + glyph->bitmap_left;
     int glyphY = baselineY - glyph->bitmap_top;
@@ -212,9 +212,9 @@ uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
         memcpy(&maskBuffer[row * alignedStride],
                bitmap.buffer + row * bitmap.pitch, bitmap.width);
 
-      pixman_image_t *mask = pixman_image_create_bits(
+      pixman_image_t* mask = pixman_image_create_bits(
           PIXMAN_a8, bitmap.width, bitmap.rows,
-          reinterpret_cast<uint32_t *>(maskBuffer.data()), alignedStride);
+          reinterpret_cast<uint32_t*>(maskBuffer.data()), alignedStride);
 
       if (mask) {
         pixman_image_composite(PIXMAN_OP_OVER, textColor, mask, destImage, 0, 0,

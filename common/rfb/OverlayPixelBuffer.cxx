@@ -45,13 +45,13 @@ using namespace rfb;
 
 static core::LogWriter vlog("OverlayPixelBuffer");
 
-OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
-                                       const char *overlayType,
-                                       const char *overlayPos,
-                                       const char *overlayInput,
+OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer* parentBuf,
+                                       const char* overlayType,
+                                       const char* overlayPos,
+                                       const char* overlayInput,
                                        const int overlayAlpha, int overlaySize,
                                        int overlayPadding,
-                                       const char *overlayFont)
+                                       const char* overlayFont)
     : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(),
                          parentBuf->height()),
       parent(parentBuf),
@@ -65,12 +65,12 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
   syncBuffers(getRect());
 }
 
-void OverlayPixelBuffer::updateOverlay(const char *overlayType,
-                                       const char *overlayPos,
-                                       const char *overlayInput,
+void OverlayPixelBuffer::updateOverlay(const char* overlayType,
+                                       const char* overlayPos,
+                                       const char* overlayInput,
                                        const int overlayAlpha,
                                        int overlaySize, int overlayPadding,
-                                       const char *overlayFont) {
+                                       const char* overlayFont) {
   vlog.debug("Updating overlay to position %s, input %s, size %d",
              overlayPos, overlayInput, overlaySize);
 
@@ -86,7 +86,7 @@ void OverlayPixelBuffer::updateOverlay(const char *overlayType,
   syncBuffers(getRect());
 }
 
-void OverlayPixelBuffer::setParent(const PixelBuffer *parentBuf) {
+void OverlayPixelBuffer::setParent(const PixelBuffer* parentBuf) {
   parent = parentBuf;
 
   // If the parent buffer has changed size, resize the overlay buffer to match
@@ -114,7 +114,7 @@ OverlayPixelBuffer::~OverlayPixelBuffer() {
   delete _content;
 }
 
-core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
+core::Point OverlayPixelBuffer::calcOverlayPosition(const char* overlayPos,
                                                     int contentWidth,
                                                     int contentHeight) const {
   int x, y;
@@ -158,10 +158,10 @@ core::Point OverlayPixelBuffer::calcOverlayPosition(const char *overlayPos,
 }
 
 std::vector<core::Rect> OverlayPixelBuffer::calcOverlayPositions(
-    const char *overlayPos, int contentWidth, int contentHeight) const {
+    const char* overlayPos, int contentWidth, int contentHeight) const {
   std::vector<core::Rect> rects;
 
-  for (const std::string &pos : core::split(overlayPos, ',')) {
+  for (const std::string& pos : core::split(overlayPos, ',')) {
     core::Point singleOverlayPos =
         calcOverlayPosition(pos.c_str(), contentWidth, contentHeight);
     if (singleOverlayPos.x >= 0 && singleOverlayPos.y >= 0) {
@@ -204,8 +204,8 @@ void OverlayPixelBuffer::renderOverlay() {
       _overlayPos.c_str(), _content->getWidth(), _content->getHeight());
 }
 
-void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
-                                     int bufHeight, const core::Point &pos,
+void OverlayPixelBuffer::blendBuffer(const uint8_t* buf, int bufWidth,
+                                     int bufHeight, const core::Point& pos,
                                      double alpha) const {
   if (!buf)
     return;
@@ -238,9 +238,9 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   int rowStrideBytes = width() * bytesPerPixel;
 
   // Create a Pixman image surface wrapper for the destination (parent) buffer
-  pixman_image_t *destImage = pixman_image_create_bits(
+  pixman_image_t* destImage = pixman_image_create_bits(
       pixmanFormat, width(), height(),
-      reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(overlayBuffer)),
+      reinterpret_cast<uint32_t*>(const_cast<uint8_t*>(overlayBuffer)),
       rowStrideBytes);
   if (!destImage) {
     vlog.error("Failed to create Pixman image surface wrapper.");
@@ -248,9 +248,9 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   }
 
   // Create a Pixman image surface wrapper for the source (overlay) buffer
-  pixman_image_t *srcImage = pixman_image_create_bits(
+  pixman_image_t* srcImage = pixman_image_create_bits(
       PIXMAN_a8r8g8b8, bufWidth, bufHeight,
-      reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(buf)), bufWidth * 4);
+      reinterpret_cast<uint32_t*>(const_cast<uint8_t*>(buf)), bufWidth * 4);
   if (!srcImage) {
     vlog.error("Failed to create Pixman image surface wrapper for overlay.");
     pixman_image_unref(destImage);
@@ -267,7 +267,7 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   pixman_color_t alphaColor;
   alphaColor.red = alphaColor.green = alphaColor.blue = 0;
   alphaColor.alpha = static_cast<uint16_t>(alpha * 0xffff);
-  pixman_image_t *alphaMask = pixman_image_create_solid_fill(&alphaColor);
+  pixman_image_t* alphaMask = pixman_image_create_solid_fill(&alphaColor);
 
   // Merge the source and destination images using the alpha mask
   pixman_image_composite(
@@ -281,20 +281,20 @@ void OverlayPixelBuffer::blendBuffer(const uint8_t *buf, int bufWidth,
   pixman_image_unref(destImage);
 }
 
-void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
+void OverlayPixelBuffer::syncBuffers(const core::Region& r) {
   std::vector<core::Rect> rects;
   int bytesPerPixel = format.bpp / 8;
 
   r.get_rects(&rects);
 
-  for (const core::Rect &rect : rects) {
+  for (const core::Rect& rect : rects) {
     core::Rect clipped = rect.intersect(parent->getRect());
     if (clipped.is_empty())
       continue;
 
     int parentStride;
-    const uint8_t *src = parent->getBuffer(clipped, &parentStride);
-    uint8_t *dst =
+    const uint8_t* src = parent->getBuffer(clipped, &parentStride);
+    uint8_t* dst =
         overlayBuffer + (clipped.tl.y * width() + clipped.tl.x) * bytesPerPixel;
 
     int rowBytes = clipped.width() * bytesPerPixel;
@@ -310,15 +310,15 @@ void OverlayPixelBuffer::syncBuffers(const core::Region &r) {
   if (!_content)
     return;
 
-  for (const core::Rect &overlayRect : _overlayRects) {
+  for (const core::Rect& overlayRect : _overlayRects) {
     if (!r.intersect(overlayRect).is_empty())
       blendBuffer(_content->getContentPixelBuffer(), _content->getWidth(),
                   _content->getHeight(), overlayRect.tl, _overlayAlpha);
   }
 }
 
-const uint8_t *OverlayPixelBuffer::getBuffer(const core::Rect &r,
-                                             int *stride_) const {
+const uint8_t* OverlayPixelBuffer::getBuffer(const core::Rect& r,
+                                             int* stride_) const {
   int bytesPerPixel = format.bpp / 8;
 
   *stride_ = width();

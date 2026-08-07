@@ -29,17 +29,17 @@ static const std::string ERROR_MSG =
 
 // Scales a tightly packed ARGB32 buffer with a given height, keeps the original
 // aspect ratio
-static uint8_t *scaleArgbBuffer(const uint8_t *srcBuffer, int srcWidth,
+static uint8_t* scaleArgbBuffer(const uint8_t* srcBuffer, int srcWidth,
                                 int srcHeight, int dstWidth, int dstHeight) {
-  uint8_t *dstBuffer = new uint8_t[dstWidth * dstHeight * 4];
+  uint8_t* dstBuffer = new uint8_t[dstWidth * dstHeight * 4];
 
-  pixman_image_t *srcImage = pixman_image_create_bits(
+  pixman_image_t* srcImage = pixman_image_create_bits(
       PIXMAN_a8r8g8b8, srcWidth, srcHeight,
-      reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(srcBuffer)),
+      reinterpret_cast<uint32_t*>(const_cast<uint8_t*>(srcBuffer)),
       srcWidth * 4);
-  pixman_image_t *dstImage = pixman_image_create_bits(
+  pixman_image_t* dstImage = pixman_image_create_bits(
       PIXMAN_a8r8g8b8, dstWidth, dstHeight,
-      reinterpret_cast<uint32_t *>(dstBuffer), dstWidth * 4);
+      reinterpret_cast<uint32_t*>(dstBuffer), dstWidth * 4);
 
   pixman_transform_t transform;
   pixman_transform_init_scale(
@@ -59,7 +59,7 @@ static uint8_t *scaleArgbBuffer(const uint8_t *srcBuffer, int srcWidth,
   return dstBuffer;
 }
 
-OverlayContentPng::OverlayContentPng(const std::string &filePath, int height)
+OverlayContentPng::OverlayContentPng(const std::string& filePath, int height)
     : _buffer(nullptr) {
   _width = _height = 0;
   _buffer = loadPngBuffer(filePath, height, &_width, &_height);
@@ -69,9 +69,9 @@ OverlayContentPng::~OverlayContentPng() { delete[] _buffer; }
 
 // Decodes the PNG file at filePath into a new pixelbuffer, scaled to the
 // given height while preserving the image's own aspect ratio.
-uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
-                                          int height, int *outWidth,
-                                          int *outHeight) {
+uint8_t* OverlayContentPng::loadPngBuffer(const std::string& filePath,
+                                          int height, int* outWidth,
+                                          int* outHeight) {
   *outWidth = *outHeight = 0;
 
   if (filePath.empty())
@@ -91,7 +91,7 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
   // Pixman format
   image.format = PNG_FORMAT_BGRA;
 
-  uint8_t *buffer = new uint8_t[PNG_IMAGE_SIZE(image)];
+  uint8_t* buffer = new uint8_t[PNG_IMAGE_SIZE(image)];
 
   if (!png_image_finish_read(&image, nullptr, buffer, 0, nullptr)) {
     vlog.error("Failed to decode PNG file %s: %s", filePath.c_str(),
@@ -104,7 +104,7 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
 
   size_t pixelCount = static_cast<size_t>(image.width) * image.height;
   for (size_t i = 0; i < pixelCount; i++) {
-    uint8_t *p = buffer + i * 4;
+    uint8_t* p = buffer + i * 4;
     uint8_t alpha = p[3];
     p[0] = static_cast<uint8_t>((p[0] * alpha) / 255);
     p[1] = static_cast<uint8_t>((p[1] * alpha) / 255);
@@ -120,7 +120,7 @@ uint8_t *OverlayContentPng::loadPngBuffer(const std::string &filePath,
     int scaledWidth =
         std::max(1, static_cast<int>(std::lround(static_cast<double>(width) *
                                                  height / origHeight)));
-    uint8_t *scaled =
+    uint8_t* scaled =
         scaleArgbBuffer(buffer, width, origHeight, scaledWidth, height);
     delete[] buffer;
     buffer = scaled;

@@ -15,7 +15,7 @@ protected:
 
 public:
   virtual ~OverlayContent() {}
-  virtual uint8_t *getContentPixelBuffer() = 0;
+  virtual uint8_t* getContentPixelBuffer() = 0;
 
   int getWidth() const { return _width; }
   int getHeight() const { return _height; }
