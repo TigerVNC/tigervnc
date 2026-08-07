@@ -114,7 +114,7 @@ public final class DesktopWindow extends JFrame
         if ((state & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
           if (fullScreenAllMonitors.getValue()) {
             java.awt.EventQueue.invokeLater(() -> {
-              setExtendedState(JFrame.NORMAL);
+              setMaximizedBounds(getMaximizedScreenBounds());
               setBounds(getMaximizedScreenBounds());
             });
           }
@@ -209,16 +209,19 @@ public final class DesktopWindow extends JFrame
 
   private void repositionViewport()
   {
+    scroll.setViewportBorder(null);
     scroll.revalidate();
     Rectangle r = scroll.getViewportBorderBounds();
     int dx = r.width - viewport.scaledWidth;
     int dy = r.height - viewport.scaledHeight;
-    int top = (int)Math.max(Math.floor(dy/2), 0);
-    int left = (int)Math.max(Math.floor(dx/2), 0);
+    int top = (int)Math.max(Math.floor(dy/2.0), 0);
+    int left = (int)Math.max(Math.floor(dx/2.0), 0);
     int bottom = (int)Math.max(dy - top, 0);
     int right = (int)Math.max(dx - left, 0);
-    Insets insets = new Insets(top, left, bottom, right);
-    scroll.setViewportBorder(new MatteBorder(insets, Color.BLACK));
+    if (top > 0 || left > 0 || bottom > 0 || right > 0) {
+      Insets insets = new Insets(top, left, bottom, right);
+      scroll.setViewportBorder(new MatteBorder(insets, Color.BLACK));
+    }
     scroll.revalidate();
   }
 
@@ -250,10 +253,13 @@ public final class DesktopWindow extends JFrame
         setVisible(true);
 
       if (maximize.getValue()) {
-        if (fullScreenAllMonitors.getValue())
-          setBounds(getMaximizedScreenBounds());
-        else
+        if (fullScreenAllMonitors.getValue()) {
+          setMaximizedBounds(getMaximizedScreenBounds());
           setExtendedState(JFrame.MAXIMIZED_BOTH);
+          setBounds(getMaximizedScreenBounds());
+        } else {
+          setExtendedState(JFrame.MAXIMIZED_BOTH);
+        }
       }
 
       if (cc.server.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
