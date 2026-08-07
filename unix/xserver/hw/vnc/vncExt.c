@@ -150,7 +150,9 @@ static int ProcVncExtSetParam(ClientPtr client)
            strcasecmp(param, "overlaypos") == 0 ||
            strcasecmp(param, "overlayinput") == 0 ||
            strcasecmp(param, "overlayalpha") == 0 ||
-           strcasecmp(param, "overlaysize") == 0)
+           strcasecmp(param, "overlaysize") == 0 ||
+           strcasecmp(param, "overlayfont") == 0 ||
+           strcasecmp(param, "overlaypadding") == 0)
     vncUpdateOverlay();
 
 deny:

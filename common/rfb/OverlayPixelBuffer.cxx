@@ -49,14 +49,17 @@ OverlayPixelBuffer::OverlayPixelBuffer(const PixelBuffer *parentBuf,
                                        const char *overlayType,
                                        const char *overlayPos,
                                        const char *overlayInput,
-                                       const int overlayAlpha, int overlaySize)
+                                       const int overlayAlpha, int overlaySize,
+                                       int overlayPadding,
+                                       const char *overlayFont)
     : ManagedPixelBuffer(parentBuf->getPF(), parentBuf->width(),
                          parentBuf->height()),
       parent(parentBuf),
       overlayBuffer(new uint8_t[width() * height() * (format.bpp / 8)]),
       _content(nullptr), _overlayType(overlayType), _overlayPos(overlayPos),
       _overlayInput(overlayInput), _overlaySize(overlaySize),
-      _overlayPadding(10), _overlayAlpha(overlayAlpha) {
+      _overlayPadding(overlayPadding), _overlayAlpha(overlayAlpha),
+      _overlayFont(overlayFont) {
   vlog.debug("Setting overlay position to: %s", overlayPos);
   renderOverlay();
   syncBuffers(getRect());
@@ -66,7 +69,8 @@ void OverlayPixelBuffer::updateOverlay(const char *overlayType,
                                        const char *overlayPos,
                                        const char *overlayInput,
                                        const int overlayAlpha,
-                                       int overlaySize) {
+                                       int overlaySize, int overlayPadding,
+                                       const char *overlayFont) {
   vlog.debug("Updating overlay to position %s, input %s, size %d",
              overlayPos, overlayInput, overlaySize);
 
@@ -75,6 +79,8 @@ void OverlayPixelBuffer::updateOverlay(const char *overlayType,
   _overlayInput = overlayInput;
   _overlayAlpha = overlayAlpha;
   _overlaySize = overlaySize;
+  _overlayPadding = overlayPadding;
+  _overlayFont = overlayFont;
 
   renderOverlay();
   syncBuffers(getRect());
@@ -185,7 +191,8 @@ void OverlayPixelBuffer::renderOverlay() {
   else if (_overlayType == "qr")
     _content = new OverlayContentQr(_overlayInput, targetHeight);
   else
-    _content = new OverlayContentText(_overlayInput, targetHeight);
+    _content =
+        new OverlayContentText(_overlayInput, targetHeight, _overlayFont);
 
   if (!_content->getContentPixelBuffer()) {
     delete _content;

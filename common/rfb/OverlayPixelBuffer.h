@@ -18,7 +18,8 @@ class OverlayPixelBuffer : public ManagedPixelBuffer {
 public:
   OverlayPixelBuffer(const PixelBuffer *parentBuf, const char *overlayType,
                      const char *overlayPos, const char *overlayInput,
-                     const int overlayAlpha, int overlaySize);
+                     const int overlayAlpha, int overlaySize,
+                     int overlayPadding, const char *overlayFont);
   virtual ~OverlayPixelBuffer();
 
   virtual const uint8_t *getBuffer(const core::Rect &r,
@@ -34,7 +35,8 @@ public:
   // change.
   void updateOverlay(const char *overlayType, const char *overlayPos,
                      const char *overlayInput, const int overlayAlpha,
-                     int overlaySize);
+                     int overlaySize, int overlayPadding,
+                     const char *overlayFont);
   // Current areas covered by the overlay content
   const std::vector<core::Rect> &getOverlayRects() const {
     return _overlayRects;
@@ -63,6 +65,7 @@ private:
   int _overlaySize;
   int _overlayPadding;
   double _overlayAlpha;
+  std::string _overlayFont;
 };
 
 }; // namespace rfb

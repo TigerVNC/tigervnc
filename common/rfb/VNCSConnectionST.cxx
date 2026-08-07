@@ -75,6 +75,14 @@ core::IntParameter VNCSConnectionST::overlayAlpha
 core::IntParameter VNCSConnectionST::overlaySize
 ("OverlaySize",
  "% of framebuffer height the overlay should occupy", 12, 1, 100);
+core::IntParameter VNCSConnectionST::overlayPadding
+("OverlayPadding",
+ "Padding in pixels between the overlay and the screen edge", 10, 0);
+core::StringParameter VNCSConnectionST::overlayFont
+("OverlayFont",
+ "Font used to render text overlays (fontconfig pattern), "
+ "empty for default",
+ "");
 
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
@@ -108,7 +116,9 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                            overlayType.getValueStr().c_str(),
                                            overlayPos.getValueStr().c_str(),
                                            overlayInput.getValueStr().c_str(),
-                                           overlayAlpha, overlaySize);
+                                           overlayAlpha, overlaySize,
+                                           overlayPadding,
+                                           overlayFont.getValueStr().c_str());
   }
 }
 
@@ -1311,7 +1321,9 @@ void VNCSConnectionST::updateOverlay()
   overlayBuffer->updateOverlay(overlayType.getValueStr().c_str(),
                                overlayPos.getValueStr().c_str(),
                                overlayInput.getValueStr().c_str(),
-                               overlayAlpha, overlaySize);
+                               overlayAlpha, overlaySize,
+                               overlayPadding,
+                               overlayFont.getValueStr().c_str());
 
   // Updates both the old and new areas where the overlay where drawn.
   for (const core::Rect& rect : oldRects)

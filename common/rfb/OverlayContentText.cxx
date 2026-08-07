@@ -25,10 +25,11 @@ using namespace rfb;
 
 static core::LogWriter vlog("OverlayContentText");
 
-OverlayContentText::OverlayContentText(const std::string &text, int fontSize)
+OverlayContentText::OverlayContentText(const std::string &text, int fontSize,
+                                       const std::string &font)
     : _buffer(nullptr) {
   _width = _height = 0;
-  _buffer = generateTextBuffer(text, fontSize, &_width, &_height);
+  _buffer = generateTextBuffer(text, fontSize, &_width, &_height, font);
 }
 
 OverlayContentText::~OverlayContentText() { delete[] _buffer; }
@@ -66,32 +67,40 @@ static std::string findFontFile(const std::string &fontPattern = "") {
   return fontPath;
 }
 
-// Initializes FreeType and loads the watermark font once.
-static FT_Face getOverlayFont() {
+// Initializes FreeType and loads the watermark font, reloading it whenever
+// Is able to find new font during runtime config changes.
+static FT_Face getOverlayFont(const std::string &font) {
   static FT_Library library = nullptr;
   static FT_Face face = nullptr;
-  static bool initialized = false;
+  static std::string loadedFont;
+  static bool loadedFontValid = false;
 
-  if (initialized)
+  if (loadedFontValid && (font == loadedFont))
     return face;
-  initialized = true;
 
-  if (FT_Init_FreeType(&library) != 0) {
+  if (!library && (FT_Init_FreeType(&library) != 0)) {
     vlog.error("Failed to initialize FreeType");
     return nullptr;
   }
 
-  const std::string fontFile = findFontFile("sans-serif");
+  const std::string fontFile = findFontFile(font);
   if (fontFile.empty()) {
     vlog.error("No usable font found for overlay text");
     return nullptr;
   }
 
+  if (face)
+    FT_Done_Face(face);
+
   if (FT_New_Face(library, fontFile.c_str(), 0, &face) != 0) {
     vlog.error("Failed to load font %s for overlay text", fontFile.c_str());
+    face = nullptr;
+    loadedFontValid = false;
     return nullptr;
   }
 
+  loadedFont = font;
+  loadedFontValid = true;
   return face;
 }
 
@@ -102,13 +111,14 @@ static FT_Face getOverlayFont() {
 // TODO: Rewrite/Comment
 uint8_t *OverlayContentText::generateTextBuffer(const std::string &text,
                                                 int size, int *outWidth,
-                                                int *outHeight) {
+                                                int *outHeight,
+                                                const std::string &font) {
   *outWidth = *outHeight = 0;
 
   if (text.empty())
     return nullptr;
 
-  FT_Face face = getOverlayFont();
+  FT_Face face = getOverlayFont(font);
   if (!face)
     return nullptr;
 

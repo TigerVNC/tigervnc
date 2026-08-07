@@ -52,6 +52,8 @@ namespace rfb {
     static core::StringParameter overlayInput; // Overlay text to display
     static core::IntParameter overlayAlpha; // % transparency of the overlay
     static core::IntParameter overlaySize; // % of framebuffer height the overlay should occupy
+    static core::IntParameter overlayPadding; // Padding in pixels between the overlay and the screen edge
+    static core::StringParameter overlayFont; // Font (fontconfig pattern) used to render text overlays
     // SConnection methods
 
     bool accessCheck(AccessRights ar) const override;

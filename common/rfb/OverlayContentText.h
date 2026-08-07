@@ -13,16 +13,19 @@ namespace rfb {
 
 class OverlayContentText : public OverlayContent {
 public:
-  OverlayContentText(const std::string &text, int fontSize);
+  OverlayContentText(const std::string &text, int fontSize,
+                     const std::string &font = "");
   virtual ~OverlayContentText();
 
   virtual uint8_t *getContentPixelBuffer() override { return _buffer; }
 
   // Renders text at the given pixel font size into a freshly allocated
-  // ARGB32 buffer sized exactly to fit the rendered glyphs.
+  // ARGB32 buffer sized exactly to fit the rendered glyphs. font is a
+  // fontconfig pattern (e.g. a family name). Empty selects a default font
   // Public to allow for reuse in OverlayContentPng to show error message
   static uint8_t *generateTextBuffer(const std::string &text, int size,
-                                     int *outWidth, int *outHeight);
+                                     int *outWidth, int *outHeight,
+                                     const std::string &font = "");
 
 private:
   uint8_t *_buffer;
