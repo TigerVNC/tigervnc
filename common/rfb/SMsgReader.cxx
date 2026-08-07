@@ -392,7 +392,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
         lengths[num++] = is->readU32();
     }
 
-    handler->handleClipboardCaps(flags, lengths);
+    handler->clipboardCaps(flags, lengths);
   } else if (action == clipboardProvide) {
     rdr::ZlibInStream zis;
 
@@ -448,7 +448,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
     zis.flushUnderlying();
     zis.setUnderlying(nullptr, 0);
 
-    handler->handleClipboardProvide(flags, lengths, buffers);
+    handler->clipboardProvide(flags, lengths, buffers);
 
     num = 0;
     for (i = 0;i < 16;i++) {
@@ -459,13 +459,13 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
   } else {
     switch (action) {
     case clipboardRequest:
-      handler->handleClipboardRequest(flags);
+      handler->clipboardRequest(flags);
       break;
     case clipboardPeek:
-      handler->handleClipboardPeek();
+      handler->clipboardPeek();
       break;
     case clipboardNotify:
-      handler->handleClipboardNotify(flags);
+      handler->clipboardNotify(flags);
       break;
     default:
       throw protocol_error(_("Invalid extended clipboard message"));

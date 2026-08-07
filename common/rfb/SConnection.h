@@ -165,13 +165,13 @@ namespace rfb {
 
     void clientCutText(const char* str) override;
 
-    void handleClipboardCaps(uint32_t flags,
-                             const uint32_t* lengths) override;
-    void handleClipboardRequest(uint32_t flags) override;
-    void handleClipboardPeek() override;
-    void handleClipboardNotify(uint32_t flags) override;
-    void handleClipboardProvide(uint32_t flags, const size_t* lengths,
-                                const uint8_t* const* data) override;
+    void clipboardCaps(uint32_t flags,
+                       const uint32_t* lengths) override;
+    void clipboardRequest(uint32_t flags) override;
+    void clipboardPeek() override;
+    void clipboardNotify(uint32_t flags) override;
+    void clipboardProvide(uint32_t flags, const size_t* lengths,
+                          const uint8_t* const* data) override;
 
     // Methods to be overridden in a derived class
 
