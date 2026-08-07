@@ -93,7 +93,7 @@ static core::LogWriter vlog("VNCSConnST");
 
 static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 
-VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
+VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket* s,
                                    bool reverse, AccessRights ar)
   : SConnection(ar),
     sock(s), socketTimer(this), reverseConnection(reverse),
