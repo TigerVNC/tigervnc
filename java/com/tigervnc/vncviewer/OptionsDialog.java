@@ -148,8 +148,12 @@ class OptionsDialog extends Dialog {
   JRadioButton remoteScaleButton;
   JComboBox scalingFactorInput;
 
-  JCheckBox fullScreenCheckbox;
-  JCheckBox fullScreenAllMonitorsCheckbox;
+  ButtonGroup displayModeGroup;
+  JRadioButton modeWindowedButton;
+  JRadioButton modeCurrentMonitorButton;
+  JRadioButton modeAllMonitorsButton;
+  JRadioButton modeSelectedMonitorsButton;
+  MonitorArrangement monitorArrangement;
 
   /* Misc. */
   JCheckBox sharedCheckbox;
@@ -238,7 +242,12 @@ class OptionsDialog extends Dialog {
     centerPane.add(cardPanel, BorderLayout.CENTER);
 
     // button pane
+    Dimension buttonSize = new Dimension(115, 27);
+
     JButton okButton = new JButton("OK");
+    okButton.setPreferredSize(buttonSize);
+    okButton.setIcon(new ReturnArrowIcon());
+    okButton.setHorizontalTextPosition(SwingConstants.LEFT);
     okButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         storeOptions();
@@ -246,7 +255,9 @@ class OptionsDialog extends Dialog {
       }
     });
     getRootPane().setDefaultButton(okButton);
+
     JButton cancelButton = new JButton("Cancel");
+    cancelButton.setPreferredSize(buttonSize);
     cancelButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         endDialog();
@@ -263,9 +274,50 @@ class OptionsDialog extends Dialog {
 
     this.add(centerPane, BorderLayout.CENTER);
     this.add(buttonPane, BorderLayout.SOUTH);
-    getContentPane().setPreferredSize(new Dimension(580, 420));
+    getContentPane().setPreferredSize(new Dimension(580, 480));
     addListeners(this);
     pack();
+  }
+
+  private static Border createSectionBorder(String title) {
+    TitledBorder titledBorder = BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), title);
+    Font f = titledBorder.getTitleFont();
+    if (f != null) {
+      titledBorder.setTitleFont(f.deriveFont(f.getSize2D() + 1.5f));
+    }
+    return BorderFactory.createCompoundBorder(
+      titledBorder,
+      BorderFactory.createEmptyBorder(2, 0, 2, 0)
+    );
+  }
+
+  private static class ReturnArrowIcon implements Icon {
+    private final int width = 12;
+    private final int height = 12;
+
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+      Graphics2D g2 = (Graphics2D) g.create();
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g2.setColor(c.getForeground());
+
+      int arrowX = x + 1;
+      int arrowY = y + 6;
+
+      Polygon head = new Polygon();
+      head.addPoint(arrowX, arrowY);
+      head.addPoint(arrowX + 4, arrowY - 3);
+      head.addPoint(arrowX + 4, arrowY + 3);
+      g2.fill(head);
+
+      g2.setStroke(new BasicStroke(1.5f));
+      g2.drawLine(arrowX + 3, arrowY, arrowX + 8, arrowY);
+      g2.drawLine(arrowX + 8, arrowY, arrowX + 8, arrowY - 4);
+
+      g2.dispose();
+    }
+
+    public int getIconWidth() { return width; }
+    public int getIconHeight() { return height; }
   }
 
   public static void showDialog(Container c) {
@@ -476,8 +528,28 @@ class OptionsDialog extends Dialog {
       remoteResizeButton.setSelected(true);
     else
       remoteScaleButton.setSelected(true);
-    fullScreenCheckbox.setSelected(fullScreen.getValue());
-    fullScreenAllMonitorsCheckbox.setSelected(fullScreenAllMonitors.getValue());
+    String modeStr = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
+    if (!fullScreen.getValue()) {
+      modeWindowedButton.setSelected(true);
+    } else if (modeStr.equals("current") || (!fullScreenAllMonitors.getValue() && modeStr.equals("all"))) {
+      modeCurrentMonitorButton.setSelected(true);
+    } else if (modeStr.equals("selected")) {
+      modeSelectedMonitorsButton.setSelected(true);
+    } else {
+      modeAllMonitorsButton.setSelected(true);
+    }
+
+    Set<Integer> selectedIndices = new TreeSet<Integer>();
+    String selStr = fullScreenSelectedMonitors.getValueStr();
+    if (selStr != null && !selStr.trim().isEmpty()) {
+      for (String part : selStr.split(",")) {
+        try {
+          selectedIndices.add(Integer.parseInt(part.trim()) - 1);
+        } catch (NumberFormatException ignored) {}
+      }
+    }
+    monitorArrangement.setSelectedMonitors(selectedIndices);
+    monitorArrangement.setEnabled(modeSelectedMonitorsButton.isSelected());
 
     scalingFactorInput.setSelectedItem("100%");
     String scaleStr = scalingFactor.getValueStr();
@@ -641,8 +713,31 @@ class OptionsDialog extends Dialog {
       desktopSize.setParam("");
     }
     remoteResize.setParam(remoteResizeButton.isSelected());
-    fullScreen.setParam(fullScreenCheckbox.isSelected());
-    fullScreenAllMonitors.setParam(fullScreenAllMonitorsCheckbox.isSelected());
+    if (modeWindowedButton.isSelected()) {
+      fullScreen.setParam(false);
+      fullScreenMode.setParam("windowed");
+      fullScreenAllMonitors.setParam(false);
+    } else {
+      fullScreen.setParam(true);
+      if (modeCurrentMonitorButton.isSelected()) {
+        fullScreenMode.setParam("current");
+        fullScreenAllMonitors.setParam(false);
+      } else if (modeSelectedMonitorsButton.isSelected()) {
+        fullScreenMode.setParam("selected");
+        fullScreenAllMonitors.setParam(false);
+      } else {
+        fullScreenMode.setParam("all");
+        fullScreenAllMonitors.setParam(true);
+      }
+    }
+
+    Set<Integer> selSet = monitorArrangement.getSelectedMonitors();
+    StringBuilder sb = new StringBuilder();
+    for (int idx : selSet) {
+      if (sb.length() > 0) sb.append(",");
+      sb.append(idx + 1);
+    }
+    fullScreenSelectedMonitors.setParam(sb.toString());
 
     String scaleStr =
       ((String)scalingFactorInput.getSelectedItem()).replace("%", "");
@@ -720,14 +815,14 @@ class OptionsDialog extends Dialog {
     autoSelectPane.add(Box.createHorizontalGlue());
 
     JPanel encodingPanel = new JPanel(new GridLayout(4, 1));
-    encodingPanel.setBorder(BorderFactory.createTitledBorder("Preferred encoding"));
+    encodingPanel.setBorder(createSectionBorder("Preferred encoding"));
     tightButton = new GroupedJRadioButton("Tight", encodingGroup, encodingPanel);
     zrleButton = new GroupedJRadioButton("ZRLE", encodingGroup, encodingPanel);
     hextileButton = new GroupedJRadioButton("Hextile", encodingGroup, encodingPanel);
     rawButton = new GroupedJRadioButton("Raw", encodingGroup, encodingPanel);
 
     JPanel colorPanel = new JPanel(new GridLayout(4, 1));
-    colorPanel.setBorder(BorderFactory.createTitledBorder("Color level"));
+    colorPanel.setBorder(createSectionBorder("Color level"));
     fullcolorButton = new GroupedJRadioButton("Full", colorlevelGroup, colorPanel);
     mediumcolorButton = new GroupedJRadioButton("Medium", colorlevelGroup, colorPanel);
     lowcolorButton = new GroupedJRadioButton("Low", colorlevelGroup, colorPanel);
@@ -825,7 +920,7 @@ class OptionsDialog extends Dialog {
     SecPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
     JPanel encrPanel = new JPanel(new GridBagLayout());
-    encrPanel.setBorder(BorderFactory.createTitledBorder("Encryption"));
+    encrPanel.setBorder(createSectionBorder("Encryption"));
     encNoneCheckbox = new JCheckBox("None");
     encTLSCheckbox = new JCheckBox("Anonymous TLS");
     encX509Checkbox = new JCheckBox("TLS with X.509 certificates");
@@ -940,7 +1035,7 @@ class OptionsDialog extends Dialog {
                                          NONE, NONE));
 
     JPanel authPanel = new JPanel(new GridBagLayout());
-    authPanel.setBorder(BorderFactory.createTitledBorder("Authentication"));
+    authPanel.setBorder(createSectionBorder("Authentication"));
 
     authNoneCheckbox = new JCheckBox("None");
     authVncCheckbox = new JCheckBox("Standard VNC");
@@ -1024,7 +1119,7 @@ class OptionsDialog extends Dialog {
     viewOnlyCheckbox = new JCheckBox("View only (ignore mouse and keyboard)");
 
     JPanel mousePanel = new JPanel(new GridBagLayout());
-    mousePanel.setBorder(BorderFactory.createTitledBorder("Mouse"));
+    mousePanel.setBorder(createSectionBorder("Mouse"));
 
     alwaysCursorCheckbox = new JCheckBox("Show local cursor when not provided by server");
     alwaysCursorCheckbox.addItemListener(new ItemListener() {
@@ -1060,7 +1155,7 @@ class OptionsDialog extends Dialog {
                                           NONE, NONE));
 
     JPanel keyboardPanel = new JPanel(new GridBagLayout());
-    keyboardPanel.setBorder(BorderFactory.createTitledBorder("Keyboard"));
+    keyboardPanel.setBorder(createSectionBorder("Keyboard"));
 
     disableArrowScrollCheckbox = new JCheckBox("Disable arrow-key scrolling when scrollbars visible");
     JLabel menuKeyLabel = new JLabel("Menu key");
@@ -1092,7 +1187,7 @@ class OptionsDialog extends Dialog {
                                              NONE, NONE));
 
     JPanel clipboardPanel = new JPanel(new GridBagLayout());
-    clipboardPanel.setBorder(BorderFactory.createTitledBorder("Clipboard"));
+    clipboardPanel.setBorder(createSectionBorder("Clipboard"));
 
     acceptClipboardCheckbox = new JCheckBox("Accept clipboard from server");
     sendClipboardCheckbox = new JCheckBox("Send clipboard to server");
@@ -1151,11 +1246,12 @@ class OptionsDialog extends Dialog {
   }
 
   private JPanel createScreenPanel() {
+    int indent;
     JPanel ScreenPanel = new JPanel(new GridBagLayout());
     ScreenPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
     JPanel SizingPanel = new JPanel(new GridBagLayout());
-    SizingPanel.setBorder(BorderFactory.createTitledBorder("Desktop Sizing"));
+    SizingPanel.setBorder(createSectionBorder("Desktop Sizing"));
     desktopSizeCheckbox = new JCheckBox("Resize remote session on connect");
     desktopSizeCheckbox.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -1187,9 +1283,70 @@ class OptionsDialog extends Dialog {
       "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
     scalingFactorInput = new MyJComboBox(scalingFactors);
     scalingFactorInput.setEditable(true);
-    fullScreenCheckbox = new JCheckBox("Full-screen mode");
-    fullScreenAllMonitorsCheckbox =
-      new JCheckBox("Enable full-screen mode over all monitors");
+    JPanel displayModePanel = new JPanel(new GridBagLayout());
+    displayModePanel.setBorder(createSectionBorder("Display Mode"));
+
+    displayModeGroup = new ButtonGroup();
+    modeWindowedButton = new JRadioButton("Windowed");
+    modeCurrentMonitorButton = new JRadioButton("Full screen on current monitor");
+    modeAllMonitorsButton = new JRadioButton("Full screen on all monitors");
+    modeSelectedMonitorsButton = new JRadioButton("Full screen on selected monitor(s)");
+
+    displayModeGroup.add(modeWindowedButton);
+    displayModeGroup.add(modeCurrentMonitorButton);
+    displayModeGroup.add(modeAllMonitorsButton);
+    displayModeGroup.add(modeSelectedMonitorsButton);
+
+    monitorArrangement = new MonitorArrangement();
+
+    ItemListener modeListener = new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        monitorArrangement.setEnabled(modeSelectedMonitorsButton.isSelected());
+      }
+    };
+    modeWindowedButton.addItemListener(modeListener);
+    modeCurrentMonitorButton.addItemListener(modeListener);
+    modeAllMonitorsButton.addItemListener(modeListener);
+    modeSelectedMonitorsButton.addItemListener(modeListener);
+
+    displayModePanel.add(modeWindowedButton,
+                         new GridBagConstraints(0, 0,
+                                                REMAINDER, 1,
+                                                LIGHT, LIGHT,
+                                                LINE_START, NONE,
+                                                new Insets(2, 0, 2, 0),
+                                                NONE, NONE));
+    displayModePanel.add(modeCurrentMonitorButton,
+                         new GridBagConstraints(0, 1,
+                                                REMAINDER, 1,
+                                                LIGHT, LIGHT,
+                                                LINE_START, NONE,
+                                                new Insets(2, 0, 2, 0),
+                                                NONE, NONE));
+    displayModePanel.add(modeAllMonitorsButton,
+                         new GridBagConstraints(0, 2,
+                                                REMAINDER, 1,
+                                                LIGHT, LIGHT,
+                                                LINE_START, NONE,
+                                                new Insets(2, 0, 2, 0),
+                                                NONE, NONE));
+    displayModePanel.add(modeSelectedMonitorsButton,
+                         new GridBagConstraints(0, 3,
+                                                REMAINDER, 1,
+                                                LIGHT, LIGHT,
+                                                LINE_START, NONE,
+                                                new Insets(2, 0, 2, 0),
+                                                NONE, NONE));
+
+    indent = getButtonLabelInset(modeSelectedMonitorsButton);
+    displayModePanel.add(monitorArrangement,
+                         new GridBagConstraints(0, 4,
+                                                REMAINDER, 1,
+                                                HEAVY, LIGHT,
+                                                LINE_START, BOTH,
+                                                new Insets(2, indent, 4, 0),
+                                                NONE, NONE));
+
     SizingPanel.add(desktopSizeCheckbox,
                     new GridBagConstraints(0, 0,
                                            REMAINDER, 1,
@@ -1197,7 +1354,7 @@ class OptionsDialog extends Dialog {
                                            LINE_START, NONE,
                                            new Insets(0, 0, 0, 0),
                                            NONE, NONE));
-    int indent = getButtonLabelInset(desktopSizeCheckbox);
+    indent = getButtonLabelInset(desktopSizeCheckbox);
     SizingPanel.add(desktopSizePanel,
                     new GridBagConstraints(0, 1,
                                            REMAINDER, 1,
@@ -1241,23 +1398,15 @@ class OptionsDialog extends Dialog {
                                            LINE_START, HORIZONTAL,
                                            new Insets(0, 0, 4, 0),
                                            NONE, NONE));
-    ScreenPanel.add(fullScreenCheckbox,
+    ScreenPanel.add(displayModePanel,
                     new GridBagConstraints(0, 1,
                                            REMAINDER, 1,
                                            LIGHT, LIGHT,
-                                           LINE_START, NONE,
+                                           LINE_START, HORIZONTAL,
                                            new Insets(0, 0, 4, 0),
                                            NONE, NONE));
-    indent = getButtonLabelInset(fullScreenCheckbox);
-    ScreenPanel.add(fullScreenAllMonitorsCheckbox,
-                    new GridBagConstraints(0, 2,
-                                           REMAINDER, 1,
-                                           LIGHT, LIGHT,
-                                           LINE_START, NONE,
-                                           new Insets(0, indent, 4, 0),
-                                           NONE, NONE));
     ScreenPanel.add(Box.createRigidArea(new Dimension(5, 0)),
-                    new GridBagConstraints(0, 3,
+                    new GridBagConstraints(0, 2,
                                            REMAINDER, REMAINDER,
                                            HEAVY, HEAVY,
                                            LINE_START, BOTH,
@@ -1498,9 +1647,7 @@ class OptionsDialog extends Dialog {
                                            NONE, NONE));
 
     JPanel opensshPanel = new JPanel(new GridBagLayout());
-    TitledBorder border =
-      BorderFactory.createTitledBorder("Embedded SSH client configuration");
-    opensshPanel.setBorder(border);
+    opensshPanel.setBorder(createSectionBorder("Embedded SSH client configuration"));
     opensshPanel.add(sshConfigLabel,
                      new GridBagConstraints(0, 0,
                                             1, 1,

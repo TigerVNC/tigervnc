@@ -112,7 +112,7 @@ public final class DesktopWindow extends JFrame
       public void windowStateChanged(WindowEvent e) {
         int state = e.getNewState();
         if ((state & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
-          if (fullScreenAllMonitors.getValue()) {
+          if (isSpanAllMonitors()) {
             java.awt.EventQueue.invokeLater(() -> {
               setMaximizedBounds(getMaximizedScreenBounds());
               setBounds(getMaximizedScreenBounds());
@@ -253,7 +253,7 @@ public final class DesktopWindow extends JFrame
         setVisible(true);
 
       if (maximize.getValue()) {
-        if (fullScreenAllMonitors.getValue()) {
+        if (isSpanAllMonitors()) {
           setMaximizedBounds(getMaximizedScreenBounds());
           setExtendedState(JFrame.MAXIMIZED_BOTH);
           setBounds(getMaximizedScreenBounds());
@@ -575,11 +575,34 @@ public final class DesktopWindow extends JFrame
     return getScreenBounds().getSize();
   }
 
+  private static Set<Integer> getSelectedMonitorIndices() {
+    Set<Integer> set = new HashSet<Integer>();
+    String selStr = fullScreenSelectedMonitors.getValueStr();
+    if (selStr != null && !selStr.trim().isEmpty()) {
+      for (String part : selStr.split(",")) {
+        try {
+          set.add(Integer.parseInt(part.trim()) - 1);
+        } catch (NumberFormatException ignored) {}
+      }
+    }
+    return set;
+  }
+
+  private static boolean isSpanAllMonitors() {
+    String mode = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
+    if (mode.equals("all")) return true;
+    if (mode.equals("selected")) return true;
+    if (fullScreenAllMonitors.getValue() && !mode.equals("current")) return true;
+    return false;
+  }
+
   public Rectangle getScreenBounds() {
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle r = null;
-    if (fullScreenAllMonitors.getValue()) {
+    String mode = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
+
+    if (mode.equals("all") || (fullScreenAllMonitors.getValue() && !mode.equals("current") && !mode.equals("selected"))) {
       for (GraphicsDevice gd : ge.getScreenDevices()) {
         for (GraphicsConfiguration gc : gd.getConfigurations()) {
           if (r == null)
@@ -588,7 +611,22 @@ public final class DesktopWindow extends JFrame
             r = r.union(gc.getBounds());
         }
       }
-    } else {
+    } else if (mode.equals("selected")) {
+      Set<Integer> indices = getSelectedMonitorIndices();
+      GraphicsDevice[] devices = ge.getScreenDevices();
+      for (int i = 0; i < devices.length; i++) {
+        if (indices.contains(i)) {
+          for (GraphicsConfiguration gc : devices[i].getConfigurations()) {
+            if (r == null)
+              r = new Rectangle(gc.getBounds());
+            else
+              r = r.union(gc.getBounds());
+          }
+        }
+      }
+    }
+
+    if (r == null) {
       GraphicsConfiguration gc = getGraphicsConfiguration();
       r = gc.getBounds();
     }
@@ -599,7 +637,9 @@ public final class DesktopWindow extends JFrame
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle virtualBounds = null;
-    if (fullScreenAllMonitors.getValue()) {
+    String mode = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
+
+    if (mode.equals("all") || (fullScreenAllMonitors.getValue() && !mode.equals("current") && !mode.equals("selected"))) {
       for (GraphicsDevice gd : ge.getScreenDevices()) {
         for (GraphicsConfiguration gc : gd.getConfigurations()) {
           Rectangle b = new Rectangle(gc.getBounds());
@@ -614,7 +654,27 @@ public final class DesktopWindow extends JFrame
             virtualBounds = virtualBounds.union(b);
         }
       }
-    } else {
+    } else if (mode.equals("selected")) {
+      Set<Integer> indices = getSelectedMonitorIndices();
+      GraphicsDevice[] devices = ge.getScreenDevices();
+      for (int i = 0; i < devices.length; i++) {
+        if (indices.contains(i)) {
+          GraphicsConfiguration gc = devices[i].getDefaultConfiguration();
+          Rectangle b = new Rectangle(gc.getBounds());
+          Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+          b.x += insets.left;
+          b.y += insets.top;
+          b.width -= (insets.left + insets.right);
+          b.height -= (insets.top + insets.bottom);
+          if (virtualBounds == null)
+            virtualBounds = b;
+          else
+            virtualBounds = virtualBounds.union(b);
+        }
+      }
+    }
+
+    if (virtualBounds == null) {
       GraphicsConfiguration gc = getGraphicsConfiguration();
       Rectangle b = new Rectangle(gc.getBounds());
       Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
@@ -641,7 +701,7 @@ public final class DesktopWindow extends JFrame
   public static void setFullScreenWindow(Window fullScreenWindow) {
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
-    if (fullScreenAllMonitors.getValue()) {
+    if (isSpanAllMonitors()) {
       for (GraphicsDevice gd : ge.getScreenDevices())
         gd.setFullScreenWindow(fullScreenWindow);
     } else {

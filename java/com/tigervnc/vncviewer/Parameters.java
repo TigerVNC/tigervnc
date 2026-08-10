@@ -135,6 +135,16 @@ public class Parameters {
     "Enable full screen over all monitors",
     true);
 
+  public static StringParameter fullScreenMode
+  = new StringParameter("FullScreenMode",
+    "Monitors to use for full-screen mode (windowed, current, all, selected)",
+    "all");
+
+  public static StringParameter fullScreenSelectedMonitors
+  = new StringParameter("FullScreenSelectedMonitors",
+    "Indices of monitors to use when FullScreenMode is set to 'selected'",
+    "");
+
   public static BoolParameter acceptClipboard
   = new BoolParameter("AcceptClipboard",
     "Accept clipboard changes from the server",
@@ -310,6 +320,8 @@ public class Parameters {
     maximize,
     fullScreen,
     fullScreenAllMonitors,
+    fullScreenMode,
+    fullScreenSelectedMonitors,
     desktopSize,
     remoteResize,
     viewOnly,
