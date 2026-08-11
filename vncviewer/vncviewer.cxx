@@ -331,21 +331,13 @@ static void init_fltk()
   fl_close  = _("Close");
 
 #ifdef __APPLE__
-  /* Needs trailing space */
-  static char fltk_about[16];
-  snprintf(fltk_about, sizeof(fltk_about), "%s ", _("About"));
-  Fl_Mac_App_Menu::about = fltk_about;
-  static char fltk_hide[16];
-  snprintf(fltk_hide, sizeof(fltk_hide), "%s ", _("Hide"));
-  Fl_Mac_App_Menu::hide = fltk_hide;
-  static char fltk_quit[16];
-  snprintf(fltk_quit, sizeof(fltk_quit), "%s ", _("Quit"));
-  Fl_Mac_App_Menu::quit = fltk_quit;
-
+  Fl_Mac_App_Menu::about = _("About TigerVNC");
   Fl_Mac_App_Menu::print = ""; // Don't want the print item
   Fl_Mac_App_Menu::services = _("Services");
+  Fl_Mac_App_Menu::hide = _("Hide TigerVNC");
   Fl_Mac_App_Menu::hide_others = _("Hide others");
   Fl_Mac_App_Menu::show = _("Show all");
+  Fl_Mac_App_Menu::quit = _("Quit TigerVNC");
 
   fl_mac_set_about(about_callback, nullptr);
 
