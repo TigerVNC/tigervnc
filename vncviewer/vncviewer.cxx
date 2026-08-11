@@ -349,7 +349,7 @@ static void init_fltk()
     fltk_menu_escape(C_("SysMenu|", "&File")).c_str(),
     0, nullptr, nullptr, FL_SUBMENU);
   menubar->insert(
-    1, fltk_menu_escape(C_("SysMenu|File|", "&New Connection")).c_str(),
+    1, fltk_menu_escape(C_("SysMenu|File|", "&New connection")).c_str(),
     FL_COMMAND | 'n', new_connection_cb);
 #endif
 }
