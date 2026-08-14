@@ -253,6 +253,11 @@ public class Parameters {
     "command-line friendly way. If not specified, then the appropriate "+
     "VNC_TUNNEL_CMD or VNC_VIA_CMD command template will be used.", "");
 
+  public static BoolParameter reconnectOnError
+  = new BoolParameter("ReconnectOnError",
+    "Ask to reconnect on connection errors",
+    false);
+
   public static StringParameter sshConfig
   = new StringParameter("SSHConfig",
     "Specifies the path to an OpenSSH configuration file that to "+
@@ -342,6 +347,7 @@ public class Parameters {
     extSSHArgs,
     sshConfig,
     sshKeyFile,
+    reconnectOnError,
   };
 
   static VoidParameter[] readOnlyParameterArray = {

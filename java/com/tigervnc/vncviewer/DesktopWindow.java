@@ -112,18 +112,15 @@ public final class DesktopWindow extends JFrame
       public void windowStateChanged(WindowEvent e) {
         int state = e.getNewState();
         if ((state & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
-          if (isSpanAllMonitors()) {
-            java.awt.EventQueue.invokeLater(() -> {
-              setMaximizedBounds(getMaximizedScreenBounds());
-              setBounds(getMaximizedScreenBounds());
-            });
-          }
+          setMaximizedBounds(getMaximizedScreenBounds());
+          java.awt.EventQueue.invokeLater(() -> {
+            repositionViewport();
+          });
         } else {
           Rectangle b = getScreenBounds();
           if (!b.contains(getLocationOnScreen()))
             setLocation((int)b.getX(), (int)b.getY());
         }
-        // ViewportBorder sometimes lost when restoring on Windows
         repositionViewport();
       }
     });
@@ -253,13 +250,8 @@ public final class DesktopWindow extends JFrame
         setVisible(true);
 
       if (maximize.getValue()) {
-        if (isSpanAllMonitors()) {
-          setMaximizedBounds(getMaximizedScreenBounds());
-          setExtendedState(JFrame.MAXIMIZED_BOTH);
-          setBounds(getMaximizedScreenBounds());
-        } else {
-          setExtendedState(JFrame.MAXIMIZED_BOTH);
-        }
+        setMaximizedBounds(getMaximizedScreenBounds());
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
       }
 
       if (cc.server.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
@@ -319,13 +311,15 @@ public final class DesktopWindow extends JFrame
   public void fullscreen_on()
   {
     fullScreen.setParam(true);
-    lastState = getExtendedState();
-    lastBounds = getBounds();
-    dispose();
-    // Screen bounds calculation affected by maximized window?
-    setExtendedState(JFrame.NORMAL);
-    setUndecorated(true);
-    setVisible(true);
+    if (!fullscreen_active()) {
+      lastState = getExtendedState();
+      lastBounds = getBounds();
+      dispose();
+      // Screen bounds calculation affected by maximized window?
+      setExtendedState(JFrame.NORMAL);
+      setUndecorated(true);
+      setVisible(true);
+    }
     setBounds(getScreenBounds());
   }
 
@@ -592,6 +586,7 @@ public final class DesktopWindow extends JFrame
     String mode = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
     if (mode.equals("all")) return true;
     if (mode.equals("selected")) return true;
+    if (getSelectedMonitorIndices().size() > 1) return true;
     if (fullScreenAllMonitors.getValue() && !mode.equals("current")) return true;
     return false;
   }
@@ -602,16 +597,7 @@ public final class DesktopWindow extends JFrame
     Rectangle r = null;
     String mode = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
 
-    if (mode.equals("all") || (fullScreenAllMonitors.getValue() && !mode.equals("current") && !mode.equals("selected"))) {
-      for (GraphicsDevice gd : ge.getScreenDevices()) {
-        for (GraphicsConfiguration gc : gd.getConfigurations()) {
-          if (r == null)
-            r = new Rectangle(gc.getBounds());
-          else
-            r = r.union(gc.getBounds());
-        }
-      }
-    } else if (mode.equals("selected")) {
+    if (mode.equals("selected")) {
       Set<Integer> indices = getSelectedMonitorIndices();
       GraphicsDevice[] devices = ge.getScreenDevices();
       for (int i = 0; i < devices.length; i++) {
@@ -622,6 +608,15 @@ public final class DesktopWindow extends JFrame
             else
               r = r.union(gc.getBounds());
           }
+        }
+      }
+    } else if (!mode.equals("current")) {
+      for (GraphicsDevice gd : ge.getScreenDevices()) {
+        for (GraphicsConfiguration gc : gd.getConfigurations()) {
+          if (r == null)
+            r = new Rectangle(gc.getBounds());
+          else
+            r = r.union(gc.getBounds());
         }
       }
     }
@@ -639,22 +634,7 @@ public final class DesktopWindow extends JFrame
     Rectangle virtualBounds = null;
     String mode = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
 
-    if (mode.equals("all") || (fullScreenAllMonitors.getValue() && !mode.equals("current") && !mode.equals("selected"))) {
-      for (GraphicsDevice gd : ge.getScreenDevices()) {
-        for (GraphicsConfiguration gc : gd.getConfigurations()) {
-          Rectangle b = new Rectangle(gc.getBounds());
-          Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-          b.x += insets.left;
-          b.y += insets.top;
-          b.width -= (insets.left + insets.right);
-          b.height -= (insets.top + insets.bottom);
-          if (virtualBounds == null)
-            virtualBounds = b;
-          else
-            virtualBounds = virtualBounds.union(b);
-        }
-      }
-    } else if (mode.equals("selected")) {
+    if (mode.equals("selected")) {
       Set<Integer> indices = getSelectedMonitorIndices();
       GraphicsDevice[] devices = ge.getScreenDevices();
       for (int i = 0; i < devices.length; i++) {
@@ -671,6 +651,20 @@ public final class DesktopWindow extends JFrame
           else
             virtualBounds = virtualBounds.union(b);
         }
+      }
+    } else if (!mode.equals("current")) {
+      for (GraphicsDevice gd : ge.getScreenDevices()) {
+        GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        Rectangle b = new Rectangle(gc.getBounds());
+        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        b.x += insets.left;
+        b.y += insets.top;
+        b.width -= (insets.left + insets.right);
+        b.height -= (insets.top + insets.bottom);
+        if (virtualBounds == null)
+          virtualBounds = b;
+        else
+          virtualBounds = virtualBounds.union(b);
       }
     }
 
@@ -713,7 +707,7 @@ public final class DesktopWindow extends JFrame
   public void handleOptions()
   {
 
-    if (fullScreen.getValue() && !fullscreen_active())
+    if (fullScreen.getValue())
       fullscreen_on();
     else if (!fullScreen.getValue() && fullscreen_active())
       fullscreen_off();

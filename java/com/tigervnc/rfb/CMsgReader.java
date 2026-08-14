@@ -46,22 +46,46 @@ public class CMsgReader {
     imageBufSize = 0;
   }
 
-  public void readServerInit()
+  private int state = MSGSTATE_IDLE;
+  private int currentMsgType = 0;
+  private static final int MSGSTATE_IDLE = 0;
+  private static final int MSGSTATE_MESSAGE = 1;
+
+  public boolean readServerInit()
   {
+    if (!is.checkNoWait(2 + 2 + 16 + 4))
+      return false;
+
+    is.setRestorePoint();
+
     int width = is.readU16();
     int height = is.readU16();
     PixelFormat pf = new PixelFormat();
     pf.read(is);
-    String name = is.readString();
+    int len = is.readU32();
+
+    if (!is.hasDataOrRestore(len))
+      return false;
+    is.clearRestorePoint();
+
+    java.nio.ByteBuffer strBuf = java.nio.ByteBuffer.allocate(len);
+    is.readBytes(strBuf, len);
+    String name = new String(strBuf.array(), java.nio.charset.StandardCharsets.UTF_8);
     handler.serverInit(width, height, pf, name);
+    return true;
   }
 
-  public void readMsg()
+  public boolean readMsg()
   {
     if (nUpdateRectsLeft == 0) {
-      int type = is.readU8();
+      if (state == MSGSTATE_IDLE) {
+        if (!is.checkNoWait(1))
+          return false;
+        currentMsgType = is.readU8();
+        state = MSGSTATE_MESSAGE;
+      }
 
-      switch (type) {
+      switch (currentMsgType) {
       case MsgTypes.msgTypeSetColourMapEntries:
         readSetColourMapEntries();
         break;
@@ -81,9 +105,11 @@ public class CMsgReader {
         readEndOfContinuousUpdates();
         break;
       default:
-        vlog.error("Unknown message type "+type);
+        vlog.error("Unknown message type "+currentMsgType);
         throw new Exception("Unknown message type");
       }
+      state = MSGSTATE_IDLE;
+      return true;
     } else {
       int x = is.readU16();
       int y = is.readU16();
@@ -119,7 +145,7 @@ public class CMsgReader {
       case Encodings.pseudoEncodingClientRedirect:
         nUpdateRectsLeft = 0;
         readClientRedirect(x, y, w, h);
-        return;
+        return true;
       default:
         readRect(new Rect(x, y, x+w, y+h), encoding);
         break;
@@ -128,6 +154,7 @@ public class CMsgReader {
       nUpdateRectsLeft--;
       if (nUpdateRectsLeft == 0)
         handler.framebufferUpdateEnd();
+      return true;
     }
   }
 

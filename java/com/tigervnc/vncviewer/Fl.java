@@ -58,6 +58,11 @@ public class Fl {
     }
   }
 
+  public static Selector getSelector() {
+    initSelector();
+    return selector;
+  }
+
   public static double wait(double time) {
     initSelector();
     long timeout = (long)(time * 1000.0);

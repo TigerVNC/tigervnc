@@ -65,11 +65,11 @@ public class TLSInStream extends InStream {
     if (itemSize > bufSize)
       throw new Exception("TLSInStream overrun: max itemSize exceeded");
 
-    if (end - ptr != 0)
+    if (end > ptr)
       System.arraycopy(b, ptr, b, 0, end - ptr);
 
     offset += ptr - start;
-    end -= ptr - start;
+    end = start + Math.max(0, end - ptr);
     ptr = start;
 
     while ((end - start) < itemSize) {

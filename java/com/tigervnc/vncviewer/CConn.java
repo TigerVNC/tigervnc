@@ -635,9 +635,10 @@ public final class CConn extends CConnection implements
         }
       }
 
+      boolean again = false;
       do {
-        processMsg();
-      } while (sock != null && sock.inStream() != null && sock.inStream().checkNoWait(1));
+        again = processMsg();
+      } while (again && sock != null && sock.inStream() != null && sock.inStream().checkNoWait(1));
     } catch (com.tigervnc.rdr.TimedOut e) {
       // Non-fatal socket timeout while waiting for remaining bytes
     } catch (com.tigervnc.rdr.EndOfStream e) {

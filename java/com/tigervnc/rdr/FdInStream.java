@@ -124,11 +124,11 @@ public class FdInStream extends InStream {
     if (itemSize > bufSize)
       throw new Exception("FdInStream overrun: max itemSize exceeded");
 
-    if (end - ptr != 0)
+    if (end > ptr)
       System.arraycopy(b, ptr, b, 0, end - ptr);
 
     offset += ptr;
-    end -= ptr;
+    end = Math.max(0, end - ptr);
     ptr = 0;
 
     int bytes_to_read;

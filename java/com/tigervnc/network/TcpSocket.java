@@ -80,29 +80,31 @@ public class TcpSocket extends Socket {
     /* Attempt to connect to the remote host */
     try {
       result = sock.connect(new InetSocketAddress(addr, port));
-      Selector selector = Selector.open();
-      SelectionKey connect_key =
-        sock.socket().getChannel().register(selector, SelectionKey.OP_CONNECT);
-      // Try for the connection for 3000ms
-      while (selector.select(3000) > 0) {
-        while (!result) {
+      if (!result) {
+        try (Selector selector = Selector.open()) {
+          SelectionKey connect_key =
+            sock.socket().getChannel().register(selector, SelectionKey.OP_CONNECT);
+          // Try for the connection for 3000ms
+          while (selector.select(3000) > 0) {
+            if (!result) {
+              Set keys = selector.selectedKeys();
+              Iterator i = keys.iterator();
 
-          Set keys = selector.selectedKeys();
-          Iterator i = keys.iterator();
+              while (i.hasNext()) {
+                SelectionKey key = (SelectionKey)i.next();
+                i.remove();
 
-          while (i.hasNext()) {
-            SelectionKey key = (SelectionKey)i.next();
-
-            // Remove the current key
-            i.remove();
-
-            // Attempt a connection
-            if (key.isConnectable()) {
-              if (sock.isConnectionPending())
-                sock.finishConnect();
-              result = true;
+                if (key.isConnectable()) {
+                  if (sock.isConnectionPending())
+                    sock.finishConnect();
+                  result = true;
+                  break;
+                }
+              }
             }
+            if (result) break;
           }
+          connect_key.cancel();
         }
       }
       if (!result)

@@ -455,11 +455,25 @@ public class VncViewer implements Runnable {
         cc.close();
         break;
       } catch (java.lang.Exception e) {
-        if (cc == null || !cc.shuttingDown) {
-          reportException(e);
-          if (cc != null)
-            cc.close();
+        if (cc != null) {
+          cc.close();
+          cc = null;
         }
+
+        if (reconnectOnError.getValue() && sock == null && !exitMainloop) {
+          String errMsg = e.getMessage() != null && !e.getMessage().isEmpty() ?
+                          e.getMessage() : "Connection failure";
+          String prompt = String.format("%s\n\nAttempt to reconnect?", errMsg);
+          int choice = JOptionPane.showConfirmDialog(null, prompt, "TigerVNC Error",
+                                                     JOptionPane.YES_NO_OPTION,
+                                                     JOptionPane.ERROR_MESSAGE);
+          if (choice == JOptionPane.YES_OPTION) {
+            continue;
+          }
+        }
+
+        UserDialog.clearSavedCredentials();
+        reportException(e);
         exit(1);
       }
     }

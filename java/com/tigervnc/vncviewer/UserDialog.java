@@ -42,8 +42,29 @@ import static javax.swing.JOptionPane.*;
 
 public class UserDialog implements UserPasswdGetter, UserMsgBox
 {
+  private static String savedUsernameStr = null;
+  private static String savedPasswordStr = null;
+
+  public static void clearSavedCredentials() {
+    savedUsernameStr = null;
+    savedPasswordStr = null;
+  }
+
   public final void getUserPasswd(boolean secure, StringBuffer user, StringBuffer password)
   {
+    if (reconnectOnError.getValue()) {
+      if (user != null && savedUsernameStr != null && password != null && savedPasswordStr != null) {
+        user.append(savedUsernameStr);
+        password.append(savedPasswordStr);
+        return;
+      } else if (user == null && password != null && savedPasswordStr != null) {
+        password.append(savedPasswordStr);
+        return;
+      }
+    } else {
+      clearSavedCredentials();
+    }
+
     String passwordFileStr = passwordFile.getValue();
 
     if ((password == null) && sendLocalUsername.getValue()) {
@@ -140,6 +161,16 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
       y += 25 + 5;
     }
 
+    final JCheckBox keepPasswdCheckbox;
+    if (reconnectOnError.getValue() && password != null) {
+      keepPasswdCheckbox = new JCheckBox("Keep password for reconnect");
+      keepPasswdCheckbox.setBounds(70, y, msg.getSize().width-70-10, 25);
+      msg.add(keepPasswdCheckbox);
+      y += 25 + 5;
+    } else {
+      keepPasswdCheckbox = null;
+    }
+
     msg.setPreferredSize(new Dimension(410, y));
 
     Object[] options = {"OK  \u21B5", "Cancel"};
@@ -162,16 +193,31 @@ public class UserDialog implements UserPasswdGetter, UserMsgBox
 
     win.setVisible(true);
 
-    if (pane.getValue() == null || pane.getValue().equals("Cancel"))
+    if (pane.getValue() == null || pane.getValue().equals("Cancel")) {
+      clearSavedCredentials();
       throw new Exception("Authentication cancelled");
+    }
 
-    if (user != null)
+    String uStr = null;
+    if (user != null) {
       if (sendLocalUsername.getValue())
-         user.append((String)System.getProperties().get("user.name"));
+         uStr = (String)System.getProperties().get("user.name");
       else
-         user.append(username.getText());
-    if (password != null)
-      password.append(new String(passwd.getPassword()));
+         uStr = username.getText();
+      user.append(uStr);
+    }
+    String pStr = null;
+    if (password != null) {
+      pStr = new String(passwd.getPassword());
+      password.append(pStr);
+    }
+
+    if (keepPasswdCheckbox != null && keepPasswdCheckbox.isSelected()) {
+      savedUsernameStr = uStr;
+      savedPasswordStr = pStr;
+    } else {
+      clearSavedCredentials();
+    }
   }
 
   public boolean showMsgBox(int flags, String title, String text)

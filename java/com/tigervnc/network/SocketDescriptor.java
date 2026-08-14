@@ -36,15 +36,9 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       channel = SocketChannel.open();
       channel.configureBlocking(false);
-      writeSelector = Selector.open();
-      readSelector = Selector.open();
+      selector = Selector.open();
+      channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
     } catch (IOException e) {
-      throw new Exception(e.getMessage());
-    }
-    try {
-      channel.register(writeSelector, SelectionKey.OP_WRITE);
-      channel.register(readSelector, SelectionKey.OP_READ);
-    } catch (java.nio.channels.ClosedChannelException e) {
       throw new Exception(e.getMessage());
     }
   }
@@ -60,6 +54,9 @@ public class SocketDescriptor implements FileDescriptor {
 
   public void close() throws IOException {
     try {
+      if (selector != null) {
+        try { selector.close(); } catch (Exception ignored) {}
+      }
       channel.close();
     } catch(IOException e) {
       throw new IOException(e.getMessage());
@@ -67,21 +64,12 @@ public class SocketDescriptor implements FileDescriptor {
   }
 
   private static SelectorProvider DefaultSelectorProvider() {
-    // kqueue() selector provider on OS X is not working, fall back to select() for now
-    //String os = System.getProperty("os.name");
-    //if (os.startsWith("Mac OS X"))
-    //  System.setProperty("java.nio.channels.spi.SelectorProvider","sun.nio.ch.PollSelectorProvider");
     return SelectorProvider.provider();
   }
 
   synchronized public int select(int interestOps, Integer timeout) throws Exception {
     int n;
-    Selector selector;
-    if ((interestOps & SelectionKey.OP_READ) != 0) {
-      selector = readSelector;
-    } else {
-      selector = writeSelector;
-    }
+    if (selector == null) return 0;
     selector.selectedKeys().clear();
     try {
       if (timeout == null) {
@@ -161,27 +149,18 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       if (channel != null)
         channel.close();
-      if (readSelector != null)
-        readSelector.close();
-      if (writeSelector != null)
-        writeSelector.close();
+      if (selector != null)
+        selector.close();
       channel = channel_;
       channel.configureBlocking(false);
-      writeSelector = Selector.open();
-      readSelector = Selector.open();
+      selector = Selector.open();
+      channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
     } catch (java.io.IOException e) {
       throw new Exception(e.getMessage());
-    }
-    try {
-      channel.register(writeSelector, SelectionKey.OP_WRITE);
-      channel.register(readSelector, SelectionKey.OP_READ);
-    } catch (java.nio.channels.ClosedChannelException e) {
-      System.out.println(e.toString());
     }
   }
 
   protected SocketChannel channel;
-  protected Selector writeSelector;
-  protected Selector readSelector;
+  protected Selector selector;
 
 }

@@ -147,16 +147,16 @@ abstract public class CConnection extends CMsgHandler {
 
   // processMsg() should be called whenever there is data to read on the
   // InStream.  You must have called initialiseProtocol() first.
-  public void processMsg()
+  public boolean processMsg()
   {
     switch (state_) {
 
-    case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();        break;
-    case RFBSTATE_SECURITY_TYPES:   processSecurityTypesMsg();  break;
-    case RFBSTATE_SECURITY:         processSecurityMsg();       break;
-    case RFBSTATE_SECURITY_RESULT:  processSecurityResultMsg(); break;
-    case RFBSTATE_INITIALISATION:   processInitMsg();           break;
-    case RFBSTATE_NORMAL:           reader_.readMsg();          break;
+    case RFBSTATE_PROTOCOL_VERSION: return processVersionMsg();
+    case RFBSTATE_SECURITY_TYPES:   return processSecurityTypesMsg();
+    case RFBSTATE_SECURITY:         return processSecurityMsg();
+    case RFBSTATE_SECURITY_RESULT:  return processSecurityResultMsg();
+    case RFBSTATE_INITIALISATION:   return processInitMsg();
+    case RFBSTATE_NORMAL:           return reader_.readMsg();
     case RFBSTATE_UNINITIALISED:
       throw new Exception("CConnection.processMsg: not initialised yet?");
     default:
@@ -164,7 +164,7 @@ abstract public class CConnection extends CMsgHandler {
     }
   }
 
-  private void processVersionMsg()
+  private boolean processVersionMsg()
   {
     ByteBuffer verStr = ByteBuffer.allocate(12);
     int majorVersion;
@@ -173,7 +173,7 @@ abstract public class CConnection extends CMsgHandler {
     vlog.debug("Reading protocol version");
 
     if (!is.checkNoWait(12))
-      return;
+      return false;
 
     is.readBytes(verStr, 12);
 
@@ -215,9 +215,10 @@ abstract public class CConnection extends CMsgHandler {
 
     vlog.info("Using RFB protocol version "+
               server.majorVersion+"."+server.minorVersion);
+    return true;
   }
 
-  private void processSecurityTypesMsg()
+  private boolean processSecurityTypesMsg()
   {
     vlog.debug("Processing security types message");
 
@@ -227,8 +228,7 @@ abstract public class CConnection extends CMsgHandler {
     secTypes = security.GetEnabledSecTypes();
 
     if (server.isVersion(3,3)) {
-
-      // legacy 3.3 server may only offer "vnc authentication" or "none"
+      if (!is.checkNoWait(4)) return false;
 
       secType = is.readU32();
       if (secType == Security.secTypeInvalid) {
@@ -253,11 +253,12 @@ abstract public class CConnection extends CMsgHandler {
 
     } else {
 
-      // 3.7 server will offer us a list
-
+      if (!is.checkNoWait(1)) return false;
       int nServerSecTypes = is.readU8();
       if (nServerSecTypes == 0)
         throwConnFailedException();
+
+      if (!is.checkNoWait(nServerSecTypes)) return false;
 
       Iterator<Integer> j;
 
@@ -266,10 +267,6 @@ abstract public class CConnection extends CMsgHandler {
         vlog.debug("Server offers security type "+
                    Security.secTypeName(serverSecType)+"("+serverSecType+")");
 
-        /*
-        * Use the first type sent by server which matches client's type.
-        * It means server's order specifies priority.
-        */
         if (secType == Security.secTypeInvalid) {
           for (j = secTypes.iterator(); j.hasNext(); ) {
             int refType = (Integer)j.next();
@@ -298,30 +295,31 @@ abstract public class CConnection extends CMsgHandler {
 
     state_ = stateEnum.RFBSTATE_SECURITY;
     csecurity = security.GetCSecurity(secType);
-    processSecurityMsg();
+    return processSecurityMsg();
   }
 
-  private void processSecurityMsg() {
+  private boolean processSecurityMsg() {
     vlog.debug("Processing security message");
     if (csecurity.processMsg(this)) {
       state_ = stateEnum.RFBSTATE_SECURITY_RESULT;
-      processSecurityResultMsg();
+      return processSecurityResultMsg();
     }
+    return false;
   }
 
-  private void processSecurityResultMsg() {
+  private boolean processSecurityResultMsg() {
     vlog.debug("Processing security result message");
     int result;
     if (server.beforeVersion(3,8) && csecurity.getType() == Security.secTypeNone) {
       result = Security.secResultOK;
     } else {
-      if (!is.checkNoWait(1)) return;
+      if (!is.checkNoWait(4)) return false;
       result = is.readU32();
     }
     switch (result) {
     case Security.secResultOK:
       securityCompleted();
-      return;
+      return true;
     case Security.secResultFailed:
       vlog.debug("Auth failed");
       break;
@@ -338,9 +336,9 @@ abstract public class CConnection extends CMsgHandler {
     throw new AuthFailureException(reason);
   }
 
-  private void processInitMsg() {
+  private boolean processInitMsg() {
     vlog.debug("Reading server initialisation");
-    reader_.readServerInit();
+    return reader_.readServerInit();
   }
 
   private void throwConnFailedException() {

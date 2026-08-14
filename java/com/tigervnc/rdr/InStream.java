@@ -71,6 +71,15 @@ abstract public class InStream {
   public final int readU16() { return readS16() & 0xffff; }
   public final int readU32() { return readS32() & 0xffffffff; }
 
+  public final int peekU32(int offset) {
+    if (end - ptr < offset + 4) return 0;
+    int b0 = b[ptr + offset] & 0xff;
+    int b1 = b[ptr + offset + 1] & 0xff;
+    int b2 = b[ptr + offset + 2] & 0xff;
+    int b3 = b[ptr + offset + 3] & 0xff;
+    return (b0 << 24 | b1 << 16 | b2 << 8 | b3) & 0xffffffff;
+  }
+
   // readString() reads a string - a U32 length followed by the data.
 
   public final String readString() {
@@ -149,8 +158,31 @@ abstract public class InStream {
     return overrun(itemSize, nItems, true);
   }
 
+  public final void setRestorePoint() {
+    restorePoint = ptr;
+  }
+
+  public final void clearRestorePoint() {
+    restorePoint = -1;
+  }
+
+  public final void gotoRestorePoint() {
+    if (restorePoint != -1) {
+      ptr = restorePoint;
+      restorePoint = -1;
+    }
+  }
+
+  public final boolean hasDataOrRestore(int length) {
+    if (checkNoWait(length))
+      return true;
+    gotoRestorePoint();
+    return false;
+  }
+
   protected InStream() {}
   protected byte[] b;
   protected int ptr;
   protected int end;
+  protected int restorePoint = -1;
 }
