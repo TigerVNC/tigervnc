@@ -101,6 +101,7 @@ public final class DesktopWindow extends JFrame
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         cc.close();
+        dispose();
       }
       public void windowDeiconified(WindowEvent e) {
         // ViewportBorder sometimes lost when window is shaded or de-iconified

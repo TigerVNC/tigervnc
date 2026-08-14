@@ -46,11 +46,6 @@ public class CMsgReader {
     imageBufSize = 0;
   }
 
-  private int state = MSGSTATE_IDLE;
-  private int currentMsgType = 0;
-  private static final int MSGSTATE_IDLE = 0;
-  private static final int MSGSTATE_MESSAGE = 1;
-
   public boolean readServerInit()
   {
     if (!is.checkNoWait(2 + 2 + 16 + 4))
@@ -68,9 +63,10 @@ public class CMsgReader {
       return false;
     is.clearRestorePoint();
 
-    java.nio.ByteBuffer strBuf = java.nio.ByteBuffer.allocate(len);
-    is.readBytes(strBuf, len);
-    String name = new String(strBuf.array(), java.nio.charset.StandardCharsets.UTF_8);
+    byte[] nameBytes = new byte[len];
+    is.readBytes(java.nio.ByteBuffer.wrap(nameBytes), len);
+    String name = new String(nameBytes, java.nio.charset.StandardCharsets.UTF_8);
+
     handler.serverInit(width, height, pf, name);
     return true;
   }
@@ -78,39 +74,46 @@ public class CMsgReader {
   public boolean readMsg()
   {
     if (nUpdateRectsLeft == 0) {
-      if (state == MSGSTATE_IDLE) {
-        if (!is.checkNoWait(1))
-          return false;
-        currentMsgType = is.readU8();
-        state = MSGSTATE_MESSAGE;
-      }
+      if (!is.checkNoWait(1))
+        return false;
 
-      switch (currentMsgType) {
+      is.setRestorePoint();
+      int type = is.readU8();
+
+      boolean ret;
+      switch (type) {
       case MsgTypes.msgTypeSetColourMapEntries:
-        readSetColourMapEntries();
+        ret = readSetColourMapEntries();
         break;
       case MsgTypes.msgTypeBell:
-        readBell();
+        ret = readBell();
         break;
       case MsgTypes.msgTypeServerCutText:
-        readServerCutText();
+        ret = readServerCutText();
         break;
       case MsgTypes.msgTypeFramebufferUpdate:
-        readFramebufferUpdate();
+        ret = readFramebufferUpdate();
         break;
       case MsgTypes.msgTypeServerFence:
-        readFence();
+        ret = readFence();
         break;
       case MsgTypes.msgTypeEndOfContinuousUpdates:
-        readEndOfContinuousUpdates();
+        ret = readEndOfContinuousUpdates();
         break;
       default:
-        vlog.error("Unknown message type "+currentMsgType);
+        vlog.error("Unknown message type "+type);
         throw new Exception("Unknown message type");
       }
-      state = MSGSTATE_IDLE;
-      return true;
+
+      if (!ret)
+        is.gotoRestorePoint();
+      else
+        is.clearRestorePoint();
+      return ret;
     } else {
+      if (!is.checkNoWait(2 + 2 + 2 + 2 + 4))
+        return false;
+
       int x = is.readU16();
       int y = is.readU16();
       int w = is.readU16();
@@ -158,31 +161,50 @@ public class CMsgReader {
     }
   }
 
-  protected void readSetColourMapEntries()
+  protected boolean readSetColourMapEntries()
   {
+    if (!is.checkNoWait(1 + 2 + 2))
+      return false;
+
+    is.setRestorePoint();
     is.skip(1);
     int firstColour = is.readU16();
     int nColours = is.readU16();
+
+    if (!is.hasDataOrRestore(nColours * 6))
+      return false;
+    is.clearRestorePoint();
+
     int[] rgbs = new int[nColours * 3];
     for (int i = 0; i < nColours * 3; i++)
       rgbs[i] = is.readU16();
     handler.setColourMapEntries(firstColour, nColours, rgbs);
+    return true;
   }
 
-  protected void readBell()
+  protected boolean readBell()
   {
     handler.bell();
+    return true;
   }
 
-  protected void readServerCutText()
+  protected boolean readServerCutText()
   {
+    if (!is.checkNoWait(3 + 4))
+      return false;
+
+    is.setRestorePoint();
     is.skip(3);
     int len = is.readU32();
 
+    if (!is.hasDataOrRestore(len))
+      return false;
+    is.clearRestorePoint();
+
     if (len > 256*1024) {
-      is.skip(len);
       vlog.error("Cut text too long ("+len+" bytes) - ignoring");
-      return;
+      is.skip(len);
+      return true;
     }
 
     ByteBuffer buf = ByteBuffer.allocate(len);
@@ -190,40 +212,51 @@ public class CMsgReader {
     Charset latin1 = Charset.forName("ISO-8859-1");
     CharBuffer chars = latin1.decode(buf.compact());
     handler.serverCutText(chars.toString(), len);
+    return true;
   }
 
-  protected void readFence()
+  protected boolean readFence()
   {
-    int flags;
-    int len;
-    ByteBuffer data = ByteBuffer.allocate(64);
+    if (!is.checkNoWait(3 + 4 + 1))
+      return false;
 
+    is.setRestorePoint();
     is.skip(3);
 
-    flags = is.readU32();
+    int flags = is.readU32();
+    int len = is.readU8();
 
-    len = is.readU8();
+    if (!is.hasDataOrRestore(len))
+      return false;
+    is.clearRestorePoint();
+
+    ByteBuffer data = ByteBuffer.allocate(64);
     if (len > data.capacity()) {
-      System.out.println("Ignoring fence with too large payload\n");
+      vlog.error("Ignoring fence with too large payload");
       is.skip(len);
-      return;
+      return true;
     }
 
     is.readBytes(data, len);
-
     handler.fence(flags, len, data.array());
+    return true;
   }
 
-  protected void readEndOfContinuousUpdates()
+  protected boolean readEndOfContinuousUpdates()
   {
     handler.endOfContinuousUpdates();
+    return true;
   }
 
-  protected void readFramebufferUpdate()
+  protected boolean readFramebufferUpdate()
   {
+    if (!is.checkNoWait(1 + 2))
+      return false;
+
     is.skip(1);
     nUpdateRectsLeft = is.readU16();
     handler.framebufferUpdateStart();
+    return true;
   }
 
   protected void readRect(Rect r, int encoding)
