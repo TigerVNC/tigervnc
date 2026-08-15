@@ -150,6 +150,7 @@ class OptionsDialog extends Dialog {
 
   ButtonGroup displayModeGroup;
   JRadioButton modeWindowedButton;
+  JCheckBox maximizeAllMonitorsCheckbox;
   JRadioButton modeCurrentMonitorButton;
   JRadioButton modeAllMonitorsButton;
   JRadioButton modeSelectedMonitorsButton;
@@ -530,6 +531,7 @@ class OptionsDialog extends Dialog {
     else
       remoteScaleButton.setSelected(true);
     String modeStr = fullScreenMode.getValueStr().toLowerCase(Locale.ENGLISH);
+    maximizeAllMonitorsCheckbox.setSelected(maximizeAllMonitors.getValue());
     if (!fullScreen.getValue()) {
       modeWindowedButton.setSelected(true);
     } else if (modeStr.equals("current") || (!fullScreenAllMonitors.getValue() && modeStr.equals("all"))) {
@@ -551,6 +553,7 @@ class OptionsDialog extends Dialog {
     }
     monitorArrangement.setSelectedMonitors(selectedIndices);
     monitorArrangement.setEnabled(modeSelectedMonitorsButton.isSelected());
+    maximizeAllMonitorsCheckbox.setEnabled(modeWindowedButton.isSelected());
 
     scalingFactorInput.setSelectedItem("100%");
     String scaleStr = scalingFactor.getValueStr();
@@ -715,6 +718,7 @@ class OptionsDialog extends Dialog {
       desktopSize.setParam("");
     }
     remoteResize.setParam(remoteResizeButton.isSelected());
+    maximizeAllMonitors.setParam(maximizeAllMonitorsCheckbox.isSelected());
     if (modeWindowedButton.isSelected()) {
       fullScreen.setParam(false);
       fullScreenMode.setParam("windowed");
@@ -1291,6 +1295,7 @@ class OptionsDialog extends Dialog {
 
     displayModeGroup = new ButtonGroup();
     modeWindowedButton = new JRadioButton("Windowed");
+    maximizeAllMonitorsCheckbox = new JCheckBox("Maximize resizes to span monitors");
     modeCurrentMonitorButton = new JRadioButton("Full screen on current monitor");
     modeAllMonitorsButton = new JRadioButton("Full screen on all monitors");
     modeSelectedMonitorsButton = new JRadioButton("Full screen on selected monitor(s)");
@@ -1305,6 +1310,7 @@ class OptionsDialog extends Dialog {
     ItemListener modeListener = new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         monitorArrangement.setEnabled(modeSelectedMonitorsButton.isSelected());
+        maximizeAllMonitorsCheckbox.setEnabled(modeWindowedButton.isSelected());
       }
     };
     modeWindowedButton.addItemListener(modeListener);
@@ -1319,22 +1325,30 @@ class OptionsDialog extends Dialog {
                                                 LINE_START, NONE,
                                                 new Insets(2, 0, 2, 0),
                                                 NONE, NONE));
-    displayModePanel.add(modeCurrentMonitorButton,
+    indent = getButtonLabelInset(modeWindowedButton);
+    displayModePanel.add(maximizeAllMonitorsCheckbox,
                          new GridBagConstraints(0, 1,
                                                 REMAINDER, 1,
                                                 LIGHT, LIGHT,
                                                 LINE_START, NONE,
-                                                new Insets(2, 0, 2, 0),
+                                                new Insets(2, indent, 2, 0),
                                                 NONE, NONE));
-    displayModePanel.add(modeAllMonitorsButton,
+    displayModePanel.add(modeCurrentMonitorButton,
                          new GridBagConstraints(0, 2,
                                                 REMAINDER, 1,
                                                 LIGHT, LIGHT,
                                                 LINE_START, NONE,
                                                 new Insets(2, 0, 2, 0),
                                                 NONE, NONE));
-    displayModePanel.add(modeSelectedMonitorsButton,
+    displayModePanel.add(modeAllMonitorsButton,
                          new GridBagConstraints(0, 3,
+                                                REMAINDER, 1,
+                                                LIGHT, LIGHT,
+                                                LINE_START, NONE,
+                                                new Insets(2, 0, 2, 0),
+                                                NONE, NONE));
+    displayModePanel.add(modeSelectedMonitorsButton,
+                         new GridBagConstraints(0, 4,
                                                 REMAINDER, 1,
                                                 LIGHT, LIGHT,
                                                 LINE_START, NONE,
@@ -1343,7 +1357,7 @@ class OptionsDialog extends Dialog {
 
     indent = getButtonLabelInset(modeSelectedMonitorsButton);
     displayModePanel.add(monitorArrangement,
-                         new GridBagConstraints(0, 4,
+                         new GridBagConstraints(0, 5,
                                                 REMAINDER, 1,
                                                 HEAVY, LIGHT,
                                                 LINE_START, BOTH,

@@ -125,6 +125,12 @@ public class Parameters {
     "Maximize viewer window",
     false);
 
+  public static BoolParameter maximizeAllMonitors
+  = new BoolParameter("MaximizeAllMonitors",
+    "When maximizing in windowed mode, resize the window to span all "+
+    "monitors instead of using the native single-monitor maximize",
+    false);
+
   public static BoolParameter fullScreen
   = new BoolParameter("FullScreen",
     "Enable full screen",
@@ -323,6 +329,7 @@ public class Parameters {
     noJpeg,
     qualityLevel,
     maximize,
+    maximizeAllMonitors,
     fullScreen,
     fullScreenAllMonitors,
     fullScreenMode,

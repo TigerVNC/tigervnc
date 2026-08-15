@@ -17,6 +17,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicToggleButtonUI;
 
 public final class MonitorArrangement extends JPanel {
 
@@ -50,6 +51,7 @@ public final class MonitorArrangement extends JPanel {
     for (JToggleButton btn : monitorButtons.values()) {
       btn.setEnabled(enabled);
     }
+    updateMonitorColors();
   }
 
   public void setSelectionListener(ActionListener listener) {
@@ -105,6 +107,12 @@ public final class MonitorArrangement extends JPanel {
       final int index = i;
       final JToggleButton btn = new JToggleButton(String.valueOf(i + 1));
       btn.setFocusable(false);
+      // The native L&F (e.g. Windows) paints its own hover highlight on
+      // top of a button's background regardless of setBackground(), so
+      // switch to the basic UI delegate to get a flat fill that doesn't
+      // shift color under the mouse.
+      btn.setUI(new BasicToggleButtonUI());
+      btn.setRolloverEnabled(false);
       btn.setToolTipText(String.format("Monitor %d: %dx%d at +%d,+%d",
                          i + 1, b.width, b.height, b.x, b.y));
 
@@ -140,45 +148,21 @@ public final class MonitorArrangement extends JPanel {
   }
 
   private void updateMonitorColors() {
-    Set<Integer> selected = getSelectedMonitors();
-    Rectangle boundingRect = null;
+    // Selected monitors are shown in a vivid blue while this widget is
+    // actually interactive ("Full screen on selected monitor(s)" mode),
+    // and a paler blue otherwise, when the selection is just inherited
+    // state rather than something the user can act on right now.
+    Color activeColor = isEnabled() ? new Color(0, 122, 251)
+                                    : new Color(164, 205, 246);
+    Color unselectedColor = new Color(200, 200, 200);
 
-    if (!selected.isEmpty()) {
-      for (int idx : selected) {
-        Rectangle b = monitorBounds.get(idx);
-        if (b != null) {
-          if (boundingRect == null) boundingRect = new Rectangle(b);
-          else boundingRect = boundingRect.union(b);
-        }
-      }
-    }
-
-    Color activeColor = new Color(51, 153, 255);
-    Color requiredColor = new Color(180, 215, 255);
-    Color defaultColor = UIManager.getColor("Button.background");
-
-    for (Map.Entry<Integer, JToggleButton> entry : monitorButtons.entrySet()) {
-      int idx = entry.getKey();
-      JToggleButton btn = entry.getValue();
-
+    for (JToggleButton btn : monitorButtons.values()) {
       if (btn.isSelected()) {
         btn.setBackground(activeColor);
-        btn.setForeground(Color.WHITE);
+        btn.setForeground(isEnabled() ? Color.WHITE : Color.BLACK);
       } else {
-        boolean isRequired = false;
-        if (boundingRect != null) {
-          Rectangle mb = monitorBounds.get(idx);
-          if (mb != null && boundingRect.contains(mb)) {
-            isRequired = true;
-          }
-        }
-        if (isRequired) {
-          btn.setBackground(requiredColor);
-          btn.setForeground(Color.BLACK);
-        } else {
-          btn.setBackground(defaultColor);
-          btn.setForeground(Color.BLACK);
-        }
+        btn.setBackground(unselectedColor);
+        btn.setForeground(Color.BLACK);
       }
     }
   }
