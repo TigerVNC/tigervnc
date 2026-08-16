@@ -60,6 +60,7 @@ import com.tigervnc.rfb.Point;
 import com.tigervnc.rfb.Exception;
 import com.tigervnc.network.Socket;
 import com.tigervnc.network.TcpSocket;
+import com.tigervnc.network.UnixSocket;
 
 import static com.tigervnc.vncviewer.Parameters.*;
 
@@ -128,10 +129,20 @@ public final class CConn extends CConnection implements
             vlog.info("Connected to localhost port "+localPort);
         } else {
           if (isUnixSocket) {
-            throw new Exception("Connecting to a Unix domain socket directly is only supported via SSH tunnel (-via or -tunnel)");
+            // A bare path with no tunnel/via requested is a local (or
+            // already-forwarded, e.g. via a manually-run "ssh -L") Unix
+            // domain socket: connect to it directly, same as the C++
+            // viewer. A "host:/path" form has no local path to connect
+            // to without a tunnel, so that still requires -tunnel/-via.
+            if (!vncServerName.startsWith("/"))
+              throw new Exception("Connecting to a remote Unix domain socket directly is only supported via SSH tunnel (-via or -tunnel)");
+            String path = Hostname.getSocketPath(vncServerName);
+            sock = new UnixSocket(path);
+            vlog.info("Connected to Unix domain socket "+path);
+          } else {
+            sock = new TcpSocket(getServerName(), getServerPort());
+            vlog.info("Connected to host "+getServerName()+" port "+getServerPort());
           }
-          sock = new TcpSocket(getServerName(), getServerPort());
-          vlog.info("Connected to host "+getServerName()+" port "+getServerPort());
         }
       } catch (java.lang.Exception e) {
         throw new Exception(e.getMessage());
