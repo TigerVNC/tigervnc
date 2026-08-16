@@ -65,6 +65,9 @@ Build requirements (Unix)
 -- If building vncpasswd with password quality check support:
    * libpwquality
 
+-- Optional mDNS/DNS-SD support
+   * libavahi-client     
+
 ============================
 Build requirements (Windows)
 ============================

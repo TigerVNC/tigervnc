@@ -3,6 +3,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 endif()
 
 add_library(network STATIC
+  DnsSD.cxx
   Socket.cxx
   TcpSocket.cxx)
 
@@ -12,6 +13,11 @@ endif()
 
 target_include_directories(network PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_link_libraries(network core rdr)
+
+if(AVAHI_FOUND)
+  target_include_directories(network PRIVATE ${AVAHI_INCLUDE_DIRS})
+  target_link_libraries(network ${AVAHI_LIBRARIES})
+endif()
 
 if(WIN32)
 	target_link_libraries(network ws2_32)
