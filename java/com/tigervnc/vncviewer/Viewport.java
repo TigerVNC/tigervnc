@@ -2,7 +2,7 @@
  * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
  * Copyright (C) 2010, 2012-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2019 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -447,11 +447,9 @@ class Viewport extends JPanel implements ActionListener {
     vlog.debug("Key pressed: 0x%016x => 0x%04x", keyCode, keySym);
 
     try {
-      // Fake keycode?
-      if (keyCode > 0xffffffffL)
-        cc.writer().writeKeyEvent(keySym, true);
-      else
-        cc.writer().writeKeyEvent(keySym, true);
+      int vkCode = (int)(keyCode & 0xffffffffL);
+      int keyLocation = (int)(keyCode >>> 32);
+      cc.writer().writeKeyEvent(keySym, QemuKeyMap.toQnum(vkCode, keyLocation), true);
     } catch (Exception e) {
       vlog.error("%s", e.getMessage());
       cc.close();
@@ -491,10 +489,9 @@ class Viewport extends JPanel implements ActionListener {
     vlog.debug("Key released: 0x%016x => 0x%04x", keyCode, iter);
 
     try {
-      if (keyCode > 0xffffffffL)
-        cc.writer().writeKeyEvent(iter, false);
-      else
-        cc.writer().writeKeyEvent(iter, false);
+      int vkCode = (int)(keyCode & 0xffffffffL);
+      int keyLocation = (int)(keyCode >>> 32);
+      cc.writer().writeKeyEvent(iter, QemuKeyMap.toQnum(vkCode, keyLocation), false);
     } catch (Exception e) {
       vlog.error("%s", e.getMessage());
       cc.close();

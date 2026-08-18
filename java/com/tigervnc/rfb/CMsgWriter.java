@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2011 Pierre Ossman for Cendio AB
- * Copyright (C) 2011-2019 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,12 +149,30 @@ public class CMsgWriter {
 
   public void writeKeyEvent(int keysym, boolean down)
   {
+    writeKeyEvent(keysym, 0, down);
+  }
+
+  public void writeKeyEvent(int keysym, int keycode, boolean down)
+  {
     synchronized (os) {
-      startMsg(MsgTypes.msgTypeKeyEvent);
-      os.writeU8(down?1:0);
-      os.pad(2);
-      os.writeU32(keysym);
-      endMsg();
+      if (!server.supportsQEMUKeyEvent || keycode == 0) {
+        // This event isn't meaningful without a valid keysym
+        if (keysym == 0)
+          return;
+
+        startMsg(MsgTypes.msgTypeKeyEvent);
+        os.writeU8(down?1:0);
+        os.pad(2);
+        os.writeU32(keysym);
+        endMsg();
+      } else {
+        startMsg(MsgTypes.msgTypeQEMUClientMessage);
+        os.writeU8(MsgTypes.qemuExtendedKeyEvent);
+        os.writeU16(down?1:0);
+        os.writeU32(keysym);
+        os.writeU32(keycode);
+        endMsg();
+      }
     }
   }
 

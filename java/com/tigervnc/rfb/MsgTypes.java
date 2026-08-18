@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,4 +46,9 @@ public class MsgTypes {
   public static final int msgTypeClientFence = 248;
 
   public static final int msgTypeSetDesktopSize = 251;
+
+  public static final int msgTypeQEMUClientMessage = 255;
+
+  // QEMU client message sub-types
+  public static final int qemuExtendedKeyEvent = 0;
 }

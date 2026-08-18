@@ -148,6 +148,9 @@ public class CMsgReader {
         nUpdateRectsLeft = 0;
         readClientRedirect(x, y, w, h);
         return true;
+      case Encodings.pseudoEncodingQEMUKeyEvent:
+        handler.supportsQEMUKeyEvent();
+        break;
       default:
         readRect(new Rect(x, y, x+w, y+h), encoding);
         break;

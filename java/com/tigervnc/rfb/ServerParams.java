@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2012-2019 Brian P. Hinz
+ * Copyright (C) 2012-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ public class ServerParams {
     supportsSetDesktopSize = false; supportsFence = false;
     supportsContinuousUpdates = false;
     supportsClientRedirect = false;
+    supportsQEMUKeyEvent = false;
     compressLevel = 6; qualityLevel = -1; fineQualityLevel = -1;
     subsampling = subsampleUndefined; name_ = null; verStrPos = 0;
 
@@ -211,6 +212,7 @@ public class ServerParams {
   public boolean supportsDesktopRename;
   public boolean supportsLastRect;
   public boolean supportsClientRedirect;
+  public boolean supportsQEMUKeyEvent;
 
   public boolean supportsSetDesktopSize;
   public boolean supportsFence;

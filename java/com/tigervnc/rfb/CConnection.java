@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2019 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -691,6 +691,7 @@ abstract public class CConnection extends CMsgHandler {
     encodings.add(Encodings.pseudoEncodingLastRect);
     encodings.add(Encodings.pseudoEncodingContinuousUpdates);
     encodings.add(Encodings.pseudoEncodingFence);
+    encodings.add(Encodings.pseudoEncodingQEMUKeyEvent);
 
     if (Decoder.supported(preferredEncoding)) {
       encodings.add(preferredEncoding);
