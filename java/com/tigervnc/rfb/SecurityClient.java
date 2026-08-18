@@ -72,6 +72,8 @@ public class SecurityClient extends Security {
       return (new CSecurityRSAAES(secType, 256, false));
     case Security.secTypeDH:
       return (new CSecurityDH());
+    case Security.secTypeMSLogonII:
+      return (new CSecurityMSLogonII());
     default:
       throw new Exception("Security type not supported");
     }
@@ -85,7 +87,7 @@ public class SecurityClient extends Security {
 
   public static StringParameter secTypes
   = new StringParameter("SecurityTypes",
-                        "Specify which security scheme to use (None, VncAuth, Plain, Ident, TLSNone, TLSVnc, TLSPlain, TLSIdent, X509None, X509Vnc, X509Plain, X509Ident, RA2, RA2ne, RA2_256, RA2ne_256, DH)",
-                        "X509Ident,X509Plain,TLSIdent,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,Ident,RA2_256,RA2,RA2ne_256,RA2ne,VncAuth,DH,None", Configuration.ConfigurationObject.ConfViewer);
+                        "Specify which security scheme to use (None, VncAuth, Plain, Ident, TLSNone, TLSVnc, TLSPlain, TLSIdent, X509None, X509Vnc, X509Plain, X509Ident, RA2, RA2ne, RA2_256, RA2ne_256, DH, MSLogonII)",
+                        "X509Ident,X509Plain,TLSIdent,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,Ident,RA2_256,RA2,RA2ne_256,RA2ne,VncAuth,DH,MSLogonII,None", Configuration.ConfigurationObject.ConfViewer);
 
 }

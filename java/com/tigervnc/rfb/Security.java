@@ -38,6 +38,7 @@ public class Security {
   public static final int secTypeSSPIne    = 8;
 
   public static final int secTypeDH        = 30;
+  public static final int secTypeMSLogonII = 113;
 
   public static final int secTypeTight     = 16;
   public static final int secTypeUltra     = 17;
@@ -179,6 +180,7 @@ public class Security {
     if (name.equalsIgnoreCase("SSPI"))      return secTypeSSPI;
     if (name.equalsIgnoreCase("SSPIne"))	  return secTypeSSPIne;
     if (name.equalsIgnoreCase("DH"))        return secTypeDH;
+    if (name.equalsIgnoreCase("MSLogonII")) return secTypeMSLogonII;
     //if (name.equalsIgnoreCase("ultra"))	    return secTypeUltra;
     //if (name.equalsIgnoreCase("TLS"))	      return secTypeTLS;
     if (name.equalsIgnoreCase("VeNCrypt"))  return secTypeVeNCrypt;
@@ -210,6 +212,7 @@ public class Security {
     case secTypeSSPI:       return "SSPI";
     case secTypeSSPIne:     return "SSPIne";
     case secTypeDH:         return "DH";
+    case secTypeMSLogonII:  return "MSLogonII";
     //case secTypeUltra:      return "Ultra";
     //case secTypeTLS:        return "TLS";
     case secTypeVeNCrypt:   return "VeNCrypt";
