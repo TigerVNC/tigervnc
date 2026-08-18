@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2019 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,22 @@ abstract public class InStream {
   public int check(int itemSize, int nItems, boolean wait) {
     int nAvail;
 
-    if (itemSize > (end - ptr))
+    if (itemSize > (end - ptr)) {
+      if (restorePoint >= 0) {
+        // Need more data with a restore point active - rewind to the
+        // restore point so overrun()'s buffer compaction preserves the
+        // data between restorePoint and ptr, then fix both up afterwards.
+        int restoreDiff = ptr - restorePoint;
+        ptr = restorePoint;
+        int ret = overrun(itemSize + restoreDiff, nItems, wait);
+        restorePoint = ptr;
+        ptr += restoreDiff;
+        if (ret == 0)
+          return 0;
+      } else {
         return overrun(itemSize, nItems, wait);
+      }
+    }
 
     nAvail = (end - ptr) / itemSize;
     if (nAvail < nItems)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2012 Brian P. Hinz
+/* Copyright (C) 2012-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,6 +70,10 @@ public class SocketDescriptor implements FileDescriptor {
   synchronized public int select(int interestOps, Integer timeout) throws Exception {
     int n;
     if (selector == null) return 0;
+    SelectionKey key = channel.keyFor(selector);
+    if (key == null || !key.isValid())
+      return 0;
+    key.interestOps(interestOps);
     selector.selectedKeys().clear();
     try {
       if (timeout == null) {
@@ -88,6 +92,8 @@ public class SocketDescriptor implements FileDescriptor {
     } catch (java.io.IOException e) {
       throw new Exception(e.getMessage());
     }
+    if (n > 0 && (key.readyOps() & interestOps) == 0)
+      return 0;
     return n;
   }
 

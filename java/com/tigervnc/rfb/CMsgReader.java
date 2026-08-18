@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2019 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  * Copyright (C) 2017 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
@@ -74,14 +74,15 @@ public class CMsgReader {
   public boolean readMsg()
   {
     if (nUpdateRectsLeft == 0) {
-      if (!is.checkNoWait(1))
-        return false;
-
-      is.setRestorePoint();
-      int type = is.readU8();
+      if (state == MSGSTATE_IDLE) {
+        if (!is.checkNoWait(1))
+          return false;
+        currentMsgType = is.readU8();
+        state = MSGSTATE_MESSAGE;
+      }
 
       boolean ret;
-      switch (type) {
+      switch (currentMsgType) {
       case MsgTypes.msgTypeSetColourMapEntries:
         ret = readSetColourMapEntries();
         break;
@@ -101,14 +102,12 @@ public class CMsgReader {
         ret = readEndOfContinuousUpdates();
         break;
       default:
-        vlog.error("Unknown message type "+type);
+        vlog.error("Unknown message type "+currentMsgType);
         throw new Exception("Unknown message type");
       }
 
-      if (!ret)
-        is.gotoRestorePoint();
-      else
-        is.clearRestorePoint();
+      if (ret)
+        state = MSGSTATE_IDLE;
       return ret;
     } else {
       if (!is.checkNoWait(2 + 2 + 2 + 2 + 4))
@@ -582,8 +581,13 @@ public class CMsgReader {
 
   public int imageBufIdealSize;
 
+  private static final int MSGSTATE_IDLE = 0;
+  private static final int MSGSTATE_MESSAGE = 1;
+
   protected CMsgHandler handler;
   protected InStream is;
+  protected int state = MSGSTATE_IDLE;
+  protected int currentMsgType;
   protected int nUpdateRectsLeft;
   protected final int maxCursorSize = 256;
   protected int[] imageBuf;
