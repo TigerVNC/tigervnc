@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +21,27 @@ package com.tigervnc.rfb;
 
 public class Hostname {
 
+  // Returns the index of the socket path (the '/') in a "host:/path" or
+  // "host::/path" connection string, or -1 if it isn't one of those forms.
+  private static int socketPathStart(String vncServerName) {
+    int colonPos = vncServerName.indexOf(':');
+    if (colonPos == -1 || colonPos >= vncServerName.length() - 1)
+      return -1;
+    if (vncServerName.charAt(colonPos + 1) == '/')
+      return colonPos + 1;
+    if (vncServerName.charAt(colonPos + 1) == ':' &&
+        colonPos + 2 < vncServerName.length() &&
+        vncServerName.charAt(colonPos + 2) == '/')
+      return colonPos + 2;
+    return -1;
+  }
+
   public static boolean isUnixSocket(String vncServerName) {
     if (vncServerName == null || vncServerName.isEmpty())
       return false;
     if (vncServerName.startsWith("/"))
       return true;
-    int colonPos = vncServerName.indexOf(':');
-    if (colonPos != -1 && colonPos < vncServerName.length() - 1) {
-      if (vncServerName.charAt(colonPos + 1) == '/')
-        return true;
-    }
-    return false;
+    return socketPathStart(vncServerName) != -1;
   }
 
   public static String getHost(String vncServerName) {
@@ -55,10 +66,9 @@ public class Hostname {
       return "";
     if (vncServerName.startsWith("/"))
       return vncServerName;
-    int colonPos = vncServerName.indexOf(':');
-    if (colonPos != -1 && colonPos < vncServerName.length() - 1 && vncServerName.charAt(colonPos + 1) == '/') {
-      return vncServerName.substring(colonPos + 1);
-    }
+    int pathStart = socketPathStart(vncServerName);
+    if (pathStart != -1)
+      return vncServerName.substring(pathStart);
     return vncServerName;
   }
 

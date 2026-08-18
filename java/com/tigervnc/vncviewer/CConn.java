@@ -110,6 +110,17 @@ public final class CConn extends CConnection implements
         setServerName(Hostname.getHost(vncServerName));
         setServerPort(Hostname.getPort(vncServerName));
       }
+      // A "host:/path" connection string only makes sense via an SSH
+      // tunnel (there's no local path to connect to otherwise), so treat
+      // it as an implicit request to tunnel rather than failing if the
+      // user forgot to also check/pass -tunnel or -via.
+      if (isUnixSocket && !vncServerName.startsWith("/") &&
+          !tunnel.getValue() && via.getValue().isEmpty()) {
+        vlog.info("Automatically enabling SSH tunnel for Unix domain socket \""+
+                  vncServerName+"\"");
+        tunnel.setParam(true);
+      }
+
       try {
         if (tunnel.getValue() || !via.getValue().isEmpty()) {
           int localPort = TcpSocket.findFreeTcpPort();
