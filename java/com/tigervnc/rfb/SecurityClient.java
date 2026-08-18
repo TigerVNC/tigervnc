@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011-2017 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,6 +70,8 @@ public class SecurityClient extends Security {
       return (new CSecurityRSAAES(secType, 256, true));
     case Security.secTypeRAne256:
       return (new CSecurityRSAAES(secType, 256, false));
+    case Security.secTypeDH:
+      return (new CSecurityDH());
     default:
       throw new Exception("Security type not supported");
     }
@@ -83,7 +85,7 @@ public class SecurityClient extends Security {
 
   public static StringParameter secTypes
   = new StringParameter("SecurityTypes",
-                        "Specify which security scheme to use (None, VncAuth, Plain, Ident, TLSNone, TLSVnc, TLSPlain, TLSIdent, X509None, X509Vnc, X509Plain, X509Ident, RA2, RA2ne, RA2_256, RA2ne_256)",
-                        "X509Ident,X509Plain,TLSIdent,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,Ident,RA2_256,RA2,RA2ne_256,RA2ne,VncAuth,None", Configuration.ConfigurationObject.ConfViewer);
+                        "Specify which security scheme to use (None, VncAuth, Plain, Ident, TLSNone, TLSVnc, TLSPlain, TLSIdent, X509None, X509Vnc, X509Plain, X509Ident, RA2, RA2ne, RA2_256, RA2ne_256, DH)",
+                        "X509Ident,X509Plain,TLSIdent,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,Ident,RA2_256,RA2,RA2ne_256,RA2ne,VncAuth,DH,None", Configuration.ConfigurationObject.ConfViewer);
 
 }

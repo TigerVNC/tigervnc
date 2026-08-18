@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011-2015 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@ public class Security {
 
   public static final int secTypeSSPI      = 7;
   public static final int secTypeSSPIne    = 8;
+
+  public static final int secTypeDH        = 30;
 
   public static final int secTypeTight     = 16;
   public static final int secTypeUltra     = 17;
@@ -176,6 +178,7 @@ public class Security {
     if (name.equalsIgnoreCase("RA2ne_256"))	return secTypeRAne256;
     if (name.equalsIgnoreCase("SSPI"))      return secTypeSSPI;
     if (name.equalsIgnoreCase("SSPIne"))	  return secTypeSSPIne;
+    if (name.equalsIgnoreCase("DH"))        return secTypeDH;
     //if (name.equalsIgnoreCase("ultra"))	    return secTypeUltra;
     //if (name.equalsIgnoreCase("TLS"))	      return secTypeTLS;
     if (name.equalsIgnoreCase("VeNCrypt"))  return secTypeVeNCrypt;
@@ -206,6 +209,7 @@ public class Security {
     case secTypeRAne256:    return "RA2ne_256";
     case secTypeSSPI:       return "SSPI";
     case secTypeSSPIne:     return "SSPIne";
+    case secTypeDH:         return "DH";
     //case secTypeUltra:      return "Ultra";
     //case secTypeTLS:        return "TLS";
     case secTypeVeNCrypt:   return "VeNCrypt";
