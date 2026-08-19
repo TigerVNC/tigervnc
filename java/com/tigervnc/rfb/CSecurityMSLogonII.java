@@ -66,6 +66,15 @@ public class CSecurityMSLogonII extends CSecurity {
     g = new BigInteger(1, gBytes);
     p = new BigInteger(1, pBytes);
     A = new BigInteger(1, aBytes);
+
+    // A modulus of 0 or 1 is degenerate: BigInteger.modPow() would either
+    // throw ArithmeticException (0, or negative) or silently derive an
+    // always-zero, trivially-predictable shared secret (1), so reject
+    // both explicitly rather than let either happen deep in the key
+    // exchange (see GHSA-r4vv-jmq7-c5ph, filed against the C++ viewer's
+    // equivalent unchecked-modulus code).
+    if (p.compareTo(BigInteger.ONE) <= 0)
+      throw new AuthFailureException("Received invalid Diffie-Hellman modulus");
   }
 
   private void writeCredentials(CConnection cc) {
