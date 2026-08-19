@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2016 Brian P. Hinz. All Rights Reserved.
+ *  Copyright (C) 2016-2026 Brian P. Hinz. All Rights Reserved.
  *
  *  This is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -53,11 +53,12 @@ public class ExtProcess implements Runnable {
     @Override
     public void run() {
       try {
-        while (true) {
-          String msg = err.readLine();
-          if (msg != null)
-            vlog.info(msg);
-        }
+        String msg;
+        // readLine() returns null (rather than throwing) once the
+        // process closes its stderr, so that has to be the loop's exit
+        // condition -- otherwise this spins forever consuming CPU.
+        while ((msg = err.readLine()) != null)
+          vlog.info(msg);
       } catch(java.io.IOException e) {
         vlog.info(e.getMessage());
       } finally {
@@ -106,11 +107,14 @@ public class ExtProcess implements Runnable {
   }
 
   public void run() {
+    Thread hook = null;
     try {
       Runtime runtime = Runtime.getRuntime();
       pid = runtime.exec(cmd);
-      if (shutdown)
-        runtime.addShutdownHook(new MyShutdownHook(pid));
+      if (shutdown) {
+        hook = new MyShutdownHook(pid);
+        runtime.addShutdownHook(hook);
+      }
       if (vlog != null)
         new MyProcessLogger(pid, vlog).start();
       pid.waitFor();
@@ -118,6 +122,18 @@ public class ExtProcess implements Runnable {
       vlog.info(e.getMessage());
     } catch(java.io.IOException e) {
       vlog.info(e.getMessage());
+    } finally {
+      // A registered shutdown hook is held forever by the JVM's static
+      // hook registry unless explicitly removed -- otherwise every
+      // external SSH tunnel connection permanently leaks this Thread
+      // (and the Process it references).
+      if (hook != null) {
+        try {
+          Runtime.getRuntime().removeShutdownHook(hook);
+        } catch (IllegalStateException e) {
+          // JVM is already shutting down; nothing to clean up.
+        }
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012-2016 Brian P. Hinz. All Rights Reserved.
+ *  Copyright (C) 2012-2026 Brian P. Hinz. All Rights Reserved.
  *  Copyright (C) 2000 Const Kaplinsky.  All Rights Reserved.
  *  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
  *
@@ -80,6 +80,19 @@ public class Tunnel {
     }
   }
 
+  // Disconnects the JSch session (if any) opened by the last
+  // createTunnel() call. A Session keeps a background I/O thread alive,
+  // which in turn keeps the Session -- and the open TCP connection to
+  // the gateway host -- permanently reachable until disconnect() is
+  // called; it is not enough to just drop our reference to it. Safe to
+  // call even if no JSch tunnel is active.
+  public static void closeTunnel() {
+    if (currentSession != null) {
+      currentSession.disconnect();
+      currentSession = null;
+    }
+  }
+
   private static class MyJSchLogger implements Logger {
     public boolean isEnabled(int level){
       return true;
@@ -147,6 +160,11 @@ public class Tunnel {
 
   private static void createTunnelJSch(String gatewayHost, String remoteHost,
                                        int remotePort, int localPort) throws Exception {
+    // Clean up a session left over from a prior attempt that failed
+    // before CConn.close() had a chance to run (e.g. the very first
+    // connection attempt throwing during setup).
+    closeTunnel();
+
     JSch.setLogger(new MyJSchLogger());
     JSch jsch=new JSch();
 
@@ -197,6 +215,11 @@ public class Tunnel {
       if (session.getConfig("StrictHostKeyChecking") == null)
         session.setConfig("StrictHostKeyChecking", "ask");
       session.connect();
+      // Retain the session as soon as it's connected -- even if the
+      // forwarding setup below throws, closeTunnel() must still be able
+      // to disconnect it rather than leaking a connected-but-unused
+      // session.
+      currentSession = session;
       if (remoteHost.startsWith("/") || remotePort == 0) {
         session.setSocketForwardingL("127.0.0.1", localPort, remoteHost, null, 0);
         vlog.info("Opened SSH tunnel to Unix domain socket " + remoteHost + " on local port " + localPort);
@@ -353,4 +376,5 @@ public class Tunnel {
   }
 
   static LogWriter vlog = new LogWriter("Tunnel");
+  private static Session currentSession = null;
 }

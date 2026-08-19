@@ -608,6 +608,21 @@ public final class CConn extends CConnection implements
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }
+    // A realized JFrame is retained indefinitely by the AWT toolkit
+    // (native window peer, and everything it holds -- Viewport, the
+    // full-resolution framebuffer, etc.) until dispose() is called; it
+    // is not reclaimed just by dropping our own reference. dispose()
+    // is safe to call even if the window is already disposed (e.g. the
+    // user closed it directly, which calls close() and dispose() itself
+    // via DesktopWindow's own windowClosing handler).
+    if (desktop != null) {
+      desktop.dispose();
+      desktop = null;
+    }
+    // Tear down any SSH tunnel session opened for this connection --
+    // see Tunnel.closeTunnel() for why this can't just be left to GC.
+    // Safe to call even when no tunnel was used.
+    Tunnel.closeTunnel();
   }
 
   // writeClientCutText() is called from the clipboard dialog. It goes
