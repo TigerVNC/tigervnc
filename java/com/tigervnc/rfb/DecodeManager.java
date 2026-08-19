@@ -1,5 +1,5 @@
 /* Copyright 2015 Pierre Ossman for Cendio AB
- * Copyright 2016-2019 Brian P. Hinz
+ * Copyright 2016-2026 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,6 +87,15 @@ public class DecodeManager {
       consumerCond.signalAll();
     } finally {
       queueMutex.unlock();
+    }
+
+    // Release any resources (e.g. native zlib Inflater state) the
+    // decoders are holding onto -- they are otherwise only reachable
+    // via garbage collection/finalization, which leaks native memory
+    // in proportion to how many connections have been made.
+    for (Decoder d : decoders) {
+      if (d != null)
+        d.close();
     }
   }
 

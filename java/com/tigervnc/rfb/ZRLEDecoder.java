@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2019 Brian P. Hinz
+ * Copyright (C) 2019-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,12 @@ public class ZRLEDecoder extends Decoder {
   public ZRLEDecoder() {
     super(DecoderFlags.DecoderOrdered);
     zis = new ZlibInStream();
+  }
+
+  // zis holds a native (off-heap) Inflater that must be explicitly
+  // released -- see Decoder.close().
+  public void close() {
+    zis.deinit();
   }
 
   public void readRect(Rect r, InStream is,

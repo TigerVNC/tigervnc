@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2019 Brian P. Hinz
+ * Copyright (C) 2019-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,13 @@ abstract public class Decoder {
   {
     this.flags = flags;
   }
+
+  // close() releases any resources (e.g. zlib Inflater state, which is
+  // backed by native/off-heap memory and isn't freed just by the object
+  // being garbage collected) held by this decoder. Called once when the
+  // connection using it is closed. Default is a no-op; decoders that
+  // hold such resources (TightDecoder, ZRLEDecoder) override this.
+  public void close() { }
 
   abstract public void readRect(Rect r, InStream is,
                                 ServerParams server, OutStream os);
