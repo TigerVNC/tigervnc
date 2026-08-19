@@ -53,10 +53,9 @@ public class ExtProcess implements Runnable {
     @Override
     public void run() {
       try {
+        // readLine() returns null at EOF rather than throwing, so that
+        // must end the loop or this spins forever.
         String msg;
-        // readLine() returns null (rather than throwing) once the
-        // process closes its stderr, so that has to be the loop's exit
-        // condition -- otherwise this spins forever consuming CPU.
         while ((msg = err.readLine()) != null)
           vlog.info(msg);
       } catch(java.io.IOException e) {
@@ -123,16 +122,11 @@ public class ExtProcess implements Runnable {
     } catch(java.io.IOException e) {
       vlog.info(e.getMessage());
     } finally {
-      // A registered shutdown hook is held forever by the JVM's static
-      // hook registry unless explicitly removed -- otherwise every
-      // external SSH tunnel connection permanently leaks this Thread
-      // (and the Process it references).
+      // Otherwise this leaks the hook (and the Process it references).
       if (hook != null) {
         try {
           Runtime.getRuntime().removeShutdownHook(hook);
-        } catch (IllegalStateException e) {
-          // JVM is already shutting down; nothing to clean up.
-        }
+        } catch (IllegalStateException e) { }
       }
     }
   }
