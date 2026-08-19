@@ -35,7 +35,6 @@
 package com.tigervnc.vncviewer;
 
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.Toolkit;
 import java.nio.channels.SelectableChannel;
@@ -396,14 +395,25 @@ public final class CConn extends CConnection implements
       desktop.getToolkit().beep();
   }
 
-  public void serverCutText(String str, int len)
+  // handleClipboardData() is called (via CConnection's clipboard state
+  // machine) whenever clipboard text has arrived from the server, via
+  // either the classic ServerCutText message or the negotiated extended
+  // clipboard protocol.
+  public void handleClipboardData(String data)
   {
-    StringSelection buffer;
-
     if (!acceptClipboard.getValue())
       return;
 
-    ClipboardDialog.serverCutText(str);
+    ClipboardDialog.serverCutText(data);
+  }
+
+  // handleClipboardRequest() is called when the server explicitly asks
+  // for our clipboard contents as part of the extended clipboard
+  // protocol. The clipboard dialog is the closest thing this viewer has
+  // to a "current outgoing clipboard", so offer up whatever it holds.
+  public void handleClipboardRequest()
+  {
+    sendClipboardData(ClipboardDialog.getText());
   }
 
   public void dataRect(Rect r, int encoding)
@@ -591,11 +601,14 @@ public final class CConn extends CConnection implements
     }
   }
 
-  // writeClientCutText() is called from the clipboard dialog
+  // writeClientCutText() is called from the clipboard dialog. It goes
+  // through sendClipboardData() so the negotiated extended clipboard
+  // protocol (larger payloads, UTF-8 text) is used when the server
+  // supports it, falling back to classic ClientCutText otherwise.
   public void writeClientCutText(String str, int len) {
     if ((state() != stateEnum.RFBSTATE_NORMAL) || shuttingDown)
       return;
-    writer().writeClientCutText(str, len);
+    sendClipboardData(str);
   }
 
   public void actionPerformed(ActionEvent e) {}

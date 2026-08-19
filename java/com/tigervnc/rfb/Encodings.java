@@ -63,6 +63,9 @@ public class Encodings {
   // VMware-specific
   public static final int pseudoEncodingVMwareCursor = 0x574d5664;
 
+  // UltraVNC-specific
+  public static final int pseudoEncodingExtendedClipboard = 0xC0A1E5CE;
+
   public static int encodingNum(String name) {
     if (name.equalsIgnoreCase("raw"))      return encodingRaw;
     if (name.equalsIgnoreCase("copyRect")) return encodingCopyRect;

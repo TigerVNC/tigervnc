@@ -50,6 +50,8 @@ abstract public class CConnection extends CMsgHandler {
     forceNonincremental = true;
     framebuffer = null; decoder = null;
     security = new SecurityClient();
+    hasLocalClipboard = false; hasRemoteClipboard = false;
+    unsolicitedClipboardAttempt = false; serverClipboard = null;
   }
 
   public void close() {
@@ -57,6 +59,179 @@ abstract public class CConnection extends CMsgHandler {
       decoder.stop();
       decoder = null;
     }
+  }
+
+  // -=- Clipboard
+
+  // requestClipboard() will result in a request to the server to
+  // transfer its clipboard data. A call to handleClipboardData() will
+  // be made once the data is available.
+  public void requestClipboard()
+  {
+    if (hasRemoteClipboard) {
+      handleClipboardData(serverClipboard);
+      return;
+    }
+
+    if ((server.clipboardFlags() & ClipboardTypes.clipboardRequest) != 0)
+      writer().writeClipboardRequest(ClipboardTypes.clipboardUTF8);
+  }
+
+  // announceClipboard() informs the server of changes to the local
+  // clipboard. Depending on what the server supports, this will result
+  // in either an immediate request for the data via
+  // handleClipboardRequest(), or a notification the server can later
+  // request with requestClipboard()/handleClipboardRequest(int).
+  public void announceClipboard(boolean available)
+  {
+    hasLocalClipboard = available;
+    unsolicitedClipboardAttempt = false;
+
+    // Attempt an unsolicited transfer?
+    if (available &&
+        (server.clipboardSize(ClipboardTypes.clipboardUTF8) > 0) &&
+        (server.clipboardFlags() & ClipboardTypes.clipboardProvide) != 0) {
+      vlog.debug("Attempting unsolicited clipboard transfer...");
+      unsolicitedClipboardAttempt = true;
+      handleClipboardRequest();
+      return;
+    }
+
+    if ((server.clipboardFlags() & ClipboardTypes.clipboardNotify) != 0) {
+      writer().writeClipboardNotify(available ? ClipboardTypes.clipboardUTF8 : 0);
+      return;
+    }
+
+    if (available)
+      handleClipboardRequest();
+  }
+
+  // sendClipboardData() transfers the actual clipboard data to the
+  // server, either because we requested it, or unprompted because we
+  // wanted to announce our own clipboard via announceClipboard().
+  public void sendClipboardData(String data)
+  {
+    if ((server.clipboardFlags() & ClipboardTypes.clipboardProvide) != 0) {
+      byte[] utf8 = convertCRLF(data).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+      // Include a null terminator, matching the C++ implementation.
+      byte[] payload = Arrays.copyOf(utf8, utf8.length + 1);
+      int[] sizes = { payload.length };
+      byte[][] datas = { payload };
+
+      if (unsolicitedClipboardAttempt) {
+        unsolicitedClipboardAttempt = false;
+        if (sizes[0] > server.clipboardSize(ClipboardTypes.clipboardUTF8)) {
+          vlog.debug("Clipboard was too large for unsolicited clipboard transfer");
+          if ((server.clipboardFlags() & ClipboardTypes.clipboardNotify) != 0)
+            writer().writeClipboardNotify(ClipboardTypes.clipboardUTF8);
+          return;
+        }
+      }
+
+      writer().writeClipboardProvide(ClipboardTypes.clipboardUTF8, sizes, datas);
+    } else {
+      writer().writeClientCutText(data, data.length());
+    }
+  }
+
+  // Hooks for a subclass (viewer) to override.
+
+  // handleClipboardRequest() is called whenever the server requests
+  // the client to send over its clipboard data. It is only called
+  // after the client has first announced a clipboard change via
+  // announceClipboard().
+  protected void handleClipboardRequest() { }
+
+  // handleClipboardAnnounce() is called to indicate that the server
+  // clipboard has changed, and is now either available or not
+  // available.
+  protected void handleClipboardAnnounce(boolean available) { }
+
+  // handleClipboardData() is called when the server has sent over
+  // the clipboard data as a result of a previous call to
+  // requestClipboard().
+  protected void handleClipboardData(String data) { }
+
+  public void serverCutText(String str, int len)
+  {
+    hasLocalClipboard = false;
+
+    serverClipboard = str;
+    hasRemoteClipboard = true;
+
+    handleClipboardAnnounce(true);
+  }
+
+  public void handleClipboardCaps(int flags, int[] lengths)
+  {
+    server.setClipboardCaps(flags, lengths);
+
+    writer().writeClipboardCaps(ClipboardTypes.clipboardUTF8 |
+                                ClipboardTypes.clipboardRequest |
+                                ClipboardTypes.clipboardPeek |
+                                ClipboardTypes.clipboardNotify |
+                                ClipboardTypes.clipboardProvide,
+                                new int[]{ 0 });
+  }
+
+  public void handleClipboardRequest(int flags)
+  {
+    if ((flags & ClipboardTypes.clipboardUTF8) == 0) {
+      vlog.debug("Ignoring clipboard request for unsupported formats 0x"+
+                Integer.toHexString(flags));
+      return;
+    }
+    if (!hasLocalClipboard) {
+      vlog.debug("Ignoring unexpected clipboard request");
+      return;
+    }
+    handleClipboardRequest();
+  }
+
+  public void handleClipboardPeek()
+  {
+    if ((server.clipboardFlags() & ClipboardTypes.clipboardNotify) != 0)
+      writer().writeClipboardNotify(hasLocalClipboard ? ClipboardTypes.clipboardUTF8 : 0);
+  }
+
+  public void handleClipboardNotify(int flags)
+  {
+    hasRemoteClipboard = false;
+
+    if ((flags & ClipboardTypes.clipboardUTF8) != 0) {
+      hasLocalClipboard = false;
+      handleClipboardAnnounce(true);
+    } else {
+      handleClipboardAnnounce(false);
+    }
+  }
+
+  public void handleClipboardProvide(int flags, int[] lengths, byte[][] data)
+  {
+    if ((flags & ClipboardTypes.clipboardUTF8) == 0) {
+      vlog.debug("Ignoring clipboard provide with unsupported formats 0x"+
+                Integer.toHexString(flags));
+      return;
+    }
+
+    String text = new String(data[0], java.nio.charset.StandardCharsets.UTF_8);
+    // Strip a trailing null terminator, if present (see sendClipboardData()).
+    if (text.endsWith("\u0000"))
+      text = text.substring(0, text.length() - 1);
+    serverClipboard = convertLF(text);
+    hasRemoteClipboard = true;
+
+    handleClipboardData(serverClipboard);
+  }
+
+  private static String convertLF(String s)
+  {
+    return s.replace("\r\n", "\n").replace("\r", "\n");
+  }
+
+  private static String convertCRLF(String s)
+  {
+    return convertLF(s).replace("\n", "\r\n");
   }
 
   // Methods to initialise the connection
@@ -692,6 +867,7 @@ abstract public class CConnection extends CMsgHandler {
     encodings.add(Encodings.pseudoEncodingContinuousUpdates);
     encodings.add(Encodings.pseudoEncodingFence);
     encodings.add(Encodings.pseudoEncodingQEMUKeyEvent);
+    encodings.add(Encodings.pseudoEncodingExtendedClipboard);
 
     if (Decoder.supported(preferredEncoding)) {
       encodings.add(preferredEncoding);
@@ -761,4 +937,9 @@ abstract public class CConnection extends CMsgHandler {
 
   protected ModifiablePixelBuffer framebuffer;
   private DecodeManager decoder;
+
+  private boolean hasLocalClipboard;
+  private boolean hasRemoteClipboard;
+  private boolean unsolicitedClipboardAttempt;
+  private String serverClipboard;
 }

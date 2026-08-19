@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2026 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,6 +175,10 @@ class ClipboardDialog extends Dialog {
   public void endDialog() {
     super.endDialog();
     dialog.dispose();
+  }
+
+  public static String getText() {
+    return textArea.getText();
   }
 
   public static void serverCutText(String str) {

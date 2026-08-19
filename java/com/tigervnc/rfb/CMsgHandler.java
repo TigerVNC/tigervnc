@@ -78,6 +78,13 @@ abstract public class CMsgHandler {
     server.supportsQEMUKeyEvent = true;
   }
 
+  abstract public void handleClipboardCaps(int flags, int[] lengths);
+  abstract public void handleClipboardRequest(int flags);
+  abstract public void handleClipboardPeek();
+  abstract public void handleClipboardNotify(int flags);
+  abstract public void handleClipboardProvide(int flags, int[] lengths,
+                                              byte[][] data);
+
   abstract public void clientRedirect(int port, String host,
                                       String x509subject);
 

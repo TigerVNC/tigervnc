@@ -199,6 +199,20 @@ public class CMsgReader {
     is.skip(3);
     int len = is.readU32();
 
+    // A negative length signals an extended clipboard message
+    // (pseudoEncodingExtendedClipboard) sharing this same message type,
+    // rather than plain clipboard text.
+    if (len < 0) {
+      int slen = -len;
+      if (readExtendedClipboard(slen)) {
+        is.clearRestorePoint();
+        return true;
+      } else {
+        is.gotoRestorePoint();
+        return false;
+      }
+    }
+
     if (!is.hasDataOrRestore(len))
       return false;
     is.clearRestorePoint();
@@ -214,6 +228,101 @@ public class CMsgReader {
     Charset latin1 = Charset.forName("ISO-8859-1");
     CharBuffer chars = latin1.decode(buf.compact());
     handler.serverCutText(chars.toString(), len);
+    return true;
+  }
+
+  protected boolean readExtendedClipboard(int len)
+  {
+    if (!is.checkNoWait(len))
+      return false;
+
+    if (len < 4)
+      throw new Exception("Invalid extended clipboard message");
+    if (len > 256*1024) {
+      vlog.error("Cut text too long ("+len+" bytes) - ignoring");
+      is.skip(len);
+      return true;
+    }
+
+    int flags = is.readU32();
+    int action = flags & ClipboardTypes.clipboardActionMask;
+
+    if ((action & ClipboardTypes.clipboardCaps) != 0) {
+      int num = 0;
+      for (int i = 0; i < 16; i++)
+        if ((flags & (1 << i)) != 0)
+          num++;
+
+      if (len < 4 + 4*num)
+        throw new Exception("Invalid extended clipboard message");
+
+      int[] lengths = new int[16];
+      num = 0;
+      for (int i = 0; i < 16; i++)
+        if ((flags & (1 << i)) != 0)
+          lengths[num++] = is.readU32();
+
+      handler.handleClipboardCaps(flags, lengths);
+    } else if (action == ClipboardTypes.clipboardProvide) {
+      ZlibInStream zis = new ZlibInStream();
+      zis.setUnderlying(is, len - 4);
+
+      int[] lengths = new int[16];
+      byte[][] buffers = new byte[16][];
+      int num = 0;
+      for (int i = 0; i < 16; i++) {
+        if ((flags & (1 << i)) == 0)
+          continue;
+
+        if (!zis.checkNoWait(4))
+          throw new Exception("Invalid extended clipboard message");
+
+        int flen = zis.readU32();
+
+        if (flen > 256*1024) {
+          vlog.error("Cut text too long ("+flen+" bytes) - ignoring");
+          while (flen > 0) {
+            if (!zis.checkNoWait(1))
+              throw new Exception("Invalid extended clipboard message");
+            int chunk = zis.getend() - zis.getptr();
+            if (chunk > flen)
+              chunk = flen;
+            zis.skip(chunk);
+            flen -= chunk;
+          }
+          flags &= ~(1 << i);
+          continue;
+        }
+
+        if (!zis.checkNoWait(flen))
+          throw new Exception("Invalid extended clipboard message");
+
+        byte[] buf = new byte[flen];
+        zis.readBytes(ByteBuffer.wrap(buf), flen);
+        lengths[num] = flen;
+        buffers[num] = buf;
+        num++;
+      }
+
+      zis.flushUnderlying();
+
+      handler.handleClipboardProvide(flags, lengths, buffers);
+    } else {
+      switch (action) {
+      case ClipboardTypes.clipboardRequest:
+        handler.handleClipboardRequest(flags);
+        break;
+      case ClipboardTypes.clipboardPeek:
+        handler.handleClipboardPeek();
+        break;
+      case ClipboardTypes.clipboardNotify:
+        handler.handleClipboardNotify(flags);
+        break;
+      default:
+        throw new Exception("Invalid extended clipboard message");
+      }
+    }
+
     return true;
   }
 

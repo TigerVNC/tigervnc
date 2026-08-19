@@ -48,6 +48,7 @@ public class ServerParams {
     supportsQEMUKeyEvent = false;
     compressLevel = 6; qualityLevel = -1; fineQualityLevel = -1;
     subsampling = subsampleUndefined; name_ = null; verStrPos = 0;
+    clipFlags = 0; clipSizes = new int[16];
 
     encodings_ = new ArrayList();
     screenLayout_ = new ScreenSet();
@@ -202,6 +203,25 @@ public class ServerParams {
     }
   }
 
+  public int clipboardFlags() { return clipFlags; }
+
+  public int clipboardSize(int format) {
+    for (int i = 0; i < 16; i++)
+      if ((1 << i) == format)
+        return clipSizes[i];
+    throw new Exception(String.format("Invalid clipboard format 0x%x", format));
+  }
+
+  public void setClipboardCaps(int flags, int[] lengths) {
+    clipFlags = flags;
+    int num = 0;
+    for (int i = 0; i < 16; i++) {
+      if ((flags & (1 << i)) == 0)
+        continue;
+      clipSizes[i] = lengths[num++];
+    }
+  }
+
   public boolean useCopyRect;
 
   public boolean supportsLocalCursor;
@@ -233,4 +253,7 @@ public class ServerParams {
   private ArrayList encodings_;
   private StringBuilder verStr;
   private int verStrPos;
+
+  private int clipFlags;
+  private int[] clipSizes;
 }
