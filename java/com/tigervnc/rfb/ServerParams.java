@@ -46,9 +46,11 @@ public class ServerParams {
     supportsContinuousUpdates = false;
     supportsClientRedirect = false;
     supportsQEMUKeyEvent = false;
+    supportsLEDState = false;
     compressLevel = 6; qualityLevel = -1; fineQualityLevel = -1;
     subsampling = subsampleUndefined; name_ = null; verStrPos = 0;
     clipFlags = 0; clipSizes = new int[16];
+    ledState_ = LedStates.ledUnknown;
 
     encodings_ = new ArrayList();
     screenLayout_ = new ScreenSet();
@@ -222,6 +224,9 @@ public class ServerParams {
     }
   }
 
+  public int ledState() { return ledState_; }
+  public void setLEDState(int state) { ledState_ = state; }
+
   public boolean useCopyRect;
 
   public boolean supportsLocalCursor;
@@ -233,6 +238,7 @@ public class ServerParams {
   public boolean supportsLastRect;
   public boolean supportsClientRedirect;
   public boolean supportsQEMUKeyEvent;
+  public boolean supportsLEDState;
 
   public boolean supportsSetDesktopSize;
   public boolean supportsFence;
@@ -256,4 +262,6 @@ public class ServerParams {
 
   private int clipFlags;
   private int[] clipSizes;
+
+  private int ledState_;
 }

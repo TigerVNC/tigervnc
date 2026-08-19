@@ -93,6 +93,7 @@ public final class CConn extends CConnection implements
     server.supportsLocalCursor = true;
     server.supportsDesktopResize = true;
     server.supportsClientRedirect = true;
+    server.supportsLEDState = true;
 
     if (customCompressLevel.getValue())
       setCompressLevel(compressLevel.getValue());
@@ -434,6 +435,14 @@ public final class CConn extends CConnection implements
                         byte[] data)
   {
     desktop.setCursor(width, height, hotspot, data);
+  }
+
+  public void setLEDState(int state)
+  {
+    // can't call super.super.setLEDState(state);
+    server.setLEDState(state);
+
+    desktop.viewport.setLEDState(state);
   }
 
   public void fence(int flags, int len, byte[] data)

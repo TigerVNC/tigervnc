@@ -38,6 +38,7 @@ public class Encodings {
   public static final int pseudoEncodingExtendedDesktopSize = -308;
   public static final int pseudoEncodingDesktopName = -307;
   public static final int pseudoEncodingClientRedirect = -311;
+  public static final int pseudoEncodingLEDState = -261;
   public static final int pseudoEncodingFence = -312;
   public static final int pseudoEncodingContinuousUpdates = -313;
   public static final int pseudoEncodingCursorWithAlpha = -314;
@@ -62,6 +63,8 @@ public class Encodings {
 
   // VMware-specific
   public static final int pseudoEncodingVMwareCursor = 0x574d5664;
+  public static final int pseudoEncodingVMwareCursorPosition = 0x574d5666;
+  public static final int pseudoEncodingVMwareLEDState = 0x574d5668;
 
   // UltraVNC-specific
   public static final int pseudoEncodingExtendedClipboard = 0xC0A1E5CE;

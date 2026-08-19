@@ -861,6 +861,10 @@ abstract public class CConnection extends CMsgHandler {
     }
     if (server.supportsClientRedirect)
       encodings.add(Encodings.pseudoEncodingClientRedirect);
+    if (server.supportsLEDState) {
+      encodings.add(Encodings.pseudoEncodingLEDState);
+      encodings.add(Encodings.pseudoEncodingVMwareLEDState);
+    }
 
     encodings.add(Encodings.pseudoEncodingDesktopName);
     encodings.add(Encodings.pseudoEncodingLastRect);

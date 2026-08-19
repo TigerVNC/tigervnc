@@ -98,6 +98,9 @@ class Viewport extends JPanel implements ActionListener {
     addFocusListener(new FocusAdapter() {
       public void focusGained(FocusEvent e) {
         ClipboardDialog.clientCutText();
+        // We may have gotten our lock keys out of sync with the server
+        // whilst we didn't have focus. Try to sort this out.
+        pushLEDState();
       }
       public void focusLost(FocusEvent e) {
         releaseDownKeys();
@@ -815,6 +818,93 @@ class Viewport extends JPanel implements ActionListener {
       handleKeyRelease(downKeySym.keySet().iterator().next());
   }
 
+  public void setLEDState(int ledState)
+  {
+    vlog.debug("Got server LED state: 0x%08x", ledState);
+
+    // The first message is just considered to be the server announcing
+    // support for this extension. We will push our state to sync up the
+    // server when we get focus. If we already have focus we need to push
+    // it here though.
+    if (firstLEDState) {
+      firstLEDState = false;
+      if (isFocusOwner())
+        pushLEDState();
+      return;
+    }
+
+    if (viewOnly.getValue())
+      return;
+
+    if (!isFocusOwner())
+      return;
+
+    Toolkit tk = getToolkit();
+    setLockingKeyStateSafe(tk, VK_CAPS_LOCK, (ledState & LedStates.ledCapsLock) != 0);
+    setLockingKeyStateSafe(tk, VK_NUM_LOCK, (ledState & LedStates.ledNumLock) != 0);
+    setLockingKeyStateSafe(tk, VK_SCROLL_LOCK, (ledState & LedStates.ledScrollLock) != 0);
+  }
+
+  // Not every platform/keyboard has every lock key (e.g. macOS has no
+  // hardware Num Lock or Scroll Lock), so each key's support is queried
+  // independently rather than bailing out entirely if any one of them
+  // throws UnsupportedOperationException.
+  private static void setLockingKeyStateSafe(Toolkit tk, int vk, boolean on)
+  {
+    try {
+      tk.setLockingKeyState(vk, on);
+    } catch (UnsupportedOperationException e) {
+      vlog.debug("Unable to set local keyboard LED state for key 0x%x: "+
+                "not supported on this platform", vk);
+    }
+  }
+
+  private static Boolean getLockingKeyStateSafe(Toolkit tk, int vk)
+  {
+    try {
+      return tk.getLockingKeyState(vk);
+    } catch (UnsupportedOperationException e) {
+      return null;
+    }
+  }
+
+  private void pushLEDState()
+  {
+    if (viewOnly.getValue())
+      return;
+
+    // Does the server even support this extension?
+    if (cc.server.ledState() == LedStates.ledUnknown)
+      return;
+
+    Toolkit tk = getToolkit();
+    Boolean caps = getLockingKeyStateSafe(tk, VK_CAPS_LOCK);
+    Boolean num = getLockingKeyStateSafe(tk, VK_NUM_LOCK);
+    Boolean scroll = getLockingKeyStateSafe(tk, VK_SCROLL_LOCK);
+
+    // Any lock key this platform can't report on is left alone rather
+    // than assumed to be off, so we don't fight the server every time
+    // over a key we have no way to actually read or set.
+    if (caps != null &&
+        caps != ((cc.server.ledState() & LedStates.ledCapsLock) != 0)) {
+      vlog.debug("Inserting fake CapsLock to get in sync with server");
+      handleKeyPress(VK_CAPS_LOCK, XK_Caps_Lock);
+      handleKeyRelease(VK_CAPS_LOCK);
+    }
+    if (num != null &&
+        num != ((cc.server.ledState() & LedStates.ledNumLock) != 0)) {
+      vlog.debug("Inserting fake NumLock to get in sync with server");
+      handleKeyPress(VK_NUM_LOCK, XK_Num_Lock);
+      handleKeyRelease(VK_NUM_LOCK);
+    }
+    if (scroll != null &&
+        scroll != ((cc.server.ledState() & LedStates.ledScrollLock) != 0)) {
+      vlog.debug("Inserting fake ScrollLock to get in sync with server");
+      handleKeyPress(VK_SCROLL_LOCK, XK_Scroll_Lock);
+      handleKeyRelease(VK_SCROLL_LOCK);
+    }
+  }
+
   private DesktopWindow window() {
     return (DesktopWindow)getTopLevelAncestor();
   }
@@ -824,6 +914,8 @@ class Viewport extends JPanel implements ActionListener {
   private int h() { return getHeight(); }
   // access to cc by different threads is specified in CConn
   private CConn cc;
+
+  private boolean firstLEDState = true;
 
   // access to the following must be synchronized:
   private PlatformPixelBuffer frameBuffer;

@@ -135,6 +135,9 @@ public class CMsgReader {
       case Encodings.pseudoEncodingVMwareCursor:
         readSetVMwareCursor(w, h, new Point(x,y));
         break;
+      case Encodings.pseudoEncodingVMwareCursorPosition:
+        handler.setCursorPos(new Point(x,y));
+        break;
       case Encodings.pseudoEncodingDesktopName:
         readSetDesktopName(x, y, w, h);
         break;
@@ -150,6 +153,12 @@ public class CMsgReader {
         return true;
       case Encodings.pseudoEncodingQEMUKeyEvent:
         handler.supportsQEMUKeyEvent();
+        break;
+      case Encodings.pseudoEncodingLEDState:
+        readLEDState();
+        break;
+      case Encodings.pseudoEncodingVMwareLEDState:
+        readVMwareLEDState();
         break;
       default:
         readRect(new Rect(x, y, x+w, y+h), encoding);
@@ -630,6 +639,20 @@ public class CMsgReader {
       handler.setName(name);
     }
 
+  }
+
+  protected void readLEDState()
+  {
+    int ledState = is.readU8();
+    handler.setLEDState(ledState);
+  }
+
+  protected void readVMwareLEDState()
+  {
+    // As luck has it, this extension uses the same bit definitions,
+    // so no conversion required.
+    int ledState = is.readU32();
+    handler.setLEDState(ledState);
   }
 
   protected void readExtendedDesktopSize(int x, int y, int w, int h)

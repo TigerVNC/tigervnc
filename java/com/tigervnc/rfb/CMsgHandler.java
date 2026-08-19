@@ -78,6 +78,17 @@ abstract public class CMsgHandler {
     server.supportsQEMUKeyEvent = true;
   }
 
+  public void setLEDState(int state)
+  {
+    server.setLEDState(state);
+  }
+
+  // No-op by default (matches the C++ CConnection base behavior): the
+  // Java viewer has no pointer-grab/capture mode, which is the only
+  // context in which C++ actually warps the local cursor in response
+  // to this, so there is nothing meaningful to do with it here.
+  public void setCursorPos(Point pos) { }
+
   abstract public void handleClipboardCaps(int flags, int[] lengths);
   abstract public void handleClipboardRequest(int flags);
   abstract public void handleClipboardPeek();
