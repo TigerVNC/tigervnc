@@ -61,6 +61,8 @@ import com.tigervnc.network.Socket;
 import com.tigervnc.network.TcpSocket;
 import com.tigervnc.network.UnixSocket;
 
+import com.jcraft.jsch.Session;
+
 import static com.tigervnc.vncviewer.Parameters.*;
 
 public final class CConn extends CConnection implements 
@@ -131,8 +133,8 @@ public final class CConn extends CConnection implements
             gatewayHost = (isUnixSocket ? (vncServerName.startsWith("/") ? "localhost" : Hostname.getHost(vncServerName)) : getServerName());
 
           String remoteTarget = isUnixSocket ? Hostname.getSocketPath(vncServerName) : getServerName();
-          Tunnel.createTunnel(gatewayHost, remoteTarget,
-                              getServerPort(), localPort);
+          tunnelSession = Tunnel.createTunnel(gatewayHost, remoteTarget,
+                                              getServerPort(), localPort);
           sock = new TcpSocket("localhost", localPort);
           if (isUnixSocket)
             vlog.info("Connected to localhost port "+localPort+" (tunneled to Unix domain socket "+remoteTarget+")");
@@ -620,7 +622,8 @@ public final class CConn extends CConnection implements
       desktop.dispose();
       desktop = null;
     }
-    Tunnel.closeTunnel();
+    Tunnel.closeTunnel(tunnelSession);
+    tunnelSession = null;
   }
 
   // writeClientCutText() is called from the clipboard dialog. It goes
@@ -663,6 +666,7 @@ public final class CConn extends CConnection implements
   private String serverHost;
   private int serverPort;
   private Socket sock;
+  private Session tunnelSession;
 
   protected DesktopWindow desktop;
 

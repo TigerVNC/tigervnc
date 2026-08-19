@@ -57,10 +57,14 @@ public class Tunnel {
   private final static String DEFAULT_VIA_TEMPLATE
     = "-f -L %L:%H:%R -- %G sleep 20";
 
-  public static void createTunnel(String gatewayHost,
-                                  String remoteHost,
-                                  int remotePort,
-                                  int localPort) throws Exception {
+  // Returns the JSch Session backing the tunnel (extSSH mode has no
+  // such handle, so null in that case) -- the caller owns it and must
+  // pass it to closeTunnel() when done. A connected Session isn't
+  // reclaimed just by dropping the reference to it.
+  public static Session createTunnel(String gatewayHost,
+                                     String remoteHost,
+                                     int remotePort,
+                                     int localPort) throws Exception {
     if (extSSH.getValue()) {
       String pattern = extSSHArgs.getValueStr();
       if (pattern == null || pattern.isEmpty()) {
@@ -75,19 +79,15 @@ public class Tunnel {
         }
       }
       createTunnelExt(gatewayHost, remoteHost, remotePort, localPort, pattern);
+      return null;
     } else {
-      createTunnelJSch(gatewayHost, remoteHost, remotePort, localPort);
+      return createTunnelJSch(gatewayHost, remoteHost, remotePort, localPort);
     }
   }
 
-  // Disconnects the JSch session (if any) opened by the last
-  // createTunnel() call. A connected Session isn't reclaimed just by
-  // dropping our reference to it. Safe to call if no tunnel is active.
-  public static void closeTunnel() {
-    if (currentSession != null) {
-      currentSession.disconnect();
-      currentSession = null;
-    }
+  public static void closeTunnel(Session session) {
+    if (session != null)
+      session.disconnect();
   }
 
   private static class MyJSchLogger implements Logger {
@@ -155,13 +155,11 @@ public class Tunnel {
     return "";
   }
 
-  private static void createTunnelJSch(String gatewayHost, String remoteHost,
-                                       int remotePort, int localPort) throws Exception {
-    // in case a prior attempt failed before CConn.close() could run
-    closeTunnel();
-
+  private static Session createTunnelJSch(String gatewayHost, String remoteHost,
+                                          int remotePort, int localPort) throws Exception {
     JSch.setLogger(new MyJSchLogger());
     JSch jsch=new JSch();
+    Session session = null;
 
     try {
       // NOTE: jsch does not support all ciphers.  User may be
@@ -204,13 +202,12 @@ public class Tunnel {
           OpenSSHConfig.parse(ssh_config.getAbsolutePath());
         jsch.setConfigRepository(repo);
       }
-      Session session=jsch.getSession(user, gatewayHost, getSshPort());
+      session=jsch.getSession(user, gatewayHost, getSshPort());
       session.setUserInfo(dlg);
       // OpenSSHConfig doesn't recognize StrictHostKeyChecking
       if (session.getConfig("StrictHostKeyChecking") == null)
         session.setConfig("StrictHostKeyChecking", "ask");
       session.connect();
-      currentSession = session;
       if (remoteHost.startsWith("/") || remotePort == 0) {
         session.setSocketForwardingL("127.0.0.1", localPort, remoteHost, null, 0);
         vlog.info("Opened SSH tunnel to Unix domain socket " + remoteHost + " on local port " + localPort);
@@ -219,8 +216,11 @@ public class Tunnel {
       } else {
         session.setPortForwardingL(localPort, remoteHost, remotePort);
       }
+      return session;
     } catch (java.lang.Exception e) {
-      throw new Exception(e.getMessage()); 
+      if (session != null)
+        session.disconnect();
+      throw new Exception(e.getMessage());
     }
   }
 
@@ -367,5 +367,4 @@ public class Tunnel {
   }
 
   static LogWriter vlog = new LogWriter("Tunnel");
-  private static Session currentSession = null;
 }
