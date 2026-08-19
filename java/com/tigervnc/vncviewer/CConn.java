@@ -592,6 +592,11 @@ public final class CConn extends CConnection implements
 
   // close() shuts down the socket, thus waking up the RFB thread.
   public void close() {
+    synchronized (closeLock) {
+      if (closed)
+        return;
+      closed = true;
+    }
     if (updateTimeoutTimer != null) {
       updateTimeoutTimer.stop();
       updateTimeoutTimer = null;
@@ -605,20 +610,18 @@ public final class CConn extends CConnection implements
     shuttingDown = true;
     super.close();
     try {
-      if (sock != null)
+      if (sock != null) {
         sock.shutdown();
+        sock = null;
+      }
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }
-    // Unregister from OptionsDialog's static callback map, which would
-    // otherwise hold these objects forever.
     OptionsDialog.removeCallback(this);
     if (desktop != null) {
       OptionsDialog.removeCallback(desktop);
       if (desktop.viewport != null)
         OptionsDialog.removeCallback(desktop.viewport);
-      // dispose() releases the native window peer; safe even if the
-      // window is already disposed.
       desktop.dispose();
       desktop = null;
     }
@@ -667,6 +670,8 @@ public final class CConn extends CConnection implements
   private int serverPort;
   private Socket sock;
   private Session tunnelSession;
+  private final Object closeLock = new Object();
+  private boolean closed = false;
 
   protected DesktopWindow desktop;
 
