@@ -101,6 +101,9 @@ bool CSecurityDH::readKey()
   is->readBytes(pBytes.data(), pBytes.size());
   is->readBytes(ABytes.data(), ABytes.size());
   nettle_mpz_set_str_256_u(p, pBytes.size(), pBytes.data());
+  // Sanity check that we didn't get a zero divisor
+  if (mpz_sgn(p) <= 0)
+    throw protocol_error(_("Received invalid Diffie-Hellman modulus"));
   nettle_mpz_set_str_256_u(A, ABytes.size(), ABytes.data());
   return true;
 }

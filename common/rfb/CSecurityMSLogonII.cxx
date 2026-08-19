@@ -39,6 +39,7 @@
 
 #include <rfb/CSecurityMSLogonII.h>
 #include <rfb/CConnection.h>
+#include <rfb/Exception.h>
 
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
@@ -89,6 +90,8 @@ bool CSecurityMSLogonII::readKey()
   is->readBytes(ABytes, 8);
   nettle_mpz_set_str_256_u(g, 8, gBytes);
   nettle_mpz_set_str_256_u(p, 8, pBytes);
+  if (mpz_sgn(p) <= 0)
+    throw protocol_error(_("Received invalid Diffie-Hellman modulus"));
   nettle_mpz_set_str_256_u(A, 8, ABytes);
   return true;
 }
