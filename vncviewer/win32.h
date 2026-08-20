@@ -23,10 +23,6 @@
 
 class Fl_Window;
 
-#ifdef _MSC_VER
-#define snprintf(str, n, format, ...) _snprintf_s(str, n, _TRUNCATE, format, __VA_ARGS__)
-#endif
-
 int win32_enable_lowlevel_keyboard(Fl_Window* win);
 void win32_disable_lowlevel_keyboard(Fl_Window* win);
 

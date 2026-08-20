@@ -73,10 +73,6 @@
 std::string CConn::savedUsername;
 std::string CConn::savedPassword;
 
-#ifdef WIN32
-#include "win32.h"
-#endif
-
 static core::LogWriter vlog("CConn");
 
 // 8 colours (1 bit per component)
