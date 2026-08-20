@@ -43,7 +43,7 @@ const char* winvnc::VNCServerService::Name = "TigerVNC";
 
 // SendSAS is not available until Windows 7, and missing from MinGW
 static HMODULE sasLibrary = nullptr;
-typedef void WINAPI (*SendSAS_proto)(BOOL AsUser);
+typedef void (WINAPI *SendSAS_proto)(BOOL AsUser);
 static SendSAS_proto _SendSAS = nullptr;
 
 VNCServerService::VNCServerService()

@@ -26,7 +26,21 @@
 
 #include <wm_hooks/wm_hooks.h>
 
+/* One copy of these across every process the hook DLL is injected into.
+ * gcc marks each variable; MSVC has no per-variable equivalent, so the
+ * groups are bracketed by data_seg instead. The linker directive is what
+ * actually shares the section -- without it it exists but each process
+ * still gets its own copy. */
+#ifdef _MSC_VER
+#pragma comment(linker, "/SECTION:shared,RWS")
+#define SHARED
+#define SHARED_BEGIN __pragma(data_seg("shared"))
+#define SHARED_END __pragma(data_seg())
+#else
 #define SHARED __attribute__((section ("shared"), shared))
+#define SHARED_BEGIN
+#define SHARED_END
+#endif
 
 UINT WM_HK_PingThread = RegisterWindowMessage("RFB.WM_Hooks.PingThread");
 
@@ -89,6 +103,7 @@ BOOL WINAPI DllMain(HANDLE instance, ULONG reason, LPVOID /*reserved*/) {
 // -=- Display update hooks
 //
 
+SHARED_BEGIN
 DWORD hook_owner SHARED = 0;
 DWORD hook_target SHARED = 0;
 HHOOK hook_CallWndProc SHARED = nullptr;
@@ -101,6 +116,7 @@ HCURSOR cursor SHARED = nullptr;
 UINT diagnostic_min SHARED =1;
 UINT diagnostic_max SHARED =0;
 #endif
+SHARED_END
 
 #ifdef _DEBUG
 DLLEXPORT void WM_Hooks_SetDiagnosticRange(UINT min, UINT max) {
@@ -375,12 +391,14 @@ BOOL WM_Hooks_Remove(DWORD owner) {
 // -=- User input hooks
 //
 
+SHARED_BEGIN
 HHOOK hook_keyboard SHARED = nullptr;
 HHOOK hook_pointer SHARED = nullptr;
 bool enable_real_ptr SHARED = true;
 bool enable_synth_ptr SHARED = true;
 bool enable_real_kbd SHARED = true;
 bool enable_synth_kbd SHARED = true;
+SHARED_END
 
 #ifdef WH_KEYBOARD_LL
 LRESULT CALLBACK HookKeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {

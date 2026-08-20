@@ -38,4 +38,7 @@ if(BUILD_WINVNC)
   target_sources(rfb_win32 PRIVATE ${RFB_WIN32_SOURCES} CleanDesktop.cxx)
 endif()
 
+# core for its headers as much as its code: rfb_win32 includes
+# core/i18n.h, and libintl is only on the include path via core
+target_link_libraries(rfb_win32 core)
 target_link_libraries(rfb_win32 user32.lib comctl32.lib wtsapi32.lib version.lib)
