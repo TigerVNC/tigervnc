@@ -51,6 +51,8 @@ import javax.swing.ImageIcon;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.prefs.*;
 
 import com.tigervnc.rdr.*;
@@ -608,6 +610,7 @@ public final class CConn extends CConnection implements
         f.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
     }
     shuttingDown = true;
+    clipboardSender.shutdownNow();
     super.close();
     try {
       if (sock != null) {
@@ -629,14 +632,17 @@ public final class CConn extends CConnection implements
     tunnelSession = null;
   }
 
-  // writeClientCutText() is called from the clipboard dialog. It goes
-  // through sendClipboardData() so the negotiated extended clipboard
-  // protocol (larger payloads, UTF-8 text) is used when the server
-  // supports it, falling back to classic ClientCutText otherwise.
+  // Run off the EDT -- large clipboard sends can block on socket I/O.
   public void writeClientCutText(String str, int len) {
-    if ((state() != stateEnum.RFBSTATE_NORMAL) || shuttingDown)
-      return;
-    sendClipboardData(str);
+    clipboardSender.execute(() -> {
+      try {
+        if ((state() != stateEnum.RFBSTATE_NORMAL) || shuttingDown)
+          return;
+        sendClipboardData(str);
+      } catch (java.lang.Exception e) {
+        vlog.error("Failed to send clipboard data: " + e.getMessage());
+      }
+    });
   }
 
   public void actionPerformed(ActionEvent e) {}
@@ -672,6 +678,12 @@ public final class CConn extends CConnection implements
   private Session tunnelSession;
   private final Object closeLock = new Object();
   private boolean closed = false;
+  private final ExecutorService clipboardSender =
+    Executors.newSingleThreadExecutor(r -> {
+      Thread t = new Thread(r, "Clipboard Sender");
+      t.setDaemon(true);
+      return t;
+    });
 
   protected DesktopWindow desktop;
 
