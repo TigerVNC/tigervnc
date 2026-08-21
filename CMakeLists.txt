@@ -36,7 +36,12 @@ endif()
 option(INSTALL_SYSTEMD_UNITS "Install TigerVNC systemd units" ON)
 
 if(MSVC)
-  message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
+  # MSVC is missing the POSIX headers and functions the sources expect,
+  # and the GCC attributes they are decorated with. contrib/msvc/include
+  # supplies both, so that no normal source file has to know which
+  # compiler it is being built with.
+  include_directories(BEFORE SYSTEM ${CMAKE_SOURCE_DIR}/contrib/msvc/include)
+  add_compile_options(/FI msvc_compat.h)
 endif()
 
 if(NOT BUILD_TIMESTAMP)
@@ -53,6 +58,11 @@ message(STATUS "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
 
 message(STATUS "VERSION = ${VERSION}")
 message(STATUS "BUILD_TIMESTAMP = ${BUILD_TIMESTAMP}")
+
+# The flags below are GCC's spelling of things MSVC either spells
+# differently or does by default, so it is given its own equivalents
+# rather than these.
+if(NOT MSVC)
 
 # We want to keep our asserts even in release builds so remove NDEBUG
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -UNDEBUG")
@@ -90,6 +100,26 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-nonliteral -Wno-format-security")
 endif()
 
+else()
+
+# Asserts are kept in release builds here as well
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /UNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /UNDEBUG")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /UNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /UNDEBUG")
+set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} /UNDEBUG")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /UNDEBUG")
+
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /D_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /D_DEBUG")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /WX")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /WX")
+
+endif()
+
 option(ENABLE_ASAN "Enable address sanitizer support" OFF)
 if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
@@ -100,11 +130,6 @@ option(ENABLE_TSAN "Enable thread sanitizer support" OFF)
 if(ENABLE_TSAN AND NOT WIN32 AND NOT APPLE AND CMAKE_SIZEOF_VOID_P MATCHES 8)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
-endif()
-
-if(MSVC)
-  # undef min and max macro
-  target_compile_definitions(rfb PRIVATE NOMINMAX)
 endif()
 
 if(NOT DEFINED BUILD_WINVNC)
@@ -120,7 +145,8 @@ endif()
 
 # Minimum version is Windows 7
 if(WIN32)
-  add_definitions(-D_WIN32_WINNT=0x0601)
+  set(WIN32_WINNT 0x0601)
+  add_definitions(-D_WIN32_WINNT=${WIN32_WINNT})
 endif()
 
 # Legacy macros (macOS 10.12 and older) conflict with our code
@@ -186,8 +212,27 @@ if(ENABLE_H264)
   if(WIN32)
     set(HAVE_H264 1)
 
+    # H264WinDecoderContext.cxx defines this itself when the answer is
+    # no, so the question is whether a header declares it, not whether
+    # something can be linked against. A link test says yes on a
+    # toolchain that ships the symbol in an import library without
+    # declaring it anywhere.
+    # The same headers H264WinDecoderContext reaches, in the same order,
+    # or this answers a question about a different translation unit.
+    # add_definitions() does not reach try_compile() either, and whether
+    # the GUID is declared depends on the version being targeted.
+    set(CMAKE_REQUIRED_DEFINITIONS -D_WIN32_WINNT=${WIN32_WINNT})
     set(CMAKE_REQUIRED_LIBRARIES ole32 mfplat mfuuid wmcodecdspuuid)
-    check_variable_exists(CLSID_VideoProcessorMFT HAVE_VIDEO_PROCESSOR_MFT)
+    check_cxx_source_compiles("
+      #include <mfapi.h>
+      #include <mferror.h>
+      #include <wmcodecdsp.h>
+      #include <windows.h>
+      #include <mfidl.h>
+      #include <mftransform.h>
+      int main() { return (int)CLSID_VideoProcessorMFT.Data1; }"
+      HAVE_VIDEO_PROCESSOR_MFT)
+    set(CMAKE_REQUIRED_DEFINITIONS)
     set(CMAKE_REQUIRED_LIBRARIES)
   else()
     if(ENABLE_H264 STREQUAL "AUTO")
@@ -314,7 +359,11 @@ if(BUILD_VIEWER)
   endif()
 
   if(FLTK_FOUND)
-    set(CMAKE_REQUIRED_FLAGS "-Wno-error")
+    if(MSVC)
+      set(CMAKE_REQUIRED_FLAGS "/WX-")
+    else()
+      set(CMAKE_REQUIRED_FLAGS "-Wno-error")
+    endif()
     set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
     set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
 

@@ -1,0 +1,71 @@
+Building TigerVNC with MSVC
+===========================
+
+MinGW is the supported Windows toolchain. This directory exists so that
+trying MSVC does not mean changing the normal sources.
+
+
+The compatibility layer
+-----------------------
+
+When CMake detects MSVC it puts contrib/msvc/include on the include path
+and force-includes msvc_compat.h (/FI). Between them they supply:
+
+  - the POSIX headers the sources include and MSVC does not ship:
+    strings.h, unistd.h, libgen.h, sys/time.h
+  - strcasecmp, strncasecmp, ffs, gettimeofday, usleep, dirname, mkdir
+  - mode_t, ssize_t, PATH_MAX
+  - the GCC attributes the sources are decorated with, which compile away
+  - the alternative operator spellings, via <iso646.h>
+
+Nothing under common/, vncviewer/ or tests/ has to know about any of it.
+
+
+The one thing a header cannot absorb
+------------------------------------
+
+win/wm_hooks/wm_hooks.cxx keeps its state in a shared section so that
+every process the DLL is injected into sees one copy. That attribute is
+not a diagnostic, so compiling it away would leave a DLL that builds and
+silently does not work. It is bracketed by data_seg pragmas instead.
+
+Worth knowing on the MinGW side as well: clang honours the section() half
+of that attribute and ignores the shared half, so a clang-built DLL has
+the section without IMAGE_SCN_MEM_SHARED (0x10000000) set. Only gcc
+honours both. Check the section characteristics if it matters to you.
+
+
+Dependencies
+------------
+
+Most come from vcpkg -- zlib, libjpeg-turbo, pixman, nettle, gtest,
+gettext, and fltk (the port is 1.3.x, which is the version TigerVNC
+wants):
+
+  cmake -S . -B build -G "Visual Studio 17 2022" -A ARM64 \
+    -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake \
+    -DVCPKG_TARGET_TRIPLET=arm64-windows
+
+GnuTLS is not one of them. Its vcpkg port is marked
+
+  "supports": "!windows | mingw"
+
+so a Windows triplet legitimately contains no gnutls.lib, and that
+absence is not evidence that the build cannot link. It has to be built
+separately, and CMake pointed at the result:
+
+  -DGNUTLS_INCLUDE_DIR=<gnutls>/include
+  -DGNUTLS_LIBRARY=<gnutls>/lib/gnutls.lib
+
+Building that stack for ARM64 is possible but is not TigerVNC's problem,
+so it is not documented here. If you need it, the pull request thread
+that added this directory carries the details and links to patches.
+
+
+Known limitations
+-----------------
+
+  - The viewer does not build yet. vncviewer.cxx puts a preprocessor
+    directive inside a macro argument list, which is undefined behaviour
+    that gcc accepts and MSVC rejects.
+  - ENABLE_NLS=OFF does not build, and not only with MSVC.
