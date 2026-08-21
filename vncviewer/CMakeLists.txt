@@ -10,6 +10,7 @@ add_executable(vncviewer
   fltk/Fl_Navigation.cxx
   fltk/event_dispatch_handler.cxx
   fltk/theme.cxx
+  AudioOutput.cxx
   AuthDialog.cxx
   BaseTouchHandler.cxx
   CConn.cxx
@@ -53,6 +54,16 @@ else()
   target_sources(vncviewer PRIVATE Surface_X11.cxx)
 endif()
 
+if(HAVE_AUDIO)
+  if(WIN32)
+    target_sources(vncviewer PRIVATE AudioOutputWin32.cxx)
+  else()
+    target_sources(vncviewer PRIVATE AudioOutputPulse.cxx)
+    target_include_directories(vncviewer SYSTEM PRIVATE ${PULSE_INCLUDE_DIRS})
+    target_link_libraries(vncviewer ${PULSE_LIBRARIES})
+  endif()
+endif()
+
 target_include_directories(vncviewer SYSTEM PUBLIC ${FLTK_INCLUDE_DIR})
 target_include_directories(vncviewer PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_link_libraries(vncviewer rfbclient rfb network rdr core)
@@ -68,7 +79,7 @@ if(GNUTLS_FOUND)
 endif()
 
 if(WIN32)
-  target_link_libraries(vncviewer msimg32)
+  target_link_libraries(vncviewer msimg32 winmm)
 elseif(APPLE)
   target_link_libraries(vncviewer "-framework Cocoa")
   target_link_libraries(vncviewer "-framework Carbon")

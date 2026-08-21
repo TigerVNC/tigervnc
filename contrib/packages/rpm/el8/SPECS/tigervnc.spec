@@ -24,6 +24,7 @@ BuildRequires:  freetype-devel, libjpeg-turbo-devel, pam-devel
 BuildRequires:  gnutls-devel, nettle-devel, gmp-devel
 BuildRequires:  zlib-devel
 BuildRequires:  libuuid-devel, glib2-devel, pipewire-devel
+BuildRequires:  pulseaudio-libs-devel
 BuildRequires:  wayland-devel, libxkbcommon-devel
 # X11/graphics dependencies
 BuildRequires: xorg-x11-server-source
@@ -148,6 +149,7 @@ export CXXFLAGS="$CFLAGS -std=c++11"
   -DENABLE_SELINUX=ON \
   -DENABLE_SYSTEMD=ON \
   -DENABLE_WAYLAND=ON \
+  -DENABLE_AUDIO=ON \
   -DBUILD_VIEWER=ON
 
 %cmake_build

@@ -17,6 +17,7 @@ Build-Depends:
  libavcodec-dev,
  libavutil-dev,
  libswscale-dev,
+ libpulse-dev,
  libgnutls28-dev,
  libgmp-dev,
  libpam0g-dev,

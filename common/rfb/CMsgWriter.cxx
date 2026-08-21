@@ -334,6 +334,27 @@ void CMsgWriter::writeClipboardProvide(uint32_t flags,
   endMsg();
 }
 
+void CMsgWriter::writeQEMUAudioEnable(bool enable)
+{
+  startMsg(msgTypeQEMUClientMessage);
+  os->writeU8(qemuAudio);
+  os->writeU16(enable ? msgToQemuEnableAudio : msgToQemuDisableAudio);
+  endMsg();
+}
+
+void CMsgWriter::writeQEMUAudioSetFormat(uint8_t sampleFormat,
+                                         uint8_t channels,
+                                         uint32_t frequency)
+{
+  startMsg(msgTypeQEMUClientMessage);
+  os->writeU8(qemuAudio);
+  os->writeU16(msgToQemuSetAudioFormat);
+  os->writeU8(sampleFormat);
+  os->writeU8(channels);
+  os->writeU32(frequency);
+  endMsg();
+}
+
 void CMsgWriter::startMsg(int type)
 {
   os->writeU8(type);

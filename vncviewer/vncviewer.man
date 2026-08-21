@@ -143,6 +143,12 @@ Display a dialog with any fatal error before exiting. Default is on.
 Show a local cursor when the server sends an invisible cursor. Default is off.
 .
 .TP
+.B \-Audio
+Play audio sent by the server, if it offers any. Only some servers can send
+audio, and only some platforms can play it. Changing this only affects
+subsequent connections. Default is on.
+.
+.TP
 .B \-AutoSelect
 Use automatic selection of encoding and pixel format (default is on).  Normally
 the viewer tests the speed of the connection to the server and chooses the

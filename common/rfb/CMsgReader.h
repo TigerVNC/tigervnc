@@ -73,6 +73,8 @@ namespace rfb {
     bool readLEDState();
     bool readVMwareLEDState();
 
+    bool readQEMUServerMessage();
+
   private:
     CMsgHandler* handler;
     rdr::InStream* is;

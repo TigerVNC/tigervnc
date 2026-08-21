@@ -199,6 +199,11 @@ core::BoolParameter
          false);
 
 core::BoolParameter
+  playAudio("Audio",
+            _("Play audio sent by the server, if it offers any"),
+            true);
+
+core::BoolParameter
   acceptClipboard("AcceptClipboard",
                   _("Accept clipboard changes from the server"),
                   true);
@@ -265,6 +270,7 @@ static core::VoidParameter* parameterArray[] = {
   /* Misc. */
   &reconnectOnError,
   &shared,
+  &playAudio,
   /* Compression */
   &autoSelect,
   &fullColour,

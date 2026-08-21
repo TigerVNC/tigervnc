@@ -208,6 +208,25 @@ if(ENABLE_H264)
   endif()
 endif()
 
+trioption(ENABLE_AUDIO "Enable audio playback in the viewer")
+if(ENABLE_AUDIO)
+  if(WIN32)
+    # waveOut comes with the OS
+    set(HAVE_AUDIO 1)
+  else()
+    if(ENABLE_AUDIO STREQUAL "AUTO")
+      find_package(Pulse)
+    else()
+      find_package(Pulse REQUIRED)
+    endif()
+    if(PULSE_FOUND)
+      set(HAVE_AUDIO 1)
+    else()
+      message(WARNING "PulseAudio NOT found. Audio playback disabled.")
+    endif()
+  endif()
+endif()
+
 # Check for libjpeg
 find_package(JPEG REQUIRED)
 
