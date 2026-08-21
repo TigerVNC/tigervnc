@@ -42,43 +42,24 @@ Most come from vcpkg -- zlib, libjpeg-turbo, pixman, nettle, gtest,
 gettext, and fltk (the port is 1.3.x, which is the version TigerVNC
 wants):
 
-  cmake -S . -B build -G "Visual Studio 17 2022" -A ARM64     -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake     -DVCPKG_TARGET_TRIPLET=arm64-windows
+  cmake -S . -B build -G "Visual Studio 17 2022" -A ARM64 \
+    -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake \
+    -DVCPKG_TARGET_TRIPLET=arm64-windows
 
 GnuTLS is not one of them. Its vcpkg port is marked
 
   "supports": "!windows | mingw"
 
 so a Windows triplet legitimately contains no gnutls.lib, and that
-absence is not evidence that the build cannot link. Build it separately
-and point CMake at it:
+absence is not evidence that the build cannot link. It has to be built
+separately, and CMake pointed at the result:
 
   -DGNUTLS_INCLUDE_DIR=<gnutls>/include
   -DGNUTLS_LIBRARY=<gnutls>/lib/gnutls.lib
 
-
-Building GnuTLS for MSVC, and for ARM64
----------------------------------------
-
-The ShiftMediaProject ports (github.com/ShiftMediaProject) carry MSVC
-solutions for zlib, gmp, nettle and gnutls. They ship Win32 and x64
-configurations only, so ARM64 has to be added.
-
-Most of that is msbuild work: adding Debug|ARM64 and Release|ARM64
-beside the existing Win32 and x64 entries, and excluding the x86
-assembly from ARM64 builds. Some of it is not, and those are the parts
-that take the time -- gmp needs <immintrin.h> kept away from ARM64 and
-umul_ppmm implemented with __umulh, and gmp, nettle and gnutls all have
-to be told that this fork ships no aarch64 assembly so that they use
-their own portable C instead of failing to link against routines that
-are not there.
-
-Ready-made patches, with the upstream commits they apply to and notes on
-what each one does, are on the msvc-deps branch of
-
-  github.com/jose-pr/tigervnc
-
-under contrib/msvc/deps. They are a record of one working build rather
-than anything supported, and are deliberately not part of this branch.
+Building that stack for ARM64 is possible but is not TigerVNC's problem,
+so it is not documented here. If you need it, the pull request thread
+that added this directory carries the details and links to patches.
 
 
 Known limitations
