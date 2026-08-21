@@ -360,7 +360,9 @@ void OptionsDialog::loadOptions(void)
   /* Misc. */
   sharedCheckbox->value(shared);
   reconnectCheckbox->value(reconnectOnError);
+#ifdef HAVE_AUDIO
   audioCheckbox->value(playAudio);
+#endif
   alwaysCursorCheckbox->value(alwaysCursor);
   if (cursorType == "system") {
     cursorTypeChoice->value(1);
@@ -516,7 +518,9 @@ void OptionsDialog::storeOptions(void)
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
   reconnectOnError.setParam(reconnectCheckbox->value());
+#ifdef HAVE_AUDIO
   playAudio.setParam(audioCheckbox->value());
+#endif
   alwaysCursor.setParam(alwaysCursorCheckbox->value());
 
   if (cursorTypeChoice->value() == 1) {
@@ -1253,11 +1257,13 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
                                                   _("Ask to reconnect on connection errors")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
+#ifdef HAVE_AUDIO
   audioCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                CHECK_MIN_WIDTH,
                                                CHECK_HEIGHT,
                                                _("Play audio from the server")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
+#endif
 
   group->end();
 }

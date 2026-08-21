@@ -10,7 +10,6 @@ add_executable(vncviewer
   fltk/Fl_Navigation.cxx
   fltk/event_dispatch_handler.cxx
   fltk/theme.cxx
-  AudioOutput.cxx
   AuthDialog.cxx
   BaseTouchHandler.cxx
   CConn.cxx
@@ -55,6 +54,7 @@ else()
 endif()
 
 if(HAVE_AUDIO)
+  target_sources(vncviewer PRIVATE AudioOutput.cxx)
   if(WIN32)
     target_sources(vncviewer PRIVATE AudioOutputWin32.cxx)
   else()

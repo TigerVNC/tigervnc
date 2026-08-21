@@ -106,6 +106,7 @@ CConn::CConn()
   supportsDesktopResize = true;
   supportsLEDState = true;
 
+#ifdef HAVE_AUDIO
   // Only ask the server to send audio if there is a device that can
   // play it. Opening that device is deferred until the server actually
   // has something for us.
@@ -113,6 +114,7 @@ CConn::CConn()
     audioOutput = AudioOutput::create();
     supportsAudio = audioOutput != nullptr;
   }
+#endif
 
   if (customCompressLevel)
     setCompressLevel(::compressLevel);

@@ -198,10 +198,12 @@ core::BoolParameter
          _("Don't disconnect other viewers upon connection"),
          false);
 
+#ifdef HAVE_AUDIO
 core::BoolParameter
   playAudio("Audio",
             _("Play audio sent by the server, if it offers any"),
             true);
+#endif
 
 core::BoolParameter
   acceptClipboard("AcceptClipboard",
@@ -270,7 +272,9 @@ static core::VoidParameter* parameterArray[] = {
   /* Misc. */
   &reconnectOnError,
   &shared,
+#ifdef HAVE_AUDIO
   &playAudio,
+#endif
   /* Compression */
   &autoSelect,
   &fullColour,
