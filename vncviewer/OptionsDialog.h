@@ -108,18 +108,26 @@ protected:
   Fl_Int_Input *jpegInput;
 
   /* Security */
+#if defined(HAVE_GNUTLS) || defined(HAVE_NETTLE)
   Fl_Group *encryptionGroup;
   Fl_Check_Button *encNoneCheckbox;
+#ifdef HAVE_GNUTLS
   Fl_Check_Button *encTLSCheckbox;
   Fl_Check_Button *encX509Checkbox;
+#endif
+#ifdef HAVE_NETTLE
   Fl_Check_Button *encRSAAESCheckbox;
+#endif
+#ifdef HAVE_GNUTLS
   Fl_Input *caInput;
   Fl_Input *crlInput;
+#endif
 
   Fl_Group *authenticationGroup;
   Fl_Check_Button *authNoneCheckbox;
   Fl_Check_Button *authVncCheckbox;
   Fl_Check_Button *authPlainCheckbox;
+#endif
 
   /* Input */
   Fl_Check_Button *viewOnlyCheckbox;
