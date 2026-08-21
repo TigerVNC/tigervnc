@@ -57,6 +57,8 @@ if(HAVE_AUDIO)
   target_sources(vncviewer PRIVATE AudioOutput.cxx)
   if(WIN32)
     target_sources(vncviewer PRIVATE AudioOutputWin32.cxx)
+  elseif(APPLE)
+    # Shouldn't happen
   else()
     target_sources(vncviewer PRIVATE AudioOutputPulse.cxx)
     target_include_directories(vncviewer SYSTEM PRIVATE ${PULSE_INCLUDE_DIRS})
