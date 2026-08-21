@@ -63,31 +63,22 @@ The ShiftMediaProject ports (github.com/ShiftMediaProject) carry MSVC
 solutions for zlib, gmp, nettle and gnutls. They ship Win32 and x64
 configurations only, so ARM64 has to be added.
 
-Recorded here because it is the part that costs a day if you have to
-work it out again. No library source needs changing -- every edit is to
-msbuild project files:
+Most of that is msbuild work: adding Debug|ARM64 and Release|ARM64
+beside the existing Win32 and x64 entries, and excluding the x86
+assembly from ARM64 builds. Some of it is not, and those are the parts
+that take the time -- gmp needs <immintrin.h> kept away from ARM64 and
+umul_ppmm implemented with __umulh, and gmp, nettle and gnutls all have
+to be told that this fork ships no aarch64 assembly so that they use
+their own portable C instead of failing to link against routines that
+are not there.
 
-  zlib     SMP/libzlib.sln, SMP/libzlib.vcxproj
-  gmp      SMP/libgmp.sln, SMP/libgmp.vcxproj, and the six gen-*.vcxproj
-           host tools (gen-bases, gen-fac, gen-fib, gen-jacobitab,
-           gen-psqr, gen-trialdivtab)
-  nettle   SMP/libnettle.sln, SMP/libnettle.vcxproj,
-           SMP/libnettle_deps.sln, SMP/libhogweed.vcxproj,
-           SMP/desdata.vcxproj, SMP/eccdata.vcxproj
-  gnutls   SMP/libgnutls.sln, SMP/libgnutls.vcxproj,
-           SMP/libgnutls_deps.sln
+Ready-made patches, with the upstream commits they apply to and notes on
+what each one does, are on the msvc-deps branch of
 
-In each: add Debug|ARM64 and Release|ARM64 next to the existing Win32 and
-x64 entries -- plus the DLL, WinRT and DLLStaticDeps variants where the
-solution has them -- each with a matching PlatformToolset property group.
+  github.com/jose-pr/tigervnc
 
-One more, outside those repositories: ShiftMediaProject/VSYASM. Its
-yasm.props hard-fails on any platform that is not Win32 or x64, and its
-install_script.bat does not recognise an ARM64 host. Both need an ARM64
-case adding.
-
-Build in dependency order -- zlib, gmp, nettle, gnutls -- then collect
-the headers, import libraries and DLLs into one tree to point at.
+under contrib/msvc/deps. They are a record of one working build rather
+than anything supported, and are deliberately not part of this branch.
 
 
 Known limitations
