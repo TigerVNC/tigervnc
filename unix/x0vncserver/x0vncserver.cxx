@@ -47,6 +47,7 @@
 
 #include <network/TcpSocket.h>
 #include <network/UnixSocket.h>
+#include <network/DnsSD.h>
 
 #ifdef HAVE_LIBSYSTEMD
 #  include <systemd/sd-daemon.h>
@@ -104,6 +105,12 @@ core::StringParameter
   interface("interface",
             _("Listen on the specified network address"),
             "all");
+
+#ifdef HAVE_AVAHI
+core::BoolParameter dnssd("dnssd",_("Advertise server with DNS-SD."), true);
+#else
+const bool dnssd = false;
+#endif
 
 static const char* defaultDesktopName()
 {
@@ -274,6 +281,26 @@ private:
 
 };
 
+struct DnsSDWatchAdapter : network::dnssd::WatchAdapter {
+  struct Watch{
+    int fd;
+    bool read;
+    bool write;
+  };
+  
+  std::list<Watch> watches;
+
+  void addWatch(int fd, bool read, bool write) override
+  {
+    watches.push_back({fd, read, write});
+  }
+
+  void removeWatch(int fd) override
+  {
+    watches.remove_if([=](Watch w) { return w.fd == fd; });
+  }
+};
+
 char* programName;
 
 static void printVersion(FILE *fp)
@@ -369,6 +396,7 @@ int main(int argc, char** argv)
   signal(SIGTERM, CleanupSignalHandler);
 
   std::list<network::SocketListener*> listeners;
+  DnsSDWatchAdapter sdWatchAdapter;
 
   try {
     TXWindow::init(dpy,"x0vncserver");
@@ -407,6 +435,11 @@ int main(int argc, char** argv)
         createTcpListeners(&tcp_listeners, addr, (int)rfbport);
 
       if (!tcp_listeners.empty()) {
+        if (dnssd) {
+          network::dnssd::initialize(&sdWatchAdapter);
+          network::dnssd::advertise(desktopName.getValueStr(), tcp_listeners);
+        }
+        
         listeners.splice (listeners.end(), tcp_listeners);
         if (localhostOnly)
           vlog.info(_("Listening for VNC connections on local "
@@ -446,6 +479,13 @@ int main(int argc, char** argv)
       FD_SET(ConnectionNumber(dpy), &rfds);
       for (network::SocketListener* listener : listeners)
         FD_SET(listener->getFd(), &rfds);
+
+      for (auto w: sdWatchAdapter.watches) {
+        if (w.read)
+          FD_SET(w.fd, &rfds);
+        if (w.write)
+          FD_SET(w.fd, &wfds);
+      }
 
       server.getSockets(&sockets);
       int clients_connected = 0;
@@ -511,6 +551,11 @@ int main(int argc, char** argv)
         }
       }
 
+      for (auto w : sdWatchAdapter.watches) {
+        if (FD_ISSET(w.fd, &rfds) || FD_ISSET(w.fd, &wfds))
+          sdWatchAdapter.handleReadyWatch(w.fd);
+      }
+
       core::Timer::checkTimeouts();
 
       // Client list could have been changed.
@@ -544,6 +589,8 @@ int main(int argc, char** argv)
   // Run listener destructors; remove UNIX sockets etc
   for (network::SocketListener* listener : listeners)
     delete listener;
+  if (dnssd)
+    network::dnssd::shutdown();
 
   vlog.info(_("Terminated"));
   return 0;

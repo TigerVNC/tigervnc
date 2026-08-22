@@ -453,6 +453,21 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
+# Check for Avahi library for DNS-SD support
+if(UNIX AND NOT APPLE)
+  trioption(ENABLE_AVAHI "Enable DNS-SD support using Avahi")
+  if(ENABLE_AVAHI)
+    if(ENABLE_AVAHI STREQUAL "AUTO")
+      find_package(Avahi)
+    else()
+      find_package(Avahi REQUIRED)
+    endif()
+    if(AVAHI_FOUND)
+      set(HAVE_AVAHI 1)
+    endif()
+  endif()
+endif()
+
 find_package(GTest)
 
 # Generate config.h and make sure the source finds it
