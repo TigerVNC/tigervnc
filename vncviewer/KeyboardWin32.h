@@ -39,7 +39,7 @@ protected:
   int fixSystemKeyCode(int systemKeyCode);
   uint32_t translateSystemKeyCode(int systemKeyCode);
   uint32_t lookupVKeyMap(unsigned vkey, bool extended,
-                         const UINT map[][3], size_t size);
+                         const unsigned map[][3], size_t size);
   uint32_t translateVKey(unsigned vkey, bool extended,
                          const unsigned char state[256]);
 
@@ -49,7 +49,7 @@ protected:
 
 private:
   int cachedHasAltGr;
-  HKL currentLayout;
+  void* currentLayout;
 
   bool altGrArmed;
   unsigned int altGrCtrlTime;

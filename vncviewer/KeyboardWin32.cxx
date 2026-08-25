@@ -59,7 +59,7 @@ static const int SCAN_VK_PACKET = 0x1ff;
 static core::LogWriter vlog("KeyboardWin32");
 
 // Layout independent keys
-static const UINT vkey_map[][3] = {
+static const unsigned vkey_map[][3] = {
   { VK_CANCEL,              NoSymbol,       XK_Break },
   { VK_BACK,                XK_BackSpace,   NoSymbol },
   { VK_TAB,                 XK_Tab,         NoSymbol },
@@ -152,7 +152,7 @@ static const UINT vkey_map[][3] = {
 // Layout dependent keys, but without useful symbols
 
 // Japanese
-static const UINT vkey_map_jp[][3] = {
+static const unsigned vkey_map_jp[][3] = {
   { VK_KANA,                XK_Hiragana_Katakana, NoSymbol },
   { VK_KANJI,               XK_Kanji,       NoSymbol },
   { VK_OEM_ATTN,            XK_Eisu_toggle, NoSymbol },
@@ -167,7 +167,7 @@ static const UINT vkey_map_jp[][3] = {
 };
 
 // Korean
-static const UINT vkey_map_ko[][3] = {
+static const unsigned vkey_map_ko[][3] = {
   { VK_HANGUL,              XK_Hangul,      NoSymbol },
   { VK_HANJA,               XK_Hangul_Hanja, NoSymbol },
 };
@@ -653,7 +653,7 @@ uint32_t KeyboardWin32::translateSystemKeyCode(int systemKeyCode)
 }
 
 uint32_t KeyboardWin32::lookupVKeyMap(unsigned vkey, bool extended,
-                                          const UINT map[][3], size_t size)
+                                      const unsigned map[][3], size_t size)
 {
   size_t i;
 
