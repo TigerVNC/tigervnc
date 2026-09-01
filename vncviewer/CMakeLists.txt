@@ -87,7 +87,12 @@ elseif(APPLE)
   target_link_libraries(vncviewer "-framework Carbon")
   target_link_libraries(vncviewer "-framework IOKit")
 else()
+  target_include_directories(vncviewer SYSTEM PUBLIC ${X11_INCLUDE_DIR})
+
+  target_link_libraries(vncviewer ${X11_X11_LIB})
+  target_link_libraries(vncviewer ${X11_Xext_LIB})
   target_link_libraries(vncviewer ${X11_Xi_LIB})
+  target_link_libraries(vncviewer ${X11_Xrender_LIB})
 
   if(X11_Xrandr_LIB)
     target_link_libraries(vncviewer ${X11_Xrandr_LIB})
