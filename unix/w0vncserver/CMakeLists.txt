@@ -96,6 +96,11 @@ target_link_libraries(w0vncserver ${UUID_LIBRARIES})
 target_link_libraries(w0vncserver ${XKBCOMMON_LIBRARIES})
 target_link_libraries(w0vncserver ${WAYLANDCLIENT_LIBRARIES})
 
+if(HAVE_AVAHI_GLIB)
+target_include_directories(w0vncserver SYSTEM PUBLIC ${AVAHI_GLIB_INCLUDE_DIRS})
+target_link_libraries(w0vncserver ${AVAHI_GLIB_LIBRARIES})  
+endif()
+
 target_link_libraries(w0vncserver-forget core)
 
 install(TARGETS w0vncserver w0vncserver-forget DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})

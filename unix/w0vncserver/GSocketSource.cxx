@@ -34,12 +34,23 @@
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
+#ifdef HAVE_AVAHI_GLIB
+#include <avahi-glib/glib-watch.h>
+#include <network/DnsSD.h>
+#endif
+
 #include "w0vncserver.h"
 #include "GSocketSource.h"
+#include "parameters.h"
 
 static core::LogWriter vlog("GSocketMonitor");
 
 static std::map<GSource*, GSocketSource*> sources;
+
+#ifdef HAVE_AVAHI_GLIB
+core::BoolParameter dnssd("dnssd", _("Advertise server via mDNS/DNS-SD"), true);
+static AvahiGLibPoll* avahiPoll = nullptr;
+#endif
 
 struct SocketState {
   void* tag;
@@ -93,6 +104,14 @@ GSocketSource::~GSocketSource()
     delete sock;
   }
 
+#ifdef HAVE_AVAHI_GLIB
+  if (avahiPoll) {
+    network::dnssd::shutdown();
+    avahi_glib_poll_free(avahiPoll);
+    avahiPoll = nullptr;
+  }
+#endif
+
   sources.erase(source);
   // GLib will take care of the monitored FDs on our source
   g_source_unref(source);
@@ -138,6 +157,19 @@ void GSocketSource::listen()
       },
       event);
   }
+
+#ifdef HAVE_AVAHI_GLIB
+  if(dnssd) {
+    avahiPoll = avahi_glib_poll_new(g_source_get_context(source), G_PRIORITY_DEFAULT);
+    if(!avahiPoll) {
+      vlog.error("Unable to create Glib pollfor Avahi");
+      return;
+    }
+
+    network::dnssd::initialize(avahi_glib_poll_get(avahiPoll));
+    network::dnssd::advertise(desktopName.getValueStr(), *listeners);
+  }
+#endif
 }
 
 int GSocketSource::prepare(int* timeout)
