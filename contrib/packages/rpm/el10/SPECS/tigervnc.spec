@@ -30,6 +30,7 @@ BuildRequires:  zlib-devel
 BuildRequires:  libuuid-devel, glib2-devel, pipewire-devel
 BuildRequires:  pulseaudio-libs-devel
 BuildRequires:  wayland-devel, libxkbcommon-devel
+BuildRequires:  libpwquality-devel
 # X11/graphics dependencies
 BuildRequires: libXext-devel, libX11-devel, libXi-devel, libXfixes-devel
 BuildRequires: libXdamage-devel, libXrandr-devel, libXt-devel, libXdmcp-devel
@@ -141,6 +142,7 @@ export CXXFLAGS="$CFLAGS -std=c++11"
   -DENABLE_PAM=ON \
   -DENABLE_SELINUX=ON \
   -DENABLE_SYSTEMD=ON \
+  -DENABLE_PWQUALITY=ON \
   -DENABLE_WAYLAND=ON \
   -DENABLE_AUDIO=ON \
   -DBUILD_VIEWER=ON

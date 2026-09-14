@@ -18,7 +18,7 @@ jobs:
             libpixman-1-dev libjpeg-turbo8-dev \
             libgnutls28-dev nettle-dev libgmp-dev \
             libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev \
-            libpam-dev libsystemd-dev \
+            libpam-dev libsystemd-dev libpwquality-dev \
             libavcodec-dev libavutil-dev libswscale-dev \
             libpulse-dev \
             uuid-dev libglib2.0-dev libpipewire-0.3-dev \
@@ -36,6 +36,7 @@ jobs:
             -DENABLE_PAM=ON \
             -DBUILD_VIEWER=ON \
             -DENABLE_SYSTEMD=ON \
+            -DENABLE_PWQUALITY=ON \
             -DENABLE_WAYLAND=ON \
             -S . -B build
       - name: Build
