@@ -63,6 +63,9 @@ extern int swprintf (wchar_t *, size_t, const wchar_t *, ...)
 #define N_(String) gettext_noop (String)
 #define NC_(Context, String) gettext_noop (String)
 
+/* Redirect gettext calls to our wrappers */
+#if defined ENABLE_NLS && ENABLE_NLS
+
 #undef dgettext
 #undef dcgettext
 #undef dngettext
@@ -109,6 +112,8 @@ const char *npgettext_rfb(const char *domain,
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

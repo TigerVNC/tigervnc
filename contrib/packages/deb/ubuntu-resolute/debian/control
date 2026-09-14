@@ -35,6 +35,7 @@ Build-Depends:
  libpipewire-0.3-dev,
  libwayland-dev,
  libxkbcommon-dev,
+ libpwquality-dev,
 # Xorg dependencies
 # debhelper-compat (= 12),
  quilt,

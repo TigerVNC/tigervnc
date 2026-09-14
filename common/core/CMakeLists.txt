@@ -11,19 +11,22 @@ add_library(core STATIC
   LogWriter.cxx
   Region.cxx
   Timer.cxx
-  i18n.cxx
   string.cxx
   time.cxx
   xdgdirs.cxx)
 
 target_include_directories(core PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_include_directories(core SYSTEM PUBLIC ${Intl_INCLUDE_DIR})
 target_include_directories(core SYSTEM PUBLIC ${PIXMAN_INCLUDE_DIRS})
-target_link_libraries(core ${Intl_LIBRARIES})
 target_link_libraries(core ${PIXMAN_LIBRARIES})
 
 if(UNIX)
   target_sources(core PRIVATE Logger_syslog.cxx)
+endif()
+
+if(ENABLE_NLS)
+  target_sources(core PRIVATE i18n.cxx)
+  target_include_directories(core SYSTEM PUBLIC ${Intl_INCLUDE_DIR})
+  target_link_libraries(core ${Intl_LIBRARIES})
 endif()
 
 if(WIN32)
