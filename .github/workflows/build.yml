@@ -75,6 +75,75 @@ jobs:
           path: '*.xml'
           reporter: java-junit
 
+  build-all-disabled:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERBOSE: 1
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libfltk1.3-dev fluid \
+            libpixman-1-dev libjpeg-turbo8-dev \
+            libxtst-dev libxdamage-dev libxfixes-dev libxrandr-dev \
+            uuid-dev libglib2.0-dev libpipewire-0.3-dev \
+            libwayland-dev libxkbcommon-dev \
+            libgtest-dev
+      - name: Configure
+        run: |
+          cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_NLS=OFF \
+            -DENABLE_H264=OFF \
+            -DENABLE_AUDIO=OFF \
+            -DBUILD_VIEWER=ON \
+            -DENABLE_GNUTLS=OFF \
+            -DENABLE_NETTLE=OFF \
+            -DENABLE_PAM=OFF \
+            -DENABLE_SELINUX=OFF \
+            -DENABLE_SYSTEMD=OFF \
+            -DENABLE_PWQUALITY=OFF \
+            -DENABLE_WAYLAND=ON \
+            -S . -B build
+      - name: Build
+        working-directory: build
+        run: make
+      - name: Install
+        working-directory: build
+        run: make tarball
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Linux (Ubuntu, everything disabled)
+          path: build/tigervnc-*.tar.gz
+      - name: Test
+        continue-on-error: true
+        working-directory: build
+        run: ctest --test-dir tests/unit/ --output-junit test-results.xml
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-all-disabled
+          path: build/tests/unit/test-results.xml
+
+  report-all-disabled:
+    name: Unit tests (Linux, everything disabled)
+    runs-on: ubuntu-latest
+    needs: build-all-disabled
+    if: always()
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: test-results-all-disabled
+      - uses: dorny/test-reporter@v3
+        with:
+          artifact: test-results-all-disabled
+          name: FIXME not used, but required
+          path: '*.xml'
+          reporter: java-junit
+
   build-windows:
     runs-on: windows-latest
     timeout-minutes: 20
