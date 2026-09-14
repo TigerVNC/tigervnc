@@ -1,0 +1,61 @@
+diff -up xserver/hw/meson.build.tvnc xserver/hw/meson.build
+--- xserver/hw/meson.build.tvnc	2026-08-20 03:02:10.000000000 +0200
++++ xserver/hw/meson.build	2026-08-27 14:47:39.497709999 +0200
+@@ -6,6 +6,8 @@ if build_xvfb
+     subdir('vfb')
+ endif
+ 
++subdir('vnc')
++
+ if build_xnest
+     subdir('xnest')
+ endif
+diff -up xserver/include/meson.build.tvnc xserver/include/meson.build
+--- xserver/include/meson.build.tvnc	2026-08-28 16:47:56.441288915 +0200
++++ xserver/include/meson.build	2026-08-28 16:50:24.375890445 +0200
+@@ -106,6 +106,8 @@ conf_data.set('GLAMOR_HAS_EGL_QUERY_DMAB
+ conf_data.set('GLAMOR_HAS_EGL_QUERY_DRIVER',
+               epoxy_dep.found() and epoxy_dep.version().version_compare('>= 1.5.4') ? '1' : false)
+ conf_data.set('GLXEXT', build_glx ? '1' : false)
++conf_data.set('HAVE_LIBXCVT', libxcvt_dep.found() ? '1' : false)
++conf_data.set('HAVE_GBM', gbm_dep.found() ? '1' : false)
+ conf_data.set('GLAMOR', build_glamor ? '1' : false)
+ conf_data.set('GLAMOR_HAS_GBM', gbm_dep.found() ? '1' : false)
+ conf_data.set('GLAMOR_HAS_GBM_LINEAR',
+diff -up xserver/meson.build.tvnc xserver/meson.build
+--- xserver/meson.build.tvnc	2026-08-28 16:46:02.237596514 +0200
++++ xserver/meson.build	2026-08-28 16:47:42.615467421 +0200
+@@ -329,16 +329,16 @@ endif
+ 
+ module_dir = get_option('libdir') / get_option('module_dir')
+ 
++gbm_dep = dependency('gbm', version: gbm_req, required: false)
++
+ if glamor_option == 'auto'
+     build_glamor = build_xorg
+ else
+     build_glamor = glamor_option == 'true'
+ endif
+ 
+-gbm_dep = dependency('', required: false)
+ epoxy_dep = dependency('', required: false)
+ if build_glamor
+-    gbm_dep = dependency('gbm', version: gbm_req, required: false)
+     epoxy_dep = dependency('epoxy', required: false)
+ endif
+ 
+diff -up xserver/meson_options.txt.tvnc xserver/meson_options.txt
+--- xserver/meson_options.txt.tvnc	2026-08-20 03:02:10.000000000 +0200
++++ xserver/meson_options.txt	2026-08-27 14:47:39.497830382 +0200
+@@ -132,6 +132,11 @@ option('sparkle-public-edkey', type: 'st
+ option('xpbproxy', type: 'boolean', value: false,
+         description: 'Build a standalone X pasteboard proxy')
+ 
++option('tigervnc_srcdir', type: 'string', value: '',
++       description: 'Location of TigerVNC source directory')
++option('tigervnc_builddir', type: 'string', value: '',
++       description: 'Location of TigerVNC build directory')
++
+ option('libunwind', type: 'boolean', value: false,
+         description: 'Use libunwind for backtrace reporting')
+ 

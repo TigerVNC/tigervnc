@@ -10,6 +10,7 @@ target_link_libraries(unixcommon core rfb)
 
 if(UNIX)
   libtool_create_control_file(unixcommon)
+  create_find_module(unixcommon)
 endif()
 
 if(NOT WIN32)
