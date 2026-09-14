@@ -46,6 +46,8 @@ namespace rfb {
 
 namespace network { class SocketListener; class Socket; }
 
+struct DnsSDWatchAdapter;
+
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public core::Timer::Callback {
 public:
@@ -134,5 +136,6 @@ private:
   std::map<uint64_t, uint64_t> pendingMsc;
 
   core::Point oldCursorPos;
+  DnsSDWatchAdapter *dnssdWatchAdapter;
 };
 #endif

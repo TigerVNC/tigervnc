@@ -42,6 +42,7 @@
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
+#include <network/DnsSD.h>
 #include <network/Socket.h>
 
 #include <rfb/VNCServerST.h>
@@ -75,6 +76,25 @@ core::IntParameter
                       10, 0, INT_MAX);
 
 
+#ifdef HAVE_AVAHI_CLIENT
+core::BoolParameter dnssd("dnssd", _("Advertise server via mDNS/DNS-SD"), true);
+
+struct DnsSDWatchAdapter : network::dnssd::WatchAdapter {
+  int scrIdx;
+
+  void addWatch(int fd, bool read, bool write) override
+  {
+    vncSetNotifyFd(fd, scrIdx, read, write);
+  }
+
+  void removeWatch(int fd) override
+  {
+    vncRemoveNotifyFd(fd);
+  }
+};
+#endif
+
+
 XserverDesktop::XserverDesktop(int screenIndex_,
                                std::list<network::SocketListener*> listeners_,
                                const char* name, const rfb::PixelFormat &pf,
@@ -83,7 +103,8 @@ XserverDesktop::XserverDesktop(int screenIndex_,
   : screenIndex(screenIndex_),
     server(0), listeners(listeners_),
     shadowFramebuffer(nullptr),
-    queryConnectId(0), queryConnectTimer(this)
+    queryConnectId(0), queryConnectTimer(this),
+    dnssdWatchAdapter(nullptr)
 {
   format = pf;
 
@@ -92,6 +113,15 @@ XserverDesktop::XserverDesktop(int screenIndex_,
 
   for (network::SocketListener* listener : listeners)
     vncSetNotifyFd(listener->getFd(), screenIndex, true, false);
+
+#ifdef HAVE_AVAHI_CLIENT
+  if (dnssd) {
+    dnssdWatchAdapter = new DnsSDWatchAdapter();
+    dnssdWatchAdapter->scrIdx = screenIndex;
+    network::dnssd::initialize(dnssdWatchAdapter);
+    network::dnssd::advertise(name, listeners);
+  }
+#endif
 }
 
 XserverDesktop::~XserverDesktop()
@@ -104,6 +134,13 @@ XserverDesktop::~XserverDesktop()
   if (shadowFramebuffer)
     delete [] shadowFramebuffer;
   delete server;
+
+#ifdef HAVE_AVAHI_CLIENT
+  if (dnssd) {
+    network::dnssd::shutdown();
+    delete dnssdWatchAdapter;
+  }
+#endif  
 }
 
 void XserverDesktop::blockUpdates()
@@ -318,6 +355,12 @@ void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
 
     if (handleSocketReadWrite(fd, read, write))
       return;
+
+#ifdef HAVE_AVAHI_CLIENT
+    if (dnssdWatchAdapter && dnssdWatchAdapter->handleReadyWatch && 
+        dnssdWatchAdapter->handleReadyWatch(fd))
+      return;
+#endif  
 
     vlog.error(_("Cannot find file descriptor for socket event"));
   } catch (std::exception& e) {

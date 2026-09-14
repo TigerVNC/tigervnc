@@ -70,6 +70,9 @@ Build requirements (Unix)
 -- If building with audio support:
    * PulseAudio
 
+-- Optional mDNS/DNS-SD support
+   * Avahi
+
 ============================
 Build requirements (Windows)
 ============================
