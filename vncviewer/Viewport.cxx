@@ -595,7 +595,22 @@ void Viewport::handleClipboardChange(int source, void *data)
     return;
 #endif
 
-  if (source != 0 && !Fl::clipboard_contains(Fl::clipboard_plain_text)) {
+  if (!self->hasFocus()) {
+    vlog.debug("Local clipboard changed whilst not focused, will notify server later");
+    self->clipboardSource = source;
+    self->pendingClientClipboard = true;
+    // Clear any older client clipboard from the server
+    try {
+      self->cc->announceClipboard(false);
+    } catch (std::exception& e) {
+      vlog.error("%s", e.what());
+      abort_connection_with_unexpected_error(e);
+    }
+    return;
+  }
+
+  if (source != 0 &&
+      !Fl::clipboard_contains(Fl::clipboard_plain_text)) {
     vlog.debug("Got non-plain text in local clipboard, ignoring.");
     // Reset the state as if we don't have any clipboard data at all
     self->pendingClientClipboard = false;
@@ -610,19 +625,6 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   self->clipboardSource = source;
 
-  if (!self->hasFocus()) {
-    vlog.debug("Local clipboard changed whilst not focused, will notify server later");
-    self->pendingClientClipboard = true;
-    // Clear any older client clipboard from the server
-    try {
-      self->cc->announceClipboard(false);
-    } catch (std::exception& e) {
-      vlog.error("%s", e.what());
-      abort_connection_with_unexpected_error(e);
-    }
-    return;
-  }
-
   vlog.debug("Local clipboard changed, notifying server");
   try {
     self->cc->announceClipboard(true);
@@ -636,6 +638,13 @@ void Viewport::handleClipboardChange(int source, void *data)
 void Viewport::flushPendingClipboard()
 {
   if (pendingClientClipboard) {
+    if (clipboardSource != 0 &&
+        !Fl::clipboard_contains(Fl::clipboard_plain_text)) {
+      vlog.debug("Pending local clipboard has no plain text, ignoring.");
+      pendingClientClipboard = false;
+      return;
+    }
+
     vlog.debug("Focus regained after local clipboard change, notifying server");
     try {
       cc->announceClipboard(true);
