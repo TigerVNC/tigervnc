@@ -36,6 +36,7 @@ jobs:
             -DENABLE_PAM=ON \
             -DBUILD_VIEWER=ON \
             -DENABLE_SYSTEMD=ON \
+            -DENABLE_WAYLAND=ON \
             -S . -B build
       - name: Build
         working-directory: build
@@ -164,7 +165,6 @@ jobs:
             -DENABLE_H264=ON \
             -DENABLE_GNUTLS=ON \
             -DENABLE_NETTLE=ON \
-            -DENABLE_WAYLAND=ON \
             -DBUILD_VIEWER=ON \
             -S . -B build
       - name: Build
