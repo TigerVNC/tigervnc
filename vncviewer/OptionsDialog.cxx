@@ -1298,6 +1298,7 @@ void OptionsDialog::handleCompression(Fl_Widget* /*widget*/, void *data)
 
 void OptionsDialog::handleX509(Fl_Widget* /*widget*/, void *data)
 {
+#ifdef HAVE_GNUTLS
   OptionsDialog *dialog = (OptionsDialog*)data;
 
   if (dialog->encX509Checkbox->value()) {
@@ -1307,17 +1308,24 @@ void OptionsDialog::handleX509(Fl_Widget* /*widget*/, void *data)
     dialog->caInput->deactivate();
     dialog->crlInput->deactivate();
   }
+#else
+  (void)data;
+#endif
 }
 
 
 void OptionsDialog::handleRSAAES(Fl_Widget* /*widget*/, void *data)
 {
+#ifdef HAVE_NETTLE
   OptionsDialog *dialog = (OptionsDialog*)data;
 
   if (dialog->encRSAAESCheckbox->value()) {
     dialog->authVncCheckbox->value(true);
     dialog->authPlainCheckbox->value(true);
   }
+#else
+  (void)data;
+#endif
 }
 
 
