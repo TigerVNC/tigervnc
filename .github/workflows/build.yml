@@ -32,6 +32,7 @@ jobs:
             -DENABLE_AUDIO=ON \
             -DENABLE_GNUTLS=ON \
             -DENABLE_NETTLE=ON \
+            -DENABLE_PAM=ON \
             -DBUILD_VIEWER=ON \
             -S . -B build
       - name: Build
