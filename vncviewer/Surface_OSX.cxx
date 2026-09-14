@@ -30,7 +30,6 @@
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
 
-#include "cocoa.h"
 #include "Surface.h"
 
 static CGColorSpaceRef srgb = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
@@ -151,10 +150,11 @@ void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
   // macOS Coordinates are from bottom left, not top left
   dst_y = Fl_Window::current()->h() - (dst_y + dst_h);
 
-  lut = cocoa_win_color_space(Fl_Window::current());
+  lut = CGBitmapContextGetColorSpace(fl_gc);
+  assert(lut);
+
   render(fl_gc, lut, data, kCGBlendModeCopy, 1.0,
          src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
-  CGColorSpaceRelease(lut);
 
   CGContextRestoreGState(fl_gc);
 }
@@ -189,10 +189,11 @@ void Surface::blend(int src_x, int src_y, int dst_x, int dst_y,
   // macOS Coordinates are from bottom left, not top left
   dst_y = Fl_Window::current()->h() - (dst_y + dst_h);
 
-  lut = cocoa_win_color_space(Fl_Window::current());
+  lut = CGBitmapContextGetColorSpace(fl_gc);
+  assert(lut);
+
   render(fl_gc, lut, data, kCGBlendModeNormal, (CGFloat)a/255.0,
          src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
-  CGColorSpaceRelease(lut);
 
   CGContextRestoreGState(fl_gc);
 }
