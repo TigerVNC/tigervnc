@@ -1,0 +1,62 @@
+name: MSVC
+
+on: workflow_dispatch
+
+jobs:
+  build-windows-msvc:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/cache@v6
+        with:
+          path: vcpkg-cache
+          key: vcpkg-msvc-${{ hashFiles('.github/workflows/msvc.yml') }}
+      - name: Install dependencies
+        run: |
+          New-Item -ItemType Directory -Force vcpkg-cache
+          vcpkg install --triplet x64-windows `
+            zlib libjpeg-turbo pixman fltk nettle gtest "gettext[tools]"
+      - name: Configure
+        run: |
+          $vcpkg = $env:VCPKG_INSTALLATION_ROOT
+          $env:PATH = "$vcpkg\installed\x64-windows\bin;$env:PATH"
+          cmake `
+            -A x64 `
+            -DCMAKE_TOOLCHAIN_FILE="$vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DENABLE_NLS=ON `
+            -DENABLE_H264=ON `
+            -DENABLE_AUDIO=ON `
+            -DENABLE_GNUTLS=OFF `
+            -DENABLE_NETTLE=ON `
+            -DBUILD_VIEWER=ON `
+            -S . -B build
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        continue-on-error: true
+        working-directory: build
+        run: |
+          ctest --test-dir tests/unit/ -C Release `
+            --output-junit test-results.xml
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-windows-msvc
+          path: build/tests/unit/test-results.xml
+
+  report-windows-msvc:
+    name: Unit tests (Windows, MSVC)
+    runs-on: ubuntu-latest
+    needs: build-windows-msvc
+    if: always()
+    steps:
+      - uses: dorny/test-reporter@v3
+        with:
+          artifact: test-results-windows-msvc
+          name: FIXME not used, but required
+          path: '*.xml'
+          reporter: java-junit
