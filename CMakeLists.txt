@@ -36,7 +36,8 @@ endif()
 option(INSTALL_SYSTEMD_UNITS "Install TigerVNC systemd units" ON)
 
 if(MSVC)
-  message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
+  include_directories(BEFORE SYSTEM ${CMAKE_SOURCE_DIR}/contrib/msvc/include)
+  add_compile_options(/FI msvc_compat.h)
 endif()
 
 if(NOT BUILD_TIMESTAMP)

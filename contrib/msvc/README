@@ -1,0 +1,18 @@
+Building TigerVNC with MSVC
+===========================
+
+MinGW is the supported toolchain on Windows. The headers in include/
+provide the POSIX interfaces the sources expect and MSVC lacks, and are
+only used when CMake detects MSVC.
+
+Most dependencies can be installed with vcpkg:
+
+  cmake -S . -B build -G "Visual Studio 17 2022" -A ARM64 \
+    -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake \
+    -DVCPKG_TARGET_TRIPLET=arm64-windows
+
+GnuTLS is not available in vcpkg for MSVC, so it has to be built
+separately and specified manually:
+
+  -DGNUTLS_INCLUDE_DIR=<gnutls>/include
+  -DGNUTLS_LIBRARY=<gnutls>/lib/gnutls.lib
