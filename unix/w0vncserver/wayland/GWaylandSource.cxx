@@ -61,7 +61,7 @@ GSourceFuncs GWaylandSource::sourceFuncs {
 };
 
 GWaylandSource::GWaylandSource(Display* display_)
-  : source(nullptr), display(display_), tag(nullptr)
+  : source(nullptr), display(display_), tag(nullptr), prepared(false)
 {
   int fd;
   GIOCondition conditions;
@@ -72,7 +72,6 @@ GWaylandSource::GWaylandSource(Display* display_)
   fd = wl_display_get_fd(display->getDisplay());
 
   tag = g_source_add_unix_fd(source, fd, conditions);
-  prepared = false;
 
   sources[source] = this;
 }
@@ -93,40 +92,34 @@ int GWaylandSource::prepare(int* timeout)
 {
   *timeout = -1;
 
-  if (prepared)
-    return FALSE;
-
-  // We only want to call wl_display_prepare_read() once
-  prepared = true;
-
   while (wl_display_prepare_read(display->getDisplay()) != 0)
     wl_display_dispatch_pending(display->getDisplay());
 
   wl_display_flush(display->getDisplay());
+
+  prepared = true;
 
   return FALSE;
 }
 
 int GWaylandSource::check()
 {
-  return g_source_query_unix_fd(source, tag) > 0;
+  GIOCondition events;
+  events = g_source_query_unix_fd(source, tag);
+
+  if (events & G_IO_IN)
+    wl_display_read_events(display->getDisplay());
+  else
+    wl_display_cancel_read(display->getDisplay());
+
+  prepared = false;
+
+  return events > 0;
 }
 
 int GWaylandSource::dispatch()
 {
-  GIOCondition events;
-
-  events = g_source_query_unix_fd(source, tag);
-
-  assert(prepared);
-
-  if (events & G_IO_IN)
-    wl_display_read_events(display->getDisplay());
-  if (events & G_IO_HUP || events & G_IO_ERR)
-    wl_display_cancel_read(display->getDisplay());
-
   wl_display_dispatch_pending(display->getDisplay());
-  prepared = false;
 
   if (wl_display_get_error(display->getDisplay()))
     fatal_error(_("Failed to communicate with Wayland server: %s"),
