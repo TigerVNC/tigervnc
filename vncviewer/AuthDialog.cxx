@@ -29,11 +29,11 @@
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Pixmap.H>
 #include <FL/Fl_Return_Button.H>
-#include <FL/Fl_Secret_Input.H>
 #include <FL/fl_ask.H>
 
 #include <core/i18n.h>
 
+#include "fltk/Fl_Password_Input.h"
 #include "fltk/layout.h"
 
 #include "AuthDialog.h"
@@ -99,8 +99,8 @@ AuthDialog::AuthDialog(bool secure_, bool needsUser, bool needsPassword)
 
   if (needsPassword) {
     y += INPUT_LABEL_OFFSET;
-    passwd = new Fl_Secret_Input(x, y,  w()- x - OUTER_MARGIN,
-                                INPUT_HEIGHT, _("Password:"));
+    passwd = new Fl_Password_Input(x, y,  w()- x - OUTER_MARGIN,
+                                   INPUT_HEIGHT, _("Password:"));
     passwd->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
     y += INPUT_HEIGHT + INNER_MARGIN;
 

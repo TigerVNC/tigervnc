@@ -58,6 +58,7 @@
 #include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/fl_ask.H>
 
+#include "fltk/Fl_Password_Input.h"
 #include "fltk/theme.h"
 #include "fltk/util.h"
 #include "parameters.h"
@@ -330,6 +331,8 @@ static void init_fltk()
   fl_ok     = _("OK");
   fl_cancel = _("Cancel");
   fl_close  = _("Close");
+
+  Fl_Password_Input::caps_warning_tooltip = _("Caps lock is active");
 
   Fl_File_Chooser::add_favorites_label = _("Add to Favorites");
   Fl_File_Chooser::all_files_label = _("All Files (*)");
