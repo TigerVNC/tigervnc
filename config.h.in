@@ -17,7 +17,6 @@
 #cmakedefine HAVE_AUDIO
 
 #cmakedefine HAVE_H264
-#cmakedefine HAVE_VIDEO_PROCESSOR_MFT
 #cmakedefine HAVE_LIBAV
 
 #cmakedefine HAVE_GNUTLS
