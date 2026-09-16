@@ -1,4 +1,4 @@
-/* Copyright 2009 Pierre Ossman for Cendio AB
+/* Copyright 2009-2026 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include <stdint.h>
 
 #include <list>
+#include <string>
 
 #include <core/Rect.h>
 
@@ -77,7 +78,7 @@ namespace rfb {
 
     bool validate(int fb_width, int fb_height) const;
 
-    void print(char* str, size_t len) const;
+    std::string print() const;
 
     bool operator==(const ScreenSet& r) const;
     bool operator!=(const ScreenSet& r) const;

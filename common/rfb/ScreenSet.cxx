@@ -20,10 +20,9 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <string.h>
-
 #include <set>
+
+#include <core/string.h>
 
 #include <rfb/ScreenSet.h>
 
@@ -70,22 +69,20 @@ bool ScreenSet::validate(int fb_width, int fb_height) const
   return true;
 };
 
-void ScreenSet::print(char* str, size_t len) const
+std::string ScreenSet::print() const
 {
-  char buffer[128];
+  std::string str;
   std::list<Screen>::const_iterator iter;
-  snprintf(buffer, sizeof(buffer), "%d screen(s)\n", num_screens());
-  str[0] = '\0';
-  strncat(str, buffer, len - 1 - strlen(str));
+  str += core::format("%d screen(s)\n", num_screens());
   for (iter = screens.begin();iter != screens.end();++iter) {
-    snprintf(buffer, sizeof(buffer),
+    str += core::format(
              "    %10d (0x%08x): %dx%d+%d+%d (flags 0x%08x)\n",
              (int)iter->id, (unsigned)iter->id,
              iter->dimensions.width(), iter->dimensions.height(),
              iter->dimensions.tl.x, iter->dimensions.tl.y,
              (unsigned)iter->flags);
-    strncat(str, buffer, len - 1 - strlen(str));
   }
+  return str;
 };
 
 static inline bool compare_screen(const Screen& first,

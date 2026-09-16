@@ -688,12 +688,10 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
                                       const ScreenSet& layout)
 {
   unsigned int result;
-  char buffer[2048];
 
   vlog.debug("Got request for framebuffer resize to %dx%d",
              fb_width, fb_height);
-  layout.print(buffer, sizeof(buffer));
-  vlog.debug("%s", buffer);
+  vlog.debug("%s", layout.print().c_str());
 
   if (!accessCheck(AccessSetDesktopSize)) {
     vlog.debug("Rejecting unauthorized framebuffer resize request");
