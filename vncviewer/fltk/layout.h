@@ -26,6 +26,7 @@
 
 #include <algorithm>
 
+#include <FL/Fl_Box.H>
 #include <FL/Fl_Choice.H>
 #include <FL/fl_draw.H>
 
@@ -54,6 +55,13 @@ static inline void fltk_adjust_choice(Fl_Choice *choice)
         option_len = std::max(option_len, gui_str_len(choice->text(i)));
 
     choice->size(option_len + 30, choice->h());
+}
+
+/* Compensate for implicit padding even on borderless boxes */
+static inline Fl_Box* fltk_box(int x, int y, int w, int h,
+                               const char *str=nullptr)
+{
+    return new Fl_Box(x-3, y, w+6, h, str);
 }
 
 /**** MARGINS ****/
