@@ -624,7 +624,6 @@ void XDesktop::keyEvent(uint32_t keysym, uint32_t xtcode, bool down) {
 rfb::ScreenSet XDesktop::computeScreenLayout()
 {
   rfb::ScreenSet layout;
-  char buffer[2048];
 
 #ifdef HAVE_XRANDR
   XRRScreenResources *res = XRRGetScreenResources(dpy, DefaultRootWindow(dpy));
@@ -656,8 +655,7 @@ rfb::ScreenSet XDesktop::computeScreenLayout()
                                   geometry->height(), 0));
 
   vlog.debug("Detected screen layout:");
-  layout.print(buffer, sizeof(buffer));
-  vlog.debug("%s", buffer);
+  vlog.debug("%s", layout.print().c_str());
 
   return layout;
 }
