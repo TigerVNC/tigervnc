@@ -15,6 +15,7 @@ add_library(rfb STATIC
   KeysymStr.c
   PixelBuffer.cxx
   PixelFormat.cxx
+  ScreenSet.cxx
   Security.cxx
   UpdateTracker.cxx
   encodings.cxx

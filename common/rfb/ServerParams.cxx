@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <string.h>
+
 #include <stdexcept>
 
 #include <core/LogWriter.h>
