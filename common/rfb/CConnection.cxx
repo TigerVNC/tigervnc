@@ -43,6 +43,7 @@
 #include <rfb/Decoder.h>
 #include <rfb/KeysymStr.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
@@ -976,6 +977,12 @@ void CConnection::releaseAllKeys()
     sendKeyRelease(downKeys.begin()->first);
 }
 
+void CConnection::sendPointerEvent(const core::Point& pos,
+                                   uint16_t buttonMask)
+{
+  writer()->writePointerEvent(pos, buttonMask);
+}
+
 void CConnection::refreshFramebuffer()
 {
   forceNonincremental = true;
@@ -984,6 +991,16 @@ void CConnection::refreshFramebuffer()
   // single update in flight, so we'll have to wait to do the refresh
   if (continuousUpdates)
     requestNewUpdate();
+}
+
+void CConnection::requestScreenLayout(int width, int height,
+                                      const ScreenSet& layout)
+{
+  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
+             server.width(), server.height(), width, height);
+  vlog.debug("%s", layout.print().c_str());
+
+  writer()->writeSetDesktopSize(width, height, layout);
 }
 
 void CConnection::setPreferredEncoding(int encoding)

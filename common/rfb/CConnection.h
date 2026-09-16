@@ -126,9 +126,18 @@ namespace rfb {
     // from the system.
     void releaseAllKeys();
 
+    // sendPointerEvent() sends an update of the cursor position and
+    // button state to the server
+    void sendPointerEvent(const core::Point& pos, uint16_t buttonmask);
+
     // refreshFramebuffer() forces a complete refresh of the entire
     // framebuffer
     void refreshFramebuffer();
+
+    // requestScreenLayout() sends a request to the server to change
+    // the dimensions of the framebuffer and/or the screen layout
+    void requestScreenLayout(int width, int height,
+                             const ScreenSet& layout);
 
     // setPreferredEncoding()/getPreferredEncoding() adjusts which
     // encoding is listed first as a hint to the server that it is the

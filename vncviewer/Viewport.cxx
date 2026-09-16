@@ -553,7 +553,7 @@ void Viewport::sendPointerEvent(const core::Point& pos,
 
   if ((pointerEventInterval == 0) || (buttonMask != lastButtonMask)) {
     try {
-      cc->writer()->writePointerEvent(pos, buttonMask);
+      cc->sendPointerEvent(pos, buttonMask);
     } catch (std::exception& e) {
       vlog.error("%s", e.what());
       abort_connection_with_unexpected_error(e);
@@ -672,8 +672,8 @@ void Viewport::handlePointerTimeout(void *data)
   assert(self);
 
   try {
-    self->cc->writer()->writePointerEvent(self->lastPointerPos,
-                                          self->lastButtonMask);
+    self->cc->sendPointerEvent(self->lastPointerPos,
+                               self->lastButtonMask);
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
     abort_connection_with_unexpected_error(e);

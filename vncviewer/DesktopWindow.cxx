@@ -1463,15 +1463,10 @@ void DesktopWindow::remoteResize()
       return;
   }
 
-  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
-             cc->server.width(), cc->server.height(), width, height);
-
   if (!layout.validate(width, height)) {
     vlog.error(_("Invalid screen layout computed for resize request!"));
     vlog.error("%s", layout.print().c_str());
     return;
-  } else {
-    vlog.debug("%s", layout.print().c_str());
   }
 
   pendingRemoteResize = true;
@@ -1479,7 +1474,7 @@ void DesktopWindow::remoteResize()
   lastResizeWidth = width;
   lastResizeHeight = height;
   lastResizeLayout = layout;
-  cc->writer()->writeSetDesktopSize(width, height, layout);
+  cc->requestScreenLayout(width, height, layout);
 }
 
 
