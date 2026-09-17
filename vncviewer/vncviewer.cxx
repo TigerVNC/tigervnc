@@ -390,20 +390,24 @@ static void usage(const char *programName)
   }
 #endif
 
+#ifdef WIN32
   fprintf(stderr, _(
           "\n"
           "Usage: %s [parameters] [host][:displayNum]\n"
           "       %s [parameters] [host][::port]\n"
-#ifndef WIN32
-          "       %s [parameters] [unix socket]\n"
-#endif
           "       %s [parameters] -listen [port]\n"
           "       %s [parameters] [.tigervnc file]\n"),
-          programName, programName,
-#ifndef WIN32
-          programName,
+          programName, programName, programName, programName);
+#else
+  fprintf(stderr, _(
+          "\n"
+          "Usage: %s [parameters] [host][:displayNum]\n"
+          "       %s [parameters] [host][::port]\n"
+          "       %s [parameters] [unix socket]\n"
+          "       %s [parameters] -listen [port]\n"
+          "       %s [parameters] [.tigervnc file]\n"),
+          programName, programName, programName, programName, programName);
 #endif
-          programName, programName);
 
 #if !defined(WIN32) && !defined(__APPLE__)
   fprintf(stderr, _("\n"
