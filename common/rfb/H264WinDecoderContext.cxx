@@ -274,6 +274,9 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
         MFT_OUTPUT_STREAM_INFO info;
         converter->GetOutputStreamInfo(0, &info);
 
+        // Replace, not add, in case this is not the first stream change
+        converted_sample->RemoveAllBuffers();
+        SAFE_RELEASE(converted_buffer)
         if (FAILED(MFCreateMemoryBuffer(info.cbSize, &converted_buffer)))
         {
           // Silently ignore errors, hoping its a temporary encoding glitch
@@ -284,6 +287,33 @@ void H264WinDecoderContext::decode(const uint8_t* h264_buffer,
         }
       }
       output_type->Release();
+
+      // The constructor sized decoded_buffer from the output stream info
+      // before any input had been seen, when the decoder's output type
+      // still had its default 1920x1080 frame size. A larger stream needs
+      // a larger buffer, or every ProcessOutput() fails.
+      MFT_OUTPUT_STREAM_INFO decoder_info;
+      if (SUCCEEDED(decoder->GetOutputStreamInfo(0, &decoder_info)))
+      {
+        DWORD maxlen = 0;
+        decoded_buffer->GetMaxLength(&maxlen);
+        if (decoder_info.cbSize > maxlen)
+        {
+          IMFMediaBuffer* buffer;
+          if (SUCCEEDED(MFCreateMemoryBuffer(decoder_info.cbSize, &buffer)))
+          {
+            decoded_sample->RemoveAllBuffers();
+            decoded_buffer->Release();
+            decoded_buffer = buffer;
+            decoded_sample->AddBuffer(decoded_buffer);
+          }
+        }
+      }
+    }
+    else
+    {
+      // Retrying won't help, and would loop forever
+      break;
     }
   }
 
