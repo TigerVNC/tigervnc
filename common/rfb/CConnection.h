@@ -155,9 +155,6 @@ namespace rfb {
     // is active.
     void setPF(const PixelFormat& pf);
 
-    CMsgReader* reader() { return reader_; }
-    CMsgWriter* writer() { return writer_; }
-
     rdr::InStream* getInStream() { return is; }
     rdr::OutStream* getOutStream() { return os; }
 
@@ -311,10 +308,10 @@ namespace rfb {
     SecurityClient security;
 
   protected:
-    void setState(stateEnum s) { state_ = s; }
+    CMsgReader* reader() { return reader_; }
+    CMsgWriter* writer() { return writer_; }
 
-    void setReader(CMsgReader *r) { reader_ = r; }
-    void setWriter(CMsgWriter *w) { writer_ = w; }
+    void setState(stateEnum s) { state_ = s; }
 
     ModifiablePixelBuffer* getFramebuffer() { return framebuffer; }
 
