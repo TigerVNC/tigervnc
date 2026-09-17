@@ -91,6 +91,11 @@ void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 {
   is = is_;
   os = os_;
+
+  delete reader_;
+  reader_ = new SMsgReader(this, is);
+  delete writer_;
+  writer_ = new SMsgWriter(&client, os);
 }
 
 void SConnection::initialiseProtocol()
@@ -606,8 +611,6 @@ void SConnection::approveConnection(bool accept, const char* reason)
 
   if (accept) {
     state_ = RFBSTATE_INITIALISATION;
-    reader_ = new SMsgReader(this, is);
-    writer_ = new SMsgWriter(&client, os);
     socketTimer.stop();
     authSuccess();
   } else {

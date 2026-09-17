@@ -324,8 +324,6 @@ SConn::SConn()
   out = new DummyOutStream;
   setStreams(nullptr, out);
 
-  setWriter(new rfb::SMsgWriter(&client, out));
-
   manager = new Manager(this);
 }
 
