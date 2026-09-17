@@ -69,7 +69,6 @@ public:
   void initDone() override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
-  void setColourMapEntries(int, int, uint16_t*) override;
   void bell() override;
   void serverCutText(const char*) override;
   virtual void getUserPasswd(std::string *user, std::string *password) override;
@@ -156,10 +155,6 @@ void CConn::framebufferUpdateEnd()
   endCpuCounter();
 
   cpuTime += getCpuCounter();
-}
-
-void CConn::setColourMapEntries(int, int, uint16_t*)
-{
 }
 
 void CConn::bell()
