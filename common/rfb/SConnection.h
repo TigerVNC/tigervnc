@@ -134,9 +134,6 @@ namespace rfb {
 
     const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
 
-    SMsgReader* reader() { return reader_; }
-    SMsgWriter* writer() { return writer_; }
-
     rdr::InStream* getInStream() { return is; }
     rdr::OutStream* getOutStream() { return os; }
 
@@ -256,16 +253,20 @@ namespace rfb {
     // client received the request.
     virtual void handleClipboardData(const char* data);
 
+  protected:
     // failConnection() prints a message to the log, sends a connection
     // failed message to the client (if possible) and throws an
     // Exception.
     void failConnection(const char* message);
     void failConnection(const std::string& message);
 
-    void setState(stateEnum s) { state_ = s; }
+    SMsgReader* reader() { return reader_; }
+    SMsgWriter* writer() { return writer_; }
 
-    void setReader(SMsgReader *r) { reader_ = r; }
-    void setWriter(SMsgWriter *w) { writer_ = w; }
+    // FIXME: EncodeManager does low level access to SMsgWriter
+    friend class EncodeManager;
+
+    void setState(stateEnum s) { state_ = s; }
 
   private:
     void cleanup();
