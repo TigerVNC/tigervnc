@@ -58,7 +58,7 @@ static const uint32_t maxAudioData = 1024*1024;
 using namespace rfb;
 
 CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
-  : imageBufIdealSize(0), handler(handler_), is(is_),
+  : handler(handler_), is(is_),
     state(MSGSTATE_IDLE), cursorEncoding(-1)
 {
 }
