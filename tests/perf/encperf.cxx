@@ -104,7 +104,6 @@ public:
   void framebufferUpdateEnd() override;
   bool dataRect(const core::Rect&, int) override;
   void bell() override;
-  void serverCutText(const char*) override;
   virtual void getUserPasswd(std::string *user, std::string *password) override;
   bool verifyCertificate(unsigned int status,
                          const uint8_t* certificate,
@@ -267,10 +266,6 @@ bool CConn::dataRect(const core::Rect& r, int encoding)
 }
 
 void CConn::bell()
-{
-}
-
-void CConn::serverCutText(const char*)
 {
 }
 

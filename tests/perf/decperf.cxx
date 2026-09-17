@@ -70,7 +70,6 @@ public:
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
   void bell() override;
-  void serverCutText(const char*) override;
   virtual void getUserPasswd(std::string *user, std::string *password) override;
   bool verifyCertificate(unsigned int status,
                          const uint8_t* certificate,
@@ -158,10 +157,6 @@ void CConn::framebufferUpdateEnd()
 }
 
 void CConn::bell()
-{
-}
-
-void CConn::serverCutText(const char*)
 {
 }
 
