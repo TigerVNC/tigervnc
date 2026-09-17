@@ -104,6 +104,11 @@ void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 {
   is = is_;
   os = os_;
+
+  delete reader_;
+  reader_ = new CMsgReader(this, is);
+  delete writer_;
+  writer_ = new CMsgWriter(&server, os);
 }
 
 void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
@@ -397,8 +402,6 @@ bool CConnection::processInitMsg()
 void CConnection::securityCompleted()
 {
   state_ = RFBSTATE_INITIALISATION;
-  reader_ = new CMsgReader(this, is);
-  writer_ = new CMsgWriter(&server, os);
   vlog.debug("Authentication success!");
   writer_->writeClientInit(shared);
 }
