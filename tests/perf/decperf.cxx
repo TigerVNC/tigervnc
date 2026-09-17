@@ -34,6 +34,8 @@
 #include <sys/time.h>
 
 #include <rdr/FileInStream.h>
+#include <rdr/MemInStream.h>
+#include <rdr/MemOutStream.h>
 #include <rdr/OutStream.h>
 
 #include <rfb/CConnection.h>
@@ -114,17 +116,31 @@ void DummyOutStream::overrun(size_t needed)
 
 CConn::CConn(const char *filename)
 {
+  rdr::MemOutStream fakeInitOut;
+  rdr::MemInStream* fakeInitIn;
+
   cpuTime = 0.0;
 
   in = new rdr::FileInStream(filename);
   out = new DummyOutStream;
-  setStreams(in, out);
 
   // Need to skip the initial handshake
-  setState(RFBSTATE_INITIALISATION);
-  // That also means that the reader and writer weren't setup
-  setReader(new rfb::CMsgReader(this, in));
-  setWriter(new rfb::CMsgWriter(&server, out));
+
+  fakeInitOut.writeBytes((uint8_t*)"RFB 003.008\n", 12);
+  fakeInitOut.writeU8(1);
+  fakeInitOut.writeU8(rfb::secTypeNone);
+  fakeInitOut.writeU32(rfb::secResultOK);
+
+  fakeInitIn = new rdr::MemInStream(fakeInitOut.data(), fakeInitOut.length());
+
+  setStreams(fakeInitIn, out);
+  initialiseProtocol();
+  while (state() != RFBSTATE_INITIALISATION)
+    processMsg();
+
+  // Now we're ready for the file contents
+
+  setStreams(in, out);
 }
 
 CConn::~CConn()

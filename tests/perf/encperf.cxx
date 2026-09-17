@@ -39,6 +39,8 @@
 
 #include <core/Configuration.h>
 
+#include <rdr/MemInStream.h>
+#include <rdr/MemOutStream.h>
 #include <rdr/OutStream.h>
 #include <rdr/FileInStream.h>
 
@@ -98,7 +100,7 @@ public:
   void getStats(double& ratio, unsigned long long& bytes,
                 unsigned long long& rawEquivalent);
 
-  void initDone() override {};
+  void initDone() override;
   void resizeFramebuffer() override;
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
@@ -180,23 +182,38 @@ void DummyOutStream::overrun(size_t needed)
 
 CConn::CConn(const char *filename)
 {
+  rdr::MemOutStream fakeInitOut;
+  rdr::MemInStream* fakeInitIn;
+
   decodeTime = 0.0;
   encodeTime = 0.0;
 
   in = new rdr::FileInStream(filename);
   out = new DummyOutStream;
-  setStreams(in, out);
 
   // Need to skip the initial handshake and ServerInit
-  setState(RFBSTATE_NORMAL);
-  // That also means that the reader and writer weren't setup
-  setReader(new rfb::CMsgReader(this, in));
-  setWriter(new rfb::CMsgWriter(&server, out));
-  // Nor the frame buffer size and format
+
+  fakeInitOut.writeBytes((uint8_t*)"RFB 003.008\n", 12);
+  fakeInitOut.writeU8(1);
+  fakeInitOut.writeU8(rfb::secTypeNone);
+  fakeInitOut.writeU32(rfb::secResultOK);
+  fakeInitOut.writeU16(width);
+  fakeInitOut.writeU16(height);
   rfb::PixelFormat pf;
   pf.parse(format);
-  server.setPF(pf);
-  setDesktopSize(width, height);
+  pf.write(&fakeInitOut);
+  fakeInitOut.writeU32(0);
+
+  fakeInitIn = new rdr::MemInStream(fakeInitOut.data(), fakeInitOut.length());
+
+  setStreams(fakeInitIn, out);
+  initialiseProtocol();
+  while (state() != RFBSTATE_NORMAL)
+    processMsg();
+
+  // Now we're ready for the file contents
+
+  setStreams(in, out);
 
   sc = new SConn();
   sc->client.setPF((bool)translate ? fbPF : pf);
@@ -214,6 +231,11 @@ void CConn::getStats(double& ratio, unsigned long long& bytes,
                      unsigned long long& rawEquivalent)
 {
   sc->getStats(ratio, bytes, rawEquivalent);
+}
+
+void CConn::initDone()
+{
+  resizeFramebuffer();
 }
 
 void CConn::resizeFramebuffer()
