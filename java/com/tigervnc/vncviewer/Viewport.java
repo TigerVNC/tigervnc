@@ -98,11 +98,13 @@ class Viewport extends JPanel implements ActionListener {
     addFocusListener(new FocusAdapter() {
       public void focusGained(FocusEvent e) {
         ClipboardDialog.clientCutText();
+        pendingSyntheticLock.clear();
         // We may have gotten our lock keys out of sync with the server
         // whilst we didn't have focus. Try to sort this out.
         pushLEDState();
       }
       public void focusLost(FocusEvent e) {
+        pendingSyntheticLock.clear();
         releaseDownKeys();
       }
     });
@@ -382,6 +384,10 @@ class Viewport extends JPanel implements ActionListener {
     }
   }
 
+  // Synthetic key code for fake events; cannot collide with real
+  // (vk | location<<32) values.
+  private static final long FAKE_KEY_CODE = -1L;
+
   public void handleKeyPress(long keyCode, int keySym)
   {
     // Prevent recursion if the menu wants to send it's own
@@ -509,6 +515,23 @@ class Viewport extends JPanel implements ActionListener {
 
     if (event instanceof KeyEvent) {
       KeyEvent ev = (KeyEvent)event;
+
+      // Swallow lock-key events we injected ourselves via
+      // setLockingKeyState() so they don't bounce back to the server.
+      int rawVk = ev.getKeyCode();
+      if (rawVk == VK_CAPS_LOCK || rawVk == VK_NUM_LOCK ||
+          rawVk == VK_SCROLL_LOCK) {
+        Integer pending = pendingSyntheticLock.get(rawVk);
+        if (pending != null && pending > 0) {
+          if (ev.getID() == KeyEvent.KEY_RELEASED)
+            pendingSyntheticLock.put(rawVk, pending - 1);
+          vlog.debug("Ignoring self-injected lock key %s (vk 0x%x)",
+                     ev.getID() == KeyEvent.KEY_PRESSED ? "press" : "release",
+                     rawVk);
+          return 1;
+        }
+      }
+
       if (KeyMap.get_keycode_fallback_extended(ev) == 0) {
         // Not much we can do with this...
         vlog.debug("Ignoring KeyEvent with unknown Java keycode");
@@ -841,23 +864,25 @@ class Viewport extends JPanel implements ActionListener {
       return;
 
     Toolkit tk = getToolkit();
-    setLockingKeyStateSafe(tk, VK_CAPS_LOCK, (ledState & LedStates.ledCapsLock) != 0);
-    setLockingKeyStateSafe(tk, VK_NUM_LOCK, (ledState & LedStates.ledNumLock) != 0);
-    setLockingKeyStateSafe(tk, VK_SCROLL_LOCK, (ledState & LedStates.ledScrollLock) != 0);
+    syncLocalLockKey(tk, VK_CAPS_LOCK, (ledState & LedStates.ledCapsLock) != 0);
+    syncLocalLockKey(tk, VK_NUM_LOCK, (ledState & LedStates.ledNumLock) != 0);
+    syncLocalLockKey(tk, VK_SCROLL_LOCK, (ledState & LedStates.ledScrollLock) != 0);
   }
 
-  // Not every platform/keyboard has every lock key (e.g. macOS has no
-  // hardware Num Lock or Scroll Lock), so each key's support is queried
-  // independently rather than bailing out entirely if any one of them
-  // throws UnsupportedOperationException.
-  private static void setLockingKeyStateSafe(Toolkit tk, int vk, boolean on)
+  private void syncLocalLockKey(Toolkit tk, int vk, boolean on)
   {
+    Boolean cur = getLockingKeyStateSafe(tk, vk);
+    if (cur != null && cur == on)
+      return;
     try {
       tk.setLockingKeyState(vk, on);
     } catch (UnsupportedOperationException e) {
       vlog.debug("Unable to set local keyboard LED state for key 0x%x: "+
                 "not supported on this platform", vk);
+      return;
     }
+    Integer pending = pendingSyntheticLock.get(vk);
+    pendingSyntheticLock.put(vk, (pending == null ? 0 : pending) + 1);
   }
 
   private static Boolean getLockingKeyStateSafe(Toolkit tk, int vk)
@@ -889,20 +914,20 @@ class Viewport extends JPanel implements ActionListener {
     if (caps != null &&
         caps != ((cc.server.ledState() & LedStates.ledCapsLock) != 0)) {
       vlog.debug("Inserting fake CapsLock to get in sync with server");
-      handleKeyPress(VK_CAPS_LOCK, XK_Caps_Lock);
-      handleKeyRelease(VK_CAPS_LOCK);
+      handleKeyPress(FAKE_KEY_CODE, XK_Caps_Lock);
+      handleKeyRelease(FAKE_KEY_CODE);
     }
     if (num != null &&
         num != ((cc.server.ledState() & LedStates.ledNumLock) != 0)) {
       vlog.debug("Inserting fake NumLock to get in sync with server");
-      handleKeyPress(VK_NUM_LOCK, XK_Num_Lock);
-      handleKeyRelease(VK_NUM_LOCK);
+      handleKeyPress(FAKE_KEY_CODE, XK_Num_Lock);
+      handleKeyRelease(FAKE_KEY_CODE);
     }
     if (scroll != null &&
         scroll != ((cc.server.ledState() & LedStates.ledScrollLock) != 0)) {
       vlog.debug("Inserting fake ScrollLock to get in sync with server");
-      handleKeyPress(VK_SCROLL_LOCK, XK_Scroll_Lock);
-      handleKeyRelease(VK_SCROLL_LOCK);
+      handleKeyPress(FAKE_KEY_CODE, XK_Scroll_Lock);
+      handleKeyRelease(FAKE_KEY_CODE);
     }
   }
 
@@ -917,6 +942,10 @@ class Viewport extends JPanel implements ActionListener {
   private CConn cc;
 
   private boolean firstLEDState = true;
+
+  // Expected lock-key echoes from setLockingKeyState(), per VK.
+  private final HashMap<Integer, Integer> pendingSyntheticLock =
+    new HashMap<Integer, Integer>();
 
   // access to the following must be synchronized:
   private PlatformPixelBuffer frameBuffer;
