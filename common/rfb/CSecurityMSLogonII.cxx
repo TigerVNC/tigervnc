@@ -102,7 +102,7 @@ void CSecurityMSLogonII::writeCredentials()
   std::string password;
   rdr::RandomStream rs;
 
-  cc->getUserPasswd(isSecure(), &username, &password);
+  cc->getUserPasswd(&username, &password);
 
   std::vector<uint8_t> bBytes(8);
   if (!rs.hasData(8))

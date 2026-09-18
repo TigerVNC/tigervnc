@@ -348,8 +348,7 @@ void CConn::processNextMsg(core::Timer*)
 
 ////////////////////// CConnection callback methods //////////////////////
 
-void CConn::getUserPasswd(bool secure, std::string *user,
-                          std::string *password)
+void CConn::getUserPasswd(std::string *user, std::string *password)
 {
   const char *passwordFileName(passwordFile);
   int ret_val;
@@ -398,7 +397,7 @@ void CConn::getUserPasswd(bool secure, std::string *user,
     return;
   }
 
-  AuthDialog d(secure, user != nullptr, password != nullptr);
+  AuthDialog d(isSecure(), user != nullptr, password != nullptr);
   d.show();
   while (d.shown())
     Fl::wait();
