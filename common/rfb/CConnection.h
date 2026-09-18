@@ -178,7 +178,7 @@ namespace rfb {
     // getUserPasswd() gets the username and password.  This might
     // involve a dialog, getpass(), etc.  The user buffer pointer can be
     // null, in which case no user name will be retrieved.
-    virtual void getUserPasswd(bool secure, std::string* user,
+    virtual void getUserPasswd(std::string* user,
                                std::string* password) = 0;
 
     // verifyCertificate() is called when a certificate is received from

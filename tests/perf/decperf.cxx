@@ -72,7 +72,7 @@ public:
   void setColourMapEntries(int, int, uint16_t*) override;
   void bell() override;
   void serverCutText(const char*) override;
-  virtual void getUserPasswd(bool secure, std::string *user, std::string *password) override;
+  virtual void getUserPasswd(std::string *user, std::string *password) override;
   bool verifyCertificate(unsigned int status,
                          const uint8_t* certificate,
                          size_t length) override;
@@ -170,7 +170,7 @@ void CConn::serverCutText(const char*)
 {
 }
 
-void CConn::getUserPasswd(bool, std::string *, std::string *)
+void CConn::getUserPasswd(std::string *, std::string *)
 {
 }
 

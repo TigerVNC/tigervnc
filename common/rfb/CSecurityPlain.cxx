@@ -35,7 +35,7 @@ bool CSecurityPlain::processMsg()
   std::string username;
   std::string password;
 
-  cc->getUserPasswd(cc->isSecure(), &username, &password);
+  cc->getUserPasswd(&username, &password);
 
   // Return the response to the server
   os->writeU32(username.size());
