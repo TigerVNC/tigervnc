@@ -795,7 +795,7 @@ msgstr "TigerVNC"
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
 #: vncviewer/vncviewer.desktop.in.in:4
 msgid "Connect to VNC server and display remote desktop"
-msgstr "Mite einem VNC-Server verbinden und einen fernen Desktop anzeigen"
+msgstr "Mit einem VNC-Server verbinden und einen fernen Desktop anzeigen"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
 msgid "Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network. Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device. This package contains a client which will enable you to connect to other desktops running a VNC server. VNC is platform-independent and supports various operating systems and architectures as both servers and clients."
