@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <core/LogWriter.h>
@@ -220,14 +221,16 @@ int Viewport::framebufferHeight() const
 
 core::Point Viewport::mapToFramebuffer(const core::Point& pos) const
 {
-  return {pos.x * frameBuffer->width() / w(),
-          pos.y * frameBuffer->height() / h()};
+  return {std::max(0, std::min(frameBuffer->width() - 1,
+                               pos.x * frameBuffer->width() / w())),
+          std::max(0, std::min(frameBuffer->height() - 1,
+                               pos.y * frameBuffer->height() / h()))};
 }
 
 core::Point Viewport::mapFromFramebuffer(const core::Point& pos) const
 {
-  return {pos.x * w() / frameBuffer->width(),
-          pos.y * h() / frameBuffer->height()};
+  return {std::max(0, std::min(w() - 1, pos.x * w() / frameBuffer->width())),
+          std::max(0, std::min(h() - 1, pos.y * h() / frameBuffer->height()))};
 }
 
 static const char * dotcursor_xpm[] = {
@@ -284,6 +287,23 @@ void Viewport::setCursor()
       memcpy(buffer, data, width * height * 4);
       cursor = new Fl_RGB_Image(buffer, width, height, 4);
       cursorHotspot = hotspot;
+    }
+  }
+
+  if (!cursorIsBlank &&
+      ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))) {
+    int scaledWidth, scaledHeight;
+    Fl_RGB_Image* scaledCursor;
+
+    scaledWidth = std::max(1, width * w() / frameBuffer->width());
+    scaledHeight = std::max(1, height * h() / frameBuffer->height());
+    scaledCursor = (Fl_RGB_Image*)cursor->copy(scaledWidth, scaledHeight);
+    if (scaledCursor) {
+      if (!cursor->alloc_array)
+        delete [] cursor->array;
+      delete cursor;
+      cursor = scaledCursor;
+      cursorHotspot = mapFromFramebuffer(hotspot);
     }
   }
 
@@ -431,12 +451,10 @@ void Viewport::draw(Surface* dst)
   if ((W == 0) || (H == 0))
     return;
 
-#ifdef __APPLE__
   if ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))
     frameBuffer->drawScaled(dst, 0, 0, frameBuffer->width(),
                             frameBuffer->height(), x(), y(), w(), h());
   else
-#endif
     frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
 }
 
@@ -450,19 +468,22 @@ void Viewport::draw()
   if ((W == 0) || (H == 0))
     return;
 
-#ifdef __APPLE__
   if ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))
     frameBuffer->drawScaled(0, 0, frameBuffer->width(),
                             frameBuffer->height(), x(), y(), w(), h());
   else
-#endif
     frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
 }
 
 
 void Viewport::resize(int x, int y, int w, int h)
 {
+  bool changed = (this->w() != w) || (this->h() != h);
+
   Fl_Widget::resize(x, y, w, h);
+
+  if (changed && cursor)
+    setCursor();
 }
 
 

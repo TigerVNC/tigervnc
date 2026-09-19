@@ -292,6 +292,7 @@ static core::VoidParameter* parameterArray[] = {
   &fullScreen,
   &fullScreenMode,
   &fullScreenSelectedMonitors,
+  &remoteResize,
   &scaleToFit,
   /* Input */
   &viewOnly,

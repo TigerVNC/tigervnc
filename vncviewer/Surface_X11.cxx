@@ -54,11 +54,63 @@ void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
   XRenderFreePicture(fl_display, winPict);
 }
 
+void Surface::drawScaled(int src_x, int src_y, int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
+{
+  Picture winPict;
+  XTransform transform = {{
+    {XDoubleToFixed((double)src_w / dst_w), XDoubleToFixed(0),
+     XDoubleToFixed(src_x - (double)dst_x * src_w / dst_w)},
+    {XDoubleToFixed(0), XDoubleToFixed((double)src_h / dst_h),
+     XDoubleToFixed(src_y - (double)dst_y * src_h / dst_h)},
+    {XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
+  }};
+  XTransform identity = {{
+    {XDoubleToFixed(1), XDoubleToFixed(0), XDoubleToFixed(0)},
+    {XDoubleToFixed(0), XDoubleToFixed(1), XDoubleToFixed(0)},
+    {XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
+  }};
+
+  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, nullptr);
+  XRenderSetPictureTransform(fl_display, picture, &transform);
+  XRenderSetPictureFilter(fl_display, picture, FilterBilinear, nullptr, 0);
+  XRenderComposite(fl_display, PictOpSrc, picture, None, winPict,
+                   0, 0, 0, 0, dst_x, dst_y, dst_w, dst_h);
+  XRenderSetPictureTransform(fl_display, picture, &identity);
+  XRenderSetPictureFilter(fl_display, picture, FilterNearest, nullptr, 0);
+  XRenderFreePicture(fl_display, winPict);
+}
+
 void Surface::draw(Surface* dst, int src_x, int src_y,
                    int dst_x, int dst_y, int dst_w, int dst_h)
 {
   XRenderComposite(fl_display, PictOpSrc, picture, None, dst->picture,
                    src_x, src_y, 0, 0, dst_x, dst_y, dst_w, dst_h);
+}
+
+void Surface::drawScaled(Surface* dst, int src_x, int src_y,
+                         int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
+{
+  XTransform transform = {{
+    {XDoubleToFixed((double)src_w / dst_w), XDoubleToFixed(0),
+     XDoubleToFixed(src_x - (double)dst_x * src_w / dst_w)},
+    {XDoubleToFixed(0), XDoubleToFixed((double)src_h / dst_h),
+     XDoubleToFixed(src_y - (double)dst_y * src_h / dst_h)},
+    {XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
+  }};
+  XTransform identity = {{
+    {XDoubleToFixed(1), XDoubleToFixed(0), XDoubleToFixed(0)},
+    {XDoubleToFixed(0), XDoubleToFixed(1), XDoubleToFixed(0)},
+    {XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
+  }};
+
+  XRenderSetPictureTransform(fl_display, picture, &transform);
+  XRenderSetPictureFilter(fl_display, picture, FilterBilinear, nullptr, 0);
+  XRenderComposite(fl_display, PictOpSrc, picture, None, dst->picture,
+                   0, 0, 0, 0, dst_x, dst_y, dst_w, dst_h);
+  XRenderSetPictureTransform(fl_display, picture, &identity);
+  XRenderSetPictureFilter(fl_display, picture, FilterNearest, nullptr, 0);
 }
 
 static Picture alpha_mask(int a)
@@ -232,4 +284,3 @@ void Surface::update(const Fl_RGB_Image* image)
 
   XDestroyImage(img);
 }
-

@@ -425,22 +425,25 @@ void DesktopWindow::setCursor()
 
 void DesktopWindow::setCursorPos(const core::Point& pos)
 {
+  core::Point mapped;
+
   if (!mouseGrabbed) {
     // Do nothing if we do not have the mouse captured.
     return;
   }
+
+  mapped = viewport->mapFromFramebuffer(pos);
 #if defined(WIN32)
-  SetCursorPos(pos.x + x_root() + viewport->x(),
-               pos.y + y_root() + viewport->y());
+  SetCursorPos(mapped.x + x_root() + viewport->x(),
+               mapped.y + y_root() + viewport->y());
 #elif defined(__APPLE__)
   CGPoint new_pos;
-  core::Point mapped = viewport->mapFromFramebuffer(pos);
   new_pos.x = mapped.x + x_root() + viewport->x();
   new_pos.y = mapped.y + y_root() + viewport->y();
   CGWarpMouseCursorPosition(new_pos);
 #else // Assume this is Xlib
-  x11_warp_pointer(pos.x + x_root() + viewport->x(),
-                   pos.y + y_root() + viewport->y());
+  x11_warp_pointer(mapped.x + x_root() + viewport->x(),
+                   mapped.y + y_root() + viewport->y());
 #endif
 }
 
@@ -1513,6 +1516,9 @@ void DesktopWindow::repositionWidgets()
     scaled_w = std::max(1, (int)(viewport->framebufferWidth() * scale));
     scaled_h = std::max(1, (int)(viewport->framebufferHeight() * scale));
     viewport->size(scaled_w, scaled_h);
+  } else if ((viewport->w() != viewport->framebufferWidth()) ||
+             (viewport->h() != viewport->framebufferHeight())) {
+    viewport->size(viewport->framebufferWidth(), viewport->framebufferHeight());
   }
 
   // Viewport position
@@ -1613,6 +1619,8 @@ void DesktopWindow::handleOptions(void *data)
     self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
+
+  self->repositionWidgets();
 }
 
 void DesktopWindow::handleFullscreenTimeout(void *data)
