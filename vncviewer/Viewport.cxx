@@ -203,10 +203,10 @@ void Viewport::setFramebufferSize(int width, int height)
   vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
              frameBuffer->width(), frameBuffer->height(), width, height);
 
-  delete frameBuffer;
-  frameBuffer = new PlatformPixelBuffer(width, height);
-  assert(frameBuffer);
-  cc->setFramebuffer(frameBuffer);
+  PlatformPixelBuffer* newFrameBuffer = new PlatformPixelBuffer(width, height);
+  assert(newFrameBuffer);
+  cc->setFramebuffer(newFrameBuffer);
+  frameBuffer = newFrameBuffer;
 }
 
 int Viewport::framebufferWidth() const
