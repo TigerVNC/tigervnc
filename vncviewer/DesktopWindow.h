@@ -143,6 +143,7 @@ private:
   bool sentDesktopSize;
 
   bool pendingRemoteResize;
+  bool remoteResizeFailed;
   struct timeval lastResize;
   int lastResizeWidth, lastResizeHeight;
   rfb::ScreenSet lastResizeLayout;
