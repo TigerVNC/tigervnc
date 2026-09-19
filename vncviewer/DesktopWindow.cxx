@@ -35,6 +35,7 @@
 #include <core/time.h>
 
 #include <rfb/CMsgWriter.h>
+#include <rfb/screenTypes.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
@@ -87,7 +88,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr),
     firstUpdate(true),
     delayedFullscreen(false), sentDesktopSize(false),
-    pendingRemoteResize(false), lastResize({0, 0}),
+    pendingRemoteResize(false), remoteResizeFailed(false), lastResize({0, 0}),
     keyboardGrabbed(false), mouseGrabbed(false), regrabOnFocus(false),
     statsLastUpdates(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(nullptr)
@@ -361,7 +362,8 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 {
   bool maximized;
 
-  if ((new_w == viewport->w()) && (new_h == viewport->h()))
+  if ((new_w == viewport->framebufferWidth()) &&
+      (new_h == viewport->framebufferHeight()))
     return;
 
   maximized = false;
@@ -389,15 +391,25 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
       size(new_w, new_h);
   }
 
-  viewport->size(new_w, new_h);
+  viewport->setFramebufferSize(new_w, new_h);
+  if (!::remoteResize || cc->server.supportsSetDesktopSize)
+    viewport->size(new_w, new_h);
 
   repositionWidgets();
 }
 
 
-void DesktopWindow::setDesktopSizeDone(unsigned /*result*/)
+void DesktopWindow::setDesktopSizeDone(unsigned result)
 {
   pendingRemoteResize = false;
+
+  if (result != rfb::resultSuccess) {
+    vlog.info(_("Server rejected the requested desktop resize; "
+                "scaling the remote desktop to fit the viewer window"));
+    remoteResizeFailed = true;
+    repositionWidgets();
+    return;
+  }
 
   // We might have resized again whilst waiting for the previous
   // request, so check if we are in sync
@@ -422,8 +434,9 @@ void DesktopWindow::setCursorPos(const core::Point& pos)
                pos.y + y_root() + viewport->y());
 #elif defined(__APPLE__)
   CGPoint new_pos;
-  new_pos.x = pos.x + x_root() + viewport->x();
-  new_pos.y = pos.y + y_root() + viewport->y();
+  core::Point mapped = viewport->mapFromFramebuffer(pos);
+  new_pos.x = mapped.x + x_root() + viewport->x();
+  new_pos.y = mapped.y + y_root() + viewport->y();
   CGWarpMouseCursorPosition(new_pos);
 #else // Assume this is Xlib
   x11_warp_pointer(pos.x + x_root() + viewport->x(),
@@ -1289,6 +1302,8 @@ void DesktopWindow::remoteResize()
 
   if (!::remoteResize)
     return;
+  if (remoteResizeFailed)
+    return;
   if (!cc->server.supportsSetDesktopSize)
     return;
 
@@ -1486,6 +1501,19 @@ void DesktopWindow::remoteResize()
 void DesktopWindow::repositionWidgets()
 {
   int new_x, new_y;
+
+  if (scaleToFit ||
+      (::remoteResize &&
+       (!cc->server.supportsSetDesktopSize || remoteResizeFailed))) {
+    float scale;
+    int scaled_w, scaled_h;
+
+    scale = std::min((float)w() / viewport->framebufferWidth(),
+                     (float)h() / viewport->framebufferHeight());
+    scaled_w = std::max(1, (int)(viewport->framebufferWidth() * scale));
+    scaled_h = std::max(1, (int)(viewport->framebufferHeight() * scale));
+    viewport->size(scaled_w, scaled_h);
+  }
 
   // Viewport position
 

@@ -188,7 +188,46 @@ void Viewport::updateWindow()
   core::Rect r;
 
   r = frameBuffer->getDamage();
-  damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  if ((w() == frameBuffer->width()) && (h() == frameBuffer->height()))
+    damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  else
+    damage(FL_DAMAGE_USER1);
+}
+
+void Viewport::setFramebufferSize(int width, int height)
+{
+  if ((width == frameBuffer->width()) && (height == frameBuffer->height()))
+    return;
+
+  vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
+             frameBuffer->width(), frameBuffer->height(), width, height);
+
+  delete frameBuffer;
+  frameBuffer = new PlatformPixelBuffer(width, height);
+  assert(frameBuffer);
+  cc->setFramebuffer(frameBuffer);
+}
+
+int Viewport::framebufferWidth() const
+{
+  return frameBuffer->width();
+}
+
+int Viewport::framebufferHeight() const
+{
+  return frameBuffer->height();
+}
+
+core::Point Viewport::mapToFramebuffer(const core::Point& pos) const
+{
+  return {pos.x * frameBuffer->width() / w(),
+          pos.y * frameBuffer->height() / h()};
+}
+
+core::Point Viewport::mapFromFramebuffer(const core::Point& pos) const
+{
+  return {pos.x * w() / frameBuffer->width(),
+          pos.y * h() / frameBuffer->height()};
 }
 
 static const char * dotcursor_xpm[] = {
@@ -392,7 +431,13 @@ void Viewport::draw(Surface* dst)
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
+#ifdef __APPLE__
+  if ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))
+    frameBuffer->drawScaled(dst, 0, 0, frameBuffer->width(),
+                            frameBuffer->height(), x(), y(), w(), h());
+  else
+#endif
+    frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
 }
 
 
@@ -405,21 +450,18 @@ void Viewport::draw()
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
+#ifdef __APPLE__
+  if ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))
+    frameBuffer->drawScaled(0, 0, frameBuffer->width(),
+                            frameBuffer->height(), x(), y(), w(), h());
+  else
+#endif
+    frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
 }
 
 
 void Viewport::resize(int x, int y, int w, int h)
 {
-  if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
-    vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
-               frameBuffer->width(), frameBuffer->height(), w, h);
-
-    frameBuffer = new PlatformPixelBuffer(w, h);
-    assert(frameBuffer);
-    cc->setFramebuffer(frameBuffer);
-  }
-
   Fl_Widget::resize(x, y, w, h);
 }
 
@@ -661,7 +703,7 @@ void Viewport::flushPendingClipboard()
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
-  filterPointerEvent(pos, buttonMask);
+  filterPointerEvent(mapToFramebuffer(pos), buttonMask);
 }
 
 

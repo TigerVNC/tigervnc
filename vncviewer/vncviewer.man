@@ -306,6 +306,13 @@ Dynamically resize the remote desktop size as the size of the local client
 window changes. Note that this may not work with all VNC servers.
 .
 .TP
+.B \-ScaleToFit
+Scale the remote desktop to fit the local client window while preserving its
+aspect ratio. This is useful for fixed-resolution device servers; combine it
+with \fB-RemoteResize=0\fP when the server accepts desktop resize requests but
+does not actually resize the displayed device.
+.
+.TP
 .B \-SecurityTypes \fIsec-types\fP
 Specify which security schemes to attempt to use when authenticating with
 the server.  Valid values are a comma separated list of \fBNone\fP,
