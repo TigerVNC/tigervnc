@@ -168,15 +168,18 @@ void ImageCopyCaptureSession::handleDone()
   assert(!pool);
   assert(!buffer);
 
-  if (formatsPending.empty()) {
+  if (formatsPending.empty() && formats.empty()) {
     vlog.error(_("No Wayland pixel formats provided"));
     stoppedCb();
     return;
   }
 
-  // Ensure formats doesn't change during execution
-  formats = formatsPending;
-  formatsPending.clear();
+  // A session can send done more than once without re-advertising its
+  // formats. Keep the last complete list in that case.
+  if (!formatsPending.empty()) {
+    formats = formatsPending;
+    formatsPending.clear();
+  }
 
   try {
     format = preferredFormat();

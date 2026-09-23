@@ -38,8 +38,7 @@ namespace wayland {
                                   ext_image_copy_capture_cursor_session_v1* session,
                                   std::function<void(int, int, const core::Point&, uint32_t, uint32_t, const uint8_t*)>
                                     cursorFrameCb,
-                                  std::function<void(const core::Point&)> cursorPosCb,
-                                  std::function<void()> stoppedCb);
+                                  std::function<void(const core::Point&)> cursorPosCb);
     ~ImageCopyCaptureCursorSession();
 
   private:

@@ -163,8 +163,9 @@ void PipeWireStream::handleStreamStateChanged(enum pw_stream_state old,
 
   switch (state) {
   case PW_STREAM_STATE_UNCONNECTED:
-    vlog.debug("PipeWire stream disconnected");
-    break;
+    vlog.error("PipeWire stream disconnected");
+    stopped();
+    return;
   case PW_STREAM_STATE_PAUSED:
     // This can happen if the compositor shuts down the session, e.g.
     // a user logs out.
