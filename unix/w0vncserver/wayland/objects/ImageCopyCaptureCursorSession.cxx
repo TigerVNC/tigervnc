@@ -58,9 +58,7 @@ ImageCopyCaptureCursorSession::ImageCopyCaptureCursorSession(Display* display_,
                                                              std::function<void(int, int, const core::Point&, uint32_t, uint32_t, const uint8_t*)>
                                                                cursorFrameCb_,
                                                              std::function<void(const core::Point&)>
-                                                               cursorPosCb_,
-                                                             std::function<void()>
-                                                               stoppedCb_)
+                                                               cursorPosCb_)
   : session(session_), captureSession(nullptr),
     cursorFrameCb(cursorFrameCb_), cursorPosCb(cursorPosCb_),
     hotspot({0, 0})
@@ -87,7 +85,7 @@ ImageCopyCaptureCursorSession::ImageCopyCaptureCursorSession(Display* display_,
   captureSession = new ImageCopyCaptureSession(display_,
                                                captureSessionHandle,
                                                bufferEventCb,
-                                               stoppedCb_);
+                                               []() {});
 }
 
 ImageCopyCaptureCursorSession::~ImageCopyCaptureCursorSession()
