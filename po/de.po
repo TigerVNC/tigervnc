@@ -9,16 +9,16 @@ msgstr ""
 "Project-Id-Version: tigervnc 1.15.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2025-11-07 10:53+0100\n"
-"PO-Revision-Date: 2025-11-13 19:47+0100\n"
-"Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
+"PO-Revision-Date: 2026-09-24 16:59+0200\n"
+"Last-Translator: Roland Illig <roland.illig@gmx.de>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.9\n"
 
 #: vncviewer/CConn.cxx:158
 #, c-format
@@ -132,7 +132,7 @@ msgstr "Unzulässige Geometrie wurde angegeben!"
 
 #: vncviewer/DesktopWindow.cxx:173
 msgid "Reducing window size to fit on current monitor"
-msgstr "Fenstergröße an den aktuellen Bildschirm anpassen"
+msgstr "Fenstergröße wird an den aktuellen Bildschirm angepasst"
 
 #: vncviewer/DesktopWindow.cxx:244
 #, c-format
@@ -142,7 +142,7 @@ msgstr "Drücken Sie %sM, um das Kontextmenü zu öffnen"
 #: vncviewer/DesktopWindow.cxx:312
 #, c-format
 msgid "%s - TigerVNC (keyboard grabbed)"
-msgstr "%s - TigerVNC (Tastatur erkannt)"
+msgstr "%s - TigerVNC (Tastatur übernommen)"
 
 #: vncviewer/DesktopWindow.cxx:314
 #, c-format
@@ -151,7 +151,7 @@ msgstr "%s - TigerVNC"
 
 #: vncviewer/DesktopWindow.cxx:705
 msgid "Adjusting window size to avoid accidental full-screen request"
-msgstr "Fenstergröße anpassen, um zufällige Vollbild-Anforderung zu vermeiden"
+msgstr "Fenstergröße wird angepasst, um versehentliche Vollbild-Anforderung zu vermeiden"
 
 #: vncviewer/DesktopWindow.cxx:915
 #, c-format
@@ -162,7 +162,7 @@ msgstr "Drücken Sie %sEnter, um den Vollbildmodus zu verlassen"
 #: vncviewer/DesktopWindow.cxx:1213 vncviewer/DesktopWindow.cxx:1214
 #: vncviewer/DesktopWindow.cxx:1239 vncviewer/DesktopWindow.cxx:1240
 msgid "Failure grabbing control of the keyboard"
-msgstr "Fehler beim Erkennen der Tastatursteuerung"
+msgstr "Fehler beim Übernehmen der Tastatursteuerung"
 
 #: vncviewer/DesktopWindow.cxx:1258
 #, c-format
@@ -294,7 +294,7 @@ msgstr "Qualitätsstufe"
 
 #: vncviewer/OptionsDialog.cxx:732
 msgid "quality (0=poor, 9=best)"
-msgstr "Qualität (0=schlechte, 9=beste)"
+msgstr "Qualität (0=schlecht, 9=beste)"
 
 #: vncviewer/OptionsDialog.cxx:756
 msgid "Security"
@@ -527,7 +527,7 @@ msgstr "Optionen …"
 
 #: vncviewer/ServerDialog.cxx:87
 msgid "Load..."
-msgstr "Laden..."
+msgstr "Laden …"
 
 #: vncviewer/ServerDialog.cxx:91
 msgid "Save as..."
@@ -578,7 +578,7 @@ msgstr "Eine TigerVNC-Konfigurationsdatei speichern"
 #: vncviewer/ServerDialog.cxx:242
 #, c-format
 msgid "%s already exists. Do you want to overwrite?"
-msgstr "%s existiert bereits. Wollen Sie es überschreiben?"
+msgstr "%s existiert bereits. Wollen Sie sie überschreiben?"
 
 #: vncviewer/ServerDialog.cxx:243 vncviewer/vncviewer.cxx:394
 msgid "No"
@@ -650,7 +650,7 @@ msgstr "Öffnen der Passwortdatei fehlgeschlagen"
 
 #: vncviewer/UserDialog.cxx:150
 msgid "VNC authentication"
-msgstr "VNC-Autorisierung"
+msgstr "VNC-Authentifizierung"
 
 #: vncviewer/UserDialog.cxx:157
 msgid "This connection is secure"
@@ -680,7 +680,7 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"Bei der Kommunikation mit dem Server trat in unerwarteter Fehler auf:\n"
+"Bei der Kommunikation mit dem Server trat ein unerwarteter Fehler auf:\n"
 "\n"
 "%s"
 
@@ -722,7 +722,7 @@ msgstr "Strg-Alt-E&ntf senden"
 #: vncviewer/Viewport.cxx:928
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
-msgstr "&Bildschirm aktualisieren"
+msgstr "Bildschirm &aktualisieren"
 
 #: vncviewer/Viewport.cxx:931
 msgctxt "ContextMenu|"
@@ -732,12 +732,12 @@ msgstr "&Optionen …"
 #: vncviewer/Viewport.cxx:933
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
-msgstr "Verbind&ungsinformationen …"
+msgstr "Ver&bindungsinformationen …"
 
 #: vncviewer/Viewport.cxx:935
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC..."
-msgstr "Info &zu TigerVNC …"
+msgstr "Info zu &TigerVNC …"
 
 #: vncviewer/Viewport.cxx:1027
 msgid "VNC connection info"
@@ -755,7 +755,7 @@ msgstr "Gesten-Konfiguration konnte nicht gesetzt werden (Fehler 0x%x)"
 #: vncviewer/Win32TouchHandler.cxx:93
 #, c-format
 msgid "Failed to get gesture information (error 0x%x)"
-msgstr "Gesten-Konfiguration konnte nicht ermittelt werden (Fehler 0x%x)"
+msgstr "Gesten-Information konnte nicht ermittelt werden (Fehler 0x%x)"
 
 #: vncviewer/Win32TouchHandler.cxx:361
 #, c-format
@@ -765,27 +765,27 @@ msgstr "Unzulässige Maustaste %d; muss eine Zahl von 1 bis 7 sein."
 #: vncviewer/Win32TouchHandler.cxx:426
 #, c-format
 msgid "Unhandled key 0x%x - can't generate keyboard event."
-msgstr "Nicht verarbeitbare Taste 0x%x - Tastaturereignis kann nicht erstellt werden."
+msgstr "Nicht verarbeitete Taste 0x%x - Tastaturereignis kann nicht erstellt werden."
 
 #: vncviewer/XInputTouchHandler.cxx:103 vncviewer/touch.cxx:107
 #, c-format
 msgid "Unable to get X Input 2 event mask for window 0x%08lx"
-msgstr "Für Fenster 0x%08lx konnte die X-Input2-Ereignismaske nicht erhalten werden"
+msgstr "Für Fenster 0x%08lx konnte die X-Input2-Ereignismaske nicht ermittelt werden"
 
 #: vncviewer/XInputTouchHandler.cxx:105
 #, c-format
 msgid "Window 0x%08lx has no X Input 2 event mask"
-msgstr "Window 0x%08lx hat keine X-Input2-Ereignismaske"
+msgstr "Fenster 0x%08lx hat keine X-Input2-Ereignismaske"
 
 #: vncviewer/XInputTouchHandler.cxx:113 vncviewer/touch.cxx:114
 #, c-format
 msgid "Window 0x%08lx has more than one X Input 2 event mask"
-msgstr "Window 0x%08lx hat mehrere X-Input2-Ereignismasken"
+msgstr "Fenster 0x%08lx hat mehrere X-Input2-Ereignismasken"
 
 #: vncviewer/XInputTouchHandler.cxx:144
 #, c-format
 msgid "Failure grabbing device %i"
-msgstr "Fehler beim Erkennen des Geräts %i"
+msgstr "Fehler beim Übernehmen des Geräts %i"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
 #: vncviewer/vncviewer.desktop.in.in:2
@@ -795,11 +795,11 @@ msgstr "TigerVNC"
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
 #: vncviewer/vncviewer.desktop.in.in:4
 msgid "Connect to VNC server and display remote desktop"
-msgstr "Mite einem VNC-Server verbinden und einen fernen Desktop anzeigen"
+msgstr "Mit einem VNC-Server verbinden und einen entfernten Desktop anzeigen"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
 msgid "Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network. Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device. This package contains a client which will enable you to connect to other desktops running a VNC server. VNC is platform-independent and supports various operating systems and architectures as both servers and clients."
-msgstr "Virtual Network Computing (VNC) ist ein Anzeigesystem für ferne Rechner, dass es Ihnen ermöglicht, eine Arbeitsumgebung auf einem anderen Rechner im Netzwerk zu betrachten und damit zu interagieren. Mit VNC können Sie auf dem fernen Rechner grafische Anwendungen ausführen und lediglich die Anzeige dieser Anwendungen auf Ihr lokales Gerät holen. Dieses Paket enthält einen Client, mit dem Sie sich mit über einen laufenden VNC-Server mit anderen Arbeitsumgebungen verbinden können. VNC ist plattformunabhängig und unterstützt verschiedene Betriebssysteme und Architekturen als sowohl Server als auch Client."
+msgstr "Virtual Network Computing (VNC) ist ein Anzeigesystem für ferne Rechner, das es Ihnen ermöglicht, eine Arbeitsumgebung auf einem anderen Rechner im Netzwerk zu betrachten und damit zu interagieren. Mit VNC können Sie auf dem fernen Rechner grafische Anwendungen ausführen und lediglich die Anzeige dieser Anwendungen auf Ihr lokales Gerät holen. Dieses Paket enthält einen Client, mit dem Sie sich mittels eines laufenden VNC-Servers mit anderen Arbeitsumgebungen verbinden können. VNC ist plattformunabhängig und unterstützt verschiedene Betriebssysteme und Architekturen sowohl als Server wie auch als Client."
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:23
 msgid "TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code bases. TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project in early 2009 so that TightVNC could focus on Windows platforms. TigerVNC supports a variant of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo JPEG codec."
@@ -898,12 +898,12 @@ msgstr "Unbekannter Parameter"
 #: vncviewer/touch.cxx:75
 #, c-format
 msgid "Got message (0x%x) for an unhandled window"
-msgstr "Nachricht (0x%x) für ein nicht verarbeitbares Fenster erhalten"
+msgstr "Nachricht (0x%x) für ein nicht verarbeitetes Fenster erhalten"
 
 #: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
 #, c-format
 msgid "Invalid window 0x%08lx specified for pointer grab"
-msgstr "Für die Zeigerermittlung wurde das unzulässige Fenster 0x%08lx angegeben"
+msgstr "Für die Zeigerübernahme wurde das unzulässige Fenster 0x%08lx angegeben"
 
 #: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
 #, c-format
@@ -1030,8 +1030,8 @@ msgid ""
 "       %s [parameters] [.tigervnc file]\n"
 msgstr ""
 "\n"
-"Aufruf: %s [Parameter] [Host][:Displaynummer]\n"
-"        %s [Parameter] [Host][::Port]\n"
+"Aufruf: %s [Parameter] [Rechner][:Displaynummer]\n"
+"        %s [Parameter] [Rechner][::Port]\n"
 "        %s [Parameter] [Unix-Socket]\n"
 "        %s [Parameter] -listen [Port]\n"
 "        %s [Parameter] [.tigervnc-Datei]\n"
@@ -1066,7 +1066,7 @@ msgid ""
 msgstr ""
 "\n"
 "Parameter können mit -<Parameter> eingeschaltet oder mit -<Parameter>=0\n"
-"ausgeschaltet werden. Parameter, welche einen Wert akzeptieren, können als\n"
+"ausgeschaltet werden. Parameter, die einen Wert akzeptieren, können als\n"
 "-<Parameter> <Wert> angegeben werden; außerdem sind die Formen\n"
 "<Parameter>=<Wert>, -<Parameter>=<Wert> oder --<Parameter>=<Wert> möglich.\n"
 "Für die Parameternamen wird Groß-/Kleinschreibung nicht berücksichtigt.\n"
@@ -1088,7 +1088,7 @@ msgstr "~/.vnc ist veraltet, bitte rufen Sie »man vncviewer« auf, um Informati
 #: vncviewer/vncviewer.cxx:557
 #, c-format
 msgid "%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."
-msgstr "%%APPDATA%%\\vnc ist veraltet, bitte wechseln Sie zum %%APPDATA%%\\TigerVNC-Ort."
+msgstr "%%APPDATA%%\\vnc ist veraltet, bitte wechseln Sie zum Ort %%APPDATA%%\\TigerVNC."
 
 #: vncviewer/vncviewer.cxx:562
 #, c-format
@@ -1122,7 +1122,7 @@ msgstr "Siehe »%s --help« für weitere Informationen.\n"
 #: vncviewer/vncviewer.cxx:714
 #, c-format
 msgid "%s: Extra argument '%s'\n"
-msgstr "%s: Zusätzliches Argument »%s«\n"
+msgstr "%s: Überzähliges Argument »%s«\n"
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
@@ -1157,7 +1157,7 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"Einrichtung des verschlüsselten Tunnels ist fehlgeschlagen:\n"
+"Fehler beim Einrichten des verschlüsselten Tunnels:\n"
 "\n"
 "%s"
 
