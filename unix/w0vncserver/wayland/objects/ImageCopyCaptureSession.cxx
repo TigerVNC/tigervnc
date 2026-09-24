@@ -21,6 +21,7 @@
 #endif
 
 #include <assert.h>
+#include <limits>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -160,6 +161,7 @@ void ImageCopyCaptureSession::handleDmabufFormat(uint32_t /* format */,
 void ImageCopyCaptureSession::handleDone()
 {
   size_t size;
+  size_t stride;
   int fd;
 
   cleanupBuffers();
@@ -181,6 +183,25 @@ void ImageCopyCaptureSession::handleDone()
     formatsPending.clear();
   }
 
+  // wl_shm_create_pool() and wl_buffer use signed 32-bit sizes and strides.
+  // Validate before multiplying so compositor-provided dimensions cannot
+  // wrap the allocation size or produce invalid Wayland arguments.
+  const size_t maxSize = std::numeric_limits<int32_t>::max();
+  if (width == 0 || height == 0 || width > maxSize / 4 ||
+      height > maxSize) {
+    vlog.error(_("Invalid Wayland buffer size: %u x %u"), width, height);
+    stoppedCb();
+    return;
+  }
+
+  stride = static_cast<size_t>(width) * 4;
+  if (stride > maxSize || stride > maxSize / height) {
+    vlog.error(_("Wayland buffer is too large: %u x %u"), width, height);
+    stoppedCb();
+    return;
+  }
+  size = stride * height;
+
   try {
     format = preferredFormat();
   } catch (std::exception& e) {
@@ -197,11 +218,11 @@ void ImageCopyCaptureSession::handleDone()
     return;
   }
 
-  size = width * height * 4;
   if (ftruncate(fd, size) < 0) {
     vlog.error(_("Failed to create shared memory pool: %s"),
                strerror(errno));
     close(fd);
+    stoppedCb();
     return;
   }
 
@@ -217,7 +238,7 @@ void ImageCopyCaptureSession::handleDone()
 
   close(fd);
 
-  buffer = pool->createBuffer(0, width, height, width * 4, format);
+  buffer = pool->createBuffer(0, width, height, stride, format);
   if (!buffer) {
     vlog.error(_("Failed to create Wayland buffer object"));
     stoppedCb();
