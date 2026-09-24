@@ -37,6 +37,8 @@
 #include <math.h>
 #include <sys/time.h>
 
+#include <vector>
+
 #include <core/Configuration.h>
 
 #include <rdr/OutStream.h>
@@ -57,6 +59,11 @@
 static core::IntParameter width("width", "Frame buffer width", 0);
 static core::IntParameter height("height", "Frame buffer height", 0);
 static core::IntParameter count("count", "Number of benchmark iterations", 9);
+static core::IntParameter encodingParam("encoding",
+                                       "Preferred encoding number (0 Raw, "
+                                       "2 RRE, 5 Hextile, 7 Tight, "
+                                       "16 ZRLE, 21 JPEG)",
+                                       rfb::encodingTight);
 
 static core::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
@@ -136,6 +143,8 @@ public:
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
 
+  void setEncoding(int32_t selectedEncoding);
+
   void getStats(double&, unsigned long long&, unsigned long long&);
 
   void setAccessRights(rfb::AccessRights ar) override;
@@ -200,7 +209,7 @@ CConn::CConn(const char *filename)
 
   sc = new SConn();
   sc->client.setPF((bool)translate ? fbPF : pf);
-  ((rfb::SMsgHandler*)sc)->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
+  sc->setEncoding(encodingParam);
 }
 
 CConn::~CConn()
@@ -325,6 +334,19 @@ SConn::SConn()
   setWriter(new rfb::SMsgWriter(&client, out));
 
   manager = new Manager(this);
+}
+
+void SConn::setEncoding(int32_t selectedEncoding)
+{
+  std::vector<int32_t> selectedEncodings;
+
+  selectedEncodings.push_back(selectedEncoding);
+  for (int32_t candidate : encodings) {
+    if (candidate != selectedEncoding)
+      selectedEncodings.push_back(candidate);
+  }
+  ((rfb::SMsgHandler*)this)->setEncodings(selectedEncodings.size(),
+                                           selectedEncodings.data());
 }
 
 SConn::~SConn()
@@ -499,6 +521,11 @@ int main(int argc, char **argv)
   if (width == 0 || height == 0) {
     fprintf(stderr, "Frame buffer size not specified!\n\n");
     usage(argv[0]);
+  }
+
+  if (!rfb::EncodeManager::supported(encodingParam)) {
+    fprintf(stderr, "Unsupported encoding number: %d\n", (int)encodingParam);
+    return 1;
   }
 
   // Warmup
