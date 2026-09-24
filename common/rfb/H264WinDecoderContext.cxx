@@ -36,10 +36,8 @@
 
 using namespace rfb;
 
-// Older MinGW lacks this definition
-#ifndef HAVE_VIDEO_PROCESSOR_MFT
-static GUID CLSID_VideoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
-#endif
+// Not declared by all toolchains and Windows versions
+static const GUID videoProcessorMFT = { 0x88753b26, 0x5b24, 0x49bd, { 0xb2, 0xe7, 0xc, 0x44, 0x5c, 0x78, 0xc9, 0x82 } };
 
 H264WinDecoderContext::H264WinDecoderContext(const core::Rect &r)
   : H264DecoderContext(r)
@@ -50,7 +48,7 @@ H264WinDecoderContext::H264WinDecoderContext(const core::Rect &r)
   if (FAILED(CoCreateInstance(CLSID_CMSH264DecoderMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&decoder)))
     throw std::runtime_error(_("Could not find video codec"));
 
-  if (FAILED(CoCreateInstance(CLSID_VideoProcessorMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
+  if (FAILED(CoCreateInstance(videoProcessorMFT, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
   {
     if (FAILED(CoCreateInstance(CLSID_CColorConvertDMO, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)&converter)))
     {
