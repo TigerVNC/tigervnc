@@ -36,7 +36,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sys/time.h>
-
+#include <algorithm>
+#include <chrono>
 #include <vector>
 
 #include <core/Configuration.h>
@@ -121,6 +122,7 @@ public:
 public:
   double decodeTime;
   double encodeTime;
+  std::vector<double> encodeFrameTimes;
 
 protected:
   rdr::FileInStream *in;
@@ -257,7 +259,11 @@ void CConn::framebufferUpdateEnd()
   updates.getUpdateInfo(&ui, clip);
 
   startCpuCounter();
+  const auto encodeStart = std::chrono::steady_clock::now();
   sc->writeUpdate(ui, pb);
+  const auto encodeEnd = std::chrono::steady_clock::now();
+  encodeFrameTimes.push_back(
+    std::chrono::duration<double, std::milli>(encodeEnd - encodeStart).count());
   endCpuCounter();
 
   encodeTime += getCpuCounter();
@@ -391,6 +397,7 @@ struct stats
   double ratio;
   unsigned long long bytes;
   unsigned long long rawEquivalent;
+  double maxEncodeFrameTime;
 };
 
 static struct stats runTest(const char *fn)
@@ -421,6 +428,9 @@ static struct stats runTest(const char *fn)
 
   s.decodeTime = cc->decodeTime;
   s.encodeTime = cc->encodeTime;
+  std::vector<double> frameTimes = cc->encodeFrameTimes;
+  std::sort(frameTimes.begin(), frameTimes.end());
+  s.maxEncodeFrameTime = frameTimes.empty() ? 0 : frameTimes.back();
   s.realTime = (double)stop.tv_sec - start.tv_sec;
   s.realTime += ((double)stop.tv_usec - start.tv_usec)/1000000.0;
   cc->getStats(s.ratio, s.bytes, s.rawEquivalent);
@@ -564,6 +574,17 @@ int main(int argc, char **argv)
   meddev = dev[runCount/2];
 
   printf("CPU time (encoding): %g s (+/- %g %%)\n", median, meddev);
+
+  for (i = 0; i < runCount; i++)
+    values[i] = runs[i].maxEncodeFrameTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
+  for (i = 0; i < runCount; i++)
+    dev[i] = median == 0 ? 0 : fabs((values[i] - median) / median) * 100;
+  sort(dev, runCount);
+  meddev = dev[runCount/2];
+  printf("Max framebuffer encode time: %g ms (+/- %g %%)\n", median, meddev);
 
   // And for CPU core usage encoding
   for (i = 0;i < runCount;i++)

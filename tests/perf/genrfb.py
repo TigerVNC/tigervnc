@@ -10,8 +10,9 @@ Example:
   tests/perf/encperf encoding=7 width=640 height=360 format=rgb888 /tmp/ui.rfb
 
 Run the same trace with encoding=5, 16, or 21 to compare Hextile, ZRLE, or
-JPEG. encperf reports CPU time and encoded bytes. These numbers do not include
-network latency or client/server scheduling.
+JPEG. encperf reports CPU time, encoded bytes, and per-frame encoding wall
+time, which approximates the time the server event loop is occupied encoding.
+The numbers do not include network latency or input queue delay.
 """
 
 import argparse
