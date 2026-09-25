@@ -104,6 +104,7 @@ namespace rfb {
     void setCursorPos(const core::Point& p, bool warped) override;
     void setName(const char* name_) override;
     void setLEDState(unsigned state) override;
+    void updateOverlay() override;
 
     void bell() override;
 

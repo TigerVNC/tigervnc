@@ -30,6 +30,7 @@
 #include <map>
 
 #include <core/Timer.h>
+#include "core/Configuration.h"
 
 #include <rfb/Congestion.h>
 #include <rfb/EncodeManager.h>
@@ -37,6 +38,7 @@
 
 namespace rfb {
   class VNCServerST;
+  class OverlayPixelBuffer;
 
   class VNCSConnectionST : private SConnection,
                            public core::Timer::Callback {
@@ -45,6 +47,13 @@ namespace rfb {
                      AccessRights ar);
     virtual ~VNCSConnectionST();
 
+    static core::StringParameter overlayType; // Overlay type (text, png, qr-code)
+    static core::StringParameter overlayPos; // Overlay position (tl, tr, bl, br, c)
+    static core::StringParameter overlayInput; // Overlay text to display
+    static core::IntParameter overlayAlpha; // % transparency of the overlay
+    static core::IntParameter overlaySize; // % of framebuffer height the overlay should occupy
+    static core::IntParameter overlayPadding; // Padding in pixels between the overlay and the screen edge
+    static core::StringParameter overlayFont; // Font (fontconfig pattern) used to render text overlays
     // SConnection methods
 
     bool accessCheck(AccessRights ar) const override;
@@ -80,6 +89,7 @@ namespace rfb {
     void bellOrClose();
     void setDesktopNameOrClose(const char *name);
     void setLEDStateOrClose(unsigned int state);
+    void updateOverlayOrClose();
     void approveConnectionOrClose(bool accept, const char* reason);
     void requestClipboardOrClose();
     void announceClipboardOrClose(bool available);
@@ -171,6 +181,7 @@ namespace rfb {
     void setCursorPos();
     void setDesktopName(const char *name);
     void setLEDState(unsigned int state);
+    void updateOverlay();
     void desktopReady() override;
 
   private:
@@ -191,6 +202,7 @@ namespace rfb {
     core::Timer losslessTimer;
 
     VNCServerST* server;
+    OverlayPixelBuffer* overlayBuffer;
     SimpleUpdateTracker updates;
     core::Region requested;
     bool updateRenderedCursor, removeRenderedCursor;
