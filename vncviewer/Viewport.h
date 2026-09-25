@@ -49,6 +49,12 @@ public:
   // Flush updates to screen
   void updateWindow();
 
+  void setFramebufferSize(int width, int height);
+  int framebufferWidth() const;
+  int framebufferHeight() const;
+  core::Point mapToFramebuffer(const core::Point& pos) const;
+  core::Point mapFromFramebuffer(const core::Point& pos) const;
+
   // New image for the locally rendered cursor
   void setCursor();
 

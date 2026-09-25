@@ -28,6 +28,7 @@ typedef struct CGImage* CGImageRef;
 #include <X11/extensions/Xrender.h>
 #endif
 
+
 class Fl_RGB_Image;
 
 class Surface {
@@ -45,6 +46,10 @@ public:
             int dst_w, int dst_h);
   void draw(Surface* dst, int src_x, int src_y, int dst_x, int dst_y,
             int dst_w, int dst_h);
+  void drawScaled(int src_x, int src_y, int src_w, int src_h,
+                  int dst_x, int dst_y, int dst_w, int dst_h);
+  void drawScaled(Surface* dst, int src_x, int src_y, int src_w, int src_h,
+                  int dst_x, int dst_y, int dst_w, int dst_h);
 
   void blend(int src_x, int src_y, int dst_x, int dst_y,
              int dst_w, int dst_h, int a=255);
@@ -72,4 +77,3 @@ protected:
 };
 
 #endif
-

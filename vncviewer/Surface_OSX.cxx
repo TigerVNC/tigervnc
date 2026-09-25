@@ -21,6 +21,7 @@
 #endif
 
 #include <assert.h>
+#include <math.h>
 
 #include <stdexcept>
 
@@ -67,7 +68,7 @@ static CGImageRef create_image(CGColorSpaceRef lut,
 }
 
 static void render(CGContextRef gc, CGColorSpaceRef lut,
-                   const unsigned char* data,
+                   const unsigned char* data, int image_w, int image_h,
                    CGBlendMode mode, CGFloat alpha,
                    int src_x, int src_y, int src_w, int src_h,
                    int x, int y, int w, int h)
@@ -75,12 +76,13 @@ static void render(CGContextRef gc, CGColorSpaceRef lut,
   CGRect rect;
   CGImageRef image, subimage;
 
-  image = create_image(lut, data, src_w, src_h, mode == kCGBlendModeCopy);
+  image = create_image(lut, data, image_w, image_h,
+                       mode == kCGBlendModeCopy);
 
   rect.origin.x = src_x;
   rect.origin.y = src_y;
-  rect.size.width = w;
-  rect.size.height = h;
+  rect.size.width = src_w;
+  rect.size.height = src_h;
 
   subimage = CGImageCreateWithImageInRect(image, rect);
   if (!subimage)
@@ -139,28 +141,54 @@ void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned 
 void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
                    int dst_w, int dst_h)
 {
+  drawScaled(src_x, src_y, dst_w, dst_h, dst_x, dst_y, dst_w, dst_h);
+}
+
+void Surface::drawScaled(int src_x, int src_y, int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
+{
   CGColorSpaceRef lut;
+  CGAffineTransform transform;
+  CGFloat scale_x, scale_y;
+  CGFloat scaled_x, scaled_y, scaled_w, scaled_h;
 
   CGContextSaveGState(fl_gc);
+
+  transform = CGContextGetCTM(fl_gc);
+  scale_x = sqrt(transform.a * transform.a + transform.b * transform.b);
+  scale_y = sqrt(transform.c * transform.c + transform.d * transform.d);
 
   // Reset the transformation matrix back to the default identity
   // matrix as otherwise we get a massive performance hit
   CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
 
-  // macOS Coordinates are from bottom left, not top left
-  dst_y = Fl_Window::current()->h() - (dst_y + dst_h);
+  // FLTK supplies logical coordinates, but the identity context uses
+  // backing pixels. Convert before flipping from top-left to bottom-left.
+  scaled_x = dst_x * scale_x;
+  scaled_w = dst_w * scale_x;
+  scaled_h = dst_h * scale_y;
+  scaled_y = Fl_Window::current()->h() * scale_y -
+             (dst_y + dst_h) * scale_y;
 
   lut = CGBitmapContextGetColorSpace(fl_gc);
   assert(lut);
 
-  render(fl_gc, lut, data, kCGBlendModeCopy, 1.0,
-         src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
+  render(fl_gc, lut, data, width(), height(), kCGBlendModeCopy, 1.0,
+         src_x, src_y, src_w, src_h,
+         scaled_x, scaled_y, scaled_w, scaled_h);
 
   CGContextRestoreGState(fl_gc);
 }
 
 void Surface::draw(Surface* dst, int src_x, int src_y,
                    int dst_x, int dst_y, int dst_w, int dst_h)
+{
+  drawScaled(dst, src_x, src_y, dst_w, dst_h, dst_x, dst_y, dst_w, dst_h);
+}
+
+void Surface::drawScaled(Surface* dst, int src_x, int src_y,
+                         int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
 {
   CGContextRef bitmap;
 
@@ -169,8 +197,8 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
   // macOS Coordinates are from bottom left, not top left
   dst_y = dst->height() - (dst_y + dst_h);
 
-  render(bitmap, srgb, data, kCGBlendModeCopy, 1.0,
-         src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
+  render(bitmap, srgb, data, width(), height(), kCGBlendModeCopy, 1.0,
+         src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h);
 
   CGContextRelease(bitmap);
 }
@@ -192,8 +220,9 @@ void Surface::blend(int src_x, int src_y, int dst_x, int dst_y,
   lut = CGBitmapContextGetColorSpace(fl_gc);
   assert(lut);
 
-  render(fl_gc, lut, data, kCGBlendModeNormal, (CGFloat)a/255.0,
-         src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
+  render(fl_gc, lut, data, width(), height(), kCGBlendModeNormal,
+         (CGFloat)a/255.0, src_x, src_y, dst_w, dst_h,
+         dst_x, dst_y, dst_w, dst_h);
 
   CGContextRestoreGState(fl_gc);
 }
@@ -208,8 +237,9 @@ void Surface::blend(Surface* dst, int src_x, int src_y,
   // macOS Coordinates are from bottom left, not top left
   dst_y = dst->height() - (dst_y + dst_h);
 
-  render(bitmap, srgb, data, kCGBlendModeNormal, (CGFloat)a/255.0,
-         src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
+  render(bitmap, srgb, data, width(), height(), kCGBlendModeNormal,
+         (CGFloat)a/255.0, src_x, src_y, dst_w, dst_h,
+         dst_x, dst_y, dst_w, dst_h);
 
   CGContextRelease(bitmap);
 }
