@@ -36,6 +36,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sys/time.h>
+#include <algorithm>
+#include <chrono>
+#include <vector>
 
 #include <core/Configuration.h>
 
@@ -57,6 +60,11 @@
 static core::IntParameter width("width", "Frame buffer width", 0);
 static core::IntParameter height("height", "Frame buffer height", 0);
 static core::IntParameter count("count", "Number of benchmark iterations", 9);
+static core::IntParameter encodingParam("encoding",
+                                       "Preferred encoding number (0 Raw, "
+                                       "2 RRE, 5 Hextile, 7 Tight, "
+                                       "16 ZRLE, 21 JPEG)",
+                                       rfb::encodingTight);
 
 static core::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
@@ -114,6 +122,7 @@ public:
 public:
   double decodeTime;
   double encodeTime;
+  std::vector<double> encodeFrameTimes;
 
 protected:
   rdr::FileInStream *in;
@@ -135,6 +144,8 @@ public:
   ~SConn();
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
+
+  void setEncoding(int32_t selectedEncoding);
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
@@ -200,7 +211,7 @@ CConn::CConn(const char *filename)
 
   sc = new SConn();
   sc->client.setPF((bool)translate ? fbPF : pf);
-  ((rfb::SMsgHandler*)sc)->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
+  sc->setEncoding(encodingParam);
 }
 
 CConn::~CConn()
@@ -248,7 +259,11 @@ void CConn::framebufferUpdateEnd()
   updates.getUpdateInfo(&ui, clip);
 
   startCpuCounter();
+  const auto encodeStart = std::chrono::steady_clock::now();
   sc->writeUpdate(ui, pb);
+  const auto encodeEnd = std::chrono::steady_clock::now();
+  encodeFrameTimes.push_back(
+    std::chrono::duration<double, std::milli>(encodeEnd - encodeStart).count());
   endCpuCounter();
 
   encodeTime += getCpuCounter();
@@ -327,6 +342,19 @@ SConn::SConn()
   manager = new Manager(this);
 }
 
+void SConn::setEncoding(int32_t selectedEncoding)
+{
+  std::vector<int32_t> selectedEncodings;
+
+  selectedEncodings.push_back(selectedEncoding);
+  for (int32_t candidate : encodings) {
+    if (candidate != selectedEncoding)
+      selectedEncodings.push_back(candidate);
+  }
+  ((rfb::SMsgHandler*)this)->setEncodings(selectedEncodings.size(),
+                                           selectedEncodings.data());
+}
+
 SConn::~SConn()
 {
   delete manager;
@@ -369,6 +397,7 @@ struct stats
   double ratio;
   unsigned long long bytes;
   unsigned long long rawEquivalent;
+  double maxEncodeFrameTime;
 };
 
 static struct stats runTest(const char *fn)
@@ -399,6 +428,9 @@ static struct stats runTest(const char *fn)
 
   s.decodeTime = cc->decodeTime;
   s.encodeTime = cc->encodeTime;
+  std::vector<double> frameTimes = cc->encodeFrameTimes;
+  std::sort(frameTimes.begin(), frameTimes.end());
+  s.maxEncodeFrameTime = frameTimes.empty() ? 0 : frameTimes.back();
   s.realTime = (double)stop.tv_sec - start.tv_sec;
   s.realTime += ((double)stop.tv_usec - start.tv_usec)/1000000.0;
   cc->getStats(s.ratio, s.bytes, s.rawEquivalent);
@@ -501,6 +533,11 @@ int main(int argc, char **argv)
     usage(argv[0]);
   }
 
+  if (!rfb::EncodeManager::supported(encodingParam)) {
+    fprintf(stderr, "Unsupported encoding number: %d\n", (int)encodingParam);
+    return 1;
+  }
+
   // Warmup
   runTest(fn);
 
@@ -537,6 +574,17 @@ int main(int argc, char **argv)
   meddev = dev[runCount/2];
 
   printf("CPU time (encoding): %g s (+/- %g %%)\n", median, meddev);
+
+  for (i = 0; i < runCount; i++)
+    values[i] = runs[i].maxEncodeFrameTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
+  for (i = 0; i < runCount; i++)
+    dev[i] = median == 0 ? 0 : fabs((values[i] - median) / median) * 100;
+  sort(dev, runCount);
+  meddev = dev[runCount/2];
+  printf("Max framebuffer encode time: %g ms (+/- %g %%)\n", median, meddev);
 
   // And for CPU core usage encoding
   for (i = 0;i < runCount;i++)
