@@ -103,6 +103,5 @@ void ImageCopyCaptureManager::createSession()
   cursorSession = new ImageCopyCaptureCursorSession(display,
                                                     cursorSessionHandle,
                                                     cursorImageCb,
-                                                    cursorPosCb,
-                                                    stoppedCb);
+                                                    cursorPosCb);
 }
