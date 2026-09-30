@@ -37,6 +37,7 @@
 
 namespace rfb {
   class VNCServerST;
+  class FadingPixelBuffer;
 
   class VNCSConnectionST : private SConnection,
                            public core::Timer::Callback {
@@ -154,6 +155,8 @@ namespace rfb {
 
     bool isShiftPressed();
 
+    int timeToIdleTimeout();
+
     // Congestion control
     void writeRTTPing();
     bool isCongested();
@@ -191,6 +194,7 @@ namespace rfb {
     core::Timer losslessTimer;
 
     VNCServerST* server;
+    FadingPixelBuffer* fadedBuffer;
     SimpleUpdateTracker updates;
     core::Region requested;
     bool updateRenderedCursor, removeRenderedCursor;
@@ -202,6 +206,7 @@ namespace rfb {
     std::map<uint32_t, uint32_t> pressedKeys;
 
     core::Timer idleTimer;
+    core::Timer fadeTimer;
 
     time_t pointerEventTime;
     core::Point pointerEventPos;

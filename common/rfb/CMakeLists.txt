@@ -29,6 +29,7 @@ add_library(rfbserver STATIC
   ClientParams.cxx
   EncodeManager.cxx
   Encoder.cxx
+  FadingPixelBuffer.cxx
   HextileEncoder.cxx
   JPEGEncoder.cxx
   RREEncoder.cxx
