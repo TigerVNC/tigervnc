@@ -55,7 +55,7 @@ else()
 endif()
 
 if(HAVE_AUDIO)
-  target_sources(vncviewer PRIVATE AudioOutput.cxx)
+  target_sources(vncviewer PRIVATE AudioAdapter.cxx AudioOutput.cxx resampler.c)
   if(WIN32)
     target_sources(vncviewer PRIVATE AudioOutputWin32.cxx)
   elseif(APPLE)
