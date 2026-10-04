@@ -234,6 +234,11 @@ void XserverDesktop::setLEDState(unsigned int state)
   server->setLEDState(state);
 }
 
+void XserverDesktop::updateOverlay()
+{
+  server->updateOverlay();
+}
+
 void XserverDesktop::setDesktopName(const char* name)
 {
   try {

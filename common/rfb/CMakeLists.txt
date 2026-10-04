@@ -13,17 +13,28 @@ add_library(rfb STATIC
   JpegDecompressor.cxx
   KeyRemapper.cxx
   KeysymStr.c
+  OverlayContentPng.cxx
+  OverlayContentQr.cxx
+  OverlayContentText.cxx
+  OverlayPixelBuffer.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
   Security.cxx
   UpdateTracker.cxx
   encodings.cxx
-  obfuscate.cxx)
+  obfuscate.cxx
+  ${CMAKE_SOURCE_DIR}/common/qrcodegen/qrcodegen.cpp)
 
 target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
+target_include_directories(rfb SYSTEM PUBLIC ${FREETYPE_INCLUDE_DIRS})
+target_include_directories(rfb SYSTEM PUBLIC ${Fontconfig_INCLUDE_DIRS})
+target_include_directories(rfb SYSTEM PUBLIC ${PNG_INCLUDE_DIRS})
 target_link_libraries(rfb core rdr)
 target_link_libraries(rfb ${JPEG_LIBRARIES})
+target_link_libraries(rfb ${FREETYPE_LIBRARIES})
+target_link_libraries(rfb ${Fontconfig_LIBRARIES})
+target_link_libraries(rfb ${PNG_LIBRARIES})
 
 add_library(rfbserver STATIC
   ClientParams.cxx

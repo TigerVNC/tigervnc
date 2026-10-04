@@ -151,6 +151,11 @@ namespace rfb {
     // setLEDState() tells the server what the current lock keys LED
     // state is
     virtual void setLEDState(unsigned int state) = 0;
+
+    // updateOverlay() tells the server to re-read the
+    // OverlayPos/OverlayInput/OverlayAlpha/OverlaySize/OverlayPadding/OverlayFont
+    // configuration and push the change out to all connected clients
+    virtual void updateOverlay() = 0;
   };
 }
 #endif

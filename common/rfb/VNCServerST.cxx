@@ -523,6 +523,14 @@ void VNCServerST::setLEDState(unsigned int state)
     (*ci)->setLEDStateOrClose(state);
 }
 
+void VNCServerST::updateOverlay()
+{
+  std::list<VNCSConnectionST*>::iterator ci;
+
+  for (ci = clients.begin(); ci != clients.end(); ++ci)
+    (*ci)->updateOverlayOrClose();
+}
+
 // Event handlers
 
 void VNCServerST::keyEvent(uint32_t keysym, uint32_t keycode, bool down)

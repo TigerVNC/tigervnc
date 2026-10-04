@@ -26,14 +26,24 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <string.h>
+#include <string>
 
+#include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 #include <core/LogWriter.h>
+#include <core/Region.h>
 #include <core/string.h>
-
+#include "core/Rect.h"
 #include <rfb/PixelBuffer.h>
+
+#include <pixman.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <fontconfig/fontconfig.h>
 
 using namespace rfb;
 

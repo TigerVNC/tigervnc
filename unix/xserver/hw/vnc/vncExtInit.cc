@@ -331,6 +331,12 @@ void vncUpdateDesktopName(void)
     desktop[scr]->setDesktopName(desktopName);
 }
 
+void vncUpdateOverlay(void)
+{
+  for (int scr = 0; scr < vncGetScreenCount(); scr++)
+    desktop[scr]->updateOverlay();
+}
+
 void vncRequestClipboard(void)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
